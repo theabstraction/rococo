@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #include <rococo.api.h>
 #include <rococo.os.win32.h>
 #include <rococo.functional.h>
@@ -50,7 +51,7 @@ namespace
 
 namespace Rococo::OS
 {
-	ROCOCO_UTILS_EX_API void LoadAsciiTextFile(Function<void(cstr)> onLoad, const wchar_t* filename)
+	ROCOCO_API void LoadAsciiTextFile(Function<void(cstr)> onLoad, const wchar_t* filename)
 	{
 		std::vector<char> asciiData;
 

@@ -1,0 +1,228 @@
+(namespace Sys.IO)
+
+(using Sys.Type)
+(using Sys.Type.Formatters)
+
+(interface Sys.IO.IWriter // Sexy's implementation of stdio FILE* write operations. Numeric write operations use width, precision, EFG, Hex/Unsigned/Decimal, ZeroPrefix and RightAlign to determine formatting rules
+	(attribute builder Write) // if we have a variable s of type IWriter then (s X) calls (s.WriteTypeX X), e.g (s 1) calls (s.WriteInt32 1)
+
+	// Buffering
+	(Flush ->)
+	(FlushWhenBufferFull (Int32 bufferLen)->)
+	(FlushWhenNewLine (Int32 bufferLen)->)
+	(FlushWhenWritten ->)
+
+	(WriteChar (Int32 eightBitCode) -> ) // Writes the least significant unsigned byte as a character code. The other bits are ignored
+	(WriteInt32 (Int32 x) -> )
+	(WriteInt64 (Int64 x) -> )
+	(WriteFloat32 (Float32 x) -> )
+	(WriteFloat64 (Float64 x) -> )
+	(WriteBool (Bool x) -> )
+	(WritePointer (Pointer x) -> )
+	(WriteIExpression (IExpression s) -> ) // Width gives the brace padding and Precision gives the inline spacing
+	(WriteIExpressionBuilder (IExpressionBuilder s) -> ) // Width gives the brace padding and Precision gives the inline spacing
+	(WriteIString (IString s) -> ) // Will not have width and precision applied unless WriteAsFormat preceeds the operation
+	(WriteIStringBuilder (IStringBuilder s) -> )
+	(WriteAsHex (AsHex null) ->)
+	(WriteAsUnsigned (AsUnsigned null) ->)
+	(WriteAsDecimal (AsDecimal null) ->)
+	(WriteAsSpecE (AsSpecE null) ->) // Set float and double formats to e format
+	(WriteAsSpecF (AsSpecF null) ->) // Set float and double formats to f format
+	(WriteAsSpecG (AsSpecG null) ->) // Set float and double formats to g format
+	(WriteAsNewLine (AsNewLine null) ->)
+	(WriteAsFormat (AsFormat null) ->)
+	(WriteSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) ->)
+
+	// Formatting API
+	(SetPrecision (Int32 precision)->)
+	(SetWidth (Int32 width)->)
+	(SetZeroPrefix (Bool isZeroPrefixed)->)
+	(SetRightAlign (Bool isRightAligned)->)
+	(SetFormattingToDefault ->)
+)
+
+(interface Sys.IO.IFileWriter (extends Sys.IO.IWriter) (attribute builder Write)
+
+	(Length -> (Int64 length))
+	(Position -> (Int64 position))
+	(SetPosition (Int64 newPosition)->)
+	(IsEOF -> (Bool isEOF)) // Returns true if end-of-file
+	(ClearError ->) // Clear the error for the stream
+	(GetError -> (Int32 systemErrorCode)) // If the file is in an error state, returns the error code
+)
+
+(class FileWriter
+	(implements Sys.IO.IFileWriter)
+	(Pointer hFile)
+	(Int32 precision)
+	(Int32 width)
+	(Int32 flags)
+)
+
+(method FileWriter.FlushWhenBufferFull (Int32 bufferLen)-> :
+	(Sys.IO.Native.SetWriterBuffering this bufferLen 1)
+)
+
+(method FileWriter.FlushWhenNewLine (Int32 bufferLen)-> :
+	(Sys.IO.Native.SetWriterBuffering this bufferLen 2)
+)
+
+(method FileWriter.FlushWhenWritten -> :
+	(Sys.IO.Native.SetWriterBuffering this 0 3)
+)
+
+(method FileWriter.WriteChar (Int32 eightBitCode) -> :
+	(Sys.IO.Native.WriteChar this eightBitCode)
+)
+
+(method FileWriter.WriteInt32 (Int32 x) -> :
+	(Sys.IO.Native.WriteInt32 this x)
+)
+
+(method FileWriter.WriteInt64 (Int64 x) -> :
+	(Sys.IO.Native.WriteInt64 this x)
+)
+
+(method FileWriter.WriteFloat32 (Float32 x) -> :
+	(Sys.IO.Native.WriteFloat32 this x)
+)
+
+(method FileWriter.WriteFloat64 (Float64 x) -> :
+	(Sys.IO.Native.WriteFloat64 this x)
+)
+
+(method FileWriter.WriteBool (Bool x) -> :
+	(Sys.IO.Native.WriteBool this x)
+)
+
+(method FileWriter.WritePointer (Pointer x) -> :
+	(Sys.IO.Native.WritePointer this x)
+)
+
+(method FileWriter.WriteIExpression (IExpression s) -> :
+	(Sys.IO.Native.WriteIExpression this s)
+)
+
+(method FileWriter.WriteIExpressionBuilder (IExpressionBuilder sb) -> :
+	(Sys.IO.Native.WriteIExpressionBuilder this sb)
+)
+
+(method FileWriter.WriteIString (IString s) -> :
+	(Sys.IO.Native.WriteIString this s)
+)
+
+(method FileWriter.WriteIStringBuilder (IStringBuilder s) -> :
+	(Sys.IO.Native.WriteIString this s)
+)
+
+(method FileWriter.WriteAsHex (AsHex null) -> :
+	(Sys.IO.Native.WriteAsHex this)
+)
+
+(method FileWriter.WriteAsDecimal (AsDecimal null) -> :
+	(Sys.IO.Native.WriteAsDecimal this)
+)
+
+(method FileWriter.WriteAsUnsigned (AsUnsigned null) -> :
+	(Sys.IO.Native.WriteAsUnsigned this)
+)
+
+(method FileWriter.WriteAsSpecE (AsSpecE null) -> :
+	(Sys.IO.Native.WriteAsSpecE this)
+)
+
+(method FileWriter.WriteAsSpecF (AsSpecF null) -> :
+	(Sys.IO.Native.WriteAsSpecF this)
+)
+
+(method FileWriter.WriteAsSpecG (AsSpecG null) -> :
+	(Sys.IO.Native.WriteAsSpecG this)
+)
+
+(method FileWriter.WriteAsNewLine (AsNewLine null) -> :
+	(Sys.IO.Native.WriteAsNewLine this)
+)
+
+(method FileWriter.WriteSubstring (IString s) (Int32 startPos) (Int32 numberOfChars) -> :
+	(Sys.IO.Native.WriteSubstring this s startPos numberOfChars)
+)
+
+(method FileWriter.Flush -> :
+	(Sys.IO.Native.FlushWriter this)
+)
+
+(method FileWriter.SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) -> :
+	(Sys.IO.Native.SetFormat this precision width isZeroPrefixed isRightAligned)
+)
+
+(method FileWriter.SetPrecision (Int32 precision)-> :
+	(Sys.IO.Native.SetPrecision this precision)
+)
+
+(method FileWriter.SetWidth (Int32 width)-> :
+	(Sys.IO.Native.SetWidth this width)
+)
+
+(method FileWriter.SetZeroPrefix (Bool isZeroPrefixed)-> :
+	(Sys.IO.Native.SetZeroPrefix this isZeroPrefixed)
+)
+
+(method FileWriter.SetRightAlign (Bool isRightAligned)-> :
+	(Sys.IO.Native.SetRightAlign this isRightAligned)
+)
+
+(method FileWriter.IsEOF -> (Bool isEOF) :
+	(Sys.IO.Native.IsEOF this 0> isEOF)
+)
+
+(method FileWriter.ClearError -> :
+	(Sys.IO.Native.ClearError this)
+)
+
+(method FileWriter.GetError -> (Int32 systemErrorCode) :
+	(Sys.IO.Native.GetError this -> (Int32 systemErrorCode))
+)
+
+(method FileWriter.SetFormattingToDefault -> :
+	(Sys.IO.Native.UseDefaultFormatting this)
+)
+
+(method FileWriter.WriteAsFormat (AsFormat null) -> :
+	(Sys.IO.Native.WriteAsFormat this)
+)
+
+(method FileWriter.Length -> (Int64 lengthInBytes):
+	(Sys.IO.Native.GetFileLength this -> lengthInBytes)
+)
+
+(method FileWriter.Position -> (Int64 position) :
+	(Sys.IO.Native.GetFilePosition this -> position)
+)
+
+(method FileWriter.SetPosition (Int64 position) -> :
+	(Sys.IO.Native.SetFilePosition this position)
+)
+
+(using Sys.Reflection)
+
+(function BuildPrintStatement (IExpression in)(IExpressionBuilder out)-> :
+	(#token stdoutVar "stdoutBPS" Sys.Maths.I64.GenUnique)
+	
+	(IExpressionBuilder stdoutWriterInit = out.AddCompound)
+	(stdoutWriterInit.AddAtomic "Sys.IO.IWriter")
+	(stdoutWriterInit.AddAtomic stdoutVar)
+	(stdoutWriterInit.AddAtomic "=")
+	(stdoutWriterInit.AddAtomic "GetStdOut")
+	
+	(IExpressionBuilder builderSequence = out.AddCompound)
+	(#for (Int32 i = 1) (i < in.ChildCount) (i += 1)
+		(IExpressionBuilder builderChild = builderSequence.AddCompound)
+		(builderChild.AddAtomic stdoutVar)
+		(builderChild.Copy (in i))
+	)
+)
+
+(macro Sys.IO.printf in out
+	(Sys.ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##printf args...)")
+	(BuildPrintStatement in out)
+)

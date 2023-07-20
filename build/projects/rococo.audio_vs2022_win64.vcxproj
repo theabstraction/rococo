@@ -143,15 +143,13 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.audio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.audio.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc
-</Command>
+      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -234,20 +232,16 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.audio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.audio.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Release\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc
-</Command>
+      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Release\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />

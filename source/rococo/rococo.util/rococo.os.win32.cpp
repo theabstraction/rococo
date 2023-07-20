@@ -400,33 +400,6 @@ namespace Rococo
 
 namespace
 {
-	struct FileHandle
-	{
-		HANDLE hFile;
-
-		FileHandle(HANDLE _hFile) : hFile(_hFile)
-		{
-		}
-
-		bool IsValid() const
-		{
-			return hFile != INVALID_HANDLE_VALUE;
-		}
-
-		~FileHandle()
-		{
-			if (IsValid()) CloseHandle(hFile);
-		}
-
-		operator HANDLE()
-		{
-			return hFile;
-		}
-	};
-}
-
-namespace
-{
 	class CriticalSection: public Rococo::OS::ICriticalSection
 	{
 	private:
@@ -1055,7 +1028,7 @@ namespace Rococo
 	}
 }
 
-namespace
+namespace WIN32_ANON
 {
 	using namespace Rococo;
 
@@ -1766,7 +1739,7 @@ namespace
 		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
 			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
+			if (hFile == INVALID_HANDLE_VALUE) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
 
 			LARGE_INTEGER len;
 			GetFileSizeEx(hFile, &len);
@@ -1807,7 +1780,7 @@ namespace
 		void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const override
 		{
 			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-			if (!hFile.IsValid()) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
+			if (hFile == INVALID_HANDLE_VALUE) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
 
 			LARGE_INTEGER len;
 			GetFileSizeEx(hFile, &len);
@@ -1852,12 +1825,12 @@ namespace Rococo::IO
 {
 	ROCOCO_API IOSSupervisor* GetIOS()
 	{
-		return new Win32OS();
+		return new WIN32_ANON::Win32OS();
 	}
 
 	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
 	{
-		return new Installation(contentIndicatorName, os);
+		return new WIN32_ANON::Installation(contentIndicatorName, os);
 	}
 
 	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
@@ -1870,7 +1843,7 @@ namespace Rococo::IO
 			Throw(0, "Content %ws did not end with %ws", contentDirectory, slash);
 		}
 
-		return new Installation(os, contentDirectory);
+		return new WIN32_ANON::Installation(os, contentDirectory);
 	}
 }
 
@@ -2894,6 +2867,8 @@ namespace Rococo
 
 namespace
 {
+	using namespace Rococo;
+
 	struct AutoFile
 	{
 		HANDLE hFile = INVALID_HANDLE_VALUE;

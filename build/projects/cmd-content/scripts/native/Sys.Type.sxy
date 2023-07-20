@@ -1,0 +1,298 @@
+(using Sys.Type)
+(using Sys.Reflection)
+
+(interface Sys.Type.IException
+	(ErrorCode -> (Int32 errorCode))
+	(Message -> (IString message))
+)
+
+(function Throw (Int32 errorCode) (IString message) -> :
+	(IException ex (Sys.Type.NewException errorCode message))
+	(throw ex)
+)
+
+(function ThrowIndexNegative -> :
+	(Throw -1 "Argument index was negative")
+)
+
+(function ThrowIndexExceededBounds -> :
+	(Throw -1 "Argument index was higher than the collection upper bound.")
+)
+
+(function ValidateSubscriptRange (Int32 i) (Int32 min) (Int32 max) (IString message) -> :
+	(if ((i < min) or (i > max)) (Sys.Throw -1 message))
+)
+
+(alias ValidateSubscriptRange Sys.ValidateSubscriptRange)
+
+(class GenericException
+	(implements IException)
+	(Int32 errorCode)
+	(IString message)
+)
+
+(method GenericException.ErrorCode -> (Int32 errorCode):
+	(errorCode = this.errorCode)
+)
+
+(method GenericException.Message -> (IString message):
+	(message = this.message)
+)
+
+(method GenericException.Construct (Int32 errorCode)(IString message): 
+	(this.errorCode = errorCode)
+	(this.message = message)
+)
+
+(factory Sys.Type.NewException Sys.Type.IException (Int32 errorCode)(IString message):
+	(construct GenericException errorCode message)
+)
+
+(alias Throw Sys.Throw)
+(alias ThrowIndexNegative Sys.ThrowIndexNegative)
+(alias ThrowIndexExceededBounds Sys.ThrowIndexExceededBounds)
+
+(function Print (IString s) -> (Int32 charCount):
+	(Sys.Type.NativePrint s.Buffer -> charCount)
+)
+
+(alias Print Sys.Print)
+
+// Example: (#for (Int32 i = 0) (i < 10)  (i = (i + 1)) (CallFunction i) )
+(macro Sys.Type.for in out
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#for (init-condition)   (while-test-boolean-valued-expression)   (loop-increment)   (body1)...(bodyN)  )")
+	(out.Copy (in 1))
+	(IExpressionBuilder whileLoop = out.AddCompound)
+	(whileLoop.AddAtomic "while")
+	(whileLoop.Copy (in 2))
+
+	(Int32 i = 4)
+	(while (i < in.ChildCount) 
+		(whileLoop.Copy (in i))
+		(i = (i + 1))
+	)
+
+	(whileLoop.Copy (in 3))
+) 
+
+// Example: (#inc i) maps to (i = (i+1) )
+(macro Sys.Type.inc in out
+	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#inc <variable-name>)")
+	(IExpression format = ' ($1 = ($1 + 1)))
+	(out.Substitute in format)
+)
+
+// Example: (#dec i) maps to (i = (i-1) )
+(macro Sys.Type.dec in out
+	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#dec <variable-name>)")
+	(IExpression format = ' ($1 = ($1 - 1)))
+	(out.Substitute in format)
+)
+
+// Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
+(macro Sys.Type.build in out
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##build <variable-name> <arg1> ... <argN>)")
+	(ConvertArgsToExpressionPairs in (in 1) out 2)
+)
+
+// Scans the trailing arguments of an expression (... arg1 arg2 .. argN) and appends (lhs arg1)(lhs arg2)...(lhs argN) to the output
+(function ConvertArgsToExpressionPairs (IExpression in)(IExpression lhs)(IExpressionBuilder out)(Int32 startIndex)-> :
+	(#for (Int32 i = startIndex) (i < in.ChildCount) (i += 1)
+		(IExpressionBuilder child = out.AddCompound)
+		(child.Copy lhs)
+		(child.Copy (in i))
+	)
+)
+
+(function ExpandStringMacro (IExpression in)(IExpressionBuilder out)-> :
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##string <variable-name> <capacity> <arg1> ... <argN>)")
+	(out.AddAtomic "IStringBuilder")
+	(out.Copy (in 1))
+	(out.AddAtomic "=")
+	(IExpressionBuilder factoryCall = out.AddCompound)
+	(factoryCall.AddAtomic "NewStringBuilder")
+	(factoryCall.Copy (in 2))
+	
+	(if (in.ChildCount > 3)
+		(IExpressionBuilder parent = out.TransformParent)
+		(Int32 outIndex)
+		(parent.IndexOf in -> outIndex)
+		
+		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))	
+		(ConvertArgsToExpressionPairs in (in 1) builderSequence 3)
+	)
+)
+
+(function ExpandStringMacroEx (IString factoryName) (IExpression in)(IExpressionBuilder out)(Bool doNotTruncate)-> :
+	(out.AddAtomic "IStringBuilder")
+	(IExpression variableName = (in 1))
+	(out.AddAtomic variableName.Text)
+	(out.AddAtomic "=")
+	(IExpressionBuilder factoryCall = out.AddCompound)
+	(factoryCall.AddAtomic factoryName)
+	
+	(if (in.ChildCount > 2)
+		(IExpressionBuilder parent = out.TransformParent)
+		(Int32 outIndex)
+		(parent.IndexOf in -> outIndex)
+		
+		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))
+
+		(if doNotTruncate
+			(IStringBuilder sb = (NewPathBuilder))
+			(#build sb variableName.Text ".ThrowIfAppendWouldTruncate")
+			(builderSequence.AddAtomic sb)		
+			(outIndex += 1)
+			(builderSequence = (parent.InsertCompoundAfter outIndex))
+		)
+		
+		(ConvertArgsToExpressionPairs in variableName builderSequence 2)
+	)
+)
+
+(alias ExpandStringMacro Sys.Type.ExpandStringMacro)
+
+// Example (#string sb 64 "Position:" 37 "," 124) maps to (IStringBuilder sb = (NewStringBuilder 64)) ((sb.AppendIString "Position:")(sb.AppendIString 37) (sb.AppendIString ",") (sb.AppendInt32 124))
+(macro Sys.Type.string in out
+	(ExpandStringMacro in out)
+)
+
+// Usage (#token <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewTokenBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
+// Tokens have 64 character capacity (including the terminating nul char)
+(macro Sys.Type.token in out
+	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##token <variable-name> args...)")
+	(ExpandStringMacroEx "NewTokenBuilder" in out true)
+)
+
+// Usage (#path <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewPathBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
+// Paths have 260 character capacity (including the terminating nul char)
+(macro Sys.Type.path in out
+	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##path <variable-name> args...)")
+	(ExpandStringMacroEx "NewPathBuilder" in out true)
+)
+
+// Usage (#paragraph <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewParagraphBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
+// Paragraphs have 1024 character capacity (including the terminating nul char)
+(macro Sys.Type.paragraph in out
+	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##paragraph <variable-name> args...)")
+	(ExpandStringMacroEx "NewParagraphBuilder" in out false)
+)
+
+(archetype Sys.Type.VoidToVoid -> )
+
+(interface Sys.ICoroutine
+	(attribute essential)
+	(Run ->)
+)
+
+(struct RGBAf32x4 
+	(Float32 r g b a)
+)
+
+(alias RGBAf32x4 Sys.Type.RGBA)
+
+// Coroutines start here - copied and pasted from the coroutine.sxh.sxy file */
+(interface Sys.ICoroutineControl
+	(attribute essential)
+	(Add (Sys.ICoroutine coroutine) -> (Int64 id))
+	(Continue  -> (Int64 id))
+	(ContinueSpecific (Int64 id) -> (Bool isComplete))
+	(Release (Int64 id) -> (Bool success))
+	(ReleaseAll -> )
+)
+
+(class ProxyICoroutineControl (implements Sys.ICoroutineControl) (Pointer hObject))
+
+(method ProxyICoroutineControl.Construct (Pointer hObject): (this.hObject = hObject))
+(method ProxyICoroutineControl.Add (Sys.ICoroutine coroutine) -> (Int64 id) : (Sys.Native.ICoroutineControlAdd this.hObject coroutine -> id))
+(method ProxyICoroutineControl.Continue  -> (Int64 id) : (Sys.Native.ICoroutineControlContinue this.hObject  -> id))
+(method ProxyICoroutineControl.ContinueSpecific (Int64 id) -> (Bool isComplete) : (Sys.Native.ICoroutineControlContinueSpecific this.hObject id -> isComplete))
+(method ProxyICoroutineControl.Release (Int64 id) -> (Bool success) : (Sys.Native.ICoroutineControlRelease this.hObject id -> success))
+(method ProxyICoroutineControl.ReleaseAll -> : (Sys.Native.ICoroutineControlReleaseAll this.hObject -> ))
+
+	
+(factory Sys.Coroutines Sys.ICoroutineControl  : /* requires PIP.addCoroutineLib = true or similar mechanism to add in nativelib */
+	(Pointer pObject = (Sys.Native.GetHandleForICoroutineControl0 ))
+	(construct ProxyICoroutineControl pObject)
+)
+
+// Coroutines end here
+
+// initializer lists Sexy style // Usage (#PushStructArray <array-name> <element-type>  element0 ... elementN)
+(macro Sys.PushStructArray in out
+	(IStringBuilder sb = NewPathBuilder)
+	(Int32 nInputChildren = ((in.ChildCount) - 3))
+	(IExpression arrayName = (in 1))
+	(IExpression elementType = (in 2))
+	
+	(#for (Int32 j = 3)(j < nInputChildren)(j += 1)
+		(sb.Clear)
+		(arrayName.AppendTextTo sb)
+		(sb ".Push")
+		(IExpressionBuilder pushExpression = out.AddCompound)
+		(pushExpression.AddAtomic sb) 
+		(pushExpression.Copy elementType) // jth statement is (<array-name>.Push <element_type>
+		(Int32 memberwiseIndex = j)
+		(pushExpression.Copy (in memberwiseIndex)) // jth statement is (<array-name>.Push <element_type> <construct args>)
+	)
+)
+
+(macro Sys.entrypoint in out
+	(Sys.ValidateSubscriptRange in.ChildCount 1 1 "Usage: (##Sys.entrypoint)")
+	
+	(out.AddAtomic "namespace")
+	(out.AddAtomic "EntryPoint")
+	
+	(IExpressionBuilder parent = out.TransformParent)
+	(Int32 outIndex = (parent.IndexOf in))
+	(IExpressionBuilder aliasBuilder = (parent.InsertCompoundAfter outIndex))
+	
+	(aliasBuilder.AddAtomic "alias")
+	(aliasBuilder.AddAtomic "Main")
+	(aliasBuilder.AddAtomic "EntryPoint.Main")
+)
+
+(function AppendWithCharacterSubstitutions (IStringBuilder builder) (IString text)(IString substituteThis)(IString withThat) -> :
+	(if (substituteThis.Length != 1)
+		(Sys.Throw 0 "Expecting the [substituteThis] string to be of length 1, i.e one ascii character")
+	)
+	
+	(Int32 substituteThisChar = (substituteThis 0))
+	
+	(#for (Int32 i = 0)(i < text.Length)(i += 1)
+		(Int32 c = (text i))
+		(if (c == substituteThisChar)
+			(builder withThat)
+		else
+			(builder.AppendChar c)
+		)
+	)
+)
+
+(function BuildOptionalType (IExpression in)(IExpressionBuilder out) -> :
+	(IExpression sFQType = (in 1))
+
+	(#token mangledTypeName)
+	(AppendWithCharacterSubstitutions mangledTypeName sFQType.Text "." "")
+	(#token structName "Optional" mangledTypeName)	
+	
+
+	(out.AddAtomic "struct")	
+	(out.AddAtomic structName)
+	(IExpressionBuilder fieldSpec = out.AddCompound)
+	(fieldSpec.AddAtomic sFQType.Text)
+	(fieldSpec.AddAtomic "value")
+	(IExpressionBuilder boolSpec = out.AddCompound)
+	(boolSpec.AddAtomic "Bool")
+	(boolSpec.AddAtomic "isValid")
+)
+
+(namespace Sys.Type.Macros)
+
+(alias AppendWithCharacterSubstitutions Sys.Type.Macros.AppendWithCharacterSubstitutions)
+(alias BuildOptionalType Sys.Type.Macros.BuildOptionalType)	
+
+(macro Sys.optional in out
+	(Sys.ValidateSubscriptRange in.ChildCount 2 2 "Usage: (##Sys.optional <fully-qualified-type>)")	
+	(BuildOptionalType in out)
+)

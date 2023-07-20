@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.compiler.public.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.debug.types.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.dispatch.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.native.sys.type.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\Sexy.S-Parser.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.script.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.stdstrings.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.strings.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.types.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.vm.cpu.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.vm.h" />
+  </ItemGroup>
+</Project>

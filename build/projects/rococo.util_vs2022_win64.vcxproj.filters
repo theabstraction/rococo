@@ -12,9 +12,9 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.strings.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.tables.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.throw.cr_sex.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.ex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.allocator.template.h" />
   </ItemGroup>
 </Project>

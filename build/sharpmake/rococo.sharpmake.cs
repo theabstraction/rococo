@@ -486,6 +486,24 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoIncludeProject : RococoProject
+    {
+        public RococoIncludeProject() : base("rococo.include", "include")
+        {
+            SourceFilesExtensions.Add(".h");
+            SourceFilesExtensions.Add(".inl");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Utility);
+            conf.SolutionFolder = " - Global Headers";
+            conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoECSProject : RococoProject
     {
         public RococoECSProject() : base("rococo.ecs")
@@ -1260,6 +1278,23 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class SexyIncludeProject : RococoProject
+    {
+        public SexyIncludeProject() : base("sexy.include", "sexy/Common")
+        {
+            SourceFilesExtensions.Add(".h");
+            SourceFilesExtensions.Add(".inl");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Utility);
+            conf.SolutionFolder = " - Global Headers";
+        }
+    }
+
+    [Sharpmake.Generate]
     public class SexyScriptProject : SexyProject
     {
         public SexyScriptProject() : base("sexy.script", "SS/sexy.script")
@@ -1455,6 +1490,8 @@ namespace Rococo
                 conf.AddProject<RococoComponentsSkeletonProject>(target);
                 conf.AddProject<RococoECSTestProject>(target);
                 conf.AddProject<SexyDotNetIDEProject>(target);
+                conf.AddProject<RococoIncludeProject>(target);
+                conf.AddProject<SexyIncludeProject>(target);
             }
         }
     }
@@ -1496,6 +1533,8 @@ namespace Rococo
             conf.AddProject<SexyBennyHillProject>(target);
             conf.AddProject<SexyDotNetCLIProject>(target);
             conf.AddProject<SexyDotNetIDEProject>(target);
+            conf.AddProject<RococoIncludeProject>(target);
+            conf.AddProject<SexyIncludeProject>(target);
         }
     }
 
@@ -1556,6 +1595,8 @@ namespace Rococo
             arguments.Generate<RococoECSTestProject>();
             arguments.Generate<SexyDotNetCLIProject>();
             arguments.Generate<SexyDotNetIDEProject>();
+            arguments.Generate<RococoIncludeProject>();
+            arguments.Generate<SexyIncludeProject>();
         }
     }
 }

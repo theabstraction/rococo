@@ -28,8 +28,12 @@
 #include <cstring>
 
 #include <rococo.task.queue.h>
+#include <rococo.hashtable.h>
+
+#include <rococo.time.h>
 
 using namespace Rococo;
+using namespace Rococo::IO;
 using namespace Rococo::Sex;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
@@ -39,6 +43,96 @@ using namespace Rococo::Compiler;
 #else
 #define IS_USING_DEBUG_LIBS false
 #endif
+
+struct CmdInstallation : Rococo::IO::IInstallationSupervisor
+{
+	AutoFree<IO::IOSSupervisor> os = IO::GetIOS();
+	AutoFree<IO::IInstallationSupervisor> baseInstallation;
+	
+	CmdInstallation(cstr installationPath)
+	{
+		if (installationPath == nullptr)
+		{
+			baseInstallation = IO::CreateInstallation(L"content.indicator.txt", *os);
+		}
+		else
+		{
+			WideFilePath wInstallation;
+			Format(wInstallation, L"%hs", installationPath);
+			baseInstallation = IO::CreateInstallationDirect(wInstallation, *os);
+		}
+	}
+
+	~CmdInstallation()
+	{
+
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath& expandedPath) override
+	{
+		return baseInstallation->TryExpandMacro(macroPrefixPlusPath, expandedPath);
+	}
+
+	const wchar_t* Content() const override
+	{
+		return baseInstallation->Content();
+	}
+
+	void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) override
+	{
+		baseInstallation->LoadResource(pingPath, buffer, maxFileLength);
+	}
+
+	void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) override
+	{
+		baseInstallation->LoadResource(resourcePath, cb);
+	}
+
+	bool TryLoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) override
+	{
+		return baseInstallation->TryLoadResource(pingPath, buffer, maxFileLength);
+	}
+
+	void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const override
+	{
+		baseInstallation->ConvertPingPathToSysPath(pingPath, path);
+	}
+
+	void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
+	{
+		baseInstallation->ConvertSysPathToMacroPath(sysPath, pingPath, macro);
+	}
+
+	void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
+	{
+		baseInstallation->ConvertSysPathToPingPath(sysPath, pingPath);
+	}
+
+	bool DoPingsMatch(cstr a, cstr b) const override
+	{
+		return baseInstallation->DoPingsMatch(a, b);
+	}
+
+	void Macro(cstr name, cstr pingFolder) override
+	{
+		baseInstallation->Macro(name, pingFolder);
+	}
+
+	void CompressPingPath(cstr pingPath, U8FilePath& resultPath) const override
+	{
+		baseInstallation->CompressPingPath(pingPath, resultPath);
+	}
+
+	IOS& OS() override
+	{
+		return *os;
+	}
+};
 
 struct CLogger : public ILog
 {
@@ -380,7 +474,7 @@ struct SwitchBind
 
 SwitchBind switchMap[] =
 {
-	{'I', ESwitch::Interactive, "(I)nteractive Mode - use an interactive debugger if an error occurs or a (debug) directive is hit." }
+	{'I', ESwitch::Interactive, "(I)nteractive Mode - use an interactive debugger if an error occurs or a (debug) directive is hit." },	
 };
 
 bool HasSwitch(cstr switches, ESwitch switchValue)
@@ -461,20 +555,8 @@ int mainProtected(int argc, char* argv[])
 	GetNextCmdArgValue(argc, argv, 0, "installation=", installationPath);
 
 	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-	AutoFree<IO::IOSSupervisor> os = IO::GetIOS();
-	AutoFree<IO::IInstallationSupervisor> installation;
+	AutoFree<IO::IInstallationSupervisor> installation = new CmdInstallation(installationPath);
 	
-	if (installationPath == nullptr)
-	{
-		installation = IO::CreateInstallation(L"content.indicator.txt", *os);
-	}
-	else
-	{
-		WideFilePath wInstallation;
-		Format(wInstallation, L"%hs", installationPath);
-		installation = IO::CreateInstallationDirect(wInstallation, *os);
-	}
-
 	ScriptContext sc(*installation, argc, argv);
 	sc.isInteractive = isInteractive;
 

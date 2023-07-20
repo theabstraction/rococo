@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.body.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.configuration.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.skeleton.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\mplat.components.decl.h" />
+    <ClInclude Include="..\..\source\rococo\include\mplat.to.app.events.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocator.template.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.trackers.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.app.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.asset.generator.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.auto-complete.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.auto-release.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.clock.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.compiler.options.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.component.entities.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.csv.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.csv.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.cute.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.debugging.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.DirectX.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.dx11.renderer.win32.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.dx12.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.builder.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.events.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.file.browser.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.fonts.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.fonts.hq.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.functional.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.ex.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.handles.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.hashtable.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ide.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.imaging.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.imports.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.io.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.map.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.maths.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.maths.i32.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.memory.freelist.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.meshes.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mouse.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.dynamic.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.main.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ninja.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.octree.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.os.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.os.win32.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.package.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.parse.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.post.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.quadtree.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.random.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.reflector.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.release.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.ide.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.map.expert.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexystudio.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.stl.allocators.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.strings.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.strings.reflection.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sxytype-inference.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.target.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.task.queue.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.textures.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.time.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ui.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.variable.editor.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.win32.resources.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.win32.target.win7.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.window.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.xaudio2.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.list.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.unordered_map.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="components">
+      <UniqueIdentifier>{f4dc2547-a346-f142-473a-8228e42dfa48}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,178 @@
+(struct Vec3i
+	(Int32 x y z)
+)
+
+(struct Vec2f
+	(Float32 x y)
+)
+
+(struct Rectf
+	(Float32 left top right bottom)
+)
+
+(struct Vec3f
+	(Float32 x y z)
+)
+
+(struct Linef
+	(Vec3f a b)
+)
+
+(struct Trianglef
+	(Vec3f a b c)
+)
+
+(struct Triangle2df
+	(Vec2f a b c)
+)
+
+(struct Quadf
+	(Vec3f a b c d)
+)
+
+(struct Vec4f
+	(Float32 x y z w)
+)
+
+(struct Matrix4x4f
+	(Vec4f r0 r1 r2 r3)
+)
+
+(struct Quatf
+	(Vec3f v)
+	(Float32 s)
+)
+
+(struct Vec2lf
+	(Float64 x y)
+)
+
+(struct Rectlf
+	(Vec2lf left top right bottom)
+)
+
+(struct Vec3lf
+	(Float64 x y z)
+)
+
+(struct Linelf
+	(Vec3lf a b)
+)
+
+(struct Trianglelf
+	(Vec3lf a b c)
+)
+
+(struct Quadlf
+	(Vec3lf a b c d)
+)
+
+(struct Vec4lf
+	(Float64 x y z w)
+)
+
+(struct Quatlf
+	(Float64 s)
+	(Vec3lf v)
+)
+
+(struct FPSAngles
+	(Float32 heading)
+	(Float32 elevation)
+	(Float32 tilt)
+)
+
+(alias FPSAngles Sys.Maths.FPSAngles)
+
+(alias Vec3i Sys.Maths.Vec3i)
+(alias Trianglef Sys.Maths.Triangle)
+(alias Triangle2df Sys.Maths.Triangle2d)
+(alias Vec2f Sys.Maths.Vec2)
+(alias Rectf Sys.Maths.Rectf)
+(alias Vec3f Sys.Maths.Vec3)
+(alias Linef Sys.Maths.Linef)
+(alias Trianglef Sys.Maths.Trianglef)
+(alias Quadf Sys.Maths.Quadf)
+(alias Vec4f Sys.Maths.Vec4)
+(alias Matrix4x4f Sys.Maths.Matrix4x4)
+(alias Quatf Sys.Maths.Quat)
+
+(alias Vec2lf Sys.Maths.Vec2lf)
+(alias Rectlf Sys.Maths.Rectlf)
+(alias Vec3lf Sys.Maths.Vec3lf)
+(alias Linelf Sys.Maths.Linelf)
+(alias Trianglelf Sys.Maths.Trianglelf)
+(alias Quadlf Sys.Maths.Quadlf)
+(alias Vec4lf Sys.Maths.Vec4lf)
+(alias Quatlf Sys.Maths.Quatlf)
+
+(alias Sys.Type.Float32 Sys.Maths.Degrees)
+(alias Sys.Type.Float32 Sys.Maths.Radians)
+
+(namespace Sys.SI)
+(alias Sys.Type.Float32 Sys.SI.Metres)
+(alias Sys.Type.Float32 Sys.SI.Seconds)
+(alias Sys.Type.Float32 Sys.SI.Kilograms)
+
+(struct Vec2i 
+	(Int32 x y)
+)
+
+(function SetVec2i (Vec2i v) (Int32 x) (Int32 y)  -> :
+	(v.x = x)
+	(v.y = y)
+)
+
+(struct Recti // when used for gui (0,0) is the top left of the screen and hence bottom > top
+	(Int32 left top right bottom)
+)
+
+(function GetCentre (Recti rect)(Vec2i centre)-> :
+	(centre.x = ((rect.right + rect.left) / 2))
+	(centre.y = ((rect.bottom + rect.top) / 2))
+)
+
+(function GetSpan (Recti rect)(Vec2i span) -> :
+	(span.x = (rect.right - rect.left))
+	(span.y = (rect.bottom - rect.top))
+)
+
+(using Sys.Maths.I32)
+
+(function GetCentredRect (Int32 dx)(Int32 dy)(Recti container)(Recti centredRect)-> :
+	(Vec2i span)
+	(GetSpan container span)
+	(Int32 dx2 = (dx / 2))
+	(Int32 dy2 = (dy / 2))
+	(Vec2i centre)
+	(centre.x = (span.x / 2))
+	(centre.y = (span.y / 2))
+	(Vec2i halfSpan = dx2 dy2)
+	(Vec2i topLeft = centre - halfSpan)
+	(Vec2i bottomRight = centre + halfSpan)
+	(centredRect.left = topLeft.x)
+	(centredRect.top = topLeft.y)
+	(centredRect.right = bottomRight.x)
+	(centredRect.bottom = bottomRight.y)
+)
+
+(function InflateRect (Int32 dx)(Int32 dy)(Recti container)(Recti rect)-> :
+	(rect.left = (0 - dx))
+	(rect.top = (0 - dy))
+	
+	(Vec2i span)
+	(GetSpan container span)
+	(rect.right = (span.x + dx))
+	(rect.bottom = (span.y + dy))
+)
+
+(alias Vec2i Sys.Maths.Vec2i)
+(alias Recti Sys.Maths.Recti)
+
+(alias GetCentre Sys.Maths.GetCentre)
+(alias GetSpan Sys.Maths.GetSpan)
+(alias InflateRect Sys.Maths.InflateRect)
+(alias GetCentredRect Sys.Maths.GetCentredRect)
+
+(macro Sys.Maths.e in out (out.AddAtomic "2.7182818284590452353602874713527"))
+(macro Sys.Maths.pi in out (out.AddAtomic "3.1415926535897932384626433832795"))

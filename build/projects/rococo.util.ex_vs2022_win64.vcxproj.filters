@@ -3,6 +3,5 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.util.ex\renderer.utils.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util.ex\rococo.event.map.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.util.ex\rococo.os.ex.cpp" />
   </ItemGroup>
 </Project>

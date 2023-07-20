@@ -17,7 +17,5 @@
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
   </ItemGroup>
 </Project>

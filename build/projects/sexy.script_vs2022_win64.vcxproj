@@ -141,8 +141,7 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexy.script.lib</ImportLibrary>
@@ -228,16 +227,13 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexy.script.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
-    <ClInclude Include="..\..\source\rococo\include\sexy.unordered_map.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.array.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.asserts.inl" />

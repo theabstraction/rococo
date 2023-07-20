@@ -11,24 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{FB785134-FBBF-3649-06A1-2B0C17033458}</ProjectGuid>
+    <ProjectGuid>{95629C09-666F-E66B-C5CA-BE8D561354EA}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>rococo.util.ex</RootNamespace>
-    <ProjectName>rococo.util.ex</ProjectName>
+    <RootNamespace>rococo.include</RootNamespace>
+    <ProjectName>rococo.include</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Utility</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Utility</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -42,23 +42,17 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>rococo.util.ex</TargetName>
     <OutDir>..\..\gen\bin\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\rococo.util.ex\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <IntDir>..\..\gen\temp\debug\rococo.include\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\debug\rococo.util.ex.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>rococo.util.ex</TargetName>
     <OutDir>..\..\gen\bin\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\rococo.util.ex\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <IntDir>..\..\gen\temp\release\rococo.include\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\release\rococo.util.ex.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -66,7 +60,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>RENDERER_API=__declspec(dllexport);ROCOCO_UTILS_EX_API=__declspec(dllexport);WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -109,51 +103,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.util.ex\rococo.util.ex_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.include\rococo.include_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\debug\rococo.util.ex.dll</OutputFile>
-      <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\rococo.util.ex.pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapExports>false</MapExports>
-      <SwapRunFromCD>false</SwapRunFromCD>
-      <SwapRunFromNET>false</SwapRunFromNET>
-      <Driver>NotSet</Driver>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <ProfileGuidedDatabase>
-      </ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
-      <TypeLibraryResourceID>1</TypeLibraryResourceID>
-      <NoEntryPoint>false</NoEntryPoint>
-      <SetChecksum>false</SetChecksum>
-      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
-      <TargetMachine>MachineX64</TargetMachine>
-      <Profile>false</Profile>
-      <CLRImageType>Default</CLRImageType>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
-      <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\debug\rococo.util.ex.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\rococo.util.ex.lib</ImportLibrary>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;RENDERER_API=__declspec(dllexport);ROCOCO_UTILS_EX_API=__declspec(dllexport);WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN64;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -196,59 +155,108 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.util.ex\rococo.util.ex_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.include\rococo.include_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\release\rococo.util.ex.dll</OutputFile>
-      <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\release\rococo.util.ex.pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapExports>false</MapExports>
-      <SwapRunFromCD>false</SwapRunFromCD>
-      <SwapRunFromNET>false</SwapRunFromNET>
-      <Driver>NotSet</Driver>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ProfileGuidedDatabase>
-      </ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
-      <TypeLibraryResourceID>1</TypeLibraryResourceID>
-      <NoEntryPoint>false</NoEntryPoint>
-      <SetChecksum>false</SetChecksum>
-      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
-      <TargetMachine>MachineX64</TargetMachine>
-      <Profile>false</Profile>
-      <CLRImageType>Default</CLRImageType>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
-      <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\release\rococo.util.ex.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\rococo.util.ex.lib</ImportLibrary>
-    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.body.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.configuration.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.components.skeleton.h" />
+    <ClInclude Include="..\..\source\rococo\include\mplat.components.decl.h" />
+    <ClInclude Include="..\..\source\rococo\include\mplat.to.app.events.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocator.template.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.trackers.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.app.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.asset.generator.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.auto-complete.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.auto-release.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.clock.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.compiler.options.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.component.entities.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.csv.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.csv.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.cute.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.debugging.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.DirectX.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.dx11.renderer.win32.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.dx12.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.builder.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.events.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.file.browser.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.fonts.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.fonts.hq.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.functional.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.ex.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.handles.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.hashtable.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ide.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.imaging.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.imports.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.io.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.map.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.maths.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.maths.i32.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.memory.freelist.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.meshes.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mouse.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.dynamic.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.main.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ninja.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.octree.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.os.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.os.win32.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.package.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.parse.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.post.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.quadtree.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.random.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.reflector.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.release.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.ide.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.map.expert.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexystudio.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.stl.allocators.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.strings.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.strings.reflection.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sxytype-inference.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.target.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.task.queue.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.textures.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.time.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ui.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.variable.editor.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.win32.resources.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.win32.target.win7.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.window.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.xaudio2.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.list.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.unordered_map.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
+    <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.util.ex\renderer.utils.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.util.ex\rococo.event.map.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ItemGroup>
-    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
-      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemGroup>
 </Project>

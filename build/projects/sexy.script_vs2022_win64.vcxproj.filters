@@ -4,6 +4,7 @@
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.exceptions.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.global.functions.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.packages.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.expression.parser.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.helpers.cpp" />
@@ -12,7 +13,6 @@
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.s-builder.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
@@ -36,7 +36,5 @@
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stringbuilders.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.util.inl" />
-    <ClInclude Include="..\..\source\rococo\include\sexy.unordered_map.h" />
-    <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
   </ItemGroup>
 </Project>
