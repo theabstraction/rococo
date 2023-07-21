@@ -304,6 +304,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 
 	void OnEvent(ScriptCompileArgs& ssArgs) override
 	{
+		Rococo::Script::AddNativeCallSecurity_ToSysNatives(ssArgs.ss);
 		ssArgs.ss.SetCommandLine(nArgs, args);
 	}
 
