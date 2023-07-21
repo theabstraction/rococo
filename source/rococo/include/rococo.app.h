@@ -6,10 +6,11 @@ namespace Rococo
 	struct Platform;
 	struct KeyboardEvent;
 	struct MouseEvent;
+	struct ScriptCompileArgs;
 
 	ROCOCO_INTERFACE IAppFactory
 	{
-	   virtual IApp * CreateApp(Platform & platform) = 0;
+		virtual IApp * CreateApp(Platform & platform) = 0;
 	};
 
 	ROCOCO_INTERFACE IDirectAppControl
@@ -28,6 +29,6 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IDirectAppFactory
 	{
-	   virtual IDirectApp * CreateApp(Platform & platform, IDirectAppControl& control) = 0;
+	    virtual IDirectApp * CreateApp(Platform & platform, IDirectAppControl& control) = 0;
 	};
 }

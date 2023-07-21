@@ -3,12 +3,17 @@
 #include "mplat.landscapes.h"
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
+#include <rococo.sexy.api.h>
 
 namespace Rococo // declarations herein are to help intellisense do its job.
 {
-	struct IConfig;
 	struct IKeyboard;	
 	struct IPaneBuilder;
+
+	namespace MPlat
+	{
+		struct IConfig;
+	}
 
 	namespace Entities
 	{
@@ -101,7 +106,7 @@ Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Ro
 	return t;
 }
 
-Rococo::IConfig* FactoryConstructRococoConfig(Rococo::IConfig* c)
+Rococo::IConfig* FactoryConstructMPlatConfig(Rococo::IConfig* c)
 {
    return c;
 }
@@ -264,9 +269,9 @@ namespace Rococo
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 		}
 
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 		{
-			IScriptEnumerator& usedIncludes = implicitIncludes.Count() > 0 ? implicitIncludes : s_MplatImplicitIncludeEnumerator;
+			IScriptEnumerator& usedIncludes = implicitIncludes ? *implicitIncludes : s_MplatImplicitIncludeEnumerator;
 			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler
 			{
 				Platform& platform;
@@ -316,7 +321,7 @@ namespace Rococo
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
-						AddNativeCalls_RococoIConfig(args.ss, &platform.data.config);
+						AddNativeCalls_RococoMPlatIConfig(args.ss, &platform.data.config);
 						Rococo::AddNativeCalls_RococoIArchive(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
 
@@ -453,13 +458,15 @@ namespace Rococo
 		{
 			struct : IEventCallback<ScriptCompileArgs>
 			{
-				IConfig* config;
-
+				IConfig* config = nullptr;
 				void OnEvent(ScriptCompileArgs& args) override
 				{
-					AddNativeCalls_RococoIConfig(args.ss, config);
+					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
+					Rococo::Script::AddNativeCallSecurity(args.ss, "MPlat.Native", "!scripts/mplat_config_sxh.sxy");
+					AddNativeCalls_RococoMPlatIConfig(args.ss, config);
 				}
 			} onCompile;
+
 			onCompile.config = &config;
 
 			struct : IScriptEnumerator

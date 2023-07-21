@@ -500,6 +500,19 @@ namespace Rococo
 {
 	ROCOCO_API IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName)
 	{
+		if (sysPath == NULL || friendlyName == NULL)
+		{
+			Throw(0, "%s: argument null", __FUNCTION__);
+		}
+		else
+		{
+			auto len = StringLength(friendlyName);
+			if (len < 1 || len >= IPackageSupervisor::MAX_PACKAGE_NAME_BUFFER_LEN)
+			{
+				Throw(0, "%s: [friendlyName] length out of bounds. Domain: [1,%d]", __FUNCTION__, IPackageSupervisor::MAX_PACKAGE_NAME_BUFFER_LEN - 1);
+			}
+		}
+
 		WideFilePath osPath;
 		Format(osPath, L"%ls", sysPath);
 		Rococo::OS::ToSysPath(osPath.buf);

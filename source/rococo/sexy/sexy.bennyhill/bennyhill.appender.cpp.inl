@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContext& pc, cstr headerFile);
+
 namespace Rococo
 {
 	using namespace Rococo::Sex;
@@ -783,7 +785,7 @@ namespace Rococo
 		}
 	}
 
-	void ImplementNativeFunctions(FileAppender& appender, const EnumContext& ec, const ParseContext& pc)
+	void ImplementNativeEnums(FileAppender& appender, const EnumContext& ec, const ParseContext& pc)
 	{
 		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName());
 		if (nsDepth > 0)

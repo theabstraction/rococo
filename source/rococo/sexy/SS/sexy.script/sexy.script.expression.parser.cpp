@@ -1881,7 +1881,9 @@ namespace Rococo
 
 			if (st == NULL)
 			{
-				ThrowTokenNotFound(decl, typeExpr.String()->Buffer, source.Name(), "module");
+				cstr enigma = typeExpr.String()->Buffer;
+				Throw(decl, "%s: Could not match [%s] as either a structure nor an interface in module %s\n"
+							"Try specifying %s as a fully qualified type, or add the correct (using <namespace>) directive.", __FUNCTION__, enigma, source.Name(), enigma);
 			}
 
 			ValidateLocalDeclarationVariable(*st, idExpr);

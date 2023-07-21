@@ -251,9 +251,9 @@
 )
 
 (interface 
-	(as.sxy Rococo.IConfig "scripts/mplat_config")
-	(as.cpp Rococo.IConfig "mplat")
-	(context factory Rococo.IConfig)
+	(as.sxy MPlat.IConfig "scripts/mplat_config")
+	(as.cpp Rococo.MPlat.IConfig "mplat")
+	(context factory Rococo.MPlat.IConfig)
 	(methods
 		(Int   (IString name)(Int32 value))
 		(Float (IString name)(Float32 value))
@@ -265,7 +265,7 @@
 		(GetBool   (IString name)->(Bool value))
 		(GetText   (IString name)(IStringBuilder text))
 	)
-	(factory Rococo.Config)
+	(factory MPlat.Config)
 )
 
 (interface 

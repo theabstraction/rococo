@@ -26,6 +26,9 @@ namespace Rococo
 */
 	ROCOCO_INTERFACE IPackage
 	{
+		// The maximum length of a legal friendly name + 1
+		enum { MAX_PACKAGE_NAME_BUFFER_LEN = 64 };
+
 		// Return a cached string to identiy the package
 		virtual cstr FriendlyName() const = 0;
 

@@ -34,6 +34,8 @@ namespace MHost
 	using namespace Rococo::Script;
 	using namespace MHost::OS;
 
+	void AddMHostNativeCallSecurity(Rococo::ScriptCompileArgs& args);
+	IEventCallback<ScriptCompileArgs>& GetBaseCompileOptions();
 	Rococo::Reflection::IReflectionTarget& GetTestTarget();
 
 	auto evPopulateBusyCategoryId = "busy.category"_event;
@@ -363,26 +365,8 @@ namespace MHost
 
 		void RunMPlatScript(const fstring& scriptName) override
 		{
-			struct : IScriptEnumerator
-			{
-				size_t Count() const override
-				{
-					return 0;
-				}
-
-				cstr ResourceName(size_t) const override
-				{
-					return nullptr;
-				}
-			} useMplatDefaults;
-			struct CLOSURE : IEventCallback<ScriptCompileArgs>
-			{
-				void OnEvent(ScriptCompileArgs&) override
-				{
-
-				}
-			} onCompile;
-			platform.plumbing.utilities.RunEnvironmentScript(useMplatDefaults, onCompile, 0, scriptName, true, false);
+			MHost::GetBaseCompileOptions();
+			platform.plumbing.utilities.RunEnvironmentScriptWithId(NoImplicitIncludes(), GetBaseCompileOptions(), 0, scriptName, true, false);
 		}
 
 		void CreateMHostDeclarations()
@@ -405,8 +389,6 @@ namespace MHost
 
 		void CreateMPlatPlatformDeclarations()
 		{
-			NoEventArgs noEventArgs;
-
 			struct : IScriptEnumerator
 			{
 				size_t Count() const override
@@ -420,8 +402,16 @@ namespace MHost
 				}
 			} noImplicitIncludes;
 
+			struct : IEventCallback<ScriptCompileArgs>
+			{
+				void OnEvent(ScriptCompileArgs& args) override
+				{
+					AddMHostNativeCallSecurity(args);
+				}
+			} onCompile;
+
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(noImplicitIncludes, noEventArgs, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(&noImplicitIncludes, onCompile, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/platform_declarations.sxy", wPath);
@@ -438,7 +428,6 @@ namespace MHost
 
 		void CreateSysDeclarations()
 		{
-			NoEventArgs noEventArgs;
 			struct : IScriptEnumerator
 			{
 				size_t Count() const override
@@ -452,8 +441,16 @@ namespace MHost
 				}
 			} noImplicitIncludes;
 
+			struct : IEventCallback<ScriptCompileArgs>
+			{
+				void OnEvent(ScriptCompileArgs& args) override
+				{
+					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
+				}
+			} onSysScript;
+
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(noImplicitIncludes, noEventArgs, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(&noImplicitIncludes, onSysScript, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/native/declarations.sxy", wPath);

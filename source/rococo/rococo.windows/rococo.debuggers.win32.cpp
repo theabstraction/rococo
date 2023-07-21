@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <richedit.h>
 #include <rococo.os.h>
+#include <rococo.debugging.h>
 
 using namespace Rococo::Strings;
 
@@ -75,6 +76,20 @@ namespace ANON
 		AppendText_ToEditor(hRichEditor, message, RGB(255, 255, 255), RGB(0, 0, 0));
 	}
 
+	void AddRollingLogToRichEditView(HWND hRichEditor)
+	{
+		struct ANON : IEventCallback<cstr>
+		{
+			HWND hWnd;
+			void OnEvent(cstr message) override
+			{
+				AppendText_ToEditor(hWnd, message, RGB(255, 200, 200), RGB(0, 0, 0));
+			}
+		} addToEditor;
+		addToEditor.hWnd = hRichEditor;
+		Rococo::Debugging::ForEachCriticalLog(addToEditor);
+	}
+
 	INT_PTR CALLBACK ExceptionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		if (uMsg == WM_INITDIALOG)
@@ -123,6 +138,7 @@ namespace ANON
 
 			SendMessageA(logView, WM_SETFONT, (WPARAM)context.hFont, FALSE);
 			PopulateRichEditView(logView, context.ex->Message(), context.ex->ErrorCode());
+			AddRollingLogToRichEditView(logView);
 			return TRUE;
 		}
 		else

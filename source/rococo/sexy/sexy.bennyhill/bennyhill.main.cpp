@@ -170,15 +170,38 @@ namespace Rococo
 
 using namespace Rococo;
 using namespace Rococo::Sex;
+using namespace Rococo::Strings;
 
 namespace Rococo
 {
 	void AddPragmaOnce(FileAppender& appender, cstr headerFileName);
 }
 
+void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContext& pc, cstr headerFile)
+{
+	auto i = pc.prependedFiles.find(sexyFileInl);
+	if (i != pc.prependedFiles.end())
+	{
+		return;
+	}
+
+	Substring sHeaderFile = ToSubstring(headerFile);
+	cstr lastSlashPosition = ReverseFind('\\', sHeaderFile);
+	cstr filename = lastSlashPosition ? lastSlashPosition + 1 : headerFile;
+
+	pc.prependedFiles.insert(sexyFileInl);
+
+	appender.Append("#pragma once\n\n");
+	appender.Append("#include <sexy.script.h>\n");
+	appender.Append("#include \"%s\"\n\n", filename);
+
+	// appender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
+}
+
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
 {
 	FileAppender sexyFileAppender(ic.appendSexyFile);	
+	//AddIntroduction(sexyFileAppender, ic.appendSexyFile, pc, ic.appendCppHeaderFile);
 
 	auto* mostDerivedMethods = methods; 
 	while (*mostDerivedMethods != nullptr)
@@ -206,7 +229,8 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDef)
 {
 	FileAppender cppFileImplAppender(ec.appendCppImplFile);
-	ImplementNativeFunctions(cppFileImplAppender, ec, pc);
+	AddIntroduction(cppFileImplAppender, ec.appendCppImplFile, pc, ec.appendCppHeaderFile);
+	ImplementNativeEnums(cppFileImplAppender, ec, pc);
 }
 
 void GetFileSpec(char filename[_MAX_PATH], cstr root, cstr scriptName, cstr extension)
@@ -440,7 +464,7 @@ void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const
 	}
 
 	outputFile.Append(" -> ");
-	
+
 	cr_sex outputDef = desc.functionDef->GetElement(outputPos);
 
 	if (IsCompound(outputDef))
@@ -474,10 +498,9 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	FileAppender cppHeaderFileAppender(sexyHeaderFile);
 
 	FileAppender sexyAppender(sexyFile);
+	AddIntroduction(sexyAppender, sexyFile, pc, sexyHeaderFile);
 
 	AddPragmaOnce(cppHeaderFileAppender, sexyHeaderFile);
-
-	sexyAppender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
 
 	TMapNSToFunctionDefs nsMap;
 

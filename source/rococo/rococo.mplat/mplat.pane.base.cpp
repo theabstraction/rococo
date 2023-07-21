@@ -758,7 +758,7 @@ public:
 		if (!hasPublishedDeclarations)
 		{
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(implicitIncludes, *this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(&implicitIncludes, *this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/pane_declarations.sxy", wPath);
@@ -775,7 +775,7 @@ public:
 		}
 		else
 		{
-			platform.plumbing.utilities.RunEnvironmentScript(implicitIncludes, *this, scriptFilename.c_str(), true);
+			platform.plumbing.utilities.RunEnvironmentScript(&implicitIncludes, *this, scriptFilename.c_str(), true);
 		}
 	}
 

@@ -2151,7 +2151,18 @@ namespace Rococo::Script
 			{
 				auto& nativeNamespaceText = i.first;
 				auto& ns = AddNativeNamespace(nativeNamespaceText);
-				nsToSecurityVolatile[&ns] = i.second;
+				auto* requirments = i.second;
+
+				if (StartsWith(requirments->security.callersPingPath, "Package["))
+				{
+					requirments->package = &packager->GetPackage(requirments->security.callersPingPath);
+				}
+				else
+				{
+					requirments->package = nullptr;
+				}
+
+				nsToSecurityVolatile[&ns] = requirments;
 			}
 
 			stringPool = NewStringPool();
@@ -2232,7 +2243,7 @@ namespace Rococo::Script
 			return scripts->GetSourceCode(module);
 		}
 
-		void AddNativeCallSecurity(const Compiler::INamespace& nativeNamespace, const NativeCallSecurity& security)
+		void AddNativeCallSecurityForNS(const Compiler::INamespace& nativeNamespace, const NativeCallSecurity& security)
 		{
 			auto i = nsToSecurity.insert(nativeNamespace.FullName()->Buffer, nullptr);
 			if (!i.second)
@@ -2241,7 +2252,7 @@ namespace Rococo::Script
 				const NativeSecurityHandler* originalRef = pair->second;
 				if (memcmp(&security, &originalRef->security, sizeof NativeCallSecurity) != 0)
 				{
-					Throw(0, "%s: the namespace %s is already securted by a NativeCallSecurity that differs by at least one bit from the argument supplied in the method.", __FUNCTION__, nativeNamespace.FullName()->Buffer);
+					Throw(0, "%s: the namespace %s is already secured by a NativeCallSecurity that differs by at least one bit from the argument supplied in the method.", __FUNCTION__, nativeNamespace.FullName()->Buffer);
 				}
 			}
 			else
@@ -2253,18 +2264,29 @@ namespace Rococo::Script
 			}
 		}
 
-		bool IsCallerPermitted(const NativeSecurityHandler& handler, cr_sex callersCode) override
+		bool IsCallerPermitted(const NativeSecurityHandler& required, cr_sex callersCode) override
 		{
-			cstr sourceName = callersCode.Tree().Source().Name();
-			if (!Eq(handler.security.callersPingPath, sourceName))
+			if (required.package != nullptr)
 			{
-				Throw(0, "Only %s is permitted to call the function. Call was incorrectly invoked from %s. Consult the former for the correct API.", handler.security.callersPingPath.buf, sourceName);
+				if (required.package != callersCode.Tree().Source().Package())
+				{
+					cstr sourceName = callersCode.Tree().Source().Name();
+					Throw(0, "Only %s is permitted to call the function. Call was incorrectly invoked from %s. Consult the former for the correct API.", required.package->FriendlyName(), sourceName);
+				}
+			}
+			else
+			{
+				cstr sourceName = callersCode.Tree().Source().Name();
+				if (!Eq(required.security.callersPingPath, sourceName))
+				{
+					Throw(0, "Only %s is permitted to call the function. Call was incorrectly invoked from %s. Consult the former for the correct API.", required.security.callersPingPath.buf, sourceName);
+				}
 			}
 
 			return true;
 		}
 
-		void AddNativeCallSecurity(const Compiler::INamespace& ns, cstr permittedPingPath)
+		void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, cstr permittedPingPath)
 		{
 			if (permittedPingPath == nullptr || *permittedPingPath == 0)
 			{
@@ -2274,7 +2296,7 @@ namespace Rococo::Script
 			NativeCallSecurity security;
 			memset(&security, 0, sizeof security);
 			Format(security.callersPingPath, "%s", permittedPingPath);
-			AddNativeCallSecurity(ns, security);
+			AddNativeCallSecurityForNS(ns, security);
 		}
 
 		void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName, int popBytes) override
@@ -2312,7 +2334,7 @@ namespace Rococo::Script
 				}
 				else
 				{
-					// The function was not marked Native, so its is not protected
+					// The namespace was not marked Native, so it does not require security
 					nsToSecurityVolatile[&ns] = nullptr;
 				}
 			}
@@ -2322,7 +2344,7 @@ namespace Rococo::Script
 
 			char srcName[MAX_ARCHETYPE_LEN + 64];
 			SafeFormat(srcName, MAX_ARCHETYPE_LEN + 64, "Source: '%s'", sxArchetype);
-			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName);
+			Auto<ISourceCode> src = SParser().ProxySourceBuffer(sxArchetype, (int)len, Vec2i{ 0,0 }, srcName, nullptr);
 
 			try
 			{

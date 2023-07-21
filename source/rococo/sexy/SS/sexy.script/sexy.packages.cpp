@@ -11,7 +11,7 @@ using namespace Rococo::Script;
 # define _alloca alloca
 #endif
 
-namespace
+namespace ANON
 {
 	enum { PACKAGE_TOKEN_CAPACITY = 16 };
 
@@ -70,6 +70,8 @@ namespace
 			const ISourceCode& This = *this;
 			return const_cast<ISourceCode&>(This);
 		}
+
+		const IPackage* Package() const;
 	};
 
 	struct PackageNamespaceToken
@@ -303,6 +305,11 @@ namespace
 			ns.subspaces.erase(j, ns.subspaces.end());
 		}
 	};
+
+	const IPackage* PackedFile::Package() const
+	{
+		return parent.dataPackage;
+	}
 
 	struct Packager: ISexyPackagerSupervisor
 	{
@@ -648,6 +655,35 @@ namespace
 		{
 			delete this;
 		}
+
+		IPackage& GetPackage(cstr packageId) override
+		{
+			if (!packageId) 
+				Throw(0, "%s: Null package id", __FUNCTION__);
+
+			const fstring fsPackagePrefix = "Package["_fstring;
+
+			if (!StartsWith(packageId, fsPackagePrefix)) 
+				Throw(0, "%s: Expecting package id to begin with 'Package['", __FUNCTION__);
+			
+			cstr startChar = packageId + fsPackagePrefix.length;
+			cstr endChar = Strings::FindChar(startChar, ']');
+			if (!endChar)
+				Throw(0, "%s: Expecting package id to have format 'Package[<name>]", __FUNCTION__);
+
+			Substring sname = { startChar, endChar };
+
+			char name[IPackage::MAX_PACKAGE_NAME_BUFFER_LEN];
+			if (!Strings::SubstringToString(name, sizeof name, sname))
+				Throw(0, "%s: package name was too long. Max %llu chars", __FUNCTION__, name, (sizeof name) - 1);
+			
+			auto i = packages.find(name);
+
+			if (i == packages.end()) 
+				Throw(0, "%s: Could not find package [%s]", name, __FUNCTION__);
+
+			return *i->second.dataPackage;
+		}
 	};
 
 	PackedFile::PackedFile(const PackageFileData& _data, SexyPackage& _parent) :
@@ -663,6 +699,6 @@ namespace Rococo::Script
 {
 	ISexyPackagerSupervisor* CreatePackager(IScriptSystem& ss)
 	{
-		return new Packager(ss);
+		return new ANON::Packager(ss);
 	}
 }

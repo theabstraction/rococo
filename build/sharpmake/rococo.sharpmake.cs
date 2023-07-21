@@ -689,6 +689,7 @@ namespace Rococo
     {
         public RococoWindowsProject() : base("rococo.windows")
         {
+            SourceFiles.Add("rococo.windows.rc");
         }
 
         [Configure()]

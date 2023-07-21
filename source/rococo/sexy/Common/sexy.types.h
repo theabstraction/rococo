@@ -51,6 +51,7 @@
 namespace Rococo
 {
 	typedef void* OS_HWND;
+	struct IPackage;
 
 	enum CALLBACK_CONTROL
 	{
@@ -315,10 +316,19 @@ namespace Rococo
 
 		ROCOCO_INTERFACE ISParser : public IRefCounted
 		{
-			virtual ISParserTree* CreateTree(ISourceCode& sourceCode) = 0; // Creates a new s-parser tree with a reference count of 1, and attaches a reference to ISourceCode 
-			virtual ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, const char* name) = 0; // Duplicates a source segment and exposes as an instance
-			virtual ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef) = 0; // Duplicates the pointers defining the source code and its name and exposes as an instance
-			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) = 0; // Loads source code, converts it to chars and returns a reference to it
+			// Creates a new s-parser tree with a reference count of 1, and attaches a reference to ISourceCode 
+			virtual ISParserTree* CreateTree(ISourceCode& sourceCode) = 0;
+
+			// Duplicates a source segment and exposes as an instance
+			virtual ISourceCode* DuplicateSourceBuffer(cstr buffer, int segmentLength, const Vec2i& origin, const char* name) = 0;
+
+			// Stores the pointers defining the source code and its name and exposes as an instance. Also attaches a package reference to the source object
+			virtual ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef, IPackage* package = nullptr) = 0;
+
+			// Loads source code, converts it to chars and returns a reference to it
+			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) = 0;
+
+			// Loads source code, using the raw char* buffer
 			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin, const char* buffer, long len) = 0;
 		};
 
@@ -328,6 +338,7 @@ namespace Rococo
 			virtual cstr SourceStart() const = 0; // The first char in the source code segment
 			virtual const int SourceLength() const = 0;  // The number of charS in the source code segment
 			virtual cstr Name() const = 0; // The name of the source segment
+			virtual const IPackage* Package() const = 0; // If the source code is part of a package, this returns the package pointer, else it returns nulllptr
 		};
 
 		ROCOCO_API cstr ReadUntil(const Vec2i& pos, const ISourceCode& src);

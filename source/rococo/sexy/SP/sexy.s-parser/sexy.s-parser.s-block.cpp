@@ -1467,8 +1467,9 @@ namespace Anon
 		bool proxied;
 		refcount_t refcount = 1;
 		IAllocator& allocator;
+		IPackage* package;
 
-		SourceCode(IAllocator& _allocator) : allocator(_allocator) {}
+		SourceCode(IAllocator& _allocator, IPackage* _package) : allocator(_allocator), package(_package) {}
 
 		const Vec2i& Origin() const override { return origin; }
 		cstr SourceStart() const override { return buffer; }
@@ -1488,6 +1489,7 @@ namespace Anon
 				return refcount;
 			}
 		}
+		const IPackage* Package() const { return package; }
 	};
 
 	struct SParser_2_0 : public ISParser
@@ -1554,7 +1556,7 @@ namespace Anon
 
 			size_t blockSize = sizeof(SourceCode) + segmentLength + 1 + strlen(name) + 1;
 			char* block = (char*)allocator.Allocate(blockSize);
-			auto* src = new (block) SourceCode(allocator);
+			auto* src = new (block) SourceCode(allocator, nullptr);
 			src->allocator = allocator;
 			src->block = block;
 			src->buffer = block + sizeof(SourceCode);
@@ -1567,7 +1569,7 @@ namespace Anon
 			return src;
 		}
 
-		ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef) override
+		ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef, IPackage* package) override
 		{
 			if (bufferRef == nullptr || nameRef == nullptr)
 			{
@@ -1592,7 +1594,7 @@ namespace Anon
 
 			size_t blockSize = sizeof(SourceCode) + strlen(nameRef) + 1;
 			char* block = (char*)allocator.Allocate(blockSize);
-			auto* src = new (block) SourceCode(allocator);
+			auto* src = new (block) SourceCode(allocator, package);
 			src->allocator = allocator;
 			src->buffer = const_cast<char*>(bufferRef);
 			src->name = block + sizeof(SourceCode);
@@ -1651,7 +1653,7 @@ namespace Anon
 
 				size_t blockSize = sizeof(SourceCode) + filelen + 1 + strlen(filename) + 1;
 				char* block = (char*)allocator.Allocate(blockSize);
-				auto* src = new (block) SourceCode(allocator);
+				auto* src = new (block) SourceCode(allocator, nullptr);
 				src->allocator = allocator;
 				src->buffer = block + sizeof(SourceCode);
 

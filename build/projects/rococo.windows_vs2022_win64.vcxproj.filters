@@ -6,6 +6,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.message.box.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.tabbed.ide.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.window.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.rc" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\variable.editor.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -241,6 +241,9 @@ namespace Rococo {
 			virtual bool RegisterNamespacesInPackage(IPackage* package)= 0;
 
 			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
+
+			// Returns a reference to the package that matches the prefix in the supplied id. If not found throws an exception.
+			virtual IPackage& GetPackage(cstr packageId) = 0;
 		};
 
 		ROCOCO_INTERFACE ISexyPackagerSupervisor: ISexyPackager
@@ -349,8 +352,8 @@ namespace Rococo {
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
-			virtual void AddNativeCallSecurity(const Compiler::INamespace& ns, const NativeCallSecurity& security) = 0;
-			virtual void AddNativeCallSecurity(const Compiler::INamespace& ns, cstr permittedPingPath) = 0;
+			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, const NativeCallSecurity& security) = 0;
+			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, cstr permittedPingPath) = 0;
 			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 

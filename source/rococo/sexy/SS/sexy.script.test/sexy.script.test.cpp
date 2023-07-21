@@ -302,10 +302,7 @@ namespace
 
 	void Secure(IPublicScriptSystem& ss)
 	{
-		Rococo::Script::AddNativeCallSecurity(ss, "Sys.Native", "!scripts/native/Sys.Type.sxy");
-		Rococo::Script::AddNativeCallSecurity(ss, "Sys.Reflection.Native", "!scripts/native/Sys.Reflection.sxy");
-		Rococo::Script::AddNativeCallSecurity(ss, "Sys.IO.Native", "!scripts/native/Sys.IO.sxy");
-		Rococo::Script::AddNativeCallSecurity(ss, "Sys.Strings.Native", "!scripts/native/Sys.Type.Strings.sxy");
+		AddNativeCallSecurity_ToSysNatives(ss);
 	}
 
 	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines, bool addInIO)
@@ -405,7 +402,7 @@ namespace
 
 	void TestCreateNamespace(IPublicScriptSystem& ss)
 	{
-		Auto<ISourceCode> sc(ss.SParser().ProxySourceBuffer("(namespace Sys.Data)", -1, Vec2i{ 0,0 },"test2"));
+		Auto<ISourceCode> sc(ss.SParser().ProxySourceBuffer("(namespace Sys.Data)", -1, Vec2i{ 0,0 }, "test2", nullptr));
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		ss.AddTree(tree());
@@ -3766,7 +3763,7 @@ R"((namespace EntryPoint)
 			")"
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__, nullptr);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());

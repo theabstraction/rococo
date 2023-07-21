@@ -626,7 +626,8 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 {
 	struct : public IMainloop
 	{
-		IAppFactory* appFactory;
+		IAppFactory* appFactory = nullptr;
+		IEventCallback<ScriptCompileArgs>* onCompile = nullptr;
 
 		void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) override
 		{

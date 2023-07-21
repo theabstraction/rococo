@@ -1,3 +1,8 @@
+#pragma once
+
+#include <sexy.script.h>
+#include "mplat.sxh.h"
+
 namespace Rococo
 {
 	bool TryParse(const Rococo::fstring& s, ELayoutAlgorithm& value)
@@ -6674,7 +6679,7 @@ namespace Rococo
 		ss.AddNativeCall(ns, NativeRococoIKeyboardSaveCppHeader, nullptr, ("IKeyboardSaveCppHeader (Pointer hObject) -> "), __FILE__, __LINE__);
 	}
 }
-// BennyHill generated Sexy native functions for Rococo::IConfig 
+// BennyHill generated Sexy native functions for Rococo::MPlat::IConfig 
 namespace
 {
 	using namespace Rococo;
@@ -6682,7 +6687,7 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
-	void NativeRococoIConfigInt(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigInt(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6696,13 +6701,13 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Int(name, value);
 	}
-	void NativeRococoIConfigFloat(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigFloat(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6716,13 +6721,13 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Float(name, value);
 	}
-	void NativeRococoIConfigBool(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigBool(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6736,13 +6741,13 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Bool(name, value);
 	}
-	void NativeRococoIConfigText(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigText(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6758,13 +6763,13 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->Text(name, value);
 	}
-	void NativeRococoIConfigGetInt(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigGetInt(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6774,7 +6779,7 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
@@ -6782,7 +6787,7 @@ namespace
 		_offset += sizeof(value);
 		WriteOutput(value, _sf, -_offset);
 	}
-	void NativeRococoIConfigGetFloat(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigGetFloat(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6792,7 +6797,7 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
@@ -6800,7 +6805,7 @@ namespace
 		_offset += sizeof(value);
 		WriteOutput(value, _sf, -_offset);
 	}
-	void NativeRococoIConfigGetBool(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigGetBool(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6810,7 +6815,7 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
@@ -6818,7 +6823,7 @@ namespace
 		_offset += sizeof(value);
 		WriteOutput(value, _sf, -_offset);
 	}
-	void NativeRococoIConfigGetText(NativeCallEnvironment& _nce)
+	void NativeRococoMPlatIConfigGetText(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -6832,40 +6837,40 @@ namespace
 		fstring name { _name->buffer, _name->length };
 
 
-		Rococo::IConfig* _pObject;
+		Rococo::MPlat::IConfig* _pObject;
 		_offset += sizeof(_pObject);
 
 		ReadInput(_pObject, _sf, -_offset);
 		_pObject->GetText(name, _textPopulator);
 	}
 
-	void NativeGetHandleForRococoConfig(NativeCallEnvironment& _nce)
+	void NativeGetHandleForMPlatConfig(NativeCallEnvironment& _nce)
 	{
 		Rococo::uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
-		Rococo::IConfig* nceContext = reinterpret_cast<Rococo::IConfig*>(_nce.context);
-		// Uses: Rococo::IConfig* FactoryConstructRococoConfig(Rococo::IConfig* _context);
-		Rococo::IConfig* pObject = FactoryConstructRococoConfig(nceContext);
+		Rococo::MPlat::IConfig* nceContext = reinterpret_cast<Rococo::MPlat::IConfig*>(_nce.context);
+		// Uses: Rococo::MPlat::IConfig* FactoryConstructMPlatConfig(Rococo::MPlat::IConfig* _context);
+		Rococo::MPlat::IConfig* pObject = FactoryConstructMPlatConfig(nceContext);
 		_offset += sizeof(IString*);
 		WriteOutput(pObject, _sf, -_offset);
 	}
 }
 
-namespace Rococo
+namespace Rococo::MPlat
 {
-	void AddNativeCalls_RococoIConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::IConfig* _nceContext)
+	void AddNativeCalls_RococoMPlatIConfig(Rococo::Script::IPublicScriptSystem& ss, Rococo::MPlat::IConfig* _nceContext)
 	{
 		HIDE_COMPILER_WARNINGS(_nceContext);
-		const INamespace& ns = ss.AddNativeNamespace("Rococo.Native");
-		ss.AddNativeCall(ns, NativeGetHandleForRococoConfig, _nceContext, ("GetHandleForIConfig0  -> (Pointer hObject)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigInt, nullptr, ("IConfigInt (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigFloat, nullptr, ("IConfigFloat (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigBool, nullptr, ("IConfigBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigText, nullptr, ("IConfigText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) -> "), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigGetInt, nullptr, ("IConfigGetInt (Pointer hObject)(Sys.Type.IString name) -> (Int32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigGetFloat, nullptr, ("IConfigGetFloat (Pointer hObject)(Sys.Type.IString name) -> (Float32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigGetBool, nullptr, ("IConfigGetBool (Pointer hObject)(Sys.Type.IString name) -> (Bool value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeRococoIConfigGetText, nullptr, ("IConfigGetText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> "), __FILE__, __LINE__);
+		const INamespace& ns = ss.AddNativeNamespace("MPlat.Native");
+		ss.AddNativeCall(ns, NativeGetHandleForMPlatConfig, _nceContext, ("GetHandleForIConfig0  -> (Pointer hObject)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigInt, nullptr, ("IConfigInt (Pointer hObject)(Sys.Type.IString name)(Int32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigFloat, nullptr, ("IConfigFloat (Pointer hObject)(Sys.Type.IString name)(Float32 value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigBool, nullptr, ("IConfigBool (Pointer hObject)(Sys.Type.IString name)(Bool value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigText, nullptr, ("IConfigText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) -> "), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigGetInt, nullptr, ("IConfigGetInt (Pointer hObject)(Sys.Type.IString name) -> (Int32 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigGetFloat, nullptr, ("IConfigGetFloat (Pointer hObject)(Sys.Type.IString name) -> (Float32 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigGetBool, nullptr, ("IConfigGetBool (Pointer hObject)(Sys.Type.IString name) -> (Bool value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeRococoMPlatIConfigGetText, nullptr, ("IConfigGetText (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> "), __FILE__, __LINE__);
 	}
 }
 // BennyHill generated Sexy native functions for Rococo::Graphics::ISpriteBuilder 

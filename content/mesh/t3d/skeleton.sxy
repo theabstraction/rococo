@@ -2,6 +2,8 @@
 (' #file.created Nov 10 2020 23 07 53)
 (' #file.origin "exported from blender 2.90.1 with sexy.py")
 
+(' #import (mhost "MHost"))
+
 (namespace EntryPoint)
 
 (using Rococo)

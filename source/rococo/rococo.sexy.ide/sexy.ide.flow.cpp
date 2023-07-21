@@ -26,6 +26,19 @@ using namespace Rococo::VM;
 
 namespace
 {
+	void SaveInCriticalErrorLog(Sex::ParseException& ex)
+	{
+		char msg[1024];
+		SafeFormat(msg, "\n(%d, %d) to (%d, %d) - %s\n", ex.Start().x, ex.Start().y, ex.End().x, ex.End().y, ex.Name());
+		Rococo::Debugging::AddCriticalLog(msg);
+
+		SafeFormat(msg, "%s\n", ex.Message());
+		Rococo::Debugging::AddCriticalLog(msg);
+
+		SafeFormat(msg, "Specimen: %s\n", ex.Specimen());
+		Rococo::Debugging::AddCriticalLog(msg);
+	}
+
 	struct ScriptLogger : ILog
 	{
 		IDebuggerWindow& debugger;
@@ -45,6 +58,8 @@ namespace
 
 		virtual void OnJITCompileException(Sex::ParseException& ex)
 		{
+			// Ensure we can capture the error
+			SaveInCriticalErrorLog(ex);
 			LogParseException(ex, debugger);
 		}
 	};

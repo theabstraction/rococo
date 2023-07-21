@@ -9,9 +9,10 @@
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
-(using Rococo)
+(using Sys.Reflection)
+(using MPlat)
 
-// This code is run without the visual debugger and error output will go to the OutputDebugString handler. 
+// This code is run without the visual debugger and error output will go to the OutputDebugString handler or the critical output (if you are lucky!). 
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IConfig c (Config))
