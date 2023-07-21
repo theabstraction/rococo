@@ -50,15 +50,6 @@
 
 #include <rococo.api.h>
 
-#include <rococo.allocators.inl>
-
-using namespace Rococo::Memory;
-
-DeclareAllocator(DefaultAllocator, SexyUtils, g_allocator)
-//Rococo::Memory::AllocatorMonitor<SexyUtils> monitor;
-
-OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
-
 namespace Rococo
 {
 	SEXYUTIL_API void LogError(ILog& log, cstr format, ...)
@@ -166,3 +157,14 @@ namespace Rococo::Memory
 		return *globalSexyAllocator;
 	}
 }
+
+#include <rococo.allocators.dll.inl>
+
+DEFINE_DLL_IALLOCATOR(utilsAllocator)
+DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(utilsAllocator, 128, SexyUtils)
+
+#include <rococo.allocators.inl>
+
+DeclareAllocator(TrackingAllocator, SexyUtils, g_allocator)
+Rococo::Memory::AllocatorMonitor<SexyUtils> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)

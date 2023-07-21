@@ -5,32 +5,35 @@
 #include <unordered_map>
 #include <new>
 
-#ifndef GET_ALLOCATOR_FUNCTIONS
-#define  GET_ALLOCATOR_FUNCTIONS Rococo::Memory::GetDefaultAllocators()
-#endif
+#define USE_ROCOCO_UTILS_FOR_MODULE_ALLOCATORS												\
+static void* FirstTimeAllocator(size_t nBytes);												\
+static void FirstTimeDeallocator(void* buffer);												\
+																							\
+static Rococo::Memory::AllocatorFunctions moduleAllocatorFunctions = 						\
+{																							\
+	FirstTimeAllocator, 																	\
+	FirstTimeDeallocator 																	\
+};																							\
+																							\
+static Rococo::Memory::AllocatorLogFlags moduleLogFlags;									\
+																							\
+static void* FirstTimeAllocator(size_t nBytes)												\
+{																							\
+	moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();								\
+	moduleAllocatorFunctions = Rococo::Memory::GetDefaultAllocators();						\
+	return moduleAllocatorFunctions.Allocate(nBytes);										\
+}																							\
+																							\
+static void FirstTimeDeallocator(void* buffer)												\
+{																							\
+	moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();								\
+	moduleAllocatorFunctions = Rococo::Memory::GetDefaultAllocators();						\
+	return moduleAllocatorFunctions.Free(buffer);											\
+}
+
 
 namespace Rococo::Memory
 {
-	static void* FirstTimeAllocator(size_t nBytes);
-	static void FirstTimeDeallocator(void* buffer);
-
-	static AllocatorFunctions moduleAllocatorFunctions = { FirstTimeAllocator, FirstTimeDeallocator };
-	static AllocatorLogFlags moduleLogFlags;
-
-	static void* FirstTimeAllocator(size_t nBytes)
-	{
-		moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();
-		moduleAllocatorFunctions = GET_ALLOCATOR_FUNCTIONS;
-		return moduleAllocatorFunctions.Allocate(nBytes);
-	}
-
-	static void FirstTimeDeallocator(void* buffer)
-	{
-		moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();
-		moduleAllocatorFunctions = GET_ALLOCATOR_FUNCTIONS;
-		return moduleAllocatorFunctions.Free(buffer);
-	}
-
 	struct voids_equal_to 
 	{
 		[[nodiscard]] constexpr bool operator()(const void* a, const void* b) const

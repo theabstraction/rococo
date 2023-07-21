@@ -102,10 +102,14 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.modules.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="components">
       <UniqueIdentifier>{f4dc2547-a346-f142-473a-8228e42dfa48}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\include\rococo.allocators.dll.inl" />
   </ItemGroup>
 </Project>

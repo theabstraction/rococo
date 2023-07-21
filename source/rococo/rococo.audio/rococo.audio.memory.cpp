@@ -1,14 +1,7 @@
 #include <rococo.audio.h>
 #include <rococo.allocators.h>
 
-namespace Rococo::Audio
-{
-	Rococo::Memory::AllocatorFunctions GetAudioAllocators();
-}
-
-#define GET_ALLOCATOR_FUNCTIONS Rococo::Audio::GetAudioAllocators()
-
-#include <rococo.allocators.inl>
+#include <rococo.allocators.dll.inl>
 
 using namespace Rococo;
 using namespace Rococo::Memory;
@@ -37,6 +30,11 @@ namespace Rococo::Audio
 		Rococo::Memory::AlignedFree(buffer, AudioFreeMemory);
 	}
 }
+
+DEFINE_DLL_IALLOCATOR(audioAllocator)
+DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(audioAllocator, 128, Audio)
+
+#include <rococo.allocators.inl>
 
 DeclareAllocator(TrackingAllocator, AudioModule, g_allocator)
 Rococo::Memory::AllocatorMonitor<AudioModule> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
