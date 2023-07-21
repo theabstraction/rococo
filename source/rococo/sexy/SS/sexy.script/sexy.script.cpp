@@ -2480,6 +2480,19 @@ namespace Rococo::Script
 			nativeLibs.push_back(lib);
 		}
 
+		void ValidateSafeToWrite(cstr pathname) override
+		{
+			if (currentSecuritySystem == nullptr)
+			{
+				ThrowFromNativeCode(0, "There is no security module set for the Sexy Script system, so the request to write to the path is rejected, sorry");
+				return;
+			}
+			else
+			{
+				currentSecuritySystem->ValidateSafeToWrite(*this, pathname);
+			}
+		}
+
 		TSexyStringMap<SecureHashInfo> hashes;
 
 		void ValidateSecureFile(cstr fileId, const char* source, size_t length) override
@@ -2572,6 +2585,13 @@ namespace Rococo::Script
 			hashes = localHashes;
 
 			ValidateSecureFile(fileId, source, length);
+		}
+
+		ISecuritySystem* currentSecuritySystem = nullptr;
+
+		void SetSecurityHandler(ISecuritySystem& system) override
+		{
+			currentSecuritySystem = &system;
 		}
 
 		int32 GetIntrinsicModuleCount() const override

@@ -494,7 +494,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow(outputWindowFormatter, outputWindowFormatter);
 
 	// We need config to control window settings, thus the HWND based debugger window will not be available at this time
-	RunMPlatConfigScript(*config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr);
+	RunMPlatConfigScript(*config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr, *installation);
 
 	FactorySpec factorySpec;
 	factorySpec.hResourceInstance = hInstance;

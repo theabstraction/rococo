@@ -813,6 +813,8 @@ namespace ANON_NS
 			return;
 		}
 
+		e.ss.ValidateSafeToWrite(sc->pointer);
+
 		FILE* fp = nullptr;
 		errno_t err = fopen_s(&fp, sc->pointer, "wb");
 		if (!fp || err != 0)

@@ -347,6 +347,11 @@ namespace Rococo {
 		struct MapImage;
 
 		struct NativeCallSecurity;
+
+		ROCOCO_INTERFACE ISecuritySystem
+		{
+			virtual void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname) = 0;
+		};
 		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
@@ -448,6 +453,12 @@ namespace Rococo {
 
 			// Uses the cached native.hashes file to determine whether a file is suitable for Sexy. If not an exception is thrown.
 			virtual void ValidateSecureFile(cstr fileId, const char* source, size_t length) = 0;
+
+			// The security system is expected to be valid for the life time of the scrypt system
+			virtual void SetSecurityHandler(ISecuritySystem& system) = 0;
+
+			// Asks the host process whether it is acceptable for the script system to write the file with the given path name
+			virtual void ValidateSafeToWrite(cstr pathname) = 0;
 		};
 
 		ROCOCO_INTERFACE IScriptSystemFactory : public IFreeable

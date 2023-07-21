@@ -694,6 +694,7 @@ namespace Rococo
 	namespace MPlatImpl
 	{
 		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IContextMenuEvents& eventHandler);
+		void ValidateSafePathToWrite(IO::IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss, cstr pathname);
 	}
 
 	ROCOCO_INTERFACE IInventoryArraySupervisor : IInventoryArray
@@ -1028,7 +1029,8 @@ namespace Rococo
 			ISourceCache& sources,
 			IScriptEnumerator& implicitIncludes,
 			OS::IAppControl& appControl,
-			Strings::StringBuilder* declarationBuilder
+			Strings::StringBuilder* declarationBuilder,
+			IO::IInstallation& installation
 		);
 
 		void RunMPlatConfigScript(OUT IConfig& config,
@@ -1038,7 +1040,8 @@ namespace Rococo
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
 			OS::IAppControl& appControl,
-			Strings::StringBuilder* declarationBuilder
+			Strings::StringBuilder* declarationBuilder,
+			IO::IInstallation& installation
 		);
 	}
 }

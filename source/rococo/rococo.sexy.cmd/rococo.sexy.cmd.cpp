@@ -282,7 +282,7 @@ int PrintError(IException& ex)
 using namespace Rococo;
 using namespace Rococo::Windows;
 
-struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl, public Tasks::ITaskQueue
+struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl, public Tasks::ITaskQueue, public ISecuritySystem
 {
 	bool isInteractive;
 	int nArgs;
@@ -306,6 +306,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 	{
 		Rococo::Script::AddNativeCallSecurity_ToSysNatives(ssArgs.ss);
 		ssArgs.ss.SetCommandLine(nArgs, args);
+		ssArgs.ss.SetSecurityHandler(*this);
 	}
 
 	ScriptContext(IO::IInstallation& _installation, int argc, char** argv) :installation(_installation)
@@ -317,6 +318,14 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 	Tasks::ITaskQueue& MainThreadQueue() override
 	{
 		return *this;
+	}
+
+	void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname) override
+	{
+		UNUSED(ss);
+		UNUSED(pathname);
+		// The cmd script is no better or worse than any other command line utility for security, so if the user wants to write to any file, we have no objections here
+		// result = dandy
 	}
 
 	void AddTask(Rococo::Function<void()> lambda) override
