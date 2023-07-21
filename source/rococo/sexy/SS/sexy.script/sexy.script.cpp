@@ -49,6 +49,7 @@
 #include <rococo.api.h>
 #include <rococo.sexy.api.h>
 #include <rococo.os.h>
+#include <rococo.io.h>
 
 #include <rococo.package.h>
 
@@ -2151,18 +2152,19 @@ namespace Rococo::Script
 			{
 				auto& nativeNamespaceText = i.first;
 				auto& ns = AddNativeNamespace(nativeNamespaceText);
-				auto* requirments = i.second;
+				auto* requirements = i.second;
 
-				if (StartsWith(requirments->security.callersPingPath, "Package["))
+				if (StartsWith(requirements->security.callersPingPath, "Package["))
 				{
-					requirments->package = &packager->GetPackage(requirments->security.callersPingPath);
+					auto* p = requirements->package = &packager->GetPackage(requirements->security.callersPingPath);
+					ValidateSecureFile(p->FriendlyName(), p->RawData(), p->RawLength());
 				}
 				else
 				{
-					requirments->package = nullptr;
+					requirements->package = nullptr;
 				}
 
-				nsToSecurityVolatile[&ns] = requirments;
+				nsToSecurityVolatile[&ns] = requirements;
 			}
 
 			stringPool = NewStringPool();
@@ -2430,6 +2432,8 @@ namespace Rococo::Script
 				U8FilePath pingPath;
 				Format(pingPath, "!scripts/native/%s", sexySourceFile);
 
+				ValidateSecureFile(pingPath, sourceBuffer.data(), sourceBuffer.size());
+
 				src.Src = sexParserProxy().DuplicateSourceBuffer(sourceBuffer.data(), -1, Vec2i{ 1,1 }, pingPath);
 				src.Tree = sexParserProxy().CreateTree(*src.Src);
 
@@ -2474,6 +2478,100 @@ namespace Rococo::Script
 
 			INativeLib* lib = create(*this);
 			nativeLibs.push_back(lib);
+		}
+
+		TSexyStringMap<SecureHashInfo> hashes;
+
+		void ValidateSecureFile(cstr fileId, const char* source, size_t length) override
+		{
+			if (!hashes.empty())
+			{
+				auto i = hashes.find(fileId);
+				if (i != hashes.end())
+				{
+					auto& hashes = i->second;
+					SecureHashInfo forBuffer;
+					Strings::GetSecureHashInfo(forBuffer, source, length);
+
+					if (forBuffer == i->second)
+					{
+						// Dandy
+						return;
+					}
+					else
+					{
+						Throw(0, "Security violation! Bad hash for [%s]:\nExpecting %s", (cstr)i->first, forBuffer.hash);
+					}
+				}
+				Throw(0, "Security violation! No hash for [%s] in $(BIN)native.hashes.sxy", fileId);
+			}
+
+			AutoFree<IO::IOSSupervisor> ios = IO::GetIOS();
+
+			WideFilePath wBin;
+			ios->GetBinDirectoryAbsolute(wBin);
+
+			WideFilePath wSecurityFile;
+			Format(wSecurityFile, L"%snative.hashes.sxy", wBin.buf);
+
+			Auto<ISourceCode> src = sexParserProxy().LoadSource(wSecurityFile, Vec2i{ 0,0 });
+			Auto<ISParserTree> tree;
+			
+			TSexyStringMap<SecureHashInfo> localHashes;
+
+			try
+			{
+				tree = sexParserProxy().CreateTree(*src);
+
+				cr_sex root = tree->Root();
+
+				for (int i = 0; i < root.NumberOfElements(); i++)
+				{
+					cr_sex sDirective = root[i];
+					if (sDirective.NumberOfElements() == 4)
+					{
+						fstring assign = GetAtomicArg(sDirective[0]);
+						if (Eq(assign, "require-hash-of"))
+						{
+							// An assign directive (require-hash-of <path> = <hash> )
+							fstring securePath = GetAtomicArg(sDirective[1]);
+							fstring equals = GetAtomicArg(sDirective[2]);
+							fstring hash = GetAtomicArg(sDirective[3]);
+
+							if (!Eq(equals, "="))
+							{
+								Throw(0, "Expecting = at position 3 in directive %d", i + 1);
+							}
+
+							SecureHashInfo shi;
+							SafeFormat(shi.hash, "%s", (cstr)hash);
+
+							localHashes.insert(securePath, shi);
+						}
+						else
+						{
+							Throw(0, "Unknown directive %d", i + 1);
+						}
+					}
+				}
+			}
+			catch (ParseException& ex)
+			{
+				Throw(0, "Error in %ws: line %d\n%s", wSecurityFile.buf, ex.Start().y + 1, ex.Message());
+			}
+			catch (IException& ex)
+			{
+				Throw(0, "Error in %ws:\n%s", wSecurityFile.buf, ex.Message());
+			}
+
+			if (localHashes.empty())
+			{
+				Throw(0, "Error in %ws: no assignment found\n%s", wSecurityFile.buf);
+			}
+
+			hashes = localHashes;
+
+			ValidateSecureFile(fileId, source, length);
 		}
 
 		int32 GetIntrinsicModuleCount() const override

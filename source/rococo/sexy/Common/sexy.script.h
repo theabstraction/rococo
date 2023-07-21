@@ -445,6 +445,9 @@ namespace Rococo {
 
 			virtual void SetCommandLine(int argc, char* argv[]) = 0;
 			virtual cstr GetCommandLineArg(int argc) = 0;
+
+			// Uses the cached native.hashes file to determine whether a file is suitable for Sexy. If not an exception is thrown.
+			virtual void ValidateSecureFile(cstr fileId, const char* source, size_t length) = 0;
 		};
 
 		ROCOCO_INTERFACE IScriptSystemFactory : public IFreeable

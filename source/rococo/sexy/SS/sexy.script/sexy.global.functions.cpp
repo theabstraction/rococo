@@ -1903,6 +1903,9 @@ namespace Rococo
 				try
 				{
 					auto includedModule = sources.GetSource(implicitFile);
+
+					ss.ValidateSecureFile(implicitFile, includedModule->Source().SourceStart(), includedModule->Source().SourceLength());
+
 					ss.AddTree(*includedModule);
 				}
 				catch (IException& ex)

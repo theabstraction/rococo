@@ -228,7 +228,10 @@ namespace Rococo::IO
 		// Call if the system has become unstable due to bad assets et al
 		virtual void FireUnstable() = 0;
 		virtual void SetUnstableHandler(IEventCallback<SysUnstableArgs>* cb) = 0;
+
+		// Not terminated with a slash
 		virtual void GetBinDirectoryAbsolute(WideFilePath& binDirectory) const = 0;
+
 		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const = 0;

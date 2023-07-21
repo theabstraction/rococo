@@ -310,6 +310,10 @@ namespace
 			);
 		}
 
+		virtual ~SXYZMapPackage()
+		{
+		}
+
 		cstr FriendlyName() const override
 		{
 			return name;
@@ -492,6 +496,18 @@ namespace
 		void Free() override
 		{
 			delete this;
+		}
+
+		// A pointer to the raw data in the package
+		const char* RawData() const override
+		{
+			return buffer;
+		}
+
+		// Number of bytes of raw data
+		size_t RawLength() const override
+		{
+			return bufferLen;
 		}
 	};
 }
