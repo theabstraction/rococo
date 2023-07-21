@@ -34,6 +34,39 @@ void Validate(bool value, cstr msg, int lineNumber)
 
 #define VALIDATE(x) Validate(x, #x, __LINE__);
 
+void TestAllocSpeed()
+{
+	auto start = Time::TickCount();
+
+	std::vector<void*> ptrs;
+	for (int i = 0; i < 250'000; i++)
+	{
+		if ((i % 50000) == 0)
+		{
+			printf("Allocating %d+\n", i);
+		}
+		void* buffer = malloc(192);
+		ptrs.push_back(buffer);
+	}
+
+	auto mid = Time::TickCount();
+
+	for (int i = 0; i < 250'000; i++)
+	{
+		if ((i % 50000) == 0)
+		{
+			printf("Freeing %d+\n", i);
+		}
+		free(ptrs[i]);
+	}
+
+	auto end = Time::TickCount();
+
+	printf("Allocation Time: %.0fns per 192 byte block\n", 1000'000'000.0f * (mid - start) / (250'000.0 * Time::TickHz()));
+	printf("      Free Time: %.0fns per 192 byte block\n", 1000'000'000.0f * (end - mid) / (250'000.0 * Time::TickHz()));
+	printf("Total Time: %.4fs\n", (end - start) / (double)Time::TickHz());
+}
+
 int main(int argc, char* argv[])
 {
 	UNUSED(argc);
@@ -151,36 +184,6 @@ int main(int argc, char* argv[])
 
 		printf("All is well\n");
 		//WaitASecond();
-
-		auto start =Time::TickCount();
-
-		std::vector<void*> ptrs;
-		for (int i = 0; i < 250'000; i++)		
-		{
-			if ((i % 50000) == 0)
-			{
-				printf("Allocating %d+\n", i);
-			}
-			void* buffer = malloc(192);
-			ptrs.push_back(buffer);
-		}
-
-		auto mid = Time::TickCount();
-
-		for (int i = 0; i < 250'000; i++)
-		{
-			if ((i % 50000) == 0)
-			{
-				printf("Freeing %d+\n", i);
-			}
-			free(ptrs[i]);
-		}
-
-		auto end = Time::TickCount();
-
-		printf("Allocation Time: %.0fns per 192 byte block\n", 1000'000'000.0f * (mid - start) / (250'000.0 * Time::TickHz()));
-		printf("      Free Time: %.0fns per 192 byte block\n", 1000'000'000.0f * (end - mid) / (250'000.0 * Time::TickHz()));
-		printf("Total Time: %.4fs\n", (end - start) / (double)Time::TickHz());
 
 		return 0;
 	}

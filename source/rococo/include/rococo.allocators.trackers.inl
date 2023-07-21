@@ -1,6 +1,9 @@
 #pragma once
+
+#include <rococo.debugging.h>
 #include "rococo.allocators.inl"
 #include <algorithm>
+
 
 namespace Rococo::Memory
 {
@@ -105,7 +108,7 @@ namespace Rococo::Memory
 		enum 
 		{ 
 			// Defines the allocation size, in bytes, that triggers deep tracking. Typically used to trace a leak of known size
-			ALLOCATION_SIZE_WATCHED = 0
+			ALLOCATION_SIZE_WATCHED = 48
 		};
 
 		void AddProblemTracker(size_t nBytes)
@@ -121,7 +124,7 @@ namespace Rococo::Memory
 			{
 				// The callstack depth here determines the depth of the current callstack from where we extract the PC address used to generate the 
 				// function name and line number in the leak log
-				CALLSTACK_DEPTH = 3 
+				CALLSTACK_DEPTH = 4 
 			};
 
 			/*
@@ -166,7 +169,7 @@ namespace Rococo::Memory
 			auto* data = moduleAllocatorFunctions.Allocate(nBytes);
 			
 			// We could add a test for logFlags.LogLeaks here, but the use of this template implies the developer is looking at leaks anyway, so skip the test
-			AddTrackingData(data, nBytes, false);
+			AddTrackingData(data, nBytes, true);
 
 			if (moduleLogFlags.LogDetailedMetrics)
 			{
@@ -279,7 +282,7 @@ namespace Rococo::Memory
 				for (auto& i : stackWatch)
 				{
 					TrackingString& ts = i.second;
-					allocator_printf("%lld x %s\n", ts.count, ts.msg);
+					allocator_printf("%lld\n", ts.count);
 				}
 			}
 

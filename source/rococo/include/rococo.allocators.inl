@@ -5,6 +5,10 @@
 #include <unordered_map>
 #include <new>
 
+#ifndef GET_ALLOCATOR_FUNCTIONS
+#define  GET_ALLOCATOR_FUNCTIONS Rococo::Memory::GetDefaultAllocators()
+#endif
+
 namespace Rococo::Memory
 {
 	static void* FirstTimeAllocator(size_t nBytes);
@@ -16,14 +20,14 @@ namespace Rococo::Memory
 	static void* FirstTimeAllocator(size_t nBytes)
 	{
 		moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();
-		moduleAllocatorFunctions = Rococo::Memory::GetDefaultAllocators();
+		moduleAllocatorFunctions = GET_ALLOCATOR_FUNCTIONS;
 		return moduleAllocatorFunctions.Allocate(nBytes);
 	}
 
 	static void FirstTimeDeallocator(void* buffer)
 	{
 		moduleLogFlags = Rococo::Memory::GetAllocatorLogFlags();
-		moduleAllocatorFunctions = Rococo::Memory::GetDefaultAllocators();
+		moduleAllocatorFunctions = GET_ALLOCATOR_FUNCTIONS;
 		return moduleAllocatorFunctions.Free(buffer);
 	}
 
@@ -56,6 +60,11 @@ namespace Rococo::Memory
 	class AllocatorMonitor
 	{
 	public:
+		AllocatorMonitor()
+		{
+
+		}
+
 		void Log()
 		{
 			T t;

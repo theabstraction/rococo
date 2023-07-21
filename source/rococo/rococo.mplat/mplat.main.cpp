@@ -440,8 +440,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 {
 	using namespace Rococo::Components;
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if FAILED(hr)
 	{
@@ -686,8 +684,6 @@ namespace Rococo
 
 	int M_Platorm_Win64_MainDirect(HINSTANCE hInstance, IDirectAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
 	{
-		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-
 		int errCode = 0;
 
 		try

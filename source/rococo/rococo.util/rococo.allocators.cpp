@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <vector>
 
+#include <rococo.debugging.h>
+
 #ifdef _WIN32
 # include <rococo.os.win32.h>
 #else
@@ -89,7 +91,13 @@ namespace
       void* Allocate(size_t capacity) override
       {
          allocCount++;
-         return malloc(capacity);
+         void* buf = malloc(capacity);
+         if (buf != nullptr)
+         {
+             throw std::bad_alloc();
+         }
+
+         return buf;
       }
 
       void FreeData(void* data) override
@@ -166,11 +174,14 @@ namespace
 	  {
 		  if (capacity > 0x7FFF8 && maxBytes != 0)
 		  {
-			  Throw(GetLastError(), "Heap max must be set to zero (growable heap for allocations this large) %llu", maxBytes);
+              char msg[256];
+              SafeFormat(msg, "Heap max must be set to zero (growable heap for allocations this large) %llu", maxBytes);
+              Rococo::Debugging::AddCriticalLog(msg);
+              throw std::bad_alloc();
 		  }
 		  allocCount++;
 		  auto* ptr = HeapAlloc(hHeap, 0, capacity);
-		  if (ptr == nullptr) Throw(GetLastError(), "Insufficient memory in dedicated BlockAllocator heap for alloc operation. Heap max size is %llu bytes", maxBytes);
+          if (ptr == nullptr) throw std::bad_alloc();
 		  return ptr;
 	  }
 
@@ -317,7 +328,7 @@ namespace Rococo::Memory
     ROCOCO_API void Log(const AllocatorMetrics& stats, cstr name, cstr intro, int (*FN_LOG)(cstr format, ...))
     {
         FN_LOG("%s:  %s\n", name, intro);
-        FN_LOG(" Total allocation size: %llu bytes\n", stats.totalAllocationSize);
+        FN_LOG(" Total allocation size: %llu KB\n", stats.totalAllocationSize / 1024);
         FN_LOG(" Total allocations: %llu\n", stats.totalAllocations);
         FN_LOG(" Useful frees: %llu\n", stats.usefulFrees);
         FN_LOG(" Total frees: %llu\n", stats.totalFrees);

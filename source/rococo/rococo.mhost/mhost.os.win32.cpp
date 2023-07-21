@@ -35,6 +35,8 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	UNUSED(hPrevInstance);
 	UNUSED(nShowCmd);
 
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+
 	char titleBuffer[128];
 	Rococo::Strings::CLI::GetCommandLineArgument("-title:"_fstring, lpCmdLine, titleBuffer, sizeof titleBuffer, "Rococo MHost");
 
