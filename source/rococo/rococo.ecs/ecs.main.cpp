@@ -1,12 +1,12 @@
 #include <rococo.ecs.h>
 #include <vector>
 
-#include <rococo.allocators.dll.inl>
+#include <allocators/rococo.allocators.dll.inl>
 
 DEFINE_DLL_IALLOCATOR(ecsAllocator)
 DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(ecsAllocator, 128, ECSModule)
 
-#include <rococo.allocators.inl>
+#include <allocators/rococo.allocators.inl>
 
 DeclareAllocator(TrackingAllocator, ECSModule, g_allocator)
 Rococo::Memory::AllocatorMonitor<ECSModule> monitor; // When the progam terminates this object is cleared up and triggers the allocator log

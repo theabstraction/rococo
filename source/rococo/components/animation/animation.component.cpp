@@ -5,12 +5,12 @@
 
 //#include <rococo.allocators.trackers.inl>
 
-#include <rococo.allocators.dll.inl>
+#include <allocators/rococo.allocators.dll.inl>
 
 DEFINE_DLL_IALLOCATOR(g_iAllocator)
 DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(g_iAllocator, 128, AnimationModule)
 
-#include <rococo.allocators.inl>
+#include <allocators/rococo.allocators.inl>
 
 DeclareAllocator(TrackingAllocator, AnimationModule, g_allocator)
 Rococo::Memory::AllocatorMonitor<AnimationModule> monitor; // When the progam terminates this object is cleared up and triggers the allocator log

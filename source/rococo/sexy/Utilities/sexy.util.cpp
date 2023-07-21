@@ -35,9 +35,7 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
 #include "sexy.compiler.public.h"
-
 #include "..\STC\stccore\sexy.validators.h"
-
 #include "..\STC\stccore\Sexy.Compiler.h"
 
 #include <float.h>
@@ -158,12 +156,12 @@ namespace Rococo::Memory
 	}
 }
 
-#include <rococo.allocators.dll.inl>
+#include <allocators/rococo.allocators.dll.inl>
 
 DEFINE_DLL_IALLOCATOR(utilsAllocator)
 DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(utilsAllocator, 128, SexyUtils)
 
-#include <rococo.allocators.inl>
+#include <allocators/rococo.allocators.inl>
 
 DeclareAllocator(TrackingAllocator, SexyUtils, g_allocator)
 Rococo::Memory::AllocatorMonitor<SexyUtils> monitor; // When the progam terminates this object is cleared up and triggers the allocator log

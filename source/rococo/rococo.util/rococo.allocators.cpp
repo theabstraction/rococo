@@ -60,7 +60,7 @@ namespace
 
 #include <vector>
 #include <algorithm>
-#include <rococo.allocator.template.h>
+#include <allocators/rococo.allocator.template.h>
 
 namespace
 {

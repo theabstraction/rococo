@@ -204,7 +204,7 @@ namespace ANON
 }
 
 #define _MODULE_ALLOCATOR_AVAILABLE
-#include <rococo.allocator.template.h>
+#include <allocators/rococo.allocator.template.h>
 
 namespace ANON
 {

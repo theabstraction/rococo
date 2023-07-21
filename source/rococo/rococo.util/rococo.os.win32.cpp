@@ -41,13 +41,13 @@
 #include <list>
 #include <rococo.time.h>
 
-#include <rococo.allocators.inl>
+#include <allocators/rococo.allocators.inl>
 
 using namespace Rococo::IO;
 using namespace Rococo::Strings;
 using namespace Rococo::Memory;
 
-#include <rococo.allocators.modules.h>
+#include <allocators/rococo.allocators.modules.h>
 
 USE_ROCOCO_UTILS_FOR_MODULE_ALLOCATORS
 DeclareAllocator(TrackingAllocator, RococoUtils, g_allocator)
