@@ -97,7 +97,9 @@ namespace
 		char err[128] = "";
 		Audio::IdSample sampleId;
 
-		MainWindowHandler(Audio::IAudio& _audio) : audio(_audio), window(nullptr)
+		double dspCalcsPerSecond = 0;
+
+		MainWindowHandler(Audio::IAudio& _audio, double dspSpeed) : audio(_audio), window(nullptr), dspCalcsPerSecond(dspSpeed)
 		{
 			
 		}
@@ -145,9 +147,9 @@ namespace
 		}
 	public:
 		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
-		static MainWindowHandler* Create(Rococo::Audio::IAudio& audio)
+		static MainWindowHandler* Create(Rococo::Audio::IAudio& audio, double dspCalcsPerSec)
 		{
-			auto m = new MainWindowHandler(audio);
+			auto m = new MainWindowHandler(audio, dspCalcsPerSec);
 			m->PostConstruct();
 			return m;
 		}
@@ -171,7 +173,7 @@ namespace
 			}
 			else
 			{
-				SafeFormat(statusBuffer, "%s + %s (%.2f, %.2f, %.2f)", bearing, elevation, soundPosition.x, soundPosition.y, soundPosition.z);
+				SafeFormat(statusBuffer, "%s + %s (%.2f, %.2f, %.2f). DSP Calculations Per Second: %llf", bearing, elevation, soundPosition.x, soundPosition.y, soundPosition.z, dspCalcsPerSecond);
 			}
 			SetDlgItemTextA(*window, (ControlId)Ids::STATUS_BAR, statusBuffer);
 		}
@@ -269,8 +271,32 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR 
 		AutoFree<Audio::IOSAudioAPISupervisor> osAudio = Audio::CreateOSAudio();
 		AutoFree<Audio::IAudioSupervisor> audio = Audio::CreateAudioSupervisor(*audioInstallation, *osAudio, audio_config);
 
+		AutoFree<Audio::IAudio3DSupervisor> fx3D = osAudio->Create3DAPI(330.0);
+		AutoFree<Audio::IAudio3DEmitterSupervisor> emitter = fx3D->CreateEmitter();
+
+		Time::ticks start3Dtime = Time::TickCount();
+
+		Audio::Audio3DObjectFrame frame;
+		frame.dopplerVelocity = { -165.0f, 0.0f, 0.0f }; // Moving West at half the speed of sound
+		frame.facingDirection = { -1.0f, 0.0f, 0.0f }; // Facing West
+		frame.position = { 300.0f, 50.0f, 0.0f }; // 50 metres to the North of the listener and 300 metres East
+		frame.upDirection = { 0.0, 0.0f, 1.0f }; // Z = up
+		emitter->SetFrame(frame);
+
+		for (int i = 0; i < 1000000; i++)
+		{
+			fx3D->ComputeDSP(*emitter);
+			auto& dsp = emitter->Dsp();
+		}
+
+		Time::ticks end3Dtime = Time::TickCount();
+
+		double secondsExpired = (end3Dtime - start3Dtime) / (double) Time::TickHz();
+
+		double dspCalcsPerSecond = 1000000.0 / secondsExpired;
+
 		InitRococoWindows(_hInstance, LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), LoadIcon(_hInstance, MAKEINTRESOURCE(IDI_ICON1)), nullptr, nullptr); // This must be called once, in WinMain or DllMain
-		AutoFree<MainWindowHandler> mainWindowHandler(MainWindowHandler::Create(*audio));
+		AutoFree<MainWindowHandler> mainWindowHandler(MainWindowHandler::Create(*audio, dspCalcsPerSecond));
 
 		bool isRunning = true;
 

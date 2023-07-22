@@ -45,7 +45,7 @@ namespace AudioAnon
 			audio3D = osAPI.Create3DAPI(speedOfSoundMetresPerSecond);
 
 			monoSamples = CreateAudioSampleDatabase(_installation, 1, *this);
-			concert = CreateConcert(*monoSamples, ref_osAPI);
+			concert = CreateConcert(*monoSamples, ref_osAPI, *audio3D);
 			
 			thread = OS::CreateRococoThread(this, 0);
 			thread->Resume();

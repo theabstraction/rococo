@@ -15,6 +15,64 @@ namespace Rococo::Audio
 
 	ROCOCO_ID(IdSample, uint64, 0);
 
+#pragma pack(push, 1)
+	union EmitterSoundMatrix
+	{
+		struct Stereo
+		{
+			float left;
+			float right;
+		} stereo;
+
+		struct Dolby51
+		{
+			float left;
+			float right;
+			float centre;
+			float woofer;
+			float backLeft;
+			float backRight;
+		} dolby51;
+
+		struct Dolby71
+		{
+			float left;
+			float right;
+			float centre;
+			float woofer;
+			float backLeft;
+			float backRight;
+			float frontCentreLeft;
+			float frontCentreRight;
+		} dolby71;
+
+		struct All
+		{
+			float speakers[8];
+		} all;
+	};
+
+	struct EmitterDSP
+	{
+		EmitterSoundMatrix* pMatrixCoefficients; // [inout] matrix coefficient table, receives an array representing the volume level used to send from source channel S to destination channel D, stored as pMatrixCoefficients[SrcChannelCount * D + S], must have at least SrcChannelCount*DstChannelCount elements
+		EmitterSoundMatrix* pDelayTimes;         // [inout] delay time array, receives delays for each destination channel in milliseconds, must have at least DstChannelCount elements (stereo final mix only)
+		uint32 SrcChannelCount;       // [in] number of source channels, must equal number of channels in respective emitter
+		uint32 DstChannelCount;       // [in] number of destination channels, must equal number of channels of the final mix
+
+		float LPFDirectCoefficient; // [out] LPF direct-path coefficient
+		float LPFReverbCoefficient; // [out] LPF reverb-path coefficient
+		float ReverbLevel; // [out] reverb send level
+		float DopplerFactor; // [out] doppler shift factor, scales resampler ratio for doppler shift effect, where the effective frequency = DopplerFactor * original frequency
+		float EmitterToListenerAngle; // [out] emitter-to-listener interior angle, expressed in radians with respect to the emitter's front orientation
+
+		float EmitterToListenerDistance; // [out] distance in user-defined world units from the emitter base to listener position, always calculated
+		float EmitterVelocityComponent; // [out] component of emitter velocity vector projected onto emitter->listener vector in user-defined world units/second, calculated only for doppler
+		float ListenerVelocityComponent; // [out] component of listener velocity vector projected onto emitter->listener vector in user-defined world units/second, calculated only for doppler
+	};
+
+	static_assert(sizeof(EmitterSoundMatrix) == 8 * sizeof(float));
+#pragma pack(pop)
+
 #pragma pack(push,1)
 	class IdInstrument
 	{
@@ -174,6 +232,7 @@ namespace Rococo::Audio
 
 	ROCOCO_INTERFACE IOSAudioVoice
 	{
+		virtual void Set3DParameters(const EmitterDSP & dsp) = 0;
 		virtual void QueueSample(const uint8* buffer, uint32 nBytesInBuffer, uint32 beginAt, uint32 nSamplesToPlay) = 0;
 		virtual void StartPulling() = 0;
 		virtual void Stop() = 0;
@@ -204,6 +263,7 @@ namespace Rococo::Audio
 
 	ROCOCO_INTERFACE IAudio3DEmitter
 	{
+		virtual const EmitterDSP& Dsp() const = 0;
 		virtual void SetFrame(const Audio3DObjectFrame& frame) = 0;
 	};
 
@@ -214,6 +274,12 @@ namespace Rococo::Audio
 
 	ROCOCO_INTERFACE IAudio3D
 	{
+		// Intel(R) Core(TM) i7-11700 @ 2.50GHz yielded 8 million of these DSP calculations per second under tests.
+		// Assuming 1% of CPU is dedicated to 3D audio this gives us 80,000 calculations per second for the CPU quota
+		// With 250 3D instruments, this gives us 320 calculations per instrument per second, or a max refresh rate of about 3ms per instrument
+		// However we want slower systems to enjoy 3D sound too, so 10-30ms between per calcuation per voice seems about right.
+		virtual void ComputeDSP(IAudio3DEmitter& emitter) = 0;
+
 		virtual IAudio3DEmitterSupervisor* CreateEmitter() = 0;
 		virtual void UpdateSpeakerConfig(float speedOfSoundInMetresPerSecond) = 0;
 	};
@@ -350,7 +416,7 @@ namespace Rococo::Audio
 		virtual void ThrowOnThreadError() = 0;
 	};
 
-	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database, IOSAudioAPI& audio);
+	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database, IOSAudioAPI& audio, IAudio3D& audio3D);
 
 	ROCOCO_INTERFACE IAudioStreamer
 	{

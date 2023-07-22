@@ -29,6 +29,7 @@ namespace Rococo::Audio
 		IdInstrumentIndexType index = 0;
 		IdInstrumentSaltType salt = 0;
 		IAudioSample* sample = nullptr;
+		IAudio3DEmitterSupervisor* emitter = nullptr;
 		IOSAudioVoiceSupervisor* monoVoice = nullptr;
 		int32 flags = 0; // Combination of Rococo::Audio::InstrumentFlag enumeration values
 		int priority = 0; // The higher the priority the more urgent to preserve the instrument
@@ -44,6 +45,7 @@ namespace Rococo::Audio
 		std::atomic<bool> waitingForLoad = false;
 		Seconds delayRemaining = 0.0_seconds;
 		Time::ticks assignmentStart = 0;
+		IAudio3D* audio3DProcessor = nullptr;
 
 		InstrumentDescriptor() : playCount(0), stopCount(0)
 		{
@@ -173,7 +175,8 @@ namespace Rococo::Audio
 	{
 		enum { MAX_VOICES = 255 };
 		IAudioSampleDatabase& sampleDatabase;
-		IOSAudioAPI& audio;
+		IOSAudioAPI& osAudio;
+		IAudio3D& audio3Dprocessor;
 		Matrix4x4 worldToGoer;
 
 		std::vector<IdInstrument> freeIds;
@@ -182,11 +185,12 @@ namespace Rococo::Audio
 		AutoFree<OS::IThreadSupervisor> thread;
 		uint32 maxVoices;
 	public:
-		Concert3D(IAudioSampleDatabase& refSampleDatabase, IOSAudioAPI& refAudio): 
-			audio(refAudio),
+		Concert3D(IAudioSampleDatabase& refSampleDatabase, IOSAudioAPI& _audio, IAudio3D& _audio3Dprocessor):
+			osAudio(_audio),
 			sampleDatabase(refSampleDatabase),
 			worldToGoer(Matrix4x4::Identity()),
-			maxVoices(MAX_VOICES)
+			maxVoices(MAX_VOICES),
+			audio3Dprocessor(_audio3Dprocessor)
 		{
 			freeIds.reserve(MAX_VOICES);
 			InitVectors();		
@@ -201,6 +205,7 @@ namespace Rococo::Audio
 			{
 				Rococo::Free(i.monoVoice);
 				i.monoVoice = nullptr;
+				Rococo::Free(i.emitter);
 			}
 		}
 
@@ -225,11 +230,13 @@ namespace Rococo::Audio
 			IdInstrumentIndexType counter = 1;
 			for (auto& i : instruments)
 			{
+				i.audio3DProcessor = &audio3Dprocessor;
 				i.index = counter++;
 				i.salt = nextSalt;
 				i.priority = 0x00000000;
 				i.dopplerVelocity = Vec3{ 0,0,0 };
-				if (!i.monoVoice) i.monoVoice = audio.Create16bitMono44100kHzVoice(*this, i);
+				if (!i.emitter) i.emitter = audio3Dprocessor.CreateEmitter();
+				if (!i.monoVoice) i.monoVoice = osAudio.Create16bitMono44100kHzVoice(*this, i);
 			}
 
 			for (auto i = instruments.begin(); i != instruments.end() && i->index <= maxVoices; i++)
@@ -315,6 +322,16 @@ namespace Rococo::Audio
 
 			auto& i = GetRef(id);
 			i.salt = id.Salt();
+
+			Audio3DObjectFrame frame;
+			frame.dopplerVelocity = source.dopplerVelocity;
+			frame.facingDirection = Vec3{ 0,0,1.0f };
+			frame.position = source.position;
+			frame.upDirection = Vec3{ 0, 0, 1.0f };
+			i.emitter->SetFrame(frame);
+			audio3Dprocessor.ComputeDSP(*i.emitter);
+			auto& dsp = i.emitter->Dsp();
+			i.monoVoice->Set3DParameters(dsp);
 
 			i.Assign(sample, source, *thread);
 
@@ -656,12 +673,12 @@ namespace Rococo::Audio
 
 namespace Rococo::Audio
 {
-	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database, IOSAudioAPI& audio)
+	ROCOCO_AUDIO_API IConcert3DSupervisor* CreateConcert(IAudioSampleDatabase& database, IOSAudioAPI& osAPI, IAudio3D& audio3D)
 	{
 		if (database.NumberOfChannels() != 1)
 		{
 			Throw(0, "%s: database channel count must be 1, i.e a mono sample database", __FUNCTION__);
 		}
-		return new Concert3D(database, audio);
+		return new Concert3D(database, osAPI, audio3D);
 	}
 }

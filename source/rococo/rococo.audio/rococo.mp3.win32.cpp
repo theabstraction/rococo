@@ -687,8 +687,10 @@ namespace AudioAnon
 			VALIDATE(hr = outputSample->AddBuffer(pcmBuffer));
 		}
 
-		uint32 DecodeAudio(cstr utf8Path, IAudioSample& sample, IAudioSampleEvents& eventHander, IPCMAudioBufferManager& audioBufferManager) override
+		uint32 DecodeAudio(cstr utf8Path, IAudioSample& sample, IAudioSampleEvents& eventHandler, IPCMAudioBufferManager& audioBufferManager) override
 		{
+			UNUSED(sample);
+			UNUSED(eventHandler);
 			// Our algorithm expands the mp3 into a scratch buffer. This grows to accomodate the largest decoded MP3 put through the system
 			// The sample we extract copies the relevant portion of the scratch buffer - this way we ensure the minimum of memory fragmentation.
 

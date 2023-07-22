@@ -80,6 +80,7 @@ namespace AudioAnon
 		int Close()
 		{
 			readIndex = 0;
+			return 0;
 		}
 
 		NOT_INLINE long Tell()

@@ -6,49 +6,18 @@ using namespace Rococo::Audio;
 
 namespace AudioAnon
 {
-	union EmitterSoundMatrix
+	inline X3DAUDIO_VECTOR RHS_RightNorthUp_To_LHS_RightUpNorth(cr_vec3 p)
 	{
-		struct Stereo
-		{
-			float left;
-			float right;
-		} stereo;
-
-		struct Dolby51
-		{
-			float left;
-			float right;
-			float centre;
-			float woofer;
-			float backLeft;
-			float backRight;
-		} dolby51;
-
-		struct Dolby71
-		{
-			float left;
-			float right;
-			float centre;
-			float woofer;
-			float backLeft;
-			float backRight;
-			float frontCentreLeft;
-			float frontCentreRight;
-		} dolby71;
-
-		struct All
-		{
-			float speakers[8];
-		} all;
-	};
+		return X3DAUDIO_VECTOR{ p.x, p.z, p.y };
+	}
 
 	struct Audio3DEmitter: IAudio3DEmitterSupervisor
 	{
 		X3DAUDIO_EMITTER e;
-		X3DAUDIO_DSP_SETTINGS dsp;
+		EmitterDSP dsp;
 		DWORD channelMask;
 		EmitterSoundMatrix matrix = { 0 };
-		float delays[8] = { 0 };
+		EmitterSoundMatrix delays = { 0 };
 
 		Audio3DEmitter()
 		{
@@ -62,8 +31,19 @@ namespace AudioAnon
 			memset(&dsp, 0, sizeof dsp);
 
 			dsp.SrcChannelCount = 1;
-			dsp.pMatrixCoefficients = matrix.all.speakers;
-			dsp.pDelayTimes = delays;
+			dsp.pMatrixCoefficients = &matrix;
+			dsp.pDelayTimes = &delays;
+		}
+
+		virtual ~Audio3DEmitter()
+		{
+
+		}
+
+		const EmitterDSP& Dsp() const
+		{
+			static_assert(sizeof EmitterDSP == sizeof X3DAUDIO_DSP_SETTINGS);
+			return reinterpret_cast<const EmitterDSP&>(dsp);
 		}
 
 		void Free() override
@@ -73,10 +53,10 @@ namespace AudioAnon
 
 		void SetFrame(const Audio3DObjectFrame& frame) override
 		{
-			e.OrientFront = To(frame.facingDirection);
-			e.OrientTop = To(frame.upDirection);
-			e.Position = To(frame.position);
-			e.Velocity = To(frame.dopplerVelocity);
+			e.OrientFront = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.facingDirection);
+			e.OrientTop = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.upDirection);
+			e.Position = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.position);
+			e.Velocity = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.dopplerVelocity);
 		}
 	};
 
@@ -101,7 +81,7 @@ namespace AudioAnon
 
 			Audio3DObjectFrame frame;
 			frame.facingDirection = { 0, 1.0f, 0 };
-			frame.upDirection = { 0, 0, 1.0f };
+			frame.upDirection = { 0, 0.0f, 1.0f };
 			frame.position = { 0, 0, 0 }; 
 			frame.dopplerVelocity = { 0, 0, 0 };
 			SetListenerFrame(frame);
@@ -146,14 +126,14 @@ namespace AudioAnon
 				Throw(0, "%s: The facingVector and the upVector were not orthonormal", __FUNCTION__);
 			}
 
-			listener.OrientFront = To(frame.facingDirection);
-			listener.OrientTop = To(frame.upDirection);
-			listener.Position = To(frame.position);
-			listener.Velocity = To(frame.dopplerVelocity);
+			listener.OrientFront = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.facingDirection);
+			listener.OrientTop = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.upDirection);
+			listener.Position = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.position);
+			listener.Velocity = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.dopplerVelocity);
 			listener.pCone = nullptr;			
 		}
 
-		void ComputeDSP(IAudio3DEmitter& emitter)
+		void ComputeDSP(IAudio3DEmitter& emitter) override
 		{
 			int flags = 0;
 			auto& audio3DEmitter = static_cast<Audio3DEmitter&>(emitter);
@@ -176,10 +156,10 @@ namespace AudioAnon
 				break;
 			}
 
-			flags |= X3DAUDIO_CALCULATE_MATRIX | X3DAUDIO_CALCULATE_DELAY | X3DAUDIO_CALCULATE_LPF_DIRECT | X3DAUDIO_CALCULATE_LPF_REVERB | X3DAUDIO_CALCULATE_REVERB | X3DAUDIO_CALCULATE_DOPPLER;				
-			flags |= X3DAUDIO_CALCULATE_REDIRECT_TO_LFE;
+			flags |= X3DAUDIO_CALCULATE_MATRIX | X3DAUDIO_CALCULATE_DELAY | X3DAUDIO_CALCULATE_DOPPLER; // | X3DAUDIO_CALCULATE_LPF_REVERB | X3DAUDIO_CALCULATE_REVERB;
+			// flags |= X3DAUDIO_CALCULATE_REDIRECT_TO_LFE | X3DAUDIO_CALCULATE_EMITTER_ANGLE;
 			
-			X3DAudioCalculate(hX3D, &listener, &audio3DEmitter.e, flags, IN OUT &audio3DEmitter.dsp);
+			X3DAudioCalculate(hX3D, &listener, &audio3DEmitter.e, flags, IN OUT reinterpret_cast<X3DAUDIO_DSP_SETTINGS*>(&audio3DEmitter.dsp));
 		}
 
 		IAudio3DEmitterSupervisor* CreateEmitter()
