@@ -92,7 +92,7 @@ namespace
       {
          allocCount++;
          void* buf = malloc(capacity);
-         if (buf != nullptr)
+         if (buf == nullptr)
          {
              throw std::bad_alloc();
          }
