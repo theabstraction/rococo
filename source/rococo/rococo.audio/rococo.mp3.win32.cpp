@@ -607,7 +607,7 @@ namespace AudioAnon
 		}
 	};
 
-	struct MP3Loader : IMP3LoaderSupervisor
+	struct MP3Loader : ILoaderSupervisor
 	{
 		IAudioInstallationSupervisor& installation;
 		AutoRelease<IMFTransform> transformer; 
@@ -687,7 +687,7 @@ namespace AudioAnon
 			VALIDATE(hr = outputSample->AddBuffer(pcmBuffer));
 		}
 
-		uint32 DecodeMP3(cstr utf8Path, IPCMAudioBufferManager& audioBufferManager) override
+		uint32 DecodeAudio(cstr utf8Path, IAudioSample& sample, IAudioSampleEvents& eventHander, IPCMAudioBufferManager& audioBufferManager) override
 		{
 			// Our algorithm expands the mp3 into a scratch buffer. This grows to accomodate the largest decoded MP3 put through the system
 			// The sample we extract copies the relevant portion of the scratch buffer - this way we ensure the minimum of memory fragmentation.
@@ -783,7 +783,7 @@ namespace Rococo::Audio
 		return new AudioAnon::AudioDecoder(installation, nSamplesInOutput);
 	}
 
-	IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IAudioInstallationSupervisor& installation, uint32 nChannels)
+	ILoaderSupervisor* CreateSingleThreadedMP3Loader(IAudioInstallationSupervisor& installation, uint32 nChannels)
 	{
 		return new AudioAnon::MP3Loader(installation, nChannels);
 	}

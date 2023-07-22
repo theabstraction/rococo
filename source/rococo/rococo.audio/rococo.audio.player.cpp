@@ -2,6 +2,7 @@
 #include <rococo.io.h>
 #include <rococo.os.h>
 #include <rococo.strings.h>
+#include <rococo.debugging.h>
 
 using namespace Rococo;
 using namespace Rococo::IO;
@@ -10,7 +11,7 @@ using namespace Rococo::Strings;
 
 namespace AudioAnon
 {
-	class AudioPlayer: public IAudioSupervisor, OS::IThreadJob, IEventCallback<IAudioSample&>
+	class AudioPlayer: public IAudioSupervisor, OS::IThreadJob, IAudioSampleEvents
 	{
 		IAudioInstallationSupervisor& installation;
 		IOSAudioAPI& osAPI;
@@ -65,9 +66,16 @@ namespace AudioAnon
 			concert->ThrowOnThreadError();
 		}
 
-		void OnEvent(IAudioSample& sampleLoaded) override
+		// Implementation of IAudioSampleDatabaseEvents::OnSampleLoaded
+		void OnSampleLoaded(IAudioSample& sampleLoaded) override
 		{
 			concert->OnSampleLoaded(sampleLoaded);
+		}
+
+		// Implementation of IAudioSampleDatabaseEvents::MarkBadSample
+		void MarkBadSample(IAudioSample& badSample, cstr reason) override
+		{
+			Rococo::Debugging::Log("Bad audio file: %s (%s)", badSample.Name(), reason);
 		}
 
 		void SetMP3Music(const fstring& mp3pingPath)
