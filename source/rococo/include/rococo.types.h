@@ -181,6 +181,12 @@ namespace Rococo
 		return kb * 1024;
 	}
 
+#ifdef _WIN32
+	inline bool IsEndianLittle() { return true; }
+#else
+	inline bool IsEndianLittle() { static_assert(false, "unknown") };
+#endif
+
 	// Maximum fully qualified name length. Names categories include variables a.b.c.d and functions A.B.C.D and methods a.b.c.D
 	enum { MAX_FQ_NAME_LEN = 127 };
 

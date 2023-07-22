@@ -119,7 +119,13 @@ namespace Rococo::Audio
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IAudioInstallationSupervisor& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded);
+	ROCOCO_INTERFACE IAudioSampleEvents
+	{
+		virtual void OnSampleLoaded(IAudioSample & sample) = 0;
+		virtual void MarkBadSample(IAudioSample& badSample, cstr reason) = 0;
+	};
+
+	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IAudioInstallationSupervisor& installation, int nChannels, IAudioSampleEvents& events);
 
 	struct AudioBufferDescriptor
 	{
@@ -140,20 +146,23 @@ namespace Rococo::Audio
 		virtual void Finalize(const PCMAudioLoadingMetrics& metrics) = 0;
 	};
 
-	ROCOCO_INTERFACE IMP3LoaderSupervisor
+	ROCOCO_INTERFACE ILoaderSupervisor
 	{
 		// Loads the sample, fills in the decoded buffer via the audioBufferManager and returns the length of the buffer.
-		virtual uint32 DecodeMP3(cstr pingPath, IPCMAudioBufferManager& audioBufferManager) = 0;
+		virtual uint32 DecodeAudio(cstr pingPath, IAudioSample& sample, IAudioSampleEvents& eventHander, IPCMAudioBufferManager& audioBufferManager) = 0;
 		virtual void Free() = 0;
 	};
 
 	// Creates an MP3 loader - optimized for a single thread access. Every loading thread should create its own instance
-	ROCOCO_AUDIO_API IMP3LoaderSupervisor* CreateSingleThreadedMP3Loader(IAudioInstallationSupervisor& installation, uint32 nChannels);
+	ROCOCO_AUDIO_API ILoaderSupervisor* CreateSingleThreadedMP3Loader(IAudioInstallationSupervisor& installation, uint32 nChannels);
+
+	// Creates an OGG loader - optimized for a single thread access. Every loading thread should create its own instance
+	ILoaderSupervisor* CreateSingleThreadedOggVorbisLoader(IAudioInstallationSupervisor& installation, uint32 nChannels);
 
 	ROCOCO_INTERFACE IAudioSampleSupervisor : IAudioSample
 	{
 		// cache is called in the sample database thread to load the sample asynchronously from the main thread
-		virtual void Cache(IMP3LoaderSupervisor & loader) = 0;
+		virtual void Cache(ILoaderSupervisor& loader, IAudioSampleEvents& eventHandler) = 0;
 		virtual void Free() = 0;
 	};
 

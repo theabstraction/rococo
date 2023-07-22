@@ -16,12 +16,26 @@
 #ifndef _OS_TYPES_H
 #define _OS_TYPES_H
 
+typedef void* (*FN_OGG_MALLOC)(size_t nBytes);
+typedef void* (*FN_OGG_CALLOC)(size_t nitems, size_t size);
+typedef void* (*FN_OGG_REALLOC)(void* buffer, size_t nBytes);
+typedef void (*FN_OGG_FREE)(void* buffer);
+
+#ifdef OGG_MEMORY_API_REQUIRED
+ extern "C" __declspec(dllimport) void OggSetAllocators(FN_OGG_MALLOC oggMalloc, FN_OGG_CALLOC oggCalloc, FN_OGG_REALLOC oggRealloc, FN_OGG_FREE oggFreeMemory);
+#endif
+    
+void* OggMalloc(size_t nBytes);
+void* OggCalloc(size_t nitems, size_t size);
+void* OggRealloc(void* existingBuffer, size_t nBytes);
+void OggFree(void* buffer);
+
 /* make it easy on the folks that want to compile the libs with a
    different malloc than stdlib */
-#define _ogg_malloc  malloc
-#define _ogg_calloc  calloc
-#define _ogg_realloc realloc
-#define _ogg_free    free
+#define _ogg_malloc  OggMalloc
+#define _ogg_calloc  OggCalloc
+#define _ogg_realloc OggRealloc
+#define _ogg_free    OggFree
 
 #if defined(_WIN32)
 

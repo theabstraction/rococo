@@ -70,7 +70,7 @@ SampleButton sampleButtons[] =
 {
 	{ "Cat",	{  50,  310, 100, 350 }, "!sounds/cat.mp3" },
 	{ "Dog",	{ 120,  310, 170, 350 }, "!sounds/dog.mp3" },
-	{ "Glock",  { 190,  310, 240, 350 }, "!sounds/glock.mp3" },
+	{ "Glock",  { 190,  310, 240, 350 }, "!sounds/glock.ogg" },
 };
 
 namespace

@@ -69,7 +69,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ROCOCO_AUDIO_API=__declspec(dllexport);WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -158,7 +158,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>NDEBUG;ROCOCO_AUDIO_API=__declspec(dllexport);WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -242,6 +242,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
@@ -252,12 +253,13 @@
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.3D-world.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.dllmain.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.memory.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.mp3.win32.decoders.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.player.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.sample.database.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.streamer.stereo.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.X2.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.X3D.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.mp3.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.ogg-vorbis.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

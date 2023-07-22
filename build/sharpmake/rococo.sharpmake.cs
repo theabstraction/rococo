@@ -124,7 +124,7 @@ namespace Rococo
         {
             if (target.Optimization == Optimization.Debug)
             {
-                config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.OnlyInline);
+                config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.Disable);
                 //config.Options.Add(Sharpmake.Options.Vc.Compiler.Inline.OnlyInline);
             }
             else
@@ -702,20 +702,97 @@ namespace Rococo
         }
     }
     
-    [Sharpmake.Generate]
-    public class OggVorbisProject : Project
+    [Sharpmake.Compile]
+    public class OggProject : Project
     {
-        public OggVorbisProject()
+        public OggProject()
         {
+            AddTargets(new Target(
+               Platform.win64,
+               DevEnv.vs2022,
+               Optimization.Debug | Optimization.Release,
+               OutputType.Dll,
+               Blob.NoBlob,
+               BuildSystem.MSBuild,
+               DotNetFramework.v4_8)
+           );
+
+            Name = "lib-ogg";
         }
 
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            StandardInit(conf, target, Configuration.OutputType.None);
+            conf.ProjectPath = @"..\..\source\3rd-Party\libogg\win32\VS2022";
+            conf.ProjectFileName = "lib-ogg";
+            conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
+            conf.TargetFileName = "lib-ogg.vcxproj";
+            conf.Output = Configuration.OutputType.None; // Required to create dependencies in a compiled/not-generated object
+            conf.SolutionFolder = " - Third-Party Projects";
         }
     }
-    
+
+    [Sharpmake.Compile]
+    public class VorbisProject : Project
+    {
+        public VorbisProject()
+        {
+            AddTargets(new Target(
+               Platform.win64,
+               DevEnv.vs2022,
+               Optimization.Debug | Optimization.Release,
+               OutputType.Dll,
+               Blob.NoBlob,
+               BuildSystem.MSBuild,
+               DotNetFramework.v4_8)
+           );
+
+            Name = "lib-vorbis";
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectPath = @"..\..\source\3rd-Party\libvorbis\win32\VS2022\libvorbis";
+            conf.ProjectFileName = "lib-vorbis";
+            conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
+            conf.TargetFileName = "lib-vorbis.vcxproj";
+            conf.Output = Configuration.OutputType.None; // Required to create dependencies in a compiled/not-generated object
+            conf.SolutionFolder = " - Third-Party Projects";
+        }
+    }
+
+    [Sharpmake.Compile]
+    public class VorbisFileProject : Project
+    {
+        public VorbisFileProject()
+        {
+            AddTargets(new Target(
+               Platform.win64,
+               DevEnv.vs2022,
+               Optimization.Debug | Optimization.Release,
+               OutputType.Dll,
+               Blob.NoBlob,
+               BuildSystem.MSBuild,
+               DotNetFramework.v4_8)
+           );
+
+            Name = "lib-vorbis-file";
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectPath = @"..\..\source\3rd-Party\libvorbis\win32\VS2022\libvorbisfile";
+            conf.ProjectFileName = "lib-vorbis-file";
+            conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
+            conf.TargetFileName = "lib-vorbis-file.vcxproj";
+            conf.Output = Configuration.OutputType.None; // Required to create dependencies in a compiled/not-generated object
+            conf.SolutionFolder = " - Third-Party Projects";
+            conf.AddPublicDependency<OggProject>(target);
+            conf.AddPublicDependency<VorbisProject>(target);
+        }
+    }
 
     [Sharpmake.Generate]
     public class RococoSexyIDEProject : RococoProject
@@ -991,6 +1068,7 @@ namespace Rococo
         {
             base.SourceFiles.Add("rococo.audio.sxh");
             base.SourceFiles.Add("config.xc");
+            SourceFiles.Add(@"..\include\rococo.audio.h");
         }
 
         [Configure()]
@@ -999,8 +1077,11 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_AUDIO_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<VorbisFileProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<SexyBennyHillProject>(target);
+            conf.IncludePaths.Add(@"..\..\3rd-party\libvorbis\include\");
+            conf.IncludePaths.Add(@"..\..\3rd-party\libogg\include\");
 
             AddSXHFileBuildStep(conf, "rococo.audio.sxh", "config.xc", true);
         }
@@ -1445,6 +1526,9 @@ namespace Rococo
             conf.AddProject<LibJPegProject>(target);
             conf.AddProject<LibTiffProject>(target);
             conf.AddProject<LibZipProject>(target);
+            conf.AddProject<OggProject>(target);
+            conf.AddProject<VorbisProject>(target);
+            conf.AddProject<VorbisFileProject>(target);
 
             conf.AddProject<RococoMiscUtilsProject>(target);
             conf.AddProject<RococoMathsProject>(target);
@@ -1580,6 +1664,9 @@ namespace Rococo
             //arguments.Generate<SexyDotNetIDEProject>();
             arguments.Generate<RococoIncludeProject>();
             arguments.Generate<SexyIncludeProject>();
+            arguments.Generate<VorbisProject>();
+            arguments.Generate<VorbisFileProject>();
+            arguments.Generate<OggProject>();
         }
     }
 }

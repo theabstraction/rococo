@@ -26,6 +26,10 @@ namespace AudioAnon
 		{
 		}
 
+		virtual ~AudioSample()
+		{
+		}
+
 		IdSample Id() const override
 		{
 			return id;
@@ -85,9 +89,13 @@ namespace AudioAnon
 			return *sampleData;
 		}
 
-		void Cache(IMP3LoaderSupervisor& loader) override
+		void Cache(ILoaderSupervisor& loader, IAudioSampleEvents& eventHandler) override
 		{
-			sampleLength = loader.DecodeMP3(name, *this);
+			sampleLength = loader.DecodeAudio(name, *this, eventHandler, *this);
+			if (sampleLength > 0)
+			{
+				eventHandler.OnSampleLoaded(*this);
+			}
 		}
 
 		void Finalize(const PCMAudioLoadingMetrics&) override
@@ -104,7 +112,7 @@ namespace AudioAnon
 	struct AudioSampleDatabase: IAudioSampleDatabaseSupervisor, OS::IThreadJob
 	{
 		IAudioInstallationSupervisor& installation;
-		IEventCallback<IAudioSample&>& onSampleLoaded;
+		IAudioSampleEvents& eventHandler;
 
 		stringmap<IAudioSampleSupervisor*> samples;
 		std::list<IAudioSampleSupervisor*> uncachedSamples;
@@ -120,7 +128,7 @@ namespace AudioAnon
 
 		int32 nChannels;
 
-		AudioSampleDatabase(IAudioInstallationSupervisor& _installation, int nChannels, IEventCallback<IAudioSample&>& refOnSampleLoaded): installation(_installation), onSampleLoaded(refOnSampleLoaded)
+		AudioSampleDatabase(IAudioInstallationSupervisor& _installation, int nChannels, IAudioSampleEvents& _eventHandler): installation(_installation), eventHandler(_eventHandler)
 		{
 			this->nChannels = nChannels;
 
@@ -207,7 +215,8 @@ namespace AudioAnon
 
 		uint32 RunThread(OS::IThreadControl& tc) override
 		{
-			AutoFree<IMP3LoaderSupervisor> loader(CreateSingleThreadedMP3Loader(installation, nChannels));
+			AutoFree<ILoaderSupervisor> mp3Loader(CreateSingleThreadedMP3Loader(installation, nChannels));
+			AutoFree<ILoaderSupervisor> oggLoader(CreateSingleThreadedOggVorbisLoader(installation, nChannels));
 
 			while (tc.IsRunning())
 			{
@@ -230,8 +239,27 @@ namespace AudioAnon
 
 					if (sample)
 					{
-						sample->Cache(*loader);
-						onSampleLoaded.OnEvent(*sample);
+						Substring filename = Strings::ToSubstring(sample->Name());
+						cstr extension = Strings::ReverseFind('.', filename);
+						if (!extension)
+						{
+							eventHandler.MarkBadSample(*sample, "no extension");
+						}
+						else
+						{
+							if (_strcmpi(extension, ".mp3") == 0)
+							{
+								sample->Cache(*mp3Loader, eventHandler);
+							}
+							else if (_strcmpi(extension, ".ogg") == 0)
+							{
+								sample->Cache(*oggLoader, eventHandler);
+							}
+							else
+							{
+								eventHandler.MarkBadSample(*sample, "Unknown extension");
+							}
+						}
 					}
 				} while (tc.IsRunning() && sample != nullptr);
 
@@ -245,8 +273,8 @@ namespace AudioAnon
 
 namespace Rococo::Audio
 {
-	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IAudioInstallationSupervisor& installation, int nChannels, IEventCallback<IAudioSample&>& onSampleLoaded)
+	ROCOCO_AUDIO_API IAudioSampleDatabaseSupervisor* CreateAudioSampleDatabase(IAudioInstallationSupervisor& installation, int nChannels, IAudioSampleEvents& eventHandler)
 	{
-		return new AudioAnon::AudioSampleDatabase(installation, nChannels, onSampleLoaded);
+		return new AudioAnon::AudioSampleDatabase(installation, nChannels, eventHandler);
 	}
 }
