@@ -1,6 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.template.h">
+      <Filter>allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.dll.inl">
+      <Filter>allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.inl">
+      <Filter>allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.modules.h">
+      <Filter>allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.trackers.inl">
+      <Filter>allocators</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h">
       <Filter>components</Filter>
     </ClInclude>
@@ -15,10 +30,7 @@
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\mplat.components.decl.h" />
     <ClInclude Include="..\..\source\rococo\include\mplat.to.app.events.inl" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.allocator.template.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.inl" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.trackers.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.api.h" />
@@ -102,14 +114,13 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.allocators.modules.h" />
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="allocators">
+      <UniqueIdentifier>{d8091c41-ed60-bd5a-19a0-c93854a27abc}</UniqueIdentifier>
+    </Filter>
     <Filter Include="components">
       <UniqueIdentifier>{f4dc2547-a346-f142-473a-8228e42dfa48}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\include\rococo.allocators.dll.inl" />
   </ItemGroup>
 </Project>

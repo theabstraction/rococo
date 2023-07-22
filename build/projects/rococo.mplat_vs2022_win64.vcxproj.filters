@@ -68,14 +68,12 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
       <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
   </ItemGroup>
 </Project>
