@@ -135,6 +135,11 @@ namespace AudioAnon
 			}
 		}
 
+		~OggVorbisFile()
+		{
+			ov_clear(&apiHandle);
+		}
+
 		int StreamCount() const
 		{
 			return (int) ov_streams(&apiHandle);

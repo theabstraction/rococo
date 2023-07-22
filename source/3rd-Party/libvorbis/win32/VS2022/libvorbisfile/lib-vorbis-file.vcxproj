@@ -193,6 +193,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\lib\vorbisfile.c" />
+    <ClCompile Include="..\..\..\lib\vorbis_malloc.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\vorbis\vorbisfile.h" />
