@@ -1903,6 +1903,9 @@ namespace Rococo
 				try
 				{
 					auto includedModule = sources.GetSource(implicitFile);
+
+					ss.ValidateSecureFile(implicitFile, includedModule->Source().SourceStart(), includedModule->Source().SourceLength());
+
 					ss.AddTree(*includedModule);
 				}
 				catch (IException& ex)
@@ -2234,6 +2237,37 @@ namespace Rococo
 		populator.refreshAll = true;
 
 		debugger.Run(populator, dc);
+	}
+
+	namespace Script
+	{
+		SCRIPTEXPORT_API void AddNativeCallSecurity_ToSysNatives(Rococo::Script::IPublicScriptSystem& ss)
+		{
+			AddNativeCallSecurity(ss, "Sys.Native", "!scripts/native/Sys.Type.sxy");
+			AddNativeCallSecurity(ss, "Sys.Reflection.Native", "!scripts/native/Sys.Reflection.sxy");
+			AddNativeCallSecurity(ss, "Sys.IO.Native", "!scripts/native/Sys.IO.sxy");
+			AddNativeCallSecurity(ss, "Sys.Strings.Native", "!scripts/native/Sys.Type.Strings.sxy");
+		}
+	}
+
+	SCRIPTEXPORT_API IScriptEnumerator* NoImplicitIncludes()
+	{
+		struct NONE : IScriptEnumerator
+		{
+			size_t Count() const override
+			{
+				return 0;
+
+			};
+
+			cstr ResourceName(size_t index) const override
+			{
+				return nullptr;
+			}
+		};
+
+		static NONE none;
+		return &none;
 	}
 }
 

@@ -361,7 +361,7 @@ namespace
 		cr_sex sOrigin = *pS;
 
 		auto& ss = (IScriptSystem&)e.ss;
-		ObjectStubWithHandle* object = (ObjectStubWithHandle*) ss.CreateScriptObject("ExpressionBuilder", "Sys.Reflection.sxy");
+		ObjectStubWithHandle* object = (ObjectStubWithHandle*) ss.CreateScriptObject("ExpressionBuilder", "!scripts/native/Sys.Reflection.sxy");
 		object->handle = ss.CreateMacroTransform(sOrigin);
 		InterfacePointer ip = &object->stub.pVTables[0];
 		WriteOutput(0, ip, e);

@@ -48,6 +48,11 @@
 # pragma pack(push,1)
 #endif
 
+namespace Rococo::Script
+{
+	struct NativeCallSecurity;
+}
+
 namespace Rococo::Compiler
 {
 	struct ICodeBuilder;
@@ -78,7 +83,7 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE IFunctionBuilder : public IFunction
 	{
-      virtual void Free() = 0;
+		virtual void Free() = 0;
 		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddClosureInput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddInput(const NameString& name, const IStructure& type, void* userdata) = 0;
@@ -87,7 +92,7 @@ namespace Rococo::Compiler
 		virtual IArgumentBuilder& AddOutput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddOutput(const NameString& name, const IStructure& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddArrayOutput(const NameString& name, const TypeString& genericType, void* userdata) = 0;
-		virtual bool TryResolveArguments() = 0;		
+		virtual bool TryResolveArguments() = 0;
 		virtual void ValidateArguments() = 0;
 
 		virtual ICodeBuilder& Builder() = 0;
@@ -97,6 +102,8 @@ namespace Rococo::Compiler
 		virtual IProgramObject& Object() = 0;
 
 		virtual void SetType(const IStructure* type) = 0;
+
+		virtual void AddSecurity(const Rococo::Script::NativeSecurityHandler& security) = 0;
 	};
 
 	ROCOCO_INTERFACE IFunctionAliasBuilder : public IFunctionAlias

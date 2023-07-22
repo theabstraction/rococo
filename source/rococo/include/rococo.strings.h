@@ -303,6 +303,18 @@ namespace Rococo::Strings
 
 	ROCOCO_API void SplitString(cstr text, size_t length, IEventCallback<cstr>& onSubString);
 
+	struct SecureHashInfo
+	{
+		bool operator == (const SecureHashInfo& other) const
+		{
+			return Eq(hash, other.hash);
+		}
+
+		char hash[65];
+	};
+
+	ROCOCO_API_EXPORT void GetSecureHashInfo(SecureHashInfo& info, const char* buffer, size_t bufferLength);
+
 	namespace CLI
 	{
 		struct CommandLineOption

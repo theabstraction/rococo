@@ -10,7 +10,8 @@ namespace Rococo::Components
 {
 	ROCOCO_INTERFACE IAnimationComponent : IComponentBase
 	{
-		virtual Rococo::Entities::IAnimation& Core() = 0;
+		virtual Rococo::Entities::IAnimation & Core() = 0;
+		virtual ~IAnimationComponent() {}
 	};
 }
 

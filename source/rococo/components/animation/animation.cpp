@@ -58,8 +58,8 @@ namespace Rococo::Animation
 
 	class AnimationImpl : public IAnimation
 	{
-		float t = 0;
 		std::vector<KeyFrame> frames;
+		float t = 0;
 		Seconds totalAnimationDuration = 0.0_seconds;
 	public:
 		AnimationImpl()

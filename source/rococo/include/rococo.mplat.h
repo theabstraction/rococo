@@ -236,7 +236,7 @@ namespace Rococo
 		};
 	}
 
-	ROCOCO_INTERFACE IConfigSupervisor : public IConfig
+	ROCOCO_INTERFACE IConfigSupervisor : public MPlat::IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
 		virtual bool TryGetInt(cstr name, int& value, int defaultValue) const = 0;
@@ -694,6 +694,7 @@ namespace Rococo
 	namespace MPlatImpl
 	{
 		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IContextMenuEvents& eventHandler);
+		void ValidateSafePathToWrite(IO::IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss, cstr pathname);
 	}
 
 	ROCOCO_INTERFACE IInventoryArraySupervisor : IInventoryArray
@@ -712,8 +713,13 @@ namespace Rococo
 		virtual bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& sd) = 0;
 		virtual bool QueryYesNo(Windows::IWindow& parent, cstr question, cstr caption = nullptr) = 0;
 		virtual void RefreshResource(cstr pingPath) = 0;
-		virtual void RunEnvironmentScript(IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
-		virtual void RunEnvironmentScript(IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+
+		// Note, if implicitIncludes is null, mplat defaults are used, which may conflict with your security settings.
+		virtual void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+
+		// Note, if implicitIncludes is null, mplat defaults are used, which may conflict with your security settings.
+		virtual void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+
 		virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) = 0;
 		virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 		virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
@@ -1000,6 +1006,7 @@ namespace Rococo
 
 namespace Rococo
 {
+	using namespace MPlat;
 	struct ScriptPerformanceStats;
 
 	namespace Windows::IDE
@@ -1022,7 +1029,8 @@ namespace Rococo
 			ISourceCache& sources,
 			IScriptEnumerator& implicitIncludes,
 			OS::IAppControl& appControl,
-			Strings::StringBuilder* declarationBuilder
+			Strings::StringBuilder* declarationBuilder,
+			IO::IInstallation& installation
 		);
 
 		void RunMPlatConfigScript(OUT IConfig& config,
@@ -1032,7 +1040,8 @@ namespace Rococo
 			IDebuggerWindow& debugger,
 			ISourceCache& sources,
 			OS::IAppControl& appControl,
-			Strings::StringBuilder* declarationBuilder
+			Strings::StringBuilder* declarationBuilder,
+			IO::IInstallation& installation
 		);
 	}
 }

@@ -152,6 +152,7 @@ namespace Rococo::Components
 				EFlowLogic OnComponent(ROID, IComponentBase& base) override
 				{
 					auto* component = static_cast<COMPONENT*>(&base);
+					component->~COMPONENT();
 					This->componentAllocator->FreeBuffer(component);
 					return EFlowLogic::CONTINUE;
 				}

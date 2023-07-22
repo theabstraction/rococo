@@ -241,6 +241,9 @@ namespace Rococo {
 			virtual bool RegisterNamespacesInPackage(IPackage* package)= 0;
 
 			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
+
+			// Returns a reference to the package that matches the prefix in the supplied id. If not found throws an exception.
+			virtual IPackage& GetPackage(cstr packageId) = 0;
 		};
 
 		ROCOCO_INTERFACE ISexyPackagerSupervisor: ISexyPackager
@@ -343,10 +346,19 @@ namespace Rococo {
 
 		struct MapImage;
 
+		struct NativeCallSecurity;
+
+		ROCOCO_INTERFACE ISecuritySystem
+		{
+			virtual void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname) = 0;
+		};
+		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
+			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, const NativeCallSecurity& security) = 0;
+			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, cstr permittedPingPath) = 0;
 			virtual const Compiler::INamespace& AddNativeNamespace(cstr name) = 0;
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 
@@ -438,6 +450,15 @@ namespace Rococo {
 
 			virtual void SetCommandLine(int argc, char* argv[]) = 0;
 			virtual cstr GetCommandLineArg(int argc) = 0;
+
+			// Uses the cached native.hashes file to determine whether a file is suitable for Sexy. If not an exception is thrown.
+			virtual void ValidateSecureFile(cstr fileId, const char* source, size_t length) = 0;
+
+			// The security system is expected to be valid for the life time of the scrypt system
+			virtual void SetSecurityHandler(ISecuritySystem& system) = 0;
+
+			// Asks the host process whether it is acceptable for the script system to write the file with the given path name
+			virtual void ValidateSafeToWrite(cstr pathname) = 0;
 		};
 
 		ROCOCO_INTERFACE IScriptSystemFactory : public IFreeable
@@ -536,6 +557,7 @@ namespace Rococo {
 		SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
 		SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
 		SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
+		SCRIPTEXPORT_API void AddNativeCallSecurity(IPublicScriptSystem& ss, cstr nativeNamespace, cstr permittedPingPath);
 }}
 
 namespace Rococo {

@@ -373,6 +373,11 @@ namespace ANON
 			return *this;
 		}
 
+		const IPackage* Package() const override
+		{
+			return nullptr;
+		}
+
 		ISParserTree* CreateTree(ISourceCode&) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
@@ -383,7 +388,7 @@ namespace ANON
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
-		ISourceCode* ProxySourceBuffer(cstr, int, const Vec2i&, cstr) override
+		ISourceCode* ProxySourceBuffer(cstr, int, const Vec2i&, cstr, IPackage*) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 		}

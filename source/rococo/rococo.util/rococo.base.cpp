@@ -255,3 +255,31 @@ namespace Rococo
 		}
 	}
 } // Rococo
+
+#include <string>
+#include <list>
+#include <allocators/rococo.allocator.template.h>
+
+namespace Rococo::Debugging
+{
+	typedef std::basic_string<char, std::char_traits<char>, AllocatorWithMalloc<char>> mstring;
+
+	std::list<mstring, AllocatorWithMalloc<mstring>> rollingLog;
+
+	ROCOCO_API_EXPORT void AddCriticalLog(cstr message)
+	{
+		rollingLog.push_back(message);
+		if (rollingLog.size() > 10)
+		{
+			rollingLog.pop_front();
+		}
+	}
+
+	ROCOCO_API_EXPORT void ForEachCriticalLog(IEventCallback<cstr>& onMessage)
+	{
+		for (auto& i : rollingLog)
+		{
+			onMessage.OnEvent(i.c_str());
+		}
+	}
+}

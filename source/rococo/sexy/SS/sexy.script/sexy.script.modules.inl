@@ -3139,7 +3139,7 @@ namespace Rococo::Script
 		AssertValidInterfaceName(nameExpr, tail);
 
 		IInterfaceBuilder* current_interf = ns.FindInterface(tail);
-		if (current_interf != NULL)	Throw(nameExpr, ("Duplicate interface definition"));
+		if (current_interf != NULL)	Throw(nameExpr, "Duplicate interface definition. Original was defined in %s", current_interf->NullObjectType().Module().Name());
 
 		TokenBuffer flatName;
 		SubstituteChars(name, flatName.Text, 256, char('.'), char('_'));
@@ -4098,7 +4098,7 @@ namespace Rococo::Script
 
 		if (factoryNS == nullptr)
 		{
-			Throw(factoryNameExpr, "Cannot find the namespace containing the factory");
+			Throw(factoryNameExpr, "Cannot find the namespace [%s] containing the factory  (%s instance (%s ... ) )", ns, interfaceName->Buffer, factoryName->Buffer);
 		}
 
 		int inputCount = bodyIndex - 3;

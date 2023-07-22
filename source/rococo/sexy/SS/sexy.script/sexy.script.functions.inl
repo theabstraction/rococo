@@ -851,6 +851,26 @@ namespace Rococo
 
 		int CompileFunctionCallKernel(CCompileEnvironment& ce, cr_sex s, const IFunction& callee)
 		{
+			auto* security = callee.Security();
+			if (security)
+			{
+				bool success = false;
+
+				try
+				{
+					success = security->handler->IsCallerPermitted(*security, s);
+				}
+				catch (IException& ex)
+				{
+					Throw(s, "The source file %s is not permitted to call %s directly.\n  - %s\n", s.Tree().Source().Name(), callee.Name(), ex.Message());
+				}
+
+				if (!success)
+				{
+					Throw(s, "The source file %s is not permitted to call %s directly.", s.Tree().Source().Name(), callee.Name());
+				}
+			}
+
 			const int outputStackAllocCount = AllocFunctionOutput(ce, callee, s);
 			int inputStackAllocCount = PushInputs(ce, s, callee, false, 1);
 			AppendFunctionCallAssembly(ce, callee);

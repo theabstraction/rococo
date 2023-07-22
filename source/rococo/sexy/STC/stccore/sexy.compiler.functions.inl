@@ -204,6 +204,9 @@ namespace Anon
 		const IStructure* type;
 		int popBytes = 0;
 
+		// Assumes security is valid pointer for the lifetime of the function object
+		const Rococo::Script::NativeSecurityHandler* security = nullptr;
+
 		typedef TSexyVector<FunctionArgument*> TFunctionArgs;
 		TFunctionArgs args;
 	public:
@@ -226,6 +229,21 @@ namespace Anon
 		   builder->Free();
 		}
 
+		void AddSecurity(const Rococo::Script::NativeSecurityHandler& security) override
+		{
+			if (this->security != nullptr)
+			{
+				Throw(0, "%s: Security already established", __FUNCTION__);
+			}
+
+			this->security = &security;
+		}
+
+		const Rococo::Script::NativeSecurityHandler* Security() const override
+		{
+			return security;
+		}
+
 		void* operator new(size_t nBytes)
 		{
 			return Rococo::Memory::AllocateSexyMemory(nBytes);
@@ -246,10 +264,10 @@ namespace Anon
 			delete this;
 		}
 
-		virtual cstr Name() const								{ return name.c_str(); }
+		virtual cstr Name() const									{ return name.c_str(); }
 		const IStructure& GetArgument(int index) const				{ return *args[index]->ResolvedType(); }
 		virtual const IStructure* GetGenericArg1(int index) const	{ return args[index]->GenericTypeArg1(); }
-		cstr GetArgName(int index)	const						{ return args[index]->Name(); }
+		cstr GetArgName(int index)	const							{ return args[index]->Name(); }
 		virtual const int NumberOfInputs() const					{ return inputCount; }
 		virtual const int NumberOfOutputs() const					{ return outputCount; }
 		virtual const bool IsVirtualMethod() const					{ return isMethod; }

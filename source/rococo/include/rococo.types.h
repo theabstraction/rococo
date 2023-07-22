@@ -723,6 +723,8 @@ namespace Rococo
 	ROCOCO_INTERFACE IAllocator
 	{
 		typedef void (*FN_AllocatorReleaseFunction)();
+
+		// Throws a std::bad_alloc on failure for all implementations
 		[[nodiscard]] virtual void* Allocate(size_t capacity) = 0;
 		virtual void FreeData(void* data) = 0;
 		virtual void* Reallocate(void* ptr, size_t capacity) = 0;

@@ -25,10 +25,17 @@ namespace MHost
 	}
 }
 
+namespace MHost
+{
+	void AddMHostNativeCallSecurity(ScriptCompileArgs& args);
+}
+
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine,_In_ int nShowCmd)
 {
 	UNUSED(hPrevInstance);
 	UNUSED(nShowCmd);
+
+	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
 
 	char titleBuffer[128];
 	Rococo::Strings::CLI::GetCommandLineArgument("-title:"_fstring, lpCmdLine, titleBuffer, sizeof titleBuffer, "Rococo MHost");
@@ -41,11 +48,16 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	flags.LogOnModuleExit = true;
 	Rococo::Memory::SetAllocatorLogFlags(flags);
 
-	struct : IDirectAppFactory
+	struct : IDirectAppFactory, IEventCallback<ScriptCompileArgs>
 	{
 		IDirectApp* CreateApp(Platform& e, IDirectAppControl& control) override
 		{
 			return MHost::CreateApp(e, control, GetCommandLineA());
+		}
+
+		void OnEvent(ScriptCompileArgs& args) override
+		{
+			MHost::AddMHostNativeCallSecurity(args);
 		}
 	} factory;
 

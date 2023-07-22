@@ -63,6 +63,7 @@ namespace AudioAnon
 				numberOfElementsInSection = numberOfMonoSamples - startAtSampleIndex;
 			}
 
+			// This crashed at program exit, with monoRepresentation junked.
 			if (outputBuffer) memcpy(outputBuffer, monoReprentation + startAtSampleIndex, numberOfElementsInSection * sizeof int16);
 			return numberOfElementsInSection;
 		}

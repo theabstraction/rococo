@@ -140,6 +140,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 			SetStructs(argNameArray, stArray, archArray, _genericArg1Array, numberOfOutputs, numberOfInputs);
 		}
 
+		const Rococo::Script::NativeSecurityHandler* Security() const
+		{
+			return nullptr;
+		}
+
 		void* operator new(size_t nBytes)
 		{
 			return Rococo::Memory::AllocateSexyMemory(nBytes);

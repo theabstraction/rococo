@@ -271,6 +271,12 @@ void pluginInit(HANDLE hModule)
         sprintf_s(message, "Code: %d, Err: %s", ex.ErrorCode(), ex.Message());
         MessageBoxA(topLevelWindow.hWnd, message, "SexyStudio For Notepad++ Error", MB_ICONERROR);
     }
+    catch (std::exception& stdEx)
+    {
+        char message[4096];
+        sprintf_s(message, "std exception: %s", stdEx.what());
+        MessageBoxA(topLevelWindow.hWnd, message, "SexyStudio For Notepad++ Error", MB_ICONERROR);
+    }
 }
 
 void pluginCleanUp()

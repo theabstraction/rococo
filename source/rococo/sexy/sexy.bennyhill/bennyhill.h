@@ -13,6 +13,7 @@
 #include "sexy.strings.h"
 #include <sexy.stdstrings.h>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace Rococo
 {
@@ -166,6 +167,7 @@ namespace Rococo
       std::unordered_map<rstdstring, InterfaceDef*, std::hash<rstdstring>, std::equal_to<rstdstring>, Memory::SexyAllocator<std::pair<const rstdstring,InterfaceDef*>>> interfaces;
       std::vector<EnumDef, Memory::SexyAllocator<EnumDef>> enums;
 	  mutable std::unordered_map<Rococo::rstdstring, uint32, std::hash<rstdstring>, std::equal_to<rstdstring>, Memory::SexyAllocator<std::pair<const rstdstring, uint32>>> namespaces;
+      mutable std::unordered_set<Rococo::rstdstring> prependedFiles;
    };
 
    Rococo::cstr StringFrom(Rococo::Sex::cr_sex s);

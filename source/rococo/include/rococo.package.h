@@ -26,11 +26,20 @@ namespace Rococo
 */
 	ROCOCO_INTERFACE IPackage
 	{
+		// The maximum length of a legal friendly name + 1
+		enum { MAX_PACKAGE_NAME_BUFFER_LEN = 64 };
+
 		// Return a cached string to identiy the package
 		virtual cstr FriendlyName() const = 0;
 
 		// Return a cached 64-bit XXHash code for the package
 		virtual const int64 HashCode() const = 0;
+
+		// A pointer to the raw data in the package
+		virtual const char* RawData() const = 0;
+
+		// Number of bytes of raw data
+		virtual size_t RawLength() const = 0;
 
 		// Cache a list of subdirectories and return the list size
 		virtual size_t BuildDirectoryCache(const char* dir) = 0;

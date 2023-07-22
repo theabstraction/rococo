@@ -689,6 +689,25 @@ namespace Rococo
     {
         public RococoWindowsProject() : base("rococo.windows")
         {
+            SourceFiles.Add("rococo.windows.rc");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class OggVorbisProject : ThirdPartyProject
+    {
+        public RococoWindowsProject() : base("rococo.windows")
+        {
+            SourceFiles.Add("rococo.windows.rc");
         }
 
         [Configure()]

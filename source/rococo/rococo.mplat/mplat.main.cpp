@@ -440,8 +440,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 {
 	using namespace Rococo::Components;
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if FAILED(hr)
 	{
@@ -496,7 +494,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow(outputWindowFormatter, outputWindowFormatter);
 
 	// We need config to control window settings, thus the HWND based debugger window will not be available at this time
-	RunMPlatConfigScript(*config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr);
+	RunMPlatConfigScript(*config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr, *installation);
 
 	FactorySpec factorySpec;
 	factorySpec.hResourceInstance = hInstance;
@@ -626,7 +624,8 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 {
 	struct : public IMainloop
 	{
-		IAppFactory* appFactory;
+		IAppFactory* appFactory = nullptr;
+		IEventCallback<ScriptCompileArgs>* onCompile = nullptr;
 
 		void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) override
 		{
@@ -685,8 +684,6 @@ namespace Rococo
 
 	int M_Platorm_Win64_MainDirect(HINSTANCE hInstance, IDirectAppFactory& factory, cstr title, HICON hLarge, HICON hSmall)
 	{
-		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
-
 		int errCode = 0;
 
 		try

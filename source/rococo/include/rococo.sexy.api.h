@@ -60,6 +60,8 @@ namespace Rococo
 		virtual cstr ResourceName(size_t index) const = 0;
 	};
 
+	SCRIPTEXPORT_API IScriptEnumerator* NoImplicitIncludes();
+
 	ROCOCO_INTERFACE ISourceCache
 	{
 		[[nodiscard]] virtual IAllocator & Allocator() = 0;
@@ -76,6 +78,11 @@ namespace Rococo
 	};
 
 	SCRIPTEXPORT_API void DebuggerLoop(Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger);
+
+	namespace Script
+	{
+		SCRIPTEXPORT_API void AddNativeCallSecurity_ToSysNatives(Rococo::Script::IPublicScriptSystem& ss);
+	}
 
 	struct ScriptCompileArgs
 	{

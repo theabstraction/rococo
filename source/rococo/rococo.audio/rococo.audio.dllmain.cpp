@@ -3,6 +3,7 @@
 #include <rococo.os.win32.h>
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
+#include <rococo.allocators.h>
 
 #ifdef _WIN32
 #  pragma comment(lib, "rococo.util.lib")
@@ -19,14 +20,20 @@ BOOL APIENTRY DllMain( HMODULE /* hModule */, DWORD ul_reason_for_call, LPVOID /
 {
     switch (ul_reason_for_call)
     {
-    case DLL_PROCESS_ATTACH:
+    case DLL_PROCESS_ATTACH:    
+        break;
     case DLL_THREAD_ATTACH:
+        break;
     case DLL_THREAD_DETACH:
+        break;
     case DLL_PROCESS_DETACH:
         break;
     }
     return TRUE;
 }
+
+// Frees memory allocated with AllocatorFunctions::Allocate
+typedef void (*FN_FREE_MEMORY)(void* buffer);
 
 Rococo::Audio::IAudio* FactoryConstructRococoAudioGetAudio(Rococo::Audio::IAudio* _context)
 {

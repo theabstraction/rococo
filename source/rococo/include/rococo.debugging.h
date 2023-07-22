@@ -39,6 +39,9 @@ namespace Rococo
 		{
 			virtual void FormatEachStackFrame(IStackFrameFormatter& formatter) = 0;
 		};
+
+		ROCOCO_API void AddCriticalLog(cstr message);
+		ROCOCO_API void ForEachCriticalLog(IEventCallback<cstr>& onMessage);
 	}
 }
 

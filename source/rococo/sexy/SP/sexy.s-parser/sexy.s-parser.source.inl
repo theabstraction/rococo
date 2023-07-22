@@ -37,7 +37,7 @@ namespace Anon
 	using namespace Rococo::Sex;
 	using namespace Rococo::Memory;
 
-	class CSourceCodeCopy final: public ISourceCode
+	class CSourceCodeCopy final : public ISourceCode
 	{
 	private:
 		refcount_t refcount;
@@ -47,30 +47,30 @@ namespace Anon
 		stdstring name;
 
 	public:
-		CSourceCodeCopy(cstr _buffer, int _segmentLength, const Vec2i& _origin, cstr _name):
+		CSourceCodeCopy(cstr _buffer, int _segmentLength, const Vec2i& _origin, cstr _name) :
 			refcount(1),
-         segmentLength(_segmentLength),
-         origin(_origin),
+			segmentLength(_segmentLength),
+			origin(_origin),
 			name(_name)
 		{
-			buffer = (char*) AllocateSexyMemory(_segmentLength + 1);
+			buffer = (char*)AllocateSexyMemory(_segmentLength + 1);
 			memcpy(buffer, _buffer, segmentLength * sizeof(char));
 			buffer[_segmentLength] = 0;
 		}
 
-		~CSourceCodeCopy()
+		virtual ~CSourceCodeCopy()
 		{
 			FreeSexyUnknownMemory(buffer);
 		}
 
-		virtual const Vec2i& Origin() const		{	return origin; }
-		virtual cstr SourceStart() const				{	return buffer; }
-		virtual const int SourceLength() const		{	return segmentLength;	}
-		virtual cstr Name() const							{	return name.c_str();	}
-		virtual refcount_t AddRef()							
-      {
-         return ++refcount;	
-      }
+		virtual const Vec2i& Origin() const { return origin; }
+		virtual cstr SourceStart() const { return buffer; }
+		virtual const int SourceLength() const { return segmentLength; }
+		virtual cstr Name() const { return name.c_str(); }
+		virtual refcount_t AddRef()
+		{
+			return ++refcount;
+		}
 
 		virtual refcount_t Release()
 		{
@@ -85,7 +85,7 @@ namespace Anon
 		}
 	};
 
-	class CSourceCodeProxy final: public ISourceCode
+	class CSourceCodeProxy final : public ISourceCode
 	{
 	private:
 		refcount_t refcount;
@@ -95,20 +95,25 @@ namespace Anon
 		cstr name;
 
 	public:
-		CSourceCodeProxy(cstr _buffer, int _segmentLength, const Vec2i& _origin, cstr _name):
+		CSourceCodeProxy(cstr _buffer, int _segmentLength, const Vec2i& _origin, cstr _name) :
 			refcount(1),
-         buffer(_buffer),
-         segmentLength(_segmentLength),
-         origin(_origin),
-			name(_name)	
+			buffer(_buffer),
+			segmentLength(_segmentLength),
+			origin(_origin),
+			name(_name)
 		{
 		}
 
-		virtual const Vec2i& Origin() const		{	return origin;	}
-		virtual cstr SourceStart() const	{	return buffer;	}
-		virtual const int SourceLength() const			{	return segmentLength;	}
-		virtual cstr Name() const					{	return name; }
-		virtual refcount_t AddRef()									{	return ++refcount; }
+		virtual ~CSourceCodeProxy()
+		{
+
+		}
+
+		virtual const Vec2i& Origin() const { return origin; }
+		virtual cstr SourceStart() const { return buffer; }
+		virtual const int SourceLength() const { return segmentLength; }
+		virtual cstr Name() const { return name; }
+		virtual refcount_t AddRef() { return ++refcount; }
 
 		virtual refcount_t Release()
 		{
