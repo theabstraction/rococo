@@ -11,6 +11,7 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.gui.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.hqfonts.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.materials.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.memory.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.meshes.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.objects.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.overlays.cpp" />

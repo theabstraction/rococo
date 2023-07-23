@@ -165,6 +165,8 @@
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.inl" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.modules.h" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.trackers.inl" />
+    <ClInclude Include="..\..\source\rococo\include\assets\assets.files.h" />
+    <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.body.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.configuration.h" />
@@ -247,6 +249,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.win32.renderering.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.resources.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.target.win7.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.window.h" />

@@ -1,6 +1,12 @@
 #ifndef ROCOCO_DX11_RENDERER_WIN32_H
 #define ROCOCO_DX11_RENDERER_WIN32_H
 
+#include <rococo.types.h>
+
+#ifndef ROCOCO_DX_API
+# define ROCOCO_DX_API ROCOCO_API_IMPORT
+#endif
+
 namespace Rococo::IO
 {
 	struct IInstallation;
@@ -25,12 +31,6 @@ namespace Rococo
 
 	void CALLBACK RendererMain(HANDLE hInstanceLock, IO::IInstallation& installation, IAppFactory& factory);
 
-	ROCOCO_INTERFACE IDX11Window
-	{
-	   virtual void Free() = 0;
-	   virtual IRenderer& Renderer() = 0;
-	};
-
 	struct IAppEventHandler
 	{
 		virtual void OnWindowClose() = 0;
@@ -38,7 +38,7 @@ namespace Rococo
 		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
 	};
 
-	ROCOCO_INTERFACE IDX11GraphicsWindow
+	ROCOCO_INTERFACE IGraphicsWindow
 	{
 		virtual IRenderer& Renderer() = 0;
 		virtual Windows::IWindow& Window() = 0;
@@ -55,7 +55,7 @@ namespace Rococo
 		virtual void Run(HANDLE hInstanceLock, IApp& app, OS::IAppControl& appControl) = 0;
 	};
 
-	IAppManager* CreateAppManager(IDX11GraphicsWindow& window, IApp& app);
+	ROCOCO_DX_API IAppManager* CreateAppManager(IGraphicsWindow& window, IApp& app);
 
 	struct IDirectAppFactory;
 
@@ -67,7 +67,7 @@ namespace Rococo
 		virtual void Free() = 0;
 		virtual void Run(HANDLE hInstanceLock) = 0;
 	};
-	IDirectAppManager* CreateAppManager(Platform& platform, IDX11GraphicsWindow& window, IDirectAppFactory& factory);
+	ROCOCO_DX_API IDirectAppManager* CreateAppManager(Platform& platform, IGraphicsWindow& window, IDirectAppFactory& factory);
 
 	struct IMessageSink
 	{
@@ -98,7 +98,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IDX11Factory
 	{
-		virtual IDX11GraphicsWindow* CreateDX11Window(const WindowSpec& ws, bool linkedToDX11Controls) = 0;
+		virtual IGraphicsWindow* CreateDX11Window(const WindowSpec& ws, bool linkedToDX11Controls) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -119,8 +119,8 @@ namespace Rococo
 		int adapterIndex = 0;
 	};
 
-	IDX11Factory* CreateDX11Factory(IO::IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec);
-	IDX11Logger* CreateStandardOutputLogger();
+	ROCOCO_DX_API IDX11Factory* CreateDX11Factory(IO::IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec);
+	ROCOCO_DX_API IDX11Logger* CreateStandardOutputLogger();
 }
 
 #endif

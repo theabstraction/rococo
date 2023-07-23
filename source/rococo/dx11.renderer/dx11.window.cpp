@@ -14,6 +14,10 @@
 #include <rococo.renderer.h>
 
 #pragma comment(lib, "rococo.misc.utils.lib")
+#include "dx11.imports.inl"
+
+#pragma comment(lib, "lib-tiff.lib" )
+#pragma comment(lib, "lib-jpg.lib" )
 
 namespace Rococo
 {
@@ -53,7 +57,7 @@ namespace ANON
 		}
 	}
 
-	class DX11GraphicsWindow : public IDX11GraphicsWindow, public Windows::IWindow
+	class DX11GraphicsWindow : public IGraphicsWindow, public Windows::IWindow
 	{
 		DX11::Factory factory; // Yes, a value type, not a reference
 		HWND hWnd;
@@ -285,7 +289,7 @@ namespace Rococo
 {
 	namespace DX11
 	{
-		IDX11GraphicsWindow* CreateDX11GraphicsWindow(DX11::Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& ws, bool linkedToDX11Controls)
+		IGraphicsWindow* CreateDX11GraphicsWindow(DX11::Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& ws, bool linkedToDX11Controls)
 		{
 			auto* g = new ANON::DX11GraphicsWindow(factory, renderer, windowClass, ws, linkedToDX11Controls);
 

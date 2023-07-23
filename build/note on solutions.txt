@@ -1,0 +1,4 @@
+sexy.all.sln 		->   	builds the sexy library suite and sexy test app
+rococo.all.sln 		-> 	builds almost everything, although the build.final's make file may need tweaking to generate the correct files on the first run. It also builds the SexyStudio lib for notepad++.
+rococo.fastdev.sln 	-> 	builds sexy and the rococo libs include mplat and mhost, it is meant to be leaner and meaner than rococo.all.sln, with better iteration times
+rococo.3rd-party.sln 	->	builds the third party libs, mainly in C for graphics and sounds decompression.

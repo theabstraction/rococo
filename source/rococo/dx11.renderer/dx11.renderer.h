@@ -2,6 +2,10 @@
 
 #include <rococo.api.h>
 
+#ifndef ROCOCO_DX_API
+# define ROCOCO_DX_API ROCOCO_API_IMPORT
+#endif
+
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <Rococo.target.h>
 
@@ -261,4 +265,6 @@ namespace Rococo::DX11
 	};
 
 	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures);
+
+	ROCOCO_DX_API void ReportMemoryStatus();
 } // Rococo::DX11

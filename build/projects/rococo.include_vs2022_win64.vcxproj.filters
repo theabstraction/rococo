@@ -16,6 +16,12 @@
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.trackers.inl">
       <Filter>allocators</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\assets\assets.files.h">
+      <Filter>assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.h">
+      <Filter>assets</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h">
       <Filter>components</Filter>
     </ClInclude>
@@ -106,6 +112,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.win32.renderering.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.resources.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.target.win7.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.window.h" />
@@ -119,6 +126,9 @@
   <ItemGroup>
     <Filter Include="allocators">
       <UniqueIdentifier>{d8091c41-ed60-bd5a-19a0-c93854a27abc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets">
+      <UniqueIdentifier>{6163bb32-f996-d51e-9d7a-49190e26b42c}</UniqueIdentifier>
     </Filter>
     <Filter Include="components">
       <UniqueIdentifier>{f4dc2547-a346-f142-473a-8228e42dfa48}</UniqueIdentifier>

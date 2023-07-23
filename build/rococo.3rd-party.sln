@@ -1,0 +1,65 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = " - Third-Party Projects", " - Third-Party Projects", "{0D6865EB-017D-28AF-5406-DCE3212D9634}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-jpg", "projects\lib-jpg_vs2022_win64.vcxproj", "{4C709D18-84F3-F3B7-569B-69F9522D35A2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-ogg", "..\source\3rd-Party\libogg\win32\VS2022\lib-ogg.vcxproj", "{AFF27A26-C088-444B-BC2A-0BA94A02AFA7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-tiff", "projects\lib-tiff_vs2022_win64.vcxproj", "{72213DA5-5EC6-6670-9D5D-C616F940EE29}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-vorbis", "..\source\3rd-Party\libvorbis\win32\VS2022\libvorbis\lib-vorbis.vcxproj", "{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-vorbis-file", "..\source\3rd-Party\libvorbis\win32\VS2022\libvorbisfile\lib-vorbis-file.vcxproj", "{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-zip", "projects\lib-zip_vs2022_win64.vcxproj", "{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "projects\rococo.util_vs2022_win64.vcxproj", "{62184609-95D1-1E60-D8CD-3755550224A5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C709D18-84F3-F3B7-569B-69F9522D35A2}.Debug|x64.ActiveCfg = Debug|x64
+		{4C709D18-84F3-F3B7-569B-69F9522D35A2}.Debug|x64.Build.0 = Debug|x64
+		{4C709D18-84F3-F3B7-569B-69F9522D35A2}.Release|x64.ActiveCfg = Release|x64
+		{4C709D18-84F3-F3B7-569B-69F9522D35A2}.Release|x64.Build.0 = Release|x64
+		{AFF27A26-C088-444B-BC2A-0BA94A02AFA7}.Debug|x64.ActiveCfg = Debug|x64
+		{AFF27A26-C088-444B-BC2A-0BA94A02AFA7}.Debug|x64.Build.0 = Debug|x64
+		{AFF27A26-C088-444B-BC2A-0BA94A02AFA7}.Release|x64.ActiveCfg = Release|x64
+		{AFF27A26-C088-444B-BC2A-0BA94A02AFA7}.Release|x64.Build.0 = Release|x64
+		{72213DA5-5EC6-6670-9D5D-C616F940EE29}.Debug|x64.ActiveCfg = Debug|x64
+		{72213DA5-5EC6-6670-9D5D-C616F940EE29}.Debug|x64.Build.0 = Debug|x64
+		{72213DA5-5EC6-6670-9D5D-C616F940EE29}.Release|x64.ActiveCfg = Release|x64
+		{72213DA5-5EC6-6670-9D5D-C616F940EE29}.Release|x64.Build.0 = Release|x64
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|x64.ActiveCfg = Debug|x64
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Debug|x64.Build.0 = Debug|x64
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|x64.ActiveCfg = Release|x64
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}.Release|x64.Build.0 = Release|x64
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|x64.ActiveCfg = Debug|x64
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Debug|x64.Build.0 = Debug|x64
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|x64.ActiveCfg = Release|x64
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC}.Release|x64.Build.0 = Release|x64
+		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}.Debug|x64.ActiveCfg = Debug|x64
+		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}.Debug|x64.Build.0 = Debug|x64
+		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}.Release|x64.ActiveCfg = Release|x64
+		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}.Release|x64.Build.0 = Release|x64
+		{62184609-95D1-1E60-D8CD-3755550224A5}.Debug|x64.ActiveCfg = Debug|x64
+		{62184609-95D1-1E60-D8CD-3755550224A5}.Debug|x64.Build.0 = Debug|x64
+		{62184609-95D1-1E60-D8CD-3755550224A5}.Release|x64.ActiveCfg = Release|x64
+		{62184609-95D1-1E60-D8CD-3755550224A5}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4C709D18-84F3-F3B7-569B-69F9522D35A2} = {0D6865EB-017D-28AF-5406-DCE3212D9634}
+		{AFF27A26-C088-444B-BC2A-0BA94A02AFA7} = {0D6865EB-017D-28AF-5406-DCE3212D9634}
+		{72213DA5-5EC6-6670-9D5D-C616F940EE29} = {0D6865EB-017D-28AF-5406-DCE3212D9634}
+		{3A214E06-B95E-4D61-A291-1F8DF2EC10FD} = {0D6865EB-017D-28AF-5406-DCE3212D9634}
+		{CEBDE98B-A6AA-46E6-BC79-FAAF823DB9EC} = {0D6865EB-017D-28AF-5406-DCE3212D9634}
+		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7} = {0D6865EB-017D-28AF-5406-DCE3212D9634}
+	EndGlobalSection
+EndGlobal

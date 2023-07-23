@@ -193,7 +193,7 @@ cstr g_smallIcon = nullptr;
 
 ROCOCO_INTERFACE IMainloop
 {
-	virtual void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) = 0;
+	virtual void Invoke(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) = 0;
 };
 
 struct HandleManager
@@ -504,7 +504,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	WindowSpec ws;
 	GetMainWindowSpec(ws, hInstance, *config);
-	AutoFree<IDX11GraphicsWindow> mainWindow = factory->CreateDX11Window(ws, true);
+	AutoFree<IGraphicsWindow> mainWindow = factory->CreateDX11Window(ws, true);
 	mainWindow->MakeRenderTarget();
 
 	SetWindowTextA(mainWindow->Window(), title);
@@ -627,7 +627,7 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 		IAppFactory* appFactory = nullptr;
 		IEventCallback<ScriptCompileArgs>* onCompile = nullptr;
 
-		void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) override
+		void Invoke(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) override
 		{
 			AutoFree<IApp> app(appFactory->CreateApp(platform));
 
@@ -649,7 +649,7 @@ int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON h
 	{
 		IDirectAppFactory* appFactory;
 
-		void Invoke(Platform& platform, HANDLE hInstanceLock, IDX11GraphicsWindow& mainWindow) override
+		void Invoke(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) override
 		{
 			AutoFree<IDirectAppManager> appManager = CreateAppManager(platform, mainWindow, *appFactory);
 			appManager->Run(hInstanceLock);

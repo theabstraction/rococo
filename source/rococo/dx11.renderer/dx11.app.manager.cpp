@@ -1,3 +1,6 @@
+#include <rococo.types.h>
+#define ROCOCO_DX_API ROCOCO_API_EXPORT
+
 #include "dx11.renderer.h"
 #include <rococo.os.win32.h>
 #include <rococo.dx11.renderer.win32.h>
@@ -130,9 +133,9 @@ namespace ANON
 	struct AppManager : public IAppManager, public IEventCallback<SysUnstableArgs>, public IAppEventHandler
 	{
 		IApp& app;
-		IDX11GraphicsWindow& window;
+		IGraphicsWindow& window;
 
-		AppManager(IDX11GraphicsWindow& _window, IApp& _app) : app(_app), window(_window)
+		AppManager(IGraphicsWindow& _window, IApp& _app) : app(_app), window(_window)
 		{
 		}
 
@@ -209,13 +212,13 @@ namespace ANON
 		public IDirectAppControl
 	{
 		AutoFree<IDirectApp> app;
-		IDX11GraphicsWindow& window;
+		IGraphicsWindow& window;
 		OneReaderOneWriterCircleBuffer<KeyboardEvent> keyBuffer;
 		OneReaderOneWriterCircleBuffer<MouseEvent> mouseBuffer;
 		HANDLE hInstanceLock;
 		Vec2 mouseDelta = { 0,0 };
 
-		DirectAppManager(Platform& platform, IDX11GraphicsWindow& _window, IDirectAppFactory& _factory) : 
+		DirectAppManager(Platform& platform, IGraphicsWindow& _window, IDirectAppFactory& _factory) : 
 			window(_window),
 			keyBuffer(16),
 			mouseBuffer(16)
@@ -327,12 +330,12 @@ namespace ANON
 
 namespace Rococo
 {
-	IAppManager* CreateAppManager(IDX11GraphicsWindow& window, IApp& app)
+	ROCOCO_DX_API IAppManager* CreateAppManager(IGraphicsWindow& window, IApp& app)
 	{
 		return new ANON::AppManager(window, app);
 	}
 
-	IDirectAppManager* CreateAppManager(Platform& platform, IDX11GraphicsWindow& window, IDirectAppFactory& factory)
+	ROCOCO_DX_API IDirectAppManager* CreateAppManager(Platform& platform, IGraphicsWindow& window, IDirectAppFactory& factory)
 	{
 		return new ANON::DirectAppManager(platform, window, factory);
 	}
