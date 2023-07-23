@@ -238,6 +238,7 @@ namespace Rococo::Audio
 		virtual void Stop() = 0;
 	};
 
+	// Used as the base class of some data linked to a particular voice. In use by Concert3D.
 	ROCOCO_INTERFACE IAudioVoiceContext
 	{
 
