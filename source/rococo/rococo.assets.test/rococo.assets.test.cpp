@@ -6,6 +6,13 @@
 using namespace Rococo;
 using namespace Rococo::Assets;
 
+void ShowFailure(cstr message, cstr filename, int lineNumber)
+{
+	printf("Error in %s line %d: %s\n", filename, lineNumber, message);
+}
+
+#define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Throw(0, "Validation failure"); }
+
 void TestFactory(IFileAssetFactory& factory)
 {
 	bool hasLoadCompleted = false;
@@ -17,6 +24,10 @@ void TestFactory(IFileAssetFactory& factory)
 
 	AssetRef<IFileAsset> ref = factory.CreateFileAsset("!scripts/native/Sys.Maths.sxy", onLoad);
 
+	uint32 refCount = ref.Life().ReferenceCount() > 0;
+	printf("RefCount: %d\n", refCount);
+	validate(refCount);
+
 	int waitCount = 0;
 	while (!hasLoadCompleted && waitCount < 10)
 	{
@@ -25,10 +36,9 @@ void TestFactory(IFileAssetFactory& factory)
 		waitCount++;
 	}
 
-	if (!hasLoadCompleted)
-	{
-		Throw(0, "TestFactory failed. Timeout");
-	}
+	validate(ref.Life().ReferenceCount() == 1);
+
+	validate(hasLoadCompleted);
 }
 
 int main(int argc, char* argv)

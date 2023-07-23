@@ -42,7 +42,7 @@ namespace Rococo
 		AssetRef(IASSET* _asset, IAssetLifeSupervisor* _life):
 			asset(_asset), life(_life)
 		{
-
+			life->AddRef();
 		}
 
 		AssetRef(AssetRef& other) :

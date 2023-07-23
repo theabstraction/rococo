@@ -50,6 +50,10 @@ namespace Rococo::Assets
 
 	ROCOCO_INTERFACE IFileAssetFactory
 	{
+		// Creates a ref for asynchronous file loading.
+		// The file callback will be invoked for the first caller only when the file is loaded.
+		// If the file is already loaded then either IFileAsset::IsLoaded() or IFileAsset::IsError will return true.
+		// It is recommended that the caller of the method ensure the onLoad callback is valid for the lifetime of the file asset factory.
 		virtual AssetRef<IFileAsset> CreateFileAsset(const char* utf8Path, TAsyncOnLoadEvent onLoad = NoFileCallback) = 0;
 
 		// Call this periodically in whichever thread is responsible for handling onLoad callbacks

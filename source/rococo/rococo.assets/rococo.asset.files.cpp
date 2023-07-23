@@ -113,9 +113,14 @@ namespace ANON
 		}
 	};
 
+	class FileAssetWithLife;
+
 	ROCOCO_INTERFACE IFileAssetFactoryCEO : IFileAssetFactorySupervisor
 	{
 		virtual IO::IInstallation& Installation() = 0;
+
+		// Tell the CEO to suicide the offender from the system, as nobody is interested
+		virtual void MarkForDeath(FileAssetWithLife* epstein) = 0;
 	};
 
 	class FileAssetWithLife: public IAssetLifeSupervisor
@@ -181,8 +186,13 @@ namespace ANON
 
 		uint32 ReleaseRef() override
 		{
-			refCount--;
-			return _InterlockedDecrement(&refCount);
+			uint32 currentCount = _InterlockedDecrement(&refCount);
+			if (currentCount == 0)
+			{
+				ceo.MarkForDeath(this);
+			}
+
+			return currentCount;
 		}
 	};
 
@@ -230,12 +240,16 @@ namespace ANON
 			auto mapIterator = insertRef.first;
 			bool wasInserted = insertRef.second;
 
+			FileAssetWithLife* assetWrapper;
+
 			if (wasInserted)
 			{
 				try
 				{
-					auto* wrapper = new FileAssetWithLife(*this, mapIterator->first, onLoad);
-					mapIterator->second = wrapper;
+					assetWrapper = new FileAssetWithLife(*this, mapIterator->first, onLoad);
+					mapIterator->second = assetWrapper;
+					unloadedItems.push_back(mapIterator->first);
+					OS::QueueAPC(loaderThread, FileAssetFactory::WakeUp, this);
 				}
 				catch (...)
 				{
@@ -243,13 +257,10 @@ namespace ANON
 					throw;
 				}
 			}
-			
-			FileAssetWithLife* assetWrapper = mapIterator->second;
-			assetWrapper->AddRef(); // refcount is now 1
-
-			unloadedItems.push_back(mapIterator->first);
-
-			OS::QueueAPC(loaderThread, FileAssetFactory::WakeUp, this);
+			else
+			{
+				assetWrapper = mapIterator->second;
+			}
 
 			return AssetRef<IFileAsset>(&assetWrapper->asset, static_cast<IAssetLifeSupervisor*>(assetWrapper));
 		}
@@ -272,6 +283,17 @@ namespace ANON
 
 			OS::Lock lock(sync);
 			newlyLoadedItems.push_back(&wrapper);
+		}
+
+		void MarkForDeath(FileAssetWithLife* epstein)
+		{
+			OS::Lock lock(sync);
+			auto i = fileAssets.find(epstein->Path());
+			if (i != fileAssets.end())
+			{
+				fileAssets.erase(i);
+				delete epstein;
+			}
 		}
 
 		void DeliverToThisThreadThisTick()
