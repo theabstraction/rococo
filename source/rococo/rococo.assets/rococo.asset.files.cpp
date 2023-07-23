@@ -207,6 +207,8 @@ namespace ANON
 
 		virtual ~FileAssetFactory()
 		{
+			loaderThread = nullptr;
+
 			for (auto& i : fileAssets)
 			{
 				delete i.second;
@@ -272,9 +274,9 @@ namespace ANON
 			newlyLoadedItems.push_back(&wrapper);
 		}
 
-		void InvokeAsyncHandlers()
+		void DeliverToThisThreadThisTick()
 		{
-			while (newlyLoadedItems.empty())
+			while (!newlyLoadedItems.empty())
 			{
 				FileAssetWithLife* santa = nullptr;
 				{
@@ -313,7 +315,7 @@ namespace ANON
 					{
 						OS::Lock lock(sync);
 
-						if (unloadedItems.empty())
+						if (!unloadedItems.empty())
 						{
 							cstr key = unloadedItems.front();
 							auto i = fileAssets.find(key);

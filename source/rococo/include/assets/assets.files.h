@@ -51,6 +51,9 @@ namespace Rococo::Assets
 	ROCOCO_INTERFACE IFileAssetFactory
 	{
 		virtual AssetRef<IFileAsset> CreateFileAsset(const char* utf8Path, TAsyncOnLoadEvent onLoad = NoFileCallback) = 0;
+
+		// Call this periodically in whichever thread is responsible for handling onLoad callbacks
+		virtual void DeliverToThisThreadThisTick() = 0;
 	};
 
 	ROCOCO_INTERFACE IFileAssetFactorySupervisor: IFileAssetFactory

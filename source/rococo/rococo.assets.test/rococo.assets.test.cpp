@@ -11,15 +11,16 @@ void TestFactory(IFileAssetFactory& factory)
 	bool hasLoadCompleted = false;
 	auto onLoad = [&hasLoadCompleted](IFileAsset& asset)
 	{
-		printf("Asset %s loaded. File length %llu bytes", asset.Path(), asset.RawData().nBytes);
+		printf("Asset %s loaded. File length %llu bytes\n", asset.Path(), asset.RawData().nBytes);
 		hasLoadCompleted = true;
 	};
 
 	AssetRef<IFileAsset> ref = factory.CreateFileAsset("!scripts/native/Sys.Maths.sxy", onLoad);
 
-	int waitCount = 10;
+	int waitCount = 0;
 	while (!hasLoadCompleted && waitCount < 10)
 	{
+		factory.DeliverToThisThreadThisTick();
 		OS::SleepUntilAsync(100);
 		waitCount++;
 	}
@@ -48,7 +49,7 @@ int main(int argc, char* argv)
 
 		TestFactory(*assetFactory);
 
-		printf("Finishing tests...");
+		printf("Finishing tests...\n");
 	}
 	catch (IException& ex)
 	{
