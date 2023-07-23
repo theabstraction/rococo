@@ -2,7 +2,7 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 #include <rococo.sexy.ide.h>
-#include <rococo.dx11.renderer.win32.h>
+#include <rococo.win32.rendering.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 #include <rococo.imaging.h>
@@ -482,7 +482,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher(Events::CreatePublisher());
 	os->Monitor(installation->Content());
 
-	AutoFree<IDX11Logger> logger = CreateStandardOutputLogger();
+	AutoFree<IGraphicsLogger> logger = CreateStandardOutputLogger();
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation, *scriptAllocator));
 	
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
@@ -500,11 +500,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	factorySpec.hResourceInstance = hInstance;
 	factorySpec.largeIcon = hLargeIcon;
 	factorySpec.smallIcon = hSmallIcon;
-	AutoFree<IDX11Factory> factory = CreateDX11Factory(*installation, *logger, factorySpec);
+	AutoFree<IGraphicsWindowFactory> factory = CreateGraphicsWindowFactory(*installation, *logger, factorySpec);
 
 	WindowSpec ws;
 	GetMainWindowSpec(ws, hInstance, *config);
-	AutoFree<IGraphicsWindow> mainWindow = factory->CreateDX11Window(ws, true);
+	AutoFree<IGraphicsWindow> mainWindow = factory->CreateGraphicsWindow(ws, true);
 	mainWindow->MakeRenderTarget();
 
 	SetWindowTextA(mainWindow->Window(), title);

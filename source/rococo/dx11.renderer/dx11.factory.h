@@ -22,7 +22,7 @@ namespace Rococo
 
 			IFactoryResources& resources;
 			IO::IInstallation& installation;
-			IDX11Logger& logger;
+			IGraphicsLogger& logger;
 		};
 
 		struct IDX11Renderer;

@@ -13,7 +13,7 @@
 
 #include <rococo.hashtable.h>
 
-#include <rococo.dx11.renderer.win32.h>
+#include <rococo.win32.rendering.h>
 
 #include "dx11helpers.inl"
 #include "dx11buffers.inl"

@@ -1,6 +1,6 @@
 #include "dx11.renderer.h"
 #include <rococo.os.win32.h>
-#include <rococo.dx11.renderer.win32.h>
+#include <rococo.win32.rendering.h>
 
 #include "dx11helpers.inl"
 

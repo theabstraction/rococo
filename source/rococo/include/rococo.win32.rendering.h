@@ -1,10 +1,8 @@
-#ifndef ROCOCO_DX11_RENDERER_WIN32_H
-#define ROCOCO_DX11_RENDERER_WIN32_H
-
 #include <rococo.types.h>
+#include <rococo.os.win32.h>
 
-#ifndef ROCOCO_DX_API
-# define ROCOCO_DX_API ROCOCO_API_IMPORT
+#ifndef ROCOCO_GRAPHICS_API
+# define ROCOCO_GRAPHICS_API ROCOCO_API_IMPORT
 #endif
 
 namespace Rococo::IO
@@ -16,6 +14,7 @@ namespace Rococo
 {
 	struct IAppFactory;
 	struct IApp;
+	struct Platform;
 
 	namespace Graphics
 	{
@@ -28,7 +27,10 @@ namespace Rococo
 	{
 		struct IAppControl;
 	}
+}
 
+namespace Rococo
+{
 	void CALLBACK RendererMain(HANDLE hInstanceLock, IO::IInstallation& installation, IAppFactory& factory);
 
 	struct IAppEventHandler
@@ -40,7 +42,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IGraphicsWindow
 	{
-		virtual IRenderer& Renderer() = 0;
+		virtual IRenderer & Renderer() = 0;
 		virtual Windows::IWindow& Window() = 0;
 		virtual void CaptureEvents(IAppEventHandler* handler) = 0;
 		virtual void MakeRenderTarget() = 0;
@@ -55,7 +57,7 @@ namespace Rococo
 		virtual void Run(HANDLE hInstanceLock, IApp& app, OS::IAppControl& appControl) = 0;
 	};
 
-	ROCOCO_DX_API IAppManager* CreateAppManager(IGraphicsWindow& window, IApp& app);
+	ROCOCO_GRAPHICS_API IAppManager* CreateAppManager(IGraphicsWindow& window, IApp& app);
 
 	struct IDirectAppFactory;
 
@@ -67,12 +69,13 @@ namespace Rococo
 		virtual void Free() = 0;
 		virtual void Run(HANDLE hInstanceLock) = 0;
 	};
-	ROCOCO_DX_API IDirectAppManager* CreateAppManager(Platform& platform, IGraphicsWindow& window, IDirectAppFactory& factory);
+	ROCOCO_GRAPHICS_API IDirectAppManager* CreateAppManager(Platform& platform, IGraphicsWindow& window, IDirectAppFactory& factory);
 
 	struct IMessageSink
 	{
 		virtual bool InterceptMessage(LRESULT& result, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 	};
+
 
 	struct WindowSpec
 	{
@@ -96,15 +99,13 @@ namespace Rococo
 		size_t sharedMemoryMB;
 	};
 
-	ROCOCO_INTERFACE IDX11Factory
+	ROCOCO_INTERFACE IGraphicsWindowFactory
 	{
-		virtual IGraphicsWindow* CreateDX11Window(const WindowSpec& ws, bool linkedToDX11Controls) = 0;
+		virtual IGraphicsWindow * CreateGraphicsWindow(const WindowSpec & ws, bool linkedToControls) = 0;
 		virtual void Free() = 0;
 	};
 
-	bool DX11_TryGetAdapterInfo(int index, AdapterDesc& d);
-
-	ROCOCO_INTERFACE IDX11Logger
+	ROCOCO_INTERFACE IGraphicsLogger
 	{
 		virtual void Log(cstr message, ...) = 0;
 		virtual void OnMessageException(IException& ex, uint32 uMsg) = 0;
@@ -113,14 +114,15 @@ namespace Rococo
 
 	struct FactorySpec
 	{
-		HINSTANCE hResourceInstance;
-		HICON largeIcon;
-		HICON smallIcon;
+		HINSTANCE hResourceInstance = NULL;
+		HICON largeIcon = NULL;;
+		HICON smallIcon = NULL;;
 		int adapterIndex = 0;
 	};
 
-	ROCOCO_DX_API IDX11Factory* CreateDX11Factory(IO::IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec);
-	ROCOCO_DX_API IDX11Logger* CreateStandardOutputLogger();
-}
+	// mplat will link to some graphics library, currently DX11, which implements the following 3 functions that establish the rendering system.
 
-#endif
+	ROCOCO_GRAPHICS_API bool Graphics_TryGetAdapterInfo(int index, AdapterDesc& d);
+	ROCOCO_GRAPHICS_API IGraphicsLogger* CreateStandardOutputLogger();
+	ROCOCO_GRAPHICS_API IGraphicsWindowFactory* CreateGraphicsWindowFactory(IO::IInstallation& installation, IGraphicsLogger& logger, const FactorySpec& spec);
+}

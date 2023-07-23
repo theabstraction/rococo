@@ -1,9 +1,9 @@
 #include <rococo.types.h>
-#define ROCOCO_DX_API ROCOCO_API_EXPORT
+#define ROCOCO_GRAPHICS_API ROCOCO_API_EXPORT
 
 #include "dx11.renderer.h"
 #include <rococo.os.win32.h>
-#include <rococo.dx11.renderer.win32.h>
+#include <rococo.win32.rendering.h>
 #include <rococo.renderer.h>
 #include <rococo.ui.h>
 #include "rococo.dx11.api.h"
@@ -330,12 +330,12 @@ namespace ANON
 
 namespace Rococo
 {
-	ROCOCO_DX_API IAppManager* CreateAppManager(IGraphicsWindow& window, IApp& app)
+	ROCOCO_GRAPHICS_API IAppManager* CreateAppManager(IGraphicsWindow& window, IApp& app)
 	{
 		return new ANON::AppManager(window, app);
 	}
 
-	ROCOCO_DX_API IDirectAppManager* CreateAppManager(Platform& platform, IGraphicsWindow& window, IDirectAppFactory& factory)
+	ROCOCO_GRAPHICS_API IDirectAppManager* CreateAppManager(Platform& platform, IGraphicsWindow& window, IDirectAppFactory& factory)
 	{
 		return new ANON::DirectAppManager(platform, window, factory);
 	}

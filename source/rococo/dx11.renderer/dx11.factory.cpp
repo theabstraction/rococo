@@ -2,9 +2,9 @@
 #include <rococo.api.h>
 #include <rococo.os.h>
 
-#define ROCOCO_DX_API ROCOCO_API_EXPORT
+#define ROCOCO_GRAPHICS_API ROCOCO_API_EXPORT
 
-#include <rococo.dx11.renderer.win32.h>
+#include <rococo.win32.rendering.h>
 
 #include "dx11helpers.inl"
 
@@ -23,11 +23,11 @@ namespace ANON
 {
 	using namespace Rococo;
 
-	class DX11Factory : public IDX11Factory, public DX11::IFactoryResources
+	class DX11Factory : public IGraphicsWindowFactory, public DX11::IFactoryResources
 	{
 		FactorySpec spec;
 		IO::IInstallation& installation;
-		IDX11Logger& logger;
+		IGraphicsLogger& logger;
 
 		AutoRelease<IDXGIAdapter> adapter;
 		AutoRelease<ID3D11DeviceContext> dc;
@@ -61,7 +61,7 @@ namespace ANON
 
 		ATOM atom;
 	public:
-		DX11Factory(IO::IInstallation& _installation, IDX11Logger& _logger, const FactorySpec& _spec) :
+		DX11Factory(IO::IInstallation& _installation, IGraphicsLogger& _logger, const FactorySpec& _spec) :
 			installation(_installation),
 			logger(_logger),
 			spec(_spec)
@@ -134,7 +134,7 @@ namespace ANON
 			}
 		}
 
-		IGraphicsWindow* CreateDX11Window(const WindowSpec& spec, bool linkedToDX11Controls) override
+		IGraphicsWindow* CreateGraphicsWindow(const WindowSpec& spec, bool linkedToDX11Controls) override
 		{
 			DX11::Factory ourfactory{ *device, *dc, *factory, *this, installation, logger };
 			return DX11::CreateDX11GraphicsWindow(ourfactory, *renderer, atom, spec, linkedToDX11Controls);
@@ -151,7 +151,7 @@ namespace Rococo
 {
 	using namespace Rococo::DX11;
 
-	ROCOCO_DX_API IDX11Factory* CreateDX11Factory(IO::IInstallation& installation, IDX11Logger& logger, const FactorySpec& spec)
+	ROCOCO_GRAPHICS_API IGraphicsWindowFactory* CreateGraphicsWindowFactory(IO::IInstallation& installation, IGraphicsLogger& logger, const FactorySpec& spec)
 	{
 		return new ANON::DX11Factory(installation, logger, spec);
 	}
@@ -178,9 +178,9 @@ namespace Rococo
 		return true;
 	}
 
-	ROCOCO_DX_API IDX11Logger* CreateStandardOutputLogger()
+	ROCOCO_GRAPHICS_API IGraphicsLogger* CreateStandardOutputLogger()
 	{
-		struct Logger : public IDX11Logger
+		struct Logger : public IGraphicsLogger
 		{
 			void Log(cstr format, ...) override
 			{

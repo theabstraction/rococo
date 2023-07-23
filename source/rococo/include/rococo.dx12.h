@@ -15,6 +15,11 @@ struct ID3D12PipelineState;
 struct D3D12_INPUT_LAYOUT_DESC;
 struct ID3D12Resource;
 
+namespace Rococo::IO
+{
+	struct IInstallation;
+}
+
 namespace Rococo
 {
 	struct ID_PIXEL_SHADER;
@@ -28,6 +33,8 @@ namespace Rococo
 
 namespace Rococo::Graphics
 {
+	using namespace Rococo::IO;
+
 	enum class TextureInternalFormat
 	{
 		Greyscale_R8,
