@@ -187,6 +187,8 @@ namespace Rococo
 	inline bool IsEndianLittle() { static_assert(false, "unknown") };
 #endif
 
+	enum class Limits: size_t { FSTRING_LENGTH_LIMIT = 0x020000000LL };
+
 	// Maximum fully qualified name length. Names categories include variables a.b.c.d and functions A.B.C.D and methods a.b.c.D
 	enum { MAX_FQ_NAME_LEN = 127 };
 

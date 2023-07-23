@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1C4853CF-79C5-A23B-80A8-01656A9473CF}</ProjectGuid>
+    <ProjectGuid>{4B3F0093-BC52-0A79-E48A-78A4BE50391D}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>rococo.audio</RootNamespace>
-    <ProjectName>rococo.audio</ProjectName>
+    <RootNamespace>rococo.assets</RootNamespace>
+    <ProjectName>rococo.assets</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
@@ -42,25 +42,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>rococo.audio</TargetName>
+    <TargetName>rococo.assets</TargetName>
     <OutDir>..\..\gen\bin\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\rococo.audio\</IntDir>
+    <IntDir>..\..\gen\temp\debug\rococo.assets\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\debug\rococo.audio.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\debug\rococo.assets.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>rococo.audio</TargetName>
+    <TargetName>rococo.assets</TargetName>
     <OutDir>..\..\gen\bin\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\rococo.audio\</IntDir>
+    <IntDir>..\..\gen\temp\release\rococo.assets\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\release\rococo.audio.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\release\rococo.assets.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -68,8 +66,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ROCOCO_AUDIO_API=__declspec(dllexport);WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -111,16 +109,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.audio\rococo.audio_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.assets\rococo.assets_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\debug\rococo.audio.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\debug\rococo.assets.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\rococo.audio.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\rococo.assets.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -140,25 +138,23 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\debug\rococo.audio.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\rococo.audio.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\debug\rococo.assets.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\debug\rococo.assets.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;ROCOCO_AUDIO_API=__declspec(dllexport);WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -200,16 +196,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.audio\rococo.audio_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.assets\rococo.assets_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\release\rococo.audio.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\release\rococo.assets.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\release\rococo.audio.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\release\rococo.assets.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -229,64 +225,30 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\release\rococo.audio.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\rococo.audio.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\release\rococo.assets.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\release\rococo.assets.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Release\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.audio\ CONTENT_ROOT=..\..\content\ SXH_FILE=rococo.audio.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.assets.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.concert.3D.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.dllmain.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.memory.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.player.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.sample.database.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.streamer.stereo.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.X2.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.X3D.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.mp3.win32.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.ogg-vorbis.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.files.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.manager.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.memory.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <ProjectReference Include="sexy.bennyhill_vs2022_win64.vcxproj">
-      <Project>{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}</Project>
-      <Name>sexy.bennyhill</Name>
-      <Private>true</Private>
-    </ProjectReference>
-    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
-      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
     <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
       <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.maths_vs2022_win64.vcxproj">
-      <Project>{83F901CE-6EC8-579F-89CA-76C364A01566}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
-      <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

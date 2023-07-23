@@ -1273,7 +1273,7 @@ namespace Rococo
 	ROCOCO_UTIL_API fstring to_fstring(cstr const msg)
 	{
 		size_t len = rlen(msg);
-		if (len >= 0x020000000LL)
+		if (len >= (uint64) Limits::FSTRING_LENGTH_LIMIT)
 		{
 			Throw(0, "String too long to convert to fstring");
 		}

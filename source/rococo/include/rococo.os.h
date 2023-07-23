@@ -71,6 +71,12 @@ namespace Rococo::OS
 		virtual cstr GetErrorMessage(int& err) const = 0;
 	};
 
+	template<class CONTEXT>
+	void QueueAPC(IThreadControl* control, void (*callback)(CONTEXT* context), CONTEXT* context)
+	{
+		control->QueueAPC(reinterpret_cast<IThreadControl::FN_APC>(callback), context);
+	}
+
 	using IdThread = int64;
 	ROCOCO_API IdThread GetCurrentThreadIdentifier();
 
@@ -128,6 +134,7 @@ namespace Rococo::OS
 	ROCOCO_API void PollKeys(uint8 scanArray[256]);
 	ROCOCO_API bool MakeContainerDirectory(char* filename);
 	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename);
+	ROCOCO_API void SleepUntilAsync(uint32 timeoutMS);
 
 	class Lock
 	{

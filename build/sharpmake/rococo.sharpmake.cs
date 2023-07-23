@@ -701,7 +701,38 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
         }
     }
-    
+
+    [Sharpmake.Generate]
+    public class RococoAssetsProject : RococoProject
+    {
+        public RococoAssetsProject() : base("rococo.assets")
+        {
+            SourceFiles.Add(@"..\include\rococo.assets.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoAssetsTestProject : RococoProject
+    {
+        public RococoAssetsTestProject() : base("rococo.assets.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoAssetsProject>(target);
+        }
+    }
+
     [Sharpmake.Compile]
     public class OggProject : Project
     {
@@ -1560,6 +1591,8 @@ namespace Rococo
             //conf.AddProject<SexyDotNetIDEProject>(target);
             conf.AddProject<RococoIncludeProject>(target);
             conf.AddProject<SexyIncludeProject>(target);
+            conf.AddProject<RococoAssetsProject>(target);
+            conf.AddProject<RococoAssetsTestProject>(target);
         }
     }
 
@@ -1663,6 +1696,9 @@ namespace Rococo
             arguments.Generate<SexyDotNetCLIProject>();
             //arguments.Generate<SexyDotNetIDEProject>();
             arguments.Generate<RococoIncludeProject>();
+            arguments.Generate<RococoAssetsProject>();
+            arguments.Generate<RococoAssetsTestProject>();
+
             arguments.Generate<SexyIncludeProject>();
             arguments.Generate<VorbisProject>();
             arguments.Generate<VorbisFileProject>();

@@ -517,6 +517,11 @@ namespace Rococo::OS
 		return false;
 	}
 
+	ROCOCO_API void SleepUntilAsync(uint32 timeoutMS)
+	{
+		SleepEx(timeoutMS, true);
+	}
+
 	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename)
 	{
 		int len = (int)wcslen(filename);
