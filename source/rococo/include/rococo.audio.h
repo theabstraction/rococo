@@ -293,8 +293,7 @@ namespace Rococo::Audio
 	{
 		// Turn an audio API error code passed in audio exceptions into an error message. The buffer is filled up to the capacity, truncated and terminated will a nul character
 		virtual void TranslateErrorCode(int errCode, char* msg, size_t capacity) = 0;
-		virtual IOSAudioVoiceSupervisor* Create16bitMono44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context) = 0;
-		virtual IOSAudioVoiceSupervisor* Create16bitStereo44100kHzVoice(IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context) = 0;
+		virtual IOSAudioVoiceSupervisor* Create16bitVoice(uint32 sampleHz, uint32 channelCount, IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context) = 0;
 		virtual IAudio3DSupervisor* Create3DAPI(float speedOfSoundInMetresPerSecond) = 0;
 	};
 

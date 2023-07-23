@@ -236,7 +236,7 @@ namespace Rococo::Audio
 				i.priority = 0x00000000;
 				i.dopplerVelocity = Vec3{ 0,0,0 };
 				if (!i.emitter) i.emitter = audio3Dprocessor.CreateEmitter();
-				if (!i.monoVoice) i.monoVoice = osAudio.Create16bitMono44100kHzVoice(*this, i);
+				if (!i.monoVoice) i.monoVoice = osAudio.Create16bitVoice(44100, 1, *this, i);
 			}
 
 			for (auto i = instruments.begin(); i != instruments.end() && i->index <= maxVoices; i++)

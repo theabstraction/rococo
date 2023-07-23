@@ -38,7 +38,7 @@ namespace AudioAnon
 			}
 
 			// Stereo 44.1kHz 16-bit per channel stereo voice
-			stereoVoice = osAudio.Create16bitStereo44100kHzVoice(*this, nowt);
+			stereoVoice = osAudio.Create16bitVoice(44100, 2, *this, nowt);
 		}
 
 		~Stereo_Streamer()
