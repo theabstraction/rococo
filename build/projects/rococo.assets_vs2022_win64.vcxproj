@@ -141,7 +141,8 @@
       <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.assets.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.assets.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.assets.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.assets.lib</ImportLibrary>
@@ -237,9 +239,11 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.assets.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.assets\assets.texture.controller.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.files.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.manager.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.memory.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.textures.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

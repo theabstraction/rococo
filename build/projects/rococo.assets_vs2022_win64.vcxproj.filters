@@ -4,6 +4,8 @@
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.files.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.manager.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.memory.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.textures.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.assets\assets.texture.controller.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\rococo.assets.h">

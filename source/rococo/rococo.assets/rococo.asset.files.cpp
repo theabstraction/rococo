@@ -18,51 +18,48 @@ namespace ANON
 
 	const char* const emptyString = "";
 
-	struct FileAsset: IFileAsset
+	struct FileAsset : IFileAsset
 	{
-		fstring pingPath; // This points to the fileAssets map key below, which is persistent for the lifetime of the FileAsset
 		AutoFree<IExpandingBuffer> fileMap;
-		HString status;
-		int statusCode = 0;
-		volatile bool isReady = false; // The last thing to be set to true when the FileAssetFactory has completed loading the asset, or completed poplating the status codes
+		AssetStatus status;
+
 		volatile bool isLoaded = false;
-		volatile bool isError = false;
 
-		FileAsset(cstr _pingPath): pingPath(to_fstring(_pingPath))
+		FileAsset(cstr _pingPath)
 		{
-
+			status.pingPath = to_fstring(_pingPath);
 		}
 
 		bool IsLoaded() const override
 		{
-			return isReady && isLoaded;
+			return status.isReady && isLoaded;
 		}
 
 		bool IsError() const override
 		{
-			return isReady && isError;
+			return status.isReady && status.isError;
 		}
 
 		cstr Path() const override
 		{
-			return pingPath;
+			return status.pingPath;
 		}
 
 		FileData RawData() const override
 		{
-			return (isReady && isLoaded) ? FileData { fileMap->GetData(), fileMap->Length() } : FileData{ 0, 0 };
+			return (status.isReady && isLoaded) ? FileData { fileMap->GetData(), fileMap->Length() } : FileData{ 0, 0 };
 		}
 
 		fstring ToRawString() const override
 		{
 			if (!IsLoaded()) return fstring{ emptyString, 0 };
 
-			if (fileMap->Length() >= (uint64) Limits::FSTRING_LENGTH_LIMIT)
+			if (fileMap->Length() >= (uint64)Limits::FSTRING_LENGTH_LIMIT)
 			{
-				Throw(0, "%s - %s:\n [asset length %llu] > %llu, which is the limit of fstrings\n", __FUNCTION__, (cstr)pingPath, fileMap->Length(), (uint64)Limits::FSTRING_LENGTH_LIMIT);
+				Throw(0, "%s - %s:\n [asset length %llu] > %llu, which is the limit of fstrings\n", __FUNCTION__, (cstr)status.pingPath, fileMap->Length(), (uint64)Limits::FSTRING_LENGTH_LIMIT);
 			}
 
-			return fstring{ (cstr)fileMap->GetData(), (int32) fileMap->Length() };
+			return fstring{ (cstr)fileMap->GetData(), (int32)fileMap->Length() };
 		}
 
 		fstring ToString() const override
@@ -73,43 +70,12 @@ namespace ANON
 
 		size_t GetErrorAndStatusLength(int& statusCode, char* buffer, size_t nBytesInBuffer) const override
 		{
-#ifdef _WIN32
-			enum { NOT_READY = /* WAIT_IO_COMPLETION */ 0x000000C0L };
-#else
-			static_assert(false, "Not implemented");
-#endif
-			if (!isReady)
-			{
-				auto message = "File is not ready yet"_fstring;
-				if (buffer && nBytesInBuffer)
-				{
-					SafeFormat(buffer, nBytesInBuffer, message.buffer);
-				}
-
-				statusCode = NOT_READY;
-				return message.length + 1;
-			}
-
-			statusCode = this->statusCode;
-			if (buffer && nBytesInBuffer)
-			{
-				SafeFormat(buffer, nBytesInBuffer, "%s", status.length() == 0 ? emptyString : status.c_str());
-			}
-
-			return status.length() + 1;
+			return status.GetErrorAndStatusLength(statusCode, buffer, nBytesInBuffer);
 		}
 
-		void Validate(bool addFilename, bool addFunctioname) override
+		void Validate(bool addFilename, bool addFunctionName) override
 		{
-			if (!isReady || !isError) return;
-			if (addFilename)
-			{
-				Throw(statusCode, "%s%s%s:\n %s", addFunctioname ? __FUNCTION__ : "", addFunctioname ? " - " : "", pingPath, status.length() > 0 ? status.c_str() : "<unknown error>");
-			}
-			else
-			{
-				Throw(statusCode, "%s%s%s", addFunctioname ? __FUNCTION__ : "", addFunctioname ? ": " : "", status.length() > 0 ? status.c_str() : "<unknown error>");
-			}
+			status.Validate(addFilename, addFunctionName);
 		}
 	};
 
@@ -117,27 +83,54 @@ namespace ANON
 
 	ROCOCO_INTERFACE IFileAssetFactoryCEO : IFileAssetFactorySupervisor
 	{
-		virtual IO::IInstallation& Installation() = 0;
+		virtual IO::IInstallation & Installation() = 0;
 
 		// Tell the CEO to suicide the offender from the system, as nobody is interested
-		virtual void MarkForDeath(FileAssetWithLife* epstein) = 0;
+		virtual void MarkForDeath(FileAssetWithLife* epstein) noexcept = 0;
 	};
 
-	class FileAssetWithLife: public IAssetLifeSupervisor
+	class FileAssetWithLife : public IAssetLifeSupervisor
 	{
 		IFileAssetFactoryCEO& ceo;
 		long refCount = 0;
-		
+
 		TAsyncOnLoadEvent onLoadEvent;
 	public:
-		FileAssetWithLife(IFileAssetFactoryCEO& _ceo, cstr pingPath, TAsyncOnLoadEvent& _onLoadEvent): ceo(_ceo), asset(pingPath), onLoadEvent(_onLoadEvent)
+		FileAssetWithLife(IFileAssetFactoryCEO& _ceo, cstr pingPath, TAsyncOnLoadEvent& _onLoadEvent) : ceo(_ceo), asset(pingPath), onLoadEvent(_onLoadEvent)
 		{
 
 		}
 
-		void DeliverChristmasPresents()
+		void DeliverChristmasPresents() noexcept
 		{
-			onLoadEvent(asset);
+			try
+			{
+				onLoadEvent(asset);
+			}
+			catch (IException& ex)
+			{
+				char msg[1024];
+				SafeFormat(msg, "onLoadEvent threw an exception: %s", ex.Message());
+				asset.status.statusText = msg;
+				asset.status.statusCode = ex.ErrorCode();
+				asset.status.isError = true;
+			}
+			catch (std::exception& stdEx)
+			{
+				char msg[1024];
+				SafeFormat(msg, "onLoadEvent threw a std::exception: %s", stdEx.what());
+				asset.status.statusText = msg;
+				asset.status.statusCode = 0;
+				asset.status.isError = true;
+			}
+			catch (...)
+			{
+				char msg[1024];
+				SafeFormat(msg, "onLoadEvent threw an unspecified exception");
+				asset.status.statusText = msg;
+				asset.status.statusCode = 0;
+				asset.status.isError = true;
+			}
 		}
 
 		void LoadFromThread(OS::IThreadControl& /* thread */) noexcept
@@ -149,26 +142,26 @@ namespace ANON
 			catch (...)
 			{
 				// If we ran out of memory here we are probably in the pooh anyway, but try to report the error anyway
-				asset.statusCode = 0;
-				asset.status = "Insufficient memory";
+				asset.status.statusCode = 0;
+				asset.status.statusText = "Insufficient memory";
 			}
 
 			try
 			{
-				ceo.Installation().LoadResource(asset.pingPath, *asset.fileMap, 1_gigabytes);
+				ceo.Installation().LoadResource(asset.status.pingPath, *asset.fileMap, 1_gigabytes);
 				asset.isLoaded = true;
 			}
 			catch (IException& ex)
 			{
-				asset.statusCode = ex.ErrorCode();
-				asset.status = ex.Message();
+				asset.status.statusCode = ex.ErrorCode();
+				asset.status.statusText = ex.Message();
 			}
 
-			asset.isReady = true;
+			asset.status.isReady = true;
 		}
 
 		FileAsset asset;
-		
+
 		uint32 ReferenceCount() const override
 		{
 			return refCount;
@@ -176,15 +169,15 @@ namespace ANON
 
 		const fstring Path() const override
 		{
-			return asset.pingPath;
+			return asset.status.pingPath;
 		}
 
-		uint32 AddRef() override
+		uint32 AddRef() noexcept override
 		{
 			return _InterlockedIncrement(&refCount);
 		}
 
-		uint32 ReleaseRef() override
+		uint32 ReleaseRef() noexcept override
 		{
 			uint32 currentCount = _InterlockedDecrement(&refCount);
 			if (currentCount == 0)
@@ -206,12 +199,12 @@ namespace ANON
 		std::list<FastStringKey> unloadedItems;
 		std::list<FileAssetWithLife*> newlyLoadedItems;
 
-		FileAssetFactory(IAssetManager& _manager, IO::IInstallation& _installation):
+		FileAssetFactory(IAssetManager& _manager, IO::IInstallation& _installation) :
 			manager(_manager), installation(_installation)
 		{
 			// Potentially we could add more threads here, and use the same sync, so that they share the same unloadedItems list. Due to the sync, only one thread can modify the list at a time
 			loaderThread = OS::CreateRococoThread(this, 0);
-			sync = loaderThread->CreateCriticalSection();
+			sync = OS::CreateCriticalSection();
 			loaderThread->Resume();
 		}
 
@@ -285,7 +278,7 @@ namespace ANON
 			newlyLoadedItems.push_back(&wrapper);
 		}
 
-		void MarkForDeath(FileAssetWithLife* epstein)
+		void MarkForDeath(FileAssetWithLife* epstein) noexcept
 		{
 			OS::Lock lock(sync);
 			auto i = fileAssets.find(epstein->Path());
@@ -312,16 +305,8 @@ namespace ANON
 
 				if (santa)
 				{
-					try
-					{
-						santa->DeliverChristmasPresents();
-						santa->ReleaseRef();
-					}
-					catch (...)
-					{
-						santa->ReleaseRef();
-						throw;
-					}
+					AssetAutoRelease hold(*santa);
+					santa->DeliverChristmasPresents();
 				}
 			}
 		}
@@ -367,6 +352,43 @@ namespace ANON
 
 namespace Rococo::Assets
 {
+	size_t AssetStatus::GetErrorAndStatusLength(int& statusCode, char* buffer, size_t nBytesInBuffer) const
+	{
+		if (!isReady)
+		{
+			auto message = "File is not ready yet"_fstring;
+			if (buffer && nBytesInBuffer)
+			{
+				SafeFormat(buffer, nBytesInBuffer, message.buffer);
+			}
+
+			statusCode = NOT_READY;
+			return message.length + 1;
+		}
+
+		statusCode = this->statusCode;
+		if (buffer && nBytesInBuffer)
+		{
+			SafeFormat(buffer, nBytesInBuffer, "%s", statusText.length() == 0 ? "" : statusText.c_str());
+		}
+
+		return statusText.length() + 1;
+	}
+
+	void AssetStatus::Validate(bool addFilename, bool addFunctioname)
+	{
+		if (!isReady || !isError) return;
+
+		if (addFilename)
+		{
+			Throw(statusCode, "%s%s%s:\n %s", addFunctioname ? __FUNCTION__ : "", addFunctioname ? " - " : "", pingPath, statusText.length() > 0 ? statusText.c_str() : "<unknown error>");
+		}
+		else
+		{
+			Throw(statusCode, "%s%s%s", addFunctioname ? __FUNCTION__ : "", addFunctioname ? ": " : "", statusText.length() > 0 ? statusText.c_str() : "<unknown error>");
+		}
+	}
+
 	ROCOCO_ASSETS_API void NoFileCallback(IFileAsset& asset)
 	{
 		UNUSED(asset);

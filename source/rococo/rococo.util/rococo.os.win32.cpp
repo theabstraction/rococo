@@ -653,6 +653,11 @@ namespace Rococo::OS
 		return (IdThread) GetCurrentThreadId();
 	}
 
+	ROCOCO_API ICriticalSection* CreateCriticalSection()
+	{
+		return new CriticalSection();
+	}
+
 	ROCOCO_API IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)
 	{
 		struct Supervisor;
@@ -677,11 +682,6 @@ namespace Rococo::OS
 				QueueUserAPC(WakeUp, (HANDLE)hThread, 0);
 				WaitForSingleObject((HANDLE)hThread, INFINITE);
 				DeleteCriticalSection(&sync);
-			}
-
-			virtual ICriticalSection* CreateCriticalSection()
-			{
-				return new CriticalSection();
 			}
 
 			static void WakeUp(ULONG_PTR data)

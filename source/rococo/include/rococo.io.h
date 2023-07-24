@@ -16,6 +16,8 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
+
+	// TODO, add a rerence to an allocator
 	ROCOCO_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
 
 	struct SysUnstableArgs {};

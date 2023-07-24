@@ -21,8 +21,26 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IAssetLifeSupervisor: IAssetLife
 	{
-		virtual uint32 AddRef() = 0;
-		virtual uint32 ReleaseRef() = 0;
+		virtual uint32 AddRef() noexcept = 0;
+		virtual uint32 ReleaseRef() noexcept = 0;
+	};
+
+	// Releases a ref to a life when class instance destructs, but does not increase the reference count
+	class AssetAutoRelease
+	{
+	private:
+		IAssetLifeSupervisor& life;
+
+	public:
+		AssetAutoRelease(IAssetLifeSupervisor& _life): life(_life)
+		{
+
+		}
+
+		~AssetAutoRelease()
+		{
+			life.ReleaseRef();
+		}
 	};
 
 	template<class IASSET>

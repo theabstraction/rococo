@@ -135,7 +135,7 @@ namespace AudioAnon
 			managementThreadId = OS::GetCurrentThreadIdentifier();
 
 			thread = OS::CreateRococoThread(this, 0);
-			sync = thread->CreateCriticalSection();
+			sync = OS::CreateCriticalSection();
 			thread->Resume();
 		}
 

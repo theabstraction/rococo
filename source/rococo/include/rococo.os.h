@@ -91,9 +91,10 @@ namespace Rococo::OS
 
 	ROCOCO_INTERFACE IThreadSupervisor : public IThreadControl
 	{
-		virtual ICriticalSection * CreateCriticalSection() = 0;
 		virtual void Free() = 0;
 	};
+
+	ROCOCO_API ICriticalSection* CreateCriticalSection();
 
 	ROCOCO_API [[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
 
