@@ -20,19 +20,247 @@ struct TextureItem
 	}
 };
 
-struct MipMappedTextureArray : IMipMappedTextureArrayContainerSupervisor
+enum class EComponentType
 {
-	//AutoFree<IDX11TextureArray> txArray;
+	UNORM_8BITS, // 8 bits per component, interpreted as 0.0 to 1.0
+};
 
-	MipMappedTextureArray()
+struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
+{
+	ID3D11Device& device;
+	ID3D11DeviceContext* activeDC = nullptr;
+	uint32 span;
+	uint32 numberOfMipLevels;
+	uint32 numberOfElements;
+	TextureBind tb;
+	DXGI_FORMAT format;
+
+	MipMappedTextureArray(ID3D11Device& _device, EComponentType componentType, uint32 numberOfComponents, uint32 _span, uint32 _numberOfElements):
+		device(_device), span(_span), numberOfElements(_numberOfElements), numberOfMipLevels(0), format(DXGI_FORMAT::DXGI_FORMAT_UNKNOWN)
 	{
+		if (_span == 0)
+		{
+			Throw(0, "MipMappedTextureArray: Zero span");
+		}
 
+		uint32 q = span;
+		while (q > 1)
+		{
+			q = q >> 1;
+			numberOfMipLevels++;
+		}
+
+		uint32 requiredSpan = 1 << numberOfMipLevels;
+		if (requiredSpan != span)
+		{
+			Throw(0, "MipMappedTextureArray: Bad span (%u). Try %u.", span, requiredSpan);
+		}
+
+		if (componentType != EComponentType::UNORM_8BITS)
+		{
+			Throw(0, "MipMappedTextureArray: Unknown component type");
+		}
+
+		switch(numberOfComponents)
+		{
+		case 0:
+			Throw(0, "MipMappedTextureArray: zero components");
+			break;
+		case 1:
+			format = DXGI_FORMAT_R8_UNORM;
+			break;
+		case 2:
+			Throw(0, "MipMappedTextureArray: two components specified, but not yet implemented for the Rococo DirectX11 renderer");
+			break;
+		case 3:
+			Throw(0, "MipMappedTextureArray: three components specified, but DirectX 11 does not support 3 components at 8-bits per component");
+			break;
+		case 4:
+			format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			break;
+		default:
+			Throw(0, "MipMappedTextureArray: %u components specified, but DirectX 11 only supports 1 or 4 channels at 8-bits per channel", numberOfComponents);
+			break;
+		}
+
+		D3D11_TEXTURE2D_DESC textureArrayDesc;
+		textureArrayDesc.Width = span;
+		textureArrayDesc.Height = span;
+		textureArrayDesc.MipLevels = 0;
+		textureArrayDesc.ArraySize = (UINT)numberOfElements;
+		textureArrayDesc.Format = format;
+		textureArrayDesc.SampleDesc.Count = 1;
+		textureArrayDesc.SampleDesc.Quality = 0;
+		textureArrayDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureArrayDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		textureArrayDesc.CPUAccessFlags = 0;
+		textureArrayDesc.MiscFlags = 0;
+
+		
+		// First validate the parameters by passing null to the texture ref's ref.
+		if (S_FALSE == device.CreateTexture2D(&textureArrayDesc, nullptr, nullptr))
+		{
+			Throw(0, "Could not create a MipMappedTextureArray with span %u and %u elements.", span, NumberOfElements);
+		}
+
+		try
+		{
+			VALIDATEDX11(device.CreateTexture2D(&textureArrayDesc, nullptr, &tb.texture));
+		}
+		catch (IException& ex)
+		{
+			Throw(ex.ErrorCode(), "Could not create a MipMappedTextureArray with span %u and %u elements.", span, NumberOfElements);
+		}
 	}
 
-	void SetDimensions(uint32 span, uint32 numberOfElements)
+	~MipMappedTextureArray()
 	{
-		UNUSED(span);
-		UNUSED(numberOfElements);
+		if (tb.texture) tb.texture->Release();
+	}
+
+	void GenerateMipMappedSubLevels(uint32 index, uint32 mipMapLevel)
+	{
+		if (!activeDC)
+		{
+			Throw(0, "%s: no activeDC", __FUNCTION__);
+		}
+
+		if (index >= numberOfElements)
+		{
+			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, numberOfElements);
+		}
+
+		if (mipMapLevel > numberOfMipLevels)
+		{
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+		}
+
+		AutoRelease<ID3D11ShaderResourceView> pShaderResourceView = nullptr;
+		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+		desc.Format = format;
+		desc.Texture2DArray.ArraySize = 1;
+		desc.Texture2DArray.FirstArraySlice = index;
+		desc.Texture2DArray.MipLevels = (UINT)-1;
+		desc.Texture2DArray.MostDetailedMip = mipMapLevel;
+
+		HRESULT hr = device.CreateShaderResourceView(tb.texture, &desc, &pShaderResourceView);
+		if FAILED(hr)
+		{
+			Throw(hr, "%s failed to create shader view", __FUNCTION__);
+		}
+
+		activeDC->GenerateMips(pShaderResourceView);
+	}
+
+	uint32 TexelSpan() const override
+	{
+		return span;
+	}
+
+	uint32 NumberOfElements() const override
+	{
+		return numberOfElements;
+	}
+
+	uint32 NumberOfMipLevels() const override
+	{
+		return numberOfMipLevels;
+	}
+
+	void WriteSubImage(uint32 index, uint32 mipMapLevel, const RGBAb* pixels, const GuiRect& targetLocation) override
+	{
+		if (!activeDC)
+		{
+			Throw(0, "%s: no active DC", __FUNCTION__);
+		}
+
+		if (index >= numberOfElements)
+		{
+			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, numberOfElements);
+		}
+
+		if (mipMapLevel > numberOfMipLevels)
+		{
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+		}
+
+		if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
+		{
+			Throw(0, "%s: format is not RGBA but image passed was RGBA", __FUNCTION__);
+		}
+
+		UINT subresourceIndex = D3D11CalcSubresource(mipMapLevel, (UINT)index, 1);
+		Vec2i targetSpan = Span(targetLocation);
+		D3D11_BOX box;
+		box.left = targetLocation.left;
+		box.right = targetLocation.right;
+		box.back = 1;
+		box.front = 0;
+		box.top = targetLocation.top;
+		box.bottom = targetLocation.bottom;
+
+		uint32 levelSpan = 1 << mipMapLevel;
+
+		if (box.left > levelSpan || box.right > levelSpan)
+		{
+			Throw(0, "%s: bad box [left=%u, right=%u]. Level span: %u", __FUNCTION__, box.left, box.right, levelSpan);
+		}
+
+		if (box.bottom > levelSpan || box.top > levelSpan)
+		{
+			Throw(0, "%s: bad box [bottom=%u, top=%u]. Level span: %u", __FUNCTION__, box.bottom, box.top, levelSpan);
+		}
+
+		UINT srcDepth = Sq(levelSpan) * sizeof(RGBAb);
+		if (tb.texture) activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, levelSpan * sizeof(RGBAb), srcDepth);
+	}
+
+	void WriteSubImage(uint32 index, uint32 mipMapLevel, const uint8* alphaTexels, const GuiRect& targetLocation) override
+	{
+		if (!activeDC)
+		{
+			Throw(0, "%s: no active DC", __FUNCTION__);
+		}
+
+		if (index >= numberOfElements)
+		{
+			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, mipMapLevel);
+		}
+
+		if (mipMapLevel > numberOfMipLevels)
+		{
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+		}
+
+		if (format != DXGI_FORMAT_R8_UNORM)
+		{
+			Throw(0, "%s: format is not an 8-bit UNORM alpha map but image passed was an 8-bit alpha map", __FUNCTION__);
+		}
+
+		UINT subresourceIndex = D3D11CalcSubresource(mipMapLevel, (UINT)index, 1);
+		Vec2i targetSpan = Span(targetLocation);
+		D3D11_BOX box;
+		box.left = targetLocation.left;
+		box.right = targetLocation.right;
+		box.back = 1;
+		box.front = 0;
+		box.top = targetLocation.top;
+		box.bottom = targetLocation.bottom;
+
+		uint32 levelSpan = 1 << mipMapLevel;
+
+		if (box.left > levelSpan || box.right > levelSpan)
+		{
+			Throw(0, "%s: bad box [left=%u, right=%u]. Level span: %u", __FUNCTION__, box.left, box.right, levelSpan);
+		}
+
+		if (box.bottom > levelSpan || box.top > levelSpan)
+		{
+			Throw(0, "%s: bad box [bottom=%u, top=%u]. Level span: %u", __FUNCTION__, box.bottom, box.top, levelSpan);
+		}
+
+		UINT srcDepth = Sq(levelSpan) * sizeof(RGBAb);
+		if (tb.texture) activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, alphaTexels, levelSpan * sizeof(uint8), srcDepth);
 	}
 
 	void Free() override
@@ -67,17 +295,17 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 	}
 
-	IMipMappedTextureArrayContainerSupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span)
+	Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span)
 	{
-		AutoFree<MipMappedTextureArray> tx = new MipMappedTextureArray();
+		AutoFree<MipMappedTextureArray> tx = nullptr;
 
 		try
 		{
-			tx->SetDimensions(span, numberOfElements);
+			tx = new MipMappedTextureArray(device, EComponentType::UNORM_8BITS, 4, span, numberOfElements);
 		}
-		catch (IException& ex)
+		catch (IException&)
 		{
-			Throw(ex.ErrorCode(), "%s: %s\nError allocating %u elements of span %u x %u", __FUNCTION__, numberOfElements, span, span);
+			throw;
 		}
 		catch (std::exception& stdEx)
 		{

@@ -501,9 +501,9 @@ namespace ANON
 			return isQueued;
 		}
 
-		void AttachToGPU() override
+		bool AttachToGPU() override
 		{
-			container.Engine().AttachToGPU(*this);
+			return container.Engine().AttachToGPU(*this);
 		}
 
 		void ReleaseFromGPU() override

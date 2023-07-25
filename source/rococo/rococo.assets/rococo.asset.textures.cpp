@@ -8,6 +8,7 @@
 #include <rococo.io.h>
 #include <rococo.functional.h>
 #include <list>
+#include <vector>
 #include <rococo.renderer.h>
 #include <rococo.imaging.h>
 #include <rococo.textures.h>
@@ -45,6 +46,7 @@ namespace ANON
 
 		AssetStatus status;
 		AssetRef<IFileAsset> fileAssetRef;
+		uint32 arrayIndex = (uint32) -1;
 		
 		TextureAsset(cstr _pingPath, ITextureAssetFactoryCEO& _ceo, ITextureAssetLifeCeo& _life): ceo(_ceo), life(_life)
 		{
@@ -173,7 +175,9 @@ namespace ANON
 		ITextureManager& engineTextures;
 		stringmap<TextureAssetWithLife*> textures;
 		AutoFree<OS::ICriticalSection> sync;
-		AutoFree<Rococo::Graphics::IMipMappedTextureArrayContainerSupervisor> rgbaArray;
+		AutoFree<Rococo::Graphics::Textures::IMipMappedTextureArraySupervisor> rgbaArray;
+		std::vector<uint32> freeIndices;
+		std::vector<TextureAsset*> mapIndexToAsset;
 
 		TextureAssetManager(ITextureManager& _engineTextures, IFileAssetFactory& _fileManager): engineTextures(_engineTextures), fileManager(_fileManager)
 		{
@@ -242,6 +246,21 @@ namespace ANON
 			}
 
 			textures.erase(i);
+
+			if (wrapper->asset.arrayIndex < mapIndexToAsset.size())
+			{
+				auto* mappedAsset = mapIndexToAsset[wrapper->asset.arrayIndex];
+				if (mappedAsset == &wrapper->asset)
+				{
+					mapIndexToAsset[wrapper->asset.arrayIndex] = nullptr;
+					freeIndices.push_back(wrapper->asset.arrayIndex);
+				}
+				else
+				{
+					// Bad, means we lost sync between array indices and assets
+					OS::TripDebugger();
+				}
+			}
 			delete wrapper;
 		}
 
@@ -298,9 +317,25 @@ namespace ANON
 
 		int32 engineSpanQuality = 1024;
 
-		void AttachToGPU(ITextureControllerSupervisor& controller) override
+		bool AttachToGPU(ITextureAsset& asset) override
 		{
-			UNUSED(controller);
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+			if (ourAsset.arrayIndex == (uint32) -1)
+			{
+				if (freeIndices.size() == 0)
+				{
+					CollectGarbage();
+				}
+
+				if (freeIndices.size() == 0)
+				{
+					Throw(0, "%s: There are no more free slots", __FUNCTION__);
+				}
+
+				ourAsset.arrayIndex = freeIndices.back();
+				freeIndices.pop_back();
+				mapIndexToAsset[ourAsset.arrayIndex] = &ourAsset;
+			}
 		}
 
 		bool DownsampleToEngineQuality(TexelSpec imageSpec, Vec2i span, const uint8* texels, Rococo::Function<void(Vec2i downSampledSpan, const uint8* downSampledTexels)> onDownsample) const override
@@ -336,7 +371,27 @@ namespace ANON
 			}
 
 			engineSpanQuality = spanInPixels;
+
+			freeIndices.clear();
+			mapIndexToAsset.clear();
+			rgbaArray = nullptr;
+
+			for (auto i : textures)
+			{
+				i.second->asset.arrayIndex = (uint32)-1;
+			}
+
 			rgbaArray = engineTextures.DefineRGBATextureArray(numberOfElementsInArray, spanInPixels);
+
+			freeIndices.reserve(numberOfElementsInArray);
+
+			for (int i = numberOfElementsInArray - 1; i >= 0; i--)
+			{
+				freeIndices.push_back(i);
+			}
+
+			mapIndexToAsset.resize(numberOfElementsInArray);
+			std::fill(mapIndexToAsset.begin(), mapIndexToAsset.end(), nullptr);
 		}
 
 		int GetEngineTextureQualitySpan() const override

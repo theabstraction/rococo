@@ -72,7 +72,8 @@ namespace Rococo::Assets
 		virtual void DisposeMipMapLevel(uint32 levelIndex) = 0;
 
 		// Creates a texture resource on the GPU to mirror the CPU/sys memory version if needs be
-		virtual void AttachToGPU() = 0;
+		// Returns false if there is inadequate GPU memory allocated for the task
+		virtual bool AttachToGPU() = 0;
 
 		// Removes the GPU representation of the texture.
 		virtual void ReleaseFromGPU() = 0;
@@ -144,7 +145,8 @@ namespace Rococo::Assets
 
 	ROCOCO_INTERFACE ITextureAssetsForEngine
 	{
-		virtual void AttachToGPU(ITextureControllerSupervisor & controller) = 0;
+		// Given the engine has generated the specified asset, it will link the GPU texture to the asset's sys memory texture. If the asset is alien to the engine, the behaviour is undefined
+		virtual bool AttachToGPU(ITextureAsset& asset) = 0;
 		virtual bool DownsampleToEngineQuality(TexelSpec imageSpec, Vec2i span, const uint8* texels, Rococo::Function<void(Vec2i downSampledSpan, const uint8* downSampledTexels)> onDownsample) const = 0;
 		virtual ITextureAssetFactory& Factory() = 0;
 	};
