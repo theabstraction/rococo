@@ -10,9 +10,7 @@ using namespace Rococo::DX11;
 using namespace Rococo::Strings;
 using namespace Rococo::Graphics::Textures;
 
-static int instanceCount = 0;
-
-struct DX11TextureArray : public IDX11TextureArray
+struct DX11BitmapArray : public IDX11BitmapArray
 {
     DX11::TextureBind tb = { 0 };
     DXGI_FORMAT format = DXGI_FORMAT_NV11;
@@ -25,18 +23,13 @@ struct DX11TextureArray : public IDX11TextureArray
     size_t arrayCapacity{ 0 };
     size_t count{ 0 };
 
-    DX11TextureArray(ID3D11Device& _device, ID3D11DeviceContext& dc) :
+    DX11BitmapArray(ID3D11Device& _device, ID3D11DeviceContext& dc) :
         device(_device), activeDC(&dc)
     {
-        instanceCount++;
     }
 
-    ~DX11TextureArray()
+    ~DX11BitmapArray()
     {
-        instanceCount--;
-        char msg[128];
-        SafeFormat(msg, "INSTANCE_COUNT@DX11TextureArray: %d\n", instanceCount);
-        OutputDebugStringA(msg);
         Clear();
     }
 
@@ -241,14 +234,14 @@ struct DX11TextureArray : public IDX11TextureArray
 
 namespace Rococo::DX11
 {
-    IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& dc)
+    IDX11BitmapArray* CreateDX11BitmapArray(ID3D11Device& device, ID3D11DeviceContext& dc)
     {
-        return new DX11TextureArray(device, dc);
+        return new DX11BitmapArray(device, dc);
     }
 
-    IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& dc)
+    IDX11BitmapArray* LoadAlphaBitmapArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& dc)
     {
-        IDX11TextureArray* array = CreateDX11TextureArray(device, dc);
+        IDX11BitmapArray* array = CreateDX11BitmapArray(device, dc);
 
         try
         {
@@ -258,13 +251,13 @@ namespace Rococo::DX11
             struct : IEventCallback<TextureLoadData>
             {
                 int index = 0;
-                IDX11TextureArray* array;
+                IDX11BitmapArray* array;
                 void OnEvent(TextureLoadData& data) override
                 {
                     struct : Rococo::Imaging::IImageLoadEvents
                     {
                         cstr filename = nullptr;
-                        IDX11TextureArray* array = nullptr;
+                        IDX11BitmapArray* array = nullptr;
                         int32 index = 0;
 
                         void OnError(const char* message) override

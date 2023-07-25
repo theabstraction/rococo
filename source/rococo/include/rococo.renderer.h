@@ -34,7 +34,7 @@ namespace Rococo::Graphics
 
 	namespace Textures
 	{
-		struct ITextureArrayBuilder;
+		struct IBitmapArrayBuilder;
 	}
 
 	enum CBUFFER_INDEX
@@ -160,7 +160,7 @@ namespace Rococo::Graphics
 	namespace Textures
 	{
 		struct BitmapLocation;
-		struct ITextureArrayBuilder;
+		struct IBitmapArrayBuilder;
 	}
 
 	struct MaterialArrayMetrics
@@ -222,6 +222,7 @@ namespace Rococo::Graphics
 
 	ROCOCO_INTERFACE IMipMappedTextureArrayContainer
 	{
+
 	};
 
 	ROCOCO_INTERFACE IMipMappedTextureArrayContainerSupervisor: IMipMappedTextureArrayContainer
@@ -266,7 +267,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE IGuiResources
 	{
 		virtual const Fonts::ArrayFontMetrics & GetFontMetrics(ID_FONT idFont) = 0;
-		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual Textures::IBitmapArrayBuilder& SpriteBuilder() = 0;
 		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual IHQFontResource& HQFontsResources() = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;

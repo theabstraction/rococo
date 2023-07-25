@@ -22,7 +22,7 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.samplers.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.shaders.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.swapchain.cpp" />
-    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.texture.array.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.bitmap.array.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.texture.manager.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.textures.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.venues.cpp" />

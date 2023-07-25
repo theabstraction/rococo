@@ -46,15 +46,15 @@ namespace Rococo::Graphics
           cstr msg;
       };
 
-      ROCOCO_INTERFACE ITextureArrayBuilder
+      ROCOCO_INTERFACE IBitmapArrayBuilder
       {
          virtual void AddBitmap(cstr name) = 0;
          virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location) = 0;
-         virtual void BuildTextures(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) = 0;
+         virtual void BuildBitmaps(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) = 0;
          virtual void Clear() = 0;
       };
 
-      ROCOCO_INTERFACE ITextureArrayBuilderSupervisor: public ITextureArrayBuilder
+      ROCOCO_INTERFACE IBitmapArrayBuilderSupervisor: public IBitmapArrayBuilder
       {
          virtual void Free() = 0;
       };
@@ -65,7 +65,7 @@ namespace Rococo::Graphics
       };
 
       // To use a texture array, set the width
-      ROCOCO_INTERFACE ITextureArray
+      ROCOCO_INTERFACE IBitmapArray
       {
          virtual void AddTexture() = 0;
          virtual void ResetWidth(int32 width) = 0;   
@@ -77,7 +77,7 @@ namespace Rococo::Graphics
       };
 
       ROCOCO_MISC_UTILS_API void StandardLoadFromCompressedTextureBuffer(cstr name, IEventCallback<CompressedTextureBuffer>& onLoad, IO::IInstallation& installation, IExpandingBuffer& buffer);
-      ROCOCO_MISC_UTILS_API ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureArray);
+      ROCOCO_MISC_UTILS_API IBitmapArrayBuilderSupervisor* CreateBitmapArrayBuilder(ICompressedResourceLoader& loader, IBitmapArray& textureArray);
    } // Rococo::Graphics::Textures
 } // Rococo::Graphics
 

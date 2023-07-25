@@ -159,7 +159,7 @@ namespace Rococo::DX11
 	{
 		Fonts::IArrayFontSupervisor* arrayFont;
 		Fonts::FontSpec spec;
-		IDX11TextureArray* array;
+		IDX11BitmapArray* array;
 	};
 
 	bool operator == (const Fonts::FontSpec& a, const Fonts::FontSpec& b)
@@ -198,7 +198,7 @@ namespace Rococo::DX11
 			}
 
 			Fonts::IArrayFontSupervisor* new_Font = Fonts::CreateOSFont(glyphs, spec);
-			IDX11TextureArray* new_array2D = CreateDX11TextureArray(device, *activeDC);
+			IDX11BitmapArray* new_array2D = CreateDX11BitmapArray(device, *activeDC);
 			OSFont osFont{ new_Font, spec , new_array2D };
 			osFonts.push_back(osFont); // osFonts manages lifetime, so we can release our references
 

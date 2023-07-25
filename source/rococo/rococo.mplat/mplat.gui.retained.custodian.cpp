@@ -375,9 +375,9 @@ namespace ANON
 		Vec2i span{ 8, 8 };
 		BitmapLocation sprite = BitmapLocation::None();
 
-		ITextureArrayBuilder& sprites;
+		IBitmapArrayBuilder& sprites;
 
-		MPlatImageMemento(cstr hint, cstr imagePath, ITextureArrayBuilder& _sprites): sprites(_sprites)
+		MPlatImageMemento(cstr hint, cstr imagePath, IBitmapArrayBuilder& _sprites): sprites(_sprites)
 		{
 			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
 			{

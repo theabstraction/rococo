@@ -55,7 +55,7 @@ namespace Rococo::DX11
 		virtual IO::IInstallation& Installation() = 0;
 	};
 
-	ROCOCO_INTERFACE IDX11TextureArray : public Textures::ITextureArray
+	ROCOCO_INTERFACE IDX11BitmapArray : public Textures::IBitmapArray
 	{
 		virtual void Free() = 0;
 		virtual void Resize(size_t nElements) = 0;
@@ -66,8 +66,8 @@ namespace Rococo::DX11
 		virtual void SetActiveDC(ID3D11DeviceContext* dc) = 0;
 	};
 
-	IDX11TextureArray* CreateDX11TextureArray(ID3D11Device& device, ID3D11DeviceContext& activeDC);
-	IDX11TextureArray* LoadAlphaTextureArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& activeDC);
+	IDX11BitmapArray* CreateDX11BitmapArray(ID3D11Device& device, ID3D11DeviceContext& activeDC);
+	IDX11BitmapArray* LoadAlphaBitmapArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& activeDC);
 
 	ROCOCO_INTERFACE IDX11FontRenderer
 	{
@@ -91,7 +91,7 @@ namespace Rococo::DX11
 		virtual void Free() = 0;
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
 		virtual ID3D11ShaderResourceView* ShaderResourceView() = 0;
-		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11TextureArray& materialArray) = 0;
+		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11BitmapArray& materialArray) = 0;
 	};
 
 	IDX11CubeTextures* CreateCubeTextureManager(ID3D11Device& device, ID3D11DeviceContext& dc);
@@ -115,7 +115,7 @@ namespace Rococo::DX11
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
-		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual Textures::IBitmapArrayBuilder& SpriteBuilder() = 0;
 		virtual ID3D11ShaderResourceView* SpriteView() = 0;
 
 	};
@@ -153,7 +153,7 @@ namespace Rococo::DX11
 	{
 		virtual void Free() = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
-		virtual IDX11TextureArray& Textures() = 0;
+		virtual IDX11BitmapArray& Textures() = 0;
 	};
 
 	IDX11Materials* CreateMaterials(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);

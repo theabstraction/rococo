@@ -12,11 +12,11 @@ struct DX11Materials : IDX11Materials
 	IO::IInstallation& installation;
 	stringmap<MaterialId> nameToMaterialId;
 	std::vector<HString> idToMaterialName;
-	AutoFree<IDX11TextureArray> materialArray;
+	AutoFree<IDX11BitmapArray> materialArray;
 
 	DX11Materials(IO::IInstallation& _installation, ID3D11Device& device, ID3D11DeviceContext& dc):
 		installation(_installation),
-		materialArray(CreateDX11TextureArray(device, dc))
+		materialArray(CreateDX11BitmapArray(device, dc))
 	{
 
 	}
@@ -134,7 +134,7 @@ struct DX11Materials : IDX11Materials
 		return i != nameToMaterialId.end() ? i->second : -1.0f;
 	}
 
-	IDX11TextureArray& Textures() override
+	IDX11BitmapArray& Textures() override
 	{
 		return *materialArray;
 	}

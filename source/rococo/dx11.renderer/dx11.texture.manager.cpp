@@ -52,7 +52,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 	stringmap<ID_TEXTURE> nameToGenericTextureId;
 	std::vector<TextureItem> orderedTextureList;
 	AutoFree<IDX11CubeTextures> cubeTextures;
-	std::unordered_map<ID_TEXTURE, IDX11TextureArray*, ID_TEXTURE> genericTextureArray;
+	std::unordered_map<ID_TEXTURE, IDX11BitmapArray*, ID_TEXTURE> genericTextureArray;
 	AutoFree<IDX11Materials> materials;
 	TextureBind backBuffer;
 
@@ -162,7 +162,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		auto i = nameToGenericTextureId.find(uniqueName);
 		if (i != nameToGenericTextureId.end()) return i->second;
 
-		IDX11TextureArray* array = DX11::LoadAlphaTextureArray(device, span, nElements, enumerator, dc);
+		IDX11BitmapArray* array = DX11::LoadAlphaBitmapArray(device, span, nElements, enumerator, dc);
 
 		auto id = ID_TEXTURE{ (size_t)array | 0x8000000000000000LL };
 		nameToGenericTextureId[uniqueName] = id;
