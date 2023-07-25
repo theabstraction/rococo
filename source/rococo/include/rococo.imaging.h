@@ -25,7 +25,10 @@ namespace Rococo::Imaging
 	ROCOCO_TIFF_API void SaveAsTiff(const uint8* grayScale, const Vec2i& span, const char* filename);
 	ROCOCO_JPEG_API bool CompressJPeg(const unsigned char* data, const Vec2i& span, cstr filename, int quality);
 
+	// Can throw if the loadEvents handlers can throw
 	ROCOCO_JPEG_API bool DecompressJPeg(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes);
+
+	// Can throws if the loadEvents handlers can throw
 	ROCOCO_TIFF_API bool DecompressTiff(IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes);
 
 	ROCOCO_TIFF_API void SetTiffAllocator(IAllocator* _allocator);

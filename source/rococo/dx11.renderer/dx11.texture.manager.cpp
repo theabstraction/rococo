@@ -5,7 +5,7 @@
 #include "rococo.hashtable.h"
 #include <algorithm>
 #include <string>
-//#include "rococo.imaging.h"
+#include "rococo.imaging.h"
 
 using namespace Rococo::DX11;
 
@@ -74,6 +74,18 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 	ID3D11ShaderResourceView* GetCubeShaderResourceView()
 	{
 		return cubeTextures->ShaderResourceView();
+	}
+
+	bool DecompressJPeg(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const
+	{
+		bool decompressed = Imaging::DecompressJPeg(loadEvents, sourceBuffer, dataLengthBytes);
+		return decompressed;
+	}
+
+	bool DecompressTiff(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const
+	{
+		bool decompressed = Imaging::DecompressTiff(loadEvents, sourceBuffer, dataLengthBytes);
+		return decompressed;
 	}
 
 	int64 Size() const override

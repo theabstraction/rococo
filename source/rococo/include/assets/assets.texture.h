@@ -116,12 +116,12 @@ namespace Rococo::Assets
 
 	using TImageLoadEvent = Rococo::Function<void (TexelSpec spec, Vec2i span, const uint8* texels)>;
 
-
 	ROCOCO_INTERFACE ITextureAssetSupervisor : ITextureAsset
 	{
 		// Sent by the controller's implementation to the texture loader to load an image for the given mip map level. The index is passed to ITextureControllerSupervisor::OnLoadFile
 		virtual void QueueLoadImage(cstr path, int mipMapLevel) = 0;
 		virtual void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) = 0;
+		virtual void SetError(int statusCode, cstr message) = 0;
 	};
 
 	ROCOCO_INTERFACE ITextureControllerSupervisor: ITextureController

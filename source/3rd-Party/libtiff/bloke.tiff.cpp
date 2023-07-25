@@ -476,14 +476,13 @@ namespace Rococo::Imaging
 		char errMessage[1024];
 		errMessage[0] = 0;
 
-		bool isOk = reader.TryRead(errMessage, sizeof(errMessage), loadEvents);
-
-		if (!isOk)
+		if (!reader.TryRead(errMessage, sizeof(errMessage), loadEvents))
 		{
 			loadEvents.OnError(errMessage);
+			return false;
 		}
 
-		return isOk;
+		return true;
 	}
 
 	ROCOCO_TIFF_API void SetTiffAllocator(IAllocator* _allocator)

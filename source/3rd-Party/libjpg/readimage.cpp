@@ -116,8 +116,6 @@ namespace Rococo::Imaging
 			return false;
 		}
 
-		bool isOK = true;
-
 		jpeg_create_decompress(&cinfo);
 		jpeg_inmemory_source(&cinfo, &stream);
 		jpeg_read_header(&cinfo, TRUE);
@@ -125,73 +123,70 @@ namespace Rococo::Imaging
 		if (cinfo.image_height < 1 || cinfo.image_height > 8192)
 		{
 			loadEvents.OnError("Image height was outside range 1...8192 pixels");
-			isOK = false;
+			return false;
 		}
 
 		if (cinfo.image_width < 1 || cinfo.image_width > 8192)
 		{
 			loadEvents.OnError("Image width was outside range 1...8192 pixels");
-			isOK = false;
+			return false;
 		}
 
 		if (cinfo.num_components != 3)
 		{
 			loadEvents.OnError("Image colour components was neither 3 or 4");
-			isOK = false;
+			return false;
 		}
 
 		if (cinfo.out_color_space != JCS_RGB)
 		{
 			loadEvents.OnError("Image colour space was not RGB");
-			isOK = false;
+			return false;
 		}
 
-		if (isOK)
+		jpeg_start_decompress(&cinfo);
+
+		int stride = cinfo.image_width * 4;
+		JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray) ((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.image_width * cinfo.num_components, 1);
+
+		contigBuffer = (uint8*)Allocate(cinfo.image_height * stride);
+
+		while (cinfo.output_scanline < cinfo.output_height)
 		{
-			jpeg_start_decompress(&cinfo);
-
-			int stride = cinfo.image_width * 4;
-			JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray) ((j_common_ptr)&cinfo, JPOOL_IMAGE, cinfo.image_width * cinfo.num_components, 1);
-
-			contigBuffer = (uint8*)Allocate(cinfo.image_height * stride);
-
-			while (isOK && cinfo.output_scanline < cinfo.output_height)
-			{
-				int line = cinfo.output_scanline;
-				jpeg_read_scanlines(&cinfo, buffer, 1);
+			int line = cinfo.output_scanline;
+			jpeg_read_scanlines(&cinfo, buffer, 1);
 
 #pragma pack(push,1)
-				struct RGB
-				{
-					unsigned char r;
-					unsigned char g;
-					unsigned char b;
-				};
+			struct RGB
+			{
+				unsigned char r;
+				unsigned char g;
+				unsigned char b;
+			};
 #pragma pack(pop)
 
-				RGB* inputBuffer = (RGB*)*buffer;
-				RGBAb* outputBuffer = (RGBAb*)(contigBuffer + stride * line);
+			RGB* inputBuffer = (RGB*)*buffer;
+			RGBAb* outputBuffer = (RGBAb*)(contigBuffer + stride * line);
 
-				for (JDIMENSION i = 0; i < cinfo.image_width; ++i)
-				{
-					outputBuffer->red = inputBuffer->r;
-					outputBuffer->green = inputBuffer->g;
-					outputBuffer->blue = inputBuffer->b;
-					outputBuffer->alpha = 255;
+			for (JDIMENSION i = 0; i < cinfo.image_width; ++i)
+			{
+				outputBuffer->red = inputBuffer->r;
+				outputBuffer->green = inputBuffer->g;
+				outputBuffer->blue = inputBuffer->b;
+				outputBuffer->alpha = 255;
 
-					outputBuffer++;
-					inputBuffer++;
-				}
+				outputBuffer++;
+				inputBuffer++;
 			}
-
-			loadEvents.OnRGBAImage(Vec2i{ (int32)cinfo.image_width,(int32)cinfo.image_height }, (const RGBAb*)contigBuffer);
-
-			Delete(contigBuffer);
-
-			jpeg_finish_decompress(&cinfo);
 		}
+
+		loadEvents.OnRGBAImage(Vec2i{ (int32)cinfo.image_width,(int32)cinfo.image_height }, (const RGBAb*)contigBuffer);
+
+		Delete(contigBuffer);
+
+		jpeg_finish_decompress(&cinfo);
 		jpeg_destroy_decompress(&cinfo);
 
-		return isOK;
+		return true;
 	}
 }

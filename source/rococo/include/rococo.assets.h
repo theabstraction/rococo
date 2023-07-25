@@ -63,13 +63,13 @@ namespace Rococo
 			life->AddRef();
 		}
 
-		AssetRef(AssetRef& other) :
+		AssetRef(const AssetRef& other) :
 			asset(other.asset), life(other.life)
 		{
 			life->AddRef();
 		}
 
-		AssetRef(AssetRef&& other) noexcept:
+		AssetRef(const AssetRef&& other) noexcept:
 			asset(other.asset), life(other.life) 
 		{
 			other.asset = nullptr;
@@ -81,7 +81,7 @@ namespace Rococo
 			if (life) life->ReleaseRef();
 		}
 
-		AssetRef& operator = (AssetRef& src)
+		const AssetRef& operator = (const AssetRef& src)
 		{
 			if (src.asset == asset)
 				return src;

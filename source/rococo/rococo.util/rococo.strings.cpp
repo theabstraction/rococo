@@ -828,6 +828,14 @@ namespace Rococo::Strings
 		return Eq(suffix, t);
 	}
 
+	ROCOCO_UTIL_API bool EndsWithI(cstr bigString, cstr suffix)
+	{
+		size_t len = strlen(suffix);
+		size_t lenBig = strlen(bigString);
+		const char* t = bigString + lenBig - len;
+		return _strcmpi(suffix, t) == 0;
+	}
+
 	ROCOCO_UTIL_API bool StartsWith(const wchar_t* bigString, const wchar_t* prefix)
 	{
 		return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;

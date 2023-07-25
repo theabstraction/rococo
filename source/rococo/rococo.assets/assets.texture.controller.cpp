@@ -251,7 +251,22 @@ namespace ANON
 
 		void OnParseFile(TexelSpec spec, Vec2i span, const uint8* texels, int mipMapLevel)
 		{
+			UNUSED(span);
 
+			if (spec.bitPlaneCount == 0)
+			{
+				if (mipMapLevel == LOAD_AND_DEFINE_SPEC)
+				{
+					char msg[256];
+					SafeFormat(msg, "Error parsing image: %s. <%s>", container.Path(), texels);
+					container.SetError(0, msg);
+				}
+
+				// Error, the texels contains the error message
+				char msg[256];
+				SafeFormat(msg, "Error parsing level %d: <%s>", mipMapLevel, texels);
+				container.SetError(0, msg);
+			}
 		}
 
 		void OnLoadFile(const IFileAsset& file, int mipMapLevel) override
@@ -339,7 +354,7 @@ namespace ANON
 
 		void AttachToGPU(uint32 levelIndex) override
 		{
-
+			UNUSED(levelIndex);
 		}
 
 		void ReleaseFromGPU() override

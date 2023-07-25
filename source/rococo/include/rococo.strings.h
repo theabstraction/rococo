@@ -124,6 +124,9 @@ namespace Rococo::Strings
 	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix);
 	ROCOCO_API bool EndsWith(cstr bigString, cstr suffix);
 
+	// Case insensitive check
+	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix);
+
 	ROCOCO_API bool StartsWith(const wchar_t* bigString, const wchar_t* prefix);
 	ROCOCO_API bool EndsWith(const wchar_t* bigString, const wchar_t* suffix);
 

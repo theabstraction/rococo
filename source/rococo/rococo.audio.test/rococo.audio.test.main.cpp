@@ -287,6 +287,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR 
 		{
 			fx3D->ComputeDSP(*emitter);
 			auto& dsp = emitter->Dsp();
+			UNUSED(dsp);
 		}
 
 		Time::ticks end3Dtime = Time::TickCount();

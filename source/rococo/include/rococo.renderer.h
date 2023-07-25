@@ -19,6 +19,11 @@ namespace Rococo
 	{
 		struct IWindow;
 	}
+
+	namespace Imaging
+	{
+		struct IImageLoadEvents;
+	}
 }
 
 namespace Rococo::Graphics
@@ -227,6 +232,12 @@ namespace Rococo::Graphics
 		virtual void ShowTextureVenue(IMathsVisitor& visitor) = 0;
 		virtual int64 Size() const = 0;
 		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
+
+		// Forward on the jpeg decompression function from the lib-jpeg lib
+		virtual bool DecompressJPeg(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
+
+		// Forward on the tiff decompression function from the lib-tiff lib
+		virtual bool DecompressTiff(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
 	};
 
 	ROCOCO_INTERFACE IRendererMetrics

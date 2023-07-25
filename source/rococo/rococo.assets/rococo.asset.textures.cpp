@@ -9,6 +9,7 @@
 #include <rococo.functional.h>
 #include <list>
 #include <rococo.renderer.h>
+#include <rococo.imaging.h>
 
 namespace ANON
 {
@@ -56,7 +57,7 @@ namespace ANON
 			// While the file is loading we cannot allow the invalidation of [this] pointer so we increase the ref count of the asset life by 1
 			life.AddRef();
 
-			auto onLoad = [this, mipMapLevel](const IFileAsset& fileAsset)
+			auto onLoad = [this, mipMapLevel](IFileAsset& fileAsset)
 			{
 				AssetAutoRelease hold(life);
 
@@ -80,6 +81,13 @@ namespace ANON
 				life.ReleaseRef();
 				throw;
 			}
+		}
+
+		void SetError(int statusCode, cstr message) override
+		{
+			status.statusCode = statusCode;
+			status.statusText = message;
+			status.isError = true;
 		}
 
 		ITextureController& Tx() override
@@ -211,12 +219,59 @@ namespace ANON
 
 		void ParseImage(const FileData& data, cstr path, TImageLoadEvent& onParse) override
 		{
+			struct ANON: Imaging::IImageLoadEvents
+			{
+				TImageLoadEvent& onParse;
+
+				ANON(TImageLoadEvent& _onParse) : onParse(_onParse)
+				{
+
+				}
+
+				void OnError(const char* message) override
+				{
+					onParse.Invoke(TexelSpec{ 0,0 }, { 0,0 }, (const uint8*) message);
+				}
+
+				void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+				{
+					TexelSpec rgbaSpec;
+					rgbaSpec.bitPlaneCount = 3;
+					rgbaSpec.bitsPerBitPlane = 8;
+					onParse.Invoke(rgbaSpec, span, (const uint8*) data);
+				}
+
+				void OnAlphaImage(const Vec2i& span, const uint8* data) override
+				{
+					TexelSpec alphaSpec;
+					alphaSpec.bitPlaneCount = 1;
+					alphaSpec.bitsPerBitPlane = 8;
+					onParse.Invoke(alphaSpec, span, data);
+				}
+			} routeImaging(onParse);
+
+			cstr extension = Strings::GetFileExtension(path);
+			if (extension)
+			{
+				if (Strings::EqI(extension, ".jpg") || Strings::EqI(extension, ".jpeg"))
+				{
+					engineTextures.DecompressJPeg(routeImaging, data.data, data.nBytes);
+					return;
+				}
+				else if (Strings::EqI(extension, ".tif") || Strings::EqI(extension, ".tiff"))
+				{
+					engineTextures.DecompressTiff(routeImaging, data.data, data.nBytes);
+					return;
+				}
+			}
 			
+			onParse.Invoke(TexelSpec{ 0,0 }, { 0,0 }, (const uint8*) "expecting .jpg or .tif");
 		}
 
 		void SetEngineTextureArray(int32 spanInPixels, int32 numberOfElementsInArray) override
 		{
-
+			UNUSED(spanInPixels);
+			UNUSED(numberOfElementsInArray);
 		}
 
 		IFileAssetFactory& FileAssets()
