@@ -10,6 +10,7 @@
 #include <list>
 #include <rococo.renderer.h>
 #include <rococo.imaging.h>
+#include <rococo.textures.h>
 
 namespace ANON
 {
@@ -26,12 +27,16 @@ namespace ANON
 		virtual void MarkForDeath(TextureAssetWithLife* asset) noexcept = 0;
 		virtual IFileAssetFactory& FileAssets() = 0;
 		virtual void ParseImage(const FileData& data, cstr path, TImageLoadEvent& onParse) = 0;
+		virtual ITextureAssetsForEngine& Engine() = 0;
 	};
 
 	ROCOCO_INTERFACE ITextureAssetLifeCeo : IAssetLifeSupervisor
 	{
 	};
 
+	// Glues the texture controller to the texture asset factory.
+	// By separating this out from the controller, we relieve the implementor of controller
+	// from worrying about the glue
 	struct TextureAsset : ITextureAssetSupervisor
 	{
 		ITextureAssetLifeCeo& life;
@@ -47,13 +52,23 @@ namespace ANON
 			controller = CreateTextureController(*this);
 		}
 
+		ITextureAssetsForEngine& Engine() override
+		{
+			return ceo.Engine();
+		}
+
 		void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) override
 		{
 			ceo.ParseImage(data, path, onParse);
 		}
 
-		void QueueLoadImage(cstr path, int mipMapLevel) override
+		bool TryQueueLoadImage(cstr path, int mipMapLevel) override
 		{
+			if (fileAssetRef)
+			{
+				// An outstanding load is in progress
+				return false;
+			}
 			// While the file is loading we cannot allow the invalidation of [this] pointer so we increase the ref count of the asset life by 1
 			life.AddRef();
 
@@ -74,6 +89,7 @@ namespace ANON
 			try
 			{
 				fileAssetRef = ceo.FileAssets().CreateFileAsset(path, onLoad);
+				return true;
 			}
 			catch (...)
 			{
@@ -111,6 +127,7 @@ namespace ANON
 		}
 	};
 
+	// Manages the reference counting of the texture asset and wraps the asset
 	class TextureAssetWithLife : public ITextureAssetLifeCeo
 	{
 		long refCount = 0;
@@ -150,12 +167,13 @@ namespace ANON
 		}
 	};
 
-	struct TextureAssetManager : ITextureAssetFactoryCEO
+	struct TextureAssetManager : ITextureAssetFactoryCEO, ITextureAssetsForEngine
 	{
 		IFileAssetFactory& fileManager;
 		ITextureManager& engineTextures;
 		stringmap<TextureAssetWithLife*> textures;
 		AutoFree<OS::ICriticalSection> sync;
+		AutoFree<Rococo::Graphics::IMipMappedTextureArrayContainerSupervisor> rgbaArray;
 
 		TextureAssetManager(ITextureManager& _engineTextures, IFileAssetFactory& _fileManager): engineTextures(_engineTextures), fileManager(_fileManager)
 		{
@@ -168,6 +186,16 @@ namespace ANON
 			{
 				delete i.second;
 			}
+		}
+
+		ITextureAssetsForEngine& Engine()
+		{
+			return *this;
+		}
+
+		ITextureAssetFactory& Factory()
+		{
+			return *this;
 		}
 
 		AssetRef<ITextureAsset> CreateTextureAsset(const char* pingPath, TAsyncOnTextureLoadEvent onLoad = NoTextureCallback) override
@@ -268,10 +296,52 @@ namespace ANON
 			onParse.Invoke(TexelSpec{ 0,0 }, { 0,0 }, (const uint8*) "expecting .jpg or .tif");
 		}
 
-		void SetEngineTextureArray(int32 spanInPixels, int32 numberOfElementsInArray) override
+		int32 engineSpanQuality = 1024;
+
+		void AttachToGPU(ITextureControllerSupervisor& controller) override
 		{
-			UNUSED(spanInPixels);
-			UNUSED(numberOfElementsInArray);
+			UNUSED(controller);
+		}
+
+		bool DownsampleToEngineQuality(TexelSpec imageSpec, Vec2i span, const uint8* texels, Rococo::Function<void(Vec2i downSampledSpan, const uint8* downSampledTexels)> onDownsample) const override
+		{
+			UNUSED(imageSpec);
+			UNUSED(span);
+			UNUSED(texels);
+			UNUSED(onDownsample);
+			return false;
+		}
+
+		void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray) override
+		{
+			if (spanInPixels == 0) spanInPixels = 1024; // default to 1024
+			uint32 maxLevel = 0;
+			uint32 q = spanInPixels;
+			while (q > 1)
+			{
+				q = q >> 1;
+				maxLevel++;
+			}
+
+			uint32 maxLevelSpan = 1 << maxLevel;
+
+			if (maxLevelSpan != spanInPixels)
+			{
+				Throw(0, "%s: The span must be a power of 2", __FUNCTION__);
+			}
+
+			if (maxLevel > ITextureController::MAX_LEVEL_INDEX)
+			{
+				Throw(0, "%s: The maximum span is %llu", __FUNCTION__, ITextureController::MAX_LEVEL_INDEX);
+			}
+
+			engineSpanQuality = spanInPixels;
+			rgbaArray = engineTextures.DefineRGBATextureArray(numberOfElementsInArray, spanInPixels);
+		}
+
+		int GetEngineTextureQualitySpan() const override
+		{
+			return engineSpanQuality;
 		}
 
 		IFileAssetFactory& FileAssets()

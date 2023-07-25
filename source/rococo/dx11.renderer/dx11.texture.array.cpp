@@ -134,7 +134,7 @@ struct DX11TextureArray : public IDX11TextureArray
             box.bottom = targetLocation.bottom;
 
             UINT srcDepth = span.x * span.y * sizeof(RGBAb);
-            activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
+            if (tb.texture) activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, span.x * sizeof(RGBAb), srcDepth);
         }
     }
 
@@ -144,7 +144,6 @@ struct DX11TextureArray : public IDX11TextureArray
         {
             Throw(0, "%s: no active DC", __FUNCTION__);
         }
-
 
         if (width > 0 && tb.texture == nullptr)
         {
@@ -183,7 +182,7 @@ struct DX11TextureArray : public IDX11TextureArray
             box.bottom = span.y;
 
             UINT srcDepth = span.x * span.y * sizeof(uint8);
-            activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, grayScalePixels, span.x * sizeof(uint8), srcDepth);
+            if (tb.texture) activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, grayScalePixels, span.x * sizeof(uint8), srcDepth);
         }
     }
 

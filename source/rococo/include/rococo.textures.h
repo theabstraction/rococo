@@ -64,6 +64,7 @@ namespace Rococo::Graphics
 
       };
 
+      // To use a texture array, set the width
       ROCOCO_INTERFACE ITextureArray
       {
          virtual void AddTexture() = 0;

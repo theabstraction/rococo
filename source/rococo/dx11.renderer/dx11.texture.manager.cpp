@@ -20,6 +20,27 @@ struct TextureItem
 	}
 };
 
+struct MipMappedTextureArray : IMipMappedTextureArrayContainerSupervisor
+{
+	//AutoFree<IDX11TextureArray> txArray;
+
+	MipMappedTextureArray()
+	{
+
+	}
+
+	void SetDimensions(uint32 span, uint32 numberOfElements)
+	{
+		UNUSED(span);
+		UNUSED(numberOfElements);
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+};
+
 struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 {
 	ID3D11Device& device;
@@ -44,6 +65,28 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		materials(CreateMaterials(installation, device, dc))
 	{
 
+	}
+
+	IMipMappedTextureArrayContainerSupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span)
+	{
+		AutoFree<MipMappedTextureArray> tx = new MipMappedTextureArray();
+
+		try
+		{
+			tx->SetDimensions(span, numberOfElements);
+		}
+		catch (IException& ex)
+		{
+			Throw(ex.ErrorCode(), "%s: %s\nError allocating %u elements of span %u x %u", __FUNCTION__, numberOfElements, span, span);
+		}
+		catch (std::exception& stdEx)
+		{
+			Throw(0, "%s: %s\nError allocating %u elements of span %u x %u", __FUNCTION__, stdEx.what(), numberOfElements, span, span);
+		}
+		
+		tx.Release();
+
+		return tx;
 	}
 
 	IDX11Materials& Materials() override

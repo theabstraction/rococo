@@ -32,6 +32,11 @@ namespace ANON
 		{
 			return "uninitialized"_fstring;
 		}
+
+		bool ReadyForLoad() const override
+		{
+			return false;
+		}
 	} s_UninitializedMipMap;
 
 	struct ClearedMipMapLevel : IMipMapLevelDescriptor
@@ -54,6 +59,11 @@ namespace ANON
 		bool CanSave() const override
 		{
 			// Don't allow the API consumer to save blank files
+			return false;
+		}
+
+		bool ReadyForLoad() const override
+		{
 			return false;
 		}
 
@@ -85,6 +95,11 @@ namespace ANON
 			return false;
 		}
 
+		bool ReadyForLoad() const override
+		{
+			return true;
+		}
+
 		fstring ToString() const override
 		{
 			return "loading"_fstring;
@@ -112,6 +127,11 @@ namespace ANON
 
 		// We prohibit redundant saving over data
 		bool CanSave() const override
+		{
+			return false;
+		}
+
+		bool ReadyForLoad() const override
 		{
 			return false;
 		}
@@ -147,6 +167,11 @@ namespace ANON
 			return false;
 		}
 
+		bool ReadyForLoad() const override
+		{
+			return false;
+		}
+
 		fstring ToString() const override
 		{
 			return "GPUed"_fstring;
@@ -178,6 +203,11 @@ namespace ANON
 			return true;
 		}
 
+		bool ReadyForLoad() const override
+		{
+			return false;
+		}
+
 		fstring ToString() const override
 		{
 			return "Mirrored (GPU + Sys-RAM)"_fstring;
@@ -189,6 +219,8 @@ namespace ANON
 		using TByteArray = std::vector<uint8>;
 		ITextureAssetSupervisor& container;
 		std::vector<TByteArray> localLevels;
+
+		// Descriptors are currently stateless, but we could add state later if the algorithms needs be
 		std::vector<IMipMapLevelDescriptor*> descriptors;
 		TexelSpec spec;
 		TTextureControllerEvent onLoad;
@@ -237,9 +269,7 @@ namespace ANON
 			auto& level = localLevels[levelIndex];
 			if (level.empty())
 			{
-				uint32 levelSpan = 1 << localLevels.size();
-				uint32 bytesPerTexel = spec.bitPlaneCount * spec.bitsPerBitPlane >> 3;
-				uint32 numberOfBytes = Sq(levelSpan) * bytesPerTexel;
+				uint32 numberOfBytes = SizeInBytesOf(spec, SpanOf(levelIndex));
 				if (numberOfBytes == 0)
 				{
 					Throw(0, "%s: %s - spec undefined", container.Path(), __FUNCTION__);
@@ -249,24 +279,142 @@ namespace ANON
 			}
 		}
 
-		void OnParseFile(TexelSpec spec, Vec2i span, const uint8* texels, int mipMapLevel)
+		void OnParseFile(TexelSpec imageSpec, Vec2i span, const uint8* texels, int mipMapLevel)
 		{
 			UNUSED(span);
 
-			if (spec.bitPlaneCount == 0)
+			if (imageSpec.bitPlaneCount == 0)
 			{
 				if (mipMapLevel == LOAD_AND_DEFINE_SPEC)
 				{
 					char msg[256];
 					SafeFormat(msg, "Error parsing image: %s. <%s>", container.Path(), texels);
+					container.SetError(0, msg);					
+				}
+				else
+				{
+					// Error, the texels contains the error message
+					char msg[256];
+					SafeFormat(msg, "Error parsing level %d: <%s>", mipMapLevel, texels);
 					container.SetError(0, msg);
 				}
 
+				return;
+			}
+
+			if (spec.bitPlaneCount == 0)
+			{
+				spec = imageSpec;
+			}
+			else if (spec.bitPlaneCount != imageSpec.bitPlaneCount || spec.bitsPerBitPlane != imageSpec.bitsPerBitPlane)
+			{
 				// Error, the texels contains the error message
 				char msg[256];
-				SafeFormat(msg, "Error parsing level %d: <%s>", mipMapLevel, texels);
+				SafeFormat(msg, "Error parsing level %d: <spec %u,%u  != imageSpec %u,%u >", mipMapLevel, spec.bitPlaneCount, spec.bitsPerBitPlane, imageSpec.bitPlaneCount, imageSpec.bitsPerBitPlane);
 				container.SetError(0, msg);
+				return;
 			}
+
+			if (span.x != span.y)
+			{
+				char msg[256];
+				SafeFormat(msg, "Error parsing level %d: <span %d, %d was rectangular, and not square>", mipMapLevel, span.x, span.y);
+				container.SetError(0, msg);
+				return;
+			}
+
+			if (mipMapLevel > 0)
+			{
+				int requiredSpan = SpanOf(mipMapLevel);
+				if (span.x != requiredSpan)
+				{
+					char msg[256];
+					SafeFormat(msg, "Error parsing image: <span %d != mipLevelSpan %d>", span.x, requiredSpan);
+					container.SetError(0, msg);
+					return;
+				}
+
+				auto& d = LevelAt(requiredSpan);
+
+				if (!d.ReadyForLoad())
+				{
+					char msg[256];
+					SafeFormat(msg, "The mip map level %d [%s] was marked as not ready for loading.", mipMapLevel, d.ToString());
+					container.SetError(0, msg);
+					return;
+				}
+
+				uint32 nBytes = SizeInBytesOf(spec, requiredSpan);
+
+				EnsureLocalLevel(mipMapLevel);
+				localLevels[mipMapLevel].resize(nBytes);
+				memcpy(localLevels[mipMapLevel].data(), texels, nBytes);
+				descriptors[mipMapLevel] = &s_LoadedMipMap;
+				return;
+			}
+
+			LoadAndDefineSpec(span, texels);
+		}
+
+		static int SizeInBytesOf(TexelSpec _spec, int span)
+		{
+			uint32 nBytes = Sq(span) * (_spec.bitPlaneCount * _spec.bitsPerBitPlane / 8);
+			return nBytes;
+		}
+
+		static int SpanOf(int mipMapIndex)
+		{
+			return 1 << mipMapIndex;
+		}
+
+		static int LevelOf(int span)
+		{
+			int level = 0;
+			while (span > 0)
+			{
+				span = span >> 1;
+				level++;
+			}
+			return level;
+		}
+
+		// Arguments have been validated except for span.x as a valid mip map level span
+		void LoadAndDefineSpec(Vec2i span, const uint8* texels)
+		{
+			int mipMapLevel = LevelOf(span.x);
+
+			if (mipMapLevel > MAX_LEVEL_INDEX)
+			{
+				char msg[256];
+				SafeFormat(msg, "The image [%s] span of %d exceeds the maximum texture span of %d x %d", span.x, SpanOf(MAX_LEVEL_INDEX), SpanOf(MAX_LEVEL_INDEX));
+				container.SetError(0, msg);
+				return;
+			}
+
+			int maxEngineSpan = container.Engine().Factory().GetEngineTextureQualitySpan();
+			if (mipMapLevel > maxEngineSpan)
+			{
+				// The image has a higher resolution than that of the engine quality, this means we should downsample to generate a lower resolution top level mip map. That is if the engine allows it.
+				auto onDownsample = [this](Vec2i downSampledSpan, const uint8* downSampledTexels)
+				{
+					LoadAndDefineSpec(downSampledSpan, downSampledTexels);
+				};
+
+				if (!container.Engine().DownsampleToEngineQuality(spec, span, texels, onDownsample))
+				{
+					char msg[256];
+					SafeFormat(msg, "The engine refused to downsample [%s] of span %d x %d to engine quality %d x %d", span.x, span.x, maxEngineSpan, maxEngineSpan);
+					container.SetError(0, msg);
+				}
+
+				return;
+			}
+
+			size_t nBytes = SizeInBytesOf(spec, span.x);
+			EnsureLocalLevel(mipMapLevel);
+			localLevels[mipMapLevel].resize(nBytes);
+			memcpy(localLevels[mipMapLevel].data(), texels, nBytes);
+			descriptors[mipMapLevel] = &s_LoadedMipMap;
 		}
 
 		void OnLoadFile(const IFileAsset& file, int mipMapLevel) override
@@ -347,14 +495,15 @@ namespace ANON
 		// Use the path parameter to identify and load the highest level mip map image.
 		// If the texel spec has been set and the image does not match the specification an error is raised in the callback
 		// If the texel spec has not been set it will be set by the pixel spec of the image
-		void LoadTopMipMapLevel(TTextureControllerEvent onLoad) override
+		bool LoadTopMipMapLevel(TTextureControllerEvent onLoad) override
 		{
-			container.QueueLoadImage(container.Path(), LOAD_AND_DEFINE_SPEC);
+			bool isQueued = container.TryQueueLoadImage(container.Path(), LOAD_AND_DEFINE_SPEC);
+			return isQueued;
 		}
 
-		void AttachToGPU(uint32 levelIndex) override
+		void AttachToGPU() override
 		{
-			UNUSED(levelIndex);
+			container.Engine().AttachToGPU(*this);
 		}
 
 		void ReleaseFromGPU() override
