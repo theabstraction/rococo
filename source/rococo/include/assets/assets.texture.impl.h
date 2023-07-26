@@ -1,5 +1,5 @@
 #pragma once
-#include <assets/assets.files.h>
+#include <assets/asset.textures.h>
 
 namespace Rococo::IO
 {

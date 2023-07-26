@@ -503,12 +503,12 @@ namespace ANON
 
 		bool AttachToGPU() override
 		{
-			return container.Engine().AttachToGPU(*this);
+			return container.Engine().AttachToGPU(container);
 		}
 
 		void ReleaseFromGPU() override
 		{
-
+			container.Engine().ReleaseFromGPU(container);
 		}
 
 		// Use the path parameter and the levelIndex to identify the correct mip map level in the file system.

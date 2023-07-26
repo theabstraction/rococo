@@ -15,6 +15,7 @@
 
 namespace ANON
 {
+	enum { INVALID_ARRAY_INDEX = 0xFFFFFFFF };
 	using namespace Rococo;
 	using namespace Rococo::Assets;
 	using namespace Rococo::Graphics;
@@ -46,7 +47,7 @@ namespace ANON
 
 		AssetStatus status;
 		AssetRef<IFileAsset> fileAssetRef;
-		uint32 arrayIndex = (uint32) -1;
+		uint32 arrayIndex = INVALID_ARRAY_INDEX;
 		
 		TextureAsset(cstr _pingPath, ITextureAssetFactoryCEO& _ceo, ITextureAssetLifeCeo& _life): ceo(_ceo), life(_life)
 		{
@@ -320,21 +321,44 @@ namespace ANON
 		bool AttachToGPU(ITextureAsset& asset) override
 		{
 			auto& ourAsset = static_cast<TextureAsset&>(asset);
-			if (ourAsset.arrayIndex == (uint32) -1)
+			if (ourAsset.arrayIndex == INVALID_ARRAY_INDEX)
 			{
-				if (freeIndices.size() == 0)
+				if (freeIndices.empty())
 				{
-					CollectGarbage();
-				}
-
-				if (freeIndices.size() == 0)
-				{
-					Throw(0, "%s: There are no more free slots", __FUNCTION__);
+					return false;
 				}
 
 				ourAsset.arrayIndex = freeIndices.back();
 				freeIndices.pop_back();
 				mapIndexToAsset[ourAsset.arrayIndex] = &ourAsset;
+			}
+
+			return true;
+		}
+
+		void ReleaseFromGPU(ITextureAsset& asset) override
+		{
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+			uint32 i = ourAsset.arrayIndex;
+			if (i != INVALID_ARRAY_INDEX)
+			{
+				if (i < mapIndexToAsset.size())
+				{
+					if (mapIndexToAsset[i] == &ourAsset)
+					{
+						mapIndexToAsset[i] = nullptr;
+						freeIndices.push_back(i);
+					}
+					else
+					{
+						Throw(0, "%s: Algorithimic error.\n i = %u. ourAsset = %s. Array[i] asset = %s", __FUNCTION__, i, ourAsset.Path(), mapIndexToAsset[i] ? mapIndexToAsset[i]->Path() : "<nullptr>");
+					}
+				}
+				else
+				{
+					Throw(0, "%s: Algorithimic error.\n i = %u. ourAsset = %s. i > map size of %llu", __FUNCTION__, i, ourAsset.Path(), mapIndexToAsset.size());
+				}
+				ourAsset.arrayIndex = INVALID_ARRAY_INDEX;
 			}
 		}
 
