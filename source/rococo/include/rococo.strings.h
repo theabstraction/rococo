@@ -121,6 +121,7 @@ namespace Rococo::Strings
 	ROCOCO_API bool Eq(cr_substring a, cstr b);
 	inline bool Eq(cstr a, cr_substring b) { return Eq(b, a); }
 	ROCOCO_API bool EqI(cstr a, cstr b);
+	ROCOCO_API bool EqI(const wchar_t* a, const wchar_t* b);
 	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix);
 	ROCOCO_API bool EndsWith(cstr bigString, cstr suffix);
 

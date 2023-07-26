@@ -1,3 +1,5 @@
+#include <rococo.types.h>
+#define ROCOCO_ASSETS_API ROCOCO_API_EXPORT
 #include <assets/assets.texture.impl.h>
 #include <vector>
 
@@ -520,10 +522,10 @@ namespace ANON
 			uint32 levelSpan = 1;
 			for (size_t i = 0; i < localLevels.size(); i++)
 			{
-				LevelDesc args(*descriptors[i]);
+				MipMapLevelDesc args(*descriptors[i]);
 				args.bytesPerTexel = spec.bitsPerBitPlane * spec.bitPlaneCount >> 3;
 				args.levelspan = levelSpan;
-				args.mipMapLevel = i;
+				args.mipMapLevel = (uint32) i;
 				args.spec = spec;
 				args.texelBuffer = localLevels[i].empty() ? nullptr : localLevels[i].data();
 				enumerator.Invoke(args);

@@ -35,6 +35,18 @@ namespace Rococo::Assets
 		uint32 bitsPerBitPlane = 0;
 	};
 
+	struct MipMapLevelDesc
+	{
+		MipMapLevelDesc(IMipMapLevelDescriptor& _descriptor) : descriptor(_descriptor) {}
+
+		uint32 mipMapLevel;
+		uint32 levelspan;
+		const uint8* texelBuffer;
+		TexelSpec spec;
+		uint32 bytesPerTexel;
+		IMipMapLevelDescriptor& descriptor;
+	};
+
 	// Represents a texture outside of the graphics engine, so will persist even if engine textures are flushed.
 	ROCOCO_INTERFACE ITextureController
 	{
@@ -51,19 +63,7 @@ namespace Rococo::Assets
 			return this->operator[](index);
 		}
 
-		struct LevelDesc
-		{
-			LevelDesc(IMipMapLevelDescriptor& _descriptor) : descriptor(_descriptor) {}
-
-			uint32 mipMapLevel;
-			uint32 levelspan;
-			const uint8* texelBuffer;
-			TexelSpec spec;
-			uint32 bytesPerTexel;
-			IMipMapLevelDescriptor& descriptor;
-		};
-
-		using TMipMapLevelEnumerator = Rococo::Function<void(const LevelDesc& desc)>;
+		using TMipMapLevelEnumerator = Rococo::Function<void(const MipMapLevelDesc& desc)>;
 
 		virtual void EnumerateMipMapLevels(TMipMapLevelEnumerator enumerator) = 0;
 
@@ -164,6 +164,9 @@ namespace Rococo::Assets
 		// Since multiple texture-asset factories can be created an effective strategy for some applications is to use a permanent set of very small textures in place of 
 		// smaller mip map levels. If most texture are viewed at a great distance it may be far more efficient than loading everything at the highest detailed levels all at once
 		virtual int GetEngineTextureSpan() const = 0;
+
+		// Gets the associated file asset factory associated with the texture factory
+		virtual IFileAssetFactory& FileAssets() = 0;
 	};
 
 	ROCOCO_INTERFACE ITextureAssetFactorySupervisor : ITextureAssetFactory

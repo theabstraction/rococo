@@ -502,7 +502,7 @@ namespace ANON
 			return engineSpan;
 		}
 
-		IFileAssetFactory& FileAssets()
+		IFileAssetFactory& FileAssets() override
 		{
 			return fileManager;
 		}

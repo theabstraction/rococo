@@ -815,6 +815,11 @@ namespace Rococo::Strings
 		return _stricmp(a, b) == 0;
 	}
 
+	ROCOCO_UTIL_API bool EqI(const wchar_t* a, const wchar_t* b)
+	{
+		return _wcsicmp(a, b) == 0;
+	}
+
 	ROCOCO_UTIL_API bool StartsWith(cstr bigString, cstr prefix)
 	{
 		return strncmp(bigString, prefix, strlen(prefix)) == 0;

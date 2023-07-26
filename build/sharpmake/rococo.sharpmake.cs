@@ -715,6 +715,23 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoDX11RendererProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoTextureToolProject : RococoProject
+    {
+        public RococoTextureToolProject() : base("rococo.texture.tool")
+        {
+            SourceFiles.Add(@"..\include\rococo.assets.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoAssetsProject>(target);
         }
     }
 
@@ -723,6 +740,7 @@ namespace Rococo
     {
         public RococoAssetsTestProject() : base("rococo.assets.test")
         {
+            SourceFiles.Add(@"..\include\rococo.assets.h");
         }
 
         [Configure()]
@@ -730,6 +748,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoAssetsProject>(target);
+            conf.AddPublicDependency<RococoDX11RendererProject>(target);
         }
     }
 
@@ -1555,6 +1574,7 @@ namespace Rococo
             conf.AddProject<SexyIncludeProject>(target);
             conf.AddProject<RococoAssetsProject>(target);
             conf.AddProject<RococoAssetsTestProject>(target);
+            conf.AddProject<RococoTextureToolProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -1766,7 +1786,7 @@ namespace Rococo
             arguments.Generate<OggProject>();
             arguments.Generate<VorbisProject>();
             arguments.Generate<VorbisFileProject>();
-            
+            arguments.Generate<RococoTextureToolProject>();
         }
     }
 }
