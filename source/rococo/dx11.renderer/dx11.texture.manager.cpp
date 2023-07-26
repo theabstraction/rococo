@@ -33,6 +33,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	uint32 numberOfMipLevels;
 	uint32 numberOfElements;
 	TextureBind tb;
+	TextureBind tbExportTexture;
 	DXGI_FORMAT format;
 	TextureArrayCreationFlags flags;
 
@@ -109,7 +110,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		textureArrayDesc.SampleDesc.Quality = 0;
 		textureArrayDesc.Usage = D3D11_USAGE_DEFAULT;
 		textureArrayDesc.BindFlags = bindFlags;
-		textureArrayDesc.CPUAccessFlags = flags.allowCPUread ? D3D11_CPU_ACCESS_READ : 0;
+		textureArrayDesc.CPUAccessFlags = 0;
 		textureArrayDesc.MiscFlags = flags.allowMipMapGeneration ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
 		
 		try
@@ -120,11 +121,43 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		{
 			Throw(ex.ErrorCode(), "DirectX11 refuses to allow a MipMappedTextureArray(%s) to have span %u x %u and have %u elements.", formatName, span, span, numberOfElements);
 		}
+
+		if (!flags.allowCPUread)
+		{
+			return;
+		}
+
+		// To export textures that are mip mapped we need to first mip map the texture then copy the resource to a texture with CPU read enabled.
+		// We cannot directly export the mip mapped texture, because it is shader bound, which prohibits CPU reads.
+
+		D3D11_TEXTURE2D_DESC textureForExport;
+		textureForExport.Width = span;
+		textureForExport.Height = span;
+		textureForExport.MipLevels = 0;
+		textureForExport.ArraySize = 1;
+		textureForExport.Format = format;
+		textureForExport.SampleDesc.Count = 1;
+		textureForExport.SampleDesc.Quality = 0;
+		textureForExport.Usage = D3D11_USAGE_STAGING;
+		textureForExport.BindFlags = 0;
+		textureForExport.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		textureForExport.MiscFlags = 0;
+
+		try
+		{
+			VALIDATEDX11(device.CreateTexture2D(&textureForExport, nullptr, &tbExportTexture.texture));
+		}
+		catch (IException& ex)
+		{
+			tb.texture->Release();
+			Throw(ex.ErrorCode(), "DirectX11 refuses to allow the mip-map export texture (%s) to have span %u x %u", formatName, span, span);
+		}
 	}
 
 	~MipMappedTextureArray()
 	{
 		if (tb.texture) tb.texture->Release();
+		if (tbExportTexture.texture) tbExportTexture.texture->Release();
 	}
 
 	void GenerateMipMappedSubLevels(uint32 index, uint32 mipMapLevel) override
@@ -211,15 +244,21 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		UINT srcDepth = levelSpan * linePitch;
 
 		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
-		
-		UINT subresourceIndex = D3D11CalcSubresource(mipSlice, index, numberOfMipLevels);
 
+		UINT exportSubresourceIndex = D3D11CalcSubresource(mipSlice, 0, numberOfMipLevels);
+		UINT arraySubresourceIndex = D3D11CalcSubresource(mipSlice, index, numberOfMipLevels);
+
+		// To read the array we first copy to the export texture that has CPU read enabled.
+		// We cannot read the array directly to CPU, because CPU read is prohibited with shader bound textures.
+
+		activeDC->CopySubresourceRegion(tbExportTexture.texture, exportSubresourceIndex, 0, 0, 0, tb.texture, arraySubresourceIndex, nullptr);
+	
 		bool blockingCall = true;
 
 		if (!tb.texture) return false;
 
 		D3D11_MAPPED_SUBRESOURCE m = { 0 };
-		HRESULT hr = activeDC->Map(tb.texture, subresourceIndex, D3D11_MAP_READ, blockingCall ? 0 : D3D11_MAP_FLAG_DO_NOT_WAIT, &m);
+		HRESULT hr = activeDC->Map(tbExportTexture.texture, exportSubresourceIndex, D3D11_MAP_READ, blockingCall ? 0 : D3D11_MAP_FLAG_DO_NOT_WAIT, &m);
 		if FAILED(hr)
 		{
 			Throw(hr, "%s: Mapping from GPU to CPU failed", __FUNCTION__);
@@ -232,7 +271,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			memcpy(mipMapLevelDataDestination, readPtr, srcDepth);
 		}
 
-		activeDC->Unmap(tb.texture, subresourceIndex);
+		activeDC->Unmap(tbExportTexture.texture, exportSubresourceIndex);
 		return true;
 	}	
 

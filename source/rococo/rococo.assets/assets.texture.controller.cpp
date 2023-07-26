@@ -547,9 +547,7 @@ namespace ANON
 
 		void FetchAllMipMapLevels() override
 		{
-			int32 maxSpan = engine.Factory().GetEngineTextureSpan();
-			int32 mipMapLevel = LevelOf(maxSpan);
-			for (int32 i = 0; i < mipMapLevel; i++)
+			for (int32 i = 0; i < localLevels.size(); i++)
 			{
 				FetchMipMapLevel(i);
 			}
