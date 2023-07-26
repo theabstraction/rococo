@@ -52,12 +52,7 @@ namespace ANON
 		TextureAsset(cstr _pingPath, ITextureAssetFactoryCEO& _ceo, ITextureAssetLifeCeo& _life, TexelSpec _spec): ceo(_ceo), life(_life)
 		{
 			status.pingPath = to_fstring(_pingPath);
-			controller = CreateTextureController(*this, _spec);
-		}
-
-		ITextureAssetsForEngine& Engine() override
-		{
-			return ceo.Engine();
+			controller = CreateTextureController(*this, _ceo.Engine(), _spec);
 		}
 
 		void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) override
@@ -363,7 +358,7 @@ namespace ANON
 				return false;
 			}
 
-			rgbaArray->ReadSubImage(i, levelIndex, sizeof(RGBAb), mipMapLevelDataDestination);
+			return rgbaArray->ReadSubImage(i, levelIndex, sizeof(RGBAb), mipMapLevelDataDestination);
 		}
 
 		bool PushMipMapLevel(uint32 levelIndex, ITextureAsset& asset, const uint8* mipMapLevelData) override

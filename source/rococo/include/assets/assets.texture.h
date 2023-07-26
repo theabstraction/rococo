@@ -51,6 +51,22 @@ namespace Rococo::Assets
 			return this->operator[](index);
 		}
 
+		struct LevelDesc
+		{
+			LevelDesc(IMipMapLevelDescriptor& _descriptor) : descriptor(_descriptor) {}
+
+			uint32 mipMapLevel;
+			uint32 levelspan;
+			const uint8* texelBuffer;
+			TexelSpec spec;
+			uint32 bytesPerTexel;
+			IMipMapLevelDescriptor& descriptor;
+		};
+
+		using TMipMapLevelEnumerator = Rococo::Function<void(const LevelDesc& desc)>;
+
+		virtual void EnumerateMipMapLevels(TMipMapLevelEnumerator enumerator) = 0;
+
 		// Use the path parameter to identify and load the highest level mip map image.
 		// Returns false if there is an outstanding file load for the texture
 		virtual bool LoadTopMipMapLevel(TTextureControllerEvent onLoad) = 0;

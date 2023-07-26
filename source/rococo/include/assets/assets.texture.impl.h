@@ -16,7 +16,6 @@ namespace Rococo::Assets
 		virtual bool TryQueueLoadImage(cstr path, int mipMapLevel) = 0;
 		virtual void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) = 0;
 		virtual void SetError(int statusCode, cstr message) = 0;
-		virtual ITextureAssetsForEngine& Engine() = 0;
 	};
 
 	ROCOCO_INTERFACE ITextureControllerSupervisor: ITextureController
@@ -25,7 +24,7 @@ namespace Rococo::Assets
 		virtual void OnLoadFile(const IFileAsset& file, int mipMapLevel) = 0;
 	};
 
-	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& asset, TexelSpec spec);
+	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& asset, ITextureAssetsForEngine& Engine, TexelSpec spec);
 
 	using TAsyncOnTextureLoadEvent = Rococo::Function<void(ITextureAsset& asset)>;
 

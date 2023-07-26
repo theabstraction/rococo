@@ -4,6 +4,8 @@
 using namespace Rococo;
 using namespace Rococo::Assets;
 
+using TByteArray = std::vector<uint8>;
+
 namespace ANON
 {
 	struct UninitializedMipMapLevel : IMipMapLevelDescriptor
@@ -216,8 +218,8 @@ namespace ANON
 
 	struct TextureController : ITextureControllerSupervisor
 	{
-		using TByteArray = std::vector<uint8>;
 		ITextureAssetSupervisor& container;
+		ITextureAssetsForEngine& engine;
 		std::vector<TByteArray> localLevels;
 
 		// Descriptors are currently stateless, but we could add state later if the algorithms needs be
@@ -227,7 +229,7 @@ namespace ANON
 
 		enum { LOAD_BEST_SPEC = -1 };
 
-		TextureController(ITextureAssetSupervisor& _container, TexelSpec _spec) : container(_container), spec(_spec)
+		TextureController(ITextureAssetSupervisor& _container, ITextureAssetsForEngine& _engine, TexelSpec _spec) : container(_container), engine(_engine), spec(_spec)
 		{
 			localLevels.reserve(ITextureController::MAX_LEVEL_INDEX);
 		}
@@ -368,7 +370,7 @@ namespace ANON
 				return;
 			}
 
-			int maxEngineSpan = container.Engine().Factory().GetEngineTextureSpan();
+			int maxEngineSpan = engine.Factory().GetEngineTextureSpan();
 			if (mipMapLevel > maxEngineSpan)
 			{
 				// The image has a higher resolution than that of the engine quality, this means we should downsample to generate a lower resolution top level mip map. That is if the engine allows it.
@@ -377,7 +379,7 @@ namespace ANON
 					LoadFromTopLevelImage(downSampledSpan, downSampledTexels);
 				};
 
-				if (!container.Engine().DownsampleToEngineQuality(spec, span, texels, onDownsample))
+				if (!engine.DownsampleToEngineQuality(spec, span, texels, onDownsample))
 				{
 					char msg[256];
 					SafeFormat(msg, "The engine refused to downsample [%s] of span %d x %d to engine quality %d x %d", span.x, span.x, maxEngineSpan, maxEngineSpan);
@@ -480,12 +482,12 @@ namespace ANON
 
 		bool AttachToGPU() override
 		{
-			return container.Engine().AttachToGPU(container);
+			return engine.AttachToGPU(container);
 		}
 
 		void ReleaseFromGPU() override
 		{
-			container.Engine().ReleaseFromGPU(container);
+			engine.ReleaseFromGPU(container);
 		}
 
 		// Use the path parameter and the levelIndex to identify the correct mip map level in the file system.
@@ -510,7 +512,33 @@ namespace ANON
 				Throw(0, "%s: GenerateMipMaps - The mip map level #u is in state '%s' and GPU operations on it cannot be done at this juncture. PushToEngine first.", container.Path());
 			}
 
-			container.Engine().GenerateMipMaps(levelIndex, container);
+			engine.GenerateMipMaps(levelIndex, container);
+		}
+
+		void EnumerateMipMapLevels(TMipMapLevelEnumerator enumerator) override
+		{
+			uint32 levelSpan = 1;
+			for (size_t i = 0; i < localLevels.size(); i++)
+			{
+				LevelDesc args(*descriptors[i]);
+				args.bytesPerTexel = spec.bitsPerBitPlane * spec.bitPlaneCount >> 3;
+				args.levelspan = levelSpan;
+				args.mipMapLevel = i;
+				args.spec = spec;
+				args.texelBuffer = localLevels[i].empty() ? nullptr : localLevels[i].data();
+				enumerator.Invoke(args);
+				levelSpan = levelSpan << 1;
+			}
+		}
+
+		void FetchAllMipMapLevels()
+		{
+			int32 maxSpan = engine.Factory().GetEngineTextureSpan();
+			int32 mipMapLevel = LevelOf(maxSpan);
+			for (int32 i = 0; i < mipMapLevel; i++)
+			{
+				FetchMipMapLevel(i);
+			}
 		}
 
 		// Takes the image from the GPU, if available and moves it to the local cache, overwriting any existing data in the cache
@@ -527,8 +555,7 @@ namespace ANON
 			EnsureLocalLevel(levelIndex);
 			localLevels[levelIndex].resize(nBytes);
 
-			container.Engine().FetchMipMapLevel(levelIndex, container, localLevels[levelIndex].data());
-
+			engine.FetchMipMapLevel(levelIndex, container, localLevels[levelIndex].data());
 		}
 
 		// Mirror onto the GPU
@@ -540,7 +567,7 @@ namespace ANON
 				return false;
 			}
 
-			return container.Engine().PushMipMapLevel(levelIndex, container, localLevels[levelIndex].data());
+			return engine.PushMipMapLevel(levelIndex, container, localLevels[levelIndex].data());
 		}
 
 		// Takes the image from the local cache and saves to the file system. Requires the asset path specify a mip map repository
@@ -570,8 +597,8 @@ namespace ANON
 
 namespace Rococo::Assets
 {
-	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& container, TexelSpec spec)
+	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& container, ITextureAssetsForEngine& engine, TexelSpec spec)
 	{
-		return new ANON::TextureController(container, spec);
+		return new ANON::TextureController(container, engine, spec);
 	}
 }
