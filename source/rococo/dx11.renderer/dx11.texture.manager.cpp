@@ -458,6 +458,16 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		return cubeTextures->ShaderResourceView();
 	}
 
+	void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const override
+	{
+		Imaging::CompressJPeg(data, span, filename, quality);
+	}
+
+	void CompressTiff(const RGBAb* data, Vec2i span, cstr filename) const override
+	{
+		Imaging::CompressTiff(data, span, filename);
+	}
+
 	bool DecompressJPeg(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const
 	{
 		bool decompressed = Imaging::DecompressJPeg(loadEvents, sourceBuffer, dataLengthBytes);

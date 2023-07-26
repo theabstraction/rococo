@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include <rococo.win32.rendering.h>
+#include <rococo.renderer.h>
 
 namespace Rococo::Assets
 {
@@ -44,9 +45,9 @@ void OnError(cstr path, cstr message, int errorCode)
 
 void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& installation, cstr pingPath)
 {
-	auto onRun = [pingPath, &installation](ITextureAssetFactory& textures, IGraphicsWindow& window)
+	auto onRun = [pingPath, &installation](TextureBundle& bundle)
 	{
-		textures.FileAssets().SetErrorHandler(OnError);
+		bundle.textures.FileAssets().SetErrorHandler(OnError);
 
 		cstr consoleTitle = "Rococo  Texture Tool - Console";
 
@@ -54,7 +55,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 
 		HWND hConsole = nullptr;
 		
-		textures.SetEngineTextureArray(8192, 1, true, true);
+		bundle.textures.SetEngineTextureArray(8192, 1, true, true);
 
 		WideFilePath wPath;
 		installation.ConvertPingPathToSysPath(pingPath, wPath);
@@ -66,7 +67,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 			{
 				auto ext = GetFileExtension(item.fullPath);
 
-				if (!item.isDirectory && (EqI(ext, L".tiff") || EqI(ext, L".tif") || EqI(ext, L".jpg") || EqI(ext, L".jpeg")))
+				if (!item.isDirectory && wcsstr(item.fullPath, L".mipmaps") == nullptr && (EqI(ext, L".tiff") || EqI(ext, L".tif") || EqI(ext, L".jpg") || EqI(ext, L".jpeg")))
 				{
 					WideFilePath wFullPath;
 					Format(wFullPath, L"%ws", item.fullPath);
@@ -88,7 +89,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 		int statusCode = 0;
 		char errMessage[1024] = { 0 };
 
-		while (isRunning && IsWindowVisible(window.Window()))
+		while (isRunning && IsWindowVisible(bundle.window.Window()))
 		{
 			UINT sleepMilliseconds = onFile.paths.empty() ? 1000 : 10;
 
@@ -103,7 +104,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 				}
 			}
 
-			textures.FileAssets().DeliverToThisThreadThisTick();
+			bundle.textures.FileAssets().DeliverToThisThreadThisTick();
 
 			if (*errMessage)
 			{
@@ -119,9 +120,9 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 
 				printf("%d: Creating bitmap for %s\n", count++, itemPingPath.buf);
 
-				auto texture = textures.Create32bitColourTextureAsset(itemPingPath);
+				auto texture = bundle.textures.Create32bitColourTextureAsset(itemPingPath);
 
-				auto onLoad = [&statusCode, &errMessage, &wItemPath, &itemPingPath](ITextureController& tx, uint32 mipMapLevel)
+				auto onLoad = [&statusCode, &errMessage, &wItemPath, &itemPingPath, &bundle](ITextureController& tx, uint32 mipMapLevel)
 				{
 					if (mipMapLevel == (uint32)-1)
 					{
@@ -159,12 +160,33 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 					StringCat(dirPath.buf, ".mipmaps", U8FilePath::CAPACITY);
 					printf("Compiling %s -> %s\n", imagePath, dirPath.buf);
 
-					auto onLevel = [&wItemPath, &tx, &itemPingPath, &dirPath](const MipMapLevelDesc& desc)
+					auto onLevel = [&wItemPath, &tx, &ext, &itemPingPath, &dirPath, &bundle](const MipMapLevelDesc& desc)
 					{
+						cstr newExt = desc.levelspan < 8 ? ".tif" : ext;
+
+						U8FilePath targetFile;
+						Format(targetFile, "%s/square_%u%s", dirPath.buf, desc.levelspan, newExt);
+
+						WideFilePath wTargetFile;
+						bundle.installation.ConvertPingPathToSysPath(targetFile, wTargetFile);
+
+						U8FilePath u8SysPath;
+						Assign(u8SysPath, wTargetFile);
+
 						if (desc.texelBuffer != nullptr)
 						{
-							U8FilePath targetFile;
-							Format(targetFile, "%s/square_%u.img", dirPath.buf, desc.levelspan);
+							Vec2i span { (int)desc.levelspan, (int)desc.levelspan };
+							if (EqI(newExt, ".tif") || EqI(newExt, ".tiff"))
+							{
+								// We want to save the file as a tiff
+								bundle.txManager.CompressTiff((const RGBAb*)desc.texelBuffer, span, u8SysPath);
+							}
+							else
+							{
+								// We want to save the file as a jpeg
+								bundle.txManager.CompressJPeg((const RGBAb*)desc.texelBuffer, span, u8SysPath, 90);
+							}
+
 							// We can save the texels to a directory named according to the original ping path	
 							printf("\t saving %s\n", targetFile.buf);
 						}

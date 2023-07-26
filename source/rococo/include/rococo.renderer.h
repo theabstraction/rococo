@@ -241,6 +241,9 @@ namespace Rococo::Graphics
 		virtual int64 Size() const = 0;
 		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
 
+		virtual void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const = 0;
+		virtual void CompressTiff(const RGBAb* data, Vec2i span, cstr filename) const = 0;
+
 		// Forward on the jpeg decompression function from the lib-jpeg lib
 		virtual bool DecompressJPeg(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
 

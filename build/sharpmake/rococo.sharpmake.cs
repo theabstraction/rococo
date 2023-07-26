@@ -1514,7 +1514,7 @@ namespace Rococo
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
-
+            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
 
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996", "4100", "4324", "4146", "4244", "4267", "4127", "4702", "4611"));

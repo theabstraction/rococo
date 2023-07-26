@@ -47,6 +47,18 @@ namespace Rococo::Assets
 		IMipMapLevelDescriptor& descriptor;
 	};
 
+	struct TextureBundle
+	{
+		IO::IInstallation& installation;
+		IGraphicsLogger& logger;
+		IGraphicsWindowFactory& factory;
+		IGraphicsWindow& window;
+		ITextureManager& txManager;
+		IAssetManager& assets;
+		IFileAssetFactory& files;
+		ITextureAssetFactory& textures;
+	};
+
 	// Represents a texture outside of the graphics engine, so will persist even if engine textures are flushed.
 	ROCOCO_INTERFACE ITextureController
 	{

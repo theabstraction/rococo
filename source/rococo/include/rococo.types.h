@@ -512,6 +512,13 @@ namespace Rococo
 		virtual void operator()(T& t) = 0;
 	};
 
+	struct RGBb
+	{
+		uint8 red;
+		uint8 green;
+		uint8 blue;
+	};
+
 	struct RGBAb
 	{
 		uint8 red = 0;

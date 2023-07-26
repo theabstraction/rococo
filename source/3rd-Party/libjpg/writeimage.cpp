@@ -11,6 +11,7 @@ extern "C"
 
 #include <rococo.types.h>
 #include <rococo.imaging.h>
+#include <vector>
 
 namespace
 {
@@ -57,7 +58,9 @@ namespace
 		FILE* operator * () { return file; }
 	};
 
-	bool CompressJPeg(const unsigned char* data, unsigned int width, unsigned int height, int quality, FILE* output)
+	using namespace Rococo;
+
+	bool CompressJPeg(const RGBb* data, unsigned int width, unsigned int height, int quality, FILE* output)
 	{
 		jpeg_compress_struct cinfo;
 		ErrorManager errorManager;
@@ -101,11 +104,41 @@ namespace
 
 namespace Rococo { namespace Imaging
 {
-	ROCOCO_JPEG_API bool CompressJPeg(const unsigned char* data, const Vec2i& span, cstr filename, int quality)
+	ROCOCO_JPEG_API void CompressJPeg(const RGBAb* data, const Vec2i& span, cstr filename, int quality)
 	{
 		AutoFileHandle output(filename);
-		if (!*output) return false;
+		if (!*output) Throw(0, "Could not save %s", filename);
 
-		return ::CompressJPeg(data, span.x, span.y, quality, *output);
+		std::vector<RGBb> rgbData;
+		rgbData.resize(span.x * span.y);
+
+		const RGBAb* readPtr = data;
+		const RGBAb* endPtr = data + (span.x * span.y);
+		RGBb* writePtr = rgbData.data();
+
+		while (readPtr < endPtr)
+		{
+			writePtr->red = readPtr->red;
+			writePtr->green = readPtr->green;
+			writePtr->blue = readPtr->blue;
+			writePtr++;
+			readPtr++;
+		}
+
+		if (!::CompressJPeg(rgbData.data(), span.x, span.y, quality, *output))
+		{
+			Throw(0, "Generic JPEG Error saving %s", filename);
+		}
+	}
+
+	ROCOCO_JPEG_API void CompressJPeg(const RGBb* data, const Vec2i& span, cstr filename, int quality)
+	{
+		AutoFileHandle output(filename);
+		if (!*output) Throw(0, "Could not save %s", filename);
+
+		if (!::CompressJPeg(data, span.x, span.y, quality, *output))
+		{
+			Throw(0, "Generic JPEG Error saving %s", filename);
+		}
 	}
 }}

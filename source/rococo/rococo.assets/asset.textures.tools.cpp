@@ -23,7 +23,7 @@ namespace Rococo::Assets
 		ws.Height = 128;
 	}
 
-	ROCOCO_API_EXPORT void RunTextureScript(cstr title, HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(ITextureAssetFactory& textures, IGraphicsWindow& window)> callback)
+	ROCOCO_API_EXPORT void RunTextureScript(cstr title, HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(TextureBundle& bundle)> callback)
 	{
 		AutoFree<IGraphicsLogger> logger = CreateStandardOutputLogger();
 
@@ -43,12 +43,14 @@ namespace Rococo::Assets
 		AutoFree<IFileAssetFactorySupervisor> files = CreateFileAssetFactory(*assetManager, installation);
 		AutoFree<ITextureAssetFactorySupervisor> textures = CreateTextureAssetFactory(engineTextures, *files);
 
-		callback.Invoke(*textures, *graphicsWindow);
+		TextureBundle bundle{ installation, *logger, *windowFactory, *graphicsWindow, engineTextures, *assetManager, *files, *textures };
+
+		callback.Invoke(bundle);
 	}
 
 	// Copy and paste this code into your Win32 app to run a texture script. Ensure you link to the asset libs and #include <assets/assets.texture.h>
 	//namespace Rococo::Assets
 	//{
-	//	ROCOCO_API_IMPORT void RunTextureScript(HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(ITextureAssetFactory& textures, IGraphicsWindow& window)> callback);
+	//	ROCOCO_API_IMPORT void RunTextureScript(HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(TextureBundle& bundle)> callback);
 	//}
 }
