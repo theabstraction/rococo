@@ -17,8 +17,9 @@ namespace ANON
 			return true;
 		}
 
-		bool CanGPUOperateOnMipMaps() const override
+		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
+			UNUSED(asset);
 			return false;
 		}
 
@@ -50,8 +51,9 @@ namespace ANON
 			return false;
 		}
 
-		bool CanGPUOperateOnMipMaps() const override
+		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
+			UNUSED(asset);
 			return false;
 		}
 
@@ -84,8 +86,9 @@ namespace ANON
 			return false;
 		}
 
-		bool CanGPUOperateOnMipMaps() const override
+		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
+			UNUSED(asset);
 			return false;
 		}
 
@@ -117,9 +120,9 @@ namespace ANON
 			return true;
 		}
 
-		bool CanGPUOperateOnMipMaps() const override
+		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
-			return false;
+			return asset.Index() != (uint32) -1;
 		}
 
 		// We prohibit superfluous loading, but...
@@ -153,9 +156,9 @@ namespace ANON
 			return false;
 		}
 
-		bool CanGPUOperateOnMipMaps() const override
+		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
-			return true;
+			return asset.Index() != (uint32)-1;
 		}
 
 		// We prohibit superfluous loading, but...
@@ -189,9 +192,9 @@ namespace ANON
 			return true;
 		}
 
-		bool CanGPUOperateOnMipMaps() const override
+		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
-			return true;
+			return asset.Index() != (uint32)-1;
 		}
 
 		// We prohibit superfluous loading, but...
@@ -293,6 +296,7 @@ namespace ANON
 				char msg[256];
 				SafeFormat(msg, "Error parsing level %d: <spec %u,%u  != imageSpec %u,%u >", mipMapLevel, spec.bitPlaneCount, spec.bitsPerBitPlane, imageSpec.bitPlaneCount, imageSpec.bitsPerBitPlane);
 				container.SetError(0, msg);
+				onLoad.Invoke(*this, -1);
 				return;
 			}
 
@@ -301,6 +305,7 @@ namespace ANON
 				char msg[256];
 				SafeFormat(msg, "Error parsing level %d: <span %d, %d was rectangular, and not square>", mipMapLevel, span.x, span.y);
 				container.SetError(0, msg);
+				onLoad.Invoke(*this, -1);
 				return;
 			}
 
@@ -312,6 +317,7 @@ namespace ANON
 					char msg[256];
 					SafeFormat(msg, "Error parsing image: <span %d != mipLevelSpan %d>", span.x, requiredSpan);
 					container.SetError(0, msg);
+					onLoad.Invoke(*this, -1);
 					return;
 				}
 
@@ -322,6 +328,7 @@ namespace ANON
 					char msg[256];
 					SafeFormat(msg, "The mip map level %d [%s] was marked as not ready for loading.", mipMapLevel, d.ToString());
 					container.SetError(0, msg);
+					onLoad.Invoke(*this, -1);
 					return;
 				}
 
@@ -331,6 +338,7 @@ namespace ANON
 				localLevels[mipMapLevel].resize(nBytes);
 				memcpy(localLevels[mipMapLevel].data(), texels, nBytes);
 				descriptors[mipMapLevel] = &s_LoadedMipMap;
+				onLoad.Invoke(*this, mipMapLevel);
 				return;
 			}
 
@@ -351,7 +359,7 @@ namespace ANON
 		static int LevelOf(int span)
 		{
 			int level = 0;
-			while (span > 0)
+			while (span > 1)
 			{
 				span = span >> 1;
 				level++;
@@ -369,6 +377,7 @@ namespace ANON
 				char msg[256];
 				SafeFormat(msg, "The image [%s] span of %d exceeds the maximum texture span of %d x %d", span.x, SpanOf(MAX_LEVEL_INDEX), SpanOf(MAX_LEVEL_INDEX));
 				container.SetError(0, msg);
+				onLoad.Invoke(*this, -1);
 				return;
 			}
 
@@ -386,6 +395,7 @@ namespace ANON
 					char msg[256];
 					SafeFormat(msg, "The engine refused to downsample [%s] of span %d x %d to engine quality %d x %d", span.x, span.x, maxEngineSpan, maxEngineSpan);
 					container.SetError(0, msg);
+					onLoad.Invoke(*this, -1);
 				}
 
 				return;
@@ -396,6 +406,7 @@ namespace ANON
 			localLevels[mipMapLevel].resize(nBytes);
 			memcpy(localLevels[mipMapLevel].data(), texels, nBytes);
 			descriptors[mipMapLevel] = &s_LoadedMipMap;
+			onLoad.Invoke(*this, mipMapLevel);
 		}
 
 		void OnLoadFile(const IFileAsset& file, int mipMapLevel) override
@@ -478,6 +489,7 @@ namespace ANON
 		// If the texel spec has not been set it will be set by the pixel spec of the image
 		bool LoadTopMipMapLevel(TTextureControllerEvent onLoad) override
 		{
+			this->onLoad = onLoad;
 			bool isQueued = container.TryQueueLoadImage(container.Path(), LOAD_BEST_SPEC);
 			return isQueued;
 		}
@@ -497,6 +509,8 @@ namespace ANON
 		// If the texel spec has not been set it will be set by the pixel spec of the image
 		void LoadMipMapLevel(uint32 levelIndex, TTextureControllerEvent onLoad) override
 		{
+			this->onLoad = onLoad;
+
 			if (!LevelAt(levelIndex).CanLoad())
 			{
 				Throw(0, "%s: LoadMipMapLevel - The mip map level #u is in state '%s' and a load cannot be done at this juncture.", container.Path());
@@ -509,7 +523,7 @@ namespace ANON
 		void GenerateMipMaps(uint32 levelIndex)
 		{
 			auto& desc = LevelAt(levelIndex);
-			if (!desc.CanGPUOperateOnMipMaps())
+			if (!desc.CanGPUOperateOnMipMaps(container))
 			{
 				Throw(0, "%s: GenerateMipMaps - The mip map level #u is in state '%s' and GPU operations on it cannot be done at this juncture. PushToEngine first.", container.Path());
 			}
@@ -547,7 +561,7 @@ namespace ANON
 		void FetchMipMapLevel(uint32 levelIndex)
 		{
 			auto& desc = LevelAt(levelIndex);
-			if (!desc.CanGPUOperateOnMipMaps())
+			if (!desc.CanGPUOperateOnMipMaps(container))
 			{
 				Throw(0, "%s: FetchMipMapLevel - The mip map level #u is in state '%s' and a load cannot be done at this juncture. PushToGPU first.", container.Path());
 			}
@@ -563,9 +577,12 @@ namespace ANON
 		// Mirror onto the GPU
 		bool PushMipMapLevel(uint32 levelIndex)
 		{
-			auto& desc = LevelAt(levelIndex);
-			if (!desc.CanGPUOperateOnMipMaps())
+			IMipMapLevelDescriptor& desc = LevelAt(levelIndex);
+			if (!desc.CanGPUOperateOnMipMaps(container))
 			{
+				char msg[1024];
+				SafeFormat(msg, "%s.CanGPUOperateOnMipMaps() returned false", (cstr) desc.ToString());
+				container.SetError(0, msg);
 				return false;
 			}
 

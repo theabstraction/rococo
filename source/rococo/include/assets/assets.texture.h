@@ -120,7 +120,7 @@ namespace Rococo::Assets
 		virtual bool CanClear() const = 0;
 		virtual bool CanLoad() const = 0;
 		virtual bool CanSave() const = 0;
-		virtual bool CanGPUOperateOnMipMaps() const = 0;
+		virtual bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const = 0;
 		virtual bool ReadyForLoad() const = 0;
 		virtual fstring ToString() const = 0;
 	};
@@ -142,13 +142,9 @@ namespace Rococo::Assets
 		virtual uint32 Index() const = 0;
 	};
 
-	using TAsyncOnTextureLoadEvent = Rococo::Function<void(ITextureAsset& asset)>;
-
-	ROCOCO_ASSETS_API void NoTextureCallback(ITextureAsset& asset);
-
 	ROCOCO_INTERFACE ITextureAssetFactory
 	{
-		virtual AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* utf8Path, TAsyncOnTextureLoadEvent onLoad = NoTextureCallback) = 0;
+		virtual AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* utf8Path) = 0;
 
 		// Creates an array of square textures of given span and length. If the array exists already it is destroyed and the new array takes its place
 		// This method is generally invoked once per execution instance, but may change, for example - if the user selects different texture qualities. 

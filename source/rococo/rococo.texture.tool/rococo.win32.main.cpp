@@ -1,14 +1,16 @@
 #include <rococo.os.win32.h>
+#include <rococo.window.h>
 #include <assets/assets.texture.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
 #include <rococo.time.h>
 #include <vector>
 #include <algorithm>
+#include <rococo.win32.rendering.h>
 
 namespace Rococo::Assets
 {
-	ROCOCO_API_IMPORT void RunTextureScript(HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(ITextureAssetFactory& textures)> callback);
+	ROCOCO_API_IMPORT void RunTextureScript(cstr title, HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(ITextureAssetFactory& textures, IGraphicsWindow& window)> callback);
 }
 
 using namespace Rococo;
@@ -34,10 +36,24 @@ bool ConsumeMessagesAndSleepEx(int sleepMilliseconds)
 	return true;
 }
 
+void OnError(cstr path, cstr message, int errorCode)
+{
+	printf("%s: %s code %d\n", path, message, errorCode);
+	Throw(errorCode, "%s: %s", path, message);
+}
+
 void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& installation, cstr pingPath)
 {
-	auto onRun = [pingPath, &installation](ITextureAssetFactory& textures)
+	auto onRun = [pingPath, &installation](ITextureAssetFactory& textures, IGraphicsWindow& window)
 	{
+		textures.FileAssets().SetErrorHandler(OnError);
+
+		cstr consoleTitle = "Rococo  Texture Tool - Console";
+
+		SetConsoleTitleA(consoleTitle);
+
+		HWND hConsole = nullptr;
+		
 		textures.SetEngineTextureArray(8192, 1);
 
 		WideFilePath wPath;
@@ -63,39 +79,76 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 
 		std::sort(onFile.paths.begin(), onFile.paths.end());
 
+		printf("Identified %llu images under %ws\n", onFile.paths.size(), wPath.buf);
+
 		bool isRunning = true;
 
-		while (isRunning)
+		int count = 1;
+
+		int statusCode = 0;
+		char errMessage[1024] = { 0 };
+
+		while (isRunning && IsWindowVisible(window.Window()))
 		{
 			UINT sleepMilliseconds = onFile.paths.empty() ? 1000 : 10;
 
 			isRunning = ConsumeMessagesAndSleepEx(sleepMilliseconds);
 
+			if (!hConsole)
+			{
+				hConsole = FindWindow(NULL, consoleTitle);
+				if (hConsole)
+				{
+					BringWindowToTop(hConsole);
+				}
+			}
+
 			textures.FileAssets().DeliverToThisThreadThisTick();
+
+			if (*errMessage)
+			{
+				printf("%s\n", errMessage);
+				*errMessage = 0;
+			}
 
 			if (!onFile.paths.empty())
 			{
-				WideFilePath wPath = onFile.paths.back();
+				WideFilePath wItemPath = onFile.paths.back();
 				U8FilePath itemPingPath;
-				installation.ConvertSysPathToPingPath(wPath, itemPingPath);
+				installation.ConvertSysPathToPingPath(wItemPath, itemPingPath);
 
-				auto texture = textures.Create32bitColourTextureAsset(itemPingPath, NoTextureCallback);
+				printf("%d: Creating bitmap for %s\n", count++, itemPingPath.buf);
 
-				auto onLoad = [&wPath, &itemPingPath](ITextureController& tx, uint32 mipMapLevel)
+				auto texture = textures.Create32bitColourTextureAsset(itemPingPath);
+
+				auto onLoad = [&statusCode, &errMessage, &wItemPath, &itemPingPath](ITextureController& tx, uint32 mipMapLevel)
 				{
+					if (mipMapLevel == (uint32)-1)
+					{
+						char msg[1024];
+						tx.AssetContainer().GetErrorAndStatusLength(statusCode, msg, 1024);
+						SafeFormat(errMessage, "%s: texture load failed: %s", itemPingPath.buf, msg);
+						return;
+					}
+
 					if (!tx.AttachToGPU())
 					{
-						Throw(0, "Failed to attach to the GPU");
+						char msg[1024];
+						tx.AssetContainer().GetErrorAndStatusLength(statusCode, msg, 1024);
+						SafeFormat(errMessage, "%s:failed to attach to the GPU: %s", itemPingPath.buf);
+						return;
 					}
 
 					if (!tx.PushMipMapLevel(mipMapLevel))
 					{
-						Throw(0, "Failed to push the image to the GPU");
+						char msg[1024];
+						tx.AssetContainer().GetErrorAndStatusLength(statusCode, msg, 1024);
+						SafeFormat(errMessage, "%s: failed to push mip level %u to the GPU.\n\t%s", itemPingPath.buf, mipMapLevel, msg);
 					}
 
 					tx.GenerateMipMaps(mipMapLevel);
 
-					auto onLevel = [&wPath, &tx, &itemPingPath](const MipMapLevelDesc& desc)
+					auto onLevel = [&wItemPath, &tx, &itemPingPath](const MipMapLevelDesc& desc)
 					{
 						if (desc.texelBuffer != nullptr)
 						{
@@ -110,6 +163,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 						}
 					};
 
+					printf("%s: bitmap loaded. Enumerating mip levels.", itemPingPath.buf);
 					tx.EnumerateMipMapLevels(onLevel);
 					
 				};
@@ -117,19 +171,41 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 				texture->Tx().LoadTopMipMapLevel(onLoad);
 
 				onFile.paths.pop_back();
+				if (onFile.paths.empty())
+				{
+					puts("All paths are queued for processing\n");
+				}
 			}
 		}
 	};
 
-	Rococo::Assets::RunTextureScript(hInstance, installation, onRun);
+	Rococo::Assets::RunTextureScript("Rococo Texture Tool", hInstance, installation, onRun);
 }
 
 int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR /* lpCmdLine */, int /* nCmdShow */)
 {
-	AutoFree<IOSSupervisor> io = GetIOS();
-	AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *io);
+	try
+	{
+		if (!AllocConsole())
+		{
+			Throw(GetLastError(), "No console!");
+		}
 
-	SaveMipMapTexturesToDirectories(_hInstance, *installation, "!textures/mipMapped");
+		FILE* fDummy;
+		freopen_s(&fDummy, "CONIN$", "r", stdin);
+		freopen_s(&fDummy, "CONOUT$", "w", stderr);
+		freopen_s(&fDummy, "CONOUT$", "w", stdout);
+
+		OS::SetBreakPoints(OS::BreakFlag_All);
+		AutoFree<IOSSupervisor> io = GetIOS();
+		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *io);
+
+		SaveMipMapTexturesToDirectories(_hInstance, *installation, "!textures/mip-mapped");
+	}
+	catch (IException& ex)
+	{
+		Windows::ShowErrorBox(Windows::NoParent(), ex, "rococo.texture.tool");
+	}
 
 	return 0;
 }

@@ -79,6 +79,11 @@ namespace Rococo::Assets
 
 		// Call this periodically in whichever thread is responsible for handling onLoad callbacks
 		virtual void DeliverToThisThreadThisTick() = 0;
+
+		virtual void RaiseError(cstr msg, int statusCode, cstr path) = 0;
+
+		using TErrorHandler = Rococo::Function<void(cstr path, cstr message, int errorCode)>;
+		virtual void SetErrorHandler(TErrorHandler errorHandler) = 0;
 	};
 
 	ROCOCO_INTERFACE IFileAssetFactorySupervisor: IFileAssetFactory

@@ -28,19 +28,24 @@ enum class EComponentType
 struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 {
 	ID3D11Device& device;
-	ID3D11DeviceContext* activeDC = nullptr;
+	ID3D11DeviceContext* activeDC;
 	uint32 span;
 	uint32 numberOfMipLevels;
 	uint32 numberOfElements;
 	TextureBind tb;
 	DXGI_FORMAT format;
 
-	MipMappedTextureArray(ID3D11Device& _device, EComponentType componentType, uint32 numberOfComponents, uint32 _span, uint32 _numberOfElements):
-		device(_device), span(_span), numberOfElements(_numberOfElements), numberOfMipLevels(0), format(DXGI_FORMAT::DXGI_FORMAT_UNKNOWN)
+	MipMappedTextureArray(ID3D11Device& _device, ID3D11DeviceContext& dc, EComponentType componentType, uint32 numberOfComponents, uint32 _span, uint32 _numberOfElements):
+		device(_device), span(_span), numberOfElements(_numberOfElements), numberOfMipLevels(0), format(DXGI_FORMAT::DXGI_FORMAT_UNKNOWN), activeDC(&dc)
 	{
 		if (_span == 0)
 		{
 			Throw(0, "MipMappedTextureArray: Zero span");
+		}
+
+		if (_numberOfElements > D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION)
+		{
+			Throw(0, "%s: DirectX11 has a limit of %u elements per array. %u were requested", __FUNCTION__, D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION, numberOfElements);
 		}
 
 		uint32 q = span;
@@ -61,6 +66,8 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			Throw(0, "MipMappedTextureArray: Unknown component type");
 		}
 
+		cstr formatName = "unknown";
+
 		switch(numberOfComponents)
 		{
 		case 0:
@@ -68,6 +75,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			break;
 		case 1:
 			format = DXGI_FORMAT_R8_UNORM;
+			formatName = "R8";
 			break;
 		case 2:
 			Throw(0, "MipMappedTextureArray: two components specified, but not yet implemented for the Rococo DirectX11 renderer");
@@ -77,6 +85,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			break;
 		case 4:
 			format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			formatName = "RGBAb";
 			break;
 		default:
 			Throw(0, "MipMappedTextureArray: %u components specified, but DirectX 11 only supports 1 or 4 channels at 8-bits per channel", numberOfComponents);
@@ -95,21 +104,14 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		textureArrayDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		textureArrayDesc.CPUAccessFlags = 0;
 		textureArrayDesc.MiscFlags = 0;
-
 		
-		// First validate the parameters by passing null to the texture ref's ref.
-		if (S_FALSE == device.CreateTexture2D(&textureArrayDesc, nullptr, nullptr))
-		{
-			Throw(0, "Could not create a MipMappedTextureArray with span %u and %u elements.", span, numberOfElements);
-		}
-
 		try
 		{
 			VALIDATEDX11(device.CreateTexture2D(&textureArrayDesc, nullptr, &tb.texture));
 		}
 		catch (IException& ex)
 		{
-			Throw(ex.ErrorCode(), "Could not create a MipMappedTextureArray with span %u and %u elements.", span, numberOfElements);
+			Throw(ex.ErrorCode(), "DirectX11 refuses to allow a MipMappedTextureArray(%s) to have span %u x %u and have %u elements.", formatName, span, span, numberOfElements);
 		}
 	}
 
@@ -138,6 +140,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		AutoRelease<ID3D11ShaderResourceView> pShaderResourceView = nullptr;
 		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 		desc.Format = format;
+		desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.ArraySize = 1;
 		desc.Texture2DArray.FirstArraySlice = index;
 		desc.Texture2DArray.MipLevels = (UINT)-1;
@@ -355,7 +358,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 		try
 		{
-			tx = new MipMappedTextureArray(device, EComponentType::UNORM_8BITS, 4, span, numberOfElements);
+			tx = new MipMappedTextureArray(device, dc, EComponentType::UNORM_8BITS, 4, span, numberOfElements);
 		}
 		catch (IException&)
 		{
@@ -366,9 +369,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 			Throw(0, "%s: %s\nError allocating %u elements of span %u x %u", __FUNCTION__, stdEx.what(), numberOfElements, span, span);
 		}
 		
-		tx.Release();
-
-		return tx;
+		return tx.Release();
 	}
 
 	IDX11Materials& Materials() override

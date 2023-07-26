@@ -66,14 +66,14 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_CONSOLE;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
@@ -113,7 +113,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\debug\rococo.texture.tool.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
@@ -141,7 +141,8 @@
       <AdditionalDependencies>dx11.renderer.lib;rococo.assets.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.texture.tool.map</MapFileName>
     </Link>
@@ -151,7 +152,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_CONSOLE;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_WINDOWS;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -198,7 +199,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\release\rococo.texture.tool.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
@@ -226,7 +227,8 @@
       <AdditionalDependencies>dx11.renderer.lib;rococo.assets.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.texture.tool.map</MapFileName>
     </Link>

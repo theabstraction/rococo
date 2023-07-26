@@ -134,13 +134,12 @@ namespace ANON
 	class TextureAssetWithLife : public ITextureAssetLifeCeo
 	{
 		long refCount = 0;
-		TAsyncOnTextureLoadEvent onLoadEvent;
+
 	public:
 		TextureAsset asset;
 
-		TextureAssetWithLife(ITextureAssetFactoryCEO& ceo, cstr pingPath, TexelSpec _spec, TAsyncOnTextureLoadEvent& _onLoadEvent) : asset(pingPath, ceo, *this, _spec), onLoadEvent(_onLoadEvent)
+		TextureAssetWithLife(ITextureAssetFactoryCEO& ceo, cstr pingPath, TexelSpec _spec) : asset(pingPath, ceo, *this, _spec)
 		{
-
 		}
 
 		uint32 ReferenceCount() const override
@@ -203,7 +202,7 @@ namespace ANON
 			return *this;
 		}
 
-		AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* pingPath, TAsyncOnTextureLoadEvent onLoad = NoTextureCallback) override
+		AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* pingPath) override
 		{
 			if (pingPath == nullptr || *pingPath == 0) Throw(0, "%s: Blank ping path", __FUNCTION__);
 
@@ -222,7 +221,7 @@ namespace ANON
 					TexelSpec spec;
 					spec.bitPlaneCount = 4;
 					spec.bitsPerBitPlane = 8;
-					assetWrapper = new TextureAssetWithLife(*this, mapIterator->first, spec, onLoad);
+					assetWrapper = new TextureAssetWithLife(*this, mapIterator->first, spec);
 					mapIterator->second = assetWrapper;
 				}
 				catch (...)
@@ -236,6 +235,7 @@ namespace ANON
 				assetWrapper = mapIterator->second;
 			}
 
+			assetWrapper->asset.status.isReady = true;
 			return AssetRef<ITextureAsset>(&assetWrapper->asset, static_cast<IAssetLifeSupervisor*>(assetWrapper));
 		}
 
@@ -287,7 +287,7 @@ namespace ANON
 				void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
 				{
 					TexelSpec rgbaSpec;
-					rgbaSpec.bitPlaneCount = 3;
+					rgbaSpec.bitPlaneCount = 4;
 					rgbaSpec.bitsPerBitPlane = 8;
 					onParse.Invoke(rgbaSpec, span, (const uint8*) data);
 				}
@@ -485,6 +485,11 @@ namespace ANON
 			}
 
 			rgbaArray = engineTextures.DefineRGBATextureArray(numberOfElementsInArray, spanInPixels);
+
+			if (!rgbaArray)
+			{
+				Throw(0, "%s -> engineTextures.DefineRGBATextureArray rendering engine returned null", __FUNCTION__);
+			}
 
 			freeIndices.reserve(numberOfElementsInArray);
 

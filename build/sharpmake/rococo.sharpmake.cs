@@ -732,6 +732,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoAssetsProject>(target);
+            conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
         }
     }
 

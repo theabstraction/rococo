@@ -101,7 +101,7 @@ namespace ANON
 
 		}
 
-		void DeliverChristmasPresents() noexcept
+		void DeliverChristmasPresents()
 		{
 			try
 			{
@@ -114,6 +114,7 @@ namespace ANON
 				asset.status.statusText = msg;
 				asset.status.statusCode = ex.ErrorCode();
 				asset.status.isError = true;
+				ceo.RaiseError(msg, asset.status.statusCode, asset.Path());
 			}
 			catch (std::exception& stdEx)
 			{
@@ -122,6 +123,7 @@ namespace ANON
 				asset.status.statusText = msg;
 				asset.status.statusCode = 0;
 				asset.status.isError = true;
+				ceo.RaiseError(msg, asset.status.statusCode, asset.Path());
 			}
 			catch (...)
 			{
@@ -129,7 +131,7 @@ namespace ANON
 				SafeFormat(msg, "onLoadEvent threw an unspecified exception");
 				asset.status.statusText = msg;
 				asset.status.statusCode = 0;
-				asset.status.isError = true;
+				asset.status.isError = true; ceo.RaiseError(msg, asset.status.statusCode, asset.Path());
 			}
 		}
 
@@ -198,6 +200,7 @@ namespace ANON
 		AutoFree<OS::ICriticalSection> sync;
 		std::list<FastStringKey> unloadedItems;
 		std::list<FileAssetWithLife*> newlyLoadedItems;
+		TErrorHandler errorHandler;
 
 		FileAssetFactory(IAssetManager& _manager, IO::IInstallation& _installation) :
 			manager(_manager), installation(_installation)
@@ -309,6 +312,16 @@ namespace ANON
 					santa->DeliverChristmasPresents();
 				}
 			}
+		}
+
+		void RaiseError(cstr msg, int statusCode, cstr path)
+		{
+			errorHandler.Invoke(path, msg, statusCode);
+		}
+
+		void SetErrorHandler(TErrorHandler errorHandler)
+		{
+			this->errorHandler = errorHandler;
 		}
 
 		uint32 RunThread(OS::IThreadControl& control) override
