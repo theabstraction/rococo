@@ -1,13 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.assets\assets.texture.controller.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.files.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.manager.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.memory.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.assets\rococo.asset.textures.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.assets\assets.texture.controller.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\assets\asset.impl.textures.h">
+      <Filter>include\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\assets\asset.textures.h">
+      <Filter>include\assets</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\rococo.assets.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -15,6 +21,9 @@
   <ItemGroup>
     <Filter Include="include">
       <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\assets">
+      <UniqueIdentifier>{0976aaea-c5fd-84cb-7db1-510dd20843c1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

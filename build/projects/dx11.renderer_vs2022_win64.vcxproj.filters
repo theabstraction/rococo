@@ -2,6 +2,7 @@
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.app.manager.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.bitmap.array.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.cube.texture.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.debug.draw.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.depth.cpp" />
@@ -22,7 +23,6 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.samplers.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.shaders.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.swapchain.cpp" />
-    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.bitmap.array.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.texture.manager.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.textures.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.venues.cpp" />

@@ -100,7 +100,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		// First validate the parameters by passing null to the texture ref's ref.
 		if (S_FALSE == device.CreateTexture2D(&textureArrayDesc, nullptr, nullptr))
 		{
-			Throw(0, "Could not create a MipMappedTextureArray with span %u and %u elements.", span, NumberOfElements);
+			Throw(0, "Could not create a MipMappedTextureArray with span %u and %u elements.", span, numberOfElements);
 		}
 
 		try
@@ -109,7 +109,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		}
 		catch (IException& ex)
 		{
-			Throw(ex.ErrorCode(), "Could not create a MipMappedTextureArray with span %u and %u elements.", span, NumberOfElements);
+			Throw(ex.ErrorCode(), "Could not create a MipMappedTextureArray with span %u and %u elements.", span, numberOfElements);
 		}
 	}
 
@@ -118,7 +118,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		if (tb.texture) tb.texture->Release();
 	}
 
-	void GenerateMipMappedSubLevels(uint32 index, uint32 mipMapLevel)
+	void GenerateMipMappedSubLevels(uint32 index, uint32 mipMapLevel) override
 	{
 		if (!activeDC)
 		{
@@ -166,6 +166,60 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	{
 		return numberOfMipLevels;
 	}
+
+	bool ReadSubImage(uint32 index, uint32 mipMapLevel, uint32 bytesPerTexel, uint8* mipMapLevelDataDestination) override
+	{
+		if (!activeDC)
+		{
+			Throw(0, "%s: no active DC", __FUNCTION__);
+		}
+
+		if (index >= numberOfElements)
+		{
+			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, numberOfElements);
+		}
+
+		if (mipMapLevel > numberOfMipLevels)
+		{
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+		}
+
+		if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
+		{
+			Throw(0, "%s: format is not RGBA but image passed was RGBA", __FUNCTION__);
+		}
+
+		uint32 levelSpan = 1 << mipMapLevel;
+		UINT linePitch = levelSpan * bytesPerTexel;
+		UINT srcDepth = levelSpan * linePitch;
+
+		UINT subresourceIndex = D3D11CalcSubresource(mipMapLevel, index, 1);
+
+		bool blockingCall = true;
+
+		if (!tb.texture) return false;
+
+		D3D11_MAPPED_SUBRESOURCE m;
+		m.DepthPitch = srcDepth;
+		m.RowPitch = linePitch;
+		m.pData = nullptr;
+		HRESULT hr = activeDC->Map(tb.texture, subresourceIndex, D3D11_MAP_READ, blockingCall ? 0 : D3D11_MAP_FLAG_DO_NOT_WAIT, &m);
+		if FAILED(hr)
+		{
+			Throw(hr, "%s: Mapping from GPU to CPU failed", __FUNCTION__);
+		}
+
+		const void* readPtr = m.pData;
+
+		if (readPtr != nullptr)
+		{
+			memcpy(mipMapLevelDataDestination, readPtr, srcDepth);
+		}
+
+		activeDC->Unmap(tb.texture, subresourceIndex);
+		return true;
+	}	
+
 
 	void WriteSubImage(uint32 index, uint32 mipMapLevel, const RGBAb* pixels, const GuiRect& targetLocation) override
 	{

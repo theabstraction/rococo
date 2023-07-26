@@ -706,6 +706,8 @@ namespace Rococo
         public RococoAssetsProject() : base("rococo.assets")
         {
             SourceFiles.Add(@"..\include\rococo.assets.h");
+            SourceFiles.Add(@"..\include\assets\asset.textures.h");
+            SourceFiles.Add(@"..\include\assets\asset.impl.textures.h");
         }
 
         [Configure()]

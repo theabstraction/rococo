@@ -141,8 +141,7 @@
       <AdditionalDependencies>rococo.fonts.lib;rococo.maths.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\dx11.renderer.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\dx11.renderer.lib</ImportLibrary>
@@ -228,8 +227,7 @@
       <AdditionalDependencies>rococo.fonts.lib;rococo.maths.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\dx11.renderer.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\dx11.renderer.lib</ImportLibrary>
@@ -246,6 +244,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.app.manager.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.bitmap.array.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.cube.texture.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.debug.draw.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.depth.cpp" />
@@ -266,7 +265,6 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.samplers.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.shaders.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.swapchain.cpp" />
-    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.bitmap.array.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.texture.manager.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.textures.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.venues.cpp" />

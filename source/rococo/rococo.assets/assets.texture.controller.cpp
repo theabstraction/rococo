@@ -1,4 +1,4 @@
-#include <assets/assets.texture.h>
+#include <assets/assets.texture.impl.h>
 #include <vector>
 
 using namespace Rococo;
@@ -225,18 +225,18 @@ namespace ANON
 		TexelSpec spec;
 		TTextureControllerEvent onLoad;
 
-		enum { LOAD_AND_DEFINE_SPEC = -1 };
+		enum { LOAD_BEST_SPEC = -1 };
 
-		TextureController(ITextureAssetSupervisor& _container): container(_container)
+		TextureController(ITextureAssetSupervisor& _container, TexelSpec _spec) : container(_container), spec(_spec)
 		{
-			localLevels.reserve(ITextureController::MAX_LEVEL_INDEX);			
+			localLevels.reserve(ITextureController::MAX_LEVEL_INDEX);
 		}
 
 		ITextureAsset& AssetContainer() override
 		{
 			return container;
 		}
-		
+
 		IMipMapLevelDescriptor& operator[](uint32 levelIndex) override
 		{
 			ValidateLevel(levelIndex);
@@ -283,30 +283,7 @@ namespace ANON
 		{
 			UNUSED(span);
 
-			if (imageSpec.bitPlaneCount == 0)
-			{
-				if (mipMapLevel == LOAD_AND_DEFINE_SPEC)
-				{
-					char msg[256];
-					SafeFormat(msg, "Error parsing image: %s. <%s>", container.Path(), texels);
-					container.SetError(0, msg);					
-				}
-				else
-				{
-					// Error, the texels contains the error message
-					char msg[256];
-					SafeFormat(msg, "Error parsing level %d: <%s>", mipMapLevel, texels);
-					container.SetError(0, msg);
-				}
-
-				return;
-			}
-
-			if (spec.bitPlaneCount == 0)
-			{
-				spec = imageSpec;
-			}
-			else if (spec.bitPlaneCount != imageSpec.bitPlaneCount || spec.bitsPerBitPlane != imageSpec.bitsPerBitPlane)
+			if (spec.bitPlaneCount != imageSpec.bitPlaneCount || spec.bitsPerBitPlane != imageSpec.bitsPerBitPlane)
 			{
 				// Error, the texels contains the error message
 				char msg[256];
@@ -353,7 +330,7 @@ namespace ANON
 				return;
 			}
 
-			LoadAndDefineSpec(span, texels);
+			LoadFromTopLevelImage(span, texels);
 		}
 
 		static int SizeInBytesOf(TexelSpec _spec, int span)
@@ -379,7 +356,7 @@ namespace ANON
 		}
 
 		// Arguments have been validated except for span.x as a valid mip map level span
-		void LoadAndDefineSpec(Vec2i span, const uint8* texels)
+		void LoadFromTopLevelImage(Vec2i span, const uint8* texels)
 		{
 			int mipMapLevel = LevelOf(span.x);
 
@@ -391,13 +368,13 @@ namespace ANON
 				return;
 			}
 
-			int maxEngineSpan = container.Engine().Factory().GetEngineTextureQualitySpan();
+			int maxEngineSpan = container.Engine().Factory().GetEngineTextureSpan();
 			if (mipMapLevel > maxEngineSpan)
 			{
 				// The image has a higher resolution than that of the engine quality, this means we should downsample to generate a lower resolution top level mip map. That is if the engine allows it.
 				auto onDownsample = [this](Vec2i downSampledSpan, const uint8* downSampledTexels)
 				{
-					LoadAndDefineSpec(downSampledSpan, downSampledTexels);
+					LoadFromTopLevelImage(downSampledSpan, downSampledTexels);
 				};
 
 				if (!container.Engine().DownsampleToEngineQuality(spec, span, texels, onDownsample))
@@ -424,7 +401,7 @@ namespace ANON
 			{
 				auto data = file.RawData();
 
-				if (mipMapLevel == LOAD_AND_DEFINE_SPEC)
+				if (mipMapLevel == LOAD_BEST_SPEC)
 				{
 					auto onParse = [this, mipMapLevel](TexelSpec spec, Vec2i span, const uint8* texels)->void
 					{
@@ -497,7 +474,7 @@ namespace ANON
 		// If the texel spec has not been set it will be set by the pixel spec of the image
 		bool LoadTopMipMapLevel(TTextureControllerEvent onLoad) override
 		{
-			bool isQueued = container.TryQueueLoadImage(container.Path(), LOAD_AND_DEFINE_SPEC);
+			bool isQueued = container.TryQueueLoadImage(container.Path(), LOAD_BEST_SPEC);
 			return isQueued;
 		}
 
@@ -524,7 +501,7 @@ namespace ANON
 			descriptors[levelIndex] = &s_LoadingMipMap;
 		}
 
-		// Place the image on the GPU and generate all mips maps of smaller size than that specified. 
+		// Place the image on the GPU and generate all mips maps of smaller size than that specified. There is no mechanism, other than sampling the GPU buffers, to determine if the operation succeeded
 		void GenerateMipMaps(uint32 levelIndex)
 		{
 			auto& desc = LevelAt(levelIndex);
@@ -532,6 +509,8 @@ namespace ANON
 			{
 				Throw(0, "%s: GenerateMipMaps - The mip map level #u is in state '%s' and GPU operations on it cannot be done at this juncture. PushToEngine first.", container.Path());
 			}
+
+			container.Engine().GenerateMipMaps(levelIndex, container);
 		}
 
 		// Takes the image from the GPU, if available and moves it to the local cache, overwriting any existing data in the cache
@@ -543,7 +522,25 @@ namespace ANON
 				Throw(0, "%s: FetchMipMapLevel - The mip map level #u is in state '%s' and a load cannot be done at this juncture. PushToGPU first.", container.Path());
 			}
 
+			uint32 nBytes = SizeInBytesOf(spec, SpanOf(levelIndex));
+
 			EnsureLocalLevel(levelIndex);
+			localLevels[levelIndex].resize(nBytes);
+
+			container.Engine().FetchMipMapLevel(levelIndex, container, localLevels[levelIndex].data());
+
+		}
+
+		// Mirror onto the GPU
+		bool PushMipMapLevel(uint32 levelIndex)
+		{
+			auto& desc = LevelAt(levelIndex);
+			if (!desc.CanGPUOperateOnMipMaps())
+			{
+				return false;
+			}
+
+			return container.Engine().PushMipMapLevel(levelIndex, container, localLevels[levelIndex].data());
 		}
 
 		// Takes the image from the local cache and saves to the file system. Requires the asset path specify a mip map repository
@@ -573,8 +570,8 @@ namespace ANON
 
 namespace Rococo::Assets
 {
-	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& container)
+	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& container, TexelSpec spec)
 	{
-		return new ANON::TextureController(container);
+		return new ANON::TextureController(container, spec);
 	}
 }

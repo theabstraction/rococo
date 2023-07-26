@@ -167,6 +167,7 @@
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.trackers.inl" />
     <ClInclude Include="..\..\source\rococo\include\assets\assets.files.h" />
     <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.h" />
+    <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.impl.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.body.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.configuration.h" />

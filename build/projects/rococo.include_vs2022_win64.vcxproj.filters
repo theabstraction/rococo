@@ -22,6 +22,9 @@
     <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.h">
       <Filter>assets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.impl.h">
+      <Filter>assets</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h">
       <Filter>components</Filter>
     </ClInclude>

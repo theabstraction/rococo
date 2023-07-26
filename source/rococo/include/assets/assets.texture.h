@@ -1,6 +1,8 @@
 #pragma once
 #include <assets/assets.files.h>
 
+// This is the public facing API of the asset texture system. 
+
 namespace Rococo::IO
 {
 	struct IInstallation;
@@ -23,7 +25,6 @@ namespace Rococo::Assets
 	struct ITextureController;
 	struct IMipMapLevelDescriptor;
 	struct ITextureAssetFactory;
-	struct ITextureAssetsForEngine;
 
 	using TTextureControllerEvent = Rococo::Function<void(ITextureController& controller, int32 levelIndex)>;
 
@@ -81,6 +82,9 @@ namespace Rococo::Assets
 		// Asks the graphics engine to fetch the mip map level at the specified index into system memory
 		virtual void FetchMipMapLevel(uint32 levelIndex) = 0;
 
+		// Asks the graphics engine to push the mip map level from system memory to the GPU. Returns true only on success.
+		virtual bool PushMipMapLevel(uint32 levelIndex) = 0;
+
 		// Persists the mip map level at the specified index to a subdirectory of the texture path. 
 		// This requires the texture path to be a subdirectory or image archive file
 		virtual void SaveMipMapLevel(uint32 levelIndex) = 0;
@@ -117,60 +121,33 @@ namespace Rococo::Assets
 		virtual void Validate(bool addFilename = true, bool addFunction = true) = 0;
 
 		virtual cstr Path() const = 0;
+
+		// Returns the texture array index into whatever array it is associated with. Evaluates to -1 (0xFFFFFFFF) if no index is associated.
+		virtual uint32 Index() const = 0;
 	};
-
-	using TImageLoadEvent = Rococo::Function<void (TexelSpec spec, Vec2i span, const uint8* texels)>;
-
-	ROCOCO_INTERFACE ITextureAssetSupervisor : ITextureAsset
-	{
-		// Sent by the controller's implementation to the texture loader to load an image for the given mip map level. The index is passed to ITextureControllerSupervisor::OnLoadFile
-		// The method returns false if there is already a pending load
-		virtual bool TryQueueLoadImage(cstr path, int mipMapLevel) = 0;
-		virtual void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) = 0;
-		virtual void SetError(int statusCode, cstr message) = 0;
-		virtual ITextureAssetsForEngine& Engine() = 0;
-	};
-
-	ROCOCO_INTERFACE ITextureControllerSupervisor: ITextureController
-	{
-		virtual void Free() = 0;
-		virtual void OnLoadFile(const IFileAsset& file, int mipMapLevel) = 0;
-	};
-
-	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& asset);
 
 	using TAsyncOnTextureLoadEvent = Rococo::Function<void(ITextureAsset& asset)>;
 
 	ROCOCO_ASSETS_API void NoTextureCallback(ITextureAsset& asset);
 
-	ROCOCO_INTERFACE ITextureAssetsForEngine
-	{
-		// Given the engine has generated the specified asset, it will link the GPU texture to the asset's sys memory texture. If the asset is alien to the engine, the behaviour is undefined
-		virtual bool AttachToGPU(ITextureAsset& asset) = 0;
-
-		// Given the engine has generated the specified asset, it will unlink the GPU texture from the asset's sys memory texture. If the asset is alien to the engine, the behaviour is undefined
-		virtual void ReleaseFromGPU(ITextureAsset& asset) = 0;
-		virtual bool DownsampleToEngineQuality(TexelSpec imageSpec, Vec2i span, const uint8* texels, Rococo::Function<void(Vec2i downSampledSpan, const uint8* downSampledTexels)> onDownsample) const = 0;
-		virtual ITextureAssetFactory& Factory() = 0;
-	};
-
 	ROCOCO_INTERFACE ITextureAssetFactory
 	{
-		virtual AssetRef<ITextureAsset> CreateTextureAsset(const char* utf8Path, TAsyncOnTextureLoadEvent onLoad = NoTextureCallback) = 0;
+		virtual AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* utf8Path, TAsyncOnTextureLoadEvent onLoad = NoTextureCallback) = 0;
 
 		// Creates an array of square textures of given span and length. If the array exists already it is destroyed and the new array takes its place
-		// This method generally invoked once per instance, but may change if the user selects different texture qualities. 
-		// Texture quality is specified in span, so 2048x2048 is clearly higher quality than 1024x1024.
-		// Span must be a power of 2 with a miminum of 256 and maximum of 8192. The maximum number of elements in the array is 1024.
+		// This method is generally invoked once per execution instance, but may change, for example - if the user selects different texture qualities. 
+		// Span must be a power of 2 with a miminum of 1 and maximum of 8192. The maximum number of elements in the array is graphics system dependent.
 		// If the graphics card cannot handle the parameters, or another error occurs the method will throw an exception.
-		// Other API methods may throw an exception if the span is not set before use.
+		// Other methods in the assets API may throw an exception if the span is not set here before use.
 		virtual void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray) = 0;
 
 		// Returns the parameter set in SetEngineTextureArray([spanInPixels], ...)
 		// This defines the engine quality of textures in terms of pixel span. [spanInPixels] will be a power of 2. The array top level textures all have this span
-		// Span can be changed mid-application in the graphic settings.
-		// High quality textures are [2048x2048], mid are [1024x1024], low [512x512], very low [256x256]. The maximum quality is 8192x8192
-		virtual int GetEngineTextureQualitySpan() const = 0;
+		// Span may be changed mid-application in the graphic settings.
+		// The maximum span is 8192x8192. The minimum span is 1x1.
+		// Since multiple texture-asset factories can be created an effective strategy for some applications is to use a permanent set of very small textures in place of 
+		// smaller mip map levels. If most texture are viewed at a great distance it may be far more efficient than loading everything at the highest detailed levels all at once
+		virtual int GetEngineTextureSpan() const = 0;
 	};
 
 	ROCOCO_INTERFACE ITextureAssetFactorySupervisor : ITextureAssetFactory

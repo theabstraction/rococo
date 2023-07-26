@@ -83,8 +83,10 @@ namespace Rococo::Graphics
             virtual uint32 TexelSpan() const = 0;
             virtual uint32 NumberOfElements() const = 0;
             virtual uint32 NumberOfMipLevels() const = 0;
+            virtual bool ReadSubImage(uint32 index, uint32 mipMaplevel, uint32 bytesPerTexel, uint8* mipMapLevelDataDestination) = 0;
             virtual void WriteSubImage(uint32 index, uint32 mipMapLevel, const RGBAb* pixels, const GuiRect& targetLocation) = 0;
             virtual void WriteSubImage(uint32 index, uint32 mipMapLevel, const uint8* alphaTexels, const GuiRect& targetLocation) = 0;
+            virtual void GenerateMipMappedSubLevels(uint32 index, uint32 mipMapLevel) = 0;
         };
 
         ROCOCO_INTERFACE IMipMappedTextureArraySupervisor: IMipMappedTextureArray
