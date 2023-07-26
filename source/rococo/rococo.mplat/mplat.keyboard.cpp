@@ -80,34 +80,34 @@ namespace
 
 	   switch (key.VKey)
 	   {
-	   case IO::VKCode_HOME:
+	   case IO::VirtualKeys::VKCode_HOME:
 		   caretPos = 0;
 		   break;
-	   case IO::VKCode_END:
+	   case IO::VirtualKeys::VKCode_END:
 		   caretPos = StringLength(buffer);
 		   break;
-	   case IO::VKCode_LEFT:
+	   case IO::VirtualKeys::VKCode_LEFT:
 		   caretPos--;
 		   caretPos = max(0, caretPos);
 		   break;
-	   case IO::VKCode_RIGHT:
+	   case IO::VirtualKeys::VKCode_RIGHT:
 		   caretPos++;
 		   caretPos = min(StringLength(buffer), caretPos);
 		   break;
-	   case IO::VKCode_BACKSPACE:
+	   case IO::VirtualKeys::VKCode_BACKSPACE:
 		   BackSpaceAtPos(caretPos, buffer, capacity);
 		   break;
-	   case IO::VKCode_DELETE:
+	   case IO::VirtualKeys::VKCode_DELETE:
 		   DeleteAtPos(caretPos, buffer, capacity);
 		   break;
-	   case IO::VKCode_C:
-		   if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
+	   case IO::VirtualKeys::VKCode_C:
+		   if (Rococo::IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
 		   {
 			   IO::CopyToClipboard(buffer);
 		   }
 		   break;
-	   case IO::VKCode_V:
-		   if (Rococo::IO::IsKeyPressed(IO::VKCode_CTRL))
+	   case IO::VirtualKeys::VKCode_V:
+		   if (Rococo::IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
 		   {
 			   IO::PasteFromClipboard(buffer, capacity);
 			   caretPos = StringLength(buffer);

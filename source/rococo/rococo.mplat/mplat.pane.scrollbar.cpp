@@ -104,7 +104,7 @@ public:
 
 	bool AppendEvent(const KeyboardEvent& k, ScrollEvent& updateStatus)
 	{
-		using namespace Rococo::IO;
+		using namespace Rococo::IO::VirtualKeys;
 
 		if (!k.IsUp())
 		{

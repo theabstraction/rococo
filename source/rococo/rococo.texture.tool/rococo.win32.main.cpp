@@ -227,7 +227,7 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR 
 		freopen_s(&fDummy, "CONOUT$", "w", stderr);
 		freopen_s(&fDummy, "CONOUT$", "w", stdout);
 
-		OS::SetBreakPoints(OS::BreakFlag_All);
+		OS::SetBreakPoints(OS::Flags::BreakFlag_All);
 		AutoFree<IOSSupervisor> io = GetIOS();
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *io);
 

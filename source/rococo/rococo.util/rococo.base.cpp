@@ -128,7 +128,7 @@ namespace Rococo
       }
 
 #ifdef BREAK_ON_THROW
-	   ROCOCO_API void BreakOnThrow(BreakFlag flag)
+	   ROCOCO_API void BreakOnThrow(Flags::BreakFlag flag)
       {
          if ((breakFlags & flag) != 0 && Rococo::OS::IsDebugging())
          {
@@ -187,7 +187,7 @@ namespace Rococo
 
 		ex.errorCode = errorCode;
 
-		OS::BreakOnThrow((OS::BreakFlag)0x7FFFFFFF);
+		OS::BreakOnThrow((OS::Flags::BreakFlag)0x7FFFFFFF);
 
 		struct ANON : public IStackFrameFormatter
 		{
@@ -215,7 +215,7 @@ namespace Rococo
 
 		ex.errorCode = errorCode;
 
-		OS::BreakOnThrow(OS::BreakFlag_IllFormed_SExpression);
+		OS::BreakOnThrow(OS::Flags::BreakFlag_IllFormed_SExpression);
 
 		struct ANON : public IStackFrameFormatter
 		{

@@ -119,33 +119,33 @@ namespace
 			{
 				switch (key.VKey)
 				{
-				case IO::VKCode_ENTER:
+				case IO::VirtualKeys::VKCode_ENTER:
 					platform.graphics.gui.DetachKeyboardSink(this);
 					validator.OnDetached(buffer);
 					return true;
-				case IO::VKCode_BACKSPACE:
+				case IO::VirtualKeys::VKCode_BACKSPACE:
 					if (cursorPos > 0)
 					{
 						DeleteRight(cursorPos - 1);
 						cursorPos--;
 					}
 					return true;
-				case IO::VKCode_DELETE:
+				case IO::VirtualKeys::VKCode_DELETE:
 					DeleteRight(cursorPos);
 					return true;
-				case IO::VKCode_HOME:
+				case IO::VirtualKeys::VKCode_HOME:
 					cursorPos = 0;
 					return true;
-				case IO::VKCode_END:
+				case IO::VirtualKeys::VKCode_END:
 					cursorPos = (int32)strlen(buffer);
 					return true;
-				case IO::VKCode_LEFT:
+				case IO::VirtualKeys::VKCode_LEFT:
 					if (cursorPos > 0)
 					{
 						cursorPos--;
 					}
 					return true;
-				case IO::VKCode_RIGHT:
+				case IO::VirtualKeys::VKCode_RIGHT:
 					if (cursorPos < (int32)strlen(buffer))
 					{
 						cursorPos++;
@@ -546,18 +546,18 @@ namespace
 			{
 				switch (key.VKey)
 				{
-				case IO::VKCode_ENTER:
+				case IO::VirtualKeys::VKCode_ENTER:
 					platform.graphics.gui.DetachKeyboardSink(this);
 					break;
-				case IO::VKCode_HOME:
+				case IO::VirtualKeys::VKCode_HOME:
 					*value = true;
 					break;
-				case IO::VKCode_END:
+				case IO::VirtualKeys::VKCode_END:
 					*value = false;
 					break;
-				case IO::VKCode_LEFT:
-				case IO::VKCode_RIGHT:
-				case IO::VKCode_SPACEBAR:
+				case IO::VirtualKeys::VKCode_LEFT:
+				case IO::VirtualKeys::VKCode_RIGHT:
+				case IO::VirtualKeys::VKCode_SPACEBAR:
 					*value = !*value;
 					break;
 				}
@@ -699,36 +699,36 @@ namespace
 		{
 			switch (key.VKey)
 			{
-			case IO::VKCode_ENTER:
+			case IO::VirtualKeys::VKCode_ENTER:
 				platform.graphics.gui.DetachKeyboardSink(this);
 				break;
-			case IO::VKCode_HOME:
+			case IO::VirtualKeys::VKCode_HOME:
 				if (!orderedByName.empty())
 				{
 					auto i = constantsNameToValue.find(orderedByName[0]);
 					*value = i != constantsNameToValue.end() ? i->second : *value;
 				}
 				break;
-			case IO::VKCode_END:
+			case IO::VirtualKeys::VKCode_END:
 				if (!orderedByName.empty())
 				{
 					auto i = constantsNameToValue.find(*orderedByName.rbegin());
 					*value = i != constantsNameToValue.end() ? i->second : *value;
 				}
 				break;
-			case IO::VKCode_LEFT:
+			case IO::VirtualKeys::VKCode_LEFT:
 				if (!orderedByName.empty())
 				{
 					*value = GetLeftValue(*value);
 				}
 				break;
-			case IO::VKCode_RIGHT:
+			case IO::VirtualKeys::VKCode_RIGHT:
 				if (!orderedByName.empty())
 				{
 					*value = GetRightValue(*value);
 				}
 				return;
-			case IO::VKCode_PGDOWN:
+			case IO::VirtualKeys::VKCode_PGDOWN:
 				{
 					size_t delta = max(1ULL, orderedByName.size() / 10);
 					for (size_t i = 0; i < delta; ++i)
@@ -737,7 +737,7 @@ namespace
 					}
 				}
 				break;
-			case IO::VKCode_PGUP:
+			case IO::VirtualKeys::VKCode_PGUP:
 				{
 					size_t delta = max(1ULL, orderedByName.size() / 10);
 					for (size_t i = 0; i < delta; ++i)
@@ -1129,19 +1129,19 @@ namespace
 			{
 				switch (key.VKey)
 				{
-				case IO::VKCode_ENTER:
+				case IO::VirtualKeys::VKCode_ENTER:
 					return true;
-				case IO::VKCode_HOME:
+				case IO::VirtualKeys::VKCode_HOME:
 					return true;
-				case IO::VKCode_END:
+				case IO::VirtualKeys::VKCode_END:
 					return true;
-				case IO::VKCode_LEFT:
+				case IO::VirtualKeys::VKCode_LEFT:
 					return true;
-				case IO::VKCode_RIGHT:
+				case IO::VirtualKeys::VKCode_RIGHT:
 					return true;
-				case IO::VKCode_PGDOWN:
+				case IO::VirtualKeys::VKCode_PGDOWN:
 					return true;
-				case IO::VKCode_PGUP:
+				case IO::VirtualKeys::VKCode_PGUP:
 					return true;
 				}
 			}

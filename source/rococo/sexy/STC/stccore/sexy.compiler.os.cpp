@@ -39,7 +39,7 @@
 namespace Rococo { namespace Compiler {
 	void Throw(STCException& e)
 	{
-		OS::BreakOnThrow(OS::BreakFlag_STC);
+		OS::BreakOnThrow(OS::Flags::BreakFlag_STC);
 		throw e;
 	}
 }}

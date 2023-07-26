@@ -1149,7 +1149,7 @@ namespace Rococo::Script
 			}
 			else
 			{
-				OS::BreakOnThrow(OS::BreakFlag_SS);
+				OS::BreakOnThrow(OS::Flags::BreakFlag_SS);
 			}
 		}
 	}

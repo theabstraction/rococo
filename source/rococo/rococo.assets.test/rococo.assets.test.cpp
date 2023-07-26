@@ -46,7 +46,7 @@ int main(int argc, char* argv)
 	UNUSED(argc);
 	UNUSED(argv);
 
-	OS::SetBreakPoints(OS::BreakFlag_All);
+	OS::SetBreakPoints(OS::Flags::BreakFlag_All);
 
 	AssetRef<IAsset> asset;
 
