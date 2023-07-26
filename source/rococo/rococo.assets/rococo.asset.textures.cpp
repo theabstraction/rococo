@@ -450,7 +450,7 @@ namespace ANON
 			return false;
 		}
 
-		void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray) override
+		void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray, bool canCpuRead, bool canCpuGenerateMipMaps) override
 		{
 			if (spanInPixels == 0) spanInPixels = 1024; // default to 1024
 			uint32 maxLevel = 0;
@@ -484,7 +484,10 @@ namespace ANON
 				i.second->asset.arrayIndex = (uint32)-1;
 			}
 
-			rgbaArray = engineTextures.DefineRGBATextureArray(numberOfElementsInArray, spanInPixels);
+			Graphics::TextureArrayCreationFlags flags = { 0 };
+			flags.allowCPUread = canCpuRead;
+			flags.allowMipMapGeneration = canCpuGenerateMipMaps;
+			rgbaArray = engineTextures.DefineRGBATextureArray(numberOfElementsInArray, spanInPixels, flags);
 
 			if (!rgbaArray)
 			{

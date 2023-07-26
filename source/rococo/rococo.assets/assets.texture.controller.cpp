@@ -19,8 +19,7 @@ namespace ANON
 
 		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
-			UNUSED(asset);
-			return false;
+			return asset.Index() != (uint32)-1;
 		}
 
 		bool CanLoad() const override
@@ -53,8 +52,7 @@ namespace ANON
 
 		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
 		{
-			UNUSED(asset);
-			return false;
+			return asset.Index() != (uint32)-1;
 		}
 
 		bool CanLoad() const override
@@ -547,7 +545,7 @@ namespace ANON
 			}
 		}
 
-		void FetchAllMipMapLevels()
+		void FetchAllMipMapLevels() override
 		{
 			int32 maxSpan = engine.Factory().GetEngineTextureSpan();
 			int32 mipMapLevel = LevelOf(maxSpan);
@@ -563,7 +561,7 @@ namespace ANON
 			auto& desc = LevelAt(levelIndex);
 			if (!desc.CanGPUOperateOnMipMaps(container))
 			{
-				Throw(0, "%s: FetchMipMapLevel - The mip map level #u is in state '%s' and a load cannot be done at this juncture. PushToGPU first.", container.Path());
+				Throw(0, "%s: FetchMipMapLevel - The mip map level %u is in state '%s' and cannot be overwritten from the GPU.", container.Path(), levelIndex, (cstr) desc.ToString());
 			}
 
 			uint32 nBytes = SizeInBytesOf(spec, SpanOf(levelIndex));

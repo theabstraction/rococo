@@ -54,7 +54,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 
 		HWND hConsole = nullptr;
 		
-		textures.SetEngineTextureArray(8192, 1);
+		textures.SetEngineTextureArray(8192, 1, true, true);
 
 		WideFilePath wPath;
 		installation.ConvertPingPathToSysPath(pingPath, wPath);
@@ -147,6 +147,8 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 					}
 
 					tx.GenerateMipMaps(mipMapLevel);
+
+					tx.FetchAllMipMapLevels();
 
 					auto onLevel = [&wItemPath, &tx, &itemPingPath](const MipMapLevelDesc& desc)
 					{

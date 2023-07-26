@@ -98,6 +98,9 @@ namespace Rococo::Assets
 		// Asks the graphics engine to fetch the mip map level at the specified index into system memory
 		virtual void FetchMipMapLevel(uint32 levelIndex) = 0;
 
+		// Get everything from the GPU and overwrite the CPU side cache
+		virtual void FetchAllMipMapLevels() = 0;
+
 		// Asks the graphics engine to push the mip map level from system memory to the GPU. Returns true only on success.
 		virtual bool PushMipMapLevel(uint32 levelIndex) = 0;
 
@@ -151,7 +154,7 @@ namespace Rococo::Assets
 		// Span must be a power of 2 with a miminum of 1 and maximum of 8192. The maximum number of elements in the array is graphics system dependent.
 		// If the graphics card cannot handle the parameters, or another error occurs the method will throw an exception.
 		// Other methods in the assets API may throw an exception if the span is not set here before use.
-		virtual void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray) = 0;
+		virtual void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray, bool canCpuReadTexture, bool canCpuGenerateMipMaps) = 0;
 
 		// Returns the parameter set in SetEngineTextureArray([spanInPixels], ...)
 		// This defines the engine quality of textures in terms of pixel span. [spanInPixels] will be a power of 2. The array top level textures all have this span

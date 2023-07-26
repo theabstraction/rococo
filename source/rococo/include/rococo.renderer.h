@@ -222,6 +222,12 @@ namespace Rococo::Graphics
 		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	};
 
+	struct TextureArrayCreationFlags
+	{
+		boolean32 allowMipMapGeneration : 1;
+		boolean32 allowCPUread : 1;
+	};
+
 	ROCOCO_INTERFACE ITextureManager
 	{
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
@@ -241,7 +247,7 @@ namespace Rococo::Graphics
 		// Forward on the tiff decompression function from the lib-tiff lib
 		virtual bool DecompressTiff(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
 
-		virtual Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span) = 0;
+		virtual Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span, TextureArrayCreationFlags flags) = 0;
 	};
 
 	ROCOCO_INTERFACE IRendererMetrics

@@ -34,9 +34,10 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	uint32 numberOfElements;
 	TextureBind tb;
 	DXGI_FORMAT format;
+	TextureArrayCreationFlags flags;
 
-	MipMappedTextureArray(ID3D11Device& _device, ID3D11DeviceContext& dc, EComponentType componentType, uint32 numberOfComponents, uint32 _span, uint32 _numberOfElements):
-		device(_device), span(_span), numberOfElements(_numberOfElements), numberOfMipLevels(0), format(DXGI_FORMAT::DXGI_FORMAT_UNKNOWN), activeDC(&dc)
+	MipMappedTextureArray(ID3D11Device& _device, ID3D11DeviceContext& dc, EComponentType componentType, uint32 numberOfComponents, uint32 _span, uint32 _numberOfElements, TextureArrayCreationFlags _flags):
+		device(_device), span(_span), numberOfElements(_numberOfElements), numberOfMipLevels(0), format(DXGI_FORMAT::DXGI_FORMAT_UNKNOWN), activeDC(&dc), flags(_flags)
 	{
 		if (_span == 0)
 		{
@@ -92,6 +93,12 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			break;
 		}
 
+		UINT bindFlags = D3D11_BIND_SHADER_RESOURCE;
+		if (flags.allowMipMapGeneration)
+		{
+			bindFlags |= D3D11_BIND_RENDER_TARGET;
+		}
+
 		D3D11_TEXTURE2D_DESC textureArrayDesc;
 		textureArrayDesc.Width = span;
 		textureArrayDesc.Height = span;
@@ -101,9 +108,9 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		textureArrayDesc.SampleDesc.Count = 1;
 		textureArrayDesc.SampleDesc.Quality = 0;
 		textureArrayDesc.Usage = D3D11_USAGE_DEFAULT;
-		textureArrayDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		textureArrayDesc.CPUAccessFlags = 0;
-		textureArrayDesc.MiscFlags = 0;
+		textureArrayDesc.BindFlags = bindFlags;
+		textureArrayDesc.CPUAccessFlags = flags.allowCPUread ? D3D11_CPU_ACCESS_READ : 0;
+		textureArrayDesc.MiscFlags = flags.allowMipMapGeneration ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
 		
 		try
 		{
@@ -137,6 +144,8 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
 		}
 
+		int mipSlice = numberOfMipLevels - mipMapLevel - 1;
+
 		AutoRelease<ID3D11ShaderResourceView> pShaderResourceView = nullptr;
 		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 		desc.Format = format;
@@ -144,7 +153,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		desc.Texture2DArray.ArraySize = 1;
 		desc.Texture2DArray.FirstArraySlice = index;
 		desc.Texture2DArray.MipLevels = (UINT)-1;
-		desc.Texture2DArray.MostDetailedMip = mipMapLevel;
+		desc.Texture2DArray.MostDetailedMip = mipSlice;
 
 		HRESULT hr = device.CreateShaderResourceView(tb.texture, &desc, &pShaderResourceView);
 		if FAILED(hr)
@@ -172,6 +181,11 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 
 	bool ReadSubImage(uint32 index, uint32 mipMapLevel, uint32 bytesPerTexel, uint8* mipMapLevelDataDestination) override
 	{
+		if (!flags.allowCPUread)
+		{
+			Throw(0, "The texture array was not set to allow CPU read.");
+		}
+
 		if (!activeDC)
 		{
 			Throw(0, "%s: no active DC", __FUNCTION__);
@@ -196,16 +210,15 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		UINT linePitch = levelSpan * bytesPerTexel;
 		UINT srcDepth = levelSpan * linePitch;
 
-		UINT subresourceIndex = D3D11CalcSubresource(mipMapLevel, index, 1);
+		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
+		
+		UINT subresourceIndex = D3D11CalcSubresource(mipSlice, index, numberOfMipLevels);
 
 		bool blockingCall = true;
 
 		if (!tb.texture) return false;
 
-		D3D11_MAPPED_SUBRESOURCE m;
-		m.DepthPitch = srcDepth;
-		m.RowPitch = linePitch;
-		m.pData = nullptr;
+		D3D11_MAPPED_SUBRESOURCE m = { 0 };
 		HRESULT hr = activeDC->Map(tb.texture, subresourceIndex, D3D11_MAP_READ, blockingCall ? 0 : D3D11_MAP_FLAG_DO_NOT_WAIT, &m);
 		if FAILED(hr)
 		{
@@ -246,7 +259,9 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			Throw(0, "%s: format is not RGBA but image passed was RGBA", __FUNCTION__);
 		}
 
-		UINT subresourceIndex = D3D11CalcSubresource(mipMapLevel, (UINT)index, 1);
+		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
+
+		UINT subresourceIndex = D3D11CalcSubresource(mipSlice, (UINT)index, 1);
 		Vec2i targetSpan = Span(targetLocation);
 		D3D11_BOX box;
 		box.left = targetLocation.left;
@@ -294,7 +309,9 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			Throw(0, "%s: format is not an 8-bit UNORM alpha map but image passed was an 8-bit alpha map", __FUNCTION__);
 		}
 
-		UINT subresourceIndex = D3D11CalcSubresource(mipMapLevel, (UINT)index, 1);
+		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
+
+		UINT subresourceIndex = D3D11CalcSubresource(mipSlice, (UINT)index, numberOfMipLevels);
 		Vec2i targetSpan = Span(targetLocation);
 		D3D11_BOX box;
 		box.left = targetLocation.left;
@@ -352,13 +369,13 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 	}
 
-	Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span)
+	Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span, TextureArrayCreationFlags flags)
 	{
 		AutoFree<MipMappedTextureArray> tx = nullptr;
 
 		try
 		{
-			tx = new MipMappedTextureArray(device, dc, EComponentType::UNORM_8BITS, 4, span, numberOfElements);
+			tx = new MipMappedTextureArray(device, dc, EComponentType::UNORM_8BITS, 4, span, numberOfElements, flags);
 		}
 		catch (IException&)
 		{
