@@ -67,6 +67,9 @@ namespace Rococo::IO
 	ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest);
 	ROCOCO_API void PathFromAscii(cstr ascii_string, U32FilePath& path);
 	ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path);
+
+	// Creates a directory at the specified path. If it does not exist and the operation fails an exception is thrown
+	ROCOCO_API void CreateDirectoryFolder(const WideFilePath& path);
 	ROCOCO_API char DirectorySeparatorChar();
 	ROCOCO_API void UseBufferlessStdout();
 

@@ -91,7 +91,7 @@ namespace
 
 		for (unsigned int i = 0; i < height; ++i)
 		{
-			JSAMPROW row = (JSAMPROW)(data + i * width * 3);
+			JSAMPROW row = (JSAMPROW)(data + i * width);
 			jpeg_write_scanlines(&cinfo, &row, 1);
 		}
 

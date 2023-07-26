@@ -163,12 +163,14 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 					WideFilePath wDirPathFile;
 					bundle.installation.ConvertPingPathToSysPath(dirPath, wDirPathFile);
 
+					IO::CreateDirectoryFolder(wDirPathFile);
+
 					auto onLevel = [&wItemPath, &tx, &ext, &itemPingPath, &dirPath, &bundle](const MipMapLevelDesc& desc)
 					{
-						cstr newExt = desc.levelspan < 8 ? ".tif" : ext;
+						cstr newExt = desc.levelspan < 16 ? ".tif" : ext;
 
 						U8FilePath targetFile;
-						Format(targetFile, "%s/square_%u%s", dirPath.buf, desc.levelspan, newExt);
+						Format(targetFile, "%s/%ux%u%s", dirPath.buf, desc.levelspan, desc.levelspan, newExt);
 
 						WideFilePath wTargetFile;
 						bundle.installation.ConvertPingPathToSysPath(targetFile, wTargetFile);

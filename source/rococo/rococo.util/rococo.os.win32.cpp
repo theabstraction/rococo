@@ -72,6 +72,20 @@ namespace Rococo
 			return '\\';
 		}
 
+		ROCOCO_API void CreateDirectoryFolder(const WideFilePath& path)
+		{
+			if (!CreateDirectoryW(path, NULL))
+			{
+				int err = GetLastError();
+				if (err == ERROR_ALREADY_EXISTS)
+				{
+					return;
+				}
+
+				Throw(GetLastError(), "Cannot create directory %ws", path.buf);
+			}
+		}
+
 		ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
 		{
 			struct Win32BinArchive: IBinaryArchive

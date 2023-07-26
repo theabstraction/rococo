@@ -240,8 +240,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		}
 
 		uint32 levelSpan = 1 << mipMapLevel;
-		UINT linePitch = levelSpan * bytesPerTexel;
-		UINT srcDepth = levelSpan * linePitch;
+		UINT lineLength = levelSpan * bytesPerTexel;
 
 		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
 
@@ -264,11 +263,17 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 			Throw(hr, "%s: Mapping from GPU to CPU failed", __FUNCTION__);
 		}
 
-		const void* readPtr = m.pData;
+		const uint8* readPtr = (const uint8*) m.pData;
+		uint8* writePtr = mipMapLevelDataDestination;
 
 		if (readPtr != nullptr)
 		{
-			memcpy(mipMapLevelDataDestination, readPtr, srcDepth);
+			for (uint32 row = 0; row < levelSpan; row++)
+			{
+				memcpy(writePtr, readPtr, lineLength);
+				readPtr += m.RowPitch;
+				writePtr += sizeof(RGBAb) * levelSpan;
+			}
 		}
 
 		activeDC->Unmap(tbExportTexture.texture, exportSubresourceIndex);

@@ -27,118 +27,118 @@ namespace Rococo
 namespace Rococo
 {
 	ROCOCO_API bool IsPointerValid(const void* ptr)
-   {
-      return ptr != nullptr;
-   }
+	{
+		return ptr != nullptr;
+	}
 
-   namespace IO
-   {
-	   ROCOCO_API void ToU8(const U32FilePath& src, U8FilePath& dest)
-	   {
-		   char* q = dest.buf;
-		   const char32_t* p = src;
+	namespace IO
+	{
+		ROCOCO_API void ToU8(const U32FilePath& src, U8FilePath& dest)
+		{
+			char* q = dest.buf;
+			const char32_t* p = src;
 
-		   while (*p != 0)
-		   {
-			   char32_t c = *p;
+			while (*p != 0)
+			{
+				char32_t c = *p;
 
-			   if (c < 32 || c > 127)
-			   {
-				   Throw(0, "Cannot convert Unicode to ascii. Character value out of range at position #llu", p - src.buf);
-			   }
-			   else
-			   {
-				   *q = (char)*p;
-			   }
+				if (c < 32 || c > 127)
+				{
+					Throw(0, "Cannot convert Unicode to ascii. Character value out of range at position #llu", p - src.buf);
+				}
+				else
+				{
+					*q = (char)*p;
+				}
 
-			   p++, q++;
-		   }
+				p++, q++;
+			}
 
-		   *q = 0;
-	   }
+			*q = 0;
+		}
 
-	   ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest)
-	   {
-		   wchar_t* q = dest.buf;
-		   const char32_t* p = src;
+		ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest)
+		{
+			wchar_t* q = dest.buf;
+			const char32_t* p = src;
 
-		   while (*p != 0)
-		   {
-			   char32_t c = *p;
+			while (*p != 0)
+			{
+				char32_t c = *p;
 
-			   if (c < 32 || c > 32767)
-			   {
-				   Throw(0, "Cannot convert Unicode to wide char. Character value out of range at position #llu", p - src.buf);
-			   }
-			   else
-			   {
-				   *q = (char)*p;
-			   }
+				if (c < 32 || c > 32767)
+				{
+					Throw(0, "Cannot convert Unicode to wide char. Character value out of range at position #llu", p - src.buf);
+				}
+				else
+				{
+					*q = (char)*p;
+				}
 
-			   p++, q++;
-		   }
+				p++, q++;
+			}
 
-		   *q = 0;
-	   }
+			*q = 0;
+		}
 
-	   ROCOCO_API void PathFromAscii(cstr ascii_string, U32FilePath& path)
-	   {
-		   char32_t* q = path.buf;
-		   const char* p = ascii_string;
+		ROCOCO_API void PathFromAscii(cstr ascii_string, U32FilePath& path)
+		{
+			char32_t* q = path.buf;
+			const char* p = ascii_string;
 
-		   while (*p != 0)
-		   {
-			   if (*p < 32 || *p > 127)
-			   {
-				   Throw(0, "Cannot convert 8-bit to char32_t. Character value out of range at position #llu", p - ascii_string);
-			   }
-			   *q++ = *p++;
-		   }
+			while (*p != 0)
+			{
+				if (*p < 32 || *p > 127)
+				{
+					Throw(0, "Cannot convert 8-bit to char32_t. Character value out of range at position #llu", p - ascii_string);
+				}
+				*q++ = *p++;
+			}
 
-		   *q = 0;
-	   }
+			*q = 0;
+		}
 
-	   ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path)
-	   {
-		   char32_t* q = path.buf;
-		   const wchar_t* p = wide_string;
+		ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path)
+		{
+			char32_t* q = path.buf;
+			const wchar_t* p = wide_string;
 
-		   while (*p != 0)
-		   {
-			   if (*p < 32 || *p >= 32767)
-			   {
-				   Throw(0, "Cannot convert wide to char32_t. Character value out of range at position #llu", p - wide_string);
-			   }
-			   *q++ = *p++;
-		   }
+			while (*p != 0)
+			{
+				if (*p < 32 || *p >= 32767)
+				{
+					Throw(0, "Cannot convert wide to char32_t. Character value out of range at position #llu", p - wide_string);
+				}
+				*q++ = *p++;
+			}
 
-		   *q = 0;
-	   }
-   }
+			*q = 0;
+		}
+	}
 
-   namespace OS
-   {
-	   ROCOCO_API void SetBreakPoints(int flags)
-      {
-         static_assert(sizeof(int64) == 8, "Bad int64");
-         static_assert(sizeof(int32) == 4, "Bad int32");
-         static_assert(sizeof(int16) == 2, "Bad int16");
-         static_assert(sizeof(int8) == 1, "Bad int8");
-         breakFlags = flags;
-      }
+	namespace OS
+	{
+		ROCOCO_API void SetBreakPoints(int flags)
+		{
+			static_assert(sizeof(int64) == 8, "Bad int64");
+			static_assert(sizeof(int32) == 4, "Bad int32");
+			static_assert(sizeof(int16) == 2, "Bad int16");
+			static_assert(sizeof(int8) == 1, "Bad int8");
+			breakFlags = flags;
+		}
 
 #ifdef BREAK_ON_THROW
-	   ROCOCO_API void BreakOnThrow(Flags::BreakFlag flag)
-      {
-         if ((breakFlags & flag) != 0 && Rococo::OS::IsDebugging())
-         {
-            TripDebugger();
-         }
-      }
+		ROCOCO_API void BreakOnThrow(Flags::BreakFlag flag)
+		{
+			if ((breakFlags & flag) != 0 && Rococo::OS::IsDebugging())
+			{
+				TripDebugger();
+			}
+		}
 #else
-      void BreakOnThrow(BreakFlag flag) {}
+		void BreakOnThrow(BreakFlag flag) {}
 #endif
-   }
+	}
 }
 
 namespace Rococo
