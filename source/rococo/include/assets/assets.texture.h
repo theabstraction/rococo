@@ -8,6 +8,13 @@ namespace Rococo::IO
 	struct IInstallation;
 }
 
+namespace Rococo
+{
+	struct IGraphicsWindow;	
+	struct IGraphicsLogger;
+	struct IGraphicsWindowFactory;
+}
+
 namespace Rococo::Graphics
 {
 	struct ITextureManager;
@@ -15,6 +22,8 @@ namespace Rococo::Graphics
 
 namespace Rococo::Assets
 {
+	using namespace Rococo::Graphics;
+
 	enum class ETextureDesignation
 	{
 		Alpha_8Bit,	// The texture is expected to consist of 256 greyscales, 0 to 1.0f

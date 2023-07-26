@@ -537,7 +537,7 @@ namespace Rococo::Imaging
 		tiffAllocator = _allocator;
 	}
 
-	ROCOCO_TIFF_API void CompressTiff(const uint8* grayScale, const Vec2i& span, const char* filename)
+	ROCOCO_TIFF_API void CompressTiff(const uint8* grayScale, Vec2i span, const char* filename)
 	{
 		ImageWriter writer(filename);
 
@@ -555,7 +555,7 @@ namespace Rococo::Imaging
 		}
 	}
 
-	ROCOCO_TIFF_API void CompressTiff(const RGBAb* data, const Vec2i& span, cstr filename, int quality)
+	ROCOCO_TIFF_API void CompressTiff(const RGBAb* data, Vec2i span, cstr filename)
 	{
 		ImageWriter writer(filename);
 

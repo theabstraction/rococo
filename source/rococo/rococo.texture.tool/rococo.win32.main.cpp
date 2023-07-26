@@ -11,7 +11,7 @@
 
 namespace Rococo::Assets
 {
-	ROCOCO_API_IMPORT void RunTextureScript(cstr title, HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(ITextureAssetFactory& textures, IGraphicsWindow& window)> callback);
+	ROCOCO_API_IMPORT void RunTextureScript(cstr title, HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(TextureBundle& bundle)> callback);
 }
 
 using namespace Rococo;
@@ -159,6 +159,9 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 					Strings::SubstringToString(dirPath.buf, U8FilePath::CAPACITY, sansExt);
 					StringCat(dirPath.buf, ".mipmaps", U8FilePath::CAPACITY);
 					printf("Compiling %s -> %s\n", imagePath, dirPath.buf);
+
+					WideFilePath wDirPathFile;
+					bundle.installation.ConvertPingPathToSysPath(dirPath, wDirPathFile);
 
 					auto onLevel = [&wItemPath, &tx, &ext, &itemPingPath, &dirPath, &bundle](const MipMapLevelDesc& desc)
 					{

@@ -104,7 +104,7 @@ namespace
 
 namespace Rococo { namespace Imaging
 {
-	ROCOCO_JPEG_API void CompressJPeg(const RGBAb* data, const Vec2i& span, cstr filename, int quality)
+	ROCOCO_JPEG_API void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality)
 	{
 		AutoFileHandle output(filename);
 		if (!*output) Throw(0, "Could not save %s", filename);
@@ -131,7 +131,7 @@ namespace Rococo { namespace Imaging
 		}
 	}
 
-	ROCOCO_JPEG_API void CompressJPeg(const RGBb* data, const Vec2i& span, cstr filename, int quality)
+	ROCOCO_JPEG_API void CompressJPeg(const RGBb* data, Vec2i span, cstr filename, int quality)
 	{
 		AutoFileHandle output(filename);
 		if (!*output) Throw(0, "Could not save %s", filename);
