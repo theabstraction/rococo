@@ -150,22 +150,26 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 
 					tx.FetchAllMipMapLevels();
 
-					auto onLevel = [&wItemPath, &tx, &itemPingPath](const MipMapLevelDesc& desc)
+					cstr imagePath = tx.AssetContainer().Path();
+					cstr ext = GetFileExtension(imagePath);
+					Substring sansExt{ imagePath, ext };
+
+					U8FilePath dirPath;
+					Strings::SubstringToString(dirPath.buf, U8FilePath::CAPACITY, sansExt);
+					StringCat(dirPath.buf, ".mipmaps", U8FilePath::CAPACITY);
+					printf("Compiling %s -> %s\n", imagePath, dirPath.buf);
+
+					auto onLevel = [&wItemPath, &tx, &itemPingPath, &dirPath](const MipMapLevelDesc& desc)
 					{
 						if (desc.texelBuffer != nullptr)
 						{
-							// We can save the texels to a directory named according to the original ping path
-							cstr imagePath = tx.AssetContainer().Path();
-							cstr ext = GetFileExtension(imagePath);
-							Substring sansExt{ imagePath, ext };
-							U8FilePath dirPath;
-							Strings::SubstringToString(dirPath.buf, U8FilePath::CAPACITY, sansExt);
-							StringCat(dirPath.buf, ".mipmaps", U8FilePath::CAPACITY);
-							puts(dirPath.buf);
+							U8FilePath targetFile;
+							Format(targetFile, "%s/square_%u.img", dirPath.buf, desc.levelspan);
+							// We can save the texels to a directory named according to the original ping path	
+							printf("\t saving %s\n", targetFile.buf);
 						}
 					};
 
-					printf("%s: bitmap loaded. Enumerating mip levels.", itemPingPath.buf);
 					tx.EnumerateMipMapLevels(onLevel);
 					
 				};
