@@ -512,6 +512,13 @@ namespace Rococo
 		virtual void operator()(T& t) = 0;
 	};
 
+	struct RGBb
+	{
+		uint8 red;
+		uint8 green;
+		uint8 blue;
+	};
+
 	struct RGBAb
 	{
 		uint8 red = 0;
@@ -756,15 +763,18 @@ namespace Rococo
 
 	namespace OS
 	{
-		enum BreakFlag : int32
+		namespace Flags
 		{
-			BreakFlag_None = 0,
-			BreakFlag_STC = 1,
-			BreakFlag_VM = 2,
-			BreakFlag_SS = 4,
-			BreakFlag_IllFormed_SExpression = 8,
-			BreakFlag_All = 0x7FFFFFFF
-		};
+			enum BreakFlag : int32
+			{
+				BreakFlag_None = 0,
+				BreakFlag_STC = 1,
+				BreakFlag_VM = 2,
+				BreakFlag_SS = 4,
+				BreakFlag_IllFormed_SExpression = 8,
+				BreakFlag_All = 0x7FFFFFFF
+			};
+		}
 	}
 
 	namespace Time

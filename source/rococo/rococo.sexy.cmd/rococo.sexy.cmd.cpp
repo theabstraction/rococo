@@ -103,6 +103,11 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 		baseInstallation->ConvertPingPathToSysPath(pingPath, path);
 	}
 
+	void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& path) const override
+	{
+		baseInstallation->ConvertPingPathToSysPath(pingPath, path);
+	}
+
 	void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
 	{
 		baseInstallation->ConvertSysPathToMacroPath(sysPath, pingPath, macro);
@@ -564,7 +569,7 @@ int mainProtected(int argc, char* argv[])
 	cstr installationPath;
 	GetNextCmdArgValue(argc, argv, 0, "installation=", installationPath);
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 	AutoFree<IO::IInstallationSupervisor> installation = new CmdInstallation(installationPath);
 	
 	ScriptContext sc(*installation, argc, argv);

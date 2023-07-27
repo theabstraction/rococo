@@ -706,6 +706,8 @@ namespace Rococo
         public RococoAssetsProject() : base("rococo.assets")
         {
             SourceFiles.Add(@"..\include\rococo.assets.h");
+            SourceFiles.Add(@"..\include\assets\asset.textures.h");
+            SourceFiles.Add(@"..\include\assets\asset.impl.textures.h");
         }
 
         [Configure()]
@@ -713,6 +715,24 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoDX11RendererProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoTextureToolProject : RococoProject
+    {
+        public RococoTextureToolProject() : base("rococo.texture.tool")
+        {
+            SourceFiles.Add(@"..\include\rococo.assets.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoAssetsProject>(target);
+            conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
         }
     }
 
@@ -721,6 +741,7 @@ namespace Rococo
     {
         public RococoAssetsTestProject() : base("rococo.assets.test")
         {
+            SourceFiles.Add(@"..\include\rococo.assets.h");
         }
 
         [Configure()]
@@ -728,6 +749,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoAssetsProject>(target);
+            conf.AddPublicDependency<RococoDX11RendererProject>(target);
         }
     }
 
@@ -900,6 +922,8 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<LibTiffProject>(target);
+            conf.AddPublicDependency<LibJPegProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoFontsProject>(target);
         }
@@ -1492,7 +1516,7 @@ namespace Rococo
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
-
+            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
 
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996", "4100", "4324", "4146", "4244", "4267", "4127", "4702", "4611"));
@@ -1553,6 +1577,7 @@ namespace Rococo
             conf.AddProject<SexyIncludeProject>(target);
             conf.AddProject<RococoAssetsProject>(target);
             conf.AddProject<RococoAssetsTestProject>(target);
+            conf.AddProject<RococoTextureToolProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -1764,7 +1789,7 @@ namespace Rococo
             arguments.Generate<OggProject>();
             arguments.Generate<VorbisProject>();
             arguments.Generate<VorbisFileProject>();
-            
+            arguments.Generate<RococoTextureToolProject>();
         }
     }
 }

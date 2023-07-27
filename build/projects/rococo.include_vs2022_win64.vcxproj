@@ -167,6 +167,7 @@
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.trackers.inl" />
     <ClInclude Include="..\..\source\rococo\include\assets\assets.files.h" />
     <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.h" />
+    <ClInclude Include="..\..\source\rococo\include\assets\assets.texture.impl.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.body.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.components.configuration.h" />
@@ -183,6 +184,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.auto-complete.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.auto-release.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.bakes.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.clock.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.compiler.options.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.component.entities.h" />

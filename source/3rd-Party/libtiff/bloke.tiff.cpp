@@ -461,6 +461,57 @@ namespace
 
 			return isGood;
 		}
+
+		bool Write(const RGBAb* rgbaPixels, int32 width, int32 height, char* errorBufferArg, size_t errorCapacityArg)
+		{
+			ImageWriter::errorBuffer = errorBufferArg;
+			ImageWriter::errorCapacity = errorCapacityArg;
+
+			TIFFErrorHandler standardErrorHandler = TIFFSetErrorHandler(ImageWriter::_OnError);
+			TIFFErrorHandlerExt standardErrorHandlerExt = TIFFSetErrorHandlerExt(ImageWriter::_OnError);
+
+			bool isGood = false;
+
+			TIFF* tif = TIFFClientOpen(filename, "wm", (thandle_t)this, Read, Write, Seek, Close, GetFileLength, MapFile, UnmapFile);
+			if (tif)
+			{
+				TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, (size_t)width);
+				TIFFSetField(tif, TIFFTAG_IMAGELENGTH, (size_t)height);
+				TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, 4);
+
+				uint16 out[1];
+				out[0] = EXTRASAMPLE_ASSOCALPHA;
+				TIFFSetField(tif, TIFFTAG_EXTRASAMPLES, 1, out);
+				TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 8);
+				TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
+				TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+				TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_LZW);
+				TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+				TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, 1);
+
+				uint32 rowsPerStrip = height;
+				rowsPerStrip = TIFFDefaultStripSize(tif, rowsPerStrip);
+				TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
+				TIFFSetupStrips(tif);
+
+				tsize_t linebytes = sizeof(RGBAb) * width;
+
+				TIFFWriteEncodedStrip(tif, 0, (tdata_t)rgbaPixels, linebytes * height);
+
+				TIFFFlush(tif);
+				TIFFClose(tif);
+
+				isGood = true;
+			}
+
+			ImageWriter::errorBuffer = nullptr;
+			ImageWriter::errorCapacity = 0;
+
+			TIFFSetErrorHandler(standardErrorHandler);
+			TIFFSetErrorHandlerExt(standardErrorHandlerExt);
+
+			return isGood;
+		}
 	};
 
 	char* ImageWriter::errorBuffer = NULL;
@@ -490,12 +541,30 @@ namespace Rococo::Imaging
 		tiffAllocator = _allocator;
 	}
 
-	ROCOCO_TIFF_API void SaveAsTiff(const uint8* grayScale, const Vec2i& span, const char* filename)
+	ROCOCO_TIFF_API void CompressTiff(const uint8* grayScale, Vec2i span, const char* filename)
 	{
 		ImageWriter writer(filename);
 
 		char errorBuffer[1024] = "";
 		if (!writer.Write(grayScale, span.x, span.y, errorBuffer, sizeof(errorBuffer)))
+		{
+			if (*errorBuffer)
+			{
+				Throw(0, "Error writing %s: %s", filename, errorBuffer);
+			}
+			else
+			{
+				Throw(0, "Error writing %s", filename);
+			}
+		}
+	}
+
+	ROCOCO_TIFF_API void CompressTiff(const RGBAb* data, Vec2i span, cstr filename)
+	{
+		ImageWriter writer(filename);
+
+		char errorBuffer[1024] = "";
+		if (!writer.Write(data, span.x, span.y, errorBuffer, sizeof(errorBuffer)))
 		{
 			if (*errorBuffer)
 			{

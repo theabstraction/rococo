@@ -141,7 +141,8 @@
       <AdditionalDependencies>rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.misc.utils.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.misc.utils.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.misc.utils.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.misc.utils.lib</ImportLibrary>
@@ -237,6 +239,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.asset.generator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.bakes.mipmap.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.CSVAssetParser.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.ide.stdout.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.member.builder.cpp" />

@@ -111,6 +111,7 @@ namespace Rococo::OS
 	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
+	ROCOCO_API bool IsFileExistant(const char* path);
 	ROCOCO_API bool IsFileExistant(const wchar_t* path);
 	ROCOCO_API void Format_C_Error(int errorCode, char* buffer, size_t capacity);
 	ROCOCO_API [[nodiscard]] int OpenForAppend(void** fp, cstr name);
@@ -122,6 +123,8 @@ namespace Rococo::OS
 	ROCOCO_API void ToUnixPath(char* path);
 	ROCOCO_API void SanitizePath(char* path);
 	ROCOCO_API void SanitizePath(wchar_t* path);
+	ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes);
+	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes);
 	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window);
 	ROCOCO_API bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
 	ROCOCO_API cstr GetAsciiCommandLine();
@@ -131,6 +134,7 @@ namespace Rococo::OS
 
 	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
 	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& callback, const wchar_t* filename);
 	ROCOCO_API void PollKeys(uint8 scanArray[256]);
 	ROCOCO_API bool MakeContainerDirectory(char* filename);
@@ -160,7 +164,7 @@ namespace Rococo::OS
 	ROCOCO_API void TripDebugger();
 	ROCOCO_API void PrintDebug(const char* format, ...);	
 	ROCOCO_API [[nodiscard]] bool IsDebugging();
-	ROCOCO_API void BreakOnThrow(BreakFlag flag);
+	ROCOCO_API void BreakOnThrow(Flags::BreakFlag flag);
 	ROCOCO_API void SetBreakPoints(int flags);
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
 	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);

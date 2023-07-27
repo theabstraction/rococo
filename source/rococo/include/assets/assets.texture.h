@@ -1,9 +1,18 @@
 #pragma once
 #include <assets/assets.files.h>
 
+// This is the public facing API of the asset texture system. 
+
 namespace Rococo::IO
 {
 	struct IInstallation;
+}
+
+namespace Rococo
+{
+	struct IGraphicsWindow;	
+	struct IGraphicsLogger;
+	struct IGraphicsWindowFactory;
 }
 
 namespace Rococo::Graphics
@@ -13,6 +22,8 @@ namespace Rococo::Graphics
 
 namespace Rococo::Assets
 {
+	using namespace Rococo::Graphics;
+
 	enum class ETextureDesignation
 	{
 		Alpha_8Bit,	// The texture is expected to consist of 256 greyscales, 0 to 1.0f
@@ -21,6 +32,8 @@ namespace Rococo::Assets
 
 	struct ITextureAsset;
 	struct ITextureController;
+	struct IMipMapLevelDescriptor;
+	struct ITextureAssetFactory;
 
 	using TTextureControllerEvent = Rococo::Function<void(ITextureController& controller, int32 levelIndex)>;
 
@@ -31,7 +44,29 @@ namespace Rococo::Assets
 		uint32 bitsPerBitPlane = 0;
 	};
 
-	struct IMipMapLevelDescriptor;
+	struct MipMapLevelDesc
+	{
+		MipMapLevelDesc(IMipMapLevelDescriptor& _descriptor) : descriptor(_descriptor) {}
+
+		uint32 mipMapLevel;
+		uint32 levelspan;
+		const uint8* texelBuffer;
+		TexelSpec spec;
+		uint32 bytesPerTexel;
+		IMipMapLevelDescriptor& descriptor;
+	};
+
+	struct TextureBundle
+	{
+		IO::IInstallation& installation;
+		IGraphicsLogger& logger;
+		IGraphicsWindowFactory& factory;
+		IGraphicsWindow& window;
+		ITextureManager& txManager;
+		IAssetManager& assets;
+		IFileAssetFactory& files;
+		ITextureAssetFactory& textures;
+	};
 
 	// Represents a texture outside of the graphics engine, so will persist even if engine textures are flushed.
 	ROCOCO_INTERFACE ITextureController
@@ -49,11 +84,17 @@ namespace Rococo::Assets
 			return this->operator[](index);
 		}
 
+		using TMipMapLevelEnumerator = Rococo::Function<void(const MipMapLevelDesc& desc)>;
+
+		virtual void EnumerateMipMapLevels(TMipMapLevelEnumerator enumerator) = 0;
+
 		// Use the path parameter to identify and load the highest level mip map image.
-		virtual void LoadTopMipMapLevel(TTextureControllerEvent onLoad) = 0;
+		// Returns false if there is an outstanding file load for the texture
+		virtual bool LoadTopMipMapLevel(TTextureControllerEvent onLoad) = 0;
 
 		// Loads the mip map level at the specified index. The pixel span of the level is 2^levelIndex.
 		// So 0 is 1x1 and 10 is 1024x1024.
+		// Returns false if there is an outstanding file load for the texture
 		virtual void LoadMipMapLevel(uint32 levelIndex, TTextureControllerEvent onLoad) = 0;
 
 		// For a given level Index, uses the GPU to generate lower level mip maps.
@@ -68,14 +109,21 @@ namespace Rococo::Assets
 		// Marks mip map level memory for disposal. The state of the CPU memory is set to uninitialized.
 		virtual void DisposeMipMapLevel(uint32 levelIndex) = 0;
 
-		// Creates a texture resource on the GPU to mirror the CPU/sys memory version if needs be, and sets the given mip map level to that specified
-		virtual void AttachToGPU(uint32 levelIndex) = 0;
+		// Creates a texture resource on the GPU to mirror the CPU/sys memory version if needs be
+		// Returns false if there is inadequate GPU memory allocated for the task
+		virtual bool AttachToGPU() = 0;
 
 		// Removes the GPU representation of the texture.
 		virtual void ReleaseFromGPU() = 0;
 
 		// Asks the graphics engine to fetch the mip map level at the specified index into system memory
 		virtual void FetchMipMapLevel(uint32 levelIndex) = 0;
+
+		// Get everything from the GPU and overwrite the CPU side cache
+		virtual void FetchAllMipMapLevels() = 0;
+
+		// Asks the graphics engine to push the mip map level from system memory to the GPU. Returns true only on success.
+		virtual bool PushMipMapLevel(uint32 levelIndex) = 0;
 
 		// Persists the mip map level at the specified index to a subdirectory of the texture path. 
 		// This requires the texture path to be a subdirectory or image archive file
@@ -96,7 +144,8 @@ namespace Rococo::Assets
 		virtual bool CanClear() const = 0;
 		virtual bool CanLoad() const = 0;
 		virtual bool CanSave() const = 0;
-		virtual bool CanGPUOperateOnMipMaps() const = 0;
+		virtual bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const = 0;
+		virtual bool ReadyForLoad() const = 0;
 		virtual fstring ToString() const = 0;
 	};
 
@@ -112,41 +161,32 @@ namespace Rococo::Assets
 		virtual void Validate(bool addFilename = true, bool addFunction = true) = 0;
 
 		virtual cstr Path() const = 0;
+
+		// Returns the texture array index into whatever array it is associated with. Evaluates to -1 (0xFFFFFFFF) if no index is associated.
+		virtual uint32 Index() const = 0;
 	};
-
-	using TImageLoadEvent = Rococo::Function<void (TexelSpec spec, Vec2i span, const uint8* texels)>;
-
-	ROCOCO_INTERFACE ITextureAssetSupervisor : ITextureAsset
-	{
-		// Sent by the controller's implementation to the texture loader to load an image for the given mip map level. The index is passed to ITextureControllerSupervisor::OnLoadFile
-		virtual void QueueLoadImage(cstr path, int mipMapLevel) = 0;
-		virtual void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) = 0;
-		virtual void SetError(int statusCode, cstr message) = 0;
-	};
-
-	ROCOCO_INTERFACE ITextureControllerSupervisor: ITextureController
-	{
-		virtual void Free() = 0;
-		virtual void OnLoadFile(const IFileAsset& file, int mipMapLevel) = 0;
-	};
-
-	ITextureControllerSupervisor* CreateTextureController(ITextureAssetSupervisor& asset);
-
-	using TAsyncOnTextureLoadEvent = Rococo::Function<void(ITextureAsset& asset)>;
-
-	ROCOCO_ASSETS_API void NoTextureCallback(ITextureAsset& asset);
 
 	ROCOCO_INTERFACE ITextureAssetFactory
 	{
-		virtual AssetRef<ITextureAsset> CreateTextureAsset(const char* utf8Path, TAsyncOnTextureLoadEvent onLoad = NoTextureCallback) = 0;
+		virtual AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* utf8Path) = 0;
 
 		// Creates an array of square textures of given span and length. If the array exists already it is destroyed and the new array takes its place
-		// This method generally invoked once per instance, but may change if the user selects different texture qualities. 
-		// Texture quality is specified in span, so 2048x2048 is clearly higher quality than 1024x1024.
-		// Span must be a power of 2 with a miminum of 256 and maximum of 8192. The maximum number of elements in the array is 1024.
+		// This method is generally invoked once per execution instance, but may change, for example - if the user selects different texture qualities. 
+		// Span must be a power of 2 with a miminum of 1 and maximum of 8192. The maximum number of elements in the array is graphics system dependent.
 		// If the graphics card cannot handle the parameters, or another error occurs the method will throw an exception.
-		// Other API methods may throw an exception if the span is not set before use.
-		virtual void SetEngineTextureArray(int32 spanInPixels, int32 numberOfElementsInArray) = 0;
+		// Other methods in the assets API may throw an exception if the span is not set here before use.
+		virtual void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray, bool canCpuReadTexture, bool canCpuGenerateMipMaps) = 0;
+
+		// Returns the parameter set in SetEngineTextureArray([spanInPixels], ...)
+		// This defines the engine quality of textures in terms of pixel span. [spanInPixels] will be a power of 2. The array top level textures all have this span
+		// Span may be changed mid-application in the graphic settings.
+		// The maximum span is 8192x8192. The minimum span is 1x1.
+		// Since multiple texture-asset factories can be created an effective strategy for some applications is to use a permanent set of very small textures in place of 
+		// smaller mip map levels. If most texture are viewed at a great distance it may be far more efficient than loading everything at the highest detailed levels all at once
+		virtual int GetEngineTextureSpan() const = 0;
+
+		// Gets the associated file asset factory associated with the texture factory
+		virtual IFileAssetFactory& FileAssets() = 0;
 	};
 
 	ROCOCO_INTERFACE ITextureAssetFactorySupervisor : ITextureAssetFactory

@@ -1,18 +1,21 @@
 #include <rococo.types.h>
 #define ROCOCO_ASSETS_API ROCOCO_API_EXPORT
 
-#include <assets/assets.texture.h>
+#include <assets/assets.texture.impl.h>
 #include <rococo.strings.h>
 #include <rococo.hashtable.h>
 #include <rococo.os.h>
 #include <rococo.io.h>
 #include <rococo.functional.h>
 #include <list>
+#include <vector>
 #include <rococo.renderer.h>
 #include <rococo.imaging.h>
+#include <rococo.textures.h>
 
 namespace ANON
 {
+	enum { INVALID_ARRAY_INDEX = 0xFFFFFFFF };
 	using namespace Rococo;
 	using namespace Rococo::Assets;
 	using namespace Rococo::Graphics;
@@ -26,12 +29,16 @@ namespace ANON
 		virtual void MarkForDeath(TextureAssetWithLife* asset) noexcept = 0;
 		virtual IFileAssetFactory& FileAssets() = 0;
 		virtual void ParseImage(const FileData& data, cstr path, TImageLoadEvent& onParse) = 0;
+		virtual ITextureAssetsForEngine& Engine() = 0;
 	};
 
 	ROCOCO_INTERFACE ITextureAssetLifeCeo : IAssetLifeSupervisor
 	{
 	};
 
+	// Glues the texture controller to the texture asset factory.
+	// By separating this out from the controller, we relieve the implementor of controller
+	// from worrying about the glue
 	struct TextureAsset : ITextureAssetSupervisor
 	{
 		ITextureAssetLifeCeo& life;
@@ -40,11 +47,20 @@ namespace ANON
 
 		AssetStatus status;
 		AssetRef<IFileAsset> fileAssetRef;
+		uint32 arrayIndex = (uint32) INVALID_ARRAY_INDEX;
 		
-		TextureAsset(cstr _pingPath, ITextureAssetFactoryCEO& _ceo, ITextureAssetLifeCeo& _life): ceo(_ceo), life(_life)
+		TextureAsset(cstr _pingPath, ITextureAssetFactoryCEO& _ceo, ITextureAssetLifeCeo& _life, TexelSpec _spec): ceo(_ceo), life(_life)
 		{
 			status.pingPath = to_fstring(_pingPath);
-			controller = CreateTextureController(*this);
+			controller = CreateTextureController(*this, _ceo.Engine(), _spec);
+		}
+
+		~TextureAsset()
+		{
+			if (fileAssetRef)
+			{
+				fileAssetRef->CancelAssociatedCallback(this);
+			}
 		}
 
 		void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) override
@@ -52,8 +68,13 @@ namespace ANON
 			ceo.ParseImage(data, path, onParse);
 		}
 
-		void QueueLoadImage(cstr path, int mipMapLevel) override
+		bool TryQueueLoadImage(cstr path, int mipMapLevel) override
 		{
+			if (fileAssetRef)
+			{
+				// An outstanding load is in progress
+				return false;
+			}
 			// While the file is loading we cannot allow the invalidation of [this] pointer so we increase the ref count of the asset life by 1
 			life.AddRef();
 
@@ -73,7 +94,8 @@ namespace ANON
 
 			try
 			{
-				fileAssetRef = ceo.FileAssets().CreateFileAsset(path, onLoad);
+				fileAssetRef = ceo.FileAssets().CreateFileAsset(path, this, onLoad);
+				return true;
 			}
 			catch (...)
 			{
@@ -95,6 +117,11 @@ namespace ANON
 			return *controller;
 		}
 
+		uint32 Index() const override
+		{
+			return arrayIndex;
+		}
+
 		cstr Path() const override
 		{
 			return status.pingPath;
@@ -111,16 +138,16 @@ namespace ANON
 		}
 	};
 
+	// Manages the reference counting of the texture asset and wraps the asset
 	class TextureAssetWithLife : public ITextureAssetLifeCeo
 	{
 		long refCount = 0;
-		TAsyncOnTextureLoadEvent onLoadEvent;
+
 	public:
 		TextureAsset asset;
 
-		TextureAssetWithLife(ITextureAssetFactoryCEO& ceo, cstr pingPath, TAsyncOnTextureLoadEvent& _onLoadEvent) : asset(pingPath, ceo, *this), onLoadEvent(_onLoadEvent)
+		TextureAssetWithLife(ITextureAssetFactoryCEO& ceo, cstr pingPath, TexelSpec _spec) : asset(pingPath, ceo, *this, _spec)
 		{
-
 		}
 
 		uint32 ReferenceCount() const override
@@ -150,27 +177,61 @@ namespace ANON
 		}
 	};
 
-	struct TextureAssetManager : ITextureAssetFactoryCEO
+	struct TextureAssetManager : ITextureAssetFactoryCEO, ITextureAssetsForEngine, IFileAssetFactoryMonitor
 	{
 		IFileAssetFactory& fileManager;
 		ITextureManager& engineTextures;
 		stringmap<TextureAssetWithLife*> textures;
 		AutoFree<OS::ICriticalSection> sync;
+		AutoFree<Rococo::Graphics::Textures::IMipMappedTextureArraySupervisor> rgbaArray;
+		std::vector<uint32> freeIndices;
+		std::vector<TextureAsset*> mapIndexToAsset;
+		std::vector<TextureAssetWithLife*> theLivingDead;
 
 		TextureAssetManager(ITextureManager& _engineTextures, IFileAssetFactory& _fileManager): engineTextures(_engineTextures), fileManager(_fileManager)
 		{
 			sync = OS::CreateCriticalSection();
+			_fileManager.AddMonitor(this);
+		}
+
+		void OnFileAssetFactoryDataDelivered()
+		{
+			GarbageCollect();
+		}
+
+		void GarbageCollect()
+		{
+			for (auto* d : theLivingDead)
+			{
+				delete d;
+			}
+
+			theLivingDead.clear();
 		}
 
 		virtual ~TextureAssetManager()
 		{
+			fileManager.RemoveMonitor(this);
+
 			for (auto i : textures)
 			{
 				delete i.second;
 			}
+
+			GarbageCollect();
 		}
 
-		AssetRef<ITextureAsset> CreateTextureAsset(const char* pingPath, TAsyncOnTextureLoadEvent onLoad = NoTextureCallback) override
+		ITextureAssetsForEngine& Engine()
+		{
+			return *this;
+		}
+
+		ITextureAssetFactory& Factory()
+		{
+			return *this;
+		}
+
+		AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* pingPath) override
 		{
 			if (pingPath == nullptr || *pingPath == 0) Throw(0, "%s: Blank ping path", __FUNCTION__);
 
@@ -186,7 +247,10 @@ namespace ANON
 			{
 				try
 				{
-					assetWrapper = new TextureAssetWithLife(*this, mapIterator->first, onLoad);
+					TexelSpec spec;
+					spec.bitPlaneCount = 4;
+					spec.bitsPerBitPlane = 8;
+					assetWrapper = new TextureAssetWithLife(*this, mapIterator->first, spec);
 					mapIterator->second = assetWrapper;
 				}
 				catch (...)
@@ -200,11 +264,16 @@ namespace ANON
 				assetWrapper = mapIterator->second;
 			}
 
+			assetWrapper->asset.status.isReady = true;
 			return AssetRef<ITextureAsset>(&assetWrapper->asset, static_cast<IAssetLifeSupervisor*>(assetWrapper));
 		}
 
 		void MarkForDeath(TextureAssetWithLife* wrapper) noexcept override
 		{
+			// We can't delete here, as we may be the last reference held by the file asset system as it loads a fire we are dependent upon
+			// The destructor would deregister the file event handler while the event handler is being iterated through, so we defer deletion until
+			// after the file asset system has processed files.
+
 			auto i = textures.find(wrapper->Path());
 			if (i == textures.end())
 			{
@@ -214,7 +283,23 @@ namespace ANON
 			}
 
 			textures.erase(i);
-			delete wrapper;
+
+			if (wrapper->asset.arrayIndex < mapIndexToAsset.size())
+			{
+				auto* mappedAsset = mapIndexToAsset[wrapper->asset.arrayIndex];
+				if (mappedAsset == &wrapper->asset)
+				{
+					mapIndexToAsset[wrapper->asset.arrayIndex] = nullptr;
+					freeIndices.push_back(wrapper->asset.arrayIndex);
+				}
+				else
+				{
+					// Bad, means we lost sync between array indices and assets
+					OS::TripDebugger();
+				}
+			}
+
+			theLivingDead.push_back(wrapper);
 		}
 
 		void ParseImage(const FileData& data, cstr path, TImageLoadEvent& onParse) override
@@ -236,7 +321,7 @@ namespace ANON
 				void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
 				{
 					TexelSpec rgbaSpec;
-					rgbaSpec.bitPlaneCount = 3;
+					rgbaSpec.bitPlaneCount = 4;
 					rgbaSpec.bitsPerBitPlane = 8;
 					onParse.Invoke(rgbaSpec, span, (const uint8*) data);
 				}
@@ -268,13 +353,198 @@ namespace ANON
 			onParse.Invoke(TexelSpec{ 0,0 }, { 0,0 }, (const uint8*) "expecting .jpg or .tif");
 		}
 
-		void SetEngineTextureArray(int32 spanInPixels, int32 numberOfElementsInArray) override
+		int32 engineSpan = 1024;
+
+		bool AttachToGPU(ITextureAsset& asset) override
 		{
-			UNUSED(spanInPixels);
-			UNUSED(numberOfElementsInArray);
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+			if (ourAsset.arrayIndex == INVALID_ARRAY_INDEX)
+			{
+				if (freeIndices.empty())
+				{
+					return false;
+				}
+
+				ourAsset.arrayIndex = freeIndices.back();
+				freeIndices.pop_back();
+				mapIndexToAsset[ourAsset.arrayIndex] = &ourAsset;
+			}
+
+			return true;
 		}
 
-		IFileAssetFactory& FileAssets()
+		bool FetchMipMapLevel(uint32 levelIndex, ITextureAsset& asset, uint8* mipMapLevelDataDestination) override
+		{
+			ValidateAssetIndex(asset, __FUNCTION__);
+
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+
+			uint32 i = ourAsset.arrayIndex;
+			if (i == INVALID_ARRAY_INDEX)
+			{
+				// texture not attached to the GPU
+				return false;
+			}
+
+			if (levelIndex >= rgbaArray->NumberOfMipLevels())
+			{
+				// We don't have the GPU backing to fetch to sys memory
+				return false;
+			}
+
+			return rgbaArray->ReadSubImage(i, levelIndex, sizeof(RGBAb), mipMapLevelDataDestination);
+		}
+
+		bool PushMipMapLevel(uint32 levelIndex, ITextureAsset& asset, const uint8* mipMapLevelData) override
+		{
+			ValidateAssetIndex(asset, __FUNCTION__);
+
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+
+			uint32 i = ourAsset.arrayIndex;
+			if (i == INVALID_ARRAY_INDEX)
+			{
+				// texture not attached to the GPU
+				return false;
+			}
+
+			if (levelIndex >= rgbaArray->NumberOfMipLevels())
+			{
+				// We don't have the GPU backing to push the sys memory
+				return false;
+			}
+
+			int32 levelSpan = 1 << levelIndex;
+
+			GuiRect targetRect{ 0, 0, levelSpan, levelSpan };
+			rgbaArray->WriteSubImage(i, levelIndex, (const RGBAb*)mipMapLevelData, targetRect);
+
+			return true;
+		}
+
+		void ReleaseFromGPU(ITextureAsset& asset) override
+		{
+			ValidateAssetIndex(asset, __FUNCTION__);
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+			uint32 i = ourAsset.arrayIndex;
+
+			if (i != INVALID_ARRAY_INDEX)
+			{
+				mapIndexToAsset[i] = nullptr;
+				freeIndices.push_back(i);
+				ourAsset.arrayIndex = (uint32) INVALID_ARRAY_INDEX;
+			}
+		}
+
+		void ValidateAssetIndex(ITextureAsset& asset, cstr functionName)
+		{
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+			uint32 i = ourAsset.arrayIndex;
+			if (i != INVALID_ARRAY_INDEX)
+			{
+				if (i < mapIndexToAsset.size())
+				{
+					if (mapIndexToAsset[i] != &ourAsset)
+					{
+						Throw(0, "%s: Algorithimic error.\n i = %u. ourAsset = %s. Array[i] asset = %s", functionName, i, ourAsset.Path(), mapIndexToAsset[i] ? mapIndexToAsset[i]->Path() : "<nullptr>");
+					}
+				}
+				else
+				{
+					Throw(0, "%s: Algorithimic error.\n i = %u. ourAsset = %s. i > map size of %llu", functionName, i, ourAsset.Path(), mapIndexToAsset.size());
+				}
+			}
+		}
+
+		void GenerateMipMaps(uint32 levelIndex, ITextureAsset& asset) override
+		{
+			ValidateAssetIndex(asset, __FUNCTION__);
+			auto& ourAsset = static_cast<TextureAsset&>(asset);
+
+			if (levelIndex >= rgbaArray->NumberOfMipLevels())
+			{
+				// We don't mirror the specified mip map level, and the caller should have tested for that before calling the method
+				Throw(0, "%s (%s): levelIndex %u >= max level %u for the texture array", __FUNCTION__, asset.Path(), levelIndex, rgbaArray->NumberOfMipLevels());
+			}
+
+			if (ourAsset.arrayIndex == INVALID_ARRAY_INDEX)
+			{
+				Throw(0, "%s (%s): levelIndex %u. The texture does not have a mirror on the GPU", __FUNCTION__, asset.Path(), levelIndex);
+			}
+
+			rgbaArray->GenerateMipMappedSubLevels(ourAsset.arrayIndex, levelIndex);
+		}
+
+		bool DownsampleToEngineQuality(TexelSpec imageSpec, Vec2i span, const uint8* texels, Rococo::Function<void(Vec2i downSampledSpan, const uint8* downSampledTexels)> onDownsample) const override
+		{
+			UNUSED(imageSpec);
+			UNUSED(span);
+			UNUSED(texels);
+			UNUSED(onDownsample);
+			return false;
+		}
+
+		void SetEngineTextureArray(uint32 spanInPixels, int32 numberOfElementsInArray, bool canCpuRead, bool canCpuGenerateMipMaps) override
+		{
+			if (spanInPixels == 0) spanInPixels = 1024; // default to 1024
+			uint32 maxLevel = 0;
+			uint32 q = spanInPixels;
+			while (q > 1)
+			{
+				q = q >> 1;
+				maxLevel++;
+			}
+
+			uint32 maxLevelSpan = 1 << maxLevel;
+
+			if (maxLevelSpan != spanInPixels)
+			{
+				Throw(0, "%s: The span must be a power of 2", __FUNCTION__);
+			}
+
+			if (maxLevel > ITextureController::MAX_LEVEL_INDEX)
+			{
+				Throw(0, "%s: The maximum span is %llu", __FUNCTION__, ITextureController::MAX_LEVEL_INDEX);
+			}
+
+			engineSpan = spanInPixels;
+
+			freeIndices.clear();
+			mapIndexToAsset.clear();
+			rgbaArray = nullptr;
+
+			for (auto i : textures)
+			{
+				i.second->asset.arrayIndex = (uint32)-1;
+			}
+
+			Graphics::TextureArrayCreationFlags flags = { 0 };
+			flags.allowCPUread = canCpuRead;
+			flags.allowMipMapGeneration = canCpuGenerateMipMaps;
+			rgbaArray = engineTextures.DefineRGBATextureArray(numberOfElementsInArray, spanInPixels, flags);
+
+			if (!rgbaArray)
+			{
+				Throw(0, "%s -> engineTextures.DefineRGBATextureArray rendering engine returned null", __FUNCTION__);
+			}
+
+			freeIndices.reserve(numberOfElementsInArray);
+
+			for (int i = numberOfElementsInArray - 1; i >= 0; i--)
+			{
+				freeIndices.push_back(i);
+			}
+
+			mapIndexToAsset.resize(numberOfElementsInArray);
+			std::fill(mapIndexToAsset.begin(), mapIndexToAsset.end(), nullptr);
+		}
+
+		int GetEngineTextureSpan() const override
+		{
+			return engineSpan;
+		}
+
+		IFileAssetFactory& FileAssets() override
 		{
 			return fileManager;
 		}

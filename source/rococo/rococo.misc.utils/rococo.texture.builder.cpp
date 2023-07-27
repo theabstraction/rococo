@@ -185,11 +185,11 @@ namespace
         return{ -1,-1 };
     }
 
-    class TextureArrayBuilder : public ITextureArrayBuilderSupervisor
+    class TextureArrayBuilder : public IBitmapArrayBuilderSupervisor
     {
     public:
         ICompressedResourceLoader& loader;
-        ITextureArray& textureArray;
+        IBitmapArray& textureArray;
 
         std::unordered_map<std::string, BitmapLocationImpl>  mapNameToLoc;
 
@@ -200,7 +200,7 @@ namespace
 
         std::vector<TextureSpec> textureSpecs;
 
-        TextureArrayBuilder(ICompressedResourceLoader& _loader, ITextureArray& _textureArray) :
+        TextureArrayBuilder(ICompressedResourceLoader& _loader, IBitmapArray& _textureArray) :
             loader(_loader), textureArray(_textureArray)
         {
 
@@ -551,7 +551,7 @@ namespace
             }
         }
 
-        void BuildTextures(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) override
+        void BuildBitmaps(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) override
         {
             if (textureArray.TextureCount() != 0)
             {
@@ -578,7 +578,7 @@ namespace
                     cstr name;
                     Vec2i span;
                     BitmapLocationImpl* loc;
-                    ITextureArray* ta;
+                    IBitmapArray* ta;
 
                     void OnEvent(CompressedTextureBuffer& buffer) override
                     {
@@ -673,7 +673,7 @@ namespace Rococo::Graphics::Textures
         onLoad.OnEvent(args);
     }
 
-    ROCOCO_API_EXPORT ITextureArrayBuilderSupervisor* CreateTextureArrayBuilder(ICompressedResourceLoader& loader, ITextureArray& textureFactory)
+    ROCOCO_API_EXPORT IBitmapArrayBuilderSupervisor* CreateBitmapArrayBuilder(ICompressedResourceLoader& loader, IBitmapArray& textureFactory)
     {
         return new TextureArrayBuilder(loader, textureFactory);
     }

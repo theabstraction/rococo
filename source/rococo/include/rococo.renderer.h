@@ -34,7 +34,9 @@ namespace Rococo::Graphics
 
 	namespace Textures
 	{
-		struct ITextureArrayBuilder;
+		struct IBitmapArrayBuilder;
+		struct IMipMappedTextureArray;
+		struct IMipMappedTextureArraySupervisor;
 	}
 
 	enum CBUFFER_INDEX
@@ -160,7 +162,7 @@ namespace Rococo::Graphics
 	namespace Textures
 	{
 		struct BitmapLocation;
-		struct ITextureArrayBuilder;
+		struct IBitmapArrayBuilder;
 	}
 
 	struct MaterialArrayMetrics
@@ -220,6 +222,12 @@ namespace Rococo::Graphics
 		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	};
 
+	struct TextureArrayCreationFlags
+	{
+		boolean32 allowMipMapGeneration : 1;
+		boolean32 allowCPUread : 1;
+	};
+
 	ROCOCO_INTERFACE ITextureManager
 	{
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
@@ -233,11 +241,16 @@ namespace Rococo::Graphics
 		virtual int64 Size() const = 0;
 		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
 
+		virtual void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const = 0;
+		virtual void CompressTiff(const RGBAb* data, Vec2i span, cstr filename) const = 0;
+
 		// Forward on the jpeg decompression function from the lib-jpeg lib
 		virtual bool DecompressJPeg(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
 
 		// Forward on the tiff decompression function from the lib-tiff lib
 		virtual bool DecompressTiff(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
+
+		virtual Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span, TextureArrayCreationFlags flags) = 0;
 	};
 
 	ROCOCO_INTERFACE IRendererMetrics
@@ -255,7 +268,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE IGuiResources
 	{
 		virtual const Fonts::ArrayFontMetrics & GetFontMetrics(ID_FONT idFont) = 0;
-		virtual Textures::ITextureArrayBuilder& SpriteBuilder() = 0;
+		virtual Textures::IBitmapArrayBuilder& SpriteBuilder() = 0;
 		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual IHQFontResource& HQFontsResources() = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;

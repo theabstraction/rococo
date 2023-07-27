@@ -174,7 +174,7 @@ public:
 			return true;
 		}
 
-		if (ke.VKey == Rococo::IO::VKCode_INSERT && ke.IsUp())
+		if (ke.VKey == Rococo::IO::VirtualKeys::VKCode_INSERT && ke.IsUp())
 		{
 			ToggleOverwriteMode();
 		}

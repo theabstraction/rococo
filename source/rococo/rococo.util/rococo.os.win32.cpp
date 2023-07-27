@@ -72,6 +72,34 @@ namespace Rococo
 			return '\\';
 		}
 
+		ROCOCO_API void CreateDirectoryFolder(const WideFilePath& path)
+		{
+			if (!CreateDirectoryW(path, NULL))
+			{
+				int err = GetLastError();
+				if (err == ERROR_ALREADY_EXISTS)
+				{
+					return;
+				}
+
+				Throw(GetLastError(), "Cannot create directory %ws", path.buf);
+			}
+		}
+
+		ROCOCO_API void CreateDirectoryFolder(const U8FilePath& path)
+		{
+			if (!CreateDirectoryA(path, NULL))
+			{
+				int err = GetLastError();
+				if (err == ERROR_ALREADY_EXISTS)
+				{
+					return;
+				}
+
+				Throw(GetLastError(), "Cannot create directory %s", path.buf);
+			}
+		}
+
 		ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
 		{
 			struct Win32BinArchive: IBinaryArchive
@@ -786,6 +814,12 @@ namespace Rococo::OS
 		GetKeyboardState(scanArray);
 	}
 
+	ROCOCO_API bool IsFileExistant(const char* filename)
+	{
+		DWORD flags = GetFileAttributesA(filename);
+		return flags != INVALID_FILE_ATTRIBUTES;
+	}
+
 	ROCOCO_API bool IsFileExistant(const wchar_t* filename)
 	{
 		DWORD flags = GetFileAttributesW(filename);
@@ -1223,6 +1257,13 @@ namespace WIN32_ANON
 			size_t len = StringLength(sysPath);
 			SecureFormat(sysPath.buf + len, sysPath.CAPACITY - len, L"packages/%hs/%hs", packName, dir);
 			OS::ToSysPath(sysPath.buf);
+		}
+
+		void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& sysPath) const override
+		{
+			WideFilePath wPath;
+			ConvertPingPathToSysPath(pingPath, wPath);
+			Assign(sysPath, wPath);
 		}
 
 		void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& sysPath) const override
@@ -1707,6 +1748,11 @@ namespace WIN32_ANON
 
 			isRunning = true;
 			hThread = _beginthreadex(nullptr, 65536, thread_monitor_directory, this, 0, &threadId);
+		}
+
+		bool IsFileExistant(cstr absPath) const override
+		{
+			return INVALID_FILE_ATTRIBUTES != GetFileAttributesA(absPath);
 		}
 
 		bool IsFileExistant(const wchar_t* absPath) const override
@@ -2224,6 +2270,12 @@ namespace Rococo
 			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
 		}
 
+		ROCOCO_API bool IsDirectory(cstr filename)
+		{
+			DWORD flags = GetFileAttributesA(filename);
+			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
+		}
+
 		template<class T> struct ComObject
 		{
 			T* instance;
@@ -2408,6 +2460,45 @@ namespace Rococo
 			// Unhook the event handler.
 			pfd->Unadvise(dwCookie);
 
+			return true;
+		}
+
+		bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtension)
+		{
+			using namespace Strings;
+
+			cstr ext = GetFileExtension(path);
+
+			char* mext = (char*) ext;
+
+			if (expectedExtension == nullptr && ext == nullptr)
+			{
+				// Celebrating the 42nd anniversay of BBC Basic
+				goto stripExtensionAndCatNew;
+			}
+			else if (expectedExtension == nullptr && ext != nullptr)
+			{
+				// Any extension should be stripped
+				*mext = 0;
+				goto stripExtensionAndCatNew;
+			}
+			else if (expectedExtension && ext)
+			{
+				if (!EqI(expectedExtension, ext))
+				{
+					return false;
+				}
+
+				*mext = 0;
+				goto stripExtensionAndCatNew;
+			}
+			else // expectedExtension && !ext
+			{
+				return false;
+			}
+
+		stripExtensionAndCatNew:
+			if (newExtension) StringCat(path.buf, newExtension, U8FilePath::CAPACITY);
 			return true;
 		}
 
@@ -3000,6 +3091,44 @@ namespace Rococo::OS
 		return len.QuadPart;
 	}
 
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename)
+	{
+		if (capacity >= 2048_megabytes)
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: capacity must be less than 2GB.\n%s", filename);
+		}
+
+		AutoFile f{ CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+
+		if (f.hFile == INVALID_HANDLE_VALUE)
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %s", filename);
+		}
+
+		LARGE_INTEGER len;
+		if (!GetFileSizeEx(f, &len))
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %s", filename);
+		}
+
+		if (len.QuadPart >= (int64)capacity)
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than %llu bytes.\n%s", filename, capacity);
+		}
+
+		try
+		{
+			f.ReadBuffer((DWORD)len.QuadPart, data);
+			data[len.QuadPart] = 0;
+		}
+		catch (IException& ex)
+		{
+			Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%s", ex.Message(), filename);
+		}
+
+		return len.QuadPart;
+	}
+
 	class AutoHKEY
 	{
 		HKEY hKey = nullptr;
@@ -3121,6 +3250,56 @@ namespace Rococo::OS
 		};
 
 		RunInConfig(root, organization, writeValue);
+	}
+
+	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
+	{
+		AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			Throw(GetLastError(), "Cannot open %ws for writing", targetPath);
+		}
+
+		if (nBytes > 2_gigabytes)
+		{
+			Throw(0, "Cannot open %ws for writing. Buffer length > 2 gigs", targetPath);
+		}
+
+		DWORD bytesWritten;
+		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
+		{
+			Throw(GetLastError(), "Cannot write to file %ws", targetPath);
+		}
+
+		if (bytesWritten != (DWORD)nBytes)
+		{
+			Throw(GetLastError(), "Only partial write to %ws", targetPath);
+		}
+	}
+
+	void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes)
+	{
+		AutoFile hFile(CreateFileA(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			Throw(GetLastError(), "Cannot open %s for writing", targetPath);
+		}
+
+		if (nBytes > 2_gigabytes)
+		{
+			Throw(0, "Cannot open %s for writing. Buffer length > 2 gigs", targetPath);
+		}
+
+		DWORD bytesWritten;
+		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
+		{
+			Throw(GetLastError(), "Cannot write to file %s", targetPath);
+		}
+
+		if (bytesWritten != (DWORD)nBytes)
+		{
+			Throw(GetLastError(), "Only partial write to %s", targetPath);
+		}
 	}
 } // Rococo::OS
 

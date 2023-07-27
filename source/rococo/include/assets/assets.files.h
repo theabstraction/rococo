@@ -20,6 +20,9 @@ namespace Rococo::Assets
 
 	ROCOCO_INTERFACE IFileAsset : IAsset
 	{
+		// The API consumer can inform the asset system that the load event bound to the key is no longer valid or required. This should only be called in the main thread.
+		virtual void CancelAssociatedCallback(IAsset* key) = 0;
+
 		// If the file is ready to be viewed then IsLoaded returns true
 		virtual bool IsLoaded() const = 0;
 
@@ -69,16 +72,32 @@ namespace Rococo::Assets
 
 	ROCOCO_ASSETS_API void NoFileCallback(IFileAsset& asset);
 
+	ROCOCO_INTERFACE IFileAssetFactoryMonitor
+	{
+		virtual void OnFileAssetFactoryDataDelivered() = 0;
+	};
+
 	ROCOCO_INTERFACE IFileAssetFactory
 	{
 		// Creates a ref for asynchronous file loading.
 		// The file callback will be invoked for the first caller only when the file is loaded.
 		// If the file is already loaded then either IFileAsset::IsLoaded() or IFileAsset::IsError will return true.
 		// It is recommended that the caller of the method ensure the onLoad callback is valid for the lifetime of the file asset factory.
-		virtual AssetRef<IFileAsset> CreateFileAsset(const char* utf8Path, TAsyncOnLoadEvent onLoad = NoFileCallback) = 0;
+		// The asset object is used to name the onLoad event. The API consumer can remove the load event from the mainthread if the  callback is no longer valid or required
+		virtual AssetRef<IFileAsset> CreateFileAsset(const char* utf8Path, IAsset* uniqueLoaderKey, TAsyncOnLoadEvent onLoad = NoFileCallback) = 0;
 
-		// Call this periodically in whichever thread is responsible for handling onLoad callbacks
+		// Call this periodically in whichever thread is responsible for handling onLoad callbacks. It may also cause garbage collection and other housekeeping by dependent units,
+		// wishing to stay in sync with the file loader.
+
 		virtual void DeliverToThisThreadThisTick() = 0;
+
+		virtual void RaiseError(cstr msg, int statusCode, cstr path) = 0;
+
+		using TErrorHandler = Rococo::Function<void(cstr path, cstr message, int errorCode)>;
+		virtual void SetErrorHandler(TErrorHandler errorHandler) = 0;
+
+		virtual void AddMonitor(IFileAssetFactoryMonitor* monitor) = 0;
+		virtual void RemoveMonitor(IFileAssetFactoryMonitor* monitor) = 0;
 	};
 
 	ROCOCO_INTERFACE IFileAssetFactorySupervisor: IFileAssetFactory

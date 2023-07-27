@@ -64,11 +64,11 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     AutoRelease<ID3D11Buffer> guiBuffer;
     AutoFree<Fonts::IFontSupervisor> fonts;
-    AutoFree<IDX11TextureArray> spriteArray;
+    AutoFree<IDX11BitmapArray> spriteArray;
     AutoRelease<ID3D11DepthStencilState> guiDepthState;
     AutoRelease<ID3D11BlendState> alphaBlend;
     AutoRelease<ID3D11RasterizerState> spriteRasterizering;
-    AutoFree<Textures::ITextureArrayBuilderSupervisor> spriteArrayBuilder;
+    AutoFree<Textures::IBitmapArrayBuilderSupervisor> spriteArrayBuilder;
     AutoFree<IDX11HQFontResource> hqFonts;
 
     AutoRelease<ID3D11Texture2D> fontTexture;
@@ -106,8 +106,8 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         spriteRasterizering = DX11::CreateSpriteRasterizer(device);
         guiDepthState = DX11::CreateGuiDepthStencilState(device);
 
-        spriteArray = CreateDX11TextureArray(device, dc);
-        spriteArrayBuilder = CreateTextureArrayBuilder(loader, *spriteArray);
+        spriteArray = CreateDX11BitmapArray(device, dc);
+        spriteArrayBuilder = CreateBitmapArrayBuilder(loader, *spriteArray);
 
         cstr csvName = "!font1.csv";
 
@@ -324,7 +324,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         return metrics;
     }
 
-    Textures::ITextureArrayBuilder& SpriteBuilder() override
+    Textures::IBitmapArrayBuilder& SpriteBuilder() override
     {
         return *spriteArrayBuilder;
     }

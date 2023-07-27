@@ -265,22 +265,22 @@ namespace ANON
 		{
 			switch (keyEvent.osKeyEvent.VKey)
 			{
-			case IO::VKCode_PGUP:
+			case IO::VirtualKeys::VKCode_PGUP:
 				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-1, *this);
 				break;
-			case IO::VKCode_PGDOWN:
+			case IO::VirtualKeys::VKCode_PGDOWN:
 				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(1, *this);
 				break;
-			case IO::VKCode_UP:
+			case IO::VirtualKeys::VKCode_UP:
 				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(-1, *this);
 				break;
-			case IO::VKCode_DOWN:
+			case IO::VirtualKeys::VKCode_DOWN:
 				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(1, *this);
 				break;
-			case IO::VKCode_HOME:
+			case IO::VirtualKeys::VKCode_HOME:
 				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-100, *this);
 				break;
-			case IO::VKCode_END:
+			case IO::VirtualKeys::VKCode_END:
 				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(100, *this);
 				break;
 			default:

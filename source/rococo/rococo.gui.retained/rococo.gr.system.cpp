@@ -673,7 +673,7 @@ namespace ANON
 		{
 			switch (keyEvent.osKeyEvent.VKey)
 			{
-			case IO::VKCode_TAB:
+			case IO::VirtualKeys::VKCode_TAB:
 				if (keyEvent.osKeyEvent.IsUp())
 				{
 					if (focusId > 0)

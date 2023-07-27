@@ -54,7 +54,7 @@ namespace Rococo
 {
 	namespace OS
 	{
-		ROCOCO_API void BreakOnThrow(BreakFlag flag);
+		ROCOCO_API void BreakOnThrow(Flags::BreakFlag flag);
 	}
 
 	namespace Sex
@@ -130,7 +130,7 @@ namespace Rococo
 
 		ROCOCO_API void Throw(ParseException& ex)
 		{
-			OS::BreakOnThrow(OS::BreakFlag_SS);
+			OS::BreakOnThrow(OS::Flags::BreakFlag_SS);
 			throw ex;
 		}
 

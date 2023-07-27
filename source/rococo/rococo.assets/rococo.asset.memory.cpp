@@ -1,3 +1,6 @@
+#include <rococo.types.h>
+
+#define ROCOCO_ASSETS_API ROCOCO_API_EXPORT
 #include <rococo.assets.h>
 
 #include <allocators/rococo.allocators.dll.inl>

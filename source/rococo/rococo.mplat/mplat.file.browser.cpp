@@ -314,7 +314,7 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 	{
 		if (editing)
 		{
-			if (key.VKey == IO::VKCode_ENTER && key.IsUp())
+			if (key.VKey == IO::VirtualKeys::VKCode_ENTER && key.IsUp())
 			{
 				editing = false;
 				gui.DetachKeyboardSink(this);

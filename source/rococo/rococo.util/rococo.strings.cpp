@@ -584,6 +584,11 @@ namespace Rococo::Strings
 	}
 #endif
 
+	ROCOCO_API void Assign(U8FilePath& dest, const char* src)
+	{
+		Format(dest, "%s", src);
+	}
+
 	ROCOCO_UTIL_API void Assign(U8FilePath& dest, const wchar_t* wideSrc)
 	{
 		Format(dest, "%ls", wideSrc);
@@ -813,6 +818,11 @@ namespace Rococo::Strings
 	ROCOCO_UTIL_API bool EqI(const char* a, const char* b)
 	{
 		return _stricmp(a, b) == 0;
+	}
+
+	ROCOCO_UTIL_API bool EqI(const wchar_t* a, const wchar_t* b)
+	{
+		return _wcsicmp(a, b) == 0;
 	}
 
 	ROCOCO_UTIL_API bool StartsWith(cstr bigString, cstr prefix)

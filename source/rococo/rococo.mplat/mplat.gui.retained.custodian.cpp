@@ -375,9 +375,9 @@ namespace ANON
 		Vec2i span{ 8, 8 };
 		BitmapLocation sprite = BitmapLocation::None();
 
-		ITextureArrayBuilder& sprites;
+		IBitmapArrayBuilder& sprites;
 
-		MPlatImageMemento(cstr hint, cstr imagePath, ITextureArrayBuilder& _sprites): sprites(_sprites)
+		MPlatImageMemento(cstr hint, cstr imagePath, IBitmapArrayBuilder& _sprites): sprites(_sprites)
 		{
 			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
 			{
@@ -533,29 +533,29 @@ namespace ANON
 			{
 				switch (keyEvent.osKeyEvent.VKey)
 				{
-				case IO::VKCode_BACKSPACE:
+				case IO::VirtualKeys::VKCode_BACKSPACE:
 					manager.BackspaceAtCaret();
 					return;
-				case IO::VKCode_DELETE:
+				case IO::VirtualKeys::VKCode_DELETE:
 					manager.DeleteAtCaret();
 					return;
-				case IO::VKCode_ENTER:
+				case IO::VirtualKeys::VKCode_ENTER:
 					manager.Return();
 					return;
-				case IO::VKCode_LEFT:
+				case IO::VirtualKeys::VKCode_LEFT:
 					manager.AddToCaretPos(-1);
 					return;
-				case IO::VKCode_RIGHT:
+				case IO::VirtualKeys::VKCode_RIGHT:
 					manager.AddToCaretPos(1);
 					return;
-				case IO::VKCode_HOME:
+				case IO::VirtualKeys::VKCode_HOME:
 					manager.AddToCaretPos(-100'000'000);
 					return;
-				case IO::VKCode_END:
+				case IO::VirtualKeys::VKCode_END:
 					manager.AddToCaretPos(100'000'000);
 					return;
-				case IO::VKCode_C:
-					if (IO::IsKeyPressed(IO::VKCode_CTRL))
+				case IO::VirtualKeys::VKCode_C:
+					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
 					{
 						// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
 						copyAndPasteBuffer.resize(manager.GetTextAndLength(nullptr, 0));
@@ -568,8 +568,8 @@ namespace ANON
 					{
 						break;
 					}
-				case IO::VKCode_V:
-					if (IO::IsKeyPressed(IO::VKCode_CTRL))
+				case IO::VirtualKeys::VKCode_V:
+					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
 					{
 						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
 

@@ -91,7 +91,7 @@ namespace
 
       void LoadAllSprites()
       {
-         renderer.Gui().SpriteBuilder().BuildTextures(256);
+         renderer.Gui().SpriteBuilder().BuildBitmaps(256);
       }
 
       void Free() override

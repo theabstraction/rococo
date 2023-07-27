@@ -3,4 +3,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.assets.test\rococo.assets.test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\rococo.assets.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
 </Project>

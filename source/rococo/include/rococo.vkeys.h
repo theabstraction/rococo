@@ -2,7 +2,7 @@
 
 #ifdef _WIN32
 
-namespace Rococo::IO
+namespace Rococo::IO::VirtualKeys
 {
 	enum VKCode
 	{
