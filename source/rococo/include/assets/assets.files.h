@@ -97,7 +97,7 @@ namespace Rococo::Assets
 		virtual void SetErrorHandler(TErrorHandler errorHandler) = 0;
 
 		virtual void AddMonitor(IFileAssetFactoryMonitor* monitor) = 0;
-		virtual void RemoveMonitor(IFileAssetFactoryMonitor* uniqueKey) = 0;
+		virtual void RemoveMonitor(IFileAssetFactoryMonitor* monitor) = 0;
 	};
 
 	ROCOCO_INTERFACE IFileAssetFactorySupervisor: IFileAssetFactory
