@@ -22,7 +22,9 @@ void TestFactory(IFileAssetFactory& factory)
 		hasLoadCompleted = true;
 	};
 
-	AssetRef<IFileAsset> ref = factory.CreateFileAsset("!scripts/native/Sys.Maths.sxy", onLoad);
+	IAsset* fakeAsset = (IAsset*)&hasLoadCompleted;
+
+	AssetRef<IFileAsset> ref = factory.CreateFileAsset("!scripts/native/Sys.Maths.sxy", fakeAsset, onLoad);
 
 	uint32 refCount = ref.Life().ReferenceCount() > 0;
 	printf("RefCount: %d\n", refCount);

@@ -55,6 +55,14 @@ namespace ANON
 			controller = CreateTextureController(*this, _ceo.Engine(), _spec);
 		}
 
+		~TextureAsset()
+		{
+			if (fileAssetRef)
+			{
+				fileAssetRef->CancelAssociatedCallback(this);
+			}
+		}
+
 		void ParseImage(const FileData& data, cstr path, TImageLoadEvent onParse) override
 		{
 			ceo.ParseImage(data, path, onParse);
@@ -86,7 +94,7 @@ namespace ANON
 
 			try
 			{
-				fileAssetRef = ceo.FileAssets().CreateFileAsset(path, onLoad);
+				fileAssetRef = ceo.FileAssets().CreateFileAsset(path, this, onLoad);
 				return true;
 			}
 			catch (...)
@@ -169,7 +177,7 @@ namespace ANON
 		}
 	};
 
-	struct TextureAssetManager : ITextureAssetFactoryCEO, ITextureAssetsForEngine
+	struct TextureAssetManager : ITextureAssetFactoryCEO, ITextureAssetsForEngine, IFileAssetFactoryMonitor
 	{
 		IFileAssetFactory& fileManager;
 		ITextureManager& engineTextures;
@@ -178,18 +186,39 @@ namespace ANON
 		AutoFree<Rococo::Graphics::Textures::IMipMappedTextureArraySupervisor> rgbaArray;
 		std::vector<uint32> freeIndices;
 		std::vector<TextureAsset*> mapIndexToAsset;
+		std::vector<TextureAssetWithLife*> theLivingDead;
 
 		TextureAssetManager(ITextureManager& _engineTextures, IFileAssetFactory& _fileManager): engineTextures(_engineTextures), fileManager(_fileManager)
 		{
 			sync = OS::CreateCriticalSection();
+			_fileManager.AddMonitor(this);
+		}
+
+		void OnFileAssetFactoryDataDelivered()
+		{
+			GarbageCollect();
+		}
+
+		void GarbageCollect()
+		{
+			for (auto* d : theLivingDead)
+			{
+				delete d;
+			}
+
+			theLivingDead.clear();
 		}
 
 		virtual ~TextureAssetManager()
 		{
+			fileManager.RemoveMonitor(this);
+
 			for (auto i : textures)
 			{
 				delete i.second;
 			}
+
+			GarbageCollect();
 		}
 
 		ITextureAssetsForEngine& Engine()
@@ -241,6 +270,10 @@ namespace ANON
 
 		void MarkForDeath(TextureAssetWithLife* wrapper) noexcept override
 		{
+			// We can't delete here, as we may be the last reference held by the file asset system as it loads a fire we are dependent upon
+			// The destructor would deregister the file event handler while the event handler is being iterated through, so we defer deletion until
+			// after the file asset system has processed files.
+
 			auto i = textures.find(wrapper->Path());
 			if (i == textures.end())
 			{
@@ -265,7 +298,8 @@ namespace ANON
 					OS::TripDebugger();
 				}
 			}
-			delete wrapper;
+
+			theLivingDead.push_back(wrapper);
 		}
 
 		void ParseImage(const FileData& data, cstr path, TImageLoadEvent& onParse) override

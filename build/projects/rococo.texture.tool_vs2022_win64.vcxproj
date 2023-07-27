@@ -141,7 +141,8 @@
       <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\rococo.texture.tool.map</MapFileName>
     </Link>
@@ -226,7 +227,8 @@
       <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\rococo.texture.tool.map</MapFileName>
     </Link>
@@ -235,7 +237,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.assets.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.texture.tool\rococo.win32.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.texture.tool\rococo.tx-tool.win32.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

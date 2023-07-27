@@ -8,6 +8,7 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 #include <rococo.functional.h>
+#include <unordered_set>
 #include <list>
 
 namespace ANON
@@ -20,6 +21,7 @@ namespace ANON
 
 	struct FileAsset : IFileAsset
 	{
+		std::unordered_map<IAsset*, TAsyncOnLoadEvent> onLoadEvents;
 		AutoFree<IExpandingBuffer> fileMap;
 		AssetStatus status;
 
@@ -28,6 +30,15 @@ namespace ANON
 		FileAsset(cstr _pingPath)
 		{
 			status.pingPath = to_fstring(_pingPath);
+		}
+
+		void CancelAssociatedCallback(IAsset* key) override
+		{
+			auto i = onLoadEvents.find(key);
+			if (i != onLoadEvents.end())
+			{
+				onLoadEvents.erase(i);
+			}
 		}
 
 		bool IsLoaded() const override
@@ -94,18 +105,28 @@ namespace ANON
 		IFileAssetFactoryCEO& ceo;
 		long refCount = 0;
 
-		TAsyncOnLoadEvent onLoadEvent;
 	public:
-		FileAssetWithLife(IFileAssetFactoryCEO& _ceo, cstr pingPath, TAsyncOnLoadEvent& _onLoadEvent) : ceo(_ceo), asset(pingPath), onLoadEvent(_onLoadEvent)
+		FileAssetWithLife(IFileAssetFactoryCEO& _ceo, cstr pingPath) : ceo(_ceo), asset(pingPath)
 		{
+		}
 
+		FileAsset asset;
+
+		void AddEventHandler(IAsset* dependentAsset, TAsyncOnLoadEvent handler)
+		{
+			asset.onLoadEvents[dependentAsset] = handler;
 		}
 
 		void DeliverChristmasPresents()
 		{
 			try
 			{
-				onLoadEvent(asset);
+				for (auto& it : asset.onLoadEvents)
+				{
+					it.second.Invoke(asset);
+				}
+
+				asset.onLoadEvents.clear();
 			}
 			catch (IException& ex)
 			{
@@ -162,8 +183,6 @@ namespace ANON
 			asset.status.isReady = true;
 		}
 
-		FileAsset asset;
-
 		uint32 ReferenceCount() const override
 		{
 			return refCount;
@@ -201,6 +220,7 @@ namespace ANON
 		std::list<FastStringKey> unloadedItems;
 		std::list<FileAssetWithLife*> newlyLoadedItems;
 		TErrorHandler errorHandler;
+		std::unordered_set<IFileAssetFactoryMonitor*> monitors;
 
 		FileAssetFactory(IAssetManager& _manager, IO::IInstallation& _installation) :
 			manager(_manager), installation(_installation)
@@ -221,14 +241,25 @@ namespace ANON
 			}
 		}
 
+		void AddMonitor(IFileAssetFactoryMonitor* monitor) override
+		{
+			monitors.insert(monitor);
+		}
+
+		void RemoveMonitor(IFileAssetFactoryMonitor* monitor) override
+		{
+			monitors.erase(monitor);
+		}
+
 		IO::IInstallation& Installation()
 		{
 			return installation;
 		}
 
-		AssetRef<IFileAsset> CreateFileAsset(const char* pingPath, TAsyncOnLoadEvent onLoad) override
+		AssetRef<IFileAsset> CreateFileAsset(const char* pingPath, IAsset* uniqueLoaderKey, TAsyncOnLoadEvent onLoad) override
 		{
 			if (pingPath == nullptr || *pingPath == 0) Throw(0, "Blank ping path");
+			if (uniqueLoaderKey == nullptr) Throw(0, "%s: Null is prohibited as a uniqueLoaderKey", __FUNCTION__);
 
 			OS::Lock lockedSection(sync);
 
@@ -242,7 +273,7 @@ namespace ANON
 			{
 				try
 				{
-					assetWrapper = new FileAssetWithLife(*this, mapIterator->first, onLoad);
+					assetWrapper = new FileAssetWithLife(*this, mapIterator->first);					
 					mapIterator->second = assetWrapper;
 					unloadedItems.push_back(mapIterator->first);
 					OS::QueueAPC(loaderThread, FileAssetFactory::WakeUp, this);
@@ -257,6 +288,8 @@ namespace ANON
 			{
 				assetWrapper = mapIterator->second;
 			}
+
+			assetWrapper->AddEventHandler(uniqueLoaderKey, onLoad);
 
 			return AssetRef<IFileAsset>(&assetWrapper->asset, static_cast<IAssetLifeSupervisor*>(assetWrapper));
 		}
@@ -309,8 +342,18 @@ namespace ANON
 				if (santa)
 				{
 					AssetAutoRelease hold(*santa);
-					santa->DeliverChristmasPresents();
+					if (santa->ReferenceCount() > 1)
+					{
+						// If we have a reference in addition to the callback queue, then we invoke the load handler, otherwise nobody is listening
+						// and the load handler may not be well defined.
+						santa->DeliverChristmasPresents();
+					}
 				}
+			}
+
+			for (auto& i : monitors)
+			{
+				i->OnFileAssetFactoryDataDelivered();
 			}
 		}
 
