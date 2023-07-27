@@ -183,31 +183,28 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 					tx.FetchAllMipMapLevels();
 
 					cstr imagePath = tx.AssetContainer().Path();
+
 					cstr ext = GetFileExtension(imagePath);
-					Substring sansExt{ imagePath, ext };
-
+	
 					U8FilePath dirPath;
-					Strings::SubstringToString(dirPath.buf, U8FilePath::CAPACITY, sansExt);
-					StringCat(dirPath.buf, ".mipmaps", U8FilePath::CAPACITY);
+					Assign(dirPath, imagePath);
+					if (!IO::TrySwapExtension(dirPath, nullptr, ".mipmaps"))
+					{
+						Throw(0, "%s: Failed to swap extension on %s", __FUNCTION__, dirPath.buf);
+					}
+
 					printf("Compiling %s -> %s\n", imagePath, dirPath.buf);
+					U8FilePath sysDirPath;
+					bundle.installation.ConvertPingPathToSysPath(dirPath, sysDirPath);
 
-					WideFilePath wDirPathFile;
-					bundle.installation.ConvertPingPathToSysPath(dirPath, wDirPathFile);
+					IO::CreateDirectoryFolder(sysDirPath);
 
-					IO::CreateDirectoryFolder(wDirPathFile);
-
-					auto onLevel = [&wItemPath, &tx, &ext, &itemPingPath, &dirPath, &bundle](const MipMapLevelDesc& desc)
+					auto onLevel = [&tx, &ext, &itemPingPath, &sysDirPath, &bundle](const MipMapLevelDesc& desc)
 					{
 						cstr newExt = desc.levelspan < 16 ? ".tif" : ext;
 
 						U8FilePath targetFile;
-						Format(targetFile, "%s/%ux%u%s", dirPath.buf, desc.levelspan, desc.levelspan, newExt);
-
-						WideFilePath wTargetFile;
-						bundle.installation.ConvertPingPathToSysPath(targetFile, wTargetFile);
-
-						U8FilePath u8SysPath;
-						Assign(u8SysPath, wTargetFile);
+						Format(targetFile, "%s\\%ux%u%s", sysDirPath.buf, desc.levelspan, desc.levelspan, newExt);
 
 						if (desc.texelBuffer != nullptr)
 						{
@@ -215,12 +212,12 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 							if (EqI(newExt, ".tif") || EqI(newExt, ".tiff"))
 							{
 								// We want to save the file as a tiff
-								bundle.txManager.CompressTiff((const RGBAb*)desc.texelBuffer, span, u8SysPath);
+								bundle.txManager.CompressTiff((const RGBAb*)desc.texelBuffer, span, targetFile);
 							}
 							else
 							{
 								// We want to save the file as a jpeg
-								bundle.txManager.CompressJPeg((const RGBAb*)desc.texelBuffer, span, u8SysPath, 90);
+								bundle.txManager.CompressJPeg((const RGBAb*)desc.texelBuffer, span, targetFile, 90);
 							}
 
 							// We can save the texels to a directory named according to the original ping path	
@@ -316,13 +313,9 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR 
 
 		if (Strings::CLI::HasSwitch(SWITCH_extractTxBakes))
 		{
-			WideFilePath sysPath;
+			U8FilePath sysPath;
 			installation->ConvertPingPathToSysPath(pingPath, sysPath);
-
-			U8FilePath u8sysPath;
-			Assign(u8sysPath, sysPath);
-
-			Rococo::Bakes::ExtractAsImageListFromBakedFile(u8sysPath);
+			Rococo::Bakes::ExtractAsImageListFromBakedFile(sysPath);
 
 			return 0;
 		}

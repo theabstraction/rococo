@@ -37,7 +37,7 @@ namespace Rococo::Bakes
 				return;
 			}
 
-			decompressedImage.resize(span.x * span.y);
+			decompressedImage.resize(sizeof RGBAb * span.x * span.y);
 			memcpy(decompressedImage.data(), data, decompressedImage.size());
 		}
 
@@ -51,9 +51,7 @@ namespace Rococo::Bakes
 
 	void LoadBufferAsTiff(TByteArray& scratchBuffer, TByteArray& targetArray, uint32 span, cstr tifPath)
 	{
-		WideFilePath wPath;
-		Assign(wPath, tifPath);
-		size_t len = OS::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), wPath);
+		size_t len = OS::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), tifPath);
 
 		ImageLoader onLoad;
 		onLoad.expectedSpan = span;
@@ -80,9 +78,7 @@ namespace Rococo::Bakes
 
 	void LoadBufferAsJPG(TByteArray& scratchBuffer, TByteArray& targetArray, uint32 span, cstr jpgPath)
 	{
-		WideFilePath wPath;
-		Assign(wPath, jpgPath);
-		size_t len = OS::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), wPath);
+		size_t len = OS::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), jpgPath);
 
 		ImageLoader onLoad;
 		onLoad.expectedSpan = span;
@@ -129,15 +125,7 @@ namespace Rococo::Bakes
 		CompressionType compressionType;
 	};
 
-	template<class T>
-	void Push(TByteArray& b, T& object)
-	{
-		size_t writeIndex = b.size();
-		b.resize(b.size() + sizeof T);
-		memcpy(b.data() + writeIndex, &object, sizeof object);
-	}
-
-	void SaveMipMapsIntoBuffer(TByteArray& destination, const uint16 compressedBits, const std::vector<TByteArray> mipMapLevels, const std::vector<CompressionType> mipMapLevelCompression)
+	void SaveMipMapsIntoBuffer(TByteArray& destination, const uint16 compressedBits, const std::vector<TByteArray>& mipMapLevels, const std::vector<CompressionType>& mipMapLevelCompression)
 	{
 		destination.clear();
 
@@ -179,7 +167,7 @@ namespace Rococo::Bakes
 
 		destination.resize(totalOffset);
 
-		Push(destination, header);
+		memcpy(destination.data(), &header, sizeof header);
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -232,10 +220,11 @@ namespace Rococo::Bakes
 		}
 		else
 		{
-			auto* ext = GetFileExtension(mipMapDir);
-			Substring sansExtension{ mipMapDir, ext };
-			Strings::SubstringToString(targetPath.buf, U8FilePath::CAPACITY, sansExtension);
-			StringCat(targetPath.buf, ".23x", U8FilePath::CAPACITY); // .23x was chosen because the year of writing is 2023, and I could not find a clash with the name on the Internet
+			Assign(targetPath, mipMapDir);
+			if (!IO::TrySwapExtension(targetPath, ".mipmaps", ".23x")) // .23x was chosen because the year of writing is 2023, and I could not find a clash with the name on the Internet
+			{
+				Throw(0, "%s: Could not swap extension to %s", __FUNCTION__, mipMapDir);
+			}
 		}
 
 		maxSpan = min(maxSpan, 8192U);
@@ -255,11 +244,8 @@ namespace Rococo::Bakes
 
 			mipMapLevelCompression.push_back(CompressionType::RAW);
 
-			U8FilePath item;
-			Format(item, "%ux%u.tif", span, span);
-
 			U8FilePath tifPath;
-			Format(tifPath, "%s\\%s", mipMapDir, item.buf);
+			Format(tifPath, "%s\\%ux%u.tif", mipMapDir, span, span);
 
 			if (OS::IsFileExistant(tifPath))
 			{
@@ -273,9 +259,8 @@ namespace Rococo::Bakes
 			}
 			else
 			{
-				Format(item, "%ux%u.jpg", span, span);
 				U8FilePath jpgPath;
-				Format(jpgPath, "%s\\%s", mipMapDir, item.buf);
+				Format(jpgPath, "%s\\%ux%u.jpg", mipMapDir, span, span);
 
 				if (OS::IsFileExistant(jpgPath))
 				{
@@ -344,8 +329,12 @@ namespace Rococo::Bakes
 		else if (mipMapLevel < 16)
 		{
 			// Always raw data, as raw data is smaller than compressed data below this threshold
-			uint32 offset = header.offsets4To15[mipMapLevel];
+			uint32 offset = header.offsets4To15[mipMapLevel - 4];
 			size_t longOffset = (size_t)(offset);
+			if (offset == 0)
+			{
+				return desc;
+			}
 
 			uint32 compressionBit = 1 << mipMapLevel;
 
@@ -401,45 +390,38 @@ namespace Rococo::Bakes
 
 	void ExportBakeFile(const uint8* data, size_t lengthInBytes, uint32 span, cstr targetFile, cstr extension)
 	{
-		cstr ext = GetFileExtension(targetFile);
-		Substring sansExt{ targetFile, ext };
-
 		U8FilePath u8FinalTarget;
-		Strings::SubstringToString(u8FinalTarget.buf, U8FilePath::CAPACITY, sansExt);
-		StringCat(u8FinalTarget.buf, ".mipmaps", U8FilePath::CAPACITY);
+		Assign(u8FinalTarget, targetFile);
 
-		WideFilePath wPath;
-		Assign(wPath, u8FinalTarget);
+		if (!IO::TrySwapExtension(u8FinalTarget, ".23x", ".mipmaps"))
+		{
+			Throw(0, "Could not swap extension for %s", targetFile);
+		}
 
-		IO::CreateDirectoryFolder(wPath);
+		IO::CreateDirectoryFolder(u8FinalTarget);
 
-		WideFilePath item;
-		Format(item, L"%ws\\%ux%u.%s", wPath.buf, span, span, extension);
+		U8FilePath item;
+		Format(item, "%s\\%ux%u%s", u8FinalTarget.buf, span, span, extension);
 
 		OS::SaveBinaryFile(item, data, lengthInBytes);
 	}
 
-	void CompressAndExportBakeFile(const RGBAb* data, uint32 span, size_t lengthInBytes, cstr targetPath)
+	void CompressAndExportBakeFile(const RGBAb* data, uint32 span, cstr targetPath)
 	{
-		cstr ext = GetFileExtension(targetPath);
-		Substring sansExt{ targetPath, ext };
-
 		U8FilePath u8FinalTarget;
-		Strings::SubstringToString(u8FinalTarget.buf, U8FilePath::CAPACITY, sansExt);
-		StringCat(u8FinalTarget.buf, ".mipmaps", U8FilePath::CAPACITY);
+		Assign(u8FinalTarget, targetPath);
 
-		WideFilePath wPath;
-		Assign(wPath, u8FinalTarget);
+		if (!IO::TrySwapExtension(u8FinalTarget, ".23x", ".mipmaps"))
+		{
+			Throw(0, "Could not swap extension for %s", targetPath);
+		}
 
-		IO::CreateDirectoryFolder(wPath);
+		IO::CreateDirectoryFolder(u8FinalTarget);
 
-		WideFilePath item;
-		Format(item, L"%ws\\%ux%u.tif", wPath.buf, span, span);
+		U8FilePath item;
+		Format(item, "%s\\%ux%u.tif", u8FinalTarget.buf, span, span);
 
-		U8FilePath u8Item;
-		Assign(u8Item, item);
-
-		Imaging::CompressTiff((const RGBAb*) data, Vec2i { (int32) span, (int32) span }, u8Item);
+		Imaging::CompressTiff((const RGBAb*) data, Vec2i { (int32) span, (int32) span }, item);
 	}
 
 	ROCOCO_MISC_UTILS_API void ExtractAsImageListFromBakedFile(cstr bakeFile23x)
@@ -466,13 +448,11 @@ namespace Rococo::Bakes
 					ExportBakeFile(desc.compressedData, desc.lengthInBytes, desc.span, bakeFile23x, ".tif");
 					break;
 				case CompressionType::RAW:
-					if (desc.image) CompressAndExportBakeFile(desc.image, desc.lengthInBytes, desc.span, bakeFile23x);
+					if (desc.image) CompressAndExportBakeFile(desc.image, desc.span, bakeFile23x);
 				}
 			}
 		};
 
-		WideFilePath wPath;
-		Assign(wPath, bakeFile23x);
-		OS::LoadBinaryFile(onLoad, wPath);
+		OS::LoadBinaryFile(onLoad, bakeFile23x);
 	}
 }

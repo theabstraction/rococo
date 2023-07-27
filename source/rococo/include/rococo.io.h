@@ -71,6 +71,7 @@ namespace Rococo::IO
 
 	// Creates a directory at the specified path. If it does not exist and the operation fails an exception is thrown
 	ROCOCO_API void CreateDirectoryFolder(const WideFilePath& path);
+	ROCOCO_API void CreateDirectoryFolder(const U8FilePath& path);
 	ROCOCO_API char DirectorySeparatorChar();
 	ROCOCO_API void UseBufferlessStdout();
 
@@ -238,6 +239,7 @@ namespace Rococo::IO
 		// Not terminated with a slash
 		virtual void GetBinDirectoryAbsolute(WideFilePath& binDirectory) const = 0;
 
+		virtual bool IsFileExistant(cstr absPath) const = 0;
 		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
 		virtual void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const = 0;
@@ -253,6 +255,7 @@ namespace Rococo::IO
 		virtual void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) = 0;
 		virtual bool TryLoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;
+		virtual void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& path) const = 0;
 		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const = 0;
 		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const = 0;
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
@@ -295,6 +298,8 @@ namespace Rococo::IO
 	ROCOCO_API void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
 #endif
 	ROCOCO_API void DeleteUserFile(cstr filename);
+
+	ROCOCO_API bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtenson);
 }
 
 #endif

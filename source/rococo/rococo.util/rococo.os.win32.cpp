@@ -86,6 +86,20 @@ namespace Rococo
 			}
 		}
 
+		ROCOCO_API void CreateDirectoryFolder(const U8FilePath& path)
+		{
+			if (!CreateDirectoryA(path, NULL))
+			{
+				int err = GetLastError();
+				if (err == ERROR_ALREADY_EXISTS)
+				{
+					return;
+				}
+
+				Throw(GetLastError(), "Cannot create directory %s", path.buf);
+			}
+		}
+
 		ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
 		{
 			struct Win32BinArchive: IBinaryArchive
@@ -1245,6 +1259,13 @@ namespace WIN32_ANON
 			OS::ToSysPath(sysPath.buf);
 		}
 
+		void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& sysPath) const override
+		{
+			WideFilePath wPath;
+			ConvertPingPathToSysPath(pingPath, wPath);
+			Assign(sysPath, wPath);
+		}
+
 		void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& sysPath) const override
 		{
 			if (pingPath == nullptr || *pingPath == 0)
@@ -1727,6 +1748,11 @@ namespace WIN32_ANON
 
 			isRunning = true;
 			hThread = _beginthreadex(nullptr, 65536, thread_monitor_directory, this, 0, &threadId);
+		}
+
+		bool IsFileExistant(cstr absPath) const override
+		{
+			return INVALID_FILE_ATTRIBUTES != GetFileAttributesA(absPath);
 		}
 
 		bool IsFileExistant(const wchar_t* absPath) const override
@@ -2437,6 +2463,45 @@ namespace Rococo
 			return true;
 		}
 
+		bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtension)
+		{
+			using namespace Strings;
+
+			cstr ext = GetFileExtension(path);
+
+			char* mext = (char*) ext;
+
+			if (expectedExtension == nullptr && ext == nullptr)
+			{
+				// Celebrating the 42nd anniversay of BBC Basic
+				goto stripExtensionAndCatNew;
+			}
+			else if (expectedExtension == nullptr && ext != nullptr)
+			{
+				// Any extension should be stripped
+				*mext = 0;
+				goto stripExtensionAndCatNew;
+			}
+			else if (expectedExtension && ext)
+			{
+				if (!EqI(expectedExtension, ext))
+				{
+					return false;
+				}
+
+				*mext = 0;
+				goto stripExtensionAndCatNew;
+			}
+			else // expectedExtension && !ext
+			{
+				return false;
+			}
+
+		stripExtensionAndCatNew:
+			if (newExtension) StringCat(path.buf, newExtension, U8FilePath::CAPACITY);
+			return true;
+		}
+
 		ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity)
 		{
 			cstr finalChar = GetFinalNull(pathname);
@@ -3021,6 +3086,44 @@ namespace Rococo::OS
 		catch (IException& ex)
 		{
 			Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
+		}
+
+		return len.QuadPart;
+	}
+
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename)
+	{
+		if (capacity >= 2048_megabytes)
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: capacity must be less than 2GB.\n%s", filename);
+		}
+
+		AutoFile f{ CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+
+		if (f.hFile == INVALID_HANDLE_VALUE)
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %s", filename);
+		}
+
+		LARGE_INTEGER len;
+		if (!GetFileSizeEx(f, &len))
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %s", filename);
+		}
+
+		if (len.QuadPart >= (int64)capacity)
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than %llu bytes.\n%s", filename, capacity);
+		}
+
+		try
+		{
+			f.ReadBuffer((DWORD)len.QuadPart, data);
+			data[len.QuadPart] = 0;
+		}
+		catch (IException& ex)
+		{
+			Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%s", ex.Message(), filename);
 		}
 
 		return len.QuadPart;

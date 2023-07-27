@@ -2,6 +2,7 @@
 #define ROCOCO_ASSETS_API ROCOCO_API_EXPORT
 #include <assets/assets.texture.impl.h>
 #include <vector>
+#include <rococo.bakes.h>
 
 using namespace Rococo;
 using namespace Rococo::Assets;
@@ -147,78 +148,6 @@ namespace ANON
 		}
 	} s_LoadedMipMap;
 
-	struct GPUedMipMapLevel : IMipMapLevelDescriptor
-	{
-		bool CanClear() const override
-		{
-			return false;
-		}
-
-		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
-		{
-			return asset.Index() != (uint32)-1;
-		}
-
-		// We prohibit superfluous loading, but...
-		// if the API consumer wishes to load again, then he should set the buffer to an uninitialized state first.
-		bool CanLoad() const override
-		{
-			return false;
-		}
-
-		// No mirror for the texture, so nothing to save yet
-		bool CanSave() const override
-		{
-			return false;
-		}
-
-		bool ReadyForLoad() const override
-		{
-			return false;
-		}
-
-		fstring ToString() const override
-		{
-			return "GPUed"_fstring;
-		}
-	} s_GPUedMipMapLevel;
-
-	struct MirroredMipMapLevel : IMipMapLevelDescriptor
-	{
-		bool CanClear() const override
-		{
-			return true;
-		}
-
-		bool CanGPUOperateOnMipMaps(ITextureAsset& asset) const override
-		{
-			return asset.Index() != (uint32)-1;
-		}
-
-		// We prohibit superfluous loading, but...
-		// if the API consumer wishes to load again, then he should set the buffer to an uninitialized state first.
-		bool CanLoad() const override
-		{
-			return false;
-		}
-
-		// Assume the GPU has modified the texture, so saving the data is permitted
-		bool CanSave() const override
-		{
-			return true;
-		}
-
-		bool ReadyForLoad() const override
-		{
-			return false;
-		}
-
-		fstring ToString() const override
-		{
-			return "Mirrored (GPU + Sys-RAM)"_fstring;
-		}
-	} s_MirroredMipMapLevel;
-
 	struct TextureController : ITextureControllerSupervisor
 	{
 		ITextureAssetSupervisor& container;
@@ -230,7 +159,31 @@ namespace ANON
 		TexelSpec spec;
 		TTextureControllerEvent onLoad;
 
+		TByteArray compressedArchive23x; // 23x file that bundles all mip maps
+
 		enum { LOAD_BEST_SPEC = -1 };
+
+		static int SizeInBytesOf(TexelSpec _spec, int span)
+		{
+			uint32 nBytes = Sq(span) * (_spec.bitPlaneCount * _spec.bitsPerBitPlane / 8);
+			return nBytes;
+		}
+
+		static int SpanOf(int mipMapIndex)
+		{
+			return 1 << mipMapIndex;
+		}
+
+		static int LevelOf(int span)
+		{
+			int level = 0;
+			while (span > 1)
+			{
+				span = span >> 1;
+				level++;
+			}
+			return level;
+		}
 
 		TextureController(ITextureAssetSupervisor& _container, ITextureAssetsForEngine& _engine, TexelSpec _spec) : container(_container), engine(_engine), spec(_spec)
 		{
@@ -252,6 +205,51 @@ namespace ANON
 			}
 
 			return *descriptors[levelIndex];
+		}
+
+		// TODO - allow partial loads of the compressed archive
+		void OnNewCompressedArchive(const IFileAsset& file, int mipMapLevel)
+		{
+			UNUSED(file);
+
+			// Lowest quality mipmaps always get loaded first, as they are practically costless
+			if (mipMapLevel == (uint32)-1)
+			{
+				mipMapLevel = (int) localLevels.size() - 1;
+			}
+
+			uint32 requiredSpan = 1;
+			for(uint32 i = 0; i < 4; i++, requiredSpan <<= 1)
+			{
+				Rococo::Bakes::MapMapDesc desc = Rococo::Bakes::FindMipMapInBakedFile(compressedArchive23x.data(), compressedArchive23x.size(), i);
+
+				if (desc.image)
+				{
+					EnsureLocalLevel(i);
+
+					uint32 nBytes = SizeInBytesOf(spec, requiredSpan);
+
+					localLevels[i].resize(nBytes);
+					memcpy(localLevels[i].data(), desc.image, nBytes);
+					descriptors[i] = &s_LoadedMipMap;
+				}
+			}
+
+			for (uint32 i = 4; i <= (uint32) mipMapLevel && i < localLevels.size(); i++)
+			{
+				Rococo::Bakes::MapMapDesc desc = Rococo::Bakes::FindMipMapInBakedFile(compressedArchive23x.data(), compressedArchive23x.size(), i);
+
+				if (desc.compressedData)
+				{
+					auto onParse = [this, mipMapLevel](TexelSpec spec, Vec2i span, const uint8* texels)->void
+					{
+						OnParseFile(spec, span, texels, mipMapLevel);
+					};
+
+					// This indicates that the file defines the spec					
+					container.ParseImage(FileData{ desc.compressedData, desc.lengthInBytes }, desc.compressionType == Rococo::Bakes::CompressionType::JPG ? "#23x.jpg" : "#23x.tif", onParse);
+				}
+			}
 		}
 
 		void EnsureLocalLevel(uint32 levelIndex)
@@ -340,33 +338,11 @@ namespace ANON
 				return;
 			}
 
-			LoadFromTopLevelImage(span, texels);
-		}
-
-		static int SizeInBytesOf(TexelSpec _spec, int span)
-		{
-			uint32 nBytes = Sq(span) * (_spec.bitPlaneCount * _spec.bitsPerBitPlane / 8);
-			return nBytes;
-		}
-
-		static int SpanOf(int mipMapIndex)
-		{
-			return 1 << mipMapIndex;
-		}
-
-		static int LevelOf(int span)
-		{
-			int level = 0;
-			while (span > 1)
-			{
-				span = span >> 1;
-				level++;
-			}
-			return level;
+			OnParseFile_LoadFromTopLevelImage(span, texels);
 		}
 
 		// Arguments have been validated except for span.x as a valid mip map level span
-		void LoadFromTopLevelImage(Vec2i span, const uint8* texels)
+		void OnParseFile_LoadFromTopLevelImage(Vec2i span, const uint8* texels)
 		{
 			int mipMapLevel = LevelOf(span.x);
 
@@ -385,7 +361,7 @@ namespace ANON
 				// The image has a higher resolution than that of the engine quality, this means we should downsample to generate a lower resolution top level mip map. That is if the engine allows it.
 				auto onDownsample = [this](Vec2i downSampledSpan, const uint8* downSampledTexels)
 				{
-					LoadFromTopLevelImage(downSampledSpan, downSampledTexels);
+					OnParseFile_LoadFromTopLevelImage(downSampledSpan, downSampledTexels);
 				};
 
 				if (!engine.DownsampleToEngineQuality(spec, span, texels, onDownsample))
@@ -413,6 +389,15 @@ namespace ANON
 			if (file.IsLoaded())
 			{
 				auto data = file.RawData();
+
+				if (Strings::EndsWithI(file.Path(), ".23x"))
+				{
+					// This is a 23x bundle file, a Sexy Mip Map archive
+					compressedArchive23x.resize(data.nBytes);
+					memcpy(compressedArchive23x.data(), data.data, data.nBytes);
+					OnNewCompressedArchive(file, mipMapLevel);
+					return;
+				}
 
 				if (mipMapLevel == LOAD_BEST_SPEC)
 				{

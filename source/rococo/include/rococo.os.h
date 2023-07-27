@@ -134,6 +134,7 @@ namespace Rococo::OS
 
 	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
 	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& callback, const wchar_t* filename);
 	ROCOCO_API void PollKeys(uint8 scanArray[256]);
 	ROCOCO_API bool MakeContainerDirectory(char* filename);
