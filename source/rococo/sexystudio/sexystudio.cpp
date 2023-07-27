@@ -2261,7 +2261,7 @@ extern "C" _declspec(dllexport) int CreateSexyStudioFactory(void** ppInterface, 
 			return CO_E_NOTINITIALIZED;
 		}
 
-		Rococo::OS::SetBreakPoints(Rococo::OS::BreakFlag_All & ~Rococo::OS::BreakFlag_IllFormed_SExpression);
+		Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All & ~Rococo::OS::Flags::BreakFlag_IllFormed_SExpression);
 
 		InitStudioWindows(g_hDllInstance, (LPCSTR)IDI_ICON1, (LPCSTR)IDI_ICON2);
 
