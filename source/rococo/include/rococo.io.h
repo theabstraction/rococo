@@ -41,6 +41,7 @@ namespace Rococo::IO
 	struct IUnicode16Writer;
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool IsDirectory(const wchar_t* filename);
+	ROCOCO_API bool IsDirectory(cstr filename);
 	struct FileItemData
 	{
 		const wchar_t* fullPath;

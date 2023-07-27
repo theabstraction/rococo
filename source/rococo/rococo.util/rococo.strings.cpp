@@ -584,6 +584,11 @@ namespace Rococo::Strings
 	}
 #endif
 
+	ROCOCO_API void Assign(U8FilePath& dest, const char* src)
+	{
+		Format(dest, "%s", src);
+	}
+
 	ROCOCO_UTIL_API void Assign(U8FilePath& dest, const wchar_t* wideSrc)
 	{
 		Format(dest, "%ls", wideSrc);

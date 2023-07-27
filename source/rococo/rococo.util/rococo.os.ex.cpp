@@ -90,5 +90,44 @@ namespace Rococo::OS
 
 		onLoad.InvokeElseThrow(asciiData.data());
 	}
+
+	void LoadBinaryFile(Function<void(uint8* buffer, size_t fileLength)> onLoad, const wchar_t* filename)
+	{
+		std::vector<uint8> binData;
+
+		{ // File is locked in this codesection
+			AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+
+			if (f.hFile == INVALID_HANDLE_VALUE)
+			{
+				Throw(GetLastError(), "LoadBinaryFile: Cannot open file %ls", filename);
+			}
+
+			LARGE_INTEGER len;
+			if (!GetFileSizeEx(f, &len))
+			{
+				Throw(GetLastError(), "LoadBinaryFile: Cannot determine file size %ls", filename);
+			}
+
+			if (len.QuadPart >= (int64)2048_megabytes)
+			{
+				Throw(GetLastError(), "LoadBinaryFile: File too large - length must be less than 2GB.\n%ls", filename);
+			}
+
+			binData.resize(len.QuadPart);
+
+			try
+			{
+				f.ReadBuffer((DWORD)len.QuadPart, (char*) binData.data());
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "LoadBinaryFile: %s.\n%ls", ex.Message(), filename);
+			}
+
+		} // File is no longer locked
+
+		onLoad.InvokeElseThrow(binData.data(), binData.size());
+	}
 }
 

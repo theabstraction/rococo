@@ -111,6 +111,7 @@ namespace Rococo::OS
 	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
+	ROCOCO_API bool IsFileExistant(const char* path);
 	ROCOCO_API bool IsFileExistant(const wchar_t* path);
 	ROCOCO_API void Format_C_Error(int errorCode, char* buffer, size_t capacity);
 	ROCOCO_API [[nodiscard]] int OpenForAppend(void** fp, cstr name);
@@ -122,6 +123,8 @@ namespace Rococo::OS
 	ROCOCO_API void ToUnixPath(char* path);
 	ROCOCO_API void SanitizePath(char* path);
 	ROCOCO_API void SanitizePath(wchar_t* path);
+	ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes);
+	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes);
 	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window);
 	ROCOCO_API bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
 	ROCOCO_API cstr GetAsciiCommandLine();

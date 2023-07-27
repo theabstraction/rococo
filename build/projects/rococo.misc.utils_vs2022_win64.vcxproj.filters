@@ -10,5 +10,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.sprites.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.sxytype-inference.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.texture.builder.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.misc.utils\rococo.bakes.mipmap.cpp" />
   </ItemGroup>
 </Project>

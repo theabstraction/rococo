@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <rococo.win32.rendering.h>
 #include <rococo.renderer.h>
+#include <rococo.bakes.h>
 
 namespace Rococo::Assets
 {
@@ -41,6 +42,36 @@ void OnError(cstr path, cstr message, int errorCode)
 {
 	printf("%s: %s code %d\n", path, message, errorCode);
 	Throw(errorCode, "%s: %s", path, message);
+}
+
+void FindAllDotMipMapSubfolders(std::vector<WideFilePath>& dotMipMaps, const wchar_t* root)
+{
+	dotMipMaps.clear();
+
+	struct ANON : IEventCallback<IO::FileItemData>
+	{
+		std::vector<WideFilePath>& paths;
+		void OnEvent(FileItemData& item) override
+		{
+			auto ext = GetFileExtension(item.fullPath);
+
+			if (item.isDirectory && Eq(ext, L".mipmaps"))
+			{
+				WideFilePath wFullPath;
+				Format(wFullPath, L"%ws", item.fullPath);
+				paths.push_back(wFullPath);
+			}
+		}
+
+		ANON(std::vector<WideFilePath>& _paths) : paths(_paths)
+		{
+
+		}
+	} onFile(dotMipMaps);
+
+	IO::ForEachFileInDirectory(root, onFile, true);
+
+	std::sort(dotMipMaps.begin(), dotMipMaps.end());
 }
 
 void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& installation, cstr pingPath)
@@ -215,7 +246,22 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 	Rococo::Assets::RunTextureScript("Rococo Texture Tool", hInstance, installation, onRun);
 }
 
-int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR /* lpCmdLine */, int /* nCmdShow */)
+Strings::CLI::CommandLineOption SWITCH_help { "-?"_fstring, "Print this help message" };
+Strings::CLI::CommandLineOption SWITCH_genDirectories { "-D"_fstring, "Generate MipMip directories for each square JPG or TIFF with span an integer power of 2, up to 8192x8192" };
+Strings::CLI::CommandLineOption KEYVALUE_targetPath { "-T:"_fstring, "Specified the target path for the tool. Defaults to '!textures/mip-mapped'" };
+Strings::CLI::CommandLineOption SWITCH_genSexyTxBakes { "-B"_fstring, "Bake mip map directories into a compressed mip map archive file" };
+Strings::CLI::CommandLineOption SWITCH_extractTxBakes { "-X"_fstring, "Extract mip map images to a directory next to the target" };
+
+Strings::CLI::CommandLineOption allOptions[] =
+{
+	SWITCH_help,
+	SWITCH_genDirectories,
+	KEYVALUE_targetPath,
+	SWITCH_genSexyTxBakes,
+	SWITCH_extractTxBakes
+};
+
+int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR lpCmdLine, int /* nCmdShow */)
 {
 	try
 	{
@@ -233,11 +279,58 @@ int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR 
 		AutoFree<IOSSupervisor> io = GetIOS();
 		AutoFree<IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *io);
 
-		SaveMipMapTexturesToDirectories(_hInstance, *installation, "!textures/mip-mapped");
+		U8FilePath pingPath;
+		Strings::CLI::GetCommandLineArgument(KEYVALUE_targetPath.prefix, lpCmdLine, pingPath.buf, U8FilePath::CAPACITY, "!textures/mip-mapped");
+
+		if (Strings::CLI::HasSwitch(SWITCH_help))
+		{
+			for (auto& opt : allOptions)
+			{
+				printf("%s: %s\n", opt.prefix.buffer, opt.helpString.buffer);
+			}
+		}
+
+		if (Strings::CLI::HasSwitch(SWITCH_genDirectories))
+		{
+			SaveMipMapTexturesToDirectories(_hInstance, *installation, pingPath);
+			return 0;
+		}
+
+		if (Strings::CLI::HasSwitch(SWITCH_genSexyTxBakes))
+		{
+			WideFilePath sysPath;
+			installation->ConvertPingPathToSysPath(pingPath, sysPath);
+
+			std::vector<WideFilePath> dotMipMaps;
+			FindAllDotMipMapSubfolders(dotMipMaps, sysPath);
+
+			for (auto& mipMapFile : dotMipMaps)
+			{
+				U8FilePath mipMapPath;
+				Assign(mipMapPath, mipMapFile);
+				Rococo::Bakes::BakeMipMappedTextureDirectory(mipMapPath);
+			}
+
+			return 0;
+		}
+
+		if (Strings::CLI::HasSwitch(SWITCH_extractTxBakes))
+		{
+			WideFilePath sysPath;
+			installation->ConvertPingPathToSysPath(pingPath, sysPath);
+
+			U8FilePath u8sysPath;
+			Assign(u8sysPath, sysPath);
+
+			Rococo::Bakes::ExtractAsImageListFromBakedFile(u8sysPath);
+
+			return 0;
+		}
 	}
 	catch (IException& ex)
 	{
 		Windows::ShowErrorBox(Windows::NoParent(), ex, "rococo.texture.tool");
+		return ex.ErrorCode();
 	}
 
 	return 0;

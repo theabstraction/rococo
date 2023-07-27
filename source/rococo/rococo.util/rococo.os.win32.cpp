@@ -800,6 +800,12 @@ namespace Rococo::OS
 		GetKeyboardState(scanArray);
 	}
 
+	ROCOCO_API bool IsFileExistant(const char* filename)
+	{
+		DWORD flags = GetFileAttributesA(filename);
+		return flags != INVALID_FILE_ATTRIBUTES;
+	}
+
 	ROCOCO_API bool IsFileExistant(const wchar_t* filename)
 	{
 		DWORD flags = GetFileAttributesW(filename);
@@ -2238,6 +2244,12 @@ namespace Rococo
 			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
 		}
 
+		ROCOCO_API bool IsDirectory(cstr filename)
+		{
+			DWORD flags = GetFileAttributesA(filename);
+			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
+		}
+
 		template<class T> struct ComObject
 		{
 			T* instance;
@@ -3135,6 +3147,56 @@ namespace Rococo::OS
 		};
 
 		RunInConfig(root, organization, writeValue);
+	}
+
+	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
+	{
+		AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			Throw(GetLastError(), "Cannot open %ws for writing", targetPath);
+		}
+
+		if (nBytes > 2_gigabytes)
+		{
+			Throw(0, "Cannot open %ws for writing. Buffer length > 2 gigs", targetPath);
+		}
+
+		DWORD bytesWritten;
+		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
+		{
+			Throw(GetLastError(), "Cannot write to file %ws", targetPath);
+		}
+
+		if (bytesWritten != (DWORD)nBytes)
+		{
+			Throw(GetLastError(), "Only partial write to %ws", targetPath);
+		}
+	}
+
+	void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes)
+	{
+		AutoFile hFile(CreateFileA(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			Throw(GetLastError(), "Cannot open %s for writing", targetPath);
+		}
+
+		if (nBytes > 2_gigabytes)
+		{
+			Throw(0, "Cannot open %s for writing. Buffer length > 2 gigs", targetPath);
+		}
+
+		DWORD bytesWritten;
+		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
+		{
+			Throw(GetLastError(), "Cannot write to file %s", targetPath);
+		}
+
+		if (bytesWritten != (DWORD)nBytes)
+		{
+			Throw(GetLastError(), "Only partial write to %s", targetPath);
+		}
 	}
 } // Rococo::OS
 
