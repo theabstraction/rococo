@@ -5,15 +5,3 @@
 )
 (alias TriangleScan Rococo.TriangleScan)
 
-(struct InventoryLayoutRules
-	(Int32 rows)
-	(Int32 columns)
-	(Sys.Maths.Vec2i cellSpan)
-	(Sys.Maths.Vec2i borders)
-	(Sys.Maths.Vec2i topLeft)
-	(Bool rowByRow)
-	(Int32 startIndex)
-	(Int32 endIndex)
-)
-(alias InventoryLayoutRules Rococo.InventoryLayoutRules)
-

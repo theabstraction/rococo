@@ -28,7 +28,6 @@ void ToU8FilePathWithSubstitutions(const U32FilePath& src, U8FilePath& dest, cha
 	*q = 0;
 }
 
-
 bool Eq(const char32_t* p, const char32_t* q)
 {
 	while (*p != 0)

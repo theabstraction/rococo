@@ -50,6 +50,7 @@
 #include <rococo.sexy.api.h>
 #include <rococo.os.h>
 #include <rococo.io.h>
+#include <rococo.debugging.h>
 
 #include <rococo.package.h>
 
@@ -307,7 +308,7 @@ namespace Rococo {
 #include "sexy.script.JIT.inl"
 #include "sexy.script.stringbuilders.inl"
 
-void NativeSysOSClockHz(NativeCallEnvironment& _nce)
+void NativeSysTimeTickHz(NativeCallEnvironment& _nce)
 {
 	Rococo::uint8* _sf = _nce.cpu.SF();
 	ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -317,7 +318,7 @@ void NativeSysOSClockHz(NativeCallEnvironment& _nce)
 	WriteOutput(value, _sf, -_offset);
 }
 
-void NativeSysOSClockTicks(NativeCallEnvironment& _nce)
+void NativeSysTimeTickCount(NativeCallEnvironment& _nce)
 {
 	Rococo::uint8* _sf = _nce.cpu.SF();
 	ptrdiff_t _offset = 2 * sizeof(size_t);
@@ -2169,8 +2170,8 @@ namespace Rococo::Script
 
 			stringPool = NewStringPool();
 
-			INamespaceBuilder& sysOS = progObjProxy->GetRootNamespace().AddNamespace("Sys.OS", ADDNAMESPACEFLAGS_CREATE_ROOTS);
-			AddNativeCall(sysOS, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);
+			INamespaceBuilder& sysTime = progObjProxy->GetRootNamespace().AddNamespace("Sys.Time", ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			AddNativeCall(sysTime, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);
 
 			INamespaceBuilder& sysTypes = progObjProxy->GetRootNamespace().AddNamespace("Sys.Type", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefinePrimitives(sysTypes);
@@ -2178,8 +2179,8 @@ namespace Rococo::Script
 			INamespaceBuilder& sysNative = progObjProxy->GetRootNamespace().AddNamespace("Sys.Native", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefineSysNative(sysNative);
 
-			AddNativeCall(sysOS, NativeSysOSClockHz, nullptr, "ClockHz -> (Int64 hz)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysOS, NativeSysOSClockTicks, nullptr, "ClockTicks -> (Int64 tickCount)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTime, NativeSysTimeTickHz, nullptr, "TickHz -> (Int64 hz)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTime, NativeSysTimeTickCount, nullptr, "TickCount -> (Int64 tickCount)", __FILE__, __LINE__, false, 0);
 
 			const void* pSrcError = nullptr;
 			progObjProxy->ResolveNativeTypes(&pSrcError);
@@ -2495,6 +2496,10 @@ namespace Rococo::Script
 
 		TSexyStringMap<SecureHashInfo> hashes;
 
+#ifdef _DEBUG
+		TSexyStringMap<int> hashWarningIssuedInDeveloperMode;
+#endif
+
 		void ValidateSecureFile(cstr fileId, const char* source, size_t length) override
 		{
 			if (!hashes.empty())
@@ -2513,7 +2518,20 @@ namespace Rococo::Script
 					}
 					else
 					{
-						Throw(0, "Security violation! Bad hash for [%s]:\nExpecting %s", (cstr)i->first, forBuffer.hash);
+						char msg[320];
+						SafeFormat(msg, "Security violation! Bad hash for [%s]:\nExpecting %s", (cstr)i->first, forBuffer.hash);
+#ifdef _DEBUG				
+						auto w = hashWarningIssuedInDeveloperMode.insert((cstr)i->first, 1);
+
+						if (w.second)
+						{
+							Debugging::AddCriticalLog(msg);
+						}
+						w.first->second++;
+						return;
+#else
+						Throw(0, "%s", msg);
+#endif
 					}
 				}
 				Throw(0, "Security violation! No hash for [%s] in $(BIN)native.hashes.sxy", fileId);

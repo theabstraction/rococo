@@ -359,7 +359,7 @@
 	(Int64 maxDt = (tickHz / 10))
 	
 	(while this.engine.IsRunning
-		(Int64 frameEnd = Sys.OS.ClockTicks)
+		(Int64 frameEnd = Sys.Time.TickCount)
 		(Int64 dtTicks = (frameEnd - frameStart))
 		(dtTicks = (Sys.Maths.I64.Clamp dtTicks 0 maxDt))
 		(frameTime += dtTicks)
