@@ -726,7 +726,7 @@ namespace Rococo
 		virtual void BrowseFiles(IBrowserRulesFactory& factory, IEventCallback<ScriptCompileArgs>* onCompile) = 0;
 		virtual void ShowBusy(bool enable, cstr title, cstr messageFormat, ...) = 0;
 		virtual IContextMenuSupervisor& GetContextMenu() = 0;
-		virtual IContextMenu& PopupContextMenu() = 0;
+		virtual IContextMenu& PopupContextMenu(IEventCallback<ScriptCompileArgs>& onCompile) = 0;
 		virtual Rococo::Graphics::IHQFonts& GetHQFonts() = 0;
 	};
 

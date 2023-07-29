@@ -475,13 +475,13 @@ public:
 		CloseContextMenu();
 	}
 
-	IContextMenu& PopupContextMenu()
+	IContextMenu& PopupContextMenu(IEventCallback<ScriptCompileArgs>& onCompile)
 	{
 		IContextMenuSupervisor& cm = GetContextMenu();
 
 		if (!contextMenuPane)
 		{
-			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy");
+			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy", &onCompile);
 		}
 
 		platform->graphics.gui.PushTop(contextMenuPane->Supervisor(), true);
