@@ -1768,7 +1768,7 @@ namespace
 
 				cstr GetPanePingPath() const
 				{
-					return "!scripts/panel.browser.sxy";
+					return "!scripts/panels/panel.browser.sxy";
 				}
 			} forLevelFilename;
 			forLevelFilename.prefix = root;

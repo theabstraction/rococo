@@ -561,6 +561,20 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Rococo::MPEditor::IMPEditorSupervisor> editor = Rococo::MPEditor::CreateMPlatEditor(*GR);
 
+	struct PanelCompilationHandlerProxy : IScriptCompilationEventHandler, IDesignator<IScriptCompilationEventHandler>
+	{
+		IScriptCompilationEventHandler* target = nullptr;
+		void OnCompile(ScriptCompileArgs& args) override
+		{
+			if (target) target->OnCompile(args);
+		}
+
+		void Designate(IScriptCompilationEventHandler* object)
+		{
+			target = object;
+		}
+	} panelCompilationHandler;
+
 	Platform platform
 	{ 
 		// Platform graphics
@@ -570,7 +584,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },
 
 		// Platform scripting
-		{ *sourceCache, *debuggerWindow, *ssFactory },
+		{ panelCompilationHandler, panelCompilationHandler, *sourceCache, *debuggerWindow, *ssFactory },
 
 		// Plaform hardware
 		{ *keyboard, *audio, *xbox360stick },

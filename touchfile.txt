@@ -1,1 +1,0 @@
-This file is used by the build system to trigger a rebuild of the main executables and dynamic link libraries.

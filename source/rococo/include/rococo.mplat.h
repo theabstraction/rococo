@@ -897,6 +897,10 @@ namespace Rococo
 
 	struct PlatformScripts
 	{
+		IDesignator<IScriptCompilationEventHandler>& panelCompilationDesignator;
+
+		IScriptCompilationEventHandler& panelCompilationHandler;
+
 		// Script source cache
 		ISourceCache& sourceCache;
 

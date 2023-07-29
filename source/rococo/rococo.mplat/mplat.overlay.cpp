@@ -92,8 +92,8 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 	OverlayPane(Platform& _platform) :
 		platform(_platform),
 		textureCancel(_platform, this),
-		tabbedPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panel.overlay.sxy")),
-		txFocusPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panel.texture.sxy"))
+		tabbedPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panels/panel.overlay.sxy", &_platform.scripts.panelCompilationHandler)),
+		txFocusPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panels/panel.texture.sxy", &_platform.scripts.panelCompilationHandler))
 	{
 		current = tabbedPanel;
 		platform.graphics.gui.RegisterPopulator("texture_view", this);

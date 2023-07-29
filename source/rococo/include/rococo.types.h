@@ -426,6 +426,12 @@ namespace Rococo
 		virtual void OnCompile(ScriptCompileArgs& args) = 0;
 	};
 
+	template<class T>
+	ROCOCO_INTERFACE IDesignator
+	{
+		virtual void Designate(T* t) = 0;
+	};
+
 	template<class T> inline void Free(T* t)
 	{
 		if (t) t->Free();

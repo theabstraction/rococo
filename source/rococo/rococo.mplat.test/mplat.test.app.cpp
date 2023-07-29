@@ -86,12 +86,12 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
    {
       assetGenerator = Rococo::Assets::CreateAssetGenerator_SexyContentFile(platform.installation);
      
-      introPanel = platform.gui.BindPanelToScript("!scripts/panel.intro.sxy");
-      testPanel = platform.gui.BindPanelToScript("!scripts/panel.test.sxy");
-      soundPanel = platform.gui.BindPanelToScript("!scripts/panel.sound.sxy");
-      creditsPanel = platform.gui.BindPanelToScript("!scripts/panel.credits.sxy");
-      graphicsPanel = platform.gui.BindPanelToScript("!scripts/panel.graphics.sxy");
-      quitPanel = platform.gui.BindPanelToScript("!scripts/panel.quit.sxy");
+      introPanel = platform.gui.BindPanelToScript("!scripts/panels/panel.intro.sxy");
+      testPanel = platform.gui.BindPanelToScript("!scripts/panels/panel.test.sxy");
+      soundPanel = platform.gui.BindPanelToScript("!scripts/panels/panel.sound.sxy");
+      creditsPanel = platform.gui.BindPanelToScript("!scripts/panels/panel.credits.sxy");
+      graphicsPanel = platform.gui.BindPanelToScript("!scripts/panels/panel.graphics.sxy");
+      quitPanel = platform.gui.BindPanelToScript("!scripts/panels/panel.quit.sxy");
 
       platform.gui.PushTop(testPanel->Supervisor(), true);
       platform.gui.PushTop(introPanel->Supervisor(), true);
