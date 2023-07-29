@@ -33,6 +33,11 @@ using namespace Rococo::Visitors;
 using namespace Rococo::Sex;
 using namespace Rococo::VM;
 
+namespace Rococo::Windows::IDE
+{
+	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data);
+}
+
 namespace
 {
 	enum EPaneId
@@ -86,9 +91,11 @@ namespace
 		public StandardWindowHandler,
 		public IDebuggerWindow,
 		public Windows::IDE::IPaneDatabase,
-		public ITreeControlHandler
+		public ITreeControlHandler,
+		public IDebuggerEventHandlerData
 	{
 	private:
+		AutoFree<IDebuggerEventHandler> eventHandler; // This should come first, as menuHandler is dependent upon it
 		IEventCallback<MenuCommand>& menuHandler;
 		IParentWindowSupervisor* dialog;
 		IDebugControl* debugControl;
@@ -175,7 +182,7 @@ namespace
 			}
 		}
 
-		TabbedDebuggerWindowHandler(IEventCallback<MenuCommand>& _menuHandler, OS::IAppControl& _appControl) :
+		TabbedDebuggerWindowHandler(OS::IAppControl& _appControl, IO::IInstallation& installation) :
 			mainMenu(Windows::CreateMenu(false)),
 			dialog(nullptr),
 			isVisible(false),
@@ -183,7 +190,8 @@ namespace
 			spatialManager(nullptr),
 			disassemblyId(false), hFont(nullptr),
 			requiredDepth(1),
-			menuHandler(_menuHandler),
+			eventHandler(CreateDebuggerEventHandler(installation, *this)),
+			menuHandler(eventHandler->GetMenuCallback()),
 			appControl(_appControl)
 		{
 			WM_DEBUGGER_TABCHANGED = RegisterWindowMessageA("WM_DEBUGGER_TABCHANGED");
@@ -467,8 +475,18 @@ namespace
 			RGBAb background;
 		} hilight;
 
-		void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) override
+		bool isJitDebuggingActive = false;
+
+		void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message, bool isJitComileError) override
 		{
+			if (isJitDebuggingActive && !isJitComileError)
+			{
+				// Jit errors take priority
+				return;
+			}
+
+			isJitDebuggingActive = isJitComileError;
+
 			if (strcmp(message, "!") == 0)
 			{
 				hilight = { source, message, start, end, RGBAb(255,255,255), RGBAb(0,0,192) };
@@ -478,12 +496,27 @@ namespace
 				hilight = { source, message, start, end, RGBAb(255,0,0), RGBAb(192,192,192) };
 			}
 		}
-	public:
-		static TabbedDebuggerWindowHandler* Create(IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
+
+		void ResetJitStatus() override
 		{
-			auto m = new TabbedDebuggerWindowHandler(menuHandler, appControl);
+			isJitDebuggingActive = false;
+		}
+	public:
+		static TabbedDebuggerWindowHandler* Create(IWindow& parent, IO::IInstallation& installation, OS::IAppControl& appControl)
+		{
+			auto m = new TabbedDebuggerWindowHandler(appControl, installation);
 			m->PostConstruct(parent);
 			return m;
+		}
+
+		IWindow& Controller() override
+		{
+			return this->Window();
+		}
+
+		uint32 GetLineNumber() const override
+		{
+			return hilight.start.y;
 		}
 
 		void Free() override
@@ -831,26 +864,29 @@ namespace
 	struct DebuggerEventHandler : public IDebuggerEventHandler, public IEventCallback<MenuCommand>
 	{
 		IO::IInstallation& installation;
-		HWND hOwner;
+		IDebuggerEventHandlerData& data;
 
-		DebuggerEventHandler(IO::IInstallation& _installation, HWND _hOwner):
-			installation(_installation), hOwner(_hOwner)
+		DebuggerEventHandler(IO::IInstallation& _installation, IDebuggerEventHandlerData& _data):
+			installation(_installation), data(_data)
 		{
 		}
 
 		void OnEvent(MenuCommand& mc) override
 		{
+			HWND hOwner = data.Controller();
+
 			auto* obj = (DebuggerCommandObject*)mc.buffer;
 			switch (obj->type)
 			{
 			case DebuggerCommandObject::OPEN_SOURCE_FILE:
 				{
 					auto* fileObj = (DebuggerCommandObjectFile*)obj;
-					WideFilePath sysPath;
+					U8FilePath sysPath;
 					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath);
 					if (OS::IsFileExistant(sysPath))
 					{
-						ShellExecuteW(hOwner, L"open", sysPath, nullptr, nullptr, SW_SHOW);
+						THIS_WINDOW thisOwner(hOwner);
+						Rococo::OS::ShellOpenDocument(thisOwner, "Rococo::Sexy::IDE", sysPath, data.GetLineNumber());
 					}
 					else
 					{
@@ -891,13 +927,13 @@ namespace
 
 namespace Rococo::Windows::IDE
 {
-    IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
+    IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation)
     {
-		return TabbedDebuggerWindowHandler::Create(parent, menuHandler, appControl);
+		return TabbedDebuggerWindowHandler::Create(parent, installation, appControl);
     }
 
-	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IWindow& hOwner)
+	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data)
 	{
-		return new DebuggerEventHandler(installation, hOwner);
+		return new DebuggerEventHandler(installation, data);
 	}
 }

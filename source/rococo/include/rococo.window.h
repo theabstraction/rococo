@@ -20,6 +20,17 @@ namespace Rococo
 		   virtual operator HWND () const = 0;
 		};
 
+		struct THIS_WINDOW : public IWindow
+		{
+			HWND hOwner;
+			THIS_WINDOW(HWND _hWnd) : hOwner(_hWnd)	{}
+
+			operator HWND() const override
+			{
+				return hOwner;
+			}
+		};
+
 		ROCOCO_API void PopulateStackView(HWND hStackView, Rococo::IException& ex);
 		ROCOCO_API void SetStackViewColumns(HWND hStackView, const int columnWidths[5]);
 

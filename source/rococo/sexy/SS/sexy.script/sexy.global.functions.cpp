@@ -623,7 +623,7 @@ namespace Rococo
 		}
 	}
 
-	SCRIPTEXPORT_API void LogParseException(ParseException& ex, IDebuggerWindow& debugger)
+	SCRIPTEXPORT_API void LogParseException(ParseException& ex, IDebuggerWindow& debugger, bool jitCompileException)
 	{
 		Vec2i a = ex.Start();
 		Vec2i b = ex.End();
@@ -650,7 +650,7 @@ namespace Rococo
 		a = a - Vec2i{ 1, 0 };
 		b = b - Vec2i{ 1, 0 };
 
-		debugger.SetCodeHilight(ex.Name(), a, b, ex.Message());
+		debugger.SetCodeHilight(ex.Name(), a, b, ex.Message(), jitCompileException);
 
 		struct ANON : ILogger
 		{

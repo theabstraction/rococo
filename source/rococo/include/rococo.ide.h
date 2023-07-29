@@ -58,8 +58,9 @@ namespace Rococo
 		virtual void PopulateRegisterView(Visitors::IListPopulator& populator) = 0;
 		virtual void PopulateVariableView(Visitors::IListPopulator& populator) = 0;
 		virtual void PopulateCallStackView(Visitors::IListPopulator& populator) = 0;
+		virtual void ResetJitStatus() = 0;
 		virtual void Run(IDebuggerPopulator& populator, IDebugControl& control) = 0;
-		virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) = 0;
+		virtual void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message, bool jitCompileException = false) = 0;
 		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;
 	};
 }

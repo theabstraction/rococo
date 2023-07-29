@@ -121,10 +121,10 @@ namespace
             OS::UILoop(1000);
         }
 
-        void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message) override
+        void SetCodeHilight(cstr source, const Vec2i& start, const Vec2i& end, cstr message, bool jitCompileException = false) override
         {
             UNUSED(source);
-            printf("Code Highlight: %s (%d,%d) to (%d,%d)\n\t%s\n", source, start.x, start.y, end.x, end.y, message);
+            printf("Code Highlight: %s %s (%d,%d) to (%d,%d)\n\t%s\n", jitCompileException ? "(Bad compilation)" : "", source, start.x, start.y, end.x, end.y, message);
         }
 
         void ShowWindow(bool show, IDebugControl* debugControl) override
@@ -164,6 +164,11 @@ namespace
         {
 
         }
+
+        void ResetJitStatus() override
+        {
+
+        }
     };
 }
 
@@ -173,10 +178,9 @@ namespace Rococo
     {
         namespace IDE
         {
-            IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuHandler, OS::IAppControl& appControl)
+            IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, OS::IAppControl& appControl)
             {
                 UNUSED(parent);
-                UNUSED(menuHandler);
                 UNUSED(appControl);
                 return new StdoutDebugger();
             }

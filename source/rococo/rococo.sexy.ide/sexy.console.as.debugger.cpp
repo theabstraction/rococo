@@ -196,7 +196,7 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 	}
 
-	void SetCodeHilight(cstr, const Vec2i&, const Vec2i&, cstr) override
+	void SetCodeHilight(cstr, const Vec2i&, const Vec2i&, cstr, bool) override
 	{
 
 	}
@@ -226,6 +226,11 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 	}
 
 	void ClearSourceCode() override
+	{
+
+	}
+
+	void ResetJitStatus() override
 	{
 
 	}

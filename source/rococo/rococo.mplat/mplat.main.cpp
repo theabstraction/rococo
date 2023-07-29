@@ -509,8 +509,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	SetWindowTextA(mainWindow->Window(), title);
 
-	AutoFree<IDebuggerEventHandler> debuggerEventHandler(CreateDebuggerEventHandler(*installation, mainWindow->Window()));
-	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), debuggerEventHandler->GetMenuCallback(), *appControl));
+	AutoFree<IDebuggerWindow> debuggerWindow(CreateDebuggerWindow(mainWindow->Window(), *appControl, *installation));
 
 	int32 maxEntities = config->GetInt("mplat.instances.entities.max"_fstring);
 	if (maxEntities <= 0) Throw(0, "Int32 \"mplat.instances.entities.max\" defined in '!scripts/config_mplat.sxy' was not positive");

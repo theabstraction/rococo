@@ -580,13 +580,12 @@ int mainProtected(int argc, char* argv[])
 		Rococo::Windows::InitRococoWindows(NULL, NULL, NULL, NULL, NULL);
 	}
 
-	AutoFree<Windows::IDE::IDebuggerEventHandler> debuggerEventHandler(Windows::IDE::CreateDebuggerEventHandler(*installation, console));
 	AppControl appControl;
 
 	AutoFree<IDebuggerWindow> debuggerWindow;
 	if (isInteractive)
 	{
-		debuggerWindow = Windows::IDE::CreateDebuggerWindow(console, debuggerEventHandler->GetMenuCallback(), appControl);
+		debuggerWindow = Windows::IDE::CreateDebuggerWindow(console, appControl, *installation);
 	}
 	else
 	{

@@ -403,7 +403,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			if (reportErrors)			
 			{
-				LogError(log, ("Could not resolve type from %s %s of %s from %s"), member.Type(), member.Name(), s.Name(), s.Module().Name());
+				LogError(log, "Could not resolve type from (%s %s) of %s from %s", member.Type(), member.Name(), s.Name(), s.Module().Name());
 			}
 			return false;
 		}
@@ -435,7 +435,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				{
 					if (reportErrors)			
 					{
-						LogError(log, ("Could not resolving generic type (%s) from %s of %s from %s"), member.GenericArg2Type(), member.Name(), s.Name(), s.Module().Name());
+						LogError(log, ("Could not resolve generic type (%s) from %s of %s from %s"), member.GenericArg2Type(), member.Name(), s.Name(), s.Module().Name());
 					}
 					return false;
 				}
@@ -460,6 +460,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 			if (!TryResolveMember(log, s, member, reportErrors))
 			{
+				*pErrSrc = s.Definition();
 				return false;
 			}
 

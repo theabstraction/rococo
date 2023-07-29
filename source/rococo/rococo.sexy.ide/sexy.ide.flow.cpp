@@ -60,7 +60,7 @@ namespace
 		{
 			// Ensure we can capture the error
 			SaveInCriticalErrorLog(ex);
-			LogParseException(ex, debugger);
+			LogParseException(ex, debugger, true);
 		}
 	};
 
@@ -323,6 +323,7 @@ namespace Rococo
 						Time::ticks start = Time::TickCount();
 						auto* tree = sources.GetSource(resourcePath);
 						stats.loadTime = Time::TickCount() - start;
+						debugger.ResetJitStatus();
 						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, implicitIncludes, param, onCompile, trace, declarationBuilder);
 						return exitCode;
 					}

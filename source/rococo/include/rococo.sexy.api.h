@@ -109,7 +109,7 @@ namespace Rococo
 	[[nodiscard]] RGBAb GetColourValue(Rococo::Sex::cr_sex s);
 	[[nodiscard]] Quat GetQuat(Rococo::Sex::cr_sex s);
 
-	SCRIPTEXPORT_API void LogParseException(Rococo::Sex::ParseException& ex, IDebuggerWindow& logger);
+	SCRIPTEXPORT_API void LogParseException(Rococo::Sex::ParseException& ex, IDebuggerWindow& logger, bool jitCompileError = false);
 
 	[[nodiscard]] fstring GetAtomicArg(Rococo::Sex::cr_sex s);
 }

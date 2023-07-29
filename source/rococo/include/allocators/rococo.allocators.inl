@@ -1,5 +1,6 @@
 #pragma once
 
+#include <rococo.os.h>
 #include <rococo.allocators.h>
 #include <rococo.debugging.h>
 #include <unordered_map>
@@ -146,6 +147,12 @@ namespace Rococo::Memory
 		size_t totalFreed = 0;
 		AllocatorMetrics stats;
 		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, RococoUtilsAllocator<std::pair<const size_t,TrackingAtom>>> tracking;
+		AutoFree<OS::ICriticalSection> criticalSection;
+
+		TrackingAllocator()
+		{
+			criticalSection = OS::CreateCriticalSection(OS::CriticalSectionMemorySource::GLOBAL_MALLOC);
+		}
 
 		void* ModuleAllocate(std::size_t nBytes)
 		{
@@ -153,6 +160,8 @@ namespace Rococo::Memory
 			stats.totalAllocations++;
 
 			auto* data = moduleAllocatorFunctions.Allocate(nBytes);
+
+			OS::Lock lock(criticalSection);
 
 #ifdef _DEBUG
 			memset(data, 0xCD, nBytes);
@@ -177,6 +186,8 @@ namespace Rococo::Memory
 		void ModuleFree(void* buffer)
 		{
 			stats.totalFrees++;
+
+			OS::Lock lock(criticalSection);
 
 			if (buffer)
 			{
@@ -212,6 +223,8 @@ namespace Rococo::Memory
 		void Log(cstr name, cstr intro)
 		{
 			auto* allocator_printf = Rococo::Debugging::Log;
+
+			OS::Lock lock(criticalSection);
 
 			if (GetAllocatorLogFlags().LogDetailedMetrics)
 			{

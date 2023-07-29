@@ -2225,6 +2225,7 @@ namespace Rococo::Script
 				start.y = end.y = 0;
 
 				ParseException ex(start, end, "Sexy Script System", "Failed to resolve definitions", "", NULL);
+				OS::TripDebugger();
 				throw ex;
 			}
 

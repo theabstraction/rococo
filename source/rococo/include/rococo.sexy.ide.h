@@ -36,6 +36,12 @@ namespace Rococo
 			   virtual void Free() = 0;
 			};
 
+			ROCOCO_INTERFACE IDebuggerEventHandlerData
+			{
+				virtual uint32 GetLineNumber() const = 0;
+				virtual IWindow& Controller() = 0;
+			};
+
 			ROCOCO_INTERFACE IDebuggerEventHandler
 			{
 				  virtual IEventCallback<MenuCommand>& GetMenuCallback() = 0;
@@ -82,8 +88,7 @@ namespace Rococo
 			IDebuggerWindow* GetConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& formatter, Strings::IColourOutputControl& control);
 			Strings::IColourOutputControl& GetConsoleColourController();
 			Strings::IVarArgStringFormatter& GetStdoutFormatter();
-			IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IWindow& hOwner);
-			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, IEventCallback<MenuCommand>& menuCallback, OS::IAppControl& appControl);
+			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation);
 			IPersistentScript* CreatePersistentScript(size_t maxBytes, Rococo::Script::IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler);
 			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, int32 param, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace, Strings::StringBuilder* declarationBuilder);
 		}

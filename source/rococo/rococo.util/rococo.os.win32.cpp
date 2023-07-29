@@ -434,10 +434,11 @@ namespace
 	class CriticalSection: public Rococo::OS::ICriticalSection
 	{
 	private:
+		Rococo::OS::CriticalSectionMemorySource src;
 		CRITICAL_SECTION cs;
 
 	public:
-		CriticalSection()
+		CriticalSection(Rococo::OS::CriticalSectionMemorySource _src): src(_src)
 		{
 			InitializeCriticalSection(&cs);
 		}
@@ -449,7 +450,14 @@ namespace
 
 		void Free() override
 		{
-			delete this;
+			if (src == Rococo::OS::CriticalSectionMemorySource::OPERATOR_NEW)
+			{
+				delete this;
+			}
+			else
+			{
+				free(this);
+			}
 		}
 
 		void Lock() override
@@ -681,9 +689,17 @@ namespace Rococo::OS
 		return (IdThread) GetCurrentThreadId();
 	}
 
-	ROCOCO_API ICriticalSection* CreateCriticalSection()
+	ROCOCO_API ICriticalSection* CreateCriticalSection(CriticalSectionMemorySource src)
 	{
-		return new CriticalSection();
+		if (src == CriticalSectionMemorySource::OPERATOR_NEW)
+		{
+			return new CriticalSection(src);
+		}
+		else
+		{
+			void* buffer = malloc(sizeof CriticalSection);
+			return new (buffer) CriticalSection(src);
+		}
 	}
 
 	ROCOCO_API IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)

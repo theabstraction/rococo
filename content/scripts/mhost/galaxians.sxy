@@ -104,7 +104,6 @@
 
 (class Galaxians (implements MHost.IWorld)
 	(IEngine engine)
-	(ILegacySoundControl sound)
 	(IUIThread uiThread)
 	(array Entity aliens)
 	(array Entity missiles)
@@ -122,17 +121,20 @@
 	(Int32 playerDirection)
 )
 
-(method Galaxians.Construct (IEngine engine) (ILegacySoundControl sound) -> (construct aliens 54) (construct missiles 4) :
+(method Galaxians.Construct (IEngine engine) :
+	(array Entity aliens 54)
+	(array Entity missiles 4)
+	(this.missiles = missiles)
+	(this.aliens = aliens)
 	(this.direction = 1)
 	(this.engine = engine)
-	(this.sound = sound)
 	(this.uiThread = (Galaxians.NewUIThread engine))
 	(this.sbScore = NewPathBuilder)
 	(ICoroutineControl coroutines (Coroutines))
 	(coroutines.Add this.uiThread)
 )
 
-(factory MHost.Galaxians MHost.IWorld (IEngine engine) (ILegacySoundControl sound) : (construct Galaxians engine sound))
+(factory MHost.Galaxians MHost.IWorld (IEngine engine) : (construct Galaxians engine))
 
 (function InitSprite (IEngine engine)(Sprite bmp)-> :
 	(engine.GetSpriteSpec bmp.filename bmp.location)
@@ -211,9 +213,9 @@
 		)
 	)
 	
-	(this.player = (500 8000) ("!textures/mhost/galaxians/player.1.tiff" defaultBmpLoc))
+	(this.player = (500 800) ("!textures/mhost/galaxians/player.1.tiff" defaultBmpLoc))
 	(this.playerMissile = (-100 -100) ("!textures/mhost/galaxians/missile.1.tiff" defaultBmpLoc))
-	(this.deathAt = Sys.OS.ClockTicks)
+	(this.deathAt = Sys.Time.TickCount)
 	(this.lives = 3)
 	
 	(OnEntity initSprites = 
@@ -227,24 +229,6 @@
 	
 	(InitSprite this.engine this.playerExplosion.image)
 	(InitSprite this.engine this.enemyExplosion.image)
-	
-	(this.sound.SetWave 0 (#ELegacySoundShapeSine) 1000 1.0)
-	(this.sound.SetWave 1 (#ELegacySoundShapeSine) 320 1.0)
-	(this.sound.SetWave 2 (#ELegacySoundShapeSine) 360 1.0)
-	(this.sound.SetWave 3 (#ELegacySoundShapeSine) 400 1.0)
-	(this.sound.SetWave 4 (#ELegacySoundShapeSine) 440 1.0)
-	(this.sound.SetWave 5 (#ELegacySoundShapeSine) 480 1.0)
-	(this.sound.SetWave 6 (#ELegacySoundShapeSine) 540 1.0)
-	(this.sound.SetWave 7 (#ELegacySoundShapeSine) 600 1.0)
-	(this.sound.SetWave 8 (#ELegacySoundShapeSine) 640 1.0)
-	(this.sound.SetWave 9 (#ELegacySoundShapeSine) 712 1.0)
-	
-	(this.sound.SetMasterVolumne 0.8)
-	
-	(#for (Int32 i = 0)(i < 10)(i += 1)
-		(this.sound.SetChannelVolume i 1.0 1.0)
-		(this.sound.SetEnvelope i 2.0 0.1 0.5 1.0)
-	)
 )
 
 (function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
@@ -299,8 +283,8 @@
 	(this.ForEachEntityInWorld drawSprites)
 	
 	(if (this.deathAt != 0)
-		(Int64 peakBoom = Sys.OS.ClockHz)
-		(Int64 delta = ((Sys.OS.ClockTicks) - this.deathAt))
+		(Int64 peakBoom = Sys.Time.TickHz)
+		(Int64 delta = ((Sys.Time.TickCount) - this.deathAt))
 		(if (delta < peakBoom)
 			(DrawSprite gc this.playerExplosion.screenPosition this.player.image)
 			(Int64 boomTick = ( peakBoom / 64 ))
@@ -314,8 +298,8 @@
 	)
 	
 	(if (this.enemyHitAt != 0)
-		(Int64 peakBoom = Sys.OS.ClockHz)
-		(Int64 delta = ((Sys.OS.ClockTicks) - this.enemyHitAt))
+		(Int64 peakBoom = Sys.Time.TickHz)
+		(Int64 delta = ((Sys.Time.TickCount) - this.enemyHitAt))
 		(if (delta < peakBoom)
 			(Int64 boomTick = ( peakBoom / 32 ))
 			(Int32 span = (32 - (delta / boomTick)))
@@ -372,7 +356,7 @@
 				(alien.screenPosition.y = -100)
 				(g.playerMissile.screenPosition.y = -100)
 				(g.killCount += 1)
-				(Sys.OS.ClockTicks -> g.enemyHitAt)
+				(Sys.Time.TickCount -> g.enemyHitAt)
 				(return)
 			)
 		)
@@ -489,9 +473,9 @@
 	)
 	
 	(if (this.deathAt != 0)
-		(Int64 now = Sys.OS.ClockTicks)
+		(Int64 now = Sys.Time.TickCount)
 		(Int64 delta = (now - this.deathAt))
-		(Int64 spawnTime = (4 * Sys.OS.ClockHz))
+		(Int64 spawnTime = (4 * Sys.Time.TickCount))
 		(if (delta > spawnTime)
 			(this.deathAt = 0)
 			(this.player.screenPosition = 500 610)
@@ -501,13 +485,14 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	// If our script is run twice, due to the debugging loop, we need to clear the existing sprites
+	(spriteBuilder.Clear)
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/mhost/galaxians")
 	(spriteBuilder.LoadAllSprites)
 	
 	(IEngine engine (Engine))
-	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))
 	
-	(IWorld world (Galaxians engine sound))
+	(IWorld world (Galaxians engine))
 	(world.Init)
 	
 	(ICoroutineControl coroutines (Coroutines))
@@ -528,5 +513,5 @@
 		(while (coroutines.Continue > 0))
 	)
 	
-	(coroutines.ReleaseAll)
+	//(coroutines.ReleaseAll)
 )

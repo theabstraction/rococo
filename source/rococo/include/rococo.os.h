@@ -94,7 +94,13 @@ namespace Rococo::OS
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_API ICriticalSection* CreateCriticalSection();
+	enum class CriticalSectionMemorySource
+	{
+		OPERATOR_NEW, // The default
+		GLOBAL_MALLOC // Used when creating synchronization sections for allocators, in which OPERATOR_NEW would create a recursion issue
+	};
+
+	ROCOCO_API ICriticalSection* CreateCriticalSection(CriticalSectionMemorySource src = CriticalSectionMemorySource::OPERATOR_NEW);
 
 	ROCOCO_API [[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
 
