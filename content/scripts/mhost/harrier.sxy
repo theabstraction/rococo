@@ -119,7 +119,6 @@
 	(Sprite cloud)
 	
 	(IEngine engine)
-	(ILegacySoundControl sound)
 
 	(Entity player)
 	
@@ -142,14 +141,20 @@
 	(IStringBuilder infoLine)
 )
 
-(method World.Construct (IEngine engine) (ILegacySoundControl sound) ->
-	(construct smallStars 1000) 
-	(construct largeStars 10)
-	(construct cloudsBackground 150)
-	(construct cloudsForeground 150)
-	:
+(method World.Construct (IEngine engine) ->	:
+	(array Star smallStars 1000)
+	(this.smallStars = smallStars)
+	
+	(array Star largeStars 10)
+	(this.largeStars = largeStars)
+	
+	(array Cloud cloudsForeground 150)
+	(this.cloudsForeground = cloudsForeground)
+	
+	(array Cloud cloudsBackground 150)
+	(this.cloudsBackground = cloudsBackground)
+	
 	(this.engine = engine)
-	(this.sound = sound)
 	(this.screenSpan = 0 0)
 	(this.playerFacesRight = true)
 	
@@ -223,8 +228,8 @@
 	(this.infoLine = NewPathBuilder)
 )
 
-(factory Harrier.NewWorld IWorld (IEngine engine) (ILegacySoundControl sound) : 
-	(construct World engine sound)
+(factory Harrier.NewWorld IWorld (IEngine engine) : 
+	(construct World engine)
 )
 
 (method World.SetPlayerDirection (Vec2 direction) -> :
@@ -366,7 +371,7 @@
 	(RenderSpace this gc)
 	(RenderLandscape this.worldPosition gc)
 	
-	(gc.SetGuiShaders "!gui.cloud.ps")
+	(gc.SetGuiShaders "!shaders/compiled/gui.cloud.ps")
 	
 	(foreach c # this.cloudsBackground
 		(Float32 x = ((c.position.x - this.playerPosition.x) + this.player.screenPosition.x))
@@ -387,7 +392,7 @@
 		(gc.DrawScaledColouredSprite cloudPosition c.alignment this.cloud.location 0.5 colour c.scale)
 	)
 	
-	(gc.SetGuiShaders "!gui.shadow.ps")
+	(gc.SetGuiShaders "!shaders/compiled/gui.shadow.ps")
 	
 	(Float32 alpha = 0)
 	
@@ -414,7 +419,7 @@
 
 	(DrawPlayer this gc)
 	
-	(gc.SetGuiShaders "!gui.cloud.ps")
+	(gc.SetGuiShaders "!shaders/compiled/gui.cloud.ps")
 	
 	(foreach c # this.cloudsForeground
 		(Float32 x = ((c.position.x - this.playerPosition.x) + this.player.screenPosition.x))
@@ -564,13 +569,13 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(ISpriteBuilder spriteBuilder (SpriteBuilder))
+	(spriteBuilder.Clear)
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/mhost/harrier")
 	(spriteBuilder.LoadAllSprites)
 	
 	(IEngine engine (Engine))
-	(ILegacySoundControl sound (Rococo.Audio.LegacySoundControl))
 	
-	(IWorld world (NewWorld engine sound))
+	(IWorld world (NewWorld engine))
 	
 	(ICoroutineControl coroutines (Coroutines))
 	
