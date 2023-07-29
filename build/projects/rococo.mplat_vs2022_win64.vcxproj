@@ -121,14 +121,12 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem />
+      <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\make-components.C++.bat
-NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.mplat\ CONTENT_ROOT=..\..\content\ SXH_FILE=mplat.sxh XC_FILE=config.xc
-</Command>
+      <Command>..\tools\make-components.C++.bat&#x0D;&#x0A;NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.mplat\ CONTENT_ROOT=..\..\content\ SXH_FILE=mplat.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -189,14 +187,12 @@ NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Debug
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem />
+      <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\make-components.C++.bat
-NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Release\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.mplat\ CONTENT_ROOT=..\..\content\ SXH_FILE=mplat.sxh XC_FILE=config.xc
-</Command>
+      <Command>..\tools\make-components.C++.bat&#x0D;&#x0A;NMAKE /NOLOGO /F "..\tools\rococo.sxh.mak" "BENNY_HILL=..\..\gen\bin\win64\Release\sexy.bennyhill.exe" all SOURCE_ROOT=..\..\source\rococo\rococo.mplat\ CONTENT_ROOT=..\..\content\ SXH_FILE=mplat.sxh XC_FILE=config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -89,6 +89,7 @@ namespace MHost
 		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Entities.Native", "Package[mhost]");
 		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Graphics.Native", "Package[mhost]");
 		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Native", "Package[mhost]");
+		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Configuration.Native", "Package[mhost]");
 	}
 
 	IScriptCompilationEventHandler& GetBaseCompileOptions()

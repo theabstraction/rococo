@@ -97,10 +97,10 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
         textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 
-        idGuiVS = loader.DX11Shaders().CreateVertexShader("!gui.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
-        idGuiPS = loader.DX11Shaders().CreatePixelShader("!gui.ps");
-        idHQVS = loader.DX11Shaders().CreateVertexShader("!HQ-font.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
-        idHQPS = loader.DX11Shaders().CreatePixelShader("!HQ-font.ps");
+        idGuiVS = loader.DX11Shaders().CreateVertexShader("!shaders/compiled/gui.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
+        idGuiPS = loader.DX11Shaders().CreatePixelShader("!shaders/compiled/gui.ps");
+        idHQVS = loader.DX11Shaders().CreateVertexShader("!shaders/compiled/HQ-font.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
+        idHQPS = loader.DX11Shaders().CreatePixelShader("!shaders/compiled/HQ-font.ps");
         guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
         alphaBlend = DX11::CreateAlphaBlend(device);
         spriteRasterizering = DX11::CreateSpriteRasterizer(device);

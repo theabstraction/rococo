@@ -40,26 +40,26 @@ namespace Rococo::DX11
 
 		gui = CreateDX11Gui(device, dc, textures, metrics, resourceLoader, shaders);
 
-		idObjVS = shaders.CreateObjectVertexShader("!object.vs");
-		idObjPS = shaders.CreatePixelShader("!object.ps");
-		idObj_Spotlight_NoEnvMap_PS = shaders.CreatePixelShader("!obj.spotlight.no_env.ps");
-		idObj_Ambient_NoEnvMap_PS = shaders.CreatePixelShader("!obj.ambient.no_env.ps");
-		idObjAmbientPS = shaders.CreatePixelShader("!ambient.ps");
-		idObjAmbientVS = shaders.CreateObjectVertexShader("!ambient.vs");
-		idObjVS_Shadows = shaders.CreateObjectVertexShader("!shadow.vs");
-		idSkinnedObjVS_Shadows = shaders.CreateVertexShader("!skinned.shadow.vs", DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
-		idObjPS_Shadows = shaders.CreatePixelShader("!shadow.ps");
-		idLightConePS = shaders.CreatePixelShader("!light_cone.ps");
-		idLightConeVS = shaders.CreateVertexShader("!light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-		idParticleVS = shaders.CreateParticleVertexShader("!particle.vs");
-		idPlasmaGS = shaders.CreateGeometryShader("!plasma.gs");
-		idFogSpotlightGS = shaders.CreateGeometryShader("!fog.spotlight.gs");
-		idFogAmbientGS = shaders.CreateGeometryShader("!fog.ambient.gs");
-		idPlasmaPS = shaders.CreatePixelShader("!plasma.ps");
-		idFogSpotlightPS = shaders.CreatePixelShader("!fog.spotlight.ps");
-		idFogAmbientPS = shaders.CreatePixelShader("!fog.ambient.ps");
-		idObjSkyVS = shaders.CreateVertexShader("!skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
-		idObjSkyPS = shaders.CreatePixelShader("!skybox.ps");
+		idObjVS = shaders.CreateObjectVertexShader("!shaders/compiled/object.vs");
+		idObjPS = shaders.CreatePixelShader("!shaders/compiled/object.ps");
+		idObj_Spotlight_NoEnvMap_PS = shaders.CreatePixelShader("!shaders/compiled/obj.spotlight.no_env.ps");
+		idObj_Ambient_NoEnvMap_PS = shaders.CreatePixelShader("!shaders/compiled/obj.ambient.no_env.ps");
+		idObjAmbientPS = shaders.CreatePixelShader("!shaders/compiled/ambient.ps");
+		idObjAmbientVS = shaders.CreateObjectVertexShader("!shaders/compiled/ambient.vs");
+		idObjVS_Shadows = shaders.CreateObjectVertexShader("!shaders/compiled/shadow.vs");
+		idSkinnedObjVS_Shadows = shaders.CreateVertexShader("!shaders/compiled/skinned.shadow.vs", DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
+		idObjPS_Shadows = shaders.CreatePixelShader("!shaders/compiled/shadow.ps");
+		idLightConePS = shaders.CreatePixelShader("!shaders/compiled/light_cone.ps");
+		idLightConeVS = shaders.CreateVertexShader("!shaders/compiled/light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
+		idParticleVS = shaders.CreateParticleVertexShader("!shaders/compiled/particle.vs");
+		idPlasmaGS = shaders.CreateGeometryShader("!shaders/compiled/plasma.gs");
+		idFogSpotlightGS = shaders.CreateGeometryShader("!shaders/compiled/fog.spotlight.gs");
+		idFogAmbientGS = shaders.CreateGeometryShader("!shaders/compiled/fog.ambient.gs");
+		idPlasmaPS = shaders.CreatePixelShader("!shaders/compiled/plasma.ps");
+		idFogSpotlightPS = shaders.CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
+		idFogAmbientPS = shaders.CreatePixelShader("!shaders/compiled/fog.ambient.ps");
+		idObjSkyVS = shaders.CreateVertexShader("!shaders/compiled/skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
+		idObjSkyPS = shaders.CreatePixelShader("!shaders/compiled/skybox.ps");
 
 		shadowBufferId = textures.CreateDepthTarget("ShadowBuffer", 1024, 1024);
 
