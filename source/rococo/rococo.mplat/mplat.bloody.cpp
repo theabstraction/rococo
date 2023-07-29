@@ -1583,12 +1583,14 @@ namespace
 		TextEditorBox teb;
 		bool validated = false;
 		HString root;
+		IEventCallback<ScriptCompileArgs>& onCompileUIscript;
 	public:
-		BloodyPingPathBinding(Platform& _platform, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr defaultValue) :
+		BloodyPingPathBinding(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onCompileUIscript, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr defaultValue) :
 			platform(_platform),
 			value(pingPath),
 			len(_len),
-			teb(_platform, *this, dirtNotifier, value, _len, true, *this)
+			teb(_platform, *this, dirtNotifier, value, _len, true, *this),
+			onCompileUIscript(_onCompileUIscript)
 		{
 			U8FilePath expandedPath;
 			ExpandMacros(defaultValue, expandedPath, platform.os.installation);
@@ -1773,7 +1775,7 @@ namespace
 			forLevelFilename.initialFilename = value;
 			forLevelFilename.publisher = &platform.plumbing.publisher;
 			forLevelFilename.control = this;
-			platform.plumbing.utilities.BrowseFiles(forLevelFilename);
+			platform.plumbing.utilities.BrowseFiles(forLevelFilename, &onCompileUIscript);
 		}
 
 		void Click(bool clickedDown, Vec2i pos) override
@@ -1816,8 +1818,10 @@ namespace
 	{
 		std::vector<BloodyProperty*> properties;
 		Platform& platform;
-		AutoFree<IScrollbar> vscroll;
+		AutoFree<GUI::IScrollbar> vscroll;
 		IEventCallback<BloodyNotifyArgs>& onDirty;
+		IEventCallback<ScriptCompileArgs>& onCompileUIscript;
+			;
 
 		bool ValidateUnique(cstr name) const
 		{
@@ -1848,11 +1852,13 @@ namespace
 			BloodyNotifyArgs args{ *this, p.Name(), p.NotifyId() };
 			onDirty.OnEvent(args);
 		}
+
 	public:
-		BloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty) :
+		BloodyPropertySetEditor(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onCompileUIscript, IEventCallback<BloodyNotifyArgs>& _onDirty) :
 			platform(_platform),
 			onDirty(_onDirty),
-			vscroll(platform.plumbing.utilities.CreateScrollbar(true))
+			vscroll(platform.plumbing.utilities.CreateScrollbar(true)),
+			onCompileUIscript(_onCompileUIscript)
 		{
 		}
 
@@ -1935,7 +1941,7 @@ namespace
 
 		void AddPingPath(cstr name, char* pingPath, size_t len, cstr defaultSubDir, int32 width) override
 		{
-			Add(new BloodyProperty(new BloodyPingPathBinding(platform, *this, pingPath, len, defaultSubDir), name, width));
+			Add(new BloodyProperty(new BloodyPingPathBinding(platform, onCompileUIscript, *this, pingPath, len, defaultSubDir), name, width));
 		}
 
 		virtual bool OnKeyboardEvent(const KeyboardEvent&)
@@ -2051,8 +2057,8 @@ namespace
 
 namespace Rococo
 {
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty)
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel)
 	{
-		return new BloodyPropertySetEditor(_platform, _onDirty);
+		return new BloodyPropertySetEditor(_platform, onCompileUIPanel, _onDirty);
 	}
 }

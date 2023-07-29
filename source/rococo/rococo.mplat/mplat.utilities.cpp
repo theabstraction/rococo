@@ -26,7 +26,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IScrollbar* CreateScrollbar(bool _isVertical);
+		GUI::IScrollbar* CreateScrollbar(bool _isVertical);
 	}
 }
 
@@ -104,7 +104,7 @@ public:
 		}
 	}
 
-	IScrollbar* CreateScrollbar(bool _isVertical) override;
+	GUI::IScrollbar* CreateScrollbar(bool _isVertical) override;
 
 	Graphics::ITextTesselator& GetTextTesselator() override
 	{
@@ -121,9 +121,9 @@ public:
 		return this;
 	}
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& _onDirty) override
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel) override
 	{
-		return Rococo::CreateBloodyPropertySetEditor(*platform, _onDirty);
+		return Rococo::CreateBloodyPropertySetEditor(*platform, onDirty, onCompileUIPanel);
 	}
 
 	void AddSubtitle(cstr subtitle)
@@ -386,7 +386,7 @@ public:
 	AutoFree<IMPlatFileBrowser> browser;
 	AutoFree<IPaneBuilderSupervisor> browsingPane;
 
-	void BrowseFiles(IBrowserRulesFactory& factory)  override
+	void BrowseFiles(IBrowserRulesFactory& factory, IEventCallback<ScriptCompileArgs>* onCompile)  override
 	{
 		if (!browser)
 		{
@@ -395,7 +395,7 @@ public:
 
 		if (!browsingPane)
 		{
-			browsingPane = platform->graphics.gui.BindPanelToScript(factory.GetPanePingPath());
+			browsingPane = platform->graphics.gui.BindPanelToScript(factory.GetPanePingPath(), onCompile);
 		}
 
 		browser->Engage(factory);
@@ -488,11 +488,6 @@ public:
 
 		return cm;
 	}
-
-	IInventoryArraySupervisor* CreateInventoryArray(int32 capacity) override
-	{
-		return Rococo::CreateInventoryArray(capacity);
-	}
 };
 
 namespace Rococo
@@ -506,7 +501,7 @@ namespace Rococo
 	}
 }
 
-IScrollbar* Utilities::CreateScrollbar(bool _isVertical)
+GUI::IScrollbar* Utilities::CreateScrollbar(bool _isVertical)
 {
 	return Rococo::MPlatImpl::CreateScrollbar(_isVertical);
 }

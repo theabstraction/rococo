@@ -7,7 +7,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class PanelTextOutput : virtual public ITextOutputPane, virtual public BasePane
+class PanelTextOutput : virtual public GUI::ITextOutputPane, virtual public BasePane
 {
 	int32 fontIndex = 1;
 	int32 horzAlign = 0;
@@ -90,7 +90,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::ITextOutputPane* AddTextOutput(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& eventKey, const GuiRect& rect)
+		Rococo::GUI::ITextOutputPane* AddTextOutput(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& eventKey, const GuiRect& rect)
 		{
 			auto* to = new PanelTextOutput(publisher, fontIndex, eventKey);
 			panel.AddChild(to);

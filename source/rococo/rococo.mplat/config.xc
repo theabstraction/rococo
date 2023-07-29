@@ -85,14 +85,3 @@
 	(IdSysMesh idMesh)
 	(Triangle t)
 )
-
-(defstruct InventoryLayoutRules Rococo.InventoryLayoutRules Rococo.InventoryLayoutRules
-	(Int32 rows)
-	(Int32 columns)
-	(Vec2i cellSpan)
-	(Vec2i borders)
-	(Vec2i topLeft)
-	(Bool rowByRow)
-	(Int32 startIndex)
-	(Int32 endIndex)
-)

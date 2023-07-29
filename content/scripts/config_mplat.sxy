@@ -10,8 +10,7 @@
 	(alias Main EntryPoint.Main)
 	
 (using Sys.Reflection)
-(using MPlat)
-
+(using Rococo.MPlat.Configuration)
 // This code is run without the visual debugger and error output will go to the OutputDebugString handler or the critical output (if you are lucky!). 
 
 (function Main (Int32 id)->(Int32 exitCode):

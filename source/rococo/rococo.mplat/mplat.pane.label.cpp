@@ -8,7 +8,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class PanelLabel : public BasePane, public ILabelPane
+class PanelLabel : public BasePane, public GUI::ILabelPane
 {
 	int32 fontIndex = 1;
 	char text[128];
@@ -132,7 +132,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::ILabelPane* AddLabel(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect)
+		Rococo::GUI::ILabelPane* AddLabel(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect)
 		{
 			auto* label = new PanelLabel(publisher, fontIndex, text);
 			panel.AddChild(label);

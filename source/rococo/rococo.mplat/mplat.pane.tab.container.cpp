@@ -19,7 +19,7 @@ struct Tab
 
 auto evPopulateTabs = "tabs.populate"_event;
 
-class TabContainer : public BasePane, public ITabContainer, public IObserver
+class TabContainer : public BasePane, public GUI::ITabContainer, public IObserver
 {
 	int32 fontIndex;
 	int32 tabHeight;
@@ -494,7 +494,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::ITabContainer* AddTabContainer(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& pane, int32 tabHeight, int32 fontIndex, const GuiRect& rect)
+		Rococo::GUI::ITabContainer* AddTabContainer(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& pane, int32 tabHeight, int32 fontIndex, const GuiRect& rect)
 		{
 			auto* tabs = new TabContainer(publisher, keyboard, tabHeight, fontIndex);
 			pane.AddChild(tabs);

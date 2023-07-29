@@ -257,23 +257,23 @@ namespace Rococo
 				return current->Render(grc, topLeft, modality);
 			}
 
-			IPaneContainer* Root()
+			GUI::IPaneContainer* Root()
 			{
 				return current->Root();
 			}
 		};
 
 		IPaneBuilderSupervisor* CreateDebuggingOverlay(Platform& platfore);
-		Rococo::IArrayBox* AddArrayBox(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect);
-		ITextOutputPane* AddTextOutput(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& eventKey, const GuiRect& rect);
-		Rococo::IScroller* AddScroller(IPublisher& publisher, BasePane& panel, const fstring& key, const GuiRect& rect, boolean32 isVertical);
-		Rococo::IContextMenuPane* AddContextMenuPane(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& panel, const fstring& key, const GuiRect& rect, IContextMenuSupervisor& cm);
-		Rococo::ILabelPane* AddLabel(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect);
-		Rococo::IEnumListPane* AddEnumList(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorId, const GuiRect& rect);
-		Rococo::ISlider* AddSlider(IPublisher& publisher, IRenderer& renderer, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue);
-		IScrollbar* CreateScrollbar(bool _isVertical);
+		Rococo::GUI::IArrayBox* AddArrayBox(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect);
+		Rococo::GUI::ITextOutputPane* AddTextOutput(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& eventKey, const GuiRect& rect);
+		Rococo::GUI::IScroller* AddScroller(IPublisher& publisher, BasePane& panel, const fstring& key, const GuiRect& rect, boolean32 isVertical);
+		Rococo::GUI::IContextMenuPane* AddContextMenuPane(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& panel, const fstring& key, const GuiRect& rect, IContextMenuSupervisor& cm);
+		Rococo::GUI::ILabelPane* AddLabel(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect);
+		Rococo::GUI::IEnumListPane* AddEnumList(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorId, const GuiRect& rect);
+		Rococo::GUI::ISlider* AddSlider(IPublisher& publisher, IRenderer& renderer, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue);
+		Rococo::GUI::IScrollbar* CreateScrollbar(bool _isVertical);
 		void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int horzAlign, int vertAlign, Vec2i padding, int fontIndex, const ColourScheme& scheme, bool enableHighlights);
-		Rococo::IRadioButton* AddRadioButton(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect);
-		Rococo::ITabContainer* AddTabContainer(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& pane, int32 tabHeight, int32 fontIndex, const GuiRect& rect);
+		Rococo::GUI::IRadioButton* AddRadioButton(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect);
+		Rococo::GUI::ITabContainer* AddTabContainer(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& pane, int32 tabHeight, int32 fontIndex, const GuiRect& rect);
 	} // MPlatImpl
 } // Rococo

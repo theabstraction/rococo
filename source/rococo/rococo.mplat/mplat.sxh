@@ -1,7 +1,7 @@
 (config $config.xc) 
 
 (enum Int32
-	(as.sxy Rococo.LayoutId "scripts/mplat_pane")
+	(as.sxy Rococo.LayoutId "scripts/mplat_gui")
 	(as.cpp Rococo.ELayoutAlgorithm "mplat")
 	(
 		(None 0)
@@ -10,9 +10,9 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPane "scripts/mplat_pane")
-	(as.cpp Rococo.IPane "mplat")
-	(context factory Rococo.IPane)
+	(as.sxy Rococo.GUI.IPane "scripts/mplat_gui")
+	(as.cpp Rococo.GUI.IPane "mplat")
+	(context factory Rococo.GUI.IPane)
 	(methods
 		(SetColourBk1 (RGBAb normal)(RGBAb hilight)->)
 		(SetColourBk2 (RGBAb normal)(RGBAb hilight)->)
@@ -42,33 +42,7 @@
 )
 
 (interface 
-	(as.sxy Rococo.IInventoryArray "scripts/mplat")
-	(as.cpp Rococo.IInventoryArray "mplat")
-	(context factory Rococo.IInventoryArray)
-	(methods
-		(AddPaperDoll (const Rect rect)(IString pingPathToImage))
-		(ClearDolls)
-		(DollCount -> (Int32 nDolls))
-		(GetDoll (Int32 dollIndex)(Rect rect)(IStringBuilder sb)(BitmapLocation bitmap)->(Bool isOK))
-		(SetDollBitmap (Int32 dollIndex)(const BitmapLocation bitmap))
-		(Flags(Int32 index) -> (Int64 flags))
-		(GetIndexAt (Vec2i pos) -> (Int32 index))
-		(GetRect (Int32 index) (Rect rect))
-		(Id(Int32 index) -> (Int64 flags))
-		(ItemCount(Int32 index) -> (Int64 flags))
-		(LayoutAsRect (const InventoryLayoutRules rules))
-		(NumberOfItems -> (Int32 nItems))
-		(SetFlags(Int32 index)(Int64 flags))
-		(SetId (Int32 index)(Int64 id))
-		(SetItemCount (Int32 index)(Int64 count))
-		(SetRect (Int32 index)(const Rect rect))
-		(Swap (Int32 i)(Int32 j))
-		(ComputeSpan (const InventoryLayoutRules rules)(Vec2i span))
-	)
-)
-
-(interface 
-	(as.sxy Rococo.IContextMenu "scripts/mplat_pane")
+	(as.sxy Rococo.IContextMenu "scripts/mplat_gui")
 	(as.cpp Rococo.IContextMenu "mplat")
 	(context factory Rococo.IContextMenu)
 	(methods
@@ -107,18 +81,18 @@
 
 
 (interface 
-	(as.sxy Rococo.IContextMenuPane "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.IContextMenuPane "mplat" "virtual public Rococo.IPane")
-	(context factory Rococo.IContextMenuPane)
+	(as.sxy Rococo.GUI.IContextMenuPane "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.IContextMenuPane "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.IContextMenuPane)
 	(methods
 		(NoOperation)
 	)
 )
 
 (interface 
-	(as.sxy Rococo.IEnumListPane "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.IEnumListPane "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.IEnumListPane)
+	(as.sxy Rococo.GUI.IEnumListPane "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.IEnumListPane "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.IEnumListPane)
 	(methods
 		(AddEnumCategory (IString key)(Int32 value))
 		(SetArrowColours (RGBAb normal)(RGBAb hilighted)(RGBAb disabled))
@@ -127,9 +101,9 @@
 )
 
 (interface 
-	(as.sxy Rococo.IArrayBox "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.IArrayBox "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.IArrayBox)
+	(as.sxy Rococo.GUI.IArrayBox "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.IArrayBox "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.IArrayBox)
 	(methods
 		(SetFocusColours (RGBAb col1)(RGBAb col2))
 		(SetLineBorders (Int32 left)(Int32 top)(Int32 right)(Int32 bottom))
@@ -139,28 +113,28 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPaneContainer "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.IPaneContainer "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.IPaneContainer)
+	(as.sxy Rococo.GUI.IPaneContainer "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.IPaneContainer "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.IPaneContainer)
 	(methods
-		(AddArrayBox (Int32 fontIndex)(IString populatorEvent)(const Rect rect)->(Rococo.IArrayBox box))
-		(AddContainer (const Rect rect)->(Rococo.IPaneContainer container))
-		(AddFrame (const Rect rect)->(Rococo.IFramePane frame))
-		(AddTabContainer (Int32 tabHeight)(Int32 fontIndex)(const Rect rect)->(Rococo.ITabContainer container))
-		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.ILabelPane label))
-		(AddSlider (Int32 fontIndex)(IString text) (const Rect rect)(Float32 minValue)(Float32 maxValue) ->(Rococo.ISlider slider))
-		(AddScroller (IString key) (const Rect rect)(Bool isVertical)->(Rococo.IScroller scroller))
-		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.ITextOutputPane textBox))
-		(AddRadioButton (Int32 fontIndex)(IString text)(IString key)(IString value) (const Rect rect)->(Rococo.IRadioButton radio))
-		(AddContextMenu (IString key) (const Rect rect) -> (Rococo.IContextMenuPane menu))
-		(AddEnumList (Int32 fontIndex)(IString populateEvent)(const Rect rect) -> (Rococo.IEnumListPane enumList))
+		(AddArrayBox (Int32 fontIndex)(IString populatorEvent)(const Rect rect)->(Rococo.GUI.IArrayBox box))
+		(AddContainer (const Rect rect)->(Rococo.GUI.IPaneContainer container))
+		(AddFrame (const Rect rect)->(Rococo.GUI.IFramePane frame))
+		(AddTabContainer (Int32 tabHeight)(Int32 fontIndex)(const Rect rect)->(Rococo.GUI.ITabContainer container))
+		(AddLabel (Int32 fontIndex)(IString text) (const Rect rect)->(Rococo.GUI.ILabelPane label))
+		(AddSlider (Int32 fontIndex)(IString text) (const Rect rect)(Float32 minValue)(Float32 maxValue) ->(Rococo.GUI.ISlider slider))
+		(AddScroller (IString key) (const Rect rect)(Bool isVertical)->(Rococo.GUI.IScroller scroller))
+		(AddTextOutput  (Int32 fontIndex)(IString key) (const Rect rect)->(Rococo.GUI.ITextOutputPane textBox))
+		(AddRadioButton (Int32 fontIndex)(IString text)(IString key)(IString value) (const Rect rect)->(Rococo.GUI.IRadioButton radio))
+		(AddContextMenu (IString key) (const Rect rect) -> (Rococo.GUI.IContextMenuPane menu))
+		(AddEnumList (Int32 fontIndex)(IString populateEvent)(const Rect rect) -> (Rococo.GUI.IEnumListPane enumList))
 	)
 )
 
 (interface 
-	(as.sxy Rococo.ITabContainer "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.ITabContainer "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.ITabContainer)
+	(as.sxy Rococo.GUI.ITabContainer "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.ITabContainer "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.ITabContainer)
 	(methods
 		(AddTab (Int32 tabWidth)(IString caption)(IString panelText))
 		(SetTabPopulator (IString populatorName))
@@ -168,12 +142,12 @@
 )
 
 (interface 
-	(as.sxy Rococo.IFramePane "scripts/mplat_pane" Rococo.IPaneContainer)
-	(as.cpp Rococo.IFramePane "mplat" "virtual public Rococo::IPaneContainer")
-	(context factory Rococo.IFramePane)
+	(as.sxy Rococo.GUI.IFramePane "scripts/mplat_gui" Rococo.GUI.IPaneContainer)
+	(as.cpp Rococo.GUI.IFramePane "mplat" "virtual public Rococo::GUI::IPaneContainer")
+	(context factory Rococo.GUI.IFramePane)
 	(methods
 		(GetChildRect (Rect rect))
-		(Container -> (Rococo.IPaneContainer container))
+		(Container -> (Rococo.GUI.IPaneContainer container))
 		(SetLayoutAlgorithm (LayoutId layout))
 		(SetMinMaxSpan (Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY))
 		(SetCaption (IString caption))
@@ -182,18 +156,18 @@
 )
 
 (interface 
-	(as.sxy Rococo.IRadioButton "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.IRadioButton "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.IRadioButton)
+	(as.sxy Rococo.GUI.IRadioButton "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.IRadioButton "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.IRadioButton)
 	(methods
 		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
 	)
 )
 
 (interface 
-	(as.sxy Rococo.ILabelPane "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.ILabelPane "mplat"  "virtual public Rococo::IPane")
-	(context factory Rococo.ILabelPane)
+	(as.sxy Rococo.GUI.ILabelPane "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.ILabelPane "mplat"  "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.ILabelPane)
 	(methods
 		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
 		(SetEnableEvent (IString enablerEventName) (RGBAb grey1)(RGBAb grey2))
@@ -201,25 +175,25 @@
 )
 
 (interface 
-	(as.sxy Rococo.ISlider "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.ISlider "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.ISlider)
+	(as.sxy Rococo.GUI.ISlider "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.ISlider "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.ISlider)
 	(methods
 	)
 )
 
 (interface 
-	(as.sxy Rococo.IScroller "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.IScroller "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.IScroller)
+	(as.sxy Rococo.GUI.IScroller "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.IScroller "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.IScroller)
 	(methods
 	)
 )
 
 (interface 
-	(as.sxy Rococo.ITextOutputPane "scripts/mplat_pane" Rococo.IPane)
-	(as.cpp Rococo.ITextOutputPane "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.ITextOutputPane)
+	(as.sxy Rococo.GUI.ITextOutputPane "scripts/mplat_gui" Rococo.GUI.IPane)
+	(as.cpp Rococo.GUI.ITextOutputPane "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.ITextOutputPane)
 	(methods
 		(SetAlignment (Int32 horz)(Int32 vert)(Int32 paddingX)(Int32 paddingY))
 		(SetActivateKey (IString key))
@@ -227,13 +201,13 @@
 )
 
 (interface 
-	(as.sxy Rococo.IPaneBuilder "scripts/mplat_pane")
-	(as.cpp Rococo.IPaneBuilder "mplat" "virtual public Rococo::IPane")
-	(context factory Rococo.IPaneBuilder)
+	(as.sxy Rococo.GUI.IPaneBuilder "scripts/mplat_gui")
+	(as.cpp Rococo.GUI.IPaneBuilder "mplat" "virtual public Rococo::GUI::IPane")
+	(context factory Rococo.GUI.IPaneBuilder)
 	(methods
-		(Root -> (Rococo.IPaneContainer container))
+		(Root -> (Rococo.GUI.IPaneContainer container))
 	)
-	(factory Rococo.PaneBuilder)
+	(factory Rococo.GUI.PaneBuilder)
 )
 
 (interface
@@ -251,9 +225,9 @@
 )
 
 (interface 
-	(as.sxy MPlat.IConfig "scripts/mplat_config")
-	(as.cpp Rococo.MPlat.IConfig "mplat")
-	(context factory Rococo.MPlat.IConfig)
+	(as.sxy Rococo.MPlat.Configuration.IConfig "scripts/mplat_config")
+	(as.cpp Rococo.MPlat.Configuration.IConfig "mplat")
+	(context factory Rococo.MPlat.Configuration.IConfig)
 	(methods
 		(Int   (IString name)(Int32 value))
 		(Float (IString name)(Float32 value))
@@ -265,7 +239,7 @@
 		(GetBool   (IString name)->(Bool value))
 		(GetText   (IString name)(IStringBuilder text))
 	)
-	(factory MPlat.Config)
+	(factory Rococo.MPlat.Configuration.Config)
 )
 
 (interface 

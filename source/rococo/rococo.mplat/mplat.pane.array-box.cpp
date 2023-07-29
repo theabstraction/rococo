@@ -9,7 +9,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEvent>
+struct PanelArrayBox : BasePane, GUI::IArrayBox, IObserver, IEventCallback<ScrollEvent>
 {
 	Platform& platform;
 	ID_FONT idFont;
@@ -24,7 +24,7 @@ struct PanelArrayBox : BasePane, IArrayBox, IObserver, IEventCallback<ScrollEven
 	int32 lineHeight = 0;
 	int32 fontHeight = 0;
 	GuiRect borders{ 0, 0, 0, 0 };
-	AutoFree<IScrollbar> vscroll;
+	AutoFree<GUI::IScrollbar> vscroll;
 
 	PanelArrayBox(Platform& _platform, int _fontIndex, cstr _populateArrayEventText) :
 		platform(_platform),
@@ -321,7 +321,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IArrayBox* AddArrayBox(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect)
+		GUI::IArrayBox* AddArrayBox(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect)
 		{
 			auto* ab = new PanelArrayBox(platform, fontIndex, populatorEventKey);
 			panel.AddChild(ab);

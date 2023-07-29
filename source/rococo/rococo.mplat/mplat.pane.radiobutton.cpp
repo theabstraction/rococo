@@ -8,7 +8,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class PanelRadioButton : public BasePane, public IRadioButton, public IObserver
+class PanelRadioButton : public BasePane, public GUI::IRadioButton, public IObserver
 {
 	int32 fontIndex = 1;
 	char text[128];
@@ -113,7 +113,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::IRadioButton* AddRadioButton(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect)
+		Rococo::GUI::IRadioButton* AddRadioButton(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect)
 		{
 			auto* radio = new PanelRadioButton(publisher, fontIndex, text, key, value);
 			panel.AddChild(radio);

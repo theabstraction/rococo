@@ -9,7 +9,7 @@ using namespace Rococo::Strings;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class PanelSlider : public BasePane, public ISlider
+class PanelSlider : public BasePane, public GUI::ISlider
 {
 	int32 fontIndex = 1;
 	char text[128];
@@ -92,7 +92,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::ISlider* AddSlider(IPublisher& publisher, IRenderer& renderer, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
+		Rococo::GUI::ISlider* AddSlider(IPublisher& publisher, IRenderer& renderer, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
 		{
 			auto* s = new PanelSlider(publisher, renderer, fontIndex, text, minValue, maxValue);
 			panel.AddChild(s);

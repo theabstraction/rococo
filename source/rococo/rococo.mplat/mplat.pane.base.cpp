@@ -3,6 +3,7 @@
 #include <rococo.ui.h>
 #include <rococo.maths.h>
 #include <rococo.sexy.api.h>
+#include <sexy.script.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -562,7 +563,7 @@ namespace Rococo
 	} // MPlatImpl
 } // Rococo
 
-struct PaneContainer : public BasePane, virtual public IPaneContainer
+struct PaneContainer : public BasePane, virtual public GUI::IPaneContainer
 {
 	Platform& platform;
 
@@ -571,7 +572,7 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 	}
 
-	Rococo::IPaneContainer* AddContainer(const GuiRect& rect)
+	Rococo::GUI::IPaneContainer* AddContainer(const GuiRect& rect)
 	{
 		auto* container = new PaneContainer(platform);
 		AddChild(container);
@@ -579,59 +580,59 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 		return container;
 	}
 
-	Rococo::IArrayBox* /* box */ AddArrayBox(int32 fontIndex, const fstring& populatorEvent, const GuiRect& rect)
+	Rococo::GUI::IArrayBox* /* box */ AddArrayBox(int32 fontIndex, const fstring& populatorEvent, const GuiRect& rect)
 	{
 		auto* arrayBox = Rococo::MPlatImpl::AddArrayBox(platform, *this, fontIndex, populatorEvent, rect);
 		return arrayBox;
 	}
 
-	Rococo::IEnumListPane* AddEnumList(int32 fontIndex, const fstring& populateEvent, const GuiRect& rect) override
+	Rococo::GUI::IEnumListPane* AddEnumList(int32 fontIndex, const fstring& populateEvent, const GuiRect& rect) override
 	{
 		auto* enumList = Rococo::MPlatImpl::AddEnumList(platform, *this, fontIndex, populateEvent, rect);
 		return enumList;
 	}
 
-	Rococo::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect)
+	Rococo::GUI::ILabelPane* AddLabel(int32 fontIndex, const fstring& text, const GuiRect& rect)
 	{
 		auto* label = Rococo::MPlatImpl::AddLabel(platform.plumbing.publisher, *this, fontIndex, text, rect);
 		return label;
 	}
 
-	Rococo::ISlider* AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
+	Rococo::GUI::ISlider* AddSlider(int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue)
 	{
 		auto* s = Rococo::MPlatImpl::AddSlider(platform.plumbing.publisher, platform.graphics.renderer, *this, fontIndex, text, rect, minValue, maxValue);
 		return s;
 	}
 
-	Rococo::ITabContainer* AddTabContainer(int32 tabHeight, int32 fontIndex, const GuiRect& rect)
+	Rococo::GUI::ITabContainer* AddTabContainer(int32 tabHeight, int32 fontIndex, const GuiRect& rect)
 	{
 		auto* tabs = Rococo::MPlatImpl::AddTabContainer(platform.plumbing.publisher, (IKeyboardSupervisor&) platform.hardware.keyboard, *this, tabHeight, fontIndex, rect);
 		return tabs;
 	}
 
-	Rococo::IFramePane* AddFrame(const GuiRect& rect);
+	Rococo::GUI::IFramePane* AddFrame(const GuiRect& rect);
 
-	Rococo::ITextOutputPane* AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect)
+	Rococo::GUI::ITextOutputPane* AddTextOutput(int32 fontIndex, const fstring& eventKey, const GuiRect& rect)
 	{
 		auto* to = Rococo::MPlatImpl::AddTextOutput(platform.plumbing.publisher, *this, fontIndex, eventKey, rect);
 		to->SetRect(rect);
 		return to;
 	}
 
-	Rococo::IRadioButton* AddRadioButton(int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect)
+	Rococo::GUI::IRadioButton* AddRadioButton(int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect)
 	{
 		auto* radio = Rococo::MPlatImpl::AddRadioButton(platform.plumbing.publisher, *this, fontIndex, text, key, value, rect);
 		return radio;
 	}
 
-	Rococo::IScroller* AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical)
+	Rococo::GUI::IScroller* AddScroller(const fstring& key, const GuiRect& rect, boolean32 isVertical)
 	{
 		auto* scroller = Rococo::MPlatImpl::AddScroller(platform.plumbing.publisher, *this, key, rect, isVertical);
 		scroller->SetRect(rect);
 		return scroller;
 	}
 
-	Rococo::IContextMenuPane* AddContextMenu(const fstring& key, const GuiRect& rect)
+	Rococo::GUI::IContextMenuPane* AddContextMenu(const fstring& key, const GuiRect& rect)
 	{
 		auto* menu = Rococo::MPlatImpl::AddContextMenuPane(platform.plumbing.publisher, platform.hardware.keyboard, *this, key, rect, platform.plumbing.utilities.GetContextMenu());
 		return menu;
@@ -662,7 +663,7 @@ struct PaneContainer : public BasePane, virtual public IPaneContainer
 
 const char* const s_includeArray[] =
 {
-	"!scripts/mplat_pane_sxh.sxy",
+	"!scripts/mplat_gui_sxh.sxy",
 	"!scripts/mplat_types.sxy",
 	"!scripts/types.sxy",
 	"!scripts/audio_types.sxy"
@@ -712,20 +713,6 @@ public:
 
 	void OnEvent(ScriptCompileArgs& args) override
 	{
-		AddNativeCalls_RococoITabContainer(args.ss, nullptr);
-		AddNativeCalls_RococoIFramePane(args.ss, nullptr);
-		AddNativeCalls_RococoIPaneContainer(args.ss, nullptr);
-		AddNativeCalls_RococoILabelPane(args.ss, nullptr);
-		AddNativeCalls_RococoIArrayBox(args.ss, nullptr);
-		AddNativeCalls_RococoIPaneBuilder(args.ss, this);
-		AddNativeCalls_RococoITextOutputPane(args.ss, nullptr);
-		AddNativeCalls_RococoIRadioButton(args.ss, nullptr);
-		AddNativeCalls_RococoIPane(args.ss, nullptr);
-		AddNativeCalls_RococoISlider(args.ss, nullptr);
-		AddNativeCalls_RococoIScroller(args.ss, nullptr);
-		AddNativeCalls_RococoIEnumListPane(args.ss, nullptr);
-		AddNativeCalls_RococoIInventoryArray(args.ss, nullptr);
-
 		if (onCompile)
 		{
 			// N.B if the caller provides some extra native calls they
@@ -735,6 +722,19 @@ public:
 		//	Rococo::Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
 			onCompile->OnEvent(args);
 		}
+
+		GUI::AddNativeCalls_RococoGUIITabContainer(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIFramePane(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIPaneContainer(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIILabelPane(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIArrayBox(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIPaneBuilder(args.ss, this);
+		GUI::AddNativeCalls_RococoGUIITextOutputPane(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIRadioButton(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIPane(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIISlider(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIScroller(args.ss, nullptr);
+		GUI::AddNativeCalls_RococoGUIIEnumListPane(args.ss, nullptr);
 	}
 
 	void RefreshScript()
@@ -809,7 +809,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class PaneFrame : public PaneContainer, public IFramePane, public IObserver
+class PaneFrame : public PaneContainer, public GUI::IFramePane, public IObserver
 {
 	IPublisher& publisher;
 	IRenderer& renderer;
@@ -1100,7 +1100,7 @@ public:
 		Rococo::Graphics::DrawText(grc, textRect, 0, to_fstring(caption.c_str()), 0, RGBAb(255, 255, 255));
 	}
 
-	Rococo::IPaneContainer* Container()
+	Rococo::GUI::IPaneContainer* Container()
 	{
 		return this;
 	}
@@ -1118,7 +1118,7 @@ public:
 };
 
 
-Rococo::IFramePane* PaneContainer::AddFrame(const GuiRect& rect)
+Rococo::GUI::IFramePane* PaneContainer::AddFrame(const GuiRect& rect)
 {
 	auto* f = new PaneFrame(platform);
 	AddChild(f);
@@ -1130,7 +1130,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IPaneContainer* CreatePaneContainer(Platform& platform)
+		GUI::IPaneContainer* CreatePaneContainer(Platform& platform)
 		{
 			return new PaneContainer(platform);
 		}

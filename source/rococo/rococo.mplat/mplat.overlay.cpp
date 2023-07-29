@@ -321,7 +321,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		return this;
 	}
 
-	Rococo::IPaneContainer* Root() override
+	Rococo::GUI::IPaneContainer* Root() override
 	{
 		return PaneDelegate::Root();
 	}

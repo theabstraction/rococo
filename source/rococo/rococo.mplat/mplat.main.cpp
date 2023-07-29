@@ -46,7 +46,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IPaneContainer* CreatePaneContainer(Platform& platform);
+		GUI::IPaneContainer* CreatePaneContainer(Platform& platform);
 		IMathsVenue& GetOSVenue();
 		IGuiStackSupervisor* CreateGui(IPublisher& publisher, ISourceCache& cache, IRenderer& renderer, IUtilities& utils);
 	}

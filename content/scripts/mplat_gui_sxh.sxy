@@ -2,6 +2,7 @@
 (macro Rococo.LayoutIdNone in out (out.AddAtomic "0x0"))
 (macro Rococo.LayoutIdMaximizeOnlyChild in out (out.AddAtomic "0x1"))
 
+(namespace Rococo.GUI)
 (interface Rococo.GUI.IPane
 	(SetColourBk1 (Int32 normal)(Int32 hilight) -> )
 	(SetColourBk2 (Int32 normal)(Int32 hilight) -> )
@@ -43,6 +44,7 @@
 	(method ProxyIPane.SetCommand (Int32 stateIndex)(Bool deferAction)(Sys.Type.IString text) ->  : (Rococo.GUI.Native.IPaneSetCommand this.hObject stateIndex deferAction text))
 	(method ProxyIPane.SetPopulator (Int32 stateIndex)(Sys.Type.IString populatorName) ->  : (Rococo.GUI.Native.IPaneSetPopulator this.hObject stateIndex populatorName))
 
+(namespace Rococo)
 (interface Rococo.IContextMenu
 	(AddString (Int32 branchId)(Sys.Type.IString displayName)(Sys.Type.IString eventName)(Sys.Type.IString shortcutKey) -> )
 	(AddSubMenu (Sys.Type.IString displayName)(Int32 parentBrancId) -> (Int32 newChildBranchId))

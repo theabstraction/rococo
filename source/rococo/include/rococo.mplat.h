@@ -32,53 +32,52 @@ namespace Rococo
 		}
 	};
 
-   ROCOCO_ID(ID_SPRITE, uint64, 0);
+	ROCOCO_ID(ID_SPRITE, uint64, 0);
 
-   namespace Entities
-   {
-	   struct IRigs;
-   }
+	namespace Entities
+	{
+		struct IRigs;
+	}
 
-   namespace Audio
-   {
-	   struct IAudio;
-	   struct IAudioSupervisor;
-	   struct IAudioSampleDatabase;
-   }
+	namespace Audio
+	{
+		struct IAudio;
+		struct IAudioSupervisor;
+		struct IAudioSampleDatabase;
+	}
 
-   namespace MPEditor
-   {
-	   struct IMPEditor;
-   }
+	namespace MPEditor
+	{
+		struct IMPEditor;
+	}
 
-   struct IEnumVector
-   {
-	   virtual int32 GetActiveIndex() const = 0;
-	   virtual void SetActiveIndex(int32 index) = 0;
-	   virtual void SetValue(int32 index, int32 value) = 0;
-	   virtual int32 operator[] (int32 index) const = 0;
-	   virtual int32 Count() const = 0;
-   };
+	struct IEnumVector
+	{
+		virtual int32 GetActiveIndex() const = 0;
+		virtual void SetActiveIndex(int32 index) = 0;
+		virtual void SetValue(int32 index, int32 value) = 0;
+		virtual int32 operator[] (int32 index) const = 0;
+		virtual int32 Count() const = 0;
+	};
 
-   ROCOCO_INTERFACE IStringVector
-   {
-	   virtual int32 Count() const = 0;
-	   virtual void GetItem(int32 item, char* text, size_t capacity) const = 0;
-   };
+	ROCOCO_INTERFACE IStringVector
+	{
+		virtual int32 Count() const = 0;
+		virtual void GetItem(int32 item, char* text, size_t capacity) const = 0;
+	};
 
-   struct FileUpdatedEvent : public Rococo::Events::EventArgs
-   {
-	   cstr pingPath;
-   };
+	struct FileUpdatedEvent : public Rococo::Events::EventArgs
+	{
+		cstr pingPath;
+	};
 
-   struct TextOutputClickedEvent : public Rococo::Events::EventArgs
-   {
-	   cstr key;
-	   cstr value;
-   };
+	struct TextOutputClickedEvent : public Rococo::Events::EventArgs
+	{
+		cstr key;
+		cstr value;
+	};
 
-   struct TriangleScan;
-   struct InventoryLayoutRules;
+	struct TriangleScan;
 
 	struct LightSpec
 	{
@@ -125,10 +124,10 @@ namespace Rococo
 		struct FontMetrics
 		{
 			int32 ascent;
-			int32 descent; 
-			int32 height; 
-			int32 internalLeading; 
-			int32 italic; 
+			int32 descent;
+			int32 height;
+			int32 internalLeading;
+			int32 italic;
 			int32 weight;
 			int32 imgWidth;
 			int32 imgHeight;
@@ -236,7 +235,7 @@ namespace Rococo
 		};
 	}
 
-	ROCOCO_INTERFACE IConfigSupervisor : public MPlat::IConfig
+	ROCOCO_INTERFACE IConfigSupervisor : public Rococo::MPlat::Configuration::IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
 		virtual bool TryGetInt(cstr name, int& value, int defaultValue) const = 0;
@@ -277,17 +276,17 @@ namespace Rococo
 
 		ROCOCO_INTERFACE IEntityCallback
 		{
-		   virtual void OnEntity(int64 index, Rococo::Components::IBodyComponent& body, ID_ENTITY id) = 0;
+		   virtual void OnEntity(int64 index, Rococo::Components::IBodyComponent & body, ID_ENTITY id) = 0;
 		};
 
 		ROCOCO_INTERFACE IInstancesSupervisor : public IInstances
 		{
-		   virtual IECS& ECS() = 0;
-		   virtual void ForAll(IEntityCallback & cb) = 0;
-		   virtual void Free() = 0;
-		   virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
-		   virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
-		   virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
+			virtual IECS& ECS() = 0;
+			virtual void ForAll(IEntityCallback& cb) = 0;
+			virtual void Free() = 0;
+			virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
+			virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
+			virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
 		};
 	}
 
@@ -507,7 +506,7 @@ namespace Rococo
 		cstr notifyId;
 	};
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty);
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel);
 
 	struct UIPopulate : public Events::EventArgs
 	{
@@ -515,7 +514,7 @@ namespace Rococo
 		cstr name;
 	};
 
-	struct IPaneSupervisor : virtual IPane
+	struct IPaneSupervisor : virtual GUI::IPane
 	{
 		virtual bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
 		virtual void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) = 0;
@@ -536,7 +535,7 @@ namespace Rococo
 		virtual void SetParent(IPaneSupervisor* parent) = 0;
 	};
 
-	struct IPaneBuilderSupervisor : public IPaneBuilder
+	struct IPaneBuilderSupervisor : public GUI::IPaneBuilder
 	{
 		virtual void Free() = 0;
 		virtual void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
@@ -650,16 +649,19 @@ namespace Rococo
 
 	struct IMPlatFileBrowser;
 
-	ROCOCO_INTERFACE IScrollbar
+	namespace GUI
 	{
-		virtual void GetScrollState(Events::ScrollEvent & s) = 0;
-		virtual void SetScrollState(const Events::ScrollEvent& s) = 0;
+		ROCOCO_INTERFACE IScrollbar
+		{
+			virtual void GetScrollState(Events::ScrollEvent & s) = 0;
+			virtual void SetScrollState(const Events::ScrollEvent& s) = 0;
 
-		virtual bool AppendEvent(const KeyboardEvent& k, Events::ScrollEvent& updateStatus) = 0;
-		virtual bool AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft, Events::ScrollEvent& updateStatus) = 0;
-		virtual void Free() = 0;
-		virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_sliderCol, RGBAb sliderCol, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, const Events::EventIdRef& populationEventId) = 0;
-	};
+			virtual bool AppendEvent(const KeyboardEvent& k, Events::ScrollEvent& updateStatus) = 0;
+			virtual bool AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft, Events::ScrollEvent& updateStatus) = 0;
+			virtual void Free() = 0;
+			virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_sliderCol, RGBAb sliderCol, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, const Events::EventIdRef& populationEventId) = 0;
+		};
+	}
 
 	ROCOCO_INTERFACE IBrowserRules
 	{
@@ -697,16 +699,11 @@ namespace Rococo
 		void ValidateSafePathToWrite(IO::IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss, cstr pathname);
 	}
 
-	ROCOCO_INTERFACE IInventoryArraySupervisor : IInventoryArray
-	{
-		virtual void Free() = 0;
-	};
-
 	// If this class grows too long, consider adding sub-interfaces to better index the functionality
 	ROCOCO_INTERFACE IUtilities
 	{
 		virtual void AddSubtitle(cstr subtitle) = 0;
-		virtual IScrollbar* CreateScrollbar(bool _isVertical) = 0;
+		virtual GUI::IScrollbar* CreateScrollbar(bool _isVertical) = 0;
 		virtual void EnumerateFiles(IEventCallback<const wchar_t*>& cb, cstr pingPathDirectory) = 0;
 		virtual Graphics::ITextTesselator& GetTextTesselator() = 0;
 		virtual bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) = 0;
@@ -723,15 +720,14 @@ namespace Rococo
 		virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) = 0;
 		virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 		virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
-		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& _onDirty) = 0;
+		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel) = 0;
 		virtual fstring ToShortString(Graphics::MaterialCategory value) const = 0;
 		virtual IMathsVenue* Venue() = 0;
-		virtual void BrowseFiles(IBrowserRulesFactory& factory) = 0;
+		virtual void BrowseFiles(IBrowserRulesFactory& factory, IEventCallback<ScriptCompileArgs>* onCompile) = 0;
 		virtual void ShowBusy(bool enable, cstr title, cstr messageFormat, ...) = 0;
 		virtual IContextMenuSupervisor& GetContextMenu() = 0;
 		virtual IContextMenu& PopupContextMenu() = 0;
 		virtual Rococo::Graphics::IHQFonts& GetHQFonts() = 0;
-		virtual IInventoryArraySupervisor* CreateInventoryArray(int32 capacity) = 0;
 	};
 
 	ROCOCO_INTERFACE IUtilitiesSupervisor : public IUtilities
@@ -1000,8 +996,6 @@ namespace Rococo
 	}
 
 	IMPlatFileBrowser* CreateMPlatFileBrowser(Events::IPublisher& publisher, IO::IInstallation& installation, IGUIStack& gui, IKeyboardSupervisor& keyboard, Browser::IBrowserFileChangeNotification& onChange);
-
-	IInventoryArraySupervisor* CreateInventoryArray(int32 capacity);
 }
 
 namespace Rococo
@@ -1033,7 +1027,7 @@ namespace Rococo
 			IO::IInstallation& installation
 		);
 
-		void RunMPlatConfigScript(OUT IConfig& config,
+		void RunMPlatConfigScript(OUT Configuration::IConfig& config,
 			cstr scriptName,
 			Script::IScriptSystemFactory& ssf,
 			Windows::IDE::EScriptExceptionFlow flow,
