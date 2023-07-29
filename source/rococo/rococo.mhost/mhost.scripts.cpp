@@ -91,11 +91,11 @@ namespace MHost
 		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Native", "Package[mhost]");
 	}
 
-	IEventCallback<ScriptCompileArgs>& GetBaseCompileOptions()
+	IScriptCompilationEventHandler& GetBaseCompileOptions()
 	{
-		struct CLOSURE : IEventCallback<ScriptCompileArgs>
+		struct CLOSURE : IScriptCompilationEventHandler
 		{
-			void OnEvent(ScriptCompileArgs& args) override
+			void OnCompile(ScriptCompileArgs& args) override
 			{
 				MHost::AddMHostNativeCallSecurity(args);
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex");
@@ -108,7 +108,7 @@ namespace MHost
 
 	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 	{
-		class ScriptContext : public IEventCallback<ScriptCompileArgs>
+		class ScriptContext : public IScriptCompilationEventHandler
 		{
 			Platform& platform;
 			IEngineSupervisor* engine;
@@ -142,11 +142,11 @@ namespace MHost
 				((ScriptContext*)(_nce.context))->LoadExpression(_nce);
 			}
 
-			void OnEvent(ScriptCompileArgs& args) override
+			void OnCompile(ScriptCompileArgs& args) override
 			{
 				args.ss.RegisterPackage(&package);
 
-				GetBaseCompileOptions().OnEvent(args);
+				GetBaseCompileOptions().OnCompile(args);
 
 				AddNativeCalls_MHostIGui(args.ss, nullptr);
 				AddNativeCalls_MHostIEngine(args.ss, engine);

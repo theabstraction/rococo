@@ -1583,9 +1583,9 @@ namespace
 		TextEditorBox teb;
 		bool validated = false;
 		HString root;
-		IEventCallback<ScriptCompileArgs>& onCompileUIscript;
+		IScriptCompilationEventHandler& onCompileUIscript;
 	public:
-		BloodyPingPathBinding(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onCompileUIscript, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr defaultValue) :
+		BloodyPingPathBinding(Platform& _platform, IScriptCompilationEventHandler& _onCompileUIscript, IEventCallback<IBloodyPropertyType>& dirtNotifier, char* pingPath, size_t _len, cstr defaultValue) :
 			platform(_platform),
 			value(pingPath),
 			len(_len),
@@ -1820,7 +1820,7 @@ namespace
 		Platform& platform;
 		AutoFree<GUI::IScrollbar> vscroll;
 		IEventCallback<BloodyNotifyArgs>& onDirty;
-		IEventCallback<ScriptCompileArgs>& onCompileUIscript;
+		IScriptCompilationEventHandler& onCompileUIscript;
 			;
 
 		bool ValidateUnique(cstr name) const
@@ -1854,7 +1854,7 @@ namespace
 		}
 
 	public:
-		BloodyPropertySetEditor(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onCompileUIscript, IEventCallback<BloodyNotifyArgs>& _onDirty) :
+		BloodyPropertySetEditor(Platform& _platform, IScriptCompilationEventHandler& _onCompileUIscript, IEventCallback<BloodyNotifyArgs>& _onDirty) :
 			platform(_platform),
 			onDirty(_onDirty),
 			vscroll(platform.plumbing.utilities.CreateScrollbar(true)),
@@ -2057,7 +2057,7 @@ namespace
 
 namespace Rococo
 {
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel)
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty, IScriptCompilationEventHandler& onCompileUIPanel)
 	{
 		return new BloodyPropertySetEditor(_platform, onCompileUIPanel, _onDirty);
 	}

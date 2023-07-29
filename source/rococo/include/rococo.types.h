@@ -419,6 +419,13 @@ namespace Rococo
 		virtual void OnEvent(const wchar_t* arg) = 0;
 	};
 
+	struct ScriptCompileArgs;
+
+	ROCOCO_INTERFACE IScriptCompilationEventHandler
+	{
+		virtual void OnCompile(ScriptCompileArgs& args) = 0;
+	};
+
 	template<class T> inline void Free(T* t)
 	{
 		if (t) t->Free();

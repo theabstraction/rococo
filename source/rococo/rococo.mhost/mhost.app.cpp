@@ -35,7 +35,7 @@ namespace MHost
 	using namespace MHost::OS;
 
 	void AddMHostNativeCallSecurity(Rococo::ScriptCompileArgs& args);
-	IEventCallback<ScriptCompileArgs>& GetBaseCompileOptions();
+	IScriptCompilationEventHandler& GetBaseCompileOptions();
 	Rococo::Reflection::IReflectionTarget& GetTestTarget();
 
 	auto evPopulateBusyCategoryId = "busy.category"_event;
@@ -355,9 +355,9 @@ namespace MHost
 			ReleaseMouse();
 		}
 
-		struct NoEventArgs : IEventCallback<ScriptCompileArgs>
+		struct NoEventArgs : IScriptCompilationEventHandler
 		{
-			void OnEvent(ScriptCompileArgs&) override
+			void OnCompile(ScriptCompileArgs&) override
 			{
 
 			}
@@ -402,9 +402,9 @@ namespace MHost
 				}
 			} noImplicitIncludes;
 
-			struct : IEventCallback<ScriptCompileArgs>
+			struct : IScriptCompilationEventHandler
 			{
-				void OnEvent(ScriptCompileArgs& args) override
+				void OnCompile(ScriptCompileArgs& args) override
 				{
 					AddMHostNativeCallSecurity(args);
 				}
@@ -441,9 +441,9 @@ namespace MHost
 				}
 			} noImplicitIncludes;
 
-			struct : IEventCallback<ScriptCompileArgs>
+			struct : IScriptCompilationEventHandler
 			{
-				void OnEvent(ScriptCompileArgs& args) override
+				void OnCompile(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
 				}

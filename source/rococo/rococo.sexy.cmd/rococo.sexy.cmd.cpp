@@ -287,7 +287,7 @@ int PrintError(IException& ex)
 using namespace Rococo;
 using namespace Rococo::Windows;
 
-struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl, public Tasks::ITaskQueue, public ISecuritySystem
+struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Windows::IDE::IScriptExceptionHandler, public OS::IAppControl, public Tasks::ITaskQueue, public ISecuritySystem
 {
 	bool isInteractive;
 	int nArgs;
@@ -307,7 +307,7 @@ struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public Rococo::
 		return isRunning && isInteractive ? IDE::EScriptExceptionFlow::Retry : IDE::EScriptExceptionFlow::Terminate;
 	}
 
-	void OnEvent(ScriptCompileArgs& ssArgs) override
+	void OnCompile(ScriptCompileArgs& ssArgs) override
 	{
 		Rococo::Script::AddNativeCallSecurity_ToSysNatives(ssArgs.ss);
 		ssArgs.ss.SetCommandLine(nArgs, args);

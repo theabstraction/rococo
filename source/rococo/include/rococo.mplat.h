@@ -265,7 +265,7 @@ namespace Rococo
 
 	IMathsVisitorSupervisor* CreateMathsVisitor(IUtilities& utilities, Events::IPublisher& publisher);
 
-	void Run_MPLat_EnvironmentScript(Platform& platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform);
+	void Run_MPLat_EnvironmentScript(Platform& platform, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform);
 
 	namespace Entities
 	{
@@ -506,7 +506,7 @@ namespace Rococo
 		cstr notifyId;
 	};
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel);
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty, IScriptCompilationEventHandler& onCompileUIPanel);
 
 	struct UIPopulate : public Events::EventArgs
 	{
@@ -581,7 +581,7 @@ namespace Rococo
 		*   are added that may be useful in panel generation. A application can also add native
 		*   interfaces and functions using the onCompile implementation
 		*/
-		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IEventCallback<ScriptCompileArgs>* onCompile = nullptr) = 0;
+		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IScriptCompilationEventHandler* onCompile = nullptr) = 0;
 		virtual IPaneBuilderSupervisor* CreateDebuggingOverlay() = 0;
 		virtual void Render(IGuiRenderContext& grc) = 0;
 		virtual void PushTop(IPaneSupervisor* panel, bool isModal) = 0;
@@ -712,21 +712,21 @@ namespace Rococo
 		virtual void RefreshResource(cstr pingPath) = 0;
 
 		// Note, if implicitIncludes is null, mplat defaults are used, which may conflict with your security settings.
-		virtual void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+		virtual void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
 
 		// Note, if implicitIncludes is null, mplat defaults are used, which may conflict with your security settings.
-		virtual void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+		virtual void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
 
 		virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) = 0;
 		virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 		virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
-		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel) = 0;
+		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IScriptCompilationEventHandler& onCompileUIPanel) = 0;
 		virtual fstring ToShortString(Graphics::MaterialCategory value) const = 0;
 		virtual IMathsVenue* Venue() = 0;
-		virtual void BrowseFiles(IBrowserRulesFactory& factory, IEventCallback<ScriptCompileArgs>* onCompile) = 0;
+		virtual void BrowseFiles(IBrowserRulesFactory& factory, IScriptCompilationEventHandler* onCompile) = 0;
 		virtual void ShowBusy(bool enable, cstr title, cstr messageFormat, ...) = 0;
 		virtual IContextMenuSupervisor& GetContextMenu() = 0;
-		virtual IContextMenu& PopupContextMenu(IEventCallback<ScriptCompileArgs>& onCompile) = 0;
+		virtual IContextMenu& PopupContextMenu(IScriptCompilationEventHandler& onCompile) = 0;
 		virtual Rococo::Graphics::IHQFonts& GetHQFonts() = 0;
 	};
 
@@ -1014,7 +1014,7 @@ namespace Rococo
 
 		void RunBareScript(
 			ScriptPerformanceStats& stats,
-			IEventCallback<ScriptCompileArgs>& _onScriptEvent,
+			IScriptCompilationEventHandler& _onScriptEvent,
 			Windows::IDE::EScriptExceptionFlow flow,
 			const char* name,
 			int id,

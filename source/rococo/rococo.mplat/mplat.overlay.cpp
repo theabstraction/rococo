@@ -15,7 +15,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IEventCallback<ScriptCompileArgs>* onCompile = nullptr);
+		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IScriptCompilationEventHandler* onCompile = nullptr);
 	}
 }
 

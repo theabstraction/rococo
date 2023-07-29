@@ -35,7 +35,7 @@ namespace Rococo
 	namespace MPlatImpl
 	{
 		// Note - implicityIncludes is NULL, MPlat defaults are used, which may conflict with security.
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
 	}
 }
 
@@ -121,7 +121,7 @@ public:
 		return this;
 	}
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IEventCallback<ScriptCompileArgs>& onCompileUIPanel) override
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IScriptCompilationEventHandler& onCompileUIPanel) override
 	{
 		return Rococo::CreateBloodyPropertySetEditor(*platform, onDirty, onCompileUIPanel);
 	}
@@ -319,12 +319,12 @@ public:
 		}
 	}
 
-	void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+	void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 	{
 		RunEnvironmentScriptWithId(implicitIncludes, _onScriptEvent, 0, name, addPlatform, shutdownOnFail, trace, onScriptCrash, declarationBuilder);
 	}
 
-	void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder) override
+	void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder) override
 	{
 		ScriptPerformanceStats stats = { 0 };
 
@@ -386,7 +386,7 @@ public:
 	AutoFree<IMPlatFileBrowser> browser;
 	AutoFree<IPaneBuilderSupervisor> browsingPane;
 
-	void BrowseFiles(IBrowserRulesFactory& factory, IEventCallback<ScriptCompileArgs>* onCompile)  override
+	void BrowseFiles(IBrowserRulesFactory& factory, IScriptCompilationEventHandler* onCompile)  override
 	{
 		if (!browser)
 		{
@@ -475,7 +475,7 @@ public:
 		CloseContextMenu();
 	}
 
-	IContextMenu& PopupContextMenu(IEventCallback<ScriptCompileArgs>& onCompile)
+	IContextMenu& PopupContextMenu(IScriptCompilationEventHandler& onCompile)
 	{
 		IContextMenuSupervisor& cm = GetContextMenu();
 

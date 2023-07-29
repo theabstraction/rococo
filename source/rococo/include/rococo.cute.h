@@ -86,7 +86,7 @@ namespace Rococo
 			virtual Post::IPostbox& Postbox() = 0;
 		};
 
-		void ExecuteScript(cstr scriptFile, IInstallation& installation, Rococo::Script::IScriptSystemFactory& ssFactory, ExecuteScriptSpec& spec, IEventCallback<ScriptCompileArgs>& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler, bool trace);
+		void ExecuteScript(cstr scriptFile, IInstallation& installation, Rococo::Script::IScriptSystemFactory& ssFactory, ExecuteScriptSpec& spec, IScriptCompilationEventHandler& onCompile, Rococo::Windows::IDE::IScriptExceptionHandler& exHandler, bool trace);
 		void ExecuteWindowScript(cstr scriptFile, IInstallation& installation, Rococo::Script::IScriptSystemFactory& ssFactory, ExecuteScriptSpec& spec, IMasterWindowFactory& factory);
 
 		struct IMenu;

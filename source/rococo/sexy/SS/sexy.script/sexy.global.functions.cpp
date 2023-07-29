@@ -2016,13 +2016,13 @@ namespace Rococo
 		}
 	}
 
-	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& onCompile, StringBuilder* declarationBuilder)
+	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;
 
 		ScriptCompileArgs args{ ss };
-		onCompile.OnEvent(args);
+		onCompile.OnCompile(args);
 
 		sources.RegisterPackages(ss);
 
@@ -2172,7 +2172,7 @@ namespace Rococo
 		args.PopOutputs(argStack);
 	};
 
-	SCRIPTEXPORT_API int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace, StringBuilder* declarationBuilder)
+	SCRIPTEXPORT_API int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, int32 param, IScriptCompilationEventHandler& onCompile, bool trace, StringBuilder* declarationBuilder)
 	{
 		using namespace Rococo::Script;
 		using namespace Rococo::Compiler;

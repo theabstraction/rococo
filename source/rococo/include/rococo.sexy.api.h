@@ -96,10 +96,10 @@ namespace Rococo
 		Time::ticks executeTime;
 	};
 
-	SCRIPTEXPORT_API void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IEventCallback<ScriptCompileArgs>& onCompile, Strings::StringBuilder* declarationBuilder);
+	SCRIPTEXPORT_API void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, Strings::StringBuilder* declarationBuilder);
 	SCRIPTEXPORT_API void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
 	SCRIPTEXPORT_API void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
-	SCRIPTEXPORT_API int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, int32 param, IEventCallback<ScriptCompileArgs>& onCompile, bool trace, Strings::StringBuilder* declarationBuilder);
+	SCRIPTEXPORT_API int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, int32 param, IScriptCompilationEventHandler& onCompile, bool trace, Strings::StringBuilder* declarationBuilder);
 	SCRIPTEXPORT_API [[nodiscard]] ISourceCache* CreateSourceCache(IO::IInstallation& installation, Rococo::IAllocator& allocator);
 	SCRIPTEXPORT_API void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);
 	void ScanExpression(Rococo::Sex::cr_sex s, cstr hint, const char* format, ...);

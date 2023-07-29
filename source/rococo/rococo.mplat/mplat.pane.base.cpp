@@ -669,14 +669,14 @@ const char* const s_includeArray[] =
 	"!scripts/audio_types.sxy"
 };
 
-class ScriptedPanel : IEventCallback<ScriptCompileArgs>, IObserver, public IPaneBuilderSupervisor, public PaneContainer
+class ScriptedPanel : IScriptCompilationEventHandler, IObserver, public IPaneBuilderSupervisor, public PaneContainer
 {
 	GuiRect lastRect{ 0, 0, 0, 0 };
 	std::string scriptFilename;
 	Platform& platform;
-	IEventCallback<ScriptCompileArgs>* onCompile;
+	IScriptCompilationEventHandler* onCompile;
 public:
-	ScriptedPanel(Platform& _platform, cstr _scriptFilename, IEventCallback<ScriptCompileArgs>* _onCompile) : PaneContainer(_platform),
+	ScriptedPanel(Platform& _platform, cstr _scriptFilename, IScriptCompilationEventHandler* _onCompile) : PaneContainer(_platform),
 		platform(_platform),
 		scriptFilename(_scriptFilename),
 		onCompile(_onCompile)
@@ -711,7 +711,7 @@ public:
 		delete this;
 	}
 
-	void OnEvent(ScriptCompileArgs& args) override
+	void OnCompile(ScriptCompileArgs& args) override
 	{
 		if (onCompile)
 		{
@@ -720,7 +720,7 @@ public:
 			// more of the MPLAT API to work with.
 
 		//	Rococo::Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.instances);
-			onCompile->OnEvent(args);
+			onCompile->OnCompile(args);
 		}
 
 		GUI::AddNativeCalls_RococoGUIITabContainer(args.ss, nullptr);
@@ -1135,7 +1135,7 @@ namespace Rococo
 			return new PaneContainer(platform);
 		}
 
-		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IEventCallback<ScriptCompileArgs>* onCompile)
+		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IScriptCompilationEventHandler* onCompile)
 		{
 			return new ScriptedPanel(platform, filename, onCompile);
 		}
