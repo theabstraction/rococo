@@ -49,6 +49,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.auto-complete.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.auto-release.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.bakes.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.clock.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.compiler.options.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.component.entities.h" />
@@ -124,7 +125,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.bakes.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="allocators">

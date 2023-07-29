@@ -26,7 +26,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IScrollbar* CreateScrollbar(bool _isVertical);
+		GUI::IScrollbar* CreateScrollbar(bool _isVertical);
 	}
 }
 
@@ -35,7 +35,7 @@ namespace Rococo
 	namespace MPlatImpl
 	{
 		// Note - implicityIncludes is NULL, MPlat defaults are used, which may conflict with security.
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
 	}
 }
 
@@ -104,7 +104,7 @@ public:
 		}
 	}
 
-	IScrollbar* CreateScrollbar(bool _isVertical) override;
+	GUI::IScrollbar* CreateScrollbar(bool _isVertical) override;
 
 	Graphics::ITextTesselator& GetTextTesselator() override
 	{
@@ -121,9 +121,9 @@ public:
 		return this;
 	}
 
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& _onDirty) override
+	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IScriptCompilationEventHandler& onCompileUIPanel) override
 	{
-		return Rococo::CreateBloodyPropertySetEditor(*platform, _onDirty);
+		return Rococo::CreateBloodyPropertySetEditor(*platform, onDirty, onCompileUIPanel);
 	}
 
 	void AddSubtitle(cstr subtitle)
@@ -319,12 +319,12 @@ public:
 		}
 	}
 
-	void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+	void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 	{
 		RunEnvironmentScriptWithId(implicitIncludes, _onScriptEvent, 0, name, addPlatform, shutdownOnFail, trace, onScriptCrash, declarationBuilder);
 	}
 
-	void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder) override
+	void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder) override
 	{
 		ScriptPerformanceStats stats = { 0 };
 
@@ -386,7 +386,7 @@ public:
 	AutoFree<IMPlatFileBrowser> browser;
 	AutoFree<IPaneBuilderSupervisor> browsingPane;
 
-	void BrowseFiles(IBrowserRulesFactory& factory)  override
+	void BrowseFiles(IBrowserRulesFactory& factory, IScriptCompilationEventHandler* onCompile)  override
 	{
 		if (!browser)
 		{
@@ -395,7 +395,7 @@ public:
 
 		if (!browsingPane)
 		{
-			browsingPane = platform->graphics.gui.BindPanelToScript(factory.GetPanePingPath());
+			browsingPane = platform->graphics.gui.BindPanelToScript(factory.GetPanePingPath(), onCompile);
 		}
 
 		browser->Engage(factory);
@@ -475,23 +475,18 @@ public:
 		CloseContextMenu();
 	}
 
-	IContextMenu& PopupContextMenu()
+	IContextMenu& PopupContextMenu(IScriptCompilationEventHandler& onCompile)
 	{
 		IContextMenuSupervisor& cm = GetContextMenu();
 
 		if (!contextMenuPane)
 		{
-			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy");
+			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy", &onCompile);
 		}
 
 		platform->graphics.gui.PushTop(contextMenuPane->Supervisor(), true);
 
 		return cm;
-	}
-
-	IInventoryArraySupervisor* CreateInventoryArray(int32 capacity) override
-	{
-		return Rococo::CreateInventoryArray(capacity);
 	}
 };
 
@@ -506,7 +501,7 @@ namespace Rococo
 	}
 }
 
-IScrollbar* Utilities::CreateScrollbar(bool _isVertical)
+GUI::IScrollbar* Utilities::CreateScrollbar(bool _isVertical)
 {
 	return Rococo::MPlatImpl::CreateScrollbar(_isVertical);
 }

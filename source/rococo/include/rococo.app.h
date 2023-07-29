@@ -6,7 +6,6 @@ namespace Rococo
 	struct Platform;
 	struct KeyboardEvent;
 	struct MouseEvent;
-	struct ScriptCompileArgs;
 
 	ROCOCO_INTERFACE IAppFactory
 	{

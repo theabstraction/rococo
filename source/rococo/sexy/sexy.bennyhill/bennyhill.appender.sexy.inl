@@ -315,6 +315,16 @@ namespace
 
 	void DeclareSexyInterface(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods, const ParseContext& pc)
 	{
+		NamespaceSplitter splitter(ic.asSexyInterface);
+
+		cstr ns, tail;
+		if (!splitter.SplitTail(ns, tail))
+		{
+			Throw(0, "Could not split namespace of enum definition %s", ic.asSexyInterface);
+		}
+
+		DeclareNamespaces(appender, ns, pc);
+
 		appender.Append("(interface %s", ic.asSexyInterface);
 
 		if (ic.sexyBase)

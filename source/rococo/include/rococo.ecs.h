@@ -194,7 +194,7 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_ECS_API IECSSupervisor* CreateECS(uint64 maxTableSizeInBytes = 2_gigabytes);
+	ROCOCO_ECS_API IECSSupervisor* CreateECS(uint64 maxTableSizeInBytes = 256_megabytes);
 
     ROCOCO_INTERFACE IComponentTableManagerBase
     {

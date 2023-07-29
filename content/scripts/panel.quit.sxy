@@ -1,7 +1,7 @@
 (' #file.type rococo.mplat.panel)
 
 (' #include 
-	"!scripts/mplat_pane_sxh.sxy"
+	"!scripts/mplat_gui_sxh.sxy"
 	"!scripts/mplat_types.sxy"
 	"!scripts/types.sxy"
 	"!scripts/audio_types.sxy"

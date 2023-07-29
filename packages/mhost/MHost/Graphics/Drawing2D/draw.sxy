@@ -40,8 +40,8 @@
 	(gui.GetCursorPos cursorPos)
 	
 	(if (isGlowing)
-		(Int64 tickHz = (Sys.OS.ClockHz))
-		(Int64 tickCount = (Sys.OS.ClockTicks))
+		(Int64 tickHz = (Sys.Time.TickHz))
+		(Int64 tickCount = (Sys.Time.TickCount))
 		(Int64 ticksPerDelta = (tickHz / 145))
 		(Int64 t = (tickCount / ticksPerDelta))
 		(Int32 i = ((Sys.Maths.I64.ToInt32 (Sys.Maths.I64.Mod t 128)) + 127))

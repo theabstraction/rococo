@@ -9,7 +9,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class EnumListPane : public BasePane, public IEnumListPane, public IEventCallback<ScrollEvent>
+class EnumListPane : public BasePane, public GUI::IEnumListPane, public IEventCallback<ScrollEvent>
 {
 	Platform& platform; // make platform first member to ensure correct compilation of constructor
 	int32 fontIndex = 1;
@@ -31,7 +31,7 @@ class EnumListPane : public BasePane, public IEnumListPane, public IEventCallbac
 	RGBAb focusColour2{ 0,0,96,255 };
 
 	EventIdRef evScrollPopulate;
-	AutoFree<IScrollbar> vscroll;
+	AutoFree<GUI::IScrollbar> vscroll;
 
 	int32 vPos = 0;
 public:
@@ -416,7 +416,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::IEnumListPane* AddEnumList(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populateId, const GuiRect& rect)
+		Rococo::GUI::IEnumListPane* AddEnumList(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populateId, const GuiRect& rect)
 		{
 			auto* enumList = new EnumListPane(platform, fontIndex, populateId);
 			panel.AddChild(enumList);

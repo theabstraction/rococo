@@ -4,9 +4,11 @@
 #include <rococo.mplat.h>
 #include <mplat.to.app.events.inl>
 #include <rococo.window.h>
+#include <rococo.strings.h>
 
 namespace Rococo
 {
+	using namespace Rococo::Strings;
 	using namespace Rococo::Windows;
 
 	const char* const MPLAT_DLL = "rococo.mplat.dynamic.dll";
@@ -47,7 +49,12 @@ namespace Rococo
 		if (module == nullptr)
 		{
 			int err = GetLastError();
-			MessageBoxA(nullptr, "Could not load Dll", moduleName, MB_ICONERROR);
+
+			char msg[256];
+			OS::FormatErrorMessage(msg, sizeof msg, err);
+			char fullMsg[256];
+			SafeFormat(fullMsg, "Could not load Dll: Error %s", msg);
+			MessageBoxA(nullptr, fullMsg, moduleName, MB_ICONERROR);
 			return err;
 		}
 

@@ -25,7 +25,7 @@ namespace
 
    class MathsVisitor : public IMathsVisitorSupervisor, public IEventCallback<ScrollEvent>
    {
-	   AutoFree<IScrollbar> scrollbar;
+	   AutoFree<GUI::IScrollbar> scrollbar;
 	   std::vector<DebugLine> lines;
 	   GuiRect scrollRect;
 	   bool queueMouseUp = false;

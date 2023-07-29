@@ -48,14 +48,14 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	flags.LogOnModuleExit = true;
 	Rococo::Memory::SetAllocatorLogFlags(flags);
 
-	struct : IDirectAppFactory, IEventCallback<ScriptCompileArgs>
+	struct : IDirectAppFactory, IScriptCompilationEventHandler
 	{
 		IDirectApp* CreateApp(Platform& e, IDirectAppControl& control) override
 		{
 			return MHost::CreateApp(e, control, GetCommandLineA());
 		}
 
-		void OnEvent(ScriptCompileArgs& args) override
+		void OnCompile(ScriptCompileArgs& args) override
 		{
 			MHost::AddMHostNativeCallSecurity(args);
 		}

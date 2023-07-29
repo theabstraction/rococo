@@ -365,7 +365,7 @@ public:
 	}
 };
 
-class ContextMenuPane : public BasePane, public IContextMenuPane, public IObserver
+class ContextMenuPane : public BasePane, public GUI::IContextMenuPane, public IObserver
 {
 	IPublisher& publisher;
 	IKeyboardSupervisor& keyboard;
@@ -418,7 +418,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::IContextMenuPane* AddContextMenuPane(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& parent, const fstring& key, const GuiRect& rect, IContextMenuSupervisor& cm)
+		Rococo::GUI::IContextMenuPane* AddContextMenuPane(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& parent, const fstring& key, const GuiRect& rect, IContextMenuSupervisor& cm)
 		{
 			auto* menu = new ContextMenuPane(publisher, keyboard, key, cm);
 			parent.AddChild(menu);

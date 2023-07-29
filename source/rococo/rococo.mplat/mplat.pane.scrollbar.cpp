@@ -8,7 +8,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
 
-class Scrollbar : public IScrollbar
+class Scrollbar : public GUI::IScrollbar
 {
 	int trapCount = 0;
 	Vec2i grabPoint{ -1,-1 };
@@ -315,7 +315,7 @@ public:
 	}
 };
 
-class PanelScrollbar : public BasePane, public IScroller, IObserver, IEventCallback<ScrollEvent>
+class PanelScrollbar : public BasePane, public GUI::IScroller, IObserver, IEventCallback<ScrollEvent>
 {
 	Scrollbar scrollbar;
 	IPublisher& publisher;
@@ -453,7 +453,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		Rococo::IScroller* AddScroller(IPublisher& publisher, BasePane& panel, const fstring& key, const GuiRect& rect, boolean32 isVertical)
+		Rococo::GUI::IScroller* AddScroller(IPublisher& publisher, BasePane& panel, const fstring& key, const GuiRect& rect, boolean32 isVertical)
 		{
 			auto* scroller = new PanelScrollbar(publisher, key, isVertical);
 			panel.AddChild(scroller);
@@ -461,7 +461,7 @@ namespace Rococo
 			return scroller;
 		}
 
-		IScrollbar* CreateScrollbar(bool _isVertical)
+		GUI::IScrollbar* CreateScrollbar(bool _isVertical)
 		{
 			return new Scrollbar(_isVertical);
 		}

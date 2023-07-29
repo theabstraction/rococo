@@ -46,7 +46,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IPaneContainer* CreatePaneContainer(Platform& platform);
+		GUI::IPaneContainer* CreatePaneContainer(Platform& platform);
 		IMathsVenue& GetOSVenue();
 		IGuiStackSupervisor* CreateGui(IPublisher& publisher, ISourceCache& cache, IRenderer& renderer, IUtilities& utils);
 	}
@@ -625,7 +625,7 @@ int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeI
 	struct : public IMainloop
 	{
 		IAppFactory* appFactory = nullptr;
-		IEventCallback<ScriptCompileArgs>* onCompile = nullptr;
+		IScriptCompilationEventHandler* onCompile = nullptr;
 
 		void Invoke(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) override
 		{

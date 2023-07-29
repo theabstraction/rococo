@@ -453,8 +453,8 @@
 	(rod.CopyToMeshBuilder "worm-mesh" true false true)
 	
 	(IMeshBuilder mb (MeshBuilder))
-	(mb.SetSpecialAmbientShader 	"worm-mesh" "!skinned_2bone.ambient.vs" "!ambient.ps" false)
-	(mb.SetSpecialSpotlightShader	"worm-mesh" "!skinned_2bone.vs" "!object.ps" false)
+	(mb.SetSpecialAmbientShader 	"worm-mesh" "!shaders/compiled/skinned_2bone.ambient.vs" "!shaders/compiled/ambient.ps" false)
+	(mb.SetSpecialSpotlightShader	"worm-mesh" "!shaders/compiled/skinned_2bone.vs" "!shaders/compiled/object.ps" false)
 	
 	(Matrix4x4 wormToWorld =
 		(1 0 0  posWorm.x)

@@ -1,0 +1,13 @@
+(namespace Rococo.Doll)
+(interface Rococo.Doll.IInventoryArray
+	(AddPaperDoll (Sys.Maths.Recti rect)(Sys.Type.IString pingPathToImage) -> )
+	(ClearDolls  -> )
+	(DollCount  -> (Int32 nDolls))
+	(GetDoll (Int32 dollIndex)(Sys.Maths.Recti rect)(Sys.Type.IStringBuilder sb)(MPlat.BitmapLocation bitmap) -> (Bool isOK))
+	(SetDollBitmap (Int32 dollIndex)(MPlat.BitmapLocation bitmap) -> )
+	(Flags (Int32 index) -> (Int64 flags))
+	(GetIndexAt (Sys.Maths.Vec2i pos) -> (Int32 index))
+	(GetRect (Int32 index)(Sys.Maths.Recti rect) -> )
+	(Id (Int32 index) -> (Int64 flags))
+	(ItemCount (Int32 index) -> (Int64 flags))
+	(LayoutAsRect 

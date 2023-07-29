@@ -1551,6 +1551,7 @@ namespace Rococo
 
         public static void AddRococoMajorLibs(Solution.Configuration conf, Target target)
         {
+            conf.AddProject<RococoBuildFinalProject>(target);
             conf.AddProject<RococoMiscUtilsProject>(target);
             conf.AddProject<RococoMathsProject>(target);
             conf.AddProject<RococoUtilExProject>(target);

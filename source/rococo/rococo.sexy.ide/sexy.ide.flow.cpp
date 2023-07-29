@@ -92,7 +92,7 @@ namespace
 		AutoFree<Rococo::Script::IPublicScriptSystem> ss;
 		size_t maxBytes;
 	public:
-		PersistentScript(size_t _maxBytes, IScriptSystemFactory& factory, ISourceCache& _sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& _debugger, cstr resourcePath, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& _exceptionHandler) :
+		PersistentScript(size_t _maxBytes, IScriptSystemFactory& factory, ISourceCache& _sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& _debugger, cstr resourcePath, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& _exceptionHandler) :
 			logger(_debugger),
 			debugger(_debugger),
 			sources(_sources),
@@ -280,7 +280,7 @@ namespace Rococo
 				IDebuggerWindow& debugger,
 				cstr resourcePath, 
 				int32 param, 
-				IEventCallback<ScriptCompileArgs>& onCompile, 
+				IScriptCompilationEventHandler& onCompile, 
 				IScriptExceptionHandler& exceptionHandler,
 				OS::IAppControl& appControl, 
 				bool trace, 
@@ -381,7 +381,7 @@ namespace Rococo
 				return 0;
 			}
 
-			IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, IEventCallback<ScriptCompileArgs>& onCompile, IScriptExceptionHandler& exceptionHandler)
+			IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler)
 			{
 				return new PersistentScript(maxBytes, factory, sources, implicitIncludes, debugger, resourcePath, onCompile, exceptionHandler);
 			}

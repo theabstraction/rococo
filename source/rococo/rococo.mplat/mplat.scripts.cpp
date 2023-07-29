@@ -11,9 +11,13 @@
 namespace Rococo // declarations herein are to help intellisense do its job.
 {
 	struct IKeyboard;	
-	struct IPaneBuilder;
 
-	namespace MPlat
+	namespace GUI
+	{
+		struct IPaneBuilder;
+	}
+
+	namespace MPlat::Configuration
 	{
 		struct IConfig;
 	}
@@ -109,7 +113,7 @@ Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Ro
 	return t;
 }
 
-Rococo::IConfig* FactoryConstructMPlatConfig(Rococo::IConfig* c)
+Rococo::Configuration::IConfig* FactoryConstructRococoMPlatConfigurationConfig(Rococo::Configuration::IConfig* c)
 {
    return c;
 }
@@ -139,7 +143,7 @@ Rococo::Entities::IMobiles* FactoryConstructRococoEntitiesMobiles(Rococo::Entiti
    return m;
 }
 
-Rococo::IPaneBuilder* FactoryConstructRococoPaneBuilder(Rococo::IPaneBuilder* pb)
+Rococo::GUI::IPaneBuilder* FactoryConstructRococoGUIPaneBuilder(Rococo::GUI::IPaneBuilder* pb)
 {
    return pb;
 }
@@ -237,7 +241,7 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 const char* s_MplatImplicitIncludes[] =
 {
 	"!scripts/mplat_sxh.sxy",
-	"!scripts/mplat_pane_sxh.sxy",
+	"!scripts/mplat_gui_sxh.sxy",
 	"!scripts/mplat_types.sxy",
 	"!scripts/types.sxy",
 	"!scripts/audio_types.sxy"
@@ -272,13 +276,13 @@ namespace Rococo
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 		}
 
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IEventCallback<ScriptCompileArgs>& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
 		{
 			IScriptEnumerator& usedIncludes = implicitIncludes ? *implicitIncludes : s_MplatImplicitIncludeEnumerator;
-			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler, public ISecuritySystem
+			struct ScriptContext : public IScriptCompilationEventHandler, public IDE::IScriptExceptionHandler, public ISecuritySystem
 			{
 				Platform& platform;
-				IEventCallback<ScriptCompileArgs>& onScriptEvent;
+				IScriptCompilationEventHandler& onScriptEvent;
 				bool shutdownOnFail = false;
 				IEventCallback<cstr>* onScriptCrash = nullptr;
 				StringBuilder* declarationBuilder = nullptr;
@@ -302,11 +306,11 @@ namespace Rococo
 					return IDE::EScriptExceptionFlow::Retry;
 				}
 
-				void OnEvent(ScriptCompileArgs& args) override
+				void OnCompile(ScriptCompileArgs& args) override
 				{
 					args.ss.SetSecurityHandler(*this);
 
-					onScriptEvent.OnEvent(args);
+					onScriptEvent.OnCompile(args);
 
 					if (addPlatform)
 					{
@@ -331,7 +335,7 @@ namespace Rococo
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
-						AddNativeCalls_RococoMPlatIConfig(args.ss, &platform.data.config);
+						Rococo::MPlat::Configuration::AddNativeCalls_RococoMPlatConfigurationIConfig(args.ss, &platform.data.config);
 						Rococo::AddNativeCalls_RococoIArchive(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
 
@@ -340,7 +344,7 @@ namespace Rococo
 					}
 				}
 
-				ScriptContext(Platform& _platform, IEventCallback<ScriptCompileArgs>& _onScriptEvent, IEventCallback<cstr>* _onScriptCrash) :
+				ScriptContext(Platform& _platform, IScriptCompilationEventHandler& _onScriptEvent, IEventCallback<cstr>* _onScriptCrash) :
 					platform(_platform), onScriptEvent(_onScriptEvent), onScriptCrash(_onScriptCrash) {}
 
 				void Execute(cstr name, IScriptEnumerator& implicitIncludes, ScriptPerformanceStats& stats, bool trace, int32 id)
@@ -380,7 +384,7 @@ namespace Rococo
 
 		void RunBareScript(
 			ScriptPerformanceStats& stats,
-			IEventCallback<ScriptCompileArgs>& _onScriptEvent, 
+			IScriptCompilationEventHandler& _onScriptEvent, 
 			IDE::EScriptExceptionFlow flow,
 			const char* name,
 			int id,
@@ -393,9 +397,9 @@ namespace Rococo
 			IO::IInstallation& installation
 		)
 		{
-			struct ScriptContext : public IEventCallback<ScriptCompileArgs>, public IDE::IScriptExceptionHandler, public ISecuritySystem
+			struct ScriptContext : public IScriptCompilationEventHandler, public IDE::IScriptExceptionHandler, public ISecuritySystem
 			{
-				IEventCallback<ScriptCompileArgs>& onScriptEvent;
+				IScriptCompilationEventHandler& onScriptEvent;
 				bool shutdownOnFail;
 				StringBuilder* declarationBuilder;
 				IDE::EScriptExceptionFlow flow;
@@ -418,13 +422,13 @@ namespace Rococo
 					return flow;
 				}
 
-				void OnEvent(ScriptCompileArgs& args) override
+				void OnCompile(ScriptCompileArgs& args) override
 				{
 					args.ss.SetSecurityHandler(*this);
-					onScriptEvent.OnEvent(args);
+					onScriptEvent.OnCompile(args);
 				}
 
-				ScriptContext(IEventCallback<ScriptCompileArgs>& _onScriptEvent, IDE::EScriptExceptionFlow argFlow, IO::IInstallation& _installation) :
+				ScriptContext(IScriptCompilationEventHandler& _onScriptEvent, IDE::EScriptExceptionFlow argFlow, IO::IInstallation& _installation) :
 					onScriptEvent(_onScriptEvent), flow(argFlow), installation(_installation) {}
 
 				void Execute(cstr name,
@@ -465,7 +469,7 @@ namespace Rococo
 			sc.Execute(name, stats, id, ssf, debugger, sources, implicitIncludes, appControl);
 		}
 
-		void RunMPlatConfigScript(OUT IConfig& config, cstr scriptName,
+		void RunMPlatConfigScript(OUT Configuration::IConfig& config, cstr scriptName,
 			Script::IScriptSystemFactory& ssf,
 			Windows::IDE::EScriptExceptionFlow flow,
 			IDebuggerWindow& debugger,
@@ -475,14 +479,14 @@ namespace Rococo
 			IO::IInstallation& installation
 		)
 		{
-			struct : IEventCallback<ScriptCompileArgs>
+			struct : IScriptCompilationEventHandler
 			{
-				IConfig* config = nullptr;
-				void OnEvent(ScriptCompileArgs& args) override
+				Configuration::IConfig* config = nullptr;
+				void OnCompile(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
-					Rococo::Script::AddNativeCallSecurity(args.ss, "MPlat.Native", "!scripts/mplat_config_sxh.sxy");
-					AddNativeCalls_RococoMPlatIConfig(args.ss, config);
+					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Configuration.Native", "!scripts/mplat_config_sxh.sxy");
+					Rococo::MPlat::Configuration::AddNativeCalls_RococoMPlatConfigurationIConfig(args.ss, config);
 				}
 			} onCompile;
 
