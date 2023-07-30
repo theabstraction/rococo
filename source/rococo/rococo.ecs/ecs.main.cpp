@@ -1,4 +1,4 @@
-#include <rococo.ecs.h>
+#include <rococo.ecs.ex.h>
 #include <vector>
 
 #include <allocators/rococo.allocators.dll.inl>
@@ -140,7 +140,7 @@ namespace Rococo::ECS
 			deprecationList.clear();
 		}
 
-		bool Deprecate(ROID roid) override
+		boolean32 Deprecate(ROID roid) override
 		{
 			return DeprecateWithNotify(roid, (uint32)-1);
 		}
@@ -280,7 +280,7 @@ namespace Rococo::ECS
 			}
 		}
 
-		[[nodiscard]] bool IsActive(ROID id) const override
+		[[nodiscard]] boolean32 IsActive(ROID id) override
 		{
 			if (id.index == 0 || id.index >= maxTableEntries)
 			{
@@ -316,7 +316,7 @@ namespace Rococo::ECS
 			table.BindTableIndex(index);
 		}
 
-		[[nodiscard]] uint32 MaxTableEntries() const override
+		[[nodiscard]] int64 MaxTableEntries() override
 		{
 			return maxTableEntries;
 		}

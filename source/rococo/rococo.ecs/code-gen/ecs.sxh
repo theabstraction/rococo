@@ -1,0 +1,17 @@
+(config $..\..\config.xc) 
+
+(interface 
+	(as.sxy Rococo.ECS.IECS "rococo.ecs")
+	(as.cpp Rococo.IECSBase "rococo.ecs")
+	
+	(context factory Rococo.IECS)
+	(methods
+        (Deprecate (ROID roid) -> (Bool success))
+        (DeprecateAll ->)
+		(IsActive (ROID roid)-> (Bool isActive))
+		(MaxTableEntries -> (Int64 numberOfEntries))
+		(NewROID -> (ROID roid))
+	)
+
+	(factory Rococo.ECS.GetECS)
+)

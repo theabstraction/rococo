@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.ecs\ecs.main.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.ecs\ecs.roids.map.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.ecs\ecs.scripting.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">
@@ -13,5 +14,8 @@
     <Filter Include="include">
       <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh" />
   </ItemGroup>
 </Project>

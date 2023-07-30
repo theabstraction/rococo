@@ -1,5 +1,5 @@
 #pragma once
-#include <rococo.ecs.h>
+#include <rococo.ecs.ex.h>
 
 namespace Rococo::Components
 {

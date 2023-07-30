@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rococo.ecs.h>
+#include <rococo.ecs.ex.h>
 #include <vector>
 #include <rococo.allocators.h>
 #include <rococo.functional.h>

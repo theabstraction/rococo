@@ -125,6 +125,8 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.roid.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.ex.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="allocators">

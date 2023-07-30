@@ -1,5 +1,5 @@
 #pragma once
-#include <rococo.ecs.h>
+#include <rococo.ecs.ex.h>
 #include <rococo.meshes.h>
 
 #ifndef ROCOCO_COMPONENTS_SKELETON_API
