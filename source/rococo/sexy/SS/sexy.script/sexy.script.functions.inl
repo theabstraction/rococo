@@ -532,7 +532,14 @@ namespace Rococo
 						MemberDef def;
 						if (ce.Builder.TryGetVariableByName(OUT def, inputToken) && def.ResolvedType->VarType() == inputType)
 						{
-							AddArgVariable(("input_variable"), ce, inputStruct);
+							if (inputStruct.IsStrongType() && &inputStruct != def.ResolvedType)
+							{
+								Throw(s, "While compiling function %s: Pushing argument to a function rejected. (%s %s) was strongly-typed but the supplied type was %s,"
+									"which is the correct underlying type but not directly convertible.", 
+									ce.Builder.Owner().Name(), GetFriendlyName(inputStruct), inputName, GetFriendlyName(*def.ResolvedType));
+							}
+
+							AddArgVariable("input_variable", ce, inputStruct);
 							ce.Builder.AddSymbol(inputName);
 							ce.Builder.PushVariable(def);
 							return stackAllocByteCount;

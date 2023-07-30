@@ -4955,6 +4955,241 @@ R"((namespace EntryPoint)
 		validate(x == 9000);
 	}
 
+	void TestStrongNumber(IPublicScriptSystem& ss)
+	{
+		// This fails by design because an id will not automatically cast to a number
+		cstr srcCode =
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(strong CustomerId (Int32))"
+
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(function Main -> (Int32 result):"
+			"  (CustomerId id = 72)"
+			"  (result = id)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
+	}
+
+	void TestStrongNumber2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(strong CustomerId (Int32))"
+
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(function Main -> (Int32 result):"
+			"  (CustomerId id = 72)"
+			"  (result = id.Value)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result);
+
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 72);
+	}
+
+	void TestStrongNumber3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(strong CustomerId (Int32))"
+
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(function GetValue (CustomerId id)-> (Int32 value):"
+			"	(value = id.Value)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"  (CustomerId id = 72)"
+			"  (result = (GetValue id))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result);
+
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 72);
+	}
+
+	void TestStrongNumber4(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(strong CustomerId (Int32))"
+
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(function GetValue (CustomerId id)-> (Int32 value):"
+			"	(value = id.Value)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"  (Int32 id = 72)"
+			"  (result = (GetValue id))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result);
+
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
+	}
+
+	void TestStrongNumber5(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(strong CustomerId (Int32))"
+
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(function GetValue -> (CustomerId id):"
+			"	(id.Value = 72)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"  (CustomerId id)"
+			"  (id = GetValue)"
+			"  (result = id.Value)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 72);	
+	}
+
+	void TestStrongNumber6(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(strong CustomerId (Int32))"
+			"(strong BankId (Int32))"
+
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(function GetValue -> (CustomerId id):"
+			"	(id.Value = 72)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"  (BankId id)"
+			"  (id = GetValue)"
+			"  (result = id.Value)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 72);
+
+	}
+
 	void TestRecti1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -5884,6 +6119,21 @@ R"((namespace EntryPoint)
 		validate(welcomeLength > 10);
 	}
 
+	void AddTestSecurity(IPublicScriptSystem& ss)
+	{
+		struct SecuritySystem : ISecuritySystem
+		{
+			void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname)
+			{
+				UNUSED(ss);
+				UNUSED(pathname);
+			}
+		};
+		static SecuritySystem s_security;
+
+		ss.SetSecurityHandler(s_security);
+	}
+
 	void TestConsoleOutput(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -5946,6 +6196,8 @@ R"((namespace EntryPoint)
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		AddTestSecurity(ss);
 
 		vm.Push(0); // Allocate stack space for the int32 result
 
@@ -15515,6 +15767,12 @@ R"(
 		TEST(TestCatch);
 		TEST(TestCatchArg);
 
+		TEST(TestStrongNumber);
+		TEST(TestStrongNumber2);
+		TEST(TestStrongNumber3);
+		TEST(TestStrongNumber4);
+		TEST(TestStrongNumber5);
+
 		TEST(TestStructWithInterface);
 
 		TEST(TestThrowFromCatch);
@@ -15901,14 +16159,12 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST3(TestTopLevelMacro2);
-
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestMaps();
-	
+
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

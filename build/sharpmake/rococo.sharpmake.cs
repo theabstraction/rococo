@@ -1681,7 +1681,7 @@ namespace Rococo
     {
         public ThirdPartySolution()
         {
-            Name = "rococo.sharpmake";
+            Name = "rococo.3rd-party";
 
             AddTargets(new Target(
                 Platform.win64,
@@ -1707,11 +1707,11 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
-    public class SexyCSharpSolution : CSharpSolution
+    public class SexySolution : Solution
     {
-        public SexyCSharpSolution()
+        public SexySolution()
         {
-            Name = "sexy.sharpmake";
+            Name = "sexy.all";
 
             AddTargets(new Target(
                 Platform.win64,
@@ -1731,10 +1731,7 @@ namespace Rococo
             conf.SolutionPath = Path.Combine(base.SharpmakeCsPath, @"..\");
 
             conf.AddProject<RococoUtilsProject>(target);
-
             SolutionBuilder.AddSexySuite(conf, target);
-            conf.AddProject<RococoBuildFinalProject>(target);
-            //conf.AddProject<SexyDotNetIDEProject>(target);
             conf.AddProject<RococoIncludeProject>(target);
         }
     }
@@ -1745,7 +1742,7 @@ namespace Rococo
         public static void SharpmakeMain(Sharpmake.Arguments arguments)
         {
             arguments.Generate<RococoCSharpSolution>();
-            arguments.Generate<SexyCSharpSolution>();
+            arguments.Generate<SexySolution>();
             arguments.Generate<FastDevSolution>();
             arguments.Generate<ThirdPartySolution>();
 

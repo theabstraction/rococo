@@ -73,6 +73,46 @@ namespace Rococo::Script
 		try
 		{
 			IStructureBuilder& s = module.DeclareStructure(structName, prototype, &src);
+			
+			return s;
+		}
+		catch (IException& e)
+		{
+			Throw(src, "%s", e.Message());
+		}
+	}
+
+	IStructureBuilder& DeclareStrongType(IModuleBuilder& module, cstr strongName, cstr primitiveType, cr_sex src)
+	{
+		VARTYPE type;
+		if (Eq(primitiveType, "Int32"))
+		{
+			type = VARTYPE_Int32;
+		}
+		else if (Eq(primitiveType, "Int64"))
+		{
+			type = VARTYPE_Int64;
+		}
+		else if (Eq(primitiveType, "Float32"))
+		{
+			type = VARTYPE_Float32;
+		}
+		else if (Eq(primitiveType, "Float64"))
+		{
+			type = VARTYPE_Float64;
+		}
+		else if (Eq(primitiveType, "Bool"))
+		{
+			type = VARTYPE_Bool;
+		}
+		else
+		{
+			Throw(src, "Expecting one of Int32|Int64|Float32|Float64|Bool");
+		}
+
+		try
+		{
+			IStructureBuilder& s = module.DeclareStrongType(strongName, type);
 			return s;
 		}
 		catch (IException& e)
@@ -3760,6 +3800,7 @@ namespace Rococo::Script
 		"macro",
 		"global",
 		"$",
+		"strong",
 		NULL
 	};
 
@@ -4178,12 +4219,17 @@ namespace Rococo::Script
 
 			bool isStruct = false;
 			bool isClass = false;
+			bool isStrong = false;
 
-			if (AreEqual(elementName, ("struct")))
+			if (AreEqual(elementName, "strong"))
+			{
+				isStrong = true;
+			}
+			else if (AreEqual(elementName, "struct"))
 			{
 				isStruct = true;
 			}
-			else if (AreEqual(elementName, ("class")))
+			else if (AreEqual(elementName, "class"))
 			{
 				isClass = true;
 			}
@@ -4204,17 +4250,17 @@ namespace Rococo::Script
 
 				if (isClass)
 				{
-					s.AddMember(NameString::From(("_typeInfo")), TypeString::From(("Pointer")));
-					s.AddMember(NameString::From(("_refCount")), TypeString::From(("Int64")));
+					s.AddMember(NameString::From("_typeInfo"), TypeString::From("Pointer"));
+					s.AddMember(NameString::From("_refCount"), TypeString::From("Int64"));
 
 					int interfaceCount = 1; // The vtable0 interface, giving the destructor Id
-					interfaceCount += CountClassElements(topLevelItem, ("implements"));
-					interfaceCount += CountClassElements(topLevelItem, ("defines"));
+					interfaceCount += CountClassElements(topLevelItem, "implements");
+					interfaceCount += CountClassElements(topLevelItem, "defines");
 
 					for (int k = 1; k < topLevelItem.NumberOfElements(); ++k)
 					{
 						cr_sex sdefineInterface = topLevelItem[k];
-						if (IsCompound(sdefineInterface) && IsAtomic(sdefineInterface[0]) && AreEqual(sdefineInterface[0].String(), ("defines")))
+						if (IsCompound(sdefineInterface) && IsAtomic(sdefineInterface[0]) && AreEqual(sdefineInterface[0].String(), "defines"))
 						{
 							AddInterfacePrototype(sdefineInterface, true);
 						}
@@ -4223,8 +4269,8 @@ namespace Rococo::Script
 					for (int l = 1; l < interfaceCount; l++)
 					{
 						char vtableName[32];
-						SafeFormat(vtableName, 32, ("_vTable%d"), l);
-						s.AddMember(NameString::From(vtableName), TypeString::From(("Pointer")));
+						SafeFormat(vtableName, 32, "_vTable%d", l);
+						s.AddMember(NameString::From(vtableName), TypeString::From("Pointer"));
 					}
 				}
 
@@ -4233,7 +4279,36 @@ namespace Rococo::Script
 				structDef.StructDef = &topLevelItem;
 
 				localStructures.push_back(structDef);
-			}			
+			}	
+
+			else if (isStrong)
+			{
+				// (strong <name> (<primitive-value-holder>))
+				AssertNotTooFewElements(topLevelItem, 3);
+				AssertNotTooManyElements(topLevelItem, 3);
+
+				cr_sex strongNameExpr = GetAtomicArg(topLevelItem, 1);
+				cstr strongName = strongNameExpr.String()->Buffer;
+
+				cr_sex wrapper = topLevelItem[2];
+				if (wrapper.NumberOfElements() != 1)
+				{
+					Throw(wrapper, "Expecting a compound expression containing a primitive type. One of {Int32, Int64, Float32, Float64, Bool}");
+				}
+
+				cr_sex svalueType = GetAtomicArg(wrapper, 0);
+				cstr sPrimitiveType = svalueType.String()->Buffer;
+
+				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
+
+				IStructureBuilder& s = DeclareStrongType(module, strongName, sPrimitiveType, topLevelItem);
+
+				CBindStructDefToExpression structDef;
+				structDef.Struct = &s;
+				structDef.StructDef = &topLevelItem;
+
+				localStructures.push_back(structDef);
+			}
 		}
 	}
 
@@ -4250,11 +4325,11 @@ namespace Rococo::Script
 			bool isFunction = false;
 			bool isMethod = false;
 
-			if (AreEqual(elementName.String(), ("function")))
+			if (AreEqual(elementName.String(), "function"))
 			{
 				isFunction = true;
 			}
-			else if (AreEqual(elementName.String(), ("method")))
+			else if (AreEqual(elementName.String(), "method"))
 			{
 				isMethod = true;
 			}
@@ -4282,7 +4357,7 @@ namespace Rococo::Script
 			cr_sex topLevelItem = root.GetElement(i);
 			cr_sex elementName = GetAtomicArg(topLevelItem, 0);
 
-			if (AreEqual(elementName.String(), ("factory")))
+			if (AreEqual(elementName.String(), "factory"))
 			{
 				DeclareFactory(topLevelItem);
 			}
@@ -4293,10 +4368,17 @@ namespace Rococo::Script
 	{
 		for(auto j = localStructures.begin(); j != localStructures.end(); ++j)
 		{
-			for(int i = 2; i < j->StructDef->NumberOfElements(); i++)
+			if (!j->Struct->IsStrongType())
 			{
-				cr_sex field = j->StructDef->GetElement(i);
-				AddMember(*j->Struct, field);
+				for (int i = 2; i < j->StructDef->NumberOfElements(); i++)
+				{
+					cr_sex field = j->StructDef->GetElement(i);
+					AddMember(*j->Struct, field);
+				}
+			}
+			else
+			{
+				// Strong types have their underlying type set when the defintion is parsed.
 			}
 		}
 	}

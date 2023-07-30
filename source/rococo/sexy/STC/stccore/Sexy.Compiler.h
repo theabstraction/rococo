@@ -142,6 +142,7 @@ namespace Rococo::Compiler
 		virtual IMemberBuilder& GetMember(int index) = 0;
 		virtual IInterfaceBuilder& GetInterface(int index) = 0;
 		virtual void ExpandAllocSize(int minimumByteCount) = 0;
+		virtual void MakeStrong() = 0;
 		virtual void Update() = 0;
 		virtual void SetConstructor(const IFunction* cons) = 0;
 
@@ -155,6 +156,7 @@ namespace Rococo::Compiler
 		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
 		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition) = 0;
 		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes = 0) = 0;	
+		virtual IStructureBuilder& DeclareStrongType(cstr name, VARTYPE underlyingType) = 0;
 		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
 		virtual IFunctionBuilder* FindFunction(cstr name) = 0;
 		virtual IStructureBuilder* FindStructure(cstr name) = 0;

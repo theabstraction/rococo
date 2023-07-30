@@ -449,7 +449,7 @@ namespace Rococo
 					}
 					else
 					{
-						Throw(directive, "The type of %s does not match the type of %s", targetVariable, sourceText);
+						Throw(directive, "The type %s of %s does not match the type %s of %s", Parse::VarTypeName(targetType), targetVariable, Parse::VarTypeName(sourceType), sourceText);
 					}
 				}
 				else if (sourceType == VARTYPE_Closure)
@@ -3258,7 +3258,7 @@ namespace Rococo
 					sexstring rhsToken = rhs.String();
 					sexstring middleToken = middle.String();
 
-					if (AreEqual(middleToken, ("=")))
+					if (AreEqual(middleToken, "="))
 					{
 						if (IsStringLiteral(rhs))
 						{
@@ -3268,7 +3268,7 @@ namespace Rococo
 
 						if (IsValidVariableName(lhsToken->Buffer) && IsValidVariableName(rhsToken->Buffer))
 						{
-							if (AreEqual(rhsToken, ("true")) || AreEqual(rhsToken, ("false")))
+							if (AreEqual(rhsToken, "true") || AreEqual(rhsToken, "false"))
 							{
 								return false;
 							}
@@ -3276,12 +3276,12 @@ namespace Rococo
 							MemberDef targetDef;
 							if (!ce.Builder.TryGetVariableByName(targetDef, lhsToken->Buffer))
 							{
-								Throw(lhs, ("Unrecognized variable name"));
+								Throw(lhs, "Unrecognized variable name");
 							}
 
 							if (targetDef.CapturesLocalVariables)
 							{
-								Throw(lhs, ("The target variable refers to a closure. It is immutable."));
+								Throw(lhs, "The target variable refers to a closure. It is immutable.");
 							}
 
 							CompileTrivialAssignment(ce, s, lhsToken, rhsToken);

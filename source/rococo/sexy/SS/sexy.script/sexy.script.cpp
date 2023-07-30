@@ -2485,7 +2485,8 @@ namespace Rococo::Script
 		{
 			if (currentSecuritySystem == nullptr)
 			{
-				ThrowFromNativeCode(0, "There is no security module set for the Sexy Script system, so the request to write to the path is rejected, sorry");
+				ThrowFromNativeCode(0, "There is no security module set for the Sexy Script system, so the request to write to the path is rejected, sorry.\n"
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object");
 				return;
 			}
 			else

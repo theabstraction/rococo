@@ -9,13 +9,19 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\rococo.ecs.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\rococo.ecs.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="code-gen">
+      <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh" />
   </ItemGroup>
 </Project>

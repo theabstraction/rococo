@@ -216,6 +216,68 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return *s;
 		}
 
+		IStructureBuilder& DeclareStrongType(cstr name, VARTYPE underlyingType) override
+		{
+			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, NULL, false);
+
+			Structure* s = new Structure(name, prototype, *this, underlyingType, NULL);
+
+			cstr varName = nullptr;
+			switch (underlyingType)
+			{
+			case VARTYPE_Int32:
+				varName = "Int32";
+				break;
+			case VARTYPE_Float32:
+				varName = "Float32";
+				break;
+			case VARTYPE_Bool:	
+				varName = "Bool";
+				break;
+			case VARTYPE_Float64:
+				varName = "Float64";
+				break;
+			case VARTYPE_Int64:
+				varName = "Int64";
+					break;
+			default:
+				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __FUNCTION__, name);
+			}
+
+			s->AddMember(NameString::From("Value"), TypeString::From(varName));
+			s->MakeStrong();
+
+			StructureMember& m = s->GetMemberRef(0);
+
+			switch (underlyingType)
+			{
+			case VARTYPE_Int32:
+			case VARTYPE_Float32:
+			case VARTYPE_Bool:
+				m.SetSize(4);
+				break;
+			case VARTYPE_Float64:
+			case VARTYPE_Int64:
+				m.SetSize(8);
+				break;
+			default:
+				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __FUNCTION__, name);
+			}
+
+			s->Seal();
+
+			try
+			{
+				structures.Register(s->Name(), *s);
+			}
+			catch (...)
+			{
+				delete s;
+				throw;
+			}
+			return *s;
+		}
+
 		IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) override
 		{
 			VARTYPE type;

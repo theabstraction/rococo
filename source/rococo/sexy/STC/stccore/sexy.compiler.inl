@@ -465,9 +465,21 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const void* definition;
 		const IFunction* constructor;
 		mutable int hasInterfaceMembers; // -1, untested, 0 = no, 1 = yes
+
+		bool isStrongType = false;
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
 		~Structure();
+
+		bool IsStrongType() const override
+		{
+			return isStrongType;
+		}
+
+		void MakeStrong() override
+		{
+			isStrongType = true;
+		}
 
 		void* operator new(size_t nBytes)
 		{

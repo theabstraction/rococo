@@ -380,6 +380,8 @@ namespace Rococo {
 
 			virtual int32 AttributeCount() const = 0;
 
+			virtual bool IsStrongType() const = 0;
+
 			// Retrieve the ith attribute. isCustom is an out parameter, and is set to true if element 1 of the returned attributeDef was a system attribute
 			// System attributes are specified by using atomic tokens rather than string literals and are validated against the known list of system attributes.
 			virtual Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) const = 0;
