@@ -1,7 +1,7 @@
 (config $config.xc) 
 
 (interface 
-	(as.sxy Rococo.Audio.IAudio "../content/scripts/rococo.audio")
+	(as.sxy Rococo.Audio.IAudio "rococo.audio")
 	(as.cpp Rococo.Audio.IAudio "rococo.audio")
 	(context factory Rococo.Audio.IAudio)
 	(methods

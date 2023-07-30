@@ -43,22 +43,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>rococo.mhost</TargetName>
-    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\rococo.mhost\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mhost\</IntDir>
     <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\debug\rococo.mhost.exe</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>rococo.mhost</TargetName>
-    <OutDir>..\..\gen\bin\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\rococo.mhost\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mhost\</IntDir>
     <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\release\rococo.mhost.exe</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,16 +109,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.mhost\rococo.mhost_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.mhost\rococo.mhost_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\debug\rococo.mhost.exe</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\rococo.mhost.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -141,10 +141,9 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.ex.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\debug\rococo.mhost.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -195,16 +194,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.mhost\rococo.mhost_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.mhost\rococo.mhost_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\release\rococo.mhost.exe</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\release\rococo.mhost.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -227,10 +226,9 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.ex.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\release\rococo.mhost.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -292,8 +290,5 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\content\scripts\mhost\mhost_startup.sxy" />
   </ItemGroup>
 </Project>

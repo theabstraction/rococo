@@ -43,22 +43,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>rococo.ecs</TargetName>
-    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\rococo.ecs\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.ecs\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\debug\rococo.ecs.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.ecs.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>rococo.ecs</TargetName>
-    <OutDir>..\..\gen\bin\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\rococo.ecs\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.ecs\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\release\rococo.ecs.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.ecs.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,16 +109,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.ecs\rococo.ecs_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.ecs\rococo.ecs_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\debug\rococo.ecs.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.ecs.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\rococo.ecs.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.ecs.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -143,7 +143,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\debug\rococo.ecs.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.ecs.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.ecs.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
@@ -195,16 +195,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.ecs\rococo.ecs_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.ecs\rococo.ecs_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\release\rococo.ecs.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.ecs.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\release\rococo.ecs.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.ecs.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -229,7 +229,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\release\rococo.ecs.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.ecs.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.ecs.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>

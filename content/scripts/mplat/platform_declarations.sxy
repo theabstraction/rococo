@@ -9,7 +9,7 @@
 (function BitwiseAnd3 (Int32 x)(Int32 y) -> (Int32 result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 395))
 (alias BitwiseAnd3 Sys.Maths.I32.BitwiseAnd)
 
-(function GetHandleForIAudio04   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 89))
+(function GetHandleForIAudio04   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 86))
 (alias GetHandleForIAudio04 Rococo.Audio.Native.GetHandleForIAudio0)
 
 (function ToFloat645 (Int64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 209))
@@ -21,7 +21,7 @@
 (function IQuadStackTesselatorSetMaterial7  (Pointer hObject)(Rococo.MaterialVertexData mat) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9319))
 (alias IQuadStackTesselatorSetMaterial7 Rococo.Graphics.Native.IQuadStackTesselatorSetMaterial)
 
-(function IAudioSetMP3Music8  (Pointer hObject)(Sys.Type.IString mp3musicPingPath) ->  : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 90))
+(function IAudioSetMP3Music8  (Pointer hObject)(Sys.Type.IString mp3musicPingPath) ->  : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 87))
 (alias IAudioSetMP3Music8 Rococo.Audio.Native.IAudioSetMP3Music)
 
 (function IRodTesselatorAddVertex9  (Pointer hObject)(Sys.Maths.Vec2 v) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9860))
@@ -45,13 +45,13 @@
 (function Sin15 (Float32 radians) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 681))
 (alias Sin15 Sys.Maths.F32.Sin)
 
-(function IAudioBind3DSample16  (Pointer hObject)(Sys.Type.IString mp3fxPingPath) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 91))
+(function IAudioBind3DSample16  (Pointer hObject)(Sys.Type.IString mp3fxPingPath) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 88))
 (alias IAudioBind3DSample16 Rococo.Audio.Native.IAudioBind3DSample)
 
 (function IRigBuilderClearBuilder17  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 1341))
 (alias IRigBuilderClearBuilder17 Rococo.Entities.Native.IRigBuilderClearBuilder)
 
-(function IAudioPlay3DSound18  (Pointer hObject)(Int64 sampleId)(Rococo.Audio.AudioSource3D source)(Int32 forceLevel) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 92))
+(function IAudioPlay3DSound18  (Pointer hObject)(Int64 sampleId)(Rococo.Audio.AudioSource3D source)(Int32 forceLevel) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 89))
 (alias IAudioPlay3DSound18 Rococo.Audio.Native.IAudioPlay3DSound)
 
 (function ICameraGetProjection19  (Pointer hObject)(Sys.Maths.Matrix4x4 proj) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 7179))
@@ -987,7 +987,7 @@
 (function IWorldBuilderNew329  (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10766))
 (alias IWorldBuilderNew329 Rococo.Native.IWorldBuilderNew)
 
-(function EnumerateFiles330  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 343))
+(function EnumerateFiles330  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 344))
 (alias EnumerateFiles330 MPlat.OS.EnumerateFiles)
 
 (function AddVec2iVec2i331 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 401))

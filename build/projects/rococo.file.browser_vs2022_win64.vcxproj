@@ -44,7 +44,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>rococo.file.browser</TargetName>
     <OutDir>..\..\gen\lib\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\rococo.file.browser\</IntDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.file.browser\</IntDir>
     <TargetExt>.lib</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
@@ -54,7 +54,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>rococo.file.browser</TargetName>
     <OutDir>..\..\gen\lib\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\rococo.file.browser\</IntDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.file.browser\</IntDir>
     <TargetExt>.lib</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
@@ -109,7 +109,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.file.browser\rococo.file.browser_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.file.browser\rococo.file.browser_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -172,7 +172,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.file.browser\rococo.file.browser_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.file.browser\rococo.file.browser_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>

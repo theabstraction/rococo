@@ -3,7 +3,7 @@
 // Since much of MPlat is not initialized at this point, we are restricted to manipulating IConfig
 
 (' #include 
-	"!scripts/mplat_config_sxh.sxy"
+	"!scripts/interop/rococo/mplat/mplat_config_sxh.sxy"
 )
 
 (namespace EntryPoint)

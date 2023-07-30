@@ -138,7 +138,7 @@ namespace Rococo
     {
         public void AddDefaultLibraries(Configuration config)
         {
-            config.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
+            config.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\$(Configuration)\");
         }
 
         public void Exclude(params string[] names)
@@ -149,7 +149,7 @@ namespace Rococo
             }
         }
 
-        public void AddSXHFileBuildStep(Configuration conf, string sxh, string xc, bool asPreBuildStep)
+        public void AddSXHFileBuildStep(Configuration conf, string sxh, string xc, string content_subdir, bool asPreBuildStep)
         {
             if (!sxh.EndsWith(".sxh"))
             {
@@ -168,9 +168,10 @@ namespace Rococo
                 string makeRelative = Roots.GetRelativeToProject(makeFilePath);
                 string contentRelative = Roots.GetRelativeToProject(Roots.RococoContentPath);
                 string srcRelative = Roots.GetRelativeToProject(SourceRootPath);
-                string binRelative = Roots.GetRelativeToProject(conf.TargetPath);
+                string binRelative = Roots.GetRelativeToProject(Roots.RococoBinPath);
+                string binDir = Path.Combine(binRelative, @"win64\$(Configuration)\");
 
-                string makeFile = string.Format("NMAKE /NOLOGO /F \"{0}\" \"BENNY_HILL={1}\\sexy.bennyhill.exe\" all SOURCE_ROOT={2}\\ CONTENT_ROOT={3}\\ SXH_FILE={4} XC_FILE={5}", makeRelative, binRelative, srcRelative, contentRelative, sxh, xc);
+                string makeFile = string.Format("NMAKE /NOLOGO /F \"{0}\" \"BENNY_HILL={1}sexy.bennyhill.exe\" all SOURCE_ROOT={2}\\ CONTENT_ROOT={3}\\scripts\\{4}\\ SXH_FILE={5} XC_FILE={6}", makeRelative, binDir, srcRelative, contentRelative, content_subdir, sxh, xc);
                 conf.EventPreBuild.Add(makeFile);
             }
             else
@@ -265,8 +266,8 @@ namespace Rococo
             }
 
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4458", "4201", "4324", "4250"));
-            conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Name]\[project.Name]\");
-            conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\[conf.Name]\");
+            conf.IntermediatePath = Path.Combine(Roots.RococoTmpPath, @"[target.Platform]\$(Configuration)\[project.Name]\");
+            conf.TargetPath = Path.Combine(Roots.RococoBinPath, @"[target.Platform]\$(Configuration)\");
         }
 
         public virtual void SetSourcePath(string subdir)
@@ -714,7 +715,6 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
         }
     }
@@ -944,6 +944,21 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoVersioningProject : RococoProject
+    {
+        public RococoVersioningProject() : base("rococo.version.generator")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996"));
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoGuiRetainedProject : RococoProject
     {
         public RococoGuiRetainedProject() : base("rococo.gui.retained")
@@ -982,7 +997,7 @@ namespace Rococo
 
             conf.EventPreBuild.Add(makeRelative);
 
-            AddSXHFileBuildStep(conf, "mplat.sxh", "config.xc", true);
+            AddSXHFileBuildStep(conf, "mplat.sxh", "config.xc", @"interop\rococo\mplat", true);
         }
     }
 
@@ -1139,7 +1154,7 @@ namespace Rococo
             conf.IncludePaths.Add(@"..\..\3rd-party\libvorbis\include\");
             conf.IncludePaths.Add(@"..\..\3rd-party\libogg\include\");
 
-            AddSXHFileBuildStep(conf, "rococo.audio.sxh", "config.xc", true);
+            AddSXHFileBuildStep(conf, "rococo.audio.sxh", "config.xc", @"interop\rococo\audio", true);
         }
     }
 
@@ -1579,6 +1594,7 @@ namespace Rococo
             conf.AddProject<RococoAssetsProject>(target);
             conf.AddProject<RococoAssetsTestProject>(target);
             conf.AddProject<RococoTextureToolProject>(target);
+            conf.AddProject<RococoVersioningProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -1791,6 +1807,7 @@ namespace Rococo
             arguments.Generate<VorbisProject>();
             arguments.Generate<VorbisFileProject>();
             arguments.Generate<RococoTextureToolProject>();
+            arguments.Generate<RococoVersioningProject>();
         }
     }
 }

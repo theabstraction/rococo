@@ -117,7 +117,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\debug\lib-tiff.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\debug\lib-tiff.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -144,7 +144,7 @@
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\lib-tiff.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\lib-tiff.lib</ImportLibrary>
+      <ImportLibrary>..\..\gen\lib\win64\$(configuration)\lib-tiff.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -203,7 +203,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\release\lib-tiff.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\release\lib-tiff.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -230,7 +230,7 @@
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\lib-tiff.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\lib-tiff.lib</ImportLibrary>
+      <ImportLibrary>..\..\gen\lib\win64\$(configuration)\lib-tiff.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

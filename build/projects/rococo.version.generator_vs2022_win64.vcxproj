@@ -11,24 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{16A5F3CB-8C28-5290-B8A4-0A487742AA0D}</ProjectGuid>
+    <ProjectGuid>{D74CC97A-586D-A40E-12FC-91AEAC89350A}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>rococo.gui.retained</RootNamespace>
-    <ProjectName>rococo.gui.retained</ProjectName>
+    <RootNamespace>rococo.version.generator</RootNamespace>
+    <ProjectName>rococo.version.generator</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -42,23 +42,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>rococo.gui.retained</TargetName>
+    <TargetName>rococo.version.generator</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.gui.retained\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.version.generator\</IntDir>
+    <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>rococo.gui.retained</TargetName>
+    <TargetName>rococo.version.generator</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.gui.retained\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.version.generator\</IntDir>
+    <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -66,7 +66,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ROCOCO_GUI_RETAINED_API=__declspec(dllexport);WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_CONSOLE;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -107,18 +107,17 @@
       <BrowseInformation>false</BrowseInformation>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
-      <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4201;4250;4324;4458;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.gui.retained\rococo.gui.retained_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.version.generator\rococo.version.generator_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -138,13 +137,12 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\rococo.gui.retained.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.map</MapFileName>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -152,7 +150,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;ROCOCO_GUI_RETAINED_API=__declspec(dllexport);WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_CONSOLE;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -193,18 +191,17 @@
       <BrowseInformation>false</BrowseInformation>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>Default</CompileAs>
-      <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4201;4250;4324;4458;4996</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.gui.retained\rococo.gui.retained_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.version.generator\rococo.version.generator_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -224,50 +221,20 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\rococo.gui.retained.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.version.generator.map</MapFileName>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\source\rococo\rococo.gui.retained\gr.natvis" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\dllmain.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.button.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.collapser.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.division.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.editbox.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.layout.fullscreen.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.mainframe.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.menubar.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.panel.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.property-editor-tree.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.scheme.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.splitter.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.system.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.table.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.text.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.toolbar.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical-list.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.with.buttons.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.viewport.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.version.generator\version.generator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ItemGroup>
-    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
-      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemGroup>
 </Project>

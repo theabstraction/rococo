@@ -42,14 +42,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
     <IntDir>..\..\gen\temp\debug\rococo.include\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>..\..\gen\bin\win64\release\</OutDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
     <IntDir>..\..\gen\temp\release\rococo.include\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>

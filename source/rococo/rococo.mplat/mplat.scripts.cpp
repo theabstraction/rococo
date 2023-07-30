@@ -240,11 +240,12 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 
 const char* s_MplatImplicitIncludes[] =
 {
-	"!scripts/mplat_sxh.sxy",
-	"!scripts/mplat_gui_sxh.sxy",
-	"!scripts/mplat_types.sxy",
-	"!scripts/types.sxy",
-	"!scripts/audio_types.sxy"
+	"!scripts/interop/rococo/mplat/mplat_sxh.sxy",
+	"!scripts/interop/rococo/mplat/mplat_gui_sxh.sxy",
+	"!scripts/interop/rococo/mplat/mplat_types.sxy",
+	"!scripts/interop/rococo/mplat/types.sxy",
+	"!scripts/interop/rococo/audio/audio_types.sxy",
+	"!scripts/interop/rococo/audio/rococo.audio_sxh.sxy"
 };
 
 struct MPlatImplicitIncludes : IScriptEnumerator
@@ -485,7 +486,7 @@ namespace Rococo
 				void OnCompile(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
-					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Configuration.Native", "!scripts/mplat_config_sxh.sxy");
+					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
 					Rococo::MPlat::Configuration::AddNativeCalls_RococoMPlatConfigurationIConfig(args.ss, config);
 				}
 			} onCompile;

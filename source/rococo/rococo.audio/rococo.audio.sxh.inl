@@ -1,8 +1,4 @@
 // BennyHill generated Sexy native functions for Rococo::Audio::IAudio 
-
-#include <sexy.script.h>
-#include "rococo.audio.sxh.h"
-
 namespace
 {
 	using namespace Rococo;
@@ -85,7 +81,8 @@ namespace Rococo::Audio
 {
 	void AddNativeCalls_RococoAudioIAudio(Rococo::Script::IPublicScriptSystem& ss, Rococo::Audio::IAudio* _nceContext)
 	{
-		auto& ns = ss.AddNativeNamespace("Rococo.Audio.Native");
+		HIDE_COMPILER_WARNINGS(_nceContext);
+		const INamespace& ns = ss.AddNativeNamespace("Rococo.Audio.Native");
 		ss.AddNativeCall(ns, NativeGetHandleForRococoAudioGetAudio, _nceContext, ("GetHandleForIAudio0  -> (Pointer hObject)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoAudioIAudioSetMP3Music, nullptr, ("IAudioSetMP3Music (Pointer hObject)(Sys.Type.IString mp3musicPingPath) -> "), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeRococoAudioIAudioBind3DSample, nullptr, ("IAudioBind3DSample (Pointer hObject)(Sys.Type.IString mp3fxPingPath) -> (Int64 id)"), __FILE__, __LINE__);

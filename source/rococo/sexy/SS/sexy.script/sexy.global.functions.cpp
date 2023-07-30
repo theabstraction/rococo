@@ -635,14 +635,14 @@ namespace Rococo
 		debugger.AddLogSection(RGBAb(64, 64, 64), " Message: ");
 		debugger.AddLogSection(RGBAb(0, 0, 128), "%s\n", ex.Message());
 
-		debugger.AddLogSection(RGBAb(64, 64, 64), " Specimen: (");
-		debugger.AddLogSection(RGBAb(0, 0, 128), "%d", a.x);
-		debugger.AddLogSection(RGBAb(64, 64, 64), ",");
+		debugger.AddLogSection(RGBAb(64, 64, 64), " Specimen: (Line ");
 		debugger.AddLogSection(RGBAb(0, 0, 128), "%d", a.y);
-		debugger.AddLogSection(RGBAb(64, 64, 64), ") to (");
-		debugger.AddLogSection(RGBAb(0, 0, 128), "%d", b.x);
-		debugger.AddLogSection(RGBAb(64, 64, 64), ",");
+		debugger.AddLogSection(RGBAb(64, 64, 64), ", pos ");
+		debugger.AddLogSection(RGBAb(0, 0, 128), "%d", a.x);
+		debugger.AddLogSection(RGBAb(64, 64, 64), ") to (Line ");
 		debugger.AddLogSection(RGBAb(0, 0, 128), "%d", b.y);
+		debugger.AddLogSection(RGBAb(64, 64, 64), ", pos ");
+		debugger.AddLogSection(RGBAb(0, 0, 128), "%d", b.x);
 		debugger.AddLogSection(RGBAb(64, 64, 64), ")\n");
 
 		debugger.AddLogSection(RGBAb(0, 127, 0), "%s\n", ex.Specimen());

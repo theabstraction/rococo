@@ -123,7 +123,7 @@ namespace Rococo
 
 	void WriteStandardErrorCode(int errorCode)
 	{
-		printf("Error code %d. ", errorCode);
+		fprintf(stderr, "Error code %d. ", errorCode);
 	}
 
 	int64 GetLastModifiedDate(const char* path)

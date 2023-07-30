@@ -42,15 +42,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\sexy.include\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.include\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>..\..\gen\bin\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\sexy.include\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.include\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -103,7 +103,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\sexy.include\sexy.include_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexy.include\sexy.include_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -155,7 +155,7 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\sexy.include\sexy.include_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexy.include\sexy.include_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>

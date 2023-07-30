@@ -1,3 +1,4 @@
+(namespace Rococo.Audio)
 (interface Rococo.Audio.IAudio
 	(SetMP3Music (Sys.Type.IString mp3musicPingPath) -> )
 	(Bind3DSample (Sys.Type.IString mp3fxPingPath) -> (Int64 id))

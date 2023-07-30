@@ -1143,19 +1143,19 @@ int main(int argc, char* argv[])
 
 	if (!Rococo::IO::IsDirectory(wProjectDir))
 	{
-		printf("\n\tCould not find project root directory: %s", projectRoot);
+		fprintf(stderr, "\tCould not find project root directory: %s\n", projectRoot);
 		return -1;
 	}
 
 	if (!Rococo::IO::IsDirectory(wContentDir))
 	{
-		printf("\n\tCould not find content root directory: %s", contentRoot);
+		fprintf(stderr, "\tCould not find content root directory: %s\n", contentRoot);
 		return -1;
 	}
 
 	if (!Rococo::OS::IsFileExistant(wProject))
 	{
-		printf("\n\tCould not find project root file: %s", u8inputName.buf);
+		fprintf(stderr, "\tCould not find project root file: %s\n", u8inputName.buf);
 		return -1;
 	}
 
@@ -1171,7 +1171,7 @@ int main(int argc, char* argv[])
 
 	if (*pc.scriptName == 0)
 	{
-		WriteToStandardOutput("\n\tUnexpected error. Could not derive script name from script-input-file '%s'. Expecting [...filename.sxh]", scriptInput);
+		fprintf(stderr, "\tUnexpected error. Could not derive script name from script-input-file '%s'. Expecting [...filename.sxh]\n", scriptInput);
 		return -1;
 	}
 
@@ -1196,13 +1196,11 @@ int main(int argc, char* argv[])
 
 		ParseInterfaceFile(tree->Root(), pc);
 
-		printf("\n");
-
 		return 0;
 	}
 	catch (ParseException& ex)
 	{
-		WriteToStandardOutput("\n\t%s. %s\nSpecimen: %s.\nPosition: %d.%d to %d.%d\n", pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
+		fprintf(stderr, "\t%s. %s\nSpecimen: %s.\nLine %d pos %d to line %d pos %d\n", pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().y, ex.Start().x, ex.End().y, ex.End().x);
 
 		if (ex.ErrorCode() != 0)
 		{
@@ -1212,7 +1210,7 @@ int main(int argc, char* argv[])
 	}
 	catch (IException& iex)
 	{
-		WriteToStandardOutput("\n\tError with bennyhill: %s\n", iex.Message());
+		fprintf(stderr, "\tError with bennyhill: %s\n", iex.Message());
 
 		if (iex.ErrorCode() != 0)
 		{

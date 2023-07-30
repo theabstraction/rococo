@@ -153,7 +153,7 @@
 (function IQuadStackTesselatorSetMaterial51  (Pointer hObject)(Rococo.MaterialVertexData mat) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 9319))
 (alias IQuadStackTesselatorSetMaterial51 Rococo.Graphics.Native.IQuadStackTesselatorSetMaterial)
 
-(function IAudioSetMP3Music52  (Pointer hObject)(Sys.Type.IString mp3musicPingPath) ->  : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 90))
+(function IAudioSetMP3Music52  (Pointer hObject)(Sys.Type.IString mp3musicPingPath) ->  : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 87))
 (alias IAudioSetMP3Music52 Rococo.Audio.Native.IAudioSetMP3Music)
 
 (function ToRGBA53 (Float32 r)(Float32 g)(Float32 b)(Float32 alpha) -> (Int32 colour) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.base.inl" 67))
@@ -201,7 +201,7 @@
 (function GetStruct67  (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 457))
 (alias GetStruct67 Sys.Reflection.Native.GetStruct)
 
-(function IAudioBind3DSample68  (Pointer hObject)(Sys.Type.IString mp3fxPingPath) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 91))
+(function IAudioBind3DSample68  (Pointer hObject)(Sys.Type.IString mp3fxPingPath) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 88))
 (alias IAudioBind3DSample68 Rococo.Audio.Native.IAudioBind3DSample)
 
 (function Sin69 (Float32 radians) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 681))
@@ -225,7 +225,7 @@
 (function IRimTesselatorAddPoint75  (Pointer hObject)(Sys.Maths.Vec2 p) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 8360))
 (alias IRimTesselatorAddPoint75 Rococo.Graphics.Native.IRimTesselatorAddPoint)
 
-(function IAudioPlay3DSound76  (Pointer hObject)(Int64 sampleId)(Rococo.Audio.AudioSource3D source)(Int32 forceLevel) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 92))
+(function IAudioPlay3DSound76  (Pointer hObject)(Int64 sampleId)(Rococo.Audio.AudioSource3D source)(Int32 forceLevel) -> (Int64 id) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 89))
 (alias IAudioPlay3DSound76 Rococo.Audio.Native.IAudioPlay3DSound)
 
 (function IConfigGetBool77  (Pointer hObject)(Sys.Type.IString name) -> (Bool value) : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 6533))
@@ -375,7 +375,7 @@
 (function BitwiseAnd125 (Int32 x)(Int32 y) -> (Int32 result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 395))
 (alias BitwiseAnd125 Sys.Maths.I32.BitwiseAnd)
 
-(function GetHandleForIAudio0126   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 89))
+(function GetHandleForIAudio0126   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.audio\rococo.audio.sxh.inl" 86))
 (alias GetHandleForIAudio0126 Rococo.Audio.Native.GetHandleForIAudio0)
 
 (function IRigBuilderClearBuilder127  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 1341))
@@ -1221,7 +1221,7 @@
 (function IWorldBuilderNew407  (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\mplat.sxh.inl" 10766))
 (alias IWorldBuilderNew407 Rococo.Native.IWorldBuilderNew)
 
-(function EnumerateFiles408  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 343))
+(function EnumerateFiles408  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 344))
 (alias EnumerateFiles408 MPlat.OS.EnumerateFiles)
 
 (function AddVec2iVec2i409 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 401))

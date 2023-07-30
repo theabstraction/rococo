@@ -1,0 +1,16 @@
+﻿
+Debug|x64
+  ..\..\gen\bin\win64\debug\lib-jpg.dll
+  ..\..\gen\bin\win64\debug\lib-jpg.pdb
+  ..\..\gen\bin\win64\debug\lib-tiff.dll
+  ..\..\gen\bin\win64\debug\lib-tiff.pdb
+  ..\..\gen\bin\win64\debug\lib-zip.dll
+  ..\..\gen\bin\win64\debug\lib-zip.pdb
+
+Release|x64
+  ..\..\gen\bin\win64\release\lib-jpg.dll
+  ..\..\gen\bin\win64\release\lib-jpg.pdb
+  ..\..\gen\bin\win64\release\lib-tiff.dll
+  ..\..\gen\bin\win64\release\lib-tiff.pdb
+  ..\..\gen\bin\win64\release\lib-zip.dll
+  ..\..\gen\bin\win64\release\lib-zip.pdb

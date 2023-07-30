@@ -150,7 +150,7 @@ namespace Rococo
 
 				char ospecimen[64];
 				GetSpecimen(ospecimen, s);
-				sb.AppendFormat("Original expression: (%d, %d) to (%d, %d). Specimen: %s\n", s.Start().x, s.Start().y, s.End().x, s.End().y, ospecimen);
+				sb.AppendFormat("Original expression: Line %d pos %d to line %d pos %d. Specimen: %s\n", s.Start().y+1, s.Start().x+1, s.End().y+1, s.End().x+1, ospecimen);
 			}
 
 			char specimen[64];

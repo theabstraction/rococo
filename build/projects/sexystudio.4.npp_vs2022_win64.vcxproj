@@ -43,22 +43,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>sexystudio.4.npp</TargetName>
-    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
-    <IntDir>..\..\gen\temp\debug\sexystudio.4.npp\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\sexystudio.4.npp\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\debug\sexystudio.4.npp.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>sexystudio.4.npp</TargetName>
-    <OutDir>..\..\gen\bin\win64\release\</OutDir>
-    <IntDir>..\..\gen\temp\release\sexystudio.4.npp\</IntDir>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\sexystudio.4.npp\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\release\sexystudio.4.npp.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,15 +109,15 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\debug\sexystudio.4.npp\sexystudio.4.npp_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexystudio.4.npp\sexystudio.4.npp_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\debug\sexystudio.4.npp.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\debug\sexystudio.4.npp.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -142,7 +142,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\debug\sexystudio.4.npp.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexystudio.4.npp.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
@@ -194,15 +194,15 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\release\sexystudio.4.npp\sexystudio.4.npp_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexystudio.4.npp\sexystudio.4.npp_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\release\sexystudio.4.npp.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\release\sexystudio.4.npp.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -227,7 +227,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\release\sexystudio.4.npp.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.4.npp.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexystudio.4.npp.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>

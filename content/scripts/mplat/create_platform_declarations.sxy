@@ -1,9 +1,9 @@
 (' #file.type rococo.mplat.panel)
 
 (' #include 
-	"!scripts/mplat_types.sxy"
-	"!scripts/types.sxy"
-	"!scripts/audio_types.sxy"
+	"!scripts/interop/rococo/mplat/mplat_types.sxy"
+	"!scripts/interop/rococo/mplat/types.sxy"
+	"!scripts/interop/rococo/audio/audio_types.sxy"
 )
 
 (function Main (Int32 id)->(Int32 exitCode):

@@ -29,7 +29,7 @@ namespace
 	void SaveInCriticalErrorLog(Sex::ParseException& ex)
 	{
 		char msg[1024];
-		SafeFormat(msg, "\n(%d, %d) to (%d, %d) - %s\n", ex.Start().x, ex.Start().y, ex.End().x, ex.End().y, ex.Name());
+		SafeFormat(msg, "\nLine %d col %d to Line %d pos %d - %s\n", ex.Start().y+1, ex.Start().x+1, ex.End().y+1, ex.End().x+1, ex.Name());
 		Rococo::Debugging::AddCriticalLog(msg);
 
 		SafeFormat(msg, "%s\n", ex.Message());

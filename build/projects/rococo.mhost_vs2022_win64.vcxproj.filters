@@ -15,7 +15,4 @@
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\content\scripts\mhost\mhost_startup.sxy" />
-  </ItemGroup>
 </Project>
