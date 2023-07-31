@@ -44,6 +44,11 @@ namespace Rococo
             return Util.PathGetRelative(Roots.RococoProjectPath, pathName);
         }
 
+        public static string GetRelativeToRococoRoot(string pathName)
+        {
+            return Util.PathGetRelative(Roots.RococoRootPath, pathName);
+        }
+
         public static string RococoContentPath
         {
             get
@@ -149,8 +154,10 @@ namespace Rococo
             }
         }
 
-        public void AddSXHFileBuildStep(Configuration conf, string sxh, string xc, string content_subdir, bool asPreBuildStep)
+        public void AddSXHFileBuildStep(Configuration conf, Target target, string sxh, string xc, string sxyInteropSubDir, bool asPreBuildStep, string projectRelativeToSourceRoot = "")
         {
+            conf.AddPrivateDependency<SexyBennyHillProject>(target);
+
             if (!sxh.EndsWith(".sxh"))
             {
                 throw new Exception("Expecting file " + sxh + " to end with .sxh");
@@ -163,15 +170,12 @@ namespace Rococo
 
             if (asPreBuildStep)
             {
-                string makeFilePath = Path.Combine(Roots.RococoToolsPath, @"rococo.sxh.mak");
+                string sxhBatch = Path.Combine(Roots.RococoToolsPath, @"rococo.sxh.bat");
 
-                string makeRelative = Roots.GetRelativeToProject(makeFilePath);
-                string contentRelative = Roots.GetRelativeToProject(Roots.RococoContentPath);
-                string srcRelative = Roots.GetRelativeToProject(SourceRootPath);
-                string binRelative = Roots.GetRelativeToProject(Roots.RococoBinPath);
-                string binDir = Path.Combine(binRelative, @"win64\$(Configuration)\");
+                string sxhBatchRelative = Roots.GetRelativeToProject(sxhBatch);
+                string cppSrcRelative = Path.Combine(Roots.GetRelativeToRococoRoot(SourceRootPath), projectRelativeToSourceRoot);
 
-                string makeFile = string.Format("NMAKE /NOLOGO /F \"{0}\" \"BENNY_HILL={1}sexy.bennyhill.exe\" all SOURCE_ROOT={2}\\ CONTENT_ROOT={3}\\scripts\\{4}\\ SXH_FILE={5} XC_FILE={6}", makeRelative, binDir, srcRelative, contentRelative, content_subdir, sxh, xc);
+                string makeFile = string.Format("{0} $(Configuration) {1} {2} {3} {4}", sxhBatchRelative, cppSrcRelative, sxyInteropSubDir, sxh, xc);
                 conf.EventPreBuild.Add(makeFile);
             }
             else
@@ -234,7 +238,7 @@ namespace Rococo
             );
         }
 
-        protected RococoProject(string name): this(name, name)
+        protected RococoProject(string name) : this(name, name)
         {
         }
 
@@ -243,7 +247,7 @@ namespace Rococo
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.IncludePaths.Add(Path.Combine(Roots.RococoSexyPath, @"Common\"));
 
-            switch(CPPVersion)
+            switch (CPPVersion)
             {
                 case 17:
                     conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP17);
@@ -251,7 +255,7 @@ namespace Rococo
                 default:
                     conf.Options.Add(Sharpmake.Options.Vc.Compiler.CppLanguageStandard.CPP20);
                     break;
-            } 
+            }
 
             conf.Options.Add(Options.Vc.Compiler.Exceptions.Enable);
             conf.Options.Add(Options.Vc.Compiler.Inline.OnlyInline);
@@ -407,7 +411,7 @@ namespace Rococo
 
             RootPath = Roots.RococoRootPath;
 
-			AddTargets(new Target(
+            AddTargets(new Target(
                 Platform.anycpu,
                 DevEnv.vs2022,
                 Optimization.Debug | Optimization.Release,
@@ -511,6 +515,7 @@ namespace Rococo
         public RococoECSProject() : base("rococo.ecs")
         {
             SourceFiles.Add(@"..\include\rococo.ecs.h");
+            SourceFiles.Add(@"code-gen\ecs.sxh");
         }
 
         [Configure()]
@@ -520,6 +525,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
             conf.SolutionFolder = "ECS";
+            AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc", @"rococo\ecs", true, @"code-gen");
         }
     }
 
@@ -551,6 +557,7 @@ namespace Rococo
         public RococoComponentsConfigurationProject() : base("rococo.component.configuration", @"components\configuration")
         {
             SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"code-gen\config.sxh");
         }
 
         [Configure()]
@@ -560,6 +567,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.SolutionFolder = "ECS";
+            AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc", @"rococo\components\config", true, @"code-gen");
         }
     }
 
@@ -569,6 +577,7 @@ namespace Rococo
         public RococoComponentsAnimationProject() : base("rococo.component.animation", @"components\animation")
         {
             SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"code-gen\animation.sxh");
         }
 
         [Configure()]
@@ -579,6 +588,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
+            AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc", @"rococo\components\animation", true, @"code-gen");
         }
     }
 
@@ -588,6 +598,7 @@ namespace Rococo
         public RococoComponentsBodyProject() : base("rococo.component.body", @"components\body")
         {
             SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"code-gen\body.sxh");
         }
 
         [Configure()]
@@ -598,6 +609,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
+            AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc", @"rococo\components\body", true, @"code-gen");
         }
     }
 
@@ -607,6 +619,7 @@ namespace Rococo
         public RococoComponentsSkeletonProject() : base("rococo.component.skeleton", @"components\skeleton")
         {
             SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"code-gen\skeleton.sxh");
         }
 
         [Configure()]
@@ -617,6 +630,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
+            AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc", @"rococo\components\skeleton", true, @"code-gen");
         }
     }
 
@@ -813,40 +827,40 @@ namespace Rococo
             conf.AddPublicDependency<OggProject>(target);
         }
     }
-   /* 
-    [Sharpmake.Compile]
-    public class VorbisFileProject : Project
-    {
-        public VorbisFileProject()
-        {
-            AddTargets(new Target(
-               Platform.win64,
-               DevEnv.vs2022,
-               Optimization.Debug | Optimization.Release,
-               OutputType.Dll,
-               Blob.NoBlob,
-               BuildSystem.MSBuild,
-               DotNetFramework.v4_8)
-           );
+    /* 
+     [Sharpmake.Compile]
+     public class VorbisFileProject : Project
+     {
+         public VorbisFileProject()
+         {
+             AddTargets(new Target(
+                Platform.win64,
+                DevEnv.vs2022,
+                Optimization.Debug | Optimization.Release,
+                OutputType.Dll,
+                Blob.NoBlob,
+                BuildSystem.MSBuild,
+                DotNetFramework.v4_8)
+            );
 
-            Name = "lib-vorbis-file";
-        }
+             Name = "lib-vorbis-file";
+         }
 
-        [Configure()]
-        public void ConfigureAll(Configuration conf, Target target)
-        {
-            conf.ProjectPath = @"..\..\source\3rd-Party\libvorbis\win32\VS2022\libvorbisfile";
-            conf.ProjectFileName = "lib-vorbis-file";
-            conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
-            conf.TargetFileName = "lib-vorbis-file.vcxproj";
-            conf.Output = Configuration.OutputType.Dll; // Required to create dependencies in a compiled/not-generated object
-            conf.SolutionFolder = " - Third-Party Projects";
-            conf.AddPublicDependency<OggProject>(target);
-            conf.AddPublicDependency<VorbisProject>(target);
-        }
-    }
-    */
-    
+         [Configure()]
+         public void ConfigureAll(Configuration conf, Target target)
+         {
+             conf.ProjectPath = @"..\..\source\3rd-Party\libvorbis\win32\VS2022\libvorbisfile";
+             conf.ProjectFileName = "lib-vorbis-file";
+             conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
+             conf.TargetFileName = "lib-vorbis-file.vcxproj";
+             conf.Output = Configuration.OutputType.Dll; // Required to create dependencies in a compiled/not-generated object
+             conf.SolutionFolder = " - Third-Party Projects";
+             conf.AddPublicDependency<OggProject>(target);
+             conf.AddPublicDependency<VorbisProject>(target);
+         }
+     }
+     */
+
     [Sharpmake.Generate]
     public class VorbisFileProject : RococoProject
     {
@@ -885,221 +899,209 @@ namespace Rococo
             conf.IncludePaths.Add(@"..\libvorbis\include\");
             conf.Options.Add(Sharpmake.Options.Vc.General.WarningLevel.Level1);
             conf.ModuleDefinitionFile = Path.Combine(SourceRootPath, @"win32\vorbisfile.def");
-           
+
         }
     }
-        
+
     [Sharpmake.Generate]
-public class RococoSexyIDEProject : RococoProject
-{
-    public RococoSexyIDEProject() : base("rococo.sexy.ide")
+    public class RococoSexyIDEProject : RococoProject
     {
+        public RococoSexyIDEProject() : base("rococo.sexy.ide")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoSexyCmdProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Lib);
-    }
-}
+        public RococoSexyCmdProject() : base("rococo.sexy.cmd")
+        {
+        }
 
-[Sharpmake.Generate]
-public class RococoSexyCmdProject : RococoProject
-{
-    public RococoSexyCmdProject() : base("rococo.sexy.cmd")
-    {
-    }
-
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
-    {
-        StandardInit(conf, target, Configuration.OutputType.Exe);
-        conf.IncludePaths.Add(Path.Combine(Roots.RococoSexyPath, @"STC\stccore\"));
-        conf.AddPublicDependency<RococoSexyIDEProject>(target); 
-        conf.AddPublicDependency<RococoUtilsProject>(target);
-        conf.AddPublicDependency<RococoWindowsProject>(target);
-        conf.AddPublicDependency<SexyScriptProject>(target);      
-    }
-}
-
-[Sharpmake.Generate]
-public class RococoSexyMathSexProject : RococoProject
-{
-    public RococoSexyMathSexProject() : base("rococo.sexy.mathsex")
-    {
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.IncludePaths.Add(Path.Combine(Roots.RococoSexyPath, @"STC\stccore\"));
+            conf.AddPublicDependency<RococoSexyIDEProject>(target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoSexyMathSexProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Dll);
-        conf.AddPublicDependency<RococoMathsProject>(target);
-        conf.AddPublicDependency<RococoUtilsProject>(target);
-        conf.AddPublicDependency<SexyBennyHillProject>(target);
-    }
-}
+        public RococoSexyMathSexProject() : base("rococo.sexy.mathsex")
+        {
+        }
 
-[Sharpmake.Generate]
-public class RococoFontsProject : RococoProject
-{
-    public RococoFontsProject() : base("rococo.fonts")
-    {
-    }
-
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
-    {
-        StandardInit(conf, target, Configuration.OutputType.Lib);
-    }
-}
-
-[Sharpmake.Generate]
-public class RococoDX11RendererProject : RococoProject
-{
-    public RococoDX11RendererProject() : base("dx11.renderer")
-    {
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyBennyHillProject>(target);
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoFontsProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Dll);
-        conf.AddPublicDependency<RococoMiscUtilsProject>(target);
-        conf.AddPublicDependency<LibTiffProject>(target);
-        conf.AddPublicDependency<LibJPegProject>(target);
-        conf.AddPublicDependency<LibZipProject>(target);
-        conf.AddPublicDependency<RococoMathsProject>(target);
-        conf.AddPublicDependency<RococoFontsProject>(target);
-    }
-}
+        public RococoFontsProject() : base("rococo.fonts")
+        {
+        }
 
-[Sharpmake.Generate]
-public class RococoFileBrowserProject : RococoProject
-{
-    public RococoFileBrowserProject() : base("rococo.file.browser")
-    {
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoDX11RendererProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Lib);
-    }
-}
+        public RococoDX11RendererProject() : base("dx11.renderer")
+        {
+        }
 
-[Sharpmake.Generate]
-public class RococoVersioningProject : RococoProject
-{
-    public RococoVersioningProject() : base("rococo.version.generator")
-    {
-    }
-
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
-    {
-        StandardInit(conf, target, Configuration.OutputType.Exe);
-        conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996"));
-    }
-}
-
-[Sharpmake.Generate]
-public class RococoGuiRetainedProject : RococoProject
-{
-    public RococoGuiRetainedProject() : base("rococo.gui.retained")
-    {
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<LibTiffProject>(target);
+            conf.AddPublicDependency<LibJPegProject>(target);
+            conf.AddPublicDependency<LibZipProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoFontsProject>(target);
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoFileBrowserProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Dll);
-        conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
-        conf.AddPublicDependency<RococoUtilsProject>(target);
-    }
-}
+        public RococoFileBrowserProject() : base("rococo.file.browser")
+        {
+        }
 
-[Sharpmake.Generate]
-public class RococoMPlatProject : RococoProject
-{
-    public RococoMPlatProject() : base("rococo.mplat")
-    {
-        SourceFiles.Add("mplat.sxh", "config.xc", @"..\include\rococo.mplat.h");
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoVersioningProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Lib);
+        public RococoVersioningProject() : base("rococo.version.generator")
+        {
+        }
 
-        conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
-        conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
-        conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
-        conf.AddPublicDependency<SexyBennyHillProject>(target);
-
-        string makeFilePath = Path.Combine(Roots.RococoToolsPath, "make-components.C++.bat");
-        string makeRelative = Roots.GetRelativeToProject(makeFilePath);
-
-        conf.EventPreBuild.Add(makeRelative);
-
-        AddSXHFileBuildStep(conf, "mplat.sxh", "config.xc", @"interop\rococo\mplat", true);
-    }
-}
-
-[Sharpmake.Generate]
-public class RococoMPlatDynamicProject : RococoProject
-{
-    public RococoMPlatDynamicProject() : base("rococo.mplat.dynamic")
-    {
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996"));
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoGuiRetainedProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Dll);
-        conf.AddPublicDependency<RococoFontsProject>(target);
-        conf.AddPublicDependency<RococoMathsProject>(target);
-        conf.AddPublicDependency<RococoMiscUtilsProject>(target);
-        conf.AddPublicDependency<RococoSexyIDEProject>(target);
-        conf.AddPublicDependency<RococoWindowsProject>(target);
-        conf.AddPublicDependency<RococoFileBrowserProject>(target);
-        conf.AddPublicDependency<RococoGuiRetainedProject>(target);
-        conf.AddPublicDependency<RococoMPlatProject>(target);
-        conf.AddPublicDependency<RococoUtilExProject>(target);
-        conf.AddPublicDependency<RococoAudioProject>(target);
-        conf.AddPublicDependency<RococoDX11RendererProject>(target);
-        conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
-        conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
-        conf.AddPublicDependency<RococoComponentsBodyProject>(target);
-        conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
-    }
-}
+        public RococoGuiRetainedProject() : base("rococo.gui.retained")
+        {
+        }
 
-[Sharpmake.Generate]
-public class RococoMHostProject : RococoProject
-{
-    public RococoMHostProject() : base("rococo.mhost")
-    {
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
     }
 
-    [Configure()]
-    public void ConfigureAll(Configuration conf, Target target)
+    [Sharpmake.Generate]
+    public class RococoMPlatProject : RococoProject
     {
-        StandardInit(conf, target, Configuration.OutputType.Exe);
-        conf.AddPublicDependency<RococoWindowsProject>(target);
-        conf.AddPublicDependency<RococoUtilExProject>(target);
-        conf.AddPublicDependency<RococoMathsProject>(target);
-        conf.AddPublicDependency<SexyBennyHillProject>(target);
-        conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
-        /*
-        string makeFilePath = Path.Combine(Roots.RococoToolsPath, "package.mak");
-        string makeRelative = Roots.GetRelativeToProject(makeFilePath);
-        string contentRelative = Roots.GetRelativeToProject(Roots.RococoContentPath);
-        string rococoRelative = Roots.GetRelativeToProject(Roots.RococoRootPath);
-        string makeCmd = string.Format("NMAKE /NOLOGO /F \"{0}\" all ROCOCO={1}\\ CONTENT={2}\\", makeRelative, rococoRelative, contentRelative);
+        public RococoMPlatProject() : base("rococo.mplat")
+        {
+            SourceFiles.Add(@"code-gen\mplat.sxh", @"code-gen\config.xc");
+        }
 
-        conf.EventPostBuild.Add(makeCmd);
-        */
-}
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+
+            conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
+            conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
+            conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
+            AddSXHFileBuildStep(conf, target, @"mplat.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoMPlatDynamicProject : RococoProject
+    {
+        public RococoMPlatDynamicProject() : base("rococo.mplat.dynamic")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoFontsProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<RococoSexyIDEProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<RococoFileBrowserProject>(target);
+            conf.AddPublicDependency<RococoGuiRetainedProject>(target);
+            conf.AddPublicDependency<RococoMPlatProject>(target);
+            conf.AddPublicDependency<RococoUtilExProject>(target);
+            conf.AddPublicDependency<RococoAudioProject>(target);
+            conf.AddPublicDependency<RococoDX11RendererProject>(target);
+            conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
+            conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
+            conf.AddPublicDependency<RococoComponentsBodyProject>(target);
+            conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoMHostProject : RococoProject
+    {
+        public RococoMHostProject() : base("rococo.mhost")
+        {
+            SourceFiles.Add(@"code-gen\mhost.sxh", @"code-gen\config.xc");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<RococoUtilExProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
+
+            // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\
+            // We go back 2 directories which takes us to the content root, which is what mhost is set up for
+            AddSXHFileBuildStep(conf, target, @"mhost.sxh", @"config.xc", @"..\..\", true, @"code-gen");
+        }
     }
 
     [Sharpmake.Generate]
@@ -1194,17 +1196,15 @@ public class RococoMHostProject : RococoProject
             conf.Defines.Add("ROCOCO_AUDIO_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
-            conf.AddPublicDependency<SexyBennyHillProject>(target);
             conf.IncludePaths.Add(@"..\..\3rd-party\libvorbis\include\");
             conf.IncludePaths.Add(@"..\..\3rd-party\libogg\include\");
-
-            AddSXHFileBuildStep(conf, "rococo.audio.sxh", "config.xc", @"interop\rococo\audio", true);
+            AddSXHFileBuildStep(conf, target, "rococo.audio.sxh", "config.xc", @"rococo\audio", true);
         }
     }
 
     [Sharpmake.Compile]
     public class RococoBuildFinalProject : Project
-    {	
+    {
         public RococoBuildFinalProject()
         {
             AddTargets(new Target(
@@ -1216,8 +1216,8 @@ public class RococoMHostProject : RococoProject
                BuildSystem.MSBuild,
                DotNetFramework.v4_8)
            );
-		   
-		   Name = "rococo.build.final";
+
+            Name = "rococo.build.final";
         }
 
         [Configure()]
@@ -1234,7 +1234,7 @@ public class RococoMHostProject : RococoProject
             conf.AddPrivateDependency<RococoPackagerProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoMHostProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<SexyBennyHillProject>(target, DependencySetting.OnlyBuildOrder);
-			conf.AddPrivateDependency<RococoSexyStudioTestProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoSexyStudioTestProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoSexyStudio4NPPProject>(target, DependencySetting.OnlyBuildOrder);
         }
     }
@@ -1251,7 +1251,7 @@ public class RococoMHostProject : RococoProject
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoAudioProject>(target);
-            conf.AddPublicDependency<RococoUtilsProject>(target);           
+            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
         }
@@ -1279,7 +1279,7 @@ public class RococoMHostProject : RococoProject
     {
         public SexyDotNetCLIProject() : base("sexy.dotnet.cli", "sexy.dotnet.cli")
         {
- 
+
         }
 
         [Configure()]
@@ -1606,7 +1606,7 @@ public class RococoMHostProject : RococoProject
             conf.AddProject<OggProject>(target);
             conf.AddProject<VorbisProject>(target);
             conf.AddProject<VorbisFileProject>(target);
-           // conf.AddProject<RococoVorbisFileProject>(target);
+            // conf.AddProject<RococoVorbisFileProject>(target);
         }
 
         public static void AddRococoMajorLibs(Solution.Configuration conf, Target target)
@@ -1657,8 +1657,8 @@ public class RococoMHostProject : RococoProject
         public RococoCSharpSolution()
         {
             Name = "rococo.sharpmake";
-	
-			AddTargets(new Target(
+
+            AddTargets(new Target(
                 Platform.win64,
                 DevEnv.vs2022,
                 Optimization.Debug | Optimization.Release,
@@ -1667,8 +1667,8 @@ public class RococoMHostProject : RococoProject
                 BuildSystem.MSBuild,
                 DotNetFramework.v4_8)
             );
-			
-		//	MergePlatformConfiguration = true;
+
+            //	MergePlatformConfiguration = true;
         }
 
         [Configure()]
@@ -1788,15 +1788,15 @@ public class RococoMHostProject : RococoProject
         public static void SharpmakeMain(Sharpmake.Arguments arguments)
         {
             goto skip;
-            skip:
+        skip:
             arguments.Generate<RococoCSharpSolution>();
             arguments.Generate<SexySolution>();
             arguments.Generate<FastDevSolution>();
             arguments.Generate<ThirdPartySolution>();
-            
+
             arguments.Generate<RococoUtilsProject>();
             arguments.Generate<SexyUtilProject>();
-			
+
             arguments.Generate<SexyVMProject>();
             arguments.Generate<SexyCompilerProject>();
             arguments.Generate<SexyScriptProject>();
@@ -1810,7 +1810,7 @@ public class RococoMHostProject : RococoProject
             arguments.Generate<LibJPegProject>();
             arguments.Generate<LibTiffProject>();
             arguments.Generate<LibZipProject>();
-  
+
             arguments.Generate<RococoMiscUtilsProject>();
             arguments.Generate<RococoMathsProject>();
             arguments.Generate<RococoUtilExProject>();
@@ -1851,7 +1851,7 @@ public class RococoMHostProject : RococoProject
             arguments.Generate<OggProject>();
             arguments.Generate<VorbisProject>();
             arguments.Generate<VorbisFileProject>();
-            
+
             arguments.Generate<RococoTextureToolProject>();
             arguments.Generate<RococoVersioningProject>();
         }

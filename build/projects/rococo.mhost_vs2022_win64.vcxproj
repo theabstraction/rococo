@@ -47,6 +47,7 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mhost\</IntDir>
     <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -57,6 +58,7 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mhost\</IntDir>
     <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -145,6 +147,9 @@
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
+    <PreBuildEvent>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc&#x0D;&#x0A;</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -230,12 +235,17 @@
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
+    <PreBuildEvent>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc&#x0D;&#x0A;</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />
   </ItemGroup>
   <ItemGroup>

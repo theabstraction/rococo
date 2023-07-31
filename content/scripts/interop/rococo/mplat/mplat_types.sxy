@@ -1,3 +1,5 @@
+// Here we define some MPLAT types by hand.
+
 (using Sys.Type)
 (using Sys.Maths)
 (namespace MPlat)
@@ -168,4 +170,13 @@
 	(Int32 imgWidth)
 	(Int32 imgHeight)
 )
+
 (alias FontMetrics Rococo.Graphics.FontMetrics)
+
+// Trying out the new strong number types
+
+(strong RococoMPlatTypeROID (Int64))
+(alias RococoMPlatTypeROID Rococo.ROID)
+
+(strong RococoMPlatTypeRGBAb (Int32))
+

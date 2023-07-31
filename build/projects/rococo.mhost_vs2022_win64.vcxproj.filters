@@ -9,10 +9,25 @@
     <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="code-gen">
+      <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

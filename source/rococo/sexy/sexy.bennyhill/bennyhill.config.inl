@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 	Sexy Scripting Language - Copright(c)2013. Mark Anthony Taylor. All rights reserved.
 
@@ -387,30 +389,17 @@ namespace
 		if (*pc.cppRootDirectory == 0) Throw(configDef, ("cpp.root was not specified"));
 	}
 
-	void ParseConfigSpec(cr_sex configSpec, ParseContext& pc)
+	void LoadConfigXC(cr_sex configSpec, ParseContext& pc)
 	{
-		if (configSpec.NumberOfElements() != 2) Throw(configSpec, ("Expecting two elements in a config spec (config <config_path>). The <config_path> can be prefixed with $, which if found, is substituted with the project root"));
-
-		cstr configPath = StringFrom(configSpec.GetElement(1));
-
-		WideFilePath fullconfigPath;
-
-		if (*configPath == '$')
-		{
-			Format(fullconfigPath, L"%hs%hs", pc.projectRoot, configPath + 1);
-		}
-		else
-		{
-			Format(fullconfigPath, L"%hs", configPath);
-		}
-
 		Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 		Auto<ISourceCode> configSrc;
 		Auto<ISParserTree> tree;
 
 		try
 		{
-			configSrc = parser->LoadSource(fullconfigPath, Vec2i{ 1,1 });
+			WideFilePath wXCPath;
+			Assign(wXCPath, pc.xcPath);
+			configSrc = parser->LoadSource(wXCPath, Vec2i{ 1,1 });
 			tree = parser->CreateTree(configSrc());
 
 			ParseConfig(tree().Root(), pc);
@@ -422,7 +411,7 @@ namespace
 		}
 		catch (ParseException& ex)
 		{
-			WriteToStandardOutput("%ls: %s. Specimen: %s", fullconfigPath, ex.Message(), ex.Specimen());
+			WriteToStandardOutput("%s: %s. Specimen: %s", pc.xcPath, ex.Message(), ex.Specimen());
 			Throw(ex);
 		}
 	}

@@ -56,23 +56,31 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc">
+      <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat.sxh">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="include">
-      <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
+    <Filter Include="code-gen">
+      <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

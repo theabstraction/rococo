@@ -9,12 +9,17 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\rococo.ecs.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\rococo.ecs.sxh.inl">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\rococo.ecs.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\rococo.ecs.sxh.inl" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

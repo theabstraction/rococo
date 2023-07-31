@@ -173,7 +173,7 @@ Rococo::Audio::IAudio* FactoryConstructRococoAudioGetAudio(Rococo::Audio::IAudio
 	return a;
 }
 
-#include <..\rococo.mplat\mplat.sxh.inl>
+#include <../rococo.mplat/code-gen/mplat.sxh.inl>
 
 #include <rococo.sexy.ide.h>
 #include <rococo.strings.h>

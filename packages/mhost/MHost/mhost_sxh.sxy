@@ -8,6 +8,7 @@
 (macro Rococo.AlignmentFlagsFlip in out (out.AddAtomic "0x20"))
 (macro Rococo.AlignmentFlagsClipped in out (out.AddAtomic "0x40"))
 
+(namespace MHost)
 (interface MHost.IGui
 	(DrawTriangle (MPlat.GuiTriangle t) -> )
 	(DrawQuad (MPlat.GuiQuad q) -> )
@@ -21,7 +22,7 @@
 	(DrawClippedText (Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) -> )
 	(DrawTextWithCaret (Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) -> )
 	(DrawText (Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> )
-	(EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Maths.Vec2 pixelSpan) -> )
+	(EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(Sys.Maths.Vec2 pixelSpan) -> )
 	(GetFontDescription (Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) -> )
 	(GetNumberOfFonts  -> (Int32 numberOfFonts))
 	(GetScreenSpan (Sys.Maths.Vec2 span) -> )
@@ -44,7 +45,7 @@
 	(method ProxyIGui.DrawClippedText (Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) ->  : (MHost.Native.IGuiDrawClippedText this.hObject rect alignmentFlags text fontIndex colour clipRect))
 	(method ProxyIGui.DrawTextWithCaret (Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect)(Int32 caretPos) ->  : (MHost.Native.IGuiDrawTextWithCaret this.hObject rect alignmentFlags text fontIndex colour clipRect caretPos))
 	(method ProxyIGui.DrawText (Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) ->  : (MHost.Native.IGuiDrawText this.hObject rect alignmentFlags text fontIndex colour))
-	(method ProxyIGui.EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Maths.Vec2 pixelSpan) ->  : (MHost.Native.IGuiEvalTextSpan this.hObject text fontIndex fontHeight pixelSpan))
+	(method ProxyIGui.EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(Sys.Maths.Vec2 pixelSpan) ->  : (MHost.Native.IGuiEvalTextSpan this.hObject text fontIndex pixelSpan))
 	(method ProxyIGui.GetFontDescription (Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(MHost.Graphics.FontDesc fd) ->  : (MHost.Native.IGuiGetFontDescription this.hObject fontIndex familyName fd))
 	(method ProxyIGui.GetNumberOfFonts  -> (Int32 numberOfFonts) : (MHost.Native.IGuiGetNumberOfFonts this.hObject  -> numberOfFonts))
 	(method ProxyIGui.GetScreenSpan (Sys.Maths.Vec2 span) ->  : (MHost.Native.IGuiGetScreenSpan this.hObject span))

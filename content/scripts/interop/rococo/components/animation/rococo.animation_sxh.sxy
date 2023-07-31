@@ -1,0 +1,12 @@
+(namespace Rococo.Components.Animation)
+(interface Rococo.Components.Animation.IAnimationBase
+)
+
+(class ProxyIAnimationBase (implements Rococo.Components.Animation.IAnimationBase) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIAnimationBase.Construct (Pointer hObject): (this.hObject = hObject))
+
+(factory Rococo.Components.Animation.GetAnimation Rococo.Components.Animation.IAnimationBase  :
+	(Pointer pObject = (Rococo.Components.Animation.Native.GetHandleForIAnimationBase0 ))
+	(construct ProxyIAnimationBase pObject)
+)
+

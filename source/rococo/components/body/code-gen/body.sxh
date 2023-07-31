@@ -1,0 +1,10 @@
+(interface 
+	(as.sxy Rococo.Components.Body.IBodyBase "rococo.body")
+	(as.cpp Rococo.Components.Body.IBodyBase "rococo.body")
+	
+	(context factory Rococo.Components.Body.IBodyBase)
+	(methods
+	)
+
+	(factory Rococo.Components.Body.GetBody)
+)

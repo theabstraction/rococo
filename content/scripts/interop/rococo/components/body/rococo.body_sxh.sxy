@@ -1,0 +1,12 @@
+(namespace Rococo.Components.Body)
+(interface Rococo.Components.Body.IBodyBase
+)
+
+(class ProxyIBodyBase (implements Rococo.Components.Body.IBodyBase) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIBodyBase.Construct (Pointer hObject): (this.hObject = hObject))
+
+(factory Rococo.Components.Body.GetBody Rococo.Components.Body.IBodyBase  :
+	(Pointer pObject = (Rococo.Components.Body.Native.GetHandleForIBodyBase0 ))
+	(construct ProxyIBodyBase pObject)
+)
+

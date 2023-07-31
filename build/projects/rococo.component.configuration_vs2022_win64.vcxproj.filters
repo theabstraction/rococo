@@ -2,13 +2,26 @@
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\components\configuration\configuration.component.cpp" />
+    <ClCompile Include="..\..\source\rococo\components\configuration\configuration.scripts.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config.sxh">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\rococo.config.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\rococo.config.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="code-gen">
+      <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
     </Filter>

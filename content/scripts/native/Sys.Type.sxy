@@ -23,10 +23,6 @@
 	(if ((i < min) or (i > max)) (Sys.Throw -1 message))
 )
 
-(function ValidateNativePointer (Pointer x) -> :
-	(if (x == 0) (Sys.Throw -1 "Null reference exception"))
-)
-
 (alias ValidateSubscriptRange Sys.ValidateSubscriptRange)
 
 (class GenericException
@@ -205,35 +201,6 @@
 	(ReleaseAll -> )
 )
 
-(class AlignedHeap
-	(implements IBuffer)
-	(Int32 capacity)
-	(Pointer data)
-)
-
-(method AlignedHeap.Capacity -> (Int32 capacity):
-	(capacity = this.capacity)
-)
-
-(method AlignedHeap.Data -> (Pointer data):
-	(data = this.data)
-)
-
-
-(method AlignedHeap.Construct (Int32 capacity) (Int32 alignment):
-	(this.capacity = capacity)
-	(Sys.Native.AlignedMalloc capacity alignment -> this.data)
-	(ValidateNativePointer this.data)
-)
-
-(method AlignedHeap.Destruct -> :
-	(Sys.Native.AlignedFree this.data)
-)
-
-(factory Sys.Type.AllocAligned IBuffer (Int32 capacity) (Int32 alignment):
-	(construct AlignedHeap capacity alignment)
-)
-
 (class ProxyICoroutineControl (implements Sys.ICoroutineControl) (Pointer hObject))
 
 (method ProxyICoroutineControl.Construct (Pointer hObject): (this.hObject = hObject))
@@ -330,8 +297,5 @@
 	(BuildOptionalType in out)
 )
 
-(function PublishAPI -> :
-	(Sys.Native.PublishAPI)
-)
-
-(alias PublishAPI Sys.PublishAPI)
+(strong SysTypeRGBAb (Int32))
+(alias SysTypeRGBAb Sys.Type.RGBAb)

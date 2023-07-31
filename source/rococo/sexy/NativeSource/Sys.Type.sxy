@@ -296,3 +296,6 @@
 	(Sys.ValidateSubscriptRange in.ChildCount 2 2 "Usage: (##Sys.optional <fully-qualified-type>)")	
 	(BuildOptionalType in out)
 )
+
+(strong SysTypeRGBAb (Int32))
+(alias SysTypeRGBAb Sys.Type.RGBAb)

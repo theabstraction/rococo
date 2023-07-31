@@ -1,0 +1,12 @@
+(namespace Rococo.Components.Skeleton)
+(interface Rococo.Components.Skeleton.ISkeletonBase
+)
+
+(class ProxyISkeletonBase (implements Rococo.Components.Skeleton.ISkeletonBase) (Pointer hObject) (attribute not-serialized))
+	(method ProxyISkeletonBase.Construct (Pointer hObject): (this.hObject = hObject))
+
+(factory Rococo.Components.Skeleton.GetSkeleton Rococo.Components.Skeleton.ISkeletonBase  :
+	(Pointer pObject = (Rococo.Components.Skeleton.Native.GetHandleForISkeletonBase0 ))
+	(construct ProxyISkeletonBase pObject)
+)
+

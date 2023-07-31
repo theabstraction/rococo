@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 	Sexy Scripting Language - Copright(c)2013. Mark Anthony Taylor. All rights reserved.
 

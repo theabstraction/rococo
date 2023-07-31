@@ -156,7 +156,7 @@ namespace Rococo
 	};
 }
 
-#include <../rococo.mplat/mplat.sxh.h>
+#include <../rococo.mplat/code-gen/mplat.sxh.h>
 
 namespace Rococo::Joysticks
 {

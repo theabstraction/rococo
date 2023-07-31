@@ -69,7 +69,8 @@ namespace MHost
 	struct IDictionaryStream;
 }
 
-#include "mhost.sxh.h"
+#include <rococo.io.h>
+#include <..\rococo.mhost\code-gen\mhost.sxh.h>
 
 namespace MHost
 {

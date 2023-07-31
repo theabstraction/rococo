@@ -5190,6 +5190,44 @@ R"((namespace EntryPoint)
 
 	}
 
+	void TestStrongNumber7(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(strong CustomerId (Int32))"
+			"(alias CustomerId EntryPoint.CustomerId)"
+
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(function Main -> (Int32 result):"
+			"  (EntryPoint.CustomerId id = 72)"
+			"  (result = id.Value)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result);
+
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 72);
+	}
+
 	void TestRecti1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -16159,12 +16197,15 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestStrongNumber7);
+
+		goto skip;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestMaps();
-
+		skip:
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

@@ -241,11 +241,6 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <ProjectReference Include="sexy.bennyhill_vs2022_win64.vcxproj">
-      <Project>{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}</Project>
-      <Name>sexy.bennyhill</Name>
-      <Private>true</Private>
-    </ProjectReference>
     <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
       <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

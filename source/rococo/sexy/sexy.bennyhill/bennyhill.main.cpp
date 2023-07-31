@@ -212,7 +212,7 @@ void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContex
 	appender.Append("#include <sexy.script.h>\n");
 	appender.Append("#include \"%s\"\n\n", filename);
 
-	// appender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
+	appender.Append(("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n"));
 }
 
 void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
@@ -966,12 +966,15 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
    */
 }
 
-void ParseInterfaceFile(cr_sex root, ParseContext& pc)
+void ParseSXHFile(cr_sex root, ParseContext& pc)
 {
 	bool hasConfig = false;
 	bool hasFunctions = false;
 
 	std::vector<rstdstring, Memory::SexyAllocator<rstdstring>> interfaceDefOrder;
+
+	LoadConfigXC(root, pc);
+	hasConfig = true;
 
 	for (int i = 0; i < root.NumberOfElements(); ++i)
 	{
@@ -985,9 +988,7 @@ void ParseInterfaceFile(cr_sex root, ParseContext& pc)
 
 		if (AreEqual("config", cmd))
 		{
-			if (hasConfig) Throw(command, "Only one config entry permitted");
-			ParseConfigSpec(topLevelItem, pc);
-			hasConfig = true;
+			Throw(0, "The SXH file has a config entry which is now obsolete");
 		}
 		else if (AreEqual("functions", cmd))
 		{
@@ -1064,7 +1065,7 @@ void StripToFilenameSansExtension(cstr name, char target[_MAX_PATH], char nameSa
 
 void PrintUsage()
 {
-	printf("Usage:\n\tbennyhill.exe <project root> <content-root> <script-input-file>\n");
+	printf("Usage:\n\tbennyhill.exe <C++-project-root> <sxy-content-root> <sxh-file> <config.xc-fullpath>\n");
 
 	printf(
 		"Example:\n\n"
@@ -1109,8 +1110,9 @@ using namespace Rococo::Memory;
 
 int main(int argc, char* argv[])
 {
-	if (argc != 4)
+	if (argc != 5)
 	{
+		printf("Expecting 4 arguments on the command line\n");
 		PrintUsage();
 		return -1;
 	}
@@ -1124,38 +1126,37 @@ int main(int argc, char* argv[])
 	const char* projectRoot = argv[1];
 	const char* contentRoot = argv[2];
 	const char* scriptInput = argv[3];
+	const char* xcFullPath = argv[4];
 
 	U8FilePath u8inputName;
 	Format(u8inputName, "%s%s", projectRoot, scriptInput);
 
 	U8FilePath currentDirectory;
 	IO::GetCurrentDirectoryPath(currentDirectory);
-	printf("CurrentDirectory: %s. Generating C++ and SXY files from %s\n", currentDirectory.buf, u8inputName.buf);
 
-	WideFilePath wProjectDir;
-	Assign(wProjectDir, projectRoot);
+	// printf("CurrentDirectory: %s. Generating C++ and SXY files from %s\n", currentDirectory.buf, u8inputName.buf);
 
-	WideFilePath wContentDir;
-	Assign(wContentDir, contentRoot);
-
-	WideFilePath wProject;
-	Assign(wProject, u8inputName);
-
-	if (!Rococo::IO::IsDirectory(wProjectDir))
+	if (!Rococo::IO::IsDirectory(projectRoot))
 	{
 		fprintf(stderr, "\tCould not find project root directory: %s\n", projectRoot);
 		return -1;
 	}
 
-	if (!Rococo::IO::IsDirectory(wContentDir))
+	if (!Rococo::IO::IsDirectory(contentRoot))
 	{
 		fprintf(stderr, "\tCould not find content root directory: %s\n", contentRoot);
 		return -1;
 	}
 
-	if (!Rococo::OS::IsFileExistant(wProject))
+	if (!Rococo::OS::IsFileExistant(u8inputName))
 	{
 		fprintf(stderr, "\tCould not find project root file: %s\n", u8inputName.buf);
+		return -1;
+	}
+
+	if (!Rococo::OS::IsFileExistant(xcFullPath))
+	{
+		fprintf(stderr, "\tCould not find config.xc file: %s\n", xcFullPath);
 		return -1;
 	}
 
@@ -1163,6 +1164,7 @@ int main(int argc, char* argv[])
 	CopyString(pc.projectRoot, sizeof pc.projectRoot - 1, projectRoot);
 	CopyString(pc.contentRoot, sizeof pc.contentRoot - 1, contentRoot);
 	CopyString(pc.scriptInput, sizeof pc.scriptInput - 1, scriptInput);	
+	CopyString(pc.xcPath, sizeof pc.xcPath - 1, xcFullPath);
 
 	EndWithSlash(pc.projectRoot, sizeof pc.projectRoot);
 	EndWithSlash(pc.contentRoot, sizeof pc.contentRoot);
@@ -1183,9 +1185,9 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		WideFilePath inputName;
-		Format(inputName, L"%hs%hs", pc.projectRoot, pc.scriptInput);
-		src = parser->LoadSource(inputName, Vec2i{ 1,1 });
+		WideFilePath sxhFullPathName;
+		Format(sxhFullPathName, L"%hs%hs", pc.projectRoot, pc.scriptInput);
+		src = parser->LoadSource(sxhFullPathName, Vec2i{ 1,1 });
 		tree = parser->CreateTree(src());
 
 		if (tree->Root().NumberOfElements() == 0)
@@ -1194,8 +1196,7 @@ int main(int argc, char* argv[])
 			Throw(tree->Root(), "\n\tThe source code is blank\n");
 		}
 
-		ParseInterfaceFile(tree->Root(), pc);
-
+		ParseSXHFile(tree->Root(), pc);
 		return 0;
 	}
 	catch (ParseException& ex)

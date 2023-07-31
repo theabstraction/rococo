@@ -66,7 +66,7 @@ namespace MHost
 
 using namespace MHost;
 
-#include "mhost.sxh.inl"
+#include "code-gen/mhost.sxh.inl"
 
 namespace MHost
 {

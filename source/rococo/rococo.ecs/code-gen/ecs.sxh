@@ -1,5 +1,3 @@
-(config $..\..\config.xc) 
-
 (interface 
 	(as.sxy Rococo.ECS.IECS "rococo.ecs")
 	(as.cpp Rococo.IECSBase "rococo.ecs")

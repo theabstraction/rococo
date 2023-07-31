@@ -13,6 +13,7 @@
 
 // Note that namespaces are separated by . in all cases, and the bennyhill system maps cpp namespace separators . to ::
 
+//(primitive <name> <sexy-name> <cpp-name>)
 (primitive Int32 Int32 int32)
 (primitive Int64 Int64 int64)
 (primitive Float32 Float32 float)
@@ -23,14 +24,12 @@
 (primitive Seconds Sys.SI.Seconds Seconds)
 (primitive Metres Sys.SI.Metres Metres)
 (primitive Kilograms Sys.SI.Kilograms Kilograms)
-(primitive RGBAb Int32 RGBAb)
+
 (primitive IdFont Int32 ID_FONT)
 (primitive EHQFont Int32 Rococo.Graphics.HQFont)
 (primitive IdSprite Int64 ID_SPRITE)
-
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
-(primitive ROID Int64 Rococo.Components.ROID)
 (primitive IdEntity Int64 ID_ENTITY)
 (primitive IdSysMesh Int64 ID_SYS_MESH)
 (primitive IdCubeTexture Int64 ID_CUBE_TEXTURE)
@@ -46,7 +45,7 @@
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
-
+//(struct <name> <sexy-name> <cpp-name>)
 (struct Vec2i Sys.Maths.Vec2i Vec2i)
 (struct Vec2 Sys.Maths.Vec2 Vec2)
 (struct Vec3 Sys.Maths.Vec3 Vec3)
@@ -62,13 +61,7 @@
 (struct Triangle Sys.Maths.Triangle Triangle)
 (struct Triangle2d Sys.Maths.Triangle2d Triangle2d)
 (struct RGBA Sys.Maths.Vec4 RGBA)
-
-// (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
-// (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.
-// Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
-
 (struct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData)
-
 (struct Vertex Rococo.ObjectVertex ObjectVertex)
 (struct BoneWeights Rococo.BoneWeights BoneWeights)
 (struct LightSpec Rococo.LightSpec LightSpec)
@@ -81,3 +74,11 @@
 (struct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics)
 (struct BitmapLocation MPlat.BitmapLocation Rococo.Graphics.Textures.BitmapLocation)
 
+// (defstruct <name> <sexy-name> <cpp-name> (fields) )  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (cpp.types ...)
+// (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.
+// Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
+
+// The new strong number types
+//(primitive <name> <sexy-name> <cpp-name>)
+(primitive ROID Rococo.ROID Rococo.Components.ROID)
+(primitive RGBAb Rococo.RGBAb RGBAb)

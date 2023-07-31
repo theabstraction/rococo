@@ -1,5 +1,3 @@
-(config $config.xc) 
-
 (enum Int32
 	(as.sxy Rococo.LayoutId "mplat_gui")
 	(as.cpp Rococo.ELayoutAlgorithm "mplat")
