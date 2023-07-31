@@ -1,6 +1,6 @@
 (interface 
 	(as.sxy Rococo.Components.Animation.IAnimationBase "rococo.animation")
-	(as.cpp Rococo.Components.Animation.IAnimationBase "rococo.animation")
+	(as.cpp Rococo.Components.Animation.IAnimationBase)
 	
 	(context factory Rococo.Components.Animation.IAnimationBase)
 	(methods

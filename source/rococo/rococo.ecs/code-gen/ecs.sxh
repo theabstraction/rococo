@@ -1,6 +1,6 @@
 (interface 
 	(as.sxy Rococo.ECS.IECS "rococo.ecs")
-	(as.cpp Rococo.IECSBase "rococo.ecs")
+	(as.cpp Rococo.IECSBase)
 	
 	(context factory Rococo.IECS)
 	(methods

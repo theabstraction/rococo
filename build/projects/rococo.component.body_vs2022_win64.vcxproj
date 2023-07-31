@@ -243,8 +243,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh" />
-    <ClInclude Include="..\..\source\rococo\components\body\code-gen\rococo.body.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\components\body\code-gen\rococo.body.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>

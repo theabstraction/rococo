@@ -242,9 +242,9 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\rococo.skeleton.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\rococo.skeleton.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\skeleton.sxh" />
+    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\skeleton.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\skeleton.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>

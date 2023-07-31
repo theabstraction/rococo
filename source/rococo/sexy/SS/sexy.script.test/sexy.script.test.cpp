@@ -15810,6 +15810,8 @@ R"(
 		TEST(TestStrongNumber3);
 		TEST(TestStrongNumber4);
 		TEST(TestStrongNumber5);
+		TEST(TestStrongNumber6);
+		TEST(TestStrongNumber7);
 
 		TEST(TestStructWithInterface);
 
@@ -16197,15 +16199,12 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestStrongNumber7);
-
-		goto skip;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestMaps();
-		skip:
+
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

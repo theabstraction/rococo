@@ -9,7 +9,7 @@ namespace
 	}
 }
 
-#include <../rococo.ecs/code-gen/rococo.ecs.sxh.inl>
+#include <../rococo.ecs/code-gen/ecs.sxh.inl>
 
 namespace Rococo::ECS
 {

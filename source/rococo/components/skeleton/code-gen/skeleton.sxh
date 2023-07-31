@@ -1,6 +1,6 @@
 (interface 
 	(as.sxy Rococo.Components.Skeleton.ISkeletonBase "rococo.skeleton")
-	(as.cpp Rococo.Components.Skeleton.ISkeletonBase "rococo.skeleton")
+	(as.cpp Rococo.Components.Skeleton.ISkeletonBase)
 	
 	(context factory Rococo.Components.Skeleton.ISkeletonBase)
 	(methods

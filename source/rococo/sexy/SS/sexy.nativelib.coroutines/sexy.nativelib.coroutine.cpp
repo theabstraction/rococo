@@ -33,14 +33,14 @@ namespace Rococo
 	}
 }
 
-#include "coroutine.sxh.h"
+#include "coroutines.sxh.h"
 
 Sys::ICoroutineControl* FactoryConstructSysCoroutines(Sys::ICoroutineControl* _context)
 {
 	return _context;
 }
 
-#include "coroutine.sxh.inl"
+#include "coroutines.sxh.inl"
 
 struct CoSpec: public ILock
 {

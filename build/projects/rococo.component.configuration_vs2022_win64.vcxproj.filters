@@ -8,10 +8,10 @@
     <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config.sxh">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\rococo.config.sxh.h">
+    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\rococo.config.sxh.inl">
+    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config.sxh.inl">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">

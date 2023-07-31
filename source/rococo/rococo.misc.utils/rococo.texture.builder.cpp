@@ -12,9 +12,6 @@
 
 #include <rococo.maths.h>
 
-#pragma comment(lib, "lib-tiff.lib" )
-#pragma comment(lib, "lib-jpg.lib" )
-
 namespace
 {
     using namespace Rococo;

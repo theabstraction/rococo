@@ -371,12 +371,19 @@ namespace Rococo::Script
 		SafeFormat(value, 128, "0x%X", cpu.SR());
 		cb.OnRegister("SR", value);
 
-		for (int i = 4; i < 256; ++i)
+		__try
 		{
-			char name[16];
-			SafeFormat(name, 16, "D%u", i);
-			SafeFormat(value, 128, "%lld / 0x%1llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
-			cb.OnRegister(name, value);
+			for (int i = 4; i < 256; ++i)
+			{
+				char name[16];
+				SafeFormat(name, 16, "D%u", i);
+				SafeFormat(value, 128, "%lld / 0x%1llX", cpu.D[i].int64Value, cpu.D[i].int64Value);
+				cb.OnRegister(name, value);
+			}
+		}
+		__except (1)
+		{
+
 		}
 	}
 }

@@ -3,7 +3,7 @@
 #include <rococo.ecs.h>
 #include <sexy.script.h>
 
-#include <..\components\animation\code-gen\rococo.animation.sxh.h>
+#include <..\components\animation\code-gen\animation.sxh.h>
 
 namespace
 {
@@ -13,7 +13,7 @@ namespace
 	}
 }
 
-#include <..\components\animation\code-gen\rococo.animation.sxh.inl>
+#include <..\components\animation\code-gen\animation.sxh.inl>
 
 namespace Rococo::Components::Animation
 {

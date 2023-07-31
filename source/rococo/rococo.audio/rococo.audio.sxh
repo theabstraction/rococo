@@ -1,8 +1,6 @@
-(config $config.xc) 
-
 (interface 
 	(as.sxy Rococo.Audio.IAudio "rococo.audio")
-	(as.cpp Rococo.Audio.IAudio "rococo.audio")
+	(as.cpp Rococo.Audio.IAudio)
 	(context factory Rococo.Audio.IAudio)
 	(methods
 		(SetMP3Music (IString mp3musicPingPath))

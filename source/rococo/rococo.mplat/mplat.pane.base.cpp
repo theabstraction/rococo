@@ -663,10 +663,10 @@ struct PaneContainer : public BasePane, virtual public GUI::IPaneContainer
 
 const char* const s_includeArray[] =
 {
-	"!scripts/mplat_gui_sxh.sxy",
-	"!scripts/mplat_types.sxy",
-	"!scripts/types.sxy",
-	"!scripts/audio_types.sxy"
+	"!scripts/interop/rococo/mplat/mplat_gui_sxh.sxy",
+	"!scripts/interop/rococo/mplat/mplat_types.sxy",
+	"!scripts/interop/rococo/mplat/types.sxy",
+	"!scripts/interop/rococo/audio/audio_types.sxy"
 };
 
 class ScriptedPanel : IScriptCompilationEventHandler, IObserver, public IPaneBuilderSupervisor, public PaneContainer

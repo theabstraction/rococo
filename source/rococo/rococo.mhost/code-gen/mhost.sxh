@@ -7,7 +7,7 @@
 
 (enum Int32
 	(as.sxy Rococo.AlignmentFlags "../packages/mhost/MHost/mhost")
-	(as.cpp Rococo.AlignmentFlags "mhost")
+	(as.cpp Rococo.AlignmentFlags)
 	(
 		(None 0)
 		(Left 1)
@@ -22,7 +22,7 @@
 
 (interface
 	(as.sxy MHost.IGui "../packages/mhost/MHost/mhost")
-	(as.cpp MHost.IGui "mhost")
+	(as.cpp MHost.IGui)
 	(context factory MHost.IGui)
 	(methods
 		(DrawTriangle (const GuiTriangle t))
@@ -50,7 +50,7 @@
 
 (interface
 	(as.sxy MHost.IEngine "../packages/mhost/MHost/mhost")
-	(as.cpp MHost.IEngine "mhost")
+	(as.cpp MHost.IEngine)
 	(context factory MHost.IEngine)
 	(methods
 		(PollKeyState (KeyState keys))
@@ -76,7 +76,7 @@
 
 (interface 
 	(as.sxy MHost.IDictionaryStream "../packages/mhost/MHost/mhost")
-	(as.cpp MHost.IDictionaryStream "mhost")
+	(as.cpp MHost.IDictionaryStream)
 	(context factory Rococo.IO.IInstallation)
 	(methods
 		(AddBool (IString name)(Bool value))

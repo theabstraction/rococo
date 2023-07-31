@@ -7,7 +7,7 @@ namespace Rococo
     struct IECS;
 }
 
-#include <..\rococo.ecs\code-gen\rococo.ecs.sxh.h>
+#include <..\rococo.ecs\code-gen\ecs.sxh.h>
 
 #ifndef ROCOCO_ECS_API 
 # define ROCOCO_ECS_API ROCOCO_API_IMPORT

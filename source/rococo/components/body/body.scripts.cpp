@@ -3,7 +3,7 @@
 #include <rococo.ecs.h>
 #include <sexy.script.h>
 
-#include <..\components\body\code-gen\rococo.body.sxh.h>
+#include <..\components\body\code-gen\body.sxh.h>
 
 namespace
 {
@@ -13,7 +13,7 @@ namespace
 	}
 }
 
-#include <..\components\body\code-gen\rococo.body.sxh.inl>
+#include <..\components\body\code-gen\body.sxh.inl>
 
 namespace Rococo::Components::Body
 {
