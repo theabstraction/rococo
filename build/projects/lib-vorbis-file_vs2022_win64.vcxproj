@@ -11,24 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{002950ED-9F0C-235A-5097-6962BE95198F}</ProjectGuid>
+    <ProjectGuid>{B3D81FBE-6820-3219-67BA-4DBC28E73B32}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>rococo.assets.test</RootNamespace>
-    <ProjectName>rococo.assets.test</ProjectName>
+    <RootNamespace>lib-vorbis-file</RootNamespace>
+    <ProjectName>lib-vorbis-file</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -42,32 +42,32 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>rococo.assets.test</TargetName>
+    <TargetName>lib-vorbis-file</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.assets.test\</IntDir>
-    <TargetExt>.exe</TargetExt>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\lib-vorbis-file\</IntDir>
+    <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.exe</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>rococo.assets.test</TargetName>
+    <TargetName>lib-vorbis-file</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.assets.test\</IntDir>
-    <TargetExt>.exe</TargetExt>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\lib-vorbis-file\</IntDir>
+    <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.exe</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level1</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_CONSOLE;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>LIBVORBISFILE_EXPORTS;WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -109,16 +109,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.assets.test\rococo.assets.test_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\lib-vorbis-file\lib-vorbis-file_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.exe</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.pdb</ProgramDatabaseFile>
+      <AdditionalLibraryDirectories>..\..\..\..\build\projects;..\..\gen\lib\win64\Debug</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -138,21 +138,23 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-ogg.lib;lib-vorbis.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\debug\lib-vorbis-file.lib</ImportLibrary>
+      <ModuleDefinitionFile>..\..\source\3rd-party\libvorbis\win32\vorbisfile.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level1</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_CONSOLE;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>LIBVORBISFILE_EXPORTS;NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -194,16 +196,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.assets.test\rococo.assets.test_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\lib-vorbis-file\lib-vorbis-file_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.exe</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.pdb</ProgramDatabaseFile>
+      <AdditionalLibraryDirectories>..\..\..\..\build\projects;..\..\gen\lib\win64\Release</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -223,71 +225,34 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.misc.utils.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-ogg.lib;lib-vorbis.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.assets.test.map</MapFileName>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\release\lib-vorbis-file.lib</ImportLibrary>
+      <ModuleDefinitionFile>..\..\source\3rd-party\libvorbis\win32\vorbisfile.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.assets.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libvorbis\include\vorbis\vorbisfile.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.assets.test\rococo.assets.test.cpp" />
+    <ClCompile Include="..\..\source\3rd-Party\libvorbis\lib\vorbisfile.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libvorbis\lib\vorbis_malloc.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
-      <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
+    <ProjectReference Include="..\..\source\3rd-party\libvorbis\win32\vs2022\libvorbis\lib-vorbis.vcxproj">
+      <Project>{3A214E06-B95E-4D61-A291-1F8DF2EC10FD}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
-      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.assets_vs2022_win64.vcxproj">
-      <Project>{4B3F0093-BC52-0A79-E48A-78A4BE50391D}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="lib-jpg_vs2022_win64.vcxproj">
-      <Project>{4C709D18-84F3-F3B7-569B-69F9522D35A2}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.misc.utils_vs2022_win64.vcxproj">
-      <Project>{5A43124D-E3FC-2FC2-3134-17ECE12A14FD}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
-      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="lib-tiff_vs2022_win64.vcxproj">
-      <Project>{72213DA5-5EC6-6670-9D5D-C616F940EE29}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.windows_vs2022_win64.vcxproj">
-      <Project>{82217C37-348A-32E9-39E2-871C1E8CA026}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="dx11.renderer_vs2022_win64.vcxproj">
-      <Project>{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="lib-zip_vs2022_win64.vcxproj">
-      <Project>{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}</Project>
+    <ProjectReference Include="..\..\source\3rd-party\libogg\win32\vs2022\lib-ogg.vcxproj">
+      <Project>{AFF27A26-C088-444B-BC2A-0BA94A02AFA7}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

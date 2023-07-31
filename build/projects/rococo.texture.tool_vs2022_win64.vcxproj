@@ -237,31 +237,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.texture.tool\rococo.tx-tool.win32.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="rococo.texture.tool_vs2022_win64_runtimedependencies.txt">
-      <FileType>Document</FileType>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Copy files to output paths...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\debug\lib-jpg.dll" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\debug\lib-jpg.pdb" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\debug\lib-tiff.dll" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\debug\lib-tiff.pdb" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\debug\lib-zip.dll" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\debug\lib-zip.pdb" "..\..\gen\bin\win64\$(configuration)" &gt;nul</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\gen\bin\win64\debug\lib-jpg.dll;..\..\gen\bin\win64\debug\lib-jpg.pdb;..\..\gen\bin\win64\debug\lib-tiff.dll;..\..\gen\bin\win64\debug\lib-tiff.pdb;..\..\gen\bin\win64\debug\lib-zip.dll;..\..\gen\bin\win64\debug\lib-zip.pdb</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\gen\bin\win64\$(configuration)\lib-jpg.dll;..\..\gen\bin\win64\$(configuration)\lib-jpg.pdb;..\..\gen\bin\win64\$(configuration)\lib-tiff.dll;..\..\gen\bin\win64\$(configuration)\lib-tiff.pdb;..\..\gen\bin\win64\$(configuration)\lib-zip.dll;..\..\gen\bin\win64\$(configuration)\lib-zip.pdb</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">False</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Copy files to output paths...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\release\lib-jpg.dll" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\release\lib-jpg.pdb" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\release\lib-tiff.dll" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\release\lib-tiff.pdb" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\release\lib-zip.dll" "..\..\gen\bin\win64\$(configuration)" &gt;nul
-xcopy /d /F /R /H /V /Y "..\..\gen\bin\win64\release\lib-zip.pdb" "..\..\gen\bin\win64\$(configuration)" &gt;nul</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\gen\bin\win64\release\lib-jpg.dll;..\..\gen\bin\win64\release\lib-jpg.pdb;..\..\gen\bin\win64\release\lib-tiff.dll;..\..\gen\bin\win64\release\lib-tiff.pdb;..\..\gen\bin\win64\release\lib-zip.dll;..\..\gen\bin\win64\release\lib-zip.pdb</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\gen\bin\win64\$(configuration)\lib-jpg.dll;..\..\gen\bin\win64\$(configuration)\lib-jpg.pdb;..\..\gen\bin\win64\$(configuration)\lib-tiff.dll;..\..\gen\bin\win64\$(configuration)\lib-tiff.pdb;..\..\gen\bin\win64\$(configuration)\lib-zip.dll;..\..\gen\bin\win64\$(configuration)\lib-zip.pdb</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">False</LinkObjects>
-    </CustomBuild>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
