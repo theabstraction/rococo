@@ -1427,6 +1427,7 @@ namespace Rococo
     {
         public SexyCoroutinesProject() : base("sexy.nativelib.coroutines", "SS/sexy.nativelib.coroutines")
         {
+            SourceFiles.Add("coroutines.sxh");
         }
 
         [Configure()]
@@ -1436,6 +1437,9 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.SolutionFolder = " - Sexy";
+
+            // We dont need the sxy file, as a copy is embedded in Sys.Types.sxy. So dump to the temp folder
+            AddSXHFileBuildStep(conf, target, "coroutines.sxh", "config.xc", @"..\..\..\gen\temp", true);
         }
     }
 

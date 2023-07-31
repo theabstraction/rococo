@@ -47,6 +47,7 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.nativelib.coroutines\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -57,6 +58,7 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.nativelib.coroutines\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -138,14 +140,19 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexy.nativelib.coroutines.lib</ImportLibrary>
     </Link>
+    <PreBuildEvent>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\sexy\SS\sexy.nativelib.coroutines ..\..\..\gen\temp coroutines.sxh config.xc
+</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -224,18 +231,23 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexy.nativelib.coroutines.lib</ImportLibrary>
     </Link>
+    <PreBuildEvent>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\sexy\SS\sexy.nativelib.coroutines ..\..\..\gen\temp coroutines.sxh config.xc
+</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\sexy.nativelib.coroutine.cpp" />
@@ -244,6 +256,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="sexy.bennyhill_vs2022_win64.vcxproj">
+      <Project>{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}</Project>
+      <Name>sexy.bennyhill</Name>
+      <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
       <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -251,6 +268,11 @@
     </ProjectReference>
     <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
       <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
+      <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

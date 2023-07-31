@@ -1,5 +1,3 @@
-(config $config.xc)
-
 (interface
 	(as.sxy Sys.ICoroutineControl "coroutine") // This gives the fully qualified interface as published in the scripting language
 	(as.cpp Sys.ICoroutineControl "coroutine") // This gives the fully qualified struct name as published in the C++ header

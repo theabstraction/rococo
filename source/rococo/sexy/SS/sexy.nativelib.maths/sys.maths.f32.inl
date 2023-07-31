@@ -1,3 +1,7 @@
+#pragma once
+
+// Note this file is hand-coded. It was written before BennyHill existed, and the layout was the basis for the BennyHill generated code.
+
 namespace
 {
 	void NativeSysMathsF32Clamp(NativeCallEnvironment& _nce)
