@@ -193,7 +193,7 @@ namespace Rococo
 					{
 						cr_sex nameExpr = field.GetElement(i);
 						AssertQualifiedIdentifier(nameExpr);
-						s.AddInterface(nameExpr.String()->Buffer);
+						s.AddInterface(nameExpr.c_str());
 					}
 
 					return;
@@ -202,11 +202,11 @@ namespace Rococo
 				{
 					if (field.NumberOfElements() == 2 && IsAtomic(field[1]))
 					{
-						s.AddInterface(field[1].String()->Buffer);
+						s.AddInterface(field[1].c_str());
 					} 
 					else if (field.NumberOfElements() == 4 && IsAtomic(field[1]) && IsAtomic(field[2]) && IsAtomic(field[3]) && AreEqual(field[2].String(), ("extends")))
 					{
-						s.AddInterface(field[1].String()->Buffer);
+						s.AddInterface(field[1].c_str());
 					}
 					else
 					{
@@ -372,15 +372,15 @@ namespace Rococo
 		{
 			int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment keyword, else it begins with the target variable
 			cr_sex targetExpr = GetAtomicArg(directive, 1 + offset);
-			cstr targetVariable = targetExpr.String()->Buffer;
+			cstr targetVariable = targetExpr.c_str();
 			cr_sex assignmentChar = GetAtomicArg(directive, 2 + offset);
 			cr_sex sourceValue = directive.GetElement(3 + offset);
 			VARTYPE targetType = varStruct.VarType();
 
-			cstr sourceText = sourceValue.String()->Buffer;
+			cstr sourceText = sourceValue.c_str();
 
 			TokenBuffer symbol;
-			StringPrint(symbol, ("%s=%s"), targetVariable, (cstr) sourceValue.String()->Buffer);
+			StringPrint(symbol, ("%s=%s"), targetVariable, (cstr) sourceValue.c_str());
 		
 			if (targetType == VARTYPE_Closure)
 			{
@@ -550,7 +550,7 @@ namespace Rococo
 		void CompileAssignmentDirectiveFromCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
 		{
 			int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment keyword, else it begins with the target variable
-			cstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
+			cstr targetVariable = GetAtomicArg(directive, 1 + offset).c_str();
 			cr_sex sourceValue = directive.GetElement(3 + offset);
 		
 			VARTYPE targetType = varStruct.VarType();
@@ -654,7 +654,7 @@ namespace Rococo
 		void CompileAssignAtomicValueToMember(CCompileEnvironment& ce, const IMember& member, cr_sex src, cstr targetVariable)
 		{
 			// Either a literal or an identifier
-			cstr sourceText = src.String()->Buffer;
+			cstr sourceText = src.c_str();
 
 			TokenBuffer symbol;
 			StringPrint(symbol, ("%s=%s"), targetVariable, sourceText);
@@ -749,7 +749,7 @@ namespace Rococo
 			}
 			else if (IsAtomic(src))
 			{
-				ce.Builder.AssignVariableToVariable(src.String()->Buffer, variableName, true);
+				ce.Builder.AssignVariableToVariable(src.c_str(), variableName, true);
 			}
 			else
 			{
@@ -795,7 +795,7 @@ namespace Rococo
 
 					if (IsAtomic(src))
 					{
-						ce.Builder.AssignVariableToVariable(src.String()->Buffer, variableName, isConstructing);
+						ce.Builder.AssignVariableToVariable(src.c_str(), variableName, isConstructing);
 						return;
 					}
 					else if (!IsCompound(src))
@@ -858,7 +858,7 @@ namespace Rococo
 	
 		void CompileMemberwiseAssignment(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
 		{
-			cstr targetVariable = GetAtomicArg(directive, 1 + offset).String()->Buffer;
+			cstr targetVariable = GetAtomicArg(directive, 1 + offset).c_str();
 			
 			if (PublicMemberCount(varStruct) + 3 + offset != directive.NumberOfElements())
 			{
@@ -1087,7 +1087,7 @@ namespace Rococo
 		  switch (s.Type())
 		  {
 		  case EXPRESSION_TYPE_ATOMIC:
-			 return GetBestType(ce, s, s.String()->Buffer, hintStruct);
+			 return GetBestType(ce, s, s.c_str(), hintStruct);
 		  case EXPRESSION_TYPE_COMPOUND:
 			 Throw(s, ("Cannot infer variable type from compound expression"));
 		  case EXPRESSION_TYPE_STRING_LITERAL:
@@ -1138,7 +1138,7 @@ namespace Rococo
 		  else if (directive.NumberOfElements() - offset == 5)
 		  {
 			 cr_sex sop = directive[3 + offset];
-			 cstr op = sop.String()->Buffer;
+			 cstr op = sop.c_str();
 			 if (IsAtomic(sop))
 			 {
 				cstr prefix = GetOperationPrefix(op);
@@ -1225,13 +1225,13 @@ namespace Rococo
 		   }
 		   else
 		   {
-			   Throw(directive, "Bad expression on RHS of assignment: %s", GetAtomicArg(directive, 1 + offset).String()->Buffer);
+			   Throw(directive, "Bad expression on RHS of assignment: %s", GetAtomicArg(directive, 1 + offset).c_str());
 		   }
 	   }
 
 		void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder)
 		{
-			cstr id = identifierExpr.String()->Buffer;
+			cstr id = identifierExpr.c_str();
 			if (builder.GetVarType(id) != VARTYPE_Bad)
 			{
 				Throw(identifierExpr, "Variable name %s is already defined in the context", id);
@@ -1547,7 +1547,7 @@ namespace Rococo
 			ce.Builder.TryGetVariableByName(OUT ptrDef, id);
 				
 			cstr format = (value.String()->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
-			AddSymbol(ce.Builder, format, (cstr) value.String()->Buffer);
+			AddSymbol(ce.Builder, format, (cstr) value.c_str());
 		
 			VariantValue ptr;
 			ptr.vPtrValue = (void*) &sc->header.pVTables[0];
@@ -1601,7 +1601,7 @@ namespace Rococo
 			cr_sex nodeNameExpr = decl.GetElement(4);
 			if (!IsAtomic(nodeNameExpr)) Throw(nodeNameExpr, ("Expecting (type id = & <node-name>). The <node-name> element needs to be atomic"));
 
-			cstr nodeName = nodeNameExpr.String()->Buffer;
+			cstr nodeName = nodeNameExpr.c_str();
 			ce.Builder.AssignVariableRefToTemp(nodeName, Rococo::ROOT_TEMPDEPTH); // The node pointer is now in D7
 
 			const IStructure* nodeType = ce.Builder.GetVarStructure(nodeName);
@@ -1881,13 +1881,13 @@ namespace Rococo
 
 			if (st == NULL)
 			{
-				cstr enigma = typeExpr.String()->Buffer;
+				cstr enigma = typeExpr.c_str();
 				Throw(decl, "%s: Could not match [%s] as either a structure nor an interface in module %s\n"
 							"Try specifying %s as a fully qualified type, or add the correct (using <namespace>) directive.", __FUNCTION__, enigma, source.Name(), enigma);
 			}
 
 			ValidateLocalDeclarationVariable(*st, idExpr);
-			cstr id = idExpr.String()->Buffer;
+			cstr id = idExpr.c_str();
 			if (nElements == 2)
 			{
 				CompileAsDefaultVariableDeclaration(ce, *st, id, decl, true);
@@ -1916,7 +1916,7 @@ namespace Rococo
 				return false;
 			}
 
-			cstr op = operatorExpr.String()->Buffer;
+			cstr op = operatorExpr.c_str();
 			if (!AreEqual(op, ("=")))
 			{
 				return false;
@@ -1994,7 +1994,7 @@ namespace Rococo
 			if (value.NumberOfElements() == 2)
 			{
 				cr_sex command = GetAtomicArg(value, 0);
-				cstr commandText = command.String()->Buffer;
+				cstr commandText = command.c_str();
 
 				cr_sex arg = value.GetElement(1);
 
@@ -2052,7 +2052,7 @@ namespace Rococo
 		{
 		  if (directive.NumberOfElements() == 3)
 		  {
-			 cstr varName = directive.GetElement(0).String()->Buffer;
+			 cstr varName = directive.GetElement(0).c_str();
 			 cr_sex rhs = directive.GetElement(2);
 
 			 switch (rhs.Type())
@@ -2097,7 +2097,7 @@ namespace Rococo
 			}
 
 			cr_sex keywordExpr = GetAtomicArg(directive, 0);
-			cstr token = keywordExpr.String()->Buffer;
+			cstr token = keywordExpr.c_str();
 
 			MemberDef def;
 			if (ce.Builder.TryGetVariableByName(OUT def, token))
@@ -2443,10 +2443,10 @@ namespace Rococo
 				Throw(s, "(serialize <src> -> <targets>): The target was not a class or struct");
 			}
 
-			cstr srcName = s[1].String()->Buffer;
+			cstr srcName = s[1].c_str();
 			ce.Builder.AssignVariableToTemp(srcName, 1); // D5
 
-			cstr trgName = s[3].String()->Buffer;
+			cstr trgName = s[3].c_str();
 			ce.Builder.AssignVariableRefToTemp(trgName, 3); // D7
 
 			VariantValue v;
@@ -2522,7 +2522,7 @@ namespace Rococo
 			AssertAtomicMatch(s.GetElement(2), ("="));
 
 			cr_sex nodeNameExpr = GetAtomicArg(s, 1);
-			cstr nodeName = nodeNameExpr.String()->Buffer;
+			cstr nodeName = nodeNameExpr.c_str();
 			AssertLocalIdentifier(nodeNameExpr);
 
 			cr_sex source = s.GetElement(3);
@@ -2553,7 +2553,7 @@ namespace Rococo
 			{
 				AssertAtomic(s[1]);
 
-				cstr arg = s[1].String()->Buffer;
+				cstr arg = s[1].c_str();
 
 				VariantValue waitPeriod;
 				if (Parse::PARSERESULT_GOOD == Parse::TryParse(waitPeriod, VARTYPE_Int64, arg))
@@ -3120,8 +3120,8 @@ namespace Rococo
 
 			if (!IsAtomic(lhs) || !IsAtomic(ops)) return false;
 
-			cstr name = lhs.String()->Buffer;
-			cstr op = ops.String()->Buffer;
+			cstr name = lhs.c_str();
+			cstr op = ops.c_str();
 
 			MemberDef def;
 			if (!ce.Builder.TryGetVariableByName(def, name))
@@ -3163,7 +3163,7 @@ namespace Rococo
 
 			auto bc = GetBitCount(type);
 
-			cstr src = rhs.String()->Buffer;
+			cstr src = rhs.c_str();
 
 			VariantValue value;
 			if (Parse::TryParse(value, type, src) == Parse::PARSERESULT_GOOD)

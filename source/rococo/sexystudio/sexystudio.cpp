@@ -488,11 +488,11 @@ private:
 			cstr className = nullptr;
 
 			cr_sex sDef = interf.GetDefinition();
-			if (Eq(sDef[0].String()->Buffer, "class"))
+			if (Eq(sDef[0].c_str(), "class"))
 			{
 				if (IsAtomic(sDef[1]))
 				{
-					className = sDef[1].String()->Buffer;
+					className = sDef[1].c_str();
 				}
 			}
 

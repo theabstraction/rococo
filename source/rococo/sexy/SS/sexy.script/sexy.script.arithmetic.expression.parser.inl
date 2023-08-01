@@ -111,7 +111,7 @@ namespace Rococo
 		{
 			if (IsAtomic(s))
 			{
-				cstr token = s.String()->Buffer;
+				cstr token = s.c_str();
 				VARTYPE type = builder.GetVarType(token);
 				if (type != VARTYPE_Bad) return type;
 				return Parse::GetLiteralType(token);
@@ -531,11 +531,11 @@ namespace Rococo
 		{
 			if (IsAtomic(left))
 			{
-				cstr lToken = left.String()->Buffer;
+				cstr lToken = left.c_str();
 
 				if (IsAtomic(right))
 				{
-					cstr rToken = right.String()->Buffer;
+					cstr rToken = right.c_str();
 					CompileArithmeticAtomicVsAtomic(ce, parent, lToken, op, rToken, type, left, right);
 					return;
 				}
@@ -554,7 +554,7 @@ namespace Rococo
 
 			if (IsAtomic(right))
 			{
-				cstr rToken = right.String()->Buffer;
+				cstr rToken = right.c_str();
 				CompileArithmeticAtomicVsCompound(ce, parent, rToken, op, left, ARITHMETIC_ORDER_RIGHT_TO_LEFT, type);
 				return;
 			}
@@ -628,7 +628,7 @@ namespace Rococo
 		{
 			AssertLocalIdentifier(valueExpr);
 
-			cstr value = valueExpr.String()->Buffer;
+			cstr value = valueExpr.c_str();
 
 			MemberDef def;
 			if (!ce.Builder.TryGetVariableByName(OUT def, value))
@@ -651,7 +651,7 @@ namespace Rococo
 
 		void CompileSizeOfType(CCompileEnvironment& ce, cr_sex valueExpr)
 		{
-			cstr value = valueExpr.String()->Buffer;
+			cstr value = valueExpr.c_str();
 
 			IStructure* s = MatchStructure(valueExpr, ce.Builder.Module());
 
@@ -669,7 +669,7 @@ namespace Rococo
 		{
 			AssertAtomic(valueExpr);
 
-			cstr value = valueExpr.String()->Buffer;
+			cstr value = valueExpr.c_str();
 
 			if (IsLowerCase(value[0]))
 			{
@@ -714,7 +714,7 @@ namespace Rococo
 			}
 			else if (IsAtomic(s))
 			{
-				cstr token = s.String()->Buffer;
+				cstr token = s.c_str();
 
 				MemberDef def;
 				if (ce.Builder.TryGetVariableByName(def, token))
@@ -792,7 +792,7 @@ namespace Rococo
 
 			AssertAtomic(sName);
 
-			auto name = sName.String()->Buffer;
+			auto name = sName.c_str();
 
 			MemberDef def;
 			if (!ce.Builder.TryGetVariableByName(def, name))
@@ -951,7 +951,7 @@ namespace Rococo
 			}
 			else if (IsAtomic(s))
 			{
-				cstr token = s.String()->Buffer;
+				cstr token = s.c_str();
 
 				VariantValue value;
 				if (Parse::TryParse(OUT value, IN type, IN token) == Parse::PARSERESULT_GOOD)

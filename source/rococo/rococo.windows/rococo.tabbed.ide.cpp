@@ -962,7 +962,7 @@ namespace
          }
 
          VariantValue value;
-         if (Rococo::Parse::PARSERESULT_GOOD != Rococo::Parse::TryParse(value, VARTYPE_Int32, s[index].String()->Buffer))
+         if (Rococo::Parse::PARSERESULT_GOOD != Rococo::Parse::TryParse(value, VARTYPE_Int32, s[index].c_str()))
          {
             char msg[1024];
             SafeFormat(msg, sizeof(msg), "Expecting int32 argument in position %d: %s", index, helper);
@@ -1569,7 +1569,7 @@ namespace
       cr_sex sheight = sheader[3];
 
       VariantValue id;
-      Parse::TryParse(id, VARTYPE_Int32, GetAtomicArg(svid, 2).String()->Buffer);
+      Parse::TryParse(id, VARTYPE_Int32, GetAtomicArg(svid, 2).c_str());
       if (GetAtomicArg(svid, 0) != "Version" || id.int32Value != (int32) versionId)
       {
          ThrowSex(svid, "Expecting (Version int32 0x%x)", versionId);
@@ -1580,10 +1580,10 @@ namespace
       if (GetAtomicArg(sheight, 0) != "FontHeight") ThrowSex(sfont, "Expecting (FontHeight int32 ...)");
 
       StackStringBuilder sb(logFont.lfFaceName, sizeof(logFont.lfFaceName));
-      sb << sfont[2].String()->Buffer;
+      sb << sfont[2].c_str();
 
       VariantValue height;
-      Parse::TryParse(height, VARTYPE_Int32, GetAtomicArg(sheight, 2).String()->Buffer);
+      Parse::TryParse(height, VARTYPE_Int32, GetAtomicArg(sheight, 2).c_str());
       logFont.lfHeight = height.int32Value;
    }
 

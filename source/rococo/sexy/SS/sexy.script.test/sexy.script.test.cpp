@@ -201,13 +201,13 @@ namespace
 		switch (s.Type())
 		{
 		case EXPRESSION_TYPE_ATOMIC:
-			totalOutput += WriteToStandardOutput(" %s", (cstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput(" %s", (cstr) s.c_str());
 			break;
       case EXPRESSION_TYPE_NULL:
          totalOutput += WriteToStandardOutput("()");
          break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			totalOutput += WriteToStandardOutput(" \"%s\"", (cstr) s.String()->Buffer);
+			totalOutput += WriteToStandardOutput(" \"%s\"", (cstr) s.c_str());
 			break;
 		case EXPRESSION_TYPE_COMPOUND:
 			

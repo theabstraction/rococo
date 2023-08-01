@@ -120,7 +120,7 @@ namespace Rococo
             AssertCompoundOrNull(*cleanup);
          }
 
-         CompileTryCatchFinally(ce, exNameExpr.String()->Buffer, body, handler, cleanup);
+         CompileTryCatchFinally(ce, exNameExpr.c_str(), body, handler, cleanup);
       }
 
       bool HasInterface(const IInterface& interface, const IStructure& classSpec)
@@ -144,7 +144,7 @@ namespace Rococo
          cr_sex ex = GetAtomicArg(s, 1);
          AssertLocalIdentifier(ex);
 
-		 cstr exName = ex.String()->Buffer;
+		 cstr exName = ex.c_str();
 
          MemberDef def;
          if (!ce.Builder.TryGetVariableByName(OUT def, exName))

@@ -87,8 +87,8 @@ namespace Rococo
             cr_sex outputName = GetAtomicArg(outputExpr, 1);
 
             int outputIndex = i - mapIndex - 1;
-            cstr name = outputName.String()->Buffer;
-            cstr type = outputType.String()->Buffer;
+            cstr name = outputName.c_str();
+            cstr type = outputType.c_str();
 
             const IStructure& neededType = closureArchetype.GetArgument(outputIndex);
             if (!AreEqual(neededType.Name(), type))
@@ -110,8 +110,8 @@ namespace Rococo
             cr_sex imputName = GetAtomicArg(inputExpr, 1);
 
             int inputIndex = i - 1 + nOutputs;
-            cstr name = imputName.String()->Buffer;
-            cstr type = inputType.String()->Buffer;
+            cstr name = imputName.c_str();
+            cstr type = inputType.c_str();
 
             const IStructure& neededType = closureArchetype.GetArgument(inputIndex);
             if (!AreEqual(type, GetFriendlyName(neededType)))

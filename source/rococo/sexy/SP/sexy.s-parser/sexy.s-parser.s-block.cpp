@@ -711,7 +711,7 @@ namespace Anon
 
 		cstr c_str() const override
 		{
-			return String()->Buffer;
+			return c_str();
 		}
 
 		const ISParserTree& Tree() const override
@@ -813,7 +813,7 @@ namespace Anon
 
 		cstr c_str() const override
 		{
-			return String()->Buffer;
+			return c_str();
 		}
 
 		const ISParserTree& Tree() const override
@@ -1089,7 +1089,7 @@ namespace Anon
 
 		cstr c_str() const override
 		{
-			return String()->Buffer;
+			return c_str();
 		}
 
 		const ISParserTree& Tree() const override

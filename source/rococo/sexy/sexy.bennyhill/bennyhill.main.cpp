@@ -115,7 +115,7 @@ namespace Rococo
 	Rococo::cstr StringFrom(Rococo::Sex::cr_sex s)
 	{
 		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, "Expecting atomic or string literal");
-		return s.String()->Buffer;
+		return s.c_str();
 	}
 
 	Rococo::cstr StringFrom(Rococo::Sex::cr_sex command, int elementIndex)
@@ -273,7 +273,7 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		Throw(sfname, "Expecting function name atomic argument");
 	}
 
-	NamespaceSplitter splitter(sfname.String()->Buffer);
+	NamespaceSplitter splitter(sfname.c_str());
 
 	cstr ns, fname;
 	if (!splitter.SplitTail(ns, fname))
@@ -658,7 +658,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 		Throw(sbasicType, "Expecting underlying type, such as Int32 or Int64");
 	}
 
-	auto foundType = pc.primitives.find(sbasicType.String()->Buffer);
+	auto foundType = pc.primitives.find(sbasicType.c_str());
 	if (foundType == pc.primitives.end())
 	{
 		Throw(sbasicType, "Cannot find primitive type in the config file");
@@ -688,12 +688,12 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 				cr_sex sName = sdef[0];
 				cr_sex sValue = sdef[1];
 
-				if (!IsCapital(sName.String()->Buffer[0]))
+				if (!IsCapital(sName.c_str()[0]))
 				{
 					Throw(sName, "Expecting a capital letter in the first position");
 				}
 
-				for (cstr p = sName.String()->Buffer; *p != 0; p++)
+				for (cstr p = sName.c_str(); *p != 0; p++)
 				{
 					if (!IsAlphaNumeric(*p))
 					{
@@ -702,13 +702,13 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 				}
 
 				VariantValue value;
-				auto result = Rococo::Parse::TryParse(value, VARTYPE_Int64, sValue.String()->Buffer);
+				auto result = Rococo::Parse::TryParse(value, VARTYPE_Int64, sValue.c_str());
 				if (result != Rococo::Parse::PARSERESULT_GOOD)
 				{
 					Throw(sValue, "Expecting int64 numeric for value");
 				}
 
-				ec.values.push_back(std::make_pair(sName.String()->Buffer, value.int64Value));
+				ec.values.push_back(std::make_pair(sName.c_str(), value.int64Value));
 			}
 		}
 		else if (scmd == "as.both")
@@ -723,14 +723,14 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			cr_sex ssexyFilename = sdirective.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal target-prefix. Filenames can potentially have spaces in them.");
 
-			cstr sexyFilename = ssexyFilename.String()->Buffer;
+			cstr sexyFilename = ssexyFilename.c_str();
 
 			SetINLandHnames(ec, pc, ec.asCppEnum.SexyName(), sdirective);
 
-			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
-			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
+			ec.asCppEnum.Set(sinterfaceName.c_str());
+			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
 
-			SecureFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			SecureFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.c_str());
 
 			OS::ToSysPath(ec.appendCppHeaderFile);
 			OS::ToSysPath(ec.appendCppImplFile);
@@ -746,9 +746,9 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			cr_sex ssexyFilename = sdirective.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
-			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
+			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
 
-			SecureFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.contentRoot, ssexyFilename.String()->Buffer);
+			SecureFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.contentRoot, ssexyFilename.c_str());
 			OS::ToSysPath(ec.appendSexyFile);
 		}
 		else if (scmd == "as.cpp")
@@ -764,7 +764,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			OS::ToSysPath(ec.appendCppHeaderFile);
 			OS::ToSysPath(ec.appendCppImplFile);
 
-			ec.asCppEnum.Set(sstructName.String()->Buffer);
+			ec.asCppEnum.Set(sstructName.c_str());
 		}
 		else
 		{
@@ -870,11 +870,11 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			cr_sex ssexyFilename = directive[2];
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal target-prefix. Filenames can potentially have spaces in them.");
 
-			SetINLandHnames(ic, pc, sinterfaceName.String()->Buffer, directive[2]);
+			SetINLandHnames(ic, pc, sinterfaceName.c_str(), directive[2]);
 
-			ic.asCppInterface.Set(sinterfaceName.String()->Buffer);
-			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			SafeFormat(ic.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.String()->Buffer);
+			ic.asCppInterface.Set(sinterfaceName.c_str());
+			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
+			SafeFormat(ic.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.c_str());
 			OS::ToSysPath(ic.appendSexyFile);
 			OS::ToSysPath(ic.appendCppHeaderFile);
 			OS::ToSysPath(ic.appendCppImplFile);
@@ -890,13 +890,13 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			if (directive.NumberOfElements() == 4)
 			{
 				if (!IsStringLiteral(directive[3]) && !IsAtomic(directive[3])) Throw(directive[3], "Expecting string literal base class");
-				ic.sexyBase = directive[3].String()->Buffer;
+				ic.sexyBase = directive[3].c_str();
 				ValidateFQSexyInterface(directive[3]);
 
 				auto inter = pc.interfaces.find(ic.sexyBase);
 				if (inter == pc.interfaces.end())
 				{
-					Throw(directive[3], "Base interface [%s] not found prior to the definition of the derived interface [%s]", ic.sexyBase, sinterfaceName.String()->Buffer);
+					Throw(directive[3], "Base interface [%s] not found prior to the definition of the derived interface [%s]", ic.sexyBase, sinterfaceName.c_str());
 				}
 
 				for (auto* m : inter->second->methodArray)
@@ -907,8 +907,8 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 
 			cr_sex ssexyFilename = directive.GetElement(2);
 			if (!IsStringLiteral(ssexyFilename) && !IsAtomic(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
-			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
-			SafeFormat(ic.appendSexyFile, "%s%s_sxh.sxy", pc.contentRoot, ssexyFilename.String()->Buffer);
+			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
+			SafeFormat(ic.appendSexyFile, "%s%s_sxh.sxy", pc.contentRoot, ssexyFilename.c_str());
 			OS::ToSysPath(ic.appendSexyFile);
 		}
 		else if (AreEqual(ssname, "as.cpp"))
@@ -919,16 +919,16 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 
 			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, "as.cpp is already defined for this interface");
 
-			SetINLandHnames(ic, pc, sstructName.String()->Buffer, directive);
+			SetINLandHnames(ic, pc, sstructName.c_str(), directive);
 
 			if (directive.NumberOfElements() == 3)
 			{
 				cr_sex sbaseClass = directive[2];
 				if (!IsStringLiteral(sbaseClass) && !IsAtomic(sbaseClass)) Throw(sbaseClass, "Expecting string literal or atomic base class");
-				ic.cppBase = sbaseClass.String()->Buffer;
+				ic.cppBase = sbaseClass.c_str();
 			}
 
-			ic.asCppInterface.Set(sstructName.String()->Buffer);
+			ic.asCppInterface.Set(sstructName.c_str());
 		}
 		else if (AreEqual(ssname, "methods"))
 		{
@@ -960,7 +960,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			cr_sex stype = directive.GetElement(2);
 			if (!IsAtomic(sroute)) Throw(stype, "Expecting atomic value for <'factory'|'api'>");
 
-			cstr route = sroute.String()->Buffer;
+			cstr route = sroute.c_str();
 			if (AreEqual(route, "factory"))
 			{
 				ic.isSingleton = false;
@@ -975,7 +975,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			}
 
 			if (!IsAtomic(stype)) Throw(stype, "Expecting atomic value for <context-type>");
-			ic.nceContext.Set(stype.String()->Buffer);
+			ic.nceContext.Set(stype.c_str());
 		}
 		else
 		{
@@ -1079,7 +1079,7 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 			}
 
 			ValidateFQCppStruct(topLevelItem[1]);
-			cstr moduleNamespace = topLevelItem[1].String()->Buffer;
+			cstr moduleNamespace = topLevelItem[1].c_str();
 			SecureFormat(pc.moduleNamespace, NAMESPACE_MAX_LENGTH, "%s", moduleNamespace);
 		}
 		else if (AreEqual("config", cmd))

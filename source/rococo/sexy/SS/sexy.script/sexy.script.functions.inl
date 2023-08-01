@@ -130,7 +130,7 @@ namespace Rococo
 		{
 			AssertAtomic(s);
 
-			cstr fname = s.String()->Buffer;
+			cstr fname = s.c_str();
 
 			AddArgVariable(("input_other"), ce, inputType);
 			ce.Builder.AddSymbol(argName);
@@ -186,7 +186,7 @@ namespace Rococo
 
 			if (f == NULL)
 			{
-				cstr name = inputExpression.String()->Buffer;
+				cstr name = inputExpression.c_str();
 				Throw(inputExpression, "The input '%s' was not recognized ", name);
 			}
 
@@ -209,7 +209,7 @@ namespace Rococo
 		{
 			if (!TryCompileFunctionCallAndReturnValue(ce, inputExpression, VARTYPE_Derivative, &argStruct, NULL))
 			{
-				cstr name = inputExpression.String()->Buffer;
+				cstr name = inputExpression.c_str();
 				Throw(inputExpression, "The input '%s' was not recognized", name);
 			}
 
@@ -267,7 +267,7 @@ namespace Rococo
 
 		void CompileGetStructRefFromVariable(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name, const MemberDef& def)
 		{
-			cstr varName = s.String()->Buffer;
+			cstr varName = s.c_str();
 			const IStructure& varStruct = *def.ResolvedType;
 
 			VARTYPE vType = varStruct.VarType();
@@ -291,7 +291,7 @@ namespace Rococo
 
 		void CompileGetStructRefFromAtomic(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name)
 		{
-			cstr token = s.String()->Buffer;
+			cstr token = s.c_str();
 
 			if (islower(token[0]))
 			{
@@ -359,7 +359,7 @@ namespace Rococo
 			{
 			case EXPRESSION_TYPE_STRING_LITERAL:
 			{
-				auto* stringConstant = ce.SS.GetStringReflection(s.String()->Buffer);
+				auto* stringConstant = ce.SS.GetStringReflection(s.c_str());
 				InterfacePointer pIString = &stringConstant->header.pVTables[0];
 				VariantValue v;
 				v.vPtrValue = pIString;
@@ -407,7 +407,7 @@ namespace Rococo
 				return false;
 			}
 
-			cstr vname = s.String()->Buffer;
+			cstr vname = s.c_str();
 
 			if (!Rococo::IsAlphabetical(vname[0]))
 			{
@@ -516,7 +516,7 @@ namespace Rococo
 			if (IsAtomic(inputExpression))
 			{
 				// Try pushing direct, more efficient than evaluating to a temp variable then pushing the variable
-				cstr inputToken = inputExpression.String()->Buffer;
+				cstr inputToken = inputExpression.c_str();
 				if (IsNumericTypeOrBoolean(inputType))
 				{
 					VariantValue immediateValue;
@@ -611,7 +611,7 @@ namespace Rococo
 
 			cr_sex outputExpr = s.GetElement(outputPos + outputIndex);
 			AssertAtomic(outputExpr);
-			cstr outputVar = outputExpr.String()->Buffer;
+			cstr outputVar = outputExpr.c_str();
 
 			MemberDef outputDef;
 			if (!builder.TryGetVariableByName(OUT outputDef, outputVar))
@@ -1310,7 +1310,7 @@ namespace Rococo
 
 				cr_sex sIndex = GetAtomicArg(s, 1);
 
-				cstr indexString = sIndex.String()->Buffer;
+				cstr indexString = sIndex.c_str();
 
 				int index;
 				if (Parse::TryParseDecimal(index, indexString) == Parse::PARSERESULT_GOOD)
@@ -1347,7 +1347,7 @@ namespace Rococo
 		bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
 		{
 			cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
-			cstr fname = firstArg.String()->Buffer;
+			cstr fname = firstArg.c_str();
 
 			NamespaceSplitter splitter(fname);
 
@@ -1367,7 +1367,7 @@ namespace Rococo
 					{
 						if (IsAtomic(s[1]) && returnType == VARTYPE_Bool)
 						{
-							cstr arg = s[1].String()->Buffer;
+							cstr arg = s[1].c_str();
 							if (Eq(arg, "?") && instanceStruct)
 							{
 								if (instanceStruct->InterfaceCount() > 0 && IsNullType(*instanceStruct))
@@ -1808,7 +1808,7 @@ namespace Rococo
 				if (&sParent[i] == &callDef)
 				{
 					cr_sex sAssign = sParent[i - 1];
-					if (IsAtomic(sAssign) && Eq(sAssign.String()->Buffer, "="))
+					if (IsAtomic(sAssign) && Eq(sAssign.c_str(), "="))
 					{
 						return;
 					}
@@ -1833,7 +1833,7 @@ namespace Rococo
 
 			if (IsAtomic(firstArg))
 			{
-				cstr fname = firstArg.String()->Buffer;
+				cstr fname = firstArg.c_str();
 
 				if (IsCapital(fname[0]))
 				{
@@ -1889,7 +1889,7 @@ namespace Rococo
 		{
 			using namespace Rococo::Parse;
 
-			cstr value = arg.String()->Buffer;
+			cstr value = arg.c_str();
 
 			if (ContainsPoint(value))
 			{
@@ -1944,7 +1944,7 @@ namespace Rococo
 		{
 			using namespace Rococo::Parse;
 
-			cstr value = arg.String()->Buffer;
+			cstr value = arg.c_str();
 
 			char c = value[0];
 			int firstDigit;
@@ -2012,7 +2012,7 @@ namespace Rococo
 				}
 				else if (IsAtomic(tokenExpr))
 				{
-					cstr value = tokenExpr.String()->Buffer;
+					cstr value = tokenExpr.c_str();
 					char c = value[0];
 					int firstDigit;
 					if (TryGetDigit(firstDigit, c) || c == '.' || c == '+' || c == '-')
@@ -2032,7 +2032,7 @@ namespace Rococo
 				return NULL;
 			}
 
-			cstr token = tokenExpr.String()->Buffer;
+			cstr token = tokenExpr.c_str();
 
 			if (IsCapital(token[0]))
 			{
@@ -2118,7 +2118,7 @@ namespace Rococo
 				Throw(arg, "Cannot dispatch call. Argument needs to be an atomic variable");
 			}
 
-			cstr argText = arg.String()->Buffer;
+			cstr argText = arg.c_str();
 
 			MemberDef argDef;
 			if (!ce.Builder.TryGetVariableByName(argDef, argText))
@@ -2366,7 +2366,7 @@ namespace Rococo
 			if (!IsCompound(s) || s.NumberOfElements() == 0) return false;
 
 			cr_sex nameExpr = GetAtomicArg(s, 0);
-			cstr fname = nameExpr.String()->Buffer;
+			cstr fname = nameExpr.c_str();
 
 			NamespaceSplitter splitter(fname);
 
@@ -2395,7 +2395,7 @@ namespace Rococo
 			if (!IsCompound(s) || s.NumberOfElements() == 0) return false;
 
 			cr_sex nameExpr = GetAtomicArg(s, 0);
-			cstr fname = nameExpr.String()->Buffer;
+			cstr fname = nameExpr.c_str();
 
 			NamespaceSplitter splitter(fname);
 
@@ -2421,13 +2421,13 @@ namespace Rococo
 						if (interf.Attributes().FindAttribute(("indexed"), (const void*&)attr))
 						{
 							cr_sex indexMethodExpr = GetAtomicArg(*attr, 3);
-							cstr indexMethodName = indexMethodExpr.String()->Buffer;
+							cstr indexMethodName = indexMethodExpr.c_str();
 							return TryCompileAsMethodCall(ce, s, fname, indexMethodName);
 						}
 						else if (interf.Attributes().FindAttribute(("builder"), (const void*&)attr))
 						{
 							cr_sex appendPrefixExpr = GetAtomicArg(*attr, 2);
-							cstr appendPrefix = appendPrefixExpr.String()->Buffer;
+							cstr appendPrefix = appendPrefixExpr.c_str();
 							return TryCompileAsBuilderCall(ce, s, fname, appendPrefix);
 						}
 					}

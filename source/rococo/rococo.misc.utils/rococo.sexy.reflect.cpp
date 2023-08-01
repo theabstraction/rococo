@@ -137,7 +137,7 @@ namespace Rococo::Script
 			if (!isCustom)
 			{
 				cr_sex sName = attributeDef[1];
-				if (Eq(sName.String()->Buffer, "not-serialized"))
+				if (Eq(sName.c_str(), "not-serialized"))
 				{
 					return false;
 				}

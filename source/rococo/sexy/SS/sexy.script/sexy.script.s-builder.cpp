@@ -78,7 +78,7 @@ namespace ANON
 
 		cstr c_str() const override
 		{
-			return String()->Buffer;
+			return c_str();
 		}
 
 		const ISParserTree& Tree() const override
@@ -228,7 +228,7 @@ namespace ANON
 
 		bool operator == (const char* token) const override
 		{
-			return token && this->String()->Buffer != nullptr && Eq(token, this->String()->Buffer);
+			return token && this->c_str() != nullptr && Eq(token, this->c_str());
 		}
 
 		ISExpressionBuilder* AddChild() override

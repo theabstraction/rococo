@@ -554,8 +554,8 @@ void LoadSymbolMap(cstr symbolFile, stringmap<HString>& symbolMap)
 				Throw(scppType, "Expected atomic or string literal element for c++ type)");
 			}
 
-            cstr sexyType = ssxyType.String()->Buffer;
-            cstr cppType = scppType.String()->Buffer;
+            cstr sexyType = ssxyType.c_str();
+            cstr cppType = scppType.c_str();
 
             if (!symbolMap.insert(sexyType, cppType).second)
             {

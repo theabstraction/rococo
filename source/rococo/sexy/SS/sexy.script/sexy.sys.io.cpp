@@ -461,8 +461,8 @@ namespace ANON_NS
 		switch (s.Type())
 		{
 		case EXPRESSION_TYPE_ATOMIC:
-			fputs(s.String()->Buffer, instance.fp);
-			if (Eq(":", s.String()->Buffer))
+			fputs(s.c_str(), instance.fp);
+			if (Eq(":", s.c_str()))
 			{
 				fputs("\n", instance.fp);
 			}
@@ -471,7 +471,7 @@ namespace ANON_NS
 			fputs("()", instance.fp);
 			break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			PrintExpression(instance, s.String()->Buffer);
+			PrintExpression(instance, s.c_str());
 			break;
 		case EXPRESSION_TYPE_COMPOUND:
 			PrintCompundExpression(instance, s, depth);

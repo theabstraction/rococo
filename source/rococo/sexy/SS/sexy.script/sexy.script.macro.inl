@@ -53,13 +53,13 @@ namespace Rococo
          AssertLocalIdentifier(inNameExpr);
          AssertLocalIdentifier(outNameExpr);
 
-         NamespaceSplitter splitter(macroNameExpr.String()->Buffer);
+         NamespaceSplitter splitter(macroNameExpr.c_str());
 
          cstr nsRoot, shortName;
          AssertSplitTail(splitter, macroNameExpr, OUT nsRoot, OUT shortName);
          AssertMacroShortName(macroNameExpr, shortName);
 
-         cstr staticShortName = macroNameExpr.String()->Buffer + StringLength(nsRoot) + 1;
+         cstr staticShortName = macroNameExpr.c_str() + StringLength(nsRoot) + 1;
 
          INamespaceBuilder& ns = AssertGetSubspace(module.Object(), macroNameExpr, nsRoot);
 

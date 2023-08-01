@@ -79,7 +79,7 @@ namespace
 			ValidateSexyType(stype);
 			ValidateSexyVariable(svalue);
 
-			cstr sxhtype = stype.String()->Buffer;
+			cstr sxhtype = stype.c_str();
 			auto i = pc.primitives.find(sxhtype);
 			if (i == pc.primitives.end())
 			{
@@ -90,7 +90,7 @@ namespace
 				}
 			}
 
-			appender.Append(("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
+			appender.Append(("(%s %s)"), i->second.sexyType.c_str(), svalue.c_str());
 		}
 	}
 
@@ -112,7 +112,7 @@ namespace
 		else
 		{
 			ValidateSexyVariable(svalue);
-			appender.Append(("%s"), svalue.String()->Buffer);
+			appender.Append(("%s"), svalue.c_str());
 		}
 	}
 
@@ -129,7 +129,7 @@ namespace
 		ValidateSexyType(stype);
 		ValidateSexyVariable(svalue);
 
-		cstr sxhtype = stype.String()->Buffer;
+		cstr sxhtype = stype.c_str();
 		auto i = pc.primitives.find(sxhtype);
 		if (i == pc.primitives.end())
 		{
@@ -146,12 +146,12 @@ namespace
          }			
          else
          {
-            appender.Append(("(%s %s)"), j->second->ic.asSexyInterface, svalue.String()->Buffer);
+            appender.Append(("(%s %s)"), j->second->ic.asSexyInterface, svalue.c_str());
          }
 		}
       else
       {
-         appender.Append(("(%s %s)"), i->second.sexyType.c_str(), svalue.String()->Buffer);
+         appender.Append(("(%s %s)"), i->second.sexyType.c_str(), svalue.c_str());
       }
 	}
 
@@ -162,7 +162,7 @@ namespace
 			cr_sex s = method.GetElement(i);
 			if (IsAtomic(s))
 			{
-				cstr arg = s.String()->Buffer;
+				cstr arg = s.c_str();
 				if (AreEqual(arg, ("->")))
 				{
 					return i + 1;
@@ -195,7 +195,7 @@ namespace
 		appender.Append(("\t("));
 
 		cr_sex smethodName = method.GetElement(0);
-		cstr methodName = smethodName.String()->Buffer;
+		cstr methodName = smethodName.c_str();
 		appender.Append(("%s "), methodName);
 	
 		AppendInputsAndOutputs(appender, method, pc);
@@ -210,7 +210,7 @@ namespace
 		cstr ns, shortName;
 		splitter.SplitTail(ns, shortName);
 
-		cstr methodName = method.GetElement(0).String()->Buffer;
+		cstr methodName = method.GetElement(0).c_str();
 		appender.Append(("%s.Native.%s%s"), ns, shortName, methodName);
 	}
 
@@ -270,7 +270,7 @@ namespace
 	void AppendSexyMethodProxy(FileAppender& appender, const InterfaceContext& ic, cr_sex method, const ParseContext& pc)
 	{
 		cr_sex smethodName = method.GetElement(0);
-		cstr methodName = smethodName.String()->Buffer;
+		cstr methodName = smethodName.c_str();
 
 		appender.Append(("\t(method "));
 		AppendProxyName(appender, ic.asSexyInterface, method);
@@ -343,7 +343,7 @@ namespace
 
 				cr_sex smethodName = method.GetElement(0);
 				if (!IsAtomic(smethodName)) Throw(smethodName, ("Expecting method name"));
-				cstr methodName = smethodName.String()->Buffer;
+				cstr methodName = smethodName.c_str();
 				ValidateSexyType(smethodName, methodName);
 
 				AppendSexyMethod(appender, method, pc);
@@ -437,7 +437,7 @@ namespace
 
 				cr_sex smethodName = method.GetElement(0);
 				if (!IsAtomic(smethodName)) Throw(smethodName, ("Expecting method name"));
-				cstr methodName = smethodName.String()->Buffer;
+				cstr methodName = smethodName.c_str();
 				ValidateSexyType(smethodName, methodName);
 
 				AppendSexyMethodProxy(appender, ic, method, pc);

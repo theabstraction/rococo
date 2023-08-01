@@ -894,7 +894,7 @@ namespace Rococo::Script
 				Throw(keyExpr, "Expecting atomic expression");
 			}
 
-			cstr keyName = keyExpr.String()->Buffer;
+			cstr keyName = keyExpr.c_str();
 
 			MemberDef def;
 			if (ce.Builder.TryGetVariableByName(def, keyName))
@@ -915,7 +915,7 @@ namespace Rococo::Script
 			{
 				if (IsAtomic(keyExpr))
 				{
-					cstr svalue = keyExpr.String()->Buffer;
+					cstr svalue = keyExpr.c_str();
 					if (svalue[0] == '-' || isdigit(svalue[0]))
 					{
 						VariantValue value;
@@ -1014,7 +1014,7 @@ namespace Rococo::Script
 		if (IsPrimitiveType(def.ValueType.VarType()))
 		{
 			cr_sex valueExpr = s.GetElement(2);
-			cstr value = valueExpr.String()->Buffer;
+			cstr value = valueExpr.c_str();
 			CompileNumericExpression(ce, valueExpr, def.ValueType.VarType()); // value goes to D7
 			ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
 			AppendInvoke(ce, GetMemberSize(def.ValueType) == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
@@ -1112,7 +1112,7 @@ namespace Rococo::Script
 
 		cr_sex mapExpr = GetAtomicArg(source, 0);
 		cr_sex keyExpr = source.GetElement(1);
-		cstr mapName = mapExpr.String()->Buffer;
+		cstr mapName = mapExpr.c_str();
 
 		const MapDef def = GetMapDef(ce, source, mapName);
 
@@ -1141,14 +1141,14 @@ namespace Rococo::Script
 		cr_sex valuetypeExpr = GetAtomicArg(s, 2);
 		cr_sex nameExpr = GetAtomicArg(s, 3);
 
-		cstr name = nameExpr.String()->Buffer;
-		cstr keyType = keytypeExpr.String()->Buffer;
-		cstr valueType = valuetypeExpr.String()->Buffer;
+		cstr name = nameExpr.c_str();
+		cstr keyType = keytypeExpr.c_str();
+		cstr valueType = valuetypeExpr.c_str();
 
 		if (s.NumberOfElements() == 5)
 		{
 			cr_sex extPtr = GetAtomicArg(s, 4);
-			if (!Eq(nameExpr.String()->Buffer, "*"))
+			if (!Eq(nameExpr.c_str(), "*"))
 			{
 				Throw(s[4], "Expecting * in this position, which indicates a reference to an array that is initially null");
 			}
@@ -1350,7 +1350,7 @@ namespace Rococo::Script
 		// (foreach n # a (...) (...) )
 
 		cr_sex collection = s.GetElement(hashIndex + 1);
-		cstr collectionName = collection.String()->Buffer;
+		cstr collectionName = collection.c_str();
 
 		cstr indexName;
 		cstr refName;
@@ -1360,18 +1360,18 @@ namespace Rococo::Script
 			indexName = NULL;
 			cr_sex refExpr = s.GetElement(1);
 			AssertLocalIdentifier(refExpr);
-			refName = refExpr.String()->Buffer;
+			refName = refExpr.c_str();
 		}
 		else
 		{
 			cr_sex indexVar = s.GetElement(1);
-			indexName = indexVar.String()->Buffer;
+			indexName = indexVar.c_str();
 			AssertLocalIdentifier(indexVar);
 
 			AddVariable(ce, NameString::From(indexName), ce.Object.Common().TypeInt32());
 			cr_sex refExpr = s.GetElement(2);
 			AssertLocalIdentifier(refExpr);
-			refName = refExpr.String()->Buffer;
+			refName = refExpr.c_str();
 		}
 
 		const MapDef& mapdef = GetMapDef(ce, s, collectionName);

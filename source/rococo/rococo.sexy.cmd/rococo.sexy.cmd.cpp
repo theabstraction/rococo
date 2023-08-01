@@ -196,13 +196,13 @@ void PrintExpression(cr_sex s, int& totalOutput, int maxOutput)
 	switch (s.Type())
 	{
 	case EXPRESSION_TYPE_ATOMIC:
-		totalOutput += printf(" %s", (cstr)s.String()->Buffer);
+		totalOutput += printf(" %s", (cstr)s.c_str());
 		break;
 	case EXPRESSION_TYPE_NULL:
 		totalOutput += printf("()");
 		break;
 	case EXPRESSION_TYPE_STRING_LITERAL:
-		totalOutput += printf(" \"%s\"", (cstr)s.String()->Buffer);
+		totalOutput += printf(" \"%s\"", (cstr)s.c_str());
 		break;
 	case EXPRESSION_TYPE_COMPOUND:
 

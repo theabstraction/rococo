@@ -295,7 +295,7 @@ namespace Rococo
             }
             else if (IsAtomic(collection))
             {
-                cstr srcName = collection.String()->Buffer;
+                cstr srcName = collection.c_str();
 
                 MemberDef def;
                 if (ce.Builder.TryGetVariableByName(OUT def, srcName))

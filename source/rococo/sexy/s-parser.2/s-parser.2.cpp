@@ -103,13 +103,13 @@ void T5()
 	auto* tree = sparser->CreateTree(*src);
 
 	VALIDATE(tree->Root().NumberOfElements() == 5);
-	VALIDATE(Eq(tree->Root()[0].String()->Buffer, " &abcdef"));
-	VALIDATE(Eq(tree->Root()[1].String()->Buffer, "a"));
-	VALIDATE(Eq(tree->Root()[2].String()->Buffer, "b"));
-	VALIDATE(Eq(tree->Root()[3].String()->Buffer, "cd"));
+	VALIDATE(Eq(tree->Root()[0].c_str(), " &abcdef"));
+	VALIDATE(Eq(tree->Root()[1].c_str(), "a"));
+	VALIDATE(Eq(tree->Root()[2].c_str(), "b"));
+	VALIDATE(Eq(tree->Root()[3].c_str(), "cd"));
 	auto& q = tree->Root()[4];
 	VALIDATE(q.NumberOfElements() == 1);
-	VALIDATE(Eq(q[0].String()->Buffer, "qcumber"));
+	VALIDATE(Eq(q[0].c_str(), "qcumber"));
 
 	VALIDATE(&tree->Source() == src);
 	VALIDATE(0 == tree->Release());

@@ -846,7 +846,7 @@ namespace Rococo::Script
 		{
 			cr_sex arg = GetAtomicArg(s, 1);
 			AssertLocalVariableOrMember(arg);
-			ce.Builder.AssignVariableToTemp(arg.String()->Buffer, 3);
+			ce.Builder.AssignVariableToTemp(arg.c_str(), 3);
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
 		}
@@ -918,7 +918,7 @@ namespace Rococo::Script
 		if (elementType.InterfaceCount() > 0)
 		{
 			AssertLocalVariableOrMember(value);
-			ce.Builder.AssignVariableToTemp(value.String()->Buffer, 3); // value to D7
+			ce.Builder.AssignVariableToTemp(value.c_str(), 3); // value to D7
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrependInterface : callbacks.NodeAppendInterface);
 		}
@@ -1033,7 +1033,7 @@ namespace Rococo::Script
 		// (Node <name> = <listName>.<listDirective>)
 		AddVariableRef(ce, NameString::From(nodeName), ce.Object.Common().TypeNode());
 
-		cstr sourceCommand = source.String()->Buffer;
+		cstr sourceCommand = source.c_str();
 
 		NamespaceSplitter splitter(sourceCommand);
 
@@ -1116,20 +1116,20 @@ namespace Rococo::Script
 		if (s.NumberOfElements() == 4)
 		{
 			cr_sex qualifier = GetAtomicArg(s, 3);
-			if (!Eq("*", qualifier.String()->Buffer))
+			if (!Eq("*", qualifier.c_str()))
 			{
 				Throw(s[3], "Expecting * at this position");
 			}
 		}
 
-		cstr listName = listNameExpr.String()->Buffer;
+		cstr listName = listNameExpr.c_str();
 
 		AssertLocalIdentifier(listNameExpr);
 
 		const IStructure& listStruct = ce.StructList();
 
 		const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
-		if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), "type");
+		if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.c_str(), ce.Builder.Module().Name(), "type");
 
 		ce.Builder.AddSymbol(listName);
 		AddVariableRef(ce, NameString::From(listName), ce.StructList());
@@ -1164,7 +1164,7 @@ namespace Rococo::Script
 		// (foreach v # l (...) (...) )
 
 		cr_sex collection = s.GetElement(hashIndex + 1);
-		cstr collectionName = collection.String()->Buffer;
+		cstr collectionName = collection.c_str();
 		AssertLocalVariableOrMember(collection);
 
 		cstr indexName;
@@ -1175,16 +1175,16 @@ namespace Rococo::Script
 			indexName = NULL;
 			cr_sex refExpr = s.GetElement(1);
 			AssertLocalIdentifier(refExpr);
-			refName = refExpr.String()->Buffer;
+			refName = refExpr.c_str();
 		}
 		else
 		{
 			cr_sex indexVar = s.GetElement(1);
-			indexName = indexVar.String()->Buffer;
+			indexName = indexVar.c_str();
 			AssertLocalIdentifier(indexVar);
 			cr_sex refExpr = s.GetElement(2);
 			AssertLocalIdentifier(refExpr);
-			refName = refExpr.String()->Buffer;
+			refName = refExpr.c_str();
 
 			AddVariable(ce, NameString::From(indexName), ce.Object.Common().TypeInt32());
 		}

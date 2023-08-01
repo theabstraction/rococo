@@ -227,9 +227,9 @@ namespace Rococo::Script
 
 		INamespaceBuilder* pNS;
 
-		NamespaceSplitter splitter(nsName.String()->Buffer);
+		NamespaceSplitter splitter(nsName.c_str());
 
-		if (Eq(nsName.String()->Buffer, "$"))
+		if (Eq(nsName.c_str(), "$"))
 		{
 			pNS = static_cast<INamespaceBuilder*>(const_cast<INamespace*> (module.DefaultNamespace()));
 			if (pNS == nullptr)
@@ -253,7 +253,7 @@ namespace Rococo::Script
 
 		cstr publicFunctionName = tail;
 
-		cstr name = localName.String()->Buffer;
+		cstr name = localName.c_str();
 
 		IFunctionBuilder* f = module.FindFunction(name);
 		if (f == NULL)
@@ -323,7 +323,7 @@ namespace Rococo::Script
 		{
 			cr_sex topLevelItem = sSequence[i];
 			cr_sex elementNameExpr = GetAtomicArg(topLevelItem, 0);
-			cstr elementName = elementNameExpr.String()->Buffer;
+			cstr elementName = elementNameExpr.c_str();
 			if (AreEqual(elementName, ("alias")))
 			{
 				// (alias <qualified-name> <name>)
@@ -392,11 +392,11 @@ namespace Rococo::Script
 
 		if (AreEqual(type, "_Array"))
 		{
-			AddArrayDef(script, f.Builder(), id.String()->Buffer, *arg.GenericTypeArg1(), src);
+			AddArrayDef(script, f.Builder(), id.c_str(), *arg.GenericTypeArg1(), src);
 		}
 		else if (AreEqual(type, "_List"))
 		{
-			AddListDef(script, f.Builder(), id.String()->Buffer, *arg.GenericTypeArg1(), src);
+			AddListDef(script, f.Builder(), id.c_str(), *arg.GenericTypeArg1(), src);
 		}
 	}
 
@@ -420,7 +420,7 @@ namespace Rococo::Script
 
 		if (AreEqual(type, ("_Map")))
 		{
-			AddMapDef(script, f.Builder(), id.String()->Buffer, *arg.GenericTypeArg1(), *arg.GenericTypeArg2(), src);
+			AddMapDef(script, f.Builder(), id.c_str(), *arg.GenericTypeArg1(), *arg.GenericTypeArg2(), src);
 		}
 	}
 
@@ -683,7 +683,7 @@ namespace Rococo::Script
 			{
 				cr_sex genericArg = GetAtomicArg(outputItem, 1);
 
-				if (!Eq(sexType.String()->Buffer, "array"))
+				if (!Eq(sexType.c_str(), "array"))
 				{
 					Throw(sexType, "Expecting 'array' at this position");
 				}
@@ -1240,7 +1240,7 @@ namespace Rococo::Script
 			{
 				if (IsAtomic(arg))
 				{
-					cstr svalue = arg.String()->Buffer;
+					cstr svalue = arg.c_str();
 					if (svalue[0] == '-' || isdigit(svalue[0]) || Eq(svalue, "true") || Eq(svalue,"false"))
 					{
 						VariantValue value;
@@ -1371,7 +1371,7 @@ namespace Rococo::Script
 		}
 
 		cr_sex fieldNameExpr = GetAtomicArg(conDef, 1);
-		cstr fieldName = fieldNameExpr.String()->Buffer;
+		cstr fieldName = fieldNameExpr.c_str();
 
 		TokenBuffer fullFieldName;
 		StringPrint(fullFieldName, ("%s.%s"), parentInstance, fieldName);
@@ -1994,7 +1994,7 @@ namespace Rococo::Script
 
 			for (auto j = namespaceDefinitions.begin(); j != namespaceDefinitions.end(); ++j)
 			{
-				cstr nsSymbol = j->E->String()->Buffer;
+				cstr nsSymbol = j->E->c_str();
 				INamespace* ns = programObject.GetRootNamespace().FindSubspace(nsSymbol);
 				if (ns != NULL)
 				{
@@ -2780,7 +2780,7 @@ namespace Rococo::Script
 			   cr_sex sDirective = topLevelItem[0];
 			   if (IsAtomic(sDirective))
 			   {
-				   cstr directive = sDirective.String()->Buffer;
+				   cstr directive = sDirective.c_str();
 				   if (directive[0] == '#')
 				   {
 					   CompileTopLevelMacro(topLevelItem);
@@ -2896,10 +2896,10 @@ namespace Rococo::Script
 		IStructure* st = MatchStructure(type, module);
 		if (st == NULL)
 		{
-			Throw(s, "Cannot find match to %s", type.String()->Buffer);
+			Throw(s, "Cannot find match to %s", type.c_str());
 		}
 
-		argName = name.String()->Buffer;
+		argName = name.c_str();
 
 		return st;
 	}
@@ -2998,7 +2998,7 @@ namespace Rococo::Script
 		
 		AssertQualifiedIdentifier(fullyQualifiedNameExpr);
 
-		NamespaceSplitter splitter(fullyQualifiedNameExpr.String()->Buffer);
+		NamespaceSplitter splitter(fullyQualifiedNameExpr.c_str());
 		cstr body, tail;
 		INamespaceBuilder& ns = ValidateSplitTail(splitter, OUT body, OUT tail, fullyQualifiedNameExpr, programObject, module);
 		AddArchetypeToNamespace(ns, tail, s, *this);
@@ -3021,7 +3021,7 @@ namespace Rococo::Script
 
 		AssertQualifiedIdentifier(fullyQualifiedNameExpr);
 
-		NamespaceSplitter splitter(fullyQualifiedNameExpr.String()->Buffer);
+		NamespaceSplitter splitter(fullyQualifiedNameExpr.c_str());
 
 		cstr body, tail;
 		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN fullyQualifiedNameExpr, IN programObject, IN module);	
@@ -3170,7 +3170,7 @@ namespace Rococo::Script
 	void CScript::AddInterfacePrototype(cr_sex s, bool isInterfaceDefinedFromClassMethods)
 	{
 		cr_sex nameExpr = GetAtomicArg(s, 1);
-		cstr name = nameExpr.String()->Buffer;
+		cstr name = nameExpr.c_str();
 
 		NamespaceSplitter splitter(name);
 
@@ -3336,7 +3336,7 @@ namespace Rococo::Script
 			cr_sex type = GetAtomicArg(typeNameExptr, 0);
 			cr_sex name = GetAtomicArg(typeNameExptr, 1);
 
-			names[count] = name.String()->Buffer;
+			names[count] = name.c_str();
 			resolvedTypes[count] = MatchStructure(type, module);
 			archetypes[count] = MatchArchetype(type, module);
 			genericArg1s[count] = NULL;
@@ -3358,7 +3358,7 @@ namespace Rococo::Script
 				AssertNotTooManyElements(typeNameExptr, 3);
 				cr_sex name = GetAtomicArg(typeNameExptr, 2);
 				cr_sex elementType = GetAtomicArg(typeNameExptr, 1);
-				names[count] = name.String()->Buffer;
+				names[count] = name.c_str();
 				resolvedTypes[count] = MatchStructure(type, module);
 				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
 				archetypes[count] = NULL;
@@ -3368,7 +3368,7 @@ namespace Rococo::Script
 			{
 				AssertNotTooManyElements(typeNameExptr, 2);
 				cr_sex name = GetAtomicArg(typeNameExptr, 1);
-				names[count] = name.String()->Buffer;
+				names[count] = name.c_str();
 				resolvedTypes[count] = MatchStructure(type, module);
 				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
 				archetypes[count] = MatchArchetype(type, module);
@@ -3399,7 +3399,7 @@ namespace Rococo::Script
 		AssertNotTooManyElements(virtualMethodExpr, MAX_METHOD_ARGS+2);
 
 		cr_sex methodNameExpr = GetAtomicArg(virtualMethodExpr,0);
-		cstr methodName = methodNameExpr.String()->Buffer;
+		cstr methodName = methodNameExpr.c_str();
 
 		int mapIndex = GetIndexOf(1, virtualMethodExpr, ("->"));
 		if (mapIndex < 0)
@@ -3426,7 +3426,7 @@ namespace Rococo::Script
 			cr_sex type = GetAtomicArg(typeNameExptr,0);
 			cr_sex name = GetAtomicArg(typeNameExptr,1);
 
-			names[count] = name.String()->Buffer;
+			names[count] = name.c_str();
 			resolvedTypes[count] = MatchStructure(type, module);
  			archetypes[count] = MatchArchetype(type, module);
 			genericArg1s[count] = NULL;
@@ -3448,7 +3448,7 @@ namespace Rococo::Script
 				AssertNotTooManyElements(typeNameExptr, 3);
 				cr_sex name = GetAtomicArg(typeNameExptr,2);
 				cr_sex elementType =  GetAtomicArg(typeNameExptr,1);
-				names[count] = name.String()->Buffer;
+				names[count] = name.c_str();
 				resolvedTypes[count] = MatchStructure(type, module);
 				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));	
 				archetypes[count] = NULL;
@@ -3458,7 +3458,7 @@ namespace Rococo::Script
 			{
 				AssertNotTooManyElements(typeNameExptr, 2);
 				cr_sex name = GetAtomicArg(typeNameExptr,1);
-				names[count] = name.String()->Buffer;
+				names[count] = name.c_str();
 				resolvedTypes[count] = MatchStructure(type, module);
 				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));	
 				archetypes[count] = MatchArchetype(type, module);
@@ -3483,7 +3483,7 @@ namespace Rococo::Script
 	void ValidateDefineAttribute(IAttributes& a, cr_sex attributeExpr)
 	{
 		cr_sex nameExpr = GetAtomicArg(attributeExpr, 1);
-		cstr name = nameExpr.String()->Buffer;
+		cstr name = nameExpr.c_str();
 		if (!a.AddAttribute(name, &attributeExpr))
 		{
 			Throw(nameExpr, ("Duplicate attribute name in attribute collections are not allowed"));
@@ -3597,7 +3597,7 @@ namespace Rococo::Script
 			{
 				cr_sex name = GetAtomicArg(e, 1);
 
-				NamespaceSplitter splitter(name.String()->Buffer);
+				NamespaceSplitter splitter(name.c_str());
 
 				cstr body, publicName;
 				INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT publicName, IN e, IN programObject, IN module);		
@@ -3641,7 +3641,7 @@ namespace Rococo::Script
 					cr_sex classDirective = e[k];
 					if (classDirective.NumberOfElements() > 1 && IsAtomic(classDirective[0]) && AreEqual(classDirective[0].String(), "defines"))
 					{	
-						auto classStruct = module.FindStructure(e[1].String()->Buffer);
+						auto classStruct = module.FindStructure(e[1].c_str());
 
 						if (classStruct->InterfaceCount() != 1)
 						{
@@ -3650,7 +3650,7 @@ namespace Rococo::Script
 
 						cr_sex name = GetAtomicArg(classDirective, 1);
 
-						NamespaceSplitter splitter(name.String()->Buffer);
+						NamespaceSplitter splitter(name.c_str());
 
 						cstr body, publicName;
 						INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT publicName, IN e, IN programObject, IN module);
@@ -3921,7 +3921,7 @@ namespace Rococo::Script
 
 	const IStructure& GetStructure(cr_sex typeExpr, const sexstring typeName, CScript& script)
 	{
-		const IStructure* s = Compiler::MatchStructure(script.Object().Log(), typeExpr.String()->Buffer, script.ProgramModule());
+		const IStructure* s = Compiler::MatchStructure(script.Object().Log(), typeExpr.c_str(), script.ProgramModule());
 		if (s == NULL)
 		{
 			Throw(typeExpr, ("Could not resolve type"));
@@ -4028,7 +4028,7 @@ namespace Rococo::Script
 			if (AreEqual(elementName.String(), "factory"))
 			{
 				cr_sex factoryNameExpr = GetAtomicArg(topLevelItem, 1);
-				NamespaceSplitter splitter(factoryNameExpr.String()->Buffer);
+				NamespaceSplitter splitter(factoryNameExpr.c_str());
 
 				cstr nsRoot, publicName;
 				splitter.SplitTail(OUT nsRoot, OUT publicName);
@@ -4240,7 +4240,7 @@ namespace Rococo::Script
 				AssertNotTooFewElements(topLevelItem, 2);
 
 				cr_sex structNameExpr = GetAtomicArg(topLevelItem, 1);
-				cstr structName = structNameExpr.String()->Buffer;
+				cstr structName = structNameExpr.c_str();
 
 				AssertValidStructureName(structNameExpr);
 
@@ -4288,7 +4288,7 @@ namespace Rococo::Script
 				AssertNotTooManyElements(topLevelItem, 3);
 
 				cr_sex strongNameExpr = GetAtomicArg(topLevelItem, 1);
-				cstr strongName = strongNameExpr.String()->Buffer;
+				cstr strongName = strongNameExpr.c_str();
 
 				cr_sex wrapper = topLevelItem[2];
 				if (wrapper.NumberOfElements() != 1)
@@ -4297,7 +4297,7 @@ namespace Rococo::Script
 				}
 
 				cr_sex svalueType = GetAtomicArg(wrapper, 0);
-				cstr sPrimitiveType = svalueType.String()->Buffer;
+				cstr sPrimitiveType = svalueType.c_str();
 
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
 
@@ -4341,7 +4341,7 @@ namespace Rococo::Script
 				cr_sex functionName = GetAtomicArg(topLevelItem, 1);
 				AssertValidFunctionName(functionName);
 
-				FunctionPrototype prototype(functionName.String()->Buffer, isMethod);
+				FunctionPrototype prototype(functionName.c_str(), isMethod);
 				
 				IFunctionBuilder& f = DeclareFunction(*this, topLevelItem, prototype);			
 

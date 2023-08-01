@@ -28,7 +28,7 @@ bool operator == (cr_sex s, cstr atomicMatch)
 {
    if (s.Type() == EXPRESSION_TYPE_ATOMIC || s.Type() == EXPRESSION_TYPE_STRING_LITERAL)
    {
-      return wcscmp(s.String()->Buffer, atomicMatch) == 0;
+      return wcscmp(s.c_str(), atomicMatch) == 0;
    }
 
    return false;
@@ -59,7 +59,7 @@ void WriteCppFile(cr_sex s)
    cr_sex sClass = GetAtomicArg(cppInstance, 1);
    cr_sex sInstance = GetAtomicArg(cppInstance, 2);
 
-   printf("namespace {\n    void _parseGen_ParseFile(%S& %S)\n    {\n", sClass.String()->Buffer, sInstance.String()->Buffer);
+   printf("namespace {\n    void _parseGen_ParseFile(%S& %S)\n    {\n", sClass.c_str(), sInstance.c_str());
 
    printf("_to_be_completed");
 

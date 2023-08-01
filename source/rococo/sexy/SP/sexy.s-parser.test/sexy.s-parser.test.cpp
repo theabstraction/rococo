@@ -527,7 +527,7 @@ namespace
 		VALIDATE(tree->Root().NumberOfElements() == 1);
 		const ISExpression& child = tree->Root().GetElement(0);
 		VALIDATE(child.Type() == EXPRESSION_TYPE_STRING_LITERAL);
-		cstr result = child.String()->Buffer;
+		cstr result = child.c_str();
 		VALIDATE(Compare(result, ("boo"), 3) == 0);
 		VALIDATE(result[3] == '\r');
 		VALIDATE(result[4] == '\n');
@@ -616,7 +616,7 @@ namespace
 		cr_sex element = tree->Root().GetElement(0);
 		VALIDATE(element.Type() == EXPRESSION_TYPE_STRING_LITERAL);
 		VALIDATE(element.String()->Length == 1);		
-		VALIDATE(element.String()->Buffer[0] == (char) 'A');
+		VALIDATE(element.c_str()[0] == (char) 'A');
 		VALIDATE(tree->Release() == 0);
 		VALIDATE(src->Release() == 0);
 	}

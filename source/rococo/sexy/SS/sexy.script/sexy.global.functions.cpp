@@ -450,7 +450,7 @@ namespace Rococo
 	RGBAb GetColourValue(cr_sex s)
 	{
 		int32 value = 0;
-		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseHex(value, s.String()->Buffer))
+		if (!IsAtomic(s) || Parse::PARSERESULT_GOOD != Parse::TryParseHex(value, s.c_str()))
 		{
 			ThrowSex(s, "Cannot parse hex colour value");
 		}
@@ -595,10 +595,10 @@ namespace Rococo
 		switch (s.Type())
 		{
 		case EXPRESSION_TYPE_ATOMIC:
-			totalOutput += logger.Log(" %s", (cstr)s.String()->Buffer);
+			totalOutput += logger.Log(" %s", (cstr)s.c_str());
 			break;
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			totalOutput += logger.Log(" \"%s\"", (cstr)s.String()->Buffer);
+			totalOutput += logger.Log(" \"%s\"", (cstr)s.c_str());
 			break;
 		case EXPRESSION_TYPE_COMPOUND:
 
@@ -1996,7 +1996,7 @@ namespace Rococo
 
 						auto packageName = GetAtomicArg(simport[0]);
 						AssertStringLiteral(simport[1]);
-						cstr namespaceFilter = simport[1].String()->Buffer;
+						cstr namespaceFilter = simport[1].c_str();
 
 						try
 						{

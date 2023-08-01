@@ -79,7 +79,7 @@ namespace Rococo
 	void AppendMethodDeclaration(FileAppender& appender, cr_sex method, cstr root, const ParseContext& pc)
 	{
 		cr_sex smethodName = method.GetElement(0);
-		cstr methodName = smethodName.String()->Buffer;
+		cstr methodName = smethodName.c_str();
 
 		int outputIndex = GetOutputPosition(method);
 		if (outputIndex >= method.NumberOfElements())
@@ -130,7 +130,7 @@ namespace Rococo
 			cr_sex s = method.GetElement(i);
 			if (IsAtomic(s))
 			{
-				cstr arg = s.String()->Buffer;
+				cstr arg = s.c_str();
 				if (AreEqual(arg, ("->")))
 				{
 					i++;
@@ -161,8 +161,8 @@ namespace Rococo
 				ValidateSexyType(stype);
 				ValidateSexyVariable(sname);
 
-				cstr inputtype = stype.String()->Buffer;
-				cstr name = sname.String()->Buffer;
+				cstr inputtype = stype.c_str();
+				cstr name = sname.c_str();
 
 				if (inputCount > 1) appender.Append((", "));
 				inputCount++;
@@ -692,7 +692,7 @@ namespace Rococo
 
 			if (outputIsInterface)
 			{
-				auto z = pc.interfaces.find(stype.String()->Buffer);
+				auto z = pc.interfaces.find(stype.c_str());
 
 				NamespaceSplitter splitter(z->second->ic.asSexyInterface);
 

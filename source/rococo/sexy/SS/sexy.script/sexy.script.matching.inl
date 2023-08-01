@@ -39,7 +39,7 @@ namespace Rococo
       {
          if (!IsAtomic(typeExpr))
             return NULL;
-         cstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.c_str();
 
          return module.FindStructure(type);
       }
@@ -170,7 +170,7 @@ namespace Rococo
          if (!IsAtomic(typeExpr))
             return NULL;
 
-         cstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.c_str();
 
          if (!IsCapital(type[0]))
          {
@@ -234,7 +234,7 @@ namespace Rococo
          if (!IsAtomic(nameExpr))
             return NULL;
 
-         cstr name = nameExpr.String()->Buffer;
+         cstr name = nameExpr.c_str();
 
          if (!IsCapital(name[0]))
          {
@@ -286,7 +286,7 @@ namespace Rococo
       {
          AssertAtomic(baseExpr);
 
-         cstr fqn = baseExpr.String()->Buffer;
+         cstr fqn = baseExpr.c_str();
 
          NamespaceSplitter splitter(fqn);
 
@@ -314,7 +314,7 @@ namespace Rococo
 
       IInterfaceBuilder& GetInterfaceInModule(cr_sex interfExpr, IModuleBuilder& module)
       {
-         NamespaceSplitter splitter(interfExpr.String()->Buffer);
+         NamespaceSplitter splitter(interfExpr.c_str());
 
          INamespaceBuilder* NS = NULL;
 
@@ -354,7 +354,7 @@ namespace Rococo
          if (!IsAtomic(typeExpr))
             return NULL;
 
-         cstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.c_str();
 
          if (!IsCapital(type[0]) && *type != '$')
          {
@@ -416,7 +416,7 @@ namespace Rococo
          if (!IsAtomic(typeExpr))
             return NULL;
 
-         cstr type = typeExpr.String()->Buffer;
+         cstr type = typeExpr.c_str();
 
          if (!IsCapital(type[0]))
          {

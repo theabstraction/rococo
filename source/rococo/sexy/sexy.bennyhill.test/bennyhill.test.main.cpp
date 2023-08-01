@@ -234,7 +234,7 @@ namespace
 			break;
 		case Sex::EXPRESSION_TYPE_ATOMIC:
 		case Sex::EXPRESSION_TYPE_STRING_LITERAL:
-			if (!AreEqual(target.String()->Buffer, source.String()->Buffer))
+			if (!AreEqual(target.c_str(), source.c_str()))
 			{
 				Throw(target, ("Mismatch between source and target atomic token"));
 			}

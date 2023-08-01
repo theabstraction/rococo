@@ -266,7 +266,7 @@ namespace Anon
 			cr_sex stype = root[1];
 			AssertAtomic(stype);
 
-			if (!Eq(stype.String()->Buffer, typeId))
+			if (!Eq(stype.c_str(), typeId))
 			{
 				Throw(stype, "Expecting %s", typeId);
 			}
@@ -274,7 +274,7 @@ namespace Anon
 			cr_sex sElementCount = root[3];
 			AssertAtomic(sElementCount);
 
-			int nElements = atoi(sElementCount.String()->Buffer);
+			int nElements = atoi(sElementCount.c_str());
 			if (nElements < 0 || nElements > 10000000)
 			{
 				Throw(sElementCount, "Bad element count. Expecting 0 to 10,000,000");
@@ -297,9 +297,9 @@ namespace Anon
 				cr_sex sName = GetAtomicArg(entry, 1);
 				cr_sex sValue = GetAtomicArg(entry, 2);
 
-				VARTYPE type = ParseType(sType.String()->Buffer, sType);
-				cstr name = sName.String()->Buffer;
-				cstr value = sValue.String()->Buffer;
+				VARTYPE type = ParseType(sType.c_str(), sType);
+				cstr name = sName.c_str();
+				cstr value = sValue.c_str();
 
 				Add(type, name, value);
 			}

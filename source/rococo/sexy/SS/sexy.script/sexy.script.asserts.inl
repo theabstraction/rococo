@@ -405,7 +405,7 @@ namespace Rococo { namespace Sex
 
 			if (!AreEqual(firstElement.String(), headName))
 			{
-				Throw(e, "Expecting expression (%s ...)  but found a (%s ...)", headName, firstElement.String()->Buffer);
+				Throw(e, "Expecting expression (%s ...)  but found a (%s ...)", headName, firstElement.c_str());
 			}
 		}
 	}

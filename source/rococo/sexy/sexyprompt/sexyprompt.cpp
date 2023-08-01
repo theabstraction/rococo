@@ -318,7 +318,7 @@ void LoadLibFile(TFiles& files, cstr libFile, IPublicScriptSystem& ss, bool isVe
 			cr_sex s = tree().Root().GetElement(i);
 			if (IsStringLiteral(s) || IsAtomic(s))
 			{
-				cstr filename = s.String()->Buffer;
+				cstr filename = s.c_str();
 
 				FileData data;
 				data.Filename = filename;

@@ -25,13 +25,13 @@ fstring pckPrefix = "[package]:"_fstring;
 
 cstr AlwaysGetAtomic(cr_sex s)
 {
-	return IsAtomic(s) ? s.String()->Buffer : "<expected atomic argument>";
+	return IsAtomic(s) ? s.c_str() : "<expected atomic argument>";
 }
 
 cstr AlwaysGetAtomic(cr_sex s, int index)
 {
 	if (index < 0 || index >= s.NumberOfElements()) return "<invalid subexpression index>";
-	return IsAtomic(s[index]) ? s[index].String()->Buffer : "<expected atomic argument>";
+	return IsAtomic(s[index]) ? s[index].c_str() : "<expected atomic argument>";
 }
 
 int CountDots(cr_substring prefix)
@@ -101,7 +101,7 @@ namespace Rococo::SexyStudio
 	fstring AtomicArg::operator()(cr_sex sParent, int index) const
 	{
 		cr_sex s = sParent[index];
-		return fstring{ s.String()->Buffer, s.String()->Length };
+		return fstring{ s.c_str(), s.String()->Length };
 	}
 
 	ParseKeyword::ParseKeyword(cstr _keyword) : keyword(to_fstring(_keyword))
@@ -112,7 +112,7 @@ namespace Rococo::SexyStudio
 	{
 		cr_sex s = sParent[index];
 		if (!IsAtomic(s)) return false;
-		return Eq(s.String()->Buffer, keyword);
+		return Eq(s.c_str(), keyword);
 	}
 
 	fstring ParseKeyword::operator()(cr_sex s, int index) const
@@ -210,7 +210,7 @@ namespace ANON
 			{
 				if (IsAtomic(_sMethod[i]))
 				{
-					cstr arg = _sMethod[i].String()->Buffer;
+					cstr arg = _sMethod[i].c_str();
 					if (Eq(arg, "->"))
 					{
 						mapIndex = i;
@@ -229,7 +229,7 @@ namespace ANON
 					{
 						if (IsAtomic(_sMethod[i]))
 						{
-							cstr arg = _sMethod[i].String()->Buffer;
+							cstr arg = _sMethod[i].c_str();
 							if (Eq(arg, ":"))
 							{
 								finalArg = i - 1;
@@ -263,7 +263,7 @@ namespace ANON
 				return;
 			}
 
-			if (!Eq(sFinalDirective.String()->Buffer, "source"))
+			if (!Eq(sFinalDirective.c_str(), "source"))
 			{
 				return;
 			}
@@ -282,7 +282,7 @@ namespace ANON
 				return;
 			}
 
-			lineNumber = atoi(sLineNumber.String()->Buffer);
+			lineNumber = atoi(sLineNumber.c_str());
 		}
 	};
 
@@ -473,8 +473,8 @@ namespace ANON
 				{
 					if (IsAtomic(sDirective[0]) && IsStringLiteral(sDirective[1]))
 					{
-						cstr s0 = sDirective[0].String()->Buffer;
-						cstr s1 = sDirective[1].String()->Buffer;
+						cstr s0 = sDirective[0].c_str();
+						cstr s1 = sDirective[1].c_str();
 
 						if (Eq(s0, "out.AddAtomic") && Compare(s1, "0x", 2) == 0)
 						{
@@ -536,7 +536,7 @@ namespace ANON
 
 		cstr LocalName() const
 		{
-			return sStructDef[1].String()->Buffer;
+			return sStructDef[1].c_str();
 		}
 
 		cstr SourcePath() const
@@ -1139,7 +1139,7 @@ namespace ANON
 			{
 				if (IsAtomic(_sFunction[i]))
 				{
-					cstr arg = _sFunction[i].String()->Buffer;
+					cstr arg = _sFunction[i].c_str();
 					if (mapIndex < 0)
 					{
 						if (Eq(arg, "->"))
@@ -1177,7 +1177,7 @@ namespace ANON
 				return;
 			}
 
-			if (!Eq(sFinalDirective.String()->Buffer, "source"))
+			if (!Eq(sFinalDirective.c_str(), "source"))
 			{
 				return;
 			}
@@ -1196,7 +1196,7 @@ namespace ANON
 				return;
 			}
 
-			lineNumber = atoi(sLineNumber.String()->Buffer);
+			lineNumber = atoi(sLineNumber.c_str());
 		}
 
 		int GetBeginInputIndex() const
@@ -1226,7 +1226,7 @@ namespace ANON
 			{
 				if (IsAtomic(sArg[0]) && IsAtomic(sArg[1]))
 				{
-					return { sArg[0].String()->Buffer, sArg[1].String()->Buffer };
+					return { sArg[0].c_str(), sArg[1].c_str() };
 				}
 			}
 
@@ -1322,7 +1322,7 @@ namespace ANON
 				if (sDirective.NumberOfElements() == 4)
 				{
 					cr_sex sCommand = GetAtomicArg(sDirective, 0);
-					cstr cmd = sCommand.String()->Buffer;
+					cstr cmd = sCommand.c_str();
 					if (Eq(cmd, "included"))
 					{
 						cr_sex sKey = sDirective[1];
@@ -1343,7 +1343,7 @@ namespace ANON
 							Throw(sKey, "Expecting string literal - <declaration-path>");
 						}
 
-						declarationAssocations.push_back({ sKey.String()->Buffer, sValue.String()->Buffer, false });
+						declarationAssocations.push_back({ sKey.c_str(), sValue.c_str(), false });
 						continue;
 					}
 					else if (Eq(cmd, "imported"))
@@ -1366,7 +1366,7 @@ namespace ANON
 							Throw(sKey, "Expecting string literal - <declaration-path>");
 						}
 
-						declarationAssocations.push_back({ sKey.String()->Buffer, sValue.String()->Buffer, true });
+						declarationAssocations.push_back({ sKey.c_str(), sValue.c_str(), true });
 						continue;
 					}
 					else if (Eq(cmd, "package"))
@@ -1389,7 +1389,7 @@ namespace ANON
 							Throw(sKey, "Expecting string literal - <package-ping-path>");
 						}
 
-						packages.insert(sKey.String()->Buffer, sValue.String()->Buffer);
+						packages.insert(sKey.c_str(), sValue.c_str());
 						continue;
 					}
 					else if (Eq(cmd, "map-prefix-to-source"))
@@ -1412,12 +1412,12 @@ namespace ANON
 							Throw(sValue, "Expecting string literal - <source-folder>");
 						}
 
-						if (!EndsWith(sValue.String()->Buffer, "\\"))
+						if (!EndsWith(sValue.c_str(), "\\"))
 						{
 							Throw(sValue, "Expecting <source-folder> to end with backslash '\\'");
 						}
 
-						mapPrefixToPackageSource.insert(sKey.String()->Buffer, sValue.String()->Buffer);
+						mapPrefixToPackageSource.insert(sKey.c_str(), sValue.c_str());
 						continue;
 					}
 					else if (!Eq(cmd, "'"))

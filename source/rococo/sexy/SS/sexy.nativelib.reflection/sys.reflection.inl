@@ -104,7 +104,7 @@ namespace
 		CClassSysTypeStringBuilder* builder = (CClassSysTypeStringBuilder*)object;
 
 		StackStringBuilder sb(builder->buffer, builder->capacity, StringBuilder::BUILD_EXISTING);
-		sb << pExpression->String()->Buffer;
+		sb << pExpression->c_str();
 		builder->length = sb.Length();
 	}
 
@@ -226,11 +226,11 @@ namespace
 		switch (s.Type())
 		{		
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			b.AddStringLiteral(s.String()->Buffer);
+			b.AddStringLiteral(s.c_str());
 			return;
 		case EXPRESSION_TYPE_ATOMIC:
 			{
-				cstr token = s.String()->Buffer;
+				cstr token = s.c_str();
 				b.AddAtomic(token);
 			}
 			return;
@@ -254,11 +254,11 @@ namespace
       switch (s.Type())
       {
       case EXPRESSION_TYPE_STRING_LITERAL:
-         b.AddStringLiteral(s.String()->Buffer);
+         b.AddStringLiteral(s.c_str());
          return;
       case EXPRESSION_TYPE_ATOMIC:
       {
-         cstr token = s.String()->Buffer;
+         cstr token = s.c_str();
          b.AddStringLiteral(token);
       }
       return;
@@ -315,11 +315,11 @@ namespace
 		switch (format.Type())
 		{		
 		case EXPRESSION_TYPE_STRING_LITERAL:
-			b.AddStringLiteral(format.String()->Buffer);
+			b.AddStringLiteral(format.c_str());
 			return;
 		case EXPRESSION_TYPE_ATOMIC:
 			{
-				cstr token = format.String()->Buffer;
+				cstr token = format.c_str();
 				errorCount += SubstituteAtomic(input, token, b);
 			}
 			return;

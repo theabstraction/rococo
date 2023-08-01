@@ -501,7 +501,7 @@ namespace Rococo
 		  MemberDef leftDef;
 		  if (ce.Builder.TryGetVariableByName(leftDef, leftVarName))
 		  {
-			  cstr rightVarName = rightExpr.String()->Buffer;
+			  cstr rightVarName = rightExpr.c_str();
 
 			  MemberDef rightDef;
 			  if (ce.Builder.TryGetVariableByName(rightDef, rightVarName))
@@ -602,7 +602,7 @@ namespace Rococo
 		 if (TryCompileAsCompareStruct(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
 
          VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
-         VARTYPE varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.String()->Buffer, Rococo::ROOT_TEMPDEPTH + 2);
+         VARTYPE varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
 
          if (varLType != varRType)
          {
@@ -695,13 +695,13 @@ namespace Rococo
          // Types: literal, variable, compound expression
          if (IsAtomic(left))
          {
-            cstr leftString = left.String()->Buffer;
+            cstr leftString = left.c_str();
             VARTYPE lType = Parse::GetLiteralType(leftString);
             if (IsPrimitiveType(lType))
             {
                if (IsAtomic(right))
                {
-                  cstr rightString = right.String()->Buffer;
+                  cstr rightString = right.c_str();
                   VARTYPE rType = Parse::GetLiteralType(rightString);
 
                   if (IsPrimitiveType(rType))
@@ -715,14 +715,14 @@ namespace Rococo
                }
                else
                {
-                  CompileBinaryCompareAtomicVsCompound(ce, parent, left.String()->Buffer, op, right, false);
+                  CompileBinaryCompareAtomicVsCompound(ce, parent, left.c_str(), op, right, false);
                }
             }
             else
             {
                if (IsAtomic(right))
                {
-                  cstr rightString = right.String()->Buffer;
+                  cstr rightString = right.c_str();
                   VARTYPE rType = Parse::GetLiteralType(rightString);
 
                   if (IsPrimitiveType(rType))
@@ -740,7 +740,7 @@ namespace Rococo
                }
                else
                {
-                  CompileBinaryCompareAtomicVsCompound(ce, parent, left.String()->Buffer, op, right, true);
+                  CompileBinaryCompareAtomicVsCompound(ce, parent, left.c_str(), op, right, true);
                }
             }
          }
@@ -748,7 +748,7 @@ namespace Rococo
          {
             if (IsAtomic(right))
             {
-               CompileBinaryCompareAtomicVsCompound(ce, parent, right.String()->Buffer, op, left, false);
+               CompileBinaryCompareAtomicVsCompound(ce, parent, right.c_str(), op, left, false);
             }
             else if (!IsCompound(right))
             {
@@ -943,7 +943,7 @@ namespace Rococo
          // Types: literal, variable, compound expression
          if (IsAtomic(left))
          {
-            cstr leftString = left.String()->Buffer;
+            cstr leftString = left.c_str();
 
             if (IsCompound(right))
             {
@@ -955,7 +955,7 @@ namespace Rococo
                Throw(parent, ("The RHS in the boolean expression is neither an atomic nor compound expression"));
             }
 
-            cstr rightString = right.String()->Buffer;
+            cstr rightString = right.c_str();
 
             int32 lValue;
             if (Parse::TryParseBoolean(OUT lValue, leftString) == Parse::PARSERESULT_GOOD)
@@ -992,7 +992,7 @@ namespace Rococo
 
          if (IsAtomic(right))
          {
-            CompileBinaryBooleanAtomicVsCompoundExpression(ce, parent, right.String()->Buffer, op, left);
+            CompileBinaryBooleanAtomicVsCompoundExpression(ce, parent, right.c_str(), op, left);
          }
          else
          {
@@ -1128,7 +1128,7 @@ namespace Rococo
          }
          else if (IsAtomic(s))
          {
-            cstr token = s.String()->Buffer;
+            cstr token = s.c_str();
 
             VariantValue value;
             if (Parse::TryParseBoolean(OUT value.int32Value, IN token) == Parse::PARSERESULT_GOOD)

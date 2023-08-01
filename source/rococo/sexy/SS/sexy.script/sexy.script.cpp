@@ -581,7 +581,7 @@ namespace Rococo::Script
 		AssertNotTooFewElements(s, 2);
 		AssertNotTooManyElements(s, 2);
 
-		return GetAtomicArg(s, 0).String()->Buffer;
+		return GetAtomicArg(s, 0).c_str();
 	}
 
 	cstr GetArgNameFromExpression(cr_sex s)
@@ -590,7 +590,7 @@ namespace Rococo::Script
 		AssertNotTooFewElements(s, 2);
 		AssertNotTooManyElements(s, 2);
 
-		return GetAtomicArg(s, 1).String()->Buffer;
+		return GetAtomicArg(s, 1).c_str();
 	}
 
 	void CALLTYPE_C OnCallbackInvoked(VariantValue* registers, void* context)
@@ -616,7 +616,7 @@ namespace Rococo::Script
 		AssertNotTooManyElements(archetype, MAX_ARGS_PER_NATIVE_CALL);
 
 		cr_sex fnameArg = GetAtomicArg(archetype, 0);
-		cstr publicName = fnameArg.String()->Buffer;
+		cstr publicName = fnameArg.c_str();
 
 		TokenBuffer nativeName;
 		StringPrint(nativeName, ("_%d_%s"), nativeCallIndex, publicName);

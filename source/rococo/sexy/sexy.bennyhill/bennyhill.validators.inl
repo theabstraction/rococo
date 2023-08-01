@@ -84,13 +84,13 @@ namespace
 	void ValidateSexyType(cr_sex s)
 	{
 		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, ("Expecting sexy type name"));
-		ValidateSexyType(s, s.String()->Buffer);
+		ValidateSexyType(s, s.c_str());
 	}
 
 	void ValidateSexyVariable(cr_sex s)
 	{
 		if (!IsAtomic(s) && !IsStringLiteral(s)) Throw(s, ("Expecting sexy variable name"));
-		ValidateSexyVariable(s, s.String()->Buffer);
+		ValidateSexyVariable(s, s.c_str());
 	}
 
 	void ValidateCPPType(cr_sex s, cstr name)
@@ -130,7 +130,7 @@ namespace
 	void ValidateFQSexyInterface(cr_sex s)
 	{
 		if (!IsAtomic(s)) Throw(s, ("Expecting fully qualified sexy interface name as atomic token"));
-		cstr name = s.String()->Buffer;
+		cstr name = s.c_str();
 
 		NamespaceSplitter splitter(name);
 
@@ -163,7 +163,7 @@ namespace
 	void ValidateFQCppStruct(cr_sex s)
 	{
 		if (!IsAtomic(s)) Throw(s, ("Expecting fully qualified struct name as atomic token"));
-		cstr name = s.String()->Buffer;
+		cstr name = s.c_str();
 
 		NamespaceSplitter splitter(name);
 

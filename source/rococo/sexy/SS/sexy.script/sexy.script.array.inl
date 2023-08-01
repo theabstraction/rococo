@@ -1067,7 +1067,7 @@ namespace Rococo
 		   cr_sex mapsTo = GetAtomicArg(s,1);
 		   cr_sex target = GetAtomicArg(s,2);
 
-		   cstr targetToken = target.String()->Buffer;
+		   cstr targetToken = target.c_str();
 
 		   if (!AreEqual(mapsTo.String(), ("->")))
 		   {
@@ -1077,7 +1077,7 @@ namespace Rococo
 		   VARTYPE requiredType = ce.Builder.GetVarType(targetToken);
 		   if (requiredType == VARTYPE_Bad)
 		   {
-			   ThrowTokenNotFound(s, target.String()->Buffer, ce.Builder.Owner().Name(), ("variable"));
+			   ThrowTokenNotFound(s, target.c_str(), ce.Builder.Owner().Name(), ("variable"));
 		   }
 
 		   CompileAsPopOutFromArray(ce, s, instanceName, requiredType);
@@ -1120,8 +1120,8 @@ namespace Rococo
 			   }
 
 			   MemberDef def;
-			   AssertGetVariable(def, value.String()->Buffer, ce, value);
-			   ce.Builder.AssignVariableRefToTemp(value.String()->Buffer, Rococo::ROOT_TEMPDEPTH); // The value reference is in D7 
+			   AssertGetVariable(def, value.c_str(), ce, value);
+			   ce.Builder.AssignVariableRefToTemp(value.c_str(), Rococo::ROOT_TEMPDEPTH); // The value reference is in D7 
 		   }
 
 		   ce.Builder.PopLastVariables(1, true);
@@ -1244,10 +1244,10 @@ namespace Rococo
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, indexExpr, instanceName);
 
 		   int offset = 0;
-		   const IMember* member = FindMember(elementType, subItemName.String()->Buffer, OUT offset);
+		   const IMember* member = FindMember(elementType, subItemName.c_str(), OUT offset);
 		   if (member == NULL)
 		   {
-			   ThrowTokenNotFound(subItemName, subItemName.String()->Buffer, elementType.Name(), ("member"));
+			   ThrowTokenNotFound(subItemName, subItemName.c_str(), elementType.Name(), ("member"));
 		   }
 
 		   const IStructure& memberType = *member->UnderlyingType();
@@ -1343,7 +1343,7 @@ namespace Rococo
 		   value = 0;
 		   if (IsAtomic(s))
 		   {
-			   if (Parse::PARSERESULT_GOOD == Parse::TryParseDecimal(OUT value, s.String()->Buffer))
+			   if (Parse::PARSERESULT_GOOD == Parse::TryParseDecimal(OUT value, s.c_str()))
 			   {
 				   if (value < 0) Throw(s, ("Index must not be negative"));
 				   return true;
@@ -1398,12 +1398,12 @@ namespace Rococo
 		   AssertNotTooManyElements(elementSpecifier, 2);
 
 		   cr_sex collection = GetAtomicArg(elementSpecifier, 0);
-		   cstr collectionName = collection.String()->Buffer;
+		   cstr collectionName = collection.c_str();
 		   AssertLocalVariableOrMember(collection);			
 
 		   cr_sex refExpr =  GetAtomicArg(s, 1);
 		   AssertLocalIdentifier(refExpr);
-		   cstr refName = refExpr.String()->Buffer;
+		   cstr refName = refExpr.c_str();
 		
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, collectionName);
 
@@ -1464,13 +1464,13 @@ namespace Rococo
 			   AssertNotTooManyElements(scollection, 3);
 
 			   cr_sex collectionNameExpr = GetAtomicArg(scollection, 0);
-			   cstr collectionName = collectionNameExpr.String()->Buffer;
+			   cstr collectionName = collectionNameExpr.c_str();
 			   AssertLocalVariableOrMember(collectionNameExpr);
 			   return collectionName;
 		   }
 		   else
 		   {
-			   cstr collectionName = scollection.String()->Buffer;
+			   cstr collectionName = scollection.c_str();
 			   AssertLocalVariableOrMember(scollection);
 			   return collectionName;
 		   }
@@ -1487,12 +1487,12 @@ namespace Rococo
 
 		   cr_sex collectionNameExpr = GetAtomicArg(s, 3);
 
-		   cstr collectionName = collectionNameExpr.String()->Buffer;
+		   cstr collectionName = collectionNameExpr.c_str();
 
 		   // (foreach v # a (...) )
 		   cr_sex refExpr = s[1];
 		   AssertLocalIdentifier(refExpr);
-		   cstr refName = refExpr.String()->Buffer;
+		   cstr refName = refExpr.c_str();
 
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, collectionName);
 
@@ -1630,7 +1630,7 @@ namespace Rococo
 		   }
 		   else if (IsAtomic(valueExpr))
 		   {
-			   cstr svalue = valueExpr.String()->Buffer;
+			   cstr svalue = valueExpr.c_str();
 			   if (svalue[0] == '-' ||  isdigit(svalue[0]))
 			   {
 				   VariantValue value;
@@ -1642,7 +1642,7 @@ namespace Rococo
 			   }
 			   else
 			   {
-				   VARTYPE atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.String()->Buffer, Rococo::ROOT_TEMPDEPTH);
+				   VARTYPE atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.c_str(), Rococo::ROOT_TEMPDEPTH);
 				   if (atomicType == type) return;
 			   }
 		   }
@@ -1660,7 +1660,7 @@ namespace Rococo
 
 		   cr_sex assignChar = GetAtomicArg(s, 3);
 
-		   if (!Eq(assignChar.String()->Buffer, "="))
+		   if (!Eq(assignChar.c_str(), "="))
 		   {
 			   Throw(assignChar, "Expecting array assignment operator = at this position");
 		   }
@@ -1668,14 +1668,14 @@ namespace Rococo
 		   cr_sex typeName = GetAtomicArg(s, 1);
 		   cr_sex arrayName = GetAtomicArg(s, 2);
 
-		   cstr arrayNameTxt = arrayName.String()->Buffer;
+		   cstr arrayNameTxt = arrayName.c_str();
 
 		   AssertLocalIdentifier(arrayName);
 
 		   const IStructure& arrayStruct = ce.StructArray();
 
 		   const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
-		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), ("type"));
+		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.c_str(), ce.Builder.Module().Name(), ("type"));
 
 		   if (elementStruct->InterfaceCount() != 0 && !IsNullType(*elementStruct))
 		   {
@@ -1715,7 +1715,7 @@ namespace Rococo
 		   cr_sex typeName = GetAtomicArg(s, 1);
 		   cr_sex arrayName = GetAtomicArg(s, 2);
 
-		   cstr arrayNameTxt = arrayName.String()->Buffer;
+		   cstr arrayNameTxt = arrayName.c_str();
 
 		   AssertLocalIdentifier(arrayName);
 
@@ -1725,7 +1725,7 @@ namespace Rococo
 		   const IStructure& arrayStruct = ce.StructArray();
 
 		   const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
-		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.String()->Buffer, ce.Builder.Module().Name(), ("type"));
+		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.c_str(), ce.Builder.Module().Name(), ("type"));
 
 		   if (elementStruct->InterfaceCount() != 0 && !IsNullType(*elementStruct))
 		   {

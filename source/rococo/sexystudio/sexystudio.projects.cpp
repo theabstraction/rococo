@@ -319,11 +319,11 @@ namespace Rococo::SexyStudio
 				cr_sex sQuote = GetAtomicArg(sTopLevelItem, 0);
 				cr_sex sDirective = GetAtomicArg(sTopLevelItem, 1);
 
-				if (Eq(sQuote.String()->Buffer, "'"))
+				if (Eq(sQuote.c_str(), "'"))
 				{
 					// Raw s-expression
 
-					if (Eq(sDirective.String()->Buffer, "#include"))
+					if (Eq(sDirective.c_str(), "#include"))
 					{
 						// Include statement
 
@@ -333,7 +333,7 @@ namespace Rococo::SexyStudio
 
 							if (IsStringLiteral(sPingPath))
 							{
-								cstr pingPath = sPingPath.String()->Buffer;
+								cstr pingPath = sPingPath.c_str();
 
 								U8FilePath sysPath;
 								database.PingPathToSysPath(pingPath, sysPath);
@@ -352,7 +352,7 @@ namespace Rococo::SexyStudio
 							}
 						}
 					}
-					else if (Eq(sDirective.String()->Buffer, "#import"))
+					else if (Eq(sDirective.c_str(), "#import"))
 					{
 						// Import statement
 
@@ -365,7 +365,7 @@ namespace Rococo::SexyStudio
 
 								if (IsAtomic(sPackageName))
 								{
-									cstr packageName = sPackageName.String()->Buffer;
+									cstr packageName = sPackageName.c_str();
 
 									cstr packagePath = database.Solution().GetPackagePingPath(packageName);
 

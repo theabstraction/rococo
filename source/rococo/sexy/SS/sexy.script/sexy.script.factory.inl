@@ -62,7 +62,7 @@ namespace Rococo
          for (int i = 0; i < module.PrefixCount(); i++)
          {
             INamespaceBuilder& prefix = module.GetPrefix(i);
-            IFactory* factory = prefix.FindFactory(factoryExpr.String()->Buffer);
+            IFactory* factory = prefix.FindFactory(factoryExpr.c_str());
             if (factory != NULL)
             {
                if (NS != NULL)
@@ -194,8 +194,8 @@ namespace Rococo
             return false;
          }
 
-         cstr targetName = directive[0].String()->Buffer;
-		 cstr factoryName = factoryNameExpr.String()->Buffer;
+         cstr targetName = directive[0].c_str();
+		 cstr factoryName = factoryNameExpr.c_str();
 
 		 if (!IsCapital(factoryName[0]))
 		 {
