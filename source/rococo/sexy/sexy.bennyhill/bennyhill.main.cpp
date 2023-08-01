@@ -628,7 +628,7 @@ void SetINLandHnames(EnumContext& ec, ParseContext& pc, cstr fqEnumName, cr_sex 
 			// The splitter gave us London.Airport
 			// and our module was like this: London
 			cstr appendix = fqEnumName + strlen(pc.moduleNamespace);
-			Strings::SecureFormat(ec.appendCppHeaderFile, "%s%s_%s.sxh.h", pc.cppRootDirectory, pc.scriptName, appendix);
+			Strings::SecureFormat(ec.appendCppHeaderFile, "%s%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName, appendix);
 			if (allCppHeaders.insert(ec.appendCppHeaderFile).second)
 			{
 				allCppHeadersOrdered.push_back(ec.appendCppHeaderFile);
@@ -828,7 +828,7 @@ void SetINLandHnames(InterfaceContext& ic, ParseContext& pc, cstr interfaceName,
 			// The splitter gave us London.Airport
 			// and our module was like this: London
 			cstr appendix = interfaceName + strlen(pc.moduleNamespace);
-			Strings::SecureFormat(ic.appendCppHeaderFile, "%s%s_%s.sxh.h", pc.cppRootDirectory, pc.scriptName, appendix);
+			Strings::SecureFormat(ic.appendCppHeaderFile, "%s%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName, appendix);
 			if (allCppHeaders.insert(ic.appendCppHeaderFile).second)
 			{
 				allCppHeadersOrdered.push_back(ic.appendCppHeaderFile);
@@ -1132,11 +1132,19 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 	{
 		char unifiedHeader[MAX_PATH];
 		Strings::SecureFormat(unifiedHeader, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
+		size_t rootLen = strlen(pc.cppRootDirectory);
 		FileAppender unifiedHeaderAppender(unifiedHeader);
 		AddPragmaOnce(unifiedHeaderAppender, unifiedHeader);
 		for (auto& i : allCppHeadersOrdered)
 		{
-			unifiedHeaderAppender.Append("#include \"%s\"\n", i.c_str());
+			if (StartsWith(i.c_str(), pc.cppRootDirectory))
+			{
+				unifiedHeaderAppender.Append("#include \"%s\"\n", i.c_str() + rootLen);
+			}
+			else
+			{
+				unifiedHeaderAppender.Append("#include \"%s\"\n", i.c_str());
+			}
 		}
 	}
 }

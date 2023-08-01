@@ -249,21 +249,11 @@ namespace Rococo
 
 		pc.namespaces.clear();
 
-		std::unordered_set<stdstring> cppEnumFiles;
-
-		for (auto& i : pc.enums)
+		for (auto& e : pc.enums)
 		{
-			cppEnumFiles.insert(i.ec.appendCppHeaderFile);
-		}
-
-		for (auto& i : cppEnumFiles)
-		{
-			FileAppender cppFileAppender(i.c_str());
-			AddPragmaOnce(cppFileAppender, i.c_str());
-			for (auto& e : pc.enums)
-			{
-				DeclareCppEnum(cppFileAppender, e.ec, *e.sdef, pc);
-			}
+			FileAppender cppFileAppender(e.ec.appendCppHeaderFile);
+			AddPragmaOnce(cppFileAppender, e.ec.appendCppHeaderFile);
+			DeclareCppEnum(cppFileAppender, e.ec, *e.sdef, pc);
 		}
 
 		std::unordered_set<stdstring> cppInterfaceFiles;
