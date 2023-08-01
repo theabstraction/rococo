@@ -212,8 +212,7 @@ void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContex
 
 	appender.Append(signature);
 
-	appender.Append("#include <sexy.script.h>\n");
-	appender.Append("#include \"%s\"\n\n", filename);
+	appender.Append("#include <sexy.script.h>\n\n");
 }
 
 void GenerateInterfaceFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
@@ -1129,6 +1128,7 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 	for (auto& i : pc.enums)
 	{
 		FileAppender cppHeaderAppender(i.ec.appendCppHeaderFile);
+		AddPragmaOnce(cppHeaderAppender, i.ec.appendCppHeaderFile);
 		DeclareCppEnum(cppHeaderAppender, i.ec, *i.sdef, pc);
 	}
 

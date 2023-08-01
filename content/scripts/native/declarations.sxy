@@ -549,19 +549,19 @@
 (function GenUnique183  -> (Int64 sessionValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 213))
 (alias GenUnique183 Sys.Maths.I64.GenUnique)
 
-(function GetHandleForICoroutineControl0184   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 87))
+(function GetHandleForICoroutineControl0184   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 86))
 (alias GetHandleForICoroutineControl0184 Sys.Native.GetHandleForICoroutineControl0)
 
-(function ICoroutineControlAdd185  (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 88))
+(function ICoroutineControlAdd185  (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 87))
 (alias ICoroutineControlAdd185 Sys.Native.ICoroutineControlAdd)
 
-(function ICoroutineControlContinue186  (Pointer hObject) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 89))
+(function ICoroutineControlContinue186  (Pointer hObject) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 88))
 (alias ICoroutineControlContinue186 Sys.Native.ICoroutineControlContinue)
 
-(function ICoroutineControlRelease187  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 90))
+(function ICoroutineControlRelease187  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 89))
 (alias ICoroutineControlRelease187 Sys.Native.ICoroutineControlRelease)
 
-(function ICoroutineControlReleaseAll188  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 91))
+(function ICoroutineControlReleaseAll188  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 90))
 (alias ICoroutineControlReleaseAll188 Sys.Native.ICoroutineControlReleaseAll)
 
 (function GetStdOut189  -> (Sys.IO.IWriter stdout) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1241))
