@@ -78,7 +78,7 @@ namespace ANON
 
 		cstr c_str() const override
 		{
-			return c_str();
+			return String()->Buffer;
 		}
 
 		const ISParserTree& Tree() const override

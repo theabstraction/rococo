@@ -725,10 +725,10 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			cstr sexyFilename = ssexyFilename.c_str();
 
-			SetINLandHnames(ec, pc, ec.asCppEnum.SexyName(), sdirective);
-
 			ec.asCppEnum.Set(sinterfaceName.c_str());
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
+
+			SetINLandHnames(ec, pc, ec.asCppEnum.SexyName(), sdirective);
 
 			SecureFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.c_str());
 
@@ -759,12 +759,13 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, "as.cpp is already defined for this enum");
 
+			ec.asCppEnum.Set(sstructName.c_str());
+
 			SetINLandHnames(ec, pc, ec.asCppEnum.SexyName(), sdirective);
 
 			OS::ToSysPath(ec.appendCppHeaderFile);
 			OS::ToSysPath(ec.appendCppImplFile);
 
-			ec.asCppEnum.Set(sstructName.c_str());
 		}
 		else
 		{
