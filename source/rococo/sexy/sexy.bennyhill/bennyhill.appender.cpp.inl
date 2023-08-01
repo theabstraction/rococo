@@ -235,10 +235,10 @@ namespace Rococo
 
 	void GenerateDeclarations(const ParseContext& pc)
 	{
-		std::unordered_set<stdstring> enumFiles;
+		std::unordered_set<stdstring> sxyEnumFiles;
 		for (auto& i : pc.enums)
 		{
-			enumFiles.insert(i.ec.appendSexyFile);
+			sxyEnumFiles.insert(i.ec.appendSexyFile);
 		}
 
 		for (auto& i : pc.enums)
@@ -249,13 +249,14 @@ namespace Rococo
 
 		pc.namespaces.clear();
 
-		enumFiles.clear();
+		std::unordered_set<stdstring> cppEnumFiles;
+
 		for (auto& i : pc.enums)
 		{
-			enumFiles.insert(i.ec.appendCppHeaderFile);
+			cppEnumFiles.insert(i.ec.appendCppHeaderFile);
 		}
 
-		for (auto& i : enumFiles)
+		for (auto& i : cppEnumFiles)
 		{
 			FileAppender cppFileAppender(i.c_str());
 			AddPragmaOnce(cppFileAppender, i.c_str());
@@ -265,17 +266,18 @@ namespace Rococo
 			}
 		}
 
-		enumFiles.clear();
+		std::unordered_set<stdstring> cppInterfaceFiles;
+
 		for (auto& i : pc.interfaces)
 		{
 			if (*i.second->ic.appendCppHeaderFile)
 			{
 				auto& ic = i.second->ic;
-				enumFiles.insert(ic.appendCppHeaderFile);
+				cppInterfaceFiles.insert(ic.appendCppHeaderFile);
 			}
 		}
 
-		for (auto& e : enumFiles)
+		for (auto& e : cppInterfaceFiles)
 		{
 			FileAppender cppFileAppender(e.c_str());
 			AddPragmaOnce(cppFileAppender, e.c_str());

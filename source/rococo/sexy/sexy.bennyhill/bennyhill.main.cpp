@@ -44,6 +44,9 @@
 #include <rococo.os.h>
 #include <unordered_set>
 
+std::unordered_set<std::string> allCppHeaders;
+std::vector<std::string> allCppHeadersOrdered;
+
 namespace Rococo
 { 
 	// Adds pragma once only once per header
@@ -71,7 +74,7 @@ namespace Rococo
       cstr nsRoot, tail;
       if (splitter.SplitHead(nsRoot, tail))
       {
-         appender.Append(("%s::"), nsRoot);
+         appender.Append("%s::", nsRoot);
          return ConvertAndAppendCppType(appender, tail);
       }
       else
@@ -213,7 +216,7 @@ void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContex
 	appender.Append("#include \"%s\"\n\n", filename);
 }
 
-void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
+void GenerateInterfaceFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s, const ISExpression* methods[], cr_sex interfaceDef)
 {
 	FileAppender sexyFileAppender(ic.appendSexyFile);	
 	//AddIntroduction(sexyFileAppender, ic.appendSexyFile, pc, ic.appendCppHeaderFile);
@@ -242,7 +245,7 @@ void GenerateFiles(const ParseContext& pc, const InterfaceContext& ic, cr_sex s,
 	}
 }
 
-void GenerateFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDef)
+void GenerateEnumFiles(const ParseContext& pc, const EnumContext& ec, cr_sex senumDef)
 {
 	FileAppender cppFileImplAppender(ec.appendCppImplFile);
 	AddIntroduction(cppFileImplAppender, ec.appendCppImplFile, pc, ec.appendCppHeaderFile);
@@ -594,10 +597,48 @@ void ParseFunctions(cr_sex functionSetDef, const ParseContext& pc)
 	}
 }
 
-void SetINLandHnames(EnumContext& ec, ParseContext& pc)
+void SetDefaultHeaderName(EnumContext& ic, ParseContext& pc)
 {
-	Strings::SecureFormat(ec.appendCppHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
+	Strings::SecureFormat(ic.appendCppHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
+}
+
+void SetINLandHnames(EnumContext& ec, ParseContext& pc, cstr fqEnumName, cr_sex s)
+{
 	Strings::SecureFormat(ec.appendCppImplFile, "%s%s.sxh.inl", pc.cppRootDirectory, pc.scriptName);
+
+	if (*pc.moduleNamespace == 0)
+	{
+		// Merge all declarations into the same header. 
+		SetDefaultHeaderName(ec, pc);
+	}
+	else
+	{
+		NamespaceSplitter splitter(fqEnumName);
+
+		cstr ns, shortName;
+		if (!splitter.SplitTail(OUT ns, OUT shortName))
+		{
+			// We can't split the interface name, which is a bug, since interface names are always FQ.
+			Throw(s, "Interface name %s was not a FQ dotted name", fqEnumName);
+		}
+
+		if (StartsWith(ns, pc.moduleNamespace))
+		{
+			// This means our interface was like this: London.Airport.IAirplane
+			// The splitter gave us London.Airport
+			// and our module was like this: London
+			cstr appendix = fqEnumName + strlen(pc.moduleNamespace);
+			Strings::SecureFormat(ec.appendCppHeaderFile, "%s%s_%s.sxh.h", pc.cppRootDirectory, pc.scriptName, appendix);
+			if (allCppHeaders.insert(ec.appendCppHeaderFile).second)
+			{
+				allCppHeadersOrdered.push_back(ec.appendCppHeaderFile);
+			}
+		}
+		else
+		{
+			SetDefaultHeaderName(ec, pc);
+		}
+	}
 }
 
 void ParseEnum(cr_sex senumDef, ParseContext& pc)
@@ -684,7 +725,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			cstr sexyFilename = ssexyFilename.String()->Buffer;
 
-			SetINLandHnames(ec, pc);
+			SetINLandHnames(ec, pc, ec.asCppEnum.SexyName(), sdirective);
 
 			ec.asCppEnum.Set(sinterfaceName.String()->Buffer);
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
@@ -718,7 +759,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			if (ec.asCppEnum.SexyName()[0] != 0) Throw(sdirective, "as.cpp is already defined for this enum");
 
-			SetINLandHnames(ec, pc);
+			SetINLandHnames(ec, pc, ec.asCppEnum.SexyName(), sdirective);
 
 			OS::ToSysPath(ec.appendCppHeaderFile);
 			OS::ToSysPath(ec.appendCppImplFile);
@@ -755,10 +796,48 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 	pc.enums.push_back(def);
 }
 
-void SetINLandHnames(InterfaceContext& ic, ParseContext& pc)
+void SetDefaultHeaderName(InterfaceContext& ic, ParseContext& pc)
 {
 	Strings::SecureFormat(ic.appendCppHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
+}
+
+void SetINLandHnames(InterfaceContext& ic, ParseContext& pc, cstr interfaceName, cr_sex s)
+{
 	Strings::SecureFormat(ic.appendCppImplFile, "%s%s.sxh.inl", pc.cppRootDirectory, pc.scriptName);
+
+	if (*pc.moduleNamespace == 0)
+	{
+		// Merge all declarations into the same header. 
+		SetDefaultHeaderName(ic, pc);
+	}
+	else
+	{
+		NamespaceSplitter splitter(interfaceName);
+
+		cstr ns, shortName;
+		if (!splitter.SplitTail(OUT ns, OUT shortName))
+		{
+			// We can't split the interface name, which is a bug, since interface names are always FQ.
+			Throw(s, "Interface name %s was not a FQ dotted name", interfaceName);
+		}
+
+		if (StartsWith(ns, pc.moduleNamespace))
+		{
+			// This means our interface was like this: London.Airport.IAirplane
+			// The splitter gave us London.Airport
+			// and our module was like this: London
+			cstr appendix = interfaceName + strlen(pc.moduleNamespace);
+			Strings::SecureFormat(ic.appendCppHeaderFile, "%s%s_%s.sxh.h", pc.cppRootDirectory, pc.scriptName, appendix);
+			if (allCppHeaders.insert(ic.appendCppHeaderFile).second)
+			{
+				allCppHeadersOrdered.push_back(ic.appendCppHeaderFile);
+			}
+		}
+		else
+		{
+			SetDefaultHeaderName(ic, pc);
+		}
+	}
 }
 
 void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstring, Memory::SexyAllocator<rstdstring>>& defOrder)
@@ -769,12 +848,12 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 
 	std::vector<const ISExpression*> methods;
 
-	for(int i = 1; i < interfaceDef.NumberOfElements(); ++i)
+	for (int i = 1; i < interfaceDef.NumberOfElements(); ++i)
 	{
-		cr_sex directive = interfaceDef.GetElement(i);
+		cr_sex directive = interfaceDef[i];
 		if (!IsCompound(directive)) Throw(directive, "Expecting compound expression in the interface definition");
 
-		cr_sex directiveName = directive.GetElement(0);
+		cr_sex directiveName = directive[0];
 		if (!IsAtomic(directiveName))  Throw(directiveName, "Expecting atomic expression in the directive name at position #0");
 
 		const sexstring ssname = directiveName.String();
@@ -782,16 +861,16 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 		if (AreEqual(ssname, "as.both"))
 		{
 			if (directive.NumberOfElements() != 3) Throw(directive, "Expecting (as.both <fully qualified interface name> \"<target-filename-prefix>\")");
-			cr_sex sinterfaceName = directive.GetElement(1);
+			cr_sex sinterfaceName = directive[1];
 			ValidateFQSexyInterface(sinterfaceName); // sexy namespaces are more stringent than those of C++. so we use sexy validation for both
 
 			if (ic.asSexyInterface[0] != 0) Throw(directive, "as.sxy is already defined for this interface");
 			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, "as.cpp is already defined for this interface");
 
-			cr_sex ssexyFilename = directive.GetElement(2);
+			cr_sex ssexyFilename = directive[2];
 			if (!IsStringLiteral(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal target-prefix. Filenames can potentially have spaces in them.");
 
-			SetINLandHnames(ic, pc);
+			SetINLandHnames(ic, pc, sinterfaceName.String()->Buffer, directive[2]);
 
 			ic.asCppInterface.Set(sinterfaceName.String()->Buffer);
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.String()->Buffer);
@@ -840,7 +919,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 
 			if (ic.asCppInterface.SexyName()[0] != 0) Throw(directive, "as.cpp is already defined for this interface");
 
-			SetINLandHnames(ic, pc);
+			SetINLandHnames(ic, pc, sstructName.String()->Buffer, directive);
 
 			if (directive.NumberOfElements() == 3)
 			{
@@ -857,7 +936,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 		}
 		else if (AreEqual(ssname, "~"))
 		{
-			if (ic.hasDestructor) { Throw(directive, "Interface already has destructor defined");	}
+			if (ic.hasDestructor) { Throw(directive, "Interface already has destructor defined"); }
 			ic.hasDestructor = true;
 			if (directive.NumberOfElements() != 1) Throw(directive, "Destructors take no arguments");
 		}
@@ -901,7 +980,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 		else
 		{
 			Throw(directiveName, "Unknown directive in interface definition. Expecting one of (as.sxy, as.cpp, as.both, context, factory, methods)");
-		}		
+		}
 	}
 
 	if (ic.asCppInterface.SexyName()[0] == 0)
@@ -919,16 +998,16 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 		SafeFormat(ic.appendSexyFile, "%s_sxh.sxy", pc.scriptInputSansExtension);
 	}
 
-	if (ic.appendCppHeaderFile[0] == 0) 
+	if (ic.appendCppHeaderFile[0] == 0)
 	{
-      SafeFormat(ic.appendCppHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
-      SafeFormat(ic.appendCppImplFile, "%s%s.sxh.cpp", pc.cppRootDirectory, pc.scriptName);
+		SafeFormat(ic.appendCppHeaderFile, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
+		SafeFormat(ic.appendCppImplFile, "%s%s.sxh.cpp", pc.cppRootDirectory, pc.scriptName);
 	}
 
 	if (ic.factories.empty())
 	{
 		// Disable exception. Interfaces can be grabbed from the output of functions that return them
-      // Throw(interfaceDef, "Interface needs to specify at least one factory");
+	  // Throw(interfaceDef, "Interface needs to specify at least one factory");
 	}
 
 	if (!ic.nceContext.SexyName()[0] && !ic.factories.empty())
@@ -936,20 +1015,20 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 		Throw(interfaceDef, "Missing (context <'factory'|'api'> <context-type>)");
 	}
 
-   InterfaceDef* def = new InterfaceDef;
+	InterfaceDef* def = new InterfaceDef;
 
-   for (auto* m : methods)
-   {
-	   def->methodArray.push_back(m);
-   }
+	for (auto* m : methods)
+	{
+		def->methodArray.push_back(m);
+	}
 
-   def->sdef = &interfaceDef;
-   def->methodArray.push_back(nullptr);
-   def->ic = ic;
+	def->sdef = &interfaceDef;
+	def->methodArray.push_back(nullptr);
+	def->ic = ic;
 
-   defOrder.push_back(ic.asSexyInterface);
+	defOrder.push_back(ic.asSexyInterface);
 
-   pc.interfaces.insert(std::make_pair(stdstring(ic.asSexyInterface), def));
+	pc.interfaces.insert(std::make_pair(stdstring(ic.asSexyInterface), def));
 	/*
 	try
 	{
@@ -965,13 +1044,11 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 
 void ParseSXHFile(cr_sex root, ParseContext& pc)
 {
-	bool hasConfig = false;
 	bool hasFunctions = false;
 
 	std::vector<rstdstring, Memory::SexyAllocator<rstdstring>> interfaceDefOrder;
 
 	LoadConfigXC(root, pc);
-	hasConfig = true;
 
 	for (int i = 0; i < root.NumberOfElements(); ++i)
 	{
@@ -983,25 +1060,44 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 
 		sexstring cmd = command.String();
 
-		if (AreEqual("config", cmd))
+		if (AreEqual("module", cmd))
+		{
+			if (topLevelItem.NumberOfElements() != 2 || !(IsAtomic(topLevelItem[1])))
+			{
+				Throw(topLevelItem, "Expecting two elements: (module <dotted-namespace>).\n"
+					"The *atomic* expression <dotted-namespace> gives the module namespace of the sxh file.\n"
+					"C++ header filenames are generated via the namespaces of interfaces and enums.\n"
+					"If the module namespace serves as the root of any given item\n"
+					"then the filename generated for the item is clipped of its root.\n"
+					"Without a module namespace all objects are merged into the same C++ header.\n"
+				);
+			}
+
+			if (*pc.moduleNamespace)
+			{
+				Throw(topLevelItem[1], "The (module namespace=%s) is already defined earlier in the file", pc.moduleNamespace);
+			}
+
+			ValidateFQCppStruct(topLevelItem[1]);
+			cstr moduleNamespace = topLevelItem[1].String()->Buffer;
+			SecureFormat(pc.moduleNamespace, NAMESPACE_MAX_LENGTH, "%s", moduleNamespace);
+		}
+		else if (AreEqual("config", cmd))
 		{
 			Throw(0, "The SXH file has a config entry which is now obsolete");
 		}
 		else if (AreEqual("functions", cmd))
 		{
 			//if (hasFunctions) Throw(command, "Only one set of functions can be defined in the generator file");
-			if (!hasConfig) Throw(command, "Must define a (config <config-path>) entry before all functions");
 			ParseFunctions(topLevelItem, pc);
 			hasFunctions = true;
 		}
 		else if (AreEqual("interface", cmd))
 		{
-			if (!hasConfig) Throw(command, "Must define a (config <config-path>) entry before all interfaces");
 			ParseInterface(topLevelItem, pc, interfaceDefOrder);
 		}
 		else if (AreEqual("enum", cmd))
 		{
-			if (!hasConfig) Throw(command, "Must define a (config <config-path>) entry before all enumerations");
 			ParseEnum(topLevelItem, pc);
 		}
 		else
@@ -1014,7 +1110,7 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 
 	for (auto& i : pc.enums)
 	{
-		GenerateFiles(pc, i.ec, *i.sdef);
+		GenerateEnumFiles(pc, i.ec, *i.sdef);
 	}
 
 	for (auto& I : interfaceDefOrder)
@@ -1023,12 +1119,24 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 		auto& def = *i->second;
 
 		if (def.methodArray.size() < 2) Throw(0, "No methods found for %s", i->first.c_str());
-		GenerateFiles(pc, def.ic, *def.sdef, def.methodArray.data(), *def.sdef);
+		GenerateInterfaceFiles(pc, def.ic, *def.sdef, def.methodArray.data(), *def.sdef);
 	}
 
 	for (auto& i : pc.interfaces)
 	{
 		delete i.second;
+	}
+
+	if (!allCppHeadersOrdered.empty())
+	{
+		char unifiedHeader[MAX_PATH];
+		Strings::SecureFormat(unifiedHeader, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
+		FileAppender unifiedHeaderAppender(unifiedHeader);
+		AddPragmaOnce(unifiedHeaderAppender, unifiedHeader);
+		for (auto& i : allCppHeadersOrdered)
+		{
+			unifiedHeaderAppender.Append("#include \"%s\"\n", i.c_str());
+		}
 	}
 }
 

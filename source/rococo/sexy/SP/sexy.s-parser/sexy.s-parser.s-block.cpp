@@ -709,6 +709,11 @@ namespace Anon
 			return s;
 		}
 
+		cstr c_str() const override
+		{
+			return String()->Buffer;
+		}
+
 		const ISParserTree& Tree() const override
 		{
 			return parent->Tree();
@@ -804,6 +809,11 @@ namespace Anon
 		{
 			auto* s = &const_cast<LiteralExpression*>(this)->header;
 			return s;
+		}
+
+		cstr c_str() const override
+		{
+			return String()->Buffer;
 		}
 
 		const ISParserTree& Tree() const override
@@ -932,6 +942,11 @@ namespace Anon
 		}
 
 		const sexstring String() const override
+		{
+			return nullptr;
+		}
+
+		cstr c_str() const override
 		{
 			return nullptr;
 		}
@@ -1070,6 +1085,11 @@ namespace Anon
 		const sexstring String() const override
 		{
 			Rococo::Sex::Throw(*this, "Compound node has no string value");
+		}
+
+		cstr c_str() const override
+		{
+			return String()->Buffer;
 		}
 
 		const ISParserTree& Tree() const override

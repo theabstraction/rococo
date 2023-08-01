@@ -76,6 +76,11 @@ namespace ANON
 			return &text;
 		}
 
+		cstr c_str() const override
+		{
+			return String()->Buffer;
+		}
+
 		const ISParserTree& Tree() const override
 		{
 			return ToTree(*parent);
@@ -173,6 +178,11 @@ namespace ANON
 		}
 
 		const sexstring String() const override
+		{
+			return nullptr;
+		}
+
+		cstr c_str() const override
 		{
 			return nullptr;
 		}
