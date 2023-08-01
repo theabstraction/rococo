@@ -1107,7 +1107,30 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 		}
 	}
 
-	GenerateDeclarations(pc);
+	char declarationsFile[MAX_PATH];
+	Strings::SecureFormat(declarationsFile, "%s%s_declarations.sxh.h", pc.cppRootDirectory, pc.scriptName);
+
+	char unifiedHeader[MAX_PATH];
+	Strings::SecureFormat(unifiedHeader, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
+
+	{
+		FileAppender declarationsFileAppender(declarationsFile);
+		AddPragmaOnce(declarationsFileAppender, declarationsFile);
+		GenerateInterfaceDeclarations(pc, declarationsFileAppender);
+
+		FileAppender unifiedHeaderAppender(unifiedHeader);
+		AddPragmaOnce(unifiedHeaderAppender, unifiedHeader);
+
+		unifiedHeaderAppender.Append("#include \"%s_declarations.sxh.h\"\n", pc.scriptName);
+
+		GenerateDeclarations(pc, declarationsFileAppender);
+	}
+
+	for (auto& i : pc.enums)
+	{
+		FileAppender cppHeaderAppender(i.ec.appendCppHeaderFile);
+		DeclareCppEnum(cppHeaderAppender, i.ec, *i.sdef, pc);
+	}
 
 	for (auto& i : pc.enums)
 	{
@@ -1130,16 +1153,15 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 
 	if (!allCppHeadersOrdered.empty())
 	{
-		char unifiedHeader[MAX_PATH];
-		Strings::SecureFormat(unifiedHeader, "%s%s.sxh.h", pc.cppRootDirectory, pc.scriptName);
-		size_t rootLen = strlen(pc.cppRootDirectory);
+		size_t rootDirLen = strlen(pc.cppRootDirectory);
+
 		FileAppender unifiedHeaderAppender(unifiedHeader);
-		AddPragmaOnce(unifiedHeaderAppender, unifiedHeader);
+
 		for (auto& i : allCppHeadersOrdered)
 		{
 			if (StartsWith(i.c_str(), pc.cppRootDirectory))
 			{
-				unifiedHeaderAppender.Append("#include \"%s\"\n", i.c_str() + rootLen);
+				unifiedHeaderAppender.Append("#include \"%s\"\n", i.c_str() + rootDirLen);
 			}
 			else
 			{

@@ -33,6 +33,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <algorithm>
+
 void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContext& pc, cstr headerFile);
 
 namespace Rococo
@@ -233,7 +235,7 @@ namespace Rococo
 		}
 	}
 
-	void GenerateDeclarations(const ParseContext& pc)
+	void GenerateDeclarations(const ParseContext& pc, FileAppender& declarationsFileAppender)
 	{
 		std::unordered_set<stdstring> sxyEnumFiles;
 		for (auto& i : pc.enums)
@@ -249,36 +251,112 @@ namespace Rococo
 
 		pc.namespaces.clear();
 
-		for (auto& e : pc.enums)
+		std::unordered_map<std::string, std::vector<const EnumDef*>> mapNsToEnums;
+		for (auto& i : pc.enums)
 		{
-			FileAppender cppFileAppender(e.ec.appendCppHeaderFile);
-			AddPragmaOnce(cppFileAppender, e.ec.appendCppHeaderFile);
-			DeclareCppEnum(cppFileAppender, e.ec, *e.sdef, pc);
+			if (*i.ec.appendCppHeaderFile)
+			{
+				NamespaceSplitter splitter(i.ec.asCppEnum.SexyName());
+				cstr ns, shortName;
+				if (!splitter.SplitTail(OUT ns, OUT shortName))
+				{
+					Throw(0, "Bad split: %s", i.ec.asCppEnum.SexyName());
+				}
+
+				auto j = mapNsToEnums.find(ns);
+				if (j == mapNsToEnums.end())
+				{
+					std::vector<const EnumDef*> enums;
+					j = mapNsToEnums.insert(std::make_pair(std::string(ns), enums)).first;
+				}
+
+				j->second.push_back(&i);
+			}
 		}
 
-		std::unordered_set<stdstring> cppInterfaceFiles;
+		std::vector<std::pair<std::string, std::vector<const EnumDef*>>> sortedNamespaces;
+		for (auto k : mapNsToEnums)
+		{
+			sortedNamespaces.push_back(k);
+		}
 
+		auto byNameLength = [](const std::pair<std::string, std::vector<const EnumDef*>>& a, const std::pair<std::string, std::vector<const EnumDef*>>& b)->bool
+		{
+			return a.first.length() < b.first.length();
+		};
+
+		std::sort(sortedNamespaces.begin(), sortedNamespaces.end(), byNameLength);
+
+		for (auto& k : sortedNamespaces)
+		{
+			std::vector<const EnumDef*>& enumArray = k.second;
+			AppendNamespace(declarationsFileAppender, enumArray[0]->ec.asCppEnum.SexyName(), 0);
+
+			for (auto l : enumArray)
+			{
+				NamespaceSplitter splitter(l->ec.asCppEnum.SexyName());
+				cstr ns, shortName;
+				splitter.SplitTail(OUT ns, OUT shortName);
+
+				declarationsFileAppender.Append("\tenum class %s: %s;\n", shortName, l->ec.underlyingType.FQName());
+			}
+
+			declarationsFileAppender.Append("}\n\n");
+		}
+	}
+
+	void GenerateInterfaceDeclarations(const ParseContext& pc, FileAppender& declarationsFile)
+	{
+		std::unordered_map<std::string, std::vector<InterfaceDef*>> mapNsToInterfaces;
 		for (auto& i : pc.interfaces)
 		{
 			if (*i.second->ic.appendCppHeaderFile)
 			{
-				auto& ic = i.second->ic;
-				cppInterfaceFiles.insert(ic.appendCppHeaderFile);
+				NamespaceSplitter splitter(i.second->ic.asCppInterface.SexyName());
+				cstr ns, shortName;
+				if (!splitter.SplitTail(OUT ns, OUT shortName))
+				{
+					Throw(0, "Bad split: %s", i.second->ic.asCppInterface.SexyName());
+				}
+
+				auto j = mapNsToInterfaces.find(ns);
+				if (j == mapNsToInterfaces.end())
+				{
+					std::vector<InterfaceDef*> interfaces;
+					j = mapNsToInterfaces.insert(std::make_pair(std::string(ns), interfaces)).first;
+				}
+
+				j->second.push_back(i.second);
 			}
 		}
 
-		for (auto& e : cppInterfaceFiles)
+		std::vector<std::pair<std::string, std::vector<InterfaceDef*>>> sortedNamespaces;
+		for (auto k : mapNsToInterfaces)
 		{
-			FileAppender cppFileAppender(e.c_str());
-			AddPragmaOnce(cppFileAppender, e.c_str());
-			for (auto& i : pc.interfaces)
+			sortedNamespaces.push_back(k);
+		}
+
+		auto byNameLength = [](const std::pair<std::string, std::vector<InterfaceDef*>>& a, const std::pair<std::string, std::vector<InterfaceDef*>>& b)->bool
+		{
+			return a.first.length() < b.first.length();
+		};
+
+		std::sort(sortedNamespaces.begin(), sortedNamespaces.end(), byNameLength);
+
+		for (auto& k : sortedNamespaces)
+		{
+			AppendNamespace(declarationsFile, k.second[0]->ic.asCppInterface.SexyName(), 0);
+
+			for (auto l : k.second)
 			{
-				if (*i.second->ic.appendCppHeaderFile)
-				{
-					WriteInterfaceDeclaration(cppFileAppender, i.second->ic.asCppInterface.SexyName(), 0);
-					cppFileAppender.Append(("\n"));
-				}
+				NamespaceSplitter splitter(l->ic.asCppInterface.SexyName());
+				cstr ns, shortName;
+				splitter.SplitTail(OUT ns, OUT shortName);
+
+				declarationsFile.Append("\tstruct %s;\n", shortName);
 			}
+
+			declarationsFile.Append("}\n\n");
 		}
 	}
 
