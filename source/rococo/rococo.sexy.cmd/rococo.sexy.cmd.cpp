@@ -191,22 +191,22 @@ struct CLogger : public ILog
 	TExceptions exceptions;
 } s_logger;
 
-void PrintExpression(cr_sex s, int& totalOutput, int maxOutput)
+void PrintErrorExpression(cr_sex s, int& totalOutput, int maxOutput)
 {
 	switch (s.Type())
 	{
 	case EXPRESSION_TYPE_ATOMIC:
-		totalOutput += printf(" %s", (cstr)s.c_str());
+		totalOutput += fprintf(stderr, " %s", (cstr)s.c_str());
 		break;
 	case EXPRESSION_TYPE_NULL:
-		totalOutput += printf("()");
+		totalOutput += fprintf(stderr, "()");
 		break;
 	case EXPRESSION_TYPE_STRING_LITERAL:
-		totalOutput += printf(" \"%s\"", (cstr)s.c_str());
+		totalOutput += fprintf(stderr, " \"%s\"", (cstr)s.c_str());
 		break;
 	case EXPRESSION_TYPE_COMPOUND:
 
-		totalOutput += printf("( ");
+		totalOutput += fprintf(stderr, "( ");
 
 		for (int i = 0; i < s.NumberOfElements(); ++i)
 		{
@@ -216,16 +216,16 @@ void PrintExpression(cr_sex s, int& totalOutput, int maxOutput)
 			}
 
 			cr_sex child = s.GetElement(i);
-			PrintExpression(child, totalOutput, maxOutput);
+			PrintErrorExpression(child, totalOutput, maxOutput);
 		}
 
-		totalOutput += printf(" )");
+		totalOutput += fprintf(stderr, " )");
 	}
 }
 
 void PrintParseException(const ParseException& e)
 {
-	printf("\r\nParse error:\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n", e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
+	fprintf(stderr, "\r\nParse error:\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n", e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
 
 	int depth = 0;
 	for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
@@ -233,11 +233,11 @@ void PrintParseException(const ParseException& e)
 		if (depth++ > 0)  printf("Macro expansion %d:\r\n", depth);
 
 		int totalOutput = 0;
-		PrintExpression(*s, totalOutput, 1024);
+		PrintErrorExpression(*s, totalOutput, 1024);
 
-		if (totalOutput > 1024) printf("...");
+		if (totalOutput > 1024) fprintf(stderr, "...");
 
-		printf("\r\n");
+		fprintf(stderr, "\r\n");
 	}
 }
 
@@ -277,7 +277,7 @@ int PrintError(IException& ex)
 	}
 	else
 	{
-		printf("%s", ex.Message());
+		fprintf(stderr, "%s", ex.Message());
 		return 0;
 	}
 
@@ -613,7 +613,7 @@ int mainProtected(int argc, char* argv[])
 				int32 exitCode = sc.Execute(result, stats, 0, *ssFactory, *debuggerWindow, *sourceCache, s_CmdIncludes);
 				if (exitCode != 0)
 				{
-					printf("Script '%s' returned an error code.", result);
+					fprintf(stderr, "Script '%s' returned an error code. %d (0x%8.8x)", result, exitCode, exitCode);
 					return exitCode;
 				}
 			}
@@ -625,13 +625,13 @@ int mainProtected(int argc, char* argv[])
 		}
 		if (count == 0)
 		{
-			printf("Warning. No script run. Usage %s run=<script-file> <args...>\n", argv[0]);
+			fprintf(stderr, "Warning.No script run.Usage % s run = <script - file> <args...>\n", argv[0]);
 			return E_FAIL;
 		}
 	}
 	catch (STCException& e)
 	{
-		printf("Error: %s\r\nSource: %s\r\n.Code %d", e.Message(), e.Source(), e.Code());
+		fprintf(stderr, "Error: % s\r\nSource: % s\r\n.Code % d", e.Message(), e.Source(), e.Code());
 		return e.Code();
 	}
 	catch (ParseException& e)
@@ -646,7 +646,7 @@ int mainProtected(int argc, char* argv[])
 	}
 	catch (std::exception& stdex)
 	{
-		printf("std::exception: %s\r\n", stdex.what());
+		fprintf(stderr, "std::exception: %s\r\n", stdex.what());
 		return E_FAIL;
 	}
 

@@ -41,6 +41,10 @@
 #include <list>
 #include <rococo.time.h>
 
+#include <pathcch.h>
+
+#pragma comment(lib, "Pathcch.lib")
+
 #include <allocators/rococo.allocators.inl>
 
 using namespace Rococo::IO;
@@ -307,6 +311,17 @@ namespace Rococo
 			return new Win32ROBinMapping(sysPath);
 		}
 
+		void NormalizePath(WideFilePath& path)
+		{
+			WideFilePath out;
+			HRESULT hr = PathCchCanonicalizeEx(OUT out.buf, WideFilePath::CAPACITY, path, PATHCCH_NONE);
+			if FAILED(hr)
+			{
+				Throw(hr, "Failed to normalize path for %ws", path.buf);
+			}
+
+			path = out;
+		}
 
 		ROCOCO_API bool IsKeyPressed(int vkeyCode)
 		{
@@ -1150,10 +1165,20 @@ namespace WIN32_ANON
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 			len = (int32)wcslen(contentDirectory);
+
+			if (!IO::IsDirectory(contentDirectory))
+			{
+				Throw(0, "No such content directory: %ws", contentDirectory);
+			}
 		}
 
 		Installation(IOS& _os, const wchar_t* contentPath) : os(_os)
 		{
+			if (!IO::IsDirectory(contentPath))
+			{
+				Throw(0, "No such content directory: %ws", contentPath);
+			}
+
 			len = Format(contentDirectory, L"%ls", contentPath);
 		}
 
@@ -1913,7 +1938,37 @@ namespace Rococo::IO
 			Throw(0, "Content %ws did not end with %ws", contentDirectory, slash);
 		}
 
-		return new WIN32_ANON::Installation(os, contentDirectory);
+		bool assumeAbsolute = false;
+
+		size_t len = wcslen(contentDirectory);
+		if (len > 2)
+		{
+			if (contentDirectory[1] == L':' && IsCapital((char)contentDirectory[0]))
+			{
+				assumeAbsolute = true;
+			}
+		}
+
+		if (contentDirectory[0] == IO::GetFileSeparator())
+		{
+			assumeAbsolute = true;
+		}
+
+		if (!assumeAbsolute)
+		{
+			U8FilePath currentDir;
+			IO::GetCurrentDirectoryPath(currentDir);
+
+			WideFilePath absPath;
+			Format(absPath, L"%hs\\%ws", currentDir.buf, contentDirectory);
+
+			IO::NormalizePath(absPath);
+			return new WIN32_ANON::Installation(os, absPath);
+		}
+		else
+		{
+			return new WIN32_ANON::Installation(os, contentDirectory);
+		}
 	}
 }
 

@@ -1,0 +1,6 @@
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(function Main -> (Int32 exitCode):
+	(exitCode = -1)
+)
