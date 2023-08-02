@@ -1,3 +1,5 @@
+(module Rococo)
+
 (enum Int32
 	(as.sxy Rococo.LayoutId "mplat_gui")
 	(as.cpp Rococo.ELayoutAlgorithm)
@@ -223,9 +225,9 @@
 )
 
 (interface 
-	(as.sxy Rococo.MPlat.Configuration.IConfig "mplat_config")
-	(as.cpp Rococo.MPlat.Configuration.IConfig)
-	(context factory Rococo.MPlat.Configuration.IConfig)
+	(as.sxy Rococo.Configuration.IConfig "mplat_config")
+	(as.cpp Rococo.Configuration.IConfig)
+	(context factory Rococo.Configuration.IConfig)
 	(methods
 		(Int   (IString name)(Int32 value))
 		(Float (IString name)(Float32 value))
@@ -237,7 +239,7 @@
 		(GetBool   (IString name)->(Bool value))
 		(GetText   (IString name)(IStringBuilder text))
 	)
-	(factory Rococo.MPlat.Configuration.Config)
+	(factory Rococo.Configuration.Config)
 )
 
 (interface 

@@ -132,7 +132,7 @@ namespace Rococo
 	}
 }
 
-#include <../rococo.mplat/code-gen/mplat.sxh.h>
+#include <../rococo.mplat/code-gen/rococo.sxh.h>
 
 namespace Rococo::Joysticks
 {
@@ -211,7 +211,7 @@ namespace Rococo
 		};
 	}
 
-	ROCOCO_INTERFACE IConfigSupervisor : public Rococo::MPlat::Configuration::IConfig
+	ROCOCO_INTERFACE IConfigSupervisor : public Rococo::Configuration::IConfig
 	{
 		virtual cstr GetText(cstr name) const = 0;
 		virtual bool TryGetInt(cstr name, int& value, int defaultValue) const = 0;
@@ -933,7 +933,6 @@ namespace Rococo
 
 namespace Rococo
 {
-	using namespace MPlat;
 	struct ScriptPerformanceStats;
 
 	namespace Windows::IDE

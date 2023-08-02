@@ -113,7 +113,7 @@ namespace Rococo::Audio
 #pragma pack(pop)
 }
 
-#include "../rococo.audio/rococo.audio.sxh.h"
+#include "../rococo.audio/Audio.sxh.h"
 
 #ifndef ROCOCO_AUDIO_API
 # define ROCOCO_AUDIO_API __declspec(dllimport)

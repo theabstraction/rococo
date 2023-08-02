@@ -50,7 +50,7 @@
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
     <NMakeBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration) BIN=$(OutDir)</NMakeBuildCommandLine>
     <NMakeOutput>unused.txt</NMakeOutput>
-    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration) BIN=$(OutDir)</NMakeReBuildCommandLine>
+    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak rebuild CONFIG=$(Configuration) BIN=$(OutDir)</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak clean CONFIG=$(Configuration) BIN=$(OutDir)</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -60,9 +60,9 @@
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <NMakeBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration)  BIN=$(OutDir)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration) BIN=$(OutDir)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak clean CONFIG=$(Configuration) BIN=$(OutDir)</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine>nmake -f ..\..\source\rococo\rococo.build.final\makefile.mak rebuild CONFIG=$(Configuration)  BIN=$(OutDir)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak rebuild CONFIG=$(Configuration) BIN=$(OutDir)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak CONFIG=$(Configuration) BIN=$(OutDir)</NMakeCleanCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

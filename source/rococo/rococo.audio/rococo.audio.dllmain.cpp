@@ -46,7 +46,7 @@ Rococo::Audio::IAudio* FactoryConstructRococoAudioGetAudio(Rococo::Audio::IAudio
     return _context;
 }
 
-#include "rococo.audio.sxh.inl"
+#include "Audio.sxh.inl"
 
 namespace  Rococo::Audio
 {

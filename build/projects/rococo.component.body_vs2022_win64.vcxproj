@@ -143,15 +143,13 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.component.body.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.body.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\body\code-gen rococo\components\body body.sxh ..\..\..\config.xc
-</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\body\code-gen rococo\components\body body.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -234,20 +232,19 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.component.body.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.body.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\body\code-gen rococo\components\body body.sxh ..\..\..\config.xc
-</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\body\code-gen rococo\components\body body.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh" />
     <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\components\body\code-gen\body_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
   </ItemGroup>

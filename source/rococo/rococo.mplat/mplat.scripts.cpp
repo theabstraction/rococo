@@ -17,7 +17,7 @@ namespace Rococo // declarations herein are to help intellisense do its job.
 		struct IPaneBuilder;
 	}
 
-	namespace MPlat::Configuration
+	namespace Configuration
 	{
 		struct IConfig;
 	}
@@ -113,7 +113,7 @@ Rococo::Graphics::IRimTesselator* FactoryConstructRococoGraphicsRimTesselator(Ro
 	return t;
 }
 
-Rococo::Configuration::IConfig* FactoryConstructRococoMPlatConfigurationConfig(Rococo::Configuration::IConfig* c)
+Rococo::Configuration::IConfig* FactoryConstructRococoConfigurationConfig(Rococo::Configuration::IConfig* c)
 {
    return c;
 }
@@ -173,7 +173,7 @@ Rococo::Audio::IAudio* FactoryConstructRococoAudioGetAudio(Rococo::Audio::IAudio
 	return a;
 }
 
-#include <../rococo.mplat/code-gen/mplat.sxh.inl>
+#include <../rococo.mplat/code-gen/rococo.sxh.inl>
 
 #include <rococo.sexy.ide.h>
 #include <rococo.strings.h>
@@ -336,7 +336,7 @@ namespace Rococo
 						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
-						Rococo::MPlat::Configuration::AddNativeCalls_RococoMPlatConfigurationIConfig(args.ss, &platform.data.config);
+						Rococo::Configuration::AddNativeCalls_RococoConfigurationIConfig(args.ss, &platform.data.config);
 						Rococo::AddNativeCalls_RococoIArchive(args.ss, &platform);
 						Rococo::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
 
@@ -487,7 +487,7 @@ namespace Rococo
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
 					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
-					Rococo::MPlat::Configuration::AddNativeCalls_RococoMPlatConfigurationIConfig(args.ss, config);
+					Rococo::Configuration::AddNativeCalls_RococoConfigurationIConfig(args.ss, config);
 				}
 			} onCompile;
 

@@ -16,10 +16,11 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.audio.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.audio\Audio.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\Audio.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\Audio_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio_declarations.sxh.h" />
   </ItemGroup>

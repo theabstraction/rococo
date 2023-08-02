@@ -149,7 +149,7 @@
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.audio.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.audio rococo\audio rococo.audio.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.audio rococo\audio Audio.sxh config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -238,15 +238,16 @@
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.audio.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.audio rococo\audio rococo.audio.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.audio rococo\audio Audio.sxh config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\rococo.audio.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\Audio.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\Audio.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\Audio_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio_declarations.sxh.h" />
   </ItemGroup>

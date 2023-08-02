@@ -1050,7 +1050,13 @@ namespace Rococo
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
-            AddSXHFileBuildStep(conf, target, @"mplat.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
+
+            conf.AddPrivateDependency<RococoComponentsAnimationProject>(target);
+            conf.AddPrivateDependency<RococoComponentsBodyProject>(target);
+            conf.AddPrivateDependency<RococoComponentsConfigurationProject>(target);
+            conf.AddPrivateDependency<RococoComponentsSkeletonProject>(target);
+            conf.AddPrivateDependency<RococoAudioProject>(target);
         }
     }
 
@@ -1200,7 +1206,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.IncludePaths.Add(@"..\..\3rd-party\libvorbis\include\");
             conf.IncludePaths.Add(@"..\..\3rd-party\libogg\include\");
-            AddSXHFileBuildStep(conf, target, "rococo.audio.sxh", "config.xc", @"rococo\audio", true);
+            AddSXHFileBuildStep(conf, target, "Audio.sxh", "config.xc", @"rococo\audio", true);
         }
     }
 
@@ -1234,6 +1240,8 @@ namespace Rococo
             conf.Output = Configuration.OutputType.None; // Required to create dependencies in a compiled/not-generated object
 
             conf.AddPrivateDependency<RococoPackagerProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoAudioProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoMPlatProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoMHostProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<SexyBennyHillProject>(target, DependencySetting.OnlyBuildOrder);
        //     conf.AddPrivateDependency<RococoSexyStudioTestProject>(target, DependencySetting.OnlyBuildOrder);
