@@ -486,7 +486,7 @@ namespace Rococo
 				void OnCompile(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
-					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
+					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
 					Rococo::Configuration::AddNativeCalls_RococoConfigurationIConfig(args.ss, config);
 				}
 			} onCompile;
