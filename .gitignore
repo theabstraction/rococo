@@ -54,3 +54,4 @@ out/
 *.rococo-events.cpp
 sharpmake/generated/
 *.sxh.inl
+*_sxh.sxy
