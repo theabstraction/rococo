@@ -1,5 +1,5 @@
 #include "rococo.mplat.h"
-
+#include <rococo.io.h>
 #include "rococo.hashtable.h"
 
 using namespace Rococo;

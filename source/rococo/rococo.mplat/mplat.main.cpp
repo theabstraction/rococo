@@ -1,4 +1,5 @@
 #include <rococo.mplat.h>
+#include <rococo.io.h>
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 #include <rococo.sexy.ide.h>

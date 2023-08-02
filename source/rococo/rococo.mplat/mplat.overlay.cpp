@@ -2,6 +2,7 @@
 #include "mplat.panel.base.h"
 #include <rococo.strings.h>
 #include <rococo.ui.h>
+#include <rococo.io.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

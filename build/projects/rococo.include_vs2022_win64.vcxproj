@@ -160,6 +160,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\include\rococo.mplat.types.h" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.template.h" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.dll.inl" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.inl" />
@@ -218,6 +219,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.meshes.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.mouse.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.mplat.dynamic.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.editors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.mplat.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.mplat.main.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ninja.h" />
@@ -232,6 +234,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.reflector.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.release.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.api.h" />

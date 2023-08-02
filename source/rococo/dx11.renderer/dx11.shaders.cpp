@@ -3,6 +3,7 @@
 #include "dx11helpers.inl"
 #include "dx11buffers.inl"
 #include "rococo.hashtable.h"
+#include "rococo.io.h"
 #include <vector>
 #include <comdef.h>
 

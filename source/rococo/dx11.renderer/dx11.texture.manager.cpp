@@ -1,4 +1,5 @@
 #include "dx11.renderer.h"
+#include "rococo.io.h"
 #include "rococo.renderer.h"
 #include "dx11helpers.inl"
 #include "dx11buffers.inl"

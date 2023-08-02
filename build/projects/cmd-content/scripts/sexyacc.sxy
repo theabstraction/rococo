@@ -1,6 +1,124 @@
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
+(using Sys.Reflection)
+(using Sys.Type)
+(using Sys.IO)
+
+/* If this is the input
+(' 
+	(Parser Adventure-Game)
+	(<root> : (compound any of (Room Item)))
+	("room" name room-def : Room (String name)(s room-def compound anyof (Item)))
+	("item" name item-def: Item (String name)(s item-def compound anyof (Stats,Item)))
+	("stats" strength dexterity nerdiness : Stats (Int32 strength range 3 to 18) (Int32 dexterity range 1 to 18)(Int32 nerdiness 1 to 7)))
+)
+*/
+
+// Then this is the output
+/*
+
+(interface Sys.SexYacc.IRoomRoomDefArgEnumerator
+	(method AddItem (IString name, (IItemItemDefArgEnumerator enumerateRoomDef)->)
+)
+
+(interface Sys.SexYacc.IItemItemDefArgEnumerator
+	(method AddItem (IString name, (IItemItemDefArgEnumerator enumerateRoomDef)->)
+	(method AddStats (IString name )-> (Int32 strength)(Int32 dexterity)(Int32 nerdiness)->)
+	
+)
+
+(interface Sys.SexYacc.IRootCodeBuilder 
+	(method AddRoom (IString name) (IRoomRoomDefArgEnumerator enumerateRoomDef)->)
+	(method AddItem (IString name, (IItemItemDefArgEnumerator enumerateRoomDef)->)
+	
+)
+
+(function Parse (IExpression adventureGame)(Sys.SexYacc.ICodeBuilder builder)-> :
+	...
+)
+
+*/
+
+(function FindChildIndexOfItem (IExpression s) (Int32 startIndex)(IString text)->(Int32 index):
+	(#for (Int32 i = 0)(i < s.ChildCount)(i += 1)
+		(IExpression child = (s i))
+		(Int32 type = child.Type)
+		(if ((type == (#ExpressionTypeAtomic)) or (type == (#ExpressionTypeString)))
+			(if (Sys.Type.Strings.IsExactMatch child.Text text)
+				(index = i)
+				(return)
+			)
+		)
+	)
+	
+	(index = -1)
+)
+
+(function IsSubExpressionThisString (IExpression s)(Int32 index)(IString text)->(Bool isMatch):
+	(IExpression child = (s index))
+	(Sys.Type.Strings.IsExactMatch child.Text text -> isMatch)
+)
+
+(function GetTextOfSubexpression (IExpression s)(Int32 index)->(IString text):
+	(IExpression child = (s index))
+	(text = child.Text)
+) 
+	
 (function Main -> (Int32 exitCode):
-	(exitCode = -1)
+	(IExpression s =  '
+		(
+			(Parser Adventure-Game)
+			(<root> : (compound any of (Room Item)))
+			("room" name room-def : Room (String name)(s room-def compound anyof (Item)))
+			("item" name item-def : Item (String name)(s item-def compound anyof (Stats,Item)))
+			("stats" strength dexterity nerdiness : Stats (Int32 strength range 3 to 18) (Int32 dexterity range 1 to 18)(Int32 nerdiness 1 to 7))
+		)
+	)
+	
+	(if (s.ChildCount < 3)
+		(s.Throw -1 "The number of elements in the yacc spec was fewer than 3, the minimum")
+	)
+	
+	(IExpression sParserLine = (s 0))
+	(IExpression sRoot = (s 1))
+	
+	(if (sParserLine.ChildCount != 2)
+		(sParserLine.Throw -1 "The parser line expects two elements, &"Parser&" and <parser-name>")
+	)
+	
+	(IExpression sParserKey = (sParserLine 0))
+	(if (not (IsSubExpressionThisString sParserLine 0 "Parser"))
+		(sParserKey.Throw -1 "The first parser element must be &"Parser&"")
+	)
+	
+	(IExpression sParserName = (sParserLine 1))
+	(IString parserName = sParserName.Text)
+	(#printf "// Building a parser for <" parserName ">....&n")
+	
+	(Int32 i = 2)
+	(while (i < s.ChildCount)
+		(IExpression sDirective = (s i))
+		
+		(if (sDirective.ChildCount < 3)
+			(sDirective.Throw -1 "Expecting at least three elements on a directive")
+		)
+		
+		(Int32 colonIndex = (FindChildIndexOfItem sDirective 0 ":"))
+		(if (colonIndex < 0)
+			(sDirective.Throw -1 "Could not find naked colon in directive. Be sure to a colon exists in the directive surrounded by whitespace on both sides")
+		)
+		
+		(if (colonIndex == ((sDirective.ChildCount) - 1))
+			(sDirective.Throw -1 "There needs to be a <handler> name after the colon")
+		)
+		
+		(IString handler = (GetTextOfSubexpression sDirective (colonIndex + 1)))
+		(#printf "// Writing code for " handler "&n")
+		
+		(i += 1)		
+	)
+	
+	(#printf "// Terminated!")	
+	(exitCode = 0)
 )

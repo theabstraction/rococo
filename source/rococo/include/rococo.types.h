@@ -693,6 +693,25 @@ namespace Rococo
 		}
 	};
 
+	struct alignas(4) Vec4 // was 16, but sexy does not align on 16 byte boundaries yet
+	{
+		float x;
+		float y;
+		float z;
+		float w;
+
+		inline static Vec4 FromVec3(cr_vec3& v, float w)
+		{
+			return{ v.x, v.y, v.z, w };
+		}
+
+		inline operator DirectX::XMFLOAT4* () { return reinterpret_cast<DirectX::XMFLOAT4*> (this); }
+		inline operator const DirectX::XMFLOAT4* () const { return reinterpret_cast<const DirectX::XMFLOAT4*> (this); }
+
+		inline operator const Vec3& () const { return *reinterpret_cast<const Vec3*> (this); }
+		inline operator Vec3& () { return *reinterpret_cast<Vec3*> (this); }
+	};
+
 	struct alignas(4) Quat
 	{
 		Vec3 v;

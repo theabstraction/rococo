@@ -4,6 +4,7 @@
 #include <rococo.maths.h>
 #include <rococo.sexy.api.h>
 #include <sexy.script.h>
+#include <rococo.io.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

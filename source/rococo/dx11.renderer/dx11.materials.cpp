@@ -4,6 +4,7 @@
 #include "dx11buffers.inl"
 #include "rococo.hashtable.h"
 #include "rococo.imaging.h"
+#include "rococo.io.h"
 
 using namespace Rococo::DX11;
 

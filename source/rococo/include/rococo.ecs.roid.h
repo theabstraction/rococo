@@ -85,3 +85,9 @@ namespace Rococo::Components
 		virtual EFlowLogic OnROID(ROID id) = 0;
 	};
 }
+
+namespace Rococo
+{
+	// Deprecated name
+	using ID_ENTITY = Rococo::Components::ROID;
+}

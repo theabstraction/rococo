@@ -1,5 +1,6 @@
 #include <rococo.mplat.h>
 #include <rococo.hashtable.h>
+#include <rococo.io.h>
 #include <vector>
 #include <algorithm>
 

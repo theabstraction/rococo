@@ -127,6 +127,9 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+    <ClInclude Include="..\..\source\include\rococo.mplat.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mplat.editors.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.types.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="allocators">

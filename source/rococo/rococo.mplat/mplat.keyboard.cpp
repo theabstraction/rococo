@@ -5,7 +5,7 @@
 #include <rococo.os.win32.h>
 
 #include <rococo.strings.h>
-
+#include <rococo.io.h>
 #include <rococo.ui.h>
 
 namespace

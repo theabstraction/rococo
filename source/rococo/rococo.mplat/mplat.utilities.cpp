@@ -13,6 +13,7 @@
 #include <rococo.file.browser.h>
 #include <rococo.sexy.api.h>
 #include <rococo.time.h>
+#include <rococo.io.h>
 
 #include <algorithm>
 #include <string>
@@ -152,7 +153,7 @@ public:
 		dialog.hwndOwner = parent;
 		dialog.lpstrFilter = filter;
 		dialog.nFilterIndex = 1;
-		dialog.lpstrFile = ld.path;
+		dialog.lpstrFile = ld.wPath.buf;
 		dialog.nMaxFile = Rococo::IO::MAX_PATHLEN;
 
 		wchar_t u16Caption[256];
@@ -170,7 +171,7 @@ public:
 
 		if (GetOpenFileNameW(&dialog))
 		{
-			ld.shortName = ld.path + dialog.nFileOffset;
+			ld.shortName = ld.wPath + dialog.nFileOffset;
 			return true;
 		}
 		else
@@ -191,8 +192,8 @@ public:
 		dialog.hwndOwner = parent;
 		dialog.lpstrFilter = filter;
 		dialog.nFilterIndex = 1;
-		dialog.lpstrFile = sd.path;
-		dialog.nMaxFile = sizeof(sd.path) / sizeof(wchar_t);
+		dialog.lpstrFile = sd.wPath.buf;
+		dialog.nMaxFile = sizeof(sd.wPath) / sizeof(wchar_t);
 
 		wchar_t u16Caption[256];
 		SafeFormat(u16Caption, 256, L"%hs", sd.caption);
@@ -204,19 +205,19 @@ public:
 
 		wchar_t initialPath[IO::MAX_PATHLEN];
 
-		size_t len = wcslen(sd.path);
+		size_t len = wcslen(sd.wPath);
 
-		if (sd.path[len - 1] == '\\')
+		if (sd.wPath[len - 1] == '\\')
 		{
-			SafeFormat(initialPath, IO::MAX_PATHLEN, L"%s", sd.path);
-			*sd.path = 0;
+			SafeFormat(initialPath, IO::MAX_PATHLEN, L"%s", sd.wPath.buf);
+			sd.wPath.buf[0] = 0;
 		}
 
 		renderer.SwitchToWindowMode();
 
 		if (GetSaveFileNameW(&dialog))
 		{
-			sd.shortName = sd.path + dialog.nFileOffset;
+			sd.shortName = sd.wPath + dialog.nFileOffset;
 			return true;
 		}
 		else

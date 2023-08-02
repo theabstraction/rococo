@@ -1,4 +1,5 @@
 #include <rococo.mplat.h>
+#include <rococo.io.h>
 #include <rococo.strings.h>
 #include <rococo.maths.h>
 #include <rococo.animation.h>

@@ -13,13 +13,13 @@
 #include <components/rococo.components.skeleton.h>
 #include <components/rococo.components.animation.h>
 #include <mplat.components.decl.h>
+#include <rococo.mplat.types.h>
+#include <rococo.mplat.editors.h>
 
 using namespace Rococo::Strings;
 
 namespace Rococo
 {
-	using ID_ENTITY = Rococo::Components::ROID;
-
 	struct IScriptEnumerator;
 	struct ISourceCache;
 
@@ -31,8 +31,6 @@ namespace Rococo
 			return id.index;
 		}
 	};
-
-	ROCOCO_ID(ID_SPRITE, uint64, 0);
 
 	namespace Entities
 	{
@@ -467,53 +465,6 @@ namespace Rococo
 		cstr pingPath;
 	};
 
-	struct IUIElement
-	{
-		// Route a keyboard event to the element. Returns false to redirect event to the parent element
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key) = 0;
-		virtual void OnRawMouseEvent(const MouseEvent& ev) = 0;
-		virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) = 0;
-		virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown) = 0;
-		virtual void OnMouseRClick(Vec2i cursorPos, bool clickedDown) = 0;
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect) = 0;
-	};
-
-	ROCOCO_INTERFACE IBloodyPropertySetEditor : public IUIElement
-	{
-		virtual void AddBool(cstr name, bool* value) = 0;
-		virtual void AddSpacer() = 0;
-		virtual void AddFloat(cstr name, float* value, float minValue, float maxValue) = 0;
-		virtual void AddFloatRange(cstr name, float* leftValue, float* rightValue, float minValue, float maxValue) = 0;
-		virtual void AddInt(cstr name, bool addHexView, int* value) = 0;
-		virtual void AddMaterialCategory(cstr name, cstr notifyId, Graphics::MaterialCategory* cat) = 0;
-		virtual void AddMessage(cstr message) = 0;
-		virtual void AddColour(cstr name, RGBAb* colour) = 0;
-		virtual void AddMaterialString(cstr name, MaterialId& id, cstr notifyId, char* value, size_t valueLen) = 0;
-		virtual void AddPingPath(cstr name, char* value, size_t valueLen, cstr defaultSubDir, int32 width) = 0;
-		virtual void AddButton(cstr name, cstr eventName) = 0;
-		virtual void Clear();
-	};
-
-	ROCOCO_INTERFACE IBloodyPropertySetEditorSupervisor : public IBloodyPropertySetEditor
-	{
-		virtual void Free() = 0;
-	};
-
-	struct BloodyNotifyArgs
-	{
-		IBloodyPropertySetEditorSupervisor& bs;
-		cstr sourceName;
-		cstr notifyId;
-	};
-
-	IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(Platform& _platform, IEventCallback<BloodyNotifyArgs>& _onDirty, IScriptCompilationEventHandler& onCompileUIPanel);
-
-	struct UIPopulate : public Events::EventArgs
-	{
-		IUIElement* renderElement;
-		cstr name;
-	};
-
 	struct IPaneSupervisor : virtual GUI::IPane
 	{
 		virtual bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
@@ -613,7 +564,7 @@ namespace Rococo
 		cstr caption;
 		cstr ext;
 		cstr extDesc;
-		wchar_t path[IO::MAX_PATHLEN];
+		WideFilePath wPath;
 		const wchar_t* shortName;
 	};
 
@@ -622,7 +573,7 @@ namespace Rococo
 		cstr caption;
 		cstr ext;
 		cstr extDesc;
-		wchar_t path[IO::MAX_PATHLEN];
+		WideFilePath wPath;
 		const wchar_t* shortName;
 	};
 

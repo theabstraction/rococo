@@ -4,6 +4,7 @@
 #include <rococo.maths.h>
 #include <rococo.textures.h>
 #include <rococo.ui.h>
+#include <rococo.io.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

@@ -1,6 +1,7 @@
 #include <rococo.mplat.h>
 #include <rococo.strings.h>
 #include <rococo.ui.h>
+#include <rococo.io.h>
 #include <rococo.textures.h>
 #include <rococo.hashtable.h>
 #include <rococo.time.h>
