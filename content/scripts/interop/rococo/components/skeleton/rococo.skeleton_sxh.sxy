@@ -1,12 +1,45 @@
 (namespace Rococo.Components.Skeleton)
+
 (interface Rococo.Components.Skeleton.ISkeletonBase
 )
 
-(class ProxyISkeletonBase (implements Rococo.Components.Skeleton.ISkeletonBase) (Pointer hObject) (attribute not-serialized))
-	(method ProxyISkeletonBase.Construct (Pointer hObject): (this.hObject = hObject))
-
-(factory Rococo.Components.Skeleton.GetSkeleton Rococo.Components.Skeleton.ISkeletonBase  :
-	(Pointer pObject = (Rococo.Components.Skeleton.Native.GetHandleForISkeletonBase0 ))
-	(construct ProxyISkeletonBase pObject)
+(class ProxyISkeletonBase
+	(implements Rococo.Components.Skeleton.ISkeletonBase)
+	(attribute not-serialized)
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.ROID roid)
 )
+
+(method ProxyISkeletonBase.Construct(Rococo.Components.ROID id)(Sys.Type.ComponentRef ref) :
+	this.roid = id;
+	this.ref.hComponent = ref.hComponent;
+	this.ref.hLife = ref.hLife;
+)
+
+(method ProxyISkeletonBase.Destruct :
+	(Rococo.Components.Skeleton.Native.DestructSkeleton ref)
+)
+
+(factory Rococo.Components.Skeleton.AddSkeleton Rococo.Components.Skeleton.ISkeletonBase (Rococo.Components.ROID id):
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Skeleton.Native.AddSkeleton ref id)
+
+	(if (outref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyISkeletonBase id ref)
+)
+
+(factory Rococo.Components.Skeleton.GetSkeleton Rococo.Components.Skeleton.ISkeletonBase (Rococo.Components.ROID id) :
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Skeleton.Native.GetSkeleton ref id)
+
+	(if (outref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyISkeletonBase id ref)
+)
+
 

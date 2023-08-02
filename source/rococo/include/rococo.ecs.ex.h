@@ -9,11 +9,6 @@ namespace Rococo::Components
         virtual EFlowLogic OnComponent(ROID id, T& item) = 0;
     };
 
-    ROCOCO_INTERFACE IComponentBase
-    {
-
-    };
-
     ROCOCO_INTERFACE IComponentTable
     {
         virtual IECS & ECS() = 0;

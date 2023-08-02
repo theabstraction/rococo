@@ -1,10 +1,12 @@
 (interface 
 	(as.sxy Rococo.Components.Body.IBodyBase "rococo.body")
-	(as.cpp Rococo.Components.Body.IBodyBase)
+	(as.cpp Rococo.Components.Generated.IBodyBase Rococo::Components::IComponentBase)
 	
-	(context factory Rococo.Components.Body.IBodyBase)
+	(context factory Rococo.Components.Generated.IBodyBase)
 	(methods
+		(const GetModel (Matrix4x4 model)->  )
+		(SetModel (const Matrix4x4 model)-> )
 	)
 
-	(factory Rococo.Components.Body.GetBody)
+	(component Rococo::Components::API::ForIBodyComponent Body Rococo::Components::IBodyComponent)
 )

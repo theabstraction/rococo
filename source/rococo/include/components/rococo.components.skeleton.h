@@ -1,6 +1,7 @@
 #pragma once
 #include <rococo.ecs.ex.h>
 #include <rococo.meshes.h>
+#include <..\components\skeleton\code-gen\skeleton.sxh.h>
 
 #ifndef ROCOCO_COMPONENTS_SKELETON_API
 # define ROCOCO_COMPONENTS_SKELETON_API ROCOCO_API_IMPORT
@@ -13,7 +14,7 @@ namespace Rococo::Entities
 
 namespace Rococo::Components
 {
-    ROCOCO_INTERFACE ISkeletonComponent : IComponentBase
+    ROCOCO_INTERFACE ISkeletonComponent : Rococo::Components::Generated::ISkeletonBase
     {
         virtual Entities::ISkeleton* Skeleton() = 0;
         virtual void SetSkeleton(cstr skeletonName) = 0;

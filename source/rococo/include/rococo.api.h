@@ -15,8 +15,6 @@ namespace Rococo
 {
 	ROCOCO_API bool IsPointerValid(const void* ptr);
 
-	struct Quat;
-
 	ROCOCO_ID(ID_FONT, int32, -1);
 	ROCOCO_ID(ID_TEXTURE, size_t, (size_t)-1LL);
 	ROCOCO_ID(ID_VERTEX_SHADER, size_t, (size_t)-1LL);
@@ -24,16 +22,9 @@ namespace Rococo
 	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
 	ROCOCO_ID(ID_PIXEL_SHADER, size_t, (size_t)-1LL);
 								     
-	struct Sphere
-	{
-		Vec3 centre;
-		float radius;
-	};
-
 	struct Platform;
 	struct Gravity;
 	struct Metres;
-	struct Quat;
 
 	struct StringKeyValuePairArg
 	{

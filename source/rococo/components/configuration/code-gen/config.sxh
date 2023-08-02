@@ -1,15 +1,11 @@
 (interface 
 	(as.sxy Rococo.Components.Config.IConfigBase "rococo.config")
-	(as.cpp Rococo.Components.Config.IConfigBase)
+	(as.cpp Rococo.Components.Generated.IConfigBase Rococo::Components::IComponentBase)
 	
-	(context factory Rococo.Components.Config.IConfigBase)
+	(context factory Rococo.Components.Generated.IConfigBase)
 	(methods
-        (Deprecate (ROID roid) -> (Bool success))
-        (DeprecateAll ->)
-		(IsActive (ROID roid)-> (Bool isActive))
-		(MaxTableEntries -> (Int64 numberOfEntries))
-		(NewROID -> (ROID roid))
+       
 	)
 
-	(factory Rococo.Components.Config.GetConfig)
+	(component Rococo::Components::API::ForIConfigurationComponent Config Rococo::Components::IConfigurationComponent)
 )

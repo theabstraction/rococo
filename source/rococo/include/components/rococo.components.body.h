@@ -3,9 +3,11 @@
 #include <rococo.meshes.h>
 #include <rococo.functional.h>
 
+#include <..\components\body\code-gen\body.sxh.h>
+
 namespace Rococo::Components
 {
-    ROCOCO_INTERFACE IEntity : IComponentBase
+    ROCOCO_INTERFACE IEntity : Generated::IBodyBase
     {
         virtual cr_m4x4 Model() const = 0;
         virtual ROID Parent() const = 0;

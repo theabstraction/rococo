@@ -28,6 +28,11 @@ namespace Rococo::Components
             return scale;
         }
 
+        void GetModel(Matrix4x4& model) const override
+        {
+            model = this->model;;
+        }
+
         void SetModel(cr_m4x4 model) override
         {
             this->model = model;

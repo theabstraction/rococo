@@ -248,6 +248,7 @@
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio_declarations.sxh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.audio\rococo.audio.concert.3D.cpp" />

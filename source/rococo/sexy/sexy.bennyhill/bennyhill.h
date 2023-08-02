@@ -21,7 +21,12 @@ namespace Rococo
 
    bool AreEqual(cstr s, const sexstring& t);
 
-   class FileAppender
+   ROCOCO_INTERFACE ITextBuilder
+   {
+       virtual void WriteString(cstr s) = 0;
+   };
+
+   class FileAppender: public ITextBuilder
    {
    private:
       HANDLE hFile;
@@ -35,6 +40,7 @@ namespace Rococo
       void Append(cstr format, ...);
       void Append(char c);
       void AppendSequence(int count, char c);
+      void WriteString(cstr s) override;
    };
 
    void WriteStandardErrorCode(int errorCode);
@@ -101,6 +107,10 @@ namespace Rococo
 	  cstr sexyBase = nullptr;
 	  cstr cppBase = nullptr;
 
+      HString componentAPINamespace;
+      HString componentShortFriendlyName;
+      HString componentAPIName;
+
       bool isSingleton; // If true then the context comes from the native registration method, else it comes from the factory.
       CppType nceContext;
       bool hasDestructor;
@@ -114,6 +124,13 @@ namespace Rococo
          appendCppImplFile[0] = 0;
          hasDestructor = false;
          isSingleton = false;
+      }
+
+      void SetComponent(cstr apiNamespace, cstr shortFriendlyName, cstr apiName)
+      {
+          componentAPINamespace = apiNamespace;
+          componentShortFriendlyName = shortFriendlyName;
+          componentAPIName = apiName;
       }
    };
 

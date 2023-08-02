@@ -1,12 +1,49 @@
 (namespace Rococo.Components.Body)
+
 (interface Rococo.Components.Body.IBodyBase
+	(GetModel (Sys.Maths.Matrix4x4 model) -> )
+	(SetModel (Sys.Maths.Matrix4x4 model) -> )
 )
 
-(class ProxyIBodyBase (implements Rococo.Components.Body.IBodyBase) (Pointer hObject) (attribute not-serialized))
-	(method ProxyIBodyBase.Construct (Pointer hObject): (this.hObject = hObject))
-
-(factory Rococo.Components.Body.GetBody Rococo.Components.Body.IBodyBase  :
-	(Pointer pObject = (Rococo.Components.Body.Native.GetHandleForIBodyBase0 ))
-	(construct ProxyIBodyBase pObject)
+(class ProxyIBodyBase
+	(implements Rococo.Components.Body.IBodyBase)
+	(attribute not-serialized)
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.ROID roid)
 )
+
+(method ProxyIBodyBase.Construct(Rococo.Components.ROID id)(Sys.Type.ComponentRef ref) :
+	this.roid = id;
+	this.ref.hComponent = ref.hComponent;
+	this.ref.hLife = ref.hLife;
+)
+
+(method ProxyIBodyBase.Destruct :
+	(Rococo.Components.Body.Native.DestructBody ref)
+)
+
+(factory Rococo.Components.Body.AddBody Rococo.Components.Body.IBodyBase (Rococo.Components.ROID id):
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Body.Native.AddBody ref id)
+
+	(if (outref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIBodyBase id ref)
+)
+
+(factory Rococo.Components.Body.GetBody Rococo.Components.Body.IBodyBase (Rococo.Components.ROID id) :
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Body.Native.GetBody ref id)
+
+	(if (outref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIBodyBase id ref)
+)
+
+(method ProxyIBodyBase.GetModel (Sys.Maths.Matrix4x4 model) ->  : (Rococo.Components.Body.Native.IBodyBaseGetModel this.ref.hComponent model))
+(method ProxyIBodyBase.SetModel (Sys.Maths.Matrix4x4 model) ->  : (Rococo.Components.Body.Native.IBodyBaseSetModel this.ref.hComponent model))
 

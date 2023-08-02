@@ -24,4 +24,7 @@
       <UniqueIdentifier>{09d74bc5-9f6b-68fb-48d2-98aec4fd15c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.templates.inl" />
+  </ItemGroup>
 </Project>

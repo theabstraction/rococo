@@ -12,7 +12,7 @@
     <ClInclude Include="..\..\source\rococo\components\animation\code-gen\animation.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\components\animation\code-gen\animation.sxh.inl">
+    <ClInclude Include="..\..\source\rococo\components\animation\code-gen\animation_declarations.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">

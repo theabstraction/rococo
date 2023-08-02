@@ -726,6 +726,12 @@ namespace Rococo
 
 	typedef const Quat& cr_quat;
 
+	struct Sphere
+	{
+		Vec3 centre;
+		float radius;
+	};
+
 	struct BoundingBox
 	{
 		struct Layer

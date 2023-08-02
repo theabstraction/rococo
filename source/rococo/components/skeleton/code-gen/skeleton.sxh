@@ -1,10 +1,10 @@
 (interface 
 	(as.sxy Rococo.Components.Skeleton.ISkeletonBase "rococo.skeleton")
-	(as.cpp Rococo.Components.Skeleton.ISkeletonBase)
+	(as.cpp Rococo.Components.Generated.ISkeletonBase Rococo::Components::IComponentBase)
 	
-	(context factory Rococo.Components.Skeleton.ISkeletonBase)
+	(context factory Rococo.Components.Generated.ISkeletonBase)
 	(methods
 	)
 
-	(factory Rococo.Components.Skeleton.GetSkeleton)
+	(component Rococo::Components::API::ForISkeletonComponent Skeleton Rococo::Components::ISkeletonComponent)
 )

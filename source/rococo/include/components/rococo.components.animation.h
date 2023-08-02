@@ -1,6 +1,8 @@
 #pragma once
 #include <rococo.ecs.ex.h>
 
+#include <..\components\animation\code-gen\animation.sxh.h>
+
 namespace Rococo::Entities
 {
 	struct IAnimation;
@@ -8,7 +10,7 @@ namespace Rococo::Entities
 
 namespace Rococo::Components
 {
-	ROCOCO_INTERFACE IAnimationComponent : IComponentBase
+	ROCOCO_INTERFACE IAnimationComponent : Rococo::Components::Generated::IAnimationBase
 	{
 		virtual Rococo::Entities::IAnimation & Core() = 0;
 		virtual ~IAnimationComponent() {}

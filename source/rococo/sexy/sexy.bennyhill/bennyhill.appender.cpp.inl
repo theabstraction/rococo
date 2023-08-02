@@ -78,10 +78,25 @@ namespace Rococo
 		appender.Append(("%s"), splitter.SplitTail(ns, shortName) ? shortName : fqStructName);
 	}
 
+	cstr GetMethodNameAndIndex(cr_sex method, int& index)
+	{
+		cstr methodName = method[0].c_str();
+		if (Eq(methodName, "const"))
+		{
+			index = 1;
+			return method[1].c_str();
+		}
+		else
+		{
+			index = 0;
+			return methodName;
+		}
+	}
+
 	void AppendMethodDeclaration(FileAppender& appender, cr_sex method, cstr root, const ParseContext& pc)
 	{
-		cr_sex smethodName = method.GetElement(0);
-		cstr methodName = smethodName.c_str();
+		int startIndex;
+		cstr methodName = GetMethodNameAndIndex(method, OUT startIndex);
 
 		int outputIndex = GetOutputPosition(method);
 		if (outputIndex >= method.NumberOfElements())
@@ -127,7 +142,7 @@ namespace Rococo
 		int inputCount = 1;
 
 		int i;
-		for (i = 1; i < method.NumberOfElements(); ++i)
+		for (i = 1 + startIndex; i < method.NumberOfElements(); ++i)
 		{
 			cr_sex s = method.GetElement(i);
 			if (IsAtomic(s))
@@ -171,7 +186,7 @@ namespace Rococo
 
 				if (s.NumberOfElements() == 3 || AreEqual(inputtype, ("IString")))
 				{
-					appender.Append(("const "));
+					appender.Append("const ");
 				}
 
 				AppendCppType(appender, s, inputtype, pc);
@@ -206,7 +221,7 @@ namespace Rococo
 			appender.Append(("& %s"), name);
 		}
 
-		appender.Append((") = 0;"));
+		appender.Append(") %s= 0;", startIndex == 0 ? "" : "const ");
 	}
 
 	void WriteInterfaceDeclaration(FileAppender& writer, cstr qualifiedName, int depth)
@@ -587,9 +602,23 @@ namespace Rococo
 		}
 	}
 
+	void AppendComponentNatives(FileAppender& appender, const InterfaceContext& ic, const ParseContext& pc)
+	{
+		char cppNS[256];
+		char cppShortName[256];
+		ConvertSexyFQNameToCPPNamespaceAndShortName(cppNS, sizeof cppNS, cppShortName, sizeof cppShortName, ic.asCppInterface.SexyName());
+
+		cstr sxyNS, sxyShortName;
+		NamespaceSplitter splitter(ic.asCppInterface.SexyName());
+		splitter.SplitTail(sxyNS, sxyShortName);
+
+		TransformCppComponentTemplate(cppNS, cppShortName, ic.componentShortFriendlyName, ic.componentAPINamespace, sxyNS, ic.asCppInterface.CompressedName(), ic.componentAPIName.c_str(), appender);
+	}
+
 	void AddNativeImplementation(FileAppender& appender, const InterfaceContext& ic, cr_sex method, const ParseContext& pc)
 	{
-		cstr methodName = StringFrom(method.GetElement(0));
+		int startIndex;
+		cstr methodName = GetMethodNameAndIndex(method, OUT startIndex);
 
 		appender.Append(("\tvoid Native%s%s"), ic.asCppInterface.CompressedName(), methodName);
 
@@ -605,7 +634,7 @@ namespace Rococo
 
 		// Write inputs
 		int outputStart = GetOutputPosition(method);
-		AddNativeInputs(attributes, appender, method, 1, outputStart - 2, pc);
+		AddNativeInputs(attributes, appender, method, 1 + startIndex, outputStart - 2, pc);
 
 		if (ic.isSingleton)
 		{
@@ -690,7 +719,7 @@ namespace Rococo
 		int inputCount = 1;
 
 		// Append the input arguments to the method invocation
-		for (int i = 1; i < outputStart - 1; ++i)
+		for (int i = 1 + startIndex; i < outputStart - 1; ++i)
 		{
 			cr_sex s = method.GetElement(i);
 
@@ -949,6 +978,12 @@ namespace Rococo
 	void ImplementNativeFunctions(FileAppender& appender, const InterfaceContext& ic, const ISExpression* methods[], const ParseContext& pc)
 	{
 		appender.Append("// BennyHill generated Sexy native functions for %s \n", ic.asCppInterface.FQName());
+
+		if (ic.componentAPINamespace.length() != 0)
+		{
+			AppendComponentNatives(appender, ic, pc);
+		}
+
 		appender.Append("namespace\n{\n\tusing namespace Rococo;\n\tusing namespace Rococo::Sex;\n\tusing namespace Rococo::Script;\n\tusing namespace Rococo::Compiler;\n\n");
 
 		for(size_t t = 0; methods[t] != nullptr; ++t)
@@ -1055,16 +1090,18 @@ namespace Rococo
 				for (int t = 1; t < methods[k]->NumberOfElements(); ++t)
 				{
 					cr_sex method = methods[k]->GetElement(t);
-					cstr methodName = StringFrom(method.GetElement(0));
-					appender.Append("\t\tss.AddNativeCall(ns, Native%s%s, %s, (\"", ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? "_nceContext" : "nullptr");
+
+					int startIndex;
+					cstr methodName = GetMethodNameAndIndex(method, OUT startIndex);
+					appender.Append("\t\tss.AddNativeCall(ns, Native%s%s, %s, \"", ic.asCppInterface.CompressedName(), methodName, ic.isSingleton ? "_nceContext" : "nullptr");
 					appender.Append("%s%s ", shortName, methodName);
 					if (!ic.isSingleton)
 					{
 						appender.Append(("(Pointer hObject)"));
 					}
-
+					
 					int outputPos = GetOutputPosition(method);
-					for (int i = 1; i < outputPos - 1; i++)
+					for (int i = 1 + startIndex; i < outputPos - 1; i++)
 					{
 						cr_sex arg = method.GetElement(i);
 						AppendInputPair(appender, arg, pc);
@@ -1077,8 +1114,13 @@ namespace Rococo
 						AppendOutputPair(appender, arg, pc);
 					}
 
-					appender.Append("\"), __FILE__, __LINE__);\n");
+					appender.Append("\", __FILE__, __LINE__);\n");
 				}
+			}
+
+			if (ic.componentAPINamespace.length() != 0)
+			{
+				appender.Append("\t\tAddNativeCalls_%s_GetAndAdd(ns, ss);\n", ic.asCppInterface.CompressedName());
 			}
 		}
 		appender.Append(("\t}\n"));

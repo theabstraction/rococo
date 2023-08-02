@@ -82,7 +82,7 @@ namespace Rococo
 		int nChars = SafeVFormat(buf, sizeof(buf), format, args);
 
 		char abuf[256];
-		for(int i = 0; i < nChars; ++i)
+		for (int i = 0; i < nChars; ++i)
 		{
 			abuf[i] = buf[i] > 255 ? '?' : buf[i];
 		}
@@ -93,9 +93,9 @@ namespace Rococo
 			Throw(GetLastError(), "Error writing %s for append", filename);
 		}
 
-		if (nBytesWritten < (DWORD) nChars)
+		if (nBytesWritten < (DWORD)nChars)
 		{
-			Throw(GetLastError(), "Error writing %u bytes to %s for append",nBytesWritten, filename);
+			Throw(GetLastError(), "Error writing %u bytes to %s for append", nBytesWritten, filename);
 		}
 	}
 
@@ -113,13 +113,18 @@ namespace Rococo
 		}
 	}
 
-   void FileAppender::AppendSequence(int count, char c)
-   {
-      for (int i = 0; i < count; ++i)
-      {
-         Append(c);
-      }
-   }
+	void FileAppender::WriteString(cstr text)
+	{
+		Append("%s", text);
+	}
+
+	void FileAppender::AppendSequence(int count, char c)
+	{
+		for (int i = 0; i < count; ++i)
+		{
+			Append(c);
+		}
+	}
 
 	void WriteStandardErrorCode(int errorCode)
 	{

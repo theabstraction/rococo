@@ -175,6 +175,7 @@ namespace Rococo
 } // Sexy
 
 #include "bennyhill.validators.inl"
+#include "bennyhill.templates.inl"
 #include "bennyhill.appender.sexy.inl"
 #include "bennyhill.appender.cpp.inl"
 #include "bennyhill.config.inl"
@@ -949,6 +950,15 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			}
 			ic.factories.push_back(&sfactory);
 		}
+		else if (AreEqual(ssname, "component"))
+		{
+			cr_sex sComponent = directive;
+			if (sComponent.NumberOfElements() != 4 || !IsAtomic(sComponent[1]) || !IsAtomic(sComponent[2]) || !IsAtomic(sComponent[3]))
+			{
+				Throw(sComponent, "Expecting (component <api-publichsing-namespace> <short-friendly-name> <api-component-name>)");
+			}
+			ic.SetComponent(sComponent[1].c_str(), sComponent[2].c_str(), sComponent[3].c_str());
+		}
 		else if (AreEqual(ssname, "context"))
 		{
 			if (directive.NumberOfElements() != 3)
@@ -1337,7 +1347,7 @@ int main(int argc, char* argv[])
 	}
 	catch (ParseException& ex)
 	{
-		fprintf(stderr, "\t%s. %s\nSpecimen: %s.\nLine %d pos %d to line %d pos %d\n", pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().y, ex.Start().x, ex.End().y, ex.End().x);
+		fprintf(stderr, "\tWhile compiling %s an error was raised:\n%s\nSpecimen: %s.\nLine %d pos %d to line %d pos %d\n", pc.scriptInput, ex.Message(), ex.Specimen(), ex.Start().y, ex.Start().x, ex.End().y, ex.End().x);
 
 		if (ex.ErrorCode() != 0)
 		{

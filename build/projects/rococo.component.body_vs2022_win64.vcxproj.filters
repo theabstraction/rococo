@@ -11,7 +11,7 @@
     <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\components\body\code-gen\body.sxh.inl">
+    <ClInclude Include="..\..\source\rococo\components\body\code-gen\body_declarations.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">

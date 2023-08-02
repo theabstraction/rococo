@@ -1,22 +1,45 @@
 (namespace Rococo.Components.Config)
+
 (interface Rococo.Components.Config.IConfigBase
-	(Deprecate (Rococo.ROID roid) -> (Bool success))
-	(DeprecateAll  -> )
-	(IsActive (Rococo.ROID roid) -> (Bool isActive))
-	(MaxTableEntries  -> (Int64 numberOfEntries))
-	(NewROID  -> (Rococo.ROID roid))
 )
 
-(class ProxyIConfigBase (implements Rococo.Components.Config.IConfigBase) (Pointer hObject) (attribute not-serialized))
-	(method ProxyIConfigBase.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIConfigBase.Deprecate (Rococo.ROID roid) -> (Bool success) : (Rococo.Components.Config.Native.IConfigBaseDeprecate this.hObject roid -> success))
-	(method ProxyIConfigBase.DeprecateAll  ->  : (Rococo.Components.Config.Native.IConfigBaseDeprecateAll this.hObject ))
-	(method ProxyIConfigBase.IsActive (Rococo.ROID roid) -> (Bool isActive) : (Rococo.Components.Config.Native.IConfigBaseIsActive this.hObject roid -> isActive))
-	(method ProxyIConfigBase.MaxTableEntries  -> (Int64 numberOfEntries) : (Rococo.Components.Config.Native.IConfigBaseMaxTableEntries this.hObject  -> numberOfEntries))
-	(method ProxyIConfigBase.NewROID  -> (Rococo.ROID roid) : (Rococo.Components.Config.Native.IConfigBaseNewROID this.hObject  -> roid))
-
-(factory Rococo.Components.Config.GetConfig Rococo.Components.Config.IConfigBase  :
-	(Pointer pObject = (Rococo.Components.Config.Native.GetHandleForIConfigBase0 ))
-	(construct ProxyIConfigBase pObject)
+(class ProxyIConfigBase
+	(implements Rococo.Components.Config.IConfigBase)
+	(attribute not-serialized)
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.ROID roid)
 )
+
+(method ProxyIConfigBase.Construct(Rococo.Components.ROID id)(Sys.Type.ComponentRef ref) :
+	this.roid = id;
+	this.ref.hComponent = ref.hComponent;
+	this.ref.hLife = ref.hLife;
+)
+
+(method ProxyIConfigBase.Destruct :
+	(Rococo.Components.Config.Native.DestructConfig ref)
+)
+
+(factory Rococo.Components.Config.AddConfig Rococo.Components.Config.IConfigBase (Rococo.Components.ROID id):
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Config.Native.AddConfig ref id)
+
+	(if (outref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIConfigBase id ref)
+)
+
+(factory Rococo.Components.Config.GetConfig Rococo.Components.Config.IConfigBase (Rococo.Components.ROID id) :
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Config.Native.GetConfig ref id)
+
+	(if (outref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIConfigBase id ref)
+)
+
 

@@ -68,6 +68,9 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat.sxh.inl">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat_declarations.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h">
       <Filter>code-gen</Filter>
     </ClInclude>

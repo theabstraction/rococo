@@ -1,10 +1,10 @@
 (interface 
 	(as.sxy Rococo.Components.Animation.IAnimationBase "rococo.animation")
-	(as.cpp Rococo.Components.Animation.IAnimationBase)
+	(as.cpp Rococo.Components.Generated.IAnimationBase Rococo::Components::IComponentBase)
 	
-	(context factory Rococo.Components.Animation.IAnimationBase)
+	(context factory Rococo.Components.Generated.IAnimationBase)
 	(methods
 	)
 
-	(factory Rococo.Components.Animation.GetAnimation)
+	(component Rococo::Components::API::ForIAnimationComponent Animation Rococo::Components::IAnimationComponent)
 )
