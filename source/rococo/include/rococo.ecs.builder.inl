@@ -413,6 +413,7 @@ namespace Rococo::Components
 // Stick this in your component .cpp file to declare a singleton component table referenced by Rococo::Components::SINGLETON
 // Needs an implementtion of IComponentFactory<ICOMPONENT>* CreateComponentFactory() in the component's API namespace;
 // This is used when DefaultFactory<ICOMPONENT, IMPLEMENTATION> is inappropriate for creating object of type IMPLEMENTATION
+// Or when you want to move the DefaultFactory to a place in source code that can parse the IMPLEMENTATION class parameter
 #define DEFINE_FACTORY_SINGLETON(ICOMPONENT)									\
 namespace Module::For##ICOMPONENT												\
 {																				\
@@ -421,7 +422,17 @@ namespace Module::For##ICOMPONENT												\
 	IComponentFactory<ICOMPONENT>* CreateComponentFactory();					\
 	IComponentFactory<ICOMPONENT>* theFactory = nullptr;						\
 }																				
-																																
+
+#define DEFINE_DEFAULT_FACTORY(ICOMPONENT,IMPLEMENTATION)						\
+namespace Module::For##ICOMPONENT												\
+{																				\
+	using namespace Rococo::Components;											\
+	IComponentFactory<ICOMPONENT>* CreateComponentFactory()						\
+	{																			\
+		return new DefaultFactory<ICOMPONENT, IMPLEMENTATION>();				\
+	}																			\
+}	
+
 // Assumes DefaultFactory<ICOMPONENT, IMPLEMENTATION> can create objects of type IMPLEMENTATION that implement ICOMPONENT
 // Stick this in your component .cpp file to declare a singleton component table referenced by 'theSingleton'
 // If your compiler has trouble interpreting ICOMPONENT, ensure you have set out a using directive with the containing namespace ahead of the macro invocation

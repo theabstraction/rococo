@@ -15,24 +15,8 @@ DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(g_iAllocator, 128, AnimationModule)
 DeclareAllocator(TrackingAllocator, AnimationModule, g_allocator)
 Rococo::Memory::AllocatorMonitor<AnimationModule> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
-namespace Rococo::Components
-{
-	using namespace Rococo::Entities;
 
-	struct AnimationComponent : IAnimationComponent
-	{
-		AutoFree<IAnimation> animation;
-		AnimationComponent():
-			animation(CreateAnimation())
-		{
+DEFINE_FACTORY_SINGLETON(IAnimationComponent)
+EXPORT_SINGLETON_METHODS(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent)
+SINGLETON_MANAGER(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent)
 
-		}
-
-		Rococo::Entities::IAnimation& Core() override
-		{
-			return *animation;
-		}
-	};
-}
-
-DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_DEFAULT_FACTORY(ROCOCO_COMPONENTS_ANIMATION_API, IAnimationComponent, AnimationComponent)

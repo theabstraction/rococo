@@ -154,6 +154,7 @@ namespace Rococo
 
 #define LINK_NAME(y, z) LinkToECS_##y##z
 
+// Publishes the component Add, Get and Enumerate API, as well as methods for linking the component table to the ECS system.
 #define DECLARE_SINGLETON_METHODS(COMPONENT_API,COMPONENT)													\
 namespace Rococo::Components::API::For##COMPONENT													        \
 {																									        \
@@ -167,6 +168,9 @@ namespace Rococo::Components::ECS			        														\
     COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECSSupervisor& ecs);                                    \
 }																								            
 
+// Publishes the component Add, Get and Enumerate API, as well as methods for linking the component table to the ECS system.
+// The link arg allows the caller to supply the component with interfaces and any anything else it needs to do its job.
+// For multiple arguments create a struct and add the arguments as fields
 #define DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(COMPONENT_API,COMPONENT, LINK_ARG)							\
 namespace Rococo::Components::API::For##COMPONENT													        \
 {																									        \

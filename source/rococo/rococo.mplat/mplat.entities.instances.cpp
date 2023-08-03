@@ -212,14 +212,13 @@ namespace
 
       void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
       {
-          auto animationComponent = API::ForIAnimationComponent::Get(id);
-          if (!animationComponent)
+          auto a = API::ForIAnimationComponent::Get(id);
+          if (!a)
           {
               Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]. Call (instances.EnableAnimation <bodyId>) after object creation", __FUNCTION__, id.index, id.salt);
           }
 
-          auto& animation = animationComponent->Core();
-          animation.AddKeyFrame(frameName, duration, loop);
+          a->AddKeyFrame(frameName, duration, loop);
       }
 
 	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override

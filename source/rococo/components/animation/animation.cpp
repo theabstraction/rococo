@@ -3,12 +3,14 @@
 #include <rococo.strings.h>
 #include <vector>
 
+#include <components/rococo.components.animation.h>
+
+using namespace Rococo;
+using namespace Rococo::Entities;
+using namespace Rococo::Strings;
+
 namespace Rococo::Animation
 {
-	using namespace Rococo;
-	using namespace Rococo::Entities;
-	using namespace Rococo::Strings;
-
 	struct KeyFrame
 	{
 		// The duration from the start of this keyframe to the start of the next keyframe
@@ -56,7 +58,7 @@ namespace Rococo::Animation
 		}
 	}
 
-	class AnimationImpl : public IAnimation
+	class AnimationImpl : public IAnimationComponent
 	{
 		std::vector<KeyFrame> frames;
 		float t = 0;
@@ -169,7 +171,7 @@ namespace Rococo::Animation
 			}
 		}
 
-		void AddKeyFrame(const fstring& frameName, Seconds duration, boolean32 loop) override
+		void AddKeyFrame(const fstring& frameName, Seconds duration, boolean32 loopAnimation) override
 		{
 			constexpr float minDuration = 0.01f;
 
@@ -186,25 +188,16 @@ namespace Rococo::Animation
 
 			KeyFrame key;
 			key.duration = duration;
-			key.loop = loop;
+			key.loop = loopAnimation;
 			SafeFormat(key.name, "%s", (cstr)frameName);
 
 			frames.push_back(key);
 
 			totalAnimationDuration.value += duration;
 		}
-
-		void Free() override
-		{
-			delete this;
-		}
 	};
 }
 
-namespace Rococo::Entities
-{
-	IAnimation* CreateAnimation()
-	{
-		return new Rococo::Animation::AnimationImpl();
-	}
-}
+#include <rococo.ecs.builder.inl>
+
+DEFINE_DEFAULT_FACTORY(IAnimationComponent, Rococo::Animation::AnimationImpl);

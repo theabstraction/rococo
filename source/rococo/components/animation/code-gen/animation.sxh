@@ -4,6 +4,7 @@
 	
 	(context factory Rococo.Components.Generated.IAnimationBase)
 	(methods
+		(AddKeyFrame (const IString frameName)(Seconds duration)(Bool loopAnimation)->)
 	)
 
 	(component Rococo::Components::API::ForIAnimationComponent Animation Rococo::Components::IAnimationComponent)

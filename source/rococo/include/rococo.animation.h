@@ -42,13 +42,4 @@ namespace Rococo::Entities
 		ISkeletons& poses;
 		const Seconds dt;
 	};
-
-	ROCOCO_INTERFACE IAnimation
-	{
-		virtual	void AddKeyFrame(const fstring & frameName, Seconds duration, boolean32 loop) = 0;
-		virtual void Advance(AnimationAdvanceArgs& args) = 0;
-		virtual void Free() = 0;
-	};
-
-	IAnimation* CreateAnimation();
 }

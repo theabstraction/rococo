@@ -163,7 +163,7 @@ namespace
 						  poses,
 						  dt
 					  };
-					  animationComponent->Core().Advance(args);
+					  animationComponent->Advance(args);
 				  }
 			  }
 		  }

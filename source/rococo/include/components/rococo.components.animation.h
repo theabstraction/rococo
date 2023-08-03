@@ -1,19 +1,14 @@
 #pragma once
 #include <rococo.ecs.ex.h>
 
+#include <rococo.animation.h>
 #include <..\components\animation\code-gen\animation.sxh.h>
-
-namespace Rococo::Entities
-{
-	struct IAnimation;
-}
 
 namespace Rococo::Components
 {
 	ROCOCO_INTERFACE IAnimationComponent : Rococo::Components::Generated::IAnimationBase
 	{
-		virtual Rococo::Entities::IAnimation & Core() = 0;
-		virtual ~IAnimationComponent() {}
+		virtual void Advance(Rococo::Entities::AnimationAdvanceArgs& args) = 0;
 	};
 }
 
