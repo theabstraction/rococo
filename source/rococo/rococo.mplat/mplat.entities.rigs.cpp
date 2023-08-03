@@ -142,7 +142,7 @@ struct Skeletons : public ISkeletons
 		handleToSkele.Clear(nullptr);
 	}
 
-	ID_SKELETON TryGet(cstr name, ISkeleton** ppSkeleton) override
+	ID_SKELETON GetByNameAndReturnId(cstr name, ISkeleton** ppSkeleton) override
 	{
 		auto i = nameToSkele.find(name);
 		if (i != nameToSkele.end())

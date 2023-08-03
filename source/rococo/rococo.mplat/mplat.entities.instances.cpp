@@ -192,19 +192,6 @@ namespace
          );
       }
 
-      void GetScale(ID_ENTITY id, Vec3& scale)
-      {
-          auto body = API::ForIBodyComponent::Get(id);
-          if (body)
-          {
-              scale = body->Scale();
-          }
-          else
-          {
-              scale = { 0,0,0 };
-          }
-      }
-
       void GetPosition(ID_ENTITY id, Vec3& position)
       {
           auto body = API::ForIBodyComponent::Get(id);
@@ -427,15 +414,6 @@ namespace
 	  {
 		  renderer.Installation().Macro("#m", pingPath);
 	  }
-
-      void SetScale(ID_ENTITY id, const Vec3& scale) override
-      {
-          auto body = API::ForIBodyComponent::Get(id);
-          if (body)
-          {
-              body->SetScale(scale);
-          }
-      }
    
       void Clear() override
       {

@@ -413,13 +413,13 @@
 	
 	(Vec3 geoffScale = 1 1 1)
 	
-	//(MakeHuman "human")
+	(MakeHuman "human")
 
 	(Int64 geoffId = (instances.AddBody "skellie.001" lowerSpineToWorld geoffScale 0))
 	//(scene.AddDebugObject geoffId)
 	//(scene.AddDynamicObject geoffId)
 	
-	(scene.AddStatics geoffId)
+	//(scene.AddStatics geoffId)
 	/*
 	(instances.AddAnimationFrame geoffId "straight" 4 false)
 	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)
@@ -470,7 +470,7 @@
 	(instances.BindSkeletonToBody "worm" wormBodyId)
 	(scene.AddDynamicObject wormBodyId)
 	
-//	(scene.AddDebugObject wormBodyId)
+	(scene.AddDebugObject wormBodyId)
 
 	(instances.EnableAnimation wormBodyId)
 	(instances.AddAnimationFrame wormBodyId "worm-straight" 4 false)

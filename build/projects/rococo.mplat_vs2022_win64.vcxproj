@@ -121,12 +121,13 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc
+</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -187,17 +188,17 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc
+</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.ELayoutAlgorithm.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IInstances.sxh.h" />
@@ -323,5 +324,8 @@
       <Name>sexy.bennyhill</Name>
       <Private>true</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh" />
   </ItemGroup>
 </Project>

@@ -28,6 +28,11 @@ namespace Rococo::Components
             return scale;
         }
 
+        void GetScale(Vec3& scale) const override
+        {
+            scale = this->scale;
+        }
+
         void GetModel(Matrix4x4& model) const override
         {
             model = this->model;;

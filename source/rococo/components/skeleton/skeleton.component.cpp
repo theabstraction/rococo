@@ -27,13 +27,15 @@ namespace Rococo::Components
         Entities::ISkeleton* Skeleton() override
         {
             ISkeleton* skeleton;
+
             if (skeletons.TryGet(skeletonId, &skeleton))
             {
                 return skeleton;
             }
             else
             {
-                return nullptr;
+                skeletonId = skeletons.GetByNameAndReturnId(skeletonName, &skeleton);
+                return skeleton;
             }
         }
 

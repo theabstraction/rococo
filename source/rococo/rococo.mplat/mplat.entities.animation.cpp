@@ -129,13 +129,13 @@ pickOutFrame:
 			ISkeleton* startPose = nullptr;
 			if (!args.poses.TryGet(ToSkeletonId(start.poseId), &startPose))
 			{
-				start.poseId = ToPoseId( args.poses.TryGet(start.name, &startPose) );
+				start.poseId = ToPoseId( args.poses.GetByNameAndReturnId(start.name, &startPose) );
 			}
 
 			ISkeleton* endPose = nullptr;
 			if (!args.poses.TryGet(ToSkeletonId(end.poseId), &endPose))
 			{
-				end.poseId = ToPoseId( args.poses.TryGet(end.name, &endPose) );
+				end.poseId = ToPoseId( args.poses.GetByNameAndReturnId(end.name, &endPose) );
 			}
 
 			if (startPose == nullptr) startPose = endPose;
@@ -158,7 +158,7 @@ pickOutFrame:
 			ISkeleton* pose = nullptr;
 			if (!args.poses.TryGet(ToSkeletonId(key.poseId), &pose))
 			{
-				key.poseId = ToPoseId( args.poses.TryGet(key.name, &pose) );
+				key.poseId = ToPoseId( args.poses.GetByNameAndReturnId(key.name, &pose) );
 			}
 
 			if (pose)

@@ -22,7 +22,7 @@ namespace Rococo::Entities
 		/// <param name="name">- Unique name associated with the skeleton</param>
 		/// <param name="ppSkeleton">- Pointer to the skeleton pointer</param>
 		/// <returns>The id of the skeleton, which casts to false on failure</returns>
-		virtual ID_SKELETON TryGet(cstr name, ISkeleton** ppSkeleton) = 0;
+		virtual [[nodiscard]] ID_SKELETON GetByNameAndReturnId(cstr name, ISkeleton** ppSkeleton) = 0;
 
 		/// <summary>
 		/// Try get a skeleton pointer from an id. 
@@ -33,7 +33,7 @@ namespace Rococo::Entities
 		/// <param name="id">- id of the skeleton, can be retrieved with TryGet(cstr name,...)</param>
 		/// <param name="ppSkeleton">- Pointer to the skeleton pointer</param>
 		/// <returns>true if and only if *ppSkeleton was set to a valid skeleton pointer</returns>
-		virtual bool TryGet(ID_SKELETON id, ISkeleton** ppSkeleton) = 0;
+		virtual [[nodiscard]] bool TryGet(ID_SKELETON id, ISkeleton** ppSkeleton) = 0;
 	};
 
 	struct AnimationAdvanceArgs

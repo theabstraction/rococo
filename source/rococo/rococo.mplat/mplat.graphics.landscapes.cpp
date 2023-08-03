@@ -144,8 +144,8 @@ namespace
 
 			mb.End(true, false);
 
-			mb.SetSpecialAmbientShader(meshName, "!landscape.vs"_fstring, "!landscape.ps"_fstring, false);
-			mb.SetSpecialSpotlightShader(meshName, ""_fstring, ""_fstring, false);
+			mb.SetSpecialAmbientShader(meshName, "!shaders/compiled/landscape.vs"_fstring, "!shaders/compiled/landscape.ps"_fstring, false);
+		//	mb.SetSpecialSpotlightShader(meshName, ""_fstring, ""_fstring, false);
 			mb.SetShadowCasting(meshName, false);
 
 			return ID_MESH::Invalid();

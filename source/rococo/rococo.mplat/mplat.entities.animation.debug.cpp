@@ -90,7 +90,7 @@ namespace Rococo::Entities
 {
 	void AddDebugBones(ID_ENTITY id, IRenderContext& rc, IRodTesselatorSupervisor& rod)
 	{
-		auto skeletonComponent = Components::API::ForISkeletonComponent::Add(id);
+		auto skeletonComponent = Components::API::ForISkeletonComponent::Get(id);
 		auto skeleton = skeletonComponent ? skeletonComponent->Skeleton() : nullptr;
 		if (skeleton)
 		{
