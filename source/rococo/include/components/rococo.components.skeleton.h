@@ -14,6 +14,7 @@ namespace Rococo::Entities
 
 namespace Rococo::Components
 {
+    // This interfaces manages the association between a skeleton and a ROID.
     ROCOCO_INTERFACE ISkeletonComponent : Rococo::Components::Generated::ISkeletonBase
     {
         virtual Entities::ISkeleton* Skeleton() = 0;

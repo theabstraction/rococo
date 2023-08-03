@@ -7,6 +7,7 @@
 
 namespace Rococo::Components
 {
+    // provides a model, scale and mesh for a ROID
     ROCOCO_INTERFACE IBodyComponent : Generated::IBodyBase
     {
         virtual ID_SYS_MESH Mesh() const = 0;

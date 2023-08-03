@@ -6,6 +6,7 @@
 
 namespace Rococo::Components
 {
+	// An animation components manages key animation frames associated with a ROID
 	ROCOCO_INTERFACE IAnimationComponent : Rococo::Components::Generated::IAnimationBase
 	{
 		virtual void Advance(Rococo::Entities::AnimationAdvanceArgs& args) = 0;
