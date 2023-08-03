@@ -19,6 +19,6 @@ namespace Rococo::Components::Generated
 {
 	ROCOCO_COMPONENTS_ANIMATION_API void AddNativeCalls(Rococo::Script::IPublicScriptSystem& ss, Rococo::Components::Generated::IAnimationBase* base)
 	{
-		AddNativeCalls_RococoComponentsGeneratedIAnimationBase(ss, base);
+		Interop::AddNativeCalls_RococoComponentsGeneratedIAnimationBase(ss, base);
 	}
 }

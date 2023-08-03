@@ -52,6 +52,6 @@ namespace  Rococo::Audio
 {
     ROCOCO_AUDIO_API void DLL_AddNativeCalls_RococoAudioIAudio(Rococo::Script::IPublicScriptSystem& ss, Rococo::Audio::IAudio* nceContext)
     {
-        return AddNativeCalls_RococoAudioIAudio(ss, nceContext);
+        return Interop::AddNativeCalls_RococoAudioIAudio(ss, nceContext);
     }
 }

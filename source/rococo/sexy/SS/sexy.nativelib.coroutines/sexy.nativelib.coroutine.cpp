@@ -500,7 +500,7 @@ extern "C"
 		private:
 			virtual void AddNativeCalls()
 			{
-				Sys::AddNativeCalls_SysICoroutineControl(ss, static_cast<Sys::ICoroutineControl*>(&coroutines));
+				Sys::Interop::AddNativeCalls_SysICoroutineControl(ss, static_cast<Sys::ICoroutineControl*>(&coroutines));
 			}
 
 			virtual void ClearResources()

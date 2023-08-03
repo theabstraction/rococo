@@ -23,7 +23,7 @@ namespace Rococo::Components::Body
 {
 	ROCOCO_COMPONENTS_BODY_API void AddNativeCalls(Rococo::Script::IPublicScriptSystem& ss)
 	{
-		AddNativeCalls_RococoComponentsGeneratedIBodyBase(ss, nullptr);
+		Rococo::Components::Generated::Interop::AddNativeCalls_RococoComponentsGeneratedIBodyBase(ss, nullptr);
 	}
 }
 

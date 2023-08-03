@@ -20,6 +20,6 @@ namespace Rococo::Components::Config
 {
 	ROCOCO_COMPONENTS_CONFIG_API void AddNativeCalls(Rococo::Script::IPublicScriptSystem& ss, Rococo::Components::Generated::IConfigBase* config)
 	{
-		AddNativeCalls_RococoComponentsGeneratedIConfigBase(ss, config);
+		Rococo::Components::Generated::Interop::AddNativeCalls_RococoComponentsGeneratedIConfigBase(ss, config);
 	}
 }

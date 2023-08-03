@@ -43,7 +43,7 @@ namespace Rococo
 
 	void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc);
 
-	int AppendNamespace(FileAppender& appender, cstr fqStructName, int depth = 0)
+	int AppendNamespace(FileAppender& appender, cstr fqStructName, bool withInterop, int depth)
 	{
 		NamespaceSplitter splitter(fqStructName);
 		cstr nsRoot, nsSubspace;
@@ -59,10 +59,10 @@ namespace Rococo
 			}
 
 			appender.Append("%s", nsRoot);
-			return AppendNamespace(appender, nsSubspace, depth + 1);
+			return AppendNamespace(appender, nsSubspace, withInterop, depth + 1);
 		}
 
-		appender.Append("\n{\n");
+		appender.Append("%s\n{\n", withInterop ? "::Interop" : "");
 		return 1;
 	}
 
@@ -305,7 +305,7 @@ namespace Rococo
 		for (auto& k : sortedNamespaces)
 		{
 			std::vector<const EnumDef*>& enumArray = k.second;
-			AppendNamespace(declarationsFileAppender, enumArray[0]->ec.asCppEnum.SexyName(), 0);
+			AppendNamespace(declarationsFileAppender, enumArray[0]->ec.asCppEnum.SexyName(), false, 0);
 
 			for (auto l : enumArray)
 			{
@@ -360,7 +360,7 @@ namespace Rococo
 
 		for (auto& k : sortedNamespaces)
 		{
-			AppendNamespace(declarationsFile, k.second[0]->ic.asCppInterface.SexyName(), 0);
+			AppendNamespace(declarationsFile, k.second[0]->ic.asCppInterface.SexyName(), false, 0);
 
 			for (auto l : k.second)
 			{
@@ -377,7 +377,7 @@ namespace Rococo
 
 	void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc)
 	{
-		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName());
+		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName(), false, 0);
 		if (nsDepth > 0)
 		{
 			appender.Append(("\t"));
@@ -423,7 +423,7 @@ namespace Rococo
 
 	void DeclareCppInterface(FileAppender& appender, const InterfaceContext& ic, cr_sex interfaceDef, const ISExpression* methods, const ParseContext& pc)
 	{
-		int nsDepth = AppendNamespace(appender, ic.asCppInterface.SexyName());
+		int nsDepth = AppendNamespace(appender, ic.asCppInterface.SexyName(), false, 0);
 		if (nsDepth > 0)
 		{
 			appender.Append(("\t"));
@@ -487,7 +487,7 @@ namespace Rococo
 
 		if (ic.nceContext.SexyName()[0] != 0)
 		{
-			int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
+			int depth = AppendNamespace(appender, ic.asCppInterface.SexyName(), true, 0);
 			appender.Append(("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* nceContext);\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
 			while (depth > 0)
 			{
@@ -888,7 +888,7 @@ namespace Rococo
 
 	void ImplementNativeEnums(FileAppender& appender, const EnumContext& ec, const ParseContext& pc)
 	{
-		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName());
+		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName(), false, 0);
 		if (nsDepth > 0)
 		{
 			appender.Append(("\t"));
@@ -1044,7 +1044,7 @@ namespace Rococo
 		CppType nsType;
 		nsType.Set(nsInterfaceSexyName);
 
-		int depth = AppendNamespace(appender, ic.asCppInterface.SexyName());
+		int depth = AppendNamespace(appender, ic.asCppInterface.SexyName(), true, 0);
 
 		appender.Append(("\tvoid AddNativeCalls_%s(Rococo::Script::IPublicScriptSystem& ss, %s* _nceContext)\n"), ic.asCppInterface.CompressedName(), ic.nceContext.FQName());
 		appender.Append(("\t{\n"));

@@ -316,29 +316,29 @@ namespace Rococo
 					if (addPlatform)
 					{
 						Audio::DLL_AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
-						Entities::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.world.rigs);
-						Graphics::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
-						Entities::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.graphics.instances);
-						Entities::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.world.mobiles);
-						Graphics::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.graphics.camera);
-						Graphics::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.graphics.scene.Builder());
-						Graphics::AddNativeCalls_RococoGraphicsISpriteBuilder(args.ss, &platform.graphics.spriteBuilder);
-						Graphics::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.graphics.sprites);
-						Graphics::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
-						Graphics::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
-						Graphics::AddNativeCalls_RococoGraphicsIQuadStackTesselator(args.ss, nullptr);
-						Graphics::AddNativeCalls_RococoGraphicsIRodTesselator(args.ss, &platform);
-						Graphics::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
-						Graphics::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
-						Graphics::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
-						Graphics::AddNativeCalls_RococoGraphicsILandscapeTesselator(args.ss, &platform);
-						AddNativeCalls_RococoIKeyboard(args.ss, &platform.hardware.keyboard);
-						Entities::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
-						Graphics::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
-						Rococo::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
-						Rococo::Configuration::AddNativeCalls_RococoConfigurationIConfig(args.ss, &platform.data.config);
-						Rococo::AddNativeCalls_RococoIArchive(args.ss, &platform);
-						Rococo::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
+						Entities::Interop::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.world.rigs);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
+						Entities::Interop::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.graphics.instances);
+						Entities::Interop::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.world.mobiles);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.graphics.camera);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.graphics.scene.Builder());
+						Graphics::Interop::AddNativeCalls_RococoGraphicsISpriteBuilder(args.ss, &platform.graphics.spriteBuilder);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.graphics.sprites);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIQuadStackTesselator(args.ss, nullptr);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIRodTesselator(args.ss, &platform);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsITextTesselator(args.ss, &platform);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIRendererConfig(args.ss, &platform);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIMessaging(args.ss, &platform);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsILandscapeTesselator(args.ss, &platform);
+						Rococo::Interop::AddNativeCalls_RococoIKeyboard(args.ss, &platform.hardware.keyboard);
+						Entities::Interop::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
+						Rococo::Interop::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
+						Rococo::Configuration::Interop::AddNativeCalls_RococoConfigurationIConfig(args.ss, &platform.data.config);
+						Rococo::Interop::AddNativeCalls_RococoIArchive(args.ss, &platform);
+						Rococo::Interop::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __FUNCTION__, __LINE__);
@@ -487,7 +487,7 @@ namespace Rococo
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
 					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
-					Rococo::Configuration::AddNativeCalls_RococoConfigurationIConfig(args.ss, config);
+					Rococo::Configuration::Interop::AddNativeCalls_RococoConfigurationIConfig(args.ss, config);
 				}
 			} onCompile;
 

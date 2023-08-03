@@ -15,6 +15,6 @@ namespace Rococo::ECS
 {
 	ROCOCO_ECS_API void AddNativeCalls(Rococo::Script::IPublicScriptSystem& ss, Rococo::IECS* ecs)
 	{
-		Rococo::AddNativeCalls_RococoIECSBase(ss, ecs);
+		Rococo::Interop::AddNativeCalls_RococoIECSBase(ss, ecs);
 	}
 }

@@ -149,11 +149,11 @@ namespace MHost
 
 				GetBaseCompileOptions().OnCompile(args);
 
-				AddNativeCalls_MHostIGui(args.ss, nullptr);
-				AddNativeCalls_MHostIEngine(args.ss, engine);
+				Interop::AddNativeCalls_MHostIGui(args.ss, nullptr);
+				Interop::AddNativeCalls_MHostIEngine(args.ss, engine);
 				MHost::OS::AddNativeCalls_MHostOS(args.ss);
 				MHost::Graphics::AddNativeCalls_MHostGraphics(args.ss);
-				AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.os.installation);
+				Interop::AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.os.installation);
 
 				auto& mhostOS = args.ss.AddNativeNamespace("MHost.OS");
 				args.ss.AddNativeCall(mhostOS, ScriptContext::NativeLoadExpression, this, "LoadExpression (Sys.Type.IString name) -> (Sys.Reflection.IExpression s)", __FUNCTION__, __LINE__);

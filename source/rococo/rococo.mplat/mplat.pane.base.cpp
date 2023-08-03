@@ -724,18 +724,18 @@ public:
 			onCompile->OnCompile(args);
 		}
 
-		GUI::AddNativeCalls_RococoGUIITabContainer(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIFramePane(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIPaneContainer(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIILabelPane(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIArrayBox(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIPaneBuilder(args.ss, this);
-		GUI::AddNativeCalls_RococoGUIITextOutputPane(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIRadioButton(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIPane(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIISlider(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIScroller(args.ss, nullptr);
-		GUI::AddNativeCalls_RococoGUIIEnumListPane(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIITabContainer(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIFramePane(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIPaneContainer(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIILabelPane(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIArrayBox(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIPaneBuilder(args.ss, this);
+		GUI::Interop::AddNativeCalls_RococoGUIITextOutputPane(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIRadioButton(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIPane(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIISlider(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIScroller(args.ss, nullptr);
+		GUI::Interop::AddNativeCalls_RococoGUIIEnumListPane(args.ss, nullptr);
 	}
 
 	void RefreshScript()

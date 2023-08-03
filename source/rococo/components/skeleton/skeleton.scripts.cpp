@@ -20,6 +20,6 @@ namespace Rococo::Components::Skeleton
 {
 	ROCOCO_COMPONENTS_SKELETON_API void AddNativeCalls(Rococo::Script::IPublicScriptSystem& ss, Rococo::Components::Generated::ISkeletonBase* base)
 	{
-		AddNativeCalls_RococoComponentsGeneratedISkeletonBase(ss, base);
+		Rococo::Components::Generated::Interop::AddNativeCalls_RococoComponentsGeneratedISkeletonBase(ss, base);
 	}
 }
