@@ -70,8 +70,8 @@ namespace
 			pocket.flags = MakeFlags(index, Flags::TYPE_TRIANGLE | extraFlags);
 		}
 
-		World(Graphics::IMeshBuilderSupervisor& refMeshes, IInstancesSupervisor& refInstances):
-			meshes(refMeshes), instances(refInstances), ecs(instances.ECS())
+		World(Graphics::IMeshBuilderSupervisor& refMeshes, IECS& _ecs, IInstancesSupervisor& refInstances):
+			meshes(refMeshes), instances(refInstances), ecs(_ecs)
 		{
 
 		}
@@ -225,8 +225,8 @@ namespace
 
 namespace Rococo
 {
-	IWorldSupervisor* CreateWorld(IMeshBuilderSupervisor& meshes, IInstancesSupervisor& instances)
+	IWorldSupervisor* CreateWorld(IMeshBuilderSupervisor& meshes, IECS& ecs, IInstancesSupervisor& instances)
 	{
-		return new World(meshes, instances);
+		return new World(meshes, ecs, instances);
 	}
 }

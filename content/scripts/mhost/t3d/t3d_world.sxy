@@ -537,11 +537,13 @@
 	(Float32 bearing = (this.archive.LoadF32 "world.camera.bearing" 0))
 	(this.cameraOrientation = bearing elevation 0)
 	
-	(IInstances instances (Instances))
-	(instances.Clear)
+	(IECS ecs (GetECS))
+	(ecs.DeprecateAll)
 	
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
+	
+	(IInstances instances (Instances))
 	
 //	(AddBottle scene instances)
 	(AddFloor scene instances)

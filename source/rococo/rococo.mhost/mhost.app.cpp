@@ -489,6 +489,7 @@ namespace MHost
 		}
 
 		Rococo::Time::ticks lastTick = 0;
+		int64 frameIndex = 0;;
 
 		Seconds YieldForSystemMessages(int32 sleepMS) override
 		{
@@ -521,6 +522,15 @@ namespace MHost
 			platform.graphics.scene.AdvanceAnimations(Seconds{ dt });
 
 			while (platform.os.appControl.MainThreadQueue().ExecuteNext());
+
+			frameIndex++;
+
+			enum { GC_FREQUENCY = 2 };
+
+			if (0 == (frameIndex % GC_FREQUENCY))
+			{
+				platform.world.ECS.CollectGarbage();
+			}
 
 			return Seconds{ dt };
 		}

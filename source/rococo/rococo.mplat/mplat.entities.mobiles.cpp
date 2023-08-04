@@ -10,10 +10,9 @@ namespace
 {
    struct Mobiles : public IMobilesSupervisor
    {
-      IInstancesSupervisor& instances;
       IECS& ecs;
 
-      Mobiles(IInstancesSupervisor& _instances) : instances(_instances), ecs(instances.ECS())
+      Mobiles(IECS& _ecs) : ecs(_ecs)
       {
       }
 
@@ -109,9 +108,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IMobilesSupervisor* CreateMobilesSupervisor(IInstancesSupervisor& instances)
+      IMobilesSupervisor* CreateMobilesSupervisor(IECS& ecs)
       {
-         return new Mobiles(instances);
+         return new Mobiles(ecs);
       }
    }
 }

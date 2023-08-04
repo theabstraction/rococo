@@ -24,7 +24,6 @@ namespace
         int32 orientationFlags;
         ID_ENTITY followingId;
         ID_ENTITY orientationGuideId;
-        IInstancesSupervisor& instances;
         IMobiles& mobiles;
         IRenderer& renderer;
         Degrees elevation{ 0 };
@@ -33,8 +32,7 @@ namespace
         bool isFPSlinked{ false };
         Vec3 relativePos;
     public:
-        Camera(IInstancesSupervisor& _instances, IMobiles& _mobiles, IRenderer& _renderer) :
-            instances(_instances),
+        Camera(IMobiles& _mobiles, IRenderer& _renderer) :
             mobiles(_mobiles),
             renderer(_renderer)
         {
@@ -283,7 +281,12 @@ namespace
         void MoveToEntity(ID_ENTITY id) override
         {
             followingId = ID_ENTITY::Invalid();
-            instances.ConcatenatePositionVectors(id, position);
+
+            auto entity = API::ForIBodyComponent::Get(id);
+            if (entity)
+            {
+                position += entity->Model().GetPosition();
+            }
         }
 
         void OrientateWithEntity(ID_ENTITY id, int32 flags) override
@@ -332,9 +335,9 @@ namespace Rococo
 {
    namespace Graphics
    {
-      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IMobiles& mobiles, IRenderer& renderer)
+      ICameraSupervisor* CreateCamera(IMobiles& mobiles, IRenderer& renderer)
       {
-         return new Camera(instances, mobiles, renderer);
+         return new Camera(mobiles, renderer);
       }
    }
 }

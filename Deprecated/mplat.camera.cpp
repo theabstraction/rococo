@@ -16,7 +16,6 @@ namespace
       int32 orientationFlags;
       ID_ENTITY followingId;
       ID_ENTITY orientationGuideId;
-      IInstancesSupervisor& instances;
       IMobiles& mobiles;
       IRenderer& renderer;
       Degrees elevation{ 0 };
@@ -24,7 +23,7 @@ namespace
       bool isDirty{ false };
       bool isFPSlinked{ false };   
    public:
-      Camera(IInstancesSupervisor& _instances, IMobiles& _mobiles, IRenderer& _renderer) :
+      Camera(IMobiles& _mobiles, IRenderer& _renderer) :
          instances(_instances),
          mobiles(_mobiles),
          renderer(_renderer)
@@ -295,9 +294,9 @@ namespace Rococo
 {
    namespace Graphics
    {
-      ICameraSupervisor* CreateCamera(IInstancesSupervisor& instances, IMobiles& mobiles, IRenderer& renderer)
+      ICameraSupervisor* CreateCamera(IMobiles& mobiles, IRenderer& renderer)
       {
-         return new Camera(instances, mobiles, renderer);
+         return new Camera(mobiles, renderer);
       }
    }
 }

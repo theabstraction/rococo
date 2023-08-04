@@ -533,10 +533,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	ComponentAutoRelease componentReleaser; // Ensure this is created before the ecs system, as component tables must remain valid for the lifetime of the ECS - the ECS references them
 	AutoFree<IECSSupervisor> ecs = CreateECS(32_megabytes);
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(mainWindow->Renderer(), *publisher, *ecs, (size_t) maxEntities);
-	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
-	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
-	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(mainWindow->Renderer(), *publisher, (size_t) maxEntities);
+	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*ecs);
+	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*mobiles, mainWindow->Renderer());
+	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*ecs, *camera, *rigs);
 	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
 	AutoFree<Graphics::ISpriteBuilderSupervisor> spriteBuilder = Graphics::CreateSpriteBuilderSupervisor(mainWindow->Renderer());
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
@@ -553,7 +553,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Joysticks::IJoystick_XBOX360_Supervisor> xbox360stick = Joysticks::CreateJoystick_XBox360Proxy();
 	AutoFree<IInstallationManagerSupervisor> ims = Rococo::MPlatImpl::CreateIMS(*installation);
 	AutoFree<IArchiveSupervisor> archive = Rococo::CreateArchive();
-	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *instances);
+	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *ecs, *instances);
 	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
 
 	Rococo::Gui::GRConfig grConfig;

@@ -259,7 +259,6 @@ namespace Rococo
 
 		ROCOCO_INTERFACE IInstancesSupervisor : public IInstances
 		{
-			virtual IECS& ECS() = 0;
 			virtual void ForAll(IEntityCallback& cb) = 0;
 			virtual void Free() = 0;
 			virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
@@ -299,7 +298,7 @@ namespace Rococo
 
 		ITextTesselatorSupervisor* CreateTextTesselator(Platform& platform);
 
-		ICameraSupervisor* CreateCamera(Entities::IInstancesSupervisor& instances, Entities::IMobiles& mobiles, IRenderer& renderer);
+		ICameraSupervisor* CreateCamera(Entities::IMobiles& mobiles, IRenderer& renderer);
 
 		ROCOCO_INTERFACE IScenePopulator
 		{
@@ -325,7 +324,7 @@ namespace Rococo
 		   virtual void SetPopulator(IScenePopulator* populator) = 0;
 		};
 
-		ISceneSupervisor* CreateScene(Rococo::Entities::IInstancesSupervisor& instances, ICameraSupervisor& camera, Entities::IRigs& rigs);
+		ISceneSupervisor* CreateScene(Rococo::IECS& ecs, ICameraSupervisor& camera, Entities::IRigs& rigs);
 
 		ROCOCO_INTERFACE ISpriteBuilderSupervisor : public ISpriteBuilder
 		{
@@ -361,7 +360,7 @@ namespace Rococo
 		   virtual void Free() = 0;
 		};
 
-		IMobilesSupervisor* CreateMobilesSupervisor(Entities::IInstancesSupervisor& instances);
+		IMobilesSupervisor* CreateMobilesSupervisor(Rococo::IECS& ecs);
 
 		ROCOCO_INTERFACE IRigs
 		{
@@ -371,7 +370,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities);
+		IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities);
 
 		ROCOCO_INTERFACE IParticleSystemSupervisor : IParticleSystem
 		{
@@ -731,7 +730,7 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	IWorldSupervisor* CreateWorld(Graphics::IMeshBuilderSupervisor& meshes, Entities::IInstancesSupervisor& instances);
+	IWorldSupervisor* CreateWorld(Graphics::IMeshBuilderSupervisor& meshes, IECS& ecs, Entities::IInstancesSupervisor& instances);
 
 	namespace Graphics
 	{

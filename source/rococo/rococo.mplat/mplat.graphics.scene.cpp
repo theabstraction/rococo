@@ -19,7 +19,6 @@ namespace
 
    class Scene : public ISceneSupervisor, public ISceneBuilderSupervisor
    {
-      IInstancesSupervisor& instances;
 	  IECS& ecs;
       std::vector<ID_ENTITY> entities;
 	  std::vector<ID_ENTITY> debugEntities;
@@ -43,8 +42,8 @@ namespace
 
 	  AutoFree<IRodTesselatorSupervisor> debugTesselator;
    public:
-      Scene(IInstancesSupervisor& _instances, ICameraSupervisor& _camera, IRigs& _rigs) :
-         instances(_instances), ecs(instances.ECS()), camera(_camera), rigs(_rigs),
+      Scene(IECS& _ecs, ICameraSupervisor& _camera, IRigs& _rigs) :
+         ecs(_ecs), camera(_camera), rigs(_rigs),
 		 debugTesselator(CreateIsolatedRodTesselator())
       {
 		  debugTesselator->SetUVScale(1.0f);
@@ -358,9 +357,9 @@ namespace Rococo
 {
    namespace Graphics
    {
-      ISceneSupervisor* CreateScene(IInstancesSupervisor& instances, ICameraSupervisor& camera, IRigs& rigs)
+      ISceneSupervisor* CreateScene(IECS& ecs, ICameraSupervisor& camera, IRigs& rigs)
       {
-         return new Scene(instances, camera, rigs);
+         return new Scene(ecs, camera, rigs);
       }
    }
 }

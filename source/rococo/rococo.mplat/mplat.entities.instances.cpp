@@ -24,19 +24,13 @@ namespace
 	  Events::IPublisher& publisher;
 
       // ecs - The Entity Component System
-      IECS& ecs;
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IRenderer& _renderer, Events::IPublisher& _publisher, IECS& _ecs, size_t maxEntities) :
-         renderer(_renderer), publisher(_publisher), ecs(_ecs)
+      Instances(IRenderer& _renderer, Events::IPublisher& _publisher, size_t maxEntities) :
+         renderer(_renderer), publisher(_publisher)
       {
           UNUSED(maxEntities);
-      }
-
-      ~Instances()
-      {
-         Clear();
       }
 
       std::vector<const Matrix4x4*> modelStack;
@@ -70,19 +64,6 @@ namespace
                  return EFlowLogic::CONTINUE;
              }
          );
-      }
-
-      void GetPosition(ID_ENTITY id, Vec3& position)
-      {
-          auto body = API::ForIBodyComponent::Get(id);
-          if (body)
-          {
-              position = body->Model().GetPosition();
-          }
-          else
-          {
-              position = { 0,0,0 };
-          }
       }
 
 	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override
@@ -278,17 +259,6 @@ namespace
 		  renderer.Installation().Macro("#m", pingPath);
 	  }
    
-      void Clear() override
-      {
-          ecs.DeprecateAll();
-          ecs.CollectGarbage();
-      }
-
-      Rococo::IECS& ECS() override
-      {
-          return ecs;
-      }
-
       void Free() override
       {
          delete this;
@@ -300,9 +270,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities)
+      IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities)
       {
-         return new Instances(renderer, publisher, ecs, maxEntities);
+         return new Instances(renderer, publisher, maxEntities);
       }
    }
 }

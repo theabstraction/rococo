@@ -502,8 +502,6 @@ namespace ANON
 			auto i = clouds.find(id);
 			if (i != clouds.end())
 			{
-				Matrix4x4 model;
-
 				auto body = API::ForIBodyComponent::Get(id);
 				if (body)
 				{
