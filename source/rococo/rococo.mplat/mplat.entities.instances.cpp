@@ -133,22 +133,6 @@ namespace
           }
       }
 
-      void EnableAnimation(ID_ENTITY id) override
-      {
-          auto animationComponent = API::ForIAnimationComponent::Add(id);
-      }
-
-      void AddAnimationFrame(ID_ENTITY id, const fstring& frameName, Seconds duration, boolean32 loop) override
-      {
-          auto a = API::ForIAnimationComponent::Get(id);
-          if (!a)
-          {
-              Throw(0, "%s: no animation component for ID_ENTITY [%d v%d]. Call (instances.EnableAnimation <bodyId>) after object creation", __FUNCTION__, id.index, id.salt);
-          }
-
-          a->AddKeyFrame(frameName, duration, loop);
-      }
-
 	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override
 	  {
 		  struct: public IEventCallback<IO::FileItemData>, IMaterialTextureArrayBuilder

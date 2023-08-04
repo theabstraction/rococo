@@ -16,6 +16,7 @@
 (using Rococo)
 (using Rococo.Components.Body)
 (using Rococo.Components.Skeleton)
+(using Rococo.Components.Animation)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 (using Rococo.Entities)
@@ -498,10 +499,10 @@
 	
 	(scene.AddDynamicObject wormBodyId)
 	(scene.AddDebugObject wormBodyId)
-
-	(instances.EnableAnimation wormBodyId)
-	(instances.AddAnimationFrame wormBodyId "worm-straight" 4 false)
-	(instances.AddAnimationFrame wormBodyId "worm-bent" 4 true)
+	
+	(IAnimation animation (AddAnimation wormBodyId))
+	(animation.AddKeyFrame "worm-straight" 4 false)
+	(animation.AddKeyFrame "worm-bent" 4 false)
 )
 
 (function AddLandscape (ISceneBuilder scene)(IInstances instances) -> :

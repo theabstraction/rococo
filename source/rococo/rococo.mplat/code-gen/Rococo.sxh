@@ -372,8 +372,6 @@
 	(as.cpp Rococo.Entities.IInstances)
 	(context factory Rococo.Entities.IInstances)
 	(methods
-		(EnableAnimation (IdEntity id))
-		(AddAnimationFrame (IdEntity id)(IString frameName)(Seconds duration)(Bool loop))
 		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
 		(GetMaterialCateogry (MaterialId id)->(MaterialCategory category))

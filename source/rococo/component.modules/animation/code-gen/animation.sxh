@@ -1,5 +1,5 @@
 (interface 
-	(as.sxy Rococo.Components.Animation.IAnimationBase "animation")
+	(as.sxy Rococo.Components.Animation.IAnimation "animation")
 	(as.cpp Rococo.Components.Generated.IAnimationBase Rococo::Components::IComponentBase)
 	
 	(context factory void)
