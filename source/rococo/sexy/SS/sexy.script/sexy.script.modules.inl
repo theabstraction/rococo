@@ -3177,6 +3177,11 @@ namespace Rococo::Script
 		cstr body, tail;
 		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN nameExpr, IN programObject, IN module);
 
+		if (strstr(body, "IECS") != nullptr)
+		{
+			OS::TripDebugger();
+		}
+
 		AssertValidInterfaceName(nameExpr, tail);
 
 		IInterfaceBuilder* current_interf = ns.FindInterface(tail);
@@ -3777,8 +3782,9 @@ namespace Rococo::Script
 		for(int i = 0; i < root.NumberOfElements(); i++)
 		{
 			cr_sex e = root.GetElement(i);
-			cr_sex elementName = GetAtomicArg(e, 0);
-			if (AreEqual(elementName.String(), ("interface")))
+			cr_sex sElementName = GetAtomicArg(e, 0);
+			sexstring elementName = sElementName.String();
+			if (AreEqual(elementName, "interface"))
 			{
 				AddInterfacePrototype(e, false);
 			}

@@ -14,9 +14,11 @@
 (using MHost.Geometry)
 
 (using Rococo)
+(using Rococo.Components.Body)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 (using Rococo.Entities)
+(using Rococo.ECS)
 
 (using Sys.Maths.I32)
 (using Sys.Geometry.F32)
@@ -235,7 +237,15 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-	(Int64 floorId = (instances.AddBody "floor.1" model noScale 0))
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID floorId = ecs.NewROID)
+	
+	(IBody floorMesh (AddBody floorId))
+	(floorMesh.SetScale noScale)
+	(floorMesh.SetModel model)
+	(floorMesh.SetMesh "floor.1")
+	
+//	(Int64 floorId = (instances.AddBody "floor.1" model noScale 0))
 	(scene.AddStatics floorId)
 )
 
@@ -271,7 +281,14 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-	(Int64 lightConeId = (instances.AddBody "light.cone.1" lightConeModel noScale 0))
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID lightConeId = ecs.NewROID)
+	
+	(IBody lightMesh (AddBody lightConeId))
+	(lightMesh.SetScale noScale)
+	(lightMesh.SetModel lightConeModel)
+	(lightMesh.SetMesh "light.cone.1")
+	
 	(scene.AddStatics lightConeId)
 	
 	(scene.SetLight light 0)
@@ -415,7 +432,7 @@
 	
 	(MakeHuman "human")
 
-	(Int64 geoffId = (instances.AddBody "skellie.001" lowerSpineToWorld geoffScale 0))
+	//(Int64 geoffId = (instances.AddBody "skellie.001" lowerSpineToWorld geoffScale 0))
 	//(scene.AddDebugObject geoffId)
 	//(scene.AddDynamicObject geoffId)
 	
@@ -466,7 +483,15 @@
 	(AddWormPoses rb)
 
 	(Vec3 wormScale = 1 1 1)
-	(Int64 wormBodyId = (instances.AddBody "worm-mesh" wormToWorld wormScale 0))
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID wormBodyId = ecs.NewROID)
+	
+	(IBody wormBody (AddBody wormBodyId))
+	(wormBody.SetScale wormScale)
+	(wormBody.SetModel wormToWorld)
+	(wormBody.SetMesh "worm-mesh")
+	
 	(instances.BindSkeletonToBody "worm" wormBodyId)
 	(scene.AddDynamicObject wormBodyId)
 	

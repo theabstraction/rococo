@@ -119,6 +119,13 @@ struct Pack
                         f->Write(1, nBytes, buf);
                     }
                 }
+                else
+                {
+                    if (file.itemRelContainer[0] > 255 || !IsCapital((char)file.itemRelContainer[0]) && file.itemRelContainer[0] != L'_')
+                    {
+                        Throw(0, "Sub-directory [%ws] of [%ws] did not begin with a capital letter.", file.itemRelContainer, file.fullPath);
+                    }
+                }
             }
         } writeDirectory;
         writeDirectory.f = f;
@@ -265,11 +272,11 @@ int main(int argc, char* argv[])
         {
             fprintf(stderr, "Exception:\n%s\n", ex.Message());
         }
-        return ex.ErrorCode();
+        return ex.ErrorCode() ? ex.ErrorCode(): -1;
     }
     catch (...)
     {
         fprintf(stderr, "Unhandled exception packaging \n%s\n", args.source_directory);
-        return 0;
+        return -1;
     }
 }

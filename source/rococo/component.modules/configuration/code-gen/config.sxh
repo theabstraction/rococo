@@ -1,5 +1,5 @@
 (interface 
-	(as.sxy Rococo.Components.Config.IConfigBase "rococo.config")
+	(as.sxy Rococo.Components.Config.IConfigBase "config")
 	(as.cpp Rococo.Components.Generated.IConfigBase Rococo::Components::IComponentBase)
 	
 	(context factory Rococo.Components.Generated.IConfigBase)

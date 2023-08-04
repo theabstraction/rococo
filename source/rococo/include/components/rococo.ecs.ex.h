@@ -1,9 +1,15 @@
 #pragma once
-#include <rococo.ecs.h>
-#include <rococo.component.entities.h>
+#include <components/rococo.ecs.h>
+#include <components/rococo.component.base.h>
+#include <components/rococo.component.entities.h>
 
 namespace Rococo::Components
 {
+    struct InstanceInfo
+    {
+        ROID roid;
+    };
+
     template<class T> ROCOCO_INTERFACE IComponentCallback
     {
         virtual EFlowLogic OnComponent(ROID id, T& item) = 0;
@@ -64,7 +70,7 @@ namespace Rococo::Components
     template<class ICOMPONENT>
     ROCOCO_INTERFACE IComponentFactory
     {
-        virtual ICOMPONENT* ConstructInPlace(void* pMemory) = 0;
+        virtual ICOMPONENT* ConstructInPlace(void* pMemory, InstanceInfo& instance) = 0;
         virtual void Destruct(ICOMPONENT* pInstance) = 0;
         virtual size_t SizeOfConstructedObject() const = 0;
         virtual void Free() = 0;
@@ -74,11 +80,11 @@ namespace Rococo::Components
     template<class INTERFACE, class CLASSNAME>
     struct DefaultFactory : IComponentFactory<INTERFACE>
     {
-        INTERFACE* ConstructInPlace(void* pMemory) override
+        INTERFACE* ConstructInPlace(void* pMemory, InstanceInfo& instance) override
         {
             // Requires #include <new>. 
             // This was not added to the header as it adds thousands of lines to the compile unit for everything that includes this file
-            return new (pMemory) CLASSNAME();
+            return new (pMemory) CLASSNAME(instance);
         }
 
         void Destruct(INTERFACE* pInstance) override
@@ -101,13 +107,13 @@ namespace Rococo::Components
     template<class INTERFACE, class CLASSNAME, class ARG>
     struct FactoryWithOneArg : IComponentFactory<INTERFACE>
     {
-        ARG& arg;
+        ARG arg;
 
-        FactoryWithOneArg(ARG& _arg) : arg(_arg) {}
+        FactoryWithOneArg(ARG _arg) : arg(_arg) {}
 
-        INTERFACE* ConstructInPlace(void* pMemory) override
+        INTERFACE* ConstructInPlace(void* pMemory, InstanceInfo& instance) override
         {
-            return new (pMemory) CLASSNAME(arg);
+            return new (pMemory) CLASSNAME(arg, instance);
         }
 
         void Destruct(INTERFACE* pInstance) override
@@ -181,5 +187,5 @@ namespace Rococo::Components::API::For##COMPONENT													        \
 namespace Rococo::Components::ECS			        														\
 {																									        \
 	COMPONENT_API void ReleaseTablesFor##COMPONENT();														\
-    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECSSupervisor& ecs, LINK_ARG& arg);                     \
+    COMPONENT_API void LINK_NAME(COMPONENT, Table)(IECSSupervisor& ecs, LINK_ARG arg);                      \
 }																								            

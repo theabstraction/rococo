@@ -1,13 +1,13 @@
 #pragma once
 
-#include <rococo.ecs.roid.h>
+#include <components/rococo.ecs.roid.h>
 
 namespace Rococo
 {
     struct IECS;
 }
 
-#include <..\rococo.ecs\code-gen\ecs.sxh.h>
+#include "../../rococo.ecs/code-gen/ecs.sxh.h"
 
 #ifndef ROCOCO_ECS_API 
 # define ROCOCO_ECS_API ROCOCO_API_IMPORT

@@ -299,3 +299,12 @@
 
 (strong SysTypeRGBAb (Int32))
 (alias SysTypeRGBAb Sys.Type.RGBAb)
+
+(struct SysTypeRef
+	(Pointer hComponent)
+	(Pointer hLife)
+)
+(alias SysTypeRef Sys.Type.ComponentRef)
+
+(strong SysTypeROID (Int64))
+(alias SysTypeROID Sys.Type.ROID)

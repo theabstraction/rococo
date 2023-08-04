@@ -149,7 +149,7 @@
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.configuration.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\configuration\code-gen rococo\components\config config.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -238,19 +238,18 @@
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.configuration.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\configuration\code-gen rococo\components\config config.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config.sxh" />
-    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\components\configuration\code-gen\config_declarations.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\configuration\code-gen\config.sxh" />
+    <ClInclude Include="..\..\source\rococo\component.modules\configuration\code-gen\config.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\configuration\code-gen\config_declarations.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\components\configuration\configuration.component.cpp" />
-    <ClCompile Include="..\..\source\rococo\components\configuration\configuration.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\component.modules\configuration\configuration.component.cpp" />
+    <ClCompile Include="..\..\source\rococo\component.modules\configuration\configuration.scripts.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

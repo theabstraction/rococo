@@ -4,7 +4,7 @@
 #include <rococo.maths.h>
 #include <rococo.strings.h>
 #include <rococo.animation.h>
-#include <rococo.ecs.builder.inl>
+#include <components/rococo.ecs.builder.inl>
 #include <new>
 
 namespace Rococo::Components
@@ -19,9 +19,19 @@ namespace Rococo::Components
         FPSAngles fpsOrientation{ 0,0,0 };
         ID_SKELETON skeletonId;
 
-        SkeletonComponent(ISkeletons& _skeletons) : skeletons(_skeletons)
+        SkeletonComponent(ISkeletons& _skeletons, InstanceInfo&) : skeletons(_skeletons)
         {
 
+        }
+
+        ComponentTypeInfo TypeInfo() const override
+        {
+            return ComponentTypeInfo{ "SkeletonComponent" };
+        };
+
+        void Reflect(ComponentReflectionInfo& info) override
+        {
+            UNUSED(info);
         }
 
         Entities::ISkeleton* Skeleton() override
@@ -66,8 +76,8 @@ namespace Module::ForISkeletonComponent
     using namespace Rococo::Components;
     IComponentFactory<ISkeletonComponent>* CreateComponentFactory(ISkeletons& skeletons)
     {
-        return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons>(skeletons);
+        return new FactoryWithOneArg<ISkeletonComponent, SkeletonComponent, ISkeletons&>(skeletons);
     }
 }
 
-DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_LINKARG(ROCOCO_COMPONENTS_SKELETON_API, ISkeletonComponent, Entities::ISkeletons)
+DEFINE_AND_EXPORT_SINGLETON_METHODS_WITH_LINKARG(ROCOCO_COMPONENTS_SKELETON_API, ISkeletonComponent, Entities::ISkeletons&)

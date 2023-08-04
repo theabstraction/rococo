@@ -44,7 +44,7 @@ namespace Rococo::Strings
 	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 }
 
-namespace
+namespace ANON
 {
 	static auto version1000 = "Rococo.Package:v1.0.0.0\n"_fstring;
 	static auto headerLengthString = "HeaderLength:"_fstring;
@@ -532,6 +532,6 @@ namespace Rococo
 		WideFilePath osPath;
 		Format(osPath, L"%ls", sysPath);
 		Rococo::OS::ToSysPath(osPath.buf);
-		return new SXYZMapPackage(osPath, friendlyName);
+		return new ANON::SXYZMapPackage(osPath, friendlyName);
 	}
 }

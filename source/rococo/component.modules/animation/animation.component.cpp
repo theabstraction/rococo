@@ -1,7 +1,6 @@
 #define ROCOCO_COMPONENTS_ANIMATION_API __declspec(dllexport)
 #include <components/rococo.components.animation.h>
-#include <rococo.animation.h>
-#include <rococo.ecs.builder.inl>
+#include <components/rococo.ecs.builder.inl>
 
 //#include <rococo.allocators.trackers.inl>
 

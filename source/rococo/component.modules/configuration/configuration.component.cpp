@@ -1,8 +1,8 @@
 #define ROCOCO_COMPONENTS_CONFIG_API __declspec(dllexport)
 
 #include <components/rococo.components.configuration.h>
+#include <components/rococo.ecs.builder.inl>
 #include <rococo.hashtable.h>
-#include <rococo.ecs.builder.inl>
 
 namespace Rococo::Components
 {
@@ -12,6 +12,21 @@ namespace Rococo::Components
 		stringmap<float> mapFloats;
 		stringmap<double> mapDoubles;
 		stringmap<HString> mapStrings;
+
+		ConfigurationComponent(InstanceInfo&)
+		{
+
+		}
+
+		ComponentTypeInfo TypeInfo() const override
+		{
+			return ComponentTypeInfo{ "ConfigurationComponent" };
+		};
+
+		void Reflect(ComponentReflectionInfo& info) override
+		{
+			UNUSED(info);
+		}
 
 		void Add(const fstring& key, int value) override
 		{

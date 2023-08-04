@@ -1,8 +1,8 @@
 #pragma once
-#include <rococo.ecs.ex.h>
+#include <components/rococo.ecs.ex.h>
 
 #include <rococo.animation.h>
-#include <..\components\animation\code-gen\animation.sxh.h>
+#include "../../component.modules/animation/code-gen/animation.sxh.h"
 
 namespace Rococo::Components
 {

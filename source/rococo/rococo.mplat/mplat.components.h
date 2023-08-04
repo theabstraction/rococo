@@ -1,7 +1,7 @@
 #pragma once
 
 // Generated at: Jul 14 2023 06:56 UTC
-#include <rococo.ecs.ex.h>
+#include <components/rococo.ecs.ex.h>
 #include "mplat.components.decl.h"
 #include <rococo.functional.h>
 

@@ -2,7 +2,7 @@
 #include <rococo.allocators.h>
 #include <list>
 #include <unordered_map>
-#include "rococo.component.entities.h"
+#include "components/rococo.component.entities.h"
 #include "mplat.components.h"
 
 #ifdef _DEBUG

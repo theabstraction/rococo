@@ -180,6 +180,8 @@ namespace Anon
 
 		vm.SetStatus(EXECUTERESULT_RUNNING);
 
+		// Note: if object destruction is changed you may need to update: SF_TO_DESTRUCTED_OBJECT_OFFSET
+
 		vm.Push(object);
 		EXECUTERESULT status = vm.ExecuteFunction(destructorId);
 		vm.PopPointer();

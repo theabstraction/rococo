@@ -79,17 +79,27 @@ namespace MHost
 		return obj;
 	}
 
+	void AddNativeCallSecurityFromMHostPackage(ScriptCompileArgs& args, cstr nativeNamespace)
+	{
+		Rococo::Script::AddNativeCallSecurity(args.ss, nativeNamespace, "Package[mhost]");
+	}
+
 	void AddMHostNativeCallSecurity(ScriptCompileArgs& args)
 	{
 		Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
-		Rococo::Script::AddNativeCallSecurity(args.ss, "MHost.Native", "Package[mhost]");
-		Rococo::Script::AddNativeCallSecurity(args.ss, "MPlat.Native", "Package[mhost]");
-		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Native", "Package[mhost]");
-		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Audio.Native", "Package[mhost]");
-		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Entities.Native", "Package[mhost]");
-		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Graphics.Native", "Package[mhost]");
-		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.MPlat.Native", "Package[mhost]");
-		Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Configuration.Native", "Package[mhost]");
+		AddNativeCallSecurityFromMHostPackage(args, "MHost.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "MPlat.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.ECS.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Audio.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Configuration.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Entities.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Graphics.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.MPlat.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Components.Animation.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Components.Body.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Components.Config.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Components.Skeleton.Native");
 	}
 
 	IScriptCompilationEventHandler& GetBaseCompileOptions()

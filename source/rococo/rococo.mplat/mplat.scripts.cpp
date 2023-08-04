@@ -245,7 +245,12 @@ const char* s_MplatImplicitIncludes[] =
 	"!scripts/interop/rococo/mplat/mplat_types.sxy",
 	"!scripts/interop/rococo/mplat/types.sxy",
 	"!scripts/interop/rococo/audio/audio_types.sxy",
-	"!scripts/interop/rococo/audio/rococo.audio_sxh.sxy"
+	"!scripts/interop/rococo/audio/rococo.audio_sxh.sxy",
+	"!scripts/interop/rococo/components/ecs_sxh.sxy",
+	"!scripts/interop/rococo/components/animation_sxh.sxy",
+	"!scripts/interop/rococo/components/body_sxh.sxy",
+	"!scripts/interop/rococo/components/configuration_sxh.sxy",
+	"!scripts/interop/rococo/components/skeleton_sxh.sxy"
 };
 
 struct MPlatImplicitIncludes : IScriptEnumerator
@@ -315,6 +320,7 @@ namespace Rococo
 
 					if (addPlatform)
 					{
+						Rococo::Components::Generated::Interop::AddComponentNatives(args.ss, &platform.world.ECS);
 						Audio::DLL_AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
 						Entities::Interop::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.world.rigs);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
@@ -548,3 +554,5 @@ namespace Rococo
 		}
 	} // M
 } // Rococo
+
+#include <components/interop.inl>

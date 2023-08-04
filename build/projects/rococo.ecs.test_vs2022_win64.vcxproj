@@ -232,7 +232,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.ecs.test\rococo.ecs.test.cpp" />

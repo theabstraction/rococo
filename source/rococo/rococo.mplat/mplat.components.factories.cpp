@@ -11,12 +11,18 @@ using namespace Rococo::Strings;
 
 struct ParticleSystemComponent : IParticleSystemComponent
 {
-
+    ParticleSystemComponent(InstanceInfo& info)
+    {
+        UNUSED(info);
+    }
 };
 
 struct RigsComponent : IRigsComponent
 {
-
+    RigsComponent(InstanceInfo& info)
+    {
+        UNUSED(info);
+    }
 };
 
 namespace Rococo::Components

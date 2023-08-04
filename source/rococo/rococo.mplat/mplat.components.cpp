@@ -2,10 +2,12 @@
 // Based on the template file: .\rococo.mplat\mplat.component.template.cpp
 #include <rococo.api.h>
 #include <rococo.allocators.h>
+#include <components/rococo.component.entities.h>
+
+#include "mplat.components.h"
+
 #include <list>
 #include <unordered_map>
-#include "rococo.component.entities.h"
-#include "mplat.components.h"
 
 #ifdef _DEBUG
 #define COMPONENT_IMPLEMENTATION_NAMESPACE ECS

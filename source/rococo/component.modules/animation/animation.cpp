@@ -64,7 +64,17 @@ namespace Rococo::Animation
 		float t = 0;
 		Seconds totalAnimationDuration = 0.0_seconds;
 	public:
-		AnimationImpl()
+		AnimationImpl(InstanceInfo&)
+		{
+
+		}
+
+		ComponentTypeInfo TypeInfo() const override
+		{
+			return ComponentTypeInfo{ "AnimationImpl" };
+		};
+
+		void Reflect(ComponentReflectionInfo& info) override
 		{
 
 		}
@@ -198,6 +208,6 @@ namespace Rococo::Animation
 	};
 }
 
-#include <rococo.ecs.builder.inl>
+#include <components/rococo.ecs.builder.inl>
 
 DEFINE_DEFAULT_FACTORY(IAnimationComponent, Rococo::Animation::AnimationImpl);

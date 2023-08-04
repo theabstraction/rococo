@@ -54,6 +54,12 @@ namespace Rococo::Script
 	struct NativeSecurityHandler;
 }
 
+namespace Rococo::Components
+{
+	struct IComponentBase;
+	struct IComponentLife;
+}
+
 namespace Rococo {
 	namespace Compiler
 	{
@@ -230,6 +236,16 @@ namespace Rococo {
 			int64 refCount;
 			VirtualTable* pVTables[1];
 			enum : int64 { NO_REF_COUNT = 0x4000000000000000 };
+		};
+
+		enum { SF_TO_DESTRUCTED_OBJECT_OFFSET = -40 };
+
+		struct ComponentObject
+		{
+			ObjectStub stub;
+			Rococo::Components::IComponentBase* component;
+			Rococo::Components::IComponentLife* life;
+			int64 roid;
 		};
 
 		struct ObjectStubWithHandle

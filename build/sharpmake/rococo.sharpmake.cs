@@ -514,7 +514,7 @@ namespace Rococo
     {
         public RococoECSProject() : base("rococo.ecs")
         {
-            SourceFiles.Add(@"..\include\rococo.ecs.h");
+            SourceFiles.Add(@"..\include\components\rococo.ecs.h");
             SourceFiles.Add(@"code-gen\ecs.sxh");
         }
 
@@ -525,7 +525,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc", @"rococo\ecs", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
     }
 
@@ -534,7 +534,7 @@ namespace Rococo
     {
         public RococoECSTestProject() : base("rococo.ecs.test")
         {
-            SourceFiles.Add(@"..\include\rococo.ecs.h");
+            SourceFiles.Add(@"..\include\components\rococo.ecs.h");
         }
 
         [Configure()]
@@ -554,9 +554,9 @@ namespace Rococo
     [Sharpmake.Generate]
     public class RococoComponentsConfigurationProject : RococoProject
     {
-        public RococoComponentsConfigurationProject() : base("rococo.component.configuration", @"components\configuration")
+        public RococoComponentsConfigurationProject() : base("rococo.component.configuration", @"component.modules\configuration")
         {
-            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"..\..\include\components\rococo.ecs.h");
             SourceFiles.Add(@"code-gen\config.sxh");
         }
 
@@ -567,16 +567,16 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc", @"rococo\components\config", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
     }
 
     [Sharpmake.Generate]
     public class RococoComponentsAnimationProject : RococoProject
     {
-        public RococoComponentsAnimationProject() : base("rococo.component.animation", @"components\animation")
+        public RococoComponentsAnimationProject() : base("rococo.component.animation", @"component.modules\animation")
         {
-            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"..\..\include\components\rococo.ecs.h");
             SourceFiles.Add(@"code-gen\animation.sxh");
         }
 
@@ -588,16 +588,16 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc", @"rococo\components\animation", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
     }
 
     [Sharpmake.Generate]
     public class RococoComponentsBodyProject : RococoProject
     {
-        public RococoComponentsBodyProject() : base("rococo.component.body", @"components\body")
+        public RococoComponentsBodyProject() : base("rococo.component.body", @"component.modules\body")
         {
-            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"..\..\include\components\rococo.ecs.h");
             SourceFiles.Add(@"code-gen\body.sxh");
         }
 
@@ -609,16 +609,16 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc", @"rococo\components\body", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
     }
 
     [Sharpmake.Generate]
     public class RococoComponentsSkeletonProject : RococoProject
     {
-        public RococoComponentsSkeletonProject() : base("rococo.component.skeleton", @"components\skeleton")
+        public RococoComponentsSkeletonProject() : base("rococo.component.skeleton", @"component.modules\skeleton")
         {
-            SourceFiles.Add(@"..\..\include\rococo.ecs.h");
+            SourceFiles.Add(@"..\..\include\components\rococo.ecs.h");
             SourceFiles.Add(@"code-gen\skeleton.sxh");
         }
 
@@ -630,7 +630,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc", @"rococo\components\skeleton", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
     }
 
@@ -1052,10 +1052,11 @@ namespace Rococo
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
             AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
 
-            conf.AddPrivateDependency<RococoComponentsAnimationProject>(target);
-            conf.AddPrivateDependency<RococoComponentsBodyProject>(target);
-            conf.AddPrivateDependency<RococoComponentsConfigurationProject>(target);
-            conf.AddPrivateDependency<RococoComponentsSkeletonProject>(target);
+            conf.AddPublicDependency<RococoECSProject>(target);
+            conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
+            conf.AddPublicDependency<RococoComponentsBodyProject>(target);
+            conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
+            conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
             conf.AddPrivateDependency<RococoAudioProject>(target);
         }
     }
@@ -1082,6 +1083,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilExProject>(target);
             conf.AddPublicDependency<RococoAudioProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
+            conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
             conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
             conf.AddPublicDependency<RococoComponentsBodyProject>(target);

@@ -1,5 +1,5 @@
-#include <rococo.ecs.h>
-#include <sexy.script.h>
+#define ROCOCO_COMPONENTS_API ROCOCO_ECS_API
+#include <components/rococo.component.scripting.h>
 
 namespace
 {
@@ -9,11 +9,11 @@ namespace
 	}
 }
 
-#include <../rococo.ecs/code-gen/ecs.sxh.inl>
+#include "../rococo.ecs/code-gen/ecs.sxh.inl"
 
-namespace Rococo::ECS
+namespace Rococo::Components::Generated::Interop
 {
-	ROCOCO_ECS_API void AddNativeCalls(Rococo::Script::IPublicScriptSystem& ss, Rococo::IECS* ecs)
+	ROCOCO_ECS_API void AddNativeCalls_ECS(Rococo::Script::IPublicScriptSystem& ss, Rococo::IECS* ecs)
 	{
 		Rococo::Interop::AddNativeCalls_RococoIECSBase(ss, ecs);
 	}

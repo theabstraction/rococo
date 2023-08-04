@@ -1,10 +1,12 @@
 #include <rococo.types.h>
-#include <stdio.h>
 #include <components/rococo.components.animation.h>
-#include <rococo.ecs.h>
+#include <components/rococo.ecs.h>
 #include <rococo.os.h>
-#include <vector>
 #include <rococo.time.h>
+
+#include <stdio.h>
+#include <vector>
+
 
 #ifdef _WIN32
 #include <rococo.os.win32.h>

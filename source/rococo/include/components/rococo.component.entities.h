@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rococo.ecs.roid.h>
+#include <components/rococo.ecs.roid.h>
 
 namespace Rococo::Components
 {
@@ -24,6 +24,8 @@ namespace Rococo::Components
 		IComponentLife* life;
 		
 	public:
+		using TInterface = INTERFACE;
+
 		FORCE_INLINE Ref(INTERFACE& refComponent, IComponentLife& refLife):
 			component(&refComponent),
 			life(&refLife)

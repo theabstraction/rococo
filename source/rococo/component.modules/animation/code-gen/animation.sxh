@@ -1,8 +1,8 @@
 (interface 
-	(as.sxy Rococo.Components.Animation.IAnimationBase "rococo.animation")
+	(as.sxy Rococo.Components.Animation.IAnimationBase "animation")
 	(as.cpp Rococo.Components.Generated.IAnimationBase Rococo::Components::IComponentBase)
 	
-	(context factory Rococo.Components.Generated.IAnimationBase)
+	(context factory void)
 	(methods
 		(AddKeyFrame (const IString frameName)(Seconds duration)(Bool loopAnimation)->)
 	)

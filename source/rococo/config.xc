@@ -30,7 +30,7 @@
 (primitive IdSprite Int64 ID_SPRITE)
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 ID_MESH)
-(primitive IdEntity Int64 ID_ENTITY)
+(primitive IdEntity Sys.Type.ROID Rococo.Components.ROID)
 (primitive IdSysMesh Int64 ID_SYS_MESH)
 (primitive IdCubeTexture Int64 ID_CUBE_TEXTURE)
 (primitive IdSkeleton Int64 ID_SKELETON)
@@ -80,5 +80,5 @@
 
 // The new strong number types
 //(primitive <name> <sexy-name> <cpp-name>)
-(primitive ROID Rococo.ROID Rococo.Components.ROID)
+(primitive ROID Sys.Type.ROID Rococo.Components.ROID)
 (primitive RGBAb Rococo.RGBAb RGBAb)

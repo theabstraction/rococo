@@ -4,13 +4,16 @@
     <ClCompile Include="..\..\source\rococo\rococo.ecs.test\rococo.ecs.test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h">
-      <Filter>include</Filter>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h">
+      <Filter>include\components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
       <UniqueIdentifier>{0feb36d4-ded9-b510-4a82-8ce6435f7e81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\components">
+      <UniqueIdentifier>{c75e9308-cc63-bc7c-4caa-75f3abc12be9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

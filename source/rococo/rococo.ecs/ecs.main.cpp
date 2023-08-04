@@ -1,4 +1,4 @@
-#include <rococo.ecs.ex.h>
+#include <components/rococo.ecs.ex.h>
 #include <vector>
 
 #include <allocators/rococo.allocators.dll.inl>

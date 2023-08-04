@@ -1,5 +1,5 @@
 (interface 
-	(as.sxy Rococo.Components.Body.IBodyBase "rococo.body")
+	(as.sxy Rococo.Components.Body.IBody "body")
 	(as.cpp Rococo.Components.Generated.IBodyBase Rococo::Components::IComponentBase)
 	
 	(context factory Rococo.Components.Generated.IBodyBase)
@@ -11,7 +11,8 @@
 		(SetModel (const Matrix4x4 model)-> )		
 		(SetParent(ROID parent)  -> )
         (SetScale (const Vec3 scale) -> )
+		(SetMesh (const IString mesh) -> )
 	)
-
+	
 	(component Rococo::Components::API::ForIBodyComponent Body Rococo::Components::IBodyComponent)
 )

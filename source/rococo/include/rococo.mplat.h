@@ -8,13 +8,15 @@
 #include <rococo.events.h>
 #include <rococo.animation.types.h>
 
-#include <rococo.component.entities.h>
+#include <components/rococo.component.entities.h>
 #include <components/rococo.components.body.h>
 #include <components/rococo.components.skeleton.h>
 #include <components/rococo.components.animation.h>
 #include <mplat.components.decl.h>
 #include <rococo.mplat.types.h>
 #include <rococo.mplat.editors.h>
+
+#include <3D/rococo.mesh-builder.h>
 
 using namespace Rococo::Strings;
 
@@ -284,18 +286,6 @@ namespace Rococo
 
 	namespace Graphics
 	{
-		ROCOCO_INTERFACE IMeshBuilderSupervisor : public IMeshBuilder
-		{
-		   virtual void Free() = 0;
-		   virtual void SaveCSV(cstr name, IExpandingBuffer& buffer) = 0;
-		   virtual bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds) = 0;
-		   virtual IMathsVenue* Venue() = 0;
-		   virtual const fstring GetName(ID_SYS_MESH id) const = 0;
-		   virtual const VertexTriangle* GetTriangles(ID_SYS_MESH id, size_t& nTriangles) const = 0;
-		   virtual const Triangle* GetPhysicsHull(ID_SYS_MESH id, size_t& nTriangles) const = 0;
-		   virtual AABB Bounds(ID_SYS_MESH id) const = 0;
-		};
-
 		ROCOCO_INTERFACE ICameraSupervisor : public ICamera
 		{
 		   virtual void ElevateView(ID_ENTITY entityId, Degrees delta, cr_vec3 relativePos) = 0;
@@ -999,4 +989,10 @@ namespace Rococo::Entities
 	/// <param name="rod">- the rod tesselator object used to generate geometry</param>
 	/// <param name="rigs">- the set of poses used by the entity object</param>
 	void AddDebugBones(ID_ENTITY id, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod);
+}
+
+namespace Rococo::Components::Generated::Interop
+{
+	// Defined in include/components/interop.inl
+	void AddComponentNatives(Rococo::Script::IPublicScriptSystem& ss, Rococo::IECS* ecs);
 }

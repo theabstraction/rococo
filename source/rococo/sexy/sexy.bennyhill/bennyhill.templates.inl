@@ -21,35 +21,35 @@ R"((class Proxy%S
 	(implements %N.%S)
 	(attribute not-serialized)
 	(Sys.Type.ComponentRef ref)
-	(Rococo.Components.ROID roid)
+	(ROID roid)
 )
 
-(method Proxy%S.Construct(Rococo.Components.ROID id)(Sys.Type.ComponentRef ref) :
-	this.roid = id;
-	this.ref.hComponent = ref.hComponent;
-	this.ref.hLife = ref.hLife;
+(method Proxy%S.Construct(ROID id)(Sys.Type.ComponentRef ref) :
+	(this.roid = id)
+	(this.ref.hComponent = ref.hComponent)
+	(this.ref.hLife = ref.hLife)
 )
 
-(method Proxy%S.Destruct :
-	(%N.Native.Destruct%s ref)
+(method Proxy%S.Destruct -> :
+	(%N.Native.Destruct%s)
 )
 
-(factory %N.Add%s %N.%S (Rococo.Components.ROID id):
+(factory %N.Add%s %N.%S (ROID id):
 	(Sys.Type.ComponentRef ref)
 	(%N.Native.Add%s ref id)
 
-	(if (outref.hComponent == 0)
+	(if (ref.hComponent == 0)
 		(return)
 	)
 
 	(construct Proxy%S id ref)
 )
 
-(factory %N.Get%s %N.%S (Rococo.Components.ROID id) :
+(factory %N.Get%s %N.%S (ROID id) :
 	(Sys.Type.ComponentRef ref)
 	(%N.Native.Get%s ref id)
 
-	(if (outref.hComponent == 0)
+	(if (ref.hComponent == 0)
 		(return)
 	)
 
@@ -59,12 +59,14 @@ R"((class Proxy%S
 )";
 
 const char* componentTemplateCppImpl =
-R"(
+R"(/* Requires that Add and Get are declared ahead of the INL file.
+Typically with '#define DECLARE_SINGLETON_METHODS(COMPONENT_API,COMPONENT) from the <rococo.ecs.ex.h> header
 namespace %T
 {
 	Ref<%W> Add(ROID roid);
 	Ref<%W> Get(ROID roid);
 }
+*/
 
 namespace
 {
@@ -73,23 +75,28 @@ namespace
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
 
+	RefPointers* ReadRefAndId(OUT ROID& id, IN uint8* _sf, IN OUT ptrdiff_t& _offset)
+	{
+		_offset += sizeof(ROID);
+		ReadInput(id, _sf, -_offset);
+
+		Rococo::Components::RefPointers* pOutput;
+		_offset += sizeof(pOutput);
+		ReadInput(pOutput, _sf, -_offset);
+
+		return pOutput;
+	}
+
 	void Add_%sComponent(NativeCallEnvironment& _nce)
 	{
 		uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 
-		Rococo::Components::RefPointers* pOutput;
-		ReadInput(pOutput, _sf, _offset);
-
-		_offset += sizeof(pOutput);
-
 		ROID roid;
-		ReadInput(roid, _sf, _offset);
-
-		_offset += sizeof(ROID);
+		RefPointers* output = ReadRefAndId(OUT roid, IN _sf, IN OUT _offset);
 
 		auto ref = %T::Add(roid);
-		Rococo::Components::AssignRef(*pOutput, ref);
+		Rococo::Components::AssignRef(*output, ref);
 	}
 
 	void Get_%sComponent(NativeCallEnvironment& _nce)
@@ -97,36 +104,27 @@ namespace
 		uint8* _sf = _nce.cpu.SF();
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 
-		Rococo::Components::RefPointers* pOutput;
-		ReadInput(pOutput, _sf, _offset);
-
-		_offset += sizeof(pOutput);
-
 		ROID roid;
-		ReadInput(roid, _sf, _offset);
-
-		_offset += sizeof(ROID);
+		RefPointers* output = ReadRefAndId(OUT roid, IN _sf, IN OUT _offset);
 
 		auto ref = %T::Get(roid);
-		Rococo::Components::AssignRef(*pOutput, ref);
+		Rococo::Components::AssignRef(*output, ref);
 	}
 
 	void Destruct_%sComponent(NativeCallEnvironment& _nce)
 	{
 		uint8* _sf = _nce.cpu.SF();
-		ptrdiff_t _offset = 2 * sizeof(size_t);
+		ComponentObject* ip;
+		ReadInput(ip, _sf, SF_TO_DESTRUCTED_OBJECT_OFFSET);
 
-		RefPointers* pOutput;
-		ReadInput(pOutput, _sf, _offset);
-
-		pOutput->life->ReleaseRef();
+		ip->life->ReleaseRef();
 	}
 
 	void AddNativeCalls_%V_GetAndAdd(const INamespace& ns, Rococo::Script::IPublicScriptSystem& ss)
 	{
 		ss.AddNativeCall(ns, Add_%sComponent, nullptr, "Add%s (Sys.Type.ComponentRef outputRef) (ROID id) -> ", __FILE__, __LINE__);
 		ss.AddNativeCall(ns, Get_%sComponent, nullptr, "Get%s (Sys.Type.ComponentRef outputRef) (ROID id) -> ", __FILE__, __LINE__);
-		ss.AddNativeCall(ns, Destruct_%sComponent, nullptr, "Destruct%s (Sys.Type.ComponentRef outputRef) -> ", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, Destruct_%sComponent, nullptr, "Destruct%s -> ", __FILE__, __LINE__);
 	}
 }
 )";

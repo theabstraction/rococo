@@ -8,21 +8,24 @@
 #include <rococo.strings.h>
 #include <rococo.imaging.h>
 #include <rococo.strings.h>
-#include <vector>
-#include <algorithm>
-#include <rococo.fonts.h>
-#include <mplat.to.app.events.inl>
-#include <sexy.script.h>
-#include "mplat.panel.base.h"
+#include <components/rococo.ecs.h>
+#include <rococo.stl.allocators.h>
+#include <rococo.gui.retained.ex.h>
 #include <rococo.ide.h>
 #include <rococo.audio.h>
-#include <objbase.h>
-#include <rococo.stl.allocators.h>
+#include <rococo.fonts.h>
+#include <rococo.maths.h>
+#include <sexy.script.h>
+
+#include <mplat.to.app.events.inl>
+#include "mplat.panel.base.h"
 #include "mplat.components.h"
-#include <rococo.gui.retained.ex.h>
 #include "mplat.editor.h"
-#include "rococo.maths.h"
-#include "rococo.ecs.h"
+
+#include <objbase.h>
+
+#include <vector>
+#include <algorithm>
 
 #ifdef _WIN32
 # pragma comment(lib, "rococo.util.ex.lib")
@@ -433,7 +436,9 @@ struct ComponentAutoRelease
 void LinkComponents(IECSSupervisor& ecs, Platform& platform)
 {
 	ECS::LinkToECS_IAnimationComponentTable(ecs);
-	ECS::LinkToECS_IBodyComponentTable(ecs);
+
+	Rococo::Components::Body::BodyComponentCreationArgs args { platform.graphics.meshes };
+	ECS::LinkToECS_IBodyComponentTable(ecs, args);
 	ECS::LinkToECS_ISkeletonComponentTable(ecs, platform.world.rigs.Skeles());
 }
 

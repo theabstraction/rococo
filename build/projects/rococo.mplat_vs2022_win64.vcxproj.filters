@@ -58,6 +58,9 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat.sxh">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -213,10 +216,5 @@
     <Filter Include="code-gen">
       <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh">
-      <Filter>code-gen</Filter>
-    </None>
   </ItemGroup>
 </Project>

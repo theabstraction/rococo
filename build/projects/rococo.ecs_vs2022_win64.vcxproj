@@ -149,7 +149,7 @@
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.ecs.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.ecs\code-gen rococo\ecs ecs.sxh ..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.ecs\code-gen rococo\components ecs.sxh ..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -238,14 +238,13 @@
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.ecs.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.ecs\code-gen rococo\ecs ecs.sxh ..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.ecs\code-gen rococo\components ecs.sxh ..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.ecs\rococo.ecs.sxh.h" />
   </ItemGroup>

@@ -149,7 +149,7 @@
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.skeleton.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\skeleton\code-gen rococo\components\skeleton skeleton.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\skeleton\code-gen rococo\components skeleton.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -238,19 +238,19 @@
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.skeleton.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\skeleton\code-gen rococo\components\skeleton skeleton.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\skeleton\code-gen rococo\components skeleton.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\skeleton.sxh" />
-    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\skeleton.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\skeleton.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\components\skeleton\code-gen\skeleton_declarations.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton.sxh" />
+    <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton_declarations.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\components\skeleton\skeleton.component.cpp" />
-    <ClCompile Include="..\..\source\rococo\components\skeleton\skeleton.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\component.modules\skeleton\skeleton.component.cpp" />
+    <ClCompile Include="..\..\source\rococo\component.modules\skeleton\skeleton.scripts.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

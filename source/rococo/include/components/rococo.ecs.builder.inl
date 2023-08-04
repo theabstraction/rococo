@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rococo.ecs.ex.h>
+#include <components/rococo.ecs.ex.h>
 #include <vector>
 #include <rococo.allocators.h>
 #include <rococo.functional.h>
@@ -200,12 +200,13 @@ namespace Rococo::Components
 
 				IComponentBase* Create(ROID roid) override
 				{
+					InstanceInfo instance{ roid };
 					void* pComponentMemory = nullptr;
 
 					try
 					{
 						pComponentMemory = container->componentAllocator->AllocateBuffer();
-						component = container->componentFactory.ConstructInPlace(pComponentMemory);
+						component = container->componentFactory.ConstructInPlace(pComponentMemory, instance);
 
 						if (component == nullptr)
 						{
@@ -448,25 +449,29 @@ namespace Module::For##ICOMPONENT																		\
 	}																									\
 }																										\
 
+#define EXPORT_ADD_GET_AND_FOREACH(COMPONENT_API, ICOMPONENT)								\
+namespace Rococo::Components::API::For##ICOMPONENT											\
+{																							\
+	COMPONENT_API Ref<ICOMPONENT> Add(ROID id)												\
+	{																						\
+		return Module::For##ICOMPONENT::theSingleton->AddNew(id);							\
+	}																						\
+																							\
+	COMPONENT_API Ref<ICOMPONENT> Get(ROID id)												\
+	{																						\
+		return Module::For##ICOMPONENT::theSingleton->Find(id);								\
+	}																						\
+																							\
+	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, ICOMPONENT&)> functor)		\
+	{																						\
+		Module::For##ICOMPONENT::theSingleton->ForEachComponent(functor);					\
+	}																						\
+}
+
+
 // Requires an alias to SINGLETON, typically retrieved from DEFINE_FACTORY_SINGLETON
 #define EXPORT_SINGLETON_METHODS(COMPONENT_API,ICOMPONENT)											\
-namespace Rococo::Components::API::For##ICOMPONENT													\
-{																									\
-	COMPONENT_API Ref<ICOMPONENT> Add(ROID id)														\
-	{																								\
-		return Module::For##ICOMPONENT::theSingleton->AddNew(id);									\
-	}																								\
-																									\
-	COMPONENT_API Ref<ICOMPONENT> Get(ROID id)														\
-	{																								\
-		return Module::For##ICOMPONENT::theSingleton->Find(id);										\
-	}																								\
-																									\
-	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, ICOMPONENT&)> functor)				\
-	{																								\
-		Module::For##ICOMPONENT::theSingleton->ForEachComponent(functor);							\
-	}																								\
-}																									\
+EXPORT_ADD_GET_AND_FOREACH(COMPONENT_API,ICOMPONENT)												\
 namespace Rococo::Components::ECS																	\
 {																									\
 	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECSSupervisor& ecs)							\
@@ -480,27 +485,11 @@ namespace Rococo::Components::ECS																	\
 }
 
 #define EXPORT_SINGLETON_METHODS_WITH_LINKARG(COMPONENT_API, ICOMPONENT, LINKARG)					\
-namespace Rococo::Components::API::For##ICOMPONENT													\
-{																									\
-	COMPONENT_API Ref<ICOMPONENT> Add(ROID id)														\
-	{																								\
-		return Module::For##ICOMPONENT::theSingleton->AddNew(id);									\
-	}																								\
-																									\
-	COMPONENT_API Ref<ICOMPONENT> Get(ROID id)														\
-	{																								\
-		return Module::For##ICOMPONENT::theSingleton->Find(id);										\
-	}																								\
-																									\
-	COMPONENT_API void ForEach(Function<EFlowLogic(ROID roid, ICOMPONENT&)> functor)				\
-	{																								\
-		Module::For##ICOMPONENT::theSingleton->ForEachComponent(functor);							\
-	}																								\
-}																									\
+EXPORT_ADD_GET_AND_FOREACH(COMPONENT_API,ICOMPONENT)												\
 																									\
 namespace Rococo::Components::ECS																	\
 {																									\
-	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECSSupervisor& ecs, LINKARG& args)				\
+	COMPONENT_API void LINK_NAME(ICOMPONENT, Table)(IECSSupervisor& ecs, LINKARG args)				\
 	{																								\
 		using namespace Module::For##ICOMPONENT;													\
 		if (theSingleton) return;																	\

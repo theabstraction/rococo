@@ -143,13 +143,15 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.component.animation.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.animation.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\animation\code-gen rococo\components\animation animation.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\animation\code-gen rococo\components animation.sxh ..\..\..\config.xc
+</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -232,26 +234,27 @@
       <AdditionalDependencies>rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.component.animation.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.animation.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\components\animation\code-gen rococo\components\animation animation.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\animation\code-gen rococo\components animation.sxh ..\..\..\config.xc
+</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\components\animation\code-gen\animation.sxh" />
-    <ClInclude Include="..\..\source\rococo\components\animation\code-gen\animation.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\components\animation\code-gen\animation.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\components\animation\code-gen\animation_declarations.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.ecs.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh" />
+    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation_declarations.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\components\animation\animation.component.cpp" />
-    <ClCompile Include="..\..\source\rococo\components\animation\animation.cpp" />
-    <ClCompile Include="..\..\source\rococo\components\animation\animation.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\component.modules\animation\animation.component.cpp" />
+    <ClCompile Include="..\..\source\rococo\component.modules\animation\animation.cpp" />
+    <ClCompile Include="..\..\source\rococo\component.modules\animation\animation.scripts.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -287,5 +290,8 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh.inl" />
   </ItemGroup>
 </Project>

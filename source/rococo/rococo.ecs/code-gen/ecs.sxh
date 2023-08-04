@@ -1,5 +1,5 @@
 (interface 
-	(as.sxy Rococo.ECS.IECS "rococo.ecs")
+	(as.sxy Rococo.ECS.IECS "ecs")
 	(as.cpp Rococo.IECSBase)
 	
 	(context factory Rococo.IECS)
@@ -10,6 +10,6 @@
 		(MaxTableEntries -> (Int64 numberOfEntries))
 		(NewROID -> (ROID roid))
 	)
-
+	
 	(factory Rococo.ECS.GetECS)
 )

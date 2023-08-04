@@ -1,4 +1,4 @@
-#include <rococo.ecs.ex.h>
+#include <components/rococo.ecs.ex.h>
 #include <unordered_map>
 #include <rococo.strings.h>
 

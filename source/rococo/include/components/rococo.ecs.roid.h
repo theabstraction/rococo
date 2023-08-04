@@ -84,37 +84,6 @@ namespace Rococo::Components
 	{
 		virtual EFlowLogic OnROID(ROID id) = 0;
 	};
-
-	ROCOCO_INTERFACE IComponentBase
-	{
-		// having a base class for templates helps the debugger display useful information and also helps with type-safety and static upcasts.
-	};
-
-	struct IComponentLife;
-
-#pragma pack(push, 1)
-	struct RefPointers
-	{
-		IComponentBase* component;
-		IComponentLife* life;
-	};
-#pragma pack(pop)
-
-	template<class T>
-	void AssignRef(RefPointers& ptrs, T& ref)
-	{
-		if (ref)
-		{
-			ptrs.component = static_cast<IComponentBase*>(&ref.GetComponent());
-			ptrs.life = &ref.Life();
-			ptrs.life->AddRef();
-		}
-		else
-		{
-			ptrs.component = nullptr;
-			ptrs.life = nullptr;
-		}
-	}
 }
 
 namespace Rococo

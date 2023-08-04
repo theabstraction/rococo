@@ -1,7 +1,7 @@
 #pragma once
-#include <rococo.ecs.ex.h>
+#include <components/rococo.ecs.ex.h>
 #include <rococo.meshes.h>
-#include <..\components\skeleton\code-gen\skeleton.sxh.h>
+#include "../../component.modules/skeleton/code-gen/skeleton.sxh.h"
 
 #ifndef ROCOCO_COMPONENTS_SKELETON_API
 # define ROCOCO_COMPONENTS_SKELETON_API ROCOCO_API_IMPORT
@@ -25,4 +25,4 @@ namespace Rococo::Components
     };
 }
 
-DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(ROCOCO_COMPONENTS_SKELETON_API, ISkeletonComponent, Entities::ISkeletons)
+DECLARE_SINGLETON_METHODS_WITH_LINK_ARG(ROCOCO_COMPONENTS_SKELETON_API, ISkeletonComponent, Entities::ISkeletons&)

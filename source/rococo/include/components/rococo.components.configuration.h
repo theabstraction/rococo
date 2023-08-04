@@ -1,6 +1,6 @@
 #pragma once
-#include <rococo.ecs.ex.h>
-#include <..\components\configuration\code-gen\config.sxh.h>
+#include <components/rococo.ecs.ex.h>
+#include "../../component.modules/configuration/code-gen/config.sxh.h"
 
 namespace Rococo::Components
 {
