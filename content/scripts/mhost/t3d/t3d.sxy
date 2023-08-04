@@ -246,9 +246,7 @@
 
 (method GameBundle.Run -> :
 	(ISceneBuilder scene (SceneBuilder))
-	(IInstances instances (Instances))
 	(ICamera camera (Camera))
-	
 	(camera.SetRHProjection 60 0.1 1000.0)
 	
 	(IWorld world = this.world)
@@ -264,7 +262,8 @@
 	(Int64 jungleSoundId = (audio.Bind3DSample "!sounds/jungle.mp3"))
 	(Int64 jungleInstrumentId = (audio.Play3DSound jungleSoundId source 0))
 		
-	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
+	(IMaterialBuilder matBuilder (MaterialBuilder))
+	(Int64 cubeId = (matBuilder.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
 
 /*	(instances.LoadRig "!mesh/t3d/mike.sxy") // generates mike_rig

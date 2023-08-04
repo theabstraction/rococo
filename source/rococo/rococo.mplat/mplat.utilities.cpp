@@ -1,20 +1,19 @@
 #include "rococo.mplat.h"
-
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 
-#include <Commdlg.h>
-
-#include <vector>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.hashtable.h>
 #include <rococo.variable.editor.h>
-
 #include <rococo.file.browser.h>
 #include <rococo.sexy.api.h>
 #include <rococo.time.h>
 #include <rococo.io.h>
+#include <mplat/mplat.events.h>
 
+
+#include <Commdlg.h>
+#include <vector>
 #include <algorithm>
 #include <string>
 

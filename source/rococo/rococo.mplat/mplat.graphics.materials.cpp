@@ -1,70 +1,38 @@
-#include <rococo.mplat.h>
+#include <3D\rococo.material-builder.h>
+#include <mplat/mplat.events.h>
+#include <rococo.renderer.h>
 #include <rococo.io.h>
+#include <rococo.os.h>
 #include <rococo.strings.h>
-#include <rococo.maths.h>
-#include <rococo.animation.h>
-#include <rococo.handles.h>
-#include <rococo.hashtable.h>
-#include "mplat.components.h"
-#include <rococo.maths.h>
-#include <components/rococo.components.body.h>
-#include <components/rococo.components.animation.h>
-#include <components/rococo.components.skeleton.h>
 #include <vector>
+#include <rococo.hashtable.h>
 
-namespace
+using namespace Rococo;
+using namespace Rococo::Graphics;
+using namespace Rococo::Entities;
+using namespace Rococo::Events;
+using namespace Rococo::Strings;
+
+namespace Rococo::Graphics
 {
-   using namespace Rococo;
-   using namespace Rococo::Graphics;
-   using namespace Rococo::Entities;
-
-   struct Instances : public IInstancesSupervisor
+   struct MaterialBuilder : public IMaterialBuilderSupervisor
    {      
       IRenderer& renderer;
-	  Events::IPublisher& publisher;
+	  IPublisher& publisher;
 
       // ecs - The Entity Component System
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IRenderer& _renderer, Events::IPublisher& _publisher, size_t maxEntities) :
+	  MaterialBuilder(IRenderer& _renderer, IPublisher& _publisher) :
          renderer(_renderer), publisher(_publisher)
       {
-          UNUSED(maxEntities);
-      }
-
-      std::vector<const Matrix4x4*> modelStack;
-
-      void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position) override
-      {
-          auto body = API::ForIBodyComponent::Get(leafId);
-          if (!body)
-          {
-              Throw(0, "Missing entity");
-          }
-
-          position += body->Model().GetPosition();
       }
 
 	  ID_CUBE_TEXTURE CreateCubeTexture(const fstring& folder, const fstring& extension) override
 	  {
 		  return renderer.Textures().CubeTextures().CreateCubeTexture(folder, extension);
 	  }
-
-      void ForAll(IEntityCallback& cb)
-      {
-         RecursionGuard guard(enumerationDepth);
-
-         int64 count = 0;
-
-         API::ForIBodyComponent::ForEach(
-             [&count,&cb](Components::ROID roid, Components::IBodyComponent& body) 
-             {
-                 cb.OnEntity(count++, body, roid);
-                 return EFlowLogic::CONTINUE;
-             }
-         );
-      }
 
 	  void LoadMaterialArray(const fstring& folder, int32 txWidth) override
 	  {
@@ -75,7 +43,7 @@ namespace
               IO::IInstallation* installation;
 			  AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_megabytes);
 			  Events::IPublisher* publisher;
-			  Instances* This;
+			  MaterialBuilder* This;
 
 			  char pingPath[IO::MAX_PATHLEN];
 			  wchar_t sysSearchPath[IO::MAX_PATHLEN];
@@ -266,13 +234,10 @@ namespace
    };
 }
 
-namespace Rococo
+namespace Rococo::Graphics::Construction
 {
-   namespace Entities
-   {
-      IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities)
-      {
-         return new Instances(renderer, publisher, maxEntities);
-      }
-   }
+	IMaterialBuilderSupervisor* CreateMaterialsBuilder(IRenderer& renderer, Events::IPublisher& publisher)
+    {
+        return new MaterialBuilder(renderer, publisher);
+    }
 }

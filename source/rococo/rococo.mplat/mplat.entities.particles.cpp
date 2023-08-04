@@ -440,11 +440,10 @@ namespace ANON
 	struct ParticleSystem : public IParticleSystemSupervisor
 	{
 		IRenderer& renderer;
-		IInstances& instances;
 
 		std::unordered_map<ID_ENTITY, ICloud*, Hash<ID_ENTITY>> clouds;
 
-		ParticleSystem(IRenderer& _renderer, IInstances& _instances): renderer(_renderer), instances(_instances)
+		ParticleSystem(IRenderer& _renderer): renderer(_renderer)
 		{
 		
 		}
@@ -566,9 +565,9 @@ namespace Rococo
 {
 	namespace Entities
 	{
-		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer, IInstances& instances)
+		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer)
 		{
-			return new ANON::ParticleSystem(renderer, instances);
+			return new ANON::ParticleSystem(renderer);
 		}
 	}
 }

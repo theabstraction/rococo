@@ -7,6 +7,7 @@
 #include <rococo.io.h>
 #include <ctype.h>
 #include <string.h>
+#include <3D\rococo.material-builder.h>
 
 namespace Rococo // declarations herein are to help intellisense do its job.
 {
@@ -131,6 +132,11 @@ Rococo::IKeyboard* FactoryConstructRococoKeyboard(Rococo::IKeyboard* k)
 Rococo::Graphics::ISceneBuilder* FactoryConstructRococoGraphicsSceneBuilder(Rococo::Graphics::ISceneBuilder* sb)
 {
    return sb;
+}
+
+Rococo::Graphics::IMaterialBuilder* FactoryConstructRococoGraphicsMaterialBuilder(Rococo::Graphics::IMaterialBuilder* mb)
+{
+	return mb;
 }
 
 Rococo::Graphics::ICamera* FactoryConstructRococoGraphicsCamera(Rococo::Graphics::ICamera* c)
@@ -322,9 +328,9 @@ namespace Rococo
 					{
 						Rococo::Components::Generated::Interop::AddComponentNatives(args.ss, &platform.world.ECS);
 						Audio::DLL_AddNativeCalls_RococoAudioIAudio(args.ss, &platform.hardware.audio);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIMaterialBuilder(args.ss, &platform.graphics.materials);
 						Entities::Interop::AddNativeCalls_RococoEntitiesIRigBuilder(args.ss, &platform.world.rigs);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIMeshBuilder(args.ss, &platform.graphics.meshes);
-						Entities::Interop::AddNativeCalls_RococoEntitiesIInstances(args.ss, &platform.graphics.instances);
 						Entities::Interop::AddNativeCalls_RococoEntitiesIMobiles(args.ss, &platform.world.mobiles);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.graphics.camera);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.graphics.scene.Builder());

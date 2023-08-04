@@ -160,6 +160,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\3D\rococo.material-builder.h" />
     <ClInclude Include="..\..\source\rococo\include\3D\rococo.mesh-builder.h" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.template.h" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.dll.inl" />

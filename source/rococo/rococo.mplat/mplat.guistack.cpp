@@ -1,11 +1,12 @@
 #include <rococo.api.h>
 #include <rococo.mplat.h>
-#include <vector>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.hashtable.h>
 #include <rococo.ringbuffer.h>
 #include <rococo.time.h>
 #include <rococo.ui.h>
+#include <mplat/mplat.events.h>
+#include <vector>
 
 using namespace Rococo;
 using namespace Rococo::Events;

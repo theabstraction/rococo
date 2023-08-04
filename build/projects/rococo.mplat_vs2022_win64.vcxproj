@@ -198,6 +198,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\mplat\mplat.events.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.ELayoutAlgorithm.sxh.h" />
@@ -265,7 +266,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.factories.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.config.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.debug.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.instances.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.mobiles.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.particles.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.rigs.cpp" />
@@ -275,6 +275,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.camera.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.fieldtesselator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.landscapes.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.materials.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.meshes.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.messaging.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.qs.tesselator.cpp" />

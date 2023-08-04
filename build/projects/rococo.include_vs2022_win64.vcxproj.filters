@@ -155,6 +155,9 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+    <ClInclude Include="..\..\source\rococo\include\3D\rococo.material-builder.h">
+      <Filter>3D</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">

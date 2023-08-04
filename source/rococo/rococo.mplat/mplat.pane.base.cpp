@@ -5,6 +5,7 @@
 #include <rococo.sexy.api.h>
 #include <sexy.script.h>
 #include <rococo.io.h>
+#include <mplat/mplat.events.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

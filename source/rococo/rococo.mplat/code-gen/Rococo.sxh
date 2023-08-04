@@ -368,9 +368,9 @@
 )
 
 (interface
-	(as.sxy Rococo.Entities.IInstances "mplat")
-	(as.cpp Rococo.Entities.IInstances)
-	(context factory Rococo.Entities.IInstances)
+	(as.sxy Rococo.Graphics.IMaterialBuilder "mplat")
+	(as.cpp Rococo.Graphics.IMaterialBuilder)
+	(context factory Rococo.Graphics.IMaterialBuilder)
 	(methods
 		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
@@ -381,7 +381,7 @@
 		(GetRandomMaterialId (MaterialCategory category)->(MaterialId id))
 		(SetMaterialMacro (IString pingPath))
 	)
-	(factory Rococo.Entities.Instances)
+	(factory Rococo.Graphics.MaterialBuilder)
 )
 
 (interface

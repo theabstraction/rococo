@@ -1,5 +1,6 @@
 #pragma once
 #include <rococo.types.h>
+#include <rococo.meshes.h>
 
 namespace Rococo
 {

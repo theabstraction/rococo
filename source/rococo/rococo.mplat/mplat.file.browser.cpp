@@ -5,6 +5,7 @@
 #include <rococo.textures.h>
 #include <rococo.ui.h>
 #include <rococo.io.h>
+#include <mplat/mplat.events.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

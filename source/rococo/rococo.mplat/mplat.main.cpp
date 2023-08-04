@@ -15,6 +15,7 @@
 #include <rococo.audio.h>
 #include <rococo.fonts.h>
 #include <rococo.maths.h>
+#include <3D/rococo.material-builder.h>
 #include <sexy.script.h>
 
 #include <mplat.to.app.events.inl>
@@ -533,7 +534,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	ComponentAutoRelease componentReleaser; // Ensure this is created before the ecs system, as component tables must remain valid for the lifetime of the ECS - the ECS references them
 	AutoFree<IECSSupervisor> ecs = CreateECS(32_megabytes);
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(mainWindow->Renderer(), *publisher, (size_t) maxEntities);
+	AutoFree<Graphics::IMaterialBuilderSupervisor> materialBuilder = Graphics::Construction::CreateMaterialsBuilder(mainWindow->Renderer(), *publisher);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*ecs);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*ecs, *camera, *rigs);
@@ -541,7 +542,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Graphics::ISpriteBuilderSupervisor> spriteBuilder = Graphics::CreateSpriteBuilderSupervisor(mainWindow->Renderer());
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
 	AutoFree<Graphics::IRodTesselatorSupervisor> rodTesselator = Graphics::CreateRodTesselator(*meshes);
-	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer(), *instances);
+	AutoFree<Entities::IParticleSystemSupervisor> particles = Entities::CreateParticleSystem(mainWindow->Renderer());
 	AutoFree<Graphics::IRendererConfigSupervisor> rendererConfig = Graphics::CreateRendererConfig(mainWindow->Renderer());
 	AutoFree<IUtilitiesSupervisor> utilities = CreateUtilities(*installation, mainWindow->Renderer());
 	AutoFree<IMathsVisitorSupervisor> mathsVisitor = CreateMathsVisitor(*utilities, *publisher);
@@ -553,7 +554,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Joysticks::IJoystick_XBOX360_Supervisor> xbox360stick = Joysticks::CreateJoystick_XBox360Proxy();
 	AutoFree<IInstallationManagerSupervisor> ims = Rococo::MPlatImpl::CreateIMS(*installation);
 	AutoFree<IArchiveSupervisor> archive = Rococo::CreateArchive();
-	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *ecs, *instances);
+	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *ecs);
 	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
 
 	Rococo::Gui::GRConfig grConfig;
@@ -584,7 +585,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Platform platform
 	{ 
 		// Platform graphics
-		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *instances, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs },
+		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs },
 
 		// Platform os
 		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },

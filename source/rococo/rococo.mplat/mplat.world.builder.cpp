@@ -15,7 +15,6 @@ namespace
 	struct World : IWorldSupervisor
 	{
 		IMeshBuilderSupervisor& meshes;
-		IInstancesSupervisor& instances;
 		IECS& ecs;
 		AutoFree<IQuadtreeSupervisor> quadtree;
 
@@ -70,8 +69,8 @@ namespace
 			pocket.flags = MakeFlags(index, Flags::TYPE_TRIANGLE | extraFlags);
 		}
 
-		World(Graphics::IMeshBuilderSupervisor& refMeshes, IECS& _ecs, IInstancesSupervisor& refInstances):
-			meshes(refMeshes), instances(refInstances), ecs(_ecs)
+		World(Graphics::IMeshBuilderSupervisor& refMeshes, IECS& _ecs):
+			meshes(refMeshes), ecs(_ecs)
 		{
 
 		}
@@ -225,8 +224,8 @@ namespace
 
 namespace Rococo
 {
-	IWorldSupervisor* CreateWorld(IMeshBuilderSupervisor& meshes, IECS& ecs, IInstancesSupervisor& instances)
+	IWorldSupervisor* CreateWorld(IMeshBuilderSupervisor& meshes, IECS& ecs)
 	{
-		return new World(meshes, ecs, instances);
+		return new World(meshes, ecs);
 	}
 }

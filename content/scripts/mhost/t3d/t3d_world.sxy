@@ -53,11 +53,11 @@
 	(IRodTesselator human (RodTesselator))
 	(human.Clear)
 	
-	(IInstances instances (Instances))
+	(IMaterialBuilder matBuilder (MaterialBuilder))
 	
 	(MaterialVertexData glass)
 	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
-	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
 	(glass.gloss = 0.2)
 	
 	(human.SetMaterialTop glass)
@@ -124,11 +124,11 @@
 	(IRodTesselator rod (RodTesselator))
 	(rod.Clear)
 	
-	(IInstances instances (Instances))
+	(IMaterialBuilder mb (MaterialBuilder))
 	
 	(MaterialVertexData marble)
 	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
-	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
+	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
 	(marble.gloss = 0.1)
 	
 	(rod.SetMaterialTop marble)
@@ -150,11 +150,11 @@
 	(IRodTesselator rod (RodTesselator))
 	(rod.Clear)
 	
-	(IInstances instances (Instances))
+	(IMaterialBuilder mb (MaterialBuilder))
 	
 	(MaterialVertexData marble)
 	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
-	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
+	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
 	(marble.gloss = 0.1)
 	
 	(rod.SetMaterialTop marble)
@@ -211,7 +211,7 @@
 	)
 )
 
-(function AddBottle (ISceneBuilder scene)(IInstances instances)-> :
+(function AddBottle (ISceneBuilder scene)-> :
 	(MakeBottle "potion.1") 
 	
 	(Matrix4x4 model = 
@@ -227,7 +227,7 @@
 	(scene.AddStatics bottleId)
 )
 
-(function AddFloor (ISceneBuilder scene)(IInstances instances)-> :
+(function AddFloor (ISceneBuilder scene)-> :
 	(MakeFloor "floor.1")
 	
 	(Matrix4x4 model = 
@@ -251,7 +251,7 @@
 	(scene.AddStatics floorId)
 )
 
-(function AddLight (ISceneBuilder scene)(IInstances instances)(World world)-> :
+(function AddLight (ISceneBuilder scene)(World world)-> :
 	(MakeLamp "light.cone.1")
 	
 	(Matrix4x4 rotX)
@@ -408,7 +408,7 @@
 	(rb.CommitToPose "worm-bent")
 )
 
-(function AddRigs (ISceneBuilder scene)(IInstances instances)(World world)-> :
+(function AddRigs (ISceneBuilder scene)(World world)-> :
 	(IRigBuilder rb (RigBuilder))
 	(rb.ClearBuilder)
 	(rb.ClearSkeletons)
@@ -452,10 +452,12 @@
 	*/
 	(Vec3 posWorm = 0 1 0)
 	(world.SnapToLandscape posWorm 0.2)
+	
+	(IMaterialBuilder matBuilder (MaterialBuilder))
 
 	(MaterialVertexData steel)
 	(AnyColour 200 255 0 0 0 0 192 192 -> steel.colour)
-	(instances.GetRandomMaterialId (#MaterialCategoryMetal) -> steel.id)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryMetal) -> steel.id)
 	(steel.gloss = 0.1)
 
 	(IRodTesselator rod (RodTesselator))
@@ -505,7 +507,7 @@
 	(animation.AddKeyFrame "worm-bent" 4 false)
 )
 
-(function AddLandscape (ISceneBuilder scene)(IInstances instances) -> :
+(function AddLandscape (ISceneBuilder scene) -> :
 	(ILandscapeTesselator landscape (LandscapeTesselator))
 	(landscape.AddQuadField 8 2048.0)
 	(Vec3 delta = -1024 -1024 0)
@@ -543,13 +545,11 @@
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
 	
-	(IInstances instances (Instances))
-	
-//	(AddBottle scene instances)
-	(AddFloor scene instances)
-//	(AddLandscape scene instances)
-	(AddLight scene instances this)
-	(AddRigs scene instances this)
+//	(AddBottle scene)
+	(AddFloor scene)
+//	(AddLandscape scene)
+	(AddLight scene this)
+	(AddRigs scene this)
 	
 	(this.SnapToLandscape this.cameraPos 1.75)
 )

@@ -256,13 +256,6 @@ namespace Rococo
 		{
 		   virtual void OnEntity(int64 index, Rococo::Components::IBodyComponent & body, ID_ENTITY id) = 0;
 		};
-
-		ROCOCO_INTERFACE IInstancesSupervisor : public IInstances
-		{
-			virtual void ForAll(IEntityCallback& cb) = 0;
-			virtual void Free() = 0;
-			virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
-		};
 	}
 
 	struct Key
@@ -370,15 +363,13 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, size_t maxEntities);
-
 		ROCOCO_INTERFACE IParticleSystemSupervisor : IParticleSystem
 		{
 			virtual void Free() = 0;
 			virtual void GetParticles(ID_ENTITY id, IRenderer& renderer) = 0;
 		};
 
-		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer, IInstances& instances);
+		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer);
 
 		IRigs* CreateRigBuilder();
 	}
@@ -405,29 +396,6 @@ namespace Rococo
 		bool isTop;
 		bool isModal;
 		bool isUnderModal;
-	};
-
-	namespace Events
-	{
-		extern EventIdRef evUIInvoke;
-		extern EventIdRef evUIPopulate;
-		extern EventIdRef evBusy;
-		extern EventIdRef evScreenResize;
-	}
-
-	struct AsciiEventArgs : public Events::EventArgs
-	{
-		fstring asciiText;
-	};
-
-	struct UIInvoke : public Events::EventArgs
-	{
-		char command[232];
-	};
-
-	struct PingPathArgs : public Events::EventArgs
-	{
-		cstr pingPath;
 	};
 
 	struct IPaneSupervisor : virtual GUI::IPane
@@ -545,22 +513,6 @@ namespace Rococo
 	namespace Events
 	{
 		struct ScrollEvent;
-
-		struct BusyEvent : public EventArgs
-		{
-			boolean32 isNowBusy;
-			cstr message;
-			U8FilePath pingPath;
-		};
-
-		struct DirectMouseEvent : public EventArgs
-		{
-			const MouseEvent& me;
-			bool consumed = false;
-			DirectMouseEvent(const MouseEvent& _me) : me(_me) {}
-		};
-
-		extern EventIdRef evUIMouseEvent;
 	}
 
 	struct IMPlatFileBrowser;
@@ -730,7 +682,7 @@ namespace Rococo
 		virtual void Free() = 0;
 	};
 
-	IWorldSupervisor* CreateWorld(Graphics::IMeshBuilderSupervisor& meshes, IECS& ecs, Entities::IInstancesSupervisor& instances);
+	IWorldSupervisor* CreateWorld(Graphics::IMeshBuilderSupervisor& meshes, IECS& ecs);
 
 	namespace Graphics
 	{
@@ -740,6 +692,8 @@ namespace Rococo
 		};
 
 		ISpritesSupervisor* CreateSpriteTable(IRenderer& renderer);
+
+		struct IMaterialBuilderSupervisor;
 	}
 
 	namespace Components
@@ -777,8 +731,7 @@ namespace Rococo
 		// Mesh builder object
 		Graphics::IMeshBuilderSupervisor& meshes;
 
-		// Entity instances
-		Entities::IInstancesSupervisor& instances;
+		Graphics::IMaterialBuilderSupervisor& materials;
 
 		Graphics::ISpriteBuilderSupervisor& spriteBuilder;
 

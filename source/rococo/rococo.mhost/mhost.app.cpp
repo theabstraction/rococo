@@ -2,15 +2,9 @@
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
 #include <rococo.strings.h>
-
-#include <vector>
-#include <string>
-
 #include <rococo.textures.h>
-
 #include <rococo.ui.h>
 #include <rococo.sexy.api.h>
-
 #include <rococo.package.h>
 #include <rococo.gui.retained.h>
 
@@ -18,6 +12,10 @@
 
 #include <rococo.task.queue.h>
 #include <rococo.time.h>
+#include <mplat/mplat.events.h>
+
+#include <vector>
+#include <string>
 
 using namespace Rococo;
 
