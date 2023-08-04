@@ -31,6 +31,12 @@
     <ClInclude Include="..\..\source\rococo\include\components\interop.inl">
       <Filter>components</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.component.base.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\components\rococo.component.base.interop.h">
+      <Filter>components</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.component.entities.h">
       <Filter>components</Filter>
     </ClInclude>
@@ -149,12 +155,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\components\rococo.component.base.h">
-      <Filter>components</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\include\components\rococo.component.base.interop.h">
-      <Filter>components</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">

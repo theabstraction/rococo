@@ -11,6 +11,9 @@
     <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body_declarations.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -28,10 +31,5 @@
     <Filter Include="include\components">
       <UniqueIdentifier>{c75e9308-cc63-bc7c-4caa-75f3abc12be9}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh.inl">
-      <Filter>code-gen</Filter>
-    </None>
   </ItemGroup>
 </Project>

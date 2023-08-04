@@ -58,9 +58,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\mplat.sxh">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -196,10 +193,10 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h">
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.inl">
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo_declarations.sxh.h">

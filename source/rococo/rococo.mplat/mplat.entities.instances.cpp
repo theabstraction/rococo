@@ -20,7 +20,6 @@ namespace
 
    struct Instances : public IInstancesSupervisor
    {      
-      IMeshBuilderSupervisor& meshBuilder;
       IRenderer& renderer;
 	  Events::IPublisher& publisher;
 
@@ -29,8 +28,8 @@ namespace
 
       int32 enumerationDepth{ 0 };
 
-      Instances(IMeshBuilderSupervisor& _meshBuilder, IRenderer& _renderer, Events::IPublisher& _publisher, IECS& _ecs, size_t maxEntities) :
-          meshBuilder(_meshBuilder), renderer(_renderer), publisher(_publisher), ecs(_ecs)
+      Instances(IRenderer& _renderer, Events::IPublisher& _publisher, IECS& _ecs, size_t maxEntities) :
+         renderer(_renderer), publisher(_publisher), ecs(_ecs)
       {
           UNUSED(maxEntities);
       }
@@ -38,76 +37,6 @@ namespace
       ~Instances()
       {
          Clear();
-      }
-
-      Rococo::Graphics::IMeshBuilder& MeshBuilder() override
-      {
-         return meshBuilder;
-      }
-
-      ID_ENTITY Add(ID_SYS_MESH meshId, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId)
-      {
-          // 0 scale means scale is passed as the model matrix
-
-          if (scale.x != 0)
-          {
-              float d = Determinant(model);
-              if (d < 0.975f || d > 1.025f)
-              {
-                  Throw(0, "Bad model matrix. Determinant was %f", d);
-              }
-          }
-
-          auto id = ecs.NewROID();
-
-          auto body = API::ForIBodyComponent::Add(id);
-          body->SetModelMatrix(model);
-          body->SetParent(parentId);
-          body->SetMesh(meshId);
-          body->SetScale((scale.x != 0) ? scale : Vec3{ 1.0f, 1.0f, 1.0f });
-
-          return id;
-      }
-
-      ID_ENTITY AddSkeleton(const fstring& skeletonName, const Matrix4x4& model) override
-      {
-            float d = Determinant(model);
-            if (d < 0.975f || d > 1.025f)
-            {
-                Throw(0, "Bad model matrix. Determinant was %f", d);
-            }
-
-            auto id = ecs.NewROID();
-
-            auto body = API::ForIBodyComponent::Add(id);
-            body->SetModelMatrix(model);
-            body->SetParent(ID_ENTITY::Invalid());
-            body->SetMesh(ID_SYS_MESH::Invalid());
-            body->SetScale(Vec3{ 1.0f, 1.0f, 1.0f });
-
-            auto skeleton = API::ForISkeletonComponent::Add(id);
-            skeleton->SetSkeleton(skeletonName);
-
-            return id;
-      }
-
-      /*
-      ID_ENTITY AddBody(const fstring& modelName, const Matrix4x4& model, const Vec3& scale, ID_ENTITY parentId) override
-      {
-         ID_SYS_MESH meshId;
-		 AABB bounds;
-         if (!meshBuilder.TryGetByName(modelName, meshId, bounds))
-         {
-            Throw(0, "Cannot find model: %s", modelName.buffer);
-         }
-
-         return Add(meshId, model, scale, parentId);
-      }
-      */
-
-      ID_ENTITY AddGhost(const Matrix4x4& model, ID_ENTITY parentId) override
-      {
-		  return Add(ID_SYS_MESH::Invalid(), model, { 1,1,1 }, parentId);
       }
 
       void BindSkeletonToBody(const fstring& skeletonName, ID_ENTITY idBody) override
@@ -438,9 +367,9 @@ namespace Rococo
 {
    namespace Entities
    {
-      IInstancesSupervisor* CreateInstanceBuilder(IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities)
+      IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities)
       {
-         return new Instances(meshes, renderer, publisher, ecs, maxEntities);
+         return new Instances(renderer, publisher, ecs, maxEntities);
       }
    }
 }

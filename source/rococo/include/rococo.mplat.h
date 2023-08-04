@@ -264,7 +264,6 @@ namespace Rococo
 			virtual void Free() = 0;
 			virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
 			virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
-			virtual Rococo::Graphics::IMeshBuilder& MeshBuilder() = 0;
 		};
 	}
 
@@ -373,7 +372,7 @@ namespace Rococo
 			virtual void Free() = 0;
 		};
 
-		IInstancesSupervisor* CreateInstanceBuilder(Graphics::IMeshBuilderSupervisor& meshes, IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities);
+		IInstancesSupervisor* CreateInstanceBuilder(IRenderer& renderer, Events::IPublisher& publisher, IECS& ecs, size_t maxEntities);
 
 		ROCOCO_INTERFACE IParticleSystemSupervisor : IParticleSystem
 		{

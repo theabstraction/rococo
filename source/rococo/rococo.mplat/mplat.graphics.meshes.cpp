@@ -43,14 +43,14 @@ namespace
 
 	   }
 
-	   MeshBindingEx(MeshBindingEx&& other) :
+	   MeshBindingEx(MeshBindingEx&& other) noexcept :
 		   bind(other.bind),
 		   name(other.name)
 	   {
 
 	   }
 
-	   MeshBindingEx& operator = (const MeshBindingEx&& other)
+	   MeshBindingEx& operator = (const MeshBindingEx&& other) noexcept
 	   {
 		   bind = other.bind;
 		   name = other.name;

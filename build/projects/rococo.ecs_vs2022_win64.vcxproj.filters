@@ -15,6 +15,9 @@
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs_declarations.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>

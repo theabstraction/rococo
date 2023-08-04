@@ -533,7 +533,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	ComponentAutoRelease componentReleaser; // Ensure this is created before the ecs system, as component tables must remain valid for the lifetime of the ECS - the ECS references them
 	AutoFree<IECSSupervisor> ecs = CreateECS(32_megabytes);
-	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(*meshes, mainWindow->Renderer(), *publisher, *ecs, (size_t) maxEntities);
+	AutoFree<Entities::IInstancesSupervisor> instances = Entities::CreateInstanceBuilder(mainWindow->Renderer(), *publisher, *ecs, (size_t) maxEntities);
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*instances);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*instances, *mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*instances, *camera, *rigs);

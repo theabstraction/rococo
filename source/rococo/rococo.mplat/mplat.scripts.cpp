@@ -249,7 +249,7 @@ const char* s_MplatImplicitIncludes[] =
 	"!scripts/interop/rococo/components/ecs_sxh.sxy",
 	"!scripts/interop/rococo/components/animation_sxh.sxy",
 	"!scripts/interop/rococo/components/body_sxh.sxy",
-	"!scripts/interop/rococo/components/configuration_sxh.sxy",
+	"!scripts/interop/rococo/components/config_sxh.sxy",
 	"!scripts/interop/rococo/components/skeleton_sxh.sxy"
 };
 

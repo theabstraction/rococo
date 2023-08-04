@@ -1039,7 +1039,7 @@ namespace Rococo
     {
         public RococoMPlatProject() : base("rococo.mplat")
         {
-            SourceFiles.Add(@"code-gen\mplat.sxh", @"code-gen\config.xc");
+            SourceFiles.Add(@"code-gen\Rococo.sxh", @"code-gen\config.xc");
         }
 
         [Configure()]

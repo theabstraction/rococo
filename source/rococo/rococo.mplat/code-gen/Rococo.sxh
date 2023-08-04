@@ -372,9 +372,6 @@
 	(as.cpp Rococo.Entities.IInstances)
 	(context factory Rococo.Entities.IInstances)
 	(methods
-	//	(AddBody (IString modelName)(const Matrix4x4 model)(const Vec3 scale)(IdEntity parentId)->(IdEntity entityId))
-		(AddGhost (const Matrix4x4 model)(IdEntity parentId)->(IdEntity entityId))
-		(AddSkeleton (IString skeleton)(const Matrix4x4 model)->(IdEntity entityId))
 		(EnableAnimation (IdEntity id))
 		(AddAnimationFrame (IdEntity id)(IString frameName)(Seconds duration)(Bool loop))
 		(BindSkeletonToBody (IString skeleton)(IdEntity idBody))
