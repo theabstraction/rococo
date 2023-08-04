@@ -39,37 +39,6 @@ namespace
          Clear();
       }
 
-	  /*
-      void BindSkeletonToBody(const fstring& skeletonName, ID_ENTITY idBody) override
-      {
-          if (skeletonName.length < 1)
-          {
-              Throw(0, "%s: skeleton name was blank", __FUNCTION__);
-          }
-
-          auto body = API::ForISkeletonComponent::Get(idBody);
-          if (!body)
-          {
-              body = API::ForISkeletonComponent::Add(idBody);
-          }
-
-          body->SetSkeleton(skeletonName);
-      }
-	  */
-
-      boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
-      {
-          auto body = API::ForIBodyComponent::Get(id);
-          if (!body)
-          {
-              model = Matrix4x4::Identity();
-              return false;
-          }
-
-          model = body->Model();
-          return true;
-      }
-
       std::vector<const Matrix4x4*> modelStack;
 
       void ConcatenatePositionVectors(ID_ENTITY leafId, Vec3& position) override

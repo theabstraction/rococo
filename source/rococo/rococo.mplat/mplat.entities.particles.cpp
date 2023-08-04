@@ -503,9 +503,11 @@ namespace ANON
 			if (i != clouds.end())
 			{
 				Matrix4x4 model;
-				if (instances.TryGetModelToWorldMatrix(id, model))
+
+				auto body = API::ForIBodyComponent::Get(id);
+				if (body)
 				{
-					i->second->GetParticles(renderer, model.GetPosition());
+					i->second->GetParticles(renderer, body->Model().GetPosition());
 				}
 			}
 		}

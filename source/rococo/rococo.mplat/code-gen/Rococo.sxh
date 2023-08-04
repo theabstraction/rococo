@@ -380,7 +380,6 @@
 		(GetMaterialDirect (IString pingPath)->(MaterialId id))
 		(GetRandomMaterialId (MaterialCategory category)->(MaterialId id))
 		(SetMaterialMacro (IString pingPath))
-		(TryGetModelToWorldMatrix (IdEntity entityId)(Matrix4x4 position)->(Bool existant))
 		(Clear)
 	)
 	(factory Rococo.Entities.Instances)
