@@ -57,23 +57,6 @@ namespace
 		  return renderer.Textures().CubeTextures().CreateCubeTexture(folder, extension);
 	  }
 
-      void ConcatenateModelMatrices(ID_ENTITY leafId, Matrix4x4& m) override
-      {
-          auto body = API::ForIBodyComponent::Get(leafId);
-          if (!body)
-          {
-              Throw(0, "Missing entity");
-          }
-
-          m = body->Model();
-
-          float Dm = Determinant(m);
-          if (Dm < 0.9f || Dm > 1.1f)
-          {
-              Throw(0, "Bad model matrix for entity %lld. Det M = %f", leafId.Value(), Dm);
-          }
-      }
-
       void ForAll(IEntityCallback& cb)
       {
          RecursionGuard guard(enumerationDepth);

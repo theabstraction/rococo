@@ -262,7 +262,6 @@ namespace Rococo
 			virtual IECS& ECS() = 0;
 			virtual void ForAll(IEntityCallback& cb) = 0;
 			virtual void Free() = 0;
-			virtual void ConcatenateModelMatrices(ID_ENTITY id, Matrix4x4& result) = 0;
 			virtual void ConcatenatePositionVectors(ID_ENTITY id, Vec3& position) = 0;
 		};
 	}

@@ -159,7 +159,15 @@ namespace
             if (orientationGuideId)
             {
                 Matrix4x4 model;
-                instances.ConcatenateModelMatrices(orientationGuideId, model);
+                auto body = API::ForIBodyComponent::Get(orientationGuideId);
+                if (body)
+                {
+                    body->GetModel(OUT model);
+                }
+                else
+                {
+                    model = Matrix4x4::Identity();
+                }
 
                 model.row0.x = 0;
                 model.row0.y = 0;
@@ -293,7 +301,15 @@ namespace
             orientationGuideId = ID_ENTITY::Invalid();
 
             Matrix4x4 model;
-            instances.ConcatenateModelMatrices(orientationGuideId, model);
+            auto body = API::ForIBodyComponent::Get(orientationGuideId);
+            if (body)
+            {
+                body->GetModel(OUT model);
+            }
+            else
+            {
+                model = Matrix4x4::Identity();
+            }
 
             model.row0.x = 0;
             model.row0.y = 0;
