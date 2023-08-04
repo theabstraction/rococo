@@ -8,10 +8,10 @@
 		(const GetScale (Vec3 scale) -> )
 		(const Parent -> (ROID parent))
 		
-		(SetModel (const Matrix4x4 model)-> )		
+		(SetModelMatrix (const Matrix4x4 model)-> )		
 		(SetParent(ROID parent)  -> )
         (SetScale (const Vec3 scale) -> )
-		(SetMesh (const IString mesh) -> )
+		(SetMeshByName (const IString mesh) -> )
 	)
 	
 	(component Rococo::Components::API::ForIBodyComponent Body Rococo::Components::IBodyComponent)

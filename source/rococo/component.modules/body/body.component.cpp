@@ -57,7 +57,7 @@ namespace Rococo::Components
             model = this->model;;
         }
 
-        void SetMesh(const fstring& name) override
+        void SetMeshByName(const fstring& name) override
         {
             if (!meshBuilder.TryGetByName(name, OUT sysMeshId, OUT bounds))
             {
@@ -65,7 +65,7 @@ namespace Rococo::Components
             }
         }
 
-        void SetModel(cr_m4x4 model) override
+        void SetModelMatrix(cr_m4x4 model) override
         {
             this->model = model;
         }

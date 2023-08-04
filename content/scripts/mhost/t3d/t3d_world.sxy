@@ -242,8 +242,8 @@
 	
 	(IBody floorMesh (AddBody floorId))
 	(floorMesh.SetScale noScale)
-	(floorMesh.SetModel model)
-	(floorMesh.SetMesh "floor.1")
+	(floorMesh.SetModelMatrix model)
+	(floorMesh.SetMeshByName "floor.1")
 	
 //	(Int64 floorId = (instances.AddBody "floor.1" model noScale 0))
 	(scene.AddStatics floorId)
@@ -286,8 +286,8 @@
 	
 	(IBody lightMesh (AddBody lightConeId))
 	(lightMesh.SetScale noScale)
-	(lightMesh.SetModel lightConeModel)
-	(lightMesh.SetMesh "light.cone.1")
+	(lightMesh.SetModelMatrix lightConeModel)
+	(lightMesh.SetMeshByName "light.cone.1")
 	
 	(scene.AddStatics lightConeId)
 	
@@ -489,8 +489,8 @@
 	
 	(IBody wormBody (AddBody wormBodyId))
 	(wormBody.SetScale wormScale)
-	(wormBody.SetModel wormToWorld)
-	(wormBody.SetMesh "worm-mesh")
+	(wormBody.SetModelMatrix wormToWorld)
+	(wormBody.SetMeshByName "worm-mesh")
 	
 	(instances.BindSkeletonToBody "worm" wormBodyId)
 	(scene.AddDynamicObject wormBodyId)

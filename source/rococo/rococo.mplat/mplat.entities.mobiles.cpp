@@ -53,7 +53,7 @@ namespace
 
                   model.SetPosition(pos + df + dr);
 
-                  body->SetModel(model);
+                  body->SetModelMatrix(model);
                   return true;
               }
           }

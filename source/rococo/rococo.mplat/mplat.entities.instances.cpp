@@ -61,7 +61,7 @@ namespace
           auto id = ecs.NewROID();
 
           auto body = API::ForIBodyComponent::Add(id);
-          body->SetModel(model);
+          body->SetModelMatrix(model);
           body->SetParent(parentId);
           body->SetMesh(meshId);
           body->SetScale((scale.x != 0) ? scale : Vec3{ 1.0f, 1.0f, 1.0f });
@@ -80,7 +80,7 @@ namespace
             auto id = ecs.NewROID();
 
             auto body = API::ForIBodyComponent::Add(id);
-            body->SetModel(model);
+            body->SetModelMatrix(model);
             body->SetParent(ID_ENTITY::Invalid());
             body->SetMesh(ID_SYS_MESH::Invalid());
             body->SetScale(Vec3{ 1.0f, 1.0f, 1.0f });
