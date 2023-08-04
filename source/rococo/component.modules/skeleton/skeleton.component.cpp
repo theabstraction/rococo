@@ -24,6 +24,16 @@ namespace Rococo::Components
 
         }
 
+        void GetSkeletonName(Rococo::Strings::IStringPopulator& sb) const override
+        {
+            sb.Populate(skeletonName);
+        }
+
+        void SetSkeletonByName(const fstring& name) override
+        {
+            skeletonName = name;
+        }
+
         ComponentTypeInfo TypeInfo() const override
         {
             return ComponentTypeInfo{ "SkeletonComponent" };

@@ -374,9 +374,7 @@
 	(methods
 		(EnableAnimation (IdEntity id))
 		(AddAnimationFrame (IdEntity id)(IString frameName)(Seconds duration)(Bool loop))
-		(BindSkeletonToBody (IString skeleton)(IdEntity idBody))
 		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
-		(Delete (IdEntity id))
 		(LoadMaterialArray (IString folder)(Int32 txWidth))
 		(GetMaterialCateogry (MaterialId id)->(MaterialCategory category))
 		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))

@@ -140,7 +140,7 @@ namespace Rococo::Strings
 		size_t refCount;
 	};
 
-	// Heap based persistent string
+	// Heap based persistent string. When empty, such as when default constructed, it points to an empty string ""
 	class HString
 	{
 	private:

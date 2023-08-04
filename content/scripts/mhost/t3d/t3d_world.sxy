@@ -15,6 +15,7 @@
 
 (using Rococo)
 (using Rococo.Components.Body)
+(using Rococo.Components.Skeleton)
 (using Rococo.Graphics)
 (using Rococo.Audio)
 (using Rococo.Entities)
@@ -492,9 +493,10 @@
 	(wormBody.SetModelMatrix wormToWorld)
 	(wormBody.SetMeshByName "worm-mesh")
 	
-	(instances.BindSkeletonToBody "worm" wormBodyId)
-	(scene.AddDynamicObject wormBodyId)
+	(ISkeleton skeleton (AddSkeleton wormBodyId))
+	(skeleton.SetSkeletonByName "worm")
 	
+	(scene.AddDynamicObject wormBodyId)
 	(scene.AddDebugObject wormBodyId)
 
 	(instances.EnableAnimation wormBodyId)

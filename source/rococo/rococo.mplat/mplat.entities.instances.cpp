@@ -39,6 +39,7 @@ namespace
          Clear();
       }
 
+	  /*
       void BindSkeletonToBody(const fstring& skeletonName, ID_ENTITY idBody) override
       {
           if (skeletonName.length < 1)
@@ -54,11 +55,7 @@ namespace
 
           body->SetSkeleton(skeletonName);
       }
-
-      void Delete(ID_ENTITY id) override
-      {
-          ecs.Deprecate(id);
-      }
+	  */
 
       boolean32 TryGetModelToWorldMatrix(ID_ENTITY id, Matrix4x4& model) override
       {

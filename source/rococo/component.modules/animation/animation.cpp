@@ -76,7 +76,7 @@ namespace Rococo::Animation
 
 		void Reflect(ComponentReflectionInfo& info) override
 		{
-
+			UNUSED(info);
 		}
 
 		void Advance(AnimationAdvanceArgs& args)

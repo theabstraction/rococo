@@ -1,9 +1,11 @@
 (interface 
-	(as.sxy Rococo.Components.Skeleton.ISkeletonBase "skeleton")
+	(as.sxy Rococo.Components.Skeleton.ISkeleton "skeleton")
 	(as.cpp Rococo.Components.Generated.ISkeletonBase Rococo::Components::IComponentBase)
 	
 	(context factory Rococo.Components.Generated.ISkeletonBase)
 	(methods
+		(SetSkeletonByName (const IString name))
+		(const GetSkeletonName (IStringBuilder sb))
 	)
 
 	(component Rococo::Components::API::ForISkeletonComponent Skeleton Rococo::Components::ISkeletonComponent)
