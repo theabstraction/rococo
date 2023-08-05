@@ -27,7 +27,6 @@ namespace Rococo // declarations herein are to help intellisense do its job.
 	{
 		struct IMobiles;
 		struct IParticleSystem;
-		struct IInstances;
 		struct IRigs;
 	}
 
@@ -157,11 +156,6 @@ Rococo::GUI::IPaneBuilder* FactoryConstructRococoGUIPaneBuilder(Rococo::GUI::IPa
 Rococo::Entities::IParticleSystem* FactoryConstructRococoEntitiesParticleSystem(Rococo::Platform* platform)
 {
 	return &platform->world.particles;
-}
-
-Rococo::Entities::IInstances* FactoryConstructRococoEntitiesInstances(Rococo::Entities::IInstances* ins)
-{
-   return ins;
 }
 
 Rococo::Graphics::IMeshBuilder* FactoryConstructRococoGraphicsMeshBuilder(Rococo::Graphics::IMeshBuilder* mb)

@@ -139,11 +139,12 @@
 
 (method WorldScreen.SetupScene -> :
 	(ISceneBuilder scene (SceneBuilder))
-	(IInstances instances (Instances))
 	(ICamera camera (Camera))	
 	(camera.SetRHProjection 60 0.1 1000.0)
+
+	(IMaterialBuilder matBuilder (MaterialBuilder))
 	
-	(Int64 cubeId = (instances.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
+	(Int64 cubeId = (matBuilder.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
 )
 

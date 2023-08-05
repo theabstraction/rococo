@@ -81,12 +81,12 @@
 (function MakeBottle (IString meshName) -> :
 	(IRodTesselator bottle (RodTesselator))
 	(bottle.Clear)
-	
-	(IInstances instances (Instances))
+
+	(IMaterialBuilder matBuilder (MaterialBuilder))
 	
 	(MaterialVertexData glass)
 	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
-	(instances.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
 	(glass.gloss = 0.2)
 	
 	(bottle.SetMaterialTop glass)
@@ -106,7 +106,7 @@
 	(bottle.AddTube neckLength topWidth 0.02 divs)
 	
 	(MaterialVertexData stopper)
-	(instances.GetRandomMaterialId (#MaterialCategoryRock) -> stopper.id)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryRock) -> stopper.id)
 	(stopper.gloss = 0.2)
 	(AnyColour 0 255 0 255 0 255 48 128 -> stopper.colour)
 	(bottle.SetMaterialTop stopper)
@@ -440,6 +440,7 @@
 	
 	//(scene.AddStatics geoffId)
 	/*
+
 	(instances.AddAnimationFrame geoffId "straight" 4 false)
 	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)
 	(instances.AddAnimationFrame geoffId "straight" 4 false)
@@ -522,7 +523,7 @@
 		(0 0 1 0)
 		(0 0 0 1)
 	)
-	
+	(IMaterialBuilder matBuilder (MaterialBuilder))
 	(Int64 landscapeId = (instances.AddBody "landscape_0_0" identity noScale 0))
 	(scene.AddStatics landscapeId)
 

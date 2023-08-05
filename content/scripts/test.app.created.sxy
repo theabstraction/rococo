@@ -484,9 +484,9 @@
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
-	(IInstances instances (Instances))
-	(instances.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
-	(instances.LoadMaterialArray "#m/" 1024)
+	(IMaterialBuilder matBuilder (MaterialBuilder))
+	(matBuilder.SetMaterialMacro "!textures/hv/materials/hi-rez/" )
+	(matBuilder.LoadMaterialArray "#m/" 1024)
 	
 	(IHQFonts fonts (HQFonts))
 	(fonts.Build (#HQFontEditorFont))
