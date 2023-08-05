@@ -50,6 +50,7 @@ namespace Rococo
 		ROCOCO_WINDOWS_API ColourScheme GetDefaultLightScheme();
 
 		ROCOCO_WINDOWS_API bool IsDarkmode();
+		ROCOCO_WINDOWS_API void SetDarkWindow(HWND hWnd);
 
 		ROCOCO_WINDOWS_API COLORREF ToCOLORREF(RGBAb colour);
 

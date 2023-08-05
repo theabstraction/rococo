@@ -558,7 +558,7 @@ namespace Rococo::Strings
 #ifdef _WIN32
 	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source)
 	{
-		strcpy_s(dest, capacity, source);
+		SecureFormat(dest, capacity, "%s", source);
 	}
 #else
 	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source)

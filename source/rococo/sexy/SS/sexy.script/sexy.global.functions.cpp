@@ -1546,42 +1546,67 @@ namespace Rococo
 		}
 	}
 
+	struct Reg
+	{
+		char key[8];
+		char value[40];
+	};
+
+	std::vector<Reg> registers;
+
 	void PopulateRegisterWindow(Script::IPublicScriptSystem& ss, Visitors::IUIList& registerListView)
 	{
 		auto& vm = ss.PublicProgramObject().VirtualMachine();
 
 		using namespace Rococo::Debugger;
 
+		registers.clear();
+
 		struct : public IRegisterEnumerationCallback
 		{
-			int count;
-			int maxCount;
+			std::vector<Reg>* registers;
 
-			virtual void OnRegister(const char* name, const char* value)
+			void OnRegister(const char* name, const char* value) override
 			{
-				if (count < maxCount)
-				{
-					char wname[128], wvalue[128];
-					SafeFormat(wname, 128, "%s", name);
-					SafeFormat(wvalue, 128, "%s", value);
+				Reg r;
+				CopyString(r.key, sizeof r.key, name);
+				CopyString(r.value, sizeof r.value, value);
 
-					cstr row[] = { wname, wvalue, nullptr };
-					uiList->AddRow(row);
-				}
-
-				count++;
+				registers->push_back(r);
 			}
 
 			IUIList* uiList;
 		} addToList;
+		addToList.registers = &registers;
 
 		addToList.uiList = &registerListView;
-		addToList.count = 0;
-		addToList.maxCount = 9;
 
 		registerListView.ClearRows();
 
 		Script::EnumerateRegisters(vm.Cpu(), addToList);
+
+		for (size_t i = 0; i < registers.size();)
+		{
+			Reg& reg1 = registers[i++];
+			Reg reg2 = { " ", " " };
+			Reg reg3 = { " ", " " };
+			Reg reg4 = { " ", " " };
+			if (i < registers.size())
+			{
+				reg2 = registers[i++];
+			}
+			if (i < registers.size())
+			{
+				reg3 = registers[i++];
+			}
+			if (i < registers.size())
+			{
+				reg4 = registers[i++];
+			}
+
+			cstr row[] = { reg1.key, reg1.value, reg2.key, reg2.value, reg3.key, reg3.value, reg4.key, reg4.value, nullptr };
+			registerListView.AddRow(row);
+		}
 	}
 
 	const IFunction* DisassembleCallStackAndAppendToView(IDisassembler& disassembler, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, CPU& cpu, size_t callDepth, const ISExpression** ppExpr, const uint8** ppSF, size_t populateAtDepth)

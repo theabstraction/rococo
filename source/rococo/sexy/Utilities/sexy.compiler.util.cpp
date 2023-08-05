@@ -373,7 +373,7 @@ namespace Rococo::Script
 
 		__try
 		{
-			for (int i = 4; i < 256; ++i)
+			for (int i = 4; i < VM::CPU::DATA_REGISTER_COUNT; ++i)
 			{
 				char name[16];
 				SafeFormat(name, 16, "D%u", i);

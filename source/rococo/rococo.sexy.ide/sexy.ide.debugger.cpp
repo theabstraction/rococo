@@ -357,6 +357,8 @@ namespace
 		{
 			if (darkMode)
 			{
+				SetDarkWindow(Window());
+				
 				ColourScheme dark;
 				dark.backColour = RGBAb(16, 16, 16, 255);
 				dark.foreColour = RGBAb(240, 240, 240, 255);
@@ -492,6 +494,9 @@ namespace
 			{
 				darkMode = true;
 				SyncColourScheme();
+
+				// Windows makes it stupidly hard to set the colour of scrollbars, menus and other widgets.
+				// We will leave the 100% dark mode solution for another day
 			}
 
 			LayoutChildren();
@@ -974,9 +979,8 @@ namespace
 				RECT rect;
 				GetClientRect(report->GetListViewSupervisor(), &rect);
 
-				int width = max(rect.right - 60, 256);
-				cstr columns[] = { "VM", "Values", nullptr };
-				int widths[] = { 40, width, -1 };
+				cstr columns[] = { "VM", "Values", "VM", "Values", "VM", "Values", "VM", "Values", nullptr};
+				int widths[] = { 40, 240, 40, 240, 40, 240, 40, 240, -1 };
 				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 
 				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_HIDE);
