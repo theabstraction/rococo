@@ -86,17 +86,32 @@ namespace Rococo
          font.lpLogFont = &f;
          font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
          
-         if (ChooseFontA(&font))
+		 DWORD success = ChooseFontA(&font);
+		 if (success)
          {
             output = f;
             return true;
          }
          else
          {
-            output = LOGFONTA{ 0 };
-            return false;
+			 DWORD err = CommDlgExtendedError();
+			 if (err)
+			 {
+				 char msg[256];
+				 SafeFormat(msg, "Could not create font dialog: CommDlgExtendedError error %u", err);
+				 THIS_WINDOW parent(hParent);
+				 ShowMessageBox(parent, msg, "Little font error", MB_ICONEXCLAMATION);
+
+				 output = LOGFONTA{ 0 };
+			 }
+             return false;
          }
       }
+
+	  ROCOCO_WINDOWS_API COLORREF ToCOLORREF(RGBAb colour)
+	  {
+		  return RGB(colour.red, colour.green, colour.blue);
+	  }
 
 	  void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
 	  {
@@ -482,6 +497,21 @@ namespace Rococo
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, containerStyleEx);
 			ListViewSupervisor* t = ListViewSupervisor::Create(childConfig, parent, eventHandler, containerStyle);
 			return t;
+		}
+
+		ROCOCO_WINDOWS_API ColourScheme::ColourScheme():
+			backColour(RGBAb(255, 255, 255, 255)),
+			foreColour(RGBAb(0, 0, 0, 255)),
+			oddRowBackColour(RGBAb(255, 255, 255, 255)),
+			evenRowBackColour(RGBAb(240, 240, 240, 240)),
+			rowSelectBackColour(RGBAb(200, 200, 255, 255)),
+			foreSelectColour(RGBAb(0, 0, 0, 240))
+		{
+		}
+
+		ROCOCO_WINDOWS_API ColourScheme GetDefaultLightScheme()
+		{
+			return ColourScheme();
 		}
 
 		IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx)

@@ -111,7 +111,7 @@ namespace
          IO::SaveUserFile(filename, writeBuffer);
       }
 
-      virtual void AppendDepth()
+      void AppendDepth()
       {
          for (int i = 0; i < depth; ++i)
          {
@@ -119,19 +119,19 @@ namespace
          }
       }
 
-      virtual void WriteText(cstr propName, cstr value) // TODO->escape sequences
+      void WriteText(cstr propName, cstr value) override // TODO->escape sequences
       {
          AppendDepth();
          sb.AppendFormat("(%s string \"%s\")\n", propName, value);
       }
 
-      virtual void WriteInt(cstr propName, int32 value)
+      void WriteInt(cstr propName, int32 value) override
       {
          AppendDepth();
          sb.AppendFormat("(%s int32 0x%X)\n", propName, value);
       }
 
-      virtual void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container)
+      void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container) override
       {
          AppendDepth();
          sb.AppendFormat("(%s array IDEPANE_ID ", propName);
@@ -146,14 +146,14 @@ namespace
          sb.AppendFormat(")\n");
       }
 
-      virtual void PushChild()
+      void PushChild() override
       {
          AppendDepth();
          sb.AppendFormat("(child \n");
          depth++;
       }
 
-      virtual void PopChild()
+      void PopChild() override
       {
          depth--;
          AppendDepth();
@@ -343,7 +343,12 @@ namespace
       {
       }
 
-      virtual void SetFont(HFONT hFont)
+      void SetColourSchemeRecursive(const ColourScheme& scheme) override
+      {
+          SetBackgroundColour(ToCOLORREF(scheme.backColour));
+      }
+
+      void SetFont(HFONT hFont) override
       {
          SendMessage(*window, WM_SETFONT, (WPARAM)hFont, TRUE);
       }
@@ -461,6 +466,23 @@ namespace
 
       ~IDESpatialManager()
       {
+      }
+
+      void SetColourSchemeRecursive(const ColourScheme& scheme) override
+      {
+          StandardWindowHandler::SetBackgroundColour(ToCOLORREF(scheme.backColour));
+
+          if (currentTab) currentTab->SetColourSchemeRecursive(scheme);
+
+          if (sectionA)
+          {
+              sectionA->SetColourSchemeRecursive(scheme);
+          }
+
+          if (sectionB)
+          {
+              sectionB->SetColourSchemeRecursive(scheme);
+          }
       }
 
       void PostConstruct(IWindow& parent)
@@ -1228,12 +1250,12 @@ namespace
          return node;
       }
 
-      virtual operator HWND () const
+      operator HWND () const override
       {
          return *window;
       }
 
-      void Free()
+      void Free() override
       {
          delete this;
       }
@@ -1243,7 +1265,12 @@ namespace
          return *window;
       }
 
-      virtual void SetFont(HFONT hFont)
+      void SetColourSchemeRecursive(const ColourScheme& scheme) override
+      {
+          SetBackgroundColour(ToCOLORREF(scheme.backColour));
+      }
+
+      void SetFont(HFONT hFont) override
       {
          SendMessage(*window, WM_SETFONT, (WPARAM)hFont, TRUE);
       }
@@ -1304,22 +1331,28 @@ namespace
          return node;
       }
 
-      virtual void SetFont(HFONT hFont)
+      void SetColourSchemeRecursive(const ColourScheme& scheme) override
+      {
+          SetBackgroundColour(ToCOLORREF(scheme.backColour));
+          treeClient->SetColourSchemeRecursive(scheme);
+      }
+
+      void SetFont(HFONT hFont) override
       {
          SendMessage(treeClient->TreeHandle(), WM_SETFONT, (WPARAM)hFont, TRUE);
       }
 
-      ITreeControlSupervisor& GetTreeSupervisor()
+      ITreeControlSupervisor& GetTreeSupervisor() override
       {
          return *treeClient;
       }
 
-      void Free()
+      void Free() override
       {
          delete this;
       }
 
-      virtual IWindow& GetWindow()
+      IWindow& GetWindow()
       {
          return *treeFrame;
       }
@@ -1330,9 +1363,9 @@ namespace
    private:
 	   IListViewEvents& eventHandler;
 
-	   void OnDrawItem(DRAWITEMSTRUCT&) override
+	   NOT_INLINE void OnDrawItem(DRAWITEMSTRUCT& ds) override
 	   {
-
+           UNUSED(ds);
 	   }
 
 	   void OnMeasureItem(MEASUREITEMSTRUCT&) override
@@ -1357,9 +1390,9 @@ namespace
 	   {
 	   }
 
-	   void PostConstruct(IWindow& parent)
+	   void PostConstruct(IWindow& parent, bool ownerDraw)
 	   {
-		   window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), "", eventHandler, LVS_REPORT, WS_BORDER, 0);
+		   window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), "", eventHandler, LVS_REPORT | (ownerDraw ? LVS_OWNERDRAWFIXED : 0), WS_BORDER, 0);
 	   }
 
 	   void LayoutChildren()
@@ -1372,24 +1405,30 @@ namespace
 	   }
 
    public:
-	   static IDEReportWindow* Create(IWindow& parent, IListViewEvents& eventHandler)
+	   static IDEReportWindow* Create(IWindow& parent, IListViewEvents& eventHandler, bool ownerDraw)
 	   {
 		   auto node = new IDEReportWindow(eventHandler);
-		   node->PostConstruct(parent);
+		   node->PostConstruct(parent, ownerDraw);
 		   return node;
 	   }
 
-	   virtual void SetFont(HFONT hFont)
+       void SetColourSchemeRecursive(const ColourScheme& scheme) override
+       {
+           SetBackgroundColour(ToCOLORREF(scheme.backColour));
+           window->SetColourSchemeRecursive(scheme);
+       }
+
+	   void SetFont(HFONT hFont) override
 	   {
 		   SendMessage(window->ListViewHandle(), WM_SETFONT, (WPARAM)hFont, TRUE);
 	   }
 
-	   IListViewSupervisor& GetListViewSupervisor()
+	   IListViewSupervisor& GetListViewSupervisor() override
 	   {
 		   return *window;
 	   }
 
-	   void Free()
+	   void Free() override
 	   {
 		   delete this;
 	   }
@@ -1399,7 +1438,7 @@ namespace
 		   return *window;
 	   }
 
-	   virtual operator HWND () const
+	   virtual operator HWND () const override
 	   {
 		   return *window;
 	   }
@@ -1514,27 +1553,42 @@ namespace
          return node;
       }
 
-      void AddSegment(RGBAb colour, cstr segment, size_t length, RGBAb bkColor)
+      ColourScheme scheme;
+
+      void SetColourSchemeRecursive(const ColourScheme& scheme) override
       {
-         editor->AppendText(RGB(colour.red, colour.green, colour.blue), RGB(bkColor.red, bkColor.green, bkColor.blue), segment, length);
+          this->scheme = scheme;
+          SetBackgroundColour(ToCOLORREF(scheme.backColour));
+          editor->SetColourSchemeRecursive(scheme);
       }
 
-      void Free()
+      void AddSegment(bool useColourScheme, RGBAb colour, cstr segment, size_t length, RGBAb bkColor) override
+      {
+          if (!useColourScheme)
+          {
+              colour = scheme.foreColour;
+              bkColor = scheme.backColour;
+          }
+
+          editor->AppendText(ToCOLORREF(colour), ToCOLORREF(bkColor), segment, length);
+      }
+
+      void Free() override
       {
          delete this;
       }
 
-      IRichEditor& Editor()
+      IRichEditor& Editor() override
       {
          return *editor;
       }
 
-      virtual operator HWND () const
+      virtual operator HWND () const override
       {
          return *editor;
       }
 
-      virtual void SetFont(HFONT hFont)
+      virtual void SetFont(HFONT hFont) override
       {
          SendMessage(editor->EditorHandle(), WM_SETFONT, (WPARAM)hFont, TRUE);
       }
@@ -1651,9 +1705,9 @@ namespace Rococo
                 return IDETreeView::Create(parent, handler);
             }
 
-            IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler)
+            IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler, bool ownerDraw)
             {
-                return IDEReportWindow::Create(parent, eventHandler);
+                return IDEReportWindow::Create(parent, eventHandler, ownerDraw);
             }
 
             ISpatialManager* CreateSpatialManager(IWindow& parent, IPaneDatabase& database)

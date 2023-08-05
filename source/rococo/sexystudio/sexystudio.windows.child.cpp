@@ -158,11 +158,6 @@ namespace Rococo::SexyStudio
 		EndPaint(hWnd, &ps);
 	}
 
-	COLORREF ToCOLORREF(RGBAb b)
-	{
-		return RGB(b.red, b.green, b.blue);
-	}
-
 	const char* GetChildClassName()
 	{
 		return  "SexyStudioChild";

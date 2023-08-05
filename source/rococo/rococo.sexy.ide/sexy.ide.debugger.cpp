@@ -82,12 +82,103 @@ namespace
 		MENU_SYSRESET,
 		MENU_SYS_LOADLAYOUT,
 		MENU_SYS_SAVELAYOUT,
+		MENU_SYS_TOGGLE_DARKMODE,
 		MENU_EXECUTE_NEXT,
 		MENU_EXECUTE_OVER,
 		MENU_EXECUTE_OUT,
 		MENU_EXECUTE_NEXT_SYMBOL,
 		MENU_EXECUTE_CONTINUE
 	};
+
+	NOT_INLINE void LV_DrawItem(const ColourScheme& scheme, DRAWITEMSTRUCT& d)
+	{
+		if (!HasFlag(ODA_DRAWENTIRE, d.itemAction))
+		{
+			return;
+		}
+
+		bool isSelected = false;
+		bool isFocused = false;
+		
+		LVITEMA item = { 0 };
+		item.mask = LVIF_STATE;
+		item.stateMask = LVIS_SELECTED | LVIS_FOCUSED;
+		item.iItem = d.itemID;
+		item.iSubItem = 0;
+		if (ListView_GetItem(d.hwndItem, &item))
+		{
+			if (HasFlag(LVIS_SELECTED, item.state))
+			{
+				isSelected = true;
+			}
+			if (HasFlag(LVIS_FOCUSED, item.state))
+			{
+				isFocused = true;
+			}
+		}
+
+		char text[256];
+
+		int x = 4;
+		int x1 = 0;
+
+		RGBAb backColour = (d.itemID % 2) == 0 ? scheme.evenRowBackColour : scheme.oddRowBackColour;
+		RGBAb textColour = scheme.foreColour;
+
+		if (isSelected)
+		{
+			backColour = scheme.rowSelectBackColour;
+			textColour = scheme.foreSelectColour;
+		}
+
+		COLORREF originalColour = SetTextColor(d.hDC, ToCOLORREF(textColour));
+	
+		if (backColour.alpha > 0)
+		{
+			HBRUSH hBackBrush = CreateSolidBrush(ToCOLORREF(backColour));
+			FillRect(d.hDC, &d.rcItem, hBackBrush);
+			DeleteObject((HGDIOBJ)hBackBrush);
+		}
+
+		for (int i = 0; i < 120; i++)
+		{
+			LVCOLUMNA col = { 0 };	
+			col.mask = LVCF_WIDTH;
+
+			if (ListView_GetColumn(d.hwndItem, i, &col))
+			{
+				x1 = x + col.cx;
+
+				item = { 0 };
+				item.mask = LVIF_TEXT | LVIF_STATE;
+				item.iItem = d.itemID;
+				item.iSubItem = i;
+				item.cchTextMax = sizeof text;
+				item.pszText = text;
+				if (ListView_GetItem(d.hwndItem, &item))
+				{
+					RECT itemRect = d.rcItem;
+					itemRect.left = x;
+					itemRect.right = x1;
+
+					DrawTextA(d.hDC, text, (int) strlen(text), &itemRect, DT_VCENTER | DT_LEFT);
+				}
+
+				x = x1;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if (isFocused)
+		{
+			DrawFocusRect(d.hDC, &d.rcItem);
+		}
+
+		SetTextColor(d.hDC, originalColour);
+	}
 
 	class TabbedDebuggerWindowHandler :
 		public StandardWindowHandler,
@@ -118,9 +209,9 @@ namespace
 		struct CallstackEventHandler : public IListViewEvents
 		{
 			TabbedDebuggerWindowHandler* This;
-			void OnDrawItem(DRAWITEMSTRUCT&) override
+			void OnDrawItem(DRAWITEMSTRUCT& d) override
 			{
-
+				LV_DrawItem(This->scheme, d);
 			}
 
 			void OnMeasureItem(MEASUREITEMSTRUCT&) override
@@ -137,9 +228,9 @@ namespace
 		struct VariableEventHandler : public IListViewEvents
 		{
 			TabbedDebuggerWindowHandler* This;
-			void OnDrawItem(DRAWITEMSTRUCT&) override
+			void OnDrawItem(DRAWITEMSTRUCT& d) override
 			{
-
+				LV_DrawItem(This->scheme, d);
 			}
 
 			void OnMeasureItem(MEASUREITEMSTRUCT&) override
@@ -156,9 +247,9 @@ namespace
 		struct RegisterEventHandler : public IListViewEvents
 		{
 			TabbedDebuggerWindowHandler* This;
-			void OnDrawItem(DRAWITEMSTRUCT&) override
+			void OnDrawItem(DRAWITEMSTRUCT& d) override
 			{
-
+				LV_DrawItem(This->scheme, d);
 			}
 
 			void OnMeasureItem(MEASUREITEMSTRUCT&) override
@@ -205,6 +296,7 @@ namespace
 			sysMenu.AddString("&Reset UI", MENU_SYSRESET);
 			sysMenu.AddString("&Load layout", MENU_SYS_LOADLAYOUT);
 			sysMenu.AddString("&Save layout", MENU_SYS_SAVELAYOUT);
+			sysMenu.AddString("Toggle Darkmode", MENU_SYS_TOGGLE_DARKMODE);
 			sysMenu.AddString("E&xit", MENU_SYS_EXIT);
 
 			sysDebug.AddString("Step Next", MENU_EXECUTE_NEXT, "F10");
@@ -258,6 +350,31 @@ namespace
 			}
 		}
 
+		bool darkMode = false;
+		ColourScheme scheme;
+
+		void SyncColourScheme()
+		{
+			if (darkMode)
+			{
+				ColourScheme dark;
+				dark.backColour = RGBAb(16, 16, 16, 255);
+				dark.foreColour = RGBAb(240, 240, 240, 255);
+				dark.evenRowBackColour = RGBAb(48, 48, 48, 255);
+				dark.oddRowBackColour = RGBAb(0, 0, 0, 255);
+				dark.rowSelectBackColour = RGBAb(0, 0, 128, 255);
+				dark.foreSelectColour = RGBAb(255, 255, 255, 255);
+				spatialManager->SetColourSchemeRecursive(dark);
+				this->scheme = dark;
+			}
+			else
+			{
+				ColourScheme light;
+				spatialManager->SetColourSchemeRecursive(light);
+				this->scheme = light;
+			}
+		}
+
 		void OnMenuCommand(HWND hWnd, DWORD id) override
 		{
 			switch (id)
@@ -277,6 +394,10 @@ namespace
 				break;
 			case MENU_SYS_SAVELAYOUT:
 				Save();
+				break;
+			case MENU_SYS_TOGGLE_DARKMODE:
+				darkMode = !darkMode;
+				SyncColourScheme();
 				break;
 			}
 
@@ -446,7 +567,7 @@ namespace
 			}
 			case EPaneId_ID_STACK:
 			{
-				auto report = CreateReportView(parent, variableEventHandler);
+				auto report = CreateReportView(parent, variableEventHandler, true);
 				report->SetFont(hFont);
 				return report;
 			}
@@ -458,13 +579,13 @@ namespace
 			}
 			case EPaneId_ID_CALLSTACK:
 			{
-				auto report = CreateReportView(parent, callstackEventHandler);
+				auto report = CreateReportView(parent, callstackEventHandler, true);
 				report->SetFont(hFont);
 				return report;
 			}
 			case EPaneId_ID_REGISTER:
 			{
-				auto report = CreateReportView(parent, registerEventHandler);
+				auto report = CreateReportView(parent, registerEventHandler, true);
 				report->SetFont(hFont);
 				return report;
 			}
@@ -484,7 +605,7 @@ namespace
 				report->SetFont(hFont);
 				for (const auto& segment : logSegments)
 				{
-					report->AddSegment(segment.colour, segment.text.c_str(), segment.text.size(), RGBAb(255, 255, 255));
+					report->AddSegment(true, segment.colour, segment.text.c_str(), segment.text.size(), RGBAb(255, 255, 255));
 				}
 				return report;
 			}
@@ -581,7 +702,7 @@ namespace
 			auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
 			if (logPane)
 			{
-				static_cast<IIDETextWindow*>(logPane)->AddSegment(RGB(0, 0, 0), text, rlen(text) + 1, RGBAb(255, 255, 255));
+				static_cast<IIDETextWindow*>(logPane)->AddSegment(true, RGB(0, 0, 0), text, rlen(text) + 1, RGBAb(255, 255, 255));
 			}
 			else
 			{
@@ -604,7 +725,7 @@ namespace
 			auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
 			if (logPane)
 			{
-				static_cast<IIDETextWindow*>(logPane)->AddSegment(colour, text, rlen(text) + 1, RGBAb(255, 255, 255));
+				static_cast<IIDETextWindow*>(logPane)->AddSegment(true, colour, text, rlen(text) + 1, RGBAb(255, 255, 255));
 			}
 		}
 
@@ -647,7 +768,7 @@ namespace
 			{
 				if (text)
 				{
-					report->AddSegment(colour, text, rlen(text), bkColor);
+					report->AddSegment(true, colour, text, rlen(text), bkColor);
 				}
 
 				if (bringToView)
@@ -734,10 +855,10 @@ namespace
 				HWND hEditor = report->Editor().EditorHandle();
 				SendMessageA(hEditor, WM_SETREDRAW, FALSE, 0);
 				report->Editor().ResetContent();
-				report->AddSegment(RGBAb(0, 0, 0), "Module: ", (size_t) -1LL, RGBAb(192, 192, 192));
-				report->AddSegment(RGBAb(0, 0, 0), name, rlen(name) + 1, RGBAb(192, 192, 192));
-				report->AddSegment(RGBAb(0, 0, 0), "\n", 2, RGBAb(192, 192, 192));
-				report->AddSegment(RGBAb(0, 0, 0), sourceCode, rlen(sourceCode) + 1, RGBAb(255, 255, 255));
+				report->AddSegment(true, RGBAb(0, 0, 0), "Module: ", (size_t) -1LL, RGBAb(192, 192, 192));
+				report->AddSegment(true, RGBAb(0, 0, 0), name, rlen(name) + 1, RGBAb(192, 192, 192));
+				report->AddSegment(true, RGBAb(0, 0, 0), "\n", 2, RGBAb(192, 192, 192));
+				report->AddSegment(true, RGBAb(0, 0, 0), sourceCode, rlen(sourceCode) + 1, RGBAb(255, 255, 255));
 
 				if (hilight.source == name)
 				{
@@ -771,7 +892,7 @@ namespace
 				GetClientRect(report->GetListViewSupervisor(), &rect);
 
 				cstr columns[] = { "DSF", "Address", "Loc", "Type", "Name", "Value", nullptr };
-				int widths[] = { 40, 120, 60, 120, 120, 240, -1 };
+				int widths[] = { 40, 120, 60, 120, 120, 340, -1 };
 				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 				report->GetListViewSupervisor().UIList().ClearRows();
 
@@ -804,7 +925,7 @@ namespace
 
 				int width = max(rect.right - 120, 256);
 				cstr columns[] = { "Function", "Module", nullptr };
-				int widths[] = { 120, width, -1 };
+				int widths[] = { 200, width, -1 };
 				ListView_SetExtendedListViewStyle(report->GetListViewSupervisor().ListViewHandle(), LVS_EX_FULLROWSELECT);
 				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 				report->GetListViewSupervisor().UIList().ClearRows();
@@ -931,6 +1052,7 @@ namespace
 			spatialManager = nullptr;
 			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
 			spatialManager->SetFontRecursive(hFont);
+			spatialManager->SetColourSchemeRecursive(scheme);
 			LayoutChildren();
 		}
 

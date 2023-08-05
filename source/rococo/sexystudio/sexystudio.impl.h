@@ -174,8 +174,4 @@ namespace Rococo::SexyStudio
 	};
 
 	void PaintDoubleBuffered(HWND hWnd, IWin32Painter& paint);
-
-	// used as the template paramter for Rococo::Events::TEventArgs<T>;
-
-	COLORREF ToCOLORREF(RGBAb b);
 }

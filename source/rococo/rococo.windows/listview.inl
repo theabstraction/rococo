@@ -21,6 +21,8 @@ namespace
 		{
 			switch (uMsg)
 			{
+			case LVM_GETBKCOLOR:
+				return ToCOLORREF(scheme.backColour);
 			case WM_ERASEBKGND:
 				return TRUE;
 			case WM_SIZE:
@@ -127,6 +129,8 @@ namespace
 		{
 
 		}
+
+		ColourScheme scheme;
 	public:
 		static ListViewSupervisor* Create(const WindowConfig& listConfig, IWindow& parent, IListViewEvents& eventHandler, DWORD containerStyle)
 		{
@@ -140,17 +144,25 @@ namespace
 			DestroyWindow(hWnd);
 		}
 
-		virtual IUIList& UIList()
+		void SetColourSchemeRecursive(const ColourScheme& scheme) override
+		{
+			this->scheme = scheme;
+			ListView_SetBkColor(hWndListView, ToCOLORREF(scheme.backColour));
+			ListView_SetTextColor(hWndListView, ToCOLORREF(scheme.foreColour));
+			InvalidateRect(hWndListView, NULL, TRUE);
+		}
+
+		IUIList& UIList() override
 		{
 			return *this;
 		}
 
-		virtual operator IUIList& ()
+		operator IUIList& () override
 		{
 			return *this;
 		}
 
-		virtual void AddRow(cstr values[])
+		void AddRow(cstr values[]) override
 		{
 			if (values == nullptr || *values == nullptr)
 			{
@@ -178,22 +190,22 @@ namespace
 			}
 		}
 
-		virtual void ClearRows()
+		void ClearRows() override
 		{
 			ListView_DeleteAllItems(hWndListView);
 		}
 
-		virtual int NumberOfRows() const
+		int NumberOfRows() const override
 		{
 			return (int)ListView_GetItemCount(hWndListView);
 		}
 
-		virtual void DeleteRow(int rowIndex)
+		void DeleteRow(int rowIndex) override
 		{
 			ListView_DeleteItem(hWndListView, rowIndex);
 		}
 
-		virtual void SetColumns(cstr columnNames[], int widths[])
+		void SetColumns(cstr columnNames[], int widths[]) override
 		{
 			while (ListView_DeleteColumn(hWndListView, 0));
 
@@ -212,22 +224,22 @@ namespace
 			}
 		}
 
-		virtual IWindowHandler& Handler()
+		IWindowHandler& Handler() override
 		{
 			return *this;
 		}
 
-		virtual operator HWND () const
+		operator HWND () const override
 		{
 			return hWnd;
 		}
 
-		virtual HWND ListViewHandle() const
+		HWND ListViewHandle() const override
 		{
 			return hWndListView;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}

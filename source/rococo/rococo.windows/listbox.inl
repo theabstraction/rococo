@@ -154,6 +154,8 @@ namespace
 		{
 
 		}
+
+		ColourScheme scheme;
 	public:
 		static ListBoxSupervisor* Create(const WindowConfig& listConfig, IParentWindowSupervisor& parent, IListItemHandler& itemRenderer, DWORD containerStyle, DWORD containerStyleEx)
 		{
@@ -164,6 +166,12 @@ namespace
 
 		~ListBoxSupervisor()
 		{
+		}
+
+		void SetColourSchemeRecursive(const ColourScheme& scheme) override
+		{
+			// TODO -> handle this
+			this->scheme = scheme;
 		}
 
 		virtual IWindowHandler& Handler()

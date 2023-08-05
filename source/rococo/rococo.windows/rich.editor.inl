@@ -176,6 +176,8 @@ namespace
 		{
 
 		}
+
+		ColourScheme scheme;
 	public:
 		static RichEditor* Create(const WindowConfig& editorConfig, IWindow& parent, IRichEditorEvents& eventHandler)
 		{
@@ -189,7 +191,29 @@ namespace
 			return p;
 		}
 
-		virtual void SetTooltip(cstr name, cstr text)
+		void SetColourSchemeRecursive(const ColourScheme& scheme) override
+		{
+			this->scheme = scheme;
+
+			CHARRANGE cr;
+			cr.cpMin = 0;
+			cr.cpMax = -1;
+
+			SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);
+
+			CHARFORMAT2 c;
+			memset(&c, 0, sizeof(c));
+			c.cbSize = sizeof(c);
+			c.dwMask = CFM_COLOR | CFM_BACKCOLOR;
+			c.crBackColor = ToCOLORREF(scheme.backColour);
+			c.crTextColor = ToCOLORREF(scheme.foreColour);
+			SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
+
+			SendMessage(hWndEditor, EM_SETBKGNDCOLOR, 0, c.crBackColor);
+			InvalidateRect(hWndEditor, NULL, TRUE);
+		}
+
+		void SetTooltip(cstr name, cstr text) override 
 		{
 			UNUSED(name);
 			UNUSED(text);

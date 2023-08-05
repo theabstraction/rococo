@@ -31,6 +31,22 @@ namespace Rococo
 			}
 		};
 
+		struct ColourScheme
+		{
+			ROCOCO_WINDOWS_API ColourScheme();
+
+			RGBAb backColour;
+			RGBAb foreColour;
+			RGBAb oddRowBackColour;
+			RGBAb evenRowBackColour;
+			RGBAb rowSelectBackColour;
+			RGBAb foreSelectColour;
+		};
+
+		ROCOCO_WINDOWS_API ColourScheme GetDefaultLightScheme();
+
+		ROCOCO_WINDOWS_API COLORREF ToCOLORREF(RGBAb colour);
+
 		ROCOCO_API void PopulateStackView(HWND hStackView, Rococo::IException& ex);
 		ROCOCO_API void SetStackViewColumns(HWND hStackView, const int columnWidths[5]);
 
@@ -294,6 +310,7 @@ namespace Rococo
 			virtual void ResetContent() = 0;
 			virtual int32 GetFirstVisibleLine() const = 0;
 			virtual void ScrollTo(int32 lineNumber) = 0;
+			virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			virtual void SetTooltip(cstr name, cstr text) = 0;
 		};
 
@@ -328,6 +345,7 @@ namespace Rococo
 		{
 			virtual Visitors::IUITree& Tree() = 0;
 			virtual Visitors::CheckState GetCheckState(Visitors::TREE_NODE_ID id) const = 0;
+			virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			virtual HWND TreeHandle() const = 0;
 		};
 
@@ -339,11 +357,13 @@ namespace Rococo
 			virtual bool GetString(int index, char* data, size_t capacity) = 0;
 			virtual void ResetContent() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
+			virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			virtual HWND ListBoxHandle() const = 0;
 		};
 
 		ROCOCO_INTERFACE IListViewSupervisor : public IWindowSupervisor
 		{
+			virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			virtual HWND ListViewHandle() const = 0;
 			virtual Visitors::IUIList& UIList() = 0;
 			virtual operator Visitors::IUIList& () = 0;
@@ -395,8 +415,9 @@ namespace Rococo
 		{
 			ROCOCO_INTERFACE IIDENode : public IWindow
 			{
-			   virtual void Free() = 0;
-			   virtual void SetFont(HFONT hFont) = 0;
+				virtual void Free() = 0;
+				virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
+				virtual void SetFont(HFONT hFont) = 0;
 			};
 
 			ROCOCO_INTERFACE ISpatialManager : public IWindow
@@ -404,6 +425,7 @@ namespace Rococo
 			   virtual IIDENode* FindPane(IDEPANE_ID id) = 0;
 			   virtual void Free() = 0;
 			   virtual void NotifyMigration(IDEPANE_ID migratingId) = 0;
+			   virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			   virtual void SetFontRecursive(HFONT hFont) = 0;
 			   virtual void Save(const LOGFONTA& logFont, int32 version) = 0;
 			};
@@ -419,7 +441,7 @@ namespace Rococo
 
 			ROCOCO_INTERFACE IIDETextWindow : public IIDENode
 			{
-			   virtual void AddSegment(RGBAb colour, cstr segment, size_t length, RGBAb bkColor) = 0;
+			   virtual void AddSegment(bool useColourScheme, RGBAb colour, cstr segment, size_t length, RGBAb bkColor) = 0;
 			   virtual IRichEditor& Editor() = 0;
 			   virtual void AddContextMenuItem(cstr key, const uint8* command, size_t lenOfCommand) = 0;
 			   virtual void SetEventCallback(IEventCallback<MenuCommand>* eventCallback) = 0;
@@ -437,7 +459,7 @@ namespace Rococo
 
 			ROCOCO_WINDOWS_API IIDETextWindow* CreateTextWindow(IWindow& parent);
 			ROCOCO_WINDOWS_API IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
-			ROCOCO_WINDOWS_API IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler);
+			ROCOCO_WINDOWS_API IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler, bool ownerDraw);
 			ROCOCO_WINDOWS_API ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName);
 		}
 

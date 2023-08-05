@@ -60,6 +60,8 @@ namespace
 				}
 				break;
 			}
+			case TVM_GETBKCOLOR:
+				return ToCOLORREF(scheme.backColour);
 			case WM_ERASEBKGND:
 				return 0L;
 			}
@@ -136,6 +138,8 @@ namespace
 		{
 
 		}
+
+		ColourScheme scheme;
 	public:
 		static TreeControlSupervisor* Create(const WindowConfig& config, IWindow& parent, ControlId id, ITreeControlHandler& eventHandler)
 		{
@@ -152,6 +156,13 @@ namespace
 		~TreeControlSupervisor()
 		{
 			Rococo::Free(containerWindow);
+		}
+
+		void SetColourSchemeRecursive(const ColourScheme& scheme) override
+		{
+			this->scheme = scheme;
+			TreeView_SetBkColor(hTreeWindow, ToCOLORREF(scheme.backColour));
+			TreeView_SetTextColor(hTreeWindow, ToCOLORREF(scheme.foreColour));
 		}
 
 		virtual IUITree& operator()()
