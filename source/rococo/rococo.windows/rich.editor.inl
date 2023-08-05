@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class RichEditor : public IRichEditor, private IWindowHandler
 	{
@@ -63,6 +63,7 @@ namespace
 		void ResetContent()
 		{
 			SetWindowTextA(hWndEditor, "");
+			hilightStart.x = -1;
 		}
 
 		virtual void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars)
@@ -208,8 +209,13 @@ namespace
 			c.crBackColor = ToCOLORREF(scheme.backColour);
 			c.crTextColor = ToCOLORREF(scheme.foreColour);
 			SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
-
 			SendMessage(hWndEditor, EM_SETBKGNDCOLOR, 0, c.crBackColor);
+
+			if (hilightStart.x >= 0)
+			{
+				Hilight(hilightStart, hilightEnd);
+			}
+
 			InvalidateRect(hWndEditor, NULL, TRUE);
 		}
 
@@ -220,8 +226,14 @@ namespace
 			// Not implemented
 		}
 
-		virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground)
+		Vec2i hilightStart = { -1,-1 };
+		Vec2i hilightEnd =   { -1, -1 };
+
+		void Hilight(const Vec2i& start, const Vec2i& end) override
 		{
+			hilightStart = start;
+			hilightEnd = end;
+
 			int startIndex = (int)SendMessage(hWndEditor, EM_LINEINDEX, start.y, 0) + start.x;
 			int endIndex = (int)SendMessage(hWndEditor, EM_LINEINDEX, end.y, 0) + end.x;
 
@@ -232,8 +244,8 @@ namespace
 			format.cbSize = sizeof(format);
 			format.dwMask = CFM_BOLD | CFM_COLOR | CFM_BACKCOLOR;
 			format.dwEffects = CFE_BOLD;
-			format.crTextColor = RGB(foreground.red, foreground.green, foreground.blue);
-			format.crBackColor = RGB(background.red, background.green, background.blue);
+			format.crTextColor = ToCOLORREF(scheme.foreSelectColour);
+			format.crBackColor = ToCOLORREF(scheme.rowSelectBackColour);
 
 			SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&format);
 

@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	template<class PTRTYPE>
 	struct FnBind

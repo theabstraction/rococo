@@ -304,6 +304,8 @@ namespace
          SetCursor(LoadCursor(nullptr, IDC_HAND));
          return TRUE;
       }
+
+      ColourScheme scheme;
    public:
       static IDESplitterWindow* Create(IWindow* parent)
       {
@@ -311,6 +313,12 @@ namespace
          node->SetBackgroundColour(RGB(192, 192, 192));
          node->PostConstruct(parent);
          return node;
+      }
+
+      void SetColourSchemeRecursive(const ColourScheme& scheme)
+      {
+          this->scheme = scheme;
+          SetBackgroundColour(ToCOLORREF(scheme.backColour));
       }
 
       void Free()
@@ -468,11 +476,17 @@ namespace
       {
       }
 
+      ColourScheme scheme;
+
       void SetColourSchemeRecursive(const ColourScheme& scheme) override
       {
           StandardWindowHandler::SetBackgroundColour(ToCOLORREF(scheme.backColour));
+          this->scheme = scheme;
 
-          if (currentTab) currentTab->SetColourSchemeRecursive(scheme);
+          if (currentTab)
+          {
+              currentTab->SetColourSchemeRecursive(scheme);
+          }
 
           if (sectionA)
           {
@@ -482,6 +496,11 @@ namespace
           if (sectionB)
           {
               sectionB->SetColourSchemeRecursive(scheme);
+          }
+
+          if (tabView)
+          {
+              tabView->SetColourSchemeRecursive(scheme);
           }
       }
 
@@ -504,6 +523,7 @@ namespace
          {
 			DWORD style = TCS_BUTTONS;
             tabView = Windows::AddTabs(*window, rect, "Tabbed Control", 0x41000000, *this, style, 0);
+            tabView->SetColourSchemeRecursive(scheme);
          }
          else
          {
@@ -612,6 +632,10 @@ namespace
                sectionB->AddPane(paneIds[i]);
             }
          }
+
+         splitterControl->SetColourSchemeRecursive(scheme);
+         if (sectionA) sectionA->SetColourSchemeRecursive(scheme);
+         if (sectionB) sectionB->SetColourSchemeRecursive(scheme);
 
          RECT rect;
          GetClientRect(*window, &rect);
@@ -811,6 +835,7 @@ namespace
             if (index >= 0 && index < paneIds.size())
             {
                currentTab = database.ConstructPane(paneIds[index], tabView->ClientSpace());
+               currentTab->SetColourSchemeRecursive(scheme);
                RECT rect;
                GetClientRect(tabView->ClientSpace(), &rect);
                MoveWindow(*currentTab, 0, 0, rect.right, rect.bottom, TRUE);
@@ -1265,9 +1290,12 @@ namespace
          return *window;
       }
 
+      ColourScheme scheme;
+
       void SetColourSchemeRecursive(const ColourScheme& scheme) override
       {
           SetBackgroundColour(ToCOLORREF(scheme.backColour));
+          this->scheme = scheme;
       }
 
       void SetFont(HFONT hFont) override
@@ -1564,7 +1592,7 @@ namespace
 
       void AddSegment(bool useColourScheme, RGBAb colour, cstr segment, size_t length, RGBAb bkColor) override
       {
-          if (!useColourScheme)
+          if (useColourScheme)
           {
               colour = scheme.foreColour;
               bkColor = scheme.backColour;
@@ -1607,6 +1635,7 @@ namespace
       childB = nodeB;
 
       splitter = IDEBlankWindow::Create(window);
+      splitter->SetColourSchemeRecursive(scheme);
 
       LayoutChildren();
    }

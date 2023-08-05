@@ -141,7 +141,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.windows.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.windows.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.windows.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.windows.lib</ImportLibrary>
@@ -255,6 +257,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.tabbed.ide.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.window.cpp" />
     <ResourceCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.rc" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.darkmode.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\variable.editor.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class ChildWindowImpl : public IParentWindowSupervisor, private IWindowHandler
 	{

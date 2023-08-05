@@ -46,9 +46,17 @@ namespace Rococo
 		size_t len;
 	};
 
+	enum class DISASSEMBLY_TEXT_TYPE
+	{
+		HEADER,
+		COMMENT,
+		MAIN,
+		HILIGHT
+	};
+
 	ROCOCO_INTERFACE IDebuggerWindow : public ILogger
 	{
-		virtual void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255,255,255), bool bringToView = false) = 0;
+		virtual void AddDisassembly(DISASSEMBLY_TEXT_TYPE type, cstr text, bool bringToView = false) = 0;
 		virtual void InitDisassembly(size_t codeId) = 0;
 		virtual void AddSourceCode(cstr name, cstr sourceCode) = 0;
 		virtual void ClearSourceCode() = 0;

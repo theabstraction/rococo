@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class TrackBarSupervisor : public ITrackBarSupervisor, private IWindowHandler
 	{

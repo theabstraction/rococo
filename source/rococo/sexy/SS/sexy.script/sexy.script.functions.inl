@@ -231,7 +231,16 @@ namespace Rococo
 
 			char debugInfo[256];
 			cstr format = (value->Length > 24) ? (" = '%.24s...'") : (" = '%s'");
-			SafeFormat(debugInfo, 256, format, (cstr)value->Buffer);
+			int len = SafeFormat(debugInfo, 256, format, (cstr)value->Buffer);
+
+			for (int i = 0; i < len; i++)
+			{
+				if (debugInfo[i] < 32)
+				{
+					debugInfo[i] = '?';
+				}
+			}
+
 			ce.Builder.AddSymbol(debugInfo);
 
 			VariantValue ptr;

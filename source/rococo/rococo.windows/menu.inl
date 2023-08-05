@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class Menu : public IWin32Menu
 	{

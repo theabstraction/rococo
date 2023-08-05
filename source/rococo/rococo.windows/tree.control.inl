@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	using namespace Rococo::Visitors;
 

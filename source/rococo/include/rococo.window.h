@@ -41,9 +41,15 @@ namespace Rococo
 			RGBAb evenRowBackColour;
 			RGBAb rowSelectBackColour;
 			RGBAb foreSelectColour;
+			RGBAb foreComment;
+			RGBAb pressedColour;
+			RGBAb edgeColour;
+			RGBAb pressedEdgeColour;
 		};
 
 		ROCOCO_WINDOWS_API ColourScheme GetDefaultLightScheme();
+
+		ROCOCO_WINDOWS_API bool IsDarkmode();
 
 		ROCOCO_WINDOWS_API COLORREF ToCOLORREF(RGBAb colour);
 
@@ -305,7 +311,7 @@ namespace Rococo
 		{
 			virtual void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars = (size_t)-1) = 0;
 			virtual HWND EditorHandle() const = 0;
-			virtual void Hilight(const Vec2i& start, const Vec2i& end, RGBAb background, RGBAb foreground) = 0;
+			virtual void Hilight(const Vec2i& start, const Vec2i& end) = 0;
 			virtual int32 LineCount() const = 0;
 			virtual void ResetContent() = 0;
 			virtual int32 GetFirstVisibleLine() const = 0;
@@ -401,7 +407,7 @@ namespace Rococo
 		{
 			virtual int AddTab(cstr data, cstr tooltip) = 0;
 			virtual IParentWindowSupervisor& ClientSpace() = 0;
-			virtual void SetClientSpaceBackgroundColour(COLORREF colour) = 0;
+			virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual void ResetContent() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
@@ -445,6 +451,7 @@ namespace Rococo
 			   virtual IRichEditor& Editor() = 0;
 			   virtual void AddContextMenuItem(cstr key, const uint8* command, size_t lenOfCommand) = 0;
 			   virtual void SetEventCallback(IEventCallback<MenuCommand>* eventCallback) = 0;
+			   virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			};
 
 			ROCOCO_INTERFACE IIDETreeWindow : public IIDENode

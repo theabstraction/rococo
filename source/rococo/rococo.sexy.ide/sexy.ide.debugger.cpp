@@ -364,6 +364,10 @@ namespace
 				dark.oddRowBackColour = RGBAb(0, 0, 0, 255);
 				dark.rowSelectBackColour = RGBAb(0, 0, 128, 255);
 				dark.foreSelectColour = RGBAb(255, 255, 255, 255);
+				dark.foreComment = RGBAb(0, 240, 0, 255);
+				dark.pressedColour = RGBAb(64, 0, 0, 255);
+				dark.edgeColour = RGBAb(128, 128, 128, 255);
+				dark.pressedEdgeColour = RGBAb(192, 192, 192, 255);
 				spatialManager->SetColourSchemeRecursive(dark);
 				this->scheme = dark;
 			}
@@ -373,6 +377,8 @@ namespace
 				spatialManager->SetColourSchemeRecursive(light);
 				this->scheme = light;
 			}
+
+			InvalidateRect(Window(), NULL, TRUE);
 		}
 
 		void OnMenuCommand(HWND hWnd, DWORD id) override
@@ -398,6 +404,7 @@ namespace
 			case MENU_SYS_TOGGLE_DARKMODE:
 				darkMode = !darkMode;
 				SyncColourScheme();
+				debugControl->RefreshAtDepth(0);
 				break;
 			}
 
@@ -480,6 +487,12 @@ namespace
 			DeleteObject(hFont);
 			hFont = CreateFontIndirectA(&logFont);
 			spatialManager->SetFontRecursive(hFont);
+
+			if (IsDarkmode())
+			{
+				darkMode = true;
+				SyncColourScheme();
+			}
 
 			LayoutChildren();
 		}
@@ -620,8 +633,6 @@ namespace
 			std::string toolTip;
 			Vec2i start;
 			Vec2i end;
-			RGBAb foreground;
-			RGBAb background;
 		} hilight;
 
 		bool isJitDebuggingActive = false;
@@ -638,11 +649,11 @@ namespace
 
 			if (strcmp(message, "!") == 0)
 			{
-				hilight = { source, message, start, end, RGBAb(255,255,255), RGBAb(0,0,192) };
+				hilight = { source, message, start, end };
 			}
 			else
 			{
-				hilight = { source, message, start, end, RGBAb(255,0,0), RGBAb(192,192,192) };
+				hilight = { source, message, start, end };
 			}
 		}
 
@@ -761,14 +772,33 @@ namespace
 			report->Editor().ResetContent();
 		}
 
-		void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor, bool bringToView) override
+		void AddDisassembly(DISASSEMBLY_TEXT_TYPE type, cstr text, bool bringToView) override
 		{
+			RGBAb colour = scheme.foreColour;
+			RGBAb backColour = scheme.oddRowBackColour;
+
+			switch (type)
+			{
+			case DISASSEMBLY_TEXT_TYPE::MAIN:
+				break;
+			case DISASSEMBLY_TEXT_TYPE::HEADER:
+				backColour = scheme.evenRowBackColour;
+				break;
+			case DISASSEMBLY_TEXT_TYPE::COMMENT:
+				colour = scheme.foreComment;
+				break;
+			case DISASSEMBLY_TEXT_TYPE::HILIGHT:
+				colour = scheme.foreSelectColour;
+				backColour = scheme.rowSelectBackColour;
+				break;
+			}
+
 			IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID(IDEPANE_ID_DISASSEMBLER)));
 			if (report)
 			{
 				if (text)
 				{
-					report->AddSegment(true, colour, text, rlen(text), bkColor);
+					report->AddSegment(false, colour, text, rlen(text), backColour);
 				}
 
 				if (bringToView)
@@ -862,7 +892,7 @@ namespace
 
 				if (hilight.source == name)
 				{
-					report->Editor().Hilight(hilight.start, hilight.end, hilight.background, hilight.foreground);
+					report->Editor().Hilight(hilight.start, hilight.end);
 					report->Editor().ScrollTo(hilight.start.y > 4 ? hilight.start.y - 4 : 0);
 				}
 

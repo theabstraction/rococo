@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class TabControlSupervisor : public ITabControl, private IWindowHandler
 	{
@@ -20,10 +20,22 @@ namespace
 		{
 		}
 
+		NOT_INLINE void OnDrawTabs(DRAWITEMSTRUCT&d)
+		{
+			
+		}
+
 		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (uMsg)
 			{
+			case WM_DRAWITEM:
+				{
+					auto* d = (DRAWITEMSTRUCT*)lParam;
+					OnDrawTabs(*d);
+					return TRUE;
+				}
+				break;
 			case WM_RBUTTONUP:
 			{
 				POINT cursorPos;
@@ -167,6 +179,79 @@ namespace
 			return TabCtrl_GetItem(hWndTabControl, index, &item) == TRUE;
 		}
 
+		void DrawItem(HDC dc, RECT& rect, cstr text, UINT state, HBRUSH hButtonBrush)
+		{
+			FillRect(dc, &rect, hButtonBrush);
+
+			COLORREF old = SetTextColor(dc, ToCOLORREF(scheme.foreColour));
+			COLORREF oldBk = SetBkColor(dc, ToCOLORREF(HasFlag(TCIS_BUTTONPRESSED, state) ? scheme.pressedColour : scheme.backColour));
+			DrawTextA(dc, text, (int) strlen(text), &rect, DT_VCENTER | DT_CENTER | DT_SINGLELINE);
+			SetBkColor(dc, oldBk);
+			SetTextColor(dc, old);			
+
+			HBRUSH hEdgeBrush = CreateSolidBrush(ToCOLORREF(HasFlag(TCIS_BUTTONPRESSED, state) ? scheme.pressedEdgeColour : scheme.edgeColour));
+			FrameRect(dc, &rect, hEdgeBrush);
+			DeleteObject((HGDIOBJ)hEdgeBrush);
+		}
+
+		static LRESULT TabSubclassMsgHandler(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+		{
+			UNUSED(uIdSubclass);
+
+			TabControlSupervisor* This = (TabControlSupervisor*)dwRefData;
+
+			switch (uMsg)
+			{
+			case WM_PAINT:
+				{
+					HFONT hFont = (HFONT) SendMessage(hWnd, WM_GETFONT, 0, 0);
+
+					PAINTSTRUCT ps;
+					HDC hdc = BeginPaint(hWnd, &ps);
+
+					auto oldFont = SelectObject(hdc, (HGDIOBJ) hFont);
+
+
+					HBRUSH hBrush = CreateSolidBrush(ToCOLORREF(This->scheme.evenRowBackColour));
+					FillRect(hdc, &ps.rcPaint, hBrush);
+
+					HBRUSH hButtonBrush = CreateSolidBrush(ToCOLORREF(This->scheme.oddRowBackColour));
+					HBRUSH hSelectedButtonBrush = CreateSolidBrush(ToCOLORREF(This->scheme.pressedColour));
+
+					char tabChars[32];
+
+					int tabs = TabCtrl_GetItemCount(hWnd);
+					for (int i = 0; i < tabs; ++i)
+					{
+						TC_ITEM item = { 0 };		
+						item.mask = TCIF_TEXT | TCIF_STATE;
+						item.dwStateMask = TCIS_BUTTONPRESSED | TCIS_HIGHLIGHTED;
+						item.cchTextMax = sizeof tabChars;
+						item.pszText = tabChars;
+						TabCtrl_GetItem(hWnd, i, &item);
+
+						RECT rect;
+						TabCtrl_GetItemRect(hWnd, i, &rect);
+
+						This->DrawItem(hdc, rect, tabChars, item.dwState, HasFlag(TCIS_BUTTONPRESSED, item.dwState) ? hSelectedButtonBrush : hButtonBrush);
+					}
+
+					SelectObject(hdc, oldFont);
+
+					EndPaint(hWnd, &ps);
+
+					DeleteObject((HGDIOBJ)hSelectedButtonBrush);
+					DeleteObject((HGDIOBJ)hButtonBrush);
+					DeleteObject((HGDIOBJ) hBrush);
+
+				}
+			case WM_ERASEBKGND:
+				return TRUE;
+			}
+
+			return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+		};
+
 		void Construct(const WindowConfig& tabConfig, IWindow& parent)
 		{
 			WindowConfig containerConfig = tabConfig;
@@ -179,7 +264,7 @@ namespace
 			listConfigCorrected.left = 0;
 			listConfigCorrected.top = 0;
 			listConfigCorrected.hWndParent = hWnd;
-			listConfigCorrected.style |= WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
+			listConfigCorrected.style |= WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TCS_OWNERDRAWFIXED;
 
 			hWndTabControl = CreateWindowIndirect(WC_TABCONTROLA, listConfigCorrected, nullptr);
 			SetDlgCtrlID(hWndTabControl, 1001);
@@ -194,7 +279,9 @@ namespace
 			Windows::SetChildWindowConfig(clientConfig, FromRECT(rect), hWndTabControl, "", WS_CHILD | WS_VISIBLE, 0 /* WS_EX_CLIENTEDGE */);
 			clientSpace = Windows::CreateChildWindow(clientConfig, &clientSpaceHandler);
 
-			//        SetWindowSubclass(hWndTabControl, OnSubclassMessage, (UINT_PTR) this, 0);
+			enum {SUBCLASS_ID = 57900};
+
+			SetWindowSubclass(hWndTabControl, TabSubclassMsgHandler, SUBCLASS_ID, (DWORD_PTR) this);
 		}
 
 		void OnPretranslateMessage(MSG&) override
@@ -225,9 +312,12 @@ namespace
 			return *clientSpace;
 		}
 
-		virtual void SetClientSpaceBackgroundColour(COLORREF colour)
+		ColourScheme scheme;
+
+		void SetColourSchemeRecursive(const ColourScheme& scheme) override
 		{
-			clientSpaceHandler.SetBackgroundColour(colour);
+			this->scheme = scheme;
+			clientSpaceHandler.SetBackgroundColour(ToCOLORREF(scheme.backColour));
 		}
 
 		virtual IWindowHandler& Handler()

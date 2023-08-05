@@ -6,8 +6,8 @@
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.message.box.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.tabbed.ide.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.window.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.rc" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\variable.editor.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.darkmode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.windows\button.control.inl" />
@@ -23,5 +23,8 @@
     <ClInclude Include="..\..\source\rococo\rococo.windows\trackbar.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\tree.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\wired.handler.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.rc" />
   </ItemGroup>
 </Project>

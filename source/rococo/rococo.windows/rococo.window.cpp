@@ -251,11 +251,8 @@ namespace Rococo
 	}
 }
 
-namespace
+namespace Rococo::Windows
 {
-	using namespace Rococo;
-	using namespace Rococo::Windows;
-
 	ATOM customAtom = 0;
 
 	LRESULT CALLBACK DefCustomWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -499,13 +496,17 @@ namespace Rococo
 			return t;
 		}
 
-		ROCOCO_WINDOWS_API ColourScheme::ColourScheme():
+		ROCOCO_WINDOWS_API ColourScheme::ColourScheme() :
 			backColour(RGBAb(255, 255, 255, 255)),
 			foreColour(RGBAb(0, 0, 0, 255)),
 			oddRowBackColour(RGBAb(255, 255, 255, 255)),
 			evenRowBackColour(RGBAb(240, 240, 240, 240)),
 			rowSelectBackColour(RGBAb(200, 200, 255, 255)),
-			foreSelectColour(RGBAb(0, 0, 0, 240))
+			foreSelectColour(RGBAb(0, 0, 0, 240)),
+			foreComment(RGBAb(0, 64, 0, 255)),
+			pressedColour(RGBAb(224, 224, 224, 255)),
+			edgeColour(RGBAb(128,128,128,255)),
+			pressedEdgeColour(RGBAb(64, 64, 64, 255))
 		{
 		}
 

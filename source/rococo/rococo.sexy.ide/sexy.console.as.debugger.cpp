@@ -91,7 +91,7 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 		return formatter.PrintFV(format, args);
 	}
 
-	void AddDisassembly(RGBAb, cstr, RGBAb, bool) override
+	void AddDisassembly(DISASSEMBLY_TEXT_TYPE, cstr, bool) override
 	{
 
 	}

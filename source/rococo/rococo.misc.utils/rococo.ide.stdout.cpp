@@ -20,10 +20,8 @@ namespace
     {
         virtual ~StdoutDebugger() {}
 
-        void AddDisassembly(RGBAb colour, cstr text, RGBAb bkColor = RGBAb(255, 255, 255), bool bringToView = false) override
+        void AddDisassembly(DISASSEMBLY_TEXT_TYPE, cstr text, bool bringToView = false) override
         {
-            UNUSED(colour);
-            UNUSED(bkColor);
             UNUSED(bringToView);
             printf("%s\n", text);
         }

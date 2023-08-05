@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class ComboBoxSupervisor : public IComboBoxSupervisor, private IWindowHandler
 	{

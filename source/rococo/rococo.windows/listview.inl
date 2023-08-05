@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class ListViewSupervisor : public IListViewSupervisor, private IWindowHandler, public IUIList
 	{

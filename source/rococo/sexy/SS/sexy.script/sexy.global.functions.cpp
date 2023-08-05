@@ -1618,7 +1618,7 @@ namespace Rococo
 
 		char metaData[256];
 		SafeFormat(metaData, sizeof(metaData), "%s %s (Id #%d) - %d bytes\n\n", f->Name(), f->Module().Name(), (int32)section.Id, (int32)functionLength);
-		debugger.AddDisassembly(RGBAb(128, 128, 0), metaData);
+		debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::HEADER, metaData);
 
 		int lineCount = 1;
 
@@ -1658,39 +1658,39 @@ namespace Rococo
 
 			if (isHighlight)
 			{
-				debugger.AddDisassembly(RGBAb(128, 0, 0), "*", RGBAb(255, 255, 255), true);
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::HILIGHT, "*", true);
 				SafeFormat(assemblyLine, sizeof(assemblyLine), "%p", fstart + i);
-				debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::HILIGHT, assemblyLine);
 				SafeFormat(assemblyLine, sizeof(assemblyLine), " %s %s ", rep.OpcodeText, rep.ArgText);
-				debugger.AddDisassembly(RGBAb(255, 255, 255), assemblyLine, RGBAb(0, 0, 255));
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::HILIGHT, assemblyLine);
 
 				if (symbol.Text[0] != 0)
 				{
 					SafeFormat(assemblyLine, sizeof(assemblyLine), "// %s", symbol.Text);
-					debugger.AddDisassembly(RGBAb(32, 128, 0), assemblyLine);
+					debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::COMMENT, assemblyLine);
 				}
 
-				debugger.AddDisassembly(RGBAb(0, 0, 0), "\n");
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::MAIN, "\n");
 			}
 			else if ((i < hilightIndex && (hilightIndex - i) < 1024) || (i > hilightIndex && (i - hilightIndex) < 1024))
 			{
 				SafeFormat(assemblyLine, sizeof(assemblyLine), " %p", fstart + i);
-				debugger.AddDisassembly(RGBAb(0, 0, 0), assemblyLine);
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::MAIN, assemblyLine);
 				SafeFormat(assemblyLine, sizeof(assemblyLine), " %s %s ", rep.OpcodeText, rep.ArgText);
-				debugger.AddDisassembly(RGBAb(128, 0, 0), assemblyLine);
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::MAIN, assemblyLine);
 
 				if (symbol.Text[0] != 0)
 				{
 					SafeFormat(assemblyLine, sizeof(assemblyLine), "// %s", symbol.Text);
-					debugger.AddDisassembly(RGBAb(0, 128, 0), assemblyLine);
+					debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::COMMENT, assemblyLine);
 				}
 
-				debugger.AddDisassembly(RGBAb(0, 0, 0), "\n");
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::MAIN, "\n");
 			}
 
 			if (rep.ByteCount == 0)
 			{
-				debugger.AddDisassembly(RGBAb(128, 0, 0), "Bad disassembly");
+				debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::MAIN, "Bad disassembly");
 				break;
 			}
 
@@ -1698,7 +1698,7 @@ namespace Rococo
 			lineCount++;
 		}
 
-		debugger.AddDisassembly(RGBAb(0, 0, 0), nullptr);
+		debugger.AddDisassembly(DISASSEMBLY_TEXT_TYPE::MAIN, nullptr);
 
 		return f;
 	}

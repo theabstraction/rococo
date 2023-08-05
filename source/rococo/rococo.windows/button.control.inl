@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows
 {
 	class ButtonSupervisor : public IButton, public ICheckbox, private IWindowHandler
 	{
