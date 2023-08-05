@@ -62,6 +62,7 @@ namespace Rococo
 
 		[[nodiscard]]
 		ROCOCO_API Vec2i GetDesktopSpan();
+		ROCOCO_API Vec2i GetDesktopWorkArea();
 	}
 
 	namespace Graphics

@@ -463,12 +463,13 @@ public:
 
     void AddItem(cstr item) override
     {
-        if (autoCompleteIndex > 0 && autoCompleteIndex < sizeof autocompleteStringBuilder - 1)
+        // To minimize dependencies on DLLs, which in turn is to simplify installation of this plugin, we handcraft a string builder
+        if (autoCompleteIndex + strlen(item) >= sizeof  autocompleteStringBuilder - 1)
         {
-            autocompleteStringBuilder[autoCompleteIndex++] = 0;
+            return;
         }
 
-        int nCharsWritten = snprintf(autocompleteStringBuilder, sizeof autocompleteStringBuilder - 1 - autoCompleteIndex, "%s", item);
+        int nCharsWritten = snprintf(autocompleteStringBuilder + autoCompleteIndex, sizeof autocompleteStringBuilder - 1 - autoCompleteIndex, "%s%s", autoCompleteIndex > 0 ? " ": "", item);
 
         autoCompleteIndex += nCharsWritten;
         if (autoCompleteIndex >= sizeof autocompleteStringBuilder)
@@ -481,6 +482,12 @@ public:
     {
         SetAutoCompleteCancelWhenCaretMoved();
         ShowAutoCompleteList(autocompleteStringBuilder);
+        if (IsDebuggerPresent())
+        {
+            OutputDebugStringA("Autocomplete populated:\n");
+            OutputDebugStringA(autocompleteStringBuilder);
+            OutputDebugStringA("\n");
+        }
         autocompleteStringBuilder[0] = 0;
         autoCompleteIndex = 0;
     }
@@ -508,9 +515,9 @@ void onUserItemSelected(HWND hScintilla, int idList, cstr item)
 
 void ValidateMemory()
 {
-    if (!_CrtCheckMemory())
+    if (IsDebuggerPresent())
     {
-        if (IsDebuggerPresent())
+        if (!_CrtCheckMemory())
         {
             __debugbreak();
         }

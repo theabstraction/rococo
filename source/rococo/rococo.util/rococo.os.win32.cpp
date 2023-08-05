@@ -3440,6 +3440,13 @@ namespace Rococo::Windows
 
 		return { rect.right - rect.left, rect.bottom - rect.top };
 	}
+
+	ROCOCO_API Vec2i GetDesktopWorkArea()
+	{
+		RECT rect;
+		::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
+		return { rect.right - rect.left, rect.bottom - rect.top };
+	}
 }
 
 namespace Rococo::Strings::CLI

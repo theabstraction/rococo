@@ -1,4 +1,4 @@
-namespace
+namespace Rococo::Windows::Impl
 {
 	class DialogWindowImpl : public IDialogSupervisor, private IWindowHandler
 	{

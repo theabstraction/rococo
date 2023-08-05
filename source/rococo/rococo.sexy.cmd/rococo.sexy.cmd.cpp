@@ -569,7 +569,7 @@ int mainProtected(int argc, char* argv[])
 	cstr installationPath;
 	GetNextCmdArgValue(argc, argv, 0, "installation=", installationPath);
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+	//Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 	AutoFree<IO::IInstallationSupervisor> installation = new CmdInstallation(installationPath);
 	
 	ScriptContext sc(*installation, argc, argv);

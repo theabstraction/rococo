@@ -119,6 +119,8 @@
 		(i += 1)		
 	)
 	
+	(debug)
+	
 	(#printf "// Terminated!")	
 	(exitCode = 0)
 )

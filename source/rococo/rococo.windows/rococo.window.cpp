@@ -370,13 +370,13 @@ namespace Rococo
 
 		IDialogSupervisor* CreateDialogWindow(const WindowConfig& config, IWindowHandler* modelessHandler)
 		{
-			DialogWindowImpl* w = DialogWindowImpl::Create(config, modelessHandler);
+			Impl::DialogWindowImpl* w = Impl::DialogWindowImpl::Create(config, modelessHandler);
 			return w;
 		}
 
 		IParentWindowSupervisor* CreateChildWindow(const WindowConfig& config, IWindowHandler* handler)
 		{
-			DialogWindowImpl* w = DialogWindowImpl::Create(config, handler);
+			Impl::DialogWindowImpl* w = Impl::DialogWindowImpl::Create(config, handler);
 			return w;
 		}
 

@@ -80,6 +80,8 @@ namespace
 		MENU_SYS_EXIT = 1000,
 		MENU_SYSFONT,
 		MENU_SYSRESET,
+		MENU_SYS_LOADLAYOUT,
+		MENU_SYS_SAVELAYOUT,
 		MENU_EXECUTE_NEXT,
 		MENU_EXECUTE_OVER,
 		MENU_EXECUTE_OUT,
@@ -201,6 +203,8 @@ namespace
 
 			sysMenu.AddString("&Font...", MENU_SYSFONT);
 			sysMenu.AddString("&Reset UI", MENU_SYSRESET);
+			sysMenu.AddString("&Load layout", MENU_SYS_LOADLAYOUT);
+			sysMenu.AddString("&Save layout", MENU_SYS_SAVELAYOUT);
 			sysMenu.AddString("E&xit", MENU_SYS_EXIT);
 
 			sysDebug.AddString("Step Next", MENU_EXECUTE_NEXT, "F10");
@@ -251,8 +255,6 @@ namespace
 				spatialManager->SetFontRecursive(hFont);
 
 				LayoutChildren();
-
-				IO::DeleteUserFile("debugger.ide.sxy");
 			}
 		}
 
@@ -269,6 +271,12 @@ namespace
 				break;
 			case MENU_SYSRESET:
 				ResetUI();
+				break;
+			case MENU_SYS_LOADLAYOUT:
+				Load();
+				break;
+			case MENU_SYS_SAVELAYOUT:
+				Save();
 				break;
 			}
 
@@ -328,7 +336,6 @@ namespace
 
 		void OnClose(HWND)
 		{
-			Save();
 			ShowWindow(false, nullptr);
 		}
 
@@ -358,10 +365,31 @@ namespace
 
 		void LayoutChildren()
 		{
-			RECT rect;
-			GetClientRect(*dialog, &rect);
+			Vec2i workAreaSpan = GetDesktopWorkArea();
+			Vec2i totalDesktopSpan = GetDesktopSpan();
+			Vec2i desktopSpan{ min(workAreaSpan.x, totalDesktopSpan.x), min(workAreaSpan.y, totalDesktopSpan.y) };
 
-			MoveWindow(*spatialManager, 0, 0, rect.right, rect.bottom, TRUE);
+			Vec2i offset = { 0,0 };
+
+			WINDOWPLACEMENT wp = { 0 };
+			GetWindowPlacement(Window(), &wp);
+			wp.length = sizeof wp;
+
+			bool isMaximized = wp.showCmd == SW_SHOWMAXIMIZED;
+			
+			if (!isMaximized)
+			{
+				int posX = GetScrollPos(Window(), SB_HORZ);
+				offset.x = (posX > 0) ? -posX : 0;
+			}
+
+			if (!isMaximized)
+			{
+				int posY = GetScrollPos(Window(), SB_VERT);
+				offset.y = (posY > 0) ? -posY : 0;
+			}
+
+			MoveWindow(*spatialManager, offset.x, offset.y, desktopSpan.x, desktopSpan.y, TRUE);
 		}
 
 		void GetName(char name[256], IDEPANE_ID id) override
@@ -806,10 +834,88 @@ namespace
 			}
 		}
 
-		void OnSize(HWND, const Vec2i&, RESIZE_TYPE type) override
+		void OnVScroll(HWND hWnd, WPARAM wParam)
 		{
+			uint32 dragIndex = HIWORD(wParam);
+			switch (LOWORD(wParam))
+			{
+			case SB_BOTTOM:
+			case SB_ENDSCROLL:
+			case SB_LINEDOWN:
+			case SB_LINEUP:
+			case SB_PAGEDOWN:
+			case SB_PAGEUP:
+				break;
+			case SB_THUMBPOSITION:
+			case SB_THUMBTRACK:
+				SetScrollPos(hWnd, SB_VERT, dragIndex, TRUE);
+				break;
+			case SB_TOP:
+				break;
+			}
+
+			LayoutChildren();
+		}
+
+		void OnHScroll(HWND hWnd, WPARAM wParam)
+		{
+			uint32 dragIndex = HIWORD(wParam);
+			switch (LOWORD(wParam))
+			{
+			case SB_BOTTOM:
+			case SB_ENDSCROLL:
+			case SB_LINEDOWN:
+			case SB_LINEUP:
+			case SB_PAGEDOWN:
+			case SB_PAGEUP:
+				break;
+			case SB_THUMBPOSITION:
+			case SB_THUMBTRACK:
+				SetScrollPos(hWnd, SB_HORZ, dragIndex, TRUE);
+				break;
+			case SB_TOP:
+				break;
+			}
+
+			LayoutChildren();
+		}
+
+		void OnSize(HWND hMainWnd, const Vec2i& span, RESIZE_TYPE type) override
+		{
+			Vec2i workAreaSpan = GetDesktopWorkArea();
+			Vec2i totalDesktopSpan = GetDesktopSpan();
+			Vec2i desktopSpan{ min(workAreaSpan.x, totalDesktopSpan.x), min(workAreaSpan.y, totalDesktopSpan.y) };
+
 			if (type != RESIZE_TYPE_MINIMIZED)
 			{
+				LONG_PTR oldStyleFlags = GetWindowLongPtrA(hMainWnd, GWL_STYLE);
+				LONG_PTR newStyleFlags = oldStyleFlags;
+				if (type == RESIZE_TYPE_MAXIMIZED)
+				{
+					newStyleFlags = oldStyleFlags & ~(WS_VSCROLL | WS_HSCROLL);			
+					ShowScrollBar(hMainWnd, SB_BOTH, FALSE);
+				}
+				else
+				{
+					newStyleFlags = oldStyleFlags | (WS_VSCROLL | WS_HSCROLL);
+
+					SCROLLINFO hInfo = { 0 };
+					hInfo.cbSize = sizeof hInfo;
+					hInfo.fMask = SIF_PAGE | SIF_RANGE | SIF_POS | SIF_RANGE;
+					hInfo.nMax = desktopSpan.x;
+					hInfo.nPage = span.x;
+					SetScrollInfo(hMainWnd, SB_HORZ, &hInfo, TRUE);
+
+					SCROLLINFO vInfo = { 0 };
+					vInfo.cbSize = sizeof vInfo;
+					vInfo.fMask = SIF_PAGE | SIF_RANGE | SIF_POS | SIF_RANGE;
+					vInfo.nMax = desktopSpan.y;
+					vInfo.nPage = span.y;
+					SetScrollInfo(hMainWnd, SB_VERT, &vInfo, TRUE);
+					ShowScrollBar(hMainWnd, SB_BOTH, TRUE);
+				}
+
+				SetWindowLongPtrA(hMainWnd, GWL_STYLE, newStyleFlags);
 				LayoutChildren();
 			}
 		}
@@ -819,9 +925,32 @@ namespace
 			return *dialog;
 		}
 
+		void Load()
+		{
+			spatialManager->Free();
+			spatialManager = nullptr;
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
+			spatialManager->SetFontRecursive(hFont);
+			LayoutChildren();
+		}
+
 		void Save()
 		{
 			spatialManager->Save(logFont, IDE_FILE_VERSION);
+		}
+
+		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (uMsg)
+			{
+			case WM_VSCROLL:
+				OnVScroll(hWnd, wParam);
+				return 0L;
+			case WM_HSCROLL:
+				OnHScroll(hWnd, wParam);
+				return 0L;				
+			}
+			return StandardWindowHandler::OnMessage(hWnd, uMsg, wParam, lParam);
 		}
 
 		void Run(IDebuggerPopulator& populator, IDebugControl& debugControl) override
