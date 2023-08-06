@@ -7,3 +7,6 @@ $(BIN)native.hashes.sxy: ..\..\source\rococo\sexy\NativeSource\native.hashes.sxy
 
 all:
 	..\..\build\tools\package.bat $(CONFIG)
+
+clean:
+	

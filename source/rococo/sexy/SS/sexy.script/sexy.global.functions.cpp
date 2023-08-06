@@ -1580,32 +1580,31 @@ namespace Rococo
 		char value[40];
 	};
 
-	std::vector<Reg> registers;
-
 	void PopulateRegisterWindow(Script::IPublicScriptSystem& ss, Visitors::IUIList& registerListView)
 	{
 		auto& vm = ss.PublicProgramObject().VirtualMachine();
 
 		using namespace Rococo::Debugger;
 
-		registers.clear();
-
 		struct : public IRegisterEnumerationCallback
 		{
-			std::vector<Reg>* registers;
+			enum { MAX_REGISTER_COUNT = 16 };
+			Reg registers[MAX_REGISTER_COUNT];
+			int count = 0;
 
 			void OnRegister(const char* name, const char* value) override
 			{
-				Reg r;
-				CopyString(r.key, sizeof r.key, name);
-				CopyString(r.value, sizeof r.value, value);
+				if (count < MAX_REGISTER_COUNT)
+				{
+					CopyString(registers[count].key, sizeof registers[count].key, name);
+					CopyString(registers[count].value, sizeof registers[count].value, value);
 
-				registers->push_back(r);
+					count++;
+				}
 			}
 
 			IUIList* uiList;
 		} addToList;
-		addToList.registers = &registers;
 
 		addToList.uiList = &registerListView;
 
@@ -1613,23 +1612,23 @@ namespace Rococo
 
 		Script::EnumerateRegisters(vm.Cpu(), addToList);
 
-		for (size_t i = 0; i < registers.size();)
+		for (int i = 0; i < addToList.count;)
 		{
-			Reg& reg1 = registers[i++];
+			Reg& reg1 = addToList.registers[i++];
 			Reg reg2 = { " ", " " };
 			Reg reg3 = { " ", " " };
 			Reg reg4 = { " ", " " };
-			if (i < registers.size())
+			if (i < addToList.count)
 			{
-				reg2 = registers[i++];
+				reg2 = addToList.registers[i++];
 			}
-			if (i < registers.size())
+			if (i < addToList.count)
 			{
-				reg3 = registers[i++];
+				reg3 = addToList.registers[i++];
 			}
-			if (i < registers.size())
+			if (i < addToList.count)
 			{
-				reg4 = registers[i++];
+				reg4 = addToList.registers[i++];
 			}
 
 			cstr row[] = { reg1.key, reg1.value, reg2.key, reg2.value, reg3.key, reg3.value, reg4.key, reg4.value, nullptr };
