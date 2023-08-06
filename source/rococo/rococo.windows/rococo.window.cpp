@@ -86,7 +86,7 @@ namespace Rococo
 		  font.hwndOwner = hParent;
 
 		  LOGFONTW f = { 0 };
-		  SecureFormat(f.lfFaceName, sizeof(f.lfFaceName), L"Courier New");
+		  SecureFormat(f.lfFaceName, LF_FACESIZE, L"Courier New");
 
 		  font.lpLogFont = &f;
 		  font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
