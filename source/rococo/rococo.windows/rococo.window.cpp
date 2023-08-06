@@ -72,41 +72,46 @@ namespace Rococo
          return s_null;
       }
 
-      bool OpenChooseFontBox(HWND hParent, LOGFONTA& output)
-      {
-         CHOOSEFONTA font = { 0 };
-         font.lStructSize = sizeof(font);
-         font.hInstance = hThisInstance;
-         font.hwndOwner = hParent;
-         
-         LOGFONTA f = { 0 };
-         StackStringBuilder sb(f.lfFaceName, sizeof(f.lfFaceName));
-         sb << "Courier New";
+	  bool OpenChooseFontBox(HWND hParent, LOGFONTW& output)
+	  {
+		  if (!IsWindow(hParent))
+		  {
+			  ShowMessageBox(Rococo::Windows::NoParent(), "Could not get a valid parent window for the font box", "Little font error", MB_ICONEXCLAMATION);
+			  return false;
+		  }
 
-         font.lpLogFont = &f;
-         font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
-         
-		 DWORD success = ChooseFontA(&font);
-		 if (success)
-         {
-            output = f;
-            return true;
-         }
-         else
-         {
-			 DWORD err = CommDlgExtendedError();
-			 if (err)
-			 {
-				 char msg[256];
-				 SafeFormat(msg, "Could not create font dialog: CommDlgExtendedError error %u", err);
-				 THIS_WINDOW parent(hParent);
-				 ShowMessageBox(parent, msg, "Little font error", MB_ICONEXCLAMATION);
+		  CHOOSEFONTW font = { 0 };
+		  font.lStructSize = sizeof(font);
+		  font.hInstance = hThisInstance;
+		  font.hwndOwner = hParent;
 
-				 output = LOGFONTA{ 0 };
-			 }
-             return false;
-         }
-      }
+		  LOGFONTW f = { 0 };
+		  SecureFormat(f.lfFaceName, sizeof(f.lfFaceName), L"Courier New");
+
+		  font.lpLogFont = &f;
+		  font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
+
+		  DWORD success = ChooseFontW(&font);
+		  if (success)
+		  {
+			  output = f;
+			  return true;
+		  }
+		  else
+		  {
+			  DWORD err = CommDlgExtendedError();
+			  if (err)
+			  {
+				  char msg[256];
+				  SafeFormat(msg, "Could not create font dialog: CommDlgExtendedError error %u", err);
+				  THIS_WINDOW parent(hParent);
+				  ShowMessageBox(parent, msg, "Little font error", MB_ICONEXCLAMATION);
+
+				  output = LOGFONTW{ 0 };
+			  }
+			  return false;
+		  }
+	  }
 
 	  ROCOCO_WINDOWS_API COLORREF ToCOLORREF(RGBAb colour)
 	  {

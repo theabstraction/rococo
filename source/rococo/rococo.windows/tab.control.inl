@@ -20,7 +20,7 @@ namespace Rococo::Windows
 		{
 		}
 
-		NOT_INLINE void OnDrawTabs(DRAWITEMSTRUCT&d)
+		NOT_INLINE void OnDrawTabs(DRAWITEMSTRUCT&)
 		{
 			
 		}

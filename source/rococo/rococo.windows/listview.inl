@@ -87,14 +87,12 @@ namespace Rococo::Windows
 			return TRUE;
 		}
 
-		void Construct(const WindowConfig& listConfig, IWindow& parent, IListViewEvents& eventHandler, DWORD containerStyle)
+		void Construct(const WindowConfig& listConfig, IWindow& parent, DWORD containerStyle)
 		{
 			if (customAtom == 0)
 			{
 				customAtom = CreateCustomAtom();
 			}
-
-			UNUSED(eventHandler);
 
 			WindowConfig containerConfig = listConfig;
 			containerConfig.style = WS_CHILD | WS_VISIBLE | containerStyle;
@@ -135,7 +133,7 @@ namespace Rococo::Windows
 		static ListViewSupervisor* Create(const WindowConfig& listConfig, IWindow& parent, IListViewEvents& eventHandler, DWORD containerStyle)
 		{
 			ListViewSupervisor* p = new ListViewSupervisor(eventHandler);
-			p->Construct(listConfig, parent, eventHandler, containerStyle);
+			p->Construct(listConfig, parent, containerStyle);
 			return p;
 		}
 

@@ -88,6 +88,7 @@ namespace
    struct IIDEWriter
    {
       virtual void WriteText(cstr propName, cstr value) = 0;
+      virtual void WriteText(cstr propName, const wchar_t* value) = 0;
       virtual void WriteInt(cstr propName, int32 value) = 0;
       virtual void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container) = 0;
       virtual void PushChild() = 0;
@@ -123,6 +124,12 @@ namespace
       {
          AppendDepth();
          sb.AppendFormat("(%s string \"%s\")\n", propName, value);
+      }
+
+      void WriteText(cstr propName, const wchar_t* value) override // TODO->escape sequences
+      {
+          AppendDepth();
+          sb.AppendFormat("(%s string \"%ws\")\n", propName, value);
       }
 
       void WriteInt(cstr propName, int32 value) override
@@ -1102,7 +1109,7 @@ namespace
          }
       }
 
-      virtual void Save(const LOGFONTA& logFont, int32 version)
+      virtual void Save(const LOGFONTW& logFont, int32 version)
       {
          IDEWriterViaSexy writer;
 
@@ -1640,7 +1647,7 @@ namespace
       LayoutChildren();
    }
 
-   void LoadHeader(cr_sex sheader, UINT versionId, LOGFONTA& logFont)
+   void LoadHeader(cr_sex sheader, UINT versionId, LOGFONTW& logFont)
    {
       if (sheader.NumberOfElements() != 4)
       {
@@ -1662,15 +1669,14 @@ namespace
 
       if (GetAtomicArg(sheight, 0) != "FontHeight") ThrowSex(sfont, "Expecting (FontHeight int32 ...)");
 
-      StackStringBuilder sb(logFont.lfFaceName, sizeof(logFont.lfFaceName));
-      sb << sfont[2].c_str();
+      SecureFormat(logFont.lfFaceName, LF_FACESIZE, L"%hs", sfont[2].c_str());
 
       VariantValue height;
       Parse::TryParse(height, VARTYPE_Int32, GetAtomicArg(sheight, 2).c_str());
       logFont.lfHeight = height.int32Value;
    }
 
-   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTA& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)
+   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTW& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)
    {
 	  AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "tabbed-ide"));
       Auto<ISParser> parser(Sexy_CreateSexParser_2_0(*allocator, 128));
@@ -1757,7 +1763,7 @@ namespace Rococo
                 return IDESpatialManager::Create(parent, database, true);
             }
 
-            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr file_prefix)
+            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTW& logFont, cstr file_prefix)
             {
                 return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, file_prefix);
             }

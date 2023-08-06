@@ -200,7 +200,7 @@ namespace
 		bool isVisible;
 		IDEPANE_ID migratingId;
 
-		LOGFONTA logFont;
+		LOGFONTW logFont;
 		HFONT hFont;
 
 		int32 requiredDepth; // Function to view according to stack depth 
@@ -312,26 +312,25 @@ namespace
 			sysDebug.AddString("Step Symbol", MENU_EXECUTE_NEXT_SYMBOL, "Shift + F10");
 			sysDebug.AddString("Continue", MENU_EXECUTE_CONTINUE, "F5");
 
-			logFont = LOGFONTA{ 0 };
-			StackStringBuilder sb(logFont.lfFaceName, sizeof(logFont.lfFaceName));
-			sb << "Courier New";
-
-			logFont.lfHeight = -11;
-
-			hFont = CreateFontIndirectA(&logFont);
-
 			callstackEventHandler.This = this;
 			registerEventHandler.This = this;
 			variableEventHandler.This = this;
+
+			logFont = LOGFONTW{ 0 };
+			SecureFormat(logFont.lfFaceName, LF_FACESIZE, L"Courier New");
+
+			logFont.lfHeight = -11;
+
+			hFont = CreateFontIndirectW(&logFont);
 		}
 
 		void OnChooseFont()
 		{
-			LOGFONTA output;
+			LOGFONTW output;
 			if (OpenChooseFontBox(*dialog, output))
 			{
 				DeleteObject(hFont);
-				hFont = CreateFontIndirectA(&output);
+				hFont = CreateFontIndirectW(&output);
 				logFont = output;
 				spatialManager->SetFontRecursive(hFont);
 			}
@@ -350,7 +349,7 @@ namespace
 				spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
 
 				DeleteObject(hFont);
-				hFont = CreateFontIndirectA(&logFont);
+				hFont = CreateFontIndirectW(&logFont);
 				spatialManager->SetFontRecursive(hFont);
 
 				LayoutChildren();
@@ -497,7 +496,7 @@ namespace
 			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
 
 			DeleteObject(hFont);
-			hFont = CreateFontIndirectA(&logFont);
+			hFont = CreateFontIndirectW(&logFont);
 			spatialManager->SetFontRecursive(hFont);
 
 			if (IsDarkmode())
