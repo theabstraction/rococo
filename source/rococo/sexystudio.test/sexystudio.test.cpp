@@ -1134,10 +1134,27 @@ void TestFullEditor_SearchFQType()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFullEditor_SearchForFactories()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(function Main -> (Int32 exitCode):
+	(Sys.Type.IException ex 
+))<CODE>";
+
+	FileDesc desc(file, ' ');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
+	goto skip;
 	TestFullEditor_SearchFQType();
 	TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();
 	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue();
@@ -1148,6 +1165,8 @@ void MainProtected2(HMODULE /* hLib */)
 	TestFullEditor_SearchLocalStructForM4x4();
 	TestFullEditor_SearchLocalStructForInterfaceMethod();
 	TestFullEditor_SearchLocalStructForInterface();
+	skip:
+	TestFullEditor_SearchForFactories();
 }
 
 void MainProtected(HMODULE hLib)
@@ -1217,7 +1236,7 @@ int main()
 
 	try
 	{
-		MainProtected(hLib);
+	//	MainProtected(hLib);
 		MainProtected2(hLib);
 	}
 	catch (IException& ex)

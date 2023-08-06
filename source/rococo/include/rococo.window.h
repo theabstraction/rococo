@@ -468,7 +468,7 @@ namespace Rococo
 			ROCOCO_WINDOWS_API IIDETextWindow* CreateTextWindow(IWindow& parent);
 			ROCOCO_WINDOWS_API IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
 			ROCOCO_WINDOWS_API IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler, bool ownerDraw);
-			ROCOCO_WINDOWS_API ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName);
+			ROCOCO_WINDOWS_API ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr file_prefix);
 		}
 
 		ROCOCO_WINDOWS_API IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);

@@ -26,6 +26,11 @@ namespace Rococo::SexyStudio
 		Email = 3
 	};
 
+	ROCOCO_INTERFACE ICalltip
+	{
+		virtual void SetCalltipForReplacement(cstr tip) = 0;
+	};
+
 	ROCOCO_INTERFACE ISexyStudioBase
 	{
 		virtual cstr GetInterfaceURL(int index) = 0;

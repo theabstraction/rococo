@@ -1851,18 +1851,18 @@ namespace ANON
 			}
 		}
 
-		ISXYInterface* FindInterface(cstr typeString) override
+		ISXYInterface* FindInterface(cstr typeString, ISxyNamespace** ppNamespace = nullptr) override
 		{
-			auto* direct = FindInterfaceDirect(GetRootNamespace(), typeString);
+			auto* direct = FindInterfaceDirect(GetRootNamespace(), typeString, ppNamespace);
 			if (direct)
 			{
 				return direct;
 			}
 
-			return RecursivelySearchForInterface(GetRootNamespace(), typeString);
+			return RecursivelySearchForInterface(GetRootNamespace(), typeString, ppNamespace);
 		}
 
-		ISXYInterface* FindInterfaceDirect(ISxyNamespace& ns, cstr typeString)
+		ISXYInterface* FindInterfaceDirect(ISxyNamespace& ns, cstr typeString, ISxyNamespace** ppNamespace)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -1881,12 +1881,16 @@ namespace ANON
 								auto& candidate = subspace.GetInterface(j);
 								if (Eq(candidate.PublicName(), subTypeString))
 								{
+									if (ppNamespace)
+									{
+										*ppNamespace = &subspace;
+									}
 									return &candidate;
 								}
 							}
 						}
 
-						return FindInterfaceDirect(subspace, subTypeString);
+						return FindInterfaceDirect(subspace, subTypeString, ppNamespace);
 					}
 				}
 			}
@@ -1894,7 +1898,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISXYInterface* RecursivelySearchForInterface(ISxyNamespace& ns, cstr typeString)
+		ISXYInterface* RecursivelySearchForInterface(ISxyNamespace& ns, cstr typeString, ISxyNamespace** ppNamespace)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -1904,11 +1908,15 @@ namespace ANON
 					auto& refInterface = ns[i].GetInterface(j);
 					if (Eq(refInterface.PublicName(), typeString))
 					{
+						if (ppNamespace)
+						{
+							*ppNamespace = &ns;
+						}
 						return &refInterface;
 					}
 				}
 
-				auto* pInterface = RecursivelySearchForInterface(ns[i], typeString);
+				auto* pInterface = RecursivelySearchForInterface(ns[i], typeString, ppNamespace);
 				if (pInterface)
 				{
 					return pInterface;

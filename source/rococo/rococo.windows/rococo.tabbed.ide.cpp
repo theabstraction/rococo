@@ -1670,15 +1670,28 @@ namespace
       logFont.lfHeight = height.int32Value;
    }
 
-   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTA& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr appName)
+   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTA& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)
    {
 	  AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "tabbed-ide"));
       Auto<ISParser> parser(Sexy_CreateSexParser_2_0(*allocator, 128));
 
       char savename[_MAX_PATH];
-      SafeFormat(savename, sizeof(savename), "%s.ide.sxy", appName);
-      wchar_t fullpath[_MAX_PATH];
-      IO::GetUserPath(fullpath, _MAX_PATH, savename);
+      SafeFormat(savename, sizeof(savename), "%s.ide.sxy", file_prefix);
+
+      AutoFree<IO::IOSSupervisor> io = IO::GetIOS();
+      AutoFree<IO::IInstallationSupervisor> installation;
+
+      WideFilePath fullpath;
+
+      if (*file_prefix == '!')
+      {
+          installation = IO::CreateInstallation(L"content.indicator.txt", *io);
+          installation->ConvertPingPathToSysPath(savename, fullpath);
+      }
+      else
+      {
+          IO::GetUserPath(fullpath.buf, _MAX_PATH, savename);
+      }
 
       Auto<Rococo::Sex::ISourceCode> src;
       Auto<Rococo::Sex::ISParserTree> tree;
@@ -1744,9 +1757,9 @@ namespace Rococo
                 return IDESpatialManager::Create(parent, database, true);
             }
 
-            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr appName)
+            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTA& logFont, cstr file_prefix)
             {
-                return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, appName);
+                return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, file_prefix);
             }
         }
     }

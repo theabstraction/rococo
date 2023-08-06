@@ -81,6 +81,7 @@ namespace
 		MENU_SYSFONT,
 		MENU_SYSRESET,
 		MENU_SYS_LOADLAYOUT,
+		MENU_SYS_LOAD4KLAYOUT,
 		MENU_SYS_SAVELAYOUT,
 		MENU_SYS_TOGGLE_DARKMODE,
 		MENU_EXECUTE_NEXT,
@@ -295,6 +296,12 @@ namespace
 			sysMenu.AddString("&Font...", MENU_SYSFONT);
 			sysMenu.AddString("&Reset UI", MENU_SYSRESET);
 			sysMenu.AddString("&Load layout", MENU_SYS_LOADLAYOUT);
+
+			Vec2i span = GetDesktopSpan();
+			if (span.x >= 2560 && span.y >= 1440)
+			{
+				sysMenu.AddString("&Load 4K layout", MENU_SYS_LOAD4KLAYOUT);
+			}
 			sysMenu.AddString("&Save layout", MENU_SYS_SAVELAYOUT);
 			sysMenu.AddString("Toggle Darkmode", MENU_SYS_TOGGLE_DARKMODE);
 			sysMenu.AddString("E&xit", MENU_SYS_EXIT);
@@ -399,6 +406,9 @@ namespace
 				break;
 			case MENU_SYS_LOADLAYOUT:
 				Load();
+				break;
+			case MENU_SYS_LOAD4KLAYOUT:
+				Load4KDefault();
 				break;
 			case MENU_SYS_SAVELAYOUT:
 				Save();
@@ -1085,6 +1095,16 @@ namespace
 			spatialManager->Free();
 			spatialManager = nullptr;
 			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
+			spatialManager->SetFontRecursive(hFont);
+			spatialManager->SetColourSchemeRecursive(scheme);
+			LayoutChildren();
+		}
+
+		void Load4KDefault()
+		{
+			spatialManager->Free();
+			spatialManager = nullptr;
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "!ide/debugger.4k");
 			spatialManager->SetFontRecursive(hFont);
 			spatialManager->SetColourSchemeRecursive(scheme);
 			LayoutChildren();

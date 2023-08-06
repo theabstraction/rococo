@@ -66,6 +66,7 @@
 ) 
 	
 (function Main -> (Int32 exitCode):
+	(debug)
 	(IExpression s =  '
 		(
 			(Parser Adventure-Game)
@@ -118,8 +119,6 @@
 		
 		(i += 1)		
 	)
-	
-	(debug)
 	
 	(#printf "// Terminated!")	
 	(exitCode = 0)

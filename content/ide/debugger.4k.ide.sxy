@@ -1,0 +1,50 @@
+(child 
+  (Version int32 0x1002)
+  (FontFamily string "Courier New")
+  (FontHeight int32 0xFFFFFFF5)
+)
+(child 
+  (splitPosition int32 0x459)
+  (layout int32 0x4003)
+  (child 
+    (splitPosition int32 0x605)
+    (layout int32 0x4002)
+    (child 
+      (splitPosition int32 0x36F)
+      (layout int32 0x4003)
+      (child 
+        (splitPosition int32 0x2F1)
+        (layout int32 0x4003)
+        (child 
+          (splitPosition int32 0x280)
+          (layout int32 0x4002)
+          (child 
+            (paneIds array IDEPANE_ID  0x0)
+          )
+          (child 
+            (paneIds array IDEPANE_ID  0x1)
+          )
+        )
+        (child 
+          (paneIds array IDEPANE_ID  0x5)
+        )
+      )
+      (child 
+        (paneIds array IDEPANE_ID  0x4)
+      )
+    )
+    (child 
+      (splitPosition int32 0x22C)
+      (layout int32 0x4003)
+      (child 
+        (paneIds array IDEPANE_ID  0x3)
+      )
+      (child 
+        (paneIds array IDEPANE_ID  0x2)
+      )
+    )
+  )
+  (child 
+    (paneIds array IDEPANE_ID  0x6 0x7)
+  )
+)

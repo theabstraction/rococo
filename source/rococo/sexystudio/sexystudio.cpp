@@ -105,6 +105,23 @@ void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWind
 	}
 }
 
+void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
+{
+	char temp[256] = { 0 };
+	cstr writeEnd = temp + 254;
+	char* writePos = (char*)writeEnd;
+
+	for (ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+	{
+		size_t len = strlen(n->Name());
+		writePos -= (len + 1);
+		*writePos = '.';
+		memcpy(writePos + 1, n->Name(), len);
+	}
+
+	CopyString(fullName, 256, writePos + 1);
+}
+
 class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents
 {
 private:
@@ -1009,23 +1026,6 @@ private:
 		}
 	}
 
-	void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
-	{
-		char temp[256] = { 0 };	
-		cstr writeEnd = temp + 254;
-		char* writePos = (char*) writeEnd;
-
-		for (ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
-		{
-			size_t len = strlen(n->Name());
-			writePos -= (len + 1);
-			*writePos = '.';
-			memcpy(writePos+1, n->Name(), len);			
-		}
-
-		CopyString(fullName, 256, writePos + 1);
-	}
-
 	void AppendToSearchTermsRecursive(ISxyNamespace& ns, cstr searchTerm, cstr fullSearchItem)
 	{
 		auto* dot = FindDot(searchTerm);
@@ -1319,7 +1319,7 @@ LOGFONTA MakeDefaultFont()
 
 using namespace Rococo::AutoComplete;
 
-struct SexyStudioIDE: ISexyStudioInstance1, IObserver
+struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 {
 	AutoFree<IPublisherSupervisor> publisher;
 	AutoFree<ISexyDatabaseSupervisor> database;
@@ -1341,6 +1341,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	char src_line[1024];
 
 	ISexyStudioEventHandler& eventHandler;
+
+	void SetCalltipForReplacement(cstr tip) override
+	{
+		SafeFormat(callTipArgs, "%s", tip);
+	}
 
 	void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor)
 	{
@@ -1749,12 +1754,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		}
 	}
 
-	ISXYInterface* FindInterface(cr_substring type)
+	ISXYInterface* FindInterface(cr_substring type, ISxyNamespace** ppNamespace = nullptr)
 	{
 		size_t len = type.Length() + 1;
 		auto* buf = (char*)alloca(len);
 		CopyWithTruncate(type, buf, len);
-		return database->FindInterface(buf);
+		return database->FindInterface(buf, ppNamespace);
 	}
 
 	int interfaceDepth = 0;
@@ -1774,6 +1779,107 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 	};
 
 	enum { MAX_INTERFACE_DEPTH = 64 };
+
+	void FormatFactoryHint(cstr prefix, cstr suffix, char* buffer, size_t capacity, ISXYFactory& factory, ISxyNamespace* optionalNS)
+	{
+		StackStringBuilder sb(buffer, capacity);
+		sb << prefix;
+
+		if (optionalNS)
+		{
+			char fullname[256];
+			GetFullNamespaceName(fullname, *optionalNS);
+			sb << fullname;
+			sb.AppendChar('.');
+		}
+
+		sb << factory.PublicName();
+
+		for (int i = 0; i < factory.InputCount(); i++)
+		{
+			sb.AppendChar('(');
+			sb << factory.InputType(i);
+			sb.AppendChar(' ');
+			sb << factory.InputName(i);
+			sb.AppendChar(')');
+		}
+		sb << suffix;
+	}
+
+	NOT_INLINE bool TryShowCallTipForFactories(cr_substring type, cr_substring variableName, ISexyEditor& editor, ICalltip& calltip)
+	{
+		UNUSED(variableName);
+
+		ISxyNamespace* pNamespace = nullptr;
+		auto* pInterface = FindInterface(type, &pNamespace);
+		if (!pInterface)
+		{
+			return false;
+		}
+
+		char interfaceType[256];
+		SubstringToString(interfaceType, sizeof interfaceType, type);
+
+		int candidates = 0;
+		for (int i = 0; i < pNamespace->FactoryCount(); i++)
+		{
+			auto& f = pNamespace->GetFactory(i);
+
+			char buf[256];
+			f.GetDefinedInterface(buf, sizeof buf);
+
+			if (EndsWith(buf, interfaceType))
+			{
+				candidates++;
+			}
+		}
+
+		if (candidates == 1)
+		{
+			for (int i = 0; i < pNamespace->FactoryCount(); i++)
+			{
+				auto& f = pNamespace->GetFactory(i);
+
+				char buf[256];
+				f.GetDefinedInterface(buf, sizeof buf);
+
+				if (EndsWith(buf, interfaceType))
+				{
+					char suggestion[256];
+					FormatFactoryHint("(", "))", suggestion, sizeof  suggestion, f, pNamespace);
+					editor.ShowCallTipAtCaretPos(suggestion);
+					calltip.SetCalltipForReplacement(suggestion);
+					break;
+				}
+			}
+		}
+		else if (candidates > 1)
+		{
+			char nsFullName[256];
+			GetFullNamespaceName(nsFullName, *pNamespace);
+
+			for (int i = 0; i < pNamespace->FactoryCount(); i++)
+			{
+				auto& f = pNamespace->GetFactory(i);
+
+				char buf[256];
+				f.GetDefinedInterface(buf, sizeof buf);
+
+				if (EndsWith(buf, interfaceType))
+				{
+					char suggestion[256];
+					StackStringBuilder sb(suggestion, sizeof suggestion);
+					sb.AppendChar('(');		
+					sb << nsFullName;
+					sb.AppendChar('.');
+
+					editor.AutoCompleteBuilder().AddItem(suggestion);
+				}
+			}
+		}
+
+		return true;
+	}
 
 	bool TryShowCallTipForMethods(cr_substring type, cr_substring methodName, ISexyEditor& editor)
 	{
@@ -1895,6 +2001,141 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 		Substring member = { candidateInDoc.start, nextDot };
 
 		return GetTypeForMember(type, member, doc);
+	}
+	
+	static bool IsWhitespace(char c)
+	{
+		switch (c)
+		{
+		case '\t':
+		case ' ':
+		case '\r':
+		case '\n':
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	bool TryFindAndShowCallTipForFactories(ISexyEditor& editor, cr_substring searchToken, cr_substring doc, ICalltip& calltip)
+	{
+		UNUSED(doc);
+
+		if (!IsWhitespace(searchToken.finish[-1]))
+		{
+			return false;
+		}
+
+		// We are searching for the pattern '(<interface> <variable-name> '
+		cstr lastOpenBrace = Rococo::ReverseFind('(', searchToken);
+		if (lastOpenBrace == nullptr)
+		{
+			return false;
+		}
+
+		cstr lastCloseBrace = Rococo::ReverseFind(')', searchToken);
+		if (lastCloseBrace != nullptr && lastCloseBrace > lastOpenBrace)
+		{
+			return false;
+		}
+
+		// We now have found '( .... '
+
+		cstr interfaceName = nullptr;
+
+		for (cstr p = lastOpenBrace + 1; p < searchToken.finish; p++)
+		{
+			if (IsWhitespace(*p))
+			{
+				continue;
+			}
+
+			if (!IsCapital(*p))
+			{
+				// Unknown character, so this cannot be a plain interface name
+				return false;
+			}
+
+			interfaceName = p;
+			break;
+		}
+
+		if (!interfaceName)
+		{
+			return false;
+		}
+
+		Substring interfaceNameAndArg = { interfaceName, searchToken.finish };
+
+		cstr interfaceNameEnd = nullptr;
+		for (cstr p = interfaceNameAndArg.start + 1; p < searchToken.finish; p++)
+		{
+			if (IsWhitespace(*p))
+			{
+				interfaceNameEnd = p;
+				break;
+			}
+
+			if (IsAlphaNumeric(*p))
+			{
+				// Still in the name
+				continue;
+			}
+
+			if (*p == '.')
+			{
+				continue;
+			}
+
+			// Something unexpected
+			return false;
+		}
+
+		if (!interfaceNameEnd)
+		{
+			return false;
+		}
+
+		cstr variableArg = SkipBlankspace({ interfaceNameEnd, interfaceNameAndArg.finish });
+		if (!variableArg)
+		{
+			return false;
+		}
+
+		// variables begin with lower case letters a-z
+		if (!islower(*variableArg))
+		{
+			return false;
+		}
+
+		cstr variableArgFinish = nullptr;
+		for (cstr p = variableArg; p < interfaceNameAndArg.finish; p++)
+		{
+			if (IsWhitespace(*p))
+			{
+				variableArgFinish = p;
+				break;
+			}
+
+			if (IsAlphaNumeric(*p))
+			{
+				// Still in the name
+				continue;
+			}
+
+			// Something unexpected
+			return false;
+		}
+
+		if (!variableArgFinish)
+		{
+			return false;
+		}
+
+		Substring interfaceToken { interfaceNameAndArg.start, interfaceNameEnd };
+		Substring variableToken { variableArg, variableArgFinish }; 
+
+		return TryShowCallTipForFactories(interfaceToken, variableToken, editor, calltip);
 	}
 
 	bool TryFindAndShowCallTipForMethods(ISexyEditor& editor, cr_substring searchToken, cr_substring doc)
@@ -2116,7 +2357,10 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver
 				}
 				else if (islower(*searchToken.start))
 				{
-					TryFindAndShowCallTipForMethods(editor, searchToken, doc);
+					if (!TryFindAndShowCallTipForMethods(editor, searchToken, doc))
+					{
+						TryFindAndShowCallTipForFactories(editor, substringLine, doc, *this);
+					}
 				}
 			}
 		}
