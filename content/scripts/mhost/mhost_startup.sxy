@@ -54,7 +54,7 @@
 	(IInstallation installation (Installation))
 	(installation.SetPingPathMacro "#chaps" "!textures/faces/")
 	
-	(IMaterialBuilder mb !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	(IMaterialBuilder mb (Rococo.Graphics.MaterialBuilder))
 	(mb.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg")
 	(mb.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
 	

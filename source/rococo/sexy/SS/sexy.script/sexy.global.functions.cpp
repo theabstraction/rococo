@@ -723,7 +723,7 @@ namespace Rococo
 		// TODO -> allocator using the SourceCache allocator
 		AutoFree<IExpandingBuffer> fileBuffer;
 		// TODO -> allocator using the SourceCache allocator
-		AutoFree<IExpandingBuffer> unicodeBuffer;
+		AutoFree<IExpandingBuffer> dataBuffer;
 		IInstallation& installation;
 		IAllocator& allocator;
 		Auto<ISParser> parser;
@@ -739,7 +739,7 @@ namespace Rococo
 	public:
 		SourceCache(IInstallation& _installation, IAllocator& _allocator) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
-			unicodeBuffer(CreateExpandingBuffer(64_kilobytes)),
+			dataBuffer(CreateExpandingBuffer(64_kilobytes)),
 			installation(_installation),
 			allocator(_allocator),
 			parser(Sexy_CreateSexParser_2_0(_allocator))
@@ -807,6 +807,34 @@ namespace Rococo
 			allocator.FreeData(this);
 		}
 
+		int LoadSourceAsTextFileElseReturnErrorCode(cstr resourceName, IStringPopulator& populator) override
+		{
+			auto i = sources.find(resourceName);
+			if (i != sources.end())
+			{
+				populator.Populate(i->second.code->SourceStart());
+				return 0;
+			}
+
+			try
+			{
+				installation.LoadResource(resourceName, *dataBuffer, 64_megabytes);
+				populator.Populate((cstr) dataBuffer->GetData());
+				return 0;
+			}
+			catch (IException& ex)
+			{
+				if (ex.ErrorCode() != 0)
+				{
+					return ex.ErrorCode();
+				}
+				else
+				{
+					return -1;
+				}
+			}
+		}
+
 		ISParserTree* GetSource(cstr pingName) override
 		{
 			auto i = sources.find(pingName);
@@ -831,7 +859,7 @@ namespace Rococo
 			bool success = installation.TryLoadResource(pingName, *fileBuffer, 64_megabytes);
 			if (success)
 			{
-				src = DuplicateSourceCode(installation.OS(), *unicodeBuffer, *parser, *fileBuffer, pingName);
+				src = DuplicateSourceCode(installation.OS(), *dataBuffer, *parser, *fileBuffer, pingName);
 			}
 			else
 			{

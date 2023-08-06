@@ -332,6 +332,28 @@ namespace Rococo
 						InitDebugger(debugger, ex);
 						debugger.Log("Caught exception during execution of %s", resourcePath);
 
+						if (ex.Source() == nullptr)
+						{
+							// There was a problem loading the source code, in which case we need to init the logger with some black magic
+
+							struct ANON : IStringPopulator
+							{
+								void Populate(cstr text)
+								{
+									debugger->AddSourceCode(resourcePath, text);
+								}
+
+								cstr resourcePath;
+								IDebuggerWindow* debugger;
+							} handler;
+
+							handler.debugger = &debugger;
+							handler.resourcePath = resourcePath;
+
+							int code = sources.LoadSourceAsTextFileElseReturnErrorCode(resourcePath, handler);
+							UNUSED(code);
+						}
+
 						//LogStack(ex, debugger);
 
 						switch (exceptionHandler.GetScriptExceptionFlow(ex.Name(), ex.Message()))
