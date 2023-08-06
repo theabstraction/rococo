@@ -178,6 +178,13 @@
 	(ExpandStringMacroEx "NewParagraphBuilder" in out false)
 )
 
+(function PublishAPI -> :
+	// requires user directory has folder 'sexydoc'
+	(Sys.Native.PublishAPI)
+)
+
+(alias PublishAPI Sys.PublishAPI)
+
 (archetype Sys.Type.VoidToVoid -> )
 
 (interface Sys.ICoroutine
@@ -305,6 +312,3 @@
 	(Pointer hLife)
 )
 (alias SysTypeRef Sys.Type.ComponentRef)
-
-(strong SysTypeROID (Int64))
-(alias SysTypeROID Sys.Type.ROID)

@@ -745,11 +745,9 @@ namespace Rococo { namespace Compiler { namespace Impl
             SafeFormat(destrName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.Destruct"), className);
 			const IFunction* destructor = module.FindFunction(destrName);
 
-			IProgramObject& object = (IProgramObject&) module.Object();
-
 			if (destructor == NULL)
 			{
-				destructor = object.IntrinsicModule().FindFunction(("_nothing"));
+				return (ID_BYTECODE) - 1;
 			}
 
 			CodeSection destSection;

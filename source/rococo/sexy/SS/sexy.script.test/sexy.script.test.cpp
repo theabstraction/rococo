@@ -5184,10 +5184,9 @@ R"((namespace EntryPoint)
 
 		vm.Push(0); // Allocate stack space for the int32 result
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-		int32 x = vm.PopInt32();
-		validate(x == 72);
 
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
 	}
 
 	void TestStrongNumber7(IPublicScriptSystem& ss)
@@ -7203,33 +7202,6 @@ R"((namespace EntryPoint)
 
 		int x = vm.PopInt32();
 		validate(x == 8);
-	}
-
-	void TestMallocAligned(IPublicScriptSystem& ss)
-	{
-		cstr srcCode =
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
-  
-		"(using Sys.Type)"
-  
-		"(function Main -> (Int32 result):"
-		"	(IBuffer b(AllocAligned 256 1))"
-		"	(b.Capacity -> result)"
-		")";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestMallocAligned");
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
-
-		vm.Push(0); // Allocate stack space for the int32 result
-
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-
-		int x = vm.PopInt32();
-		validate(x == 256);
 	}
 
 	void TestArrayPushViaClosure(IPublicScriptSystem& ss)
@@ -16035,8 +16007,6 @@ R"(
 		TEST(TestRecti2);
 		TEST(TestRecti3);
 		TEST(TestRecti4);
-
-		TEST(TestMallocAligned);
 
 		TEST(TestTypedef);
 

@@ -175,6 +175,11 @@ namespace Anon
 	static void Destruct(ObjectStub* object, VM::IVirtualMachine& vm)
 	{
 		auto destructorId = object->Desc->DestructorId;
+		if (destructorId == (ID_BYTECODE)-1)
+		{
+			// No destructor
+			return;
+		}
 
 		EXECUTERESULT lastStatus = vm.Status();
 
