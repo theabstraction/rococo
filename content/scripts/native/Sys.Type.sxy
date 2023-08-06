@@ -312,3 +312,6 @@
 	(Pointer hLife)
 )
 (alias SysTypeRef Sys.Type.ComponentRef)
+
+(strong ROID (Int64))
+(alias ROID Sys.Type.ROID)

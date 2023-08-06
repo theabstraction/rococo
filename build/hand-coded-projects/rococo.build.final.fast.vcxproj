@@ -177,6 +177,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\source\rococo\rococo.build.final.fast\makefile.mak" />
+    <None Include="..\tools\package.bat" />
+    <None Include="..\tools\package.mak" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

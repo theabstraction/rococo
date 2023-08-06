@@ -1910,7 +1910,7 @@ namespace ANON
 					{
 						if (ppNamespace)
 						{
-							*ppNamespace = &ns;
+							*ppNamespace = &ns[i];
 						}
 						return &refInterface;
 					}

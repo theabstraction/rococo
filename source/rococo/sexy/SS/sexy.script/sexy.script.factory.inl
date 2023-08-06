@@ -227,7 +227,7 @@ namespace Rococo
          const IFactory* factory = GetFactoryInModule(factoryExpr, GetModule(ce.Script));
 		 if (factory == nullptr)
 		 {
-			 Throw(args, "Cannot identify factory");
+			 Throw(args, "Cannot identify factory from %s", factoryExpr.c_str());
 		 }
 
          CompileFactoryCall(ce, *factory, interfaceRefName, args, nullType.GetInterface(0));

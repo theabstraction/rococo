@@ -1658,6 +1658,9 @@ namespace
       cr_sex sfont = sheader[2];
       cr_sex sheight = sheader[3];
 
+      LOGFONTW blank = { 0 };
+      logFont = blank;
+
       VariantValue id;
       Parse::TryParse(id, VARTYPE_Int32, GetAtomicArg(svid, 2).c_str());
       if (GetAtomicArg(svid, 0) != "Version" || id.int32Value != (int32) versionId)

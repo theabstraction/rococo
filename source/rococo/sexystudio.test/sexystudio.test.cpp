@@ -1148,6 +1148,22 @@ void TestFullEditor_SearchForFactories()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFullEditor_SearchForFactories2()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+(using Sys.Type)
+
+(function Main -> (Int32 exitCode):
+	(IException ex 
+))<CODE>";
+
+	FileDesc desc(file, ' ');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
 
 void MainProtected2(HMODULE /* hLib */)
 {
@@ -1163,8 +1179,9 @@ void MainProtected2(HMODULE /* hLib */)
 	TestFullEditor_SearchLocalStructForM4x4();
 	TestFullEditor_SearchLocalStructForInterfaceMethod();
 	TestFullEditor_SearchLocalStructForInterface();
-	skip:
 	TestFullEditor_SearchForFactories();
+	skip:
+	TestFullEditor_SearchForFactories2();
 }
 
 void MainProtected(HMODULE hLib)
