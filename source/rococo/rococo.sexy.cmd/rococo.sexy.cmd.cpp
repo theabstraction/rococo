@@ -300,6 +300,11 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 
 	}
 
+	IScriptEnumerator* ImplicitIncludes() override
+	{
+		return nullptr;
+	}
+
 	IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 	{
 		UNUSED(source);

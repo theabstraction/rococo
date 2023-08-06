@@ -255,7 +255,7 @@
 (function IEngineRender85  (Pointer hObject)(MHost.GuiPopulator populator) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 990))
 (alias IEngineRender85 MHost.Native.IEngineRender)
 
-(function LoadExpression86  (Sys.Type.IString name) -> (Sys.Reflection.IExpression s) : (source "MHost::RunMHostEnvironmentScript::ScriptContext::OnCompile" 169))
+(function LoadExpression86  (Sys.Type.IString name) -> (Sys.Reflection.IExpression s) : (source "MHost::RunMHostEnvironmentScript::ScriptContext::OnCompile" 187))
 (alias LoadExpression86 MHost.OS.LoadExpression)
 
 (function IEngineShutdown87  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 992))
@@ -1275,7 +1275,7 @@
 (function IWorldBuilderNew425  (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10540))
 (alias IWorldBuilderNew425 Rococo.Native.IWorldBuilderNew)
 
-(function EnumerateFiles426  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 350))
+(function EnumerateFiles426  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 355))
 (alias EnumerateFiles426 MPlat.OS.EnumerateFiles)
 
 (function AddVec2iVec2i427 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 405))

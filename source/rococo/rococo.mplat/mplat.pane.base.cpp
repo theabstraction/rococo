@@ -366,12 +366,12 @@ void BasePane::FreeAllChildren()
 	children.clear();
 }
 
-void BasePane::SetScheme(const ColourScheme& scheme)
+void BasePane::SetScheme(const MPlatColourScheme& scheme)
 {
 	this->scheme = scheme;
 }
 
-const ColourScheme& BasePane::Scheme() const
+const MPlatColourScheme& BasePane::Scheme() const
 {
 	return scheme;
 }
@@ -489,7 +489,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int horzAlign, int vertAlign, Vec2i padding, int fontIndex, const ColourScheme& scheme, bool enableHighlights)
+		void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int horzAlign, int vertAlign, Vec2i padding, int fontIndex, const MPlatColourScheme& scheme, bool enableHighlights)
 		{
 			GuiMetrics metrics;
 			grc.Renderer().GetGuiMetrics(metrics);
@@ -663,25 +663,19 @@ struct PaneContainer : public BasePane, virtual public GUI::IPaneContainer
 	}
 };
 
-const char* const s_includeArray[] =
-{
-	"!scripts/interop/rococo/mplat/mplat_gui_sxh.sxy",
-	"!scripts/interop/rococo/mplat/mplat_types.sxy",
-	"!scripts/interop/rococo/mplat/types.sxy",
-	"!scripts/interop/rococo/audio/audio_types.sxy"
-};
-
 class ScriptedPanel : IScriptCompilationEventHandler, IObserver, public IPaneBuilderSupervisor, public PaneContainer
 {
 	GuiRect lastRect{ 0, 0, 0, 0 };
 	std::string scriptFilename;
 	Platform& platform;
 	IScriptCompilationEventHandler* onCompile;
+	IScriptEnumerator* implicitIncludes;
 public:
-	ScriptedPanel(Platform& _platform, cstr _scriptFilename, IScriptCompilationEventHandler* _onCompile) : PaneContainer(_platform),
+	ScriptedPanel(Platform& _platform, cstr _scriptFilename, IScriptCompilationEventHandler* _onCompile, IScriptEnumerator* _implicitIncludes) : PaneContainer(_platform),
 		platform(_platform),
 		scriptFilename(_scriptFilename),
-		onCompile(_onCompile)
+		onCompile(_onCompile),
+		implicitIncludes(_implicitIncludes)
 	{
 		platform.plumbing.publisher.Subscribe(this, evFileUpdated);
 	}
@@ -689,6 +683,11 @@ public:
 	~ScriptedPanel()
 	{
 		platform.plumbing.publisher.Unsubscribe(this);
+	}
+
+	IScriptEnumerator* ImplicitIncludes() override
+	{
+		return nullptr;
 	}
 
 	void OnEvent(Event& ev) override
@@ -742,24 +741,11 @@ public:
 	{
 		FreeAllChildren();
 
-		struct : IScriptEnumerator
-		{
-			size_t Count() const override
-			{
-				return sizeof s_includeArray / sizeof(char*);
-			}
-
-			cstr ResourceName(size_t index) const override
-			{
-				return s_includeArray[index];
-			}
-		} implicitIncludes;
-
 		static bool hasPublishedDeclarations = false;
 		if (!hasPublishedDeclarations)
 		{
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(&implicitIncludes, *this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(implicitIncludes, *this, scriptFilename.c_str(), true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/pane_declarations.sxy", wPath);
@@ -776,7 +762,7 @@ public:
 		}
 		else
 		{
-			platform.plumbing.utilities.RunEnvironmentScript(&implicitIncludes, *this, scriptFilename.c_str(), true);
+			platform.plumbing.utilities.RunEnvironmentScript(implicitIncludes, *this, scriptFilename.c_str(), true);
 		}
 	}
 
@@ -1136,9 +1122,9 @@ namespace Rococo
 			return new PaneContainer(platform);
 		}
 
-		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IScriptCompilationEventHandler* onCompile)
+		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IScriptCompilationEventHandler* onCompile, IScriptEnumerator* implicitIncludes)
 		{
-			return new ScriptedPanel(platform, filename, onCompile);
+			return new ScriptedPanel(platform, filename, onCompile, implicitIncludes);
 		}
 	}
 }

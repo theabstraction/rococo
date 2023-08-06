@@ -4,6 +4,7 @@
 	(alias Main EntryPoint.Main)
 	
 (using Rococo)
+(using Rococo.GUI)
 (using Sys.Maths)
 (using Sys.Type)
 

@@ -16,7 +16,7 @@ namespace Rococo
 {
 	namespace MPlatImpl
 	{
-		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IScriptCompilationEventHandler* onCompile = nullptr);
+		IPaneBuilderSupervisor* CreateScriptedPanel(Platform& platform, cstr filename, IScriptCompilationEventHandler* onCompile, IScriptEnumerator* implicitIncludes);
 	}
 }
 
@@ -93,8 +93,8 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 	OverlayPane(Platform& _platform) :
 		platform(_platform),
 		textureCancel(_platform, this),
-		tabbedPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panels/overlay/panel.overlay.sxy", &_platform.scripts.panelCompilationHandler)),
-		txFocusPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panels/overlay/panel.texture.sxy", &_platform.scripts.panelCompilationHandler))
+		tabbedPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panels/overlay/panel.overlay.sxy", &_platform.scripts.panelCompilationHandler, _platform.scripts.panelCompilationHandler.ImplicitIncludes())),
+		txFocusPanel(Rococo::MPlatImpl::CreateScriptedPanel(_platform, "!scripts/panels/overlay/panel.texture.sxy", &_platform.scripts.panelCompilationHandler, _platform.scripts.panelCompilationHandler.ImplicitIncludes()))
 	{
 		current = tabbedPanel;
 		platform.graphics.gui.RegisterPopulator("texture_view", this);

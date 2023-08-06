@@ -312,6 +312,11 @@ namespace Rococo
 					return IDE::EScriptExceptionFlow::Retry;
 				}
 
+				IScriptEnumerator* ImplicitIncludes() override
+				{
+					return nullptr;
+				}
+
 				void OnCompile(ScriptCompileArgs& args) override
 				{
 					args.ss.SetSecurityHandler(*this);
@@ -429,6 +434,11 @@ namespace Rococo
 					return flow;
 				}
 
+				IScriptEnumerator* ImplicitIncludes() override
+				{
+					return nullptr;
+				}
+
 				void OnCompile(ScriptCompileArgs& args) override
 				{
 					args.ss.SetSecurityHandler(*this);
@@ -494,6 +504,11 @@ namespace Rococo
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
 					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
 					Rococo::Configuration::Interop::AddNativeCalls_RococoConfigurationIConfig(args.ss, config);
+				}
+
+				IScriptEnumerator* ImplicitIncludes() override
+				{
+					return nullptr;
 				}
 			} onCompile;
 

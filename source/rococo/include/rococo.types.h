@@ -380,6 +380,15 @@ namespace Rococo
 		struct IScriptSystemFactory;
 	}
 
+	struct IScriptEnumerator;
+	struct ScriptCompileArgs;
+
+	ROCOCO_INTERFACE IScriptCompilationEventHandler
+	{
+		virtual void OnCompile(ScriptCompileArgs& args) = 0;
+		virtual IScriptEnumerator* ImplicitIncludes() = 0;
+	};
+
 	ROCOCO_INTERFACE IException
 	{
 		virtual cstr Message() const = 0;
@@ -417,13 +426,6 @@ namespace Rococo
 	template<> struct IEventCallback<const wchar_t*>
 	{
 		virtual void OnEvent(const wchar_t* arg) = 0;
-	};
-
-	struct ScriptCompileArgs;
-
-	ROCOCO_INTERFACE IScriptCompilationEventHandler
-	{
-		virtual void OnCompile(ScriptCompileArgs& args) = 0;
 	};
 
 	template<class T>

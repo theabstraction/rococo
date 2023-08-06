@@ -90,6 +90,7 @@ namespace MHost
 		AddNativeCallSecurityFromMHostPackage(args, "MHost.Native");
 		AddNativeCallSecurityFromMHostPackage(args, "MPlat.Native");
 		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Native");
+		AddNativeCallSecurityFromMHostPackage(args, "Rococo.GUI.Native");
 		AddNativeCallSecurityFromMHostPackage(args, "Rococo.ECS.Native");
 		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Audio.Native");
 		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Configuration.Native");
@@ -102,6 +103,13 @@ namespace MHost
 		AddNativeCallSecurityFromMHostPackage(args, "Rococo.Components.Skeleton.Native");
 	}
 
+	void RegisterMHostPackage(ScriptCompileArgs& args, IPackage* package)
+	{
+		args.ss.RegisterPackage(package);
+		args.ss.LoadSubpackages("MHost", "mhost");
+		args.ss.AddNativeLibrary("rococo.sexy.mathsex");
+	}
+
 	IScriptCompilationEventHandler& GetBaseCompileOptions()
 	{
 		struct CLOSURE : IScriptCompilationEventHandler
@@ -111,6 +119,11 @@ namespace MHost
 				MHost::AddMHostNativeCallSecurity(args);
 				args.ss.AddNativeLibrary("rococo.sexy.mathsex");
 			} 
+
+			IScriptEnumerator* ImplicitIncludes() override
+			{
+				return nullptr;
+			}
 		};
 
 		static CLOSURE closure;
@@ -153,6 +166,11 @@ namespace MHost
 				((ScriptContext*)(_nce.context))->LoadExpression(_nce);
 			}
 
+			IScriptEnumerator* ImplicitIncludes() override
+			{
+				return nullptr;
+			}
+
 			void OnCompile(ScriptCompileArgs& args) override
 			{
 				args.ss.RegisterPackage(&package);
@@ -184,20 +202,7 @@ namespace MHost
 
 			void Execute(cstr name, bool trace)
 			{
-				struct : IScriptEnumerator
-				{
-					size_t Count() const override
-					{
-						return 1; // ResourceName(1)="" flags that absolutely no defaults are permitted
-					}
-
-					cstr ResourceName(size_t) const override
-					{
-						return "";
-					}
-				} noImplicitIncludes;
-
-				platform.plumbing.utilities.RunEnvironmentScript(&noImplicitIncludes, *this, name, true, true, trace, onScriptCrash, declarationBuilder);
+				platform.plumbing.utilities.RunEnvironmentScript(Rococo::NoImplicitIncludes(), *this, name, true, true, trace, onScriptCrash, declarationBuilder);
 				engine->SetRunningScriptContext(nullptr);
 			}
 		} sc(platform, engine, package, declarationBuilder);

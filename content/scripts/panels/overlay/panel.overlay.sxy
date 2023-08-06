@@ -1,13 +1,16 @@
 (' #file.type rococo.mplat.panel)
 
+// Requires platform.scripts.panelCompilationDesignator callback specify AddNativeCallSecurity("Rococo.GUI.Native, ...) as a security option. Do this in your app main constructor
+
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
 	
 (using Rococo)
+(using Rococo.GUI)
 (using Sys.Maths)
 (using Sys.Type)
 
-(function SetTransparentBackground (IPane pane)-> :
+(function SetTransparentBackground (Rococo.GUI.IPane pane)-> :
 	(pane.SetColourBk1   0x00000000 0x00000000)
 	(pane.SetColourBk2   0x00000000 0x00000000)
 	(pane.SetColourEdge1 0x00000000 0x00000000)

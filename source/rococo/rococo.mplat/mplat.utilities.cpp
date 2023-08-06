@@ -395,7 +395,7 @@ public:
 
 		if (!browsingPane)
 		{
-			browsingPane = platform->graphics.gui.BindPanelToScript(factory.GetPanePingPath(), onCompile);
+			browsingPane = platform->graphics.gui.BindPanelToScript(factory.GetPanePingPath(), onCompile, nullptr);
 		}
 
 		browser->Engage(factory);
@@ -481,7 +481,7 @@ public:
 
 		if (!contextMenuPane)
 		{
-			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy", &onCompile);
+			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy", &onCompile, nullptr);
 		}
 
 		platform->graphics.gui.PushTop(contextMenuPane->Supervisor(), true);

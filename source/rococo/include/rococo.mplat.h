@@ -376,7 +376,7 @@ namespace Rococo
 
 	struct Platform;
 
-	struct ColourScheme
+	struct MPlatColourScheme
 	{
 		RGBAb topLeft;
 		RGBAb bottomRight;
@@ -404,8 +404,8 @@ namespace Rococo
 		virtual void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) = 0;
 
 		virtual const GuiRect& ClientRect() const = 0;
-		virtual void SetScheme(const ColourScheme& scheme) = 0;
-		virtual const ColourScheme& Scheme() const = 0;
+		virtual void SetScheme(const MPlatColourScheme& scheme) = 0;
+		virtual const MPlatColourScheme& Scheme() const = 0;
 
 		virtual IPaneSupervisor* operator[](int index) = 0;
 		virtual int Children() const = 0;
@@ -465,7 +465,7 @@ namespace Rococo
 		*   are added that may be useful in panel generation. A application can also add native
 		*   interfaces and functions using the onCompile implementation
 		*/
-		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IScriptCompilationEventHandler* onCompile = nullptr) = 0;
+		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IScriptCompilationEventHandler* onCompile, IScriptEnumerator* implicitIncludes) = 0;
 		virtual IPaneBuilderSupervisor* CreateDebuggingOverlay() = 0;
 		virtual void Render(IGuiRenderContext& grc) = 0;
 		virtual void PushTop(IPaneSupervisor* panel, bool isModal) = 0;

@@ -568,12 +568,29 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Rococo::MPEditor::IMPEditorSupervisor> editor = Rococo::MPEditor::CreateMPlatEditor(*GR);
 
-	struct PanelCompilationHandlerProxy : IScriptCompilationEventHandler, IDesignator<IScriptCompilationEventHandler>
+	struct PanelCompilationHandlerProxy : IScriptCompilationEventHandler, IDesignator<IScriptCompilationEventHandler>, IScriptEnumerator
 	{
 		IScriptCompilationEventHandler* target = nullptr;
 		void OnCompile(ScriptCompileArgs& args) override
 		{
 			if (target) target->OnCompile(args);
+		}
+
+		IScriptEnumerator* ImplicitIncludes() override
+		{
+			return this;
+		}
+
+		size_t Count() const override
+		{
+			IScriptEnumerator* inner = target ? target->ImplicitIncludes() : nullptr;
+			return inner ? inner->Count() : 0;
+		}
+
+		cstr ResourceName(size_t index) const override
+		{
+			IScriptEnumerator* inner = target ? target->ImplicitIncludes() : nullptr;
+			return inner ? inner->ResourceName(index) : nullptr;
 		}
 
 		void Designate(IScriptCompilationEventHandler* object)

@@ -41,7 +41,7 @@ namespace Rococo
 
 			std::vector<UIPopulator> populators;
 
-			ColourScheme scheme
+			MPlatColourScheme scheme
 			{
 			   RGBAb(160,160,160, 192),
 			   RGBAb(192,192,192, 192),
@@ -85,8 +85,8 @@ namespace Rococo
 			void RemoveChild(IPaneSupervisor* child) override;
 			void FreeAllChildren() override;
 			void SetBkImage(const fstring& pingPath) override;
-			void SetScheme(const ColourScheme& scheme) override;
-			const ColourScheme& Scheme() const;
+			void SetScheme(const MPlatColourScheme& scheme) override;
+			const MPlatColourScheme& Scheme() const;
 			void SetColourBk1(RGBAb normal, RGBAb hilight) override;
 			void SetColourBk2(RGBAb normal, RGBAb hilight) override;
 			void SetColourEdge1(RGBAb normal, RGBAb hilight) override;
@@ -132,12 +132,12 @@ namespace Rococo
 				return current->Supervisor()->SetParent(parent);
 			}
 
-			void SetScheme(const ColourScheme& scheme) override
+			void SetScheme(const MPlatColourScheme& scheme) override
 			{
 				current->Supervisor()->SetScheme(scheme);
 			}
 
-			const ColourScheme& Scheme() const override
+			const MPlatColourScheme& Scheme() const override
 			{
 				return current->Supervisor()->Scheme();
 			}
@@ -272,7 +272,7 @@ namespace Rococo
 		Rococo::GUI::IEnumListPane* AddEnumList(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorId, const GuiRect& rect);
 		Rococo::GUI::ISlider* AddSlider(IPublisher& publisher, IRenderer& renderer, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue);
 		Rococo::GUI::IScrollbar* CreateScrollbar(bool _isVertical);
-		void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int horzAlign, int vertAlign, Vec2i padding, int fontIndex, const ColourScheme& scheme, bool enableHighlights);
+		void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int horzAlign, int vertAlign, Vec2i padding, int fontIndex, const MPlatColourScheme& scheme, bool enableHighlights);
 		Rococo::GUI::IRadioButton* AddRadioButton(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect);
 		Rococo::GUI::ITabContainer* AddTabContainer(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& pane, int32 tabHeight, int32 fontIndex, const GuiRect& rect);
 	} // MPlatImpl

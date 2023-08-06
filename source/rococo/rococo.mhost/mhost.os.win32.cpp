@@ -59,6 +59,11 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		{
 			MHost::AddMHostNativeCallSecurity(args);
 		}
+
+		IScriptEnumerator* ImplicitIncludes() override
+		{
+			return nullptr;
+		}
 	} factory;
 
 	return LoadPlatformDll_AndRun(hInstance, factory, titleBuffer, MPLAT_DLL, nullptr, nullptr);
