@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\3D\rococo.material-builder.h">
+      <Filter>3D</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\3D\rococo.mesh-builder.h">
       <Filter>3D</Filter>
     </ClInclude>
@@ -69,6 +72,9 @@
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\mplat.components.decl.h" />
     <ClInclude Include="..\..\source\rococo\include\mplat.to.app.events.inl" />
+    <ClInclude Include="..\..\source\rococo\include\mplat\mplat.events.h">
+      <Filter>mplat</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
@@ -155,9 +161,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\3D\rococo.material-builder.h">
-      <Filter>3D</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">
@@ -171,6 +174,9 @@
     </Filter>
     <Filter Include="components">
       <UniqueIdentifier>{f4dc2547-a346-f142-473a-8228e42dfa48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mplat">
+      <UniqueIdentifier>{9d414bb1-4467-062b-5ea8-af7a7c977731}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

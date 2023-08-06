@@ -1,13 +1,11 @@
 #include <rococo.os.win32.h>
 #include <rococo.strings.h>
+#include <rococo.io.h>
 #include <rococo.os.h>
 #include <rococo.sxytype-inference.h>
-
 #include <rococo.sexystudio.api.h>
 #include <rococo.functional.h>
-
 #include <rococo.auto-complete.h>
-
 #include <rococo.window.h>
 
 using namespace Rococo;
@@ -1217,7 +1215,7 @@ int main()
 {
 	WideFilePath directory;
 	if (!GetModuleFileNameW(NULL, directory.buf, directory.CAPACITY)) return GetLastError();
-	Rococo::OS::StripLastSubpath(directory.buf);
+	Rococo::IO::StripLastSubpath(directory.buf);
 
 	// path now contains the directory
 	WideFilePath pathToDLL;

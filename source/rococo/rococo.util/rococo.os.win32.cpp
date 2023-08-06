@@ -60,6 +60,73 @@ OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 
 namespace Rococo
 {
+	class AutoHKEY
+	{
+		HKEY hKey = nullptr;
+	public:
+		AutoHKEY()
+		{
+
+		}
+
+		AutoHKEY(HKEY _hKey) : hKey(_hKey)
+		{
+
+		}
+
+		~AutoHKEY()
+		{
+			if (!hKey)
+			{
+				RegCloseKey(hKey);
+			}
+		}
+
+		HKEY* operator& () { return &hKey; }
+
+		operator HKEY() { return hKey; }
+	};
+
+	struct AutoFile
+	{
+		HANDLE hFile = INVALID_HANDLE_VALUE;
+
+		AutoFile(HANDLE l_hFile) : hFile(l_hFile) {}
+
+		~AutoFile()
+		{
+			if (hFile != INVALID_HANDLE_VALUE)
+			{
+				CloseHandle(hFile);
+			}
+		}
+
+		operator HANDLE () { return hFile; }
+
+		void ReadBuffer(DWORD capacity, char* buffer)
+		{
+			DWORD bufferLeft = capacity;
+			DWORD startIndex = 0;
+			while (bufferLeft > 0)
+			{
+				DWORD bytesRead;
+				if (!ReadFile(hFile, buffer + startIndex, bufferLeft, &bytesRead, NULL))
+				{
+					Throw(GetLastError(), "Read failure");
+				}
+
+				if (bytesRead == 0)
+				{
+					// graceful completion
+					break;
+				}
+
+				startIndex += bytesRead;
+				bufferLeft -= bytesRead;
+			}
+		}
+	};
+
 	constexpr fstring packageprefix = "Package["_fstring;
 
 	ROCOCO_API void GetTimestamp(char str[26])
@@ -71,6 +138,128 @@ namespace Rococo
 
 	namespace IO
 	{
+		ROCOCO_API void ToSysPath(wchar_t* path)
+		{
+			for (wchar_t* s = path; *s != 0; ++s)
+			{
+				if (*s == L'/') *s = L'\\';
+			}
+		}
+
+		ROCOCO_API void ToUnixPath(wchar_t* path)
+		{
+			for (wchar_t* s = path; *s != 0; ++s)
+			{
+				if (*s == '\\') *s = '/';
+			}
+		}
+
+		ROCOCO_API void ToSysPath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == L'/') *s = L'\\';
+			}
+		}
+
+		ROCOCO_API void ToUnixPath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '\\') *s = '/';
+			}
+		}
+
+		ROCOCO_API bool IsFileExistant(const char* filename)
+		{
+			DWORD flags = GetFileAttributesA(filename);
+			return flags != INVALID_FILE_ATTRIBUTES;
+		}
+
+		ROCOCO_API bool IsFileExistant(const wchar_t* filename)
+		{
+			DWORD flags = GetFileAttributesW(filename);
+			return flags != INVALID_FILE_ATTRIBUTES;
+		}
+
+		ROCOCO_API bool StripLastSubpath(char* fullpath)
+		{
+			int32 len = (int32)strlen(fullpath);
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (fullpath[i] == '\\')
+				{
+					fullpath[i + 1] = 0;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		ROCOCO_API bool StripLastSubpath(wchar_t* fullpath)
+		{
+			int32 len = (int32)wcslen(fullpath);
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (fullpath[i] == L'\\')
+				{
+					fullpath[i + 1] = 0;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		ROCOCO_API void SanitizePath(wchar_t* path)
+		{
+			for (auto* s = path; *s != 0; ++s)
+			{
+				if (*s == L'/') *s = L'\\';
+			}
+		}
+
+		ROCOCO_API void SanitizePath(char* path)
+		{
+			for (char* s = path; *s != 0; ++s)
+			{
+				if (*s == '/') *s = '\\';
+			}
+		}
+
+		ROCOCO_API bool MakeContainerDirectory(wchar_t* filename)
+		{
+			int len = (int)wcslen(filename);
+
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (filename[i] == L'\\')
+				{
+					filename[i + 1] = 0;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		ROCOCO_API bool MakeContainerDirectory(char* filename)
+		{
+			int len = (int)rlen(filename);
+
+			for (int i = len - 2; i > 0; --i)
+			{
+				if (filename[i] == '\\')
+				{
+					filename[i + 1] = 0;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		ROCOCO_API char DirectorySeparatorChar()
 		{
 			return '\\';
@@ -323,6 +512,47 @@ namespace Rococo
 			path = out;
 		}
 
+		void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& path, IOS& os)
+		{
+			WideFilePath binDirectory;
+			os.GetBinDirectoryAbsolute(binDirectory);
+
+			path = binDirectory;
+
+			if (wcsstr(contentIndicatorName, L"\\") != nullptr)
+			{
+				// The indicator is part of a path
+				if (os.IsFileExistant(contentIndicatorName))
+				{
+					Format(path, L"%s", contentIndicatorName);
+					IO::MakeContainerDirectory(path.buf);
+					return;
+				}
+			}
+
+			size_t len = wcslen(path);
+
+			while (len > 0)
+			{
+				WideFilePath indicator;
+				Format(indicator, L"%s%s", path, contentIndicatorName);
+				if (os.IsFileExistant(indicator))
+				{
+					Format(indicator, L"%s%s", path, L"content\\");
+					Format(path, L"%s", indicator);
+					return;
+				}
+
+				IO::MakeContainerDirectory(path.buf);
+
+				size_t newLen = wcslen(path);
+				if (newLen >= len) break;
+				len = newLen;
+			}
+
+			Throw(0, "Could not find %ls below the executable folder '%ls'", contentIndicatorName, binDirectory.buf);
+		}
+
 		ROCOCO_API bool IsKeyPressed(int vkeyCode)
 		{
 			SHORT value = GetAsyncKeyState(vkeyCode);
@@ -552,41 +782,9 @@ namespace Rococo::OS
 		ShellExecuteW(window, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 	}
 
-	ROCOCO_API bool MakeContainerDirectory(char* filename)
-	{
-		int len = (int)rlen(filename);
-
-		for (int i = len - 2; i > 0; --i)
-		{
-			if (filename[i] == '\\')
-			{
-				filename[i + 1] = 0;
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	ROCOCO_API void SleepUntilAsync(uint32 timeoutMS)
 	{
 		SleepEx(timeoutMS, true);
-	}
-
-	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename)
-	{
-		int len = (int)wcslen(filename);
-
-		for (int i = len - 2; i > 0; --i)
-		{
-			if (filename[i] == L'\\')
-			{
-				filename[i + 1] = 0;
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	static const wchar_t* notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
@@ -845,64 +1043,6 @@ namespace Rococo::OS
 		GetKeyboardState(scanArray);
 	}
 
-	ROCOCO_API bool IsFileExistant(const char* filename)
-	{
-		DWORD flags = GetFileAttributesA(filename);
-		return flags != INVALID_FILE_ATTRIBUTES;
-	}
-
-	ROCOCO_API bool IsFileExistant(const wchar_t* filename)
-	{
-		DWORD flags = GetFileAttributesW(filename);
-		return flags != INVALID_FILE_ATTRIBUTES;
-	}
-
-	ROCOCO_API bool StripLastSubpath(char* fullpath)
-	{
-		int32 len = (int32) strlen (fullpath);
-		for (int i = len - 2; i > 0; --i)
-		{
-			if (fullpath[i] == '\\')
-			{
-				fullpath[i + 1] = 0;
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath)
-	{
-		int32 len = (int32)wcslen(fullpath);
-		for (int i = len - 2; i > 0; --i)
-		{
-			if (fullpath[i] == L'\\')
-			{
-				fullpath[i + 1] = 0;
-				return true;
-			}
-		}
-
-		return false;
-	}
-		
-	ROCOCO_API void SanitizePath(wchar_t* path)
-	{
-		for (auto* s = path; *s != 0; ++s)
-		{
-			if (*s == L'/') *s = L'\\';
-		}
-	}
-
-	ROCOCO_API void SanitizePath(char* path)
-	{
-		for (char* s = path; *s != 0; ++s)
-		{
-			if (*s == '/') *s = '\\';
-		}
-	}
-
 	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window)
 	{
 		size_t len = strlen(text) + 1;
@@ -920,38 +1060,6 @@ namespace Rococo::OS
 			}
 
 			CloseClipboard();
-		}
-	}
-
-	ROCOCO_API void ToSysPath(wchar_t* path)
-	{
-		for (wchar_t* s = path; *s != 0; ++s)
-		{
-			if (*s == L'/') *s = L'\\';
-		}
-	}
-
-	ROCOCO_API void ToUnixPath(wchar_t* path)
-	{
-		for (wchar_t* s = path; *s != 0; ++s)
-		{
-			if (*s == '\\') *s = '/';
-		}
-	}
-
-	ROCOCO_API void ToSysPath(char* path)
-	{
-		for (char* s = path; *s != 0; ++s)
-		{
-			if (*s == L'/') *s = L'\\';
-		}
-	}
-
-	ROCOCO_API void ToUnixPath(char* path)
-	{
-		for (char* s = path; *s != 0; ++s)
-		{
-			if (*s == '\\') *s = '/';
 		}
 	}
 
@@ -980,16 +1088,6 @@ namespace Rococo::OS
 		{
 			SafeFormat(buffer, capacity, "Unknown error code (%d)", errorCode);
 		}
-	}
-
-	ROCOCO_API int OpenForAppend(void** fp, cstr name)
-	{
-		return fopen_s((FILE**)fp, name, "ab");
-	}
-
-	ROCOCO_API int OpenForRead(void** fp, cstr name)
-	{
-		return fopen_s((FILE**)fp, name, "rb");
 	}
 
 	ROCOCO_API void TripDebugger()
@@ -1112,47 +1210,6 @@ namespace WIN32_ANON
 		operator char*() { return data; }
 		operator cstr() const { return data; }
 	};
-
-	void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& path, IOS& os)
-	{
-		WideFilePath binDirectory;
-		os.GetBinDirectoryAbsolute(binDirectory);
-
-		path = binDirectory;
-
-		if (wcsstr(contentIndicatorName, L"\\") != nullptr)
-		{
-			// The indicator is part of a path
-			if (os.IsFileExistant(contentIndicatorName))
-			{
-				Format(path, L"%s", contentIndicatorName);
-				OS::MakeContainerDirectory(path.buf);
-				return;
-			}
-		}
-
-		size_t len = wcslen(path);
-
-		while (len > 0)
-		{
-			WideFilePath indicator;
-			Format(indicator, L"%s%s", path, contentIndicatorName);
-			if (os.IsFileExistant(indicator))
-			{
-				Format(indicator, L"%s%s", path, L"content\\");
-				Format(path, L"%s", indicator);
-				return;
-			}
-
-			OS::MakeContainerDirectory(path.buf);
-
-			size_t newLen = wcslen(path);
-			if (newLen >= len) break;
-			len = newLen;
-		}
-
-		Throw(0, "Could not find %ls below the executable folder '%ls'", contentIndicatorName, binDirectory.buf);
-	}
 
 	class Installation : public IInstallationSupervisor
 	{
@@ -1294,10 +1351,10 @@ namespace WIN32_ANON
 			}
 
 			sysPath = contentDirectory;
-			Rococo::OS::StripLastSubpath(sysPath.buf);
+			Rococo::IO::StripLastSubpath(sysPath.buf);
 			size_t len = StringLength(sysPath);
 			SecureFormat(sysPath.buf + len, sysPath.CAPACITY - len, L"packages/%hs/%hs", packName, dir);
-			OS::ToSysPath(sysPath.buf);
+			IO::ToSysPath(sysPath.buf);
 		}
 
 		void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& sysPath) const override
@@ -1363,7 +1420,7 @@ namespace WIN32_ANON
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
 			}
 
-			OS::ToSysPath(sysPath.buf);
+			IO::ToSysPath(sysPath.buf);
 		}
 
 		void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
@@ -1404,7 +1461,7 @@ namespace WIN32_ANON
 
 			Format(pingPath, "!%ls", sysPath + contentDirLength);
 
-			OS::ToUnixPath(pingPath.buf);
+			IO::ToUnixPath(pingPath.buf);
 		}
 		
 		bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath& expandedPath) override
@@ -1503,7 +1560,7 @@ namespace WIN32_ANON
 
 			U8FilePath pingRoot;
 			int len = Format(pingRoot, "%s", pingFolder);
-			OS::ToUnixPath(pingRoot.buf);
+			IO::ToUnixPath(pingRoot.buf);
 			if (pingRoot[len - 1] != '/')
 			{
 				Throw(0, "Installation::Macro(..., pingFolder): %s did not end with slash '/' character");
@@ -1571,7 +1628,7 @@ namespace WIN32_ANON
 		{
 			auto hAppInstance = GetModuleHandle(nullptr);
 			GetModuleFileNameW(hAppInstance, binDirectory, _MAX_PATH);
-			OS::MakeContainerDirectory(binDirectory);
+			IO::MakeContainerDirectory(binDirectory);
 		}
 
 		~Win32OS()
@@ -2163,7 +2220,10 @@ namespace Rococo
 			BuildExceptionString(buffer.data(), buffer.size(), ex, true);
 			CopyStringToClipboard(buffer.data());
 		}
+	}
 
+	namespace IO
+	{
 		ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory)
 		{
 			if (subdirectory == nullptr || *subdirectory == 0)
@@ -2223,38 +2283,38 @@ namespace Rococo
 		{
 			if (text.length > 1024_megabytes)
 			{
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
+				Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
 			}
 
 			HANDLE hFile = INVALID_HANDLE_VALUE;
 
 			switch (target)
 			{
-				case TargetDirectory_UserDocuments:
+			case TargetDirectory_UserDocuments:
+			{
+				PWSTR path;
+				HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
+				if (FAILED(hr) || path == nullptr)
 				{
-					PWSTR path;
-					HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
-					if (FAILED(hr) || path == nullptr)
-					{
-						Throw(hr, "Failed to identify user documents folder. Win32 issue?");
-					}
-
-					WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + text.length));
-					int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, filename);
-					if (len >= MAX_PATH)
-					{
-						Throw(hr, "%s: Filename too long: %ws", __FUNCTION__, fullpath);
-					}
-					CoTaskMemFree(path);
-
-					hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-					if (hFile == INVALID_HANDLE_VALUE)
-					{
-						Throw(GetLastError(), "Cannot create file %ls", fullpath);
-					}
+					Throw(hr, "Failed to identify user documents folder. Win32 issue?");
 				}
-				break;
+
+				WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + text.length));
+				int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, filename);
+				if (len >= MAX_PATH)
+				{
+					Throw(hr, "%s: Filename too long: %ws", __FUNCTION__, fullpath);
+				}
+				CoTaskMemFree(path);
+
+				hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+				if (hFile == INVALID_HANDLE_VALUE)
+				{
+					Throw(GetLastError(), "Cannot create file %ls", fullpath);
+				}
+			}
+			break;
 			case TargetDirectory_Root:
 				hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -2264,7 +2324,7 @@ namespace Rococo
 				}
 				break;
 			default:
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
+				Throw(0, "Rococo::IO::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
 				break;
 			}
 
@@ -2275,13 +2335,10 @@ namespace Rococo
 
 			if (!status)
 			{
-				Throw(err, "Rococo::OS::SaveAsciiTextFile(%ls) : failed to write text to file", filename);
+				Throw(err, "Rococo::IO::SaveAsciiTextFile(%ls) : failed to write text to file", filename);
 			}
 		}
-	}
 
-	namespace IO
-	{
 		ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname)
 		{
 			wchar_t* userDocPath;
@@ -2672,7 +2729,7 @@ namespace Rococo
 				{
 					SafeFormat(fullSearchFilter, L"%s", filter);
 					SafeFormat(rootDirectory, L"%s", filter);
-					OS::MakeContainerDirectory(rootDirectory);
+					IO::MakeContainerDirectory(rootDirectory);
 				}
 
 				hSearch = FindFirstFileW(fullSearchFilter, &rootFindData);
@@ -2766,6 +2823,124 @@ namespace Rococo
 		{
 			SearchObject searchObj(filter);
 			searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
+		}
+
+		ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
+		{
+			std::vector<char> asciiData;
+
+			{ // File is locked in this codesection
+				AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+
+				if (f.hFile == INVALID_HANDLE_VALUE)
+				{
+					Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %ls", filename);
+				}
+
+				LARGE_INTEGER len;
+				if (!GetFileSizeEx(f, &len))
+				{
+					Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %ls", filename);
+				}
+
+				if (len.QuadPart >= (int64)2048_megabytes)
+				{
+					Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than 2GB.\n%ls", filename);
+				}
+
+				asciiData.resize(len.QuadPart + 1);
+
+				try
+				{
+					f.ReadBuffer((DWORD)len.QuadPart, asciiData.data());
+					asciiData.push_back(0);
+				}
+				catch (IException& ex)
+				{
+					Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
+				}
+
+			} // File is no longer locked
+
+			onLoad.OnEvent(asciiData.data());
+		}
+
+		ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
+		{
+			if (capacity >= 2048_megabytes)
+			{
+				Throw(GetLastError(), "LoadAsciiTextFile: capacity must be less than 2GB.\n%ls", filename);
+			}
+
+			AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+
+			if (f.hFile == INVALID_HANDLE_VALUE)
+			{
+				Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %ls", filename);
+			}
+
+			LARGE_INTEGER len;
+			if (!GetFileSizeEx(f, &len))
+			{
+				Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %ls", filename);
+			}
+
+			if (len.QuadPart >= (int64)capacity)
+			{
+				Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than %llu bytes.\n%ls", filename, capacity);
+			}
+
+			try
+			{
+				f.ReadBuffer((DWORD)len.QuadPart, data);
+				data[len.QuadPart] = 0;
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
+			}
+
+			return len.QuadPart;
+		}
+
+		ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename)
+		{
+			WideFilePath wPath;
+			Assign(wPath, filename);
+
+			return LoadAsciiTextFile(data, capacity, wPath);
+		}
+
+		ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
+		{
+			AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
+			if (hFile == INVALID_HANDLE_VALUE)
+			{
+				Throw(GetLastError(), "Cannot open %ws for writing", targetPath);
+			}
+
+			if (nBytes > 2_gigabytes)
+			{
+				Throw(0, "Cannot open %ws for writing. Buffer length > 2 gigs", targetPath);
+			}
+
+			DWORD bytesWritten;
+			if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
+			{
+				Throw(GetLastError(), "Cannot write to file %ws", targetPath);
+			}
+
+			if (bytesWritten != (DWORD)nBytes)
+			{
+				Throw(GetLastError(), "Only partial write to %ws", targetPath);
+			}
+		}
+
+		ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes)
+		{
+			WideFilePath wPath;
+			Assign(wPath, targetPath);
+			SaveBinaryFile(wPath, buffer, nBytes);
 		}
 	} // IO
 
@@ -3035,198 +3210,10 @@ namespace Rococo
 	}
 }
 
-namespace
-{
-	using namespace Rococo;
-
-	struct AutoFile
-	{
-		HANDLE hFile = INVALID_HANDLE_VALUE;
-
-		AutoFile(HANDLE l_hFile) : hFile(l_hFile) {}
-
-		~AutoFile()
-		{
-			if (hFile != INVALID_HANDLE_VALUE)
-			{
-				CloseHandle(hFile);
-			}
-		}
-
-		operator HANDLE () { return hFile; }
-
-		void ReadBuffer(DWORD capacity, char* buffer)
-		{
-			DWORD bufferLeft = capacity;
-			DWORD startIndex = 0;
-			while (bufferLeft > 0)
-			{
-				DWORD bytesRead;
-				if (!ReadFile(hFile, buffer + startIndex, bufferLeft, &bytesRead, NULL))
-				{
-					Throw(GetLastError(), "Read failure");
-				}
-
-				if (bytesRead == 0)
-				{
-					// graceful completion
-					break;
-				}
-
-				startIndex += bytesRead;
-				bufferLeft -= bytesRead;
-			}
-		}
-	};
-}
-
 using namespace Rococo;
 
 namespace Rococo::OS
 {
-	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
-	{
-		std::vector<char> asciiData;
-
-		{ // File is locked in this codesection
-			AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
-
-			if (f.hFile == INVALID_HANDLE_VALUE)
-			{
-				Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %ls", filename);
-			}
-
-			LARGE_INTEGER len;
-			if (!GetFileSizeEx(f, &len))
-			{
-				Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %ls", filename);
-			}
-
-			if (len.QuadPart >= (int64)2048_megabytes)
-			{
-				Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than 2GB.\n%ls", filename);
-			}
-
-			asciiData.resize(len.QuadPart + 1);
-
-			try
-			{
-				f.ReadBuffer((DWORD)len.QuadPart, asciiData.data());
-				asciiData.push_back(0);
-			}
-			catch (IException& ex)
-			{
-				Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
-			}
-
-		} // File is no longer locked
-
-		onLoad.OnEvent(asciiData.data());
-	}
-
-	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
-	{
-		if (capacity >= 2048_megabytes)
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: capacity must be less than 2GB.\n%ls", filename);
-		}
-
-		AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
-
-		if (f.hFile == INVALID_HANDLE_VALUE)
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %ls", filename);
-		}
-
-		LARGE_INTEGER len;
-		if (!GetFileSizeEx(f, &len))
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %ls", filename);
-		}
-
-		if (len.QuadPart >= (int64) capacity)
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than %llu bytes.\n%ls", filename, capacity);
-		}
-
-		try
-		{
-			f.ReadBuffer((DWORD)len.QuadPart, data);
-			data[len.QuadPart] = 0;
-		}
-		catch (IException& ex)
-		{
-			Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
-		}
-
-		return len.QuadPart;
-	}
-
-	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename)
-	{
-		if (capacity >= 2048_megabytes)
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: capacity must be less than 2GB.\n%s", filename);
-		}
-
-		AutoFile f{ CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
-
-		if (f.hFile == INVALID_HANDLE_VALUE)
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %s", filename);
-		}
-
-		LARGE_INTEGER len;
-		if (!GetFileSizeEx(f, &len))
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %s", filename);
-		}
-
-		if (len.QuadPart >= (int64)capacity)
-		{
-			Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than %llu bytes.\n%s", filename, capacity);
-		}
-
-		try
-		{
-			f.ReadBuffer((DWORD)len.QuadPart, data);
-			data[len.QuadPart] = 0;
-		}
-		catch (IException& ex)
-		{
-			Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%s", ex.Message(), filename);
-		}
-
-		return len.QuadPart;
-	}
-
-	class AutoHKEY
-	{
-		HKEY hKey = nullptr;
-	public:
-		AutoHKEY()
-		{
-
-		}
-
-		AutoHKEY(HKEY _hKey) : hKey(_hKey)
-		{
-
-		}
-
-		~AutoHKEY()
-		{
-			if (!hKey)
-			{
-				RegCloseKey(hKey);
-			}
-		}
-
-		HKEY* operator& () { return &hKey; }
-
-		operator HKEY() { return hKey;  }
-	};
-
 	template<class T> void RunInConfig(ConfigRootName root, cstr organization, T& t)
 	{
 		AutoHKEY hKeySoftware;
@@ -3321,56 +3308,6 @@ namespace Rococo::OS
 		};
 
 		RunInConfig(root, organization, writeValue);
-	}
-
-	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
-	{
-		AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
-		if (hFile == INVALID_HANDLE_VALUE)
-		{
-			Throw(GetLastError(), "Cannot open %ws for writing", targetPath);
-		}
-
-		if (nBytes > 2_gigabytes)
-		{
-			Throw(0, "Cannot open %ws for writing. Buffer length > 2 gigs", targetPath);
-		}
-
-		DWORD bytesWritten;
-		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
-		{
-			Throw(GetLastError(), "Cannot write to file %ws", targetPath);
-		}
-
-		if (bytesWritten != (DWORD)nBytes)
-		{
-			Throw(GetLastError(), "Only partial write to %ws", targetPath);
-		}
-	}
-
-	void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes)
-	{
-		AutoFile hFile(CreateFileA(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
-		if (hFile == INVALID_HANDLE_VALUE)
-		{
-			Throw(GetLastError(), "Cannot open %s for writing", targetPath);
-		}
-
-		if (nBytes > 2_gigabytes)
-		{
-			Throw(0, "Cannot open %s for writing. Buffer length > 2 gigs", targetPath);
-		}
-
-		DWORD bytesWritten;
-		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
-		{
-			Throw(GetLastError(), "Cannot write to file %s", targetPath);
-		}
-
-		if (bytesWritten != (DWORD)nBytes)
-		{
-			Throw(GetLastError(), "Only partial write to %s", targetPath);
-		}
 	}
 } // Rococo::OS
 

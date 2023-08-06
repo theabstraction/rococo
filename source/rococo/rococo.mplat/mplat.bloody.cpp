@@ -1626,7 +1626,7 @@ namespace
 					return;
 				}
 				platform.os.installation.ConvertPingPathToSysPath(buffer, sysPath);
-				validated = OS::IsFileExistant(sysPath);
+				validated = IO::IsFileExistant(sysPath);
 			}
 			catch (IException&)
 			{

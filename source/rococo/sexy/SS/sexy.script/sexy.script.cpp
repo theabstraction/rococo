@@ -1806,8 +1806,8 @@ namespace Rococo::Script
 
 			sb << "</table></body></html>";
 
-			Rococo::OS::EnsureUserDocumentFolderExists(L"sexydoc");
-			Rococo::OS::SaveAsciiTextFile(OS::TargetDirectory_UserDocuments, L"sexydoc\\index.html", *sbc->Builder());
+			Rococo::IO::EnsureUserDocumentFolderExists(L"sexydoc");
+			Rococo::IO::SaveAsciiTextFile(IO::TargetDirectory_UserDocuments, L"sexydoc\\index.html", *sbc->Builder());
 
 			for (int i = 0; i < nsRoot.ChildCount(); ++i)
 			{
@@ -2032,7 +2032,7 @@ namespace Rococo::Script
 
 			WideFilePath filename;
 			Format(filename, L"sexydoc\\%hs.html", ns.FullName()->Buffer);
-			Rococo::OS::SaveAsciiTextFile(OS::TargetDirectory_UserDocuments, filename, *sbc->Builder());
+			Rococo::IO::SaveAsciiTextFile(IO::TargetDirectory_UserDocuments, filename, *sbc->Builder());
 
 			for (int i = 0; i < ns.ChildCount(); ++i)
 			{
@@ -2423,7 +2423,7 @@ namespace Rococo::Script
 
 				try
 				{
-					OS::LoadAsciiTextFile(sourceBuffer.data(), sourceBuffer.size(), fullPath);
+					IO::LoadAsciiTextFile(sourceBuffer.data(), sourceBuffer.size(), fullPath);
 				}
 				catch (Rococo::IException&)
 				{

@@ -743,7 +743,7 @@ int Run(IPublicScriptSystem& ss, cstr target)
 	WideFilePath sysPath;
 	Format(sysPath, L"%hs", target);
 
-	Rococo::OS::LoadAsciiTextFile(cb, sysPath);
+	Rococo::IO::LoadAsciiTextFile(cb, sysPath);
 
 	return cb.exitCode;
 }

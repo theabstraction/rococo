@@ -38,10 +38,40 @@ namespace Rococo
 
 namespace Rococo::IO
 {
+	enum TargetDirectory
+	{
+		TargetDirectory_UserDocuments = 0,
+		TargetDirectory_Root
+	};
+
 	struct IUnicode16Writer;
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool IsDirectory(const wchar_t* filename);
 	ROCOCO_API bool IsDirectory(cstr filename);
+	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory);
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
+	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
+	ROCOCO_API bool IsFileExistant(const char* path);
+	ROCOCO_API bool IsFileExistant(const wchar_t* path);
+	ROCOCO_API [[nodiscard]] int OpenForAppend(void** fp, cstr name);
+	ROCOCO_API [[nodiscard]] int OpenForRead(void** fp, cstr name);
+	ROCOCO_API void ToSysPath(wchar_t* path);
+	ROCOCO_API void ToUnixPath(wchar_t* path);
+	ROCOCO_API void ToSysPath(char* path);
+	ROCOCO_API void ToUnixPath(char* path);
+	ROCOCO_API void SanitizePath(char* path);
+	ROCOCO_API void SanitizePath(wchar_t* path);
+	ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes);
+	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes);
+
+	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
+	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& callback, const wchar_t* filename);
+
+	ROCOCO_API bool MakeContainerDirectory(char* filename);
+	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename);
+
 	struct FileItemData
 	{
 		const wchar_t* fullPath;

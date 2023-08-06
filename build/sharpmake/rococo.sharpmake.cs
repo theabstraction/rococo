@@ -1246,10 +1246,48 @@ namespace Rococo
             conf.AddPrivateDependency<RococoMPlatProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoMHostProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<SexyBennyHillProject>(target, DependencySetting.OnlyBuildOrder);
-       //     conf.AddPrivateDependency<RococoSexyStudioTestProject>(target, DependencySetting.OnlyBuildOrder);
-       //     conf.AddPrivateDependency<RococoSexyStudio4NPPProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoSexyStudioTestProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoSexyStudio4NPPProject>(target, DependencySetting.OnlyBuildOrder);
         }
     }
+
+    [Sharpmake.Compile]
+    public class RococoBuildFinalFastProject : Project
+    {
+        public RococoBuildFinalFastProject()
+        {
+            AddTargets(new Target(
+               Platform.win64,
+               DevEnv.vs2022,
+               Optimization.Debug | Optimization.Release,
+               OutputType.Dll,
+               Blob.NoBlob,
+               BuildSystem.MSBuild,
+               DotNetFramework.v4_8)
+           );
+
+            Name = "rococo.build.final.fast";
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.ProjectPath = @"..\..\build\hand-coded-projects\";
+            conf.ProjectFileName = "rococo.build.final.fast";
+
+            conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
+            conf.TargetFileName = "rococo.build.final.fast.vcxproj";
+
+            conf.Output = Configuration.OutputType.None; // Required to create dependencies in a compiled/not-generated object
+
+            conf.AddPrivateDependency<RococoPackagerProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoAudioProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoMPlatProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoMHostProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<SexyBennyHillProject>(target, DependencySetting.OnlyBuildOrder);
+        }
+    }
+
 
     [Sharpmake.Generate]
     public class RococoAudioTestProject : RococoProject
@@ -1627,7 +1665,6 @@ namespace Rococo
 
         public static void AddRococoMajorLibs(Solution.Configuration conf, Target target)
         {
-            conf.AddProject<RococoBuildFinalProject>(target);
             conf.AddProject<RococoMiscUtilsProject>(target);
             conf.AddProject<RococoMathsProject>(target);
             conf.AddProject<RococoUtilExProject>(target);
@@ -1699,6 +1736,7 @@ namespace Rococo
             SolutionBuilder.AddSexySuite(conf, target);
             SolutionBuilder.AddThirdPartyLibs(conf, target);
             SolutionBuilder.AddSexyStudio(conf, target);
+            conf.AddProject<RococoBuildFinalProject>(target);
 
             //conf.AddProject<SexyDotNetIDEProject>(target);
         }
@@ -1735,6 +1773,7 @@ namespace Rococo
             SolutionBuilder.AddRococoMajorLibs(conf, target);
             SolutionBuilder.AddSexySuite(conf, target);
             SolutionBuilder.AddThirdPartyLibs(conf, target);
+            conf.AddProject<RococoBuildFinalFastProject>(target);
         }
     }
 
@@ -1849,6 +1888,7 @@ namespace Rococo
             arguments.Generate<RococoAudioProject>();
             arguments.Generate<RococoAudioTestProject>();
             arguments.Generate<RococoBuildFinalProject>();
+            arguments.Generate<RococoBuildFinalFastProject>();
             arguments.Generate<RococoSexyStudio4NPPProject>();
 
             arguments.Generate<RococoECSProject>();

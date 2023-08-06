@@ -732,9 +732,9 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			SecureFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.c_str());
 
-			OS::ToSysPath(ec.appendCppHeaderFile);
-			OS::ToSysPath(ec.appendCppImplFile);
-			OS::ToSysPath(ec.appendSexyFile);
+			IO::ToSysPath(ec.appendCppHeaderFile);
+			IO::ToSysPath(ec.appendCppImplFile);
+			IO::ToSysPath(ec.appendSexyFile);
 		}
 		else if (scmd == "as.sxy")
 		{
@@ -749,7 +749,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 			CopyString(ec.asSexyEnum, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
 
 			SecureFormat(ec.appendSexyFile, "%s%s_sxh.sxy", pc.contentRoot, ssexyFilename.c_str());
-			OS::ToSysPath(ec.appendSexyFile);
+			IO::ToSysPath(ec.appendSexyFile);
 		}
 		else if (scmd == "as.cpp")
 		{
@@ -763,8 +763,8 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 
 			SetINLandHnames(ec, pc, ec.asCppEnum.SexyName(), sdirective);
 
-			OS::ToSysPath(ec.appendCppHeaderFile);
-			OS::ToSysPath(ec.appendCppImplFile);
+			IO::ToSysPath(ec.appendCppHeaderFile);
+			IO::ToSysPath(ec.appendCppImplFile);
 
 		}
 		else
@@ -876,9 +876,9 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			ic.asCppInterface.Set(sinterfaceName.c_str());
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
 			SafeFormat(ic.appendSexyFile, "%s%s_sxh.sxy", pc.cppRootDirectory, ssexyFilename.c_str());
-			OS::ToSysPath(ic.appendSexyFile);
-			OS::ToSysPath(ic.appendCppHeaderFile);
-			OS::ToSysPath(ic.appendCppImplFile);
+			IO::ToSysPath(ic.appendSexyFile);
+			IO::ToSysPath(ic.appendCppHeaderFile);
+			IO::ToSysPath(ic.appendCppImplFile);
 		}
 		else if (AreEqual(ssname, "as.sxy"))
 		{
@@ -910,7 +910,7 @@ void ParseInterface(cr_sex interfaceDef, ParseContext& pc, std::vector<rstdstrin
 			if (!IsStringLiteral(ssexyFilename) && !IsAtomic(ssexyFilename)) Throw(ssexyFilename, "Expecting string literal");
 			CopyString(ic.asSexyInterface, InterfaceContext::MAX_TOKEN_LEN, sinterfaceName.c_str());
 			SafeFormat(ic.appendSexyFile, "%s%s_sxh.sxy", pc.contentRoot, ssexyFilename.c_str());
-			OS::ToSysPath(ic.appendSexyFile);
+			IO::ToSysPath(ic.appendSexyFile);
 		}
 		else if (AreEqual(ssname, "as.cpp"))
 		{
@@ -1294,13 +1294,13 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	if (!Rococo::OS::IsFileExistant(u8inputName))
+	if (!Rococo::IO::IsFileExistant(u8inputName))
 	{
 		fprintf(stderr, "\tCould not find project root file: %s\n", u8inputName.buf);
 		return -1;
 	}
 
-	if (!Rococo::OS::IsFileExistant(xcFullPath))
+	if (!Rococo::IO::IsFileExistant(xcFullPath))
 	{
 		fprintf(stderr, "\tCould not find config.xc file: %s\n", xcFullPath);
 		return -1;

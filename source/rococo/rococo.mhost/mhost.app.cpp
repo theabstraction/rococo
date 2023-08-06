@@ -377,7 +377,7 @@ namespace MHost
 
 			try
 			{
-				Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, wPath, *sb->Builder());
+				Rococo::IO::SaveAsciiTextFile(Rococo::IO::TargetDirectory_Root, wPath, *sb->Builder());
 			}
 			catch (...)
 			{
@@ -416,7 +416,7 @@ namespace MHost
 
 			try
 			{
-				Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, wPath, *sb->Builder());
+				Rococo::IO::SaveAsciiTextFile(Rococo::IO::TargetDirectory_Root, wPath, *sb->Builder());
 			}
 			catch (...)
 			{
@@ -455,7 +455,7 @@ namespace MHost
 
 			try
 			{
-				Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, wPath, *sb->Builder());
+				Rococo::IO::SaveAsciiTextFile(Rococo::IO::TargetDirectory_Root, wPath, *sb->Builder());
 			}
 			catch (...)
 			{

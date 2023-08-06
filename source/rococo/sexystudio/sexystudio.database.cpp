@@ -1306,7 +1306,7 @@ namespace ANON
 			Format(contentPath, "%s", path);
 			Format(packageRoot, "%s", path);
 			Format(scriptPath, "%sscripts\\", path);
-			Rococo::OS::MakeContainerDirectory(packageRoot.buf);
+			Rococo::IO::MakeContainerDirectory(packageRoot.buf);
 			StringCat(packageRoot.buf, "packages\\", U8FilePath::CAPACITY);
 		}
 
@@ -1561,11 +1561,11 @@ namespace ANON
 		{
 			WideFilePath wSexyVisDirectory;
 			Assign(wSexyVisDirectory, projectFilePath);
-			while (OS::MakeContainerDirectory(wSexyVisDirectory.buf))
+			while (IO::MakeContainerDirectory(wSexyVisDirectory.buf))
 			{
 				WideFilePath wSexyVisPath;
 				Format(wSexyVisPath, L"%simplicits.vis.sxy", wSexyVisDirectory.buf);
-				if (OS::IsFileExistant(wSexyVisPath))
+				if (IO::IsFileExistant(wSexyVisPath))
 				{
 					AutoRelease<ISourceCode> visSrc = sparser->LoadSource(wSexyVisPath, { 1,1 });
 					AutoRelease<ISParserTree>visTree = sparser->CreateTree(*visSrc);

@@ -1383,7 +1383,7 @@ namespace Rococo::IO
 			cb.assetData = assetData;
 			cb.ss = &ss;
 
-			Rococo::OS::LoadAsciiTextFile(cb, sysPath);
+			Rococo::IO::LoadAsciiTextFile(cb, sysPath);
 		}
 		catch (IException& e)
 		{

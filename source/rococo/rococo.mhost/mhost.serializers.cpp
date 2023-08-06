@@ -435,7 +435,7 @@ namespace Anon
 
 			WideFilePath sysPath;
 			installation.ConvertPingPathToSysPath(pingPath, sysPath);
-			Rococo::OS::SaveAsciiTextFile(Rococo::OS::TargetDirectory_Root, sysPath, *sb);
+			Rococo::IO::SaveAsciiTextFile(Rococo::IO::TargetDirectory_Root, sysPath, *sb);
 		}
 
 		void ProhibitOverwrite() override

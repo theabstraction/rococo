@@ -1,5 +1,6 @@
 #include <rococo.os.win32.h>
 #include <rococo.strings.h>
+#include <rococo.io.h>
 #include <rococo.os.h>
 #include <rococo.api.h>
 #include <rococo.window.h>
@@ -74,7 +75,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
 	WideFilePath directory;
 	if (!GetModuleFileNameW(NULL, directory.buf, directory.CAPACITY)) return GetLastError();
-	Rococo::OS::StripLastSubpath(directory.buf);
+	Rococo::IO::StripLastSubpath(directory.buf);
 
 	WideFilePath pathToDLL;
 	Format(pathToDLL, L"%ls%ls", directory.buf, DLL_NAME);

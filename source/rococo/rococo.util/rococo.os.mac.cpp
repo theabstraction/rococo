@@ -539,7 +539,7 @@ namespace Rococo
 		{
 			if (text.length > 1024_megabytes)
 			{
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
+				Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
 			}
 
 			U8FilePath fullpath;
@@ -553,7 +553,7 @@ namespace Rococo
 				Assign(fullpath, filename);
 				break;
 			default:
-				Throw(0, "Rococo::OS::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
+				Throw(0, "Rococo::IO::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
 				break;
 			}
 
@@ -721,7 +721,7 @@ namespace
 			WideFilePath absPath;
 			Format(absPath, L"%ls%hs", contentDirectory.buf, resourcePath + 1);
 
-			if (!Rococo::OS::IsFileExistant(absPath))
+			if (!Rococo::IO::IsFileExistant(absPath))
 			{
 				return false;
 			}
@@ -812,7 +812,7 @@ namespace
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Illegal sequence in ping path: '..'");
 			}
 
-			OS::ToSysPath(sysPath.buf);
+			IO::ToSysPath(sysPath.buf);
 		}
 
 		void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
@@ -855,7 +855,7 @@ namespace
 
 			Format(pingPath, "!%ls", sysPath + contentDirLength);
 
-			OS::ToUnixPath(pingPath.buf);
+			IO::ToUnixPath(pingPath.buf);
 		}
 
 		void Macro(cstr name, cstr pingFolder) override
@@ -872,7 +872,7 @@ namespace
 
 			U8FilePath pingRoot;
 			int len = Format(pingRoot, "%s", pingFolder);
-			OS::ToUnixPath(pingRoot.buf);
+			IO::ToUnixPath(pingRoot.buf);
 			if (pingRoot[len - 1] != '/')
 			{
 				Throw(0, "Installation::Macro(..., pingFolder): %s did not end with slash '/' character");
@@ -1005,7 +1005,7 @@ namespace
 
 		bool IsFileExistant(const wchar_t* absPath) const override
 		{
-			return OS::IsFileExistant(absPath);
+			return IO::IsFileExistant(absPath);
 		}
 
 		void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const override
@@ -1100,7 +1100,7 @@ namespace Rococo::OS
 	{
 		if (text.length > 1024_megabytes)
 		{
-			Throw(0, "Rococo::OS::SaveAsciiTextFile(%s): Sanity check. String was > 1 gigabyte in length", filename);
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(%s): Sanity check. String was > 1 gigabyte in length", filename);
 		}
 
 		switch (target)
@@ -1127,12 +1127,12 @@ namespace Rococo::OS
 
 				if (writeSize != (size_t) text.length)
 				{
-					Throw(errno, "Rococo::OS::SaveAsciiTextFile(%s) : failed to write text to file", filename);
+					Throw(errno, "Rococo::IO::SaveAsciiTextFile(%s) : failed to write text to file", filename);
 				}
 			}
 			break;
 		default:
-			Throw(0, "Rococo::OS::SaveAsciiTextFile(... %s): Unrecognized target directory", filename);
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(... %s): Unrecognized target directory", filename);
 			break;
 		}
 	}

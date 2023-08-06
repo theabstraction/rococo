@@ -62,7 +62,7 @@ namespace
                 cstr sep2 = item.containerRelRoot[0] == 0 || EndsWith(item.containerRelRoot, L"\\") || EndsWith(item.containerRelRoot, L"/") ? "" : "/";
                 Format(contentRelativePath, "%s%s%ls%s%ls", containingDir.buf, sep, item.containerRelRoot, sep2, item.itemRelContainer);
 
-                OS::ToUnixPath(contentRelativePath.buf);
+                IO::ToUnixPath(contentRelativePath.buf);
 
                 auto* ext = GetFileExtension(contentRelativePath);
                 if (ext == nullptr)

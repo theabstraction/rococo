@@ -63,11 +63,11 @@ namespace Rococo { namespace OS
          Throw(0, "_NSGetExecutablePath failed");
       }
 
-      while (OS::StripLastSubpath(data))
+      while (IO::StripLastSubpath(data))
       {
          char fullpath[_MAX_PATH];
          SafeFormat(fullpath, _MAX_PATH, "%s%s", data, "src_indicator.txt");
-         if (OS::IsFileExistant(fullpath))
+         if (IO::IsFileExistant(fullpath))
          {
             StringCat(data, "NativeSource/", (int32)capacity);
             return;

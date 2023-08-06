@@ -531,7 +531,7 @@ namespace Rococo
 
 		WideFilePath osPath;
 		Format(osPath, L"%ls", sysPath);
-		Rococo::OS::ToSysPath(osPath.buf);
+		Rococo::IO::ToSysPath(osPath.buf);
 		return new ANON::SXYZMapPackage(osPath, friendlyName);
 	}
 }

@@ -4,7 +4,6 @@
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\sexy.nativelib.coroutine.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutine.sxh.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" />

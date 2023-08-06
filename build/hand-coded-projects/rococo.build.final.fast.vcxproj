@@ -11,24 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5F88A533-1761-8D6A-810A-34878A10B2CE}</ProjectGuid>
+    <ProjectGuid>{A5C766C9-715D-80D3-A257-4AF8033BC5B1}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>sexy.nativelib.coroutines</RootNamespace>
-    <ProjectName>sexy.nativelib.coroutines</ProjectName>
+    <RootNamespace>rococo.build.final</RootNamespace>
+    <ProjectName>rococo.build.final.fast</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -42,33 +42,34 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>sexy.nativelib.coroutines</TargetName>
-    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.nativelib.coroutines\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <OutDir>..\..\gen\bin\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\debug\rococo.build.final\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <NMakeBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final.fast\makefile.mak all CONFIG=$(Configuration) BIN=$(OutDir)</NMakeBuildCommandLine>
+    <NMakeOutput>unused.txt</NMakeOutput>
+    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final.fast\makefile.mak rebuild CONFIG=$(Configuration) BIN=$(OutDir)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final.fast\makefile.mak clean CONFIG=$(Configuration) BIN=$(OutDir)</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>sexy.nativelib.coroutines</TargetName>
-    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.nativelib.coroutines\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <OutDir>..\..\gen\bin\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\release\rococo.build.final\</IntDir>
     <GenerateManifest>true</GenerateManifest>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <NMakeBuildCommandLine>nmake -f ..\..\source\rococo\rococo.build.final.fast\makefile.mak rebuild CONFIG=$(Configuration)  BIN=$(OutDir)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final.fast\makefile.mak rebuild CONFIG=$(Configuration) BIN=$(OutDir)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>nmake -nologo -f ..\..\source\rococo\rococo.build.final.fast\makefile.mak CONFIG=$(Configuration) BIN=$(OutDir)</NMakeCleanCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -90,7 +91,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -111,45 +112,12 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexy.nativelib.coroutines\sexy.nativelib.coroutines_compiler.pdb</ProgramDatabaseFileName>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <ProgramDatabaseFileName>..\..\gen\temp\debug\rococo.build.final\rococo.build.final_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.dll</OutputFile>
-      <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapExports>false</MapExports>
-      <SwapRunFromCD>false</SwapRunFromCD>
-      <SwapRunFromNET>false</SwapRunFromNET>
-      <Driver>NotSet</Driver>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <ProfileGuidedDatabase>
-      </ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
-      <TypeLibraryResourceID>1</TypeLibraryResourceID>
-      <NoEntryPoint>false</NoEntryPoint>
-      <SetChecksum>false</SetChecksum>
-      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
-      <TargetMachine>MachineX64</TargetMachine>
-      <Profile>false</Profile>
-      <CLRImageType>Default</CLRImageType>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
-      <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\sexy.nativelib.coroutines.lib</ImportLibrary>
-    </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\sexy\SS\sexy.nativelib.coroutines ..\..\..\gen\temp coroutines.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>nmake -NOLOGO -f..\..\source\rococo\rococo.build.final\makefile.mak
+</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,14 +125,14 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN64;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
@@ -179,7 +147,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -200,79 +168,17 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexy.nativelib.coroutines\sexy.nativelib.coroutines_compiler.pdb</ProgramDatabaseFileName>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <ProgramDatabaseFileName>..\..\gen\temp\release\rococo.build.final\rococo.build.final_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.dll</OutputFile>
-      <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapExports>false</MapExports>
-      <SwapRunFromCD>false</SwapRunFromCD>
-      <SwapRunFromNET>false</SwapRunFromNET>
-      <Driver>NotSet</Driver>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ProfileGuidedDatabase>
-      </ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
-      <TypeLibraryResourceID>1</TypeLibraryResourceID>
-      <NoEntryPoint>false</NoEntryPoint>
-      <SetChecksum>false</SetChecksum>
-      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
-      <TargetMachine>MachineX64</TargetMachine>
-      <Profile>false</Profile>
-      <CLRImageType>Default</CLRImageType>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
-      <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.nativelib.coroutines.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\sexy.nativelib.coroutines.lib</ImportLibrary>
-    </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\sexy\SS\sexy.nativelib.coroutines ..\..\..\gen\temp coroutines.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>nmake -nologo -f ..\..\source\rococo\rococo.build.final\makefile.mak all CONFIG=$(Configuration)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh" />
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines_declarations.sxh.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\sexy.nativelib.coroutine.cpp" />
+    <None Include="..\..\source\rococo\rococo.build.final.fast\makefile.mak" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ItemGroup>
-    <ProjectReference Include="sexy.bennyhill_vs2022_win64.vcxproj">
-      <Project>{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}</Project>
-      <Name>sexy.bennyhill</Name>
-      <Private>true</Private>
-    </ProjectReference>
-    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
-      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
-      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
-      <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemGroup>
 </Project>

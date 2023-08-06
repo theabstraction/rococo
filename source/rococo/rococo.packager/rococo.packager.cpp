@@ -115,7 +115,7 @@ struct Pack
                     {
                         char buf[1024];
                         int nBytes = SecureFormat(buf, "%ls\t%llu\n", file.fullPath + prefixLen + 1, a.fileLength);
-                        OS::ToUnixPath(buf);
+                        IO::ToUnixPath(buf);
                         f->Write(1, nBytes, buf);
                     }
                 }

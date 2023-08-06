@@ -164,7 +164,7 @@ namespace Rococo::Graphics
 			  {
 				  char fullname[IO::MAX_PATHLEN];
 				  SafeFormat(fullname, IO::MAX_PATHLEN, "%s", name);
-				  OS::ToUnixPath(fullname);
+				  IO::ToUnixPath(fullname);
 				  cstr subpath = fullname;
 
 				  for (auto& j : subdirToCatEnum)

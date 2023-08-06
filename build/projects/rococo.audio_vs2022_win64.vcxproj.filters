@@ -22,7 +22,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.audio\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio.types.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.audio\rococo.audio_declarations.sxh.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">

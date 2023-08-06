@@ -30,7 +30,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.audio", "projects\ro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.audio.test", "projects\rococo.audio.test_vs2022_win64.vcxproj", "{8ACD897A-1C2A-2255-2FC0-0840AB988262}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.build.final", "hand-coded-projects\rococo.build.final.vcxproj", "{A5C766C9-715D-80D3-A257-4AF8033BC5B1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.build.final.fast", "hand-coded-projects\rococo.build.final.fast.vcxproj", "{A5C766C9-715D-80D3-A257-4AF8033BC5B1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{18F4E289-D814-2BE5-97CF-FC0D7748887B} = {18F4E289-D814-2BE5-97CF-FC0D7748887B}
 		{1C4853CF-79C5-A23B-80A8-01656A9473CF} = {1C4853CF-79C5-A23B-80A8-01656A9473CF}

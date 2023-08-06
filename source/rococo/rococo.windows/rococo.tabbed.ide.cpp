@@ -1675,33 +1675,33 @@ namespace
 	  AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "tabbed-ide"));
       Auto<ISParser> parser(Sexy_CreateSexParser_2_0(*allocator, 128));
 
-      char savename[_MAX_PATH];
-      SafeFormat(savename, sizeof(savename), "%s.ide.sxy", file_prefix);
+      char loadname[_MAX_PATH];
+      SafeFormat(loadname, sizeof(loadname), "%s.ide.sxy", file_prefix);
 
       AutoFree<IO::IOSSupervisor> io = IO::GetIOS();
       AutoFree<IO::IInstallationSupervisor> installation;
 
-      WideFilePath fullpath;
+      WideFilePath fullLoadPath;
 
       if (*file_prefix == '!')
       {
           installation = IO::CreateInstallation(L"content.indicator.txt", *io);
-          installation->ConvertPingPathToSysPath(savename, fullpath);
+          installation->ConvertPingPathToSysPath(loadname, fullLoadPath);
       }
       else
       {
-          IO::GetUserPath(fullpath.buf, _MAX_PATH, savename);
+          IO::GetUserPath(fullLoadPath.buf, _MAX_PATH, loadname);
       }
 
       Auto<Rococo::Sex::ISourceCode> src;
       Auto<Rococo::Sex::ISParserTree> tree;
 
-      auto spatialManager = IDESpatialManager::Create(parent, database, true, savename);
+      auto spatialManager = IDESpatialManager::Create(parent, database, true, "debugger.ide.sxy");
 
       try
       {
 
-         src = parser->LoadSource(fullpath, Vec2i{ 1, 1 });
+         src = parser->LoadSource(fullLoadPath, Vec2i{ 1, 1 });
          tree = parser->CreateTree(*src);
 
          if (src->SourceLength() == 0)

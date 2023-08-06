@@ -50,6 +50,7 @@
 #include <rococo.strings.h>
 #include <rococo.api.h>
 #include <rococo.os.h>
+#include <rococo.io.h>
 
 #define BREAK_ON_THROW
 
@@ -74,11 +75,11 @@ namespace Rococo {
 	{
 		bool TryGetDefaultNativeSrcDir(wchar_t* data, size_t capacity)
 		{
-			while (StripLastSubpath(data))
+			while (IO::StripLastSubpath(data))
 			{
 				wchar_t fullpath[_MAX_PATH];
 				SafeFormat(fullpath, _MAX_PATH, L"%s%s", data, L"src_indicator.txt");
-				if (IsFileExistant(fullpath))
+				if (IO::IsFileExistant(fullpath))
 				{
 					StringCat(data, L"content\\scripts\\native\\", (int32)capacity);
 					return true;

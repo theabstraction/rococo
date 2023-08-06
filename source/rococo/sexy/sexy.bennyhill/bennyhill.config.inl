@@ -100,17 +100,17 @@ namespace
 		if (AreEqual(sexyTypesPath, projectPrefix.buffer, projectPrefix.length))
 		{
 			SafeFormat(pc.sexyTypesFilename, _MAX_PATH, "%s%s", pc.projectRoot, sexyTypesPath + projectPrefix.length);
-			OS::ToSysPath(pc.sexyTypesFilename);
+			IO::ToSysPath(pc.sexyTypesFilename);
 		}
 		else if (AreEqual(sexyTypesPath, contentPrefix.buffer, contentPrefix.length))
 		{
 			SafeFormat(pc.sexyTypesFilename, _MAX_PATH, "%s%s", pc.contentRoot, sexyTypesPath + contentPrefix.length);
-			OS::ToSysPath(pc.sexyTypesFilename);
+			IO::ToSysPath(pc.sexyTypesFilename);
 		}
 		else
 		{
 			SafeFormat(pc.sexyTypesFilename, _MAX_PATH, "%s", sexyTypesPath);
-			OS::ToSysPath(pc.sexyTypesFilename);
+			IO::ToSysPath(pc.sexyTypesFilename);
 		}
 	}
 
@@ -404,10 +404,10 @@ namespace
 
 			ParseConfig(tree().Root(), pc);
 
-			OS::ToSysPath(pc.sexyTypesFilename);
-			OS::ToSysPath(pc.cppTypesFilename);
-			OS::ToSysPath(pc.cppRootDirectory);
-			OS::ToSysPath(pc.projectRoot);
+			IO::ToSysPath(pc.sexyTypesFilename);
+			IO::ToSysPath(pc.cppTypesFilename);
+			IO::ToSysPath(pc.cppRootDirectory);
+			IO::ToSysPath(pc.projectRoot);
 		}
 		catch (ParseException& ex)
 		{

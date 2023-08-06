@@ -1188,7 +1188,7 @@ namespace
 					auto* fileObj = (DebuggerCommandObjectFile*)obj;
 					U8FilePath sysPath;
 					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath);
-					if (OS::IsFileExistant(sysPath))
+					if (IO::IsFileExistant(sysPath))
 					{
 						THIS_WINDOW thisOwner(hOwner);
 						Rococo::OS::ShellOpenDocument(thisOwner, "Rococo::Sexy::IDE", sysPath, data.GetLineNumber());
@@ -1204,9 +1204,9 @@ namespace
 					auto* fileObj = (DebuggerCommandObjectFile*)obj;
 					WideFilePath sysPath;
 					installation.ConvertPingPathToSysPath(fileObj->filename, sysPath);
-					if (OS::IsFileExistant(sysPath))
+					if (IO::IsFileExistant(sysPath))
 					{
-						OS::StripLastSubpath(sysPath.buf);
+						IO::StripLastSubpath(sysPath.buf);
 						ShellExecuteW(hOwner, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 					}
 					else

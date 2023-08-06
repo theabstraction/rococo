@@ -474,7 +474,7 @@ namespace
 		FastStringBuilder& sb = ReadBuilder(e);
 		for (int i = 0; i < sb.length; i++)
 		{
-			Rococo::OS::ToSysPath(sb.buffer);
+			Rococo::IO::ToSysPath(sb.buffer);
 		}
 	}
 

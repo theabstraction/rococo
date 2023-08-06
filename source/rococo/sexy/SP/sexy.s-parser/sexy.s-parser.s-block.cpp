@@ -38,6 +38,7 @@
 #include <rococo.api.h>
 #include <rococo.strings.h>
 #include <rococo.os.h>
+#include <rococo.io.h>
 
 #include <stdio.h>
 #include <memory>
@@ -1634,7 +1635,7 @@ namespace Anon
 
 			try
 			{
-				if (!Rococo::OS::IsFileExistant(u16filename))
+				if (!Rococo::IO::IsFileExistant(u16filename))
 				{
 					Rococo::Throw(0, "%s: file does not exist", __FUNCTION__);
 				}

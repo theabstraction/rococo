@@ -233,7 +233,7 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 	platform.os.installation.ConvertPingPathToSysPath((cstr)sc.pointer, sysPath);
 
 	SafeFormat(dispatchToSexyClosure.sysRoot, Rococo::IO::MAX_PATHLEN, L"%s", sysPath.buf);
-	Rococo::OS::MakeContainerDirectory(dispatchToSexyClosure.sysRoot);
+	Rococo::IO::MakeContainerDirectory(dispatchToSexyClosure.sysRoot);
 
 	Rococo::IO::ForEachFileInDirectory(sysPath, dispatchToSexyClosure, true);
 }

@@ -51,7 +51,7 @@ namespace Rococo::Bakes
 
 	void LoadBufferAsTiff(TByteArray& scratchBuffer, TByteArray& targetArray, uint32 span, cstr tifPath)
 	{
-		size_t len = OS::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), tifPath);
+		size_t len = IO::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), tifPath);
 
 		ImageLoader onLoad;
 		onLoad.expectedSpan = span;
@@ -78,7 +78,7 @@ namespace Rococo::Bakes
 
 	void LoadBufferAsJPG(TByteArray& scratchBuffer, TByteArray& targetArray, uint32 span, cstr jpgPath)
 	{
-		size_t len = OS::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), jpgPath);
+		size_t len = IO::LoadAsciiTextFile((char*)scratchBuffer.data(), scratchBuffer.size(), jpgPath);
 
 		ImageLoader onLoad;
 		onLoad.expectedSpan = span;
@@ -247,7 +247,7 @@ namespace Rococo::Bakes
 			U8FilePath tifPath;
 			Format(tifPath, "%s\\%ux%u.tif", mipMapDir, span, span);
 
-			if (OS::IsFileExistant(tifPath))
+			if (IO::IsFileExistant(tifPath))
 			{
 				LoadBufferAsTiff(scratchBuffer, mipMapLevels.back(), span, tifPath);
 
@@ -262,7 +262,7 @@ namespace Rococo::Bakes
 				U8FilePath jpgPath;
 				Format(jpgPath, "%s\\%ux%u.jpg", mipMapDir, span, span);
 
-				if (OS::IsFileExistant(jpgPath))
+				if (IO::IsFileExistant(jpgPath))
 				{
 					LoadBufferAsJPG(scratchBuffer, mipMapLevels.back(), span, jpgPath);
 
@@ -277,7 +277,7 @@ namespace Rococo::Bakes
 
 		SaveMipMapsIntoBuffer(scratchBuffer, compressedBits, mipMapLevels, mipMapLevelCompression);
 
-		OS::SaveBinaryFile(targetPath, scratchBuffer.data(), scratchBuffer.size());
+		IO::SaveBinaryFile(targetPath, scratchBuffer.data(), scratchBuffer.size());
 	}
 
 	ROCOCO_MISC_UTILS_API MapMapDesc FindMipMapInBakedFile(const uint8* headerAndContent, size_t length, uint32 mipMapLevel)
@@ -403,7 +403,7 @@ namespace Rococo::Bakes
 		U8FilePath item;
 		Format(item, "%s\\%ux%u%s", u8FinalTarget.buf, span, span, extension);
 
-		OS::SaveBinaryFile(item, data, lengthInBytes);
+		IO::SaveBinaryFile(item, data, lengthInBytes);
 	}
 
 	void CompressAndExportBakeFile(const RGBAb* data, uint32 span, cstr targetPath)
