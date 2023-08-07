@@ -490,7 +490,11 @@ namespace
 		{
 			WindowConfig config;
 			HWND hParentWnd = parent ? (HWND)parent : nullptr;
-			SetOverlappedWindowConfig(config, Vec2i{ 800, 600 }, SW_SHOWMAXIMIZED, hParentWnd, "Dystopia Script Debugger", WS_OVERLAPPEDWINDOW | WS_MAXIMIZE, 0, *mainMenu);
+
+			Vec2i workArea = Rococo::Windows::GetDesktopWorkArea();
+
+			SetOverlappedWindowConfig(config, Vec2i{ workArea.x * 8 /10, workArea.y * 8 / 10 }, 0, hParentWnd, "Dystopia Script Debugger", WS_OVERLAPPEDWINDOW | WS_MAXIMIZE, 0, *mainMenu);
+			config.top = workArea.y / 10;
 			dialog = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
 			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
@@ -535,6 +539,14 @@ namespace
 			{
 				int posY = GetScrollPos(Window(), SB_VERT);
 				offset.y = (posY > 0) ? -posY : 0;
+			}
+
+			if (isMaximized)
+			{
+				RECT clientRect;
+				GetClientRect(Window(), &clientRect);
+				desktopSpan.x = clientRect.right;
+				desktopSpan.y = clientRect.bottom;
 			}
 
 			MoveWindow(*spatialManager, offset.x, offset.y, desktopSpan.x, desktopSpan.y, TRUE);

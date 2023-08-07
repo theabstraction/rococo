@@ -15,6 +15,7 @@
 #include <rococo.audio.h>
 #include <rococo.fonts.h>
 #include <rococo.maths.h>
+#include <rococo.os.h>
 #include <3D/rococo.material-builder.h>
 #include <sexy.script.h>
 
@@ -406,22 +407,9 @@ void GetMainWindowSpec(WindowSpec& ws, HINSTANCE hInstance, IConfigSupervisor& c
 
 void FormatMainWindowFont(LOGFONTA& font)
 {
-	Rococo::Strings::CLI::GetCommandLineArgument("font.facename:"_fstring, GetCommandLineA(), font.lfFaceName, sizeof font.lfFaceName, "Consolas");
-
-	Vec2i span = Rococo::Windows::GetDesktopSpan();
-
+	font = { 0 };
+	Rococo::Strings::CLI::GetCommandLineArgument("font.facename:"_fstring, GetCommandLineA(), font.lfFaceName, LF_FACESIZE, "Consolas");
 	font.lfHeight = Rococo::Strings::CLI::GetClampedCommandLineOption(cmdOptionInt32_windowFontSize);
-
-	if (Rococo::Strings::CLI::HasSwitch(cmdOptionFontScale))
-	{
-		int32 multiplier = 1;
-		if (span.x > 1920)
-		{
-			multiplier = span.x / 1920;
-		}
-
-		font.lfHeight *= multiplier;
-	}
 }
 
 struct ComponentAutoRelease
@@ -446,6 +434,8 @@ void LinkComponents(IECSSupervisor& ecs, Platform& platform)
 int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	using namespace Rococo::Components;
+
+	Vec2i span = Rococo::Windows::GetDesktopSpan();
 
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if FAILED(hr)

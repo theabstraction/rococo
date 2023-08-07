@@ -171,7 +171,7 @@ namespace Rococo
 
 		ROCOCO_WINDOWS_API void SetChildWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle);
 		ROCOCO_WINDOWS_API void SetPopupWindowConfig(WindowConfig& config, const GuiRect& rect, HWND hWndParent, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
-		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
+		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 unused, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
 		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& topLeft, const Vec2i& span, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu = nullptr);
 
 		ROCOCO_INTERFACE IWindowHandler

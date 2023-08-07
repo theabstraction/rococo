@@ -89,7 +89,7 @@ namespace Rococo
 		  SecureFormat(f.lfFaceName, LF_FACESIZE, L"Courier New");
 
 		  font.lpLogFont = &f;
-		  font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT;
+		  font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INACTIVEFONTS | CF_INITTOLOGFONTSTRUCT;
 
 		  DWORD success = ChooseFontW(&font);
 		  if (success)
@@ -228,14 +228,14 @@ namespace Rococo
 			config.windowName = name;
 		}
 
-		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 showWindowCommand, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
+		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 unused, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
 			config.style = style | WS_OVERLAPPED;
 			config.exStyle = exStyle;
 			config.hMenu = hPopupMenu;
 			config.hWndParent = hWndOwner;
 			config.left = CW_USEDEFAULT;
-			config.top = showWindowCommand;
+			config.top = 0;
 			config.width = span.x;
 			config.height = span.y;
 			config.windowName = name;
