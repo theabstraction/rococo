@@ -568,12 +568,6 @@ namespace
 			migratingId = id;
 		}
 
-		void NotifyMigration() override
-		{
-			spatialManager->NotifyMigration(migratingId);
-			migratingId = IDEPANE_ID::Invalid();
-		}
-
 		IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) override
 		{
 			PostMessage(nullptr, WM_DEBUGGER_TABCHANGED, id.value, 0);
@@ -1094,6 +1088,8 @@ namespace
 			spatialManager->Free();
 			spatialManager = nullptr;
 			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
+			DeleteObject(hFont);
+			hFont = CreateFontIndirectW(&logFont);
 			spatialManager->SetFontRecursive(hFont);
 			spatialManager->SetColourSchemeRecursive(scheme);
 			LayoutChildren();
@@ -1104,6 +1100,8 @@ namespace
 			spatialManager->Free();
 			spatialManager = nullptr;
 			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "!ide/debugger.4k");
+			DeleteObject(hFont);
+			hFont = CreateFontIndirectW(&logFont);
 			spatialManager->SetFontRecursive(hFont);
 			spatialManager->SetColourSchemeRecursive(scheme);
 			LayoutChildren();

@@ -431,7 +431,6 @@ namespace Rococo
 			{
 			   virtual IIDENode* FindPane(IDEPANE_ID id) = 0;
 			   virtual void Free() = 0;
-			   virtual void NotifyMigration(IDEPANE_ID migratingId) = 0;
 			   virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			   virtual void SetFontRecursive(HFONT hFont) = 0;
 			   virtual void Save(const LOGFONTW& logFont, int32 version) = 0;
@@ -441,7 +440,6 @@ namespace Rococo
 			{
 			   virtual IDEPANE_ID GetMigratingId() = 0;
 			   virtual void SetMigratingId(IDEPANE_ID) = 0;
-			   virtual void NotifyMigration() = 0;
 			   virtual void GetName(char name[256], IDEPANE_ID id) = 0;
 			   virtual IIDENode* ConstructPane(IDEPANE_ID id, IParentWindowSupervisor& parent) = 0;
 			};

@@ -195,6 +195,7 @@ namespace MHost
 		Vec2 cursorPosition;
 
 		int32 overlayToggleKey = 0;
+		int32 guiToggleKey = 0;
 
 		AutoFree<IPackageSupervisor> packageMHost;
 
@@ -629,6 +630,11 @@ namespace MHost
 			}
 		}
 
+		void SetGUIToggleKey(int32 vkeyCode) override
+		{
+			guiToggleKey = vkeyCode;
+		}
+
 		void SetOverlayToggleKey(int32 vkeyCode) override
 		{
 			overlayToggleKey = vkeyCode;
@@ -641,7 +647,15 @@ namespace MHost
 				KeyboardEvent keyEv;
 				while (platform.graphics.GR.IsVisible() && control.TryGetNextKeyboardEvent(keyEv))
 				{
-					platform.graphics.GR_Custodian.RouteKeyboardEvent(keyEv, platform.graphics.GR);
+					if (guiToggleKey == keyEv.VKey && keyEv.IsUp())
+					{
+						SetEditorVisibility(false);
+						break;
+					}
+					else
+					{
+						platform.graphics.GR_Custodian.RouteKeyboardEvent(keyEv, platform.graphics.GR);
+					}
 				}
 				return false;
 			}
@@ -664,11 +678,20 @@ namespace MHost
 					k = { 0 };
 					return 0;
 				}
-				else if (key.VKey == (uint16) overlayToggleKey)
+				else if (overlayToggleKey && key.VKey == (uint16) overlayToggleKey)
 				{
 					if (!key.IsUp())
 					{
 						ToggleOverlay();
+					}
+					k = { 0 };
+					return 0;
+				}
+				else if (guiToggleKey && key.VKey == (uint16)guiToggleKey)
+				{
+					if (!key.IsUp())
+					{
+						SetEditorVisibility(!platform.graphics.GR.IsVisible());
 					}
 					k = { 0 };
 					return 0;

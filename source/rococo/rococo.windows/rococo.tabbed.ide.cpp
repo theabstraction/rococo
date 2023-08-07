@@ -429,6 +429,8 @@ namespace
       int32 menuId;
    };
 
+   uint64 g_nextIDEWindowId = 1;
+
    class IDESpatialManager : public StandardWindowHandler, private ITabControlEvents, public ISpatialManager
    {
    private:
@@ -450,33 +452,39 @@ namespace
 
       ELayout layout;
 
-      bool isRoot;
+      IDESpatialManager* root;
+      IDESpatialManager* parent;
 
       std::string savename;
+      uint64 IDEWindowId = 0;
 
       IDESpatialManager(IPaneDatabase& _database) :
-         layout(ELayout_Tabbed), tabView(nullptr),
-         window(nullptr),
-         splitterControl(nullptr),
-         database(_database),
-         currentTab(nullptr),
-         moveTabIndex(-1),
-         sectionA(nullptr),
-         sectionB(nullptr),
-         splitPosition(0),
-         isRoot(false)
+          layout(ELayout_Tabbed), tabView(nullptr),
+          window(nullptr),
+          splitterControl(nullptr),
+          database(_database),
+          currentTab(nullptr),
+          moveTabIndex(-1),
+          sectionA(nullptr),
+          sectionB(nullptr),
+          splitPosition(0),
+          root(nullptr),
+          parent(nullptr)
       {
-         contextMenu = Windows::CreateMenu(true);
+          IDEWindowId = g_nextIDEWindowId++;
+          root = this;
 
-         if (WM_SPLITTER_DRAGGED == 0)
-         {
-            WM_SPLITTER_DRAGGED = RegisterWindowMessageA("WM_SPLITTER_DRAGGED");
-         }
+          contextMenu = Windows::CreateMenu(true);
 
-         if (WM_IDEPANE_MIGRATED == 0)
-         {
-            WM_IDEPANE_MIGRATED = RegisterWindowMessageA("WM_IDEPANE_MIGRATED");
-         }
+          if (WM_SPLITTER_DRAGGED == 0)
+          {
+              WM_SPLITTER_DRAGGED = RegisterWindowMessageA("WM_SPLITTER_DRAGGED");
+          }
+
+          if (WM_IDEPANE_MIGRATED == 0)
+          {
+              WM_IDEPANE_MIGRATED = RegisterWindowMessageA("WM_IDEPANE_MIGRATED");
+          }
       }
 
       ~IDESpatialManager()
@@ -520,7 +528,7 @@ namespace
          window = Windows::CreateChildWindow(config, this);
       }
 
-      void LayoutTabbed()
+      void LayoutTabs()
       {
          RECT wrect;
          GetClientRect(*window, &wrect);
@@ -595,7 +603,7 @@ namespace
          switch (layout)
          {
          case ELayout_Tabbed:
-            LayoutTabbed();
+            LayoutTabs();
             break;
          case ELayout_Horizontal:
             LayoutHorizontal(rect);
@@ -613,8 +621,8 @@ namespace
             Rococo::Throw(0, "Unexpected tab index in IDE::Split");
          }
 
-         sectionA = IDESpatialManager::Create(*window, database);
-         sectionB = IDESpatialManager::Create(*window, database);
+         sectionA = IDESpatialManager::Create(*window, this, database, root);
+         sectionB = IDESpatialManager::Create(*window, this, database, root);
          splitterControl = IDESplitterWindow::Create(window);
 
          if (paneIds.size() == 2)
@@ -711,31 +719,94 @@ namespace
             auto id = database.GetMigratingId();
             if (id != IDEPANE_ID::Invalid())
             {
-               auto f = std::find(paneIds.begin(), paneIds.end(), id);
-               if (f != paneIds.end())
-               {
-                  lastMigratedId = IDEPANE_ID::Invalid();
-                  RemoveId(id);
-               }
+                size_t len = paneIds.size();
+                auto f = std::find(paneIds.begin(), paneIds.end(), id);
+                if (f != paneIds.end())
+                {
+                    lastMigratedId = IDEPANE_ID::Invalid();
+                    RemoveId(id);
+                }
 
-               if (moveTabIndex < 0 || moveTabIndex >= (int32)paneIds.size())
-               {
-                  paneIds.push_back(id);
-               }
-               else
-               {
-                  auto it = paneIds.begin();
-                  std::advance(it, moveTabIndex);
-                  paneIds.insert(it, id);
-               }
+                if (moveTabIndex < 0 || moveTabIndex >= (int32)paneIds.size())
+                {
+                    paneIds.push_back(id);
+                }
+                else
+                {
+                    auto it = paneIds.begin();
+                    std::advance(it, moveTabIndex);
+                    paneIds.insert(it, id);
+                }
 
-               PostMessage(*window, WM_IDEPANE_MIGRATED, 0, 0);
+                LayoutTabs();
+
+                if (paneIds.size() != len)
+                {
+                    IDESpatialManager* affectedParent = nullptr;
+                    EMigrationState state = root->OnMigrationUpdateRemovedTab(id, IDEWindowId, &affectedParent);
+                    if (state == EMigrationState::TABS_REDUCED_TO_ZERO)
+                    {
+                        PostMessage(*affectedParent, WM_IDEPANE_MIGRATED, 0, 0);
+                    }
+                }
+
+                return;
             }
          }
          break;
          }
 
          LayoutChildren();
+      }
+
+      enum class EMigrationState
+      {
+          NOTHING_CHANGED,
+          TABS_REDUCED_BUT_FINITE,
+          TABS_REDUCED_TO_ZERO
+      };
+
+      EMigrationState OnMigrationUpdateRemovedTab(IDEPANE_ID id, uint64 insertedWindowId, IDESpatialManager** ppAffectedParent)
+      {             
+          if (insertedWindowId == IDEWindowId)
+          {
+              return EMigrationState::NOTHING_CHANGED;
+          }
+
+          if (!paneIds.empty())
+          {
+              auto i = std::remove(paneIds.begin(), paneIds.end(), id);
+              if (i != paneIds.end())
+              {
+                  paneIds.erase(i, paneIds.end());
+                  LayoutTabs();
+                  *ppAffectedParent = parent;
+                  return paneIds.empty() ? EMigrationState::TABS_REDUCED_TO_ZERO : EMigrationState::TABS_REDUCED_BUT_FINITE;
+              }
+
+              return EMigrationState::NOTHING_CHANGED;
+          }
+
+          // The message reached the root, now send it to the children
+          if (sectionA)
+          {
+              auto result = sectionA->OnMigrationUpdateRemovedTab(id, insertedWindowId, ppAffectedParent);
+              if (result != EMigrationState::NOTHING_CHANGED)
+              {
+                  return result;
+              }
+          }
+
+          if (sectionB)
+          {
+              auto result = sectionB->OnMigrationUpdateRemovedTab(id, insertedWindowId, ppAffectedParent);
+              if (result != EMigrationState::NOTHING_CHANGED)
+              {
+                  return result;
+              }
+          }
+
+          return EMigrationState::NOTHING_CHANGED;
       }
 
       virtual LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -758,14 +829,10 @@ namespace
          }
          else if (msg == WM_IDEPANE_MIGRATED)
          {
-            if (!isRoot)
-            {
-               PostMessage(GetParent(*window), WM_IDEPANE_MIGRATED, 0, 0);
-            }
-            else
-            {
-               database.NotifyMigration();
-            }
+             ConsolidateEmptyWindows();
+             LayoutChildren();
+             SetColourSchemeRecursive(scheme);
+             return 0L;
          }
          else if (msg == WM_INITMENUPOPUP)
          {
@@ -856,12 +923,13 @@ namespace
          TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, *window, NULL);
       }
    public:
-      static IDESpatialManager* Create(IWindow& parent, IPaneDatabase& database, bool isRoot = false, cstr savename = nullptr)
+      static IDESpatialManager* Create(IWindow& parent, IDESpatialManager* parentManager, IPaneDatabase& database, IDESpatialManager* root, cstr savename = nullptr)
       {
          auto node = new IDESpatialManager(database);
          node->PostConstruct(parent);
          node->SetBackgroundColour(RGB(192, 192, 192));
-         node->isRoot = isRoot;
+         node->root = (root == nullptr) ? node : root;
+         node->parent = parentManager;
 
          if (savename) { node->savename = savename; }
          return node;
@@ -909,23 +977,13 @@ namespace
          delete this;
       }
 
-      void NotifyMigration(IDEPANE_ID id)
+      void ConsolidateEmptyWindows()
       {
-         if (lastMigratedId == id && tabView != nullptr)
-         {
-            RemoveId(id);
-            lastMigratedId = IDEPANE_ID::Invalid();
-         }
-         else
-         {
-            if (sectionA != nullptr)
-            {
-               sectionA->NotifyMigration(id);
-               sectionB->NotifyMigration(id);
-
-               if (sectionA->layout == ELayout_Tabbed && sectionB->layout == ELayout_Tabbed
+          if (sectionA != nullptr)
+          {
+              if (sectionA->layout == ELayout_Tabbed && sectionB->layout == ELayout_Tabbed
                   && (sectionA->paneIds.empty() || sectionB->paneIds.empty()))
-               {
+              {
                   layout = ELayout_Tabbed;
                   paneIds.swap(sectionA->paneIds.empty() ? sectionB->paneIds : sectionA->paneIds);
                   Rococo::Free(sectionA);
@@ -935,20 +993,19 @@ namespace
                   splitterControl = nullptr;
                   Rococo::Free(currentTab);
                   currentTab = nullptr;
-                  LayoutChildren();
                   OnSelectionChanged((int)(paneIds.size() - 1));
-               }
-               else if (sectionA->layout == ELayout_Tabbed && sectionA->paneIds.empty() && sectionB->layout != ELayout_Tabbed)
-               {
+              }
+              else if (sectionA->layout == ELayout_Tabbed && sectionA->paneIds.empty() && sectionB->layout != ELayout_Tabbed)
+              {
                   // Eliminate section A and clone section B to this container window
                   Rococo::Free(sectionA);
 
                   layout = sectionB->layout;
 
-                  auto* newA = IDESpatialManager::Create(*window, database);
+                  auto* newA = IDESpatialManager::Create(*window, this, database, root);
                   newA->CloneFrom(*sectionB->sectionA);
 
-                  auto* newB = IDESpatialManager::Create(*window, database);
+                  auto* newB = IDESpatialManager::Create(*window, this, database, root);
                   newB->CloneFrom(*sectionB->sectionB);
 
                   Rococo::Free(sectionA);
@@ -956,17 +1013,17 @@ namespace
 
                   sectionA = newA;
                   sectionB = newB;
-               }
-               else if (sectionB->layout == ELayout_Tabbed && sectionB->paneIds.empty() && sectionA->layout != ELayout_Tabbed)
-               {
+              }
+              else if (sectionB->layout == ELayout_Tabbed && sectionB->paneIds.empty() && sectionA->layout != ELayout_Tabbed)
+              {
                   // Eliminate section B and clone section A to this container window
 
                   layout = sectionA->layout;
 
-                  auto* newA = IDESpatialManager::Create(*window, database);
+                  auto* newA = IDESpatialManager::Create(*window, this, database, root);
                   newA->CloneFrom(*sectionA->sectionA);
 
-                  auto* newB = IDESpatialManager::Create(*window, database);
+                  auto* newB = IDESpatialManager::Create(*window, this, database, root);
                   newB->CloneFrom(*sectionA->sectionB);
 
                   Rococo::Free(sectionA);
@@ -974,28 +1031,25 @@ namespace
 
                   sectionA = newA;
                   sectionB = newB;
-               }
-            }
-         }
-
-         LayoutChildren();
+              }
+          }
       }
 
       void CloneFrom(IDESpatialManager& other)
       {
-         this->isRoot = false;
+         this->root = other.root;
          this->layout = other.layout;
          this->paneIds = other.paneIds;
          this->splitPosition = other.splitPosition;
 
          if (other.tabView == nullptr)
          {
-            this->sectionA = IDESpatialManager::Create(*window, database);
-            this->sectionB = IDESpatialManager::Create(*window, database);
+            this->sectionA = IDESpatialManager::Create(*window, this, database, root);
+            this->sectionB = IDESpatialManager::Create(*window, this, database, root);
             this->splitterControl = IDESplitterWindow::Create(window);
 
             this->sectionA->CloneFrom(*other.sectionA);
-            this->sectionA->CloneFrom(*other.sectionB);
+            this->sectionB->CloneFrom(*other.sectionB);
          }
       }
 
@@ -1082,12 +1136,12 @@ namespace
                      IDESpatialManager* child;
                      if (childCount == 1)
                      {
-                        child = sectionA = IDESpatialManager::Create(*window, database);
+                        child = sectionA = IDESpatialManager::Create(*window, this, database, root);
                         child->Load(sdirective);
                      }
                      else if (childCount == 2)
                      {
-                        child = sectionB = IDESpatialManager::Create(*window, database);
+                        child = sectionB = IDESpatialManager::Create(*window, this, database, root);
                         child->Load(sdirective);
                      }
                      else
@@ -1705,7 +1759,7 @@ namespace
       Auto<Rococo::Sex::ISourceCode> src;
       Auto<Rococo::Sex::ISParserTree> tree;
 
-      auto spatialManager = IDESpatialManager::Create(parent, database, true, "debugger.ide.sxy");
+      auto spatialManager = IDESpatialManager::Create(parent, nullptr, database, nullptr, "debugger.ide.sxy");
 
       try
       {
@@ -1763,7 +1817,7 @@ namespace Rococo
 
             ISpatialManager* CreateSpatialManager(IWindow& parent, IPaneDatabase& database)
             {
-                return IDESpatialManager::Create(parent, database, true);
+                return IDESpatialManager::Create(parent, nullptr, database, nullptr);
             }
 
             ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTW& logFont, cstr file_prefix)

@@ -90,8 +90,11 @@
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
 	(Int32 overlayToggleKey = (keyboard.GetVKeyFromName "F1"))
+	(Int32 guiToggleKey = (keyboard.GetVKeyFromName "F2"))
 	(Int32 lockViewKey = (keyboard.GetVKeyFromName "L"))
+	
 	(this.engine.SetOverlayToggleKey overlayToggleKey)
+	(this.engine.SetGUIToggleKey guiToggleKey)
 	
 	(MouseEvent mouseEvent)
 	(KeyboardEvent keyEvent)

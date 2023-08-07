@@ -389,6 +389,12 @@ struct Coroutines : public Sys::ICoroutineControl
 			}
 		} // Spec unlocked
 
+		if (result == EXECUTERESULT_THROWN || result == EXECUTERESULT_SEH)
+		{
+			// The cpu was trashed due to an exception, we should rethrow here
+			Throw(0, "Coroutine %s crashed", spec.ClassName());
+		}
+
 		memcpy(spec.registers, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
 
 		UpdateWithResult(spec, result);
