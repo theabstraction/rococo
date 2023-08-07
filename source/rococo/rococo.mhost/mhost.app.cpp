@@ -307,7 +307,7 @@ namespace MHost
 			platform.scripts.sourceCache.AddPackage(packageMHost);
 			panelCompileOptions.package = packageMHost;
 
-			platform.scripts.panelCompilationDesignator.Designate(&panelCompileOptions);
+			platform.scripts.panelCompilationDesignator.Designate(&panelCompileOptions);;
 		}
 
 		~App()
@@ -364,7 +364,7 @@ namespace MHost
 
 		// used by a script in Run() via IEngine.Run to determine if it should terminate gracefully
 		// termination should occur of the user interface has collapsed, or script queued for re-run
-		boolean32 IsRunning() override 
+		boolean32 IsRunning() const override 
 		{
 			return platform.os.appControl.IsRunning() && isScriptRunning && !isShutdown;
 		}
@@ -620,14 +620,16 @@ namespace MHost
 
 		void SetEditorVisibility(boolean32 isVisible) override
 		{
-			using namespace Rococo::Gui;
-
 			platform.creator.editor.SetVisibility(isVisible);
 
-			if (isVisible)
+			Gui::GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
+			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			if (frame)
 			{
-				platform.creator.editor.Preview(platform.graphics.GR, GetTestTarget());
+				Gui::SetUniformColourForAllRenderStates(frame->Widget().Panel(), Gui::EGRSchemeColourSurface::BACKGROUND, RGBAb(0, 0, 0, 0));
+				Gui::SetUniformColourForAllRenderStates(frame->ClientArea().Panel(), Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
 			}
+			// creator.editor.Preview(platform.graphics.GR, GetTestTarget())
 		}
 
 		void SetGUIToggleKey(int32 vkeyCode) override
@@ -638,6 +640,11 @@ namespace MHost
 		void SetOverlayToggleKey(int32 vkeyCode) override
 		{
 			overlayToggleKey = vkeyCode;
+		}
+
+		boolean32 IsAppModal() const override
+		{
+			return platform.graphics.GR.IsVisible() || const_cast<App*>(this)->IsOverlayActive();
 		}
 
 		boolean32 GetNextKeyboardEvent(MHostKeyboardEvent& k) override

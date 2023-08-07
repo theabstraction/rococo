@@ -234,14 +234,14 @@ struct Gui : public MHost::IGui
 		Rococo::Graphics::DrawText(gc, rect, alignmentFlags, text, fontIndex, colour);
 	}
 
-	void GetScreenSpan(Vec2& span) override
+	void GetScreenSpan(Vec2& span) const override
 	{
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
 		span = { (float)gm.screenSpan.x, (float)gm.screenSpan.y };
 	}
 
-	void GetCursorPos(Vec2& pos) override
+	void GetCursorPos(Vec2& pos) const override
 	{
 		GuiMetrics gm;
 		gc.Renderer().GetGuiMetrics(gm);
@@ -298,7 +298,7 @@ struct Gui : public MHost::IGui
 		Rococo::Graphics::EvalTextSpan(gc, text, fontIndex, pixelSpan);
 	}
 
-	void GetFontDescription(int32 fontIndex, Strings::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) override
+	void GetFontDescription(int32 fontIndex, Strings::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) const override
 	{
 		auto& font = gc.Gui().FontMetrics();
 		auto& glyphSet = font[fontIndex];
@@ -307,7 +307,7 @@ struct Gui : public MHost::IGui
 		familyName.Populate(glyphSet.Name());
 	}
 
-	int32 GetNumberOfFonts() override
+	int32 GetNumberOfFonts() const override
 	{
 		return gc.Gui().FontMetrics().NumberOfGlyphSets();
 	}

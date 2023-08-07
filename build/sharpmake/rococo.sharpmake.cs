@@ -1107,6 +1107,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoUtilExProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
 
             // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\

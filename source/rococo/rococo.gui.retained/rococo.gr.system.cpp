@@ -249,13 +249,13 @@ namespace ANON
 
 			if (lastLayedOutScreenDimensions != screenDimensions || invalidatedPanelCount > 0)
 			{
-				invalidatedPanelCount = 0;
 				lastLayedOutScreenDimensions = screenDimensions;
 				for (auto& d : frameDescriptors)
 				{
 					d.panel->InvalidateLayout(true);
 				}
 				LayoutFrames();
+				invalidatedPanelCount = 0;
 			}
 
 			RecursionGuard guard(*this);

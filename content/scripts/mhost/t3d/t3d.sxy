@@ -103,28 +103,32 @@
 	
 	(while this.engine.IsRunning
 		(KeyState keys)
-		(this.engine.PollKeyState keys)
 		
-		(Float32 straffe = 0)
-		(Float32 forward = 0)
-	
-		(if (IsKeyPressed keys leftKey)
-			(straffe -= 1)
+		(if (not this.engine.IsAppModal)
+			
+			(this.engine.PollKeyState keys)
+			
+			(Float32 straffe = 0)
+			(Float32 forward = 0)
+		
+			(if (IsKeyPressed keys leftKey)
+				(straffe -= 1)
+			)
+			
+			(if (IsKeyPressed keys rightKey)
+				(straffe += 1)
+			)
+			
+			(if (IsKeyPressed keys upKey)
+				(forward += 1)
+			)
+			
+			(if (IsKeyPressed keys downKey)
+				(forward -= 1)
+			)
+			
+			(this.world.SetPlayerMoveIntent straffe forward)
 		)
-		
-		(if (IsKeyPressed keys rightKey)
-			(straffe += 1)
-		)
-		
-		(if (IsKeyPressed keys upKey)
-			(forward += 1)
-		)
-		
-		(if (IsKeyPressed keys downKey)
-			(forward -= 1)
-		)
-		
-		(this.world.SetPlayerMoveIntent straffe forward)
 		
 		(while (this.engine.GetNextKeyboardEvent keyEvent)
 			// Required for overlay control
@@ -145,7 +149,7 @@
 		(Vec2 mouseDelta)
 		(this.engine.GetNextMouseDelta mouseDelta)
 
-		(if (not this.isViewLocked)
+		(if ((not this.isViewLocked) and (not this.engine.IsAppModal))
 			(if ((mouseDelta.x != 0) or (mouseDelta.y != 0))
 				(Float32 mouseDegreesPerDelta = T3D.Config.UI.MouseDegreesPerDelta)
 				(Vec2 mouseDeltaDegrees = mouseDegreesPerDelta * mouseDelta)
