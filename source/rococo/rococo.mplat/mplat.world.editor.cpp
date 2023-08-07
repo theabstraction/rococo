@@ -210,7 +210,6 @@ namespace ANON
 					panel.MarkForDelete();
 				}
 			} cb;
-			frame.ClientArea().Panel().InvalidateLayout(false);
 			frame.ClientArea().Panel().EnumerateChildren(&cb);
 			frame.ClientArea().Panel().Root().GR().GarbageCollect();
 			frame.Widget().Panel().InvalidateLayout(false);

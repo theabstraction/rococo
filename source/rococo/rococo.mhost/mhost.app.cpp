@@ -18,6 +18,11 @@
 #include <string>
 
 using namespace Rococo;
+using namespace Rococo::Entities;
+using namespace Rococo::Events;
+using namespace Rococo::Textures;
+using namespace Rococo::Script;
+using namespace MHost::OS;
 
 struct AppArgs
 {
@@ -26,12 +31,6 @@ struct AppArgs
 
 namespace MHost
 {
-	using namespace Rococo::Entities;
-	using namespace Rococo::Events;
-	using namespace Rococo::Textures;
-	using namespace Rococo::Script;
-	using namespace MHost::OS;
-
 	void AddMHostNativeCallSecurity(Rococo::ScriptCompileArgs& args);
 	IScriptCompilationEventHandler& GetBaseCompileOptions();
 	Rococo::Reflection::IReflectionTarget& GetTestTarget();
