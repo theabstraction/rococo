@@ -1,7 +1,10 @@
 (' #file.type sexystudio.solution)
 
 /*
-	Here we bind declaration files to files included and imported by sxy files.
+	Given that a sexy mainscript can explicitly #import or #include other sexy files, we need SexyStudio to read those directives and deduce what files to pull in for type interfence
+	SexyStudio is currently unable to parse C++, so it needs declarations to be generated that represent the C++.
+	
+	Here we bind the declaration files to files included and imported by sxy files. If you get these incorrect then type inference of native function calls will be limited
 	
 	The format is 
 	
@@ -20,8 +23,9 @@
 */
 
 (imported mhost -> "!scripts/mhost/declarations.sxy")
-(included "!scripts/mplat_pane_sxh.sxy" -> "!scripts/mplat/pane_declarations.sxy")
-(included "!scripts/mplat_sxh.sxy" -> "!scripts/mplat/platform_declarations.sxy")
+(included "!scripts/interop/rococo/mplat_gui_sxh.sxy" -> "!scripts/mplat/pane_declarations.sxy")
+(included "!scripts/interop/rococo/mplat_sxh.sxy" -> "!scripts/mplat/platform_declarations.sxy")
+(included "!scripts/interop/rococo/mplat_config_sxh.sxy" -> "!scripts/mplat/platform_declarations.sxy")
 
 // Here we map package names to package paths.
 (package mhost -> "!packages/mhost_1000.sxyz") // This will allow sexystudio to parse (' #import mhost)

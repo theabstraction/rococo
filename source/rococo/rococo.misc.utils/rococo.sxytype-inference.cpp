@@ -227,8 +227,8 @@ namespace Rococo::Sexy
 
 				if (!isalnum(c))
 				{
-					// Unexpected character
-					return;
+					state = State::ExpectingOpen;
+					goto next;
 				}
 
 				goto next;
@@ -277,8 +277,9 @@ namespace Rococo::Sexy
 				}
 				else
 				{
-					// Unexpected character
-					return;
+					// Unexpected character. Read next (type name) pair
+					state = State::ExpectingOpen;
+					goto next;
 				}
 			case State::ExpectingClose:
 				if (isspace(c))
@@ -293,8 +294,9 @@ namespace Rococo::Sexy
 				}
 				else
 				{
-					// Unexpected character
-					return;
+					// Unexpected character. Read next (type name) pair
+					state = State::ExpectingOpen;
+					goto next;
 				}
 			}
 
