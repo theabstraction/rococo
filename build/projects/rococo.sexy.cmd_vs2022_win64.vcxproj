@@ -145,6 +145,9 @@
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.sexy.cmd.map</MapFileName>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>..\..\source\rococo\rococo.sexy.cmd\rococo.sexy.cmd.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -230,6 +233,9 @@
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.sexy.cmd.map</MapFileName>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>..\..\source\rococo\rococo.sexy.cmd\rococo.sexy.cmd.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
   </ItemGroup>

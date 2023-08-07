@@ -624,6 +624,11 @@ namespace GRANON
 
 		void SetCollapserSizes()
 		{
+			if (!viewport)
+			{
+				// Preview was not called, so nothing in the editor to see
+				return;
+			}
 			auto& clientArea = viewport->ClientArea();
 
 			auto* rootCollapserPanel = clientArea.Panel().GetChild(0);

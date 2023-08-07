@@ -72,16 +72,16 @@ namespace GRANON
 			delete this;
 		}
 
-		void LayoutHorizontal(const GuiRect& screenDimensions)
+		void LayoutHorizontal(const GuiRect& panelDimensions)
 		{
-			realDraggerStartPos = min(realDraggerStartPos, Width(screenDimensions) - draggerThickness);
-			first->Panel().SetParentOffset({ 0,0 }).Resize({ realDraggerStartPos, Height(screenDimensions)});
-			second->Panel().SetParentOffset({ realDraggerStartPos + draggerThickness,0 }).Resize({ Width(screenDimensions) - (realDraggerStartPos + draggerThickness), Height(screenDimensions)});
+			realDraggerStartPos = min(realDraggerStartPos, Width(panelDimensions) - draggerThickness);
+			first->Panel().SetParentOffset({ 0,0 }).Resize({ realDraggerStartPos, Height(panelDimensions)});
+			second->Panel().SetParentOffset({ realDraggerStartPos + draggerThickness,0 }).Resize({ Width(panelDimensions) - (realDraggerStartPos + draggerThickness), Height(panelDimensions)});
 		}
 
-		void Layout(const GuiRect& screenDimensions) override
+		void Layout(const GuiRect& panelDimensions) override
 		{
-			LayoutHorizontal(screenDimensions);
+			LayoutHorizontal(panelDimensions);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

@@ -90,9 +90,10 @@ namespace MHost
 		{
 			IGui* gui = CreateGuiOnStack(guiBuffer, grc);
 			dispatcher->RouteGuiToScript(ss, gui, populator);
-			platform.graphics.gui.Render(grc);
-
-			platform.graphics.GR_Custodian.Render(grc, platform.graphics.GR);
+			if (platform.graphics.GR.IsVisible())
+			{
+				platform.graphics.GR_Custodian.Render(grc, platform.graphics.GR);
+			}
 		}
 
 		void RenderObjects(IRenderContext& rc, bool skinned)  override
@@ -647,7 +648,7 @@ namespace MHost
 				KeyboardEvent keyEv;
 				while (platform.graphics.GR.IsVisible() && control.TryGetNextKeyboardEvent(keyEv))
 				{
-					if (guiToggleKey == keyEv.VKey && keyEv.IsUp())
+					if (guiToggleKey == keyEv.VKey && !keyEv.IsUp())
 					{
 						SetEditorVisibility(false);
 						break;

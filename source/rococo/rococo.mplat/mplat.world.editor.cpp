@@ -210,14 +210,27 @@ namespace ANON
 					panel.MarkForDelete();
 				}
 			} cb;
+			frame.ClientArea().Panel().InvalidateLayout(false);
 			frame.ClientArea().Panel().EnumerateChildren(&cb);
 			frame.ClientArea().Panel().Root().GR().GarbageCollect();
+			frame.Widget().Panel().InvalidateLayout(false);
 		}
 
 		GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
 
+		bool isInitialized = false;
+
 		void InstantiateUI()
 		{
+			if (!isInitialized)
+			{
+				isInitialized = true;
+			}
+			else
+			{
+				return;
+			}
+
 			auto& frame = gr.BindFrame(ID_EDITOR_FRAME);
 			auto& scheme = gr.Root().Scheme();
 			SetSchemeColours_ThemeGrey(scheme);
@@ -244,7 +257,7 @@ namespace ANON
 			if (!frame) Throw(0, "%s: Unexpected missing frame. gr.FindFrame(ID_EDITOR_FRAME) returned null", __FUNCTION__);
 
 			ClearFrame(*frame);
-
+			
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 

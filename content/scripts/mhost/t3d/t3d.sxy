@@ -109,19 +109,19 @@
 		(Float32 forward = 0)
 	
 		(if (IsKeyPressed keys leftKey)
-			(straffe = (straffe - 1))
+			(straffe -= 1)
 		)
 		
 		(if (IsKeyPressed keys rightKey)
-			(straffe = (straffe + 1))
+			(straffe += 1)
 		)
 		
 		(if (IsKeyPressed keys upKey)
-			(forward = (forward + 1))
+			(forward += 1)
 		)
 		
 		(if (IsKeyPressed keys downKey)
-			(forward = (forward - 1))
+			(forward -= 1)
 		)
 		
 		(this.world.SetPlayerMoveIntent straffe forward)

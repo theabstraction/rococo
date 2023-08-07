@@ -251,6 +251,10 @@ namespace ANON
 			{
 				invalidatedPanelCount = 0;
 				lastLayedOutScreenDimensions = screenDimensions;
+				for (auto& d : frameDescriptors)
+				{
+					d.panel->InvalidateLayout(true);
+				}
 				LayoutFrames();
 			}
 

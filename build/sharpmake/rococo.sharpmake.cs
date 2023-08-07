@@ -931,6 +931,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.IncludePaths.Add(Path.Combine(Roots.RococoSexyPath, @"STC\stccore\"));
+            conf.AdditionalManifestFiles.Add("rococo.sexy.cmd.manifest");
             conf.AddPublicDependency<RococoSexyIDEProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
