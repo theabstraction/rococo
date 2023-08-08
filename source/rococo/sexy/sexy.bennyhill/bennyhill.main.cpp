@@ -1325,7 +1325,7 @@ int main(int argc, char* argv[])
 
 	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 
-	Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
+	Auto<ISParser> parser = CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 	Auto<ISourceCode> src;
 	Auto<ISParserTree> tree;
 

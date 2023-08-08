@@ -849,7 +849,7 @@ namespace Rococo::Script
 			reflectionRoot(NULL), 
 			nextId(0), 
 			nativeSources(_nativeSources), 
-			sexParserProxy(Sexy_CreateSexParser_2_0(Memory::GetSexyAllocator())),
+			sexParserProxy(CreateSexParser_2_0(Memory::GetSexyAllocator())),
 			packager(CreatePackager(*this)),
 			usesSysIO(pip.addIO)
 		{

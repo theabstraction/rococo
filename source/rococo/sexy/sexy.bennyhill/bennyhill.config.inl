@@ -391,7 +391,7 @@ namespace
 
 	void LoadConfigXC(cr_sex configSpec, ParseContext& pc)
 	{
-		Auto<ISParser> parser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
+		Auto<ISParser> parser = CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 		Auto<ISourceCode> configSrc;
 		Auto<ISParserTree> tree;
 

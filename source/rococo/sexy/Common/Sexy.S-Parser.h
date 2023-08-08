@@ -47,7 +47,13 @@
 #error include "sexy.types.h" before including this file
 #endif
 
-namespace Rococo { namespace Sex
+namespace Rococo::IO
+{
+	struct IBinaryWriter;
+	struct IUnicode16Writer;
+}
+
+namespace Rococo::Sex
 {
 	struct ISParser;
 	struct ISParserTree;
@@ -130,24 +136,14 @@ namespace Rococo { namespace Sex
 			return *instance;
 		}
 	};
-}}
 
-enum { SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH = 32768 }; 
+	SEXY_SPARSER_API void EscapeScriptStringToAnsi(Rococo::IO::IBinaryWriter & writer, cstr text);
+	SEXY_SPARSER_API void EscapeScriptStringToUnicode(Rococo::IO::IUnicode16Writer & writer, cstr text);
 
-// N.B f you override the default maxStringLength value, you are using a non-standard dialect of sexy s-expressions. 
-SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength = SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
+	enum { SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH = 32768 };
 
-namespace Rococo
-{
-	namespace IO
-	{
-		struct IBinaryWriter;
-		struct IUnicode16Writer;
-	}
+	// N.B f you override the default maxStringLength value, you are using a non-standard dialect of sexy s-expressions. 
+	SEXY_SPARSER_API ISParser* CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength = SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
 }
 
-namespace Rococo { namespace Sex
-{
-	SEXY_SPARSER_API void EscapeScriptStringToAnsi(Rococo::IO::IBinaryWriter& writer, cstr text);
-	SEXY_SPARSER_API void EscapeScriptStringToUnicode(Rococo::IO::IUnicode16Writer& writer, cstr text);
-}}
+

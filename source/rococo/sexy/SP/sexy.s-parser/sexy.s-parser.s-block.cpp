@@ -1733,59 +1733,52 @@ namespace Anon
 	};
 } // Anon
 
-namespace Rococo
+namespace Rococo::Sex
 {
-	namespace Sex
+	SEXY_SPARSER_API ISParser* CreateSexParser_2_0(IAllocator& allocator, size_t maxStringLength)
 	{
-		ISParser* CreateSParser_2_0(IAllocator& allocator, size_t maxStringLength)
+		enum { ABS_MAX_STRING_LENGTH = 0x7FFFFFFFLL };
+		if (maxStringLength < 8 || maxStringLength > ABS_MAX_STRING_LENGTH)
 		{
-			enum { ABS_MAX_STRING_LENGTH = 0x7FFFFFFFLL };
-			if (maxStringLength < 8 || maxStringLength > ABS_MAX_STRING_LENGTH)
-			{
-				Rococo::Throw(0, "CreateSParser: %llu must not be less than 8 nor more than %llu. Recommended size is 32768", maxStringLength, ABS_MAX_STRING_LENGTH);
-			}
-
-			auto* buffer = allocator.Allocate(sizeof Anon::SParser_2_0);
-			return new (buffer) Anon::SParser_2_0(allocator, maxStringLength);
+			Rococo::Throw(0, "CreateSParser: %llu must not be less than 8 nor more than %llu. Recommended size is 32768", maxStringLength, ABS_MAX_STRING_LENGTH);
 		}
 
-		void TestBlockAllocator(cstr sExpression)
+		auto* buffer = allocator.Allocate(sizeof Anon::SParser_2_0);
+		return new (buffer) Anon::SParser_2_0(allocator, maxStringLength);
+	}
+
+	void TestBlockAllocator(cstr sExpression)
+	{
+		Anon::SCostEvaluator ce(32768, 32768);
 		{
-			Anon::SCostEvaluator ce(32768, 32768);
-			{
-				Anon::SParser parser(sExpression, ce);
-				parser.name = "test";
-				parser.Parse(nullptr);
-
-				printf("total string cost: %llu\n", (uint64) ce.totalStringCost);
-				printf("total atomic cost: %llu\n", (uint64) ce.totalAtomicCost);
-				printf("total comment cost: %llu\n", (uint64) ce.totalCommentCost);
-				printf("largest string size: %llu\n", (uint64) ce.largestStringSize);
-				printf("larget atomic size: %llu\n", (uint64) ce.largestAtomicSize);
-				printf("larget comment size: %llu\n", (uint64) ce.totalCommentCost);
-				printf("atomic count: %llu\n", (uint64) ce.atomicCount);
-				printf("literal count: %llu\n", (uint64) ce.stringCount);
-				printf("compound count: %llu\n", (uint64) ce.branchCount);
-			}
-
-			AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "s-block-parser"));
-
-			Anon::SBlockAllocator sba(ce, *allocator, sExpression);
-			Anon::SParser parser(sExpression, sba);
+			Anon::SParser parser(sExpression, ce);
 			parser.name = "test";
 			parser.Parse(nullptr);
 
-			ptrdiff_t dp = sba.writePos - (char*)sba.compoundArray;
-			if (dp != 0)
-			{
-				Rococo::Throw(0, "SBlockAllocator: Difference between string write position and start of compound element array was non-zero");
-			}
+			printf("total string cost: %llu\n", (uint64) ce.totalStringCost);
+			printf("total atomic cost: %llu\n", (uint64) ce.totalAtomicCost);
+			printf("total comment cost: %llu\n", (uint64) ce.totalCommentCost);
+			printf("largest string size: %llu\n", (uint64) ce.largestStringSize);
+			printf("larget atomic size: %llu\n", (uint64) ce.largestAtomicSize);
+			printf("larget comment size: %llu\n", (uint64) ce.totalCommentCost);
+			printf("atomic count: %llu\n", (uint64) ce.atomicCount);
+			printf("literal count: %llu\n", (uint64) ce.stringCount);
+			printf("compound count: %llu\n", (uint64) ce.branchCount);
 		}
-	} // Sex
-} // Rococo
 
-SEXY_SPARSER_API Rococo::Sex::ISParser* Sexy_CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength)
-{
-	return Rococo::Sex::CreateSParser_2_0(allocator, maxStringLength);
-}
+		AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "s-block-parser"));
+
+		Anon::SBlockAllocator sba(ce, *allocator, sExpression);
+		Anon::SParser parser(sExpression, sba);
+		parser.name = "test";
+		parser.Parse(nullptr);
+
+		ptrdiff_t dp = sba.writePos - (char*)sba.compoundArray;
+		if (dp != 0)
+		{
+			Rococo::Throw(0, "SBlockAllocator: Difference between string write position and start of compound element array was non-zero");
+		}
+	}
+} 
+
 

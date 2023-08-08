@@ -396,7 +396,7 @@ namespace Anon
 			WideFilePath sysPath;
 			installation.ConvertPingPathToSysPath(pingPath, sysPath);
 
-			Auto<ISParser> sparser = Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
+			Auto<ISParser> sparser = CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 			Auto<ISourceCode> src = sparser->LoadSource(sysPath, { 1,1 });
 			Auto<ISParserTree> tree;
 

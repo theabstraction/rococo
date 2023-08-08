@@ -742,7 +742,7 @@ namespace Rococo
 			dataBuffer(CreateExpandingBuffer(64_kilobytes)),
 			installation(_installation),
 			allocator(_allocator),
-			parser(Sexy_CreateSexParser_2_0(_allocator))
+			parser(CreateSexParser_2_0(_allocator))
 		{
 		}
 

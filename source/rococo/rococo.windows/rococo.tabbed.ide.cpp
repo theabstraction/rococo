@@ -1736,7 +1736,7 @@ namespace
    ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTW& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)
    {
 	  AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "tabbed-ide"));
-      Auto<ISParser> parser(Sexy_CreateSexParser_2_0(*allocator, 128));
+      Auto<ISParser> parser(CreateSexParser_2_0(*allocator, 128));
 
       char loadname[_MAX_PATH];
       SafeFormat(loadname, sizeof(loadname), "%s.ide.sxy", file_prefix);
