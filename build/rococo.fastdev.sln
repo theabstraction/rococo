@@ -86,6 +86,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mplat.dynamic", "pro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.packager", "projects\rococo.packager_vs2022_win64.vcxproj", "{530DCBFA-CB1C-363C-DFC3-217063285A55}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexml", "projects\rococo.sexml_vs2022_win64.vcxproj", "{AE85B54B-E7B4-7488-34AA-23A839360CB8}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.cmd", "projects\rococo.sexy.cmd_vs2022_win64.vcxproj", "{C0E6F2F3-0F17-BAC8-66B9-355321F3BB36}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.sexy.ide", "projects\rococo.sexy.ide_vs2022_win64.vcxproj", "{C3B17690-797E-566E-2CDE-DEBCBFF619F6}"
@@ -242,6 +244,10 @@ Global
 		{530DCBFA-CB1C-363C-DFC3-217063285A55}.Debug|x64.Build.0 = Debug|x64
 		{530DCBFA-CB1C-363C-DFC3-217063285A55}.Release|x64.ActiveCfg = Release|x64
 		{530DCBFA-CB1C-363C-DFC3-217063285A55}.Release|x64.Build.0 = Release|x64
+		{AE85B54B-E7B4-7488-34AA-23A839360CB8}.Debug|x64.ActiveCfg = Debug|x64
+		{AE85B54B-E7B4-7488-34AA-23A839360CB8}.Debug|x64.Build.0 = Debug|x64
+		{AE85B54B-E7B4-7488-34AA-23A839360CB8}.Release|x64.ActiveCfg = Release|x64
+		{AE85B54B-E7B4-7488-34AA-23A839360CB8}.Release|x64.Build.0 = Release|x64
 		{C0E6F2F3-0F17-BAC8-66B9-355321F3BB36}.Debug|x64.ActiveCfg = Debug|x64
 		{C0E6F2F3-0F17-BAC8-66B9-355321F3BB36}.Debug|x64.Build.0 = Debug|x64
 		{C0E6F2F3-0F17-BAC8-66B9-355321F3BB36}.Release|x64.ActiveCfg = Release|x64

@@ -1117,6 +1117,21 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoSEXMLProject : RococoProject
+    {
+        public RococoSEXMLProject() : base("rococo.sexml")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<SexySParserProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoSexyStudioProject : RococoProject
     {
         public RococoSexyStudioProject() : base("sexystudio")
@@ -1667,6 +1682,7 @@ namespace Rococo
 
         public static void AddRococoMajorLibs(Solution.Configuration conf, Target target)
         {
+            conf.AddProject<RococoSEXMLProject>(target);
             conf.AddProject<RococoMiscUtilsProject>(target);
             conf.AddProject<RococoMathsProject>(target);
             conf.AddProject<RococoUtilExProject>(target);
@@ -1912,6 +1928,8 @@ namespace Rococo
 
             arguments.Generate<RococoTextureToolProject>();
             arguments.Generate<RococoVersioningProject>();
+
+            arguments.Generate<RococoSEXMLProject>();
         }
     }
 }
