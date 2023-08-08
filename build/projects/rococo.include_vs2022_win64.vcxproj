@@ -244,6 +244,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexml.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.api.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.ide.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.map.expert.h" />
