@@ -829,6 +829,20 @@ namespace Rococo::Sex::SEXML
 		return *dir;
 	}
 
+	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value)
+	{
+		switch (value.Type())
+		{
+		case Rococo::Sex::SEXML::SEXMLValueType::Atomic:
+		case Rococo::Sex::SEXML::SEXMLValueType::StringLiteral:
+			break;
+		default:
+			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list.");
+		}
+
+		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringValue&>(value);
+	}
+
 	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())

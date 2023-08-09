@@ -1326,6 +1326,58 @@ using namespace Rococo::AutoComplete;
 struct FactoryConfig
 {
 	std::vector<HString> searchPaths;
+	HString content;
+
+	void Load()
+	{
+		try
+		{
+			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, "sexystudio.config"))
+			{
+				// Create it
+				Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
+					[](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+					{
+						sb.AddDirective("directories");
+						sb.OpenListAttribute("search-paths");
+						sb.AddEscapedStringToList("!scripts/native");
+						sb.AddEscapedStringToList("!scripts/interop");
+						sb.AddEscapedStringToList("!scripts/declarations");
+						sb.CloseListAttribute(); // search-paths
+						sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\scripts");
+						sb.CloseDirective(); // directories
+					}
+				);
+			}
+
+
+
+			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.config",
+				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+				{
+					size_t startIndex = 0;
+					auto& dirs = Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "directories", IN OUT startIndex);
+					auto& aSearchpaths = Rococo::Sex::SEXML::AsStringList(dirs["search-paths"]);
+					auto& aContent = Rococo::Sex::SEXML::AsString(dirs["content"]);
+
+					searchPaths.clear();
+
+					for (int i = 0; i < aSearchpaths.NumberOfElements(); i++)
+					{
+						fstring path = aSearchpaths[i];
+						searchPaths.push_back((cstr)path);
+					}
+
+					content = aContent.c_str();
+				}
+			);
+		}
+		catch (IException& ex)
+		{
+			OS::TripDebugger();
+			Rococo::Debugging::AddCriticalLog(ex.Message());
+		}
+	}
 };
 
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
@@ -2458,6 +2510,11 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 {
 	FactoryConfig config;
 
+	Factory()
+	{
+		config.Load();
+	}
+
 	cstr GetInterfaceURL(int index) override
 	{
 		switch (index)
@@ -2485,52 +2542,6 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 			return "mark.anthony.taylor@gmail.com";
 		default:
 			return nullptr;
-		}
-	}
-
-	void LoadConfig()
-	{
-		try
-		{
-			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, "sexystudio.config"))
-			{
-				// Create it
-				Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
-					[](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
-					{
-						sb.AddDirective("directories");
-						sb.OpenListAttribute("search-paths");
-						sb.AddEscapedStringToList("!scripts/native");
-						sb.AddEscapedStringToList("!scripts/interop");
-						sb.AddEscapedStringToList("!scripts/declarations");
-						sb.CloseListAttribute(); // search-paths
-						sb.CloseDirective(); // directories
-					}
-				);
-			}
-
-
-
-			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.config",
-				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
-				{
-					size_t startIndex = 0;
-					auto& searchpaths = Rococo::Sex::SEXML::AsStringList(Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "directories", IN OUT startIndex)["search-paths"]);
-
-					config.searchPaths.clear();
-
-					for (int i = 0; i < searchpaths.NumberOfElements(); i++)
-					{
-						fstring path = searchpaths[i];
-						config.searchPaths.push_back((cstr)path);
-					}
-				}
-			);
-		}
-		catch (IException& ex)
-		{
-			OS::TripDebugger();
-			Rococo::Debugging::AddCriticalLog(ex.Message());
 		}
 	}
 

@@ -63,8 +63,6 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] fstring operator[](size_t index) const = 0;
 	};
 
-	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
-
 	ROCOCO_INTERFACE ISexyXMLAttributeStringValue : ISEXMLAttributeValue
 	{
 		// Maximum string length is 0x7FFFFFFF bytes, or 1 byte under 2GB
@@ -81,6 +79,9 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] cr_sex S() const = 0;
 		virtual [[nodiscard]] const ISEXMLAttributeValue& Value() const = 0;
 	};
+
+	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value);
 
 	using cr_sattr = const ISEXMLAttribute&;
 
@@ -210,7 +211,7 @@ namespace Rococo::Sex::SEXML
 
 		// The name has to follow ISEXMLAttribute::Name() rules.
 		// Escapes a string literal expression which can contain any sequence of characters
-		virtual ISEXMLBuilder& AddStringLiteral(cstr  name, cstr value = 0) = 0;
+		virtual ISEXMLBuilder& AddStringLiteral(cstr  name, cstr value) = 0;
 
 		// The name has to follow ISEXMLAttribute::Name() rules. Adds two value components
 		virtual ISEXMLBuilder& AddVec2(cstr name, double x, double y) = 0;
