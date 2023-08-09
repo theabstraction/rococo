@@ -25,14 +25,28 @@ namespace
 		};
 		std::unordered_map<ID_TREE_ITEM, Item> items;
 
+		stringmap<int> mapSrcToCount;
+
 		void Add(ID_TREE_ITEM item, cstr text, int lineNumber) override
 		{
-			items[item] = { text, lineNumber };
+			U8FilePath nameAndLineNumber;
+			Format(nameAndLineNumber, "%s#%d", text, lineNumber);
+			auto i = mapSrcToCount.insert(nameAndLineNumber, 1);
+			if (!i.second)
+			{
+				// Already existed
+				i.first->second++;
+			}
+			else
+			{
+				items[item] = { text, lineNumber };
+			}
 		}
 
 		void Clear() override
 		{
 			items.clear();
+			mapSrcToCount.clear();
 		}
 
 		SourceAndLine Find(ID_TREE_ITEM item) const override
@@ -102,9 +116,6 @@ namespace Rococo::SexyStudio
 	{
 		tree.Clear();
 		database.Clear();
-
-		auto hRoot = tree.AppendItem(0);
-		tree.SetItemText(hRoot, database.Solution().GetScriptFolder());
 
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
@@ -194,6 +205,9 @@ namespace Rococo::SexyStudio
 		WideFilePath scriptPath;
 		Format(scriptPath, L"%hs", database.Solution().GetScriptFolder());
 
+		auto hRoot = tree.AppendItem(0);
+		tree.SetItemText(hRoot, "!scripts/");
+		
 		for (size_t i = 0; i < 100; i++)
 		{
 			cstr path = database.Config().GetSearchPath(i);
@@ -210,13 +224,6 @@ namespace Rococo::SexyStudio
 				Rococo::IO::ForEachFileInDirectory(wPath, incFileCounter, true, nullptr);
 				cb.totalCount = incFileCounter.count;
 			}
-			else
-			{
-				auto hError = tree.AppendItem(hRoot);
-				char msg[256];
-				SafeFormat(msg, "Could not find %s", sysPath.buf);
-				tree.SetItemText(hError, msg);
-			}
 		}
 
 		try
@@ -230,11 +237,20 @@ namespace Rococo::SexyStudio
 				U8FilePath sysPath;
 				database.PingPathToSysPath(path, sysPath);
 
+				auto hSearchPath = tree.AppendItem(hRoot);
+				tree.SetItemText(hSearchPath, path);
+
 				if (Rococo::IO::IsDirectory(sysPath))
 				{
 					WideFilePath wPath;
 					Assign(wPath, sysPath);
-					Rococo::IO::ForEachFileInDirectory(wPath, cb, true, (void*)hRoot);
+					Rococo::IO::ForEachFileInDirectory(wPath, cb, true, (void*)hSearchPath);
+				}
+				else
+				{
+					char msg[256];
+					SafeFormat(msg, "Could not find %s", sysPath.buf);
+					tree.SetItemText(hSearchPath, msg);
 				}
 			}
 		}

@@ -677,6 +677,11 @@ namespace
 			SendMessageA(hWndEditor, WM_SETTEXT, 0, (LPARAM)(cstr) filePath);
 		}
 
+		void UpdateText() override
+		{
+			SendMessageA(hWndEditor, WM_SETTEXT, 0, (LPARAM)(cstr)filePath);
+		}
+
 		void SetUpdateEvent(EventIdRef id) override
 		{
 			evChangedEvent = id;

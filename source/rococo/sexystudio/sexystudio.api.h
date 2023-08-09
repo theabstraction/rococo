@@ -253,6 +253,7 @@ namespace Rococo::SexyStudio
 		virtual void GetHintForCandidate(cr_substring prefix, char args[1024]) = 0;
 		virtual ISxyNamespace& GetRootNamespace() = 0;
 		virtual void PingPathToSysPath(cstr pingPath, U8FilePath& sysPath) = 0;
+		virtual void SysPathToPingPath(cstr sysPath, U8FilePath& pingPath) = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
@@ -491,6 +492,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual void Bind(U8FilePath& path, uint32 maxChars) = 0;
 		virtual void SetUpdateEvent(EventIdRef id) = 0;
+		virtual void UpdateText() = 0;
 	};
 
 	ROCOCO_INTERFACE IVariableList : IGuiWidget

@@ -40,6 +40,7 @@ using namespace Rococo::Strings;
 
 auto evClose = "EvMainIDEWindowCloseRequest"_event;
 auto evContentChange = "EvContentChange"_event; // TEventArg<cstr>
+auto evProjectChange = "EvProjectChange"_event; // TEventArg<cstr>
 auto evSearchChange = "EvSearchChange"_event; // TEventArg<cstr>
 auto evMoveAtSearch = "EvMoveAtSearch"_event; // TEventArgs<Vec2i>
 auto evDoubleClickSearchList = "EvDoubleClickSearchList"_event; // TEventArgs<cstr>
@@ -129,7 +130,9 @@ void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
 struct FactoryConfig: IFactoryConfig
 {
 	std::vector<HString> searchPaths;
+	std::vector<HString> packages;
 	HString content;
+	HString projectPath;
 	int searchPathHeight = 120;
 
 	U8FilePath fileName;
@@ -141,7 +144,12 @@ struct FactoryConfig: IFactoryConfig
 
 	cstr GetSearchPath(size_t index) const override
 	{
-		if (index >= searchPaths.size())
+		if (index == searchPaths.size())
+		{
+			return projectPath;
+		}
+
+		if (index > searchPaths.size())
 		{
 			return nullptr;
 		}
@@ -166,7 +174,13 @@ struct FactoryConfig: IFactoryConfig
 						sb.AddEscapedStringToList("!scripts/declarations");
 						sb.CloseListAttribute(); // search-paths
 						sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\");
+						sb.AddStringLiteral("project", "!scripts/mhost");
 						sb.CloseDirective(); // directories
+						sb.AddDirective("Packages");
+						sb.OpenListAttribute("known-packages");
+						sb.AddEscapedStringToList("!packages/mhost_1000.sxyz");
+						sb.CloseListAttribute(); // known-packages
+						sb.CloseDirective();
 					}
 				);
 			}
@@ -191,6 +205,7 @@ struct FactoryConfig: IFactoryConfig
 					auto& dirs = Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
 					auto& aSearchpaths = Rococo::Sex::SEXML::AsStringList(dirs["search-paths"]);
 					auto& aContent = Rococo::Sex::SEXML::AsString(dirs["content"]);
+					auto& aProject = Rococo::Sex::SEXML::AsString(dirs["project"]);
 
 					searchPaths.clear();
 
@@ -201,6 +216,7 @@ struct FactoryConfig: IFactoryConfig
 					}
 
 					content = aContent.c_str();
+					projectPath = aProject.c_str();
 				}
 			);
 		}
@@ -230,22 +246,50 @@ struct FactoryConfig: IFactoryConfig
 
 	void Save()
 	{
-		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
-			[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
-			{
-				sb.AddDirective("directories");
-				sb.OpenListAttribute("search-paths");
-
-				for (auto& path : searchPaths)
+		U8FilePath sexmlConfig;
+		Rococo::OS::GetUserSEXMLFullPath(sexmlConfig, nullptr, "sexystudio.config");
+		try
+		{
+			Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
+				[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 				{
-					sb.AddEscapedStringToList(path);
-				}
+					sb.AddDirective("Directories");
+					sb.OpenListAttribute("search-paths");
 
-				sb.CloseListAttribute(); // search-paths
-				sb.AddStringLiteral("content", content);
-				sb.CloseDirective(); // directories
+					for (auto& path : searchPaths)
+					{
+						sb.AddEscapedStringToList(path);
+					}
+
+					sb.CloseListAttribute(); // search-paths
+					sb.AddStringLiteral("content", content);
+					sb.AddStringLiteral("project", projectPath);
+					sb.CloseDirective(); // directories
+
+					sb.AddDirective("Packages");
+					sb.OpenListAttribute("known-packages");
+
+					for (auto& pck : packages)
+					{
+						sb.AddEscapedStringToList(pck);
+					}
+
+					sb.CloseListAttribute(); // known-packages
+					sb.CloseDirective();
+				}
+			);
+		}
+		catch (IException& ex)
+		{
+			try
+			{
+				Throw(ex.ErrorCode(), "Error saving %s.\n%s", sexmlConfig.buf, ex.Message());
 			}
-		);
+			catch (IException& inner)
+			{
+				Windows::ShowErrorBox(Windows::NoParent(), inner, "SexyStudio: Save Error");
+			}
+		}
 	}
 };
 
@@ -260,6 +304,28 @@ private:
 	IGuiTree* fileBrowser = nullptr;
 	ITab* projectTab = nullptr;
 	U8FilePath contentPath;
+	U8FilePath projectPath;
+	IFilePathEditor* projectDirEditor;
+
+	void SetProjectDirectory()
+	{
+		if (*projectPath.buf != '!')
+		{
+			try
+			{
+				U8FilePath pingPath;
+				database.SysPathToPingPath(projectPath, pingPath);
+				projectPath = pingPath;
+				projectDirEditor->UpdateText();
+				config.projectPath = pingPath;
+				SyncContent();
+			}
+			catch (...)
+			{
+				// Bad conversion
+			}
+		}
+	}
 
 	void SyncContent()
 	{
@@ -291,6 +357,10 @@ private:
 		{
 			SyncContent();
 		}
+		else if (ev == evProjectChange)
+		{
+			SetProjectDirectory();
+		}
 	}
 
 	void RenderItem() override
@@ -306,6 +376,7 @@ public:
 		database(_database)
 	{
 		Format(contentPath, "%s", database.Solution().GetContentFolder());
+		Format(projectPath, "%s", config.projectPath.c_str());
 
 		screen.SetBackgroundColour(RGBAb(128, 192, 128));
 
@@ -346,6 +417,13 @@ public:
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
 
+		projectDirEditor = projectSettings->AddFilePathEditor();
+		projectDirEditor->SetName("Project");
+
+		projectDirEditor->Bind(projectPath, 128);
+		projectDirEditor->SetVisible(true);
+		projectDirEditor->SetUpdateEvent(evProjectChange);
+		
 		auto* searchPathsBox = projectSettings->AddListWidget();
 		searchPathsBox->SetDefaultHeight(config.searchPathHeight);
 		searchPathsBox->SetName("Search paths");		
@@ -371,6 +449,7 @@ public:
 		ideFrame.SetProgress(100.0f, "Complete!");
 
 		wc.publisher.Subscribe(this, evContentChange);
+		wc.publisher.Subscribe(this, evProjectChange);
 	}
 
 	~PropertySheets()
@@ -1887,6 +1966,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	{
 		delete explorer;
 		delete sheets;
+
+		config.Save();
 	}
 
 	void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item)

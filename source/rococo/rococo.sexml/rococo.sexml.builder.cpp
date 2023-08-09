@@ -60,7 +60,30 @@ namespace Rococo::Sex::SEXML
 
 			ISEXMLBuilder& AddDirective(cstr name) override
 			{
-				Rococo::Strings::ValidateFQNamespace(name);
+				try
+				{
+					Rococo::Strings::ValidateFQNamespace(name);
+				}
+				catch (IException& ex)
+				{
+					char msg[1024];
+					StackStringBuilder sb(msg, sizeof msg);
+					sb.AppendFormat("Error validating directive name [%s]: %s\n", name, ex.Message());
+					if (depth == 0)
+					{
+						sb << "Directive was at the root";
+					}
+					else
+					{
+						sb << "Error adding new directive to: ";
+						for (auto& d : stateNames)
+						{
+							sb << "/";
+							sb << d.c_str();
+						}
+					}
+					Rococo::Throw(ex.ErrorCode(), "%s", msg);
+				}
 				
 				if (depth == 0)
 				{

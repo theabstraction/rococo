@@ -1495,6 +1495,8 @@ namespace ANON
 
 		SolutionFile solutionFile;
 
+		stringmap<int> mapCppCodeToUsage;
+
 		SexyDatabase(IFactoryConfig& _config): 
 			config(_config),
 			sparser(Rococo::Sex::CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
@@ -1528,7 +1530,7 @@ namespace ANON
 			installation = CreateInstallationDirect(wContentFolder, *os);
 
 			WideFilePath associationPath;
-			installation->ConvertPingPathToSysPath("!scripts/native/sexystudio.solution.sxyq", associationPath);
+			installation->ConvertPingPathToSysPath("!scripts/declarations/sys/sexystudio.solution.sxyq", associationPath);
 
 			AutoRelease<ISourceCode> src = sparser->LoadSource(associationPath, { 1,1 });
 			AutoRelease<ISParserTree> tree;
@@ -1557,6 +1559,20 @@ namespace ANON
 			installation->ConvertPingPathToSysPath(pingPath, wideSysPath);
 
 			Format(sysPath, "%ls", wideSysPath.buf);
+		}
+
+		void SysPathToPingPath(cstr sysPath, U8FilePath& pingPath) override
+		{
+			// Ping paths have the format !directory/filename.
+
+			if (!installation)
+			{
+				Throw(0, "%s: no installation. Call SetScriptPath first", __FUNCTION__);
+			}
+
+			WideFilePath wideSysPath;
+			Assign(wideSysPath, sysPath);
+			installation->ConvertSysPathToPingPath(wideSysPath, pingPath);
 		}
 
 		ISxyNamespace& GetRootNamespace()
@@ -1709,7 +1725,7 @@ namespace ANON
 
 				uint64 len = GetFileLength(fullpathToSxy);
 
-				if (len > 1_megabytes)
+				if (len > 32_megabytes)
 				{
 					file.errorCode = 0;
 					file.errorMessage = "File too large";
@@ -1758,6 +1774,7 @@ namespace ANON
 
 		void Clear() override
 		{
+			mapCppCodeToUsage.clear();
 			filenameToFile.clear();
 			rootNS.subspaces.clear();
 			rootNS.enums.clear();
@@ -2494,9 +2511,53 @@ namespace ANON
 			}
 		}
 
+		bool CanInsertCppRef(cr_sex sCppDeclaration)
+		{
+			if (sCppDeclaration.NumberOfElements() < 3)
+			{
+				return false;
+			}
+
+			cr_sex finalExpression = sCppDeclaration[sCppDeclaration.NumberOfElements() - 1];
+			if (finalExpression.NumberOfElements() != 3)
+			{
+				return false;
+			}
+
+			// (source <cpp-file> <line-number>)
+			cstr source = finalExpression[0].c_str();
+			cstr fileName = finalExpression[1].c_str();
+			cstr lineNumber = finalExpression[2].c_str();
+
+			if (!Eq(source, "source"))
+			{
+				return false;
+			}
+
+			U8FilePath path;
+			Format(path, "%s#%s", fileName, lineNumber);
+
+			auto insertStatus = mapCppCodeToUsage.insert(path, 0);
+			if (insertStatus.second)
+			{
+				// Avoid duplication for C++ stuff, as declarations overlap in most areas
+				return true;
+			}
+			else
+			{
+				insertStatus.first->second++;
+				return false;
+			}
+		}
+
 		void ParseTree(ISParserTree& tree, File_SXY& file)
 		{
 			cr_sex sRoot = tree.Root();
+
+			cr_sex sLine0 = sRoot[0];
+			cr_sex sDirective0 = sLine0[0];
+
+			bool isDeclarations = Eq(sDirective0.c_str(), "SexyDeclarations");
 
 			// First build up a list of objects in the sxy file
 			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
@@ -2529,10 +2590,13 @@ namespace ANON
 
 				enum { MAX_ARGS_PER_FUNCTION = 128 };
 				if (match_compound(sRoot[i], MAX_ARGS_PER_FUNCTION, keywordFunction, ParseAtomic,
-					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& fnName)
+					[this, isDeclarations, &file](cr_sex s, const fstring& sKeyword, const fstring& fnName)
 					{
 						UNUSED(sKeyword);
-						InsertFunction(s, fnName, file);
+						if (isDeclarations && CanInsertCppRef(s))
+						{
+							InsertFunction(s, fnName, file);
+						}
 					}
 				)) continue;
 

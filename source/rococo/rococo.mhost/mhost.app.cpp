@@ -394,7 +394,7 @@ namespace MHost
 			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/create_declarations.sxy", true, false, *packageMHost, this, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.os.installation.ConvertPingPathToSysPath("!scripts/MHost/declarations.sxy", wPath);
+			platform.os.installation.ConvertPingPathToSysPath("!scripts/declarations/MHost/declarations.sxy", wPath);
 
 			try
 			{
@@ -422,10 +422,10 @@ namespace MHost
 			} onCompile;
 
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(NoImplicitIncludes(), onCompile, "!scripts/mplat/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(NoImplicitIncludes(), onCompile, "!scripts/declarations/rococo/create_platform_declarations.sxy", true, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.os.installation.ConvertPingPathToSysPath("!scripts/mplat/platform_declarations.sxy", wPath);
+			platform.os.installation.ConvertPingPathToSysPath("!scripts/declarations/rococo/platform_declarations.sxy", wPath);
 
 			try
 			{
@@ -453,10 +453,10 @@ namespace MHost
 			} onSysScript;
 
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			platform.plumbing.utilities.RunEnvironmentScript(Rococo::NoImplicitIncludes(), onSysScript, "!scripts/native/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
+			platform.plumbing.utilities.RunEnvironmentScript(Rococo::NoImplicitIncludes(), onSysScript, "!scripts/declarations/sys/create_declarations.sxy", false, false, false, nullptr, &sb->Builder());
 
 			WideFilePath wPath;
-			platform.os.installation.ConvertPingPathToSysPath("!scripts/native/declarations.sxy", wPath);
+			platform.os.installation.ConvertPingPathToSysPath("!scripts/declarations/sys/declarations.sxy", wPath);
 
 			try
 			{

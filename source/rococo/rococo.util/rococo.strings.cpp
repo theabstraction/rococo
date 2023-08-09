@@ -1040,7 +1040,8 @@ namespace Rococo::Strings
 				}
 				else
 				{
-					Throw(0, "Error validating fully qualified name - Characters must be in range 0-9 or a-z");
+					size_t pos = p - fqName;
+					Throw(0, "Error validating fully qualified name at pos %llu - Capital letters A-Z only", pos);
 				}
 			}
 			else // Insubspace
@@ -1055,7 +1056,8 @@ namespace Rococo::Strings
 				}
 				else
 				{
-					Throw(0, "Error validating fully qualified name - Characters must be in range 0-9 or a-z. Use '.' to separate subspaces");
+					size_t pos = p - fqName;
+					Throw(0, "Error validating fully qualified name - Characters must be in range 0-9 or a-z or A-Z at pos %llu. Use '.' to separate subspaces", pos);
 				}
 			}
 		}
