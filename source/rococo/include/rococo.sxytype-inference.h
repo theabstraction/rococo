@@ -2,6 +2,10 @@
 
 #include <rococo.types.h>
 
+#ifndef ROCOCO_MISC_UTILS_API
+# define ROCOCO_MISC_UTILS_API ROCOCO_API_IMPORT
+#endif
+
 namespace Rococo::SexyStudio
 {
 	struct ISexyFieldEnumerator;
@@ -11,11 +15,11 @@ namespace Rococo::Sexy
 {
 	struct TypeInference
 	{
-		Substring declarationType;
-		Substring declarationVariable;
+		Strings::Substring declarationType;
+		Strings::Substring declarationVariable;
 	};
 
-	inline TypeInference TypeInference_None() { return TypeInference{ Substring_Null(), Substring_Null() }; }
+	inline TypeInference TypeInference_None() { return TypeInference{ Strings::Substring_Null(), Strings::Substring_Null() }; }
 
 	// An engine that attempts to infer the type of a variable by iterating through the source code that precedes it use. The source code is not required to be syntactically perfect
 	class BadlyFormattedTypeInferenceEngine
@@ -23,21 +27,21 @@ namespace Rococo::Sexy
 		cstr textBuffer;
 
 		cstr FindFirstPrecedingChar(cstr lastChar, char match);
-		cstr FindNextMatchedChar(cr_substring token, char match);
-		cstr GetEndOfPadding(cr_substring token);
+		cstr FindNextMatchedChar(Strings::cr_substring token, char match);
+		cstr GetEndOfPadding(Strings::cr_substring token);
 		cstr FindFirstLeftOccurenceOfFunctionLikeKeyword(cstr lastChar, const fstring& token);
-		cstr FindLastTypeChar(cr_substring token);
-		cstr FindLastVariableChar(cr_substring token);
-		TypeInference FindNextPossibleDeclaration(cr_substring specimen);
-		cstr GetMatchEnd(cr_substring token, cstr candidate, cstr endGuard);
+		cstr FindLastTypeChar(Strings::cr_substring token);
+		cstr FindLastVariableChar(Strings::cr_substring token);
+		TypeInference FindNextPossibleDeclaration(Strings::cr_substring specimen);
+		cstr GetMatchEnd(Strings::cr_substring token, cstr candidate, cstr endGuard);
 	public:
 		BadlyFormattedTypeInferenceEngine(cstr _textBuffer);
 
-		TypeInference InferLocalVariableVariableType(cr_substring token);
-		TypeInference InferContainerClass(cr_substring token);
-		TypeInference InferParentMember(const TypeInference& classInference, cr_substring token);
+		TypeInference InferLocalVariableVariableType(Strings::cr_substring token);
+		TypeInference InferContainerClass(Strings::cr_substring token);
+		TypeInference InferParentMember(const TypeInference& classInference, Strings::cr_substring token);
 	};
 
-	ROCOCO_MISC_UTILS_API Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring candidate, cr_substring document);
-	ROCOCO_MISC_UTILS_API void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring type, cr_substring file);
+	ROCOCO_MISC_UTILS_API Strings::Substring GetLocalTypeFromCurrentDocument(bool& isThis, Strings::cr_substring candidate, Strings::cr_substring document);
+	ROCOCO_MISC_UTILS_API void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, Strings::cr_substring searchTerm, Strings::cr_substring type, Strings::cr_substring file);
 }

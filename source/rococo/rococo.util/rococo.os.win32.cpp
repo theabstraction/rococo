@@ -719,7 +719,7 @@ namespace
 
 namespace Rococo::OS
 {
-	ROCOCO_API void PasteStringFromClipboard(IEventCallback<cstr>& populator)
+	ROCOCO_API void PasteStringFromClipboard(Strings::IStringPopulator& populator)
 	{
 		if (!OpenClipboard(nullptr))
 		{
@@ -733,7 +733,7 @@ namespace Rococo::OS
 				auto* pData = (const char*)GlobalLock(hItem);
 				if (pData)
 				{
-					populator.OnEvent(pData);
+					populator.Populate(pData);
 					GlobalUnlock(hItem);
 				}
 			}
@@ -1706,7 +1706,7 @@ namespace WIN32_ANON
 		void OnModified(const wchar_t* filename)
 		{
 			Sleep(500);
-			Sync sync(threadLock);
+			OS::Sync sync(threadLock);
 
 			enum { MAX_MODIFIED_QUEUE_LENGTH = 20 };
 			if (modifiedFiles.size() < MAX_MODIFIED_QUEUE_LENGTH)
@@ -2029,7 +2029,7 @@ namespace Rococo::IO
 	}
 }
 
-namespace Rococo
+namespace Rococo::OS
 {
 	ROCOCO_API ThreadLock::ThreadLock()
 	{
@@ -2052,826 +2052,788 @@ namespace Rococo
 		LeaveCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(this->implementation));
 	}
 
-	namespace OS
+	ROCOCO_API IAppControlSupervisor* CreateAppControl()
 	{
-		ROCOCO_API IAppControlSupervisor* CreateAppControl()
+		struct AppControl : public IAppControlSupervisor, public Rococo::Tasks::ITaskQueue
 		{
-			struct AppControl : public IAppControlSupervisor, public Rococo::Tasks::ITaskQueue
+			void ShutdownApp() override
 			{
-				void ShutdownApp() override
+				isRunning = false;
+				PostQuitMessage(0);
+			}
+
+			bool IsRunning() const
+			{
+				return isRunning;
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+
+			std::list<Rococo::Function<void()>> tasks;
+
+			Rococo::Tasks::ITaskQueue& MainThreadQueue() override
+			{
+				return *this;
+			}
+
+			void AddTask(Rococo::Function<void()> lambda) override
+			{
+				tasks.push_back(lambda);
+			}
+
+			bool ExecuteNext() override
+			{
+				if (tasks.empty())
 				{
-					isRunning = false;
-					PostQuitMessage(0);
+					return false;
 				}
 
-				bool IsRunning() const
-				{
-					return isRunning;
-				}
+				tasks.front().Invoke();
+				tasks.pop_front();
+				return true;
+			}
 
-				void Free() override
-				{
-					delete this;
-				}
+			bool isRunning = true;
+		};
 
-				std::list<Rococo::Function<void()>> tasks;
+		return new AppControl();
+	}
 
-				Rococo::Tasks::ITaskQueue& MainThreadQueue() override
-				{
-					return *this;
-				}
+	ROCOCO_API void BeepWarning()
+	{
+		MessageBeep(MB_ICONWARNING);
+	}
 
-				void AddTask(Rococo::Function<void()> lambda) override
-				{
-					tasks.push_back(lambda);
-				}
-
-				bool ExecuteNext() override
-				{
-					if (tasks.empty())
-					{
-						return false;
-					}
-
-					tasks.front().Invoke();
-					tasks.pop_front();
-					return true;
-				}
-
-				bool isRunning = true;
-			};
-
-			return new AppControl();
-		}
-
-		ROCOCO_API void BeepWarning()
-		{
-			MessageBeep(MB_ICONWARNING);
-		}
-
-		ROCOCO_API void PrintDebug(const char* format, ...)
-		{
+	ROCOCO_API void PrintDebug(const char* format, ...)
+	{
 #if _DEBUG
-			va_list arglist;
-			va_start(arglist, format);
-			char line[4096];
-			SafeVFormat(line, sizeof(line), format, arglist);
-			OutputDebugStringA(line);
+		va_list arglist;
+		va_start(arglist, format);
+		char line[4096];
+		SafeVFormat(line, sizeof(line), format, arglist);
+		OutputDebugStringA(line);
 #else
-			UNUSED(format);
+		UNUSED(format);
 #endif
+	}
+
+	ROCOCO_API cstr GetCommandLineText()
+	{
+		return GetCommandLineA();
+	}
+
+	ROCOCO_API void CopyStringToClipboard(cstr text)
+	{
+		size_t len = strlen(text);
+
+		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
+		if (!hMem)
+		{
+			return;
 		}
 
-		ROCOCO_API cstr GetCommandLineText()
+		void* pBuffer = GlobalLock(hMem);
+
+		memcpy(pBuffer, text, len + 1);
+		GlobalUnlock(hMem);
+
+		HANDLE hData = nullptr;
+
+		if (OpenClipboard(0))
 		{
-			return GetCommandLineA();
+			if (EmptyClipboard())
+			{
+				hData = SetClipboardData(CF_TEXT, hMem);
+			}
+			CloseClipboard();
 		}
-
-		ROCOCO_API void CopyStringToClipboard(cstr text)
+		else
 		{
-			size_t len = strlen(text);
-
-			HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
-			if (!hMem)
-			{
-				return;
-			}
-
-			void* pBuffer = GlobalLock(hMem);
-
-			memcpy(pBuffer, text, len + 1);
-			GlobalUnlock(hMem);
-
-			HANDLE hData = nullptr;
-
-			if (OpenClipboard(0))
-			{
-				if (EmptyClipboard())
-				{
-					hData = SetClipboardData(CF_TEXT, hMem);
-				}
-				CloseClipboard();
-			}
-			else
-			{
-				GlobalFree(hMem);
-			}
-		}
-
-		ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
-		{
-			StackStringBuilder sb(buffer, capacity);
-
-			if (ex.ErrorCode() != 0)
-			{
-				char sysMessage[256];
-				cstr sep;
-				DWORD code = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, ex.ErrorCode(), 0, sysMessage, 256, nullptr);
-				if (code == 0)
-				{
-					sep = "";
-					sysMessage[0] = 0;
-				}
-				else
-				{
-					sep = " - ";
-				}
-
-				sb.AppendFormat(" %s%sError code: %d (0x%8.8X)\n", sysMessage, sep, ex.ErrorCode(), ex.ErrorCode());
-			}
-
-			sb << ex.Message() << "\n";
-
-			auto stackFrames = ex.StackFrames();
-			if (appendStack && stackFrames)
-			{
-				sb << "Stack Frames\n";
-				struct ANON : Debugging::IStackFrameFormatter
-				{
-					StringBuilder* sb;
-
-					void Format(const Debugging::StackFrame& sf) override
-					{
-						auto& s = *sb;
-						s.AppendFormat("#%-2u %-48.48s ", sf.depth, sf.functionName);
-						if (*sf.sourceFile)
-						{
-							s.AppendFormat("Line #%4u of %-64s ", sf.lineNumber, sf.sourceFile);
-						}
-						else
-						{
-							s.AppendFormat("%-79.79s", "");
-						}
-						s.AppendFormat("%-64s ", sf.moduleName);
-						s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
-						s << "\n";
-					}
-				} formatter;
-				formatter.sb = &sb;
-
-				stackFrames->FormatEachStackFrame(formatter);
-			}
-		}
-
-		ROCOCO_API void CopyExceptionToClipboard(IException& ex)
-		{
-			std::vector<char> buffer;
-			buffer.resize(128_kilobytes);
-			BuildExceptionString(buffer.data(), buffer.size(), ex, true);
-			CopyStringToClipboard(buffer.data());
+			GlobalFree(hMem);
 		}
 	}
 
-	namespace IO
+	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
 	{
-		ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory)
+		StackStringBuilder sb(buffer, capacity);
+
+		if (ex.ErrorCode() != 0)
 		{
-			if (subdirectory == nullptr || *subdirectory == 0)
+			char sysMessage[256];
+			cstr sep;
+			DWORD code = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, ex.ErrorCode(), 0, sysMessage, 256, nullptr);
+			if (code == 0)
 			{
-				Throw(0, "%s: subdirectory argument was blank", __FUNCTION__);
+				sep = "";
+				sysMessage[0] = 0;
+			}
+			else
+			{
+				sep = " - ";
 			}
 
-			if (StrStrW(subdirectory, L".") != nullptr)
-			{
-				Throw(0, "%s: subdirectory %ws contained an illegal character '.'", __FUNCTION__, subdirectory);
-			}
+			sb.AppendFormat(" %s%sError code: %d (0x%8.8X)\n", sysMessage, sep, ex.ErrorCode(), ex.ErrorCode());
+		}
 
-			if (StrStrW(subdirectory, L"%") != nullptr)
-			{
-				Throw(0, "%s: subdirectory %ws contained an illegal character '%'", __FUNCTION__, subdirectory);
-			}
+		sb << ex.Message() << "\n";
 
-			if (StrStrW(subdirectory, L"$") != nullptr)
+		auto stackFrames = ex.StackFrames();
+		if (appendStack && stackFrames)
+		{
+			sb << "Stack Frames\n";
+			struct ANON : Debugging::IStackFrameFormatter
 			{
-				Throw(0, "%s: subdirectory %ws contained an illegal character '$'", __FUNCTION__, subdirectory);
-			}
+				StringBuilder* sb;
 
-			if (subdirectory[0] == L'\\')
+				void Format(const Debugging::StackFrame& sf) override
+				{
+					auto& s = *sb;
+					s.AppendFormat("#%-2u %-48.48s ", sf.depth, sf.functionName);
+					if (*sf.sourceFile)
+					{
+						s.AppendFormat("Line #%4u of %-64s ", sf.lineNumber, sf.sourceFile);
+					}
+					else
+					{
+						s.AppendFormat("%-79.79s", "");
+					}
+					s.AppendFormat("%-64s ", sf.moduleName);
+					s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
+					s << "\n";
+				}
+			} formatter;
+			formatter.sb = &sb;
+
+			stackFrames->FormatEachStackFrame(formatter);
+		}
+	}
+
+	ROCOCO_API void CopyExceptionToClipboard(IException& ex)
+	{
+		std::vector<char> buffer;
+		buffer.resize(128_kilobytes);
+		BuildExceptionString(buffer.data(), buffer.size(), ex, true);
+		CopyStringToClipboard(buffer.data());
+	}
+}
+
+namespace Rococo::IO
+{
+	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory)
+	{
+		if (subdirectory == nullptr || *subdirectory == 0)
+		{
+			Throw(0, "%s: subdirectory argument was blank", __FUNCTION__);
+		}
+
+		if (StrStrW(subdirectory, L".") != nullptr)
+		{
+			Throw(0, "%s: subdirectory %ws contained an illegal character '.'", __FUNCTION__, subdirectory);
+		}
+
+		if (StrStrW(subdirectory, L"%") != nullptr)
+		{
+			Throw(0, "%s: subdirectory %ws contained an illegal character '%'", __FUNCTION__, subdirectory);
+		}
+
+		if (StrStrW(subdirectory, L"$") != nullptr)
+		{
+			Throw(0, "%s: subdirectory %ws contained an illegal character '$'", __FUNCTION__, subdirectory);
+		}
+
+		if (subdirectory[0] == L'\\')
+		{
+			Throw(0, "%s: subdirectory %ws must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
+		}
+
+		PWSTR path;
+		HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
+		if (FAILED(hr) || path == nullptr)
+		{
+			Throw(hr, "Failed to identify user documents folder. Win32 issue?");
+		}
+
+		WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + wcslen(subdirectory)));
+		wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
+
+		int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
+		if (len >= MAX_PATH)
+		{
+			Throw(hr, "%s: path too long: %ws", __FUNCTION__, fullpath);
+		}
+
+		if (!CreateDirectoryW(fullpath, nullptr))
+		{
+			hr = GetLastError();
+			if (hr == ERROR_ALREADY_EXISTS)
 			{
-				Throw(0, "%s: subdirectory %ws must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
+				// We ensured the directory exists
+				return;
 			}
+			Throw(hr, "%s: could not create subdirectory %ws", __FUNCTION__, fullpath);
+		}
+	}
 
-			PWSTR path;
-			HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	{
+		if (text.length > 1024_megabytes)
+		{
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
+		}
+
+		HANDLE hFile = INVALID_HANDLE_VALUE;
+
+		switch (target)
+		{
+		case TargetDirectory_UserDocuments:
+		{
+			PWSTR path; // This could potentially be a long longer than MAX_PATH, as windows allows 32k characters in a path
+			HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path); // A really badly designed API, would have been much better for MSoft to have used a string populator callback, so that freeing memory was not the job of the caller
 			if (FAILED(hr) || path == nullptr)
 			{
 				Throw(hr, "Failed to identify user documents folder. Win32 issue?");
 			}
 
-			WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + wcslen(subdirectory)));
-			wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
+			std::vector<wchar_t> fullPath;
 
-			int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
-			if (len >= MAX_PATH)
+			try
 			{
-				Throw(hr, "%s: path too long: %ws", __FUNCTION__, fullpath);
+				fullPath.resize(wcslen(path) + 2 + wcslen(filename));
+				wnsprintfW(fullPath.data(), MAX_PATH, L"%ws\\%ws", path, filename);
+				CoTaskMemFree(path);
+			}
+			catch (...)
+			{
+				CoTaskMemFree(path);
+				Throw(0, "Error allocating memory for SaveAsciiTextFile");
 			}
 
-			if (!CreateDirectoryW(fullpath, nullptr))
+			hFile = CreateFileW(fullPath.data(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+			if (hFile == INVALID_HANDLE_VALUE)
 			{
-				hr = GetLastError();
-				if (hr == ERROR_ALREADY_EXISTS)
-				{
-					// We ensured the directory exists
-					return;
-				}
-				Throw(hr, "%s: could not create subdirectory %ws", __FUNCTION__, fullpath);
+				Throw(GetLastError(), "Cannot create file %ls", fullPath.data());
 			}
 		}
+		break;
+		case TargetDirectory_Root:
+			hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
-		{
-			if (text.length > 1024_megabytes)
+			if (hFile == INVALID_HANDLE_VALUE)
 			{
-				Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
-			}
-
-			HANDLE hFile = INVALID_HANDLE_VALUE;
-
-			switch (target)
-			{
-			case TargetDirectory_UserDocuments:
-			{
-				PWSTR path;
-				HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
-				if (FAILED(hr) || path == nullptr)
-				{
-					Throw(hr, "Failed to identify user documents folder. Win32 issue?");
-				}
-
-				WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + text.length));
-				int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, filename);
-				if (len >= MAX_PATH)
-				{
-					Throw(hr, "%s: Filename too long: %ws", __FUNCTION__, fullpath);
-				}
-				CoTaskMemFree(path);
-
-				hFile = CreateFileW(fullpath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-				if (hFile == INVALID_HANDLE_VALUE)
-				{
-					Throw(GetLastError(), "Cannot create file %ls", fullpath);
-				}
+				Throw(GetLastError(), "Cannot create file %ls in root directory", filename);
 			}
 			break;
-			case TargetDirectory_Root:
-				hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		default:
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
+			break;
+		}
 
-				if (hFile == INVALID_HANDLE_VALUE)
-				{
-					Throw(GetLastError(), "Cannot create file %ls in root directory", filename);
-				}
-				break;
-			default:
-				Throw(0, "Rococo::IO::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
-				break;
-			}
+		DWORD bytesWritten;
+		bool status = WriteFile(hFile, text.buffer, (DWORD)text.length, &bytesWritten, NULL);
+		int err = GetLastError();
+		CloseHandle(hFile);
 
-			DWORD bytesWritten;
-			bool status = WriteFile(hFile, text.buffer, (DWORD)text.length, &bytesWritten, NULL);
-			int err = GetLastError();
+		if (!status)
+		{
+			Throw(err, "Rococo::IO::SaveAsciiTextFile(%ls) : failed to write text to file", filename);
+		}
+	}
+
+	ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname)
+	{
+		wchar_t* userDocPath;
+		SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
+
+		size_t nChars = wcslen(userDocPath) + 2 + strlen(shortname);
+
+		if (nChars > capacity) Throw(0, "Rococo::IO::GetUserPath -> Insufficient capacity in result buffer");
+
+		_snwprintf_s(fullpath, capacity, capacity, L"%ls\\%hs", userDocPath, shortname);
+
+		CoTaskMemFree(userDocPath);
+	}
+
+	ROCOCO_API void DeleteUserFile(cstr filename)
+	{
+		wchar_t* userDocPath;
+		SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
+
+		size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
+		size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
+		wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
+		_snwprintf_s(fullPath, nChars, nChars, L"%ls\\%hs", userDocPath, filename);
+		CoTaskMemFree(userDocPath);
+
+		BOOL success = DeleteFileW(fullPath);
+		HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+		if (!success)
+		{
+			UNUSED(hr);
+		}
+	}
+
+	ROCOCO_API void SaveUserFile(cstr filename, cstr s)
+	{
+		wchar_t* userDocPath;
+		SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
+
+		size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
+		size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
+		wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
+		_snwprintf_s(fullPath, nChars, nChars, L"%ls\\%hs", userDocPath, filename);
+		CoTaskMemFree(userDocPath);
+
+		HANDLE hFile = CreateFileW(fullPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (hFile != INVALID_HANDLE_VALUE)
+		{
+			DWORD writeLength;
+			WriteFile(hFile, s, (DWORD)(sizeof(char) * rlen(s)), &writeLength, nullptr);
 			CloseHandle(hFile);
+		}
+	}
 
-			if (!status)
+	ROCOCO_API bool IsDirectory(const wchar_t* filename)
+	{
+		DWORD flags = GetFileAttributesW(filename);
+		return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
+	}
+
+	ROCOCO_API bool IsDirectory(cstr filename)
+	{
+		DWORD flags = GetFileAttributesA(filename);
+		return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
+	}
+
+	template<class T> struct ComObject
+	{
+		T* instance;
+
+		ComObject() : instance(nullptr) {}
+		ComObject(T* _instance) : instance(_instance) {}
+		~ComObject() { if (instance) instance->Release(); }
+
+		T* operator -> () { return instance; }
+		T** operator& () { return &instance; }
+
+		operator T* () { return instance; }
+	};
+
+	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity)
+	{
+		class DialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
+		{
+		public:
+			// IUnknown methods
+			IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
 			{
-				Throw(err, "Rococo::IO::SaveAsciiTextFile(%ls) : failed to write text to file", filename);
-			}
-		}
-
-		ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname)
-		{
-			wchar_t* userDocPath;
-			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
-
-			size_t nChars = wcslen(userDocPath) + 2 + strlen(shortname);
-
-			if (nChars > capacity) Throw(0, "Rococo::IO::GetUserPath -> Insufficient capacity in result buffer");
-
-			_snwprintf_s(fullpath, capacity, capacity, L"%ls\\%hs", userDocPath, shortname);
-
-			CoTaskMemFree(userDocPath);
-		}
-
-		ROCOCO_API void DeleteUserFile(cstr filename)
-		{
-			wchar_t* userDocPath;
-			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
-
-			size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
-			size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
-			wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
-			_snwprintf_s(fullPath, nChars, nChars, L"%ls\\%hs", userDocPath, filename);
-			CoTaskMemFree(userDocPath);
-
-			BOOL success = DeleteFileW(fullPath);
-			HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
-			if (!success) 
-			{
-				UNUSED(hr);
-			}
-		}
-
-		ROCOCO_API void SaveUserFile(cstr filename, cstr s)
-		{
-			wchar_t* userDocPath;
-			SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &userDocPath);
-
-			size_t nChars = wcslen(userDocPath) + 2 + strlen(filename);
-			size_t sizeOfBuffer = sizeof(wchar_t) * nChars;
-			wchar_t* fullPath = (wchar_t*)alloca(sizeOfBuffer);
-			_snwprintf_s(fullPath, nChars, nChars, L"%ls\\%hs", userDocPath, filename);
-			CoTaskMemFree(userDocPath);
-
-			HANDLE hFile = CreateFileW(fullPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-			if (hFile != INVALID_HANDLE_VALUE)
-			{
-				DWORD writeLength;
-				WriteFile(hFile, s, (DWORD)(sizeof(char) * rlen(s)), &writeLength, nullptr);
-				CloseHandle(hFile);
-			}
-		}
-
-		ROCOCO_API bool IsDirectory(const wchar_t* filename)
-		{
-			DWORD flags = GetFileAttributesW(filename);
-			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
-		}
-
-		ROCOCO_API bool IsDirectory(cstr filename)
-		{
-			DWORD flags = GetFileAttributesA(filename);
-			return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
-		}
-
-		template<class T> struct ComObject
-		{
-			T* instance;
-
-			ComObject() : instance(nullptr) {}
-			ComObject(T* _instance) : instance(_instance) {}
-			~ComObject() { if (instance) instance->Release(); }
-
-			T* operator -> () { return instance; }
-			T** operator& () { return &instance; }
-
-			operator T* () { return instance; }
-		};
-
-		ROCOCO_API bool ChooseDirectory(char* name, size_t capacity)
-		{
-			class DialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
-			{
-			public:
-				// IUnknown methods
-				IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
-				{
 #pragma warning( push )
 #pragma warning( disable : 4838)
-					static const QITAB qit[] =
-					{
-					   QITABENT(DialogEventHandler, IFileDialogEvents),
-					   QITABENT(DialogEventHandler, IFileDialogControlEvents),
-					   { nullptr, 0 }
-					};
-					return QISearch(this, qit, riid, ppv);
+				static const QITAB qit[] =
+				{
+				   QITABENT(DialogEventHandler, IFileDialogEvents),
+				   QITABENT(DialogEventHandler, IFileDialogControlEvents),
+				   { nullptr, 0 }
+				};
+				return QISearch(this, qit, riid, ppv);
 #pragma warning( pop )
-				}
+			}
 
-				IFACEMETHODIMP_(ULONG) AddRef()
+			IFACEMETHODIMP_(ULONG) AddRef()
+			{
+				return InterlockedIncrement(&_cRef);
+			}
+
+			IFACEMETHODIMP_(ULONG) Release()
+			{
+				long cRef = InterlockedDecrement(&_cRef);
+				if (!cRef)
+					delete this;
+				return cRef;
+			}
+
+			// IFileDialogEvents methods
+			IFACEMETHODIMP OnFileOk(IFileDialog*) { return S_OK; };
+			IFACEMETHODIMP OnFolderChange(IFileDialog*) { return S_OK; };
+			IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return S_OK; };
+			IFACEMETHODIMP OnHelp(IFileDialog*) { return S_OK; };
+			IFACEMETHODIMP OnSelectionChange(IFileDialog*) { return S_OK; };
+			IFACEMETHODIMP OnShareViolation(IFileDialog*, IShellItem*, FDE_SHAREVIOLATION_RESPONSE*) { return S_OK; };
+			IFACEMETHODIMP OnTypeChange(IFileDialog*) { return S_OK; };
+			IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return S_OK; };
+
+			// IFileDialogControlEvents methods
+			IFACEMETHODIMP OnItemSelected(IFileDialogCustomize*, DWORD, DWORD) { return S_OK; };
+			IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize*, DWORD) { return S_OK; };
+			IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize*, DWORD, BOOL) { return S_OK; };
+			IFACEMETHODIMP OnControlActivating(IFileDialogCustomize*, DWORD) { return S_OK; };
+
+			static HRESULT CreateInstance(REFIID riid, void** ppv)
+			{
+				*ppv = NULL;
+				DialogEventHandler* pDialogEventHandler = new (std::nothrow) DialogEventHandler();
+				HRESULT hr = pDialogEventHandler ? S_OK : E_OUTOFMEMORY;
+				if (SUCCEEDED(hr))
 				{
-					return InterlockedIncrement(&_cRef);
+					hr = pDialogEventHandler->QueryInterface(riid, ppv);
+					pDialogEventHandler->Release();
 				}
-
-				IFACEMETHODIMP_(ULONG) Release()
-				{
-					long cRef = InterlockedDecrement(&_cRef);
-					if (!cRef)
-						delete this;
-					return cRef;
-				}
-
-				// IFileDialogEvents methods
-				IFACEMETHODIMP OnFileOk(IFileDialog *) { return S_OK; };
-				IFACEMETHODIMP OnFolderChange(IFileDialog *) { return S_OK; };
-				IFACEMETHODIMP OnFolderChanging(IFileDialog *, IShellItem *) { return S_OK; };
-				IFACEMETHODIMP OnHelp(IFileDialog *) { return S_OK; };
-				IFACEMETHODIMP OnSelectionChange(IFileDialog *) { return S_OK; };
-				IFACEMETHODIMP OnShareViolation(IFileDialog *, IShellItem *, FDE_SHAREVIOLATION_RESPONSE *) { return S_OK; };
-				IFACEMETHODIMP OnTypeChange(IFileDialog*) { return S_OK; };
-				IFACEMETHODIMP OnOverwrite(IFileDialog *, IShellItem *, FDE_OVERWRITE_RESPONSE *) { return S_OK; };
-
-				// IFileDialogControlEvents methods
-				IFACEMETHODIMP OnItemSelected(IFileDialogCustomize*, DWORD, DWORD) { return S_OK; };
-				IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize *, DWORD) { return S_OK; };
-				IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize *, DWORD, BOOL) { return S_OK; };
-				IFACEMETHODIMP OnControlActivating(IFileDialogCustomize *, DWORD) { return S_OK; };
-
-				static HRESULT CreateInstance(REFIID riid, void **ppv)
-				{
-					*ppv = NULL;
-					DialogEventHandler *pDialogEventHandler = new (std::nothrow) DialogEventHandler();
-					HRESULT hr = pDialogEventHandler ? S_OK : E_OUTOFMEMORY;
-					if (SUCCEEDED(hr))
-					{
-						hr = pDialogEventHandler->QueryInterface(riid, ppv);
-						pDialogEventHandler->Release();
-					}
-					return hr;
-				}
-
-				DialogEventHandler() : _cRef(1) { };
-			private:
-				~DialogEventHandler() { };
-				long _cRef;
-			};
-
-			ComObject<IFileDialog> pfd;
-			HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
-			if (FAILED(hr))
-			{
-				Throw(hr, "CoCreateInstance(CLSID_FileOpenDialog failed");
+				return hr;
 			}
 
-			ComObject<IFileDialogEvents> pfde;
-			hr = DialogEventHandler::CreateInstance(IID_PPV_ARGS(&pfde));
-			if (FAILED(hr))
-			{
-				Throw(hr, "CDialogEventHandler_CreateInstance failed");
-			}
+			DialogEventHandler() : _cRef(1) { };
+		private:
+			~DialogEventHandler() { };
+			long _cRef;
+		};
 
-			DWORD dwCookie;
-			hr = pfd->Advise(pfde, &dwCookie);
-			if (FAILED(hr))
-			{
-				Throw(hr, "pfd->Advise failed");
-			}
-
-			// Set the options on the dialog.
-			DWORD dwFlags;
-
-			// Before setting, always get the options first in order 
-			// not to override existing options.
-			hr = pfd->GetOptions(&dwFlags);
-			if (FAILED(hr))
-			{
-				Throw(hr, "pfd->GetOptions failed");
-			}
-
-			// In this case, get shell items only for file system items.
-			hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS);
-			if (FAILED(hr))
-			{
-				Throw(hr, "pfd->SetOptions failed");
-			}
-
-			// Set the file types to display only. 
-			// Notice that this is a 1-based array.
-			/*
-			hr = pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes);
-			if (FAILED(hr))
-			{
-			   Throw(hr, "pfd->SetFileTypes failed");
-			}
-			*/
-
-			/*
-			// Set the selected file type index to Word Docs for this example.
-			hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
-			if (FAILED(hr))
-			{
-			   Throw(hr, "pfd->SetFileTypeIndex failed");
-			}
-			*/
-
-			/*
-			// Set the default extension to be ".doc" file.
-			hr = pfd->SetDefaultExtension("doc;docx");
-			if (FAILED(hr))
-			{
-			   Throw(hr, "pfd->SetDefaultExtension failed");
-			}
-			*/
-
-			// Show the dialog
-			hr = pfd->Show(NULL);
-			if (FAILED(hr))
-			{
-				if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
-				{
-					return false;
-				}
-				Throw(hr, "pfd->Show failed");
-			}
-
-			// Obtain the result once the user clicks 
-			// the 'Open' button.
-			// The result is an IShellItem object.
-			ComObject<IShellItem> psiResult;
-			hr = pfd->GetResult(&psiResult);
-			if (FAILED(hr))
-			{
-				Throw(hr, "pfd->GetResult");
-			}
-
-			wchar_t* _name = nullptr;
-			hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &_name);
-			if (FAILED(hr))
-			{
-				Throw(hr, "pfd->GetResult");
-			}
-
-			SafeFormat(name, capacity, "%ls", _name);
-
-			CoTaskMemFree(_name);
-
-			// Unhook the event handler.
-			pfd->Unadvise(dwCookie);
-
-			return true;
+		ComObject<IFileDialog> pfd;
+		HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+		if (FAILED(hr))
+		{
+			Throw(hr, "CoCreateInstance(CLSID_FileOpenDialog failed");
 		}
 
-		bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtension)
+		ComObject<IFileDialogEvents> pfde;
+		hr = DialogEventHandler::CreateInstance(IID_PPV_ARGS(&pfde));
+		if (FAILED(hr))
 		{
-			using namespace Strings;
+			Throw(hr, "CDialogEventHandler_CreateInstance failed");
+		}
 
-			cstr ext = GetFileExtension(path);
+		DWORD dwCookie;
+		hr = pfd->Advise(pfde, &dwCookie);
+		if (FAILED(hr))
+		{
+			Throw(hr, "pfd->Advise failed");
+		}
 
-			char* mext = (char*) ext;
+		// Set the options on the dialog.
+		DWORD dwFlags;
 
-			if (expectedExtension == nullptr && ext == nullptr)
+		// Before setting, always get the options first in order 
+		// not to override existing options.
+		hr = pfd->GetOptions(&dwFlags);
+		if (FAILED(hr))
+		{
+			Throw(hr, "pfd->GetOptions failed");
+		}
+
+		// In this case, get shell items only for file system items.
+		hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS);
+		if (FAILED(hr))
+		{
+			Throw(hr, "pfd->SetOptions failed");
+		}
+
+		// Set the file types to display only. 
+		// Notice that this is a 1-based array.
+		/*
+		hr = pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes);
+		if (FAILED(hr))
+		{
+		   Throw(hr, "pfd->SetFileTypes failed");
+		}
+		*/
+
+		/*
+		// Set the selected file type index to Word Docs for this example.
+		hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
+		if (FAILED(hr))
+		{
+		   Throw(hr, "pfd->SetFileTypeIndex failed");
+		}
+		*/
+
+		/*
+		// Set the default extension to be ".doc" file.
+		hr = pfd->SetDefaultExtension("doc;docx");
+		if (FAILED(hr))
+		{
+		   Throw(hr, "pfd->SetDefaultExtension failed");
+		}
+		*/
+
+		// Show the dialog
+		hr = pfd->Show(NULL);
+		if (FAILED(hr))
+		{
+			if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
 			{
-				// Celebrating the 42nd anniversay of BBC Basic
-				goto stripExtensionAndCatNew;
+				return false;
 			}
-			else if (expectedExtension == nullptr && ext != nullptr)
-			{
-				// Any extension should be stripped
-				*mext = 0;
-				goto stripExtensionAndCatNew;
-			}
-			else if (expectedExtension && ext)
-			{
-				if (!EqI(expectedExtension, ext))
-				{
-					return false;
-				}
+			Throw(hr, "pfd->Show failed");
+		}
 
-				*mext = 0;
-				goto stripExtensionAndCatNew;
-			}
-			else // expectedExtension && !ext
+		// Obtain the result once the user clicks 
+		// the 'Open' button.
+		// The result is an IShellItem object.
+		ComObject<IShellItem> psiResult;
+		hr = pfd->GetResult(&psiResult);
+		if (FAILED(hr))
+		{
+			Throw(hr, "pfd->GetResult");
+		}
+
+		wchar_t* _name = nullptr;
+		hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &_name);
+		if (FAILED(hr))
+		{
+			Throw(hr, "pfd->GetResult");
+		}
+
+		SafeFormat(name, capacity, "%ls", _name);
+
+		CoTaskMemFree(_name);
+
+		// Unhook the event handler.
+		pfd->Unadvise(dwCookie);
+
+		return true;
+	}
+
+	bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtension)
+	{
+		using namespace Strings;
+
+		cstr ext = GetFileExtension(path);
+
+		char* mext = (char*)ext;
+
+		if (expectedExtension == nullptr && ext == nullptr)
+		{
+			// Celebrating the 42nd anniversay of BBC Basic
+			goto stripExtensionAndCatNew;
+		}
+		else if (expectedExtension == nullptr && ext != nullptr)
+		{
+			// Any extension should be stripped
+			*mext = 0;
+			goto stripExtensionAndCatNew;
+		}
+		else if (expectedExtension && ext)
+		{
+			if (!EqI(expectedExtension, ext))
 			{
 				return false;
 			}
 
-		stripExtensionAndCatNew:
-			if (newExtension) StringCat(path.buf, newExtension, U8FilePath::CAPACITY);
-			return true;
+			*mext = 0;
+			goto stripExtensionAndCatNew;
+		}
+		else // expectedExtension && !ext
+		{
+			return false;
 		}
 
-		ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity)
-		{
-			cstr finalChar = GetFinalNull(pathname);
+	stripExtensionAndCatNew:
+		if (newExtension) StringCat(path.buf, newExtension, U8FilePath::CAPACITY);
+		return true;
+	}
 
-			if (pathname == nullptr || pathname == finalChar)
+	ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity)
+	{
+		cstr finalChar = GetFinalNull(pathname);
+
+		if (pathname == nullptr || pathname == finalChar)
+		{
+			Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+		}
+
+		bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
+		if (!isSlashed)
+		{
+			if (finalChar >= (pathname + capacity - 1))
 			{
-				Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+				Throw(0, "Insufficient room in directory buffer to trail with slash");
 			}
 
-			bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
-			if (!isSlashed)
-			{
-				if (finalChar >= (pathname + capacity - 1))
-				{
-					Throw(0, "Insufficient room in directory buffer to trail with slash");
-				}
+			char* mutablePath = const_cast<char*>(finalChar);
+			mutablePath[0] = L'/';
+			mutablePath[1] = 0;
+		}
+	}
 
-				char* mutablePath = const_cast<char*>(finalChar);
-				mutablePath[0] = L'/';
-				mutablePath[1] = 0;
+	ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
+	{
+		const wchar_t* finalChar = GetFinalNull(pathname);
+
+		if (pathname == nullptr || pathname == finalChar)
+		{
+			Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+		}
+
+		bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
+		if (!isSlashed)
+		{
+			if (finalChar >= (pathname + capacity - 1))
+			{
+				Throw(0, "Insufficient room in directory buffer to trail with slash");
+			}
+
+			wchar_t* mutablePath = const_cast<wchar_t*>(finalChar);
+			mutablePath[0] = L'/';
+			mutablePath[1] = 0;
+		}
+	}
+
+	ROCOCO_API bool IsDirectory(const WIN32_FIND_DATAW& fd)
+	{
+		return (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+	}
+
+	ROCOCO_API void* RouteSearchResult(const WIN32_FIND_DATAW& findResult, const wchar_t* root, const wchar_t* containerRelRoot, void* containerContext, IEventCallback<FileItemData>& onFile)
+	{
+		WideFilePath fileName;
+		Format(fileName, L"%s%s%s", root, containerRelRoot, findResult.cFileName);
+
+		FileItemData item;
+		item.fullPath = fileName;
+		item.itemRelContainer = findResult.cFileName;
+		item.containerRelRoot = containerRelRoot;
+		item.containerContext = containerContext;
+		item.outContext = nullptr;
+		item.isDirectory = IsDirectory(findResult);
+		onFile.OnEvent(item);
+		return item.outContext;
+	}
+
+	ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile);
+
+	class SearchObject
+	{
+	private:
+		HANDLE hSearch = INVALID_HANDLE_VALUE;
+		WIN32_FIND_DATAW rootFindData;
+		wchar_t fullSearchFilter[_MAX_PATH];
+		wchar_t rootDirectory[_MAX_PATH];
+
+	public:
+		SearchObject(const wchar_t* filter)
+		{
+			if (filter == nullptr || filter[0] == 0)
+			{
+				Throw(0, "%s: <filter> was blank.", __FUNCTION__);
+			}
+
+			auto finalChar = GetFinalNull(filter)[-1];
+			bool isSlashed = finalChar == L'\\' || finalChar == L'/';
+
+			DWORD status = GetFileAttributesW(filter);
+
+			if (status != INVALID_FILE_ATTRIBUTES && ((status & FILE_ATTRIBUTE_DIRECTORY) != 0))
+			{
+				SafeFormat(fullSearchFilter, L"%s%s*.*", filter, isSlashed ? L"" : L"\\");
+				SafeFormat(rootDirectory, L"%s%s", filter, isSlashed ? L"" : L"\\");
+			}
+			else // Assume we have <dir>/*.ext or something similar
+			{
+				SafeFormat(fullSearchFilter, L"%s", filter);
+				SafeFormat(rootDirectory, L"%s", filter);
+				IO::MakeContainerDirectory(rootDirectory);
+			}
+
+			hSearch = FindFirstFileW(fullSearchFilter, &rootFindData);
+
+			if (hSearch == INVALID_HANDLE_VALUE)
+			{
+				HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+				if (hr != ERROR_FILE_NOT_FOUND)
+				{
+					Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
+				}
+				return;
 			}
 		}
 
-		ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
+		void RouteSearchResults(const wchar_t* root, IEventCallback<FileItemData>& onFile, void* containerContext, bool recurse)
 		{
-			const wchar_t* finalChar = GetFinalNull(pathname);
-
-			if (pathname == nullptr || pathname == finalChar)
+			if (root == nullptr)
 			{
-				Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+				root = rootDirectory;
 			}
-
-			bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
-			if (!isSlashed)
+			do
 			{
-				if (finalChar >= (pathname + capacity - 1))
+				auto* containerRelRoot = rootDirectory + wcslen(root);
+
+				if (IsDirectory(rootFindData))
 				{
-					Throw(0, "Insufficient room in directory buffer to trail with slash");
-				}
-
-				wchar_t* mutablePath = const_cast<wchar_t*>(finalChar);
-				mutablePath[0] = L'/';
-				mutablePath[1] = 0;
-			}
-		}
-
-		ROCOCO_API bool IsDirectory(const WIN32_FIND_DATAW& fd)
-		{
-			return (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-		}
-
-		ROCOCO_API void* RouteSearchResult(const WIN32_FIND_DATAW& findResult, const wchar_t* root, const wchar_t* containerRelRoot, void* containerContext, IEventCallback<FileItemData>& onFile)
-		{
-			WideFilePath fileName;
-			Format(fileName, L"%s%s%s", root, containerRelRoot, findResult.cFileName);
-
-			FileItemData item;
-			item.fullPath = fileName;
-			item.itemRelContainer = findResult.cFileName;
-			item.containerRelRoot = containerRelRoot;
-			item.containerContext = containerContext;
-			item.outContext = nullptr;
-			item.isDirectory = IsDirectory(findResult);
-			onFile.OnEvent(item);
-			return item.outContext;
-		}
-
-		ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile);
-
-		class SearchObject
-		{
-		private:
-			HANDLE hSearch = INVALID_HANDLE_VALUE;
-			WIN32_FIND_DATAW rootFindData;
-			wchar_t fullSearchFilter[_MAX_PATH];
-			wchar_t rootDirectory[_MAX_PATH];
-
-		public:
-			SearchObject(const wchar_t* filter)
-			{
-				if (filter == nullptr || filter[0] == 0)
-				{
-					Throw(0, "%s: <filter> was blank.", __FUNCTION__);
-				}
-
-				auto finalChar = GetFinalNull(filter)[-1];
-				bool isSlashed = finalChar == L'\\' || finalChar == L'/';
-
-				DWORD status = GetFileAttributesW(filter);
-
-				if (status != INVALID_FILE_ATTRIBUTES && ((status & FILE_ATTRIBUTE_DIRECTORY) != 0))
-				{
-					SafeFormat(fullSearchFilter, L"%s%s*.*", filter, isSlashed ? L"" : L"\\");
-					SafeFormat(rootDirectory, L"%s%s", filter, isSlashed ? L"" : L"\\");
-				}
-				else // Assume we have <dir>/*.ext or something similar
-				{
-					SafeFormat(fullSearchFilter, L"%s", filter);
-					SafeFormat(rootDirectory, L"%s", filter);
-					IO::MakeContainerDirectory(rootDirectory);
-				}
-
-				hSearch = FindFirstFileW(fullSearchFilter, &rootFindData);
-
-				if (hSearch == INVALID_HANDLE_VALUE)
-				{
-					HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
-					if (hr != ERROR_FILE_NOT_FOUND)
+					if (*rootFindData.cFileName != '.')
 					{
-						Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
-					}
-					return;
-				}
-			}
+						void* subContext = RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
 
-			void RouteSearchResults(const wchar_t* root, IEventCallback<FileItemData>& onFile, void* containerContext, bool recurse)
-			{
-				if (root == nullptr)
-				{
-					root = rootDirectory;
-				}
-				do
-				{
-					auto* containerRelRoot = rootDirectory + wcslen(root);
-
-					if (IsDirectory(rootFindData))
-					{
-						if (*rootFindData.cFileName != '.')
+						if (recurse)
 						{
-							void* subContext = RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
-
-							if (recurse)
-							{
-								SearchSubdirectoryAndRecurse(root, containerRelRoot, rootFindData.cFileName, subContext, onFile);
-							}
+							SearchSubdirectoryAndRecurse(root, containerRelRoot, rootFindData.cFileName, subContext, onFile);
 						}
 					}
-					else
-					{
-						RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
-					}
-				} while (FindNextFileW(hSearch, &rootFindData));
-			}
+				}
+				else
+				{
+					RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
+				}
+			} while (FindNextFileW(hSearch, &rootFindData));
+		}
 
-			~SearchObject()
+		~SearchObject()
+		{
+			if (hSearch != INVALID_HANDLE_VALUE)
 			{
-				if (hSearch != INVALID_HANDLE_VALUE)
-				{
-					FindClose(hSearch);
-				}
+				FindClose(hSearch);
 			}
-		};
+		}
+	};
 
-		ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
+	ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
+	{
+		struct ANON : IEventCallback<IO::FileItemData>
 		{
-			struct ANON : IEventCallback<IO::FileItemData>
+			IEventCallback<FileItemData>* onFile;
+			const wchar_t* containerDirectory;
+
+			void OnEvent(IO::FileItemData& i) override
 			{
-				IEventCallback<FileItemData>* onFile;
-				const wchar_t* containerDirectory;
-
-				void OnEvent(IO::FileItemData& i) override
-				{
-					IO::FileItemData item;
-					item.containerContext = i.containerContext;
-					item.fullPath = i.fullPath;
-					item.outContext = nullptr;
-					item.isDirectory = i.isDirectory;
-					item.containerRelRoot = i.containerRelRoot;
-					item.itemRelContainer = i.itemRelContainer;
-					onFile->OnEvent(item);
-					i.outContext = item.outContext;
-				}
-			} cb;
-
-			WideFilePath fullDir;
-			Format(fullDir, L"%s%s%s", root, containerDirectory, subdirectory);
-
-			cb.onFile = &onFile;
-			cb.containerDirectory = fullDir;
-
-			SearchObject searchSub(fullDir);
-			searchSub.RouteSearchResults(root, cb, subContext, true);
-		}
-
-		ROCOCO_API void GetCurrentDirectoryPath(U8FilePath& path)
-		{
-			GetCurrentDirectoryA(path.CAPACITY, path.buf);
-		}
-
-		ROCOCO_API void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext)
-		{
-			SearchObject searchObj(filter);
-			searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
-		}
-
-		ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& onLoad, const wchar_t* filename)
-		{
-			std::vector<char> asciiData;
-
-			{ // File is locked in this codesection
-				AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
-
-				if (f.hFile == INVALID_HANDLE_VALUE)
-				{
-					Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %ls", filename);
-				}
-
-				LARGE_INTEGER len;
-				if (!GetFileSizeEx(f, &len))
-				{
-					Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %ls", filename);
-				}
-
-				if (len.QuadPart >= (int64)2048_megabytes)
-				{
-					Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than 2GB.\n%ls", filename);
-				}
-
-				asciiData.resize(len.QuadPart + 1);
-
-				try
-				{
-					f.ReadBuffer((DWORD)len.QuadPart, asciiData.data());
-					asciiData.push_back(0);
-				}
-				catch (IException& ex)
-				{
-					Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
-				}
-
-			} // File is no longer locked
-
-			onLoad.OnEvent(asciiData.data());
-		}
-
-		ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
-		{
-			if (capacity >= 2048_megabytes)
-			{
-				Throw(GetLastError(), "LoadAsciiTextFile: capacity must be less than 2GB.\n%ls", filename);
+				IO::FileItemData item;
+				item.containerContext = i.containerContext;
+				item.fullPath = i.fullPath;
+				item.outContext = nullptr;
+				item.isDirectory = i.isDirectory;
+				item.containerRelRoot = i.containerRelRoot;
+				item.itemRelContainer = i.itemRelContainer;
+				onFile->OnEvent(item);
+				i.outContext = item.outContext;
 			}
+		} cb;
 
+		WideFilePath fullDir;
+		Format(fullDir, L"%s%s%s", root, containerDirectory, subdirectory);
+
+		cb.onFile = &onFile;
+		cb.containerDirectory = fullDir;
+
+		SearchObject searchSub(fullDir);
+		searchSub.RouteSearchResults(root, cb, subContext, true);
+	}
+
+	ROCOCO_API void GetCurrentDirectoryPath(U8FilePath& path)
+	{
+		GetCurrentDirectoryA(path.CAPACITY, path.buf);
+	}
+
+	ROCOCO_API void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext)
+	{
+		SearchObject searchObj(filter);
+		searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
+	}
+
+	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const wchar_t* filename)
+	{
+		std::vector<char> asciiData;
+
+		{ // File is locked in this codesection
 			AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
 
 			if (f.hFile == INVALID_HANDLE_VALUE)
@@ -2885,290 +2847,285 @@ namespace Rococo
 				Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %ls", filename);
 			}
 
-			if (len.QuadPart >= (int64)capacity)
+			if (len.QuadPart >= (int64)2048_megabytes)
 			{
-				Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than %llu bytes.\n%ls", filename, capacity);
+				Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than 2GB.\n%ls", filename);
 			}
+
+			asciiData.resize(len.QuadPart + 1);
 
 			try
 			{
-				f.ReadBuffer((DWORD)len.QuadPart, data);
-				data[len.QuadPart] = 0;
+				f.ReadBuffer((DWORD)len.QuadPart, asciiData.data());
+				asciiData.push_back(0);
 			}
 			catch (IException& ex)
 			{
 				Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
 			}
 
-			return len.QuadPart;
-		}
+		} // File is no longer locked
 
-		ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename)
-		{
-			WideFilePath wPath;
-			Assign(wPath, filename);
+		onLoad.Populate(asciiData.data());
+	}
 
-			return LoadAsciiTextFile(data, capacity, wPath);
-		}
-
-		ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
-		{
-			AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
-			if (hFile == INVALID_HANDLE_VALUE)
-			{
-				Throw(GetLastError(), "Cannot open %ws for writing", targetPath);
-			}
-
-			if (nBytes > 2_gigabytes)
-			{
-				Throw(0, "Cannot open %ws for writing. Buffer length > 2 gigs", targetPath);
-			}
-
-			DWORD bytesWritten;
-			if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
-			{
-				Throw(GetLastError(), "Cannot write to file %ws", targetPath);
-			}
-
-			if (bytesWritten != (DWORD)nBytes)
-			{
-				Throw(GetLastError(), "Only partial write to %ws", targetPath);
-			}
-		}
-
-		ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes)
-		{
-			WideFilePath wPath;
-			Assign(wPath, targetPath);
-			SaveBinaryFile(wPath, buffer, nBytes);
-		}
-	} // IO
-
-	namespace Windows
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
 	{
-		ROCOCO_API void AddColumns(int col, int width, const char* text, HWND hReportView)
+		if (capacity >= 2048_megabytes)
 		{
-			LV_COLUMNA c = { 0 };
-			c.cx = width;
-			c.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_MINWIDTH;
-			c.cxMin = width / 2;
-
-			char buf[16];
-			_snprintf_s(buf, _TRUNCATE, "%s", text);
-
-			c.pszText = buf;
-
-			SendMessage(hReportView, LVM_INSERTCOLUMNA, col, (LPARAM)&c);
+			Throw(GetLastError(), "LoadAsciiTextFile: capacity must be less than 2GB.\n%ls", filename);
 		}
 
-		ROCOCO_API void SetStackViewColumns(HWND hStackView, const int columnWidths[5])
+		AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+
+		if (f.hFile == INVALID_HANDLE_VALUE)
 		{
-			AddColumns(0, columnWidths[0], "#", hStackView);
-			AddColumns(1, columnWidths[1], "Function", hStackView);
-			AddColumns(2, columnWidths[2], "Source", hStackView);
-			AddColumns(3, columnWidths[3], "Module", hStackView);
-			AddColumns(4, columnWidths[4], "Address", hStackView);
+			Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %ls", filename);
 		}
 
-		ROCOCO_API void PopulateStackView(HWND hStackView, Rococo::IException& ex)
+		LARGE_INTEGER len;
+		if (!GetFileSizeEx(f, &len))
 		{
-			struct StackFormatter : public Rococo::Debugging::IStackFrameFormatter
-			{
-				HWND hStackView;
+			Throw(GetLastError(), "LoadAsciiTextFile: Cannot determine file size %ls", filename);
+		}
 
-				void Format(const Rococo::Debugging::StackFrame& sf) override
-				{
-					LVITEMA item = { 0 };
-					item.mask = LVIF_TEXT;
-					char text[16];
-					_snprintf_s(text, _TRUNCATE, "%d", sf.depth);
-					item.pszText = text;
-					item.iItem = sf.depth;
-					int index = (int) SendMessage(hStackView, LVM_INSERTITEMA, 0, (LPARAM)&item);
+		if (len.QuadPart >= (int64)capacity)
+		{
+			Throw(GetLastError(), "LoadAsciiTextFile: File too large - length must be less than %llu bytes.\n%ls", filename, capacity);
+		}
 
-					LVITEMA address = { 0 };
-					address.iItem = index;
-					address.iSubItem = 4;
-					address.mask = LVIF_TEXT;
-					char addresstext[24];
-					_snprintf_s(addresstext, _TRUNCATE, "%04.4X:%016.16llX", sf.address.segment, sf.address.offset);
-					address.pszText = addresstext;
-					SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&address);
+		try
+		{
+			f.ReadBuffer((DWORD)len.QuadPart, data);
+			data[len.QuadPart] = 0;
+		}
+		catch (IException& ex)
+		{
+			Throw(ex.ErrorCode(), "LoadAsciiTextFile: %s.\n%ls", ex.Message(), filename);
+		}
 
-					LVITEMA mname = { 0 };
-					mname.iItem = index;
-					mname.iSubItem = 3;
-					mname.mask = LVIF_TEXT;
-					mname.pszText = (char*)sf.moduleName;
+		return len.QuadPart;
+	}
 
-					const char* module = sf.moduleName;
-					for (const char* p = module + strlen(module); p > sf.moduleName; --p)
-					{
-						if (*p == '\\')
-						{
-							mname.pszText = (char*)p + 1;
-							break;
-						}
-					}
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
 
-					SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&mname);
+		return LoadAsciiTextFile(data, capacity, wPath);
+	}
 
-					LVITEMA fname = { 0 };
-					fname.iItem = index;
-					fname.iSubItem = 1;
-					fname.mask = LVIF_TEXT;
-					fname.pszText = (char*)sf.functionName;
-					SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&fname);
+	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
+	{
+		AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			Throw(GetLastError(), "Cannot open %ws for writing", targetPath);
+		}
 
-					LVITEMA lineCol = { 0 };
-					lineCol.iItem = index;
-					lineCol.iSubItem = 2;
-					lineCol.mask = LVIF_TEXT;
+		if (nBytes > 2_gigabytes)
+		{
+			Throw(0, "Cannot open %ws for writing. Buffer length > 2 gigs", targetPath);
+		}
 
-					if (*sf.sourceFile)
-					{
-						char src[256];
-						_snprintf_s(src, _TRUNCATE, "%s #%d", sf.sourceFile, sf.lineNumber);
-						lineCol.pszText = src;
-						SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&lineCol);
-					}
-				}
-			} f;
-			f.hStackView = hStackView;
+		DWORD bytesWritten;
+		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
+		{
+			Throw(GetLastError(), "Cannot write to file %ws", targetPath);
+		}
 
-			auto* enumerator = ex.StackFrames();
-			if (enumerator)
-			{
-				enumerator->FormatEachStackFrame(f);
-			}
+		if (bytesWritten != (DWORD)nBytes)
+		{
+			Throw(GetLastError(), "Only partial write to %ws", targetPath);
 		}
 	}
 
-	namespace Debugging
+	ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes)
 	{
-		void FormatStackFrames_WithDepthTarget(IStackFrameFormatter& formatter, int depthTarget = -1)
+		WideFilePath wPath;
+		Assign(wPath, targetPath);
+		SaveBinaryFile(wPath, buffer, nBytes);
+	}
+} // Rococo::IO
+
+namespace Rococo::Windows
+{
+	ROCOCO_API void AddColumns(int col, int width, const char* text, HWND hReportView)
+	{
+		LV_COLUMNA c = { 0 };
+		c.cx = width;
+		c.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_MINWIDTH;
+		c.cxMin = width / 2;
+
+		char buf[16];
+		_snprintf_s(buf, _TRUNCATE, "%s", text);
+
+		c.pszText = buf;
+
+		SendMessage(hReportView, LVM_INSERTCOLUMNA, col, (LPARAM)&c);
+	}
+
+	ROCOCO_API void SetStackViewColumns(HWND hStackView, const int columnWidths[5])
+	{
+		AddColumns(0, columnWidths[0], "#", hStackView);
+		AddColumns(1, columnWidths[1], "Function", hStackView);
+		AddColumns(2, columnWidths[2], "Source", hStackView);
+		AddColumns(3, columnWidths[3], "Module", hStackView);
+		AddColumns(4, columnWidths[4], "Address", hStackView);
+	}
+
+	ROCOCO_API void PopulateStackView(HWND hStackView, Rococo::IException& ex)
+	{
+		struct StackFormatter : public Rococo::Debugging::IStackFrameFormatter
 		{
-			CONTEXT context;
-			context.ContextFlags = CONTEXT_FULL;
-			RtlCaptureContext(&context);
+			HWND hStackView;
 
-			HANDLE hProcess = GetCurrentProcess();
-
-			SymInitialize(hProcess, NULL, TRUE);
-			SymSetOptions(SYMOPT_LOAD_LINES);
-
-			STACKFRAME64 frame = { 0 };
-			frame.AddrPC.Offset = context.Rip;
-			frame.AddrPC.Mode = AddrModeFlat;
-			frame.AddrFrame.Offset = context.Rbp;
-			frame.AddrFrame.Mode = AddrModeFlat;
-			frame.AddrStack.Offset = context.Rsp;
-			frame.AddrStack.Mode = AddrModeFlat;
-
-			int index = 0;
-
-			int depth = 0;
-
-			while (StackWalk(
-				IMAGE_FILE_MACHINE_AMD64,
-				hProcess,
-				GetCurrentThread(),
-				&frame,
-				&context,
-				nullptr,
-				SymFunctionTableAccess64,
-				SymGetModuleBase,
-				nullptr
-			))
+			void Format(const Rococo::Debugging::StackFrame& sf) override
 			{
-				if (index++ < 1)
+				LVITEMA item = { 0 };
+				item.mask = LVIF_TEXT;
+				char text[16];
+				_snprintf_s(text, _TRUNCATE, "%d", sf.depth);
+				item.pszText = text;
+				item.iItem = sf.depth;
+				int index = (int)SendMessage(hStackView, LVM_INSERTITEMA, 0, (LPARAM)&item);
+
+				LVITEMA address = { 0 };
+				address.iItem = index;
+				address.iSubItem = 4;
+				address.mask = LVIF_TEXT;
+				char addresstext[24];
+				_snprintf_s(addresstext, _TRUNCATE, "%04.4X:%016.16llX", sf.address.segment, sf.address.offset);
+				address.pszText = addresstext;
+				SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&address);
+
+				LVITEMA mname = { 0 };
+				mname.iItem = index;
+				mname.iSubItem = 3;
+				mname.mask = LVIF_TEXT;
+				mname.pszText = (char*)sf.moduleName;
+
+				const char* module = sf.moduleName;
+				for (const char* p = module + strlen(module); p > sf.moduleName; --p)
 				{
-					continue; // Ignore first two stack frames -> they are our stack analysis functions!
+					if (*p == '\\')
+					{
+						mname.pszText = (char*)p + 1;
+						break;
+					}
 				}
 
-				Rococo::Debugging::StackFrame sf;
-				sf.depth = depth++;
+				SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&mname);
 
-				if (depthTarget > 0 && depth > depthTarget)
+				LVITEMA fname = { 0 };
+				fname.iItem = index;
+				fname.iSubItem = 1;
+				fname.mask = LVIF_TEXT;
+				fname.pszText = (char*)sf.functionName;
+				SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&fname);
+
+				LVITEMA lineCol = { 0 };
+				lineCol.iItem = index;
+				lineCol.iSubItem = 2;
+				lineCol.mask = LVIF_TEXT;
+
+				if (*sf.sourceFile)
 				{
-					return;
+					char src[256];
+					_snprintf_s(src, _TRUNCATE, "%s #%d", sf.sourceFile, sf.lineNumber);
+					lineCol.pszText = src;
+					SendMessage(hStackView, LVM_SETITEMA, 0, (LPARAM)&lineCol);
 				}
-
-				if (depthTarget > 0 && depth != depthTarget)
-				{
-					continue;
-				}
-
-				sf.address.segment = frame.AddrPC.Segment;
-				sf.address.offset = frame.AddrPC.Offset;
-
-				char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
-				PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
-				symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
-				symbol->MaxNameLength = 254;
-
-				sf.moduleName[0] = 0;
-				sf.functionName[0] = 0;
-				sf.sourceFile[0] = 0;
-				sf.lineNumber = 0;
-
-				DWORD64 moduleBase = SymGetModuleBase64(hProcess, frame.AddrPC.Offset);
-
-				if (moduleBase)
-				{
-					GetModuleFileNameA((HINSTANCE)moduleBase, sf.moduleName, sizeof(sf.moduleName));
-				}
-
-				if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
-				{
-					strncpy_s(sf.functionName, symbol->Name, _TRUNCATE);
-				}
-
-				DWORD  offset = 0;
-				IMAGEHLP_LINE line;
-				line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
-
-				if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
-				{
-					strncpy_s(sf.sourceFile, line.FileName, _TRUNCATE);
-					sf.lineNumber = line.LineNumber;
-				}
-
-				formatter.Format(sf);
 			}
-		}
+		} f;
+		f.hStackView = hStackView;
 
-		ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
+		auto* enumerator = ex.StackFrames();
+		if (enumerator)
 		{
-			FormatStackFrames_WithDepthTarget(formatter, -1);
+			enumerator->FormatEachStackFrame(f);
 		}
+	}
+}
 
-		ROCOCO_API void FormatStackFrame(char* buffer, size_t capacity, StackFrame::Address address)
+namespace Rococo::Debugging
+{
+	void FormatStackFrames_WithDepthTarget(IStackFrameFormatter& formatter, int depthTarget = -1)
+	{
+		CONTEXT context;
+		context.ContextFlags = CONTEXT_FULL;
+		RtlCaptureContext(&context);
+
+		HANDLE hProcess = GetCurrentProcess();
+
+		SymInitialize(hProcess, NULL, TRUE);
+		SymSetOptions(SYMOPT_LOAD_LINES);
+
+		STACKFRAME64 frame = { 0 };
+		frame.AddrPC.Offset = context.Rip;
+		frame.AddrPC.Mode = AddrModeFlat;
+		frame.AddrFrame.Offset = context.Rbp;
+		frame.AddrFrame.Mode = AddrModeFlat;
+		frame.AddrStack.Offset = context.Rsp;
+		frame.AddrStack.Mode = AddrModeFlat;
+
+		int index = 0;
+
+		int depth = 0;
+
+		while (StackWalk(
+			IMAGE_FILE_MACHINE_AMD64,
+			hProcess,
+			GetCurrentThread(),
+			&frame,
+			&context,
+			nullptr,
+			SymFunctionTableAccess64,
+			SymGetModuleBase,
+			nullptr
+		))
 		{
-			if (capacity && buffer) *buffer = 0;
-			else return;
+			if (index++ < 1)
+			{
+				continue; // Ignore first two stack frames -> they are our stack analysis functions!
+			}
 
-			HANDLE hProcess = GetCurrentProcess();
+			Rococo::Debugging::StackFrame sf;
+			sf.depth = depth++;
 
-			SymInitialize(hProcess, NULL, TRUE);
-			SymSetOptions(SYMOPT_LOAD_LINES);
+			if (depthTarget > 0 && depth > depthTarget)
+			{
+				return;
+			}
 
-			STACKFRAME64 frame = { 0 };
-			frame.AddrPC.Offset = address.offset;
-			frame.AddrPC.Segment = address.segment;
-			frame.AddrPC.Mode = AddrModeFlat;
+			if (depthTarget > 0 && depth != depthTarget)
+			{
+				continue;
+			}
+
+			sf.address.segment = frame.AddrPC.Segment;
+			sf.address.offset = frame.AddrPC.Offset;
 
 			char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
 			PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
 			symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
 			symbol->MaxNameLength = 254;
 
-			char functionName[256];
-			*functionName = 0;
+			sf.moduleName[0] = 0;
+			sf.functionName[0] = 0;
+			sf.sourceFile[0] = 0;
+			sf.lineNumber = 0;
+
+			DWORD64 moduleBase = SymGetModuleBase64(hProcess, frame.AddrPC.Offset);
+
+			if (moduleBase)
+			{
+				GetModuleFileNameA((HINSTANCE)moduleBase, sf.moduleName, sizeof(sf.moduleName));
+			}
 
 			if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
 			{
-				Strings::SafeFormat(functionName, symbol->Name, _TRUNCATE);
+				strncpy_s(sf.functionName, symbol->Name, _TRUNCATE);
 			}
 
 			DWORD  offset = 0;
@@ -3177,36 +3134,82 @@ namespace Rococo
 
 			if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
 			{
-				SafeFormat(buffer, capacity, "%s: %s #%d", functionName, line.FileName, line.LineNumber);
+				strncpy_s(sf.sourceFile, line.FileName, _TRUNCATE);
+				sf.lineNumber = line.LineNumber;
 			}
-		}
 
-		ROCOCO_API StackFrame::Address FormatStackFrame(char* buffer, size_t capacity, int depth)
+			formatter.Format(sf);
+		}
+	}
+
+	ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
+	{
+		FormatStackFrames_WithDepthTarget(formatter, -1);
+	}
+
+	ROCOCO_API void FormatStackFrame(char* buffer, size_t capacity, StackFrame::Address address)
+	{
+		if (capacity && buffer) *buffer = 0;
+		else return;
+
+		HANDLE hProcess = GetCurrentProcess();
+
+		SymInitialize(hProcess, NULL, TRUE);
+		SymSetOptions(SYMOPT_LOAD_LINES);
+
+		STACKFRAME64 frame = { 0 };
+		frame.AddrPC.Offset = address.offset;
+		frame.AddrPC.Segment = address.segment;
+		frame.AddrPC.Mode = AddrModeFlat;
+
+		char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+		PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+		symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+		symbol->MaxNameLength = 254;
+
+		char functionName[256];
+		*functionName = 0;
+
+		if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
 		{
-			if (buffer && capacity) *buffer = 0;
-
-			struct ANON : IStackFrameFormatter
-			{
-				char* writePos = nullptr;
-				size_t capacity = 0;
-				StackFrame::Address result = { 0 };
-
-				void Format(const StackFrame& sf) override
-				{
-					if (writePos != nullptr && capacity != 0)
-					{
-						SafeFormat(writePos, capacity, "%s: %s #%d", sf.functionName, sf.sourceFile, sf.lineNumber);
-					}
-					result = sf.address;
-				}
-			} formatter;
-			formatter.writePos = buffer;
-			formatter.capacity = capacity;
-
-			FormatStackFrames_WithDepthTarget(formatter, depth);
-
-			return formatter.result;
+			Strings::SafeFormat(functionName, symbol->Name, _TRUNCATE);
 		}
+
+		DWORD  offset = 0;
+		IMAGEHLP_LINE line;
+		line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+
+		if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
+		{
+			SafeFormat(buffer, capacity, "%s: %s #%d", functionName, line.FileName, line.LineNumber);
+		}
+	}
+
+	ROCOCO_API StackFrame::Address FormatStackFrame(char* buffer, size_t capacity, int depth)
+	{
+		if (buffer && capacity) *buffer = 0;
+
+		struct ANON : IStackFrameFormatter
+		{
+			char* writePos = nullptr;
+			size_t capacity = 0;
+			StackFrame::Address result = { 0 };
+
+			void Format(const StackFrame& sf) override
+			{
+				if (writePos != nullptr && capacity != 0)
+				{
+					SafeFormat(writePos, capacity, "%s: %s #%d", sf.functionName, sf.sourceFile, sf.lineNumber);
+				}
+				result = sf.address;
+			}
+		} formatter;
+		formatter.writePos = buffer;
+		formatter.capacity = capacity;
+
+		FormatStackFrames_WithDepthTarget(formatter, depth);
+
+		return formatter.result;
 	}
 }
 

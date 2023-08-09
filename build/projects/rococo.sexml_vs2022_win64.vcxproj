@@ -236,8 +236,10 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.memory.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.parser.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.user.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

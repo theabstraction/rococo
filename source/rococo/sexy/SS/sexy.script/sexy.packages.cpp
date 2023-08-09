@@ -192,12 +192,12 @@ namespace ANON
 		{
 			dataPackage->BuildDirectoryCache(resourcePath);
 
-			struct A: IEventCallback<cstr>
+			struct A: Strings::IStringPopulator
 			{
 				PackageNamespaceToken& ns;
 				A(PackageNamespaceToken& _ns) : ns(_ns) {}
 
-				void OnEvent(const char* path) override
+				void Populate(const char* path) override
 				{
 					// Paths end with slash, which we need to strip
 					auto len = strlen(path);
@@ -230,13 +230,13 @@ namespace ANON
 		{
 			dataPackage->BuildFileCache(resourcePath);
 
-			struct A : IEventCallback<cstr>
+			struct A : Strings::IStringPopulator
 			{
 				SexyPackage* This;
 				PackageNamespaceToken* ns;
 				IPublicScriptSystem* ss;
 
-				void OnEvent(cstr path) override
+				void Populate(cstr path) override
 				{
 					if (EndsWith(path, ".sxy"))
 					{

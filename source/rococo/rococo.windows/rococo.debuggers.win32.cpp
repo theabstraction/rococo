@@ -78,10 +78,10 @@ namespace ANON
 
 	void AddRollingLogToRichEditView(HWND hRichEditor)
 	{
-		struct ANON : IEventCallback<cstr>
+		struct ANON : Strings::IStringPopulator
 		{
 			HWND hWnd;
-			void OnEvent(cstr message) override
+			void Populate(cstr message) override
 			{
 				AppendText_ToEditor(hWnd, message, RGB(255, 200, 200), RGB(0, 0, 0));
 			}

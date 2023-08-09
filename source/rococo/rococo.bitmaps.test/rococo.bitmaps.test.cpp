@@ -307,7 +307,7 @@ void Main()
    AutoFree<MainWindow> mainWindow(MainWindow::Create());
    AutoFree<Rococo::Textures::ITextureArrayBuilderSupervisor> textureArrayBuilder = Textures::CreateTextureArrayBuilder(loader, tarray);
 
-   struct ANON : IEventCallback<cstr>
+   struct ANON : Strings::IStringPopulator
    {
       Textures::ITextureArrayBuilder* builder;
       cstr root;

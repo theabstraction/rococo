@@ -6,21 +6,26 @@
 # define ROCOCO_SEXML_API ROCOCO_API_IMPORT
 #endif
 
+namespace Rococo::Strings
+{
+	struct StringBuilder;
+}
+
 namespace Rococo::Sex::SEXML
 {
 	enum class SEXMLValueType
 	{
-		Atomic,					// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISexyXMLAttributeValue&
-		StringLiteral,			// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISexyXMLAttributeValue&
-		AtomicList,				// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISexyXMLAttributeValue&. Every value element is guaranteed to be an atomic expression
-		StringLiteralList,		// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISexyXMLAttributeValue&. Every value element is guaranteed to be a string literal expression
-		MixedStringList,		// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISexyXMLAttributeValue&. Every value element is guaranteed to be an atomic expression or a string literal expression
-		SmallVector,			// Allows us to static_cast<ISexyMLAttributeSmallVectorValue&>(base) where base is a ISexyXMLAttributeValue&. Every value element is guaranteed to be parsed as a 64-bit floating point number
-		SmallVectorI,			// Allows us to static_cast<ISexyMLAttributeSmallVectorValue&>(base) where base is a ISexyXMLAttributeValue&. Every value element is guaranteed to be parsed as a 32-bit signed integer.
-		Raw						// The S expression of ISexyXMLAttributeValue gives the raw expression, there is nothing to cast
+		Atomic,					// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISEXMLAttributeValue&
+		StringLiteral,			// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISEXMLAttributeValue&
+		AtomicList,				// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISEXMLAttributeValue&. Every value element is guaranteed to be an atomic expression
+		StringLiteralList,		// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISEXMLAttributeValue&. Every value element is guaranteed to be a string literal expression
+		MixedStringList,		// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISEXMLAttributeValue&. Every value element is guaranteed to be an atomic expression or a string literal expression
+		SmallVector,			// Allows us to static_cast<ISEXMLAttributeSmallVectorValue&>(base) where base is a ISEXMLAttributeValue&. Every value element is guaranteed to be parsed as a 64-bit floating point number
+		SmallVectorI,			// Allows us to static_cast<ISEXMLAttributeSmallVectorValue&>(base) where base is a ISEXMLAttributeValue&. Every value element is guaranteed to be parsed as a 32-bit signed integer.
+		Raw						// The S expression of ISEXMLAttributeValue gives the raw expression, there is nothing to cast
 	};
 
-	ROCOCO_INTERFACE ISexyXMLAttributeValue
+	ROCOCO_INTERFACE ISEXMLAttributeValue
 	{
 		virtual SEXMLValueType Type() const = 0;
 
@@ -28,7 +33,7 @@ namespace Rococo::Sex::SEXML
 		virtual cr_sex S() const = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyMLAttributeSmallVectorValue : ISexyXMLAttributeValue
+	ROCOCO_INTERFACE ISEXMLAttributeSmallVectorValue : ISEXMLAttributeValue
 	{
 		// Returns 2, 3 or 4 -> (x y), (x y z) or (x y z w) respectively.
 		// For quaternions we have the convention that w is always the scalar
@@ -39,7 +44,7 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] const double* const X() const = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyMLAttributeSmallVectorIValue : ISexyXMLAttributeValue
+	ROCOCO_INTERFACE ISEXMLAttributeSmallVectorIValue : ISEXMLAttributeValue
 	{
 		// Returns 2, 3 or 4 -> (x y), (x y z) or (x y z w) respectively.
 		// For rects we have (left top right bottom)
@@ -50,7 +55,7 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] const int32* X() const = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyXMLAttributeStringListValue : ISexyXMLAttributeValue
+	ROCOCO_INTERFACE ISexyXMLAttributeStringListValue : ISEXMLAttributeValue
 	{
 		virtual [[nodiscard]] size_t NumberOfElements() const = 0;
 
@@ -58,24 +63,26 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] fstring operator[](size_t index) const = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyXMLAttributeStringValue : ISexyXMLAttributeValue
+	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
+
+	ROCOCO_INTERFACE ISexyXMLAttributeStringValue : ISEXMLAttributeValue
 	{
 		// Maximum string length is 0x7FFFFFFF bytes, or 1 byte under 2GB
 		virtual [[nodiscard]] cstr c_str() const = 0;
 		virtual [[nodiscard]] fstring ToFString() const = 0;
 	};
 
-	ROCOCO_INTERFACE ISEXYMLAttribute
+	ROCOCO_INTERFACE ISEXMLAttribute
 	{
 		enum { MAX_ATTRIBUTE_NAME_LENGTH = 128 };
 
 		// The attribute name, consists of [A-Z][a-z] followed by any of  [A-Z] | [a-z] | [0-9] | '-' | '_' | '.' 
 		virtual [[nodiscard]] cstr Name() const = 0;
 		virtual [[nodiscard]] cr_sex S() const = 0;
-		virtual [[nodiscard]] const ISexyXMLAttributeValue& Value() const = 0;
+		virtual [[nodiscard]] const ISEXMLAttributeValue& Value() const = 0;
 	};
 
-	using cr_sattr = const ISEXYMLAttribute&;
+	using cr_sattr = const ISEXMLAttribute&;
 
 	ROCOCO_INTERFACE ISEXMLDirective
 	{
@@ -90,17 +97,25 @@ namespace Rococo::Sex::SEXML
 		};
 
 		// A fully qualified name. It consists of a dot separated namespace, with each subspace beginning with a capital letter A-Z, and followed by any alphanumeric character [A-Z] | [a-z] | [0-9]. 
-		// There is a maximum of 63 characters per subspace and a maximum of 127 characters in the total subspace. Example: Rococo.Sex.SEXML.A72
+		// There is a maximum of 63 characters per subspace and a maximum of 127 characters in the total subspace. Example: Rococo.Sex.SEXML.HAL9000
 		virtual [[nodiscard]] cstr FQName() const = 0;
 
 		// The number of name-value pairs in the directive
 		virtual [[nodiscard]] size_t NumberOfAttributes() const = 0;
 
 		// get the name-value pair by index as it appears in the SEXML file
-		virtual [[nodiscard]] const ISEXYMLAttribute& GetAttributeByIndex(size_t index) const = 0;
+		virtual [[nodiscard]] const ISEXMLAttribute& GetAttributeByIndex(size_t index) const = 0;
 
 		// get the name-value pair by name, if it exists, else returns nullptr
-		virtual const ISEXYMLAttribute* FindAttributeByName(cstr name) const = 0;
+		virtual const ISEXMLAttribute* FindAttributeByName(cstr name) const = 0;
+
+		// get the name-value pair by name, if it exists, else throws an exception
+		virtual const ISEXMLAttribute& GetAttributeByName(cstr name) const = 0;
+
+		inline const ISEXMLAttributeValue& operator[](cstr name) const
+		{
+			return GetAttributeByName(name).Value();
+		}
 
 		// Source expression
 		virtual [[nodiscard]] cr_sex S() const = 0;
@@ -119,6 +134,7 @@ namespace Rococo::Sex::SEXML
 	{
 		virtual [[nodiscard]] size_t NumberOfDirectives() const = 0;
 		virtual [[nodiscard]] const ISEXMLDirective& operator[](size_t index) const = 0;
+		virtual [[nodiscard]] cr_sex S() const = 0;
 	};
 
 	// cr_sdir is a shorthand for a const ISEXMLDirective
@@ -138,4 +154,123 @@ namespace Rococo::Sex::SEXML
 	};
 
 	ROCOCO_SEXML_API [[nodiscard]] ISEXMLRootSupervisor* CreateSEXMLParser(IAllocator& allocator, cr_sex sRoot);
+
+	// Searches the directive list for the next directive with specified name. If none are found null is returned
+	// Start index should generally be initialized with 0. With each function call it is moved to the directive index just beyond the returned result
+	ROCOCO_SEXML_API const ISEXMLDirective* FindDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex);
+
+	// Searches the directive list for the next directive with specified name. If none are found an exception is thrown
+	// Start index should generally be initialized with 0. With each function call it is moved to the directive index just beyond the returned result
+	ROCOCO_SEXML_API const ISEXMLDirective& GetDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex);
+
+	ROCOCO_INTERFACE ISEXMLBuilder
+	{
+		// Adds a child to the current directive, or a top level to the root if no current directive exists. 
+		// Throws an exception if the name does not pass ISEXMLDirective::FQName() parsering rules.
+		virtual ISEXMLBuilder& AddDirective(cstr name) = 0;
+
+		// Closes the current directive definition, or throws an exception if one does not exist
+		virtual ISEXMLBuilder& CloseDirective() = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, cstr value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, int32 value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, int64 value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		// The data is stored in hexadecimal
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, uint64 value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		// The data is stored in hexadecimal
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, uint32 value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		// The data is stored as either 'true' or 'false'
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, bool value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		// The data is stored as either 'true' or 'false'
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, float value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. 
+		// The value must have no special S-Expression characters: blankspace, nor any of ()":
+		virtual ISEXMLBuilder& AddAtomicAttribute(cstr name, double value) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules.
+		// Escapes a string literal expression which can contain any sequence of characters
+		virtual ISEXMLBuilder& AddStringLiteral(cstr  name, cstr value = 0) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. Adds two value components
+		virtual ISEXMLBuilder& AddVec2(cstr name, double x, double y) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. Adds three value components
+		virtual ISEXMLBuilder& AddVec3(cstr name, double x, double y, double z) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. Adds four value components
+		virtual ISEXMLBuilder& AddVec4(cstr name, double x, double y, double z, double w) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. Adds four value components
+		virtual ISEXMLBuilder& AddQuat(cstr name, double Vx, double Vy, double Vz, double scalar, bool addLayoutComment = true) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. Adds two value components
+		virtual ISEXMLBuilder& AddVec2i(cstr name, int32 x, int32 y) = 0;
+
+		// The name has to follow ISEXMLAttribute::Name() rules. Adds four value components
+		// data as hexadecimal if asHex is true, else as a signed decimal integer
+		virtual ISEXMLBuilder& AddRecti(cstr name, int32 left, int32 top, int32 right, int32 bottom, bool addLayoutComment = true) = 0;
+
+		// The builder adds a list attribute
+		virtual ISEXMLBuilder& OpenListAttribute(cstr name) = 0;
+
+		// Retrieves a string builder for appending items to a list attribute
+		virtual Rococo::Strings::StringBuilder& GetListBuilder() = 0;
+
+		// Adds a string literal to the currently open list, and escapes where necessary
+		virtual ISEXMLBuilder& AddEscapedStringToList(cstr s) = 0;
+
+		// Closes the current list attribute, or throws an exception if none are open
+		virtual ISEXMLBuilder& CloseListAttribute() = 0;
+
+		// Deallocate resource to ISEXMLBuilder and invalidates any existing references
+		virtual void Free() = 0;
+
+		virtual void ValidateClosed() = 0;
+	};
+
+	// Piggy-backs onto a string builder to format a SEXML file. If [compact] is set to true then the format is dense with a minimum of tabs and newlines
+	ROCOCO_SEXML_API [[nodiscard]] ISEXMLBuilder* CreateSEXMLBuilder(Rococo::Strings::StringBuilder& sb, bool compact);
+}
+
+namespace Rococo
+{
+	template<int OPTIMAL_SIZE, typename TYPENAME, typename ... ARGS>
+	class ArbitraryFunction;
+
+	template<typename RETURNTYPE, typename ... ARGS>
+	using Function = ArbitraryFunction<64, RETURNTYPE, ARGS ...>;
+}
+
+namespace Rococo::OS
+{
+	// Attempts to load $USER-DOCS/organization/section.sexml and provides a parser to decode the data in a callback
+	// If organization is not provided a default is chosen. The default is implementation specific.
+	ROCOCO_SEXML_API void LoadUserSEXML(cstr organization, cstr section, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
+
+	ROCOCO_SEXML_API bool IsUserSEXMLExistant(cstr organization, cstr section);
+
+	// Attempts to build an SEXML using the callback provided builder and then, if successful, saves the result to $USER-DOCS/organization/section.sexml
+	// If organization is not provided a default is chosen. The default is implementation specific.
+	ROCOCO_SEXML_API void SaveUserSEXML(cstr organization, cstr section, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
 }

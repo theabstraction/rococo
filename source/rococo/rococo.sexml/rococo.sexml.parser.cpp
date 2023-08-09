@@ -21,16 +21,16 @@ namespace Rococo::Sex::SEXML
 	void VALIDATE_SIMPLE_INTERFACE(T* This, cstr functionName)
 	{
 #ifdef _DEBUG
-		ISexyXMLAttributeValue* iThis = static_cast<ISexyXMLAttributeValue*>(This);
-		ISexyXMLAttributeValue* iThis2 = reinterpret_cast<ISexyXMLAttributeValue*>(This);
+		ISEXMLAttributeValue* iThis = static_cast<ISEXMLAttributeValue*>(This);
+		ISEXMLAttributeValue* iThis2 = reinterpret_cast<ISEXMLAttributeValue*>(This);
 		if (iThis != iThis2)
 		{
-			Rococo::Throw(0, "%s: ISexyXMLAttributeValue vtable needs to be first member of any of its implementations", functionName);
+			Rococo::Throw(0, "%s: ISEXMLAttributeValue vtable needs to be first member of any of its implementations", functionName);
 		}
 #endif
 	}
 
-	struct RawValue : ISexyXMLAttributeValue
+	struct RawValue : ISEXMLAttributeValue
 	{
 		cr_sex s;
 
@@ -95,7 +95,7 @@ namespace Rococo::Sex::SEXML
 	};
 
 #pragma pack(push,1)
-	struct SmallVectorI : ISexyMLAttributeSmallVectorIValue
+	struct SmallVectorI : ISEXMLAttributeSmallVectorIValue
 	{
 		int32 t0 = 0;
 		int32 t1 = 0;
@@ -186,7 +186,7 @@ namespace Rococo::Sex::SEXML
 #pragma pack(pop)
 
 #pragma pack(push,1)
-	struct SmallVector : ISexyMLAttributeSmallVectorValue
+	struct SmallVector : ISEXMLAttributeSmallVectorValue
 	{
 		double x = 0.0;
 		double y = 0.0;
@@ -330,12 +330,12 @@ namespace Rococo::Sex::SEXML
 			return name;
 		}
 
-		struct Attribute: ISEXYMLAttribute
+		struct Attribute: ISEXMLAttribute
 		{
 #ifdef _DEBUG
 			cstr attributeName = nullptr;
 #endif
-			ISexyXMLAttributeValue* a = nullptr;
+			ISEXMLAttributeValue* a = nullptr;
 			SEXMLValueType type;
 
 			ISEXMLRootSupervisor& root;
@@ -352,27 +352,26 @@ namespace Rococo::Sex::SEXML
 
 				sexstring function = attributeFunction.String();
 
-				if (function->Length >= ISEXYMLAttribute::MAX_ATTRIBUTE_NAME_LENGTH)
+				if (function->Length >= ISEXMLAttribute::MAX_ATTRIBUTE_NAME_LENGTH)
 				{
-					Throw(attributeFunction, "Attribute name length was %d characters. The maximum is %u characters", function->Length, ISEXYMLAttribute::MAX_ATTRIBUTE_NAME_LENGTH - 1);
+					Throw(attributeFunction, "Attribute name length was %d characters. The maximum is %u characters", function->Length, ISEXMLAttribute::MAX_ATTRIBUTE_NAME_LENGTH - 1);
 				}
 
 				cstr fName = function->Buffer;
 
+				int namePos = 1;
+
 				if (Eq(fName, "'"))
 				{
-					// Raw expression (' <name> (...)) - The value of the raw expression is the third argument which can be anything, atomic, string literal, null or compound
-
-					cstr name = ValidateAttributeNameAndGet(sAttribute, 1);
-
 					if (sAttribute.NumberOfElements() != 3)
 					{
-						Throw(sAttribute, "Expecting three elements (' %s <raw>)", name);
+						Throw(sAttribute, "Expecting three elements in raw attribute (' <name> <raw>)", attributeName);
 					}
-					
+
+					// Raw expression (' <name> (...)) - The value of the raw expression is the third argument which can be anything, atomic, string literal, null or compound
 					type = SEXMLValueType::Raw;
 					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
-					a = new (pMemory) RawValue(sAttribute[2]);
+					a = new (pMemory) RawValue(sAttribute[2]);					
 				}
 				else if (Eq(fName, "#Vec2"))
 				{
@@ -424,9 +423,9 @@ namespace Rococo::Sex::SEXML
 						case EXPRESSION_TYPE_ATOMIC:
 							if (type == SEXMLValueType::Raw)
 							{
-								type = SEXMLValueType::Atomic;
+								type = SEXMLValueType::AtomicList;
 							}
-							else if (type == SEXMLValueType::StringLiteral)
+							else if (type == SEXMLValueType::StringLiteralList)
 							{
 								type = SEXMLValueType::MixedStringList;
 							}
@@ -434,9 +433,9 @@ namespace Rococo::Sex::SEXML
 						case EXPRESSION_TYPE_STRING_LITERAL:
 							if (type == SEXMLValueType::Raw)
 							{
-								type = SEXMLValueType::StringLiteral;
+								type = SEXMLValueType::StringLiteralList;
 							}
-							else if (type == SEXMLValueType::Atomic)
+							else if (type == SEXMLValueType::AtomicList)
 							{
 								type = SEXMLValueType::MixedStringList;
 							}
@@ -449,7 +448,7 @@ namespace Rococo::Sex::SEXML
 					if (type == SEXMLValueType::Raw)
 					{
 						// This implies no items, so we convert to atomic
-						type = SEXMLValueType::Atomic;
+						type = SEXMLValueType::AtomicList;
 					}
 
 					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
@@ -457,6 +456,8 @@ namespace Rococo::Sex::SEXML
 				}
 				else
 				{
+					namePos = 0;
+
 					if (fName[0] == '#')
 					{
 						Throw(attributeFunction, "Unknown attribute type, Known #types: #Vec2, #Vec3, #Vec4, #Quat, #Vec2i, #Recti, #List");
@@ -487,8 +488,9 @@ namespace Rococo::Sex::SEXML
 
 					auto* pMemory = root.Allocator().Allocate(sizeof StringValue);
 					a = new (pMemory) StringValue(sValue);
-					attributeName = fName;
 				}
+
+				attributeName = ValidateAttributeNameAndGet(sAttribute, namePos);
 			}
 
 			virtual ~Attribute()
@@ -507,7 +509,7 @@ namespace Rococo::Sex::SEXML
 				return sAttribute;
 			}
 
-			const ISexyXMLAttributeValue& Value() const override
+			const ISEXMLAttributeValue& Value() const override
 			{
 				return *a;
 			}
@@ -653,7 +655,7 @@ namespace Rococo::Sex::SEXML
 			}
 
 			// get the name-value pair by index as it appears in the SEXML file
-			const ISEXYMLAttribute& GetAttributeByIndex(size_t index) const override
+			const ISEXMLAttribute& GetAttributeByIndex(size_t index) const override
 			{
 				if (index >= attributes.size())
 				{
@@ -664,10 +666,24 @@ namespace Rococo::Sex::SEXML
 			}
 
 			// get the name-value pair by name, if it exists, else returns nullptr
-			const ISEXYMLAttribute* FindAttributeByName(cstr name) const override
+			const ISEXMLAttribute* FindAttributeByName(cstr name) const override
 			{
+				if (name == nullptr || *name == 0)
+				{
+					Rococo::Sex::Throw(sDirective, "%s(name): [name] was blank", __FUNCTION__);
+				}
 				auto i = nameToAttribute.find(name);
 				return i != nameToAttribute.end() ? i->second : nullptr;
+			}
+
+			const ISEXMLAttribute& GetAttributeByName(cstr name) const override
+			{
+				auto* a = FindAttributeByName(name);
+				if (!a)
+				{
+					Rococo::Sex::Throw(sDirective, "Cannot find attribute [%s]", name);
+				}
+				return *a;
 			}
 		};
 
@@ -781,5 +797,50 @@ namespace Rococo::Sex::SEXML
 			allocator.FreeData(pMemory);
 			throw;
 		}
+	}
+
+	ROCOCO_SEXML_API const ISEXMLDirective* FindDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
+	{
+		if (startIndex >= items.NumberOfDirectives())
+		{
+			return nullptr;
+		}
+
+		for (size_t i = startIndex; i < items.NumberOfDirectives(); i++)
+		{
+			if (Eq(items[i].FQName(), directiveName))
+			{
+				startIndex = i + 1;
+				return &items.operator[](i);
+			}
+		}
+
+		startIndex = items.NumberOfDirectives();
+		return nullptr;
+	}
+
+	ROCOCO_SEXML_API const ISEXMLDirective& GetDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
+	{
+		const ISEXMLDirective* dir = FindDirective(items, directiveName, startIndex);
+		if (!dir)
+		{
+			Rococo::Sex::Throw(items.S(), "Could not find <%s>", directiveName);
+		}
+		return *dir;
+	}
+
+	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
+	{
+		switch (value.Type())
+		{
+		case Rococo::Sex::SEXML::SEXMLValueType::AtomicList:
+		case Rococo::Sex::SEXML::SEXMLValueType::StringLiteralList:
+		case Rococo::Sex::SEXML::SEXMLValueType::MixedStringList:
+			break;
+		default:
+			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list.");
+		}
+
+		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringListValue&>(value);
 	}
 }

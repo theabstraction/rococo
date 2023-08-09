@@ -723,12 +723,12 @@ int Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 
 int Run(IPublicScriptSystem& ss, cstr target)
 {
-	struct : IEventCallback<cstr>
+	struct : Strings::IStringPopulator
 	{
 		IPublicScriptSystem* ss;
 		cstr target;
 		int exitCode = 0;
-		void OnEvent(cstr text) override
+		void Populate(cstr text) override
 		{
 			try
 			{

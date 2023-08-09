@@ -1,0 +1,134 @@
+#include <rococo.compiler.options.h>
+#define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#include <rococo.types.h>
+#include <rococo.strings.h>
+#include <rococo.sexml.h>
+#include <rococo.functional.h>
+#include <rococo.io.h>
+#include <rococo.os.h>
+#include <rococo.api.h>
+
+using namespace Rococo::Strings;
+using namespace Rococo::Sex;
+using namespace Rococo::Sex::SEXML;
+
+namespace Rococo::OS
+{
+	const char* const s_defaultOrganization = "19th-Century-Software";
+
+	ROCOCO_SEXML_API bool IsUserSEXMLExistant(cstr organization, cstr section)
+	{
+		if (section == nullptr || *section == 0)
+		{
+			Throw(0, "%s: blank [section]", __FUNCTION__);
+		}
+
+		organization = organization ? organization : s_defaultOrganization;
+		WideFilePath wDir;
+		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
+
+		if (!IO::IsDirectory(wDir))
+		{
+			return false;
+		}
+
+		WideFilePath wFullName;
+		Format(wFullName, L"%ws\\%hs.sexml", wDir.buf, section);
+
+		return IO::IsFileExistant(wFullName);
+	}
+
+	ROCOCO_SEXML_API void LoadUserSEXML(cstr organization, cstr section, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
+	{
+		if (section == nullptr || *section == 0)
+		{
+			Throw(0, "%s: blank [section]", __FUNCTION__);
+		}
+
+		organization = organization ? organization : s_defaultOrganization;
+
+		WideFilePath wDir;
+		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
+
+		if (!IO::IsDirectory(wDir))
+		{
+			Throw(0, "%s(%s, %s,...):\n\tNo such directory: %ws\n", __FUNCTION__, organization, section, wDir.buf);
+		}
+
+		WideFilePath wFullName;
+		Format(wFullName, L"%ws\\%hs.sexml", wDir.buf, section);
+
+		struct ANON: IStringPopulator
+		{
+			HString result;
+			void Populate(cstr text) override
+			{
+				result = text;
+			}
+		} onLoadFile;
+
+		IO::LoadAsciiTextFile(onLoadFile, wFullName);
+
+		AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(65_kilobytes, 0, "LoadUserDataAllocator");
+
+		U8FilePath u8Path;
+		Assign(u8Path, wFullName);
+				
+		Auto<ISParser> parser = CreateSexParser_2_0(*allocator);
+		Auto<ISourceCode> src = parser->ProxySourceBuffer(onLoadFile.result.c_str(), (int) onLoadFile.result.length(), Vec2i{ 0,0 }, u8Path);
+		Auto<ISParserTree> tree;
+
+		try
+		{
+			tree = parser->CreateTree(*src);
+		}
+		catch (ParseException& ex)
+		{
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
+		}
+		catch (...)
+		{
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, u8Path.buf);
+		}
+
+		AutoFree<ISEXMLRootSupervisor> root = CreateSEXMLParser(*allocator, tree->Root());
+
+		onLoad.Invoke(*root);
+	}
+
+	ROCOCO_SEXML_API void SaveUserSEXML(cstr organization, cstr section, Function<void(ISEXMLBuilder& builder)> onBuild)
+	{
+		if (section == nullptr || *section == 0)
+		{
+			Throw(0, "%s: blank [section]", __FUNCTION__);
+		}
+		
+		organization = organization ? organization : s_defaultOrganization;
+
+		WideFilePath wOrganizationDir;
+		IO::GetUserPath(wOrganizationDir, organization);
+
+		if (!IO::IsDirectory(wOrganizationDir))
+		{
+			IO::CreateDirectoryFolder(wOrganizationDir);
+		}
+
+		WideFilePath wDir;
+		Format(wDir, L"%hs\\%hs.sexml", organization, section);
+
+		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
+		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);
+
+		try
+		{
+			onBuild.Invoke(*pBuilder);
+			pBuilder->ValidateClosed();
+		}
+		catch (IException& ex)
+		{
+			Throw(ex.ErrorCode(), "%s(%s, %s, ...): %s", __FUNCTION__, organization, section, ex.Message());
+		}
+
+		IO::SaveAsciiTextFile(IO::TargetDirectory_UserDocuments, wDir, *dsb->Builder());
+	}
+}

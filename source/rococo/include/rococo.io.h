@@ -67,7 +67,7 @@ namespace Rococo::IO
 	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
-	ROCOCO_API void LoadAsciiTextFile(IEventCallback<cstr>& callback, const wchar_t* filename);
+	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& callback, const wchar_t* filename);
 
 	ROCOCO_API bool MakeContainerDirectory(char* filename);
 	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename);
@@ -326,6 +326,10 @@ namespace Rococo::IO
 	ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
 #ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path
 	ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname);
+	inline void GetUserPath(WideFilePath& fullpath, cstr shortname)
+	{
+		GetUserPath(fullpath.buf, WideFilePath::CAPACITY, shortname);
+	}
 #else
 	ROCOCO_API void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
 #endif

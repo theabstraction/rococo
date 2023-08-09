@@ -1228,6 +1228,8 @@ void MainProtected(HMODULE hLib)
 	}
 }
 
+#include <rococo.debugging.h>
+
 int main()
 {
 	WideFilePath directory;
@@ -1253,6 +1255,7 @@ int main()
 	{
 	//	MainProtected(hLib);
 		MainProtected2(hLib);
+		Rococo::Debugging::ValidateCriticalLog();
 	}
 	catch (IException& ex)
 	{

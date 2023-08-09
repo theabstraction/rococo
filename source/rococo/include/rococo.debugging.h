@@ -41,7 +41,10 @@ namespace Rococo
 		};
 
 		ROCOCO_API void AddCriticalLog(cstr message);
-		ROCOCO_API void ForEachCriticalLog(IEventCallback<cstr>& onMessage);
+		ROCOCO_API void ForEachCriticalLog(Strings::IStringPopulator& onMessage);
+
+		// Throws an exception if there any entries in the critical log
+		ROCOCO_API void ValidateCriticalLog();
 	}
 }
 

@@ -6,13 +6,14 @@
 #include <rococo.api.h>
 #include <rococo.sexystudio.api.h>
 #include <rococo.functional.h>
+#include <rococo.types.inference.h>
+
+using namespace Rococo;
+using namespace Rococo::Sexy;
+using namespace Rococo::Strings;
 
 namespace
 {
-	using namespace Rococo;
-	using namespace Rococo::Sexy;
-	using namespace Rococo::Strings;
-
 	void NullDebugFunction(const char* p)
 	{
 		UNUSED(p);

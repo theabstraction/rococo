@@ -4,6 +4,13 @@
 
 namespace Rococo::Components
 {
+	template<class TYPE>
+	struct SearchResult
+	{
+		TYPE value;
+		boolean32 wasFound;
+	};
+
 	// Designed for scripting, this component provides a designer the ability to store arbitrary data on a component without having to modify the C++
 	ROCOCO_INTERFACE IConfigurationComponent: Rococo::Components::Generated::IConfigBase
 	{

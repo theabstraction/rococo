@@ -473,23 +473,23 @@ namespace ANON
 			return filecache.size();
 		}
 
-		void ForEachDirInCache(IEventCallback<const char*>& cb) const override
+		void ForEachDirInCache(Strings::IStringPopulator& cb) const override
 		{
 			EnumLock sync(enumLockDirs);
 
 			for (auto& d : dircache)
 			{
-				cb.OnEvent(d.first);
+				cb.Populate(d.first);
 			}
 		}
 
-		void ForEachFileInCache(IEventCallback<const char*>& cb) const override
+		void ForEachFileInCache(Strings::IStringPopulator& cb) const override
 		{
 			EnumLock sync(enumLockFiles);
 
 			for (auto& d : filecache)
 			{
-				cb.OnEvent(d);
+				cb.Populate(d);
 			}
 		}
 

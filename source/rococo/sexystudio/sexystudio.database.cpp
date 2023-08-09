@@ -1495,7 +1495,7 @@ namespace ANON
 		SolutionFile solutionFile;
 
 		SexyDatabase(): 
-			sparser(Sexy_CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
+			sparser(Rococo::Sex::CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
 			rootNS("", nullptr)
 		{
 

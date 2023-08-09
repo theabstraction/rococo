@@ -40,34 +40,34 @@ namespace
 			XInputSetState(index, &v);
 		}
 
-		void EnumerateStateAsText(const Joystick_XBOX360& x, IEventCallback<cstr>& cb) override
+		void EnumerateStateAsText(const Joystick_XBOX360& x, IStringPopulator& cb) override
 		{
 			char text[128];
 			SafeFormat(text, "Thumbs(Left): %5d %5d", x.thumbLX, x.thumbLY);
-			cb.OnEvent(text);
+			cb.Populate(text);
 
 			SafeFormat(text, "Thumbs(Right): %5d %5d", x.thumbRX, x.thumbRY);
-			cb.OnEvent(text);
+			cb.Populate(text);
 
 			SafeFormat(text, "Triggers %3.3u %3.3u", x.leftTrigger, x.rightTrigger);
-			cb.OnEvent(text);
+			cb.Populate(text);
 
 			const auto& b = x.buttons.button;
 
 			SafeFormat(text, "A: %d, B: %d, X: %d, Y: %d", b.A, b.B, b.X, b.Y);
-			cb.OnEvent(text);
+			cb.Populate(text);
 
 			SafeFormat(text, "Up: %d, Down: %d, Left: %d, Right: %d", b.up, b.down, b.left, b.right);
-			cb.OnEvent(text);
+			cb.Populate(text);
 
 			SafeFormat(text, "Start: %d, Back: %d", b.start, b.back);
-			cb.OnEvent(text);
+			cb.Populate(text);
 
 			SafeFormat(text, "Thumb Buttons: %d %d", b.left_thumb, b.right_thumb);
-			cb.OnEvent(text);
+			cb.Populate(text);
 
 			SafeFormat(text, "Shoulders: %d %d", b.left_shoulder, b.right_shoulder);
-			cb.OnEvent(text);
+			cb.Populate(text);
 		}
 
 		void Free() override

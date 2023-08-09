@@ -358,7 +358,7 @@ struct Coroutines : public Sys::ICoroutineControl
 		VM::ExecutionFlags flags;
 
 		{ // Spec lock zone
-			Sync sync(spec);
+			OS::Sync sync(spec);
 			vm.GetLastFlags(flags);
 
 			if (spec.isStarted)

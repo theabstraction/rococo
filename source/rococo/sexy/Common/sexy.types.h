@@ -38,7 +38,7 @@
 #include <stdarg.h>
 
 # ifndef SEXY_SPARSER_API
-#  define SEXY_SPARSER_API __declspec(dllimport)
+#  define SEXY_SPARSER_API
 # endif
 
 # ifndef SEXYUTIL_API

@@ -221,12 +221,12 @@ namespace Rococo::SexyStudio
 
 	void PopulateDatabaseFromPackageDirectory(IPackage& package, ISexyDatabase& database, cstr dirname)
 	{
-		struct ANON : IEventCallback<cstr>
+		struct ANON : Strings::IStringPopulator
 		{
 			IPackage* package;
 			ISexyDatabase* database;
 
-			void OnEvent(cstr filename)
+			void Populate(cstr filename) override
 			{
 				PackageFileData pfd;
 				package->GetFileInfo(filename, pfd);
@@ -247,13 +247,13 @@ namespace Rococo::SexyStudio
 	{
 		package.BuildDirectoryCache(searchPath);
 
-		struct ANON : IEventCallback<cstr>
+		struct ANON : Strings::IStringPopulator
 		{
 			IPackage* package;
 			ISexyDatabase* database;
 			std::vector<HString> subdirectories;
 
-			void OnEvent(cstr dirname)
+			void Populate(cstr dirname) override
 			{
 				PopulateDatabaseFromPackageDirectory(*package, *database, dirname);
 				subdirectories.push_back(dirname);

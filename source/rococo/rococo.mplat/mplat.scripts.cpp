@@ -282,7 +282,7 @@ namespace Rococo
 			Rococo::Script::SetDefaultNativeSourcePath(srcpath);
 		}
 
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int id, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder)
 		{
 			IScriptEnumerator& usedIncludes = implicitIncludes ? *implicitIncludes : s_MplatImplicitIncludeEnumerator;
 			struct ScriptContext : public IScriptCompilationEventHandler, public IDE::IScriptExceptionHandler, public ISecuritySystem
@@ -290,7 +290,7 @@ namespace Rococo
 				Platform& platform;
 				IScriptCompilationEventHandler& onScriptEvent;
 				bool shutdownOnFail = false;
-				IEventCallback<cstr>* onScriptCrash = nullptr;
+				Strings::IStringPopulator* onScriptCrash = nullptr;
 				StringBuilder* declarationBuilder = nullptr;
 
 				void Free() override
@@ -307,7 +307,7 @@ namespace Rococo
 				{
 					char fmsg[256];
 					SafeFormat(fmsg, "%s: %s", source, msg);
-					if (onScriptCrash) onScriptCrash->OnEvent(fmsg);
+					if (onScriptCrash) onScriptCrash->Populate(fmsg);
 					platform.os.ios.FireUnstable();
 					return IDE::EScriptExceptionFlow::Retry;
 				}
@@ -356,7 +356,7 @@ namespace Rococo
 					}
 				}
 
-				ScriptContext(Platform& _platform, IScriptCompilationEventHandler& _onScriptEvent, IEventCallback<cstr>* _onScriptCrash) :
+				ScriptContext(Platform& _platform, IScriptCompilationEventHandler& _onScriptEvent, Strings::IStringPopulator* _onScriptCrash) :
 					platform(_platform), onScriptEvent(_onScriptEvent), onScriptCrash(_onScriptCrash) {}
 
 				void Execute(cstr name, IScriptEnumerator& implicitIncludes, ScriptPerformanceStats& stats, bool trace, int32 id)

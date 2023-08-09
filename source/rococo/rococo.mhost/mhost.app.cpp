@@ -39,7 +39,7 @@ namespace MHost
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder);
+	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder);
 
 	namespace UI
 	{
@@ -178,7 +178,7 @@ namespace MHost
 		public IEventCallback<FileModifiedArgs>,
 		public IObserver, 
 		public IEngineSupervisor,
-		public IEventCallback<cstr>
+		public Strings::IStringPopulator
 	{
 		Platform& platform;
 		IDirectAppControl& control;
@@ -320,7 +320,7 @@ namespace MHost
 			delete this;
 		}
 
-		void OnEvent(cstr) override
+		void Populate(cstr) override
 		{
 			platform.os.ios.EnumerateModifiedFiles(*this);
 		}
@@ -742,10 +742,10 @@ namespace MHost
 	{
 		p.os.installation.Macro("#bitmaps", "!scripts/mhost/bitmaps/");
 
-		struct arglist: IEventCallback<cstr>
+		struct arglist: Strings::IStringPopulator
 		{
 			std::vector<std::string> items;
-			void OnEvent(cstr token) override
+			void Populate(cstr token) override
 			{
 				items.push_back(token);
 			}

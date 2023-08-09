@@ -185,7 +185,7 @@ namespace Rococo::Joysticks
 	ROCOCO_INTERFACE IJoystick_XBOX360
 	{
 		/* describe the gamepad state as a number of lines as text - used for debugging gamepad issues */
-		virtual void EnumerateStateAsText(const Joystick_XBOX360& x, IEventCallback<cstr> & cb) = 0;
+		virtual void EnumerateStateAsText(const Joystick_XBOX360& x, Strings::IStringPopulator & cb) = 0;
 		[[nodiscard]] virtual boolean32 TryGet(uint32 index, Joystick_XBOX360 & state) = 0;
 		/* Vibrate the controller, strength ranges from 0 to 1 */
 		virtual void Vibrate(uint32 index, float leftStrength, float rightStrength) = 0;
@@ -580,10 +580,10 @@ namespace Rococo
 		virtual void RefreshResource(cstr pingPath) = 0;
 
 		// Note, if implicitIncludes is null, mplat defaults are used, which may conflict with your security settings.
-		virtual void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+		virtual void RunEnvironmentScript(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, Strings::IStringPopulator* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
 
 		// Note, if implicitIncludes is null, mplat defaults are used, which may conflict with your security settings.
-		virtual void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, IEventCallback<cstr>* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+		virtual void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, Strings::IStringPopulator* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
 
 		virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) = 0;
 		virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;

@@ -142,13 +142,6 @@ namespace Rococo
 		FORCE_INLINE constexpr operator cstr() const noexcept { return buffer; }
 	};
 
-	template<class TYPE>
-	struct SearchResult
-	{
-		TYPE value;
-		boolean32 wasFound;
-	};
-
 	template<class T>
 	struct Hash
 	{
@@ -181,11 +174,11 @@ namespace Rococo
 		return kb * 1024;
 	}
 
-#ifdef _WIN32
-	inline bool IsEndianLittle() { return true; }
-#else
-	inline bool IsEndianLittle() { static_assert(false, "unknown") };
-#endif
+	template<int OPTIMAL_SIZE, typename TYPENAME, typename ... ARGS>
+	class ArbitraryFunction;
+
+	template<typename RETURNTYPE, typename ... ARGS>
+	using Function = ArbitraryFunction<64, RETURNTYPE, ARGS ...>;
 
 	enum class Limits: size_t { FSTRING_LENGTH_LIMIT = 0x020000000LL };
 
@@ -193,11 +186,6 @@ namespace Rococo
 	enum { MAX_FQ_NAME_LEN = 127 };
 
 	enum class EFlowLogic { CONTINUE, BREAK };
-
-	ROCOCO_INTERFACE IFieldEnumerator
-	{
-		virtual void OnMemberVariable(cstr name, cstr type) = 0;
-	};
 
 	namespace OS
 	{
@@ -292,32 +280,6 @@ namespace Rococo
 		{
 		   virtual void Populate(cstr text) = 0;
 		};
-
-		// Copies the item into the buffer, truncating data if required, and terminating with a nul character
-		ROCOCO_API void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
-
-		// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
-		ROCOCO_API void Populate(Strings::cr_substring item, IStringPopulator& populator);
-
-		ROCOCO_API Substring RightOfFirstChar(char c, cr_substring token);
-		ROCOCO_API cstr ReverseFind(char c, cr_substring token);
-		ROCOCO_API cstr FindChar(cstr token, char c);
-	}
-
-	namespace Sexy
-	{
-		using namespace Rococo::Strings;
-		// Type inference API
-		// TODO - move functions to their own header
-		ROCOCO_MISC_UTILS_API void ForEachFieldOfClassDef(cr_substring className, cr_substring classDef, IFieldEnumerator& cb);
-		ROCOCO_MISC_UTILS_API Substring GetClassDefinition(cr_substring className, cr_substring doc);
-		ROCOCO_API bool IsSexyKeyword(cr_substring candidate);
-		ROCOCO_API bool IsNotTokenChar(char c);
-		ROCOCO_API cstr GetFirstNonTokenPointer(cr_substring s);
-		ROCOCO_API cstr GetFirstNonTypeCharPointer(cr_substring s);
-		ROCOCO_API Substring GetFirstTokenFromLeft(cr_substring s);
-		// Given a document and a position to the right of the start of the doc, return first pointer of none type char found, or null if everything was of type until doc.start
-		ROCOCO_API cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition);
 	}
 
 	struct ILock
@@ -335,32 +297,6 @@ namespace Rococo
 	{
 		struct IStructure;
 	}
-
-	class Sync
-	{
-		ILock& lock;
-	public:
-		FORCE_INLINE Sync(ILock& _lock) : lock(_lock)
-		{
-			lock.Lock();
-		}
-
-		FORCE_INLINE ~Sync()
-		{
-			lock.Unlock();
-		}
-	};
-
-	class ThreadLock : public ILock
-	{
-		int64 implementation[8];
-	public:
-		ROCOCO_API ThreadLock();
-		ROCOCO_API ~ThreadLock();
-
-		ROCOCO_API void Lock();
-		ROCOCO_API void Unlock();
-	};
 
 	struct Vec2i
 	{
@@ -416,11 +352,6 @@ namespace Rococo
 	template<class T> struct IEventCallback
 	{
 		virtual void OnEvent(T& arg) = 0;
-	};
-
-	template<> struct IEventCallback<cstr>
-	{
-		virtual void OnEvent(cstr arg) = 0;
 	};
 
 	template<> struct IEventCallback<const wchar_t*>
@@ -554,15 +485,6 @@ namespace Rococo
 		float alpha;
 
 		FORCE_INLINE RGBA(float _r = 1.0f, float _g = 0.0f, float _b = 0.0f, float _a = 1.0f) : red(_r), green(_g), blue(_b), alpha(_a) {}
-	};
-
-	template<class T> ROCOCO_INTERFACE IVectorEnumerator
-	{
-		[[nodiscard]] virtual T* begin() = 0;
-		[[nodiscard]] virtual T* end() = 0;
-		[[nodiscard]] virtual const T* begin() const = 0;
-		[[nodiscard]] virtual const T* end() const = 0;
-		[[nodiscard]] virtual size_t size() const = 0;
 	};
 
 	// Represent a gui rectangle in floating point co-ordinates. top < bottom for most uses.

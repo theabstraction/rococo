@@ -573,10 +573,10 @@ namespace ANON
 					{
 						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
 
-						struct : IEventCallback<cstr>
+						struct : IStringPopulator
 						{
 							IGREditorMicromanager* manager = nullptr;
-							void OnEvent(cstr text) override
+							void Populate(cstr text) override
 							{
 								for (cstr p = text; *p != 0; p++)
 								{

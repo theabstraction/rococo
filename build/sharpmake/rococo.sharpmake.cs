@@ -1150,6 +1150,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyScriptProject>(target);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target);
             conf.SolutionFolder = " - SexyStudio";
         }
     }

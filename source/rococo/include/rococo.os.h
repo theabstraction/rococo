@@ -9,6 +9,12 @@ namespace Rococo::Tasks
 
 namespace Rococo::OS
 {
+#ifdef _WIN32
+	inline bool IsEndianLittle() { return true; }
+#else
+	inline bool IsEndianLittle() { static_assert(false, "unknown") };
+#endif
+
 	struct ConfigSection
 	{
 		cstr sectionName;
@@ -19,7 +25,33 @@ namespace Rococo::OS
 		cstr rootName;
 	};
 
-	ROCOCO_API void PasteStringFromClipboard(IEventCallback<cstr>& populator);
+	class Sync
+	{
+		ILock& lock;
+	public:
+		FORCE_INLINE Sync(ILock& _lock) : lock(_lock)
+		{
+			lock.Lock();
+		}
+
+		FORCE_INLINE ~Sync()
+		{
+			lock.Unlock();
+		}
+	};
+
+	class ThreadLock : public ILock
+	{
+		int64 implementation[8];
+	public:
+		ROCOCO_API ThreadLock();
+		ROCOCO_API ~ThreadLock();
+
+		ROCOCO_API void Lock();
+		ROCOCO_API void Unlock();
+	};
+
+	ROCOCO_API void PasteStringFromClipboard(Strings::IStringPopulator& populator);
 	ROCOCO_API void CopyStringToClipboard(cstr text);
 
 	// Gets a null terminated OS config string with lenBytes capacity. If not found, fills with the defaultValue. If organization is null the library default name is chosen 

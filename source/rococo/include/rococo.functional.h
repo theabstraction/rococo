@@ -1,7 +1,9 @@
 #pragma once
+#ifndef ROCOCO_FUNCTIONAL_H
+# define ROCOCO_FUNCTIONAL_H
 
-#include <rococo.types.h>
-#include <new>
+# include <rococo.types.h>
+# include <new>
 
 // Rococo namespace, implements fast-compile equivalent to std::forward and std::function, which are Rococo::Forward and Rococo::Function respectively
 
@@ -302,3 +304,5 @@ namespace Rococo::OS
 	ROCOCO_API void LoadBinaryFile(Function<void(uint8* buffer, size_t fileLength)> callback, const wchar_t* filename);
 	ROCOCO_API void LoadBinaryFile(Function<void(uint8* buffer, size_t fileLength)> callback, cstr filename);
 }
+
+#endif // ROCOCO_FUNCTIONAL_H

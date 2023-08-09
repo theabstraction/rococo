@@ -56,9 +56,13 @@ $(TARGET)lib-jpg.dll: $(BIN)lib-jpg.dll
 $(TARGET)lib-zip.dll: $(BIN)lib-zip.dll
 	-shutdown.npp.bat
 	-copy $(BIN)lib-zip.dll  $(TARGET)
+
+$(TARGET)rococo.sexml.dll: $(BIN)rococo.sexml.dll
+	-shutdown.npp.bat
+	-copy $(BIN)rococo.sexml.dll  $(TARGET)
 	
 # In normal mode of operation, all we want to do is to ensure the inl file is up to date
-all: $(TARGET)sexystudio.dll $(TARGET)sexystudio.app.exe $(TARGET)rococo.misc.utils.dll $(TARGET)rococo.util.dll $(TARGET)rococo.windows.dll $(TARGET)sexystudio.4.npp.dll $(TARGET)sexy.script.dll $(TARGET)sexy.util.dll $(TARGET)lib-tiff.dll $(TARGET)lib-jpg.dll $(TARGET)lib-zip.dll
+all: $(TARGET)sexystudio.dll $(TARGET)sexystudio.app.exe $(TARGET)rococo.misc.utils.dll $(TARGET)rococo.util.dll $(TARGET)rococo.windows.dll $(TARGET)sexystudio.4.npp.dll $(TARGET)sexy.script.dll $(TARGET)sexy.util.dll $(TARGET)lib-tiff.dll $(TARGET)lib-jpg.dll $(TARGET)lib-zip.dll $(TARGET)rococo.sexml.dll
 
 clean:
 	

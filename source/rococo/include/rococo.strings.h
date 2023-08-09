@@ -189,7 +189,7 @@ namespace Rococo::Strings
 		return !(a == b);
 	}
 
-	struct StringBuilder
+	ROCOCO_INTERFACE StringBuilder
 	{
 #if	USE_VSTUDIO_SAL
 		virtual StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) = 0;
@@ -219,6 +219,9 @@ namespace Rococo::Strings
 
 	ROCOCO_API IDynamicStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity);
 
+	ROCOCO_API void AppendAsciiCode(StringBuilder& sb, char c);
+	ROCOCO_API void AppendEscapedSexyString(StringBuilder& sb, cstr text);
+
 	class StackStringBuilder : public StringBuilder
 	{
 	private:
@@ -245,6 +248,16 @@ namespace Rococo::Strings
 		ROCOCO_API void Clear() override;
 		ROCOCO_API int32 Length() const override;
 	};
+
+	// Copies the item into the buffer, truncating data if required, and terminating with a nul character
+	ROCOCO_API void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
+
+	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
+	ROCOCO_API void Populate(Strings::cr_substring item, IStringPopulator& populator);
+
+	ROCOCO_API Substring RightOfFirstChar(char c, cr_substring token);
+	ROCOCO_API cstr ReverseFind(char c, cr_substring token);
+	ROCOCO_API cstr FindChar(cstr token, char c);
 
 	ROCOCO_API bool IsCapital(char c);
 	ROCOCO_API bool IsLowerCase(char c);
@@ -306,7 +319,7 @@ namespace Rococo::Strings
 
 	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
 
-	ROCOCO_API void SplitString(cstr text, size_t length, IEventCallback<cstr>& onSubString);
+	ROCOCO_API void SplitString(cstr text, size_t length, IStringPopulator& onSubString);
 
 	struct SecureHashInfo
 	{

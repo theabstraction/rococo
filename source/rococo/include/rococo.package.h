@@ -48,10 +48,10 @@ namespace Rococo
 		virtual size_t BuildFileCache(const char* prefix) = 0;
 
 		// Enumerate the files in the directory cache. File caching is locked during enumeration
-		virtual void ForEachDirInCache(IEventCallback<const char*>& cb) const = 0;
+		virtual void ForEachDirInCache(Strings::IStringPopulator& cb) const = 0;
 
 		// Enumerate the directories in the directory cache. Directory caching is locked during enumeration
-		virtual void ForEachFileInCache(IEventCallback<const char*>& cb) const = 0;
+		virtual void ForEachFileInCache(Strings::IStringPopulator& cb) const = 0;
 
 		// Fill in a FileData structure with the file data block
 		virtual void GetFileInfo(const char* resourcePath, OUT PackageFileData& f) const = 0;

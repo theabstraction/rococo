@@ -192,6 +192,49 @@ namespace StringsAnon
 
 namespace Rococo::Strings
 {
+	char ToHex(int32 c)
+	{
+		static const char* const digits = "01234567890ABCDEF";
+		return digits[c & 0xF];
+	}
+
+	ROCOCO_UTIL_API void AppendAsciiCode(StringBuilder& sb, char c)
+	{
+		char buf[3] = { 0,0,0 };
+		buf[0] = ToHex(c >> 16);
+		buf[1] = ToHex(c);
+		sb << buf;
+	}
+
+	ROCOCO_UTIL_API void AppendEscapedSexyString(StringBuilder& sb, cstr text)
+	{
+		for (const char* s = text; *s != 0; s++)
+		{
+			char c = *s;
+			switch (c)
+			{
+			case '\a': sb << "&a"; break;
+			case '\b': sb << "&b"; break;
+			case '\f': sb << "&f"; break;
+			case '\r': sb << "&r"; break;
+			case '\n': sb << "&n"; break;
+			case '\t': sb << "&t"; break;
+			default:
+				if (c < 31 || c > 127)
+				{
+					sb << "&x";
+					AppendAsciiCode(sb, c);
+				}
+				else
+				{
+					char buf[2] = { c,0 };
+					sb << buf;
+				}
+				break;
+			}
+		}
+	}
+
 	ROCOCO_UTIL_API int32 Format(U8FilePath& path, cstr format, ...)
 	{
 		va_list args;
@@ -702,7 +745,7 @@ namespace Rococo::Strings
 		return strncmp(a, b, len);
 	}
 
-	ROCOCO_UTIL_API void SplitString(const char* text, size_t length, IEventCallback<cstr>& onSubString)
+	ROCOCO_UTIL_API void SplitString(const char* text, size_t length, IStringPopulator& onSubString)
 	{
 		if (length == 0) length = rlen(text);
 		size_t bytecount = sizeof(char) * (length + 1);
@@ -714,17 +757,17 @@ namespace Rococo::Strings
 		char* token = strtok_s(buf, "|", &next_token);
 		while (token != nullptr)
 		{
-			onSubString.OnEvent(token);
+			onSubString.Populate(token);
 			token = strtok_s(nullptr, "|", &next_token);
 		}
 	}
 
 	ROCOCO_UTIL_API size_t CountSubStrings(cstr text, size_t length)
 	{
-		struct : IEventCallback<cstr>
+		struct : IStringPopulator
 		{
 			size_t count;
-			void OnEvent(cstr text) override
+			void Populate(cstr text) override
 			{
 				UNUSED(text);
 				count++;

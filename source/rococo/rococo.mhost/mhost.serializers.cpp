@@ -7,6 +7,7 @@
 #include <Sexy.S-Parser.h>
 
 #include <rococo.os.h>
+#include <rococo.strings.h>
 
 namespace Anon
 {
@@ -19,49 +20,6 @@ namespace Anon
 		VARTYPE type;
 		VariantValue value;
 	};
-
-	char ToHex(int32 c)
-	{
-		static const char* const digits = "01234567890ABCDEF";
-		return digits[c & 0xF];
-	}
-
-	void AppendAsciiCode(StringBuilder& sb, char c)
-	{
-		char buf[3] = { 0,0,0 };
-		buf[0] = ToHex(c >> 16);
-		buf[1] = ToHex(c);
-		sb << buf;
-	}
-
-	void AppendEscapedString(StringBuilder& sb, cstr text)
-	{
-		for (const char* s = text; *s != 0; s++)
-		{
-			char c = *s;
-			switch (c)
-			{
-			case '\a': sb << "&a"; break;
-			case '\b': sb << "&b"; break;
-			case '\f': sb << "&f"; break;
-			case '\r': sb << "&r"; break;
-			case '\n': sb << "&n"; break;
-			case '\t': sb << "&t"; break;
-			default:
-				if (c < 31 || c > 127)
-				{
-					sb << "&x";
-					AppendAsciiCode(sb, c);
-				}
-				else
-				{
-					char buf[2] = { c,0 };
-					sb << buf;
-				}
-				break;
-			}
-		}
-	}
 
 	void AppendValue(StringBuilder& sb, cstr key, const Variant& v)
 	{
@@ -92,7 +50,7 @@ namespace Anon
 		case VARTYPE_Pointer: 
 			{
 				sb << "\"";
-				AppendEscapedString(sb, v.value.charPtrValue);
+				Strings::AppendEscapedSexyString(sb, v.value.charPtrValue);
 				sb << "\"";
 			}
 			break;

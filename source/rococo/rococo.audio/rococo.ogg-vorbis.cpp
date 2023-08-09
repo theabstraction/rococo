@@ -169,7 +169,7 @@ namespace AudioAnon
 		{
 			enum { USING_SIGNED_SAMPLES = 1 };
 			int bitStream = 0;
-			long result = ov_read(&apiHandle, (char*) decompressedBuffer, decompressedCapacity, !IsEndianLittle(), sizeof int16, USING_SIGNED_SAMPLES, &bitStream);
+			long result = ov_read(&apiHandle, (char*) decompressedBuffer, decompressedCapacity, !OS::IsEndianLittle(), sizeof int16, USING_SIGNED_SAMPLES, &bitStream);
 			switch (result)
 			{
 			case OV_HOLE:

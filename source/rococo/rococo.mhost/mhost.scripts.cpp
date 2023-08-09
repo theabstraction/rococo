@@ -130,7 +130,7 @@ namespace MHost
 		return closure;
 	}
 
-	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, IEventCallback<cstr>* onScriptCrash, StringBuilder* declarationBuilder)
+	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder)
 	{
 		class ScriptContext : public IScriptCompilationEventHandler
 		{
@@ -198,7 +198,7 @@ namespace MHost
 				privateSourceCache = CreateSourceCache(platform.os.installation, Rococo::Memory::GetSexyAllocator());
 			}
 
-			IEventCallback<cstr>* onScriptCrash;
+			Strings::IStringPopulator* onScriptCrash;
 
 			void Execute(cstr name, bool trace)
 			{

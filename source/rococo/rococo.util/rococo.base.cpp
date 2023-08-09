@@ -275,11 +275,19 @@ namespace Rococo::Debugging
 		}
 	}
 
-	ROCOCO_API_EXPORT void ForEachCriticalLog(IEventCallback<cstr>& onMessage)
+	ROCOCO_API_EXPORT void ForEachCriticalLog(Strings::IStringPopulator& onMessage)
 	{
 		for (auto& i : rollingLog)
 		{
-			onMessage.OnEvent(i.c_str());
+			onMessage.Populate(i.c_str());
+		}
+	}
+
+	ROCOCO_API_EXPORT void ValidateCriticalLog()
+	{
+		if (!rollingLog.empty())
+		{
+			Throw(0, "The critical log has something to add:\n");
 		}
 	}
 }

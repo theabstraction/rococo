@@ -24,6 +24,10 @@
 #include <rococo.auto-complete.h>
 #include <rococo.sxytype-inference.h>
 #include <rococo.auto-complete.h>
+#include <rococo.types.inference.h>
+#include <rococo.sexml.h>
+#include <rococo.debugging.h>
+#include <rococo.functional.h>
 
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "ComCtl32.lib")
@@ -848,14 +852,14 @@ private:
 		isDirty = false;
 	}
 
-	void EnumerateNamesStartingWith(ISxyNamespace& ns, cstr prefix, IEventCallback<cstr>& cb)
+	void EnumerateNamesStartingWith(ISxyNamespace& ns, cstr prefix, Strings::IStringPopulator& cb)
 	{
 		for (int i = 0; i < ns.SubspaceCount(); ++i)
 		{
 			auto* name = ns[i].Name();
 			if (StartsWith(name, prefix))
 			{
-				cb.OnEvent(name);
+				cb.Populate(name);
 			}
 		}
 
@@ -864,7 +868,7 @@ private:
 			auto* name = ns.GetInterface(j).PublicName();
 			if (StartsWith(name, prefix))
 			{
-				cb.OnEvent(name);
+				cb.Populate(name);
 			}
 		}
 
@@ -873,7 +877,7 @@ private:
 			auto* name = ns.GetFunction(j).PublicName();
 			if (StartsWith(name, prefix))
 			{
-				cb.OnEvent(name);
+				cb.Populate(name);
 			}
 		}
 
@@ -882,7 +886,7 @@ private:
 			auto* name = ns.GetFactory(j).PublicName();
 			if (StartsWith(name, prefix))
 			{
-				cb.OnEvent(name);
+				cb.Populate(name);
 			}
 		}
 	}
@@ -1319,10 +1323,16 @@ LOGFONTA MakeDefaultFont()
 
 using namespace Rococo::AutoComplete;
 
+struct FactoryConfig
+{
+	std::vector<HString> searchPaths;
+};
+
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 {
 	AutoFree<IPublisherSupervisor> publisher;
 	AutoFree<ISexyDatabaseSupervisor> database;
+	FactoryConfig& config;
 	Font smallCaptionFont;
 	WidgetContext context;
 	AutoFree<ITheme> theme;
@@ -1642,7 +1652,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		return *database;
 	}
 
-	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler):
+	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config):
+		config(_config),
 		publisher(Rococo::Events::CreatePublisher()),
 		database(CreateSexyDatabase()),
 		smallCaptionFont(MakeDefaultFont()),
@@ -2445,6 +2456,8 @@ const char* const URL_factory = "Rococo.SexyStudio.ISexyStudioFactory1";
 
 struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 {
+	FactoryConfig config;
+
 	cstr GetInterfaceURL(int index) override
 	{
 		switch (index)
@@ -2475,9 +2488,55 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 		}
 	}
 
+	void LoadConfig()
+	{
+		try
+		{
+			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, "sexystudio.config"))
+			{
+				// Create it
+				Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
+					[](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+					{
+						sb.AddDirective("directories");
+						sb.OpenListAttribute("search-paths");
+						sb.AddEscapedStringToList("!scripts/native");
+						sb.AddEscapedStringToList("!scripts/interop");
+						sb.AddEscapedStringToList("!scripts/declarations");
+						sb.CloseListAttribute(); // search-paths
+						sb.CloseDirective(); // directories
+					}
+				);
+			}
+
+
+
+			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.config",
+				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+				{
+					size_t startIndex = 0;
+					auto& searchpaths = Rococo::Sex::SEXML::AsStringList(Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "directories", IN OUT startIndex)["search-paths"]);
+
+					config.searchPaths.clear();
+
+					for (int i = 0; i < searchpaths.NumberOfElements(); i++)
+					{
+						fstring path = searchpaths[i];
+						config.searchPaths.push_back((cstr)path);
+					}
+				}
+			);
+		}
+		catch (IException& ex)
+		{
+			OS::TripDebugger();
+			Rococo::Debugging::AddCriticalLog(ex.Message());
+		}
+	}
+
 	ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) override
 	{
-		ISexyStudioInstance1* ide = new SexyStudioIDE(topLevelParent, eventHandler);
+		ISexyStudioInstance1* ide = new SexyStudioIDE(topLevelParent, eventHandler, config);
 		ShowWindow(ide->GetIDEFrame(), SW_HIDE);
 		return ide;
 	}
@@ -2489,6 +2548,10 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 };
 
 static bool isInitialized = false;
+
+#include <rococo.sexml.h>
+#include <rococo.functional.h>
+#include <rococo.debugging.h>
 
 extern "C" _declspec(dllexport) int CreateSexyStudioFactory(void** ppInterface, const char* interfaceURL)
 {

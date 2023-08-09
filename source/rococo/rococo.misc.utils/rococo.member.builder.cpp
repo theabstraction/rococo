@@ -1367,13 +1367,13 @@ namespace Rococo::IO
 
 		try
 		{
-			struct : IEventCallback<cstr>
+			struct : Strings::IStringPopulator
 			{
 				const IStructure* assetType = nullptr;
 				void* assetData = nullptr;
 				Rococo::Script::IPublicScriptSystem* ss = nullptr;
 
-				void OnEvent(cstr csvString) override
+				void Populate(cstr csvString) override
 				{
 					ParseSexyObjectTree(csvString, *assetType, assetData, *ss);
 				}
