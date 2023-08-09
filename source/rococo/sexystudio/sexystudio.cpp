@@ -1328,6 +1328,13 @@ struct FactoryConfig
 	std::vector<HString> searchPaths;
 	HString content;
 
+	U8FilePath fileName;
+
+	FactoryConfig()
+	{
+		Rococo::OS::GetUserSEXMLFullPath(fileName, nullptr, "sexystudio.config");
+	}
+
 	void Load()
 	{
 		try
@@ -1344,13 +1351,11 @@ struct FactoryConfig
 						sb.AddEscapedStringToList("!scripts/interop");
 						sb.AddEscapedStringToList("!scripts/declarations");
 						sb.CloseListAttribute(); // search-paths
-						sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\scripts");
+						sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\");
 						sb.CloseDirective(); // directories
 					}
 				);
 			}
-
-
 
 			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.config",
 				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
@@ -1377,6 +1382,26 @@ struct FactoryConfig
 			OS::TripDebugger();
 			Rococo::Debugging::AddCriticalLog(ex.Message());
 		}
+	}
+
+	void Save()
+	{
+		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
+			[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+			{
+				sb.AddDirective("directories");
+				sb.OpenListAttribute("search-paths");
+
+				for (auto& path : searchPaths)
+				{
+					sb.AddEscapedStringToList(path);
+				}
+
+				sb.CloseListAttribute(); // search-paths
+				sb.AddStringLiteral("content", content);
+				sb.CloseDirective(); // directories
+			}
+		);
 	}
 };
 
@@ -1704,7 +1729,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		return *database;
 	}
 
-	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config):
+	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config) :
 		config(_config),
 		publisher(Rococo::Events::CreatePublisher()),
 		database(CreateSexyDatabase()),
@@ -1732,17 +1757,49 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		projectView = splitScreen->GetFirstHalf();
 		sourceView = splitScreen->GetSecondHalf();
 
-		U8FilePath contentPath;
-		Rococo::OS::GetConfigVariable(contentPath, "\\work\\rococo\\content\\", OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
+		int failcount = 0;
+		for (;;)
+		{
+			try
+			{
+				try
+				{
+					database->SetContentPath(config.content);
+					if (failcount > 0)
+					{
+						config.Save();
+					}
+					break;
+				}
+				catch (IException& ex)
+				{
+					failcount++;
+					Throw(ex.ErrorCode(), "Error initializing SexyStudio database with content from %s @directories[\"content\"]\n%s", config.fileName, ex.Message());
+				}
+			}
+			catch (IException& ex)
+			{
+				Rococo::Windows::ShowErrorBox(topLevelWindow, ex, "Sexy Studio Error");
 
-		try
-		{
-			database->SetContentPath(contentPath);
+				U8FilePath path;
+				Assign(path, "C:\\");
+				if (!IO::ChooseDirectory(path.buf, path.CAPACITY-1, "SexyStudio - please select the content folder"))
+				{
+					break;
+				}
+
+				if (IO::IsDirectory(path))
+				{
+					if (!EndsWith(path, "\\"))
+					{
+						StringCat(path.buf, "\\", path.CAPACITY);
+					}
+				}
+
+				config.content = path;
+			}
 		}
-		catch (IException& ex)
-		{
-			Rococo::Windows::ShowErrorBox(topLevelWindow, ex, "Sexy Studio Error");
-		}
+	
 
 		sheets = new PropertySheets(*projectView, *ide, *database);
 		explorer = new SexyExplorer(context, *sourceView, *database, eventHandler);

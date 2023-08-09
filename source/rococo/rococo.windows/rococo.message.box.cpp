@@ -86,26 +86,17 @@ namespace Rococo::Windows
         };
 
         ShowExceptionDialog(spec, parent, ex);
-        /*
-        if (ex.ErrorCode() == 0)
-        {
-            ShowMessageBox(parent, ex.Message(), caption, MB_ICONERROR);
-        }
-        else
-        {
-            char codeMsg[512];
-            char bigMsg[512];
-            if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, ex.ErrorCode(), 0, codeMsg, 512, nullptr) <= 0)
-            {
-                SafeFormat(bigMsg, sizeof(bigMsg), "%s. Code 0x%x", ex.Message(), ex.ErrorCode());
-            }
-            else
-            {
-                SafeFormat(bigMsg, sizeof(bigMsg), "%s\nCode 0x%x: %s", ex.Message(), ex.ErrorCode(), codeMsg);
-            }
+    }
 
-            ShowMessageBox(parent, bigMsg, caption, MB_ICONERROR);
+    ROCOCO_API_EXPORT void ShowErrorBox(Rococo::Windows::IWindow& parent, int errorCode, cstr message, cstr caption)
+    {
+        try
+        {
+            Throw(errorCode, "%s", message);
         }
-        */
+        catch (IException& ex)
+        {
+            ShowErrorBox(parent, ex, caption);
+        }
     }
 }//Rococo::Windows

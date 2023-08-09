@@ -2424,6 +2424,11 @@ namespace Rococo::IO
 
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity)
 	{
+		return ChooseDirectory(name, capacity, "Rococo App");
+	}
+
+	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity, cstr title)
+	{
 		class DialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
 		{
 		public:
@@ -2509,6 +2514,17 @@ namespace Rococo::IO
 		if (FAILED(hr))
 		{
 			Throw(hr, "pfd->Advise failed");
+		}
+
+		WideFilePath wTitle;
+		Assign(wTitle, title);
+		pfd->SetTitle(wTitle);
+
+		if (name)
+		{
+			WideFilePath wName;
+			Assign(wName, name);
+			pfd->SetFileName(wName);
 		}
 
 		// Set the options on the dialog.

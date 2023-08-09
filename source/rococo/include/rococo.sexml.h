@@ -265,10 +265,16 @@ namespace Rococo
 
 namespace Rococo::OS
 {
+	// Gets the full path for the user's XML and opulates the supplied buffer with the result 
+	// If organization is not provided a default is chosen. The default is implementation specific.
+	ROCOCO_SEXML_API void GetUserSEXMLFullPath(U8FilePath& fullpath, cstr organization, cstr section);
+
 	// Attempts to load $USER-DOCS/organization/section.sexml and provides a parser to decode the data in a callback
 	// If organization is not provided a default is chosen. The default is implementation specific.
 	ROCOCO_SEXML_API void LoadUserSEXML(cstr organization, cstr section, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 
+	// Tests to see if the UserSEXML file exists, and returns a value true if and only if it does exist
+	// If organization is not provided a default is chosen. The default is implementation specific.
 	ROCOCO_SEXML_API bool IsUserSEXMLExistant(cstr organization, cstr section);
 
 	// Attempts to build an SEXML using the callback provided builder and then, if successful, saves the result to $USER-DOCS/organization/section.sexml

@@ -1517,7 +1517,7 @@ namespace ANON
 
 			WideFilePath wContentFolder;
 			Assign(wContentFolder, contentFolder);
-
+		
 			installation = CreateInstallationDirect(wContentFolder, *os);
 
 			WideFilePath associationPath;

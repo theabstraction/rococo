@@ -38,6 +38,24 @@ namespace Rococo::OS
 		return IO::IsFileExistant(wFullName);
 	}
 
+	ROCOCO_SEXML_API void GetUserSEXMLFullPath(U8FilePath& path, cstr organization, cstr section)
+	{
+		if (section == nullptr || *section == 0)
+		{
+			Throw(0, "%s: blank [section]", __FUNCTION__);
+		}
+
+		organization = organization ? organization : s_defaultOrganization;
+
+		WideFilePath wDir;
+		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
+
+		WideFilePath wFullName;
+		Format(wFullName, L"%ws\\%hs.sexml", wDir.buf, section);
+
+		Format(path, "%ws", wFullName.buf);
+	}
+
 	ROCOCO_SEXML_API void LoadUserSEXML(cstr organization, cstr section, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
 	{
 		if (section == nullptr || *section == 0)
