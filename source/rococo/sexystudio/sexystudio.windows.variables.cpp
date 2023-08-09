@@ -3,6 +3,7 @@
 #include <shobjidl.h>
 #include <shlobj_core.h>
 #include <rococo.auto-release.h>
+#include <rococo.io.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -94,20 +95,25 @@ namespace
 			}
 		}
 
-		DropDownList(IVariableList& _variables, HBRUSH _backBrush, bool addTextEditor) :
+		DropDownList(IVariableList& _variables, HBRUSH _backBrush, bool addTextEditor, int32 dropDownHeight) :
 			variables(_variables),
 			backWindow(variables.Children()->Parent(), *this),
 			backBrush(_backBrush)
 		{
 			DWORD style = WS_CHILD | ES_AUTOHSCROLL | CBS_HASSTRINGS;
 			style |= addTextEditor ? CBS_DROPDOWN : CBS_SIMPLE;
-			hWndDropDown = CreateWindowExA(0, WC_COMBOBOXA, "", style, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
+			hWndDropDown = CreateWindowExA(0, WC_COMBOBOXA, "", style, 0, 0, 100, dropDownHeight, backWindow, NULL, NULL, NULL);
 			if (hWndDropDown == NULL)
 			{
 				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
 			}
 
 			SetWindowTextA(backWindow, "DropDownList");
+
+			if (!addTextEditor)
+			{
+				ComboBox_ShowDropdown(hWndDropDown, TRUE);
+			}
 
 			SendMessage(hWndDropDown, WM_SETFONT, (WPARAM)(HFONT)variables.Children()->Context().fontSmallLabel, 0);
 
@@ -125,7 +131,10 @@ namespace
 
 		void AppendItem(cstr text) override
 		{
-			SendMessageA(hWndDropDown, CB_ADDSTRING, 0, (LPARAM) text);
+			if (CB_ERR == ComboBox_AddString(hWndDropDown, text))
+			{
+				Throw(GetLastError(), "Error adding [%s] to drop down list", text);
+			}
 		}
 
 		void ClearItems() override
@@ -169,6 +178,20 @@ namespace
 
 		void Layout() override
 		{
+		}
+
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
 		}
 
 		void AddLayoutModifier(ILayout*) override
@@ -288,6 +311,20 @@ namespace
 
 		void Layout() override
 		{
+		}
+
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
 		}
 
 		void AddLayoutModifier(ILayout*) override
@@ -502,6 +539,20 @@ namespace
 		{
 		}
 
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
+		}
+
 		void AddLayoutModifier(ILayout*) override
 		{
 			Throw(0, "Not implemented");
@@ -528,25 +579,6 @@ namespace
 			return backWindow;
 		}
 	};
-
-	void BrowseFolder(U8FilePath& path, cstr title, HWND hWndParent)
-	{
-		BROWSEINFOA bi = { 0 };
-		bi.hwndOwner = hWndParent;
-		bi.lpszTitle = title;
-		LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);
-		if (pidl != 0)
-		{
-			SHGetPathFromIDListA(pidl, path.buf);
-
-			IMalloc* imalloc = 0;
-			if (SUCCEEDED(SHGetMalloc(&imalloc)))
-			{
-				imalloc->Free(pidl);
-				imalloc->Release();
-			}
-		}
-	}
 
 	struct FilePathEditor : IFilePathEditor, IWin32WindowMessageLoopHandler
 	{
@@ -622,7 +654,7 @@ namespace
 						{
 							char title[128];
 							SafeFormat(title, "SexyStudio - %s", name.c_str());
-							BrowseFolder(*filePath, title, hWndButton);
+							IO::ChooseDirectory(filePath->buf, U8FilePath::CAPACITY, title);
 							SetWindowTextA(hWndEditor, *filePath);
 							PublishChange();
 						}
@@ -692,6 +724,20 @@ namespace
 
 		void Layout() override
 		{
+		}
+
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
 		}
 
 		void AddLayoutModifier(ILayout*) override
@@ -769,7 +815,7 @@ namespace
 
 		IDropDownList* AddDropDownList(bool addTextEditor) override
 		{
-			auto* dropDown = new DropDownList(*this, bkBrush, addTextEditor);
+			auto* dropDown = new DropDownList(*this, bkBrush, addTextEditor, 100);
 			children->Add(dropDown);
 			return dropDown;
 		}
@@ -797,13 +843,38 @@ namespace
 			int32 x = 0;
 			int32 y = 4;
 			int32 width = span.x - 8;
-			int32 height = 18;
+			int32 ySpacing = 4;
 
 			for (auto* child : *children)
 			{
+				int32 height = child->GetDefaultHeight();
+				height = height == 0 ? 18 : height;
+
 				MoveWindow(child->Window(), x, y, width, height, TRUE);
 				y += height;
+				y += ySpacing;
 			}
+		}
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			UNUSED(height);
+			Throw(0, "Not implemented");
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			int totalHeight = 0;
+			for (const auto* child : *children)
+			{
+				int32 height = child->GetDefaultHeight();
+				height = height == 0 ? 18 : height;
+				totalHeight += height;
+			}
+
+			return totalHeight;
 		}
 
 		void AddLayoutModifier(ILayout* l) override

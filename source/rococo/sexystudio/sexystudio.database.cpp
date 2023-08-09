@@ -1485,6 +1485,7 @@ namespace ANON
 
 	struct SexyDatabase : ISexyDatabaseSupervisor
 	{
+		IFactoryConfig& config;
 		AutoRelease<ISParser> sparser;
 		ANON::SxyNamespace rootNS;
 		std::unordered_map<std::string, std::unique_ptr<File_SXY>> filenameToFile;
@@ -1494,7 +1495,8 @@ namespace ANON
 
 		SolutionFile solutionFile;
 
-		SexyDatabase(): 
+		SexyDatabase(IFactoryConfig& _config): 
+			config(_config),
 			sparser(Rococo::Sex::CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
 			rootNS("", nullptr)
 		{
@@ -1504,6 +1506,11 @@ namespace ANON
 		~SexyDatabase()
 		{
 			
+		}
+
+		IFactoryConfig& Config() override
+		{
+			return config;
 		}
 
 		ISolution& Solution()
@@ -2588,9 +2595,9 @@ namespace ANON
 
 namespace Rococo::SexyStudio
 {
-	ISexyDatabaseSupervisor* CreateSexyDatabase()
+	ISexyDatabaseSupervisor* CreateSexyDatabase(IFactoryConfig& config)
 	{
-		return new ANON::SexyDatabase();
+		return new ANON::SexyDatabase(config);
 	}
 
 	void AppendFullName(ISxyNamespace& ns, StringBuilder& sb)

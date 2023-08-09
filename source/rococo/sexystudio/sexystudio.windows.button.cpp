@@ -76,6 +76,20 @@ namespace
 			delete this;
 		}
 
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
+		}
+
 		void Layout() override
 		{
 			layouts->Layout(*this);

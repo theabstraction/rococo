@@ -12,7 +12,7 @@ namespace
 	{
 		WidgetContext& context;
 		Rococo::Windows::IWindow& parent;
-		std::vector<IGuiWidget*> widgets;
+		mutable std::vector<IGuiWidget*> widgets;
 
 		DefaultWidgetSet(Rococo::Windows::IWindow& _parent, WidgetContext& _context):
 			context(_context),
@@ -47,6 +47,32 @@ namespace
 		IGuiWidget** end() override
 		{
 			return widgets.empty() ? nullptr : &widgets[0] + widgets.size();
+		}
+
+		const IGuiWidget** begin() const override
+		{
+			if (widgets.empty())
+			{
+				return nullptr;
+			}
+			else
+			{
+				auto* result = const_cast<IGuiWidget**>(&widgets[0]);
+				return const_cast<const IGuiWidget**>(result);
+			}
+		}
+
+		const IGuiWidget** end() const override
+		{
+			if (widgets.empty())
+			{
+				return nullptr;
+			}
+			else
+			{
+				auto* result = const_cast<IGuiWidget**>(&widgets[0] + widgets.size());
+				return const_cast<const IGuiWidget**>(result);
+			}
 		}
 		 
 		Rococo::Windows::IWindow& Parent() override

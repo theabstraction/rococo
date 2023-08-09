@@ -60,7 +60,7 @@ namespace Rococo::Sex::SEXML
 
 			ISEXMLBuilder& AddDirective(cstr name) override
 			{
-				Rococo::Strings::ValidateFQNameIdentifier(name);
+				Rococo::Strings::ValidateFQNamespace(name);
 				
 				if (depth == 0)
 				{

@@ -80,6 +80,7 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] const ISEXMLAttributeValue& Value() const = 0;
 	};
 
+	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value);
 

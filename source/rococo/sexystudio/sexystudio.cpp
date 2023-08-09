@@ -51,7 +51,7 @@ auto evMetaUpdated = "sexystudio.meta.updated"_event;
 
 namespace Rococo::SexyStudio
 {
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IIDEFrame& frame, ISourceTree& sourceTree);
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree);
 }
 
 void ValidateMemory()
@@ -126,10 +126,134 @@ void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
 	CopyString(fullName, 256, writePos + 1);
 }
 
+struct FactoryConfig: IFactoryConfig
+{
+	std::vector<HString> searchPaths;
+	HString content;
+	int searchPathHeight = 120;
+
+	U8FilePath fileName;
+
+	FactoryConfig()
+	{
+		Rococo::OS::GetUserSEXMLFullPath(fileName, nullptr, "sexystudio.config");
+	}
+
+	cstr GetSearchPath(size_t index) const override
+	{
+		if (index >= searchPaths.size())
+		{
+			return nullptr;
+		}
+
+		return searchPaths[index];
+	}
+
+	void Load()
+	{
+		try
+		{
+			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, "sexystudio.config"))
+			{
+				// Create it
+				Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
+					[](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+					{
+						sb.AddDirective("Directories");
+						sb.OpenListAttribute("search-paths");
+						sb.AddEscapedStringToList("!scripts/native");
+						sb.AddEscapedStringToList("!scripts/interop");
+						sb.AddEscapedStringToList("!scripts/declarations");
+						sb.CloseListAttribute(); // search-paths
+						sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\");
+						sb.CloseDirective(); // directories
+					}
+				);
+			}
+
+			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, "sexystudio.layout"))
+			{
+				// Create it
+				Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.layout",
+					[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+					{
+						sb.AddDirective("PropertySheets");
+						sb.AddAtomicAttribute("searchpath.height", searchPathHeight);
+						sb.CloseDirective(); // PropertySheets
+					}
+				);
+			}
+
+			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.config",
+				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+				{
+					size_t startIndex = 0;
+					auto& dirs = Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
+					auto& aSearchpaths = Rococo::Sex::SEXML::AsStringList(dirs["search-paths"]);
+					auto& aContent = Rococo::Sex::SEXML::AsString(dirs["content"]);
+
+					searchPaths.clear();
+
+					for (int i = 0; i < aSearchpaths.NumberOfElements(); i++)
+					{
+						fstring path = aSearchpaths[i];
+						searchPaths.push_back((cstr)path);
+					}
+
+					content = aContent.c_str();
+				}
+			);
+		}
+		catch (IException& ex)
+		{
+			OS::TripDebugger();
+			Rococo::Debugging::AddCriticalLog(ex.Message());
+		}
+
+		try
+		{
+			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.layout",
+				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+				{
+					size_t startIndex = 0;
+					auto& sheets = Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "PropertySheets", IN OUT startIndex);
+					auto& aSearchPathHeight = Rococo::Sex::SEXML::AsAtomic(sheets["searchpath.height"]);
+					searchPathHeight = atoi(aSearchPathHeight.c_str());
+				}
+			);
+		}
+		catch (...)
+		{
+
+		}
+	}
+
+	void Save()
+	{
+		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
+			[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+			{
+				sb.AddDirective("directories");
+				sb.OpenListAttribute("search-paths");
+
+				for (auto& path : searchPaths)
+				{
+					sb.AddEscapedStringToList(path);
+				}
+
+				sb.CloseListAttribute(); // search-paths
+				sb.AddStringLiteral("content", content);
+				sb.CloseDirective(); // directories
+			}
+		);
+	}
+};
+
 class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents
 {
 private:
 	WidgetContext wc;
+	FactoryConfig& config;
 	IIDEFrame& ideFrame;
 	ISexyDatabase& database;
 	AutoFree<ISourceTree> idToSourceMap = CreateSourceTree();
@@ -149,7 +273,7 @@ private:
 
 		database.Solution().SetContentFolder(contentPath);
 
-		Rococo::OS::SetConfigVariable(contentPath, OS::ConfigSection{ "ContentPath" }, OS::ConfigRootName{ "SexyStudio" });
+		config.content = contentPath;
 
 		PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceMap);
 		ideFrame.SetProgress(100.0f, "Populated file browser");
@@ -175,8 +299,9 @@ private:
 	}
 
 public:
-	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabase& _database): 
+	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabase& _database, FactoryConfig& _config): 
 		wc(screen.Children()->Context()),
+		config(_config),
 		ideFrame(_ideFrame),
 		database(_database)
 	{
@@ -213,7 +338,6 @@ public:
 		Widgets::AnchorToParentTop(*projectSettings, 0);
 		Widgets::AnchorToParentLeft(*projectSettings, 0);
 		Widgets::AnchorToParentRight(*projectSettings, 0);
-		Widgets::ExpandBottomFromTop(*projectSettings, 64);
 
 		auto* contentEditor = projectSettings->AddFilePathEditor();
 		contentEditor->SetName("Content");
@@ -222,12 +346,24 @@ public:
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
 
+		auto* searchPathsBox = projectSettings->AddListWidget();
+		searchPathsBox->SetDefaultHeight(config.searchPathHeight);
+		searchPathsBox->SetName("Search paths");		
+
+		for (auto& path : config.searchPaths)
+		{
+			searchPathsBox->AppendItem(path);
+		}
+
+		Widgets::ExpandBottomFromTop(*projectSettings, projectSettings->GetDefaultHeight());
+		searchPathsBox->SetVisible(true);
+
 		TreeStyle style;
 		style.hasButtons = true;
 		style.hasLines = true;
 
 		fileBrowser = CreateTree(projectTab->Children(), style, *this, this);
-		Widgets::AnchorToParent(*fileBrowser, 0, 64, 0, 0);
+		Widgets::AnchorToParent(*fileBrowser, 0, projectSettings->GetDefaultHeight(), 0, 0);
 
 		fileBrowser->SetVisible(true);
 		fileBrowser->SetImageList(4, IDB_FOLDER_CLOSED, IDB_FOLDER_OPEN, IDB_FILETYPE_SXY, IDB_FILETYPE_UNKNOWN);
@@ -356,6 +492,7 @@ class SexyExplorer: IObserver, IGuiTreeEvents
 {
 private:
 	WidgetContext wc;
+	FactoryConfig& config;
 	ISplitScreen& screen;
 	ISexyDatabase& database;
 	IGuiTree* classTree;
@@ -1245,8 +1382,8 @@ private:
 	IAsciiStringEditor* searchEditor = nullptr;
 	IFloatingListWidget* searchResults = nullptr;
 public:
-	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabase& _database, ISexyStudioEventHandler& _eventHandler) : 
-		wc(_wc), screen(_screen), database(_database), eventHandler(_eventHandler)
+	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabase& _database, ISexyStudioEventHandler& _eventHandler, FactoryConfig& _config) : 
+		wc(_wc), config(_config), screen(_screen), database(_database), eventHandler(_eventHandler)
 	{
 		screen.SetBackgroundColour(RGBAb(128, 128, 192));
 
@@ -1323,88 +1460,6 @@ LOGFONTA MakeDefaultFont()
 
 using namespace Rococo::AutoComplete;
 
-struct FactoryConfig
-{
-	std::vector<HString> searchPaths;
-	HString content;
-
-	U8FilePath fileName;
-
-	FactoryConfig()
-	{
-		Rococo::OS::GetUserSEXMLFullPath(fileName, nullptr, "sexystudio.config");
-	}
-
-	void Load()
-	{
-		try
-		{
-			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, "sexystudio.config"))
-			{
-				// Create it
-				Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
-					[](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
-					{
-						sb.AddDirective("directories");
-						sb.OpenListAttribute("search-paths");
-						sb.AddEscapedStringToList("!scripts/native");
-						sb.AddEscapedStringToList("!scripts/interop");
-						sb.AddEscapedStringToList("!scripts/declarations");
-						sb.CloseListAttribute(); // search-paths
-						sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\");
-						sb.CloseDirective(); // directories
-					}
-				);
-			}
-
-			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.config",
-				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
-				{
-					size_t startIndex = 0;
-					auto& dirs = Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "directories", IN OUT startIndex);
-					auto& aSearchpaths = Rococo::Sex::SEXML::AsStringList(dirs["search-paths"]);
-					auto& aContent = Rococo::Sex::SEXML::AsString(dirs["content"]);
-
-					searchPaths.clear();
-
-					for (int i = 0; i < aSearchpaths.NumberOfElements(); i++)
-					{
-						fstring path = aSearchpaths[i];
-						searchPaths.push_back((cstr)path);
-					}
-
-					content = aContent.c_str();
-				}
-			);
-		}
-		catch (IException& ex)
-		{
-			OS::TripDebugger();
-			Rococo::Debugging::AddCriticalLog(ex.Message());
-		}
-	}
-
-	void Save()
-	{
-		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
-			[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
-			{
-				sb.AddDirective("directories");
-				sb.OpenListAttribute("search-paths");
-
-				for (auto& path : searchPaths)
-				{
-					sb.AddEscapedStringToList(path);
-				}
-
-				sb.CloseListAttribute(); // search-paths
-				sb.AddStringLiteral("content", content);
-				sb.CloseDirective(); // directories
-			}
-		);
-	}
-};
-
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 {
 	AutoFree<IPublisherSupervisor> publisher;
@@ -1418,8 +1473,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	ISplitScreen* projectView = nullptr;
 	ISplitScreen* sourceView = nullptr;
 
-	PropertySheets* sheets = nullptr;
-	SexyExplorer* explorer = nullptr;
+	PropertySheets* sheets = nullptr;	// The left hand controls
+	SexyExplorer* explorer = nullptr;	// The right hand controls
 
 	int64 autoComplete_Replacement_StartPosition = 0;
 	char callTipArgs[1024] = { 0 };
@@ -1732,7 +1787,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config) :
 		config(_config),
 		publisher(Rococo::Events::CreatePublisher()),
-		database(CreateSexyDatabase()),
+		database(CreateSexyDatabase(_config)),
 		smallCaptionFont(MakeDefaultFont()),
 		context{ *publisher, smallCaptionFont },
 		theme{ UseNamedTheme("Classic", context.publisher) },
@@ -1801,8 +1856,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		}
 	
 
-		sheets = new PropertySheets(*projectView, *ide, *database);
-		explorer = new SexyExplorer(context, *sourceView, *database, eventHandler);
+		sheets = new PropertySheets(*projectView, *ide, *database, config);
+		explorer = new SexyExplorer(context, *sourceView, *database, eventHandler, config);
 
 		publisher->Subscribe(this, evIDEClose);
 		publisher->Subscribe(this, evIDEMax);

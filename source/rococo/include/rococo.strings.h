@@ -315,6 +315,7 @@ namespace Rococo::Strings
 	ROCOCO_API void Assign(WideFilePath& dest, const char* src);
 	ROCOCO_API void Assign(U32FilePath& dest, const char32_t* wideSrc);
 
+	ROCOCO_API void ValidateFQNamespace(cstr fqName);
 	ROCOCO_API void ValidateFQNameIdentifier(cstr fqName);
 
 	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);

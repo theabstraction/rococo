@@ -98,7 +98,7 @@ namespace Rococo::SexyStudio
 		tree.SetItemText(branchId, srcTree.Source().Name());
 	}
 
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IIDEFrame& frame, ISourceTree& sourceTree)
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree)
 	{
 		tree.Clear();
 		database.Clear();
@@ -109,27 +109,27 @@ namespace Rococo::SexyStudio
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
 			float count = 0;
-			IIDEFrame* frame;
+			IDBProgress* progress;
 
 			void OnEvent(IO::FileItemData& item) override
 			{
 				if (item.isDirectory)
 				{
-					char progress[1024];
-					SafeFormat(progress, "Evaluating directory...\r\n   %ws", item.fullPath);
-					frame->SetProgress(0.0f, progress);
+					char progressText[1024];
+					SafeFormat(progressText, "Evaluating directory...\r\n   %ws", item.fullPath);
+					progress->SetProgress(0.0f, progressText);
 				}
 				count += 1.0f;
 			}
 		} incFileCounter;
 
-		incFileCounter.frame = &frame;
+		incFileCounter.progress = &progress;
 
 		struct ANONCOUNTER : IEventCallback<IO::FileItemData>
 		{
 			IGuiTree* tree;
 			ISexyDatabase* database;
-			IIDEFrame* frame;
+			IDBProgress* progress;
 			ISourceTree* sourceTree;
 			float totalCount = 0;
 			float count = 0;
@@ -153,7 +153,7 @@ namespace Rococo::SexyStudio
 					SafeFormat(progressText, "Scanning directory...\r\n  %ws", item.fullPath);
 
 					float percent = clamp(totalCount == 0 ? 50.0f : 100.0f * count / totalCount, 0.0f, 99.9f);
-					frame->SetProgress(percent, progressText);
+					progress->SetProgress(percent, progressText);
 				}
 				else
 				{
@@ -166,7 +166,7 @@ namespace Rococo::SexyStudio
 						SafeFormat(progressText, "Parsing SXY file...\r\n  %ws", item.fullPath);
 
 						float percent = clamp(totalCount == 0 ? 50.0f : 100.0f * count / totalCount, 0.0f, 99.9f);
-						frame->SetProgress(percent, progressText);
+						progress->SetProgress(percent, progressText);
 
 						database->UpdateFile_SXY(u8Path);
 
@@ -188,29 +188,60 @@ namespace Rococo::SexyStudio
 
 		cb.tree = &tree;
 		cb.database = &database;
-		cb.frame = &frame;
+		cb.progress = &progress;
 		cb.sourceTree = &sourceTree;
 
 		WideFilePath scriptPath;
 		Format(scriptPath, L"%hs", database.Solution().GetScriptFolder());
 
-		if (!Rococo::IO::IsDirectory(scriptPath))
+		for (size_t i = 0; i < 100; i++)
 		{
-			auto hError = tree.AppendItem(hRoot);
-			tree.SetItemText(hError, "...directory not found");
-			return;
+			cstr path = database.Config().GetSearchPath(i);
+			if (!path)
+				break;
+
+			U8FilePath sysPath;
+			database.PingPathToSysPath(path, sysPath);
+
+			if (Rococo::IO::IsDirectory(sysPath))
+			{
+				WideFilePath wPath;
+				Assign(wPath, sysPath);
+				Rococo::IO::ForEachFileInDirectory(wPath, incFileCounter, true, nullptr);
+				cb.totalCount = incFileCounter.count;
+			}
+			else
+			{
+				auto hError = tree.AppendItem(hRoot);
+				char msg[256];
+				SafeFormat(msg, "Could not find %s", sysPath.buf);
+				tree.SetItemText(hError, msg);
+			}
 		}
 
 		try
 		{
-			Rococo::IO::ForEachFileInDirectory(scriptPath, incFileCounter, true, nullptr);
-			cb.totalCount = incFileCounter.count;
-			Rococo::IO::ForEachFileInDirectory(scriptPath, cb, true, (void*) hRoot);
+			for (size_t i = 0; i < 100; i++)
+			{
+				cstr path = database.Config().GetSearchPath(i);
+				if (!path)
+					break;
+
+				U8FilePath sysPath;
+				database.PingPathToSysPath(path, sysPath);
+
+				if (Rococo::IO::IsDirectory(sysPath))
+				{
+					WideFilePath wPath;
+					Assign(wPath, sysPath);
+					Rococo::IO::ForEachFileInDirectory(wPath, cb, true, (void*)hRoot);
+				}
+			}
 		}
 		catch (IException& ex)
 		{
 			auto hError = tree.AppendItem(hRoot);
-			tree.SetItemText(hError, "Error recursing content folder");
+			tree.SetItemText(hError, "Error recursing search paths");
 			auto hErrorMsg = tree.AppendItem(hError);
 			tree.SetItemText(hErrorMsg, ex.Message());
 			return;

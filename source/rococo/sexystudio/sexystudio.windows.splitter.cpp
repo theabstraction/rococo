@@ -102,6 +102,20 @@ namespace
 		{
 		}
 
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
+		}
+
 		void AddLayoutModifier(ILayout*) override
 		{
 			Throw(0, "%s: Not permitted", __FUNCTION__);
@@ -268,6 +282,20 @@ namespace
 
 				dragger = new SplitDragger(*children, *this);
 			}
+		}
+
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
 		}
 
 		void SplitIntoColumns(int32 firstSpan) override

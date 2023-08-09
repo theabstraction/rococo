@@ -82,6 +82,20 @@ namespace
 			}
 		}
 
+		int layoutHeight = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		void SetDefaultHeight(int height)
+		{
+			layoutHeight = height;
+		}
+
+		// return a layout height. If unknown the result is <= 0
+		int GetDefaultHeight() const
+		{
+			return layoutHeight;
+		}
+
 		void SetSpacing(int32 firstBorder, int32 widgetSpacing)
 		{
 			this->leftBorder = firstBorder;

@@ -237,9 +237,15 @@ namespace Rococo::SexyStudio
 
 	struct ISexyFieldEnumerator;
 
+	ROCOCO_INTERFACE IFactoryConfig
+	{
+		virtual cstr GetSearchPath(size_t index) const = 0;
+	};
+
 	ROCOCO_INTERFACE ISexyDatabase
 	{
 		virtual void Clear() = 0;
+		virtual IFactoryConfig& Config() = 0;
 		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual ISXYInterface* FindInterface(cstr typeString, ISxyNamespace** ppNamespace = nullptr) = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
@@ -280,7 +286,7 @@ namespace Rococo::SexyStudio
 		virtual void SetContentPath(cstr contentFolder) = 0;
 	};
 
-	ISexyDatabaseSupervisor* CreateSexyDatabase();
+	ISexyDatabaseSupervisor* CreateSexyDatabase(IFactoryConfig& config);
 
 	struct WaitCursorSection
 	{
@@ -316,6 +322,12 @@ namespace Rococo::SexyStudio
 
 		// Modify visibility of the widget
 		virtual void SetVisible(bool isVisible) = 0;
+
+		// Specify a layout height, for parents that modify their children's layout
+		virtual void SetDefaultHeight(int height) = 0;
+
+		// return a layout height. If unknown the result is <= 0
+		virtual int GetDefaultHeight() const = 0;
 
 		// returns the set of children if it can possess children, otherwise returns nullptr
 		virtual IWidgetSet* Children() = 0;
@@ -359,6 +371,10 @@ namespace Rococo::SexyStudio
 		virtual IGuiWidget** begin() = 0;
 		// IGuiWidget* iterator end()
 		virtual IGuiWidget** end() = 0;
+		// IGuiWidget* iterator begin()
+		virtual const IGuiWidget** begin() const = 0;
+		// IGuiWidget* iterator end()
+		virtual const IGuiWidget** end() const = 0;
 		// Get the publisher associated with this widget set
 		virtual WidgetContext& Context() = 0;
 	};
@@ -500,7 +516,12 @@ namespace Rococo::SexyStudio
 		virtual void SetSpacing(int32 firstBorder, int32 widgetSpacing) = 0;
 	};
 
-	ROCOCO_INTERFACE IIDEFrame
+	ROCOCO_INTERFACE IDBProgress
+	{
+		virtual void SetProgress(float progressPercent, cstr bannerText) = 0;
+	};
+
+	ROCOCO_INTERFACE IIDEFrame: IDBProgress
 	{
 		virtual IWindow & Window() = 0;
 		virtual void SetVisible(bool isVisible) = 0;
@@ -508,7 +529,6 @@ namespace Rococo::SexyStudio
 		operator IWindow& () { return Window(); };
 		// Update child geometry. This is issued when the control is resized and also by calling SetVisible
 		virtual void LayoutChildren() = 0;
-		virtual void SetProgress(float progressPercent, cstr bannerText) = 0;
 		virtual ISexyStudioEventHandler& Events() = 0;
 	};
 

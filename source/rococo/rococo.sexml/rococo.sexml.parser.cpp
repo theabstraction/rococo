@@ -543,7 +543,7 @@ namespace Rococo::Sex::SEXML
 					Throw(sName, "The directive namespace length was %d characters. The limit is %d characters", name->Length, MAX_FQNAME_LENGTH);
 				}
 
-				Rococo::Strings::ValidateFQNameIdentifier(name->Buffer);
+				Rococo::Strings::ValidateFQNamespace(name->Buffer);
 
 				int firstSub = 0;
 
@@ -856,5 +856,18 @@ namespace Rococo::Sex::SEXML
 		}
 
 		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringListValue&>(value);
+	}
+
+	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value)
+	{
+		switch (value.Type())
+		{
+		case Rococo::Sex::SEXML::SEXMLValueType::Atomic:
+			break;
+		default:
+			Rococo::Sex::Throw(value.S(), "Cannot interpret value as an atomic.");
+		}
+
+		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringValue&>(value);
 	}
 }
