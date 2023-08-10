@@ -693,9 +693,10 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
-            conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
         }
     }
@@ -712,6 +713,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyScriptProject>(target);
             conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
@@ -982,6 +984,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
             conf.AddPublicDependency<LibZipProject>(target);

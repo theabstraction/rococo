@@ -317,23 +317,28 @@ namespace Rococo::SexyStudio
 		}
 	}
 
-	void PopulateTreeWithPackages(cstr packageFolder, ISexyDatabase& database)
+	void PopulateTreeWithPackage(cstr sysPackagePath, ISexyDatabase& database)
 	{
 		WideFilePath widePath;
-		Assign(widePath, packageFolder);
+		Assign(widePath, sysPackagePath);
 
 		U8FilePath asciiName;
-		Format(asciiName, "%s", packageFolder);
+		Format(asciiName, "%s", sysPackagePath);
 
 		U8FilePath packageShortName;
-		if (!TryGetShortPackageName(packageShortName, packageFolder))
+		if (!TryGetShortPackageName(packageShortName, sysPackagePath))
 		{
 			Format(packageShortName, "-unknown-%llu", Rococo::Time::TickCount());
 		}
 
-		AutoFree<IPackageSupervisor> package = OpenZipPackage(widePath, packageShortName);
+		if (!database.HasResource(sysPackagePath))
+		{
+			database.MarkResource(sysPackagePath);
 
-		PopulateDatabaseWithPackagesRecursive(*package, database, "");
+			AutoFree<IPackageSupervisor> package = OpenZipPackage(widePath, packageShortName);
+
+			PopulateDatabaseWithPackagesRecursive(*package, database, "");
+		}
 	}
 
 	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath, bool addNativeDeclarations)
@@ -419,7 +424,7 @@ namespace Rococo::SexyStudio
 									U8FilePath sysPackagePath;
 									database.PingPathToSysPath(packagePath, sysPackagePath);
 
-									PopulateTreeWithPackages(sysPackagePath, database);
+									PopulateTreeWithPackage(sysPackagePath, database);
 
 									int priority = 0;
 									cstr declarations = addNativeDeclarations ? database.Solution().GetDeclarationPathForImport(packageName, priority) : nullptr;

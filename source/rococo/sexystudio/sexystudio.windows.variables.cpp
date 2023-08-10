@@ -11,7 +11,7 @@ using namespace Rococo::SexyStudio;
 
 namespace Rococo::SexyStudio
 {
-	IReportWidget* CreateReportWidget(IVariableList& container, HBRUSH bkBrush);
+	IReportWidget* CreateReportWidget(IVariableList& variables, IPingPathResolver& resolver, HBRUSH backBrush, bool addCheckboxes, IReportWidgetEvent& eventHandler);
 }
 
 namespace ANON
@@ -823,9 +823,9 @@ namespace ANON
 			return editor;
 		}
 
-		IReportWidget* AddReportWidget() override
+		IReportWidget* AddReportWidget(IPingPathResolver& resolver, bool addCheckboxes, IReportWidgetEvent& eventHandler) override
 		{
-			auto* reportWidget = CreateReportWidget(*this, bkBrush);
+			auto* reportWidget = CreateReportWidget(*this, resolver, bkBrush, addCheckboxes, eventHandler);
 			children->Add(reportWidget);
 			return reportWidget;
 		}

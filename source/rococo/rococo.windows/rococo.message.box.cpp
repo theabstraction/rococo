@@ -53,19 +53,6 @@ namespace Rococo::Windows
 
     ROCOCO_API_EXPORT void ShowExceptionDialog(const ExceptionDialogSpec& spec, HWND parent, IException& ex);
 
-    ROCOCO_WINDOWS_API IWindow& NoParent()
-    {
-        class : public IWindow
-        {
-            virtual operator HWND () const
-            {
-                return nullptr;
-            }
-        } static noParent;
-
-        return noParent;
-    }
-
     ROCOCO_API_EXPORT void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr caption)
     {
         HMODULE hRichEditor = LoadLibraryA(TEXT("Riched20.dll"));

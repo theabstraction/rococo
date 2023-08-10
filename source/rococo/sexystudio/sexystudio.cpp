@@ -193,7 +193,7 @@ struct FactoryConfig: IFactoryConfig
 						sb.AddStringLiteral("project", "!scripts/mhost");
 						sb.CloseDirective(); // directories
 						sb.AddDirective("Packages");
-						sb.OpenListAttribute("known-packages");
+						sb.OpenListAttribute("selected-packages");
 						sb.AddEscapedStringToList("!packages/mhost_1000.sxyz");
 						sb.CloseListAttribute(); // known-packages
 						sb.CloseDirective();
@@ -211,18 +211,26 @@ struct FactoryConfig: IFactoryConfig
 				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
 				{
 					size_t startIndex = 0;
-					auto& dirs = GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
+					auto& dDirectores = GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
 
-					content = AsString(dirs["content"]).c_str();
-					projectPath = AsString(dirs["project"]).c_str();;
+					content = AsString(dDirectores["content"]).c_str();
+					projectPath = AsString(dDirectores["project"]).c_str();;
 
 					searchPaths.clear();
 
-					auto& aSearchpaths = AsStringList(dirs["search-paths"]);
+					auto& aSearchpaths = AsStringList(dDirectores["search-paths"]);
 					for (int i = 0; i < aSearchpaths.NumberOfElements(); i++)
 					{
 						fstring path = aSearchpaths[i];
 						searchPaths.push_back((cstr)path);
+					}
+
+					auto& dPackages = GetDirective(topLevelDirectives, "Packages", IN OUT startIndex);
+					auto& aPackages = AsStringList(dPackages["selected-packages"]);
+					for (int i = 0; i < aPackages.NumberOfElements(); i++)
+					{
+						fstring path = aPackages[i];
+						packages.push_back((cstr)path);
 					}
 				}
 			);
@@ -292,7 +300,7 @@ struct FactoryConfig: IFactoryConfig
 					sb.CloseDirective(); // directories
 
 					sb.AddDirective("Packages");
-					sb.OpenListAttribute("known-packages");
+					sb.OpenListAttribute("selected-packages");
 
 					for (auto& pck : packages)
 					{
@@ -320,7 +328,36 @@ struct FactoryConfig: IFactoryConfig
 	}
 };
 
-class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents
+ROCOCO_INTERFACE ISourceChangedEventHandler
+{
+	virtual void OnPackageSelectionChanged() = 0;
+};
+
+struct PackageEventHandler : IReportWidgetEvent
+{
+	ISourceChangedEventHandler& eventHandler;
+
+	void OnItemLeftClicked(int index, int subItem, IReportWidget& source) override
+	{
+		int image = source.GetImageIndex(index, subItem);
+		source.SetImageIndex(index, subItem, image == 0 ? 1 : 0);	
+		eventHandler.OnPackageSelectionChanged();
+	}
+
+	void OnItemRightClicked(int index, int subItem, IReportWidget& source) override
+	{
+		UNUSED(index);
+		UNUSED(subItem);
+		UNUSED(source);
+	}
+
+	PackageEventHandler(ISourceChangedEventHandler& _eventHandler): eventHandler(_eventHandler)
+	{
+
+	}
+};
+
+class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents, ISourceChangedEventHandler
 {
 private:
 	WidgetContext wc;
@@ -334,6 +371,7 @@ private:
 	U8FilePath projectPath;
 	IFilePathEditor* projectDirEditor;
 	IReportWidget* packageView;
+	PackageEventHandler packageViewEventHandler;
 
 	void SetProjectDirectory()
 	{
@@ -372,10 +410,21 @@ private:
 		PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceMap);
 		ideFrame.SetProgress(100.0f, "Populated file browser");
 
-		U8FilePath sysPackagePath;
-		database.PingPathToSysPath("!packages", sysPackagePath);
-
-		PopulatePackageViewWithCheckboxes(sysPackagePath);
+		int nPackages = packageView->GetNumberOfRows();
+		for (int i = 0; i < nPackages; i++)
+		{
+			if (1 == packageView->GetImageIndex(i, 0))
+			{
+				U8FilePath pingPath;
+				packageView->GetText(pingPath, i, 0);
+				if (pingPath.buf[0] == '!')
+				{
+					U8FilePath sysPath;
+					database.PingPathToSysPath(pingPath, sysPath);
+					PopulateTreeWithPackage(sysPath, database);
+				}
+			}
+		}
 
 		database.Sort();
 
@@ -398,7 +447,19 @@ private:
 
 			U8FilePath pingPath;
 			database.SysPathToPingPath(path, pingPath);
-			packageView->SetItem("Package", pingPath, -1);
+
+			bool isASelectedPackage = false;
+
+			for (auto& selectedPackage : config.packages)
+			{
+				if (Eq(selectedPackage, pingPath))
+				{
+					isASelectedPackage = true;
+					break;
+				}
+			}
+
+			packageView->SetItem("Package", pingPath, -1, isASelectedPackage ? 1 : 0);
 		}
 	}
 
@@ -419,12 +480,17 @@ private:
 
 	}
 
+	void OnPackageSelectionChanged()
+	{
+		SyncContent();
+	}
 public:
 	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabase& _database, FactoryConfig& _config): 
 		wc(screen.Children()->Context()),
 		config(_config),
 		ideFrame(_ideFrame),
-		database(_database)
+		database(_database),
+		packageViewEventHandler(*this)
 	{
 		Format(contentPath, "%s", database.Solution().GetContentFolder());
 		Format(projectPath, "%s", config.projectPath.c_str());
@@ -434,25 +500,10 @@ public:
 		ITabSplitter* tabs = CreateTabSplitter(*screen.Children());
 		tabs->SetVisible(true);
 
-		/*
-		ITab& propTab = tabs->AddTab();
-		propTab.SetName("Properties");
-		propTab.SetTooltip("Property View");
-		*/
-
 		projectTab = &tabs->AddTab();
 		projectTab->SetName("Projects");
 		projectTab->SetTooltip("Project View");
 
-		/*
-		ITab& settingsTab = tabs->AddTab();
-		settingsTab.SetName("Settings");
-		settingsTab.SetTooltip("Global Configuration Settings");
-		IVariableList* globalSettings = CreateVariableList(settingsTab.Children());
-		globalSettings->SetVisible(true);
-
-		Widgets::AnchorToParent(*globalSettings, 0, 0, 0, 0);
-		*/
 
 		IVariableList* projectSettings = CreateVariableList(projectTab->Children());
 		projectSettings->SetVisible(true);
@@ -475,10 +526,10 @@ public:
 		projectDirEditor->SetVisible(true);
 		projectDirEditor->SetUpdateEvent(evProjectChange);
 
-		packageView = projectSettings->AddReportWidget();
+		packageView = projectSettings->AddReportWidget(database, true, packageViewEventHandler);
 		packageView->SetDefaultHeight(128);
-		packageView->AddColumn("Package", "Package", 360);
 		packageView->SetFont(config.packageViewFontHeight, "Consolas");
+		packageView->AddColumn("Package", "Package", 320);
 		packageView->SetVisible(true);
 
 		auto* searchPathsBox = projectSettings->AddListWidget();
@@ -489,6 +540,11 @@ public:
 		{
 			searchPathsBox->AppendItem(path);
 		}
+
+		U8FilePath sysPackagePath;
+		database.PingPathToSysPath("!packages", sysPackagePath);
+
+		PopulatePackageViewWithCheckboxes(sysPackagePath);
 
 		Widgets::ExpandBottomFromTop(*projectSettings, projectSettings->GetDefaultHeight());
 		searchPathsBox->SetVisible(true);
@@ -512,6 +568,22 @@ public:
 	~PropertySheets()
 	{
 		wc.publisher.Unsubscribe(this);
+
+		config.packages.clear();
+
+		for (int i = 0; i < packageView->GetNumberOfRows(); ++i)
+		{
+			int imageIndex = packageView->GetImageIndex(i, 0);
+			if (imageIndex == 1)
+			{
+				U8FilePath path;
+				packageView->GetText(path, i, 0);
+				if (*path == '!')
+				{
+					config.packages.push_back((cstr)path);
+				}
+			}
+		}
 	}
 
 	void SetContent(const U8FilePath& newPath)

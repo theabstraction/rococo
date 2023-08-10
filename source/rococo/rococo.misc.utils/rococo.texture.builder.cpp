@@ -350,7 +350,7 @@ namespace
 
             for (int32 j = 1; j <= textureArray.MaxWidth(); j *= 2)
             {
-                if (j > maxWidth)
+                if (j >= maxWidth)
                 {
                     maxWidth = j;
                     break;

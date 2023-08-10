@@ -6,13 +6,16 @@ namespace Rococo::SexyStudio
 {
 	struct ReportWidget : IReportWidget, IWin32WindowMessageLoopHandler
 	{
+		IReportWidgetEvent& eventHandler;
 		IVariableList& variableList;
+		IPingPathResolver& resolver;
 		Win32ChildWindow eventSinkWindow;
 		HWNDProxy hReportView;
 		AutoFree<ILayoutSet> layouts = CreateLayoutSet();
 		HBRUSH backBrush;
 		HFONT hFont = NULL;
 		int fontSize = -11;
+		HIMAGELIST hImages;
 
 		struct ColumnDesc
 		{
@@ -23,19 +26,33 @@ namespace Rococo::SexyStudio
 
 		stringmap<ColumnDesc> columns;
 
-		ReportWidget(IVariableList& _variables, HBRUSH _backBrush):
-			variableList(_variables), backBrush(_backBrush),
+		ReportWidget(IPingPathResolver& _resolver, IVariableList& _variables, HBRUSH _backBrush, bool addCheckboxes, IReportWidgetEvent& _eventHandler):
+			variableList(_variables), resolver(_resolver), backBrush(_backBrush), eventHandler(_eventHandler),
 			eventSinkWindow(_variables.Window(), *this)
 		{
+			UNUSED(addCheckboxes);
+
 			DWORD exStyle = 0;
-			DWORD win32Style = LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP | WS_CHILD | WS_VSCROLL;
+			DWORD win32Style = LVS_SINGLESEL | LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP | WS_CHILD | WS_VSCROLL;
 
 			hReportView = CreateWindowExA(exStyle, WC_LISTVIEWA, "", win32Style, 0, 0, 100, 100, eventSinkWindow, NULL, NULL, NULL);
 			if (!hReportView)
 			{
 				Throw(GetLastError(), "%s: Could not create report view window", __FUNCTION__);
 			}
+
+			U8FilePath sysPath;
+			resolver.PingPathToSysPath("!textures/sexy-studio/report-checkboxes", sysPath);
+			hImages = CreateImageList(sysPath, 2);
+			ListView_SetImageList(hReportView, hImages, LVSIL_SMALL);
+
+			int nImages = ImageList_GetImageCount(hImages);
+			if (nImages != 2)
+			{
+				Throw(0, "Expecting two images in image list");
+			}
 		}
+
 
 		void SetFont(int size, cstr name) override
 		{
@@ -63,9 +80,27 @@ namespace Rococo::SexyStudio
 
 					if (data.flags & LVHT_ONITEM && data.iItem >= 0 && data.iSubItem >= 0)
 					{
-					
+						eventHandler.OnItemRightClicked(data.iItem, data.iSubItem, *this);
 					}
 					return 0L;
+				}
+				case NM_CLICK:
+				{
+					DWORD dwpos = GetMessagePos();
+					POINT pos{ (LONG)GET_X_LPARAM(dwpos), (LONG)GET_Y_LPARAM(dwpos) };
+					POINT clientPos = pos;
+					ScreenToClient(hReportView, &clientPos);
+
+					LV_HITTESTINFO data = { 0 };
+					data.pt = clientPos;
+					ListView_HitTest(hReportView, &data);
+
+					callDefProc = false;
+
+					if (data.flags & LVHT_ONITEM && data.iItem >= 0)
+					{
+						eventHandler.OnItemLeftClicked(data.iItem, data.iSubItem, *this);
+					}
 				}
 			}
 
@@ -146,7 +181,7 @@ namespace Rococo::SexyStudio
 			}
 		}
 
-		int SetItem(cstr columnId, cstr text, int row) override
+		int SetItem(cstr columnId, cstr text, int row, int imageIndex) override
 		{
 			auto i = columns.find(columnId);
 			if (i == columns.end())
@@ -160,15 +195,56 @@ namespace Rococo::SexyStudio
 			if (row >= nRows || row < 0)
 			{
 				LV_ITEMA item = { 0 };
-				item.mask = LVIF_TEXT;
-				item.pszText = columnIndex == 0 ? (char*)text : "<unknown>";
+				item.mask = LVIF_TEXT | LVIF_IMAGE;
+				item.pszText =  (char*) text;
 				item.iItem = 0x7FFFFFFF;
+				item.iImage = imageIndex;
 				item.cchTextMax = 256;
-				return ListView_InsertItem(hReportView, &item);
+
+				row = ListView_InsertItem(hReportView, &item);
+
+				return row;
 			}
 
-			ListView_SetItemText(hReportView, row, columnIndex, (char*) text);
+			ListView_SetItemText(hReportView, row, columnIndex, (char*)text);
 			return row;
+		}
+
+		int GetImageIndex(int index, int subindex) override
+		{
+			LV_ITEMA item = { 0 };
+			item.mask = LVIF_IMAGE;
+			item.iItem = index;
+			item.iImage = -1;
+			item.iSubItem = subindex;
+			ListView_GetItem(hReportView, &item);
+			return item.iImage;
+		}
+		
+		void SetImageIndex(int index, int subindex, int imageIndex) override
+		{
+			LV_ITEMA item = { 0 };
+			item.mask = LVIF_IMAGE;
+			item.iItem = index;
+			item.iImage = imageIndex;
+			item.iSubItem = subindex;
+			ListView_SetItem(hReportView, &item);
+		}
+
+		int GetNumberOfRows() const override
+		{
+			return ListView_GetItemCount(hReportView);
+		}
+
+		bool GetText(U8FilePath& text, int row, int column) override
+		{
+			LVITEMA item = { 0 };
+			item.cchTextMax = U8FilePath::CAPACITY - 1;
+			item.pszText = text.buf;
+			item.mask = LVIF_TEXT;
+			item.iItem = row;
+			item.iSubItem = column;
+			return ListView_GetItem(hReportView, &item) ? true : false;
 		}
 
 		void ClearItems() override
@@ -224,8 +300,8 @@ namespace Rococo::SexyStudio
 		}
 	};
 
-	IReportWidget* CreateReportWidget(IVariableList& variables, HBRUSH backBrush)
+	IReportWidget* CreateReportWidget(IVariableList& variables, IPingPathResolver& resolver, HBRUSH backBrush, bool addCheckboxes, IReportWidgetEvent& eventHandler)
 	{
-		return new ReportWidget(variables, backBrush);
+		return new ReportWidget(resolver, variables, backBrush, addCheckboxes, eventHandler);
 	}
 }

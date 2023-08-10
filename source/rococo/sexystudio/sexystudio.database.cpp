@@ -1496,6 +1496,7 @@ namespace ANON
 		SolutionFile solutionFile;
 
 		stringmap<int> mapCppCodeToUsage;
+		stringmap<int> resourceCount;
 
 		SexyDatabase(IFactoryConfig& _config): 
 			config(_config),
@@ -1508,6 +1509,17 @@ namespace ANON
 		~SexyDatabase()
 		{
 			
+		}
+
+		bool HasResource(cstr id) const override
+		{
+			return resourceCount.find(id) != resourceCount.end();
+		}
+
+		void MarkResource(cstr id) override
+		{
+			auto i = resourceCount.insert(id, 0);
+			i.first->second++;
 		}
 
 		IFactoryConfig& Config() override
@@ -1775,6 +1787,7 @@ namespace ANON
 		void Clear() override
 		{
 			mapCppCodeToUsage.clear();
+			resourceCount.clear();
 			filenameToFile.clear();
 			rootNS.subspaces.clear();
 			rootNS.enums.clear();

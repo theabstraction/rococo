@@ -184,7 +184,7 @@ namespace Rococo::OS
 
 namespace Rococo::Windows
 {
-	ROCOCO_WINDOWS_API IWindow& NoParent();
+	ROCOCO_API IWindow& NoParent(); // This is in the utils lib, which reduces need to include rococo.windows, avoiding circular dependecies
 	ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
 	ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, int errorCode, cstr msg, cstr caption);
 	ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType);

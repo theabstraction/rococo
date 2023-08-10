@@ -9,6 +9,11 @@
 # define ROCOCO_WINDOWS_API ROCOCO_API_IMPORT
 #endif
 
+#ifndef HIMAGELIST
+struct _IMAGELIST;
+typedef struct _IMAGELIST* HIMAGELIST;
+#endif
+
 namespace Rococo
 {
 	struct MenuCommand;
@@ -30,6 +35,8 @@ namespace Rococo
 				return hOwner;
 			}
 		};
+
+		ROCOCO_WINDOWS_API HIMAGELIST CreateImageList(cstr sysPathToImageDirectory, int32 maxSupportedImages);
 
 		struct ColourScheme
 		{

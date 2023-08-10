@@ -3001,7 +3001,13 @@ namespace Rococo::IO
 		void Sort() override
 		{
 			PopulateResults();
-			std::sort(results.begin(), results.end());
+
+			std::sort(results.begin(), results.end(), 
+				[](cstr a, cstr b)
+				{
+					return strcmp(a, b) < 0;
+				}
+			);
 		}
 
 		size_t NumberOfFiles() const override
@@ -3149,6 +3155,19 @@ namespace Rococo::IO
 
 namespace Rococo::Windows
 {
+	ROCOCO_API IWindow& NoParent()
+	{
+		class : public IWindow
+		{
+			virtual operator HWND () const
+			{
+				return nullptr;
+			}
+		} static noParent;
+
+		return noParent;
+	}
+
 	ROCOCO_API void AddColumns(int col, int width, const char* text, HWND hReportView)
 	{
 		LV_COLUMNA c = { 0 };

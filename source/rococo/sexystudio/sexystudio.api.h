@@ -241,7 +241,7 @@ namespace Rococo::SexyStudio
 		virtual cstr GetSearchPath(size_t index) const = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyDatabase
+	ROCOCO_INTERFACE ISexyDatabase: IPingPathResolver
 	{
 		virtual void Clear() = 0;
 		virtual IFactoryConfig& Config() = 0;
@@ -251,8 +251,8 @@ namespace Rococo::SexyStudio
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void GetHintForCandidate(cr_substring prefix, char args[1024]) = 0;
 		virtual ISxyNamespace& GetRootNamespace() = 0;
-		virtual void PingPathToSysPath(cstr pingPath, U8FilePath& sysPath) = 0;
-		virtual void SysPathToPingPath(cstr sysPath, U8FilePath& pingPath) = 0;
+		virtual bool HasResource(cstr id) const = 0;
+		virtual void MarkResource(cstr id) = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
@@ -278,7 +278,7 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
-	void PopulateTreeWithPackages(cstr packageFolder, ISexyDatabase& database);
+	void PopulateTreeWithPackage(cstr packageFolder, ISexyDatabase& database);
 
 	ROCOCO_INTERFACE ISexyDatabaseSupervisor : ISexyDatabase
 	{
@@ -493,10 +493,22 @@ namespace Rococo::SexyStudio
 
 		// Sets the text at a particular column, If row does not refer to an existant row, a new row is appended
 		// The return value is the actual row number used internally
-		virtual int SetItem(cstr columnId, cstr text, int row) = 0;
+		virtual int SetItem(cstr columnId, cstr text, int row, int imageIndex) = 0;
 
 		// Clears all items, though leaves columns intact.
 		virtual void ClearItems() = 0;
+
+		virtual int GetImageIndex(int index, int subindex) = 0;
+		virtual void SetImageIndex(int index, int subindex, int imageIndex) = 0;
+
+		virtual int GetNumberOfRows() const = 0;
+		virtual bool GetText(U8FilePath& text, int row, int column) = 0;
+	};
+
+	ROCOCO_INTERFACE IReportWidgetEvent
+	{
+		virtual void OnItemLeftClicked(int index, int subItem, IReportWidget & source) = 0;
+		virtual void OnItemRightClicked(int index, int subItem, IReportWidget& source) = 0;
 	};
 
 	cstr FindDot(cstr s);
@@ -516,7 +528,7 @@ namespace Rococo::SexyStudio
 		virtual IDropDownList* AddDropDownList(bool addTextEditor) = 0;
 		virtual IFilePathEditor* AddFilePathEditor() = 0;
 		virtual IListWidget* AddListWidget() = 0;
-		virtual IReportWidget* AddReportWidget() = 0;
+		virtual IReportWidget* AddReportWidget(IPingPathResolver& resolver, bool addCheckboxes, IReportWidgetEvent& eventHandler) = 0;
 
 		// Gives number of pixels from LHS of the list to the editor column
 		virtual int NameSpan() const = 0;
