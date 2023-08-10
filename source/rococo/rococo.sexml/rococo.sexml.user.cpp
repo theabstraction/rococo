@@ -1,6 +1,7 @@
 #include <rococo.compiler.options.h>
 #define ROCOCO_SEXML_API ROCOCO_API_EXPORT
-#include <rococo.types.h>
+#include <sexy.types.h>
+#include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
 #include <rococo.sexml.h>
 #include <rococo.functional.h>
@@ -14,7 +15,7 @@ using namespace Rococo::Sex::SEXML;
 
 namespace Rococo::OS
 {
-	const char* const s_defaultOrganization = "19th-Century-Software";
+	HString s_defaultOrganization = "19th-Century-Software";
 
 	ROCOCO_SEXML_API bool IsUserSEXMLExistant(cstr organization, cstr section)
 	{
@@ -23,7 +24,7 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 
-		organization = organization ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization;
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
@@ -33,7 +34,7 @@ namespace Rococo::OS
 		}
 
 		WideFilePath wFullName;
-		Format(wFullName, L"%ws\\%hs.sexml", wDir.buf, section);
+		Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
 
 		return IO::IsFileExistant(wFullName);
 	}
@@ -45,15 +46,15 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 
-		organization = organization ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization;
 
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
 		WideFilePath wFullName;
-		Format(wFullName, L"%ws\\%hs.sexml", wDir.buf, section);
+		Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
 
-		Format(path, "%ws", wFullName.buf);
+		Format(path, "%ls", wFullName.buf);
 	}
 
 	ROCOCO_SEXML_API void LoadUserSEXML(cstr organization, cstr section, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
@@ -63,18 +64,18 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 
-		organization = organization ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization;
 
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
 		if (!IO::IsDirectory(wDir))
 		{
-			Throw(0, "%s(%s, %s,...):\n\tNo such directory: %ws\n", __FUNCTION__, organization, section, wDir.buf);
+			Throw(0, "%s(%s, %s,...):\n\tNo such directory: %ls\n", __FUNCTION__, organization, section, wDir.buf);
 		}
 
 		WideFilePath wFullName;
-		Format(wFullName, L"%ws\\%hs.sexml", wDir.buf, section);
+		Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
 
 		struct ANON: IStringPopulator
 		{
@@ -121,7 +122,7 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 		
-		organization = organization ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization;
 
 		WideFilePath wOrganizationDir;
 		IO::GetUserPath(wOrganizationDir, organization);
@@ -148,5 +149,33 @@ namespace Rococo::OS
 		}
 
 		IO::SaveAsciiTextFile(IO::TargetDirectory_UserDocuments, wDir, *dsb->Builder());
+	}
+
+	ROCOCO_SEXML_API void SetDefaultOrganization(cstr defaultOrganization)
+	{
+		if (!defaultOrganization || *defaultOrganization == 0)
+		{
+			Throw(0, "%s: blank parameter", defaultOrganization);
+		}
+
+		for (cstr p = defaultOrganization; *p != 0; p++)
+		{
+			if (IsAlphaNumeric(*p))
+			{
+				continue;
+			}
+
+			switch (*p)
+			{
+			case ' ':
+			case '-':
+			case '_':
+				break;
+			default:
+				Throw(0, "%s: bad character at position %llu", p - defaultOrganization);
+			}
+		}
+
+		s_defaultOrganization = defaultOrganization;
 	}
 }

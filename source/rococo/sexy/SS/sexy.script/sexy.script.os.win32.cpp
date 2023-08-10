@@ -127,14 +127,14 @@ namespace Rococo {
 
 					if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(data))
 					{
-						Rococo::Throw(GetLastError(), "Error associating environment variable %ws with the sexy native source directory %ws", envVariable, data);
+						Rococo::Throw(GetLastError(), "Error associating environment variable %ls with the sexy native source directory %ls", envVariable, data);
 					}
 
 					SetEnvironmentVariableW(envVariable, data);
 					return;
 				}
 
-				Throw(GetLastError(), ("Environment variable %ws not found"), envVariable);
+				Throw(GetLastError(), ("Environment variable %ls not found"), envVariable);
 			}
 		}
 

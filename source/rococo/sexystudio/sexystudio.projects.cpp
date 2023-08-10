@@ -127,7 +127,7 @@ namespace Rococo::SexyStudio
 				if (item.isDirectory)
 				{
 					char progressText[1024];
-					SafeFormat(progressText, "Evaluating directory...\r\n   %ws", item.fullPath);
+					SafeFormat(progressText, "Evaluating directory...\r\n   %ls", item.fullPath);
 					progress->SetProgress(0.0f, progressText);
 				}
 				count += 1.0f;
@@ -152,7 +152,7 @@ namespace Rococo::SexyStudio
 				auto idItem = tree->AppendItem((ID_TREE_ITEM) item.containerContext);
 
 				U8FilePath itemText;
-				Format(itemText, "%ws", item.itemRelContainer);
+				Format(itemText, "%ls", item.itemRelContainer);
 				tree->SetItemText(idItem, itemText);
 
 				if (item.isDirectory)
@@ -161,7 +161,7 @@ namespace Rococo::SexyStudio
 					tree->SetItemExpandedImage(idItem, 1);
 
 					char progressText[1024];
-					SafeFormat(progressText, "Scanning directory...\r\n  %ws", item.fullPath);
+					SafeFormat(progressText, "Scanning directory...\r\n  %ls", item.fullPath);
 
 					float percent = clamp(totalCount == 0 ? 50.0f : 100.0f * count / totalCount, 0.0f, 99.9f);
 					progress->SetProgress(percent, progressText);
@@ -171,10 +171,10 @@ namespace Rococo::SexyStudio
 					if (Rococo::EndsWith(item.fullPath, L".sxy"))
 					{
 						U8FilePath u8Path;
-						Format(u8Path, "%ws", item.fullPath);
+						Format(u8Path, "%ls", item.fullPath);
 
 						char progressText[1024];
-						SafeFormat(progressText, "Parsing SXY file...\r\n  %ws", item.fullPath);
+						SafeFormat(progressText, "Parsing SXY file...\r\n  %ls", item.fullPath);
 
 						float percent = clamp(totalCount == 0 ? 50.0f : 100.0f * count / totalCount, 0.0f, 99.9f);
 						progress->SetProgress(percent, progressText);

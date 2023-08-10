@@ -129,7 +129,7 @@ namespace
       void WriteText(cstr propName, const wchar_t* value) override // TODO->escape sequences
       {
           AppendDepth();
-          sb.AppendFormat("(%s string \"%ws\")\n", propName, value);
+          sb.AppendFormat("(%s string \"%ls\")\n", propName, value);
       }
 
       void WriteInt(cstr propName, int32 value) override

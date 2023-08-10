@@ -9,7 +9,12 @@ using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::SexyStudio;
 
-namespace
+namespace Rococo::SexyStudio
+{
+	IReportWidget* CreateReportWidget(IVariableList& container, HBRUSH bkBrush);
+}
+
+namespace ANON
 {
 	void ResizeEditor(IVariableList& variables, HWND hEditor)
 	{
@@ -818,6 +823,13 @@ namespace
 			return editor;
 		}
 
+		IReportWidget* AddReportWidget() override
+		{
+			auto* reportWidget = CreateReportWidget(*this, bkBrush);
+			children->Add(reportWidget);
+			return reportWidget;
+		}
+
 		IDropDownList* AddDropDownList(bool addTextEditor) override
 		{
 			auto* dropDown = new DropDownList(*this, bkBrush, addTextEditor, 100);
@@ -920,7 +932,7 @@ namespace Rococo::SexyStudio
 
 	IVariableList* CreateVariableList(IWidgetSet& widgets)
 	{
-		auto* v = new VariableList(widgets);
+		auto* v = new ANON::VariableList(widgets);
 		widgets.Add(v);
 		return v;
 	}

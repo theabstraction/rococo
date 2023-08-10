@@ -58,7 +58,7 @@ void FindAllDotMipMapSubfolders(std::vector<WideFilePath>& dotMipMaps, const wch
 			if (item.isDirectory && Eq(ext, L".mipmaps"))
 			{
 				WideFilePath wFullPath;
-				Format(wFullPath, L"%ws", item.fullPath);
+				Format(wFullPath, L"%ls", item.fullPath);
 				paths.push_back(wFullPath);
 			}
 		}
@@ -101,7 +101,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 				if (!item.isDirectory && wcsstr(item.fullPath, L".mipmaps") == nullptr && (EqI(ext, L".tiff") || EqI(ext, L".tif") || EqI(ext, L".jpg") || EqI(ext, L".jpeg")))
 				{
 					WideFilePath wFullPath;
-					Format(wFullPath, L"%ws", item.fullPath);
+					Format(wFullPath, L"%ls", item.fullPath);
 					paths.push_back(wFullPath);
 				}
 			}
@@ -111,7 +111,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 
 		std::sort(onFile.paths.begin(), onFile.paths.end());
 
-		printf("Identified %llu images under %ws\n", onFile.paths.size(), wPath.buf);
+		printf("Identified %llu images under %ls\n", onFile.paths.size(), wPath.buf);
 
 		bool isRunning = true;
 

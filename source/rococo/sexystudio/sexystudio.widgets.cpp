@@ -1,7 +1,8 @@
 #include "sexystudio.impl.h"
 #include <vector>
-
 #include <rococo.maths.h>
+#include <rococo.strings.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
@@ -104,5 +105,39 @@ namespace Rococo::SexyStudio
 	IWidgetSetSupervisor* CreateDefaultWidgetSet(Rococo::Windows::IWindow& parent, WidgetContext& context)
 	{
 		return new DefaultWidgetSet(parent, context);
+	}
+
+	HFONT SetFont(int size, cstr name, HFONT oldFont, HWND hTarget)
+	{
+		LOGFONTA font = { 0 };
+		font.lfHeight = size;
+		SafeFormat(font.lfFaceName, LF_FACESIZE, name);
+
+		if (oldFont)
+		{
+			DeleteObject((HGDIOBJ)oldFont);
+		}
+
+		HFONT hFont = CreateFontIndirectA(&font);
+		if (!hFont)
+		{
+			try
+			{
+				Throw(GetLastError(), "Error creating listview font, %s size %d", name, size);
+			}
+			catch (IException& ex)
+			{
+				THIS_WINDOW owner(GetAncestor(hTarget, GA_ROOT));
+				Windows::ShowErrorBox(owner, ex, "SexyStudio error");
+			}
+
+			SafeFormat(font.lfFaceName, LF_FACESIZE, "Courier New");
+			font.lfHeight = -11;
+
+			hFont = CreateFontIndirectA(&font);
+		}
+
+		SendMessage(hTarget, WM_SETFONT, (WPARAM)hFont, TRUE);
+		return hFont;
 	}
 }

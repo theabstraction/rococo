@@ -1,5 +1,7 @@
 #include <rococo.compiler.options.h>
 #define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#include <sexy.types.h>
+#include <Sexy.S-Parser.h>
 #include <rococo.sexml.h>
 #include <rococo.strings.h>
 #include <math.h>
@@ -7,6 +9,7 @@
 #include <vector>
 #include <rococo.hashtable.h>
 
+using namespace Rococo::Sex;
 using namespace Rococo::Strings;
 
 namespace Rococo::Sex::SEXML
@@ -869,5 +872,18 @@ namespace Rococo::Sex::SEXML
 		}
 
 		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringValue&>(value);
+	}
+
+	ROCOCO_SEXML_API int32 AsAtomicInt32(const ISEXMLAttributeValue& value)
+	{
+		cstr text = AsAtomic(value).c_str();
+		if (strlen(text) > 2 && (_strnicmp(text, "0x", 2) == 0))
+		{
+			int32 hexValue = 0;
+			sscanf_s(text + 2, "%x", &hexValue);
+			return hexValue;
+		}
+
+		return atoi(text);
 	}
 }

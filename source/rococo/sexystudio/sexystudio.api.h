@@ -44,7 +44,6 @@ namespace Rococo::SexyStudio
 		IOSFont& fontSmallLabel;
 	};
 
-
 	struct AtomicArg
 	{
 		bool Matches(cr_sex s, int index) const;
@@ -484,6 +483,22 @@ namespace Rococo::SexyStudio
 		virtual void SetDoubleClickEvent(EventIdRef id) = 0;
 	};
 
+	ROCOCO_INTERFACE IReportWidget : IGuiWidget
+	{
+		virtual IWindow & OSListView() = 0;
+
+		virtual void AddColumn(cstr uniqueId, cstr header, int width) = 0;
+
+		virtual void SetFont(int size, cstr name) = 0;
+
+		// Sets the text at a particular column, If row does not refer to an existant row, a new row is appended
+		// The return value is the actual row number used internally
+		virtual int SetItem(cstr columnId, cstr text, int row) = 0;
+
+		// Clears all items, though leaves columns intact.
+		virtual void ClearItems() = 0;
+	};
+
 	cstr FindDot(cstr s);
 
 	IFloatingListWidget* CreateFloatingListWidget(IWindow& window, WidgetContext& wc);
@@ -501,6 +516,7 @@ namespace Rococo::SexyStudio
 		virtual IDropDownList* AddDropDownList(bool addTextEditor) = 0;
 		virtual IFilePathEditor* AddFilePathEditor() = 0;
 		virtual IListWidget* AddListWidget() = 0;
+		virtual IReportWidget* AddReportWidget() = 0;
 
 		// Gives number of pixels from LHS of the list to the editor column
 		virtual int NameSpan() const = 0;

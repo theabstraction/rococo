@@ -43,6 +43,8 @@
 
 #include <pathcch.h>
 
+#include <rococo.hashtable.h>
+
 #pragma comment(lib, "Pathcch.lib")
 
 #include <allocators/rococo.allocators.inl>
@@ -275,7 +277,7 @@ namespace Rococo
 					return;
 				}
 
-				Throw(GetLastError(), "Cannot create directory %ws", path.buf);
+				Throw(GetLastError(), "Cannot create directory %ls", path.buf);
 			}
 		}
 
@@ -506,7 +508,7 @@ namespace Rococo
 			HRESULT hr = PathCchCanonicalizeEx(OUT out.buf, WideFilePath::CAPACITY, path, PATHCCH_NONE);
 			if FAILED(hr)
 			{
-				Throw(hr, "Failed to normalize path for %ws", path.buf);
+				Throw(hr, "Failed to normalize path for %ls", path.buf);
 			}
 
 			path = out;
@@ -1225,7 +1227,7 @@ namespace WIN32_ANON
 
 			if (!IO::IsDirectory(contentDirectory))
 			{
-				Throw(0, "No such content directory: %ws", contentDirectory);
+				Throw(0, "No such content directory: %ls", contentDirectory);
 			}
 		}
 
@@ -1233,7 +1235,7 @@ namespace WIN32_ANON
 		{
 			if (!IO::IsDirectory(contentPath))
 			{
-				Throw(0, "No such content directory: %ws", contentPath);
+				Throw(0, "No such content directory: %ls", contentPath);
 			}
 
 			len = Format(contentDirectory, L"%ls", contentPath);
@@ -1992,7 +1994,7 @@ namespace Rococo::IO
 
 		if (!Rococo::Strings::EndsWith(contentDirectory, slash))
 		{
-			Throw(0, "Content %ws did not end with %ws", contentDirectory, slash);
+			Throw(0, "Content %ls did not end with %ls", contentDirectory, slash);
 		}
 
 		bool assumeAbsolute = false;
@@ -2017,7 +2019,7 @@ namespace Rococo::IO
 			IO::GetCurrentDirectoryPath(currentDir);
 
 			WideFilePath absPath;
-			Format(absPath, L"%hs\\%ws", currentDir.buf, contentDirectory);
+			Format(absPath, L"%hs\\%ls", currentDir.buf, contentDirectory);
 
 			IO::NormalizePath(absPath);
 			return new WIN32_ANON::Installation(os, absPath);
@@ -2231,22 +2233,22 @@ namespace Rococo::IO
 
 		if (StrStrW(subdirectory, L".") != nullptr)
 		{
-			Throw(0, "%s: subdirectory %ws contained an illegal character '.'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '.'", __FUNCTION__, subdirectory);
 		}
 
 		if (StrStrW(subdirectory, L"%") != nullptr)
 		{
-			Throw(0, "%s: subdirectory %ws contained an illegal character '%'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '%'", __FUNCTION__, subdirectory);
 		}
 
 		if (StrStrW(subdirectory, L"$") != nullptr)
 		{
-			Throw(0, "%s: subdirectory %ws contained an illegal character '$'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '$'", __FUNCTION__, subdirectory);
 		}
 
 		if (subdirectory[0] == L'\\')
 		{
-			Throw(0, "%s: subdirectory %ws must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
 		}
 
 		PWSTR path;
@@ -2262,7 +2264,7 @@ namespace Rococo::IO
 		int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
 		if (len >= MAX_PATH)
 		{
-			Throw(hr, "%s: path too long: %ws", __FUNCTION__, fullpath);
+			Throw(hr, "%s: path too long: %ls", __FUNCTION__, fullpath);
 		}
 
 		if (!CreateDirectoryW(fullpath, nullptr))
@@ -2273,7 +2275,7 @@ namespace Rococo::IO
 				// We ensured the directory exists
 				return;
 			}
-			Throw(hr, "%s: could not create subdirectory %ws", __FUNCTION__, fullpath);
+			Throw(hr, "%s: could not create subdirectory %ls", __FUNCTION__, fullpath);
 		}
 	}
 
@@ -2302,7 +2304,7 @@ namespace Rococo::IO
 			try
 			{
 				fullPath.resize(wcslen(path) + 2 + wcslen(filename));
-				wnsprintfW(fullPath.data(), MAX_PATH, L"%ws\\%ws", path, filename);
+				wnsprintfW(fullPath.data(), MAX_PATH, L"%ls\\%ls", path, filename);
 				CoTaskMemFree(path);
 			}
 			catch (...)
@@ -2803,6 +2805,115 @@ namespace Rococo::IO
 		}
 	};
 
+	class U8SearchObject
+	{
+	private:
+		HANDLE hSearch = INVALID_HANDLE_VALUE;
+		WIN32_FIND_DATAW rootFindData;
+		wchar_t fullSearchFilter[_MAX_PATH];
+		wchar_t rootDirectory[_MAX_PATH];
+
+	public:
+		U8SearchObject(cstr filter)
+		{
+			if (filter == nullptr || filter[0] == 0)
+			{
+				Throw(0, "%s: <filter> was blank.", __FUNCTION__);
+			}
+
+			auto finalChar = GetFinalNull(filter)[-1];
+			bool isSlashed = finalChar == L'\\' || finalChar == L'/';
+
+			DWORD status = GetFileAttributesA(filter);
+
+			if (status != INVALID_FILE_ATTRIBUTES && ((status & FILE_ATTRIBUTE_DIRECTORY) != 0))
+			{
+				SafeFormat(fullSearchFilter, L"%hs%s*.*", filter, isSlashed ? L"" : L"\\");
+				SafeFormat(rootDirectory, L"%hs%s", filter, isSlashed ? L"" : L"\\");
+			}
+			else // Assume we have <dir>/*.ext or something similar
+			{
+				SafeFormat(fullSearchFilter, L"%hs", filter);
+				SafeFormat(rootDirectory, L"%hs", filter);
+				IO::MakeContainerDirectory(rootDirectory);
+			}
+
+			hSearch = FindFirstFileW(fullSearchFilter, &rootFindData);
+
+			if (hSearch == INVALID_HANDLE_VALUE)
+			{
+				HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+				if (hr != ERROR_FILE_NOT_FOUND)
+				{
+					Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
+				}
+				return;
+			}
+		}
+
+		void RouteSearchResults(const wchar_t* root, IEventCallback<U8FileItemData>& onFileU8, void* containerContext, bool recurse)
+		{
+			struct ANON : IEventCallback<FileItemData>
+			{
+				IEventCallback<U8FileItemData>* onFileU8;
+				void OnEvent(FileItemData& itemW) override
+				{
+					U8FilePath u8FullPath;
+					U8FilePath u8ContainerRelRoot;
+					U8FilePath u8ItemRelContainer;
+					Assign(u8FullPath, itemW.fullPath);
+					Assign(u8ContainerRelRoot, itemW.containerRelRoot);
+					Assign(u8ItemRelContainer, itemW.itemRelContainer);
+
+					U8FileItemData u8Context;
+					u8Context.containerContext = itemW.containerContext;
+					u8Context.containerRelRoot = u8ContainerRelRoot;
+					u8Context.fullPath = u8FullPath;
+					u8Context.isDirectory = itemW.isDirectory;
+					u8Context.outContext = itemW.outContext;
+
+					onFileU8->OnEvent(u8Context);
+					itemW.outContext = u8Context.outContext;
+				}
+			} onFile;
+			onFile.onFileU8 = &onFileU8;
+
+			if (root == nullptr)
+			{
+				root = rootDirectory;
+			}
+			do
+			{
+				auto* containerRelRoot = rootDirectory + wcslen(root);
+
+				if (IsDirectory(rootFindData))
+				{
+					if (*rootFindData.cFileName != '.')
+					{
+						void* subContext = RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
+
+						if (recurse)
+						{
+							SearchSubdirectoryAndRecurse(root, containerRelRoot, rootFindData.cFileName, subContext, onFile);
+						}
+					}
+				}
+				else
+				{
+					RouteSearchResult(rootFindData, root, containerRelRoot, containerContext, onFile);
+				}
+			} while (FindNextFileW(hSearch, &rootFindData));
+		}
+
+		~U8SearchObject()
+		{
+			if (hSearch != INVALID_HANDLE_VALUE)
+			{
+				FindClose(hSearch);
+			}
+		}
+	};
+
 	ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
 	{
 		struct ANON : IEventCallback<IO::FileItemData>
@@ -2844,6 +2955,78 @@ namespace Rococo::IO
 		SearchObject searchObj(filter);
 		searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
 	}
+
+	ROCOCO_API void ForEachFileInDirectory(cstr filter, IEventCallback<U8FileItemData>& onFile, bool recurse, void* containerContext)
+	{
+		U8SearchObject searchObj(filter);
+		searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
+	}
+
+	struct PathCache : IPathCacheSupervisor
+	{
+		stringmap<int> files;
+		mutable std::vector<cstr> results; // These point to the persistent strings in the stringmap, so will be valid for the lifetime of the file map
+
+		void AddPathsFromDirectory(const char* directory, bool recurse) override
+		{
+			struct ANON : IEventCallback<U8FileItemData>
+			{
+				stringmap<int>* files;
+				void OnEvent(U8FileItemData& item)
+				{
+					if (!item.isDirectory)
+					{
+						files->insert(item.fullPath, 0);
+					}
+				}
+			} onFile;
+			onFile.files = &files;
+
+			ForEachFileInDirectory(directory, onFile, recurse, nullptr);
+
+			results.clear();
+		}
+
+		void PopulateResults() const
+		{
+			if (results.empty())
+			{
+				for (auto f : files)
+				{
+					results.push_back(f.first);
+				}
+			}
+		}
+
+		void Sort() override
+		{
+			PopulateResults();
+			std::sort(results.begin(), results.end());
+		}
+
+		size_t NumberOfFiles() const override
+		{
+			PopulateResults();
+			return results.size();
+		}
+
+		cstr GetFileName(size_t index) const override
+		{
+			return results[index];
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
+
+	ROCOCO_API IPathCacheSupervisor* CreatePathCache()
+	{
+		return new PathCache();
+	}
+	
 
 	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const wchar_t* filename)
 	{
@@ -2936,23 +3119,23 @@ namespace Rococo::IO
 		AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
 		if (hFile == INVALID_HANDLE_VALUE)
 		{
-			Throw(GetLastError(), "Cannot open %ws for writing", targetPath);
+			Throw(GetLastError(), "Cannot open %ls for writing", targetPath);
 		}
 
 		if (nBytes > 2_gigabytes)
 		{
-			Throw(0, "Cannot open %ws for writing. Buffer length > 2 gigs", targetPath);
+			Throw(0, "Cannot open %ls for writing. Buffer length > 2 gigs", targetPath);
 		}
 
 		DWORD bytesWritten;
 		if (!WriteFile(hFile, buffer, (DWORD)nBytes, &bytesWritten, NULL))
 		{
-			Throw(GetLastError(), "Cannot write to file %ws", targetPath);
+			Throw(GetLastError(), "Cannot write to file %ls", targetPath);
 		}
 
 		if (bytesWritten != (DWORD)nBytes)
 		{
-			Throw(GetLastError(), "Only partial write to %ws", targetPath);
+			Throw(GetLastError(), "Only partial write to %ls", targetPath);
 		}
 	}
 

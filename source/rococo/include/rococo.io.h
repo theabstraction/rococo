@@ -83,9 +83,36 @@ namespace Rococo::IO
 		bool isDirectory;
 	};
 
+	struct U8FileItemData
+	{
+		cstr fullPath;
+		cstr containerRelRoot;
+		cstr itemRelContainer;
+		void* containerContext;
+		void* outContext;
+		bool isDirectory;
+	};
+
 	ROCOCO_API void GetCurrentDirectoryPath(U8FilePath& path);
 
 	ROCOCO_API void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext = nullptr);
+
+	ROCOCO_API void ForEachFileInDirectory(const char* directory, IEventCallback<U8FileItemData>& onFile, bool recurse, void* containerContext = nullptr);
+
+	ROCOCO_INTERFACE IPathCache
+	{
+		virtual void AddPathsFromDirectory(const char* directory, bool recurse) = 0;
+		virtual void Sort() = 0;
+		virtual size_t NumberOfFiles() const = 0;
+		virtual cstr GetFileName(size_t index) const = 0;
+	};
+
+	ROCOCO_INTERFACE IPathCacheSupervisor: IPathCache
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_API IPathCacheSupervisor* CreatePathCache();
 
 	struct FileAttributes
 	{

@@ -2589,16 +2589,16 @@ namespace Rococo::Script
 			}
 			catch (ParseException& ex)
 			{
-				Throw(0, "Error in %ws: line %d\n%s", wSecurityFile.buf, ex.Start().y + 1, ex.Message());
+				Throw(0, "Error in %ls: line %d\n%s", wSecurityFile.buf, ex.Start().y + 1, ex.Message());
 			}
 			catch (IException& ex)
 			{
-				Throw(0, "Error in %ws:\n%s", wSecurityFile.buf, ex.Message());
+				Throw(0, "Error in %ls:\n%s", wSecurityFile.buf, ex.Message());
 			}
 
 			if (localHashes.empty())
 			{
-				Throw(0, "Error in %ws: no assignment found\n%s", wSecurityFile.buf);
+				Throw(0, "Error in %ls: no assignment found\n%s", wSecurityFile.buf);
 			}
 
 			hashes = localHashes;

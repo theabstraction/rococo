@@ -141,7 +141,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexystudio.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexystudio.lib</ImportLibrary>
@@ -252,6 +254,7 @@
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.child.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.floating-list.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.report.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.splitter.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.tabsplitter.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.toolbar.cpp" />

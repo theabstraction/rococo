@@ -127,6 +127,8 @@ void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
 	CopyString(fullName, 256, writePos + 1);
 }
 
+using namespace Rococo::Sex::SEXML;
+
 struct FactoryConfig: IFactoryConfig
 {
 	std::vector<HString> searchPaths;
@@ -134,6 +136,7 @@ struct FactoryConfig: IFactoryConfig
 	HString content;
 	HString projectPath;
 	int searchPathHeight = 120;
+	int packageViewFontHeight = -13;
 
 	U8FilePath fileName;
 
@@ -155,6 +158,19 @@ struct FactoryConfig: IFactoryConfig
 		}
 
 		return searchPaths[index];
+	}
+
+	void CreateLayoutFile()
+	{
+		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.layout",
+			[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+			{
+				sb.AddDirective("PropertySheets");
+				sb.AddAtomicAttribute("searchpath.height", searchPathHeight);
+				sb.AddAtomicAttribute("packageview.font_height", packageViewFontHeight);
+				sb.CloseDirective(); // PropertySheets
+			}
+		);
 	}
 
 	void Load()
@@ -188,35 +204,26 @@ struct FactoryConfig: IFactoryConfig
 			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, "sexystudio.layout"))
 			{
 				// Create it
-				Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.layout",
-					[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
-					{
-						sb.AddDirective("PropertySheets");
-						sb.AddAtomicAttribute("searchpath.height", searchPathHeight);
-						sb.CloseDirective(); // PropertySheets
-					}
-				);
+				CreateLayoutFile();
 			}
 
 			Rococo::OS::LoadUserSEXML(nullptr, "sexystudio.config",
 				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
 				{
 					size_t startIndex = 0;
-					auto& dirs = Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
-					auto& aSearchpaths = Rococo::Sex::SEXML::AsStringList(dirs["search-paths"]);
-					auto& aContent = Rococo::Sex::SEXML::AsString(dirs["content"]);
-					auto& aProject = Rococo::Sex::SEXML::AsString(dirs["project"]);
+					auto& dirs = GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
+
+					content = AsString(dirs["content"]).c_str();
+					projectPath = AsString(dirs["project"]).c_str();;
 
 					searchPaths.clear();
 
+					auto& aSearchpaths = AsStringList(dirs["search-paths"]);
 					for (int i = 0; i < aSearchpaths.NumberOfElements(); i++)
 					{
 						fstring path = aSearchpaths[i];
 						searchPaths.push_back((cstr)path);
 					}
-
-					content = aContent.c_str();
-					projectPath = aProject.c_str();
 				}
 			);
 		}
@@ -232,22 +239,40 @@ struct FactoryConfig: IFactoryConfig
 				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
 				{
 					size_t startIndex = 0;
-					auto& sheets = Rococo::Sex::SEXML::GetDirective(topLevelDirectives, "PropertySheets", IN OUT startIndex);
-					auto& aSearchPathHeight = Rococo::Sex::SEXML::AsAtomic(sheets["searchpath.height"]);
-					searchPathHeight = atoi(aSearchPathHeight.c_str());
+					auto& sheets = GetDirective(topLevelDirectives, "PropertySheets", IN OUT startIndex);
+					searchPathHeight = AsAtomicInt32(sheets["searchpath.height"]);
+					packageViewFontHeight = AsAtomicInt32(sheets["packageview.font_height"]);
 				}
 			);
 		}
-		catch (...)
+		catch (IException& ex)
 		{
+			U8FilePath sexmlLayout;
+			Rococo::OS::GetUserSEXMLFullPath(sexmlLayout, nullptr, "sexystudio.layout");
 
+			try
+			{
+				Throw(ex.ErrorCode(), "Error loading %s\nA new layout file will be created.\nError: %s", sexmlLayout.buf, ex.Message());
+			}
+			catch (IException& inner)
+			{
+				Windows::ShowErrorBox(Windows::NoParent(), inner, "SexyStudio Error");
+
+				try
+				{
+					CreateLayoutFile();
+				}
+				catch (IException& layoutEx)
+				{
+					OS::TripDebugger();
+					Rococo::Debugging::AddCriticalLog(layoutEx.Message());
+				}
+			}
 		}
 	}
 
 	void Save()
 	{
-		U8FilePath sexmlConfig;
-		Rococo::OS::GetUserSEXMLFullPath(sexmlConfig, nullptr, "sexystudio.config");
 		try
 		{
 			Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.config",
@@ -283,6 +308,8 @@ struct FactoryConfig: IFactoryConfig
 		{
 			try
 			{
+				U8FilePath sexmlConfig;
+				Rococo::OS::GetUserSEXMLFullPath(sexmlConfig, nullptr, "sexystudio.config");
 				Throw(ex.ErrorCode(), "Error saving %s.\n%s", sexmlConfig.buf, ex.Message());
 			}
 			catch (IException& inner)
@@ -306,6 +333,7 @@ private:
 	U8FilePath contentPath;
 	U8FilePath projectPath;
 	IFilePathEditor* projectDirEditor;
+	IReportWidget* packageView;
 
 	void SetProjectDirectory()
 	{
@@ -344,11 +372,34 @@ private:
 		PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceMap);
 		ideFrame.SetProgress(100.0f, "Populated file browser");
 
+		U8FilePath sysPackagePath;
+		database.PingPathToSysPath("!packages", sysPackagePath);
+
+		PopulatePackageViewWithCheckboxes(sysPackagePath);
+
 		database.Sort();
 
 		TEventArgs<ISexyDatabase*> args;
 		args.value = &database;
 		wc.publisher.Publish(args, evMetaUpdated);
+	}
+
+	void PopulatePackageViewWithCheckboxes(cstr packagePath)
+	{
+		AutoFree<IO::IPathCacheSupervisor> pathCache = IO::CreatePathCache();
+		pathCache->AddPathsFromDirectory(packagePath, false);
+		pathCache->Sort();
+
+		packageView->ClearItems();
+
+		for (size_t i = 0; i < pathCache->NumberOfFiles(); ++i)
+		{
+			cstr path = pathCache->GetFileName(i);
+
+			U8FilePath pingPath;
+			database.SysPathToPingPath(path, pingPath);
+			packageView->SetItem("Package", pingPath, -1);
+		}
 	}
 
 	void OnEvent(Event& ev) override
@@ -423,7 +474,13 @@ public:
 		projectDirEditor->Bind(projectPath, 128);
 		projectDirEditor->SetVisible(true);
 		projectDirEditor->SetUpdateEvent(evProjectChange);
-		
+
+		packageView = projectSettings->AddReportWidget();
+		packageView->SetDefaultHeight(128);
+		packageView->AddColumn("Package", "Package", 360);
+		packageView->SetFont(config.packageViewFontHeight, "Consolas");
+		packageView->SetVisible(true);
+
 		auto* searchPathsBox = projectSettings->AddListWidget();
 		searchPathsBox->SetDefaultHeight(config.searchPathHeight);
 		searchPathsBox->SetName("Search paths");		

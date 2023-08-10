@@ -123,7 +123,7 @@ struct Pack
                 {
                     if (file.itemRelContainer[0] > 255 || !IsCapital((char)file.itemRelContainer[0]) && file.itemRelContainer[0] != L'_')
                     {
-                        Throw(0, "Sub-directory [%ws] of [%ws] did not begin with a capital letter.", file.itemRelContainer, file.fullPath);
+                        Throw(0, "Sub-directory [%ls] of [%ls] did not begin with a capital letter.", file.itemRelContainer, file.fullPath);
                     }
                 }
             }

@@ -21,6 +21,7 @@ namespace Rococo::SexyStudio
 	using namespace Rococo::Windows;
 
 	const char* GetChildClassName();
+	HFONT SetFont(int size, cstr name, HFONT oldFont, HWND hTarget);
 
 	struct ILayout;
 	struct IWin32WindowMessageLoopHandler;
@@ -69,7 +70,7 @@ namespace Rococo::SexyStudio
 
 		~Brush()
 		{
-			if (!hBrush) DeleteObject(hBrush);
+			if (hBrush) DeleteObject(hBrush);
 		}
 	};
 
@@ -94,7 +95,7 @@ namespace Rococo::SexyStudio
 
 		~Pen()
 		{
-			if (!hPen) DeleteObject(hPen);
+			if (hPen) DeleteObject(hPen);
 		}
 	};
 

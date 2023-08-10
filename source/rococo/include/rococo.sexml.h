@@ -1,10 +1,15 @@
 #pragma once
-#include <sexy.types.h>
-#include <Sexy.S-Parser.h>
+#include <rococo.types.h>
 
 #ifndef ROCOCO_SEXML_API
 # define ROCOCO_SEXML_API ROCOCO_API_IMPORT
 #endif
+
+namespace Rococo::Sex
+{
+	struct ISExpression;
+	typedef const ISExpression& cr_sex;
+}
 
 namespace Rococo::Strings
 {
@@ -81,6 +86,7 @@ namespace Rococo::Sex::SEXML
 	};
 
 	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API int32 AsAtomicInt32(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value);
 
@@ -255,30 +261,24 @@ namespace Rococo::Sex::SEXML
 	ROCOCO_SEXML_API [[nodiscard]] ISEXMLBuilder* CreateSEXMLBuilder(Rococo::Strings::StringBuilder& sb, bool compact);
 }
 
-namespace Rococo
-{
-	template<int OPTIMAL_SIZE, typename TYPENAME, typename ... ARGS>
-	class ArbitraryFunction;
-
-	template<typename RETURNTYPE, typename ... ARGS>
-	using Function = ArbitraryFunction<64, RETURNTYPE, ARGS ...>;
-}
-
 namespace Rococo::OS
 {
-	// Gets the full path for the user's XML and opulates the supplied buffer with the result 
-	// If organization is not provided a default is chosen. The default is implementation specific.
+	// Gets the full path for the user's XML and populates the supplied buffer with the result 
+	// If organization is not provided the default is chosen.
 	ROCOCO_SEXML_API void GetUserSEXMLFullPath(U8FilePath& fullpath, cstr organization, cstr section);
 
 	// Attempts to load $USER-DOCS/organization/section.sexml and provides a parser to decode the data in a callback
-	// If organization is not provided a default is chosen. The default is implementation specific.
+	// If organization is not provided the default is chosen.
 	ROCOCO_SEXML_API void LoadUserSEXML(cstr organization, cstr section, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 
 	// Tests to see if the UserSEXML file exists, and returns a value true if and only if it does exist
-	// If organization is not provided a default is chosen. The default is implementation specific.
+	// If organization is not provided the default is chosen.
 	ROCOCO_SEXML_API bool IsUserSEXMLExistant(cstr organization, cstr section);
 
 	// Attempts to build an SEXML using the callback provided builder and then, if successful, saves the result to $USER-DOCS/organization/section.sexml
-	// If organization is not provided a default is chosen. The default is implementation specific.
+	// If organization is not provided the default is chosen.
 	ROCOCO_SEXML_API void SaveUserSEXML(cstr organization, cstr section, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
+
+	// Sets the default organization string. Must be definite
+	ROCOCO_SEXML_API void SetDefaultOrganization(cstr defaultOrganization);
 }
