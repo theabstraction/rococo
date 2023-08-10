@@ -167,6 +167,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual int FieldCount() const = 0;
 		virtual SXYField GetField(int index) const = 0;
+		virtual bool IsStrong() const = 0;
 		virtual cstr LocalName() const = 0;
 		virtual cstr SourcePath() const = 0;
 		virtual int LineNumber() const = 0;
@@ -236,9 +237,15 @@ namespace Rococo::SexyStudio
 
 	struct ISexyFieldEnumerator;
 
+	struct SearchPathDescAtom
+	{
+		cstr pingPath;
+		bool isActive;
+	};
+
 	ROCOCO_INTERFACE IFactoryConfig
 	{
-		virtual cstr GetSearchPath(size_t index) const = 0;
+		virtual SearchPathDescAtom GetSearchPath(size_t index) const = 0;
 	};
 
 	ROCOCO_INTERFACE ISexyDatabase: IPingPathResolver
@@ -524,17 +531,18 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE IVariableList : IGuiWidget
 	{
+		virtual IPingPathResolver & Resolver() = 0;
 		virtual IAsciiStringEditor* AddAsciiEditor() = 0;
 		virtual IDropDownList* AddDropDownList(bool addTextEditor) = 0;
 		virtual IFilePathEditor* AddFilePathEditor() = 0;
 		virtual IListWidget* AddListWidget() = 0;
-		virtual IReportWidget* AddReportWidget(IPingPathResolver& resolver, bool addCheckboxes, IReportWidgetEvent& eventHandler) = 0;
+		virtual IReportWidget* AddReportWidget(IReportWidgetEvent& eventHandler) = 0;
 
 		// Gives number of pixels from LHS of the list to the editor column
 		virtual int NameSpan() const = 0;
 	};
 
-	IVariableList* CreateVariableList(IWidgetSet& widgets);
+	IVariableList* CreateVariableList(IWidgetSet& widgets, IPingPathResolver& resolver);
 
 	ROCOCO_INTERFACE IToolbar : public IGuiWidget
 	{

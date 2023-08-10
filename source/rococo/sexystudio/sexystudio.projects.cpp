@@ -210,12 +210,12 @@ namespace Rococo::SexyStudio
 		
 		for (size_t i = 0; i < 100; i++)
 		{
-			cstr path = database.Config().GetSearchPath(i);
-			if (!path)
-				break;
+			auto atom = database.Config().GetSearchPath(i);
+			if (!atom.isActive)
+				continue;
 
 			U8FilePath sysPath;
-			database.PingPathToSysPath(path, sysPath);
+			database.PingPathToSysPath(atom.pingPath, sysPath);
 
 			if (Rococo::IO::IsDirectory(sysPath))
 			{
@@ -230,15 +230,15 @@ namespace Rococo::SexyStudio
 		{
 			for (size_t i = 0; i < 100; i++)
 			{
-				cstr path = database.Config().GetSearchPath(i);
-				if (!path)
-					break;
+				auto atom = database.Config().GetSearchPath(i);
+				if (!atom.isActive)
+					continue;
 
 				U8FilePath sysPath;
-				database.PingPathToSysPath(path, sysPath);
+				database.PingPathToSysPath(atom.pingPath, sysPath);
 
 				auto hSearchPath = tree.AppendItem(hRoot);
-				tree.SetItemText(hSearchPath, path);
+				tree.SetItemText(hSearchPath, atom.pingPath);
 
 				if (Rococo::IO::IsDirectory(sysPath))
 				{

@@ -518,7 +518,7 @@ namespace Rococo::Sex::SEXML
 			}
 		};
 
-		struct Directive: ISEXMLDirective
+		struct Directive: ISEXMLDirective, ISEXMLDirectiveList
 		{
 			TVector<Attribute*> attributes;
 			TStringMap<Attribute*> nameToAttribute;
@@ -612,6 +612,16 @@ namespace Rococo::Sex::SEXML
 				}
 			}
 
+			size_t NumberOfDirectives() const override
+			{
+				return children.size();
+			}
+
+			const ISEXMLDirective& operator[](size_t index) const override
+			{
+				return *children[index];
+			}
+
 			virtual ~Directive()
 			{
 				for (auto* a : attributes)
@@ -625,6 +635,11 @@ namespace Rococo::Sex::SEXML
 					child->~Directive();
 					root.Allocator().FreeData(child);
 				}
+			}
+
+			const ISEXMLDirectiveList& Children() const override
+			{
+				return *this;
 			}
 
 			cstr FQName() const override
@@ -885,5 +900,37 @@ namespace Rococo::Sex::SEXML
 		}
 
 		return atoi(text);
+	}
+
+	ROCOCO_SEXML_API bool AsBool(const ISEXMLAttributeValue& value)
+	{
+		cstr text = AsString(value).c_str();
+		
+		if (Eq(text, "1"))
+		{
+			return true;
+		}
+
+		if (EqI(text, "true"))
+		{
+			return true;
+		}
+
+		if (EqI(text, "yes"))
+		{
+			return true;
+		}
+
+		if (EqI(text, "aye"))
+		{
+			return true;
+		}
+
+		if (EqI(text, "t"))
+		{
+			return true;
+		}
+
+		return false;
 	}
 }

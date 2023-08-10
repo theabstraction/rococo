@@ -7,7 +7,6 @@
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.delegates.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.layouts.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.projects.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.rc" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.themes.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.widgets.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.button.cpp" />
@@ -25,5 +24,36 @@
     <ClInclude Include="..\..\source\rococo\sexystudio\resource.h" />
     <ClInclude Include="..\..\source\rococo\sexystudio\sexystudio.api.h" />
     <ClInclude Include="..\..\source\rococo\sexystudio\sexystudio.impl.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\source\rococo\sexystudio\sexystudio.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="strong-id.png" />
+    <Image Include="..\..\source\rococo\sexystudio\sexystudio.large.ico" />
+    <Image Include="..\..\source\rococo\sexystudio\sexystudio.small.ico" />
+    <Image Include="..\..\source\rococo\sexystudio\folder-close.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\folder-open.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\filetype-sxy.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\filetype-unknown.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\blank.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\namespace.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\interface.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\method.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\struct.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\field.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\extends.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\attribute.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\function.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\input.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\output.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\enum.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\alias.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\factory.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\archetype.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\strong-id.png" />
+    <Image Include="..\..\source\rococo\sexystudio\bitmap3.bmp" />
+    <Image Include="strong-id.bmp" />
+    <Image Include="..\..\source\rococo\sexystudio\strong-id.bmp" />
   </ItemGroup>
 </Project>

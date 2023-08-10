@@ -101,16 +101,9 @@ namespace Rococo::Sex::SEXML
 				switch (statestack.back())
 				{
 				case BUILDING_ATTRIBUTES:
-					sb << " :\n";
+					sb << " :";
 					statestack.back() = BUILDING_CHILDREN;
-					AddDepthTabs();
 
-					depth++;
-
-					sb.AppendChar('(');
-					statestack.push_back(BUILDING_ATTRIBUTES);
-					stateNames.push_back(name);
-					break;
 				case BUILDING_CHILDREN:
 					sb << "\n";
 					AddDepthTabs();
@@ -118,6 +111,7 @@ namespace Rococo::Sex::SEXML
 					depth++;
 
 					sb.AppendChar('(');
+					sb << name;
 					statestack.push_back(BUILDING_ATTRIBUTES);
 					stateNames.push_back(name);
 					break;

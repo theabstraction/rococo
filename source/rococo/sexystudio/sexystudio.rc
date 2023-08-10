@@ -139,6 +139,8 @@ IDB_FACTORY             BITMAP                  "factory.bmp"
 
 IDB_ARCHETYPE           BITMAP                  "archetype.bmp"
 
+IDB_STRONG              BITMAP                  "strong-id.bmp"
+
 #endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 

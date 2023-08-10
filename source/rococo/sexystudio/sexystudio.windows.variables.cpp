@@ -11,7 +11,7 @@ using namespace Rococo::SexyStudio;
 
 namespace Rococo::SexyStudio
 {
-	IReportWidget* CreateReportWidget(IVariableList& variables, IPingPathResolver& resolver, HBRUSH backBrush, bool addCheckboxes, IReportWidgetEvent& eventHandler);
+	IReportWidget* CreateReportWidget(IVariableList& variables, IReportWidgetEvent& eventHandler);
 }
 
 namespace ANON
@@ -655,17 +655,25 @@ namespace ANON
 				{
 					if (filePath)
 					{
+						U8FilePath oldPath = *filePath;
+
+						U8FilePath sysPath;
+						variables.Resolver().PingPathToSysPath(*filePath, sysPath);
+
 						try
 						{
 							char title[128];
-							SafeFormat(title, "SexyStudio - %s", name.c_str());
-							IO::ChooseDirectory(filePath->buf, U8FilePath::CAPACITY, title);
-							SetWindowTextA(hWndEditor, *filePath);
-							PublishChange();
+							SafeFormat(title, "SexyStudio - %s selection", name.c_str());
+							if (IO::ChooseDirectory(sysPath.buf, U8FilePath::CAPACITY, title))
+							{
+								variables.Resolver().SysPathToPingPath(sysPath, *filePath);
+								SetWindowTextA(hWndEditor, *filePath);
+								PublishChange();
+							}
 						}
 						catch (IException&)
 						{
-
+							*filePath = oldPath;
 						}
 					}
 				}
@@ -785,8 +793,10 @@ namespace ANON
 		Theme theme;
 		Brush bkBrush;
 		AutoFree<ILayoutSet> layoutRules;
+		IPingPathResolver& resolver;
 
-		VariableList(IWidgetSet& widgets):
+		VariableList(IWidgetSet& widgets, IPingPathResolver& _resolver):
+			resolver(_resolver),
 			window(widgets.Parent(), *this)
 		{
 			children = CreateDefaultWidgetSet(window, widgets.Context());
@@ -823,9 +833,9 @@ namespace ANON
 			return editor;
 		}
 
-		IReportWidget* AddReportWidget(IPingPathResolver& resolver, bool addCheckboxes, IReportWidgetEvent& eventHandler) override
+		IReportWidget* AddReportWidget(IReportWidgetEvent& eventHandler) override
 		{
-			auto* reportWidget = CreateReportWidget(*this, resolver, bkBrush, addCheckboxes, eventHandler);
+			auto* reportWidget = CreateReportWidget(*this, eventHandler);
 			children->Add(reportWidget);
 			return reportWidget;
 		}
@@ -923,6 +933,11 @@ namespace ANON
 		{
 			return 128;
 		}
+
+		IPingPathResolver& Resolver() override
+		{
+			return resolver;
+		}
 	};
 }
 
@@ -930,9 +945,9 @@ namespace Rococo::SexyStudio
 {
 	EventIdRef evGetFont_LineEditor = "evGetFont_LineEditor"_event;
 
-	IVariableList* CreateVariableList(IWidgetSet& widgets)
+	IVariableList* CreateVariableList(IWidgetSet& widgets, IPingPathResolver& resolver)
 	{
-		auto* v = new ANON::VariableList(widgets);
+		auto* v = new ANON::VariableList(widgets, resolver);
 		widgets.Add(v);
 		return v;
 	}

@@ -2541,39 +2541,11 @@ namespace Rococo::IO
 		}
 
 		// In this case, get shell items only for file system items.
-		hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS);
+		hr = pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM | FOS_PICKFOLDERS | FOS_PATHMUSTEXIST);
 		if (FAILED(hr))
 		{
 			Throw(hr, "pfd->SetOptions failed");
 		}
-
-		// Set the file types to display only. 
-		// Notice that this is a 1-based array.
-		/*
-		hr = pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes);
-		if (FAILED(hr))
-		{
-		   Throw(hr, "pfd->SetFileTypes failed");
-		}
-		*/
-
-		/*
-		// Set the selected file type index to Word Docs for this example.
-		hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
-		if (FAILED(hr))
-		{
-		   Throw(hr, "pfd->SetFileTypeIndex failed");
-		}
-		*/
-
-		/*
-		// Set the default extension to be ".doc" file.
-		hr = pfd->SetDefaultExtension("doc;docx");
-		if (FAILED(hr))
-		{
-		   Throw(hr, "pfd->SetDefaultExtension failed");
-		}
-		*/
 
 		// Show the dialog
 		hr = pfd->Show(NULL);

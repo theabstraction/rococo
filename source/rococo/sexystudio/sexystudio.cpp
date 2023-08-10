@@ -129,14 +129,21 @@ void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
 
 using namespace Rococo::Sex::SEXML;
 
+struct SearchPathDesc
+{
+	HString pingPath;
+	bool isActive;
+};
+
 struct FactoryConfig: IFactoryConfig
 {
-	std::vector<HString> searchPaths;
+	std::vector<SearchPathDesc> searchPaths;
 	std::vector<HString> packages;
 	HString content;
 	HString projectPath;
-	int searchPathHeight = 120;
+	int searchPathHeight = 240;
 	int packageViewFontHeight = -13;
+	int searchViewFontHeight = -13;
 
 	U8FilePath fileName;
 
@@ -145,19 +152,20 @@ struct FactoryConfig: IFactoryConfig
 		Rococo::OS::GetUserSEXMLFullPath(fileName, nullptr, "sexystudio.config");
 	}
 
-	cstr GetSearchPath(size_t index) const override
+	SearchPathDescAtom GetSearchPath(size_t index) const override
 	{
 		if (index == searchPaths.size())
 		{
-			return projectPath;
+			return { projectPath.c_str(), true };
 		}
 
 		if (index > searchPaths.size())
 		{
-			return nullptr;
+			return { nullptr, false };
 		}
 
-		return searchPaths[index];
+		auto& i = searchPaths[index];
+		return { i.pingPath.c_str(), i.isActive };
 	}
 
 	void CreateLayoutFile()
@@ -168,6 +176,7 @@ struct FactoryConfig: IFactoryConfig
 				sb.AddDirective("PropertySheets");
 				sb.AddAtomicAttribute("searchpath.height", searchPathHeight);
 				sb.AddAtomicAttribute("packageview.font_height", packageViewFontHeight);
+				sb.AddAtomicAttribute("searchview.font_height", packageViewFontHeight);
 				sb.CloseDirective(); // PropertySheets
 			}
 		);
@@ -184,18 +193,30 @@ struct FactoryConfig: IFactoryConfig
 					[](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 					{
 						sb.AddDirective("Directories");
-						sb.OpenListAttribute("search-paths");
-						sb.AddEscapedStringToList("!scripts/native");
-						sb.AddEscapedStringToList("!scripts/interop");
-						sb.AddEscapedStringToList("!scripts/declarations");
-						sb.CloseListAttribute(); // search-paths
-						sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\");
-						sb.AddStringLiteral("project", "!scripts/mhost");
+							sb.AddStringLiteral("content", "C:\\work\\rococo\\content\\");
+							sb.AddStringLiteral("project", "!scripts/mhost");
+							
+							sb.AddDirective("SearchPath");
+								sb.AddStringLiteral("path", "!scripts/interop");
+								sb.AddAtomicAttribute("isActive", true);
+							sb.CloseDirective(); // search-paths
+
+							sb.AddDirective("SearchPath");
+								sb.AddStringLiteral("path", "!scripts/declarations");
+								sb.AddAtomicAttribute("isActive", true);
+							sb.CloseDirective(); // search-paths
+
+							sb.AddDirective("SearchPath");
+								sb.AddStringLiteral("path", "!scripts/native");
+								sb.AddAtomicAttribute("isActive", true);
+							sb.CloseDirective(); // search-paths
+
 						sb.CloseDirective(); // directories
+
 						sb.AddDirective("Packages");
-						sb.OpenListAttribute("selected-packages");
-						sb.AddEscapedStringToList("!packages/mhost_1000.sxyz");
-						sb.CloseListAttribute(); // known-packages
+							sb.OpenListAttribute("selected-packages");
+								sb.AddEscapedStringToList("!packages/mhost_1000.sxyz");
+							sb.CloseListAttribute(); // known-packages
 						sb.CloseDirective();
 					}
 				);
@@ -211,18 +232,20 @@ struct FactoryConfig: IFactoryConfig
 				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
 				{
 					size_t startIndex = 0;
-					auto& dDirectores = GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
+					auto& dDirectories = GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
 
-					content = AsString(dDirectores["content"]).c_str();
-					projectPath = AsString(dDirectores["project"]).c_str();;
+					content = AsString(dDirectories["content"]).c_str();
+					projectPath = AsString(dDirectories["project"]).c_str();;
 
 					searchPaths.clear();
 
-					auto& aSearchpaths = AsStringList(dDirectores["search-paths"]);
-					for (int i = 0; i < aSearchpaths.NumberOfElements(); i++)
+					size_t searchIndex = 0;
+					while (auto* pSearchPath = FindDirective(dDirectories.Children(), "SearchPath", IN OUT searchIndex))
 					{
-						fstring path = aSearchpaths[i];
-						searchPaths.push_back((cstr)path);
+						auto& dSearchPath = *pSearchPath;
+						cstr path = AsString(dSearchPath["path"]).c_str();
+						bool isActive = AsBool(dSearchPath["isActive"]);
+						searchPaths.push_back({path, isActive});
 					}
 
 					auto& dPackages = GetDirective(topLevelDirectives, "Packages", IN OUT startIndex);
@@ -234,6 +257,19 @@ struct FactoryConfig: IFactoryConfig
 					}
 				}
 			);
+		}
+		catch (ParseException& ex)
+		{
+			try
+			{
+				U8FilePath filename;
+				Rococo::OS::GetUserSEXMLFullPath(filename, nullptr, "sexystudio.config");
+				Throw(ex.ErrorCode(), "Error parsing %s line %d pos %d. Err: %s\n\t", filename.buf, ex.Start().y, ex.Start().x, ex.Message());
+			}
+			catch(IException& inner)
+			{
+				Rococo::Debugging::AddCriticalLog(inner.Message());
+			}
 		}
 		catch (IException& ex)
 		{
@@ -250,6 +286,7 @@ struct FactoryConfig: IFactoryConfig
 					auto& sheets = GetDirective(topLevelDirectives, "PropertySheets", IN OUT startIndex);
 					searchPathHeight = AsAtomicInt32(sheets["searchpath.height"]);
 					packageViewFontHeight = AsAtomicInt32(sheets["packageview.font_height"]);
+					searchViewFontHeight = AsAtomicInt32(sheets["searchview.font_height"]);
 				}
 			);
 		}
@@ -287,16 +324,15 @@ struct FactoryConfig: IFactoryConfig
 				[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 				{
 					sb.AddDirective("Directories");
-					sb.OpenListAttribute("search-paths");
-
-					for (auto& path : searchPaths)
-					{
-						sb.AddEscapedStringToList(path);
-					}
-
-					sb.CloseListAttribute(); // search-paths
 					sb.AddStringLiteral("content", content);
 					sb.AddStringLiteral("project", projectPath);
+					for (auto& path : searchPaths)
+					{
+						sb.AddDirective("SearchPath");
+						sb.AddStringLiteral("path", path.pingPath);
+						sb.AddAtomicAttribute("isActive", path.isActive);
+						sb.CloseDirective();
+					}
 					sb.CloseDirective(); // directories
 
 					sb.AddDirective("Packages");
@@ -331,6 +367,7 @@ struct FactoryConfig: IFactoryConfig
 ROCOCO_INTERFACE ISourceChangedEventHandler
 {
 	virtual void OnPackageSelectionChanged() = 0;
+	virtual void OnSearchPathsChanged() = 0;
 };
 
 struct PackageEventHandler : IReportWidgetEvent
@@ -357,6 +394,29 @@ struct PackageEventHandler : IReportWidgetEvent
 	}
 };
 
+struct SearchPathEventHandler : IReportWidgetEvent
+{
+	ISourceChangedEventHandler& eventHandler;
+
+	void OnItemLeftClicked(int index, int subItem, IReportWidget& source) override
+	{
+		int image = source.GetImageIndex(index, subItem);
+		source.SetImageIndex(index, subItem, image == 0 ? 1 : 0);
+		eventHandler.OnSearchPathsChanged();
+	}
+
+	void OnItemRightClicked(int index, int subItem, IReportWidget& source) override
+	{
+		UNUSED(index);
+		UNUSED(subItem);
+		UNUSED(source);
+	}
+
+	SearchPathEventHandler(ISourceChangedEventHandler& _eventHandler) : eventHandler(_eventHandler)
+	{
+	}
+};
+
 class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents, ISourceChangedEventHandler
 {
 private:
@@ -370,20 +430,19 @@ private:
 	U8FilePath contentPath;
 	U8FilePath projectPath;
 	IFilePathEditor* projectDirEditor;
+	IReportWidget* searchView;
 	IReportWidget* packageView;
 	PackageEventHandler packageViewEventHandler;
+	SearchPathEventHandler searchPathEventHandler;
 
 	void SetProjectDirectory()
 	{
-		if (*projectPath.buf != '!')
+		if (*projectPath.buf == '!')
 		{
 			try
 			{
-				U8FilePath pingPath;
-				database.SysPathToPingPath(projectPath, pingPath);
-				projectPath = pingPath;
 				projectDirEditor->UpdateText();
-				config.projectPath = pingPath;
+				config.projectPath = projectPath;
 				SyncContent();
 			}
 			catch (...)
@@ -484,13 +543,35 @@ private:
 	{
 		SyncContent();
 	}
+
+	void OnSearchPathsChanged()
+	{
+		for (int row = 0; row < searchView->GetNumberOfRows(); row++)
+		{
+			U8FilePath pingPath;
+			searchView->GetText(pingPath, row, 0);
+
+			bool isActive = searchView->GetImageIndex(row, 0);
+			
+			for (auto& atom : config.searchPaths)
+			{
+				if (Eq(atom.pingPath, pingPath))
+				{
+					atom.isActive = isActive;
+					break;
+				}
+			}
+		}
+		SyncContent();
+	}
 public:
 	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabase& _database, FactoryConfig& _config): 
 		wc(screen.Children()->Context()),
 		config(_config),
 		ideFrame(_ideFrame),
 		database(_database),
-		packageViewEventHandler(*this)
+		packageViewEventHandler(*this),
+		searchPathEventHandler(*this)
 	{
 		Format(contentPath, "%s", database.Solution().GetContentFolder());
 		Format(projectPath, "%s", config.projectPath.c_str());
@@ -505,7 +586,7 @@ public:
 		projectTab->SetTooltip("Project View");
 
 
-		IVariableList* projectSettings = CreateVariableList(projectTab->Children());
+		IVariableList* projectSettings = CreateVariableList(projectTab->Children(), database);
 		projectSettings->SetVisible(true);
 
 		Widgets::AnchorToParentTop(*projectSettings, 0);
@@ -526,19 +607,21 @@ public:
 		projectDirEditor->SetVisible(true);
 		projectDirEditor->SetUpdateEvent(evProjectChange);
 
-		packageView = projectSettings->AddReportWidget(database, true, packageViewEventHandler);
+		packageView = projectSettings->AddReportWidget(packageViewEventHandler);
 		packageView->SetDefaultHeight(128);
 		packageView->SetFont(config.packageViewFontHeight, "Consolas");
 		packageView->AddColumn("Package", "Package", 320);
 		packageView->SetVisible(true);
 
-		auto* searchPathsBox = projectSettings->AddListWidget();
-		searchPathsBox->SetDefaultHeight(config.searchPathHeight);
-		searchPathsBox->SetName("Search paths");		
+		searchView = projectSettings->AddReportWidget(searchPathEventHandler);
+		searchView->SetDefaultHeight(config.searchPathHeight);
+		searchView->SetFont(config.searchViewFontHeight, "Consolas");
+		searchView->AddColumn("Path", "Search Path", 320);
+		searchView->SetVisible(true);
 
 		for (auto& path : config.searchPaths)
 		{
-			searchPathsBox->AppendItem(path);
+			searchView->SetItem("Path", path.pingPath, -1, path.isActive ? 1 : 0);
 		}
 
 		U8FilePath sysPackagePath;
@@ -547,7 +630,6 @@ public:
 		PopulatePackageViewWithCheckboxes(sysPackagePath);
 
 		Widgets::ExpandBottomFromTop(*projectSettings, projectSettings->GetDefaultHeight());
-		searchPathsBox->SetVisible(true);
 
 		TreeStyle style;
 		style.hasButtons = true;
@@ -684,6 +766,7 @@ enum class ClassImageIndex: int32
 	INTERFACE,
 	METHOD,
 	STRUCT, 
+	STRONG,
 	FIELD, 
 	EXTENDS, 
 	ATTRIBUTE, 
@@ -925,21 +1008,48 @@ private:
 			idToType[idType] = &type;
 
 			char desc[256];
-			SafeFormat(desc, "%-64.64s %s", type.PublicName(), localType ? localType->SourcePath() : "");
+
+			if (localType->IsStrong())
+			{
+				char strongdesc[64];
+				SafeFormat(strongdesc, "%s (strong %s)", type.PublicName(), localType->GetField(0).type);
+				SafeFormat(desc, "%-64.64s %s", strongdesc, localType ? localType->SourcePath() : "");
+			}
+			else
+			{
+				SafeFormat(desc, "%-64.64s %s", type.PublicName(), localType ? localType->SourcePath() : "");
+			}
+
 			classTree->SetItemText(idType, desc);
-			classTree->SetItemImage(idType, (int)ClassImageIndex::STRUCT);
+
+			ClassImageIndex index = localType && localType->IsStrong() ? ClassImageIndex::STRONG : ClassImageIndex::STRUCT;
+
+			classTree->SetItemImage(idType, (int)index);
 
 			if (localType)
 			{
-				for (int j = 0; j < localType->FieldCount(); ++j)
+				if (localType->IsStrong())
 				{
 					auto idField = classTree->AppendItem(idType);
 
-					auto field = localType->GetField(j);
+					auto field = localType->GetField(0);
 
 					SafeFormat(desc, "%s %s", field.type, field.name);
 					classTree->SetItemText(idField, desc);
 					classTree->SetItemImage(idField, (int)ClassImageIndex::FIELD);
+				}
+				else
+				{
+					for (int j = 0; j < localType->FieldCount(); ++j)
+					{
+						auto idField = classTree->AppendItem(idType);
+
+						auto field = localType->GetField(j);
+
+						SafeFormat(desc, "%s %s", field.type, field.name);
+						classTree->SetItemText(idField, desc);
+						classTree->SetItemImage(idField, (int)ClassImageIndex::FIELD);
+					}
 				}
 			}
 		}
@@ -1601,7 +1711,7 @@ public:
 		classTab = &tabs->AddTab();
 		classTab->SetName("Class View");
 
-		IVariableList* searchBar = CreateVariableList(classTab->Children());
+		IVariableList* searchBar = CreateVariableList(classTab->Children(), database);
 		searchBar->SetVisible(true);
 
 		Widgets::AnchorToParentTop(*searchBar, 0);
@@ -1628,7 +1738,7 @@ public:
 		style.hasCheckBoxes = false;
 		style.hasLines = true;
 		classTree = CreateTree(classTab->Children(), style, *this);
-		classTree->SetImageList(15, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS, IDB_FACTORY, IDB_ARCHETYPE);
+		classTree->SetImageList(15, IDB_BLANK, IDB_NAMESPACE, IDB_INTERFACE, IDB_METHOD, IDB_STRUCT, IDB_STRONG, IDB_FIELD, IDB_EXTENDS, IDB_ATTRIBUTE, IDB_FUNCTION, IDB_INPUT, IDB_OUTPUT, IDB_ENUM, IDB_ALIAS, IDB_FACTORY, IDB_ARCHETYPE);
 
 		SendMessageA(classTree->TreeWindow(), WM_SETFONT, (WPARAM) (HFONT) _wc.fontSmallLabel, 0);
 

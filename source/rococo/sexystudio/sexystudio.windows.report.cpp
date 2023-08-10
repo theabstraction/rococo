@@ -8,11 +8,9 @@ namespace Rococo::SexyStudio
 	{
 		IReportWidgetEvent& eventHandler;
 		IVariableList& variableList;
-		IPingPathResolver& resolver;
 		Win32ChildWindow eventSinkWindow;
 		HWNDProxy hReportView;
 		AutoFree<ILayoutSet> layouts = CreateLayoutSet();
-		HBRUSH backBrush;
 		HFONT hFont = NULL;
 		int fontSize = -11;
 		HIMAGELIST hImages;
@@ -26,12 +24,10 @@ namespace Rococo::SexyStudio
 
 		stringmap<ColumnDesc> columns;
 
-		ReportWidget(IPingPathResolver& _resolver, IVariableList& _variables, HBRUSH _backBrush, bool addCheckboxes, IReportWidgetEvent& _eventHandler):
-			variableList(_variables), resolver(_resolver), backBrush(_backBrush), eventHandler(_eventHandler),
+		ReportWidget(IVariableList& _variables, IReportWidgetEvent& _eventHandler):
+			variableList(_variables), eventHandler(_eventHandler),
 			eventSinkWindow(_variables.Window(), *this)
 		{
-			UNUSED(addCheckboxes);
-
 			DWORD exStyle = 0;
 			DWORD win32Style = LVS_SINGLESEL | LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP | WS_CHILD | WS_VSCROLL;
 
@@ -42,7 +38,7 @@ namespace Rococo::SexyStudio
 			}
 
 			U8FilePath sysPath;
-			resolver.PingPathToSysPath("!textures/sexy-studio/report-checkboxes", sysPath);
+			variableList.Resolver().PingPathToSysPath("!textures/sexy-studio/report-checkboxes", sysPath);
 			hImages = CreateImageList(sysPath, 2);
 			ListView_SetImageList(hReportView, hImages, LVSIL_SMALL);
 
@@ -300,8 +296,8 @@ namespace Rococo::SexyStudio
 		}
 	};
 
-	IReportWidget* CreateReportWidget(IVariableList& variables, IPingPathResolver& resolver, HBRUSH backBrush, bool addCheckboxes, IReportWidgetEvent& eventHandler)
+	IReportWidget* CreateReportWidget(IVariableList& variables, IReportWidgetEvent& eventHandler)
 	{
-		return new ReportWidget(resolver, variables, backBrush, addCheckboxes, eventHandler);
+		return new ReportWidget(variables, eventHandler);
 	}
 }

@@ -64,6 +64,7 @@ namespace Rococo::SexyStudio
 	ParseKeyword keywordNamespace("namespace");
 	ParseKeyword keywordInterface("interface");
 	ParseKeyword keywordStruct("struct");
+	ParseKeyword keywordStrong("strong");
 	ParseKeyword keywordFunction("function");
 	ParseKeyword keywordMacro("macro");
 	ParseKeyword keywordAlias("alias");
@@ -534,17 +535,22 @@ namespace ANON
 			}
 		}
 
-		cstr LocalName() const
+		bool IsStrong() const override
+		{
+			return Eq(sStructDef[0].c_str(), "strong");
+		}
+
+		cstr LocalName() const override
 		{
 			return sStructDef[1].c_str();
 		}
 
-		cstr SourcePath() const
+		cstr SourcePath() const override
 		{
 			return sStructDef.Tree().Source().Name();
 		}
 
-		int LineNumber() const
+		int LineNumber() const override
 		{
 			return sStructDef.Start().y;
 		}
@@ -557,6 +563,21 @@ namespace ANON
 		*/
 		SXYField GetField(int index) const override
 		{
+			if (Eq(sStructDef[0].c_str(), "strong"))
+			{
+				cr_sex innerValue = sStructDef[2];
+				if (innerValue.NumberOfElements() == 1)
+				{
+					cr_sex innerAtomic = innerValue[0];
+					if (IsAtomic(innerAtomic))
+					{
+						return { innerAtomic.c_str(), "value" };
+					}
+				}
+
+				return { nullptr,nullptr };
+			}
+
 			if (index < 0 || index >= numberOfFields)
 			{
 				return SXYField{ nullptr, nullptr };
@@ -2427,6 +2448,11 @@ namespace ANON
 			file.structures.insert(structName, SXYStruct(s));
 		}
 
+		void InsertStrong(cr_sex s, const fstring& strongName, File_SXY& file)
+		{
+			file.structures.insert(strongName, SXYStruct(s));
+		}
+
 		void InsertFunction(cr_sex s, const fstring& fnName, File_SXY& file)
 		{
 			file.functions.insert(fnName, SXYFunction(s));
@@ -2598,6 +2624,15 @@ namespace ANON
 					{
 						UNUSED(sKeyword);
 						InsertStruct(s, structName, file);
+					}
+				)) continue;
+
+				enum {MAX_FIELDS_PER_STRONG = 3};
+				if (match_compound(sRoot[i], MAX_FIELDS_PER_STRONG, keywordStrong, ParseAtomic,
+					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& strongName)
+					{
+						UNUSED(sKeyword);
+						InsertStrong(s, strongName, file);
 					}
 				)) continue;
 
