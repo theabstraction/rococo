@@ -49,6 +49,18 @@
 )
 
 (interface
+	(as.sxy MHost.IGuiOverlay "../packages/mhost/MHost/mhost")
+	(as.cpp MHost.IGuiOverlay)
+	(context factory MHost.IGuiOverlay)
+	(methods
+		(AddMenu (const IString id)(Int64 metaId)(const IString menuPath))
+		(ClearMenus)
+	)
+	
+	(factory MHost.GuiOverlay)
+)
+
+(interface
 	(as.sxy MHost.IEngine "../packages/mhost/MHost/mhost")
 	(as.cpp MHost.IEngine)
 	(context factory MHost.IEngine)

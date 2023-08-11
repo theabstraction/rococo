@@ -54,8 +54,6 @@ namespace Rococo::IO
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
 	ROCOCO_API bool IsFileExistant(const char* path);
 	ROCOCO_API bool IsFileExistant(const wchar_t* path);
-	ROCOCO_API [[nodiscard]] int OpenForAppend(void** fp, cstr name);
-	ROCOCO_API [[nodiscard]] int OpenForRead(void** fp, cstr name);
 	ROCOCO_API void ToSysPath(wchar_t* path);
 	ROCOCO_API void ToUnixPath(wchar_t* path);
 	ROCOCO_API void ToSysPath(char* path);
@@ -69,6 +67,14 @@ namespace Rococo::IO
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
 	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& callback, const wchar_t* filename);
+
+	ROCOCO_INTERFACE IBinaryFileLoader
+	{
+		virtual uint8* LockWriter(size_t length) = 0;
+		virtual void Unlock() = 0;
+	};
+
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength);
 
 	ROCOCO_API bool MakeContainerDirectory(char* filename);
 	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename);

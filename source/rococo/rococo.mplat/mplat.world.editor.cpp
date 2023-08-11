@@ -22,6 +22,8 @@ namespace ANON
 			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
+
+		/*
 		auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
 		auto viewMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("View"));
 		auto projectMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Project"));
@@ -65,6 +67,8 @@ namespace ANON
 		menu.AddButton(helpMenu, { "Check for updates", { 0, nullptr } });
 		menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
 		menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
+
+		*/
 
 		auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
 		titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());

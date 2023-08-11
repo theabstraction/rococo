@@ -39,7 +39,7 @@ namespace MHost
 	auto evPopulateBusyCategoryId = "busy.category"_event;
 	auto evPopulateBusyResourceId = "busy.resource"_event;
 
-	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder);
+	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, IGuiOverlaySupervisor* guiOverlay, cstr name, bool releaseAfterUse, bool trace, IPackage& package, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder);
 
 	namespace UI
 	{
@@ -178,6 +178,7 @@ namespace MHost
 		public IEventCallback<FileModifiedArgs>,
 		public IObserver, 
 		public IEngineSupervisor,
+		public IGuiOverlaySupervisor,
 		public Strings::IStringPopulator
 	{
 		Platform& platform;
@@ -391,7 +392,7 @@ namespace MHost
 		void CreateMHostDeclarations()
 		{
 			AutoFree<IDynamicStringBuilder> sb = CreateDynamicStringBuilder(4096);
-			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/create_declarations.sxy", true, false, *packageMHost, this, &sb->Builder());
+			RunMHostEnvironmentScript(platform, this, this, "!scripts/MHost/_Init/create_declarations.sxy", true, false, *packageMHost, this, &sb->Builder());
 
 			WideFilePath wPath;
 			platform.os.installation.ConvertPingPathToSysPath("!scripts/declarations/MHost/declarations.sxy", wPath);
@@ -404,6 +405,16 @@ namespace MHost
 			{
 
 			}
+		}
+
+		void AddMenu(const fstring& id, int64 metaId, const fstring& menuPath) override
+		{
+
+		}
+
+		void ClearMenus() override
+		{
+
 		}
 
 		void CreateMPlatPlatformDeclarations()
@@ -474,7 +485,7 @@ namespace MHost
 			CreateMPlatPlatformDeclarations();
 			CreateSysDeclarations();
 
-			RunMHostEnvironmentScript(platform, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
+			RunMHostEnvironmentScript(platform, this, this, "!scripts/MHost/_Init/keys.sxy", true, false, *packageMHost, this, nullptr);
 
 			while (platform.os.appControl.IsRunning() && !isShutdown)
 			{
@@ -486,7 +497,7 @@ namespace MHost
 				U8FilePath currentScript;
 				Format(currentScript, "%s", mainScript.c_str());
 
-				RunMHostEnvironmentScript(platform, this, currentScript, true, false, *packageMHost, this, nullptr);
+				RunMHostEnvironmentScript(platform, this, this, currentScript, true, false, *packageMHost, this, nullptr);
 				CleanupResources();
 			}
 		}

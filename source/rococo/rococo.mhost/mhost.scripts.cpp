@@ -18,6 +18,11 @@ namespace MHost
 		return _context;
 	}
 
+	IGuiOverlay* FactoryConstructMHostGuiOverlay(IGuiOverlay* context)
+	{
+		return context;
+	}
+
 	MHost::IDictionaryStream* FactoryConstructMHostDictionaryStream(Rococo::IO::IInstallation* installation)
 	{
 		return CreateDictionaryStream(*installation);
@@ -130,12 +135,13 @@ namespace MHost
 		return closure;
 	}
 
-	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, cstr name, bool releaseAfterUse, bool trace, IPackage& package, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder)
+	void RunMHostEnvironmentScript(Platform& platform, IEngineSupervisor* engine, IGuiOverlaySupervisor* guiOverlay, cstr name, bool releaseAfterUse, bool trace, IPackage& package, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder)
 	{
 		class ScriptContext : public IScriptCompilationEventHandler
 		{
 			Platform& platform;
 			IEngineSupervisor* engine;
+			IGuiOverlaySupervisor* guiOverlay;
 			IPackage& package;
 			const IStructure* exprStruct = nullptr;
 			StringBuilder* declarationBuilder = nullptr;
@@ -179,6 +185,7 @@ namespace MHost
 
 				Interop::AddNativeCalls_MHostIGui(args.ss, nullptr);
 				Interop::AddNativeCalls_MHostIEngine(args.ss, engine);
+				Interop::AddNativeCalls_MHostIGuiOverlay(args.ss, guiOverlay);
 				MHost::OS::AddNativeCalls_MHostOS(args.ss);
 				MHost::Graphics::AddNativeCalls_MHostGraphics(args.ss);
 				Interop::AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.os.installation);
@@ -192,8 +199,8 @@ namespace MHost
 			}
 
 		public:
-			ScriptContext(Platform& _platform, IEngineSupervisor* _engine, IPackage& _package, StringBuilder* _declarationBuilder) :
-				platform(_platform), engine(_engine), package(_package), declarationBuilder(_declarationBuilder)
+			ScriptContext(Platform& _platform, IEngineSupervisor* _engine, IGuiOverlaySupervisor* _guiOverlay, IPackage& _package, StringBuilder* _declarationBuilder) :
+				platform(_platform), engine(_engine), guiOverlay(_guiOverlay), package(_package), declarationBuilder(_declarationBuilder)
 			{
 				privateSourceCache = CreateSourceCache(platform.os.installation, Rococo::Memory::GetSexyAllocator());
 			}
@@ -205,7 +212,7 @@ namespace MHost
 				platform.plumbing.utilities.RunEnvironmentScript(Rococo::NoImplicitIncludes(), *this, name, true, true, trace, onScriptCrash, declarationBuilder);
 				engine->SetRunningScriptContext(nullptr);
 			}
-		} sc(platform, engine, package, declarationBuilder);
+		} sc(platform, engine, guiOverlay, package, declarationBuilder);
 
 		sc.onScriptCrash = onScriptCrash;
 

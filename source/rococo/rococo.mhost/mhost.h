@@ -94,6 +94,11 @@ namespace MHost
 		virtual void SetRunningScriptContext(IPublicScriptSystem* ss) = 0;
 	};
 
+	ROCOCO_INTERFACE IGuiOverlaySupervisor : public IGuiOverlay
+	{
+
+	};
+
 	ROCOCO_INTERFACE IScriptDispatcher
 	{
 		virtual void Free() = 0;

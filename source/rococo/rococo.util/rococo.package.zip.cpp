@@ -223,13 +223,13 @@ namespace ANON
 		}
 	};
 
-	struct SXYZMapPackage : IPackageSupervisor
+	struct SXYZMapPackage : IPackageSupervisor, IO::IBinaryFileLoader
 	{
-		AutoFree<IO::IReadOnlyBinaryMapping> map;
+		AutoFree<IExpandingBuffer> packageImage;
 		U8FilePath name;
 
-		const char* buffer = nullptr;
-		size_t bufferLen = 0;
+		std::vector<char> buffer;
+
 		int64 hash = 0;
 
 		Header header = { 0 };
@@ -241,19 +241,33 @@ namespace ANON
 		mutable bool enumLockFiles = false;
 		mutable bool enumLockDirs = false;
 
+		uint8* LockWriter(size_t length) override
+		{
+			if (length == 0)
+			{
+				Throw(0, "Zero length package!");
+			}
+
+			buffer.resize(length);
+			return (uint8*)buffer.data();
+		}
+
+		void Unlock() override
+		{
+		}
+
 		SXYZMapPackage(const wchar_t* filename, const char* key)
 		{
-			map = IO::CreateReadOnlyBinaryMapping(filename);
-			buffer = map->Data();
-			bufferLen = map->Length();
-			hash = XXHash64Arg(buffer, bufferLen);
+			IO::LoadBinaryFile(*this, filename, 2_gigabytes);
+
+			hash = XXHash64Arg(buffer.data(), buffer.size());
 			Format(name, "%s", key);
 
-			header = ParseHeader(buffer, bufferLen);
+			header = ParseHeader(buffer.data(), buffer.size());
 
 			files.reserve(header.fileCount);
 
-			size_t bufferLeft = bufferLen - (header.filenames - buffer);
+			size_t bufferLeft = buffer.size() - (header.filenames - buffer.data());
 
 			const char* readPointer = header.filenames;
 
@@ -292,12 +306,12 @@ namespace ANON
 
 			ValidateStringAndAdvance(newLine, readPointer, bufferLeft);
 
-			if (bufferLeft + header.headerLength != bufferLen)
+			if (bufferLeft + header.headerLength != buffer.size())
 			{
 				Throw(0, "Inconsistent file buffer lengths");
 			}
 
-			if (filePos != bufferLen)
+			if (filePos != buffer.size())
 			{
 				Throw(0, "Inconsistent file positions");
 			}
@@ -357,7 +371,7 @@ namespace ANON
 
 			Format(f.name, "%s", range.first->path.c_str());
 			f.filesize = range.first->length;
-			f.data = buffer + range.first->position;
+			f.data = buffer.data() + range.first->position;
 
 			return true;
 		}
@@ -501,13 +515,13 @@ namespace ANON
 		// A pointer to the raw data in the package
 		const char* RawData() const override
 		{
-			return buffer;
+			return buffer.data();
 		}
 
 		// Number of bytes of raw data
 		size_t RawLength() const override
 		{
-			return bufferLen;
+			return buffer.size();
 		}
 	};
 }

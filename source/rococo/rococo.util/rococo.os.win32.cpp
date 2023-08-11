@@ -3004,8 +3004,50 @@ namespace Rococo::IO
 	{
 		return new PathCache();
 	}
-	
 
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength)
+	{
+		if (maxLength > 2_gigabytes)
+		{
+			Throw(0, "Max file length is 2 gigabytes");
+		}
+
+
+		{ // File is locked in this codesection
+			AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+
+			if (f.hFile == INVALID_HANDLE_VALUE)
+			{
+				Throw(GetLastError(), "LoadBinaryFile: Cannot open file %ls", filename);
+			}
+
+			LARGE_INTEGER len;
+			if (!GetFileSizeEx(f, &len))
+			{
+				Throw(GetLastError(), "LoadBinaryFile: Cannot determine file size %ls", filename);
+			}
+
+			if (maxLength != 0 && len.QuadPart >= maxLength)
+			{
+				Throw(GetLastError(), "LoadBinaryFile: File too large - length must be less than %llu bytes.\n%ls", filename);
+			}
+
+			uint8* startOfBuffer = loader.LockWriter(len.QuadPart);
+
+			try
+			{
+				f.ReadBuffer((DWORD)len.QuadPart, (char*) startOfBuffer);
+				loader.Unlock();
+			}
+			catch (IException& ex)
+			{
+				loader.Unlock();
+				Throw(ex.ErrorCode(), "IBinaryFileLoader: %s.\n%ls", ex.Message(), filename);
+			}
+
+		} // File is no longer locked
+	}
+	
 	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const wchar_t* filename)
 	{
 		std::vector<char> asciiData;

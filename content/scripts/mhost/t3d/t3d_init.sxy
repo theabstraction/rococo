@@ -39,4 +39,8 @@
 	(IEngine engine (Engine))
 	(engine.RunMPlatScript "!mesh/t3d/skeleton.sxy")
 	(engine.SetNextScript "!scripts/mhost/t3d/t3d.sxy")
+	
+	(IGuiOverlay overlay (MHost.GuiOverlay))
+	(overlay.ClearMenus)
+	(overlay.AddMenu "TestId" 42 "Scripts.Test")
 )
