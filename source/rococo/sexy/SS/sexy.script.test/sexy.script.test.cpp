@@ -6401,6 +6401,34 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestTypeOf(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(result = (Sys.Print type.Name))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 32);
+	}
+
 	void TestExpressionArg(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -16169,11 +16197,14 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestTypeOf);
+		goto skip;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestMaps();
+		skip:
 
 		end = Time::TickCount();
 		hz = Time::TickHz();

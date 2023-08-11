@@ -1159,9 +1159,81 @@ namespace Rococo
 		  }
 	   }
 
+	   void CompileAssignmentToTypeOf(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct)
+	   {
+		   // Example: (IStructure t = typeof Sys.Reflection.IStructure)
+		   if (ce.Object.Common().SysReflection().FindInterface("IStructure")->NullObjectType() != varStruct)
+		   {
+			   Throw(directive, "Expecting the assignment type variable to be Sys.Reflection.IStructure. It was a %s of %s", GetFriendlyName(varStruct), varStruct.Module().Name());
+		   }
+
+		   int offset = directive.NumberOfElements() == 4 ? 1 : 0;
+
+		   cstr variableName = GetAtomicArg(directive, offset + 1).c_str();
+		   cstr eqOperator = GetAtomicArg(directive, offset + 2).c_str();
+		   cstr typeOperator = GetAtomicArg(directive, offset + 3).c_str();
+		   cstr fqTypeName = GetAtomicArg(directive, offset + 4).c_str();
+
+		   if (!Eq(typeOperator, "typeof"))
+		   {
+			   Throw(directive[offset+3], "Expecting typeof in position %d", offset + 3);
+		   }
+
+		   if (!Eq(eqOperator, "="))
+		   {
+			   Throw(directive[offset+2], "Expecting assignment operator '='");
+		   }
+
+		   cstr nsprefix, type;
+		   NamespaceSplitter splitter(fqTypeName);
+		   if (!splitter.SplitTail(nsprefix, type))
+		   {
+			   Throw(directive[offset + 4], "Expecting fully qualified namespace and type. Example: Sys.Type.ROID");
+		   }
+
+		   auto* ns = ce.RootNS.FindSubspace(nsprefix);
+		   if (ns == nullptr)
+		   {
+			   Throw(directive[offset + 4], "Could not find a namespace %s", nsprefix);
+		   }
+
+		   if (!IsCapital(type[0]))
+		   {
+			   Throw(directive[offset + 4], "Expecting type '%s' to begin with a capital letter", type);
+		   }
+
+		   auto* sType = ns->FindStructure(type);
+		   if (sType != nullptr)
+		   {
+			   AddSymbol(ce.Builder, "%s = typeof %s", variableName, GetFriendlyName(*sType));
+
+			   CReflectedClass* pStruct = ce.SS.GetReflectedClass(sType);
+			   if (pStruct == NULL)
+			   {
+				   pStruct = ce.SS.CreateReflectionClass("Structure", sType);
+			   }
+
+			   ce.Builder.AssignPointer(NameString::From(variableName), &pStruct->header.pVTables[0]);
+			   return;
+		   }
+
+		   Throw(directive, "No type found that matches %s", fqTypeName);
+	   }
+
 	   void CompileAssignmentDirective(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
 	   {
-		   int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment keyword, else it begins with the target variable
+		   int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment type, else it begins with the target variable
+
+		   if (directive.NumberOfElements() == 5 + offset)
+		   {
+			   int typeOfOffset = 3 + offset;
+			   if (IsAtomic(directive[typeOfOffset]) && Eq(directive[typeOfOffset].c_str(), "typeof"))
+			   {
+				   CompileAssignmentToTypeOf(ce, directive, varStruct);
+				   return;
+			   }
+		   }
+
 		   AssertNotTooFewElements(directive, 4 + offset);
 
 		   if (varStruct.VarType() == VARTYPE_Derivative && !varStruct.Prototype().IsClass)

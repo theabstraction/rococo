@@ -1,0 +1,13 @@
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys.Reflection)
+(using Sys.Type)
+(using Sys.IO)
+
+	
+(function Main -> (Int32 exitCode):
+	(debug)
+	(Sys.Reflection.IStructure s = typeof Sys.Type.ROID)
+	(Sys.Print s.Name)
+)
