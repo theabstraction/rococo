@@ -85,6 +85,8 @@ namespace Rococo {
 			FunctionPrototype(cstr _name, bool _isMethod) : Name(_name), IsMethod(_isMethod) {}
 		};
 
+		bool IsDerivedFrom(const IInterface& sub, const IInterface& super);
+
 		struct ProgramInitParameters
 		{
 			size_t MaxProgramBytes;

@@ -2572,6 +2572,111 @@ namespace Rococo
 			}
 		}
 
+		void CompileInvoke(CCompileEnvironment& ce, cr_sex s)
+		{
+			// (invoke <interface-ref> <method-string> <arg-variable>
+			if (s.NumberOfElements() != 4)
+			{
+				Throw(s, "(invoke <interface-ref> <method-string> <arg-variable>) has 3 arguments");
+			}
+
+			cr_sex sInterfaceRef = s[1];
+			cr_sex sMethodRef = s[2];
+			cr_sex sArgRef = s[3];
+
+			if (!IsAtomic(sInterfaceRef))
+			{
+				Throw(sInterfaceRef, "The interface variable must be atomic");
+			}
+
+			if (!IsAtomic(sArgRef))
+			{
+				Throw(sArgRef, "The arg variable must be atomic");
+			}
+
+			if (!IsAtomic(sMethodRef) && !IsStringLiteral(sMethodRef))
+			{
+				Throw(sMethodRef, "The method ref variable must be an IString or string literal");
+			}
+
+			cstr interfaceRef = sInterfaceRef.c_str();
+			cstr methodRef = sMethodRef.c_str();
+			cstr argRef = sArgRef.c_str();
+
+			MemberDef argDef;
+			if (!ce.Builder.TryGetVariableByName(argDef, argRef))
+			{
+				Throw(sArgRef, "Could not determine type of %s", argRef);
+			}
+
+			if (IsPrimitiveType(argDef.ResolvedType->VarType()) || argDef.ResolvedType->InterfaceCount() > 0)
+			{
+				Throw(sArgRef, "Only structs may be used as args in invocations");
+			}
+
+			MemberDef interfaceDef;
+			if (!ce.Builder.TryGetVariableByName(interfaceDef, interfaceRef))
+			{
+				Throw(sInterfaceRef, "Could not determine type of %s", interfaceRef);
+			}
+
+			auto* type = interfaceDef.ResolvedType;
+			if (type->InterfaceCount() != 1 || !IsNullType(*type))
+			{
+				Throw(sInterfaceRef, "Expecting a reference to a class with one interface, but type was %s", GetFriendlyName(*type));
+			}
+
+			enum {BLACK_MAGIC = -1};
+			AddSymbol(ce.Builder, "%s", argRef);
+			ce.Builder.PushVariableRef(argRef, BLACK_MAGIC);
+
+			AddSymbol(ce.Builder, "%s", interfaceRef);
+			ce.Builder.PushVariable(interfaceDef);
+
+			auto& argType = *argDef.ResolvedType;
+			VariantValue vArgType;
+			vArgType.sizetValue = (size_t) &argType;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, vArgType, BITCOUNT_POINTER);
+			AddSymbol(ce.Builder, "typeof(%s) = %s", argRef, GetFriendlyName(argType));
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
+
+			if (IsStringLiteral(sMethodRef))
+			{
+				CStringConstant* sc = ce.SS.GetStringReflection(methodRef);
+				InterfacePointer ip = sc->header.AddressOfVTable0();
+				VariantValue v;
+				v.sizetValue = (size_t)ip;
+				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER);
+				AddSymbol(ce.Builder, "%32.32s", methodRef);
+				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
+			}
+			else
+			{
+				MemberDef methodDef;
+				if (!ce.Builder.TryGetVariableByName(methodDef, methodRef))
+				{
+					Throw(sMethodRef, "Could not determine type of %s", methodRef);
+				}
+
+				if (!IsNullType(*methodDef.ResolvedType) || methodDef.ResolvedType->InterfaceCount() == 0)
+				{
+					Throw(sMethodRef, "%s did not have an IString as base interface", GetFriendlyName(*methodDef.ResolvedType));
+				}
+
+				auto& methodInterf0 = methodDef.ResolvedType->GetInterface(0);
+				if (!Rococo::Compiler::IsDerivedFrom(methodInterf0, ce.Object.Common().SysTypeIString()))
+				{
+					Throw(sMethodRef, "%s did not derive from IString", GetFriendlyName(*methodDef.ResolvedType));
+				}
+
+				AddSymbol(ce.Builder, "%s", methodRef);
+				ce.Builder.PushVariable(methodDef);
+			}
+
+			ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idInvokeMethodByName);
+			ce.Builder.Assembler().Append_Pop(sizeof(size_t) * 2);
+		}
+
 		void CompileTrip(CCompileEnvironment& ce, cr_sex s)
 		{
 			ce.Builder.Assembler().Append_TripDebugger();
@@ -2806,6 +2911,11 @@ namespace Rococo
 			else if (AreEqual(token, "array"))
 			{
 				CompileArrayDeclaration(ce, s);
+				return true;
+			}
+			else if (AreEqual(token, "invoke"))
+			{
+				CompileInvoke(ce, s);
 				return true;
 			}
 			else if (AreEqual(token, "list"))

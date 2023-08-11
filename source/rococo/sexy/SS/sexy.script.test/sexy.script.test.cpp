@@ -6792,6 +6792,85 @@ R"((namespace EntryPoint)
 		validate(x == 7);
 	}
 
+	void TestInvokeMethodViaReflectionFails(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"   (IStringBuilder sb = NewTokenBuilder)"
+			"   (Sys.Maths.Vec2i point = 7258 8369)"
+			"   (IString method = \"AppendInt64\")"
+			"	(invoke sb method point)"
+			"   (Sys.Print sb)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
+	}
+
+	void TestInvokeMethodViaReflection(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(interface Sys.Type.IRobot"
+			"   (MoveTo (Vec2i pos)->)"
+			")"
+
+			"(class Robot (implements Sys.Type.IRobot))"
+
+			"(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))"
+
+			"(method Robot.Construct : )"
+
+			"(method Robot.MoveTo (Vec2i pos)-> : "
+			"   (IStringBuilder sb = NewTokenBuilder)"
+			"   (#build sb pos.x \" \" pos.y)"
+			"   (Sys.Print sb)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"   (IRobot robot (NewRobot))"
+			"   (Sys.Maths.Vec2i point = 7258 8369)"
+			"   (robot.MoveTo point)"
+			"   (IString moveToMethod = \"MoveTo\")"
+			"	(invoke robot moveToMethod point)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		printf("\n");
+	}
+
 	void TestExpressionArg(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -16532,6 +16611,19 @@ R"(
 		TEST3(TestTopLevelMacro2);
 		TEST3(TestStringReplace);
 		TEST3(TestCreateDeclarations);
+
+		TEST(TestTypeOf);
+		TEST(TestEnumerateInterfaces);
+		TEST(TestGetInterfaceName);
+		TEST(TestGetMethodCount);
+		TEST(TestGetMethodArgCounts);
+		TEST(TestAppendMethodName);
+		TEST(TestGetMethodGetInputTypeAndName);
+		TEST(TestGetMethodGetOutputTypeAndName);
+		TEST(TestGetMethodGetInputType);
+		TEST(TestGetMethodGetOutputType);
+		TEST(TestIsMethodInputOfType);
+		TEST(TestIsMethodOutputOfType);
 	}
 
 	void RunPositiveFailures()
@@ -16553,6 +16645,7 @@ R"(
 		TEST(TestDoubleArrowsInFunction);
 		TEST(TestIgnoreOutputInterface);
 		TEST(TestTypeInference1);
+		TEST(TestInvokeMethodViaReflectionFails);
 	}
 
 	void RunTests()
@@ -16560,18 +16653,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestTypeOf);
-		TEST(TestEnumerateInterfaces);
-		TEST(TestGetInterfaceName);
-		TEST(TestGetMethodCount);
-		TEST(TestGetMethodArgCounts);
-		TEST(TestAppendMethodName);
-		TEST(TestGetMethodGetInputTypeAndName);
-		TEST(TestGetMethodGetOutputTypeAndName);
-		TEST(TestGetMethodGetInputType);
-		TEST(TestGetMethodGetOutputType);
-		TEST(TestIsMethodInputOfType);
-		TEST(TestIsMethodOutputOfType);
+		TEST(TestInvokeMethodViaReflection);
 		goto skip;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();

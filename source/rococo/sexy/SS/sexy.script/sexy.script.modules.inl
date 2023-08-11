@@ -1654,6 +1654,67 @@ namespace Rococo::Script
 		registers[VM::REGISTER_D7].int64Value = (leftObj == rightObj) ? 1 : 0;
 	}
 
+	VM_CALLBACK(InvokeMethodByName)
+	{
+		struct InvokeArgs
+		{
+			Vec2i* pArg;
+			InterfacePointer pInterface;
+			const IStructure* argType;
+			InterfacePointer methodName;
+		};
+
+		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
+		sp -= sizeof(InvokeArgs);
+		auto* invokeArgs = (InvokeArgs*)sp;
+
+		IScriptSystem& ss = *(IScriptSystem*)context;
+
+		CStringConstant* methodObject = (CStringConstant*) InterfaceToInstance(invokeArgs->methodName);
+		ObjectStub* targetObject = InterfaceToInstance(invokeArgs->pInterface);
+
+		MethodInfo m = ss.GetMethodByName(methodObject->pointer, *targetObject->Desc->TypeInfo);
+		if (m.f == nullptr)
+		{
+			Throw(0, "InvokeMethodByName failed. No method %s on object %s", methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo));
+			return;
+		}
+
+		if (m.f->NumberOfInputs() != 2)
+		{
+			// 1 implicit and != 1 explicit
+			Throw(0, "InvokeMethodByName failed. Method %s on object %s incompatible with invocation. Only methods of 1 explicit value are legal candidates", methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo));
+		}
+
+		if (m.f->NumberOfOutputs() != 0)
+		{
+			Throw(0, "InvokeMethodByName failed. Method %s on object %s incompatible with invocation. Only methods without output are legal candidates.", methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo));
+		}
+
+		sp += 2 * sizeof(size_t); // This puts the interface and arg back on the stack, ready for the virtual call
+
+		ptrdiff_t delta = (*invokeArgs->pInterface)->OffsetToInstance + m.offset;
+
+		invokeArgs->pInterface = (InterfacePointer)(((uint8*)invokeArgs->pInterface) + delta);
+
+		CodeSection code;
+		m.f->Code().GetCodeSection(code);
+
+		auto& po = ss.ProgramObject();
+		size_t functionStart = po.ProgramMemory().GetFunctionAddress(code.Id);
+
+		auto& cpu = po.VirtualMachine().Cpu();
+
+		cpu.Push(registers[REGISTER_SF].vPtrValue);
+
+		const uint8* returnAddress = cpu.PC();
+		cpu.Push(returnAddress);
+
+		registers[REGISTER_SF].charPtrValue = registers[REGISTER_SP].charPtrValue; // Create a new stack frame
+
+		cpu.SetPC(cpu.ProgramStart + functionStart);
+	}
+
 	VM_CALLBACK(DynamicDispatch)
 	{
 		struct DDArgs

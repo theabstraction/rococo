@@ -90,6 +90,19 @@ namespace Rococo
 	}
 }
 
+namespace Rococo::Compiler
+{
+	bool IsDerivedFrom(const IInterface& sub, const IInterface& super)
+	{
+		for (const IInterface* i = &super; i != nullptr; i = i->Base())
+		{
+			if (i == &sub) return true;
+		}
+
+		return false;
+	}
+}
+
 namespace Anon
 {
 	class Variable
@@ -1785,16 +1798,6 @@ namespace Anon
 			assembler.Append_SetStackFrameValue(dest.SFOffset + dest.MemberOffset, VM::REGISTER_D4, bitcount);
 			RestoreStackFrameFor(builder, dest);
 		}
-	}
-
-	bool IsDerivedFrom(const IInterface& sub, const IInterface& super)
-	{
-		for (const IInterface* i = &super; i != nullptr; i = i->Base())
-		{
-			if (i == &sub) return true;
-		}
-
-		return false;
 	}
 
 	void AssignInterfaceToInterface(ICodeBuilder& builder, const MemberDef& sourceDef, const MemberDef& targetDef, cstr source, cstr target, bool isConstructingTarget)
