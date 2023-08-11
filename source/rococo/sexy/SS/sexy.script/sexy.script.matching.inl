@@ -127,7 +127,7 @@ namespace Rococo
             IFunctionBuilder* f = ns->FindFunction(tail);
             if (f == NULL)
             {
-               ThrowTokenNotFound(s, name, ns->FullName()->Buffer, ("namespace"));
+                Throw(s, "Namespace %s identified. But could not resolve %s as a function", ns->FullName()->Buffer, tail);
             }
 
             return *f;

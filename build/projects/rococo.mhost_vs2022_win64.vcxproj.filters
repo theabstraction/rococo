@@ -18,9 +18,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost_declarations.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>

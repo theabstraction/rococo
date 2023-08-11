@@ -73,3 +73,5 @@
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.
 // Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
 
+(struct GuiEvent MHost.GuiTypes.GuiEvent MHost.GuiTypes.GuiEvent)
+

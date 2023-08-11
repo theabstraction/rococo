@@ -42,6 +42,8 @@ namespace GRANON
 		void Deactivate();
 
 		bool IsActive() const;
+
+		void Clear();
 	};
 
 	struct MenuBranch
@@ -138,6 +140,14 @@ namespace GRANON
 		return false;
 	}
 
+	void GRMenuTree::Clear()
+	{
+		delete root; 
+		mapIdToBranch.clear();
+		auto rootId = 0;
+		root = new MenuBranch(*this, rootId, nullptr);
+	}
+
 	struct GRMenuBar : IGRWidgetMenuBar, IGRWidget
 	{
 		IGRPanel& panel;
@@ -200,6 +210,11 @@ namespace GRANON
 			isDirty = true;
 
 			return GRMenuItemId{ branchId };
+		}
+
+		void ClearMenus() override
+		{
+			tree.Clear();
 		}
 
 		enum { BUTTON_X_PADDING = 10 };
@@ -315,6 +330,12 @@ namespace GRANON
 
 		void LayoutItems()
 		{
+			if (panel.GetChild(0) == nullptr)
+			{
+				panel.Resize({ 1,1 });
+				return;
+			}
+
 			int spanX = 0;
 
 			int index = 0;

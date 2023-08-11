@@ -631,6 +631,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual IGRWidget & Widget() = 0;
 		virtual bool AddButton(GRMenuItemId parentMenu, const GRMenuButtonItem& item) = 0;
+		virtual void ClearMenus() = 0;
 		virtual GRMenuItemId AddSubMenu(GRMenuItemId parentMenu, const GRMenuSubMenu& subMenu) = 0;
 	};
 

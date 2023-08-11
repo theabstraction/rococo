@@ -1,4 +1,14 @@
 (namespace MHost)
+(namespace MHost.GuiTypes)
 
 (archetype MHost.GuiPopulator (MHost.IGui gui) -> )
 (alias Sys.Type.Int64 MHost.IdTexture) // 0 = none/undefined, 1+ = index. -ve = invalid 
+
+(strong GuiEventId (Int64))
+(alias GuiEventId MHost.GuiTypes.GuiEventId)
+
+(struct GuiEvent
+	(GuiEventId eventId)
+)
+
+(alias GuiEvent MHost.GuiTypes.GuiEvent)

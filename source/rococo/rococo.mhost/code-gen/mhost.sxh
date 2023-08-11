@@ -20,6 +20,16 @@
 	)
 )
 
+(enum Int64
+	(as.sxy MHost.GuiTypes.EvId "../packages/mhost/MHost/mhost")
+	(as.cpp MHost.GuiTypes.GuiEventId)
+	(
+		(None 0)
+		(GRisMadeVisible 1 )
+		(GRisHidden 2)
+	)
+)
+
 (interface
 	(as.sxy MHost.IGui "../packages/mhost/MHost/mhost")
 	(as.cpp MHost.IGui)
@@ -55,6 +65,7 @@
 	(methods
 		(AddMenu (const IString id)(Int64 metaId)(const IString menuPath))
 		(ClearMenus)
+		(GetNextGuiEvent (GuiEvent ev)-> (Bool wasExtracted))
 	)
 	
 	(factory MHost.GuiOverlay)

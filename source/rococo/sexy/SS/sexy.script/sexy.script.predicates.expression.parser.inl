@@ -311,7 +311,7 @@ namespace Rococo
                }
                else
                {
-                  ThrowTokenNotFound(s, id, ce.Builder.Owner().Name(), ("variable"));
+                   Throw(s, "Could not resolve type %s. Expression expects a number. Error compiling %s", id, ce.Builder.Owner().Name());
                }
             }
          }

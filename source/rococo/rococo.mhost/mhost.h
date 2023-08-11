@@ -67,6 +67,16 @@ namespace MHost
 	typedef Rococo::Script::ArchetypeCallback GuiPopulator;
 
 	struct IDictionaryStream;
+
+	namespace GuiTypes
+	{
+		enum class GuiEventId : int64;
+
+		struct GuiEvent
+		{
+			GuiEventId id;
+		};
+	}
 }
 
 #include <rococo.io.h>

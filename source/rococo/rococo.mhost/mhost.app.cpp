@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <string>
+#include <list>
 
 using namespace Rococo;
 using namespace Rococo::Entities;
@@ -452,19 +453,24 @@ namespace MHost
 			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
 			if (frame)
 			{
-				for (int i = 0; i < 10000; i++)
-				{
-					auto* child = frame->MenuBar().Widget().Panel().GetChild(i);
-					if (!child)
-					{
-						break;
-					}
-
-					child->MarkForDelete();
-				}
+				frame->MenuBar().ClearMenus();
 			}
 
 			platform.graphics.GR.GarbageCollect();
+		}
+
+		std::list<GuiTypes::GuiEvent> guiEventList;
+
+		boolean32 GetNextGuiEvent(MHost::GuiTypes::GuiEvent& ev) override
+		{
+			if (!guiEventList.empty())
+			{
+				ev = guiEventList.front();
+				guiEventList.pop_front();
+				return true;
+			}
+
+			return false;
 		}
 
 		void CreateMPlatPlatformDeclarations()
@@ -683,11 +689,24 @@ namespace MHost
 		{
 			platform.creator.editor.SetVisibility(isVisible);
 
-			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
-			if (frame)
+			if (isVisible)
 			{
-				Gui::SetUniformColourForAllRenderStates(frame->Widget().Panel(), Gui::EGRSchemeColourSurface::BACKGROUND, RGBAb(0, 0, 0, 0));
-				Gui::SetUniformColourForAllRenderStates(frame->ClientArea().Panel(), Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
+				auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+				if (frame)
+				{
+					Gui::SetUniformColourForAllRenderStates(frame->Widget().Panel(), Gui::EGRSchemeColourSurface::BACKGROUND, RGBAb(0, 0, 0, 0));
+					Gui::SetUniformColourForAllRenderStates(frame->ClientArea().Panel(), Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
+				}
+
+				GuiTypes::GuiEvent ev;
+				ev.id = GuiTypes::GuiEventId::GRisMadeVisible;
+				guiEventList.push_back(ev);
+			}
+			else
+			{
+				GuiTypes::GuiEvent ev;
+				ev.id = GuiTypes::GuiEventId::GRisHidden;
+				guiEventList.push_back(ev);
 			}
 			// creator.editor.Preview(platform.graphics.GR, GetTestTarget())
 		}

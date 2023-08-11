@@ -19,6 +19,7 @@
 
 (using MPlat)
 (using MHost)
+(using MHost.GuiTypes)
 (using MHost.OS)
 (using MHost.Graphics)
 (using MHost.Events)
@@ -98,6 +99,9 @@
 	
 	(MouseEvent mouseEvent)
 	(KeyboardEvent keyEvent)
+	(GuiEvent guiEvent)
+	
+	(IGuiOverlay guiOverlay (MHost.GuiOverlay))
 	
 	(KeyState keys)
 	
@@ -144,6 +148,13 @@
 		
 		(while (this.engine.GetNextMouseEvent mouseEvent)
 			// Required for overlay control
+		)
+		
+		(while (guiOverlay.GetNextGuiEvent guiEvent)
+			(if (guiEvent.eventId == (#EvIdGRisMadeVisible))
+				(guiOverlay.ClearMenus)
+				(guiOverlay.AddMenu "TestId" 42 "Scripts.Test")
+			)
 		)
 		
 		(Vec2 mouseDelta)
