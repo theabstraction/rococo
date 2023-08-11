@@ -609,7 +609,7 @@ namespace Rococo::Gui
 	{
 		cstr text;
 		GRControlMetaData metaData;
-		int isEnabled: 1;
+		uint32 isEnabled: 1;
 	};
 
 	struct GRMenuSubMenu

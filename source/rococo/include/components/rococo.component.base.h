@@ -18,6 +18,7 @@ namespace Rococo::Components
 	{
 		virtual ComponentTypeInfo TypeInfo() const = 0;
 		virtual void Reflect(ComponentReflectionInfo& info) = 0;
+		virtual ~IComponentBase() {}
 	};
 
 	// Note:

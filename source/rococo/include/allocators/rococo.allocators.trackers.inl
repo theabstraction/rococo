@@ -108,7 +108,7 @@ namespace Rococo::Memory
 		enum 
 		{ 
 			// Defines the allocation size, in bytes, that triggers deep tracking. Typically used to trace a leak of known size
-			ALLOCATION_SIZE_WATCHED = 48
+			ALLOCATION_SIZE_WATCHED = 64
 		};
 
 		void AddProblemTracker(size_t nBytes)
@@ -124,7 +124,7 @@ namespace Rococo::Memory
 			{
 				// The callstack depth here determines the depth of the current callstack from where we extract the PC address used to generate the 
 				// function name and line number in the leak log
-				CALLSTACK_DEPTH = 4 
+				CALLSTACK_DEPTH = 7 
 			};
 
 			/*
@@ -181,7 +181,7 @@ namespace Rococo::Memory
 
 		void AddTrackingData(void* buffer, size_t nBytes, bool addPCAddresses)
 		{
-			enum { TRACK_DEPTH = 4 };
+			enum { TRACK_DEPTH = 8 };
 
 			Debugging::StackFrame::Address address = addPCAddresses ? Debugging::FormatStackFrame(nullptr, 0, TRACK_DEPTH) : Debugging::StackFrame::Address{ 0, 0 };
 

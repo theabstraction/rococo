@@ -29,6 +29,9 @@ struct AppArgs
 	cstr mainScript;
 };
 
+
+Gui::GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
+
 namespace MHost
 {
 	void AddMHostNativeCallSecurity(Rococo::ScriptCompileArgs& args);
@@ -409,12 +412,59 @@ namespace MHost
 
 		void AddMenu(const fstring& id, int64 metaId, const fstring& menuPath) override
 		{
+			auto idCurrentMenu = Rococo::Gui::GRMenuItemId::Root();
+			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			if (frame)
+			{
+				Substring s = ToSubstring(menuPath);
 
+				for (;;)
+				{
+					cstr nextDot = FindChar(s.start, '.');
+					if (nextDot)
+					{
+						Substring subspace = { s.start, nextDot };
+						char subspaceBuffer[16];
+						if (!SubstringToString(subspaceBuffer, sizeof subspaceBuffer, subspace))
+						{
+							Throw(0, "Failed to convert subpsace to string for %s", (cstr)menuPath);
+						}
+
+						idCurrentMenu = frame->MenuBar().AddSubMenu(idCurrentMenu, Gui::GRMenuSubMenu(subspaceBuffer));
+						s.start = nextDot + 1;
+					}
+					else
+					{
+						Gui::GRMenuButtonItem button;
+						button.isEnabled = 1;
+						button.metaData.intData = metaId;
+						button.metaData.stringData = id;
+						button.text = s.start;
+						frame->MenuBar().AddButton(idCurrentMenu, button);
+						break;
+					}
+				}
+			}
 		}
 
 		void ClearMenus() override
 		{
+			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			if (frame)
+			{
+				for (int i = 0; i < 10000; i++)
+				{
+					auto* child = frame->MenuBar().Widget().Panel().GetChild(i);
+					if (!child)
+					{
+						break;
+					}
 
+					child->MarkForDelete();
+				}
+			}
+
+			platform.graphics.GR.GarbageCollect();
 		}
 
 		void CreateMPlatPlatformDeclarations()
@@ -633,7 +683,6 @@ namespace MHost
 		{
 			platform.creator.editor.SetVisibility(isVisible);
 
-			Gui::GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
 			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
 			if (frame)
 			{
