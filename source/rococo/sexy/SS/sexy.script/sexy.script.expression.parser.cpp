@@ -286,40 +286,40 @@ namespace Rococo
 			}
 		}
 
-		cstr Comparative(int delta) { return delta > 0 ? ("more") : ("fewer"); } 
+		cstr Comparative(int delta) { return delta > 0 ? "more" : "fewer"; } 
 
-		void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& archetype, cstr source)
+		void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& requiredArchetype, cstr source)
 		{
-			int delta = archetype.NumberOfInputs() - f.NumberOfInputs();
+			int delta = requiredArchetype.NumberOfInputs() - f.NumberOfInputs();
 			if (delta != 0)
 			{
-				Throw(s, "There are %s inputs in %s@%s than in that of %s", Comparative(delta), source, archetype.Name(), f.Name());
+				Throw(s, "There are %s inputs in %s.%s than in that of %s", Comparative(delta), source, f.Name(), requiredArchetype.Name());
 			}
 
-			delta = archetype.NumberOfOutputs() - f.NumberOfOutputs();
+			delta = requiredArchetype.NumberOfOutputs() - f.NumberOfOutputs();
 			if (delta != 0)
 			{
-				Throw(s, "There are %s outputs in %s@%s than in that of %s", Comparative(delta), source, archetype.Name(), f.Name());
+				Throw(s, "There are %s outputs in %s.%s than in that of %s", Comparative(delta), source, f.Name(), requiredArchetype.Name());
 			}
 
 			int32 argCount = ArgCount(f);
 
 			for(int32 i = 0; i < argCount; ++i)
 			{
-				const IStructure& st = archetype.GetArgument(i);
+				const IStructure& st = requiredArchetype.GetArgument(i);
 				const IStructure& stf = f.GetArgument(i);
 				cstr argname = f.GetArgName(i);
 
-				if (archetype.IsVirtualMethod())
+				if (requiredArchetype.IsVirtualMethod())
 				{
-					if (i == 0 && st.VarType() == VARTYPE_Pointer && AreEqual(archetype.GetArgName(0), ("_typeInfo")))
+					if (i == 0 && st.VarType() == VARTYPE_Pointer && AreEqual(requiredArchetype.GetArgName(0), "_typeInfo"))
 					{
 						if (stf.Prototype().IsClass && AreEqual(THIS_POINTER_TOKEN,argname))
 						{
 							continue;
 						}
 					}
-					else if (st.VarType() == VARTYPE_Pointer && AreEqual(archetype.GetArgName(i), ("_vTable"), 7))
+					else if (st.VarType() == VARTYPE_Pointer && AreEqual(requiredArchetype.GetArgName(i), "_vTable", 7))
 					{
 						if (stf.Prototype().IsClass && AreEqual(THIS_POINTER_TOKEN,argname))
 						{
@@ -330,10 +330,11 @@ namespace Rococo
 			
 				if (&stf != &st)
 				{
-					Throw(s, "%s@%s: Argument [%d](%s %s). Type did not match that of the implementation. Expected '%s'", source, archetype.Name(), i, GetFriendlyName(st), argname, GetFriendlyName(stf));
+					auto sf = (const ISExpression*)f.Definition();
+					Throw(sf ? *sf : s, "%s.%s: Argument [%d](%s %s). Type did not match the expected '%s'", source, requiredArchetype.Name(), i, GetFriendlyName(stf), argname, GetFriendlyName(st));
 				}
 
-				const IStructure* interfGenericArg1 = archetype.GetGenericArg1(i);
+				const IStructure* interfGenericArg1 = requiredArchetype.GetGenericArg1(i);
 				const IStructure* concreteGenericArg1 = f.GetGenericArg1(i);
 
 				if (interfGenericArg1 != concreteGenericArg1)
@@ -344,7 +345,7 @@ namespace Rococo
 					// Not really expecting the generic args to be NULL, as we should already have bailed out above, but handle the case
 
 					ssb << "Error validating concrete method against the interface's specification for (" << f.Name() << "...). \n";
-					if (archetype.GetGenericArg1(i) != NULL)
+					if (requiredArchetype.GetGenericArg1(i) != NULL)
 					{
 						ssb << "Interface's method with generic argument type '" << GetFriendlyName(*interfGenericArg1) << "' does not match ";
 					}

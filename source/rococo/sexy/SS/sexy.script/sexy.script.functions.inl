@@ -1469,7 +1469,15 @@ namespace Rococo
 				return true;
 			}
 
-			Throw(firstArg, "Could not identify method %s in %s", methodName, GetFriendlyName(*instanceStruct));
+			auto sDef = (const ISExpression*) instanceStruct->Definition();
+			if (sDef)
+			{
+				Throw(firstArg, "Could not identify method %s in %s of %s near line %d)", methodName, GetFriendlyName(*instanceStruct), instanceStruct->Module().Name(), sDef->Start().y);
+			}
+			else
+			{
+				Throw(firstArg, "Could not identify method %s in %s of %s", methodName, GetFriendlyName(*instanceStruct), instanceStruct->Module().Name());
+			}
 		}
 
 		bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
@@ -2295,7 +2303,8 @@ namespace Rococo
 				return true;
 			}
 
-			ThrowTokenNotFound(s, methodName, GetFriendlyName(*def.ResolvedType), "method");
+			auto sDef = (const Sex::ISExpression*) def.ResolvedType->Definition();
+			Throw(s, "Could not find method %s in %s of %s (near line %d)", methodName, GetFriendlyName(*def.ResolvedType), def.ResolvedType->Module().Name(), sDef->Start().y);
 		}
 
 		bool TryCompileAsBuilderCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)

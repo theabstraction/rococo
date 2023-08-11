@@ -141,8 +141,7 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexystudio.lib</ImportLibrary>
@@ -228,8 +227,7 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.misc.utils.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexystudio.lib</ImportLibrary>
@@ -315,33 +313,5 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\source\rococo\sexystudio\alias.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\archetype.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\attribute.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\bitmap3.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\blank.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\enum.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\extends.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\factory.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\field.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\filetype-sxy.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\filetype-unknown.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\folder-close.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\folder-open.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\function.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\input.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\interface.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\method.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\namespace.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\output.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\sexystudio.large.ico" />
-    <Image Include="..\..\source\rococo\sexystudio\sexystudio.small.ico" />
-    <Image Include="..\..\source\rococo\sexystudio\strong-id.bmp" />
-    <Image Include="..\..\source\rococo\sexystudio\strong-id.png" />
-    <Image Include="..\..\source\rococo\sexystudio\struct.bmp" />
-    <Image Include="strong-id.bmp" />
-    <Image Include="strong-id.png" />
   </ItemGroup>
 </Project>

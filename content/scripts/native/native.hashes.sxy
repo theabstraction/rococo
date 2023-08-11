@@ -1,0 +1,8 @@
+// Sexy hash file. For the script system to accept a native source file the SHA256 hash of the source code has to match that defined in this file, which is read from the BIN directory of the executable
+
+(require-hash-of !scripts/native/Sys.Type.sxy		  = fa38e90bb06c754c9d32dd5cfd5d044a701851e969116df7e42b2c4f9ea71fed)
+(require-hash-of !scripts/native/Sys.Maths.sxy		  = 7d729b1d2e8e7c1598662d6b67ecc16887851083eb8935451cfe70773bcdec47)
+(require-hash-of !scripts/native/Sys.Type.Strings.sxy = 6309ec94c8cf074832ff82aa6c3227d2fdea9da1833469627ad60a9f59a16083)
+(require-hash-of !scripts/native/Sys.IO.sxy 		  = 678e88a967a104fe4e097218870c093de9dedad706e13cfa76e113d06925f37f)
+(require-hash-of !scripts/native/Sys.Reflection.sxy   = 0a2995d5c95b1facf1385229391e4445581b5aaf5b52eaf353431f7843c23db2)
+(require-hash-of mhost                                = 84a24b7eab639b221c7716b7942d76b5b365700dd9ebeb654789234de115eb73)

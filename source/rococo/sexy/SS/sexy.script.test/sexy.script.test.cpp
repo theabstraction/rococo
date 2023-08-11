@@ -6425,8 +6425,371 @@ R"((namespace EntryPoint)
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);
 
+		printf("\n");
+
 		int x = vm.PopInt32();
 		validate(x == 32);
+	}
+
+	void TestEnumerateInterfaces(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(result = type.InterfaceCount)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		printf("\n");
+
+		int x = vm.PopInt32();
+		validate(x == 1);
+	}
+
+	void TestGetInterfaceName(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(IString i0 = (type.GetInterfaceName 0))"
+			"   (result = (Sys.Print i0))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		printf("\n");
+
+		int x = vm.PopInt32();
+		validate(x == 11);
+	}
+
+	void TestGetMethodCount(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(Int32 count = (type.GetMethodCount 0))"
+			"   (result = count)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		printf("\n");
+
+		int x = vm.PopInt32();
+		validate(x == 9);
+	}
+
+	void TestAppendMethodName(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(IStringBuilder nb = NewTokenBuilder)"
+			"	(type.AppendMethodName nb 0 0)"
+			"   (result = (Sys.Print nb))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		printf("\n");
+		validate(x == 5);
+	}
+
+	void TestGetMethodArgCounts(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(Int32 inputCount)(Int32 outputCount)"
+			"	(type.GetMethodArgCounts 0 0 -> inputCount outputCount)"
+			"   (result = (inputCount + (7 * outputCount)))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 9); // methods have an intrinsic input of the instance ref, with Child we also have the index, and there is one output. (2 + 7 x 1) = 9
+	}
+
+	void TestGetMethodGetInputTypeAndName(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(IStringBuilder sbName = NewTokenBuilder)"
+			"	(IStringBuilder sbType = NewTokenBuilder)"
+			"	(type.AppendInputTypeAndName 0 0 0 sbType sbName)"
+			"	(IStringBuilder sbTypeAndName = NewTokenBuilder)"
+			"   (#build sbTypeAndName sbType \" \" sbName)"
+			"   (result = (Sys.Print sbTypeAndName))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		printf("\n");
+		validate(x == 11);
+	}
+
+	void TestGetMethodGetOutputTypeAndName(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(IStringBuilder sbName = NewTokenBuilder)"
+			"	(IStringBuilder sbType = NewTokenBuilder)"
+			"	(type.AppendOutputTypeAndName 0 0 0 sbType sbName)"
+			"	(IStringBuilder sbTypeAndName = NewTokenBuilder)"
+			"   (#build sbTypeAndName sbType \" \" sbName)"
+			"   (result = (Sys.Print sbTypeAndName))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		printf("\n");
+		validate(x == 11);
+	}
+
+	void TestGetMethodGetInputType(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"   (IStructure argType = (type.GetInputType 0 0 0))"
+			"   (result = (Sys.Print argType.Name))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		printf("\n");
+		validate(x == 5);
+	}
+
+	void TestGetMethodGetOutputType(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"   (IStructure argType = (type.GetOutputType 0 0 0))"
+			"   (result = (Sys.Print argType.Name))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		printf("\n");
+		validate(x == 32);
+	}
+
+	void TestIsMethodInputOfType(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(IStructure int32type = typeof Sys.Type.Int32)"
+			"   (if (type.IsMethodInputOfType 0 0 0 int32type)"
+			"       (result = 7)"
+			"   )"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		printf("\n");
+		validate(x == 7);
+	}
+
+	void TestIsMethodOutputOfType(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+			"(using Sys.Type)"
+			"(using Sys.Type.Strings)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(IStructure childOutputType = typeof Sys.Reflection.IExpression)"
+			"   (if (type.IsMethodOutputOfType 0 0 0 childOutputType)"
+			"       (result = 7)"
+			"   )"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		printf("\n");
+		validate(x == 7);
 	}
 
 	void TestExpressionArg(IPublicScriptSystem& ss)
@@ -16198,6 +16561,17 @@ R"(
 		start = Time::TickCount();
 
 		TEST(TestTypeOf);
+		TEST(TestEnumerateInterfaces);
+		TEST(TestGetInterfaceName);
+		TEST(TestGetMethodCount);
+		TEST(TestGetMethodArgCounts);
+		TEST(TestAppendMethodName);
+		TEST(TestGetMethodGetInputTypeAndName);
+		TEST(TestGetMethodGetOutputTypeAndName);
+		TEST(TestGetMethodGetInputType);
+		TEST(TestGetMethodGetOutputType);
+		TEST(TestIsMethodInputOfType);
+		TEST(TestIsMethodOutputOfType);
 		goto skip;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
@@ -16254,8 +16628,12 @@ int main(int argc, char* argv[])
 			Rococo::OS::FormatErrorMessage(numericMessage, sizeof numericMessage, ex.ErrorCode());
 			if (numericMessage[0] != 0)
 			{
-				printf("\nSystem Error: %d %s\n", ex.ErrorCode(), numericMessage);
+				printf("\nSystem Error: %d %s. %s\n", ex.ErrorCode(), numericMessage, ex.Message());
 			}
+		}
+		else
+		{
+			printf("\nError: %s\n", ex.Message());
 		}
 	}
 

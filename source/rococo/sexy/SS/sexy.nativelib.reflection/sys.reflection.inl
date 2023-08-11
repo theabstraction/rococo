@@ -1,6 +1,8 @@
 #pragma once
 // Note this file is hand-coded. It was written before BennyHill existed, and the layout was the basis for the BennyHill generated code.
 
+#include "..\..\sexy\STC\stccore\sexy.compiler.helpers.h"
+
 namespace
 {
 	void WriteString(CStringConstant* constant, int outputIndex, NativeCallEnvironment& e)
@@ -221,6 +223,401 @@ namespace
 		WriteString(sc, 0, e);
 	}
 
+	void NativeGetInterfaceCount(NativeCallEnvironment& e)
+	{
+		IStructure* pStruct;
+		ReadInput(0, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		WriteOutput(0, count, e);
+	}
+
+	void NativeAppendInputTypeAndName(NativeCallEnvironment& e)
+	{
+		int32 interfaceIndex;
+		ReadInput(0, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(1, methodIndex, e);
+
+		int32 inputIndex;
+		ReadInput(2, inputIndex, e);
+
+		InterfacePointer ipSbType;
+		ReadInput(3, ipSbType, e);
+
+		auto* sbTypeObject = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipSbType);
+
+		InterfacePointer ipSbName;
+		ReadInput(4, ipSbName, e);
+
+		auto* sbNameObject = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipSbName);
+
+		IStructure* pStruct;
+		ReadInput(5, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (interfaceIndex < 0 || interfaceIndex >= count)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetInputTypeAndName: bad [interfaceIndex]");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(interfaceIndex);
+
+		int32 nMethods = myInterface.MethodCount();
+		if (methodIndex < 0 || methodIndex >= nMethods)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetInputTypeAndName: bad [methodIndex]");
+			return;
+		}
+
+		auto& m = myInterface.GetMethod(methodIndex);
+		if (inputIndex < 0 || inputIndex >= m.NumberOfInputs())
+		{
+			// Too much info for throw from native
+			Throw(0, "GetInputTypeAndName: InputIndex %d was out of bounds for method %s.%s", inputIndex, myInterface.Name(), m.Name());
+		}
+
+		SafeFormat(sbNameObject->buffer + sbNameObject->length, sbNameObject->capacity - sbNameObject->length, "%s", m.GetArgName(inputIndex + m.NumberOfOutputs()));
+		sbNameObject->length = (int32)strlen(sbNameObject->buffer);
+
+		SafeFormat(sbTypeObject->buffer + sbTypeObject->length, sbTypeObject->capacity - sbTypeObject->length, "%s", m.GetArgument(inputIndex + m.NumberOfOutputs()).Name());
+		sbTypeObject->length = (int32)strlen(sbTypeObject->buffer);
+	}
+
+	void NativeAppendOutputTypeAndName(NativeCallEnvironment& e)
+	{
+		int32 interfaceIndex;
+		ReadInput(0, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(1, methodIndex, e);
+
+		int32 outputIndex;
+		ReadInput(2, outputIndex, e);
+
+		InterfacePointer ipSbType;
+		ReadInput(3, ipSbType, e);
+
+		auto* sbTypeObject = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipSbType);
+
+		InterfacePointer ipSbName;
+		ReadInput(4, ipSbName, e);
+
+		auto* sbNameObject = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipSbName);
+
+		IStructure* pStruct;
+		ReadInput(5, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (interfaceIndex < 0 || interfaceIndex >= count)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetOutputTypeAndName: bad [interfaceIndex]");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(interfaceIndex);
+
+		int32 nMethods = myInterface.MethodCount();
+		if (methodIndex < 0 || methodIndex >= nMethods)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetOutputTypeAndName: bad [methodIndex]");
+			return;
+		}
+
+		auto& m = myInterface.GetMethod(methodIndex);
+		if (outputIndex < 0 || outputIndex >= m.NumberOfOutputs())
+		{
+			// Too much info for throw from native
+			Throw(0, "GetOutputTypeAndName: OutputIndex %d was out of bounds for method %s.%s", outputIndex, myInterface.Name(), m.Name());
+		}
+
+		SafeFormat(sbNameObject->buffer + sbNameObject->length, sbNameObject->capacity - sbNameObject->length, "%s", m.GetArgName(outputIndex));
+		sbNameObject->length = (int32)strlen(sbNameObject->buffer);
+
+		SafeFormat(sbTypeObject->buffer + sbTypeObject->length, sbTypeObject->capacity - sbTypeObject->length, "%s", m.GetArgument(outputIndex).Name());
+		sbTypeObject->length = (int32)strlen(sbTypeObject->buffer);
+	}
+
+	void NativeGetMethodArgCounts(NativeCallEnvironment& e)
+	{
+		int32 interfaceIndex;
+		ReadInput(0, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(1, methodIndex, e);
+
+		IStructure* pStruct;
+		ReadInput(2, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (interfaceIndex < 0 || interfaceIndex >= count)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetMethodArgCounts: bad [interfaceIndex]");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(interfaceIndex);
+		
+		int32 nMethods = myInterface.MethodCount();
+		if (methodIndex < 0 || methodIndex >= nMethods)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetMethodArgCounts: bad [methodIndex]");
+			return;
+		}
+
+		auto& m = myInterface.GetMethod(methodIndex);
+		int nInputs = m.NumberOfInputs();
+		int nOutputs = m.NumberOfOutputs();
+		WriteOutput(0, nInputs, e);
+		WriteOutput(1, nOutputs, e);
+	}
+
+	void NativeGetMethodCount(NativeCallEnvironment& e)
+	{
+		int32 index;
+		ReadInput(0, index, e);
+
+		IStructure* pStruct;
+		ReadInput(1, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (index < 0 || index >= count)
+		{
+			int32 zero = 0;
+			WriteOutput(0, zero, e);
+		}
+		else
+		{
+			int32 nMethods = pStruct->GetInterface(index).MethodCount();
+			WriteOutput(0, nMethods, e);
+		}
+
+	}
+
+	void NativeGetInputType(NativeCallEnvironment& e)
+	{
+		int32 interfaceIndex;
+		ReadInput(0, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(1, methodIndex, e);
+
+		int32 inputIndex;
+		ReadInput(2, inputIndex, e);
+
+		IStructure* pStruct;
+		ReadInput(3, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (interfaceIndex < 0 || interfaceIndex >= count)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetInputType: bad [interfaceIndex]");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(interfaceIndex);
+
+		int32 nMethods = myInterface.MethodCount();
+		if (methodIndex < 0 || methodIndex >= nMethods)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetInputType: bad [methodIndex]");
+			return;
+		}
+
+		auto& m = myInterface.GetMethod(methodIndex);
+		if (inputIndex < 0 || inputIndex >= m.NumberOfInputs())
+		{
+			// Too much info for throw from native
+			Throw(0, "GetInputType: InputIndex %d was out of bounds for method %s.%s", inputIndex, myInterface.Name(), m.Name());
+		}
+
+		auto& SS = (IScriptSystem&)e.ss;
+		auto& argType = m.GetArgument(inputIndex + m.NumberOfOutputs());
+		CReflectedClass* pArgStruct = SS.GetReflectedClass((void*) &argType);
+		if (pArgStruct == NULL)
+		{
+			pArgStruct = SS.CreateReflectionClass("Structure", (void*) &argType);
+		}
+
+		WriteOutput(0, pArgStruct->header.AddressOfVTable0(), e);
+	}
+
+	void NativeGetOutputType(NativeCallEnvironment& e)
+	{
+		int32 interfaceIndex;
+		ReadInput(0, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(1, methodIndex, e);
+
+		int32 outputIndex;
+		ReadInput(2, outputIndex, e);
+
+		IStructure* pStruct;
+		ReadInput(3, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (interfaceIndex < 0 || interfaceIndex >= count)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.GetOutputType: bad [interfaceIndex]");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(interfaceIndex);
+
+		int32 nMethods = myInterface.MethodCount();
+		if (methodIndex < 0 || methodIndex >= nMethods)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.v: bad [methodIndex]");
+			return;
+		}
+
+		auto& m = myInterface.GetMethod(methodIndex);
+		if (outputIndex < 0 || outputIndex >= m.NumberOfOutputs())
+		{
+			// Too much info for throw from native
+			Throw(0, "GetOutputType: OutputIndex %d was out of bounds for method %s.%s", outputIndex, myInterface.Name(), m.Name());
+		}
+
+		auto& SS = (IScriptSystem&)e.ss;
+		auto& argType = m.GetArgument(outputIndex);
+		CReflectedClass* pArgStruct = SS.GetReflectedClass((void*)&argType);
+		if (pArgStruct == NULL)
+		{
+			pArgStruct = SS.CreateReflectionClass("Structure", (void*)&argType);
+		}
+
+		WriteOutput(0, pArgStruct->header.AddressOfVTable0(), e);
+	}
+
+	void NativeIsMethodInputOfType(NativeCallEnvironment& e)
+	{
+		int32 interfaceIndex;
+		ReadInput(0, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(1, methodIndex, e);
+
+		int32 inputIndex;
+		ReadInput(2, inputIndex, e);
+
+		InterfacePointer ip;
+		ReadInput(3, ip, e);
+
+		CReflectedClass* candidateObject = (CReflectedClass*)InterfaceToInstance(ip);
+		IStructure* pCandidateStruct = (IStructure*) candidateObject->context;
+
+		IStructure* pStruct;
+		ReadInput(4, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (interfaceIndex < 0 || interfaceIndex >= count)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.IsMethodInputOfType: bad [interfaceIndex]");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(interfaceIndex);
+
+		int32 nMethods = myInterface.MethodCount();
+		if (methodIndex < 0 || methodIndex >= nMethods)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.IsMethodInputOfType: bad [methodIndex]");
+			return;
+		}
+
+		auto& m = myInterface.GetMethod(methodIndex);
+		if (inputIndex < 0 || inputIndex >= m.NumberOfInputs())
+		{
+			// Too much info for throw from native
+			Throw(0, "IsMethodInputOfType: InputIndex %d was out of bounds for method %s.%s", inputIndex, myInterface.Name(), m.Name());
+		}
+
+		auto& argType = m.GetArgument(inputIndex + m.NumberOfOutputs());
+
+		boolean32 match = (argType == *pCandidateStruct);
+
+		WriteOutput(0, match, e);
+	}
+
+	void NativeIsMethodOutputOfType(NativeCallEnvironment& e)
+	{
+		int32 interfaceIndex;
+		ReadInput(0, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(1, methodIndex, e);
+
+		int32 outputIndex;
+		ReadInput(2, outputIndex, e);
+
+		InterfacePointer ip;
+		ReadInput(3, ip, e);
+
+		CReflectedClass* candidateObject = (CReflectedClass*)InterfaceToInstance(ip);
+		IStructure* pCandidateStruct = (IStructure*)candidateObject->context;
+
+		IStructure* pStruct;
+		ReadInput(4, (void*&)pStruct, e);
+
+		int32 count = pStruct->InterfaceCount();
+		if (interfaceIndex < 0 || interfaceIndex >= count)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.IsMethodOutputOfType: bad [interfaceIndex]");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(interfaceIndex);
+
+		int32 nMethods = myInterface.MethodCount();
+		if (methodIndex < 0 || methodIndex >= nMethods)
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.IsMethodOutputOfType: bad [methodIndex]");
+			return;
+		}
+
+		auto& m = myInterface.GetMethod(methodIndex);
+		if (outputIndex < 0 || outputIndex >= m.NumberOfOutputs())
+		{
+			// Too much info for throw from native
+			Throw(0, "IsMethodOutputOfType: OutputIndex %d was out of bounds for method %s.%s", outputIndex, myInterface.Name(), m.Name());
+		}
+
+		auto& argType = m.GetArgument(outputIndex);
+
+		boolean32 match = (argType == *pCandidateStruct);
+
+		WriteOutput(0, match, e);
+	}
+
+
+	void NativeGetInterfaceName(NativeCallEnvironment& e)
+	{
+		int32 index;
+		ReadInput(0, index, e);
+
+		IStructure* pStruct;
+		ReadInput(1, (void*&)pStruct, e);
+
+		auto& SS = ((IScriptSystem&)e.ss);
+
+		int32 count = pStruct->InterfaceCount();
+		if (index < 0 || index >= count)
+		{
+			auto* nullObject = SS.ProgramObject().Common().SysTypeIString().UniversalNullInstance();
+			WriteOutput(0, &nullObject->pVTables[0], e);
+		}
+		else
+		{
+			auto& myInterface = pStruct->GetInterface(index);
+			cstr interfaceName = myInterface.Name();
+			auto sc = SS.DuplicateStringAsConstant(interfaceName);
+			WriteOutput(0, &sc->header.pVTables[0], e);
+		}
+	}
+
 	void DuplicateExpression(cr_sex s, ISExpressionBuilder& b)
 	{
 		switch (s.Type())
@@ -438,12 +835,57 @@ namespace
 		WriteOutput(0, errorCount, e);
 	}
 
+	void NativeAppendMethodName(NativeCallEnvironment& e)
+	{
+		InterfacePointer ipSb;
+		ReadInput(0, ipSb, e);
+
+		auto* sbObject = (CClassSysTypeStringBuilder*) InterfaceToInstance(ipSb);
+
+
+		int32 interfaceIndex;
+		ReadInput(1, interfaceIndex, e);
+
+		int32 methodIndex;
+		ReadInput(2, methodIndex, e);
+
+		IStructure* pStruct;
+		ReadInput(3, pStruct, e);
+
+		if (interfaceIndex < 0 || interfaceIndex >= pStruct->InterfaceCount())
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.AppendMethodName: interfaceIndex was out of bounds");
+			return;
+		}
+
+		auto& myInterface = pStruct->GetInterface(0);
+		if (methodIndex < 0 || methodIndex > myInterface.MethodCount())
+		{
+			e.ss.ThrowFromNativeCode(0, "IStructure.AppendMethodName: method Index was out of bounds");
+			return;
+		}
+
+		cstr methodName = pStruct->GetInterface(interfaceIndex).GetMethod(methodIndex).Name();
+
+		int nBytesWritten = SafeFormat(sbObject->buffer + sbObject->length, sbObject->capacity - sbObject->length, "%s", methodName);
+		if (nBytesWritten < 0)
+		{
+			e.ss.ThrowFromNativeCode(GetLastError(), "IStructure.AppendMethodName: Error appending method name");
+			return;
+		}
+
+		sbObject->length = (int32) strlen(sbObject->buffer);
+
+		WriteOutput(0, nBytesWritten, e);
+	}
+
 	void AddReflectionCalls(IScriptSystem& ss)
 	{
 		const INamespace& sysReflection = ss.AddNativeNamespace("Sys.Reflection");
 		ss.AddNativeCall(sysReflection, NewExpressionBuilder, &ss, "NewExpressionBuilder (Sys.Reflection.IExpression origin) -> (Sys.Reflection.IExpressionBuilder builder)", __FILE__, __LINE__, true);
 
 		const INamespace& sysReflectionNative = ss.AddNativeNamespace("Sys.Reflection.Native");
+		ss.AddNativeCall(sysReflectionNative, NativeAppendMethodName, &ss, "AppendMethodName (Sys.Type.IStringBuilder sb) (Int32 interfaceIndex)(Int32 methodIndex) (Pointer structPtr) -> (Int32 nameLength)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, "ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionIndexOf, &ss, "ExpressionIndexOf (Pointer sParentHandle) (Pointer sChildHandle) -> (Int32 index)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, "ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)", __FILE__, __LINE__, true);
@@ -454,11 +896,21 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionThrow, &ss, "ExpressionThrow  (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) ->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetScriptSystem, &ss, "GetScriptSystem -> (Sys.Reflection.IScriptSystem ss)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeModuleCount, &ss, "ModuleCount -> (Int32 count)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeAppendInputTypeAndName, &ss, "AppendInputTypeAndName(Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex)(IStringBuilder typeBuilder) (IStringBuilder nameBuilder) (Pointer pStruct) -> ", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeAppendOutputTypeAndName, &ss, "AppendOutputTypeAndName(Int32 interfaceIndex)(Int32 methodIndex)(Int32 outputIndex)(IStringBuilder typeBuilder) (IStringBuilder nameBuilder) (Pointer pStruct) -> ", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetInputType, &ss, "GetInputType (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex)(Sys.Type.Pointer pStruct) -> (Sys.Reflection.IStructure argType)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetOutputType, &ss, "GetOutputType (Int32 interfaceIndex)(Int32 methodIndex)(Int32 outputIndex)(Sys.Type.Pointer pStruct) -> (Sys.Reflection.IStructure argType)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeIsMethodInputOfType, &ss, "IsMethodInputOfType(Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)(Sys.Type.Pointer pStruct)-> (Bool match)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeIsMethodOutputOfType, &ss, "IsMethodOutputOfType(Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)(Sys.Type.Pointer pStruct)-> (Bool match)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetModule, &ss, "GetModule (Int32 index) -> (Sys.Reflection.IModule module)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetModuleName, &ss, "GetModuleName (Pointer modulePtr) -> (Sys.Type.IString name)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetStructCount, &ss, "GetStructCount (Pointer modulePtr) -> (Int32 structCount)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetStruct, &ss, "GetStruct (Pointer modulePtr) (Int32 index) -> (Sys.Reflection.IStructure structure)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetStructName, &ss, "GetStructName (Pointer structPtr) -> (Sys.Type.IString name)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetInterfaceCount, &ss, "GetInterfaceCount (Pointer structPtr) -> (Int32 count)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetInterfaceName, &ss, "GetInterfaceName (Int32 interfaceIndex) (Pointer structPtr) -> (IString nameOrNull)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetMethodArgCounts, &ss, "GetMethodArgCounts (Int32 interfaceIndex)(Int32 methodIndex) (Pointer structPtr) -> (Int32 inputCount)(Int32 outputCount)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeGetMethodCount, &ss, "GetMethodCount (Int32 interfaceIndex) (Pointer structPtr) -> (Int32 count)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, "ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, "ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderInsertCompoundAfter, &ss, "ExpressionBuilderInsertCompoundAfter (Pointer builderPtr)(Int32 index) -> (Sys.Reflection.IExpressionBuilder child)", __FILE__, __LINE__, true);

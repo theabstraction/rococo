@@ -1584,6 +1584,12 @@ namespace Rococo
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189", "4244"));
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllexport)");
             conf.SolutionFolder = " - Sexy";
+
+            string flags = "/i  /y  /d  /q";
+            string source = Path.Combine(Roots.RococoSexyPath, "NativeSource\\*.sxy");
+            string destination = Path.Combine(Roots.RococoContentPath, "scripts\\native");
+
+            conf.EventPostBuild.Add("xcopy " + source + " " + destination + " " + flags);
         }
     }
 

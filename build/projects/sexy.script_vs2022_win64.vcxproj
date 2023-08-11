@@ -47,6 +47,7 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.script\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.script.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -57,6 +58,7 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.script\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.script.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -146,6 +148,9 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexy.script.lib</ImportLibrary>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q&#x0D;&#x0A;</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -232,6 +237,9 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexy.script.lib</ImportLibrary>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q&#x0D;&#x0A;</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />

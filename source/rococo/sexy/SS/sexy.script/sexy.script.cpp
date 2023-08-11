@@ -606,7 +606,7 @@ namespace Rococo::Script
 		if (archetype.NumberOfElements() == 1)
 		{
 			char fullError[512];
-			SafeFormat(fullError, 512, ("Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis"), ns.FullName()->Buffer);
+			SafeFormat(fullError, 512, "Element defined in %s had one element. Ensure that the native call spec is not encapsulated in parenthesis. %s line %d", ns.FullName()->Buffer, sourceFile, lineNumber);
 			Throw(archetype, fullError);
 		}
 
@@ -625,7 +625,7 @@ namespace Rococo::Script
 		if (mapIndex < 0)
 		{
 			char fullError[512];
-			SafeFormat(fullError, 512, ("Cannot find the mapping token -> in the archetype: %s.%s"), ns.FullName()->Buffer, publicName);
+			SafeFormat(fullError, 512, "Cannot find the mapping token -> in the archetype: %s.%s. %s line %d", ns.FullName()->Buffer, publicName, sourceFile, lineNumber);
 			Throw(archetype, fullError);
 		}
 
@@ -637,7 +637,7 @@ namespace Rococo::Script
 		auto fqn = nativeCalls.find(fullyQualifiedName.Text);
 		if (fqn != nativeCalls.end())
 		{
-			Throw(archetype, "%s: Duplicate native call name: %s", __func__, fullyQualifiedName.Text);
+			Throw(archetype, "%s: Duplicate native call name: %s. %s line %d", __func__, fullyQualifiedName.Text, sourceFile, lineNumber);
 		}
 
 		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(nativeName, false), &archetype, popBytes);
@@ -919,8 +919,7 @@ namespace Rococo::Script
 				SafeFormat(msg, "Sexy: Error reading native files %ls\n", srcEnvironment.buf);
 				_logger.Write(msg);
 
-				SafeFormat(msg, "Mesage: %d\n", ex.Message());
-				SafeFormat(msg, "%s (%d,%d) to (%d,%d)\n", ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
+				SafeFormat(msg, "%s: %s (%d,%d) to (%d,%d)\n", ex.Message(), ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
 				_logger.Write(msg);
 
 				delete scripts;
@@ -2352,14 +2351,22 @@ namespace Rococo::Script
 			try
 			{
 				Auto<ISParserTree> tree = SParser().CreateTree(src());
-
 				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN sourceFile, IN lineNumber, IN checkName, IN popBytes, IN security);
 				nativeCallIndex++;
 			}
 			catch (ParseException& e)
 			{
+				char message[256];
+				SafeFormat(message, "Error in %s line %d", sourceFile, lineNumber);
+				ProgramObject().Log().Write(message);
 				ParseException ex(e.Start(), e.End(), archetype, e.Message(), e.Specimen(), NULL);
 				throw ex;
+			}
+			catch (...)
+			{
+				char message[256];
+				SafeFormat(message, "Error in %s line %d", sourceFile, lineNumber);
+				ProgramObject().Log().Write(message);
 			}
 		}
 

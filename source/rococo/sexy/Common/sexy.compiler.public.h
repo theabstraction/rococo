@@ -236,6 +236,11 @@ namespace Rococo {
 			int64 refCount;
 			VirtualTable* pVTables[1];
 			enum : int64 { NO_REF_COUNT = 0x4000000000000000 };
+
+			inline InterfacePointer AddressOfVTable0()
+			{
+				return &pVTables[0];
+			}
 		};
 
 		enum { SF_TO_DESTRUCTED_OBJECT_OFFSET = -40 };
