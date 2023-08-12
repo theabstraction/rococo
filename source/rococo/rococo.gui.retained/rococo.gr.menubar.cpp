@@ -162,6 +162,7 @@ namespace GRANON
 			{
 				// We require a parent so that we can anchor to its dimensions
 				owningPanel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				return;
 			}
 			auto rootId = 0;
 			tree.root = new MenuBranch(tree, rootId, nullptr);
@@ -215,6 +216,8 @@ namespace GRANON
 		void ClearMenus() override
 		{
 			tree.Clear();
+			isDirty = true;
+			panel.InvalidateLayout(false);
 		}
 
 		enum { BUTTON_X_PADDING = 10 };
@@ -399,7 +402,8 @@ namespace GRANON
 						IGRWidgetButton* button = Cast<IGRWidgetButton>(buttonPanel->Widget());
 						if (button && button->GetButtonFlags().forSubMenu)
 						{
-							int64 branchId = button->GetMetaData().intData;
+							// In a submenu the meta data is synonymous with the branch id and was not provided by the consumer of the API
+							int64 branchId = button->GetMetaData().intData; 
 							auto* branch = tree.FindBranch(GRMenuItemId{ branchId });
 							if (branch)
 							{
@@ -448,8 +452,9 @@ namespace GRANON
 				auto flags = button->GetButtonFlags();
 				if (flags.forSubMenu)
 				{
-					auto meta = button->GetMetaData();
-					auto* branch = tree.FindBranch(GRMenuItemId{ meta.intData });
+					int64 branchId = button->GetMetaData().intData;
+					// In a submenu the meta data is synonymous with the branch id and was not provided by the consumer of the API
+					auto* branch = tree.FindBranch(GRMenuItemId{ branchId });// WTF
 					if (branch)
 					{
 						branch->ToggleActive();

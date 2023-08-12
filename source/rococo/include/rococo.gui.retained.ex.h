@@ -51,6 +51,8 @@ namespace Rococo::Gui
 		// Given a font id and text string, uses the platform font definition to determine the minimam span containing it.
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
 
+		// Implementation specific error handling. Further in the Rococo libs we just throw an exception,
+		// but not everyone likes exceptions. Generally the error handler should invoke a breakpoint, issue a report and terminate the app.
 		virtual void RaiseError(EGRErrorCode code, cstr function, cstr message) = 0;
 	};
 
