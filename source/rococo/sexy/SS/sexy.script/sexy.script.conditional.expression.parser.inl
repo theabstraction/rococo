@@ -134,7 +134,14 @@ namespace Rococo
                 }
             } bodySection(s, ce);
 
-            ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_NOT_EQUAL, bodySection);
+            struct NoFinalSection : public ICompileSection
+            {
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
+                {
+                }
+            } noFinalSection;
+
+            ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_NOT_EQUAL, bodySection, noFinalSection);
         }
 
         void CompileBreak(CCompileEnvironment& ce, cr_sex s)

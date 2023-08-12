@@ -1593,7 +1593,14 @@ namespace Rococo
 			   }
 		   } bodySection(ce, s, hashIndex + 2, s.NumberOfElements() - 1, refName);
 
-		   ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_OR_EQUAL, bodySection);
+		   struct NoFinalSection : public ICompileSection
+		   {
+			   void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
+			   {
+			   }
+		   } noFinalSection;
+
+		   ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_GREATER_OR_EQUAL, bodySection, noFinalSection);
 
 		   //   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 		   ce.Builder.AddSymbol("...foreach)");

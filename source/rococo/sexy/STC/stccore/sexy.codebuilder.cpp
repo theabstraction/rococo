@@ -281,7 +281,7 @@ namespace Anon
 		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type);
 		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection);
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition);
-		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody);
+		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection);
 		virtual void Append_UpdateRefsOnSourceAndTarget();
 		virtual void Negate(int srcInvariantIndex, VARTYPE varType);
 		virtual void LeaveSection();
@@ -2562,7 +2562,7 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody)
+	void CodeBuilder::AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection)
 	{
 		size_t loopEnterPos = Assembler().WritePosition();
 		Assembler().Append_Branch(0); // When overwritten, branches to the loop criterion code
