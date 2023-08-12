@@ -2574,7 +2574,7 @@ namespace Rococo
 
 		void CompileInvoke(CCompileEnvironment& ce, cr_sex s)
 		{
-			// (invoke <interface-ref> <method-string> <arg-variable>
+			// (invoke <interface-ref> <method-string> <arg-variable>)
 			if (s.NumberOfElements() != 4)
 			{
 				Throw(s, "(invoke <interface-ref> <method-string> <arg-variable>) has 3 arguments");

@@ -2454,7 +2454,7 @@ namespace Rococo::Script
 				src.Src = const_cast<ISourceCode*>(&i->second->Source());
 			}
 
-			AddTree(*src.Tree);
+			AddTree(*src.Tree)->MakeSystem();
 		}
 		
 #ifdef _WIN32

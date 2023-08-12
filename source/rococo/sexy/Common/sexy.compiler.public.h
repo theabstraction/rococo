@@ -215,11 +215,18 @@ namespace Rococo {
 			ARGDIRECTION_OUTPUT
 		};
 
+#pragma pack(push, 1)
+		struct ObjectDescFlags
+		{
+			uint64 IsSystem : 1; // 1 => object created by trusted native C++, 0 => object created by Sexy
+		};
+
 		struct ObjectDesc
 		{
-			int32 Zero; // Should be zero, gives the number of bytes to the start of the object, which is this stub
+			ID_BYTECODE Zero; // Should be zero, gives the number of bytes to the start of the object, which is this stub
 			ID_BYTECODE DestructorId;
 			IStructure* TypeInfo;
+			ObjectDescFlags flags;
 		};
 
 		struct VirtualTable
@@ -230,7 +237,6 @@ namespace Rococo {
 
 		typedef VirtualTable** InterfacePointer;
 
-#pragma pack(push, 1)
 		struct ObjectStub
 		{
 			static const int BYTECOUNT_INSTANCE_TO_INTERFACE0 = 16;
@@ -431,6 +437,12 @@ namespace Rococo {
 			virtual int StructCount() const = 0;
 			virtual int PrefixCount() const = 0;
 			virtual const INamespace& GetPrefix(int index) const = 0;
+
+			// Check to see if the  module has been marked as a system object. See MakeSystem()
+			virtual bool IsSystem() const = 0;
+
+			// Mark this module as a system object. Objects created herein will also be marked in their vtable[0] ObjectDesc
+			virtual void MakeSystem() = 0; 
 		};
 
 		SEXYUTIL_API bool IsNullType(const IStructure& s);

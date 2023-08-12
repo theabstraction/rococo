@@ -16237,12 +16237,13 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestStringConstant);
+
 		TEST(TestMemberwiseInit);
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestTryFinallyWithoutThrow);
-		TEST(TestDeepCatch);
 		TEST(TestDynamicCast);
-		TEST(TestExceptionDestruct);
+
 		TEST(TestDerivedInterfaces2);
 		TEST(TestCatch);
 		TEST(TestCatchArg);
@@ -16257,12 +16258,8 @@ R"(
 
 		TEST(TestStructWithInterface);
 
-		TEST(TestThrowFromCatch);
-
 		TEST(TestCatchInstanceArg);
 		TEST(TestTryWithoutThrow);
-
-		TEST(TestReturnInterfaceEx);
 
 		TEST(TestSearchSubstring);
 		TEST(TestRightSearchSubstring);
@@ -16290,7 +16287,6 @@ R"(
 		TEST(TestClassAttribute);
 
 		TEST(TestNullIString);
-		TEST(TestTopLevelMacro);
 
 	//	TEST(TestPackage);
 
@@ -16312,14 +16308,12 @@ R"(
 		TEST(TestCallPrivateMethod2);
 
 		TEST(TestDynamicCast2);
-		TEST(TestExpressionAppendTo);
 
 		TEST2(TestCoroutine1);
 
 		TEST(TestDynamicDispatch);
 		TEST(TestPushSecondInterface);
 		TEST(TestStructArgFromStructArg);
-		TEST(TestStringArray);
 		TEST(TestCompareInterfaces);
 		TEST(TestZeroDefaults);
 		TEST(TestMemberwiseConstructWithInterface);
@@ -16344,9 +16338,6 @@ R"(
 		TEST(TestMacroSiblings2);
 
 		TEST(TestStartsWith);
-
-
-		TEST(TestMemberwiseInit);
 
 		TEST(TestCPPCallback);
 
@@ -16516,7 +16507,6 @@ R"(
 
 		TEST(TestMemoString);
 		TEST(TestMemoString2);
-		TEST(TestStringConstant);
 
 		TEST(TestPrint);
 		TEST(TestPrintViaInstance);
@@ -16537,7 +16527,7 @@ R"(
 		TEST(TestMemberwiseInit);
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestTryFinallyWithoutThrow);
-		TEST(TestDeepCatch);
+
 		TEST(TestDynamicCast);
 		TEST(TestExceptionDestruct);
 		TEST(TestDerivedInterfaces2);
@@ -16546,12 +16536,9 @@ R"(
 
 		TEST(TestStructWithInterface);
 
-		TEST(TestThrowFromCatch);
-
 		TEST(TestCatchInstanceArg);
 		TEST(TestTryWithoutThrow);
 
-		TEST(TestReturnInterfaceEx);
 
 		TEST(TestSearchSubstring);
 		TEST(TestRightSearchSubstring);
@@ -16624,6 +16611,13 @@ R"(
 		TEST(TestGetMethodGetOutputType);
 		TEST(TestIsMethodInputOfType);
 		TEST(TestIsMethodOutputOfType);
+		TEST(TestInvokeMethodViaReflection);
+		TEST(TestTopLevelMacro);
+		TEST(TestDeepCatch);
+		TEST(TestReturnInterfaceEx);
+		TEST(TestExpressionAppendTo);
+		TEST(TestThrowFromCatch);
+		TEST(TestStringArray);
 	}
 
 	void RunPositiveFailures()
@@ -16653,14 +16647,11 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestInvokeMethodViaReflection);
-		goto skip;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestMaps();
-		skip:
 
 		end = Time::TickCount();
 		hz = Time::TickHz();

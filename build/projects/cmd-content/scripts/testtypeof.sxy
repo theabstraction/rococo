@@ -1,35 +1,9 @@
 (namespace EntryPoint)
 	(alias Main EntryPoint.Main)
-	
-(namespace EntryPoint)
- (alias Main EntryPoint.Main)
 
-(using Sys.Maths)
-(using Sys.Reflection)
 (using Sys.Type)
-(using Sys.Type.Strings)
 
-(interface Sys.Type.IRobot
-   (MoveTo (Vec2i pos)->)
-)
-
-(class Robot (implements Sys.Type.IRobot))
-
-(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
-
-(method Robot.Construct : )
-
-(method Robot.MoveTo (Vec2i pos)-> : 
-   (IStringBuilder sb = NewTokenBuilder)
-   (#build sb pos.x " " pos.y)
-   (Sys.Print sb)
-)
-
-(function Main -> (Int32 result):
-	(IRobot robot (NewRobot))
-	(Sys.Maths.Vec2i point = 7258 8369)
-	(robot.MoveTo point)
-	(IString moveToMethod = "MoveTo")
-	(debug)
-	(invoke robot moveToMethod point)
+(function Main -> (Int32 result):		
+	(IString s = "hello world")
+	(s.Length -> result)
 )

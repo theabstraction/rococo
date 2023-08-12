@@ -48,7 +48,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		typedef TSexyVector<INamespaceBuilder*> TPrefixes;
 		TPrefixes prefixes;
 
-		/* lol */ mutable const INamespace* defaultNamespace = nullptr;
+		bool isSystem = false;
+
+		mutable const INamespace* defaultNamespace = nullptr;
 
 		void ClearClosures()
 		{
@@ -61,6 +63,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			closures.clear();
 		}
 
+		// Intrinsics constructor
 		Module(IProgramObject& _object, cstr _name, void* /* hack */) :
 			object(_object),
 			name(_name),
@@ -81,6 +84,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 		~Module()
 		{
 			ClearClosures();
+		}
+
+		bool IsSystem() const override
+		{
+			return isSystem;
+		}
+
+		void MakeSystem() override
+		{
+			isSystem = true;
 		}
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;

@@ -1671,12 +1671,17 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		CStringConstant* methodObject = (CStringConstant*) InterfaceToInstance(invokeArgs->methodName);
+				
 		ObjectStub* targetObject = InterfaceToInstance(invokeArgs->pInterface);
 
 		MethodInfo m = ss.GetMethodByName(methodObject->pointer, *targetObject->Desc->TypeInfo);
 		if (m.f == nullptr)
 		{
-			Throw(0, "InvokeMethodByName failed. No method %s on object %s", methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo));
+			// The callee will pop two pointers off the stack
+			sp += 2 * sizeof(size_t);
+			// For now we fail silently. The consumer can check to see if methods exist with the reflection API if needs be.
+			// For most cases we use the API for event handling, and if the handler does not handle the event it is meant to be ignored
+			// Throw(0, "InvokeMethodByName failed. No method %s on object %s", methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo));
 			return;
 		}
 
@@ -1689,6 +1694,13 @@ namespace Rococo::Script
 		if (m.f->NumberOfOutputs() != 0)
 		{
 			Throw(0, "InvokeMethodByName failed. Method %s on object %s incompatible with invocation. Only methods without output are legal candidates.", methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo));
+		}
+
+		auto& functionsArgType = m.f->GetArgument(0);
+		if (&functionsArgType != invokeArgs->argType)
+		{
+			Throw(0, "InvokeMethodByName failed. Method %s on object %s incompatible with invocation. Type mismatch: arg0 type is %s. Type supplied to invocation is %s.",
+				methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo), GetFriendlyName(*invokeArgs->argType), GetFriendlyName(functionsArgType));
 		}
 
 		sp += 2 * sizeof(size_t); // This puts the interface and arg back on the stack, ready for the virtual call

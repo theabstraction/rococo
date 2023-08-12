@@ -760,12 +760,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	ID_BYTECODE* CreateIntrinsicVirtualTable(const IStructure& s, ID_BYTECODE destructorId)
 	{
-		ID_BYTECODE* intrinsicTable = (ID_BYTECODE*) AllocateSexyMemory(sizeof ID_BYTECODE * 3);
-		intrinsicTable[0] = 0; 
-		intrinsicTable[1] = destructorId;
-		intrinsicTable[2] = (ID_BYTECODE) &s;
-
-		return intrinsicTable;
+		ObjectDesc* intrinsicTable = (ObjectDesc*) AllocateSexyMemory(sizeof ObjectDesc);
+		intrinsicTable->Zero = 0;
+		intrinsicTable->flags.IsSystem = s.Module().IsSystem();
+		intrinsicTable->DestructorId = destructorId;
+		intrinsicTable->TypeInfo = const_cast<IStructure*>(&s);
+		return (ID_BYTECODE*) intrinsicTable;
 	}
 
 	ID_BYTECODE GetByteCodeId(const IFunction& f)
