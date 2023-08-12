@@ -3615,12 +3615,20 @@ namespace Rococo
 
 		void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence);
 
+		void CompileFinally(CCompileEnvironment& ce, cr_sex s);
+
 		void CompileExpression(CCompileEnvironment& ce, cr_sex s)
 		{
 			ce.Builder.MarkExpression(&s);
 
 			try
 			{
+				if (IsAtomic(s) && Eq(s.c_str(), "finally"))
+				{
+					CompileFinally(ce, s);
+					return;
+				}
+
 				AssertCompound(s);
 
 				if (s.NumberOfElements() == 0) return;

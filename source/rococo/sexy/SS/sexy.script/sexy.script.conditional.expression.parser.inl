@@ -166,6 +166,18 @@ namespace Rococo
             ce.Builder.Assembler().Append_Branch(toContinue);
         }
 
+        void CompileFinally(CCompileEnvironment& ce, cr_sex s)
+        {
+            ControlFlowData cfd;
+            if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
+            {
+                Throw(s, ("'finally' is only valid inside a loop construct"));
+            }
+
+            int32 toFinally = ((int32)cfd.FinallyPosition) - ((int32)ce.Builder.Assembler().WritePosition());
+            ce.Builder.Assembler().Append_Branch(toFinally);
+        }
+
         void CompileIfThenElse(CCompileEnvironment& ce, cr_sex s)
         {
             // (   if binary-predicate (action1) ... (actionN) else (alternative1) ... (alternativeN)   )

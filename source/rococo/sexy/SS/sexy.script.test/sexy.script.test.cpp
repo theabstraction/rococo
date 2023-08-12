@@ -15560,6 +15560,39 @@ R"(
 	   validate(x == 7);
    }
 
+   void TestLoopFinally(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		R"(
+(namespace EntryPoint)
+(using Sys)
+(using Sys.Type)
+
+(function Main -> (Int32 result):
+	(Int32 i = 0)
+	(while (i < 10)
+		(Sys.Print "Hello Mum!")
+		(continue)
+		(Sys.Print "Hello Dad!")
+	 finally (i += 1)
+	)
+	(result += i)
+)
+
+(alias Main EntryPoint.Main)
+		)";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 55);
+   }
+
 #pragma pack(push,1)
    struct Message
    {
@@ -16324,6 +16357,7 @@ R"(
 		TEST(TestInterfaceForNull);
 		TEST(TestFactoryReturnsBaseInterface);
 		TEST(TestLoopBreak);
+	//	TEST(TestLoopFinally);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);
 		TEST(TestBadClosureArg7);
@@ -16647,7 +16681,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestExpressionAppendTo);
+	//	TEST(TestLoopFinally);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

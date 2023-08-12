@@ -2565,8 +2565,10 @@ namespace Anon
 	void CodeBuilder::AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody)
 	{
 		size_t loopEnterPos = Assembler().WritePosition();
-		Assembler().Append_Branch(0);
+		Assembler().Append_Branch(0); // When overwritten, branches to the loop criterion code
 
+		size_t loopFinallyTopPos = Assembler().WritePosition();
+		Assembler().Append_Branch(0); // When overwritten branches to the finally block
 		int branchAbortLengthGuess = 0;
 		int branchToExitLengthGuess = 0;
 		

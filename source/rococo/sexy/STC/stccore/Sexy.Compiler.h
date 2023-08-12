@@ -67,6 +67,7 @@ namespace Rococo::Compiler
 	{
 		size_t BreakPosition;
 		size_t ContinuePosition;
+		size_t FinallyPosition; // The position in assembly where the final directive was found
 		mutable size_t SectionIndex;
 	};
 
