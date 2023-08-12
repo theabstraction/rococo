@@ -202,6 +202,8 @@ namespace Rococo {
 			int32 length;
 			char* buffer;
 			int32 capacity;
+
+			SCRIPTEXPORT_API void AppendAndTruncate(const fstring& text);
 		};
 
 		struct CScriptSystemClass

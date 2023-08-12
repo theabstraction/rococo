@@ -2325,30 +2325,26 @@ namespace Rococo
 
 namespace Rococo::Script
 {
-	void PopulateStringBuilder(InterfacePointerToStringBuilder sb, const fstring& text)
+	SCRIPTEXPORT_API void CClassSysTypeStringBuilder::AppendAndTruncate(const fstring& text)
 	{
-		InterfacePointer ip = (InterfacePointer) sb.pSexyInterfacePointer;
-		ObjectStub* stub = InterfaceToInstance(ip);		
-
-		if (!Eq(stub->Desc->TypeInfo->Name(), "FastStringBuilder"))
+		if (!header.Desc->flags.IsSystem)
 		{
-			Throw(0, __FUNCTION__ ": Expecting the object to be of type FastStringBuilder. It was of type %s", stub->Desc->TypeInfo->Name());
+			Throw(0, "Expecting the object to be a System IStringBuilder. It was of type %s", header.Desc->TypeInfo->Name());
 		}
 
-		auto& fsb = *(FastStringBuilder*)stub;
-		int32 bufferLeft = fsb.capacity - fsb.length;
+		int32 bufferLeft = capacity - length;
 
 		if (bufferLeft < 0)
 		{
-			Throw(0, __FUNCTION__ ": FastStringBuilder had length > capacity");
+			Throw(0, "CClassSysTypeStringBuilder had length > capacity");
 		}
 
 		if (text.length > 0 && bufferLeft > 1)
 		{
-			CopyString(fsb.buffer, bufferLeft, text);
+			CopyString(buffer + length, bufferLeft, text);
 
-			fsb.length += text.length;
-			fsb.length = min(fsb.capacity - 1, fsb.length);
+			length += text.length;
+			length = min(capacity - 1, length);
 		}
 	}
 }

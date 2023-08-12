@@ -1528,6 +1528,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
             conf.SolutionFolder = " - Sexy";
         }
     }

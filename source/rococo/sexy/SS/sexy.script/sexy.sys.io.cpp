@@ -1049,7 +1049,12 @@ namespace ANON_NS
 		ReadInput(1, ipValueBuilder, e);
 
 		CStringConstant* sc = (CStringConstant*) InterfaceToInstance(ipKey);
-		FastStringBuilder* sb = (FastStringBuilder*) InterfaceToInstance(ipValueBuilder);
+		CClassSysTypeStringBuilder* sb = (CClassSysTypeStringBuilder*) InterfaceToInstance(ipValueBuilder);
+
+		if (!sb->header.Desc->flags.IsSystem)
+		{
+			Throw(0, "%s: string builder was not a System type", __FUNCTION__);
+		}
 
 		if (!sc->length || !sc->pointer)
 		{
@@ -1074,21 +1079,18 @@ namespace ANON_NS
 		int32 length = (int32) requiredLen;
 		WriteOutput(0, length, e);
 
-		if (sb->stub.Desc->TypeInfo == e.ss.GetStringBuilderType())
+		getenv_s(&requiredLen, ioSystem.envBuffer, sizeof IOSystem::envBuffer, sc->pointer);
+
+		if (requiredLen > 0)
 		{
-			getenv_s(&requiredLen, ioSystem.envBuffer, sizeof IOSystem::envBuffer, sc->pointer);
-
-			if (requiredLen > 0)
+			int32 capacity = sb->capacity - sb->length;
+			if (capacity <= 0)
 			{
-				int32 capacity = sb->capacity - sb->length;
-				if (capacity <= 0)
-				{
-					return;
-				}
-
-				memcpy_s(sb->buffer + sb->length, capacity, ioSystem.envBuffer, requiredLen);
-				sb->length += (int32)requiredLen - 1;
+				return;
 			}
+
+			memcpy_s(sb->buffer + sb->length, capacity, ioSystem.envBuffer, requiredLen);
+			sb->length += (int32)requiredLen - 1;
 		}
 	}
 
@@ -1113,18 +1115,18 @@ namespace ANON_NS
 		WriteOutput(count, _sf, -_offset);
 	}
 
-	FastStringBuilder& ToFastStringBuilder(InterfacePointer ip)
+	CClassSysTypeStringBuilder& ToFastStringBuilder(InterfacePointer ip)
 	{
 		ObjectStub* stub = InterfaceToInstance(ip);
-		if (!Eq(stub->Desc->TypeInfo->Name(), "FastStringBuilder"))
+		if (!stub->Desc->flags.IsSystem)
 		{
-			Throw(0, "Expecting argument to be of type FastStringBuilder");
+			Throw(0, "Expecting argument to be a system string builder");
 		}
 
-		return *reinterpret_cast<FastStringBuilder*>(stub);
+		return *reinterpret_cast<CClassSysTypeStringBuilder*>(stub);
 	}
 
-	void AppendString(FastStringBuilder& sb, cstr data, size_t nChars = (size_t) -1)
+	void AppendString(CClassSysTypeStringBuilder& sb, cstr data, size_t nChars = (size_t) -1)
 	{
 		if (sb.capacity == 0)
 		{
@@ -1136,19 +1138,7 @@ namespace ANON_NS
 			nChars = strlen(data);
 		}
 
-		cstr p = data;
-
-		for (size_t i = 0; i < nChars; i++)
-		{
-			sb.buffer[sb.length++] = *p++;
-			if (sb.length == sb.capacity)
-			{
-				sb.length = sb.capacity - 1;
-				break;
-			}
-		}
-
-		sb.buffer[sb.length] = 0;
+		sb.AppendAndTruncate({ data, (int32)nChars });
 	}
 
 	void AppendCmdArg(NativeCallEnvironment& _nce)

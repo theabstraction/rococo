@@ -104,10 +104,8 @@ namespace
 		}
 
 		CClassSysTypeStringBuilder* builder = (CClassSysTypeStringBuilder*)object;
-
-		StackStringBuilder sb(builder->buffer, builder->capacity, StringBuilder::BUILD_EXISTING);
-		sb << pExpression->c_str();
-		builder->length = sb.Length();
+		auto s = pExpression->String();
+		builder->AppendAndTruncate({s->Buffer, s->Length});
 	}
 
 	void NativeExpressionThrow(NativeCallEnvironment& e)
@@ -245,12 +243,10 @@ namespace
 
 		InterfacePointer ipSbType;
 		ReadInput(3, ipSbType, e);
-
 		auto* sbTypeObject = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipSbType);
 
 		InterfacePointer ipSbName;
 		ReadInput(4, ipSbName, e);
-
 		auto* sbNameObject = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipSbName);
 
 		IStructure* pStruct;
@@ -279,11 +275,11 @@ namespace
 			Throw(0, "GetInputTypeAndName: InputIndex %d was out of bounds for method %s.%s", inputIndex, myInterface.Name(), m.Name());
 		}
 
-		SafeFormat(sbNameObject->buffer + sbNameObject->length, sbNameObject->capacity - sbNameObject->length, "%s", m.GetArgName(inputIndex + m.NumberOfOutputs()));
-		sbNameObject->length = (int32)strlen(sbNameObject->buffer);
+		cstr argName = m.GetArgName(inputIndex + m.NumberOfOutputs());
+		sbNameObject->AppendAndTruncate(to_fstring(argName));
 
-		SafeFormat(sbTypeObject->buffer + sbTypeObject->length, sbTypeObject->capacity - sbTypeObject->length, "%s", m.GetArgument(inputIndex + m.NumberOfOutputs()).Name());
-		sbTypeObject->length = (int32)strlen(sbTypeObject->buffer);
+		cstr argTypeName = m.GetArgument(inputIndex + m.NumberOfOutputs()).Name();
+		sbTypeObject->AppendAndTruncate(to_fstring(argTypeName));
 	}
 
 	void NativeAppendOutputTypeAndName(NativeCallEnvironment& e)
@@ -333,11 +329,11 @@ namespace
 			Throw(0, "GetOutputTypeAndName: OutputIndex %d was out of bounds for method %s.%s", outputIndex, myInterface.Name(), m.Name());
 		}
 
-		SafeFormat(sbNameObject->buffer + sbNameObject->length, sbNameObject->capacity - sbNameObject->length, "%s", m.GetArgName(outputIndex));
-		sbNameObject->length = (int32)strlen(sbNameObject->buffer);
+		cstr argName = m.GetArgName(outputIndex);
+		sbNameObject->AppendAndTruncate(to_fstring(argName));
 
-		SafeFormat(sbTypeObject->buffer + sbTypeObject->length, sbTypeObject->capacity - sbTypeObject->length, "%s", m.GetArgument(outputIndex).Name());
-		sbTypeObject->length = (int32)strlen(sbTypeObject->buffer);
+		cstr argTypeName = m.GetArgument(outputIndex).Name();
+		sbTypeObject->AppendAndTruncate(to_fstring(argTypeName));
 	}
 
 	void NativeGetMethodArgCounts(NativeCallEnvironment& e)

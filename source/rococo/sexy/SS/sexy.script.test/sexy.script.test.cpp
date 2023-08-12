@@ -16622,6 +16622,7 @@ R"(
 
 	void RunPositiveFailures()
 	{	
+		TEST(TestInvokeMethodViaReflectionFails);
 		TEST(TestThrowInConstructor);
 		TEST(TestMissingMethod);
 		TEST(TestDuplicateVariable);
@@ -16639,7 +16640,6 @@ R"(
 		TEST(TestDoubleArrowsInFunction);
 		TEST(TestIgnoreOutputInterface);
 		TEST(TestTypeInference1);
-		TEST(TestInvokeMethodViaReflectionFails);
 	}
 
 	void RunTests()
@@ -16647,6 +16647,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestExpressionAppendTo);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
