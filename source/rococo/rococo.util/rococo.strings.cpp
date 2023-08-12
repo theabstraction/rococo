@@ -1297,7 +1297,7 @@ namespace Rococo::Sexy
 {
 	ROCOCO_UTIL_API bool IsNotTokenChar(char c)
 	{
-		return !IsAlphaNumeric(c) && c != '.';
+		return !IsAlphaNumeric(c) && c != '.' && c != '#';
 	}
 
 	ROCOCO_UTIL_API bool IsSexyKeyword(cr_substring candidate)
@@ -1369,7 +1369,7 @@ namespace Rococo::Sexy
 				}
 			}
 
-			if (IsAlphaNumeric(*p))
+			if (IsAlphaNumeric(*p) || *p == '#')
 			{
 				if (inDot)
 				{

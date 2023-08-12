@@ -256,6 +256,7 @@ namespace Rococo::SexyStudio
 		virtual ISXYInterface* FindInterface(cstr typeString, ISxyNamespace** ppNamespace = nullptr) = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void ForEachAutoCompleteMacroCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void GetHintForCandidate(cr_substring prefix, char args[1024]) = 0;
 		virtual ISxyNamespace& GetRootNamespace() = 0;
 		virtual bool HasResource(cstr id) const = 0;

@@ -1165,6 +1165,23 @@ void TestFullEditor_SearchForFactories2()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFullEditor_SearchForMacro()
+{
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+(using Sys.Type)
+
+(function Main -> (Int32 exitCode):
+	(#E
+))<CODE>";
+
+	FileDesc desc(file, 'E');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
@@ -1180,8 +1197,9 @@ void MainProtected2(HMODULE /* hLib */)
 	TestFullEditor_SearchLocalStructForInterfaceMethod();
 	TestFullEditor_SearchLocalStructForInterface();
 	TestFullEditor_SearchForFactories();
-	skip:
 	TestFullEditor_SearchForFactories2();
+skip:
+	TestFullEditor_SearchForMacro();
 }
 
 void MainProtected(HMODULE hLib)

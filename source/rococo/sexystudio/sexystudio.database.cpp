@@ -1909,6 +1909,27 @@ namespace ANON
 			}
 		}
 
+		void AppendAllMacroChildrenFromRoot(cr_substring prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns)
+		{
+			for (int i = 0; i < ns.EnumCount(); ++i)
+			{
+				cstr enumName = ns.GetEnumName(i);
+				if (StartsWith(enumName, prefix))
+				{
+					char enumNameForExport[128];
+					SafeFormat(enumNameForExport, "#%s", enumName);
+					exportList.insert(std::make_pair(enumNameForExport, 0));
+				}
+			}
+
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				auto& subspace = ns[i];
+				AppendAllMacroChildrenFromRoot(prefix, exportList, subspace);
+			}
+		}
+
+
 		ISXYInterface* FindInterface(cstr typeString, ISxyNamespace** ppNamespace = nullptr) override
 		{
 			auto* direct = FindInterfaceDirect(GetRootNamespace(), typeString, ppNamespace);
@@ -2246,6 +2267,30 @@ namespace ANON
 
 			std::stable_sort(sortedList.begin(), sortedList.end());
 	
+			for (auto i : sortedList)
+			{
+				fieldEnumerator.OnField(i.c_str(), Substring::Null());
+			}
+		}
+
+		void ForEachAutoCompleteMacroCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) override
+		{
+			std::unordered_map<std::string, int> exportList;
+
+			auto& root = GetRootNamespace();
+			for (int i = 0; i < root.SubspaceCount(); ++i)
+			{
+				AppendAllMacroChildrenFromRoot(prefix, exportList, root[i]);
+			}
+
+			std::vector<std::string> sortedList;
+			for (auto& i : exportList)
+			{
+				sortedList.push_back(i.first);
+			}
+
+			std::stable_sort(sortedList.begin(), sortedList.end());
+
 			for (auto i : sortedList)
 			{
 				fieldEnumerator.OnField(i.c_str(), Substring::Null());

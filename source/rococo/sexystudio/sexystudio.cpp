@@ -1969,6 +1969,27 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		editor.ShowCallTipAtCaretPos(buf);
 	}
 
+	void ShowAutocompleteDataForMacro(ISexyEditor& editor, cr_substring candidate, int64 displacementFromCaret, cr_substring doc)
+	{
+		int64 caretPos = editor.GetCaretPos();
+		cstr openMacro = doc.start + caretPos - displacementFromCaret - 1;
+		if (openMacro <= doc.start || *openMacro != '(')
+		{
+			// macro invocations have the form (#<name> ...)
+			return;
+		}
+
+		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
+		token.start++;
+		if (token.start >= token.finish || !IsAlphaNumeric(*token.start))
+		{
+			// We need (#<a> with at least one character a before we start autocomplete. Generally Sexy enumeration macros will have some standard prefix
+		}
+
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring_Null(), *database, doc);
+		database->ForEachAutoCompleteMacroCandidate(token, routeTextToAutoComplete);
+	}
+
 	void ShowAutocompleteDataForVariable(ISexyEditor& editor, cr_substring candidate, int64 tokenDisplacementFromCaret)
 	{
 		static auto thisDot = "this."_fstring;
@@ -2077,6 +2098,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		else if (Rococo::Sexy::IsSexyKeyword(candidate))
 		{
 			return false;
+		}
+		else if (*candidate.start == '#')
+		{
+			ShowAutocompleteDataForMacro(editor, candidate, displacementFromCaret, doc);
+			return true;
 		}
 		else if (islower(*candidate.start))
 		{
