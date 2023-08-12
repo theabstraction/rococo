@@ -2589,7 +2589,7 @@ namespace Anon
 			size_t branchToExitLength = Assembler().WritePosition() - branchToExitPos;
 
 			ControlFlowData cfd;
-			cfd.ContinuePosition = loopStartPos;
+			cfd.ContinuePosition = loopFinallyTopPos;
 			cfd.BreakPosition = loopAbortPos;
 
 			loopBody.Compile(*this, f.Object(), &cfd);
@@ -2600,7 +2600,6 @@ namespace Anon
 			size_t loopExitPos = Assembler().WritePosition();
 
 			Assembler().SetWriteModeToOverwrite(branchToExitPos);
-
 			branchToExitLengthGuess = SIZET_TO_INT32(loopExitPos - branchToExitPos);
 			Assembler().Append_BranchIf(NotSo(condition), branchToExitLengthGuess);
 			size_t afterBranchPos = Assembler().WritePosition();
@@ -2628,6 +2627,11 @@ namespace Anon
 
 			Assembler().SetWriteModeToOverwrite(loopEnterPos);
 			Assembler().Append_Branch((int32)(loopStartPos - loopEnterPos));
+			Assembler().SetWriteModeToAppend();
+
+
+			Assembler().SetWriteModeToOverwrite(loopFinallyTopPos);
+			Assembler().Append_Branch((int32)(loopStartPos - loopFinallyTopPos));
 			Assembler().SetWriteModeToAppend();
 			break;
 		} while (attempts > 0);
