@@ -153,11 +153,11 @@ namespace Rococo::Compiler
 	{
 		virtual void ClearPrefixes() = 0;		
 		virtual void Clear() = 0;
-		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
-		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition) = 0;
-		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes = 0) = 0;	
+		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const Sex::ISExpression*) = 0;
+		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const Sex::ISExpression*) = 0;
+		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const Sex::ISExpression*, int popBytes = 0) = 0;
 		virtual IStructureBuilder& DeclareStrongType(cstr name, VARTYPE underlyingType) = 0;
-		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) = 0;
+		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const Sex::ISExpression*) = 0;
 		virtual IFunctionBuilder* FindFunction(cstr name) = 0;
 		virtual IStructureBuilder* FindStructure(cstr name) = 0;
 		virtual IFunctionBuilder& GetFunction(int index) = 0;
@@ -175,7 +175,7 @@ namespace Rococo::Compiler
 	{
 		virtual IAttributes& Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
-		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const void* definition) = 0;
+		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const Sex::ISExpression*) = 0;
 		virtual void PostCompile() = 0;	
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) = 0;
 	};

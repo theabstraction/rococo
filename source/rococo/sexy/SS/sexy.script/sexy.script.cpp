@@ -1736,7 +1736,7 @@ namespace Rococo::Script
 		}
 
 		void DefineSysNative(const INamespace& sysNative)
-		{	
+		{
 			AddNativeCall(sysNative, ::AlignedMalloc, this, "AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, ::AlignedFree, this, "AlignedFree (Pointer data)->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, "PublishAPI ->", __FILE__, __LINE__, false, 0);
@@ -1750,7 +1750,7 @@ namespace Rococo::Script
 			AddNativeCall(sysNativeStrings, StringCompare, NULL, "StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, StringCompareI, NULL, "StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, StringFindLeft, NULL, "StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, StringFindRight, NULL, "StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNativeStrings, StringFindRight, NULL, "StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 leftPos) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderAppendIString, stringPool, "FastStringBuilderAppendIString (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderThrowIfAppendWouldTruncate, stringPool, "FastStringBuilderThrowIfAppendWouldTruncate (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderAppendChar, stringPool, "FastStringBuilderAppendChar (Sys.Type.IStringBuilder sb) (Int32 asciiValue) ->", __FILE__, __LINE__, false, 0);
@@ -1772,6 +1772,15 @@ namespace Rococo::Script
 			AddNativeCall(sysNativeStrings, StringStartsWith, NULL, "StringStartsWith (IString bigString)(IString prefix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderMakeSysSlashes, stringPool, "MakeSysSlashes (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderReplace, stringPool, "FastStringBuilderReplace (Sys.Type.IStringBuilder sb)(Int32 startPosition)(IString from)(IString to) ->", __FILE__, __LINE__, false, 0);
+		}
+
+		void DefineSysTypeStrings(const INamespace& sysTypeStrings)
+		{
+			AddNativeCall(sysTypeStrings, SysTypeStrings::IsUpperCase,    nullptr, "IsUpperCase (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTypeStrings, SysTypeStrings::IsLowerCase,    nullptr, "IsLowerCase (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlpha,        nullptr, "IsAlpha (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTypeStrings, SysTypeStrings::IsNumeric,      nullptr, "IsNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)
@@ -2178,6 +2187,9 @@ namespace Rococo::Script
 
 			INamespaceBuilder& sysNative = progObjProxy->GetRootNamespace().AddNamespace("Sys.Native", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefineSysNative(sysNative);
+
+			INamespaceBuilder& sysTypeStrings = progObjProxy->GetRootNamespace().AddNamespace("Sys.Type.Strings", ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			DefineSysTypeStrings(sysTypeStrings);
 
 			AddNativeCall(sysTime, NativeSysTimeTickHz, nullptr, "TickHz -> (Int64 hz)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysTime, NativeSysTimeTickCount, nullptr, "TickCount -> (Int64 tickCount)", __FILE__, __LINE__, false, 0);

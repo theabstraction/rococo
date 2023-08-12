@@ -462,13 +462,13 @@ namespace Rococo { namespace Compiler { namespace Impl
 		TInterfaces interfaces;
 		mutable ID_BYTECODE destructorId;
 		mutable ID_BYTECODE** virtualTables;
-		const void* definition;
+		const Sex::ISExpression* definition;
 		const IFunction* constructor;
 		mutable int hasInterfaceMembers; // -1, untested, 0 = no, 1 = yes
 
 		bool isStrongType = false;
 	public:
-		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const void* _definition);
+		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const Sex::ISExpression* _definition);
 		~Structure();
 
 		bool IsStrongType() const override
@@ -515,7 +515,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		bool IsResolved() const override { return sizeOfStruct > 0; }
 		const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const override;
 		void ExpandAllocSize(int minimumByteCount) override;
-		const void* Definition() const override { return definition; }
+		const Sex::ISExpression* Definition() const override { return definition; }
 		const IFunction* Constructor() const override { return constructor; }
 		void SetConstructor(const IFunction* _cons) override { constructor = _cons;}
 	
@@ -616,7 +616,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		// IInterfaceBuilder
 		virtual IAttributes& Attributes() { return attributes; }
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) { nullObjectType.ExpandAllocSize(minimumByteCount); }
-		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const void* definition);
+		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const Sex::ISExpression*);
 		virtual void PostCompile();
 		virtual IStructureBuilder& NullObjectType() { return nullObjectType; }
 	};

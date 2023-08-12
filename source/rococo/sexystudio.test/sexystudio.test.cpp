@@ -1182,11 +1182,42 @@ void TestFullEditor_SearchForMacro()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestComplexCase1()
+{
+	cstr file =
+		R"<CODE>(
+(method OverlayButtonHandler.BuildMenus -> :
+(IGuiOverlay overlay(MHost.GuiOverlay))
+(overlay.ClearMenus)
+
+(Sys.Reflection.IStructure t = typeof MHost.Events.IOverlayEventHandler)
+(Int32 nMethods = t.GetMethodCount)
+
+(Sys.Type.IStringBuilder methodName = (Sys.Type.NewTokenBuilder))
+(Sys.Type.IStringBuilder buttonName = (Sys.Type.NewTokenBuilder))
+
+(#for (Int32 i = 0)(i < nMethods)(i += 1)
+	(methodName.Clear)
+	(buttonName.Clear)
+	(t.AppendMethodName methodName 0 i)
+	(if (Sys.Type.Strings.StartsWith methodName "On"))
+	(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName 2 "Clicked"))
+	(if (clickedPos > 0)
+		(methodName.
+))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
 	goto skip;
 	TestFullEditor_SearchFQType();
+	TestFullEditor_SearchForMacro();
 	TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();
 	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue();
 	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue();
@@ -1199,7 +1230,7 @@ void MainProtected2(HMODULE /* hLib */)
 	TestFullEditor_SearchForFactories();
 	TestFullEditor_SearchForFactories2();
 skip:
-	TestFullEditor_SearchForMacro();
+	TestComplexCase1();
 }
 
 void MainProtected(HMODULE hLib)

@@ -49,6 +49,11 @@ namespace Rococo { namespace VM
 	struct IProgramMemory;
 }} // Rococo::VM
 
+namespace Rococo::Sex
+{
+	struct ISExpression;
+}
+
 namespace Rococo::Script
 {
 	struct NativeSecurityHandler;
@@ -404,7 +409,7 @@ namespace Rococo {
 
 			virtual const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const = 0;
 			virtual ID_BYTECODE GetDestructorId() const = 0;
-			virtual const void* Definition() const = 0;
+			virtual const Sex::ISExpression* Definition() const = 0;
 			virtual const IFunction* Constructor() const = 0;
 
 			virtual int32 AttributeCount() const = 0;

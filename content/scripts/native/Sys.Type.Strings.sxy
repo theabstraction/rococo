@@ -240,16 +240,16 @@
 	(Sys.Strings.Native.StringFindLeft container.Buffer container.Length startPos substring.Buffer substring.Length false -> position)
 )
 
-(function FindRight (IString container) (Int32 rightPos) (IString substring) -> (Int32 position):
-	(Sys.Strings.Native.StringFindRight container.Buffer container.Length rightPos substring.Buffer substring.Length false -> position)
+(function FindRight (IString container) (Int32 leftPos) (Int32 rightPos) (IString substring) -> (Int32 position):
+	(Sys.Strings.Native.StringFindRight container.Buffer container.Length leftPos rightPos substring.Buffer substring.Length false -> position)
 )
 
 (function FindLeftI (IString container) (Int32 startPos) (IString substring) -> (Int32 position):
 	(Sys.Strings.Native.StringFindLeft container.Buffer container.Length startPos substring.Buffer substring.Length true -> position)
 )
 
-(function FindRightI (IString container) (Int32 rightPos) (IString substring) -> (Int32 position):
-	(Sys.Strings.Native.StringFindRight container.Buffer container.Length rightPos substring.Buffer substring.Length true -> position)
+(function FindRightI (IString container) (Int32 leftPos) (Int32 rightPos) (IString substring) -> (Int32 position):
+	(Sys.Strings.Native.StringFindRight container.Buffer container.Length leftPos rightPos substring.Buffer substring.Length true -> position)
 )
 
 (function MakeSysSlashes (IStringBuilder sb) -> : (Sys.Strings.Native.MakeSysSlashes sb))

@@ -67,23 +67,58 @@
 	(this.world = world)
 )
 
+(method OverlayButtonHandler.OnSysGeoffClicked (ButtonArgs args) -> :
+)
+
+// Example: SysGeoff goes in and Sys.Geoff goes out
+(function ConvertPascalCaseToNamespace (IString pascalCase)(IStringBuilder nsBuilder) -> :
+	(if (not (IsCapital (pascalCase 0)))
+		(#path msg "ConvertPascalCaseToNamespace(arg =" pascalCase ", ...) arg did not begin with a capital letter")
+		(Sys.Throw 0 msg)
+	)
+	
+	(Bool first = true)
+	
+	(foreach c # pascalCase 
+		(if (IsCapital c)
+			(if first 
+				(first = false)
+			else
+				(nsBuilder ".")
+			)
+		)
+		
+		(nsBuilder.AppendChar c)		
+	)
+)
+
 (method OverlayButtonHandler.BuildMenus -> :
 	(IGuiOverlay overlay (MHost.GuiOverlay))
 	(overlay.ClearMenus)
 	
 	(Sys.Reflection.IStructure t = typeof MHost.Events.IOverlayEventHandler)
-	(Int32 nMethods = t.GetMethodCount)
+	(Int32 nMethods = (t.GetMethodCount 0))
 	
-	(IStringBuilder methodName = (Sys.Type.Strings.NewTokenBuilder))
+	(Sys.Type.IStringBuilder methodName = (Sys.Type.NewTokenBuilder))
+	(Sys.Type.IStringBuilder buttonName = (Sys.Type.NewTokenBuilder))
+	(Sys.Type.IStringBuilder methodPascalCase = (Sys.Type.NewTokenBuilder))
 	
 	(#for (Int32 i = 0)(i < nMethods)(i += 1)
 		(methodName.Clear)
+		(buttonName.Clear)
 		(t.AppendMethodName methodName 0 i)
-		(if (Sys.Type.Strings.
+		(if (Sys.Type.Strings.StartsWith methodName "On")
+			(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName 2 "Clicked"))
+			(if (clickedPos > 0)
+				(buttonName.AppendSubstring methodPascalCase 2 (clickedPos - 2))
+				(ConvertPascalCaseToNamespace methodPascalCase buttonName) 
+				(overlay.AddMenu methodName (Sys.Maths.I32.ToInt64 i) buttonName)
+			)
+		)
 	)
 )
 
-(factory T3D.NewOverlayButtonHandler IEventHandler (IWorld world):
+(factory T3D.NewOverlayButtonHandler MHost.Events.IOverlayEventHandler (IWorld world):
 	(construct OverlayButtonHandler world)
 )
 
@@ -116,7 +151,7 @@
 	(this.engine = engine)
 	(this.world = world)
 	(this.isViewLocked = false)
-	(IOverlayHandler overlayHandler (NewOverlayButtonHandler world))
+	(MHost.Events.IOverlayEventHandler overlayHandler (NewOverlayButtonHandler world))
 	(this.overlayHandler = overlayHandler)
 )
 
@@ -140,7 +175,7 @@
 	
 	(MouseEvent mouseEvent)
 	(KeyboardEvent keyEvent)
-	(GuiEvent guiEvent)
+	(MHost.GuiTypes.GuiEvent guiEvent)
 	
 	(IGuiOverlay guiOverlay (MHost.GuiOverlay))
 	
@@ -193,11 +228,11 @@
 		
 		(while (guiOverlay.GetNextGuiEvent guiEvent)
 			(if (guiEvent.eventId == (#EvIdGRisMadeVisible))
-				(overlayHandler.BuildMenus)
+				(this.overlayHandler.BuildMenus)
 				(continue)
 			)
 			
-			(if (guievent.eventId == (#EvIdOverlayButtonClick))
+			(if (guiEvent.eventId == (#EvIdOverlayButtonClick))
 				
 			)
 		)

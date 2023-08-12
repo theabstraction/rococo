@@ -1013,59 +1013,127 @@ namespace
 
 	void StringFindRight(NativeCallEnvironment& e)
 	{
+		// Say we have a string 1245BILL6789 - which is 12 chars in length and we have a search string of BILL
+		// Lets say left pos is 2 and right pos is 7, then we are looking at the string 45BILL6789 with the right pos on the 6
+		// We want to work backwards from 6789 to 45BILL6789 until we hit BILL, then return positin of BILL with 0 indexing the digit 1
 		cstr containerBuffer;
 		ReadInput(0, (void*&) containerBuffer, e);
 
 		int32 containerLength;
 		ReadInput(1, containerLength, e);
 
+		int32 leftPos;
+		ReadInput(2, leftPos, e);
+
 		int32 rightPos;
-		ReadInput(2, rightPos, e);
+		ReadInput(3, rightPos, e);
 
 		cstr subStringBuffer;
-		ReadInput(3, (void*&) subStringBuffer, e);
+		ReadInput(4, (void*&) subStringBuffer, e);
 
 		int32 subStringLength;
-		ReadInput(4, subStringLength, e);
+		ReadInput(5, subStringLength, e);
 
 		int32 caseIndependent;
-		ReadInput(5, caseIndependent, e);
+		ReadInput(6, caseIndependent, e);
 
 		int32 position = -1;
 
-		if (rightPos < 0) rightPos = 0;
-		if (rightPos >= containerLength) rightPos = containerLength-1; 
-
-		if (containerLength > 0 && subStringLength > 0 && containerBuffer != NULL && subStringBuffer != NULL)
+		if (rightPos < 0 || containerLength <= 0 || subStringLength <= 0 || containerBuffer == NULL || subStringBuffer == NULL)
 		{
-			cstr searchStart = containerBuffer + rightPos;
-			cstr searchEnd = containerBuffer;
-			
-			if (caseIndependent != 0)
+			position = -1;
+		}
+		else
+		{
+			if (rightPos >= containerLength) rightPos = containerLength - 1;
+
+			if (leftPos < 0)
 			{
-				for(cstr s = searchStart; s >= searchEnd; --s)
-				{
-					if (CompareI(s, subStringBuffer, subStringLength))
-					{
-						position = (int32)(s - containerBuffer);
-						break;
-					}
-				}
+				leftPos = 0;
+			}
+			else if (leftPos >= rightPos)
+			{
+				position = -1;
 			}
 			else
 			{
-				for(cstr s = searchStart; s >= searchEnd; --s)
+				cstr searchStart = containerBuffer + rightPos;
+				cstr searchEnd = containerBuffer + leftPos;
+
+				if (caseIndependent != 0)
 				{
-					if (AreEqual(s, subStringBuffer, subStringLength))
+					for (cstr s = searchStart; s >= searchEnd; --s)
 					{
-						position = (int32)(s - containerBuffer);
-						break;
+						if (CompareI(s, subStringBuffer, subStringLength) == 0)
+						{
+							position = (int32)(s - containerBuffer);
+							break;
+						}
+					}
+				}
+				else
+				{
+					for (cstr s = searchStart; s >= searchEnd; --s)
+					{
+						if (AreEqual(s, subStringBuffer, subStringLength))
+						{
+							position = (int32)(s - containerBuffer);
+							break;
+						}
 					}
 				}
 			}
 		}
 		
 		WriteOutput(0, position, e);
+	}
+}
+
+namespace SysTypeStrings
+{
+	void IsUpperCase(NativeCallEnvironment& e)
+	{
+		int32 asciiChar;
+		ReadInput(0, asciiChar, e);
+
+		boolean32 isSo = (asciiChar >= 'A' && asciiChar <= 'Z');
+		WriteOutput(0, isSo, e);
+	}
+
+	void IsLowerCase(NativeCallEnvironment& e)
+	{
+		int32 asciiChar;
+		ReadInput(0, asciiChar, e);
+
+		boolean32 isSo = (asciiChar >= 'a' && asciiChar <= 'z');
+		WriteOutput(0, isSo, e);
+	}
+
+	void IsAlpha(NativeCallEnvironment& e)
+	{
+		int32 asciiChar;
+		ReadInput(0, asciiChar, e);
+
+		boolean32 isSo = (asciiChar >= 'a' && asciiChar <= 'z') || (asciiChar >= 'A' && asciiChar <= 'Z');
+		WriteOutput(0, isSo, e);
+	}
+
+	void IsNumeric(NativeCallEnvironment& e)
+	{
+		int32 asciiChar;
+		ReadInput(0, asciiChar, e);
+
+		boolean32 isSo = (asciiChar >= '0' && asciiChar <= '9');
+		WriteOutput(0, isSo, e);
+	}
+
+	void IsAlphaNumeric(NativeCallEnvironment& e)
+	{
+		int32 asciiChar;
+		ReadInput(0, asciiChar, e);
+
+		boolean32 isSo = (asciiChar >= 'a' && asciiChar <= 'z') || (asciiChar >= 'A' && asciiChar <= 'Z') || (asciiChar >= '0' && asciiChar <= '9');
+		WriteOutput(0, isSo, e);
 	}
 }
 

@@ -12,7 +12,7 @@
 (function GetModuleName4  (Pointer modulePtr) -> (Sys.Type.IString name) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 902))
 (alias GetModuleName4 Sys.Reflection.Native.GetModuleName)
 
-(function AppendCTime5  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2174))
+(function AppendCTime5  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2183))
 (alias AppendCTime5 Sys.Time.AppendCTime)
 
 (function AddVec2iVec2i6 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 405))
@@ -183,13 +183,13 @@
 (function MakeSysSlashes61  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1773))
 (alias MakeSysSlashes61 Sys.Strings.Native.MakeSysSlashes)
 
-(function TickHz62  -> (Int64 hz) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2182))
+(function TickHz62  -> (Int64 hz) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2194))
 (alias TickHz62 Sys.Time.TickHz)
 
 (function BitwiseOr63 (Int32 x)(Int32 y) -> (Int32 result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 400))
 (alias BitwiseOr63 Sys.Maths.I32.BitwiseOr)
 
-(function TickCount64  -> (Int64 tickCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2183))
+(function TickCount64  -> (Int64 tickCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2195))
 (alias TickCount64 Sys.Time.TickCount)
 
 (function ExpressionThrow65   (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 892))

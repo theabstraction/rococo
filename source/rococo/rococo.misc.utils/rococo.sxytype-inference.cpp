@@ -379,7 +379,8 @@ namespace Rococo::Sexy
 				continue;
 			}
 
-			if (StrCmpN(endOfPadding, token, token.length) == 0)
+			// Ensure we do not catch words merely with 'method' or 'function' in them (such as methodName)
+			if (StrCmpN(endOfPadding, token, token.length) == 0 && IsBlankspace(endOfPadding[token.length]))
 			{
 				cstr endOfFunctionkeyword = endOfPadding + token.length + 1;
 				cstr endOfFunctionkeywordWithPadding = GetEndOfPadding({ endOfFunctionkeyword, lastChar });
@@ -508,13 +509,10 @@ namespace Rococo::Sexy
 		Substring token = candidate;
 		if (token.Length() > 1)
 		{
-			for (cstr i = token.start; i != token.finish; ++i)
+			cstr pos = FindChar(token.start, '.');
+			if (pos)
 			{
-				if (*i == '.')
-				{
-					token.finish = i;
-					break;
-				}
+				token.finish = pos;
 			}
 		}
 

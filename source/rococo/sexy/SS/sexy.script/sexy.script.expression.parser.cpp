@@ -2338,6 +2338,13 @@ namespace Rococo
 			}
 			else
 			{
+				auto* sClassDef = classType.Definition();
+				auto* sInterfaceDef = thisInterf.NullObjectType().Definition();
+				if (sClassDef && sInterfaceDef)
+				{
+					Throw(s, "The %s class does not implement the interface %s (defined in %s near line %d). The class is defined in %s near line %d", className->Buffer, thisInterf.Name(), sInterfaceDef->Tree().Source().Name(), sInterfaceDef->Start().y, sClassDef->Tree().Source().Name(), sClassDef->Start().y);
+				}
+
 				Throw(s, "The class does not implement the interface associated with the local variable");
 			}
 		}

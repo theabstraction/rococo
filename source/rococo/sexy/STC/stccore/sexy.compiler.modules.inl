@@ -154,7 +154,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return alias.GetStructure();
 		}
 
-		IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const void* definition) override
+		IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const Sex::ISExpression* definition) override
 		{
 			char name[32];
 			SafeFormat(name, 32, ("_Closure%s%u"), parent.Name(), closures.size());
@@ -163,7 +163,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return *f;
 		}
 
-		IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const void* definition, int popBytes) override
+		IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const Sex::ISExpression* definition, int popBytes) override
 		{
 			Anon::Function* f = (Anon::Function*) functions.Get(prototype.Name);
 			if (f != NULL)
@@ -222,7 +222,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			byteCodeVersion++;
 		}
 
-		IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const void* definition) override
+		IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const Sex::ISExpression* definition) override
 		{
 			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? VARTYPE_Closure : VARTYPE_Derivative, definition);
 			structures.Register(s->Name(), *s);
@@ -291,7 +291,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return *s;
 		}
 
-		IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const void* definition) override
+		IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const Sex::ISExpression* definition) override
 		{
 			VARTYPE type;
 			if (Eq(name, "_Array"))

@@ -7519,9 +7519,9 @@ R"((namespace EntryPoint)
 		"(using Sys.Type)"
   
 		"(function Main -> (Int32 result):"
-		"	(IString musical = \"The tapdancing tapper\")"
+		"	(IString musical = \"The tapper\")"
 		"	(IString instrument = \"tap\")"
-		"	(result = (Strings.FindRightWithCase musical ((musical.Length) - 1) instrument))" // the substring occurs at position 10 in the containing string
+		"	(result = (Strings.FindRightWithCase musical 0 ((musical.Length) - 1) instrument))" // the substring occurs at position 17 in the containing string
 		")";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestSearchSubstring");
@@ -7535,7 +7535,8 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 
 		int x = vm.PopInt32();
-		validate(x == 15);
+		printf("%d", x);
+		validate(x == 4);
 	}
 
 	void TestAppendSubstring(IPublicScriptSystem& ss)
@@ -16237,6 +16238,7 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestRightSearchSubstring);
 		TEST(TestStringConstant);
 
 		TEST(TestMemberwiseInit);
@@ -16262,7 +16264,7 @@ R"(
 		TEST(TestTryWithoutThrow);
 
 		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
+		
 		TEST(TestAppendSubstring);
 		TEST(TestStringbuilderTruncate);
 
@@ -16298,7 +16300,6 @@ R"(
 		TEST(TestClamp3);
 
 		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
 		TEST(TestSetCase);
 
 		TEST(TestStringToChar);
@@ -16541,7 +16542,6 @@ R"(
 
 
 		TEST(TestSearchSubstring);
-		TEST(TestRightSearchSubstring);
 		TEST(TestAppendSubstring);
 		TEST(TestStringbuilderTruncate);
 

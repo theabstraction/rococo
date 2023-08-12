@@ -61,7 +61,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		delete universalNullInstance;
 	}
 
-	void Interface::SetMethod(size_t index, cstr name, size_t argCount, cstr _argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArgs1[], const bool isOut[], const void* definition)
+	void Interface::SetMethod(size_t index, cstr name, size_t argCount, cstr _argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArgs1[], const bool isOut[], const Sex::ISExpression* definition)
 	{
 		int nOutputs = 0;
 
