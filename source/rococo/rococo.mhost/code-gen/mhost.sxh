@@ -27,6 +27,7 @@
 		(None 0)
 		(GRisMadeVisible 1 )
 		(GRisHidden 2)
+		(OverlayButtonClick 3)
 	)
 )
 
@@ -66,6 +67,7 @@
 		(AddMenu (const IString id)(Int64 metaId)(const IString menuPath))
 		(ClearMenus)
 		(GetNextGuiEvent (GuiEvent ev)-> (Bool wasExtracted))
+		(AppendEventString (IStringBuilder sb)(GuiEvent ev)->)
 	)
 	
 	(factory MHost.GuiOverlay)

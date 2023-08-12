@@ -5,6 +5,7 @@
 #include <vector>
 #include <rococo.mplat.h>
 #include <rococo.task.queue.h>
+#include <unordered_set>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -76,8 +77,6 @@ namespace ANON
 		titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 	}
 
-	enum { TOOLBAR_EVENT_MINIMIZE = 40001, TOOLBAR_EVENT_RESTORE, TOOLBAR_EVENT_EXIT };
-
 	void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	{
 		auto& tools = frame.TopRightHandSideTools();
@@ -87,9 +86,9 @@ namespace ANON
 		auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
 		auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
 
-		minimizer.SetMetaData({ TOOLBAR_EVENT_MINIMIZE, "OnMinimize" });
-		restorer.SetMetaData({ TOOLBAR_EVENT_RESTORE, "OnMinimize" });
-		closer.SetMetaData({ TOOLBAR_EVENT_EXIT, "OnExit" });
+		minimizer.SetMetaData({  (int64) ToolbarMetaId::MINIMIZE, "OnMinimize" });
+		restorer.SetMetaData({ (int64) ToolbarMetaId::RESTORE, "OnRestore" });
+		closer.SetMetaData({ (int64) ToolbarMetaId::EXIT, "OnExit" });
 
 		tools.ResizeToFitChildren();
 	}
@@ -99,6 +98,7 @@ namespace ANON
 		IGRSystem& gr;
 		Platform* platform = nullptr;
 		bool isVisible = false;
+		std::unordered_set<IMPEditorEventHandler*> hooks;
 
 		MPlatEditor(IGRSystem& _gr): gr(_gr)
 		{
@@ -110,15 +110,25 @@ namespace ANON
 			this->platform = platform;
 		}
 
+		void AddHook(IMPEditorEventHandler* eventHandler) override
+		{
+			hooks.insert(eventHandler);
+		}
+
+		void RemoveHook(IMPEditorEventHandler* eventHandler) override
+		{
+			hooks.erase(eventHandler);
+		}
+
 		void OnButtonClickTaskResult(int64 code)
 		{
-			switch (code)
+			switch ((ToolbarMetaId) code)
 			{
-			case TOOLBAR_EVENT_MINIMIZE:
+			case ToolbarMetaId::MINIMIZE:
 				platform->graphics.renderer.SwitchToWindowMode();
 				Rococo::Windows::MinimizeApp(platform->os.mainWindow);
 				break;
-			case TOOLBAR_EVENT_RESTORE:
+			case ToolbarMetaId::RESTORE:
 				if (platform->graphics.renderer.IsFullscreen())
 				{
 					platform->graphics.renderer.SwitchToWindowMode();
@@ -128,7 +138,7 @@ namespace ANON
 					platform->graphics.renderer.SwitchToFullscreen();
 				}
 				break;
-			case TOOLBAR_EVENT_EXIT:
+			case ToolbarMetaId::EXIT:
 				if (platform->graphics.renderer.IsFullscreen())
 				{
 					platform->graphics.renderer.SwitchToWindowMode();
@@ -142,13 +152,13 @@ namespace ANON
 		void OnButtonClick(GRWidgetEvent& buttonEvent)
 		{
 			int64 id = buttonEvent.iMetaData;
-			switch (id)
+			switch ((ToolbarMetaId) id)
 			{
-			case TOOLBAR_EVENT_MINIMIZE:
+			case ToolbarMetaId::MINIMIZE:
 				platform->graphics.renderer.SwitchToWindowMode();
 				Rococo::Windows::MinimizeApp(platform->os.mainWindow);
-				break;
-			case TOOLBAR_EVENT_RESTORE:
+				return;
+			case ToolbarMetaId::RESTORE:
 				if (platform->graphics.renderer.IsFullscreen())
 				{
 					platform->graphics.renderer.SwitchToWindowMode();
@@ -157,15 +167,20 @@ namespace ANON
 				{
 					platform->graphics.renderer.SwitchToFullscreen();
 				}
-				break;
-			case TOOLBAR_EVENT_EXIT:
+				return;
+			case ToolbarMetaId::EXIT:
 				if (platform->graphics.renderer.IsFullscreen())
 				{
 					platform->graphics.renderer.SwitchToWindowMode();
 				}
 
 				Rococo::Windows::SendCloseEvent(platform->os.mainWindow);
-				break;
+				return;
+			}
+
+			for (auto* hook : hooks)
+			{
+				hook->OnMPEditor_ButtonClick(buttonEvent);
 			}
 		}
 

@@ -72,10 +72,15 @@ namespace MHost
 	{
 		enum class GuiEventId : int64;
 
+#pragma pack(push,1)
 		struct GuiEvent
 		{
-			GuiEventId id;
+			GuiEventId eventId;
+			Vec2i buttonPos;
+			int64 metaId;
+			cstr stringId;
 		};
+#pragma pack(pop)
 	}
 }
 

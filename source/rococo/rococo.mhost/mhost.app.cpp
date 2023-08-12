@@ -183,7 +183,8 @@ namespace MHost
 		public IObserver, 
 		public IEngineSupervisor,
 		public IGuiOverlaySupervisor,
-		public Strings::IStringPopulator
+		public Strings::IStringPopulator,
+		public Rococo::MPEditor::IMPEditorEventHandler
 	{
 		Platform& platform;
 		IDirectAppControl& control;
@@ -459,6 +460,11 @@ namespace MHost
 			platform.graphics.GR.GarbageCollect();
 		}
 
+		void AppendEventString(IStringPopulator& sb, MHost::GuiTypes::GuiEvent& ev) override
+		{
+			if (ev.stringId) sb.Populate(ev.stringId);
+		}
+
 		std::list<GuiTypes::GuiEvent> guiEventList;
 
 		boolean32 GetNextGuiEvent(MHost::GuiTypes::GuiEvent& ev) override
@@ -685,12 +691,23 @@ namespace MHost
 			}
 		}
 
+		void OnMPEditor_ButtonClick(Gui::GRWidgetEvent& buttonEvent) override
+		{
+			GuiTypes::GuiEvent ev;
+			ev.eventId = GuiTypes::GuiEventId::OverlayButtonClick;
+			ev.buttonPos = buttonEvent.clickPosition;
+			ev.metaId = buttonEvent.panelId;
+			ev.stringId = buttonEvent.sMetaData;			
+			guiEventList.push_back(ev);
+		}
+
 		void SetEditorVisibility(boolean32 isVisible) override
 		{
 			platform.creator.editor.SetVisibility(isVisible);
 
 			if (isVisible)
 			{
+				platform.creator.editor.AddHook(this);
 				auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
 				if (frame)
 				{
@@ -699,13 +716,14 @@ namespace MHost
 				}
 
 				GuiTypes::GuiEvent ev;
-				ev.id = GuiTypes::GuiEventId::GRisMadeVisible;
+				ev.eventId = GuiTypes::GuiEventId::GRisMadeVisible;
 				guiEventList.push_back(ev);
 			}
 			else
 			{
+				platform.creator.editor.RemoveHook(this);
 				GuiTypes::GuiEvent ev;
-				ev.id = GuiTypes::GuiEventId::GRisHidden;
+				ev.eventId = GuiTypes::GuiEventId::GRisHidden;
 				guiEventList.push_back(ev);
 			}
 			// creator.editor.Preview(platform.graphics.GR, GetTestTarget())

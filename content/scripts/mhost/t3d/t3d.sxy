@@ -49,6 +49,44 @@
 	(SetPlayerMoveIntent (Float32 straffe)(Float32 forward)->)
 )
 
+(struct ButtonArgs
+	(Int64 unused)
+)
+
+(interface MHost.Events.IOverlayEventHandler
+	(BuildMenus -> )
+	(OnSysGeoffClicked (ButtonArgs args) -> )
+)
+
+(class OverlayButtonHandler
+	(implements MHost.Events.IOverlayEventHandler)
+	(IWorld world)
+)
+
+(method OverlayButtonHandler.Construct (IWorld world) : 
+	(this.world = world)
+)
+
+(method OverlayButtonHandler.BuildMenus -> :
+	(IGuiOverlay overlay (MHost.GuiOverlay))
+	(overlay.ClearMenus)
+	
+	(Sys.Reflection.IStructure t = typeof MHost.Events.IOverlayEventHandler)
+	(Int32 nMethods = t.GetMethodCount)
+	
+	(IStringBuilder methodName = (Sys.Type.Strings.NewTokenBuilder))
+	
+	(#for (Int32 i = 0)(i < nMethods)(i += 1)
+		(methodName.Clear)
+		(t.AppendMethodName methodName 0 i)
+		(if (Sys.Type.Strings.
+	)
+)
+
+(factory T3D.NewOverlayButtonHandler IEventHandler (IWorld world):
+	(construct OverlayButtonHandler world)
+)
+
 (class GuiInputThread 
 	(implements T3D.IInputThread)
 	(IEngine engine)
@@ -56,6 +94,7 @@
 	(IEventHandler modalSink)
 	(IKeyboard keyboard)
 	(IWorld world)
+	(IOverlayEventHandler overlayHandler)
 	(Bool isViewLocked)
 )
 
@@ -77,6 +116,8 @@
 	(this.engine = engine)
 	(this.world = world)
 	(this.isViewLocked = false)
+	(IOverlayHandler overlayHandler (NewOverlayButtonHandler world))
+	(this.overlayHandler = overlayHandler)
 )
 
 (factory T3D.NewGuiInputThread IInputThread (IEngine engine)(IWorld world):
@@ -152,8 +193,12 @@
 		
 		(while (guiOverlay.GetNextGuiEvent guiEvent)
 			(if (guiEvent.eventId == (#EvIdGRisMadeVisible))
-				(guiOverlay.ClearMenus)
-				(guiOverlay.AddMenu "TestId" 42 "Scripts.Test")
+				(overlayHandler.BuildMenus)
+				(continue)
+			)
+			
+			(if (guievent.eventId == (#EvIdOverlayButtonClick))
+				
 			)
 		)
 		

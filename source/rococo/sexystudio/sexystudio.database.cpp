@@ -2686,7 +2686,7 @@ namespace ANON
 					[this, isDeclarations, &file](cr_sex s, const fstring& sKeyword, const fstring& fnName)
 					{
 						UNUSED(sKeyword);
-						if (isDeclarations && CanInsertCppRef(s))
+						if ((isDeclarations && CanInsertCppRef(s)) || !isDeclarations)
 						{
 							InsertFunction(s, fnName, file);
 						}

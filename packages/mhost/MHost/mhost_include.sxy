@@ -9,6 +9,9 @@
 
 (struct GuiEvent
 	(GuiEventId eventId)
+	(Sys.Maths.Vec2i buttonPos)
+	(Int64 metaId)
+	(Pointer metaString)
 )
 
 (alias GuiEvent MHost.GuiTypes.GuiEvent)
