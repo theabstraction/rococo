@@ -1,4 +1,4 @@
-(SexyDeclarations - containing 591 functions)
+(SexyDeclarations - containing 596 functions)
 
 (function IQuadStackTesselatorMoveInputToOutput1  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9084))
 (alias IQuadStackTesselatorMoveInputToOutput1 Rococo.Graphics.Native.IQuadStackTesselatorMoveInputToOutput)
@@ -6,98 +6,98 @@
 (function IGuiDrawTriangle2  (Pointer hObject)(MPlat.GuiTriangle t) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 759))
 (alias IGuiDrawTriangle2 MHost.Native.IGuiDrawTriangle)
 
-(function RightShift3 (Int64 x)(Int64 bitCount) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 204))
-(alias RightShift3 Sys.Maths.I64.RightShift)
+(function IGuiDrawQuad3  (Pointer hObject)(MPlat.GuiQuad q) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 760))
+(alias IGuiDrawQuad3 MHost.Native.IGuiDrawQuad)
 
-(function IGuiDrawQuad4  (Pointer hObject)(MPlat.GuiQuad q) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 760))
-(alias IGuiDrawQuad4 MHost.Native.IGuiDrawQuad)
+(function LeftShift4 (Int64 x)(Int64 bitCount) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 203))
+(alias LeftShift4 Sys.Maths.I64.LeftShift)
 
-(function LeftShift5 (Int64 x)(Int64 bitCount) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 203))
-(alias LeftShift5 Sys.Maths.I64.LeftShift)
+(function IGuiDrawScaledColouredSprite5  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 765))
+(alias IGuiDrawScaledColouredSprite5 MHost.Native.IGuiDrawScaledColouredSprite)
 
-(function IGuiDrawScaledColouredSprite6  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 765))
-(alias IGuiDrawScaledColouredSprite6 MHost.Native.IGuiDrawScaledColouredSprite)
+(function IsAlphaNumeric6  (Int32 c) -> (Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 410))
+(alias IsAlphaNumeric6 Sys.Type.IsAlphaNumeric)
 
-(function IsAlphaNumeric7  (Int32 c) -> (Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 410))
-(alias IsAlphaNumeric7 Sys.Type.IsAlphaNumeric)
+(function IGuiSetScissorRect7  (Pointer hObject)(Sys.Maths.Recti rect) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 777))
+(alias IGuiSetScissorRect7 MHost.Native.IGuiSetScissorRect)
 
-(function IGuiSetScissorRect8  (Pointer hObject)(Sys.Maths.Recti rect) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 777))
-(alias IGuiSetScissorRect8 MHost.Native.IGuiSetScissorRect)
+(function IGuiDrawBorder8  (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 761))
+(alias IGuiDrawBorder8 MHost.Native.IGuiDrawBorder)
 
-(function IGuiDrawBorder9  (Pointer hObject)(Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 761))
-(alias IGuiDrawBorder9 MHost.Native.IGuiDrawBorder)
+(function IEngineRunMPlatScript9  (Pointer hObject)(Sys.Type.IString scriptName) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1198))
+(alias IEngineRunMPlatScript9 MHost.Native.IEngineRunMPlatScript)
 
-(function IEngineRunMPlatScript10  (Pointer hObject)(Sys.Type.IString scriptName) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1198))
-(alias IEngineRunMPlatScript10 MHost.Native.IEngineRunMPlatScript)
+(function IsSignalNan10 (Float64 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 507))
+(alias IsSignalNan10 Sys.Maths.F64.IsSignalNan)
 
-(function IsSignalNan11 (Float64 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 507))
-(alias IsSignalNan11 Sys.Maths.F64.IsSignalNan)
+(function PublishAPI11  -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1742))
+(alias PublishAPI11 Sys.Native.PublishAPI)
 
-(function PublishAPI12  -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1742))
-(alias PublishAPI12 Sys.Native.PublishAPI)
+(function IsMethodInputOfType12 (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)(Sys.Type.Pointer pStruct)-> (Bool match) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 899))
+(alias IsMethodInputOfType12 Sys.Reflection.Native.IsMethodInputOfType)
 
-(function IsMethodInputOfType13 (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)(Sys.Type.Pointer pStruct)-> (Bool match) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 899))
-(alias IsMethodInputOfType13 Sys.Reflection.Native.IsMethodInputOfType)
+(function IGuiFillRect13  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 762))
+(alias IGuiFillRect13 MHost.Native.IGuiFillRect)
 
-(function IGuiFillRect14  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 762))
-(alias IGuiFillRect14 MHost.Native.IGuiFillRect)
+(function WriteFloat3214  (Sys.IO.IWriter writer) (Float32 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1257))
+(alias WriteFloat3214 Sys.IO.Native.WriteFloat32)
 
-(function WriteFloat3215  (Sys.IO.IWriter writer) (Float32 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1257))
-(alias WriteFloat3215 Sys.IO.Native.WriteFloat32)
+(function IGuiDrawColouredSprite15  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 763))
+(alias IGuiDrawColouredSprite15 MHost.Native.IGuiDrawColouredSprite)
 
-(function IGuiDrawColouredSprite16  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 763))
-(alias IGuiDrawColouredSprite16 MHost.Native.IGuiDrawColouredSprite)
+(function ExpressionGetParent16  (Pointer sPtr) -> (Sys.Reflection.IExpression parent) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 887))
+(alias ExpressionGetParent16 Sys.Reflection.Native.ExpressionGetParent)
 
-(function ExpressionGetParent17  (Pointer sPtr) -> (Sys.Reflection.IExpression parent) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 887))
-(alias ExpressionGetParent17 Sys.Reflection.Native.ExpressionGetParent)
+(function MakeTranslateMatrix17 (Sys.Maths.Vec3 ds)(Sys.Maths.Matrix4x4 t) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 440))
+(alias MakeTranslateMatrix17 Sys.Geometry.F32.MakeTranslateMatrix)
 
-(function MakeTranslateMatrix18 (Sys.Maths.Vec3 ds)(Sys.Maths.Matrix4x4 t) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 440))
-(alias MakeTranslateMatrix18 Sys.Geometry.F32.MakeTranslateMatrix)
+(function IGuiDrawLeftAligned18  (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 764))
+(alias IGuiDrawLeftAligned18 MHost.Native.IGuiDrawLeftAligned)
 
-(function IGuiDrawLeftAligned19  (Pointer hObject)(Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 764))
-(alias IGuiDrawLeftAligned19 MHost.Native.IGuiDrawLeftAligned)
+(function IGuiDrawSprite19  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 766))
+(alias IGuiDrawSprite19 MHost.Native.IGuiDrawSprite)
 
-(function IGuiDrawSprite20  (Pointer hObject)(Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 766))
-(alias IGuiDrawSprite20 MHost.Native.IGuiDrawSprite)
+(function IRodTesselatorPopNextTriangle20  (Pointer hObject)(Rococo.VertexTriangle t) -> (Bool wasPopped) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9642))
+(alias IRodTesselatorPopNextTriangle20 Rococo.Graphics.Native.IRodTesselatorPopNextTriangle)
 
-(function IRodTesselatorPopNextTriangle21  (Pointer hObject)(Rococo.VertexTriangle t) -> (Bool wasPopped) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9642))
-(alias IRodTesselatorPopNextTriangle21 Rococo.Graphics.Native.IRodTesselatorPopNextTriangle)
+(function IDictionaryStreamAppendString21  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1557))
+(alias IDictionaryStreamAppendString21 MHost.Native.IDictionaryStreamAppendString)
 
-(function IDictionaryStreamAppendString22  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1557))
-(alias IDictionaryStreamAppendString22 MHost.Native.IDictionaryStreamAppendString)
+(function IKeyboardClearActions22  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6335))
+(alias IKeyboardClearActions22 Rococo.Native.IKeyboardClearActions)
 
-(function IKeyboardClearActions23  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6335))
-(alias IKeyboardClearActions23 Rococo.Native.IKeyboardClearActions)
+(function IGuiStretchSprite23  (Pointer hObject)(Sys.Maths.Rectf rect)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 767))
+(alias IGuiStretchSprite23 MHost.Native.IGuiStretchSprite)
 
-(function IGuiStretchSprite24  (Pointer hObject)(Sys.Maths.Rectf rect)(MPlat.BitmapLocation loc) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 767))
-(alias IGuiStretchSprite24 MHost.Native.IGuiStretchSprite)
+(function IGuiDrawClippedText24  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 768))
+(alias IGuiDrawClippedText24 MHost.Native.IGuiDrawClippedText)
 
-(function IGuiDrawClippedText25  (Pointer hObject)(Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(Sys.Maths.Rectf clipRect) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 768))
-(alias IGuiDrawClippedText25 MHost.Native.IGuiDrawClippedText)
+(function IFieldTesselatorGetStretchBondedBrick25  (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Sys.SI.Metres cementWidth)(Sys.SI.Metres extrusionBase) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 8539))
+(alias IFieldTesselatorGetStretchBondedBrick25 Rococo.Graphics.Native.IFieldTesselatorGetStretchBondedBrick)
 
-(function IFieldTesselatorGetStretchBondedBrick26  (Pointer hObject)(Int32 i)(Int32 j)(Rococo.QuadVertices q)(Rococo.QuadVertices top)(Rococo.QuadVertices left)(Rococo.QuadVertices right)(Rococo.QuadVertices bottom)(Sys.SI.Metres cementWidth)(Sys.SI.Metres extrusionBase) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 8539))
-(alias IFieldTesselatorGetStretchBondedBrick26 Rococo.Graphics.Native.IFieldTesselatorGetStretchBondedBrick)
+(function GetHandleForIConfig026   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6525))
+(alias GetHandleForIConfig026 Rococo.Configuration.Native.GetHandleForIConfig0)
 
-(function GetHandleForIConfig027   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6525))
-(alias GetHandleForIConfig027 Rococo.Configuration.Native.GetHandleForIConfig0)
+(function IEngineCursorPosition27  (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1202))
+(alias IEngineCursorPosition27 MHost.Native.IEngineCursorPosition)
 
-(function IEngineCursorPosition28  (Pointer hObject)(Sys.Maths.Vec2 cursorPosition) ->  : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1202))
-(alias IEngineCursorPosition28 MHost.Native.IEngineCursorPosition)
+(function IEngineYieldForSystemMessages28  (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT) : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1195))
+(alias IEngineYieldForSystemMessages28 MHost.Native.IEngineYieldForSystemMessages)
 
-(function IEngineYieldForSystemMessages29  (Pointer hObject)(Int32 sleepMS) -> (Sys.SI.Seconds frameDT) : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1195))
-(alias IEngineYieldForSystemMessages29 MHost.Native.IEngineYieldForSystemMessages)
+(function Sin29 (Float64 radians) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 483))
+(alias Sin29 Sys.Maths.F64.Sin)
 
-(function Sin30 (Float64 radians) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 483))
-(alias Sin30 Sys.Maths.F64.Sin)
+(function Mod30 (Int32 numerator)(Int32 denominator) -> (Int32 remainder) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 395))
+(alias Mod30 Sys.Maths.I32.Mod)
 
-(function Mod31 (Int32 numerator)(Int32 denominator) -> (Int32 remainder) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 395))
-(alias Mod31 Sys.Maths.I32.Mod)
+(function ILandscapeTesselatorCommitToMesh31  (Pointer hObject)(Sys.Type.IString meshName) -> (Int32 id) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9837))
+(alias ILandscapeTesselatorCommitToMesh31 Rococo.Graphics.Native.ILandscapeTesselatorCommitToMesh)
 
-(function ILandscapeTesselatorCommitToMesh32  (Pointer hObject)(Sys.Type.IString meshName) -> (Int32 id) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9837))
-(alias ILandscapeTesselatorCommitToMesh32 Rococo.Graphics.Native.ILandscapeTesselatorCommitToMesh)
+(function FastStringBuilderSetLength32  (Sys.Type.IStringBuilder sb)(Int32 length) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1769))
+(alias FastStringBuilderSetLength32 Sys.Strings.Native.FastStringBuilderSetLength)
 
-(function FastStringBuilderSetLength33  (Sys.Type.IStringBuilder sb)(Int32 length) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1769))
-(alias FastStringBuilderSetLength33 Sys.Strings.Native.FastStringBuilderSetLength)
+(function IsNumeric33  (Int32 c)->(Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1782))
+(alias IsNumeric33 Sys.Type.Strings.IsNumeric)
 
 (function GetHandleForIParticleSystem034   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6922))
 (alias GetHandleForIParticleSystem034 Rococo.Entities.Native.GetHandleForIParticleSystem0)
@@ -1110,665 +1110,680 @@
 (function IRodTesselatorAddBowl370  (Pointer hObject)(Sys.SI.Metres radius1)(Sys.SI.Metres radius2)(Int32 nRings)(Int32 startRing)(Int32 endRing)(Int32 nDivs) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9632))
 (alias IRodTesselatorAddBowl370 Rococo.Graphics.Native.IRodTesselatorAddBowl)
 
-(function ExpressionChildCount371  (Pointer sPtr) -> (Int32 count) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 888))
-(alias ExpressionChildCount371 Sys.Reflection.Native.ExpressionChildCount)
+(function IsLowerCase371  (Int32 c)->(Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1780))
+(alias IsLowerCase371 Sys.Type.Strings.IsLowerCase)
 
-(function IParticleSystemAddVerticalFlame372  (Pointer hObject)(Rococo.FlameDef flameDef)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6927))
-(alias IParticleSystemAddVerticalFlame372 Rococo.Entities.Native.IParticleSystemAddVerticalFlame)
+(function ExpressionChildCount372  (Pointer sPtr) -> (Int32 count) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 888))
+(alias ExpressionChildCount372 Sys.Reflection.Native.ExpressionChildCount)
 
-(function IRodTesselatorAdvance373  (Pointer hObject)(Sys.SI.Metres distance) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9635))
-(alias IRodTesselatorAdvance373 Rococo.Graphics.Native.IRodTesselatorAdvance)
+(function IParticleSystemAddVerticalFlame373  (Pointer hObject)(Rococo.FlameDef flameDef)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6927))
+(alias IParticleSystemAddVerticalFlame373 Rococo.Entities.Native.IParticleSystemAddVerticalFlame)
 
-(function IRodTesselatorClearVertices374  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9637))
-(alias IRodTesselatorClearVertices374 Rococo.Graphics.Native.IRodTesselatorClearVertices)
+(function IRodTesselatorAdvance374  (Pointer hObject)(Sys.SI.Metres distance) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9635))
+(alias IRodTesselatorAdvance374 Rococo.Graphics.Native.IRodTesselatorAdvance)
 
-(function IRodTesselatorCopyToMeshBuilder375  (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible)(Bool castsShadows) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9639))
-(alias IRodTesselatorCopyToMeshBuilder375 Rococo.Graphics.Native.IRodTesselatorCopyToMeshBuilder)
+(function IRodTesselatorClearVertices375  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9637))
+(alias IRodTesselatorClearVertices375 Rococo.Graphics.Native.IRodTesselatorClearVertices)
 
-(function IRodTesselatorSetMaterialBottom376  (Pointer hObject)(Rococo.MaterialVertexData bottom) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9647))
-(alias IRodTesselatorSetMaterialBottom376 Rococo.Graphics.Native.IRodTesselatorSetMaterialBottom)
+(function IRodTesselatorCopyToMeshBuilder376  (Pointer hObject)(Sys.Type.IString meshName)(Bool preserveMesh)(Bool invisible)(Bool castsShadows) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9639))
+(alias IRodTesselatorCopyToMeshBuilder376 Rococo.Graphics.Native.IRodTesselatorCopyToMeshBuilder)
 
-(function IRodTesselatorGetOrigin377  (Pointer hObject)(Sys.Maths.Vec3 origin) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9641))
-(alias IRodTesselatorGetOrigin377 Rococo.Graphics.Native.IRodTesselatorGetOrigin)
+(function IRodTesselatorSetMaterialBottom377  (Pointer hObject)(Rococo.MaterialVertexData bottom) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9647))
+(alias IRodTesselatorSetMaterialBottom377 Rococo.Graphics.Native.IRodTesselatorSetMaterialBottom)
 
-(function IRodTesselatorRaisePyramid378  (Pointer hObject)(Sys.SI.Metres length) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9644))
-(alias IRodTesselatorRaisePyramid378 Rococo.Graphics.Native.IRodTesselatorRaisePyramid)
+(function IRodTesselatorGetOrigin378  (Pointer hObject)(Sys.Maths.Vec3 origin) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9641))
+(alias IRodTesselatorGetOrigin378 Rococo.Graphics.Native.IRodTesselatorGetOrigin)
 
-(function IRodTesselatorScale379  (Pointer hObject)(Float32 sx)(Float32 sy)(Float32 sz) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9645))
-(alias IRodTesselatorScale379 Rococo.Graphics.Native.IRodTesselatorScale)
+(function IRodTesselatorRaisePyramid379  (Pointer hObject)(Sys.SI.Metres length) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9644))
+(alias IRodTesselatorRaisePyramid379 Rococo.Graphics.Native.IRodTesselatorRaisePyramid)
 
-(function TickHz380  -> (Int64 hz) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2194))
-(alias TickHz380 Sys.Time.TickHz)
+(function IRodTesselatorScale380  (Pointer hObject)(Float32 sx)(Float32 sy)(Float32 sz) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9645))
+(alias IRodTesselatorScale380 Rococo.Graphics.Native.IRodTesselatorScale)
 
-(function IRodTesselatorSetMaterialMiddle381  (Pointer hObject)(Rococo.MaterialVertexData middle) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9648))
-(alias IRodTesselatorSetMaterialMiddle381 Rococo.Graphics.Native.IRodTesselatorSetMaterialMiddle)
+(function TickHz381  -> (Int64 hz) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2194))
+(alias TickHz381 Sys.Time.TickHz)
 
-(function IRodTesselatorSetMaterialTop382  (Pointer hObject)(Rococo.MaterialVertexData top) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9649))
-(alias IRodTesselatorSetMaterialTop382 Rococo.Graphics.Native.IRodTesselatorSetMaterialTop)
+(function IRodTesselatorSetMaterialMiddle382  (Pointer hObject)(Rococo.MaterialVertexData middle) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9648))
+(alias IRodTesselatorSetMaterialMiddle382 Rococo.Graphics.Native.IRodTesselatorSetMaterialMiddle)
 
-(function IRodTesselatorSetUVScale383  (Pointer hObject)(Float32 sUV) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9651))
-(alias IRodTesselatorSetUVScale383 Rococo.Graphics.Native.IRodTesselatorSetUVScale)
+(function IRodTesselatorSetMaterialTop383  (Pointer hObject)(Rococo.MaterialVertexData top) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9649))
+(alias IRodTesselatorSetMaterialTop383 Rococo.Graphics.Native.IRodTesselatorSetMaterialTop)
 
-(function IRodTesselatorTransformVertices384  (Pointer hObject)(Sys.Maths.Matrix4x4 m) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9652))
-(alias IRodTesselatorTransformVertices384 Rococo.Graphics.Native.IRodTesselatorTransformVertices)
+(function IRodTesselatorSetUVScale384  (Pointer hObject)(Float32 sUV) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9651))
+(alias IRodTesselatorSetUVScale384 Rococo.Graphics.Native.IRodTesselatorSetUVScale)
 
-(function IRodTesselatorUseFaceNormals385  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9653))
-(alias IRodTesselatorUseFaceNormals385 Rococo.Graphics.Native.IRodTesselatorUseFaceNormals)
+(function IRodTesselatorTransformVertices385  (Pointer hObject)(Sys.Maths.Matrix4x4 m) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9652))
+(alias IRodTesselatorTransformVertices385 Rococo.Graphics.Native.IRodTesselatorTransformVertices)
 
-(function WriteIExpressionBuilder386  (Sys.IO.IWriter writer) (Sys.Reflection.IExpressionBuilder s)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1253))
-(alias WriteIExpressionBuilder386 Sys.IO.Native.WriteIExpressionBuilder)
+(function IRodTesselatorUseFaceNormals386  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9653))
+(alias IRodTesselatorUseFaceNormals386 Rococo.Graphics.Native.IRodTesselatorUseFaceNormals)
 
-(function WriteBool387  (Sys.IO.IWriter writer)(Bool x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1251))
-(alias WriteBool387 Sys.IO.Native.WriteBool)
+(function WriteIExpressionBuilder387  (Sys.IO.IWriter writer) (Sys.Reflection.IExpressionBuilder s)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1253))
+(alias WriteIExpressionBuilder387 Sys.IO.Native.WriteIExpressionBuilder)
 
-(function ITextTesselatorAddBlankQuad388  (Pointer hObject)(Sys.Maths.Quadf positions)(Int32 paperColour) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10004))
-(alias ITextTesselatorAddBlankQuad388 Rococo.Graphics.Native.ITextTesselatorAddBlankQuad)
+(function WriteBool388  (Sys.IO.IWriter writer)(Bool x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1251))
+(alias WriteBool388 Sys.IO.Native.WriteBool)
 
-(function ITextTesselatorSaveMesh389  (Pointer hObject)(Sys.Type.IString meshName) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10007))
-(alias ITextTesselatorSaveMesh389 Rococo.Graphics.Native.ITextTesselatorSaveMesh)
+(function ITextTesselatorAddBlankQuad389  (Pointer hObject)(Sys.Maths.Quadf positions)(Int32 paperColour) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10004))
+(alias ITextTesselatorAddBlankQuad389 Rococo.Graphics.Native.ITextTesselatorAddBlankQuad)
 
-(function ITextTesselatorTrySetFontIndex390  (Pointer hObject)(Int32 index) -> (Bool isSet) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10010))
-(alias ITextTesselatorTrySetFontIndex390 Rococo.Graphics.Native.ITextTesselatorTrySetFontIndex)
+(function ITextTesselatorSaveMesh390  (Pointer hObject)(Sys.Type.IString meshName) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10007))
+(alias ITextTesselatorSaveMesh390 Rococo.Graphics.Native.ITextTesselatorSaveMesh)
 
-(function ITextTesselatorTrySetFont391  (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10011))
-(alias ITextTesselatorTrySetFont391 Rococo.Graphics.Native.ITextTesselatorTrySetFont)
+(function ITextTesselatorTrySetFontIndex391  (Pointer hObject)(Int32 index) -> (Bool isSet) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10010))
+(alias ITextTesselatorTrySetFontIndex391 Rococo.Graphics.Native.ITextTesselatorTrySetFontIndex)
 
-(function IKeyboardSetKeyName392  (Pointer hObject)(Sys.Type.IString name)(Int32 vkeyCode) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6337))
-(alias IKeyboardSetKeyName392 Rococo.Native.IKeyboardSetKeyName)
+(function ITextTesselatorTrySetFont392  (Pointer hObject)(Sys.Type.IString name)(Float32 dotSize) -> (Bool isSet) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10011))
+(alias ITextTesselatorTrySetFont392 Rococo.Graphics.Native.ITextTesselatorTrySetFont)
 
-(function GetHandleForIRendererConfig0393   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10250))
-(alias GetHandleForIRendererConfig0393 Rococo.Graphics.Native.GetHandleForIRendererConfig0)
+(function IKeyboardSetKeyName393  (Pointer hObject)(Sys.Type.IString name)(Int32 vkeyCode) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6337))
+(alias IKeyboardSetKeyName393 Rococo.Native.IKeyboardSetKeyName)
 
-(function IRendererConfigSetSampler394  (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10251))
-(alias IRendererConfigSetSampler394 Rococo.Graphics.Native.IRendererConfigSetSampler)
+(function GetHandleForIRendererConfig0394   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10250))
+(alias GetHandleForIRendererConfig0394 Rococo.Graphics.Native.GetHandleForIRendererConfig0)
 
-(function GetHandleForIMessaging0395   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7383))
-(alias GetHandleForIMessaging0395 Rococo.Graphics.Native.GetHandleForIMessaging0)
+(function IRendererConfigSetSampler395  (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10251))
+(alias IRendererConfigSetSampler395 Rococo.Graphics.Native.IRendererConfigSetSampler)
 
-(function CreateMemoString396  (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1748))
-(alias CreateMemoString396 Sys.Strings.Native.CreateMemoString)
+(function GetHandleForIMessaging0396   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7383))
+(alias GetHandleForIMessaging0396 Rococo.Graphics.Native.GetHandleForIMessaging0)
 
-(function ILandscapeTesselatorClear397  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9836))
-(alias ILandscapeTesselatorClear397 Rococo.Graphics.Native.ILandscapeTesselatorClear)
+(function CreateMemoString397  (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1748))
+(alias CreateMemoString397 Sys.Strings.Native.CreateMemoString)
 
-(function ILandscapeTesselatorGenerateByRecursiveSubdivision398  (Pointer hObject)(Sys.SI.Metres maxAltitude) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9838))
-(alias ILandscapeTesselatorGenerateByRecursiveSubdivision398 Rococo.Graphics.Native.ILandscapeTesselatorGenerateByRecursiveSubdivision)
+(function ILandscapeTesselatorClear398  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9836))
+(alias ILandscapeTesselatorClear398 Rococo.Graphics.Native.ILandscapeTesselatorClear)
 
-(function ILandscapeTesselatorGetBounds399  (Pointer hObject)(Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9839))
-(alias ILandscapeTesselatorGetBounds399 Rococo.Graphics.Native.ILandscapeTesselatorGetBounds)
+(function ILandscapeTesselatorGenerateByRecursiveSubdivision399  (Pointer hObject)(Sys.SI.Metres maxAltitude) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9838))
+(alias ILandscapeTesselatorGenerateByRecursiveSubdivision399 Rococo.Graphics.Native.ILandscapeTesselatorGenerateByRecursiveSubdivision)
 
-(function ILandscapeTesselatorRaiseMountain400  (Pointer hObject)(Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9840))
-(alias ILandscapeTesselatorRaiseMountain400 Rococo.Graphics.Native.ILandscapeTesselatorRaiseMountain)
+(function ILandscapeTesselatorGetBounds400  (Pointer hObject)(Sys.Maths.Vec3 minPoint)(Sys.Maths.Vec3 maxPoint) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9839))
+(alias ILandscapeTesselatorGetBounds400 Rococo.Graphics.Native.ILandscapeTesselatorGetBounds)
 
-(function ILandscapeTesselatorSetHeights401  (Pointer hObject)(Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9841))
-(alias ILandscapeTesselatorSetHeights401 Rococo.Graphics.Native.ILandscapeTesselatorSetHeights)
+(function ILandscapeTesselatorRaiseMountain401  (Pointer hObject)(Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9840))
+(alias ILandscapeTesselatorRaiseMountain401 Rococo.Graphics.Native.ILandscapeTesselatorRaiseMountain)
 
-(function ExpressionGetChild402  (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 885))
-(alias ExpressionGetChild402 Sys.Reflection.Native.ExpressionGetChild)
+(function ILandscapeTesselatorSetHeights402  (Pointer hObject)(Sys.Maths.Vec2i p0)(Sys.Maths.Vec2i p1)(Sys.SI.Metres height) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9841))
+(alias ILandscapeTesselatorSetHeights402 Rococo.Graphics.Native.ILandscapeTesselatorSetHeights)
 
-(function GetHandleForIKeyboard0403   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6334))
-(alias GetHandleForIKeyboard0403 Rococo.Native.GetHandleForIKeyboard0)
+(function ExpressionGetChild403  (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 885))
+(alias ExpressionGetChild403 Sys.Reflection.Native.ExpressionGetChild)
 
-(function IKeyboardGetVKeyFromName404  (Pointer hObject)(Sys.Type.IString name) -> (Int32 vkCode) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6336))
-(alias IKeyboardGetVKeyFromName404 Rococo.Native.IKeyboardGetVKeyFromName)
+(function GetHandleForIKeyboard0404   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6334))
+(alias GetHandleForIKeyboard0404 Rococo.Native.GetHandleForIKeyboard0)
 
-(function IKeyboardBindAction405  (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6338))
-(alias IKeyboardBindAction405 Rococo.Native.IKeyboardBindAction)
+(function IKeyboardGetVKeyFromName405  (Pointer hObject)(Sys.Type.IString name) -> (Int32 vkCode) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6336))
+(alias IKeyboardGetVKeyFromName405 Rococo.Native.IKeyboardGetVKeyFromName)
 
-(function MaxOf406 (Int32 x)(Int32 y) -> (Int32 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 391))
-(alias MaxOf406 Sys.Maths.I32.MaxOf)
+(function IKeyboardBindAction406  (Pointer hObject)(Sys.Type.IString keyName)(Sys.Type.IString actionName) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6338))
+(alias IKeyboardBindAction406 Rococo.Native.IKeyboardBindAction)
 
-(function IsNan407 (Float64 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 506))
-(alias IsNan407 Sys.Maths.F64.IsNan)
+(function MaxOf407 (Int32 x)(Int32 y) -> (Int32 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 391))
+(alias MaxOf407 Sys.Maths.I32.MaxOf)
 
-(function IKeyboardSaveCppHeader408  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6339))
-(alias IKeyboardSaveCppHeader408 Rococo.Native.IKeyboardSaveCppHeader)
+(function IsNan408 (Float64 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 506))
+(alias IsNan408 Sys.Maths.F64.IsNan)
 
-(function IParticleSystemApplySpectrum409  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6923))
-(alias IParticleSystemApplySpectrum409 Rococo.Entities.Native.IParticleSystemApplySpectrum)
+(function IKeyboardSaveCppHeader409  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6339))
+(alias IKeyboardSaveCppHeader409 Rococo.Native.IKeyboardSaveCppHeader)
 
-(function IParticleSystemClearSpectrum410  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6924))
-(alias IParticleSystemClearSpectrum410 Rococo.Entities.Native.IParticleSystemClearSpectrum)
+(function IParticleSystemApplySpectrum410  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6923))
+(alias IParticleSystemApplySpectrum410 Rococo.Entities.Native.IParticleSystemApplySpectrum)
 
-(function GetInterfaceName411  (Int32 interfaceIndex) (Pointer structPtr) -> (IString nameOrNull) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 907))
-(alias GetInterfaceName411 Sys.Reflection.Native.GetInterfaceName)
+(function IParticleSystemClearSpectrum411  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6924))
+(alias IParticleSystemClearSpectrum411 Rococo.Entities.Native.IParticleSystemClearSpectrum)
 
-(function RoundToNearest412 (Float64 x) -> (Float64 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 504))
-(alias RoundToNearest412 Sys.Maths.F64.RoundToNearest)
+(function GetInterfaceName412  (Int32 interfaceIndex) (Pointer structPtr) -> (IString nameOrNull) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 907))
+(alias GetInterfaceName412 Sys.Reflection.Native.GetInterfaceName)
 
-(function IParticleSystemSetSpectrum413  (Pointer hObject)(Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6925))
-(alias IParticleSystemSetSpectrum413 Rococo.Entities.Native.IParticleSystemSetSpectrum)
+(function RoundToNearest413 (Float64 x) -> (Float64 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 504))
+(alias RoundToNearest413 Sys.Maths.F64.RoundToNearest)
 
-(function IParticleSystemAddDust414  (Pointer hObject)(Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6926))
-(alias IParticleSystemAddDust414 Rococo.Entities.Native.IParticleSystemAddDust)
+(function IParticleSystemSetSpectrum414  (Pointer hObject)(Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6925))
+(alias IParticleSystemSetSpectrum414 Rococo.Entities.Native.IParticleSystemSetSpectrum)
 
-(function Dot415 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b) -> (Float32 dotProduct) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 424))
-(alias Dot415 Sys.Geometry.F32.Dot)
+(function IParticleSystemAddDust415  (Pointer hObject)(Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6926))
+(alias IParticleSystemAddDust415 Rococo.Entities.Native.IParticleSystemAddDust)
 
-(function IHQFontsSetFaceName416  (Pointer hObject)(Sys.Type.IString name) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10194))
-(alias IHQFontsSetFaceName416 Rococo.Graphics.Native.IHQFontsSetFaceName)
+(function Dot416 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b) -> (Float32 dotProduct) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 424))
+(alias Dot416 Sys.Geometry.F32.Dot)
 
-(function Log10417 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 499))
-(alias Log10417 Sys.Maths.F64.Log10)
+(function IHQFontsSetFaceName417  (Pointer hObject)(Sys.Type.IString name) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10194))
+(alias IHQFontsSetFaceName417 Rococo.Graphics.Native.IHQFontsSetFaceName)
 
-(function Tanh418 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 493))
-(alias Tanh418 Sys.Maths.F64.Tanh)
+(function Log10418 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 499))
+(alias Log10418 Sys.Maths.F64.Log10)
 
-(function IHQFontsSetHeight419  (Pointer hObject)(Int32 dyPixels) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10195))
-(alias IHQFontsSetHeight419 Rococo.Graphics.Native.IHQFontsSetHeight)
+(function Tanh419 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 493))
+(alias Tanh419 Sys.Maths.F64.Tanh)
 
-(function IHQFontsMakeItalics420  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10196))
-(alias IHQFontsMakeItalics420 Rococo.Graphics.Native.IHQFontsMakeItalics)
+(function IHQFontsSetHeight420  (Pointer hObject)(Int32 dyPixels) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10195))
+(alias IHQFontsSetHeight420 Rococo.Graphics.Native.IHQFontsSetHeight)
 
-(function IHQFontsAddCharacters421  (Pointer hObject)(Sys.Type.IString s) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10199))
-(alias IHQFontsAddCharacters421 Rococo.Graphics.Native.IHQFontsAddCharacters)
+(function IHQFontsMakeItalics421  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10196))
+(alias IHQFontsMakeItalics421 Rococo.Graphics.Native.IHQFontsMakeItalics)
 
-(function IHQFontsAddRange422  (Pointer hObject)(Int32 unicodeStarChar)(Int32 unicodeEndChar) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10200))
-(alias IHQFontsAddRange422 Rococo.Graphics.Native.IHQFontsAddRange)
+(function IHQFontsAddCharacters422  (Pointer hObject)(Sys.Type.IString s) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10199))
+(alias IHQFontsAddCharacters422 Rococo.Graphics.Native.IHQFontsAddCharacters)
 
-(function BitwiseOr423 (Int32 x)(Int32 y) -> (Int32 result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 400))
-(alias BitwiseOr423 Sys.Maths.I32.BitwiseOr)
+(function IHQFontsAddRange423  (Pointer hObject)(Int32 unicodeStarChar)(Int32 unicodeEndChar) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10200))
+(alias IHQFontsAddRange423 Rococo.Graphics.Native.IHQFontsAddRange)
 
-(function IHQFontsCommit424  (Pointer hObject) -> (Int32 fontId) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10201))
-(alias IHQFontsCommit424 Rococo.Graphics.Native.IHQFontsCommit)
+(function BitwiseOr424 (Int32 x)(Int32 y) -> (Int32 result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 400))
+(alias BitwiseOr424 Sys.Maths.I32.BitwiseOr)
 
-(function TickCount425  -> (Int64 tickCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2195))
-(alias TickCount425 Sys.Time.TickCount)
+(function IHQFontsCommit425  (Pointer hObject) -> (Int32 fontId) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10201))
+(alias IHQFontsCommit425 Rococo.Graphics.Native.IHQFontsCommit)
 
-(function IInstallationSetPingPathMacro426  (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString pingPathValue) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10432))
-(alias IInstallationSetPingPathMacro426 Rococo.Native.IInstallationSetPingPathMacro)
+(function TickCount426  -> (Int64 tickCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2195))
+(alias TickCount426 Sys.Time.TickCount)
 
-(function FreeMemoString427  (Pointer src) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1749))
-(alias FreeMemoString427 Sys.Strings.Native.FreeMemoString)
+(function IInstallationSetPingPathMacro427  (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString pingPathValue) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10432))
+(alias IInstallationSetPingPathMacro427 Rococo.Native.IInstallationSetPingPathMacro)
 
-(function IConfigFloat428  (Pointer hObject)(Sys.Type.IString name)(Float32 value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6527))
-(alias IConfigFloat428 Rococo.Configuration.Native.IConfigFloat)
+(function FreeMemoString428  (Pointer src) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1749))
+(alias FreeMemoString428 Sys.Strings.Native.FreeMemoString)
 
-(function IConfigBool429  (Pointer hObject)(Sys.Type.IString name)(Bool value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6528))
-(alias IConfigBool429 Rococo.Configuration.Native.IConfigBool)
+(function IConfigFloat429  (Pointer hObject)(Sys.Type.IString name)(Float32 value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6527))
+(alias IConfigFloat429 Rococo.Configuration.Native.IConfigFloat)
 
-(function MultiplyVec3fFloat32430 (Sys.Maths.Vec3 a)(Float32 f)(Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 428))
-(alias MultiplyVec3fFloat32430 Sys.Geometry.F32.MultiplyVec3fFloat32)
+(function IConfigBool430  (Pointer hObject)(Sys.Type.IString name)(Bool value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6528))
+(alias IConfigBool430 Rococo.Configuration.Native.IConfigBool)
 
-(function IConfigText431  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6529))
-(alias IConfigText431 Rococo.Configuration.Native.IConfigText)
+(function MultiplyVec3fFloat32431 (Sys.Maths.Vec3 a)(Float32 f)(Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 428))
+(alias MultiplyVec3fFloat32431 Sys.Geometry.F32.MultiplyVec3fFloat32)
 
-(function RoundToNearest432 (Float32 x) -> (Float32 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 706))
-(alias RoundToNearest432 Sys.Maths.F32.RoundToNearest)
+(function IConfigText432  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6529))
+(alias IConfigText432 Rococo.Configuration.Native.IConfigText)
 
-(function IConfigGetInt433  (Pointer hObject)(Sys.Type.IString name) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6530))
-(alias IConfigGetInt433 Rococo.Configuration.Native.IConfigGetInt)
+(function RoundToNearest433 (Float32 x) -> (Float32 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 706))
+(alias RoundToNearest433 Sys.Maths.F32.RoundToNearest)
 
-(function IConfigGetBool434  (Pointer hObject)(Sys.Type.IString name) -> (Bool value) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6532))
-(alias IConfigGetBool434 Rococo.Configuration.Native.IConfigGetBool)
+(function IConfigGetInt434  (Pointer hObject)(Sys.Type.IString name) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6530))
+(alias IConfigGetInt434 Rococo.Configuration.Native.IConfigGetInt)
 
-(function FastStringBuilderAppendAsSpec435  (Sys.Type.IStringBuilder sb) (Int32 type) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1766))
-(alias FastStringBuilderAppendAsSpec435 Sys.Strings.Native.FastStringBuilderAppendAsSpec)
+(function IConfigGetBool435  (Pointer hObject)(Sys.Type.IString name) -> (Bool value) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 6532))
+(alias IConfigGetBool435 Rococo.Configuration.Native.IConfigGetBool)
 
-(function GetHandleForIArchive0436   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10375))
-(alias GetHandleForIArchive0436 Rococo.Native.GetHandleForIArchive0)
+(function FastStringBuilderAppendAsSpec436  (Sys.Type.IStringBuilder sb) (Int32 type) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1766))
+(alias FastStringBuilderAppendAsSpec436 Sys.Strings.Native.FastStringBuilderAppendAsSpec)
 
-(function IArchiveLoadF32437  (Pointer hObject)(Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10376))
-(alias IArchiveLoadF32437 Rococo.Native.IArchiveLoadF32)
+(function GetHandleForIArchive0437   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10375))
+(alias GetHandleForIArchive0437 Rococo.Native.GetHandleForIArchive0)
 
-(function MaxValue438  -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 715))
-(alias MaxValue438 Sys.Maths.F32.MaxValue)
+(function IArchiveLoadF32438  (Pointer hObject)(Sys.Type.IString key)(Float32 defaultValue) -> (Float32 value) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10376))
+(alias IArchiveLoadF32438 Rococo.Native.IArchiveLoadF32)
 
-(function GetHandleForIWorldBuilder0439   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10536))
-(alias GetHandleForIWorldBuilder0439 Rococo.Native.GetHandleForIWorldBuilder0)
+(function MaxValue439  -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 715))
+(alias MaxValue439 Sys.Maths.F32.MaxValue)
 
-(function IWorldBuilderAddMeshToQuadtree440  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10537))
-(alias IWorldBuilderAddMeshToQuadtree440 Rococo.Native.IWorldBuilderAddMeshToQuadtree)
+(function GetHandleForIWorldBuilder0440   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10536))
+(alias GetHandleForIWorldBuilder0440 Rococo.Native.GetHandleForIWorldBuilder0)
 
-(function AlignedFree441  (Pointer data)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1741))
-(alias AlignedFree441 Sys.Native.AlignedFree)
+(function IWorldBuilderAddMeshToQuadtree441  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10537))
+(alias IWorldBuilderAddMeshToQuadtree441 Rococo.Native.IWorldBuilderAddMeshToQuadtree)
 
-(function MaxOf442 (Float32 x)(Float32 y) -> (Float32 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 704))
-(alias MaxOf442 Sys.Maths.F32.MaxOf)
+(function AlignedFree442  (Pointer data)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1741))
+(alias AlignedFree442 Sys.Native.AlignedFree)
 
-(function IWorldBuilderNew443  (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10540))
-(alias IWorldBuilderNew443 Rococo.Native.IWorldBuilderNew)
+(function MaxOf443 (Float32 x)(Float32 y) -> (Float32 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 704))
+(alias MaxOf443 Sys.Maths.F32.MaxOf)
 
-(function EnumerateFiles444  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 355))
-(alias EnumerateFiles444 MPlat.OS.EnumerateFiles)
+(function IWorldBuilderNew444  (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10540))
+(alias IWorldBuilderNew444 Rococo.Native.IWorldBuilderNew)
 
-(function AddVec2iVec2i445 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 405))
-(alias AddVec2iVec2i445 Sys.Maths.I32.AddVec2iVec2i)
+(function EnumerateFiles445  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 355))
+(alias EnumerateFiles445 MPlat.OS.EnumerateFiles)
 
-(function NativePrint446  (Sys.Type.Pointer s) -> (Int32 charCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1730))
-(alias NativePrint446 Sys.Type.NativePrint)
+(function IsUpperCase446  (Int32 c)->(Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1779))
+(alias IsUpperCase446 Sys.Type.Strings.IsUpperCase)
 
-(function _DynamicCast447  (Pointer interface) (Pointer instanceRef) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1743))
-(alias _DynamicCast447 Sys.Native._DynamicCast)
+(function AddVec2iVec2i447 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 405))
+(alias AddVec2iVec2i447 Sys.Maths.I32.AddVec2iVec2i)
 
-(function MinValue448  -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 393))
-(alias MinValue448 Sys.Maths.I32.MinValue)
+(function NativePrint448  (Sys.Type.Pointer s) -> (Int32 charCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1730))
+(alias NativePrint448 Sys.Type.NativePrint)
 
-(function RectfToRecti449  (Sys.Maths.Rectf rectf)(Sys.Maths.Recti recti)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 728))
-(alias RectfToRecti449 Sys.Maths.F32.RectfToRecti)
+(function _DynamicCast449  (Pointer interface) (Pointer instanceRef) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1743))
+(alias _DynamicCast449 Sys.Native._DynamicCast)
 
-(function RotateAboutX450 (Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rX) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 437))
-(alias RotateAboutX450 Sys.Geometry.F32.RotateAboutX)
+(function MinValue450  -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 393))
+(alias MinValue450 Sys.Maths.I32.MinValue)
 
-(function NewStringBuilder451  (Int32 capacity) -> (Sys.Type.IStringBuilder sb) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1746))
-(alias NewStringBuilder451 Sys.Strings.Native.NewStringBuilder)
+(function RectfToRecti451  (Sys.Maths.Rectf rectf)(Sys.Maths.Recti recti)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 728))
+(alias RectfToRecti451 Sys.Maths.F32.RectfToRecti)
 
-(function ToInt64452 (Int32 x) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 396))
-(alias ToInt64452 Sys.Maths.I32.ToInt64)
+(function RotateAboutX452 (Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rX) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 437))
+(alias RotateAboutX452 Sys.Geometry.F32.RotateAboutX)
 
-(function Log10453 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 701))
-(alias Log10453 Sys.Maths.F32.Log10)
+(function NewStringBuilder453  (Int32 capacity) -> (Sys.Type.IStringBuilder sb) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1746))
+(alias NewStringBuilder453 Sys.Strings.Native.NewStringBuilder)
 
-(function DestructStringBuilder454  (Sys.Type.IStringBuilder sb)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1747))
-(alias DestructStringBuilder454 Sys.Strings.Native.DestructStringBuilder)
+(function ToInt64454 (Int32 x) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 396))
+(alias ToInt64454 Sys.Maths.I32.ToInt64)
 
-(function StringCompare455   (Pointer s) (Pointer t) -> (Int32 diff) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1750))
-(alias StringCompare455 Sys.Strings.Native.StringCompare)
+(function Log10455 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 701))
+(alias Log10455 Sys.Maths.F32.Log10)
 
-(function StringCompareI456   (Pointer s) (Pointer t) -> (Int32 diff) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1751))
-(alias StringCompareI456 Sys.Strings.Native.StringCompareI)
+(function DestructStringBuilder456  (Sys.Type.IStringBuilder sb)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1747))
+(alias DestructStringBuilder456 Sys.Strings.Native.DestructStringBuilder)
 
-(function StringFindRight457  (Pointer containerBuffer) (Int32 containerLength) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1753))
-(alias StringFindRight457 Sys.Strings.Native.StringFindRight)
+(function StringCompare457   (Pointer s) (Pointer t) -> (Int32 diff) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1750))
+(alias StringCompare457 Sys.Strings.Native.StringCompare)
 
-(function FastStringBuilderAppendIString458  (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1754))
-(alias FastStringBuilderAppendIString458 Sys.Strings.Native.FastStringBuilderAppendIString)
+(function StringCompareI458   (Pointer s) (Pointer t) -> (Int32 diff) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1751))
+(alias StringCompareI458 Sys.Strings.Native.StringCompareI)
 
-(function Abs459 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 490))
-(alias Abs459 Sys.Maths.F64.Abs)
+(function StringFindRight459  (Pointer containerBuffer) (Int32 containerLength) (Int32 leftPos) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1753))
+(alias StringFindRight459 Sys.Strings.Native.StringFindRight)
 
-(function FastStringBuilderAppendChar460  (Sys.Type.IStringBuilder sb) (Int32 asciiValue) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1756))
-(alias FastStringBuilderAppendChar460 Sys.Strings.Native.FastStringBuilderAppendChar)
+(function FastStringBuilderAppendIString460  (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1754))
+(alias FastStringBuilderAppendIString460 Sys.Strings.Native.FastStringBuilderAppendIString)
 
-(function FastStringBuilderAppendInt32461  (Sys.Type.IStringBuilder sb) (Int32 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1757))
-(alias FastStringBuilderAppendInt32461 Sys.Strings.Native.FastStringBuilderAppendInt32)
+(function Abs461 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 490))
+(alias Abs461 Sys.Maths.F64.Abs)
 
-(function FastStringBuilderAppendInt64462  (Sys.Type.IStringBuilder sb) (Int64 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1758))
-(alias FastStringBuilderAppendInt64462 Sys.Strings.Native.FastStringBuilderAppendInt64)
+(function FastStringBuilderAppendChar462  (Sys.Type.IStringBuilder sb) (Int32 asciiValue) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1756))
+(alias FastStringBuilderAppendChar462 Sys.Strings.Native.FastStringBuilderAppendChar)
 
-(function FastStringBuilderAppendFloat32463  (Sys.Type.IStringBuilder sb) (Float32 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1759))
-(alias FastStringBuilderAppendFloat32463 Sys.Strings.Native.FastStringBuilderAppendFloat32)
+(function FastStringBuilderAppendInt32463  (Sys.Type.IStringBuilder sb) (Int32 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1757))
+(alias FastStringBuilderAppendInt32463 Sys.Strings.Native.FastStringBuilderAppendInt32)
 
-(function FastStringBuilderAppendFloat64464  (Sys.Type.IStringBuilder sb) (Float64 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1760))
-(alias FastStringBuilderAppendFloat64464 Sys.Strings.Native.FastStringBuilderAppendFloat64)
+(function FastStringBuilderAppendInt64464  (Sys.Type.IStringBuilder sb) (Int64 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1758))
+(alias FastStringBuilderAppendInt64464 Sys.Strings.Native.FastStringBuilderAppendInt64)
 
-(function FastStringBuilderAppendBool465  (Sys.Type.IStringBuilder sb) (Bool x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1761))
-(alias FastStringBuilderAppendBool465 Sys.Strings.Native.FastStringBuilderAppendBool)
+(function FastStringBuilderAppendFloat32465  (Sys.Type.IStringBuilder sb) (Float32 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1759))
+(alias FastStringBuilderAppendFloat32465 Sys.Strings.Native.FastStringBuilderAppendFloat32)
 
-(function FastStringBuilderAppendPointer466  (Sys.Type.IStringBuilder sb) (Pointer x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1762))
-(alias FastStringBuilderAppendPointer466 Sys.Strings.Native.FastStringBuilderAppendPointer)
+(function FastStringBuilderAppendFloat64466  (Sys.Type.IStringBuilder sb) (Float64 x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1760))
+(alias FastStringBuilderAppendFloat64466 Sys.Strings.Native.FastStringBuilderAppendFloat64)
 
-(function FastStringBuilderClear467  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1763))
-(alias FastStringBuilderClear467 Sys.Strings.Native.FastStringBuilderClear)
+(function FastStringBuilderAppendBool467  (Sys.Type.IStringBuilder sb) (Bool x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1761))
+(alias FastStringBuilderAppendBool467 Sys.Strings.Native.FastStringBuilderAppendBool)
 
-(function GetStructName468  (Pointer structPtr) -> (Sys.Type.IString name) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 905))
-(alias GetStructName468 Sys.Reflection.Native.GetStructName)
+(function FastStringBuilderAppendPointer468  (Sys.Type.IStringBuilder sb) (Pointer x) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1762))
+(alias FastStringBuilderAppendPointer468 Sys.Strings.Native.FastStringBuilderAppendPointer)
 
-(function MultiplyFloat32Vec2f469 (Float32 f)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 423))
-(alias MultiplyFloat32Vec2f469 Sys.Geometry.F32.MultiplyFloat32Vec2f)
+(function FastStringBuilderClear469  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1763))
+(alias FastStringBuilderClear469 Sys.Strings.Native.FastStringBuilderClear)
 
-(function FastStringBuilderAppendAsDecimal470  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1764))
-(alias FastStringBuilderAppendAsDecimal470 Sys.Strings.Native.FastStringBuilderAppendAsDecimal)
+(function GetStructName470  (Pointer structPtr) -> (Sys.Type.IString name) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 905))
+(alias GetStructName470 Sys.Reflection.Native.GetStructName)
 
-(function FastStringBuilderAppendAsHex471  (Sys.Type.IStringBuilder sb) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1765))
-(alias FastStringBuilderAppendAsHex471 Sys.Strings.Native.FastStringBuilderAppendAsHex)
+(function MultiplyFloat32Vec2f471 (Float32 f)(Sys.Maths.Vec2 a)(Sys.Maths.Vec2 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 423))
+(alias MultiplyFloat32Vec2f471 Sys.Geometry.F32.MultiplyFloat32Vec2f)
 
-(function FastStringBuilderSetFormat472   (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1767))
-(alias FastStringBuilderSetFormat472 Sys.Strings.Native.FastStringBuilderSetFormat)
+(function FastStringBuilderAppendAsDecimal472  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1764))
+(alias FastStringBuilderAppendAsDecimal472 Sys.Strings.Native.FastStringBuilderAppendAsDecimal)
 
-(function FastStringBuilderSetCase473  (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1770))
-(alias FastStringBuilderSetCase473 Sys.Strings.Native.FastStringBuilderSetCase)
+(function FastStringBuilderAppendAsHex473  (Sys.Type.IStringBuilder sb) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1765))
+(alias FastStringBuilderAppendAsHex473 Sys.Strings.Native.FastStringBuilderAppendAsHex)
 
-(function _throw474  (Sys.Type.Pointer ex)-> : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 471))
-(alias _throw474 Sys.Type._throw)
+(function FastStringBuilderSetFormat474   (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1767))
+(alias FastStringBuilderSetFormat474 Sys.Strings.Native.FastStringBuilderSetFormat)
 
-(function MaxOf475 (Int64 x)(Int64 y) -> (Int64 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 205))
-(alias MaxOf475 Sys.Maths.I64.MaxOf)
+(function FastStringBuilderSetCase475  (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1770))
+(alias FastStringBuilderSetCase475 Sys.Strings.Native.FastStringBuilderSetCase)
 
-(function NewExpressionBuilder476  (Sys.Reflection.IExpression origin) -> (Sys.Reflection.IExpressionBuilder builder) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 881))
-(alias NewExpressionBuilder476 Sys.Reflection.NewExpressionBuilder)
+(function IsAlpha476  (Int32 c)->(Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1781))
+(alias IsAlpha476 Sys.Type.Strings.IsAlpha)
 
-(function AppendMethodName477  (Sys.Type.IStringBuilder sb) (Int32 interfaceIndex)(Int32 methodIndex) (Pointer structPtr) -> (Int32 nameLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 884))
-(alias AppendMethodName477 Sys.Reflection.Native.AppendMethodName)
+(function ToFloat64477 (Int32 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 398))
+(alias ToFloat64477 Sys.Maths.I32.ToFloat64)
 
-(function ExpressionIndexOf478  (Pointer sParentHandle) (Pointer sChildHandle) -> (Int32 index) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 886))
-(alias ExpressionIndexOf478 Sys.Reflection.Native.ExpressionIndexOf)
+(function WriteAsHex478  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1246))
+(alias WriteAsHex478 Sys.IO.Native.WriteAsHex)
 
-(function GetExpressionType479   (Pointer sPtr) -> (Sys.Type.Int32 type) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 891))
-(alias GetExpressionType479 Sys.Reflection.Native.GetExpressionType)
+(function IsAlphaNumeric479  (Int32 c)->(Bool isSo) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1783))
+(alias IsAlphaNumeric479 Sys.Type.Strings.IsAlphaNumeric)
 
-(function ExpressionThrow480   (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 892))
-(alias ExpressionThrow480 Sys.Reflection.Native.ExpressionThrow)
+(function Floor480 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 495))
+(alias Floor480 Sys.Maths.F64.Floor)
 
-(function GetScriptSystem481  -> (Sys.Reflection.IScriptSystem ss) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 893))
-(alias GetScriptSystem481 Sys.Reflection.Native.GetScriptSystem)
+(function MaxOf481 (Int64 x)(Int64 y) -> (Int64 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 205))
+(alias MaxOf481 Sys.Maths.I64.MaxOf)
 
-(function ToFloat64482 (Float32 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 718))
-(alias ToFloat64482 Sys.Maths.F32.ToFloat64)
+(function _throw482  (Sys.Type.Pointer ex)-> : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 471))
+(alias _throw482 Sys.Type._throw)
 
-(function ModuleCount483  -> (Int32 count) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 894))
-(alias ModuleCount483 Sys.Reflection.Native.ModuleCount)
+(function NewExpressionBuilder483  (Sys.Reflection.IExpression origin) -> (Sys.Reflection.IExpressionBuilder builder) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 881))
+(alias NewExpressionBuilder483 Sys.Reflection.NewExpressionBuilder)
 
-(function MaxOf484 (Float64 x)(Float64 y) -> (Float64 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 502))
-(alias MaxOf484 Sys.Maths.F64.MaxOf)
+(function AppendMethodName484  (Sys.Type.IStringBuilder sb) (Int32 interfaceIndex)(Int32 methodIndex) (Pointer structPtr) -> (Int32 nameLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 884))
+(alias AppendMethodName484 Sys.Reflection.Native.AppendMethodName)
 
-(function GetInputType485  (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex)(Sys.Type.Pointer pStruct) -> (Sys.Reflection.IStructure argType) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 897))
-(alias GetInputType485 Sys.Reflection.Native.GetInputType)
+(function ExpressionIndexOf485  (Pointer sParentHandle) (Pointer sChildHandle) -> (Int32 index) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 886))
+(alias ExpressionIndexOf485 Sys.Reflection.Native.ExpressionIndexOf)
 
-(function IsQuietNan486 (Float64 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 508))
-(alias IsQuietNan486 Sys.Maths.F64.IsQuietNan)
+(function GetExpressionType486   (Pointer sPtr) -> (Sys.Type.Int32 type) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 891))
+(alias GetExpressionType486 Sys.Reflection.Native.GetExpressionType)
 
-(function GetModule487  (Int32 index) -> (Sys.Reflection.IModule module) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 901))
-(alias GetModule487 Sys.Reflection.Native.GetModule)
+(function ExpressionThrow487   (Pointer sPtr)(Int32 errorCode)(Sys.Type.Pointer buffer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 892))
+(alias ExpressionThrow487 Sys.Reflection.Native.ExpressionThrow)
 
-(function GetModuleName488  (Pointer modulePtr) -> (Sys.Type.IString name) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 902))
-(alias GetModuleName488 Sys.Reflection.Native.GetModuleName)
+(function GetScriptSystem488  -> (Sys.Reflection.IScriptSystem ss) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 893))
+(alias GetScriptSystem488 Sys.Reflection.Native.GetScriptSystem)
 
-(function GetStructCount489  (Pointer modulePtr) -> (Int32 structCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 903))
-(alias GetStructCount489 Sys.Reflection.Native.GetStructCount)
+(function ToFloat64489 (Float32 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 718))
+(alias ToFloat64489 Sys.Maths.F32.ToFloat64)
 
-(function GetMethodCount490  (Int32 interfaceIndex) (Pointer structPtr) -> (Int32 count) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 909))
-(alias GetMethodCount490 Sys.Reflection.Native.GetMethodCount)
+(function ModuleCount490  -> (Int32 count) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 894))
+(alias ModuleCount490 Sys.Reflection.Native.ModuleCount)
 
-(function ExpressionBuilderAddAtomic491  (Pointer builderPtr) (Pointer strBuffer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 910))
-(alias ExpressionBuilderAddAtomic491 Sys.Reflection.Native.ExpressionBuilderAddAtomic)
+(function MaxOf491 (Float64 x)(Float64 y) -> (Float64 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 502))
+(alias MaxOf491 Sys.Maths.F64.MaxOf)
 
-(function ExpressionBuilderAddCompound492  (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 911))
-(alias ExpressionBuilderAddCompound492 Sys.Reflection.Native.ExpressionBuilderAddCompound)
+(function GetInputType492  (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex)(Sys.Type.Pointer pStruct) -> (Sys.Reflection.IStructure argType) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 897))
+(alias GetInputType492 Sys.Reflection.Native.GetInputType)
 
-(function ErrorFunction493 (Float64 x) -> (Float64 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 501))
-(alias ErrorFunction493 Sys.Maths.F64.ErrorFunction)
+(function IsQuietNan493 (Float64 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 508))
+(alias IsQuietNan493 Sys.Maths.F64.IsQuietNan)
 
-(function ExpressionBuilderInsertCompoundAfter494  (Pointer builderPtr)(Int32 index) -> (Sys.Reflection.IExpressionBuilder child) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 912))
-(alias ExpressionBuilderInsertCompoundAfter494 Sys.Reflection.Native.ExpressionBuilderInsertCompoundAfter)
+(function GetModule494  (Int32 index) -> (Sys.Reflection.IModule module) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 901))
+(alias GetModule494 Sys.Reflection.Native.GetModule)
 
-(function QuietNan495  -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 713))
-(alias QuietNan495 Sys.Maths.F32.QuietNan)
+(function GetModuleName495  (Pointer modulePtr) -> (Sys.Type.IString name) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 902))
+(alias GetModuleName495 Sys.Reflection.Native.GetModuleName)
 
-(function ExpressionBuilderAddCopyToString496  (Pointer builderPtr) (Pointer xpressPtr) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 914))
-(alias ExpressionBuilderAddCopyToString496 Sys.Reflection.Native.ExpressionBuilderAddCopyToString)
+(function GetStructCount496  (Pointer modulePtr) -> (Int32 structCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 903))
+(alias GetStructCount496 Sys.Reflection.Native.GetStructCount)
 
-(function Mod497 (Float32 x)(Float32 y) -> (Float32 xMody) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 683))
-(alias Mod497 Sys.Maths.F32.Mod)
+(function GetMethodCount497  (Int32 interfaceIndex) (Pointer structPtr) -> (Int32 count) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 909))
+(alias GetMethodCount497 Sys.Reflection.Native.GetMethodCount)
 
-(function Clamp498 (Float32 x)(Float32 lower)(Float32 upper) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 684))
-(alias Clamp498 Sys.Maths.F32.Clamp)
+(function ExpressionBuilderAddAtomic498  (Pointer builderPtr) (Pointer strBuffer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 910))
+(alias ExpressionBuilderAddAtomic498 Sys.Reflection.Native.ExpressionBuilderAddAtomic)
 
-(function Cos499 (Float32 radians) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 686))
-(alias Cos499 Sys.Maths.F32.Cos)
+(function ExpressionBuilderAddCompound499  (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 911))
+(alias ExpressionBuilderAddCompound499 Sys.Reflection.Native.ExpressionBuilderAddCompound)
 
-(function ArcTanYX500 (Float32 y)(Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 691))
-(alias ArcTanYX500 Sys.Maths.F32.ArcTanYX)
+(function ErrorFunction500 (Float64 x) -> (Float64 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 501))
+(alias ErrorFunction500 Sys.Maths.F64.ErrorFunction)
 
-(function Sinh501 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 693))
-(alias Sinh501 Sys.Maths.F32.Sinh)
+(function ExpressionBuilderInsertCompoundAfter501  (Pointer builderPtr)(Int32 index) -> (Sys.Reflection.IExpressionBuilder child) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 912))
+(alias ExpressionBuilderInsertCompoundAfter501 Sys.Reflection.Native.ExpressionBuilderInsertCompoundAfter)
 
-(function ArcTan502 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 488))
-(alias ArcTan502 Sys.Maths.F64.ArcTan)
+(function QuietNan502  -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 713))
+(alias QuietNan502 Sys.Maths.F32.QuietNan)
 
-(function Abs503 (Int32 x) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 388))
-(alias Abs503 Sys.Maths.I32.Abs)
+(function ExpressionBuilderAddCopyToString503  (Pointer builderPtr) (Pointer xpressPtr) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 914))
+(alias ExpressionBuilderAddCopyToString503 Sys.Reflection.Native.ExpressionBuilderAddCopyToString)
 
-(function Tanh504 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 695))
-(alias Tanh504 Sys.Maths.F32.Tanh)
+(function Mod504 (Float32 x)(Float32 y) -> (Float32 xMody) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 683))
+(alias Mod504 Sys.Maths.F32.Mod)
 
-(function Floor505 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 697))
-(alias Floor505 Sys.Maths.F32.Floor)
+(function Clamp505 (Float32 x)(Float32 lower)(Float32 upper) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 684))
+(alias Clamp505 Sys.Maths.F32.Clamp)
 
-(function Ceiling506 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 698))
-(alias Ceiling506 Sys.Maths.F32.Ceiling)
+(function Cos506 (Float32 radians) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 686))
+(alias Cos506 Sys.Maths.F32.Cos)
 
-(function SquareRoot507 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 702))
-(alias SquareRoot507 Sys.Maths.F32.SquareRoot)
+(function ArcTanYX507 (Float32 y)(Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 691))
+(alias ArcTanYX507 Sys.Maths.F32.ArcTanYX)
 
-(function ErrorFunction508 (Float32 x) -> (Float32 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 703))
-(alias ErrorFunction508 Sys.Maths.F32.ErrorFunction)
+(function Sinh508 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 693))
+(alias Sinh508 Sys.Maths.F32.Sinh)
 
-(function IsInfinity509 (Float32 x) -> (Bool isInfinity) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 707))
-(alias IsInfinity509 Sys.Maths.F32.IsInfinity)
+(function ArcTan509 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 488))
+(alias ArcTan509 Sys.Maths.F64.ArcTan)
 
-(function IsNan510 (Float32 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 710))
-(alias IsNan510 Sys.Maths.F32.IsNan)
+(function Abs510 (Int32 x) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 388))
+(alias Abs510 Sys.Maths.I32.Abs)
 
-(function MultiplyVec2fFloat32511 (Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 722))
-(alias MultiplyVec2fFloat32511 Sys.Maths.F32.MultiplyVec2fFloat32)
+(function Tanh511 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 695))
+(alias Tanh511 Sys.Maths.F32.Tanh)
 
-(function ToFloat32512 (Int32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 397))
-(alias ToFloat32512 Sys.Maths.I32.ToFloat32)
+(function Floor512 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 697))
+(alias Floor512 Sys.Maths.F32.Floor)
 
-(function DivideVec2fFloat32513 (Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 723))
-(alias DivideVec2fFloat32513 Sys.Maths.F32.DivideVec2fFloat32)
+(function Ceiling513 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 698))
+(alias Ceiling513 Sys.Maths.F32.Ceiling)
 
-(function IsEqVec2fVec2f514 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2  b)->(Bool result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 725))
-(alias IsEqVec2fVec2f514 Sys.Maths.F32.IsEqVec2fVec2f)
+(function SquareRoot514 (Float32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 702))
+(alias SquareRoot514 Sys.Maths.F32.SquareRoot)
 
-(function IsNotEqVec3fVec3f515 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)->(Bool result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 726))
-(alias IsNotEqVec3fVec3f515 Sys.Maths.F32.IsNotEqVec3fVec3f)
+(function ErrorFunction515 (Float32 x) -> (Float32 y) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 703))
+(alias ErrorFunction515 Sys.Maths.F32.ErrorFunction)
 
-(function Tan516 (Float64 radians) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 485))
-(alias Tan516 Sys.Maths.F64.Tan)
+(function IsInfinity516 (Float32 x) -> (Bool isInfinity) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 707))
+(alias IsInfinity516 Sys.Maths.F32.IsInfinity)
 
-(function ArcSin517 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 486))
-(alias ArcSin517 Sys.Maths.F64.ArcSin)
+(function IsNan517 (Float32 x) -> (Bool isNan) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 710))
+(alias IsNan517 Sys.Maths.F32.IsNan)
 
-(function ArcTanYX518 (Float64 y)(Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 489))
-(alias ArcTanYX518 Sys.Maths.F64.ArcTanYX)
+(function MultiplyVec2fFloat32518 (Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 722))
+(alias MultiplyVec2fFloat32518 Sys.Maths.F32.MultiplyVec2fFloat32)
 
-(function Sinh519 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 491))
-(alias Sinh519 Sys.Maths.F64.Sinh)
+(function ToFloat32519 (Int32 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 397))
+(alias ToFloat32519 Sys.Maths.I32.ToFloat32)
 
-(function Exp520 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 494))
-(alias Exp520 Sys.Maths.F64.Exp)
+(function DivideVec2fFloat32520 (Sys.Maths.Vec2 a)(Float32 scale)(Sys.Maths.Vec2 product)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 723))
+(alias DivideVec2fFloat32520 Sys.Maths.F32.DivideVec2fFloat32)
 
-(function WriteAsHex521  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1246))
-(alias WriteAsHex521 Sys.IO.Native.WriteAsHex)
+(function IsEqVec2fVec2f521 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2  b)->(Bool result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 725))
+(alias IsEqVec2fVec2f521 Sys.Maths.F32.IsEqVec2fVec2f)
 
-(function Floor522 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 495))
-(alias Floor522 Sys.Maths.F64.Floor)
+(function IsNotEqVec3fVec3f522 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)->(Bool result) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 726))
+(alias IsNotEqVec3fVec3f522 Sys.Maths.F32.IsNotEqVec3fVec3f)
 
-(function Ceiling523 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 496))
-(alias Ceiling523 Sys.Maths.F64.Ceiling)
+(function Tan523 (Float64 radians) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 485))
+(alias Tan523 Sys.Maths.F64.Tan)
 
-(function Power524 (Float64 base)(Float64 exponent) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 497))
-(alias Power524 Sys.Maths.F64.Power)
+(function ArcSin524 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 486))
+(alias ArcSin524 Sys.Maths.F64.ArcSin)
 
-(function SquareRoot525 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 500))
-(alias SquareRoot525 Sys.Maths.F64.SquareRoot)
+(function ArcTanYX525 (Float64 y)(Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 489))
+(alias ArcTanYX525 Sys.Maths.F64.ArcTanYX)
 
-(function IsFinite526 (Float64 x) -> (Bool isFinite) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 510))
-(alias IsFinite526 Sys.Maths.F64.IsFinite)
+(function Sinh526 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 491))
+(alias Sinh526 Sys.Maths.F64.Sinh)
 
-(function QuietNan527  -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 511))
-(alias QuietNan527 Sys.Maths.F64.QuietNan)
+(function Exp527 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 494))
+(alias Exp527 Sys.Maths.F64.Exp)
 
-(function MinValue528  -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 512))
-(alias MinValue528 Sys.Maths.F64.MinValue)
+(function Ceiling528 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 496))
+(alias Ceiling528 Sys.Maths.F64.Ceiling)
 
-(function MaxValue529  -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 513))
-(alias MaxValue529 Sys.Maths.F64.MaxValue)
+(function Power529 (Float64 base)(Float64 exponent) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 497))
+(alias Power529 Sys.Maths.F64.Power)
 
-(function ToInt32530 (Float64 x) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 514))
-(alias ToInt32530 Sys.Maths.F64.ToInt32)
+(function SquareRoot530 (Float64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 500))
+(alias SquareRoot530 Sys.Maths.F64.SquareRoot)
 
-(function Clamp531 (Int32 x)(Int32 lower)(Int32 upper) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 387))
-(alias Clamp531 Sys.Maths.I32.Clamp)
+(function IsFinite531 (Float64 x) -> (Bool isFinite) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 510))
+(alias IsFinite531 Sys.Maths.F64.IsFinite)
 
-(function RightShift532 (Int32 x)(Int32 bitCount) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 390))
-(alias RightShift532 Sys.Maths.I32.RightShift)
+(function QuietNan532  -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 511))
+(alias QuietNan532 Sys.Maths.F64.QuietNan)
 
-(function MinOf533 (Int32 x)(Int32 y) -> (Int32 minValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 392))
-(alias MinOf533 Sys.Maths.I32.MinOf)
+(function MinValue533  -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 512))
+(alias MinValue533 Sys.Maths.F64.MinValue)
 
-(function ToFloat64534 (Int32 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 398))
-(alias ToFloat64534 Sys.Maths.I32.ToFloat64)
+(function MaxValue534  -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 513))
+(alias MaxValue534 Sys.Maths.F64.MaxValue)
 
-(function FromString535  (IString text)->(Int32 value)(Bool isOk) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 404))
-(alias FromString535 Sys.Maths.I32.FromString)
+(function ToInt32535 (Float64 x) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 514))
+(alias ToInt32535 Sys.Maths.F64.ToInt32)
 
-(function SubtractVec2iVec2i536 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 406))
-(alias SubtractVec2iVec2i536 Sys.Maths.I32.SubtractVec2iVec2i)
+(function Clamp536 (Int32 x)(Int32 lower)(Int32 upper) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 387))
+(alias Clamp536 Sys.Maths.I32.Clamp)
 
-(function FromARGB537  (Int32 alphaByte)(Int32 redByte)(Int32 greenByte)(Int32 blueByte)->(Int32 argb) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 407))
-(alias FromARGB537 Sys.Maths.I32.FromARGB)
+(function RightShift537 (Int32 x)(Int32 bitCount) -> (Int32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 390))
+(alias RightShift537 Sys.Maths.I32.RightShift)
 
-(function WritePointer538  (Sys.IO.IWriter writer) (Pointer x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1259))
-(alias WritePointer538 Sys.IO.Native.WritePointer)
+(function MinOf538 (Int32 x)(Int32 y) -> (Int32 minValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 392))
+(alias MinOf538 Sys.Maths.I32.MinOf)
 
-(function Clamp539 (Int64 x)(Int64 lower)(Int64 upper) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 201))
-(alias Clamp539 Sys.Maths.I64.Clamp)
+(function FromString539  (IString text)->(Int32 value)(Bool isOk) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 404))
+(alias FromString539 Sys.Maths.I32.FromString)
 
-(function Abs540 (Int64 x) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 202))
-(alias Abs540 Sys.Maths.I64.Abs)
+(function SubtractVec2iVec2i540 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 406))
+(alias SubtractVec2iVec2i540 Sys.Maths.I32.SubtractVec2iVec2i)
 
-(function MinOf541 (Int64 x)(Int64 y) -> (Int64 minValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 206))
-(alias MinOf541 Sys.Maths.I64.MinOf)
+(function FromARGB541  (Int32 alphaByte)(Int32 redByte)(Int32 greenByte)(Int32 blueByte)->(Int32 argb) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 407))
+(alias FromARGB541 Sys.Maths.I32.FromARGB)
 
-(function MinValue542  -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 207))
-(alias MinValue542 Sys.Maths.I64.MinValue)
+(function WritePointer542  (Sys.IO.IWriter writer) (Pointer x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1259))
+(alias WritePointer542 Sys.IO.Native.WritePointer)
 
-(function MaxValue543  -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 208))
-(alias MaxValue543 Sys.Maths.I64.MaxValue)
+(function Clamp543 (Int64 x)(Int64 lower)(Int64 upper) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 201))
+(alias Clamp543 Sys.Maths.I64.Clamp)
 
-(function Mod544 (Int64 numerator)(Int64 denominator) -> (Int64 remainder) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 209))
-(alias Mod544 Sys.Maths.I64.Mod)
+(function Abs544 (Int64 x) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 202))
+(alias Abs544 Sys.Maths.I64.Abs)
 
-(function ToFloat32545 (Int64 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 211))
-(alias ToFloat32545 Sys.Maths.I64.ToFloat32)
+(function RightShift545 (Int64 x)(Int64 bitCount) -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 204))
+(alias RightShift545 Sys.Maths.I64.RightShift)
 
-(function ToFloat64546 (Int64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 212))
-(alias ToFloat64546 Sys.Maths.I64.ToFloat64)
+(function MinOf546 (Int64 x)(Int64 y) -> (Int64 minValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 206))
+(alias MinOf546 Sys.Maths.I64.MinOf)
 
-(function GenUnique547  -> (Int64 sessionValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 213))
-(alias GenUnique547 Sys.Maths.I64.GenUnique)
+(function MinValue547  -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 207))
+(alias MinValue547 Sys.Maths.I64.MinValue)
 
-(function ICoroutineControlAdd548  (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 87))
-(alias ICoroutineControlAdd548 Sys.Native.ICoroutineControlAdd)
+(function MaxValue548  -> (Int64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 208))
+(alias MaxValue548 Sys.Maths.I64.MaxValue)
 
-(function ICoroutineControlContinue549  (Pointer hObject) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 88))
-(alias ICoroutineControlContinue549 Sys.Native.ICoroutineControlContinue)
+(function Mod549 (Int64 numerator)(Int64 denominator) -> (Int64 remainder) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 209))
+(alias Mod549 Sys.Maths.I64.Mod)
 
-(function ICoroutineControlRelease550  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 89))
-(alias ICoroutineControlRelease550 Sys.Native.ICoroutineControlRelease)
+(function ToFloat32550 (Int64 x) -> (Float32 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 211))
+(alias ToFloat32550 Sys.Maths.I64.ToFloat32)
 
-(function SetWriterBuffering551  (Sys.IO.IWriter writer)(Int32 length)(Int32 mode)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1263))
-(alias SetWriterBuffering551 Sys.IO.Native.SetWriterBuffering)
+(function ToFloat64551 (Int64 x) -> (Float64 value) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 212))
+(alias ToFloat64551 Sys.Maths.I64.ToFloat64)
 
-(function AddVec3fVec3f552 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 420))
-(alias AddVec3fVec3f552 Sys.Geometry.F32.AddVec3fVec3f)
+(function GenUnique552  -> (Int64 sessionValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 213))
+(alias GenUnique552 Sys.Maths.I64.GenUnique)
 
-(function SubtractVec3fVec3f553 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 421))
-(alias SubtractVec3fVec3f553 Sys.Geometry.F32.SubtractVec3fVec3f)
+(function ICoroutineControlAdd553  (Pointer hObject)(Sys.ICoroutine coroutine) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 87))
+(alias ICoroutineControlAdd553 Sys.Native.ICoroutineControlAdd)
 
-(function SubtractVec2fVec2f554 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 422))
-(alias SubtractVec2fVec2f554 Sys.Geometry.F32.SubtractVec2fVec2f)
+(function ICoroutineControlContinue554  (Pointer hObject) -> (Int64 id) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 88))
+(alias ICoroutineControlContinue554 Sys.Native.ICoroutineControlContinue)
 
-(function GetTriSpan555 (Sys.Maths.Vec3 d)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec2 span) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 425))
-(alias GetTriSpan555 Sys.Geometry.F32.GetTriSpan)
+(function ICoroutineControlRelease555  (Pointer hObject)(Int64 id) ->  : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 89))
+(alias ICoroutineControlRelease555 Sys.Native.ICoroutineControlRelease)
 
-(function MultiplyVec3fVec3f556 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 crossProduct) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 426))
-(alias MultiplyVec3fVec3f556 Sys.Geometry.F32.MultiplyVec3fVec3f)
+(function SetWriterBuffering556  (Sys.IO.IWriter writer)(Int32 length)(Int32 mode)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1263))
+(alias SetWriterBuffering556 Sys.IO.Native.SetWriterBuffering)
 
-(function MultiplyFloat32Vec3f557 (Float32 f)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 427))
-(alias MultiplyFloat32Vec3f557 Sys.Geometry.F32.MultiplyFloat32Vec3f)
+(function AddVec3fVec3f557 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 420))
+(alias AddVec3fVec3f557 Sys.Geometry.F32.AddVec3fVec3f)
 
-(function MultiplyMatrix4x4fMatrix4x4f558 (Sys.Maths.Matrix4x4 a)(Sys.Maths.Matrix4x4 b)(Sys.Maths.Matrix4x4 product) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 429))
-(alias MultiplyMatrix4x4fMatrix4x4f558 Sys.Geometry.F32.MultiplyMatrix4x4fMatrix4x4f)
+(function SubtractVec3fVec3f558 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 421))
+(alias SubtractVec3fVec3f558 Sys.Geometry.F32.SubtractVec3fVec3f)
 
-(function Normalize559 (Sys.Maths.Vec3 n) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 432))
-(alias Normalize559 Sys.Geometry.F32.Normalize)
+(function SubtractVec2fVec2f559 (Sys.Maths.Vec2 a)(Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 422))
+(alias SubtractVec2fVec2f559 Sys.Geometry.F32.SubtractVec2fVec2f)
 
-(function GetNormal560 (Sys.Maths.Triangle t)(Sys.Maths.Vec3 normal) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 433))
-(alias GetNormal560 Sys.Geometry.F32.GetNormal)
+(function GetTriSpan560 (Sys.Maths.Vec3 d)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec2 span) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 425))
+(alias GetTriSpan560 Sys.Geometry.F32.GetTriSpan)
 
-(function LerpVec3561 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Float32 t)(Sys.Maths.Vec3 mixed) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 434))
-(alias LerpVec3561 Sys.Geometry.F32.LerpVec3)
+(function MultiplyVec3fVec3f561 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Vec3 crossProduct) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 426))
+(alias MultiplyVec3fVec3f561 Sys.Geometry.F32.MultiplyVec3fVec3f)
 
-(function MultiplyQuatfQuatf562 (Sys.Maths.Quat a)(Sys.Maths.Quat b)(Sys.Maths.Quat output) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 436))
-(alias MultiplyQuatfQuatf562 Sys.Geometry.F32.MultiplyQuatfQuatf)
+(function MultiplyFloat32Vec3f562 (Float32 f)(Sys.Maths.Vec3 a)(Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 427))
+(alias MultiplyFloat32Vec3f562 Sys.Geometry.F32.MultiplyFloat32Vec3f)
 
-(function TryGetCommonSegment563 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Quadf p)(Sys.Maths.Quadf q) -> (Bool matched) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 441))
-(alias TryGetCommonSegment563 Sys.Geometry.F32.TryGetCommonSegment)
+(function MultiplyMatrix4x4fMatrix4x4f563 (Sys.Maths.Matrix4x4 a)(Sys.Maths.Matrix4x4 b)(Sys.Maths.Matrix4x4 product) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 429))
+(alias MultiplyMatrix4x4fMatrix4x4f563 Sys.Geometry.F32.MultiplyMatrix4x4fMatrix4x4f)
 
-(function AnyColour564 (Int32 rMin)(Int32 rMax)(Int32 gMin)(Int32 gMax)(Int32 bMin)(Int32 bMax)(Int32 aMin)(Int32 aMax) -> (Int32 colour) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 145))
-(alias AnyColour564 Sys.Random.AnyColour)
+(function Normalize564 (Sys.Maths.Vec3 n) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 432))
+(alias Normalize564 Sys.Geometry.F32.Normalize)
 
-(function AnyInt565 (Int32 minValue)(Int32 maxValue) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 147))
-(alias AnyInt565 Sys.Random.AnyInt)
+(function GetNormal565 (Sys.Maths.Triangle t)(Sys.Maths.Vec3 normal) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 433))
+(alias GetNormal565 Sys.Geometry.F32.GetNormal)
 
-(function RollDice566 (Int32 count)(Int32 sides) -> (Int32 sum) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 149))
-(alias RollDice566 Sys.Random.RollDice)
+(function LerpVec3566 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Float32 t)(Sys.Maths.Vec3 mixed) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 434))
+(alias LerpVec3566 Sys.Geometry.F32.LerpVec3)
 
-(function RollDie567 (Int32 sides) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 150))
-(alias RollDie567 Sys.Random.RollDie)
+(function MultiplyQuatfQuatf567 (Sys.Maths.Quat a)(Sys.Maths.Quat b)(Sys.Maths.Quat output) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 436))
+(alias MultiplyQuatfQuatf567 Sys.Geometry.F32.MultiplyQuatfQuatf)
 
-(function Seed568 (Int32 value) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 151))
-(alias Seed568 Sys.Random.Seed)
+(function TryGetCommonSegment568 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Quadf p)(Sys.Maths.Quadf q) -> (Bool matched) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 441))
+(alias TryGetCommonSegment568 Sys.Geometry.F32.TryGetCommonSegment)
 
-(function MakeColour569 (Int32 r)(Int32 g)(Int32 b)(Int32 a) -> (Int32 colour) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.base.inl" 66))
-(alias MakeColour569 Sys.Type.MakeColour)
+(function AnyColour569 (Int32 rMin)(Int32 rMax)(Int32 gMin)(Int32 gMax)(Int32 bMin)(Int32 bMax)(Int32 aMin)(Int32 aMax) -> (Int32 colour) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 145))
+(alias AnyColour569 Sys.Random.AnyColour)
 
-(function GetStdOut570  -> (Sys.IO.IWriter stdout) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1231))
-(alias GetStdOut570 Sys.IO.GetStdOut)
+(function AnyInt570 (Int32 minValue)(Int32 maxValue) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 147))
+(alias AnyInt570 Sys.Random.AnyInt)
 
-(function WriteToFile571  (IString path) -> (Sys.IO.IFileWriter writer) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1233))
-(alias WriteToFile571 Sys.IO.WriteToFile)
+(function RollDice571 (Int32 count)(Int32 sides) -> (Int32 sum) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 149))
+(alias RollDice571 Sys.Random.RollDice)
 
-(function CommandLine572  -> (IString path) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1234))
-(alias CommandLine572 Sys.IO.CommandLine)
+(function RollDie572 (Int32 sides) -> (Int32 value) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 150))
+(alias RollDie572 Sys.Random.RollDie)
 
-(function AppendEnvironmentVariable573  (IString variableName)(IStringBuilder sb)->(Int32 length) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1235))
-(alias AppendEnvironmentVariable573 Sys.IO.AppendEnvironmentVariable)
+(function Seed573 (Int32 value) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.random.inl" 151))
+(alias Seed573 Sys.Random.Seed)
 
-(function AppendError574  (Int32 errNumber)(IStringBuilder sb)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1236))
-(alias AppendError574 Sys.IO.AppendError)
+(function MakeColour574 (Int32 r)(Int32 g)(Int32 b)(Int32 a) -> (Int32 colour) : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.base.inl" 66))
+(alias MakeColour574 Sys.Type.MakeColour)
 
-(function AppendCmdArg575  (IString argIndex)(IStringBuilder sb)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1237))
-(alias AppendCmdArg575 Sys.IO.AppendCmdArg)
+(function GetStdOut575  -> (Sys.IO.IWriter stdout) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1231))
+(alias GetStdOut575 Sys.IO.GetStdOut)
 
-(function AppendCmdKeyAndValue576  (Int32 argIndex)(IStringBuilder sbKey)(IStringBuilder sbValue)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1238))
-(alias AppendCmdKeyAndValue576 Sys.IO.AppendCmdKeyAndValue)
+(function WriteToFile576  (IString path) -> (Sys.IO.IFileWriter writer) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1233))
+(alias WriteToFile576 Sys.IO.WriteToFile)
 
-(function GetCmdArgCount577  -> (Int32 argCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1239))
-(alias GetCmdArgCount577 Sys.IO.GetCmdArgCount)
+(function CommandLine577  -> (IString path) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1234))
+(alias CommandLine577 Sys.IO.CommandLine)
 
-(function WriteAsDecimal578  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1244))
-(alias WriteAsDecimal578 Sys.IO.Native.WriteAsDecimal)
+(function AppendEnvironmentVariable578  (IString variableName)(IStringBuilder sb)->(Int32 length) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1235))
+(alias AppendEnvironmentVariable578 Sys.IO.AppendEnvironmentVariable)
 
-(function WriteAsFormat579  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1245))
-(alias WriteAsFormat579 Sys.IO.Native.WriteAsFormat)
+(function AppendError579  (Int32 errNumber)(IStringBuilder sb)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1236))
+(alias AppendError579 Sys.IO.AppendError)
 
-(function WriteAsSpecE580  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1247))
-(alias WriteAsSpecE580 Sys.IO.Native.WriteAsSpecE)
+(function AppendCmdArg580  (IString argIndex)(IStringBuilder sb)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1237))
+(alias AppendCmdArg580 Sys.IO.AppendCmdArg)
 
-(function WriteAsUnsigned581  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1250))
-(alias WriteAsUnsigned581 Sys.IO.Native.WriteAsUnsigned)
+(function AppendCmdKeyAndValue581  (Int32 argIndex)(IStringBuilder sbKey)(IStringBuilder sbValue)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1238))
+(alias AppendCmdKeyAndValue581 Sys.IO.AppendCmdKeyAndValue)
 
-(function WriteIString582  (Sys.IO.IWriter writer) (IString s)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1254))
-(alias WriteIString582 Sys.IO.Native.WriteIString)
+(function GetCmdArgCount582  -> (Int32 argCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1239))
+(alias GetCmdArgCount582 Sys.IO.GetCmdArgCount)
 
-(function WriteInt64583  (Sys.IO.IWriter writer) (Int64 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1256))
-(alias WriteInt64583 Sys.IO.Native.WriteInt64)
+(function WriteAsDecimal583  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1244))
+(alias WriteAsDecimal583 Sys.IO.Native.WriteAsDecimal)
 
-(function WriteFloat64584  (Sys.IO.IWriter writer) (Float64 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1258))
-(alias WriteFloat64584 Sys.IO.Native.WriteFloat64)
+(function WriteAsFormat584  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1245))
+(alias WriteAsFormat584 Sys.IO.Native.WriteAsFormat)
 
-(function WriteSubstring585  (Sys.IO.IWriter writer) (IString s) (Int32 startPos) (Int32 numberOfChars) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1260))
-(alias WriteSubstring585 Sys.IO.Native.WriteSubstring)
+(function WriteAsSpecE585  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1247))
+(alias WriteAsSpecE585 Sys.IO.Native.WriteAsSpecE)
 
-(function FlushWriter586  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1262))
-(alias FlushWriter586 Sys.IO.Native.FlushWriter)
+(function WriteAsUnsigned586  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1250))
+(alias WriteAsUnsigned586 Sys.IO.Native.WriteAsUnsigned)
 
-(function GetFileLength587  (Sys.IO.IFileWriter writer) -> (Int64 length) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1264))
-(alias GetFileLength587 Sys.IO.Native.GetFileLength)
+(function WriteIString587  (Sys.IO.IWriter writer) (IString s)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1254))
+(alias WriteIString587 Sys.IO.Native.WriteIString)
 
-(function GetFilePosition588  (Sys.IO.IFileWriter writer) -> (Int64 position) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1265))
-(alias GetFilePosition588 Sys.IO.Native.GetFilePosition)
+(function WriteInt64588  (Sys.IO.IWriter writer) (Int64 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1256))
+(alias WriteInt64588 Sys.IO.Native.WriteInt64)
 
-(function CloseWriter589  (Sys.IO.IWriter writer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1272))
-(alias CloseWriter589 Sys.IO.Native.CloseWriter)
+(function WriteFloat64589  (Sys.IO.IWriter writer) (Float64 x)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1258))
+(alias WriteFloat64589 Sys.IO.Native.WriteFloat64)
 
-(function SetRightAlign590  (Sys.IO.IWriter writer) (Bool rightAlign)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1268))
-(alias SetRightAlign590 Sys.IO.Native.SetRightAlign)
+(function WriteSubstring590  (Sys.IO.IWriter writer) (IString s) (Int32 startPos) (Int32 numberOfChars) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1260))
+(alias WriteSubstring590 Sys.IO.Native.WriteSubstring)
 
-(function UseDefaultFormatting591  (Sys.IO.IWriter writer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1271))
-(alias UseDefaultFormatting591 Sys.IO.Native.UseDefaultFormatting)
+(function FlushWriter591  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1262))
+(alias FlushWriter591 Sys.IO.Native.FlushWriter)
+
+(function GetFileLength592  (Sys.IO.IFileWriter writer) -> (Int64 length) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1264))
+(alias GetFileLength592 Sys.IO.Native.GetFileLength)
+
+(function GetFilePosition593  (Sys.IO.IFileWriter writer) -> (Int64 position) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1265))
+(alias GetFilePosition593 Sys.IO.Native.GetFilePosition)
+
+(function CloseWriter594  (Sys.IO.IWriter writer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1272))
+(alias CloseWriter594 Sys.IO.Native.CloseWriter)
+
+(function SetRightAlign595  (Sys.IO.IWriter writer) (Bool rightAlign)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1268))
+(alias SetRightAlign595 Sys.IO.Native.SetRightAlign)
+
+(function UseDefaultFormatting596  (Sys.IO.IWriter writer) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1271))
+(alias UseDefaultFormatting596 Sys.IO.Native.UseDefaultFormatting)

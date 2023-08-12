@@ -72,20 +72,22 @@
 
 // Example: SysGeoff goes in and Sys.Geoff goes out
 (function ConvertPascalCaseToNamespace (IString pascalCase)(IStringBuilder nsBuilder) -> :
-	(if (not (IsCapital (pascalCase 0)))
-		(#path msg "ConvertPascalCaseToNamespace(arg =" pascalCase ", ...) arg did not begin with a capital letter")
-		(Sys.Throw 0 msg)
+	(Bool isFirstCharCapital = (Sys.Type.Strings.IsUpperCase (pascalCase 0)))
+	(if (not isFirstCharCapital)
+		(
+			(#path msg "ConvertPascalCaseToNamespace(arg =" pascalCase ", ...) arg did not begin with a capital letter")
+			(Sys.Throw 0 msg)
+		)
 	)
+	
+	(nsBuilder.AppendChar (pascalCase 0))
 	
 	(Bool first = true)
 	
-	(foreach c # pascalCase 
-		(if (IsCapital c)
-			(if first 
-				(first = false)
-			else
-				(nsBuilder ".")
-			)
+	(#for (Int32 i = 1) (i < pascalCase.Length)(i += 1)
+		(Int32 c = (pascalCase i))
+		(if (Sys.Type.Strings.IsUpperCase c)
+			(nsBuilder ".")
 		)
 		
 		(nsBuilder.AppendChar c)		
@@ -108,9 +110,9 @@
 		(buttonName.Clear)
 		(t.AppendMethodName methodName 0 i)
 		(if (Sys.Type.Strings.StartsWith methodName "On")
-			(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName 2 "Clicked"))
+			(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName 2 10000 "Clicked"))
 			(if (clickedPos > 0)
-				(buttonName.AppendSubstring methodPascalCase 2 (clickedPos - 2))
+				(methodPascalCase.AppendSubstring methodName 2 (clickedPos - 2))
 				(ConvertPascalCaseToNamespace methodPascalCase buttonName) 
 				(overlay.AddMenu methodName (Sys.Maths.I32.ToInt64 i) buttonName)
 			)
@@ -173,6 +175,8 @@
 	(this.engine.SetOverlayToggleKey overlayToggleKey)
 	(this.engine.SetGUIToggleKey guiToggleKey)
 	
+	(IStringBuilder eventString = (Sys.Type.NewTokenBuilder))
+	
 	(MouseEvent mouseEvent)
 	(KeyboardEvent keyEvent)
 	(MHost.GuiTypes.GuiEvent guiEvent)
@@ -233,7 +237,11 @@
 			)
 			
 			(if (guiEvent.eventId == (#EvIdOverlayButtonClick))
-				
+				(eventString.Clear)
+				(guiOverlay.AppendEventString eventString guiEvent)
+				(debug)
+				(ButtonArgs buttonArgs)
+				(invoke this.overlayHandler eventString buttonArgs)
 			)
 		)
 		
