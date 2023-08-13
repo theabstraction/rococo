@@ -72,3 +72,13 @@ namespace Rococo
 		virtual void ShowWindow(bool show, IDebugControl* debugControl) = 0;
 	};
 }
+
+namespace Rococo::OS
+{
+	struct IAppControl;
+}
+
+namespace Rococo::Windows::IDE
+{
+	ROCOCO_API IDebuggerWindow* CreateDebuggerWindowForStdout(Windows::IWindow& parent, OS::IAppControl& appControl);
+}

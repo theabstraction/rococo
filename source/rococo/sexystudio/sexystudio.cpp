@@ -1841,7 +1841,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 	template<class ACTION> bool EnumerateFieldsOfClass(cr_substring className, cr_substring doc, ACTION& action)
 	{
-		cr_substring def = Rococo::Sexy::GetClassDefinition(className, doc);
+		cr_substring def = Rococo::Sex::Inference::GetClassDefinition(className, doc);
 		if (def)
 		{
 			struct ANON: IFieldEnumerator
@@ -1863,7 +1863,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 				ANON(ACTION& _action) : action(_action) {}
 			} buildList(action);
 
-			Rococo::Sexy::ForEachFieldOfClassDef(className, def, buildList);
+			Rococo::Sex::Inference::ForEachFieldOfClassDef(className, def, buildList);
 			return true;
 		}	
 
@@ -1955,7 +1955,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 					memberDepth--;
 					return;
 				}
-				Rococo::Sexy::EnumerateLocalFields(*this, searchRoot, fieldType, document);
+				Rococo::Sex::Inference::EnumerateLocalFields(*this, searchRoot, fieldType, document);
 			}
 			memberDepth--;
 		}
@@ -1979,7 +1979,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			return;
 		}
 
-		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
+		Substring token = Rococo::Sex::Inference::GetFirstTokenFromLeft(candidate);
 		token.start++;
 		if (token.start >= token.finish || !IsAlphaNumeric(*token.start))
 		{
@@ -2015,7 +2015,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 		Substring type;
 		bool isThis;
-		if (type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
+		if (type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
 		{
 			if (isThis)
 			{
@@ -2044,7 +2044,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 				}
 				else
 				{	
-					Rococo::Sexy::EnumerateLocalFields(routeTextToAutoComplete, candidateInDoc, type, doc);
+					Rococo::Sex::Inference::EnumerateLocalFields(routeTextToAutoComplete, candidateInDoc, type, doc);
 					if (!routeTextToAutoComplete.atLeastOneItem)
 					{
 						auto finalType = routeTextToAutoComplete.hint ? routeTextToAutoComplete.hint : type;
@@ -2057,7 +2057,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 	void ShowAutocompleteDataForType(ISexyEditor& editor, cr_substring candidate, cr_substring doc)
 	{
-		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
+		Substring token = Rococo::Sex::Inference::GetFirstTokenFromLeft(candidate);
 
 		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring_Null(), *database, doc);
 		database->ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
@@ -2076,7 +2076,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 	void ShowFunctionArgumentsForType(ISexyEditor& editor, cr_substring candidate)
 	{
-		Substring token = Rococo::Sexy::GetFirstTokenFromLeft(candidate);
+		Substring token = Rococo::Sex::Inference::GetFirstTokenFromLeft(candidate);
 
 		callTipArgs[0] = 0;
 
@@ -2095,7 +2095,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		{
 			return false;
 		}
-		else if (Rococo::Sexy::IsSexyKeyword(candidate))
+		else if (Rococo::Sex::Inference::IsSexyKeyword(candidate))
 		{
 			return false;
 		}
@@ -2505,7 +2505,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		} searchCallback;
 		searchCallback.member = member;
 
-		Rococo::Sexy::EnumerateLocalFields(searchCallback, member, type, doc);
+		Rococo::Sex::Inference::EnumerateLocalFields(searchCallback, member, type, doc);
 
 		return searchCallback.fieldType;
 	}
@@ -2681,7 +2681,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 		Substring type;
 		bool isThis;
-		if (type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
+		if (type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
 		{
 			Substring branchType = type;
 			Substring subsearch = searchToken;
@@ -2745,7 +2745,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 		activationPoint = editorLine.start + caretColumn - 1;
 
-		cstr openingToken = Rococo::Sexy::GetFirstNonTokenPointerFromRight(editorLine, activationPoint);
+		cstr openingToken = Rococo::Sex::Inference::GetFirstNonTokenPointerFromRight(editorLine, activationPoint);
 		if (openingToken == nullptr)
 		{
 			openingToken = editorLine.start;
@@ -2755,7 +2755,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			openingToken++; // this takes us into the alphanumeric string
 		}
 
-		Substring searchToken = Rococo::Sexy::GetFirstTokenFromLeft({ openingToken, activationPoint + 1 });
+		Substring searchToken = Rococo::Sex::Inference::GetFirstTokenFromLeft({ openingToken, activationPoint + 1 });
 		if (!searchToken)
 		{
 			return Substring::Null();

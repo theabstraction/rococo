@@ -640,7 +640,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 	}
 };
 
-namespace Rococo::IO
+namespace Rococo::Sex::Assets
 {
 	struct CSVToken
 	{
@@ -781,7 +781,7 @@ namespace Rococo::IO
 					}
 					catch (IException& ex)
 					{
-						Throw(ex.ErrorCode(), "Error at row %d:\n%s", row, ex.Message());
+						Rococo::Throw(ex.ErrorCode(), "Error at row %d:\n%s", row, ex.Message());
 					}
 				}
 

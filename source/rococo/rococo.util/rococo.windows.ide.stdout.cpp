@@ -1,3 +1,4 @@
+#define ROCOCO_API __declspec(dllexport)
 #include <rococo.api.h>
 #include <rococo.visitors.h>
 #include <stdio.h>
@@ -170,18 +171,12 @@ namespace
     };
 }
 
-namespace Rococo
+namespace Rococo::Windows::IDE
 {
-    namespace Windows
+    ROCOCO_API IDebuggerWindow* CreateDebuggerWindowForStdout(Windows::IWindow& parent, OS::IAppControl& appControl)
     {
-        namespace IDE
-        {
-            IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, OS::IAppControl& appControl)
-            {
-                UNUSED(parent);
-                UNUSED(appControl);
-                return new StdoutDebugger();
-            }
-        }
+        UNUSED(parent);
+        UNUSED(appControl);
+        return new StdoutDebugger();
     }
 }

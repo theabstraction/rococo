@@ -230,6 +230,7 @@ namespace Rococo
 
 		ROCOCO_WINDOWS_API void SetOverlappedWindowConfig(WindowConfig& config, const Vec2i& span, int32 unused, HWND hWndOwner, cstr name, DWORD style, DWORD exStyle, HMENU hPopupMenu)
 		{
+			UNUSED(unused);
 			config.style = style | WS_OVERLAPPED;
 			config.exStyle = exStyle;
 			config.hMenu = hPopupMenu;

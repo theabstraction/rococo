@@ -1293,7 +1293,7 @@ namespace Rococo::Strings
 	}
 }
 
-namespace Rococo::Sexy
+namespace Rococo::Sex::Inference
 {
 	ROCOCO_UTIL_API bool IsNotTokenChar(char c)
 	{
@@ -1330,7 +1330,7 @@ namespace Rococo::Sexy
 
 		for (cstr p = s.start; p < s.finish; ++p)
 		{
-			if (!Rococo::Sexy::IsNotTokenChar(*p))
+			if (!IsNotTokenChar(*p))
 			{
 				return p;
 			}
@@ -1345,7 +1345,7 @@ namespace Rococo::Sexy
 
 		for (cstr p = startPosition - 1; p >= doc.start; p--)
 		{
-			if (Rococo::Sexy::IsNotTokenChar(*p))
+			if (IsNotTokenChar(*p))
 			{
 				return p;
 			}
@@ -1387,7 +1387,7 @@ namespace Rococo::Sexy
 
 	ROCOCO_UTIL_API Substring GetFirstTokenFromLeft(cr_substring s)
 	{
-		return s ? Substring{ s.start, Rococo::Sexy::GetFirstNonTypeCharPointer(s) } : Substring_Null();
+		return s ? Substring{ s.start, GetFirstNonTypeCharPointer(s) } : Substring_Null();
 	}
 } // Rococo::Strings
 

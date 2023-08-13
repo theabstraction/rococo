@@ -9,7 +9,7 @@
 #include <rococo.types.inference.h>
 
 using namespace Rococo;
-using namespace Rococo::Sexy;
+using namespace Rococo::Sex;
 using namespace Rococo::Strings;
 
 namespace
@@ -90,7 +90,7 @@ namespace
 	}
 }
 
-namespace Rococo::Sexy
+namespace Rococo::Sex::Inference
 {
 	bool IsBlankspace(char c)
 	{
@@ -613,7 +613,7 @@ namespace Rococo::Sexy
 			return Substring::Null();
 		}
 
-		using namespace Rococo::Sexy;
+		using namespace Rococo::Sex::Inference;
 
 		Substring searchTerm = token;
 

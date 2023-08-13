@@ -7,7 +7,7 @@ namespace Rococo::Script
 	struct IPublicScriptSystem;
 }
 
-namespace Rococo::Assets
+namespace Rococo::Sex::Assets
 {
 	ROCOCO_INTERFACE IAssetGenerator
 	{

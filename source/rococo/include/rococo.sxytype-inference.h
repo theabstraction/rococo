@@ -11,7 +11,7 @@ namespace Rococo::SexyStudio
 	struct ISexyFieldEnumerator;
 }
 
-namespace Rococo::Sexy
+namespace Rococo::Sex::Inference
 {
 	struct TypeInference
 	{

@@ -30,7 +30,6 @@
 #include <algorithm>
 
 #ifdef _WIN32
-# pragma comment(lib, "rococo.util.ex.lib")
 # pragma comment(lib, "rococo.audio.lib")
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////

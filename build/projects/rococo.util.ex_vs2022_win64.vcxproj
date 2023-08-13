@@ -236,7 +236,6 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.util.ex\renderer.utils.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util.ex\rococo.event.map.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

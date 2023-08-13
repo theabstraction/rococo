@@ -81,19 +81,15 @@ namespace Rococo::Sexy
 	};
 }
 
-namespace Rococo::IO
+namespace Rococo::Sex::Assets
 {
-	using namespace Rococo::Script;
-	using namespace Rococo::Sexy;
-	using namespace Rococo::Compiler;
-
 	// Parse the CSV string and invoke member builder functions to build the object hierarchy.
 	// The implementation is guaranteed to take responsibility for minimizing dynamic memory allocation.
-	void ParseTabbedCSV_AssetFile(cstr csvString, IMemberBuilder& builder);
+	void ParseTabbedCSV_AssetFile(cstr csvString, Rococo::Sexy::IMemberBuilder& builder);
 
 	// Parse a CSV string and build up the targeted Sexy asset. This function is used by LoadAndParseSexyObjectTree to do the hard work
-	void ParseSexyObjectTree(cstr treeAsCSVString, const IStructure& assetType, void* assetData, IPublicScriptSystem& ss);
+	void ParseSexyObjectTree(cstr treeAsCSVString, const Rococo::Compiler::IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss);
 
 	// Given a sexy object of given type, overwrites its fields with the object tree at the specified ping path with the CSV data specified by the ping path. 
-	void LoadAndParseSexyObjectTree(IInstallation& installation, cstr pingPath, const IStructure& assetType, void* assetData, IPublicScriptSystem& ss);
+	void LoadAndParseSexyObjectTree(IO::IInstallation& installation, cstr pingPath, const Rococo::Compiler::IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss);
 }

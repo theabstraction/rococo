@@ -649,23 +649,6 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
-    public class RococoUtilExProject : RococoProject
-    {
-        public RococoUtilExProject() : base("rococo.util.ex")
-        {
-        }
-
-        [Configure()]
-        public void ConfigureAll(Configuration conf, Target target)
-        {
-            StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.Defines.Add("ROCOCO_UTILS_EX_API=__declspec(dllexport)");
-            conf.Defines.Add("RENDERER_API=__declspec(dllexport)");
-            conf.AddPublicDependency<RococoUtilsProject>(target);
-        }
-    }
-
-    [Sharpmake.Generate]
     public class RococoPackagerProject : RococoProject
     {
         public RococoPackagerProject() : base("rococo.packager")
@@ -682,9 +665,9 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
-    public class RococoMiscUtilsProject : RococoProject
+    public class RococoSexInferenceProject : RococoProject
     {
-        public RococoMiscUtilsProject() : base("rococo.misc.utils")
+        public RococoSexInferenceProject() : base("rococo.sex.inference")
         {
         }
 
@@ -693,11 +676,43 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
-            conf.AddPublicDependency<SexyUtilProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoGraphicsProject : RococoProject
+    {
+        public RococoGraphicsProject() : base("rococo.graphics")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoSexAssetsProject : RococoProject
+    {
+        public RococoSexAssetsProject() : base("rococo.sex.assets")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
         }
     }
 
@@ -713,8 +728,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoGraphicsProject>(target); // Required for the iamge list loader
             conf.AddPublicDependency<SexyScriptProject>(target);
             conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
         }
@@ -983,11 +997,8 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<LibTiffProject>(target);
-            conf.AddPublicDependency<LibJPegProject>(target);
-            conf.AddPublicDependency<LibZipProject>(target);
+            conf.AddPublicDependency<RococoGraphicsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoFontsProject>(target);
         }
@@ -1078,13 +1089,11 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoFontsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
-            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
             conf.AddPublicDependency<RococoSexyIDEProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoFileBrowserProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.AddPublicDependency<RococoMPlatProject>(target);
-            conf.AddPublicDependency<RococoUtilExProject>(target);
             conf.AddPublicDependency<RococoAudioProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
@@ -1108,7 +1117,6 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<RococoUtilExProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
@@ -1147,7 +1155,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<SexyScriptProject>(target);
@@ -1189,7 +1197,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoSexyStudioProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<RococoMiscUtilsProject>(target);
+            conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.SolutionFolder = " - SexyStudio";
         }
     }
@@ -1695,9 +1703,7 @@ namespace Rococo
         public static void AddRococoMajorLibs(Solution.Configuration conf, Target target)
         {
             conf.AddProject<RococoSEXMLProject>(target);
-            conf.AddProject<RococoMiscUtilsProject>(target);
             conf.AddProject<RococoMathsProject>(target);
-            conf.AddProject<RococoUtilExProject>(target);
             conf.AddProject<RococoPackagerProject>(target);
             conf.AddProject<RococoWindowsProject>(target);
             conf.AddProject<RococoSexyIDEProject>(target);
@@ -1723,6 +1729,9 @@ namespace Rococo
             conf.AddProject<RococoAssetsTestProject>(target);
             conf.AddProject<RococoTextureToolProject>(target);
             conf.AddProject<RococoVersioningProject>(target);
+            conf.AddProject<RococoGraphicsProject>(target);
+            conf.AddProject<RococoSexAssetsProject>(target);
+            conf.AddProject<RococoSexInferenceProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -1896,9 +1905,7 @@ namespace Rococo
             arguments.Generate<LibTiffProject>();
             arguments.Generate<LibZipProject>();
 
-            arguments.Generate<RococoMiscUtilsProject>();
             arguments.Generate<RococoMathsProject>();
-            arguments.Generate<RococoUtilExProject>();
             arguments.Generate<RococoPackagerProject>();
             arguments.Generate<RococoWindowsProject>();
             arguments.Generate<RococoSexyIDEProject>();
@@ -1942,6 +1949,9 @@ namespace Rococo
             arguments.Generate<RococoVersioningProject>();
 
             arguments.Generate<RococoSEXMLProject>();
+            arguments.Generate<RococoGraphicsProject>();
+            arguments.Generate<RococoSexAssetsProject>();
+            arguments.Generate<RococoSexInferenceProject>();
         }
     }
 }

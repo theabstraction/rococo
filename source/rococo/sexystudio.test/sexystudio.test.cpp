@@ -67,7 +67,7 @@ R"<CODE>(
 
 	Substring type;
 	bool isThis;
-	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
+	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
 	{
 		Throw(0, "Bad inference - type should be Vec2");
 	}
@@ -128,7 +128,7 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 
 	Substring type;
 	bool isThis;
-	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
+	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
 	{
 		Throw(0, "Bad inference - type should be Vec2");
 	}
@@ -191,7 +191,7 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 
 	Substring type;
 	bool isThis;
-	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
+	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
 	{
 		Throw(0, "Bad inference - type should be Vec4");
 	}
@@ -319,7 +319,7 @@ void TestDeduceMethods(ISexyDatabase& database)
 
 	Substring type;
 	bool isThis;
-	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "IStringBuilder"))
+	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "IStringBuilder"))
 	{
 		Throw(0, "Bad inference - type should be IStringBuilder");
 	}
@@ -384,7 +384,7 @@ void TestDeduceMethods2(ISexyDatabase& database)
 
 	Substring type;
 	bool isThis;
-	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "Sys.Type.IStringBuilder"))
+	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "Sys.Type.IStringBuilder"))
 	{
 		Throw(0, "Bad inference - type should be IStringBuilder");
 	}
@@ -467,7 +467,7 @@ void TestLocalStruct(ISexyDatabase&)
 
 	Substring type;
 	bool isThis;
-	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
+	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
 	{
 		if (!Eq(type, "Thing"))
 		{
@@ -477,7 +477,7 @@ void TestLocalStruct(ISexyDatabase&)
 		}
 	}
 
-	Rococo::Sexy::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
+	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
 
 	if (fieldEnumerator.fieldCount != 3)
 	{
@@ -564,7 +564,7 @@ void TestLocalStruct2(ISexyDatabase&)
 
 	Substring type;
 	bool isThis;
-	if (!(type = Rococo::Sexy::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
+	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
 	{
 		if (!Eq(type, "Thing"))
 		{
@@ -574,7 +574,7 @@ void TestLocalStruct2(ISexyDatabase&)
 		}
 	}
 
-	Rococo::Sexy::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
+	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
 
 	if (fieldEnumerator.fieldCount != 0)
 	{

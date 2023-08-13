@@ -22,7 +22,7 @@ using namespace Rococo::IO;
 using namespace Rococo::Script;
 using namespace Rococo::Sex;
 using namespace Rococo::Sexy;
-using namespace Rococo::Assets;
+using namespace Rococo::Sex::Assets;
 using namespace Rococo::Compiler;
 
 namespace
@@ -828,7 +828,7 @@ static void LoadAssetWithSexyParser(IInstallation* installation, ReflectionArgum
 
 	try
 	{
-		Rococo::IO::LoadAndParseSexyObjectTree(*installation, filename, args.rhsType, args.rhsData, args.ss);
+		LoadAndParseSexyObjectTree(*installation, filename, args.rhsType, args.rhsData, args.ss);
 	}
 	catch (IException& ex)
 	{
@@ -836,7 +836,7 @@ static void LoadAssetWithSexyParser(IInstallation* installation, ReflectionArgum
 	}
 }
 
-namespace Rococo::Assets
+namespace Rococo::Sex::Assets
 {
 	void LinkAssetGenerator(IAssetGenerator& generator, IPublicScriptSystem& ss)
 	{

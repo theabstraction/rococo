@@ -2,11 +2,11 @@
 #include <rococo.strings.h>
 #include <rococo.io.h>
 
-namespace ANON
+namespace Rococo::Assets::Impl
 {
 	using namespace Rococo;
 	using namespace Rococo::IO;
-	using namespace Rococo::Assets;
+	using namespace Rococo::Sex::Assets;
 	using namespace Rococo::Strings;
 
 	struct AssetGenerator_SexyContentFile : public IAssetGenerator
@@ -40,10 +40,10 @@ namespace ANON
 	};
 }
 
-namespace Rococo::Assets
+namespace Rococo::Sex::Assets
 {
 	IAssetGenerator* CreateAssetGenerator_SexyContentFile(IO::IInstallation& installation)
 	{
-		return new ANON::AssetGenerator_SexyContentFile(installation);
+		return new Rococo::Assets::Impl::AssetGenerator_SexyContentFile(installation);
 	}
 }

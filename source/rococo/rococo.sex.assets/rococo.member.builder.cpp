@@ -15,14 +15,15 @@
 
 #include <rococo.maths.h>
 
-namespace
-{
-	using namespace Rococo;
-	using namespace Rococo::IO;
-	using namespace Rococo::Compiler;
-	using namespace Rococo::Sexy;
-	using namespace Rococo::Script;
+using namespace Rococo;
+using namespace Rococo::IO;
+using namespace Rococo::OS;
+using namespace Rococo::Compiler;
+using namespace Rococo::Sexy;
+using namespace Rococo::Script;
 
+namespace Rococo::Sex::Assets::Impl
+{
 	inline ObjectStub* InterfaceToInstance(InterfacePointer i)
 	{
 		auto* p = ((uint8*)i) + (*i)->OffsetToInstance;
@@ -54,7 +55,7 @@ namespace
 			}
 		}
 
-		Throw(0, "%s does not support interface %s of %s", concreteType.Name(), interfaceType->Name(), interfaceType->NullObjectType().Module().Name());
+		Rococo::Throw(0, "%s does not support interface %s of %s", concreteType.Name(), interfaceType->Name(), interfaceType->NullObjectType().Module().Name());
 	}
 
 	struct SexyObjectBuilder: ISexyObjectBuilder, IMemberBuilder
@@ -240,7 +241,7 @@ namespace
 				memberIndexStack.pop_back();
 				if (memberIndexStack.empty())
 				{
-					Throw(0, "%s called too many times. Algorithmic error", __FUNCTION__);
+					Rococo::Throw(0, "%s called too many times. Algorithmic error", __FUNCTION__);
 				}
 			}
 		} memberRefManager;
@@ -309,7 +310,7 @@ namespace
 		{
 			if (itemIndex >= container.elements.size())
 			{
-				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 			}
 
 			auto* member = container.elements[itemIndex].member;
@@ -336,7 +337,7 @@ namespace
 					{
 						if (i->second->ElementType != &valueType)
 						{
-							Throw(0, "Cannot load %s. The target member [%s] value type %s is not the same as the list value type %s", listName, member->Name(), GetFriendlyName(valueType), GetFriendlyName(*i->second->ElementType));
+							Rococo::Throw(0, "Cannot load %s. The target member [%s] value type %s is not the same as the list value type %s", listName, member->Name(), GetFriendlyName(valueType), GetFriendlyName(*i->second->ElementType));
 						}
 
 						i->second->refCount++;
@@ -353,7 +354,7 @@ namespace
 					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
 					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
 					auto* currentList = *ppA;
-					Throw(0, "Cannot load %s. The target member list [%s] is not null. Overwriting of existing lists is not permitted.\nThe length was %d", listName, member->Name(), currentList->NumberOfElements);
+					Rococo::Throw(0, "Cannot load %s. The target member list [%s] is not null. Overwriting of existing lists is not permitted.\nThe length was %d", listName, member->Name(), currentList->NumberOfElements);
 				}
 				*ppA = image;
 			}
@@ -363,7 +364,7 @@ namespace
 		{
 			if (itemIndex >= container.elements.size())
 			{
-				Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 			}
 
 			auto* member = container.elements[itemIndex].member;
@@ -391,12 +392,12 @@ namespace
 					{
 						if (i->second->KeyType != &keyType)
 						{
-							Throw(0, "Cannot load %s. The target member [%s] key type %s is not the same as the map key type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg1Type()), GetFriendlyName(*i->second->KeyType));
+							Rococo::Throw(0, "Cannot load %s. The target member [%s] key type %s is not the same as the map key type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg1Type()), GetFriendlyName(*i->second->KeyType));
 						}
 
 						if (i->second->ValueType != &valueType)
 						{
-							Throw(0, "Cannot load %s. The target member [%s] value type %s is not the same as the map value type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg2Type()), GetFriendlyName(*i->second->ValueType));
+							Rococo::Throw(0, "Cannot load %s. The target member [%s] value type %s is not the same as the map value type %s", mapName, member->Name(), GetFriendlyName(*member->UnderlyingGenericArg2Type()), GetFriendlyName(*i->second->ValueType));
 						}
 
 						i->second->refCount++;
@@ -413,7 +414,7 @@ namespace
 					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
 					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
 					auto* currentMap = *ppA;
-					Throw(0, "Cannot load %s. The target member map [%s] is not null. Overwriting of existing maps is not permitted.\nThe length was %d", mapName, member->Name(), currentMap->NumberOfElements);
+					Rococo::Throw(0, "Cannot load %s. The target member map [%s] is not null. Overwriting of existing maps is not permitted.\nThe length was %d", mapName, member->Name(), currentMap->NumberOfElements);
 				}
 				*ppA = image;
 			}
@@ -423,7 +424,7 @@ namespace
 		{
 			if (memberIndex >= container.elements.size())
 			{
-				Throw(0, "%s: Bad index (%d)", __FUNCTION__, memberIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, memberIndex);
 			}
 
 			auto* member = container.elements[memberIndex].member;
@@ -450,7 +451,7 @@ namespace
 					{
 						if (i->second->ElementType != &elementType)
 						{
-							Throw(0, "Cannot load %s. The target member [%s] type %s is not the same as the array type %s", arrayName, member->Name(), member->UnderlyingGenericArg1Type()->Name(), i->second->ElementType->Name());
+							Rococo::Throw(0, "Cannot load %s. The target member [%s] type %s is not the same as the array type %s", arrayName, member->Name(), member->UnderlyingGenericArg1Type()->Name(), i->second->ElementType->Name());
 						}
 
 						i->second->RefCount++;
@@ -467,7 +468,7 @@ namespace
 					// which entails invoking proper destructors for each array element. We eliminate the complexities by ensuring this will not happen.
 					// It is up to the script programmer to ensure arrays are nulled out prior to deserialization.
 					auto* a = *ppA;
-					Throw(0, "Cannot load %s. The target member array [%s] is not null. Overwriting of existing arrays is not permitted.\nThe length was %d and the capacity was %d", arrayName, member->Name(), a->NumberOfElements, a->ElementCapacity);
+					Rococo::Throw(0, "Cannot load %s. The target member array [%s] is not null. Overwriting of existing arrays is not permitted.\nThe length was %d and the capacity was %d", arrayName, member->Name(), a->NumberOfElements, a->ElementCapacity);
 				}
 				*ppA = image;
 			}
@@ -548,14 +549,14 @@ namespace
 				auto& mtype = *member->UnderlyingType();
 				if (!IsNullType(mtype))
 				{
-					Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __FUNCTION__, mtype.Name(), mtype.Module().Name());
+					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __FUNCTION__, mtype.Name(), mtype.Module().Name());
 				}
 
 				auto& i = mtype.GetInterface(0);
 
 				if (!Eq(i.Name(), interfaceType))
 				{
-					Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
+					Rococo::Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
 				}
 
 				container.elements.push_back(ElementMemberDesc{ member, writeCursor - writePosition });
@@ -579,7 +580,7 @@ namespace
 				auto& mtype = *member->UnderlyingType();
 				if (!Eq(mtype.Name(), type) || !Eq(mtype.Module().Name(), typeSource))
 				{
-					Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
+					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
 				}
 			}
 
@@ -592,7 +593,7 @@ namespace
 			{
 				if (itemIndex >= (int32)container.elements.size())
 				{
-					Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+					Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 				}
 
 				if (container.elements[itemIndex].member != nullptr)
@@ -643,7 +644,7 @@ namespace
 			{
 				if (itemIndex >= (int32)container.elements.size())
 				{
-					Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+					Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
 				}
 				rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
 			}
@@ -651,7 +652,7 @@ namespace
 			{
 				if (elementType == nullptr)
 				{
-					Throw(0, "%s failed. ElementType was nullptr", __FUNCTION__);
+					Rococo::Throw(0, "%s failed. ElementType was nullptr", __FUNCTION__);
 				}
 				rawMemberData = writePosition;
 			}
@@ -708,18 +709,18 @@ namespace
 
 			if (!Rococo::Script::IsSerializable(objectType))
 			{
-				Throw(0, "Bad object %s of type %s defined in %s. Type is not serializable.", name, type, sourceFile);
+				Rococo::Throw(0, "Bad object %s of type %s defined in %s. Type is not serializable.", name, type, sourceFile);
 			}
 
 			if (Eq(name, "#Object0"))
 			{
 				if (!Eq(rootType->Name(), type))
 				{
-					Throw(0, "Type mismatch: the root object in the archive is %s of %s. Expected %s of %s.", type, sourceFile, rootType->Name(), rootType->Module().Name());
+					Rococo::Throw(0, "Type mismatch: the root object in the archive is %s of %s. Expected %s of %s.", type, sourceFile, rootType->Name(), rootType->Module().Name());
 				}
 				else if (!Eq(rootType->Module().Name(), sourceFile))
 				{
-					Throw(0, "Module mismatch: the root object in the archive is %s of %s. Expected %s of %s.", type, sourceFile, rootType->Name(), rootType->Module().Name());
+					Rococo::Throw(0, "Module mismatch: the root object in the archive is %s of %s. Expected %s of %s.", type, sourceFile, rootType->Name(), rootType->Module().Name());
 				}
 
 				CacheStub(objectType, name, pRootObject);
@@ -746,14 +747,14 @@ namespace
 				auto* sysType = rootNS.FindSubspace("Sys.Type");
 				if (!sysType)
 				{
-					Throw(0, "Could not find Sys.Type");
+					Rococo::Throw(0, "Could not find Sys.Type");
 				}
 
 				auto* interfaceIString = sysType->FindInterface("IString");
 
 				if (interfaceIString == nullptr)
 				{
-					Throw(0, "Could not find Sys.Type.IString");
+					Rococo::Throw(0, "Could not find Sys.Type.IString");
 				}
 
 				typeIString = &interfaceIString->NullObjectType();
@@ -770,14 +771,14 @@ namespace
 				auto* sysType = rootNS.FindSubspace("Sys.Type");
 				if (!sysType)
 				{
-					Throw(0, "Could not find Sys.Type");
+					Rococo::Throw(0, "Could not find Sys.Type");
 				}
 
 				auto* interfaceIStringBuilder = sysType->FindInterface("IStringBuilder");
 
 				if (interfaceIStringBuilder == nullptr)
 				{
-					Throw(0, "Could not find Sys.Type.IStringBuilder");
+					Rococo::Throw(0, "Could not find Sys.Type.IStringBuilder");
 				}
 
 				typeIStringBuilder = &interfaceIStringBuilder->NullObjectType();
@@ -798,11 +799,11 @@ namespace
 
 			if (rootType.VarType() != VARTYPE_Derivative)
 			{
-				Throw(0, "The target object was not of derivative type. The target object must be a class or struct");
+				Rococo::Throw(0, "The target object was not of derivative type. The target object must be a class or struct");
 			}
 			else if (IsNullType(rootType))
 			{
-				Throw(0, "The target object was an interface reference. The target object must be a class or struct.");
+				Rococo::Throw(0, "The target object was an interface reference. The target object must be a class or struct.");
 			}
 		}
 
@@ -828,11 +829,11 @@ namespace
 
 			if (assetType.VarType() != VARTYPE_Derivative)
 			{
-				Throw(0, "%s: Error, the asset object was not of derivative type.", __FUNCTION__);
+				Rococo::Throw(0, "%s: Error, the asset object was not of derivative type.", __FUNCTION__);
 			}
 			else if (IsNullType(assetType))
 			{
-				Throw(0, "%s: Error, the asset object was an interface reference.", __FUNCTION__);
+				Rococo::Throw(0, "%s: Error, the asset object was an interface reference.", __FUNCTION__);
 			}			
 
 			size_t offset = 0;
@@ -973,7 +974,7 @@ namespace
 				WritePrimitive((boolean32)0);
 				break;
 			default:
-				Throw(0, "No default serialization for %s", memberType.Name());
+				Rococo::Throw(0, "No default serialization for %s", memberType.Name());
 			}
 
 			memberRefManager.MoveToNextSibling();
@@ -1050,28 +1051,28 @@ namespace
 			
 			if (!member)
 			{
-				Throw(0, "%s %s. No member found", type, name);
+				Rococo::Throw(0, "%s %s. No member found", type, name);
 			}
 			
 			auto* memberType = member->UnderlyingType();
 
 			if (IsNullType(*memberType))
 			{
-				Throw(0, "Bad algorithm");
+				Rococo::Throw(0, "Bad algorithm");
 				return;
 			}
 
 			if (!Eq(memberType->Name(), type))
 			{
-				Throw(0, "%s %s. Mismatches argument type %s", memberType->Name(), name, type);
+				Rococo::Throw(0, "%s %s. Mismatches argument type %s", memberType->Name(), name, type);
 			}
 			else if (!Eq(memberType->Module().Name(), sourceFile))
 			{
-				Throw(0, "%s %s. Source file %s mismatches module name %s", memberType->Name(), name, sourceFile, memberType->Module().Name());
+				Rococo::Throw(0, "%s %s. Source file %s mismatches module name %s", memberType->Name(), name, sourceFile, memberType->Module().Name());
 			}
 			else if (memberType->VarType() != VARTYPE_Derivative)
 			{
-				Throw(0, "%s %s. Type was not derivative", memberType->Name(), name);
+				Rococo::Throw(0, "%s %s. Type was not derivative", memberType->Name(), name);
 			}
 			else
 			{
@@ -1163,12 +1164,12 @@ namespace
 			{
 				if (i->second->KeyType != mapKeyType)
 				{
-					Throw(0, "Cannot load %s.\nThe map key type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->KeyType->Name(), i->second->KeyType->Module().Name(), mapKeyType->Name(), mapKeyType->Module().Name());
+					Rococo::Throw(0, "Cannot load %s.\nThe map key type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->KeyType->Name(), i->second->KeyType->Module().Name(), mapKeyType->Name(), mapKeyType->Module().Name());
 				}
 
 				if (i->second->ValueType != mapValueType)
 				{
-					Throw(0, "Cannot load %s.\nThe map value type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ValueType->Name(), i->second->ValueType->Module().Name(), mapValueType->Name(), mapValueType->Module().Name());
+					Rococo::Throw(0, "Cannot load %s.\nThe map value type has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ValueType->Name(), i->second->ValueType->Module().Name(), mapValueType->Name(), mapValueType->Module().Name());
 				}
 			}
 
@@ -1217,7 +1218,7 @@ namespace
 					}
 					break;
 				default:
-					Throw(0, "%s - Key type %s Not implemented", __FUNCTION__, GetFriendlyName(*mapKeyType));
+					Rococo::Throw(0, "%s - Key type %s Not implemented", __FUNCTION__, GetFriendlyName(*mapKeyType));
 				}	
 			}
 
@@ -1244,7 +1245,7 @@ namespace
 			{
 				if (i->second->ElementType != elementType)
 				{
-					Throw(0, "Cannot load %s.\nThe array has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ElementType->Name(), i->second->ElementType->Module().Name(), type->Name(), type->Module().Name());
+					Rococo::Throw(0, "Cannot load %s.\nThe array has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, i->second->ElementType->Name(), i->second->ElementType->Module().Name(), type->Name(), type->Module().Name());
 				}
 			}
 
@@ -1255,13 +1256,13 @@ namespace
 			int64 totalLen = (int64)capacity * (int64)image->ElementLength;
 			if (totalLen > 0x7FFFFFFFLL)
 			{
-				Throw(0, "Max capacity exceeded attempting to reserve %d elements for %s", capacity, refName);
+				Rococo::Throw(0, "Max capacity exceeded attempting to reserve %d elements for %s", capacity, refName);
 			}
 
 			void* elementBuffer = scriptSystem->AlignedMalloc(16, capacity * image->ElementLength);
 			if (elementBuffer == nullptr)
 			{
-				Throw(0, "Could not reserve %d elements for %s", capacity, refName);
+				Rococo::Throw(0, "Could not reserve %d elements for %s", capacity, refName);
 			}
 
 			image->Start = elementBuffer;
@@ -1278,7 +1279,7 @@ namespace
 		{
 			if (index > arrayBuilder.image->NumberOfElements)
 			{
-				Throw(0, "%s. Bad index", __FUNCTION__);
+				Rococo::Throw(0, "%s. Bad index", __FUNCTION__);
 			}
 
 			auto* elementPtr = arrayBuilder.elementBuffer + index * arrayBuilder.image->ElementLength;
@@ -1316,7 +1317,7 @@ namespace
 			{
 				if (i->second->ElementType != elementType)
 				{
-					Throw(0, "Cannot load %s.\nThe list has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, GetFriendlyName(*i->second->ElementType), i->second->ElementType->Module().Name(), GetFriendlyName(*type), type->Module().Name());
+					Rococo::Throw(0, "Cannot load %s.\nThe list has already been defined as being type %s of %s.\nThe operation requested a type %s of %s.", refName, GetFriendlyName(*i->second->ElementType), i->second->ElementType->Module().Name(), GetFriendlyName(*type), type->Module().Name());
 				}
 			}
 
@@ -1339,8 +1340,10 @@ namespace
 	};
 }
 
-namespace Rococo::IO
+namespace Rococo::Sex::Assets
 {
+	using namespace Rococo::Sex::Assets::Impl;
+
 	void ParseSexyObjectTree(cstr treeAsCSVString, const IStructure& assetType, void* assetData, Rococo::Script::IPublicScriptSystem& ss)
 	{
 		SexyObjectBuilder objectBuilder;
@@ -1349,7 +1352,7 @@ namespace Rococo::IO
 
 		try
 		{
-			Rococo::IO::ParseTabbedCSV_AssetFile(treeAsCSVString, objectBuilder);
+			ParseTabbedCSV_AssetFile(treeAsCSVString, objectBuilder);
 			objectBuilder.ResolveReferences();
 		}
 		catch (IException&)
@@ -1387,7 +1390,7 @@ namespace Rococo::IO
 		}
 		catch (IException& e)
 		{
-			Throw(e.ErrorCode(), "Error loading asset %s:\n%s", pingPath, e.Message());
+			Rococo::Throw(e.ErrorCode(), "Error loading asset %s:\n%s", pingPath, e.Message());
 		}
 	}
 }
