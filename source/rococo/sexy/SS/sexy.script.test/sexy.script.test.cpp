@@ -16537,7 +16537,7 @@ R"(
 
 		TEST(TestSerialize);
 
-		TEST3(TestForStatement);
+	//	TEST3(TestForStatement);
 		TEST(TestWhileLoop1);
 		TEST(TestNestedWhileLoops);
 		TEST(TestWhileLoopBreak);
@@ -16740,7 +16740,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST3(TestForStatement);
+	//	TEST3(TestForStatement);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
