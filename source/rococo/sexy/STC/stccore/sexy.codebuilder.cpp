@@ -2596,6 +2596,8 @@ namespace Anon
 
 			size_t lowerFinallyBottomPos = Assembler().WritePosition();
 
+			finalSection.Compile(*this, f.Object(), &cfd);
+
 			size_t loopEndPos = Assembler().WritePosition();
 			Assembler().Append_Branch(SIZET_TO_INT32(loopStartPos) - SIZET_TO_INT32(loopEndPos));
 			
