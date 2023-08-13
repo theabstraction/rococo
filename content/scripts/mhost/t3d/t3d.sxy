@@ -8,6 +8,8 @@
 	"!scripts/mhost/t3d/gui/t3d.menus.sxy"
 	"!scripts/mhost/t3d/gui/t3d.input.thread.sxy"
 	"!scripts/mhost/t3d/strings/t3d.strings.sxy"
+	"!scripts/mhost/t3d/objects/t3d.objects.assorted.sxy"
+	"!scripts/mhost/t3d/objects/t3d.rigs.sxy"
 )
 
 (namespace EntryPoint)
@@ -38,15 +40,6 @@
 
 (namespace T3D)
 (using T3D)
-
-(interface T3D.IWorld (attribute essential)
-	(RenderGui (IGui g)->)
-	(UpdateMouseLook (Vec2 delta)->)
-	(GetCameraOrientation (WorldOrientation cameraOrientation)->)
-	(GetPlayerEyePos (Vec3 pos)-> )
-	(SetPlayerEyePos (Vec3 pos)-> )
-	(SetPlayerMoveIntent (Float32 straffe)(Float32 forward)->)
-)
 
 (struct CommandButton
 	(Rectf rect)

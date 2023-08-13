@@ -1,0 +1,270 @@
+// 3d test
+
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.Random)
+(using Sys.Type.Strings)
+
+(using MPlat)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using MHost.Geometry)
+
+(using Rococo)
+(using Rococo.Components.Body)
+(using Rococo.Components.Skeleton)
+(using Rococo.Components.Animation)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+(using Rococo.Entities)
+(using Rococo.ECS)
+
+(using Sys.Maths.I32)
+(using Sys.Geometry.F32)
+
+(namespace T3D)
+(using T3D)
+
+(namespace T3D.Objects)
+	(alias MakeHuman T3D.Objects.MakeHuman)
+	(alias MakeBottle T3D.Objects.MakeBottle)
+	(alias MakeFloor T3D.Objects.MakeFloor)
+	(alias MakeLamp T3D.Objects.MakeLamp)
+	(alias AddLight T3D.Objects.AddLight)
+	(alias AddFloor T3D.Objects.AddFloor)
+	(alias AddLandscape T3D.Objects.AddLandscape)
+
+(function MakeHuman (IString meshName) -> :
+	(IRodTesselator human (RodTesselator))
+	(human.Clear)
+	
+	(IMaterialBuilder matBuilder (MaterialBuilder))
+	
+	(MaterialVertexData glass)
+	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(human.SetMaterialTop glass)
+	(human.SetMaterialMiddle glass)
+	(human.SetMaterialBottom glass)
+	(human.UseSmoothNormals)
+	
+	(Float32 length = 1.0)
+	(Float32 bottomWidth = (AnyFloat 0.15 0.25))
+	(Float32 topWidth = (bottomWidth * (AnyFloat 0.5 1)))
+	(Int32 divs = 5)
+	
+	(human.AddTube length bottomWidth topWidth divs)
+	
+	(human.AddTube 0.5 0.35 0.35 divs)
+	
+	
+	(human.CopyToMeshBuilder meshName false false true)
+)
+
+(function MakeBottle (IString meshName) -> :
+	(IRodTesselator bottle (RodTesselator))
+	(bottle.Clear)
+
+	(IMaterialBuilder matBuilder (MaterialBuilder))
+	
+	(MaterialVertexData glass)
+	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(bottle.SetMaterialTop glass)
+	(bottle.SetMaterialMiddle glass)
+	(bottle.SetMaterialBottom glass)
+	(bottle.UseSmoothNormals)
+	(bottle.SetUVScale 4.0)
+	
+	(Float32 length = 1.0)
+	(Float32 bottomWidth = (AnyFloat 0.15 0.25))
+	(Float32 topWidth = (bottomWidth * (AnyFloat 0.5 1)))
+	(Int32 divs = 5)
+	
+	(bottle.AddTube length bottomWidth topWidth divs)
+	
+	(Float32 neckLength = (AnyFloat 0.04 0.08))
+	(bottle.AddTube neckLength topWidth 0.02 divs)
+	
+	(MaterialVertexData stopper)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryRock) -> stopper.id)
+	(stopper.gloss = 0.2)
+	(AnyColour 0 255 0 255 0 255 48 128 -> stopper.colour)
+	(bottle.SetMaterialTop stopper)
+	(bottle.SetMaterialMiddle stopper)
+	(bottle.SetMaterialBottom stopper)
+		
+	(Float32 stopperLength = (AnyFloat 0.005 0.02))
+	(Int32 stopperDivs = (AnyInt 4 6))
+	(bottle.AddTube stopperLength 0.04 0.05 stopperDivs)
+	
+	(bottle.CopyToMeshBuilder meshName false false true)
+)
+
+(function MakeFloor (IString meshName) -> :
+	(IRodTesselator rod (RodTesselator))
+	(rod.Clear)
+	
+	(IMaterialBuilder mb (MaterialBuilder))
+	
+	(MaterialVertexData marble)
+	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
+	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
+	(marble.gloss = 0.1)
+	
+	(rod.SetMaterialTop marble)
+	(rod.SetMaterialMiddle marble)
+	(rod.SetMaterialBottom marble)
+	
+	(rod.SetUVScale 0.05)
+	
+	(Vec2 b0 = -10  10)
+	(Vec2 b1 =  10  10)
+	(Vec2 b2 =  10 -10)
+	(Vec2 b3 = -10 -10)
+	(rod.AddBox 0.25 b0 b1 b2 b3)
+	
+	(rod.CopyToMeshBuilder meshName false false true)
+)
+
+(function MakeLamp (IString meshName) -> :
+	(IRodTesselator rod (RodTesselator))
+	(rod.Clear)
+	
+	(IMaterialBuilder mb (MaterialBuilder))
+	
+	(MaterialVertexData marble)
+	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
+	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
+	(marble.gloss = 0.1)
+	
+	(rod.SetMaterialTop marble)
+	(rod.SetMaterialMiddle marble)
+	(rod.SetMaterialBottom marble)
+	
+	(rod.SetUVScale 0.05)
+	
+	(Vec2 b0 = -10  10)
+	(Vec2 b1 =  10  10)
+	(Vec2 b2 =  10 -10)
+	(Vec2 b3 = -10 -10)
+	(rod.AddTube 0.05 0.025 0.01 8)
+	
+	(rod.CopyToMeshBuilder meshName false false true)
+)
+
+(function AddBottle (ISceneBuilder scene)-> :
+	(MakeBottle "potion.1") 
+	
+	(Matrix4x4 model = 
+		(1 0 0 0)
+		(0 1 0 2)
+		(0 0 1 0.25) 
+		(0 0 0 1)
+	)
+	
+	(Vec3 noScale = 1 1 1)
+	
+	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
+	(scene.AddStatics bottleId)
+)
+
+(function AddFloor (ISceneBuilder scene)-> :
+	(MakeFloor "floor.1")
+	
+	(Matrix4x4 model = 
+		(1 0 0 0)
+		(0 1 0 0)
+		(0 0 1 0) 
+		(0 0 0 1)
+	)
+	
+	(Vec3 noScale = 1 1 1)
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID floorId = ecs.NewROID)
+	
+	(IBody floorMesh (AddBody floorId))
+	(floorMesh.SetScale noScale)
+	(floorMesh.SetModelMatrix model)
+	(floorMesh.SetMeshByName "floor.1")
+	
+//	(Int64 floorId = (instances.AddBody "floor.1" model noScale 0))
+	(scene.AddStatics floorId)
+)
+
+(function AddLight (ISceneBuilder scene)(IWorld world)-> :
+	(MakeLamp "light.cone.1")
+	
+	(Matrix4x4 rotX)
+	(Sys.Geometry.F32.RotateAboutX 45 rotX)
+	(Vec4 down = 0 0 -1 0)
+	(Vec4 downPrime = rotX * down)
+	
+	(LightSpec light)
+	(light.position = 0 0 2.4)
+	(light.direction = downPrime.x downPrime.y downPrime.z)
+	(light.fov = 45)
+	(light.diffuse = 3.0 3.0 3.0 1.0)
+	(light.ambience = 0.6 0.6 0.6 0.5)
+	(light.cutoffAngle = 25)
+	(light.cutoffPower = 25)
+	(light.attenuation = -0.5)
+	(light.nearPlane = 0.1)
+	(light.farPlane = 1000)
+	(light.fogConstant = -0.1)
+	
+	(world.SnapToLandscape light.position 2.4)
+	
+	(Matrix4x4 lightConeTranslate)
+	
+	(Sys.Geometry.F32.MakeTranslateMatrix light.position lightConeTranslate)
+	
+	(Matrix4x4 lightConeModel)
+	(lightConeModel = lightConeTranslate * rotX)
+	
+	(Vec3 noScale = 1 1 1)
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID lightConeId = ecs.NewROID)
+	
+	(IBody lightMesh (AddBody lightConeId))
+	(lightMesh.SetScale noScale)
+	(lightMesh.SetModelMatrix lightConeModel)
+	(lightMesh.SetMeshByName "light.cone.1")
+	
+	(scene.AddStatics lightConeId)
+	
+	(scene.SetLight light 0)
+)
+
+(function AddLandscape (ISceneBuilder scene) -> :
+	(ILandscapeTesselator landscape (LandscapeTesselator))
+	(landscape.AddQuadField 8 2048.0)
+	(Vec3 delta = -1024 -1024 0)
+	(landscape.TranslateEachCell delta)
+	(landscape.GenerateByRecursiveSubdivision 50)
+	(landscape.CommitToMesh "landscape_0_0")
+	
+	(Vec3 noScale = 1 1 1)
+	(Matrix4x4 identity =
+		(1 0 0 0)
+		(0 1 0 0)
+		(0 0 1 0)
+		(0 0 0 1)
+	)
+	(IMaterialBuilder matBuilder (MaterialBuilder))
+	(Int64 landscapeId = (instances.AddBody "landscape_0_0" identity noScale 0))
+	(scene.AddStatics landscapeId)
+
+	(IWorldBuilder wb (WorldBuilder))
+	(wb.New 2048 1)
+	(wb.AddMeshToQuadtree landscapeId)
+)

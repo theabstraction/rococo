@@ -1,0 +1,242 @@
+(using Sys)
+(using Sys.Maths)
+(using Sys.Maths.F32)
+(using Sys.Type)
+(using Sys.Random)
+(using Sys.Type.Strings)
+
+(using MPlat)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using MHost.Geometry)
+
+(using Rococo)
+(using Rococo.Components.Body)
+(using Rococo.Components.Skeleton)
+(using Rococo.Components.Animation)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+(using Rococo.Entities)
+(using Rococo.ECS)
+
+(using Sys.Maths.I32)
+(using Sys.Geometry.F32)
+
+(namespace T3D)
+(using T3D)
+
+(function AddPoseRun0 (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0   0   0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   1   0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   1   0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45    -0.1     0 -0.046     150   0   0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45     0.1     0 -0.046     230   0   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46       0  -5   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46     -30  -5   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5      100  0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5       80  0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15      150  0   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15      210  0   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.30       0     0   0.27        0  0   0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.30       0     0   0.27       40  0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.32      -10  0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.32       10  0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17       0   0   0)
+	
+	(rb.CommitToPose "run.0")
+)
+
+(function AddPoseRun1 (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0   0   0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0  -1   0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0  -1   0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45    -0.1     0 -0.046     230   0   0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45     0.1     0 -0.046     150   0   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46     -30  -5   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46       0  -5   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5       80  0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5      100  0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15      210  0   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15      150  0   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.30       0     0   0.27       40  0   0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.30       0     0   0.27        0  0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.32      -10  0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.32       10  0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17       0   0   0)
+	
+	(rb.CommitToPose "run.1")
+)
+
+(function AddSixOClock (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0    20  0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   -10  0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   -10  0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45    -0.1     0 -0.046     180  -150  0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45     0.1     0 -0.046     180   30   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46       0    0   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46       0    0   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5      30    0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5      -10   0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15      -90 -40   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15       80   40   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.30       0     0   0.27      120   90  0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.30       0     0   0.27        0   0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.32        0   0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.32       40   0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17        0   0   0)
+	
+	(rb.CommitToPose "6-o'clock")
+)
+
+
+(function BuildStraight (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX "spine_lower"  ""              0.15       0     0      0       0   0   0)
+	(rb.AddBoneX "spine_middle" "spine_lower"   0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "spine_upper"  "spine_middle"  0.15       0     0   0.17       0   0   0)
+	(rb.AddBoneX "femur_l"      "spine_lower"   0.45    -0.1     0 -0.046     180   0   0)
+	(rb.AddBoneX "femur_r"      "spine_lower"   0.45     0.1     0 -0.046     180   0   0)
+	(rb.AddBoneX "tibia_l"      "femur_l"       0.45       0     0   0.46       0   0   0)
+	(rb.AddBoneX "tibia_r"      "femur_r"       0.45       0     0   0.46       0   0   0)
+	(rb.AddBoneX "foot_l"       "tibia_l"       0.15       0     0    0.5      90   0   0)
+	(rb.AddBoneX "foot_r"       "tibia_r"       0.15       0     0    0.5      90   0   0)
+	(rb.AddBoneX "humerus_l"    "spine_upper"   0.25   -0.20     0   0.15     180   0   0)
+	(rb.AddBoneX "humerus_r"    "spine_upper"   0.25    0.20     0   0.15     180   0   0)
+	(rb.AddBoneX "ulna_l"    	"humerus_l"     0.30       0     0   0.27       0   0   0)
+	(rb.AddBoneX "ulna_r"    	"humerus_r"     0.30       0     0   0.27       0   0   0)
+	(rb.AddBoneX "hand_l"    	"ulna_l"        0.10       0     0   0.32       0   0   0)
+	(rb.AddBoneX "hand_r"    	"ulna_r"        0.10       0     0   0.32       0   0   0)
+	(rb.AddBoneX "skull"  		"spine_upper"   0.25       0     0   0.17       0   0   0)
+)
+
+(function AddGeoff (IRigBuilder rb)-> :
+	(BuildStraight rb)	
+	(rb.CommitToSkeleton "geoff")
+)
+
+(function AddStraightPos (IRigBuilder rb)-> :
+	(BuildStraight rb)	
+	(rb.CommitToPose "straight")
+)
+
+(function AddWormPoses (IRigBuilder rb)-> :
+	/*              name            parent      length     offset-dx,dy,dz  bone-angles--*/
+	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62       0   0   0)
+	(rb.CommitToSkeleton "worm")
+
+	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62       0 -70   0)
+	(rb.CommitToPose "worm-straight")
+
+	(rb.AddBoneX	"base"			""           0.6       0     0      0       0   0   0)
+	(rb.AddBoneX	"neck"			"base"		 0.6       0     0   0.62       0  70   0)
+	(rb.CommitToPose "worm-bent")
+)
+
+(function AddRigs (ISceneBuilder scene)(IWorld world)-> :
+	(IRigBuilder rb (RigBuilder))
+	(rb.ClearBuilder)
+	(rb.ClearSkeletons)
+	(rb.ClearPoses)
+	
+	(AddPoseRun0 rb)
+	(AddPoseRun1 rb)
+	(AddSixOClock rb)
+	(AddStraightPos rb)
+	(AddGeoff rb)
+	
+	(Vec3 pos = 1 1 0)
+	(world.SnapToLandscape pos 0.1)
+	
+	(Matrix4x4 lowerSpineToWorld =
+		(1 0 0  pos.x)
+		(0 1 0  pos.y)
+		(0 0 1  pos.z)
+		(0 0 0      1)
+	)
+	
+	(Vec3 geoffScale = 1 1 1)
+	
+	(Objects.MakeHuman "human")
+
+	//(Int64 geoffId = (instances.AddBody "skellie.001" lowerSpineToWorld geoffScale 0))
+	//(scene.AddDebugObject geoffId)
+	//(scene.AddDynamicObject geoffId)
+	
+	//(scene.AddStatics geoffId)
+	/*
+
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "run.0" 4 true)
+	(instances.AddAnimationFrame geoffId "6-o'clock" 4 true)
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "run.1" 4 true)
+	(instances.AddAnimationFrame geoffId "straight" 4 false)
+	(instances.AddAnimationFrame geoffId "run.0" 4 true)
+	*/
+	(Vec3 posWorm = 0 1 0)
+	(world.SnapToLandscape posWorm 0.2)
+	
+	(IMaterialBuilder matBuilder (MaterialBuilder))
+
+	(MaterialVertexData steel)
+	(AnyColour 200 255 0 0 0 0 192 192 -> steel.colour)
+	(matBuilder.GetRandomMaterialId (#MaterialCategoryMetal) -> steel.id)
+	(steel.gloss = 0.1)
+
+	(IRodTesselator rod (RodTesselator))
+	(rod.Clear)
+	(rod.SetMaterialBottom steel)
+	(rod.SetMaterialMiddle steel)
+	(rod.SetMaterialTop steel)
+	(rod.AddTube 0.4 0.02 0.03 10)
+	(rod.AddTube 0.4 0.03 0.04 10)
+	(rod.AddTube 0.4 0.04 0.05 10)
+	(rod.AddTube 0.4 0.05 0.06 10)
+	(rod.SetBlendWeightByHeight 0 1.0 0.0)
+	(rod.SetBlendWeightByHeight 1 0.0 1.0)
+	(rod.CopyToMeshBuilder "worm-mesh" true false true)
+	
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.SetSpecialAmbientShader 	"worm-mesh" "!shaders/compiled/skinned_2bone.ambient.vs" "!shaders/compiled/ambient.ps" false)
+	(mb.SetSpecialSpotlightShader	"worm-mesh" "!shaders/compiled/skinned_2bone.vs" "!shaders/compiled/object.ps" false)
+	
+	(Matrix4x4 wormToWorld =
+		(1 0 0  posWorm.x)
+		(0 1 0  posWorm.y)
+		(0 0 1  posWorm.z)
+		(0 0 0          1)
+	)
+
+	(AddWormPoses rb)
+
+	(Vec3 wormScale = 1 1 1)
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID wormBodyId = ecs.NewROID)
+	
+	(IBody wormBody (AddBody wormBodyId))
+	(wormBody.SetScale wormScale)
+	(wormBody.SetModelMatrix wormToWorld)
+	(wormBody.SetMeshByName "worm-mesh")
+	
+	(ISkeleton skeleton (AddSkeleton wormBodyId))
+	(skeleton.SetSkeletonByName "worm")
+	
+	(scene.AddDynamicObject wormBodyId)
+	(scene.AddDebugObject wormBodyId)
+	
+	(IAnimation animation (AddAnimation wormBodyId))
+	(animation.AddKeyFrame "worm-straight" 4 false)
+	(animation.AddKeyFrame "worm-bent" 4 false)
+)
+
+(namespace T3D.Rigs)
+	(alias AddRigs T3D.Rigs.AddRigs)
