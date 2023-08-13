@@ -465,11 +465,18 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const Sex::ISExpression* definition;
 		const IFunction* constructor;
 		mutable int hasInterfaceMembers; // -1, untested, 0 = no, 1 = yes
-
+		mutable int methodCount = -1; // When counted, is cached to something other than -1
+		mutable TSexyVector<const IArchetype*> cachedMethods; // Methods cached by the reflection system. Most structures do not need them. The raw pointers do not need deleting after the container is deleted
+		bool isNullType = false;
 		bool isStrongType = false;
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const Sex::ISExpression* _definition);
 		~Structure();
+
+		bool IsNullType() const override
+		{
+			return isNullType;
+		}
 
 		bool IsStrongType() const override
 		{
@@ -532,6 +539,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		int32 AttributeCount() const override;
 		Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) const override;
+
+		int CountMethodsInDefiningModule() const override;
+		const IArchetype& GetMethodFromModule(int methodIndex) const override;
 	};
 
 	typedef TSexyList<Structure*> TStructureList;

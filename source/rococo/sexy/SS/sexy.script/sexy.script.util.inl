@@ -33,10 +33,6 @@
 
 namespace Rococo
 {
-	namespace Compiler
-	{
-		SEXYUTIL_API bool IsNullType(const IStructure& s);
-	}
 	namespace Script
 	{
 		void AddVariableRef(CCompileEnvironment& ce, const NameString& ns, const IStructure& typeStruct)

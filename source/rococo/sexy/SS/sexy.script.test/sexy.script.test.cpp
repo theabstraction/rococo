@@ -6539,7 +6539,7 @@ R"((namespace EntryPoint)
 
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
-			"	(IString i0 = (type.GetInterfaceName 0))"
+			"	(IString i0 = type.GetInterfaceName)"
 			"   (result = (Sys.Print i0))"
 			")";
 
@@ -6570,7 +6570,7 @@ R"((namespace EntryPoint)
 
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
-			"	(Int32 count = (type.GetMethodCount 0))"
+			"	(Int32 count = (type.GetMethodCount))"
 			"   (result = count)"
 			")";
 
@@ -6604,7 +6604,7 @@ R"((namespace EntryPoint)
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
 			"	(IStringBuilder nb = NewTokenBuilder)"
-			"	(type.AppendMethodName nb 0 0)"
+			"	(type.AppendMethodName nb 0)"
 			"   (result = (Sys.Print nb))"
 			")";
 
@@ -6637,7 +6637,7 @@ R"((namespace EntryPoint)
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
 			"	(Int32 inputCount)(Int32 outputCount)"
-			"	(type.GetMethodArgCounts 0 0 -> inputCount outputCount)"
+			"	(type.GetMethodArgCounts 0 -> inputCount outputCount)"
 			"   (result = (inputCount + (7 * outputCount)))"
 			")";
 
@@ -6670,7 +6670,7 @@ R"((namespace EntryPoint)
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
 			"	(IStringBuilder sbName = NewTokenBuilder)"
 			"	(IStringBuilder sbType = NewTokenBuilder)"
-			"	(type.AppendInputTypeAndName 0 0 0 sbType sbName)"
+			"	(type.AppendInputTypeAndName 0 0 sbType sbName)"
 			"	(IStringBuilder sbTypeAndName = NewTokenBuilder)"
 			"   (#build sbTypeAndName sbType \" \" sbName)"
 			"   (result = (Sys.Print sbTypeAndName))"
@@ -6706,7 +6706,7 @@ R"((namespace EntryPoint)
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
 			"	(IStringBuilder sbName = NewTokenBuilder)"
 			"	(IStringBuilder sbType = NewTokenBuilder)"
-			"	(type.AppendOutputTypeAndName 0 0 0 sbType sbName)"
+			"	(type.AppendOutputTypeAndName 0 0 sbType sbName)"
 			"	(IStringBuilder sbTypeAndName = NewTokenBuilder)"
 			"   (#build sbTypeAndName sbType \" \" sbName)"
 			"   (result = (Sys.Print sbTypeAndName))"
@@ -6740,7 +6740,7 @@ R"((namespace EntryPoint)
 
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
-			"   (IStructure argType = (type.GetInputType 0 0 0))"
+			"   (IStructure argType = (type.GetInputType 0 0))"
 			"   (result = (Sys.Print argType.Name))"
 			")";
 
@@ -6772,7 +6772,7 @@ R"((namespace EntryPoint)
 
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
-			"   (IStructure argType = (type.GetOutputType 0 0 0))"
+			"   (IStructure argType = (type.GetOutputType 0 0))"
 			"   (result = (Sys.Print argType.Name))"
 			")";
 
@@ -6805,7 +6805,7 @@ R"((namespace EntryPoint)
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
 			"	(IStructure int32type = typeof Sys.Type.Int32)"
-			"   (if (type.IsMethodInputOfType 0 0 0 int32type)"
+			"   (if (type.IsMethodInputOfType 0 0 int32type)"
 			"       (result = 7)"
 			"   )"
 			")";
@@ -6839,7 +6839,7 @@ R"((namespace EntryPoint)
 			"(function Main -> (Int32 result):"
 			"	(IStructure type = typeof Sys.Reflection.IExpression)"
 			"	(IStructure childOutputType = typeof Sys.Reflection.IExpression)"
-			"   (if (type.IsMethodOutputOfType 0 0 0 childOutputType)"
+			"   (if (type.IsMethodOutputOfType 0 0 childOutputType)"
 			"       (result = 7)"
 			"   )"
 			")";

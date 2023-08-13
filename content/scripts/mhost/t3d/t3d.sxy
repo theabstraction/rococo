@@ -66,8 +66,7 @@
 	(this.world = world)
 )
 
-(method OverlayButtonHandler.OnSysGeoffClicked (ButtonArgs args) -> :
-	(debug)
+(method OverlayButtonHandler.OnObjectsCreateBottleClicked (ButtonArgs args) -> :
 )
 
 // Example: SysGeoff goes in and Sys.Geoff goes out
@@ -99,6 +98,7 @@
 	(overlay.ClearMenus)
 	
 	(Sys.Reflection.IStructure t = typeof this)
+	(debug)
 	(Int32 nMethods = (t.GetMethodCount 0))
 	
 	(Sys.Type.IStringBuilder methodName = (Sys.Type.NewTokenBuilder))

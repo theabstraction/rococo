@@ -46,6 +46,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		constructor(NULL),
 		hasInterfaceMembers(-1)
 	{
+		isNullType = StartsWith(_name, "_Null_");
 	}
 
 	Structure::~Structure()
@@ -82,6 +83,77 @@ namespace Rococo { namespace Compiler { namespace Impl
 		auto& a = attributes[index];
 		isCustom = a.isCustom;
 		return *a.attributeDef;
+	}
+
+	int Structure::CountMethodsInDefiningModule() const
+	{
+		// Once called the count is permanently cached
+		if (methodCount == -1)
+		{
+			int count = 0;
+
+			if (isNullType)
+			{
+				// A wish to enumrerate the interface methods, not the concrete class methods
+				if (InterfaceCount() != 1)
+				{
+					Throw(ERRORCODE_BAD_ARGUMENT, "CountMethodsInDefiningModule", "The structure %s did not have the expected interface count of 1", Name());
+				}
+
+				auto& interf0 = GetInterface(0);
+				return interf0.MethodCount();
+			}
+
+			for (int j = 0; j < module.FunctionCount(); j++)
+			{
+				auto& f = module.GetFunction(j);
+				auto* ftype = f.GetType();
+
+				if (ftype == this)
+				{
+					if (!EndsWith(f.Name(), ".Construct") && !EndsWith(f.Name(), ".Destruct"))
+					{
+						count++;
+					}
+				}
+			}
+
+			methodCount = count;
+
+			cachedMethods.reserve(methodCount);
+
+			for (int j = 0; j < module.FunctionCount(); j++)
+			{
+				auto& f = module.GetFunction(j);
+				auto* ftype = f.GetType();
+
+				if (ftype == this)
+				{
+					if (!EndsWith(f.Name(), ".Construct") && !EndsWith(f.Name(), ".Destruct"))
+					{
+						cachedMethods.push_back(&f);
+					}
+				}
+			}
+
+		}
+
+		return methodCount;
+	}
+
+	const IArchetype& Structure::GetMethodFromModule(int methodIndex) const
+	{
+		if (methodCount == -1)
+		{
+			CountMethodsInDefiningModule();
+		}
+
+		if (methodIndex < 0 || methodIndex >= methodCount)
+		{
+			Throw(ERRORCODE_BAD_ARGUMENT, "CountMethodsInDefiningModule", "The structure %s did not have the expected method with index %d. method count is ", Name(), methodIndex, methodCount);
+		}
+
+		return *cachedMethods[methodIndex];
 	}
 
 	void Structure::AddInterface(cstr interfaceFullName)

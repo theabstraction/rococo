@@ -170,44 +170,44 @@
 	(Sys.Reflection.Native.GetInterfaceCount this.structPtr -> nInterfaces)
 )
 
-(method Structure.IsMethodInputOfType (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)-> (Bool match):
-	(Sys.Reflection.Native.IsMethodInputOfType interfaceIndex methodIndex inputIndex argTypeCandidate this.structPtr -> match)
+(method Structure.IsMethodInputOfType (Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)-> (Bool match):
+	(Sys.Reflection.Native.IsMethodInputOfType methodIndex inputIndex argTypeCandidate this.structPtr -> match)
 )
 
-(method Structure.IsMethodOutputOfType (Int32 interfaceIndex)(Int32 methodIndex)(Int32 outputIndex) (Sys.Reflection.IStructure argTypeCandidate)-> (Bool match):
-	(Sys.Reflection.Native.IsMethodOutputOfType interfaceIndex methodIndex outputIndex argTypeCandidate this.structPtr -> match)
+(method Structure.IsMethodOutputOfType (Int32 methodIndex)(Int32 outputIndex) (Sys.Reflection.IStructure argTypeCandidate)-> (Bool match):
+	(Sys.Reflection.Native.IsMethodOutputOfType methodIndex outputIndex argTypeCandidate this.structPtr -> match)
 )
 
-(method Structure.GetMethodCount (Int32 interfaceIndex) -> (Int32 methodCount):
-	(Sys.Reflection.Native.GetMethodCount interfaceIndex this.structPtr -> methodCount)
+(method Structure.GetMethodCount -> (Int32 methodCount):
+	(Sys.Reflection.Native.GetMethodCount this.structPtr -> methodCount)
 )
 
-(method Structure.GetInputType (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex) -> (Sys.Reflection.IStructure argType):
-	(Sys.Reflection.Native.GetInputType interfaceIndex methodIndex inputIndex this.structPtr -> argType)
+(method Structure.GetInputType (Int32 methodIndex)(Int32 inputIndex) -> (Sys.Reflection.IStructure argType):
+	(Sys.Reflection.Native.GetInputType methodIndex inputIndex this.structPtr -> argType)
 )
 
-(method Structure.GetOutputType (Int32 interfaceIndex)(Int32 methodIndex)(Int32 outputIndex) -> (Sys.Reflection.IStructure argType):
-	(Sys.Reflection.Native.GetOutputType interfaceIndex methodIndex outputIndex this.structPtr -> argType)
+(method Structure.GetOutputType (Int32 methodIndex)(Int32 outputIndex) -> (Sys.Reflection.IStructure argType):
+	(Sys.Reflection.Native.GetOutputType methodIndex outputIndex this.structPtr -> argType)
 )
 
-(method Structure.GetMethodArgCounts (Int32 interfaceIndex)(Int32 methodIndex) -> (Int32 inputCount)(Int32 outputCount):
-	(Sys.Reflection.Native.GetMethodArgCounts interfaceIndex methodIndex this.structPtr -> inputCount outputCount)
+(method Structure.GetMethodArgCounts (Int32 methodIndex) -> (Int32 inputCount)(Int32 outputCount):
+	(Sys.Reflection.Native.GetMethodArgCounts methodIndex this.structPtr -> inputCount outputCount)
 )
 
-(method Structure.AppendInputTypeAndName (Int32 interfaceIndex)(Int32 methodIndex)(Int32 inputIndex)(IStringBuilder typeBuilder)(IStringBuilder nameBuilder) -> :
-	(Sys.Reflection.Native.AppendInputTypeAndName interfaceIndex methodIndex inputIndex typeBuilder nameBuilder this.structPtr)
+(method Structure.AppendInputTypeAndName (Int32 methodIndex)(Int32 inputIndex)(IStringBuilder typeBuilder)(IStringBuilder nameBuilder) -> :
+	(Sys.Reflection.Native.AppendInputTypeAndName methodIndex inputIndex typeBuilder nameBuilder this.structPtr)
 )
 
-(method Structure.AppendOutputTypeAndName (Int32 interfaceIndex)(Int32 methodIndex)(Int32 outputIndex)(IStringBuilder typeBuilder)(IStringBuilder nameBuilder) -> :
-	(Sys.Reflection.Native.AppendInputTypeAndName interfaceIndex methodIndex outputIndex typeBuilder nameBuilder this.structPtr)
+(method Structure.AppendOutputTypeAndName (Int32 methodIndex)(Int32 outputIndex)(IStringBuilder typeBuilder)(IStringBuilder nameBuilder) -> :
+	(Sys.Reflection.Native.AppendInputTypeAndName methodIndex outputIndex typeBuilder nameBuilder this.structPtr)
 )
 
-(method Structure.GetInterfaceName (Int32 interfaceIndex) -> (IString nameOrNull):
-	(Sys.Reflection.Native.GetInterfaceName interfaceIndex this.structPtr -> nameOrNull)
+(method Structure.GetInterfaceName -> (IString nameOrNull):
+	(Sys.Reflection.Native.GetInterfaceName this.structPtr -> nameOrNull)
 )
 
-(method Structure.AppendMethodName (IStringBuilder sb) (Int32 interfaceIndex)(Int32 methodIndex) -> (Int32 nameLength):
-	(Sys.Reflection.Native.AppendMethodName sb interfaceIndex methodIndex this.structPtr -> nameLength)
+(method Structure.AppendMethodName (IStringBuilder sb) (Int32 methodIndex) -> (Int32 nameLength):
+	(Sys.Reflection.Native.AppendMethodName sb methodIndex this.structPtr -> nameLength)
 )
 
 (method Module.Structure (Int32 index) -> (IStructure structure):

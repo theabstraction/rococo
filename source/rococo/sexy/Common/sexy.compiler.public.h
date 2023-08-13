@@ -414,7 +414,14 @@ namespace Rococo {
 
 			virtual int32 AttributeCount() const = 0;
 
+			virtual bool IsNullType() const = 0;
 			virtual bool IsStrongType() const = 0;
+
+			// Enumerate methods and cache the result permanently in the IStructure and return the result
+			virtual int CountMethodsInDefiningModule() const = 0;
+
+			// Enumerate methods and cache the result permanently in the IStructure and return the cached method reference
+			virtual const IArchetype& GetMethodFromModule(int methodIndex) const = 0;
 
 			// Retrieve the ith attribute. isCustom is an out parameter, and is set to true if element 1 of the returned attributeDef was a system attribute
 			// System attributes are specified by using atomic tokens rather than string literals and are validated against the known list of system attributes.
@@ -450,7 +457,7 @@ namespace Rococo {
 			virtual void MakeSystem() = 0; 
 		};
 
-		SEXYUTIL_API bool IsNullType(const IStructure& s);
+		inline bool IsNullType(const IStructure& s) { return s.IsNullType(); }
 
 		enum VARLOCATION
 		{

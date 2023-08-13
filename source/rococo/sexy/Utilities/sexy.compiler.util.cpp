@@ -347,10 +347,6 @@ namespace Rococo::Compiler
 		}			
 	}
 
-	SEXYUTIL_API bool IsNullType(const IStructure& type)
-	{
-		return StartsWith(type.Name(), "_Null");
-	}
 } // Rococo::Compiler
 
 namespace Rococo::Script
