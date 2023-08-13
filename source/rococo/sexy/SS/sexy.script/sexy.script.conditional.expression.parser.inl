@@ -90,12 +90,36 @@ namespace Rococo
             ce.Builder.AppendDoWhile(bodySection, loopCriterion, CONDITION_IF_NOT_EQUAL);
         }
 
+        int FindIndexOfMatchingAtomic(int startIndex, cr_sex s, cstr token)
+        {
+            for (int i = startIndex; i < s.NumberOfElements(); ++i)
+            {
+                auto& si = s[i];
+                if (IsAtomic(si) && Eq(si.c_str(), token))
+                {
+                   return i;
+                }
+            }
+
+            return -1;
+        }
+
         void CompileWhileLoop(CCompileEnvironment& ce, cr_sex s)
         {
-            // (while (binary-predicate) (action1) ... (actionN))
+            // (while (binary-predicate) (action1) ... (actionN) 
+            // finally (end-section)
+            // )
 
             AssertCompound(s);
             AssertNotTooFewElements(s, 2);
+
+            int finallyPos = FindIndexOfMatchingAtomic(2, s, "finally");
+            if (finallyPos == s.NumberOfElements() - 1)
+            {
+                Throw(s, "The [finally] statement was not followed by any directives");
+            }
+
+            finallyPos = finallyPos < 0 ? s.NumberOfElements() : finallyPos;
 
             struct ConditionSection : public ICompileSection
             {
@@ -104,7 +128,7 @@ namespace Rococo
                 cr_sex s;
                 CCompileEnvironment& ce;
 
-                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
                     cr_sex condition = s.GetElement(1);
 
@@ -121,27 +145,41 @@ namespace Rococo
 
             struct BodySection : public ICompileSection
             {
-                BodySection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+                BodySection(cr_sex _s, CCompileEnvironment& _ce, int32 _finalPos) : s(_s), ce(_ce), finallyPos(_finalPos) {}
 
                 cr_sex s;
                 CCompileEnvironment& ce;
+                int finallyPos;
 
-                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
-                {
-                    builder.PushControlFlowPoint(*controlFlowData);
-                    CompileExpressionSequence(ce, 2, s.NumberOfElements() - 1, s);
-                    builder.PopControlFlowPoint();
-                }
-            } bodySection(s, ce);
-
-            struct NoFinalSection : public ICompileSection
-            {
                 void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    if (finallyPos > 2)
+                    {
+                        builder.PushControlFlowPoint(*controlFlowData);
+                        CompileExpressionSequence(ce, 2, finallyPos-1, s);
+                        builder.PopControlFlowPoint();
+                    }
                 }
-            } noFinalSection;
+            } bodySection(s, ce, finallyPos);
 
-            ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_NOT_EQUAL, bodySection, noFinalSection);
+            struct FinalSection : public ICompileSection
+            {
+                FinalSection(cr_sex _s, CCompileEnvironment& _ce, int _finallyPos) : s(_s), ce(_ce), finallyPos(_finallyPos) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+                int finallyPos;
+
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
+                {
+                    if (finallyPos < s.NumberOfElements() - 1)
+                    {
+                        CompileExpressionSequence(ce, finallyPos + 1, s.NumberOfElements() - 1, s);
+                    }
+                }
+            } finalSection(s, ce, finallyPos);
+
+            ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_NOT_EQUAL, bodySection,finalSection);
         }
 
         void CompileBreak(CCompileEnvironment& ce, cr_sex s)

@@ -2613,6 +2613,8 @@ namespace Anon
 
 			if (newBranchToExitLength != branchToExitLength)
 			{
+				// TODO - investigate whether this ever gets called
+				OS::TripDebugger();
 				Assembler().Revert(loopAbortPos);
 				continue;
 			}
@@ -2625,6 +2627,8 @@ namespace Anon
 
 			if (newAbortBranchLength != branchAbortLength)
 			{
+				// TODO - investigate whether this ever gets called
+				OS::TripDebugger();
 				Assembler().Revert(loopAbortPos);
 				continue;
 			}
@@ -2642,7 +2646,7 @@ namespace Anon
 
 		if (attempts == 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Failed to evaluate while...do statement."));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Failed to evaluate while...do statement.");
 		}
 	}
 

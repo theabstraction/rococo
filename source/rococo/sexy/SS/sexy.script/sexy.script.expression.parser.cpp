@@ -3623,12 +3623,6 @@ namespace Rococo
 
 			try
 			{
-				if (IsAtomic(s) && Eq(s.c_str(), "finally"))
-				{
-					CompileFinally(ce, s);
-					return;
-				}
-
 				AssertCompound(s);
 
 				if (s.NumberOfElements() == 0) return;
