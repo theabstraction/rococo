@@ -3615,8 +3615,6 @@ namespace Rococo
 
 		void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence);
 
-		void CompileFinally(CCompileEnvironment& ce, cr_sex s);
-
 		void CompileExpression(CCompileEnvironment& ce, cr_sex s)
 		{
 			ce.Builder.MarkExpression(&s);

@@ -15569,7 +15569,7 @@ R"(
 (using Sys.Type)
 
 (function Main -> (Int32 result):
-	(Int32 i = 0)
+	(Int32 i = 1)
 	(while (i < 10)
 		(Sys.Print "Hello Mum!")
 		(continue)
@@ -15590,7 +15590,7 @@ R"(
 	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 	   ValidateExecution(result);
 	   int32 x = vm.PopInt32();
-	   validate(x == 55);
+	   validate(x == 10);
    }
 
 #pragma pack(push,1)
@@ -16681,7 +16681,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-	//	TEST(TestLoopFinally);
+		TEST(TestLoopFinally);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
