@@ -6901,8 +6901,7 @@ R"((namespace EntryPoint)
 			"(using Sys.Type)"
 			"(using Sys.Type.Strings)"
 
-			"(interface Sys.Type.IRobot"
-			"   (MoveTo (Vec2i pos)->)"
+			"(interface Sys.Type.IRobot (attribute dispatch)"
 			")"
 
 			"(class Robot (implements Sys.Type.IRobot))"

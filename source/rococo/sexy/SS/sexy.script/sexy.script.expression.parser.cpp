@@ -1200,6 +1200,8 @@ namespace Rococo
 				   Throw(directive[offset + 4], "(IStructure type = <bad-mojo>). RHS Variable was not of interface type. It was a %s", GetFriendlyName(*typeDef.ResolvedType));
 			   }
 
+			   auto& interf0 = typeDef.ResolvedType->GetInterface(0);
+
 			   AddSymbol(ce.Builder, "interface ref '%s'", fqTypeName);
 			   ce.Builder.PushVariable(typeDef);
 			   AddSymbol(ce.Builder, "class type -> D4");
@@ -2649,6 +2651,12 @@ namespace Rococo
 			if (type->InterfaceCount() != 1 || !IsNullType(*type))
 			{
 				Throw(sInterfaceRef, "Expecting a reference to a class with one interface, but type was %s", GetFriendlyName(*type));
+			}
+
+			const void* whatever;
+			if (!type->GetInterface(0).Attributes().FindAttribute("dispatch", whatever))
+			{
+				Throw(sInterfaceRef, "Cannot invoke unless the interface is marked with (attribute dispatch). %s was not so marked", type->GetInterface(0).Name());
 			}
 
 			enum {BLACK_MAGIC = -1};

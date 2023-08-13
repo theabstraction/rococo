@@ -53,9 +53,8 @@
 	(Int64 unused)
 )
 
-(interface MHost.Events.IOverlayEventHandler
+(interface MHost.Events.IOverlayEventHandler (attribute dispatch)
 	(BuildMenus -> )
-	(OnSysGeoffClicked (ButtonArgs args) -> )
 )
 
 (class OverlayButtonHandler
@@ -99,7 +98,7 @@
 	(IGuiOverlay overlay (MHost.GuiOverlay))
 	(overlay.ClearMenus)
 	
-	(Sys.Reflection.IStructure t = typeof MHost.Events.IOverlayEventHandler)
+	(Sys.Reflection.IStructure t = typeof this)
 	(Int32 nMethods = (t.GetMethodCount 0))
 	
 	(Sys.Type.IStringBuilder methodName = (Sys.Type.NewTokenBuilder))
