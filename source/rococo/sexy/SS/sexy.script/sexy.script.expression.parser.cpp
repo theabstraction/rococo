@@ -3504,7 +3504,7 @@ namespace Rococo
 				INamespace& ns = AssertGetNamespace(ce.Builder.Module().Object(), s, nsBody);
 
 				const IMacro* macro = ns.FindMacro(fname);
-				if (macro == NULL) ThrowTokenNotFound(s, fname, ns.FullName()->Buffer, ("macro"));		
+				if (macro == NULL) Throw(s, "Could not find macro %s in namespace %s. The macro was used in function %s defined in %s. Try using a fully qualified name.", macroName, nsBody, ce.Builder.Owner().Name(), ce.Builder.Module().Name());
 				f = &macro->Implementation();
 			}
 			else
@@ -3535,7 +3535,7 @@ namespace Rococo
 
 				if (f == NULL)
 				{
-					ThrowTokenNotFound(s, macroName, ce.Builder.Module().Name(), ("macro"));
+					Throw(s, "Could not find macro %s used in function %s defined in %s. Try using a fully qualified name.", macroName, ce.Builder.Owner().Name(), ce.Builder.Module().Name());
 				}
 			}
 

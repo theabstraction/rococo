@@ -15593,6 +15593,43 @@ R"(
 	   validate(x == 10);
    }
 
+   void TestLoopFinally2(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   R"(
+(namespace EntryPoint)
+(using Sys)
+(using Sys.Type)
+(using Sys.IO)
+
+(function Main -> (Int32 result):
+	(Int32 i = 0)
+	(while (i < 10)
+		(#printf "Hello Mum: " i "&n")
+		(i += 1)
+		(#printf "Hello Dad!" i  "&n")
+	 finally
+		(#printf "Hello stranger!" i "&n")
+		(i += 1)
+	)
+	(result += i)
+)
+
+(alias Main EntryPoint.Main)
+		)";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   printf("%d", x);
+	   validate(x == 10);
+   }
+
 #pragma pack(push,1)
    struct Message
    {
@@ -16357,7 +16394,8 @@ R"(
 		TEST(TestInterfaceForNull);
 		TEST(TestFactoryReturnsBaseInterface);
 		TEST(TestLoopBreak);
-	//	TEST(TestLoopFinally);
+		TEST3(TestLoopFinally);
+		TEST3(TestLoopFinally2);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);
 		TEST(TestBadClosureArg7);
@@ -16681,7 +16719,6 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestLoopFinally);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
@@ -16713,8 +16750,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
