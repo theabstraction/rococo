@@ -68,6 +68,7 @@
 )
 
 (method OverlayButtonHandler.OnSysGeoffClicked (ButtonArgs args) -> :
+	(debug)
 )
 
 // Example: SysGeoff goes in and Sys.Geoff goes out
@@ -84,7 +85,7 @@
 	
 	(Bool first = true)
 	
-	(#for (Int32 i = 1) (i < pascalCase.Length)(i += 1)
+	(for (Int32 i = 1) (i < pascalCase.Length)(i += 1)
 		(Int32 c = (pascalCase i))
 		(if (Sys.Type.Strings.IsUpperCase c)
 			(nsBuilder ".")
@@ -105,7 +106,7 @@
 	(Sys.Type.IStringBuilder buttonName = (Sys.Type.NewTokenBuilder))
 	(Sys.Type.IStringBuilder methodPascalCase = (Sys.Type.NewTokenBuilder))
 	
-	(#for (Int32 i = 0)(i < nMethods)(i += 1)
+	(for (Int32 i = 0)(i < nMethods)(i += 1)
 		(methodName.Clear)
 		(buttonName.Clear)
 		(t.AppendMethodName methodName 0 i)
@@ -239,8 +240,7 @@
 			(if (guiEvent.eventId == (#EvIdOverlayButtonClick))
 				(eventString.Clear)
 				(guiOverlay.AppendEventString eventString guiEvent)
-				(debug)
-				(ButtonArgs buttonArgs)
+				(ButtonArgs buttonArgs = 0)
 				(invoke this.overlayHandler eventString buttonArgs)
 			)
 		)
@@ -365,8 +365,8 @@
 	(source.position = 10 0 2)
 	(source.dopplerVelocity = 0 0 0)
 	
-	(Int64 jungleSoundId = (audio.Bind3DSample "!sounds/jungle.mp3"))
-	(Int64 jungleInstrumentId = (audio.Play3DSound jungleSoundId source 0))
+//	(Int64 jungleSoundId = (audio.Bind3DSample "!sounds/jungle.mp3"))
+//	(Int64 jungleInstrumentId = (audio.Play3DSound jungleSoundId source 0))
 		
 	(IMaterialBuilder matBuilder (MaterialBuilder))
 	(Int64 cubeId = (matBuilder.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
@@ -390,7 +390,7 @@
 	// Set scale to zero, which allows the childToWorld matrix to control scaling
 	(Vec3 useModelMatrixScaling = 0 0 0)
 	
-	(#for (Int32 i = 0)(i < mike.ChildCount)(i += 1)
+	(for (Int32 i = 0)(i < mike.ChildCount)(i += 1)
 		(IRig child = (mike.Child i))
 		(meshName.Clear)
 		(child.AppendMeshName meshName)

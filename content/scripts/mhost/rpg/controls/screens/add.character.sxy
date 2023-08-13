@@ -84,7 +84,7 @@
 )
 
 (function AppendSantitizedNameToPath (IStringBuilder sb)(IString name) -> :
-	(#for (Int32 i = 0)(i < name.Length)(i += 1)
+	(for (Int32 i = 0)(i < name.Length)(i += 1)
 		(Int32 c = (name i))
 		(if (IsAlphaNumeric c)
 			(sb.AppendChar c)
@@ -100,7 +100,7 @@
 	(Sys.OS.AppendCTime rawTime)
 	(IString rawTimeString = rawTime)
 	
-	(#for (Int32 i = 3)(i < rawTime.Length)(i += 1)
+	(for (Int32 i = 3)(i < rawTime.Length)(i += 1)
 		(Int32 c = (rawTimeString i))
 		(if (IsAlphaNumeric c)
 			(sb.AppendChar c)

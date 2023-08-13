@@ -158,7 +158,7 @@
 	(this.screenSpan = 0 0)
 	(this.playerFacesRight = true)
 	
-	(#for (Int32 i = 0)(i < 1000)(i += 1)
+	(for (Int32 i = 0)(i < 1000)(i += 1)
 		(Star s)
 		(AnyFloat 0 1366 -> s.x)
 		(AnyFloat 400 2400 -> s.y)
@@ -168,7 +168,7 @@
 		(this.smallStars.Push s)
 	)
 	
-	(#for (Int32 i = 0)(i < 10)(i += 1)
+	(for (Int32 i = 0)(i < 10)(i += 1)
 		(Star s)
 		(AnyFloat 0 1366 -> s.x)
 		(AnyFloat 400 2400 -> s.y)
@@ -180,7 +180,7 @@
 	(Int32 alignMirror = (#AlignmentFlagsMirror))
 	(Int32 alignFlip = (#AlignmentFlagsFlip))
 	
-	(#for (Int32 i = 0)(i < 150)(i += 1)
+	(for (Int32 i = 0)(i < 150)(i += 1)
 		(Cloud cloud = (-1000 -1000) 0 0 0xFFFFFFFF (1 1 1 1)(0 0))
 		
 		(cloud.alignment = 0)
@@ -203,7 +203,7 @@
 		(this.cloudsBackground.Push cloud)
 	)
 	
-	(#for (Int32 i = 0)(i < 150)(i += 1)
+	(for (Int32 i = 0)(i < 150)(i += 1)
 		(Cloud cloud = (-1000 -1000) 0 0 0xFFFFFFFF (1 1 1 1)(0 0))
 		
 		(cloud.alignment = 0)
@@ -258,7 +258,7 @@
 	(g.GetScreenSpan s)
 	(Float32 y = (s.y - 80))
 	
-	(#for (Float32 i = 0)(i < count)(i += 1)
+	(for (Float32 i = 0)(i < count)(i += 1)
 		(Float32 x =  (20 + (i * 64)))
 		(Vec2 pos = x y)
 		(y += 10)

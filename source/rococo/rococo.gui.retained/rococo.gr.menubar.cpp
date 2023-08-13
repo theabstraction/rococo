@@ -241,7 +241,7 @@ namespace GRANON
 			{
 				auto& button = CreateMenuButton(*this);
 				button.SetTitle(item.button->text.c_str());
-				button.SetMetaData({ item.button->iMetaData, item.button->text.c_str() });
+				button.SetMetaData({ item.button->iMetaData, item.button->sMetaData.c_str() });
 				button.SetEventPolicy(EGREventPolicy::NotifyAncestors);
 				button.SetClickCriterion(EGRClickCriterion::OnDownThenUp);
 				button.SetAlignment(alignment, { BUTTON_X_PADDING,0});

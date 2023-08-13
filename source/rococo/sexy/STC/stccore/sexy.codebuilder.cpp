@@ -94,9 +94,9 @@ namespace Rococo::Compiler
 {
 	bool IsDerivedFrom(const IInterface& sub, const IInterface& super)
 	{
-		for (const IInterface* i = &super; i != nullptr; i = i->Base())
+		for (const IInterface* i = &sub; i != nullptr; i = i->Base())
 		{
-			if (i == &sub) return true;
+			if (i == &super) return true;
 		}
 
 		return false;
@@ -1540,7 +1540,23 @@ namespace Anon
 		{
 			if (def.ResolvedType->InterfaceCount() == 0)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not assign '%s' to [%s]. The variable is not of atomic type and has no interface.", literalValue, name.c_str());
+				if (def.ResolvedType->MemberCount() == 1)
+				{
+					// Could be a memberwise assignment to element 0
+					auto& member0 = def.ResolvedType->GetMember(0);
+					auto& member0Type = *member0.UnderlyingType();
+					if (IsPrimitiveType(member0Type.VarType()))
+					{
+						char fqMember[128];
+						SecureFormat(fqMember, "%s.%s", name.c_str(), member0.Name());
+						AssignLiteral(NameString::From(fqMember), literalValue);
+						return;
+					}
+				}
+				else
+				{
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not assign '%s' to [%s]. The variable is not of atomic type and has no interface.", literalValue, name.c_str());
+				}
 			}
 
 			const IInterface& interf = def.ResolvedType->GetInterface(0);

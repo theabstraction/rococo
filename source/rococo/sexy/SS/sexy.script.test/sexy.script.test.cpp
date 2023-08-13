@@ -5876,7 +5876,7 @@ R"((namespace EntryPoint)
 			"	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)"
 			"	(Int32 moduleCount)"
 			"   (ss.ModuleCount -> moduleCount)"
-			"   (#for (Int32 i = 0) (i < moduleCount) (i = (i + 1))"
+			"   (for (Int32 i = 0) (i < moduleCount) (i = (i + 1))"
 			"		(IModule module = (ss.Module i))"
 			"		(Int32 len)"
 			"		(Sys.Print module.Name -> len)"
@@ -5940,10 +5940,10 @@ R"((namespace EntryPoint)
 			"	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)"
 			"	(Int32 moduleCount = ss.ModuleCount)"
 
-			"   (#for (Int32 i = 0)  (i < moduleCount)  (#inc i)"
+			"   (for (Int32 i = 0)  (i < moduleCount)  (#inc i)"
 			"			(IModule module = (ss.Module i))"
 
-			"			(#for (Int32 j = 0) (j < module.StructCount) (#inc j)"
+			"			(for (Int32 j = 0) (j < module.StructCount) (#inc j)"
 			"				(IStructure s = (module.Structure j))"
 			"				(Int32 len)"
 			"				(Sys.Print s.Name -> len)"
@@ -6933,7 +6933,7 @@ R"((namespace EntryPoint)
 			"(function Main -> (Int32 result):"
 			"	(IExpression s = ' (Hello \" \" world))"
 			"   (IStringBuilder sb = NewTokenBuilder)"
-			"	(#for  (Int32 i = 0)   (i < s.ChildCount)  (i += 1)" 
+			"	(for  (Int32 i = 0)   (i < s.ChildCount)  (i += 1)" 
 			"       (IExpression child = (s i))"
 			"		(child.AppendTextTo sb)"
 			"   )"
@@ -9172,7 +9172,7 @@ R"((namespace EntryPoint)
  
 		"(function Main -> (Int32 result):"
 		"	(array Int32 a (10) )"
-		"	(#for (Int32 i = 0) (i < 10) (#inc i)"
+		"	(for (Int32 i = 0) (i < 10) (i += 1)"
 		"		(a.Push (i + 10))"
 		"	)"
 
@@ -9205,12 +9205,12 @@ R"((namespace EntryPoint)
  
 		"(function Main -> (Int32 result):"
 		"	(array Int32 a (10) )"
-		"	(#for (Int32 i = 0) (i < 10) (#inc i)"
+		"	(for (Int32 i = 0) (i < 10) (i += 1)"
 		"		(a.Push (i + 10))"
 		"	)"
 
 		"	(foreach k # a"
-		"		(result = (result + k))"
+		"		(result += k)"
 		"	)"		
 		")";
 
@@ -15478,6 +15478,30 @@ R"(
       validate(z == -3.0f);
    }
 
+   void Test1FieldInit(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint) \n"
+		   "(using Sys) \n"
+		   "(using Sys.Type) \n"
+		   "(struct Arg (Int32 value))"
+		   "(function Main -> (Int32 result): \n"
+		   "		(Arg arg = 7)\n"
+		   "		(result = arg.value)\n"
+		   ")\n"
+		   "(alias Main EntryPoint.Main) \n";
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(1); // Allocate stack space for the int32 x
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 7);
+   }
+
    void TestAssignStringToStruct(IPublicScriptSystem& ss)
    {
 	   cstr srcCode =
@@ -16537,7 +16561,7 @@ R"(
 
 		TEST(TestSerialize);
 
-	//	TEST3(TestForStatement);
+		TEST3(TestForStatement);
 		TEST(TestWhileLoop1);
 		TEST(TestNestedWhileLoops);
 		TEST(TestWhileLoopBreak);
@@ -16740,7 +16764,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST3(TestForStatement);
+		TEST3(Test1FieldInit);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
@@ -16772,8 +16796,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

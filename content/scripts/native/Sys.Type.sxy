@@ -58,9 +58,9 @@
 
 (alias Print Sys.Print)
 
-// Example: (#for (Int32 i = 0) (i < 10)  (i = (i + 1)) (CallFunction i) )
+// Example: (for (Int32 i = 0) (i < 10)  (i = (i + 1)) (CallFunction i) )
 (macro Sys.Type.for in out
-	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#for (init-condition)   (while-test-boolean-valued-expression)   (loop-increment)   (body1)...(bodyN)  )")
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (for (init-condition)   (while-test-boolean-valued-expression)   (loop-increment)   (body1)...(bodyN)  )")
 	(out.Copy (in 1))
 	(IExpressionBuilder whileLoop = out.AddCompound)
 	(whileLoop.AddAtomic "while")

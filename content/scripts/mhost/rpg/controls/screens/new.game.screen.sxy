@@ -195,7 +195,7 @@
 	
 	(IExpression sRoot = (s 0))
 	(IExpression sAttributes = (sRoot 2))
-	(#for (Int32 i = 0) (i < sAttributes.ChildCount)(i += 1)
+	(for (Int32 i = 0) (i < sAttributes.ChildCount)(i += 1)
 		(IExpression sAttribute = (sAttributes i))
 		(serialize sAttribute -> data)	
 	)

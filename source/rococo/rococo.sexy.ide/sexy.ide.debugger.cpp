@@ -888,13 +888,11 @@ namespace
 			this->debugControl = debugControl;
 		}
 
+		bool markedForClear = false;
+
 		void ClearSourceCode() override
 		{
-			IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID_SOURCE));
-			if (report)
-			{
-				report->Editor().ResetContent();
-			}
+			markedForClear = true;
 		}
 
 		void AddSourceCode(cstr name, cstr sourceCode) override
@@ -902,6 +900,11 @@ namespace
 			IIDETextWindow* report = static_cast<IIDETextWindow*>(spatialManager->FindPane(IDEPANE_ID_SOURCE));
 			if (report)
 			{
+				if (markedForClear && sourceCode && *sourceCode)
+				{
+					report->Editor().ResetContent();
+				}
+
 				HWND hEditor = report->Editor().EditorHandle();
 				SendMessageA(hEditor, WM_SETREDRAW, FALSE, 0);
 				report->Editor().ResetContent();

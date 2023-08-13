@@ -41,7 +41,7 @@
 */
 
 (function FindChildIndexOfItem (IExpression s) (Int32 startIndex)(IString text)->(Int32 index):
-	(#for (Int32 i = 0)(i < s.ChildCount)(i += 1)
+	(for (Int32 i = 0)(i < s.ChildCount)(i += 1)
 		(IExpression child = (s i))
 		(Int32 type = child.Type)
 		(if ((type == (#ExpressionTypeAtomic)) or (type == (#ExpressionTypeString)))

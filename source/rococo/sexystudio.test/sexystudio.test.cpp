@@ -1196,7 +1196,7 @@ void TestComplexCase1()
 (Sys.Type.IStringBuilder methodName = (Sys.Type.NewTokenBuilder))
 (Sys.Type.IStringBuilder buttonName = (Sys.Type.NewTokenBuilder))
 
-(#for (Int32 i = 0)(i < nMethods)(i += 1)
+(for (Int32 i = 0)(i < nMethods)(i += 1)
 	(methodName.Clear)
 	(buttonName.Clear)
 	(t.AppendMethodName methodName 0 i)
@@ -1215,7 +1215,6 @@ void TestComplexCase1()
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
-	goto skip;
 	TestFullEditor_SearchFQType();
 	TestFullEditor_SearchForMacro();
 	TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();
@@ -1229,7 +1228,6 @@ void MainProtected2(HMODULE /* hLib */)
 	TestFullEditor_SearchLocalStructForInterface();
 	TestFullEditor_SearchForFactories();
 	TestFullEditor_SearchForFactories2();
-skip:
 	TestComplexCase1();
 }
 

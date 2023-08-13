@@ -1248,7 +1248,7 @@ namespace Rococo
 					   sexstring dsttext = ssource.String();
 					   sexstring srctext = secondarg.String();
 
-					   if (!IsCapital(srctext->Buffer[0]))
+					   if (IsLowerCase(srctext->Buffer[0]))
 					   {
 						   ce.Builder.AssignVariableToVariable(srctext->Buffer, dsttext->Buffer);
 					   }

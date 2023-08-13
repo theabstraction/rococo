@@ -165,7 +165,7 @@
 	
 	// 4 enemy missiles
 	(
-		(#for (Int32 i = 0)(i < 4)(i += 1)
+		(for (Int32 i = 0)(i < 4)(i += 1)
 			(Entity a0 = (1  -40) ("!textures/mhost/galaxians/missile.2.tiff" defaultBmpLoc))
 			(this.missiles.Push a0)
 		)
@@ -185,7 +185,7 @@
 	// 1 line of 6 red meanies
 	(
 		(Int32 y = 120)
-		(#for (Int32 i = 0)(i < 6)(i += 1)
+		(for (Int32 i = 0)(i < 6)(i += 1)
 			(Int32 x = (90 + (i * 40)))
 			(Entity a0 = (x  y) (pawn3 defaultBmpLoc))
 			(this.aliens.Push a0)
@@ -195,7 +195,7 @@
 	// 1 line 8 purple meanies
 	(
 		(Int32 y = 160)
-		(#for (Int32 i = 0)(i < 8)(i += 1)
+		(for (Int32 i = 0)(i < 8)(i += 1)
 			(Int32 x = (50 + (i * 40)))
 			(Entity a0 = (x  y) (pawn2 defaultBmpLoc))
 			(this.aliens.Push a0)
@@ -204,9 +204,9 @@
 	
 	
 	// 3 lines of 10 blue meanies
-	(#for (Int32 j = 3)(j < 6)(j += 1)
+	(for (Int32 j = 3)(j < 6)(j += 1)
 		(Int32 y = (80 + (j * 40)))
-		(#for (Int32 i = 0)(i < 10)(i += 1)
+		(for (Int32 i = 0)(i < 10)(i += 1)
 			(Int32 x = (10 + (i * 40)))
 			(Entity a0 = (x  y) (pawn1 defaultBmpLoc))
 			(this.aliens.Push a0)
@@ -232,7 +232,7 @@
 )
 
 (function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
-	(#for (Int32 i = 0)(i < count)(i += 1)
+	(for (Int32 i = 0)(i < count)(i += 1)
 		(Vec2i pos)
 		(pos.x =  (100 + (i * 64)))
 		(pos.y = 640)
