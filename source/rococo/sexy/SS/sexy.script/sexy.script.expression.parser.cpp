@@ -2879,6 +2879,7 @@ namespace Rococo
 				auto& map = *functionMap;
 				map["if"] = CompileIfThenElse;
 				map["cast"] = CompileCast;
+				map["for"] = CompileForLoop;
 				map["while"] = CompileWhileLoop;
 				map["break"] = CompileBreak;
 				map["continue"] = CompileContinue;

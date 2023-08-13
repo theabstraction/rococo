@@ -104,6 +104,80 @@ namespace Rococo
             return -1;
         }
 
+        void CompileForLoop(CCompileEnvironment& ce, cr_sex s)
+        {
+            // (for (initialization-pre-loop-expressions)(binary-predicate)(finally expression) 
+            //    (body)
+            // )
+
+            AssertCompound(s);
+            AssertNotTooFewElements(s, 4);
+
+            cr_sex sInitialization = s[1];
+
+            CompileExpression(ce, sInitialization);
+
+            cr_sex sBinaryPredicate = s[2];
+
+            cr_sex sFinally = s[3];
+
+            struct ConditionSection : public ICompileSection
+            {
+                ConditionSection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
+                {
+                    bool negate = false;
+                    if (!TryCompileBooleanExpression(ce, s, true, negate))
+                    {
+                        Throw(s, "Expecting boolean valued expression as the condition in the (for ...) statement");
+                    }
+
+                    if (negate) builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
+                    builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
+                }
+            } loopCriterion(sBinaryPredicate, ce);
+
+            struct BodySection : public ICompileSection
+            {
+                BodySection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+    
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
+                {
+                    if (s.NumberOfElements() > 4)
+                    {
+                        builder.PushControlFlowPoint(*controlFlowData);
+                        CompileExpressionSequence(ce, 4, s.NumberOfElements() - 1, s);
+                        builder.PopControlFlowPoint();
+                    }
+                }
+            } bodySection(s, ce);
+
+            struct FinalSection : public ICompileSection
+            {
+                FinalSection(cr_sex _s, CCompileEnvironment& _ce) : s(_s), ce(_ce) {}
+
+                cr_sex s;
+                CCompileEnvironment& ce;
+
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
+                {
+                    if (s.Type() != EXPRESSION_TYPE_NULL)
+                    {
+                        CompileExpression(ce, s);
+                    }
+                }
+            } finalSection(sFinally, ce);
+
+            ce.Builder.AppendWhileDo(loopCriterion, CONDITION_IF_NOT_EQUAL, bodySection, finalSection);
+        }
+
         void CompileWhileLoop(CCompileEnvironment& ce, cr_sex s)
         {
             // (while (binary-predicate) (action1) ... (actionN) 

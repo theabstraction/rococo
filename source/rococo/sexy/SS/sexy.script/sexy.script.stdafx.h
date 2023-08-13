@@ -638,6 +638,7 @@ namespace Rococo
         void CompileAsListNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source);
         void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source);
         void CompileIfThenElse(CCompileEnvironment& ce, cr_sex s);
+        void CompileForLoop(CCompileEnvironment& ce, cr_sex s);
         void CompileWhileLoop(CCompileEnvironment& ce, cr_sex s);
         void CompileBreak(CCompileEnvironment& ce, cr_sex s);
         void CompileContinue(CCompileEnvironment& ce, cr_sex s);
