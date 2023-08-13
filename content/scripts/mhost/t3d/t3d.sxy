@@ -5,6 +5,7 @@
 (' #include
 	"!scripts/mhost/t3d/t3d_world.sxy"
 	"!scripts/mhost/t3d/t3d_config.sxy"
+	"!scripts/mhost/t3d/Gui/t3d.menus.sxy"
 )
 
 (namespace EntryPoint)
@@ -49,88 +50,6 @@
 	(SetPlayerMoveIntent (Float32 straffe)(Float32 forward)->)
 )
 
-(struct ButtonArgs
-	(Int64 unused)
-)
-
-(interface MHost.Events.IOverlayEventHandler (attribute dispatch)
-	(BuildMenus -> )
-)
-
-(class OverlayButtonHandler
-	(implements MHost.Events.IOverlayEventHandler)
-	(IWorld world)
-)
-
-(method OverlayButtonHandler.Construct (IWorld world) : 
-	(this.world = world)
-)
-
-(method OverlayButtonHandler.OnObjectsCreateBottleClicked (ButtonArgs args) -> :
-)
-
-(method OverlayButtonHandler.OnObjectsCreateTableClicked (ButtonArgs args) -> :
-)
-
-// Example: SysGeoff goes in and Sys.Geoff goes out
-(function ConvertPascalCaseToNamespace (IString pascalCase)(IStringBuilder nsBuilder) -> :
-	(Bool isFirstCharCapital = (Sys.Type.Strings.IsUpperCase (pascalCase 0)))
-	(if (not isFirstCharCapital)
-		(
-			(#path msg "ConvertPascalCaseToNamespace(arg =" pascalCase ", ...) arg did not begin with a capital letter")
-			(Sys.Throw 0 msg)
-		)
-	)
-	
-	(nsBuilder.AppendChar (pascalCase 0))
-	
-	(Bool first = true)
-	
-	(for (Int32 i = 1) (i < pascalCase.Length)(i += 1)
-		(Int32 c = (pascalCase i))
-		(if (Sys.Type.Strings.IsUpperCase c)
-			(nsBuilder ".")
-		)
-		
-		(nsBuilder.AppendChar c)		
-	)
-)
-
-(method OverlayButtonHandler.BuildMenus -> :
-	(IGuiOverlay overlay (MHost.GuiOverlay))
-	(overlay.ClearMenus)
-	
-	(Sys.Reflection.IStructure t = typeof this)
-	(Int32 nMethods = t.GetMethodCount)
-	
-	(Sys.Type.IStringBuilder methodName = Sys.Type.NewTokenBuilder)
-	(Sys.Type.IStringBuilder buttonName = Sys.Type.NewTokenBuilder)
-	(Sys.Type.IStringBuilder methodPascalCase = Sys.Type.NewTokenBuilder)
-	
-	(for (Int32 i = 0)(i < nMethods)(i += 1)
-		(methodName.Clear)
-		(buttonName.Clear)
-		(methodPascalCase.Clear)
-		(t.AppendMethodName methodName i)
-		(Int32 dotOnPos = (Sys.Type.Strings.FindLeftNoCase methodName 0  ".On"))		
-		(if (dotOnPos > 0)
-			(dotOnPos += 3)
-			(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName dotOnPos 10000 "Clicked"))
-			(if (clickedPos > 0)
-				(methodPascalCase.AppendSubstring methodName dotOnPos (clickedPos - dotOnPos))
-				(ConvertPascalCaseToNamespace methodPascalCase buttonName) 
-				(dotOnPos -= 2)
-				(methodName.StripLeft dotOnPos)
-				(overlay.AddMenu methodName (Sys.Maths.I32.ToInt64 i) buttonName)
-			)
-		)	
-	)
-)
-
-(factory T3D.NewOverlayButtonHandler MHost.Events.IOverlayEventHandler (IWorld world):
-	(construct OverlayButtonHandler world)
-)
-
 (class GuiInputThread 
 	(implements T3D.IInputThread)
 	(IEngine engine)
@@ -138,7 +57,7 @@
 	(IEventHandler modalSink)
 	(IKeyboard keyboard)
 	(IWorld world)
-	(IOverlayEventHandler overlayHandler)
+	(T3D.Gui.IOverlayEventHandler overlayHandler)
 	(Bool isViewLocked)
 )
 
@@ -160,7 +79,7 @@
 	(this.engine = engine)
 	(this.world = world)
 	(this.isViewLocked = false)
-	(MHost.Events.IOverlayEventHandler overlayHandler (NewOverlayButtonHandler world))
+	(T3D.Gui.IOverlayEventHandler overlayHandler (T3D.Gui.NewOverlayButtonHandler world))
 	(this.overlayHandler = overlayHandler)
 )
 
@@ -246,7 +165,7 @@
 			(if (guiEvent.eventId == (#EvIdOverlayButtonClick))
 				(eventString.Clear)
 				(guiOverlay.AppendEventString eventString guiEvent)
-				(ButtonArgs buttonArgs = 0)
+				(T3D.Gui.ButtonArgs buttonArgs = 0)
 				(invoke this.overlayHandler eventString buttonArgs)
 			)
 		)

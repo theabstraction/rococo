@@ -300,7 +300,7 @@
 	(Replace (Int32 startPosition) (IString from)(IString to) ->)
 	(SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) ->)
 	(SetLength (Int32 length) ->)
-	(StripLeft (Int32 leftPos) ->)
+	(StripLeft (Int32 leftPos) ->)	// Strips the first characters to the left of leftPos from the buffer
 	(ToUpper (Int32 start) (Int32 end) ->)
 	(ToLower (Int32 start) (Int32 end) ->)
 	(Clear ->)

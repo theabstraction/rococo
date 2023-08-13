@@ -1,0 +1,93 @@
+// Example: SysGeoff goes in and Sys.Geoff goes out
+(function ConvertPascalCaseToNamespace (IString pascalCase)(IStringBuilder nsBuilder) -> :
+	(Bool isFirstCharCapital = (Sys.Type.Strings.IsUpperCase (pascalCase 0)))
+	(if (not isFirstCharCapital)
+		(
+			(#path msg "ConvertPascalCaseToNamespace(arg =" pascalCase ", ...) arg did not begin with a capital letter")
+			(Sys.Throw 0 msg)
+		)
+	)
+	
+	(nsBuilder.AppendChar (pascalCase 0))
+	
+	(Bool first = true)
+	
+	(for (Int32 i = 1) (i < pascalCase.Length)(i += 1)
+		(Int32 c = (pascalCase i))
+		(if (Sys.Type.Strings.IsUpperCase c)
+			(nsBuilder ".")
+		)
+		
+		(nsBuilder.AppendChar c)		
+	)
+)
+
+(namespace T3D.Gui)
+(namespace MHost)
+(using Sys.Type)
+(using Sys.Type.Strings)
+
+(using T3D)
+
+(struct ButtonArgs
+	(Int64 unused)
+)
+
+(alias ButtonArgs T3D.Gui.ButtonArgs)
+
+(interface  T3D.Gui.IOverlayEventHandler (attribute dispatch)
+	(BuildMenus -> )
+)
+
+(class OverlayButtonHandler
+	(implements T3D.Gui.IOverlayEventHandler)
+	(IWorld world)
+)
+
+(factory  T3D.Gui.NewOverlayButtonHandler  T3D.Gui.IOverlayEventHandler (IWorld world):
+	(construct OverlayButtonHandler world)
+)
+
+(method OverlayButtonHandler.Construct (IWorld world) : 
+	(this.world = world)
+)
+
+(method OverlayButtonHandler.BuildMenus -> :
+	(MHost.IGuiOverlay overlay (MHost.GuiOverlay))
+	(overlay.ClearMenus)
+	
+	(Sys.Reflection.IStructure t = typeof this)
+	(Int32 nMethods = t.GetMethodCount)
+	
+	(Sys.Type.IStringBuilder methodName = Sys.Type.NewTokenBuilder)
+	(Sys.Type.IStringBuilder buttonName = Sys.Type.NewTokenBuilder)
+	(Sys.Type.IStringBuilder methodPascalCase = Sys.Type.NewTokenBuilder)
+	
+	(for (Int32 i = 0)(i < nMethods)(i += 1)
+		(methodName.Clear)
+		(buttonName.Clear)
+		(methodPascalCase.Clear)
+		(t.AppendMethodName methodName i)
+		(Int32 dotOnPos = (Sys.Type.Strings.FindLeftNoCase methodName 0  ".On"))		
+		(if (dotOnPos > 0)
+			(dotOnPos += 3)
+			(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName dotOnPos 10000 "Clicked"))
+			(if (clickedPos > 0)
+				(methodPascalCase.AppendSubstring methodName dotOnPos (clickedPos - dotOnPos))
+				(ConvertPascalCaseToNamespace methodPascalCase buttonName) 
+				(dotOnPos -= 2)
+				(methodName.StripLeft dotOnPos)
+				(overlay.AddMenu methodName (Sys.Maths.I32.ToInt64 i) buttonName)
+			)
+		)	
+	)
+)
+
+// Any method here that begins with 'On' and ends with 'Clicked' automatically creates a button in the GR overlay which invokes the method as a callback when clicked
+
+(method OverlayButtonHandler.OnObjectsCreateBottleClicked (T3D.Gui.ButtonArgs args) -> :
+)
+
+(method OverlayButtonHandler.OnObjectsCreateTableClicked (T3D.Gui.ButtonArgs args) -> :
+)
+
