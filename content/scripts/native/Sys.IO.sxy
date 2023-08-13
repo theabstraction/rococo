@@ -221,7 +221,7 @@
 	(stdoutWriterInit.AddAtomic "GetStdOut")
 	
 	(IExpressionBuilder builderSequence = out.AddCompound)
-	(#for (Int32 i = 1) (i < in.ChildCount) (i += 1)
+	(for (Int32 i = 1) (i < in.ChildCount) (i += 1)
 		(IExpressionBuilder builderChild = builderSequence.AddCompound)
 		(builderChild.AddAtomic stdoutVar)
 		(builderChild.Copy (in i))

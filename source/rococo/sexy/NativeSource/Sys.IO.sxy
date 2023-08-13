@@ -203,6 +203,12 @@
 	(Sys.IO.Native.SetFilePosition this position)
 )
 
+(function CloseWriter (Sys.IO.IWriter writer)-> :
+	(Sys.IO.Native.CloseWriter writer)
+)
+
+(alias CloseWriter Sys.IO.CloseWriter)
+
 (using Sys.Reflection)
 
 (function BuildPrintStatement (IExpression in)(IExpressionBuilder out)-> :
@@ -215,7 +221,7 @@
 	(stdoutWriterInit.AddAtomic "GetStdOut")
 	
 	(IExpressionBuilder builderSequence = out.AddCompound)
-	(#for (Int32 i = 1) (i < in.ChildCount) (i += 1)
+	(for (Int32 i = 1) (i < in.ChildCount) (i += 1)
 		(IExpressionBuilder builderChild = builderSequence.AddCompound)
 		(builderChild.AddAtomic stdoutVar)
 		(builderChild.Copy (in i))

@@ -270,7 +270,7 @@
 		(last = (i + sep.Length))
 		(i = (i + sep.Length))
 		(f sb index)
-		(index = (index + 1))
+		(index += 1)
 	)
 )
 

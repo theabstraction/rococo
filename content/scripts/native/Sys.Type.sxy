@@ -69,7 +69,7 @@
 	(Int32 i = 4)
 	(while (i < in.ChildCount) 
 		(whileLoop.Copy (in i))
-		(i = (i + 1))
+		(i += 1)
 	)
 
 	(whileLoop.Copy (in 3))
@@ -97,7 +97,7 @@
 
 // Scans the trailing arguments of an expression (... arg1 arg2 .. argN) and appends (lhs arg1)(lhs arg2)...(lhs argN) to the output
 (function ConvertArgsToExpressionPairs (IExpression in)(IExpression lhs)(IExpressionBuilder out)(Int32 startIndex)-> :
-	(#for (Int32 i = startIndex) (i < in.ChildCount) (i += 1)
+	(for (Int32 i = startIndex) (i < in.ChildCount) (i += 1)
 		(IExpressionBuilder child = out.AddCompound)
 		(child.Copy lhs)
 		(child.Copy (in i))
@@ -232,7 +232,7 @@
 	(IExpression arrayName = (in 1))
 	(IExpression elementType = (in 2))
 	
-	(#for (Int32 j = 3)(j < nInputChildren)(j += 1)
+	(for (Int32 j = 3)(j < nInputChildren)(j += 1)
 		(sb.Clear)
 		(arrayName.AppendTextTo sb)
 		(sb ".Push")
@@ -266,7 +266,7 @@
 	
 	(Int32 substituteThisChar = (substituteThis 0))
 	
-	(#for (Int32 i = 0)(i < text.Length)(i += 1)
+	(for (Int32 i = 0)(i < text.Length)(i += 1)
 		(Int32 c = (text i))
 		(if (c == substituteThisChar)
 			(builder withThat)
