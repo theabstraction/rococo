@@ -68,7 +68,7 @@
 	(whileLoop.Copy (in 3))
 ) 
 
-// Example: (#inc i) maps to (i = (i+1) )
+// Example: (i += 1) maps to (i = (i+1) )
 (macro Sys.Type.inc in out
 	(ValidateSubscriptRange in.ChildCount 2 3 "Usage: (#inc <variable-name>)")
 	(IExpression format = ' ($1 = ($1 + 1)))
