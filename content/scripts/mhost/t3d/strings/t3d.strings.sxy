@@ -1,0 +1,30 @@
+(using Sys.Type)
+(using Sys.Type.Strings)
+
+// Example: SysGeoff goes in and Sys.Geoff goes out
+(function ConvertPascalCaseToNamespace (IString pascalCase)(IStringBuilder nsBuilder) -> :
+	(Bool isFirstCharCapital = (IsUpperCase (pascalCase 0)))
+	(if (not isFirstCharCapital)
+		(
+			(#path msg "ConvertPascalCaseToNamespace(arg =" pascalCase ", ...) arg did not begin with a capital letter")
+			(Sys.Throw 0 msg)
+		)
+	)
+	
+	(nsBuilder.AppendChar (pascalCase 0))
+	
+	(Bool first = true)
+	
+	(for (Int32 i = 1) (i < pascalCase.Length)(i += 1)
+		(Int32 c = (pascalCase i))
+		(if (IsUpperCase c)
+			(nsBuilder ".")
+		)
+		
+		(nsBuilder.AppendChar c)		
+	)
+)
+
+(namespace T3D.Strings)
+
+(alias ConvertPascalCaseToNamespace T3D.Strings.ConvertPascalCaseToNamespace)

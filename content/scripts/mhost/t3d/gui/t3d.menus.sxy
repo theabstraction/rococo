@@ -1,28 +1,5 @@
-// Example: SysGeoff goes in and Sys.Geoff goes out
-(function ConvertPascalCaseToNamespace (IString pascalCase)(IStringBuilder nsBuilder) -> :
-	(Bool isFirstCharCapital = (Sys.Type.Strings.IsUpperCase (pascalCase 0)))
-	(if (not isFirstCharCapital)
-		(
-			(#path msg "ConvertPascalCaseToNamespace(arg =" pascalCase ", ...) arg did not begin with a capital letter")
-			(Sys.Throw 0 msg)
-		)
-	)
-	
-	(nsBuilder.AppendChar (pascalCase 0))
-	
-	(Bool first = true)
-	
-	(for (Int32 i = 1) (i < pascalCase.Length)(i += 1)
-		(Int32 c = (pascalCase i))
-		(if (Sys.Type.Strings.IsUpperCase c)
-			(nsBuilder ".")
-		)
-		
-		(nsBuilder.AppendChar c)		
-	)
-)
-
 (namespace T3D.Gui)
+
 (namespace MHost)
 (using Sys.Type)
 (using Sys.Type.Strings)
@@ -74,7 +51,7 @@
 			(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName dotOnPos 10000 "Clicked"))
 			(if (clickedPos > 0)
 				(methodPascalCase.AppendSubstring methodName dotOnPos (clickedPos - dotOnPos))
-				(ConvertPascalCaseToNamespace methodPascalCase buttonName) 
+				(T3D.Strings.ConvertPascalCaseToNamespace methodPascalCase buttonName) 
 				(dotOnPos -= 2)
 				(methodName.StripLeft dotOnPos)
 				(overlay.AddMenu methodName (Sys.Maths.I32.ToInt64 i) buttonName)
