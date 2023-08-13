@@ -6,6 +6,7 @@
 	"!scripts/mhost/t3d/t3d_world.sxy"
 	"!scripts/mhost/t3d/t3d_config.sxy"
 	"!scripts/mhost/t3d/gui/t3d.menus.sxy"
+	"!scripts/mhost/t3d/gui/t3d.input.thread.sxy"
 	"!scripts/mhost/t3d/strings/t3d.strings.sxy"
 )
 
@@ -38,10 +39,6 @@
 (namespace T3D)
 (using T3D)
 
-(interface T3D.IInputThread (attribute essential)
-	(extends Sys.ICoroutine)
-)
-
 (interface T3D.IWorld (attribute essential)
 	(RenderGui (IGui g)->)
 	(UpdateMouseLook (Vec2 delta)->)
@@ -49,141 +46,6 @@
 	(GetPlayerEyePos (Vec3 pos)-> )
 	(SetPlayerEyePos (Vec3 pos)-> )
 	(SetPlayerMoveIntent (Float32 straffe)(Float32 forward)->)
-)
-
-(class GuiInputThread 
-	(implements T3D.IInputThread)
-	(IEngine engine)
-	(IScreen activeScreen)
-	(IEventHandler modalSink)
-	(IKeyboard keyboard)
-	(IWorld world)
-	(T3D.Gui.IOverlayEventHandler overlayHandler)
-	(Bool isViewLocked)
-)
-
-(method GuiInputThread.Destruct -> :
-)
-
-(method GuiInputThread.CaptureMouse (IEventHandler handler)-> :
-	(this.modalSink = handler) 
-	(this.engine.CaptureMouse)
-)
-
-(method GuiInputThread.ReleaseMouse (IEventHandler handler)-> :
-	(IEventHandler nullHandler)
-	(this.modalSink = nullHandler)
-	(this.engine.ReleaseMouse)
-)
-
-(method GuiInputThread.Construct (IEngine engine)(IWorld world) : 
-	(this.engine = engine)
-	(this.world = world)
-	(this.isViewLocked = false)
-	(T3D.Gui.IOverlayEventHandler overlayHandler (T3D.Gui.NewOverlayButtonHandler world))
-	(this.overlayHandler = overlayHandler)
-)
-
-(factory T3D.NewGuiInputThread IInputThread (IEngine engine)(IWorld world):
-	(construct GuiInputThread engine world)
-)
-
-(method GuiInputThread.Run -> :
-	(IKeyboard keyboard (Keyboard))
-	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
-	(Int32 rightKey = (keyboard.GetVKeyFromName "D"))
-	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
-	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
-	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
-	(Int32 overlayToggleKey = (keyboard.GetVKeyFromName "F1"))
-	(Int32 guiToggleKey = (keyboard.GetVKeyFromName "F2"))
-	(Int32 lockViewKey = (keyboard.GetVKeyFromName "L"))
-	
-	(this.engine.SetOverlayToggleKey overlayToggleKey)
-	(this.engine.SetGUIToggleKey guiToggleKey)
-	
-	(IStringBuilder eventString = (Sys.Type.NewTokenBuilder))
-	
-	(MouseEvent mouseEvent)
-	(KeyboardEvent keyEvent)
-	(MHost.GuiTypes.GuiEvent guiEvent)
-	
-	(IGuiOverlay guiOverlay (MHost.GuiOverlay))
-	
-	(KeyState keys)
-	
-	(while this.engine.IsRunning
-		(KeyState keys)
-		
-		(if (not this.engine.IsAppModal)
-			
-			(this.engine.PollKeyState keys)
-			
-			(Float32 straffe = 0)
-			(Float32 forward = 0)
-		
-			(if (IsKeyPressed keys leftKey)
-				(straffe -= 1)
-			)
-			
-			(if (IsKeyPressed keys rightKey)
-				(straffe += 1)
-			)
-			
-			(if (IsKeyPressed keys upKey)
-				(forward += 1)
-			)
-			
-			(if (IsKeyPressed keys downKey)
-				(forward -= 1)
-			)
-			
-			(this.world.SetPlayerMoveIntent straffe forward)
-		)
-		
-		(while (this.engine.GetNextKeyboardEvent keyEvent)
-			// Required for overlay control
-			
-			(if ((keyEvent.virtualKeyCode == lockViewKey) and keyEvent.isUp)
-				(if this.isViewLocked
-					(this.isViewLocked = false)
-				else
-					(this.isViewLocked = true)
-				)
-			)
-		)
-		
-		(while (this.engine.GetNextMouseEvent mouseEvent)
-			// Required for overlay control
-		)
-		
-		(while (guiOverlay.GetNextGuiEvent guiEvent)
-			(if (guiEvent.eventId == (#EvIdGRisMadeVisible))
-				(this.overlayHandler.BuildMenus)
-				(continue)
-			)
-			
-			(if (guiEvent.eventId == (#EvIdOverlayButtonClick))
-				(eventString.Clear)
-				(guiOverlay.AppendEventString eventString guiEvent)
-				(T3D.Gui.ButtonArgs buttonArgs = 0)
-				(invoke this.overlayHandler eventString buttonArgs)
-			)
-		)
-		
-		(Vec2 mouseDelta)
-		(this.engine.GetNextMouseDelta mouseDelta)
-
-		(if ((not this.isViewLocked) and (not this.engine.IsAppModal))
-			(if ((mouseDelta.x != 0) or (mouseDelta.y != 0))
-				(Float32 mouseDegreesPerDelta = T3D.Config.UI.MouseDegreesPerDelta)
-				(Vec2 mouseDeltaDegrees = mouseDegreesPerDelta * mouseDelta)
-				(this.world.UpdateMouseLook mouseDeltaDegrees)
-			)
-		)
-		
-		(yield 5000) // This gives 5ms per poll or 200 Hz
-	)
 )
 
 (struct CommandButton
@@ -194,7 +56,7 @@
 (class GameBundle (defines T3D.IBundle)
 	(ISpriteBuilder spriteBuilder)
 	(IEngine engine)
-	(IInputThread inputThread)
+	(T3D.Gui.IInputThread inputThread)
 	(ICoroutineControl coroutines)
 	(IWorld world)
 )
@@ -208,7 +70,7 @@
 	(this.coroutines = (Coroutines))
 	
 	(this.world = (NewWorld))
-	(this.inputThread = (NewGuiInputThread this.engine this.world))
+	(this.inputThread = (T3D.Gui.NewGuiInputThread this.engine this.world))
 	(this.coroutines.Add this.inputThread)
 )
 

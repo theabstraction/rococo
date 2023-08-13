@@ -12,7 +12,7 @@
 
 (alias ButtonArgs T3D.Gui.ButtonArgs)
 
-(interface  T3D.Gui.IOverlayEventHandler (attribute dispatch)
+(interface  T3D.Gui.IOverlayEventHandler (attribute dispatch)(attribute essential)
 	(BuildMenus -> )
 )
 
