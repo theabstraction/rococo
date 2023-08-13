@@ -848,6 +848,32 @@ namespace
 		*t = 0;
 	}
 
+	void FastStringBuilderStripLeft(NativeCallEnvironment& e)
+	{
+		FastStringBuilder& sb = ReadBuilder(e);
+
+		int leftPos;
+		ReadInput(1, leftPos, e);
+
+		if (leftPos < 0)
+		{
+			return;
+		}
+
+		if (leftPos >= sb.length)
+		{
+			sb.length = 0;
+			if (sb.capacity) *sb.buffer = 0;
+		}
+
+		for (char* target = sb.buffer; target < sb.buffer + (sb.length - leftPos); target++)
+		{
+			*target = target[leftPos];
+		}
+
+		sb.length -= leftPos;
+		sb.buffer[sb.length] = 0;
+	}
 
 	void StringCompare(NativeCallEnvironment& e)
 	{

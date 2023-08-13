@@ -1765,7 +1765,8 @@ namespace Rococo::Script
 			AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsDecimal, stringPool, "FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsHex, stringPool, "FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> ", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsSpec, stringPool, "FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> ", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderSetFormat, stringPool, "FastStringBuilderSetFormat  (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNativeStrings, FastStringBuilderSetFormat, stringPool, "FastStringBuilderSetFormat (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNativeStrings, FastStringBuilderStripLeft, stringPool, "FastStringBuilderStripLeft (Sys.Type.IStringBuilder sb) (Int32 leftPos)->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderAppendSubstring, stringPool, "FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderSetLength, stringPool, "FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FastStringBuilderSetCase, stringPool, "FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->", __FILE__, __LINE__, false, 0);

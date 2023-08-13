@@ -210,6 +210,10 @@
 	(Sys.Strings.Native.FastStringBuilderSetCase this start end false)
 )
 
+(method FastStringBuilder.StripLeft (Int32 left) -> :
+	(Sys.Strings.Native.FastStringBuilderStripLeft this left)
+)
+
 (method FastStringBuilder.ThrowIfAppendWouldTruncate -> :
 	(Sys.Strings.Native.FastStringBuilderThrowIfAppendWouldTruncate this)
 )
@@ -296,6 +300,7 @@
 	(Replace (Int32 startPosition) (IString from)(IString to) ->)
 	(SetFormat (Sys.Type.Int32 precision) (Sys.Type.Int32 width) (Sys.Type.Bool isZeroPrefixed) (Sys.Type.Bool isRightAligned) ->)
 	(SetLength (Int32 length) ->)
+	(StripLeft (Int32 leftPos) ->)
 	(ToUpper (Int32 start) (Int32 end) ->)
 	(ToLower (Int32 start) (Int32 end) ->)
 	(Clear ->)
