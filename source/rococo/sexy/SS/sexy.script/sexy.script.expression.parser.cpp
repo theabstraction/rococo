@@ -2858,111 +2858,53 @@ namespace Rococo
 			}
 		}
 
+		typedef void (*FN_COMPILE_CE_S)(CCompileEnvironment& ce, cr_sex s);
+
+		TSexyStringMap<FN_COMPILE_CE_S>* functionMap = nullptr;
+
+		void FreeFunctionMap()
+		{
+			functionMap->~TSexyStringMap<FN_COMPILE_CE_S>();
+			Memory::FreeSexyMemory(functionMap, sizeof TSexyStringMap<FN_COMPILE_CE_S>);
+		}
+
 		bool TryCompileAsKeyword(CCompileEnvironment& ce, sexstring token, cr_sex s)
 		{
-			if (AreEqual(token, "if"))
+			if (functionMap == nullptr)
 			{
-				CompileIfThenElse(ce, s);
-				return true;
+				auto& allocator = Memory::GetSexyAllocator();
+				void* pMemory = allocator.Allocate(sizeof TSexyStringMap<FN_COMPILE_CE_S>);
+				functionMap = new (pMemory) TSexyStringMap<FN_COMPILE_CE_S>();	
+				allocator.AtRelease(FreeFunctionMap);
+				auto& map = *functionMap;
+				map["if"] = CompileIfThenElse;
+				map["cast"] = CompileCast;
+				map["while"] = CompileWhileLoop;
+				map["break"] = CompileBreak;
+				map["continue"] = CompileContinue;
+				map["do"] = CompileDoWhile;
+				map["foreach"] = CompileForEach;
+				map["throw"] = CompileThrow;
+				map["construct"] = CompileConstructInterfaceCall;
+				map["try"] = CompileExceptionBlock;
+				map["return"] = CompileReturnFromFunction;
+				map["array"] = CompileArrayDeclaration;
+				map["invoke"] = CompileInvoke;
+				map["list"] = CompileListDeclaration;
+				map["map"] = CompileMapDeclaration;
+				map["node"] = CompleAsNodeDeclaration;
+				map["yield"] = CompileAsYield;
+				map["global"] = CompileAsGlobalAccess;
+				map["debug"] = CompileTrip;
+				map["serialize"] = CompileSerialize;
+				map["reflect"] = CompileReflect;
 			}
-			else if (AreEqual(token, "cast"))
+
+			auto i = functionMap->find(token->Buffer);
+			if (i != functionMap->end())
 			{
-				CompileCast(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "while"))
-			{
-				CompileWhileLoop(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "break"))
-			{
-				CompileBreak(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "continue"))
-			{
-				CompileContinue(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "do"))
-			{
-				CompileDoWhile(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "foreach"))
-			{
-				CompileForEach(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "throw"))
-			{
-				CompileThrow(ce, s);			
-				return true;
-			}
-			else if (AreEqual(token, "construct"))
-			{
-				CompileConstructInterfaceCall(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "try"))
-			{
-				CompileExceptionBlock(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "return"))
-			{
-				CompileReturnFromFunction(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "array"))
-			{
-				CompileArrayDeclaration(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "invoke"))
-			{
-				CompileInvoke(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "list"))
-			{
-				CompileListDeclaration(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "map"))
-			{
-				CompileMapDeclaration(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "node"))
-			{
-				CompleAsNodeDeclaration(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "yield"))
-			{
-				CompileAsYield(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "global"))
-			{
-				CompileAsGlobalAccess(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "debug"))
-			{
-				CompileTrip(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "serialize"))
-			{
-				CompileSerialize(ce, s);
-				return true;
-			}
-			else if (AreEqual(token, "reflect"))
-			{
-				CompileReflect(ce, s);
+				auto CompileKeywordExpression = i->second;
+				CompileKeywordExpression(ce, s);
 				return true;
 			}
 			else

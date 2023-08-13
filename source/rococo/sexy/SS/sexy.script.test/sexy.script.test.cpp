@@ -16772,8 +16772,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
