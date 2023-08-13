@@ -6451,6 +6451,53 @@ R"((namespace EntryPoint)
 		validate(x == 32);
 	}
 
+	void TestTypeOfClass(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(namespace EntryPoint)			
+			 (alias Main EntryPoint.Main)
+
+			(using Sys.IO)
+			(using Sys.Maths)
+			(using Sys.Reflection)
+			(using Sys.Type)
+
+			(interface Sys.Type.IDynamic (attribute dispatch))
+
+			(struct MouseArgs (Int32 x y))
+
+			(class MouseMoveHandler (implements Sys.Type.IDynamic))
+
+			(method MouseMoveHandler.OnMouseMove (MouseArgs args)-> :
+				(#printf "Mouse: " args.x " " args.y "&n" )
+			)
+			
+			(method MouseMoveHandler.Construct : )
+
+			(factory Sys.Type.NewMouseMoveHandler Sys.Type.IDynamic : (construct MouseMoveHandler))			
+
+			(function Main -> (Int32 result):
+				(Sys.Type.IDynamic handler (Sys.Type.NewMouseMoveHandler))
+				(IStructure type = typeof handler)
+				(#printf (type.Name) "&n")
+			))sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		printf("\n");
+
+		int x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestEnumerateInterfaces(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -16352,6 +16399,7 @@ R"(
 	{
 		validate(true);
 
+		TEST3(Test1FieldInit);
 		TEST(TestRightSearchSubstring);
 		TEST(TestStringConstant);
 
@@ -16717,6 +16765,7 @@ R"(
 		TEST3(TestCreateDeclarations);
 
 		TEST(TestTypeOf);
+		TEST3(TestTypeOfClass);
 		TEST(TestEnumerateInterfaces);
 		TEST(TestGetInterfaceName);
 		TEST(TestGetMethodCount);
@@ -16764,7 +16813,6 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST3(Test1FieldInit);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

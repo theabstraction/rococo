@@ -1177,48 +1177,66 @@ namespace Rococo
 
 		   if (!Eq(typeOperator, "typeof"))
 		   {
-			   Throw(directive[offset+3], "Expecting typeof in position %d", offset + 3);
+			   Throw(directive[offset+3], "(invoke ...) Expecting typeof in position %d", offset + 3);
 		   }
 
 		   if (!Eq(eqOperator, "="))
 		   {
-			   Throw(directive[offset+2], "Expecting assignment operator '='");
+			   Throw(directive[offset+2], "(invoke ...) Expecting assignment operator '='");
 		   }
 
 		   cstr nsprefix, type;
 		   NamespaceSplitter splitter(fqTypeName);
 		   if (!splitter.SplitTail(nsprefix, type))
 		   {
-			   Throw(directive[offset + 4], "Expecting fully qualified namespace and type. Example: Sys.Type.ROID");
-		   }
-
-		   auto* ns = ce.RootNS.FindSubspace(nsprefix);
-		   if (ns == nullptr)
-		   {
-			   Throw(directive[offset + 4], "Could not find a namespace %s", nsprefix);
-		   }
-
-		   if (!IsCapital(type[0]))
-		   {
-			   Throw(directive[offset + 4], "Expecting type '%s' to begin with a capital letter", type);
-		   }
-
-		   auto* sType = ns->FindStructure(type);
-		   if (sType != nullptr)
-		   {
-			   AddSymbol(ce.Builder, "%s = typeof %s", variableName, GetFriendlyName(*sType));
-
-			   CReflectedClass* pStruct = ce.SS.GetReflectedClass(sType);
-			   if (pStruct == NULL)
+			   MemberDef typeDef;
+			   if (!ce.Builder.TryGetVariableByName(typeDef, fqTypeName))
 			   {
-				   pStruct = ce.SS.CreateReflectionClass("Structure", sType);
+				   Throw(directive[offset + 4], "(IStructure type = <bad-mojo>). Expecting RHS to be fully qualified namespace-and-interface-type or a variable name");
 			   }
 
-			   ce.Builder.AssignPointer(NameString::From(variableName), &pStruct->header.pVTables[0]);
+			   if (typeDef.ResolvedType->InterfaceCount() != 1)
+			   {
+				   Throw(directive[offset + 4], "(IStructure type = <bad-mojo>). RHS Variable was not of interface type. It was a %s", GetFriendlyName(*typeDef.ResolvedType));
+			   }
+
+			   AddSymbol(ce.Builder, "interface ref '%s'", fqTypeName);
+			   ce.Builder.PushVariable(typeDef);
+			   AddSymbol(ce.Builder, "class type -> D4");
+			   ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idVariableRefToType);
+			   ce.Builder.AssignTempToVariable(0, variableName);
 			   return;
 		   }
+		   else
+		   {
+			   auto* ns = ce.RootNS.FindSubspace(nsprefix);
+			   if (ns == nullptr)
+			   {
+				   Throw(directive[offset + 4], "(invoke ...) Could not find a namespace %s", nsprefix);
+			   }
 
-		   Throw(directive, "No type found that matches %s", fqTypeName);
+			   if (!IsCapital(type[0]))
+			   {
+				   Throw(directive[offset + 4], "(invoke ...) Expecting type '%s' to begin with a capital letter", type);
+			   }
+
+			   auto* sType = ns->FindStructure(type);
+			   if (sType != nullptr)
+			   {
+				   AddSymbol(ce.Builder, "%s = typeof %s", variableName, GetFriendlyName(*sType));
+
+				   CReflectedClass* pStruct = ce.SS.GetReflectedClass(sType);
+				   if (pStruct == NULL)
+				   {
+					   pStruct = ce.SS.CreateReflectionClass("Structure", sType);
+				   }
+
+				   ce.Builder.AssignPointer(NameString::From(variableName), &pStruct->header.pVTables[0]);
+				   return;
+			   }
+		   }
+
+		   Throw(directive, "(invoke ...) No type found that matches %s", fqTypeName);
 	   }
 
 	   void CompileAssignmentDirective(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
@@ -2603,7 +2621,7 @@ namespace Rococo
 
 			if (!IsAtomic(sMethodRef) && !IsStringLiteral(sMethodRef))
 			{
-				Throw(sMethodRef, "The method ref variable must be an IString or string literal");
+				Throw(sMethodRef, "The method ref variable must be an IString or string literal, or have an IString as base interface");
 			}
 
 			cstr interfaceRef = sInterfaceRef.c_str();
@@ -2618,7 +2636,7 @@ namespace Rococo
 
 			if (IsPrimitiveType(argDef.ResolvedType->VarType()) || argDef.ResolvedType->InterfaceCount() > 0)
 			{
-				Throw(sArgRef, "Only structs may be used as args in invocations");
+				Throw(sArgRef, "Only structs may be used as args in invocations.");
 			}
 
 			MemberDef interfaceDef;

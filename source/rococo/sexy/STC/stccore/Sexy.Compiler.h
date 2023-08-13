@@ -400,6 +400,8 @@ namespace Rococo::Compiler
 		virtual void DeleteSymbols() = 0;
 
 		virtual void PushVariable(const MemberDef& def) = 0;
+
+		// If interfaceIndex is -1, will attempt to push a struct pointer
 		virtual void PushVariableRef(cstr source, int interfaceIndex) = 0;
 
 		virtual int GetThisOffset() const = 0;

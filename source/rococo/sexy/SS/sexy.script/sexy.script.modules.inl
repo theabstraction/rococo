@@ -1654,6 +1654,26 @@ namespace Rococo::Script
 		registers[VM::REGISTER_D7].int64Value = (leftObj == rightObj) ? 1 : 0;
 	}
 
+	VM_CALLBACK(GetTypeOfClassToD4)
+	{
+		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
+		sp -= sizeof(InterfacePointer);
+
+		InterfacePointer ipClassRef = *(InterfacePointer*)sp;
+		auto* classObject = InterfaceToInstance(ipClassRef);
+		auto* classObjectType = classObject->Desc->TypeInfo;
+
+		auto& ss = *(IScriptSystem*)context;
+
+		CReflectedClass* pStruct = ss.GetReflectedClass(classObjectType);
+		if (pStruct == NULL)
+		{
+			pStruct = ss.CreateReflectionClass("Structure", classObjectType);
+		}
+
+		registers[REGISTER_D4].vPtrValue = pStruct->header.AddressOfVTable0();
+	}
+
 	VM_CALLBACK(InvokeMethodByName)
 	{
 		struct InvokeArgs
@@ -4202,7 +4222,7 @@ namespace Rococo::Script
 		NamespaceSplitter splitter(factoryName->Buffer);
 		
 		cstr ns, shortName;
-		if (!splitter.SplitTail(OUT ns, OUT shortName))Throw(factoryNameExpr, "Expecting fully qualified name");
+		if (!splitter.SplitTail(OUT ns, OUT shortName))Throw(factoryNameExpr, "Expecting fully qualified name: (factory <fully-qualified-factory-name> <fully-qualified-interface-name> <arg1> ... <argN> : <body>)");
 
 		int bodyIndex = GetIndexOf(3, factoryDef, ":");
 		if (bodyIndex < 0)	Throw(factoryDef, "Expecting a body start token ':' in the expression");

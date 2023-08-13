@@ -480,6 +480,7 @@ namespace Rococo {
 			ID_API_CALLBACK idTransformAt_D4D5retIExpressionBuilderD7;
 			ID_API_CALLBACK idTransformParent_D4retIExpressionBuilderD7;
 			ID_API_CALLBACK idInvokeMethodByName;
+			ID_API_CALLBACK idVariableRefToType;
 		};
 
 		struct MethodInfo

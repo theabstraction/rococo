@@ -1039,6 +1039,7 @@ namespace Rococo::Script
 			callbacks.idYieldMicroseconds = core.RegisterCallback(OnInvokeYieldMicroseconds, &ProgramObject().VirtualMachine(), "YieldMicroseconds");
 			callbacks.idDynamicDispatch = core.RegisterCallback(OnInvokeDynamicDispatch, this, "Dispatch");
 			callbacks.idInvokeMethodByName = core.RegisterCallback(OnInvokeInvokeMethodByName, this, "InvokeMethod");
+			callbacks.idVariableRefToType = core.RegisterCallback(OnInvokeGetTypeOfClassToD4, this, "GetTypeOfClassToD4");
 			callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, this, "IsSameObject");
 			callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, this, "IsDifferentObject");
 			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
