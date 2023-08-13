@@ -200,6 +200,14 @@ namespace GRANON
 				return GRMenuItemId{ -1 };
 			}
 
+			for (auto& c : parent->children)
+			{
+				if (c.branch && c.branch->text == subMenu.text)
+				{
+					return c.branch->id;
+				}
+			}
+
 			GRANON::MenuItem newMenuItem;
 			int64 branchId = nextId++;
 			auto* b = newMenuItem.branch = new MenuBranch(tree, branchId, parent);

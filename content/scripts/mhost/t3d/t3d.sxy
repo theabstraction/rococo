@@ -69,6 +69,9 @@
 (method OverlayButtonHandler.OnObjectsCreateBottleClicked (ButtonArgs args) -> :
 )
 
+(method OverlayButtonHandler.OnObjectsCreateTableClicked (ButtonArgs args) -> :
+)
+
 // Example: SysGeoff goes in and Sys.Geoff goes out
 (function ConvertPascalCaseToNamespace (IString pascalCase)(IStringBuilder nsBuilder) -> :
 	(Bool isFirstCharCapital = (Sys.Type.Strings.IsUpperCase (pascalCase 0)))
@@ -107,6 +110,7 @@
 	(for (Int32 i = 0)(i < nMethods)(i += 1)
 		(methodName.Clear)
 		(buttonName.Clear)
+		(methodPascalCase.Clear)
 		(t.AppendMethodName methodName i)
 		(Int32 dotOnPos = (Sys.Type.Strings.FindLeftNoCase methodName 0  ".On"))		
 		(if (dotOnPos > 0)
