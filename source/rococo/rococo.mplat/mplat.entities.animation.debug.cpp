@@ -13,7 +13,6 @@ namespace
 		MaterialVertexData mat;
 		mat.colour = colour;
 		mat.gloss = 0;
-		mat.materialId = 0;
 
 		rod.SetMaterialTop(mat);
 		rod.SetMaterialMiddle(mat);
@@ -58,7 +57,6 @@ namespace
 			MaterialVertexData mat;
 			mat.colour = RGBAb(255, 255, 255, 255);
 			mat.gloss = 0;
-			mat.materialId = 0;
 
 			rod.Clear();
 

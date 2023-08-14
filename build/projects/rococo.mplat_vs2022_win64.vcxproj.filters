@@ -73,6 +73,9 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IRigBuilder.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.EvMouseFlags.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.HQFont.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -211,9 +214,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.EvMouseFlags.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

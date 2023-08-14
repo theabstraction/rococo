@@ -1283,7 +1283,7 @@ namespace
 			}
 			catch (IException&)
 			{
-				id = -1;
+				id = MaterialId(-1);
 			}
 
 			if (*buffer == 0)
@@ -1304,7 +1304,7 @@ namespace
 
 		MaterialId GetLeftValue(MaterialId v)
 		{
-			if (v >= 0) v -= 1;
+			if (v >= 0) v = MaterialId(v.ToInt() - 1);
 			return v;
 		}
 
@@ -1314,7 +1314,7 @@ namespace
 			platform.graphics.renderer.Materials().GetMaterialArrayMetrics(metrics);
 			if (v < metrics.NumberOfElements - 1)
 			{
-				v += 1;
+				v = MaterialId(v.ToInt() - 1);
 			}
 			return v;
 		}

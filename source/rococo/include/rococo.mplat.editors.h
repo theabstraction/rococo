@@ -2,6 +2,7 @@
 
 #include <rococo.types.h>
 #include <rococo.events.h>
+#include <rococo.graphics.types.h>
 
 namespace Rococo
 {
@@ -36,7 +37,7 @@ namespace Rococo
 		virtual void AddMaterialCategory(cstr name, cstr notifyId, Graphics::MaterialCategory* cat) = 0;
 		virtual void AddMessage(cstr message) = 0;
 		virtual void AddColour(cstr name, RGBAb* colour) = 0;
-		virtual void AddMaterialString(cstr name, MaterialId& id, cstr notifyId, char* value, size_t valueLen) = 0;
+		virtual void AddMaterialString(cstr name, REF Graphics::MaterialId& id, cstr notifyId, char* value, size_t valueLen) = 0;
 		virtual void AddPingPath(cstr name, char* value, size_t valueLen, cstr defaultSubDir, int32 width) = 0;
 		virtual void AddButton(cstr name, cstr eventName) = 0;
 		virtual void Clear();

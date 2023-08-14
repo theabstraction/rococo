@@ -189,3 +189,11 @@ namespace Rococo::Windows
 	ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, int errorCode, cstr msg, cstr caption);
 	ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType);
 }
+
+namespace Rococo::Memory
+{
+	ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
+	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
+	ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t));
+	ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*));
+}

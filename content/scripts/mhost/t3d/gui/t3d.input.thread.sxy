@@ -43,8 +43,7 @@
 	(this.engine = engine)
 	(this.world = world)
 	(this.isViewLocked = false)
-	(T3D.Gui.IOverlayEventHandler overlayHandler (T3D.Gui.NewOverlayButtonHandler world))
-	(this.overlayHandler = overlayHandler)
+	(this.overlayHandler = (T3D.Gui.NewOverlayButtonHandler world))
 )
 
 (factory T3D.Gui.NewGuiInputThread T3D.Gui.IInputThread (IEngine engine)(IWorld world):
@@ -75,9 +74,7 @@
 	
 	(KeyState keys)
 	
-	(while this.engine.IsRunning
-		(KeyState keys)
-		
+	(while this.engine.IsRunning	
 		(if (not this.engine.IsAppModal)
 			
 			(this.engine.PollKeyState keys)
@@ -108,18 +105,12 @@
 			// Required for overlay control
 			
 			(if ((keyEvent.virtualKeyCode == lockViewKey) and keyEvent.isUp)
-				(if this.isViewLocked
-					(this.isViewLocked = false)
-				else
-					(this.isViewLocked = true)
-				)
+				(this.isViewLocked = (not this.isViewLocked))
 			)
 		)
 		
 		(while (this.engine.GetNextMouseEvent mouseEvent)
-			(Int32 buttonState = mouseEvent.buttons)
-			(if (Sys.Maths.I32.HasFlags buttonState (#EvMouseFlagsRUp))
-				(debug)
+			(if (Sys.Maths.I32.HasFlags mouseEvent.buttons (#EvMouseFlagsRUp))
 				(this.isViewLocked = (not this.isViewLocked))
 			)
 			// Required for overlay control

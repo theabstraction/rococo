@@ -75,9 +75,9 @@
 	(IMaterialBuilder matBuilder (MaterialBuilder))
 	
 	(MaterialVertexData glass)
-	(glass.colour = (Sys.Type.ToRGBA 0 0 1 0.5e))
-	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
-	(glass.gloss = 0.2)
+	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
+	(matBuilder.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
+	(glass.gloss = 0.4)
 	
 	(bottle.SetMaterialTop glass)
 	(bottle.SetMaterialMiddle glass)
@@ -85,26 +85,26 @@
 	(bottle.UseSmoothNormals)
 	(bottle.SetUVScale 4.0)
 	
-	(Float32 length = 1.0)
-	(Float32 bottomWidth = (AnyFloat 0.15 0.25))
-	(Float32 topWidth = (bottomWidth * (AnyFloat 0.5 1)))
-	(Int32 divs = 5)
+	(Float32 length = 2.0)
+	(Float32 bottomWidth = 1.45)
+	(Float32 topWidth = 1.45)
+	(Int32 divs = 4)
 	
 	(bottle.AddTube length bottomWidth topWidth divs)
 	
-	(Float32 neckLength = 1.0)
-	(bottle.AddTube neckLength topWidth 0.02 divs)
+	(Float32 neckLength = 0.35)
+	(bottle.AddTube neckLength topWidth 0.035 divs)
 	
 	(MaterialVertexData stopper)
-	(matBuilder.GetRandomMaterialId (#MaterialCategoryRock) -> stopper.id)
+	(matBuilder.GetMaterialId (#MaterialCategoryRock) 0 -> stopper.id)
 	(stopper.gloss = 0.2)
-	(stopper.colour = (Sys.Type.ToRGBA 0 1 0 1))
+	(stopper.colour = (Sys.Type.ToRGBAb 0 1 0 1))
 	(bottle.SetMaterialTop stopper)
 	(bottle.SetMaterialMiddle stopper)
 	(bottle.SetMaterialBottom stopper)
 		
-	(Float32 stopperLength = (AnyFloat 0.005 0.02))
-	(Int32 stopperDivs = (AnyInt 4 6))
+	(Float32 stopperLength = 0.1)
+	(Int32 stopperDivs = 10)
 	(bottle.AddTube stopperLength 0.04 0.05 stopperDivs)
 	
 	(bottle.CopyToMeshBuilder meshName false false true)
@@ -120,8 +120,8 @@
 	(IMaterialBuilder mb (MaterialBuilder))
 	
 	(MaterialVertexData marble)
-	(marble.colour = (Sys.Type.ToRGBA 0.25 0.25 0.25 0.5))
-	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
+	(marble.colour = (Sys.Type.ToRGBAb 0.25 0.25 0.25 0.5))
+	(mb.GetMaterialId (#MaterialCategoryWood) 1 -> marble.id)
 	(marble.gloss = 0.1)
 	
 	(rod.SetMaterialTop marble)

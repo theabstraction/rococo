@@ -130,7 +130,6 @@ namespace Rococo
 	typedef const Matrix4x4& cr_m4x4;
 
 	typedef size_t ID_BYTECODE;
-	typedef float MaterialId;
 
 	struct IExpandingBuffer;
 

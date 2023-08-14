@@ -64,7 +64,7 @@ namespace Sys::Type
 	{
 		const INamespace& ns = ss.AddNativeNamespace("Sys.Type");
 		ss.AddNativeCall(ns, NativeSysTypeMakeColour, nullptr, ("MakeColour(Int32 r)(Int32 g)(Int32 b)(Int32 a) -> (Int32 colour)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysTypeToRGBA, nullptr, ("ToRGBA(Float32 r)(Float32 g)(Float32 b)(Float32 alpha) -> (Int32 colour)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysTypeToRGBA, nullptr, ("ToRGBAb (Float32 r)(Float32 g)(Float32 b)(Float32 alpha) -> (Int32 colour)"), __FILE__, __LINE__);
 	}
 }
 

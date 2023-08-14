@@ -5,6 +5,8 @@
 
 #include <rococo.types.h>
 
+// This file is deprecated. move stuff out of it when you can. It grew too large...
+
 namespace DirectX
 {
 	struct XMFLOAT4X4;
@@ -14,14 +16,7 @@ namespace DirectX
 namespace Rococo
 {
 	ROCOCO_API bool IsPointerValid(const void* ptr);
-
-	ROCOCO_ID(ID_FONT, int32, -1);
-	ROCOCO_ID(ID_TEXTURE, size_t, (size_t)-1LL);
-	ROCOCO_ID(ID_VERTEX_SHADER, size_t, (size_t)-1LL);
-	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, (size_t)-1LL);
-	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);
-	ROCOCO_ID(ID_PIXEL_SHADER, size_t, (size_t)-1LL);
-								     
+						     
 	struct Platform;
 	struct Gravity;
 	struct Metres;
@@ -160,17 +155,5 @@ namespace Rococo
 {
 	struct IMathsVenue;
 }
-
-namespace Rococo
-{
-	namespace Memory
-	{
-		ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
-		ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
-		ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t));
-		ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*));
-	}
-}
-
 
 #endif

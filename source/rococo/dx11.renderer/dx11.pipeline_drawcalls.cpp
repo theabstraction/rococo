@@ -394,6 +394,9 @@ namespace Rococo::DX11
 			Throw(0, "No shadow depth buffer set for DX1AppRenderer::Render(...)");
 		}
 
+		ID_CUBE_TEXTURE envId = scene.GetEnvironmentMap();
+		renderer.SetEnvironmentMap(envId);
+		
 		trianglesThisFrame = 0;
 		entitiesThisFrame = 0;
 

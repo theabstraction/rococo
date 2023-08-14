@@ -1,5 +1,6 @@
 #pragma once
 #include <rococo.api.h>
+#include <rococo.graphics.types.h>
 
 namespace Rococo::Graphics
 {

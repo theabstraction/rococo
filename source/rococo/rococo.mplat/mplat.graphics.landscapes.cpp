@@ -97,7 +97,7 @@ namespace
 			MaterialVertexData mvd;
 			mvd.colour = RGBAb(255, 255, 255, 255);
 			mvd.gloss = 0;
-			mvd.materialId = 2;
+			mvd.materialId = MaterialId(2);
 
 			rng.Seed((uint32) seedNumber);
 

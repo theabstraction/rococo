@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rococo.api.h>
+#include <rococo.graphics.types.h>
 #include <rococo.renderer.h>
 #include <rococo.visitors.h>
 #include <rococo.app.h>

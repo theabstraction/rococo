@@ -37,6 +37,7 @@ namespace
 	  IScenePopulator* populator = nullptr;
 
 	  ID_CUBE_TEXTURE skyboxId;
+	  ID_CUBE_TEXTURE environmentMap;
 
 	  IRigs& rigs;
 
@@ -53,6 +54,11 @@ namespace
       {
       }
 
+	  void SetEnvironmentMap(ID_CUBE_TEXTURE mapId) override
+	  {
+		  this->environmentMap = mapId;
+	  }
+
 	  void SetSkyBox(ID_CUBE_TEXTURE cubeId) override
 	  {
 		  this->skyboxId = cubeId;
@@ -67,6 +73,11 @@ namespace
 		  eye.w = 1.0f;
 		  viewDir = Vec4::FromVec3(world.GetForwardDirection(), 0);
 	  };
+
+	  ID_CUBE_TEXTURE GetEnvironmentMap() const override
+	  {
+		  return environmentMap;
+	  }
 
 	  ID_CUBE_TEXTURE GetSkyboxCubeId() const override
 	  {

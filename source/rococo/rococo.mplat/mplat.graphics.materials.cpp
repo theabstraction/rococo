@@ -199,7 +199,7 @@ namespace Rococo::Graphics
 			  Throw(0, "Instances::GetMaterialId(...) -> No materials in category %d", category);
 		  }
 
-		  if (index < 0) Throw(0, "Instances::GetMaterialId(...) -> Index negative");
+		  if (index < 0) index &= 0x4FFFFFFF; // Just do something to create a positive number
 
 		  int32 x = index % (int32)i->second.size();
 		  return i->second[x];

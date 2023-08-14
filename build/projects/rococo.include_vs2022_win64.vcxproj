@@ -210,6 +210,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.hq.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.functional.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.graphics.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.handles.h" />

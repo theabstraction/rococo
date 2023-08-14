@@ -64,6 +64,11 @@ namespace MHost
 			dispatcher = CreateScriptDispatcher();
 		}
 
+		ID_CUBE_TEXTURE GetEnvironmentMap() const override
+		{
+			return platform.graphics.scene.GetEnvironmentMap();
+		}
+
 		ID_CUBE_TEXTURE GetSkyboxCubeId() const override
 		{
 			return platform.graphics.scene.GetSkyboxCubeId();
@@ -139,6 +144,11 @@ namespace MHost
 
 		void RenderGui(IGuiRenderContext&)  override
 		{
+		}
+
+		ID_CUBE_TEXTURE GetEnvironmentMap() const override
+		{
+			return ID_CUBE_TEXTURE::Invalid();
 		}
 
 		ID_CUBE_TEXTURE GetSkyboxCubeId() const override

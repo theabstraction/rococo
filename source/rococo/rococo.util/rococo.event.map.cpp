@@ -1,3 +1,5 @@
+#include <rococo.types.h>
+#define ROCOCO_API ROCOCO_API_EXPORT
 #include <rococo.events.h>
 #include <unordered_map>
 #include <new>

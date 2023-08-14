@@ -100,6 +100,11 @@ private:
 		callback(text);
 	}
 
+	void SetEnvironmentMap(ID_CUBE_TEXTURE envId)
+	{
+		textureManager->CubeTextures().SetCubeTextureFromId(envId);
+	}
+
 	void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
 	{
 		auto& m = meshes->GetBuffer(id);
@@ -396,7 +401,10 @@ public:
 		{
 			ScreenToClient(currentWindowBacking->Window(), &p);
 			metrics.cursorPosition = Vec2i{ p.x, p.y };
-			metrics.screenSpan = screenSpan;
+
+			RECT rect;
+			GetClientRect(currentWindowBacking->Window(), &rect);
+			metrics.screenSpan = { rect.right, rect.bottom };
 		}
 		else
 		{

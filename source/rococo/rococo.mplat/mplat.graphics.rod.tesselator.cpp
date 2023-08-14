@@ -24,9 +24,9 @@ namespace ANON
 		std::vector<ObjectVertex> tempBuffer2;
 
 		bool smoothNormals = true;
-		MaterialVertexData top { RGBAb(255, 255, 255), 0, 0 };
-		MaterialVertexData middle { RGBAb(128, 128, 128), 0, 0.1f };
-		MaterialVertexData bottom{ RGBAb(0, 0, 0), 0, 0.2f };
+		MaterialVertexData top { RGBAb(255, 255, 255), MaterialId(0), 0 };
+		MaterialVertexData middle { RGBAb(128, 128, 128), MaterialId(0), 0.1f };
+		MaterialVertexData bottom{ RGBAb(0, 0, 0), MaterialId(0), 0.2f };
 		float uvScale = 1.0f;
 
 		std::vector<VertexTriangle>  triangles;

@@ -55,13 +55,9 @@
 )
 
 (method GameBundle.Construct : 
-	(ISpriteBuilder spriteBuilder (SpriteBuilder))
-	(this.spriteBuilder = spriteBuilder)
-	
+	(this.spriteBuilder = (SpriteBuilder))	
 	(this.engine = (Engine))
-	
 	(this.coroutines = (Coroutines))
-	
 	(this.world = (NewWorld))
 	(this.inputThread = (T3D.Gui.NewGuiInputThread this.engine this.world))
 	(this.coroutines.Add this.inputThread)
@@ -149,6 +145,7 @@
 	(IMaterialBuilder matBuilder (MaterialBuilder))
 	(Int64 cubeId = (matBuilder.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
+	(scene.SetEnvironmentMap cubeId)
 
 	
 	(while this.engine.IsRunning

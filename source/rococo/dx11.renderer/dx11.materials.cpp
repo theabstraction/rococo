@@ -81,7 +81,7 @@ struct DX11Materials : IDX11Materials
 						Throw(0, "Error loading material texture: %s: Only extensions allowed are tif, tiff, jpg and jpeg", name);
 					}
 
-					This->nameToMaterialId[args.name] = (MaterialId)i;
+					This->nameToMaterialId[args.name] = MaterialId((int32)i);
 					auto t = This->nameToMaterialId.find(args.name);
 					This->idToMaterialName[i] = t->first;
 				}
@@ -127,12 +127,12 @@ struct DX11Materials : IDX11Materials
 			}
 			else
 			{
-				return -1;
+				return MaterialId(-1);
 			}
 		}
 
 		auto i = nameToMaterialId.find(name);
-		return i != nameToMaterialId.end() ? i->second : -1.0f;
+		return i != nameToMaterialId.end() ? i->second : MaterialId(-1);
 	}
 
 	IDX11BitmapArray& Textures() override

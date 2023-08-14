@@ -42,7 +42,7 @@
 		<DisplayString>{data->currentBuffer,s}</DisplayString>
 	</Type>
 	<Type Name="Rococo::RGBAb">
-		<DisplayString>{{r: {(int)red} g: {(int)green} b: {(int)blue} a: {(int)alpha}}}</DisplayString>
+		<DisplayString>{r: {(int)red} g: {(int)green} b: {(int)blue} a: {(int)alpha}}</DisplayString>
 	</Type>
 	<Type Name="Rococo::Strings::CLI::CommandLineOption">
 		<DisplayString>{{{prefix.buffer,s} {helpString.buffer,s}}}</DisplayString>

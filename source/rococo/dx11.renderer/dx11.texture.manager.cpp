@@ -449,9 +449,14 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		return cubeTextures->CreateCubeTexture(textureLoader, path, extension);
 	}
 
-	void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
+	void SetActiveCubeFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
 	{
-		return cubeTextures->SyncCubeTexture(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
+		return cubeTextures->SetCubeTextureFromMaterialArray(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
+	}
+
+	void SetCubeTextureFromId(ID_CUBE_TEXTURE id) override
+	{
+		cubeTextures->SetCubeTextureFromId(id);
 	}
 
 	ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id)

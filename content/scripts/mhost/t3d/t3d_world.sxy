@@ -103,7 +103,7 @@
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
 	
-	(T3D.Objects.AddBottle scene)
+	(AddBottle scene)
 	(AddFloor scene)
 //	(AddLandscape scene)
 	(AddLight scene this)

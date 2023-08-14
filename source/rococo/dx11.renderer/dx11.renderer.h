@@ -91,7 +91,8 @@ namespace Rococo::DX11
 		virtual void Free() = 0;
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
 		virtual ID3D11ShaderResourceView* ShaderResourceView() = 0;
-		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11BitmapArray& materialArray) = 0;
+		virtual void SetCubeTextureFromId(ID_CUBE_TEXTURE id) = 0;
+		virtual void SetCubeTextureFromMaterialArray(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11BitmapArray& materialArray) = 0;
 	};
 
 	IDX11CubeTextures* CreateCubeTextureManager(ID3D11Device& device, ID3D11DeviceContext& dc);

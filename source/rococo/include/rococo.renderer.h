@@ -66,7 +66,8 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE ICubeTextures
 	{
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
-		virtual void SyncCubeTexture(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
+		virtual void SetActiveCubeFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
+		virtual void SetCubeTextureFromId(ID_CUBE_TEXTURE id) = 0;
 	};
 
 	struct TextureArrayCreationFlags
@@ -246,6 +247,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE IScene : IScene2D
 	{
 		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
+		virtual ID_CUBE_TEXTURE GetEnvironmentMap() const = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual void RenderObjects(IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
 		virtual const Light* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
@@ -295,8 +297,8 @@ namespace Rococo::Graphics
 		Alignment_Clipped = 64, // 0x40
 	};
 
-	RENDERER_API Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
-	RENDERER_API Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
+	ROCOCO_GRAPHICS_API Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
+	ROCOCO_GRAPHICS_API Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
 
 	enum TextureFormat
 	{
@@ -341,6 +343,7 @@ namespace Rococo::Graphics
 		virtual IO::IInstallation& Installation() = 0;
 		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
+		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE envId) = 0;
 		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
