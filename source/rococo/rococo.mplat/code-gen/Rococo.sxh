@@ -9,6 +9,21 @@
 	)
 )
 
+(enum Int32
+	(as.sxy Rococo.EvMouseFlags "mplat_gui")
+	(as.cpp Rococo.EvMouseFlags)
+	(
+		(None        0)
+		(LDown     0x1)
+		(LUp       0x2)
+		(RDown     0x4)
+		(RUp       0x8)
+		(MDown    0x20)
+		(MUp      0x40)
+		(MWheel  0x400)
+	)
+)
+
 (interface 
 	(as.sxy Rococo.GUI.IPane "mplat_gui")
 	(as.cpp Rococo.GUI.IPane)

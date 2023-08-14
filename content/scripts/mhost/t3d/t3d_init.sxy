@@ -35,6 +35,9 @@
 //	(IMaterialBuilder mb (MaterialBuilder))
 //	(mb.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg")
 //	(mb.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
+
+//	(Int64 jungleSoundId = (audio.Bind3DSample "!sounds/jungle.mp3"))
+//	(Int64 jungleInstrumentId = (audio.Play3DSound jungleSoundId source 0))
 	
 	(IEngine engine (Engine))
 	(engine.RunMPlatScript "!mesh/t3d/skeleton.sxy")

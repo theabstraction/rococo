@@ -7,9 +7,9 @@
 	"!scripts/mhost/t3d/t3d_config.sxy"
 	"!scripts/mhost/t3d/gui/t3d.menus.sxy"
 	"!scripts/mhost/t3d/gui/t3d.input.thread.sxy"
-	"!scripts/mhost/t3d/strings/t3d.strings.sxy"
-	"!scripts/mhost/t3d/objects/t3d.objects.assorted.sxy"
+	"!scripts/mhost/t3d/strings/t3d.strings.sxy"	
 	"!scripts/mhost/t3d/objects/t3d.rigs.sxy"
+	"!scripts/mhost/t3d/objects/t3d.objects.assorted.sxy"
 )
 
 (namespace EntryPoint)
@@ -145,47 +145,11 @@
 	(source.volume = 1.0)
 	(source.position = 10 0 2)
 	(source.dopplerVelocity = 0 0 0)
-	
-//	(Int64 jungleSoundId = (audio.Bind3DSample "!sounds/jungle.mp3"))
-//	(Int64 jungleInstrumentId = (audio.Play3DSound jungleSoundId source 0))
 		
 	(IMaterialBuilder matBuilder (MaterialBuilder))
 	(Int64 cubeId = (matBuilder.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
 
-/*	(instances.LoadRig "!mesh/t3d/mike.sxy") // generates mike_rig
-	
-//	(IRigs rigs (Rigs))
-//	(IRig mike = (rigs.GetRig "mike_rig"))
-	
-//	(IStringBuilder meshName = (NewPathBuilder))
-	/*
-	(Matrix4x4 rigToWorld =
-		(1 0 0   0)
-		(0 1 0   1)
-		(0 0 1 0.3)
-		(0 0 0   1)
-	)
-	*/
-	/*
-	// Set scale to zero, which allows the childToWorld matrix to control scaling
-	(Vec3 useModelMatrixScaling = 0 0 0)
-	
-	(for (Int32 i = 0)(i < mike.ChildCount)(i += 1)
-		(IRig child = (mike.Child i))
-		(meshName.Clear)
-		(child.AppendMeshName meshName)
-		
-		(Matrix4x4 childToRig)
-		(child.GetMatrix childToRig)
-		
-		(Matrix4x4 childToWorld = rigToWorld * childToRig)
-		
-		(Int64 childBodyId = (instances.AddBody meshName childToWorld useModelMatrixScaling 0))
-		(scene.AddStatics childBodyId)
-	)
-	
-	*/
 	
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)

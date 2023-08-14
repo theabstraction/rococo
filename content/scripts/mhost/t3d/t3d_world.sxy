@@ -103,11 +103,11 @@
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
 	
-//	(AddBottle scene)
+	(T3D.Objects.AddBottle scene)
 	(AddFloor scene)
 //	(AddLandscape scene)
 	(AddLight scene this)
-	(Rigs.AddRigs scene this)
+//	(Rigs.AddRigs scene this)
 	
 	(this.SnapToLandscape this.cameraPos 1.75)
 )

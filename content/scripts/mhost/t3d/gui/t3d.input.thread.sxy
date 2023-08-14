@@ -117,6 +117,11 @@
 		)
 		
 		(while (this.engine.GetNextMouseEvent mouseEvent)
+			(Int32 buttonState = mouseEvent.buttons)
+			(if (Sys.Maths.I32.HasFlags buttonState (#EvMouseFlagsRUp))
+				(debug)
+				(this.isViewLocked = (not this.isViewLocked))
+			)
 			// Required for overlay control
 		)
 		

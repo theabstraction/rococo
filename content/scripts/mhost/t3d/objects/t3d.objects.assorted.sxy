@@ -33,6 +33,8 @@
 	(alias MakeBottle T3D.Objects.MakeBottle)
 	(alias MakeFloor T3D.Objects.MakeFloor)
 	(alias MakeLamp T3D.Objects.MakeLamp)
+	
+	(alias AddBottle T3D.Objects.AddBottle)
 	(alias AddLight T3D.Objects.AddLight)
 	(alias AddFloor T3D.Objects.AddFloor)
 	(alias AddLandscape T3D.Objects.AddLandscape)
@@ -73,7 +75,7 @@
 	(IMaterialBuilder matBuilder (MaterialBuilder))
 	
 	(MaterialVertexData glass)
-	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
+	(glass.colour = (Sys.Type.ToRGBA 0 0 1 0.5e))
 	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> glass.id)
 	(glass.gloss = 0.2)
 	
@@ -90,13 +92,13 @@
 	
 	(bottle.AddTube length bottomWidth topWidth divs)
 	
-	(Float32 neckLength = (AnyFloat 0.04 0.08))
+	(Float32 neckLength = 1.0)
 	(bottle.AddTube neckLength topWidth 0.02 divs)
 	
 	(MaterialVertexData stopper)
 	(matBuilder.GetRandomMaterialId (#MaterialCategoryRock) -> stopper.id)
 	(stopper.gloss = 0.2)
-	(AnyColour 0 255 0 255 0 255 48 128 -> stopper.colour)
+	(stopper.colour = (Sys.Type.ToRGBA 0 1 0 1))
 	(bottle.SetMaterialTop stopper)
 	(bottle.SetMaterialMiddle stopper)
 	(bottle.SetMaterialBottom stopper)
@@ -108,6 +110,9 @@
 	(bottle.CopyToMeshBuilder meshName false false true)
 )
 
+(function MakeCube (IString meshName)(Float32 width) -> :
+)
+
 (function MakeFloor (IString meshName) -> :
 	(IRodTesselator rod (RodTesselator))
 	(rod.Clear)
@@ -115,7 +120,7 @@
 	(IMaterialBuilder mb (MaterialBuilder))
 	
 	(MaterialVertexData marble)
-	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
+	(marble.colour = (Sys.Type.ToRGBA 0.25 0.25 0.25 0.5))
 	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marble.id)
 	(marble.gloss = 0.1)
 	
@@ -172,7 +177,14 @@
 	
 	(Vec3 noScale = 1 1 1)
 	
-	(Int64 bottleId = (instances.AddBody "potion.1" model noScale 0))
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID bottleId = ecs.NewROID)
+	
+	(IBody bottle (AddBody bottleId))
+	(bottle.SetScale noScale)
+	(bottle.SetModelMatrix model)
+	(bottle.SetMeshByName "potion.1")
+	
 	(scene.AddStatics bottleId)
 )
 
@@ -196,7 +208,6 @@
 	(floorMesh.SetModelMatrix model)
 	(floorMesh.SetMeshByName "floor.1")
 	
-//	(Int64 floorId = (instances.AddBody "floor.1" model noScale 0))
 	(scene.AddStatics floorId)
 )
 
@@ -267,4 +278,40 @@
 	(IWorldBuilder wb (WorldBuilder))
 	(wb.New 2048 1)
 	(wb.AddMeshToQuadtree landscapeId)
+)
+
+(function AddMike -> :
+	/*	(instances.LoadRig "!mesh/t3d/mike.sxy") // generates mike_rig
+	
+//	(IRigs rigs (Rigs))
+//	(IRig mike = (rigs.GetRig "mike_rig"))
+	
+//	(IStringBuilder meshName = (NewPathBuilder))
+	/*
+	(Matrix4x4 rigToWorld =
+		(1 0 0   0)
+		(0 1 0   1)
+		(0 0 1 0.3)
+		(0 0 0   1)
+	)
+	*/
+	/*
+	// Set scale to zero, which allows the childToWorld matrix to control scaling
+	(Vec3 useModelMatrixScaling = 0 0 0)
+	
+	(for (Int32 i = 0)(i < mike.ChildCount)(i += 1)
+		(IRig child = (mike.Child i))
+		(meshName.Clear)
+		(child.AppendMeshName meshName)
+		
+		(Matrix4x4 childToRig)
+		(child.GetMatrix childToRig)
+		
+		(Matrix4x4 childToWorld = rigToWorld * childToRig)
+		
+		(Int64 childBodyId = (instances.AddBody meshName childToWorld useModelMatrixScaling 0))
+		(scene.AddStatics childBodyId)
+	)
+	
+	*/
 )

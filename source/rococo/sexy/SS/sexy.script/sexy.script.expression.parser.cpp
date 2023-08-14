@@ -566,9 +566,10 @@ namespace Rococo
 			case VARTYPE_Bool:
 				if (TryCompileBooleanExpression(ce, sourceValue, true, negate))
 				{
+					// D7 assembled to now hold the value of the boolean value of the source expression
 					ce.Builder.AddSymbol(symbol);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 					if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
+					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 					return;
 				}
 				break;
@@ -578,12 +579,14 @@ namespace Rococo
 			case VARTYPE_Float64:
 				if (TryCompileArithmeticExpression(ce, sourceValue, true, targetType))
 				{
+					// D7 assembled to now hold the value of the boolean value of the source expression
 					ce.Builder.AddSymbol(symbol);
 					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 					return;
 				}
 				break;
 			case VARTYPE_Closure:
+				// D7 assembled to now hold the value of the boolean value of the source expression
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, NULL, varStruct.Archetype()))
 				{
 					TokenBuffer targetId;
