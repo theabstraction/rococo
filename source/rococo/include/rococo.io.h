@@ -44,6 +44,32 @@ namespace Rococo::IO
 		TargetDirectory_Root
 	};
 
+	ROCOCO_INTERFACE ISysMonitor
+	{
+		// call this periodically
+		virtual void DoHousekeeping() = 0;
+	};
+
+	ROCOCO_INTERFACE IShaderMonitor: ISysMonitor
+	{
+		// Add an include path
+		virtual void AddIncludePath(cstr path) = 0;
+
+		// A define to everything compiled
+		virtual void AddMacro(cstr name, cstr value) = 0;
+
+		// compiles everything in the directory and its descendants in alphabetical order
+		virtual void CompileDirectory(cstr path) = 0;
+
+		// when hlsl files are changed in this directory or its descendants they will be recompiled .
+		virtual void SetMonitorDirectory(cstr path) = 0;
+
+		// Delete the shader monitor
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_API IO::IShaderMonitor* TryCreateShaderMonitor(Strings::IStringPopulator& logger);
+
 	struct IUnicode16Writer;
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity, cstr title);
@@ -75,6 +101,7 @@ namespace Rococo::IO
 	};
 
 	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength);
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const char* filename, uint64 maxLength);
 
 	ROCOCO_API bool MakeContainerDirectory(char* filename);
 	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename);

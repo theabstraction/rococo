@@ -7,6 +7,22 @@ namespace Rococo::Tasks
 	struct ITaskQueue;
 }
 
+namespace Rococo
+{
+	// Interface that indicates a section of code was aborted without error
+	ROCOCO_INTERFACE INoErrorException : IException
+	{
+	};
+
+	// Quit a section without error
+	ROCOCO_API void ThrowNoError();
+}
+
+namespace Rococo::IO
+{
+	struct ISysMonitor;
+}
+
 namespace Rococo::OS
 {
 #ifdef _WIN32
@@ -68,6 +84,7 @@ namespace Rococo::OS
 
 	ROCOCO_INTERFACE IAppControl
 	{
+		virtual void AdvanceSysMonitors() = 0;
 		// Returns the task queue for the main thread. Include <rococo.task.queue.h> for the definition of the full interface
 		virtual Tasks::ITaskQueue& MainThreadQueue() = 0;
 		virtual bool IsRunning() const = 0;
@@ -76,6 +93,7 @@ namespace Rococo::OS
 
 	ROCOCO_INTERFACE IAppControlSupervisor : public IAppControl
 	{
+		virtual void AddSysMonitor(IO::ISysMonitor& monitor) = 0;
 		virtual void Free() = 0;
 	};
 

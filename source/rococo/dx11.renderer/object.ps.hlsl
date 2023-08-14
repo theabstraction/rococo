@@ -6,8 +6,7 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	{
 		float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour);
 		float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
-		texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
-
+		// We dont apply the environment here, because by definition the environment is lit by ambient light only
 		float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 		float3 lightToPixelDir = normalize(lightToPixelVec);
 
@@ -24,6 +23,6 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	}
 	else
 	{
-		return float4(0,0,0,0);
+		return float4(0,0,0,1.0f);
 	}
 }

@@ -2,6 +2,7 @@
 #include <rococo.api.h>
 #include <rococo.os.win32.h>
 #include <rococo.functional.h>
+#include <rococo.os.h>
 #include <vector>
 
 using namespace Rococo;
@@ -47,6 +48,30 @@ namespace
 			}
 		}
 	};
+}
+
+namespace Rococo
+{
+	ROCOCO_API void ThrowNoError()
+	{
+		struct NoError : INoErrorException
+		{
+			cstr Message() const override
+			{
+				return "No Error";
+			}
+
+			int32 ErrorCode() const override
+			{
+				return 0;
+			}
+
+			Debugging::IStackFrameEnumerator* StackFrames() override
+			{
+				return nullptr;
+			}
+		};
+	}
 }
 
 namespace Rococo::OS

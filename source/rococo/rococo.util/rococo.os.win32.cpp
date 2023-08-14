@@ -2090,6 +2090,7 @@ namespace Rococo::OS
 			{
 				if (tasks.empty())
 				{
+					AdvanceSysMonitors();
 					return false;
 				}
 
@@ -2098,7 +2099,26 @@ namespace Rococo::OS
 				return true;
 			}
 
+			void AdvanceSysMonitors() override
+			{
+				for (auto* s : sysMonitors)
+				{
+					s->DoHousekeeping();
+				}
+			}
+
 			bool isRunning = true;
+
+			std::vector<ISysMonitor*> sysMonitors;
+
+			void AddSysMonitor(IO::ISysMonitor& monitor) override
+			{
+				auto i = std::find(sysMonitors.begin(), sysMonitors.end(), &monitor);
+				if (i == sysMonitors.end())
+				{
+					sysMonitors.push_back(&monitor);
+				}
+			}
 		};
 
 		return new AppControl();
@@ -3005,6 +3025,13 @@ namespace Rococo::IO
 		return new PathCache();
 	}
 
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const char* filename, uint64 maxLength)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		LoadBinaryFile(loader, wPath, maxLength);
+	}
+
 	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength)
 	{
 		if (maxLength > 2_gigabytes)
@@ -3027,7 +3054,7 @@ namespace Rococo::IO
 				Throw(GetLastError(), "LoadBinaryFile: Cannot determine file size %ls", filename);
 			}
 
-			if (maxLength != 0 && len.QuadPart >= maxLength)
+			if (maxLength != 0 && len.QuadPart >= (LONGLONG) maxLength)
 			{
 				Throw(GetLastError(), "LoadBinaryFile: File too large - length must be less than %llu bytes.\n%ls", filename);
 			}
@@ -3715,5 +3742,76 @@ namespace Rococo::Debugging
 		vprintf_s(format, args);
 
 		return len;
+	}
+}
+
+#include <rococo.io.h>
+#include <rococo.os.h>
+#include <rococo.os.win32.h>
+
+typedef IO::IShaderMonitor* (*FN_RococoGraphics_CreateShaderMonitor)(Rococo::Strings::IStringPopulator& logger, cstr targetDirectory);
+
+namespace Rococo::IO
+{
+	ROCOCO_API IO::IShaderMonitor* TryCreateShaderMonitor(Strings::IStringPopulator& logger)
+	{
+		U8FilePath shaderMonitorPath;
+
+		try
+		{
+			std::vector<char> includePaths;
+			OS::ConfigRootName rootName{ "dx11.shader.monitor" };
+
+			OS::GetConfigVariable(shaderMonitorPath.buf, U8FilePath::CAPACITY, "", { "MonitorDirectory" }, rootName, nullptr, true);
+			if (*shaderMonitorPath == 0)
+			{
+				ThrowNoError();
+			}
+
+			includePaths.resize(32768);
+
+			OS::GetConfigVariable(includePaths.data(), includePaths.size(), "", { "IncludePaths-SemicolonSeparated" }, rootName, nullptr, true);
+
+			HMODULE hShaderMonitorLib = LoadLibraryA("dx11.shader.monitor.dll");
+			if (hShaderMonitorLib)
+			{
+				auto createShaderMonitor = (FN_RococoGraphics_CreateShaderMonitor)GetProcAddress(hShaderMonitorLib, "RococoGraphics_CreateShaderMonitor");
+				if (createShaderMonitor)
+				{
+					AutoFree<IO::IShaderMonitor> shaderMonitor = createShaderMonitor(logger, shaderMonitorPath);
+
+					Substring s = ToSubstring(includePaths.data());
+
+					for (;;)
+					{
+						cstr nextSemicolon = FindChar(s.start, ';');
+						if (nextSemicolon)
+						{
+							Substring subspace = { s.start, nextSemicolon };
+							U8FilePath dir;
+							if (!SubstringToString(dir.buf, U8FilePath::CAPACITY, subspace))
+							{
+								Throw(0, "Failed to convert path to string");
+							}
+
+							shaderMonitor->AddIncludePath(dir);
+
+							s.start = nextSemicolon + 1;
+						}
+						else
+						{
+							shaderMonitor->AddIncludePath(s.start);
+							break;
+						}
+					}
+
+					return shaderMonitor.Release();
+				}
+			}
+		}
+		catch (IException& ex)
+		{
+			UNUSED(ex);
+		}
 	}
 }

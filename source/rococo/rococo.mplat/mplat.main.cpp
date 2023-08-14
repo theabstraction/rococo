@@ -445,7 +445,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	ThrowWhenHelpInformationNeeded();
 
 	int initialScriptAllocationKB = Rococo::Strings::CLI::GetClampedCommandLineOption(cmdOptionInt32_AllocScriptsInitial);
-		
+
 	// We set up allocators first, as subsystems below depend on it implicitly through global new and delete operators
 	// We cannot determine the paramenters by sexy script, since the script library depends on the allocators being set first, so use command line parameters
 	AutoFree<IAllocatorSupervisor> scriptAllocator = Memory::CreateBlockAllocator(initialScriptAllocationKB, 0, "mplat-for-sexy");
@@ -480,11 +480,27 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<IGraphicsLogger> logger = CreateStandardOutputLogger();
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation, *scriptAllocator));
-	
+
 	Rococo::MPlatImpl::InitScriptSystem(*installation);
-	
+
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
+
+	struct ShaderLogger : IStringPopulator
+	{
+		void Populate(cstr text) override
+		{
+
+		}
+	} shaderLogger;
+
+	AutoFree<IO::IShaderMonitor> shaderMonitor = IO::TryCreateShaderMonitor(shaderLogger);
+
 	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
+
+	if (shaderMonitor)
+	{
+		appControl->AddSysMonitor(*shaderMonitor);
+	}
 
 	OutputWindowFormatter outputWindowFormatter;
 	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow(outputWindowFormatter, outputWindowFormatter);

@@ -24,6 +24,7 @@
 
 #include <rococo.strings.h>
 #include <rococo.os.h>
+#include <rococo.io.h>
 
 #include <cstring>
 
@@ -348,6 +349,11 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 
+	void AdvanceSysMonitors() override
+	{
+		Throw(0, "%s: Not implemented", __FUNCTION__);
+	}
+
 	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, ISourceCache& sourceCache, IScriptEnumerator& implicitIncludes)
 	{
 		try
@@ -465,6 +471,16 @@ struct AppControl : public OS::IAppControlSupervisor, public Tasks::ITaskQueue
 	Tasks::ITaskQueue& MainThreadQueue() override
 	{
 		return *this;
+	}
+
+	void AddSysMonitor(IO::ISysMonitor&) override
+	{
+		Throw(0, "%s: Not implemented", __FUNCTION__);
+	}
+
+	void AdvanceSysMonitors() override
+	{
+		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 
 	void AddTask(Rococo::Function<void()> lambda) override

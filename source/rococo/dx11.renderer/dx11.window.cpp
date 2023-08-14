@@ -11,6 +11,8 @@
 #include "dx11.factory.h"
 #include "dx11.renderer.h"
 
+#include <vector>
+
 #include <rococo.window.h>
 #include <rococo.renderer.h>
 

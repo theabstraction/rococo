@@ -1006,6 +1006,21 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoDX11HLSLMonitorProject : RococoProject
+    {
+        public RococoDX11HLSLMonitorProject() : base("dx11.hlsl.monitor")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoFileBrowserProject : RococoProject
     {
         public RococoFileBrowserProject() : base("rococo.file.browser")
@@ -1733,6 +1748,7 @@ namespace Rococo
             conf.AddProject<RococoGraphicsProject>(target);
             conf.AddProject<RococoSexAssetsProject>(target);
             conf.AddProject<RococoSexInferenceProject>(target);
+            conf.AddProject<RococoDX11HLSLMonitorProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -1953,6 +1969,8 @@ namespace Rococo
             arguments.Generate<RococoGraphicsProject>();
             arguments.Generate<RococoSexAssetsProject>();
             arguments.Generate<RococoSexInferenceProject>();
+
+            arguments.Generate<RococoDX11HLSLMonitorProject>();
         }
     }
 }

@@ -14,6 +14,8 @@
 #include <rococo.os.h>
 #include <rococo.time.h>
 
+#include <vector>
+
 namespace ANON
 {
 	using namespace Rococo;
@@ -102,6 +104,8 @@ namespace ANON
 			}
 
 			Time::ticks now = Time::TickCount();
+
+			appControl.AdvanceSysMonitors();
 
 			RECT rect;
 			GetClientRect(hWnd, &rect);
@@ -324,6 +328,13 @@ namespace ANON
 			{
 				PostQuitMessage(0);
 			}
+		}
+
+		std::vector<IO::ISysMonitor*> sysMonitors;
+
+		void AddSysMonitor(Rococo::IO::ISysMonitor& sysMonitor) override
+		{
+			sysMonitors.push_back(&sysMonitor);
 		}
 	};
 }

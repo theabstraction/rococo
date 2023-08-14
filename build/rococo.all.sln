@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ECS", "ECS", "{CA3EF6C8-5EF
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.assets.test", "projects\rococo.assets.test_vs2022_win64.vcxproj", "{002950ED-9F0C-235A-5097-6962BE95198F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.monitor", "projects\dx11.hlsl.monitor_vs2022_win64.vcxproj", "{41BB5607-981C-BB79-CF71-93BF8A7E969F}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.renderer", "projects\dx11.renderer_vs2022_win64.vcxproj", "{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-jpg", "projects\lib-jpg_vs2022_win64.vcxproj", "{4C709D18-84F3-F3B7-569B-69F9522D35A2}"
@@ -156,6 +158,10 @@ Global
 		{002950ED-9F0C-235A-5097-6962BE95198F}.Debug|x64.Build.0 = Debug|x64
 		{002950ED-9F0C-235A-5097-6962BE95198F}.Release|x64.ActiveCfg = Release|x64
 		{002950ED-9F0C-235A-5097-6962BE95198F}.Release|x64.Build.0 = Release|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.ActiveCfg = Debug|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.Build.0 = Debug|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Release|x64.ActiveCfg = Release|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Release|x64.Build.0 = Release|x64
 		{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}.Debug|x64.ActiveCfg = Debug|x64
 		{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}.Debug|x64.Build.0 = Debug|x64
 		{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}.Release|x64.ActiveCfg = Release|x64

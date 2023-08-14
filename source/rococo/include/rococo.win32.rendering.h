@@ -8,6 +8,7 @@
 namespace Rococo::IO
 {
 	struct IInstallation;
+	struct ISysMonitor;
 }
 
 namespace Rococo
@@ -68,6 +69,7 @@ namespace Rococo
 	{
 		virtual void Free() = 0;
 		virtual void Run(HANDLE hInstanceLock) = 0;
+		virtual void AddSysMonitor(Rococo::IO::ISysMonitor& sysMonitor) = 0;
 	};
 	ROCOCO_GRAPHICS_API IDirectAppManager* CreateAppManager(Platform& platform, IGraphicsWindow& window, IDirectAppFactory& factory);
 
