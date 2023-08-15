@@ -1,0 +1,1 @@
+DebugBinPath=\work\rococo\SexyStudioBin\sexystudio.dll

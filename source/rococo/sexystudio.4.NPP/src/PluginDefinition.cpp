@@ -54,33 +54,7 @@ ISexyStudioInstance1* sexyIDE = nullptr;
 
 static cstr ErrorCaption = "SexyStudio 4 Notepad++ - error!";
 
-void GetDllPath(WideFilePath& pathToDLL)
-{
-    *pathToDLL.buf = 0;
-
-    HKEY hSexy4Npp;
-    LSTATUS status = RegOpenKeyW(HKEY_CURRENT_USER, L"Software\\Rococo - 19th Century Software\\SexyStudio", &hSexy4Npp);
-    if (status == ERROR_SUCCESS)
-    {
-        enum { MAX_ROOT_LEN = 128 };
-        static_assert(MAX_ROOT_LEN < WideFilePath::CAPACITY);
-
-        DWORD type = REG_SZ;     
-        DWORD len = MAX_ROOT_LEN * sizeof(wchar_t);
-        status = RegQueryValueExW(hSexy4Npp, L"BinPath", NULL, &type, (LPBYTE)pathToDLL.buf, &len);
-        if (status != ERROR_SUCCESS)
-        {
-            *pathToDLL.buf = 0;
-        }
-
-        RegCloseKey(hSexy4Npp);
-    }
-
-    if (*pathToDLL.buf == 0)
-    {
-        swprintf_s(pathToDLL.buf, L"C:\\work\\rococo\\SexyStudioBin\\sexystudio.dll");
-    }
-}
+void GetDllPath(WideFilePath& pathToDLL);
 
 struct SexyStudioEventHandler: ISexyStudioEventHandler
 {

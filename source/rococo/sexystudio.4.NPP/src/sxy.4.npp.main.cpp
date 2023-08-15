@@ -27,6 +27,8 @@ extern NppData nppData;
 using namespace Rococo;
 using namespace Rococo::Strings;
 
+HANDLE g_hModule = NULL;
+
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/)
 {
 	try
@@ -34,6 +36,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/
 		switch (reasonForCall)
 		{
 			case DLL_PROCESS_ATTACH:
+                g_hModule = hModule;
 				pluginInit(hModule);
 				break;
 
@@ -56,6 +59,111 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/
     return TRUE;
 }
 
+#include <string.h>
+
+void GetDllPath(WideFilePath& pathToDLL)
+{
+    DWORD len = GetModuleFileNameW((HMODULE) g_hModule, pathToDLL.buf, WideFilePath::CAPACITY);
+    for (wchar_t* p = pathToDLL.buf + len; p >= pathToDLL.buf; p--)
+    {
+        if (*p == '\\')
+        {
+            *p = 0;
+            break;
+        }
+    }
+
+    char configPath[MAX_PATH];
+    _snprintf_s(configPath, MAX_PATH, "%ws\\npp.config.txt", pathToDLL.buf);
+
+    HANDLE hFile = CreateFileA(configPath, FILE_GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+        return;
+    }
+
+    char contents[WideFilePath::CAPACITY];
+    DWORD bytesRead = 0;
+    BOOL status = ReadFile(hFile, contents, sizeof contents - 1, &bytesRead, NULL);
+    if (status == 0)
+    {
+        HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+        UNUSED(hr);
+        return;
+    }
+
+    CloseHandle(hFile);
+
+    if (!status || bytesRead < 4)
+    {
+        return;
+    }
+
+    contents[sizeof(contents) - 1] = 0;
+    contents[bytesRead] = 0;
+
+    cstr key = nullptr, value = nullptr;
+
+    auto parseKeyValue = [&pathToDLL](cstr key, cstr value)
+        {
+            if (!value) return;
+
+            if (strcmp(key, "DebugBinPath") == 0)
+            {
+                // Typically: C:\work\rococo\SexyStudioBin\sexystudio.dll
+#ifdef _DEBUG
+                _snwprintf_s(pathToDLL.buf, WideFilePath::CAPACITY, L"%hs", value);
+#endif
+            }
+        };
+
+    enum EState { BLANKSPACE_BEFORE_TOKENS, READING_KEY, READING_VALUE } state = BLANKSPACE_BEFORE_TOKENS;
+
+    for (char* p = contents; p < contents + bytesRead; p++)
+    {
+        if (state == BLANKSPACE_BEFORE_TOKENS)
+        {
+            if (*p <= 32)
+            {
+                // More whitespace
+                continue;
+            }
+
+            state = READING_KEY;
+            key = p;
+            continue;
+        }
+
+        if (state == READING_KEY)
+        {
+            if (*p == '=')
+            {
+                *p = 0;
+                state = READING_VALUE;
+                value = p + 1;
+            }
+
+            continue;
+        }
+
+        // reading value
+
+        if (*p <= 32)
+        {
+            // Blankspace or 0
+            *p = 0;
+
+            // we now have a key and value pair
+            parseKeyValue(key, value);
+
+            key = p + 1;
+            value = nullptr;
+            state = BLANKSPACE_BEFORE_TOKENS;
+        }
+    }
+
+    parseKeyValue(key, value);
+}
 
 extern "C" __declspec(dllexport) void setInfo(NppData notpadPlusData)
 {

@@ -16,6 +16,7 @@ rem dir "%notepad_dir%"
 
 if exist %boot_dll% (
   copy "%boot_dll%" "%notepad_dir%\"
+  copy "%~dp0\\npp.config.txt" "%notepad_dir%\"
 ) else (
   echo "Could not find %boot_dll%" 
 )
