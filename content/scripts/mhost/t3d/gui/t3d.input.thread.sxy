@@ -64,7 +64,7 @@
 	(this.engine.SetOverlayToggleKey overlayToggleKey)
 	(this.engine.SetGUIToggleKey guiToggleKey)
 	
-	(IStringBuilder eventString = (Sys.Type.NewTokenBuilder))
+	(IStringBuilder eventString = (Sys.Type.NewParagraphBuilder))
 	
 	(MouseEvent mouseEvent)
 	(KeyboardEvent keyEvent)
@@ -127,6 +127,13 @@
 				(guiOverlay.AppendEventString eventString guiEvent)
 				(T3D.Gui.ButtonArgs buttonArgs = 0)
 				(invoke this.overlayHandler eventString buttonArgs)
+				(continue)
+			)
+			
+			(if (guiEvent.eventId == (#EvIdLogMessage))
+				(eventString.Clear)
+				(guiOverlay.AppendEventString eventString guiEvent)
+				(this.world.Log eventString)
 			)
 		)
 		

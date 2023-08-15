@@ -28,6 +28,7 @@
 		(GRisMadeVisible 1 )
 		(GRisHidden 2)
 		(OverlayButtonClick 3)
+		(LogMessage 4)
 	)
 )
 

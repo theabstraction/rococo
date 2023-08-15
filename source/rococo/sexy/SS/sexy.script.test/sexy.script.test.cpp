@@ -16119,6 +16119,53 @@ R"(
 	   ValidateLogs();
    }
 
+   void TestAppendInterfaceInsideMethod(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(class Robot (defines Sys.Type.IRobot)
+			(list IString logItems)
+		)
+
+		(method Robot.Construct :
+			(list IString logItems)
+			(this.logItems = logItems)
+		)
+
+		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+		(method Robot.AddJim -> :
+			(this.logItems.Append "Jim")
+		)
+
+		(function Main -> (Int32 result):
+			(Sys.Type.IRobot robot (Sys.Type.NewRobot))
+			(robot.AddJim)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+   }
+
    void TestAddNativeReflectionCall(IPublicScriptSystem& ss)
    {
 	   static int callCount = 0;
@@ -16268,13 +16315,13 @@ R"(
 	   TEST(TestArrayProxy);
 	   TEST(TestArrayClear);
 	   TEST(TestArrayPushBool);
-		TEST(TestArrayLast);
+	   TEST(TestArrayLast);
 	   TEST(TestReturnArrayRefAndIgnore);
    }
 
    void TestLists()
    {
-	
+	   TEST(TestAppendInterfaceInsideMethod);
 	   TEST(TestMapInsertCorrectRefs);
 	   TEST(TestLinkedListNodeInline);
 	   TEST(TestLinkedListContained);
@@ -16792,6 +16839,7 @@ R"(
 		TEST3(TestStringReplace);
 		TEST3(TestCreateDeclarations);
 
+		TEST(TestAssignNotItself);
 		TEST(TestTypeOf);
 		TEST3(TestTypeOfClass);
 		TEST(TestEnumerateInterfaces);
@@ -16841,7 +16889,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestAssignNotItself);
+		TEST(TestAppendInterfaceInsideMethod);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
@@ -16904,6 +16952,8 @@ int main(int argc, char* argv[])
 			printf("\nError: %s\n", ex.Message());
 		}
 	}
+
+	ValidateLogs();
 
 	return 0;
 }

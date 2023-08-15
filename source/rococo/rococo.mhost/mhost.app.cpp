@@ -341,6 +341,18 @@ namespace MHost
 			platform.os.ios.EnumerateModifiedFiles(*this);
 		}
 
+		std::vector<HString> messages;
+
+		void LogMessageToMHostScript(cstr message)
+		{
+			messages.push_back(message);
+
+			GuiTypes::GuiEvent ev;
+			ev.stringId = messages.back();
+			ev.eventId = GuiTypes::GuiEventId::LogMessage;
+			guiEventList.push_back(ev);
+		}
+
 		void OnEvent(FileModifiedArgs& args) override
 		{
 			U8FilePath pingPath;
@@ -358,18 +370,18 @@ namespace MHost
 			}
 			else if (Eq(ext, ".sxy"))
 			{
-				platform.graphics.gui.LogMessage("Updating script file");
+				LogMessageToMHostScript("Updating script file");
 				platform.plumbing.utilities.RefreshResource(pingPath);
 				queuedForExecute = true;
 			}
 			else if (Eq(ext, ".ps"))
 			{
-				platform.graphics.gui.LogMessage("Updating pixel shader");
+				LogMessageToMHostScript("Updating pixel shader");
 				platform.graphics.renderer.Shaders().UpdatePixelShader(pingPath);
 			}
 			else if (Eq(ext, ".vs"))
 			{
-				platform.graphics.gui.LogMessage("Updating vertex shader");
+				LogMessageToMHostScript("Updating vertex shader");
 				platform.graphics.renderer.Shaders().UpdateVertexShader(pingPath);
 			}
 		}
@@ -484,6 +496,11 @@ namespace MHost
 				ev = guiEventList.front();
 				guiEventList.pop_front();
 				return true;
+			}
+			else
+			{
+				// The script has consumed the string pointers, so safe to delete the backing
+				messages.clear();
 			}
 
 			return false;
@@ -726,6 +743,7 @@ namespace MHost
 				}
 
 				GuiTypes::GuiEvent ev;
+				ev.stringId = "";
 				ev.eventId = GuiTypes::GuiEventId::GRisMadeVisible;
 				guiEventList.push_back(ev);
 			}
@@ -733,6 +751,7 @@ namespace MHost
 			{
 				platform.creator.editor.RemoveHook(this);
 				GuiTypes::GuiEvent ev;
+				ev.stringId = "";
 				ev.eventId = GuiTypes::GuiEventId::GRisHidden;
 				guiEventList.push_back(ev);
 			}

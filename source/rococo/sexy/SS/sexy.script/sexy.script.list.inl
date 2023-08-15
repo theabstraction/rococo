@@ -844,6 +844,20 @@ namespace Rococo::Script
 
 		if (elementType.InterfaceCount() > 0)
 		{
+			if (IsStringLiteral(value) && elementType == ce.Object.Common().SysTypeIString().NullObjectType())
+			{
+				// Elements are IStrings, so we can assign by string literal
+				auto literalValue = value.String();
+				auto strConst = ce.SS.DuplicateStringAsConstant(literalValue->Buffer, literalValue->Length);
+
+				VariantValue v;
+				v.vPtrValue = strConst->header.AddressOfVTable0();
+				ce.Builder.Assembler().Append_SetRegisterImmediate(REGISTER_D7, v, BITCOUNT_POINTER);
+				ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
+				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
+				return;
+			}
+
 			cr_sex arg = GetAtomicArg(s, 1);
 			AssertLocalVariableOrMember(arg);
 			ce.Builder.AssignVariableToTemp(arg.c_str(), 3);
