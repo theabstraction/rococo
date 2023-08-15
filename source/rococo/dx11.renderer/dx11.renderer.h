@@ -90,9 +90,7 @@ namespace Rococo::DX11
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(IDX11TextureLoader& textureLoader, cstr path, cstr extension) = 0;
 		virtual void Free() = 0;
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
-		virtual ID3D11ShaderResourceView* ShaderResourceView() = 0;
-		virtual void SetCubeTextureFromId(ID_CUBE_TEXTURE id) = 0;
-		virtual void SetCubeTextureFromMaterialArray(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11BitmapArray& materialArray) = 0;
+		virtual ID_CUBE_TEXTURE CreateCubeTextureFromMaterialArray(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11BitmapArray& materialArray) = 0;
 	};
 
 	IDX11CubeTextures* CreateCubeTextureManager(ID3D11Device& device, ID3D11DeviceContext& dc);
@@ -121,7 +119,10 @@ namespace Rococo::DX11
 
 	};
 
-	IDX11Gui* CreateDX11Gui(ID3D11Device& device, ID3D11DeviceContext& dc, IDX11TextureManager& textures, IRendererMetrics& metrics, IDX11ResourceLoader& loader, IShaders& shaders);
+	ROCOCO_INTERFACE IRenderingResources
+	{
+		virtual ID_CUBE_TEXTURE GetEnvMapId() const = 0;
+	};
 
 	void GetSkySampler(D3D11_SAMPLER_DESC& desc);
 	D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode);
@@ -196,11 +197,11 @@ namespace Rococo::DX11
 	ROCOCO_INTERFACE IDX11TextureManager: ITextureManager
 	{
 		virtual void Free() = 0;
-		virtual ID3D11ShaderResourceView* GetCubeShaderResourceView() = 0;
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
 		virtual TextureBind& GetTexture(ID_TEXTURE id) = 0;
 		virtual IDX11TextureLoader& Loader() = 0;
 		virtual IDX11Materials& Materials() = 0;
+		virtual IDX11CubeTextures& DX11CubeTextures() = 0;
 	};
 
 	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
@@ -249,7 +250,24 @@ namespace Rococo::DX11
 		virtual IParticles& Particles() = 0;
 	};
 
-	IDX11Pipeline* CreateDX11Pipeline(IO::IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc);
+	struct RenderBundle
+	{
+		IO::IInstallation& installation;
+		IRendererMetrics& metrics;
+		IDX11ResourceLoader& resourceLoader;
+		IDX11Shaders& shaders;
+		IDX11TextureManager& textures;
+		IDX11Meshes& meshes;
+		IDX11Renderer& renderer;
+		IRenderContext& rc;
+		ID3D11Device& device;
+		ID3D11DeviceContext& dc;
+		IDX11ResourceLoader& loader;
+		IRenderingResources& resources;
+	};
+
+	IDX11Gui* CreateDX11Gui(RenderBundle& bundle);
+	IDX11Pipeline* CreateDX11Pipeline(RenderBundle& bundle);
 
 	ROCOCO_INTERFACE IDX11WindowBacking
 	{

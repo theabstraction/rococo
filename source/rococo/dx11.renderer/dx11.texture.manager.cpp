@@ -444,29 +444,24 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		return *this;
 	}
 
+	IDX11CubeTextures& DX11CubeTextures() override
+	{
+		return *cubeTextures;
+	}
+
 	ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) override
 	{
 		return cubeTextures->CreateCubeTexture(textureLoader, path, extension);
 	}
 
-	void SetActiveCubeFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
-	{
-		return cubeTextures->SetCubeTextureFromMaterialArray(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
-	}
-
-	void SetCubeTextureFromId(ID_CUBE_TEXTURE id) override
-	{
-		cubeTextures->SetCubeTextureFromId(id);
-	}
-
-	ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id)
+	ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) override
 	{
 		return cubeTextures->GetShaderView(id);
 	}
 
-	ID3D11ShaderResourceView* GetCubeShaderResourceView()
+	ID_CUBE_TEXTURE CreateSkyboxCubeIdFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
 	{
-		return cubeTextures->ShaderResourceView();
+		return cubeTextures->CreateCubeTextureFromMaterialArray(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
 	}
 
 	void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const override

@@ -68,8 +68,6 @@ namespace Rococo::IO
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_API IO::IShaderMonitor* TryCreateShaderMonitor(Strings::IStringPopulator& logger);
-
 	struct IUnicode16Writer;
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity, cstr title);

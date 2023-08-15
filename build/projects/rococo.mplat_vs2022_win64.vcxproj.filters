@@ -34,6 +34,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.keyboard.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.main.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.maths.visitor.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.monitors.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.os.win32.venue.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.overlay.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.array-box.cpp" />

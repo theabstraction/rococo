@@ -1089,6 +1089,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
             conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
             conf.AddPrivateDependency<RococoAudioProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target); ;
         }
     }
 

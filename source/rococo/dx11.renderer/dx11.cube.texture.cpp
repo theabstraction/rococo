@@ -56,17 +56,9 @@ namespace Rococo::DX11
 
 		int32 cubeMaterialId[6] = { -1,-1,-1,-1,-1,-1 };
 
-		AutoRelease<ID3D11Texture2D> cubeTexture;
-		AutoRelease<ID3D11ShaderResourceView> cubeTextureView;
-
 		CubeTextures(ID3D11Device& _device, ID3D11DeviceContext& _dc) : device(_device), dc(_dc)
 		{
 
-		}
-
-		ID3D11ShaderResourceView* ShaderResourceView() override
-		{
-			return cubeTextureView;
 		}
 
 		virtual ~CubeTextures()
@@ -166,57 +158,33 @@ namespace Rococo::DX11
 			}
 		}
 
-		void SetCubeTextureFromId(ID_CUBE_TEXTURE id)
-		{
-			auto* v = GetShaderView(id);
-			cubeTextureView = v;
-		}
-
-		void SetCubeTextureFromMaterialArray(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11BitmapArray& materialArray) override
+		ID_CUBE_TEXTURE CreateCubeTextureFromMaterialArray(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace, IDX11BitmapArray& materialArray) override
 		{
 			int32 newMaterialids[6] = { XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace };
 
-			if (cubeTexture)
+			D3D11_TEXTURE2D_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+			desc.Width = materialArray.Width();
+			desc.Height = materialArray.Width();
+			desc.ArraySize = 6;
+			desc.SampleDesc.Count = 1;
+			desc.SampleDesc.Quality = 0;
+			desc.MipLevels = 1;
+			desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			desc.CPUAccessFlags = 0;
+			desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+			AutoRelease<ID3D11Texture2D> pTexCube = nullptr;
+			VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &pTexCube));
+
+			ID3D11ShaderResourceView* view = nullptr;
+			HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
+			if FAILED(hr)
 			{
-				D3D11_TEXTURE2D_DESC desc;
-				cubeTexture->GetDesc(&desc);
-
-				if (desc.Width != (uint32) materialArray.Width())
-				{
-					cubeTexture = nullptr;
-					cubeTextureView = nullptr;
-				}
-			}
-
-			if (!cubeTexture)
-			{
-				D3D11_TEXTURE2D_DESC desc;
-				ZeroMemory(&desc, sizeof(desc));
-				desc.Width = materialArray.Width();
-				desc.Height = materialArray.Width();
-				desc.ArraySize = 6;
-				desc.SampleDesc.Count = 1;
-				desc.SampleDesc.Quality = 0;
-				desc.MipLevels = 1;
-				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-				desc.CPUAccessFlags = 0;
-				desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
-				ID3D11Texture2D* pTexCube = nullptr;
-				VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &pTexCube));
-				cubeTexture = pTexCube;
-
-				ID3D11ShaderResourceView* view = nullptr;
-				HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
-				if FAILED(hr)
-				{
-					pTexCube->Release();
-					Throw(hr, "DX11Renderer::SyncCubeTexture: Error creating shader resource view for cube texture");
-				}
-
-				cubeTextureView = view;
+				pTexCube->Release();
+				Throw(hr, "DX11Renderer::SyncCubeTexture: Error creating shader resource view for cube texture");
 			}
 
 			for (UINT i = 0; i < 6; ++i)
@@ -233,9 +201,13 @@ namespace Rococo::DX11
 					srcbox.bottom = materialArray.Width();
 					srcbox.back = 1;
 
-					dc.CopySubresourceRegion(cubeTexture, i, 0, 0, 0, materialArray.Binding().texture, cubeMaterialId[i], &srcbox);
+					dc.CopySubresourceRegion(pTexCube, i, 0, 0, 0, materialArray.Binding().texture, cubeMaterialId[i], &srcbox);
 				}
 			}
+
+			cubeTextureArray.push_back(TextureBind{ pTexCube.Detach(), view });
+			size_t index = CUBE_ID_BASE + cubeTextureArray.size();
+			return ID_CUBE_TEXTURE(index);
 		}
 	};
 

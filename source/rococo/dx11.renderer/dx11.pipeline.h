@@ -122,16 +122,7 @@ namespace Rococo::DX11
 		ID_TEXTURE lastTextureId;
 		int64 guiCost = 0;
 
-		DX11Pipeline(IO::IInstallation& _installation,
-			IRendererMetrics& metrics,
-			IDX11ResourceLoader& resourceLoader,
-			IDX11Shaders& _shaders,
-			IDX11TextureManager& _textures,
-			IDX11Meshes& _meshes,
-			IDX11Renderer& _renderer,
-			IRenderContext& _rc,
-			ID3D11Device& _device,
-			ID3D11DeviceContext& _dc);
+		DX11Pipeline(DX11::RenderBundle& bundle);
 
 		virtual ~DX11Pipeline()
 		{

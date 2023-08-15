@@ -66,8 +66,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE ICubeTextures
 	{
 		virtual ID_CUBE_TEXTURE CreateCubeTexture(cstr path, cstr extension) = 0;
-		virtual void SetActiveCubeFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
-		virtual void SetCubeTextureFromId(ID_CUBE_TEXTURE id) = 0;
+		virtual ID_CUBE_TEXTURE CreateSkyboxCubeIdFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	};
 
 	struct TextureArrayCreationFlags

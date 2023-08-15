@@ -10,8 +10,8 @@ using namespace Rococo::DX11;
 
 namespace Rococo::DX11
 {
-	DX11Pipeline::DX11Pipeline(IO::IInstallation& _installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& _shaders, IDX11TextureManager& _textures, IDX11Meshes& _meshes, IDX11Renderer& _renderer, IRenderContext& _rc, ID3D11Device& _device, ID3D11DeviceContext& _dc) :
-		installation(_installation), device(_device), dc(_dc), shaders(_shaders), meshes(_meshes), textures(_textures), renderer(_renderer), rc(_rc)
+	DX11Pipeline::DX11Pipeline(DX11::RenderBundle& bundle) :
+		installation(bundle.installation), device(bundle.device), dc(bundle.dc), shaders(bundle.shaders), meshes(bundle.meshes), textures(bundle.textures), renderer(bundle.renderer), rc(bundle.rc)
 	{
 		objDepthState = DX11::CreateObjectDepthStencilState(device);
 		objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
@@ -38,7 +38,7 @@ namespace Rococo::DX11
 		ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 		gui3DBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, GUI3D_BUFFER_VERTEX_CAPACITY);
 
-		gui = CreateDX11Gui(device, dc, textures, metrics, resourceLoader, shaders);
+		gui = CreateDX11Gui(bundle);
 
 		idObjVS = shaders.CreateObjectVertexShader("!shaders/compiled/object.vs");
 		idObjPS = shaders.CreatePixelShader("!shaders/compiled/object.ps");
@@ -286,8 +286,8 @@ namespace Rococo::DX11
 		target.row3 = Vec4{ 0, 0, 0, 1.0f };
 	}
 
-	IDX11Pipeline* CreateDX11Pipeline(IO::IInstallation& installation, IRendererMetrics& metrics, IDX11ResourceLoader& resourceLoader, IDX11Shaders& shaders, IDX11TextureManager& textures, IDX11Meshes& meshes, IDX11Renderer& renderer, IRenderContext& rc, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11Pipeline* CreateDX11Pipeline(RenderBundle& bundle)
 	{
-		return new DX11Pipeline(installation, metrics, resourceLoader, shaders, textures, meshes, renderer, rc, device, dc);
+		return new DX11Pipeline(bundle);
 	}
 }

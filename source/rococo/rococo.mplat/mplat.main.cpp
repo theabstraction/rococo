@@ -79,6 +79,10 @@ namespace Rococo
 
 namespace Rococo
 {
+	namespace IO
+	{
+		IO::IShaderMonitor* TryCreateShaderMonitor(Strings::IStringPopulator& logger);
+	}
 	namespace Graphics
 	{
 		IMeshBuilderSupervisor* CreateMeshBuilder(IRenderer& renderer);

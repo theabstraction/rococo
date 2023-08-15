@@ -82,6 +82,8 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     AutoFree<IOverlaySupervisor> overlays;
     AutoRelease<ID3D11Buffer> textureDescBuffer;
 
+    IRenderingResources& resources;
+
     struct Cursor
     {
         Textures::BitmapLocation sprite;
@@ -90,8 +92,8 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
 
-    DX11Gui(ID3D11Device& _device, ID3D11DeviceContext& _dc, IDX11TextureManager& _textures, IRendererMetrics& _metrics, IDX11ResourceLoader& _loader, IShaders& _shaders):
-        device(_device), dc(_dc), metrics(_metrics), textures(_textures), shaders(_shaders), loader(_loader)
+    DX11Gui(DX11::RenderBundle& bundle):
+        device(bundle.device), dc(bundle.dc), metrics(bundle.metrics), textures(bundle.textures), shaders(bundle.shaders), loader(bundle.loader), resources(bundle.resources)
     {
         static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 
@@ -111,7 +113,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
         cstr csvName = "!font1.csv";
 
-        loader.LoadTextFile("!font1.csv", [csvName, this](const fstring& text)
+        loader.LoadTextFile(csvName, [csvName, this](const fstring& text)
             {
                 fonts = Fonts::LoadFontCSV(csvName, text, text.length);
             }
@@ -168,8 +170,9 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     void AssignShaderResourcesToDC()
     {
         dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
-        auto* view = textures.GetCubeShaderResourceView();
-        dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &view);
+
+        auto* envMap = textures.DX11CubeTextures().GetShaderView(resources.GetEnvMapId());
+        dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &envMap);
 
         ID3D11ShaderResourceView* materialViews[1] = { textures.Materials().Textures().View() };
         dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
@@ -614,8 +617,8 @@ namespace Rococo::DX11
         return alphaBlend;
     }
 
-    IDX11Gui* CreateDX11Gui(ID3D11Device& device, ID3D11DeviceContext& dc, IDX11TextureManager& textures, IRendererMetrics& metrics, IDX11ResourceLoader& loader, IShaders& shaders)
+    IDX11Gui* CreateDX11Gui(RenderBundle& bundle)
     {
-        return new DX11Gui(device, dc, textures, metrics, loader, shaders);
+        return new DX11Gui(bundle);
     }
 } // Rococo::DX11
