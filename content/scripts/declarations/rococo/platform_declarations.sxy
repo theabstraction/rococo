@@ -891,7 +891,7 @@
 (function IRendererConfigSetSampler297  (Pointer hObject)(Rococo.SampleStateDef ssd)(Int32 index) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10377))
 (alias IRendererConfigSetSampler297 Rococo.Graphics.Native.IRendererConfigSetSampler)
 
-(function CreateMemoString298  (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1749))
+(function CreateMemoString298  (Sys.Type.IString s) -> (Pointer dest) (Int32 destLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1749))
 (alias CreateMemoString298 Sys.Strings.Native.CreateMemoString)
 
 (function GetHandleForIMessaging0299   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7509))

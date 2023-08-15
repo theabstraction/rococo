@@ -357,7 +357,9 @@ namespace MHost
 		{
 			U8FilePath pingPath;
 			platform.os.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);
-			platform.graphics.gui.LogMessage("File modified: %s", pingPath);
+
+			char message[256];
+			SafeFormat(message, "File modified: %s. Update imminent", pingPath);
 
 			auto ext = Rococo::Strings::GetFileExtension(pingPath);
 			if (!ext)
@@ -370,18 +372,18 @@ namespace MHost
 			}
 			else if (Eq(ext, ".sxy"))
 			{
-				LogMessageToMHostScript("Updating script file");
+				LogMessageToMHostScript(message);
 				platform.plumbing.utilities.RefreshResource(pingPath);
 				queuedForExecute = true;
 			}
 			else if (Eq(ext, ".ps"))
 			{
-				LogMessageToMHostScript("Updating pixel shader");
+				LogMessageToMHostScript(message);
 				platform.graphics.renderer.Shaders().UpdatePixelShader(pingPath);
 			}
 			else if (Eq(ext, ".vs"))
 			{
-				LogMessageToMHostScript("Updating vertex shader");
+				LogMessageToMHostScript(message);
 				platform.graphics.renderer.Shaders().UpdateVertexShader(pingPath);
 			}
 		}

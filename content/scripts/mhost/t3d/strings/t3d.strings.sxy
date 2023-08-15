@@ -10,7 +10,7 @@
 			(Sys.Throw 0 msg)
 		)
 	)
-	
+
 	(nsBuilder.AppendChar (pascalCase 0))
 	
 	(Bool first = true)

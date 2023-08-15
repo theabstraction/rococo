@@ -105,13 +105,17 @@ namespace
 	{
 		TMemoAllocator& allocator = *(TMemoAllocator*) e.context;
 
-		void* vSrc;
-		ReadInput(0, vSrc, e);
+		InterfacePointer mutableStringPtr;
+		ReadInput(0, mutableStringPtr, e);
 
-		const char* src = (const char*) vSrc;
+		auto* strSrc = (CStringConstant*) InterfaceToInstance(mutableStringPtr);
+		if (!strSrc->header.Desc->flags.IsSystem)
+		{
+			Throw(0, "%s: the source string was not a Sys based string, which is a security violation.", __FUNCTION__);
+		}
 
-		int32 srcLen;
-		ReadInput(1, srcLen, e);
+		cstr src = strSrc->pointer;
+		int srcLen = strSrc->length;
 
 		if (src == NULL)
 		{
@@ -140,6 +144,8 @@ namespace
 
 		WriteOutput(0, (void*) memo, e);
 		WriteOutput(1, truncLen, e);
+
+		_CrtCheckMemory();
 	}
 
 	void FreeMemoString(NativeCallEnvironment& e)

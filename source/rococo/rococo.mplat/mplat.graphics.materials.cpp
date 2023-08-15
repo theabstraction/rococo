@@ -158,7 +158,7 @@ namespace Rococo::Graphics
 
 		  for (size_t i = 0; i < metrics.NumberOfElements; ++i)
 		  {
-			  auto id = (MaterialId)i;
+			  auto id = MaterialId((int32)i);
 			  cstr name = renderer.Materials().GetMaterialTextureName(id);
 			  if (name)
 			  {

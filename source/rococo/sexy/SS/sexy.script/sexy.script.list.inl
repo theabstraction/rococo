@@ -854,6 +854,7 @@ namespace Rococo::Script
 				v.vPtrValue = strConst->header.AddressOfVTable0();
 				ce.Builder.Assembler().Append_SetRegisterImmediate(REGISTER_D7, v, BITCOUNT_POINTER);
 				ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
+				ce.Builder.Assembler().Append_Dereference_D4();
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
 				return;
 			}
@@ -862,6 +863,7 @@ namespace Rococo::Script
 			AssertLocalVariableOrMember(arg);
 			ce.Builder.AssignVariableToTemp(arg.c_str(), 3);
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
+			ce.Builder.Assembler().Append_Dereference_D4();
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
 		}
 		else if (elementType.VarType() == VARTYPE_Derivative)
@@ -1014,7 +1016,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			Throw(s, ("Unknown list method. Known methods: Append, Prepend."));
+			Throw(s, ("Unknown list method. Known methods: Append, Clear, Prepend."));
 		}
 	}
 

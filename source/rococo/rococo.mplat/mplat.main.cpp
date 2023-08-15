@@ -493,7 +493,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	{
 		void Populate(cstr text) override
 		{
-
+			UNUSED(text);
 		}
 	} shaderLogger;
 
@@ -660,11 +660,6 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	PlatformTabs tabs(platform);
 
 	PerformSanityTests();
-
-	if (shaderMonitor)
-	{
-		shaderMonitor->CompileDirectory(nullptr);
-	}
 
 	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
 

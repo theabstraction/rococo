@@ -100,8 +100,8 @@ namespace Rococo
 
 namespace Rococo::Memory
 {
-	[[nodiscard]] IAllocator& CheckedAllocator();
-	[[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
+	ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
+	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
 }
 
 namespace
@@ -1236,14 +1236,18 @@ namespace Rococo
 
 			if (!l)
 			{
-				SafeFormat(name, "list<%s> %s: null", GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
+				SafeFormat(name, "[%+d] ->  %p list<%s> %s: null", offset, sfItem, GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
 			}
 			else
 			{
-				SafeFormat(name, "list<%s> %s", GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
+				SafeFormat(name, "[%+d] ->  %p list<%s> %s", offset, sfItem, GetFriendlyName(*member.UnderlyingGenericArg1Type()), childName);
 			}
 
 			auto node = tree->AddChild(parentId, name, CheckState_NoCheckBox);
+
+			char ptr[256];
+			SafeFormat(ptr, "%p list pointer", l);
+			tree->AddChild(node, ptr, CheckState_NoCheckBox);
 
 			if (!l)
 			{
@@ -1577,7 +1581,7 @@ namespace Rococo
 	struct Reg
 	{
 		char key[8];
-		char value[40];
+		char value[48];
 	};
 
 	void PopulateRegisterWindow(Script::IPublicScriptSystem& ss, Visitors::IUIList& registerListView)

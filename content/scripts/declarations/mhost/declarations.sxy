@@ -1194,7 +1194,7 @@
 (function GetHandleForIMessaging0398   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7509))
 (alias GetHandleForIMessaging0398 Rococo.Graphics.Native.GetHandleForIMessaging0)
 
-(function CreateMemoString399  (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1749))
+(function CreateMemoString399  (Sys.Type.IString s) -> (Pointer dest) (Int32 destLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1749))
 (alias CreateMemoString399 Sys.Strings.Native.CreateMemoString)
 
 (function ILandscapeTesselatorClear400  (Pointer hObject) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9962))

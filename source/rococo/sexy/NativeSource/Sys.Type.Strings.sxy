@@ -58,7 +58,7 @@
 )
 
 (method MemoImpl.Construct (IString s) -> :
-	(Sys.Strings.Native.CreateMemoString s.Buffer s.Length -> this.buffer this.length)	
+	(Sys.Strings.Native.CreateMemoString s -> this.buffer this.length)	
 )
 
 (interface Sys.Type.Formatters.AsDecimal (Null -> ))

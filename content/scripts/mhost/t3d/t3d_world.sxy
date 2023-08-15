@@ -36,6 +36,7 @@
 	(IArchive archive)
 	(IWorldBuilder wb)
 	(list IString logItems)
+	(Int64 lastLogCheck)
 )
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
@@ -85,7 +86,7 @@
 		(this.cameraPos.y = (this.cameraPos.y + worldForward.y))
 		
 		(this.archive.SaveVec3 "world.cameraPos" this.cameraPos)
-		
+	
 		(this.SnapToLandscape this.cameraPos 1.75)
 	)
 )
@@ -103,6 +104,8 @@
 	
 	(list IString logItems)
 	(this.logItems = logItems)
+	
+	(this.lastLogCheck = 0)
 	
 	(ISceneBuilder scene (SceneBuilder))
 	(scene.Clear)
@@ -127,6 +130,13 @@
 
 (factory T3D.NewWorld T3D.IWorld : (construct World))
 
+(function ShrinkRect (Rectf target)(Float32 dx)(Float32 dy)-> :
+	(target.left += dx)
+	(target.top += dy)
+	(target.right -= dx)
+	(target.bottom -= dy)
+)
+
 (method World.RenderGui (IGui gui)-> :
 	(Rectf menuRect = 10 10 310 30)
 	(gui.FillRect menuRect 0xFF404020)
@@ -140,19 +150,45 @@
 	
 	(gui.DrawText menuRect 0 sb 1 0xFFFFFFFF)
 	
-	(Rectf itemRect = 10 20 310 50)
+	(Int64 logLifeTime = (4 * Sys.Time.TickHz))
+	
+	(Int64 dt = ((Sys.Time.TickCount) - this.lastLogCheck))
+	(if ((dt > logLifeTime) and (this.logItems.Length > 0))
+		(node n = this.logItems.Head)
+		(n.Pop)
+		(this.lastLogCheck = Sys.Time.TickCount)
+	)
+	
+	(Vec2 screenSpan)
+	(gui.GetScreenSpan screenSpan)
+	(Float32 y0 = (screenSpan.y - 60))
+	(Float32 y1 = (y0 + 20))
+	
+	(Rectf itemRect = 10 y0 1200 y1)
+	
+	(Int32 alignment = (Sys.Maths.I32.BitwiseOr (#AlignmentFlagsLeft) (#AlignmentFlagsBottom)))
+	(alignment = (Sys.Maths.I32.BitwiseOr alignment (#AlignmentFlagsTop)))
 	
 	(foreach item # this.logItems
-		(gui.DrawText itemRect (#AlignmentFlagsNone) item.Value 0 0xFFFFFFFF)
-		(itemRect.top += 40)
-		(itemRect.bottom += 40)
+		(gui.FillRect itemRect 0x40404020)
+		(Rectf textRect = itemRect)
+		(ShrinkRect textRect 4 1)
+		(gui.DrawText textRect alignment item.Value 0 0xFFFFFFFF)
+		(itemRect.top -= 22)
+		(itemRect.bottom -= 22)
 	)
 )
 
 (method World.Log (IString text) -> :
-	(debug)
-	(IString memo (Memo text))
+	(IStringBuilder memo = (NewPathBuilder))
+	(memo text)
 	(this.logItems.Append memo)
+	(if ((this.logItems.Length) > 10)
+		(node n = this.logItems.Head)
+		(n.Pop)
+	)
+	
+	(this.lastLogCheck = Sys.Time.TickCount)	
 )
 
 

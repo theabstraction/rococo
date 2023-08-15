@@ -1746,7 +1746,7 @@ namespace Rococo::Script
 			const INamespace& sysNativeStrings = AddNativeNamespace("Sys.Strings.Native");
 			AddNativeCall(sysNativeStrings, NewStringBuilder, stringPool, "NewStringBuilder (Int32 capacity) -> (Sys.Type.IStringBuilder sb)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, DestructStringBuilder, stringPool, "DestructStringBuilder (Sys.Type.IStringBuilder sb)->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, CreateMemoString, &memoAllocator, "CreateMemoString (Pointer src) (Int32 srcLen) -> (Pointer dest) (Int32 destLength)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysNativeStrings, CreateMemoString, &memoAllocator, "CreateMemoString (Sys.Type.IString s) -> (Pointer dest) (Int32 destLength)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, FreeMemoString, &memoAllocator, "FreeMemoString (Pointer src) ->", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, StringCompare, NULL, "StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysNativeStrings, StringCompareI, NULL, "StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);

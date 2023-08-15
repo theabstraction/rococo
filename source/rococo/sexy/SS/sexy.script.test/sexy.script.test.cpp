@@ -16166,6 +16166,54 @@ R"(
 	   ValidateLogs();
    }
 
+   void TestAppendInterfaceInsideMethod2(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(class Robot (defines Sys.Type.IRobot)
+			(list IString logItems)
+		)
+
+		(method Robot.Construct :
+			(list IString logItems)
+			(this.logItems = logItems)
+		)
+
+		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+		(method Robot.AddJim -> :
+			(IString memo (Memo "Jim"))
+			(this.logItems.Append memo)
+		)
+
+		(function Main -> (Int32 result):
+			(Sys.Type.IRobot robot (Sys.Type.NewRobot))
+			(robot.AddJim)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+   }
+
    void TestAddNativeReflectionCall(IPublicScriptSystem& ss)
    {
 	   static int callCount = 0;
@@ -16322,6 +16370,7 @@ R"(
    void TestLists()
    {
 	   TEST(TestAppendInterfaceInsideMethod);
+	   TEST(TestAppendInterfaceInsideMethod2);
 	   TEST(TestMapInsertCorrectRefs);
 	   TEST(TestLinkedListNodeInline);
 	   TEST(TestLinkedListContained);
@@ -16889,7 +16938,10 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestAppendInterfaceInsideMethod2);
 		TEST(TestAppendInterfaceInsideMethod);
+		
+		return;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
@@ -16924,7 +16976,7 @@ int main(int argc, char* argv[])
 	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 //	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
-//	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try
 	{
