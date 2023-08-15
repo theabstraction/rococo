@@ -58,11 +58,13 @@ namespace Rococo::IO
 		// A define to everything compiled
 		virtual void AddMacro(cstr name, cstr value) = 0;
 
-		// compiles everything in the directory and its descendants in alphabetical order
+		// compiles everything in the directory and its descendants in alphabetical order. If null, enumerates all hlsl files in the monitor directory
 		virtual void CompileDirectory(cstr path) = 0;
 
 		// when hlsl files are changed in this directory or its descendants they will be recompiled .
 		virtual void SetMonitorDirectory(cstr path) = 0;
+
+		virtual size_t QueueLength() const = 0;
 
 		// Delete the shader monitor
 		virtual void Free() = 0;

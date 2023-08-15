@@ -661,6 +661,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	PerformSanityTests();
 
+	if (shaderMonitor)
+	{
+		shaderMonitor->CompileDirectory(nullptr);
+	}
+
 	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
 
 	return 0;

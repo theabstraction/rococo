@@ -105,6 +105,7 @@ namespace Rococo::OS
 
 	struct IThreadControl;
 
+	// Implements method uint32 RunThread(IThreadControl & control)
 	ROCOCO_INTERFACE IThreadJob
 	{
 		virtual uint32 RunThread(IThreadControl & control) = 0;

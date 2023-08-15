@@ -12,7 +12,7 @@
 using namespace Rococo;
 using namespace Rococo::Strings;
 
-struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifiedArgs>
+struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifiedArgs>, OS::IThreadJob
 {
 	std::vector<D3D_SHADER_MACRO> macros_not_nullterminated;
 
@@ -28,18 +28,35 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 	Strings::IStringPopulator& logger;
 
+	AutoFree<OS::IThreadSupervisor> thread;
+	AutoFree<OS::ICriticalSection> sync;
+
+	std::vector<HString> jobs;
+	std::vector<HString> logs;
+
 	HLSL_Monitor(Strings::IStringPopulator& _logger, cstr targetDirectory): io(IO::GetIOS()), logger(_logger)
 	{
 		this->targetPath = targetDirectory;
+		thread = OS::CreateRococoThread(this, 0);
+		sync = OS::CreateCriticalSection();
+		thread->Resume();
 	}
 
 	void Free()
 	{
+		char message[256];
+		SafeFormat(message, "Error count: %llu. Message count: %llu\n", errorCount, messageCount);
+		logger.Populate(message);
 		delete this;
 	}
 
 	void OnEvent(FileModifiedArgs& args) noexcept
 	{
+		if (!EndsWith(args.sysPath, L".hlsl"))
+		{
+			return;
+		}
+
 		U8FilePath changedFilename;
 		Assign(changedFilename, args.sysPath);
 
@@ -47,6 +64,11 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		if (i.second)
 		{
 			// A fresh insert, just fine
+			{
+				OS::Lock lock(sync);
+				jobs.push_back(changedFilename.buf);
+			}
+			OS::WakeUp(*thread);
 		}
 		else
 		{
@@ -56,10 +78,13 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			{
 				// 5 secs minimum time between recompiles
 				i.second = Time::TickCount();
+				{
+					OS::Lock lock(sync);
+					jobs.push_back(changedFilename.buf);
+				}
+				OS::WakeUp(*thread);
 			}
 		}
-
-		CompileWithFilter(changedFilename);
 	}
 
 	void CompileWithFilter(cstr filename) noexcept
@@ -98,21 +123,45 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			Compile(filename, "ds_5_0");
 			return;
 		}
+
+		char message[256];
+		SafeFormat(message, "Skipping %80.80s: file appears to be an intermediary\n", filename);
+		Log(message);
+
+		queueLength--;
 	}
 
 	void CompileDirectory(cstr path)
 	{
+		if (path == nullptr) path = this->monitorDirectory;
+
 		try
 		{
 			AutoFree<IO::IPathCacheSupervisor> allHlSLfiles = IO::CreatePathCache();
 			allHlSLfiles->AddPathsFromDirectory(path, true);
 			allHlSLfiles->Sort();
 
+			bool atLeastOne = false;
 			for (size_t i = 0; i < allHlSLfiles->NumberOfFiles(); ++i)
 			{
 				cstr filename = allHlSLfiles->GetFileName(i);
-				CompileWithFilter(filename);
+				if (EndsWith(filename, ".hlsl"))
+				{
+					OS::Lock lock(sync);
+					jobs.push_back(filename);
+					queueLength = jobs.size();
+					atLeastOne = true;
+				}
 			}
+
+			if (!atLeastOne)
+			{
+				char msg[256];
+				SafeFormat(msg, sizeof msg, "No HLSL files were detected in % s\n", path);
+				Log(msg);
+			}
+
+			OS::WakeUp(*thread);
 		}
 		catch (IException& ex)
 		{
@@ -122,16 +171,33 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		}
 	}
 
+	volatile size_t queueLength = 0;
+
+	size_t QueueLength() const
+	{
+		return queueLength;
+	}
+
+	HString monitorDirectory = R"(\work\rococo\source\rococo\dx11.renderer\shaders\)";
+
 	void SetMonitorDirectory(cstr path)
 	{
 		WideFilePath wPath;
 		Assign(wPath, path);
 		io->Monitor(wPath);
+		monitorDirectory = path;
 	}
 
 	void DoHousekeeping()
 	{
-		io->EnumerateModifiedFiles(*this);
+		OS::Lock lock(sync);
+
+		for (auto& log : logs)
+		{
+			logger.Populate(log);
+		}
+
+		logs.clear();
 	}
 
 	void AddMacro(cstr name, cstr value)
@@ -155,9 +221,13 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 	void Log(cstr message)
 	{
 		OutputDebugStringA(message);
-		fprintf(stderr, "%s", message);
-		logger.Populate(message);
+		OS::Lock lock(sync);
+		logs.push_back(message);
 	}
+
+	size_t compileCountThisSession = 0;
+	size_t errorCount = 0;
+	size_t messageCount = 0;
 
 	void Compile(cstr filename, cstr target) noexcept
 	{
@@ -192,11 +262,22 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		
 		ID3DBlob* blobCode = nullptr;
 		ID3DBlob* errorMessages = nullptr;
+
+		compileCountThisSession++;
+
+		char message[1024];
+		SafeFormat(message, "%llu: Compiling %80.80ws", compileCountThisSession, wPath.buf);
+		Log(message);
+
+		Time::ticks now = Time::TickCount();
+
 		HRESULT hr = D3DCompileFromFile(wPath, macros.data(), this, "main", target, flags, flags2, &blobCode, &errorMessages);
 		
 		if (errorMessages)
 		{
 			cstr messages = (cstr) errorMessages->GetBufferPointer();
+
+			messageCount++;
 
 			char intro[512];
 			SafeFormat(intro, "Error compiling %s. Code 0x%8.8X\n", filename, hr);
@@ -208,6 +289,8 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 		if FAILED(hr)
 		{
+			errorCount++;
+
 			if (!errorMessages)
 			{
 				char intro[512];
@@ -217,6 +300,12 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 			return;
 		}
+
+		Time::ticks end = Time::TickCount();
+
+
+		SafeFormat(message, ". Done in %g ms\n", (end - now) / ((double)Time::TickHz() * 0.0001f));
+		Log(message);
 
 		U8FilePath targetFullname;
 		Format(targetFullname, "%hs", filename);
@@ -242,7 +331,6 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			}
 			catch (IException& ex)
 			{
-				char message[1024];
 				SafeFormat(message, "Error saving %s. Code 0x%8.8X.\n%s", filename, ex.ErrorCode(), ex.Message());
 				Log(message);
 			}
@@ -255,6 +343,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 	{
 		cstr parentData = (cstr)pParentData;
 		UNUSED(parentData);
+		UNUSED(IncludeType);
 
 		try
 		{
@@ -317,6 +406,35 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		}
 
 		return S_OK;
+	}
+
+	uint32 RunThread(OS::IThreadControl& control) override
+	{
+		while (control.IsRunning())
+		{
+			io->EnumerateModifiedFiles(*this);
+
+			while (!jobs.empty() && control.IsRunning())
+			{
+				HString back;
+
+				{
+					OS::Lock lock(sync);
+					back = jobs.back();
+					jobs.pop_back();					
+
+					queueLength = jobs.size() + 1;
+				}
+
+				CompileWithFilter(back);
+			}
+
+			queueLength = 0;
+
+			control.SleepUntilAysncEvent(1000);
+		}
+
+		return 0;
 	}
 };
 
