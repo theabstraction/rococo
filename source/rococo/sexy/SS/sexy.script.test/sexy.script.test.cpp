@@ -10012,25 +10012,32 @@ R"((namespace EntryPoint)
 
 	void TestLinkedListOfInterfaces(IPublicScriptSystem& ss)
 	{
-		cstr srcCode =
-			"(namespace EntryPoint)"
-			" (alias Main EntryPoint.Main)"
+		cstr srcCode = 
+		R"(
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
 
-			"(using Sys.Type)"
+			(using Sys.Type)
 
-			"(class Cat (defines Sys.ICat))"
-			"(method Cat.Construct : )"
-			"(method Cat.Id -> (Int32 id): (id = 5))"
-			"(factory Sys.NewCat Sys.ICat : (construct Cat))"
+			(class Cat (defines Sys.ICat))
 
-			"(function Main -> (Int32 result):"
-			"	(Sys.ICat cat (Sys.NewCat))"
-			"	(list Sys.ICat cats)"
-			"	(cats.Append cat)"
-			"   (node tail = cats.Tail)"
-			"   (Sys.ICat tiddles = tail.Value)"
-			"   (tiddles.Id -> result)"
-			")";
+			(method Cat.Construct : )
+
+			(method Cat.Id -> (Int32 id): (id = 5))
+
+			(factory Sys.NewCat Sys.ICat : 
+				(construct Cat)
+			)
+
+			(function Main -> (Int32 result):
+				(Sys.ICat cat (Sys.NewCat))
+				(list Sys.ICat cats)
+				(cats.Append cat)
+				(node tail = cats.Tail)
+				(Sys.ICat tiddles = tail.Value)
+				(tiddles.Id -> result)
+			)
+		)";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -10314,35 +10321,36 @@ R"((namespace EntryPoint)
 	void TestLinkedListForeach6(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
+		R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
   
-		"(using Sys.Type)"
+(using Sys.Type)
   
-		"(function Main -> (Int32 result):"
+(function Main -> (Int32 result):
 
-		"	(list Int32 a)"
+	(list Int32 a)
 
-		"	(a.Append 17)"
-		"	(a.Append 34)"
-		"	(a.Append 333)"
+	(a.Append 17)
+	(a.Append 34)
+	(a.Append 333)
 
-		"	(foreach n # a "
-		"		(try"
-		"			("
-		"				(Sys.Throw n.Value \"thrown in foreach \")"
-		"			)"
-		"		catch ex"
-		"			("
-		"				(result = (result + 1))"
-		"				(Sys.Print ex.Message)"
-		"			)"
-		"		)"
-		"		(result = (result + 10))"
-		"	)"
-		")";
+	(foreach n # a
+		(try
+			(
+				(Sys.Throw n.Value "thrown in foreach ")
+			)
+		catch ex
+			(
+				(result += 1)
+				(Sys.Print ex.Message)
+			)
+		)
+		(result += 10)
+	)
+))";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestLinkedListForeach6");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
@@ -16141,13 +16149,16 @@ R"(
 
 		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
 
-		(method Robot.AddJim -> :
+		(method Robot.AddJim -> (Int32 length):
 			(this.logItems.Append "Jim")
+			(length = this.logItems.Length)
 		)
 
 		(function Main -> (Int32 result):
 			(Sys.Type.IRobot robot (Sys.Type.NewRobot))
-			(robot.AddJim)
+			(robot.AddJim -> result)
+			(robot.AddJim -> result)
+			(robot.AddJim -> result)
 		)
 
 		(alias Main EntryPoint.Main)
@@ -16164,6 +16175,9 @@ R"(
 	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 	   validate(result == EXECUTERESULT_TERMINATED);
 	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   validate(x == 3);
    }
 
    void TestAppendInterfaceInsideMethod2(IPublicScriptSystem& ss)
@@ -16188,14 +16202,17 @@ R"(
 
 		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
 
-		(method Robot.AddJim -> :
+		(method Robot.AddJim -> (Int32 result):
 			(IString memo (Memo "Jim"))
 			(this.logItems.Append memo)
+			(result = this.logItems.Length)
 		)
 
 		(function Main -> (Int32 result):
 			(Sys.Type.IRobot robot (Sys.Type.NewRobot))
 			(robot.AddJim)
+			(robot.AddJim)
+			(robot.AddJim -> result)
 		)
 
 		(alias Main EntryPoint.Main)
@@ -16212,6 +16229,13 @@ R"(
 	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 	   validate(result == EXECUTERESULT_TERMINATED);
 	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   if (x != 3)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == 3);
    }
 
    void TestAddNativeReflectionCall(IPublicScriptSystem& ss)
@@ -16939,9 +16963,6 @@ R"(
 		start = Time::TickCount();
 
 		TEST(TestAppendInterfaceInsideMethod2);
-		TEST(TestAppendInterfaceInsideMethod);
-		
-		return;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
@@ -16976,7 +16997,7 @@ int main(int argc, char* argv[])
 	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 //	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+//	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
 	try
 	{

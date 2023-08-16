@@ -26,15 +26,16 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 	stringmap<Time::ticks> pathToCompileTime;
 
-	Strings::IStringPopulator& logger;
+	IO::IShaderMonitorEvents& eventHandler;
 
 	AutoFree<OS::IThreadSupervisor> thread;
 	AutoFree<OS::ICriticalSection> sync;
 
 	std::vector<HString> jobs;
 	std::vector<HString> logs;
+	std::vector<HString> skippedFiles;
 
-	HLSL_Monitor(Strings::IStringPopulator& _logger, cstr targetDirectory): io(IO::GetIOS()), logger(_logger)
+	HLSL_Monitor(IO::IShaderMonitorEvents& _eventHandler, cstr targetDirectory): io(IO::GetIOS()), eventHandler(_eventHandler)
 	{
 		this->targetPath = targetDirectory;
 		thread = OS::CreateRococoThread(this, 0);
@@ -46,7 +47,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 	{
 		char message[256];
 		SafeFormat(message, "Error count: %llu. Message count: %llu\n", errorCount, messageCount);
-		logger.Populate(message);
+		eventHandler.OnLog(*this, message);
 		delete this;
 	}
 
@@ -128,6 +129,10 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		SafeFormat(message, "Skipping %80.80s: file appears to be an intermediary\n", filename);
 		Log(message);
 
+
+		OS::Lock lock(sync);
+		skippedFiles.push_back(filename);
+
 		queueLength--;
 	}
 
@@ -190,14 +195,28 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 	void DoHousekeeping()
 	{
-		OS::Lock lock(sync);
-
-		for (auto& log : logs)
 		{
-			logger.Populate(log);
+			OS::Lock lock(sync);
+
+			for (auto& log : logs)
+			{
+				eventHandler.OnLog(*this, log);
+			}
+
+			logs.clear();
 		}
 
-		logs.clear();
+		while (!skippedFiles.empty())
+		{
+			HString skippedFile;
+			{
+				OS::Lock lock(sync);
+				skippedFile = skippedFiles.back();
+				skippedFiles.pop_back();
+			}
+
+			eventHandler.OnSkipped(*this, skippedFile);
+		}		
 	}
 
 	void AddMacro(cstr name, cstr value)
@@ -438,7 +457,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 	}
 };
 
-extern "C" ROCOCO_API_EXPORT IO::IShaderMonitor* RococoGraphics_CreateShaderMonitor(Rococo::Strings::IStringPopulator & logger, cstr targetDirectory)
+extern "C" ROCOCO_API_EXPORT IO::IShaderMonitor* RococoGraphics_CreateShaderMonitor(Rococo::IO::IShaderMonitorEvents& eventHandler, cstr targetDirectory)
 {
-	return new HLSL_Monitor(logger, targetDirectory);
+	return new HLSL_Monitor(eventHandler, targetDirectory);
 }

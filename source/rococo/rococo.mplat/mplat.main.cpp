@@ -81,7 +81,7 @@ namespace Rococo
 {
 	namespace IO
 	{
-		IO::IShaderMonitor* TryCreateShaderMonitor(Strings::IStringPopulator& logger);
+		IO::IShaderMonitor* TryCreateShaderMonitor(IO::IShaderMonitorEvents& events);
 	}
 	namespace Graphics
 	{
@@ -489,15 +489,27 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 
-	struct ShaderLogger : IStringPopulator
+	struct MonitorEvents : IO::IShaderMonitorEvents
 	{
-		void Populate(cstr text) override
+		void OnLog(IO::IShaderMonitor& monitor, cstr text) override
 		{
 			UNUSED(text);
 		}
-	} shaderLogger;
 
-	AutoFree<IO::IShaderMonitor> shaderMonitor = IO::TryCreateShaderMonitor(shaderLogger);
+		void OnSkipped(IO::IShaderMonitor& monitor, cstr text) override
+		{
+			if (EndsWith(text, ".api.hlsl") || EndsWith(text, "types.hlsl"))
+			{
+				// An intermediate file, which means dependents have to be recompiled.
+				// At the time of writing everything compiles in under a second, so for now
+				// just compile everything
+
+				monitor.CompileDirectory(nullptr);
+			}
+		}
+	} shaderEventHandler;
+
+	AutoFree<IO::IShaderMonitor> shaderMonitor = IO::TryCreateShaderMonitor(shaderEventHandler);
 
 	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
 

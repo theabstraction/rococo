@@ -13,9 +13,9 @@ using namespace Rococo::Sex::SEXML;
 
 namespace Rococo::IO
 {
-	typedef Rococo::IO::IShaderMonitor* (*FN_RococoGraphics_CreateShaderMonitor)(Rococo::Strings::IStringPopulator& logger, cstr targetDirectory);
+	typedef Rococo::IO::IShaderMonitor* (*FN_RococoGraphics_CreateShaderMonitor)(Rococo::IO::IShaderMonitorEvents& eventHandler, cstr targetDirectory);
 
-	IO::IShaderMonitor* TryCreateShaderMonitor(Strings::IStringPopulator& logger) noexcept
+	IO::IShaderMonitor* TryCreateShaderMonitor(Rococo::IO::IShaderMonitorEvents& eventHandler) noexcept
 	{
 		IO::IShaderMonitor* result = nullptr;
 
@@ -39,7 +39,7 @@ namespace Rococo::IO
 			}
 
 			OS::LoadUserSEXML(nullptr, section,
-				[&logger, &result](const ISEXMLDirectiveList& topLevelDirectives)
+				[&eventHandler, &result](const ISEXMLDirectiveList& topLevelDirectives)
 				{
 					size_t startIndex = 0;
 					auto& dDirectories = GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
@@ -54,7 +54,7 @@ namespace Rococo::IO
 						auto createShaderMonitor = (FN_RococoGraphics_CreateShaderMonitor)GetProcAddress(hShaderMonitorLib, "RococoGraphics_CreateShaderMonitor");
 						if (createShaderMonitor)
 						{
-							AutoFree<IO::IShaderMonitor> shaderMonitor = createShaderMonitor(logger, targetDirectory);
+							AutoFree<IO::IShaderMonitor> shaderMonitor = createShaderMonitor(eventHandler, targetDirectory);
 
 							shaderMonitor->SetMonitorDirectory(monitorDirectory);
 
@@ -78,7 +78,8 @@ namespace Rococo::IO
 			U8FilePath sexPath;
 			OS::GetUserSEXMLFullPath(sexPath, nullptr, section);
 
-			SafeFormat(message, "%s: %s. Code 0x%8.8X", sexPath.buf, ex.Message(), ex.ErrorCode());
+			SafeFormat(message, "Exception creating shader monitor %s: %s. Code 0x%8.8X", sexPath.buf, ex.Message(), ex.ErrorCode());
+			printf("%s\n", message);
 			OutputDebugStringA(message);
 		}
 

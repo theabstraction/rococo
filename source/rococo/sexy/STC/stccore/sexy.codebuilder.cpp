@@ -2387,6 +2387,21 @@ namespace Anon
 		}
 	}
 
+	bool IsContainerType(const IStructure& s) 
+	{
+		VARTYPE vType = s.VarType();
+
+		switch (vType)
+		{
+		case VARTYPE_List:
+		case VARTYPE_Map:
+		case VARTYPE_Array:
+			return true;
+		}
+
+		return false;
+	}
+
 	void CodeBuilder::AssignVariableRefToTemp(cstr source, int tempDepth, int offset)
 	{
 		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableRefToTemp: source was blank");
@@ -2419,7 +2434,7 @@ namespace Anon
 			}
 			else
 			{
-				if (def.IsContained && def.ResolvedType->InterfaceCount() > 0)
+				if (def.IsContained && (def.ResolvedType->InterfaceCount() > 0 || IsContainerType(*def.ResolvedType)))
 				{
 					Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, def.SFOffset, def.MemberOffset);
 				}

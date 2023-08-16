@@ -64,10 +64,16 @@ namespace Rococo::IO
 		// when hlsl files are changed in this directory or its descendants they will be recompiled .
 		virtual void SetMonitorDirectory(cstr path) = 0;
 
-		virtual size_t QueueLength() const = 0;
+		virtual uint64 QueueLength() const = 0;
 
 		// Delete the shader monitor
 		virtual void Free() = 0;
+	};
+
+	ROCOCO_INTERFACE IShaderMonitorEvents
+	{
+		virtual void OnLog(IShaderMonitor& monitor, cstr message) = 0;
+		virtual void OnSkipped(IShaderMonitor& monitor, cstr hlslFile) = 0;
 	};
 
 	struct IUnicode16Writer;

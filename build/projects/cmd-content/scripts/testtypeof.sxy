@@ -1,9 +1,23 @@
 (namespace EntryPoint)
-	(alias Main EntryPoint.Main)
+ (alias Main EntryPoint.Main)
 
 (using Sys.Type)
 
-(function Main -> (Int32 result):		
-	(IString s = "hello world")
-	(s.Length -> result)
+(class Cat (defines Sys.ICat))
+
+(method Cat.Construct : )
+
+(method Cat.Id -> (Int32 id): (id = 5))
+
+(factory Sys.NewCat Sys.ICat : 
+	(construct Cat)
+)
+
+(function Main -> (Int32 result):
+	(Sys.ICat cat (Sys.NewCat))
+	(list Sys.ICat cats)
+	(cats.Append cat)
+	(node tail = cats.Tail)
+	(Sys.ICat tiddles = tail.Value)
+	(tiddles.Id -> result)
 )

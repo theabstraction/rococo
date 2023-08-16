@@ -10,11 +10,16 @@ using namespace Rococo::IO;
 
 int main(int argc, char* argv[])
 {
-	struct ANON: IStringPopulator
+	struct ANON: IO::IShaderMonitorEvents
 	{
-		void Populate(cstr text) override
-		{
+		void OnLog(IO::IShaderMonitor&, cstr text) override
+		{		
 			printf("%s", text);
+		}
+
+		void OnSkipped(IO::IShaderMonitor&, cstr hlslFilename) override
+		{
+			UNUSED(hlslFilename);
 		}
 	} logger;
 
@@ -43,9 +48,6 @@ int main(int argc, char* argv[])
 	}
 
 	monitor->CompileDirectory(nullptr);
-
-	size_t initQueueLength = monitor->QueueLength();
-	size_t lastQueueLength = initQueueLength;
 
 	printf("Identified %llu shaders that need compiling...\n", monitor->QueueLength());
 
