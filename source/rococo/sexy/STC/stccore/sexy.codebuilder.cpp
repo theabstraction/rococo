@@ -2416,7 +2416,7 @@ namespace Anon
 
 		if (def.Usage == ARGUMENTUSAGE_BYVALUE)
 		{
-			if (def.ResolvedType->InterfaceCount() || def.ResolvedType->VarType() == VARTYPE_Array)
+			if (def.ResolvedType->InterfaceCount() || IsContainerType(*def.ResolvedType))
 			{
 				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset + offset, VM::REGISTER_D4 + (VM::DINDEX)tempDepth, BITCOUNT_POINTER);
 			}
