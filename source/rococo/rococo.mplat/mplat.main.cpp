@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
 
 #ifdef _WIN32
 # pragma comment(lib, "rococo.audio.lib")
@@ -265,6 +266,11 @@ Rococo::Strings::CLI::CommandLineOption cmdOptionFontFaceName =
 	"Specified the main window LOGFONT face name. Defaults to consolas"_fstring
 };
 
+Rococo::Strings::CLI::CommandLineOption cmdOptionDisableWindowsAssociationInDX11
+{
+	"-DWA"_fstring,
+	"Disables windows association with DX11. Essential for nVidia nSight debugging"_fstring
+};
 
 Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_AllocScriptsInitial =
 {
@@ -299,6 +305,7 @@ const Rococo::Strings::CLI::CommandLineOption* options[] =
 	&cmdOptionTitle,
 	&cmdOptionFontScale,
 	&cmdOptionFontFaceName,
+	&cmdOptionDisableWindowsAssociationInDX11,
 	&cmdOptionInt32_AllocScriptsInitial.spec,
 	&cmdOptionInt32_AllocImagesInitial.spec,
 	&cmdOptionInt32_windowFontSize.spec
@@ -489,12 +496,26 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	AutoFree<Rococo::Script::IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 
-	struct MonitorEvents : IO::IShaderMonitorEvents
+	struct MonitorEvents : IO::IShaderMonitorEvents, IO::IShaderMonitorEventsProxy
 	{
-		void OnLog(IO::IShaderMonitor& monitor, cstr text) override
+		std::unordered_set<IO::IShaderMonitorEventHook*> hooks;
+
+		void AddHook(IO::IShaderMonitorEventHook* hook) override
 		{
-			UNUSED(monitor);
-			UNUSED(text);
+			hooks.insert(hook);
+		}
+
+		void RemoveHook(IO::IShaderMonitorEventHook* hook) override
+		{
+			hooks.erase(hook);
+		}
+
+		void OnLog(IO::IShaderMonitor& monitor, IO::EShaderLogPriority priority, cstr text) override
+		{
+			for (auto* h : hooks)
+			{
+				h->OnLog(monitor, priority, text);
+			}
 		}
 
 		void OnModifiedFileSkipped(IO::IShaderMonitor& monitor, cstr text) override
@@ -531,9 +552,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	factorySpec.smallIcon = hSmallIcon;
 	AutoFree<IGraphicsWindowFactory> factory = CreateGraphicsWindowFactory(*installation, *logger, factorySpec);
 
+	bool dwa = Rococo::Strings::CLI::HasSwitch(cmdOptionDisableWindowsAssociationInDX11);
+
 	WindowSpec ws;
 	GetMainWindowSpec(ws, hInstance, *config);
-	AutoFree<IGraphicsWindow> mainWindow = factory->CreateGraphicsWindow(ws, true);
+	AutoFree<IGraphicsWindow> mainWindow = factory->CreateGraphicsWindow(ws, !dwa);
 	mainWindow->MakeRenderTarget();
 
 	SetWindowTextA(mainWindow->Window(), title);
@@ -624,7 +647,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Platform platform
 	{ 
 		// Platform graphics
-		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs },
+		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderEventHandler },
 
 		// Platform os
 		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },

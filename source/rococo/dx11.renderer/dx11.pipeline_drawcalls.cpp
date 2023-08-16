@@ -116,6 +116,7 @@ namespace Rococo::DX11
 	{
 		auto shadowBind = textures.GetTexture(shadowBuffer);
 
+		dc.OMSetDepthStencilState(nullptr, 0);
 		dc.OMSetRenderTargets(0, nullptr, shadowBind.depthView);
 
 		D3D11_TEXTURE2D_DESC desc;
@@ -237,9 +238,9 @@ namespace Rococo::DX11
 			UINT offsets[]{ 0 };
 			dc.IASetPrimitiveTopology(mesh.topology);
 			dc.IASetVertexBuffers(0, 1, &mesh.vertexBuffer, strides, offsets);
-			dc.PSSetShaderResources(0, 1, &skyCubeTextureView);
+			dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &skyCubeTextureView);
 
-			dc.PSSetSamplers(0, 1, &skySampler);
+			//dc.PSSetSamplers(0, 1, &skySampler);
 
 			dc.RSSetState(skyRasterizering);
 			dc.OMSetDepthStencilState(noDepthTestOrWrite, 0);
@@ -307,7 +308,7 @@ namespace Rococo::DX11
 
 			auto shadowBind = textures.GetTexture(phaseConfig.shadowBuffer);
 
-			dc.PSSetShaderResources(2, 1, &shadowBind.shaderView);
+			dc.PSSetShaderResources(TXUNIT_SHADOW, 1, &shadowBind.shaderView);
 			dc.RSSetState(objectRasterizering);
 
 			scene.RenderObjects(rc, false);
@@ -410,6 +411,8 @@ namespace Rococo::DX11
 
 		RenderTarget rt = GetCurrentRenderTarget();
 		dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
+
+		ResetSamplersToDefaults();
 
 		RenderSkyBox(scene);
 

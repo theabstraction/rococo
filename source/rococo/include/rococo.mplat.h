@@ -35,6 +35,11 @@ namespace Rococo
 		}
 	};
 
+	namespace IO
+	{
+		struct IShaderMonitorEventsProxy;
+	}
+
 	namespace Entities
 	{
 		struct IRigs;
@@ -743,6 +748,8 @@ namespace Rococo
 		Rococo::Gui::IGRSystem& GR;
 
 		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
+
+		Rococo::IO::IShaderMonitorEventsProxy& shaderMonitorEventsProxy;
 	};
 
 	struct PlatformOS

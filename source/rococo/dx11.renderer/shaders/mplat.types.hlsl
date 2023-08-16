@@ -49,8 +49,8 @@ struct ObjectInstance
 
 struct ObjectVertex
 {
-	float4 position : POSITION;
-	float4 normal : NORMAL;
+	float3 position : POSITION;
+	float3 normal : NORMAL;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
 	float2 materialIndexAndGloss  : TEXCOORD1;
@@ -68,11 +68,11 @@ struct ObjectPixelVertex
 {
 	float4 position : SV_POSITION0;
 	float4 uv_material_and_gloss: TEXCOORD;
-	float4 worldPosition: TEXCOORD1;
-	float4 normal : TEXCOORD2;
+	float3 worldPosition: TEXCOORD1;
+	float3 worldNormal : NORMAL;
 	float4 shadowPos: TEXCOORD3;
 	float4 cameraSpacePosition: TEXCOORD4;
-	float4 colour: COLOR0;	// w component gives lerpColourToTexture
+	float4 colour: COLOR0;
 };
 
 struct LandPixelVertex
@@ -80,17 +80,6 @@ struct LandPixelVertex
 	float4 position : SV_POSITION0;
 	float4 uv_material_and_gloss: TEXCOORD;
 	float4 normal : TEXCOORD1;
-};
-
-struct ScreenVertex
-{
-	float4 position : SV_POSITION0;
-	float4 uv_material_and_gloss: TEXCOORD;
-	float4 worldPosition: TEXCOORD1;
-	float4 normal : TEXCOORD2;
-	float4 shadowPos: TEXCOORD3;
-	float4 cameraSpacePosition: TEXCOORD4;
-	float4 colour: COLOR0;
 };
 
 struct LandVertex

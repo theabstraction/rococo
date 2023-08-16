@@ -215,6 +215,21 @@ namespace MHost
 
 		AutoFree<IPackageSupervisor> packageMHost;
 
+		struct ShaderMonitorHook : IO::IShaderMonitorEventHook
+		{
+			App* app;
+
+			void OnLog(IO::IShaderMonitor& monitor, IO::EShaderLogPriority priority, cstr message) override
+			{
+				UNUSED(monitor);
+
+				if (priority != IO::EShaderLogPriority::Info)
+				{
+					app->LogMessageToMHostScript(message);
+				}
+			}
+		} shaderMonitorHook;
+
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)
 		{
@@ -312,6 +327,7 @@ namespace MHost
 		{
 			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy", nullptr, Rococo::NoImplicitIncludes());
 			overlayPanel = platform.graphics.gui.CreateDebuggingOverlay();
+			shaderMonitorHook.app = this;
 
 			platform.plumbing.publisher.Subscribe(this, Rococo::Events::evBusy);
 
@@ -329,6 +345,7 @@ namespace MHost
 		~App()
 		{
 			platform.plumbing.publisher.Unsubscribe(this);
+			platform.graphics.shaderMonitorEventsProxy.RemoveHook(&shaderMonitorHook);
 		}
 
 		void Free() override
@@ -877,6 +894,11 @@ namespace MHost
 		{
 			cursorPosition = this->cursorPosition;
 		}
+
+		void PostCreate()
+		{
+			platform.graphics.shaderMonitorEventsProxy.AddHook(&shaderMonitorHook);
+		}
 	};
 }
 
@@ -915,6 +937,8 @@ namespace MHost
 			}
 		}
 
-		return new MHost::App(p, control, appArgs);
+		auto* app = new MHost::App(p, control, appArgs);
+		app->PostCreate();
+		return app;
 	}
 }

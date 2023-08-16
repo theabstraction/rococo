@@ -50,12 +50,12 @@ SamplerState spriteSampler: register(s5);
 SamplerState glyphSampler: register(s6);
 
 Texture2D tx_FontSprite: register(t0);
-Texture2D tx_ShadowMap: register(t2);
-TextureCube tx_cubeMap: register(t3);
-Texture2D tx_SelectedTexture : register(t4);
-Texture2DArray tx_materials: register(t6);
-Texture2DArray tx_BitmapSprite: register(t7);
-Texture2DArray tx_GlyphArray: register(t8);
+Texture2D tx_ShadowMap: register(t1);
+TextureCube tx_cubeMap: register(t2);
+Texture2D tx_SelectedTexture : register(t3);
+Texture2DArray tx_materials: register(t4);
+Texture2DArray tx_BitmapSprite: register(t5);
+Texture2DArray tx_GlyphArray: register(t6);
 
 float4 Transform_Instance_To_World(float4 v)
 {
@@ -113,9 +113,19 @@ float4 SampleMaterial(float3 materialVertex, float4 colour)
 	return float4(lerp(colour.xyz, texel.xyz, colour.w), 1.0f);
 }
 
+float SignedToUnsigned (float x)
+{
+	return (x + 1.0f) * 0.5f;
+}
+
+float3 SignedToUnsignedV3 (float3 p)
+{
+	return float3(SignedToUnsigned(p.x), SignedToUnsigned(p.y), SignedToUnsigned(p.z));
+}
+
 float4 ModulateWithEnvMap(float4 texel, float3 incident, float3 worldNormal, float gloss)
 {
-	float3 reflectionVector = reflect(incident, worldNormal);
+	float3 reflectionVector = reflect(incident, worldNormal.xyz);
 	float4 reflectionColor = tx_cubeMap.Sample(envSampler, reflectionVector);
 	return float4( lerp(texel.xyz, reflectionColor.xyz, gloss), 1.0f );
 }
@@ -151,7 +161,7 @@ float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
 float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
 {
 	float shine = 240.0f;
-	float3 r = reflect(lightDirection, p.normal.xyz);
+	float3 r = reflect(lightDirection, p.worldNormal.xyz);
 	float dotProduct = dot(r, incident);
 	float specular = p.uv_material_and_gloss.w * max(pow(abs(dotProduct), shine), 0);
 	return clamp(specular, 0, 1);
@@ -160,7 +170,7 @@ float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
 float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixelDir)
 {
 	float R2 = dot(lightToPixelVec, lightToPixelVec);
-	float incidence = -dot(lightToPixelDir, p.normal.xyz);
+	float incidence = -dot(lightToPixelDir, p.worldNormal.xyz);
 	float i2 = clamp(incidence, 0, 1);
 	return i2 * pow(R2, light.attenuationRate);
 }

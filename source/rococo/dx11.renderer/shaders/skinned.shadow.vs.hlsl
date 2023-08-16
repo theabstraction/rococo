@@ -7,7 +7,7 @@ struct ShadowOutVertex
 
 ShadowOutVertex main(ObjectVertex v, BoneWeight_2Bones weights)
 {
-	float4 modelPos = Transform_Model_Vertices_Via_Bone_Weights(v.position, weights);
+	float4 modelPos = Transform_Model_Vertices_Via_Bone_Weights(float4(v.position.xyz, 1.0f), weights);
 	float4 worldPos = Transform_Instance_To_World(modelPos);
 
 	ShadowOutVertex sv;

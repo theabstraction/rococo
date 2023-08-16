@@ -258,7 +258,8 @@ namespace Rococo::Graphics
 		enum Filter : int32
 		{
 			Filter_Point = 0,
-			Filter_Linear = 1
+			Filter_Linear = 1,
+			Filter_Anisotropic = 2
 		};
 
 		enum AddressMode : int32

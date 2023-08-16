@@ -1,24 +1,17 @@
 #include "mplat.api.hlsl"
 
-struct PixelVertex
+float4 main(ObjectPixelVertex p): SV_TARGET
 {
-	float4 position : SV_POSITION0;
-	float4 normal: NORMAL;
-	float4 uv_material_and_gloss: TEXCOORD;
-    float4 cameraSpacePosition: TEXCOORD1;
-	float4 worldPosition: TEXCOORD2;
-	float4 colour: COLOR0;	// w component gives lerpColourToTexture
-};
-
-float4 main(PixelVertex p): SV_TARGET
-{
-	float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour.w);
+	float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour);
 	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
-	texel = ModulateWithEnvMap(texel, incident, p.normal.xyz, p.uv_material_and_gloss.w);
+	float3 normal = p.worldNormal.xyz;
+	texel = ModulateWithEnvMap(texel, incident.xyz, normal, p.uv_material_and_gloss.w);
 
 	float clarity = GetClarity(p.cameraSpacePosition.xyz);
 	
 	texel.xyz *= clarity;
+	
+//	return float4(SignedToUnsignedV3(normal), 1.0f);
 
 	return texel * ambience.localLight;
 }

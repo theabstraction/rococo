@@ -1,4 +1,4 @@
-#include "mplat.types.hlsl"
+#include "mplat.api.hlsl"
 
 struct SkyVertex
 {
@@ -11,12 +11,9 @@ struct PixelData
 	float4 colour : SV_Target;
 };
 
-SamplerState skySampler: register(s0);
-TextureCube skyCube: register(t0);
-
 PixelData main(SkyVertex input)
 {
 	PixelData output;
-	output.colour = skyCube.Sample(skySampler, input.viewDir);
+	output.colour = tx_cubeMap.Sample(envSampler, input.viewDir);
 	return output;
 }

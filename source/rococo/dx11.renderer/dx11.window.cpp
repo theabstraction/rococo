@@ -134,13 +134,18 @@ namespace ANON
 			case WM_ACTIVATE:
 				{
 					auto state = 0xFFFF & wParam;
+
+					// state 0 => WA_INACTIVE // inactive
+					// state 1 => WA_ACTIVE  // activated by something other than a mouse click
+					// state 2 => WA_CLICKACTIVE // activated by a mouse click
+
 					if (state != 0)
 					{
 						if (linkedToDX11Controls) VALIDATEDX11(factory.factory.MakeWindowAssociation(hWnd, 0));
 					}
 					else
 					{
-						if (linkedToDX11Controls) VALIDATEDX11(factory.factory.MakeWindowAssociation(nullptr, 0));
+						if (linkedToDX11Controls)  VALIDATEDX11(factory.factory.MakeWindowAssociation(nullptr, 0));
 					}
 					return 0;
 				}

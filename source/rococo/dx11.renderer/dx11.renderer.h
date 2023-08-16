@@ -124,7 +124,6 @@ namespace Rococo::DX11
 		virtual ID_CUBE_TEXTURE GetEnvMapId() const = 0;
 	};
 
-	void GetSkySampler(D3D11_SAMPLER_DESC& desc);
 	D3D11_TEXTURE_ADDRESS_MODE From(AddressMode mode);
 
 	ID3D11SamplerState* GetSampler(ID3D11Device& device, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour);

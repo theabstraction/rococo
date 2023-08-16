@@ -70,10 +70,28 @@ namespace Rococo::IO
 		virtual void Free() = 0;
 	};
 
+	enum class EShaderLogPriority
+	{
+		Info,
+		Warning,
+		Error
+	};
+
 	ROCOCO_INTERFACE IShaderMonitorEvents
 	{
-		virtual void OnLog(IShaderMonitor& monitor, cstr message) = 0;
+		virtual void OnLog(IShaderMonitor& monitor, EShaderLogPriority priority, cstr message) = 0;
 		virtual void OnModifiedFileSkipped(IShaderMonitor& monitor, cstr hlslFile) = 0;
+	};
+
+	ROCOCO_INTERFACE IShaderMonitorEventHook
+	{
+		virtual void OnLog(IShaderMonitor& monitor, EShaderLogPriority priority, cstr message) = 0;
+	};
+
+	ROCOCO_INTERFACE IShaderMonitorEventsProxy
+	{
+		virtual void AddHook(IShaderMonitorEventHook * hook) = 0;
+		virtual void RemoveHook(IShaderMonitorEventHook* hook) = 0;
 	};
 
 	struct IUnicode16Writer;

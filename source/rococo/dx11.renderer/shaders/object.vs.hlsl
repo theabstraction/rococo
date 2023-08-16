@@ -1,12 +1,12 @@
 #include "mplat.api.hlsl"
 
-ScreenVertex main(ObjectVertex v)
+ObjectPixelVertex main(ObjectVertex v)
 {
-	ScreenVertex sv;
-	float4 instancePos = Transform_Instance_To_World(v.position);
-	sv.position = Transform_World_To_Screen(instancePos);
-	sv.normal = Transform_Instance_To_World(float4(v.normal.xyz,0.0f));
-	sv.worldPosition = instancePos;
+	ObjectPixelVertex sv;
+	float4 instancePos = Transform_Instance_To_World(float4(v.position.xyz, 1.0f));
+	sv.position = Transform_World_To_Screen(float4(instancePos.xyz, 1.0f));
+	sv.worldNormal = Transform_Instance_To_World(float4(v.normal.xyz,0.0f)).xyz;
+	sv.worldPosition = instancePos.xyz;
 	sv.shadowPos = Transform_World_To_ShadowBuffer(instancePos);
 	sv.cameraSpacePosition = Transform_World_To_Camera(instancePos);
 	sv.uv_material_and_gloss.xy = v.uv.xy;

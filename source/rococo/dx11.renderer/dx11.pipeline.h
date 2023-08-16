@@ -81,7 +81,8 @@ namespace Rococo::DX11
 		std::vector<VertexTriangle> gui3DTriangles;
 
 		ID_SYS_MESH skyMeshId;
-		AutoRelease<ID3D11SamplerState> skySampler;
+		//AutoRelease<ID3D11SamplerState> envSampler;
+		//AutoRelease<ID3D11SamplerState> skySampler;
 
 		ID_TEXTURE shadowBufferId;
 

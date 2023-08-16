@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 {
 	struct ANON: IO::IShaderMonitorEvents
 	{
-		void OnLog(IO::IShaderMonitor&, cstr text) override
+		void OnLog(IO::IShaderMonitor&, IO::EShaderLogPriority, cstr text) override
 		{		
 			printf("%s", text);
 		}

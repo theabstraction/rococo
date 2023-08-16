@@ -10,7 +10,7 @@ struct ConeVertex
 ConeVertex main(ObjectVertex v)
 {
 	ConeVertex sv;
-	sv.position = Transform_World_To_Screen(v.position);
+	sv.position = Transform_World_To_Screen(float4(v.position.xyz, 1.0f));
 	sv.coneData.x = v.uv.x;
 	sv.coneData.y = v.uv.y;
 	sv.colour = v.colour;

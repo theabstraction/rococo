@@ -63,10 +63,6 @@ namespace Rococo::DX11
 
 		shadowBufferId = textures.CreateDepthTarget("ShadowBuffer", 1024, 1024);
 
-		D3D11_SAMPLER_DESC desc;
-		GetSkySampler(desc);
-		VALIDATEDX11(device.CreateSamplerState(&desc, &skySampler));
-
 		alphaBlend = DX11::CreateAlphaBlend(device);
 
 		boneMatricesStateBuffer = DX11::CreateConstantBuffer<BoneMatrices>(device);
@@ -77,7 +73,7 @@ namespace Rococo::DX11
 		RGBA transparent{ 0.0f, 0, 0, 0.0f };
 		SetSampler(TXUNIT_FONT, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
 		SetSampler(TXUNIT_SHADOW, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
-		SetSampler(TXUNIT_ENV_MAP, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
+		SetSampler(TXUNIT_ENV_MAP, Filter_Anisotropic, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
 		SetSampler(TXUNIT_SELECT, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
 		SetSampler(TXUNIT_MATERIALS, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
 		SetSampler(TXUNIT_SPRITES, Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);

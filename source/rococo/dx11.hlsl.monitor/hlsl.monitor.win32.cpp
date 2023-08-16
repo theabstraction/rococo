@@ -37,8 +37,14 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		bool wasResultOfModifiedFile;
 	};
 
+	struct LogItem
+	{
+		HString text;
+		IO::EShaderLogPriority priority;
+	};
+
 	std::vector<Job> jobs;
-	std::vector<HString> logs;
+	std::vector<LogItem> logs;
 	std::vector<Job> skippedJobs;
 
 	HLSL_Monitor(IO::IShaderMonitorEvents& _eventHandler, cstr targetDirectory): io(IO::GetIOS()), eventHandler(_eventHandler)
@@ -58,7 +64,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 	{
 		char message[256];
 		SafeFormat(message, "Error count: %llu. Message count: %llu\n", errorCount, messageCount);
-		eventHandler.OnLog(*this, message);
+		eventHandler.OnLog(*this, IO::EShaderLogPriority::Info, message);
 		delete this;
 	}
 
@@ -140,7 +146,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 		char message[256];
 		SafeFormat(message, "Skipping %80.80s: file appears to be an intermediary\n", filename);
-		Log(message);
+		Log(IO::EShaderLogPriority::Info, message);
 
 
 		OS::Lock lock(sync);
@@ -176,7 +182,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			{
 				char msg[256];
 				SafeFormat(msg, sizeof msg, "No HLSL files were detected in % s\n", path);
-				Log(msg);
+				Log(IO::EShaderLogPriority::Warning, msg);
 			}
 
 			OS::WakeUp(*thread);
@@ -185,7 +191,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		{
 			char message[1024];
 			SafeFormat(message, "Error enumerating directory %s: %0x8.8X:\n%s", path, ex.ErrorCode(), ex.Message());
-			Log(message);
+			Log(IO::EShaderLogPriority::Error, message);
 		}
 	}
 
@@ -213,7 +219,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 			for (auto& log : logs)
 			{
-				eventHandler.OnLog(*this, log);
+				eventHandler.OnLog(*this, log.priority, log.text);
 			}
 
 			logs.clear();
@@ -253,11 +259,11 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		includePaths.push_back(path);
 	}
 
-	void Log(cstr message)
+	void Log(IO::EShaderLogPriority priority, cstr message)
 	{
 		OutputDebugStringA(message);
 		OS::Lock lock(sync);
-		logs.push_back(message);
+		logs.push_back({ message, priority });
 	}
 
 	size_t compileCountThisSession = 0;
@@ -302,7 +308,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 		char message[1024];
 		SafeFormat(message, "%llu: Compiling %80.80ws", compileCountThisSession, wPath.buf);
-		Log(message);
+		Log(IO::EShaderLogPriority::Info, message);
 
 		Time::ticks now = Time::TickCount();
 
@@ -316,9 +322,9 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 			char intro[512];
 			SafeFormat(intro, "Error compiling %s. Code 0x%8.8X\n", filename, hr);
-			Log(intro);
-			Log(messages);
-			Log("\n\n\n");
+			Log(IO::EShaderLogPriority::Warning, intro);
+			Log(IO::EShaderLogPriority::Warning, messages);
+			Log(IO::EShaderLogPriority::Warning, "\n\n\n");
 			errorMessages->Release();
 		}
 
@@ -330,7 +336,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			{
 				char intro[512];
 				SafeFormat(intro, "Unkown Error compiling %s. Code 0x%8.8X\n", filename, hr);;
-				Log(intro);
+				Log(IO::EShaderLogPriority::Error, intro);
 			}
 
 			return;
@@ -340,7 +346,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 
 		SafeFormat(message, ". Done in %g ms\n", (end - now) / ((double)Time::TickHz() * 0.0001f));
-		Log(message);
+		Log(IO::EShaderLogPriority::Info, message);
 
 		U8FilePath targetFullname;
 		Format(targetFullname, "%hs", filename);
@@ -367,7 +373,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			catch (IException& ex)
 			{
 				SafeFormat(message, "Error saving %s. Code 0x%8.8X.\n%s", filename, ex.ErrorCode(), ex.Message());
-				Log(message);
+				Log(IO::EShaderLogPriority::Error, message);
 			}
 		}
 
@@ -423,7 +429,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		{
 			char message[1024];
 			SafeFormat(message, "Error loading % s: %s\n", pFileName, ex.Message());
-			Log(message);
+			Log(IO::EShaderLogPriority::Error, message);
 			return ex.ErrorCode() == 0 ? E_FAIL : ex.ErrorCode();
 		}
 		catch (...)

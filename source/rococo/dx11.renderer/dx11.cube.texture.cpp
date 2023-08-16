@@ -119,8 +119,14 @@ namespace Rococo::DX11
 
 			VALIDATEDX11(device.CreateTexture2D(&desc, &initData[0], &pTexCube));
 
+			D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+			srDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			srDesc.TextureCube.MipLevels = 1;
+			srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+			srDesc.TextureCube.MostDetailedMip = 0;
+
 			ID3D11ShaderResourceView* view = nullptr;
-			HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
+			HRESULT hr = device.CreateShaderResourceView(pTexCube, &srDesc, &view);
 			if FAILED(hr)
 			{
 				pTexCube->Release();
@@ -180,7 +186,13 @@ namespace Rococo::DX11
 			VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &pTexCube));
 
 			ID3D11ShaderResourceView* view = nullptr;
-			HRESULT hr = device.CreateShaderResourceView(pTexCube, nullptr, &view);
+			D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+			srDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			srDesc.TextureCube.MipLevels = 1;
+			srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+			srDesc.TextureCube.MostDetailedMip = 0;
+
+			HRESULT hr = device.CreateShaderResourceView(pTexCube, &srDesc, &view);
 			if FAILED(hr)
 			{
 				pTexCube->Release();

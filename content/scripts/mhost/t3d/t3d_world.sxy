@@ -154,7 +154,7 @@
 	
 	(Int64 dt = ((Sys.Time.TickCount) - this.lastLogCheck))
 	(if ((dt > logLifeTime) and (this.logItems.Length > 0))
-		(node n = this.logItems.Head)
+		(node n = this.logItems.Tail)
 		(n.Pop)
 		(this.lastLogCheck = Sys.Time.TickCount)
 	)
@@ -182,9 +182,9 @@
 (method World.Log (IString text) -> :
 	(IStringBuilder memo = (NewPathBuilder))
 	(memo text)
-	(this.logItems.Append memo)
+	(this.logItems.Prepend memo)
 	(if ((this.logItems.Length) > 50)
-		(node n = this.logItems.Head)
+		(node n = this.logItems.Tail)
 		(n.Pop)
 	)
 	

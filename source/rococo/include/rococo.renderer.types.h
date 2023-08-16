@@ -31,12 +31,12 @@ namespace Rococo::Graphics
 	enum TXUNIT // The enum values must match the tXXX registers specified in mplat.api.hlsl
 	{
 		TXUNIT_FONT = 0,
-		TXUNIT_SHADOW = 2,
-		TXUNIT_ENV_MAP = 3,
-		TXUNIT_SELECT = 4,
-		TXUNIT_MATERIALS = 6,
-		TXUNIT_SPRITES = 7,
-		TXUNIT_GENERIC_TXARRAY = 8
+		TXUNIT_SHADOW = 1,
+		TXUNIT_ENV_MAP = 2,
+		TXUNIT_SELECT = 3,
+		TXUNIT_MATERIALS = 4,
+		TXUNIT_SPRITES = 5,
+		TXUNIT_GENERIC_TXARRAY = 6
 	};
 
 	namespace Fonts
@@ -49,6 +49,7 @@ namespace Rococo::Graphics
 		struct IArrayFontSet;
 	}
 
+#pragma pack(push,1)
 	struct BaseVertexData
 	{
 		Vec2 uv;
@@ -187,4 +188,5 @@ namespace Rococo::Graphics
 		Vec4 viewDir;
 		Vec4 aspect;
 	};
+#pragma pack(pop)
 }
