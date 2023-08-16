@@ -227,7 +227,7 @@
 	(LightSpec light)
 	(light.position = 0 0 2.4)
 	(light.direction = downPrime.x downPrime.y downPrime.z)
-	(light.fov = 45)
+	(light.fov = 55)
 	(light.diffuse = 3.0 3.0 3.0 1.0)
 	(light.ambience = 0.6 0.6 0.6 0.5)
 	(light.cutoffAngle = 25)

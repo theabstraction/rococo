@@ -57,6 +57,11 @@ Texture2DArray tx_materials: register(t4);
 Texture2DArray tx_BitmapSprite: register(t5);
 Texture2DArray tx_GlyphArray: register(t6);
 
+float3 GetEyePosition()
+{
+	return global.eye.xyz;
+}
+
 float4 Transform_Instance_To_World(float4 v)
 {
 	return mul(instance.modelToWorldMatrix, v);
@@ -125,8 +130,9 @@ float3 SignedToUnsignedV3 (float3 p)
 
 float4 ModulateWithEnvMap(float4 texel, float3 incident, float3 worldNormal, float gloss)
 {
-	float3 reflectionVector = reflect(incident, worldNormal.xyz);
-	float4 reflectionColor = tx_cubeMap.Sample(envSampler, reflectionVector);
+	float3 reflectionVector = normalize(reflect(incident, worldNormal.xyz));
+	float3 r = float3(reflectionVector.x, reflectionVector.z, reflectionVector.y);
+	float4 reflectionColor = tx_cubeMap.Sample(envSampler, r);
 	return float4( lerp(texel.xyz, reflectionColor.xyz, gloss), 1.0f );
 }
 
