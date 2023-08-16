@@ -31,9 +31,15 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 	AutoFree<OS::IThreadSupervisor> thread;
 	AutoFree<OS::ICriticalSection> sync;
 
-	std::vector<HString> jobs;
+	struct Job
+	{
+		HString filename;
+		bool wasResultOfModifiedFile;
+	};
+
+	std::vector<Job> jobs;
 	std::vector<HString> logs;
-	std::vector<HString> skippedFiles;
+	std::vector<Job> skippedJobs;
 
 	HLSL_Monitor(IO::IShaderMonitorEvents& _eventHandler, cstr targetDirectory): io(IO::GetIOS()), eventHandler(_eventHandler)
 	{
@@ -41,6 +47,11 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		thread = OS::CreateRococoThread(this, 0);
 		sync = OS::CreateCriticalSection();
 		thread->Resume();
+	}
+
+	~HLSL_Monitor()
+	{
+		thread = nullptr;
 	}
 
 	void Free()
@@ -67,7 +78,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			// A fresh insert, just fine
 			{
 				OS::Lock lock(sync);
-				jobs.push_back(changedFilename.buf);
+				jobs.push_back({ changedFilename.buf, true });
 			}
 			OS::WakeUp(*thread);
 		}
@@ -81,15 +92,17 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 				i.second = Time::TickCount();
 				{
 					OS::Lock lock(sync);
-					jobs.push_back(changedFilename.buf);
+					jobs.push_back({ changedFilename.buf, true });
 				}
 				OS::WakeUp(*thread);
 			}
 		}
 	}
 
-	void CompileWithFilter(cstr filename) noexcept
+	void CompileWithFilter(Job& job) noexcept
 	{
+		cstr filename = job.filename;
+
 		if (EndsWith(filename, ".ps.hlsl"))
 		{
 			// A pixel shader
@@ -131,7 +144,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 
 		OS::Lock lock(sync);
-		skippedFiles.push_back(filename);
+		skippedJobs.push_back(job);
 
 		queueLength--;
 	}
@@ -153,7 +166,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 				if (EndsWith(filename, ".hlsl"))
 				{
 					OS::Lock lock(sync);
-					jobs.push_back(filename);
+					jobs.push_back({ filename, false });
 					queueLength = jobs.size();
 					atLeastOne = true;
 				}
@@ -206,16 +219,19 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			logs.clear();
 		}
 
-		while (!skippedFiles.empty())
+		while (!skippedJobs.empty())
 		{
-			HString skippedFile;
+			Job skippedJob;
 			{
 				OS::Lock lock(sync);
-				skippedFile = skippedFiles.back();
-				skippedFiles.pop_back();
+				skippedJob = skippedJobs.back();
+				skippedJobs.pop_back();
 			}
 
-			eventHandler.OnSkipped(*this, skippedFile);
+			if (skippedJob.wasResultOfModifiedFile)
+			{
+				eventHandler.OnModifiedFileSkipped(*this, skippedJob.filename);
+			}
 		}		
 	}
 
@@ -435,7 +451,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 			while (!jobs.empty() && control.IsRunning())
 			{
-				HString back;
+				Job back;
 
 				{
 					OS::Lock lock(sync);

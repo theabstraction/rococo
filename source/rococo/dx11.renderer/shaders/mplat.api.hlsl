@@ -116,8 +116,7 @@ float4 SampleMaterial(float3 materialVertex, float4 colour)
 float4 ModulateWithEnvMap(float4 texel, float3 incident, float3 worldNormal, float gloss)
 {
 	float3 reflectionVector = reflect(incident, worldNormal);
-	float4 reflectionVector4 = float4(reflectionVector.xyz 0)
-	float4 reflectionColor = tx_cubeMap.Sample(envSampler, reflectionVector4);
+	float4 reflectionColor = tx_cubeMap.Sample(envSampler, reflectionVector);
 	return float4( lerp(texel.xyz, reflectionColor.xyz, gloss), 1.0f );
 }
 

@@ -183,7 +183,7 @@
 	(IStringBuilder memo = (NewPathBuilder))
 	(memo text)
 	(this.logItems.Append memo)
-	(if ((this.logItems.Length) > 10)
+	(if ((this.logItems.Length) > 50)
 		(node n = this.logItems.Head)
 		(n.Pop)
 	)

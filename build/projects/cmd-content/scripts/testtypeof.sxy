@@ -13,11 +13,16 @@
 	(construct Cat)
 )
 
-(function Main -> (Int32 result):
+(function Main2 -> (Int32 result):
 	(Sys.ICat cat (Sys.NewCat))
 	(list Sys.ICat cats)
+	(debug)
 	(cats.Append cat)
 	(node tail = cats.Tail)
 	(Sys.ICat tiddles = tail.Value)
 	(tiddles.Id -> result)
+)
+
+(function Main -> (Int32 result):
+	(Main2 -> result)	
 )

@@ -35,6 +35,17 @@ namespace Rococo
 			return *this;
 		}
 
+		AutoRelease<T>& operator = (const AutoRelease<T>& _t)
+		{
+			if (t != _t.t)
+			{
+				if (t) t->Release();
+				t = const_cast<T*>(_t.t);
+				t->AddRef();
+			}
+			return *this;
+		}
+
 		AutoRelease(const AutoRelease<T>& src): t(src.t)
 		{
 			AddRef(t);

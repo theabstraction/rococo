@@ -493,10 +493,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	{
 		void OnLog(IO::IShaderMonitor& monitor, cstr text) override
 		{
+			UNUSED(monitor);
 			UNUSED(text);
 		}
 
-		void OnSkipped(IO::IShaderMonitor& monitor, cstr text) override
+		void OnModifiedFileSkipped(IO::IShaderMonitor& monitor, cstr text) override
 		{
 			if (EndsWith(text, ".api.hlsl") || EndsWith(text, "types.hlsl"))
 			{

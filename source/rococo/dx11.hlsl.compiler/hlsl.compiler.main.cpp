@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 			printf("%s", text);
 		}
 
-		void OnSkipped(IO::IShaderMonitor&, cstr hlslFilename) override
+		void OnModifiedFileSkipped(IO::IShaderMonitor&, cstr hlslFilename) override
 		{
 			UNUSED(hlslFilename);
 		}

@@ -73,7 +73,7 @@ namespace Rococo::IO
 	ROCOCO_INTERFACE IShaderMonitorEvents
 	{
 		virtual void OnLog(IShaderMonitor& monitor, cstr message) = 0;
-		virtual void OnSkipped(IShaderMonitor& monitor, cstr hlslFile) = 0;
+		virtual void OnModifiedFileSkipped(IShaderMonitor& monitor, cstr hlslFile) = 0;
 	};
 
 	struct IUnicode16Writer;

@@ -359,7 +359,7 @@ namespace MHost
 			platform.os.installation.ConvertSysPathToPingPath(args.sysPath, pingPath);
 
 			char message[256];
-			SafeFormat(message, "File modified: %s. Update imminent", pingPath);
+			SafeFormat(message, "File modified: %s", pingPath);
 
 			auto ext = Rococo::Strings::GetFileExtension(pingPath);
 			if (!ext)
@@ -379,12 +379,28 @@ namespace MHost
 			else if (Eq(ext, ".ps"))
 			{
 				LogMessageToMHostScript(message);
-				platform.graphics.renderer.Shaders().UpdatePixelShader(pingPath);
+
+				try
+				{
+					platform.graphics.renderer.Shaders().UpdatePixelShader(pingPath);
+				}
+				catch (IException& ex)
+				{
+					LogMessageToMHostScript(ex.Message());
+				}
 			}
 			else if (Eq(ext, ".vs"))
 			{
 				LogMessageToMHostScript(message);
-				platform.graphics.renderer.Shaders().UpdateVertexShader(pingPath);
+
+				try
+				{
+					platform.graphics.renderer.Shaders().UpdateVertexShader(pingPath);
+				}
+				catch (IException& ex)
+				{
+					LogMessageToMHostScript(ex.Message());
+				}
 			}
 		}
 

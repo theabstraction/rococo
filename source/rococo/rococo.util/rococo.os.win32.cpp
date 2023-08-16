@@ -1660,6 +1660,9 @@ namespace WIN32_ANON
 
 		void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
 		{
+			int64 timeoutInSeconds = 5;
+			auto timeout = Rococo::Time::TickHz() * timeoutInSeconds;
+
 			while (!modifiedFiles.empty())
 			{
 				threadLock.Lock();
@@ -1670,23 +1673,20 @@ namespace WIN32_ANON
 				// N.B the Windows API for scanning file changes will typically send multiple events
 				// for the same file change, so we ignore the superfluous notifications in the same period
 
-				auto i = lastModifiedList.find(f);
-				if (i != lastModifiedList.end())
+				auto i = lastModifiedList.insert(std::pair<const std::wstring, Rococo::Time::ticks>(f, Rococo::Time::TickCount() ) );
+				if (i.second == false)
 				{
-					int64 timeoutInSeconds = 5;
-					auto timeout = Rococo::Time::TickHz() * timeoutInSeconds;
-					auto dt = Rococo::Time::TickCount() - i->second;
-					if (dt < timeout)
+					// already in list
+
+					auto insertionTime = i.first->second;
+					if (Rococo::Time::TickCount() - insertionTime > timeout)
 					{
-						// We've reported a change recently, so skip 
+						i.first->second = Rococo::Time::TickCount();
+					}
+					else
+					{
 						continue;
 					}
-
-					i->second = Rococo::Time::TickCount();
-				}
-				else
-				{
-					lastModifiedList[f] = Rococo::Time::TickCount();
 				}
 
 				FileModifiedArgs args{ f.c_str() };
@@ -1707,24 +1707,12 @@ namespace WIN32_ANON
 
 		void OnModified(const wchar_t* filename)
 		{
-			Sleep(500);
 			OS::Sync sync(threadLock);
 
-			enum { MAX_MODIFIED_QUEUE_LENGTH = 20 };
+			enum { MAX_MODIFIED_QUEUE_LENGTH = 200 };
 			if (modifiedFiles.size() < MAX_MODIFIED_QUEUE_LENGTH)
 			{
-				bool isInList = false;
-
-				for (auto& v : modifiedFiles)
-				{
-					if (Eq(v.c_str(), filename))
-					{
-						isInList = true;
-						break;
-					}
-				}
-
-				if (!isInList) modifiedFiles.push_back(filename);
+				modifiedFiles.push_back(filename);
 			}
 		}
 

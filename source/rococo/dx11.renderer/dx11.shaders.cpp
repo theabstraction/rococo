@@ -90,13 +90,21 @@ struct DX11Shaders : IDX11Shaders
 					lastError[0] = 0;
 				}
 
-				i->ps = nullptr;
 				installation.LoadResource(pingPath, *shaderLoaderBuffer, 64_kilobytes);
-				HRESULT hr = device.CreatePixelShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), nullptr, &i->ps);
-				if FAILED(hr)
+				if (shaderLoaderBuffer->Length() == 0)
 				{
-					SafeFormat(lastError, "device.CreatePixelShader for %s returned 0x%X", pingPath, hr);
+					Throw(0, "LoadResource for %s returned 0 length object", pingPath);
 				}
+
+				AutoRelease<ID3D11PixelShader> replacementPS;
+				HRESULT hr = device.CreatePixelShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), nullptr, &replacementPS);
+
+				if (FAILED(hr) || replacementPS == nullptr)
+				{
+					Throw(hr, "device.CreatePixelShader for %s returned 0x%X", pingPath, hr);
+				}
+
+				i->ps = replacementPS;
 				break;
 			}
 		}
@@ -115,39 +123,24 @@ struct DX11Shaders : IDX11Shaders
 				lastError[0] = 0;
 			}
 
-			shader->vs = nullptr;
-			shader->inputLayout = nullptr;
 			installation.LoadResource(pingPath, *shaderLoaderBuffer, 64_kilobytes);
 
-			const D3D11_INPUT_ELEMENT_DESC* elements = nullptr;
-			uint32 nElements;
-
-			if (Eq(pingPath, "!gui.vs"))
+			if (shaderLoaderBuffer->Length() == 0)			
 			{
-				elements = DX11::GetGuiVertexDesc();
-				nElements = DX11::NumberOfGuiVertexElements();
-			}
-			else
-			{
-				elements = DX11::GetObjectVertexDesc();
-				nElements = DX11::NumberOfObjectVertexElements();
+				SafeFormat(lastError, "LoadResource for %s returned 0 length object", pingPath);
+				Throw(0, "%s", lastError);
 			}
 
-			HRESULT hr = device.CreateInputLayout(elements, nElements, shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), &shader->inputLayout);
-			if SUCCEEDED(hr)
+			AutoRelease<ID3D11VertexShader> replacementShader;
+			HRESULT hr = device.CreateVertexShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), nullptr, &replacementShader);
+
+			if (FAILED(hr) || !replacementShader)
 			{
-				hr = device.CreateVertexShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), nullptr, &shader->vs);
-				if FAILED(hr)
-				{
-					SafeFormat(lastError, sizeof(lastError), "device.CreateVertexShader for %s returned 0x%X", pingPath, hr);
-					shader->inputLayout = nullptr;
-				}
+				SafeFormat(lastError, sizeof(lastError), "device.CreateVertexShader %s failed and returned returned 0x%X", pingPath, hr);
+				Throw(hr, "%s", lastError);
 			}
-			else
-			{
-				shader->inputLayout = nullptr;
-				SafeFormat(lastError, sizeof(lastError), "device.CreateInputLayout for %s returned 0x%X", pingPath, hr);
-			}
+
+			shader->vs = replacementShader;
 		}
 	}
 

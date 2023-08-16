@@ -628,6 +628,167 @@ namespace Rococo
 		   return true;
 	   }
 
+	   void ForVariable(int index, const IFunction& f, size_t fnOffset, const Rococo::Compiler::IStructure*& lastPseudo, cstr& lastPseudoName, const uint8* sf, IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum)
+	   {
+		   VariableDesc variable = { 0 };
+
+			MemberDef def;
+			cstr name;
+			f.Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, index);
+
+			if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
+			{
+				return;
+			}
+
+			if (AreEqual(name, ("_arg"), 4)) return;
+
+			if (def.location == Rococo::Compiler::VARLOCATION_NONE)
+			{
+				lastPseudo = def.ResolvedType;
+				lastPseudoName = name;
+				return;
+			}
+
+			const uint8* pVariableData = sf + def.SFOffset;
+			if (def.Usage == ARGUMENTUSAGE_BYVALUE)
+			{
+				if (def.ResolvedType->InterfaceCount() > 0)
+				{
+					auto* pInterface = *(const uint8**)pVariableData;
+
+					ObjectStub* object;
+					TRY_PROTECTED
+					{
+						object = (ObjectStub*)(pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
+						pVariableData = (uint8*)object;
+					}
+						CATCH_PROTECTED
+					{
+						SafeFormat(variable.Value, variable.VALUE_CAPACITY, "(bad interface) %p", pVariableData);
+						return;
+					}
+
+					const auto& refInterf = def.ResolvedType->GetInterface(0);
+
+					*variable.Value = 0;
+					for (const Rococo::Compiler::IInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
+					{
+						if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
+						{
+							auto* stringObjt = (CStringConstant*)object;
+							SafeFormat(variable.Value, variable.VALUE_CAPACITY, "%s", stringObjt->pointer);
+							break;
+						}
+					}
+
+					if (*variable.Value == 0)
+					{
+						auto& concrete = *object->Desc->TypeInfo;
+						SafeFormat(variable.Value, variable.VALUE_CAPACITY, "%s of %s", concrete.Name(), concrete.Module().Name());
+					}
+				}
+				else
+				{
+					FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
+				}
+
+				variable.s = def.ResolvedType;
+				variable.instance = pVariableData;
+				variable.parentName = nullptr;
+
+				if (lastPseudo != NULL && lastPseudoName != NULL)
+				{
+					TokenBuffer expectedToken;
+					StringPrint(expectedToken, ("_ref_%s"), lastPseudoName);
+
+					if (AreEqual(expectedToken.Text, name))
+					{
+						AsciiName desc(Compiler::GetTypeName(*lastPseudo));
+						AsciiName last(lastPseudoName);
+						FormatVariableDescType(variable, "%s*", desc.data);
+						FormatVariableDescName(variable, "%s", last.data);
+					}
+					else
+					{
+						AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
+						AsciiName asciiName(name);
+						FormatVariableDescType(variable, "%s", desc.data);
+						FormatVariableDescName(variable, "%s", asciiName.data);
+					}
+				}
+				else
+				{
+					AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
+					AsciiName asciiName(name);
+					FormatVariableDescType(variable, "%s", desc.data);
+					FormatVariableDescName(variable, "%s", asciiName.data);
+				}
+			}
+			else
+			{
+				const void** ppData = (const void**)pVariableData;
+				TRY_PROTECTED
+				{
+					FormatVariableDesc(variable, "-> %1llX", (int64)*ppData);
+				}
+				CATCH_PROTECTED
+				{
+					FormatVariableDesc(variable, "Bad pointer");
+				}
+
+				AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
+				FormatVariableDescType(variable, "*%s", desc.data);
+
+				AsciiName asciiName(name);
+				FormatVariableDescName(variable, "%s", asciiName.data);
+
+				variable.s = def.ResolvedType;
+
+				switch (def.ResolvedType->VarType())
+				{
+				case VARTYPE_Array:
+				case VARTYPE_List:
+				case VARTYPE_Map:
+					variable.instance = (const uint8*)pVariableData;
+					break;
+				default:
+					variable.instance = * (const uint8**)pVariableData;
+				}
+			}
+
+			switch (def.location)
+			{
+			case VARLOCATION_NONE:
+				variable.Address = 0;
+				variable.instance = 0;
+				FormatVariableDescLocation(variable, "Pseudo");
+				break;
+			case VARLOCATION_INPUT:
+				variable.Address = def.SFOffset;
+				FormatVariableDescLocation(variable, "Input");
+				break;
+			case VARLOCATION_OUTPUT:
+				FormatVariableDescLocation(variable, "Output");
+				variable.Address = def.SFOffset;
+				break;
+			case VARLOCATION_TEMP:
+				FormatVariableDescLocation(variable, "Temp");
+				variable.Address = def.SFOffset;
+				break;
+			}
+
+			TRY_PROTECTED
+			{
+				variableEnum.OnVariable(index + 3, variable, def);
+			}
+			CATCH_PROTECTED
+			{
+				FormatVariableDescLocation(variable, "Bad");
+				variable.Address = 0xBADBADBADBADBAD0;
+			}
+	   }
+
 	   SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callDepth)
 	   {
 		   const uint8* sf;
@@ -653,156 +814,16 @@ namespace Rococo
 
 		   size_t count = 3;
 
-		   for (int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
-		   {
-			   variable = { 0 };
-
-			   MemberDef def;
-			   cstr name;
-			   f->Code().GetLocalVariableSymbolByIndex(OUT def, OUT name, i);
-
-			   if (fnOffset < def.pcStart || fnOffset > def.pcEnd)
-			   {
-				   continue;
-			   }
-
-			   if (AreEqual(name, ("_arg"), 4)) continue;
-
-			   if (def.location == Rococo::Compiler::VARLOCATION_NONE)
-			   {
-				   lastPseudo = def.ResolvedType;
-				   lastPseudoName = name;
-				   continue;
-			   }
-
-			   const uint8* pVariableData = sf + def.SFOffset;
-			   if (def.Usage == ARGUMENTUSAGE_BYVALUE)
-			   {
-				   if (def.ResolvedType->InterfaceCount() > 0)
-				   {
-					   auto* pInterface = *(const uint8**)pVariableData;
-
-					   ObjectStub* object;
-					   TRY_PROTECTED
-					   {
-						   object = (ObjectStub*)(pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
-						   pVariableData = (uint8*)object;
-					   }
-					   CATCH_PROTECTED
-					   {
-						   SafeFormat(variable.Value, variable.VALUE_CAPACITY, "(bad interface) %p", pVariableData);
-						   continue;
-					   }
-
-					   const auto& refInterf = def.ResolvedType->GetInterface(0);
-
-					   *variable.Value = 0;
-					   for (const Rococo::Compiler::IInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
-					   {
-						   if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
-						   {
-							   auto* stringObjt = (CStringConstant*)object;
-							   SafeFormat(variable.Value, variable.VALUE_CAPACITY, "%s", stringObjt->pointer);
-							   break;
-						   }
-					   }
-
-					   if (*variable.Value == 0)
-					   {
-						   auto& concrete = *object->Desc->TypeInfo;
-						   SafeFormat(variable.Value, variable.VALUE_CAPACITY, "%s of %s", concrete.Name(), concrete.Module().Name());
-					   }
-				   }
-				   else
-				   {
-					   FormatValue(ss, variable.Value, variable.VALUE_CAPACITY, def.ResolvedType->VarType(), pVariableData);
-				   }
-
-				   variable.s = def.ResolvedType;
-				   variable.instance = pVariableData;
-				   variable.parentName = nullptr;
-
-				   if (lastPseudo != NULL && lastPseudoName != NULL)
-				   {
-					   TokenBuffer expectedToken;
-					   StringPrint(expectedToken, ("_ref_%s"), lastPseudoName);
-
-					   if (AreEqual(expectedToken.Text, name))
-					   {
-						   AsciiName desc(Compiler::GetTypeName(*lastPseudo));
-						   AsciiName last(lastPseudoName);
-						   FormatVariableDescType(variable, "%s*", desc.data);
-						   FormatVariableDescName(variable, "%s", last.data);
-					   }
-					   else
-					   {
-						   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
-						   AsciiName asciiName(name);
-						   FormatVariableDescType(variable, "%s", desc.data);
-						   FormatVariableDescName(variable, "%s", asciiName.data);
-					   }
-				   }
-				   else
-				   {
-					   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
-					   AsciiName asciiName(name);
-					   FormatVariableDescType(variable, "%s", desc.data);
-					   FormatVariableDescName(variable, "%s", asciiName.data);
-				   }
-			   }
-			   else
-			   {
-				   const void** ppData = (const void**)pVariableData;
-				   TRY_PROTECTED
-				   {
-					   FormatVariableDesc(variable, "-> %1llX", (int64)*ppData);
-				   }
-				   CATCH_PROTECTED
-				   {
-					   FormatVariableDesc(variable, "Bad pointer");
-				   }
-
-				   AsciiName desc(Compiler::GetTypeName(*def.ResolvedType));
-				   FormatVariableDescType(variable, "*%s", desc.data);
-
-				   AsciiName asciiName(name);
-				   FormatVariableDescName(variable, "%s", asciiName.data);
-
-				   variable.s = def.ResolvedType;
-				   variable.instance = *(const uint8**)pVariableData;
-			   }
-
-			   switch (def.location)
-			   {
-			   case VARLOCATION_NONE:
-				   variable.Address = 0;
-				   variable.instance = 0;
-				   FormatVariableDescLocation(variable, "Pseudo");
-				   break;
-			   case VARLOCATION_INPUT:
-				   variable.Address = def.SFOffset;
-				   FormatVariableDescLocation(variable, "Input");
-				   break;
-			   case VARLOCATION_OUTPUT:
-				   FormatVariableDescLocation(variable, "Output");
-				   variable.Address = def.SFOffset;
-				   break;
-			   case VARLOCATION_TEMP:
-				   FormatVariableDescLocation(variable, "Temp");
-				   variable.Address = def.SFOffset;
-				   break;
-			   }
-
-			   TRY_PROTECTED
-			   {
-					variableEnum.OnVariable(count++, variable, def);
-			   }
-			   CATCH_PROTECTED
-			   {
-					FormatVariableDescLocation(variable, "Bad");
-					variable.Address = 0xBADBADBADBADBAD0;
-			   }
-		   }
+			for (int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
+			{
+				TRY_PROTECTED
+				{
+					ForVariable(i, *f, fnOffset, lastPseudo, lastPseudoName, sf, ss, variableEnum);
+				}
+				CATCH_PROTECTED
+				{
+				}
+			}
 	   }
 
 	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth)
