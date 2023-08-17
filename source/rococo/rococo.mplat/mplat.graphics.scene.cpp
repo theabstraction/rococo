@@ -141,6 +141,7 @@ namespace
 		  lights[index].cutoffCosAngle = Cos(spec.cutoffAngle);
 		  lights[index].ambient = spec.ambience;
 		  lights[index].fogConstant = spec.fogConstant;
+		  lights[index].shadowFudge = spec.shadowFudge;
       }
 
       void Free() override

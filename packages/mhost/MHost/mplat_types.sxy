@@ -107,6 +107,8 @@
 	(Sys.SI.Metres nearPlane)
 	(Sys.SI.Metres farPlane)
 	(Float32 fogConstant)
+	(Float32 shadowFudge)
+	
 )
 (alias LightSpec Rococo.LightSpec)
 

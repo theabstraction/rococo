@@ -235,6 +235,7 @@
 	(light.nearPlane = 0.1)
 	(light.farPlane = 1000)
 	(light.fogConstant = -0.1)
+	(light.shadowFudge = 3.0)
 	
 	(world.SnapToLandscape light.position 2.4)
 	

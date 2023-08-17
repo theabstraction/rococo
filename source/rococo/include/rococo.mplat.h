@@ -92,6 +92,7 @@ namespace Rococo
 		Metres nearPlane;
 		Metres farPlane;
 		float fogConstant; // fog = e^(range * fogExponent); // Take natural log of both sides to compute exponent, which should be negative
+		float shadowFudge;
 	};
 
 	struct FlameDef
