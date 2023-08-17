@@ -2827,8 +2827,17 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			if (!Eq(fullPathCache, fullPath))
 			{
 				Format(fullPathCache, L"%s", fullPath);
-				Rebase(fullPathCache);
-				ide->SetVisible(false);
+				
+				try
+				{
+					Rebase(fullPathCache);
+					ide->SetVisible(false);
+				}
+				catch (IException& ex)
+				{
+					Windows::ShowErrorBox(Windows::NoParent(), ex, "SexyStudio threw an exception during autocomplete");
+					return;
+				}
 			}
 		}
 

@@ -175,7 +175,7 @@ float GetShadowDensity_1Sample(float4 shadowPos)
 
 float GetShadowDensity(float4 shadowPos)
 {
-    return GetShadowDensity_4Sample(shadowPos);
+    return GetShadowDensity_16Sample(shadowPos);
 }
 
 float4 SampleMaterial(float3 materialVertex, float4 colour)
