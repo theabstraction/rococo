@@ -180,6 +180,17 @@ namespace Rococo::DX11
 		float aspectRatio = metrics.screenSpan.y / (float)metrics.screenSpan.x;
 		g.aspect = { aspectRatio,0,0,0 };
 
+		TextureDesc desc;
+		if (textures.TryGetTextureDesc(OUT desc, shadowBufferId))
+		{
+			g.OOShadowTxWidth = 1.0f / desc.width;
+		}
+		else
+		{
+			g.OOShadowTxWidth = 1.0f;
+		}
+		
+		g.unused = Vec3{ 0.0f,0.0f,0.0f };
 		g.guiScale = gui->GetGuiScale();
 
 		DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);

@@ -3,7 +3,7 @@
 ObjectPixelVertex main(ObjectVertex v)
 {
 	ObjectPixelVertex sv;
-	float4 instancePos = Transform_Instance_To_World(float4(v.position.xyz, 1.0f));
+	float4 instancePos = Transform_Instance_To_World_Scaled(v.position);
 	sv.position = Transform_World_To_Screen(float4(instancePos.xyz, 1.0f));
 	sv.worldNormal = Transform_Instance_To_World(float4(v.normal.xyz,0.0f)).xyz;
 	sv.worldPosition = instancePos.xyz;

@@ -167,6 +167,8 @@ namespace Rococo::Graphics
 	struct ObjectInstance
 	{
 		Matrix4x4 orientation;
+		Vec3 scale;
+		float unused;
 		RGBA highlightColour;
 	};
 
@@ -187,6 +189,8 @@ namespace Rococo::Graphics
 		Vec4 eye;
 		Vec4 viewDir;
 		Vec4 aspect;
+		float OOShadowTxWidth;
+		Vec3 unused;
 	};
 #pragma pack(pop)
 }

@@ -321,10 +321,9 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			messageCount++;
 
 			char intro[512];
-			SafeFormat(intro, "Error compiling %s. Code 0x%8.8X\n", filename, hr);
+			SafeFormat(intro, "...\n\tError code 0x%8.8X:\t", hr);
 			Log(IO::EShaderLogPriority::Warning, intro);
 			Log(IO::EShaderLogPriority::Warning, messages);
-			Log(IO::EShaderLogPriority::Warning, "\n\n\n");
 			errorMessages->Release();
 		}
 

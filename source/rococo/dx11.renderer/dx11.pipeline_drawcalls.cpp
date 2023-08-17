@@ -328,7 +328,7 @@ namespace Rococo::DX11
 	{
 		size_t cursor = 0;
 
-		ObjectInstance one = { Matrix4x4::Identity(), RGBA(1.0f, 1.0f, 1.0f, 1.0f) };
+		ObjectInstance one = { Matrix4x4::Identity(), Vec3 {1.0f, 1.0f, 1.0f}, 0.0f, RGBA(1.0f, 1.0f, 1.0f, 1.0f) };
 
 		while (nTriangles > 0)
 		{

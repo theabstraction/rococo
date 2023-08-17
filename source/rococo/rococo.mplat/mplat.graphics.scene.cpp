@@ -275,7 +275,7 @@ namespace
 				  meshId = body->Mesh();
 			  }
 
-			  ObjectInstance instance{ body->Model(), RGBA(0, 0, 0, 0) };
+			  ObjectInstance instance{ body->Model(), body->Scale(), 0.0f, RGBA(0, 0, 0, 0) };
 			  drawQueue.push_back(instance);
 		  }
 
@@ -309,7 +309,7 @@ namespace
 				  meshId = body->Mesh();
 			  }
 
-			  ObjectInstance instance{ body->Model(), RGBA(0, 0, 0, 0) };
+			  ObjectInstance instance{ body->Model(), Vec3 {1.0f, 1.0f, 1.0f}, 1.0f, RGBA(0, 0, 0, 0) };
 			  drawQueue.push_back(instance);
 
 			  if (skeleton)

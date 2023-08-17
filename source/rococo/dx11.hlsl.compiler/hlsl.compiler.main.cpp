@@ -61,14 +61,9 @@ int main(int argc, char* argv[])
 
 	FlushConsoleInputBuffer(hConsoleIn);
 
-	while (true)
+	while (monitor->QueueLength() != 0)
 	{
 		monitor->DoHousekeeping();
-
-		if (monitor->QueueLength() == 0)
-		{
-			break;
-		}
 
 		if (isInteractive)
 		{
@@ -90,9 +85,10 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		Sleep(100);
+		WaitForSingleObject(hConsoleIn, 250);
 	}
 
+	monitor->DoHousekeeping();
 end:
 	SetConsoleMode(hConsoleIn, oldMode);
 

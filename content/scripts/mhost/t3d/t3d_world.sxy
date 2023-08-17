@@ -174,8 +174,8 @@
 		(Rectf textRect = itemRect)
 		(ShrinkRect textRect 4 1)
 		(gui.DrawText textRect alignment item.Value 0 0xFFFFFFFF)
-		(itemRect.top -= 22)
-		(itemRect.bottom -= 22)
+		(itemRect.top -= 44)
+		(itemRect.bottom -= 44)
 	)
 )
 

@@ -29,6 +29,11 @@
 
 #include <rococo.fonts.hq.h>
 
+// All of these objects are used in constant buffers and must be a multiple of 16 bytes in length;
+static_assert(sizeof(Rococo::Graphics::ObjectInstance) % 16 == 0);
+static_assert(sizeof(Rococo::Graphics::GuiScale) % 16 == 0);
+static_assert(sizeof(Rococo::Graphics::GlobalState) % 16 == 0);
+
 namespace Rococo::DX11
 {
 	void ShowWindowVenue(HWND hWnd, IMathsVisitor& visitor);

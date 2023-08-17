@@ -7,7 +7,7 @@ struct ShadowOutVertex
 
 ShadowOutVertex main(ObjectVertex v)
 {
-	float4 instancePos = Transform_Instance_To_World(float4(v.position.xyz, 1.0f));
+	float4 instancePos = Transform_Instance_To_World_Scaled(v.position);
 
 	ShadowOutVertex sv;
 	sv.position = Transform_World_To_DepthBuffer(instancePos);

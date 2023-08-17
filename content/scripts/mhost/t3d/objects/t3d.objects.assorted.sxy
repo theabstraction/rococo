@@ -74,10 +74,14 @@
 
 	(IMaterialBuilder matBuilder (MaterialBuilder))
 	
+	// Roughly scale of 1.0 is a bottle 1.5m tall. At a scale of 0.2 with 20 divs and at a distance of 4m the bottle looks smooth rather than polygonal
+	(Float32 scale = 0.2)
+	(Int32 divs = 20)
+	
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
 	(matBuilder.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
-	(glass.gloss = 0.4)
+	(glass.gloss = 0.2)
 	
 	(bottle.SetMaterialTop glass)
 	(bottle.SetMaterialMiddle glass)
@@ -85,20 +89,16 @@
 	(bottle.UseSmoothNormals)
 	(bottle.SetUVScale 4.0)
 	
-	(Float32 length = 2.0)
-	(Float32 bottomWidth = 1.45)
-	(Float32 topWidth = 1.45)
-	(Int32 divs = 4)
+	(Float32 length = (scale * 1.0))
+	(Float32 bottomWidth = (scale *  0.25))
+	(Float32 topWidth = (scale * 0.25))
 	
-//	(bottle.AddTube length bottomWidth topWidth divs)
-	(Vec2 a = -1  1)
-	(Vec2 b =  1  1)
-	(Vec2 c =  1 -1)
-	(Vec2 d = -1 -1)
-	(bottle.AddBox 1.3 a b c d)
+	(bottle.AddTube length bottomWidth topWidth divs)
+
+//	(bottle.AddTube 0.4 0.1 0.1 10)
 	
-	(Float32 neckLength = 0.35)
-//	(bottle.AddTube neckLength topWidth 0.035 divs)
+	(Float32 neckLength = (scale * 0.5))
+	(bottle.AddTube neckLength topWidth (scale * 0.08) divs)
 	
 	(MaterialVertexData stopper)
 	(matBuilder.GetMaterialId (#MaterialCategoryRock) 0 -> stopper.id)
@@ -108,9 +108,8 @@
 	(bottle.SetMaterialMiddle stopper)
 	(bottle.SetMaterialBottom stopper)
 		
-	(Float32 stopperLength = 0.1)
-	(Int32 stopperDivs = 10)
-//	(bottle.AddTube stopperLength 0.04 0.05 stopperDivs)
+	(Float32 stopperLength = (scale * 0.16))
+	(bottle.AddTube stopperLength (scale * 0.08) (scale * 0.10) divs)
 	
 	(bottle.CopyToMeshBuilder meshName false false true)
 )
@@ -176,17 +175,17 @@
 	(Matrix4x4 model = 
 		(1 0 0 0)
 		(0 1 0 2)
-		(0 0 1 0.25) 
+		(0 0 1 0.26) 
 		(0 0 0 1)
 	)
 	
-	(Vec3 noScale = 1 1 1)
+	(Vec3 scale = 1 1 1)
 	
 	(IECS ecs (Rococo.ECS.GetECS))
 	(ROID bottleId = ecs.NewROID)
 	
 	(IBody bottle (AddBody bottleId))
-	(bottle.SetScale noScale)
+	(bottle.SetScale scale)
 	(bottle.SetModelMatrix model)
 	(bottle.SetMeshByName "potion.1")
 	

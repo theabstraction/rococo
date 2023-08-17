@@ -39,11 +39,15 @@ struct GlobalState
 	float4 eye;
 	float4 viewDir;
 	float4 aspect;
+    float OOShadowTxWidth;
+    float3 unused;
 };
 
 struct ObjectInstance
 {
 	float4x4 modelToWorldMatrix;
+	float3 scale;
+	float unused;
 	float4 highlightColour;
 };
 

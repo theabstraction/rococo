@@ -67,6 +67,12 @@ float4 Transform_Instance_To_World(float4 v)
 	return mul(instance.modelToWorldMatrix, v);
 }
 
+float4 Transform_Instance_To_World_Scaled(float3 v)
+{
+    float4 hSv = float4(instance.scale.x * v.x, instance.scale.x * v.y,  instance.scale.x * v.z, 1.0f);
+	return mul(instance.modelToWorldMatrix, hSv);
+}
+
 float4x4 GetBoneMatrix(float index)
 {
 	return boneMatrices[(int)index];
@@ -101,15 +107,63 @@ float4 Transform_World_To_DepthBuffer(float4 v)
 	return mul(drd.worldToScreen, v);
 }
 
-bool IsInShadow(float4 shadowPos)
+float SampleShadowWithDelta(float4 pos, float2 offset)
 {
-	float4 shadowXYZW = shadowPos / shadowPos.w;
-	float2 shadowUV = float2(1.0f + shadowXYZW.x, 1.0f - shadowXYZW.y) * 0.5f;
+	float fudginess = 1.25f;
+	float2 scaledOffset = offset * global.OOShadowTxWidth * fudginess;
+	float3 shadowXYZ = pos.xyz / pos.w;
+	float2 shadowUV = (scaledOffset + (float2(1.0f + shadowXYZ.x, 1.0f - shadowXYZ.y))) * 0.5f;
+
+	float bias = -0.00001f;
+	float shadowDepth = tx_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
+	
+	if (shadowDepth <= shadowXYZ.z)
+	{
+		return 0.0625f;
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
+float GetShadowDensity_16Sample(float4 shadowPos)
+{
+	float shadowDensity = 0.0f;
+	float2 delta;
+	
+	for (delta.y = -1.5f; delta.y <= 1.5f; delta.y += 1.0f)
+	{
+		for (delta.x = -1.5f; delta.x <= 1.5f; delta.x += 1.0f)
+		{
+			shadowDensity += SampleShadowWithDelta(shadowPos,  delta);
+		}
+	}
+	
+	return shadowDensity;
+}
+
+float GetShadowDensity_1Sample(float4 shadowPos)
+{
+	float3 shadowXYZ = shadowPos.xyz / shadowPos.w;
+	float2 shadowUV = float2(1.0f + shadowXYZ.x, 1.0f - shadowXYZ.y) * 0.5f;
 
 	float bias = -0.00001f;
 	float shadowDepth = tx_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
 
-	return shadowDepth <= shadowXYZW.z;
+	if (shadowDepth <= shadowXYZ.z)
+	{
+		return 1.0f;
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
+float GetShadowDensity(float4 shadowPos)
+{
+	return GetShadowDensity_16Sample(shadowPos);
 }
 
 float4 SampleMaterial(float3 materialVertex, float4 colour)

@@ -1660,7 +1660,7 @@ namespace WIN32_ANON
 
 		void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
 		{
-			int64 timeoutInSeconds = 5;
+			int64 timeoutInSeconds = 1;
 			auto timeout = Rococo::Time::TickHz() * timeoutInSeconds;
 
 			while (!modifiedFiles.empty())
