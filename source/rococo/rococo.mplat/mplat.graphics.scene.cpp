@@ -32,7 +32,7 @@ namespace
       RGBA clearColour{ 0,0,0,1 };
 
 	  enum { MAX_LIGHTS = 1 };
-	  Light lights[MAX_LIGHTS] = { 0 };
+	  LightConstantBuffer lights[MAX_LIGHTS] = { 0 };
 
 	  IScenePopulator* populator = nullptr;
 
@@ -84,7 +84,7 @@ namespace
 		  return skyboxId;
 	  }
 
-	  const Light* GetLights(uint32& nCount) const override
+	  const LightConstantBuffer* GetLights(uint32& nCount) const override
 	  {
 		  nCount = MAX_LIGHTS;
 		  return lights;

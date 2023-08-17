@@ -511,7 +511,7 @@ namespace Rococo
 	{
 		static_assert(sizeof(DepthRenderData) % 16 == 0, "DX11 requires size of DepthRenderData to be multipe of 16 bytes");
 		static_assert(sizeof(GlobalState) % 16 == 0, "DX11 requires size of GlobalState to be multipe of 16 bytes");
-		static_assert(sizeof(Light) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
+		static_assert(sizeof(LightConstantBuffer) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
 
 		IDX11Renderer* CreateDX11Renderer(Factory& factory)
 		{

@@ -107,7 +107,7 @@ namespace Rococo::DX11
 		shaders.UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
 	}
 
-	void DX11Pipeline::DrawLightCone(const Light& light, cr_vec3 viewDir)
+	void DX11Pipeline::DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir)
 	{
 		trianglesThisFrame += DX11::DrawLightCone(light, viewDir, dc, *lightConeBuffer);
 	}
@@ -154,7 +154,7 @@ namespace Rococo::DX11
 		scene.RenderShadowPass(drd, rc, false);
 	}
 
-	void DX11Pipeline::RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const Light& ambientLight)
+	void DX11Pipeline::RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight)
 	{
 		phase = RenderPhase_DetermineAmbient;
 
@@ -257,9 +257,9 @@ namespace Rococo::DX11
 		}
 	}
 
-	void DX11Pipeline::RenderSpotlightLitScene(const Light& lightSubset, IScene& scene)
+	void DX11Pipeline::RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene)
 	{
-		Light light = lightSubset;
+		LightConstantBuffer light = lightSubset;
 
 		DepthRenderData drd;
 		if (PrepareDepthRenderFromLight(light, drd))
@@ -363,7 +363,7 @@ namespace Rococo::DX11
 		builtFirstPass = false;
 
 		uint32 nLights = 0;
-		const Light* lights = scene.GetLights(nLights);
+		const LightConstantBuffer* lights = scene.GetLights(nLights);
 		if (lights != nullptr)
 		{
 			for (size_t i = 0; i < nLights; ++i)
@@ -451,7 +451,7 @@ namespace Rococo::DX11
 	void DX11Pipeline::DrawLightCones(IScene& scene)
 	{
 		uint32 nLights = 0;
-		const Light* lights = scene.GetLights(nLights);
+		const LightConstantBuffer* lights = scene.GetLights(nLights);
 
 		if (lights != nullptr)
 		{

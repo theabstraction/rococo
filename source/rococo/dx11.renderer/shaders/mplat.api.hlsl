@@ -109,8 +109,7 @@ float4 Transform_World_To_DepthBuffer(float4 v)
 
 float SampleShadowWithDelta(float4 pos, float2 offset)
 {
-	float fudginess = 1.25f;
-	float2 scaledOffset = offset * global.OOShadowTxWidth * fudginess;
+	float2 scaledOffset = offset * global.OOShadowTxWidth * light.shadowFudge;
 	float3 shadowXYZ = pos.xyz / pos.w;
 	float2 shadowUV = (scaledOffset + (float2(1.0f + shadowXYZ.x, 1.0f - shadowXYZ.y))) * 0.5f;
 
@@ -119,7 +118,7 @@ float SampleShadowWithDelta(float4 pos, float2 offset)
 	
 	if (shadowDepth <= shadowXYZ.z)
 	{
-		return 0.0625f;
+		return 1.0f;
 	}
 	else
 	{
@@ -129,18 +128,31 @@ float SampleShadowWithDelta(float4 pos, float2 offset)
 
 float GetShadowDensity_16Sample(float4 shadowPos)
 {
+    float shadowDensity = 0.0f;
+    float2 delta;
+	
+    for (delta.y = -1.5f; delta.y <= 1.5f; delta.y += 1.0f)
+    {
+        for (delta.x = -1.5f; delta.x <= 1.5f; delta.x += 1.0f)
+        {
+            shadowDensity += SampleShadowWithDelta(shadowPos, delta);
+        }
+    }
+	
+    return shadowDensity / 4.0f;
+}
+
+float GetShadowDensity_4Sample(float4 shadowPos)
+{
 	float shadowDensity = 0.0f;
 	float2 delta;
 	
-	for (delta.y = -1.5f; delta.y <= 1.5f; delta.y += 1.0f)
-	{
-		for (delta.x = -1.5f; delta.x <= 1.5f; delta.x += 1.0f)
-		{
-			shadowDensity += SampleShadowWithDelta(shadowPos,  delta);
-		}
-	}
+    float f1 = SampleShadowWithDelta(shadowPos, float2(-1.5f, 0.5f));
+    float f2 = SampleShadowWithDelta(shadowPos, float2(0.5f, 0.5f));
+    float f3 = SampleShadowWithDelta(shadowPos, float2(-1.5f, -1.5f));
+    float f4 = SampleShadowWithDelta(shadowPos, float2(0.5f, -1.5f));
 	
-	return shadowDensity;
+    return (f1 + f2 + f3 + f4) * 0.25f;
 }
 
 float GetShadowDensity_1Sample(float4 shadowPos)
@@ -163,7 +175,7 @@ float GetShadowDensity_1Sample(float4 shadowPos)
 
 float GetShadowDensity(float4 shadowPos)
 {
-	return GetShadowDensity_16Sample(shadowPos);
+    return GetShadowDensity_4Sample(shadowPos);
 }
 
 float4 SampleMaterial(float3 materialVertex, float4 colour)

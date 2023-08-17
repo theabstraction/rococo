@@ -33,7 +33,7 @@ namespace Rococo::DX11
 		particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
 
 		depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
-		lightStateBuffer = DX11::CreateConstantBuffer<Light>(device);
+		lightStateBuffer = DX11::CreateConstantBuffer<LightConstantBuffer>(device);
 
 		ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 		gui3DBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, GUI3D_BUFFER_VERTEX_CAPACITY);

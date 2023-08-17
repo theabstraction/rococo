@@ -109,7 +109,7 @@ namespace MHost
 			platform.graphics.scene.RenderObjects(rc, skinned);
 		}
 
-		const Light* GetLights(uint32& nCount) const override
+		const LightConstantBuffer* GetLights(uint32& nCount) const override
 		{
 			return platform.graphics.scene.GetLights(nCount);
 		}
@@ -160,7 +160,7 @@ namespace MHost
 		{
 		}
 
-		const Light* GetLights(uint32&) const override
+		const LightConstantBuffer* GetLights(uint32&) const override
 		{
 			return nullptr;
 		}

@@ -4,7 +4,7 @@
 
 namespace Rococo::DX11
 {
-	int DrawLightCone(const Light& light, cr_vec3 viewDir, ID3D11DeviceContext& dc, ID3D11Buffer& lightConeBuffer)
+	int DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir, ID3D11DeviceContext& dc, ID3D11Buffer& lightConeBuffer)
 	{
 		/* our aim is to render a cross section of the light cone as a single alpha blended triangle
 				B

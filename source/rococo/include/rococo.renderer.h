@@ -197,7 +197,7 @@ namespace Rococo::Graphics
 	};
 
 #pragma pack(push,4)
-	struct Light
+	struct LightConstantBuffer
 	{
 		Matrix4x4 worldToShadowBuffer;
 		Vec4 position;
@@ -217,7 +217,8 @@ namespace Rococo::Graphics
 		float cutoffPower = 16.0f; // Exponent of cutoff rate. Range 1 to 16 is cool
 		float attenuationRate = -0.15f; // Point lights vary as inverse square, so 0.5 ish
 		boolean32 hasCone = 0;
-		Vec3 unused;
+		float shadowFudge = 1.0f; // 0 will create sharp but jags in multisampled mode, 1 will antialias jags, and > 1 add some fudge. 1.0 to 3.0 is about right for most light sources
+		Vec2 unused;
 	};
 
 	struct DepthRenderData // N.B if size is not multiple of 16 bytes this will crash DX11 renderer
@@ -249,7 +250,7 @@ namespace Rococo::Graphics
 		virtual ID_CUBE_TEXTURE GetEnvironmentMap() const = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual void RenderObjects(IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
-		virtual const Light* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
+		virtual const LightConstantBuffer* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
 		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
 	};
 

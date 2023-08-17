@@ -117,7 +117,7 @@ namespace Rococo::DX11
 		enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
 		enum { GUI3D_BUFFER_VERTEX_CAPACITY = 3 * GUI3D_BUFFER_TRIANGLE_CAPACITY };
 
-		ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase);	Light ambientLight = { 0 };
+		ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase);	LightConstantBuffer ambientLight = { 0 };
 		GlobalState currentGlobalState = { 0 };
 		Time::ticks objCost = 0;
 		ID_TEXTURE lastTextureId;
@@ -160,14 +160,14 @@ namespace Rococo::DX11
 		}
 
 		void ShowVenue(IMathsVisitor& visitor) override;
-		void DrawLightCone(const Light& light, cr_vec3 viewDir);
+		void DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir);
 		void RenderToShadowBuffer(IShaders& shaders, IDX11TextureManager& textures, IRenderContext& rc, DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene);
 		void SetAmbientConstants();
-		void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const Light& ambientLight);
+		void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight);
 		void RenderSkyBox(IScene& scene);
 		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene);
 		void SetupSpotlightConstants();
-		void RenderSpotlightLitScene(const Light& lightSubset, IScene& scene);
+		void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene);
 		void Render3DGui(const VertexTriangle* gui3DTriangles, size_t nTriangles);
 		void Render3DObjects(IScene& scene);
 		RenderTarget GetCurrentRenderTarget();

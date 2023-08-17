@@ -76,7 +76,7 @@ namespace Rococo
          return dss;
       }
 
-	  bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd)
+	  bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderData& drd)
 	  {
 		  if (!TryNormalize(light.direction, drd.direction))
 		  {

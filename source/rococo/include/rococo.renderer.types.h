@@ -5,7 +5,7 @@
 
 namespace Rococo::Graphics
 {
-	struct Light;
+	struct LightConstantBuffer;
 	struct TextureDesc;
 	struct ITextureLoadEnumerator;
 

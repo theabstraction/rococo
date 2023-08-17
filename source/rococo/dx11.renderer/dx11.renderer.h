@@ -134,9 +134,9 @@ namespace Rococo::DX11
 	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height);
 
 	// Draw a light cone and return the number of triangles in the mesh
-	int DrawLightCone(const Light& light, cr_vec3 viewDir, ID3D11DeviceContext& dc, ID3D11Buffer& lightConeBuffer);
+	int DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir, ID3D11DeviceContext& dc, ID3D11Buffer& lightConeBuffer);
 
-	bool PrepareDepthRenderFromLight(const Light& light, DepthRenderData& drd);
+	bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderData& drd);
 
 	ROCOCO_INTERFACE IOverlays
 	{

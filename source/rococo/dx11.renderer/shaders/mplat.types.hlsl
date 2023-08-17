@@ -124,6 +124,9 @@ struct Light
 	float cutoffCosAngle; // What angle to trigger cutoff of light
 	float cutoffPower; // Exponent of cutoff rate. Range 1 to 64 is cool
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
+    int hasCone;
+    float shadowFudge; // in multisample mode, 0 = jagged but sharp, 0 to 1 = antialiased soft shadows, 1+ is even softer fudgier shadows, >>> 1 penumbra
+    float2 unused;
 };
 
 struct DepthRenderDesc
