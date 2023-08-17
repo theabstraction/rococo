@@ -495,8 +495,16 @@ private:
 	void PopulatePackageViewWithCheckboxes(cstr packagePath)
 	{
 		AutoFree<IO::IPathCacheSupervisor> pathCache = IO::CreatePathCache();
-		pathCache->AddPathsFromDirectory(packagePath, false);
-		pathCache->Sort();
+
+		try
+		{
+			pathCache->AddPathsFromDirectory(packagePath, false);
+			pathCache->Sort();
+		}
+		catch (IException& ex)
+		{
+			Windows::ShowErrorBox(ideFrame, ex, "SexyStudio package reading issue");
+		}
 
 		packageView->ClearItems();
 
@@ -593,14 +601,14 @@ public:
 		Widgets::AnchorToParentLeft(*projectSettings, 0);
 		Widgets::AnchorToParentRight(*projectSettings, 0);
 
-		auto* contentEditor = projectSettings->AddFilePathEditor();
+		auto* contentEditor = projectSettings->AddFilePathEditor(EFilePathType::SYS_PATHS);
 		contentEditor->SetName("Content");
 
 		contentEditor->Bind(contentPath, 128);
 		contentEditor->SetVisible(true);
 		contentEditor->SetUpdateEvent(evContentChange);
 
-		projectDirEditor = projectSettings->AddFilePathEditor();
+		projectDirEditor = projectSettings->AddFilePathEditor(EFilePathType::PING_PATHS);
 		projectDirEditor->SetName("Project");
 
 		projectDirEditor->Bind(projectPath, 128);

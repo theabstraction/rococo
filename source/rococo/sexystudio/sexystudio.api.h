@@ -530,12 +530,18 @@ namespace Rococo::SexyStudio
 		virtual void UpdateText() = 0;
 	};
 
+	enum class EFilePathType
+	{
+		PING_PATHS,
+		SYS_PATHS
+	};
+
 	ROCOCO_INTERFACE IVariableList : IGuiWidget
 	{
 		virtual IPingPathResolver & Resolver() = 0;
 		virtual IAsciiStringEditor* AddAsciiEditor() = 0;
 		virtual IDropDownList* AddDropDownList(bool addTextEditor) = 0;
-		virtual IFilePathEditor* AddFilePathEditor() = 0;
+		virtual IFilePathEditor* AddFilePathEditor(EFilePathType pathType) = 0;
 		virtual IListWidget* AddListWidget() = 0;
 		virtual IReportWidget* AddReportWidget(IReportWidgetEvent& eventHandler) = 0;
 

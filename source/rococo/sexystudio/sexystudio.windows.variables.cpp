@@ -4,6 +4,7 @@
 #include <shlobj_core.h>
 #include <rococo.auto-release.h>
 #include <rococo.io.h>
+#include <rococo.os.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -591,6 +592,7 @@ namespace ANON
 		Win32ChildWindow backWindow;
 		HBRUSH backBrush;
 		HString name;
+		EFilePathType pathType;
 		U8FilePath* filePath = nullptr;
 		uint32 maxPathLength = 0;
 		HWNDProxy hWndEditor;
@@ -599,8 +601,8 @@ namespace ANON
 		EventIdRef evChangedEvent = { 0 };
 		WNDPROC defaultEditProc = nullptr;
 
-		FilePathEditor(IVariableList& _variables, HBRUSH _backBrush):
-			variables(_variables), backBrush(_backBrush), backWindow(_variables.Children()->Parent(), *this)
+		FilePathEditor(IVariableList& _variables, HBRUSH _backBrush, EFilePathType _pathType):
+			variables(_variables), backBrush(_backBrush), backWindow(_variables.Children()->Parent(), *this), pathType(_pathType)
 		{
 			hWndEditor = CreateWindowExA(0, WC_EDITA, "", WS_CHILD | ES_AUTOHSCROLL, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
 			if (hWndEditor == NULL)
@@ -658,7 +660,23 @@ namespace ANON
 						U8FilePath oldPath = *filePath;
 
 						U8FilePath sysPath;
-						variables.Resolver().PingPathToSysPath(*filePath, sysPath);
+
+						if (pathType == EFilePathType::PING_PATHS)
+						{
+							try
+							{
+								variables.Resolver().PingPathToSysPath(*filePath, sysPath);
+							}
+							catch (IException& ex)
+							{
+								THIS_WINDOW owner(GetAncestor(hWndEditor, GA_ROOT));
+								Rococo::Windows::ShowErrorBox(owner, ex, "SexyStudio file search error");
+							}
+						}
+						else
+						{
+							sysPath = *filePath;
+						}
 
 						try
 						{
@@ -666,7 +684,15 @@ namespace ANON
 							SafeFormat(title, "SexyStudio - %s selection", name.c_str());
 							if (IO::ChooseDirectory(sysPath.buf, U8FilePath::CAPACITY, title))
 							{
-								variables.Resolver().SysPathToPingPath(sysPath, *filePath);
+								if (pathType == EFilePathType::PING_PATHS)
+								{
+									variables.Resolver().SysPathToPingPath(sysPath, *filePath);
+								}
+								else
+								{
+									*filePath = sysPath;
+								}
+
 								SetWindowTextA(hWndEditor, *filePath);
 								PublishChange();
 							}
@@ -854,9 +880,9 @@ namespace ANON
 			return widget;
 		}
 
-		IFilePathEditor* AddFilePathEditor() override
+		IFilePathEditor* AddFilePathEditor(EFilePathType pathType) override
 		{
-			auto* editor = new FilePathEditor(*this, bkBrush);
+			auto* editor = new FilePathEditor(*this, bkBrush, pathType);
 			children->Add(editor);
 			return editor;
 		}
