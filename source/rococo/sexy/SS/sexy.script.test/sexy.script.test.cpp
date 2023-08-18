@@ -17134,7 +17134,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		TEST(TestGetAccessorSemantics3);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
