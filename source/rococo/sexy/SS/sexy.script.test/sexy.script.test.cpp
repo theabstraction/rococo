@@ -16318,8 +16318,11 @@ R"(
 
 		(function Main -> (Int32 result):
 			(IRobot robot (NewRobot))
-			(Bool isHot = true and robot.IsHot)
-			(if isHot (result = 9005))
+			(Bool isSunny = true)
+			(Bool isVeryHot = isSunny and robot.IsHot)
+			(if isVeryHot (result = 9005))
+			(Bool isVeryVeryHot = robot.IsHot and isSunny)
+			(if isVeryVeryHot (result += 9005))
 		)
 
 		(alias Main EntryPoint.Main)
@@ -16338,7 +16341,7 @@ R"(
 	   ValidateLogs();
 
 	   int x = vm.PopInt32();
-	   int expectation = 9005;
+	   int expectation = 18010;
 	   if (x != expectation)
 	   {
 		   printf("x = %d\n", x);

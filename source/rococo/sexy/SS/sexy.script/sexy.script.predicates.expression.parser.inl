@@ -621,39 +621,55 @@ namespace Rococo
          AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
       }
 
-      void CompileBinaryBooleanVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cstr leftVarName, LOGICAL_OP op, cstr rightVarName)
+      void CompileBinaryBooleanVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex sLeftVarName, LOGICAL_OP op, cr_sex sRightVarName)
       {
-         VARTYPE varLType = ce.Builder.GetVarType(leftVarName);
-         VARTYPE varRType = ce.Builder.GetVarType(rightVarName);
+         VARTYPE varLType = ce.Builder.GetVarType(sLeftVarName.c_str());
+         VARTYPE varRType = ce.Builder.GetVarType(sRightVarName.c_str());
 
          if (varLType == VARTYPE_Bad)
          {
-            Throw(parent, ("The LHS is neither a literal, nor an identifier"));
+             if (!TryCompileArithmeticExpression(ce, sLeftVarName, false, VARTYPE_Bool))
+             {
+                 Throw(sRightVarName, "The RHS is neither a literal, identifier, nor recognized as a boolean valued expression");
+             }
+
+             // assembly placed the boolean value in D7
+             ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+             AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
+             return;
          }
          else if (varLType == VARTYPE_Derivative)
          {
-            Throw(parent, ("The LHS is a derived type, and cannot be used in boolean comparisons"));
+            Throw(parent, "The LHS is a derived type, and cannot be used in boolean comparisons");
          }
          else if (varLType != VARTYPE_Bool)
          {
-            Throw(parent, ("The LHS is not a boolean type"));
+            Throw(parent, "The LHS is not a boolean type");
          }
 
          if (varRType == VARTYPE_Bad)
          {
-            Throw(parent, ("The RHS is neither a literal, nor an identifier"));
+             if (!TryCompileArithmeticExpression(ce, sRightVarName, false, VARTYPE_Bool))
+             {
+                 Throw(sRightVarName, "The RHS is neither a literal, identifier, nor recognized as a boolean valued expression");
+             }
+
+             // assembly placed the boolean value in D7
+             ce.Builder.AssignVariableToTemp(sLeftVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+             AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
+             return;
          }
          else if (varRType == VARTYPE_Derivative)
          {
-            Throw(parent, ("The RHS is a derived type, and cannot be used in boolean comparisons"));
+            Throw(parent, "The RHS is a derived type, and cannot be used in boolean comparisons");
          }
          else if (varRType != VARTYPE_Bool)
          {
-            Throw(parent, ("The RHS is not a boolean type"));
+            Throw(parent, "The RHS is not a boolean type");
          }
 
-         ce.Builder.AssignVariableToTemp(leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
-         ce.Builder.AssignVariableToTemp(rightVarName, Rococo::ROOT_TEMPDEPTH + 2);
+         ce.Builder.AssignVariableToTemp(sLeftVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+         ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
          AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
@@ -988,7 +1004,7 @@ namespace Rococo
                }
                else
                {
-                  CompileBinaryBooleanVariableVsVariable(ce, parent, leftString, op, rightString);
+                  CompileBinaryBooleanVariableVsVariable(ce, parent, left, op, right);
                }
             }
 
