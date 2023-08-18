@@ -1308,7 +1308,41 @@ namespace Rococo
 			   return;
 		   }
 
+		   // Too many elements, but maybe enough we proxy the RHS to a 3 element expression
+		   if (explicitKeyword && directive.NumberOfElements() == 5)
+		   {
+			   // (a = b + c) is given  proxy (a = (b + c))
+			   auto& proxyDirective = BindExpressionProxy(ce, directive, 3);
+			   auto& proxyRHS = BindExpressionProxy(ce, proxyDirective.Outer(), 3);
+			   proxyRHS.SetChild(0, directive[2]);
+			   proxyRHS.SetChild(1, directive[3]);
+			   proxyRHS.SetChild(2, directive[4]);
+			   proxyDirective.SetChild(0, directive[0]);
+			   proxyDirective.SetChild(1, directive[1]);
+			   proxyDirective.SetChild(2, proxyRHS.Outer());
+			   CompileAssignmentDirective(ce, proxyDirective.Outer(), varStruct, explicitKeyword);
+			   return;
+		   }
+
+		   // Too many elements, but maybe enough we proxy the RHS to a 3 element expression
+		   if (explicitKeyword && directive.NumberOfElements() == 6)
+		   {
+			   // (Int32 a = b + c) is given  proxy (Int32 a = (b + c))
+			   auto& proxyDirective = BindExpressionProxy(ce, directive, 4);
+			   auto& proxyRHS = BindExpressionProxy(ce, proxyDirective.Outer(), 3);
+			   proxyRHS.SetChild(0, directive[3]);
+			   proxyRHS.SetChild(1, directive[4]);
+			   proxyRHS.SetChild(2, directive[5]);
+			   proxyDirective.SetChild(0, directive[0]);
+			   proxyDirective.SetChild(1, directive[1]);
+			   proxyDirective.SetChild(2, directive[2]);
+			   proxyDirective.SetChild(3, proxyRHS.Outer());
+			   CompileAssignmentDirective(ce, proxyDirective.Outer(), varStruct, explicitKeyword);
+			   return;
+		   }
+
 		   AssertNotTooManyElements(directive, 4 + offset);
+
 		   cr_sex sourceValue = directive.GetElement(3 + offset);
 
 		   if (IsAtomic(sourceValue))

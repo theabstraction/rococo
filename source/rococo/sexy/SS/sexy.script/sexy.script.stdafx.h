@@ -148,6 +148,7 @@ namespace Rococo
             }
         };
 
+        Rococo::Sex::ISExpressionProxy& BindExpressionProxy(CCompileEnvironment& ce, cr_sex sInner, int numberOfElements);
         void ValidateAssignment(cr_sex callDef);
         void InitClassMembers(CCompileEnvironment& ce, cstr id);
         void StreamSTCEX(StringBuilder& sb, const Compiler::STCException& ex);

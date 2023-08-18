@@ -738,6 +738,8 @@ namespace Rococo::Script
 		typedef TSexyHashMap<const Sex::ISExpression*, Script::CClassExpression*> TSReflectMap;
 		TSReflectMap sreflectMap;
 
+		TSexyHashMap<const Sex::ISExpression*, Sex::ISExpressionProxy*> proxyMap;
+
 		struct CharSequence
 		{
 			TSexyVector<char> buffer;
@@ -1048,6 +1050,11 @@ namespace Rococo::Script
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 			serializeId = core.RegisterCallback(OnInvokeSerialize, this, "serialize");
+		}
+
+		TSexyHashMap<const Sex::ISExpression*, Sex::ISExpressionProxy*>& SProxies()
+		{
+			return proxyMap;
 		}
 
 		ISExpressionBuilder* CreateMacroTransform(cr_sex src) override
@@ -2682,6 +2689,13 @@ namespace Rococo::Script
 			delete i.second;
 		}
 
+		for (auto& i : proxyMap)
+		{
+			i.second->Free();
+		}
+
+		proxyMap.clear();
+
 		nsToSecurity.clear();
 	}
 
@@ -2787,6 +2801,39 @@ namespace Rococo::Script
 		Object(script.Object())
 	{
 
+	}
+
+	Rococo::Sex::ISExpressionProxy& BindExpressionProxy(CCompileEnvironment& ce, cr_sex sInner, int numberOfElements)
+	{
+		CScriptSystem& ss = static_cast<CScriptSystem&>(ce.SS);
+
+		auto i = ss.SProxies().insert(std::pair<const Sex::ISExpression*, Sex::ISExpressionProxy*>(&sInner, nullptr));
+		if (i.second)
+		{
+			// Inserted a new proxy
+			try
+			{
+				Sex::ISExpressionProxy* proxy = CreateExpressionProxy(sInner, Rococo::Memory::GetSexyAllocator(), numberOfElements);
+				i.first->second = proxy;
+				return *proxy;
+			}
+			catch (...)
+			{
+				ss.SProxies().erase(i.first);
+				throw;
+			}
+		}
+		else
+		{
+			// Discovered an existant one
+			auto* proxy = i.first->second;
+			if (proxy->Outer().NumberOfElements() != numberOfElements)
+			{
+				Throw(proxy->Outer(), "An attempt was made to create a proxy to an expression multiple times with a different element count");
+			}
+
+			return *proxy;
+		}		
 	}
 
 	GlobalValue* GetGlobalValue(CScript& script, cstr buffer)

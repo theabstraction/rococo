@@ -16263,7 +16263,8 @@ R"(
 
 		(function Main -> (Int32 result):
 			(IRobot robot (NewRobot))
-			(Int32 result = 5 + 9000)
+			(Int32 total = 5 + 9000)
+			(result = total)
 		)
 
 		(alias Main EntryPoint.Main)
@@ -17015,7 +17016,6 @@ R"(
 		start = Time::TickCount();
 
 		TEST(TestGetAccessorSemantics);
-		return;
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

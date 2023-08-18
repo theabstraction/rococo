@@ -372,7 +372,12 @@ namespace Rococo
 		{
 			if (inner.NumberOfElements() < 1)
 			{
-				Throw(inner, "%s: can only create compound proxies", __FUNCTION__);
+				Throw(inner, "%s: can only create proxies for compound elements", __FUNCTION__);
+			}
+
+			if (numberOfElements < 1)
+			{
+				Throw(inner, "%s: can only create compound elements ", __FUNCTION__);
 			}
 
 			void* buffer = nullptr;
