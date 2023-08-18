@@ -829,7 +829,11 @@ namespace Rococo
 
 			if (IsCompound(s))
 			{
-				if (TryCompileFunctionCallAndReturnValue(ce, s, type, NULL, NULL))
+				if (s.NumberOfElements() == 3 && IsArithmeticOperator(s[1]))
+				{
+					// (x OP y) will never be a function call as OP is never a legal argument to a method
+				}
+				else if (TryCompileFunctionCallAndReturnValue(ce, s, type, NULL, NULL))
 				{
 					return true;
 				}
