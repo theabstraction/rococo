@@ -3340,11 +3340,6 @@ namespace Rococo
 				return false;
 			}
 
-			if (!IsAtomic(rhs))
-			{
-				Throw(rhs, "Delta operator '%s' requires rhs is a variable or a literal value", deltaOps[opIndex]);
-			}
-
 			auto type = def.ResolvedType->VarType();
 
 			switch (type)
@@ -3360,10 +3355,8 @@ namespace Rococo
 
 			auto bc = GetBitCount(type);
 
-			cstr src = rhs.c_str();
-
 			VariantValue value;
-			if (Parse::TryParse(value, type, src) == Parse::PARSERESULT_GOOD)
+			if (IsAtomic(rhs) && Parse::TryParse(value, type, rhs.c_str()) == Parse::PARSERESULT_GOOD)
 			{
 				ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
 
@@ -3397,30 +3390,31 @@ namespace Rococo
 			{
 				// Assume rhs argument is source variable
 				MemberDef sourceDef;
-				if (ce.Builder.TryGetVariableByName(sourceDef, src))
+				if (IsAtomic(rhs))
 				{
-					auto srcType = sourceDef.ResolvedType->VarType();
-
-					if (srcType != type)
+					if (ce.Builder.TryGetVariableByName(sourceDef, rhs.c_str()))
 					{
-						Throw(s, "%s and %s must be of the same type", name, src);
-					}
+						auto srcType = sourceDef.ResolvedType->VarType();
+						cstr srcName = rhs.c_str();
+						if (srcType != type)
+						{
+							Throw(s, "%s and %s must be of the same type", name, srcName);
+						}
 
-					ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
-					ce.Builder.AssignVariableToTemp(src, 0); // src variable value is now in D4
+						ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
+						ce.Builder.AssignVariableToTemp(srcName, 0); // src variable value is now in D4
+					}
+				}
+
+				if (TryCompileArithmeticExpression(ce, rhs, true, type))
+				{
+					// value is now assembled to copy to D7
+					ce.Builder.AssignVariableToTemp(name, 1);
+					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, GetBitCount(type));
 				}
 				else
 				{
-					if (TryCompileFunctionCallAndReturnValue(ce, rhs, type, nullptr, nullptr))
-					{
-						// value is now assembled to copy to D7
-						ce.Builder.AssignVariableToTemp(name, 1);
-						ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, GetBitCount(type));
-					}
-					else
-					{
-						Throw(rhs, "For the delta operation on %s - do not know how to handle the RHS. Try assigning to a variable first then pass to the delta expression.", name);
-					}
+					Throw(rhs, "For the delta operation on %s - do not know how to handle the RHS. Try assigning to a variable first then pass to the delta expression.", name);
 				}
 
 				if (type == VARTYPE_Int32 || type == VARTYPE_Int64)
