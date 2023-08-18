@@ -16293,6 +16293,59 @@ R"(
 	   validate(x == expectation);
    }
 
+   void TestGetAccessorSemantics3(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(class Robot (defines Sys.Type.IRobot)
+		)
+
+		(method Robot.Construct :
+		)
+
+		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+		(method Robot.IsHot -> (Bool result):
+			(result = true)
+		)
+
+		(function Main -> (Int32 result):
+			(IRobot robot (NewRobot))
+			(Bool isHot = true and robot.IsHot)
+			(if isHot (result = 9005))
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 9005;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
    void TestGetAccessorSemantics2(IPublicScriptSystem& ss)
    {
 	   cstr src =
@@ -17042,6 +17095,8 @@ R"(
 		TEST(TestThrowFromCatch);
 		TEST(TestStringArray);
 		TEST(TestGetAccessorSemantics);
+		TEST(TestGetAccessorSemantics2);
+		TEST(TestGetAccessorSemantics3);
 	}
 
 	void RunPositiveFailures()
@@ -17070,7 +17125,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		TEST(TestGetAccessorSemantics2);
+		TEST(TestGetAccessorSemantics3);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

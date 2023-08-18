@@ -416,29 +416,38 @@ namespace Rococo
          }
       }
 
-      void CompileBinaryBooleanLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, int literalValue, LOGICAL_OP op, cstr variableName)
+      void CompileBinaryBooleanLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, int literalValue, LOGICAL_OP op, cr_sex sVariableName)
       {
-         VARTYPE varType = ce.Builder.GetVarType(variableName);
-         if (varType == VARTYPE_Bad)
-         {
-            Throw(parent, ("Cannot resolve variable as a literal or identifier"));
-         }
-         else if (varType == VARTYPE_Derivative)
-         {
-            Throw(parent, ("Cannot compare derived types"));
-         }
-         else if (varType != VARTYPE_Bool)
-         {
-            Throw(parent, ("Cannot logically implicitly cast variable to a boolean"));
-         }
+          VariantValue lValue;
+          lValue.int32Value = literalValue;
 
-         VariantValue lValue;
-         lValue.int32Value = literalValue;
+          cstr variableName = sVariableName.c_str();
 
-         ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
-         ce.Builder.AssignVariableToTemp(variableName, Rococo::ROOT_TEMPDEPTH + 2);
-         AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
+          VARTYPE varType = ce.Builder.GetVarType(variableName);
+          if (varType == VARTYPE_Bad)
+          {
+              if (!TryCompileArithmeticExpression(ce, sVariableName, false, VARTYPE_Bool))
+              {
+                  Throw(sVariableName, "Could not parse %s as either as a literal, a variable or anything else", variableName);
+              }
 
+              // Assembly now puts the value in D7
+              ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
+              AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH+1, Rococo::ROOT_TEMPDEPTH, op);
+              return;
+          }
+          else if (varType == VARTYPE_Derivative)
+          {
+              Throw(parent, ("Cannot compare derived types"));
+          }
+          else if (varType != VARTYPE_Bool)
+          {
+              Throw(parent, ("Cannot logically implicitly cast variable to a boolean"));
+          }
+
+          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
+          ce.Builder.AssignVariableToTemp(variableName, Rococo::ROOT_TEMPDEPTH + 2);
+          AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
       void CompileBinaryCompareLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, cstr leftString, VARTYPE lType, CONDITION op, cstr rightVarName)
@@ -967,7 +976,7 @@ namespace Rococo
                }
                else
                {
-                  CompileBinaryBooleanLiteralVsVariable(ce, parent, lValue, op, rightString);
+                  CompileBinaryBooleanLiteralVsVariable(ce, parent, lValue, op, right);
                }
             }
             else
@@ -975,7 +984,7 @@ namespace Rococo
                int32 rValue;
                if (Parse::TryParseBoolean(OUT rValue, IN rightString) == Parse::PARSERESULT_GOOD)
                {
-                  CompileBinaryBooleanLiteralVsVariable(ce, parent, rValue, op, leftString);
+                  CompileBinaryBooleanLiteralVsVariable(ce, parent, rValue, op, left);
                }
                else
                {
