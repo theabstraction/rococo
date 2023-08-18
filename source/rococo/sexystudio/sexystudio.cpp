@@ -1930,10 +1930,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 				char prefixString[128];
 				CopyWithTruncate(prefix, prefixString, sizeof prefixString);
 
-				cstr separator = (prefix && prefix.finish[-1] == '.') ? "" : ".";
-
 				char item[256];
-				SafeFormat(item, "%s%s%s", prefixString, separator, fieldName);
+				SafeFormat(item, "%s%s", prefixString, fieldName);
 				builder.AddItem(item);
 			}
 			else

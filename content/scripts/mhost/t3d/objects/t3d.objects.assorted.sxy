@@ -35,6 +35,7 @@
 	(alias MakeLamp T3D.Objects.MakeLamp)
 	
 	(alias AddBottle T3D.Objects.AddBottle)
+	(alias AddBrick T3D.Objects.AddBrick)
 	(alias AddLight T3D.Objects.AddLight)
 	(alias AddFloor T3D.Objects.AddFloor)
 	(alias AddLandscape T3D.Objects.AddLandscape)
@@ -115,6 +116,7 @@
 )
 
 (function MakeCube (IString meshName)(Float32 width) -> :
+	(IQuadStackTesselator qst (QuadStackTesselator))
 )
 
 (function MakeFloor (IString meshName) -> :
@@ -190,6 +192,69 @@
 	(bottle.SetMeshByName "potion.1")
 	
 	(scene.AddStatics bottleId)
+)
+
+(function MakeBrick (IString meshId)-> :
+	(Rococo.Graphics.IQuadStackTesselator qst (Rococo.Graphics.QuadStackTesselator))
+	(IMaterialBuilder mats (MaterialBuilder))
+	(MaterialVertexData glass)
+	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
+	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(Rococo.Graphics.IMeshBuilder mb (Rococo.Graphics.MeshBuilder))
+	(mb.Begin meshId)
+	
+	(Vec3 up = 0 0 1)
+	(RGBAb whiteRGBAb = (Sys.Type.ToRGBAb 1 1 1 1))
+	(Int32 white = whiteRGBAb.Value)
+	
+	(QuadVertices topQuad)
+	(topQuad.positions.a = -0.1  0.1 0.1)
+	(topQuad.positions.b =  0.1  0.1 0.1)
+	(topQuad.positions.c =  0.1 -0.1 0.1)
+	(topQuad.positions.d = -0.1 -0.1 0.1)
+	(topQuad.uv = 0 0 1 1)
+	(topQuad.normals = up up up up)
+	(topQuad.colours = white white white white)
+	
+	(qst.PushQuad topQuad glass)
+	
+	(qst.MoveInputToOutput)
+	
+	(VertexTriangle topRight)
+	(VertexTriangle bottomLeft)
+	
+	(while (qst.PopOutputAsTriangles topRight bottomLeft)
+		(mb.AddTriangleEx topRight)
+		(mb.AddTriangleEx bottomLeft)
+	)
+	
+	(mb.End true false)
+	(mb.SetShadowCasting meshId true)
+)
+
+(function AddBrick (ISceneBuilder scene)-> :
+	(MakeBrick "brick.1") 
+	
+	(Matrix4x4 model = 
+		(1 0 0 0)
+		(0 1 0 2)
+		(0 0 1 0.26) 
+		(0 0 0 1)
+	)
+	
+	(Vec3 scale = 1 1 1)
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID brickId = ecs.NewROID)
+	
+	(IBody brick (AddBody brickId))
+	(brick.SetScale scale)
+	(brick.SetModelMatrix model)
+	(brick.SetMeshByName "brick.1")
+	
+	(scene.AddStatics brickId)
 )
 
 (function AddFloor (ISceneBuilder scene)-> :

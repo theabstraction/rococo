@@ -1212,9 +1212,50 @@ void TestComplexCase1()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestSuggestAtDot()
+{
+	printf(__FUNCTION__ "\n");
+
+	cstr file =
+		R"<CODE>(
+(method Do -> :
+	(Rococo.Graphics.IQuadStackTesselator qst)
+
+	(qst.
+))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestSuggestBeyondDot()
+{
+	printf(__FUNCTION__ "\n");
+
+	cstr file =
+		R"<CODE>(
+(method Do -> :
+	(Rococo.Graphics.IQuadStackTesselator qst)
+
+	(qst.Move
+))<CODE>";
+
+	FileDesc desc(file, 'e');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
+	TestSuggestAtDot();
+//	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue();
+	TestSuggestBeyondDot();
+
+	return;
 	TestFullEditor_SearchFQType();
 	TestFullEditor_SearchForMacro();
 	TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();

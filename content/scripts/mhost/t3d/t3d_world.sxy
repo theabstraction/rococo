@@ -112,6 +112,7 @@
 	
 	(AddBottle scene)
 	(AddFloor scene)
+	(AddBrick scene)
 //	(AddLandscape scene)
 	(AddLight scene this)
 //	(Rigs.AddRigs scene this)

@@ -2164,7 +2164,7 @@ namespace ANON
 			return false;
 		}
 
-		bool AppendMethodsFromType(cr_substring variableName, ISxyNamespace& ns, cr_substring type, ISexyFieldEnumerator& fieldEnumerator, int depth = 0)
+		bool AppendMethodsFromType(cr_substring variableName, cstr candidateFinish, ISxyNamespace& ns, cr_substring type, ISexyFieldEnumerator& fieldEnumerator, int depth = 0)
 		{
 			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
@@ -2186,26 +2186,35 @@ namespace ANON
 				return false;
 			}
 
+			cstr lastDotPos = Strings::ReverseFind('.', variableName);
+			Substring methodPrefix{ lastDotPos + 1, candidateFinish };
+
+			char prefix[64];
+			SubstringToString(prefix, sizeof prefix, methodPrefix);
+
 			if (depth == 0) fieldEnumerator.OnHintFound(ToSubstring(typeString));
 
-			if (variableName.finish[-1] == '.')
+			for (int k = 0; k < pInterfaceType->MethodCount(); ++k)
 			{
-				for (int k = 0; k < pInterfaceType->MethodCount(); ++k)
-				{
-					auto& method = pInterfaceType->GetMethod(k);
-					fieldEnumerator.OnField(method.PublicName(), Substring::Null());
-				}
+				auto& method = pInterfaceType->GetMethod(k);
 
-				cstr base = pInterfaceType->Base();
-				if (base)
+				cstr publicName = method.PublicName();
+
+				if (StartsWith(publicName, prefix))
 				{
-					// Commented out for now. Notepad++ does not have a way to flag an item as a category string
-					// char baseIndicator[128];
-					// SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
-					// fieldEnumerator.OnField(baseIndicator, Substring::Null());
-					AppendMethodsFromType(variableName, ns, ToSubstring(base), fieldEnumerator, depth + 1);
-					return true;
+					fieldEnumerator.OnField(publicName + methodPrefix.Length(), Substring::Null());
 				}
+			}
+
+			cstr base = pInterfaceType->Base();
+			if (base)
+			{
+				// Commented out for now. Notepad++ does not have a way to flag an item as a category string
+				// char baseIndicator[128];
+				// SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
+				// fieldEnumerator.OnField(baseIndicator, Substring::Null());
+				AppendMethodsFromType(variableName, candidateFinish, ns, ToSubstring(base), fieldEnumerator, depth + 1);
+				return true;
 			}
 
 			return true;
@@ -2227,25 +2236,36 @@ namespace ANON
 			{
 				if (!candidate) return false;
 
+				/*
 				if (candidate.finish[-1] != '.')
 				{
 					// We only append methods if the last character is a dot
 					return false;
 				}
+				*/
 
-				for (cstr i = candidate.finish - 2; i >= candidate.start; --i)
+				Substring objectName = candidate;
+
+				// We show methods if either the caret lands on a dot, or lands on capitals after the dot
+				if (objectName.finish[-1] != '.')
 				{
-					if (*i == '.')
+					for (cstr i = candidate.finish - 2; i >= candidate.start; --i)
 					{
-						if (!islower(i[1]))
+						if (*i == '.')
 						{
-							// Not a type character
-							return false;
+							if (!isupper(i[1]))
+							{
+								// Not a method character
+								return false;
+							}
+
+							objectName.finish = i + 1;
+							break;
 						}
 					}
 				}
 
-				return AppendMethodsFromType(candidate, root, typeString, fieldEnumerator);
+				return AppendMethodsFromType(objectName, candidate.finish, root, typeString, fieldEnumerator);
 			}
 		}
 
