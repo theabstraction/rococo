@@ -594,7 +594,7 @@ namespace
 			}
 			case EPaneId_ID_SOURCE:
 			{
-				auto report = Windows::IDE::CreateTextWindow(parent);
+				auto report = Windows::IDE::CreateTextWindow(parent, true);
 				report->SetFont(hFont);
 				return report;
 			}

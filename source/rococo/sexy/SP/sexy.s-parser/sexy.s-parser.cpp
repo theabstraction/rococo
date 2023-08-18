@@ -254,5 +254,146 @@ namespace Rococo
 				Throw(e, "Expression had fewer than the minimum of %d element(s)", minElements);
 			}
 		}
+
+		struct ExpressionProxy: ISExpressionProxy, ISExpression
+		{
+			IAllocator& allocator;
+			cr_sex inner;
+			int numberOfElements;
+
+			std::vector<const ISExpression*> children;
+
+			ExpressionProxy(cr_sex _inner, IAllocator& _allocator, int _numberOfElements) :
+				inner(_inner), allocator(_allocator), numberOfElements(_numberOfElements)
+			{
+				children.resize(numberOfElements);
+			}
+
+			void Free()
+			{
+				this->~ExpressionProxy();
+				allocator.FreeData(this);
+			}
+
+			cr_sex Outer() override
+			{
+				return *this;
+			}
+
+			cstr c_str() const override
+			{
+				return String()->Buffer;  // throws
+			}
+
+			const Vec2i Start() const override
+			{
+				return inner.Start();
+			}
+
+			const Vec2i End() const override
+			{
+				return inner.End();
+			}
+
+			EXPRESSION_TYPE Type() const override
+			{
+				return EXPRESSION_TYPE_COMPOUND;
+			}
+
+			const sexstring String() const override
+			{
+				Throw(inner, "Compound expression");
+			}
+
+			const ISParserTree& Tree() const override
+			{
+				return inner.Tree();
+			}
+
+			int NumberOfElements() const override
+			{
+				return numberOfElements;
+			}
+
+			const ISExpression& GetElement(int index) const override
+			{
+				if (index < 0 || index >= numberOfElements)
+				{
+					Throw(inner, "Bad expression index");
+				}
+
+				if (!children[index])
+				{
+					Throw(inner, "Expression proxy was not assigned a child at index %d", index);
+				}
+
+				return *children[index];
+			}
+
+			int GetIndexOf(cr_sex s) const override
+			{
+				for (int i = 0; i < numberOfElements; ++i)
+				{
+					if (&s == children[i])
+					{
+						return i;
+					}
+				}
+
+				return -1;
+			}
+
+			const ISExpression* Parent() const override
+			{
+				return inner.Parent();
+			}
+
+			void SetChild(int index, cr_sex sChild) override
+			{
+				if (index < 0 || index >= numberOfElements)
+				{
+					Throw(inner, "ExpressionProxy::SetChild(%d) -> bad index. Range is 1 to %d", index, numberOfElements - 1);
+				}
+				children[index] = &sChild;
+			}
+
+			const ISExpression* GetOriginal() const override
+			{
+				return inner.GetOriginal();
+			}
+
+			bool operator == (const char* token) const override
+			{
+				return token == c_str(); // throws
+			}
+		};
+
+		SEXY_SPARSER_API ISExpressionProxy* CreateExpressionProxy(cr_sex inner, IAllocator& allocator, int numberOfElements)
+		{
+			if (inner.NumberOfElements() < 1)
+			{
+				Throw(inner, "%s: can only create compound proxies", __FUNCTION__);
+			}
+
+			void* buffer = nullptr;
+			ExpressionProxy* result = nullptr;
+
+			try
+			{
+				buffer = allocator.Allocate(sizeof ExpressionProxy);
+				result = new (buffer) ExpressionProxy(inner, allocator, numberOfElements);
+			}
+			catch (...)
+			{
+				if (buffer)
+				{
+					allocator.FreeData(buffer);
+				}
+
+				throw;
+			}
+
+			return result;
+		}
 	}
 }

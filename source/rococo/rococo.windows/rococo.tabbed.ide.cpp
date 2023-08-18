@@ -97,66 +97,70 @@ namespace
 
    class IDEWriterViaSexy : public IIDEWriter
    {
-      int depth;
+      int depth = 0;
 
-      char writeBuffer[32768];
-      StackStringBuilder sb;
+      AutoFree<IDynamicStringBuilder> sb;
    public:
-      IDEWriterViaSexy() :
-         depth(0), sb(writeBuffer, sizeof(writeBuffer))
+      IDEWriterViaSexy()
       {
+          sb = CreateDynamicStringBuilder(4096);
+      }
+
+      auto& SB()
+      {
+          return sb->Builder();
       }
 
       void Commit(cstr filename)
       {
-         IO::SaveUserFile(filename, writeBuffer);
+         IO::SaveUserFile(filename, *sb->Builder());
       }
 
       void AppendDepth()
       {
          for (int i = 0; i < depth; ++i)
          {
-            sb.AppendFormat("  ");
+             SB().AppendFormat("  ");
          }
       }
 
       void WriteText(cstr propName, cstr value) override // TODO->escape sequences
       {
          AppendDepth();
-         sb.AppendFormat("(%s string \"%s\")\n", propName, value);
+         SB().AppendFormat("(%s string \"%s\")\n", propName, value);
       }
 
       void WriteText(cstr propName, const wchar_t* value) override // TODO->escape sequences
       {
           AppendDepth();
-          sb.AppendFormat("(%s string \"%ls\")\n", propName, value);
+          SB().AppendFormat("(%s string \"%ls\")\n", propName, value);
       }
 
       void WriteInt(cstr propName, int32 value) override
       {
          AppendDepth();
-         sb.AppendFormat("(%s int32 0x%X)\n", propName, value);
+         SB().AppendFormat("(%s int32 0x%X)\n", propName, value);
       }
 
       void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container) override
       {
          AppendDepth();
-         sb.AppendFormat("(%s array IDEPANE_ID ", propName);
+         SB().AppendFormat("(%s array IDEPANE_ID ", propName);
 
          container.Begin();
          while (!container.IsEnd())
          {
             auto id = container.Next();
-            sb.AppendFormat(" 0x%X", id.value);
+            SB().AppendFormat(" 0x%X", id.value);
          }
 
-         sb.AppendFormat(")\n");
+         SB().AppendFormat(")\n");
       }
 
       void PushChild() override
       {
          AppendDepth();
-         sb.AppendFormat("(child \n");
+         SB().AppendFormat("(child \n");
          depth++;
       }
 
@@ -164,7 +168,7 @@ namespace
       {
          depth--;
          AppendDepth();
-         sb.AppendFormat(")\n");
+         SB().AppendFormat(")\n");
       }
    };
 
@@ -696,7 +700,7 @@ namespace
          }
       }
 
-      virtual void OnMenuCommand(HWND, DWORD controlId)
+      void OnMenuCommand(HWND, DWORD controlId) override
       {
          switch (controlId)
          {
@@ -809,7 +813,7 @@ namespace
           return EMigrationState::NOTHING_CHANGED;
       }
 
-      virtual LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+      LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
       {
          if (msg == WM_SPLITTER_DRAGGED)
          {
@@ -894,12 +898,12 @@ namespace
          return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
       }
 
-      virtual void OnSize(HWND, const Vec2i&, RESIZE_TYPE)
+      void OnSize(HWND, const Vec2i&, RESIZE_TYPE) override
       {
          LayoutChildren();
       }
 
-      virtual void OnSelectionChanged(int index)
+      void OnSelectionChanged(int index) override
       {
          if (tabView != nullptr)
          {
@@ -917,7 +921,7 @@ namespace
          }
       }
 
-      virtual void OnTabRightClicked(int index, const POINT& screenPos)
+      void OnTabRightClicked(int index, const POINT& screenPos) override
       {
          moveTabIndex = index;
          TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, *window, NULL);
@@ -935,7 +939,7 @@ namespace
          return node;
       }
 
-      void SetFontRecursive(HFONT hFont)
+      void SetFontRecursive(HFONT hFont) override
       {
          SendMessage(*window, WM_SETFONT, (WPARAM)hFont, FALSE);
 
@@ -950,7 +954,7 @@ namespace
          }
       }
 
-      IIDENode* FindPane(IDEPANE_ID id)
+      IIDENode* FindPane(IDEPANE_ID id) override
       {
          if (tabView != nullptr)
          {
@@ -1533,9 +1537,146 @@ namespace
 	   }
    };
 
+   class CodeSideWindow : public IWindowSupervisor, StandardWindowHandler
+   {
+       AutoFree<IParentWindowSupervisor> window;
+       IWindow& parent;
+       IRichEditor* editor = nullptr;
+   public:
+
+       CodeSideWindow(IWindow& _parent) : parent(_parent)
+       {
+
+       }
+
+       static CodeSideWindow* Create(IWindow& parent)
+       {
+           CodeSideWindow* sideWindow = new CodeSideWindow(parent);
+
+           GuiRect initRect{ 0, 0, 100, 400 };
+
+           WindowConfig config;
+           Windows::SetChildWindowConfig(config, initRect, parent, "side-view", WS_VISIBLE | WS_CHILD, 0);
+           sideWindow->window = Windows::CreateChildWindow(config, &sideWindow->Handler());
+
+           return sideWindow;
+       }
+
+       void Free() override
+       {
+           delete this;
+       }
+
+       operator HWND() const override
+       {
+           return *window;
+       }
+
+       IWindowHandler& Handler() override
+       {
+           return *this;
+       }
+
+       void OnPaint(HWND hWnd, PAINTSTRUCT&, HDC hdc) override
+       {
+           RECT clientRect;
+           GetClientRect(hWnd, &clientRect);
+
+           HBRUSH hBackBrush = CreateSolidBrush(RGB(32, 0, 0));
+           FillRect(hdc, &clientRect, hBackBrush);
+           DeleteObject(hBackBrush);
+
+           if (!editor)
+           {
+               return;
+           }
+
+
+       }
+
+       void Monitor(IRichEditor* editor)
+       {
+           this->editor = editor;
+       }
+   };
+
+   class CodeEditorWindow : public IWindowSupervisor, StandardWindowHandler
+   {
+       AutoFree<CodeSideWindow> codeSideWindow;
+       AutoFree<IParentWindowSupervisor> window;
+       IWindow& parent;
+       IRichEditor* editor = nullptr;
+       bool addSideControls = false;
+
+       CodeEditorWindow(IWindow& _parent): parent(_parent)
+       {
+
+       }
+
+   public:
+       static CodeEditorWindow* Create(IWindow& parent, bool isSourceCode)
+       {
+           CodeEditorWindow* newWindow = new CodeEditorWindow(parent);
+           newWindow->addSideControls = isSourceCode;
+
+           GuiRect initRect{ 0, 0, 100, 400 };
+
+           WindowConfig config;
+           Windows::SetChildWindowConfig(config, initRect, parent, "code-lines", WS_VISIBLE | WS_CHILD, 0);
+           newWindow->window = Windows::CreateChildWindow(config, &newWindow->Handler());
+           newWindow->codeSideWindow = CodeSideWindow::Create(*newWindow->window);
+
+           return newWindow;
+       }
+
+       void Monitor(IRichEditor* editor)
+       {
+           this->editor = editor;
+           codeSideWindow->Monitor(editor);
+       }
+
+       void Free() override
+       {
+           delete this;
+       }
+
+       operator HWND() const override
+       {
+           return *window;
+       }
+
+       IWindowHandler& Handler() override
+       {
+           return *this;
+       }
+
+       void OnSize(HWND, const Vec2i& span, RESIZE_TYPE)
+       {
+           if (editor)
+           {
+               if (span.x > 0)
+               {
+                   int32 sideControlspan = 10;
+                   if (span.x > sideControlspan && addSideControls)
+                   {
+                       MoveWindow(*codeSideWindow, 0, 0, sideControlspan, span.y, TRUE);
+                       MoveWindow(*editor, sideControlspan, 0, span.x - sideControlspan, span.y, TRUE);
+                   }
+                   else
+                   {
+                       MoveWindow(*codeSideWindow, 0, 0, 0, 0, TRUE);
+                       MoveWindow(*editor, 0, 0, span.x, span.y, TRUE);
+                   }
+               }
+           }
+       }
+   };
+
    class IDETextWindow : public StandardWindowHandler, public IRichEditorEvents, public IIDETextWindow
    {
    private:
+       HWND hWnd;
+      AutoFree<CodeEditorWindow> codeEditor;
       AutoFree<IRichEditor> editor;
 	  std::unordered_map<std::string, std::vector<uint8>> mapMenuItemToCommand;
 
@@ -1551,9 +1692,11 @@ namespace
       {
       }
 
-      void PostConstruct(IWindow& parent)
+      void PostConstruct(IWindow& parent, bool isSourceCode)
       {
-         editor = Windows::AddRichEditor(parent, GuiRect{ 0,0,1,1 }, nullptr, 0x5300, *this, ES_READONLY | ES_MULTILINE | WS_HSCROLL | WS_VSCROLL, 0);
+          codeEditor = CodeEditorWindow::Create(parent, isSourceCode);
+          editor = Windows::AddRichEditor(*codeEditor, GuiRect{ 0,0,1,1 }, nullptr, 0x5300, *this, ES_READONLY | ES_MULTILINE | WS_HSCROLL | WS_VSCROLL, 0);
+          codeEditor->Monitor(editor);
       }
 
 	  void SendCommandBody(cstr name, const uint8* data, size_t len)
@@ -1635,10 +1778,10 @@ namespace
 		  this->eventCallback = eventCallback;
 	  }
    public:
-      static IIDETextWindow* Create(IWindow& parent)
+      static IIDETextWindow* Create(IWindow& parent, bool isSourceCode)
       {
          auto node = new IDETextWindow();
-         node->PostConstruct(parent);
+         node->PostConstruct(parent, isSourceCode);
          return node;
       }
 
@@ -1674,7 +1817,7 @@ namespace
 
       virtual operator HWND () const override
       {
-         return *editor;
+         return *codeEditor;
       }
 
       virtual void SetFont(HFONT hFont) override
@@ -1800,9 +1943,9 @@ namespace Rococo
     {
         namespace IDE
         {
-            IIDETextWindow* CreateTextWindow(IWindow& parent)
+            IIDETextWindow* CreateTextWindow(IWindow& parent, bool isSourceCode)
             {
-                return IDETextWindow::Create(parent);
+                return IDETextWindow::Create(parent, isSourceCode);
             }
 
             IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler)

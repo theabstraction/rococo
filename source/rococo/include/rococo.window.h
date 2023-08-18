@@ -470,7 +470,7 @@ namespace Rococo
 			   virtual IListViewSupervisor& GetListViewSupervisor() = 0;
 			};
 
-			ROCOCO_WINDOWS_API IIDETextWindow* CreateTextWindow(IWindow& parent);
+			ROCOCO_WINDOWS_API IIDETextWindow* CreateTextWindow(IWindow& parent, bool isSourceCode = false);
 			ROCOCO_WINDOWS_API IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
 			ROCOCO_WINDOWS_API IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler, bool ownerDraw);
 			ROCOCO_WINDOWS_API ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTW& logFont, cstr file_prefix);

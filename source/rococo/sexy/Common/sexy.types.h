@@ -295,6 +295,16 @@ namespace Rococo
 			virtual ISExpressionBuilder* InsertChildAfter(int index) = 0;
 		};
 
+		// An interface that incapsulates a foreign cr_sex, but passes descendant and ancestor queries to that of the orginator
+		ROCOCO_INTERFACE ISExpressionProxy
+		{
+			virtual cr_sex Outer() = 0;
+			virtual void Free() = 0;
+			virtual void SetChild(int index, cr_sex sChild) = 0;
+		};
+
+		SEXY_SPARSER_API ISExpressionProxy* CreateExpressionProxy(cr_sex inner, IAllocator& allocator, int numberOfElements);
+
 		ROCOCO_INTERFACE IExpressionTransform
 		{
 			virtual ISExpressionBuilder& Root() = 0;
