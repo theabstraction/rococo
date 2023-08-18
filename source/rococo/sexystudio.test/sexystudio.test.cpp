@@ -880,8 +880,15 @@ struct FileDesc
 	}
 };
 
+void Intro(cstr text)
+{
+	printf("<<<<<<< %s\n", text);
+}
+
 void TestFullEditor_SearchLocalStructForInterface()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((using Sys.Type)
 (using Sys.Maths)
@@ -914,6 +921,8 @@ void TestFullEditor_SearchLocalStructForInterface()
 
 void TestFullEditor_SearchLocalStructForInterfaceMethod()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((using Sys.Type)
 (using Sys.Maths)
@@ -945,6 +954,8 @@ void TestFullEditor_SearchLocalStructForInterfaceMethod()
 
 void TestFullEditor_SearchLocalStructForM4x4()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
  (alias Main EntryPoint.Main)
@@ -969,6 +980,8 @@ void TestFullEditor_SearchLocalStructForM4x4()
 
 void TestFullEditor_SearchLocalStructForIString()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
  (alias Main EntryPoint.Main)
@@ -993,6 +1006,8 @@ void TestFullEditor_SearchLocalStructForIString()
 
 void TestFullEditor_SearchLocalStructForIStringAndDot()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
  (alias Main EntryPoint.Main)
@@ -1017,6 +1032,8 @@ void TestFullEditor_SearchLocalStructForIStringAndDot()
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStruct()
 {
+	Intro(__FUNCTION__);
+
 cstr file =
 		R"<CODE>((namespace EntryPoint)
  (alias Main EntryPoint.Main)
@@ -1044,6 +1061,8 @@ cstr file =
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
 (alias Main EntryPoint.Main)
@@ -1071,6 +1090,8 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
 (alias Main EntryPoint.Main)
@@ -1098,6 +1119,8 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue
 
 void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
 (alias Main EntryPoint.Main)
@@ -1117,6 +1140,8 @@ void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
 
 void TestFullEditor_SearchFQType()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
 (alias Main EntryPoint.Main)
@@ -1134,6 +1159,8 @@ void TestFullEditor_SearchFQType()
 
 void TestFullEditor_SearchForFactories()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
 (alias Main EntryPoint.Main)
@@ -1150,6 +1177,8 @@ void TestFullEditor_SearchForFactories()
 
 void TestFullEditor_SearchForFactories2()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
 (alias Main EntryPoint.Main)
@@ -1167,6 +1196,8 @@ void TestFullEditor_SearchForFactories2()
 
 void TestFullEditor_SearchForMacro()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
 (alias Main EntryPoint.Main)
@@ -1184,6 +1215,8 @@ void TestFullEditor_SearchForMacro()
 
 void TestComplexCase1()
 {
+	Intro(__FUNCTION__);
+
 	cstr file =
 		R"<CODE>(
 (method OverlayButtonHandler.BuildMenus -> :
@@ -1214,7 +1247,7 @@ void TestComplexCase1()
 
 void TestSuggestAtDot()
 {
-	printf(__FUNCTION__ "\n");
+	Intro(__FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -1232,7 +1265,7 @@ void TestSuggestAtDot()
 
 void TestSuggestBeyondDot()
 {
-	printf(__FUNCTION__ "\n");
+	Intro(__FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -1248,15 +1281,85 @@ void TestSuggestBeyondDot()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFullEditor_SearchFQType2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(function Main -> (Int32 exitCode):
+	(Sys.Maths.Matrix4x4 m)
+	(m.r
+)
+)<CODE>";
+
+	FileDesc desc(file, 'r');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestDeepMemberInference()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(method Dog.Bark -> :
+		(Rococo.QuadVertices topQuad)
+		(topQuad.positions.a = -0.1  0.1 0.1)
+		(topQuad.positions.b = 0.1  0.1 0.1)
+		(topQuad.positions.c = 0.1 - 0.1 0.1)
+		(topQuad.positions.d = -0.1 - 0.1 0.1)
+		(topQuad.uv = 0 0 1 1)
+		(topQuad.normals = up up up up)
+		(topQuad.colours = white white white white)
+		(topQuad.positions.a
+	))<CODE>";
+
+	FileDesc desc(file, 'a');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestDeepMemberInference2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(method Dog.Bark -> :
+		(Rococo.QuadVertices topQuad)
+		(topQuad.positions.a = -0.1  0.1 0.1)
+		(topQuad.positions.b = 0.1  0.1 0.1)
+		(topQuad.positions.c = 0.1 - 0.1 0.1)
+		(topQuad.positions.d = -0.1 - 0.1 0.1)
+		(topQuad.uv = 0 0 1 1)
+		(topQuad.normals = up up up up)
+		(topQuad.colours = white white white white)
+		(topQuad.positions.
+	))<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
-	pluginInit(NULL);
-	TestSuggestAtDot();
-//	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue();
-	TestSuggestBeyondDot();
-
-	return;
+	pluginInit(NULL);	
+	TestDeepMemberInference2();
+	TestDeepMemberInference();
 	TestFullEditor_SearchFQType();
+	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue();
+	TestFullEditor_SearchFQType2();
+	TestSuggestAtDot();
+	TestSuggestBeyondDot();
 	TestFullEditor_SearchForMacro();
 	TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder();
 	TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue();

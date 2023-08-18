@@ -2089,7 +2089,7 @@ namespace ANON
 			return SearchForLocalTypeWithoutRecursion(ns, subsearch);
 		}
 
-		void AppendFieldsFromTypeRef(ISXYType& type, ISexyFieldEnumerator& fieldEnumerator)
+		void AppendFieldsFromTypeRef(ISXYType& type, cstr prependString, ISexyFieldEnumerator& fieldEnumerator)
 		{
 			auto* localType = type.LocalType();
 			if (localType)
@@ -2097,15 +2097,44 @@ namespace ANON
 				for (int k = 0; k < localType->FieldCount(); ++k)
 				{
 					auto field = localType->GetField(k);
-					fieldEnumerator.OnField(field.name, Substring::Null());
+					char buffer[128];
+					SafeFormat(buffer, "%s%s", prependString, field.name);
+					fieldEnumerator.OnField(buffer, Substring::Null());
 				}
 			}
+		}
+
+		bool AppendFieldsFromTypeRefWithPrefix(cr_substring memberPrefix, ISXYType& type, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			size_t len = memberPrefix.Length();
+
+			int outputCount = 0;
+
+			auto* localType = type.LocalType();
+			if (localType)
+			{
+				for (int k = 0; k < localType->FieldCount(); ++k)
+				{
+					auto field = localType->GetField(k);
+					if (StartsWith(field.name, memberPrefix))
+					{
+						fieldEnumerator.OnField(field.name + len, Substring::Null());
+						outputCount++;
+					}
+				}
+			}
+
+			return outputCount > 0;
 		}
 
 		cstr FindFieldTypeByName(ISXYLocalType& localType, cr_substring qualifiedVariableName)
 		{
 			Substring child = RightOfFirstChar('.', qualifiedVariableName);
 			Substring parent = (child) ? Substring { qualifiedVariableName.start, child.start - 1 } : qualifiedVariableName;
+			if (parent.finish[-1] == '.')
+			{
+				parent.finish--;
+			}
 
 			for (int k = 0; k < localType.FieldCount(); ++k)
 			{
@@ -2139,7 +2168,8 @@ namespace ANON
 			{
 				if (type)
 				{
-					AppendFieldsFromTypeRef(*type, fieldEnumerator);
+					cstr prependString = variableName.finish[-1] == '.' ? "" : ".";
+					AppendFieldsFromTypeRef(*type, prependString, fieldEnumerator);
 					return true;
 				}
 				else
@@ -2160,8 +2190,11 @@ namespace ANON
 				fieldEnumerator.OnHintFound(ToSubstring(fieldType));
 				return AppendFieldsFromType(childVariable, ns, ToSubstring(fieldType), fieldEnumerator);
 			}
-
-			return false;
+			else
+			{
+				// If we cannot find a field with the given name, perhaps we can find fields that match the 'childVariable' as a prefix
+				return AppendFieldsFromTypeRefWithPrefix(childVariable, *type, fieldEnumerator);
+			}
 		}
 
 		bool AppendMethodsFromType(cr_substring variableName, cstr candidateFinish, ISxyNamespace& ns, cr_substring type, ISexyFieldEnumerator& fieldEnumerator, int depth = 0)
@@ -2223,10 +2256,11 @@ namespace ANON
 		bool EnumerateVariableAndFieldList(cr_substring candidate, cr_substring typeString, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			Substring variableName = candidate;
-			if (variableName && variableName.finish[-1] == '.')
+	/*		if (variableName && variableName.finish[-1] == '.')
 			{
 				variableName.finish--;
 			}
+			*/
 			auto& root = GetRootNamespace();
 			if (AppendFieldsFromType(variableName, root, typeString, fieldEnumerator))
 			{

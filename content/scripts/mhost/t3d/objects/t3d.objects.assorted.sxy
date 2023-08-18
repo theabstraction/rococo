@@ -217,7 +217,6 @@
 	(topQuad.uv = 0 0 1 1)
 	(topQuad.normals = up up up up)
 	(topQuad.colours = white white white white)
-	
 	(qst.PushQuad topQuad glass)
 	
 	(qst.MoveInputToOutput)
