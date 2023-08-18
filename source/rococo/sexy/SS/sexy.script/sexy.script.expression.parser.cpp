@@ -3397,20 +3397,31 @@ namespace Rococo
 			{
 				// Assume rhs argument is source variable
 				MemberDef sourceDef;
-				if (!ce.Builder.TryGetVariableByName(sourceDef, src))
+				if (ce.Builder.TryGetVariableByName(sourceDef, src))
 				{
-					Throw(rhs, "Delta operator '%s' requires rhs is a numeric variable or literal value", deltaOps[opIndex]);
+					auto srcType = sourceDef.ResolvedType->VarType();
+
+					if (srcType != type)
+					{
+						Throw(s, "%s and %s must be of the same type", name, src);
+					}
+
+					ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
+					ce.Builder.AssignVariableToTemp(src, 0); // src variable value is now in D4
 				}
-
-				auto srcType = sourceDef.ResolvedType->VarType();
-
-				if (srcType != type)
+				else
 				{
-					Throw(s, "%s and %s must be of the same type", name, src);
+					if (TryCompileFunctionCallAndReturnValue(ce, rhs, type, nullptr, nullptr))
+					{
+						// value is now assembled to copy to D7
+						ce.Builder.AssignVariableToTemp(name, 1);
+						ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, GetBitCount(type));
+					}
+					else
+					{
+						Throw(rhs, "For the delta operation on %s - do not know how to handle the RHS. Try assigning to a variable first then pass to the delta expression.", name);
+					}
 				}
-
-				ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
-				ce.Builder.AssignVariableToTemp(src, 0); // src variable value is now in D4
 
 				if (type == VARTYPE_Int32 || type == VARTYPE_Int64)
 				{

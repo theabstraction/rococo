@@ -16263,7 +16263,8 @@ R"(
 
 		(function Main -> (Int32 result):
 			(IRobot robot (NewRobot))
-			(Int32 total = 5 + 9000)
+			(Int32 total = 5 + robot.NineThousand)
+			(total += robot.NineThousand)
 			(result = total)
 		)
 
@@ -16283,7 +16284,7 @@ R"(
 	   ValidateLogs();
 
 	   int x = vm.PopInt32();
-	   int expectation = 9005;
+	   int expectation = 18005;
 	   if (x != expectation)
 	   {
 		   printf("x = %d\n", x);
