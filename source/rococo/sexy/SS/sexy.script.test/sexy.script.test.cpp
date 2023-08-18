@@ -16316,6 +16316,10 @@ R"(
 			(result = true)
 		)
 
+		(method Robot.IsGlowing -> (Bool result):
+			(result = true)
+		)
+
 		(function Main -> (Int32 result):
 			(IRobot robot (NewRobot))
 			(Bool isSunny = true)
@@ -16323,7 +16327,7 @@ R"(
 			(if isVeryHot (result = 9005))
 			(Bool isVeryVeryHot = robot.IsHot and isSunny)
 			(if isVeryVeryHot (result += 9005))
-			(Bool isVeryVeryVeryHot = robot.IsHot and robot.IsHot)
+			(Bool isVeryVeryVeryHot = robot.IsHot and robot.IsGlowing)
 			(if isVeryVeryHot (result += 9005))
 		)
 
