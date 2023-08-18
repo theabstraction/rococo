@@ -630,13 +630,30 @@ namespace Rococo
          {
              if (!TryCompileArithmeticExpression(ce, sLeftVarName, false, VARTYPE_Bool))
              {
-                 Throw(sRightVarName, "The RHS is neither a literal, identifier, nor recognized as a boolean valued expression");
+                 Throw(sLeftVarName, "The LHS is neither a literal, identifier, nor recognized as a boolean valued expression");
              }
 
-             // assembly placed the boolean value in D7
-             ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
-             AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
-             return;
+             // assembly placed the LHS boolean value in D7
+
+             if (varLType == VARTYPE_Bool)
+             {
+                 ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+                 AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
+                 return;
+             }
+             else
+             {
+                 ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, BITCOUNT_32);
+                 if (!TryCompileArithmeticExpression(ce, sRightVarName, false, VARTYPE_Bool))
+                 {
+                     Throw(sRightVarName, "The LHS is neither a literal, identifier, nor recognized as a boolean valued expression");
+                 }
+
+                 // assembly placed the RHS boolean value in D7
+                 ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D8, BITCOUNT_32);
+                 AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
+                 return;
+             }
          }
          else if (varLType == VARTYPE_Derivative)
          {
