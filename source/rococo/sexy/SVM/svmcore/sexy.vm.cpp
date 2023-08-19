@@ -71,7 +71,6 @@ using namespace Rococo::VM;
 using namespace Rococo::Memory;
 
 #define MERGE_TOKENS(a, b) a##b
-#define FoobarActivateInstruction(x) s_instructionTable[MERGE_TOKENS(Opcodes::,x) ] = &CVirtualMachine::MERGE_TOKENS(OnOpcode,x)
 #define ActivateInstruction(x) s_instructionTable[Opcodes::x] = &CVirtualMachine::MERGE_TOKENS(OnOpcode,x)
 #define OPCODE_CALLBACK_CONVENTION // Since we switched to 64-bit, there is no special fastcall
 #define OPCODE_CALLBACK(x) void OPCODE_CALLBACK_CONVENTION OnOpcode##x()
