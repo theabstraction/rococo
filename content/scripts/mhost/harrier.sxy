@@ -162,8 +162,8 @@
 		(Star s)
 		(AnyFloat 0 1366 -> s.x)
 		(AnyFloat 400 2400 -> s.y)
-		(Float32 f = (AnyFloat 0.01 1.0))
-		(s.brightness = (Sys.Maths.F32.Power f 4.0))
+		(Float32 f = AnyFloat 0.01 1.0)
+		(s.brightness = Sys.Maths.F32.Power f 4.0)
 		(s.size = 3)
 		(this.smallStars.Push s)
 	)
@@ -216,7 +216,7 @@
 			(cloud.alignment += alignFlip)
 		)
 		
-		(cloud.baseColour.a = (AnyFloat 0.05 0.1))
+		(cloud.baseColour.a = AnyFloat 0.05 0.1)
 		
 		(AnyFloat 0.5 2 -> cloud.scale)
 		
@@ -256,15 +256,15 @@
 (function RenderLives (Entity player)(IGui g)(Float32 count)-> :
 	(Vec2 s)
 	(g.GetScreenSpan s)
-	(Float32 y = (s.y - 80))
+	(Float32 y = s.y - 80)
 	
 	(for (Float32 i = 0)(i < count)(i += 1)
-		(Float32 x =  (20 + (i * 64)))
+		(Float32 x =  20 + (i * 64))
 		(Vec2 pos = x y)
 		(y += 10)
 		
-		(Float32 right = (x + 70))
-		(Float32 bottom = (y + 30))
+		(Float32 right = x + 70)
+		(Float32 bottom = y + 30)
 
 		(Rectf rect = x y right bottom)
 		(g.StretchSprite rect player.image.location)
@@ -336,14 +336,14 @@
 	(foreach star # w.smallStars
 		(pos.x = star.x)
 		(pos.y = (w.worldPosition.y - star.y))	
-		(colourF32.a = (star.brightness * (AnyFloat 0.5 1.0)))
+		(colourF32.a = star.brightness * (AnyFloat 0.5 1.0))
 		(gc.DrawColouredSprite pos 0 w.starSmall.location 1.0 (MHost.Graphics.ToRGBAb colourF32))
 	)
 	
 	(foreach star # w.largeStars
 		(pos.x = star.x)
-		(pos.y = (w.worldPosition.y - star.y))	
-		(colourF32.a = (star.brightness * (AnyFloat 0.5 1.0)))
+		(pos.y = w.worldPosition.y - star.y)	
+		(colourF32.a = star.brightness * (AnyFloat 0.5 1.0))
 		(gc.DrawColouredSprite pos 0 w.starLarge.location 1.0 (MHost.Graphics.ToRGBAb colourF32))
 	)
 )
@@ -381,7 +381,7 @@
 		(Int32 colour)
 		
 		(if (c.position.y < 1056)
-			(Float32 alpha = ((1056 - c.position.y) / 256))
+			(Float32 alpha = (1056 - c.position.y) / 256)
 			(RGBA adjustedColour = c.baseColour)
 			(adjustedColour.a *= alpha)
 			(MHost.Graphics.ToRGBAb adjustedColour -> colour)
@@ -397,13 +397,13 @@
 	(Float32 alpha = 0)
 	
 	(if (this.playerPosition.y < 450)
-		(alpha = (1 - ((this.playerPosition.y - 150) / 200)))
+		(alpha = 1 - ((this.playerPosition.y - 150) / 200))
 	)
 	
 	(RGBA shadowColour = 0 0 0 alpha)
 	
 	(Vec2 delta = 100 100)
-	(Float32 deltaQuotient = (1.1 - alpha))
+	(Float32 deltaQuotient = 1.1 - alpha)
 	(Vec2 deltaEx = delta * deltaQuotient)
 	(Vec2 shadowPos = this.player.screenPosition + deltaEx)
 	
@@ -422,8 +422,8 @@
 	(gc.SetGuiShaders "!shaders/compiled/gui.cloud.ps")
 	
 	(foreach c # this.cloudsForeground
-		(Float32 x = ((c.position.x - this.playerPosition.x) + this.player.screenPosition.x))
-		(Float32 y = ((this.playerPosition.y - c.position.y) + this.player.screenPosition.y))
+		(Float32 x = (c.position.x - this.playerPosition.x) + this.player.screenPosition.x)
+		(Float32 y = (this.playerPosition.y - c.position.y) + this.player.screenPosition.y)
 		(Vec2 cloudPosition = x y)
 		
 		(Int32 colour)
@@ -450,34 +450,34 @@
 )
 
 (function MultiplyVec2fFloat32 (Vec2 a)(Float32 b)(Vec2 output) -> :
-	(output.x = (a.x * b))
-	(output.y = (a.y * b))
+	(output.x = a.x * b)
+	(output.y = a.y * b)
 )
 
 (function AddVec2fVec2f (Vec2 a)(Vec2 b)(Vec2 output) -> :
-	(output.x = (a.x + b.x))
-	(output.y = (a.y + b.y))
+	(output.x = a.x + b.x)
+	(output.y = a.y + b.y)
 )
 
 (method World.Advance  -> :
 	(Vec2 delta = this.playerDirection * 4)
 	(this.playerPosition = this.playerPosition + delta)
-	(this.playerPosition.y = (F32.MaxOf this.playerPosition.y 150))
+	(this.playerPosition.y = F32.MaxOf this.playerPosition.y 150)
 	(Float32 maxHeight = 2000)
-	(this.playerPosition.y = (F32.MinOf maxHeight this.playerPosition.y))
+	(this.playerPosition.y = F32.MinOf maxHeight this.playerPosition.y)
 	
-	(Float32 centreX = (this.screenSpan.x / 2))	
-	(Float32 x = (this.playerPosition.x - centreX))
+	(Float32 centreX = this.screenSpan.x / 2)
+	(Float32 x = this.playerPosition.x - centreX)
 	
-	(this.player.screenPosition.x = (this.screenSpan.x / 2))
+	(this.player.screenPosition.x = this.screenSpan.x / 2)
 	
-	(Float32 scrollHeight = (this.screenSpan.y / 2))
+	(Float32 scrollHeight = this.screenSpan.y / 2)
 	(if (this.playerPosition.y <= scrollHeight)
-		(this.player.screenPosition.y = (this.screenSpan.y - this.playerPosition.y))
+		(this.player.screenPosition.y = this.screenSpan.y - this.playerPosition.y)
 		(this.worldPosition = x this.screenSpan.y)
 	else
-		(this.player.screenPosition.y = (this.screenSpan.y - scrollHeight))
-		(Float32 y = (this.screenSpan.y + (this.playerPosition.y - scrollHeight)))
+		(this.player.screenPosition.y = this.screenSpan.y - scrollHeight)
+		(Float32 y = this.screenSpan.y + (this.playerPosition.y - scrollHeight))
 		(this.worldPosition = x y)
 	)
 	
