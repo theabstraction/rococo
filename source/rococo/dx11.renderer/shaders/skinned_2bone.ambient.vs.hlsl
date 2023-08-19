@@ -14,10 +14,10 @@ AmbientVertex main(ObjectVertex v, BoneWeight_2Bones weights)
 {
 	AmbientVertex sv;
 
-	float4 modelPos = Transform_Model_Vertices_Via_Bone_Weights(float4(v.position,1.0f), weights);
+	float4 modelPos = Transform_Model_Vertices_Via_Bone_Weights(float4(v.modelPosition,1.0f), weights);
 	float4 worldPos = Transform_Instance_To_World(modelPos);
 	sv.position = Transform_World_To_Screen(worldPos);
-	sv.normal = Transform_Instance_To_World(float4(v.normal, 0.0f));
+	sv.normal = Transform_Instance_To_World(float4(v.modelNormal, 0.0f));
 	sv.cameraSpacePosition = Transform_World_To_Camera(worldPos);
 	sv.worldPosition = worldPos;
 	sv.uv_material_gloss.xy = v.uv.xy;
