@@ -370,11 +370,6 @@ namespace Rococo
 
 		SEXY_SPARSER_API ISExpressionProxy* CreateExpressionProxy(cr_sex inner, IAllocator& allocator, int numberOfElements)
 		{
-			if (inner.NumberOfElements() < 1)
-			{
-				Throw(inner, "%s: can only create proxies for compound elements", __FUNCTION__);
-			}
-
 			if (numberOfElements < 1)
 			{
 				Throw(inner, "%s: can only create compound elements ", __FUNCTION__);

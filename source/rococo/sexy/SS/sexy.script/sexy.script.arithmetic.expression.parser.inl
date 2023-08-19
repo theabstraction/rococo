@@ -981,6 +981,25 @@ namespace Rococo
 				}
 			}
 
+			if (s.NumberOfElements() > 3)
+			{
+				// Potentially we have (a + b + c + d...)
+				if (IsArithmeticOperator(s[1]))
+				{
+					// use an expression proxy to covert to (a + (b + c + d...))
+					auto& root = CreateExpressionProxy(ce, s, 3);
+					root.SetChild(0, s[0]);
+					root.SetChild(1, s[1]);
+					auto& rhs = CreateExpressionProxy(ce, s[1], s.NumberOfElements() - 2);
+					for (int i = 2; i < s.NumberOfElements(); i++)
+					{
+						rhs.SetChild(i - 2, s[i]);
+					}
+					root.SetChild(2, rhs.Outer());
+					return TryCompileCompoundArithmeticExpression(ce, root.Outer(), expected, type);
+				}
+			}
+
 			if (expected)
 			{
 				Throw(s, "Could not determine meaning of expression. Check identifiers and syntax are valid");

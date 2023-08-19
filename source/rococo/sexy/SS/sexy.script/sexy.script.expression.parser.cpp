@@ -1312,8 +1312,8 @@ namespace Rococo
 		   if (explicitKeyword && directive.NumberOfElements() == 5)
 		   {
 			   // (a = b + c) is given  proxy (a = (b + c))
-			   auto& proxyDirective = BindExpressionProxy(ce, directive, 3);
-			   auto& proxyRHS = BindExpressionProxy(ce, proxyDirective.Outer(), 3);
+			   auto& proxyDirective = CreateExpressionProxy(ce, directive, 3);
+			   auto& proxyRHS = CreateExpressionProxy(ce, proxyDirective.Outer(), 3);
 			   proxyRHS.SetChild(0, directive[2]);
 			   proxyRHS.SetChild(1, directive[3]);
 			   proxyRHS.SetChild(2, directive[4]);
@@ -1328,8 +1328,8 @@ namespace Rococo
 		   if (explicitKeyword && directive.NumberOfElements() == 6)
 		   {
 			   // (Int32 a = b + c) is given  proxy (Int32 a = (b + c))
-			   auto& proxyDirective = BindExpressionProxy(ce, directive, 4);
-			   auto& proxyRHS = BindExpressionProxy(ce, proxyDirective.Outer(), 3);
+			   auto& proxyDirective = CreateExpressionProxy(ce, directive, 4);
+			   auto& proxyRHS = CreateExpressionProxy(ce, proxyDirective.Outer(), 3);
 			   proxyRHS.SetChild(0, directive[3]);
 			   proxyRHS.SetChild(1, directive[4]);
 			   proxyRHS.SetChild(2, directive[5]);
@@ -1341,7 +1341,23 @@ namespace Rococo
 			   return;
 		   }
 
-		   AssertNotTooManyElements(directive, 4 + offset);
+		   if (!explicitKeyword && directive.NumberOfElements() > 3)
+		   {
+			   // (a = b + c + d ...) -> (a = (b + c + d + ...))
+			   auto& proxyDirective = CreateExpressionProxy(ce, directive, 3);
+			   auto& proxyRHS = CreateExpressionProxy(ce, proxyDirective.Outer(), directive.NumberOfElements() - 2);
+			   for (int i = 2; i < directive.NumberOfElements(); i++)
+			   {
+				   proxyRHS.SetChild(i - 2, directive[i]);
+			   }
+
+			   proxyDirective.SetChild(0, directive[0]);
+			   proxyDirective.SetChild(1, directive[1]);
+			   proxyDirective.SetChild(2, proxyRHS.Outer());
+
+			   CompileAssignmentDirective(ce, proxyDirective.Outer(), varStruct, explicitKeyword);
+			   return;
+		   }
 
 		   cr_sex sourceValue = directive.GetElement(3 + offset);
 

@@ -234,7 +234,7 @@
 (function RenderLives (Entity player)(IGui gui)(Int32 count)-> :
 	(for (Int32 i = 0)(i < count)(i += 1)
 		(Vec2i pos)
-		(pos.x =  (100 + (i * 64)))
+		(pos.x = 100 + (i * 64))
 		(pos.y = 640)
 		(DrawSprite gui pos player.image)
 	)
@@ -284,7 +284,7 @@
 	
 	(if (this.deathAt != 0)
 		(Int64 peakBoom = Sys.Time.TickHz)
-		(Int64 delta = ((Sys.Time.TickCount) - this.deathAt))
+		(Int64 delta = Sys.Time.TickCount - this.deathAt)
 		(if (delta < peakBoom)
 			(DrawSprite gc this.playerExplosion.screenPosition this.player.image)
 			(Int64 boomTick = ( peakBoom / 64 ))

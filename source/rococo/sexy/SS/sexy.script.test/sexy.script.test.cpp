@@ -16412,6 +16412,40 @@ R"(
 	   validate(x == expectation);
    }
 
+   void TestExpressionProxies(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+
+		(function Main -> (Int32 result):
+			(result = 6 + 5 + 4 + 3)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 18;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
    void TestGetAccessorSemantics2(IPublicScriptSystem& ss)
    {
 	   cstr src =
@@ -17163,6 +17197,8 @@ R"(
 		TEST(TestGetAccessorSemantics);
 		TEST(TestGetAccessorSemantics2);
 		TEST(TestGetAccessorSemantics3);
+		TEST(TestTernary);
+		TEST(TestExpressionProxies);
 	}
 
 	void RunPositiveFailures()
@@ -17191,7 +17227,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		TEST(TestTernary);
+		TEST(TestExpressionProxies);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();
