@@ -92,14 +92,14 @@
 	// Consider the case of three rotations mapping -z to a direction N. The inverse transformation
 	// of three rotations is three inverse rotations in reverse order. e.g (Rx.Ry.Rz)' = Rz'.Ry'.Rx'
 	
-	(Degrees invElevation = (-90 - world.elevation))
+	(Degrees invElevation = -90 - world.elevation)
 	
 	(Quat invElevationYQ)
 	(GetRotationQuat invElevation 1 0 0 invElevationYQ)
 	
-	(Degrees invBearing = (0 - world.bearing))
+	(Degrees invBearing = 0 - world.bearing)
 	
-	(Degrees thetaXY = (0 - invBearing))
+	(Degrees thetaXY = 0 - invBearing)
 	
 	(Quat invBearingZQ)
 	(GetRotationQuat thetaXY 0 0 1 invBearingZQ)

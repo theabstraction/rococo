@@ -57,8 +57,8 @@
 	(human.UseSmoothNormals)
 	
 	(Float32 length = 1.0)
-	(Float32 bottomWidth = (AnyFloat 0.15 0.25))
-	(Float32 topWidth = (bottomWidth * (AnyFloat 0.5 1)))
+	(Float32 bottomWidth = AnyFloat 0.15 0.25)
+	(Float32 topWidth = bottomWidth * (AnyFloat 0.5 1))
 	(Int32 divs = 5)
 	
 	(human.AddTube length bottomWidth topWidth divs)
@@ -90,15 +90,15 @@
 	(bottle.UseSmoothNormals)
 	(bottle.SetUVScale 4.0)
 	
-	(Float32 length = (scale * 1.0))
-	(Float32 bottomWidth = (scale *  0.25))
-	(Float32 topWidth = (scale * 0.25))
+	(Float32 length = scale * 1.0)
+	(Float32 bottomWidth = scale *  0.25)
+	(Float32 topWidth = scale * 0.25)
 	
 	(bottle.AddTube length bottomWidth topWidth divs)
 
 //	(bottle.AddTube 0.4 0.1 0.1 10)
 	
-	(Float32 neckLength = (scale * 0.5))
+	(Float32 neckLength = scale * 0.5)
 	(bottle.AddTube neckLength topWidth (scale * 0.08) divs)
 	
 	(MaterialVertexData stopper)
@@ -109,7 +109,7 @@
 	(bottle.SetMaterialMiddle stopper)
 	(bottle.SetMaterialBottom stopper)
 		
-	(Float32 stopperLength = (scale * 0.16))
+	(Float32 stopperLength = scale * 0.16)
 	(bottle.AddTube stopperLength (scale * 0.08) (scale * 0.10) divs)
 	
 	(bottle.CopyToMeshBuilder meshName false false true)

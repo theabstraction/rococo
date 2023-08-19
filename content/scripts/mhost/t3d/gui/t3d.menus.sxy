@@ -48,7 +48,7 @@
 		(Int32 dotOnPos = (Sys.Type.Strings.FindLeftNoCase methodName 0  ".On"))		
 		(if (dotOnPos > 0)
 			(dotOnPos += 3)
-			(Int32 clickedPos = (Sys.Type.Strings.FindRightWithCase methodName dotOnPos 10000 "Clicked"))
+			(Int32 clickedPos = Sys.Type.Strings.FindRightWithCase methodName dotOnPos 10000 "Clicked")
 			(if (clickedPos > 0)
 				(methodPascalCase.AppendSubstring methodName dotOnPos (clickedPos - dotOnPos))
 				(T3D.Strings.ConvertPascalCaseToNamespace methodPascalCase buttonName) 

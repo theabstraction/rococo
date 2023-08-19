@@ -40,10 +40,10 @@
 )
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
-	(Float32 newBearing = (delta.x + this.cameraOrientation.bearing))
-	(Float32 newElevation = (this.cameraOrientation.elevation - delta.y))
-	(this.cameraOrientation.bearing = (Sys.Maths.F32.Mod newBearing 360))
-	(this.cameraOrientation.elevation = (Sys.Maths.F32.Clamp newElevation -45 45))
+	(Float32 newBearing = delta.x + this.cameraOrientation.bearing)
+	(Float32 newElevation = this.cameraOrientation.elevation - delta.y)
+	(this.cameraOrientation.bearing = Sys.Maths.F32.Mod newBearing 360)
+	(this.cameraOrientation.elevation = Sys.Maths.F32.Clamp newElevation -45 45)
 	(this.archive.SaveF32 "world.camera.elevation" this.cameraOrientation.elevation)
 	(this.archive.SaveF32 "world.camera.bearing" this.cameraOrientation.bearing)
 )
@@ -69,21 +69,21 @@
 	// of three rotations is three inverse rotations in reverse order. e.g (Rx.Ry.Rz)' = Rz'.Ry'.Rx'
 	
 	(if ((forwardSpeed != 0) or (straffeSpeed != 0))
-		(Float32 anticlockWiseDegrees = (0 - this.cameraOrientation.bearing))
+		(Float32 anticlockWiseDegrees = 0 - this.cameraOrientation.bearing)
 		
 		(Matrix4x4 rZ)
 		(Sys.Geometry.F32.RotateAboutZ anticlockWiseDegrees rZ)
 		
-		(Float32 forwardDelta = (0.1 * forwardSpeed))
-		(Float32 straffeDelta = (0.1 * straffeSpeed))
+		(Float32 forwardDelta = 0.1 * forwardSpeed)
+		(Float32 straffeDelta = 0.1 * straffeSpeed)
 		
 		(Vec4 forward = straffeDelta forwardDelta 0 0)
 		(Vec4 worldForward)
 		
 		(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f rZ forward worldForward)
 		
-		(this.cameraPos.x = (this.cameraPos.x + worldForward.x))
-		(this.cameraPos.y = (this.cameraPos.y + worldForward.y))
+		(this.cameraPos.x = this.cameraPos.x + worldForward.x)
+		(this.cameraPos.y = this.cameraPos.y + worldForward.y)
 		
 		(this.archive.SaveVec3 "world.cameraPos" this.cameraPos)
 	
@@ -95,8 +95,8 @@
 	(this.archive = (GetArchive))
 	(this.archive.LoadVec3 "world.cameraPos" this.cameraPos 0 0 127.5)
 	
-	(Float32 elevation = (this.archive.LoadF32 "world.camera.elevation" 0))
-	(Float32 bearing = (this.archive.LoadF32 "world.camera.bearing" 0))
+	(Float32 elevation = this.archive.LoadF32 "world.camera.elevation" 0)
+	(Float32 bearing = this.archive.LoadF32 "world.camera.bearing" 0)
 	(this.cameraOrientation = bearing elevation 0)
 	
 	(IECS ecs (GetECS))
@@ -123,9 +123,9 @@
 (method World.SnapToLandscape (Vec3 pos)(Float32 altitude)-> :
 	(this.wb = (WorldBuilder))
 	(TriangleScan scan)
-	(Float32 height = (this.wb.GetHeightAt pos.x pos.y scan))
+	(Float32 height = this.wb.GetHeightAt pos.x pos.y scan)
 	(if (scan.id != 0)
-		(pos.z = (height + altitude))
+		(pos.z = height + altitude)
 	)
 )
 
@@ -151,7 +151,7 @@
 	
 	(gui.DrawText menuRect 0 sb 1 0xFFFFFFFF)
 	
-	(Int64 logLifeTime = (4 * Sys.Time.TickHz))
+	(Int64 logLifeTime = 4 * Sys.Time.TickHz)
 	
 	(Int64 dt = ((Sys.Time.TickCount) - this.lastLogCheck))
 	(if ((dt > logLifeTime) and (this.logItems.Length > 0))
@@ -162,8 +162,8 @@
 	
 	(Vec2 screenSpan)
 	(gui.GetScreenSpan screenSpan)
-	(Float32 y0 = (screenSpan.y - 60))
-	(Float32 y1 = (y0 + 20))
+	(Float32 y0 = screenSpan.y - 60)
+	(Float32 y1 = y0 + 20)
 	
 	(Rectf itemRect = 10 y0 1200 y1)
 	
