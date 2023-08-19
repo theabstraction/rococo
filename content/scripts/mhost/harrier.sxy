@@ -488,20 +488,20 @@
 
 (method World.AdvanceClouds -> :
 	(Vec2 halfSpan = this.screenSpan * 0.5)
-	(Float32 maxY = (this.playerPosition.y + halfSpan.y))
+	(Float32 maxY = this.playerPosition.y + halfSpan.y)
 	(maxY += 512)
 	
-	(Float32 minY = (this.playerPosition.y - halfSpan.y))
+	(Float32 minY = this.playerPosition.y - halfSpan.y)
 	(minY -= 512)
 	
 	(if (minY < 800)
 		(minY = 800)
 	)
 	
-	(Float32 maxX = (this.playerPosition.x + halfSpan.x))
+	(Float32 maxX = this.playerPosition.x + halfSpan.x)
 	(maxX += 512)
 	
-	(Float32 minX = (this.playerPosition.x - halfSpan.x))
+	(Float32 minX = this.playerPosition.x - halfSpan.x)
 	(minX -= 512)
 		
 	(foreach cloud # this.cloudsForeground
@@ -509,26 +509,26 @@
 		(if (((pos.x < minX) or (pos.x > maxX)) or (((minY < maxY) and (pos.y < minY)) or (pos.y > maxY)))
 			(Float32 f = (AnyFloat 0 1))
 			(if (f < 0.25)
-				(pos.x = (minX + (AnyFloat 0 250)))
-				(pos.y = (AnyFloat minY maxY))
+				(pos.x = minX + (AnyFloat 0 250))
+				(pos.y = AnyFloat minY maxY)
 			else
 				(if (f < 0.5)
-					(pos.x = (maxX - (AnyFloat 0 250)))
-					(pos.y = (AnyFloat minY maxY))
+					(pos.x = maxX - (AnyFloat 0 250))
+					(pos.y = AnyFloat minY maxY)
 				else
 					(if (f < 0.75)
-						(pos.x = (AnyFloat minX maxX))
-						(pos.y = (maxY - (AnyFloat 0 250)))
+						(pos.x = AnyFloat minX maxX)
+						(pos.y = maxY - (AnyFloat 0 250))
 					else
-						(pos.x = (AnyFloat minX maxX))
-						(pos.y = (minY + (AnyFloat 0 250)))
+						(pos.x = AnyFloat minX maxX)
+						(pos.y = minY + (AnyFloat 0 250))
 					)
 				)
 			)
 			
 			(cloud.position = pos)
-			(cloud.velocity.x = (AnyFloat -0.3 0.3))
-			(cloud.velocity.y = (AnyFloat -0.3 0.3))
+			(cloud.velocity.x = AnyFloat -0.3 0.3)
+			(cloud.velocity.y = AnyFloat -0.3 0.3)
 		)
 		
 		(cloud.position = cloud.position + cloud.velocity)
