@@ -357,7 +357,7 @@
 	(Int64 frameStart = Sys.Time.TickCount)
 	(Int64 tickHz = Sys.Time.TickHz)
 	(Int64 maxDt = (tickHz / 10))
-	
+		
 	(while this.engine.IsRunning
 		(Int64 frameEnd = Sys.Time.TickCount)
 		(Int64 dtTicks = frameEnd - frameStart)
@@ -384,6 +384,15 @@
 		(this.engine.YieldForSystemMessages 5)
 		
 		(frameIndex += 1)
+		
+		(if (frameIndex == 10)
+			// We skip a few frames before starting the music
+			// I believe the JIT init of various systems introduces large CPU hit in the first frame or so
+			// which can glitch the music
+			// TODO -add some CPU/GPU analysis tooks to MHOST GR overlay
+			(IAudio audio (GetAudio))
+			(audio.SetMP3Music "!music/intro.mp3")
+		)
 	)
 	
 	(this.coroutines.ReleaseAll)
@@ -414,9 +423,6 @@
 
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IRendererConfig rc (RendererConfig))
-	
-	(IAudio audio (GetAudio))
-	(audio.SetMP3Music "!music/intro.mp3")
 	
 	(SampleStateDef fontDef)
 	(fontDef.method = (#SampleMethodLinear))
