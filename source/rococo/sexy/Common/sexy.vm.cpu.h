@@ -216,7 +216,6 @@ namespace Rococo { namespace VM
 			LogicalNOT32,
 			LogicalNOT64,
 			Branch,
-			BranchIf,
 			SetIf32,
 			SetIf64,
 			Swap,

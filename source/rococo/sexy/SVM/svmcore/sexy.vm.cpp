@@ -192,7 +192,6 @@ namespace Anon
 			ActivateInstruction(BranchIfNE);
 			ActivateInstruction(Test64);
 			ActivateInstruction(Branch);
-			ActivateInstruction(BranchIf);
 			ActivateInstruction(SetIf32);
 			ActivateInstruction(SetIf64);
 			ActivateInstruction(Move32);
@@ -2252,82 +2251,6 @@ namespace Anon
 			const Ins* I = NextInstruction();
 			const uint8* pPC = (const uint8*) I;
 			const int32* pIntArg = (const int32*)(pPC + 1); // Look beyond the 2nd byte of the test instruction for the offset value
-			int32 offset = *pIntArg;
-			cpu.AdvancePC(offset);
-		}
-
-		OPCODE_CALLBACK(BranchIf)
-		{
-			const Ins* I = NextInstruction();
-			
-			switch((CONDITION) I->Opmod1)
-			{
-			case CONDITION_IF_EQUAL:
-				if (IsEquiSet(cpu))
-				{
-					break;
-				}
-				else
-				{
-					cpu.AdvancePC(6);
-					return;
-				}
-			case CONDITION_IF_GREATER_OR_EQUAL:
-				if (IsEquiSet(cpu) || !IsNegSet(cpu))
-				{
-					break;
-				}
-				else
-				{
-					cpu.AdvancePC(6);
-					return;
-				}
-			case CONDITION_IF_GREATER_THAN:
-				if (!IsEquiSet(cpu) && !IsNegSet(cpu))
-				{
-					break;
-				}
-				else
-				{
-					cpu.AdvancePC(6);
-					return;
-				}
-			case CONDITION_IF_LESS_OR_EQUAL:
-				if (IsEquiSet(cpu) || IsNegSet(cpu))
-				{
-					break;
-				}
-				else
-				{
-					cpu.AdvancePC(6);
-					return;
-				}
-			case CONDITION_IF_LESS_THAN:
-				if (!IsEquiSet(cpu) && IsNegSet(cpu))
-				{
-					break;
-				}
-				else
-				{
-					cpu.AdvancePC(6);
-					return;
-				}
-			case CONDITION_IF_NOT_EQUAL:
-				if (!IsEquiSet(cpu))
-				{
-					break;
-				}
-				else
-				{
-					cpu.AdvancePC(6);
-					return;
-				}
-			default:
-				throw IllegalException();
-			}
-
-			const uint8* pPC = (const uint8*) I;
-			const int32* pIntArg = (const int32*)(pPC + 2); // Look beyond the 2nd byte of the test instruction for the offset value
 			int32 offset = *pIntArg;
 			cpu.AdvancePC(offset);
 		}

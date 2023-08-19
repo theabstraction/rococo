@@ -709,9 +709,7 @@ namespace
 			}
 			else
 			{
-				AddTwoByteInstruction(Opcodes::BranchIf, (uint8) cse);
-				AddArgument(PCoffset);
-				return;
+				Throw(0, "Unhandled condition");
 			}
 
 			AddArgument(args);

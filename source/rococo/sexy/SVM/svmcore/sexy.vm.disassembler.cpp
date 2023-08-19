@@ -598,42 +598,6 @@ namespace
 		format(rep, ("%Id"), (ptrdiff_t) offset);
 	}
 
-	void FormatBranchIf(const Ins& I, OUT IDisassembler::Rep& rep)
-	{
-		rep.ByteCount = 6;
-		const int32* pIntArg = (const int32*)(I.ToPC() + 2); // Look beyond the 2nd byte of the test instruction for the offset value
-		int32 offset = *pIntArg;
-
-		cstr thecase;
-
-		switch((CONDITION) I.Opmod1)
-		{
-		case CONDITION_IF_EQUAL:
-			thecase = ("=");
-			break;
-		case CONDITION_IF_GREATER_OR_EQUAL:
-			thecase=(">=");
-			break;
-		case CONDITION_IF_GREATER_THAN:
-			thecase=(">");
-			break;
-		case CONDITION_IF_LESS_OR_EQUAL:
-			thecase=(">=");
-			break;
-		case CONDITION_IF_LESS_THAN:
-			thecase=("<");
-			break;
-		case CONDITION_IF_NOT_EQUAL:
-			thecase=("!=");
-			break;
-		default:
-			rep.ByteCount = 0;
-			return;
-		}
-
-		format(rep, ("%s %Id"), thecase, (ptrdiff_t) offset);
-	}
-
 	void FormatBranchIfEqual(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		auto& args = (ArgsBranchIf&)I;
@@ -1207,7 +1171,6 @@ namespace
 		EnableFormatter(Call);
 		EnableFormatter(InvokeBy);
 		EnableFormatter(Return);
-		EnableFormatter(BranchIf);
 		EnableFormatter(BranchIfEqual);
 		EnableFormatter(BranchIfGTE);
 		EnableFormatter(BranchIfGT);
