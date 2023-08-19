@@ -1308,52 +1308,27 @@ namespace Rococo
 			   return;
 		   }
 
-		   // Too many elements, but maybe enough we proxy the RHS to a 3 element expression
-		   if (explicitKeyword && directive.NumberOfElements() == 5)
+		   if (directive.NumberOfElements() > 4 + offset)
 		   {
-			   // (a = b + c) is given  proxy (a = (b + c))
-			   auto& proxyDirective = CreateExpressionProxy(ce, directive, 3);
-			   auto& proxyRHS = CreateExpressionProxy(ce, proxyDirective.Outer(), 3);
-			   proxyRHS.SetChild(0, directive[2]);
-			   proxyRHS.SetChild(1, directive[3]);
-			   proxyRHS.SetChild(2, directive[4]);
-			   proxyDirective.SetChild(0, directive[0]);
-			   proxyDirective.SetChild(1, directive[1]);
-			   proxyDirective.SetChild(2, proxyRHS.Outer());
-			   CompileAssignmentDirective(ce, proxyDirective.Outer(), varStruct, explicitKeyword);
-			   return;
-		   }
-
-		   // Too many elements, but maybe enough we proxy the RHS to a 3 element expression
-		   if (explicitKeyword && directive.NumberOfElements() == 6)
-		   {
-			   // (Int32 a = b + c) is given  proxy (Int32 a = (b + c))
-			   auto& proxyDirective = CreateExpressionProxy(ce, directive, 4);
-			   auto& proxyRHS = CreateExpressionProxy(ce, proxyDirective.Outer(), 3);
-			   proxyRHS.SetChild(0, directive[3]);
-			   proxyRHS.SetChild(1, directive[4]);
-			   proxyRHS.SetChild(2, directive[5]);
-			   proxyDirective.SetChild(0, directive[0]);
-			   proxyDirective.SetChild(1, directive[1]);
-			   proxyDirective.SetChild(2, directive[2]);
-			   proxyDirective.SetChild(3, proxyRHS.Outer());
-			   CompileAssignmentDirective(ce, proxyDirective.Outer(), varStruct, explicitKeyword);
-			   return;
-		   }
-
-		   if (!explicitKeyword && directive.NumberOfElements() > 3)
-		   {
-			   // (a = b + c + d ...) -> (a = (b + c + d + ...))
-			   auto& proxyDirective = CreateExpressionProxy(ce, directive, 3);
-			   auto& proxyRHS = CreateExpressionProxy(ce, proxyDirective.Outer(), directive.NumberOfElements() - 2);
-			   for (int i = 2; i < directive.NumberOfElements(); i++)
+			   int delta = explicitKeyword ? 1 : 0;
+			   // (a = b + c + d ...) -> (a = (b + c + d + ...)) = non explicit
+			   // (int a = b + c + d ...) -> (int a = (b + c + d + ...)) = explicit
+			   auto& proxyDirective = CreateExpressionProxy(ce, directive, 3 + delta);
+			   auto& proxyRHS = CreateExpressionProxy(ce, proxyDirective.Outer(), directive.NumberOfElements() - 2 - delta);
+			   for (int i = 2 + delta; i < directive.NumberOfElements(); i++)
 			   {
-				   proxyRHS.SetChild(i - 2, directive[i]);
+				   proxyRHS.SetChild(i - 2 - delta, directive[i]);
 			   }
 
 			   proxyDirective.SetChild(0, directive[0]);
 			   proxyDirective.SetChild(1, directive[1]);
-			   proxyDirective.SetChild(2, proxyRHS.Outer());
+
+			   if (explicitKeyword)
+			   {
+				   proxyDirective.SetChild(2, directive[2]);
+			   }
+
+			   proxyDirective.SetChild(2 + delta, proxyRHS.Outer());
 
 			   CompileAssignmentDirective(ce, proxyDirective.Outer(), varStruct, explicitKeyword);
 			   return;

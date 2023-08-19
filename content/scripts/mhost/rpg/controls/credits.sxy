@@ -63,9 +63,9 @@
 
 (method Credits.Centre (Float32 dx)(Float32 dy)(Vec2 screenSpan)-> :
 	(this.outerRect.left = dx)
-	(this.outerRect.right = (screenSpan.x - dx))
+	(this.outerRect.right = screenSpan.x - dx)
 	(this.outerRect.top = dy)
-	(this.outerRect.bottom = (screenSpan.y - dy))
+	(this.outerRect.bottom = screenSpan.y - dy)
 )
 
 (method Credits.Render (IGui gui)-> :
@@ -75,7 +75,7 @@
 	(gui.FillRect innerRect 0x80000000)
 	(gui.DrawBorder this.outerRect 4 0xFF404040 0xFF606060 0xFF808080 0xFFA0A0A0)
 	
-	(Float32 y = (innerRect.bottom - this.scrollHeight))
+	(Float32 y = innerRect.bottom - this.scrollHeight)
 	(y -=  4)
 	
 	(Float32 dy = 72)
@@ -92,7 +92,7 @@
 			)
 			(y += dy)
 		else 
-			(y = (y + (4 * dy)))
+			(y += 4 * dy)
 		)
 	)
 	

@@ -360,8 +360,8 @@
 	
 	(while this.engine.IsRunning
 		(Int64 frameEnd = Sys.Time.TickCount)
-		(Int64 dtTicks = (frameEnd - frameStart))
-		(dtTicks = (Sys.Maths.I64.Clamp dtTicks 0 maxDt))
+		(Int64 dtTicks = frameEnd - frameStart)
+		(dtTicks = Sys.Maths.I64.Clamp dtTicks 0 maxDt)
 		(frameTime += dtTicks)
 		
 		(while (this.coroutines.Continue > 0))
@@ -376,7 +376,7 @@
 		
 		(cast screen -> IEventHandler dispatchToScreen)
 		
-		(Float32 dt = (Sys.Maths.I64.ToFloat32 dtTicks))
+		(Float32 dt = Sys.Maths.I64.ToFloat32 dtTicks)
 		(ArgsOnFrame args = frameIndex frameTime dt)
 		(dispatchToScreen.OnFrame args)
 		
