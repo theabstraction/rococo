@@ -820,205 +820,246 @@ namespace Rococo
 			ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idStringIndexToChar);
 		}
 
+		void CompileTernaryExpression(CCompileEnvironment& ce, cr_sex s, VARTYPE type)
+		{
+			// s0  s1        s2                s3
+			// (?? <boolean> <truth-expression><false-expression>)
+			cr_sex sBoolean = s[1];
+			cr_sex sForTrue = s[2];
+			cr_sex sForFalse = s[3];
+
+			bool negate = false;
+			TryCompileBooleanExpression(ce, sBoolean, true, OUT negate);
+			// boolean condition is now assembled to be a 32-bit value in D7
+			
+			ce.Builder.Assembler().Append_Test(VM::REGISTER_D7, BITCOUNT_32);
+
+			size_t postConditionPos = ce.Builder.Assembler().WritePosition();
+			ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_NOT_EQUAL, 0);
+
+			TryCompileArithmeticExpression(ce, sForTrue, true, type);
+			// boolean condition is now assembled to be a 32-bit value in D7
+
+			// If we have come here, it means we need to skip evaluating sForFalse
+			size_t branchPos = ce.Builder.Assembler().WritePosition();
+			ce.Builder.Assembler().Append_Branch(0);
+
+			size_t falsePos = ce.Builder.Assembler().WritePosition();
+
+			TryCompileArithmeticExpression(ce, sForFalse, false, type);
+			// boolean condition is now assembled to be a 32-bit value in D7
+
+			// Now we know the size of branches we can correct the branch statements
+			size_t exitPos = ce.Builder.Assembler().WritePosition();
+			ce.Builder.Assembler().SetWriteModeToOverwrite(branchPos);
+			ce.Builder.Assembler().Append_Branch((int)(exitPos - branchPos));
+			ce.Builder.Assembler().SetWriteModeToOverwrite(postConditionPos);
+			ce.Builder.Assembler().Append_BranchIf(negate ? CONDITION_IF_NOT_EQUAL : CONDITION_IF_EQUAL, (int)(falsePos - postConditionPos));
+			ce.Builder.Assembler().SetWriteModeToAppend();
+		}
+
+		bool TryCompileCompoundArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, VARTYPE type)
+		{
+			if (s.NumberOfElements() == 3 && IsArithmeticOperator(s[1]))
+			{
+				// (x OP y) will never be a function call as OP is never a legal argument to a method
+			}
+			else if (TryCompileFunctionCallAndReturnValue(ce, s, type, NULL, NULL))
+			{
+				return true;
+			}
+
+			cr_sex firstItem = s.GetElement(0);
+			if (IsAtomic(firstItem))
+			{
+				if (TryCompileMacroInvocation(ce, s, firstItem.String()))
+				{
+					const ISExpression* transform = ce.SS.GetTransform(s);
+					if (transform != NULL)
+					{
+						return TryCompileArithmeticExpression(ce, *transform, expected, type);
+					}
+					else
+					{
+						Throw(s, ("Macro expansion did not yield an arithmetic expression"));
+					}
+				}
+			}
+
+			if (s.NumberOfElements() == 1)
+			{
+				cr_sex onlyChild = s.GetElement(0);
+				return TryCompileArithmeticExpression(ce, onlyChild, expected, type);
+			}
+
+			if (s.NumberOfElements() == 3)
+			{
+				cr_sex left = s.GetElement(0);
+				cr_sex opExpr = s.GetElement(1);
+				cr_sex right = s.GetElement(2);
+
+				if (IsArithmeticOperator(opExpr))
+				{
+					ARITHMETIC_OP op = GetArithmeticOp(opExpr);
+					// Add code to evaluate an expression and copy the result to the tempIndex
+					CompileBinaryArithmeticExpression(ce, s, left, op, right, type);
+					return true;
+				}
+				else
+				{
+					if (expected)
+					{
+						Throw(s, "Cannot parse as a numeric valued expression");
+					}
+					// No arithmetic operator
+					return false;
+				}
+			}
+			else if (s.NumberOfElements() == 2)
+			{
+				cr_sex commandExpr = GetAtomicArg(s, 0);
+				sexstring command = commandExpr.String();
+
+				if (AreEqual(command, ("sizeof")))
+				{
+					if (type != VARTYPE_Int32)
+					{
+						Throw(s, "Type mismatch. The 'sizeof' operator evaluates to an Int32");
+					}
+
+					cr_sex valueExpr = GetAtomicArg(s, 1);
+					CompileSizeOfExpression(ce, valueExpr);
+					return true;
+				}
+
+				MemberDef def;
+				if (ce.Builder.TryGetVariableByName(OUT def, command->Buffer))
+				{
+					if (def.ResolvedType == &ce.StructArray())
+					{
+						CompileGetArrayElement(ce, s.GetElement(1), command->Buffer, type, NULL);
+						return true;
+					}
+
+					if (def.ResolvedType == &ce.StructMap())
+					{
+						CompileGetMapElement(ce, s.GetElement(1), command->Buffer, type, NULL);
+						return true;
+					}
+
+					if (def.ResolvedType == &ce.Object.Common().SysTypeIString().NullObjectType())
+					{
+						if (type != VARTYPE_Int32)
+						{
+							Throw(s, "(<IString> <index>) returns an Int32, but return type was %s", GetTypeName(type));
+						}
+
+						CompileStringIndexToChar(ce, s);
+						return true;
+					}
+
+					if (expected)
+					{
+						Throw(s, "'%s' recognized as a %s which does not yield an arithmetical value in this context", command->Buffer, GetFriendlyName(*def.ResolvedType));
+					}
+				}
+
+				if (expected)
+				{
+					Throw(commandExpr, "Cannot interpet token as arithmetic valued expression");
+				}
+
+				return false;
+			}
+			else if (s.NumberOfElements() == 4)
+			{
+				if (IsAtomic(s[0]) && Eq(s[0].c_str(), "??"))
+				{
+					// Ternary expression (?? <boolean> <truth-expression><false-expression>)
+					CompileTernaryExpression(ce, s, type);
+					return true;
+				}
+			}
+
+			if (expected)
+			{
+				Throw(s, "Could not determine meaning of expression. Check identifiers and syntax are valid");
+			}
+			// All arithmetic expressions have 3 elements
+			return false;
+		}
+
+		bool TryCompileAtomicArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, VARTYPE type)
+		{
+			cstr token = s.c_str();
+
+			VariantValue value;
+			if (Parse::TryParse(OUT value, IN type, IN token) == Parse::PARSERESULT_GOOD)
+			{
+				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, value, GetBitCount(type));
+				return true;
+			}
+			else
+			{
+				VARTYPE tokenType = ce.Builder.GetVarType(token);
+				if (type == tokenType)
+				{
+					ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+					return true;
+				}
+				else
+				{
+					if (tokenType == VARTYPE_Bad)
+					{
+						if (TryCompileFunctionCallAndReturnValue(ce, s, type, NULL, NULL))
+						{
+							return true;
+						}
+					}
+
+					if (expected)
+					{
+						if (type == VARTYPE_Derivative)
+						{
+							Throw(s, "Expected arithmetic expression, but found a derived type not of the same type as the assignment");
+						}
+						else if (tokenType != VARTYPE_Bad)
+						{
+							Throw(s, "'%s' was a %s but expression requires %s", token, GetTypeName(tokenType), GetTypeName(type));
+						}
+						else
+						{
+							Throw(s, "Expected arithmetic expression, but found an unknown identifier");
+						}
+					}
+					// not a boolean
+					return false;
+				}
+			}
+		}
+
 		bool TryCompileArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, VARTYPE type)
 		{
 			if (type == VARTYPE_Closure)
 			{
-				Throw(s, ("Internal compiler error. TryAssignToArchetype was the correct call."));
+				Throw(s, "Internal compiler error. TryAssignToArchetype was the correct call.");
 			}
 
 			if (IsCompound(s))
 			{
-				if (s.NumberOfElements() == 3 && IsArithmeticOperator(s[1]))
-				{
-					// (x OP y) will never be a function call as OP is never a legal argument to a method
-				}
-				else if (TryCompileFunctionCallAndReturnValue(ce, s, type, NULL, NULL))
-				{
-					return true;
-				}
-
-				if (s.NumberOfElements() > 0)
-				{
-					cr_sex firstItem = s.GetElement(0);
-					if (IsAtomic(firstItem))
-					{
-						if (TryCompileMacroInvocation(ce, s, firstItem.String()))
-						{
-							const ISExpression* transform = ce.SS.GetTransform(s);
-							if (transform != NULL)
-							{
-								return TryCompileArithmeticExpression(ce, *transform, expected, type);
-							}
-							else
-							{
-								Throw(s, ("Macro expansion did not yield an arithmetic expression"));
-							}
-						}
-					}
-				}
-
-				if (s.NumberOfElements() == 1)
-				{
-					cr_sex onlyChild = s.GetElement(0);
-					return TryCompileArithmeticExpression(ce, onlyChild, expected, type);
-				}
-
-				if (s.NumberOfElements() == 3)
-				{
-					cr_sex left = s.GetElement(0);
-					cr_sex opExpr = s.GetElement(1);
-					cr_sex right = s.GetElement(2);
-
-					if (IsArithmeticOperator(opExpr))
-					{
-						ARITHMETIC_OP op = GetArithmeticOp(opExpr);
-						// Add code to evaluate an expression and copy the result to the tempIndex
-						CompileBinaryArithmeticExpression(ce, s, left, op, right, type);
-						return true;
-					}
-					else
-					{
-						if (expected)
-						{
-							Throw(s, ("Cannot parse as a numeric valued expression"));
-						}
-						// No arithmetic operator
-						return false;
-					}
-				}
-				else if (s.NumberOfElements() == 2)
-				{
-					cr_sex commandExpr = GetAtomicArg(s, 0);
-					sexstring command = commandExpr.String();
-
-					if (AreEqual(command, ("sizeof")))
-					{
-						if (type != VARTYPE_Int32)
-						{
-							Throw(s, "Type mismatch. The 'sizeof' operator evaluates to an Int32");
-						}
-
-						cr_sex valueExpr = GetAtomicArg(s, 1);
-						CompileSizeOfExpression(ce, valueExpr);
-						return true;
-					}
-
-					MemberDef def;
-					if (ce.Builder.TryGetVariableByName(OUT def, command->Buffer))
-					{
-						if (def.ResolvedType == &ce.StructArray())
-						{
-							CompileGetArrayElement(ce, s.GetElement(1), command->Buffer, type, NULL);
-							return true;
-						}
-
-						if (def.ResolvedType == &ce.StructMap())
-						{
-							CompileGetMapElement(ce, s.GetElement(1), command->Buffer, type, NULL);
-							return true;
-						}
-
-						if (def.ResolvedType == &ce.Object.Common().SysTypeIString().NullObjectType())
-						{
-							if (type != VARTYPE_Int32)
-							{
-								Throw(s, "(<IString> <index>) returns an Int32, but return type was %s", GetTypeName(type));
-							}
-
-							CompileStringIndexToChar(ce, s);
-							return true;
-						}
-
-						if (expected)
-						{
-							Throw(s, "'%s' recognized as a %s which does not yield an arithmetical value in this context", command->Buffer, GetFriendlyName(*def.ResolvedType));
-						}
-					}
-
-					if (expected)
-					{
-						Throw(commandExpr, "Cannot interpet token as arithmetic valued expression");
-					}
-
-					return false;
-				}
-				else
-				{
-					if (expected)
-					{
-						Throw(s, "Could not determine meaning of expression. Check identifiers and syntax are valid");
-					}
-					// All arithmetic expressions have 3 elements
-					return false;
-				}
+				return TryCompileCompoundArithmeticExpression(ce, s, expected, type);
 			}
 			else if (IsAtomic(s))
 			{
-				cstr token = s.c_str();
-
-				VariantValue value;
-				if (Parse::TryParse(OUT value, IN type, IN token) == Parse::PARSERESULT_GOOD)
-				{
-					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, value, GetBitCount(type));
-					return true;
-				}
-				else
-				{
-					VARTYPE tokenType = ce.Builder.GetVarType(token);
-					if (type == tokenType)
-					{
-						ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
-						return true;
-					}
-					else
-					{
-						if (tokenType == VARTYPE_Bad)
-						{
-							if (TryCompileFunctionCallAndReturnValue(ce, s, type, NULL, NULL))
-							{
-								return true;
-							}
-						}
-
-						if (expected)
-						{
-							if (type == VARTYPE_Derivative)
-							{
-								Throw(s, "Expected arithmetic expression, but found a derived type not of the same type as the assignment");
-							}
-							else if (tokenType != VARTYPE_Bad)
-							{
-								Throw(s, "'%s' was a %s but expression requires %s", token, GetTypeName(tokenType), GetTypeName(type));
-							}
-							else
-							{
-								Throw(s, "Expected arithmetic expression, but found an unknown identifier");
-							}
-						}
-						// not a boolean
-						return false;
-					}
-				}
+				return TryCompileAtomicArithmeticExpression(ce, s, expected, type);
 			}
-			else if (s.Type() == EXPRESSION_TYPE_NULL)
+			else if (expected)
 			{
-				if (expected)
-				{
-					Throw(s, "Expected numeric expression, of type %s but saw a null expression", GetTypeName(type));
-				}
-				// not an atomic or a compound
-				return false;
+				Throw(s, "Expected numeric expression, of type %s", GetTypeName(type));
 			}
-			else
-			{
-				if (expected)
-				{
-					Throw(s, "Expected numeric expression, of type %s", GetTypeName(type));
-				}
-				// not an atomic or a compound
-				return false;
-			}
+			
+			// not an atomic or a compound
+			return false;
 		}//Script
 	}//Sexy
 }

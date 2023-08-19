@@ -152,6 +152,7 @@ namespace Rococo { namespace VM
 			GetStackFrameAddress,
 			Test32,
 			Test64,
+			BranchIfEqual,
 			BranchIfGTE,
 			BranchIfGT,
 			BranchIfLT,

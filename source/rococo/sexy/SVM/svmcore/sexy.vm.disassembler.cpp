@@ -634,6 +634,16 @@ namespace
 		format(rep, ("%s %Id"), thecase, (ptrdiff_t) offset);
 	}
 
+	void FormatBranchIfEqual(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		auto& args = (ArgsBranchIf&)I;
+
+		rep.ByteCount = sizeof(ArgsBranchIf);
+		int32 offset = args.PCoffset;
+
+		format(rep, "%d", offset);
+	}
+
 	void FormatBranchIfGTE(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		auto& args = (ArgsBranchIf&) I;
@@ -1198,6 +1208,7 @@ namespace
 		EnableFormatter(InvokeBy);
 		EnableFormatter(Return);
 		EnableFormatter(BranchIf);
+		EnableFormatter(BranchIfEqual);
 		EnableFormatter(BranchIfGTE);
 		EnableFormatter(BranchIfGT);
 		EnableFormatter(BranchIfLT);

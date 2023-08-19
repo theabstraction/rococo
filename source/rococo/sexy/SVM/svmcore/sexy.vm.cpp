@@ -185,6 +185,7 @@ namespace Anon
 			ActivateInstruction(BooleanNot);
 			ActivateInstruction(SetSFValueFromSFValue32);
 			ActivateInstruction(Test32);
+			ActivateInstruction(BranchIfEqual);
 			ActivateInstruction(BranchIfGTE);
 			ActivateInstruction(BranchIfGT);
 			ActivateInstruction(BranchIfLT);
@@ -2001,6 +2002,14 @@ namespace Anon
 			cpu.SR() |= v.int32Value ? 0 : STATUSBIT_EQUIVALENCE;
 			cpu.SR() |= v.int32Value < 0 ? STATUSBIT_NEGATIVE : 0;
 			cpu.AdvancePC(sizeof(ArgsOperateOnRegister));
+		}
+
+		OPCODE_CALLBACK(BranchIfEqual)
+		{
+			const Ins* I = NextInstruction();
+			auto* args = (ArgsBranchIf*)I;
+			int32 offset = IsEquiSet(cpu) ? args->PCoffset : sizeof(ArgsBranchIf);
+			cpu.AdvancePC(offset);
 		}
 
 		OPCODE_CALLBACK(BranchIfGTE)

@@ -1,28 +1,30 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
-
+(using Sys)
 (using Sys.Type)
+(using Sys.Maths)
+(using Sys.Reflection)
+(using Sys.Type.Strings)
 
-(class Cat (defines Sys.ICat))
-
-(method Cat.Construct : )
-
-(method Cat.Id -> (Int32 id): (id = 5))
-
-(factory Sys.NewCat Sys.ICat : 
-	(construct Cat)
+(class Robot (defines Sys.Type.IRobot)
 )
 
-(function Main2 -> (Int32 result):
-	(Sys.ICat cat (Sys.NewCat))
-	(list Sys.ICat cats)
-	(debug)
-	(cats.Append cat)
-	(node tail = cats.Tail)
-	(Sys.ICat tiddles = tail.Value)
-	(tiddles.Id -> result)
+(method Robot.Construct :
+)
+
+(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+(method Robot.IsHot -> (Bool result):
+	(result = true)
+)
+
+(method Robot.IsGlowing -> (Bool result):
+	(result = true)
 )
 
 (function Main -> (Int32 result):
-	(Main2 -> result)	
+	(IRobot robot (NewRobot))
+	(debug)
+	(Int32 result = (?? robot.IsHot 9005 0))
 )
+
+(alias Main EntryPoint.Main)

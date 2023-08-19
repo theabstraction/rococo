@@ -699,6 +699,10 @@ namespace
 			{
 				args.opcode = Opcodes::BranchIfNE;
 			}
+			else if (cse == CONDITION_IF_EQUAL)
+			{
+				args.opcode = Opcodes::BranchIfEqual;
+			}
 			else if (cse == CONDITION_IF_LESS_THAN)
 			{
 				args.opcode = Opcodes::BranchIfLT;
