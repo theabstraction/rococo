@@ -16499,6 +16499,44 @@ R"(
 	   validate(x == expectation);
    }
 
+   void TestExpressionProxies2(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+
+		(function Main -> (Int32 result):
+			(Int32 x = Sys.Maths.F32.ToInt32 7.0)
+			(result = x)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 7;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
    void TestAddNativeReflectionCall(IPublicScriptSystem& ss)
    {
 	   static int callCount = 0;
@@ -17199,6 +17237,7 @@ R"(
 		TEST(TestGetAccessorSemantics3);
 		TEST(TestTernary);
 		TEST(TestExpressionProxies);
+		TEST(TestExpressionProxies2);
 	}
 
 	void RunPositiveFailures()
@@ -17227,7 +17266,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		TEST(TestExpressionProxies);
+		TEST(TestExpressionProxies2);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

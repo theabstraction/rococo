@@ -42,7 +42,7 @@
 (method ToggleLabel.GetSelectedValue -> (IExpression s) :
 	(Int32 nItems = (this.items.Length))
 	(if ((this.selection >= 0) and (this.selection < nItems))
-		(s = (this.items this.selection value))
+		(s = this.items this.selection value)
 	)
 )
 
@@ -65,11 +65,11 @@
 (method ToggleLabel.SetRect (IString fontName) (Rectf rect)(IGui g)-> :
 	(this.outerRect = rect)
 	
-	(Float32 dy = (this.outerRect.bottom - this.outerRect.top))
-	(Float32 x = (this.outerRect.left + (dy * 0.25)))
-	(Float32 x1 = (this.outerRect.right -  (dy * 0.25)))
-	(Float32 y0 = (this.outerRect.top + 2))
-	(Float32 y1 = (this.outerRect.bottom - 2))
+	(Float32 dy = this.outerRect.bottom - this.outerRect.top)
+	(Float32 x = this.outerRect.left + (dy * 0.25))
+	(Float32 x1 = this.outerRect.right -  (dy * 0.25))
+	(Float32 y0 = this.outerRect.top + 2)
+	(Float32 y1 = this.outerRect.bottom - 2)
 	
 	(this.innerRect = x y0 x1 y1)
 	

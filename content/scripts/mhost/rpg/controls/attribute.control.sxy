@@ -112,29 +112,29 @@
 )
 
 (method AttributeControl.Render (IGui g)-> :
-	(Float32 x0 = (this.outerRect.left + 16))
-	(Float32 x1 = (this.outerRect.right - 16))
-	(Float32 y = (this.outerRect.top + 4))
+	(Float32 x0 = this.outerRect.left + 16)
+	(Float32 x1 = this.outerRect.right - 16)
+	(Float32 y = this.outerRect.top + 4)
 	(Float32 y1 )
 	
 	(this.fontIndex = 0)
 
 	(Float32 rectHeight = (this.outerRect.bottom - this.outerRect.top))
-	(Float32 innerRectHeight = (rectHeight - 8))
-	(Float32 dy = (Sys.Maths.F32.Floor (innerRectHeight / 6)))
+	(Float32 innerRectHeight = rectHeight - 8)
+	(Float32 dy = Sys.Maths.F32.Floor (innerRectHeight / 6))
 	
-	(Float32 xV = (x1 - 60))
+	(Float32 xV = x1 - 60)
 	
 	(Float32 halfFontHeight = 16)
 	
 	(foreach cell # this.cells
-		(y1 = (y + dy))
-		(Float32 vCentre = (0.5 * (y + y1)))
+		(y1 = y + dy)
+		(Float32 vCentre = 0.5 * (y + y1))
 		(Rectf nameRect)
 		(nameRect.left = x0)
 		(nameRect.right = x1)
-		(nameRect.top = (vCentre - halfFontHeight))
-		(nameRect.bottom = (vCentre + halfFontHeight))
+		(nameRect.top = vCentre - halfFontHeight)
+		(nameRect.bottom = vCentre + halfFontHeight)
 		(g.DrawClippedText nameRect (#AlignmentFlagsLeft) cell.name this.fontIndex 0xFFFFFFFF this.outerRect)
 		
 		(this.tempSB.Clear)
@@ -142,8 +142,8 @@
 		(Rectf valueRect)
 		(valueRect.left = xV)
 		(valueRect.right = x1)
-		(valueRect.top = (vCentre - halfFontHeight))
-		(valueRect.bottom = (vCentre + halfFontHeight))
+		(valueRect.top = vCentre - halfFontHeight)
+		(valueRect.bottom = vCentre + halfFontHeight)
 		
 		(g.DrawClippedText valueRect (#AlignmentFlagsRight) this.tempSB this.fontIndex 0xFFFFFFFF this.outerRect)
 		
