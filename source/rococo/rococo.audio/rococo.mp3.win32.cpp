@@ -476,6 +476,8 @@ namespace AudioAnon
 
 		uint32 RunThread(OS::IThreadControl& tc) override
 		{
+			tc.SetRealTimePriority();
+
 			while (tc.IsRunning())
 			{
 				U8FilePath currentPath;

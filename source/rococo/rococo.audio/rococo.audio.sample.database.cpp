@@ -218,6 +218,8 @@ namespace AudioAnon
 			AutoFree<ILoaderSupervisor> mp3Loader(CreateSingleThreadedMP3Loader(installation, nChannels));
 			AutoFree<ILoaderSupervisor> oggLoader(CreateSingleThreadedOggVorbisLoader(installation, nChannels));
 
+			tc.SetRealTimePriority();
+
 			while (tc.IsRunning())
 			{
 				IAudioSampleSupervisor* sample = nullptr;
