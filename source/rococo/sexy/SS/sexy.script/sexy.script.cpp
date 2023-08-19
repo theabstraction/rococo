@@ -2098,6 +2098,12 @@ namespace Rococo::Script
 
 		void Clear()
 		{
+			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
+			{
+				INativeLib* lib = *i;
+				lib->ClearResources(); // Note that the lib here is still active, we just asked the lib to clear out session data, not to free itself, so nativeLibs is still valid
+			}
+
 			hasNullFunction = false;
 			expressStruct = nullptr;
 			expressBuilderStruct = nullptr;
@@ -2141,19 +2147,7 @@ namespace Rococo::Script
 			sreflectMap.clear();
 
 			FreeDynamicClass(&reflectionRoot->header);
-
-			/* TODO delete this paragraph
-			for (auto k = sreflectMap.begin(); k != sreflectMap.end(); ++k)
-			{
-				FreeDynamicClass(&k->second->Header);
-			} */
-
-			for (auto i = nativeLibs.begin(); i != nativeLibs.end(); ++i)
-			{
-				INativeLib* lib = *i;
-				lib->ClearResources(); // Note that the lib here is still active, we just asked the lib to clear out session data, not to free itself, so nativeLibs is still valid
-			}
-			
+		
 			nsToSecurityVolatile.clear();
 
 			if (stringPool)

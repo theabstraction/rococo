@@ -471,7 +471,7 @@
 (function DestructAnimation157  ->  : (source "C:\work\rococo\source\rococo\component.modules\animation\code-gen\animation.sxh.inl" 73))
 (alias DestructAnimation157 Rococo.Components.Animation.Native.DestructAnimation)
 
-(function AppendCTime158  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2192))
+(function AppendCTime158  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2186))
 (alias AppendCTime158 Sys.Time.AppendCTime)
 
 (function IBodyGetModel159  (Pointer hObject)(Sys.Maths.Matrix4x4 model) ->  : (source "C:\work\rococo\source\rococo\component.modules\body\code-gen\body.sxh.inl" 190))
@@ -1146,7 +1146,7 @@
 (function IRodTesselatorScale382  (Pointer hObject)(Float32 sx)(Float32 sy)(Float32 sz) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9771))
 (alias IRodTesselatorScale382 Rococo.Graphics.Native.IRodTesselatorScale)
 
-(function TickHz383  -> (Int64 hz) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2203))
+(function TickHz383  -> (Int64 hz) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2197))
 (alias TickHz383 Sys.Time.TickHz)
 
 (function IRodTesselatorSetMaterialMiddle384  (Pointer hObject)(Rococo.MaterialVertexData middle) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9774))
@@ -1281,7 +1281,7 @@
 (function IHQFontsCommit427  (Pointer hObject) -> (Int32 fontId) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10327))
 (alias IHQFontsCommit427 Rococo.Graphics.Native.IHQFontsCommit)
 
-(function TickCount428  -> (Int64 tickCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2204))
+(function TickCount428  -> (Int64 tickCount) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2198))
 (alias TickCount428 Sys.Time.TickCount)
 
 (function IInstallationSetPingPathMacro429  (Pointer hObject)(Sys.Type.IString key)(Sys.Type.IString pingPathValue) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10558))

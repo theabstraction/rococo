@@ -186,7 +186,7 @@
 	(
 		(Int32 y = 120)
 		(for (Int32 i = 0)(i < 6)(i += 1)
-			(Int32 x = (90 + (i * 40)))
+			(Int32 x = 90 + (i * 40))
 			(Entity a0 = (x  y) (pawn3 defaultBmpLoc))
 			(this.aliens.Push a0)
 		)
@@ -196,7 +196,7 @@
 	(
 		(Int32 y = 160)
 		(for (Int32 i = 0)(i < 8)(i += 1)
-			(Int32 x = (50 + (i * 40)))
+			(Int32 x = 50 + (i * 40))
 			(Entity a0 = (x  y) (pawn2 defaultBmpLoc))
 			(this.aliens.Push a0)
 		)
@@ -299,10 +299,10 @@
 	
 	(if (this.enemyHitAt != 0)
 		(Int64 peakBoom = Sys.Time.TickHz)
-		(Int64 delta = ((Sys.Time.TickCount) - this.enemyHitAt))
+		(Int64 delta = Sys.Time.TickCount - this.enemyHitAt)
 		(if (delta < peakBoom)
-			(Int64 boomTick = ( peakBoom / 32 ))
-			(Int32 span = (32 - (delta / boomTick)))
+			(Int64 boomTick = peakBoom / 32)
+			(Int32 span = 32 - (delta / boomTick))
 			(Recti rect)
 			(ExpandRect rect span this.enemyExplosion.screenPosition)
 			
@@ -389,7 +389,7 @@
 (function OnPlayerKilled (Galaxians g)-> :
 	(g.playerExplosion.screenPosition = g.player.screenPosition)
 	(g.player.screenPosition.y = -10000)
-	(Sys.OS.ClockTicks -> g.deathAt) 
+	(Sys.Time.TickCount -> g.deathAt) 
 	(g.lives -= 1)
 )
 
@@ -437,7 +437,7 @@
 		)
 	)
 	
-	(Int32 delta = (this.direction * straffeSpeed))
+	(Int32 delta = this.direction * straffeSpeed)
 	
 	(foreach a # this.aliens
 		(a.screenPosition.x += delta)
@@ -474,8 +474,8 @@
 	
 	(if (this.deathAt != 0)
 		(Int64 now = Sys.Time.TickCount)
-		(Int64 delta = (now - this.deathAt))
-		(Int64 spawnTime = (4 * Sys.Time.TickCount))
+		(Int64 delta = now - this.deathAt)
+		(Int64 spawnTime = 4 * Sys.Time.TickCount)
 		(if (delta > spawnTime)
 			(this.deathAt = 0)
 			(this.player.screenPosition = 500 610)

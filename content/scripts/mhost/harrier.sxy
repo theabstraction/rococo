@@ -168,7 +168,7 @@
 		(this.smallStars.Push s)
 	)
 	
-	(for (Int32 i = 0)(i < 10)(i += 1)
+	(for (i = 0)(i < 10)(i += 1)
 		(Star s)
 		(AnyFloat 0 1366 -> s.x)
 		(AnyFloat 400 2400 -> s.y)
@@ -180,7 +180,7 @@
 	(Int32 alignMirror = (#AlignmentFlagsMirror))
 	(Int32 alignFlip = (#AlignmentFlagsFlip))
 	
-	(for (Int32 i = 0)(i < 150)(i += 1)
+	(for (i = 0)(i < 150)(i += 1)
 		(Cloud cloud = (-1000 -1000) 0 0 0xFFFFFFFF (1 1 1 1)(0 0))
 		
 		(cloud.alignment = 0)
@@ -198,12 +198,12 @@
 		
 		(AnyFloat 0.25 2 -> cloud.scale)
 		
-		(ToRGBAb cloud.baseColour -> cloud.colour)
+		(MHost.Graphics.ToRGBAb cloud.baseColour -> cloud.colour)
 		
 		(this.cloudsBackground.Push cloud)
 	)
 	
-	(for (Int32 i = 0)(i < 150)(i += 1)
+	(for (i = 0)(i < 150)(i += 1)
 		(Cloud cloud = (-1000 -1000) 0 0 0xFFFFFFFF (1 1 1 1)(0 0))
 		
 		(cloud.alignment = 0)
@@ -220,7 +220,7 @@
 		
 		(AnyFloat 0.5 2 -> cloud.scale)
 		
-		(ToRGBAb cloud.baseColour -> cloud.colour)
+		(MHost.Graphics.ToRGBAb cloud.baseColour -> cloud.colour)
 		
 		(this.cloudsForeground.Push cloud)
 	)
@@ -283,7 +283,7 @@
 (function GetRowColour (Float32 z) -> (Int32 colour):
 	(Float32 f = (1 - (z / 1600)))
 	(RGBA c = 0 0.5 1.0 f)
-	(ToRGBAb c -> colour)
+	(MHost.Graphics.ToRGBAb c -> colour)
 )
 
 (function RenderSkyGlow  (Vec2 topLeftWorldPosition)(IGui gc)-> :
@@ -337,14 +337,14 @@
 		(pos.x = star.x)
 		(pos.y = (w.worldPosition.y - star.y))	
 		(colourF32.a = (star.brightness * (AnyFloat 0.5 1.0)))
-		(gc.DrawColouredSprite pos 0 w.starSmall.location 1.0 (ToRGBAb colourF32))
+		(gc.DrawColouredSprite pos 0 w.starSmall.location 1.0 (MHost.Graphics.ToRGBAb colourF32))
 	)
 	
 	(foreach star # w.largeStars
 		(pos.x = star.x)
 		(pos.y = (w.worldPosition.y - star.y))	
 		(colourF32.a = (star.brightness * (AnyFloat 0.5 1.0)))
-		(gc.DrawColouredSprite pos 0 w.starLarge.location 1.0 (ToRGBAb colourF32))
+		(gc.DrawColouredSprite pos 0 w.starLarge.location 1.0 (MHost.Graphics.ToRGBAb colourF32))
 	)
 )
 
@@ -384,7 +384,7 @@
 			(Float32 alpha = ((1056 - c.position.y) / 256))
 			(RGBA adjustedColour = c.baseColour)
 			(adjustedColour.a *= alpha)
-			(ToRGBAb adjustedColour -> colour)
+			(MHost.Graphics.ToRGBAb adjustedColour -> colour)
 		else	
 			(colour = c.colour)
 		)
@@ -413,7 +413,7 @@
 		(alignmentFlags = (#AlignmentFlagsMirror))
 	)
 	
-	(gc.DrawScaledColouredSprite shadowPos alignmentFlags this.player.image.location 0.5 (ToRGBAb shadowColour) alpha)
+	(gc.DrawScaledColouredSprite shadowPos alignmentFlags this.player.image.location 0.5 (MHost.Graphics.ToRGBAb shadowColour) alpha)
 	
 	(gc.SetGuiShaders "")
 
@@ -432,7 +432,7 @@
 			(Float32 alpha = ((1056 - c.position.y) / 256))
 			(RGBA adjustedColour = c.baseColour)
 			(adjustedColour.a *= alpha)
-			(ToRGBAb adjustedColour -> colour)
+			(MHost.Graphics.ToRGBAb adjustedColour -> colour)
 		else	
 			(colour = c.colour)
 		)

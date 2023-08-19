@@ -16419,7 +16419,7 @@ R"(
 		(namespace EntryPoint)
 
 		(function Main -> (Int32 result):
-			(result = 6 + 5 + 4 + 3)
+			(result = 6 + 5 + 4 + 3 + 2 + 1)
 		)
 
 		(alias Main EntryPoint.Main)
@@ -16438,7 +16438,7 @@ R"(
 	   ValidateLogs();
 
 	   int x = vm.PopInt32();
-	   int expectation = 18;
+	   int expectation = 21;
 	   if (x != expectation)
 	   {
 		   printf("x = %d\n", x);
