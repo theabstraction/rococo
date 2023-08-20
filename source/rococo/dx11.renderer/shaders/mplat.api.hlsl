@@ -149,7 +149,7 @@ float4 Transform_Model_Vertices_Via_Bone_Weights(float4 v, BoneWeight_2Bones w)
 	return lerp(v0, v1, w.weight1);
 }
 
-float4 Transform_World_To_Screen(float4 v)
+float4 Project_World_To_Screen(float4 v)
 {
 	return mul(global.worldToScreenMatrix, v);
 }
@@ -167,6 +167,16 @@ float4 Transform_World_To_ShadowBuffer(float4 v)
 float4 Transform_World_To_DepthBuffer(float4 v)
 {
 	return mul(drd.worldToScreen, v);
+}
+
+float4 ComputeWorldPosition(ObjectVertex v)
+{
+    return Transform_Instance_To_World_Scaled(v.modelPosition);
+}
+
+float3 ComputeWorldNormal(ObjectVertex v)
+{
+    return Transform_Instance_To_World(float4(v.modelNormal.xyz, 0.0f)).xyz;
 }
 
 float SampleShadowWithDelta(float4 pos, float2 offset)

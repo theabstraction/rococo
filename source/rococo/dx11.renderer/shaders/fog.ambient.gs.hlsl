@@ -26,7 +26,7 @@ void main (point ParticleVertex p[1], inout TriangleStream<PixelVertex> output)
 
 	float4 worldPosition = float4(p[0].position, 1.0f);
 
-	float4 preScreenTransformPosition = Transform_World_To_Screen(worldPosition);
+	float4 preScreenTransformPosition = Project_World_To_Screen(worldPosition);
 
 	float4 cameraSpacePosition = Transform_World_To_Camera(worldPosition);
 

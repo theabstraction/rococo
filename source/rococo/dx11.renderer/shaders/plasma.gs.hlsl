@@ -10,7 +10,7 @@ struct PixelVertex
 void EmitPoint(float3 p, inout TriangleStream<PixelVertex> output)
 {
 	PixelVertex outputVert;
-	outputVert.position = Transform_World_To_Screen(float4(p, 1.0f));
+	outputVert.position = Project_World_To_Screen(float4(p, 1.0f));
 	output.Append(outputVert);
 }
 
@@ -29,7 +29,7 @@ void main (point ParticleVertex p[1], inout TriangleStream<PixelVertex> output)
 {
 	float scale = p[0].geometry.x;
 
-	float4 pos = Transform_World_To_Screen(float4(p[0].position, 1.0f));
+	float4 pos = Project_World_To_Screen(float4(p[0].position, 1.0f));
 
 	float s = scale;
 	float4 right = float4(s * global.aspect.x, 0, 0, 0);
