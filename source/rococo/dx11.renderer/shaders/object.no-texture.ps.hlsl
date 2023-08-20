@@ -2,7 +2,7 @@
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {
-    float shadowDensity = GetShadowDensity(p.shadowPos);
+    float shadowDensity = GetShadowDensity(p);
 	float4 texel = p.colour;
 	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
 

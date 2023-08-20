@@ -4,7 +4,7 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 {
 	float4 texel = GetFontPixel(p.uv_material_and_gloss.xyw, p.colour);
 
-	float shadowDensity = GetShadowDensity(p.shadowPos);
+    float shadowDensity = GetShadowDensity(p);
 	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 	float3 lightToPixelDir = normalize(lightToPixelVec);
 

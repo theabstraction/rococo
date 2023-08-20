@@ -2,9 +2,9 @@
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {
-	float shadowDensity = GetShadowDensity(p.shadowPos);
+	float shadowDensity = GetShadowDensity(p);
+	float4 texel = SampleMaterial(p);
 	
-	float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour);
 	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
 	
 	// We dont apply the environment here, because by definition the environment is lit by ambient light only

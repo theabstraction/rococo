@@ -2,7 +2,7 @@
 
 float4 main(ObjectPixelVertex p): SV_TARGET
 {
-	float4 texel = SampleMaterial(p.uv_material_and_gloss.xyz, p.colour);
+    float4 texel = SampleMaterial(p);
 	float3 incident = normalize(p.worldPosition - GetEyePosition());
 	float3 normal = p.worldNormal.xyz;
 //	float3 reflectionVector = normalize(reflect(incident, normal));

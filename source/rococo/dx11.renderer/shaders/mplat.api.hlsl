@@ -164,7 +164,7 @@ float4 Transform_World_To_ShadowBuffer(float4 v)
 	return mul(light.worldToShadowBufferMatrix, v);
 }
 
-float4 Transform_World_To_DepthBuffer(float4 v)
+float4 Project_World_To_DepthBuffer(float4 v)
 {
 	return mul(drd.worldToScreen, v);
 }
@@ -245,15 +245,26 @@ float GetShadowDensity_1Sample(float4 shadowPos)
 	}
 }
 
-float GetShadowDensity(float4 shadowPos)
+float GetShadowDensityFromPos(float4 shadowPos)
 {
     return GetShadowDensity_16Sample(shadowPos);
 }
 
-float4 SampleMaterial(float3 materialVertex, float4 colour)
+float GetShadowDensity(ObjectPixelVertex p)
 {
-	float4 texel = tx_materials.Sample(matSampler, materialVertex);
-	return float4(lerp(colour.xyz, texel.xyz, colour.w), 1.0f);
+    return GetShadowDensityFromPos(p.shadowPos);
+}
+
+float4 SampleMaterialByVectors(float3 uvw, float4 colour)
+{
+	float4 texel = tx_materials.Sample(matSampler, uvw);
+	float colourToTexelBlendFactor = colour.w;
+	return float4(lerp(colour.xyz, texel.xyz, colourToTexelBlendFactor), 1.0f);
+}
+
+float4 SampleMaterial(ObjectPixelVertex v)
+{
+    return SampleMaterialByVectors(v.uv_material_and_gloss.xyz, v.colour);
 }
 
 float SignedToUnsigned (float x)

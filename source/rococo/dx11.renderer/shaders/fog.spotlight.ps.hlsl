@@ -2,7 +2,7 @@
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {
-	float shadowDensity = GetShadowDensity(p.shadowPos);
+    float shadowDensity = GetShadowDensity(p);
 	
 	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
 	float R2 = dot(lightToPixelVec, lightToPixelVec);

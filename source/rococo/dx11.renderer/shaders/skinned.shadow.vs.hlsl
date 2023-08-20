@@ -11,6 +11,6 @@ ShadowOutVertex main(ObjectVertex v, BoneWeight_2Bones weights)
 	float4 worldPos = Transform_Instance_To_World(modelPos);
 
 	ShadowOutVertex sv;
-	sv.position = Transform_World_To_DepthBuffer(worldPos);
+	sv.position = Project_World_To_DepthBuffer(worldPos);
 	return sv;
 }
