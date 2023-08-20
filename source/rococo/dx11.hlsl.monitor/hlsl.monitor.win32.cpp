@@ -344,7 +344,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		Time::ticks end = Time::TickCount();
 
 
-		SafeFormat(message, ". Done in %g ms\n", (end - now) / ((double)Time::TickHz() * 0.0001f));
+		SafeFormat(message, ". Done in %0.0f ms\n", (end - now) / ((double)Time::TickHz() * 0.0001f));
 		Log(IO::EShaderLogPriority::Info, message);
 
 		U8FilePath targetFullname;

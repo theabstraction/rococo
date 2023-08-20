@@ -57,6 +57,68 @@ Texture2DArray tx_materials: register(t4);
 Texture2DArray tx_BitmapSprite: register(t5);
 Texture2DArray tx_GlyphArray: register(t6);
 
+float4 ConvertGuiScreenPixelCoordinatesToDX11Coordinates(GuiVertexOpaque v)
+{
+    float4 position;
+	
+	// (left and top) 0,0 maps to -1,1, and (right and bottom) screenWidth, screenHeight maps to 1, -1
+    position.x = 2.0f * v.pos.x * global.guiScale.OOScreenWidth - 1.0f;
+    position.y = -2.0f * v.pos.y * global.guiScale.OOScreenHeight + 1.0f;
+    position.z = 0;
+    position.w = 1.0f;
+    return position;
+}
+
+BaseVertexData GetBaseVertexDataFromFloat3(float3 v)
+{
+    BaseVertexData base;
+    base.uv = v.xy;
+    base.fontBlend = v.z;
+    return base;
+}
+
+BaseVertexData GetBaseVertexData(GuiVertexOpaque v)
+{
+    return GetBaseVertexDataFromFloat3(v.base);
+}
+
+float4 GetGuiVertexColour(GuiVertexOpaque v)
+{
+    return v.colour;
+}
+
+SpriteVertexData GetSpriteVertexDataFromFloat4(float4 v)
+{
+    SpriteVertexData sd;
+    sd.saturation = v.x;
+    sd.spriteIndex = v.y;
+    sd.matIndex = v.z;
+    sd.spriteToMatLerpFactor = v.w;
+    return sd;
+}
+
+SpriteVertexData GetSpriteVertexData(GuiVertexOpaque v)
+{
+    return GetSpriteVertexDataFromFloat4(v.sd);
+}
+
+GuiPixelVertex ToGuiPixelVertex(GuiPixelVertexOpaque p_opaque)
+{
+	GuiPixelVertex p;
+    p.colour = p_opaque.colour;
+    p.base = GetBaseVertexDataFromFloat3(p_opaque.base);
+    p.sd = GetSpriteVertexDataFromFloat4(p_opaque.sd);
+    p.position = p_opaque.colour;
+    return p;
+}
+
+float2 GetGuiTextureUV(GuiVertexOpaque v)
+{
+    float2 uv = lerp(v.base.xy, v.base.xy * global.guiScale.OOFontWidth, v.base.z);
+    uv = lerp(uv * global.guiScale.OOSpriteWidth, uv, v.sd.w);
+    return uv;
+}
+
 float3 GetEyePosition()
 {
 	return global.eye.xyz;

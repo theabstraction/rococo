@@ -60,7 +60,45 @@ struct ObjectVertex
 	float2 materialIndexAndGloss  : TEXCOORD1;
 };
 
+struct BaseVertexData
+{
+	float2 uv;
+	float fontBlend; // 0 -> normal triangle, 1 -> modulate with font texture
+};
+
+struct SpriteVertexData
+{
+	float saturation; // 1.0 -> use colour, 0.0 -> use bitmap texture
+	float spriteIndex; // Indexes the texture in the sprite array.
+	float matIndex; // Indexes the texture in the material array
+	float spriteToMatLerpFactor; // 0 -> use spriteIndex, 1 -> use matIndex, lerping in between
+};
+
+struct GuiVertexOpaque
+{
+    float2 pos : POSITION;
+    float3 base : TEXCOORD0;
+    float4 sd : TEXCOORD1;
+    float4 colour : COLOR;
+};
+
+struct GuiVertex
+{
+	float2 pos : POSITION;
+	BaseVertexData base : TEXCOORD0;
+	SpriteVertexData sd: TEXCOORD1;
+	float4 colour: COLOR;
+};
+
 struct GuiPixelVertex
+{
+	float4 position;
+	BaseVertexData base;
+	SpriteVertexData sd;
+	float4 colour;
+};
+
+struct GuiPixelVertexOpaque
 {
 	float4 position			: SV_POSITION;
 	float3 base				: TEXCOORD0;
