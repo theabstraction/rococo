@@ -344,3 +344,29 @@ float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixe
 	float i2 = clamp(incidence, 0, 1);
 	return i2 * pow(R2, light.attenuationRate);
 }
+
+float GetDiffuseSpecularAndFoggedLighting(ObjectPixelVertex v)
+{
+    float3 incident = ComputeEyeToWorldDirection(v);
+	
+	// We dont apply the environment here, because by definition the environment is lit by ambient light only
+	
+    float3 lightToPixelVec = GetLightToWorldPosition(v);
+    float3 lightToPixelDir = normalize(lightToPixelVec);
+
+    float intensity = GetSpotlightIntensity(lightToPixelDir);
+    float diffuse = GetDiffuse(v, lightToPixelVec, lightToPixelDir);
+    float clarity = GetClarity(v);
+    float specular = GetSpecular(v, incident, lightToPixelDir);
+    float I = (diffuse + specular) * intensity * clarity;
+	
+    return I;
+}
+
+float4 BlendColourWithLightAndShadow(float4 colour, float shadowDensity, float I)
+{
+    colour.xyz *= I;
+    colour.xyz *= light.colour.xyz;
+
+    return lerp(float4(colour.xyz, 1.0f), float4(0.0f, 0.0f, 0.0f, 0.0f), shadowDensity);
+}

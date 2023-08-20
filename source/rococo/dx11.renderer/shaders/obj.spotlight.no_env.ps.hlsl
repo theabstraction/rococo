@@ -3,19 +3,9 @@
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {
     float shadowDensity = GetShadowDensity(p);
-	
     float4 texel = SampleMaterial(p);
-    float3 incident = ComputeEyeToWorldDirection(p);
-    float3 lightToPixelVec = GetLightToWorldPosition(p);
 
-	float3 lightToPixelDir = normalize(lightToPixelVec);
-
-	float intensity = GetSpotlightIntensity(lightToPixelDir);
-	float clarity = GetClarity(p);
-	float diffuse = GetDiffuse(p, lightToPixelVec, lightToPixelDir);
-	float specular = GetSpecular(p, incident, lightToPixelDir);
-
-	float I = (diffuse + specular) * intensity * clarity;
+    float I = GetDiffuseSpecularAndFoggedLighting(p);
 
 	texel.xyz *= I;
 
