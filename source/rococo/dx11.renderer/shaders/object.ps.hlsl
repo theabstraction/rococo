@@ -5,7 +5,7 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	float shadowDensity = GetShadowDensity(p);
 	float4 texel = SampleMaterial(p);
 	
-	float3 incident = normalize(p.worldPosition.xyz - global.eye.xyz);
+    float3 incident = ComputeEyeToWorldDirection(p);
 	
 	// We dont apply the environment here, because by definition the environment is lit by ambient light only
 	

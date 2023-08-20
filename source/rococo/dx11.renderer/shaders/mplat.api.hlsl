@@ -267,6 +267,11 @@ float4 SampleMaterial(ObjectPixelVertex v)
     return SampleMaterialByVectors(v.uv_material_and_gloss.xyz, v.colour);
 }
 
+float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
+{
+    return normalize(p.worldPosition.xyz - global.eye.xyz);
+}
+
 float SignedToUnsigned (float x)
 {
 	return (x + 1.0f) * 0.5f;
