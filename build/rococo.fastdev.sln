@@ -8,7 +8,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = " - Third-Party Projects", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ECS", "ECS", "{CA3EF6C8-5EFF-3A98-2441-126A241C4CFA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.assets.test", "projects\rococo.assets.test_vs2022_win64.vcxproj", "{002950ED-9F0C-235A-5097-6962BE95198F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.compiler", "projects\dx11.hlsl.compiler_vs2022_win64.vcxproj", "{BB332028-215F-B71A-24CB-0B2A1B19388C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.monitor", "projects\dx11.hlsl.monitor_vs2022_win64.vcxproj", "{41BB5607-981C-BB79-CF71-93BF8A7E969F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.renderer", "projects\dx11.renderer_vs2022_win64.vcxproj", "{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}"
 EndProject
@@ -25,6 +27,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-zip", "projects\lib-zip_vs2022_win64.vcxproj", "{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.assets", "projects\rococo.assets_vs2022_win64.vcxproj", "{4B3F0093-BC52-0A79-E48A-78A4BE50391D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.assets.test", "projects\rococo.assets.test_vs2022_win64.vcxproj", "{002950ED-9F0C-235A-5097-6962BE95198F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.audio", "projects\rococo.audio_vs2022_win64.vcxproj", "{1C4853CF-79C5-A23B-80A8-01656A9473CF}"
 EndProject
@@ -138,10 +142,14 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{002950ED-9F0C-235A-5097-6962BE95198F}.Debug|x64.ActiveCfg = Debug|x64
-		{002950ED-9F0C-235A-5097-6962BE95198F}.Debug|x64.Build.0 = Debug|x64
-		{002950ED-9F0C-235A-5097-6962BE95198F}.Release|x64.ActiveCfg = Release|x64
-		{002950ED-9F0C-235A-5097-6962BE95198F}.Release|x64.Build.0 = Release|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.ActiveCfg = Debug|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.Build.0 = Debug|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.ActiveCfg = Release|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.Build.0 = Release|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.ActiveCfg = Debug|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.Build.0 = Debug|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Release|x64.ActiveCfg = Release|x64
+		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Release|x64.Build.0 = Release|x64
 		{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}.Debug|x64.ActiveCfg = Debug|x64
 		{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}.Debug|x64.Build.0 = Debug|x64
 		{DCA0E1F0-71F0-60EC-8362-EC6D5FDC5814}.Release|x64.ActiveCfg = Release|x64
@@ -174,6 +182,10 @@ Global
 		{4B3F0093-BC52-0A79-E48A-78A4BE50391D}.Debug|x64.Build.0 = Debug|x64
 		{4B3F0093-BC52-0A79-E48A-78A4BE50391D}.Release|x64.ActiveCfg = Release|x64
 		{4B3F0093-BC52-0A79-E48A-78A4BE50391D}.Release|x64.Build.0 = Release|x64
+		{002950ED-9F0C-235A-5097-6962BE95198F}.Debug|x64.ActiveCfg = Debug|x64
+		{002950ED-9F0C-235A-5097-6962BE95198F}.Debug|x64.Build.0 = Debug|x64
+		{002950ED-9F0C-235A-5097-6962BE95198F}.Release|x64.ActiveCfg = Release|x64
+		{002950ED-9F0C-235A-5097-6962BE95198F}.Release|x64.Build.0 = Release|x64
 		{1C4853CF-79C5-A23B-80A8-01656A9473CF}.Debug|x64.ActiveCfg = Debug|x64
 		{1C4853CF-79C5-A23B-80A8-01656A9473CF}.Debug|x64.Build.0 = Debug|x64
 		{1C4853CF-79C5-A23B-80A8-01656A9473CF}.Release|x64.ActiveCfg = Release|x64

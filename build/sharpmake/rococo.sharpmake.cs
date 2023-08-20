@@ -1848,6 +1848,8 @@ namespace Rococo
             SolutionBuilder.AddSexySuite(conf, target);
             SolutionBuilder.AddThirdPartyLibs(conf, target);
             conf.AddProject<RococoBuildFinalFastProject>(target);
+            conf.AddProject<RococoDX11HLSLCompilerProject>(target);
+            conf.AddProject<RococoDX11HLSLMonitorProject>(target);
         }
     }
 
