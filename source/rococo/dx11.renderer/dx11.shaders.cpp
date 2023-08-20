@@ -6,6 +6,10 @@
 #include "rococo.io.h"
 #include <vector>
 #include <comdef.h>
+#include <d3d11shader.h>
+#include <d3dcompiler.h>
+
+#pragma comment(lib, "D3dcompiler.lib")
 
 using namespace Rococo::DX11;
 
@@ -29,6 +33,7 @@ struct DX11GeometryShader : public DX11Shader
 struct DX11PixelShader : public DX11Shader
 {
 	AutoRelease<ID3D11PixelShader> ps;
+	AutoRelease<ID3D11ShaderReflection> reflection;
 };
 
 struct DX11Shaders : IDX11Shaders
@@ -46,12 +51,19 @@ struct DX11Shaders : IDX11Shaders
 	stringmap<ID_PIXEL_SHADER> nameToPixelShader;
 	stringmap<ID_VERTEX_SHADER> nameToVertexShader;
 
+	AutoRelease<ID3D11ClassLinkage> classLinkage;
+
 	DX11Shaders(IO::IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc) :
 		installation(_installation),
 		device(_device),
 		dc(_dc),
 		shaderLoaderBuffer(CreateExpandingBuffer(64_kilobytes))
 	{
+		HRESULT hr = device.CreateClassLinkage(&classLinkage);
+		if FAILED(hr)
+		{
+			Throw(hr, "%s failed. device.CreateClassLinkage(&classLinkage); returned an error code.");
+		}
 	}
 
 	virtual ~DX11Shaders()
@@ -93,18 +105,26 @@ struct DX11Shaders : IDX11Shaders
 				installation.LoadResource(pingPath, *shaderLoaderBuffer, 64_kilobytes);
 				if (shaderLoaderBuffer->Length() == 0)
 				{
-					Throw(0, "LoadResource for %s returned 0 length object", pingPath);
+					Throw(0, "UpdatePixelShader LoadResource for %s returned 0 length object", pingPath);
 				}
 
 				AutoRelease<ID3D11PixelShader> replacementPS;
-				HRESULT hr = device.CreatePixelShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), nullptr, &replacementPS);
+				HRESULT hr = device.CreatePixelShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), classLinkage, &replacementPS);
 
 				if (FAILED(hr) || replacementPS == nullptr)
 				{
-					Throw(hr, "device.CreatePixelShader for %s returned 0x%X", pingPath, hr);
+					Throw(hr, "device.UpdatePixelShader for %s returned 0x%X", pingPath, hr);
+				}
+
+				AutoRelease<ID3D11ShaderReflection> reflection;
+				hr = D3DReflect(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), IID_ID3D11ShaderReflection, (void**)&reflection);
+				if (FAILED(hr) || reflection == nullptr)
+				{
+					Throw(hr, "device.UpdatePixelShader: D3DReflect for %s returned 0x%X", __FUNCTION__, pingPath, hr);
 				}
 
 				i->ps = replacementPS;
+				i->reflection = reflection;
 				break;
 			}
 		}
@@ -158,16 +178,8 @@ struct DX11Shaders : IDX11Shaders
 		}
 		catch (_com_error& e)
 		{
-			if constexpr ((sizeof TCHAR) == sizeof(wchar_t))
-			{
-				const wchar_t* msg = (const wchar_t*) e.ErrorMessage();
-				Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %ls. %s\n", name, msg, (cstr)e.Description());
-			}
-			else
-			{
-				cstr msg = e.ErrorMessage();
-				Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %s. %s\n", name, msg, (cstr)e.Description());
-			}
+			cstr msg = e.ErrorMessage();
+			Throw(e.Error(), "device.CreateInputLayout failed for shader %s: %s. %s\n", name, msg, (cstr)e.Description());
 		}
 
 		if FAILED(hr)
@@ -227,7 +239,16 @@ struct DX11Shaders : IDX11Shaders
 			Throw(hr, "device.CreatePixelShader failed with shader %s", name);
 		}
 
+		AutoRelease<ID3D11ShaderReflection> reflection;
+		hr = D3DReflect(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), IID_ID3D11ShaderReflection, (void**)&reflection);
+		if (FAILED(hr) || reflection == nullptr)
+		{
+			delete shader;
+			Throw(hr, "device.CreatePixelShader: D3DReflect for %s returned 0x%X", __FUNCTION__, name, hr);
+		}
+
 		shader->name = name;
+		shader->reflection = reflection;
 		pixelShaders.push_back(shader);
 		return ID_PIXEL_SHADER(pixelShaders.size() - 1);
 	}
