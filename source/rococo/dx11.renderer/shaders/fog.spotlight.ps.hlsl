@@ -4,7 +4,8 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 {
     float shadowDensity = GetShadowDensity(p);
 	
-	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+    float3 lightToPixelVec = GetLightToWorldPosition(p);
+
 	float R2 = dot(lightToPixelVec, lightToPixelVec);
 
     float4 texel = GetPointSpriteTexel(p.uv_material_and_gloss.xy, p.colour);
@@ -13,7 +14,7 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 
 	float intensity = GetSpotlightIntensity(lightToPixelDir);
 
-	float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	float clarity = GetClarity(p);
 
 	float diffuse = pow(R2, light.attenuationRate);
 	float I = diffuse * intensity * clarity;

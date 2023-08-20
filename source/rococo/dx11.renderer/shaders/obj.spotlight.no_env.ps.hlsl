@@ -6,11 +6,12 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	
     float4 texel = SampleMaterial(p);
     float3 incident = ComputeEyeToWorldDirection(p);
-	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+    float3 lightToPixelVec = GetLightToWorldPosition(p);
+
 	float3 lightToPixelDir = normalize(lightToPixelVec);
 
 	float intensity = GetSpotlightIntensity(lightToPixelDir);
-	float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	float clarity = GetClarity(p);
 	float diffuse = GetDiffuse(p, lightToPixelVec, lightToPixelDir);
 	float specular = GetSpecular(p, incident, lightToPixelDir);
 

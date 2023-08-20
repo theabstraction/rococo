@@ -8,7 +8,7 @@ float4 main(ObjectPixelVertex p): SV_TARGET
 //	float3 reflectionVector = normalize(reflect(incident, normal));
 //	texel = ModulateWithEnvMap(texel, incident.xyz, normal, p.uv_material_and_gloss.w);
 
-	float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	float clarity = GetClarity(p);
 	
 	texel.xyz *= clarity;
 	

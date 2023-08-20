@@ -13,7 +13,7 @@ struct PixelVertex
 float4 per_pixel_lighting(PixelVertex p)
 {
 	float4 texel = GetFontPixel(p.uv_material_and_gloss.xyw, p.colour);
-	float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	float clarity = GetClarityAcrossSpan(p.cameraSpacePosition.xyz);
 
 	texel.xyz *= clarity;
 	texel.xyz *= ambience.localLight.xyz;

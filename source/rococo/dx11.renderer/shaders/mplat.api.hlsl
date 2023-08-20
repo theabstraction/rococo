@@ -272,6 +272,11 @@ float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
     return normalize(p.worldPosition.xyz - global.eye.xyz);
 }
 
+float3 GetLightToWorldPosition(ObjectPixelVertex p)
+{
+    return p.worldPosition.xyz - light.position.xyz;
+}
+
 float SignedToUnsigned (float x)
 {
 	return (x + 1.0f) * 0.5f;
@@ -306,10 +311,15 @@ float GetSpotlightIntensity(float3 lightToPixelDir)
 	return intensity;
 }
 
-float GetClarity(float3 cameraSpacePosition)
+float GetClarityAcrossSpan(float3 cameraSpacePosition)
 {
 	float range = length(cameraSpacePosition.xyz);
 	return exp(range * light.fogConstant);
+}
+
+float GetClarity(ObjectPixelVertex v)
+{
+    return GetClarityAcrossSpan(v.cameraSpacePosition.xyz);
 }
 
 float4 GetFontPixel(float3 uv_blend, float4 vertexColour)

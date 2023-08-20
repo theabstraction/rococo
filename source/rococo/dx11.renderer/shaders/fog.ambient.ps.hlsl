@@ -12,7 +12,7 @@ float4 main(PixelVertex p) : SV_TARGET
 {
 	float4 texel = GetPointSpriteTexel(p.uv, p.colour);
 
-	float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	float clarity = GetClarityAcrossSpan(p.cameraSpacePosition);
 
 	texel.xyz *= clarity;
 	texel.xyz * ambience.localLight.xyz;

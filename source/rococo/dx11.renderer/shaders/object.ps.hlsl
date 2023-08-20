@@ -9,12 +9,13 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	
 	// We dont apply the environment here, because by definition the environment is lit by ambient light only
 	
-	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+    float3 lightToPixelVec = GetLightToWorldPosition(p);
+
 	float3 lightToPixelDir = normalize(lightToPixelVec);
 
 	float intensity = GetSpotlightIntensity(lightToPixelDir);
 	float diffuse = GetDiffuse(p, lightToPixelVec, lightToPixelDir);
-	float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	float clarity = GetClarity(p);
 	float specular = GetSpecular(p, incident, lightToPixelDir);
 	float I = (diffuse + specular) * intensity * clarity;
 

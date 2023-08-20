@@ -5,11 +5,11 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	float4 texel = GetFontPixel(p.uv_material_and_gloss.xyw, p.colour);
 
     float shadowDensity = GetShadowDensity(p);
-	float3 lightToPixelVec = p.worldPosition.xyz - light.position.xyz;
+    float3 lightToPixelVec = GetLightToWorldPosition(p);
 	float3 lightToPixelDir = normalize(lightToPixelVec);
 
 	float intensity = GetSpotlightIntensity(lightToPixelDir);
-	float clarity = GetClarity(p.cameraSpacePosition.xyz);
+	float clarity = GetClarity(p);
 	float diffuse = GetDiffuse(p, lightToPixelVec, lightToPixelDir);
 	float I = diffuse * intensity * clarity;
 
