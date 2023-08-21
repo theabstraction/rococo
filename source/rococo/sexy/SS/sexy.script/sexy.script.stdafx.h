@@ -101,7 +101,7 @@ namespace Rococo
 
         class CScript;
 
-        void AddMember(IStructureBuilder& s, cr_sex field);
+        void AddMember(IStructureBuilder& s, cr_sex field, IScriptSystem& ss);
         IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module);
 
         struct IStringPool

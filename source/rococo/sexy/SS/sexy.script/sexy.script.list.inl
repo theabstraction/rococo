@@ -49,6 +49,35 @@ namespace Rococo::Script
 		return n;
 	}
 
+	struct ListLifetimeManager: Rococo::Compiler::IMemberLifeSupervisor
+	{
+		IScriptSystem& ss;
+
+		void Release(uint8* instance) override
+		{
+			ListImage* l = *reinterpret_cast<ListImage**>(instance);
+			if (l != nullptr)
+			{
+				ListRelease(l, ss);
+			}
+		}
+
+		ListLifetimeManager(IScriptSystem& _ss): ss(_ss)
+		{
+
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
+	IMemberLifeSupervisor* CreateListLifetimeManager(IScriptSystem& ss)
+	{
+		return new ListLifetimeManager(ss);
+	}
+
 	int ReleaseNode(ListNode* n, IScriptSystem& ss)
 	{
 		n->RefCount--;

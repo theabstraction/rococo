@@ -2,10 +2,13 @@
 
 #include <rococo.types.h>
 #include <rococo.allocators.h>
+#include <rococo.os.h>
+#include <rococo.debugging.h>
 
 #include <rococo.strings.h>
 #include <stdlib.h>
 #include <vector>
+#include <unordered_map>
 
 #include <rococo.debugging.h>
 
@@ -62,182 +65,287 @@ namespace
 #include <algorithm>
 #include <allocators/rococo.allocator.template.h>
 
-namespace
+using namespace Rococo;
+using namespace Rococo::Strings;
+using namespace Rococo::Debugging;
+
+namespace Rococo::Memory::ANON
 {
-   using namespace Rococo;
-   using namespace Rococo::Strings;
+    class CheckedAllocator : public IAllocator
+    {
+        uint32 allocCount{ 0 };
+        uint32 freeCount{ 0 };
+        uint32 reallocCount{ 0 };
 
-   class CheckedAllocator: public IAllocator
-   {
-      uint32 allocCount{ 0 };
-      uint32 freeCount{ 0 };
-      uint32 reallocCount{ 0 };
+        std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
 
-      std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
+    public:
+        ~CheckedAllocator()
+        {
+            for (auto fn : atReleaseQueue)
+            {
+                fn();
+            }
 
-   public:
-      ~CheckedAllocator()
-      {
-         char text[1024];
-         SafeFormat(text, sizeof(text), "\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
-         OutputDebugStringA(text);
+            PrintD("\nCheckedAllocator: Allocs: %u, Frees: %u, Reallocs: %u\n\n", allocCount, freeCount, reallocCount);
+        }
 
-         for (auto fn : atReleaseQueue)
-         {
-             fn();
-         }
-      }
+        void* Allocate(size_t capacity) override
+        {
+            allocCount++;
+            void* buf = malloc(capacity);
+            if (buf == nullptr)
+            {
+                throw std::bad_alloc();
+            }
 
-      void* Allocate(size_t capacity) override
-      {
-         allocCount++;
-         void* buf = malloc(capacity);
-         if (buf == nullptr)
-         {
-             throw std::bad_alloc();
-         }
+            return buf;
+        }
 
-         return buf;
-      }
+        void FreeData(void* data) override
+        {
+            freeCount++;
+            free(data);
+        }
 
-      void FreeData(void* data) override
-      {
-         freeCount++;
-         free(data);
-      }
+        void* Reallocate(void* ptr, size_t capacity) override
+        {
+            if (ptr == nullptr)
+            {
+                return Allocate(capacity);
+            }
+            reallocCount++;
+            return realloc(ptr, capacity);
+        }
 
-      void* Reallocate(void* ptr, size_t capacity) override
-      {
-         if (ptr == nullptr)
-         {
+        void AtRelease(FN_AllocatorReleaseFunction fn) override
+        {
+            auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
+            if (i != atReleaseQueue.end())
+            {
+                atReleaseQueue.push_back(fn);
+            }
+        }
+
+        size_t EvaluateHeapSize()
+        {
+            return 0;
+        }
+    } s_CheckedAllocator;
+
+    class BlockAllocator : public IAllocatorSupervisor
+    {
+        HANDLE hHeap{ nullptr };
+        uint32 allocCount{ 0 };
+        uint32 freeCount{ 0 };
+        uint32 reallocCount{ 0 };
+        size_t maxBytes;
+        const char* const name;
+
+        std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
+    public:
+        BlockAllocator(size_t kilobytes, size_t _maxkilobytes, const char* const _name) : maxBytes(_maxkilobytes * 1024), name(_name)
+        {
+            hHeap = HeapCreate(0, kilobytes * 1024, maxBytes);
+            if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
+        }
+
+        ~BlockAllocator()
+        {
+            for (auto fn : atReleaseQueue)
+            {
+                fn();
+            }
+
+            size_t totalAllocation = EvaluateHeapSize();
+
+            PrintD("\nBlockAllocator(%s) Allocs: %u, Frees: %u, Reallocs: %u. Heap size: %llu MB\n", name, allocCount, freeCount, reallocCount, totalAllocation / 1_megabytes);
+
+            if (allocCount > freeCount)
+            {
+                PrintD("Memory leaked. %llu allocations were not freed\n\n", allocCount - freeCount);
+            }
+
+            HeapDestroy(hHeap);
+        }
+
+        void* Allocate(size_t capacity) override
+        {
+            if (capacity > 0x7FFF8 && maxBytes != 0)
+            {
+                char msg[256];
+                SafeFormat(msg, "Heap max must be set to zero (growable heap for allocations this large) %llu", maxBytes);
+                Rococo::Debugging::AddCriticalLog(msg);
+                throw std::bad_alloc();
+            }
+            allocCount++;
+            auto* ptr = HeapAlloc(hHeap, 0, capacity);
+            if (ptr == nullptr) throw std::bad_alloc();
+            return ptr;
+        }
+
+        void AtRelease(FN_AllocatorReleaseFunction fn) override
+        {
+            auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
+            if (i == atReleaseQueue.end())
+            {
+                atReleaseQueue.push_back(fn);
+            }
+        }
+
+        void FreeData(void* data) override
+        {
+            if (data)
+            {
+                freeCount++;
+                if (data) HeapFree(hHeap, 0, data);
+            }
+        }
+
+        void* Reallocate(void* old, size_t capacity) override
+        {
+            if (old == nullptr)
+            {
+                return Allocate(capacity);
+            }
+            reallocCount++;
+            auto* ptr = HeapReAlloc(hHeap, 0, old, capacity);
+            if (ptr == nullptr) Throw(0, "Insufficient memory in dedicated BlockAllocator heap for realloc operation");
+            return ptr;
+        }
+
+        void Free() override
+        {
+            delete this;
+        }
+
+        size_t EvaluateHeapSize() override
+        {
+            PROCESS_HEAP_ENTRY entry;
+            entry = { 0 };
+
+            size_t totalAllocation = 0;
+            while (HeapWalk(hHeap, &entry))
+            {
+                totalAllocation += (entry.cbData + entry.cbOverhead);
+            }
+
+            return totalAllocation;
+        }
+    };
+
+    struct TrackingData
+    {
+        size_t capacity;
+        StackFrame::Address addr;
+    };
+
+    class TrackingAllocator : public IAllocatorSupervisor
+    {
+        cstr name;
+        std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
+        std::unordered_map<void*, TrackingData> mapAllocToData;
+
+        enum { TRACK_SIZE = 47, TRACK_DEPTH = 6 };
+    public:
+        TrackingAllocator(cstr _name) :name(_name)
+        {
+        }
+
+        ~TrackingAllocator()
+        {
+            for (auto fn : atReleaseQueue)
+            {
+                fn();
+            }
+
+            if (mapAllocToData.empty())
+            {
+                return;
+            }
+
+            PrintD("\nTracking Allocator(%s): Leaks detected: %llu buffers\n", name, mapAllocToData.size());
+
+            int count = 0;
+            for (auto& i : mapAllocToData)
+            {
+                PrintD("Leak #%d: %llu bytes\n", ++count, i.second.capacity);
+            }
+
+            if constexpr (TRACK_SIZE != 0)
+            {
+                for (auto& i : mapAllocToData)
+                {
+                    auto addr = i.second.addr;
+
+                    char buffer[1024];
+                    FormatStackFrame(buffer, sizeof buffer, addr);
+
+                    PrintD("Leak allocated at %s\n", buffer);
+                }
+            }
+        }
+
+        void* Allocate(size_t capacity) override
+        {
+            auto* buffer = malloc(capacity);
+
+            if (!buffer)
+            {
+                throw std::bad_alloc();
+            }
+
+            if constexpr(TRACK_SIZE == 0)
+            {
+
+                TrackingData data{ capacity, 0 };
+                mapAllocToData.insert(std::make_pair(buffer, data));
+            }
+            else if (capacity == TRACK_SIZE)
+            {
+                TrackingData data{ capacity, FormatStackFrame(nullptr, 0, TRACK_DEPTH) };
+                mapAllocToData.insert(std::make_pair(buffer, data));
+            }
+
+            return buffer;
+        }
+
+        void AtRelease(FN_AllocatorReleaseFunction fn) override
+        {
+            auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
+            if (i == atReleaseQueue.end())
+            {
+                atReleaseQueue.push_back(fn);
+            }
+        }
+
+        void FreeData(void* data) override
+        {
+            if (data)
+            {
+                mapAllocToData.erase(data);
+            }
+
+            free(data);
+        }
+
+        void* Reallocate(void* old, size_t capacity) override
+        {
+            UNUSED(old);
             return Allocate(capacity);
-         }
-         reallocCount++;
-         return realloc(ptr, capacity);
-      }
+        }
 
-      void AtRelease(FN_AllocatorReleaseFunction fn) override
-      {
-          auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
-          if (i != atReleaseQueue.end())
-          {
-              atReleaseQueue.push_back(fn);
-          }
-      }
+        void Free() override
+        {
+            delete this;
+        }
 
-      size_t EvaluateHeapSize()
-      {
-          return 0;
-      }
-   } s_CheckedAllocator;
+        size_t EvaluateHeapSize()
+        {
+            return 0;
+        }
+    };
 
-   class BlockAllocator : public IAllocatorSupervisor
-   {
-      HANDLE hHeap{ nullptr };
-      uint32 allocCount{ 0 };
-      uint32 freeCount{ 0 };
-      uint32 reallocCount{ 0 };
-	  size_t maxBytes;
-      const char* const name;
-
-      std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
-   public:
-      BlockAllocator(size_t kilobytes, size_t _maxkilobytes, const char* const _name): maxBytes(_maxkilobytes * 1024), name(_name)
-      {
-         hHeap = HeapCreate(0, kilobytes * 1024, maxBytes);
-         if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
-      }
-
-      ~BlockAllocator()
-      {
-          for (auto fn : atReleaseQueue)
-          {
-              fn();
-          }
-         
-          size_t totalAllocation = EvaluateHeapSize();
-
-          char text[1024];
-          SafeFormat(text, sizeof(text), "\nBlockAllocator(%s) Allocs: %u, Frees: %u, Reallocs: %u. Heap size: %llu MB\n", name, allocCount, freeCount, reallocCount, totalAllocation / 1_megabytes);
-          OutputDebugStringA(text);
-
-          if (allocCount > freeCount)
-          {
-              SafeFormat(text, sizeof(text), "Memory leaked. %llu allocations were not freed\n\n", allocCount - freeCount);
-              OutputDebugStringA(text);
-          }
-
-          HeapDestroy(hHeap);
-      }
-
-	  void* Allocate(size_t capacity) override
-	  {
-		  if (capacity > 0x7FFF8 && maxBytes != 0)
-		  {
-              char msg[256];
-              SafeFormat(msg, "Heap max must be set to zero (growable heap for allocations this large) %llu", maxBytes);
-              Rococo::Debugging::AddCriticalLog(msg);
-              throw std::bad_alloc();
-		  }
-		  allocCount++;
-		  auto* ptr = HeapAlloc(hHeap, 0, capacity);
-          if (ptr == nullptr) throw std::bad_alloc();
-		  return ptr;
-	  }
-
-      void AtRelease(FN_AllocatorReleaseFunction fn) override
-      {
-          auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
-          if (i == atReleaseQueue.end())
-          {
-              atReleaseQueue.push_back(fn);
-          }
-      }
-
-      void FreeData(void* data) override
-      {
-          if (data)
-          {
-              freeCount++;
-              if (data) HeapFree(hHeap, 0, data);
-          }
-      }
-
-      void* Reallocate(void* old, size_t capacity) override
-      {
-         if (old == nullptr)
-         {
-            return Allocate(capacity);
-         }
-         reallocCount++;
-         auto* ptr = HeapReAlloc(hHeap, 0, old, capacity);
-         if (ptr == nullptr) Throw(0, "Insufficient memory in dedicated BlockAllocator heap for realloc operation");
-         return ptr;
-      }
-
-      void Free() override
-      {
-         delete this;
-      }
-
-      size_t EvaluateHeapSize() override
-      {
-          PROCESS_HEAP_ENTRY entry;
-          entry = { 0 };
-
-          size_t totalAllocation = 0;
-          while (HeapWalk(hHeap, &entry))
-          {
-              totalAllocation += (entry.cbData + entry.cbOverhead);
-          }
-
-          return totalAllocation;
-      }
-   };
-}
-
-namespace  Rococo::Memory::ANON
-{
     struct FreeListAllocator :IFreeListAllocatorSupervisor
     {
         size_t elementSize;
@@ -298,12 +406,19 @@ namespace Rococo::Memory
 
     ROCOCO_API IAllocator& CheckedAllocator()
     {
-        return s_CheckedAllocator;
+        return ANON::s_CheckedAllocator;
+    }
+
+    ROCOCO_API IAllocatorSupervisor* CreateTrackingAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name)
+    {
+        UNUSED(kilobytes);
+        UNUSED(maxkilobytes);
+        return new ANON::TrackingAllocator(name);
     }
 
     ROCOCO_API IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name)
     {
-        return new BlockAllocator(kilobytes, maxkilobytes, name);
+        return new ANON::BlockAllocator(kilobytes, maxkilobytes, name);
     }
 
     ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t))

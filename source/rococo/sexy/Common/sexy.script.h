@@ -68,6 +68,7 @@ namespace Rococo
 		struct IStructure;
 		struct IPublicProgramObject;
 		struct IFunction;
+		struct IMemberLife;
 	}
 
 	namespace Sex
@@ -516,6 +517,10 @@ namespace Rococo {
 			virtual Rococo::Sex::ISExpressionBuilder* CreateMacroTransformClonedFromParent(Rococo::Sex::cr_sex sChild) = 0;
 			virtual const  Rococo::Sex::ISExpression* GetTransform(Rococo::Sex::cr_sex src) = 0;
 			virtual IIOSystem& IOSystem() = 0;
+
+			virtual IMemberLife* GetListLifetimeManager() = 0;
+			virtual IMemberLife* GetArrayLifetimeManager() = 0;
+			virtual IMemberLife* GetMapLifetimeManager() = 0;
 		};
 
 		SCRIPTEXPORT_API void SetDefaultNativeSourcePath(const wchar_t* pathname);

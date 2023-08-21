@@ -210,19 +210,30 @@ namespace Anon
 			auto& m = type.GetMember(i);
 			const int dm = m.SizeOfMember();
 
+			const uint8* child = ((const uint8*)object) + offset;
+
 			if (m.IsInterfaceVariable())
 			{
-				const uint8* child = ((const uint8*)object) + offset;
-				InterfacePointer childObj = *(InterfacePointer*) child;
+				InterfacePointer childObj = *(InterfacePointer*)child;
 				const uint8* objRaw = ((const uint8*)childObj) + (*childObj)->OffsetToInstance;
-				auto* childStub = (ObjectStub*) objRaw;
+				auto* childStub = (ObjectStub*)objRaw;
 				DecObjRefCount(childStub, map);
 			}
-			else
+			else if (m.UnderlyingType())
 			{
-				if (m.UnderlyingType())
+				auto& mutableRef = const_cast<IMember&>(m);
+				auto& mb = static_cast<IMemberBuilder&>(mutableRef);
+				VARTYPE memberType = m.UnderlyingType()->VarType();
+				switch (memberType)
 				{
+				case VARTYPE_Array:
+				case VARTYPE_List:
+				case VARTYPE_Map:
+					mb.Release(const_cast<uint8*>(child));
+					break;
+				case VARTYPE_Derivative:
 					DecRefCountOnMembers(*m.UnderlyingType(), object, offset, map);
+					break;
 				}
 			}
 
@@ -256,10 +267,10 @@ namespace Anon
 
 			auto& type = *object->Desc->TypeInfo;
 
-			if (object->Desc->TypeInfo->HasInterfaceMembers())
-			{
+		//	if (object->Desc->TypeInfo->HasInterfaceMembers())
+		//	{
 				DecRefCountOnMembers(type, object, 0, map);
-			}
+		//	}
 
 			if (object->Desc->TypeInfo->Name()[0] != '_')
 			{

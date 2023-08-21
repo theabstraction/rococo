@@ -122,12 +122,24 @@ namespace Rococo::Compiler
 	};
 
 	SEXYUTIL_API IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName);
+
+	ROCOCO_INTERFACE IMemberLife
+	{
+		virtual void Release(uint8 * pInstance) = 0;
+	};
+
+	ROCOCO_INTERFACE IMemberLifeSupervisor: IMemberLife
+	{
+		virtual void Free() = 0;
+	};
 	
 	ROCOCO_INTERFACE IMemberBuilder : public IMember
 	{
 		virtual IStructureBuilder* UnderlyingType() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg1Type() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg2Type() = 0;
+		virtual void SetLifeTimeManager(IMemberLife* life) = 0;
+		virtual void Release(uint8* pInstance) = 0;
 	};
 	
 	ROCOCO_INTERFACE IStructureBuilder : public IStructure
@@ -136,7 +148,7 @@ namespace Rococo::Compiler
 		virtual IModuleBuilder& Module() = 0;
 		virtual void AddAttribute(const Rococo::Sex::ISExpression& sourceDef, bool isCustom) = 0;
 		virtual void AddInterface(cstr interfaceFullName) = 0;		
-		virtual void AddMember(const NameString& name, const TypeString& type, cstr genericArg1 = nullptr, cstr genericArg2 = nullptr) = 0;
+		virtual IMemberBuilder& AddMember(const NameString& name, const TypeString& type, cstr genericArg1 = nullptr, cstr genericArg2 = nullptr) = 0;
 		virtual void AddInterfaceMember(const NameString& name, const TypeString& type) = 0;
 		virtual void Seal() = 0;
 		virtual IMemberBuilder& GetMember(int index) = 0;

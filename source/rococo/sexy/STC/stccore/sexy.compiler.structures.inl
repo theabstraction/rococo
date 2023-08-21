@@ -271,7 +271,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		members.push_back(m);
 	}
 
-	void Structure::AddMember(const NameString& _memberName, const TypeString& _type, cstr _genericArgType1, cstr _genericArgType2)
+	IMemberBuilder& Structure::AddMember(const NameString& _memberName, const TypeString& _type, cstr _genericArgType1, cstr _genericArgType2)
 	{
 		if (isSealed)
 		{
@@ -288,6 +288,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		StructureMember m(_memberName.c_str(), _type.c_str(), _genericArgType1 == NULL ? ("") : _genericArgType1, _genericArgType2 == NULL ? ("") : _genericArgType2);
 		members.push_back(m);
+		return members.back();
 	}
 
 	void Structure::AddInterfaceMember(const NameString& _name, const TypeString& _type)

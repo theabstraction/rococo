@@ -809,6 +809,40 @@ namespace Rococo::Script
 			}
 		}
 
+		IMemberLife* GetListLifetimeManager() override
+		{
+			if (!listLifetimeManager)
+			{
+				listLifetimeManager = CreateListLifetimeManager(*this);
+			}
+
+			return listLifetimeManager;
+		}
+
+		IMemberLife* GetArrayLifetimeManager() override
+		{
+			if (!arrayLifetimeManager)
+			{
+				arrayLifetimeManager = CreateArrayLifetimeManager(*this);
+			}
+
+			return arrayLifetimeManager;
+		}
+
+		IMemberLife* GetMapLifetimeManager() override
+		{
+			if (!mapLifetimeManager)
+			{
+				mapLifetimeManager = CreateMapLifetimeManager(*this);
+			}
+
+			return mapLifetimeManager;
+		}
+
+		AutoFree<IMemberLifeSupervisor> listLifetimeManager = nullptr;
+		AutoFree<IMemberLifeSupervisor> mapLifetimeManager = nullptr;
+		AutoFree<IMemberLifeSupervisor> arrayLifetimeManager = nullptr;
+
 		typedef TSexyHashMap<cstr, CStringConstant*> TReflectedStrings;
 		TReflectedStrings reflectedStrings;
 

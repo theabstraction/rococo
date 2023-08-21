@@ -2512,6 +2512,40 @@ R"(
 		s_logger.Clear();
 	}
 
+	void TestListInClass(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(class Robot (defines Sys.IRobot)
+	(list IString commands)
+)
+
+(method Robot.Construct :
+	(list IString commands)
+	(this.commands = commands)
+)
+
+(factory Sys.NewRobot Sys.IRobot : (construct Robot))
+
+(function Main -> (Int32 result):
+	(Sys.IRobot robot (Sys.NewRobot))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_TERMINATED);
+	}
+
 	void TestListDeleteHeadAndThrow(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -16730,6 +16764,7 @@ R"(
 	   
 	   TEST(TestListReverseEnumeration);
 	   TEST(TestLinkedListForeach7);
+	   TEST(TestListInClass);
    }
 
    void TestMaps()
@@ -17266,7 +17301,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		TEST(TestExpressionProxies2);
+		TEST(TestListInClass);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

@@ -34,6 +34,14 @@ namespace Rococo::Strings
 	ROCOCO_API int SafeFormat(char* buffer, size_t capacity, const char* format, ...);
 	ROCOCO_API int SafeFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...);
 
+#ifdef _DEBUG
+	// Debug print - send to debug output
+	ROCOCO_API int PrintD(const char* format, ...);
+#else
+	// Debug print - send to debug output. This is release mode, PrintD goes nowhere
+	inline int PrintD(const char*, ...) {}
+#endif
+
 	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
 
 #ifdef ROCOCO_USE_SAFE_V_FORMAT

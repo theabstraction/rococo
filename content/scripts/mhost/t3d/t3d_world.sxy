@@ -37,6 +37,9 @@
 	(IWorldBuilder wb)
 	(list IString logItems)
 	(Int64 lastLogCheck)
+	
+	// General purpose tempBuilder
+	(IStringBuilder tempBuilder)
 )
 
 (method World.UpdateMouseLook (Vec2 delta)-> :
@@ -105,6 +108,8 @@
 	(list IString logItems)
 	(this.logItems = logItems)
 	
+	(this.tempBuilder = (NewPathBuilder))
+	
 	(this.lastLogCheck = 0)
 	
 	(ISceneBuilder scene (SceneBuilder))
@@ -145,11 +150,10 @@
 	(WorldOrientation camera)
 	(this.GetCameraOrientation camera)
 	
-	(IStringBuilder sb = (NewPathBuilder))
-	(sb.SetFormat 0 0 false false)
-	(#build sb "Elevation: " camera.elevation ", Bearing: " camera.bearing)
+	(this.tempBuilder.SetFormat 0 0 false false)
+	(#build this.tempBuilder "Elevation: " camera.elevation ", Bearing: " camera.bearing)
 	
-	(gui.DrawText menuRect 0 sb 1 0xFFFFFFFF)
+	(gui.DrawText menuRect 0 this.tempBuilder 1 0xFFFFFFFF)
 	
 	(Int64 logLifeTime = 4 * Sys.Time.TickHz)
 	

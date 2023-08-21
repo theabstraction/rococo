@@ -58,6 +58,8 @@ namespace Rococo
 
 	namespace Script
 	{
+		IMemberLife* GetListLifetimeManager();
+
 		void AppendInvokeCallDestructor(CCompileEnvironment& ce, const IStructure& s, cstr name, int SFoffset);
 		void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
 
@@ -170,7 +172,7 @@ namespace Rococo
 			s.AddAttribute(attributeDef, isCustom);
 		}
 
-		void AddMember(IStructureBuilder& s, cr_sex field)
+		void AddMember(IStructureBuilder& s, cr_sex field, IScriptSystem& ss)
 		{
 			AssertCompound(field);
 
@@ -216,7 +218,7 @@ namespace Rococo
 				}
 			}
 
-			if (AreEqual(type, ("array")))
+			if (AreEqual(type, "array"))
 			{
 				cr_sex elementTypeExpr = GetAtomicArg(field, 1);
 				sexstring elementType = elementTypeExpr.String();
@@ -228,7 +230,8 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From(("_Array")), elementType->Buffer);
+					auto& member = s.AddMember(NameString::From(nameExpr.String()), TypeString::From("_Array"), elementType->Buffer);
+					member.SetLifeTimeManager(ss.GetArrayLifetimeManager());
 				}	
 			}
 			else if (AreEqual(type, "list"))
@@ -243,7 +246,8 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From("_List"), elementType->Buffer);
+					auto& member = s.AddMember(NameString::From(nameExpr.String()), TypeString::From("_List"), elementType->Buffer);
+					member.SetLifeTimeManager(ss.GetListLifetimeManager());
 				}	
 			}
 			else if (AreEqual(type, "map"))
@@ -261,7 +265,8 @@ namespace Rococo
 					cr_sex nameExpr = field.GetElement(i);
 					AssertLocalIdentifier(nameExpr);			
 
-					s.AddMember(NameString::From(nameExpr.String()), TypeString::From("_Map"), keyType->Buffer, valueType->Buffer);
+					auto& member = s.AddMember(NameString::From(nameExpr.String()), TypeString::From("_Map"), keyType->Buffer, valueType->Buffer);
+					member.SetLifeTimeManager(ss.GetMapLifetimeManager());
 				}	
 			}
 			else

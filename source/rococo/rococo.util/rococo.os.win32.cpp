@@ -3732,3 +3732,23 @@ namespace Rococo::Debugging
 		return len;
 	}
 }
+
+
+namespace Rococo::Strings
+{
+	ROCOCO_API int PrintD(const char* format, ...)
+	{
+#ifdef _DEBUG
+		char message[2048];
+
+		va_list args;
+		va_start(args, format);
+		int len = SafeVFormat(message, sizeof message, format, args);
+
+		OutputDebugStringA(message);
+
+		return len;
+#endif
+		return 0;
+	}
+}

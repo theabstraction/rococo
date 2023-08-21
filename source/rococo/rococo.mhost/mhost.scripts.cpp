@@ -232,7 +232,7 @@ namespace MHost
 		{
 			ObjectStub header;
 			IGui* gui;
-		}* guiSexyObject = nullptr;
+		};
 
 		void Free() override
 		{
@@ -257,22 +257,19 @@ namespace MHost
 
 		void OnCompile(IPublicScriptSystem&)
 		{
-			guiSexyObject = nullptr;
 		}
 
 		void RouteGuiToScript(IPublicScriptSystem* ss, IGui* gui, const GuiPopulator& populator) override
 		{
-			if (this->ss != ss || guiSexyObject == nullptr)
-			{
-				this->ss = ss;
-				const IStructure* proxyIGuiStruct = FindStructureInModule(ss->PublicProgramObject(), "mhost_sxh.sxy", "ProxyIGui");
-				guiSexyObject = (GuiSexyObject*) ss->Represent(*proxyIGuiStruct, gui);
-			}
-
+			const IStructure* proxyIGuiStruct = FindStructureInModule(ss->PublicProgramObject(), "mhost_sxh.sxy", "ProxyIGui");
+			GuiSexyObject* guiSexyObject = (GuiSexyObject*) ss->Represent(*proxyIGuiStruct, gui);
 			guiSexyObject->gui = gui;
+
 			auto* pInterface = (InterfacePointer)(((uint8*)guiSexyObject) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
+
 			ss->DispatchToSexyClosure(pInterface, populator);
-			guiSexyObject->gui = nullptr;
+
+			ss->CancelRepresentation(gui);
 		}
 	};
 

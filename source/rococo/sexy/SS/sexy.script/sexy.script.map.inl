@@ -173,6 +173,32 @@ namespace Rococo::Script
 		}
 	}
 
+	struct MapLifetimeManager : Rococo::Compiler::IMemberLifeSupervisor
+	{
+		IScriptSystem& ss;
+
+		void Release(uint8* instance) override
+		{
+			MapImage* m = *reinterpret_cast<MapImage**>(instance);
+			ReleaseMap(m, ss);
+		}
+
+		MapLifetimeManager(IScriptSystem& _ss) : ss(_ss)
+		{
+
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
+	IMemberLifeSupervisor* CreateMapLifetimeManager(IScriptSystem& ss)
+	{
+		return new MapLifetimeManager(ss);
+	}
+
 	VM_CALLBACK(MapRelease)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;

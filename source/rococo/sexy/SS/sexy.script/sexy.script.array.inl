@@ -142,6 +142,39 @@ namespace Rococo
 		   }
 	   }
 
+	   struct ArrayLifetimeManager : Rococo::Compiler::IMemberLifeSupervisor
+	   {
+		   IScriptSystem& ss;
+
+		   void Release(uint8* instance) override
+		   {
+			   ArrayImage* a = *reinterpret_cast<ArrayImage**>(instance);
+			   if (a != nullptr)
+			   {
+				   a->RefCount--;
+				   if (a->RefCount == 0)
+				   {
+					   ArrayDelete(a, ss);
+				   }
+			   }
+		   }
+
+		   ArrayLifetimeManager(IScriptSystem& _ss) : ss(_ss)
+		   {
+
+		   }
+
+		   void Free() override
+		   {
+			   delete this;
+		   }
+	   };
+
+	   IMemberLifeSupervisor* CreateArrayLifetimeManager(IScriptSystem& ss)
+	   {
+		   return new ArrayLifetimeManager(ss);
+	   }
+
 	   void DestroyElements(ArrayImage& a, IScriptSystem& ss)
 	   {
 		   auto& obj = ss.ProgramObject();

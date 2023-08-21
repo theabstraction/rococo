@@ -4472,7 +4472,7 @@ namespace Rococo::Script
 				for (int i = 2; i < j->StructDef->NumberOfElements(); i++)
 				{
 					cr_sex field = j->StructDef->GetElement(i);
-					AddMember(*j->Struct, field);
+					AddMember(*j->Struct, field, System());
 				}
 			}
 			else

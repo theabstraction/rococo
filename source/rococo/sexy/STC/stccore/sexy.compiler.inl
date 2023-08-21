@@ -387,6 +387,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		IStructureBuilder* underlyingGenericArg1Type;
 		IStructureBuilder* underlyingGenericArg2Type;
 		bool isInterfaceRef;
+		IMemberLife* life = nullptr;
 	public:
 		void SetUnderlyingType(IStructureBuilder* _underlyingType, IStructureBuilder* _genericArg1Type, IStructureBuilder* _genericArg2Type)
 		{
@@ -434,6 +435,19 @@ namespace Rococo { namespace Compiler { namespace Impl
 		cstr GenericArg1Type() const { return genericArg1Type.c_str(); }
 		cstr GenericArg2Type() const { return genericArg2Type.c_str(); }
 		void SetSize(size_t size) { sizeOfMember = (int32) size; }
+
+		void Release(uint8* pInstance) override
+		{
+			if (life)
+			{
+				life->Release(pInstance);
+			}
+		}
+
+		void SetLifeTimeManager(IMemberLife* life) override
+		{
+			this->life = life;
+		}
 	};
 
 	typedef TSexyVector<StructureMember> TStructureMembers;
@@ -507,7 +521,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		IInterfaceBuilder& GetInterface(int index) override;
 		bool HasInterfaceMembers() const override;
 
-		void AddMember(const NameString& _name, const TypeString& _type, cstr _genericArgType1 = NULL, cstr _genericArgType2 = NULL) override;
+		IMemberBuilder& AddMember(const NameString& _name, const TypeString& _type, cstr _genericArgType1 = NULL, cstr _genericArgType2 = NULL) override;
 		void AddInterfaceMember(const NameString& _name, const TypeString& _type) override;
 		void Seal() override;
 		int MemberCount() const override;
