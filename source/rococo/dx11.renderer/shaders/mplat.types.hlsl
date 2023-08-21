@@ -1,3 +1,6 @@
+#ifndef MPLAT_TYPES_HLSL
+#define MPLAT_TYPES_HLSL
+
 #pragma pack_matrix(row_major)
 
 #ifdef _DEBUG
@@ -193,3 +196,5 @@ struct TextureDescState
 	float blueActive;
 	float alphaActive;
 };
+
+#endif
