@@ -223,18 +223,8 @@ namespace Anon
 			{
 				auto& mutableRef = const_cast<IMember&>(m);
 				auto& mb = static_cast<IMemberBuilder&>(mutableRef);
-				VARTYPE memberType = m.UnderlyingType()->VarType();
-				switch (memberType)
-				{
-				case VARTYPE_Array:
-				case VARTYPE_List:
-				case VARTYPE_Map:
-					mb.Release(const_cast<uint8*>(child));
-					break;
-				case VARTYPE_Derivative:
-					DecRefCountOnMembers(*m.UnderlyingType(), object, offset, map);
-					break;
-				}
+				mb.Release(const_cast<uint8*>(child));
+				DecRefCountOnMembers(*m.UnderlyingType(), object, offset, map);
 			}
 
 			offset += dm;

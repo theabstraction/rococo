@@ -2512,6 +2512,40 @@ R"(
 		s_logger.Clear();
 	}
 
+	void TestArrayInClass(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(class Robot (defines Sys.IRobot)
+	(array IString commands)
+)
+
+(method Robot.Construct :
+	(array IString commands)
+	(this.commands = commands)
+)
+
+(factory Sys.NewRobot Sys.IRobot : (construct Robot))
+
+(function Main -> (Int32 result):
+	(Sys.IRobot robot (Sys.NewRobot))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_TERMINATED);
+	}
+
 	void TestListInClass(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -2528,6 +2562,40 @@ R"(
 (method Robot.Construct :
 	(list IString commands)
 	(this.commands = commands)
+)
+
+(factory Sys.NewRobot Sys.IRobot : (construct Robot))
+
+(function Main -> (Int32 result):
+	(Sys.IRobot robot (Sys.NewRobot))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_TERMINATED);
+	}
+
+	void TestMapInClass(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(class Robot (defines Sys.IRobot)
+	(map IString IString macros)
+)
+
+(method Robot.Construct :
+	(map IString IString macros)
+	(this.macros = macros)
 )
 
 (factory Sys.NewRobot Sys.IRobot : (construct Robot))
@@ -16668,6 +16736,7 @@ R"(
    void TestArrays()
    {
 	   TEST(TestArrayNull);
+	   TEST(TestArrayInClass);
 	   TEST(TestArrayOfInterfacesBuilder);
 	   TEST(TestPushStructToArray);
 	   TEST(TestArrayInt32);
@@ -16770,6 +16839,7 @@ R"(
    void TestMaps()
    {  
 	   TEST(TestMapOverwriteValue);
+	   TEST(TestMapInClass);
 	   TEST3(TestMapKey);
 	   TEST3(TestMapGetKey);
 	   TEST3(TestMapGetKey64);
@@ -17301,7 +17371,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		TEST(TestListInClass);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

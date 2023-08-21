@@ -128,10 +128,8 @@ namespace Rococo
 			delete a;
 	   }
 
-	   VM_CALLBACK(ArrayReleaseRef)
+	   void ReleaseArray(ArrayImage* a, IScriptSystem& ss)
 	   {
-		   IScriptSystem& ss = *(IScriptSystem*) context;
-		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D7].vPtrValue;
 		   if (a)
 		   {
 			   a->RefCount--;
@@ -142,6 +140,13 @@ namespace Rococo
 		   }
 	   }
 
+	   VM_CALLBACK(ArrayReleaseRef)
+	   {
+		   IScriptSystem& ss = *(IScriptSystem*) context;
+		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D7].vPtrValue;
+		   ReleaseArray(a, ss);
+	   }
+
 	   struct ArrayLifetimeManager : Rococo::Compiler::IMemberLifeSupervisor
 	   {
 		   IScriptSystem& ss;
@@ -149,14 +154,7 @@ namespace Rococo
 		   void Release(uint8* instance) override
 		   {
 			   ArrayImage* a = *reinterpret_cast<ArrayImage**>(instance);
-			   if (a != nullptr)
-			   {
-				   a->RefCount--;
-				   if (a->RefCount == 0)
-				   {
-					   ArrayDelete(a, ss);
-				   }
-			   }
+			   ReleaseArray(a, ss);
 		   }
 
 		   ArrayLifetimeManager(IScriptSystem& _ss) : ss(_ss)
