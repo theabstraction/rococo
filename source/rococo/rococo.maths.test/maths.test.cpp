@@ -16,7 +16,6 @@
 # pragma comment(lib, "rococo.maths.lib")
 # pragma comment(lib, "rococo.util.lib")
 # pragma comment(lib, "rococo.mplat.lib")
-# pragma comment(lib, "rococo.misc.utils.lib")
 #endif
 
 #include <stdio.h>

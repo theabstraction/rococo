@@ -16,7 +16,6 @@
 #include <rococo.window.h>
 #include <rococo.renderer.h>
 
-#pragma comment(lib, "rococo.misc.utils.lib")
 #include "dx11.imports.inl"
 
 #pragma comment(lib, "lib-tiff.lib" )

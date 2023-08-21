@@ -335,9 +335,8 @@ namespace Rococo::Sex::SEXML
 
 		struct Attribute: ISEXMLAttribute
 		{
-#ifdef _DEBUG
 			cstr attributeName = nullptr;
-#endif
+
 			ISEXMLAttributeValue* a = nullptr;
 			SEXMLValueType type;
 

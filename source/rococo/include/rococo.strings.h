@@ -39,7 +39,7 @@ namespace Rococo::Strings
 	ROCOCO_API int PrintD(const char* format, ...);
 #else
 	// Debug print - send to debug output. This is release mode, PrintD goes nowhere
-	inline int PrintD(const char*, ...) {}
+	inline int PrintD(const char*, ...) { return 0; }
 #endif
 
 	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);

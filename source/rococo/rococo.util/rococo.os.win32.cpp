@@ -3733,12 +3733,11 @@ namespace Rococo::Debugging
 	}
 }
 
-
+#ifdef _DEBUG
 namespace Rococo::Strings
 {
 	ROCOCO_API int PrintD(const char* format, ...)
 	{
-#ifdef _DEBUG
 		char message[2048];
 
 		va_list args;
@@ -3748,7 +3747,7 @@ namespace Rococo::Strings
 		OutputDebugStringA(message);
 
 		return len;
-#endif
-		return 0;
+
 	}
 }
+#endif
