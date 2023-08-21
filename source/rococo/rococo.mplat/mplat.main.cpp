@@ -460,7 +460,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	// We set up allocators first, as subsystems below depend on it implicitly through global new and delete operators
 	// We cannot determine the paramenters by sexy script, since the script library depends on the allocators being set first, so use command line parameters
-	AutoFree<IAllocatorSupervisor> scriptAllocator = Memory::CreateTrackingAllocator(initialScriptAllocationKB, 0, "mplat-for-sexy");
+	AutoFree<IAllocatorSupervisor> scriptAllocator = Memory::CreateBlockAllocator(initialScriptAllocationKB, 0, "mplat-for-sexy");
 	Rococo::Memory::SetSexyAllocator(scriptAllocator);
 
 	int initialImageAllocationKB = Rococo::Strings::CLI::GetClampedCommandLineOption(cmdOptionInt32_AllocImagesInitial);
