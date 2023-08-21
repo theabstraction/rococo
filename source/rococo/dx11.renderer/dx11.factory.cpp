@@ -28,6 +28,7 @@ namespace ANON
 		FactorySpec spec;
 		IO::IInstallation& installation;
 		IGraphicsLogger& logger;
+		Rococo::Graphics::IShaderOptions& shaderOptions;
 
 		AutoRelease<IDXGIAdapter> adapter;
 		AutoRelease<ID3D11DeviceContext> dc;
@@ -44,13 +45,7 @@ namespace ANON
 			adapter = nullptr;
 			factory = nullptr;
 			renderer = nullptr;
-
-			if (debug)
-			{
-				debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-				debug = nullptr;
-			}
-
+			debug = nullptr;
 			if (atom) UnregisterClassA((cstr)atom, spec.hResourceInstance);
 		}
 
@@ -61,10 +56,11 @@ namespace ANON
 
 		ATOM atom;
 	public:
-		DX11Factory(IO::IInstallation& _installation, IGraphicsLogger& _logger, const FactorySpec& _spec) :
+		DX11Factory(IO::IInstallation& _installation, IGraphicsLogger& _logger, const FactorySpec& _spec, Rococo::Graphics::IShaderOptions& _options) :
 			installation(_installation),
 			logger(_logger),
-			spec(_spec)
+			spec(_spec),
+			shaderOptions(_options)
 		{
 			VALIDATEDX11(CreateDXGIFactory(IID_IDXGIFactory, (void**)&factory));
 			VALIDATEDX11(factory->EnumAdapters(_spec.adapterIndex, &adapter));
@@ -108,7 +104,7 @@ namespace ANON
 
 			DX11::Factory rendererFactory { *device, *dc, *factory, *this, installation, logger };
 
-			renderer = CreateDX11Renderer(rendererFactory);
+			renderer = CreateDX11Renderer(rendererFactory, _options);
 
 			WNDCLASSEXA classDef = { 0 };
 			classDef.cbSize = sizeof(classDef);
@@ -151,9 +147,9 @@ namespace Rococo
 {
 	using namespace Rococo::DX11;
 
-	ROCOCO_GRAPHICS_API IGraphicsWindowFactory* CreateGraphicsWindowFactory(IO::IInstallation& installation, IGraphicsLogger& logger, const FactorySpec& spec)
+	ROCOCO_GRAPHICS_API IGraphicsWindowFactory* CreateGraphicsWindowFactory(IO::IInstallation& installation, IGraphicsLogger& logger, const FactorySpec& spec, Rococo::Graphics::IShaderOptions& options)
 	{
-		return new ANON::DX11Factory(installation, logger, spec);
+		return new ANON::DX11Factory(installation, logger, spec, options);
 	}
 
 	bool DX11_TryGetAdapterInfo(int index, AdapterDesc& d)

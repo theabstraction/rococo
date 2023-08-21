@@ -23,12 +23,29 @@ namespace Rococo::Assets
 		ws.Height = 128;
 	}
 
+	struct ShaderOptions : Rococo::Graphics::IShaderOptions
+	{
+		size_t NumberOfOptions() const override
+		{
+			return 0;
+		}
+
+		void GetOption(size_t index, OUT cstr& interfaceName, OUT cstr& className) override
+		{
+			UNUSED(index);
+			UNUSED(interfaceName);
+			UNUSED(className);
+		}
+	};
+
 	ROCOCO_API_EXPORT void RunTextureScript(cstr title, HINSTANCE hInstance, IO::IInstallation& installation, Rococo::Function<void(TextureBundle& bundle)> callback)
 	{
 		AutoFree<IGraphicsLogger> logger = CreateStandardOutputLogger();
 
+		ShaderOptions shaderOptions;
+
 		FactorySpec defaultSpec = { 0 };
-		AutoFree<IGraphicsWindowFactory> windowFactory = CreateGraphicsWindowFactory(installation, *logger, defaultSpec);
+		AutoFree<IGraphicsWindowFactory> windowFactory = CreateGraphicsWindowFactory(installation, *logger, defaultSpec, shaderOptions);
 
 		WindowSpec ws;
 		GetWindowSpec(hInstance, ws);

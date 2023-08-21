@@ -6,10 +6,13 @@ namespace Rococo::Graphics
 {
 	enum class MaterialCategory: int;
 	struct IRenderer;
+	struct IShaderOptionsConfig;
 }
 
 #include "../../rococo.mplat/code-gen/Rococo.Graphics.MaterialCategory.sxh.h"
 #include "../../rococo.mplat/code-gen/Rococo.Graphics.IMaterialBuilder.sxh.h"
+#include "../../rococo.mplat/code-gen/Rococo.Graphics.IShaderOptionsConfig.sxh.h"
+#include <rococo.renderer.h>
 
 namespace Rococo
 {
@@ -23,6 +26,12 @@ namespace Rococo::Events
 
 namespace Rococo::Graphics
 {
+	ROCOCO_INTERFACE IShaderOptionsSupervisor : IShaderOptions
+	{
+		virtual IShaderOptionsConfig& Config() = 0;
+		virtual void Free() = 0;
+	};
+
 	ROCOCO_INTERFACE IMaterialBuilderSupervisor : public IMaterialBuilder
 	{
 		virtual void Free() = 0;
@@ -31,5 +40,6 @@ namespace Rococo::Graphics
 	namespace Construction
 	{
 		IMaterialBuilderSupervisor* CreateMaterialsBuilder(IRenderer& renderer, Rococo::Events::IPublisher& publisher);
+		IShaderOptionsSupervisor* CreateShaderOptions();
 	}
 }

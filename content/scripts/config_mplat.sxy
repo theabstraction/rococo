@@ -4,6 +4,9 @@
 
 (' #include 
 	"!scripts/interop/rococo/mplat/mplat_config_sxh.sxy"
+	"!scripts/interop/rococo/mplat/mplat_sxh.sxy"
+	"!scripts/interop/rococo/mplat/mplat_types.sxy"
+	"!scripts/interop/rococo/mplat/types.sxy"
 )
 
 (namespace EntryPoint)
@@ -11,6 +14,8 @@
 	
 (using Sys.Reflection)
 (using Rococo.Configuration)
+(using Rococo.Graphics)
+
 // This code is run without the visual debugger and error output will go to the OutputDebugString handler or the critical output (if you are lucky!). 
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -28,4 +33,8 @@
 	// If  mainwindow.desktop.window.width or height are defined in the config, the main window span will only use the desktop window span as an upper limit. Uncomment the section here to manage the span yourself:
 	// (c.Int "mainwindow.desktop.window.width" 1280)
 	// (c.Int "mainwindow.desktop.window.height" 800)
+	
+	// These are the default shader options before the graphics window is created
+	(Rococo.Graphics.IShaderOptionsConfig shaders (Rococo.Graphics.ShaderOptions))
+	(shaders.Set "refShadowModel" "ShadowModel16Samples")
 )

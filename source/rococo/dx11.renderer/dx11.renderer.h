@@ -233,7 +233,7 @@ namespace Rococo::DX11
 		virtual void Free() = 0;
 	};
 
-	IDX11Shaders* CreateShaderManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11Shaders* CreateShaderManager(IO::IInstallation& installation, IShaderOptions& shaderOptions, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	ROCOCO_INTERFACE IDX11Pipeline
 	{

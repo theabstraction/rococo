@@ -701,6 +701,7 @@ namespace Rococo
 		ISpritesSupervisor* CreateSpriteTable(IRenderer& renderer);
 
 		struct IMaterialBuilderSupervisor;
+		struct IShaderOptionsConfig;
 	}
 
 	namespace Components
@@ -749,6 +750,8 @@ namespace Rococo
 		Rococo::Gui::IGRSystem& GR;
 
 		Rococo::Gui::IMPlatGuiCustodianSupervisor& GR_Custodian;
+
+		Rococo::Graphics::IShaderOptionsConfig& shaderConfig;
 
 		Rococo::IO::IShaderMonitorEventsProxy& shaderMonitorEventsProxy;
 	};
@@ -908,7 +911,7 @@ namespace Rococo
 			IO::IInstallation& installation
 		);
 
-		void RunMPlatConfigScript(OUT Configuration::IConfig& config,
+		void RunMPlatConfigScript(Graphics::IShaderOptionsConfig& shaderOptions, Configuration::IConfig& config,
 			cstr scriptName,
 			Script::IScriptSystemFactory& ssf,
 			Windows::IDE::EScriptExceptionFlow flow,

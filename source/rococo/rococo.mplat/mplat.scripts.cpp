@@ -143,6 +143,11 @@ Rococo::Graphics::ICamera* FactoryConstructRococoGraphicsCamera(Rococo::Graphics
    return c;
 }
 
+Rococo::Graphics::IShaderOptionsConfig* FactoryConstructRococoGraphicsShaderOptions(Rococo::Graphics::IShaderOptionsConfig* config)
+{
+	return config;
+}
+
 Rococo::Entities::IMobiles* FactoryConstructRococoEntitiesMobiles(Rococo::Entities::IMobiles* m)
 {
    return m;
@@ -350,6 +355,7 @@ namespace Rococo
 						Rococo::Configuration::Interop::AddNativeCalls_RococoConfigurationIConfig(args.ss, &platform.data.config);
 						Rococo::Interop::AddNativeCalls_RococoIArchive(args.ss, &platform);
 						Rococo::Interop::AddNativeCalls_RococoIWorldBuilder(args.ss, &platform);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsIShaderOptionsConfig(args.ss, &platform.graphics.shaderConfig);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
 						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __FUNCTION__, __LINE__);
@@ -486,7 +492,7 @@ namespace Rococo
 			sc.Execute(name, stats, id, ssf, debugger, sources, implicitIncludes, appControl);
 		}
 
-		void RunMPlatConfigScript(OUT Configuration::IConfig& config, cstr scriptName,
+		void RunMPlatConfigScript(Graphics::IShaderOptionsConfig& shaderOptions, Configuration::IConfig& config, cstr scriptName,
 			Script::IScriptSystemFactory& ssf,
 			Windows::IDE::EScriptExceptionFlow flow,
 			IDebuggerWindow& debugger,
@@ -499,11 +505,15 @@ namespace Rococo
 			struct : IScriptCompilationEventHandler
 			{
 				Configuration::IConfig* config = nullptr;
+				Graphics::IShaderOptionsConfig* shaderOptions = nullptr;
+
 				void OnCompile(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
 					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
+					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Graphics.Native", "!scripts/interop/rococo/mplat/mplat_sxh.sxy");
 					Rococo::Configuration::Interop::AddNativeCalls_RococoConfigurationIConfig(args.ss, config);
+					Rococo::Graphics::Interop::AddNativeCalls_RococoGraphicsIShaderOptionsConfig(args.ss, shaderOptions);
 				}
 
 				IScriptEnumerator* ImplicitIncludes() override
@@ -513,6 +523,7 @@ namespace Rococo
 			} onCompile;
 
 			onCompile.config = &config;
+			onCompile.shaderOptions = &shaderOptions;
 
 			struct : IScriptEnumerator
 			{

@@ -368,7 +368,7 @@ namespace Rococo::Sex::SEXML
 				{
 					if (sAttribute.NumberOfElements() != 3)
 					{
-						Throw(sAttribute, "Expecting three elements in raw attribute (' <name> <raw>)", attributeName);
+						Throw(sAttribute, "Expecting three elements in raw attribute (' <name> <raw>)");
 					}
 
 					// Raw expression (' <name> (...)) - The value of the raw expression is the third argument which can be anything, atomic, string literal, null or compound
@@ -498,6 +498,7 @@ namespace Rococo::Sex::SEXML
 
 			virtual ~Attribute()
 			{
+				a->~ISEXMLAttributeValue();
 				// None of our objects require destruction, so we are free to delete the memory
 				root.Allocator().FreeData(a);
 			}
@@ -577,6 +578,10 @@ namespace Rococo::Sex::SEXML
 						{
 							// we have a duplicate
 							Throw(sAttribute, "Duplicate attribute name [%s] at position [%d] in the [%s] directive", attrname, i, name->Buffer);
+						}
+						else
+						{
+							attributes.push_back(a);
 						}
 					}
 					catch (...)

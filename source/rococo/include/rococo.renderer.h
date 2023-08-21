@@ -38,6 +38,16 @@ namespace Rococo::Graphics
 		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData & vd) const = 0;
 	};
 
+	// A mapping between interface names and the class names that implement them
+	// For example 'refShaderModel' might map to 'ShaderModel16Samples' for high quality soft shadows
+	ROCOCO_INTERFACE IShaderOptions
+	{
+		virtual size_t NumberOfOptions() const = 0;
+
+		// Retrieve the options. Do not cache the pointers, consume them before significant API calls that may change the options
+		virtual void GetOption(size_t index, OUT cstr& interfaceName, OUT cstr& className) = 0;
+	};
+
 	ROCOCO_INTERFACE IShaders
 	{
 		virtual ID_GEOMETRY_SHADER CreateGeometryShader(cstr pingPath) = 0;
@@ -326,7 +336,6 @@ namespace Rococo::Graphics
 	{
 		virtual void ForEachElement(IEventCallback<TextureLoadData> &callback, bool readData) = 0;
 	};
-
 
 	struct IHQFonts;
 

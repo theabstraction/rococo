@@ -172,19 +172,18 @@ private:
 public:
 	bool isBuildingAlphaBlendedSprites{ false };
 
-	DX11AppRenderer(DX11::Factory& _factory) :
+	DX11AppRenderer(DX11::Factory& _factory, IShaderOptions& options) :
 		installation(_factory.installation), 
 		device(_factory.device), dc(_factory.dc), factory(_factory.factory),
 		scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		textureManager(CreateTextureManager(installation, device, dc)),
 		meshes(CreateMeshManager(device)),
-		shaders(CreateShaderManager(installation, device, dc))
+		shaders(CreateShaderManager(installation, options, device, dc))
 	{
 		RenderBundle bundle{ installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc, *this, *this };
 
 		pipeline = CreateDX11Pipeline(bundle);
 		lastTick = Time::TickCount();
-
 	}
 
 	~DX11AppRenderer()
@@ -463,6 +462,12 @@ public:
 
 		GuiMetrics metrics;
 		GetGuiMetrics(metrics);
+
+		if (metrics.screenSpan.x == 0 || metrics.screenSpan.y == 0)
+		{
+			return;
+		}
+
 		pipeline->Render(metrics, envMap, scene);
 
 		now = Time::TickCount();
@@ -513,9 +518,9 @@ namespace Rococo
 		static_assert(sizeof(GlobalState) % 16 == 0, "DX11 requires size of GlobalState to be multipe of 16 bytes");
 		static_assert(sizeof(LightConstantBuffer) % 16 == 0, "DX11 requires size of Light to be multipe of 16 bytes");
 
-		IDX11Renderer* CreateDX11Renderer(Factory& factory)
+		IDX11Renderer* CreateDX11Renderer(Factory& factory, IShaderOptions& options)
 		{
-			auto* renderer = new DX11AppRenderer(factory);
+			auto* renderer = new DX11AppRenderer(factory, options);
 			return renderer;
 		}
 	}

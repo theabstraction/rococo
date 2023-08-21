@@ -36,6 +36,8 @@ namespace Rococo::Sex::SEXML
 
 		// Source expression
 		virtual [[nodiscard]] cr_sex S() const = 0;
+
+		virtual ~ISEXMLAttributeValue() {}
 	};
 
 	ROCOCO_INTERFACE ISEXMLAttributeSmallVectorValue : ISEXMLAttributeValue

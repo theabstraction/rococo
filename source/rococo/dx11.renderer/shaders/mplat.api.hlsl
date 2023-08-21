@@ -245,6 +245,37 @@ float GetShadowDensity_1Sample(float4 shadowPos)
 	}
 }
 
+interface IShadowModel
+{
+    float GetShadowDensityFromPos(float4 shadowPos);
+};
+
+class ShadowModel1Sample: IShadowModel
+{
+    float GetShadowDensityFromPos(float4 shadowPos)
+    {
+        return GetShadowDensity_1Sample(shadowPos);
+    }
+};
+
+class ShadowModel4Samples : IShadowModel
+{
+    float GetShadowDensityFromPos(float4 shadowPos)
+    {
+        return GetShadowDensity_4Sample(shadowPos);
+    }
+};
+
+class ShadowModel16Samples : IShadowModel
+{
+    float GetShadowDensityFromPos(float4 shadowPos)
+    {
+        return GetShadowDensity_16Sample(shadowPos);
+    }
+};
+
+IShadowModel refShadowModel;
+
 float GetShadowDensityFromPos(float4 shadowPos)
 {
     return GetShadowDensity_16Sample(shadowPos);
@@ -252,7 +283,7 @@ float GetShadowDensityFromPos(float4 shadowPos)
 
 float GetShadowDensity(ObjectPixelVertex p)
 {
-    return GetShadowDensityFromPos(p.shadowPos);
+    return refShadowModel.GetShadowDensityFromPos(p.shadowPos);
 }
 
 float4 SampleMaterialByVectors(float3 uvw, float4 colour)

@@ -30,10 +30,138 @@ struct DX11GeometryShader : public DX11Shader
 	AutoRelease<ID3D11GeometryShader> gs;
 };
 
+/*
+ROCOCO_INTERFACE IShaderOptions
+{
+	virtual size_t NumberOfOptions() const = 0;
+
+	// Retrieve the options. Do not cache the pointers, consume them before significant API calls that may change the options
+	virtual void GetOption(size_t index, OUT cstr& interfaceName, OUT cstr& className) = 0;
+};
+*/
+
 struct DX11PixelShader : public DX11Shader
 {
+	ID3D11Device& device;
 	AutoRelease<ID3D11PixelShader> ps;
 	AutoRelease<ID3D11ShaderReflection> reflection;
+	AutoRelease<ID3D11ClassLinkage> classLinkage;
+	std::vector<ID3D11ClassInstance*> classInstances;
+
+	DX11PixelShader(ID3D11Device& _device) : device(_device)
+	{
+		ResetLinkage();
+	}
+
+	void ResetLinkage()
+	{
+		AutoRelease<ID3D11ClassLinkage> classLinkage;
+		HRESULT hr = device.CreateClassLinkage(&classLinkage);
+		if FAILED(hr)
+		{
+			Throw(hr, "UpdatePixelShaderLinkage failed. device.CreateClassLinkage(&classLinkage); returned an error code.");
+		}
+
+		ClearInstances();
+
+		this->classLinkage = classLinkage;
+	}
+
+	~DX11PixelShader()
+	{
+		ClearInstances();
+	}
+
+	void ClearInstances()
+	{
+		for (auto* i : classInstances)
+		{
+			if (i) i->Release();
+		}
+
+		classInstances.clear();
+	}
+
+	void UpdatePixelShaderLinkage(IShaderOptions& options, const IExpandingBuffer& buffer) 
+	{
+		AutoRelease<ID3D11ShaderReflection> reflection;
+		HRESULT hr = D3DReflect(buffer.GetData(), buffer.Length(), IID_ID3D11ShaderReflection, (void**)&reflection);
+		if (FAILED(hr) || reflection == nullptr)
+		{
+			Throw(hr, "UpdatePixelShaderLinkage: D3DReflect for %s returned 0x%X", name.c_str(), hr);
+		}
+
+		enum { MAX_SLOTS = 128 };
+
+		UINT nInterfaceSlots = reflection->GetNumInterfaceSlots();
+		if (nInterfaceSlots > MAX_SLOTS)
+		{
+			Throw(hr, "UpdatePixelShaderLinkage: %s shader->reflection->GetNumInterfaceSlots() returned %u > %u ", name.c_str(), nInterfaceSlots, MAX_SLOTS);
+		}
+
+		std::vector<ID3D11ClassInstance*> classInstances;
+		classInstances.resize(nInterfaceSlots);
+		std::fill(classInstances.begin(), classInstances.end(), nullptr);
+
+		try
+		{
+			for (size_t i = 0; i < options.NumberOfOptions(); ++i)
+			{
+				cstr interfaceName, interfaceClass;
+				options.GetOption(i, OUT interfaceName, OUT interfaceClass);
+
+				ID3D11ShaderReflectionVariable* var = reflection->GetVariableByName(interfaceName);
+				
+				if (var != nullptr)
+				{
+					UINT iSlot = var->GetInterfaceSlot(0);
+					if (iSlot < MAX_SLOTS)
+					{
+						AutoRelease<ID3D11ClassInstance> instance;
+						hr = classLinkage->CreateClassInstance(interfaceClass,0, 0, 0, 0, &instance);
+						if (hr != S_OK)
+						{
+							Throw(hr, "UpdatePixelShaderLinkage: %s classLinkage->CreateClassInstance(%s, ...) returned an error code for class name %s", name.c_str(), interfaceClass);
+						}
+
+						D3D11_CLASS_INSTANCE_DESC desc;
+						instance->GetDesc(&desc);
+						if (!desc.Created)
+						{
+							Throw(0, "UpdatePixelShaderLinkage: %s classLinkage->CreateClassInstance(%s, ...) returned a duff class ref to %s", name.c_str(), interfaceClass);
+						}
+						
+						instance->AddRef();
+						classInstances[iSlot] = instance.Detach();						
+					}
+				}
+			}
+		}
+		catch (...)
+		{
+			for (auto* l : classInstances)
+			{
+				if (l) l->Release();
+			}
+			throw;
+		}
+
+		for (size_t i = 0; i < classInstances.size(); ++i)
+		{
+			if (classInstances[i] == nullptr)
+			{
+				// TODO - figure out which and splice into the message
+				Throw(0, "UpdatePixelShaderLinkage: %s shader is missing class instances from the shader options. Use ShaderOptionsConfig() to add the missing options", name.c_str());
+			}
+		}
+
+		reflection->AddRef();
+
+		ClearInstances();
+
+		this->reflection = reflection.Detach();
+		this->classInstances = classInstances;
+	}
 };
 
 struct DX11Shaders : IDX11Shaders
@@ -41,6 +169,7 @@ struct DX11Shaders : IDX11Shaders
 	IO::IInstallation& installation;
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
+	IShaderOptions& shaderOptions;
 
 	std::vector<DX11VertexShader*> vertexShaders;
 	std::vector<DX11PixelShader*> pixelShaders;
@@ -51,19 +180,14 @@ struct DX11Shaders : IDX11Shaders
 	stringmap<ID_PIXEL_SHADER> nameToPixelShader;
 	stringmap<ID_VERTEX_SHADER> nameToVertexShader;
 
-	AutoRelease<ID3D11ClassLinkage> classLinkage;
-
-	DX11Shaders(IO::IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc) :
+	DX11Shaders(IO::IInstallation& _installation, IShaderOptions& _shaderOptions, ID3D11Device& _device, ID3D11DeviceContext& _dc) :
 		installation(_installation),
+		shaderOptions(_shaderOptions),
 		device(_device),
 		dc(_dc),
 		shaderLoaderBuffer(CreateExpandingBuffer(64_kilobytes))
 	{
-		HRESULT hr = device.CreateClassLinkage(&classLinkage);
-		if FAILED(hr)
-		{
-			Throw(hr, "%s failed. device.CreateClassLinkage(&classLinkage); returned an error code.");
-		}
+		
 	}
 
 	virtual ~DX11Shaders()
@@ -108,23 +232,20 @@ struct DX11Shaders : IDX11Shaders
 					Throw(0, "UpdatePixelShader LoadResource for %s returned 0 length object", pingPath);
 				}
 
+				i->ResetLinkage();
+
 				AutoRelease<ID3D11PixelShader> replacementPS;
-				HRESULT hr = device.CreatePixelShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), classLinkage, &replacementPS);
+				HRESULT hr = device.CreatePixelShader(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), i->classLinkage, &replacementPS);
 
 				if (FAILED(hr) || replacementPS == nullptr)
 				{
 					Throw(hr, "device.UpdatePixelShader for %s returned 0x%X", pingPath, hr);
 				}
 
-				AutoRelease<ID3D11ShaderReflection> reflection;
-				hr = D3DReflect(shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length(), IID_ID3D11ShaderReflection, (void**)&reflection);
-				if (FAILED(hr) || reflection == nullptr)
-				{
-					Throw(hr, "device.UpdatePixelShader: D3DReflect for %s returned 0x%X", __FUNCTION__, pingPath, hr);
-				}
-
 				i->ps = replacementPS;
-				i->reflection = reflection;
+				
+				i->UpdatePixelShaderLinkage(shaderOptions, *shaderLoaderBuffer);
+
 				break;
 			}
 		}
@@ -231,12 +352,12 @@ struct DX11Shaders : IDX11Shaders
 		if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
 		if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for pixel shader %s", name);
 
-		DX11PixelShader* shader = new DX11PixelShader;
-		HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, nullptr, &shader->ps);
+		DX11PixelShader* shader = new DX11PixelShader(device);
+		HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, shader->classLinkage, &shader->ps);
 		if FAILED(hr)
 		{
 			delete shader;
-			Throw(hr, "device.CreatePixelShader failed with shader %s", name);
+			Throw(hr, "CreatePixelShader failed with shader %s", name);
 		}
 
 		AutoRelease<ID3D11ShaderReflection> reflection;
@@ -244,11 +365,21 @@ struct DX11Shaders : IDX11Shaders
 		if (FAILED(hr) || reflection == nullptr)
 		{
 			delete shader;
-			Throw(hr, "device.CreatePixelShader: D3DReflect for %s returned 0x%X", __FUNCTION__, name, hr);
+			Throw(hr, "CreatePixelShader: D3DReflect for %s returned 0x%X", name, hr);
 		}
 
 		shader->name = name;
-		shader->reflection = reflection;
+
+		try
+		{
+			shader->UpdatePixelShaderLinkage(shaderOptions, *shaderLoaderBuffer);
+		}
+		catch (...)
+		{
+			delete shader;
+			throw;
+		}
+
 		pixelShaders.push_back(shader);
 		return ID_PIXEL_SHADER(pixelShaders.size() - 1);
 	}
@@ -350,7 +481,13 @@ struct DX11Shaders : IDX11Shaders
 		{
 			dc.IASetInputLayout(vs.inputLayout);
 			dc.VSSetShader(vs.vs, nullptr, 0);
-			dc.PSSetShader(ps.ps, nullptr, 0);
+
+			cstr pixelShaderName = ps.name;
+			size_t len = ps.classInstances.size();
+			auto* pInstances = len > 0 ? ps.classInstances.data() : nullptr;
+			// An error here means not every class interface required by the shader was matched in the shader options
+			dc.PSSetShader(ps.ps, pInstances, (UINT) len);
+			UNUSED(pixelShaderName);
 			currentVertexShaderId = vid;
 			currentPixelShaderId = pid;
 			return true;
@@ -360,8 +497,8 @@ struct DX11Shaders : IDX11Shaders
 
 namespace Rococo::DX11
 {
-	IDX11Shaders* CreateShaderManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11Shaders* CreateShaderManager(IO::IInstallation& installation, IShaderOptions& shaderOptions, ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
-		return new DX11Shaders(installation, device, dc);
+		return new DX11Shaders(installation, shaderOptions, device, dc);
 	}
 }

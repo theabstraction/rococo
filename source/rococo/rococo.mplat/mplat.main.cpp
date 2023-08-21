@@ -482,6 +482,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	FormatMainWindowFont(font);
 	InitRococoWindows(hInstance, hLargeIcon, hSmallIcon, &font, &font);
 
+	AutoFree<IShaderOptionsSupervisor> shaderOptions = Construction::CreateShaderOptions();
+
 	AutoFree<IO::IOSSupervisor> os = IO::GetIOS();
 	AutoFree<IO::IInstallationSupervisor> installation = CreateInstallation(L"content.indicator.txt", *os);
 	AutoFree<IConfigSupervisor> config = CreateConfig();
@@ -544,13 +546,13 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<IDebuggerWindow> consoleDebugger = GetConsoleAsDebuggerWindow(outputWindowFormatter, outputWindowFormatter);
 
 	// We need config to control window settings, thus the HWND based debugger window will not be available at this time
-	RunMPlatConfigScript(*config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr, *installation);
+	RunMPlatConfigScript(shaderOptions->Config(), *config, "!scripts/config_mplat.sxy", *ssFactory, EScriptExceptionFlow::Terminate, *consoleDebugger, *sourceCache, *appControl, nullptr, *installation);
 
 	FactorySpec factorySpec;
 	factorySpec.hResourceInstance = hInstance;
 	factorySpec.largeIcon = hLargeIcon;
 	factorySpec.smallIcon = hSmallIcon;
-	AutoFree<IGraphicsWindowFactory> factory = CreateGraphicsWindowFactory(*installation, *logger, factorySpec);
+	AutoFree<IGraphicsWindowFactory> factory = CreateGraphicsWindowFactory(*installation, *logger, factorySpec, *shaderOptions);
 
 	bool dwa = Rococo::Strings::CLI::HasSwitch(cmdOptionDisableWindowsAssociationInDX11);
 
@@ -647,7 +649,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Platform platform
 	{ 
 		// Platform graphics
-		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderEventHandler },
+		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderOptions->Config(), shaderEventHandler},
 
 		// Platform os
 		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },

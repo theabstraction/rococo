@@ -20,6 +20,7 @@ namespace Rococo
 	namespace Graphics
 	{
 		struct IRenderer;
+		struct IShaderOptions;
 	}
 
 	using namespace Rococo::Graphics;
@@ -126,5 +127,5 @@ namespace Rococo
 
 	ROCOCO_GRAPHICS_API bool Graphics_TryGetAdapterInfo(int index, AdapterDesc& d);
 	ROCOCO_GRAPHICS_API IGraphicsLogger* CreateStandardOutputLogger();
-	ROCOCO_GRAPHICS_API IGraphicsWindowFactory* CreateGraphicsWindowFactory(IO::IInstallation& installation, IGraphicsLogger& logger, const FactorySpec& spec);
+	ROCOCO_GRAPHICS_API IGraphicsWindowFactory* CreateGraphicsWindowFactory(IO::IInstallation& installation, IGraphicsLogger& logger, const FactorySpec& spec, Rococo::Graphics::IShaderOptions& options);
 }

@@ -345,6 +345,17 @@
 )
 
 (interface
+	(as.sxy Rococo.Graphics.IShaderOptionsConfig "mplat")
+	(as.cpp Rococo.Graphics.IShaderOptionsConfig)
+	(context factory Rococo.Graphics.IShaderOptionsConfig)
+	(methods
+		(Set (const IString interfaceName)(const IString className) -> )
+	)
+	(factory Rococo.Graphics.ShaderOptions)
+)
+
+
+(interface
 	(as.sxy Rococo.Graphics.ISceneBuilder "mplat")
 	(as.cpp Rococo.Graphics.ISceneBuilder)
 	(context factory Rococo.Graphics.ISceneBuilder)
