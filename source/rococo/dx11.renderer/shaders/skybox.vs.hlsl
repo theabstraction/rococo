@@ -11,11 +11,6 @@ struct SkyVertexInput
 	float3 pos : POSITION0;
 };
 
-cbuffer GlobalState: register(b0)
-{
-	GlobalState global;
-}
-
 SkyVertexOutput main(SkyVertexInput v)
 {
 	SkyVertexOutput output;

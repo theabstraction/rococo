@@ -1,62 +1,5 @@
 #include "mplat.types.hlsl"
 
-// b registers are mapped by CBUFFER_INDEX in dx11.renderer.cpp
-cbuffer GlobalState: register(b0)
-{
-	GlobalState global;
-}
-
-cbuffer Spotlight: register(b1)
-{
-	Light light;
-};
-
-cbuffer AmbienceState: register(b2)
-{
-	AmbientData ambience;
-}
-
-cbuffer DepthRenderDesc : register(b3)
-{
-	DepthRenderDesc drd;
-}
-
-cbuffer InstanceState: register(b4)
-{
-	ObjectInstance instance;
-}
-
-cbuffer textureState : register(b5)
-{
-	TextureDescState state;
-}
-
-cbuffer SunlightState : register(b6)
-{
-	Sunlight sunlight;
-};
-
-cbuffer BoneMatricesState: register(b7)
-{
-	float4x4 boneMatrices[16];
-};
-
-SamplerState fontSampler: register(s0);
-SamplerState shadowSampler: register(s1);
-SamplerState envSampler: register(s2);
-SamplerState selectSampler: register(s3);
-SamplerState matSampler: register(s4);
-SamplerState spriteSampler: register(s5);
-SamplerState glyphSampler: register(s6);
-
-Texture2D tx_FontSprite: register(t0);
-Texture2D tx_ShadowMap: register(t1);
-TextureCube tx_cubeMap: register(t2);
-Texture2D tx_SelectedTexture : register(t3);
-Texture2DArray tx_materials: register(t4);
-Texture2DArray tx_BitmapSprite: register(t5);
-Texture2DArray tx_GlyphArray: register(t6);
-
 float4 ConvertGuiScreenPixelCoordinatesToDX11Coordinates(GuiVertexOpaque v)
 {
     float4 position;
@@ -179,25 +122,6 @@ float3 ComputeWorldNormal(ObjectVertex v)
     return Transform_Instance_To_World(float4(v.modelNormal.xyz, 0.0f)).xyz;
 }
 
-float SampleShadowWithDelta(float4 pos, float2 offset)
-{
-	float2 scaledOffset = offset * global.OOShadowTxWidth * light.shadowFudge;
-	float3 shadowXYZ = pos.xyz / pos.w;
-	float2 shadowUV = (scaledOffset + (float2(1.0f + shadowXYZ.x, 1.0f - shadowXYZ.y))) * 0.5f;
-
-	float bias = -0.00001f;
-	float shadowDepth = tx_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
-	
-	if (shadowDepth <= shadowXYZ.z)
-	{
-		return 1.0f;
-	}
-	else
-	{
-		return 0.0f;
-	}
-}
-
 float4 SampleMaterialByVectors(float3 uvw, float4 colour)
 {
 	float4 texel = tx_materials.Sample(matSampler, uvw);
@@ -208,16 +132,6 @@ float4 SampleMaterialByVectors(float3 uvw, float4 colour)
 float4 SampleMaterial(ObjectPixelVertex v)
 {
     return SampleMaterialByVectors(v.uv_material_and_gloss.xyz, v.colour);
-}
-
-float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
-{
-    return normalize(p.worldPosition.xyz - global.eye.xyz);
-}
-
-float3 GetLightToWorldPosition(ObjectPixelVertex p)
-{
-    return p.worldPosition.xyz - light.position.xyz;
 }
 
 float SignedToUnsigned (float x)
@@ -246,14 +160,6 @@ float4 GetPointSpriteTexel(float2 uv, float4 colour)
 	return texel;
 }
 
-float GetSpotlightIntensity(float3 lightToPixelDir)
-{
-	float incidence = clamp(dot(lightToPixelDir, light.direction.xyz), 0, 1);
-	float radialAttenuation = clamp(light.cutoffCosAngle - incidence, 0, 1);	
-	float intensity = incidence * pow(1.0f - radialAttenuation, light.cutoffPower);
-	return intensity;
-}
-
 float GetClarityAcrossSpan(float3 cameraSpacePosition)
 {
 	float range = length(cameraSpacePosition.xyz);
@@ -269,47 +175,4 @@ float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
 {
 	float fontIntensity = lerp(1.0f, tx_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
 	return float4(vertexColour.xyz, fontIntensity);
-}
-
-float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
-{
-	float shine = 240.0f;
-	float3 r = reflect(lightDirection, p.worldNormal.xyz);
-	float dotProduct = dot(r, incident);
-	float specular = p.uv_material_and_gloss.w * max(pow(abs(dotProduct), shine), 0);
-	return clamp(specular, 0, 1);
-}
-
-float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixelDir)
-{
-	float R2 = dot(lightToPixelVec, lightToPixelVec);
-	float incidence = -dot(lightToPixelDir, p.worldNormal.xyz);
-	float i2 = clamp(incidence, 0, 1);
-	return i2 * pow(R2, light.attenuationRate);
-}
-
-float GetDiffuseSpecularAndFoggedLighting(ObjectPixelVertex v)
-{
-    float3 incident = ComputeEyeToWorldDirection(v);
-	
-	// We dont apply the environment here, because by definition the environment is lit by ambient light only
-	
-    float3 lightToPixelVec = GetLightToWorldPosition(v);
-    float3 lightToPixelDir = normalize(lightToPixelVec);
-
-    float intensity = GetSpotlightIntensity(lightToPixelDir);
-    float diffuse = GetDiffuse(v, lightToPixelVec, lightToPixelDir);
-    float clarity = GetClarity(v);
-    float specular = GetSpecular(v, incident, lightToPixelDir);
-    float I = (diffuse + specular) * intensity * clarity;
-	
-    return I;
-}
-
-float4 BlendColourWithLightAndShadow(float4 colour, float shadowDensity, float I)
-{
-    colour.xyz *= I;
-    colour.xyz *= light.colour.xyz;
-
-    return lerp(float4(colour.xyz, 1.0f), float4(0.0f, 0.0f, 0.0f, 0.0f), shadowDensity);
 }

@@ -1,5 +1,6 @@
 #include "mplat.api.hlsl"
 #include "shadows.api.hlsl"
+#include "lights.api.hlsl"
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {

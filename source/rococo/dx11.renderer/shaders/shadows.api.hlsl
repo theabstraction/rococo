@@ -1,5 +1,24 @@
 #include "mplat.types.hlsl"
 
+float SampleShadowWithDelta(float4 pos, float2 offset)
+{
+	float2 scaledOffset = offset * global.OOShadowTxWidth * light.shadowFudge;
+	float3 shadowXYZ = pos.xyz / pos.w;
+	float2 shadowUV = (scaledOffset + (float2(1.0f + shadowXYZ.x, 1.0f - shadowXYZ.y))) * 0.5f;
+
+	float bias = -0.00001f;
+	float shadowDepth = tx_ShadowMap.Sample(shadowSampler, shadowUV).x + bias;
+	
+	if (shadowDepth <= shadowXYZ.z)
+	{
+		return 1.0f;
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
 float GetShadowDensity_16Sample(float4 shadowPos)
 {
     float shadowDensity = 0.0f;
@@ -86,4 +105,12 @@ float GetShadowDensityFromPos(float4 shadowPos)
 float GetShadowDensity(ObjectPixelVertex p)
 {
     return refShadowModel.GetShadowDensityFromPos(p.shadowPos);
+}
+
+float4 BlendColourWithLightAndShadow(float4 colour, float shadowDensity, float I)
+{
+    colour.xyz *= I;
+    colour.xyz *= light.colour.xyz;
+
+    return lerp(float4(colour.xyz, 1.0f), float4(0.0f, 0.0f, 0.0f, 0.0f), shadowDensity);
 }

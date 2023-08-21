@@ -197,4 +197,66 @@ struct TextureDescState
 	float alphaActive;
 };
 
+// b registers are mapped by CBUFFER_INDEX in dx11.renderer.cpp
+cbuffer GlobalState: register(b0)
+{
+	GlobalState global;
+}
+
+cbuffer Spotlight: register(b1)
+{
+	Light light;
+};
+
+cbuffer AmbienceState: register(b2)
+{
+	AmbientData ambience;
+}
+
+cbuffer DepthRenderDesc : register(b3)
+{
+	DepthRenderDesc drd;
+}
+
+cbuffer InstanceState: register(b4)
+{
+	ObjectInstance instance;
+}
+
+cbuffer textureState : register(b5)
+{
+	TextureDescState state;
+}
+
+cbuffer SunlightState : register(b6)
+{
+	Sunlight sunlight;
+};
+
+cbuffer BoneMatricesState: register(b7)
+{
+	float4x4 boneMatrices[16];
+};
+
+SamplerState fontSampler: register(s0);
+SamplerState shadowSampler: register(s1);
+SamplerState envSampler: register(s2);
+SamplerState selectSampler: register(s3);
+SamplerState matSampler: register(s4);
+SamplerState spriteSampler: register(s5);
+SamplerState glyphSampler: register(s6);
+
+Texture2D tx_FontSprite: register(t0);
+Texture2D tx_ShadowMap: register(t1);
+TextureCube tx_cubeMap: register(t2);
+Texture2D tx_SelectedTexture : register(t3);
+Texture2DArray tx_materials: register(t4);
+Texture2DArray tx_BitmapSprite: register(t5);
+Texture2DArray tx_GlyphArray: register(t6);
+
+float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
+{
+    return normalize(p.worldPosition.xyz - global.eye.xyz);
+}
+
 #endif
