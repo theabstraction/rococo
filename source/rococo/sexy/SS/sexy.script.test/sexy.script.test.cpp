@@ -16601,6 +16601,166 @@ R"(
 	   validate(x == expectation);
    }
 
+   void TestNegateVariable(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(function Main -> (Int32 result):
+			(Int32 value = -10)
+			(result = -value)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(77); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 10;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
+   void TestNegateVariable2(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(function Main -> (Float32 result):
+			(Float32 value = -10)
+			(result = (5 * -value))
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0.0f); // Allocate stack space for the float x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   float x = vm.PopFloat32();
+	   float expectation = 50.0f;
+	   if (x != expectation)
+	   {
+		   printf("x = %f\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
+   void TestNegateVariable3(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(function Main -> (Float64 result):
+			(Float64 value = -10)
+			(result = 1 - (5 * -value))
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0.0); // Allocate stack space for the double x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   double x = vm.PopFloat64();
+	   double expectation = -49.0;
+	   if (x != expectation)
+	   {
+		   printf("x = %lf\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
+   void TestNegateVariable4(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(function Main -> (Int64 result):
+			(Int64 value = 10)
+			(result = -40 / -value)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0LL); // Allocate stack space for the int64 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int64 x = vm.PopInt64();
+	   int64 expectation = 4;
+	   if (x != expectation)
+	   {
+		   printf("x = %lld\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
    void TestExpressionProxies2(IPublicScriptSystem& ss)
    {
 	   cstr src =
@@ -16879,6 +17039,11 @@ R"(
 
    void TestMaths()
    {
+	   TEST(TestNegateVariable);
+	   TEST(TestNegateVariable2);
+	   TEST(TestNegateVariable3);
+	   TEST(TestNegateVariable4);
+
 	   TEST(TestIsInfinity);
 	   TEST(TestIsFinite);
 	   TEST(TestIsNormal);
@@ -17371,6 +17536,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
+
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

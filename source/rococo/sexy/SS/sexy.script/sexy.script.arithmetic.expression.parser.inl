@@ -404,17 +404,47 @@ namespace Rococo
 						}
 					}
 				}
-				else
+				else if (ce.Builder.GetVarStructure(id) != NULL)
 				{
-					if (ce.Builder.GetVarStructure(id) != NULL)
+					ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
+				}
+				else if (*id == '-')
+				{
+					AddSymbol(ce.Builder, "%s -> D7 and negate", id+1);
+
+					switch (ce.Builder.GetVarType(id + 1))
 					{
-						ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
-					}
-					else
-					{
-						ThrowTokenNotFound(parent, id, ce.Builder.Owner().Name(), ("variable"));
+					case VARTYPE_Int32:
+						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D7, BITCOUNT_32);
+						break;
+					case VARTYPE_Float32:
+						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.Assembler().Append_FloatNegate32(VM::REGISTER_D7);
+						break;
+					case VARTYPE_Int64:
+						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D7, BITCOUNT_64);
+						break;
+					case VARTYPE_Float64:
+						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.Assembler().Append_FloatNegate64(VM::REGISTER_D7);
+						break;
+					case VARTYPE_Bool:
+						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
+						break;
+					case VARTYPE_Bad:
+						Throw(parent, "Negation parsed, but the successive token characters did not parse as a known type");
+						break;
+					default:
+						Throw(parent, "Negation parsed, but the variable %s was of type %s, which is not numeric.", GetFriendlyName(*ce.Builder.GetVarStructure(id + 1)));
 					}
 				}
+				else
+				{
+					ThrowTokenNotFound(parent, id, ce.Builder.Owner().Name(), ("variable"));
+				}				
 			}
 		}
 

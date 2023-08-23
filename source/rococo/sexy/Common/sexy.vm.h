@@ -291,7 +291,9 @@ namespace Rococo { namespace VM
 		virtual void Append_IntAdd(DINDEX Da, BITCOUNT bits, DINDEX Db) = 0;
 		virtual void Append_IntMultiply(DINDEX Da, BITCOUNT bits, DINDEX Db) = 0;
 		virtual void Append_IntDivide(DINDEX Dnumerator, BITCOUNT bits, DINDEX Ddenominator) = 0;
-		virtual void Append_IntNegate(DINDEX src, BITCOUNT bits, DINDEX trg) = 0;
+		virtual void Append_FloatNegate32(DINDEX src) = 0;
+		virtual void Append_FloatNegate64(DINDEX src) = 0;
+		virtual void Append_IntNegate(DINDEX reg, BITCOUNT bits) = 0;
 		virtual void Append_IntSubtract(DINDEX Da, BITCOUNT bits, DINDEX Db) = 0;
 		virtual void Append_FloatAdd(DINDEX Da, DINDEX Db, FLOATSPEC spec) = 0;
 		virtual void Append_FloatSubtract(DINDEX Da, DINDEX Db, FLOATSPEC spec) = 0;

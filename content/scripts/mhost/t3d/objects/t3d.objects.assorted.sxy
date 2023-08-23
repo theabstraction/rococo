@@ -194,8 +194,37 @@
 	(scene.AddStatics bottleId)
 )
 
+(function SetMat (VertexTriangle t)(MaterialVertexData d)-> :
+	(t.a.mat = d)
+	(t.b.mat = d)
+	(t.c.mat = d)
+)
+
+(function GetSoftEdgeDelta (Float32 s)(Float32 epsilon)(Float32 x0)(Float32 x1)->(Float32 height):
+	
+	(Float32 delta)
+	
+	(if (x < (x0 + epsilon))
+		// Note, if x ~ x0 + epsilon, delta is ~0 and if x ~ x0 then delta is ~1
+		(delta = (x - (x0 + epsilon)) / (0.0f - epsilon))
+	)
+	
+	(if (x > 0.9)
+		(hX = 1.9 - x)
+	)
+	
+	(if (y < 0.1)
+		(hY = y + 0.9)
+	)
+	
+	(if (y > 0.9)
+		(hY = 1.9 - y)
+	)
+	
+	(Sys.Maths.F32.MinOf hX hY -> height)
+)
+
 (function MakeBrick (IString meshId)-> :
-	(Rococo.Graphics.IQuadStackTesselator qst (Rococo.Graphics.QuadStackTesselator))
 	(IMaterialBuilder mats (MaterialBuilder))
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
@@ -209,24 +238,48 @@
 	(RGBAb whiteRGBAb = (Sys.Type.ToRGBAb 1 1 1 1))
 	(Int32 white = whiteRGBAb.Value)
 	
-	(QuadVertices topQuad)
-	(topQuad.positions.a = -0.1  0.1 0.1)
-	(topQuad.positions.b =  0.1  0.1 0.1)
-	(topQuad.positions.c =  0.1 -0.1 0.1)
-	(topQuad.positions.d = -0.1 -0.1 0.1)
-	(topQuad.uv = 0 0 1 1)
-	(topQuad.normals = up up up up)
-	(topQuad.colours = white white white white)
-	(qst.PushQuad topQuad glass)
-	
-	(qst.MoveInputToOutput)
+	(Float32 width = 0.01)
 	
 	(VertexTriangle topRight)
 	(VertexTriangle bottomLeft)
 	
-	(while (qst.PopOutputAsTriangles topRight bottomLeft)
-		(mb.AddTriangleEx topRight)
-		(mb.AddTriangleEx bottomLeft)
+	(SetMat topRight glass)
+	(SetMat bottomLeft glass)
+	
+	(for (Float32 y0 = 0)(y0 < 1)(y0 += width)
+		(Float32 y1 = y0 + width)
+		(for (Float32 x0 = 0)(x0 < 1)(x0 += width)
+			(Float32 x1 = x0 + width)			
+			
+			(Float32 h00 = GetHeight x0 y0)
+			(Float32 h10 = GetHeight x1 y0)
+			(Float32 h01 = GetHeight x0 y1)
+			(Float32 h11 = GetHeight x1 y1)
+			
+			(topRight.a.modelPosition = x0 y0 h00)
+			(topRight.b.modelPosition = x0 y1 h01)
+			(topRight.c.modelPosition = x1 y1 h11)
+			(topRight.a.modelNormal = up)
+			(topRight.b.modelNormal = up)
+			(topRight.c.modelNormal = up)
+			(topRight.a.uv = x0 y0)
+			(topRight.b.uv = x0 y1)
+			(topRight.c.uv = x1 y1)
+			
+			(bottomLeft.a.modelPosition = x1 y1 h11)
+			(bottomLeft.b.modelPosition = x1 y0 h10)
+			(bottomLeft.c.modelPosition = x0 y0 h00)
+			(bottomLeft.a.modelNormal = up)
+			(bottomLeft.b.modelNormal = up)
+			(bottomLeft.c.modelNormal = up)
+			(bottomLeft.a.uv = x1 y1)
+			(bottomLeft.b.uv = x1 y0)
+			(bottomLeft.c.uv = x0 y0)
+		
+			(mb.AddTriangleEx bottomLeft)
+			(mb.AddTriangleEx topRight)
+		
+		)
 	)
 	
 	(mb.End true false)

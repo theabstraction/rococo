@@ -150,6 +150,7 @@
 	(WorldOrientation camera)
 	(this.GetCameraOrientation camera)
 	
+	(this.tempBuilder.Clear)
 	(this.tempBuilder.SetFormat 0 0 false false)
 	(#build this.tempBuilder "Elevation: " camera.elevation ", Bearing: " camera.bearing)
 	

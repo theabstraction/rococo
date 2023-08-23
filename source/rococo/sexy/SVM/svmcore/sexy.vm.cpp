@@ -252,6 +252,8 @@ namespace Anon
 			ActivateInstruction(IntDivide32);
 			ActivateInstruction(IntNegate64);
 			ActivateInstruction(IntNegate32);
+			ActivateInstruction(FloatNegate32);
+			ActivateInstruction(FloatNegate64);
 
 			ActivateInstruction(FloatAdd);
 			ActivateInstruction(FloatSubtract);
@@ -1276,7 +1278,7 @@ namespace Anon
 		OPCODE_CALLBACK(BooleanNot)
 		{
 			const Ins* I = NextInstruction();
-			cpu.D[I->Opmod1].int32Value = !cpu.D[I->Opmod1].int32Value;
+			cpu.D[I->Opmod1].int32Value = cpu.D[I->Opmod1].int32Value ? 0 : 1;
 			cpu.AdvancePC(2);
 		}
 
@@ -1362,10 +1364,25 @@ namespace Anon
 		OPCODE_CALLBACK(IntNegate32)
 		{
 			const Ins* I = NextInstruction();
-			cpu.AdvancePC(3);
-			const VariantValue& src = cpu.D[I->Opmod1];
-			VariantValue& trg = cpu.D[I->Opmod2];
-			trg.int32Value = -src.int32Value;
+			cpu.AdvancePC(2);
+			VariantValue& reg = cpu.D[I->Opmod1];
+			reg.int32Value = -reg.int32Value;
+		}
+
+		OPCODE_CALLBACK(FloatNegate32)
+		{
+			const Ins* I = NextInstruction();
+			cpu.AdvancePC(2);
+			VariantValue& reg = cpu.D[I->Opmod1];
+			reg.floatValue = -reg.floatValue;
+		}
+
+		OPCODE_CALLBACK(FloatNegate64)
+		{
+			const Ins* I = NextInstruction();
+			cpu.AdvancePC(2);
+			VariantValue& reg = cpu.D[I->Opmod1];
+			reg.doubleValue = -reg.doubleValue;
 		}
 
 		OPCODE_CALLBACK(IntDivide32)
@@ -2619,12 +2636,11 @@ namespace Anon
 		OPCODE_CALLBACK(IntNegate64)
 		{
 			const Ins* I = NextInstruction();
-			cpu.AdvancePC(3);
+			cpu.AdvancePC(2);
 
-			const VariantValue& src = cpu.D[I->Opmod1];
-			VariantValue& trg = cpu.D[I->Opmod2];
-
-			trg.int64Value = -src.int64Value;
+			VariantValue& reg = cpu.D[I->Opmod1];
+			
+			reg.int64Value = -reg.int64Value;
 		}
 
 		OPCODE_CALLBACK(IntSubtract64)

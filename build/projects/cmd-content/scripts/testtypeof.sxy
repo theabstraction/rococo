@@ -5,26 +5,10 @@
 (using Sys.Reflection)
 (using Sys.Type.Strings)
 
-(class Robot (defines Sys.Type.IRobot)
-)
-
-(method Robot.Construct :
-)
-
-(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
-
-(method Robot.IsHot -> (Bool result):
-	(result = true)
-)
-
-(method Robot.IsGlowing -> (Bool result):
-	(result = true)
-)
-
-(function Main -> (Int32 result):
-	(IRobot robot (NewRobot))
+(function Main -> (Float32 result):
+	(Float32 value = -10)
 	(debug)
-	(Int32 result = (?? robot.IsHot 9005 0))
+	(result = (5 * -value))
 )
 
 (alias Main EntryPoint.Main)

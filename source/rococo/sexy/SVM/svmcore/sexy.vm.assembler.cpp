@@ -220,16 +220,26 @@ namespace
 			}
 		}
 
-		void Append_IntNegate(DINDEX src, BITCOUNT bits, DINDEX trg) override
+		void Append_IntNegate(DINDEX src, BITCOUNT bits) override
 		{
 			if (bits == BITCOUNT_32)
 			{
-				AddThreeByteInstruction(Opcodes::IntNegate32, src, trg);
+				AddTwoByteInstruction(Opcodes::IntNegate32, src);
 			}
 			else
 			{
-				AddThreeByteInstruction(Opcodes::IntNegate64, src, trg);
+				AddTwoByteInstruction(Opcodes::IntNegate64, src);
 			}
+		}
+
+		void Append_FloatNegate32(DINDEX src) override
+		{
+			AddTwoByteInstruction(Opcodes::FloatNegate32, src);
+		}
+
+		void Append_FloatNegate64(DINDEX src) override
+		{
+			AddTwoByteInstruction(Opcodes::FloatNegate64, src);
 		}
 
 		void Append_IntDivide(DINDEX Dnumerator, BITCOUNT bits, DINDEX Ddenominator) override

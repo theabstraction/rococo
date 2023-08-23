@@ -502,7 +502,7 @@ namespace Rococo
 						Throw(directive, ("Only interface references and primitive types can be initialized in an assignment"));
 					}				
 
-					if (AreEqual(sourceText, ("GetCurrentExpression")))
+					if (AreEqual(sourceText, "GetCurrentExpression"))
 					{
 						const CClassExpression* express =  ce.SS.GetExpressionReflection(directive);
 						VariantValue sexPtr;
@@ -545,9 +545,46 @@ namespace Rococo
 							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 						}
 					}
+					else if (*sourceText == '-' && IsLowerCase(sourceText[1]) && IsPrimitiveType(varStruct.VarType()))
+					{
+						// Possible negation of a variable
+						cstr sourceVariable = sourceText + 1;
+						AddSymbol(ce.Builder, "%s -> D4", sourceVariable);
+						ce.Builder.AssignVariableToTemp(sourceVariable, 0);
+
+						AddSymbol(ce.Builder, "Negate D4");
+						switch (varStruct.VarType())
+						{
+						case VARTYPE_Float32:
+							ce.Builder.Assembler().Append_FloatNegate32(VM::REGISTER_D4);
+							break;
+						case VARTYPE_Int32:
+							ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D4, BITCOUNT_32);
+							break;
+						case VARTYPE_Float64:
+							ce.Builder.Assembler().Append_FloatNegate64(VM::REGISTER_D4);
+							break;
+						case VARTYPE_Int64:
+							ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D4, BITCOUNT_64);
+							break;
+						case VARTYPE_Pointer:
+							Throw(sourceValue, "Cannot negate a pointer");
+							break;
+						case VARTYPE_Bool:
+							// We could prohibit this, but it is better to have this succinct way of doing a logical not in one atomic symbol
+							ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D4);
+							break;
+						default:
+							Throw(sourceValue, "The RHS of the assignment appeared to be a negation, but the argument %s was unrecognized", sourceText);
+						}
+
+						AddSymbol(ce.Builder, "D4 -> %s", targetVariable);
+						ce.Builder.AssignTempToVariable(0, targetVariable);
+
+					}
 					else
 					{
-						Throw(sourceValue, ("The RHS of the assignment was unrecognized"));
+						Throw(sourceValue, "The RHS of the assignment was unrecognized");
 					}
 				}
 			}

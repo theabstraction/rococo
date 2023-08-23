@@ -25,7 +25,9 @@ PACKAGER_PATH = $(BIN)$(PACKAGER_EXE_FILENAME)
 
 # In normal mode of operation, all we want to do is to ensure the inl file is up to date
 all:
+	@xcopy $(ROCOCO)source\rococo\sexy\NativeSource\*.sxy $(SCRIPTS)native						/i   /y    /d    /q
+	@xcopy $(ROCOCO)source\rococo\sexy\NativeSource\native.hashes.sxy $(BIN64)$(CONFIG)\		/i   /y    /d    /q
 	@xcopy $(INTEROP)mplat\*.sxy        $(PACKAGE_DIR)mhost\MHost\			    				/i   /y    /d    /q
 	@xcopy $(INTEROP)components\*.sxy   $(PACKAGE_DIR)mhost\MHost\Components\Interop\   		/i   /y    /d    /q
 	$(PACKAGER_PATH) $(PACKAGE_DIR)mhost $(CONTENT)packages\mhost_1000.sxyz
-	@echo "The package.mak said 'MHOST Packaging complete'. What next?"
+	@echo "The package.mak said '$(CONFIG) MHOST Packaging complete'. What next?"

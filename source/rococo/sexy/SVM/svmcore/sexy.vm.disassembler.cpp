@@ -407,14 +407,26 @@ namespace
 
 	void FormatIntNegate64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s=-%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
-		rep.ByteCount = 4;
+		format(rep, "%s", RegisterName(I.Opmod1));
+		rep.ByteCount = 2;
 	}
 
 	void FormatIntNegate32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s=-%s"), RegisterName(I.Opmod2), RegisterName(I.Opmod1));
-		rep.ByteCount = 4;
+		format(rep, "%s", RegisterName(I.Opmod1));
+		rep.ByteCount = 2;
+	}
+
+	void FormatFloatNegate64(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		format(rep, "%s", RegisterName(I.Opmod1));
+		rep.ByteCount = 2;
+	}
+
+	void FormatFloatNegate32(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		format(rep, "%s", RegisterName(I.Opmod1));
+		rep.ByteCount = 2;
 	}
 
 	void FormatFloatAdd(const Ins& I, OUT IDisassembler::Rep& rep)
@@ -1219,6 +1231,8 @@ namespace
 		EnableFormatter(SetSFValueFromSFValueLong);
 		EnableFormatter(SetSFMemberRefFromSFValue);
 		EnableFormatter(SetSFMemberPtrFromD5);
+		EnableFormatter(FloatNegate32);
+		EnableFormatter(FloatNegate64);
 	}
 
 	class Disassembler final: public IDisassembler

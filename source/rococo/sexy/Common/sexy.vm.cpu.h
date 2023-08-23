@@ -207,6 +207,8 @@ namespace Rococo { namespace VM
 			IntMultiply32,
 			IntNegate32,
 			IntDivide32,	
+			FloatNegate32,
+			FloatNegate64,
 			LogicalAND32,
 			LogicalAND64,
 			LogicalOR32,

@@ -13,8 +13,8 @@
 (alias MaterialVertexData Rococo.MaterialVertexData)
 
 (struct ObjectVertex
-	(Sys.Maths.Vec3 position)
-	(Sys.Maths.Vec3 normal)
+	(Sys.Maths.Vec3 modelPosition)
+	(Sys.Maths.Vec3 modelNormal)
 	(Sys.Maths.Vec2 uv)
 	(Rococo.MaterialVertexData mat)
 )

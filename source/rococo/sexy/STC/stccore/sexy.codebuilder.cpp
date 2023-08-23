@@ -283,7 +283,6 @@ namespace Anon
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition);
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection);
 		virtual void Append_UpdateRefsOnSourceAndTarget();
-		virtual void Negate(int srcInvariantIndex, VARTYPE varType);
 		virtual void LeaveSection();
 		virtual void End();
 		virtual VARTYPE GetVarType(cstr name) const;
@@ -2178,37 +2177,6 @@ namespace Anon
 		BITCOUNT bitCount = GetBitCount(g.type);
 		Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, bitCount);
 		Assembler().Append_SetGlobal(bitCount, (int32) g.offset);
-	}
-
-	void CodeBuilder::Negate(int a, VARTYPE varType)
-	{
-		switch(varType)
-		{
-		case VARTYPE_Float32:
-			{
-				VariantValue v;
-				v.floatValue = 0;
-				Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4+ (VM::DINDEX)(a+2), v, BITCOUNT_32);
-				Assembler().Append_FloatSubtract(VM::REGISTER_D4+ (VM::DINDEX)a+ (VM::DINDEX)2, VM::REGISTER_D4+ (VM::DINDEX)a, VM::FLOATSPEC_SINGLE);
-			}
-			break;
-		case VARTYPE_Float64:
-			{
-				VariantValue v;
-				v.doubleValue = 0;
-				Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + (VM::DINDEX)a + (VM::DINDEX) +2, v, BITCOUNT_64);
-				Assembler().Append_FloatSubtract(VM::REGISTER_D4+ (VM::DINDEX) a + (VM::DINDEX) 2, VM::REGISTER_D4+ (VM::DINDEX)a, VM::FLOATSPEC_DOUBLE);
-			}
-			break;
-		case VARTYPE_Int32:
-			Assembler().Append_IntNegate(VM::REGISTER_D4+ (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4+ (VM::DINDEX)a+ (VM::DINDEX)1);
-			break;
-		case VARTYPE_Int64:
-			Assembler().Append_IntNegate(VM::REGISTER_D4+ (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4+ (VM::DINDEX)a+ (VM::DINDEX)1);
-			break;
-		default:
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for Negate"));
-		}
 	}
 
 	void CodeBuilder::BinaryOperatorAdd(int a, int b, VARTYPE type)

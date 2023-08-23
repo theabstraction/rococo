@@ -363,7 +363,6 @@ namespace Rococo::Compiler
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) = 0;
-		virtual void Negate(int srcInvariantIndex, VARTYPE varType) = 0;
 		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) = 0;
 		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) = 0;
 		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) = 0;
