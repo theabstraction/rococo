@@ -1376,7 +1376,7 @@ namespace Anon
 		sectionIndex--;
 		if (sectionIndex > 0)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Section not closed"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Section not closed");
 		}
 
 		int endOfTemps = 0;
@@ -1395,19 +1395,23 @@ namespace Anon
 
 		functionEndPosition = Assembler().WritePosition();
 
+		// This is one of the most frequently formatted strings in the sexy script system
+		// Instead of safe format we hand craft the string using faster functions that append substrings
 		TokenBuffer symbol;
-		SafeFormat(symbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%d bytes"), functionEndPosition);
+		_itoa_s((int)functionEndPosition, symbol.Text, 10);
+		StringCat(symbol.Text, " bytes", TokenBuffer::MAX_TOKEN_CHARS);
+
 		AddSymbol(symbol);
 		Assembler().Append_Return();
 
 		if (codeReferencesParentsSF && !mayUseParentsSF)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("The closure body required access to the parent's stackframe, which is prohibited in its context"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "The closure body required access to the parent's stackframe, which is prohibited in its context");
 		}
 
 		if (!f.Object().ProgramMemory().UpdateBytecode(byteCodeId, Assembler()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Insufficient program memory. Either reduce program size or increase MaxProgramBytes in ProgramInitParameters"));
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Insufficient program memory. Either reduce program size or increase MaxProgramBytes in ProgramInitParameters");
 		}
 
 		Module().IncVersion();
@@ -1423,7 +1427,7 @@ namespace Anon
 	{
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variable [%s] already defined in this scope", name.c_str());
 		}
 
 		if (IsPointerValid(&type))
@@ -1442,7 +1446,7 @@ namespace Anon
 		}
 		else
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not add variable [%s]. Type null"), name.c_str());
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not add variable [%s]. Type null", name.c_str());
 		}
 	}
 
