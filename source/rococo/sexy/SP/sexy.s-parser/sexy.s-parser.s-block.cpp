@@ -95,16 +95,7 @@ namespace Anon
 
 	bool IsBlank(char c)
 	{
-		switch (c)
-		{
-		case ' ':
-		case '\t':
-		case '\r':
-		case '\n':
-			return true;
-		default:
-			return false;
-		}
+		return c <= 32;
 	}
 
 	int32 HexCharToValue(int32 i)

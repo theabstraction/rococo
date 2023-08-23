@@ -17,17 +17,12 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
-#include <unordered_map>
-#include <vector>
-#include <algorithm>
-
 #ifdef __APPLE__
 # define _stricmp strcasecmp
 #endif
 
 using namespace Rococo;
 using namespace Rococo::Strings;
-using namespace Rococo::Debugging;
 
 #define ROCOCO_UTIL_API __declspec(dllexport)
 
@@ -735,57 +730,8 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	// After we got rid of most temporary std::strings the next hardest hitter was SafeVFormat, so we keep some profiling around to monitor it
-//#define PROFILE_SAFE_VFORMAT
-#ifdef PROFILE_SAFE_VFORMAT
-	std::unordered_map<uint64, int> mapAddressToUsage;
-
-	void ClearPerformanceMap()
-	{
-		std::vector<std::pair<int, uint64>> perfVector;
-		for (auto& i : mapAddressToUsage)
-		{
-			perfVector.push_back(std::make_pair(i.second, i.first));
-		}
-
-		std::sort(perfVector.begin(), perfVector.end(), [](const std::pair<int, uint64>& a, const std::pair<int, uint64>& b)
-			{
-				return a.first < b.first;
-			}
-		);
-
-		printf("\nSafeVFormat profile. Call count vs caller\n");
-
-		for (auto& i : perfVector)
-		{
-			char desc[256];
-			StackFrame::Address addr;
-			addr.segment = 0;
-			addr.offset = i.second;
-			Debugging::FormatStackFrame(desc, sizeof desc, addr);
-			printf("%4.4d - %s\n", i.first, desc);
-		}
-	}
-#endif
-
 	ROCOCO_UTIL_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
 	{
-#ifdef PROFILE_SAFE_VFORMAT
-		StackFrame::Address caller = FormatStackFrame(nullptr, 0, 4);
-
-		if (mapAddressToUsage.empty())
-		{
-			atexit(ClearPerformanceMap);
-		}
-
-		auto i = mapAddressToUsage.insert(std::make_pair(caller.offset, 1));
-		if (!i.second)
-		{
-			// duplicate
-			i.first->second++;
-		}
-#endif
-
 		int count = vsnprintf(buffer, capacity, format, args);
 		if (count >= capacity)
 		{
