@@ -200,28 +200,30 @@
 	(t.c.mat = d)
 )
 
-(function GetSoftEdgeDelta (Float32 s)(Float32 epsilon)(Float32 x0)(Float32 x1)->(Float32 height):
+(function GetSoftEdgeDelta (Float32 s)(Float32 epsilon)(Float32 sMin)(Float32 sMax)->(Float32 delta):
 	
 	(Float32 delta)
 	
-	(if (x < (x0 + epsilon))
-		// Note, if x ~ x0 + epsilon, delta is ~0 and if x ~ x0 then delta is ~1
-		(delta = (x - (x0 + epsilon)) / (0.0f - epsilon))
-	)
+	(if (s < (sMin + epsilon))
+		// Note, following the formula below - if s ~ sMin + epsilon, delta is ~0 and if s ~ sMin then delta is ~1
+		(delta = ((s - (sMin + epsilon)) / -epsilon))
+	else
+		(if (s > (sMax - epsilon))
+			// Note, following the formula below - if s ~ (sMax - epsilon) then delta is ~0 and if s = sMax, then delta is ~1
+			(delta = ((sMax - epsilon) - s ) / -epsilon)
+		else
+			(delta = 0)
+		)
+	)		
+)
+
+(function GetSoftEdgeHeight (Float32 x)(Float32 y)(Float32 epsilon)(Float32 xMin)(Float32 xMax)(Float32 yMin)(Float32 yMax)(Float32 zScale)->(Float32 zHeight):
+	(Float32 deltaX = (GetSoftEdgeDelta x epsilon xMin xMax))
+	(Float32 deltaY = (GetSoftEdgeDelta y epsilon yMin yMax))
 	
-	(if (x > 0.9)
-		(hX = 1.9 - x)
-	)
-	
-	(if (y < 0.1)
-		(hY = y + 0.9)
-	)
-	
-	(if (y > 0.9)
-		(hY = 1.9 - y)
-	)
-	
-	(Sys.Maths.F32.MinOf hX hY -> height)
+	(Float32 delta = (Sys.Maths.F32.MinOf deltaX deltaY))
+	(Float32 zeta = (Sys.Maths.F32.Power delta 3))
+	(zHeight = zScale * (Sys.Maths.F32.Sin (1.5707963267948966192313216916398 * zeta)))
 )
 
 (function MakeBrick (IString meshId)-> :
@@ -232,6 +234,7 @@
 	(glass.gloss = 0.2)
 	
 	(Rococo.Graphics.IMeshBuilder mb (Rococo.Graphics.MeshBuilder))
+	(mb.Clear)
 	(mb.Begin meshId)
 	
 	(Vec3 up = 0 0 1)
@@ -251,10 +254,10 @@
 		(for (Float32 x0 = 0)(x0 < 1)(x0 += width)
 			(Float32 x1 = x0 + width)			
 			
-			(Float32 h00 = GetHeight x0 y0)
-			(Float32 h10 = GetHeight x1 y0)
-			(Float32 h01 = GetHeight x0 y1)
-			(Float32 h11 = GetHeight x1 y1)
+			(Float32 h00 = GetSoftEdgeHeight x0 y0 0.1 0 1 0 1 0.1)
+			(Float32 h10 = GetSoftEdgeHeight x1 y0 0.1 0 1 0 1 0.1)
+			(Float32 h01 = GetSoftEdgeHeight x0 y1 0.1 0 1 0 1 0.1)
+			(Float32 h11 = GetSoftEdgeHeight x1 y1 0.1 0 1 0 1 0.1)
 			
 			(topRight.a.modelPosition = x0 y0 h00)
 			(topRight.b.modelPosition = x0 y1 h01)

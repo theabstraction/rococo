@@ -16761,6 +16761,46 @@ R"(
 	   validate(x == expectation);
    }
 
+   void TestNegateVariable5(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(function Main -> (Float32 result):
+			(Float32 value = 2.0)
+			(result = (-5 + -5) / -value)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0.0f); // Allocate stack space for the float x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   float x = vm.PopFloat32();
+	   float expectation = 5.0f;
+	   if (x != expectation)
+	   {
+		   printf("x = %f\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
    void TestExpressionProxies2(IPublicScriptSystem& ss)
    {
 	   cstr src =
@@ -17043,6 +17083,7 @@ R"(
 	   TEST(TestNegateVariable2);
 	   TEST(TestNegateVariable3);
 	   TEST(TestNegateVariable4);
+	   TEST(TestNegateVariable5);
 
 	   TEST(TestIsInfinity);
 	   TEST(TestIsFinite);
@@ -17537,6 +17578,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestNegateVariable5);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

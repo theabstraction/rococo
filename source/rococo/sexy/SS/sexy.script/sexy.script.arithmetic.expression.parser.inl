@@ -513,8 +513,37 @@ namespace Rococo
 			}
 			else
 			{
-				ValidateArithmeticVariable(parent, token, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("LHS") : ("RHS"));
-				ce.Builder.AssignVariableToTemp(token, tempDepth);
+				if (*token == '-')
+				{
+					// Negation
+					ValidateArithmeticVariable(parent, token + 1, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("LHS") : ("RHS"));
+					ce.Builder.AssignVariableToTemp(token + 1, tempDepth);
+
+					int dx = VM::REGISTER_D4 + tempDepth;
+
+					switch (type)
+					{
+					case VARTYPE_Int32:
+						ce.Builder.Assembler().Append_IntNegate(dx, BITCOUNT_32);
+						break;
+					case VARTYPE_Int64:
+						ce.Builder.Assembler().Append_IntNegate(dx, BITCOUNT_64);
+						break;
+					case VARTYPE_Float32:
+						ce.Builder.Assembler().Append_FloatNegate32(dx);
+						break;
+					case VARTYPE_Float64:
+						ce.Builder.Assembler().Append_FloatNegate64(dx);
+						break;
+					default:
+						Throw(parent, "Cannot handle negation for variable %s of type %s", token + 1, GetFriendlyName(*ce.Builder.GetVarStructure(token + 1)));
+					}
+				}
+				else
+				{
+					ValidateArithmeticVariable(parent, token, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("LHS") : ("RHS"));
+					ce.Builder.AssignVariableToTemp(token, tempDepth);
+				}
 			}
 		}
 
