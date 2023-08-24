@@ -194,36 +194,11 @@
 	(scene.AddStatics bottleId)
 )
 
-(function SetMat (VertexTriangle t)(MaterialVertexData d)-> :
-	(t.a.mat = d)
-	(t.b.mat = d)
-	(t.c.mat = d)
-)
-
-(function GetSoftEdgeDelta (Float32 s)(Float32 epsilon)(Float32 sMin)(Float32 sMax)->(Float32 delta):
-	
-	(Float32 delta)
-	
-	(if (s < (sMin + epsilon))
-		// Note, following the formula below - if s ~ sMin + epsilon, delta is ~0 and if s ~ sMin then delta is ~1
-		(delta = ((s - (sMin + epsilon)) / -epsilon))
-	else
-		(if (s > (sMax - epsilon))
-			// Note, following the formula below - if s ~ (sMax - epsilon) then delta is ~0 and if s = sMax, then delta is ~1
-			(delta = ((sMax - epsilon) - s ) / -epsilon)
-		else
-			(delta = 0)
-		)
-	)		
-)
-
-(function GetSoftEdgeHeight (Float32 x)(Float32 y)(Float32 epsilon)(Float32 xMin)(Float32 xMax)(Float32 yMin)(Float32 yMax)(Float32 zScale)->(Float32 zHeight):
-	(Float32 deltaX = (GetSoftEdgeDelta x epsilon xMin xMax))
-	(Float32 deltaY = (GetSoftEdgeDelta y epsilon yMin yMax))
-	
-	(Float32 delta = (Sys.Maths.F32.MinOf deltaX deltaY))
-	(Float32 zeta = (Sys.Maths.F32.Power delta 3))
-	(zHeight = zScale * (Sys.Maths.F32.Sin (1.5707963267948966192313216916398 * zeta)))
+(function ObjectVertexFromBoxVertex (SoftBoxVertex in)(MaterialVertexData mvd)(ObjectVertex out)-> :
+	(out.modelPosition = in.position)
+	(out.modelNormal = in.normal)
+	(out.uv = in.uv)
+	(out.mat = mvd)
 )
 
 (function MakeBrick (IString meshId)-> :
@@ -233,56 +208,46 @@
 	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
 	(glass.gloss = 0.2)
 	
-	(Rococo.Graphics.IMeshBuilder mb (Rococo.Graphics.MeshBuilder))
+	(IMeshBuilder mb (MeshBuilder))
 	(mb.Clear)
 	(mb.Begin meshId)
 	
-	(Vec3 up = 0 0 1)
-	(RGBAb whiteRGBAb = (Sys.Type.ToRGBAb 1 1 1 1))
-	(Int32 white = whiteRGBAb.Value)
+	(ISoftBoxBuilder box (GetSoftBoxBuilder))
+	(box.Clear)
 	
-	(Float32 width = 0.01)
+	(Rococo.Graphics.SoftBoxTopSpec topSpec)
 	
-	(VertexTriangle topRight)
-	(VertexTriangle bottomLeft)
+	(topSpec.width = 1.0)
+	(topSpec.breadth = 1.0)
+	(topSpec.northRadius = 0.1)
+	(topSpec.southRadius = 0.1)
+	(topSpec.westRadius = 0.1)
+	(topSpec.eastRadius = 0.1)
+	(topSpec.ztop = 0.5)
+	(topSpec.northEdgeDivisions = 120)
+	(topSpec.westEdgeDivisions = 120)
+	(topSpec.southEdgeDivisions = 120)
+	(topSpec.eastEdgeDivisions = 120)
 	
-	(SetMat topRight glass)
-	(SetMat bottomLeft glass)
+	(box.CreateSoftBoxTop topSpec)
 	
-	(for (Float32 y0 = 0)(y0 < 1)(y0 += width)
-		(Float32 y1 = y0 + width)
-		(for (Float32 x0 = 0)(x0 < 1)(x0 += width)
-			(Float32 x1 = x0 + width)			
-			
-			(Float32 h00 = GetSoftEdgeHeight x0 y0 0.1 0 1 0 1 0.1)
-			(Float32 h10 = GetSoftEdgeHeight x1 y0 0.1 0 1 0 1 0.1)
-			(Float32 h01 = GetSoftEdgeHeight x0 y1 0.1 0 1 0 1 0.1)
-			(Float32 h11 = GetSoftEdgeHeight x1 y1 0.1 0 1 0 1 0.1)
-			
-			(topRight.a.modelPosition = x0 y0 h00)
-			(topRight.b.modelPosition = x0 y1 h01)
-			(topRight.c.modelPosition = x1 y1 h11)
-			(topRight.a.modelNormal = up)
-			(topRight.b.modelNormal = up)
-			(topRight.c.modelNormal = up)
-			(topRight.a.uv = x0 y0)
-			(topRight.b.uv = x0 y1)
-			(topRight.c.uv = x1 y1)
-			
-			(bottomLeft.a.modelPosition = x1 y1 h11)
-			(bottomLeft.b.modelPosition = x1 y0 h10)
-			(bottomLeft.c.modelPosition = x0 y0 h00)
-			(bottomLeft.a.modelNormal = up)
-			(bottomLeft.b.modelNormal = up)
-			(bottomLeft.c.modelNormal = up)
-			(bottomLeft.a.uv = x1 y1)
-			(bottomLeft.b.uv = x1 y0)
-			(bottomLeft.c.uv = x0 y0)
+	(ObjectVertex a)
+	(ObjectVertex b)
+	(ObjectVertex c)
+	(ObjectVertex d)
+	
+	(Int32 nQuads = box.NumberOfQuads)
+	(SoftBoxQuad quad)
+	(for (Int32 i = 0)(i < nQuads)(i += 1)
+		(box.GetQuad i quad)	
+				
+		(ObjectVertexFromBoxVertex quad.a glass a)
+		(ObjectVertexFromBoxVertex quad.b glass b)
+		(ObjectVertexFromBoxVertex quad.c glass c)
+		(ObjectVertexFromBoxVertex quad.d glass d)
 		
-			(mb.AddTriangleEx bottomLeft)
-			(mb.AddTriangleEx topRight)
-		
-		)
+		(mb.AddTriangle a b c)
+		(mb.AddTriangle b d c)
 	)
 	
 	(mb.End true false)

@@ -346,7 +346,7 @@ void showSexyIDE()
 
 enum { USERLIST_SEXY_AUTOCOMPLETE = 0x07112021 };
 
-thread_local char autocompleteStringBuilder[1024] = { 0 };
+thread_local char autocompleteStringBuilder[4096] = { 0 };
 thread_local int autoCompleteIndex = 0;
 
 class SexyEditor_Scintilla : public ISexyEditor, IAutoCompleteBuilder

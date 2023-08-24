@@ -54,6 +54,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.utilities.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
+    <ClCompile Include="mplat.graphics.softbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc">
@@ -215,6 +216,9 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISoftBoxBuilder.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

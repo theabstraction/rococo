@@ -16684,7 +16684,7 @@ R"(
    void TestNegateVariable3(IPublicScriptSystem& ss)
    {
 	   cstr src =
-		   R"(
+R"(
 		(namespace EntryPoint)
 		(using Sys)
 		(using Sys.Type)
@@ -16724,7 +16724,7 @@ R"(
    void TestNegateVariable4(IPublicScriptSystem& ss)
    {
 	   cstr src =
-		   R"(
+R"(
 		(namespace EntryPoint)
 		(using Sys)
 		(using Sys.Type)

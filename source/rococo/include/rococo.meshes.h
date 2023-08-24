@@ -24,3 +24,66 @@ namespace Rococo::Entities
 	struct ISkeleton;
 	struct ISkeletons;
 }
+
+namespace Rococo::Graphics
+{
+	struct SoftBoxVertex
+	{
+		Vec3 pos;
+		Vec3 normal;
+		Vec2 uv;
+	};
+
+	struct SoftBoxQuad
+	{
+		// top left
+		SoftBoxVertex a;
+
+		// top right
+		SoftBoxVertex b;
+
+		// bottom left
+		SoftBoxVertex c;
+
+		// bottom right
+		SoftBoxVertex d;
+	};
+
+	// Defines the top face of a box. The top face has constant z. It has four adjoining faces, the North face, the East face, the South face and the West face.
+	// The North face faces (0 1 0) while the East face faces (1 0 0). The top face faces (0 0 1)
+	struct SoftBoxTopSpec
+	{
+		// The total width of the box from West to East (width 0 0)
+		float width;
+
+		// The total breadth of the box from South to North (0 breadth 0)
+		float breadth;
+
+		// the radius of the cylinder from the top face to the North face
+		float northRadius;
+
+		// the radius of the cylinder from the top face to the South face
+		float southRadius;
+
+		// the radius of the cylinder from the top face to the East face
+		float eastRadius;
+
+		// the radius of the cylinder from the top face to the West face
+		float westRadius;
+
+		// The z value of the top face
+		float ztop;
+
+		// Number of radial divisions across the edge cylinder from the top face to the North face
+		int32 northEdgeDivisions;
+
+		// Number of radial divisions across the edge cylinder from the top face to the South face
+		int32 southEdgeDivisions;
+
+		// Number of radial divisions across the edge cylinder from the top face to the East face
+		int32 eastEdgeDivisions;
+
+		// Number of radial divisions across the edge cylinder from the top face to the West face
+		int32 westEdgeDivisions;
+	};
+}

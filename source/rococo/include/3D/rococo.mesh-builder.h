@@ -5,6 +5,7 @@
 namespace Rococo
 {
 	struct Triangle;
+	struct Platform;
 }
 
 namespace Rococo::Graphics
@@ -15,6 +16,7 @@ namespace Rococo::Graphics
 }
 
 #include "..\..\rococo.mplat\code-gen\Rococo.Graphics.IMeshBuilder.sxh.h"
+#include "..\..\rococo.mplat\code-gen\Rococo.Graphics.ISoftBoxBuilder.sxh.h"
 
 namespace Rococo
 {
@@ -34,4 +36,11 @@ namespace Rococo::Graphics
 		virtual const Triangle* GetPhysicsHull(ID_SYS_MESH id, size_t& nTriangles) const = 0;
 		virtual AABB Bounds(ID_SYS_MESH id) const = 0;
 	};
+
+	ROCOCO_INTERFACE ISoftBoxBuilderSupervisor : ISoftBoxBuilder
+	{
+		virtual void Free() = 0;
+	};
+
+	ISoftBoxBuilderSupervisor* CreateSoftboxBuilder();
 }

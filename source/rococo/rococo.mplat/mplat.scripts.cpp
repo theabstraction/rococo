@@ -63,6 +63,11 @@ Rococo::IWorldBuilder* FactoryConstructRococoWorldBuilder(Rococo::Platform* plat
 	return &platform->world.worldBuilder;
 }
 
+Rococo::Graphics::ISoftBoxBuilder* FactoryConstructRococoGraphicsGetSoftBoxBuilder(Rococo::Platform* platform)
+{
+	return &platform->graphics.softBoxBuilder;
+}
+
 Rococo::IArchive* FactoryConstructRococoGetArchive(Rococo::Platform * platform)
 {
 	return &platform->data.archive;
@@ -351,6 +356,7 @@ namespace Rococo
 						Rococo::Interop::AddNativeCalls_RococoIKeyboard(args.ss, &platform.hardware.keyboard);
 						Entities::Interop::AddNativeCalls_RococoEntitiesIParticleSystem(args.ss, &platform);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIHQFonts(args.ss, &platform);
+						Graphics::Interop::AddNativeCalls_RococoGraphicsISoftBoxBuilder(args.ss, &platform);
 						Rococo::Interop::AddNativeCalls_RococoIInstallationManager(args.ss, &platform);
 						Rococo::Configuration::Interop::AddNativeCalls_RococoConfigurationIConfig(args.ss, &platform.data.config);
 						Rococo::Interop::AddNativeCalls_RococoIArchive(args.ss, &platform);

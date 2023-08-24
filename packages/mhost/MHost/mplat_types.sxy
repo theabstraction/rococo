@@ -182,3 +182,35 @@
 
 (strong RococoMPlatTypeRGBAb (Int32))
 
+// Defines the top face of a box. The top face has constant z. It has four adjoining faces, the North face, the East face, the South face and the West face.
+// The North face faces (0 1 0) while the East face faces (1 0 0). The top face faces (0 0 1)
+(struct SoftBoxTopSpec
+	// The total span of the box from West to East (width 0 0) and South to North (0 breadth 0)
+	(Float32 width breadth)
+	
+	// the radii of the cylinder from the top face to the adjoining target faces)
+	(Float32 northRadius southRadius eastRadius westRadius)
+
+	// The z value of the top face
+	(Float32 ztop)
+
+	// Numbers of radial divisions across the edge cylinder from the top face to the adjoining target faces
+	(Int32 northEdgeDivisions southEdgeDivisions eastEdgeDivisions westEdgeDivisions)
+)
+
+(alias SoftBoxTopSpec Rococo.Graphics.SoftBoxTopSpec)
+
+(struct SoftBoxVertex
+	(Vec3 position)
+	(Vec3 normal)
+	(Vec2 uv)
+)
+
+(alias SoftBoxVertex Rococo.Graphics.SoftBoxVertex)
+
+(struct SoftBoxQuad
+	// top left, top right, bottom left, bottom right 
+	(SoftBoxVertex a b c d)
+)
+
+(alias SoftBoxQuad Rococo.Graphics.SoftBoxQuad)

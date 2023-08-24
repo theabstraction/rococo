@@ -610,6 +610,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Rococo::Gui::IMPlatGuiCustodianSupervisor> mplat_gcs = Rococo::Gui::CreateMPlatCustodian(*utilities, mainWindow->Renderer());
 	AutoFree<Rococo::Gui::IGRSystemSupervisor> GR = Rococo::Gui::CreateGRSystem(grConfig, mplat_gcs->Custodian());
 
+	AutoFree<Rococo::Graphics::ISoftBoxBuilderSupervisor> softBoxBuilder = Rococo::Graphics::CreateSoftboxBuilder();
+
 #ifdef _DEBUG
 	GR->SetDebugFlags((int) Rococo::Gui::EGRDebugFlags::ThrowWhenPanelIsZeroArea);
 #endif
@@ -650,7 +652,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	Platform platform
 	{ 
 		// Platform graphics
-		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderOptions->Config(), shaderEventHandler},
+		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *softBoxBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderOptions->Config(), shaderEventHandler},
 
 		// Platform os
 		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },

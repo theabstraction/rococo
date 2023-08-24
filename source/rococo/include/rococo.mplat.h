@@ -741,6 +741,8 @@ namespace Rococo
 
 		Graphics::IMaterialBuilderSupervisor& materials;
 
+		Graphics::ISoftBoxBuilder& softBoxBuilder;
+
 		Graphics::ISpriteBuilderSupervisor& spriteBuilder;
 
 		Graphics::ICameraSupervisor& camera;

@@ -2078,7 +2078,8 @@ namespace ANON
 				
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
-				auto* localType = RecursivelySearchForType(ns[i], subsearch);
+				auto& subspace = ns[i];
+				auto* localType = RecursivelySearchForType(subspace, subsearch);
 				if (localType)
 				{
 					return localType;

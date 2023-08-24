@@ -689,3 +689,16 @@
 	)
 	(factory Rococo.WorldBuilder)
 )
+
+(interface (as.sxy Rococo.Graphics.ISoftBoxBuilder "mplat")
+	(as.cpp Rococo.Graphics.ISoftBoxBuilder)
+	(context factory Rococo.Platform)
+	(methods
+		(Clear )
+		(CreateSoftBoxTop (const SoftBoxTopSpec topSpec))
+		(const GetQuad (Int32 index) (SoftBoxQuad refQuad))
+		(const NumberOfQuads -> (Int32 nQuads))		
+		(SetTextureScale (Float32 uvScale))
+	)
+	(factory Rococo.Graphics.GetSoftBoxBuilder)
+)

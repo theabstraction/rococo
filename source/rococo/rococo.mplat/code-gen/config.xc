@@ -79,6 +79,9 @@
 (struct SampleStateDef Rococo.SampleStateDef Rococo.Graphics.SampleStateDef)
 (struct FontMetrics Rococo.Graphics.FontMetrics Rococo.Graphics.FontMetrics)
 (struct BitmapLocation MPlat.BitmapLocation Rococo.Graphics.Textures.BitmapLocation)
+(struct SoftBoxTopSpec Rococo.Graphics.SoftBoxTopSpec Rococo.Graphics.SoftBoxTopSpec)
+(struct SoftBoxQuad Rococo.Graphics.SoftBoxQuad Rococo.Graphics.SoftBoxQuad)
+(struct SoftBoxVertex Rococo.Graphics.SoftBoxVertex Rococo.Graphics.SoftBoxVertex)
 
 (defstruct TriangleScan Rococo.TriangleScan Rococo.TriangleScan
 	(IdEntity id)

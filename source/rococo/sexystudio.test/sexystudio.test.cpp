@@ -1350,9 +1350,47 @@ void TestDeepMemberInference2()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFQStruct()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+R"<CODE>(
+	(method Dog.Bark -> :
+		(Rococo.Graphics.SoftBoxVertex v)
+		(v.
+	)
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+
+void TestNamespaceAppendsStruct()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(method Dog.Bark -> :
+		(Rococo.Graphics.
+	)
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
 void MainProtected2(HMODULE /* hLib */)
 {
-	pluginInit(NULL);	
+	pluginInit(NULL);
+	TestNamespaceAppendsStruct();
+	TestFQStruct();
+	return;
 	TestDeepMemberInference2();
 	TestDeepMemberInference();
 	TestFullEditor_SearchFQType();
