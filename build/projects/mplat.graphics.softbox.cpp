@@ -14,6 +14,67 @@ class SoftBoxBuilder: public ISoftBoxBuilderSupervisor
 	std::vector<Triangle> triangles;
 	std::vector<SoftBoxQuad> quads;
 
+	void AddNECorner(float x1, float y1, const SoftBoxTopSpec& spec)
+	{
+		// Theta is the angle from the horizontal, 0 is in the z plane. Theta of 90 points up ( 1 0 0)
+		Degrees dTheta{ 90.0f / spec.northEdgeDivisions };
+
+		// Phi of 0 points West (-1 0 0), Phi of 90 points North
+		Degrees dPhi{ 90.0f / spec.northEdgeDivisions };
+
+		Degrees theta0 = 0_degrees;
+
+		float R = spec.northRadius;
+
+		for (int32 i = 0; i < spec.northEdgeDivisions; i++)
+		{
+			Degrees phi0 = 0_degrees;
+			Degrees theta1{ theta0.degrees + dTheta.degrees };
+
+			for (int32 j = 0; j < spec.northEdgeDivisions; j++)
+			{
+				float R1 = R * Cos(theta1);
+				float R0 = R * Cos(theta0);
+
+				Degrees phi1 = { phi0.degrees + dPhi.degrees };
+				float R0cosPhi0 = R0 * Cos(phi0);
+				float R0cosPhi1 = R0 * Cos(phi1);
+				float R1cosPhi0 = R1 * Cos(phi0);
+				float R1cosPhi1 = R1 * Cos(phi1);
+				float R0sinPhi0 = R0 * Sin(phi0);
+				float R0sinPhi1 = R0 * Sin(phi1);
+				float R1sinPhi0 = R1 * Sin(phi0);
+				float R1sinPhi1 = R1 * Sin(phi1);
+
+				float z1 = zTop - spec.southRadius + R * Sin(theta1);
+				float z0 = zTop - spec.southRadius + R * Sin(theta0);
+
+				SoftBoxQuad quad;
+				quad.a.pos = { x1 + R1cosPhi0, y1 + R1sinPhi0, z1 };
+				quad.b.pos = { x1 + R1cosPhi1, y1 + R1sinPhi1, z1 };
+				quad.c.pos = { x1 + R0cosPhi0, y1 + R0sinPhi0, z0 };
+				quad.d.pos = { x1 + R0cosPhi1, y1 + R0sinPhi1, z0 };
+				
+				quad.a.normal = { Cos(phi0) * Cos(theta1), Sin(phi0) * Cos(theta1), Sin(theta1) };
+				quad.b.normal = { Cos(phi1) * Cos(theta1), Sin(phi1) * Cos(theta1), Sin(theta1) };
+				quad.c.normal = { Cos(phi0) * Cos(theta0), Sin(phi0) * Cos(theta0), Sin(theta0) };
+				quad.d.normal = { Cos(phi1) * Cos(theta0), Sin(phi1) * Cos(theta0), Sin(theta0) };
+
+				quad.a.uv = { 0, 1 };
+				quad.b.uv = { 1, 1 };
+				quad.c.uv = { 1, 0 };
+				quad.d.uv = { 1, 1 };
+
+				quads.push_back(quad);
+
+				phi0 = phi1;
+			}
+
+
+			theta0 = theta1;
+		}
+	}
+
 	void AddNWCorner(float x0, float y1, const SoftBoxTopSpec& spec)
 	{
 		// Theta is the angle from the horizontal, 0 is in the z plane. Theta of 90 points up ( 1 0 0)
@@ -74,6 +135,68 @@ class SoftBoxBuilder: public ISoftBoxBuilderSupervisor
 			theta0 = theta1;
 		}
 	}
+
+	void AddSECorner(float x1, float y0, const SoftBoxTopSpec& spec)
+	{
+		// Theta is the angle from the horizontal, 0 is in the z plane. Theta of 90 points up ( 1 0 0)
+		Degrees dTheta{ 90.0f / spec.northEdgeDivisions };
+
+		// Phi of 0 points East (-1 0 0), Phi of 90 points South
+		Degrees dPhi{ 90.0f / spec.northEdgeDivisions };
+
+		Degrees theta0 = 0_degrees;
+
+		float R = spec.northRadius;
+
+		for (int32 i = 0; i < spec.northEdgeDivisions; i++)
+		{
+			Degrees phi0 = 0_degrees;
+			Degrees theta1{ theta0.degrees + dTheta.degrees };
+
+			for (int32 j = 0; j < spec.northEdgeDivisions; j++)
+			{
+				float R1 = R * Cos(theta1);
+				float R0 = R * Cos(theta0);
+
+				Degrees phi1 = { phi0.degrees + dPhi.degrees };
+				float R0cosPhi0 = R0 * Cos(phi0);
+				float R0cosPhi1 = R0 * Cos(phi1);
+				float R1cosPhi0 = R1 * Cos(phi0);
+				float R1cosPhi1 = R1 * Cos(phi1);
+				float R0sinPhi0 = R0 * Sin(phi0);
+				float R0sinPhi1 = R0 * Sin(phi1);
+				float R1sinPhi0 = R1 * Sin(phi0);
+				float R1sinPhi1 = R1 * Sin(phi1);
+
+				float z1 = zTop - spec.southRadius + R * Sin(theta1);
+				float z0 = zTop - spec.southRadius + R * Sin(theta0);
+
+				SoftBoxQuad quad;
+				quad.a.pos = { x1 + R1cosPhi1, y0 - R1sinPhi1, z1 };
+				quad.b.pos = { x1 + R1cosPhi0, y0 - R1sinPhi0, z1 };				
+				quad.c.pos = { x1 + R0cosPhi1, y0 - R0sinPhi1, z0 };
+				quad.d.pos = { x1 + R0cosPhi0, y0 - R0sinPhi0, z0 };
+
+				quad.a.normal = { Cos(phi1) * Cos(theta1), -Sin(phi1) * Cos(theta1), Sin(theta1) };
+				quad.b.normal = { Cos(phi0) * Cos(theta1), -Sin(phi0) * Cos(theta1), Sin(theta1) };
+				quad.c.normal = { Cos(phi1) * Cos(theta0), -Sin(phi1) * Cos(theta0), Sin(theta0) };
+				quad.d.normal = { Cos(phi0) * Cos(theta0), -Sin(phi0) * Cos(theta0), Sin(theta0) };
+
+				quad.a.uv = { 0, 1 };
+				quad.b.uv = { 1, 1 };
+				quad.c.uv = { 1, 0 };
+				quad.d.uv = { 1, 1 };
+
+				quads.push_back(quad);
+
+				phi0 = phi1;
+			}
+
+
+			theta0 = theta1;
+		}
+	}
+
 
 	void AddSWCorner(float x0, float y0, const SoftBoxTopSpec& spec)
 	{
@@ -375,6 +498,8 @@ public:
 
 		AddSWCorner(x0, y0, spec);
 		AddNWCorner(x0, y1, spec);
+		AddNECorner(x1, y1, spec);
+		AddSECorner(x1, y0, spec);
 
 		// This may be pertinent around 2050
 		if (quads.size() > 0x7FFFFFFFLL)
