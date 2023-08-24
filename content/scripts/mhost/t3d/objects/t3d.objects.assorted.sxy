@@ -224,10 +224,10 @@
 	(topSpec.westRadius = 0.1)
 	(topSpec.eastRadius = 0.1)
 	(topSpec.ztop = 0.5)
-	(topSpec.northEdgeDivisions = 120)
-	(topSpec.westEdgeDivisions = 120)
-	(topSpec.southEdgeDivisions = 120)
-	(topSpec.eastEdgeDivisions = 120)
+	(topSpec.northEdgeDivisions = 4)
+	(topSpec.westEdgeDivisions = 4)
+	(topSpec.southEdgeDivisions = 4)
+	(topSpec.eastEdgeDivisions = 4)
 	
 	(box.CreateSoftBoxTop topSpec)
 	
