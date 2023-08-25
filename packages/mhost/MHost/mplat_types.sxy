@@ -214,3 +214,9 @@
 )
 
 (alias SoftBoxQuad Rococo.Graphics.SoftBoxQuad)
+
+(struct SoftBoxTriangle
+	(SoftBoxVertex a b c)
+)
+
+(alias SoftBoxTriangle Rococo.Graphics.SoftBoxTriangle)

@@ -4,15 +4,69 @@
 
 using namespace Rococo;
 
-class SoftBoxBuilder: public ISoftBoxBuilderSupervisor
+class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 {
 	float innerWidth;
 	float innerBreadth;
 	float zTop;
 	float uvScale = 1.0f;
+	float zBottom;
 
-	std::vector<Triangle> triangles;
+	std::vector<SoftBoxTriangle> triangles;
 	std::vector<SoftBoxQuad> quads;
+
+	void AddCircleQuadrant(int divisions, Vec2 origin, Vec2 centreToEdge, Vec2 normal, float radius)
+	{
+		// Theta is the angle from the horizontal to the vertical. Theta of 90 points up ( 1 0 0)
+		Degrees dTheta{ 90.0f / divisions };
+		Degrees theta0 = 0_degrees;
+
+		float zAxis = Cross(centreToEdge, normal);
+
+		SoftBoxTriangle t;
+
+		SoftBoxVertex& a = zAxis > 0 ? t.a : t.c;
+		SoftBoxVertex& b = t.b;
+		SoftBoxVertex& c = zAxis > 0 ? t.c : t.a;
+
+		for (int i = 0; i < divisions; ++i)
+		{
+			Degrees theta1 = Degrees{ theta0.degrees + dTheta.degrees };
+
+			float cosTheta0 = Cos(theta0);
+			float sinTheta0 = Sin(theta0);
+
+			float cosTheta1 = Cos(theta1);
+			float sinTheta1 = Sin(theta1);
+
+			Vec2 da = centreToEdge * (radius * cosTheta1);
+			Vec2 dc = centreToEdge * (radius * cosTheta0);
+
+			a.pos = { origin.x + da.x, origin.y + da.y, zTop - radius * (1 - sinTheta1) };
+			b.pos = { origin.x, origin.y, zTop - radius };
+			c.pos = { origin.x + dc.x, origin.y + dc.y, zTop - radius * (1 - sinTheta0) };
+			a.normal = b.normal = c.normal = { normal.x, normal.y, 0 };
+			a.uv = { uvScale * radius * cosTheta1, uvScale * t.a.pos.z };
+			b.uv = { 0                           , uvScale * t.b.pos.z };
+			c.uv = { uvScale * radius * cosTheta0, uvScale * t.c.pos.z };
+
+			triangles.push_back(t);
+
+			theta0 = theta1;
+		}
+	}
+
+	void AddCircleQuadrantCorner(float x, float y, Vec2 leftDirCentreToEdge, Vec2 leftNormal, Vec2 rightDirCentreToEdge, Vec2 rightNormal, int leftDivisions, float leftRadius, int rightDivisions, float rightRadius)
+	{
+		if (rightDivisions <= 0 && leftDivisions > 0)
+		{
+			AddCircleQuadrant(leftDivisions, {x,y}, leftDirCentreToEdge, leftNormal, leftRadius);
+		}
+		else if (leftDivisions <= 0 && rightDivisions > 0)
+		{
+			AddCircleQuadrant(rightDivisions, {x,y}, rightDirCentreToEdge, rightNormal, rightRadius);
+		}
+	}
 
 	// Mesh a top corner as a sphere octant, joining two edge cylinders
 	void AddSphereOctantCorner(float x, float y, float xDir, float yDir, int edgeDivisions, float edgeRadius)
@@ -105,154 +159,294 @@ class SoftBoxBuilder: public ISoftBoxBuilderSupervisor
 
 	void AddNorthEdge(float x0, float x1, float y1, const SoftBoxTopSpec& spec)
 	{
-		Degrees dTheta{ 90.0f / spec.northEdgeDivisions };
-
-		Degrees theta0 = 0_degrees;
-
-		for (int32 i = 0; i < spec.northEdgeDivisions; i++)
+		if (spec.northEdgeDivisions > 0)
 		{
-			Degrees theta1 { theta0.degrees + dTheta.degrees };
+			Degrees dTheta{ 90.0f / spec.northEdgeDivisions };
 
-			float RsinTheta1 = (i == spec.northEdgeDivisions - 1) ? spec.northRadius : spec.northRadius * Sin(theta1);
-			float ROMcosTheta1 = (i == spec.northEdgeDivisions - 1) ? spec.northRadius : spec.northRadius * (1.0f - Cos(theta1));
-			float RsinTheta0 = spec.northRadius * Sin(theta0);
-			float ROMcosTheta0 = spec.northRadius * (1.0f - Cos(theta0));
+			Degrees theta0 = 0_degrees;
 
-			SoftBoxQuad northEdgeQuad;
-			northEdgeQuad.a.pos = { x0, y1 + RsinTheta1, zTop - ROMcosTheta1 };
-			northEdgeQuad.b.pos = { x1, y1 + RsinTheta1, zTop - ROMcosTheta1 };
-			northEdgeQuad.c.pos = { x0, y1 + RsinTheta0, zTop - ROMcosTheta0 };
-			northEdgeQuad.d.pos = { x1, y1 + RsinTheta0, zTop - ROMcosTheta0 };
+			for (int32 i = 0; i < spec.northEdgeDivisions; i++)
+			{
+				Degrees theta1{ theta0.degrees + dTheta.degrees };
 
-			Radians radsTheta1 = theta1;
-			Radians radsTheta0 = theta0;
+				float RsinTheta1 = (i == spec.northEdgeDivisions - 1) ? spec.northRadius : spec.northRadius * Sin(theta1);
+				float ROMcosTheta1 = (i == spec.northEdgeDivisions - 1) ? spec.northRadius : spec.northRadius * (1.0f - Cos(theta1));
+				float RsinTheta0 = spec.northRadius * Sin(theta0);
+				float ROMcosTheta0 = spec.northRadius * (1.0f - Cos(theta0));
 
-			// Path length across arc of a cylinder is rads * radius, so we use that with uv scale to generate tex co-ordindates
-			northEdgeQuad.a.uv = { x0 * uvScale, (y1 + radsTheta1.radians * spec.northRadius * uvScale) };
-			northEdgeQuad.b.uv = { x1 * uvScale, (y1 + radsTheta1.radians * spec.northRadius * uvScale) };
-			northEdgeQuad.c.uv = { x0 * uvScale, (y1 + radsTheta0.radians * spec.northRadius * uvScale) };
-			northEdgeQuad.d.uv = { x1 * uvScale, (y1 + radsTheta0.radians * spec.northRadius * uvScale) };
+				SoftBoxQuad northEdgeQuad;
+				northEdgeQuad.a.pos = { x0, y1 + RsinTheta1, zTop - ROMcosTheta1 };
+				northEdgeQuad.b.pos = { x1, y1 + RsinTheta1, zTop - ROMcosTheta1 };
+				northEdgeQuad.c.pos = { x0, y1 + RsinTheta0, zTop - ROMcosTheta0 };
+				northEdgeQuad.d.pos = { x1, y1 + RsinTheta0, zTop - ROMcosTheta0 };
 
-			northEdgeQuad.a.normal = northEdgeQuad.b.normal = { 0, Sin(theta1), Cos(theta1) };
-			northEdgeQuad.c.normal = northEdgeQuad.d.normal = { 0, Sin(theta0), Cos(theta0) };
+				Radians radsTheta1 = theta1;
+				Radians radsTheta0 = theta0;
 
-			quads.push_back(northEdgeQuad);
+				// Path length across arc of a cylinder is rads * radius, so we use that with uv scale to generate tex co-ordindates
+				northEdgeQuad.a.uv = { x0 * uvScale, (y1 + radsTheta1.radians * spec.northRadius * uvScale) };
+				northEdgeQuad.b.uv = { x1 * uvScale, (y1 + radsTheta1.radians * spec.northRadius * uvScale) };
+				northEdgeQuad.c.uv = { x0 * uvScale, (y1 + radsTheta0.radians * spec.northRadius * uvScale) };
+				northEdgeQuad.d.uv = { x1 * uvScale, (y1 + radsTheta0.radians * spec.northRadius * uvScale) };
 
-			theta0 = theta1;
+				northEdgeQuad.a.normal = northEdgeQuad.b.normal = { 0, Sin(theta1), Cos(theta1) };
+				northEdgeQuad.c.normal = northEdgeQuad.d.normal = { 0, Sin(theta0), Cos(theta0) };
+
+				quads.push_back(northEdgeQuad);
+
+				theta0 = theta1;
+			}
+		}
+		else
+		{
+			SoftBoxQuad quad;
+			quad.a.pos = { x1, y1, zTop };
+			quad.b.pos = { x0, y1, zTop };
+			quad.c.pos = { x1, y1, zBottom };
+			quad.d.pos = { x0, y1, zBottom };
+
+			quad.a.uv = { x1 * uvScale, zTop * uvScale };
+			quad.b.uv = { x0 * uvScale, zTop * uvScale };
+			quad.c.uv = { x1 * uvScale, zBottom * uvScale };
+			quad.d.uv = { x0 * uvScale, zBottom * uvScale };
+
+			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, -1.0f, 0.0f };
+
+			quads.push_back(quad);
 		}
 	}
 
 	void AddSouthEdge(float x0, float x1, float y0, const SoftBoxTopSpec& spec)
 	{
-		Degrees dTheta{ 90.0f / spec.southEdgeDivisions };
-
-		Degrees theta0 = 0_degrees;
-
-		for (int32 i = 0; i < spec.southEdgeDivisions; i++)
+		if (spec.southEdgeDivisions > 0)
 		{
-			Degrees theta1 { theta0.degrees + dTheta.degrees };
+			Degrees dTheta{ 90.0f / spec.southEdgeDivisions };
 
-			float RsinTheta1 = (i == spec.southEdgeDivisions - 1) ? spec.southRadius : spec.southRadius * Sin(theta1);
-			float ROMcosTheta1 = (i == spec.southEdgeDivisions - 1) ? spec.southRadius : spec.southRadius * (1.0f - Cos(theta1));
-			float RsinTheta0 = spec.southRadius * Sin(theta0);
-			float ROMcosTheta0 = spec.southRadius * (1.0f - Cos(theta0));
+			Degrees theta0 = 0_degrees;
 
-			SoftBoxQuad southEdgeQuad;
-			southEdgeQuad.a.pos = { x0, y0 - RsinTheta0, zTop - ROMcosTheta0 };
-			southEdgeQuad.b.pos = { x1, y0 - RsinTheta0, zTop - ROMcosTheta0 };
-			southEdgeQuad.c.pos = { x0, y0 - RsinTheta1, zTop - ROMcosTheta1 };
-			southEdgeQuad.d.pos = { x1, y0 - RsinTheta1, zTop - ROMcosTheta1 };
+			for (int32 i = 0; i < spec.southEdgeDivisions; i++)
+			{
+				Degrees theta1{ theta0.degrees + dTheta.degrees };
 
-			Radians radsTheta1 = theta1;
-			Radians radsTheta0 = theta0;
+				float RsinTheta1 = (i == spec.southEdgeDivisions - 1) ? spec.southRadius : spec.southRadius * Sin(theta1);
+				float ROMcosTheta1 = (i == spec.southEdgeDivisions - 1) ? spec.southRadius : spec.southRadius * (1.0f - Cos(theta1));
+				float RsinTheta0 = spec.southRadius * Sin(theta0);
+				float ROMcosTheta0 = spec.southRadius * (1.0f - Cos(theta0));
 
-			southEdgeQuad.a.uv = { x0 * uvScale, (y0 + radsTheta0 * spec.southRadius) * uvScale };
-			southEdgeQuad.b.uv = { x1 * uvScale, (y0 + radsTheta0 * spec.southRadius) * uvScale };
-			southEdgeQuad.c.uv = { x0 * uvScale, (y0 + radsTheta1 * spec.southRadius) * uvScale };
-			southEdgeQuad.d.uv = { x1 * uvScale, (y0 + radsTheta1 * spec.southRadius) * uvScale };
+				SoftBoxQuad southEdgeQuad;
+				southEdgeQuad.a.pos = { x0, y0 - RsinTheta0, zTop - ROMcosTheta0 };
+				southEdgeQuad.b.pos = { x1, y0 - RsinTheta0, zTop - ROMcosTheta0 };
+				southEdgeQuad.c.pos = { x0, y0 - RsinTheta1, zTop - ROMcosTheta1 };
+				southEdgeQuad.d.pos = { x1, y0 - RsinTheta1, zTop - ROMcosTheta1 };
 
-			southEdgeQuad.a.normal = southEdgeQuad.b.normal = { 0, -Sin(theta0), Cos(theta0) };
-			southEdgeQuad.c.normal = southEdgeQuad.d.normal = { 0, -Sin(theta1), Cos(theta1) };
+				Radians radsTheta1 = theta1;
+				Radians radsTheta0 = theta0;
 
-			quads.push_back(southEdgeQuad);
+				southEdgeQuad.a.uv = { x0 * uvScale, (y0 + radsTheta0 * spec.southRadius) * uvScale };
+				southEdgeQuad.b.uv = { x1 * uvScale, (y0 + radsTheta0 * spec.southRadius) * uvScale };
+				southEdgeQuad.c.uv = { x0 * uvScale, (y0 + radsTheta1 * spec.southRadius) * uvScale };
+				southEdgeQuad.d.uv = { x1 * uvScale, (y0 + radsTheta1 * spec.southRadius) * uvScale };
 
-			theta0 = theta1;
+				southEdgeQuad.a.normal = southEdgeQuad.b.normal = { 0, -Sin(theta0), Cos(theta0) };
+				southEdgeQuad.c.normal = southEdgeQuad.d.normal = { 0, -Sin(theta1), Cos(theta1) };
+
+				quads.push_back(southEdgeQuad);
+
+				theta0 = theta1;
+			}
+		}
+		else
+		{
+			SoftBoxQuad quad;
+			quad.a.pos = { x0, y0, zTop };
+			quad.b.pos = { x1, y0, zTop };
+			quad.c.pos = { x0, y0, zBottom };
+			quad.d.pos = { x1, y0, zBottom };
+
+			quad.a.uv = { x0 * uvScale, zTop * uvScale };
+			quad.b.uv = { x1 * uvScale, zTop * uvScale };
+			quad.c.uv = { x0 * uvScale, zBottom * uvScale };
+			quad.d.uv = { x1 * uvScale, zBottom * uvScale };
+
+			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, 1.0f, 0.0f };
+
+			quads.push_back(quad);
 		}
 	}
 
 	void AddWestEdge(float x0, float y0, float y1, const SoftBoxTopSpec& spec)
 	{
-		Degrees dTheta{ 90.0f / spec.westEdgeDivisions };
-		Degrees theta0 = 0_degrees;
-		
-		for (int32 i = 0; i < spec.westEdgeDivisions; i++)
+		if (spec.westEdgeDivisions > 0)
 		{
-			Degrees theta1 { theta0.degrees + dTheta.degrees };
+			Degrees dTheta{ 90.0f / spec.westEdgeDivisions };
+			Degrees theta0 = 0_degrees;
 
-			float RsinTheta1 = (i == spec.westEdgeDivisions - 1) ? spec.westRadius : spec.westRadius * Sin(theta1);
-			float ROMcosTheta1 = (i == spec.westEdgeDivisions - 1) ? spec.westRadius : spec.westRadius * (1.0f - Cos(theta1));
-			float RsinTheta0 = spec.westRadius * Sin(theta0);
-			float ROMcosTheta0 = spec.westRadius * (1.0f - Cos(theta0));
+			for (int32 i = 0; i < spec.westEdgeDivisions; i++)
+			{
+				Degrees theta1{ theta0.degrees + dTheta.degrees };
 
-			SoftBoxQuad westEdgeQuad;
-			westEdgeQuad.a.pos = { x0 - RsinTheta1,  y1, zTop - ROMcosTheta1 };
-			westEdgeQuad.b.pos = { x0 - RsinTheta0,  y1, zTop - ROMcosTheta0 };
-			westEdgeQuad.c.pos = { x0 - RsinTheta1,  y0, zTop - ROMcosTheta1 };
-			westEdgeQuad.d.pos = { x0 - RsinTheta0,  y0, zTop - ROMcosTheta0 };
+				float RsinTheta1 = (i == spec.westEdgeDivisions - 1) ? spec.westRadius : spec.westRadius * Sin(theta1);
+				float ROMcosTheta1 = (i == spec.westEdgeDivisions - 1) ? spec.westRadius : spec.westRadius * (1.0f - Cos(theta1));
+				float RsinTheta0 = spec.westRadius * Sin(theta0);
+				float ROMcosTheta0 = spec.westRadius * (1.0f - Cos(theta0));
 
-			Radians radsTheta1 = theta1;
-			Radians radsTheta0 = theta0;
+				SoftBoxQuad westEdgeQuad;
+				westEdgeQuad.a.pos = { x0 - RsinTheta1,  y1, zTop - ROMcosTheta1 };
+				westEdgeQuad.b.pos = { x0 - RsinTheta0,  y1, zTop - ROMcosTheta0 };
+				westEdgeQuad.c.pos = { x0 - RsinTheta1,  y0, zTop - ROMcosTheta1 };
+				westEdgeQuad.d.pos = { x0 - RsinTheta0,  y0, zTop - ROMcosTheta0 };
 
-			westEdgeQuad.a.uv = { (x0 - radsTheta1 * spec.westRadius) * uvScale, y1 * uvScale };
-			westEdgeQuad.b.uv = { (x0 - radsTheta0 * spec.westRadius) * uvScale, y1 * uvScale };
-			westEdgeQuad.c.uv = { (x0 - radsTheta1 * spec.westRadius) * uvScale, y0 * uvScale };
-			westEdgeQuad.d.uv = { (x0 - radsTheta0 * spec.westRadius) * uvScale, y0 * uvScale };
+				Radians radsTheta1 = theta1;
+				Radians radsTheta0 = theta0;
 
-			westEdgeQuad.a.normal = westEdgeQuad.c.normal = { -Sin(theta1), 0, Cos(theta1) };
-			westEdgeQuad.b.normal = westEdgeQuad.d.normal = { -Sin(theta0), 0, Cos(theta0) };
+				westEdgeQuad.a.uv = { (x0 - radsTheta1 * spec.westRadius) * uvScale, y1 * uvScale };
+				westEdgeQuad.b.uv = { (x0 - radsTheta0 * spec.westRadius) * uvScale, y1 * uvScale };
+				westEdgeQuad.c.uv = { (x0 - radsTheta1 * spec.westRadius) * uvScale, y0 * uvScale };
+				westEdgeQuad.d.uv = { (x0 - radsTheta0 * spec.westRadius) * uvScale, y0 * uvScale };
 
-			quads.push_back(westEdgeQuad);
+				westEdgeQuad.a.normal = westEdgeQuad.c.normal = { -Sin(theta1), 0, Cos(theta1) };
+				westEdgeQuad.b.normal = westEdgeQuad.d.normal = { -Sin(theta0), 0, Cos(theta0) };
 
-			theta0 = theta1;
+				quads.push_back(westEdgeQuad);
+
+				theta0 = theta1;
+			}
+		}
+		else
+		{
+			SoftBoxQuad quad;
+			quad.a.pos = { x0, y1, zTop };
+			quad.b.pos = { x0, y0, zTop };
+			quad.c.pos = { x0, y1, zBottom };
+			quad.d.pos = { x0, y0, zBottom };
+
+			quad.a.uv = { y1 * uvScale, zTop * uvScale };
+			quad.b.uv = { y0 * uvScale, zTop * uvScale };
+			quad.c.uv = { y1 * uvScale, zBottom * uvScale };
+			quad.d.uv = { y0 * uvScale, zBottom * uvScale };
+
+			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { -1.0f, 0.0f, 0.0f };
+
+			quads.push_back(quad);
 		}
 	}
 
 	void AddEastEdge(float x1, float y0, float y1, const SoftBoxTopSpec& spec)
 	{
+		if (spec.eastEdgeDivisions > 0)
+		{
+			Degrees dTheta{ 90.0f / spec.eastEdgeDivisions };
+			Degrees theta0 = 0_degrees;
+
+			for (int32 i = 0; i < spec.eastEdgeDivisions; i++)
+			{
+				Degrees theta1 = { theta0.degrees + dTheta.degrees };
+
+				float RsinTheta1 = (i == spec.eastEdgeDivisions - 1) ? spec.eastRadius : spec.eastRadius * Sin(theta1);
+				float ROMcosTheta1 = (i == spec.eastEdgeDivisions - 1) ? spec.eastRadius : spec.eastRadius * (1.0f - Cos(theta1));
+				float RsinTheta0 = spec.eastRadius * Sin(theta0);
+				float ROMcosTheta0 = spec.eastRadius * (1.0f - Cos(theta0));
+
+				SoftBoxQuad eastEdgeQuad;
+				eastEdgeQuad.a.pos = { x1 + RsinTheta0, y1, zTop - ROMcosTheta0 };
+				eastEdgeQuad.b.pos = { x1 + RsinTheta1, y1, zTop - ROMcosTheta1 };
+				eastEdgeQuad.c.pos = { x1 + RsinTheta0, y0, zTop - ROMcosTheta0 };
+				eastEdgeQuad.d.pos = { x1 + RsinTheta1, y0, zTop - ROMcosTheta1 };
+
+				Radians radsTheta1 = theta1;
+				Radians radsTheta0 = theta0;
+
+				eastEdgeQuad.a.uv = { (x1 + radsTheta1 * spec.westRadius) * uvScale, y1 * uvScale };
+				eastEdgeQuad.b.uv = { (x1 + radsTheta0 * spec.westRadius) * uvScale, y1 * uvScale };
+				eastEdgeQuad.c.uv = { (x1 + radsTheta1 * spec.westRadius) * uvScale, y0 * uvScale };
+				eastEdgeQuad.d.uv = { (x1 + radsTheta0 * spec.westRadius) * uvScale, y0 * uvScale };
+
+				eastEdgeQuad.a.normal = eastEdgeQuad.c.normal = { Sin(theta0), 0, Cos(theta0) };
+				eastEdgeQuad.b.normal = eastEdgeQuad.d.normal = { Sin(theta1), 0, Cos(theta1) };
+
+				quads.push_back(eastEdgeQuad);
+
+				theta0 = theta1;
+			}
+		}
+		else
+		{
+			SoftBoxQuad quad;
+			quad.a.pos = { x1, y0, zTop };
+			quad.b.pos = { x1, y1, zTop };
+			quad.c.pos = { x1, y0, zBottom };
+			quad.d.pos = { x1, y1, zBottom };
+
+			quad.a.uv = { y0 * uvScale, zTop * uvScale };
+			quad.b.uv = { y1 * uvScale, zTop * uvScale };
+			quad.c.uv = { y0 * uvScale, zBottom * uvScale };
+			quad.d.uv = { y1 * uvScale, zBottom * uvScale };
+
+			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 1.0f, 0.0f, 0.0f };
+
+			quads.push_back(quad);
+		}
+	}
+
+	/* TODO, make this generic for the 4 edges:
+	void AddEdge(float x0, float x1, float y0, float y1, int divisions, float radius)
+	{
 		// Next we add four edges, each forms the top of a cylinder that takes the mesh from the horizontal to the vertical
-		Degrees dTheta{ 90.0f / spec.eastEdgeDivisions };
+		Degrees dTheta{ 90.0f / divisions };
 		Degrees theta0 = 0_degrees;
 
-		for (int32 i = 0; i < spec.eastEdgeDivisions; i++)
+		SoftBoxQuad quad;
+
+		for (int32 i = 0; i < divisions; i++)
 		{
 			Degrees theta1 = { theta0.degrees + dTheta.degrees };
 
-			float RsinTheta1 = (i == spec.eastEdgeDivisions - 1) ? spec.eastRadius : spec.eastRadius * Sin(theta1);
-			float ROMcosTheta1 = (i == spec.eastEdgeDivisions - 1) ? spec.eastRadius : spec.eastRadius * (1.0f - Cos(theta1));
-			float RsinTheta0 = spec.eastRadius * Sin(theta0);
-			float ROMcosTheta0 = spec.eastRadius * (1.0f - Cos(theta0));
+			float RsinTheta1 = (i == divisions - 1) ? radius : radius * Sin(theta1);
+			float ROMcosTheta1 = (i == divisions - 1) ? radius : radius * (1.0f - Cos(theta1));
+			float RsinTheta0 = radius * Sin(theta0);
+			float ROMcosTheta0 = radius * (1.0f - Cos(theta0));
 
-			SoftBoxQuad eastEdgeQuad;
-			eastEdgeQuad.a.pos = { x1 + RsinTheta0, y1, zTop - ROMcosTheta0 };
-			eastEdgeQuad.b.pos = { x1 + RsinTheta1, y1, zTop - ROMcosTheta1 };
-			eastEdgeQuad.c.pos = { x1 + RsinTheta0, y0, zTop - ROMcosTheta0 };
-			eastEdgeQuad.d.pos = { x1 + RsinTheta1, y0, zTop - ROMcosTheta1 };
+			quad.a.pos = { x0 + RsinTheta0, y1, zTop - ROMcosTheta0 };
+			quad.b.pos = { x1 + RsinTheta1, y1, zTop - ROMcosTheta1 };
+			quad.c.pos = { x0 + RsinTheta0, y0, zTop - ROMcosTheta0 };
+			quad.d.pos = { x1 + RsinTheta1, y0, zTop - ROMcosTheta1 };
 
 			Radians radsTheta1 = theta1;
 			Radians radsTheta0 = theta0;
 
-			eastEdgeQuad.a.uv = { (x1 + radsTheta1 * spec.westRadius) * uvScale, y1 * uvScale };
-			eastEdgeQuad.b.uv = { (x1 + radsTheta0 * spec.westRadius) * uvScale, y1 * uvScale };
-			eastEdgeQuad.c.uv = { (x1 + radsTheta1 * spec.westRadius) * uvScale, y0 * uvScale };
-			eastEdgeQuad.d.uv = { (x1 + radsTheta0 * spec.westRadius) * uvScale, y0 * uvScale };
+			quad.a.uv = { (x0 + radsTheta1 * radius) * uvScale, y1 * uvScale };
+			quad.b.uv = { (x1 + radsTheta0 * radius) * uvScale, y1 * uvScale };
+			quad.c.uv = { (x0 + radsTheta1 * radius) * uvScale, y0 * uvScale };
+			quad.d.uv = { (x1 + radsTheta0 * radius) * uvScale, y0 * uvScale };
 
-			eastEdgeQuad.a.normal = eastEdgeQuad.c.normal = { Sin(theta0), 0, Cos(theta0) };
-			eastEdgeQuad.b.normal = eastEdgeQuad.d.normal = { Sin(theta1), 0, Cos(theta1) };
+			quad.a.normal = quad.c.normal = { Sin(theta0), 0, Cos(theta0) };
+			quad.b.normal = quad.d.normal = { Sin(theta1), 0, Cos(theta1) };
 
-			quads.push_back(eastEdgeQuad);
+			quads.push_back(quad);
 
 			theta0 = theta1;
 		}
+	}
+	*/
+
+	void AddTop(float x0, float x1, float y0, float y1)
+	{
+		SoftBoxQuad topQuad;
+
+		topQuad.a.pos = { x0, y1, zTop };
+		topQuad.b.pos = { x1, y1, zTop };
+		topQuad.c.pos = { x0, y0, zTop };
+		topQuad.d.pos = { x1, y0, zTop };
+
+		topQuad.a.uv = { uvScale * x0, uvScale * y1 };
+		topQuad.b.uv = { uvScale * x1, uvScale * y1 };
+		topQuad.c.uv = { uvScale * x0, uvScale * y0 };
+		topQuad.d.uv = { uvScale * x1, uvScale * y0 };
+
+		Vec3 up = { 0, 0, 1.0f };
+		topQuad.a.normal = topQuad.b.normal = topQuad.c.normal = topQuad.d.normal = up;
+
+		quads.push_back(topQuad);
 	}
 public:
 	// Create a soft edged box top. The top has a constant z value, the front side is defined as facing North (0 1 0),  the right side is defined as facing East (1 0 0)
@@ -312,28 +506,16 @@ public:
 
 		zTop = spec.ztop;
 
-		SoftBoxQuad topQuad;
+		float maxRadius = max(max(max(spec.northRadius, spec.southRadius), spec.westRadius), spec.eastRadius);
+
+		zBottom = zTop - maxRadius;
 
 		float x0 = spec.width   * -0.5f + spec.westRadius;
 		float x1 = spec.width   *  0.5f - spec.eastRadius;
 		float y0 = spec.breadth * -0.5f + spec.southRadius;
 		float y1 = spec.breadth *  0.5f - spec.northRadius;
 
-		topQuad.a.pos = { x0, y1, zTop };
-		topQuad.b.pos = { x1, y1, zTop };
-		topQuad.c.pos = { x0, y0, zTop };
-		topQuad.d.pos = { x1, y0, zTop };
-
-		topQuad.a.uv = { uvScale * x0, uvScale * y1 };
-		topQuad.b.uv = { uvScale * x1, uvScale * y1 };
-		topQuad.c.uv = { uvScale * x0, uvScale * y0 };
-		topQuad.d.uv = { uvScale * x1, uvScale * y0 };
-
-		Vec3 up = { 0, 0, 1.0f };
-		topQuad.a.normal = topQuad.b.normal = topQuad.c.normal = topQuad.d.normal = up;
-
-		quads.push_back(topQuad);
-
+		AddTop(x0, x1, y0, y1);
 		AddNorthEdge(x0, x1, y1, spec);
 		AddSouthEdge(x0, x1, y0, spec);
 		AddWestEdge(x0, y0, y1, spec);
@@ -343,20 +525,36 @@ public:
 		{
 			AddSphereOctantCorner(x0, y0, -1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SW
 		}
+		else
+		{
+			AddCircleQuadrantCorner(x0, y0, { -1.0f, 0.0f }, { 0.0f, -1.0f }, { 0.0f, -1.0f }, { -1.0f, 0.0f }, spec.westEdgeDivisions, spec.westRadius, spec.southEdgeDivisions, spec.southRadius); // SW
+		}
 
 		if (spec.westEdgeDivisions == spec.northEdgeDivisions && spec.westRadius == spec.northRadius)
 		{
 			AddSphereOctantCorner(x0, y1, -1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius); // NW
+		}
+		else
+		{
+			AddCircleQuadrantCorner(x0, y1, { 0.0f, 1.0f }, { -1.0f, 0.0f }, { -1.0f, 0.0f }, { 0.0f, 1.0f },  spec.northEdgeDivisions, spec.northRadius, spec.westEdgeDivisions, spec.westRadius); // NW
 		}
 		
 		if (spec.northEdgeDivisions == spec.eastEdgeDivisions && spec.eastRadius == spec.northRadius)
 		{
 			AddSphereOctantCorner(x1, y1, 1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius);  // NE
 		}
+		else
+		{
+			AddCircleQuadrantCorner(x1, y1, { 1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f },  spec.eastEdgeDivisions, spec.eastRadius, spec.northEdgeDivisions, spec.northRadius); // NE
+		}
 
 		if (spec.eastEdgeDivisions == spec.southEdgeDivisions && spec.eastRadius == spec.southRadius)
 		{
 			AddSphereOctantCorner(x1, y0, 1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SE
+		}
+		else
+		{
+			AddCircleQuadrantCorner(x1, y0, { 0, -1.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0, -1.0f }, spec.southEdgeDivisions, spec.southRadius, spec.eastEdgeDivisions, spec.eastRadius); // SE
 		}
 
 		// This may be pertinent around 2050
@@ -392,6 +590,21 @@ public:
 		}
 
 		refQuad = quads[index];
+	}
+
+	int32 NumberOfTriangles() const override
+	{
+		return (int32)triangles.size();
+	}
+
+	void GetTriangle(int32 index, Rococo::Graphics::SoftBoxTriangle& outTriangle) const override
+	{
+		if (index < 0 || index >= (int32)triangles.size())
+		{
+			Throw(0, "%s: [index=%d] out of bounds. Triangle array size is %llu triangles", __FUNCTION__, index, quads.size());
+		}
+
+		outTriangle = triangles[index];
 	}
 
 	void SetTextureScale(float uvScale) override

@@ -696,9 +696,11 @@
 	(methods
 		(Clear )
 		(CreateSoftBoxTop (const SoftBoxTopSpec topSpec))
-		(const GetQuad (Int32 index) (SoftBoxQuad refQuad))
+		(const GetQuad (Int32 index) (SoftBoxQuad outQuad))
 		(const NumberOfQuads -> (Int32 nQuads))		
 		(SetTextureScale (Float32 uvScale))
+		(const NumberOfTriangles -> (Int32 nTriangles))		
+		(const GetTriangle (Int32 index) (SoftBoxTriangle outTriangle))
 	)
 	(factory Rococo.Graphics.GetSoftBoxBuilder)
 )

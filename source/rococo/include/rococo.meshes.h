@@ -49,6 +49,13 @@ namespace Rococo::Graphics
 		SoftBoxVertex d;
 	};
 
+	struct SoftBoxTriangle
+	{
+		SoftBoxVertex a;
+		SoftBoxVertex b;
+		SoftBoxVertex c;
+	};
+
 	// Defines the top face of a box. The top face has constant z. It has four adjoining faces, the North face, the East face, the South face and the West face.
 	// The North face faces (0 1 0) while the East face faces (1 0 0). The top face faces (0 0 1)
 	struct SoftBoxTopSpec

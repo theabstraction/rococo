@@ -272,12 +272,12 @@
 	
 	(topSpec.width = 1.0)
 	(topSpec.breadth = 1.0)
-	(topSpec.northRadius = 0)
+	(topSpec.northRadius = 0.1)
 	(topSpec.southRadius = 0.1)
 	(topSpec.westRadius = 0)
 	(topSpec.eastRadius = 0)
 	(topSpec.ztop = 0.5)
-	(topSpec.northEdgeDivisions = 0)
+	(topSpec.northEdgeDivisions = 20)
 	(topSpec.westEdgeDivisions = 0)
 	(topSpec.southEdgeDivisions = 20)
 	(topSpec.eastEdgeDivisions = 0)
@@ -301,6 +301,18 @@
 		
 		(mb.AddTriangle a b c)
 		(mb.AddTriangle b d c)
+	)
+	
+	(Int32 nTriangles = box.NumberOfTriangles)
+	(SoftBoxTriangle triangle)
+	(for (i = 0)(i < nTriangles)(i += 1)
+		(box.GetTriangle i triangle)	
+				
+		(ObjectVertexFromBoxVertex triangle.a glass a)
+		(ObjectVertexFromBoxVertex triangle.b glass b)
+		(ObjectVertexFromBoxVertex triangle.c glass c)
+		
+		(mb.AddTriangle a b c)
 	)
 	
 	(mb.End true false)
