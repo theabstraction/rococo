@@ -201,7 +201,60 @@
 	(out.mat = mvd)
 )
 
-(function MakeBrick (IString meshId)-> :
+(function MakeBrick1 (IString meshId)-> :
+	(IMaterialBuilder mats (MaterialBuilder))
+	(MaterialVertexData glass)
+	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
+	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.Clear)
+	(mb.Begin meshId)
+	
+	(ISoftBoxBuilder box (GetSoftBoxBuilder))
+	(box.Clear)
+	
+	(Rococo.Graphics.SoftBoxTopSpec topSpec)
+	
+	(topSpec.width = 1.0)
+	(topSpec.breadth = 1.0)
+	(topSpec.northRadius = 0.1)
+	(topSpec.southRadius = 0.1)
+	(topSpec.westRadius = 0.1)
+	(topSpec.eastRadius = 0.1)
+	(topSpec.ztop = 0.5)
+	(topSpec.northEdgeDivisions = 20)
+	(topSpec.westEdgeDivisions = 20)
+	(topSpec.southEdgeDivisions = 20)
+	(topSpec.eastEdgeDivisions = 20)
+	
+	(box.CreateSoftBoxTop topSpec)
+	
+	(ObjectVertex a)
+	(ObjectVertex b)
+	(ObjectVertex c)
+	(ObjectVertex d)
+	
+	(Int32 nQuads = box.NumberOfQuads)
+	(SoftBoxQuad quad)
+	(for (Int32 i = 0)(i < nQuads)(i += 1)
+		(box.GetQuad i quad)	
+				
+		(ObjectVertexFromBoxVertex quad.a glass a)
+		(ObjectVertexFromBoxVertex quad.b glass b)
+		(ObjectVertexFromBoxVertex quad.c glass c)
+		(ObjectVertexFromBoxVertex quad.d glass d)
+		
+		(mb.AddTriangle a b c)
+		(mb.AddTriangle b d c)
+	)
+	
+	(mb.End true false)
+	(mb.SetShadowCasting meshId true)
+)
+
+(function MakeBrick2 (IString meshId)-> :
 	(IMaterialBuilder mats (MaterialBuilder))
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
@@ -255,7 +308,7 @@
 )
 
 (function AddBrick (ISceneBuilder scene)-> :
-	(MakeBrick "brick.1") 
+	(MakeBrick1 "brick.1") 
 	
 	(Matrix4x4 model = 
 		(1 0 0 0)
@@ -273,6 +326,24 @@
 	(brick.SetScale scale)
 	(brick.SetModelMatrix model)
 	(brick.SetMeshByName "brick.1")
+	
+	(scene.AddStatics brickId)
+	
+	(MakeBrick2 "brick.2") 
+	
+	(Matrix4x4 model2 = 
+		(1 0 0    1.1)
+		(0 1 0    2)
+		(0 0 1 0.26) 
+		(0 0 0    1)
+	)
+	
+	(brickId = ecs.NewROID)
+	
+	(IBody brick2 (AddBody brickId))
+	(brick2.SetScale scale)
+	(brick2.SetModelMatrix model2)
+	(brick2.SetMeshByName "brick.2")
 	
 	(scene.AddStatics brickId)
 )

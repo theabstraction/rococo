@@ -14,7 +14,8 @@ class SoftBoxBuilder: public ISoftBoxBuilderSupervisor
 	std::vector<Triangle> triangles;
 	std::vector<SoftBoxQuad> quads;
 
-	void AddCorner(float x, float y, float xDir, float yDir, int edgeDivisions, float edgeRadius)
+	// Mesh a top corner as a sphere octant, joining two edge cylinders
+	void AddSphereOctantCorner(float x, float y, float xDir, float yDir, int edgeDivisions, float edgeRadius)
 	{
 		if (fabsf(xDir) != 1.0f)
 		{
@@ -29,7 +30,7 @@ class SoftBoxBuilder: public ISoftBoxBuilderSupervisor
 		// Theta is the angle from the horizontal, 0 is in the z plane. Theta of 90 points up ( 1 0 0)
 		Degrees dTheta{ 90.0f / edgeDivisions };
 
-		// Phi of 0 points West (-1 0 0), Phi of 90 points North
+		// Phi of 0 to phi of 90 measures out the horizontal arc
 		Degrees dPhi{ 90.0f / edgeDivisions };
 
 		Degrees theta0 = 0_degrees;
@@ -38,6 +39,7 @@ class SoftBoxBuilder: public ISoftBoxBuilderSupervisor
 
 		SoftBoxQuad quad = { 0 };
 
+		// Choose vertex order to ensure anti-clockwise chirality of visible triangles
 		SoftBoxVertex& a = (xDir * yDir == 1.0f) ? quad.b : quad.a;
 		SoftBoxVertex& b = (xDir * yDir == 1.0f) ? quad.a : quad.b;
 		SoftBoxVertex& c = (xDir * yDir == 1.0f) ? quad.d : quad.c;
@@ -337,10 +339,10 @@ public:
 		AddWestEdge(x0, y0, y1, spec);
 		AddEastEdge(x1, y0, y1, spec);
 
-		AddCorner(x0, y0, -1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SW
-		AddCorner(x0, y1, -1.0f,  1.0f, spec.westEdgeDivisions, spec.westRadius); // NW
-		AddCorner(x1, y1, 1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius);  // NE
-		AddCorner(x1, y0, 1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SE
+		AddSphereOctantCorner(x0, y0, -1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SW
+		AddSphereOctantCorner(x0, y1, -1.0f,  1.0f, spec.westEdgeDivisions, spec.westRadius); // NW
+		AddSphereOctantCorner(x1, y1, 1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius);  // NE
+		AddSphereOctantCorner(x1, y0, 1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SE
 
 		// This may be pertinent around 2050
 		if (quads.size() > 0x7FFFFFFFLL)
