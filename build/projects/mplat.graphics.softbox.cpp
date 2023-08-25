@@ -290,22 +290,22 @@ public:
 			Throw(0, "%s: The North and South radii were so large that the inner breadth of the top quad was <= 0", __FUNCTION__);
 		}
 
-		if (spec.northEdgeDivisions < 1 || spec.northEdgeDivisions > 100'000)
+		if (spec.northEdgeDivisions < 0 || spec.northEdgeDivisions > 100'000)
 		{
 			Throw(0, "%s: North edge divisions must lie between 1 and 100,000", __FUNCTION__);
 		}
 
-		if (spec.southEdgeDivisions < 1 || spec.southEdgeDivisions > 100'000)
+		if (spec.southEdgeDivisions < 0 || spec.southEdgeDivisions > 100'000)
 		{
 			Throw(0, "%s: South edge divisions must lie between 1 and 100,000", __FUNCTION__);
 		}
 
-		if (spec.westEdgeDivisions < 1 || spec.westEdgeDivisions > 100'000)
+		if (spec.westEdgeDivisions < 0 || spec.westEdgeDivisions > 100'000)
 		{
 			Throw(0, "%s: West edge divisions must lie between 1 and 100,000", __FUNCTION__);
 		}
 
-		if (spec.eastEdgeDivisions < 1 || spec.eastEdgeDivisions > 100'000)
+		if (spec.eastEdgeDivisions < 0 || spec.eastEdgeDivisions > 100'000)
 		{
 			Throw(0, "%s: East edge divisions must lie between 1 and 100,000", __FUNCTION__);
 		}
@@ -339,10 +339,25 @@ public:
 		AddWestEdge(x0, y0, y1, spec);
 		AddEastEdge(x1, y0, y1, spec);
 
-		AddSphereOctantCorner(x0, y0, -1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SW
-		AddSphereOctantCorner(x0, y1, -1.0f,  1.0f, spec.westEdgeDivisions, spec.westRadius); // NW
-		AddSphereOctantCorner(x1, y1, 1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius);  // NE
-		AddSphereOctantCorner(x1, y0, 1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SE
+		if (spec.westEdgeDivisions == spec.southEdgeDivisions && spec.westRadius == spec.southRadius)
+		{
+			AddSphereOctantCorner(x0, y0, -1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SW
+		}
+
+		if (spec.westEdgeDivisions == spec.northEdgeDivisions && spec.westRadius == spec.northRadius)
+		{
+			AddSphereOctantCorner(x0, y1, -1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius); // NW
+		}
+		
+		if (spec.northEdgeDivisions == spec.eastEdgeDivisions && spec.eastRadius == spec.northRadius)
+		{
+			AddSphereOctantCorner(x1, y1, 1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius);  // NE
+		}
+
+		if (spec.eastEdgeDivisions == spec.southEdgeDivisions && spec.eastRadius == spec.southRadius)
+		{
+			AddSphereOctantCorner(x1, y0, 1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SE
+		}
 
 		// This may be pertinent around 2050
 		if (quads.size() > 0x7FFFFFFFLL)
