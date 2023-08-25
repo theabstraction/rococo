@@ -14,7 +14,7 @@ namespace Rococo::Windows
 		{
 		}
 
-		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (uMsg)
 			{
@@ -66,7 +66,7 @@ namespace Rococo::Windows
 			hilightStart.x = -1;
 		}
 
-		virtual void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars)
+		void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars) override
 		{
 			CHARFORMAT2 c;
 			memset(&c, 0, sizeof(c));
@@ -74,7 +74,6 @@ namespace Rococo::Windows
 			c.dwMask = CFM_COLOR | CFM_BACKCOLOR;
 			c.crBackColor = background;
 			c.crTextColor = foreground;
-			SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
 
 			CHARRANGE cr;
 			cr.cpMin = -1;
@@ -98,6 +97,7 @@ namespace Rococo::Windows
 
 				SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);
 				SendMessage(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
+				SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
 			}
 		}
 

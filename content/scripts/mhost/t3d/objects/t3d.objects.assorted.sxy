@@ -272,15 +272,15 @@
 	
 	(topSpec.width = 1.0)
 	(topSpec.breadth = 1.0)
-	(topSpec.northRadius = 0.1)
+	(topSpec.northRadius = 0)
 	(topSpec.southRadius = 0.1)
-	(topSpec.westRadius = 0.1)
-	(topSpec.eastRadius = 0.1)
+	(topSpec.westRadius = 0)
+	(topSpec.eastRadius = 0)
 	(topSpec.ztop = 0.5)
-	(topSpec.northEdgeDivisions = 20)
-	(topSpec.westEdgeDivisions = 20)
+	(topSpec.northEdgeDivisions = 0)
+	(topSpec.westEdgeDivisions = 0)
 	(topSpec.southEdgeDivisions = 20)
-	(topSpec.eastEdgeDivisions = 20)
+	(topSpec.eastEdgeDivisions = 0)
 	
 	(box.CreateSoftBoxTop topSpec)
 	
