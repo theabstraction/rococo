@@ -319,6 +319,71 @@
 	(mb.SetShadowCasting meshId true)
 )
 
+(function MakeBrick3 (IString meshId)-> :
+	(IMaterialBuilder mats (MaterialBuilder))
+	(MaterialVertexData glass)
+	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
+	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.Clear)
+	(mb.Begin meshId)
+	
+	(ISoftBoxBuilder box (GetSoftBoxBuilder))
+	(box.Clear)
+	
+	(Rococo.Graphics.SoftBoxTopSpec topSpec)
+	
+	(topSpec.width = 1.0)
+	(topSpec.breadth = 1.0)
+	(topSpec.northRadius = 0.0)
+	(topSpec.southRadius = 0.0)
+	(topSpec.westRadius = 0.1)
+	(topSpec.eastRadius = 0.1)
+	(topSpec.ztop = 0.5)
+	(topSpec.northEdgeDivisions = 0)
+	(topSpec.westEdgeDivisions = 20)
+	(topSpec.southEdgeDivisions = 0)
+	(topSpec.eastEdgeDivisions = 20)
+	
+	(box.CreateSoftBoxTop topSpec)
+	
+	(ObjectVertex a)
+	(ObjectVertex b)
+	(ObjectVertex c)
+	(ObjectVertex d)
+	
+	(Int32 nQuads = box.NumberOfQuads)
+	(SoftBoxQuad quad)
+	(for (Int32 i = 0)(i < nQuads)(i += 1)
+		(box.GetQuad i quad)	
+				
+		(ObjectVertexFromBoxVertex quad.a glass a)
+		(ObjectVertexFromBoxVertex quad.b glass b)
+		(ObjectVertexFromBoxVertex quad.c glass c)
+		(ObjectVertexFromBoxVertex quad.d glass d)
+		
+		(mb.AddTriangle a b c)
+		(mb.AddTriangle b d c)
+	)
+	
+	(Int32 nTriangles = box.NumberOfTriangles)
+	(SoftBoxTriangle triangle)
+	(for (i = 0)(i < nTriangles)(i += 1)
+		(box.GetTriangle i triangle)	
+				
+		(ObjectVertexFromBoxVertex triangle.a glass a)
+		(ObjectVertexFromBoxVertex triangle.b glass b)
+		(ObjectVertexFromBoxVertex triangle.c glass c)
+		
+		(mb.AddTriangle a b c)
+	)
+	
+	(mb.End true false)
+	(mb.SetShadowCasting meshId true)
+)
+
 (function AddBrick (ISceneBuilder scene)-> :
 	(MakeBrick1 "brick.1") 
 	
@@ -344,7 +409,7 @@
 	(MakeBrick2 "brick.2") 
 	
 	(Matrix4x4 model2 = 
-		(1 0 0    1.1)
+		(1 0 0  1.1)
 		(0 1 0    2)
 		(0 0 1 0.26) 
 		(0 0 0    1)
@@ -356,6 +421,24 @@
 	(brick2.SetScale scale)
 	(brick2.SetModelMatrix model2)
 	(brick2.SetMeshByName "brick.2")
+	
+	(scene.AddStatics brickId)
+	
+	(MakeBrick3 "brick.3") 
+	
+	(Matrix4x4 model3 = 
+		(1 0 0 -1.1)
+		(0 1 0    2)
+		(0 0 1 0.26) 
+		(0 0 0    1)
+	)
+	
+	(brickId = ecs.NewROID)
+	
+	(IBody brick3 (AddBody brickId))
+	(brick3.SetScale scale)
+	(brick3.SetModelMatrix model3)
+	(brick3.SetMeshByName "brick.3")
 	
 	(scene.AddStatics brickId)
 )
@@ -387,18 +470,18 @@
 	(MakeLamp "light.cone.1")
 	
 	(Matrix4x4 rotX)
-	(Sys.Geometry.F32.RotateAboutX 45 rotX)
+	(Sys.Geometry.F32.RotateAboutX -15 rotX)
 	(Vec4 down = 0 0 -1 0)
 	(Vec4 downPrime = rotX * down)
 	
 	(LightSpec light)
-	(light.position = 0 0 2.4)
+	(light.position = 0 2.5 2.4)
 	(light.direction = downPrime.x downPrime.y downPrime.z)
-	(light.fov = 55)
+	(light.fov = 45)
 	(light.diffuse = 3.0 3.0 3.0 1.0)
 	(light.ambience = 0.6 0.6 0.6 0.5)
-	(light.cutoffAngle = 25)
-	(light.cutoffPower = 25)
+	(light.cutoffAngle = 35)
+	(light.cutoffPower = 35)
 	(light.attenuation = -0.5)
 	(light.nearPlane = 0.1)
 	(light.farPlane = 1000)

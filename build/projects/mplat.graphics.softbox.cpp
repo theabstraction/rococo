@@ -210,7 +210,7 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 			quad.c.uv = { x1 * uvScale, zBottom * uvScale };
 			quad.d.uv = { x0 * uvScale, zBottom * uvScale };
 
-			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, -1.0f, 0.0f };
+			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, 1.0f, 0.0f };
 
 			quads.push_back(quad);
 		}
@@ -268,7 +268,7 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 			quad.c.uv = { x0 * uvScale, zBottom * uvScale };
 			quad.d.uv = { x1 * uvScale, zBottom * uvScale };
 
-			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, 1.0f, 0.0f };
+			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, -1.0f, 0.0f };
 
 			quads.push_back(quad);
 		}
