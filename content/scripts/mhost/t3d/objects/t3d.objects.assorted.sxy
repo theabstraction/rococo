@@ -384,6 +384,70 @@
 	(mb.SetShadowCasting meshId true)
 )
 
+(function MakeBrick4 (IString meshId)-> :
+	(IMaterialBuilder mats (MaterialBuilder))
+	(MaterialVertexData glass)
+	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
+	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
+	(glass.gloss = 0.2)
+	
+	(IMeshBuilder mb (MeshBuilder))
+	(mb.Clear)
+	(mb.Begin meshId)
+	
+	(ISoftBoxBuilder box (GetSoftBoxBuilder))
+	(box.Clear)
+	
+	(Rococo.Graphics.RoundCornersShelfSpec shelf)
+	(shelf.zTop = 0.5)
+	(shelf.zBottom = 0.4)
+	(shelf.width = 1.0)
+	(shelf.breadth = 1.0)
+	(shelf.radiusNW = 0.02)
+	(shelf.radiusNE = 0.02)
+	(shelf.radiusSW = 0.08)
+	(shelf.radiusSE = 0.08)
+	(shelf.divisionsNW = 15)
+	(shelf.divisionsNE = 15)
+	(shelf.divisionsSW = 45)
+	(shelf.divisionsSE = 45)	
+	(box.CreateRoundCornersShelf shelf)
+	
+	(ObjectVertex a)
+	(ObjectVertex b)
+	(ObjectVertex c)
+	(ObjectVertex d)
+	
+	(Int32 nQuads = box.NumberOfQuads)
+	(SoftBoxQuad quad)
+	(for (Int32 i = 0)(i < nQuads)(i += 1)
+		(box.GetQuad i quad)	
+				
+		(ObjectVertexFromBoxVertex quad.a glass a)
+		(ObjectVertexFromBoxVertex quad.b glass b)
+		(ObjectVertexFromBoxVertex quad.c glass c)
+		(ObjectVertexFromBoxVertex quad.d glass d)
+		
+		(mb.AddTriangle a b c)
+		(mb.AddTriangle b d c)
+	)
+	
+	(Int32 nTriangles = box.NumberOfTriangles)
+	(SoftBoxTriangle triangle)
+	(for (i = 0)(i < nTriangles)(i += 1)
+		(box.GetTriangle i triangle)	
+				
+		(ObjectVertexFromBoxVertex triangle.a glass a)
+		(ObjectVertexFromBoxVertex triangle.b glass b)
+		(ObjectVertexFromBoxVertex triangle.c glass c)
+		
+		(mb.AddTriangle a b c)
+	)
+	
+	(mb.End true false)
+	(mb.SetShadowCasting meshId true)
+)
+
 (function AddBrick (ISceneBuilder scene)-> :
 	(MakeBrick1 "brick.1") 
 	
@@ -439,6 +503,24 @@
 	(brick3.SetScale scale)
 	(brick3.SetModelMatrix model3)
 	(brick3.SetMeshByName "brick.3")
+	
+	(scene.AddStatics brickId)
+	
+	(MakeBrick4 "brick.4") 
+	
+	(Matrix4x4 model4 = 
+		(1 0 0 -1.1)
+		(0 1 0  3.1)
+		(0 0 1 0.26) 
+		(0 0 0    1)
+	)
+	
+	(brickId = ecs.NewROID)
+	
+	(IBody bric4 (AddBody brickId))
+	(bric4.SetScale scale)
+	(bric4.SetModelMatrix model4)
+	(bric4.SetMeshByName "brick.4")
 	
 	(scene.AddStatics brickId)
 )

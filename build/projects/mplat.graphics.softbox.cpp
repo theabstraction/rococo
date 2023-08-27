@@ -3,6 +3,7 @@
 #include <math.h>
 
 using namespace Rococo;
+using namespace Rococo::Graphics;
 
 class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 {
@@ -23,7 +24,7 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 
 		float zAxis = Cross(centreToEdge, normal);
 
-		SoftBoxTriangle t;
+		SoftBoxTriangle t = { 0 };
 
 		SoftBoxVertex& a = zAxis > 0 ? t.a : t.c;
 		SoftBoxVertex& b = t.b;
@@ -562,6 +563,160 @@ public:
 		{
 			Clear();
 			Throw(0, "Maximum quad array size exceeded. Clearning soft box builder");
+		}
+	}
+
+	void AddRoundCorner(cr_vec3 position, float radius, int divisions, cr_vec3 left, cr_vec3 right)
+	{
+		Degrees theta0 = 0_degrees;
+		Degrees dTheta = { 90.0f / divisions };
+
+		//					right
+		//	#					^
+		//		#				|
+		//			#			|
+		//			#	#		|
+		//			#		#	|
+		//			# theta	   #|
+		// < left---------------- 
+		//						*  position
+
+		bool flipChirality = Cross(left, right).z > 0;
+
+		SoftBoxTriangle t;
+		SoftBoxVertex& a = flipChirality ? t.c : t.a;
+		SoftBoxVertex& b = t.b;
+		SoftBoxVertex& c = flipChirality ? t.a : t.c;
+
+
+		for (int32 i = 0; i < divisions; i++)
+		{
+			Degrees theta1 = { theta0.degrees + dTheta.degrees };
+
+			a.pos = position + left * (radius * Cos(theta1)) + right * (radius * Sin(theta1));
+			b.pos = position;
+			c.pos = position + left * (radius * Cos(theta0)) + right * (radius * Sin(theta0));
+			a.normal = b.normal = c.normal = { 0.0f, 0.0f, 1.0f };
+			a.uv = uvScale * Vec2{ a.pos.x, a.pos.y };
+			b.uv = uvScale * Vec2{ b.pos.x, b.pos.y };
+			c.uv = uvScale * Vec2{ c.pos.x, c.pos.y };
+
+			triangles.push_back(t);
+
+			theta0 = theta1;
+		}
+	}
+
+	void CreateRoundCornersShelf(const RoundCornersShelfSpec& shelf)
+	{
+		if (shelf.radiusNW < 0)
+		{
+			Throw(0, "%s: NW radius < 0", __FUNCTION__);
+		}
+
+		if (shelf.radiusNE < 0)
+		{
+			Throw(0, "%s: NE radius < 0" __FUNCTION__);
+		}
+
+		if (shelf.radiusSW < 0)
+		{
+			Throw(0, "%s: SW radius < 0" __FUNCTION__);
+		}
+
+		if (shelf.radiusSE < 0)
+		{
+			Throw(0, "%s: SE radius < 0" __FUNCTION__);
+		}
+
+		if (shelf.divisionsNW < 0)
+		{
+			Throw(0, "%s: divisionsNE < 0" __FUNCTION__);
+		}
+
+		if (shelf.divisionsNE < 0)
+		{
+			Throw(0, "%s: divisionsNW < 0" __FUNCTION__);
+		}
+
+		if (shelf.divisionsSW < 0)
+		{
+			Throw(0, "%s: divisionsSW < 0" __FUNCTION__);
+		}
+
+		if (shelf.divisionsSE < 0)
+		{
+			Throw(0, "%s: divisionsSE < 0" __FUNCTION__);
+		}
+
+		if ((shelf.width < shelf.radiusNW + shelf.radiusNE) || (shelf.width < shelf.radiusSE + shelf.radiusSW))
+		{
+			Throw(0, "%s: shelf width insufficient for the given radii", __FUNCTION__);
+		}
+
+		if ((shelf.breadth < shelf.radiusNW + shelf.radiusNE) || (shelf.width < shelf.radiusSE + shelf.radiusSW))
+		{
+			Throw(0, "%s: shelf breadth insufficient for the given radii", __FUNCTION__);
+		}
+
+		if (shelf.width == 0 || shelf.breadth == 0)
+		{
+			Throw(0, "%s: width x breadth: area zero", __FUNCTION__);
+		}
+		
+		SoftBoxQuad q;
+		q.a.pos = { shelf.width * -0.5f, shelf.breadth *  0.5f - max(shelf.radiusNW, shelf.radiusNE), shelf.zTop };
+		q.b.pos = { shelf.width *  0.5f, shelf.breadth *  0.5f - max(shelf.radiusNW, shelf.radiusNE), shelf.zTop };
+		q.c.pos = { shelf.width * -0.5f, shelf.breadth * -0.5f + max(shelf.radiusSE, shelf.radiusSW), shelf.zTop };
+		q.d.pos = { shelf.width *  0.5f, shelf.breadth * -0.5f + max(shelf.radiusSE, shelf.radiusSW), shelf.zTop };
+
+		q.a.uv = { q.a.pos.x * uvScale, q.a.pos.y * uvScale };
+		q.b.uv = { q.b.pos.x * uvScale, q.b.pos.y * uvScale };
+		q.c.uv = { q.c.pos.x * uvScale, q.c.pos.y * uvScale };
+		q.d.uv = { q.d.pos.x * uvScale, q.d.pos.y * uvScale };
+
+		q.a.normal = q.b.normal = q.c.normal = q.d.normal = { 0, 0, 1.0f };
+
+		quads.push_back(q);
+
+		if (shelf.radiusNW > 0.0f && shelf.divisionsNW > 0)
+		{
+			AddRoundCorner(q.a.pos + Vec3 { shelf.radiusNW, 0, 0 }, shelf.radiusNW, shelf.divisionsNW, { -1.0f,0,0 }, { 0.0f, 1.0f, 0.0f });
+		}
+
+		if (shelf.radiusNE > 0.0f && shelf.divisionsNE > 0)
+		{
+			AddRoundCorner(q.b.pos - Vec3{ shelf.radiusNE, 0, 0 }, shelf.radiusNE, shelf.divisionsNE, { 0.0,1.0,0 }, { 1.0f, 0.0f, 0.0f });
+		}
+
+		if (shelf.radiusSW > 0.0f && shelf.divisionsSW > 0)
+		{
+			AddRoundCorner(q.c.pos + Vec3{ shelf.radiusSW, 0, 0 }, shelf.radiusSW, shelf.divisionsSW, { -1.0f,0,0 }, { 0.0f, -1.0f, 0.0f });
+		}
+
+		if (shelf.radiusSE > 0.0f && shelf.divisionsSE > 0)
+		{
+			AddRoundCorner(q.d.pos - Vec3{ shelf.radiusSE, 0, 0 }, shelf.radiusSE, shelf.divisionsSE, { 1.0f,0,0 }, { 0.0f, -1.0f, 0.0f });
+		}
+
+		if (shelf.radiusNW != 0 || shelf.radiusNE != 0)
+		{
+			q.a.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f, shelf.zTop };
+			q.b.pos = { shelf.width *  0.5f - shelf.radiusNE, shelf.breadth * 0.5f, shelf.zTop };
+			q.c.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f - shelf.radiusNW, shelf.zTop };
+			q.d.pos = { shelf.width *  0.5f - shelf.radiusNE, shelf.breadth * 0.5f - shelf.radiusNE, shelf.zTop };
+
+			quads.push_back(q);
+		}
+
+		if (shelf.radiusSW != 0 || shelf.radiusSE != 0)
+		{
+			q.a.pos = { shelf.width * -0.5f + shelf.radiusSW, shelf.breadth * -0.5f + shelf.radiusSW, shelf.zTop };
+			q.b.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f + shelf.radiusSE, shelf.zTop };
+			q.c.pos = { shelf.width * -0.5f + shelf.radiusSW, shelf.breadth * -0.5f, shelf.zTop };
+			q.d.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f, shelf.zTop };
+
+			quads.push_back(q);
 		}
 	}
 

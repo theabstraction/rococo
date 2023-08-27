@@ -83,6 +83,7 @@
 (struct SoftBoxQuad Rococo.Graphics.SoftBoxQuad Rococo.Graphics.SoftBoxQuad)
 (struct SoftBoxVertex Rococo.Graphics.SoftBoxVertex Rococo.Graphics.SoftBoxVertex)
 (struct SoftBoxTriangle Rococo.Graphics.SoftBoxTriangle Rococo.Graphics.SoftBoxTriangle)
+(struct RoundCornersShelfSpec Rococo.Graphics.RoundCornersShelfSpec Rococo.Graphics.RoundCornersShelfSpec)
 
 (defstruct TriangleScan Rococo.TriangleScan Rococo.TriangleScan
 	(IdEntity id)

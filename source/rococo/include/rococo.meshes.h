@@ -93,4 +93,20 @@ namespace Rococo::Graphics
 		// Number of radial divisions across the edge cylinder from the top face to the West face
 		int32 westEdgeDivisions;
 	};
+
+	struct RoundCornersShelfSpec
+	{
+		float zTop;
+		float zBottom;
+		float width;
+		float breadth;
+		float radiusNW;
+		float radiusNE;
+		float radiusSW;
+		float radiusSE;
+		int32 divisionsNW;
+		int32 divisionsNE;
+		int32 divisionsSW;
+		int32 divisionsSE;
+	};
 }
