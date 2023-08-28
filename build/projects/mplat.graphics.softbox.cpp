@@ -16,6 +16,9 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 	std::vector<SoftBoxTriangle> triangles;
 	std::vector<SoftBoxQuad> quads;
 
+	std::vector<Vec2> edge;
+	std::vector<Vec2> edgeNormal;
+
 	void AddCircleQuadrant(int divisions, Vec2 origin, Vec2 centreToEdge, Vec2 normal, float radius)
 	{
 		// Theta is the angle from the horizontal to the vertical. Theta of 90 points up ( 1 0 0)
@@ -559,27 +562,27 @@ public:
 		}
 
 		// This may be pertinent around 2050
-		if (quads.size() > 0x7FFFFFFFLL)
+		if (quads.size() > 0x7FFFFFFFLL || triangles.size() > 0x7FFFFFFFLL)
 		{
 			Clear();
 			Throw(0, "Maximum quad array size exceeded. Clearning soft box builder");
 		}
 	}
 
-	void AddRoundCorner(cr_vec3 position, float radius, int divisions, cr_vec3 left, cr_vec3 right)
+	void AddRoundCorner(cr_vec3 position, float radius, int divisions, cr_vec3 left, cr_vec3 right, bool addEdge)
 	{
 		Degrees theta0 = 0_degrees;
 		Degrees dTheta = { 90.0f / divisions };
 
-		//					right
-		//	#					^
-		//		#				|
-		//			#			|
-		//			#	#		|
-		//			#		#	|
-		//			# theta	   #|
-		// < left---------------- 
-		//						*  position
+		//					left
+		//						^ radius
+		//		#	#	#	#	|
+		//			#	theta	|
+		//				#		|
+		//					#	|
+		//					   #|
+		// < right--------------*  position
+		
 
 		bool flipChirality = Cross(left, right).z > 0;
 
@@ -593,17 +596,125 @@ public:
 		{
 			Degrees theta1 = { theta0.degrees + dTheta.degrees };
 
-			a.pos = position + left * (radius * Cos(theta1)) + right * (radius * Sin(theta1));
+			Vec3 LTheta1 = left * Cos(theta1) + right * Sin(theta1);
+			Vec3 LTheta0 = left * Cos(theta0) + right * Sin(theta0);
+
+			a.pos = position + (LTheta1 * radius);
 			b.pos = position;
-			c.pos = position + left * (radius * Cos(theta0)) + right * (radius * Sin(theta0));
+			c.pos = position + (LTheta0 * radius);
+
 			a.normal = b.normal = c.normal = { 0.0f, 0.0f, 1.0f };
+
 			a.uv = uvScale * Vec2{ a.pos.x, a.pos.y };
 			b.uv = uvScale * Vec2{ b.pos.x, b.pos.y };
 			c.uv = uvScale * Vec2{ c.pos.x, c.pos.y };
 
 			triangles.push_back(t);
 
+			if (addEdge && i < divisions - 1)
+			{
+				edge.push_back(Vec2{ a.pos.x, a.pos.y });
+				edgeNormal.push_back(Vec2{ LTheta0.x, LTheta0.y });
+				edge.push_back(Vec2{ c.pos.x, c.pos.y });
+				edgeNormal.push_back(Vec2{ LTheta1.x, LTheta1.y });
+			}
+
 			theta0 = theta1;
+		}
+	}
+
+	void AddHorizontalPlane(const RoundCornersShelfSpec& shelf, float z, cr_vec3 normal, bool addEdge)
+	{
+		SoftBoxQuad q;
+		q.a.pos = { shelf.width * -0.5f, shelf.breadth * 0.5f - max(shelf.radiusNW, shelf.radiusNE), z };
+		q.b.pos = { shelf.width * 0.5f, shelf.breadth * 0.5f - max(shelf.radiusNW, shelf.radiusNE), z };
+		q.c.pos = { shelf.width * -0.5f, shelf.breadth * -0.5f + max(shelf.radiusSE, shelf.radiusSW), z };
+		q.d.pos = { shelf.width * 0.5f, shelf.breadth * -0.5f + max(shelf.radiusSE, shelf.radiusSW), z };
+
+		q.a.uv = { q.a.pos.x * uvScale, q.a.pos.y * uvScale };
+		q.b.uv = { q.b.pos.x * uvScale, q.b.pos.y * uvScale };
+		q.c.uv = { q.c.pos.x * uvScale, q.c.pos.y * uvScale };
+		q.d.uv = { q.d.pos.x * uvScale, q.d.pos.y * uvScale };
+
+		q.a.normal = q.b.normal = q.c.normal = q.d.normal = normal;
+
+		quads.push_back(q);
+
+		if (shelf.radiusNW > 0.0f && shelf.divisionsNW > 0)
+		{
+			AddRoundCorner(q.a.pos + Vec3{ shelf.radiusNW, 0, 0 }, shelf.radiusNW, shelf.divisionsNW, { 0.0f,1.0f,0 }, { -1.0f, 0.0f, 0.0f }, addEdge);
+		}
+
+		if (addEdge)
+		{
+			edge.push_back(Vec2{ q.a.pos.x, q.a.pos.y });
+			edgeNormal.push_back(Vec2{ -1.0f, 0.0f });
+			edge.push_back(Vec2{ q.c.pos.x, q.c.pos.y });
+			edgeNormal.push_back(Vec2{ -1.0f, 0.0f });
+		}
+
+		if (shelf.radiusSW > 0.0f && shelf.divisionsSW > 0)
+		{
+			AddRoundCorner(q.c.pos + Vec3{ shelf.radiusSW, 0, 0 }, shelf.radiusSW, shelf.divisionsSW, { -1.0f,0,0 }, { 0.0f, -1.0f, 0.0f }, addEdge);
+		}
+
+		if (addEdge)
+		{
+			edge.push_back(Vec2{ q.c.pos.x + shelf.radiusSW, q.c.pos.y - shelf.radiusSW });
+			edgeNormal.push_back(Vec2{ 0.0f, -1.0f });
+
+			edge.push_back(Vec2{ q.d.pos.x - shelf.radiusSE, q.c.pos.y - shelf.radiusSE });
+			edgeNormal.push_back(Vec2{ 0.0f, -1.0f });
+		}
+
+		if (shelf.radiusSE > 0.0f && shelf.divisionsSE > 0)
+		{
+			AddRoundCorner(q.d.pos - Vec3{ shelf.radiusSE, 0, 0 }, shelf.radiusSE, shelf.divisionsSE, { 0.0f, -1.0f,0 }, { 1.0f, 0.0f, 0.0f }, addEdge);
+		}
+
+		if (addEdge)
+		{
+			edge.push_back(Vec2{ q.d.pos.x, q.d.pos.y - shelf.radiusNE });
+			edgeNormal.push_back(Vec2{ 1.0f, 0.0f });
+
+			edge.push_back(Vec2{ q.b.pos.x, q.b.pos.y - shelf.radiusNE });
+			edgeNormal.push_back(Vec2{ 1.0f, 0.0f });
+		}
+
+		if (shelf.radiusNE > 0.0f && shelf.divisionsNE > 0)
+		{
+			AddRoundCorner(q.b.pos - Vec3{ shelf.radiusNE, 0, 0 }, shelf.radiusNE, shelf.divisionsNE, { 1.0,0.0,0 }, { 0.0f, 1.0f, 0.0f }, addEdge);
+		}
+
+		if (addEdge)
+		{
+			edge.push_back(Vec2{ q.b.pos.x - shelf.radiusNE, q.b.pos.y + shelf.radiusNE });
+			edgeNormal.push_back(Vec2{ 0.0f, 1.0f });
+
+			edge.push_back(Vec2{ q.a.pos.x + shelf.radiusNE, q.b.pos.y + shelf.radiusNW });
+			edgeNormal.push_back(Vec2{ 0.0f, 1.0f });
+		}
+
+		if (shelf.radiusNE > 0.0f && shelf.divisionsNE > 0)
+
+			if (shelf.radiusNW != 0 || shelf.radiusNE != 0)
+			{
+				q.a.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f, z };
+				q.b.pos = { shelf.width * 0.5f - shelf.radiusNE, shelf.breadth * 0.5f, z };
+				q.c.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f - shelf.radiusNW,z };
+				q.d.pos = { shelf.width * 0.5f - shelf.radiusNE, shelf.breadth * 0.5f - shelf.radiusNE, z };
+
+				quads.push_back(q);
+			}
+
+		if (shelf.radiusSW != 0 || shelf.radiusSE != 0)
+		{
+			q.a.pos = { shelf.width * -0.5f + shelf.radiusSW, shelf.breadth * -0.5f + shelf.radiusSW, z };
+			q.b.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f + shelf.radiusSE, z };
+			q.c.pos = { shelf.width * -0.5f + shelf.radiusSW, shelf.breadth * -0.5f, z };
+			q.d.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f, z };
+
+			quads.push_back(q);
 		}
 	}
 
@@ -663,65 +774,52 @@ public:
 		{
 			Throw(0, "%s: width x breadth: area zero", __FUNCTION__);
 		}
+
+		Vec3 up = { 0.0f, 0.0f, 1.0f };
+		AddHorizontalPlane(shelf, zTop, up, true);
 		
-		SoftBoxQuad q;
-		q.a.pos = { shelf.width * -0.5f, shelf.breadth *  0.5f - max(shelf.radiusNW, shelf.radiusNE), shelf.zTop };
-		q.b.pos = { shelf.width *  0.5f, shelf.breadth *  0.5f - max(shelf.radiusNW, shelf.radiusNE), shelf.zTop };
-		q.c.pos = { shelf.width * -0.5f, shelf.breadth * -0.5f + max(shelf.radiusSE, shelf.radiusSW), shelf.zTop };
-		q.d.pos = { shelf.width *  0.5f, shelf.breadth * -0.5f + max(shelf.radiusSE, shelf.radiusSW), shelf.zTop };
-
-		q.a.uv = { q.a.pos.x * uvScale, q.a.pos.y * uvScale };
-		q.b.uv = { q.b.pos.x * uvScale, q.b.pos.y * uvScale };
-		q.c.uv = { q.c.pos.x * uvScale, q.c.pos.y * uvScale };
-		q.d.uv = { q.d.pos.x * uvScale, q.d.pos.y * uvScale };
-
-		q.a.normal = q.b.normal = q.c.normal = q.d.normal = { 0, 0, 1.0f };
-
-		quads.push_back(q);
-
-		if (shelf.radiusNW > 0.0f && shelf.divisionsNW > 0)
+		if (shelf.zBottom < shelf.zTop && edge.size() > 0)
 		{
-			AddRoundCorner(q.a.pos + Vec3 { shelf.radiusNW, 0, 0 }, shelf.radiusNW, shelf.divisionsNW, { -1.0f,0,0 }, { 0.0f, 1.0f, 0.0f });
+			float arcLen = 0;
+
+			SoftBoxQuad q;
+
+			for (size_t i = 0; i < edge.size() - 1; i++)
+			{
+				const auto& Ei0 = edge[i];
+				const auto& Ei1 = edge[i+1];
+				q.a.pos = Vec3::FromVec2(Ei0, zTop);
+				q.b.pos = Vec3::FromVec2(Ei1, zTop);
+				q.c.pos = Vec3::FromVec2(Ei0, zBottom);
+				q.d.pos = Vec3::FromVec2(Ei1, zBottom);
+
+				q.a.normal = q.c.normal = Vec3::FromVec2(edgeNormal[i], 0);
+				q.b.normal = q.d.normal = Vec3::FromVec2(edgeNormal[i+1], 0);
+
+				float len0 = arcLen;
+				float len1 = arcLen + Length(q.b.pos - q.a.pos);
+				arcLen = len1;
+				
+				q.a.uv = { uvScale * len0, 0.0f };
+				q.b.uv = { uvScale * len1, 0.0f };
+				q.c.uv = { uvScale * len0, zTop - zBottom };
+				q.d.uv = { uvScale * len1, zTop - zBottom };
+
+				quads.push_back(q);
+			}
 		}
 
-		if (shelf.radiusNE > 0.0f && shelf.divisionsNE > 0)
+		// This may be pertinent around 2050
+		if (quads.size() > 0x7FFFFFFFLL || triangles.size() > 0x7FFFFFFFLL)
 		{
-			AddRoundCorner(q.b.pos - Vec3{ shelf.radiusNE, 0, 0 }, shelf.radiusNE, shelf.divisionsNE, { 0.0,1.0,0 }, { 1.0f, 0.0f, 0.0f });
-		}
-
-		if (shelf.radiusSW > 0.0f && shelf.divisionsSW > 0)
-		{
-			AddRoundCorner(q.c.pos + Vec3{ shelf.radiusSW, 0, 0 }, shelf.radiusSW, shelf.divisionsSW, { -1.0f,0,0 }, { 0.0f, -1.0f, 0.0f });
-		}
-
-		if (shelf.radiusSE > 0.0f && shelf.divisionsSE > 0)
-		{
-			AddRoundCorner(q.d.pos - Vec3{ shelf.radiusSE, 0, 0 }, shelf.radiusSE, shelf.divisionsSE, { 1.0f,0,0 }, { 0.0f, -1.0f, 0.0f });
-		}
-
-		if (shelf.radiusNW != 0 || shelf.radiusNE != 0)
-		{
-			q.a.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f, shelf.zTop };
-			q.b.pos = { shelf.width *  0.5f - shelf.radiusNE, shelf.breadth * 0.5f, shelf.zTop };
-			q.c.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f - shelf.radiusNW, shelf.zTop };
-			q.d.pos = { shelf.width *  0.5f - shelf.radiusNE, shelf.breadth * 0.5f - shelf.radiusNE, shelf.zTop };
-
-			quads.push_back(q);
-		}
-
-		if (shelf.radiusSW != 0 || shelf.radiusSE != 0)
-		{
-			q.a.pos = { shelf.width * -0.5f + shelf.radiusSW, shelf.breadth * -0.5f + shelf.radiusSW, shelf.zTop };
-			q.b.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f + shelf.radiusSE, shelf.zTop };
-			q.c.pos = { shelf.width * -0.5f + shelf.radiusSW, shelf.breadth * -0.5f, shelf.zTop };
-			q.d.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f, shelf.zTop };
-
-			quads.push_back(q);
+			Clear();
+			Throw(0, "Maximum quad array size exceeded. Clearning soft box builder");
 		}
 	}
 
 	void Clear()
 	{
+		edge.clear();
 		quads.clear();
 		triangles.clear();
 		uvScale = 1.0f;

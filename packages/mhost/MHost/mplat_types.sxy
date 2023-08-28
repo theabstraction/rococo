@@ -225,6 +225,7 @@
 	(Float32 zTop zBottom width breadth)
 	(Float32 radiusNW radiusNE radiusSW radiusSE)
 	(Int32 divisionsNW divisionsNE divisionsSW divisionsSE)
+	(Bool addBottom)
 )
 
 (alias RoundCornersShelfSpec Rococo.Graphics.RoundCornersShelfSpec)

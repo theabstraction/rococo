@@ -108,5 +108,6 @@ namespace Rococo::Graphics
 		int32 divisionsNE;
 		int32 divisionsSW;
 		int32 divisionsSE;
+		boolean32 addBottom;
 	};
 }
