@@ -631,7 +631,7 @@ namespace Anon
 			}
 		}
 
-		size_t EnumerateComments(cr_sex s, Rococo::Function<void(cstr)>& onBlockItem) override
+		size_t EnumerateComments(cr_sex s, Rococo::Function<void(cstr)> onBlockItem) const override
 		{
 			if (mapExpressionPtrToCommentBlock == nullptr)
 			{

@@ -218,6 +218,7 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRimTesselator.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRodTesselator.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISceneBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IShaderOptionsConfig.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISoftBoxBuilder.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISpriteBuilder.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISprites.sxh.h" />
@@ -283,6 +284,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.qs.tesselator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.rod.tesselator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.scene.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.softbox.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprites.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprite_builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.tess.rim.cpp" />
@@ -317,7 +319,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.utilities.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
-    <ClCompile Include="mplat.graphics.softbox.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

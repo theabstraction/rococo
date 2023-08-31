@@ -34,6 +34,7 @@
 */
 
 #include <algorithm>
+#include <rococo.functional.h>
 
 void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContext& pc, cstr headerFile);
 
@@ -378,39 +379,50 @@ namespace Rococo
 	void DeclareCppEnum(FileAppender& appender, const EnumContext& ec, cr_sex senumDef, const ParseContext& pc)
 	{
 		int nsDepth = AppendNamespace(appender, ec.asCppEnum.SexyName(), false, 0);
+
+		senumDef.Tree().EnumerateComments(senumDef, [nsDepth, &appender](cstr comment)-> void
+			{
+				if (nsDepth > 0)
+				{
+					appender.Append("\t");
+				}
+				appender.Append("/* %s */\n", comment);
+			}
+		);
+
 		if (nsDepth > 0)
 		{
-			appender.Append(("\t"));
+			appender.Append("\t");
 		}
 
-		appender.Append(("enum class "));
+		appender.Append("enum class ");
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append((": "));
+		appender.Append(": ");
 		AppendStructShortName(appender, ec.underlyingType.SexyName());
-		appender.Append(nsDepth > 0 ? ("\n\t{\n") : ("\n{\n"));
+		appender.Append(nsDepth > 0 ? "\n\t{\n" : "\n{\n");
 
 		for (auto& i : ec.values)
 		{
 			auto& name = i.first;
-			appender.Append(nsDepth > 0 ? ("\t\t") : ("\t"));
-			appender.Append(("%s = %I64d, \t// 0x%I64x\n"), name.c_str(), i.second, i.second);
+			appender.Append(nsDepth > 0 ? "\t\t" : "\t");
+			appender.Append("%s = %I64d, \t// 0x%I64x\n", name.c_str(), i.second, i.second);
 		}
 
-		appender.Append(nsDepth > 0 ? ("\t};") : ("};"));
+		appender.Append(nsDepth > 0 ? "\t};" : "};");
 
 		appender.Append('\n');
 
-		appender.Append(("\tbool TryParse(const Rococo::fstring& s, "));
+		appender.Append("\tbool TryParse(const Rococo::fstring& s, ");
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append(("& value);\n"));
+		appender.Append("& value);\n");
 
-		appender.Append(("\tbool TryShortParse(const Rococo::fstring& s, "));
+		appender.Append("\tbool TryShortParse(const Rococo::fstring& s, ");
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append(("& value);\n"));
+		appender.Append("& value);\n");
 
-		appender.Append(("\tfstring ToShortString("));
+		appender.Append("\tfstring ToShortString(");
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
-		appender.Append((" value); "));
+		appender.Append(" value); ");
 
 		if (nsDepth > 0)
 		{
@@ -418,7 +430,7 @@ namespace Rococo
 			CloseNamespace(appender, nsDepth);
 		}
 
-		appender.Append(("\n\n"));
+		appender.Append("\n\n");
 	}
 
 	void DeclareCppInterface(FileAppender& appender, const InterfaceContext& ic, cr_sex interfaceDef, const ISExpression* methods, const ParseContext& pc)
@@ -426,8 +438,19 @@ namespace Rococo
 		int nsDepth = AppendNamespace(appender, ic.asCppInterface.SexyName(), false, 0);
 		if (nsDepth > 0)
 		{
-			appender.Append(("\t"));
+			appender.Append("\t");
 		}
+
+		interfaceDef.Tree().EnumerateComments(interfaceDef, [nsDepth, &appender](cstr comment)->void
+			{
+				appender.Append("/* %s */", comment);
+
+				if (nsDepth > 0)
+				{
+					appender.Append("\n\t");
+				}
+			}
+		);
 
 		appender.Append(("ROCOCO_INTERFACE "));
 		AppendStructShortName(appender, ic.asCppInterface.SexyName());
@@ -447,7 +470,7 @@ namespace Rococo
 				appender.Append(": %s", ic.cppBase);
 			}
 		}
-		appender.Append(nsDepth > 0 ? ("\n\t{\n") : ("\n{\n"));
+		appender.Append(nsDepth > 0 ? "\n\t{\n" : "\n{\n");
 
 		NamespaceSplitter splitter(ic.asCppInterface.SexyName());
 		cstr root, subspace;
@@ -458,9 +481,27 @@ namespace Rococo
 			for (int i = 1; i < methods->NumberOfElements(); ++i)
 			{
 				cr_sex method = methods->GetElement(i);
+
+				if (i > 1)
+				{
+					appender.Append('\n');
+				}
+
 				appender.Append('\t');
+
+				interfaceDef.Tree().EnumerateComments(method, [nsDepth, &appender](cstr comment)->void
+					{
+						appender.Append("\t/* %s */\n", comment);
+
+						if (nsDepth > 0)
+						{
+							appender.Append("\t");
+						}
+					}
+				);
+
 				AppendMethodDeclaration(appender, method, root, pc);
-				appender.Append('\n');
+				appender.Append("\n");
 			}
 		}
 
@@ -991,6 +1032,13 @@ namespace Rococo
 			for (int i = 1; i < methods[t]->NumberOfElements(); ++i)
 			{
 				cr_sex method = methods[t]->GetElement(i);
+
+				method.Tree().EnumerateComments(method, [&appender](cstr comment)->void
+					{
+						appender.Append("/* %s */\n", comment);
+					}
+				);
+
 				AddNativeImplementation(appender, ic, method, pc);
 			}
 		}

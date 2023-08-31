@@ -333,7 +333,7 @@ namespace Rococo
 			virtual const ISourceCode& Source() const = 0;
 
 			// Invoke the callback for every comment in the comment block for the associated expression. The return value is the  number of elements in the comment block
-			virtual size_t EnumerateComments(cr_sex s, Rococo::Function<void (cstr item)>& onBlockItem) = 0;
+			virtual size_t EnumerateComments(cr_sex s, Rococo::Function<void (cstr item)> onBlockItem) const = 0;
 		};
 
 		ROCOCO_INTERFACE ISParser : public IRefCounted

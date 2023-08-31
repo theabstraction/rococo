@@ -1,3 +1,4 @@
+// Note that in some cases comments in this file are passed to the generated code files. The aim in the future is to pass on every comment
 (module Rococo)
 
 (enum Int32
@@ -9,6 +10,7 @@
 	)
 )
 
+// EvMouseFlags correspond to the Win32 RAWINPUT flags for mouse events
 (enum Int32
 	(as.sxy Rococo.EvMouseFlags "mplat_gui")
 	(as.cpp Rococo.EvMouseFlags)
@@ -24,12 +26,16 @@
 	)
 )
 
+// The base panel object, which is used to set the colour scheme, visibility, geometry, alignments and layout.
 (interface 
 	(as.sxy Rococo.GUI.IPane "mplat_gui")
 	(as.cpp Rococo.GUI.IPane)
 	(context factory Rococo.GUI.IPane)
 	(methods
+		// Set the colour of the 1st background target. Many widgets have two such targets. Refer to the widget documentation and source code for specifics
 		(SetColourBk1 (RGBAb normal)(RGBAb hilight)->)
+		
+		// Set the colour of the 2nd background target. Many widgets have two such targets. Refer to the widget documentation and source code for specifics
 		(SetColourBk2 (RGBAb normal)(RGBAb hilight)->)
 		(SetColourEdge1 (RGBAb normal)(RGBAb hilight)->)
 		(SetColourEdge2 (RGBAb normal)(RGBAb hilight)->)
@@ -41,7 +47,6 @@
 		(SetRect(const Rect rect)->)
 		(SetBkImage (IString pingPath))
 		
-		///////////////////// child layout /////////////////////
 		(AlignLeftEdges (Int32 borderPixels)(Bool preserveSpan) ->)
 		(AlignRightEdges (Int32 borderPixels)(Bool preserveSpan) ->)
 		(AlignTopEdges (Int32 borderPixels)(Bool preserveSpan) ->)
@@ -49,7 +54,6 @@
 		
 		/* vertBorder -ve -> align from bottom, vertSpacing -ve -> spread out vertically */
 		(LayoutVertically(Int32 vertBorder)(Int32 vertSpacing)->) 	
-		////////////////////////////////////////////////////////
 		
 		(SetCommand (Int32 stateIndex)(Bool deferAction)(IString text)->)
 		(SetPopulator (Int32 stateIndex)(IString populatorName)->)

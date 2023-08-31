@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#include <rococo.functional.h>
+
 namespace
 {
 	void AppendProxyName(FileAppender& appender, cstr fqInterfaceName, cr_sex s)
@@ -192,7 +194,13 @@ namespace
 
 	void AppendSexyMethod(FileAppender& appender, cr_sex method, const ParseContext& pc, int startIndex)
 	{
-		appender.Append("\t(");
+		appender.Append("\t");
+
+		method.Tree().EnumerateComments(method, [&appender](cstr comment)->void
+			{
+				appender.Append("/* %s */\n\t", comment);
+			}
+		);
 
 		cr_sex smethodName = method.GetElement(startIndex);
 		cstr methodName = smethodName.c_str();
@@ -318,6 +326,12 @@ namespace
 			Throw(senumDef, "Could not split namespace of enum definition");
 		}
 
+		senumDef.Tree().EnumerateComments(senumDef, [&appender](cstr comment)-> void 
+			{
+				appender.Append("/* %s */\n", comment);
+			}
+		);
+
 		DeclareNamespaces(appender, ns, pc);
 
 		for (auto &i : ec.values)
@@ -354,6 +368,11 @@ namespace
 			// The first element in the expression is the 'methods' keyword, which we have validated elsewhere
 			for(int i = 1; i < methods->NumberOfElements(); ++i)
 			{
+				if (i > 1)
+				{
+					appender.Append('\n');
+				}
+
 				cr_sex method = methods->GetElement(i);
 				if (!IsCompound(method)) Throw(method, "Expecting compound expression for the method");
 

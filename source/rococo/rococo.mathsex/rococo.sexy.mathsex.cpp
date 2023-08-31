@@ -276,7 +276,7 @@ using namespace Rococo;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
 
-#include "mathsex.vectors.inl"
+#include "code-gen\Mathsex.sxh.inl"
 #include "mathsex.random.inl"
 #include "mathsex.base.inl"
 

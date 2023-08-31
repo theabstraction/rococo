@@ -1,26 +1,48 @@
-(config $config.xc)
-
 (functions "mathsex.vectors"
+	// Implements the operator overload (Vec3 a = b * c)
 	(Sys.Geometry.F32.AddVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 sum)-> : Rococo::Maths::AddVec3toVec3)
+	
+	// Implements the operator overload (Vec3 a = b - c)
 	(Sys.Geometry.F32.SubtractVec3fVec3f (Vec3 a)(Vec3 b)(Vec3 difference)-> : Rococo::Maths::SubtractVec3fromVec3)
+	
+	// Implements the operator overload (Vec2 a = b - c)
 	(Sys.Geometry.F32.SubtractVec2fVec2f (Vec2 a)(Vec2 b)(Vec2 difference)-> : Rococo::Maths::SubtractVec2fromVec2)
-	(Sys.Geometry.F32.MultiplyFloat32Vec2f  (Float32 f)(Vec2 a)(Vec2 scaledVector)-> : Rococo::Maths::ScaleVector2)
-	(Sys.Geometry.F32.Dot (Vec3 a)(Vec3 b) -> (Float32 dotProduct) : Rococo::Dot)
+	
+	// Implements the operator overload (Vec2 a = scale * vec)
+	(Sys.Geometry.F32.MultiplyFloat32Vec2f  (Float32 scale)(Vec2 vec)(Vec2 scaledVector)-> : Rococo::Maths::ScaleVector2)
+	
 	(Sys.Geometry.F32.GetTriSpan(Vec3 d)(Vec3 a)(Vec3 b)(Vec2 span)-> : Rococo::Maths::GetTriSpan)
+	
+	// Dot product
+	(Sys.Geometry.F32.Dot (Vec3 a)(Vec3 b) -> (Float32 dotProduct) : Rococo::Dot)
+		
+	// Cross product
 	(Sys.Geometry.F32.MultiplyVec3fVec3f  (Vec3 a)(Vec3 b)(Vec3 crossProduct)-> : Rococo::Maths::CrossByRef )
 	(Sys.Geometry.F32.MultiplyFloat32Vec3f  (Float32 f)(Vec3 a)(Vec3 scaledVector)-> : Rococo::Maths::ScaleVector3 )
-	(Sys.Geometry.F32.MultiplyVec3fFloat32  (Vec3 a)(Float32 f)(Vec3 scaledVector)-> : Rococo::Maths::ScaleVector3 )
+	
+	// Implements the operator overload (Vec2 a = vec * scale)
+	(Sys.Geometry.F32.MultiplyVec3fFloat32  (Vec3 a)(Float32 scale)(Vec3 scaledVector)-> : Rococo::Maths::ScaleVector3 )
+	
+	// Implements the operator overload (Matrix4x4 product = a * b)
 	(Sys.Geometry.F32.MultiplyMatrix4x4fMatrix4x4f (Matrix4x4 a)(Matrix4x4 b)(Matrix4x4 product)-> : Rococo::Maths::MultiplyMatrixByRef)
+	
+	// Implements the post multiply operation (Vec4 mv = m * v)
 	(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f (Matrix4x4 m)(Vec4 v)(Vec4 mv)-> : Rococo::Maths::TransformVector)
+	
+	
 	(Sys.Geometry.F32.Length (Vec3 a) -> (Float32 len) : Rococo::Length)
 	(Sys.Geometry.F32.Normalize (Vec3 n) -> : Rococo::Maths::NormalizeInPlace)
 	(Sys.Geometry.F32.GetNormal (Triangle t)(Vec3 normal) -> : Rococo::Maths::GetNormal)
 	(Sys.Geometry.F32.LerpVec3 (Vec3 a)(Vec3 b)(Float32 t)(Vec3 mixed)-> : Rococo::Maths::LerpVec3)
 	(Sys.Geometry.F32.GetRotationQuat (Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Quat q)-> : Rococo::Maths::GetRotationQuat)
+	
+	// Implements the quaternion product: (Quat output =  a * b)
 	(Sys.Geometry.F32.MultiplyQuatfQuatf (const Quat a)(const Quat b)(Quat output) -> : Rococo::Maths::MultiplyQuatByQuat)
+	
 	(Sys.Geometry.F32.RotateAboutX (Degrees degrees)(Matrix4x4 rX) -> : Rococo::Maths::RotateAboutXThetaDegrees)
 	(Sys.Geometry.F32.RotateAboutY (Degrees degrees)(Matrix4x4 rY) -> : Rococo::Maths::RotateAboutYThetaDegrees)
 	(Sys.Geometry.F32.RotateAboutZ (Degrees degrees)(Matrix4x4 rZ) -> : Rococo::Maths::RotateAboutZThetaDegrees)
+	
 	(Sys.Geometry.F32.MakeTranslateMatrix (Vec3 ds)(Matrix4x4 t)-> : Rococo::Maths::MakeTranslateMatrix)
 	(Sys.Geometry.F32.TryGetCommonSegment (Vec3 a)(Vec3 b)(Quad p)(Quad q)-> (Bool matched): Rococo::Maths::TryGetCommonSegment)
 

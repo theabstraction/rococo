@@ -297,6 +297,12 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 		i->second.push_back(desc);
 	}
 
+	functionDef.Tree().EnumerateComments(functionDef, [&outputFile](cstr comment)->void
+		{
+			outputFile.Append("\t/* %s */\n", comment);
+		}
+	);
+
 	outputFile.Append("\tvoid Native%s%s(NativeCallEnvironment& _nce)\n", nsType.CompressedName(), fname);
 	outputFile.Append("\t{\n");
 
@@ -473,7 +479,7 @@ void AppendNativeRegistration(const FunctionDesc& desc, const CppType& ns, const
 	sexstring fname = sfname.String();
 	CppType nameType;
 	nameType.Set(fname->Buffer);
-	outputFile.Append(("ss.AddNativeCall(ns, Native%s, nullptr, (\"%s"), nameType.CompressedName(), desc.name.c_str());
+	outputFile.Append("ss.AddNativeCall(ns, Native%s, nullptr, (\"%s", nameType.CompressedName(), desc.name.c_str());
 
 	int outputPos = GetOutputPosition(*desc.functionDef);
 	for (int i = 1; i < outputPos - 1; i++)
@@ -1331,6 +1337,8 @@ int main(int argc, char* argv[])
 
 	try
 	{
+		parser->MapComments();
+
 		WideFilePath sxhFullPathName;
 		Format(sxhFullPathName, L"%hs%hs", pc.projectRoot, pc.scriptInput);
 		src = parser->LoadSource(sxhFullPathName, Vec2i{ 1,1 });

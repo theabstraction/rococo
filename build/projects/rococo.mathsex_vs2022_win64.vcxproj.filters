@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.mathsex\dllmain.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mathsex\rococo.sexy.mathsex.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.time.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.vectors.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="code-gen">
+      <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl">
+      <Filter>code-gen</Filter>
+    </None>
+  </ItemGroup>
+</Project>

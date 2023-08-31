@@ -35,6 +35,7 @@
 #include "sexy.s-parser.h"
 
 #include <sexy.vector.h>
+#include <rococo.functional.h>
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -320,7 +321,7 @@ namespace ANON
 			Throw(0, "Comment mapping is not implemented on this SParser");
 		}
 
-		size_t EnumerateComments(cr_sex s, Rococo::Function<void(cstr)>& onBlockItem) override
+		size_t EnumerateComments(cr_sex s, Rococo::Function<void(cstr)> onBlockItem) const override
 		{
 			return 0;
 		}

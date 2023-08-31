@@ -959,8 +959,9 @@ namespace Rococo
     [Sharpmake.Generate]
     public class RococoSexyMathSexProject : RococoProject
     {
-        public RococoSexyMathSexProject() : base("rococo.sexy.mathsex")
+        public RococoSexyMathSexProject() : base("rococo.mathsex")
         {
+            SourceFiles.Add(@"code-gen\Mathsex.sxh", @"code-gen\config.xc");
         }
 
         [Configure()]
@@ -969,7 +970,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
-            conf.AddPublicDependency<SexyBennyHillProject>(target);
+            AddSXHFileBuildStep(conf, target, @"Mathsex.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
         }
     }
 
