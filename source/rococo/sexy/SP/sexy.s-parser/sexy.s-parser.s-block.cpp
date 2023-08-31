@@ -52,6 +52,8 @@
 
 #include <new>
 #include <rococo.stl.allocators.h>
+#include <sexy.unordered_map.h>
+#include <rococo.functional.h>
 
 using namespace Rococo::Strings;
 
@@ -551,7 +553,7 @@ namespace Anon
 	struct ExpressionTree : Rococo::Sex::ISParserTree
 	{
 		char* block = nullptr;
-		ISExpression** arraySets;
+		ISExpression** arraySets = nullptr;
 		RootExpression* root = nullptr;
 		ISourceCode* sourceCode = nullptr;
 		ISParser* sParser = nullptr;
@@ -560,6 +562,8 @@ namespace Anon
 
 		size_t aIndex = 0;
 
+		std::unordered_map<const ISExpression*, std::vector<HString>>* mapExpressionPtrToCommentBlock = nullptr;
+
 		ExpressionTree(IAllocator& _allocator) : allocator(_allocator)
 		{
 
@@ -567,6 +571,7 @@ namespace Anon
 
 		~ExpressionTree()
 		{
+			delete mapExpressionPtrToCommentBlock;
 			sParser->Release();
 			if (sourceCode) sourceCode->Release();
 			if (block)
@@ -624,6 +629,28 @@ namespace Anon
 				this->~ExpressionTree();
 				return 0;
 			}
+		}
+
+		size_t EnumerateComments(cr_sex s, Rococo::Function<void(cstr)>& onBlockItem) override
+		{
+			if (mapExpressionPtrToCommentBlock == nullptr)
+			{
+				return 0;
+			}
+
+			auto i = mapExpressionPtrToCommentBlock->find(&s);
+
+			if (i == mapExpressionPtrToCommentBlock->end())
+			{
+				return 0;
+			}
+
+			for (auto& element : i->second)
+			{
+				onBlockItem(element);
+			}
+
+			return i->second.size();
 		}
 	};
 
@@ -1267,12 +1294,18 @@ namespace Anon
 		CompoundExpression* compoundArray;
 		ISExpression** arraySets;
 
+#ifdef _DEBUG
 		enum { NO_MANS_LAND = 128 };
+#else	
+		enum { NO_MANS_LAND = 0 };
+#endif
 
 		const SCostEvaluator& ce;
 		IAllocator& allocator;
 
-		SBlockAllocator(const SCostEvaluator& _ce, IAllocator& _allocator, cstr _sourceStart) :
+		std::vector<char> commentBuffer;
+
+		SBlockAllocator(const SCostEvaluator& _ce, IAllocator& _allocator, cstr _sourceStart, bool addCommentMap) :
 			ce(_ce), allocator(_allocator), sourceStart(_sourceStart)
 		{
 			/* Block
@@ -1316,6 +1349,17 @@ namespace Anon
 			auto* root = new (treeMemory + sizeof(ExpressionTree)) RootExpression();
 			root->tree = tree;
 			tree->root = root;
+
+			if (addCommentMap)
+			{
+				// !mapExpressionPtrToComment.empty() => store comments. This is used by code generators to pass comments onto generated code
+				tree->mapExpressionPtrToCommentBlock = new std::unordered_map<const ISExpression*, std::vector<HString>>();
+			}
+		}
+
+		ExpressionTree* Tree()
+		{
+			return (ExpressionTree*) (block + totalSize - sizeof(ExpressionTree) - sizeof(RootExpression));
 		}
 
 		ICompoundSExpression* Root()
@@ -1342,7 +1386,7 @@ namespace Anon
 
 		ExpressionTree* Detach()
 		{
-			auto* treeMemory = block + totalSize - sizeof(ExpressionTree) - sizeof(RootExpression);
+			auto* treeMemory = Tree();
 			auto* tree = (ExpressionTree*)treeMemory;
 			tree->block = block;
 			block = nullptr;
@@ -1396,7 +1440,20 @@ namespace Anon
 		void AddComment(cstr begin, cstr end) override
 		{
 			size_t nBytes = end - begin + 1;
-			UNUSED(nBytes);
+
+			auto* tree = Tree();
+
+			if (tree->mapExpressionPtrToCommentBlock)
+			{
+				commentBuffer.resize(nBytes);
+
+				Substring s{ begin, end };
+				SubstringToString(commentBuffer.data(), nBytes, s);
+
+				ISExpression* ptr = nextFreeCompoundSlot;
+				auto i = tree->mapExpressionPtrToCommentBlock->insert(std::make_pair(ptr, std::vector<HString>()));
+				i.first->second.push_back(HString(commentBuffer.data()));
+			}
 		}
 
 		ICompoundSExpression* AddCompound(cstr beginPoint, int depth, ICompoundSExpression* parent) override
@@ -1509,6 +1566,7 @@ namespace Anon
 		refcount_t refcount = 1;
 		IAllocator& allocator;
 		size_t maxStringLength;
+		bool mapComments = false;
 
 		SParser_2_0(IAllocator& _allocator, size_t _maxStringLength) :
 			maxStringLength(_maxStringLength),
@@ -1528,7 +1586,7 @@ namespace Anon
 			parser.name = sourceCode.Name();
 			parser.Parse(nullptr);
 
-			SBlockAllocator sba(ce, allocator, sourceCode.SourceStart());
+			SBlockAllocator sba(ce, allocator, sourceCode.SourceStart(), mapComments);
 			{
 				SParser parser2(sourceCode.SourceStart(), sba);
 				parser2.name = sourceCode.Name();
@@ -1579,6 +1637,11 @@ namespace Anon
 			src->origin = origin;
 			memcpy(src->name, name, strlen(name) + 1);
 			return src;
+		}
+
+		void MapComments() override
+		{
+			mapComments = true;
 		}
 
 		ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef, IPackage* package) override
@@ -1759,7 +1822,7 @@ namespace Rococo::Sex
 
 		AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "s-block-parser"));
 
-		Anon::SBlockAllocator sba(ce, *allocator, sExpression);
+		Anon::SBlockAllocator sba(ce, *allocator, sExpression, false);
 		Anon::SParser parser(sExpression, sba);
 		parser.name = "test";
 		parser.Parse(nullptr);

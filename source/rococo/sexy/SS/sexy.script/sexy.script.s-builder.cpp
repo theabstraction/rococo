@@ -315,6 +315,16 @@ namespace ANON
 			SafeFormat(name, sizeof(name), "['] %s", _original.Tree().Source().Name());
 		}
 
+		void MapComments() override
+		{
+			Throw(0, "Comment mapping is not implemented on this SParser");
+		}
+
+		size_t EnumerateComments(cr_sex s, Rococo::Function<void(cstr)>& onBlockItem) override
+		{
+			return 0;
+		}
+
 		const ISParserTree& Tree() const override
 		{
 			return *this;

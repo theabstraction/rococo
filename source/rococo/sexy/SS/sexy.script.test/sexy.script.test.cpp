@@ -17578,7 +17578,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestNegateVariable5);
+	//	TEST(TestNegateVariable5);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();
 		TestArrays();

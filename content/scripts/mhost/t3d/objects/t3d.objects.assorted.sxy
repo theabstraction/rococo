@@ -400,7 +400,7 @@
 	
 	(Rococo.Graphics.RoundCornersShelfSpec shelf)
 	(shelf.zTop = 0.5)
-	(shelf.zBottom = 0.4)
+	(shelf.zBottom = 0.45)
 	(shelf.width = 1.0)
 	(shelf.breadth = 1.0)
 	(shelf.radiusNW = 0.02)
@@ -510,9 +510,9 @@
 	(MakeBrick4 "brick.4") 
 	
 	(Matrix4x4 model4 = 
-		(1 0 0  1.3)
-		(0 1 0  1.0)
-		(0 0 1 0.26) 
+		(0  0 1  2.6)
+		(0 -1 0  2.5)
+		(1 0 0 0.80) 
 		(0 0 0    1)
 	)
 	
@@ -553,14 +553,14 @@
 	(MakeLamp "light.cone.1")
 	
 	(Matrix4x4 rotX)
-	(Sys.Geometry.F32.RotateAboutX -15 rotX)
+	(Sys.Geometry.F32.RotateAboutX 25 rotX)
 	(Vec4 down = 0 0 -1 0)
 	(Vec4 downPrime = rotX * down)
 	
 	(LightSpec light)
-	(light.position = 0 2.5 2.4)
+	(light.position = 1.5 1.5 4.0)
 	(light.direction = downPrime.x downPrime.y downPrime.z)
-	(light.fov = 45)
+	(light.fov = 90)
 	(light.diffuse = 3.0 3.0 3.0 1.0)
 	(light.ambience = 0.6 0.6 0.6 0.5)
 	(light.cutoffAngle = 35)
@@ -571,7 +571,7 @@
 	(light.fogConstant = -0.1)
 	(light.shadowFudge = 3.0)
 	
-	(world.SnapToLandscape light.position 2.4)
+	(world.SnapToLandscape light.position 4.4)
 	
 	(Matrix4x4 lightConeTranslate)
 	

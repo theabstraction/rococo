@@ -275,6 +275,7 @@ namespace Rococo
 			virtual const ISExpression* GetOriginal() const = 0;
 			virtual bool operator == (const char* token) const = 0;
 			virtual void Free() = 0;
+			virtual ~ISExpression() {};
 		};
 
 		typedef const ISExpression& cr_sex;
@@ -319,10 +320,20 @@ namespace Rococo
 
 		ROCOCO_INTERFACE ISParserTree : public IRefCounted
 		{
-			virtual ISExpression& Root() = 0; // Refers to the root expression in the tree
-			virtual const ISExpression& Root() const = 0; // // Constant reference to the root expression in the tree
-			virtual ISParser& Parser() = 0; // Refers to the object that created this instance
-			virtual const ISourceCode& Source() const = 0; // The source code associated with this parser tree
+			// Refers to the root expression in the tree
+			virtual ISExpression& Root() = 0;
+
+			// Constant reference to the root expression in the tree
+			virtual const ISExpression& Root() const = 0;
+
+			// Refers to the object that created this instance
+			virtual ISParser& Parser() = 0;
+
+			// The source code associated with this parser tree
+			virtual const ISourceCode& Source() const = 0;
+
+			// Invoke the callback for every comment in the comment block for the associated expression. The return value is the  number of elements in the comment block
+			virtual size_t EnumerateComments(cr_sex s, Rococo::Function<void (cstr item)>& onBlockItem) = 0;
 		};
 
 		ROCOCO_INTERFACE ISParser : public IRefCounted
@@ -341,6 +352,9 @@ namespace Rococo
 
 			// Loads source code, using the raw char* buffer
 			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin, const char* buffer, long len) = 0;
+
+			// Enable persistence of comments in the form of a mapping from ISExpression to comment blocks
+			virtual void MapComments() = 0;
 		};
 
 		ROCOCO_INTERFACE ISourceCode : public IRefCounted
