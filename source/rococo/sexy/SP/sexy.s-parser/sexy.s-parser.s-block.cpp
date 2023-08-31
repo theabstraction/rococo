@@ -59,7 +59,7 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
-	void ThrowIllFormedSExpression(int32 errorCode, cstr format, ...);
+	void ThrowIllFormedSExpression(int32 displacement, cstr format, ...);
 }
 
 namespace Anon
@@ -376,7 +376,8 @@ namespace Anon
 			{
 				char specimen[64];
 				SafeFormat(specimen, sizeof(specimen), "");
-				Vec2i pos = OffsetToPos(ex.ErrorCode(), sExpression, next, { 1,1 });
+				int offset = ex.ErrorCode();
+				Vec2i pos = OffsetToPos(0, sExpression, next + offset, { 1,1 });
 				throw ParseException(pos, pos, name, ex.Message(), specimen, nullptr);
 			}
 		}

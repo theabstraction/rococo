@@ -204,7 +204,7 @@ namespace Rococo
 		throw ex;
 	}
 
-	ROCOCO_API void ThrowIllFormedSExpression(int32 errorCode, cstr format, ...)
+	ROCOCO_API void ThrowIllFormedSExpression(int32 displacement, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -213,7 +213,7 @@ namespace Rococo
 
 		SafeVFormat(ex.msg, sizeof(ex.msg), format, args);
 
-		ex.errorCode = errorCode;
+		ex.errorCode = displacement;
 
 		OS::BreakOnThrow(OS::Flags::BreakFlag_IllFormed_SExpression);
 

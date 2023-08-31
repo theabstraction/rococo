@@ -204,7 +204,7 @@ namespace
 
 		cr_sex smethodName = method.GetElement(startIndex);
 		cstr methodName = smethodName.c_str();
-		appender.Append("%s ", methodName);
+		appender.Append("(%s ", methodName);
 	
 		AppendInputsAndOutputs(appender, method, pc, startIndex);
 

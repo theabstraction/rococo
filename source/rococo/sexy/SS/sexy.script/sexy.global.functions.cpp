@@ -2003,6 +2003,10 @@ namespace Rococo
 							auto includedModule = sources.GetSource(name->Buffer);
 							ss.AddTree(*includedModule);
 						}
+						catch (ParseException&)
+						{
+							throw;
+						}
 						catch (IException& ex)
 						{
 							Throw(sname, "Error with include file. %s", ex.Message());

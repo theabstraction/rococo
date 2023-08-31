@@ -66,7 +66,7 @@ namespace
 
 	void ThrowScriptError(ParseException& ex)
 	{
-		Rococo::Throw(ex.ErrorCode(), "%s (%d,%d) to (%d,%d). %s:\r\n%s", ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y, ex.Name(), ex.Message());
+		Rococo::Throw(ex.ErrorCode(), "%s line %d col %d to line %d col %d. %s:\r\n%s", ex.Name(), ex.Start().y, ex.Start().x, ex.End().y, ex.End().x, ex.Name(), ex.Message());
 	}
 
 	void InitDebugger(IDebuggerWindow& debugger, ParseException& ex)
