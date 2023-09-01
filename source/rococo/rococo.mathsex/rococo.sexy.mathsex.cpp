@@ -113,47 +113,64 @@ namespace Rococo
       // N.B when compiled in release mode, these will generally inline within the vectorlib.inl function code
       using namespace DirectX;
 
-      void AddVec3toVec3(const Vec3& a, const Vec3& b, Vec3& c)
+	  void AddVec2ToVec2(const Vec2& a, const Vec2& b, OUT Vec2& sum)
+	  {
+		  sum = a + b;
+	  }
+
+      void AddVec3ToVec3(const Vec3& a, const Vec3& b, OUT Vec3& sum)
       {
-         c = a + b;
+		  sum = a + b;
       }
 
-      void SubtractVec3fromVec3(const Vec3& a, const Vec3& b, Vec3& c)
+      void SubtractVec3fromVec3(const Vec3& a, const Vec3& b, OUT Vec3& c)
       {
          c = a - b;
       }
 
-	  void ScaleVector3(float f, const Vec3& a, Vec3& fa)
+	  void ScaleVec3(float f, const Vec3& a, OUT  Vec3& fa)
 	  {
 		  fa = a * f;
 	  }
 
-	  void ScaleVector3(const Vec3& a, float f, Vec3& fa)
+	  void ScaleVec3(const Vec3& a, float f, OUT Vec3& fa)
 	  {
 		  fa = a * f;
 	  }
 
-	  void SubtractVec2fromVec2(const Vec2& a, const Vec2& b, Vec2& c)
+	  void ScaleVec2(const Vec2& a, float f, OUT Vec2& fa)
+	  {
+		  fa = a * f;
+	  }
+
+	  void ScaleVec2(float f, const Vec2& a, OUT Vec2& fa)
+	  {
+		  fa = a * f;
+	  }
+
+	  void SubtractVec2fromVec2(const Vec2& a, const Vec2& b, OUT Vec2& c)
 	  {
 		  c = a - b;
 	  }
 
-	  void GetTriSpan(cr_vec3 d, cr_vec3 a, cr_vec3 b, Vec2& span)
+	  void DivideVec3(const Vec3& v, float denominator, OUT Vec3& result)
 	  {
-		  Vec3 vertical = a - d;
+		  float f = 1.0f / denominator;
+		  result = f * v;
+	  }
+
+	  void DivideVec2(const Vec2& v, float denominator, OUT Vec2& result)
+	  {
+		  float f = 1.0f / denominator;
+		  result = f * v;
+	  }
+
+	  void GetTriSpan(cr_vec3 c, cr_vec3 a, cr_vec3 b, Vec2& span)
+	  {
+		  Vec3 vertical = a - c;
 		  Vec3 tangental = b - a;
 
 		  span = Vec2 { Length(tangental), Length(vertical) };
-	  }
-
-	  void ScaleVector2(const Vec2& a, float f, Vec2& fa)
-	  {
-		  fa = a * f;
-	  }
-
-	  void ScaleVector2( float f, const Vec2& a, Vec2& fa)
-	  {
-		  fa = a * f;
 	  }
 
       void MultiplyMatrixByRef(const Matrix4x4& a, const Matrix4x4& b, Matrix4x4& c)
@@ -169,6 +186,17 @@ namespace Rococo
          XMStoreFloat3((XMFLOAT3*)&c, xc);
       }
 
+	  float CrossVec2(const Vec2& a, const Vec2& b)
+	  {
+		  XMVECTOR xa = XMLoadFloat2((const XMFLOAT2*)&a.x);
+		  XMVECTOR xb = XMLoadFloat2((const XMFLOAT2*)&b.x);
+		  XMVECTOR xc = XMVector2Cross(xa, xb);
+
+		  float result;
+		  XMStoreFloat(&result, xc);
+		  return result;
+	  }
+
       void NormalizeInPlace(Vec3& a)
       {
          float ds = Length(a);
@@ -179,6 +207,65 @@ namespace Rococo
          a.y *= scale;
          a.z *= scale;
       }
+
+	  void NormalizeInPlace(Vec2& a)
+	  {
+		  float ds = Length(a);
+		  if (ds == 0) Throw(0, "Cannot normalize null vector");
+		  float scale = 1.0f / ds;
+
+		  a.x *= scale;
+		  a.y *= scale;
+	  }
+
+	  void NormalizeInPlace(Vec4& a)
+	  {
+		  float ds = Length(reinterpret_cast<Vec3&>(a));
+		  if (ds == 0) Throw(0, "Cannot normalize null vector");
+		  float scale = 1.0f / ds;
+
+		  a.x *= scale;
+		  a.y *= scale;
+		  a.z *= scale;
+	  }
+
+	  void SafeNormalize(Vec3& a)
+	  {
+		  float ds = LengthSq(a);
+
+		  if (ds == 0) return;
+
+		  float scale = 1.0f / sqrtf(ds);
+
+		  a.x *= scale;
+		  a.y *= scale;
+		  a.z *= scale;
+	  }
+
+	  void SafeNormalize(Vec2& a)
+	  {
+		  float ds = LengthSq(a);
+
+		  if (ds == 0) return;
+
+		  float scale = 1.0f / sqrtf(ds);
+
+		  a.x *= scale;
+		  a.y *= scale;
+	  }
+
+	  void SafeNormalize(Vec4& a)
+	  {
+		  float ds = LengthSq(reinterpret_cast<Vec3&>(a));
+
+		  if (ds == 0) return;
+
+		  float scale = 1.0f / sqrtf(ds);
+
+		  a.x *= scale;
+		  a.y *= scale;
+		  a.z *= scale;
+	  }
 
 	  void GetNormal(const Triangle& t, Vec3& normal)
 	  {
@@ -199,6 +286,12 @@ namespace Rococo
 	  void TransformVector(const Matrix4x4& m, const Vec4& v, Vec4& mv)
 	  {
 		  mv = m * v;
+	  }
+
+	  void TransformVector(const Matrix4x4& m, const Vec3& v3, float w, Vec4& mv)
+	  {
+		  Vec4 v4 = Vec4::FromVec3(v3, w);
+		  mv = m * v4;
 	  }
 
 	  void GetRotationQuat(Degrees theta, float i, float j, float k, Quat& q)
