@@ -36,6 +36,7 @@
 (using Rococo.Audio)
 
 (using Sys.Geometry.F32)
+(using Sys.Geometry.Q)
 (using Sys.Maths.I32)
 
 (namespace T3D)
@@ -95,14 +96,14 @@
 	(Degrees invElevation = -90 - world.elevation)
 	
 	(Quat invElevationYQ)
-	(GetRotationQuat invElevation 1 0 0 invElevationYQ)
+	(Sys.Geometry.Q.GetRotationQuat invElevation 1 0 0 invElevationYQ)
 	
 	(Degrees invBearing = 0 - world.bearing)
 	
 	(Degrees thetaXY = 0 - invBearing)
 	
 	(Quat invBearingZQ)
-	(GetRotationQuat thetaXY 0 0 1 invBearingZQ)
+	(Sys.Geometry.Q.GetRotationQuat thetaXY 0 0 1 invBearingZQ)
 	
 	(Quat zy = invBearingZQ * invElevationYQ)
 

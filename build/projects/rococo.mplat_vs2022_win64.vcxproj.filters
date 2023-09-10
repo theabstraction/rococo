@@ -222,6 +222,9 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ESoftBoxVertexPurpose.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

@@ -27,11 +27,14 @@ namespace Rococo::Entities
 
 namespace Rococo::Graphics
 {
+	enum class ESoftBoxVertexPurpose : int32;
+
 	struct SoftBoxVertex
 	{
 		Vec3 pos;
 		Vec3 normal;
 		Vec2 uv;
+		ESoftBoxVertexPurpose purpose;
 	};
 
 	struct SoftBoxQuad

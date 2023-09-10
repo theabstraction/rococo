@@ -122,7 +122,7 @@ namespace MHost
 			void OnCompile(ScriptCompileArgs& args) override
 			{
 				MHost::AddMHostNativeCallSecurity(args);
-				args.ss.AddNativeLibrary("rococo.sexy.mathsex");
+				args.ss.AddNativeLibrary("rococo.mathsex");
 			} 
 
 			IScriptEnumerator* ImplicitIncludes() override

@@ -24,6 +24,7 @@
 
 (using Sys.Maths.I32)
 (using Sys.Geometry.F32)
+(using Sys.Geometry.M4x4)
 
 (namespace T3D)
 (using T3D)
@@ -389,7 +390,7 @@
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
 	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> glass.id)
-	(glass.gloss = 0.2)
+	(glass.gloss = 0.1)
 	
 	(IMeshBuilder mb (MeshBuilder))
 	(mb.Clear)
@@ -403,14 +404,14 @@
 	(shelf.zBottom = 0.45)
 	(shelf.width = 1.0)
 	(shelf.breadth = 1.0)
-	(shelf.radiusNW = 0.02)
-	(shelf.radiusNE = 0.02)
-	(shelf.radiusSW = 0.08)
-	(shelf.radiusSE = 0.08)
-	(shelf.divisionsNW = 15)
-	(shelf.divisionsNE = 15)
-	(shelf.divisionsSW = 45)
-	(shelf.divisionsSE = 45)	
+	(shelf.radiusNW = 0.10)
+	(shelf.radiusNE = 0.10)
+	(shelf.radiusSW = 0.10)
+	(shelf.radiusSE = 0.10)
+	(shelf.divisionsNW = 2)
+	(shelf.divisionsNE = 2)
+	(shelf.divisionsSW = 2)
+	(shelf.divisionsSE = 2)	
 	(shelf.addBottom = true)
 	(box.CreateRoundCornersShelf shelf)
 	
@@ -509,12 +510,28 @@
 	
 	(MakeBrick4 "brick.4") 
 	
+	/*
 	(Matrix4x4 model4 = 
-		(0  0 1  2.6)
-		(0 -1 0  2.5)
-		(1 0 0 0.80) 
-		(0 0 0    1)
+		(1  0  0  2.6)
+		(0  1  0  2.5)
+		(0  0  1 0.80) 
+		(0  0  0    1)
 	)
+	*/
+	
+	(Quat q)
+	//(Sys.Geometry.Q.GetRotationQuat 450 1 0 0 q)
+	(Sys.Geometry.Q.GetRotationQuat 45 0 0 1 q)
+	
+	(Matrix4x4 translate4)
+	(Vec3 ds = 2.6 2.5 0.8)
+	(Sys.Geometry.M4x4.MakeTranslateMatrix ds translate4)
+	
+	(Matrix4x4 rotate4)
+	(Sys.Geometry.Q.ToMatrix q rotate4)
+	
+	(Matrix4x4 model4 = translate4 * rotate4)
+	
 	
 	(brickId = ecs.NewROID)
 	
@@ -553,7 +570,7 @@
 	(MakeLamp "light.cone.1")
 	
 	(Matrix4x4 rotX)
-	(Sys.Geometry.F32.RotateAboutX 25 rotX)
+	(Sys.Geometry.M4x4.RotateAboutX 25 rotX)
 	(Vec4 down = 0 0 -1 0)
 	(Vec4 downPrime = rotX * down)
 	
@@ -575,7 +592,7 @@
 	
 	(Matrix4x4 lightConeTranslate)
 	
-	(Sys.Geometry.F32.MakeTranslateMatrix light.position lightConeTranslate)
+	(Sys.Geometry.M4x4.MakeTranslateMatrix light.position lightConeTranslate)
 	
 	(Matrix4x4 lightConeModel)
 	(lightConeModel = lightConeTranslate * rotX)

@@ -41,15 +41,6 @@
 	// Cross product for Vec2 - also implements the operator overload (float crossProduct = a * b)
 	(Sys.Geometry.F32.MultiplyVec2fVec2f  (const Vec2 a)(const Vec2 b)->(Float32 crossProduct) : Rococo::Maths::CrossVec2)	
 		
-	// Implements matrix multiply and also the operator overload (Matrix4x4 product = a * b)
-	(Sys.Geometry.F32.MultiplyMatrix4x4fMatrix4x4f (const Matrix4x4 a)(const Matrix4x4 b)(Matrix4x4 product)-> : Rococo::Maths::MultiplyMatrixByRef)
-	
-	// Implements the matrix post multiply operation and also implements the operator overload (Vec4 mv = m * v)
-	(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f (const Matrix4x4 m)(const Vec4 v)(const Vec4 mv)-> : Rococo::Maths::TransformVector)
-	
-	// Creates a four-vector from a three-vector v3 and w as the fourth component. The four-vector is pre-multiplied by the matrix and the result stored in mv4
-	(Sys.Geometry.F32.MultiplyMatrix4x4fVec3f (const Matrix4x4 m)(const Vec3 v3)(Float32 w)(Vec4 mv4)-> : Rococo::Maths::TransformVector)
-	
 	// Uses pythagoras theorem in three dimensions to compute the length of a three vector
 	(Sys.Geometry.F32.Length (const Vec3 a) -> (Float32 len) : Rococo::Length)
 	
@@ -92,18 +83,30 @@
 	// Computes the three vector lerp from a to b, with t = 0 resulting in a and t = 1 resulting in b
 	(Sys.Geometry.F32.LerpVec3 (const Vec3 a)(const Vec3 b)(Float32 t)(Vec3 mixed)-> : Rococo::Maths::LerpVec3)
 	
-	// Compute the quaternion corresponding to a rotation of theta about the specified axis
-	(Sys.Geometry.F32.GetRotationQuat (Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Quat q)-> : Rococo::Maths::GetRotationQuat)
-	
-	// Implements the quaternion product: (Quat output =  a * b)
-	(Sys.Geometry.F32.MultiplyQuatfQuatf (const Quat a)(const Quat b)(Quat output) -> : Rococo::Maths::MultiplyQuatByQuat)
-	
-	(Sys.Geometry.F32.RotateAboutX (Degrees degrees)(Matrix4x4 rX) -> : Rococo::Maths::RotateAboutXThetaDegrees)
-	(Sys.Geometry.F32.RotateAboutY (Degrees degrees)(Matrix4x4 rY) -> : Rococo::Maths::RotateAboutYThetaDegrees)
-	(Sys.Geometry.F32.RotateAboutZ (Degrees degrees)(Matrix4x4 rZ) -> : Rococo::Maths::RotateAboutZThetaDegrees)
-	
-	// Updates the 4x4 matrix with a translation matrix corresponding to ds
-	(Sys.Geometry.F32.MakeTranslateMatrix (const Vec3 ds)(Matrix4x4 t)-> : Rococo::Maths::MakeTranslateMatrix)
 	(Sys.Geometry.F32.TryGetCommonSegment (Vec3 a)(Vec3 b)(Quad p)(Quad q)-> (Bool matched): Rococo::Maths::TryGetCommonSegment)
 
+	// Compute the quaternion corresponding to a rotation of theta about the specified axis
+	(Sys.Geometry.Q.GetRotationQuat (Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Quat q)-> : Rococo::Maths::GetRotationQuat)
+	
+	// Implements the quaternion product: (Quat output =  a * b)
+	(Sys.Geometry.Q.MultiplyQuatfQuatf (const Quat a)(const Quat b)(Quat output) -> : Rococo::Maths::MultiplyQuatByQuat)
+			
+	// Creates a 4x4 rotation matrix from a unit quaternion
+	(Sys.Geometry.Q.ToMatrix (const Quat q)(Matrix4x4 r)-> : Rococo::Maths::UnitQuatToMatrix)
+	
+	(Sys.Geometry.M4x4.RotateAboutX (Degrees degrees)(Matrix4x4 rX) -> : Rococo::Maths::RotateAboutXThetaDegrees)
+	(Sys.Geometry.M4x4.RotateAboutY (Degrees degrees)(Matrix4x4 rY) -> : Rococo::Maths::RotateAboutYThetaDegrees)
+	(Sys.Geometry.M4x4.RotateAboutZ (Degrees degrees)(Matrix4x4 rZ) -> : Rococo::Maths::RotateAboutZThetaDegrees)
+	
+	// Updates the 4x4 matrix with a translation matrix corresponding to ds
+	(Sys.Geometry.M4x4.MakeTranslateMatrix (const Vec3 ds)(Matrix4x4 t)-> : Rococo::Maths::MakeTranslateMatrix)
+	
+	// Implements matrix multiply and also the operator overload (Matrix4x4 product = a * b)
+	(Sys.Geometry.M4x4.MultiplyMatrix4x4fMatrix4x4f (const Matrix4x4 a)(const Matrix4x4 b)(Matrix4x4 product)-> : Rococo::Maths::MultiplyMatrixByRef)
+	
+	// Implements the matrix post multiply operation and also implements the operator overload (Vec4 mv = m * v)
+	(Sys.Geometry.M4x4.MultiplyMatrix4x4fVec4f (const Matrix4x4 m)(const Vec4 v)(const Vec4 mv)-> : Rococo::Maths::TransformVector)
+	
+	// Creates a four-vector from a three-vector v3 and w as the fourth component. The four-vector is pre-multiplied by the matrix and the result stored in mv4
+	(Sys.Geometry.M4x4.MultiplyMatrix4x4fVec3f (const Matrix4x4 m)(const Vec3 v3)(Float32 w)(Vec4 mv4)-> : Rococo::Maths::TransformVector)
 )

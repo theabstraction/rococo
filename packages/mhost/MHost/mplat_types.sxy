@@ -200,10 +200,15 @@
 
 (alias SoftBoxTopSpec Rococo.Graphics.SoftBoxTopSpec)
 
+(strong ESoftBoxVertexPurpose (Int32))
+
+(alias ESoftBoxVertexPurpose Rococo.Graphics.ESoftBoxVertexPurpose)
+
 (struct SoftBoxVertex
 	(Vec3 position)
 	(Vec3 normal)
 	(Vec2 uv)
+	(ESoftBoxVertexPurpose purpose)
 )
 
 (alias SoftBoxVertex Rococo.Graphics.SoftBoxVertex)

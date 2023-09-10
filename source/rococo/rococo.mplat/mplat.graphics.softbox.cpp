@@ -5,6 +5,11 @@
 using namespace Rococo;
 using namespace Rococo::Graphics;
 
+void SetPurpose(SoftBoxQuad& q, ESoftBoxVertexPurpose purpose)
+{
+	q.a.purpose = q.b.purpose = q.c.purpose = q.d.purpose = purpose;
+}
+
 class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 {
 	float innerWidth;
@@ -19,7 +24,7 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 	std::vector<Vec2> edge;
 	std::vector<Vec2> edgeNormal;
 
-	void AddCircleQuadrant(int divisions, Vec2 origin, Vec2 centreToEdge, Vec2 normal, float radius)
+	void AddCircleQuadrant(int divisions, Vec2 origin, Vec2 centreToEdge, Vec2 normal, float radius, ESoftBoxVertexPurpose purpose)
 	{
 		// Theta is the angle from the horizontal to the vertical. Theta of 90 points up ( 1 0 0)
 		Degrees dTheta{ 90.0f / divisions };
@@ -54,26 +59,28 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 			b.uv = { 0                           , uvScale * t.b.pos.z };
 			c.uv = { uvScale * radius * cosTheta0, uvScale * t.c.pos.z };
 
+			t.a.purpose = t.b.purpose = t.c.purpose = purpose;
+
 			triangles.push_back(t);
 
 			theta0 = theta1;
 		}
 	}
 
-	void AddCircleQuadrantCorner(float x, float y, Vec2 leftDirCentreToEdge, Vec2 leftNormal, Vec2 rightDirCentreToEdge, Vec2 rightNormal, int leftDivisions, float leftRadius, int rightDivisions, float rightRadius)
+	void AddCircleQuadrantCorner(float x, float y, Vec2 leftDirCentreToEdge, Vec2 leftNormal, Vec2 rightDirCentreToEdge, Vec2 rightNormal, int leftDivisions, float leftRadius, int rightDivisions, float rightRadius, ESoftBoxVertexPurpose purpose)
 	{
 		if (rightDivisions <= 0 && leftDivisions > 0)
 		{
-			AddCircleQuadrant(leftDivisions, {x,y}, leftDirCentreToEdge, leftNormal, leftRadius);
+			AddCircleQuadrant(leftDivisions, {x,y}, leftDirCentreToEdge, leftNormal, leftRadius, purpose);
 		}
 		else if (leftDivisions <= 0 && rightDivisions > 0)
 		{
-			AddCircleQuadrant(rightDivisions, {x,y}, rightDirCentreToEdge, rightNormal, rightRadius);
+			AddCircleQuadrant(rightDivisions, {x,y}, rightDirCentreToEdge, rightNormal, rightRadius, purpose);
 		}
 	}
 
 	// Mesh a top corner as a sphere octant, joining two edge cylinders
-	void AddSphereOctantCorner(float x, float y, float xDir, float yDir, int edgeDivisions, float edgeRadius)
+	void AddSphereOctantCorner(float x, float y, float xDir, float yDir, int edgeDivisions, float edgeRadius, ESoftBoxVertexPurpose purpose)
 	{
 		if (fabsf(xDir) != 1.0f)
 		{
@@ -151,6 +158,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 				c.uv = { 1, 0 };
 				d.uv = { 1, 1 };
 
+				SetPurpose(quad, purpose);
+
 				quads.push_back(quad);
 
 				phi0 = phi1;
@@ -196,6 +205,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 				northEdgeQuad.a.normal = northEdgeQuad.b.normal = { 0, Sin(theta1), Cos(theta1) };
 				northEdgeQuad.c.normal = northEdgeQuad.d.normal = { 0, Sin(theta0), Cos(theta0) };
 
+				SetPurpose(northEdgeQuad, ESoftBoxVertexPurpose::NorthTop);
+
 				quads.push_back(northEdgeQuad);
 
 				theta0 = theta1;
@@ -215,6 +226,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 			quad.d.uv = { x0 * uvScale, zBottom * uvScale };
 
 			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, 1.0f, 0.0f };
+
+			SetPurpose(quad, ESoftBoxVertexPurpose::NorthTop);
 
 			quads.push_back(quad);
 		}
@@ -254,6 +267,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 				southEdgeQuad.a.normal = southEdgeQuad.b.normal = { 0, -Sin(theta0), Cos(theta0) };
 				southEdgeQuad.c.normal = southEdgeQuad.d.normal = { 0, -Sin(theta1), Cos(theta1) };
 
+				SetPurpose(southEdgeQuad, ESoftBoxVertexPurpose::SouthTop);
+
 				quads.push_back(southEdgeQuad);
 
 				theta0 = theta1;
@@ -273,6 +288,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 			quad.d.uv = { x1 * uvScale, zBottom * uvScale };
 
 			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 0.0f, -1.0f, 0.0f };
+
+			SetPurpose(quad, ESoftBoxVertexPurpose::SouthTop);
 
 			quads.push_back(quad);
 		}
@@ -311,6 +328,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 				westEdgeQuad.a.normal = westEdgeQuad.c.normal = { -Sin(theta1), 0, Cos(theta1) };
 				westEdgeQuad.b.normal = westEdgeQuad.d.normal = { -Sin(theta0), 0, Cos(theta0) };
 
+				SetPurpose(westEdgeQuad, ESoftBoxVertexPurpose::WestTop);
+
 				quads.push_back(westEdgeQuad);
 
 				theta0 = theta1;
@@ -330,6 +349,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 			quad.d.uv = { y0 * uvScale, zBottom * uvScale };
 
 			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { -1.0f, 0.0f, 0.0f };
+
+			SetPurpose(quad, ESoftBoxVertexPurpose::WestTop);
 
 			quads.push_back(quad);
 		}
@@ -368,6 +389,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 				eastEdgeQuad.a.normal = eastEdgeQuad.c.normal = { Sin(theta0), 0, Cos(theta0) };
 				eastEdgeQuad.b.normal = eastEdgeQuad.d.normal = { Sin(theta1), 0, Cos(theta1) };
 
+				SetPurpose(eastEdgeQuad, ESoftBoxVertexPurpose::EastTop);
+
 				quads.push_back(eastEdgeQuad);
 
 				theta0 = theta1;
@@ -387,6 +410,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 			quad.d.uv = { y1 * uvScale, zBottom * uvScale };
 
 			quad.a.normal = quad.b.normal = quad.c.normal = quad.d.normal = { 1.0f, 0.0f, 0.0f };
+
+			SetPurpose(quad, ESoftBoxVertexPurpose::EastTop);
 
 			quads.push_back(quad);
 		}
@@ -449,6 +474,8 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 
 		Vec3 up = { 0, 0, 1.0f };
 		topQuad.a.normal = topQuad.b.normal = topQuad.c.normal = topQuad.d.normal = up;
+
+		SetPurpose(topQuad, ESoftBoxVertexPurpose::CentreTop);
 
 		quads.push_back(topQuad);
 	}
@@ -527,38 +554,38 @@ public:
 
 		if (spec.westEdgeDivisions == spec.southEdgeDivisions && spec.westRadius == spec.southRadius)
 		{
-			AddSphereOctantCorner(x0, y0, -1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SW
+			AddSphereOctantCorner(x0, y0, -1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius, ESoftBoxVertexPurpose::SWCorner); // SW
 		}
 		else
 		{
-			AddCircleQuadrantCorner(x0, y0, { -1.0f, 0.0f }, { 0.0f, -1.0f }, { 0.0f, -1.0f }, { -1.0f, 0.0f }, spec.westEdgeDivisions, spec.westRadius, spec.southEdgeDivisions, spec.southRadius); // SW
+			AddCircleQuadrantCorner(x0, y0, { -1.0f, 0.0f }, { 0.0f, -1.0f }, { 0.0f, -1.0f }, { -1.0f, 0.0f }, spec.westEdgeDivisions, spec.westRadius, spec.southEdgeDivisions, spec.southRadius, ESoftBoxVertexPurpose::SWCorner); // SW
 		}
 
 		if (spec.westEdgeDivisions == spec.northEdgeDivisions && spec.westRadius == spec.northRadius)
 		{
-			AddSphereOctantCorner(x0, y1, -1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius); // NW
+			AddSphereOctantCorner(x0, y1, -1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius, ESoftBoxVertexPurpose::NWCorner); // NW
 		}
 		else
 		{
-			AddCircleQuadrantCorner(x0, y1, { 0.0f, 1.0f }, { -1.0f, 0.0f }, { -1.0f, 0.0f }, { 0.0f, 1.0f },  spec.northEdgeDivisions, spec.northRadius, spec.westEdgeDivisions, spec.westRadius); // NW
+			AddCircleQuadrantCorner(x0, y1, { 0.0f, 1.0f }, { -1.0f, 0.0f }, { -1.0f, 0.0f }, { 0.0f, 1.0f },  spec.northEdgeDivisions, spec.northRadius, spec.westEdgeDivisions, spec.westRadius, ESoftBoxVertexPurpose::NWCorner); // NW
 		}
 		
 		if (spec.northEdgeDivisions == spec.eastEdgeDivisions && spec.eastRadius == spec.northRadius)
 		{
-			AddSphereOctantCorner(x1, y1, 1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius);  // NE
+			AddSphereOctantCorner(x1, y1, 1.0f, 1.0f, spec.westEdgeDivisions, spec.westRadius, ESoftBoxVertexPurpose::NECorner);  // NE
 		}
 		else
 		{
-			AddCircleQuadrantCorner(x1, y1, { 1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f },  spec.eastEdgeDivisions, spec.eastRadius, spec.northEdgeDivisions, spec.northRadius); // NE
+			AddCircleQuadrantCorner(x1, y1, { 1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f },  spec.eastEdgeDivisions, spec.eastRadius, spec.northEdgeDivisions, spec.northRadius, ESoftBoxVertexPurpose::NECorner); // NE
 		}
 
 		if (spec.eastEdgeDivisions == spec.southEdgeDivisions && spec.eastRadius == spec.southRadius)
 		{
-			AddSphereOctantCorner(x1, y0, 1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius); // SE
+			AddSphereOctantCorner(x1, y0, 1.0f, -1.0f, spec.westEdgeDivisions, spec.westRadius, ESoftBoxVertexPurpose::SECorner); // SE
 		}
 		else
 		{
-			AddCircleQuadrantCorner(x1, y0, { 0, -1.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0, -1.0f }, spec.southEdgeDivisions, spec.southRadius, spec.eastEdgeDivisions, spec.eastRadius); // SE
+			AddCircleQuadrantCorner(x1, y0, { 0, -1.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0, -1.0f }, spec.southEdgeDivisions, spec.southRadius, spec.eastEdgeDivisions, spec.eastRadius, ESoftBoxVertexPurpose::SECorner); // SE
 		}
 
 		// This may be pertinent around 2050
@@ -579,7 +606,7 @@ public:
 		triangles.push_back(t);
 	}
 
-	void AddRoundCorner(cr_vec3 position, float radius, int divisions, cr_vec3 left, cr_vec3 right, cr_vec3 normal, bool addEdge)
+	void AddRoundCorner(cr_vec3 position, float radius, int divisions, cr_vec3 left, cr_vec3 right, cr_vec3 normal, bool addEdge, ESoftBoxVertexPurpose purpose)
 	{
 		Degrees theta0 = 0_degrees;
 		Degrees dTheta = { 90.0f / divisions };
@@ -593,25 +620,22 @@ public:
 		//					   #|
 		// < right--------------*  position
 		
-
-		bool flipChirality = Cross(left, right).z > 0;
-
-		SoftBoxTriangle t;
-		SoftBoxVertex& a = flipChirality ? t.c : t.a;
+		SoftBoxTriangle t = { 0 };
+		SoftBoxVertex& a = t.a;
 		SoftBoxVertex& b = t.b;
-		SoftBoxVertex& c = flipChirality ? t.a : t.c;
+		SoftBoxVertex& c = t.c;
 
+		Vec3 LTheta0 = left;
 
 		for (int32 i = 0; i < divisions; i++)
 		{
 			Degrees theta1 = { theta0.degrees + dTheta.degrees };
 
 			Vec3 LTheta1 = left * Cos(theta1) + right * Sin(theta1);
-			Vec3 LTheta0 = left * Cos(theta0) + right * Sin(theta0);
 
-			a.pos = position + (LTheta1 * radius);
-			b.pos = position;
 			c.pos = position + (LTheta0 * radius);
+			b.pos = position + (LTheta1 * radius);
+			a.pos = position;
 
 			a.normal = b.normal = c.normal = normal;
 
@@ -619,17 +643,19 @@ public:
 			b.uv = uvScale * Vec2{ b.pos.x, b.pos.y };
 			c.uv = uvScale * Vec2{ c.pos.x, c.pos.y };
 
+			t.a.purpose = t.b.purpose = t.c.purpose = purpose;
 			PushTriangle(t, normal.z < 0);
 
 			if (addEdge && i < divisions - 1)
 			{
-				edge.push_back(Vec2{ a.pos.x, a.pos.y });
-				edgeNormal.push_back(Vec2{ LTheta1.x, LTheta1.y });
 				edge.push_back(Vec2{ c.pos.x, c.pos.y });
 				edgeNormal.push_back(Vec2{ LTheta0.x, LTheta0.y });
+				edge.push_back(Vec2{ b.pos.x, b.pos.y });
+				edgeNormal.push_back(Vec2{ LTheta1.x, LTheta1.y });
 			}
 
 			theta0 = theta1;
+			LTheta0 = LTheta1;
 		}
 	}
 
@@ -665,7 +691,7 @@ public:
 
 		if (shelf.radiusNW > 0.0f && shelf.divisionsNW > 0)
 		{
-			AddRoundCorner(a.pos + Vec3{ shelf.radiusNW, 0, 0 }, shelf.radiusNW, shelf.divisionsNW, { 0.0f,1.0f,0 }, { -1.0f, 0.0f, 0.0f }, normal, addEdge);
+			AddRoundCorner(a.pos + Vec3{ shelf.radiusNW, 0, 0 }, shelf.radiusNW, shelf.divisionsNW, { 0.0f,1.0f,0 }, { -1.0f, 0.0f, 0.0f }, normal, addEdge, normal.z > 0 ? ESoftBoxVertexPurpose::NWCorner : ESoftBoxVertexPurpose::NWBottom);
 		}
 
 		if (addEdge)
@@ -678,7 +704,7 @@ public:
 
 		if (shelf.radiusSW > 0.0f && shelf.divisionsSW > 0)
 		{
-			AddRoundCorner(c.pos + Vec3{ shelf.radiusSW, 0, 0 }, shelf.radiusSW, shelf.divisionsSW, { -1.0f,0,0 }, { 0.0f, -1.0f, 0.0f }, normal, addEdge);
+			AddRoundCorner(c.pos + Vec3{ shelf.radiusSW, 0, 0 }, shelf.radiusSW, shelf.divisionsSW, { -1.0f,0,0 }, { 0.0f, -1.0f, 0.0f }, normal, addEdge, normal.z > 0 ? ESoftBoxVertexPurpose::SWCorner : ESoftBoxVertexPurpose::SWBottom);
 		}
 
 		if (addEdge)
@@ -692,12 +718,12 @@ public:
 
 		if (shelf.radiusSE > 0.0f && shelf.divisionsSE > 0)
 		{
-			AddRoundCorner(d.pos - Vec3{ shelf.radiusSE, 0, 0 }, shelf.radiusSE, shelf.divisionsSE, { 0.0f, -1.0f,0 }, { 1.0f, 0.0f, 0.0f }, normal, addEdge);
+			AddRoundCorner(d.pos - Vec3{ shelf.radiusSE, 0, 0 }, shelf.radiusSE, shelf.divisionsSE, { 0.0f, -1.0f,0 }, { 1.0f, 0.0f, 0.0f }, normal, addEdge, normal.z > 0 ? ESoftBoxVertexPurpose::SECorner : ESoftBoxVertexPurpose::SEBottom);
 		}
 
 		if (addEdge)
 		{
-			edge.push_back(Vec2{ d.pos.x, d.pos.y - shelf.radiusNE });
+			edge.push_back(Vec2{ d.pos.x, d.pos.y });
 			edgeNormal.push_back(Vec2{ 1.0f, 0.0f });
 
 			edge.push_back(Vec2{ b.pos.x, b.pos.y - shelf.radiusNE });
@@ -706,7 +732,7 @@ public:
 
 		if (shelf.radiusNE > 0.0f && shelf.divisionsNE > 0)
 		{
-			AddRoundCorner(b.pos - Vec3{ shelf.radiusNE, 0, 0 }, shelf.radiusNE, shelf.divisionsNE, { 1.0,0.0,0 }, { 0.0f, 1.0f, 0.0f }, normal, addEdge);
+			AddRoundCorner(b.pos - Vec3{ shelf.radiusNE, 0, 0 }, shelf.radiusNE, shelf.divisionsNE, { 1.0,0.0,0 }, { 0.0f, 1.0f, 0.0f }, normal, addEdge, normal.z > 0 ? ESoftBoxVertexPurpose::NECorner : ESoftBoxVertexPurpose::NEBottom);
 		}
 
 		if (addEdge)
@@ -718,19 +744,23 @@ public:
 			edgeNormal.push_back(Vec2{ 0.0f, 1.0f });
 		}
 
+		SetPurpose(q, normal.z > 0 ? ESoftBoxVertexPurpose::CentreTop : ESoftBoxVertexPurpose::CentreBottom);
 		PushQuad(q, normal.z < 0);
 
-		if (shelf.radiusNE > 0.0f && shelf.divisionsNE > 0)
+		if (shelf.radiusNE > 0.0f && shelf.divisionsNE > 0 && (shelf.radiusNW != 0 || shelf.radiusNE != 0))
+		{
+			a.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f, z };
+			b.pos = { shelf.width * 0.5f - shelf.radiusNE, shelf.breadth * 0.5f, z };
+			c.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f - shelf.radiusNW,z };
+			d.pos = { shelf.width * 0.5f - shelf.radiusNE, shelf.breadth * 0.5f - shelf.radiusNE, z };
+			a.uv = uvScale * Vec2{ a.pos.x, a.pos.y };
+			b.uv = uvScale * Vec2{ b.pos.x, b.pos.y };
+			c.uv = uvScale * Vec2{ c.pos.x, c.pos.y };
+			d.uv = uvScale * Vec2{ d.pos.x, d.pos.y };
 
-			if (shelf.radiusNW != 0 || shelf.radiusNE != 0)
-			{
-				a.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f, z };
-				b.pos = { shelf.width * 0.5f - shelf.radiusNE, shelf.breadth * 0.5f, z };
-				c.pos = { shelf.width * -0.5f + shelf.radiusNW, shelf.breadth * 0.5f - shelf.radiusNW,z };
-				d.pos = { shelf.width * 0.5f - shelf.radiusNE, shelf.breadth * 0.5f - shelf.radiusNE, z };
-
-				PushQuad(q, normal.z < 0);
-			}
+			SetPurpose(q, normal.z > 0 ? ESoftBoxVertexPurpose::NorthTop : ESoftBoxVertexPurpose::NorthBottom);
+			PushQuad(q, normal.z < 0);
+		}
 
 		if (shelf.radiusSW != 0 || shelf.radiusSE != 0)
 		{
@@ -738,7 +768,7 @@ public:
 			b.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f + shelf.radiusSE, z };
 			c.pos = { shelf.width * -0.5f + shelf.radiusSW, shelf.breadth * -0.5f, z };
 			d.pos = { shelf.width * 0.5f - shelf.radiusSE, shelf.breadth * -0.5f, z };
-
+			SetPurpose(q, normal.z > 0 ? ESoftBoxVertexPurpose::SouthTop: ESoftBoxVertexPurpose:: SouthBottom);
 			PushQuad(q, normal.z < 0);
 		}
 	}
@@ -833,8 +863,8 @@ public:
 				
 				q.a.uv = { uvScale * len0, 0.0f };
 				q.b.uv = { uvScale * len1, 0.0f };
-				q.c.uv = { uvScale * len0, zTop - zBottom };
-				q.d.uv = { uvScale * len1, zTop - zBottom };
+				q.c.uv = { uvScale * len0, uvScale * (zTop - zBottom) };
+				q.d.uv = { uvScale * len1, uvScale * (zTop - zBottom) };
 
 				quads.push_back(q);
 			}

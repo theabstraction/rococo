@@ -24,6 +24,7 @@
 
 (using Sys.Maths.I32)
 (using Sys.Geometry.F32)
+(using Sys.Geometry.M4x4)
 
 (namespace T3D)
 (using T3D)
@@ -75,15 +76,13 @@
 		(Float32 anticlockWiseDegrees = 0 - this.cameraOrientation.bearing)
 		
 		(Matrix4x4 rZ)
-		(Sys.Geometry.F32.RotateAboutZ anticlockWiseDegrees rZ)
+		(Sys.Geometry.M4x4.RotateAboutZ anticlockWiseDegrees rZ)
 		
 		(Float32 forwardDelta = 0.1 * forwardSpeed)
 		(Float32 straffeDelta = 0.1 * straffeSpeed)
 		
 		(Vec4 forward = straffeDelta forwardDelta 0 0)
-		(Vec4 worldForward)
-		
-		(Sys.Geometry.F32.MultiplyMatrix4x4fVec4f rZ forward worldForward)
+		(Vec4 worldForward = rZ * forward)
 		
 		(this.cameraPos.x = this.cameraPos.x + worldForward.x)
 		(this.cameraPos.y = this.cameraPos.y + worldForward.y)

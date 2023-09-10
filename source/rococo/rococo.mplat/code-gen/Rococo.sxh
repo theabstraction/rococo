@@ -694,6 +694,33 @@
 	(factory Rococo.WorldBuilder)
 )
 
+// ESoftBoxVertexPurpose are associated with each SoftBoxVertex and help the caller identify the purpose of each vertex
+(enum Int32
+	(as.sxy Rococo.Graphics.ESoftBoxVertexPurpose "mplat")
+	(as.cpp Rococo.Graphics.ESoftBoxVertexPurpose)
+	(
+		(None 0)
+		(CentreTop 1)
+		(WestTop 2)
+		(EastTop 3)
+		(NorthTop 4)
+		(SouthTop 5)
+		(NWCorner 6)
+		(NECorner 7)
+		(SWCorner 8)
+		(SECorner 10)
+		(CentreBottom 11)
+		(WestBottom 12)
+		(EastBottom 13)
+		(NorthBottom 14)
+		(SouthBottom 15)
+		(NWBottom 16)
+		(NEBottom 17)
+		(SWBottom 18)
+		(SEBottom 19)
+	)
+)
+
 (interface (as.sxy Rococo.Graphics.ISoftBoxBuilder "mplat")
 	(as.cpp Rococo.Graphics.ISoftBoxBuilder)
 	(context factory Rococo.Platform)

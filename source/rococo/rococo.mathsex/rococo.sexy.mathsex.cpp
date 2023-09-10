@@ -315,6 +315,13 @@ namespace Rococo
 		  XMStoreFloat4((XMFLOAT4*) &pq, PQ);
 	  }
 
+	  void UnitQuatToMatrix(const Quat& q, Matrix4x4& rotation)
+	  {
+		  XMVECTOR Q = XMLoadFloat4((const XMFLOAT4*)&q);
+		  XMMATRIX R = XMMatrixRotationQuaternion(Q);
+		  XMStoreFloat4x4((XMFLOAT4X4*)&rotation, R);
+	  }
+
       void RotateAboutZThetaDegrees(Degrees theta, Matrix4x4& Rz)
       {
           Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
@@ -391,6 +398,8 @@ extern "C"
          void AddNativeCalls() override
          {
             Sys::Geometry::F32::AddNativeCalls_SysGeometryF32(ss);
+			Sys::Geometry::M4x4::AddNativeCalls_SysGeometryM4x4(ss);
+			Sys::Geometry::Q::AddNativeCalls_SysGeometryQ(ss);
             Sys::Random::AddNativeCalls_SysRandom(ss);
 			Sys::Type::AddNativeCalls_SysType(ss);
          }

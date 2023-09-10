@@ -205,6 +205,7 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IParticleSystem.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IRigBuilder.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.EvMouseFlags.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ESoftBoxVertexPurpose.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.HQFont.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ICamera.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IFieldTesselator.sxh.h" />

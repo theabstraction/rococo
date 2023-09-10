@@ -254,7 +254,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.time.inl" />
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.vectors.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.mathsex\dllmain.cpp" />
