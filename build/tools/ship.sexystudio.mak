@@ -32,10 +32,6 @@ $(TARGET)rococo.util.dll: $(BIN)rococo.util.dll
 $(TARGET)rococo.windows.dll: $(BIN)rococo.windows.dll
 	-shutdown.npp.bat
 	-copy $(BIN)rococo.windows.dll  $(TARGET)
-	
-$(TARGET)rococo.misc.utils.dll: $(BIN)rococo.misc.utils.dll
-	-shutdown.npp.bat
-	-copy $(BIN)rococo.misc.utils.dll  $(TARGET)
 		
 $(TARGET)sexy.script.dll: $(BIN)sexy.script.dll
 	-shutdown.npp.bat
@@ -70,7 +66,7 @@ $(TARGET)rococo.graphics.dll: $(BIN)rococo.graphics.dll
 	-copy $(BIN)rococo.graphics.dll  $(TARGET)
 	
 # In normal mode of operation, all we want to do is to ensure the inl file is up to date
-all: $(TARGET)sexystudio.dll $(TARGET)sexystudio.app.exe $(TARGET)rococo.misc.utils.dll $(TARGET)rococo.util.dll $(TARGET)rococo.windows.dll $(TARGET)sexystudio.4.npp.dll $(TARGET)sexy.script.dll $(TARGET)sexy.util.dll $(TARGET)lib-tiff.dll $(TARGET)lib-jpg.dll $(TARGET)lib-zip.dll $(TARGET)rococo.sexml.dll  $(TARGET)rococo.sex.inference.dll $(TARGET)rococo.graphics.dll
+all: $(TARGET)sexystudio.dll $(TARGET)sexystudio.app.exe $(TARGET)rococo.util.dll $(TARGET)rococo.windows.dll $(TARGET)sexystudio.4.npp.dll $(TARGET)sexy.script.dll $(TARGET)sexy.util.dll $(TARGET)lib-tiff.dll $(TARGET)lib-jpg.dll $(TARGET)lib-zip.dll $(TARGET)rococo.sexml.dll  $(TARGET)rococo.sex.inference.dll $(TARGET)rococo.graphics.dll
 
 clean:
 	

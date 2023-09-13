@@ -26,6 +26,7 @@
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -33,6 +34,7 @@
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v143</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -244,9 +246,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs_declarations.sxh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.ecs\ecs.main.cpp" />

@@ -11,23 +11,24 @@
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex_declarations.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.time.inl" />
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">
       <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl">
-      <Filter>code-gen</Filter>
-    </None>
   </ItemGroup>
 </Project>

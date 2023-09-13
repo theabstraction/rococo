@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.qs.tesselator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.rod.tesselator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.scene.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.softbox.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprites.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprite_builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.tess.rim.cpp" />
@@ -54,7 +55,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.utilities.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.softbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc">
@@ -76,6 +76,9 @@
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.EvMouseFlags.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ESoftBoxVertexPurpose.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.HQFont.sxh.h">
@@ -222,9 +225,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ESoftBoxVertexPurpose.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

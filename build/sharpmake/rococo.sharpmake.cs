@@ -219,6 +219,7 @@ namespace Rococo
             }
 
             conf.Options.Add(Options.Vc.General.DebugInformation.ProgramDatabase);
+            conf.Options.Add(Options.Vc.General.WindowsTargetPlatformVersion.Latest);
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
         }
@@ -310,6 +311,7 @@ namespace Rococo
                 excludedFileSuffixes.Add(@"mac");
             }
 
+            conf.Options.Add(Options.Vc.General.WindowsTargetPlatformVersion.Latest);
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
 
