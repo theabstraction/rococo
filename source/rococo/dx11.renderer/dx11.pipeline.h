@@ -174,7 +174,10 @@ namespace Rococo::DX11
 		void ClearCurrentRenderBuffers(const RGBA& clearColour);
 		void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) override;
 		void ResetSamplersToDefaults();
+
+		// Main entrypoint for the render pipeline
 		void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override;
+
 		void DrawLightCones(IScene& scene);
 		void SetBoneMatrix(uint32 index, cr_m4x4 m) override;
 

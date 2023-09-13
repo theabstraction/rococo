@@ -61,6 +61,7 @@ namespace Rococo::DX11
 		idObjSkyVS = shaders.CreateVertexShader("!shaders/compiled/skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
 		idObjSkyPS = shaders.CreatePixelShader("!shaders/compiled/skybox.ps");
 
+		// TODO - make this dynamic
 		shadowBufferId = textures.CreateDepthTarget("ShadowBuffer", 2048, 2048);
 
 		alphaBlend = DX11::CreateAlphaBlend(device);
