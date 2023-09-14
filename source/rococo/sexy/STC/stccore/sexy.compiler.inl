@@ -316,35 +316,52 @@ namespace Rococo { namespace Compiler { namespace Impl
 			Clear();
 		}
 
-		virtual void Clear()
+		void Clear()
 		{
 			if (managesLifetime)
 			{
 				for(auto i = structures.begin(); i != structures.end(); ++i)
 				{
 					auto& sb = i->GetStructure();
-               sb.Free();
+					sb.Free();
 				}
 			}
 			structures.clear();
 		}
 
-		virtual void Register(cstr publicName, IStructureBuilder& s)
+		void Register(cstr publicName, IStructureBuilder& s)
 		{
 			TMapNameToIndex::const_iterator i = structureMap.find(publicName);
 			if (i != structureMap.end())
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Duplicate structure definition for %s"), publicName);
+				const Sex::ISExpression* definition = nullptr;
+
+				for (auto& item : structures)
+				{
+					if (Eq(item.GetPublicName(), publicName))
+					{
+						definition = item.GetStructure().Definition();
+						break;
+					}
+				}
+
+				if (definition)
+				{
+					cstr originalSrc = definition->Tree().Source().Name();
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Duplicate structure definition for %s. Original was defined in %s at line %d", publicName, originalSrc, definition->Start().y);
+				}
+
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Duplicate structure definition for %s", publicName);
 			}
 
 			structureMap.insert(std::make_pair(publicName, structures.size()));
 			structures.push_back(StructAlias(publicName,s));
 		}
 
-		virtual int StructCount() const {  return (int32)structures.size(); }		
-		virtual IStructAliasBuilder& GetStruct(int index) { return structures[index]; }
-		virtual const IStructAlias& GetStruct(int index) const { return structures[index]; }
-		virtual IStructureBuilder* TryGet(cstr name)
+		int StructCount() const {  return (int32)structures.size(); }		
+		IStructAliasBuilder& GetStruct(int index) { return structures[index]; }
+		const IStructAlias& GetStruct(int index) const { return structures[index]; }
+		IStructureBuilder* TryGet(cstr name)
 		{
 			if (name == nullptr || *name == 0) Rococo::Throw(0, "%s: name was blank", __func__);
 			for(auto i = structures.begin(); i != structures.end(); ++i)
@@ -359,7 +376,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return NULL;
 		}
 
-		virtual const IStructure* TryGet(cstr name) const
+		const IStructure* TryGet(cstr name) const
 		{
 			if (name == nullptr || *name == 0) Rococo::Throw(0, "%s: name was blank", __func__);
 			for(auto i = structures.begin(); i != structures.end(); ++i)

@@ -1,9 +1,0 @@
-(struct AudioSource3D
-	(Int32 priority)
-	(Float32 volume)
-	(Sys.Maths.Vec3 position)
-	(Sys.Maths.Vec3 dopplerVelocity)
-	(Float32 msDelay)
-)
-(alias AudioSource3D Rococo.Audio.AudioSource3D)
-
