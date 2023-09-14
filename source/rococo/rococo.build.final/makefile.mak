@@ -9,7 +9,7 @@ $(BIN)native.hashes.sxy: ..\..\source\rococo\sexy\NativeSource\native.hashes.sxy
 all:
 	..\..\build\tools\package.bat $(CONFIG)
 	@..\..\build\tools\ship.sexystudio.bat $(CONFIG)
-	@xcopy ..\..\packages\mhost\MHost\mhost_sxh.sxy ..\..\content\scripts\interop\rococo\mhost\mhost_sxh.sxy 	 /s 	/i   /y    /d    /q
+	@xcopy ..\..\packages\mhost\MHost\mhost_sxh.sxy ..\..\content\scripts\interop\rococo\mhost\ 	 /s 	/i   /y    /d    /q
 
 clean:
 

@@ -71,7 +71,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -126,6 +126,8 @@
       <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <PreBuildEvent>
       <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
@@ -137,7 +139,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>NDEBUG;WIN64;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libvorbis\include;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -192,6 +194,8 @@
       <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <PreBuildEvent>
       <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
@@ -329,6 +333,46 @@
       <Project>{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}</Project>
       <Name>sexy.bennyhill</Name>
       <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="rococo.audio_vs2022_win64.vcxproj">
+      <Project>{1C4853CF-79C5-A23B-80A8-01656A9473CF}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
+      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
+      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.component.body_vs2022_win64.vcxproj">
+      <Project>{7D425A96-016D-D428-78AE-957D6214E327}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.component.animation_vs2022_win64.vcxproj">
+      <Project>{8F18DC28-1B77-A11E-B2BA-80D1DBD827B8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.ecs_vs2022_win64.vcxproj">
+      <Project>{989FB988-E5BF-6FBF-5327-5B4B4E904985}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.component.skeleton_vs2022_win64.vcxproj">
+      <Project>{9EA8CD64-39CD-7C3C-6703-D8D9C64F4AF4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
+      <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
   </ItemGroup>
 </Project>

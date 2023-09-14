@@ -29,5 +29,6 @@ all:
 	@xcopy $(ROCOCO)source\rococo\sexy\NativeSource\native.hashes.sxy $(BIN64)$(CONFIG)\		/i   /y    /d    /q
 	@xcopy $(INTEROP)mplat\*.sxy        $(PACKAGE_DIR)mhost\MHost\			    				/i   /y    /d    /q
 	@xcopy $(INTEROP)components\*.sxy   $(PACKAGE_DIR)mhost\MHost\Components\Interop\   		/i   /y    /d    /q
+	@xcopy $(INTEROP)audio\*.sxy   		$(PACKAGE_DIR)mhost\MHost\Audio\Interop\   				/i   /y    /d    /q
 	$(PACKAGER_PATH) $(PACKAGE_DIR)mhost $(CONTENT)packages\mhost_1000.sxyz
 	@echo "The package.mak said '$(CONFIG) MHOST Packaging complete'. What next?"

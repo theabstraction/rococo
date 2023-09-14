@@ -2,7 +2,6 @@
 #include <components/rococo.components.body.h>
 #include <rococo.maths.h>
 #include <components/rococo.ecs.builder.inl>
-#include <3D/rococo.mesh-builder.h>
 #include <new>
 
 namespace Rococo::Components
@@ -10,9 +9,9 @@ namespace Rococo::Components
 	struct BodyComponent : IBodyComponent
 	{	
         const ROID roid;
-        Rococo::Graphics::IMeshBuilderSupervisor& meshBuilder;
+        Body::IBodyMeshDictionary& meshDictonary;
 
-        BodyComponent(Rococo::Components::Body::BodyComponentCreationArgs& args, InstanceInfo& instance): roid(instance.roid), meshBuilder(args.meshBuilder)
+        BodyComponent(Rococo::Components::Body::BodyComponentCreationArgs& args, InstanceInfo& instance): roid(instance.roid), meshDictonary(args.meshDictionary)
         {
         }
 
@@ -26,8 +25,8 @@ namespace Rococo::Components
             UNUSED(info);
         }
 
-        AABB bounds;
-        ID_SYS_MESH sysMeshId;
+        Rococo::Components::Body::BodyMeshEntry mesh;
+
         Matrix4x4 model = Matrix4x4::Identity();
         ROID parent;
         Vec3 scale{ 1.0f, 1.0f, 1.0f };
@@ -59,9 +58,9 @@ namespace Rococo::Components
 
         void SetMeshByName(const fstring& name) override
         {
-            if (!meshBuilder.TryGetByName(name, OUT sysMeshId, OUT bounds))
+            if (!meshDictonary.TryGetByName(name, OUT mesh))
             {
-                Throw(0, "%s: Could not find mesh %s in the mesh builder", __FUNCTION__, name.buffer);
+                Throw(0, "%s: Could not find mesh %s in the mesh dictionary", __FUNCTION__, name.buffer);
             }
         }
 
@@ -82,12 +81,12 @@ namespace Rococo::Components
 
         ID_SYS_MESH Mesh() const override
         {
-            return sysMeshId;
+            return mesh.sysId;
         }
 
         void SetMesh(ID_SYS_MESH id) override
         {
-            sysMeshId = id;
+            mesh.sysId = id;
         }
 	};
 }

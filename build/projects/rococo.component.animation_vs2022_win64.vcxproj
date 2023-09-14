@@ -245,6 +245,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh" />
+    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>

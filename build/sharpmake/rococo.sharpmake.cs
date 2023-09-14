@@ -1097,18 +1097,17 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
 
+            conf.ExportAdditionalLibrariesEvenForStaticLib = true;
+            DependencySetting buildFirst = DependencySetting.OnlyBuildOrder;
+            conf.AddPrivateDependency<RococoECSProject>(target, buildFirst);
+            conf.AddPrivateDependency<RococoComponentsAnimationProject>(target, buildFirst);
+            conf.AddPrivateDependency<RococoComponentsBodyProject>(target, buildFirst);
+            conf.AddPrivateDependency<RococoComponentsSkeletonProject>(target, buildFirst);
+            conf.AddPrivateDependency<RococoAudioProject>(target, buildFirst);
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
             AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
-
-            conf.AddPublicDependency<RococoECSProject>(target);
-            conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
-            conf.AddPublicDependency<RococoComponentsBodyProject>(target);
-            conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
-            conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
-            conf.AddPrivateDependency<RococoAudioProject>(target);
-            conf.AddPublicDependency<RococoSEXMLProject>(target); ;
         }
     }
 
@@ -1129,14 +1128,15 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoFileBrowserProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
+            conf.AddPrivateDependency<RococoECSProject>(target);
+            conf.AddPrivateDependency<RococoComponentsAnimationProject>(target);
+            conf.AddPrivateDependency<RococoComponentsBodyProject>(target);
+            conf.AddPrivateDependency<RococoComponentsConfigurationProject>(target);
+            conf.AddPrivateDependency<RococoComponentsSkeletonProject>(target);
+            conf.AddPrivateDependency<RococoSEXMLProject>(target);
+            conf.AddPrivateDependency<RococoAudioProject>(target);
             conf.AddPublicDependency<RococoMPlatProject>(target);
-            conf.AddPublicDependency<RococoAudioProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
-            conf.AddPublicDependency<RococoECSProject>(target);
-            conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
-            conf.AddPublicDependency<RococoComponentsConfigurationProject>(target);
-            conf.AddPublicDependency<RococoComponentsBodyProject>(target);
-            conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
         }
     }
 
@@ -1155,6 +1155,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
+            conf.AddPrivateDependency<RococoSEXMLProject>(target);
             conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
 
             // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\
@@ -1738,6 +1739,11 @@ namespace Rococo
 
         public static void AddRococoMajorLibs(Solution.Configuration conf, Target target)
         {
+            conf.AddProject<RococoECSProject>(target);
+            conf.AddProject<RococoComponentsConfigurationProject>(target);
+            conf.AddProject<RococoComponentsAnimationProject>(target);
+            conf.AddProject<RococoComponentsBodyProject>(target);
+            conf.AddProject<RococoComponentsSkeletonProject>(target);
             conf.AddProject<RococoSEXMLProject>(target);
             conf.AddProject<RococoMathsProject>(target);
             conf.AddProject<RococoPackagerProject>(target);
@@ -1753,11 +1759,6 @@ namespace Rococo
             conf.AddProject<RococoMHostProject>(target);
             conf.AddProject<RococoAudioProject>(target);
             conf.AddProject<RococoAudioTestProject>(target);
-            conf.AddProject<RococoECSProject>(target);
-            conf.AddProject<RococoComponentsConfigurationProject>(target);
-            conf.AddProject<RococoComponentsAnimationProject>(target);
-            conf.AddProject<RococoComponentsBodyProject>(target);
-            conf.AddProject<RococoComponentsSkeletonProject>(target);
             conf.AddProject<RococoECSTestProject>(target);
             conf.AddProject<RococoIncludeProject>(target);
             conf.AddProject<SexyIncludeProject>(target);
@@ -1945,6 +1946,12 @@ namespace Rococo
             arguments.Generate<LibTiffProject>();
             arguments.Generate<LibZipProject>();
 
+            arguments.Generate<RococoECSProject>();
+            arguments.Generate<RococoComponentsAnimationProject>();
+            arguments.Generate<RococoComponentsConfigurationProject>();
+            arguments.Generate<RococoComponentsBodyProject>();
+            arguments.Generate<RococoComponentsSkeletonProject>();
+
             arguments.Generate<RococoMathsProject>();
             arguments.Generate<RococoPackagerProject>();
             arguments.Generate<RococoWindowsProject>();
@@ -1968,11 +1975,6 @@ namespace Rococo
             arguments.Generate<RococoBuildFinalFastProject>();
             arguments.Generate<RococoSexyStudio4NPPProject>();
 
-            arguments.Generate<RococoECSProject>();
-            arguments.Generate<RococoComponentsAnimationProject>();
-            arguments.Generate<RococoComponentsConfigurationProject>();
-            arguments.Generate<RococoComponentsBodyProject>();
-            arguments.Generate<RococoComponentsSkeletonProject>();
             arguments.Generate<RococoECSTestProject>();
             arguments.Generate<SexyDotNetCLIProject>();
             //arguments.Generate<SexyDotNetIDEProject>();

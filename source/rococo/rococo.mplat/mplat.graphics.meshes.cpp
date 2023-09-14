@@ -1,5 +1,6 @@
 #include <rococo.mplat.h>
 #include <rococo.hashtable.h>
+#include <components/rococo.components.body.h>
 #include <rococo.io.h>
 #include <vector>
 #include <algorithm>
@@ -58,7 +59,7 @@ namespace
 	   }
    };
 
-   struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue
+   struct MeshBuilder : public Rococo::Graphics::IMeshBuilderSupervisor, IMathsVenue, Rococo::Components::Body::IBodyMeshDictionary
    {
       stringmap<MeshBinding*> meshes;
 	  std::unordered_map<ID_SYS_MESH, MeshBindingEx, ID_SYS_MESH> idToName;
@@ -82,6 +83,11 @@ namespace
 			  delete[] mesh->pWeightArray;
 			  delete mesh;
 		  }
+	  }
+
+	  Rococo::Components::Body::IBodyMeshDictionary& MeshDictionary()
+	  {
+		  return *this;
 	  }
 
       void Clear() override
@@ -434,7 +440,7 @@ namespace
 		  span = i->second->bounds.Span();
 	  }
 
-	  bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds) override
+	  bool TryGetByName(cstr name, ID_SYS_MESH& id, AABB& bounds) const override
 	  {
 		  auto i = meshes.find(name);
 		  if (i == meshes.end())
@@ -449,6 +455,11 @@ namespace
 			  bounds = i->second->bounds;
 			  return true;
 		  }
+	  }
+
+	  bool TryGetByName(const fstring& name, OUT Rococo::Components::Body::BodyMeshEntry& mesh) const override
+	  {
+		  return TryGetByName(name, OUT mesh.sysId, OUT mesh.bounds);
 	  }
 
 	  void AddPhysicsHull(const Triangle& t) override

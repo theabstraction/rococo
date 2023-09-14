@@ -246,6 +246,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh" />
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs_declarations.sxh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.ecs\ecs.main.cpp" />

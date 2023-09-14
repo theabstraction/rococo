@@ -1,14 +1,9 @@
 #pragma once
 #include <components/rococo.ecs.ex.h>
-#include <rococo.meshes.h>
 #include <rococo.functional.h>
+#include <rococo.meshes.h>
 
 #include "../../component.modules/body/code-gen/body.sxh.h"
-
-namespace Rococo::Graphics
-{
-    struct IMeshBuilderSupervisor;
-}
 
 namespace Rococo::Components
 {
@@ -23,9 +18,20 @@ namespace Rococo::Components
 
     namespace Body
     {
+        struct BodyMeshEntry
+        {
+            ID_SYS_MESH sysId;
+            AABB bounds;
+        };
+
+        ROCOCO_INTERFACE IBodyMeshDictionary
+        {
+            virtual bool TryGetByName(const fstring& name, OUT BodyMeshEntry& mesh) const = 0;
+        };
+
         struct BodyComponentCreationArgs
         {
-            Rococo::Graphics::IMeshBuilderSupervisor& meshBuilder;
+            IBodyMeshDictionary& meshDictionary;
         };
     }
 }

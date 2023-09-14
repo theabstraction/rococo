@@ -437,7 +437,7 @@ void LinkComponents(IECSSupervisor& ecs, Platform& platform)
 {
 	ECS::LinkToECS_IAnimationComponentTable(ecs);
 
-	Rococo::Components::Body::BodyComponentCreationArgs args { platform.graphics.meshes };
+	Rococo::Components::Body::BodyComponentCreationArgs args { platform.graphics.meshes.MeshDictionary()};
 	ECS::LinkToECS_IBodyComponentTable(ecs, args);
 	ECS::LinkToECS_ISkeletonComponentTable(ecs, platform.world.rigs.Skeles());
 }
