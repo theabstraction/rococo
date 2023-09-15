@@ -6,6 +6,8 @@
 #include <rococo.time.h>
 #include "dx11.pipeline.h"
 
+using namespace Rococo::RAL;
+
 namespace Rococo::DX11
 {
 	void DX11Pipeline::Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances)
@@ -13,7 +15,7 @@ namespace Rococo::DX11
 		if (!m.vertexBuffer)
 			return;
 
-		if (phase == RenderPhase_DetermineShadowVolumes && m.disableShadowCasting)
+		if (phase == RenderPhase::DetermineShadowVolumes && m.disableShadowCasting)
 			return;
 
 		ID3D11Buffer* buffers[2] = { m.vertexBuffer, m.weightsBuffer };
@@ -22,12 +24,12 @@ namespace Rococo::DX11
 
 		bool overrideShader = false;
 
-		if (m.psSpotlightShader && phase == RenderPhase_DetermineSpotlight)
+		if (m.psSpotlightShader && phase == RenderPhase::DetermineSpotlight)
 		{
 			shaders.UseShaders(m.vsSpotlightShader, m.psSpotlightShader);
 			overrideShader = true;
 		}
-		else if (m.psAmbientShader && phase == RenderPhase_DetermineAmbient)
+		else if (m.psAmbientShader && phase == RenderPhase::DetermineAmbient)
 		{
 			shaders.UseShaders(m.vsAmbientShader, m.psAmbientShader);
 			overrideShader = true;
@@ -142,7 +144,7 @@ namespace Rococo::DX11
 		dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
 		dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
 
-		phase = RenderPhase_DetermineShadowVolumes;
+		phase = RenderPhase::DetermineShadowVolumes;
 		scene.RenderShadowPass(drd, rc, true);
 
 		shaders.UseShaders(idObjVS_Shadows, idObjPS_Shadows);
@@ -156,7 +158,7 @@ namespace Rococo::DX11
 
 	void DX11Pipeline::RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight)
 	{
-		phase = RenderPhase_DetermineAmbient;
+		phase = RenderPhase::DetermineAmbient;
 
 		ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase);
 		if (shaders.UseShaders(idObjAmbientVS, idPS))
@@ -178,17 +180,18 @@ namespace Rococo::DX11
 			dc.RSSetState(objectRasterizering);
 
 			this->ambientLight = ambientLight;
-			SetAmbientConstants();
+			SetPSConstantBufferWithAmbientLightConstants();
 
 			scene.RenderObjects(rc, false);
 			scene.RenderObjects(rc, true);
-			Render3DGui(gui3DTriangles.data(), gui3DTriangles.size());
+
+			RAL_pipeline->Render3DGui();
 
 			dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			DrawParticles(fog.data(), fog.size(), idFogAmbientPS, idParticleVS, idFogAmbientGS);
 		}
 
-		phase = RenderPhase_None;
+		phase = RenderPhase::None;
 	}
 
 	void DX11Pipeline::RenderSkyBox(IScene& scene)
@@ -257,6 +260,34 @@ namespace Rococo::DX11
 		}
 	}
 
+	void DX11Pipeline::DisableBlend()
+	{
+		FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
+	}
+
+	void DX11Pipeline::UseAdditiveBlend()
+	{
+		FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
+	}
+
+	void DX11Pipeline::UseAlphaAdditiveBlend()
+	{
+		FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
+	}
+
+	void DX11Pipeline::DisableWritesOnDepthState()
+	{
+		dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
+	}
+
+	void DX11Pipeline::SetDrawTopology(PrimitiveTopology topology)
+	{
+		dc.IASetPrimitiveTopology(*reinterpret_cast<D3D11_PRIMITIVE_TOPOLOGY*>(&topology));
+	}
+
 	void DX11Pipeline::RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene)
 	{
 		LightConstantBuffer light = lightSubset;
@@ -277,7 +308,7 @@ namespace Rococo::DX11
 
 			dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
 
-			phase = RenderPhase_DetermineSpotlight;
+			phase = RenderPhase::DetermineSpotlight;
 
 			ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase);
 			shaders.UseShaders(idObjVS, idPS);
@@ -314,11 +345,11 @@ namespace Rococo::DX11
 			scene.RenderObjects(rc, false);
 			scene.RenderObjects(rc, true);
 
-			Render3DGui(gui3DTriangles.data(), gui3DTriangles.size());
+			RAL_pipeline->Render3DGui();
 
 			dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 			DrawParticles(fog.data(), fog.size(), idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
-			phase = RenderPhase_None;
+			phase = RenderPhase::None;
 
 			dc.OMSetDepthStencilState(objDepthState, 0);
 		}

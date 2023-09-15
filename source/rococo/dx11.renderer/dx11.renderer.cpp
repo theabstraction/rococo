@@ -29,6 +29,8 @@
 
 #include <rococo.fonts.hq.h>
 
+#include <RAL\RAL.h>
+
 // All of these objects are used in constant buffers and must be a multiple of 16 bytes in length;
 static_assert(sizeof(Rococo::Graphics::ObjectInstance) % 16 == 0);
 static_assert(sizeof(Rococo::Graphics::GuiScale) % 16 == 0);
@@ -40,6 +42,7 @@ namespace Rococo::DX11
 }
 
 using namespace Rococo;
+using namespace Rococo::RAL;
 using namespace Rococo::Fonts;
 using namespace Rococo::Windows;
 using namespace Rococo::Samplers;
@@ -47,12 +50,108 @@ using namespace Rococo::DX11;
 
 using namespace Rococo::Textures;
 
+ROCOCO_INTERFACE IDX11IRALVertexDataBuffer : IRALVertexDataBuffer
+{
+	virtual ID3D11Buffer* RawBuffer() = 0;
+};
+
+class DX11_RAL_DynamicVertexBuffer: public IDX11IRALVertexDataBuffer
+{
+	ID3D11Device& device;
+	ID3D11DeviceContext& dc;
+	AutoRelease<ID3D11Buffer> dx11Buffer;
+public:
+	DX11_RAL_DynamicVertexBuffer(ID3D11Device& _device, ID3D11DeviceContext& _dc, size_t sizeofStruct, size_t nElements): device(_device), dc(_dc)
+	{
+		size_t nBytes = sizeofStruct * nElements;
+		if (nBytes > std::numeric_limits<UINT>::max())
+		{
+			Throw(E_INVALIDARG, "DX11_RAL_DataBuffer failed - capacity too large");
+		}
+
+		D3D11_BUFFER_DESC bufferDesc;
+		bufferDesc.ByteWidth = (UINT)nBytes;
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		bufferDesc.MiscFlags = 0;
+		bufferDesc.StructureByteStride = 0;
+		VALIDATEDX11(device.CreateBuffer(&bufferDesc, nullptr, &dx11Buffer));
+	}
+
+	void CopyDataToBuffer(const void* data, size_t sizeofData) override
+	{
+		DX11::CopyStructureToBuffer(dc, dx11Buffer, data, sizeofData);
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	ID3D11Buffer* RawBuffer() override
+	{
+		return dx11Buffer;
+	}
+};
+
+ROCOCO_INTERFACE IDX11IRALConstantDataBuffer : IRALConstantDataBuffer
+{
+	virtual ID3D11Buffer * RawBuffer() = 0;
+};
+
+class DX11_RALConstantBuffer : public IDX11IRALConstantDataBuffer
+{
+	ID3D11Device& device;
+	ID3D11DeviceContext& dc;
+	AutoRelease<ID3D11Buffer> dx11Buffer;
+public:
+	DX11_RALConstantBuffer(ID3D11Device& _device, ID3D11DeviceContext& _dc, size_t sizeofStruct, size_t nElements) : device(_device), dc(_dc)
+	{
+		size_t nBytes = sizeofStruct * nElements;
+		if (nBytes > std::numeric_limits<UINT>::max())
+		{
+			Throw(E_INVALIDARG, "DX11_RAL_DataBuffer failed - capacity too large");
+		}
+
+		D3D11_BUFFER_DESC desc;
+		desc.ByteWidth = (UINT) nBytes;
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.MiscFlags = 0;
+		desc.StructureByteStride = 0;
+		VALIDATEDX11(device.CreateBuffer(&desc, nullptr, &dx11Buffer));
+	}
+
+	void AssignToGPU(int constantIndex) override
+	{
+		dc.VSSetConstantBuffers(constantIndex, 1, &dx11Buffer);
+	}
+
+	void CopyDataToBuffer(const void* data, size_t sizeofData) override
+	{
+		DX11::CopyStructureToBuffer(dc, dx11Buffer, data, sizeofData);
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	ID3D11Buffer* RawBuffer() override
+	{
+		return dx11Buffer;
+	}
+};
+
 class DX11AppRenderer :
 	public IDX11Renderer,
 	public IRenderContext,
 	public IMathsVenue,
 	public IDX11ResourceLoader,
-	public IRenderingResources
+	public IRenderingResources,
+	public IRAL
 {
 private:
 	IO::IInstallation& installation;
@@ -72,7 +171,60 @@ private:
 	RAWMOUSE lastMouseEvent;
 	Vec2i screenSpan;
 
+	std::vector<ID3D11Buffer*> boundVertexBuffers;
+	std::vector<UINT> boundVertexBufferStrides;
+	std::vector<UINT> boundVertexBufferOffsets;
+
 	AutoFree<IDX11Pipeline> pipeline;
+
+	IRALVertexDataBuffer* CreateDynamicVertexBuffer(size_t sizeofStruct, size_t nElements) override
+	{
+		return new DX11_RAL_DynamicVertexBuffer(device, dc, sizeofStruct, nElements);
+	}
+
+	IRALConstantDataBuffer* CreateConstantBuffer(size_t sizeofStruct, size_t nElements) override
+	{
+		return new DX11_RALConstantBuffer(device, dc, sizeofStruct, nElements);
+	}
+
+	void ClearBoundVertexBufferArray() override
+	{
+		boundVertexBuffers.clear();
+		boundVertexBufferStrides.clear();
+		boundVertexBufferOffsets.clear();
+	}
+
+	void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, int32 offset) override
+	{
+		if (vertexBuffer == nullptr)
+		{
+			Throw(0, "%s: vertexBuffer was nullptr", __FUNCTION__);
+		}
+
+		boundVertexBuffers.push_back(static_cast<IDX11IRALVertexDataBuffer*>(vertexBuffer)->RawBuffer());
+		boundVertexBufferStrides.push_back(sizeofVertex);
+		boundVertexBufferOffsets.push_back(offset);
+	}
+
+	void CommitBoundVertexBuffers() override
+	{
+		if (boundVertexBuffers.size() == 0)
+		{
+			Throw(0, "%s: boundVertexBuffers size was zero", __FUNCTION__);
+		}
+
+		dc.IASetVertexBuffers(0, boundVertexBuffers.size(), boundVertexBuffers.data(), boundVertexBufferStrides.data(), boundVertexBufferOffsets.data());
+	}
+
+	void Draw(uint32 nVertices, uint32 startPosition) override
+	{
+		dc.Draw(nVertices, startPosition);
+	}
+
+	bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) override
+	{
+		return shaders->UseShaders(vid, pid);
+	}
 
 	bool IsFullscreen() override
 	{
@@ -180,7 +332,7 @@ public:
 		meshes(CreateMeshManager(device)),
 		shaders(CreateShaderManager(installation, options, device, dc))
 	{
-		RenderBundle bundle{ installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc, *this, *this };
+		RenderBundle bundle{ installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc, *this, *this, *this };
 
 		pipeline = CreateDX11Pipeline(bundle);
 		lastTick = Time::TickCount();

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <RAL/RAL.pipeline.h>
+
+using namespace Rococo::RAL;
 
 namespace Rococo::DX11
 {
@@ -17,8 +20,10 @@ namespace Rococo::DX11
 	// This was a result of chasing down an unreachable code warning message.
 	// I choose to keep this organization as it makes developing the pipeline a little more manageable. Only two files include the header, so there is no significant cost 
 	// for the layout of the class in the files.
-	struct DX11Pipeline : IDX11Pipeline, IGui3D, IParticles
+	struct DX11Pipeline : IDX11Pipeline, IParticles, RAL::IRenderStates
 	{
+		AutoFree<RAL::IPipelineSupervisor> RAL_pipeline;
+
 		IO::IInstallation& installation;
 		ID3D11Device& device;
 		ID3D11DeviceContext& dc;
@@ -78,7 +83,6 @@ namespace Rococo::DX11
 
 		std::vector<ParticleVertex> fog;
 		std::vector<ParticleVertex> plasma;
-		std::vector<VertexTriangle> gui3DTriangles;
 
 		ID_SYS_MESH skyMeshId;
 		//AutoRelease<ID3D11SamplerState> envSampler;
@@ -88,15 +92,7 @@ namespace Rococo::DX11
 
 		AutoRelease<ID3D11BlendState> alphaBlend;
 
-		enum RenderPhase
-		{
-			RenderPhase_None,
-			RenderPhase_DetermineShadowVolumes,
-			RenderPhase_DetermineSpotlight,
-			RenderPhase_DetermineAmbient
-		};
-
-		RenderPhase phase = RenderPhase_None;
+		RenderPhase phase = RenderPhase::None;
 
 		int64 entitiesThisFrame = 0;
 		int64 trianglesThisFrame = 0;
@@ -133,9 +129,15 @@ namespace Rococo::DX11
 			}
 		}
 
+		void DisableBlend() override;
+		void UseAdditiveBlend() override;
+		void UseAlphaAdditiveBlend() override;
+		void DisableWritesOnDepthState() override;
+		void SetDrawTopology(PrimitiveTopology topology) override;
+
 		IGui3D& Gui3D() override
 		{
-			return *this;
+			return RAL_pipeline->Gui3D();
 		}
 
 		IParticles& Particles() override
@@ -162,7 +164,7 @@ namespace Rococo::DX11
 		void ShowVenue(IMathsVisitor& visitor) override;
 		void DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir);
 		void RenderToShadowBuffer(IShaders& shaders, IDX11TextureManager& textures, IRenderContext& rc, DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene);
-		void SetAmbientConstants();
+		void SetPSConstantBufferWithAmbientLightConstants();
 		void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight);
 		void RenderSkyBox(IScene& scene);
 		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene);

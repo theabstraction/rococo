@@ -75,6 +75,9 @@
     <ClInclude Include="..\..\source\rococo\include\mplat\mplat.events.h">
       <Filter>mplat</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h">
+      <Filter>RAL</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
@@ -169,6 +172,9 @@
   <ItemGroup>
     <Filter Include="3D">
       <UniqueIdentifier>{3696aa76-bb9a-52ba-e621-bfa83da8e64f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RAL">
+      <UniqueIdentifier>{9a64c4c0-c38f-6714-8a58-018765228342}</UniqueIdentifier>
     </Filter>
     <Filter Include="allocators">
       <UniqueIdentifier>{d8091c41-ed60-bd5a-19a0-c93854a27abc}</UniqueIdentifier>

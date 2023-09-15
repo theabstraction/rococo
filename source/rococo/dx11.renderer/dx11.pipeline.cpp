@@ -13,6 +13,8 @@ namespace Rococo::DX11
 	DX11Pipeline::DX11Pipeline(DX11::RenderBundle& bundle) :
 		installation(bundle.installation), device(bundle.device), dc(bundle.dc), shaders(bundle.shaders), meshes(bundle.meshes), textures(bundle.textures), renderer(bundle.renderer), rc(bundle.rc)
 	{
+		RAL_pipeline = RAL::CreatePipeline(*this, bundle.RAL);
+
 		objDepthState = DX11::CreateObjectDepthStencilState(device);
 		objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
 		noDepthTestOrWrite = DX11::CreateNoDepthCheckOrWrite(device);
@@ -88,11 +90,11 @@ namespace Rococo::DX11
 		case Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE:
 			switch (phase)
 			{
-			case RenderPhase_DetermineAmbient:
+			case RenderPhase::DetermineAmbient:
 				return idObjAmbientPS;
-			case RenderPhase_DetermineSpotlight:
+			case RenderPhase::DetermineSpotlight:
 				return idObjPS;
-			case RenderPhase_DetermineShadowVolumes:
+			case RenderPhase::DetermineShadowVolumes:
 				return idObjPS_Shadows;
 			default:
 				Throw(0, "Unknown render phase: %d", phase);
@@ -100,11 +102,11 @@ namespace Rococo::DX11
 		case Graphics::ENVIRONMENTAL_MAP_PROCEDURAL:
 			switch (phase)
 			{
-			case RenderPhase_DetermineAmbient:
+			case RenderPhase::DetermineAmbient:
 				return idObj_Ambient_NoEnvMap_PS;
-			case RenderPhase_DetermineSpotlight:
+			case RenderPhase::DetermineSpotlight:
 				return idObj_Spotlight_NoEnvMap_PS;
-			case RenderPhase_DetermineShadowVolumes:
+			case RenderPhase::DetermineShadowVolumes:
 				return idObjPS_Shadows;
 			default:
 				Throw(0, "Unknown render phase: %d", phase);
@@ -112,19 +114,6 @@ namespace Rococo::DX11
 		default:
 			Throw(0, "Environment mode %d not implemented", phaseConfig.EnvironmentalMap);
 		}
-	}
-
-	void DX11Pipeline::Add3DGuiTriangles(const VertexTriangle* first, const VertexTriangle* last)
-	{
-		for (auto i = first; i != last; ++i)
-		{
-			gui3DTriangles.push_back(*i);
-		}
-	}
-
-	void DX11Pipeline::Clear3DGuiTriangles()
-	{
-		gui3DTriangles.clear();
 	}
 
 	void DX11Pipeline::AddFog(const ParticleVertex& p)
@@ -164,7 +153,7 @@ namespace Rococo::DX11
 		gui->ShowVenue(visitor);
 	}
 
-	void DX11Pipeline::SetAmbientConstants()
+	void DX11Pipeline::SetPSConstantBufferWithAmbientLightConstants()
 	{
 		AmbientData ad;
 		ad.localLight = ambientLight.ambient;

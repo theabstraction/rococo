@@ -21,6 +21,11 @@
 #include "rococo.fonts.h"
 #include "rococo.functional.h"
 
+namespace Rococo::RAL
+{
+	struct IRAL;
+}
+
 namespace Rococo::DX11
 {
 	using namespace Rococo::Graphics;
@@ -263,6 +268,7 @@ namespace Rococo::DX11
 		ID3D11DeviceContext& dc;
 		IDX11ResourceLoader& loader;
 		IRenderingResources& resources;
+		Rococo::RAL::IRAL& RAL;
 	};
 
 	IDX11Gui* CreateDX11Gui(RenderBundle& bundle);

@@ -2,6 +2,7 @@
 
 #include <rococo.types.h>
 #include <rococo.graphics.types.h>
+#include <rococo.maths.h>
 
 namespace Rococo::Graphics
 {

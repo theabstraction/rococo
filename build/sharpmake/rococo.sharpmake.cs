@@ -991,6 +991,22 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoRALPipelineProject : RococoProject
+    {
+        public RococoRALPipelineProject() : base("pipeline", @"rococo.RAL\pipeline")
+        {
+            SourceFiles.Add(@"..\..\include\RAL\RAL.pipeline.h");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.SolutionFolder = "RAL";
+            StandardInit(conf, target, Configuration.OutputType.Lib);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoDX11RendererProject : RococoProject
     {
         public RococoDX11RendererProject() : base("dx11.renderer")
@@ -1005,6 +1021,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoGraphicsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoFontsProject>(target);
+            conf.AddPublicDependency<RococoRALPipelineProject>(target);
         }
     }
 
@@ -1769,6 +1786,7 @@ namespace Rococo
             conf.AddProject<RococoGraphicsProject>(target);
             conf.AddProject<RococoSexAssetsProject>(target);
             conf.AddProject<RococoSexInferenceProject>(target);
+            conf.AddProject<RococoRALPipelineProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -1997,6 +2015,8 @@ namespace Rococo
 
             arguments.Generate<RococoDX11HLSLMonitorProject>();
             arguments.Generate<RococoDX11HLSLCompilerProject>();
+
+            arguments.Generate<RococoRALPipelineProject>();
         }
     }
 }
