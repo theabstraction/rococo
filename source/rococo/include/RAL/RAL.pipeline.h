@@ -32,6 +32,7 @@ namespace Rococo::Graphics
 namespace Rococo::RAL
 {
 	struct IRAL;
+	struct RALMeshBuffer;
 
 	enum class PrimitiveTopology : uint32;
 
@@ -63,7 +64,7 @@ namespace Rococo::RAL
 		virtual Rococo::Graphics::IGuiRenderContext& Gui() = 0;
 	};
 
-	// [R]enderer [A]bstraction [L]ayer pipeline orders rendering calls to properly format the video output
+	// IPipeline orders rendering calls to properly format the video output
 	ROCOCO_INTERFACE IPipeline
 	{
 		virtual void Add3DGuiTriangles(const Rococo::Graphics::VertexTriangle* first, const Rococo::Graphics::VertexTriangle* last) = 0;
@@ -71,6 +72,7 @@ namespace Rococo::RAL
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual void AssignLightStateBufferToShaders() = 0;
 		virtual void Clear3DGuiTriangles() = 0;
+		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
 		virtual void DrawLightCones(Rococo::Graphics::IScene& scene) = 0;
 		virtual void Render3DGui() = 0;
 		virtual void RenderFogWithAmbient() = 0;

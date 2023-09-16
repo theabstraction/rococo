@@ -20,10 +20,12 @@
 #include "rococo.renderer.h"
 #include "rococo.fonts.h"
 #include "rococo.functional.h"
+#include <RAL/RAL.h>
 
 namespace Rococo::RAL
 {
 	struct IRAL;
+	struct IPipeline;
 }
 
 namespace Rococo::DX11
@@ -207,27 +209,12 @@ namespace Rococo::DX11
 
 	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 
-	struct MeshBuffer
-	{
-		ID3D11Buffer* vertexBuffer;
-		ID3D11Buffer* weightsBuffer;
-		UINT numberOfVertices;
-		D3D_PRIMITIVE_TOPOLOGY topology;
-		ID_PIXEL_SHADER psSpotlightShader;
-		ID_PIXEL_SHADER psAmbientShader;
-		ID_VERTEX_SHADER vsSpotlightShader;
-		ID_VERTEX_SHADER vsAmbientShader;
-		bool alphaBlending;
-		bool disableShadowCasting;
-	};
-
 	ROCOCO_INTERFACE IDX11Meshes: public IMeshes
 	{
 		virtual void Free() = 0;
-		virtual MeshBuffer& GetBuffer(ID_SYS_MESH id) = 0;
 	};
 
-	IDX11Meshes* CreateMeshManager(ID3D11Device& device);
+	IDX11Meshes* CreateMeshManager(ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	ROCOCO_INTERFACE IDX11Shaders : IShaders
 	{
@@ -239,7 +226,6 @@ namespace Rococo::DX11
 
 	ROCOCO_INTERFACE IDX11Pipeline
 	{
-		virtual void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) = 0;
 		virtual bool IsGuiReady() const = 0;
 		virtual void Free() = 0;
 		virtual void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) = 0;
@@ -249,6 +235,7 @@ namespace Rococo::DX11
 		virtual IGuiResources& GuiResources() = 0;
 		virtual IGui3D& Gui3D() = 0;
 		virtual IParticles& Particles() = 0;
+		virtual RAL::IPipeline& RALPipeline() = 0;
 	};
 
 	struct RenderBundle
@@ -288,4 +275,14 @@ namespace Rococo::DX11
 	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures);
 
 	ROCOCO_DX_API void ReportMemoryStatus();
+
+	ROCOCO_INTERFACE IDX11IRALVertexDataBuffer : RAL::IRALVertexDataBuffer
+	{
+		virtual ID3D11Buffer* RawBuffer() = 0;
+	};
+
+	ROCOCO_INTERFACE IDX11IRALConstantDataBuffer : RAL::IRALConstantDataBuffer
+	{
+		virtual ID3D11Buffer* RawBuffer() = 0;
+	};
 } // Rococo::DX11

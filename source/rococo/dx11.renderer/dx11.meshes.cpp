@@ -1,21 +1,24 @@
 #include "dx11.renderer.h"
 #include "rococo.renderer.h"
+#include <RAL/RAL.h>
 #include "dx11helpers.inl"
 #include "dx11buffers.inl"
 #include <vector>
 
 using namespace Rococo::DX11;
 using namespace Rococo::Strings;
-
+using namespace Rococo::RAL;
 
 struct DX11Meshes : public IDX11Meshes
 {
 	ID3D11Device& device;
-	std::vector<MeshBuffer> meshBuffers;
+	ID3D11DeviceContext& dc;
+
+	std::vector<RAL::RALMeshBuffer> meshBuffers;
 
 	int64 meshUpdateCount = 0;
 
-	DX11Meshes(ID3D11Device& _device): device(_device)
+	DX11Meshes(ID3D11Device& _device, ID3D11DeviceContext& _dc): device(_device), dc(_dc)
 	{
 
 	}
@@ -32,17 +35,17 @@ struct DX11Meshes : public IDX11Meshes
 
 	ID_SYS_MESH CreateTriangleMesh(const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) override
 	{
-		ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		ID3D11Buffer* weightsBuffer = weights ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
-		meshBuffers.push_back(MeshBuffer{ meshBuffer, weightsBuffer, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
+		auto* meshBuffer = vertices ? DX11::CreateRALImmutableVertexBuffer(device, dc, vertices, nVertices) : nullptr;
+		auto* weightsBuffer = weights ? DX11::CreateRALImmutableVertexBuffer(device, dc, weights, nVertices) : nullptr;
+		meshBuffers.push_back(RAL::RALMeshBuffer{ meshBuffer, weightsBuffer, nVertices, RAL::PrimitiveTopology::TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
 		int32 index = (int32)meshBuffers.size();
 		return ID_SYS_MESH(index - 1);
 	}
 
 	ID_SYS_MESH CreateSkyMesh(const SkyVertex* vertices, uint32 nVertices) override
 	{
-		ID3D11Buffer* meshBuffer = vertices ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		meshBuffers.push_back(MeshBuffer{ meshBuffer, nullptr, nVertices, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
+		auto* meshBuffer = vertices ? DX11::CreateRALImmutableVertexBuffer(device, dc, vertices, nVertices) : nullptr;
+		meshBuffers.push_back(RAL::RALMeshBuffer{ meshBuffer, nullptr, nVertices, RAL::PrimitiveTopology::TRIANGLELIST, ID_PIXEL_SHADER(), ID_PIXEL_SHADER(), ID_VERTEX_SHADER(), ID_VERTEX_SHADER(), false, false });
 		int32 index = (int32)meshBuffers.size();
 		return ID_SYS_MESH(index - 1);
 	}
@@ -61,12 +64,12 @@ struct DX11Meshes : public IDX11Meshes
 			{
 				UINT byteWidth = 0;
 				D3D11_BUFFER_DESC bdesc;
-				m.vertexBuffer->GetDesc(&bdesc);
+				ToDX11(*m.vertexBuffer).GetDesc(&bdesc);
 				byteWidth += bdesc.ByteWidth;
 
 				if (m.weightsBuffer)
 				{
-					m.weightsBuffer->GetDesc(&bdesc);
+					ToDX11(*m.weightsBuffer).GetDesc(&bdesc);
 					byteWidth += bdesc.ByteWidth;
 				}
 				SafeFormat(desc, 256, " %p %6d %svertices. %6u bytes", m.vertexBuffer, m.numberOfVertices, m.weightsBuffer != nullptr ? "(weighted) " : "", byteWidth);
@@ -101,8 +104,8 @@ struct DX11Meshes : public IDX11Meshes
 	{
 		for (auto& x : meshBuffers)
 		{
-			if (x.vertexBuffer) x.vertexBuffer->Release();
-			if (x.weightsBuffer) x.weightsBuffer->Release();
+			if (x.vertexBuffer) x.vertexBuffer->Free();
+			if (x.weightsBuffer) x.weightsBuffer->Free();
 		}
 
 		meshBuffers.clear();
@@ -116,18 +119,18 @@ struct DX11Meshes : public IDX11Meshes
 
 		if (meshBuffers[id.value].vertexBuffer)
 		{
-			meshBuffers[id.value].vertexBuffer->Release();
+			meshBuffers[id.value].vertexBuffer->Free();
 			meshBuffers[id.value].vertexBuffer = nullptr;
 		}
 
 		if (meshBuffers[id.value].weightsBuffer)
 		{
-			meshBuffers[id.value].weightsBuffer->Release();
+			meshBuffers[id.value].weightsBuffer->Free();
 			meshBuffers[id.value].weightsBuffer = nullptr;
 		}
 	}
 
-	MeshBuffer& GetBuffer(ID_SYS_MESH id) override
+	RAL::RALMeshBuffer& GetBuffer(ID_SYS_MESH id) override
 	{
 		if (id.value < 0 || id.value >= meshBuffers.size())
 		{
@@ -146,21 +149,21 @@ struct DX11Meshes : public IDX11Meshes
 
 		m.numberOfVertices = nVertices;
 
-		ID3D11Buffer* newMesh = vertices != nullptr ? DX11::CreateImmutableVertexBuffer(device, vertices, nVertices) : nullptr;
-		ID3D11Buffer* newWeights = weights != nullptr ? DX11::CreateImmutableVertexBuffer(device, weights, nVertices) : nullptr;
+		auto* newMesh = vertices != nullptr ? DX11::CreateRALImmutableVertexBuffer(device, dc, vertices, nVertices) : nullptr;
+		auto* newWeights = weights != nullptr ? DX11::CreateRALImmutableVertexBuffer(device, dc, weights, nVertices) : nullptr;
 
-		if (m.vertexBuffer) m.vertexBuffer->Release();
+		if (m.vertexBuffer) m.vertexBuffer->Free();
 		m.vertexBuffer = newMesh;
 
-		if (m.weightsBuffer) m.weightsBuffer->Release();
+		if (m.weightsBuffer) m.weightsBuffer->Free();
 		m.weightsBuffer = newWeights;
 	}
 };
 
 namespace Rococo::DX11
 {
-	IDX11Meshes* CreateMeshManager(ID3D11Device& device)
+	IDX11Meshes* CreateMeshManager(ID3D11Device& device, ID3D11DeviceContext& dc)
 	{
-		return new DX11Meshes(device);
+		return new DX11Meshes(device, dc);
 	}
 }

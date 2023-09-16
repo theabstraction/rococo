@@ -48,8 +48,6 @@ namespace Rococo::DX11
 		AutoRelease<ID3D11DepthStencilState> objDepthState_NoWrite;
 		AutoRelease<ID3D11DepthStencilState> noDepthTestOrWrite;
 
-		AutoRelease<ID3D11Buffer> instanceBuffer;
-
 		AutoFree<IDX11Gui> gui;
 
 		ID_VERTEX_SHADER idObjVS;
@@ -93,6 +91,11 @@ namespace Rococo::DX11
 			}
 		}
 
+		RAL::IPipeline& RALPipeline() override
+		{
+			return *RAL_pipeline;
+		}
+
 		void DisableBlend() override;
 		void UseAdditiveBlend() override;
 		void UseAlphaBlend() override;
@@ -122,7 +125,6 @@ namespace Rococo::DX11
 		}
 
 		void Free() override;
-		void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances);
 		void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID);
 
 		bool IsGuiReady() const

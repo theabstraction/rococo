@@ -333,7 +333,7 @@ namespace Rococo::RAL::Anon
 			ral.Shaders().UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
 		}
 
-		void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances)
+		void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override
 		{
 			if (!m.vertexBuffer)
 				return;
@@ -366,7 +366,12 @@ namespace Rococo::RAL::Anon
 
 			ral.ClearBoundVertexBufferArray();
 			ral.BindVertexBuffer(m.vertexBuffer, sizeof ObjectVertex, 0);
-			ral.BindVertexBuffer(m.weightsBuffer, sizeof BoneWeights, 0);
+
+			if (m.weightsBuffer)
+			{
+				ral.BindVertexBuffer(m.weightsBuffer, sizeof BoneWeights, 0);
+			}
+
 			ral.CommitBoundVertexBuffers();
 
 			for (uint32 i = 0; i < nInstances; i++)

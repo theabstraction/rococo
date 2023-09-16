@@ -94,6 +94,7 @@ namespace Rococo::RAL
 		bool disableShadowCasting;
 	};
 
+	// [R]enderer [A]bstraction [L]ayer, provided to the RAL pipeline implementation 
 	ROCOCO_INTERFACE IRAL
 	{
 		virtual IRALConstantDataBuffer* CreateConstantBuffer(size_t sizeofStruct, size_t nElements) = 0;

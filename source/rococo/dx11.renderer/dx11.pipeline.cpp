@@ -30,8 +30,6 @@ namespace Rococo::DX11
 		additiveBlend = DX11::CreateAdditiveBlend(device);
 		plasmaBlend = DX11::CreatePlasmaBlend(device);
 
-		instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
-
 		gui = CreateDX11Gui(bundle);
 
 		idObjVS = shaders.CreateObjectVertexShader("!shaders/compiled/object.vs");

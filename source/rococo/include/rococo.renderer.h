@@ -31,6 +31,13 @@ namespace Rococo
 	}
 }
 
+namespace Rococo::RAL
+{
+	struct IRAL;
+	struct IPipeline;
+	struct RALMeshBuffer;
+}
+
 namespace Rococo::Graphics
 {
 	ROCOCO_INTERFACE IMaterialPalette
@@ -95,6 +102,7 @@ namespace Rococo::Graphics
 		virtual void SetShadowCasting(ID_SYS_MESH id, boolean32 isActive) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual void UpdateMesh(ID_SYS_MESH id, const ObjectVertex* vertices, uint32 nVertices, const BoneWeights* weights) = 0;
+		virtual RAL::RALMeshBuffer& GetBuffer(ID_SYS_MESH id) = 0;
 	};
 
 	ROCOCO_INTERFACE ICubeTextures
