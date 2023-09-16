@@ -40,7 +40,6 @@ namespace Rococo::DX11
 		AutoRelease<ID3D11RasterizerState> shadowRasterizering;
 
 		AutoRelease<ID3D11Buffer> depthRenderStateBuffer;
-		AutoRelease<ID3D11Buffer> lightStateBuffer;
 		AutoRelease<ID3D11Buffer> ambientBuffer;
 
 		AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
@@ -81,8 +80,6 @@ namespace Rococo::DX11
 		bool builtFirstPass = false;
 
 		Graphics::RenderPhaseConfig phaseConfig;
-
-		AutoRelease<ID3D11Buffer> sunlightStateBuffer;
 
 		BoneMatrices boneMatrices = { 0 };
 		AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
@@ -147,7 +144,6 @@ namespace Rococo::DX11
 		void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight);
 		void RenderSkyBox(IScene& scene);
 		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene);
-		void SetupSpotlightConstants();
 		void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene);
 		void Render3DObjects(IScene& scene);
 		RenderTarget GetCurrentRenderTarget();

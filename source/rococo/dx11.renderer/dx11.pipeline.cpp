@@ -34,7 +34,6 @@ namespace Rococo::DX11
 		lightConeBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, 3);
 		
 		depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
-		lightStateBuffer = DX11::CreateConstantBuffer<LightConstantBuffer>(device);
 
 		ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
 
@@ -55,7 +54,6 @@ namespace Rococo::DX11
 		alphaBlend = DX11::CreateAlphaBlend(device);
 
 		boneMatricesStateBuffer = DX11::CreateConstantBuffer<BoneMatrices>(device);
-		sunlightStateBuffer = DX11::CreateConstantBuffer<Vec4>(device);
 	}
 
 	ID_PIXEL_SHADER DX11Pipeline::GetObjectShaderPixelId(RenderPhase phase)
@@ -114,25 +112,9 @@ namespace Rococo::DX11
 	void DX11Pipeline::UpdateGlobalState(const GuiMetrics& metrics, IScene& scene)
 	{
 		RAL_pipeline->UpdateGlobalState(metrics, scene);
-
-		Vec4 sunlight = { Sin(45_degrees), 0, Cos(45_degrees), 0 };
-		Vec4 sunlightLocal = sunlight;
-
-		DX11::CopyStructureToBuffer(dc, sunlightStateBuffer, sunlightLocal);
-
-		dc.VSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
-		dc.PSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
-		dc.GSSetConstantBuffers(CBUFFER_INDEX_SUNLIGHT, 1, &sunlightStateBuffer);
-
+		RAL_pipeline->UpdateSunlight();
 		DX11::CopyStructureToBuffer(dc, boneMatricesStateBuffer, boneMatrices);
 		dc.VSSetConstantBuffers(CBUFFER_INDEX_BONE_MATRICES, 1, &boneMatricesStateBuffer);
-	}
-
-	void DX11Pipeline::SetupSpotlightConstants()
-	{
-		dc.VSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
-		dc.PSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
-		dc.GSSetConstantBuffers(CBUFFER_INDEX_CURRENT_SPOTLIGHT, 1, &lightStateBuffer);
 	}
 
 	RenderTarget DX11Pipeline::GetCurrentRenderTarget()

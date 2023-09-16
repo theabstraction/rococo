@@ -39,6 +39,8 @@ namespace Rococo::RAL::Anon
 		AutoFree<IRALVertexDataBuffer> particleBuffer;
 		AutoFree<IRALConstantDataBuffer> instanceBuffer;
 		AutoFree<IRALConstantDataBuffer> globalStateBuffer;
+		AutoFree<IRALConstantDataBuffer> lightStateBuffer;
+		AutoFree<IRALConstantDataBuffer> sunlightStateBuffer;
 
 		ID_VERTEX_SHADER idParticleVS;
 		ID_PIXEL_SHADER idPlasmaPS;
@@ -63,6 +65,8 @@ namespace Rococo::RAL::Anon
 			instanceBuffer = ral.CreateConstantBuffer(sizeof ObjectInstance, 1);
 			particleBuffer = ral.CreateDynamicVertexBuffer(sizeof ParticleVertex, PARTICLE_BUFFER_VERTEX_CAPACITY);
 			globalStateBuffer = ral.CreateConstantBuffer(sizeof GlobalState, 1);
+			lightStateBuffer = ral.CreateConstantBuffer(sizeof LightConstantBuffer, 1);
+			sunlightStateBuffer = ral.CreateConstantBuffer(sizeof Vec4, 1);
 
 			idParticleVS		= ral.Shaders().CreateParticleVertexShader("!shaders/compiled/particle.vs");
 			idPlasmaGS			= ral.Shaders().CreateGeometryShader("!shaders/compiled/plasma.gs");
@@ -116,11 +120,18 @@ namespace Rococo::RAL::Anon
 			}
 		}
 
-		void AssignGlobalStateBufferToShaders()
+		void AssignGlobalStateBufferToShaders() override
 		{
 			globalStateBuffer->AssignToGS(CBUFFER_INDEX_GLOBAL_STATE);
 			globalStateBuffer->AssignToPS(CBUFFER_INDEX_GLOBAL_STATE);
 			globalStateBuffer->AssignToVS(CBUFFER_INDEX_GLOBAL_STATE);
+		}
+
+		void AssignLightStateBufferToShaders() override
+		{
+			lightStateBuffer->AssignToGS(CBUFFER_INDEX_CURRENT_SPOTLIGHT);
+			lightStateBuffer->AssignToPS(CBUFFER_INDEX_CURRENT_SPOTLIGHT);
+			lightStateBuffer->AssignToVS(CBUFFER_INDEX_CURRENT_SPOTLIGHT);
 		}
 
 		void Clear3DGuiTriangles() override
@@ -185,6 +196,20 @@ namespace Rococo::RAL::Anon
 			currentGlobalState = g;
 
 			AssignGlobalStateBufferToShaders();
+		}
+
+		void UpdateLightBuffer(const LightConstantBuffer& light) override
+		{
+			lightStateBuffer->CopyDataToBuffer(&light, sizeof light);
+		}
+
+		void UpdateSunlight() override
+		{
+			Vec4 sunlight = { Sin(45_degrees), 0, Cos(45_degrees), 0 };
+			sunlightStateBuffer->CopyDataToBuffer(&sunlight, sizeof sunlight);
+			sunlightStateBuffer->AssignToGS(CBUFFER_INDEX_SUNLIGHT);
+			sunlightStateBuffer->AssignToPS(CBUFFER_INDEX_SUNLIGHT);
+			sunlightStateBuffer->AssignToVS(CBUFFER_INDEX_SUNLIGHT);
 		}
 
 		void RenderFogWithAmbient() override

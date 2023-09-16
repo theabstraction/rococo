@@ -242,8 +242,8 @@ namespace Rococo::DX11
 			light.up = drd.up;
 			light.worldToShadowBuffer = drd.worldToScreen;
 
-			DX11::CopyStructureToBuffer(dc, lightStateBuffer, light);
-			SetupSpotlightConstants();
+			RAL_pipeline->UpdateLightBuffer(light);
+			RAL_pipeline->AssignLightStateBufferToShaders();
 
 			FLOAT blendFactorUnused[] = { 0,0,0,0 };
 

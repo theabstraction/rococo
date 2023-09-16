@@ -19,6 +19,7 @@ namespace Rococo::Graphics
 	struct GuiMetrics;
 	struct IScene;
 	struct IGuiRenderContext;
+	struct LightConstantBuffer;
 
 	namespace Samplers
 	{
@@ -64,6 +65,7 @@ namespace Rococo::RAL
 	{
 		virtual void Add3DGuiTriangles(const Rococo::Graphics::VertexTriangle* first, const Rococo::Graphics::VertexTriangle* last) = 0;
 		virtual void AssignGlobalStateBufferToShaders() = 0;
+		virtual void AssignLightStateBufferToShaders() = 0;
 		virtual void Clear3DGuiTriangles() = 0;
 		virtual void Render3DGui() = 0;
 		virtual void RenderFogWithAmbient() = 0;
@@ -72,6 +74,8 @@ namespace Rococo::RAL
 		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
 		virtual ID_TEXTURE ShadowBufferId() const = 0;
 		virtual void UpdateGlobalState(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
+		virtual void UpdateLightBuffer(const Rococo::Graphics::LightConstantBuffer& light) = 0;
+		virtual void UpdateSunlight() = 0;
 
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;
 		virtual Rococo::Graphics::IParticles& Particles() = 0;
