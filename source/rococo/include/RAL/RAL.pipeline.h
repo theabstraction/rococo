@@ -76,7 +76,6 @@ namespace Rococo::RAL
 		virtual ID_TEXTURE ShadowBufferId() const = 0;
 		virtual void UpdateGlobalState(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
 		virtual void UpdateLightBuffer(const Rococo::Graphics::LightConstantBuffer& light) = 0;
-		virtual void UpdateSunlight() = 0;
 
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;
 		virtual Rococo::Graphics::IParticles& Particles() = 0;

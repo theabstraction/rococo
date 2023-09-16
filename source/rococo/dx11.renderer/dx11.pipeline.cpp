@@ -50,8 +50,6 @@ namespace Rococo::DX11
 		idLightConeVS = shaders.CreateVertexShader("!shaders/compiled/light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
 
 		alphaBlend = DX11::CreateAlphaBlend(device);
-
-		boneMatricesStateBuffer = DX11::CreateConstantBuffer<BoneMatrices>(device);
 	}
 
 	ID_PIXEL_SHADER DX11Pipeline::GetObjectShaderPixelId(RenderPhase phase)
@@ -101,9 +99,6 @@ namespace Rococo::DX11
 	void DX11Pipeline::UpdateGlobalState(const GuiMetrics& metrics, IScene& scene)
 	{
 		RAL_pipeline->UpdateGlobalState(metrics, scene);
-		RAL_pipeline->UpdateSunlight();
-		DX11::CopyStructureToBuffer(dc, boneMatricesStateBuffer, boneMatrices);
-		dc.VSSetConstantBuffers(CBUFFER_INDEX_BONE_MATRICES, 1, &boneMatricesStateBuffer);
 	}
 
 	RenderTarget DX11Pipeline::GetCurrentRenderTarget()

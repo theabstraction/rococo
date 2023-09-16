@@ -81,7 +81,6 @@ namespace Rococo::DX11
 		Graphics::RenderPhaseConfig phaseConfig;
 
 		BoneMatrices boneMatrices = { 0 };
-		AutoRelease<ID3D11Buffer> boneMatricesStateBuffer;
 
 		ID3D11SamplerState* samplers[16] = { 0 };
 
