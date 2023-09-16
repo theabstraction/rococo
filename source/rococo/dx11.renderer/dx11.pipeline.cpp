@@ -172,14 +172,7 @@ namespace Rococo::DX11
 
 	void DX11Pipeline::SetBoneMatrix(uint32 index, cr_m4x4 m)
 	{
-		if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
-		{
-			Throw(0, "Bad bone index #%u", index);
-		}
-
-		auto& target = boneMatrices.bones[index];
-		target = m;
-		target.row3 = Vec4{ 0, 0, 0, 1.0f };
+		RAL_pipeline->SetBoneMatrix(index, m);
 	}
 
 	IDX11Pipeline* CreateDX11Pipeline(RenderBundle& bundle)

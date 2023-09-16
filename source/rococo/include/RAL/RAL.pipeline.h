@@ -73,6 +73,7 @@ namespace Rococo::RAL
 		virtual void RenderFogWithSpotlight() = 0;
 		virtual void RenderPlasma() = 0;
 		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
+		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual ID_TEXTURE ShadowBufferId() const = 0;
 		virtual void UpdateGlobalState(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
 		virtual void UpdateLightBuffer(const Rococo::Graphics::LightConstantBuffer& light) = 0;

@@ -253,6 +253,18 @@ namespace Rococo::RAL::Anon
 			DrawParticles(plasma.data(), plasma.size(), idPlasmaPS, idParticleVS, idPlasmaGS);
 		}
 
+		void SetBoneMatrix(uint32 index, cr_m4x4 m) override
+		{
+			if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
+			{
+				Throw(0, "Bad bone index #%u", index);
+			}
+
+			auto& target = boneMatrices.bones[index];
+			target = m;
+			target.row3 = Vec4{ 0, 0, 0, 1.0f };
+		}
+
 		ID_TEXTURE ShadowBufferId() const override
 		{
 			return shadowBufferId;

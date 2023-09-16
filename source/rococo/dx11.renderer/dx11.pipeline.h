@@ -80,8 +80,6 @@ namespace Rococo::DX11
 
 		Graphics::RenderPhaseConfig phaseConfig;
 
-		BoneMatrices boneMatrices = { 0 };
-
 		ID3D11SamplerState* samplers[16] = { 0 };
 
 		ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase);	
