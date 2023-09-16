@@ -43,6 +43,7 @@ namespace Rococo::RAL::Anon
 		AutoFree<IRALConstantDataBuffer> sunlightStateBuffer;
 		AutoFree<IRALConstantDataBuffer> ambientBuffer;
 		AutoFree<IRALConstantDataBuffer> boneMatricesStateBuffer;
+		AutoFree<IRALConstantDataBuffer> depthRenderStateBuffer;
 
 		ID_VERTEX_SHADER idParticleVS;
 		ID_PIXEL_SHADER idPlasmaPS;
@@ -73,6 +74,7 @@ namespace Rococo::RAL::Anon
 			sunlightStateBuffer = ral.CreateConstantBuffer(sizeof Vec4, 1);
 			ambientBuffer = ral.CreateConstantBuffer(sizeof AmbientData, 1);
 			boneMatricesStateBuffer = ral.CreateConstantBuffer(sizeof BoneMatrices, 1);
+			depthRenderStateBuffer = ral.CreateConstantBuffer(sizeof DepthRenderData, 1);
 
 			idParticleVS		= ral.Shaders().CreateParticleVertexShader("!shaders/compiled/particle.vs");
 			idPlasmaGS			= ral.Shaders().CreateGeometryShader("!shaders/compiled/plasma.gs");
@@ -213,6 +215,13 @@ namespace Rococo::RAL::Anon
 			AssignGlobalStateBufferToShaders();
 			UpdateSunlight();
 			UpdateBoneMatrices();
+		}
+
+		void UpdateDepthRenderData(const DepthRenderData& data) override
+		{
+			depthRenderStateBuffer->CopyDataToBuffer(&data, sizeof data);
+			depthRenderStateBuffer->AssignToVS(CBUFFER_INDEX_DEPTH_RENDER_DESC);
+			depthRenderStateBuffer->AssignToPS(CBUFFER_INDEX_DEPTH_RENDER_DESC);
 		}
 
 		void UpdateBoneMatrices()

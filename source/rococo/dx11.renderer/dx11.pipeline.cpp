@@ -32,8 +32,6 @@ namespace Rococo::DX11
 
 		instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 		lightConeBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, 3);
-		
-		depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 
 		gui = CreateDX11Gui(bundle);
 

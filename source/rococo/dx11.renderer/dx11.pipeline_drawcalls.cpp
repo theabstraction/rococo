@@ -108,18 +108,14 @@ namespace Rococo::DX11
 
 		shaders.UseShaders(idSkinnedObjVS_Shadows, idObjPS_Shadows);
 
-		DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
-		dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
-		dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+		RAL_pipeline->UpdateDepthRenderData(drd);
 
 		phase = RenderPhase::DetermineShadowVolumes;
 		scene.RenderShadowPass(drd, rc, true);
 
 		shaders.UseShaders(idObjVS_Shadows, idObjPS_Shadows);
 
-		DX11::CopyStructureToBuffer(dc, depthRenderStateBuffer, drd);
-		dc.VSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
-		dc.PSSetConstantBuffers(CBUFFER_INDEX_DEPTH_RENDER_DESC, 1, &depthRenderStateBuffer);
+		RAL_pipeline->UpdateDepthRenderData(drd);
 
 		scene.RenderShadowPass(drd, rc, false);
 	}

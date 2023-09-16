@@ -39,8 +39,6 @@ namespace Rococo::DX11
 		AutoRelease<ID3D11RasterizerState> skyRasterizering;
 		AutoRelease<ID3D11RasterizerState> shadowRasterizering;
 
-		AutoRelease<ID3D11Buffer> depthRenderStateBuffer;
-
 		AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
 		AutoRelease<ID3D11BlendState> disableBlend;
 		AutoRelease<ID3D11BlendState> additiveBlend;
