@@ -305,11 +305,17 @@ struct DX11Shaders : IDX11Shaders
 			
 			switch (v.format)
 			{
+			case VertexElementFormat::Float2:
+				elements[i].Format = DXGI_FORMAT_R32G32_FLOAT;
+				break;
 			case VertexElementFormat::Float3:
 				elements[i].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 				break;
 			case VertexElementFormat::Float4:
 				elements[i].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				break;
+			case VertexElementFormat::RGBA8U:
+				elements[i].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 				break;
 			default:
 				Throw(0, "%s(%s, ...): vertexElements[%d] had unhandled format %u", __FUNCTION__, pingPath, i, (uint32) v.format);

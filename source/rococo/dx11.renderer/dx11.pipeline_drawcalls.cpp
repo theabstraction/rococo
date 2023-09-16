@@ -77,11 +77,6 @@ namespace Rococo::DX11
 		}
 	}
 
-	void DX11Pipeline::DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir)
-	{
-		trianglesThisFrame += DX11::DrawLightCone(light, viewDir, dc, *lightConeBuffer);
-	}
-
 	void DX11Pipeline::RenderToShadowBuffer(IShaders& shaders, IDX11TextureManager& textures, IRenderContext& rc, DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene)
 	{
 		auto shadowBind = textures.GetTexture(shadowBuffer);
@@ -172,6 +167,12 @@ namespace Rococo::DX11
 		dc.OMSetBlendState(additiveBlend, blendFactorUnused, 0xffffffff);
 	}
 
+	void DX11Pipeline::UseAlphaBlend()
+	{
+		FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
+	}
+
 	void DX11Pipeline::UseAlphaAdditiveBlend()
 	{
 		FLOAT blendFactorUnused[] = { 0,0,0,0 };
@@ -192,6 +193,11 @@ namespace Rococo::DX11
 	{
 		FLOAT blendFactorUnused[] = { 0,0,0,0 };
 		dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
+	}
+
+	void DX11Pipeline::UseSpriteRasterizer()
+	{
+		dc.RSSetState(spriteRasterizering);
 	}
 
 	void DX11Pipeline::DisableWritesOnDepthState()
@@ -339,8 +345,7 @@ namespace Rococo::DX11
 		Render3DObjects(scene);
 
 		RAL_pipeline->RenderPlasma();
-
-		DrawLightCones(scene);
+		RAL_pipeline->DrawLightCones(scene);
 
 		UpdateGlobalState(metrics, scene);
 
@@ -360,56 +365,6 @@ namespace Rococo::DX11
 			}
 
 			guiCost = Time::TickCount() - now;
-		}
-	}
-
-	void DX11Pipeline::DrawLightCones(IScene& scene)
-	{
-		uint32 nLights = 0;
-		const LightConstantBuffer* lights = scene.GetLights(nLights);
-
-		if (lights != nullptr)
-		{
-			UINT strides[] = { sizeof(ObjectVertex) };
-			UINT offsets[]{ 0 };
-
-			dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			dc.IASetVertexBuffers(0, 1, &lightConeBuffer, strides, offsets);
-			dc.RSSetState(spriteRasterizering);
-
-			shaders.UseShaders(idLightConeVS, idLightConePS);
-
-			FLOAT blendFactorUnused[] = { 0,0,0,0 };
-			dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
-			dc.OMSetDepthStencilState(objDepthState, 0);
-
-			RAL_pipeline->AssignGlobalStateBufferToShaders();
-
-			ObjectInstance identity;
-			identity.orientation = Matrix4x4::Identity();
-			identity.highlightColour = { 0 };
-			DX11::CopyStructureToBuffer(dc, instanceBuffer, &identity, sizeof(ObjectInstance));
-			dc.VSSetConstantBuffers(CBUFFER_INDEX_INSTANCE_BUFFER, 1, &instanceBuffer);
-
-			Matrix4x4 camera;
-			Matrix4x4 world;
-			Matrix4x4 proj;
-			Vec4 eye;
-			Vec4 viewDir;
-			scene.GetCamera(camera, world, proj, eye, viewDir);
-
-			for (uint32 i = 0; i < nLights; ++i)
-			{
-				if (lights[i].hasCone)
-				{
-					DrawLightCone(lights[i], viewDir);
-				}
-			}
-
-			dc.IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
-			dc.RSSetState(nullptr);
-			dc.PSSetConstantBuffers(0, 0, nullptr);
-			dc.VSSetConstantBuffers(0, 0, nullptr);
 		}
 	}
 } // Rococo::DX11

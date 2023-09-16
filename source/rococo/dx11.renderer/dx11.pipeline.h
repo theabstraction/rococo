@@ -49,7 +49,6 @@ namespace Rococo::DX11
 		AutoRelease<ID3D11DepthStencilState> noDepthTestOrWrite;
 
 		AutoRelease<ID3D11Buffer> instanceBuffer;
-		AutoRelease<ID3D11Buffer> lightConeBuffer;
 
 		AutoFree<IDX11Gui> gui;
 
@@ -60,8 +59,6 @@ namespace Rococo::DX11
 		ID_PIXEL_SHADER idObj_Ambient_NoEnvMap_PS;
 		ID_PIXEL_SHADER idObjAmbientPS;
 		ID_VERTEX_SHADER idObjAmbientVS;
-		ID_PIXEL_SHADER idLightConePS;
-		ID_VERTEX_SHADER idLightConeVS;
 		ID_VERTEX_SHADER idObjVS_Shadows;
 		ID_VERTEX_SHADER idSkinnedObjVS_Shadows;
 
@@ -98,11 +95,13 @@ namespace Rococo::DX11
 
 		void DisableBlend() override;
 		void UseAdditiveBlend() override;
+		void UseAlphaBlend() override;
 		void UseAlphaAdditiveBlend() override;
 		void DisableWritesOnDepthState() override;
 		void UseParticleRasterizer() override;
 		void UsePlasmaBlend() override;
 		void UseSkyRasterizer() override;
+		void UseSpriteRasterizer() override;
 
 		void SetDrawTopology(PrimitiveTopology topology) override;
 		void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) override;
@@ -132,7 +131,6 @@ namespace Rococo::DX11
 		}
 
 		void ShowVenue(IMathsVisitor& visitor) override;
-		void DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir);
 		void RenderToShadowBuffer(IShaders& shaders, IDX11TextureManager& textures, IRenderContext& rc, DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene);
 		void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight);
 		void RenderSkyBox(IScene& scene);
@@ -147,7 +145,6 @@ namespace Rococo::DX11
 		// Main entrypoint for the render pipeline
 		void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override;
 
-		void DrawLightCones(IScene& scene);
 		void SetBoneMatrix(uint32 index, cr_m4x4 m) override;
 
 		IGuiResources& GuiResources() override

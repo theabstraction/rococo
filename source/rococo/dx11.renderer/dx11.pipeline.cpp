@@ -31,7 +31,6 @@ namespace Rococo::DX11
 		plasmaBlend = DX11::CreatePlasmaBlend(device);
 
 		instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
-		lightConeBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, 3);
 
 		gui = CreateDX11Gui(bundle);
 
@@ -44,8 +43,6 @@ namespace Rococo::DX11
 		idObjVS_Shadows = shaders.CreateObjectVertexShader("!shaders/compiled/shadow.vs");
 		idSkinnedObjVS_Shadows = shaders.CreateVertexShader("!shaders/compiled/skinned.shadow.vs", DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
 		idObjPS_Shadows = shaders.CreatePixelShader("!shaders/compiled/shadow.ps");
-		idLightConePS = shaders.CreatePixelShader("!shaders/compiled/light_cone.ps");
-		idLightConeVS = shaders.CreateVertexShader("!shaders/compiled/light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
 
 		alphaBlend = DX11::CreateAlphaBlend(device);
 	}

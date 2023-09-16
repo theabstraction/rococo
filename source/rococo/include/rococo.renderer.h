@@ -48,14 +48,19 @@ namespace Rococo::Graphics
 		virtual void GetOption(size_t index, OUT cstr& interfaceName, OUT cstr& className) = 0;
 	};
 
-
 	enum class VertexElementFormat : uint32
 	{
+		// Two 32-bit floats
+		Float2,
+
 		// Three 32-bit floats
 		Float3,
 
 		// Four 32-bit floats
-		Float4
+		Float4,
+
+		// 32-bit rgba colour value with four unsigned 8-bit components
+		RGBA8U
 	};
 
 	struct VertexElement

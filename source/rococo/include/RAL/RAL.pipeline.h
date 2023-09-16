@@ -53,10 +53,12 @@ namespace Rococo::RAL
 		virtual void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) = 0;
 
 		virtual void UseAdditiveBlend() = 0;
+		virtual void UseAlphaBlend() = 0;
 		virtual void UseAlphaAdditiveBlend() = 0;
 		virtual void UseParticleRasterizer() = 0;
 		virtual void UsePlasmaBlend() = 0;
 		virtual void UseSkyRasterizer() = 0;
+		virtual void UseSpriteRasterizer() = 0;
 
 		virtual Rococo::Graphics::IGuiRenderContext& Gui() = 0;
 	};
@@ -69,6 +71,7 @@ namespace Rococo::RAL
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual void AssignLightStateBufferToShaders() = 0;
 		virtual void Clear3DGuiTriangles() = 0;
+		virtual void DrawLightCones(Rococo::Graphics::IScene& scene) = 0;
 		virtual void Render3DGui() = 0;
 		virtual void RenderFogWithAmbient() = 0;
 		virtual void RenderFogWithSpotlight() = 0;
