@@ -64,6 +64,7 @@ namespace Rococo::RAL
 	ROCOCO_INTERFACE IPipeline
 	{
 		virtual void Add3DGuiTriangles(const Rococo::Graphics::VertexTriangle* first, const Rococo::Graphics::VertexTriangle* last) = 0;
+		virtual void AssignAmbientLightToShaders(const Rococo::Graphics::LightConstantBuffer& ambientLight) = 0;
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual void AssignLightStateBufferToShaders() = 0;
 		virtual void Clear3DGuiTriangles() = 0;

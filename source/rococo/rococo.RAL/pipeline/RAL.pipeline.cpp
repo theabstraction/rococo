@@ -41,6 +41,7 @@ namespace Rococo::RAL::Anon
 		AutoFree<IRALConstantDataBuffer> globalStateBuffer;
 		AutoFree<IRALConstantDataBuffer> lightStateBuffer;
 		AutoFree<IRALConstantDataBuffer> sunlightStateBuffer;
+		AutoFree<IRALConstantDataBuffer> ambientBuffer;
 
 		ID_VERTEX_SHADER idParticleVS;
 		ID_PIXEL_SHADER idPlasmaPS;
@@ -67,6 +68,7 @@ namespace Rococo::RAL::Anon
 			globalStateBuffer = ral.CreateConstantBuffer(sizeof GlobalState, 1);
 			lightStateBuffer = ral.CreateConstantBuffer(sizeof LightConstantBuffer, 1);
 			sunlightStateBuffer = ral.CreateConstantBuffer(sizeof Vec4, 1);
+			ambientBuffer = ral.CreateConstantBuffer(sizeof AmbientData, 1);
 
 			idParticleVS		= ral.Shaders().CreateParticleVertexShader("!shaders/compiled/particle.vs");
 			idPlasmaGS			= ral.Shaders().CreateGeometryShader("!shaders/compiled/plasma.gs");
@@ -132,6 +134,15 @@ namespace Rococo::RAL::Anon
 			lightStateBuffer->AssignToGS(CBUFFER_INDEX_CURRENT_SPOTLIGHT);
 			lightStateBuffer->AssignToPS(CBUFFER_INDEX_CURRENT_SPOTLIGHT);
 			lightStateBuffer->AssignToVS(CBUFFER_INDEX_CURRENT_SPOTLIGHT);
+		}
+
+		void AssignAmbientLightToShaders(const Rococo::Graphics::LightConstantBuffer& ambientLight) override
+		{
+			AmbientData ad;
+			ad.localLight = ambientLight.ambient;
+			ad.fogConstant = ambientLight.fogConstant;
+			ambientBuffer->CopyDataToBuffer(&ad, sizeof ad);
+			ambientBuffer->AssignToPS(CBUFFER_INDEX_AMBIENT_LIGHT);
 		}
 
 		void Clear3DGuiTriangles() override

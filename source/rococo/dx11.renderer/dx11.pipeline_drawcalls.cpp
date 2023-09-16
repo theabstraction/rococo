@@ -147,8 +147,7 @@ namespace Rococo::DX11
 
 			dc.RSSetState(objectRasterizering);
 
-			this->ambientLight = ambientLight;
-			SetPSConstantBufferWithAmbientLightConstants();
+			RAL_pipeline->AssignAmbientLightToShaders(ambientLight);
 
 			scene.RenderObjects(rc, false);
 			scene.RenderObjects(rc, true);

@@ -35,8 +35,6 @@ namespace Rococo::DX11
 		
 		depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 
-		ambientBuffer = DX11::CreateConstantBuffer<AmbientData>(device);
-
 		gui = CreateDX11Gui(bundle);
 
 		idObjVS = shaders.CreateObjectVertexShader("!shaders/compiled/object.vs");
@@ -98,15 +96,6 @@ namespace Rococo::DX11
 	{
 		visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, 0);
 		gui->ShowVenue(visitor);
-	}
-
-	void DX11Pipeline::SetPSConstantBufferWithAmbientLightConstants()
-	{
-		AmbientData ad;
-		ad.localLight = ambientLight.ambient;
-		ad.fogConstant = ambientLight.fogConstant;
-		DX11::CopyStructureToBuffer(dc, ambientBuffer, ad);
-		dc.PSSetConstantBuffers(CBUFFER_INDEX_AMBIENT_LIGHT, 1, &ambientBuffer);
 	}
 
 	void DX11Pipeline::UpdateGlobalState(const GuiMetrics& metrics, IScene& scene)

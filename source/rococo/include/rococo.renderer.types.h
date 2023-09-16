@@ -193,5 +193,14 @@ namespace Rococo::Graphics
 		float OOShadowTxWidth;
 		Vec3 unused;
 	};
+
+	struct AmbientData
+	{
+		RGBA localLight;
+		float fogConstant = -0.2218f; // light = e(Rk). Where R is distance. k = -0.2218 gives modulation of 1/256 at 25 metres, reducing full brightness to dark
+		float a = 0;
+		float b = 0;
+		float c = 0;
+	};
 #pragma pack(pop)
 }

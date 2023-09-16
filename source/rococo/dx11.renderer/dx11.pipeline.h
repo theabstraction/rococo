@@ -40,7 +40,6 @@ namespace Rococo::DX11
 		AutoRelease<ID3D11RasterizerState> shadowRasterizering;
 
 		AutoRelease<ID3D11Buffer> depthRenderStateBuffer;
-		AutoRelease<ID3D11Buffer> ambientBuffer;
 
 		AutoRelease<ID3D11BlendState> alphaAdditiveBlend;
 		AutoRelease<ID3D11BlendState> disableBlend;
@@ -86,7 +85,7 @@ namespace Rococo::DX11
 
 		ID3D11SamplerState* samplers[16] = { 0 };
 
-		ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase);	LightConstantBuffer ambientLight = { 0 };
+		ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase);	
 		GlobalState currentGlobalState = { 0 };
 		Time::ticks objCost = 0;
 		ID_TEXTURE lastTextureId;
@@ -140,7 +139,6 @@ namespace Rococo::DX11
 		void ShowVenue(IMathsVisitor& visitor) override;
 		void DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir);
 		void RenderToShadowBuffer(IShaders& shaders, IDX11TextureManager& textures, IRenderContext& rc, DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene);
-		void SetPSConstantBufferWithAmbientLightConstants();
 		void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight);
 		void RenderSkyBox(IScene& scene);
 		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene);
