@@ -429,7 +429,7 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 	{
 		if (bkBitmap.txUV.left == bkBitmap.txUV.right)
 		{
-			if (!grc.Gui().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
+			if (!grc.Resources().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
 			{
 				Throw(0, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
 			}
@@ -848,7 +848,7 @@ public:
 		// Once the drag is over, the subscription to the event is revoked.
 		// Since the event is consumed, it is not passed on to the UI system after this function call
 
-		platform.graphics.renderer.Gui().SetSysCursor(cursor);
+		platform.graphics.renderer.GuiResources().SetSysCursor(cursor);
 
 		if (dragRightPos > 0)
 		{
@@ -935,12 +935,12 @@ public:
 			if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
 			{
 				cursor = EWindowCursor_BottomRightDrag;
-				platform.graphics.renderer.Gui().SetSysCursor(EWindowCursor_BottomRightDrag);
+				platform.graphics.renderer.GuiResources().SetSysCursor(EWindowCursor_BottomRightDrag);
 			}
 			else
 			{
 				cursor = EWindowCursor_HDrag;
-				platform.graphics.renderer.Gui().SetSysCursor(EWindowCursor_HDrag);
+				platform.graphics.renderer.GuiResources().SetSysCursor(EWindowCursor_HDrag);
 			}
 
 			if (me.HasFlag(MouseEvent::LDown))
@@ -959,7 +959,7 @@ public:
 		else if (me.cursorPos.y <= farBottom && me.cursorPos.y > farBottom - 4)
 		{
 			cursor = EWindowCursor_VDrag;
-			platform.graphics.renderer.Gui().SetSysCursor(EWindowCursor_VDrag);
+			platform.graphics.renderer.GuiResources().SetSysCursor(EWindowCursor_VDrag);
 
 			if (me.HasFlag(MouseEvent::LDown))
 			{

@@ -5,6 +5,7 @@
 namespace Rococo::Graphics
 {
 	struct IShaders;
+	struct ITextureManager;
 }
 
 namespace Rococo::RAL
@@ -21,7 +22,9 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRALConstantDataBuffer : IRALDataBuffer
 	{
-		virtual void AssignToGPU(int32 constantBufferIndex) = 0;
+		virtual void AssignToGS(int32 constantBufferIndex) = 0;
+		virtual void AssignToPS(int32 constantBufferIndex) = 0;
+		virtual void AssignToVS(int32 constantBufferIndex) = 0;
 	};
 
 	// N.B when RAL is implemented by DX11, the numertical cast of PrimitiveTopology values match D3D_PRIMITIVE_TOPOLOGY exactly
@@ -90,9 +93,10 @@ namespace Rococo::RAL
 		virtual IRALConstantDataBuffer* CreateConstantBuffer(size_t sizeofStruct, size_t nElements) = 0;
 		virtual IRALVertexDataBuffer* CreateDynamicVertexBuffer(size_t sizeofStruct, size_t nElements) = 0;
 		virtual void ClearBoundVertexBufferArray() = 0;
-		virtual void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, int32 offset) = 0;
+		virtual void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, uint32 offset) = 0;
 		virtual void CommitBoundVertexBuffers() = 0;
 		virtual void Draw(uint32 nVertices, uint32 startPosition) = 0;
 		virtual Rococo::Graphics::IShaders& Shaders() = 0;
+		virtual Rococo::Graphics::ITextureManager& RALTextures() = 0;
 	};
 }

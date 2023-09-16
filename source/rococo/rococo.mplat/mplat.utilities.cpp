@@ -75,7 +75,7 @@ public:
 	{
 		this->platform = &platform;
 		textTesselator = Graphics::CreateTextTesselator(platform);
-		hqFonts = Graphics::CreateHQFonts(platform.graphics.renderer.Gui().HQFontsResources());
+		hqFonts = Graphics::CreateHQFonts(platform.graphics.renderer.GuiResources().HQFontsResources());
 		platform.plumbing.publisher.Subscribe(this, evUIInvoke);
 	}
 

@@ -335,7 +335,7 @@ namespace
 		   
 		   GuiRect lineRect{ screenRect };
 
-		   auto fm = gc.Gui().GetFontMetrics(idDebuggerFont);
+		   auto fm = gc.Resources().GetFontMetrics(idDebuggerFont);
 
 		   lineRect.bottom = lineRect.top + fm.imgHeight;
 

@@ -128,12 +128,12 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         fontBinding = fb.shaderView;
     }
 
-    IGuiResources& Gui() override
+    IGuiResources& Resources() override
     {
         return *this;
     }
 
-    GuiScale GetGuiScale() const
+    GuiScale GetGuiScale() const override
     {
         float fontWidth = clamp(1.0f, fonts->TextureSpan().x, 1000000.0f);
         float spriteWidth = clamp(1.0f, (float) spriteArray->Width(), 1000000.0f);

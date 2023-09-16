@@ -34,7 +34,7 @@ namespace ANON
 
 		TextTesselator(Platform& _platform):
 			platform(_platform), 
-			font(_platform.graphics.renderer.Gui().FontMetrics())
+			font(_platform.graphics.renderer.GuiResources().FontMetrics())
 		{
 		}
 

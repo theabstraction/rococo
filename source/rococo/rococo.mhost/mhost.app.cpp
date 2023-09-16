@@ -311,7 +311,7 @@ namespace MHost
 
 		boolean32 TryGetSpriteSpec(const fstring& resourceName, BitmapLocation& loc) override
 		{
-			return platform.graphics.renderer.Gui().SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
+			return platform.graphics.renderer.GuiResources().SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
 		}
 
 		void GetSpriteSpec(const fstring& resourceName, Rococo::Textures::BitmapLocation& loc) override

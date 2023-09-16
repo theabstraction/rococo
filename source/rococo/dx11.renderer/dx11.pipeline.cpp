@@ -54,13 +54,9 @@ namespace Rococo::DX11
 		idObjSkyVS = shaders.CreateVertexShader("!shaders/compiled/skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
 		idObjSkyPS = shaders.CreatePixelShader("!shaders/compiled/skybox.ps");
 
-		// TODO - make this dynamic
-		shadowBufferId = textures.CreateDepthTarget("ShadowBuffer", 2048, 2048);
-
 		alphaBlend = DX11::CreateAlphaBlend(device);
 
 		boneMatricesStateBuffer = DX11::CreateConstantBuffer<BoneMatrices>(device);
-		globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 		sunlightStateBuffer = DX11::CreateConstantBuffer<Vec4>(device);
 	}
 
@@ -102,12 +98,6 @@ namespace Rococo::DX11
 		delete this;
 	}
 
-	void DX11Pipeline::AssignGlobalStateBufferToShaders()
-	{
-		dc.PSSetConstantBuffers(0, 1, &globalStateBuffer);
-		dc.VSSetConstantBuffers(0, 1, &globalStateBuffer);
-	}
-
 	void DX11Pipeline::ShowVenue(IMathsVisitor& visitor)
 	{
 		visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, 0);
@@ -125,32 +115,7 @@ namespace Rococo::DX11
 
 	void DX11Pipeline::UpdateGlobalState(const GuiMetrics& metrics, IScene& scene)
 	{
-		GlobalState g;
-		scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix, g.projMatrix, g.eye, g.viewDir);
-
-		float aspectRatio = metrics.screenSpan.y / (float)metrics.screenSpan.x;
-		g.aspect = { aspectRatio,0,0,0 };
-
-		TextureDesc desc;
-		if (textures.TryGetTextureDesc(OUT desc, shadowBufferId))
-		{
-			g.OOShadowTxWidth = 1.0f / desc.width;
-		}
-		else
-		{
-			g.OOShadowTxWidth = 1.0f;
-		}
-		
-		g.unused = Vec3{ 0.0f,0.0f,0.0f };
-		g.guiScale = gui->GetGuiScale();
-
-		DX11::CopyStructureToBuffer(dc, globalStateBuffer, g);
-
-		currentGlobalState = g;
-
-		dc.VSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
-		dc.PSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
-		dc.GSSetConstantBuffers(CBUFFER_INDEX_GLOBAL_STATE, 1, &globalStateBuffer);
+		RAL_pipeline->UpdateGlobalState(metrics, scene);
 
 		Vec4 sunlight = { Sin(45_degrees), 0, Cos(45_degrees), 0 };
 		Vec4 sunlightLocal = sunlight;

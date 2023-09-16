@@ -155,22 +155,24 @@ namespace Rococo::Graphics
 
 	ROCOCO_INTERFACE IGuiRenderContext // Provides draw calls - do not cache
 	{
-		virtual IMaterials & Materials() = 0;
 		virtual void AddTriangle(const GuiVertex triangle[3]) = 0;
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void FlushLayer() = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
-		virtual IRendererMetrics& Renderer() = 0;
+		
 		virtual void SetGuiShader(cstr pixelShader) = 0;
 		virtual void SetScissorRect(const Rococo::GuiRect& rect) = 0;
 		virtual void ClearScissorRect() = 0;
-		virtual IGuiResources& Gui() = 0;
+		virtual GuiScale GetGuiScale() const = 0;
 
 		// Renders high quality text. To compute span without rendering, pass evaluateSpanOnly as true
-
 		enum EMode { RENDER, EVALUATE_SPAN_ONLY, };
 		virtual void RenderHQText(ID_FONT id, Fonts::IHQTextJob& job, EMode mode, const GuiRect& clipRect) = 0;
+
+		virtual IMaterials& Materials() = 0;
+		virtual IGuiResources& Resources() = 0;
+		virtual IRendererMetrics& Renderer() = 0;
 	};
 
 	ROCOCO_INTERFACE IParticles
@@ -341,7 +343,7 @@ namespace Rococo::Graphics
 
 	ROCOCO_INTERFACE IRenderer : IRendererMetrics
 	{
-		virtual IGuiResources & Gui() = 0;
+		virtual IGuiResources & GuiResources() = 0;
 		virtual IMaterials& Materials() = 0;
 		virtual ITextureManager& Textures() = 0;
 		virtual IMeshes& Meshes() = 0;

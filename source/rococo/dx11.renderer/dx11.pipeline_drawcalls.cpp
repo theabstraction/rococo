@@ -365,7 +365,7 @@ namespace Rococo::DX11
 	void DX11Pipeline::Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene)
 	{
 		phaseConfig.EnvironmentalMap = envMap;
-		phaseConfig.shadowBuffer = shadowBufferId;
+		phaseConfig.shadowBuffer = RAL_pipeline->ShadowBufferId();
 		phaseConfig.depthTarget = renderer.GetWindowDepthBufferId();
 
 		if (textures.GetTexture(phaseConfig.shadowBuffer).depthView == nullptr)
@@ -444,7 +444,7 @@ namespace Rococo::DX11
 			dc.OMSetBlendState(alphaBlend, blendFactorUnused, 0xffffffff);
 			dc.OMSetDepthStencilState(objDepthState, 0);
 
-			AssignGlobalStateBufferToShaders();
+			RAL_pipeline->AssignGlobalStateBufferToShaders();
 
 			ObjectInstance identity;
 			identity.orientation = Matrix4x4::Identity();

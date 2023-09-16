@@ -124,7 +124,17 @@ public:
 		VALIDATEDX11(device.CreateBuffer(&desc, nullptr, &dx11Buffer));
 	}
 
-	void AssignToGPU(int constantIndex) override
+	void AssignToPS(int constantIndex) override
+	{
+		dc.PSSetConstantBuffers(constantIndex, 1, &dx11Buffer);
+	}
+
+	void AssignToGS(int constantIndex) override
+	{
+		dc.GSSetConstantBuffers(constantIndex, 1, &dx11Buffer);
+	}
+
+	void AssignToVS(int constantIndex) override
 	{
 		dc.VSSetConstantBuffers(constantIndex, 1, &dx11Buffer);
 	}
@@ -187,6 +197,11 @@ private:
 		return new DX11_RALConstantBuffer(device, dc, sizeofStruct, nElements);
 	}
 
+	ITextureManager& RALTextures() override
+	{
+		return *textureManager;
+	}
+
 	void ClearBoundVertexBufferArray() override
 	{
 		boundVertexBuffers.clear();
@@ -194,7 +209,7 @@ private:
 		boundVertexBufferOffsets.clear();
 	}
 
-	void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, int32 offset) override
+	void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, uint32 offset) override
 	{
 		if (vertexBuffer == nullptr)
 		{
@@ -202,7 +217,7 @@ private:
 		}
 
 		boundVertexBuffers.push_back(static_cast<IDX11IRALVertexDataBuffer*>(vertexBuffer)->RawBuffer());
-		boundVertexBufferStrides.push_back(sizeofVertex);
+		boundVertexBufferStrides.push_back((uint32) sizeofVertex);
 		boundVertexBufferOffsets.push_back(offset);
 	}
 
@@ -338,9 +353,9 @@ public:
 		DetachContext();
 	}
 
-	IGuiResources& Gui() override
+	IGuiResources& GuiResources() override
 	{
-		return pipeline->Gui();
+		return pipeline->GuiResources();
 	}
 
 	IMaterials& Materials() override

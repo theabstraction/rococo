@@ -76,8 +76,6 @@ namespace Rococo::DX11
 		//AutoRelease<ID3D11SamplerState> envSampler;
 		//AutoRelease<ID3D11SamplerState> skySampler;
 
-		ID_TEXTURE shadowBufferId;
-
 		AutoRelease<ID3D11BlendState> alphaBlend;
 
 		RenderPhase phase = RenderPhase::None;
@@ -88,7 +86,6 @@ namespace Rococo::DX11
 
 		Graphics::RenderPhaseConfig phaseConfig;
 
-		AutoRelease<ID3D11Buffer> globalStateBuffer;
 		AutoRelease<ID3D11Buffer> sunlightStateBuffer;
 
 		BoneMatrices boneMatrices = { 0 };
@@ -125,13 +122,17 @@ namespace Rococo::DX11
 			return RAL_pipeline->Gui3D();
 		}
 
+		IGuiRenderContext& Gui() override
+		{
+			return *gui;
+		}
+
 		IParticles& Particles() override
 		{
 			return RAL_pipeline->Particles();
 		}
 
 		void Free() override;
-		void AssignGlobalStateBufferToShaders();
 		void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances);
 		void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID);
 
@@ -161,9 +162,9 @@ namespace Rococo::DX11
 		void DrawLightCones(IScene& scene);
 		void SetBoneMatrix(uint32 index, cr_m4x4 m) override;
 
-		IGuiResources& Gui()
+		IGuiResources& GuiResources() override
 		{
-			return gui->Gui();
+			return gui->Resources();
 		}
 	}; // DX11Pipeline
 }

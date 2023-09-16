@@ -32,7 +32,7 @@ struct PanelArrayBox : BasePane, GUI::IArrayBox, IObserver, IEventCallback<Scrol
 	{
 		UNUSED(_fontIndex);
 		idFont = platform.plumbing.utilities.GetHQFonts().GetSysFont(Graphics::HQFont::EditorFont);
-		fontHeight = lineHeight = platform.graphics.renderer.Gui().GetFontMetrics(idFont).height;
+		fontHeight = lineHeight = platform.graphics.renderer.GuiResources().GetFontMetrics(idFont).height;
 		populateArrayEventText = _populateArrayEventText;
 		evPopulate = platform.plumbing.publisher.CreateEventIdFromVolatileString(populateArrayEventText);
 	}

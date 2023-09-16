@@ -1663,7 +1663,7 @@ namespace
 			rc.Renderer().GetGuiMetrics(metrics);
 
 			Textures::BitmapLocation bml;
-			if (platform.graphics.renderer.Gui().SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
+			if (platform.graphics.renderer.GuiResources().SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
 			{
 				Rococo::Graphics::DrawSpriteCentred(buttonRect, bml, rc);
 			}

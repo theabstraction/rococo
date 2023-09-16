@@ -145,7 +145,7 @@ public:
 
 	void AppendEvent(const MouseEvent& me) override
 	{
-		platform->graphics.renderer.Gui().SetSysCursor(EWindowCursor_Default);
+		platform->graphics.renderer.GuiResources().SetSysCursor(EWindowCursor_Default);
 
 		if (panels.empty())
 		{

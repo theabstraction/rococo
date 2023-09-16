@@ -11,6 +11,9 @@ namespace Rococo::Graphics
 	struct VertexTriangle;
 	struct IGui3D;
 	struct IParticles;
+	struct GuiMetrics;
+	struct IScene;
+	struct IGuiRenderContext;
 
 	namespace Samplers
 	{
@@ -43,17 +46,23 @@ namespace Rococo::RAL
 		virtual void UseAlphaAdditiveBlend() = 0;
 		virtual void UseParticleRasterizer() = 0;
 		virtual void UsePlasmaBlend() = 0;
+
+		virtual Rococo::Graphics::IGuiRenderContext& Gui() = 0;
 	};
 
 	// [R]enderer [A]bstraction [L]ayer pipeline orders rendering calls to properly format the video output
 	ROCOCO_INTERFACE IPipeline
 	{
 		virtual void Add3DGuiTriangles(const Rococo::Graphics::VertexTriangle* first, const Rococo::Graphics::VertexTriangle* last) = 0;
+		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual void Clear3DGuiTriangles() = 0;
 		virtual void Render3DGui() = 0;
 		virtual void RenderFogWithAmbient() = 0;
 		virtual void RenderFogWithSpotlight() = 0;
 		virtual void RenderPlasma() = 0;
+		virtual ID_TEXTURE ShadowBufferId() const = 0;
+		virtual void UpdateGlobalState(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
+
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;
 		virtual Rococo::Graphics::IParticles& Particles() = 0;
 	};

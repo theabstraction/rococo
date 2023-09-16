@@ -300,7 +300,7 @@ struct Gui : public MHost::IGui
 
 	void GetFontDescription(int32 fontIndex, Strings::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) const override
 	{
-		auto& font = gc.Gui().FontMetrics();
+		auto& font = gc.Resources().FontMetrics();
 		auto& glyphSet = font[fontIndex];
 		desc.ascent = (float) glyphSet.FontAscent();
 		desc.height = (float) glyphSet.FontHeight();
@@ -309,7 +309,7 @@ struct Gui : public MHost::IGui
 
 	int32 GetNumberOfFonts() const override
 	{
-		return gc.Gui().FontMetrics().NumberOfGlyphSets();
+		return gc.Resources().FontMetrics().NumberOfGlyphSets();
 	}
 
 	void SetScissorRect(const Rococo::GuiRect& rect) override

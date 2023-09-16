@@ -109,16 +109,16 @@ namespace Rococo::DX11
 		virtual void DrawCursor(const GuiMetrics& metrics) = 0;
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShaderPingPath, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) = 0;
-		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual void Free() = 0;	
-		virtual IDX11FontRenderer& FontRenderer() = 0;
-		virtual IGuiResources& Gui() = 0;
-		virtual GuiScale GetGuiScale() const = 0;
 		virtual void RenderGui(IScene& scene, const GuiMetrics& metrics, bool renderOverlays) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+
+		virtual Fonts::IFont& FontMetrics() = 0;
+		virtual IDX11FontRenderer& FontRenderer() = 0;
+		virtual IGuiResources& Resources() = 0;
 		virtual Textures::IBitmapArrayBuilder& SpriteBuilder() = 0;
 		virtual ID3D11ShaderResourceView* SpriteView() = 0;
 
@@ -249,7 +249,7 @@ namespace Rococo::DX11
 		virtual void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
-		virtual IGuiResources& Gui() = 0;
+		virtual IGuiResources& GuiResources() = 0;
 		virtual IGui3D& Gui3D() = 0;
 		virtual IParticles& Particles() = 0;
 	};

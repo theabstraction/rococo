@@ -157,7 +157,7 @@ namespace ANON
 				break;
 			}
 
-			auto& metrics = rc->Gui().HQFontsResources().GetFontMetrics(hqFontId);
+			auto& metrics = rc->Resources().HQFontsResources().GetFontMetrics(hqFontId);
 			
 			struct : IEventCallback<GlyphContext>
 			{
@@ -428,7 +428,7 @@ namespace ANON
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
-			return new MPlatImageMemento(debugHint, imagePath, sysRenderer.Gui().SpriteBuilder());
+			return new MPlatImageMemento(debugHint, imagePath, sysRenderer.GuiResources().SpriteBuilder());
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
@@ -443,7 +443,7 @@ namespace ANON
 				break;
 			}
 
-			return sysRenderer.Gui().HQFontsResources().EvalSpan(idSysFont, text);
+			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(idSysFont, text);
 		}
 
 		void RecordWidget(IGRWidget& widget) override
@@ -485,10 +485,10 @@ namespace ANON
 					switch (currentIcon)
 					{
 					case EGRCursorIcon::Arrow:
-						sysRenderer.Gui().SetSysCursor(EWindowCursor_Default);
+						sysRenderer.GuiResources().SetSysCursor(EWindowCursor_Default);
 						break;
 					case EGRCursorIcon::LeftAndRightDragger:
-						sysRenderer.Gui().SetSysCursor(EWindowCursor_HDrag);
+						sysRenderer.GuiResources().SetSysCursor(EWindowCursor_HDrag);
 						break;
 					}
 				}

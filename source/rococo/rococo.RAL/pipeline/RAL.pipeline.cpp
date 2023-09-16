@@ -30,8 +30,9 @@ namespace Rococo::RAL::Anon
 		std::vector<ParticleVertex> plasma;
 
 		AutoFree<IRALVertexDataBuffer> gui3DBuffer;
-		AutoFree<IRALConstantDataBuffer> instanceBuffer;
 		AutoFree<IRALVertexDataBuffer> particleBuffer;
+		AutoFree<IRALConstantDataBuffer> instanceBuffer;
+		AutoFree<IRALConstantDataBuffer> globalStateBuffer;
 
 		ID_VERTEX_SHADER idParticleVS;
 		ID_PIXEL_SHADER idPlasmaPS;
@@ -42,19 +43,24 @@ namespace Rococo::RAL::Anon
 		ID_GEOMETRY_SHADER idFogSpotlightGS;
 		ID_GEOMETRY_SHADER idFogAmbientGS;
 
+		ID_TEXTURE shadowBufferId;
+
+		GlobalState currentGlobalState;
+
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): renderStates(_renderStates), ral(_ral)
 		{
 			gui3DBuffer = ral.CreateDynamicVertexBuffer(sizeof VertexTriangle, GUI3D_BUFFER_TRIANGLE_CAPACITY);
 			instanceBuffer = ral.CreateConstantBuffer(sizeof ObjectInstance, 1);
 			particleBuffer = ral.CreateDynamicVertexBuffer(sizeof ParticleVertex, PARTICLE_BUFFER_VERTEX_CAPACITY);
+			globalStateBuffer = ral.CreateConstantBuffer(sizeof GlobalState, 1);
 
-			idParticleVS =  ral.Shaders().CreateParticleVertexShader("!shaders/compiled/particle.vs");
-			idPlasmaGS = ral.Shaders().CreateGeometryShader("!shaders/compiled/plasma.gs");
-			idFogSpotlightGS = ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.spotlight.gs");
-			idFogAmbientGS = ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.ambient.gs");
-			idPlasmaPS = ral.Shaders().CreatePixelShader("!shaders/compiled/plasma.ps");
-			idFogSpotlightPS = ral.Shaders().CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
-			idFogAmbientPS = ral.Shaders().CreatePixelShader("!shaders/compiled/fog.ambient.ps");
+			idParticleVS		= ral.Shaders().CreateParticleVertexShader("!shaders/compiled/particle.vs");
+			idPlasmaGS			= ral.Shaders().CreateGeometryShader("!shaders/compiled/plasma.gs");
+			idFogSpotlightGS	= ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.spotlight.gs");
+			idFogAmbientGS		= ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.ambient.gs");
+			idPlasmaPS			= ral.Shaders().CreatePixelShader("!shaders/compiled/plasma.ps");
+			idFogSpotlightPS	= ral.Shaders().CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
+			idFogAmbientPS		= ral.Shaders().CreatePixelShader("!shaders/compiled/fog.ambient.ps");
 
 			RGBA red{ 1.0f, 0, 0, 1.0f };
 			RGBA transparent{ 0.0f, 0, 0, 0.0f };
@@ -65,6 +71,9 @@ namespace Rococo::RAL::Anon
 			renderStates.SetSampler(TXUNIT_MATERIALS, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
 			renderStates.SetSampler(TXUNIT_SPRITES, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
 			renderStates.SetSampler(TXUNIT_GENERIC_TXARRAY, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, transparent);
+
+			// TODO - make this dynamic
+			shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 		}
 
 		Rococo::Graphics::IGui3D& Gui3D() override
@@ -88,6 +97,13 @@ namespace Rococo::RAL::Anon
 			{
 				gui3DTriangles.push_back(*i);
 			}
+		}
+
+		void AssignGlobalStateBufferToShaders()
+		{
+			globalStateBuffer->AssignToGS(CBUFFER_INDEX_GLOBAL_STATE);
+			globalStateBuffer->AssignToPS(CBUFFER_INDEX_GLOBAL_STATE);
+			globalStateBuffer->AssignToVS(CBUFFER_INDEX_GLOBAL_STATE);
 		}
 
 		void Clear3DGuiTriangles() override
@@ -126,6 +142,34 @@ namespace Rococo::RAL::Anon
 			}
 		}
 
+		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene) override
+		{
+			GlobalState g;
+			scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix, g.projMatrix, g.eye, g.viewDir);
+
+			float aspectRatio = metrics.screenSpan.y / (float)metrics.screenSpan.x;
+			g.aspect = { aspectRatio,0,0,0 };
+
+			TextureDesc desc;
+			if (ral.RALTextures().TryGetTextureDesc(OUT desc, shadowBufferId))
+			{
+				g.OOShadowTxWidth = 1.0f / desc.width;
+			}
+			else
+			{
+				g.OOShadowTxWidth = 1.0f;
+			}
+
+			g.unused = Vec3{ 0.0f,0.0f,0.0f };
+			g.guiScale = renderStates.Gui().GetGuiScale();
+
+			globalStateBuffer->CopyDataToBuffer(&g, sizeof g);
+
+			currentGlobalState = g;
+
+			AssignGlobalStateBufferToShaders();
+		}
+
 		void RenderFogWithAmbient() override
 		{
 			renderStates.UseAlphaAdditiveBlend();
@@ -142,6 +186,11 @@ namespace Rococo::RAL::Anon
 		{
 			renderStates.UsePlasmaBlend();
 			DrawParticles(plasma.data(), plasma.size(), idPlasmaPS, idParticleVS, idPlasmaGS);
+		}
+
+		ID_TEXTURE ShadowBufferId() const override
+		{
+			return shadowBufferId;
 		}
 
 		void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID)
@@ -220,7 +269,7 @@ namespace Rococo::RAL::Anon
 			{
 				// dc.DrawInstances crashed the debugger, replace with single instance render call for now
 				instanceBuffer->CopyDataToBuffer(instances + i, sizeof(ObjectInstance));
-				instanceBuffer->AssignToGPU(CBUFFER_INDEX_INSTANCE_BUFFER);
+				instanceBuffer->AssignToVS(CBUFFER_INDEX_INSTANCE_BUFFER);
 
 				ral.Draw(m.numberOfVertices, 0);
 
