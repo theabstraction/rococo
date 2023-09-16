@@ -62,16 +62,6 @@ namespace Rococo::DX11
 		boneMatricesStateBuffer = DX11::CreateConstantBuffer<BoneMatrices>(device);
 		globalStateBuffer = DX11::CreateConstantBuffer<GlobalState>(device);
 		sunlightStateBuffer = DX11::CreateConstantBuffer<Vec4>(device);
-
-		RGBA red{ 1.0f, 0, 0, 1.0f };
-		RGBA transparent{ 0.0f, 0, 0, 0.0f };
-		SetSampler(TXUNIT_FONT, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
-		SetSampler(TXUNIT_SHADOW, Filter_Linear, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
-		SetSampler(TXUNIT_ENV_MAP, Filter_Anisotropic, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
-		SetSampler(TXUNIT_SELECT, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
-		SetSampler(TXUNIT_MATERIALS, Filter_Linear, AddressMode_Wrap, AddressMode_Wrap, AddressMode_Wrap, red);
-		SetSampler(TXUNIT_SPRITES, Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, red);
-		SetSampler(TXUNIT_GENERIC_TXARRAY, Filter_Point, AddressMode_Border, AddressMode_Border, AddressMode_Border, transparent);
 	}
 
 	ID_PIXEL_SHADER DX11Pipeline::GetObjectShaderPixelId(RenderPhase phase)

@@ -55,6 +55,16 @@ namespace Rococo::RAL::Anon
 			idPlasmaPS = ral.Shaders().CreatePixelShader("!shaders/compiled/plasma.ps");
 			idFogSpotlightPS = ral.Shaders().CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
 			idFogAmbientPS = ral.Shaders().CreatePixelShader("!shaders/compiled/fog.ambient.ps");
+
+			RGBA red{ 1.0f, 0, 0, 1.0f };
+			RGBA transparent{ 0.0f, 0, 0, 0.0f };
+			renderStates.SetSampler(TXUNIT_FONT, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
+			renderStates.SetSampler(TXUNIT_SHADOW, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
+			renderStates.SetSampler(TXUNIT_ENV_MAP, Samplers::Filter_Anisotropic, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
+			renderStates.SetSampler(TXUNIT_SELECT, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
+			renderStates.SetSampler(TXUNIT_MATERIALS, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
+			renderStates.SetSampler(TXUNIT_SPRITES, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
+			renderStates.SetSampler(TXUNIT_GENERIC_TXARRAY, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, transparent);
 		}
 
 		Rococo::Graphics::IGui3D& Gui3D() override
@@ -161,7 +171,7 @@ namespace Rococo::RAL::Anon
 				size_t chunkSize = min(nParticles, (size_t)PARTICLE_BUFFER_VERTEX_CAPACITY);
 				particleBuffer->CopyDataToBuffer(start + i, chunkSize * sizeof(ParticleVertex));
 
-				ral.Draw(chunkSize, 0);
+				ral.Draw((uint32)chunkSize, 0);
 
 				i += chunkSize;
 				nParticles -= chunkSize;

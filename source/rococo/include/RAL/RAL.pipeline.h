@@ -11,6 +11,12 @@ namespace Rococo::Graphics
 	struct VertexTriangle;
 	struct IGui3D;
 	struct IParticles;
+
+	namespace Samplers
+	{
+		enum Filter : int32;
+		enum AddressMode : int32;
+	}
 }
 
 namespace Rococo::RAL
@@ -32,6 +38,7 @@ namespace Rococo::RAL
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;
 		virtual void SetDrawTopology(PrimitiveTopology topology) = 0;
+		virtual void SetSampler(uint32 index, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour) = 0;
 		virtual void UseAdditiveBlend() = 0;
 		virtual void UseAlphaAdditiveBlend() = 0;
 		virtual void UseParticleRasterizer() = 0;

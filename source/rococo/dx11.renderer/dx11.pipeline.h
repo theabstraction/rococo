@@ -96,10 +96,6 @@ namespace Rococo::DX11
 
 		ID3D11SamplerState* samplers[16] = { 0 };
 
-		enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
-		enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
-		enum { GUI3D_BUFFER_VERTEX_CAPACITY = 3 * GUI3D_BUFFER_TRIANGLE_CAPACITY };
-
 		ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase);	LightConstantBuffer ambientLight = { 0 };
 		GlobalState currentGlobalState = { 0 };
 		Time::ticks objCost = 0;
