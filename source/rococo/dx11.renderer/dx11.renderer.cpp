@@ -209,6 +209,14 @@ private:
 		boundVertexBufferOffsets.clear();
 	}
 
+	void BindVertexBuffer(ID_SYS_MESH meshId, size_t sizeofVertex, uint32 offset) override
+	{
+		auto& m = meshes->GetBuffer(meshId);
+		boundVertexBuffers.push_back(m.vertexBuffer);
+		boundVertexBufferStrides.push_back((uint32)sizeofVertex);
+		boundVertexBufferOffsets.push_back(offset);
+	}
+
 	void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, uint32 offset) override
 	{
 		if (vertexBuffer == nullptr)
@@ -228,7 +236,7 @@ private:
 			Throw(0, "%s: boundVertexBuffers size was zero", __FUNCTION__);
 		}
 
-		dc.IASetVertexBuffers(0, boundVertexBuffers.size(), boundVertexBuffers.data(), boundVertexBufferStrides.data(), boundVertexBufferOffsets.data());
+		dc.IASetVertexBuffers(0, (UINT) boundVertexBuffers.size(), boundVertexBuffers.data(), boundVertexBufferStrides.data(), boundVertexBufferOffsets.data());
 	}
 
 	void Draw(uint32 nVertices, uint32 startPosition) override

@@ -1691,7 +1691,7 @@ namespace
       {
       }
 
-      void PostConstruct(IWindow& parent, bool isSourceCode)
+      void PostConstruct(IWindow& parent, bool /* isSourceCode */)
       {
          // codeEditor = CodeEditorWindow::Create(parent, isSourceCode);
           editor = Windows::AddRichEditor(parent, GuiRect{ 0,0,1,1 }, nullptr, 0x5300, *this, ES_READONLY | ES_MULTILINE | WS_HSCROLL | WS_VSCROLL, 0);

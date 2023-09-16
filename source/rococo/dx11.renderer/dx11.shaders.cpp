@@ -285,6 +285,50 @@ struct DX11Shaders : IDX11Shaders
 		}
 	}
 
+	ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const VertexElement* vertexElements)
+	{
+		enum { MAX_ELEMENTS = 16 };
+		D3D11_INPUT_ELEMENT_DESC elements[MAX_ELEMENTS];
+
+		uint32 i = 0;
+		for (; vertexElements[i].SemanticName != nullptr; ++i)
+		{
+			if (i == MAX_ELEMENTS)
+			{
+				Throw(0, "%s(%s, ...): vertexElements had more than the MAX_ELEMENTS %u", __FUNCTION__, pingPath, MAX_ELEMENTS);
+			}
+
+			const auto& v = vertexElements[i];
+
+			elements[i].SemanticName = v.SemanticName;
+			elements[i].SemanticIndex = v.semanticIndex;
+			
+			switch (v.format)
+			{
+			case VertexElementFormat::Float3:
+				elements[i].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+				break;
+			case VertexElementFormat::Float4:
+				elements[i].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				break;
+			default:
+				Throw(0, "%s(%s, ...): vertexElements[%d] had unhandled format %u", __FUNCTION__, pingPath, i, (uint32) v.format);
+			}
+
+			elements[i].InputSlot = 0;
+			elements[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			elements[i].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			elements[i].InstanceDataStepRate = 0;
+		}
+
+		if (i == 0)
+		{
+			Throw(0, "%s(%s, ...): vertexElements terminated early with a null semantic", __FUNCTION__, pingPath);
+		}
+
+		return CreateVertexShader(pingPath, elements, i);
+	}
+
 	ID_VERTEX_SHADER CreateVertexShader(cstr name, const byte* shaderCode, size_t shaderLength, const D3D11_INPUT_ELEMENT_DESC* vertexDesc, UINT nElements)
 	{
 		if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for vertex shader");

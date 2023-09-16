@@ -51,8 +51,6 @@ namespace Rococo::DX11
 		idObjPS_Shadows = shaders.CreatePixelShader("!shaders/compiled/shadow.ps");
 		idLightConePS = shaders.CreatePixelShader("!shaders/compiled/light_cone.ps");
 		idLightConeVS = shaders.CreateVertexShader("!shaders/compiled/light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-		idObjSkyVS = shaders.CreateVertexShader("!shaders/compiled/skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
-		idObjSkyPS = shaders.CreatePixelShader("!shaders/compiled/skybox.ps");
 
 		alphaBlend = DX11::CreateAlphaBlend(device);
 
@@ -188,6 +186,15 @@ namespace Rococo::DX11
 
 		auto* sampler = Rococo::DX11::GetSampler(device, filter, u, v, w, borderColour);
 		samplers[index] = sampler;
+	}
+
+	void DX11Pipeline::SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId)
+	{
+		auto* shaderView = textures.GetShaderView(cubeId);
+		if (shaderView)
+		{
+			dc.PSSetShaderResources(textureUnitIndex, 1, &shaderView);
+		}
 	}
 
 	void DX11Pipeline::ResetSamplersToDefaults()

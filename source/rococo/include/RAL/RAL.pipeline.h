@@ -6,6 +6,11 @@
 # define RAL_PIPELINE_API
 #endif
 
+namespace Rococo
+{
+	struct ID_CUBE_TEXTURE;
+}
+
 namespace Rococo::Graphics
 {
 	struct VertexTriangle;
@@ -40,12 +45,16 @@ namespace Rococo::RAL
 	{
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;
+
 		virtual void SetDrawTopology(PrimitiveTopology topology) = 0;
 		virtual void SetSampler(uint32 index, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour) = 0;
+		virtual void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) = 0;
+
 		virtual void UseAdditiveBlend() = 0;
 		virtual void UseAlphaAdditiveBlend() = 0;
 		virtual void UseParticleRasterizer() = 0;
 		virtual void UsePlasmaBlend() = 0;
+		virtual void UseSkyRasterizer() = 0;
 
 		virtual Rococo::Graphics::IGuiRenderContext& Gui() = 0;
 	};
@@ -60,6 +69,7 @@ namespace Rococo::RAL
 		virtual void RenderFogWithAmbient() = 0;
 		virtual void RenderFogWithSpotlight() = 0;
 		virtual void RenderPlasma() = 0;
+		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
 		virtual ID_TEXTURE ShadowBufferId() const = 0;
 		virtual void UpdateGlobalState(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
 

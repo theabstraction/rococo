@@ -16,6 +16,12 @@ namespace Rococo::RAL::Anon
 	enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
 	enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
 
+	VertexElement skyVertexElements[] =
+	{
+		VertexElement { "position", 0, VertexElementFormat::Float3 },
+		VertexElement { nullptr,    0 ,VertexElementFormat::Float3 }
+	};
+
 	struct RALPipeline: IPipelineSupervisor, IGui3D, IParticles
 	{
 		IRAL& ral;
@@ -47,6 +53,10 @@ namespace Rococo::RAL::Anon
 
 		GlobalState currentGlobalState;
 
+		ID_SYS_MESH skyMeshId;
+		ID_VERTEX_SHADER idObjSkyVS;
+		ID_PIXEL_SHADER idObjSkyPS;
+
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): renderStates(_renderStates), ral(_ral)
 		{
 			gui3DBuffer = ral.CreateDynamicVertexBuffer(sizeof VertexTriangle, GUI3D_BUFFER_TRIANGLE_CAPACITY);
@@ -61,7 +71,17 @@ namespace Rococo::RAL::Anon
 			idPlasmaPS			= ral.Shaders().CreatePixelShader("!shaders/compiled/plasma.ps");
 			idFogSpotlightPS	= ral.Shaders().CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
 			idFogAmbientPS		= ral.Shaders().CreatePixelShader("!shaders/compiled/fog.ambient.ps");
+			idObjSkyVS			= ral.Shaders().CreateVertexShader("!shaders/compiled/skybox.vs", skyVertexElements);
+			idObjSkyPS			= ral.Shaders().CreatePixelShader("!shaders/compiled/skybox.ps");
 
+			ResetSamplersToDefaults();
+
+			// TODO - make this dynamic
+			shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
+		}
+
+		void ResetSamplersToDefaults()
+		{
 			RGBA red{ 1.0f, 0, 0, 1.0f };
 			RGBA transparent{ 0.0f, 0, 0, 0.0f };
 			renderStates.SetSampler(TXUNIT_FONT, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
@@ -71,9 +91,6 @@ namespace Rococo::RAL::Anon
 			renderStates.SetSampler(TXUNIT_MATERIALS, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
 			renderStates.SetSampler(TXUNIT_SPRITES, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
 			renderStates.SetSampler(TXUNIT_GENERIC_TXARRAY, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, transparent);
-
-			// TODO - make this dynamic
-			shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 		}
 
 		Rococo::Graphics::IGui3D& Gui3D() override
@@ -314,6 +331,62 @@ namespace Rococo::RAL::Anon
 		void ClearFog()
 		{
 			fog.clear();
+		}
+
+		void RenderSkyBox(IScene& scene)
+		{
+			ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
+
+			if (!skyMeshId)
+			{
+				SkyVertex topNW{ -1.0f, 1.0f, 1.0f };
+				SkyVertex topNE{ 1.0f, 1.0f, 1.0f };
+				SkyVertex topSW{ -1.0f,-1.0f, 1.0f };
+				SkyVertex topSE{ 1.0f,-1.0f, 1.0f };
+				SkyVertex botNW{ -1.0f, 1.0f,-1.0f };
+				SkyVertex botNE{ 1.0f, 1.0f,-1.0f };
+				SkyVertex botSW{ -1.0f,-1.0f,-1.0f };
+				SkyVertex botSE{ 1.0f,-1.0f,-1.0f };
+
+				SkyVertex skyboxVertices[36] =
+				{
+					topSW, topNW, topNE, // top,
+					topNE, topSE, topSW, // top,
+					botSW, botNW, botNE, // bottom,
+					botNE, botSE, botSW, // bottom,
+					topNW, topSW, botSW, // West
+					botSW, botNW, topNW, // West
+					topNE, topSE, botSE, // East
+					botSE, botNE, topNE, // East
+					topNW, topNE, botNE, // North
+					botNE, botNW, topNW, // North
+					topSW, topSE, botSE, // South
+					botSE, botSW, topSW, // South
+				};
+
+				skyMeshId = ral.Meshes().CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
+			}
+
+			if (ral.Shaders().UseShaders(idObjSkyVS, idObjSkyPS))
+			{
+				ral.ClearBoundVertexBufferArray();
+				ral.BindVertexBuffer(skyMeshId, sizeof(SkyVertex), 0);
+				ral.CommitBoundVertexBuffers();
+
+				renderStates.SetShaderTexture(TXUNIT_ENV_MAP, cubeId);
+				renderStates.SetDrawTopology(PrimitiveTopology::TRIANGLELIST);
+				renderStates.UseSkyRasterizer();
+				renderStates.DisableWritesOnDepthState();
+				renderStates.DisableBlend();
+
+				ral.Draw(36, 0);
+
+				ResetSamplersToDefaults();
+			}
+			else
+			{
+				Throw(0, "DX11Renderer::RenderSkybox failed. Error setting sky shaders");
+			}
 		}
 	};
 }

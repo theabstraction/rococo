@@ -69,10 +69,6 @@ namespace Rococo::DX11
 		ID_VERTEX_SHADER idObjVS_Shadows;
 		ID_VERTEX_SHADER idSkinnedObjVS_Shadows;
 
-		ID_VERTEX_SHADER idObjSkyVS;
-		ID_PIXEL_SHADER idObjSkyPS;
-
-		ID_SYS_MESH skyMeshId;
 		//AutoRelease<ID3D11SamplerState> envSampler;
 		//AutoRelease<ID3D11SamplerState> skySampler;
 
@@ -115,7 +111,10 @@ namespace Rococo::DX11
 		void DisableWritesOnDepthState() override;
 		void UseParticleRasterizer() override;
 		void UsePlasmaBlend() override;
+		void UseSkyRasterizer() override;
+
 		void SetDrawTopology(PrimitiveTopology topology) override;
+		void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) override;
 
 		IGui3D& Gui3D() override
 		{

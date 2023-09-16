@@ -162,68 +162,7 @@ namespace Rococo::DX11
 
 	void DX11Pipeline::RenderSkyBox(IScene& scene)
 	{
-		ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
-
-		ID3D11ShaderResourceView* skyCubeTextureView = textures.GetShaderView(cubeId);
-		if (!skyCubeTextureView)
-		{
-			return;
-		}
-
-		if (!skyMeshId)
-		{
-			SkyVertex topNW{ -1.0f, 1.0f, 1.0f };
-			SkyVertex topNE{ 1.0f, 1.0f, 1.0f };
-			SkyVertex topSW{ -1.0f,-1.0f, 1.0f };
-			SkyVertex topSE{ 1.0f,-1.0f, 1.0f };
-			SkyVertex botNW{ -1.0f, 1.0f,-1.0f };
-			SkyVertex botNE{ 1.0f, 1.0f,-1.0f };
-			SkyVertex botSW{ -1.0f,-1.0f,-1.0f };
-			SkyVertex botSE{ 1.0f,-1.0f,-1.0f };
-
-			SkyVertex skyboxVertices[36] =
-			{
-				topSW, topNW, topNE, // top,
-				topNE, topSE, topSW, // top,
-				botSW, botNW, botNE, // bottom,
-				botNE, botSE, botSW, // bottom,
-				topNW, topSW, botSW, // West
-				botSW, botNW, topNW, // West
-				topNE, topSE, botSE, // East
-				botSE, botNE, topNE, // East
-				topNW, topNE, botNE, // North
-				botNE, botNW, topNW, // North
-				topSW, topSE, botSE, // South
-				botSE, botSW, topSW, // South
-			};
-
-			skyMeshId = meshes.CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
-		}
-
-		if (shaders.UseShaders(idObjSkyVS, idObjSkyPS))
-		{
-			auto& mesh = meshes.GetBuffer(skyMeshId);
-			UINT strides[] = { sizeof(SkyVertex) };
-			UINT offsets[]{ 0 };
-			dc.IASetPrimitiveTopology(mesh.topology);
-			dc.IASetVertexBuffers(0, 1, &mesh.vertexBuffer, strides, offsets);
-			dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &skyCubeTextureView);
-
-			//dc.PSSetSamplers(0, 1, &skySampler);
-
-			dc.RSSetState(skyRasterizering);
-			dc.OMSetDepthStencilState(noDepthTestOrWrite, 0);
-
-			FLOAT blendFactorUnused[] = { 0,0,0,0 };
-			dc.OMSetBlendState(disableBlend, blendFactorUnused, 0xffffffff);
-			dc.Draw(mesh.numberOfVertices, 0);
-
-			ResetSamplersToDefaults();
-		}
-		else
-		{
-			Throw(0, "DX11Renderer::RenderSkybox failed. Error setting sky shaders");
-		}
+		RAL_pipeline->RenderSkyBox(scene);
 	}
 
 	void DX11Pipeline::DisableBlend()
@@ -247,6 +186,11 @@ namespace Rococo::DX11
 	void DX11Pipeline::UseParticleRasterizer()
 	{
 		dc.RSSetState(particleRasterizering);
+	}
+
+	void DX11Pipeline::UseSkyRasterizer()
+	{
+		dc.RSSetState(skyRasterizering);
 	}
 
 	void DX11Pipeline::UsePlasmaBlend()

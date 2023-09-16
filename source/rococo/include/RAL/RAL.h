@@ -2,8 +2,14 @@
 
 #include <rococo.renderer.types.h>
 
+namespace Rococo
+{
+	struct ID_SYS_MESH;
+}
+
 namespace Rococo::Graphics
 {
+	struct IMeshes;
 	struct IShaders;
 	struct ITextureManager;
 }
@@ -93,9 +99,12 @@ namespace Rococo::RAL
 		virtual IRALConstantDataBuffer* CreateConstantBuffer(size_t sizeofStruct, size_t nElements) = 0;
 		virtual IRALVertexDataBuffer* CreateDynamicVertexBuffer(size_t sizeofStruct, size_t nElements) = 0;
 		virtual void ClearBoundVertexBufferArray() = 0;
+		virtual void BindVertexBuffer(ID_SYS_MESH meshId, size_t sizeofVertex, uint32 offset) = 0;
 		virtual void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, uint32 offset) = 0;
 		virtual void CommitBoundVertexBuffers() = 0;
 		virtual void Draw(uint32 nVertices, uint32 startPosition) = 0;
+
+		virtual Rococo::Graphics::IMeshes& Meshes() = 0;
 		virtual Rococo::Graphics::IShaders& Shaders() = 0;
 		virtual Rococo::Graphics::ITextureManager& RALTextures() = 0;
 	};

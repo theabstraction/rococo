@@ -48,9 +48,28 @@ namespace Rococo::Graphics
 		virtual void GetOption(size_t index, OUT cstr& interfaceName, OUT cstr& className) = 0;
 	};
 
+
+	enum class VertexElementFormat : uint32
+	{
+		// Three 32-bit floats
+		Float3,
+
+		// Four 32-bit floats
+		Float4
+	};
+
+	struct VertexElement
+	{
+		cstr SemanticName;
+		uint32 semanticIndex;
+		VertexElementFormat format;
+	};
+
 	ROCOCO_INTERFACE IShaders
 	{
 		virtual ID_GEOMETRY_SHADER CreateGeometryShader(cstr pingPath) = 0;
+		// Create a vertex shader based on the vertex element description. The terminating element must have SemanticName of null
+		virtual ID_VERTEX_SHADER CreateVertexShader(cstr pingPath, const VertexElement* elements) = 0;
 		virtual ID_VERTEX_SHADER CreateObjectVertexShader(cstr pingPath) = 0;
 		virtual ID_VERTEX_SHADER CreateParticleVertexShader(cstr pingPath) = 0;
 		virtual ID_PIXEL_SHADER CreatePixelShader(cstr pingPath) = 0;
