@@ -221,11 +221,6 @@ private:
 		dc.Draw(nVertices, startPosition);
 	}
 
-	bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) override
-	{
-		return shaders->UseShaders(vid, pid);
-	}
-
 	bool IsFullscreen() override
 	{
 		return currentWindowBacking ? currentWindowBacking->IsFullscreen() : false;

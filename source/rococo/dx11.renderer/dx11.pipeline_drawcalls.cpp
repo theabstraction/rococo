@@ -77,38 +77,6 @@ namespace Rococo::DX11
 		}
 	}
 
-	void DX11Pipeline::DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID)
-	{
-		if (nParticles == 0) return;
-		if (!shaders.UseShaders(vsID, psID)) return;
-		if (!shaders.UseGeometryShader(gsID)) return;
-
-		dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-		dc.RSSetState(particleRasterizering);
-		dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
-
-		const ParticleVertex* start = &particles[0];
-
-		size_t i = 0;
-
-		while (nParticles > 0)
-		{
-			size_t chunkSize = min(nParticles, (size_t)PARTICLE_BUFFER_VERTEX_CAPACITY);
-			DX11::CopyStructureToBuffer(dc, particleBuffer, start + i, chunkSize * sizeof(ParticleVertex));
-
-			UINT strides[1] = { sizeof(ParticleVertex) };
-			UINT offsets[1] = { 0 };
-
-			dc.IASetVertexBuffers(0, 1, &particleBuffer, strides, offsets);
-			dc.Draw((UINT)chunkSize, 0);
-
-			i += chunkSize;
-			nParticles -= chunkSize;
-		}
-
-		shaders.UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
-	}
-
 	void DX11Pipeline::DrawLightCone(const LightConstantBuffer& light, cr_vec3 viewDir)
 	{
 		trianglesThisFrame += DX11::DrawLightCone(light, viewDir, dc, *lightConeBuffer);
@@ -186,9 +154,7 @@ namespace Rococo::DX11
 			scene.RenderObjects(rc, true);
 
 			RAL_pipeline->Render3DGui();
-
-			dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
-			DrawParticles(fog.data(), fog.size(), idFogAmbientPS, idParticleVS, idFogAmbientGS);
+			RAL_pipeline->RenderFogWithAmbient();
 		}
 
 		phase = RenderPhase::None;
@@ -278,6 +244,17 @@ namespace Rococo::DX11
 		dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
 	}
 
+	void DX11Pipeline::UseParticleRasterizer()
+	{
+		dc.RSSetState(particleRasterizering);
+	}
+
+	void DX11Pipeline::UsePlasmaBlend()
+	{
+		FLOAT blendFactorUnused[] = { 0,0,0,0 };
+		dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
+	}
+
 	void DX11Pipeline::DisableWritesOnDepthState()
 	{
 		dc.OMSetDepthStencilState(objDepthState_NoWrite, 0);
@@ -346,9 +323,8 @@ namespace Rococo::DX11
 			scene.RenderObjects(rc, true);
 
 			RAL_pipeline->Render3DGui();
+			RAL_pipeline->RenderFogWithSpotlight();
 
-			dc.OMSetBlendState(alphaAdditiveBlend, blendFactorUnused, 0xffffffff);
-			DrawParticles(fog.data(), fog.size(), idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
 			phase = RenderPhase::None;
 
 			dc.OMSetDepthStencilState(objDepthState, 0);
@@ -452,9 +428,7 @@ namespace Rococo::DX11
 
 		Render3DObjects(scene);
 
-		FLOAT blendFactorUnused[] = { 0,0,0,0 };
-		dc.OMSetBlendState(plasmaBlend, blendFactorUnused, 0xffffffff);
-		DrawParticles(plasma.data(), plasma.size(), idPlasmaPS, idParticleVS, idPlasmaGS);
+		RAL_pipeline->RenderPlasma();
 
 		DrawLightCones(scene);
 

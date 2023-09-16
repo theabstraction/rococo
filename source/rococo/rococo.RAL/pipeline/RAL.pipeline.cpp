@@ -14,27 +14,55 @@ using namespace Rococo::Graphics;
 namespace Rococo::RAL::Anon
 {
 	enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
+	enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
 
-	struct RALPipeline: IPipelineSupervisor, IGui3D
+	struct RALPipeline: IPipelineSupervisor, IGui3D, IParticles
 	{
 		IRAL& ral;
 		IRenderStates& renderStates;
-
-		std::vector<VertexTriangle> gui3DTriangles;
-		AutoFree<IRALVertexDataBuffer> gui3DBuffer;
-		AutoFree<IRALConstantDataBuffer> instanceBuffer;
 		RenderPhase phase = RenderPhase::None;
 		int64 entitiesThisFrame = 0;
 		int64 trianglesThisFrame = 0;
 		bool builtFirstPass = false;
 
+		std::vector<VertexTriangle> gui3DTriangles;
+		std::vector<ParticleVertex> fog;
+		std::vector<ParticleVertex> plasma;
+
+		AutoFree<IRALVertexDataBuffer> gui3DBuffer;
+		AutoFree<IRALConstantDataBuffer> instanceBuffer;
+		AutoFree<IRALVertexDataBuffer> particleBuffer;
+
+		ID_VERTEX_SHADER idParticleVS;
+		ID_PIXEL_SHADER idPlasmaPS;
+		ID_GEOMETRY_SHADER idPlasmaGS;
+
+		ID_PIXEL_SHADER idFogAmbientPS;
+		ID_PIXEL_SHADER idFogSpotlightPS;
+		ID_GEOMETRY_SHADER idFogSpotlightGS;
+		ID_GEOMETRY_SHADER idFogAmbientGS;
+
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): renderStates(_renderStates), ral(_ral)
 		{
 			gui3DBuffer = ral.CreateDynamicVertexBuffer(sizeof VertexTriangle, GUI3D_BUFFER_TRIANGLE_CAPACITY);
 			instanceBuffer = ral.CreateConstantBuffer(sizeof ObjectInstance, 1);
+			particleBuffer = ral.CreateDynamicVertexBuffer(sizeof ParticleVertex, PARTICLE_BUFFER_VERTEX_CAPACITY);
+
+			idParticleVS =  ral.Shaders().CreateParticleVertexShader("!shaders/compiled/particle.vs");
+			idPlasmaGS = ral.Shaders().CreateGeometryShader("!shaders/compiled/plasma.gs");
+			idFogSpotlightGS = ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.spotlight.gs");
+			idFogAmbientGS = ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.ambient.gs");
+			idPlasmaPS = ral.Shaders().CreatePixelShader("!shaders/compiled/plasma.ps");
+			idFogSpotlightPS = ral.Shaders().CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
+			idFogAmbientPS = ral.Shaders().CreatePixelShader("!shaders/compiled/fog.ambient.ps");
 		}
 
-		Rococo::Graphics::IGui3D& Gui3D()
+		Rococo::Graphics::IGui3D& Gui3D() override
+		{
+			return *this;
+		}
+
+		Rococo::Graphics::IParticles& Particles() override
 		{
 			return *this;
 		}
@@ -88,6 +116,60 @@ namespace Rococo::RAL::Anon
 			}
 		}
 
+		void RenderFogWithAmbient() override
+		{
+			renderStates.UseAlphaAdditiveBlend();
+			DrawParticles(fog.data(), fog.size(), idFogAmbientPS, idParticleVS, idFogAmbientGS);
+		}
+
+		void RenderFogWithSpotlight() override
+		{
+			renderStates.UseAlphaAdditiveBlend();
+			DrawParticles(fog.data(), fog.size(), idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
+		}
+
+		void RenderPlasma() override
+		{
+			renderStates.UsePlasmaBlend();
+			DrawParticles(plasma.data(), plasma.size(), idPlasmaPS, idParticleVS, idPlasmaGS);
+		}
+
+		void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID)
+		{
+			if (nParticles == 0) return;
+			if (!ral.Shaders().UseShaders(vsID, psID)) return;
+			if (!ral.Shaders().UseGeometryShader(gsID)) return;
+
+			renderStates.SetDrawTopology(PrimitiveTopology::POINTLIST);
+			renderStates.UseParticleRasterizer();
+			renderStates.DisableWritesOnDepthState();
+
+			const ParticleVertex* start = &particles[0];
+
+			size_t i = 0;
+
+			if (nParticles > 0)
+			{
+				ral.ClearBoundVertexBufferArray();
+				ral.BindVertexBuffer(particleBuffer, sizeof ParticleVertex, 0);
+				ral.CommitBoundVertexBuffers();
+			}
+
+
+			while (nParticles > 0)
+			{
+				size_t chunkSize = min(nParticles, (size_t)PARTICLE_BUFFER_VERTEX_CAPACITY);
+				particleBuffer->CopyDataToBuffer(start + i, chunkSize * sizeof(ParticleVertex));
+
+				ral.Draw(chunkSize, 0);
+
+				i += chunkSize;
+				nParticles -= chunkSize;
+			}
+
+			ral.Shaders().UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
+		}
+
 		void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances)
 		{
 			if (!m.vertexBuffer)
@@ -102,12 +184,12 @@ namespace Rococo::RAL::Anon
 
 			if (m.psSpotlightShader && phase == RenderPhase::DetermineSpotlight)
 			{
-				ral.UseShaders(m.vsSpotlightShader, m.psSpotlightShader);
+				ral.Shaders().UseShaders(m.vsSpotlightShader, m.psSpotlightShader);
 				overrideShader = true;
 			}
 			else if (m.psAmbientShader && phase == RenderPhase::DetermineAmbient)
 			{
-				ral.UseShaders(m.vsAmbientShader, m.psAmbientShader);
+				ral.Shaders().UseShaders(m.vsAmbientShader, m.psAmbientShader);
 				overrideShader = true;
 			}
 
@@ -153,6 +235,26 @@ namespace Rococo::RAL::Anon
 					builtFirstPass = true;
 				}
 			}
+		}
+
+		void AddFog(const ParticleVertex& p)
+		{
+			fog.push_back(p);
+		}
+
+		void AddPlasma(const ParticleVertex& p)
+		{
+			plasma.push_back(p);
+		}
+
+		void ClearPlasma()
+		{
+			plasma.clear();
+		}
+
+		void ClearFog()
+		{
+			fog.clear();
 		}
 	};
 }

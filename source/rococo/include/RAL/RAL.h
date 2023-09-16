@@ -2,6 +2,11 @@
 
 #include <rococo.renderer.types.h>
 
+namespace Rococo::Graphics
+{
+	struct IShaders;
+}
+
 namespace Rococo::RAL
 {
 	ROCOCO_INTERFACE IRALDataBuffer
@@ -88,6 +93,6 @@ namespace Rococo::RAL
 		virtual void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, int32 offset) = 0;
 		virtual void CommitBoundVertexBuffers() = 0;
 		virtual void Draw(uint32 nVertices, uint32 startPosition) = 0;
-		virtual bool UseShaders(ID_VERTEX_SHADER vid, ID_PIXEL_SHADER pid) = 0;
+		virtual Rococo::Graphics::IShaders& Shaders() = 0;
 	};
 }

@@ -32,8 +32,7 @@ namespace Rococo::DX11
 
 		instanceBuffer = DX11::CreateConstantBuffer<ObjectInstance>(device);
 		lightConeBuffer = DX11::CreateDynamicVertexBuffer<ObjectVertex>(device, 3);
-		particleBuffer = DX11::CreateDynamicVertexBuffer<ParticleVertex>(device, PARTICLE_BUFFER_VERTEX_CAPACITY);
-
+		
 		depthRenderStateBuffer = DX11::CreateConstantBuffer<DepthRenderData>(device);
 		lightStateBuffer = DX11::CreateConstantBuffer<LightConstantBuffer>(device);
 
@@ -53,13 +52,6 @@ namespace Rococo::DX11
 		idObjPS_Shadows = shaders.CreatePixelShader("!shaders/compiled/shadow.ps");
 		idLightConePS = shaders.CreatePixelShader("!shaders/compiled/light_cone.ps");
 		idLightConeVS = shaders.CreateVertexShader("!shaders/compiled/light_cone.vs", DX11::GetObjectVertexDesc(), DX11::NumberOfObjectVertexElements());
-		idParticleVS = shaders.CreateParticleVertexShader("!shaders/compiled/particle.vs");
-		idPlasmaGS = shaders.CreateGeometryShader("!shaders/compiled/plasma.gs");
-		idFogSpotlightGS = shaders.CreateGeometryShader("!shaders/compiled/fog.spotlight.gs");
-		idFogAmbientGS = shaders.CreateGeometryShader("!shaders/compiled/fog.ambient.gs");
-		idPlasmaPS = shaders.CreatePixelShader("!shaders/compiled/plasma.ps");
-		idFogSpotlightPS = shaders.CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
-		idFogAmbientPS = shaders.CreatePixelShader("!shaders/compiled/fog.ambient.ps");
 		idObjSkyVS = shaders.CreateVertexShader("!shaders/compiled/skybox.vs", DX11::GetSkyVertexDesc(), DX11::NumberOfSkyVertexElements());
 		idObjSkyPS = shaders.CreatePixelShader("!shaders/compiled/skybox.ps");
 
@@ -116,26 +108,6 @@ namespace Rococo::DX11
 		}
 	}
 
-	void DX11Pipeline::AddFog(const ParticleVertex& p)
-	{
-		fog.push_back(p);
-	}
-
-	void DX11Pipeline::AddPlasma(const ParticleVertex& p)
-	{
-		plasma.push_back(p);
-	}
-
-	void DX11Pipeline::ClearPlasma()
-	{
-		plasma.clear();
-	}
-
-	void DX11Pipeline::ClearFog()
-	{
-		fog.clear();
-	}
-
 	void DX11Pipeline::Free()
 	{
 		delete this;
@@ -149,7 +121,7 @@ namespace Rococo::DX11
 
 	void DX11Pipeline::ShowVenue(IMathsVisitor& visitor)
 	{
-		visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, plasma.size() + fog.size());
+		visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, 0);
 		gui->ShowVenue(visitor);
 	}
 

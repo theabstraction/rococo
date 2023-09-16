@@ -20,7 +20,7 @@ namespace Rococo::DX11
 	// This was a result of chasing down an unreachable code warning message.
 	// I choose to keep this organization as it makes developing the pipeline a little more manageable. Only two files include the header, so there is no significant cost 
 	// for the layout of the class in the files.
-	struct DX11Pipeline : IDX11Pipeline, IParticles, RAL::IRenderStates
+	struct DX11Pipeline : IDX11Pipeline, RAL::IRenderStates
 	{
 		AutoFree<RAL::IPipelineSupervisor> RAL_pipeline;
 
@@ -70,19 +70,8 @@ namespace Rococo::DX11
 		ID_VERTEX_SHADER idObjVS_Shadows;
 		ID_VERTEX_SHADER idSkinnedObjVS_Shadows;
 
-		ID_VERTEX_SHADER idParticleVS;
-		ID_PIXEL_SHADER idPlasmaPS;
-		ID_PIXEL_SHADER idFogAmbientPS;
-		ID_PIXEL_SHADER idFogSpotlightPS;
-		ID_GEOMETRY_SHADER idPlasmaGS;
-		ID_GEOMETRY_SHADER idFogSpotlightGS;
-		ID_GEOMETRY_SHADER idFogAmbientGS;
-
 		ID_VERTEX_SHADER idObjSkyVS;
 		ID_PIXEL_SHADER idObjSkyPS;
-
-		std::vector<ParticleVertex> fog;
-		std::vector<ParticleVertex> plasma;
 
 		ID_SYS_MESH skyMeshId;
 		//AutoRelease<ID3D11SamplerState> envSampler;
@@ -100,7 +89,6 @@ namespace Rococo::DX11
 
 		Graphics::RenderPhaseConfig phaseConfig;
 
-		AutoRelease<ID3D11Buffer> particleBuffer;
 		AutoRelease<ID3D11Buffer> globalStateBuffer;
 		AutoRelease<ID3D11Buffer> sunlightStateBuffer;
 
@@ -133,6 +121,8 @@ namespace Rococo::DX11
 		void UseAdditiveBlend() override;
 		void UseAlphaAdditiveBlend() override;
 		void DisableWritesOnDepthState() override;
+		void UseParticleRasterizer() override;
+		void UsePlasmaBlend() override;
 		void SetDrawTopology(PrimitiveTopology topology) override;
 
 		IGui3D& Gui3D() override
@@ -142,15 +132,9 @@ namespace Rococo::DX11
 
 		IParticles& Particles() override
 		{
-			return *this;
+			return RAL_pipeline->Particles();
 		}
 
-		void Add3DGuiTriangles(const VertexTriangle* first, const VertexTriangle* last);
-		void Clear3DGuiTriangles();
-		void AddFog(const ParticleVertex& p) override;
-		void AddPlasma(const ParticleVertex& p) override;
-		void ClearPlasma() override;
-		void ClearFog() override;
 		void Free() override;
 		void AssignGlobalStateBufferToShaders();
 		void Draw(MeshBuffer& m, const ObjectInstance* instances, uint32 nInstances);
