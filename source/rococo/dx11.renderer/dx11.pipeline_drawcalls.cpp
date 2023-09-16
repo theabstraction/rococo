@@ -331,35 +331,6 @@ namespace Rococo::DX11
 		}
 	}
 
-	void DX11Pipeline::Render3DGui(const VertexTriangle* gui3DTriangles, size_t nTriangles)
-	{
-		size_t cursor = 0;
-
-		ObjectInstance one = { Matrix4x4::Identity(), Vec3 {1.0f, 1.0f, 1.0f}, 0.0f, RGBA(1.0f, 1.0f, 1.0f, 1.0f) };
-
-		while (nTriangles > 0)
-		{
-			auto* v = gui3DTriangles + cursor;
-
-			size_t nTriangleBatchCount = min<size_t>(nTriangles, GUI3D_BUFFER_TRIANGLE_CAPACITY);
-
-			DX11::CopyStructureToBuffer(dc, gui3DBuffer, v, nTriangleBatchCount * sizeof(VertexTriangle));
-
-			MeshBuffer m;
-			m.alphaBlending = false;
-			m.disableShadowCasting = false;
-			m.vertexBuffer = gui3DBuffer;
-			m.weightsBuffer = nullptr;
-			m.numberOfVertices = (UINT)nTriangleBatchCount * 3;
-			m.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
-			Draw(m, &one, 1);
-
-			nTriangles -= nTriangleBatchCount;
-			cursor += nTriangleBatchCount;
-		}
-	}
-
 	void DX11Pipeline::Render3DObjects(IScene& scene)
 	{
 		auto now = Time::TickCount();

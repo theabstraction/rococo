@@ -54,7 +54,6 @@ namespace Rococo::DX11
 
 		AutoRelease<ID3D11Buffer> instanceBuffer;
 		AutoRelease<ID3D11Buffer> lightConeBuffer;
-		AutoRelease<ID3D11Buffer> gui3DBuffer;
 
 		AutoFree<IDX11Gui> gui;
 
@@ -154,7 +153,6 @@ namespace Rococo::DX11
 		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene);
 		void SetupSpotlightConstants();
 		void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene);
-		void Render3DGui(const VertexTriangle* gui3DTriangles, size_t nTriangles);
 		void Render3DObjects(IScene& scene);
 		RenderTarget GetCurrentRenderTarget();
 		void ClearCurrentRenderBuffers(const RGBA& clearColour);
