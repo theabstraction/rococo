@@ -7,6 +7,7 @@
 #include <rococo.renderer.types.h>
 #include <rococo.renderer.h>
 #include <rococo.time.h>
+#include <rococo.visitors.h>
 #include <vector>
 
 using namespace Rococo;
@@ -819,6 +820,11 @@ namespace Rococo::RAL::Anon
 			}
 
 			phase = RenderPhase::None;
+		}
+
+		void ShowVenue(IMathsVisitor& visitor)
+		{
+			visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, 0);
 		}
 
 		void Render3DObjects(IScene& scene)

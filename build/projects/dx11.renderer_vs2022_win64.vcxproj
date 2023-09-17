@@ -143,7 +143,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;pipeline.lib;rococo.fonts.lib;rococo.graphics.lib;rococo.maths.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\dx11.renderer.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\dx11.renderer.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;pipeline.lib;rococo.fonts.lib;rococo.graphics.lib;rococo.maths.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\dx11.renderer.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\dx11.renderer.lib</ImportLibrary>
@@ -238,7 +240,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.factory.h" />
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.imports.inl" />
-    <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.pipeline.h" />
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.renderer.h" />
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11buffers.inl" />
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11helpers.inl" />
@@ -262,7 +263,6 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.overlays.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.particles.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pipeline.cpp" />
-    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pipeline_drawcalls.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.renderer.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.samplers.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.shaders.cpp" />

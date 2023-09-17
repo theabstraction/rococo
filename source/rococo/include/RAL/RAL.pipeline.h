@@ -9,6 +9,7 @@
 namespace Rococo
 {
 	struct ID_CUBE_TEXTURE;
+	struct IMathsVisitor;
 }
 
 namespace Rococo::Graphics
@@ -103,6 +104,7 @@ namespace Rococo::RAL
 	ROCOCO_INTERFACE IPipelineSupervisor : IPipeline
 	{
 		virtual void Free() = 0;
+		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 	};
 
 	RAL_PIPELINE_API IPipelineSupervisor* CreatePipeline(IRenderStates& renderStates, IRAL& ral);
