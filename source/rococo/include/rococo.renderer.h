@@ -236,6 +236,12 @@ namespace Rococo::Graphics
 		virtual void Clear3DGuiTriangles() = 0;
 	};
 
+	ROCOCO_INTERFACE IGui3DSupervisor : IGui3D
+	{
+		virtual void Free() = 0;
+		virtual void Render3DGui() = 0;
+	};
+
 	ROCOCO_INTERFACE IRenderContext // Provides draw calls - do not cache
 	{
 		virtual IGui3D & Gui3D() = 0;

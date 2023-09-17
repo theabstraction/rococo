@@ -193,9 +193,11 @@
     <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.gui3D.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.lightcones.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.particles.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.pipeline.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.skybox.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

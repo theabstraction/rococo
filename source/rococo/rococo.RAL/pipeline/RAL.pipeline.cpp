@@ -15,15 +15,7 @@ using namespace Rococo::Graphics;
 
 namespace Rococo::RAL::Anon
 {
-	enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
-
 	// struct VertexElement	{ cstr SemanticName; uint32 semanticIndex; VertexElementFormat format; uint32 slot;	};
-
-	VertexElement skyVertexElements[] =
-	{
-		VertexElement { "position", 0, VertexElementFormat::Float3, 0 },
-		VertexElement { nullptr,    0 ,VertexElementFormat::Float3, 0 }
-	};
 
 	VertexElement objectVertexElements[] =
 	{
@@ -49,7 +41,7 @@ namespace Rococo::RAL::Anon
 		VertexElement { nullptr,		0 ,VertexElementFormat::Float3, 0  }
 	};
 
-	struct RALPipeline: IPipelineSupervisor, IGui3D
+	struct RALPipeline: IPipelineSupervisor
 	{
 		IRAL& ral;
 		IRenderStates& renderStates;
@@ -61,10 +53,8 @@ namespace Rococo::RAL::Anon
 		bool builtFirstPass = false;
 		AutoFree<IParticlesSupervisor> particles;
 		AutoFree<IRAL_LightCones> lightCones;
-
-		std::vector<VertexTriangle> gui3DTriangles;
-		
-		AutoFree<IRALVertexDataBuffer> gui3DBuffer;
+		AutoFree<IRAL_Skybox> skybox;
+		AutoFree<IGui3DSupervisor> gui3D;
 
 		AutoFree<IRALConstantDataBuffer> instanceBuffer;
 		AutoFree<IRALConstantDataBuffer> globalStateBuffer;
@@ -77,10 +67,6 @@ namespace Rococo::RAL::Anon
 		ID_TEXTURE shadowBufferId;
 
 		GlobalState currentGlobalState;
-
-		ID_SYS_MESH skyMeshId;
-		ID_VERTEX_SHADER idObjSkyVS;
-		ID_PIXEL_SHADER idObjSkyPS;
 
 		BoneMatrices boneMatrices = { 0 };
 
@@ -100,7 +86,6 @@ namespace Rococo::RAL::Anon
 
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): renderStates(_renderStates), ral(_ral)
 		{
-			gui3DBuffer = ral.CreateDynamicVertexBuffer(sizeof VertexTriangle, GUI3D_BUFFER_TRIANGLE_CAPACITY);
 			instanceBuffer = ral.CreateConstantBuffer(sizeof ObjectInstance, 1);
 			globalStateBuffer = ral.CreateConstantBuffer(sizeof GlobalState, 1);
 			lightStateBuffer = ral.CreateConstantBuffer(sizeof LightConstantBuffer, 1);
@@ -108,9 +93,6 @@ namespace Rococo::RAL::Anon
 			ambientBuffer = ral.CreateConstantBuffer(sizeof AmbientData, 1);
 			boneMatricesStateBuffer = ral.CreateConstantBuffer(sizeof BoneMatrices, 1);
 			depthRenderStateBuffer = ral.CreateConstantBuffer(sizeof DepthRenderData, 1);
-
-			idObjSkyVS			= ral.Shaders().CreateVertexShader("!shaders/compiled/skybox.vs", skyVertexElements);
-			idObjSkyPS			= ral.Shaders().CreatePixelShader("!shaders/compiled/skybox.ps");
 
 			idObjVS				= ral.Shaders().CreateObjectVertexShader("!shaders/compiled/object.vs");
 			idObjPS				= ral.Shaders().CreatePixelShader("!shaders/compiled/object.ps");
@@ -129,6 +111,23 @@ namespace Rococo::RAL::Anon
 			shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 			particles = CreateParticleSystem(_ral, _renderStates);
 			lightCones = CreateLightCones(_ral, _renderStates, *this);
+			skybox = CreateRALSkybox(_ral, _renderStates);
+			gui3D = CreateGui3D(_ral, _renderStates, *this);
+		}
+
+		Rococo::Graphics::IGui3D& Gui3D() override
+		{
+			return *gui3D;
+		}
+
+		Rococo::Graphics::IParticles& Particles() override
+		{
+			return *particles;
+		}
+
+		void Free() override
+		{
+			delete this;
 		}
 
 		static bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderData& drd)
@@ -210,29 +209,6 @@ namespace Rococo::RAL::Anon
 			renderStates.SetSamplerDefaults(TXUNIT_GENERIC_TXARRAY, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, transparent);
 		}
 
-		Rococo::Graphics::IGui3D& Gui3D() override
-		{
-			return *this;
-		}
-
-		Rococo::Graphics::IParticles& Particles() override
-		{
-			return *particles;
-		}
-
-		void Free() override
-		{
-			delete this;
-		}
-
-		void Add3DGuiTriangles(const VertexTriangle* first, const VertexTriangle* last) override
-		{
-			for (auto i = first; i != last; ++i)
-			{
-				gui3DTriangles.push_back(*i);
-			}
-		}
-
 		void AssignGlobalStateBufferToShaders()
 		{
 			globalStateBuffer->AssignToGS(CBUFFER_INDEX_GLOBAL_STATE);
@@ -254,42 +230,6 @@ namespace Rococo::RAL::Anon
 			ad.fogConstant = ambientLight.fogConstant;
 			ambientBuffer->CopyDataToBuffer(&ad, sizeof ad);
 			ambientBuffer->AssignToPS(CBUFFER_INDEX_AMBIENT_LIGHT);
-		}
-
-		void Clear3DGuiTriangles() override
-		{
-			gui3DTriangles.clear();
-		}
-
-		void Render3DGui() override
-		{
-			size_t cursor = 0;
-
-			ObjectInstance one = { Matrix4x4::Identity(), Vec3 {1.0f, 1.0f, 1.0f}, 0.0f, RGBA(1.0f, 1.0f, 1.0f, 1.0f) };
-
-			size_t nTriangles = gui3DTriangles.size();
-
-			while (nTriangles)
-			{
-				auto* v = gui3DTriangles.data() + cursor;
-
-				size_t nTriangleBatchCount = min<size_t>(nTriangles, GUI3D_BUFFER_TRIANGLE_CAPACITY);
-
-				gui3DBuffer->CopyDataToBuffer(v, nTriangleBatchCount * sizeof(VertexTriangle));
-
-				RALMeshBuffer m;
-				m.alphaBlending = false;
-				m.disableShadowCasting = false;
-				m.vertexBuffer = gui3DBuffer;
-				m.weightsBuffer = nullptr;
-				m.numberOfVertices = (uint32) nTriangleBatchCount * 3;
-				m.topology = PrimitiveTopology::TRIANGLELIST;
-
-				Draw(m, &one, 1);
-
-				nTriangles -= nTriangleBatchCount;
-				cursor += nTriangleBatchCount;
-			}
 		}
 
 		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene) override
@@ -438,62 +378,6 @@ namespace Rococo::RAL::Anon
 			}
 		}
 
-		void RenderSkyBox(IScene& scene)
-		{
-			ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
-
-			if (!skyMeshId)
-			{
-				SkyVertex topNW{ -1.0f, 1.0f, 1.0f };
-				SkyVertex topNE{ 1.0f, 1.0f, 1.0f };
-				SkyVertex topSW{ -1.0f,-1.0f, 1.0f };
-				SkyVertex topSE{ 1.0f,-1.0f, 1.0f };
-				SkyVertex botNW{ -1.0f, 1.0f,-1.0f };
-				SkyVertex botNE{ 1.0f, 1.0f,-1.0f };
-				SkyVertex botSW{ -1.0f,-1.0f,-1.0f };
-				SkyVertex botSE{ 1.0f,-1.0f,-1.0f };
-
-				SkyVertex skyboxVertices[36] =
-				{
-					topSW, topNW, topNE, // top,
-					topNE, topSE, topSW, // top,
-					botSW, botNW, botNE, // bottom,
-					botNE, botSE, botSW, // bottom,
-					topNW, topSW, botSW, // West
-					botSW, botNW, topNW, // West
-					topNE, topSE, botSE, // East
-					botSE, botNE, topNE, // East
-					topNW, topNE, botNE, // North
-					botNE, botNW, topNW, // North
-					topSW, topSE, botSE, // South
-					botSE, botSW, topSW, // South
-				};
-
-				skyMeshId = ral.Meshes().CreateSkyMesh(skyboxVertices, sizeof(skyboxVertices) / sizeof(SkyVertex));
-			}
-
-			if (ral.Shaders().UseShaders(idObjSkyVS, idObjSkyPS))
-			{
-				ral.ClearBoundVertexBufferArray();
-				ral.BindVertexBuffer(skyMeshId, sizeof(SkyVertex), 0);
-				ral.CommitBoundVertexBuffers();
-
-				renderStates.SetShaderTexture(TXUNIT_ENV_MAP, cubeId);
-				renderStates.SetDrawTopology(PrimitiveTopology::TRIANGLELIST);
-				renderStates.UseSkyRasterizer();
-				renderStates.DisableWritesOnDepthState();
-				renderStates.DisableBlend();
-
-				ral.Draw(36, 0);
-
-				renderStates.ResetSamplersToDefaults();
-			}
-			else
-			{
-				Throw(0, "DX11Renderer::RenderSkybox failed. Error setting sky shaders");
-			}
-		}
-
 		bool IsGuiReady() const
 		{
 			return !phaseConfig.renderTarget;
@@ -526,7 +410,7 @@ namespace Rococo::RAL::Anon
 
 			renderStates.ResetSamplersToDefaults();
 
-			RenderSkyBox(scene);
+			skybox->RenderSkyBox(scene);
 
 			renderStates.AssignGuiShaderResources();
 			renderStates.ResetSamplersToDefaults();
@@ -591,7 +475,7 @@ namespace Rococo::RAL::Anon
 				scene.RenderObjects(ral.RenderContext(), false);
 				scene.RenderObjects(ral.RenderContext(), true);
 
-				Render3DGui();
+				gui3D->Render3DGui();
 				particles->RenderFogWithAmbient();
 			}
 
@@ -682,7 +566,7 @@ namespace Rococo::RAL::Anon
 				scene.RenderObjects(ral.RenderContext(), false);
 				scene.RenderObjects(ral.RenderContext(), true);
 
-				Render3DGui();
+				gui3D->Render3DGui();
 				particles->RenderFogWithSpotlight();
 
 				phase = RenderPhase::None;

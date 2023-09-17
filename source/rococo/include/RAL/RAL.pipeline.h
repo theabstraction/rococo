@@ -18,6 +18,7 @@ namespace Rococo::Graphics
 	struct VertexElement;
 	struct VertexTriangle;
 	struct IGui3D;
+	struct IGui3DSupervisor;
 	struct IParticles;
 	struct IParticlesSupervisor;
 	struct GuiMetrics;
@@ -80,14 +81,10 @@ namespace Rococo::RAL
 	// IPipeline orders rendering calls to properly format the video output
 	ROCOCO_INTERFACE IPipeline
 	{
-		virtual void Add3DGuiTriangles(const Rococo::Graphics::VertexTriangle* first, const Rococo::Graphics::VertexTriangle* last) = 0;
 		virtual void AssignAmbientLightToShaders(const Rococo::Graphics::LightConstantBuffer& ambientLight) = 0;
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual void AssignLightStateBufferToShaders() = 0;
-		virtual void Clear3DGuiTriangles() = 0;
 		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
-		virtual void Render3DGui() = 0;
-		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
 		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual ID_TEXTURE ShadowBufferId() const = 0;
@@ -118,4 +115,13 @@ namespace Rococo::RAL
 	RAL_PIPELINE_API Rococo::Graphics::IParticlesSupervisor* CreateParticleSystem(IRAL& ral, IRenderStates& renderStates);
 
 	RAL_PIPELINE_API const Rococo::Graphics::VertexElement* GetObjectVertexElements();
+
+	ROCOCO_INTERFACE IRAL_Skybox
+	{
+		virtual void Free() = 0;
+		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
+	};
+
+	RAL_PIPELINE_API IRAL_Skybox* CreateRALSkybox(IRAL& ral, IRenderStates& renderStates);
+	RAL_PIPELINE_API Rococo::Graphics::IGui3DSupervisor* CreateGui3D(IRAL& ral, IRenderStates& renderStates, IPipeline& pipeline);
 }
