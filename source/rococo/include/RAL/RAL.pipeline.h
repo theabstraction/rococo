@@ -15,6 +15,7 @@ namespace Rococo
 namespace Rococo::Graphics
 {
 	struct DepthRenderData;
+	struct VertexElement;
 	struct VertexTriangle;
 	struct IGui3D;
 	struct IParticles;
@@ -85,7 +86,6 @@ namespace Rococo::RAL
 		virtual void AssignLightStateBufferToShaders() = 0;
 		virtual void Clear3DGuiTriangles() = 0;
 		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
-		virtual void DrawLightCones(Rococo::Graphics::IScene& scene) = 0;
 		virtual void Render3DGui() = 0;
 		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
 		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, Rococo::Graphics::IScene& scene) = 0;
@@ -99,6 +99,14 @@ namespace Rococo::RAL
 		virtual Rococo::Graphics::IParticles& Particles() = 0;
 	};
 
+	ROCOCO_INTERFACE IRAL_LightCones
+	{
+		virtual void DrawLightCones(Rococo::Graphics::IScene & scene) = 0;
+		virtual void Free() = 0;
+	};
+
+	RAL_PIPELINE_API IRAL_LightCones* CreateLightCones(IRAL& ral, IRenderStates& renderStates, IPipeline& pipeline);
+
 	ROCOCO_INTERFACE IPipelineSupervisor : IPipeline
 	{
 		virtual void Free() = 0;
@@ -108,4 +116,6 @@ namespace Rococo::RAL
 	RAL_PIPELINE_API IPipelineSupervisor* CreatePipeline(IRenderStates& renderStates, IRAL& ral);
 
 	RAL_PIPELINE_API Rococo::Graphics::IParticlesSupervisor* CreateParticleSystem(IRAL& ral, IRenderStates& renderStates);
+
+	RAL_PIPELINE_API const Rococo::Graphics::VertexElement* GetObjectVertexElements();
 }

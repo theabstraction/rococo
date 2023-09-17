@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.pipeline.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.particles.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.lightcones.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h">
