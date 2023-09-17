@@ -102,7 +102,7 @@ namespace Rococo::DX11
 
 	IDX11CubeTextures* CreateCubeTextureManager(ID3D11Device& device, ID3D11DeviceContext& dc);
 
-	ROCOCO_INTERFACE IDX11Gui: public IGuiRenderContext
+	ROCOCO_INTERFACE IDX11Gui: public IGuiRenderContextSupervisor
 	{
 		virtual bool ApplyGuiShader() = 0;
 		virtual bool ApplyHQFontsShader() = 0;
@@ -112,7 +112,6 @@ namespace Rococo::DX11
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShaderPingPath, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Fonts::FontColour fcolour) = 0;
 		virtual void Free() = 0;	
-		virtual void RenderGui(IScene& scene, const GuiMetrics& metrics, bool renderOverlays) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
@@ -197,6 +196,11 @@ namespace Rococo::DX11
 		virtual void Free() = 0;
 	};
 
+	ROCOCO_INTERFACE IDX11SpecialResources
+	{
+		virtual ID3D11RenderTargetView * BackBuffer() = 0;
+	};
+
 	ROCOCO_INTERFACE IDX11TextureManager: ITextureManager
 	{
 		virtual void Free() = 0;
@@ -207,7 +211,7 @@ namespace Rococo::DX11
 		virtual IDX11CubeTextures& DX11CubeTextures() = 0;
 	};
 
-	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc, IDX11SpecialResources& specialResources);
 
 	ROCOCO_INTERFACE IDX11Meshes: public IMeshes
 	{
@@ -226,10 +230,8 @@ namespace Rococo::DX11
 
 	ROCOCO_INTERFACE IDX11Pipeline
 	{
-		virtual bool IsGuiReady() const = 0;
 		virtual void Free() = 0;
-		virtual void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) = 0;
-		virtual void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) = 0;
+		virtual void SetSamplerDefaults(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual IGuiResources& GuiResources() = 0;

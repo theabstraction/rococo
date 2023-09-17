@@ -109,9 +109,9 @@ namespace MHost
 			platform.graphics.scene.RenderObjects(rc, skinned);
 		}
 
-		const LightConstantBuffer* GetLights(uint32& nCount) const override
+		Lights GetLights() const override
 		{
-			return platform.graphics.scene.GetLights(nCount);
+			return platform.graphics.scene.GetLights();
 		}
 
 		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned)  override
@@ -160,9 +160,9 @@ namespace MHost
 		{
 		}
 
-		const LightConstantBuffer* GetLights(uint32&) const override
+		Lights GetLights() const override
 		{
-			return nullptr;
+			return Lights{ nullptr, 0 };
 		}
 
 		void RenderShadowPass(const DepthRenderData&, IRenderContext&, bool)  override

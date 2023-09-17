@@ -392,6 +392,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 {
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
+	IDX11SpecialResources& specialResources;
 	AutoFree<IExpandingBuffer> loadBuffer;
 	DX11::TextureLoader textureLoader;
 	std::vector<DX11::TextureBind> textures;
@@ -403,9 +404,10 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 	AutoFree<IDX11Materials> materials;
 	TextureBind backBuffer;
 
-	DX11TextureManager(IO::IInstallation& installation, ID3D11Device& _device, ID3D11DeviceContext& _dc):
+	DX11TextureManager(IO::IInstallation& installation, ID3D11Device& _device, ID3D11DeviceContext& _dc, IDX11SpecialResources& _specialResources):
 		device(_device),
 		dc(_dc),
+		specialResources(_specialResources),
 		loadBuffer(CreateExpandingBuffer(256_kilobytes)),
 		textureLoader(installation, device, dc, *loadBuffer),
 		cubeTextures(CreateCubeTextureManager(device, dc)),
@@ -540,6 +542,30 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		return textureLoader;
 	}
 
+	void AssignToPS(uint32 unitId, ID_TEXTURE texture) override
+	{
+		auto& tb =  GetTexture(texture);
+		if (tb.shaderView)
+		{
+			dc.PSSetShaderResources(unitId, 1, &tb.shaderView);
+		}
+	}
+
+	void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) override
+	{
+		auto depth = GetTextureNoThrow(depthTarget);
+		auto colour = GetTextureNoThrow(renderTarget);
+		if (colour.renderView)
+		{
+			dc.OMSetRenderTargets(1, &colour.renderView, depth.depthView);
+		}
+		else
+		{
+			auto* colourView = specialResources.BackBuffer();
+			dc.OMSetRenderTargets(1, &colourView, depth.depthView);
+		}
+	}
+
 	ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) override
 	{
 		TextureBind tb = DX11::CreateDepthTarget(device, width, height);
@@ -618,12 +644,24 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		auto& t = textures[index];
 		return t;
 	}
+
+	TextureBind GetTextureNoThrow(ID_TEXTURE id)
+	{
+		size_t index = id.value - 1;
+		if (index >= textures.size())
+		{
+			return TextureBind();
+		}
+
+		auto& t = textures[index];
+		return t;
+	}
 };
 
 namespace Rococo::DX11
 {
-	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc)
+	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc, IDX11SpecialResources& specialResources)
 	{
-		return new DX11TextureManager(installation, device, dc);
+		return new DX11TextureManager(installation, device, dc, specialResources);
 	}
 }

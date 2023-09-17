@@ -19,8 +19,10 @@ namespace Rococo::Graphics
 	struct IParticles;
 	struct GuiMetrics;
 	struct IScene;
-	struct IGuiRenderContext;
+	struct IGuiRenderContextSupervisor;
 	struct LightConstantBuffer;
+	struct RenderPhaseConfig;
+	enum ENVIRONMENTAL_MAP;
 
 	namespace Samplers
 	{
@@ -46,22 +48,30 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRenderStates
 	{
+		virtual void AssignGuiShaderResources() = 0;
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;
 
+		virtual void ResetSamplersToDefaults() = 0;
+
+		virtual void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const Rococo::Graphics::RenderPhaseConfig& config) = 0;
 		virtual void SetDrawTopology(PrimitiveTopology topology) = 0;
-		virtual void SetSampler(uint32 index, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour) = 0;
+		virtual void SetSamplerDefaults(uint32 index, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) = 0;
+
+		virtual void TargetShadowBuffer(ID_TEXTURE id) = 0;
 
 		virtual void UseAdditiveBlend() = 0;
 		virtual void UseAlphaBlend() = 0;
 		virtual void UseAlphaAdditiveBlend() = 0;
+		virtual void UseObjectRasterizer() = 0;
+		virtual void UseObjectDepthState() = 0;
 		virtual void UseParticleRasterizer() = 0;
 		virtual void UsePlasmaBlend() = 0;
 		virtual void UseSkyRasterizer() = 0;
 		virtual void UseSpriteRasterizer() = 0;
 
-		virtual Rococo::Graphics::IGuiRenderContext& Gui() = 0;
+		virtual Rococo::Graphics::IGuiRenderContextSupervisor& Gui() = 0;
 	};
 
 	// IPipeline orders rendering calls to properly format the video output
@@ -79,6 +89,7 @@ namespace Rococo::RAL
 		virtual void RenderFogWithSpotlight() = 0;
 		virtual void RenderPlasma() = 0;
 		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
+		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual ID_TEXTURE ShadowBufferId() const = 0;
 		virtual void UpdateDepthRenderData(const Rococo::Graphics::DepthRenderData& drd) = 0;

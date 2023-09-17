@@ -32,50 +32,7 @@ namespace Rococo::DX11
 
 		gui = CreateDX11Gui(bundle);
 
-		idObjVS = shaders.CreateObjectVertexShader("!shaders/compiled/object.vs");
-		idObjPS = shaders.CreatePixelShader("!shaders/compiled/object.ps");
-		idObj_Spotlight_NoEnvMap_PS = shaders.CreatePixelShader("!shaders/compiled/obj.spotlight.no_env.ps");
-		idObj_Ambient_NoEnvMap_PS = shaders.CreatePixelShader("!shaders/compiled/obj.ambient.no_env.ps");
-		idObjAmbientPS = shaders.CreatePixelShader("!shaders/compiled/ambient.ps");
-		idObjAmbientVS = shaders.CreateObjectVertexShader("!shaders/compiled/ambient.vs");
-		idObjVS_Shadows = shaders.CreateObjectVertexShader("!shaders/compiled/shadow.vs");
-		idSkinnedObjVS_Shadows = shaders.CreateVertexShader("!shaders/compiled/skinned.shadow.vs", DX11::GetSkinnedObjectVertexDesc(), DX11::NumberOfSkinnedObjectVertexElements());
-		idObjPS_Shadows = shaders.CreatePixelShader("!shaders/compiled/shadow.ps");
-
 		alphaBlend = DX11::CreateAlphaBlend(device);
-	}
-
-	ID_PIXEL_SHADER DX11Pipeline::GetObjectShaderPixelId(RenderPhase phase)
-	{
-		switch (phaseConfig.EnvironmentalMap)
-		{
-		case Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE:
-			switch (phase)
-			{
-			case RenderPhase::DetermineAmbient:
-				return idObjAmbientPS;
-			case RenderPhase::DetermineSpotlight:
-				return idObjPS;
-			case RenderPhase::DetermineShadowVolumes:
-				return idObjPS_Shadows;
-			default:
-				Throw(0, "Unknown render phase: %d", phase);
-			}
-		case Graphics::ENVIRONMENTAL_MAP_PROCEDURAL:
-			switch (phase)
-			{
-			case RenderPhase::DetermineAmbient:
-				return idObj_Ambient_NoEnvMap_PS;
-			case RenderPhase::DetermineSpotlight:
-				return idObj_Spotlight_NoEnvMap_PS;
-			case RenderPhase::DetermineShadowVolumes:
-				return idObjPS_Shadows;
-			default:
-				Throw(0, "Unknown render phase: %d", phase);
-			}
-		default:
-			Throw(0, "Environment mode %d not implemented", phaseConfig.EnvironmentalMap);
-		}
 	}
 
 	void DX11Pipeline::Free()
@@ -94,7 +51,7 @@ namespace Rococo::DX11
 		RAL_pipeline->UpdateGlobalState(metrics, scene);
 	}
 
-	RenderTarget DX11Pipeline::GetCurrentRenderTarget()
+	RenderTarget DX11Pipeline::GetCurrentRenderTarget(const RenderPhaseConfig& phaseConfig)
 	{
 		RenderTarget rt = { 0 };
 
@@ -122,9 +79,9 @@ namespace Rococo::DX11
 		return rt;
 	}
 
-	void DX11Pipeline::ClearCurrentRenderBuffers(const RGBA& clearColour)
+	void DX11Pipeline::SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const RenderPhaseConfig& config)
 	{
-		RenderTarget rt = GetCurrentRenderTarget();
+		RenderTarget rt = GetCurrentRenderTarget(config);
 		dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
 
 		dc.ClearDepthStencilView(rt.depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -135,7 +92,7 @@ namespace Rococo::DX11
 		}
 	}
 
-	void DX11Pipeline::SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour)
+	void DX11Pipeline::SetSamplerDefaults(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour)
 	{
 		if (samplers[index])
 		{

@@ -47,7 +47,8 @@ class DX11AppRenderer :
 	public IMathsVenue,
 	public IDX11ResourceLoader,
 	public IRenderingResources,
-	public IRAL
+	public IRAL,
+	public IDX11SpecialResources
 {
 private:
 	IO::IInstallation& installation;
@@ -142,7 +143,7 @@ private:
 
 	void SetSampler(uint32 index, Samplers::Filter filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) override
 	{
-		pipeline->SetSampler(index, filter, u, v, w, borderColour);
+		pipeline->SetSamplerDefaults(index, filter, u, v, w, borderColour);
 	}
 
 	void SetWindowBacking(IDX11WindowBacking* windowBacking) override
@@ -232,7 +233,7 @@ public:
 		installation(_factory.installation), 
 		device(_factory.device), dc(_factory.dc), factory(_factory.factory),
 		scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
-		textureManager(CreateTextureManager(installation, device, dc)),
+		textureManager(CreateTextureManager(installation, device, dc, *this)),
 		meshes(CreateMeshManager(device, dc)),
 		shaders(CreateShaderManager(installation, options, device, dc))
 	{
@@ -245,6 +246,11 @@ public:
 	~DX11AppRenderer()
 	{
 		DetachContext();
+	}
+
+	IRenderContext& RenderContext() override
+	{
+		return *this;
 	}
 
 	IGuiResources& GuiResources() override
@@ -405,7 +411,7 @@ public:
 		screenSpan.y = (int32)viewport.Height;
 	}
 
-	ID3D11RenderTargetView* BackBuffer()
+	ID3D11RenderTargetView* BackBuffer() override
 	{
 		return currentWindowBacking ? currentWindowBacking->BackBufferView() : nullptr;
 	}
@@ -524,7 +530,7 @@ public:
 			return;
 		}
 
-		pipeline->Render(metrics, envMap, scene);
+		pipeline->RALPipeline().Render(metrics, envMap, scene);
 
 		now = Time::TickCount();
 

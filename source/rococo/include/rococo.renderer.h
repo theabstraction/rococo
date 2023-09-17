@@ -57,6 +57,9 @@ namespace Rococo::Graphics
 
 	enum class VertexElementFormat : uint32
 	{
+		// One 32-bit float
+		Float1,
+
 		// Two 32-bit floats
 		Float2,
 
@@ -75,6 +78,7 @@ namespace Rococo::Graphics
 		cstr SemanticName;
 		uint32 semanticIndex;
 		VertexElementFormat format;
+		uint32 slot;
 	};
 
 	ROCOCO_INTERFACE IShaders
@@ -119,6 +123,9 @@ namespace Rococo::Graphics
 
 	ROCOCO_INTERFACE ITextureManager
 	{
+		virtual void AssignToPS(uint32 unitId, ID_TEXTURE texture) = 0;
+		virtual void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) = 0;
+
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
 		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height) = 0;
 		virtual void Free() = 0;
@@ -191,8 +198,7 @@ namespace Rococo::Graphics
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void FlushLayer() = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
-		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
-		
+		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;		
 		virtual void SetGuiShader(cstr pixelShader) = 0;
 		virtual void SetScissorRect(const Rococo::GuiRect& rect) = 0;
 		virtual void ClearScissorRect() = 0;
@@ -288,14 +294,25 @@ namespace Rococo::Graphics
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 	};
 
+	struct Lights
+	{
+		const LightConstantBuffer* lightArray;
+		uint32 count;
+	};
+
 	ROCOCO_INTERFACE IScene : IScene2D
 	{
 		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
 		virtual ID_CUBE_TEXTURE GetEnvironmentMap() const = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual void RenderObjects(IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
-		virtual const LightConstantBuffer* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
+		virtual Lights GetLights() const = 0;	// Called prior to the shadow pass. 
 		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
+	};
+
+	ROCOCO_INTERFACE IGuiRenderContextSupervisor : IGuiRenderContext
+	{
+		virtual void RenderGui(IScene & scene, const GuiMetrics & metrics, bool renderOverlays) = 0;
 	};
 
 	namespace Samplers

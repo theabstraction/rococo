@@ -5,11 +5,13 @@
 namespace Rococo
 {
 	struct ID_SYS_MESH;
+	struct ID_CUBE_TEXTURE;
 }
 
 namespace Rococo::Graphics
 {
 	struct IMeshes;
+	struct IRenderContext;
 	struct IShaders;
 	struct ITextureManager;
 }
@@ -104,9 +106,12 @@ namespace Rococo::RAL
 		virtual void BindVertexBuffer(IRALVertexDataBuffer* vertexBuffer, size_t sizeofVertex, uint32 offset) = 0;
 		virtual void CommitBoundVertexBuffers() = 0;
 		virtual void Draw(uint32 nVertices, uint32 startPosition) = 0;
-
+		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
+		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE txId) = 0;
+		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthTarget) = 0;
 		virtual Rococo::Graphics::IMeshes& Meshes() = 0;
 		virtual Rococo::Graphics::IShaders& Shaders() = 0;
 		virtual Rococo::Graphics::ITextureManager& RALTextures() = 0;
+		virtual Rococo::Graphics::IRenderContext& RenderContext() = 0;
 	};
 }
