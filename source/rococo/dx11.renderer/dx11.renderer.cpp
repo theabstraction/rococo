@@ -143,7 +143,7 @@ private:
 
 	void SetSampler(uint32 index, Samplers::Filter filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) override
 	{
-		pipeline->SetSampler(index, filter, u, v, w, borderColour);
+		pipeline->SetSamplerDefaults(index, filter, u, v, w, borderColour);
 	}
 
 	void SetWindowBacking(IDX11WindowBacking* windowBacking) override
@@ -530,7 +530,7 @@ public:
 			return;
 		}
 
-		pipeline->Render(metrics, envMap, scene);
+		pipeline->RALPipeline().Render(metrics, envMap, scene);
 
 		now = Time::TickCount();
 

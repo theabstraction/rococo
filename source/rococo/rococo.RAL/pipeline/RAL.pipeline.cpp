@@ -148,7 +148,7 @@ namespace Rococo::RAL::Anon
 			idObj_Ambient_NoEnvMap_PS	= ral.Shaders().CreatePixelShader("!shaders/compiled/obj.ambient.no_env.ps");
 			idSkinnedObjVS_Shadows		= ral.Shaders().CreateVertexShader("!shaders/compiled/skinned.shadow.vs", skinnedVertexElements);
 
-			ResetSamplersToDefaults();
+			SetSamplerDefaults();
 
 			// TODO - make this dynamic
 			shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
@@ -220,17 +220,17 @@ namespace Rococo::RAL::Anon
 			}
 		}
 
-		void ResetSamplersToDefaults()
+		void SetSamplerDefaults()
 		{
 			RGBA red{ 1.0f, 0, 0, 1.0f };
 			RGBA transparent{ 0.0f, 0, 0, 0.0f };
-			renderStates.SetSampler(TXUNIT_FONT, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
-			renderStates.SetSampler(TXUNIT_SHADOW, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
-			renderStates.SetSampler(TXUNIT_ENV_MAP, Samplers::Filter_Anisotropic, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
-			renderStates.SetSampler(TXUNIT_SELECT, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
-			renderStates.SetSampler(TXUNIT_MATERIALS, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
-			renderStates.SetSampler(TXUNIT_SPRITES, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
-			renderStates.SetSampler(TXUNIT_GENERIC_TXARRAY, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, transparent);
+			renderStates.SetSamplerDefaults(TXUNIT_FONT, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
+			renderStates.SetSamplerDefaults(TXUNIT_SHADOW, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
+			renderStates.SetSamplerDefaults(TXUNIT_ENV_MAP, Samplers::Filter_Anisotropic, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
+			renderStates.SetSamplerDefaults(TXUNIT_SELECT, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
+			renderStates.SetSamplerDefaults(TXUNIT_MATERIALS, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
+			renderStates.SetSamplerDefaults(TXUNIT_SPRITES, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
+			renderStates.SetSamplerDefaults(TXUNIT_GENERIC_TXARRAY, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, transparent);
 		}
 
 		Rococo::Graphics::IGui3D& Gui3D() override
@@ -596,10 +596,8 @@ namespace Rococo::RAL::Anon
 
 		void DrawLightCones(IScene& scene) override
 		{
-			uint32 nLights = 0;
-			const LightConstantBuffer* lights = scene.GetLights(nLights);
-
-			if (lights != nullptr)
+			auto lights = scene.GetLights();
+			if (lights.lightArray != nullptr)
 			{
 				ral.ClearBoundVertexBufferArray();
 				ral.BindVertexBuffer(lightConeBuffer, sizeof ObjectVertex, 0);
@@ -626,11 +624,11 @@ namespace Rococo::RAL::Anon
 				Vec4 viewDir;
 				scene.GetCamera(camera, world, proj, eye, viewDir);
 
-				for (uint32 i = 0; i < nLights; ++i)
+				for (uint32 i = 0; i < lights.count; ++i)
 				{
-					if (lights[i].hasCone)
+					if (lights.lightArray[i].hasCone)
 					{
-						DrawLightCone(lights[i], viewDir);
+						DrawLightCone(lights.lightArray[i], viewDir);
 					}
 				}
 
@@ -711,7 +709,7 @@ namespace Rococo::RAL::Anon
 
 				ral.Draw(36, 0);
 
-				ResetSamplersToDefaults();
+				renderStates.ResetSamplersToDefaults();
 			}
 			else
 			{
@@ -749,12 +747,12 @@ namespace Rococo::RAL::Anon
 
 			UpdateGlobalState(metrics, scene);
 
-			ResetSamplersToDefaults();
+			renderStates.ResetSamplersToDefaults();
 
 			RenderSkyBox(scene);
 
 			renderStates.AssignGuiShaderResources();
-			ResetSamplersToDefaults();
+			renderStates.ResetSamplersToDefaults();
 
 			Render3DObjects(scene);
 
@@ -831,15 +829,14 @@ namespace Rococo::RAL::Anon
 
 			builtFirstPass = false;
 
-			uint32 nLights = 0;
-			const LightConstantBuffer* lights = scene.GetLights(nLights);
-			if (lights != nullptr)
+			auto lights = scene.GetLights();
+			if (lights.lightArray != nullptr)
 			{
-				for (size_t i = 0; i < nLights; ++i)
+				for (size_t i = 0; i < lights.count; ++i)
 				{
 					try
 					{
-						RenderSpotlightLitScene(lights[i], scene);
+						RenderSpotlightLitScene(lights.lightArray[i], scene);
 					}
 					catch (IException& ex)
 					{
@@ -847,7 +844,7 @@ namespace Rococo::RAL::Anon
 					}
 				}
 
-				RenderAmbient(scene, lights[0]);
+				RenderAmbient(scene, lights.lightArray[0]);
 			}
 
 			objCost = Time::TickCount() - now;

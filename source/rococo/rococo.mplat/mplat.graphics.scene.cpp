@@ -84,10 +84,9 @@ namespace
 		  return skyboxId;
 	  }
 
-	  const LightConstantBuffer* GetLights(uint32& nCount) const override
+	  Lights GetLights() const override
 	  {
-		  nCount = MAX_LIGHTS;
-		  return lights;
+		  return { lights, MAX_LIGHTS };
 	  }
 
 	  void SetPopulator(IScenePopulator* populator) override

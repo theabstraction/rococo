@@ -92,7 +92,7 @@ namespace Rococo::DX11
 		}
 	}
 
-	void DX11Pipeline::SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour)
+	void DX11Pipeline::SetSamplerDefaults(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour)
 	{
 		if (samplers[index])
 		{

@@ -294,13 +294,19 @@ namespace Rococo::Graphics
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 	};
 
+	struct Lights
+	{
+		const LightConstantBuffer* lightArray;
+		uint32 count;
+	};
+
 	ROCOCO_INTERFACE IScene : IScene2D
 	{
 		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
 		virtual ID_CUBE_TEXTURE GetEnvironmentMap() const = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
 		virtual void RenderObjects(IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
-		virtual const LightConstantBuffer* GetLights(uint32& nCount) const = 0;	// Called prior to the shadow pass. 
+		virtual Lights GetLights() const = 0;	// Called prior to the shadow pass. 
 		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
 	};
 

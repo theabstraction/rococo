@@ -110,9 +110,4 @@ namespace Rococo::DX11
 	{
 		dc.IASetPrimitiveTopology(*reinterpret_cast<D3D11_PRIMITIVE_TOPOLOGY*>(&topology));
 	}
-
-	void DX11Pipeline::Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene)
-	{
-		RAL_pipeline->Render(metrics, envMap, scene);
-	}
 } // Rococo::DX11

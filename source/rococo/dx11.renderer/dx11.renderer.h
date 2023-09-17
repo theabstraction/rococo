@@ -231,8 +231,7 @@ namespace Rococo::DX11
 	ROCOCO_INTERFACE IDX11Pipeline
 	{
 		virtual void Free() = 0;
-		virtual void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) = 0;
-		virtual void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) = 0;
+		virtual void SetSamplerDefaults(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual IGuiResources& GuiResources() = 0;

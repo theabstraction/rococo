@@ -52,9 +52,11 @@ namespace Rococo::RAL
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;
 
+		virtual void ResetSamplersToDefaults() = 0;
+
 		virtual void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const Rococo::Graphics::RenderPhaseConfig& config) = 0;
 		virtual void SetDrawTopology(PrimitiveTopology topology) = 0;
-		virtual void SetSampler(uint32 index, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour) = 0;
+		virtual void SetSamplerDefaults(uint32 index, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) = 0;
 
 		virtual void TargetShadowBuffer(ID_TEXTURE id) = 0;

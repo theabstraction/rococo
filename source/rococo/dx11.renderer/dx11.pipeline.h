@@ -121,12 +121,8 @@ namespace Rococo::DX11
 		void Render3DObjects(IScene& scene);
 		RenderTarget GetCurrentRenderTarget(const RenderPhaseConfig& phaseConfig);
 		void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const RenderPhaseConfig& config);
-		void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) override;
+		void SetSamplerDefaults(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) override;
 		void ResetSamplersToDefaults();
-
-		// Main entrypoint for the render pipeline
-		void Render(const GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override;
-
 		void SetBoneMatrix(uint32 index, cr_m4x4 m) override;
 
 		IGuiResources& GuiResources() override
