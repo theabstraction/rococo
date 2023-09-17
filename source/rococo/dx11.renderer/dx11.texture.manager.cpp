@@ -547,7 +547,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		auto& tb =  GetTexture(texture);
 		if (tb.shaderView)
 		{
-			dc.PSGetShaderResources(unitId, 1, &tb.shaderView);
+			dc.PSSetShaderResources(unitId, 1, &tb.shaderView);
 		}
 	}
 
