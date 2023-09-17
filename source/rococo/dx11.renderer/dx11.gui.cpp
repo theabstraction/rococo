@@ -315,6 +315,10 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         {
             overlays->Render(*this);
         }
+
+        FlushLayer();
+        DrawCursor(metrics);
+        FlushLayer();
     }
 
     IMaterials& Materials() override

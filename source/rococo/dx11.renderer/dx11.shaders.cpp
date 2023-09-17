@@ -305,6 +305,9 @@ struct DX11Shaders : IDX11Shaders
 			
 			switch (v.format)
 			{
+			case VertexElementFormat::Float1:
+				elements[i].Format = DXGI_FORMAT_R32_FLOAT;
+				break;
 			case VertexElementFormat::Float2:
 				elements[i].Format = DXGI_FORMAT_R32G32_FLOAT;
 				break;

@@ -47,7 +47,8 @@ class DX11AppRenderer :
 	public IMathsVenue,
 	public IDX11ResourceLoader,
 	public IRenderingResources,
-	public IRAL
+	public IRAL,
+	public IDX11SpecialResources
 {
 private:
 	IO::IInstallation& installation;
@@ -232,7 +233,7 @@ public:
 		installation(_factory.installation), 
 		device(_factory.device), dc(_factory.dc), factory(_factory.factory),
 		scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
-		textureManager(CreateTextureManager(installation, device, dc)),
+		textureManager(CreateTextureManager(installation, device, dc, *this)),
 		meshes(CreateMeshManager(device, dc)),
 		shaders(CreateShaderManager(installation, options, device, dc))
 	{
@@ -245,6 +246,11 @@ public:
 	~DX11AppRenderer()
 	{
 		DetachContext();
+	}
+
+	IRenderContext& RenderContext() override
+	{
+		return *this;
 	}
 
 	IGuiResources& GuiResources() override
@@ -405,7 +411,7 @@ public:
 		screenSpan.y = (int32)viewport.Height;
 	}
 
-	ID3D11RenderTargetView* BackBuffer()
+	ID3D11RenderTargetView* BackBuffer() override
 	{
 		return currentWindowBacking ? currentWindowBacking->BackBufferView() : nullptr;
 	}

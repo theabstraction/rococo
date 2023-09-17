@@ -50,19 +50,6 @@ namespace Rococo::DX11
 
 		AutoFree<IDX11Gui> gui;
 
-		ID_VERTEX_SHADER idObjVS;
-		ID_PIXEL_SHADER idObjPS;
-		ID_PIXEL_SHADER idObjPS_Shadows;
-		ID_PIXEL_SHADER idObj_Spotlight_NoEnvMap_PS;
-		ID_PIXEL_SHADER idObj_Ambient_NoEnvMap_PS;
-		ID_PIXEL_SHADER idObjAmbientPS;
-		ID_VERTEX_SHADER idObjAmbientVS;
-		ID_VERTEX_SHADER idObjVS_Shadows;
-		ID_VERTEX_SHADER idSkinnedObjVS_Shadows;
-
-		//AutoRelease<ID3D11SamplerState> envSampler;
-		//AutoRelease<ID3D11SamplerState> skySampler;
-
 		AutoRelease<ID3D11BlendState> alphaBlend;
 
 		RenderPhase phase = RenderPhase::None;
@@ -71,15 +58,10 @@ namespace Rococo::DX11
 		int64 trianglesThisFrame = 0;
 		bool builtFirstPass = false;
 
-		Graphics::RenderPhaseConfig phaseConfig;
-
 		ID3D11SamplerState* samplers[16] = { 0 };
 
-		ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase);	
 		GlobalState currentGlobalState = { 0 };
-		Time::ticks objCost = 0;
 		ID_TEXTURE lastTextureId;
-		int64 guiCost = 0;
 
 		DX11Pipeline(DX11::RenderBundle& bundle);
 
@@ -96,15 +78,19 @@ namespace Rococo::DX11
 			return *RAL_pipeline;
 		}
 
+		void AssignGuiShaderResources() override;
 		void DisableBlend() override;
 		void UseAdditiveBlend() override;
 		void UseAlphaBlend() override;
 		void UseAlphaAdditiveBlend() override;
 		void DisableWritesOnDepthState() override;
+		void TargetShadowBuffer(ID_TEXTURE id) override;
+		void UseObjectRasterizer() override;
 		void UseParticleRasterizer() override;
 		void UsePlasmaBlend() override;
 		void UseSkyRasterizer() override;
 		void UseSpriteRasterizer() override;
+		void UseObjectDepthState() override;
 
 		void SetDrawTopology(PrimitiveTopology topology) override;
 		void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) override;
@@ -114,7 +100,7 @@ namespace Rococo::DX11
 			return RAL_pipeline->Gui3D();
 		}
 
-		IGuiRenderContext& Gui() override
+		IGuiRenderContextSupervisor& Gui() override
 		{
 			return *gui;
 		}
@@ -126,12 +112,6 @@ namespace Rococo::DX11
 
 		void Free() override;
 		void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID);
-
-		bool IsGuiReady() const
-		{
-			return !phaseConfig.renderTarget;
-		}
-
 		void ShowVenue(IMathsVisitor& visitor) override;
 		void RenderToShadowBuffer(IShaders& shaders, IDX11TextureManager& textures, IRenderContext& rc, DepthRenderData& drd, ID_TEXTURE shadowBuffer, IScene& scene);
 		void RenderAmbient(IShaders& shaders, IRenderContext& rc, IScene& scene, const LightConstantBuffer& ambientLight);
@@ -139,8 +119,8 @@ namespace Rococo::DX11
 		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene);
 		void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene);
 		void Render3DObjects(IScene& scene);
-		RenderTarget GetCurrentRenderTarget();
-		void ClearCurrentRenderBuffers(const RGBA& clearColour);
+		RenderTarget GetCurrentRenderTarget(const RenderPhaseConfig& phaseConfig);
+		void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const RenderPhaseConfig& config);
 		void SetSampler(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) override;
 		void ResetSamplersToDefaults();
 
