@@ -18,6 +18,7 @@ namespace Rococo::Graphics
 	struct VertexTriangle;
 	struct IGui3D;
 	struct IParticles;
+	struct IParticlesSupervisor;
 	struct GuiMetrics;
 	struct IScene;
 	struct IGuiRenderContextSupervisor;
@@ -86,9 +87,6 @@ namespace Rococo::RAL
 		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
 		virtual void DrawLightCones(Rococo::Graphics::IScene& scene) = 0;
 		virtual void Render3DGui() = 0;
-		virtual void RenderFogWithAmbient() = 0;
-		virtual void RenderFogWithSpotlight() = 0;
-		virtual void RenderPlasma() = 0;
 		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
 		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
@@ -108,4 +106,6 @@ namespace Rococo::RAL
 	};
 
 	RAL_PIPELINE_API IPipelineSupervisor* CreatePipeline(IRenderStates& renderStates, IRAL& ral);
+
+	RAL_PIPELINE_API Rococo::Graphics::IParticlesSupervisor* CreateParticleSystem(IRAL& ral, IRenderStates& renderStates);
 }

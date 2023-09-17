@@ -121,7 +121,7 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\pipeline.lib</OutputFile>
     </Lib>
@@ -184,7 +184,7 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\pipeline.lib</OutputFile>
     </Lib>
@@ -193,6 +193,7 @@
     <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.particles.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.pipeline.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -16,7 +16,6 @@ using namespace Rococo::Graphics;
 namespace Rococo::RAL::Anon
 {
 	enum { GUI3D_BUFFER_TRIANGLE_CAPACITY = 1024 };
-	enum { PARTICLE_BUFFER_VERTEX_CAPACITY = 1024 };
 
 	// struct VertexElement	{ cstr SemanticName; uint32 semanticIndex; VertexElementFormat format; uint32 slot;	};
 
@@ -50,7 +49,7 @@ namespace Rococo::RAL::Anon
 		VertexElement { nullptr,		0 ,VertexElementFormat::Float3, 0  }
 	};
 
-	struct RALPipeline: IPipelineSupervisor, IGui3D, IParticles
+	struct RALPipeline: IPipelineSupervisor, IGui3D
 	{
 		IRAL& ral;
 		IRenderStates& renderStates;
@@ -60,13 +59,11 @@ namespace Rococo::RAL::Anon
 		Time::ticks guiCost = 0;
 		Time::ticks objCost = 0;
 		bool builtFirstPass = false;
+		AutoFree<IParticlesSupervisor> particles;
 
 		std::vector<VertexTriangle> gui3DTriangles;
-		std::vector<ParticleVertex> fog;
-		std::vector<ParticleVertex> plasma;
-
+		
 		AutoFree<IRALVertexDataBuffer> gui3DBuffer;
-		AutoFree<IRALVertexDataBuffer> particleBuffer;
 		AutoFree<IRALVertexDataBuffer> lightConeBuffer;
 
 		AutoFree<IRALConstantDataBuffer> instanceBuffer;
@@ -76,15 +73,6 @@ namespace Rococo::RAL::Anon
 		AutoFree<IRALConstantDataBuffer> ambientBuffer;
 		AutoFree<IRALConstantDataBuffer> boneMatricesStateBuffer;
 		AutoFree<IRALConstantDataBuffer> depthRenderStateBuffer;
-
-		ID_VERTEX_SHADER idParticleVS;
-		ID_PIXEL_SHADER idPlasmaPS;
-		ID_GEOMETRY_SHADER idPlasmaGS;
-
-		ID_PIXEL_SHADER idFogAmbientPS;
-		ID_PIXEL_SHADER idFogSpotlightPS;
-		ID_GEOMETRY_SHADER idFogSpotlightGS;
-		ID_GEOMETRY_SHADER idFogAmbientGS;
 
 		ID_TEXTURE shadowBufferId;
 
@@ -116,7 +104,6 @@ namespace Rococo::RAL::Anon
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): renderStates(_renderStates), ral(_ral)
 		{
 			gui3DBuffer = ral.CreateDynamicVertexBuffer(sizeof VertexTriangle, GUI3D_BUFFER_TRIANGLE_CAPACITY);
-			particleBuffer = ral.CreateDynamicVertexBuffer(sizeof ParticleVertex, PARTICLE_BUFFER_VERTEX_CAPACITY);
 			lightConeBuffer = ral.CreateDynamicVertexBuffer(sizeof ObjectVertex, 3);
 			instanceBuffer = ral.CreateConstantBuffer(sizeof ObjectInstance, 1);
 			globalStateBuffer = ral.CreateConstantBuffer(sizeof GlobalState, 1);
@@ -126,13 +113,6 @@ namespace Rococo::RAL::Anon
 			boneMatricesStateBuffer = ral.CreateConstantBuffer(sizeof BoneMatrices, 1);
 			depthRenderStateBuffer = ral.CreateConstantBuffer(sizeof DepthRenderData, 1);
 
-			idParticleVS		= ral.Shaders().CreateParticleVertexShader("!shaders/compiled/particle.vs");
-			idPlasmaGS			= ral.Shaders().CreateGeometryShader("!shaders/compiled/plasma.gs");
-			idFogSpotlightGS	= ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.spotlight.gs");
-			idFogAmbientGS		= ral.Shaders().CreateGeometryShader("!shaders/compiled/fog.ambient.gs");
-			idPlasmaPS			= ral.Shaders().CreatePixelShader("!shaders/compiled/plasma.ps");
-			idFogSpotlightPS	= ral.Shaders().CreatePixelShader("!shaders/compiled/fog.spotlight.ps");
-			idFogAmbientPS		= ral.Shaders().CreatePixelShader("!shaders/compiled/fog.ambient.ps");
 			idObjSkyVS			= ral.Shaders().CreateVertexShader("!shaders/compiled/skybox.vs", skyVertexElements);
 			idObjSkyPS			= ral.Shaders().CreatePixelShader("!shaders/compiled/skybox.ps");
 			idLightConePS		= ral.Shaders().CreatePixelShader("!shaders/compiled/light_cone.ps");
@@ -153,6 +133,7 @@ namespace Rococo::RAL::Anon
 
 			// TODO - make this dynamic
 			shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
+			particles = CreateParticleSystem(_ral, _renderStates);
 		}
 
 		static bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderData& drd)
@@ -241,7 +222,7 @@ namespace Rococo::RAL::Anon
 
 		Rococo::Graphics::IParticles& Particles() override
 		{
-			return *this;
+			return *particles;
 		}
 
 		void Free() override
@@ -373,24 +354,6 @@ namespace Rococo::RAL::Anon
 			lightStateBuffer->CopyDataToBuffer(&light, sizeof light);
 		}
 
-		void RenderFogWithAmbient() override
-		{
-			renderStates.UseAlphaAdditiveBlend();
-			DrawParticles(fog.data(), fog.size(), idFogAmbientPS, idParticleVS, idFogAmbientGS);
-		}
-
-		void RenderFogWithSpotlight() override
-		{
-			renderStates.UseAlphaAdditiveBlend();
-			DrawParticles(fog.data(), fog.size(), idFogSpotlightPS, idParticleVS, idFogSpotlightGS);
-		}
-
-		void RenderPlasma() override
-		{
-			renderStates.UsePlasmaBlend();
-			DrawParticles(plasma.data(), plasma.size(), idPlasmaPS, idParticleVS, idPlasmaGS);
-		}
-
 		void SetBoneMatrix(uint32 index, cr_m4x4 m) override
 		{
 			if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
@@ -406,42 +369,6 @@ namespace Rococo::RAL::Anon
 		ID_TEXTURE ShadowBufferId() const override
 		{
 			return shadowBufferId;
-		}
-
-		void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID)
-		{
-			if (nParticles == 0) return;
-			if (!ral.Shaders().UseShaders(vsID, psID)) return;
-			if (!ral.Shaders().UseGeometryShader(gsID)) return;
-
-			renderStates.SetDrawTopology(PrimitiveTopology::POINTLIST);
-			renderStates.UseParticleRasterizer();
-			renderStates.DisableWritesOnDepthState();
-
-			const ParticleVertex* start = &particles[0];
-
-			size_t i = 0;
-
-			if (nParticles > 0)
-			{
-				ral.ClearBoundVertexBufferArray();
-				ral.BindVertexBuffer(particleBuffer, sizeof ParticleVertex, 0);
-				ral.CommitBoundVertexBuffers();
-			}
-
-
-			while (nParticles > 0)
-			{
-				size_t chunkSize = min(nParticles, (size_t)PARTICLE_BUFFER_VERTEX_CAPACITY);
-				particleBuffer->CopyDataToBuffer(start + i, chunkSize * sizeof(ParticleVertex));
-
-				ral.Draw((uint32)chunkSize, 0);
-
-				i += chunkSize;
-				nParticles -= chunkSize;
-			}
-
-			ral.Shaders().UseGeometryShader(ID_GEOMETRY_SHADER::Invalid());
 		}
 
 		void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override
@@ -642,26 +569,6 @@ namespace Rococo::RAL::Anon
 			}
 		}
 
-		void AddFog(const ParticleVertex& p)
-		{
-			fog.push_back(p);
-		}
-
-		void AddPlasma(const ParticleVertex& p)
-		{
-			plasma.push_back(p);
-		}
-
-		void ClearPlasma()
-		{
-			plasma.clear();
-		}
-
-		void ClearFog()
-		{
-			fog.clear();
-		}
-
 		void RenderSkyBox(IScene& scene)
 		{
 			ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
@@ -757,7 +664,7 @@ namespace Rococo::RAL::Anon
 
 			Render3DObjects(scene);
 
-			RenderPlasma();
+			particles->RenderPlasma();
 			DrawLightCones(scene);
 
 			UpdateGlobalState(metrics, scene);
@@ -816,7 +723,7 @@ namespace Rococo::RAL::Anon
 				scene.RenderObjects(ral.RenderContext(), true);
 
 				Render3DGui();
-				RenderFogWithAmbient();
+				particles->RenderFogWithAmbient();
 			}
 
 			phase = RenderPhase::None;
@@ -907,7 +814,7 @@ namespace Rococo::RAL::Anon
 				scene.RenderObjects(ral.RenderContext(), true);
 
 				Render3DGui();
-				RenderFogWithSpotlight();
+				particles->RenderFogWithSpotlight();
 
 				phase = RenderPhase::None;
 

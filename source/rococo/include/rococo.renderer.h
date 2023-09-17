@@ -221,6 +221,15 @@ namespace Rococo::Graphics
 		void virtual ClearFog() = 0;
 	};
 
+	ROCOCO_INTERFACE IParticlesSupervisor: IParticles
+	{
+		virtual void RenderFogWithAmbient() = 0;
+		virtual void RenderFogWithSpotlight() = 0;
+		virtual void RenderPlasma() = 0;
+		virtual void DrawParticles(const ParticleVertex* particles, size_t nParticles, ID_PIXEL_SHADER psID, ID_VERTEX_SHADER vsID, ID_GEOMETRY_SHADER gsID) = 0;
+		virtual void Free() = 0;
+	};
+
 	ROCOCO_INTERFACE IGui3D
 	{
 		virtual void Add3DGuiTriangles(const VertexTriangle * first, const VertexTriangle * last) = 0;

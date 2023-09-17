@@ -509,7 +509,7 @@ public:
 
 	IParticles& Particles()
 	{
-		return pipeline->Particles();
+		return pipeline->RALPipeline().Particles();
 	}
 
 	void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override

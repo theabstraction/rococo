@@ -236,7 +236,6 @@ namespace Rococo::DX11
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual IGuiResources& GuiResources() = 0;
 		virtual IGui3D& Gui3D() = 0;
-		virtual IParticles& Particles() = 0;
 		virtual RAL::IPipeline& RALPipeline() = 0;
 	};
 

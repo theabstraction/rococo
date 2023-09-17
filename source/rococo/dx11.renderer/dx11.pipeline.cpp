@@ -101,11 +101,6 @@ namespace Rococo::DX11
 			return *gui;
 		}
 
-		IParticles& Particles() override
-		{
-			return RAL_pipeline->Particles();
-		}
-
 		void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) override
 		{
 			auto* shaderView = textures.GetShaderView(cubeId);
