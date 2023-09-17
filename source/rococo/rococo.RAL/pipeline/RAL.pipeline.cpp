@@ -45,12 +45,7 @@ namespace Rococo::RAL::Anon
 	{
 		IRAL& ral;
 		IRenderStates& renderStates;
-		RenderPhase phase = RenderPhase::None;
-		int64 entitiesThisFrame = 0;
-		int64 trianglesThisFrame = 0;
-		Time::ticks guiCost = 0;
-		Time::ticks objCost = 0;
-		bool builtFirstPass = false;
+
 		AutoFree<IParticlesSupervisor> particles;
 		AutoFree<IRAL_LightCones> lightCones;
 		AutoFree<IRAL_Skybox> skybox;
@@ -82,7 +77,14 @@ namespace Rococo::RAL::Anon
 
 		Graphics::RenderPhaseConfig phaseConfig;
 
+		RenderPhase phase = RenderPhase::None;
+		bool builtFirstPass = false;
+
 		ID_TEXTURE lastTextureId;
+		int64 entitiesThisFrame = 0;
+		int64 trianglesThisFrame = 0;
+		Time::ticks guiCost = 0;
+		Time::ticks objCost = 0;
 
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): renderStates(_renderStates), ral(_ral)
 		{
@@ -484,7 +486,7 @@ namespace Rococo::RAL::Anon
 
 		void ShowVenue(IMathsVisitor& visitor)
 		{
-			visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities, %lld particles", trianglesThisFrame, entitiesThisFrame, 0);
+			visitor.ShowString("Geometry this frame", "%lld triangles. %lld entities", trianglesThisFrame, entitiesThisFrame);
 		}
 
 		void Render3DObjects(IScene& scene)
