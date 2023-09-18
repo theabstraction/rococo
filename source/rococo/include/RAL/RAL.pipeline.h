@@ -25,8 +25,8 @@ namespace Rococo::Graphics
 	struct IScene;
 	struct IGuiRenderContextSupervisor;
 	struct LightConstantBuffer;
-	struct RenderPhaseConfig;
-	enum ENVIRONMENTAL_MAP;
+	struct RenderOutputTargets;
+	enum ENVIRONMENTAL_MAP_TYPE;
 
 	namespace Samplers
 	{
@@ -58,7 +58,7 @@ namespace Rococo::RAL
 
 		virtual void ResetSamplersToDefaults() = 0;
 
-		virtual void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const Rococo::Graphics::RenderPhaseConfig& config) = 0;
+		virtual void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const Rococo::Graphics::RenderOutputTargets& targets) = 0;
 		virtual void SetDrawTopology(PrimitiveTopology topology) = 0;
 		virtual void SetSamplerDefaults(uint32 index, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetShaderTexture(uint32 textureUnitIndex, Rococo::ID_CUBE_TEXTURE cubeId) = 0;
@@ -83,14 +83,11 @@ namespace Rococo::RAL
 	{
 		virtual void AssignAmbientLightToShaders(const Rococo::Graphics::LightConstantBuffer& ambientLight) = 0;
 		virtual void AssignGlobalStateBufferToShaders() = 0;
-		virtual void AssignLightStateBufferToShaders() = 0;
 		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
-		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP envMap, Rococo::Graphics::IScene& scene) = 0;
+		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP_TYPE envMapType, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 		virtual ID_TEXTURE ShadowBufferId() const = 0;
-		virtual void UpdateDepthRenderData(const Rococo::Graphics::DepthRenderData& drd) = 0;
 		virtual void UpdateGlobalState(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
-		virtual void UpdateLightBuffer(const Rococo::Graphics::LightConstantBuffer& light) = 0;
 
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;
 		virtual Rococo::Graphics::IParticles& Particles() = 0;
@@ -124,4 +121,20 @@ namespace Rococo::RAL
 
 	RAL_PIPELINE_API IRAL_Skybox* CreateRALSkybox(IRAL& ral, IRenderStates& renderStates);
 	RAL_PIPELINE_API Rococo::Graphics::IGui3DSupervisor* CreateGui3D(IRAL& ral, IRenderStates& renderStates, IPipeline& pipeline);
+
+	ROCOCO_INTERFACE IRenderPhases
+	{
+		virtual void RenderAmbientPhase(Rococo::Graphics::IScene & scene, const Rococo::Graphics::LightConstantBuffer & ambientLight) = 0;
+		virtual void RenderSpotlightPhase(Rococo::Graphics::IScene& scene) = 0;
+	};
+
+	ROCOCO_INTERFACE IRAL_3D_Object_Renderer
+	{
+		virtual void Draw(RALMeshBuffer & m, const Rococo::Graphics::ObjectInstance * instances, uint32 nInstances) = 0;
+		virtual void Free() = 0;
+		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets, Rococo::Graphics::ENVIRONMENTAL_MAP_TYPE envMapType) = 0;
+		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+	};
+
+	IRAL_3D_Object_Renderer* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
 }

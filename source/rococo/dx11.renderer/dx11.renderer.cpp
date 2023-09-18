@@ -512,7 +512,7 @@ public:
 		return pipeline->RALPipeline().Particles();
 	}
 
-	void Render(Graphics::ENVIRONMENTAL_MAP envMap, IScene& scene) override
+	void Render(Graphics::ENVIRONMENTAL_MAP_TYPE envMap, IScene& scene) override
 	{
 		if (!BackBuffer())
 		{

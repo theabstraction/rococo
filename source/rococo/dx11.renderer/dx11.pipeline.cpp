@@ -217,15 +217,15 @@ namespace Rococo::DX11
 			gui->ShowVenue(visitor);
 		}
 
-		RenderTarget GetCurrentRenderTarget(const RenderPhaseConfig& phaseConfig)
+		RenderTarget GetCurrentRenderTarget(const RenderOutputTargets& targets)
 		{
 			RenderTarget rt = { 0 };
 
-			rt.depthView = textures.GetTexture(phaseConfig.depthTarget).depthView;
+			rt.depthView = textures.GetTexture(targets.depthTarget).depthView;
 
-			if (phaseConfig.renderTarget)
+			if (targets.renderTarget)
 			{
-				rt.renderTargetView = textures.GetTexture(phaseConfig.renderTarget).renderView;
+				rt.renderTargetView = textures.GetTexture(targets.renderTarget).renderView;
 			}
 			else
 			{
@@ -245,9 +245,9 @@ namespace Rococo::DX11
 			return rt;
 		}
 
-		void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const RenderPhaseConfig& config) override
+		void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const RenderOutputTargets& targets) override
 		{
-			RenderTarget rt = GetCurrentRenderTarget(config);
+			RenderTarget rt = GetCurrentRenderTarget(targets);
 			dc.OMSetRenderTargets(1, &rt.renderTargetView, rt.depthView);
 
 			dc.ClearDepthStencilView(rt.depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);

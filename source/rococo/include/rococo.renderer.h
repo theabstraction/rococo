@@ -347,19 +347,17 @@ namespace Rococo::Graphics
 		};
 	}
 
-	enum ENVIRONMENTAL_MAP
+	enum ENVIRONMENTAL_MAP_TYPE
 	{
 		ENVIRONMENTAL_MAP_PROCEDURAL,
 		ENVIRONMENTAL_MAP_FIXED_CUBE,
 		ENVIRONMENTAL_MAP_DYNAMIC_CUBE
 	};
 
-	struct RenderPhaseConfig
+	struct RenderOutputTargets
 	{
-		ENVIRONMENTAL_MAP EnvironmentalMap;
 		ID_TEXTURE renderTarget;
 		ID_TEXTURE depthTarget;
-		ID_TEXTURE shadowBuffer;
 	};
 
 	enum Alignment : int32
@@ -417,7 +415,7 @@ namespace Rococo::Graphics
 		virtual void CaptureMouse(bool enable) = 0;
 		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
 		virtual IO::IInstallation& Installation() = 0;
-		virtual void Render(Graphics::ENVIRONMENTAL_MAP EnvironmentalMap, IScene& scene) = 0;
+		virtual void Render(Graphics::ENVIRONMENTAL_MAP_TYPE EnvironmentalMap, IScene& scene) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
 		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE envId) = 0;
 		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
