@@ -272,7 +272,6 @@ namespace Rococo::Graphics
 		RGBA colour = RGBA(1, 1, 1, 1);
 		RGBA ambient = RGBA(0, 0, 0, 0);
 		float fogConstant;
-		Vec3 randoms; // 3 random quotients 0.0 - 1.0
 		float cosHalfFov;
 		Radians fov;
 		Metres nearPlane;
@@ -283,10 +282,10 @@ namespace Rococo::Graphics
 		float attenuationRate = -0.15f; // Point lights vary as inverse square, so 0.5 ish
 		boolean32 hasCone = 0;
 		float shadowFudge = 1.0f; // 0 will create sharp but jags in multisampled mode, 1 will antialias jags, and > 1 add some fudge. 1.0 to 3.0 is about right for most light sources
-		Vec2 unused;
+		float OOShadowTxWidth; // 1 over shadow texture width
 	};
 
-	struct DepthRenderData // N.B if size is not multiple of 16 bytes this will crash DX11 renderer
+	struct DepthRenderData 
 	{
 		Matrix4x4 worldToCamera;
 		Matrix4x4 worldToScreen;
@@ -298,7 +297,6 @@ namespace Rococo::Graphics
 		Metres farPlane;
 		Radians fov;
 		Seconds time; // Can be used for animation 0 - ~59.99, cycles every minute
-		Vec4 randoms; // 4 random quotients 0.0 - 1.0
 	};
 #pragma pack(pop)
 

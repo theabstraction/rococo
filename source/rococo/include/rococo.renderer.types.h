@@ -190,8 +190,7 @@ namespace Rococo::Graphics
 		Vec4 eye;
 		Vec4 viewDir;
 		Vec4 aspect;
-		float OOShadowTxWidth;
-		Vec3 unused;
+		// TODO - delete this line: float OOShadowTxWidth;
 	};
 
 	struct AmbientData

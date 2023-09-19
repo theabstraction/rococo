@@ -81,13 +81,10 @@ namespace Rococo::RAL
 	// IPipeline orders rendering calls to properly format the video output
 	ROCOCO_INTERFACE IPipeline
 	{
-		virtual void AssignAmbientLightToShaders(const Rococo::Graphics::LightConstantBuffer& ambientLight) = 0;
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
 		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP_TYPE envMapType, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
-		virtual ID_TEXTURE ShadowBufferId() const = 0;
-		virtual void UpdateGlobalState(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
 
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;
 		virtual Rococo::Graphics::IParticles& Particles() = 0;

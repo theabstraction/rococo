@@ -42,8 +42,6 @@ struct GlobalState
 	float4 eye;
 	float4 viewDir;
 	float4 aspect;
-    float OOShadowTxWidth;
-    float3 unused;
 };
 
 struct ObjectInstance
@@ -156,7 +154,6 @@ struct Light
 	float4 colour;
 	float4 ambient;
 	float fogConstant;
-	float3 randoms; // 4 random quotients 0.0 - 1.0
 	float cosHalfFov;
 	float fov;
 	float nearPlane;
@@ -167,7 +164,7 @@ struct Light
 	float attenuationRate; // Point lights vary as inverse square, so 0.5 ish
     int hasCone;
     float shadowFudge; // in multisample mode, 0 = jagged but sharp, 0 to 1 = antialiased soft shadows, 1+ is even softer fudgier shadows, >>> 1 penumbra
-    float2 unused;
+    float OOShadowTxWidth;
 };
 
 struct DepthRenderDesc

@@ -2,7 +2,7 @@
 
 float SampleShadowWithDelta(float4 pos, float2 offset)
 {
-	float2 scaledOffset = offset * global.OOShadowTxWidth * light.shadowFudge;
+	float2 scaledOffset = offset * light.OOShadowTxWidth * light.shadowFudge;
 	float3 shadowXYZ = pos.xyz / pos.w;
 	float2 shadowUV = (scaledOffset + (float2(1.0f + shadowXYZ.x, 1.0f - shadowXYZ.y))) * 0.5f;
 

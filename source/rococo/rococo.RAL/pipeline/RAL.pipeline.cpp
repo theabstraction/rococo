@@ -43,8 +43,6 @@ namespace Rococo::RAL::Anon
 		AutoFree<IRALConstantDataBuffer> ambientBuffer;
 		AutoFree<IRALConstantDataBuffer> boneMatricesStateBuffer;
 
-		ID_TEXTURE shadowBufferId;
-
 		GlobalState currentGlobalState;
 
 		BoneMatrices boneMatrices = { 0 };
@@ -63,8 +61,6 @@ namespace Rococo::RAL::Anon
 
 			SetSamplerDefaults();
 
-			// TODO - make this dynamic
-			shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 			particles = CreateParticleSystem(_ral, _renderStates);
 			lightCones = CreateLightCones(_ral, _renderStates, *this);
 			skybox = CreateRALSkybox(_ral, _renderStates);
@@ -107,7 +103,7 @@ namespace Rococo::RAL::Anon
 			globalStateBuffer->AssignToVS(CBUFFER_INDEX_GLOBAL_STATE);
 		}
 
-		void AssignAmbientLightToShaders(const Rococo::Graphics::LightConstantBuffer& ambientLight) override
+		void AssignAmbientLightToShaders(const Rococo::Graphics::LightConstantBuffer& ambientLight)
 		{
 			AmbientData ad;
 			ad.localLight = ambientLight.ambient;
@@ -116,25 +112,13 @@ namespace Rococo::RAL::Anon
 			ambientBuffer->AssignToPS(CBUFFER_INDEX_AMBIENT_LIGHT);
 		}
 
-		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene) override
+		void UpdateGlobalState(const GuiMetrics& metrics, IScene& scene)
 		{
 			GlobalState g;
 			scene.GetCamera(g.worldMatrixAndProj, g.worldMatrix, g.projMatrix, g.eye, g.viewDir);
 
 			float aspectRatio = metrics.screenSpan.y / (float)metrics.screenSpan.x;
 			g.aspect = { aspectRatio,0,0,0 };
-
-			TextureDesc desc;
-			if (ral.RALTextures().TryGetTextureDesc(OUT desc, shadowBufferId))
-			{
-				g.OOShadowTxWidth = 1.0f / desc.width;
-			}
-			else
-			{
-				g.OOShadowTxWidth = 1.0f;
-			}
-
-			g.unused = Vec3{ 0.0f,0.0f,0.0f };
 			g.guiScale = renderStates.Gui().GetGuiScale();
 
 			globalStateBuffer->CopyDataToBuffer(&g, sizeof g);
@@ -171,11 +155,6 @@ namespace Rococo::RAL::Anon
 			auto& target = boneMatrices.bones[index];
 			target = m;
 			target.row3 = Vec4{ 0, 0, 0, 1.0f };
-		}
-
-		ID_TEXTURE ShadowBufferId() const override
-		{
-			return shadowBufferId;
 		}
 
 		void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override

@@ -43,11 +43,6 @@ bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderDa
 
 	drd.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
 
-	drd.randoms.x = 0.0f;
-	drd.randoms.y = 1.0f;
-	drd.randoms.z = 2.0f;
-	drd.randoms.w = 3.0f;
-
 	return true;
 }
 
@@ -75,6 +70,8 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 	AutoFree<IRALConstantDataBuffer> instanceBuffer;
 	AutoFree<IRALConstantDataBuffer> depthRenderStateBuffer;
 	AutoFree<IRALConstantDataBuffer> lightStateBuffer;
+
+	ID_TEXTURE shadowBufferId;
 
 	int64 entitiesThisFrame = 0;
 	int64 trianglesThisFrame = 0;
@@ -111,6 +108,9 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 		instanceBuffer = ral.CreateConstantBuffer(sizeof ObjectInstance, 1);
 		depthRenderStateBuffer = ral.CreateConstantBuffer(sizeof DepthRenderData, 1);
 		lightStateBuffer = ral.CreateConstantBuffer(sizeof LightConstantBuffer, 1);
+
+		// TODO - make this dynamic
+		shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 	}
 
 	void AssignLightStateBufferToShaders()
@@ -292,11 +292,13 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 
 			ral.ExpandViewportToEntireTexture(targets.depthTarget);
 
-			light.randoms = drd.randoms;
 			light.time = drd.time;
 			light.right = drd.right;
 			light.up = drd.up;
 			light.worldToShadowBuffer = drd.worldToScreen;
+
+			TextureDesc desc;
+			light.OOShadowTxWidth = ral.RALTextures().TryGetTextureDesc(OUT desc, shadowBufferId) && desc.width > 0 ? (1.0f / desc.width) : 1.0f;
 
 			UpdateLightBuffer(light);
 			AssignLightStateBufferToShaders();
@@ -312,7 +314,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 				builtFirstPass = true;
 			}
 
-			ral.RALTextures().AssignToPS(TXUNIT_SHADOW, pipeline.ShadowBufferId());
+			ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
 
 			renderPhases.RenderSpotlightPhase(scene);
 
@@ -324,7 +326,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 
 	void RenderToShadowBuffer(DepthRenderData& drd, IScene& scene)
 	{
-		renderStates.TargetShadowBuffer(pipeline.ShadowBufferId());
+		renderStates.TargetShadowBuffer(shadowBufferId);
 
 		ral.Shaders().UseShaders(idSkinnedObjVS_Shadows, idObjPS_Shadows);
 
