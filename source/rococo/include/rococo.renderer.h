@@ -354,6 +354,7 @@ namespace Rococo::Graphics
 
 	struct RenderOutputTargets
 	{
+		// When rendering to a texture the renderTarget != -1, otherwise we are rendering to the window buffers
 		ID_TEXTURE renderTarget;
 		ID_TEXTURE depthTarget;
 	};

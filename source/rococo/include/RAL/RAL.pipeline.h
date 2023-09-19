@@ -134,4 +134,17 @@ namespace Rococo::RAL
 	};
 
 	IRAL_3D_Object_Renderer* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
+
+	ROCOCO_INTERFACE IRAL_BoneStateBuffer
+	{
+		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
+	};
+
+	ROCOCO_INTERFACE IRAL_BoneStateBufferSupervisor : IRAL_BoneStateBuffer
+	{
+		virtual void Free() = 0;
+		virtual void SyncToGPU() = 0;
+	};
+
+	IRAL_BoneStateBufferSupervisor* CreateRALBoneStateBuffer(IRAL& ral, IRenderStates& renderStates);
 }

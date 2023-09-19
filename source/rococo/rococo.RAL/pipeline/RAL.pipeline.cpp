@@ -21,23 +21,23 @@ namespace Rococo::RAL::Anon
 		IRenderStates& renderStates;
 
 		AutoFree<IParticlesSupervisor> particles;
+		AutoFree<IGui3DSupervisor> gui3D;
 		AutoFree<IRAL_LightCones> lightCones;
 		AutoFree<IRAL_Skybox> skybox;
-		AutoFree<IGui3DSupervisor> gui3D;
 		AutoFree<IRAL_3D_Object_Renderer> objectRenderer;
+		AutoFree<IRAL_BoneStateBufferSupervisor> boneBuffer;
 
 		AutoFree<IRALConstantDataBuffer> globalStateBuffer;
 		AutoFree<IRALConstantDataBuffer> sunlightStateBuffer;
 		AutoFree<IRALConstantDataBuffer> ambientBuffer;
-		AutoFree<IRALConstantDataBuffer> boneMatricesStateBuffer;
 
 		GlobalState currentGlobalState;
 
-		BoneMatrices boneMatrices = { 0 };
-
 		Graphics::RenderOutputTargets outputTargets;
 
-		Time::ticks guiCost = 0;
+		Time::Timer guiRenderTimer = "guiRenderTimer";
+		Time::Timer plasmaRenderTimer = "plasmaRenderTimer";
+		Time::Timer objectRenderTimer = "objectRenderTimer";
 
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): 
 			renderStates(_renderStates), ral(_ral)
@@ -45,7 +45,6 @@ namespace Rococo::RAL::Anon
 			globalStateBuffer = ral.CreateConstantBuffer(sizeof GlobalState, 1);
 			sunlightStateBuffer = ral.CreateConstantBuffer(sizeof Vec4, 1);
 			ambientBuffer = ral.CreateConstantBuffer(sizeof AmbientData, 1);
-			boneMatricesStateBuffer = ral.CreateConstantBuffer(sizeof BoneMatrices, 1);
 
 			SetSamplerDefaults();
 
@@ -54,6 +53,7 @@ namespace Rococo::RAL::Anon
 			skybox = CreateRALSkybox(_ral, _renderStates);
 			gui3D = CreateGui3D(_ral, _renderStates, *this);
 			objectRenderer = CreateRAL_3D_Object_Renderer(_ral, _renderStates, *this, *this);
+			boneBuffer = CreateRALBoneStateBuffer(_ral, _renderStates);
 		}
 
 		Rococo::Graphics::IGui3D& Gui3D() override
@@ -115,17 +115,12 @@ namespace Rococo::RAL::Anon
 
 			AssignGlobalStateBufferToShaders();
 			UpdateSunlight();
-			UpdateBoneMatrices();
-		}
-
-		void UpdateBoneMatrices()
-		{
-			boneMatricesStateBuffer->CopyDataToBuffer(&boneMatrices, sizeof boneMatrices);
-			boneMatricesStateBuffer->AssignToVS(CBUFFER_INDEX_BONE_MATRICES);
+			boneBuffer->SyncToGPU();
 		}
 
 		void UpdateSunlight()
 		{
+			// Used in landscape.ps
 			Vec4 sunlight = { Sin(45_degrees), 0, Cos(45_degrees), 0 };
 			sunlightStateBuffer->CopyDataToBuffer(&sunlight, sizeof sunlight);
 			sunlightStateBuffer->AssignToGS(CBUFFER_INDEX_SUNLIGHT);
@@ -133,37 +128,12 @@ namespace Rococo::RAL::Anon
 			sunlightStateBuffer->AssignToVS(CBUFFER_INDEX_SUNLIGHT);
 		}
 
-		void SetBoneMatrix(uint32 index, cr_m4x4 m) override
-		{
-			if (index >= BoneMatrices::BONE_MATRIX_CAPACITY)
-			{
-				Throw(0, "Bad bone index #%u", index);
-			}
-
-			auto& target = boneMatrices.bones[index];
-			target = m;
-			target.row3 = Vec4{ 0, 0, 0, 1.0f };
-		}
-
 		void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override
 		{
 			objectRenderer->Draw(m, instances, nInstances);
 		}
 
-		void RenderAmbientPhase(IScene& scene, const LightConstantBuffer& ambientLight) override
-		{
-			renderStates.UseObjectRasterizer();
-
-			AssignAmbientLightToShaders(ambientLight);
-
-			scene.RenderObjects(ral.RenderContext(), false);
-			scene.RenderObjects(ral.RenderContext(), true);
-
-			gui3D->Render3DGui();
-			particles->RenderFogWithAmbient();
-		}
-
-		void RenderSpotlightPhase(IScene& scene)
+		void RenderIlluminatedEntites(IScene& scene)
 		{
 			renderStates.UseObjectRasterizer();
 
@@ -174,7 +144,18 @@ namespace Rococo::RAL::Anon
 			particles->RenderFogWithSpotlight();
 		}
 
-		bool IsGuiReady() const
+		void RenderAmbientPhase(IScene& scene, const LightConstantBuffer& ambientLight) override
+		{
+			AssignAmbientLightToShaders(ambientLight);
+			RenderIlluminatedEntites(scene);
+		}
+
+		void RenderSpotlightPhase(IScene& scene)
+		{
+			RenderIlluminatedEntites(scene);
+		}
+
+		bool IsRenderingToWindow() const
 		{
 			return !outputTargets.renderTarget;
 		}
@@ -199,23 +180,26 @@ namespace Rococo::RAL::Anon
 			renderStates.AssignGuiShaderResources();
 			renderStates.ResetSamplersToDefaults();
 
-			objectRenderer->Render3DObjects(scene, outputTargets, envMapType);
+			PROFILE_TICK_COUNT(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets, envMapType));
 
-			particles->RenderPlasma();
 			lightCones->DrawLightCones(scene);
 
-			UpdateGlobalState(metrics, scene);
+			PROFILE_TICK_COUNT(plasmaRenderTimer, particles->RenderPlasma());
 
-			Time::ticks now = Time::TickCount();
-
-			renderStates.Gui().RenderGui(scene, metrics, IsGuiReady());
-
-			guiCost = Time::TickCount() - now;
+			if (IsRenderingToWindow())
+			{
+				PROFILE_TICK_COUNT(guiRenderTimer, renderStates.Gui().RenderGui(scene, metrics, true));
+			}
 		}
 
 		void ShowVenue(IMathsVisitor& visitor)
 		{
 			objectRenderer->ShowVenue(visitor);
+		}
+
+		void SetBoneMatrix(uint32 index, cr_m4x4 m) override
+		{
+			boneBuffer->SetBoneMatrix(index, m);
 		}
 	};
 }

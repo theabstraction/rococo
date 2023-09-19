@@ -139,6 +139,7 @@ struct ParticleVertex
 	float4 geometry: TEXCOORD;
 };
 
+// Used in landscape.ps
 struct Sunlight
 {
 	float4 direction;
@@ -225,6 +226,7 @@ cbuffer textureState : register(b5)
 	TextureDescState state;
 }
 
+// Used in landscape.ps
 cbuffer SunlightState : register(b6)
 {
 	Sunlight sunlight;

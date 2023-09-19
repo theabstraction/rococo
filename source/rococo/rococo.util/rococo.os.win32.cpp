@@ -3714,6 +3714,24 @@ namespace Rococo::Time
 		GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
 		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
 	}
+
+	ROCOCO_API Timer::Timer(const char * const _name):
+		name(_name), start(0), end(0)
+	{
+
+	}
+
+	ROCOCO_API void Timer::Start()
+	{
+		end = 0;
+		start = TickCount();
+	}
+
+	ROCOCO_API void Timer::End()
+	{
+		end = TickCount();
+	}
+
 } // Rococo::Time
 
 namespace Rococo::Debugging

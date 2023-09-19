@@ -7,6 +7,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.skybox.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.gui3D.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.forward_renderer.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.bones.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h">

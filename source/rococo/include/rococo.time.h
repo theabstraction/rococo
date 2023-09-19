@@ -9,4 +9,21 @@ namespace Rococo::Time
 	ROCOCO_API [[nodiscard]] ticks TickCount();
 	ROCOCO_API [[nodiscard]] ticks TickHz();
 	ROCOCO_API [[nodiscard]] ticks UTCTime();
+
+	class Timer
+	{
+	private:
+		Time::ticks start;
+		Time::ticks end;
+		const char* name;
+
+	public:
+		ROCOCO_API Timer();
+		ROCOCO_API void Start();
+		ROCOCO_API void End();
+
+		ROCOCO_API Timer(const char* const name);
+	};
 }
+
+#define PROFILE_TICK_COUNT(argProfileTimer, expressionToBeTimed) argProfileTimer.Start(); expressionToBeTimed; argProfileTimer.End();
