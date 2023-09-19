@@ -15,18 +15,6 @@ using namespace Rococo::Graphics;
 
 namespace Rococo::RAL::Anon
 {
-	// struct VertexElement	{ cstr SemanticName; uint32 semanticIndex; VertexElementFormat format; uint32 slot;	};
-
-	VertexElement objectVertexElements[] =
-	{
-		VertexElement { "position", 0, VertexElementFormat::Float3, 0 },
-		VertexElement { "normal",   0, VertexElementFormat::Float3, 0 },
-		VertexElement { "texcoord", 0, VertexElementFormat::Float2, 0 },
-		VertexElement { "color",	0, VertexElementFormat::RGBA8U, 0 },
-		VertexElement { "texcoord",	1, VertexElementFormat::Float2, 0 },
-		VertexElement { nullptr,    0 ,VertexElementFormat::Float3, 0 }
-	};
-
 	struct RALPipeline: IPipelineSupervisor, IRenderPhases
 	{
 		IRAL& ral;
@@ -241,6 +229,17 @@ namespace Rococo::RAL
 
 	RAL_PIPELINE_API const VertexElement* GetObjectVertexElements()
 	{
-		return Anon::objectVertexElements;
+		static const VertexElement objectVertexElements[] =
+		{
+			// struct VertexElement	{ cstr SemanticName; uint32 semanticIndex; VertexElementFormat format; uint32 slot;	};
+			VertexElement { "position", 0, VertexElementFormat::Float3, 0 },
+			VertexElement { "normal",   0, VertexElementFormat::Float3, 0 },
+			VertexElement { "texcoord", 0, VertexElementFormat::Float2, 0 },
+			VertexElement { "color",	0, VertexElementFormat::RGBA8U, 0 },
+			VertexElement { "texcoord",	1, VertexElementFormat::Float2, 0 },
+			VertexElement { nullptr,    0 ,VertexElementFormat::Float3, 0 }
+		};
+
+		return objectVertexElements;
 	}
 }

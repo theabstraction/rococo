@@ -75,7 +75,7 @@ namespace Rococo::Graphics
 
 	struct VertexElement
 	{
-		cstr SemanticName;
+		cstr semanticName;
 		uint32 semanticIndex;
 		VertexElementFormat format;
 		uint32 slot;

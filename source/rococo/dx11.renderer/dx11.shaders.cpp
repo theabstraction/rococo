@@ -291,7 +291,7 @@ struct DX11Shaders : IDX11Shaders
 		D3D11_INPUT_ELEMENT_DESC elements[MAX_ELEMENTS];
 
 		uint32 i = 0;
-		for (; vertexElements[i].SemanticName != nullptr; ++i)
+		for (; vertexElements[i].semanticName != nullptr; ++i)
 		{
 			if (i == MAX_ELEMENTS)
 			{
@@ -300,7 +300,7 @@ struct DX11Shaders : IDX11Shaders
 
 			const auto& v = vertexElements[i];
 
-			elements[i].SemanticName = v.SemanticName;
+			elements[i].SemanticName = v.semanticName;
 			elements[i].SemanticIndex = v.semanticIndex;
 			
 			switch (v.format)
