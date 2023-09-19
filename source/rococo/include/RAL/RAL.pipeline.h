@@ -83,7 +83,7 @@ namespace Rococo::RAL
 	{
 		virtual void AssignGlobalStateBufferToShaders() = 0;
 		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
-		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP_TYPE envMapType, Rococo::Graphics::IScene& scene) = 0;
+		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;
@@ -129,7 +129,7 @@ namespace Rococo::RAL
 	{
 		virtual void Draw(RALMeshBuffer & m, const Rococo::Graphics::ObjectInstance * instances, uint32 nInstances) = 0;
 		virtual void Free() = 0;
-		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets, Rococo::Graphics::ENVIRONMENTAL_MAP_TYPE envMapType) = 0;
+		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 	};
 

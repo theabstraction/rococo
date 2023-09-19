@@ -512,7 +512,7 @@ public:
 		return pipeline->RALPipeline().Particles();
 	}
 
-	void Render(Graphics::ENVIRONMENTAL_MAP_TYPE envMap, IScene& scene) override
+	void Render(IScene& scene) override
 	{
 		if (!BackBuffer())
 		{
@@ -530,7 +530,7 @@ public:
 			return;
 		}
 
-		pipeline->RALPipeline().Render(metrics, envMap, scene);
+		pipeline->RALPipeline().Render(metrics, scene);
 
 		now = Time::TickCount();
 

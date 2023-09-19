@@ -160,7 +160,7 @@ namespace Rococo::RAL::Anon
 			return !outputTargets.renderTarget;
 		}
 
-		void Render(const Rococo::Graphics::GuiMetrics& metrics, Graphics::ENVIRONMENTAL_MAP_TYPE envMapType, Rococo::Graphics::IScene& scene)
+		void Render(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene)
 		{
 			outputTargets.depthTarget = ral.GetWindowDepthBufferId();
 
@@ -180,7 +180,7 @@ namespace Rococo::RAL::Anon
 			renderStates.AssignGuiShaderResources();
 			renderStates.ResetSamplersToDefaults();
 
-			PROFILE_TICK_COUNT(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets, envMapType));
+			PROFILE_TICK_COUNT(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets));
 
 			lightCones->DrawLightCones(scene);
 

@@ -273,7 +273,7 @@ namespace MHost
 			platform.graphics.gui.PushTop(busyPanel->Supervisor(), true);
 
 			EmptyScene emptyScene;
-			platform.graphics.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_TYPE::FIXED_CUBE, emptyScene);
+			platform.graphics.renderer.Render(emptyScene);
 			platform.graphics.gui.Pop();
 		}
 
@@ -681,7 +681,7 @@ namespace MHost
 				Throw(0, "GuiPopulator undefined");
 			}
 			sceneManager.populator = populator;
-			platform.graphics.renderer.Render(Rococo::Graphics::ENVIRONMENTAL_MAP_TYPE::FIXED_CUBE, sceneManager);
+			platform.graphics.renderer.Render(sceneManager);
 		}
 
 		void PollKeyState(KeyState& keyState) override

@@ -131,39 +131,6 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 		lightStateBuffer->CopyDataToBuffer(&light, sizeof light);
 	}
 
-	ID_PIXEL_SHADER GetObjectShaderPixelId(RenderPhase phase, ENVIRONMENTAL_MAP_TYPE envMapType)
-	{
-		switch (envMapType)
-		{
-		case Graphics::ENVIRONMENTAL_MAP_TYPE::FIXED_CUBE:
-			switch (phase)
-			{
-			case RenderPhase::DetermineAmbient:
-				return idObjAmbientPS;
-			case RenderPhase::DetermineSpotlight:
-				return idObjPS;
-			case RenderPhase::DetermineShadowVolumes:
-				return idObjPS_Shadows;
-			default:
-				Throw(0, "Unknown render phase: %d", phase);
-			}
-		case Graphics::ENVIRONMENTAL_MAP_TYPE::PROCEDURAL:
-			switch (phase)
-			{
-			case RenderPhase::DetermineAmbient:
-				return idObj_Ambient_NoEnvMap_PS;
-			case RenderPhase::DetermineSpotlight:
-				return idObj_Spotlight_NoEnvMap_PS;
-			case RenderPhase::DetermineShadowVolumes:
-				return idObjPS_Shadows;
-			default:
-				Throw(0, "Unknown render phase: %d", phase);
-			}
-		default:
-			Throw(0, "Environment mode %d not implemented", envMapType);
-		}
-	}
-
 	void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override
 	{
 		if (!m.vertexBuffer)
@@ -243,7 +210,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 
 	// This is the entry point for 3D rendering using this class as the forward renderer
 	// targets.renderTarget of -1 indicated we are rendering to the window directly, and not to a texture
-	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets, ENVIRONMENTAL_MAP_TYPE envMapType) override
+	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets) override
 	{
 		trianglesThisFrame = 0;
 		entitiesThisFrame = 0;
@@ -259,7 +226,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 			{
 				try
 				{
-					RenderSpotlightLitScene(lights.lightArray[i], scene, targets, envMapType);
+					RenderSpotlightLitScene(lights.lightArray[i], scene, targets);
 				}
 				catch (IException& ex)
 				{
@@ -267,11 +234,11 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 				}
 			}
 
-			RenderAmbient(scene, lights.lightArray[0], targets, envMapType);
+			RenderAmbient(scene, lights.lightArray[0], targets);
 		}
 	}
 
-	void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene, const RenderOutputTargets& targets, ENVIRONMENTAL_MAP_TYPE envMapType)
+	void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene, const RenderOutputTargets& targets)
 	{
 		LightConstantBuffer light = lightSubset;
 
@@ -284,8 +251,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 
 			phase = RenderPhase::DetermineSpotlight;
 
-			ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase, envMapType);
-			ral.Shaders().UseShaders(idObjVS, idPS);
+			ral.Shaders().UseShaders(idObjVS, idObjPS);
 
 			ral.ExpandViewportToEntireTexture(targets.depthTarget);
 
@@ -339,12 +305,11 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 		scene.RenderShadowPass(drd, ral.RenderContext(), false);
 	}
 
-	void RenderAmbient(IScene& scene, const LightConstantBuffer& ambientLight, const RenderOutputTargets& targets, ENVIRONMENTAL_MAP_TYPE envMapType)
+	void RenderAmbient(IScene& scene, const LightConstantBuffer& ambientLight, const RenderOutputTargets& targets)
 	{
 		phase = RenderPhase::DetermineAmbient;
 
-		ID_PIXEL_SHADER idPS = GetObjectShaderPixelId(phase, envMapType);
-		if (ral.Shaders().UseShaders(idObjAmbientVS, idPS))
+		if (ral.Shaders().UseShaders(idObjAmbientVS, idObjAmbientPS))
 		{
 			float blendFactorUnused[] = { 0,0,0,0 };
 			ral.ExpandViewportToEntireTexture(targets.depthTarget);
