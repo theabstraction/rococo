@@ -75,7 +75,6 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 
 	int64 entitiesThisFrame = 0;
 	int64 trianglesThisFrame = 0;
-	Time::ticks objCost = 0;
 
 	RAL_3D_Object_Renderer(IRAL& _ral, IRenderStates& _renderStates, IRenderPhases& _phases, IPipeline& _pipeline) : ral(_ral), renderStates(_renderStates), renderPhases(_phases), pipeline(_pipeline)
 	{
@@ -136,7 +135,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 	{
 		switch (envMapType)
 		{
-		case Graphics::ENVIRONMENTAL_MAP_FIXED_CUBE:
+		case Graphics::ENVIRONMENTAL_MAP_TYPE::FIXED_CUBE:
 			switch (phase)
 			{
 			case RenderPhase::DetermineAmbient:
@@ -148,7 +147,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 			default:
 				Throw(0, "Unknown render phase: %d", phase);
 			}
-		case Graphics::ENVIRONMENTAL_MAP_PROCEDURAL:
+		case Graphics::ENVIRONMENTAL_MAP_TYPE::PROCEDURAL:
 			switch (phase)
 			{
 			case RenderPhase::DetermineAmbient:
@@ -242,10 +241,10 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 		delete this;
 	}
 
+	// This is the entry point for 3D rendering using this class as the forward renderer
+	// targets.renderTarget of -1 indicated we are rendering to the window directly, and not to a texture
 	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets, ENVIRONMENTAL_MAP_TYPE envMapType) override
 	{
-		auto now = Time::TickCount();
-
 		trianglesThisFrame = 0;
 		entitiesThisFrame = 0;
 
@@ -270,8 +269,6 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 
 			RenderAmbient(scene, lights.lightArray[0], targets, envMapType);
 		}
-
-		objCost = Time::TickCount() - now;
 	}
 
 	void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene, const RenderOutputTargets& targets, ENVIRONMENTAL_MAP_TYPE envMapType)

@@ -26,7 +26,7 @@ namespace Rococo::Graphics
 	struct IGuiRenderContextSupervisor;
 	struct LightConstantBuffer;
 	struct RenderOutputTargets;
-	enum ENVIRONMENTAL_MAP_TYPE;
+	enum class ENVIRONMENTAL_MAP_TYPE;
 
 	namespace Samplers
 	{
