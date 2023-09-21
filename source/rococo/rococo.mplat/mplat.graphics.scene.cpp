@@ -94,7 +94,7 @@ namespace
 		  this->populator = populator;
 	  }
 
-	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) override
+	  void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, EShadowCasterFilter filter) override
 	  {
 		  rc.Gui3D().Clear3DGuiTriangles();
 
@@ -103,7 +103,7 @@ namespace
 			  populator->PopulateShadowCasters(*this, drd);
 		  }
 
-		  RenderEntities_InternalAnyPhase(rc, skinned);
+		  RenderEntities_InternalAnyPhase(rc, filter);
 	  }
 
       void SetClearColour(float32 red, float32 green, float32 blue, float alpha) override
@@ -331,11 +331,11 @@ namespace
 		  FlushDrawQueue(meshId, r);
 	  }
 
-	  void RenderEntities_InternalAnyPhase(IRenderContext& r, bool skinned)
+	  void RenderEntities_InternalAnyPhase(IRenderContext& r, EShadowCasterFilter filter)
 	  {
 		  drawQueue.clear();
 
-		  if (!skinned)
+		  if (filter == EShadowCasterFilter::UnskinnedCastersOnly)
 		  {
 			  RenderEntities_InternalStatic(r);
 		  }
@@ -345,7 +345,7 @@ namespace
 		  }
 	  }
 
-      void RenderObjects(IRenderContext& rc, bool skinned) override
+      void RenderObjects(IRenderContext& rc, EShadowCasterFilter filter) override
       {
 		  debugTesselator->Clear();
 
@@ -354,7 +354,7 @@ namespace
 			  populator->PopulateScene(*this);
 		  }
 
-		  RenderEntities_InternalAnyPhase(rc, skinned);
+		  RenderEntities_InternalAnyPhase(rc, filter);
       }
 
       RGBA GetClearColour() const override

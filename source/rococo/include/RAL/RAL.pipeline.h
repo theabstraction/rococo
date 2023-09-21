@@ -127,13 +127,26 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRAL_3D_Object_Renderer
 	{
-		virtual void Draw(RALMeshBuffer & m, const Rococo::Graphics::ObjectInstance * instances, uint32 nInstances) = 0;
-		virtual void Free() = 0;
+		// Invoked by the pipeline for every object in the scene. This may be called multiple times per scene render, as some renderers
+		// require multiple phases - shadows, ambient and spotlight calculations may be sepearate phases, for example.
+		// This call will be in the callstack of the Render3DObjects method below
+		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
+
+		// This is the entry point each frame for rendering. The scene will be queried a number of time for each object in the scene.
+		// The objects are individually rendered with the Draw method, with the implementation adjusting render state appropriate for the 
+		// rendering phase.
 		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets) = 0;
+
+		// Invoked by a visitor to expose some internal data to instrumentation
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 	};
 
-	IRAL_3D_Object_Renderer* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
+	ROCOCO_INTERFACE IRAL_3D_Object_RendererSupervisor: IRAL_3D_Object_Renderer
+	{
+		virtual void Free() = 0;
+	};
+
+	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
 
 	ROCOCO_INTERFACE IRAL_BoneStateBuffer
 	{
@@ -146,5 +159,5 @@ namespace Rococo::RAL
 		virtual void SyncToGPU() = 0;
 	};
 
-	IRAL_BoneStateBufferSupervisor* CreateRALBoneStateBuffer(IRAL& ral, IRenderStates& renderStates);
+	RAL_PIPELINE_API IRAL_BoneStateBufferSupervisor* CreateRALBoneStateBuffer(IRAL& ral, IRenderStates& renderStates);
 }

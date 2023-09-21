@@ -285,6 +285,7 @@ namespace Rococo::Graphics
 		float OOShadowTxWidth; // 1 over shadow texture width
 	};
 
+	// Data associated with a depth-only render phase, such as shadow generation
 	struct DepthRenderData 
 	{
 		Matrix4x4 worldToCamera;
@@ -298,6 +299,8 @@ namespace Rococo::Graphics
 		Radians fov;
 		Seconds time; // Can be used for animation 0 - ~59.99, cycles every minute
 	};
+
+	using ShadowRenderData = DepthRenderData;
 #pragma pack(pop)
 
 	ROCOCO_INTERFACE IScene2D
@@ -307,10 +310,20 @@ namespace Rococo::Graphics
 		virtual void RenderGui(IGuiRenderContext& grc) = 0;
 	};
 
+	// Simple struct giving the light array and the element count
 	struct Lights
 	{
+		// Points to an array of LightConstantBuffer elements. So lightArray[i] is the ith light-constant-buffer
 		const LightConstantBuffer* lightArray;
+
+		// The number of elements in the lightArray
 		uint32 count;
+	};
+
+	enum class EShadowCasterFilter
+	{
+		SkinnedCastersOnly,
+		UnskinnedCastersOnly
 	};
 
 	ROCOCO_INTERFACE IScene : IScene2D
@@ -318,9 +331,9 @@ namespace Rococo::Graphics
 		virtual void GetCamera(Matrix4x4 & camera, Matrix4x4 & world, Matrix4x4 & proj, Vec4 & eye, Vec4 & viewDir) = 0;
 		virtual ID_CUBE_TEXTURE GetEnvironmentMap() const = 0;
 		virtual ID_CUBE_TEXTURE GetSkyboxCubeId() const = 0;
-		virtual void RenderObjects(IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
+		virtual void RenderObjects(IRenderContext& rc, EShadowCasterFilter filter) = 0; // Do not change lights from here
 		virtual Lights GetLights() const = 0;	// Called prior to the shadow pass. 
-		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned) = 0; // Do not change lights from here
+		virtual void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, EShadowCasterFilter filter) = 0; // Do not change lights from here
 	};
 
 	ROCOCO_INTERFACE IGuiRenderContextSupervisor : IGuiRenderContext

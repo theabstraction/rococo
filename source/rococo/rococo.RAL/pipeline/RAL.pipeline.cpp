@@ -24,7 +24,7 @@ namespace Rococo::RAL::Anon
 		AutoFree<IGui3DSupervisor> gui3D;
 		AutoFree<IRAL_LightCones> lightCones;
 		AutoFree<IRAL_Skybox> skybox;
-		AutoFree<IRAL_3D_Object_Renderer> objectRenderer;
+		AutoFree<IRAL_3D_Object_RendererSupervisor> objectRenderer;
 		AutoFree<IRAL_BoneStateBufferSupervisor> boneBuffer;
 
 		AutoFree<IRALConstantDataBuffer> globalStateBuffer;
@@ -137,8 +137,8 @@ namespace Rococo::RAL::Anon
 		{
 			renderStates.UseObjectRasterizer();
 
-			scene.RenderObjects(ral.RenderContext(), false);
-			scene.RenderObjects(ral.RenderContext(), true);
+			scene.RenderObjects(ral.RenderContext(), EShadowCasterFilter::UnskinnedCastersOnly);
+			scene.RenderObjects(ral.RenderContext(), EShadowCasterFilter::SkinnedCastersOnly);
 
 			gui3D->Render3DGui();
 			particles->RenderFogWithSpotlight();

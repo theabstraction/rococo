@@ -104,9 +104,9 @@ namespace MHost
 			}
 		}
 
-		void RenderObjects(IRenderContext& rc, bool skinned)  override
+		void RenderObjects(IRenderContext& rc, EShadowCasterFilter filter)  override
 		{
-			platform.graphics.scene.RenderObjects(rc, skinned);
+			platform.graphics.scene.RenderObjects(rc, filter);
 		}
 
 		Lights GetLights() const override
@@ -114,9 +114,9 @@ namespace MHost
 			return platform.graphics.scene.GetLights();
 		}
 
-		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, bool skinned)  override
+		void RenderShadowPass(const DepthRenderData& drd, IRenderContext& rc, EShadowCasterFilter filter)  override
 		{
-			platform.graphics.scene.RenderShadowPass(drd, rc, skinned);
+			platform.graphics.scene.RenderShadowPass(drd, rc, filter);
 		}
 	};
 
@@ -156,7 +156,7 @@ namespace MHost
 			return ID_CUBE_TEXTURE::Invalid();
 		}
 
-		void RenderObjects(IRenderContext&, bool)  override
+		void RenderObjects(IRenderContext&, EShadowCasterFilter)  override
 		{
 		}
 
@@ -165,7 +165,7 @@ namespace MHost
 			return Lights{ nullptr, 0 };
 		}
 
-		void RenderShadowPass(const DepthRenderData&, IRenderContext&, bool)  override
+		void RenderShadowPass(const DepthRenderData&, IRenderContext&, EShadowCasterFilter)  override
 		{
 
 		}

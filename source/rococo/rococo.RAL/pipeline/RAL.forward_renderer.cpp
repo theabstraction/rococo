@@ -13,41 +13,39 @@ using namespace Rococo;
 using namespace Rococo::Graphics;
 using namespace Rococo::RAL;
 
-bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderData& drd)
+void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, ShadowRenderData& shadowData)
 {
-	if (!TryNormalize(light.direction, drd.direction))
+	if (!TryNormalize(light.direction, shadowData.direction))
 	{
-		return false;
+		Throw(0, "%s: light direction normalization failed", __FUNCTION__);
 	}
 
-	drd.direction.w = 0;
-	drd.eye = Vec4::FromVec3(light.position, 1.0f);
-	drd.fov = light.fov;
+	shadowData.direction.w = 0;
+	shadowData.eye = Vec4::FromVec3(light.position, 1.0f);
+	shadowData.fov = light.fov;
 
-	Matrix4x4 directionToCameraRot = RotateDirectionToNegZ(drd.direction);
+	Matrix4x4 directionToCameraRot = RotateDirectionToNegZ(shadowData.direction);
 	Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
-	drd.right = cameraToDirectionRot * Vec4{ 1, 0, 0, 0 };
-	drd.up = cameraToDirectionRot * Vec4{ 0, 1, 0, 0 };
-	drd.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-drd.eye);
-	drd.nearPlane = light.nearPlane;
-	drd.farPlane = light.farPlane;
+	shadowData.right = cameraToDirectionRot * Vec4{ 1, 0, 0, 0 };
+	shadowData.up = cameraToDirectionRot * Vec4{ 0, 1, 0, 0 };
+	shadowData.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-shadowData.eye);
+	shadowData.nearPlane = light.nearPlane;
+	shadowData.farPlane = light.farPlane;
 
-	Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(drd.fov, 1.0f, drd.nearPlane, drd.farPlane);
+	Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(shadowData.fov, 1.0f, shadowData.nearPlane, shadowData.farPlane);
 
-	drd.worldToScreen = cameraToScreen * drd.worldToCamera;
+	shadowData.worldToScreen = cameraToScreen * shadowData.worldToCamera;
 
 	Time::ticks t = Time::TickCount();
 	Time::ticks ticksPerSecond = Time::TickHz();
 	Time::ticks oneMinute = ticksPerSecond * 60;
 	Time::ticks secondOfMinute = t % oneMinute;
 
-	drd.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
-
-	return true;
+	shadowData.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
 }
 
 
-struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
+struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 {
 	IRAL& ral;
 	IRenderStates& renderStates;
@@ -112,6 +110,119 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 		shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 	}
 
+	void Free() override
+	{
+		delete this;
+	}
+
+	// This is the entry point for 3D rendering using this class as the forward renderer
+	// targets.renderTarget of -1 indicates we are rendering to the window directly, and not to a texture
+	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets) override
+	{
+		trianglesThisFrame = 0;
+		entitiesThisFrame = 0;
+
+		renderStates.UseObjectRasterizer();
+
+		builtFirstPass = false;
+
+		Lights lights = scene.GetLights();
+		if (lights.lightArray != nullptr && lights.count > 0)
+		{
+			// The first light has the highest priority, and provides the shadows
+			ShadowRenderData shadows;
+			PrepareShadowDepthDescFromLight(lights.lightArray[0], shadows);
+
+			RenderToShadowBuffer(shadows, scene);
+
+			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
+			ral.ExpandViewportToEntireTexture(targets.depthTarget);
+
+			phase = RenderPhase::DetermineSpotlight;
+
+			ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
+
+			for (size_t i = 0; i < lights.count; ++i)
+			{
+				try
+				{
+					RenderSpotlightLitScene(shadows, lights.lightArray[i], scene);
+				}
+				catch (IException& ex)
+				{
+					Throw(ex.ErrorCode(), "Error lighting scene with light #%d: %s", i, ex.Message());
+				}
+			}
+
+			RenderAmbient(scene, lights.lightArray[0]);
+		}
+	}
+
+
+	// Render the scene from the POV of the light-source into the depth-shadow-buffer
+	void RenderToShadowBuffer(ShadowRenderData& shadowRenderData, IScene& scene)
+	{
+		renderStates.TargetShadowBuffer(shadowBufferId);
+
+		ral.Shaders().UseShaders(idSkinnedObjVS_Shadows, idObjPS_Shadows);
+
+		UpdateDepthRenderData(shadowRenderData);
+
+		phase = RenderPhase::DetermineShadowVolumes;
+
+		// The scene will callback with the Draw(...) method of this class for each skinned shadow casters, such as a viking warrior
+		scene.RenderShadowPass(shadowRenderData, ral.RenderContext(), EShadowCasterFilter::SkinnedCastersOnly);
+
+		ral.Shaders().UseShaders(idObjVS_Shadows, idObjPS_Shadows);
+
+		UpdateDepthRenderData(shadowRenderData);
+
+		// The scene will callback with the Draw(...) method of this class for each non-skinned shadow casters such as a viking helment
+		scene.RenderShadowPass(shadowRenderData, ral.RenderContext(), EShadowCasterFilter::UnskinnedCastersOnly);
+
+		// We now have populated the shadow buffer, which allows our remaining render calls to determine whether a pixel vertex is in shadow
+	}
+
+	// Render without ambient, using the spotlight calculations in the pixel shader
+	void RenderSpotlightLitScene(const ShadowRenderData& shadows, const LightConstantBuffer& lightSubset, IScene& scene)
+	{
+		LightConstantBuffer light = lightSubset;
+
+		ral.Shaders().UseShaders(idObjVS, idObjPS);
+
+		light.time = shadows.time;
+		light.right = shadows.right;
+		light.up = shadows.up;
+		light.worldToShadowBuffer = shadows.worldToScreen;
+
+		TextureDesc desc;
+		light.OOShadowTxWidth = ral.RALTextures().TryGetTextureDesc(OUT desc, shadowBufferId) && desc.width > 0 ? (1.0f / desc.width) : 1.0f;
+
+		UpdateLightBuffer(light);
+		AssignLightStateBufferToShaders();
+
+		SetAccumulativeBlending();
+
+		renderPhases.RenderSpotlightPhase(scene);
+
+		phase = RenderPhase::None;
+
+		renderStates.UseObjectDepthState();
+	}
+
+	void RenderAmbient(IScene& scene, const LightConstantBuffer& ambientLight)
+	{
+		phase = RenderPhase::DetermineAmbient;
+
+		if (ral.Shaders().UseShaders(idObjAmbientVS, idObjAmbientPS))
+		{
+			SetAccumulativeBlending();
+			renderPhases.RenderAmbientPhase(scene, ambientLight);
+		}
+
+		phase = RenderPhase::None;
+	}
+
 	void AssignLightStateBufferToShaders()
 	{
 		lightStateBuffer->AssignToGS(CBUFFER_INDEX_CURRENT_SPOTLIGHT);
@@ -131,7 +242,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 		lightStateBuffer->CopyDataToBuffer(&light, sizeof light);
 	}
 
-	void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override
+	void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances)
 	{
 		if (!m.vertexBuffer)
 			return;
@@ -203,132 +314,18 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 		}
 	}
 
-	void Free() override
+	void SetAccumulativeBlending()
 	{
-		delete this;
-	}
-
-	// This is the entry point for 3D rendering using this class as the forward renderer
-	// targets.renderTarget of -1 indicated we are rendering to the window directly, and not to a texture
-	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets) override
-	{
-		trianglesThisFrame = 0;
-		entitiesThisFrame = 0;
-
-		renderStates.UseObjectRasterizer();
-
-		builtFirstPass = false;
-
-		auto lights = scene.GetLights();
-		if (lights.lightArray != nullptr)
+		if (builtFirstPass)
 		{
-			for (size_t i = 0; i < lights.count; ++i)
-			{
-				try
-				{
-					RenderSpotlightLitScene(lights.lightArray[i], scene, targets);
-				}
-				catch (IException& ex)
-				{
-					Throw(ex.ErrorCode(), "Error lighting scene with light #%d: %s", i, ex.Message());
-				}
-			}
-
-			RenderAmbient(scene, lights.lightArray[0], targets);
+			renderStates.UseAdditiveBlend();
+			renderStates.DisableWritesOnDepthState();
 		}
-	}
-
-	void RenderSpotlightLitScene(const LightConstantBuffer& lightSubset, IScene& scene, const RenderOutputTargets& targets)
-	{
-		LightConstantBuffer light = lightSubset;
-
-		DepthRenderData drd;
-		if (PrepareDepthRenderFromLight(light, drd))
+		else
 		{
-			RenderToShadowBuffer(drd, scene);
-
-			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
-
-			phase = RenderPhase::DetermineSpotlight;
-
-			ral.Shaders().UseShaders(idObjVS, idObjPS);
-
-			ral.ExpandViewportToEntireTexture(targets.depthTarget);
-
-			light.time = drd.time;
-			light.right = drd.right;
-			light.up = drd.up;
-			light.worldToShadowBuffer = drd.worldToScreen;
-
-			TextureDesc desc;
-			light.OOShadowTxWidth = ral.RALTextures().TryGetTextureDesc(OUT desc, shadowBufferId) && desc.width > 0 ? (1.0f / desc.width) : 1.0f;
-
-			UpdateLightBuffer(light);
-			AssignLightStateBufferToShaders();
-
-			if (builtFirstPass)
-			{
-				renderStates.UseAlphaAdditiveBlend();
-				renderStates.DisableWritesOnDepthState();
-			}
-			else
-			{
-				renderStates.DisableBlend();
-				builtFirstPass = true;
-			}
-
-			ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
-
-			renderPhases.RenderSpotlightPhase(scene);
-
-			phase = RenderPhase::None;
-
-			renderStates.UseObjectDepthState();
+			renderStates.DisableBlend();
+			builtFirstPass = true;
 		}
-	}
-
-	void RenderToShadowBuffer(DepthRenderData& drd, IScene& scene)
-	{
-		renderStates.TargetShadowBuffer(shadowBufferId);
-
-		ral.Shaders().UseShaders(idSkinnedObjVS_Shadows, idObjPS_Shadows);
-
-		UpdateDepthRenderData(drd);
-
-		phase = RenderPhase::DetermineShadowVolumes;
-		scene.RenderShadowPass(drd, ral.RenderContext(), true);
-
-		ral.Shaders().UseShaders(idObjVS_Shadows, idObjPS_Shadows);
-
-		UpdateDepthRenderData(drd);
-
-		scene.RenderShadowPass(drd, ral.RenderContext(), false);
-	}
-
-	void RenderAmbient(IScene& scene, const LightConstantBuffer& ambientLight, const RenderOutputTargets& targets)
-	{
-		phase = RenderPhase::DetermineAmbient;
-
-		if (ral.Shaders().UseShaders(idObjAmbientVS, idObjAmbientPS))
-		{
-			float blendFactorUnused[] = { 0,0,0,0 };
-			ral.ExpandViewportToEntireTexture(targets.depthTarget);
-
-			if (builtFirstPass)
-			{
-				renderStates.UseAdditiveBlend();
-				renderStates.DisableWritesOnDepthState();
-			}
-			else
-			{
-				renderStates.DisableBlend();
-				builtFirstPass = true;
-			}
-
-			renderPhases.RenderAmbientPhase(scene, ambientLight);
-		}
-
-		phase = RenderPhase::None;
 	}
 
 	void ShowVenue(IMathsVisitor& visitor) override
@@ -339,7 +336,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_Renderer
 
 namespace Rococo::RAL
 {
-	IRAL_3D_Object_Renderer* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline)
+	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline)
 	{
 		return new RAL_3D_Object_Renderer(ral, renderStates, phases, pipeline);
 	}
