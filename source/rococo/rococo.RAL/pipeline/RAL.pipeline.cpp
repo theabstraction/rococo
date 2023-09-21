@@ -38,6 +38,7 @@ namespace Rococo::RAL::Anon
 		Time::Timer guiRenderTimer = "guiRenderTimer";
 		Time::Timer plasmaRenderTimer = "plasmaRenderTimer";
 		Time::Timer objectRenderTimer = "objectRenderTimer";
+		Time::Timer objectRendererInitTime = "objectRendererInitTime";
 
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): 
 			renderStates(_renderStates), ral(_ral)
@@ -52,7 +53,7 @@ namespace Rococo::RAL::Anon
 			lightCones = CreateLightCones(_ral, _renderStates, *this);
 			skybox = CreateRALSkybox(_ral, _renderStates);
 			gui3D = CreateGui3D(_ral, _renderStates, *this);
-			objectRenderer = CreateRAL_3D_Object_Renderer(_ral, _renderStates, *this, *this);
+			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_Renderer(_ral, _renderStates, *this, *this));
 			boneBuffer = CreateRALBoneStateBuffer(_ral, _renderStates);
 		}
 
@@ -180,15 +181,15 @@ namespace Rococo::RAL::Anon
 			renderStates.AssignGuiShaderResources();
 			renderStates.ResetSamplersToDefaults();
 
-			PROFILE_TICK_COUNT(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets));
+			TIME_FUNCTION_CALL(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets));
 
 			lightCones->DrawLightCones(scene);
 
-			PROFILE_TICK_COUNT(plasmaRenderTimer, particles->RenderPlasma());
+			TIME_FUNCTION_CALL(plasmaRenderTimer, particles->RenderPlasma());
 
 			if (IsRenderingToWindow())
 			{
-				PROFILE_TICK_COUNT(guiRenderTimer, renderStates.Gui().RenderGui(scene, metrics, true));
+				TIME_FUNCTION_CALL(guiRenderTimer, renderStates.Gui().RenderGui(scene, metrics, true));
 			}
 		}
 

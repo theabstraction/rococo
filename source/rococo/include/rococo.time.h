@@ -26,4 +26,4 @@ namespace Rococo::Time
 	};
 }
 
-#define PROFILE_TICK_COUNT(argProfileTimer, expressionToBeTimed) argProfileTimer.Start(); expressionToBeTimed; argProfileTimer.End();
+#define TIME_FUNCTION_CALL(argProfileTimer, expressionToBeTimed) argProfileTimer.Start(); expressionToBeTimed; argProfileTimer.End();
