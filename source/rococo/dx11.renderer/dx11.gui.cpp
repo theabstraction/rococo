@@ -79,7 +79,6 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     IRendererMetrics& metrics;
     IDX11TextureManager& textures;
 
-    AutoFree<IOverlaySupervisor> overlays;
     AutoRelease<ID3D11Buffer> textureDescBuffer;
 
     IRenderingResources& resources;
@@ -118,8 +117,6 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
                 fonts = Fonts::LoadFontCSV(csvName, text, text.length);
             }
         );
-
-        overlays = CreateOverlays();
 
         hqFonts = CreateDX11HQFonts(FontRenderer(), device, dc);
 
@@ -284,7 +281,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     Vec2i lastSpan{ 1,1 };
 
-    void RenderGui(IScene& scene, const GuiMetrics& metrics, bool renderOverlays) override
+    void RenderGui(IScene& scene, const GuiMetrics& metrics) override
     {
         if (metrics.screenSpan.x == 0 || metrics.screenSpan.y == 0) return;
 
@@ -310,11 +307,6 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         }
 
         scene.RenderGui(*this);
-
-        if (renderOverlays)
-        {
-            overlays->Render(*this);
-        }
 
         FlushLayer();
         DrawCursor(metrics);

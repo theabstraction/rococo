@@ -77,7 +77,7 @@ struct OSVenue : public IMathsVenue
 		return usage;
 	}
 
-	virtual void ShowVenue(IMathsVisitor& visitor)
+	void ShowVenue(IMathsVisitor& visitor) override
 	{
 		visitor.ShowString("OS", "Windows");
 

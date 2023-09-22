@@ -97,7 +97,6 @@
 		(CaptureMouse)
 		(ReleaseMouse)
 		(CursorPosition (Vec2 cursorPosition))
-		(SetOverlayToggleKey (Int32 vkeyCode))
 		(SetGUIToggleKey (Int32 vkeyCode))
 		(SetEditorVisibility (Bool isVisible))
 	)

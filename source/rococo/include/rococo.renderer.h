@@ -338,7 +338,7 @@ namespace Rococo::Graphics
 
 	ROCOCO_INTERFACE IGuiRenderContextSupervisor : IGuiRenderContext
 	{
-		virtual void RenderGui(IScene & scene, const GuiMetrics & metrics, bool renderOverlays) = 0;
+		virtual void RenderGui(IScene & scene, const GuiMetrics & metrics) = 0;
 	};
 
 	namespace Samplers

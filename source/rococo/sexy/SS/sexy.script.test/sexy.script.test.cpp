@@ -2718,7 +2718,7 @@ R"(
 			"    ) \n"
 			")\n"
 			"(alias Main EntryPoint.Main)";
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestWhileLoopBreak");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2744,7 +2744,44 @@ R"(
 			"    ) \n"
 			")\n"
 			"(alias Main EntryPoint.Main)";
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestWhileLoopContinue");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(1); // Allocate stack space for the int32 x
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 15);
+	}
+
+	void TestWhileLoopContinueWithStruct(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+		R"(
+			(namespace EntryPoint)	
+
+			(struct StackItem4
+				(Float32 x)
+			)
+
+			(function Main -> (Int32 result):
+				 (Int32 count = 0)
+				 (result = 10)
+				 (while (count < 6)
+					(count += 1)
+					(if (count == 4) 
+						(StackItem4 item)
+						(continue)
+					)
+					(result += 1)
+				)
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2769,7 +2806,7 @@ R"(
 			"    ) \n"
 			")\n"
 			"(alias Main EntryPoint.Main)";
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestDoWhile");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -2795,7 +2832,7 @@ R"(
 			"    ) \n"
 			")\n"
 			"(alias Main EntryPoint.Main)";
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestDoWhileBreak");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -3941,7 +3978,7 @@ R"((namespace EntryPoint)
 		}
 		catch (ParseException& e)
 		{
-			validate(AreEqual(e.Message(),"Duplicate structure definition for Vector3"));
+			validate(StartsWith(e.Message(),"Duplicate structure definition for Vector3"));
 		}
 	}
 
@@ -17372,6 +17409,7 @@ R"(
 		TEST(TestNestedWhileLoops);
 		TEST(TestWhileLoopBreak);
 		TEST(TestWhileLoopContinue);
+		TEST(TestWhileLoopContinueWithStruct);
 		TEST(TestDoWhile);
 		TEST(TestDoWhileBreak);
 		TEST(TestDoWhileContinue);
@@ -17578,6 +17616,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestWhileLoopContinueWithStruct);
 	//	TEST(TestNegateVariable5);
 		RunPositiveSuccesses();	
 		RunPositiveFailures();

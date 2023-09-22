@@ -278,8 +278,10 @@ namespace Rococo
             ControlFlowData cfd;
             if (!ce.Builder.TryGetControlFlowPoint(OUT cfd))
             {
-                Throw(s, ("'continue' is only valid inside a loop construct"));
+                Throw(s, "'continue' is only valid inside a loop construct");
             }
+
+            AppendDeconstructTailVariables(ce, s, false, ce.Builder.SectionArgCount(cfd.SectionIndex));
 
             int32 toContinue = ((int32)cfd.ContinuePosition) - ((int32)ce.Builder.Assembler().WritePosition());
             ce.Builder.Assembler().Append_Branch(toContinue);

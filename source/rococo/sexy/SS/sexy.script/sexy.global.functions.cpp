@@ -1765,7 +1765,7 @@ namespace Rococo
 		int stackDepth;
 		bool refreshAll;
 
-		virtual void Populate(IDebuggerWindow& debugger)
+		void Populate(IDebuggerWindow& debugger) override
 		{
 			if (refreshAll)
 			{
@@ -1774,7 +1774,7 @@ namespace Rococo
 					Script::IPublicScriptSystem* ss;
 					IDebuggerWindow* debugger;
 
-					virtual void Populate(Visitors::IUIList& registerListView)
+					void Populate(Visitors::IUIList& registerListView) override
 					{
 						PopulateRegisterWindow(*ss, registerListView);
 					}

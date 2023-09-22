@@ -141,18 +141,6 @@ namespace Rococo::DX11
 
 	bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderData& drd);
 
-	ROCOCO_INTERFACE IOverlays
-	{
-		virtual void Render(IGuiRenderContext& grc) = 0;
-	};
-
-	ROCOCO_INTERFACE IOverlaySupervisor: IOverlays
-	{
-		virtual void Free() = 0;
-	};
-
-	IOverlaySupervisor* CreateOverlays();
-
 	ROCOCO_INTERFACE IDX11Materials: IMaterials
 	{
 		virtual void Free() = 0;

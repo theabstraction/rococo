@@ -57,11 +57,9 @@
 	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
 	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
 	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
-	(Int32 overlayToggleKey = (keyboard.GetVKeyFromName "F1"))
-	(Int32 guiToggleKey = (keyboard.GetVKeyFromName "F2"))
+	(Int32 guiToggleKey = (keyboard.GetVKeyFromName "F1"))
 	(Int32 lockViewKey = (keyboard.GetVKeyFromName "L"))
 	
-	(this.engine.SetOverlayToggleKey overlayToggleKey)
 	(this.engine.SetGUIToggleKey guiToggleKey)
 	
 	(IStringBuilder eventString = (Sys.Type.NewParagraphBuilder))
@@ -101,9 +99,7 @@
 			(this.world.SetPlayerMoveIntent straffe forward)
 		)
 		
-		(while (this.engine.GetNextKeyboardEvent keyEvent)
-			// Required for overlay control
-			
+		(while (this.engine.GetNextKeyboardEvent keyEvent)		
 			(if ((keyEvent.virtualKeyCode == lockViewKey) and keyEvent.isUp)
 				(this.isViewLocked = (not this.isViewLocked))
 			)
@@ -113,7 +109,6 @@
 			(if (Sys.Maths.I32.HasFlags mouseEvent.buttons (#EvMouseFlagsRUp))
 				(this.isViewLocked = (not this.isViewLocked))
 			)
-			// Required for overlay control
 		)
 		
 		(while (guiOverlay.GetNextGuiEvent guiEvent)

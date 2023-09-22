@@ -70,7 +70,18 @@ namespace Rococo { namespace VM
 		inline const uint8* SF() const	{ return D[REGISTER_SF].uint8PtrValue; }
 		inline uint8* SF()				{ return D[REGISTER_SF].uint8PtrValue; }
 
+#ifdef _DEBUG
+		inline void SetPC(const uint8* pc)
+		{ 
+			if (pc <  ProgramStart || pc > ProgramEnd)
+			{
+				Throw(0, "SetPC: target pc=%p out of bounds", pc);
+			}
+			D[REGISTER_PC].uint8PtrValue = const_cast<uint8*>(pc);
+		}
+#else
 		inline void SetPC(const uint8* pc) { D[REGISTER_PC].uint8PtrValue = const_cast<uint8*>(pc); }
+#endif
 		inline void SetSF(const uint8* sf) { D[REGISTER_SF].uint8PtrValue = const_cast<uint8*>(sf);}
 
 		inline void AdvancePC(size_t offset) { D[REGISTER_PC].uint8PtrValue += offset; }

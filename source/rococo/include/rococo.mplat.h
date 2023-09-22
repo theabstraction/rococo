@@ -473,7 +473,6 @@ namespace Rococo
 		*   interfaces and functions using the onCompile implementation
 		*/
 		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IScriptCompilationEventHandler* onCompile, IScriptEnumerator* implicitIncludes) = 0;
-		virtual IPaneBuilderSupervisor* CreateDebuggingOverlay() = 0;
 		virtual void Render(IGuiRenderContext& grc) = 0;
 		virtual void PushTop(IPaneSupervisor* panel, bool isModal) = 0;
 		virtual IPaneSupervisor* Pop() = 0;

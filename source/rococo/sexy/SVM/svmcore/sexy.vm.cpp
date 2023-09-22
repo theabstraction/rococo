@@ -670,7 +670,7 @@ namespace Anon
 		void TerminateByIllegal(int exitCode)
 		{
 			Rococo::OS::BreakOnThrow(Rococo::OS::Flags::BreakFlag_VM);
-			if (this->status == EXECUTERESULT_RUNNING) this->status = EXECUTERESULT_TERMINATED;
+			if (this->status == EXECUTERESULT_RUNNING) this->status = EXECUTERESULT_ILLEGAL;
 			this->exitCode = exitCode;
 			if (throwToQuit) throw IllegalException();
 		}

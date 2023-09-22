@@ -357,6 +357,8 @@ struct Coroutines : public Sys::ICoroutineControl
 		EXECUTERESULT result;
 		VM::ExecutionFlags flags;
 
+		const uint8* lastKnownGoodPC = cpu.ProgramStart;
+
 		{ // Spec lock zone
 			OS::Sync sync(spec);
 			vm.GetLastFlags(flags);
@@ -384,15 +386,35 @@ struct Coroutines : public Sys::ICoroutineControl
 				memcpy(&cpu.D, spec.registers, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
 				cpu.StackStart = spec.startOfStackMemory;
 				cpu.StackEnd = spec.endOfStackMemory;
+				lastKnownGoodPC = cpu.PC();
 
 				result = vm.ContinueExecution(VM::ExecutionFlags(flags.ThrowToQuit, true, true), nullptr);
 			}
 		} // Spec unlocked
 
-		if (result == EXECUTERESULT_THROWN || result == EXECUTERESULT_SEH)
+		if (result == EXECUTERESULT_THROWN || result == EXECUTERESULT_SEH || result == EXECUTERESULT_ILLEGAL)
 		{
+			const uint8* pc = cpu.PC();
+			if (pc < cpu.ProgramStart || pc > cpu.ProgramEnd)
+			{
+				cpu.SetPC(lastKnownGoodPC);
+			}
+
+			cstr resultString = "undefined";
+			switch (result)
+			{
+			case EXECUTERESULT_THROWN:
+				resultString = "EXECUTERESULT_THROWN";
+				break;
+			case EXECUTERESULT_SEH:
+				resultString = "EXECUTERESULT_SEH";
+				break;
+			case EXECUTERESULT_ILLEGAL:
+				resultString = "EXECUTERESULT_ILLEGAL";
+				break;
+			}
 			// The cpu was trashed due to an exception, we should rethrow here
-			Throw(0, "Coroutine %s crashed", spec.ClassName());
+			Throw(0, "Coroutine %s crashed. %s", spec.ClassName(), resultString);
 		}
 
 		memcpy(spec.registers, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);

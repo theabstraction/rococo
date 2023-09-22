@@ -161,6 +161,7 @@ namespace Rococo::RAL::Anon
 			return !outputTargets.renderTarget;
 		}
 
+		// Entry point for rendering
 		void Render(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene)
 		{
 			outputTargets.depthTarget = ral.GetWindowDepthBufferId();
@@ -189,7 +190,7 @@ namespace Rococo::RAL::Anon
 
 			if (IsRenderingToWindow())
 			{
-				TIME_FUNCTION_CALL(guiRenderTimer, renderStates.Gui().RenderGui(scene, metrics, true));
+				TIME_FUNCTION_CALL(guiRenderTimer, renderStates.Gui().RenderGui(scene, metrics));
 			}
 		}
 

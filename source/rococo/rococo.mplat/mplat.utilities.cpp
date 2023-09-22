@@ -309,7 +309,7 @@ public:
 			}
 		);
 
-		for (auto i : nameAndStats)
+		for (auto& i : nameAndStats)
 		{
 			float cyclesPerMs = Time::TickHz() / 1000.0f;
 			float loadCost = i.stats.totalLoadCost / cyclesPerMs;

@@ -200,7 +200,6 @@ namespace MHost
 		IDirectAppControl& control;
 		PanelCompileOptions panelCompileOptions;
 
-		AutoFree<IPaneBuilderSupervisor> overlayPanel;
 		AutoFree<IPaneBuilderSupervisor> busyPanel;
 
 		AppSceneManager sceneManager;
@@ -210,7 +209,6 @@ namespace MHost
 
 		Vec2 cursorPosition;
 
-		int32 overlayToggleKey = 0;
 		int32 guiToggleKey = 0;
 
 		AutoFree<IPackageSupervisor> packageMHost;
@@ -326,7 +324,6 @@ namespace MHost
 			platform(_platform), control(_control), sceneManager(_platform)
 		{
 			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy", nullptr, Rococo::NoImplicitIncludes());
-			overlayPanel = platform.graphics.gui.CreateDebuggingOverlay();
 			shaderMonitorHook.app = this;
 
 			platform.plumbing.publisher.Subscribe(this, Rococo::Events::evBusy);
@@ -701,16 +698,6 @@ namespace MHost
 
 		boolean32 GetNextMouseEvent(Rococo::MouseEvent& me) override
 		{
-			if (IsOverlayActive())
-			{
-				while (IsOverlayActive() && control.TryGetNextMouseEvent(me))
-				{
-					platform.graphics.gui.AppendEvent(me);
-				}
-
-				return false;
-			}
-
 			if (platform.graphics.GR.IsVisible())
 			{
 				while (platform.graphics.GR.IsVisible() && control.TryGetNextMouseEvent(me))
@@ -735,23 +722,6 @@ namespace MHost
 		void GetNextMouseDelta(Vec2& delta)
 		{
 			control.GetNextMouseDelta(delta);
-		}
-
-		bool IsOverlayActive()
-		{
-			return platform.graphics.gui.Top() == overlayPanel->Supervisor();
-		}
-
-		void ToggleOverlay()
-		{
-			if (!IsOverlayActive())
-			{
-				platform.graphics.gui.PushTop(overlayPanel->Supervisor(), true);
-			}
-			else
-			{
-				platform.graphics.gui.Pop();
-			}
 		}
 
 		void OnMPEditor_ButtonClick(Gui::GRWidgetEvent& buttonEvent) override
@@ -799,14 +769,9 @@ namespace MHost
 			guiToggleKey = vkeyCode;
 		}
 
-		void SetOverlayToggleKey(int32 vkeyCode) override
-		{
-			overlayToggleKey = vkeyCode;
-		}
-
 		boolean32 IsAppModal() const override
 		{
-			return platform.graphics.GR.IsVisible() || const_cast<App*>(this)->IsOverlayActive();
+			return platform.graphics.GR.IsVisible();
 		}
 
 		boolean32 GetNextKeyboardEvent(MHostKeyboardEvent& k) override
@@ -832,31 +797,7 @@ namespace MHost
 			KeyboardEvent key;
 			if (control.TryGetNextKeyboardEvent(key))
 			{
-				if (IsOverlayActive())
-				{
-					platform.graphics.gui.AppendEvent(key);
-
-					if (key.VKey == (uint16)overlayToggleKey)
-					{
-						if (!key.IsUp())
-						{
-							ToggleOverlay();
-						}
-					}
-
-					k = { 0 };
-					return 0;
-				}
-				else if (overlayToggleKey && key.VKey == (uint16) overlayToggleKey)
-				{
-					if (!key.IsUp())
-					{
-						ToggleOverlay();
-					}
-					k = { 0 };
-					return 0;
-				}
-				else if (guiToggleKey && key.VKey == (uint16)guiToggleKey)
+				if (guiToggleKey && key.VKey == (uint16)guiToggleKey)
 				{
 					if (!key.IsUp())
 					{
