@@ -504,6 +504,71 @@ namespace MHost
 			}
 		}
 
+		enum class SUBSYSTEM_BITS: uint64
+		{
+			HIGHBITS = 0x8400'0000'0000'0000UL
+		};
+
+		ID_SUBSYSTEM MenuIdToSubsystemId(int64 id)
+		{
+			if ((id & (int64)SUBSYSTEM_BITS::HIGHBITS) == (int64)SUBSYSTEM_BITS::HIGHBITS)
+			{
+				return ID_SUBSYSTEM(id & 0xFFFFFFFF);
+			}
+		}
+
+		void AppendToMenuRecursive(Rococo::Gui::IGRWidgetMainFrame& frame, Rococo::Gui::GRMenuItemId parentMenu, ISubsystem& subsystem, ID_SUBSYSTEM id)
+		{
+			int childCount = 0;
+			platform.misc.subSystems.ForEachChild(subsystem, [&childCount](ISubsystem&, ID_SUBSYSTEM)
+				{
+					childCount++;
+				}
+			);
+
+			char text[256];
+			SafeFormat(text, "Profile %s...", subsystem.SubsystemName());
+
+			Gui::GRMenuButtonItem button;
+			button.isEnabled = 1;
+			button.isImplementedInCPP = 1;
+			button.metaData.intData = (int64)( SUBSYSTEM_BITS::HIGHBITS) | (int64) id.value;
+			button.metaData.stringData = subsystem.SubsystemName();
+			button.text = text;
+
+			if (childCount)
+			{
+				auto idChildMenu = frame.MenuBar().AddSubMenu(parentMenu, Gui::GRMenuSubMenu(subsystem.SubsystemName()));
+				frame.MenuBar().AddButton(idChildMenu, button);
+
+				platform.misc.subSystems.ForEachChild(subsystem, [this, &frame, idChildMenu](ISubsystem& subsystem, ID_SUBSYSTEM id)
+					{
+						AppendToMenuRecursive(frame, idChildMenu, subsystem, id);
+					}
+				);
+			}
+			else
+			{
+				frame.MenuBar().AddButton(parentMenu, button);
+			}
+		}
+
+		void AddProfileMenu()
+		{
+			auto idRootMenu = Rococo::Gui::GRMenuItemId::Root();
+			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			if (frame)
+			{
+				auto idProfileMenu = frame->MenuBar().AddSubMenu(idRootMenu, Gui::GRMenuSubMenu("Profile"));
+
+				platform.misc.subSystems.ForEachRoot([this, frame, idProfileMenu](ISubsystem& subsystem, ID_SUBSYSTEM id)
+					{
+						AppendToMenuRecursive(*frame, idProfileMenu, subsystem, id);
+					}
+				);
+			}
+		}
+
 		void ClearMenus() override
 		{
 			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
@@ -522,11 +587,11 @@ namespace MHost
 
 		std::list<GuiTypes::GuiEvent> guiEventList;
 
-		boolean32 GetNextGuiEvent(MHost::GuiTypes::GuiEvent& ev) override
+		boolean32 GetNextGuiEvent(MHost::GuiTypes::GuiEvent& emittedEvent) override
 		{
 			if (!guiEventList.empty())
 			{
-				ev = guiEventList.front();
+				emittedEvent = guiEventList.front();
 				guiEventList.pop_front();
 				return true;
 			}
@@ -726,12 +791,25 @@ namespace MHost
 
 		void OnMPEditor_ButtonClick(Gui::GRWidgetEvent& buttonEvent) override
 		{
-			GuiTypes::GuiEvent ev;
-			ev.eventId = GuiTypes::GuiEventId::OverlayButtonClick;
-			ev.buttonPos = buttonEvent.clickPosition;
-			ev.metaId = buttonEvent.panelId;
-			ev.stringId = buttonEvent.sMetaData;			
-			guiEventList.push_back(ev);
+			if (buttonEvent.isCppOnly)
+			{
+				ID_SUBSYSTEM id = MenuIdToSubsystemId(buttonEvent.iMetaData);
+				ISubsystem* subsystem = platform.misc.subSystems.Find(id);
+				if (subsystem)
+				{
+
+				}
+			}
+			else
+			{
+				GuiTypes::GuiEvent ev;
+				ev.eventId = GuiTypes::GuiEventId::OverlayButtonClick;
+				ev.buttonPos = buttonEvent.clickPosition;
+				ev.metaId = buttonEvent.panelId;
+				ev.stringId = buttonEvent.sMetaData;
+
+				guiEventList.push_back(ev);
+			}
 		}
 
 		void SetEditorVisibility(boolean32 isVisible) override

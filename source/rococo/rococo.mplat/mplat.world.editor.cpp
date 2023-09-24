@@ -86,9 +86,9 @@ namespace ANON
 		auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
 		auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
 
-		minimizer.SetMetaData({  (int64) ToolbarMetaId::MINIMIZE, "OnMinimize" });
-		restorer.SetMetaData({ (int64) ToolbarMetaId::RESTORE, "OnRestore" });
-		closer.SetMetaData({ (int64) ToolbarMetaId::EXIT, "OnExit" });
+		minimizer.SetMetaData({  (int64) ToolbarMetaId::MINIMIZE, "OnMinimize" }, true);
+		restorer.SetMetaData({ (int64) ToolbarMetaId::RESTORE, "OnRestore" }, true);
+		closer.SetMetaData({ (int64) ToolbarMetaId::EXIT, "OnExit" }, true);
 
 		tools.ResizeToFitChildren();
 	}

@@ -17,6 +17,7 @@ namespace GRANON
 		int64 iMetaData;
 		std::string sMetaData;
 		int isEnabled : 1;
+		int isEventHandlerCppOnly : 1;
 	};
 
 	struct MenuItem
@@ -183,6 +184,7 @@ namespace GRANON
 			b->sMetaData = item.metaData.stringData ? item.metaData.stringData : std::string();
 			b->isEnabled = item.isEnabled;
 			b->text = item.text;
+			b->isEventHandlerCppOnly = item.isImplementedInCPP;
 
 			branch->children.push_back(newMenuItem);
 
@@ -249,7 +251,7 @@ namespace GRANON
 			{
 				auto& button = CreateMenuButton(*this);
 				button.SetTitle(item.button->text.c_str());
-				button.SetMetaData({ item.button->iMetaData, item.button->sMetaData.c_str() });
+				button.SetMetaData({ item.button->iMetaData, item.button->sMetaData.c_str() }, item.button->isEventHandlerCppOnly);
 				button.SetEventPolicy(EGREventPolicy::NotifyAncestors);
 				button.SetClickCriterion(EGRClickCriterion::OnDownThenUp);
 				button.SetAlignment(alignment, { BUTTON_X_PADDING,0});
@@ -259,7 +261,7 @@ namespace GRANON
 			{
 				auto& button = CreateMenuButton(*this, true);
 				button.SetTitle(item.branch->text.c_str());
-				button.SetMetaData({ item.branch->id.id, "<sub-menu-id>" });
+				button.SetMetaData({ item.branch->id.id, "<sub-menu-id>" }, false);
 				button.SetEventPolicy(EGREventPolicy::NotifyAncestors);
 				button.SetClickCriterion(EGRClickCriterion::OnDownThenUp);
 				button.SetAlignment(alignment, { BUTTON_X_PADDING,0 });

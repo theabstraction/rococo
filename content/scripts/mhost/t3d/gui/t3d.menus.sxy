@@ -32,6 +32,7 @@
 (method OverlayButtonHandler.BuildMenus -> :
 	(MHost.IGuiOverlay overlay (MHost.GuiOverlay))
 	(overlay.ClearMenus)
+	(overlay.AddProfileMenu)
 	
 	(Sys.Reflection.IStructure t = typeof this)
 	(Int32 nMethods = t.GetMethodCount)

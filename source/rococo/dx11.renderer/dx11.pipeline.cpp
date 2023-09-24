@@ -6,6 +6,7 @@
 #include <rococo.time.h>
 #include <vector>
 #include <RAL/RAL.pipeline.h>
+#include <rococo.subsystems.h>
 
 using namespace Rococo::Graphics;
 using namespace Rococo::RAL;
@@ -22,7 +23,7 @@ namespace Rococo::DX11
 		float c = 0;
 	};
 
-	struct DX11Pipeline : IDX11Pipeline, RAL::IRenderStates
+	struct DX11Pipeline : IDX11Pipeline, RAL::IRenderStates, ISubsystem
 	{
 		IO::IInstallation& installation;
 		ID3D11Device& device;
@@ -84,6 +85,11 @@ namespace Rococo::DX11
 			{
 				if (s) s->Release();
 			}
+		}
+
+		[[nodiscard]] cstr SubsystemName() const override
+		{
+			return "DX11Pipeline";
 		}
 
 		RAL::IPipeline& RALPipeline() override
@@ -285,6 +291,11 @@ namespace Rococo::DX11
 		IGuiResources& GuiResources() override
 		{
 			return gui->Resources();
+		}
+
+		void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) override
+		{
+			monitor.Register(*this, parentId);
 		}
 	}; // DX11Pipeline
 

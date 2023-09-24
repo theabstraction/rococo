@@ -55,6 +55,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.utilities.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.subsystems.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc">

@@ -649,6 +649,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		}
 	} panelCompilationHandler;
 
+	AutoFree<ISubsystemsSupervisor> subsystems = CreateSubsystemMonitor();
+
 	Platform platform
 	{ 
 		// Platform graphics
@@ -684,7 +686,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 		// Platform miscellaneous interfaces
 		{
-			*mathsVisitor
+			*mathsVisitor,
+			*subsystems
 		},
 
 		tesselators
@@ -701,6 +704,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	PlatformTabs tabs(platform);
 
 	PerformSanityTests();
+
+	RegisterSubsystems(*subsystems, platform);
 
 	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
 

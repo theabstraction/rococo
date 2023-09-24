@@ -16,6 +16,7 @@ namespace GRANON
 		bool isRaised = true;
 		bool isMenu = false;
 		bool forSubmenu = false;
+		bool isEventHandlerCPPOnly = false;
 
 		std::string raisedImagePath;
 		std::string pressedImagePath;
@@ -50,7 +51,7 @@ namespace GRANON
 
 		void FireEvent(GRCursorEvent& ce)
 		{
-			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position };
+			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position, isEventHandlerCPPOnly };
 
 			if (eventPolicy == EGREventPolicy::PublicEvent)
 			{		
@@ -281,10 +282,11 @@ namespace GRANON
 		int64 iMetadata = 0;
 		std::string sMetaData;
 
-		IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData) override
+		IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData, bool isCppOnly) override
 		{
 			iMetadata = metaData.intData;
 			sMetaData = metaData.stringData ? metaData.stringData : std::string();
+			isEventHandlerCPPOnly = isCppOnly;
 			return *this;
 		}
 

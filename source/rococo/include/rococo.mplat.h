@@ -16,6 +16,7 @@
 #include <mplat.components.decl.h>
 #include <rococo.mplat.types.h>
 #include <rococo.mplat.editors.h>
+#include <rococo.subsystems.h>
 
 #include <3D/rococo.mesh-builder.h>
 
@@ -723,6 +724,8 @@ namespace Rococo
 		};
 	}
 
+	void RegisterSubsystems(ISubsystemsSupervisor& subsystems, Platform& platform);
+
 	struct PlatformGraphics
 	{
 		// Render config used to set up sampler states et al
@@ -839,6 +842,7 @@ namespace Rococo
 	struct PlatformMisc
 	{	
 		IMathsVisitorSupervisor& mathsVisitor;
+		ISubsystems& subSystems;
 	};
 
 	struct Platform

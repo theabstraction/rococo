@@ -66,9 +66,10 @@
 	(context factory MHost.IGuiOverlay)
 	(methods
 		(AddMenu (const IString id)(Int64 metaId)(const IString menuPath))
+		(AddProfileMenu)
+		(AppendEventString (IStringBuilder sb)(GuiEvent ev)->)
 		(ClearMenus)
 		(GetNextGuiEvent (GuiEvent ev)-> (Bool wasExtracted))
-		(AppendEventString (IStringBuilder sb)(GuiEvent ev)->)
 	)
 	
 	(factory MHost.GuiOverlay)

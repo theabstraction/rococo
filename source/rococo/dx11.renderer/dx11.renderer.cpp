@@ -9,6 +9,7 @@
 #include <rococo.hashtable.h>
 #include <rococo.win32.rendering.h>
 #include <rococo.fonts.hq.h>
+#include <rococo.subsystems.h>
 #include <RAL\RAL.h>
 #include <RAL\RAL.pipeline.h>
 #include "dx11helpers.inl"
@@ -48,7 +49,8 @@ class DX11AppRenderer :
 	public IDX11ResourceLoader,
 	public IRenderingResources,
 	public IRAL,
-	public IDX11SpecialResources
+	public IDX11SpecialResources,
+	public ISubsystem
 {
 private:
 	IO::IInstallation& installation;
@@ -507,7 +509,18 @@ public:
 	int64 presentCost = 0;
 	int64 frameTime = 0;
 
-	IParticles& Particles()
+	void RegisterSubsystem(ISubsystemMonitor& monitor) override
+	{
+		auto rendererId = monitor.RegisterAtRoot(*this);
+		pipeline->RegisterSubsystem(monitor, rendererId);
+	}
+
+	[[nodiscard]] cstr SubsystemName() const override
+	{
+		return "DX11AppRenderer";
+	}
+
+	IParticles& Particles() override
 	{
 		return pipeline->RALPipeline().Particles();
 	}

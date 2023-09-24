@@ -272,6 +272,7 @@ namespace Rococo::Gui
 		int64 iMetaData;		// Valid as long as the underlying widget that sent the event is not destroyed, or its meta data changed
 		cstr sMetaData;			// Valid as long as the underlying widget that sent the event is not destroyed, or its meta data changed
 		Vec2i clickPosition;	// Cursor location when the event was triggered. If irrelevant is undefined
+		bool isCppOnly;			// True if C++ is expected to handle the event, false if script languages hosted by C++ are expected to handle it
 	};
 
 	struct IGRCustodian;
@@ -587,7 +588,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetButton& SetPressedImagePath(cstr imagePath) = 0;
 
 		// Sets user meta data for the button
-		virtual IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData) = 0;
+		virtual IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData, bool isEventHandlerCPPOnly) = 0;
 
 		// Sets the display text for the button
 		virtual IGRWidgetButton& SetTitle(cstr text) = 0;
@@ -610,8 +611,8 @@ namespace Rococo::Gui
 		cstr text;
 		GRControlMetaData metaData;
 		uint32 isEnabled: 1;
+		uint32 isImplementedInCPP : 1; // True if C++ is expected to handle the button event
 	};
-
 	struct GRMenuSubMenu
 	{
 		GRMenuSubMenu(cstr _text, bool enable = true) : text(_text), isEnabled(enable) {};

@@ -111,6 +111,9 @@ namespace Rococo
 namespace Rococo
 {
 	struct IExpandingBuffer;
+	struct ISubsystemMonitor;
+
+	ROCOCO_ID(ID_SUBSYSTEM, int32, 0);
 
 	ROCOCO_INTERFACE IPingPathResolver
 	{
