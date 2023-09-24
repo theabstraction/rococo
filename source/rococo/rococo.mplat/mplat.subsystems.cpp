@@ -133,6 +133,8 @@ namespace Rococo
 
 	void RegisterSubsystems(ISubsystemsSupervisor& subsystems, Platform& platform)
 	{
-		platform.graphics.renderer.RegisterSubsystem(subsystems.Monitor());
+		auto& monitor = subsystems.Monitor();
+
+		platform.graphics.renderer.RegisterSubsystem(monitor);
 	}
 }
