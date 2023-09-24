@@ -705,7 +705,35 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	PerformSanityTests();
 
-	RegisterSubsystems(*subsystems, platform);
+	struct PlatformSubsystem: ISubsystem
+	{
+		ISubsystemsSupervisor& subsystems;
+		Platform& platform;
+
+		PlatformSubsystem(ISubsystemsSupervisor& _subsystems, Platform& _platform): subsystems(_subsystems), platform(_platform)
+		{
+
+		}
+
+		~PlatformSubsystem()
+		{
+			subsystems.Monitor().Unregister(*this);
+		}
+
+		void Register()
+		{
+			auto platformId = subsystems.Monitor().RegisterAtRoot(*this);
+			RegisterSubsystems(subsystems, platform, platformId);
+		}
+
+		[[nodiscard]] cstr SubsystemName() const override
+		{
+			return "Platform";
+		}
+
+	} platformSubsystem(*subsystems, platform);
+
+	platformSubsystem.Register();
 
 	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
 

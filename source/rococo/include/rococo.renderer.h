@@ -440,7 +440,7 @@ namespace Rococo::Graphics
 		virtual IMathsVenue* Venue() = 0;
 		virtual bool IsFullscreen() = 0;
 		virtual void SwitchToFullscreen() = 0;
-		virtual void RegisterSubsystem(ISubsystemMonitor& monitor) = 0;
+		virtual void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM platformId) = 0;
 	};
 
 	struct GlyphCallbackArgs

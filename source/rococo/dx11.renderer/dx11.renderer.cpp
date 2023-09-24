@@ -509,9 +509,9 @@ public:
 	int64 presentCost = 0;
 	int64 frameTime = 0;
 
-	void RegisterSubsystem(ISubsystemMonitor& monitor) override
+	void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM platformId) override
 	{
-		auto rendererId = monitor.RegisterAtRoot(*this);
+		auto rendererId = monitor.Register(*this, platformId);
 		pipeline->RegisterSubsystem(monitor, rendererId);
 	}
 

@@ -724,7 +724,7 @@ namespace Rococo
 		};
 	}
 
-	void RegisterSubsystems(ISubsystemsSupervisor& subsystems, Platform& platform);
+	void RegisterSubsystems(ISubsystemsSupervisor& subsystems, Platform& platform, ID_SUBSYSTEM platformId);
 
 	struct PlatformGraphics
 	{

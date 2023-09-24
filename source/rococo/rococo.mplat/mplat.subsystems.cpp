@@ -131,10 +131,10 @@ namespace Rococo
 		return new Subsystems();
 	}
 
-	void RegisterSubsystems(ISubsystemsSupervisor& subsystems, Platform& platform)
+	void RegisterSubsystems(ISubsystemsSupervisor& subsystems, Platform& platform, ID_SUBSYSTEM platformId)
 	{
 		auto& monitor = subsystems.Monitor();
 
-		platform.graphics.renderer.RegisterSubsystem(monitor);
+		platform.graphics.renderer.RegisterSubsystem(monitor, platformId);
 	}
 }
