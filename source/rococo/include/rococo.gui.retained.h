@@ -9,11 +9,6 @@ namespace Rococo
 	struct KeyboardEvent;
 }
 
-namespace Rococo::Reflection
-{
-	struct IReflectionTarget;
-}
-
 namespace Rococo::Gui
 {
 	struct IGRPanel;

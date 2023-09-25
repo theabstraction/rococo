@@ -7,10 +7,12 @@
 #include <vector>
 #include <RAL/RAL.pipeline.h>
 #include <rococo.subsystems.h>
+#include <rococo.reflector.h>
 
 using namespace Rococo::Graphics;
 using namespace Rococo::RAL;
 using namespace Rococo::DX11;
+using namespace Rococo::Reflection;
 
 namespace Rococo::DX11
 {
@@ -296,6 +298,11 @@ namespace Rococo::DX11
 		void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) override
 		{
 			monitor.Register(*this, parentId);
+		}
+
+		IReflectionTarget* ReflectionTarget() override
+		{
+			return nullptr;
 		}
 	}; // DX11Pipeline
 

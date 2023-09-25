@@ -797,7 +797,11 @@ namespace MHost
 				ISubsystem* subsystem = platform.misc.subSystems.Find(id);
 				if (subsystem)
 				{
-
+					auto* target = subsystem->ReflectionTarget();
+					if (target)
+					{
+						platform.creator.editor.Preview(platform.graphics.GR, *target);
+					}
 				}
 			}
 			else

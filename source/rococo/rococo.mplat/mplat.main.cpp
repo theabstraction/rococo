@@ -731,6 +731,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 			return "Platform";
 		}
 
+		Reflection::IReflectionTarget* ReflectionTarget() override
+		{
+			return nullptr;
+		}
+
 	} platformSubsystem(*subsystems, platform);
 
 	platformSubsystem.Register();

@@ -11,11 +11,6 @@ namespace Rococo::Gui
 	struct GRWidgetEvent;
 }
 
-namespace Rococo::Reflection
-{
-	struct IReflectionTarget;
-}
-
 namespace Rococo::MPEditor
 {
 	enum class ToolbarMetaId : int64 { MINIMIZE = 400'000'001, RESTORE, EXIT };

@@ -16,6 +16,8 @@
 #include "dx11buffers.inl"
 #include "rococo.visitors.h"
 #include "dx11.factory.h"
+#include <rococo.strings.h>
+#include <rococo.reflector.h>
 
 #include <Dxgi1_3.h>
 #include <comdef.h>
@@ -39,6 +41,7 @@ using namespace Rococo::Fonts;
 using namespace Rococo::Windows;
 using namespace Rococo::Samplers;
 using namespace Rococo::DX11;
+using namespace Rococo::Reflection;
 
 using namespace Rococo::Textures;
 
@@ -50,7 +53,8 @@ class DX11AppRenderer :
 	public IRenderingResources,
 	public IRAL,
 	public IDX11SpecialResources,
-	public ISubsystem
+	public ISubsystem,
+	public IReflectionTarget
 {
 private:
 	IO::IInstallation& installation;
@@ -389,7 +393,7 @@ public:
 		return installation;
 	}
 
-	virtual IRenderer& Renderer() override
+	IRenderer& Renderer() override
 	{
 		return *this;
 	}
@@ -582,6 +586,36 @@ public:
 	ID_TEXTURE GetWindowDepthBufferId() const override
 	{
 		return currentWindowBacking ? currentWindowBacking->DepthBufferId() : ID_TEXTURE::Invalid();
+	}
+
+	IReflectionTarget* ReflectionTarget()
+	{
+		return this;
+	}
+
+	void Visit(IReflectionVisitor& v) override
+	{
+		for (UINT i = 0; i < 10; i++)
+		{
+			IDXGIAdapter* adapter = nullptr;
+			factory.EnumAdapters(i, &adapter);
+			if (!adapter)
+			{
+				break;
+			}
+
+			DXGI_ADAPTER_DESC desc;
+			adapter->GetDesc(&desc);
+
+			char section[16];
+			SafeFormat(section, "Adapter #u", i);
+			v.SetSection(section);
+
+			ROCOCO_REFLECT_READ_ONLY(v, desc.Description);
+			ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedSystemMemory);
+			ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedVideoMemory);
+			ROCOCO_REFLECT_READ_ONLY(v, desc.SharedSystemMemory);
+		}
 	}
 };
 

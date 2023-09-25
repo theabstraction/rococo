@@ -8,6 +8,10 @@ namespace Rococo
 	{
 		// The immutable subsystem name
 		virtual [[nodiscard]] cstr SubsystemName() const = 0;
+
+		// If the subsystem supports reflection, it will provide a reflection target here
+		// Otherwise the method returns nullptr
+		virtual [[nodiscard]] Reflection::IReflectionTarget* ReflectionTarget() = 0;
 	};
 
 	ROCOCO_INTERFACE ISubsystemMonitor

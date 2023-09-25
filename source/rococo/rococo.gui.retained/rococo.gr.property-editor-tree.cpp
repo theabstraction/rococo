@@ -16,13 +16,14 @@ namespace GRANON
 
 	enum class PrimitiveType
 	{
-		I32, I64, F32, F64, BOOL, CSTR, SUB_OBJECT
+		I32, I64, U64, F32, F64, BOOL, CSTR, SUB_OBJECT
 	};
 
 	union PreviewPrimitive
 	{
 		int32 int32Value;
 		int64 int64Value;
+		uint64 uint64Value;
 		float float32Value;
 		double float64Value;
 		bool boolValue;
@@ -46,6 +47,12 @@ namespace GRANON
 	{
 		v.primitive.int64Value = value;
 		v.type = PrimitiveType::I64;
+	}
+
+	void Assign(PrimitiveVariant& v, uint64 value)
+	{
+		v.primitive.uint64Value = value;
+		v.type = PrimitiveType::U64;
 	}
 
 	void Assign(PrimitiveVariant& v, float value)
@@ -94,6 +101,9 @@ namespace GRANON
 			break;
 		case PrimitiveType::I64:
 			_i64toa_s(variant.primitive.int64Value, buffer, capacity, radix);
+			break;
+		case PrimitiveType::U64:
+			_ui64toa_s(variant.primitive.int64Value, buffer, capacity, radix);
 			break;
 		case PrimitiveType::F32:
 			snprintf(buffer, capacity, "%f", variant.primitive.float32Value);
@@ -171,6 +181,13 @@ namespace GRANON
 			fieldCount++;
 		}
 
+		void Reflect(cstr name, uint64& value, ReflectionMetaData&) override
+		{
+			UNUSED(name);
+			UNUSED(value);
+			fieldCount++;
+		}
+
 		void Reflect(cstr name, float& value, ReflectionMetaData&) override
 		{
 			UNUSED(name);
@@ -240,6 +257,11 @@ namespace GRANON
 		}
 
 		void Reflect(cstr name, int64& value, ReflectionMetaData&) override
+		{
+			target->AddField(name, value);
+		}
+
+		void Reflect(cstr name, uint64& value, ReflectionMetaData&) override
 		{
 			target->AddField(name, value);
 		}

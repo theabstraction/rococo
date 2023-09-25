@@ -10,17 +10,20 @@ namespace Rococo::Reflection
 {
 	using namespace Rococo;
 
-	template<class T>
-	T& Reflect(T& a)
-	{
-		return a;
-	}
-
 	struct ReflectionMetaData
 	{
+		bool isReadOnly = false;
+
 		static ReflectionMetaData Default()
 		{
 			return ReflectionMetaData();
+		}
+
+		static ReflectionMetaData ReadOnly()
+		{
+			ReflectionMetaData meta;
+			meta.isReadOnly = true;
+			return meta;
 		}
 	};
 
@@ -31,11 +34,9 @@ namespace Rococo::Reflection
 		SIZE_CHECK,
 	};
 
-	struct IReflectionTarget;
-
 	ROCOCO_INTERFACE IReflectedString
 	{
-		virtual int32 Length() const = 0;
+		virtual uint32 Capacity() const = 0;
 		virtual cstr ReadString() const = 0;
 		virtual void WriteString(cstr s) = 0;
 	};
@@ -50,6 +51,7 @@ namespace Rococo::Reflection
 		virtual void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, int32 &value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, int64& value, ReflectionMetaData& metaData) = 0;
+		virtual void Reflect(cstr name, uint64& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, float& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, double& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, bool& value, ReflectionMetaData& metaData) = 0;
@@ -61,10 +63,17 @@ namespace Rococo::Reflection
 	{
 		virtual void Visit(IReflectionVisitor& v) = 0;
 	};
+
+	template<class T>
+	T& Reflect(T& a)
+	{
+		return a;
+	}
 }
 
 #define ROCOCO_REFLECT(visitor, field) { auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default(); auto value = Reflect(field); visitor.Reflect(#field, value, defaultMetaData); }
 #define ROCOCO_REFLECT_EX(visitor, field, metaData) visitor.Reflect(#field, field, metaData);
+#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto value = Reflect(field); visitor.Reflect(#field, value, ReflectionMetaData::ReadOnly()); }
 
 #ifdef INCLUDED_ROCOCO_STRINGS
 # include <rococo.strings.reflection.h>

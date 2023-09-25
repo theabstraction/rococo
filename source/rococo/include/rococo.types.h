@@ -308,6 +308,11 @@ namespace Rococo
 		struct IStackFrameEnumerator;
 	}
 
+	namespace Reflection
+	{
+		struct IReflectionTarget;
+	}
+
 	typedef uint8 GRAYSCALE;
 
 	namespace Script

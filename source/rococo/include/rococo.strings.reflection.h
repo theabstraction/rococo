@@ -27,9 +27,10 @@ namespace Rococo::Strings
 
 		operator IReflectedString& () { return *this; }
 
-		int32 Length() const override
+		uint32 Capacity() const override
 		{
-			return src.to_fstring().length;
+			// TODO, allow meta data to set this explicitly
+			return 4096;
 		}
 
 		cstr ReadString() const override
@@ -43,8 +44,86 @@ namespace Rococo::Strings
 		}
 	};
 
-	Reflected_HString Reflect(HString& a)
+	inline Reflected_HString Reflect(HString& a)
 	{
 		return Reflected_HString(a);
+	}
+
+	struct Reflected_StackString : public IReflectedString
+	{
+		char* src;
+		size_t sizeofSrc;
+
+		Reflected_StackString(char* _src, size_t _sizeofSrc) : src(_src), sizeofSrc(_sizeofSrc)
+		{
+			if (_sizeofSrc > 0xFFFF'FFFFULL)
+			{
+				Throw(0, "%s: capacity too large", __FUNCTION__);
+			}
+		}
+
+		operator IReflectedString& () { return *this; }
+
+		uint32 Capacity() const override
+		{
+			return (uint32) sizeofSrc;
+		}
+
+		cstr ReadString() const override
+		{
+			return src;
+		}
+
+		void WriteString(cstr s) override
+		{
+			SafeFormat(src, sizeofSrc, "%s", s);
+		}
+	};
+
+	template<size_t CAPACITY>
+	inline Reflected_StackString Reflect(char buffer[CAPACITY]) // inline int SafeFormat(char(&buffer)[CAPACITY])
+	{
+		return Reflected_StackString(buffer, CAPACITY);
+	}
+
+	template<uint64 CAPACITY>
+	struct Reflected_WideStackString : public IReflectedString
+	{
+		char buffer[CAPACITY];
+		wchar_t* src;
+
+		Reflected_WideStackString(wchar_t (&_src)[CAPACITY]) : src(_src)
+		{
+			if (CAPACITY > 0xFFFF'FFFFULL)
+			{
+				Throw(0, "%s: capacity too large", __FUNCTION__);
+			}
+
+			SafeFormat(buffer, "%ws", src);
+		}
+
+		operator IReflectedString& () { return *this; }
+
+		uint32 Capacity() const override
+		{
+			return (uint32) CAPACITY;
+		}
+
+		cstr ReadString() const override
+		{
+			return buffer;
+		}
+
+		void WriteString(cstr s) override
+		{
+			SafeFormat(buffer, CAPACITY, "%s", s);
+			SafeFormat(src, CAPACITY, L"%ws", s);
+		}
+	};
+
+	template<uint64 CAPACITY>
+	inline Reflected_WideStackString<CAPACITY> Reflect(wchar_t (&buffer)[CAPACITY]) // inline int SafeFormat(char(&buffer)[CAPACITY])
+	{
+		return Reflected_WideStackString<CAPACITY>(buffer);
 	}
 }
