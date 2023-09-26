@@ -8,8 +8,6 @@
 
 namespace Rococo::Reflection
 {
-	using namespace Rococo;
-
 	struct ReflectionMetaData
 	{
 		bool isReadOnly = false;

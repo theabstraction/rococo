@@ -16,9 +16,7 @@
 
 namespace Rococo::Strings
 {
-	using namespace Rococo::Reflection;
-
-	struct Reflected_HString : public IReflectedString
+	struct Reflected_HString : public Reflection::IReflectedString
 	{
 		HString& src;
 
@@ -27,7 +25,7 @@ namespace Rococo::Strings
 
 		}
 
-		operator IReflectedString& () { return *this; }
+		operator Reflection::IReflectedString& () { return *this; }
 
 		uint32 Capacity() const override
 		{
@@ -51,7 +49,7 @@ namespace Rococo::Strings
 		return Reflected_HString(a);
 	}
 
-	struct Reflected_StackString : public IReflectedString
+	struct Reflected_StackString : public Reflection::IReflectedString
 	{
 		char* src;
 		size_t sizeofSrc;
@@ -64,7 +62,7 @@ namespace Rococo::Strings
 			}
 		}
 
-		operator IReflectedString& () { return *this; }
+		operator Reflection::IReflectedString& () { return *this; }
 
 		uint32 Capacity() const override
 		{
@@ -89,7 +87,7 @@ namespace Rococo::Strings
 	}
 
 	template<uint64 CAPACITY>
-	struct Reflected_WideStackString : public IReflectedString
+	struct Reflected_WideStackString : public Reflection::IReflectedString
 	{
 		char buffer[CAPACITY];
 		wchar_t* src;
@@ -104,7 +102,7 @@ namespace Rococo::Strings
 			SafeFormat(buffer, "%ws", src);
 		}
 
-		operator IReflectedString& () { return *this; }
+		operator Reflection::IReflectedString& () { return *this; }
 
 		uint32 Capacity() const override
 		{
@@ -128,4 +126,6 @@ namespace Rococo::Strings
 	{
 		return Reflected_WideStackString<CAPACITY>(buffer);
 	}
+
+	ROCOCO_API void ReflectStackFormat(Reflection::IReflectionVisitor& v, cstr variableName, const char* format, ...);
 }

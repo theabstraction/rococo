@@ -16,6 +16,7 @@
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
+#include <rococo.reflector.h>
 
 #ifdef __APPLE__
 # define _stricmp strcasecmp
@@ -1291,6 +1292,19 @@ namespace Rococo::Strings
 		}
 
 		return true;
+	}
+
+	ROCOCO_UTIL_API void ReflectStackFormat(Reflection::IReflectionVisitor& v, cstr name, const char* format, ...)
+	{
+		char text[256];
+		va_list args;
+		va_start(args, format);
+		SafeVFormat(text, sizeof text, format, args);
+		va_end(args);
+
+		Reflected_StackString rstring(text, sizeof text);
+		auto readOnly = Reflection::ReflectionMetaData::ReadOnly();
+		v.Reflect(name, rstring, readOnly);
 	}
 }
 

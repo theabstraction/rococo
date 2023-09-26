@@ -1,3 +1,4 @@
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include "dx11.renderer.h"
 #include <rococo.renderer.h>
 #include <rococo.imaging.h>
@@ -595,6 +596,8 @@ public:
 
 	void Visit(IReflectionVisitor& v) override
 	{
+		v.EnterContainer("Adapters");
+
 		for (UINT i = 0; i < 10; i++)
 		{
 			IDXGIAdapter* adapter = nullptr;
@@ -608,14 +611,25 @@ public:
 			adapter->GetDesc(&desc);
 
 			char section[16];
-			SafeFormat(section, "Adapter #u", i);
+			SafeFormat(section, "Adapter #%u", i);
 			v.SetSection(section);
 
-			ROCOCO_REFLECT_READ_ONLY(v, desc.Description);
-			ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedSystemMemory);
-			ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedVideoMemory);
-			ROCOCO_REFLECT_READ_ONLY(v, desc.SharedSystemMemory);
+			v.EnterElement(section);
+
+			//ROCOCO_REFLECT_READ_ONLY(v, desc.Description);
+			//ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedSystemMemory);
+			//ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedVideoMemory);
+			//ROCOCO_REFLECT_READ_ONLY(v, desc.SharedSystemMemory);
+
+			ReflectStackFormat(v, "Description", "%ws", desc.Description);
+			ReflectStackFormat(v, "DedicatedSystemMemory", "%llu MB", desc.DedicatedSystemMemory / 1_megabytes);
+			ReflectStackFormat(v, "DedicatedVideoMemory", "%llu MB", desc.DedicatedVideoMemory / 1_megabytes);
+			ReflectStackFormat(v, "SharedSystemMemory", "%llu MB", desc.SharedSystemMemory / 1_megabytes);
+
+			v.LeaveElement();
 		}
+
+		v.LeaveContainer();
 	}
 };
 
