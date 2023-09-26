@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rococo.types.h>
+
 #ifndef INCLUDED_STRINGS_REFLECTION
 # define INCLUDED_STRINGS_REFLECTION
 #endif
@@ -94,7 +96,7 @@ namespace Rococo::Strings
 
 		Reflected_WideStackString(wchar_t (&_src)[CAPACITY]) : src(_src)
 		{
-			if (CAPACITY > 0xFFFF'FFFFULL)
+			if constexpr (CAPACITY > 0xFFFF'FFFFULL)
 			{
 				Throw(0, "%s: capacity too large", __FUNCTION__);
 			}

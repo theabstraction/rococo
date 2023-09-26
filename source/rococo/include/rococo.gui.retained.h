@@ -798,6 +798,9 @@ namespace Rococo::Gui
 
 		// Free all panels marked for delete
 		virtual void GarbageCollect() = 0;
+
+		// Route posted messages to the event handler. This should be called periodically outside of any GR locked sections, such as GR event handlers or rendering routines
+		virtual void DispatchMessages() = 0;
 		
 		// Renders the list of frames
 		virtual void RenderGui(IGRRenderContext& g) = 0;

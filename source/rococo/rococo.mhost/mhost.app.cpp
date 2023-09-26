@@ -706,6 +706,8 @@ namespace MHost
 			platform.os.installation.OS().EnumerateModifiedFiles(*this);
 			platform.plumbing.publisher.Deliver();
 
+			platform.graphics.GR.DispatchMessages();
+
 			if (!control.TryRouteSysMessages(sleepMS))
 			{
 				platform.os.appControl.ShutdownApp();

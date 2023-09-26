@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <rococo.maths.h>
 #include <rococo.ui.h>
+#include <rococo.ringbuffer.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
@@ -82,7 +83,16 @@ namespace ANON
 
 		TFrames frameDescriptors;
 
-		GRSystem(GRConfig& _config, IGRCustodian& _custodian) : config(_config), custodian(_custodian)
+		OneReaderOneWriterCircleBuffer<GRWidgetEvent>* eventQueue;
+		OneReaderOneWriterCircleBuffer<GRWidgetEvent>* dispatchQueue;
+
+		enum { MAX_EVENT_QUEUE_LENGTH = 1024 };
+
+		GRSystem(GRConfig& _config, IGRCustodian& _custodian) :
+			config(_config),
+			custodian(_custodian), 
+			eventQueue(new OneReaderOneWriterCircleBuffer<GRWidgetEvent>(MAX_EVENT_QUEUE_LENGTH)),
+			dispatchQueue(new OneReaderOneWriterCircleBuffer<GRWidgetEvent>(MAX_EVENT_QUEUE_LENGTH))
 		{
 
 		}
@@ -93,6 +103,9 @@ namespace ANON
 			{
 				d.panel->Free();
 			}
+
+			delete eventQueue;
+			delete dispatchQueue;
 		}
 
 		void QueueGarbageCollect() override
@@ -183,6 +196,7 @@ namespace ANON
 
 		GuiRect lastLayedOutScreenDimensions { 0,0,0,0 };
 
+		// Added to a method to prevent the API consumer from modifying the widget tree while the implementation expects the tree hierarchy to be immutable
 		struct RecursionGuard
 		{
 			GRSystem& This;
@@ -637,8 +651,37 @@ namespace ANON
 
 		EGREventRouting OnGREvent(GRWidgetEvent& ev) override
 		{
-			if (eventHandler) return eventHandler->OnGREvent(ev);
+			auto* back = eventQueue->GetBackSlot();
+			if (!back)
+			{
+				GRWidgetEvent discarded;
+				eventQueue->TryPopFront(OUT discarded);
+				back = eventQueue->GetBackSlot();
+				if (!back)
+				{
+					Throw(0, "%s: Expected back slot after front was popped", __FUNCTION__);
+				}
+			}
+
+			*back = ev;
+			
 			return EGREventRouting::Terminate;
+		}
+
+		void DispatchMessages() override
+		{
+			if (queryDepth > 0)
+			{
+				this->custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "Error, API consumer attempted to DispatchMessages from within a GR locked section.");
+			}
+
+			std::swap(dispatchQueue, eventQueue);
+
+			GRWidgetEvent ev;
+			while (dispatchQueue->TryPopFront(OUT ev))
+			{
+				eventHandler->OnGREvent(ev);
+			}
 		}
 
 		GRRealtimeConfig realtimeConfig;

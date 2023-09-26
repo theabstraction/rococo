@@ -73,7 +73,7 @@ namespace Rococo::Reflection
 
 #define ROCOCO_REFLECT(visitor, field) { auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default(); auto value = Reflect(field); visitor.Reflect(#field, value, defaultMetaData); }
 #define ROCOCO_REFLECT_EX(visitor, field, metaData) visitor.Reflect(#field, field, metaData);
-#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto value = Reflect(field); visitor.Reflect(#field, value, ReflectionMetaData::ReadOnly()); }
+#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto readOnlyMetaData = Rococo::Reflection::ReflectionMetaData::ReadOnly(); auto value = Reflect(field); visitor.Reflect(#field, value, readOnlyMetaData); }
 
 #ifdef INCLUDED_ROCOCO_STRINGS
 # include <rococo.strings.reflection.h>
