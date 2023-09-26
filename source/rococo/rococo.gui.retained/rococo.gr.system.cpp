@@ -664,6 +664,8 @@ namespace ANON
 			}
 
 			*back = ev;
+
+			eventQueue->WriteBack();
 			
 			return EGREventRouting::Terminate;
 		}
