@@ -508,22 +508,11 @@ public:
 		return currentWindowBacking ? currentWindowBacking->Window() : Rococo::Windows::NoParent();
 	}
 
-	int64 AIcost = 0;
-	int64 guiCost = 0;
-	int64 objCost = 0;
-	int64 presentCost = 0;
-	int64 frameTime = 0;
-
-	void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM platformId) override
-	{
-		auto rendererId = monitor.Register(*this, platformId);
-		pipeline->RegisterSubsystem(monitor, rendererId);
-	}
-
-	[[nodiscard]] cstr SubsystemName() const override
-	{
-		return "DX11AppRenderer";
-	}
+	Time::ticks AIcost = 0;
+	Time::ticks guiCost = 0;
+	Time::ticks objCost = 0;
+	Time::ticks presentCost = 0;
+	Time::ticks frameTime = 0;
 
 	IParticles& Particles() override
 	{
@@ -589,6 +578,17 @@ public:
 		return currentWindowBacking ? currentWindowBacking->DepthBufferId() : ID_TEXTURE::Invalid();
 	}
 
+	void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM platformId) override
+	{
+		auto rendererId = monitor.Register(*this, platformId);
+		pipeline->RegisterSubsystem(monitor, rendererId);
+	}
+
+	[[nodiscard]] cstr SubsystemName() const override
+	{
+		return "DX11AppRenderer";
+	}
+
 	IReflectionTarget* ReflectionTarget()
 	{
 		return this;
@@ -596,6 +596,8 @@ public:
 
 	void Visit(IReflectionVisitor& v) override
 	{
+		v.SetSection("DX11AppRenderer");
+
 		v.EnterContainer("Adapters");
 
 		for (UINT i = 0; i < 10; i++)
@@ -610,26 +612,24 @@ public:
 			DXGI_ADAPTER_DESC desc;
 			adapter->GetDesc(&desc);
 
-			char section[16];
-			SafeFormat(section, "Adapter #%u", i);
-			v.SetSection(section);
-
-			v.EnterElement(section);
-
-			//ROCOCO_REFLECT_READ_ONLY(v, desc.Description);
-			//ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedSystemMemory);
-			//ROCOCO_REFLECT_READ_ONLY(v, desc.DedicatedVideoMemory);
-			//ROCOCO_REFLECT_READ_ONLY(v, desc.SharedSystemMemory);
+			EnterElement(v, "Adapter #%u", i);
 
 			ReflectStackFormat(v, "Description", "%ws", desc.Description);
 			ReflectStackFormat(v, "DedicatedSystemMemory", "%llu MB", desc.DedicatedSystemMemory / 1_megabytes);
-			ReflectStackFormat(v, "DedicatedVideoMemory", "%llu MB", desc.DedicatedVideoMemory / 1_megabytes);
-			ReflectStackFormat(v, "SharedSystemMemory", "%llu MB", desc.SharedSystemMemory / 1_megabytes);
+			ReflectStackFormat(v, "DedicatedVideoMemory",  "%llu MB", desc.DedicatedVideoMemory / 1_megabytes);
+			ReflectStackFormat(v, "SharedSystemMemory",    "%llu MB", desc.SharedSystemMemory / 1_megabytes);
 
 			v.LeaveElement();
 		}
 
 		v.LeaveContainer();
+
+		ReflectStackFormat(v, "ScreenSpan", "%d x %d", screenSpan.x, screenSpan.y);
+
+		ReflectStackFormat(v, "AIcost",			"%f ms", Time::ToMilliseconds(AIcost));
+		ReflectStackFormat(v, "guiCost",		"%f ms", Time::ToMilliseconds(guiCost));
+		ReflectStackFormat(v, "objCost",		"%f ms", Time::ToMilliseconds(objCost));
+		ReflectStackFormat(v, "presentCost",	"%f ms", Time::ToMilliseconds(presentCost));
 	}
 };
 

@@ -4,6 +4,13 @@
 #include "dx11buffers.inl"
 #include <vector>
 #include "rococo.fonts.h"
+#include <rococo.subsystems.h>
+#include <rococo.strings.h>
+#include <rococo.reflector.h>
+
+#include <unordered_map>
+
+#include <allocators/rococo.allocator.template.h>
 
 namespace
 {
@@ -17,6 +24,7 @@ namespace
 }
 
 using namespace Rococo::DX11;
+using namespace Rococo::Reflection;
 
 RGBAb FontColourToSysColour(Fonts::FontColour colour)
 {
@@ -49,7 +57,407 @@ public:
     }
 };
 
-struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResources
+namespace Rococo::DX11
+{
+    cstr ToString(D3D11_STENCIL_OP op)
+    {
+        switch (op)
+        {
+        case D3D11_STENCIL_OP_KEEP:
+            return "Keep";
+        case D3D11_STENCIL_OP_ZERO:
+            return "Zero";
+        case D3D11_STENCIL_OP_REPLACE:
+            return "Replace";
+        case D3D11_STENCIL_OP_INCR_SAT:
+            return "IncSat";
+        case D3D11_STENCIL_OP_DECR_SAT:
+            return "DecSat";
+        case D3D11_STENCIL_OP_INVERT:
+            return "Invert";
+        case D3D11_STENCIL_OP_INCR:
+            return "Inc";
+        case D3D11_STENCIL_OP_DECR:
+            return "Dec";
+        default:
+            return "Unknown";
+        }
+    }
+
+    cstr ToString(D3D11_DEPTH_WRITE_MASK mask)
+    {
+        switch (mask)
+        {
+        case D3D11_DEPTH_WRITE_MASK_ZERO:
+            return "Zero";
+        case D3D11_DEPTH_WRITE_MASK_ALL:
+            return "All";
+        default:
+            return "Unknown";
+        }
+    }
+
+    void Reflect(IReflectionVisitor& v, cstr context, D3D11_DEPTH_STENCILOP_DESC op)
+    {
+        ReflectStackFormat(v, context, "--------");
+        ReflectStackFormat(v, "StenciFail", ToString(op.StencilFailOp));
+        ReflectStackFormat(v, "StencilDepthFailOp", ToString(op.StencilDepthFailOp));
+        ReflectStackFormat(v, "StencilPassOp", ToString(op.StencilPassOp));
+        ReflectStackFormat(v, "StencilFunc", ToString(op.StencilFunc));
+    }
+
+    void Reflect(IReflectionVisitor& v, cstr section, ID3D11DepthStencilState& state)
+    {
+        v.SetSection(section);
+
+        D3D11_DEPTH_STENCIL_DESC desc;
+        state.GetDesc(&desc);
+
+        Reflect(v, "BackFace", desc.BackFace);
+        ReflectStackFormat(v, "DepthEnable", "%s", desc.DepthEnable ? "True" : "False");
+        ReflectStackFormat(v, "DepthFunc", ToString(desc.DepthFunc));
+        ReflectStackFormat(v, "DepthWriteMask", ToString(desc.DepthWriteMask));
+        Reflect(v, "FrontFace", desc.FrontFace);
+        ReflectStackFormat(v, "StencilEnable", "%s", desc.StencilEnable ? "True" : "False");
+        ReflectStackFormat(v, "StencilReadMask", "0x%X", desc.StencilReadMask);
+        ReflectStackFormat(v, "StencilWriteMask", "0x%X", desc.StencilWriteMask);
+    }
+
+    using TFormatToName = std::unordered_map<DXGI_FORMAT, const char*, std::hash<DXGI_FORMAT>, std::equal_to<DXGI_FORMAT>, AllocatorWithMalloc<std::pair<const DXGI_FORMAT, cstr>>>;
+
+    TFormatToName* formatToName = nullptr;
+
+#define ADD_FORMAT(format) { (*formatToName)[format] = #format + sizeof("DXGI_FORMAT"); }
+
+    void BuildFormatToName()
+    {
+        ADD_FORMAT(DXGI_FORMAT_UNKNOWN);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32A32_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32A32_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32A32_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32A32_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32B32_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R16G16B16A16_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R16G16B16A16_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R16G16B16A16_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R16G16B16A16_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R16G16B16A16_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_R16G16B16A16_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R32G32_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R32G32_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R32G8X24_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_D32_FLOAT_S8X24_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_X32_TYPELESS_G8X24_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R10G10B10A2_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R10G10B10A2_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R10G10B10A2_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R11G11B10_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R8G8B8A8_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R8G8B8A8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+        ADD_FORMAT(DXGI_FORMAT_R8G8B8A8_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R8G8B8A8_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_R8G8B8A8_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R16G16_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R16G16_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R16G16_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R16G16_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R16G16_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_R16G16_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R32_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_D32_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R32_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_R32_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R32_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R24G8_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_D24_UNORM_S8_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_X24_TYPELESS_G8_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R8G8_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R8G8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R8G8_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R8G8_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_R8G8_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R16_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R16_FLOAT);
+        ADD_FORMAT(DXGI_FORMAT_D16_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R16_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R16_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R16_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_R16_SINT);
+        ADD_FORMAT(DXGI_FORMAT_R8_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_R8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R8_UINT);
+        ADD_FORMAT(DXGI_FORMAT_R8_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_R8_SINT);
+        ADD_FORMAT(DXGI_FORMAT_A8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R1_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R9G9B9E5_SHAREDEXP);
+        ADD_FORMAT(DXGI_FORMAT_R8G8_B8G8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_G8R8_G8B8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC1_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_BC1_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC1_UNORM_SRGB);
+        ADD_FORMAT(DXGI_FORMAT_BC2_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_BC2_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC2_UNORM_SRGB);
+        ADD_FORMAT(DXGI_FORMAT_BC3_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_BC3_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC3_UNORM_SRGB);
+        ADD_FORMAT(DXGI_FORMAT_BC4_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_BC4_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC4_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC5_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_BC5_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC5_SNORM);
+        ADD_FORMAT(DXGI_FORMAT_B5G6R5_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_B5G5R5A1_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_B8G8R8A8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_B8G8R8X8_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_B8G8R8A8_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
+        ADD_FORMAT(DXGI_FORMAT_B8G8R8X8_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_B8G8R8X8_UNORM_SRGB);
+        ADD_FORMAT(DXGI_FORMAT_BC6H_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_BC6H_UF16);
+        ADD_FORMAT(DXGI_FORMAT_BC6H_SF16);
+        ADD_FORMAT(DXGI_FORMAT_BC7_TYPELESS);
+        ADD_FORMAT(DXGI_FORMAT_BC7_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_BC7_UNORM_SRGB);
+        ADD_FORMAT(DXGI_FORMAT_AYUV);
+        ADD_FORMAT(DXGI_FORMAT_Y410);
+        ADD_FORMAT(DXGI_FORMAT_Y416);
+        ADD_FORMAT(DXGI_FORMAT_NV12);
+        ADD_FORMAT(DXGI_FORMAT_P010);
+        ADD_FORMAT(DXGI_FORMAT_P016);
+        ADD_FORMAT(DXGI_FORMAT_420_OPAQUE);
+        ADD_FORMAT(DXGI_FORMAT_YUY2);
+        ADD_FORMAT(DXGI_FORMAT_Y210);
+        ADD_FORMAT(DXGI_FORMAT_Y216);
+        ADD_FORMAT(DXGI_FORMAT_NV11);
+        ADD_FORMAT(DXGI_FORMAT_AI44);
+        ADD_FORMAT(DXGI_FORMAT_IA44);
+        ADD_FORMAT(DXGI_FORMAT_P8);
+        ADD_FORMAT(DXGI_FORMAT_A8P8);
+        ADD_FORMAT(DXGI_FORMAT_B4G4R4A4_UNORM);
+        ADD_FORMAT(DXGI_FORMAT_P208);
+        ADD_FORMAT(DXGI_FORMAT_V208);
+        ADD_FORMAT(DXGI_FORMAT_V408);
+        ADD_FORMAT(DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE);
+        ADD_FORMAT(DXGI_FORMAT_SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE);
+    }
+
+    void ClearFormatToName()
+    {
+        delete formatToName;
+        formatToName = nullptr;
+    }
+
+    cstr ToString(DXGI_FORMAT format)
+    {
+        if (formatToName == nullptr)
+        {
+            formatToName = new TFormatToName();
+            Memory::GetDX11Allocator().AtRelease(ClearFormatToName);
+            BuildFormatToName();
+        }
+
+        auto i = formatToName->find(format);
+
+        if (i == formatToName->end())
+        {
+            return i->second;
+        }
+
+        return "Unknown";
+    }
+
+    cstr ToString(D3D11_USAGE usage)
+    {
+        switch (usage)
+        {
+        case D3D11_USAGE_DEFAULT:
+            return "default";
+        case D3D11_USAGE_IMMUTABLE:
+            return "immutable";
+        case D3D11_USAGE_DYNAMIC:
+            return "dynamic";
+        case D3D11_USAGE_STAGING:
+            return "staging";
+        default:
+            return "unknown";
+        }
+    }
+
+    void Reflect(IReflectionVisitor& v, cstr section, ID3D11Texture2D& texture)
+    {
+        v.SetSection(section);
+
+        D3D11_TEXTURE2D_DESC desc;
+        texture.GetDesc(&desc);
+
+        ReflectStackFormat(v, "Span", "%dx%d", desc.Width, desc.Height);
+        ReflectStackFormat(v, "ArraySize", "%u", desc.ArraySize);
+        ReflectStackFormat(v, "Mip Levels", "%u", desc.MipLevels);
+        ReflectStackFormat(v, "Format", ToString(desc.Format));
+        ReflectStackFormat(v, "Usage", ToString(desc.Usage));
+        ReflectStackFormat(v, "SampleDesc", "Count: %u Quality: %u", desc.SampleDesc.Count, desc.SampleDesc.Quality);
+        ReflectStackFormat(v, "BindFlags", "%u", desc.BindFlags);
+        ReflectStackFormat(v, "MiscFlag", "%u", desc.MiscFlags);
+        ReflectStackFormat(v, "CPUAccessFlags", "%u", desc.CPUAccessFlags);
+    }
+
+    cstr ToString(D3D11_BLEND blend)
+    {
+        switch (blend)
+        {
+        case D3D11_BLEND_ZERO:
+            return "Zero";
+        case D3D11_BLEND_ONE:
+            return "One";
+        case D3D11_BLEND_SRC_COLOR:
+            return "SrcColor";
+        case D3D11_BLEND_INV_SRC_COLOR:
+            return "InvSrcColor";
+        case D3D11_BLEND_SRC_ALPHA:
+            return "SrcAlpha";
+        case D3D11_BLEND_INV_SRC_ALPHA:
+            return "InvSrcAlpha";
+        case D3D11_BLEND_DEST_ALPHA:
+            return "DestAlpha";
+        case D3D11_BLEND_INV_DEST_ALPHA:
+            return "InvDestAlpha";
+        case D3D11_BLEND_DEST_COLOR:
+            return "DestColor";
+        case D3D11_BLEND_INV_DEST_COLOR:
+            return "InvDestColor";
+        case D3D11_BLEND_SRC_ALPHA_SAT:
+            return "SrcAlphaSat";
+        case D3D11_BLEND_BLEND_FACTOR:
+            return "BlendFactor";
+        case D3D11_BLEND_INV_BLEND_FACTOR:
+            return "InvBlendFactor";
+        case D3D11_BLEND_SRC1_COLOR:
+            return "Src1Color";
+        case D3D11_BLEND_INV_SRC1_COLOR:
+            return "InvSrc1Color";
+        case D3D11_BLEND_SRC1_ALPHA:
+            return "Src1Alpha";
+        case D3D11_BLEND_INV_SRC1_ALPHA:
+            return "InvSrc1Alpha";
+        default:
+            return "Unknown";
+        }
+    }
+
+    cstr ToString(D3D11_BLEND_OP op)
+    {
+        switch (op)
+        {
+        case D3D11_BLEND_OP_ADD:
+            return "Add";
+        case D3D11_BLEND_OP_SUBTRACT:
+            return "Subtract";
+        case D3D11_BLEND_OP_MIN:
+            return "Min";
+        case D3D11_BLEND_OP_MAX:
+            return "Max";
+        default:
+            return "Unknown";
+        }
+    }
+
+    cstr ToString(D3D11_CULL_MODE mode)
+    {
+        switch (mode)
+        {
+        case D3D11_CULL_NONE:
+            return "None";
+        case D3D11_CULL_FRONT:
+            return "Front";
+        case D3D11_CULL_BACK:
+            return "Back";
+        default:
+            return "Unknown";
+        }
+    }
+
+    void Reflect(IReflectionVisitor& v, const D3D11_RENDER_TARGET_BLEND_DESC& target)
+    {
+        ReflectStackFormat(v, "BlendEnable", "%s", target.BlendEnable ? "True" : "False");
+        ReflectStackFormat(v, "BlendOp", ToString(target.BlendOp));
+        ReflectStackFormat(v, "BlendOpAlpha", ToString(target.BlendOpAlpha));
+        ReflectStackFormat(v, "DestBlend", ToString(target.DestBlend));
+        ReflectStackFormat(v, "DestBlendAlpha", ToString(target.DestBlendAlpha));
+        ReflectStackFormat(v, "RenderTargetWriteMask", "0x%X", target.RenderTargetWriteMask);
+        ReflectStackFormat(v, "SrcBlend", ToString(target.SrcBlend));
+        ReflectStackFormat(v, "SrcBlendAlpha", ToString(target.SrcBlendAlpha));
+    }
+
+    cstr ToString(D3D11_FILL_MODE mode)
+    {
+        switch (mode)
+        {
+        case D3D11_FILL_WIREFRAME:
+            return "Wireframe";
+        case D3D11_FILL_SOLID:
+            return "Solid";
+        default:
+            return "Unknown";
+        }
+    }
+
+    void Reflect(IReflectionVisitor& v, cstr section, ID3D11BlendState& state)
+    {
+        v.SetSection(section);
+
+        D3D11_BLEND_DESC desc;
+        state.GetDesc(&desc);
+
+        ReflectStackFormat(v, "AlphaToCoverageEnable", "%s", desc.AlphaToCoverageEnable ? "True" : "False");
+        ReflectStackFormat(v, "IndependentBlendEnable", "%s", desc.IndependentBlendEnable ? "True" : "False");
+
+        v.EnterContainer("Render Targets");
+
+        for (int i = 0; i < 8; i++)
+        {
+            EnterElement(v, "Element %d", i);
+            auto& target = desc.RenderTarget[i];
+            Reflect(v, target);
+            v.LeaveElement();
+        }
+
+        v.LeaveContainer();
+    }
+
+    void Reflect(IReflectionVisitor& v, cstr section, ID3D11RasterizerState& state)
+    {
+        v.SetSection(section);
+
+        D3D11_RASTERIZER_DESC desc;
+        state.GetDesc(&desc);
+
+        ReflectStackFormat(v, "AntialiasedLineEnable", "%s", desc.AntialiasedLineEnable ? "True" : "False");
+        ReflectStackFormat(v, "CullMode",                   ToString(desc.CullMode));
+        ReflectStackFormat(v, "DepthBias", "%d",            desc.DepthBias);
+        ReflectStackFormat(v, "DepthBiasClamp", "%f",       desc.DepthBiasClamp);
+        ReflectStackFormat(v, "DepthClipEnable",            desc.DepthClipEnable ? "True" : "False");
+        ReflectStackFormat(v, "FillMode",                   ToString(desc.FillMode));
+        ReflectStackFormat(v, "FrontCounterClockwise",      desc.FrontCounterClockwise ? "True" : "False");
+        ReflectStackFormat(v, "MultisampleEnable",          desc.MultisampleEnable ? "True" : "False");
+        ReflectStackFormat(v, "ScissorEnable",              desc.ScissorEnable ? "True" : "False");
+        ReflectStackFormat(v, "SlopeScaledDepthBias", "%f", desc.SlopeScaledDepthBias);
+    }
+}
+
+struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResources, ISubsystem, IReflectionTarget
 {
     ID3D11Device& device;
     ID3D11DeviceContext& dc;
@@ -557,6 +965,46 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         }
 
         return Vec2i{ (int32)desc.Width, (int32)desc.Height };
+    }
+
+    void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) override
+    {
+        auto guiId = monitor.Register(*this, parentId);
+    }
+
+    [[nodiscard]] cstr SubsystemName() const override
+    {
+        return "DX11Gui";
+    }
+
+    [[nodiscard]] Reflection::IReflectionTarget* ReflectionTarget() override
+    {
+        return this;
+    }
+
+    void Visit(IReflectionVisitor& v) override
+    {
+        ReflectStackFormat(v, "GuiVertexCapacity", "%llu", guiVertices.size());
+
+        v.EnterContainer("Fonts");
+        for (int i = 0; i < fonts->NumberOfGlyphSets(); i++)
+        {
+            EnterElement(v, "GlyphSet %d", i);
+            const auto& glyphSet = fonts->operator[](i);
+            ReflectStackFormat(v, "Name", "%s", glyphSet.Name());
+            ReflectStackFormat(v, "Ascent", "%d", glyphSet.FontAscent());
+            ReflectStackFormat(v, "Height", "%f", glyphSet.FontHeight());
+            v.LeaveElement();
+        }
+        v.LeaveContainer();
+
+        Reflect(v, "fontTexture", *fontTexture);
+
+        ReflectStackFormat(v, "SpriteArray", "%d textures of width %dx%d", spriteArray->TextureCount(), spriteArray->Width(), spriteArray->Width());
+
+        Reflect(v, "guiDepthState", *guiDepthState);
+        Reflect(v, "alphaBlend", *alphaBlend);
+        Reflect(v, "spriteRasterizer", *spriteRasterizering);
     }
 }; // DX11Gui
 

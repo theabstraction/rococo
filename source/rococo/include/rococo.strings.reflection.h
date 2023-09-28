@@ -14,13 +14,13 @@
 # include <rococo.reflector.h>
 #endif
 
-namespace Rococo::Strings
+namespace Rococo::Reflection
 {
-	struct Reflected_HString : public Reflection::IReflectedString
+	struct Reflected_HString : public IReflectedString
 	{
-		HString& src;
+		Strings::HString& src;
 
-		Reflected_HString(HString& _src) : src(_src)
+		Reflected_HString(Strings::HString& _src) : src(_src)
 		{
 
 		}
@@ -44,7 +44,7 @@ namespace Rococo::Strings
 		}
 	};
 
-	inline Reflected_HString Reflect(HString& a)
+	inline Reflected_HString Reflect(Strings::HString& a)
 	{
 		return Reflected_HString(a);
 	}
@@ -76,7 +76,7 @@ namespace Rococo::Strings
 
 		void WriteString(cstr s) override
 		{
-			SafeFormat(src, sizeofSrc, "%s", s);
+			Strings::SafeFormat(src, sizeofSrc, "%s", s);
 		}
 	};
 
@@ -127,5 +127,7 @@ namespace Rococo::Strings
 		return Reflected_WideStackString<CAPACITY>(buffer);
 	}
 
-	ROCOCO_API void ReflectStackFormat(Reflection::IReflectionVisitor& v, cstr variableName, const char* format, ...);
+	ROCOCO_API void ReflectStackFormat(IReflectionVisitor& v, cstr variableName, const char* format, ...);
+	ROCOCO_API void SetSection(IReflectionVisitor& v, const char* format, ...);
+	ROCOCO_API void EnterElement(IReflectionVisitor& v, const char* format, ...);
 }

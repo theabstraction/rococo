@@ -5,6 +5,7 @@
 # define ROCOCO_API __declspec(dllimport)
 #endif
 
+#include <rococo.types.h>
 #include <vector>
 
 #ifndef _WIN32

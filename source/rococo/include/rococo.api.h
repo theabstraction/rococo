@@ -113,8 +113,6 @@ namespace Rococo
 	struct IExpandingBuffer;
 	struct ISubsystemMonitor;
 
-	ROCOCO_ID(ID_SUBSYSTEM, int32, 0);
-
 	ROCOCO_INTERFACE IPingPathResolver
 	{
 		virtual void PingPathToSysPath(cstr pingPath, U8FilePath & sysPath) = 0;

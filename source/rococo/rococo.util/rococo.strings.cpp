@@ -1293,7 +1293,10 @@ namespace Rococo::Strings
 
 		return true;
 	}
+}
 
+namespace Rococo::Reflection
+{
 	ROCOCO_UTIL_API void ReflectStackFormat(Reflection::IReflectionVisitor& v, cstr name, const char* format, ...)
 	{
 		char text[256];
@@ -1305,6 +1308,28 @@ namespace Rococo::Strings
 		Reflected_StackString rstring(text, sizeof text);
 		auto readOnly = Reflection::ReflectionMetaData::ReadOnly();
 		v.Reflect(name, rstring, readOnly);
+	}
+
+	void SetSection(Reflection::IReflectionVisitor& v, const char* format, ...)
+	{
+		char text[256];
+		va_list args;
+		va_start(args, format);
+		SafeVFormat(text, sizeof text, format, args);
+		va_end(args);
+
+		v.SetSection(text);
+	}
+
+	void EnterElement(Reflection::IReflectionVisitor& v, const char* format, ...)
+	{
+		char text[256];
+		va_list args;
+		va_start(args, format);
+		SafeVFormat(text, sizeof text, format, args);
+		va_end(args);
+
+		v.EnterElement(text);
 	}
 }
 

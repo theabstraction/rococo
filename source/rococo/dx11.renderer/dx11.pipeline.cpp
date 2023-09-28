@@ -25,7 +25,149 @@ namespace Rococo::DX11
 		float c = 0;
 	};
 
-	struct DX11Pipeline : IDX11Pipeline, RAL::IRenderStates, ISubsystem
+	cstr ToString(D3D11_TEXTURE_ADDRESS_MODE mode)
+	{
+		switch (mode)
+		{
+		case D3D11_TEXTURE_ADDRESS_WRAP:
+			return "Wrap";
+		case D3D11_TEXTURE_ADDRESS_MIRROR:
+			return "Mirror";
+		case D3D11_TEXTURE_ADDRESS_CLAMP:
+			return "Clamp";
+		case D3D11_TEXTURE_ADDRESS_BORDER:
+			return "Border";
+		case D3D11_TEXTURE_ADDRESS_MIRROR_ONCE:
+			return "Mirror-Once";
+		default:
+			return "Unknown";
+		}
+	}
+
+	cstr ToString(D3D11_COMPARISON_FUNC f)
+	{
+		switch (f)
+		{
+		case D3D11_COMPARISON_NEVER:
+			return "Never";
+		case D3D11_COMPARISON_LESS:
+			return "LT";
+		case D3D11_COMPARISON_EQUAL:
+			return "EQ";
+		case D3D11_COMPARISON_LESS_EQUAL:
+			return "LTE";
+		case D3D11_COMPARISON_GREATER:
+			return "GT";
+		case D3D11_COMPARISON_NOT_EQUAL:
+			return "NEQ";
+		case D3D11_COMPARISON_GREATER_EQUAL:
+			return "GTE";
+		case D3D11_COMPARISON_ALWAYS:
+			return "Always";
+		default:
+			return "Unknown";
+		}
+	} 
+
+	cstr ToString(D3D11_FILTER filter)
+	{
+		switch (filter)
+		{
+		case D3D11_FILTER_MIN_MAG_MIP_POINT:
+			return "MIN_MAG_MIP_POINT";
+		case D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR:
+			return "MIN_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT:
+			return "MIN_POINT_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR:
+			return "MIN_POINT_MAG_MIP_LINEAR";
+		case D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT:
+			return "MIN_LINEAR_MAG_MIP_POINT";
+		case D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+			return "MIN_LINEAR_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT:
+			return "MIN_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_MIN_MAG_MIP_LINEAR:
+			return "MIN_MAG_MIP_LINEAR";
+		case D3D11_FILTER_ANISOTROPIC:
+			return "ANISOTROPIC";
+		case D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT:
+			return "COMPARISON_MIN_MAG_MIP_POINT";
+		case D3D11_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR:
+			return "COMPARISON_MIN_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT:
+			return "COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR:
+			return "COMPARISON_MIN_POINT_MAG_MIP_LINEAR";
+		case D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT:
+			return "COMPARISON_MIN_LINEAR_MAG_MIP_POINT";
+		case D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+			return "COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+			return "COMPARISON_MIN_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:
+			return "COMPARISON_MIN_MAG_MIP_LINEAR";
+		case D3D11_FILTER_COMPARISON_ANISOTROPIC:
+			return "COMPARISON_ANISOTROPIC";
+		case D3D11_FILTER_MINIMUM_MIN_MAG_MIP_POINT:
+			return "MINIMUM_MIN_MAG_MIP_POINT";
+		case D3D11_FILTER_MINIMUM_MIN_MAG_POINT_MIP_LINEAR:
+			return "MINIMUM_MIN_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT:
+			return "MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_MINIMUM_MIN_POINT_MAG_MIP_LINEAR:
+			return "MINIMUM_MIN_POINT_MAG_MIP_LINEAR";
+		case D3D11_FILTER_MINIMUM_MIN_LINEAR_MAG_MIP_POINT:
+			return "MINIMUM_MIN_LINEAR_MAG_MIP_POINT";
+		case D3D11_FILTER_MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+			return "MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+			return "MINIMUM_MIN_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR:
+			return "MINIMUM_MIN_MAG_MIP_LINEAR";
+		case D3D11_FILTER_MINIMUM_ANISOTROPIC:
+			return "MINIMUM_ANISOTROPIC";
+		case D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_POINT:
+			return "MAXIMUM_MIN_MAG_MIP_POINT";
+		case D3D11_FILTER_MAXIMUM_MIN_MAG_POINT_MIP_LINEAR:
+			return "MAXIMUM_MIN_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT:
+			return "MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_MAXIMUM_MIN_POINT_MAG_MIP_LINEAR:
+			return "MAXIMUM_MIN_POINT_MAG_MIP_LINEAR";
+		case D3D11_FILTER_MAXIMUM_MIN_LINEAR_MAG_MIP_POINT:
+			return "MAXIMUM_MIN_LINEAR_MAG_MIP_POINT";
+		case D3D11_FILTER_MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+			return "MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR";
+		case D3D11_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+			return "MAXIMUM_MIN_MAG_LINEAR_MIP_POINT";
+		case D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:
+			return "MAXIMUM_MIN_MAG_MIP_LINEAR";
+		case D3D11_FILTER_MAXIMUM_ANISOTROPIC:
+			return "MAXIMUM_ANISOTROPIC";
+		default:
+			return "Unknown";
+		}
+	}
+
+	void AddElementFields(const D3D11_SAMPLER_DESC& desc, IReflectionVisitor& v)
+	{
+		ReflectStackFormat(v, "Address U", ToString(desc.AddressU));
+		ReflectStackFormat(v, "Address V", ToString(desc.AddressV));
+		ReflectStackFormat(v, "Address W", ToString(desc.AddressW));
+		
+		const auto* c = desc.BorderColor;
+		ReflectStackFormat(v, "BorderColor", "R:%f G:%f B:%f A:%f", c[0], c[1], c[2], c[3]);
+		ReflectStackFormat(v, "ComparisonFunc", ToString(desc.ComparisonFunc));
+		ReflectStackFormat(v, "Filter", ToString(desc.Filter));
+
+		ReflectStackFormat(v, "MaxAnisotropy", "%u", desc.MaxAnisotropy);
+		ReflectStackFormat(v, "Min LOD", "%f", desc.MinLOD);
+		ReflectStackFormat(v, "Max LOD", "%f", desc.MaxLOD);
+		ReflectStackFormat(v, "Mip LOD Bias", "%f", desc.MipLODBias);
+	}
+
+	struct DX11Pipeline : IDX11Pipeline, RAL::IRenderStates, ISubsystem, IReflectionTarget
 	{
 		IO::IInstallation& installation;
 		ID3D11Device& device;
@@ -297,12 +439,53 @@ namespace Rococo::DX11
 
 		void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) override
 		{
-			monitor.Register(*this, parentId);
+			ID_SUBSYSTEM dx11PipelineSystemId = monitor.Register(*this, parentId);
+			gui->RegisterSubsystem(monitor, dx11PipelineSystemId);
+			RAL_pipeline->RegisterSubsystem(monitor, dx11PipelineSystemId);
 		}
 
 		IReflectionTarget* ReflectionTarget() override
 		{
-			return nullptr;
+			return this;
+		}
+
+		void Visit(IReflectionVisitor& v) override
+		{
+			v.SetSection("DX11Pipeline");
+			v.EnterContainer("Samplers");
+
+			for (int i = 0; i < 16; i++)
+			{
+				if (defaultSamplers[i])
+				{
+					EnterElement(v, "Sampler #%d", i);
+
+					D3D11_SAMPLER_DESC desc;
+					defaultSamplers[i]->GetDesc(&desc);
+
+					AddElementFields(desc, v);
+
+					v.LeaveElement();
+				}
+			}
+
+			v.LeaveContainer();
+
+			Reflect(v, "spriteRasterizering", *spriteRasterizering);
+			Reflect(v, "objectRasterizering", *objectRasterizering);
+			Reflect(v, "particleRasterizering", *particleRasterizering);
+			Reflect(v, "skyRasterizering", *skyRasterizering);
+			Reflect(v, "shadowRasterizering", *shadowRasterizering);
+
+			Reflect(v, "alphaBlend", *alphaBlend);
+			Reflect(v, "alphaAdditiveBlend", *alphaAdditiveBlend);
+			Reflect(v, "disableBlend", *disableBlend);
+			Reflect(v, "additiveBlend", *additiveBlend);
+			Reflect(v, "plasmaBlend", *plasmaBlend);
+
+			Reflect(v, "objDepthState", *objDepthState);
+			Reflect(v, "objDepthState_NoWrite", *objDepthState_NoWrite);
+			Reflect(v, "noDepthTestOrWrite", *noDepthTestOrWrite);
 		}
 	}; // DX11Pipeline
 

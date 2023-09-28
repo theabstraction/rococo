@@ -9,6 +9,7 @@ namespace Rococo::Time
 	ROCOCO_API [[nodiscard]] ticks TickCount();
 	ROCOCO_API [[nodiscard]] ticks TickHz();
 	ROCOCO_API [[nodiscard]] ticks UTCTime();
+	ROCOCO_API [[nodiscard]] double ToMilliseconds(ticks dt);
 
 	class Timer
 	{

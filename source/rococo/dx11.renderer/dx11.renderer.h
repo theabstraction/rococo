@@ -116,6 +116,7 @@ namespace Rococo::DX11
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+		virtual void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) = 0;
 
 		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual IDX11FontRenderer& FontRenderer() = 0;
@@ -275,4 +276,14 @@ namespace Rococo::DX11
 	{
 		virtual ID3D11Buffer* RawBuffer() = 0;
 	};
+
+	cstr ToString(D3D11_COMPARISON_FUNC f);
+	void Reflect(Reflection::IReflectionVisitor& v, cstr section, ID3D11RasterizerState& state);
+	void Reflect(Reflection::IReflectionVisitor& v, cstr section, ID3D11BlendState& state);
+	void Reflect(Reflection::IReflectionVisitor& v, cstr section, ID3D11DepthStencilState& state);
 } // Rococo::DX11
+
+namespace Rococo::Memory
+{
+	IAllocator& GetDX11Allocator();
+}

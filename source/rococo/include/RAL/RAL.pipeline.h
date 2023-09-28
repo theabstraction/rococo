@@ -102,6 +102,7 @@ namespace Rococo::RAL
 	{
 		virtual void Free() = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
+		virtual void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) = 0;
 	};
 
 	RAL_PIPELINE_API IPipelineSupervisor* CreatePipeline(IRenderStates& renderStates, IRAL& ral);

@@ -3688,6 +3688,12 @@ namespace Rococo::Time
 		return ticks.QuadPart;
 	}
 
+	ROCOCO_API double ToMilliseconds(ticks dt)
+	{
+		double seconds = dt / (double) TickHz();
+		return seconds * 1000.0;
+	}
+
 	ROCOCO_API ticks TickHz()
 	{
 		LARGE_INTEGER hz;

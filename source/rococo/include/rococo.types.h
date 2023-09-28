@@ -311,7 +311,10 @@ namespace Rococo
 	namespace Reflection
 	{
 		struct IReflectionTarget;
+		struct IReflectionVisitor;
 	}
+
+	struct ISubsystemMonitor;
 
 	typedef uint8 GRAYSCALE;
 
@@ -726,6 +729,8 @@ namespace Rococo
 	{
 	   virtual void Free() = 0;
 	};
+
+	ROCOCO_ID(ID_SUBSYSTEM, int32, 0);
 
 	namespace OS
 	{

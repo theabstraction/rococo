@@ -8,14 +8,17 @@
 #include <rococo.renderer.h>
 #include <rococo.time.h>
 #include <rococo.visitors.h>
+#include <rococo.reflector.h>
+#include <rococo.subsystems.h>
 #include <vector>
 
 using namespace Rococo;
+using namespace Rococo::Reflection;
 using namespace Rococo::Graphics;
 
 namespace Rococo::RAL::Anon
 {
-	struct RALPipeline: IPipelineSupervisor, IRenderPhases
+	struct RALPipeline: IPipelineSupervisor, IRenderPhases, ISubsystem, IReflectionTarget
 	{
 		IRAL& ral;
 		IRenderStates& renderStates;
@@ -202,6 +205,26 @@ namespace Rococo::RAL::Anon
 		void SetBoneMatrix(uint32 index, cr_m4x4 m) override
 		{
 			boneBuffer->SetBoneMatrix(index, m);
+		}
+
+		void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) override
+		{
+			
+		}
+
+		[[nodiscard]] cstr SubsystemName() const override
+		{
+			return "RALPipeline";
+		}
+
+		IReflectionTarget* ReflectionTarget() override
+		{
+			return this;
+		}
+
+		void Visit(IReflectionVisitor& v) override
+		{
+
 		}
 	};
 }
