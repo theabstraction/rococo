@@ -802,6 +802,10 @@ namespace MHost
 					auto* target = subsystem->ReflectionTarget();
 					if (target)
 					{
+						auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+						Gui::SetUniformColourForAllRenderStates(frame->Widget().Panel(), Gui::EGRSchemeColourSurface::BACKGROUND, RGBAb(0, 0, 0, 192));
+						Gui::SetUniformColourForAllRenderStates(frame->ClientArea().Panel(), Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 192));
+
 						platform.creator.editor.Preview(platform.graphics.GR, *target);
 					}
 				}
