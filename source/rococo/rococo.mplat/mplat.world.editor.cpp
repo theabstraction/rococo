@@ -287,7 +287,23 @@ namespace ANON
 				}
 			);
 
-			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First(), target);
+			struct PropEditorPopulatorHandler : IGRPropertyEditorPopulationEvents
+			{
+				int row = 0;
+				void OnAddNameValue(IGRWidgetText& nameWidget, IGRWidgetEditBox& /* editorWidget */ ) override
+				{
+					row++;
+
+					SetUniformColourForAllRenderStates(nameWidget.Widget().Panel(), Gui::EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255));
+					auto* nameContainer = nameWidget.Widget().Panel().Parent();
+					if (nameContainer)
+					{
+						SetUniformColourForAllRenderStates(*nameContainer, Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, ((row & 1) == 1) ? RGBAb(48, 48, 48, 255) : RGBAb(40, 40, 40, 255));
+					}
+				}
+			} popHandler;
+
+			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First(), target, popHandler);
 			editorTree.Widget().Panel().Add(GRAnchors::ExpandAll());
 		}
 

@@ -999,7 +999,6 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         v.LeaveContainer();
 
         Reflect(v, "fontTexture", *fontTexture);
-
         ReflectStackFormat(v, "SpriteArray", "%d textures of width %dx%d", spriteArray->TextureCount(), spriteArray->Width(), spriteArray->Width());
 
         Reflect(v, "guiDepthState", *guiDepthState);

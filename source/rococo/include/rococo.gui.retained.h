@@ -14,6 +14,7 @@ namespace Rococo::Gui
 	struct IGRPanel;
 	struct IGRWidget;
 	struct IGRSystem;
+	struct IGRWidgetEditBox;
 
 #pragma pack(push, 1)
 	struct GRCursorClick
@@ -689,6 +690,11 @@ namespace Rococo::Gui
 		virtual void SetColumnWidth(int column, int width) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRPropertyEditorPopulationEvents
+	{
+		virtual void OnAddNameValue(IGRWidgetText& nameWidget, IGRWidgetEditBox& editorWidget) = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetPropertyEditorTree : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -978,7 +984,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid of the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
-	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, Rococo::Reflection::IReflectionTarget& target);
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, Rococo::Reflection::IReflectionTarget& target, IGRPropertyEditorPopulationEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 

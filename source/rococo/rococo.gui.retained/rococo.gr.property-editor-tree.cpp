@@ -30,9 +30,15 @@ namespace GRANON
 		PreviewData* pSubObject;
 	};
 
+	struct EditableString
+	{
+		HString text;
+		int32 capacity;
+	};
+
 	struct PrimitiveVariant
 	{
-		HString stringValue;
+		EditableString stringValue;
 		PreviewPrimitive primitive;
 		PrimitiveType type;
 	};
@@ -73,10 +79,11 @@ namespace GRANON
 		v.type = PrimitiveType::BOOL;
 	}
 
-	void Assign(PrimitiveVariant& v, cstr value)
+	void Assign(PrimitiveVariant& v, cstr value, int32 capacity)
 	{
 		v.primitive.float64Value = 0;
-		v.stringValue = value;
+		v.stringValue.text = value;
+		v.stringValue.capacity = capacity;
 		v.type = PrimitiveType::CSTR;
 	}
 
@@ -115,7 +122,7 @@ namespace GRANON
 			snprintf(buffer, capacity, "%s", variant.primitive.boolValue ? "true" : "false");
 			break;
 		case PrimitiveType::CSTR:
-			snprintf(buffer, capacity, "%s", variant.stringValue.c_str());
+			snprintf(buffer, capacity, "%s", variant.stringValue.text.c_str());
 			break;
 		case PrimitiveType::SUB_OBJECT:
 			snprintf(buffer, capacity, "SUB_OBJECT");
@@ -160,6 +167,15 @@ namespace GRANON
 			auto& back = fields.back();
 			back.fieldName = name;
 			Assign(back.value, value);
+			return back;
+		}
+
+		PreviewField& AddField(cstr name, cstr value, int32 capacity)
+		{
+			fields.push_back(PreviewField());
+			auto& back = fields.back();
+			back.fieldName = name;
+			Assign(back.value, value, capacity);
 			return back;
 		}
 	};
@@ -291,7 +307,7 @@ namespace GRANON
 
 		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData&) override
 		{
-			target->AddField(name, stringValue.ReadString());
+			target->AddField(name, stringValue.ReadString(), stringValue.Capacity());
 		}
 
 		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData&) override
@@ -348,8 +364,9 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 		Previewer previewer;
+		IGRPropertyEditorPopulationEvents& populationEventHandler;
 
-		GRPropertyEditorTree(IGRPanel& owningPanel) : panel(owningPanel)
+		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler) : panel(owningPanel), populationEventHandler(_populationEventHandler)
 		{
 		}
 
@@ -473,6 +490,13 @@ namespace GRANON
 				filter = &GetF64Filter();
 				capacity = 24;
 				break;
+			case PrimitiveType::CSTR:
+				if (field.value.stringValue.capacity > 0x7FFF'FFFFUL)
+				{
+					table.Widget().Panel().Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
+				}
+				capacity = (int32) field.value.stringValue.capacity;
+				break;
 			default:
 				capacity = 10;
 				break;
@@ -485,9 +509,16 @@ namespace GRANON
 			auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
 			valueText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 0, 0, 0 });
 
-			char buf[16];
-			ToAscii(field.value, buf, sizeof buf);
-			valueText.SetText(buf);
+			if (field.value.type != PrimitiveType::CSTR)
+			{
+				char buf[16];
+				ToAscii(field.value, buf, sizeof buf);
+				valueText.SetText(buf);
+			}
+			else
+			{
+				valueText.SetText(field.value.stringValue.text.c_str());
+			}
 
 			NameValueControls controls{ nameText, valueText };
 			return controls;
@@ -526,6 +557,8 @@ namespace GRANON
 				int nameWidth = controls.name.GetTextWidth();
 				const int padding = 16;
 				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
+
+				populationEventHandler.OnAddNameValue(controls.name, controls.editor);
 			}
 
 			table.SetColumnWidth(0, nameColumnWidth);
@@ -728,25 +761,28 @@ namespace Rococo::Gui
 		return "IGRWidgetPropertyEditorTree";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IReflectionTarget& target)
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IReflectionTarget& target, IGRPropertyEditorPopulationEvents& populationEventHandler)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		struct GRPropertyEditorTreeFactory : IGRWidgetFactory
 		{
-			GRPropertyEditorTreeFactory()
+			IGRPropertyEditorPopulationEvents& populationEventHandler;
+
+			GRPropertyEditorTreeFactory(IGRPropertyEditorPopulationEvents& _populationEventHandler):
+				populationEventHandler(_populationEventHandler)
+
 			{
 
 			}
 
 			IGRWidget& CreateWidget(IGRPanel& panel)
 			{
-				return *new GRANON::GRPropertyEditorTree(panel);
+				return *new GRANON::GRPropertyEditorTree(panel, populationEventHandler);
 			}
 		};
 
-		static GRPropertyEditorTreeFactory factory;
-		
+		GRPropertyEditorTreeFactory factory(populationEventHandler);
 		auto* tree = static_cast<GRANON::GRPropertyEditorTree*>(Cast<IGRWidgetPropertyEditorTree>(gr.AddWidget(parent.Panel(), factory)));
 		tree->Preview(target);
 		return *tree;
