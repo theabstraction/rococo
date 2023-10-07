@@ -433,7 +433,13 @@ namespace GRANON
 			return *this;
 		}
 
-		void AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int depth)
+		struct NameValueControls
+		{
+			IGRWidgetText& name;
+			IGRWidgetEditBox& editor;
+		};
+
+		NameValueControls AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int depth)
 		{
 			UNUSED(depth);
 
@@ -482,6 +488,9 @@ namespace GRANON
 			char buf[16];
 			ToAscii(field.value, buf, sizeof buf);
 			valueText.SetText(buf);
+
+			NameValueControls controls{ nameText, valueText };
+			return controls;
 		}
 
 		// firstValidIndex and lastValidIndex are required to be valid. Iteration includes the final index
@@ -508,10 +517,18 @@ namespace GRANON
 
 			table.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255), GRRenderState(0, 0, 0));
 
+			int nameColumnWidth = nameSpec.defaultWidth;
+
 			for (int32 j = firstValidIndex; j <= lastValidIndex; j++)
 			{
-				AddFieldToTable(table, data.fields[j], depth);
+				NameValueControls controls = AddFieldToTable(table, data.fields[j], depth);
+
+				int nameWidth = controls.name.GetTextWidth();
+				const int padding = 16;
+				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
 			}
+
+			table.SetColumnWidth(0, nameColumnWidth);
 		}
 
 		void AddSubObject(PreviewField& subObjectField, IGRWidget& parent, int depth)
@@ -614,6 +631,7 @@ namespace GRANON
 
 		IGRWidgetViewport* viewport = nullptr;
 
+		// Entry point for previewing targets, called by the factory function at the bottom of the page
 		void Preview(IReflectionTarget& target)
 		{
 			target.Visit(previewer);

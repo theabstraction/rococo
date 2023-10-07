@@ -27,6 +27,11 @@ namespace GRANON
 			delete this;
 		}
 
+		int GetTextWidth() const override
+		{
+			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring { text.c_str(), (int32) text.length() }).x;
+		}
+
 		void Layout(const GuiRect& panelDimensions) override
 		{
 			UNUSED(panelDimensions);

@@ -549,13 +549,14 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_INTERFACE IGRWidgetText: IGRBase
+	ROCOCO_INTERFACE IGRWidgetText : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual int GetTextWidth() const = 0;
 		virtual IGRWidgetText& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetText& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetText& SetText(cstr text) = 0;
+		virtual IGRWidget& Widget() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetButton : IGRBase
@@ -683,6 +684,9 @@ namespace Rococo::Gui
 
 		// Returns a reference to the cell at the given location. If the location indices are out of bounds, the method returns nullptr
 		virtual IGRWidgetDivision* GetCell(int32 column, int32 row) = 0;
+
+		// Sets the pixel width of the specified column
+		virtual void SetColumnWidth(int column, int width) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetPropertyEditorTree : IGRBase

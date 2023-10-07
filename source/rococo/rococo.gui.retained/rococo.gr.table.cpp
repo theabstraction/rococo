@@ -55,6 +55,21 @@ namespace GRANON
 			return (int32) columnHeaders.size() - 1;
 		}
 
+		void SetColumnWidth(int columnIndex, int pixelWidth) override
+		{
+			if (columnIndex < 0 || columnIndex > (int) columnHeaders.size())
+			{
+				panel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "column index %d out of bounds. Array size is %llu", columnIndex, columnHeaders.size());
+			}
+
+			int oldWidth = columnHeaders[columnIndex].width;
+			if (oldWidth != pixelWidth)
+			{
+				columnHeaders[columnIndex].width = pixelWidth;
+				panel.InvalidateLayout(true);
+			}
+		}
+
 		void ExpandToFit()
 		{
 			int height = 0;
