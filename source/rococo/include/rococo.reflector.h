@@ -27,9 +27,14 @@ namespace Rococo::Reflection
 
 	enum class EReflectionDirection
 	{
+		// The reflection target's data is being read
 		READ_ONLY,
+
+		// The reflection target is expected to update its data
 		WRITE,
-		SIZE_CHECK,
+
+		// The reflection target is expected to guess the size of its data
+		SIZE_CHECK
 	};
 
 	ROCOCO_INTERFACE IReflectedString
@@ -54,7 +59,53 @@ namespace Rococo::Reflection
 		virtual void Reflect(cstr name, double& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, bool& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) = 0;
-		virtual void SetSection(cstr instanceName) = 0;
+		virtual void EnterSection(cstr sectionName) = 0;
+		virtual void LeaveSection() = 0;
+	};
+
+	class Section
+	{
+		IReflectionVisitor& visitor;
+	public:
+		Section(cstr sectionName, IReflectionVisitor& _visitor) : visitor(_visitor)
+		{
+			visitor.EnterSection(sectionName);
+		}
+
+		~Section()
+		{
+			visitor.LeaveSection();
+		}
+	};
+
+	class Container
+	{
+		IReflectionVisitor& visitor;
+	public:
+		Container(cstr name, IReflectionVisitor& _visitor) : visitor(_visitor)
+		{
+			visitor.EnterContainer(name);
+		}
+
+		~Container()
+		{
+			visitor.LeaveContainer();
+		}
+	};
+
+	class Element
+	{
+		IReflectionVisitor& visitor;
+	public:
+		Element(cstr name, IReflectionVisitor& _visitor) : visitor(_visitor)
+		{
+			visitor.EnterElement(name);
+		}
+
+		~Element()
+		{
+			visitor.LeaveElement();
+		}
 	};
 
 	ROCOCO_INTERFACE IReflectionTarget

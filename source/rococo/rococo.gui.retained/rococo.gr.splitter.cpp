@@ -1,5 +1,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
+#include <rococo.impressario.inl>
+#include <vector>
 
 namespace GRANON
 {
@@ -100,6 +102,8 @@ namespace GRANON
 					realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
 					panel.InvalidateLayout(true);
 					draggerStartPos = realDraggerStartPos;
+
+					evOnSplitterChanged.Invoke(realDraggerStartPos);
 				}
 
 				return EGREventRouting::Terminate;
@@ -180,6 +184,13 @@ namespace GRANON
 			splitterMin = minValue;
 			splitterMax = maxValue;
 			return *this;
+		}
+
+		EventImpressario<int> evOnSplitterChanged;
+
+		IEventImpressario<int>& EvOnSplitSizeChanged()
+		{
+			return evOnSplitterChanged;
 		}
 
 		IGRWidget& Widget() override

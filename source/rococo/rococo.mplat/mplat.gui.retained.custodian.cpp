@@ -1,4 +1,5 @@
 #include <rococo.gui.retained.ex.h>
+#include <rococo.strings.ex.h>
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
 #include <rococo.maths.h>
@@ -506,8 +507,13 @@ namespace ANON
 			delete this;
 		}
 
-		void RaiseError(EGRErrorCode, cstr function, cstr message)
+		void RaiseError(EGRErrorCode, cstr function, cstr format, ...) override
 		{
+			char message[1024];
+			va_list args;
+			va_start(args, format);
+			Strings::SafeVFormat(message, sizeof message, format, args);
+			va_end(args);
 			Throw(0, "%s: %s", function, message);
 		}
 

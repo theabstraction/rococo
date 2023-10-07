@@ -451,41 +451,53 @@ namespace Rococo::DX11
 
 		void Visit(IReflectionVisitor& v) override
 		{
-			v.SetSection("DX11Pipeline");
-			v.EnterContainer("Samplers");
+			Section pipeline("DX11Pipeline", v);
 
-			for (int i = 0; i < 16; i++)
 			{
-				if (defaultSamplers[i])
+				Container samplers("Samplers", v);
+
+				for (int i = 0; i < 16; i++)
 				{
-					EnterElement(v, "Sampler #%d", i);
+					if (defaultSamplers[i])
+					{
+						EnterElement(v, "Sampler #%d", i);
 
-					D3D11_SAMPLER_DESC desc;
-					defaultSamplers[i]->GetDesc(&desc);
+						D3D11_SAMPLER_DESC desc;
+						defaultSamplers[i]->GetDesc(&desc);
 
-					AddElementFields(desc, v);
+						AddElementFields(desc, v);
 
-					v.LeaveElement();
+						v.LeaveElement();
+					}
 				}
 			}
 
-			v.LeaveContainer();
+			{
+				Section rasterizers("Rasterizers", v);
 
-			Reflect(v, "spriteRasterizering", *spriteRasterizering);
-			Reflect(v, "objectRasterizering", *objectRasterizering);
-			Reflect(v, "particleRasterizering", *particleRasterizering);
-			Reflect(v, "skyRasterizering", *skyRasterizering);
-			Reflect(v, "shadowRasterizering", *shadowRasterizering);
+				Reflect(v, "spriteRasterizering", *spriteRasterizering);
+				Reflect(v, "objectRasterizering", *objectRasterizering);
+				Reflect(v, "particleRasterizering", *particleRasterizering);
+				Reflect(v, "skyRasterizering", *skyRasterizering);
+				Reflect(v, "shadowRasterizering", *shadowRasterizering);
+			}
 
-			Reflect(v, "alphaBlend", *alphaBlend);
-			Reflect(v, "alphaAdditiveBlend", *alphaAdditiveBlend);
-			Reflect(v, "disableBlend", *disableBlend);
-			Reflect(v, "additiveBlend", *additiveBlend);
-			Reflect(v, "plasmaBlend", *plasmaBlend);
 
-			Reflect(v, "objDepthState", *objDepthState);
-			Reflect(v, "objDepthState_NoWrite", *objDepthState_NoWrite);
-			Reflect(v, "noDepthTestOrWrite", *noDepthTestOrWrite);
+			{
+				Section blending("Blending", v);
+				Reflect(v, "alphaBlend", *alphaBlend);
+				Reflect(v, "alphaAdditiveBlend", *alphaAdditiveBlend);
+				Reflect(v, "disableBlend", *disableBlend);
+				Reflect(v, "additiveBlend", *additiveBlend);
+				Reflect(v, "plasmaBlend", *plasmaBlend);
+			}
+
+			{
+				Section depthStencil("Depth+Stencil", v);
+				Reflect(v, "objDepthState", *objDepthState);
+				Reflect(v, "objDepthState_NoWrite", *objDepthState_NoWrite);
+				Reflect(v, "noDepthTestOrWrite", *noDepthTestOrWrite);
+			}
 		}
 	}; // DX11Pipeline
 

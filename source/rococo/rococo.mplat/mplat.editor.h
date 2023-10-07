@@ -29,6 +29,7 @@ namespace Rococo::MPEditor
 		virtual void SetVisibility(bool isVisible) = 0;
 		virtual void AddHook(IMPEditorEventHandler* eventHandler) = 0;
 		virtual void RemoveHook(IMPEditorEventHandler* eventHandler) = 0;
+		virtual Reflection::IReflectionTarget& ReflectionTarget() = 0;
 	};
 
 	ROCOCO_INTERFACE IMPEditorSupervisor : IMPEditor

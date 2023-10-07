@@ -742,6 +742,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
 
+	SaveAsSexML("mhost.editor", editor->ReflectionTarget());
+
 	return 0;
 }
 

@@ -108,7 +108,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11DepthStencilState& state)
     {
-        v.SetSection(section);
+        Section depthStencilStuff(section, v);
 
         D3D11_DEPTH_STENCIL_DESC desc;
         state.GetDesc(&desc);
@@ -298,7 +298,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11Texture2D& texture)
     {
-        v.SetSection(section);
+        Section texturing(section, v);
 
         D3D11_TEXTURE2D_DESC desc;
         texture.GetDesc(&desc);
@@ -416,7 +416,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11BlendState& state)
     {
-        v.SetSection(section);
+        Section blending(section, v);
 
         D3D11_BLEND_DESC desc;
         state.GetDesc(&desc);
@@ -439,7 +439,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11RasterizerState& state)
     {
-        v.SetSection(section);
+        Section rasterizer(section, v);
 
         D3D11_RASTERIZER_DESC desc;
         state.GetDesc(&desc);

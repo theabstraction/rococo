@@ -207,7 +207,7 @@ namespace Rococo::RAL::Anon
 			boneBuffer->SetBoneMatrix(index, m);
 		}
 
-		void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) override
+		void RegisterSubsystem(ISubsystemMonitor&, ID_SUBSYSTEM) override
 		{
 			
 		}
@@ -222,7 +222,7 @@ namespace Rococo::RAL::Anon
 			return this;
 		}
 
-		void Visit(IReflectionVisitor& v) override
+		void Visit(IReflectionVisitor&) override
 		{
 
 		}

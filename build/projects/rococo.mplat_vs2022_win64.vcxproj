@@ -318,6 +318,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.textoutput.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.renderer.config.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.sexml.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.subsystems.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.test.app.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

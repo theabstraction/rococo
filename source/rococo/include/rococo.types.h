@@ -316,6 +316,12 @@ namespace Rococo
 
 	struct ISubsystemMonitor;
 
+	template<typename... Args>
+	ROCOCO_INTERFACE IEventImpressario
+	{
+		virtual void Add(Rococo::Function<void(Args... )> handler) = 0;
+	};
+
 	typedef uint8 GRAYSCALE;
 
 	namespace Script

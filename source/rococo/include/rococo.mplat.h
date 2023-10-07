@@ -142,6 +142,11 @@ namespace Rococo
 	}
 }
 
+namespace Rococo
+{
+	void SaveAsSexML(cstr userDocName, Reflection::IReflectionTarget& target);
+}
+
 #include <../rococo.mplat/code-gen/rococo.sxh.h>
 
 namespace Rococo::Joysticks

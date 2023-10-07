@@ -5,6 +5,7 @@
 #include <vector>
 #include <rococo.mplat.h>
 #include <rococo.task.queue.h>
+#include <rococo.reflector.h>
 #include <unordered_set>
 
 using namespace Rococo;
@@ -93,7 +94,7 @@ namespace ANON
 		tools.ResizeToFitChildren();
 	}
 
-	struct MPlatEditor : IMPEditorSupervisor, IGREventHandler
+	struct MPlatEditor : IMPEditorSupervisor, IGREventHandler, IReflectionTarget
 	{
 		IGRSystem& gr;
 		Platform* platform = nullptr;
@@ -279,8 +280,27 @@ namespace ANON
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 
+			frameSplitter.EvOnSplitSizeChanged().Add(
+				[this](int32 newSplitterWidth)
+				{
+					this->splitterWidth = newSplitterWidth;
+				}
+			);
+
 			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First(), target);
 			editorTree.Widget().Panel().Add(GRAnchors::ExpandAll());
+		}
+
+		Reflection::IReflectionTarget& ReflectionTarget() override
+		{
+			return *this;
+		}
+
+		int splitterWidth = 120;
+
+		void Visit(IReflectionVisitor& v) override
+		{
+			ROCOCO_REFLECT(v, splitterWidth);
 		}
 	};
 }

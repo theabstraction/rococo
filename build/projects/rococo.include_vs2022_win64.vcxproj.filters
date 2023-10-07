@@ -168,6 +168,7 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.strings.ex.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">
@@ -188,5 +189,8 @@
     <Filter Include="mplat">
       <UniqueIdentifier>{9d414bb1-4467-062b-5ea8-af7a7c977731}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\include\rococo.impressario.inl" />
   </ItemGroup>
 </Project>

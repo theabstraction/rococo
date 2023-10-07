@@ -233,7 +233,7 @@ namespace Rococo::Gui
 
 	inline GRRenderState GRRenderState_HoveredOnly() { return GRRenderState(false, true, false); }
 
-	// Passed to SetColour(...) methods to indicate that the scheme should automatically generate intensities for the various state combinations
+	// Passed to SetColour(...) methods to indicate that the scheme should automatically generate colour intensities for the various state combinations by varying some colour parameter supplied to the API call
 	inline GRRenderState GRGenerateIntensities() { return GRRenderState(false, false, false); }
 
 	ROCOCO_INTERFACE IGRScheme
@@ -699,6 +699,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetDivision& First() = 0;
 		virtual IGRWidgetDivision& Second() = 0;
 		virtual IGRWidgetSplitter& SetDraggerMinMax(int32 minValue, int32 maxValue) = 0;
+		virtual IEventImpressario<int>& EvOnSplitSizeChanged() = 0;
 	};
 
 	struct IGRWidgetCollapser;

@@ -1310,7 +1310,7 @@ namespace Rococo::Reflection
 		v.Reflect(name, rstring, readOnly);
 	}
 
-	void SetSection(Reflection::IReflectionVisitor& v, const char* format, ...)
+	void EnterSection(Reflection::IReflectionVisitor& v, const char* format, ...)
 	{
 		char text[256];
 		va_list args;
@@ -1318,7 +1318,7 @@ namespace Rococo::Reflection
 		SafeVFormat(text, sizeof text, format, args);
 		va_end(args);
 
-		v.SetSection(text);
+		v.EnterSection(text);
 	}
 
 	void EnterElement(Reflection::IReflectionVisitor& v, const char* format, ...)

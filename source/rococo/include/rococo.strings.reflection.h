@@ -128,6 +128,6 @@ namespace Rococo::Reflection
 	}
 
 	ROCOCO_API void ReflectStackFormat(IReflectionVisitor& v, cstr variableName, const char* format, ...);
-	ROCOCO_API void SetSection(IReflectionVisitor& v, const char* format, ...);
+	ROCOCO_API void EnterSection(IReflectionVisitor& v, const char* format, ...);
 	ROCOCO_API void EnterElement(IReflectionVisitor& v, const char* format, ...);
 }

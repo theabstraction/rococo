@@ -128,9 +128,12 @@ namespace GRANON
 
 	struct PreviewData
 	{
-		PreviewData(PreviewData* _parent) : parent(_parent)
+		PreviewData(PreviewData* _parent, const char* _instanceName = nullptr) : parent(_parent)
 		{
-
+			if (_instanceName != nullptr)
+			{
+				this->instanceName = _instanceName;
+			}
 		}
 
 		~PreviewData()
@@ -223,10 +226,15 @@ namespace GRANON
 			subTargetCount++;
 		}
 
-		void SetSection(cstr sectionName)
+		void EnterSection(cstr sectionName)
 		{
 			UNUSED(sectionName);
 			sectionCount++;
+		}
+
+		void LeaveSection()
+		{
+
 		}
 	};
 
@@ -295,9 +303,16 @@ namespace GRANON
 			target = subSection->parent;
 		}
 
-		void SetSection(cstr sectionName)
+		void EnterSection(cstr sectionName)
 		{
-			target->instanceName = sectionName;
+			auto* child = new PreviewData(target, sectionName);
+			target->AddField(sectionName, child);
+			target = child;
+		}
+
+		void LeaveSection()
+		{
+			target = target->parent;
 		}
 
 		void EnterContainer(cstr name) override
@@ -506,6 +521,23 @@ namespace GRANON
 
 		void SyncUIToPreviewerRecursive(PreviewData& data, IGRWidget& parentContainer, int32 depth)
 		{
+			if (data.fields.empty())
+			{
+				char message[1024];
+				Strings::StackStringBuilder sb(message, sizeof message);
+				sb.AppendFormat("[PreviewData& data] had no fields.\n");
+
+				PreviewData* pData = &data;
+				while(pData)
+				{
+					sb.AppendFormat(" under node %s\n", pData->instanceName.length() > 0 ? pData->instanceName.c_str() : "<anon>");
+					pData = pData->parent;
+				}
+
+				parentContainer.Panel().Root().Custodian().RaiseError(EGRErrorCode::BadSpanHeight, __FUNCTION__, "%s", message);
+				return;
+			}
+
 			auto& collapser = CreateCollapser(parentContainer, *this);
 			collapser.Widget().Panel().Set(GRAnchors::ExpandAll());
 			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
@@ -524,6 +556,11 @@ namespace GRANON
 			else
 			{
 				SafeFormat(title, "%s", data.instanceName.c_str());
+			}
+
+			if (*title == 0)
+			{
+				SafeFormat(title, "root");
 			}
 
 			auto& titleDescription = Rococo::Gui::CreateText(titleDiv).SetText(title);

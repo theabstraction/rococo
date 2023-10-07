@@ -15,7 +15,7 @@ struct TestDog : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		v.SetSection("Dog");
+		Section("Dog", v);
 		ROCOCO_REFLECT(v, name);
 		ROCOCO_REFLECT(v, breed);
 		ROCOCO_REFLECT(v, isHappy);
@@ -38,7 +38,7 @@ struct TestKennel : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		v.SetSection("Kennel");
+		Section("Kennel", v);
 		ROCOCO_REFLECT(v, taxCode);
 		ROCOCO_REFLECT(v, cost);
 		ROCOCO_REFLECT(v, dog)
@@ -62,7 +62,7 @@ struct TestPuppy : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		v.SetSection("Puppy");
+		Section("Puppy", v);
 		ROCOCO_REFLECT(v, name);
 		ROCOCO_REFLECT(v, id);
 	}
@@ -77,17 +77,17 @@ void Visit(IReflectionVisitor& v, T& t)
 template<class T>
 void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 {
-	v.EnterContainer(name);
+	Container container(name, v);
+
 	int i = 0;
 	for (auto& element : elements)
 	{
 		char index[16];
 		SafeFormat(index, "%d", i++);
-		v.EnterElement(index);
+
+		Element elementSection(index, v);
 		Visit(v, element);
-		v.LeaveElement();
 	}
-	v.LeaveContainer();
 }
 
 struct TestHouse : IReflectionTarget
@@ -109,7 +109,7 @@ struct TestHouse : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		v.SetSection("House");
+		Section("House", v);
 		ROCOCO_REFLECT(v, houseName);
 		ROCOCO_REFLECT(v, houseNumber);
 		ROCOCO_REFLECT(v, streetAddress);

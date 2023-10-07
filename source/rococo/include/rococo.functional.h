@@ -221,7 +221,7 @@ namespace Rococo
 
 		FORCE_INLINE ArbitraryFunction(ArbitraryFunction&& source)
 		{
-			if (source.implementation == source.stackspace)
+			if ((char*)(source.implementation) == source.stackspace)
 			{
 				source.implementation->CopyTo(stackspace);
 				implementation = (IProxyCommissary*)stackspace;

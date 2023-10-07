@@ -596,36 +596,36 @@ public:
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		v.SetSection("DX11AppRenderer");
+		Section renderer("DX11AppRenderer", v);
 
-		v.EnterContainer("Adapters");
-
-		for (UINT i = 0; i < 10; i++)
 		{
-			IDXGIAdapter* adapter = nullptr;
-			factory.EnumAdapters(i, &adapter);
-			if (!adapter)
+			Container container("adapters", v);
+
+			for (UINT i = 0; i < 10; i++)
 			{
-				break;
+				IDXGIAdapter* adapter = nullptr;
+				factory.EnumAdapters(i, &adapter);
+				if (!adapter)
+				{
+					break;
+				}
+
+				DXGI_ADAPTER_DESC desc;
+				adapter->GetDesc(&desc);
+
+				EnterElement(v, "Adapter #%u", i);
+
+				ReflectStackFormat(v, "Description", "%ws", desc.Description);
+				ReflectStackFormat(v, "DedicatedSystemMemory", "%llu MB", desc.DedicatedSystemMemory / 1_megabytes);
+				ReflectStackFormat(v, "DedicatedVideoMemory", "%llu MB", desc.DedicatedVideoMemory / 1_megabytes);
+				ReflectStackFormat(v, "SharedSystemMemory", "%llu MB", desc.SharedSystemMemory / 1_megabytes);
+
+				v.LeaveElement();
 			}
 
-			DXGI_ADAPTER_DESC desc;
-			adapter->GetDesc(&desc);
-
-			EnterElement(v, "Adapter #%u", i);
-
-			ReflectStackFormat(v, "Description", "%ws", desc.Description);
-			ReflectStackFormat(v, "DedicatedSystemMemory", "%llu MB", desc.DedicatedSystemMemory / 1_megabytes);
-			ReflectStackFormat(v, "DedicatedVideoMemory",  "%llu MB", desc.DedicatedVideoMemory / 1_megabytes);
-			ReflectStackFormat(v, "SharedSystemMemory",    "%llu MB", desc.SharedSystemMemory / 1_megabytes);
-
-			v.LeaveElement();
 		}
 
-		v.LeaveContainer();
-
 		ReflectStackFormat(v, "ScreenSpan", "%d x %d", screenSpan.x, screenSpan.y);
-
 		ReflectStackFormat(v, "AIcost",			"%f ms", Time::ToMilliseconds(AIcost));
 		ReflectStackFormat(v, "guiCost",		"%f ms", Time::ToMilliseconds(guiCost));
 		ReflectStackFormat(v, "objCost",		"%f ms", Time::ToMilliseconds(objCost));
