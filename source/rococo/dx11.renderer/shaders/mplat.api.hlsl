@@ -176,3 +176,47 @@ float4 GetFontPixel(float3 uv_blend, float4 vertexColour)
 	float fontIntensity = lerp(1.0f, tx_FontSprite.Sample(fontSampler, uv_blend.xy).x, uv_blend.z);
 	return float4(vertexColour.xyz, fontIntensity);
 }
+
+float3 fade(float3 t)
+{
+    // f = 6t^5 - 15t^4 + 10t^3
+    // if (t == 0 then f == 0)
+    // if (t == 1 then f == 1)
+    
+    // df/dt = 30t^4 - 60t^3 + 30t^2. When t == 0 df/dt == 0 and when t = 1 df/dt = 0
+    
+    // f''(t) = df2/dt^2 = 120t^3 - 180t^2 + 60t. f''(0) =  0 and f''(1) = 0
+    
+    // Thus f has the property that it interpolates between 0 and 1 with t going from 0 to 1 and its first and second order derivatives are zero at the bounds    
+    
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+// Convert an x into a 0 to 1 value, the permSampler contains a pseudorandom vector
+float perm(float x)
+{
+    return tx_noisePermutationArray.Sample(noisePermutationSampler, x / 256.0).x * 256;
+}
+
+// The gradient array consists of unit length components, so the dot product effectively flips, preserves or nullifies components from p
+float grad(float x, float3 p)
+{
+    return dot(tx_noiseGradientArray.Sample(noiseGradientSampler, x).xyz, p);
+}
+
+// 3D version 
+float inoise(float3 p)
+{
+    float3 P = fmod(floor(p), 256.0);
+    p -= floor(p);
+    float3 f = fade(p);
+	// HASH COORDINATES FOR 6 OF THE 8 CUBE CORNERS 
+    float A = perm(P.x) + P.y;
+    float AA = perm(A) + P.z;
+    float AB = perm(A + 1) + P.z;
+    float B = perm(P.x + 1) + P.y;
+    float BA = perm(B) + P.z;
+    float BB = perm(B + 1) + P.z;
+	// AND ADD BLENDED RESULTS FROM 8 CORNERS OF CUBE
+    return lerp(lerp(lerp(grad(perm(AA), p), grad(perm(BA), p + float3(-1, 0, 0)), f.x), lerp(grad(perm(AB), p + float3(0, -1, 0)), grad(perm(BB), p + float3(-1, -1, 0)), f.x), f.y), lerp(lerp(grad(perm(AA + 1), p + float3(0, 0, -1)), grad(perm(BA + 1), p + float3(-1, 0, -1)), f.x), lerp(grad(perm(AB + 1), p + float3(0, -1, -1)), grad(perm(BB + 1), p + float3(-1, -1, -1)), f.x), f.y), f.z);
+}

@@ -138,6 +138,74 @@ private:
 		dc.Draw(nVertices, startPosition);
 	}
 
+	ID_VERTEX_SHADER vsFillerId;
+	AutoRelease<ID3D11Buffer> unitSquare;
+	AutoRelease<ID3D11RasterizerState> fillerRasterizering;
+	AutoRelease<ID3D11BlendState> fillerBlend;
+	AutoRelease<ID3D11DepthStencilState> fillerDepthStencilState;
+
+	void Fill(ID_TEXTURE renderTargetId, ID_PIXEL_SHADER pixelShaderId)
+	{
+		if (!vsFillerId)
+		{
+			D3D11_INPUT_ELEMENT_DESC fillerVertexDesc[] =
+			{
+				 { "position", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			};
+			vsFillerId = shaders->CreateVertexShader("!shaders/compiled/filler.vs", fillerVertexDesc, 1);
+		}
+
+		if (!unitSquare)
+		{
+			Vec2 vertices[6] =
+			{
+				{0,0}, {0,1}, {1,1},
+				{1,1}, {1,0}, {0,0}
+			};
+
+			unitSquare = CreateImmutableVertexBuffer(device, vertices, 6);
+		}
+
+		if (!fillerRasterizering)
+		{
+			fillerRasterizering = DX11::CreateSpriteRasterizer(device);
+		}
+
+		if (!fillerBlend)
+		{
+			fillerBlend = DX11::CreateNoBlend(device);
+		}
+
+		if (!fillerDepthStencilState)
+		{
+			fillerDepthStencilState = DX11::CreateGuiDepthStencilState(device);
+		}
+
+		if (!shaders->UseShaders(vsFillerId, pixelShaderId))
+		{
+			Throw(0, "%s: error applying shaders.", __FUNCTION__);
+		}
+
+		UINT stride = sizeof Vec2;
+		UINT offsets = 0;
+
+		auto& tb = textureManager->GetTexture(renderTargetId);
+
+		if (!tb.renderView)
+		{
+			Throw(0, "%s: no render view for the given render target", __FUNCTION__);
+		}
+
+		Vec4 blendFactors{ 0,0,0,0 };
+		dc.OMSetBlendState(fillerBlend, &blendFactors.x, 0xFFFF'FFFF);
+		dc.RSSetState(fillerRasterizering);
+		dc.OMSetDepthStencilState(fillerDepthStencilState, 0);
+		dc.OMSetRenderTargets(1, &tb.renderView, nullptr);
+		dc.IASetVertexBuffers(0, 1, &unitSquare, &stride, &offsets);
+		dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		dc.Draw(6, 0);
+	}
+
 	bool IsFullscreen() override
 	{
 		return currentWindowBacking ? currentWindowBacking->IsFullscreen() : false;

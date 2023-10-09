@@ -30,8 +30,8 @@ namespace Rococo::Graphics
 
 	namespace Samplers
 	{
-		enum Filter : int32;
-		enum AddressMode : int32;
+		enum class Filter : int32;
+		enum class AddressMode : int32;
 	}
 }
 

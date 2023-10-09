@@ -100,7 +100,7 @@ namespace Rococo::DX11
 		return { tex2D, srv, nullptr, depthView };
 	}
 
-	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height)
+	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height, TextureFormat format)
 	{
 		ID3D11Texture2D* tex2D = nullptr;
 		ID3D11ShaderResourceView* srv = nullptr;
@@ -112,7 +112,27 @@ namespace Rococo::DX11
 			desc.ArraySize = 1;
 			desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 			desc.CPUAccessFlags = 0;
-			desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+
+			DXGI_FORMAT viewDescFormat;
+
+			switch (format)
+			{
+			case TextureFormat_RGBA_32_BIT:
+				desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+				viewDescFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+				break;
+			case TextureFormat_8_BIT_UFLOAT:
+				desc.Format = DXGI_FORMAT_R8_UNORM;
+				viewDescFormat = DXGI_FORMAT_R8_UNORM;
+				break;
+			case TextureFormat_32_BIT_FLOAT:
+				desc.Format = DXGI_FORMAT_R32_TYPELESS;
+				viewDescFormat = DXGI_FORMAT_R32_FLOAT;
+				break;
+			default:
+				Throw(0, "%s: unhandled texture format %u", __FUNCTION__, format);
+			}
+
 			desc.Height = height;
 			desc.Width = width;
 			desc.MipLevels = 1;
@@ -126,13 +146,13 @@ namespace Rococo::DX11
 			rdesc.Texture2D.MipLevels = 1;
 			rdesc.Texture2D.MostDetailedMip = 0;
 			rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			rdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			rdesc.Format = viewDescFormat;
 			VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
 
 			D3D11_RENDER_TARGET_VIEW_DESC rtdesc;
 			rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 			rtdesc.Texture2D.MipSlice = 0;
-			rtdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			rtdesc.Format = viewDescFormat;
 			VALIDATEDX11(device.CreateRenderTargetView(tex2D, &rtdesc, &rtv));
 		}
 		catch (IException&)

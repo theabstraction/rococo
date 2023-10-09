@@ -15,6 +15,7 @@
 using namespace Rococo;
 using namespace Rococo::Reflection;
 using namespace Rococo::Graphics;
+using namespace Rococo::Graphics::Samplers;
 
 namespace Rococo::RAL::Anon
 {
@@ -43,6 +44,9 @@ namespace Rococo::RAL::Anon
 		Time::Timer objectRenderTimer = "objectRenderTimer";
 		Time::Timer objectRendererInitTime = "objectRendererInitTime";
 
+		ID_TEXTURE noisePermutationTextureId;
+		ID_TEXTURE noiseGradientTextureId;
+
 		RALPipeline(IRenderStates& _renderStates, IRAL& _ral): 
 			renderStates(_renderStates), ral(_ral)
 		{
@@ -58,6 +62,12 @@ namespace Rococo::RAL::Anon
 			gui3D = CreateGui3D(_ral, _renderStates, *this);
 			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_Renderer(_ral, _renderStates, *this, *this));
 			boneBuffer = CreateRALBoneStateBuffer(_ral, _renderStates);
+
+			noisePermutationTextureId = RAL::GeneratePermuationTexture(ral);
+			noiseGradientTextureId = RAL::GenerateGradientTexture(ral);
+
+			ral.RALTextures().AssignToPS(TXUNIT_NOISE_PERMUTATION, noisePermutationTextureId);
+			ral.RALTextures().AssignToPS(TXUNIT_NOISE_GRADIENT_LOOKUP, noiseGradientTextureId);
 		}
 
 		Rococo::Graphics::IGui3D& Gui3D() override
@@ -79,13 +89,15 @@ namespace Rococo::RAL::Anon
 		{
 			RGBA red{ 1.0f, 0, 0, 1.0f };
 			RGBA transparent{ 0.0f, 0, 0, 0.0f };
-			renderStates.SetSamplerDefaults(TXUNIT_FONT, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
-			renderStates.SetSamplerDefaults(TXUNIT_SHADOW, Samplers::Filter_Linear, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
-			renderStates.SetSamplerDefaults(TXUNIT_ENV_MAP, Samplers::Filter_Anisotropic, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
-			renderStates.SetSamplerDefaults(TXUNIT_SELECT, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
-			renderStates.SetSamplerDefaults(TXUNIT_MATERIALS, Samplers::Filter_Linear, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, Samplers::AddressMode_Wrap, red);
-			renderStates.SetSamplerDefaults(TXUNIT_SPRITES, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, red);
-			renderStates.SetSamplerDefaults(TXUNIT_GENERIC_TXARRAY, Samplers::Filter_Point, Samplers::AddressMode_Border, Samplers::AddressMode_Border, Samplers::AddressMode_Border, transparent);
+			renderStates.SetSamplerDefaults(TXUNIT_FONT, Filter::Linear, AddressMode::Border, AddressMode::Border, AddressMode::Border, red);
+			renderStates.SetSamplerDefaults(TXUNIT_SHADOW, Filter::Linear, AddressMode::Border, AddressMode::Border, AddressMode::Border, red);
+			renderStates.SetSamplerDefaults(TXUNIT_ENV_MAP, Filter::Anisotropic, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
+			renderStates.SetSamplerDefaults(TXUNIT_SELECT, Filter::Linear, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
+			renderStates.SetSamplerDefaults(TXUNIT_MATERIALS, Filter::Linear, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
+			renderStates.SetSamplerDefaults(TXUNIT_SPRITES, Filter::Point, AddressMode::Border, AddressMode::Border, AddressMode::Border, red);
+			renderStates.SetSamplerDefaults(TXUNIT_GENERIC_TXARRAY, Filter::Point, AddressMode::Border, AddressMode::Border, AddressMode::Border, transparent);
+			renderStates.SetSamplerDefaults(TXUNIT_NOISE_PERMUTATION, Filter::Point, AddressMode::Mirror, AddressMode::Clamp, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
+			renderStates.SetSamplerDefaults(TXUNIT_NOISE_GRADIENT_LOOKUP, Filter::Point, AddressMode::Mirror, AddressMode::Clamp, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
 		}
 
 		void AssignGlobalStateBufferToShaders()

@@ -138,7 +138,7 @@ namespace Rococo::DX11
 	void GetTextureDesc(TextureDesc& desc, ID3D11Texture2D& texture);
 	void ShowVenueForDevice(IMathsVisitor& visitor, ID3D11Device& device);
 	TextureBind CreateDepthTarget(ID3D11Device& device, int32 width, int32 height);
-	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height);
+	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height, TextureFormat format);
 
 	bool PrepareDepthRenderFromLight(const LightConstantBuffer& light, DepthRenderData& drd);
 

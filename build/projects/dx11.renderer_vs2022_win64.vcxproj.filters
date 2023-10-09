@@ -35,4 +35,9 @@
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11helpers.inl" />
     <ClInclude Include="..\..\source\rococo\dx11.renderer\rococo.dx11.api.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{84e49bfd-9f22-4d34-9570-9ef9155b2847}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
 </Project>

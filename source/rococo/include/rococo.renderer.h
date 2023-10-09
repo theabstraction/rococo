@@ -40,6 +40,14 @@ namespace Rococo::RAL
 
 namespace Rococo::Graphics
 {
+	enum TextureFormat
+	{
+		TextureFormat_32_BIT_FLOAT,
+		TextureFormat_RGBA_32_BIT,
+		TextureFormat_8_BIT_UFLOAT,
+		TextureFormat_UNKNOWN
+	};
+
 	ROCOCO_INTERFACE IMaterialPalette
 	{
 		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData & vd) const = 0;
@@ -127,7 +135,7 @@ namespace Rococo::Graphics
 		virtual void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) = 0;
 
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
-		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height) = 0;
+		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) = 0;
 		virtual void Free() = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) = 0;
 		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
@@ -343,18 +351,20 @@ namespace Rococo::Graphics
 
 	namespace Samplers
 	{
-		enum Filter : int32
+		enum class Filter : int32
 		{
-			Filter_Point = 0,
-			Filter_Linear = 1,
-			Filter_Anisotropic = 2
+			Point = 0,
+			Linear = 1,
+			Anisotropic = 2
 		};
 
-		enum AddressMode : int32
+		enum class AddressMode : int32
 		{
-			AddressMode_Border = 0,
-			AddressMode_Mirror = 1,
-			AddressMode_Wrap = 2,
+			Border = 0,
+			Mirror = 1,
+			Wrap = 2,
+			Clamp = 3,
+			MirrorOnce = 4
 		};
 	}
 
@@ -386,13 +396,6 @@ namespace Rococo::Graphics
 
 	ROCOCO_GRAPHICS_API Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
 	ROCOCO_GRAPHICS_API Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
-
-	enum TextureFormat
-	{
-		TextureFormat_32_BIT_FLOAT,
-		TextureFormat_RGBA_32_BIT,
-		TextureFormat_UNKNOWN
-	};
 
 	struct TextureDesc
 	{

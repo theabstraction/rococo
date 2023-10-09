@@ -244,6 +244,8 @@ SamplerState selectSampler: register(s3);
 SamplerState matSampler: register(s4);
 SamplerState spriteSampler: register(s5);
 SamplerState glyphSampler: register(s6);
+SamplerState noisePermutationSampler : register(s7);
+SamplerState noiseGradientSampler : register(s8);
 
 Texture2D tx_FontSprite: register(t0);
 Texture2D tx_ShadowMap: register(t1);
@@ -252,6 +254,8 @@ Texture2D tx_SelectedTexture : register(t3);
 Texture2DArray tx_materials: register(t4);
 Texture2DArray tx_BitmapSprite: register(t5);
 Texture2DArray tx_GlyphArray: register(t6);
+Texture1D tx_noisePermutationArray : register(t7);
+Texture1D tx_noiseGradientArray : register(t8);
 
 float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
 {

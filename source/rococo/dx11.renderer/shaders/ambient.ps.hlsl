@@ -14,6 +14,12 @@ float4 main(ObjectPixelVertex p): SV_TARGET
 	
 	texel = ModulateWithEnvMap(texel, incident.xyz, normal, p.uv_material_and_gloss.w);
 	
+	float2 uv = p.uv_material_and_gloss.xy;
+
+	float noiseX = inoise(p.position.xyz);
+	
+	texel = float4(noiseX, noiseX, noiseX, 1.0f);
+	
 //	return float4(SignedToUnsignedV3(normal), 1.0f);
 //	return float4(SignedToUnsignedV3(reflectionVector), 1.0f);
 

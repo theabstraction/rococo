@@ -577,9 +577,9 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		return id;
 	}
 
-	ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height) override
+	ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) override
 	{
-		TextureBind tb = DX11::CreateRenderTarget(device, width, height);
+		TextureBind tb = DX11::CreateRenderTarget(device, width, height, format);
 		textures.push_back(tb);
 		auto id = ID_TEXTURE(textures.size());
 		char name[32];

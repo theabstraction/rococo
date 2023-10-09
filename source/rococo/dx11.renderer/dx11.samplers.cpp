@@ -11,14 +11,18 @@ namespace Rococo::DX11
 	{
 		switch (mode)
 		{
-		case AddressMode_Border:
+		case AddressMode::Border:
 			return D3D11_TEXTURE_ADDRESS_BORDER;
-		case AddressMode_Wrap:
+		case AddressMode::Wrap:
 			return D3D11_TEXTURE_ADDRESS_WRAP;
-		case AddressMode_Mirror:
+		case AddressMode::Mirror:
 			return D3D11_TEXTURE_ADDRESS_MIRROR;
-		default:
+		case AddressMode::MirrorOnce:
+			return D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+		case AddressMode::Clamp:
 			return D3D11_TEXTURE_ADDRESS_CLAMP;
+		default:
+			Throw(0, "Unknown sampler address mode %d", mode);
 		}
 	}
 
@@ -28,7 +32,7 @@ namespace Rococo::DX11
 
 		switch (filter)
 		{
-		case Filter_Point:
+		case Filter::Point:
 			desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 			break;
 		default:

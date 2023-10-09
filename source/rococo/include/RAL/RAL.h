@@ -113,5 +113,11 @@ namespace Rococo::RAL
 		virtual Rococo::Graphics::IShaders& Shaders() = 0;
 		virtual Rococo::Graphics::ITextureManager& RALTextures() = 0;
 		virtual Rococo::Graphics::IRenderContext& RenderContext() = 0;
+
+		// Sets the specified texture to be the render target, then executes the pixel shader for (0,0) to (1,1), filling in the texture with the output from the shader
+		virtual void Fill(ID_TEXTURE renderTargetId, ID_PIXEL_SHADER pixelShaderId) = 0;
 	};
+
+	ID_TEXTURE GeneratePermuationTexture(IRAL& ral);
+	ID_TEXTURE GenerateGradientTexture(IRAL& ral);
 }
