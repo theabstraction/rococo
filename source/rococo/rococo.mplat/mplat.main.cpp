@@ -300,9 +300,16 @@ Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_windowFontSize =
 	24, 12, 120
 };
 
+Rococo::Strings::CLI::CommandLineOption cmdOptionPIX =
+{
+	"-pix"_fstring,
+	"Load PIX prerequisites. Required when attaching PIX."_fstring
+};
+
 const Rococo::Strings::CLI::CommandLineOption* options[] =
 {
 	&cmdOptionHelp,
+	&cmdOptionPIX,
 	&cmdOptionTitle,
 	&cmdOptionFontScale,
 	&cmdOptionFontFaceName,
@@ -553,6 +560,8 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	factorySpec.hResourceInstance = hInstance;
 	factorySpec.largeIcon = hLargeIcon;
 	factorySpec.smallIcon = hSmallIcon;
+	factorySpec.preparePix = Rococo::Strings::CLI::HasSwitch(cmdOptionPIX);
+
 	AutoFree<IGraphicsWindowFactory> factory = CreateGraphicsWindowFactory(*installation, *logger, factorySpec, *shaderOptions);
 
 	bool dwa = Rococo::Strings::CLI::HasSwitch(cmdOptionDisableWindowsAssociationInDX11);

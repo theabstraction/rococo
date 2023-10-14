@@ -1,13 +1,9 @@
+#include <mplat.types.hlsl>
+
 struct FillerVertex
 {
 	float2 position : POSITION;
 };
-
-struct FillerPixelVertex
-{
-	float4 position : SV_POSITION0;
-};
-
 
 FillerPixelVertex main(FillerVertex vertexInput )
 {

@@ -40,13 +40,7 @@ namespace Rococo::RAL
 
 namespace Rococo::Graphics
 {
-	enum TextureFormat
-	{
-		TextureFormat_32_BIT_FLOAT,
-		TextureFormat_RGBA_32_BIT,
-		TextureFormat_8_BIT_UFLOAT,
-		TextureFormat_UNKNOWN
-	};
+	enum class TextureFormat : uint32;
 
 	ROCOCO_INTERFACE IMaterialPalette
 	{

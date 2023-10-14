@@ -3,6 +3,7 @@
 
 #include <rococo.imaging.h>
 #include <rococo.io.h>
+#include <rococo.renderer.formats.h>
 
 #include <string>
 
@@ -273,13 +274,13 @@ namespace Rococo
           switch (edesc.Format)
           {
           case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-              desc.format = TextureFormat_RGBA_32_BIT;
+              desc.format = TextureFormat::F_RGBA_32_BIT;
               break;
           case DXGI_FORMAT_R32_TYPELESS:
-              desc.format = TextureFormat_32_BIT_FLOAT;
+              desc.format = TextureFormat::F_32_BIT_FLOAT;
               break;
           default:
-              desc.format = TextureFormat_UNKNOWN;
+              desc.format = TextureFormat::F_UNKNOWN;
           }
       }
    } // DX11

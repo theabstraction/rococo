@@ -63,11 +63,8 @@ namespace Rococo::RAL::Anon
 			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_Renderer(_ral, _renderStates, *this, *this));
 			boneBuffer = CreateRALBoneStateBuffer(_ral, _renderStates);
 
-			noisePermutationTextureId = RAL::GeneratePermuationTexture(ral);
-			noiseGradientTextureId = RAL::GenerateGradientTexture(ral);
-
-			ral.RALTextures().AssignToPS(TXUNIT_NOISE_PERMUTATION, noisePermutationTextureId);
-			ral.RALTextures().AssignToPS(TXUNIT_NOISE_GRADIENT_LOOKUP, noiseGradientTextureId);
+			// Comment out InitResources(1) to force some initialization during the first frame. This allows initialization to be profiles in graphics debuggers.
+		//	InitResources(1);
 		}
 
 		Rococo::Graphics::IGui3D& Gui3D() override
@@ -85,6 +82,19 @@ namespace Rococo::RAL::Anon
 			delete this;
 		}
 
+		void InitResources(int64 frameIndex)
+		{
+			// We init some stuff here, between Present calls, to allow graphics debuggers analyis of initialization calls as part of the frame capture.
+			if (frameIndex > 0 && !noisePermutationTextureId)
+			{
+				noisePermutationTextureId = RAL::GeneratePermuationTexture(ral);
+				noiseGradientTextureId = RAL::GenerateGradientTexture(ral);
+			}
+			
+			if (noisePermutationTextureId) ral.RALTextures().AssignToPS(TXUNIT_NOISE_PERMUTATION, noisePermutationTextureId);
+			if (noiseGradientTextureId) ral.RALTextures().AssignToPS(TXUNIT_NOISE_GRADIENT_LOOKUP, noiseGradientTextureId);
+		}
+
 		void SetSamplerDefaults()
 		{
 			RGBA red{ 1.0f, 0, 0, 1.0f };
@@ -96,8 +106,8 @@ namespace Rococo::RAL::Anon
 			renderStates.SetSamplerDefaults(TXUNIT_MATERIALS, Filter::Linear, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
 			renderStates.SetSamplerDefaults(TXUNIT_SPRITES, Filter::Point, AddressMode::Border, AddressMode::Border, AddressMode::Border, red);
 			renderStates.SetSamplerDefaults(TXUNIT_GENERIC_TXARRAY, Filter::Point, AddressMode::Border, AddressMode::Border, AddressMode::Border, transparent);
-			renderStates.SetSamplerDefaults(TXUNIT_NOISE_PERMUTATION, Filter::Point, AddressMode::Mirror, AddressMode::Clamp, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
-			renderStates.SetSamplerDefaults(TXUNIT_NOISE_GRADIENT_LOOKUP, Filter::Point, AddressMode::Mirror, AddressMode::Clamp, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
+			renderStates.SetSamplerDefaults(TXUNIT_NOISE_PERMUTATION, Filter::Point, AddressMode::Wrap, AddressMode::Clamp, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
+			renderStates.SetSamplerDefaults(TXUNIT_NOISE_GRADIENT_LOOKUP, Filter::Point, AddressMode::Wrap, AddressMode::Clamp, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
 		}
 
 		void AssignGlobalStateBufferToShaders()
@@ -197,6 +207,7 @@ namespace Rococo::RAL::Anon
 			renderStates.AssignGuiShaderResources();
 			renderStates.ResetSamplersToDefaults();
 
+			InitResources(metrics.frameIndex);
 			TIME_FUNCTION_CALL(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets));
 
 			lightCones->DrawLightCones(scene);

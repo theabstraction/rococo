@@ -1,5 +1,7 @@
 // This list was generated randomly with a std::vector<int> of size 256 and with std::shuffle. See Rococo::Sequences::ShuffleInt32Indices for example code
 
+#include <mplat.types.hlsl>
+
 static int permutation[256] = 
 {   
 	76, 95, 161, 74, 102, 30, 201, 140, 
@@ -38,7 +40,9 @@ static int permutation[256] =
 
 // This code is used to generate a pseudorandom hashing function that transforms a float to some random in the range 0 to 1.0f.
 
-float4 main(float p : POSITION) : SV_TARGET 
+float4 main(FillerPixelVertex p) : SV_TARGET
 {   
-	 return permutation[p * 256] / 255.0;  
+	// x will range from 0 to 255.0
+    float x = p.position.x;
+	return permutation[x] / 255.0;  
 }   

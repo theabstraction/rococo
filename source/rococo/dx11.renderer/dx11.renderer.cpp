@@ -75,6 +75,8 @@ private:
 	RAWMOUSE lastMouseEvent;
 	Vec2i screenSpan;
 
+	int64 frameIndex = 0;
+
 	std::vector<ID3D11Buffer*> boundVertexBuffers;
 	std::vector<UINT> boundVertexBufferStrides;
 	std::vector<UINT> boundVertexBufferOffsets;
@@ -159,8 +161,8 @@ private:
 		{
 			Vec2 vertices[6] =
 			{
-				{0,0}, {0,1}, {1,1},
-				{1,1}, {1,0}, {0,0}
+				{-1,-1}, {-1,1}, {1,1},
+				{1,1}, {1,-1}, {-1,-1}
 			};
 
 			unitSquare = CreateImmutableVertexBuffer(device, vertices, 6);
@@ -178,7 +180,10 @@ private:
 
 		if (!fillerDepthStencilState)
 		{
-			fillerDepthStencilState = DX11::CreateGuiDepthStencilState(device);
+			D3D11_DEPTH_STENCIL_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+			desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+			VALIDATEDX11(device.CreateDepthStencilState(&desc, &fillerDepthStencilState));
 		}
 
 		if (!shaders->UseShaders(vsFillerId, pixelShaderId))
@@ -196,6 +201,9 @@ private:
 			Throw(0, "%s: no render view for the given render target", __FUNCTION__);
 		}
 
+		D3D11_TEXTURE2D_DESC desc;
+		tb.texture->GetDesc(&desc);
+
 		Vec4 blendFactors{ 0,0,0,0 };
 		dc.OMSetBlendState(fillerBlend, &blendFactors.x, 0xFFFF'FFFF);
 		dc.RSSetState(fillerRasterizering);
@@ -203,7 +211,16 @@ private:
 		dc.OMSetRenderTargets(1, &tb.renderView, nullptr);
 		dc.IASetVertexBuffers(0, 1, &unitSquare, &stride, &offsets);
 		dc.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		D3D11_VIEWPORT viewport = { 0 };
+		viewport.Width = FLOAT(desc.Width);
+		viewport.Height = FLOAT(desc.Height);
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		dc.RSSetViewports(1, &viewport);
 		dc.Draw(6, 0);
+
+		dc.OMSetRenderTargets(0, nullptr, nullptr);
 	}
 
 	bool IsFullscreen() override
@@ -563,6 +580,8 @@ public:
 			metrics.cursorPosition = Vec2i{ -1, -1 };
 			metrics.screenSpan = Vec2i{ 1, 1 };
 		}
+
+		metrics.frameIndex = frameIndex;
 	}
 
 	void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances) override
@@ -618,6 +637,8 @@ public:
 		now = Time::TickCount();
 		frameTime = now - lastTick;
 		lastTick = now;
+
+		frameIndex++;
 	}
 
 	void ResizeBuffers()

@@ -165,6 +165,7 @@ namespace Rococo::Graphics
 	{
 		Vec2i cursorPosition;
 		Vec2i screenSpan;
+		int64 frameIndex;
 	};
 
 	struct ObjectInstance

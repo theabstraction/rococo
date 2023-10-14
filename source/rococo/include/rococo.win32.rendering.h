@@ -121,6 +121,7 @@ namespace Rococo
 		HICON largeIcon = NULL;;
 		HICON smallIcon = NULL;;
 		int adapterIndex = 0;
+		bool preparePix = false;
 	};
 
 	// mplat will link to some graphics library, currently DX11, which implements the following 3 functions that establish the rendering system.

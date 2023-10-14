@@ -75,6 +75,11 @@ struct SpriteVertexData
 	float spriteToMatLerpFactor; // 0 -> use spriteIndex, 1 -> use matIndex, lerping in between
 };
 
+struct FillerPixelVertex
+{
+    float4 position : SV_POSITION0;
+};
+
 struct GuiVertexOpaque
 {
     float2 pos : POSITION;

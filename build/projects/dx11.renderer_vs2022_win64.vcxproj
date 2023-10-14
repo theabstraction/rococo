@@ -262,6 +262,7 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.objects.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.particles.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pipeline.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pix.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.renderer.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.samplers.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.shaders.cpp" />

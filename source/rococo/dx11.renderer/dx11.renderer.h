@@ -281,6 +281,8 @@ namespace Rococo::DX11
 	void Reflect(Reflection::IReflectionVisitor& v, cstr section, ID3D11RasterizerState& state);
 	void Reflect(Reflection::IReflectionVisitor& v, cstr section, ID3D11BlendState& state);
 	void Reflect(Reflection::IReflectionVisitor& v, cstr section, ID3D11DepthStencilState& state);
+
+	void PreparePixDebugger();
 } // Rococo::DX11
 
 namespace Rococo::Memory

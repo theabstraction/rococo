@@ -3,6 +3,7 @@
 #include <rococo.strings.h>
 #include <rococo.ui.h>
 #include <rococo.io.h>
+#include <rococo.renderer.formats.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;
@@ -277,11 +278,11 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 				}
 			};
 
-			if (desc.format == TextureFormat_32_BIT_FLOAT)
+			if (desc.format == TextureFormat::F_32_BIT_FLOAT)
 			{
 				rc.DrawCustomTexturedMesh(absRect, id, "!r32f.ps", quad, 6);
 			}
-			else if (desc.format == TextureFormat_RGBA_32_BIT)
+			else if (desc.format == TextureFormat::F_RGBA_32_BIT)
 			{
 				rc.DrawCustomTexturedMesh(absRect, id, "!gui.texture.ps", quad, 6);
 			}

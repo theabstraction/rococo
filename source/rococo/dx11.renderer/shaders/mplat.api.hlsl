@@ -129,11 +129,6 @@ float4 SampleMaterialByVectors(float3 uvw, float4 colour)
 	return float4(lerp(colour.xyz, texel.xyz, colourToTexelBlendFactor), 1.0f);
 }
 
-float4 SampleMaterial(ObjectPixelVertex v)
-{
-    return SampleMaterialByVectors(v.uv_material_and_gloss.xyz, v.colour);
-}
-
 float SignedToUnsigned (float x)
 {
 	return (x + 1.0f) * 0.5f;
@@ -195,13 +190,18 @@ float3 fade(float3 t)
 // Convert an x into a 0 to 1 value, the permSampler contains a pseudorandom vector
 float perm(float x)
 {
-    return tx_noisePermutationArray.Sample(noisePermutationSampler, x / 256.0).x * 256;
+    return tx_noisePermutationArray.Sample(noisePermutationSampler, x / 256.0f).x * 256.0f;
+}
+
+float3 sampleGrad(float x)
+{
+	return tx_noiseGradientArray.Sample(noiseGradientSampler, x).xyz;
 }
 
 // The gradient array consists of unit length components, so the dot product effectively flips, preserves or nullifies components from p
 float grad(float x, float3 p)
 {
-    return dot(tx_noiseGradientArray.Sample(noiseGradientSampler, x).xyz, p);
+    return dot(sampleGrad(x), p);
 }
 
 // 3D version 
@@ -219,4 +219,9 @@ float inoise(float3 p)
     float BB = perm(B + 1) + P.z;
 	// AND ADD BLENDED RESULTS FROM 8 CORNERS OF CUBE
     return lerp(lerp(lerp(grad(perm(AA), p), grad(perm(BA), p + float3(-1, 0, 0)), f.x), lerp(grad(perm(AB), p + float3(0, -1, 0)), grad(perm(BB), p + float3(-1, -1, 0)), f.x), f.y), lerp(lerp(grad(perm(AA + 1), p + float3(0, 0, -1)), grad(perm(BA + 1), p + float3(-1, 0, -1)), f.x), lerp(grad(perm(AB + 1), p + float3(0, -1, -1)), grad(perm(BB + 1), p + float3(-1, -1, -1)), f.x), f.y), f.z);
+}
+
+float4 SampleMaterial(ObjectPixelVertex v)
+{
+	return lerp(lerp(inoise(float3 (v.uv_material_and_gloss.x * 32.0f, v.uv_material_and_gloss.y * 512.0f, 0.0f)), inoise(float3 (v.uv_material_and_gloss.xy * 4096.0f, 0.0f)), 0.75f), SampleMaterialByVectors(v.uv_material_and_gloss.xyz, v.colour), 0.85f);
 }

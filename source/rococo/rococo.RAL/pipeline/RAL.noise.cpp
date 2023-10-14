@@ -1,6 +1,7 @@
 #include <RAL\RAL.h>
 #include <rococo.graphics.types.h>
 #include <rococo.renderer.h>
+#include <rococo.renderer.formats.h>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
@@ -10,7 +11,7 @@ namespace Rococo::RAL
 {
 	ID_TEXTURE GeneratePermuationTexture(IRAL& ral)
 	{
-		ID_TEXTURE noisePermutationTable = ral.RALTextures().CreateRenderTarget("NoisePermutationTable", 256, 1, TextureFormat_8_BIT_UFLOAT);
+		ID_TEXTURE noisePermutationTable = ral.RALTextures().CreateRenderTarget("NoisePermutationTable", 256, 1, TextureFormat::F_8_BIT_UINT);
 		ID_PIXEL_SHADER shaderId = ral.Shaders().CreatePixelShader("!shaders/compiled/GeneratePermutationTexture.ps");
 		ral.Fill(noisePermutationTable, shaderId);
 		return noisePermutationTable;
@@ -18,31 +19,9 @@ namespace Rococo::RAL
 
 	ID_TEXTURE GenerateGradientTexture(IRAL& ral)
 	{
-		ID_TEXTURE gradientTable = ral.RALTextures().CreateRenderTarget("NoiseGradientTable", 16, 1, TextureFormat_8_BIT_UFLOAT);
+		ID_TEXTURE gradientTable = ral.RALTextures().CreateRenderTarget("NoiseGradientTable", 16, 1, TextureFormat::F_24_BIT_BUMPMAP);
 		ID_PIXEL_SHADER shaderId = ral.Shaders().CreatePixelShader("!shaders/compiled/GenerateGradientTexture.ps");
 		ral.Fill(gradientTable, shaderId);
 		return gradientTable;
 	}
 }
-
-/*
-sampler permSampler = sampler_state 
-{   
-	texture = <permTexture>; 
-	AddressU  = Wrap; 
-	AddressV  = Clamp; 
-	MAGFILTER = POINT;
-	MINFILTER = POINT;
-	MIPFILTER = NONE; 
-}; 
-
-sampler gradSampler = sampler_state  
-{   
-	texture = <gradTexture>;  
-	AddressU  = Wrap;
-	AddressV  = Clamp;
-	MAGFILTER = POINT;
-	MINFILTER = POINT; 
-	MIPFILTER = NONE;
-}; 
-*/

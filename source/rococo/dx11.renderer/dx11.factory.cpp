@@ -149,6 +149,10 @@ namespace Rococo
 
 	ROCOCO_GRAPHICS_API IGraphicsWindowFactory* CreateGraphicsWindowFactory(IO::IInstallation& installation, IGraphicsLogger& logger, const FactorySpec& spec, Rococo::Graphics::IShaderOptions& options)
 	{
+		if (spec.preparePix)
+		{
+			DX11::PreparePixDebugger();
+		}
 		return new ANON::DX11Factory(installation, logger, spec, options);
 	}
 

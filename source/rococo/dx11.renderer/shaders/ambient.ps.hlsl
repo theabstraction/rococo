@@ -11,18 +11,19 @@ float4 main(ObjectPixelVertex p): SV_TARGET
 	float clarity = GetClarity(p);
 	
 	texel.xyz *= clarity;
+		
+	float2 uv = p.uv_material_and_gloss.xy;
+
+	float noiseX = inoise(float3 (uv, 0.0f));
 	
 	texel = ModulateWithEnvMap(texel, incident.xyz, normal, p.uv_material_and_gloss.w);
 	
-	float2 uv = p.uv_material_and_gloss.xy;
-
-	float noiseX = inoise(p.position.xyz);
-	
-	texel = float4(noiseX, noiseX, noiseX, 1.0f);
+//	texel = float4(noiseX, noiseX, noiseX, 1.0f);
 	
 //	return float4(SignedToUnsignedV3(normal), 1.0f);
 //	return float4(SignedToUnsignedV3(reflectionVector), 1.0f);
 
+   // return texel;
 	return texel * ambience.localLight;
 }
 

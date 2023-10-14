@@ -1,5 +1,6 @@
 #include "dx11.renderer.h"
 #include "dx11helpers.inl"
+#include <rococo.renderer.formats.h>
 
 namespace Rococo::DX11
 {
@@ -102,7 +103,7 @@ namespace Rococo::DX11
 
 	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height, TextureFormat format)
 	{
-		ID3D11Texture2D* tex2D = nullptr;
+		ID3D11Texture2D* tex = nullptr;
 		ID3D11ShaderResourceView* srv = nullptr;
 		ID3D11RenderTargetView* rtv = nullptr;
 
@@ -117,15 +118,31 @@ namespace Rococo::DX11
 
 			switch (format)
 			{
-			case TextureFormat_RGBA_32_BIT:
+			case TextureFormat::F_24_BIT_BUMPMAP:
+				desc.Format = DXGI_FORMAT_R8G8B8A8_SNORM;
+				viewDescFormat = DXGI_FORMAT_R8G8B8A8_SNORM;
+				break;
+			case TextureFormat::F_RGBA_32_BIT:
 				desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
 				viewDescFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 				break;
-			case TextureFormat_8_BIT_UFLOAT:
+			case TextureFormat::F_16_BIT_FLOAT:
+				desc.Format = DXGI_FORMAT_R16_FLOAT;
+				viewDescFormat = DXGI_FORMAT_R16_FLOAT;
+				break;
+			case TextureFormat::F_8_BIT_UINT:
 				desc.Format = DXGI_FORMAT_R8_UNORM;
 				viewDescFormat = DXGI_FORMAT_R8_UNORM;
 				break;
-			case TextureFormat_32_BIT_FLOAT:
+			case TextureFormat::F_24_BIT_UINT:
+				desc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
+				viewDescFormat = DXGI_FORMAT_R8G8B8A8_UINT;
+				break;
+			case TextureFormat::F_24_BIT_SINT:
+				desc.Format = DXGI_FORMAT_R8G8B8A8_SINT;
+				viewDescFormat = DXGI_FORMAT_R8G8B8A8_SINT;
+				break;
+			case TextureFormat::F_32_BIT_FLOAT:
 				desc.Format = DXGI_FORMAT_R32_TYPELESS;
 				viewDescFormat = DXGI_FORMAT_R32_FLOAT;
 				break;
@@ -140,29 +157,45 @@ namespace Rococo::DX11
 			desc.SampleDesc.Count = 1;
 			desc.SampleDesc.Quality = 0;
 			desc.Usage = D3D11_USAGE_DEFAULT;
-			VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex2D));
+			VALIDATEDX11(device.CreateTexture2D(&desc, nullptr, &tex));
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC rdesc;
-			rdesc.Texture2D.MipLevels = 1;
-			rdesc.Texture2D.MostDetailedMip = 0;
-			rdesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+			if (width > 1)
+			{
+				rdesc.Texture2D.MipLevels = 1;
+				rdesc.Texture2D.MostDetailedMip = 0;
+			}
+			else
+			{
+				rdesc.Texture1D.MipLevels = 1;
+				rdesc.Texture1D.MostDetailedMip = 0;
+			}
+			rdesc.ViewDimension = width > 1 ? D3D11_SRV_DIMENSION_TEXTURE2D : D3D11_SRV_DIMENSION_TEXTURE1D;
 			rdesc.Format = viewDescFormat;
-			VALIDATEDX11(device.CreateShaderResourceView(tex2D, &rdesc, &srv));
+			VALIDATEDX11(device.CreateShaderResourceView(tex, &rdesc, &srv));
 
 			D3D11_RENDER_TARGET_VIEW_DESC rtdesc;
-			rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-			rtdesc.Texture2D.MipSlice = 0;
+			rtdesc.ViewDimension = width > 1 ? D3D11_RTV_DIMENSION_TEXTURE2D : D3D11_RTV_DIMENSION_TEXTURE1D;
+			if (width > 1)
+			{
+				rtdesc.Texture2D.MipSlice = 0;
+			}
+			else
+			{
+				rtdesc.Texture1D.MipSlice = 0;
+			}
 			rtdesc.Format = viewDescFormat;
-			VALIDATEDX11(device.CreateRenderTargetView(tex2D, &rtdesc, &rtv));
+			VALIDATEDX11(device.CreateRenderTargetView(tex, &rtdesc, &rtv));
 		}
 		catch (IException&)
 		{
-			if (tex2D) tex2D->Release();
+			if (tex) tex->Release();
 			if (rtv) rtv->Release();
 			if (srv) srv->Release();
 			throw;
 		}
 
-		return TextureBind{ tex2D, srv, rtv };
+		return TextureBind{ tex, srv, rtv };
 	}
 }
