@@ -11,7 +11,7 @@ namespace Rococo::RAL
 {
 	ID_TEXTURE GeneratePermuationTexture(IRAL& ral)
 	{
-		ID_TEXTURE noisePermutationTable = ral.RALTextures().CreateRenderTarget("NoisePermutationTable", 256, 1, TextureFormat::F_8_BIT_UINT);
+		ID_TEXTURE noisePermutationTable = ral.RALTextures().CreateRenderTarget("NoisePermutationTable", 256, 256, TextureFormat::F_RGBA_32_BIT);
 		ID_PIXEL_SHADER shaderId = ral.Shaders().CreatePixelShader("!shaders/compiled/GeneratePermutationTexture.ps");
 		ral.Fill(noisePermutationTable, shaderId);
 		return noisePermutationTable;
@@ -19,7 +19,7 @@ namespace Rococo::RAL
 
 	ID_TEXTURE GenerateGradientTexture(IRAL& ral)
 	{
-		ID_TEXTURE gradientTable = ral.RALTextures().CreateRenderTarget("NoiseGradientTable", 16, 1, TextureFormat::F_24_BIT_BUMPMAP);
+		ID_TEXTURE gradientTable = ral.RALTextures().CreateRenderTarget("NoiseGradientTable", 256, 1, TextureFormat::F_24_BIT_BUMPMAP);
 		ID_PIXEL_SHADER shaderId = ral.Shaders().CreatePixelShader("!shaders/compiled/GenerateGradientTexture.ps");
 		ral.Fill(gradientTable, shaderId);
 		return gradientTable;

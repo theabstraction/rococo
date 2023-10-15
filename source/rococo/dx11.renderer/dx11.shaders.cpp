@@ -442,7 +442,7 @@ struct DX11Shaders : IDX11Shaders
 		auto i = nameToPixelShader.find(pingPath);
 		if (i == nameToPixelShader.end())
 		{
-			installation.LoadResource(pingPath, *shaderLoaderBuffer, 64_kilobytes);
+			installation.LoadResource(pingPath, *shaderLoaderBuffer, 256_kilobytes);
 			auto id = CreatePixelShader(pingPath, shaderLoaderBuffer->GetData(), shaderLoaderBuffer->Length());
 			nameToPixelShader.insert(pingPath, id);
 			return id;
