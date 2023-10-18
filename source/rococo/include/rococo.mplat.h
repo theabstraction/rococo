@@ -379,7 +379,7 @@ namespace Rococo
 		ROCOCO_INTERFACE IParticleSystemSupervisor : IParticleSystem
 		{
 			virtual void Free() = 0;
-			virtual void GetParticles(ID_ENTITY id, IRenderer& renderer) = 0;
+			virtual void AdvanceParticleSimulation(ID_ENTITY id, IRenderer& renderer) = 0;
 		};
 
 		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer);

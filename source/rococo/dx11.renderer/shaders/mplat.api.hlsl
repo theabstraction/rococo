@@ -264,7 +264,12 @@ float4 SampleMaterialWithoutNoise(ObjectPixelVertex v)
     return SampleMaterialByVectors(v.uv_material_and_gloss.xyz, v.colour);
 }
 
-float4 SampleMaterial(ObjectPixelVertex v)
+float4 SampleMaterialWithNoise(ObjectPixelVertex v)
 {
 	return lerp(lerp(inoise(float3 (v.uv_material_and_gloss.x * 32.0f, v.uv_material_and_gloss.y * 512.0f, 0.0f)), inoise(float3 (v.uv_material_and_gloss.xy * 4096.0f, 0.0f)), 0.75f), SampleMaterialByVectors(v.uv_material_and_gloss.xyz, v.colour), 0.85f);
+}
+
+float4 SampleMaterial(ObjectPixelVertex v)
+{
+	return SampleMaterialWithoutNoise(v);
 }

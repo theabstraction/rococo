@@ -132,7 +132,7 @@ namespace ANON
 	ROCOCO_INTERFACE ICloud
 	{
 		virtual void Free() = 0;
-		virtual void GetParticles(IRenderer& renderer, cr_vec3 origin) = 0;
+		virtual void AdvanceCloudSimulation(IRenderer& renderer, cr_vec3 origin) = 0;
 		virtual void SetSpectrum(const Spectra& spectra) = 0;
 	};
 
@@ -237,7 +237,7 @@ namespace ANON
 			delete this;
 		}
 
-		void GetParticles(IRenderer& renderer, const Vec3& origin) override
+		void AdvanceCloudSimulation(IRenderer& renderer, const Vec3& origin) override
 		{
 			this->origin = origin;
 
@@ -408,7 +408,7 @@ namespace ANON
 			delete this;
 		}
 
-		void GetParticles(IRenderer& renderer, const Vec3& origin) override
+		void AdvanceCloudSimulation(IRenderer& renderer, const Vec3& origin) override
 		{
 			this->origin = origin;
 
@@ -496,7 +496,7 @@ namespace ANON
 			}
 		}
 
-		void GetParticles(ID_ENTITY id, IRenderer& renderer) override
+		void AdvanceParticleSimulation(ID_ENTITY id, IRenderer& renderer) override
 		{
 			auto i = clouds.find(id);
 			if (i != clouds.end())
@@ -504,7 +504,7 @@ namespace ANON
 				auto body = API::ForIBodyComponent::Get(id);
 				if (body)
 				{
-					i->second->GetParticles(renderer, body->Model().GetPosition());
+					i->second->AdvanceCloudSimulation(renderer, body->Model().GetPosition());
 				}
 			}
 		}
@@ -561,13 +561,10 @@ namespace ANON
 	};
 }
 
-namespace Rococo
+namespace Rococo::Entities
 {
-	namespace Entities
+	IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer)
 	{
-		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer)
-		{
-			return new ANON::ParticleSystem(renderer);
-		}
+		return new ANON::ParticleSystem(renderer);
 	}
 }
