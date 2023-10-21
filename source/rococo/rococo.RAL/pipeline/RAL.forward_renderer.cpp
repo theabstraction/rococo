@@ -127,7 +127,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		builtFirstPass = false;
 
 		Lights lights = scene.GetLights();
-		if (lights.lightArray != nullptr && lights.count > 0)
+		if (lights.lightArray != nullptr && lights.count > 0 && LengthSq(lights.lightArray[0].direction) > 0)
 		{
 			// The first light has the highest priority, and provides the shadows
 			ShadowRenderData shadows;

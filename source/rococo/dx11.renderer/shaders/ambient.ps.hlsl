@@ -13,8 +13,6 @@ float4 main(ObjectPixelVertex p): SV_TARGET
 	texel.xyz *= clarity;
 		
 	float2 uv = p.uv_material_and_gloss.xy;
-
-	float noiseX = inoise(float3 (uv, 0.0f));
 	
 	texel = ModulateWithEnvMap(texel, incident.xyz, normal, p.uv_material_and_gloss.w);
 	

@@ -30,16 +30,6 @@ struct DX11GeometryShader : public DX11Shader
 	AutoRelease<ID3D11GeometryShader> gs;
 };
 
-/*
-ROCOCO_INTERFACE IShaderOptions
-{
-	virtual size_t NumberOfOptions() const = 0;
-
-	// Retrieve the options. Do not cache the pointers, consume them before significant API calls that may change the options
-	virtual void GetOption(size_t index, OUT cstr& interfaceName, OUT cstr& className) = 0;
-};
-*/
-
 struct DX11PixelShader : public DX11Shader
 {
 	ID3D11Device& device;
@@ -151,7 +141,7 @@ struct DX11PixelShader : public DX11Shader
 			if (classInstances[i] == nullptr)
 			{
 				// TODO - figure out which and splice into the message
-				Throw(0, "UpdatePixelShaderLinkage: %s shader is missing class instances from the shader options. Use ShaderOptionsConfig() to add the missing options", name.c_str());
+				Throw(0, "UpdatePixelShaderLinkage: %s. Missing class instance for interface %d from the shader options. Use ShaderOptionsConfig() to add the missing options", name.c_str(), i);
 			}
 		}
 
@@ -403,7 +393,8 @@ struct DX11Shaders : IDX11Shaders
 	ID_PIXEL_SHADER CreatePixelShader(cstr name, const byte* shaderCode, size_t shaderLength)
 	{
 		if (name == nullptr || rlen(name) > 1024) Throw(0, "Bad <name> for pixel shader");
-		if (shaderCode == nullptr || shaderLength < 4 || shaderLength > 65536) Throw(0, "Bad shader code for pixel shader %s", name);
+		if (shaderCode == nullptr || shaderLength < 4) Throw(0, "Bad shader code for pixel shader %s", name);
+		if (shaderLength > 65536ULL) Throw(0, "Shader code too long for pixel shader %s", name);
 
 		DX11PixelShader* shader = new DX11PixelShader(device);
 		HRESULT hr = device.CreatePixelShader(shaderCode, shaderLength, shader->classLinkage, &shader->ps);

@@ -12,12 +12,33 @@ namespace Rococo::SEXML::Impl
 
 		SXMLBuilderVisitor(Rococo::Sex::SEXML::ISEXMLBuilder& _builder) : builder(_builder)
 		{
-			builder.AddDirective("root");
+			builder.AddDirective("Root");
+		}
+
+		// We cannot stick this in the destructor as it throws on failure, which destructors cannot handle.
+		void Finalize()
+		{
+			builder.CloseDirective();
+
+			if (containerCount > 0)
+			{
+				Throw(0, "Outstanding containers");
+			}
+
+			if (elementCount > 0)
+			{
+				Throw(0, "Outstanding elements");
+			}
+
+			if (sectionCount > 0)
+			{
+				Throw(0, "Outstanding sections");
+			}
 		}
 
 		~SXMLBuilderVisitor()
 		{
-			builder.CloseDirective();
+			
 		}
 
 		EReflectionDirection Direction() const override
@@ -25,73 +46,109 @@ namespace Rococo::SEXML::Impl
 			return EReflectionDirection::READ_ONLY;
 		}
 
+		int containerCount = 0;
+
 		void EnterContainer(cstr name) override
 		{
-			builder.AddDirective("container").AddStringLiteral("container name", name);
+			containerCount++;
+			builder.AddDirective("Container").AddStringLiteral("Container.Name", name);
 		}
 
 		void LeaveContainer()  override
 		{
+			if (containerCount == 0)
+			{
+				Throw(0, "Too many LeaveContainer(s)");
+			}
+			containerCount--;
+
 			builder.CloseDirective();
 		}
 
+		int elementCount = 0;
+
 		void EnterElement(cstr elementKey) override
 		{
-			builder.AddDirective("element").AddStringLiteral("key", elementKey);
+			elementCount++;
+			builder.AddDirective("Element").AddStringLiteral("Key", elementKey);
 		}
 
 		void LeaveElement() override
 		{
+			if (elementCount == 0)
+			{
+				Throw(0, "Too many LeaveElement(s)");
+			}
+			elementCount--;
 			builder.CloseDirective();
 		}
 
 		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
+			UNUSED(subTarget);
+			UNUSED(name);
 			Throw(0, "SexML subtargets - Not implemented");
 		}
 
 		void Reflect(cstr name, int32& value, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddAtomicAttribute(name, value);
 		}
 
 		void Reflect(cstr name, int64& value, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddAtomicAttribute(name, value);
 		}
 
 		void Reflect(cstr name, uint64& value, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddAtomicAttribute(name, value);
 		}
 
 		void Reflect(cstr name, float& value, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddAtomicAttribute(name, value);
 		}
 
 		void Reflect(cstr name, double& value, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddAtomicAttribute(name, value);
 		}
 
 		void Reflect(cstr name, bool& value, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddAtomicAttribute(name, value);
 		}
 
 		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddStringLiteral(name, stringValue.ReadString());
 		}
 
+		int sectionCount = 0;
+
 		void EnterSection(cstr sectionName) override
 		{
-			builder.AddDirective("section").AddStringLiteral("container name", sectionName);
+			sectionCount++;
+			builder.AddDirective("Section").AddStringLiteral("Section.Name", sectionName);
 		}
 
 		void LeaveSection()
 		{
+			if (sectionCount == 0)
+			{
+				Throw(0, "Too many LeaveSection(s)");
+			}
+
+			sectionCount--;
 			builder.CloseDirective();
 		}
 	};
@@ -102,9 +159,10 @@ namespace Rococo
 	void SaveAsSexML(cstr userDocName, Reflection::IReflectionTarget& target)
 	{
 		Rococo::OS::SaveUserSEXML("", userDocName, [&target](Rococo::Sex::SEXML::ISEXMLBuilder& builder)
-			{
+			{				
 				Rococo::SEXML::Impl::SXMLBuilderVisitor visitor(builder);
 				target.Visit(visitor);
+				visitor.Finalize();
 			}
 		);
 	}

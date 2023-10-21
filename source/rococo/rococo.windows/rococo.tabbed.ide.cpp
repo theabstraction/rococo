@@ -1167,7 +1167,7 @@ namespace
          }
       }
 
-      virtual void Save(const LOGFONTW& logFont, int32 version)
+      virtual void Save(const LOGFONTW& logFont, int32 version, bool darkMode)
       {
          IDEWriterViaSexy writer;
 
@@ -1175,6 +1175,7 @@ namespace
             writer.WriteInt("Version", version);
             writer.WriteText("FontFamily", logFont.lfFaceName);
             writer.WriteInt("FontHeight", logFont.lfHeight);
+            writer.WriteInt("DarkMode", darkMode ? 1 : 0);
          writer.PopChild();
 
          writer.PushChild();
@@ -1843,16 +1844,19 @@ namespace
       LayoutChildren();
    }
 
-   void LoadHeader(cr_sex sheader, UINT versionId, LOGFONTW& logFont)
+   void LoadHeader(cr_sex sheader, UINT versionId, LOGFONTW& logFont, bool isDarkMode)
    {
-      if (sheader.NumberOfElements() != 4)
+       // Todo - replace this with SEXML to eliminate the error handling
+
+      if (sheader.NumberOfElements() != 5)
       {
-         Rococo::Throw(0, "Expecting 4 elements in header");
+         Rococo::Throw(0, "Expecting 5 elements in header");
       }
 
       cr_sex svid = sheader[1];
       cr_sex sfont = sheader[2];
       cr_sex sheight = sheader[3];
+      cr_sex sdarkmode = sheader[4];
 
       LOGFONTW blank = { 0 };
       logFont = blank;
@@ -1868,14 +1872,20 @@ namespace
 
       if (GetAtomicArg(sheight, 0) != "FontHeight") ThrowSex(sfont, "Expecting (FontHeight int32 ...)");
 
+      if (GetAtomicArg(sdarkmode, 0) != "DarkMode") ThrowSex(sfont, "Expecting (DarkMode int32 ...)");
+
       SecureFormat(logFont.lfFaceName, LF_FACESIZE, L"%hs", sfont[2].c_str());
 
       VariantValue height;
       Parse::TryParse(height, VARTYPE_Int32, GetAtomicArg(sheight, 2).c_str());
       logFont.lfHeight = height.int32Value;
+
+      VariantValue vvDarkMode;
+      Parse::TryParse(vvDarkMode, VARTYPE_Int32, GetAtomicArg(sdarkmode, 2).c_str());
+      isDarkMode = vvDarkMode.int32Value == 1;
    }
 
-   ISpatialManager* _LoadSpatialManager(IWindow& parent, LOGFONTW& logFont, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)
+   ISpatialManager* _LoadSpatialManager(IWindow& parent, REF LOGFONTW& logFont, OUT bool& isDarkMode, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)
    {
 	  AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "tabbed-ide"));
       Auto<ISParser> parser(CreateSexParser_2_0(*allocator, 128));
@@ -1921,7 +1931,7 @@ namespace
             Rococo::Throw(0, "Expecting header element followed by IDE nodes");
          }
 
-         LoadHeader(root[0], versionId, logFont);
+         LoadHeader(root[0], versionId, logFont, OUT isDarkMode);
          spatialManager->Load(root[1]);
       }
       catch (IException&)
@@ -1962,9 +1972,9 @@ namespace Rococo
                 return IDESpatialManager::Create(parent, nullptr, database, nullptr);
             }
 
-            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, LOGFONTW& logFont, cstr file_prefix)
+            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, OUT LOGFONTW& logFont, OUT bool& isDarkMode, cstr file_prefix)
             {
-                return _LoadSpatialManager(parent, logFont, database, idArray, nPanes, versionId, file_prefix);
+                return _LoadSpatialManager(parent, OUT logFont, OUT isDarkMode, database, idArray, nPanes, versionId, file_prefix);
             }
         }
     }

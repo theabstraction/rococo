@@ -346,7 +346,7 @@ namespace
 			{
 				spatialManager->Free();
 				IO::DeleteUserFile("debugger.ide.sxy");
-				spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
+				spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
 
 				DeleteObject(hFont);
 				hFont = CreateFontIndirectW(&logFont);
@@ -497,13 +497,13 @@ namespace
 			config.top = workArea.y / 10;
 			dialog = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
 
 			DeleteObject(hFont);
 			hFont = CreateFontIndirectW(&logFont);
 			spatialManager->SetFontRecursive(hFont);
 
-			if (IsDarkmode())
+			if (darkMode || IsDarkmode())
 			{
 				darkMode = true;
 				SyncColourScheme();
@@ -1102,7 +1102,7 @@ namespace
 		{
 			spatialManager->Free();
 			spatialManager = nullptr;
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "debugger");
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
 			DeleteObject(hFont);
 			hFont = CreateFontIndirectW(&logFont);
 			spatialManager->SetFontRecursive(hFont);
@@ -1114,7 +1114,7 @@ namespace
 		{
 			spatialManager->Free();
 			spatialManager = nullptr;
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, logFont, "!ide/debugger.4k");
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "!ide/debugger.4k");
 			DeleteObject(hFont);
 			hFont = CreateFontIndirectW(&logFont);
 			spatialManager->SetFontRecursive(hFont);
@@ -1124,7 +1124,7 @@ namespace
 
 		void Save()
 		{
-			spatialManager->Save(logFont, IDE_FILE_VERSION);
+			spatialManager->Save(logFont, IDE_FILE_VERSION, darkMode);
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
