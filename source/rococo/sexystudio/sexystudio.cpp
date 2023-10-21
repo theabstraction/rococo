@@ -503,6 +503,7 @@ private:
 		}
 		catch (IException& ex)
 		{
+			Rococo::Debugging::AddCriticalLog("Suggestion: check that the content/packages folder exists and that it is in good order");
 			Windows::ShowErrorBox(ideFrame, ex, "SexyStudio package reading issue");
 		}
 

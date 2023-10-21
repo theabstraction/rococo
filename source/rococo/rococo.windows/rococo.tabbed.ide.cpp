@@ -1844,7 +1844,7 @@ namespace
       LayoutChildren();
    }
 
-   void LoadHeader(cr_sex sheader, UINT versionId, LOGFONTW& logFont, bool isDarkMode)
+   void LoadHeader(cr_sex sheader, UINT versionId, OUT LOGFONTW& logFont, OUT bool& isDarkMode)
    {
        // Todo - replace this with SEXML to eliminate the error handling
 

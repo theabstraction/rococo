@@ -507,7 +507,7 @@ namespace
 			{
 				darkMode = true;
 				SyncColourScheme();
-
+				
 				// Windows makes it stupidly hard to set the colour of scrollbars, menus and other widgets.
 				// We will leave the 100% dark mode solution for another day
 			}
