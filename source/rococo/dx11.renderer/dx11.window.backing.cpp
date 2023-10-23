@@ -127,6 +127,13 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		screenSpan = newSpan;
 	}
 
+	IDXGIOutput* GetOutput() override
+	{
+		IDXGIOutput* output = nullptr;
+		VALIDATEDX11(mainSwapChain->GetContainingOutput(&output));
+		return output;
+	}
+
 	bool IsFullscreen() override
 	{
 		BOOL isFullScreen;
@@ -141,6 +148,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 	void SetFullscreenMode(const ScreenMode& mode) override
 	{
+		SwitchToFullscreen();
+
 		DXGI_MODE_DESC desc;
 		desc.Width = mode.DX;
 		desc.Height = mode.DY;
@@ -148,8 +157,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		desc.RefreshRate.Denominator = 1;
 		desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		mainSwapChain->ResizeTarget(&desc);
+		desc.Format = DXGI_FORMAT_UNKNOWN;
+		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
 	}
 
 	void SwitchToFullscreen() override

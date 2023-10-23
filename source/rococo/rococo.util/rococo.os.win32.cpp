@@ -3738,6 +3738,11 @@ namespace Rococo::Time
 		end = TickCount();
 	}
 
+	ROCOCO_API Time::ticks Timer::ExpiredTime()
+	{
+		return TickCount() - start;
+	}
+
 } // Rococo::Time
 
 namespace Rococo::Debugging

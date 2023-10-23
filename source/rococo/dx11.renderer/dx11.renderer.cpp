@@ -87,12 +87,8 @@ private:
 
 	size_t EnumerateScreenModes(Rococo::Function<void(const ScreenMode&)> onMode) override
 	{
-		AutoRelease<IDXGIAdapter1> adapter;
-		VALIDATEDX11(factory.EnumAdapters1(adapterIndex, &adapter));
-
-		AutoRelease<IDXGIOutput> output;
-		VALIDATEDX11(adapter->EnumOutputs(0, &output));
-
+		AutoRelease<IDXGIOutput> output = currentWindowBacking->GetOutput();
+		
 		AutoRelease<IDXGIOutput1> output1;
 		VALIDATEDX11(output->QueryInterface<IDXGIOutput1>(&output1));
 

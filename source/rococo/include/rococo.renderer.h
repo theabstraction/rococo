@@ -434,7 +434,10 @@ namespace Rococo::Graphics
 		virtual void Render(IScene& scene) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
 		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE envId) = 0;
+
+		// Switches to fullscreen mode and throws an IException on failure to reset the full screen size
 		virtual void SetFullscreenMode(const ScreenMode& mode) = 0;
+
 		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
