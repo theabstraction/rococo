@@ -159,6 +159,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
 		desc.Format = DXGI_FORMAT_UNKNOWN;
 		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
+		ResetOutputBuffersForWindow();
 	}
 
 	void SwitchToFullscreen() override
