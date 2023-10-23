@@ -258,6 +258,7 @@ namespace Rococo::DX11
 		virtual void Present() = 0;	
 		virtual void ResetOutputBuffersForWindow() = 0;
 		virtual Vec2i Span() const = 0;
+		virtual void SetFullscreenMode(const ScreenMode& mode) = 0;
 		virtual void SwitchToFullscreen() = 0;
 		virtual void SwitchToWindowMode() = 0;
 		virtual Windows::IWindow& Window() = 0;

@@ -1064,6 +1064,48 @@ namespace Rococo::Graphics
 		return span;
 	}
 
+	ROCOCO_GRAPHICS_API Vec2 RenderHQText_CentreAligned(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
+	{
+		if (text == nullptr || *text == 0) return { 0,0 };
+
+		Vec2 origin = { 0, 1000 };
+		struct : IHQTextJob
+		{
+			cstr text;
+			RGBAb colour;
+			Vec2 startPos;
+			GuiRectf lastRect = { 0,0,0,0 };
+
+			void Render(IHQTextBuilder& builder) override
+			{
+				builder.SetColour(colour);
+				builder.SetCursor(startPos);
+
+				for (const char* p = text; *p != 0; p++)
+				{
+					builder.Write(*p, &lastRect);
+				}
+			}
+		} job;
+
+		job.text = text;
+		job.colour = colour;
+		job.startPos = origin;
+
+		grc.RenderHQText(fontId, job, IGuiRenderContext::EVALUATE_SPAN_ONLY, rect);
+
+		Vec2 span;
+		span.x = job.lastRect.right - origin.x;
+		span.y = Height(job.lastRect);
+
+		job.startPos.x = ((float)rect.left + (float) rect.right) * 0.5f - span.x * 0.5f;
+		job.startPos.y = 0.5f * ((float)rect.top + (float)rect.bottom + span.y);
+
+		grc.RenderHQText(fontId, job, IGuiRenderContext::RENDER, rect);
+
+		return span;
+	}
+
 	ROCOCO_GRAPHICS_API Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour)
 	{
 		if (text == nullptr || *text == 0) return { 0,0 };

@@ -23,20 +23,20 @@ namespace
       }
    };
 
-   struct NullEvent : EventArgs
+   struct LargestPossibleEvent : EventArgs
    {
-      char data[224]; 
+      char data[256 - sizeof EventArgs]; 
    };
 
    struct EventBinding
    {
 	  EventIdRef ref;
-      NullEvent nullEvent;
+      LargestPossibleEvent largestPossibleEvent;
       bool isLossy;
 
       EventBinding& operator = (const EventBinding& src)
       {
-         memcpy(&nullEvent, &src.nullEvent, src.nullEvent.sizeInBytes);
+         memcpy(&largestPossibleEvent, &src.largestPossibleEvent, src.largestPossibleEvent.sizeInBytes);
          isLossy = src.isLossy;
          return *this;
       }
@@ -55,20 +55,17 @@ namespace
 
       void FlushLossyPackets()
       {
-         struct
-         {
-            bool operator()(const EventBinding& b)
-            {
-               return b.isLossy;
-            }
-         } pred;
-         auto delPoint = std::remove_if(postedEvents.begin(), postedEvents.end(), pred);
+		 auto delPoint = std::remove_if(postedEvents.begin(), postedEvents.end(), [](const EventBinding& b)->bool
+			 {
+				 return b.isLossy;
+			 }
+		 );
          postedEvents.erase(delPoint, postedEvents.end());
       }
 
       void RawPost(const EventArgs& ev, const EventIdRef& ref, bool isLossy) override
       {
-         static_assert(sizeof(NullEvent) == 232, "Unhandled null event size");
+         static_assert(sizeof(LargestPossibleEvent) == 256, "Unhandled LargestPossibleEvent event size");
 
 		 if (ref.name == nullptr)
 		 {
@@ -77,9 +74,9 @@ namespace
 
 		 LazyInit(ref);
 
-         if (ev.sizeInBytes < sizeof(EventArgs) || ev.sizeInBytes > 256)
+         if (ev.sizeInBytes < sizeof(EventArgs) || ev.sizeInBytes > sizeof(LargestPossibleEvent))
          {
-            Throw(0, "Publisher: cannot post event. The event.sizeInBytes was bad. Check that it was posted correctly");
+            Throw(0, "Publisher: cannot post event. The event.sizeInBytes was > %llu. Check that it was posted correctly", sizeof(LargestPossibleEvent));
          }
 
          if (isLossy && postedEvents.size() > LOSS_AT)
@@ -98,10 +95,11 @@ namespace
          }
 
          EventBinding evb;
-         auto* src = reinterpret_cast<const NullEvent*>(&ev);
-         auto* dst = reinterpret_cast<NullEvent*>(&evb.nullEvent);
-         memcpy(dst, src, sizeof(NullEvent));
+         auto* src = reinterpret_cast<const LargestPossibleEvent*>(&ev);
+         auto* dst = &evb.largestPossibleEvent;
+         memcpy(dst, src, sizeof(LargestPossibleEvent));
          evb.isLossy = isLossy;
+		 evb.ref = ref;
          postedEvents.push_back(evb);
       }
 
@@ -115,7 +113,7 @@ namespace
 
          for (auto& i : outgoingEvents)
          {
-            Publish(i.nullEvent, i.ref);
+            RawPublish(i.largestPossibleEvent, i.ref);
          }
          outgoingEvents.clear();
       }

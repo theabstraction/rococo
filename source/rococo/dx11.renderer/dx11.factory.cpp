@@ -30,10 +30,10 @@ namespace ANON
 		IGraphicsLogger& logger;
 		Rococo::Graphics::IShaderOptions& shaderOptions;
 
-		AutoRelease<IDXGIAdapter> adapter;
+		AutoRelease<IDXGIAdapter> adapter1;
 		AutoRelease<ID3D11DeviceContext> dc;
 		AutoRelease<ID3D11Device> device;
-		AutoRelease<IDXGIFactory> factory;
+		AutoRelease<IDXGIFactory1> factory;
 		AutoRelease<ID3D11Debug> debug;
 
 		AutoFree<Rococo::DX11::IDX11Renderer> renderer;
@@ -42,7 +42,7 @@ namespace ANON
 		{
 			device = nullptr;
 			dc = nullptr;
-			adapter = nullptr;
+			adapter1 = nullptr;
 			factory = nullptr;
 			renderer = nullptr;
 			debug = nullptr;
@@ -62,11 +62,11 @@ namespace ANON
 			spec(_spec),
 			shaderOptions(_options)
 		{
-			VALIDATEDX11(CreateDXGIFactory(IID_IDXGIFactory, (void**)&factory));
-			VALIDATEDX11(factory->EnumAdapters(_spec.adapterIndex, &adapter));
+			VALIDATEDX11(CreateDXGIFactory1(IID_IDXGIFactory1, (void**)&factory));
+			VALIDATEDX11(factory->EnumAdapters(_spec.adapterIndex, &adapter1));
 
 			DXGI_ADAPTER_DESC desc;
-			adapter->GetDesc(&desc);
+			adapter1->GetDesc(&desc);
 
 			D3D_FEATURE_LEVEL featureLevelNeeded[] = { D3D_FEATURE_LEVEL_11_1 };
 			D3D_FEATURE_LEVEL featureLevelFound;
@@ -87,7 +87,7 @@ namespace ANON
 #endif
 			flags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
 
-			HRESULT hr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
+			HRESULT hr = D3D11CreateDevice(adapter1, D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags,
 				featureLevelNeeded, 1, D3D11_SDK_VERSION, &device, &featureLevelFound, &dc);
 
 			if FAILED(hr)
@@ -102,7 +102,7 @@ namespace ANON
 
 			device->QueryInterface(IID_PPV_ARGS(&debug));
 
-			DX11::Factory rendererFactory { *device, *dc, *factory, *this, installation, logger };
+			DX11::Factory rendererFactory { *device, *dc, *factory, (UINT) spec.adapterIndex, *this, installation, logger };
 
 			renderer = CreateDX11Renderer(rendererFactory, _options);
 
@@ -130,10 +130,10 @@ namespace ANON
 			}
 		}
 
-		IGraphicsWindow* CreateGraphicsWindow(const WindowSpec& spec, bool linkedToDX11Controls) override
+		IGraphicsWindow* CreateGraphicsWindow(const WindowSpec& windowSpec, bool linkedToDX11Controls) override
 		{
-			DX11::Factory ourfactory{ *device, *dc, *factory, *this, installation, logger };
-			return DX11::CreateDX11GraphicsWindow(ourfactory, *renderer, atom, spec, linkedToDX11Controls);
+			DX11::Factory ourfactory{ *device, *dc, *factory, spec.adapterIndex, *this, installation, logger };
+			return DX11::CreateDX11GraphicsWindow(ourfactory, *renderer, atom, windowSpec, linkedToDX11Controls);
 		}
 
 		void Free() override

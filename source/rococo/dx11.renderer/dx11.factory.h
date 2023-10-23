@@ -18,7 +18,8 @@ namespace Rococo
 		{
 			ID3D11Device& device;
 			ID3D11DeviceContext& dc;
-			IDXGIFactory& factory;
+			IDXGIFactory1& factory;
+			const UINT adapterIndex;
 
 			IFactoryResources& resources;
 			IO::IInstallation& installation;

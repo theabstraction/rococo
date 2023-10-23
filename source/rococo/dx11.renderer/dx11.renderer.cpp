@@ -25,6 +25,7 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
 
 // All of these objects are used in constant buffers and must be a multiple of 16 bytes in length;
 static_assert(sizeof(Rococo::Graphics::ObjectInstance) % 16 == 0);
@@ -61,8 +62,9 @@ private:
 	IO::IInstallation& installation;
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
-	IDXGIFactory& factory;
+	IDXGIFactory1& factory;
 	AutoFree<IExpandingBuffer> scratchBuffer;
+	const UINT adapterIndex;
 
 	AutoFree<IDX11TextureManager> textureManager;
 	AutoFree<IDX11Meshes> meshes;
@@ -82,6 +84,77 @@ private:
 	std::vector<UINT> boundVertexBufferOffsets;
 
 	AutoFree<IDX11Pipeline> pipeline;
+
+	size_t EnumerateScreenModes(Rococo::Function<void(const ScreenMode&)> onMode) override
+	{
+		AutoRelease<IDXGIAdapter1> adapter;
+		VALIDATEDX11(factory.EnumAdapters1(adapterIndex, &adapter));
+
+		AutoRelease<IDXGIOutput> output;
+		VALIDATEDX11(adapter->EnumOutputs(0, &output));
+
+		AutoRelease<IDXGIOutput1> output1;
+		VALIDATEDX11(output->QueryInterface<IDXGIOutput1>(&output1));
+
+		UINT nModes = 1;
+		VALIDATEDX11(output1->GetDisplayModeList1(DXGI_FORMAT_R8G8B8A8_UNORM, 0, &nModes, NULL));
+
+		std::vector<DXGI_MODE_DESC1> modes;
+		modes.resize(nModes);
+		VALIDATEDX11(output1->GetDisplayModeList1(DXGI_FORMAT_R8G8B8A8_UNORM, 0, &nModes, modes.data()));
+
+		// We could do this in the mode enumeration below, but its nice to see in debug mode how much stuff we filter out
+		auto i = std::remove_if(modes.begin(), modes.end(), [](const DXGI_MODE_DESC1& mode)->bool
+			{
+				if (mode.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE || mode.Scaling == DXGI_MODE_SCALING_CENTERED)
+				{
+					return true;
+				}
+
+				if (mode.Width < 1024)
+				{
+					return true;
+				}
+
+				return false;
+			}
+		);
+
+		modes.erase(i, modes.end());
+
+		struct ScreenModeHasher
+		{
+			size_t operator()(const ScreenMode& mode) const
+			{
+				return mode.DX + 735 * mode.DY;
+			}
+		};
+
+		struct ScreenModeComparer
+		{
+			bool operator()(const ScreenMode& a, const ScreenMode& b) const
+			{
+				return a.DX == b.DX && a.DY == b.DY;
+			}
+		};
+
+		std::unordered_set<ScreenMode, ScreenModeHasher, ScreenModeComparer> uniqueModes;
+		
+		for (auto& mode : modes)
+		{
+			ScreenMode sm;
+			sm.DX = mode.Width;
+			sm.DY = mode.Height;
+			uniqueModes.insert(sm);
+		}
+
+		for(auto& mode: uniqueModes)
+		{
+			onMode.Invoke(mode);
+		}
+
+		return uniqueModes.size();
+	}
 
 	IRALVertexDataBuffer* CreateDynamicVertexBuffer(size_t sizeofStruct, size_t nElements) override
 	{
@@ -228,6 +301,11 @@ private:
 		return currentWindowBacking ? currentWindowBacking->IsFullscreen() : false;
 	}
 
+	void SetFullscreenMode(const ScreenMode& mode)
+	{
+		if (currentWindowBacking) currentWindowBacking->SetFullscreenMode(mode);
+	}
+
 	void SwitchToFullscreen() override
 	{
 		if (currentWindowBacking) currentWindowBacking->SwitchToFullscreen();
@@ -324,6 +402,7 @@ public:
 	DX11AppRenderer(DX11::Factory& _factory, IShaderOptions& options) :
 		installation(_factory.installation), 
 		device(_factory.device), dc(_factory.dc), factory(_factory.factory),
+		adapterIndex(_factory.adapterIndex),
 		scratchBuffer(CreateExpandingBuffer(64_kilobytes)),
 		textureManager(CreateTextureManager(installation, device, dc, *this)),
 		meshes(CreateMeshManager(device, dc)),

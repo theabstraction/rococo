@@ -227,6 +227,10 @@ public:
 				ICommandHandler* obj = i->second.handler;
 				method(obj, ui.command);
 			}
+			else
+			{
+				Throw(0, "Unhandled UIInvoke handler for \"%s\"", directive);
+			}
 		}
 		else if (ev == evUIPopulate)
 		{
@@ -236,6 +240,10 @@ public:
 			if (i != renderElements.end())
 			{
 				pop.renderElement = i->second;
+			}
+			else
+			{
+				Throw(0, "Unhandled population event:\"%s\"", pop.name);
 			}
 		}
 	}

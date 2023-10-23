@@ -12,6 +12,7 @@ namespace Rococo::Events
 {
 	typedef uint32 EventHash;
 
+#pragma pack(push,1)
 	struct EventIdRef
 	{
 		const char* name;
@@ -22,6 +23,7 @@ namespace Rococo::Events
 	{
 		int64 sizeInBytes;
 	};
+#pragma pack(pop)
 
 	template<class T> struct TEventArgs : public EventArgs
 	{

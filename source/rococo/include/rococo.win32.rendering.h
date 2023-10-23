@@ -120,7 +120,7 @@ namespace Rococo
 		HINSTANCE hResourceInstance = NULL;
 		HICON largeIcon = NULL;;
 		HICON smallIcon = NULL;;
-		int adapterIndex = 0;
+		UINT adapterIndex = 0;
 		bool preparePix = false;
 	};
 

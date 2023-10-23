@@ -431,7 +431,14 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 		{
 			if (!grc.Resources().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
 			{
-				Throw(0, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
+				char message[1024];
+				SafeFormat(message, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
+
+				GuiRect textRect{ topLeft.x, topLeft.y, topLeft.x + rect.right - rect.left, topLeft.y + 18 };
+
+				Rococo::Graphics::DrawRectangle(grc, textRect, RGBAb(64, 0, 0), RGBAb(0, 64, 0));
+				Rococo::Graphics::DrawText(grc, Dequantize(textRect), Alignment::Alignment_None, to_fstring(message), 0, RGBAb(255, 255, 255));
+				// Throw(0, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
 			}
 		}
 	}

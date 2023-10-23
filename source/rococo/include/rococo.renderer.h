@@ -412,6 +412,12 @@ namespace Rococo::Graphics
 
 	struct IHQFonts;
 
+	struct ScreenMode
+	{
+		int DX;
+		int DY;
+	};
+
 	ROCOCO_INTERFACE IRenderer : IRendererMetrics
 	{
 		virtual IGuiResources & GuiResources() = 0;
@@ -420,6 +426,7 @@ namespace Rococo::Graphics
 		virtual IMeshes& Meshes() = 0;
 		virtual IShaders& Shaders() = 0;
 		virtual IParticles& Particles() = 0;
+		virtual size_t EnumerateScreenModes(Rococo::Function<void(const ScreenMode&)> onMode) = 0;
 		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthId) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
 		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
@@ -427,6 +434,7 @@ namespace Rococo::Graphics
 		virtual void Render(IScene& scene) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
 		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE envId) = 0;
+		virtual void SetFullscreenMode(const ScreenMode& mode) = 0;
 		virtual void SetSampler(uint32 index, Samplers::Filter, Samplers::AddressMode u, Samplers::AddressMode v, Samplers::AddressMode w, const RGBA& borderColour) = 0;
 		virtual void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
@@ -472,6 +480,7 @@ namespace Rococo::Graphics
 
 	ROCOCO_GRAPHICS_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, Vec2i spacing, IEventCallback<GlyphContext>* glyphCallback = nullptr, int dxShift = 0);
 	ROCOCO_GRAPHICS_API Vec2 RenderHQText_LeftAligned_VCentre(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
+	ROCOCO_GRAPHICS_API Vec2 RenderHQText_CentreAligned(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
 	ROCOCO_GRAPHICS_API Vec2 RenderHQText_LeftAligned_VCentre_WithCaret(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour, int caretPos);
 	ROCOCO_GRAPHICS_API Vec2 RenderHQParagraph(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
 	
