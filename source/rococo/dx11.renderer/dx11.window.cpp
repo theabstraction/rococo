@@ -80,7 +80,7 @@ namespace ANON
 
 		LRESULT RouteInput(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		{
-			UINT sizeofBuffer;
+			UINT sizeofBuffer = 0;
 			if (NO_ERROR != GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &sizeofBuffer, sizeof(RAWINPUTHEADER)))
 			{
 				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
@@ -266,7 +266,7 @@ namespace ANON
 
 		void MakeRenderTarget()
 		{
-			backing->ResetOutputBuffersForWindow();
+			backing->ResetOutputBuffersForWindow( {0, 0});
 			renderer.SetWindowBacking(backing);
 		}
 

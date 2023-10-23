@@ -73,14 +73,22 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		PRESERVE_BUFFERS = 0
 	};
 
-	void ResetOutputBuffersForWindow()
+	void ResetOutputBuffersForWindow(Vec2i fullScreenSpan)
 	{
-		RECT rect;
-		GetClientRect(hWnd, &rect);
-
 		Vec2i newSpan;
-		newSpan.x = rect.right - rect.left;
-		newSpan.y = rect.bottom - rect.top;
+
+		if (fullScreenSpan.x == 0 || fullScreenSpan.y == 0)
+		{
+			RECT rect;
+			GetClientRect(hWnd, &rect);
+
+			newSpan.x = rect.right - rect.left;
+			newSpan.y = rect.bottom - rect.top;
+		}
+		else
+		{
+			newSpan = fullScreenSpan;
+		}
 
 		if (newSpan == screenSpan)
 		{
@@ -159,7 +167,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
 		desc.Format = DXGI_FORMAT_UNKNOWN;
 		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
-		ResetOutputBuffersForWindow();
+		ResetOutputBuffersForWindow(Vec2i { mode.DX, mode.DY });
 	}
 
 	void SwitchToFullscreen() override
