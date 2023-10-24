@@ -151,11 +151,11 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 	bool IsFullscreen() override
 	{
-		BOOL isFullScreen;
+		BOOL isFullScreen = FALSE;
 		AutoRelease<IDXGIOutput> output;
 		if SUCCEEDED(mainSwapChain && mainSwapChain->GetFullscreenState(&isFullScreen, &output))
 		{
-			return isFullScreen;
+			return isFullScreen ? true : false;
 		}
 
 		return false;
@@ -170,8 +170,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		DXGI_MODE_DESC desc;
 		desc.Width = mode.DX;
 		desc.Height = mode.DY;
-		desc.RefreshRate.Numerator = 60;
-		desc.RefreshRate.Denominator = 1;
+		desc.RefreshRate.Numerator = 0;
+		desc.RefreshRate.Denominator = 0;
 		desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
 		desc.Format = DXGI_FORMAT_UNKNOWN;
