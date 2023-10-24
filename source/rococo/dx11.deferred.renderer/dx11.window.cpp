@@ -87,8 +87,8 @@ namespace ANON
 		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		desc.Scaling = DXGI_SCALING_NONE;
 		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		desc.Flags = 0;
-		desc.BufferCount = 2;
+		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+		desc.BufferCount = 1;
 	}
 
 	void GetSwapChainForFullscreen(HWND hWnd, DXGI_SWAP_CHAIN_FULLSCREEN_DESC& desc)
@@ -96,8 +96,8 @@ namespace ANON
 		desc.RefreshRate.Numerator = 60;
 		desc.RefreshRate.Denominator = 1;
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-		desc.Scaling = DXGI_MODE_SCALING_CENTERED;
-		desc.Windowed = TRUE;
+		desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+		desc.Windowed = FALSE;
 	}
 
 

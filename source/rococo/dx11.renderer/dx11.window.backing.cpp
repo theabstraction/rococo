@@ -165,8 +165,6 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 	void SetFullscreenMode(const ScreenMode& mode) override
 	{
-		SwitchToFullscreen();
-
 		DXGI_MODE_DESC desc;
 		desc.Width = mode.DX;
 		desc.Height = mode.DY;
@@ -175,6 +173,14 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
 		desc.Format = DXGI_FORMAT_UNKNOWN;
+		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
+		lastFullscreenDimensions = { mode.DX, mode.DY };
+
+		SwitchToFullscreen();
+
+		desc.RefreshRate.Numerator = 0;
+		desc.RefreshRate.Denominator = 0;
+
 		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
 		lastFullscreenDimensions = { mode.DX, mode.DY };
 		ResetOutputBuffersForWindow(lastFullscreenDimensions);
