@@ -165,9 +165,6 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 	void SetFullscreenMode(const ScreenMode& mode) override
 	{
-		mainBackBufferView.Detach();
-		dc.OMSetRenderTargets(0, nullptr, nullptr);
-
 		DXGI_MODE_DESC desc;
 		desc.Width = mode.DX;
 		desc.Height = mode.DY;

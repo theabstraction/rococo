@@ -107,7 +107,7 @@ private:
 					return true;
 				}
 
-				if (mode.Width < 1024)
+				if (mode.Width < 1280)
 				{
 					return true;
 				}
