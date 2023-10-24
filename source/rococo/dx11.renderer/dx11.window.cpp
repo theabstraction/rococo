@@ -259,6 +259,7 @@ namespace ANON
 		{
 			if (hWnd)
 			{
+				renderer.SwitchToWindowMode();
 				DestroyWindow(hWnd);
 				hWnd = nullptr;
 			}

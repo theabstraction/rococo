@@ -79,11 +79,18 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 		if (fullScreenSpan.x == 0 || fullScreenSpan.y == 0)
 		{
-			RECT rect;
-			GetClientRect(hWnd, &rect);
+			if (IsFullscreen())
+			{
+				newSpan = lastFullscreenDimensions;
+			}
+			else
+			{
+				RECT rect;
+				GetClientRect(hWnd, &rect);
 
-			newSpan.x = rect.right - rect.left;
-			newSpan.y = rect.bottom - rect.top;
+				newSpan.x = rect.right - rect.left;
+				newSpan.y = rect.bottom - rect.top;
+			}
 		}
 		else
 		{
@@ -146,13 +153,15 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 	{
 		BOOL isFullScreen;
 		AutoRelease<IDXGIOutput> output;
-		if SUCCEEDED(mainSwapChain->GetFullscreenState(&isFullScreen, &output))
+		if SUCCEEDED(mainSwapChain && mainSwapChain->GetFullscreenState(&isFullScreen, &output))
 		{
 			return isFullScreen;
 		}
 
 		return false;
 	}
+
+	Vec2i lastFullscreenDimensions{ 0,0 };
 
 	void SetFullscreenMode(const ScreenMode& mode) override
 	{
@@ -167,7 +176,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
 		desc.Format = DXGI_FORMAT_UNKNOWN;
 		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
-		ResetOutputBuffersForWindow(Vec2i { mode.DX, mode.DY });
+		lastFullscreenDimensions = { mode.DX, mode.DY };
+		ResetOutputBuffersForWindow(lastFullscreenDimensions);
 	}
 
 	void SwitchToFullscreen() override
