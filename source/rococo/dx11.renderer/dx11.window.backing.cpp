@@ -84,10 +84,11 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 			newSpan = lastFullscreenDimensions;
 			if (newSpan.x == 0 || newSpan.y == 0)
 			{
-				DXGI_SWAP_CHAIN_DESC currentDesc;
-				VALIDATEDX11(mainSwapChain->GetDesc(&currentDesc));
-				newSpan.x = currentDesc.BufferDesc.Width;
-				newSpan.y = currentDesc.BufferDesc.Height;
+				RECT rect;
+				GetWindowRect(hWnd, &rect);
+
+				newSpan.x = rect.right - rect.left;
+				newSpan.y = rect.bottom - rect.top;
 
 				if (newSpan.x == 0 || newSpan.y == 0)
 				{
