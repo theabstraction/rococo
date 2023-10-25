@@ -42,7 +42,8 @@ namespace ANON
 
 		void SetCursor(Vec2 pos) override
 		{
-			nextRect = { pos.x, pos.y - span.y, span.x, pos.y };
+			Vec2 floorPos{ floorf(pos.x), floorf(pos.y) };
+			nextRect = { floorPos.x, floorPos.y - span.y, span.x, floorPos.y };
 		}
 
 		void Write(char c, GuiRectf* outputBounds) override
