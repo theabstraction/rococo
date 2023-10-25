@@ -67,7 +67,7 @@ namespace ANON
 			}
 			else
 			{
-				tPrimed.left = (Rprimed.left - R.left) / Width(R);
+				tPrimed.left = floorf((Rprimed.left - R.left) / Width(R));
 			}
 
 			if (Rprimed.top < clipRect.top)
@@ -76,7 +76,7 @@ namespace ANON
 			}
 			else
 			{
-				tPrimed.top = (Rprimed.top - R.top) / Height(R);
+				tPrimed.top = floorf((Rprimed.top - R.top) / Height(R));
 			}
 
 			if (Rprimed.right > clipRect.right)
@@ -85,7 +85,7 @@ namespace ANON
 			}
 			else
 			{
-				tPrimed.right = (Rprimed.right - R.left) / Width(R);
+				tPrimed.right = floorf((Rprimed.right - R.left) / Width(R));
 			}
 
 			if (Rprimed.bottom > clipRect.bottom)
@@ -94,7 +94,7 @@ namespace ANON
 			}
 			else
 			{
-				tPrimed.bottom = (Rprimed.bottom - R.top) / Height(R);
+				tPrimed.bottom = floorf((Rprimed.bottom - R.top) / Height(R));
 			}
 		}
 
