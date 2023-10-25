@@ -715,7 +715,7 @@ public:
 	{
 		if (currentWindowBacking)
 		{
-			currentWindowBacking->ResetOutputBuffersForWindow( { 0, 0 });
+			currentWindowBacking->ResetOutputBuffersForWindow();
 		}
 	}
 

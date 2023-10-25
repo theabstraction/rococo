@@ -257,7 +257,7 @@ namespace Rococo::DX11
 		virtual void Free() = 0;
 		virtual bool IsFullscreen() = 0;
 		virtual void Present() = 0;	
-		virtual void ResetOutputBuffersForWindow(Vec2i fullScreenSpan) = 0;
+		virtual void ResetOutputBuffersForWindow() = 0;
 		virtual Vec2i Span() const = 0;
 
 		// Switches to fullscreen mode and throws an IException on failure to reset the full screen size

@@ -268,7 +268,7 @@ namespace ANON
 
 		void MakeRenderTarget()
 		{
-			backing->ResetOutputBuffersForWindow( {0, 0});
+			backing->ResetOutputBuffersForWindow();
 			renderer.SetWindowBacking(backing);
 		}
 

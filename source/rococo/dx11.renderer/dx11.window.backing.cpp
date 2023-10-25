@@ -73,51 +73,49 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		PRESERVE_BUFFERS = 0
 	};
 
-	void ResetOutputBuffersForWindow(Vec2i fullScreenSpan)
+	void ResetOutputBuffersForWindow()
 	{
 		Vec2i newSpan;
 
-		if (fullScreenSpan.x == 0 || fullScreenSpan.y == 0)
+		if (IsFullscreen())
 		{
-			if (IsFullscreen())
+			newSpan = lastFullscreenDimensions;
+			if (newSpan.x == 0 || newSpan.y == 0)
 			{
-				newSpan = lastFullscreenDimensions;
+				Throw(0, "Full screen dimensions not set");
+			}
+
+			if (!mainSwapChain)
+			{
+				Throw(0, "DX11 best practices violation. Window was started in fullscreen mode. It should start in Windowed mode and transition to fullscreen");
 			}
 			else
 			{
-				RECT rect;
-				GetClientRect(hWnd, &rect);
-
-				newSpan.x = rect.right - rect.left;
-				newSpan.y = rect.bottom - rect.top;
+				mainBackBufferView.Detach();
+				mainSwapChain->ResizeBuffers((UINT)BUFFER_COUNT::PRESERVE_BUFFERS, newSpan.x, newSpan.y, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 			}
 		}
 		else
 		{
-			newSpan = fullScreenSpan;
-		}
+			RECT rect;
+			GetClientRect(hWnd, &rect);
 
-		if (newSpan == screenSpan)
-		{
-			return;
-		}
+			newSpan.x = rect.right - rect.left;
+			newSpan.y = rect.bottom - rect.top;
 
-		if (newSpan.x < 1 || newSpan.y < 1)
-		{
-			return;
-		}
+			if (!mainSwapChain)
+			{
+				DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hWnd);
+				VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
+			}
+			else
+			{
+				mainBackBufferView.Detach();
+				mainSwapChain->ResizeBuffers((UINT)BUFFER_COUNT::PRESERVE_BUFFERS, newSpan.x, newSpan.y, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+			}
 
-		if (!mainSwapChain)
-		{
-			DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hWnd);
-			VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
 		}
-		else
-		{
-			mainBackBufferView.Detach();
-			mainSwapChain->ResizeBuffers((UINT)BUFFER_COUNT::PRESERVE_BUFFERS, newSpan.x, newSpan.y, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-		}
-
+		
 		AutoRelease<ID3D11Texture2D> backBuffer;
 		VALIDATEDX11(mainSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
 
@@ -183,7 +181,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
 		lastFullscreenDimensions = { mode.DX, mode.DY };
-		ResetOutputBuffersForWindow(lastFullscreenDimensions);
+		ResetOutputBuffersForWindow();
 	}
 
 	void SwitchToFullscreen() override
