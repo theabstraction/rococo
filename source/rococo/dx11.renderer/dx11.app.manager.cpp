@@ -196,6 +196,8 @@ namespace ANON
 
 		void OnWindowClose() override
 		{
+			window.Renderer().SwitchToWindowMode();
+
 			char text[256];
 			GetWindowTextA(window.Window(), text, 255);
 			text[255] = 0;

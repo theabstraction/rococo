@@ -155,6 +155,7 @@ namespace ANON
 				RegisterRawInput(hWnd);
 				return 0L;
 			case WM_KILLFOCUS:
+				renderer.SwitchToWindowMode();
 				hasFocus = false;
 				return 0L;
 			case WM_GETMINMAXINFO:
