@@ -73,6 +73,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		PRESERVE_BUFFERS = 0
 	};
 
+	Vec2i lastFullscreenDimensions{ 0,0 };
+
 	void ResetOutputBuffersForWindow()
 	{
 		Vec2i newSpan;
@@ -83,9 +85,14 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 			if (newSpan.x == 0 || newSpan.y == 0)
 			{
 				DXGI_SWAP_CHAIN_DESC currentDesc;
-				mainSwapChain->GetDesc(&currentDesc);
+				VALIDATEDX11(mainSwapChain->GetDesc(&currentDesc));
 				newSpan.x = currentDesc.BufferDesc.Width;
 				newSpan.y = currentDesc.BufferDesc.Height;
+
+				if (newSpan.x == 0 || newSpan.y == 0)
+				{
+					Throw(0, "Cannot determine full screen buffer dimensions");
+				}
 			}
 
 			if (!mainSwapChain)
@@ -161,8 +168,6 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 		return false;
 	}
-
-	Vec2i lastFullscreenDimensions{ 0,0 };
 
 	void SetFullscreenMode(const ScreenMode& mode) override
 	{
