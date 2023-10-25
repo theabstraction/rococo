@@ -115,7 +115,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		else
 		{
 			mainBackBufferView.Detach();
-			mainSwapChain->ResizeBuffers((UINT)BUFFER_COUNT::PRESERVE_BUFFERS, newSpan.x, newSpan.y, DXGI_FORMAT_UNKNOWN, 0);
+			mainSwapChain->ResizeBuffers((UINT)BUFFER_COUNT::PRESERVE_BUFFERS, newSpan.x, newSpan.y, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 		}
 
 		AutoRelease<ID3D11Texture2D> backBuffer;

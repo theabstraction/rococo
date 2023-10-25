@@ -11,7 +11,7 @@ namespace Rococo
 
          DXGI_SWAP_CHAIN_DESC sd;
          ZeroMemory(&sd, sizeof(sd));
-         sd.BufferCount = 1;
+         sd.BufferCount = 2;
          sd.BufferDesc.Width = rect.right - rect.left;
          sd.BufferDesc.Height = rect.bottom - rect.top;
          sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -21,7 +21,7 @@ namespace Rococo
          sd.OutputWindow = hWnd;
          sd.SampleDesc.Count = 1;
          sd.SampleDesc.Quality = 0;
-         sd.Windowed = FALSE;
+         sd.Windowed = TRUE;
          sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
          sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
          return sd;

@@ -107,11 +107,6 @@ private:
 					return true;
 				}
 
-				if (mode.Width < 1280)
-				{
-					return true;
-				}
-
 				return false;
 			}
 		);
