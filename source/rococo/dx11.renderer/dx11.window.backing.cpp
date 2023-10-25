@@ -183,7 +183,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
 		lastFullscreenDimensions = { mode.DX, mode.DY };
 
-		SwitchToFullscreen();
+		SwitchSwapChainToFullscreen();
 
 		desc.RefreshRate.Numerator = 0;
 		desc.RefreshRate.Denominator = 0;
@@ -193,7 +193,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		ResetOutputBuffersForWindow();
 	}
 
-	void SwitchToFullscreen() override
+	void SwitchSwapChainToFullscreen()
 	{
 		BOOL isFullScreen;
 		AutoRelease<IDXGIOutput> output;
@@ -203,6 +203,19 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 			{
 				mainSwapChain->SetFullscreenState(true, nullptr);
 			}
+		}
+	}
+
+	void SwitchToFullscreen() override
+	{
+		if (lastFullscreenDimensions.x > 0 && lastFullscreenDimensions.y > 0)
+		{
+			ScreenMode mode = { lastFullscreenDimensions.x, lastFullscreenDimensions.y };
+			SetFullscreenMode(mode);
+		}
+		else
+		{
+			SwitchSwapChainToFullscreen();
 		}
 	}
 
