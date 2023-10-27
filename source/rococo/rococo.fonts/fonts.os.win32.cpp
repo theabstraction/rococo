@@ -113,7 +113,7 @@ struct FontGlyphs : IFontGlyphBuilder
 				it.second.B = b;
 				it.second.C = c;
 
-				int totalWidth = a + b + c;
+				int totalWidth = b;
 				width = max(width, totalWidth);
 			}
 
@@ -182,6 +182,8 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		// If the TMPF_FIXED_PITCH flag is 0 then width is fixed: blame Microsoft.
 		bool isFixedPitch = !HasFlag(TMPF_FIXED_PITCH, tm.tmPitchAndFamily);
 
+		bool isTrueType = HasFlag(TMPF_TRUETYPE, tm.tmPitchAndFamily);
+
 		glyphSet.Populate(glyphs);
 
 		auto i = glyphs.codes.find('?');
@@ -198,7 +200,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		metrics.internalLeading = tm.tmInternalLeading;
 		metrics.italic = tm.tmItalic;
 		metrics.weight = tm.tmWeight;
-		metrics.imgWidth = width = glyphs.ComputeMaxABCWidth(hMemDC, isFixedPitch);
+		metrics.imgWidth = width = glyphs.ComputeMaxABCWidth(hMemDC, isFixedPitch || !isTrueType);
 		hBitmap = CreateCompatibleBitmap(hdcDesktop, width, metrics.height);
 		if (hBitmap == nullptr)
 		{
@@ -281,6 +283,22 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		FillRect(hMemDC, &rect, hEraserBrush);
 
 		// SelectObject(hMemDC, GetStockObject(WHITE_PEN));
+
+		// Note that if our font has an ABC metric, then DrawTextW will skew the character by the A offset, so we need to compensate for that when we store the glyph
+
+		int A = 0;
+
+		auto itGlyph = glyphs.codes.find(charCode);
+		if (itGlyph != glyphs.codes.end())
+		{
+			A = itGlyph->second.A;
+		}
+
+		if (A < 0)
+		{
+			// The text would normally be rendered -A pixels from the left side
+			rect.left += -A;
+		}
 
 		DrawTextW(hMemDC, text, 1, &rect, DT_BOTTOM | DT_LEFT | DT_NOCLIP | DT_SINGLELINE);
 

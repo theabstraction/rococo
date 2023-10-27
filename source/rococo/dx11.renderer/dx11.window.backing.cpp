@@ -228,6 +228,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 			if (isFullScreen)
 			{
 				mainSwapChain->SetFullscreenState(false, nullptr);
+				ShowWindow(hWnd, SW_SHOWMAXIMIZED);
 			}
 		}
 	}
