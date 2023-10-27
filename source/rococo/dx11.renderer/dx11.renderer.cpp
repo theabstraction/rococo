@@ -719,9 +719,12 @@ public:
 		}
 	}
 
-	void OnWindowResized(IDX11WindowBacking&, Vec2i) override
+	void OnWindowResized(IDX11WindowBacking&, Vec2i span) override
 	{
-		ResizeBuffers();
+		if (span.x > 0 && span.y > 0)
+		{
+			ResizeBuffers();
+		}
 	}
 
 	void SetCursorVisibility(bool isVisible) override

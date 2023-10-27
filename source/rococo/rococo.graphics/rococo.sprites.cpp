@@ -209,6 +209,40 @@ namespace Rococo::Graphics
 		gc.AddTriangle(BR);
 	}
 
+	ROCOCO_API_EXPORT void StretchBitmap(IGuiRenderContext& gc, ID_VOLATILE_BITMAP bitmapId, const GuiRect& absRect)
+	{
+		gc.FlushLayer();
+
+		gc.SetVolatileBitmapRendering(bitmapId);
+
+		auto recti = Dequantize(absRect);
+		// [0 1]
+		// [3 2]
+		GuiVertex quad[4] = { 0 };
+		quad[0].pos = Vec2{ recti.left, recti.top };
+		quad[2].pos = Vec2{ recti.right, recti.bottom };
+		quad[1].pos = Vec2{ recti.right, recti.top };
+		quad[3].pos = Vec2{ recti.left, recti.bottom };
+
+		quad[0].vd.uv.x = quad[3].vd.uv.x = 0.0f;
+		quad[1].vd.uv.x = quad[2].vd.uv.x = 1.0f;
+		quad[0].vd.uv.y = quad[1].vd.uv.y = 0.0f;
+		quad[2].vd.uv.y = quad[3].vd.uv.y = 1.0f;
+
+		quad[0].vd.fontBlend = quad[1].vd.fontBlend = quad[2].vd.fontBlend = quad[3].vd.fontBlend = 0;
+		quad[0].sd = quad[1].sd = quad[2].sd = quad[3].sd = { 0, 0, 0, 0 };
+		quad[0].colour = quad[1].colour = quad[2].colour = quad[3].colour = RGBAb(0, 0, 0, 0);
+
+		GuiVertex TL[3] = { quad[0], quad[1], quad[2] };
+		GuiVertex BR[3] = { quad[2], quad[3], quad[0] };
+		gc.AddTriangle(TL);
+		gc.AddTriangle(BR);
+
+		gc.FlushLayer();
+
+		gc.SetNormalBitmapRendering();
+	}
+
 	ROCOCO_API_EXPORT void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc)
 	{
 		GuiMetrics metrics;

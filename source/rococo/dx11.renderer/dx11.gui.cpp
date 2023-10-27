@@ -466,9 +466,12 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     ID_VERTEX_SHADER idGuiVS;
     ID_PIXEL_SHADER idGuiPS;
+    ID_VERTEX_SHADER idGuiRawVS;
 
     ID_VERTEX_SHADER idHQVS;
     ID_PIXEL_SHADER idHQPS;
+
+    ID_PIXEL_SHADER idSelectedTexturePS;
 
     AutoRelease<ID3D11Buffer> guiBuffer;
     AutoFree<Fonts::IFontSupervisor> fonts;
@@ -507,9 +510,12 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         textureDescBuffer = DX11::CreateConstantBuffer<TextureDescState>(device);
 
         idGuiVS = loader.DX11Shaders().CreateVertexShader("!shaders/compiled/gui.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
+        idGuiRawVS = loader.DX11Shaders().CreateVertexShader("!shaders/compiled/gui.raw.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
         idGuiPS = loader.DX11Shaders().CreatePixelShader("!shaders/compiled/gui.ps");
         idHQVS = loader.DX11Shaders().CreateVertexShader("!shaders/compiled/HQ-font.vs", DX11::GetGuiVertexDesc(), DX11::NumberOfGuiVertexElements());
         idHQPS = loader.DX11Shaders().CreatePixelShader("!shaders/compiled/HQ-font.ps");
+        idSelectedTexturePS = loader.DX11Shaders().CreatePixelShader("!shaders/compiled/gui.texture.select.ps");
+
         guiBuffer = DX11::CreateDynamicVertexBuffer<GuiVertex>(device, GUI_BUFFER_VERTEX_CAPACITY);
         alphaBlend = DX11::CreateAlphaBlend(device);
         spriteRasterizering = DX11::CreateSpriteRasterizer(device);
@@ -536,6 +542,11 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     IGuiResources& Resources() override
     {
         return *this;
+    }
+
+    ITextureManager& Textures() override
+    {
+        return textures;
     }
 
     GuiScale GetGuiScale() const override
@@ -570,6 +581,11 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     bool ApplyGuiShader(ID_PIXEL_SHADER idGuiOverrideShader) override
     {
         return shaders.UseShaders(idGuiVS, idGuiOverrideShader);
+    }
+
+    bool ApplyGuiShader(ID_VERTEX_SHADER idVertexShader, ID_PIXEL_SHADER idGuiOverrideShader)
+    {
+        return shaders.UseShaders(idVertexShader, idGuiOverrideShader);
     }
 
     void AssignShaderResourcesToDC()
@@ -729,6 +745,33 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     IRendererMetrics& Renderer() override
     {
         return metrics;
+    }
+
+    void SetNormalBitmapRendering() override
+    {
+        dc.PSSetShaderResources(TXUNIT_SELECT, 0, nullptr);
+        ApplyGuiShader();
+    }
+
+    void SetVolatileBitmapRendering(ID_VOLATILE_BITMAP bitmapId) override
+    {
+        auto* tx2D = textures.GetVolatileBitmap(bitmapId);
+        if (tx2D)
+        {
+            D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+            ZeroMemory(&desc, sizeof(desc));
+
+            desc.Texture2D.MipLevels = 1;          
+            desc.Texture2D.MostDetailedMip = 0;
+            desc.Format = DXGI_FORMAT_UNKNOWN;
+            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+            AutoRelease<ID3D11ShaderResourceView> view;
+            VALIDATEDX11(device.CreateShaderResourceView(tx2D, &desc, &view));
+            dc.PSSetShaderResources(TXUNIT_SELECT, 1, &view);
+        }
+
+        ApplyGuiShader(idGuiRawVS, idSelectedTexturePS);
     }
 
     Textures::IBitmapArrayBuilder& SpriteBuilder() override

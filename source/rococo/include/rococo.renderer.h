@@ -130,6 +130,7 @@ namespace Rococo::Graphics
 
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
 		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) = 0;
+		virtual ID_VOLATILE_BITMAP CreateVolatileBitmap(cstr pingPath) = 0;
 		virtual void Free() = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) = 0;
 		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
@@ -171,6 +172,7 @@ namespace Rococo::Graphics
 		virtual IHQFontResource& HQFontsResources() = 0;
 		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
+		virtual ITextureManager& Textures() = 0;
 	};
 
 	struct MaterialTextureArrayBuilderArgs
@@ -202,6 +204,8 @@ namespace Rococo::Graphics
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;		
 		virtual void SetGuiShader(cstr pixelShader) = 0;
+		virtual void SetNormalBitmapRendering() = 0;
+		virtual void SetVolatileBitmapRendering(ID_VOLATILE_BITMAP bitmapId) = 0;
 		virtual void SetScissorRect(const Rococo::GuiRect& rect) = 0;
 		virtual void ClearScissorRect() = 0;
 		virtual GuiScale GetGuiScale() const = 0;
@@ -502,6 +506,7 @@ namespace Rococo::Graphics
 	ROCOCO_GRAPHICS_API void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
 	ROCOCO_MISC_UTILS_API void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
 	ROCOCO_MISC_UTILS_API void StretchBitmap(IGuiRenderContext& rc, const Textures::BitmapLocation& location, const GuiRect& absRect);
+	ROCOCO_MISC_UTILS_API void StretchBitmap(IGuiRenderContext& rc, ID_VOLATILE_BITMAP bitmapId, const GuiRect& absRect);
 	ROCOCO_MISC_UTILS_API void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
 	ROCOCO_MISC_UTILS_API void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
 }// Rococo::Graphics

@@ -6,6 +6,7 @@ namespace Rococo
 {
 	ROCOCO_ID(ID_FONT, int32, -1);
 	ROCOCO_ID(ID_TEXTURE, size_t, (size_t)-1LL);
+	ROCOCO_ID(ID_VOLATILE_BITMAP, size_t, (size_t)-1LL);
 	ROCOCO_ID(ID_VERTEX_SHADER, size_t, (size_t)-1LL);
 	ROCOCO_ID(ID_GEOMETRY_SHADER, size_t, (size_t)-1LL);
 	ROCOCO_ID(ID_CUBE_TEXTURE, size_t, 0);

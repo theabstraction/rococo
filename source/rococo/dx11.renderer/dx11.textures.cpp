@@ -147,6 +147,22 @@ namespace Rococo
 
       }
 
+      ID3D11Texture2D* TextureLoader::LoadColourBitmapDirect(cstr resourceName)
+      {
+          auto* ext = GetFileExtension(resourceName);
+          if (!Eq(ext, ".tiff") && !Eq(ext, ".tif") && !Eq(ext, ".jpg") && !Eq(ext, ".jpg"))
+          {
+              Throw(0, "%s\nOnly Tiff and Jpeg files can be used for colour bitmaps", resourceName);
+          }
+
+          installation.LoadResource(resourceName, scratchBuffer, 64_megabytes);
+
+          if (scratchBuffer.Length() == 0) Throw(0, "The image file %s was blank", resourceName);
+
+          auto* tx = DX11::LoadColourBitmap(device, dc, scratchBuffer.GetData(), scratchBuffer.Length(), resourceName);
+          return tx;
+      }
+
       TextureBind TextureLoader::LoadColourBitmap(cstr resourceName)
       {
          auto* ext = GetFileExtension(resourceName);

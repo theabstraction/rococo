@@ -28,6 +28,12 @@ void BasePane::SetBkImage(const fstring& pingPath)
 	bkImageName = pingPath;
 }
 
+void BasePane::SetVolatileBkImage(const fstring& pingPath)
+{
+	bkVolatileBackImageName = pingPath;
+	bkVolatileId = ID_VOLATILE_BITMAP::Invalid();
+}
+
 void BasePane::SetCommand(int32 stateIndex, boolean32 deferAction, const fstring& text)
 {
 	if (stateIndex < 0 || stateIndex > 4)
@@ -425,6 +431,8 @@ void BasePane::Populate(IPublisher& publisher, IGuiRenderContext& grc, int32 sta
 
 void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality&)
 {
+	GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + rect.right - rect.left, topLeft.y + rect.bottom - rect.top };
+
 	if (bkImageName.length() > 0)
 	{
 		if (bkBitmap.txUV.left == bkBitmap.txUV.right)
@@ -438,20 +446,25 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 
 				Rococo::Graphics::DrawRectangle(grc, textRect, RGBAb(64, 0, 0), RGBAb(0, 64, 0));
 				Rococo::Graphics::DrawText(grc, Dequantize(textRect), Alignment::Alignment_None, to_fstring(message), 0, RGBAb(255, 255, 255));
-				// Throw(0, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
 			}
 		}
-	}
-	else
-	{
+
+		if (bkBitmap.txUV.left != bkBitmap.txUV.right)
+		{
+			Graphics::StretchBitmap(grc, bkBitmap, absRect);
+		}
+
 		return;
 	}
 
-	GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + rect.right - rect.left, topLeft.y + rect.bottom - rect.top };
-
-	if (bkBitmap.txUV.left != bkBitmap.txUV.right)
+	if (bkVolatileBackImageName.length() > 0)
 	{
-		Graphics::StretchBitmap(grc, bkBitmap, absRect);
+		if (!bkVolatileId)
+		{
+			bkVolatileId = grc.Resources().Textures().CreateVolatileBitmap(bkVolatileBackImageName);			
+		}
+
+		Rococo::Graphics::StretchBitmap(grc, bkVolatileId, absRect);
 	}
 }
 

@@ -388,6 +388,13 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	}
 };
 
+struct VolatileTextureItem
+{
+	ID3D11Texture2D* tx2D = nullptr;
+	HString pingPath;
+	int32 lastError = 0;
+};
+
 struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 {
 	ID3D11Device& device;
@@ -398,6 +405,8 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 	std::vector<DX11::TextureBind> textures;
 	stringmap<ID_TEXTURE> mapNameToTexture;
 	stringmap<ID_TEXTURE> nameToGenericTextureId;
+	stringmap<ID_VOLATILE_BITMAP> nameToVolatileBitmap;
+	std::vector<VolatileTextureItem> idToVolatileBitmapSpec;
 	std::vector<TextureItem> orderedTextureList;
 	AutoFree<IDX11CubeTextures> cubeTextures;
 	std::unordered_map<ID_TEXTURE, IDX11BitmapArray*, ID_TEXTURE> genericTextureArray;
@@ -507,6 +516,11 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		{
 			t.second->Free();
 		}
+
+		for (auto& t : idToVolatileBitmapSpec)
+		{
+			if (t.tx2D) t.tx2D->Release();
+		}
 	}
 		
 	void Free() override
@@ -575,6 +589,75 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		SafeFormat(name, "%s_%llu", targetName, id.value);
 		mapNameToTexture[targetName] = id;
 		return id;
+	}
+
+	ID_VOLATILE_BITMAP CreateVolatileBitmap(cstr pingPath) override
+	{
+		auto i = nameToVolatileBitmap.find(pingPath);
+		if (i == nameToVolatileBitmap.end())
+		{
+			VolatileTextureItem item;
+			item.pingPath = pingPath;
+
+			ID_VOLATILE_BITMAP id(idToVolatileBitmapSpec.size());
+			idToVolatileBitmapSpec.push_back(item);
+
+			i = nameToVolatileBitmap.insert(pingPath, id).first;
+		}
+
+		return i->second;
+	}
+
+	ID3D11Texture2D* GetVolatileBitmap(ID_VOLATILE_BITMAP id) override
+	{
+		if (id.value >= idToVolatileBitmapSpec.size())
+		{
+			return nullptr;
+		}
+
+		auto& item = idToVolatileBitmapSpec[id.value];
+
+		if (item.tx2D)
+		{
+			return item.tx2D;		
+		}
+
+		if (item.lastError)
+		{
+			return nullptr;
+		}
+
+		try
+		{
+			item.tx2D = textureLoader.LoadColourBitmapDirect(item.pingPath);
+			return item.tx2D;
+		}
+		catch (IException& ex)
+		{
+			item.lastError = ex.ErrorCode();
+			if (item.lastError == 0)
+			{
+				item.lastError = E_FAIL;
+			}
+
+			return nullptr;
+		}
+	}
+
+	bool DecacheVolatileBitmap(ID_VOLATILE_BITMAP id)
+	{
+		if (id.value < idToVolatileBitmapSpec.size())
+		{
+			auto& item = idToVolatileBitmapSpec[id.value];
+			if (item.tx2D)
+			{
+				item.tx2D->Release();
+				item.tx2D = nullptr;
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) override

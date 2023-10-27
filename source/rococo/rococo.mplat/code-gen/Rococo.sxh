@@ -45,7 +45,12 @@
 		(SetVisible (Bool isVisible)->)
 		(GetRect(Rect rect))
 		(SetRect(const Rect rect)->)
+
+		// Creates or uses a bitmap, and assigns it to the background
 		(SetBkImage (IString pingPath))
+
+		// Creates or uses a volatile texture and assigns it to the background
+		(SetVolatileBkImage (IString pingPath))
 		
 		(AlignLeftEdges (Int32 borderPixels)(Bool preserveSpan) ->)
 		(AlignRightEdges (Int32 borderPixels)(Bool preserveSpan) ->)

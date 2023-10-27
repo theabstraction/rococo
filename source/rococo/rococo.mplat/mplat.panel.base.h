@@ -57,6 +57,9 @@ namespace Rococo
 
 			HString bkImageName;
 			Textures::BitmapLocation bkBitmap = { {0,0,0,0},0,{0,0} };
+
+			HString bkVolatileBackImageName;
+			ID_VOLATILE_BITMAP bkVolatileId;
 		public:
 
 			void SetParent(IPaneSupervisor* panel);
@@ -85,6 +88,7 @@ namespace Rococo
 			void RemoveChild(IPaneSupervisor* child) override;
 			void FreeAllChildren() override;
 			void SetBkImage(const fstring& pingPath) override;
+			void SetVolatileBkImage(const fstring& pingPath) override;
 			void SetScheme(const MPlatColourScheme& scheme) override;
 			const MPlatColourScheme& Scheme() const;
 			void SetColourBk1(RGBAb normal, RGBAb hilight) override;

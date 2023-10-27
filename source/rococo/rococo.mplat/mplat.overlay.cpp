@@ -318,6 +318,11 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		Throw(0, "Not implemented");
 	}
 
+	void SetVolatileBkImage(const fstring&) override
+	{
+		Throw(0, "Not implemented");
+	}
+
 	IPaneSupervisor* Supervisor() override
 	{
 		return this;

@@ -174,6 +174,7 @@ namespace Rococo::DX11
 		TextureLoader(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
 		TextureBind LoadAlphaBitmap(cstr resourceName);
 		TextureBind LoadColourBitmap(cstr resourceName);
+		ID3D11Texture2D* LoadColourBitmapDirect(cstr resourceName);
 		void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
 	};
 
@@ -198,6 +199,7 @@ namespace Rococo::DX11
 		virtual IDX11TextureLoader& Loader() = 0;
 		virtual IDX11Materials& Materials() = 0;
 		virtual IDX11CubeTextures& DX11CubeTextures() = 0;
+		virtual ID3D11Texture2D* GetVolatileBitmap(ID_VOLATILE_BITMAP id) = 0;
 	};
 
 	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc, IDX11SpecialResources& specialResources);
