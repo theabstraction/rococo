@@ -47,9 +47,17 @@ namespace Rococo::Assets
 		FactorySpec defaultSpec = { 0 };
 		AutoFree<IGraphicsWindowFactory> windowFactory = CreateGraphicsWindowFactory(installation, *logger, defaultSpec, shaderOptions);
 
+		struct NullHandler : Rococo::Graphics::IWindowEventHandler
+		{
+			void OnPostResize(bool isFullscreen, Vec2i span) override
+			{
+
+			}
+		} evHandler;
+
 		WindowSpec ws;
 		GetWindowSpec(hInstance, ws);
-		AutoFree<IGraphicsWindow> graphicsWindow = windowFactory->CreateGraphicsWindow(ws, true);
+		AutoFree<IGraphicsWindow> graphicsWindow = windowFactory->CreateGraphicsWindow(evHandler, ws, true);
 
 		graphicsWindow->MakeRenderTarget();
 		auto& engineTextures = graphicsWindow->Renderer().Textures();

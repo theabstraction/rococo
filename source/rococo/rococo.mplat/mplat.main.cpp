@@ -566,9 +566,27 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	bool dwa = Rococo::Strings::CLI::HasSwitch(cmdOptionDisableWindowsAssociationInDX11);
 
+	struct WindowEventHandler : Graphics::IWindowEventHandler
+	{
+		IPublisher& publisher;
+
+		WindowEventHandler(IPublisher& _publisher): publisher(_publisher)
+		{
+
+		}
+
+		void OnPostResize(bool isFullscreen, Vec2i span) override
+		{			
+			WindowResizeEvent ev;
+			ev.isFullscreen = isFullscreen;
+			ev.span = span;
+			publisher.Post(ev, "mainWindow.post_resize"_event, false);
+		}
+	} windowEventHandler(*publisher);
+
 	WindowSpec ws;
 	GetMainWindowSpec(ws, hInstance, *config);
-	AutoFree<IGraphicsWindow> mainWindow = factory->CreateGraphicsWindow(ws, !dwa);
+	AutoFree<IGraphicsWindow> mainWindow = factory->CreateGraphicsWindow(windowEventHandler, ws, !dwa);
 	mainWindow->MakeRenderTarget();
 
 	SetWindowTextA(mainWindow->Window(), title);

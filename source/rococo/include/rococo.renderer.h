@@ -42,6 +42,11 @@ namespace Rococo::Graphics
 {
 	enum class TextureFormat : uint32;
 
+	ROCOCO_INTERFACE IWindowEventHandler
+	{
+		virtual void OnPostResize(bool isFullscreen, Vec2i span) = 0;
+	};
+
 	ROCOCO_INTERFACE IMaterialPalette
 	{
 		virtual bool TryGetMaterial(BodyComponentMatClass name, MaterialVertexData & vd) const = 0;

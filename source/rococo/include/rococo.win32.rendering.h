@@ -21,6 +21,7 @@ namespace Rococo
 	{
 		struct IRenderer;
 		struct IShaderOptions;
+		struct IWindowEventHandler;
 	}
 
 	using namespace Rococo::Graphics;
@@ -104,7 +105,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IGraphicsWindowFactory
 	{
-		virtual IGraphicsWindow * CreateGraphicsWindow(const WindowSpec & ws, bool linkedToControls) = 0;
+		virtual IGraphicsWindow * CreateGraphicsWindow(IWindowEventHandler& eventHandler, const WindowSpec & ws, bool linkedToControls) = 0;
 		virtual void Free() = 0;
 	};
 

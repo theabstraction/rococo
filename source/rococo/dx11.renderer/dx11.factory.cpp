@@ -130,10 +130,10 @@ namespace ANON
 			}
 		}
 
-		IGraphicsWindow* CreateGraphicsWindow(const WindowSpec& windowSpec, bool linkedToDX11Controls) override
+		IGraphicsWindow* CreateGraphicsWindow(IWindowEventHandler& eventHandler, const WindowSpec& windowSpec, bool linkedToDX11Controls) override
 		{
 			DX11::Factory ourfactory{ *device, *dc, *factory, spec.adapterIndex, *this, installation, logger };
-			return DX11::CreateDX11GraphicsWindow(ourfactory, *renderer, atom, windowSpec, linkedToDX11Controls);
+			return DX11::CreateDX11GraphicsWindow(eventHandler, ourfactory, *renderer, atom, windowSpec, linkedToDX11Controls);
 		}
 
 		void Free() override

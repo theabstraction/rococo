@@ -202,7 +202,7 @@ namespace ANON
 			}
 		}
 	public:
-		DX11GraphicsWindow(DX11::Factory& _factory, Rococo::DX11::IDX11Renderer& _renderer, ATOM windowsClass, const WindowSpec& _ws, bool _linkedToDX11Controls):
+		DX11GraphicsWindow(IWindowEventHandler& eventHandler, DX11::Factory& _factory, Rococo::DX11::IDX11Renderer& _renderer, ATOM windowsClass, const WindowSpec& _ws, bool _linkedToDX11Controls):
 			factory(_factory), renderer(_renderer), ws(_ws), eventBuffer(CreateExpandingBuffer(128)), linkedToDX11Controls(_linkedToDX11Controls)
 		{
 			hWnd = CreateWindowExA(
@@ -229,7 +229,7 @@ namespace ANON
 
 			SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR) this);
 
-			backing = DX11::CreateDX11WindowBacking(factory.device, factory.dc, hWnd, factory.factory, static_cast<DX11::IDX11TextureManager&>(renderer.Textures()));
+			backing = DX11::CreateDX11WindowBacking(eventHandler, factory.device, factory.dc, hWnd, factory.factory, static_cast<DX11::IDX11TextureManager&>(renderer.Textures()));
 		}
 
 		void PostConstruct()
@@ -298,21 +298,11 @@ namespace Rococo
 {
 	namespace DX11
 	{
-		IGraphicsWindow* CreateDX11GraphicsWindow(DX11::Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& ws, bool linkedToDX11Controls)
+		IGraphicsWindow* CreateDX11GraphicsWindow(IWindowEventHandler& eventHandler, DX11::Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& ws, bool linkedToDX11Controls)
 		{
-			auto* g = new ANON::DX11GraphicsWindow(factory, renderer, windowClass, ws, linkedToDX11Controls);
-
-			try
-			{
-				g->PostConstruct();
-			}
-			catch (IException&)
-			{
-				g->Free();
-				throw;
-			}
-
-			return g;
+			AutoFree<ANON::DX11GraphicsWindow> g = new ANON::DX11GraphicsWindow(eventHandler, factory, renderer, windowClass, ws, linkedToDX11Controls);
+			g->PostConstruct();
+			return g.Release();
 		}
 	}
 }

@@ -10,6 +10,7 @@ static uint32 g_windowCount = 0;
 
 struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 {
+	IWindowEventHandler& eventHandler;
 	HWND hWnd;
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
@@ -25,8 +26,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 	bool useVerticalBlank = true;
 
-	DX11WindowBacking(ID3D11Device& _device, ID3D11DeviceContext& _dc, HWND _hWnd, IDXGIFactory& _factory, IDX11TextureManager& _textures):
-		hWnd(_hWnd), device(_device), dc(_dc), factory(_factory), textures(_textures)
+	DX11WindowBacking(IWindowEventHandler& _eventHandler, ID3D11Device& _device, ID3D11DeviceContext& _dc, HWND _hWnd, IDXGIFactory& _factory, IDX11TextureManager& _textures):
+		hWnd(_hWnd), device(_device), dc(_dc), factory(_factory), textures(_textures), eventHandler(_eventHandler)
 	{
 		if (!IsWindow(hWnd)) Throw(0, "%s: hWnd was not a window", __FUNCTION__);
 
@@ -149,6 +150,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		}
 
 		screenSpan = newSpan;
+
+		eventHandler.OnPostResize(IsFullscreen(), newSpan);
 	}
 
 	IDXGIOutput* GetOutput() override
@@ -241,8 +244,8 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 namespace Rococo::DX11
 {
-	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures)
+	IDX11WindowBacking* CreateDX11WindowBacking(IWindowEventHandler& eventHandler, ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures)
 	{
-		return new DX11WindowBacking(device, dc, hWnd, factory, textures);
+		return new DX11WindowBacking(eventHandler, device, dc, hWnd, factory, textures);
 	}
 }

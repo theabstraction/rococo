@@ -270,7 +270,7 @@ namespace Rococo::DX11
 		virtual Windows::IWindow& Window() = 0;
 	};
 
-	IDX11WindowBacking* CreateDX11WindowBacking(ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures);
+	IDX11WindowBacking* CreateDX11WindowBacking(IWindowEventHandler& eventHandler, ID3D11Device& device, ID3D11DeviceContext& dc, HWND hWnd, IDXGIFactory& factory, IDX11TextureManager& textures);
 
 	ROCOCO_DX_API void ReportMemoryStatus();
 

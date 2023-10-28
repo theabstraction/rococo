@@ -77,6 +77,12 @@ namespace Rococo::Events
 		cstr value;
 	};
 
+	struct WindowResizeEvent : EventArgs
+	{
+		bool isFullscreen;
+		Vec2i span;
+	};
+
 	ROCOCO_INTERFACE IObserver
 	{
 	   virtual void OnEvent(Event & ev) = 0;
