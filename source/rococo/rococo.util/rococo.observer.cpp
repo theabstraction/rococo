@@ -103,20 +103,17 @@ namespace
          postedEvents.push_back(evb);
       }
 
-      void Deliver() override
-      {
-         for (auto i = postedEvents.rbegin(); i != postedEvents.rend(); i++)
-         {
-            outgoingEvents.push_back(*i);
-         }
-         postedEvents.clear();
+	  void Deliver() override
+	  {
+		  std::swap(outgoingEvents, postedEvents);
+		  postedEvents.clear();
 
-         for (auto& i : outgoingEvents)
-         {
-            RawPublish(i.largestPossibleEvent, i.ref);
-         }
-         outgoingEvents.clear();
-      }
+		  for (auto& i : outgoingEvents)
+		  {
+			  RawPublish(i.largestPossibleEvent, i.ref);
+		  }
+		  outgoingEvents.clear();
+	  }
 
       void Unsubscribe(IObserver* observer) override
       {
