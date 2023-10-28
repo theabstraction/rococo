@@ -5,6 +5,10 @@
 	(methods
 		(SetMP3Music (IString mp3musicPingPath))
 		(Bind3DSample (IString mp3fxPingPath)->(IdSample id))
+		
+		// forceLevel <= 0:  => AssignFreeInstrument(id, source)
+		// forceLevel == 1:  => AssignInstrumentByPriority(id, source)
+		// forceLevel  > 1:  =>	AssignInstrumentAlways(id, source)		
 		(Play3DSound (IdSample sampleId)(const AudioSource3D source)(Int32 forceLevel)->(IdInstrument id))
 	)
 

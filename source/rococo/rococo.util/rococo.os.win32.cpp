@@ -1042,7 +1042,10 @@ namespace Rococo::OS
 
 	ROCOCO_API void PollKeys(uint8 scanArray[256])
 	{
-		GetKeyboardState(scanArray);
+		if (!GetKeyboardState(scanArray))
+		{
+			ZeroMemory(scanArray, 256);
+		}
 	}
 
 	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window)
@@ -1465,6 +1468,16 @@ namespace WIN32_ANON
 
 			IO::ToUnixPath(pingPath.buf);
 		}
+
+		void ConvertSysPathToPingPath(const char* sysPath, U8FilePath& pingPath) const override
+		{
+			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
+
+			WideFilePath wSysPath;
+			Assign(OUT REF wSysPath, sysPath);
+
+			ConvertSysPathToPingPath(wSysPath, OUT REF pingPath);
+		}
 		
 		bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath& expandedPath) override
 		{
@@ -1755,16 +1768,16 @@ namespace WIN32_ANON
 		{
 			struct Context
 			{
-				char raw[32768];
-				OVERLAPPED ovl;
-				Win32OS* os;
-				DWORD bytesReturned;
-				HANDLE hMonitorDirectory;
-				int exitCode;
+				std::vector<char> raw;
+				OVERLAPPED ovl = { 0 };
+				Win32OS* os = nullptr;
+				DWORD bytesReturned = 0;
+				HANDLE hMonitorDirectory = 0;
+				int exitCode = 0;
 
 				void OnScan()
 				{
-					auto& info = *(FILE_NOTIFY_INFORMATION*)raw;
+					auto& info = *(FILE_NOTIFY_INFORMATION*)raw.data();
 					os->OnScan(info);
 					exitCode = QueueScan();
 				}
@@ -1780,7 +1793,7 @@ namespace WIN32_ANON
 				int QueueScan()
 				{
 					DWORD dwNotifyFilter = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE;
-					if (!ReadDirectoryChangesW(hMonitorDirectory, raw, sizeof(raw), TRUE, dwNotifyFilter, &bytesReturned, &ovl, OnScan))
+					if (!ReadDirectoryChangesW(hMonitorDirectory, raw.data(), (DWORD) raw.size(), TRUE, dwNotifyFilter, &bytesReturned, &ovl, OnScan))
 					{
 						return GetLastError();
 					}
@@ -1789,9 +1802,13 @@ namespace WIN32_ANON
 						return NO_ERROR;
 					}
 				}
-			} c;
 
-			ZeroMemory(&c, sizeof(c));
+				Context()
+				{
+					raw.resize(32768);
+					std::fill(raw.begin(), raw.end(), '\0');
+				}
+			} c;
 
 			c.ovl.hEvent = &c;
 			c.os = this;
@@ -2147,6 +2164,12 @@ namespace Rococo::OS
 
 		void* pBuffer = GlobalLock(hMem);
 
+		if (!pBuffer)
+		{
+			GlobalFree(hMem);
+			return;
+		}
+
 		memcpy(pBuffer, text, len + 1);
 		GlobalUnlock(hMem);
 
@@ -2265,17 +2288,18 @@ namespace Rococo::IO
 		{
 			Throw(hr, "Failed to identify user documents folder. Win32 issue?");
 		}
+		
+		std::vector<wchar_t> fullPath;
+		fullPath.resize(wcslen(path) + 2 + wcslen(subdirectory));
+		wnsprintfW(fullPath.data(), MAX_PATH, L"%ws\\%ws", path, subdirectory);
 
-		WCHAR* fullpath = (WCHAR*)alloca(sizeof(wchar_t) * (wcslen(path) + 2 + wcslen(subdirectory)));
-		wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
-
-		int len = wnsprintfW(fullpath, MAX_PATH, L"%s\\%s", path, subdirectory);
+		int len = wnsprintfW(fullPath.data(), MAX_PATH, L"%s\\%s", path, subdirectory);
 		if (len >= MAX_PATH)
 		{
-			Throw(hr, "%s: path too long: %ls", __FUNCTION__, fullpath);
+			Throw(hr, "%s: path too long: %ls", __FUNCTION__, fullPath.data());
 		}
 
-		if (!CreateDirectoryW(fullpath, nullptr))
+		if (!CreateDirectoryW(fullPath.data(), nullptr))
 		{
 			hr = GetLastError();
 			if (hr == ERROR_ALREADY_EXISTS)
@@ -2283,7 +2307,7 @@ namespace Rococo::IO
 				// We ensured the directory exists
 				return;
 			}
-			Throw(hr, "%s: could not create subdirectory %ls", __FUNCTION__, fullpath);
+			Throw(hr, "%s: could not create subdirectory %ls", __FUNCTION__, fullPath.data());
 		}
 	}
 

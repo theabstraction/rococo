@@ -51,7 +51,8 @@ namespace Rococo::Assets
 		{
 			void OnPostResize(bool isFullscreen, Vec2i span) override
 			{
-
+				UNUSED(isFullscreen);
+				UNUSED(span);
 			}
 		} evHandler;
 

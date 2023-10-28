@@ -119,6 +119,11 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 		baseInstallation->ConvertSysPathToPingPath(sysPath, pingPath);
 	}
 
+	void ConvertSysPathToPingPath(const char* sysPath, U8FilePath& pingPath) const override
+	{
+		baseInstallation->ConvertSysPathToPingPath(sysPath, pingPath);
+	}
+
 	bool DoPingsMatch(cstr a, cstr b) const override
 	{
 		return baseInstallation->DoPingsMatch(a, b);

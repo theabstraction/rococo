@@ -132,6 +132,8 @@ namespace Rococo
 		// The matrx rotates vectors by pre multiplying the vector: MP -> P'
 		static Matrix4x4 RotateRHAnticlockwiseY(Radians theta);
 
+		static void GetRollYawPitchMatrix(Radians roll, Radians yaw, Radians pitch,OUT Matrix4x4& rotationMatrix);
+
 		Vec3 GetPosition() const
 		{
 			return Vec3{ row0.w, row1.w, row2.w };

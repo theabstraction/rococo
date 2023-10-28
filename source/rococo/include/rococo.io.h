@@ -375,6 +375,7 @@ namespace Rococo::IO
 		virtual void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& path) const = 0;
 		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const = 0;
 		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const = 0;
+		virtual void ConvertSysPathToPingPath(const char* sysPath, U8FilePath& pingPath) const = 0;
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
 		virtual void Macro(cstr name, cstr pingFolder) = 0;
 		virtual void CompressPingPath(cstr pingPath, U8FilePath& resultPath) const = 0;

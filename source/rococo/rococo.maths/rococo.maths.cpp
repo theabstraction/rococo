@@ -106,6 +106,13 @@ namespace Rococo
 	   return true;
    }
 
+   void Matrix4x4::GetRollYawPitchMatrix(Radians roll, Radians yaw, Radians pitch, OUT Matrix4x4& rotationMatrix)
+   {
+	   using namespace DirectX;
+	   XMMATRIX m = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+	   XMMatrixToM4x4(m, rotationMatrix);
+   }
+
    void Matrix4x4::GetRotationQuat(const Matrix4x4& m, Quat& quat)
    {
       using namespace DirectX;
