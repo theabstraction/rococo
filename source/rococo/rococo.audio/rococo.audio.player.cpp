@@ -75,7 +75,10 @@ namespace AudioAnon
 		// Implementation of IAudioSampleDatabaseEvents::MarkBadSample
 		void MarkBadSample(IAudioSample& badSample, cstr reason) override
 		{
-			Rococo::Debugging::Log("Bad audio file: %s (%s)", badSample.Name(), reason);
+			char msg[512];
+			SafeFormat(msg, "Bad audio file: %s (%s)", badSample.Name(), reason);
+			Rococo::Debugging::Log("%s", msg);
+			OS::AddThreadError(0, msg);
 		}
 
 		void SetMP3Music(const fstring& mp3pingPath)

@@ -821,6 +821,8 @@ namespace Rococo
 	{
 		int errCode = 0;
 
+		Rococo::OS::InitRococoOS();
+
 		try
 		{
 			errCode = Main(hInstance, factory, title, hLarge, hSmall);
@@ -832,6 +834,8 @@ namespace Rococo
 			Windows::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}
+
+		Rococo::OS::TerminateRococoOS();
 
 		return errCode;
 	}
@@ -840,6 +844,8 @@ namespace Rococo
 	{
 		int errCode = 0;
 
+		Rococo::OS::InitRococoOS();
+
 		try
 		{
 			errCode = Main(hInstance, factory, title, hLarge, hSmall);
@@ -851,6 +857,8 @@ namespace Rococo
 			Windows::ShowErrorBox(NoParent(), ex, text);
 			errCode = ex.ErrorCode();
 		}
+
+		Rococo::OS::TerminateRococoOS();
 
 		return errCode;
 	}

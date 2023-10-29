@@ -3,6 +3,7 @@
 #include <rococo.maths.h>
 #include <rococo.os.h>
 #include <rococo.time.h>
+#include <rococo.ringbuffer.h>
 #include <array>
 #include <atomic>
 #include <vector>
@@ -119,7 +120,7 @@ namespace Rococo::Audio
 			this->playCount = 0;
 		}
 
-		void StreamCurrentBlock()
+		bool StreamCurrentBlock()
 		{
 			isSampleQueued = false;
 
@@ -127,7 +128,7 @@ namespace Rococo::Audio
 			{
 				monoVoice->Stop();
 				stopCount = 0;
-				return;
+				return false;
 			}
 
 			uint32 nSamples = SAMPLES_PER_BLOCK;
@@ -139,7 +140,7 @@ namespace Rococo::Audio
 			auto* sampleThisTick = this->sample;
 			if (!sampleThisTick || !sampleThisTick->IsLoaded())
 			{
-				return;
+				return true;
 			}
 			else
 			{
@@ -155,19 +156,27 @@ namespace Rococo::Audio
 						nSamples = sampleThisTick->ReadSamples(sampleBuffer, SAMPLES_PER_BLOCK, cursor);
 						if (nSamples == 0)
 						{
-							return;
+							return true;
 						}
 					}
 					else
 					{
-						return;
+						monoVoice->Stop();
+						return false;
 					}
 				}
 			}
 			
 			monoVoice->QueueSample((uint8*)sampleBuffer, SAMPLES_PER_BLOCK * sizeof(int16), 0, nSamples);
 			isSampleQueued = true;
+			return true;
 		}
+	};
+
+	enum class EConcert3DState
+	{
+		Good,
+		OutOfStaleIds
 	};
 
 	// Private methods in this class indicate that they are run inside the concert thread
@@ -179,6 +188,8 @@ namespace Rococo::Audio
 		IAudio3D& audio3Dprocessor;
 		Matrix4x4 worldToGoer;
 
+		// circle buffer appended in the concert thread when instrument samples are exhausted, and consumed in the main thread when freeIds are blank.
+		OneReaderOneWriterCircleBuffer<IdInstrument> staleIds;
 		std::vector<IdInstrument> freeIds;
 		std::array<InstrumentDescriptor, MAX_VOICES> instruments;
 		IdInstrumentSaltType nextSalt = 1;
@@ -190,7 +201,8 @@ namespace Rococo::Audio
 			sampleDatabase(refSampleDatabase),
 			worldToGoer(Matrix4x4::Identity()),
 			maxVoices(MAX_VOICES),
-			audio3Dprocessor(_audio3Dprocessor)
+			audio3Dprocessor(_audio3Dprocessor),
+			staleIds(MAX_VOICES)
 		{
 			freeIds.reserve(MAX_VOICES);
 			InitVectors();		
@@ -300,6 +312,14 @@ namespace Rococo::Audio
 
 		IdInstrument AssignFreeInstrument(IdSample sampleId, const Rococo::Audio::AudioSource3D& source) override
 		{
+			switch (state)
+			{
+			case EConcert3DState::Good:
+				break;
+			case EConcert3DState::OutOfStaleIds:
+				Throw(0, "Concert3D -> Out of StaleIds");
+			}
+
 			IAudioSample* sample = sampleDatabase.Find(sampleId);
 
 			if (!sample)
@@ -312,12 +332,18 @@ namespace Rococo::Audio
 				Throw(0, "AssignFreeInstrument([id=%lld], [priority=%d]). priority must be > 0", sampleId.value, source.priority);
 			}
 
+			IdInstrument id;
+			while (staleIds.TryPopFront(OUT id))
+			{
+				freeIds.push_back(id);
+			}
+
 			if (freeIds.empty())
 			{
 				return IdInstrument::None();
 			}
 
-			auto id = freeIds.back();
+			id = freeIds.back();
 			freeIds.pop_back();
 
 			auto& i = GetRef(id);
@@ -610,10 +636,24 @@ namespace Rococo::Audio
 		}
 
 	private:
+		EConcert3DState state = EConcert3DState::Good;
+
 		void OnSampleComplete(IOSAudioVoice&, IAudioVoiceContext& context) override
 		{
 			auto& i = static_cast<InstrumentDescriptor&>(context);
-			i.StreamCurrentBlock();
+			if (!i.StreamCurrentBlock())
+			{
+				IdInstrument id(i.index, i.salt);
+				auto* backSlot = staleIds.GetBackSlot();
+				if (!backSlot)
+				{
+					state = EConcert3DState::OutOfStaleIds;
+					return;
+				}
+
+				*backSlot = id;
+				staleIds.WriteBack();
+			}
 		}
 
 		void OnGrossChange()

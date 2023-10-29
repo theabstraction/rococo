@@ -735,6 +735,8 @@ namespace MHost
 				platform.world.ECS.CollectGarbage();
 			}
 
+			Rococo::OS::ThrowOnThreadError();
+
 			return Seconds{ dt };
 		}
 

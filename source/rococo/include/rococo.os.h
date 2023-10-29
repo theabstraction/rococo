@@ -155,6 +155,11 @@ namespace Rococo::OS
 
 	ROCOCO_API [[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
 
+	ROCOCO_API void InitRococoOS();
+	ROCOCO_API void TerminateRococoOS();
+	
+	ROCOCO_API void AddThreadError(int errorCode, cstr format, ...);
+	ROCOCO_API void ThrowOnThreadError();
 
 	ROCOCO_API [[nodiscard]] void* AllocBoundedMemory(size_t nBytes);
 	ROCOCO_API void FreeBoundedMemory(void* pMemory);

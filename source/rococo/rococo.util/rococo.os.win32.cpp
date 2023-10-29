@@ -1034,6 +1034,72 @@ namespace Rococo::OS
 		return supervisor;
 	}
 
+	struct ThreadErrorDesc
+	{
+		int errorCode;
+		HString message;
+		IdThread threadId;
+	};
+
+	bool library_initialized = false;
+	CRITICAL_SECTION sync = { 0 };
+
+	std::vector<ThreadErrorDesc> threadErrors;
+
+	ROCOCO_API void InitRococoOS()
+	{
+		InitializeCriticalSection(&sync);
+		library_initialized = true;
+	}
+
+	ROCOCO_API void TerminateRococoOS()
+	{
+		DeleteCriticalSection(&sync);
+	}
+
+	ROCOCO_API void AddThreadError(int errorCode, cstr format, ...)
+	{
+		va_list arglist;
+		va_start(arglist, format);
+		char line[4096];
+		SafeVFormat(line, sizeof(line), format, arglist);
+		ThreadErrorDesc desc;
+		desc.errorCode = errorCode;
+		desc.message = line;
+		desc.threadId = OS::GetCurrentThreadIdentifier();
+
+		if (library_initialized)
+		{
+			EnterCriticalSection(&sync);
+			threadErrors.push_back(desc);
+			LeaveCriticalSection(&sync);
+		}
+	}
+
+	ROCOCO_API void ThrowOnThreadError()
+	{
+		if (!library_initialized)
+		{
+			Throw(0, "API implementor must call Rococo::OS::InitRococoOS to use %s", __FUNCTION__);
+		}
+
+		ThreadErrorDesc desc;
+		EnterCriticalSection(&sync);
+
+		if (!threadErrors.empty())
+		{
+			desc = threadErrors[0];
+			threadErrors.clear();
+		}
+
+		LeaveCriticalSection(&sync);
+
+		if (desc.message.length() > 0)
+		{
+			Throw(desc.errorCode, "%s", desc.message.c_str());
+		}
+	}
+
 	ROCOCO_API cstr GetAsciiCommandLine()
 	{
 		auto line =  GetCommandLineA();
