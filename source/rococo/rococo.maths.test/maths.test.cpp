@@ -5,12 +5,11 @@
 
 #include <rococo.strings.h>
 #include <rococo.map.h>
-
+#include <rococo.os.h>
 #include <rococo.package.h>
-
 #include <rococo.hashtable.h>
-
 #include <rococo.random.h>
+#include <rococo.time.h>
 
 #ifdef _WIN32
 # pragma comment(lib, "rococo.maths.lib")
@@ -19,6 +18,7 @@
 #endif
 
 #include <stdio.h>
+#include <string>
 
 using namespace Rococo;
 
@@ -501,7 +501,7 @@ void validateTeselator()
 
 	struct :I2dMeshBuilder
 	{
-		void Append(const Triangle2d& t) override
+		void Append(const Triangle2d& /* t */) override
 		{
 		}
 	} builder;
@@ -720,6 +720,9 @@ void ValidateDictionary()
 	{
 		EnumControl OnIteration(cstr key, size_t keyLength, void* buffer) override
 		{
+			UNUSED(buffer);
+			UNUSED(keyLength);
+
 			if (key[0] == 'G' || key[0] == 'M')
 			{
 				return ENUM_ERASE_AND_CONTINUE;
@@ -750,12 +753,14 @@ void TestQuadtree()
 	obj.centre = { -4.0f,12.0f };
 	obj.span = 8.0f;
 	auto& pocket = quad->Insert(obj);
+	UNUSED(pocket);
 	
 	struct CLOSURE : IEventCallback<QuadtreePocket>
 	{
 		bool found = false;
 		void OnEvent(QuadtreePocket& pocket)
 		{
+			UNUSED(pocket);
 		//	printf("(%f %f)", pocket.object.centre.x, pocket.object.centre.y);
 			found = true;
 		}
@@ -942,14 +947,14 @@ void TestOctree()
 
 #include <rococo.sxytype-inference.h>
 
+using namespace Rococo::Sex::Inference;
+
 void TestCodeInference()
 {
 	cstr bad_code = 
 R"(
 	(function IncCat (Float32 catastrophe)(mangy cat)(Int32 cat) -> : (cat += 1))
 )";
-
-	using namespace Rococo::Sexy;
 
 	BadlyFormattedTypeInferenceEngine engine(bad_code);
 	cstr cat1 = strstr(bad_code, "cat");
@@ -974,8 +979,6 @@ void TestCodeInferenceInterfaces()
 		R"(
 	(function IncCat (Sys.Type.IStringBuilder sb) -> : (sb.Append))
 )";
-
-	using namespace Rococo::Sexy;
 
 	BadlyFormattedTypeInferenceEngine engine(bad_code);
 	cstr sbPos = strstr(bad_code, "sb.");
@@ -1036,14 +1039,77 @@ void TestDelegates()
 	EnumerateCats([i](cstr catName) { printf("catName: %s\n", catName); });
 }
 
+void TestRayInteresectWithScreen1()
+{
+	constexpr float eyeHeight = 1.0f;
+
+	// We will put the eye of the world ray 4 metres North of the world map origin and 1 metres above the ground. We have the world ray pointing South
+	Ray worldRayPointingSouth = { { 0, 4.0f, eyeHeight }, { 0, -1.0f, 0.0f} };
+
+	FPSAngles cameraOrientation;
+	cameraOrientation.elevation = 0_degrees;
+	cameraOrientation.heading = 0_degrees; // due north
+	cameraOrientation.tilt = 0_degrees;
+
+	Matrix4x4 worldToCameraTransform;
+	Vec3 cameraPosition = { 0, 0, eyeHeight }; // Position they camera at the same altitude as the world ray
+	Rococo::FPS::SetWorldToCameraTransformToFPSRHMapSystem(OUT worldToCameraTransform, cameraOrientation, cameraPosition);
+
+	auto fov = 90_degrees;
+	Matrix4x4 cameraToScreenProjection = Matrix4x4::GetRHProjectionMatrix(fov, 1.0f, 1.0f, 100.0f);
+
+	Vec2i intersectCoordinate;
+	VALIDATE(Rococo::Rays::TryGet3DRayIntersectWithScreen(worldRayPointingSouth, worldToCameraTransform, cameraToScreenProjection, { 640,480 }, OUT intersectCoordinate));
+
+	// We expect the ray to pass through the centre of the screen
+	VALIDATE(intersectCoordinate.x == 320);
+	VALIDATE(intersectCoordinate.y == 240);
+}
+
+void TestScreenProjectedRay()
+{
+	constexpr float eyeHeight = 1.0f;
+
+	Vec2i pixelPositionFromTopLeft = { 320,240 };
+
+	FPSAngles cameraOrientation;
+	cameraOrientation.elevation = 0_degrees;
+	cameraOrientation.heading = 0_degrees; // due north
+	cameraOrientation.tilt = 0_degrees;
+
+	Matrix4x4 worldToCameraTransform;
+	Vec3 cameraPosition = { 0, 0, eyeHeight }; // Position they camera at the same altitude as the world ray
+	Rococo::FPS::SetWorldToCameraTransformToFPSRHMapSystem(OUT worldToCameraTransform, cameraOrientation, cameraPosition);
+
+	auto fov = 90_degrees;
+	Matrix4x4 cameraToScreenProjection = Matrix4x4::GetRHProjectionMatrix(fov, 1.0f, 1.0f, 100.0f);
+
+	Vec2i screenSpan{ 640, 480 };
+
+	Ray rayFromCameraInWorldSpace;
+	VALIDATE(Rococo::Rays::TryGetRayExtendingFromCamera(pixelPositionFromTopLeft, worldToCameraTransform, cameraToScreenProjection, screenSpan, OUT rayFromCameraInWorldSpace));
+
+	VALIDATE(rayFromCameraInWorldSpace.dir.x == 0);
+	VALIDATE(rayFromCameraInWorldSpace.dir.y == -1.0f);
+	VALIDATE(rayFromCameraInWorldSpace.dir.z == 0.0f);
+}
+
+void TestRays()
+{
+	TestRayInteresectWithScreen1();
+	TestScreenProjectedRay();
+}
+
 void test()
 {
+	TestRays();
+	return;
+
 	TestDelegates();
 
 	TestCodeInference();
 	TestCodeInferenceInterfaces();
 	TestQuadtree();
-	return;
 	TestOctree();
 	TimeSTDUNMAP();
 	TimeStringMap();
@@ -1079,6 +1145,9 @@ struct Enumerator
 
 int main(int argc, char* argv[])
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	try
 	{
 		test();

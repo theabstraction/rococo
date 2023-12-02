@@ -89,6 +89,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.include", "projects\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths", "projects\rococo.maths_vs2022_win64.vcxproj", "{83F901CE-6EC8-579F-89CA-76C364A01566}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.maths.test", "projects\rococo.maths.test_vs2022_win64.vcxproj", "{3D61B360-CB65-6E5C-E1AC-645659DC2FDC}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mathsex", "projects\rococo.mathsex_vs2022_win64.vcxproj", "{563D0F42-6A9D-9918-C36F-3EE2BD0BE598}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.mhost", "projects\rococo.mhost_vs2022_win64.vcxproj", "{1E566F07-C198-A5FD-2BC9-284B6537D3A5}"
@@ -253,6 +255,10 @@ Global
 		{83F901CE-6EC8-579F-89CA-76C364A01566}.Debug|x64.Build.0 = Debug|x64
 		{83F901CE-6EC8-579F-89CA-76C364A01566}.Release|x64.ActiveCfg = Release|x64
 		{83F901CE-6EC8-579F-89CA-76C364A01566}.Release|x64.Build.0 = Release|x64
+		{3D61B360-CB65-6E5C-E1AC-645659DC2FDC}.Debug|x64.ActiveCfg = Debug|x64
+		{3D61B360-CB65-6E5C-E1AC-645659DC2FDC}.Debug|x64.Build.0 = Debug|x64
+		{3D61B360-CB65-6E5C-E1AC-645659DC2FDC}.Release|x64.ActiveCfg = Release|x64
+		{3D61B360-CB65-6E5C-E1AC-645659DC2FDC}.Release|x64.Build.0 = Release|x64
 		{563D0F42-6A9D-9918-C36F-3EE2BD0BE598}.Debug|x64.ActiveCfg = Debug|x64
 		{563D0F42-6A9D-9918-C36F-3EE2BD0BE598}.Debug|x64.Build.0 = Debug|x64
 		{563D0F42-6A9D-9918-C36F-3EE2BD0BE598}.Release|x64.ActiveCfg = Release|x64

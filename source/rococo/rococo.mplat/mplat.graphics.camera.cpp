@@ -1,12 +1,12 @@
 #include <rococo.mplat.h>
 #include <rococo.maths.h>
 
-namespace
-{
-    using namespace Rococo;
-    using namespace Rococo::Graphics;
-    using namespace Rococo::Entities;
+using namespace Rococo;
+using namespace Rococo::Graphics;
+using namespace Rococo::Entities;
 
+namespace Mplat::CameraCode
+{
     class Camera : public ICameraSupervisor, public IMathsVenue
     {
         Matrix4x4 world;
@@ -173,66 +173,19 @@ namespace
 
                 position = model.GetPosition();
 
-                /*
-
-                (Ax  Bx  Cx)(1)       (Ax)
-                (Ay  By  Cy)(0)   ->  (Ay)
-                (Az  Bz  Cz)(0)       (Az)
-
-                (Ax  Bx  Cx)(0)       (Bx)
-                (Ay  By  Cy)(1)   ->  (By)
-                (Az  Bz  Cz)(0)       (Bz)
-
-                (Ax  Bx  Cx)(0)       (Cx)
-                (Ay  By  Cy)(0)   ->  (Cy)
-                (Az  Bz  Cz)(1)       (Cz)
-
-                Now, if ABC is the model matrix,
-                Then ABC transforms i to A, j to B and k to C
-
-                In an untransformed state (1 0 0) is right
-                (0 1 0) is forward
-                (0 0 1) is up
-
-                So A gives the right vector, B gives the forward vector, and C is the up vector
-
-                // In the camera
-                */
-
                 if (isFPSlinked)
                 {
-                    // With the identity world matrix, the camera is facing up, and x is to the right, and up is to the south
-                    // If a rotation to 0 elevation faces the camera forward with up vertical and x still to the right
-                    // We rotate the camera 90 degrees clockwise around the x-axis to point it so.
-                    // If the camera is viewing a particle at point P in the world, we can transform the point P into camera space
-                    // by rotating it 90 degress anticlockwise around the x-axis
+                    FPSAngles fpsAngles;
+                    mobiles.GetAngles(orientationGuideId, OUT fpsAngles);
 
-                    float cameraToWorldElevation = 90.0f - elevation;
-                    float worldToCameraElevation = -cameraToWorldElevation;
+                    heading = fpsAngles.heading;
 
-                    // The heading gives us compass direction with 0 = North and 90 = East
-                    // Heading is thus clockwise when positive, but our rotation matrix has anticlockwise for positive angles
-                    // So switch signs
+                    FPSAngles cameraOrientation;
+                    cameraOrientation.elevation = elevation;
+                    cameraOrientation.heading = heading;
+                    cameraOrientation.tilt = fpsAngles.tilt;
 
-                    FPSAngles angles;
-                    mobiles.GetAngles(orientationGuideId, angles);
-
-                    heading = angles.heading;
-
-                    Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ angles.heading });
-                    Matrix4x4 Rx = Matrix4x4::RotateRHAnticlockwiseX(Degrees{ worldToCameraElevation });
-
-                    Matrix4x4 T = Matrix4x4::Translate(-position - relativePos);
-
-                    // Lean is not yet implemented
-                    world = Rx * Rz * T;
-
-                    float detW = Determinant(world);
-                    if (detW < 0.9f || detW > 1.1f)
-                    {
-                        Throw(0, "Bad world-to-camera determinant: %f", detW);
-                    }
-
+                    FPS::SetWorldToCameraTransformToFPSRHMapSystem(OUT world, cameraOrientation, position + relativePos);
                     isDirty = false;
                 }
                 else
@@ -323,6 +276,16 @@ namespace
             Matrix4x4::GetRotationQuat(model, orientation);
         }
 
+        float32 Far() override
+        {
+            return projectionParameters.far;
+        }
+
+        float32 Near() override
+        {
+            return projectionParameters.near;
+        }
+
         void Free() override
         {
             delete this;
@@ -337,7 +300,7 @@ namespace Rococo
    {
       ICameraSupervisor* CreateCamera(IMobiles& mobiles, IRenderer& renderer)
       {
-         return new Camera(mobiles, renderer);
+         return new Mplat::CameraCode::Camera(mobiles, renderer);
       }
    }
 }

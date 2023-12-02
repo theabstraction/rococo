@@ -652,6 +652,22 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoMathsTestProject : RococoProject
+    {
+        public RococoMathsTestProject() : base("rococo.maths.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoSexInferenceProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoPackagerProject : RococoProject
     {
         public RococoPackagerProject() : base("rococo.packager")
@@ -1763,6 +1779,7 @@ namespace Rococo
             conf.AddProject<RococoComponentsSkeletonProject>(target);
             conf.AddProject<RococoSEXMLProject>(target);
             conf.AddProject<RococoMathsProject>(target);
+            conf.AddProject<RococoMathsTestProject>(target);
             conf.AddProject<RococoPackagerProject>(target);
             conf.AddProject<RococoWindowsProject>(target);
             conf.AddProject<RococoSexyIDEProject>(target);
@@ -1971,6 +1988,7 @@ namespace Rococo
             arguments.Generate<RococoComponentsSkeletonProject>();
 
             arguments.Generate<RococoMathsProject>();
+            arguments.Generate<RococoMathsTestProject>();
             arguments.Generate<RococoPackagerProject>();
             arguments.Generate<RococoWindowsProject>();
             arguments.Generate<RococoSexyIDEProject>();

@@ -20,6 +20,8 @@ namespace
       IRenderer& renderer;
       Degrees elevation{ 0 };
       Degrees heading{ 0 };
+      float far = 1000.0;
+      float near = 1.0f;
       bool isDirty{ false };
       bool isFPSlinked{ false };   
    public:
@@ -40,7 +42,7 @@ namespace
          return *this;
       }
 
-      void ShowVenue(IMathsVisitor& visitor)
+      void ShowVenue(IMathsVisitor& visitor) override
       {
          visitor.Clear();
          visitor.Show("World->Camera", world);
@@ -74,7 +76,7 @@ namespace
          visitor.ShowPointer("this", this);
       }
 
-      virtual void Append(OnPlayerViewChangeEvent& pvce)
+      void Append(OnPlayerViewChangeEvent& pvce) override
       {
          if (pvce.elevationDelta != 0 && orientationGuideId == pvce.playerEntityId)
          {
@@ -86,7 +88,7 @@ namespace
          }
       }
 
-      virtual void Clear()
+      void Clear() override
       {
          projection = world = Matrix4x4::Identity();
          followingId = orientationGuideId = ID_ENTITY::Invalid();
@@ -97,7 +99,7 @@ namespace
          elevation = Degrees{ 0 };
       }
 
-      virtual float AspectRatio()
+      float AspectRatio() override
       {
          GuiMetrics metrics;
          renderer.GetGuiMetrics(metrics);
@@ -105,24 +107,24 @@ namespace
          return metrics.screenSpan.x / (float)metrics.screenSpan.y;
       }
 
-      virtual void GetPosition(Vec3& position)
+      void GetPosition(Vec3& position) override
       {
          position = this->position;
       }
 
-      virtual void GetOrientation(Quat& orientation)
+      void GetOrientation(Quat& orientation) override
       {
          orientation = this->orientation;
       }
 
-      virtual void SetPosition(const Vec3& position)
+      void SetPosition(const Vec3& position) override
       {
          followingId = ID_ENTITY::Invalid();
          isDirty = true;
          this->position = position;
       }
 
-      virtual void SetOrientation(const Quat& orientation)
+      void SetOrientation(const Quat& orientation) override 
       {
          orientationGuideId = ID_ENTITY::Invalid();
          isDirty = true;
@@ -130,7 +132,7 @@ namespace
          isFPSlinked = false;
       }
 
-      void Update(const IUltraClock& clock)
+      void Update(const IUltraClock& clock) override
       {
          // Generally this be called after entities are updated and just before scene is rendered
          if (followingId)
@@ -218,17 +220,14 @@ namespace
          }
       }
 
-      virtual void SetRHProjection(Degrees fov, float near, float far)
+      void SetRHProjection(Degrees fov, float near, float far) override
       {
          this->projection = Matrix4x4::GetRHProjectionMatrix(fov, AspectRatio(), near, far);
+         this->near = near;
+         this->far = far;
       }
 
-      virtual void SetProjection(const Matrix4x4& proj)
-      {
-         this->projection = proj;
-      }
-
-      virtual void GetWorld(Matrix4x4& worldToCamera)
+      void GetWorld(Matrix4x4& worldToCamera) override
       {
          if (isDirty)
          {
@@ -241,32 +240,32 @@ namespace
          worldToCamera = this->world;
       }
 
-      virtual void GetWorldAndProj(Matrix4x4& worldAndProj)
+      void GetWorldAndProj(Matrix4x4& worldAndProj) override
       {
          Matrix4x4 world;
          GetWorld(world);
          worldAndProj = projection * world;
       }
 
-      virtual void FollowEntity(ID_ENTITY id)
+      void FollowEntity(ID_ENTITY id) override
       {
          followingId = id;
       }
 
-      virtual void MoveToEntity(ID_ENTITY id)
+      void MoveToEntity(ID_ENTITY id) override
       {
          followingId = ID_ENTITY::Invalid();
          instances.ConcatenatePositionVectors(id, position);
       }
 
-      virtual void OrientateWithEntity(ID_ENTITY id, int32 flags)
+      void OrientateWithEntity(ID_ENTITY id, int32 flags) override
       {
          orientationGuideId = id;
 
          isFPSlinked = true;
       }
 
-      virtual void OrientateToEntity(ID_ENTITY id, int32 flags)
+      void OrientateToEntity(ID_ENTITY id, int32 flags) override
       {
          orientationGuideId = ID_ENTITY::Invalid();
 
@@ -282,7 +281,7 @@ namespace
          Matrix4x4::GetRotationQuat(model, orientation);
       }
 
-      virtual void Free()
+      void Free() override
       {
          delete this;
       }

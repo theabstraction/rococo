@@ -17,6 +17,7 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.objects.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.particles.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pipeline.cpp" />
+    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pix.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.renderer.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.samplers.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.shaders.cpp" />
@@ -26,7 +27,6 @@
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.venues.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.window.backing.cpp" />
     <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.window.cpp" />
-    <ClCompile Include="..\..\source\rococo\dx11.renderer\dx11.pix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11.factory.h" />
@@ -35,10 +35,5 @@
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11buffers.inl" />
     <ClInclude Include="..\..\source\rococo\dx11.renderer\dx11helpers.inl" />
     <ClInclude Include="..\..\source\rococo\dx11.renderer\rococo.dx11.api.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{84e49bfd-9f22-4d34-9570-9ef9155b2847}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

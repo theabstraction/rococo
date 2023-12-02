@@ -702,7 +702,7 @@ namespace Rococo
 		void GetBox(BoundingBox& box) const;
 		[[nodiscard]] Vec3 Span() const;
 
-		[[nodiscard]] AABB RotateBounds(const Matrix4x4& Rz) const;
+		[[nodiscard]] AABB RotateBounds(const Matrix4x4& m) const;
 	};
 
 	FORCE_INLINE  [[nodiscard]] const Vec2& Flatten(const Vec3& a)

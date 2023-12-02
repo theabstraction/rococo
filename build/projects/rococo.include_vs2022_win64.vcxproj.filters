@@ -75,6 +75,9 @@
     <ClInclude Include="..\..\source\rococo\include\mplat\mplat.events.h">
       <Filter>mplat</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\RAL\RAL.h">
+      <Filter>RAL</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h">
       <Filter>RAL</Filter>
     </ClInclude>
@@ -111,6 +114,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.ide.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.imaging.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.imports.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.impressario.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.io.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.map.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.maths.h" />
@@ -134,6 +138,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.random.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.reflector.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.release.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.formats.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
@@ -143,9 +148,12 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.ide.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.map.expert.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexystudio.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.SI.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.stl.allocators.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.strings.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.reflection.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.subsystems.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sxytype-inference.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.target.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.task.queue.h" />
@@ -168,7 +176,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.strings.ex.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">
@@ -189,8 +196,5 @@
     <Filter Include="mplat">
       <UniqueIdentifier>{9d414bb1-4467-062b-5ea8-af7a7c977731}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\include\rococo.impressario.inl" />
   </ItemGroup>
 </Project>

@@ -314,13 +314,13 @@ namespace Rococo
 	   return maxXYZ - minXYZ;
    }
 
-   AABB AABB::RotateBounds(const Matrix4x4& Rz) const
+   AABB AABB::RotateBounds(const Matrix4x4& m) const
    {
 		BoundingBox box;
 		GetBox(box);
 
 		Vec3 corners[8];
-		TransformPositions(box.First(), 8, Rz, corners);
+		TransformPositions(box.First(), 8, m, corners);
 
 		AABB newBounds;
 		for (auto& v : corners)
@@ -403,8 +403,8 @@ namespace Rococo
 {
 	Matrix4x4 Matrix4x4::GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far)
 	{
-		if (fov < 0.001f || fov > 179.0f)                Throw(0, "Field-of-view out of range. Must be 0.001 <= fov <= 179.");
-		if (aspectRatio < 0.01f || aspectRatio > 100.0f) Throw(0, "Aspect ratio outside of sane range. Must be 0.01 <= AR <= 100.");
+		if (fov < 0.001f || fov > 179.0f)                Throw(0, "Field-of-view out of sane range. Range: 0.001 <= fov <= 179.");
+		if (aspectRatio < 0.01f || aspectRatio > 100.0f) Throw(0, "Aspect ratio outside of sane range. Range 0.01 <= AR <= 100.");
 		if (near <= 0 || near > 100000.0f)               Throw(0, "Near plane outside of sane range. Range: 0 < near < 100000");
 		if (far <= near || far > 100000.0f)              Throw(0, "Far plane outside of sane range. Range: near < far <= 100000");
 
@@ -428,8 +428,8 @@ namespace Rococo
 
 		*/
 
-		float32 B = 1.0f / tanhalffov;
-		float32 A = B / aspectRatio;
+		float32 A = 1.0f / tanhalffov;
+		float32 B = A * aspectRatio;
 		float32 C = far / (near - far);
 		float32 D = (far * near) / (near - far);
 
@@ -1174,11 +1174,7 @@ namespace Rococo
 			i++;
 		}
 	}
-}
 
-#ifdef _WIN32
-namespace Rococo
-{
 	void ComputeBoneQuatFromAngles(Quat& quat, const BoneAngles& angles)
 	{
 		DirectX::XMVECTOR q = DirectX::XMQuaternionRotationRollPitchYaw(
@@ -1189,4 +1185,180 @@ namespace Rococo
 		DirectX::XMStoreFloat4(quat, q);
 	}
 }
-#endif
+
+namespace Rococo::FPS
+{
+	void SetWorldToCameraTransformToFPSRHMapSystem(Matrix4x4& worldToCameraTransform, const FPSAngles& cameraOrientation, cr_vec3 cameraPosition)
+	{
+		/*
+
+		(Ax  Bx  Cx)(1)       (Ax)
+		(Ay  By  Cy)(0)   ->  (Ay)
+		(Az  Bz  Cz)(0)       (Az)
+
+		(Ax  Bx  Cx)(0)       (Bx)
+		(Ay  By  Cy)(1)   ->  (By)
+		(Az  Bz  Cz)(0)       (Bz)
+
+		(Ax  Bx  Cx)(0)       (Cx)
+		(Ay  By  Cy)(0)   ->  (Cy)
+		(Az  Bz  Cz)(1)       (Cz)
+
+		Now, if ABC is the model matrix,
+		Then ABC transforms i to A, j to B and k to C
+
+		In an untransformed state (1 0 0) is right
+		(0 1 0) is forward
+		(0 0 1) is up
+
+		So A gives the right vector, B gives the forward vector, and C is the up vector
+
+		// In the camera
+		*/
+
+		// With the identity world matrix, the camera is facing up, and x is to the right, and up is to the south
+		// If a rotation to 0 elevation faces the camera forward with up vertical and x still to the right
+		// We rotate the camera 90 degrees clockwise around the x-axis to point it so.
+		// If the camera is viewing a particle at point P in the world, we can transform the point P into camera space
+		// by rotating it 90 degress anticlockwise around the x-axis
+
+		float cameraToWorldElevation = 90.0f - cameraOrientation.elevation;
+		float worldToCameraElevation = -cameraToWorldElevation;
+
+		// The heading gives us compass direction with 0 = North and 90 = East
+		// Heading is thus clockwise when positive, but our rotation matrix has anticlockwise for positive angles
+		// So switch signs
+
+		Matrix4x4 Rz = Matrix4x4::RotateRHAnticlockwiseZ(Degrees{ cameraOrientation.heading });
+		Matrix4x4 Rx = Matrix4x4::RotateRHAnticlockwiseX(Degrees{ worldToCameraElevation });
+
+		Matrix4x4 T = Matrix4x4::Translate(-cameraPosition);
+
+		// Lean is not yet implemented
+		worldToCameraTransform = Rx * Rz * T;
+
+		float detW = Determinant(worldToCameraTransform);
+		if (detW < 0.9f || detW > 1.1f)
+		{
+			Throw(0, "Bad world-to-camera determinant: %f", detW);
+		}
+	}
+}
+
+namespace Rococo::Rays
+{
+	bool TryGetIntersectWithZPlaneAtRay(float planeZ, float minZcomponentOfDir, const Ray& ray, OUT Vec2& target)
+	{
+		if (ray.dir.z < minZcomponentOfDir)
+		{
+			target = { 0,0 };
+			return false;
+		}
+
+		// The eye cast a ray down and along the view direction where P(t) = A + B.t, A = eye and B = dir
+		// This gives z(t) = A.z + B.z.t. We want t such that z(t) = z0 (where z0 is the floor elevation);
+		// z0 = Az + Bz.t. t = (z0 - Az) / Bz
+
+		float t = (planeZ - ray.eye.z) / ray.dir.z;
+
+		Vec3 targetCandidate = ray.eye + ray.dir * t;
+
+		OUT target = AsVec2(targetCandidate);
+
+		return true;
+	}
+
+	bool TryGet3DRayIntersectWithScreen(const Ray& worldRay, cr_m4x4 worldToCameraTransform, cr_m4x4 projectionTransform, Vec2i screenSpan, OUT Vec2i& screenDeltaFromTopLeft)
+	{
+		Matrix4x4 worldToScreenTransform;
+		Multiply(OUT worldToScreenTransform, projectionTransform, worldToCameraTransform);
+
+		Ray cameraSpaceRay;
+		TransformPosition(worldToScreenTransform, worldRay.eye, OUT cameraSpaceRay.eye);
+		TransformDirection(worldToScreenTransform, worldRay.dir, OUT cameraSpaceRay.dir);
+
+		// We have transformed the line into projection space. This gives z(t) = eye + dir.t
+		// We want t such that z(t) = 0
+		// 0 = eye.z + dir.z.t
+		// t = -eye.z / dir.z
+
+		constexpr float MIN_CAMERASPACE_Z_ELEVATION = 0.001f;
+
+		if (fabsf(cameraSpaceRay.dir.z) < MIN_CAMERASPACE_Z_ELEVATION)
+		{
+			return false;
+		}
+
+		if (cameraSpaceRay.dir.z > 0)
+		{
+			// The ray is directed away from the camera, so no intersection
+			return false;
+		}
+
+		// We are only interested in rays ahead of the camera directed through the camera
+		if (cameraSpaceRay.eye.z <= 0)
+		{
+			return false;
+		}
+
+		float t = -cameraSpaceRay.eye.z / cameraSpaceRay.dir.z;
+		Vec3 intersectPoint = cameraSpaceRay.eye + cameraSpaceRay.dir * t;
+
+		if (fabsf(intersectPoint.x) > 1.0f)
+		{
+			// Offscreen
+			return false;
+		}
+
+		if (fabsf(intersectPoint.y) > 1.0f)
+		{
+			// Offscreen
+			return false;
+		}
+
+		Vec2 bottomLeftCoordinates = (AsVec2(intersectPoint) + Vec2{ 1.0f, 1.0f }) * 0.5f; // This transforms the domain from [-1,+1] to [0,1] ine ach component
+		screenDeltaFromTopLeft = { (int) (screenSpan.x * bottomLeftCoordinates.x), (int) (screenSpan.y * (1.0f - bottomLeftCoordinates.y)) };
+		return true;
+	}
+
+	bool TryGetRayExtendingFromCamera(Vec2i pixelPositionFromTopLeft, cr_m4x4 worldToCameraTransform, cr_m4x4 cameraToScreenProjection, Vec2i screenSpan, OUT Ray& rayFromCameraInWorldSpace)
+	{
+		if (screenSpan.x <= 0 || screenSpan.y <= 0)
+		{
+			// bad screen span
+			return false;
+		}
+
+		if (pixelPositionFromTopLeft.x < 0 || pixelPositionFromTopLeft.x > screenSpan.x)
+		{
+			// offscreen
+			return false;
+		}
+
+		if (pixelPositionFromTopLeft.y < 0 || pixelPositionFromTopLeft.y > screenSpan.y)
+		{
+			// offscreen
+			return false;
+		}
+
+		Vec2 normalizeCoordinatesFromTopleft = { pixelPositionFromTopLeft.x / (float)screenSpan.x, pixelPositionFromTopLeft.y / (float)screenSpan.y };
+
+		constexpr float yflip = -1.0f;
+		Vec2 normalizeCoordinateFromCentre = { 2.0f * normalizeCoordinatesFromTopleft.x - 1.0f, yflip * (2.0f * normalizeCoordinatesFromTopleft.y - 1.0f) };
+
+		rayFromCameraInWorldSpace.eye = worldToCameraTransform.GetPosition();
+
+		Vec3 cameraSpaceDir = Vec3::FromVec2(normalizeCoordinateFromCentre, -1.0f);
+
+		// Our projection matrix looks like this:
+
+		/*
+			a 0 0 0
+			0 b 0 0
+			0 0 c d
+			0 0 1 0
+		*/
+
+		return false;
+	}
+}

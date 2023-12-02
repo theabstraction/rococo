@@ -321,12 +321,12 @@ namespace Rococo::Sex::Inference
 
 	// An engine that attempts to infer the type of a variable by iterating through the source code that precedes it use. The source code is not required to be synatically perfect
 
-	BadlyFormattedTypeInferenceEngine::BadlyFormattedTypeInferenceEngine(cstr _textBuffer) : textBuffer(_textBuffer)
+	ROCOCO_MISC_UTILS_API BadlyFormattedTypeInferenceEngine::BadlyFormattedTypeInferenceEngine(cstr _textBuffer) : textBuffer(_textBuffer)
 	{
 
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindFirstPrecedingChar(cstr lastChar, char match)
+	ROCOCO_MISC_UTILS_API cstr BadlyFormattedTypeInferenceEngine::FindFirstPrecedingChar(cstr lastChar, char match)
 	{
 		for (cstr p = lastChar - 1; p >= textBuffer; p--)
 		{
@@ -339,7 +339,7 @@ namespace Rococo::Sex::Inference
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindNextMatchedChar(cr_substring token, char match)
+	ROCOCO_MISC_UTILS_API cstr BadlyFormattedTypeInferenceEngine::FindNextMatchedChar(cr_substring token, char match)
 	{
 		if (token.start != token.finish)
 		{
@@ -355,7 +355,7 @@ namespace Rococo::Sex::Inference
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::GetEndOfPadding(cr_substring token)
+	ROCOCO_MISC_UTILS_API cstr BadlyFormattedTypeInferenceEngine::GetEndOfPadding(cr_substring token)
 	{
 		for (cstr q = token.start; q < token.finish; q++)
 		{
@@ -368,7 +368,7 @@ namespace Rococo::Sex::Inference
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindFirstLeftOccurenceOfFunctionLikeKeyword(cstr lastChar, const fstring& token)
+	ROCOCO_MISC_UTILS_API cstr BadlyFormattedTypeInferenceEngine::FindFirstLeftOccurenceOfFunctionLikeKeyword(cstr lastChar, const fstring& token)
 	{
 		// Expecting a ( function   <f-name> ...). If a match is found then the return value will point to <f-name
 		for (cstr p = FindFirstPrecedingChar(lastChar, '('); p != nullptr; p = FindFirstPrecedingChar(p, '('))
@@ -398,7 +398,7 @@ namespace Rococo::Sex::Inference
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindLastTypeChar(cr_substring token)
+	ROCOCO_MISC_UTILS_API cstr BadlyFormattedTypeInferenceEngine::FindLastTypeChar(cr_substring token)
 	{
 		for (cstr p = token.start; p != token.finish; p++)
 		{
@@ -423,7 +423,7 @@ namespace Rococo::Sex::Inference
 		return nullptr;
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::FindLastVariableChar(cr_substring token)
+	ROCOCO_MISC_UTILS_API cstr BadlyFormattedTypeInferenceEngine::FindLastVariableChar(cr_substring token)
 	{
 		for (cstr p = token.start; p != token.finish; p++)
 		{
@@ -448,7 +448,7 @@ namespace Rococo::Sex::Inference
 		return nullptr;
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::FindNextPossibleDeclaration(cr_substring specimen)
+	ROCOCO_MISC_UTILS_API TypeInference BadlyFormattedTypeInferenceEngine::FindNextPossibleDeclaration(cr_substring specimen)
 	{
 		for (cstr p = FindNextMatchedChar(specimen, '('); p != nullptr; p = FindNextMatchedChar({ p, specimen.finish }, '('))
 		{
@@ -489,7 +489,7 @@ namespace Rococo::Sex::Inference
 		return TypeInference{ {nullptr, nullptr},{nullptr,nullptr} };
 	}
 
-	cstr BadlyFormattedTypeInferenceEngine::GetMatchEnd(cr_substring token, cstr candidate, cstr endGuard)
+	ROCOCO_MISC_UTILS_API cstr BadlyFormattedTypeInferenceEngine::GetMatchEnd(cr_substring token, cstr candidate, cstr endGuard)
 	{
 		cstr p;
 		cstr q = candidate;
@@ -504,7 +504,7 @@ namespace Rococo::Sex::Inference
 		return q;
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::InferLocalVariableVariableType(cr_substring candidate)
+	ROCOCO_MISC_UTILS_API TypeInference BadlyFormattedTypeInferenceEngine::InferLocalVariableVariableType(cr_substring candidate)
 	{
 		Substring token = candidate;
 		if (token.Length() > 1)
@@ -542,7 +542,7 @@ namespace Rococo::Sex::Inference
 		return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::InferParentMember(const TypeInference& classInference, cr_substring name)
+	ROCOCO_MISC_UTILS_API TypeInference BadlyFormattedTypeInferenceEngine::InferParentMember(const TypeInference& classInference, cr_substring name)
 	{
 		if (!classInference.declarationType) return TypeInference_None();
 
@@ -575,7 +575,7 @@ namespace Rococo::Sex::Inference
 		return matchType;
 	}
 
-	TypeInference BadlyFormattedTypeInferenceEngine::InferContainerClass(cr_substring token)
+	ROCOCO_MISC_UTILS_API TypeInference BadlyFormattedTypeInferenceEngine::InferContainerClass(cr_substring token)
 	{
 		cstr methodPos = FindFirstLeftOccurenceOfFunctionLikeKeyword(token.start, fsMethod);
 		if (!methodPos)
@@ -603,7 +603,7 @@ namespace Rococo::Sex::Inference
 	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies
 	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies.
 	*/
-	ROCOCO_API_EXPORT Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
+	ROCOCO_MISC_UTILS_API Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
 	{
 		static auto thisRaw = "this"_fstring;
 		static auto thisDot = "this."_fstring;

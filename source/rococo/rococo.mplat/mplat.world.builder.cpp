@@ -82,7 +82,10 @@ namespace
 			GetTriangleAt(Vec2{ x,y }, scan);
 			
 			float height = 0;
-			GetTriangleHeight(scan.t, Vec2{ x,y }, height);
+			if (!GetTriangleHeight(scan.t, Vec2{ x,y }, height))
+			{
+				return 0.0f;
+			}
 			return height;
 		}
 
