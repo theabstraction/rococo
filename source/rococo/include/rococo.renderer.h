@@ -299,7 +299,7 @@ namespace Rococo::Graphics
 	// Data associated with a depth-only render phase, such as shadow generation
 	struct DepthRenderData 
 	{
-		Matrix4x4 worldToCamera;
+		Matrix4x4 world;
 		Matrix4x4 worldToScreen;
 		Vec4 eye;
 		Vec4 direction;

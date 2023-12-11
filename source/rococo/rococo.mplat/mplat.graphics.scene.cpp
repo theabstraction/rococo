@@ -64,14 +64,14 @@ namespace
 		  this->skyboxId = cubeId;
 	  }
 
-	  void GetCamera(Matrix4x4& worldToScreen, Matrix4x4& world, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
+	  void GetCamera(Matrix4x4& worldToScreen, Matrix4x4& worldToCamera, Matrix4x4& proj, Vec4& eye, Vec4& viewDir) override
 	  {
-		  camera.GetWorld(world);
+		  camera.GetWorld(worldToCamera);
 		  camera.GetWorldAndProj(worldToScreen);
 		  camera.GetPosition(eye);
 		  camera.GetProjection(proj);
 		  eye.w = 1.0f;
-		  viewDir = Vec4::FromVec3(world.GetForwardDirection(), 0);
+		  viewDir = Vec4::FromVec3(worldToCamera.GetForwardDirection(), 0);
 	  };
 
 	  ID_CUBE_TEXTURE GetEnvironmentMap() const override

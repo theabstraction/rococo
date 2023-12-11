@@ -11,7 +11,6 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
-   // OSX not currently supported, as first target for OSX is VST plugins, not game engines
    float Determinant(const Matrix4x4& m)
    {
       using namespace DirectX;
@@ -426,13 +425,27 @@ namespace Rococo
 		With D = (far.near) / (near -far)
 		// Note that near < far, thus C and D are negative
 
+		      < -ve x
+			<    |
+		  <theta |
+		<------- | ---------------> -ve Z
+		  <      |
+		    <    |
+			  < +ve x
+
+			     *---- near
+				 
+
+				 In the diagram above theta is half the field-of-view, and tan theta is opposite over adjacent. The adjacent is fixed by the caller as 'near', and theta is also fixed,
+				 hence the span of the x-axis, the opposite, is determined by theta and near. Thus our camera x-span is generally not -1 to +1. 
+				 Our projection matrix needs to scale the xspan during the w divide so that the final x-coordinate is in normalized screen space [-1,-1]. This is achieved by dividing the x co-ordinate by tan theta. 
 		*/
 
 		float32 A = 1.0f / tanhalffov;
 		float32 B = A * aspectRatio;
-		float32 C = far / (near - far);
 		float32 D = (far * near) / (near - far);
-
+		float32 C = far / (near - far);
+		
 		return Matrix4x4
 		{
 		   { A,	  0,  0,   0 },
@@ -1249,7 +1262,7 @@ namespace Rococo::Rays
 {
 	bool TryGetIntersectWithZPlaneAtRay(float planeZ, float minZcomponentOfDir, const Ray& ray, OUT Vec2& target)
 	{
-		if (ray.dir.z < minZcomponentOfDir)
+		if (ray.dir.z >= minZcomponentOfDir)
 		{
 			target = { 0,0 };
 			return false;
@@ -1319,46 +1332,5 @@ namespace Rococo::Rays
 		Vec2 bottomLeftCoordinates = (AsVec2(intersectPoint) + Vec2{ 1.0f, 1.0f }) * 0.5f; // This transforms the domain from [-1,+1] to [0,1] ine ach component
 		screenDeltaFromTopLeft = { (int) (screenSpan.x * bottomLeftCoordinates.x), (int) (screenSpan.y * (1.0f - bottomLeftCoordinates.y)) };
 		return true;
-	}
-
-	bool TryGetRayExtendingFromCamera(Vec2i pixelPositionFromTopLeft, cr_m4x4 worldToCameraTransform, cr_m4x4 cameraToScreenProjection, Vec2i screenSpan, OUT Ray& rayFromCameraInWorldSpace)
-	{
-		if (screenSpan.x <= 0 || screenSpan.y <= 0)
-		{
-			// bad screen span
-			return false;
-		}
-
-		if (pixelPositionFromTopLeft.x < 0 || pixelPositionFromTopLeft.x > screenSpan.x)
-		{
-			// offscreen
-			return false;
-		}
-
-		if (pixelPositionFromTopLeft.y < 0 || pixelPositionFromTopLeft.y > screenSpan.y)
-		{
-			// offscreen
-			return false;
-		}
-
-		Vec2 normalizeCoordinatesFromTopleft = { pixelPositionFromTopLeft.x / (float)screenSpan.x, pixelPositionFromTopLeft.y / (float)screenSpan.y };
-
-		constexpr float yflip = -1.0f;
-		Vec2 normalizeCoordinateFromCentre = { 2.0f * normalizeCoordinatesFromTopleft.x - 1.0f, yflip * (2.0f * normalizeCoordinatesFromTopleft.y - 1.0f) };
-
-		rayFromCameraInWorldSpace.eye = worldToCameraTransform.GetPosition();
-
-		Vec3 cameraSpaceDir = Vec3::FromVec2(normalizeCoordinateFromCentre, -1.0f);
-
-		// Our projection matrix looks like this:
-
-		/*
-			a 0 0 0
-			0 b 0 0
-			0 0 c d
-			0 0 1 0
-		*/
-
-		return false;
 	}
 }

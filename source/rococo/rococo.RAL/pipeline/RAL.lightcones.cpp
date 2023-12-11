@@ -137,11 +137,11 @@ struct RAL_LightCones : IRAL_LightCones
 			instanceBuffer->AssignToVS(CBUFFER_INDEX_INSTANCE_BUFFER);
 
 			Matrix4x4 camera;
-			Matrix4x4 world;
+			Matrix4x4 worldToCamera;
 			Matrix4x4 proj;
 			Vec4 eye;
 			Vec4 viewDir;
-			scene.GetCamera(camera, world, proj, eye, viewDir);
+			scene.GetCamera(camera, worldToCamera, proj, eye, viewDir);
 
 			for (uint32 i = 0; i < lights.count; ++i)
 			{

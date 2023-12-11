@@ -137,9 +137,9 @@ struct TestApp : IApp, private IScene, public IEventCallback<FileModifiedArgs>
       platform.gui.Render(grc);
    }
 
-   void GetCamera(Matrix4x4& camera, Matrix4x4& world, Vec4& eye, Vec4& viewDir)
+   void GetCamera(Matrix4x4& camera, Matrix4x4& worldToCamera, Vec4& eye, Vec4& viewDir)
    {
-	   camera = world = Matrix4x4::Identity();
+	   camera = worldToCamera = Matrix4x4::Identity();
 	   eye = { 0,0,0 };
 	   viewDir = { 0,0,1 };
    }

@@ -1066,38 +1066,9 @@ void TestRayInteresectWithScreen1()
 	VALIDATE(intersectCoordinate.y == 240);
 }
 
-void TestScreenProjectedRay()
-{
-	constexpr float eyeHeight = 1.0f;
-
-	Vec2i pixelPositionFromTopLeft = { 320,240 };
-
-	FPSAngles cameraOrientation;
-	cameraOrientation.elevation = 0_degrees;
-	cameraOrientation.heading = 0_degrees; // due north
-	cameraOrientation.tilt = 0_degrees;
-
-	Matrix4x4 worldToCameraTransform;
-	Vec3 cameraPosition = { 0, 0, eyeHeight }; // Position they camera at the same altitude as the world ray
-	Rococo::FPS::SetWorldToCameraTransformToFPSRHMapSystem(OUT worldToCameraTransform, cameraOrientation, cameraPosition);
-
-	auto fov = 90_degrees;
-	Matrix4x4 cameraToScreenProjection = Matrix4x4::GetRHProjectionMatrix(fov, 1.0f, 1.0f, 100.0f);
-
-	Vec2i screenSpan{ 640, 480 };
-
-	Ray rayFromCameraInWorldSpace;
-	VALIDATE(Rococo::Rays::TryGetRayExtendingFromCamera(pixelPositionFromTopLeft, worldToCameraTransform, cameraToScreenProjection, screenSpan, OUT rayFromCameraInWorldSpace));
-
-	VALIDATE(rayFromCameraInWorldSpace.dir.x == 0);
-	VALIDATE(rayFromCameraInWorldSpace.dir.y == -1.0f);
-	VALIDATE(rayFromCameraInWorldSpace.dir.z == 0.0f);
-}
-
 void TestRays()
 {
 	TestRayInteresectWithScreen1();
-	TestScreenProjectedRay();
 }
 
 void test()

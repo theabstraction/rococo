@@ -28,13 +28,13 @@ void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, ShadowRen
 	Matrix4x4 cameraToDirectionRot = TransposeMatrix(directionToCameraRot);
 	shadowData.right = cameraToDirectionRot * Vec4{ 1, 0, 0, 0 };
 	shadowData.up = cameraToDirectionRot * Vec4{ 0, 1, 0, 0 };
-	shadowData.worldToCamera = directionToCameraRot * Matrix4x4::Translate(-shadowData.eye);
+	shadowData.world = directionToCameraRot * Matrix4x4::Translate(-shadowData.eye);
 	shadowData.nearPlane = light.nearPlane;
 	shadowData.farPlane = light.farPlane;
 
 	Matrix4x4 cameraToScreen = Matrix4x4::GetRHProjectionMatrix(shadowData.fov, 1.0f, shadowData.nearPlane, shadowData.farPlane);
 
-	shadowData.worldToScreen = cameraToScreen * shadowData.worldToCamera;
+	shadowData.worldToScreen = cameraToScreen * shadowData.world;
 
 	Time::ticks t = Time::TickCount();
 	Time::ticks ticksPerSecond = Time::TickHz();

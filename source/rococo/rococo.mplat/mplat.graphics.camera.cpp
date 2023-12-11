@@ -9,7 +9,8 @@ namespace Mplat::CameraCode
 {
     class Camera : public ICameraSupervisor, public IMathsVenue
     {
-        Matrix4x4 world;
+        mutable Matrix4x4 worldToCamera;
+        mutable Matrix4x4 cameraToWorld;
 
         struct Projection
         {
@@ -18,7 +19,7 @@ namespace Mplat::CameraCode
             Metres far;
         } projectionParameters = { { 60 }, {0.1f}, {1000.0f} };
 
-        Matrix4x4 projection;
+        mutable Matrix4x4 projection;
         Quat orientation;
         Vec3 position;
         int32 orientationFlags;
@@ -28,7 +29,7 @@ namespace Mplat::CameraCode
         IRenderer& renderer;
         Degrees elevation{ 0 };
         Degrees heading{ 0 };
-        bool isDirty{ false };
+        mutable bool isDirty{ false };
         bool isFPSlinked{ false };
         Vec3 relativePos;
     public:
@@ -43,7 +44,7 @@ namespace Mplat::CameraCode
         {
         }
 
-        void GetProjection(Matrix4x4& proj)
+        void GetProjection(Matrix4x4& proj) const override
         {
             proj = this->projection;
         }
@@ -56,7 +57,7 @@ namespace Mplat::CameraCode
         void ShowVenue(IMathsVisitor& visitor)
         {
             visitor.Clear();
-            visitor.Show("World->Camera", world);
+            visitor.Show("World->Camera", worldToCamera);
             visitor.Show("Camera->Screen", projection);
             visitor.ShowString("", "");
 
@@ -104,7 +105,7 @@ namespace Mplat::CameraCode
         void Clear() override
         {
             relativePos = Vec3{ 0,0,0 };
-            projection = world = Matrix4x4::Identity();
+            projection = worldToCamera = cameraToWorld = Matrix4x4::Identity();
             followingId = orientationGuideId = ID_ENTITY::Invalid();
             orientation = Quat{ { 0, 0, 0 }, 1.0 };
             position = Vec3{ 0, 0, 0 };
@@ -113,7 +114,7 @@ namespace Mplat::CameraCode
             elevation = Degrees{ 0 };
         }
 
-        float AspectRatio() override
+        float AspectRatio() const override
         {
             GuiMetrics metrics;
             renderer.GetGuiMetrics(metrics);
@@ -121,12 +122,12 @@ namespace Mplat::CameraCode
             return metrics.screenSpan.x / (float)metrics.screenSpan.y;
         }
 
-        void GetPosition(Vec3& position) override
+        void GetPosition(Vec3& position) const override
         {
             position = this->position + this->relativePos;
         }
 
-        void GetOrientation(Quat& orientation) override
+        void GetOrientation(Quat& orientation) const override
         {
             orientation = this->orientation;
         }
@@ -185,7 +186,8 @@ namespace Mplat::CameraCode
                     cameraOrientation.heading = heading;
                     cameraOrientation.tilt = fpsAngles.tilt;
 
-                    FPS::SetWorldToCameraTransformToFPSRHMapSystem(OUT world, cameraOrientation, position + relativePos);
+                    FPS::SetWorldToCameraTransformToFPSRHMapSystem(OUT worldToCamera, cameraOrientation, position + relativePos);
+                    cameraToWorld = InvertMatrix(worldToCamera);
                     isDirty = false;
                 }
                 else
@@ -203,7 +205,7 @@ namespace Mplat::CameraCode
             projectionParameters.far = Metres{ far };
         }
 
-        void GetWorld(Matrix4x4& worldToCamera) override
+        void GetWorld(Matrix4x4& worldToCamera) const override
         {
             if (isDirty)
             {
@@ -211,19 +213,38 @@ namespace Mplat::CameraCode
                 Matrix4x4 rot;
                 Matrix4x4::FromQuatAndThenTranspose(orientation, rot);
                 Matrix4x4 translate = Matrix4x4::Translate(-position);
-                this->world = rot * translate;
+                this->worldToCamera = rot * translate;
+                this->cameraToWorld = InvertMatrix(this->worldToCamera);
             }
-            worldToCamera = this->world;
+            worldToCamera = this->worldToCamera;
         }
 
-        void GetWorldAndProj(Matrix4x4& worldAndProj) override
+        void GetWorldAndProj(Matrix4x4& worldAndProj) const override
         {
-            Matrix4x4 world;
-            GetWorld(world);
+            Matrix4x4 worldToCamera;
+            GetWorld(worldToCamera);
 
             projection = Matrix4x4::GetRHProjectionMatrix(projectionParameters.fov, AspectRatio(), projectionParameters.near, projectionParameters.far);
 
-            worldAndProj = projection * world;
+            worldAndProj = projection * worldToCamera;
+        }
+
+        void GetPixelDirection(const Vec2& zeroCentredFrustumPos, OUT Vec3& worldSpaceRayDirectionFromCameraEye) const override
+        {
+            // Grab the two FOV elements, A and B from the projection matrix
+            float A = projection.row0.x;
+            float B = projection.row1.y;
+
+            Vec3 cameraSpacePixelPos = Vec4{ projectionParameters.near * zeroCentredFrustumPos.x / A, projectionParameters.near * zeroCentredFrustumPos.y / B, -projectionParameters.near };
+
+            // Note, that if we use the projection matrix on this 'cameraSpacePixelPos' vector, then following the A and B multiplication and the z divide, then we arrive at { zeroCentredFrustumPos.x, zeroCentredFrustumPos.y, 0.0f }
+
+            // The camera eye is at the origin, so cameraSpacePixelPos serves as the direction vector in camera space of the ray from the eye through the screen
+           
+            Vec3 rawPos;
+            TransformDirection(cameraToWorld, cameraSpacePixelPos, OUT rawPos);
+            
+            OUT worldSpaceRayDirectionFromCameraEye = Normalize(rawPos);
         }
 
         void FollowEntity(ID_ENTITY id) override
@@ -276,12 +297,12 @@ namespace Mplat::CameraCode
             Matrix4x4::GetRotationQuat(model, orientation);
         }
 
-        float32 Far() override
+        float32 Far() const override
         {
             return projectionParameters.far;
         }
 
-        float32 Near() override
+        float32 Near() const override
         {
             return projectionParameters.near;
         }

@@ -44,9 +44,6 @@ namespace Rococo
 		[[nodiscard]] bool TryGet3DRayIntersectWithScreen(const Ray& worldRay, cr_m4x4 worldToCameraTransform, cr_m4x4 projectionTransform, Vec2i screenSpan, OUT Vec2i& screenDeltaFromTopLeft);
 
 		[[nodiscard]] bool TryGetIntersectWithZPlaneAtRay(float planeZ, float minZcomponentOfDir, const Ray& ray, OUT Vec2& target);		
-
-		// Evaluate a ray that passes from the camera eye through a screen pixel and into the world. The world space ray is an output parameter.
-		[[nodiscard]] bool TryGetRayExtendingFromCamera(Vec2i pixelPositionFromTopLeft, cr_m4x4 worldToCameraTransform, cr_m4x4 cameraToScreenProjection, Vec2i screenSpan, OUT Ray& rayFromCameraInWorldSpace);
 	}
 
 	template<class T>
@@ -181,7 +178,8 @@ namespace Rococo
 		[[nodiscard]] Vec3 GetUpDirection() const;
 
 		// Returns a matrix in a RH system for a camera located at the origin, with stuff below z = -near visible
-		// Used to pre-multiply column vector to transform into screen space
+		// Used to pre-multiply column vectors to transform into screen space
+		// Note that applying the matrix requires a w divide after the transform.
 		[[nodiscard]] static Matrix4x4 GetRHProjectionMatrix(Degrees fov, float32 aspectRatio, float near, float far);
 	};
 
@@ -239,7 +237,7 @@ namespace Rococo
 		operator float() const { return degrees; }
 
 		operator Radians () const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * degrees }; }
-		Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * degrees }; }
+		[[nodiscard]] Radians ToRadians() const { return Radians{ DEGREES_TO_RADIANS_QUOTIENT() * degrees }; }
 	};
 
 	/*
@@ -380,6 +378,7 @@ namespace Rococo
 	[[nodiscard]] inline Vec3 operator + (cr_vec3 a, cr_vec3 b) { return Vec3{ a.x + b.x, a.y + b.y, a.z + b.z }; }
 	[[nodiscard]] inline Vec3 operator * (cr_vec3 q, float f) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
 	[[nodiscard]] inline Vec3 operator * (float f, cr_vec3 q) { return Vec3{ q.x * f, q.y * f, q.z * f }; }
+	[[nodiscard]] inline Vec3 operator / (cr_vec3 q, float oof) { float f = 1.0f / oof; return f * q; }
 	[[nodiscard]] inline Vec3 operator - (cr_vec3 a, cr_vec3 b) { return Vec3{ a.x - b.x, a.y - b.y, a.z - b.z }; }
 	[[nodiscard]] inline bool operator == (const Vec3& a, const Vec3& b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 	[[nodiscard]] inline bool operator != (const Vec3& a, const Vec3& b) { return !(a == b); }
@@ -497,6 +496,11 @@ namespace Rococo
 	[[nodiscard]] inline const Vec2& AsVec2(cr_vec3 & v)
 	{
 		return (const Vec2&)v;
+	}
+
+	[[nodiscard]] inline const Vec3& AsVec3(cr_vec4& v)
+	{
+		return (const Vec3&)v;
 	}
 
 	ROCOCO_INTERFACE IObjectEnumerator
