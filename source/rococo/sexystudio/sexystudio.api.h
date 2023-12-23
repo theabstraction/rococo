@@ -221,7 +221,8 @@ namespace Rococo::SexyStudio
 		virtual cstr GetEnumSourcePath(int index) const = 0;
 	};
 
-	void AppendFullName(ISxyNamespace& ns, struct StringBuilder& sb);
+	// Appends the fully qualified namespace of the [ns] argument to the string builder
+	void AppendFullName(IN ISxyNamespace& ns, REF struct StringBuilder& sb);
 
 	ROCOCO_INTERFACE ISolution
 	{

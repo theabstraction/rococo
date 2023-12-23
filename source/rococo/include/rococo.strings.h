@@ -216,7 +216,11 @@ namespace Rococo::Strings
 		virtual void Clear() = 0;
 		virtual int32 Length() const = 0;
 
-		enum eOpenType { BUILD_EXISTING = 0 };
+		enum CursorState 
+		{
+			// Appends to the string in the buffer
+			BUILD_EXISTING = 0
+		};
 	};
 
 	struct IDynamicStringBuilder
@@ -238,7 +242,7 @@ namespace Rococo::Strings
 		int32 length;
 	public:
 		ROCOCO_API StackStringBuilder(char* _buffer, size_t _capacity);
-		ROCOCO_API StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type);
+		ROCOCO_API StackStringBuilder(char* _buffer, size_t _capacity, CursorState type);
 		fstring operator * () const override { return fstring{ buffer, length }; }
 #if	USE_VSTUDIO_SAL
 		ROCOCO_API StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) override;

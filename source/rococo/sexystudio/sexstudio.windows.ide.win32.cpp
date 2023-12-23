@@ -232,7 +232,12 @@ namespace
 			case WM_PROGRESS_HIDE:
 				ShowWindow(window, SW_HIDE);
 				return 0L;
+			case WM_ACTIVATE:
+				// TODO - see whether the asserts go away in future releases of Windows when WM_ACTIVATE is called
+				// https://developercommunity.visualstudio.com/t/MSCTFdll-timcpp-An-assertion-failure-h/10513796
+				break;
 			}
+
 			return DefWindowProc(window, msg, wParam, lParam);
 		}
 

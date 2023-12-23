@@ -910,7 +910,7 @@ namespace Rococo::Strings
 		buffer[0] = 0;
 	}
 
-	ROCOCO_UTIL_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity, eOpenType type) :
+	ROCOCO_UTIL_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity, CursorState type) :
 		buffer(_buffer), capacity(_capacity)
 	{
 		UNUSED(type);

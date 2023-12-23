@@ -1413,12 +1413,12 @@ namespace ANON
 						packages.insert(sKey.c_str(), sValue.c_str());
 						continue;
 					}
-					else if (Eq(cmd, "map-prefix-to-source"))
+					else if (Eq(cmd, "map-postHashPrefix-to-source"))
 					{
 						cr_sex sKey = sDirective[1];
 						if (!IsStringLiteral(sKey))
 						{
-							Throw(sKey, "Expecting string literal - <file-name-prefix>");
+							Throw(sKey, "Expecting string literal - <file-name-postHashPrefix>");
 						}
 
 						cr_sex sMap = sDirective[2];
@@ -1909,23 +1909,59 @@ namespace ANON
 			}
 		}
 
-		void AppendAllMacroChildrenFromRoot(cr_substring prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns)
+		void AppendAllMacroChildrenFromRoot(cr_substring postHashPrefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns)
 		{
+			char nsFullname[256] = { 0 };
+			Rococo::Strings::StackStringBuilder sb(nsFullname, sizeof nsFullname, Strings::StringBuilder::BUILD_EXISTING);
+			AppendFullName(ns, sb);
+
+			char enumNameForExport[512];
+
+			if (Rococo::Strings::StartsWith(nsFullname, postHashPrefix))
+			{
+				// Example if the ns is Sys.Graphics and the postHashPrefix is Sys.Gra (i.e the programmer typed #Sys.Gra), then we insert #Sys.Graphics
+				SafeFormat(enumNameForExport, "#%s", nsFullname);
+				exportList.insert(std::make_pair(enumNameForExport, 0));
+				return;
+			}
+
+			// if the ns is Sys.Graphics and the postHashPrefix is Sys.Graphics.XYZ, then we search for a match of a subspace or child within Sys.Graphics
+
+			if (!Rococo::Strings::StartsWith(postHashPrefix, to_fstring(nsFullname)))
+			{
+				// But at this point postHashPrefix does not match the namespace or a subspace, so we append nothing
+				return;
+			}
+
+			Substring trailer = { postHashPrefix.start + strlen(nsFullname), postHashPrefix.finish };
+
+			if (trailer && trailer.start[0] == '.')
+			{
+				trailer.start++;
+			}
+
 			for (int i = 0; i < ns.EnumCount(); ++i)
 			{
+				// Let us suppose postHashPrefix is Sys.Graphics.H, then this is a match for #Sys.Graphics.HighRez, so if HighRez in an enum in Sys.Graphics, we should append it. We match H to HighRez
 				cstr enumName = ns.GetEnumName(i);
-				if (StartsWith(enumName, prefix))
+				if (StartsWith(enumName, trailer))
 				{
-					char enumNameForExport[128];
-					SafeFormat(enumNameForExport, "#%s", enumName);
+					if (*nsFullname != 0)
+					{
+						SafeFormat(enumNameForExport, "#%s.%s", nsFullname, enumName);
+					}
+					else
+					{
+						SafeFormat(enumNameForExport, "#%s", nsFullname, enumName);
+					}
 					exportList.insert(std::make_pair(enumNameForExport, 0));
 				}
 			}
 
+			// Recurse into subspaces for other matches
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
-				auto& subspace = ns[i];
-				AppendAllMacroChildrenFromRoot(prefix, exportList, subspace);
+				AppendAllMacroChildrenFromRoot(postHashPrefix, exportList, ns[i]);
 			}
 		}
 
@@ -2812,7 +2848,7 @@ namespace Rococo::SexyStudio
 		return new ANON::SexyDatabase(config);
 	}
 
-	void AppendFullName(ISxyNamespace& ns, StringBuilder& sb)
+	void AppendFullName(IN ISxyNamespace& ns, REF StringBuilder& sb)
 	{
 		std::vector<cstr> genealogy;
 

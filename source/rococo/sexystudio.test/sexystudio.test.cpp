@@ -831,7 +831,7 @@ public:
 
 	void ShowAndClearItems() override
 	{
-		printf("ShowAndClearItems\n");
+		printf("<--- ShowAndClearItems --->\n");
 	}
 };
 
@@ -1385,9 +1385,101 @@ void TestNamespaceAppendsStruct()
 
 	sexyIDE->UpdateAutoComplete(editor);
 }
+
+void TestPromptForMacro()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(function Bark -> :
+		(#S
+	)
+)<CODE>";
+
+	FileDesc desc(file, 'S');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestPromptForMacro2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(function Bark -> :
+		(#Sys
+	)
+)<CODE>";
+
+	FileDesc desc(file, 's');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestPromptForMacro3()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(function Bark -> :
+		(#Sys.
+	)
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestPromptForMacro4()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(function Bark -> :
+		(#Rococo.Graphics.
+	)
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
+void TestPromptForMacro5()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(function Bark -> :
+		(#Rococo.Graphics.S
+	)
+)<CODE>";
+
+	FileDesc desc(file, 'S');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
+//	TestPromptForMacro();
+//	TestPromptForMacro2();
+//	TestPromptForMacro3();
+//	TestPromptForMacro4();
+	TestPromptForMacro5();
+	return;
 	TestNamespaceAppendsStruct();
 	TestFQStruct();
 	return;
