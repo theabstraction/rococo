@@ -1965,7 +1965,6 @@ namespace ANON
 			}
 		}
 
-
 		ISXYInterface* FindInterface(cstr typeString, ISxyNamespace** ppNamespace = nullptr) override
 		{
 			auto* direct = FindInterfaceDirect(GetRootNamespace(), typeString, ppNamespace);

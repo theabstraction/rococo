@@ -1461,11 +1461,11 @@ void TestPromptForMacro5()
 	cstr file =
 		R"<CODE>(
 	(function Bark -> :
-		(#Rococo.Graphics.S
+		(#Rococo.Graphics.
 	)
 )<CODE>";
 
-	FileDesc desc(file, 'S');
+	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->UpdateAutoComplete(editor);

@@ -346,15 +346,17 @@ void showSexyIDE()
 
 enum { USERLIST_SEXY_AUTOCOMPLETE = 0x07112021 };
 
-thread_local char autocompleteStringBuilder[4096] = { 0 };
-thread_local int autoCompleteIndex = 0;
-
 class SexyEditor_Scintilla : public ISexyEditor, IAutoCompleteBuilder
 {
     HWND hScintilla;
 
+    std::vector<char> autocompleteStringBuilder;
+    int autoCompleteIndex = 0;
 public:
-    SexyEditor_Scintilla(HWND _hScintilla) : hScintilla(_hScintilla) {}
+    SexyEditor_Scintilla(HWND _hScintilla) : hScintilla(_hScintilla)
+    {
+        autocompleteStringBuilder.resize(512);
+    }
 
     int64 GetDocLength() const override
     {
@@ -437,29 +439,26 @@ public:
 
     void AddItem(cstr item) override
     {
-        // To minimize dependencies on DLLs, which in turn is to simplify installation of this plugin, we handcraft a string builder
-        if (autoCompleteIndex + strlen(item) >= sizeof  autocompleteStringBuilder - 1)
+        size_t requiredSpace = autoCompleteIndex + strlen(item) + 8;
+
+        while (requiredSpace > autocompleteStringBuilder.size())
         {
-            return;
+            autocompleteStringBuilder.resize(autocompleteStringBuilder.size() * 2);
         }
 
-        int nCharsWritten = snprintf(autocompleteStringBuilder + autoCompleteIndex, sizeof autocompleteStringBuilder - 1 - autoCompleteIndex, "%s%s", autoCompleteIndex > 0 ? " ": "", item);
+        int nCharsWritten = snprintf(autocompleteStringBuilder.data() + autoCompleteIndex, autocompleteStringBuilder.size() - 1 - autoCompleteIndex, "%s%s", autoCompleteIndex > 0 ? " " : "", item);
 
         autoCompleteIndex += nCharsWritten;
-        if (autoCompleteIndex >= sizeof autocompleteStringBuilder)
-        {
-            autoCompleteIndex = sizeof autocompleteStringBuilder - 1;
-        }
     }
 
     void ShowAndClearItems() override
     {
         SetAutoCompleteCancelWhenCaretMoved();
-        ShowAutoCompleteList(autocompleteStringBuilder);
+        ShowAutoCompleteList(autocompleteStringBuilder.data());
         if (IsDebuggerPresent())
         {
             OutputDebugStringA("Autocomplete populated:\n");
-            OutputDebugStringA(autocompleteStringBuilder);
+            OutputDebugStringA(autocompleteStringBuilder.data());
             OutputDebugStringA("\n");
         }
         autocompleteStringBuilder[0] = 0;
