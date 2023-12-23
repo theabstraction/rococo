@@ -1944,6 +1944,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		void OnHintFound(cr_substring hintText) override
 		{
 			hint = hintText;
+			builder.AddHint(hintText);
 		}
 
 		enum { MAX_MEMBER_DEPTH = 64 };
@@ -2872,7 +2873,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		autoComplete_Replacement_StartPosition = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
 
 		// If blinking caret follows period or alphanumeric such as: Sys._ or Sys_, then we want to complete the dot.
-		if (IsAlphaNumeric(activationChar) || activationChar == '.')
+		if (IsAlphaNumeric(activationChar) || activationChar == '.' || (isblank(activationChar) && *searchToken.start == '#'))
 		{
 			int64 displacementFromCaret = activationPoint - searchToken.start + 1;
 

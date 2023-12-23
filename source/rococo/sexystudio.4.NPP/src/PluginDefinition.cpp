@@ -155,6 +155,30 @@ namespace Local // Copied from the Rococo UTIL lib, so that we dont have to mana
         const wchar_t* t = bigString + lenBig - len;
         return Eq(suffix, t);
     }
+
+    ptrdiff_t Length(cr_substring token)
+    {
+        return token.finish - token.start;
+    }
+
+    bool SubstringToString(char* outputBuffer, size_t sizeofOutputBuffer, cr_substring substring)
+    {
+        if (Local::Length(substring) >= (ptrdiff_t)sizeofOutputBuffer)
+        {
+            return false;
+        }
+
+        char* writePtr = outputBuffer;
+        cstr readPtr = substring.start;
+        while (readPtr < substring.finish)
+        {
+            *writePtr++ = *readPtr++;
+        }
+
+        *writePtr = 0;
+
+        return true;
+    }
 }
 
 //
@@ -435,6 +459,13 @@ public:
     IAutoCompleteBuilder& AutoCompleteBuilder() override
     {
         return *this;
+    }
+
+    void AddHint(cr_substring item) override
+    {
+        char buf[1024];
+        Local::SubstringToString(buf, sizeof buf, item);
+        ShowCallTipAtCaretPos(buf);
     }
 
     void AddItem(cstr item) override

@@ -78,6 +78,7 @@ namespace Rococo
 
 		ROCOCO_INTERFACE IAutoCompleteBuilder
 		{
+			virtual void AddHint(cr_substring item) = 0;
 			virtual void AddItem(cstr item) = 0;
 			virtual void ShowAndClearItems() = 0;
 		};

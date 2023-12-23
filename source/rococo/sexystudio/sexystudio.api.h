@@ -219,6 +219,10 @@ namespace Rococo::SexyStudio
 		virtual cstr GetEnumName(int index) const = 0;
 		virtual cstr GetEnumValue(int index) const = 0;
 		virtual cstr GetEnumSourcePath(int index) const = 0;
+		virtual const Sex::ISExpression* FindMacroDefinition(cstr shortmacroName) const = 0;
+		virtual int MacroCount() const = 0;
+		virtual cstr GetMacroName(int index) const = 0;
+		virtual cstr GetMacroSourcePath(int index) const = 0;
 	};
 
 	// Appends the fully qualified namespace of the [ns] argument to the string builder

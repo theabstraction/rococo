@@ -824,6 +824,14 @@ public:
 		return *this;
 	}
 
+	void AddHint(cr_substring item) override
+	{
+		char hintBuffer[1024];
+		SubstringToString(hintBuffer, sizeof hintBuffer, item);
+
+		printf("Hint: %s\n", hintBuffer);
+	}
+
 	void AddItem(cstr item) override
 	{
 		printf("Item: %s\n", item);
@@ -1471,6 +1479,23 @@ void TestPromptForMacro5()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestPromptForMacro6()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+	(function Bark -> :
+		(#Sys.Type.build )
+	)
+)<CODE>";
+
+	FileDesc desc(file, ' '); // Ensure the <CODE> section has space after the build token but not after the build token's parenthesis
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
@@ -1478,7 +1503,8 @@ void MainProtected2(HMODULE /* hLib */)
 //	TestPromptForMacro2();
 //	TestPromptForMacro3();
 //	TestPromptForMacro4();
-	TestPromptForMacro5();
+//	TestPromptForMacro5();
+	TestPromptForMacro6();
 	return;
 	TestNamespaceAppendsStruct();
 	TestFQStruct();

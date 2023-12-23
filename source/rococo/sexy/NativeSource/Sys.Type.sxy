@@ -135,7 +135,7 @@
 
 (alias ExpandStringMacro Sys.Type.ExpandStringMacro)
 
-// Example (#string sb 64 "Position:" 37 "," 124) maps to (IStringBuilder sb = (NewStringBuilder 64)) ((sb.AppendIString "Position:")(sb.AppendIString 37) (sb.AppendIString ",") (sb.AppendInt32 124))
+// Example (#string sb 64 "Position:" 37 "," 124) maps to (IStringBuilder sb = (NewStringBuilder 64)) ((sb.AppendIString "Position:")(sb.AppendInt32 37) (sb.AppendIString ",") (sb.AppendInt32 124))
 (macro Sys.Type.string in out
 	(ExpandStringMacro in out)
 )

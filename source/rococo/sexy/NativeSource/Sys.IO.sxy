@@ -228,6 +228,7 @@
 	)
 )
 
+// usage: (printf arg1 arg2 arg3 ...)
 (macro Sys.IO.printf in out
 	(Sys.ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##printf args...)")
 	(BuildPrintStatement in out)

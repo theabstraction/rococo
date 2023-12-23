@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <rococo.hashtable.h>
+#include <rococo.functional.h>
 #include <memory>
 #include <algorithm>
 
@@ -462,6 +463,11 @@ namespace ANON
 		std::string shortName;
 		ISXYFile& source_file;
 		cr_sex sMacroDef;
+
+		cr_sex GetMacroDefinition() const
+		{
+			return sMacroDef;
+		}
 		
 		cstr GetMacroValue() const
 		{
@@ -779,6 +785,34 @@ namespace ANON
 		cstr GetEnumSourcePath(int index) const override
 		{
 			return enums[index].sMacroDef.Tree().Source().Name();
+		}
+
+		int MacroCount() const override
+		{
+			return (int) macros.size();
+		}
+
+		const Sex::ISExpression* FindMacroDefinition(cstr shortmacroName) const override
+		{
+			for (auto& macro : macros)
+			{
+				if (Eq(macro.shortName.c_str(), shortmacroName))
+				{
+					return &macro.GetMacroDefinition();
+				}
+			}
+
+			return nullptr;
+		}
+
+		cstr GetMacroName(int index) const override
+		{
+			return macros[index].shortName.c_str();
+		}
+
+		cstr GetMacroSourcePath(int index) const override
+		{
+			return macros[index].sMacroDef.Tree().Source().Name();
 		}
 
 		int SubspaceCount() const override
@@ -1524,7 +1558,7 @@ namespace ANON
 			sparser(Rococo::Sex::CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
 			rootNS("", nullptr)
 		{
-
+			sparser->MapComments();
 		}
 
 		~SexyDatabase()
@@ -1915,13 +1949,13 @@ namespace ANON
 			Rococo::Strings::StackStringBuilder sb(nsFullname, sizeof nsFullname, Strings::StringBuilder::BUILD_EXISTING);
 			AppendFullName(ns, sb);
 
-			char enumNameForExport[512];
+			char nameBufferForExport[512];
 
 			if (Rococo::Strings::StartsWith(nsFullname, postHashPrefix))
 			{
 				// Example if the ns is Sys.Graphics and the postHashPrefix is Sys.Gra (i.e the programmer typed #Sys.Gra), then we insert #Sys.Graphics
-				SafeFormat(enumNameForExport, "#%s", nsFullname);
-				exportList.insert(std::make_pair(enumNameForExport, 0));
+				SafeFormat(nameBufferForExport, "#%s", nsFullname);
+				exportList.insert(std::make_pair(nameBufferForExport, 0));
 				return;
 			}
 
@@ -1948,13 +1982,31 @@ namespace ANON
 				{
 					if (*nsFullname != 0)
 					{
-						SafeFormat(enumNameForExport, "#%s.%s", nsFullname, enumName);
+						SafeFormat(nameBufferForExport, "#%s.%s", nsFullname, enumName);
 					}
 					else
 					{
-						SafeFormat(enumNameForExport, "#%s", nsFullname, enumName);
+						SafeFormat(nameBufferForExport, "#%s", nsFullname, enumName);
 					}
-					exportList.insert(std::make_pair(enumNameForExport, 0));
+					exportList.insert(std::make_pair(nameBufferForExport, 0));
+				}
+			}
+
+			for (int i = 0; i < ns.MacroCount(); ++i)
+			{
+				// Let us suppose postHashPrefix is Sys.Graphics.H, then this is a match for #Sys.Graphics.HighRez, so if HighRez in an enum in Sys.Graphics, we should append it. We match H to HighRez
+				cstr macroName = ns.GetMacroName(i);
+				if (StartsWith(macroName, trailer))
+				{
+					if (*nsFullname != 0)
+					{
+						SafeFormat(nameBufferForExport, "#%s.%s", nsFullname, macroName);
+					}
+					else
+					{
+						SafeFormat(nameBufferForExport, "#%s", nsFullname, macroName);
+					}
+					exportList.insert(std::make_pair(nameBufferForExport, 0));
 				}
 			}
 
@@ -2034,6 +2086,42 @@ namespace ANON
 				if (pInterface)
 				{
 					return pInterface;
+				}
+			}
+
+			return nullptr;
+		}
+
+		cstr FindSubspaceAndReturnTrailer(ISxyNamespace& ns, cr_substring token, OUT ISxyNamespace** ppNamespace)
+		{
+			for (int i = 0; i < ns.SubspaceCount(); ++i)
+			{
+				auto& subspace = ns[i];
+				auto fSubspaceName = to_fstring(subspace.Name());
+
+				if (Strings::FindSubstring(token, fSubspaceName) == token.start)
+				{
+					Substring postfix = { token.start + fSubspaceName.length, token.finish };
+					if (postfix && postfix.start[0] == '.')
+					{
+						postfix.start++;
+						if (postfix)
+						{
+							cstr trailer = FindSubspaceAndReturnTrailer(subspace, postfix, OUT ppNamespace);
+							if (trailer)
+							{
+								return trailer;
+							}
+							else
+							{
+								OUT *ppNamespace = &subspace;
+								trailer = postfix.start;
+								return trailer;
+							}
+						}
+					}
+
+					break;
 				}
 			}
 
@@ -2365,9 +2453,42 @@ namespace ANON
 
 		void ForEachAutoCompleteMacroCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) override
 		{
+			auto& root = GetRootNamespace();
+
+			if (prefix && isblank(*prefix.finish))
+			{
+				// We have blankspace after the prefix, but our caller has determined we have a macro string
+
+				ISxyNamespace* pNamespace;
+				cstr trailer = FindSubspaceAndReturnTrailer(root, prefix, OUT & pNamespace);
+				if (trailer)
+				{
+					Substring ssTrailer{ trailer, prefix.finish };
+					if (ssTrailer)
+					{
+						char candidate[128];
+						SubstringToString(candidate, sizeof candidate, ssTrailer);
+						auto* pSMacro = pNamespace->FindMacroDefinition(candidate);
+						if (pSMacro)
+						{
+							bool wasFound = false;
+							pSMacro->Tree().EnumerateComments(*pSMacro, [&wasFound, &fieldEnumerator](cstr commentLine) 
+								{
+									if (!wasFound)
+									{
+										wasFound = true;
+										fieldEnumerator.OnHintFound(ToSubstring(to_fstring(commentLine)));
+									}
+								}
+							);
+						}
+					}
+				}
+				return;
+			}
+
 			std::unordered_map<std::string, int> exportList;
 
-			auto& root = GetRootNamespace();
 			for (int i = 0; i < root.SubspaceCount(); ++i)
 			{
 				AppendAllMacroChildrenFromRoot(prefix, exportList, root[i]);
