@@ -2311,8 +2311,8 @@ namespace ANON
 			cstr fieldType = FindFieldTypeByName(*localType, childVariable);
 			if (fieldType)
 			{
-				fieldEnumerator.OnHintFound(ToSubstring(fieldType));
-				return AppendFieldsFromType(childVariable, ns, ToSubstring(fieldType), fieldEnumerator);
+				fieldEnumerator.OnHintFound(Substring::ToSubstring(fieldType));
+				return AppendFieldsFromType(childVariable, ns, Substring::ToSubstring(fieldType), fieldEnumerator);
 			}
 			else
 			{
@@ -2349,7 +2349,7 @@ namespace ANON
 			char prefix[64];
 			SubstringToString(prefix, sizeof prefix, methodPrefix);
 
-			if (depth == 0) fieldEnumerator.OnHintFound(ToSubstring(typeString));
+			if (depth == 0) fieldEnumerator.OnHintFound(Substring::ToSubstring(typeString));
 
 			for (int k = 0; k < pInterfaceType->MethodCount(); ++k)
 			{
@@ -2370,7 +2370,7 @@ namespace ANON
 				// char baseIndicator[128];
 				// SafeFormat(baseIndicator, 128, "/@*//...%s-Methods...//", base);
 				// fieldEnumerator.OnField(baseIndicator, Substring::Null());
-				AppendMethodsFromType(variableName, candidateFinish, ns, ToSubstring(base), fieldEnumerator, depth + 1);
+				AppendMethodsFromType(variableName, candidateFinish, ns, Substring::ToSubstring(base), fieldEnumerator, depth + 1);
 				return true;
 			}
 
@@ -2477,7 +2477,7 @@ namespace ANON
 									if (!wasFound)
 									{
 										wasFound = true;
-										fieldEnumerator.OnHintFound(ToSubstring(to_fstring(commentLine)));
+										fieldEnumerator.OnHintFound(Substring::ToSubstring(to_fstring(commentLine)));
 									}
 								}
 							);

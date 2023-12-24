@@ -557,7 +557,7 @@ namespace Rococo::Strings
 		buffer[writeLength] = 0;
 	}
 
-	ROCOCO_UTIL_API Substring ToSubstring(cstr text)
+	ROCOCO_UTIL_API Substring Substring::ToSubstring(cstr text)
 	{
 		return text ? Substring{ text, strlen(text) + text } : Substring::Null();
 	}

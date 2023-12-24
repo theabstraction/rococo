@@ -2441,7 +2441,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			auto* base = pInterface->Base();
 			if (base)
 			{
-				bool result = TryShowCallTipForMethods(ToSubstring(base), methodName, editor);
+				bool result = TryShowCallTipForMethods(Substring::ToSubstring(base), methodName, editor);
 				return result;
 			}
 		}
@@ -2788,7 +2788,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			return;
 		}
 
-		Substring s = ToSubstring(u8Path);
+		Substring s = Substring::ToSubstring(u8Path);
 
 		for (;;)
 		{

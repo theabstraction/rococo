@@ -266,9 +266,9 @@ namespace Rococo
 			FORCE_INLINE int64 Length() const { return finish - start; }
 
 			FORCE_INLINE static Substring Null() { return { nullptr,nullptr }; }
-		};
 
-		ROCOCO_API Substring ToSubstring(cstr text);
+			ROCOCO_API static Substring ToSubstring(cstr text);
+		};
 
 		// An immutable substring
 		typedef const Substring& cr_substring;

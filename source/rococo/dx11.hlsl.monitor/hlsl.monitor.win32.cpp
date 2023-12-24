@@ -355,7 +355,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		{
 			targetFullname.buf[strlen(filename) - 5] = 0;
 
-			Substring s = ToSubstring(targetFullname);
+			Substring s = Substring::ToSubstring(targetFullname);
 			cstr finalSlash = Strings::ReverseFind('\\', s);
 			U8FilePath transformedPath;
 			if (EndsWith(targetPath, "\\"))

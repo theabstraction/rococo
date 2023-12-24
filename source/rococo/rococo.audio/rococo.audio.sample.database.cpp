@@ -241,7 +241,7 @@ namespace AudioAnon
 
 					if (sample)
 					{
-						Substring filename = Strings::ToSubstring(sample->Name());
+						Substring filename = Strings::Substring::ToSubstring(sample->Name());
 						cstr extension = Strings::ReverseFind('.', filename);
 						if (!extension)
 						{

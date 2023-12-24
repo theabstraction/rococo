@@ -197,7 +197,7 @@ void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContex
 		return;
 	}
 
-	Substring sHeaderFile = ToSubstring(headerFile);
+	Substring sHeaderFile = Substring::ToSubstring(headerFile);
 	cstr lastSlashPosition = ReverseFind('\\', sHeaderFile);
 	cstr filename = lastSlashPosition ? lastSlashPosition + 1 : headerFile;
 
@@ -1197,7 +1197,7 @@ void StripToFilenameSansExtension(cstr name, char target[_MAX_PATH], char nameSa
 		Throw(0, "%s: Name was blank", __FUNCTION__);
 	}
 
-	Substring sName = Rococo::Strings::ToSubstring(name);
+	Substring sName = Rococo::Strings::Substring::ToSubstring(name);
 
 	cstr lastSlash = Rococo::Strings::ReverseFind('\\', sName);
 	if (!lastSlash) lastSlash = Rococo::Strings::ReverseFind('/', sName);

@@ -473,7 +473,7 @@ namespace MHost
 			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
 			if (frame)
 			{
-				Substring s = ToSubstring(menuPath);
+				Substring s = Substring::ToSubstring(menuPath);
 
 				for (;;)
 				{
