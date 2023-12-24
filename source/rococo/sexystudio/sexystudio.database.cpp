@@ -1972,6 +1972,62 @@ namespace ANON
 			delete this;
 		}
 
+		void AppendAllChildrenFromRootWithoutRecursion(ISxyNamespace& ns, cr_substring prefix, REF std::unordered_map<std::string, int>& exportList)
+		{
+			char name[256];
+			StackStringBuilder nameBuilder(name, sizeof name);
+
+			for (int i = 0; i < ns.FunctionCount(); ++i)
+			{
+				nameBuilder.Clear();
+				nameBuilder << ns.GetFunction(i).PublicName();
+
+				if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
+				{
+					exportList.insert(std::make_pair(std::string(name), 0));
+				}
+			}
+
+			for (int i = 0; i < ns.InterfaceCount(); ++i)
+			{
+				auto& interf = ns.GetInterface(i);
+
+				nameBuilder.Clear();
+				nameBuilder << interf.PublicName();
+
+				if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
+				{
+					exportList.insert(std::make_pair(std::string(name), 0));
+				}
+			}
+
+			for (int i = 0; i < ns.TypeCount(); ++i)
+			{
+				auto& type = ns.GetType(i);
+
+				nameBuilder.Clear();
+				nameBuilder << type.PublicName();
+
+				if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
+				{
+					exportList.insert(std::make_pair(std::string(name), 0));
+				}
+			}
+
+			for (int i = 0; i < ns.FactoryCount(); ++i)
+			{
+				auto& factory = ns.GetFactory(i);
+
+				nameBuilder.Clear();
+				nameBuilder << factory.PublicName();
+
+				if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
+				{
+					exportList.insert(std::make_pair(std::string(name), 0));
+				}
+			}
+		}
+
 		void AppendAllChildrenFromRoot(cr_substring prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns, int depth)
 		{
 			int dots = CountDots(prefix);
@@ -1991,63 +2047,7 @@ namespace ANON
 
 			if (StartsWith(prefix.start, name))
 			{
-				for (int i = 0; i < ns.FunctionCount(); ++i)
-				{
-					nameBuilder.Clear();
-					AppendFullName(ns, nameBuilder);
-					nameBuilder << ".";
-					nameBuilder << ns.GetFunction(i).PublicName();
-
-					if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
-					{
-						exportList.insert(std::make_pair(std::string(name), 0));
-					}
-				}
-
-				for (int i = 0; i < ns.InterfaceCount(); ++i)
-				{
-					auto& interf = ns.GetInterface(i);
-
-					nameBuilder.Clear();
-					AppendFullName(ns, nameBuilder);
-					nameBuilder << ".";
-					nameBuilder << interf.PublicName();
-
-					if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
-					{
-						exportList.insert(std::make_pair(std::string(name), 0));
-					}
-				}
-
-				for (int i = 0; i < ns.TypeCount(); ++i)
-				{
-					auto& type = ns.GetType(i);
-
-					nameBuilder.Clear();
-					AppendFullName(ns, nameBuilder);
-					nameBuilder << ".";
-					nameBuilder << type.PublicName();
-
-					if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
-					{
-						exportList.insert(std::make_pair(std::string(name), 0));
-					}
-				}
-
-				for (int i = 0; i < ns.FactoryCount(); ++i)
-				{
-					auto& factory = ns.GetFactory(i);
-
-					nameBuilder.Clear();
-					AppendFullName(ns, nameBuilder);
-					nameBuilder << ".";
-					nameBuilder << factory.PublicName();
-
-					if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
-					{
-						exportList.insert(std::make_pair(std::string(name), 0));
-					}
-				}
+				AppendAllChildrenFromRootWithoutRecursion(ns, prefix, REF exportList);
 			}
 
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
@@ -2182,6 +2182,30 @@ namespace ANON
 
 		ISXYInterface* RecursivelySearchForInterface(ISxyNamespace& ns, cstr typeString, ISxyNamespace** ppNamespace)
 		{
+			auto* implicits = ns.ImplicitNamespaces();
+
+			if (implicits)
+			{
+				for (int i = 0; i < implicits->ImplicitCount(); ++i)
+				{
+					auto& usingNS = implicits->GetImplicitNamespace(i);
+
+					int interfaceCount = usingNS[i].InterfaceCount();
+					for (int j = 0; j < interfaceCount; ++j)
+					{
+						auto& refInterface = usingNS[i].GetInterface(j);
+						if (Eq(refInterface.PublicName(), typeString))
+						{
+							if (ppNamespace)
+							{
+								*ppNamespace = &ns[i];
+							}
+							return &refInterface;
+						}
+					}
+				}
+			}
+
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
 				int interfaceCount = ns[i].InterfaceCount();
@@ -2305,6 +2329,19 @@ namespace ANON
 						{
 							return nullptr;
 						}
+					}
+				}
+			}
+			else
+			{
+				auto* implicits = ns.ImplicitNamespaces();
+				for (int i = 0; i < implicits->ImplicitCount(); i++)
+				{
+					auto& usedNS = implicits->GetImplicitNamespace(i);
+					auto* type = SearchForTypeWithoutRecursion(usedNS, subsearch);
+					if (type)
+					{
+						return type;
 					}
 				}
 			}
@@ -2551,6 +2588,18 @@ namespace ANON
 			std::unordered_map<std::string, int> exportList;
 
 			auto& root = GetRootNamespace();
+
+			auto* implicits = root.ImplicitNamespaces();
+			if (implicits)
+			{
+				for (int i = 0; i < implicits->ImplicitCount(); ++i)
+				{
+					auto& usedNS = implicits->GetImplicitNamespace(i);
+					AppendAllChildrenFromRootWithoutRecursion(usedNS, prefix, REF exportList);
+				}
+			}
+
+
 			for (int i = 0; i < root.SubspaceCount(); ++i)
 			{
 				AppendAllChildrenFromRoot(prefix, exportList, root[i], 0);
