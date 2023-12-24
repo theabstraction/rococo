@@ -2570,6 +2570,20 @@ namespace ANON
 			}
 		}
 
+		void ShowToolTipForExpression(cr_sex s, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			bool wasFound = false;
+			s.Tree().EnumerateComments(s, [&wasFound, &fieldEnumerator](cstr commentLine)
+				{
+					if (!wasFound)
+					{
+						wasFound = true;
+						fieldEnumerator.OnHintFound(Substring::ToSubstring(to_fstring(commentLine)));
+					}
+				}
+			);
+		}
+
 		void ForEachAutoCompleteMacroCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			auto& root = GetRootNamespace();
@@ -2577,6 +2591,24 @@ namespace ANON
 			if (prefix && isblank(*prefix.finish))
 			{
 				// We have blankspace after the prefix, but our caller has determined we have a macro string
+
+				auto* implicits = root.ImplicitNamespaces();
+				if (implicits && Strings::ForwardFind('.', prefix) == nullptr)
+				{
+					char macroName[128];
+					if (prefix.TryCopyWithoutTruncate(macroName, sizeof macroName))
+					{
+						for (int i = 0; i < implicits->ImplicitCount(); i++)
+						{
+							auto* def = implicits->GetImplicitNamespace(i).FindMacroDefinition(macroName);
+							if (def)
+							{
+								ShowToolTipForExpression(*def, fieldEnumerator);
+								return;
+							}
+						}
+					}
+				}
 
 				ISxyNamespace* pNamespace;
 				cstr trailer = FindSubspaceAndReturnTrailer(root, prefix, OUT & pNamespace);
@@ -2593,16 +2625,7 @@ namespace ANON
 						auto* pSMacro = pNamespace->FindMacroDefinition(candidate);
 						if (pSMacro)
 						{
-							bool wasFound = false;
-							pSMacro->Tree().EnumerateComments(*pSMacro, [&wasFound, &fieldEnumerator](cstr commentLine) 
-								{
-									if (!wasFound)
-									{
-										wasFound = true;
-										fieldEnumerator.OnHintFound(Substring::ToSubstring(to_fstring(commentLine)));
-									}
-								}
-							);
+							ShowToolTipForExpression(*pSMacro, fieldEnumerator);
 						}
 					}
 				}
