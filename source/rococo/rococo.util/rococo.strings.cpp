@@ -546,14 +546,22 @@ namespace Rococo::Strings
 		return Substring::Null();
 	}
 
-	ROCOCO_UTIL_API void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity)
+	ROCOCO_UTIL_API void Substring::CopyWithTruncate(char* buffer, size_t capacity) const
 	{
-		if (!buffer || capacity == 0) return;
-		if (!item) *buffer = 0;
+		if (!buffer || capacity == 0)
+		{
+			return;
+		}
 
-		size_t len = Length(item);
+		if (empty())
+		{
+			*buffer = 0;
+			return;
+		}
+
+		size_t len = Length();
 		size_t writeLength = min(len, capacity - 1);
-		memcpy(buffer, item.start, writeLength);
+		memcpy(buffer, start, writeLength);
 		buffer[writeLength] = 0;
 	}
 
@@ -1495,7 +1503,7 @@ namespace Rococo::Strings::CLI
 
 		if (arg)
 		{
-			Rococo::Strings::CopyWithTruncate(arg, buffer, capacity);
+			arg.CopyWithTruncate(buffer, capacity);
 		}
 		else
 		{

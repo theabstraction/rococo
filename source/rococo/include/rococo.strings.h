@@ -261,9 +261,6 @@ namespace Rococo::Strings
 		ROCOCO_API int32 Length() const override;
 	};
 
-	// Copies the item into the buffer, truncating data if required, and terminating with a nul character
-	ROCOCO_API void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity);
-
 	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer
 	ROCOCO_API void Populate(Strings::cr_substring item, IStringPopulator& populator);
 

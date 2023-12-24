@@ -312,8 +312,8 @@ namespace Rococo::Sex::Inference
 		{
 			char nameBuffer[128];
 			char typeBuffer[128];
-			CopyWithTruncate(name, nameBuffer, sizeof nameBuffer);
-			CopyWithTruncate(type, typeBuffer, sizeof typeBuffer);
+			name.CopyWithTruncate(nameBuffer, sizeof nameBuffer);
+			type.CopyWithTruncate(typeBuffer, sizeof typeBuffer);
 			cb.OnMemberVariable(typeBuffer, nameBuffer);
 		};
 		TEnumerateFieldsOfClassDef(className, classDef, invokeCallback);
@@ -757,7 +757,7 @@ namespace Rococo::Sex::Inference
 		if (!nextDot)
 		{
 			char result[128];
-			Strings::CopyWithTruncate(fieldName, result, sizeof result);
+			fieldName.CopyWithTruncate(result, sizeof result);
 			if (Strings::StartsWith(result, memberSearch))
 			{
 				fieldEnumerator.OnField(result, memberSearch);
@@ -766,7 +766,7 @@ namespace Rococo::Sex::Inference
 		}
 
 		char fieldNameArray[128];
-		Strings::CopyWithTruncate(fieldName, fieldNameArray, sizeof fieldNameArray);
+		fieldName.CopyWithTruncate(fieldNameArray, sizeof fieldNameArray);
 
 		Substring searchTail{ firstDot + 1, nextDot };
 

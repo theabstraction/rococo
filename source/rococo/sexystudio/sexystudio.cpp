@@ -1913,7 +1913,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			if (memberSearch && prefix)
 			{
 				char prefixString[128];
-				CopyWithTruncate(prefix, prefixString, sizeof prefixString);
+				prefix.CopyWithTruncate(prefixString, sizeof prefixString);
 				size_t startSubstituteAt = memberSearch.start - prefix.start;
 				size_t endSubstituteAt = startSubstituteAt + strlen(fieldName);
 				if (endSubstituteAt < sizeof prefixString - 1)
@@ -1929,7 +1929,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			else if (prefix)
 			{
 				char prefixString[128];
-				CopyWithTruncate(prefix, prefixString, sizeof prefixString);
+				prefix.CopyWithTruncate(prefixString, sizeof prefixString);
 
 				char item[256];
 				SafeFormat(item, "%s%s", prefixString, fieldName);
@@ -1973,7 +1973,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	{
 		size_t len = tip.Length() + 1;
 		char* buf = (char*)alloca(len);
-		CopyWithTruncate(tip, buf, len);
+		tip.CopyWithTruncate(buf, len);
 		editor.ShowCallTipAtCaretPos(buf);
 	}
 
@@ -2287,7 +2287,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	{
 		size_t len = type.Length() + 1;
 		auto* buf = (char*)alloca(len);
-		CopyWithTruncate(type, buf, len);
+		type.CopyWithTruncate(buf, len);
 		return database->FindInterface(buf, ppNamespace);
 	}
 
@@ -2812,7 +2812,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			if (Eq(candidate, "content") || Eq(candidate, "Content") || Eq(candidate, "CONTENT"))
 			{
 				U8FilePath contentPath;
-				CopyWithTruncate({ s.start, lastSlash + 1 }, contentPath.buf, contentPath.CAPACITY);
+				Substring t{ s.start, lastSlash + 1 };
+				t.CopyWithTruncate(contentPath.buf, contentPath.CAPACITY);
 
 				if (!Eq(lastAutoRebasePath, contentPath))
 				{

@@ -2327,7 +2327,7 @@ namespace ANON
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
 
 			char typeString[128];
-			CopyWithTruncate(type, typeString, sizeof typeString);
+			type.CopyWithTruncate(typeString, sizeof typeString);
 
 			ISXYInterface* pInterfaceType = FindInterface(typeString);
 

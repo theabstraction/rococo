@@ -268,6 +268,9 @@ namespace Rococo
 			FORCE_INLINE static Substring Null() { return { nullptr,nullptr }; }
 
 			ROCOCO_API static Substring ToSubstring(cstr text);
+
+			// Copies the item into the buffer, truncating data if required, and terminating with a nul character
+			ROCOCO_API void CopyWithTruncate(char* buffer, size_t capacity) const;
 		};
 
 		// An immutable substring
