@@ -543,7 +543,7 @@ namespace Rococo::Strings
 			}
 		}
 
-		return Substring_Null();
+		return Substring::Null();
 	}
 
 	ROCOCO_UTIL_API void CopyWithTruncate(cr_substring item, char* buffer, size_t capacity)
@@ -1427,7 +1427,7 @@ namespace Rococo::Sex::Inference
 
 	ROCOCO_UTIL_API Substring GetFirstTokenFromLeft(cr_substring s)
 	{
-		return s ? Substring{ s.start, GetFirstNonTypeCharPointer(s) } : Substring_Null();
+		return s ? Substring{ s.start, GetFirstNonTypeCharPointer(s) } : Substring::Null();
 	}
 } // Rococo::Strings
 

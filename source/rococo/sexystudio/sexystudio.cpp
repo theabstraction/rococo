@@ -1994,7 +1994,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			// We need (#<a> with at least one character a before we start autocomplete. Generally Sexy enumeration macros will have some standard prefix
 		}
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring_Null(), *database, doc);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring::Null(), *database, doc);
 		database->ForEachAutoCompleteMacroCandidate(token, routeTextToAutoComplete);
 	}
 
@@ -2067,7 +2067,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	{
 		Substring token = Rococo::Sex::Inference::GetFirstTokenFromLeft(candidate);
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring_Null(), *database, doc);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring::Null(), *database, doc);
 		database->ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
 
 		callTipArgs[0] = 0;

@@ -23,7 +23,7 @@ namespace
 	{
 		if (document.empty() || token.length == 0)
 		{
-			cursor = Substring_Null();
+			cursor = Substring::Null();
 			return false;
 		}
 
@@ -49,7 +49,7 @@ namespace
 			cursor.finish++;
 		}
 
-		cursor = Substring_Null();
+		cursor = Substring::Null();
 		return false;
 	}
 
@@ -112,7 +112,7 @@ namespace Rococo::Sex::Inference
 	// Expand t
 	ROCOCO_MISC_UTILS_API Substring GetClassDefinition(cr_substring className, cr_substring doc)
 	{
-		Substring cursor = Substring_Null();
+		Substring cursor = Substring::Null();
 
 		while (FindNext(cursor, doc, "class"_fstring))
 		{
@@ -125,13 +125,13 @@ namespace Rococo::Sex::Inference
 						cstr name = FirstNonWhiteSpace(cursor.finish, doc.finish);
 						if (!name)
 						{
-							return Substring_Null();
+							return Substring::Null();
 						}
 
 						cstr lastNameChar = name + className.Length();
 						if (lastNameChar > doc.finish)
 						{
-							return Substring_Null();
+							return Substring::Null();
 						}
 
 						if (!Eq(Substring{ name, lastNameChar }, className))
@@ -156,7 +156,7 @@ namespace Rococo::Sex::Inference
 			}
 		}
 
-		return Substring_Null();
+		return Substring::Null();
 	}
 
 	template<class T>

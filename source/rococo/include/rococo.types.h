@@ -251,7 +251,7 @@ namespace Rococo
 	{
 		struct StringBuilder;
 
-		// A substring of a larger string. If start == end, length is zero, otherwise start points to the first valid char, and end just after the last valid char.
+		// A substring of a larger string. If start < end start points to the first valid char, and end just after the last valid char, otherwise the string is empty
 		struct Substring
 		{
 			cstr start;
@@ -269,8 +269,6 @@ namespace Rococo
 		};
 
 		ROCOCO_API Substring ToSubstring(cstr text);
-
-		inline Substring Substring_Null() { return { nullptr,nullptr }; }
 
 		// An immutable substring
 		typedef const Substring& cr_substring;
