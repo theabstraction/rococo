@@ -257,20 +257,23 @@ namespace Rococo
 			cstr start;
 			cstr finish;
 
-			FORCE_INLINE cstr begin() const { return start; }
-			FORCE_INLINE cstr end() const { return finish; }
+			[[nodiscard]] FORCE_INLINE cstr begin() const { return start; }
+			[[nodiscard]] FORCE_INLINE cstr end() const { return finish; }
 
-			FORCE_INLINE bool empty() const { return finish <= start; }
+			[[nodiscard]] FORCE_INLINE bool empty() const { return finish <= start; }
 
-			FORCE_INLINE operator bool() const { return !empty(); }
-			FORCE_INLINE int64 Length() const { return finish - start; }
+			[[nodiscard]] FORCE_INLINE operator bool() const { return !empty(); }
+			[[nodiscard]] FORCE_INLINE int64 Length() const { return finish - start; }
 
-			FORCE_INLINE static Substring Null() { return { nullptr,nullptr }; }
+			[[nodiscard]] FORCE_INLINE static Substring Null() { return { nullptr,nullptr }; }
 
-			ROCOCO_API static Substring ToSubstring(cstr text);
+			[[nodiscard]] ROCOCO_API static Substring ToSubstring(cstr text);
 
 			// Copies the item into the buffer, truncating data if required, and terminating with a nul character
 			ROCOCO_API void CopyWithTruncate(char* buffer, size_t capacity) const;
+
+			// Try to copy everything to the string buffer, including a terminating null. If the buffer is not large enough the method returns false and the buffer supplied is unchanged
+			[[nodiscard]] ROCOCO_API bool TryCopyWithoutTruncate(char* name, size_t sizeofName) const;
 		};
 
 		// An immutable substring

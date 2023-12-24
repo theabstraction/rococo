@@ -136,7 +136,7 @@ namespace ANON
 		}
 	};
 
-	struct SXYMethod: ISXYFunction
+	struct SXYMethod : ISXYFunction
 	{
 		const ISExpression* psMethod;
 		cstr name = nullptr;
@@ -194,7 +194,7 @@ namespace ANON
 		{
 			return name;
 		}
-		
+
 		SXYMethod(cr_sex _sMethod, bool isClassMethod = false) : psMethod(&_sMethod), classOffset(isClassMethod ? 1 : 0),
 			finalArg(0)
 		{
@@ -403,9 +403,9 @@ namespace ANON
 		const ISExpression* sDef;
 	};
 
-	struct SxyInterface: ISXYInterface
+	struct SxyInterface : ISXYInterface
 	{
-		SxyInterface(cstr name, ISXYFile& _source_file, cr_sex _sInterfaceDef):
+		SxyInterface(cstr name, ISXYFile& _source_file, cr_sex _sInterfaceDef) :
 			shortName(name), source_file(&_source_file), sInterfaceDef(&_sInterfaceDef)
 		{
 
@@ -433,7 +433,7 @@ namespace ANON
 
 		int MethodCount() const override
 		{
-			return (int) methods.size();
+			return (int)methods.size();
 		}
 
 		ISXYFunction& GetMethod(int index) override
@@ -468,7 +468,7 @@ namespace ANON
 		{
 			return sMacroDef;
 		}
-		
+
 		cstr GetMacroValue() const
 		{
 			// An enum looks like this (macro #Sys.IO.MaxFilePathLen in out (out.AddAtomic "0x102"))
@@ -496,7 +496,7 @@ namespace ANON
 
 	};
 
-	struct SXYPublicFunction: ISXYPublicFunction
+	struct SXYPublicFunction : ISXYPublicFunction
 	{
 		SXYPublicFunction(cstr _publicName, cstr _localName, ISXYFile& _file) :
 			publicName(_publicName), localName(_localName), file(&_file)
@@ -521,7 +521,7 @@ namespace ANON
 		}
 	};
 
-	struct SXYStruct: ISXYLocalType
+	struct SXYStruct : ISXYLocalType
 	{
 		cr_sex sStructDef;
 		int numberOfFields = 0;
@@ -611,14 +611,14 @@ namespace ANON
 		}
 	};
 
-	struct SXYPublicStruct: ISXYType
+	struct SXYPublicStruct : ISXYType
 	{
 		std::string publicName;
 		std::string localName;
 		ISXYFile& file;
 		ISXYLocalType* localType = nullptr;
 
-		SXYPublicStruct(cstr _publicName, cstr _localName, ISXYFile& _file):
+		SXYPublicStruct(cstr _publicName, cstr _localName, ISXYFile& _file) :
 			publicName(_publicName), localName(_localName), file(_file)
 		{
 
@@ -715,6 +715,109 @@ namespace ANON
 		ISXYFile& file;
 	};
 
+	struct IImplicitNamespacesSupervisor : IImplicitNamespaces
+	{
+		virtual void Free() = 0;
+	};
+
+	ISxyNamespace* FindSubspaceByShortName(ISxyNamespace& ns, cstr shortname)
+	{
+		for (int i = 0; i < ns.SubspaceCount(); i++)
+		{
+			auto& subspace = ns[i];
+			if (Eq(subspace.Name(), shortname))
+			{
+				return &subspace;
+			}
+		}
+
+		return nullptr;
+	}
+
+	ISxyNamespace* FindSubspace(ISxyNamespace& ns, cstr fqNamespace)
+	{
+		if (fqNamespace == nullptr || *fqNamespace == 0)
+		{
+			return nullptr;
+		}
+
+		NamespaceSplitter splitter(fqNamespace);
+
+		cstr branchName, subspaceName;
+		if (splitter.SplitHead(OUT branchName, OUT subspaceName))
+		{
+			auto* branch = FindSubspaceByShortName(ns, branchName);
+			if (branch)
+			{
+				return FindSubspace(*branch, subspaceName);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+		else
+		{
+			return FindSubspaceByShortName(ns, fqNamespace);
+		}
+	}
+
+	struct ImplicitNamespaces : IImplicitNamespacesSupervisor
+	{
+		std::vector<ISxyNamespace*> implicits;
+
+		ISxyNamespace& root;
+
+		ImplicitNamespaces(ISxyNamespace& _root): root(_root)
+		{
+
+		}
+
+		int ImplicitCount() override
+		{
+			return (int) implicits.size();
+		}
+
+		ISxyNamespace& GetImplicitNamespace(int index) override
+		{
+			size_t sIndex = (size_t)index;
+			if (sIndex >= implicits.size())
+			{
+				Throw(0, "%s: Bad index", __FUNCTION__);
+			}
+
+			return *implicits[sIndex];
+		}
+
+		bool AddImplicitNamespace(cstr fqName) override
+		{
+			ISxyNamespace* ns = FindSubspace(root, fqName);
+			if (ns)
+			{
+				for (auto* existing : implicits)
+				{
+					if (existing == ns)
+					{
+						return true;
+					}
+				}
+
+				implicits.push_back(ns);
+				return true;
+			}
+			return false;
+		}
+
+		void ClearImplicitNamespaces() override
+		{
+			implicits.clear();
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
 
 	struct SxyNamespace : ISxyNamespace
 	{
@@ -729,8 +832,16 @@ namespace ANON
 		std::vector<SXYNSAlias> nsAlias;
 		std::vector<SXYArchetype> archetypes;
 		SxyNamespace* parent;
+		AutoFree<IImplicitNamespacesSupervisor> implicits;
 
-		SxyNamespace(cstr _name, SxyNamespace* _parent) : name(_name), parent(_parent) {}
+		SxyNamespace(cstr _name, SxyNamespace* _parent) : name(_name), parent(_parent) 
+		{
+			if (_parent == nullptr)
+			{
+				// Root namespaces have an implicit section
+				implicits = new ANON::ImplicitNamespaces(*this);
+			}
+		}
 
 		int AliasCount() const override
 		{
@@ -785,6 +896,11 @@ namespace ANON
 		cstr GetEnumSourcePath(int index) const override
 		{
 			return enums[index].sMacroDef.Tree().Source().Name();
+		}
+
+		IImplicitNamespaces* ImplicitNamespaces() override
+		{
+			return implicits;
 		}
 
 		int MacroCount() const override
@@ -2347,7 +2463,10 @@ namespace ANON
 			Substring methodPrefix{ lastDotPos + 1, candidateFinish };
 
 			char prefix[64];
-			SubstringToString(prefix, sizeof prefix, methodPrefix);
+			if (!methodPrefix.TryCopyWithoutTruncate(prefix, sizeof prefix))
+			{
+				return false;
+			}
 
 			if (depth == 0) fieldEnumerator.OnHintFound(Substring::ToSubstring(typeString));
 
@@ -2467,7 +2586,10 @@ namespace ANON
 					if (ssTrailer)
 					{
 						char candidate[128];
-						SubstringToString(candidate, sizeof candidate, ssTrailer);
+						if (!ssTrailer.TryCopyWithoutTruncate(candidate, sizeof candidate))
+						{
+							return;
+						}
 						auto* pSMacro = pNamespace->FindMacroDefinition(candidate);
 						if (pSMacro)
 						{

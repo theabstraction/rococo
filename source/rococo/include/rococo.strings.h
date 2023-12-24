@@ -304,7 +304,6 @@ namespace Rococo::Strings
 	ROCOCO_API bool StartsWith(cr_substring token, const fstring& prefix);
 	ROCOCO_API bool StartsWith(cstr token, cr_substring prefix);
 	ROCOCO_API ptrdiff_t Length(cr_substring token);
-	ROCOCO_API bool SubstringToString(char* name, size_t sizeofName, cr_substring substring);
 	ROCOCO_API bool Eq(const fstring& a, cr_substring b);
 	ROCOCO_API bool Eq(cr_substring a, const fstring& b);
 	ROCOCO_API bool Eq(cr_substring a, cr_substring b);

@@ -185,6 +185,18 @@ namespace Rococo::SexyStudio
 		virtual ISXYFunction* LocalFunction() = 0;
 	};
 
+	struct ISxyNamespace;
+
+	ROCOCO_INTERFACE IImplicitNamespaces
+	{
+		virtual int ImplicitCount() = 0;
+		virtual ISxyNamespace& GetImplicitNamespace(int index) = 0;
+
+		// Try to match a fqName to a namespace and stores the implicit reference. If no match, returns false, else returns true.
+		[[nodiscard]] virtual bool AddImplicitNamespace(cstr fqName) = 0;
+		virtual void ClearImplicitNamespaces() = 0;
+	};
+
 	ROCOCO_INTERFACE ISxyNamespace
 	{
 		virtual int AliasCount() const = 0;
@@ -223,6 +235,7 @@ namespace Rococo::SexyStudio
 		virtual int MacroCount() const = 0;
 		virtual cstr GetMacroName(int index) const = 0;
 		virtual cstr GetMacroSourcePath(int index) const = 0;
+		virtual IImplicitNamespaces* ImplicitNamespaces() = 0;
 	};
 
 	// Appends the fully qualified namespace of the [ns] argument to the string builder

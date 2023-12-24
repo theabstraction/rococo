@@ -1212,7 +1212,10 @@ void StripToFilenameSansExtension(cstr name, char target[_MAX_PATH], char nameSa
 	if (!lastDot) lastDot = const_cast<char*>(sName.finish);
 	
 	Substring sNameSansExtension{ name, lastDot };
-	Rococo::Strings::SubstringToString(nameSansExtension, _MAX_PATH, sNameSansExtension);
+	if (!sNameSansExtension.TryCopyWithoutTruncate(nameSansExtension, _MAX_PATH))
+	{
+		Throw(0, "%s %s: TryCopyWithoutTruncate failed", __FUNCTION__, name);
+	}
 }
 
 void PrintUsage()

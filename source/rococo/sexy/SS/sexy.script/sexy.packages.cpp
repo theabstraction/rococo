@@ -674,7 +674,7 @@ namespace ANON
 			Substring sname = { startChar, endChar };
 
 			char name[IPackage::MAX_PACKAGE_NAME_BUFFER_LEN];
-			if (!Strings::SubstringToString(name, sizeof name, sname))
+			if (!sname.TryCopyWithoutTruncate(name, sizeof name))
 				Throw(0, "%s: package name was too long. Max %llu chars", __FUNCTION__, name, (sizeof name) - 1);
 			
 			auto i = packages.find(name);

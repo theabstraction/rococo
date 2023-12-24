@@ -482,9 +482,9 @@ namespace MHost
 					{
 						Substring subspace = { s.start, nextDot };
 						char subspaceBuffer[16];
-						if (!SubstringToString(subspaceBuffer, sizeof subspaceBuffer, subspace))
+						if (!subspace.TryCopyWithoutTruncate(subspaceBuffer, sizeof subspaceBuffer))
 						{
-							Throw(0, "Failed to convert subpsace to string for %s", (cstr)menuPath);
+							Throw(0, "%s: Failed to convert subpsace to string for %s", __FUNCTION__, (cstr)menuPath);
 						}
 
 						idCurrentMenu = frame->MenuBar().AddSubMenu(idCurrentMenu, Gui::GRMenuSubMenu(subspaceBuffer));

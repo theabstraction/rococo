@@ -2347,7 +2347,10 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		}
 
 		char interfaceType[256];
-		SubstringToString(interfaceType, sizeof interfaceType, type);
+		if (!type.TryCopyWithoutTruncate(interfaceType, sizeof interfaceType))
+		{
+			return false;
+		}
 
 		int candidates = 0;
 		for (int i = 0; i < pNamespace->FactoryCount(); i++)

@@ -1220,16 +1220,16 @@ namespace Rococo::Strings
 		return token.finish - token.start;
 	}
 
-	ROCOCO_UTIL_API bool SubstringToString(char* outputBuffer, size_t sizeofOutputBuffer, cr_substring substring)
+	ROCOCO_UTIL_API bool Substring::TryCopyWithoutTruncate(char* outputBuffer, size_t sizeofOutputBuffer) const
 	{
-		if (Length(substring) >= (ptrdiff_t)sizeofOutputBuffer)
+		if (Length() >= (ptrdiff_t)sizeofOutputBuffer)
 		{
 			return false;
 		}
 
 		char* writePtr = outputBuffer;
-		cstr readPtr = substring.start;
-		while (readPtr < substring.finish)
+		cstr readPtr = start;
+		while (readPtr < finish)
 		{
 			*writePtr++ = *readPtr++;
 		}

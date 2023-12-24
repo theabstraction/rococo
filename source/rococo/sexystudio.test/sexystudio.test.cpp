@@ -827,8 +827,7 @@ public:
 	void AddHint(cr_substring item) override
 	{
 		char hintBuffer[1024];
-		SubstringToString(hintBuffer, sizeof hintBuffer, item);
-
+		item.CopyWithTruncate(hintBuffer, sizeof hintBuffer);
 		printf("Hint: %s\n", hintBuffer);
 	}
 
@@ -1469,7 +1468,7 @@ void TestPromptForMacro5()
 	cstr file =
 		R"<CODE>(
 	(function Bark -> :
-		(#Rococo.Graphics.
+		(#Sys.Type.
 	)
 )<CODE>";
 
@@ -1503,8 +1502,8 @@ void MainProtected2(HMODULE /* hLib */)
 //	TestPromptForMacro2();
 //	TestPromptForMacro3();
 //	TestPromptForMacro4();
-//	TestPromptForMacro5();
-	TestPromptForMacro6();
+	TestPromptForMacro5();
+//	TestPromptForMacro6();
 	return;
 	TestNamespaceAppendsStruct();
 	TestFQStruct();

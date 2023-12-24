@@ -1449,7 +1449,7 @@ namespace Anon
 				commentBuffer.resize(nBytes);
 
 				Substring s{ begin, end };
-				SubstringToString(commentBuffer.data(), nBytes, s);
+				s.CopyWithTruncate(commentBuffer.data(), nBytes);
 
 				ISExpression* ptr = nextFreeCompoundSlot;
 				auto i = tree->mapExpressionPtrToCommentBlock->insert(std::make_pair(ptr, std::vector<HString>()));
