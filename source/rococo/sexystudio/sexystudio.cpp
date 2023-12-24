@@ -2832,6 +2832,92 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 	WideFilePath fullPathCache;
 
+	static bool IsBlank(cr_substring sample)
+	{
+		for (cstr p = sample.start + 1; p < sample.finish; p++)
+		{
+			if (!isblank(*p))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	template<class LAMBDA>
+	static void ForEachCompoundDirectiveWithAtLeastOneArg(const fstring fdirective, cr_substring sample, LAMBDA lambda)
+	{
+		Substring cursor = sample;
+
+		while (true)
+		{
+			cstr directive = Strings::FindSubstring(cursor, fdirective);
+			if (!directive)
+			{
+				break;
+			}
+
+			if (directive + fdirective.length >= sample.finish)
+			{
+				break;
+			}
+
+			Substring preUsing{ cursor.start, directive };
+			cstr openParenthesis = Strings::ReverseFind('(', preUsing);
+
+			cursor.start += fdirective.length + 2;
+
+			if (openParenthesis)
+			{
+				Substring innerPadding{ openParenthesis + 1, directive };
+				if (IsBlank(innerPadding))
+				{
+					// We have matched (<blankspace> <directive>...)
+
+					if (isblank(directive[fdirective.length]))
+					{
+						// Our directive has blankspace after it: (<blankspace> <directive> <blankspace> ...)
+
+						cstr nextArg = Strings::SkipBlankspace({ directive + fdirective.length, sample.finish });
+						if (nextArg)
+						{
+							for (cstr p = nextArg + 1; p < sample.finish; p++)
+							{
+								if (isblank(*p) || *p == ')')
+								{
+									// We matched (<directive> <arg>)
+									Substring arg{ nextArg, p };
+									lambda(arg);
+
+									cursor.start = p + 1;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void PopulateImplicitNamespaces(cr_substring doc)
+	{
+		auto* implicits = database->GetRootNamespace().ImplicitNamespaces();
+		implicits->ClearImplicitNamespaces();
+
+		ForEachCompoundDirectiveWithAtLeastOneArg("using"_fstring, doc, [this, &implicits](cr_substring fqNamespaceArg)
+			{
+				char nsBuffer[NAMESPACE_MAX_LENGTH];
+				if (fqNamespaceArg.TryCopyWithoutTruncate(nsBuffer, sizeof nsBuffer))
+				{
+					bool unused = implicits->AddImplicitNamespace(nsBuffer);
+					UNUSED(unused);
+				}
+			}
+		);
+	}
+
 	void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* fullPath) override
 	{
 		if (fullPath)
@@ -2881,6 +2967,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		{
 			int64 displacementFromCaret = activationPoint - searchToken.start + 1;
 
+			PopulateImplicitNamespaces(doc);
+
 			if (!TryAddTokenOptionsToAutocomplete(editor, searchToken, displacementFromCaret, doc))
 			{
 				autoComplete_Replacement_StartPosition = 0;
@@ -2894,11 +2982,15 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			{
 				if (isupper(*searchToken.start))
 				{
+					PopulateImplicitNamespaces(doc);
+
 					// Potentially a function call
 					ShowFunctionArgumentsForType(editor, searchToken);	
 				}
 				else if (islower(*searchToken.start))
 				{
+					PopulateImplicitNamespaces(doc);
+
 					if (!TryFindAndShowCallTipForMethods(editor, searchToken, doc))
 					{
 						TryFindAndShowCallTipForFactories(editor, substringLine, doc, *this);
