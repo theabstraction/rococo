@@ -1972,60 +1972,90 @@ namespace ANON
 			delete this;
 		}
 
-		void AppendAllChildrenFromRootWithoutRecursion(ISxyNamespace& ns, cr_substring prefix, REF std::unordered_map<std::string, int>& exportList)
+		template<class LAMBDA>
+		static void ForEachChildTokenInNamespace(ISxyNamespace& ns, LAMBDA lambda)
 		{
-			char name[256];
-			StackStringBuilder nameBuilder(name, sizeof name);
-
 			for (int i = 0; i < ns.FunctionCount(); ++i)
 			{
-				nameBuilder.Clear();
-				nameBuilder << ns.GetFunction(i).PublicName();
-
-				if (ns.GetFunction(i).PublicName()[0] != '_' && StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
+				auto fname = ns.GetFunction(i).PublicName();
+				if (fname[0] != '_')
 				{
-					exportList.insert(std::make_pair(std::string(name), 0));
+					lambda(fname);
 				}
 			}
 
 			for (int i = 0; i < ns.InterfaceCount(); ++i)
 			{
 				auto& interf = ns.GetInterface(i);
-
-				nameBuilder.Clear();
-				nameBuilder << interf.PublicName();
-
-				if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
-				{
-					exportList.insert(std::make_pair(std::string(name), 0));
-				}
+				lambda(interf.PublicName());
 			}
 
 			for (int i = 0; i < ns.TypeCount(); ++i)
 			{
 				auto& type = ns.GetType(i);
-
-				nameBuilder.Clear();
-				nameBuilder << type.PublicName();
-
-				if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
-				{
-					exportList.insert(std::make_pair(std::string(name), 0));
-				}
+				lambda(type.PublicName());
 			}
 
 			for (int i = 0; i < ns.FactoryCount(); ++i)
 			{
 				auto& factory = ns.GetFactory(i);
-
-				nameBuilder.Clear();
-				nameBuilder << factory.PublicName();
-
-				if (StartsWith(name, prefix) && nameBuilder.Length() > Length(prefix))
-				{
-					exportList.insert(std::make_pair(std::string(name), 0));
-				}
+				lambda(factory.PublicName());
 			}
+		}
+
+		NOT_INLINE static bool IsPrefixFor(cr_substring prefix, ISxyNamespace& ns, cstr token, bool requiresNamespaceInPrefix)
+		{
+			char fqToken[256];
+			StackStringBuilder fqTokenBuilder(fqToken, sizeof fqToken);
+
+			if (requiresNamespaceInPrefix)
+			{
+				AppendFullName(ns, fqTokenBuilder);
+				fqTokenBuilder << ".";
+			}
+
+			fqTokenBuilder << token;
+
+			return StartsWith(fqToken, prefix);
+		}
+
+		static void AppendAllChildrenFromRootWithoutRecursion(ISxyNamespace& ns, cr_substring prefix, REF std::unordered_map<std::string, int>& exportList, bool expectingNSPrefix)
+		{
+			char nsName[256];
+			StackStringBuilder nsBuilder(nsName, sizeof nsName);
+
+			AppendFullName(ns, nsBuilder);
+
+			auto fnsName = to_fstring(nsName);
+
+			if (expectingNSPrefix && fnsName.length > prefix.Length())
+			{
+				return;
+			}
+
+			if (expectingNSPrefix && !StartsWith(prefix, to_fstring(nsName)))
+			{
+				return;
+			}
+
+			ForEachChildTokenInNamespace(ns, [&ns, &prefix, &exportList, expectingNSPrefix](cstr token)
+				{
+					if (IsPrefixFor(prefix, ns, token, expectingNSPrefix))
+					{
+						char name[256];
+						StackStringBuilder nameBuilder(name, sizeof name);
+
+						if (expectingNSPrefix)
+						{
+							AppendFullName(ns, nameBuilder);
+							nameBuilder << ".";
+						}
+
+						nameBuilder << token;
+						exportList.insert(std::make_pair(std::string(name), 0));
+					}
+				}
+			);
 		}
 
 		void AppendAllChildrenFromRoot(cr_substring prefix, std::unordered_map<std::string, int>& exportList, ISxyNamespace& ns, int depth)
@@ -2047,7 +2077,7 @@ namespace ANON
 
 			if (StartsWith(prefix.start, name))
 			{
-				AppendAllChildrenFromRootWithoutRecursion(ns, prefix, REF exportList);
+				AppendAllChildrenFromRootWithoutRecursion(ns, prefix, REF exportList, true);
 			}
 
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
@@ -2055,6 +2085,25 @@ namespace ANON
 				if (!Eq(ns[i].Name(), "Native"))
 				{
 					AppendAllChildrenFromRoot(prefix, exportList, ns[i], depth + 1);
+				}
+			}
+		}
+
+		void AppendAllMacroChildrenFromImplicits(cr_substring postHashPrefix, std::unordered_map<std::string, int>& exportList, IImplicitNamespaces& implicits)
+		{
+			for (int i = 0; i < implicits.ImplicitCount(); ++i)
+			{
+				auto& usedNS = implicits.GetImplicitNamespace(i);
+
+				for (int j = 0; j < usedNS.MacroCount(); ++j)
+				{
+					cstr macro = usedNS.GetMacroName(j);
+					if (StartsWith(macro, postHashPrefix))
+					{
+						char fullMacro[256];
+						SafeFormat(fullMacro, "#%s", macro);
+						exportList.insert(std::make_pair(std::string(fullMacro), 0));
+					}
 				}
 			}
 		}
@@ -2595,7 +2644,7 @@ namespace ANON
 				for (int i = 0; i < implicits->ImplicitCount(); ++i)
 				{
 					auto& usedNS = implicits->GetImplicitNamespace(i);
-					AppendAllChildrenFromRootWithoutRecursion(usedNS, prefix, REF exportList);
+					AppendAllChildrenFromRootWithoutRecursion(usedNS, prefix, REF exportList, false);
 				}
 			}
 
@@ -2683,6 +2732,8 @@ namespace ANON
 
 			std::unordered_map<std::string, int> exportList;
 
+			AppendAllMacroChildrenFromImplicits(prefix, exportList, *root.ImplicitNamespaces());
+
 			for (int i = 0; i < root.SubspaceCount(); ++i)
 			{
 				AppendAllMacroChildrenFromRoot(prefix, exportList, root[i]);
@@ -2704,6 +2755,33 @@ namespace ANON
 
 		bool GetHintForCandidateByNS(ISxyNamespace& ns, cr_substring prefix, char args[1024])
 		{
+			auto* implicits = ns.ImplicitNamespaces();
+			if (implicits)
+			{
+				for (int i = 0; i < implicits->ImplicitCount(); ++i)
+				{
+					auto& usedNS = implicits->GetImplicitNamespace(i);
+
+					for (int j = 0; j < usedNS.InterfaceCount(); ++j)
+					{
+						auto& interf = usedNS.GetInterface(j);
+						if (Eq(prefix, interf.PublicName()))
+						{
+							StackStringBuilder nameBuilder(args, 1024);
+							nameBuilder << "!Interface: ";
+							AppendFullName(usedNS, nameBuilder);
+
+							char strPrefix[256];
+							if (prefix.TryCopyWithoutTruncate(strPrefix, sizeof strPrefix))
+							{
+								nameBuilder << "." << strPrefix;
+								return true;
+							}
+						}
+					}
+				}
+			}
+
 			char name[256];
 			StackStringBuilder nameBuilder(name, sizeof name);
 			AppendFullName(ns, nameBuilder);

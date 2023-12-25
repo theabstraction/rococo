@@ -1820,7 +1820,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	{
 		int64 caretPos = editor.GetCaretPos();
 
-		if (*callTipArgs != 0 && autoComplete_Replacement_StartPosition > 0 && autoComplete_Replacement_StartPosition < caretPos)
+		if (*callTipArgs != 0 && *callTipArgs != '!' && autoComplete_Replacement_StartPosition > 0 && autoComplete_Replacement_StartPosition < caretPos)
 		{
 			editor.ReplaceText(caretPos, caretPos, callTipArgs);
 			callTipArgs[0] = 0;

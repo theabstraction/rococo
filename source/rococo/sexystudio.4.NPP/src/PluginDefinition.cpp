@@ -401,6 +401,13 @@ public:
     {
         int64 caretPos = GetCaretPos();
         SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
+
+        if (*tip == '!')
+        {
+            // Exclamation is skipped, as it indicates a tip is for info only, and not substitution
+            tip++;
+        }
+
         SendMessageA(hScintilla, SCI_CALLTIPSHOW, caretPos, (LPARAM) tip);
     }
 
