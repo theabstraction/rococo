@@ -147,6 +147,7 @@ namespace Rococo::SexyStudio
 		virtual int MethodCount() const = 0;
 		virtual cstr GetAttribute(int index) const = 0;
 		virtual ISXYFunction& GetMethod(int index) = 0;
+		virtual const ISXYFunction& GetMethod(int index) const = 0;
 		virtual cstr SourcePath() const = 0;
 		virtual cr_sex GetDefinition() const = 0;
 	};
@@ -177,6 +178,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual cstr PublicName() const = 0;
 		virtual ISXYLocalType* LocalType() = 0;
+		virtual const ISXYLocalType* LocalType() const = 0;
 	};
 
 	ROCOCO_INTERFACE ISXYPublicFunction
@@ -189,8 +191,8 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE IImplicitNamespaces
 	{
-		virtual int ImplicitCount() = 0;
-		virtual ISxyNamespace& GetImplicitNamespace(int index) = 0;
+		virtual int ImplicitCount() const = 0;
+		virtual const ISxyNamespace& GetImplicitNamespace(int index) const = 0;
 
 		// Try to match a fqName to a namespace and stores the implicit reference. If no match, returns false, else returns true.
 		[[nodiscard]] virtual bool AddImplicitNamespace(cstr fqName) = 0;
@@ -205,18 +207,29 @@ namespace Rococo::SexyStudio
 		virtual	cstr GetAliasSourcePath(int index) const = 0;
 		virtual ISXYArchetype& GetArchetype(int index) = 0;
 		virtual ISXYInterface & GetInterface(int index) = 0;
+		virtual const ISXYInterface& GetInterface(int index) const = 0;
 		virtual ISXYType& GetType(int index) = 0;
+		virtual const ISXYType& GetType(int index) const = 0;
 		virtual ISXYPublicFunction& GetFunction(int index) = 0;
+		virtual const ISXYPublicFunction& GetFunction(int index) const = 0;
 		virtual ISXYFactory& GetFactory(int index) = 0;
+		virtual const ISXYFactory& GetFactory(int index) const = 0;
 		virtual ISxyNamespace* GetParent() = 0;
+		virtual const ISxyNamespace* GetParent() const = 0;
 		virtual int ArchetypeCount() const = 0;
 		virtual int FactoryCount() const = 0;
 		virtual int FunctionCount() const = 0;
 		virtual int InterfaceCount() const = 0;
 		virtual int TypeCount() const = 0;
 		virtual int SubspaceCount() const = 0;
+
+		// The indexer retrieves the subspace at the position of the index
 		virtual ISxyNamespace& operator[] (int index) = 0;
-		virtual cstr Name() = 0;
+
+		// The indexer retrieves the subspace at the position of the index
+		virtual const ISxyNamespace& operator[] (int index) const = 0;
+
+		virtual cstr Name() const = 0;
 		virtual ISxyNamespace& Update(cstr subspace, cr_sex src) = 0;
 		virtual void UpdateArchetype(cstr name, cr_sex sDef, ISXYFile& file) = 0;
 		virtual void UpdateFactory(cstr name, cr_sex sFactoryDef, ISXYFile& file) = 0;
@@ -236,10 +249,11 @@ namespace Rococo::SexyStudio
 		virtual cstr GetMacroName(int index) const = 0;
 		virtual cstr GetMacroSourcePath(int index) const = 0;
 		virtual IImplicitNamespaces* ImplicitNamespaces() = 0;
+		virtual const IImplicitNamespaces* ImplicitNamespaces() const = 0;
 	};
 
 	// Appends the fully qualified namespace of the [ns] argument to the string builder
-	void AppendFullName(IN ISxyNamespace& ns, REF struct StringBuilder& sb);
+	void AppendFullName(IN const ISxyNamespace& ns, REF struct StringBuilder& sb);
 
 	ROCOCO_INTERFACE ISolution
 	{
@@ -271,7 +285,7 @@ namespace Rococo::SexyStudio
 		virtual void Clear() = 0;
 		virtual IFactoryConfig& Config() = 0;
 		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
-		virtual ISXYInterface* FindInterface(cstr typeString, ISxyNamespace** ppNamespace = nullptr) = 0;
+		virtual const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void ForEachAutoCompleteMacroCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;

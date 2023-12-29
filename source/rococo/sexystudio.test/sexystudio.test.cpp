@@ -1495,19 +1495,39 @@ void TestPromptForMacro6()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestShowTipForFunction()
+{
+	cstr file =
+		R"<CODE>("
+	(function Main -> :
+		(Sys.IO.GetCmdArgCount 
+	)
+)<CODE>";
+
+	FileDesc desc(file, ' '); // Ensure the <CODE> section has space after the GetCmdArgCount token but not after the build token's parenthesis
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
-//	TestPromptForMacro();
-//	TestPromptForMacro2();
-//	TestPromptForMacro3();
-//	TestPromptForMacro4();
-	TestPromptForMacro5();
-//	TestPromptForMacro6();
+
+	TestShowTipForFunction();
 	return;
+
+	TestPromptForMacro();
+
+	TestPromptForMacro2();
+	TestPromptForMacro3();
+	TestPromptForMacro4();
+	TestPromptForMacro5();
+	TestPromptForMacro6();
+
 	TestNamespaceAppendsStruct();
 	TestFQStruct();
-	return;
+
 	TestDeepMemberInference2();
 	TestDeepMemberInference();
 	TestFullEditor_SearchFQType();

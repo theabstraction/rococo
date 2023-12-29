@@ -110,21 +110,62 @@ void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWind
 	}
 }
 
-void GetFullNamespaceName(char fullName[256], ISxyNamespace& ns)
+namespace Rococo::SexyStudio
 {
-	char temp[256] = { 0 };
-	cstr writeEnd = temp + 254;
-	char* writePos = (char*)writeEnd;
-
-	for (ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+	void PopulateWithFullNamespaceName(const ISxyNamespace& ns, IStringPopulator& populator)
 	{
-		size_t len = strlen(n->Name());
-		writePos -= (len + 1);
-		*writePos = '.';
-		memcpy(writePos + 1, n->Name(), len);
+		// Suppose there are 3 subspaces with 2 characters each as in: AB.CD.EF, then the total length is 9 characters, with the final being the terminating null.
+		// The total length is the sum of the lengths of the subspace strings + number of subspace strings
+		size_t totalLength = 0;
+		if (ns.GetParent() == nullptr)
+		{
+			populator.Populate("");
+			return;
+		}
+
+		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+		{
+			totalLength += strlen(n->Name()) + 1;
+		}
+
+		char* temp = (char*)_alloca(totalLength + 1);
+		temp[totalLength] = 0;
+		cstr writeEnd = temp + totalLength;
+		char* writePos = (char*)writeEnd;
+
+		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+		{
+			size_t len = strlen(n->Name());
+			writePos -= (len + 1);
+			if (writePos < temp)
+			{
+				// We dont' have enough space for the operation, which is unexpected.
+				populator.Populate("<error>");
+				return;
+			}
+
+			*writePos = '.';
+			memcpy(writePos + 1, n->Name(), len);
+		}
+
+		populator.Populate(writePos + 1);
 	}
 
-	CopyString(fullName, 256, writePos + 1);
+	void GetFullNamespaceName(char* fullName, size_t bufferCapacity, const ISxyNamespace& ns)
+	{
+		struct ANON : IStringPopulator
+		{
+			char* fullName = nullptr;
+			size_t capacity = 0;
+			void Populate(cstr text) override
+			{
+				CopyString(fullName, capacity, text);
+			}
+		} populator;
+		populator.capacity = bufferCapacity;
+		populator.fullName = fullName;
+		PopulateWithFullNamespaceName(ns, populator);
+	}
 }
 
 using namespace Rococo::Sex::SEXML;
@@ -1520,7 +1561,7 @@ private:
 				if (StartsWith(subspace.Name(), searchTerm))
 				{
 					char fullNameSpaceName[256];
-					GetFullNamespaceName(fullNameSpaceName, subspace);
+					GetFullNamespaceName(fullNameSpaceName, sizeof fullNameSpaceName, subspace);
 					searchArrayResults.push_back({ fullNameSpaceName,&subspace, nullptr });
 
 					if (*searchTerm)
@@ -1528,7 +1569,7 @@ private:
 						for (int j = 0; j < subspace.SubspaceCount(); ++j)
 						{
 							auto& subspaceChild = subspace[j];
-							GetFullNamespaceName(fullNameSpaceName, subspaceChild);
+							GetFullNamespaceName(fullNameSpaceName, sizeof fullNameSpaceName, subspaceChild);
 							searchArrayResults.push_back({ fullNameSpaceName,&subspaceChild, nullptr });
 						}
 					}
@@ -2283,7 +2324,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		}
 	}
 
-	ISXYInterface* FindInterface(cr_substring type, ISxyNamespace** ppNamespace = nullptr)
+	const ISXYInterface* FindInterface(cr_substring type, const ISxyNamespace** ppNamespace = nullptr)
 	{
 		size_t len = type.Length() + 1;
 		auto* buf = (char*)alloca(len);
@@ -2309,7 +2350,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 	enum { MAX_INTERFACE_DEPTH = 64 };
 
-	void FormatFactoryHint(cstr prefix, cstr suffix, char* buffer, size_t capacity, ISXYFactory& factory, ISxyNamespace* optionalNS)
+	void FormatFactoryHint(cstr prefix, cstr suffix, char* buffer, size_t capacity, const ISXYFactory& factory, const ISxyNamespace* optionalNS)
 	{
 		StackStringBuilder sb(buffer, capacity);
 		sb << prefix;
@@ -2317,7 +2358,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		if (optionalNS)
 		{
 			char fullname[256];
-			GetFullNamespaceName(fullname, *optionalNS);
+			GetFullNamespaceName(fullname, sizeof fullname, *optionalNS);
 			sb << fullname;
 			sb.AppendChar('.');
 		}
@@ -2339,7 +2380,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	{
 		UNUSED(variableName);
 
-		ISxyNamespace* pNamespace = nullptr;
+		const ISxyNamespace* pNamespace = nullptr;
 		auto* pInterface = FindInterface(type, &pNamespace);
 		if (!pInterface)
 		{
@@ -2388,7 +2429,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		else if (candidates > 1)
 		{
 			char nsFullName[256];
-			GetFullNamespaceName(nsFullName, *pNamespace);
+			GetFullNamespaceName(nsFullName, sizeof nsFullName, *pNamespace);
 
 			for (int i = 0; i < pNamespace->FactoryCount(); i++)
 			{

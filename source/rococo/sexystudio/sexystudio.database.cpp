@@ -441,6 +441,11 @@ namespace ANON
 			return methods[index];
 		}
 
+		const ISXYFunction& GetMethod(int index) const override
+		{
+			return methods[index];
+		}
+
 		cstr PublicName() const override
 		{
 			return shortName.c_str();
@@ -633,6 +638,11 @@ namespace ANON
 		{
 			return localType;
 		}
+
+		const ISXYLocalType* LocalType() const override
+		{
+			return localType;
+		}
 	};
 
 	struct SXYNSAlias
@@ -720,7 +730,7 @@ namespace ANON
 		virtual void Free() = 0;
 	};
 
-	ISxyNamespace* FindSubspaceByShortName(ISxyNamespace& ns, cstr shortname)
+	const ISxyNamespace* FindSubspaceByShortName(const ISxyNamespace& ns, cstr shortname)
 	{
 		for (int i = 0; i < ns.SubspaceCount(); i++)
 		{
@@ -734,7 +744,7 @@ namespace ANON
 		return nullptr;
 	}
 
-	ISxyNamespace* FindSubspace(ISxyNamespace& ns, cstr fqNamespace)
+	const ISxyNamespace* FindSubspace(const ISxyNamespace& ns, cstr fqNamespace)
 	{
 		if (fqNamespace == nullptr || *fqNamespace == 0)
 		{
@@ -764,21 +774,21 @@ namespace ANON
 
 	struct ImplicitNamespaces : IImplicitNamespacesSupervisor
 	{
-		std::vector<ISxyNamespace*> implicits;
+		std::vector<const ISxyNamespace*> implicits;
 
-		ISxyNamespace& root;
+		const ISxyNamespace& root;
 
-		ImplicitNamespaces(ISxyNamespace& _root): root(_root)
+		ImplicitNamespaces(const ISxyNamespace& _root): root(_root)
 		{
 
 		}
 
-		int ImplicitCount() override
+		int ImplicitCount() const override
 		{
 			return (int) implicits.size();
 		}
 
-		ISxyNamespace& GetImplicitNamespace(int index) override
+		const ISxyNamespace& GetImplicitNamespace(int index) const override
 		{
 			size_t sIndex = (size_t)index;
 			if (sIndex >= implicits.size())
@@ -791,7 +801,7 @@ namespace ANON
 
 		bool AddImplicitNamespace(cstr fqName) override
 		{
-			ISxyNamespace* ns = FindSubspace(root, fqName);
+			const ISxyNamespace* ns = FindSubspace(root, fqName);
 			if (ns)
 			{
 				for (auto* existing : implicits)
@@ -863,12 +873,22 @@ namespace ANON
 			return parent;
 		}
 
+		const ISxyNamespace* GetParent() const override
+		{
+			return parent;
+		}
+
 		cstr GetAliasSourcePath(int index) const override
 		{
 			return nsAlias[index].sAliasDef.Tree().Source().Name();
 		}
 
 		ISXYFactory& GetFactory(int index) override
+		{
+			return factories[index];
+		}
+
+		const ISXYFactory& GetFactory(int index) const override
 		{
 			return factories[index];
 		}
@@ -899,6 +919,11 @@ namespace ANON
 		}
 
 		IImplicitNamespaces* ImplicitNamespaces() override
+		{
+			return implicits;
+		}
+
+		const IImplicitNamespaces* ImplicitNamespaces() const override
 		{
 			return implicits;
 		}
@@ -956,6 +981,11 @@ namespace ANON
 			return functions[index];
 		}
 
+		const ISXYPublicFunction& GetFunction(int index) const override
+		{
+			return functions[index];
+		}
+
 		int InterfaceCount() const override
 		{
 			return (int) interfaces.size();
@@ -971,7 +1001,17 @@ namespace ANON
 			return structures[index];
 		}
 
+		const ISXYType& GetType(int index) const override
+		{
+			return structures[index];
+		}
+
 		ISXYInterface& GetInterface(int index) override
+		{
+			return interfaces[index];
+		}
+
+		const ISXYInterface& GetInterface(int index) const override
 		{
 			return interfaces[index];
 		}
@@ -986,7 +1026,17 @@ namespace ANON
 			return *subspaces[index];
 		}
 
-		cstr Name() override
+		const ISxyNamespace& operator[] (int index) const override
+		{
+			if (index < 0 || index >= (int)subspaces.size())
+			{
+				Throw(0, "Bad namespace index");
+			}
+
+			return *subspaces[index];
+		}
+
+		cstr Name() const override
 		{
 			return name.c_str();
 		}
@@ -1973,7 +2023,7 @@ namespace ANON
 		}
 
 		template<class LAMBDA>
-		static void ForEachChildTokenInNamespace(ISxyNamespace& ns, LAMBDA lambda)
+		static void ForEachChildTokenInNamespace(const ISxyNamespace& ns, LAMBDA lambda)
 		{
 			for (int i = 0; i < ns.FunctionCount(); ++i)
 			{
@@ -2003,7 +2053,7 @@ namespace ANON
 			}
 		}
 
-		NOT_INLINE static bool IsPrefixFor(cr_substring prefix, ISxyNamespace& ns, cstr token, bool requiresNamespaceInPrefix)
+		NOT_INLINE static bool IsPrefixFor(cr_substring prefix, const ISxyNamespace& ns, cstr token, bool requiresNamespaceInPrefix)
 		{
 			char fqToken[256];
 			StackStringBuilder fqTokenBuilder(fqToken, sizeof fqToken);
@@ -2019,7 +2069,7 @@ namespace ANON
 			return StartsWith(fqToken, prefix);
 		}
 
-		static void AppendAllChildrenFromRootWithoutRecursion(ISxyNamespace& ns, cr_substring prefix, REF std::unordered_map<std::string, int>& exportList, bool expectingNSPrefix)
+		static void AppendAllChildrenFromRootWithoutRecursion(const ISxyNamespace& ns, cr_substring prefix, REF std::unordered_map<std::string, int>& exportList, bool expectingNSPrefix)
 		{
 			char nsName[256];
 			StackStringBuilder nsBuilder(nsName, sizeof nsName);
@@ -2182,7 +2232,7 @@ namespace ANON
 			}
 		}
 
-		ISXYInterface* FindInterface(cstr typeString, ISxyNamespace** ppNamespace = nullptr) override
+		const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) override
 		{
 			auto* direct = FindInterfaceDirect(GetRootNamespace(), typeString, ppNamespace);
 			if (direct)
@@ -2193,7 +2243,7 @@ namespace ANON
 			return RecursivelySearchForInterface(GetRootNamespace(), typeString, ppNamespace);
 		}
 
-		ISXYInterface* FindInterfaceDirect(ISxyNamespace& ns, cstr typeString, ISxyNamespace** ppNamespace)
+		const ISXYInterface* FindInterfaceDirect(ISxyNamespace& ns, cstr typeString, const ISxyNamespace** ppNamespace)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -2229,7 +2279,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISXYInterface* RecursivelySearchForInterface(ISxyNamespace& ns, cstr typeString, ISxyNamespace** ppNamespace)
+		const ISXYInterface* RecursivelySearchForInterface(const ISxyNamespace& ns, cstr typeString, const ISxyNamespace** ppNamespace)
 		{
 			auto* implicits = ns.ImplicitNamespaces();
 
@@ -2317,7 +2367,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISXYType* SearchForTypeWithoutRecursion(ISxyNamespace& ns, cr_substring typeString)
+		const ISXYType* SearchForTypeWithoutRecursion(const ISxyNamespace& ns, cr_substring typeString)
 		{
 			int typeCount = ns.TypeCount();
 			for (int j = 0; j < typeCount; ++j)
@@ -2332,7 +2382,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISXYType* SearchForLocalTypeWithoutRecursion(ISxyNamespace& ns, cr_substring typeString)
+		const ISXYType* SearchForLocalTypeWithoutRecursion(const ISxyNamespace& ns, cr_substring typeString)
 		{
 			int typeCount = ns.TypeCount();
 			for (int j = 0; j < typeCount; ++j)
@@ -2347,7 +2397,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISxyNamespace* FindSubspaceWithoutRecursion(ISxyNamespace& ns, cr_substring subName)
+		const ISxyNamespace* FindSubspaceWithoutRecursion(const ISxyNamespace& ns, cr_substring subName)
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -2359,7 +2409,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		ISXYType* RecursivelySearchForType(ISxyNamespace& ns, cr_substring typeString)
+		const ISXYType* RecursivelySearchForType(const ISxyNamespace& ns, cr_substring typeString)
 		{
 			Substring subsearch = typeString;
 
@@ -2415,7 +2465,7 @@ namespace ANON
 			return SearchForLocalTypeWithoutRecursion(ns, subsearch);
 		}
 
-		void AppendFieldsFromTypeRef(ISXYType& type, cstr prependString, ISexyFieldEnumerator& fieldEnumerator)
+		void AppendFieldsFromTypeRef(const ISXYType& type, cstr prependString, ISexyFieldEnumerator& fieldEnumerator)
 		{
 			auto* localType = type.LocalType();
 			if (localType)
@@ -2430,7 +2480,7 @@ namespace ANON
 			}
 		}
 
-		bool AppendFieldsFromTypeRefWithPrefix(cr_substring memberPrefix, ISXYType& type, ISexyFieldEnumerator& fieldEnumerator)
+		bool AppendFieldsFromTypeRefWithPrefix(cr_substring memberPrefix, const ISXYType& type, ISexyFieldEnumerator& fieldEnumerator)
 		{
 			size_t len = memberPrefix.Length();
 
@@ -2453,7 +2503,7 @@ namespace ANON
 			return outputCount > 0;
 		}
 
-		cstr FindFieldTypeByName(ISXYLocalType& localType, cr_substring qualifiedVariableName)
+		cstr FindFieldTypeByName(const ISXYLocalType& localType, cr_substring qualifiedVariableName)
 		{
 			Substring child = RightOfFirstChar('.', qualifiedVariableName);
 			Substring parent = (child) ? Substring { qualifiedVariableName.start, child.start - 1 } : qualifiedVariableName;
@@ -2474,11 +2524,11 @@ namespace ANON
 			return nullptr;
 		}
 
-		bool AppendFieldsFromType(cr_substring variableName, ISxyNamespace& ns, cr_substring typeString, ISexyFieldEnumerator& fieldEnumerator)
+		bool AppendFieldsFromType(cr_substring variableName, const ISxyNamespace& ns, cr_substring typeString, ISexyFieldEnumerator& fieldEnumerator)
 		{
 			// Variable name may be qualified, e.g: rect.left. In this case the typeString refers to the root of the namespace.
 			// So we need to find the type, then advance the namespace to the child, i.e left, 
-			ISXYType* type = RecursivelySearchForType(ns, typeString);
+			const ISXYType* type = RecursivelySearchForType(ns, typeString);
 
 			if (!type)
 			{
@@ -2531,7 +2581,7 @@ namespace ANON
 			char typeString[128];
 			type.CopyWithTruncate(typeString, sizeof typeString);
 
-			ISXYInterface* pInterfaceType = FindInterface(typeString);
+			const ISXYInterface* pInterfaceType = FindInterface(typeString);
 
 			enum { MAX_INTERFACE_TREE_DEPTH = 16 };
 			if (depth > MAX_INTERFACE_TREE_DEPTH)
@@ -3235,33 +3285,26 @@ namespace ANON
 
 namespace Rococo::SexyStudio
 {
+	void PopulateWithFullNamespaceName(const ISxyNamespace& ns, IStringPopulator& populator);
+
 	ISexyDatabaseSupervisor* CreateSexyDatabase(IFactoryConfig& config)
 	{
 		return new ANON::SexyDatabase(config);
 	}
 
-	void AppendFullName(IN ISxyNamespace& ns, REF StringBuilder& sb)
+	void AppendFullName(const ISxyNamespace& ns, REF StringBuilder& sb)
 	{
-		std::vector<cstr> genealogy;
-
-		for (ISxyNamespace* i = &ns; i != nullptr; i = i->GetParent())
+		struct ANON : IStringPopulator
 		{
-			genealogy.push_back(i->Name());
-		}
-
-		// The final namespace is the root which has no name
-		genealogy.pop_back();
-
-		int depth = 0;
-
-		for (auto i = genealogy.rbegin(); i != genealogy.rend(); i++, depth++)
-		{
-			if (depth > 0)
+			StringBuilder* sb = nullptr;
+			void Populate(cstr text) override
 			{
-				sb << ".";
+				*sb << text;
 			}
+		} populator;
 
-			sb << *i;
-		}
+		populator.sb = &sb;
+
+		PopulateWithFullNamespaceName(ns, populator);
 	}
 }
