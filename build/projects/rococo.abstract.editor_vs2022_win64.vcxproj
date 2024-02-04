@@ -69,7 +69,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -119,6 +119,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.abstract.editor.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.abstract.editor.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -139,10 +140,11 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.abstract.editor.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.abstract.editor.lib</ImportLibrary>
@@ -154,7 +156,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -204,6 +206,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.abstract.editor.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.abstract.editor.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -224,10 +227,11 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.abstract.editor.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.abstract.editor.lib</ImportLibrary>
@@ -236,8 +240,55 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abedit.view.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.palette.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.props.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.slate.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
+      <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
+      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="lib-jpg_vs2022_win64.vcxproj">
+      <Project>{4C709D18-84F3-F3B7-569B-69F9522D35A2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
+      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="lib-tiff_vs2022_win64.vcxproj">
+      <Project>{72213DA5-5EC6-6670-9D5D-C616F940EE29}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.windows_vs2022_win64.vcxproj">
+      <Project>{82217C37-348A-32E9-39E2-871C1E8CA026}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.graphics_vs2022_win64.vcxproj">
+      <Project>{98758B0E-0228-6309-35AA-150ADEE82114}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="lib-zip_vs2022_win64.vcxproj">
+      <Project>{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

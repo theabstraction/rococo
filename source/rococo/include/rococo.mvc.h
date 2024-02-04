@@ -18,6 +18,16 @@ namespace Rococo::MVC
 	{
 		virtual void Free() = 0;
 	};
+
+	ROCOCO_INTERFACE IMVC_View
+	{
+		virtual void Cast(void** ppInterface, cstr interfaceId) = 0;
+	};
+
+	ROCOCO_INTERFACE IMVC_ViewSupervisor : IMVC_View
+	{
+		virtual void Free() = 0;
+	};
 }
 
 #ifdef _WIN32

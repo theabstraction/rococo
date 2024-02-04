@@ -119,6 +119,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.host.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.host.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -139,11 +140,10 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.host.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\cfgs.host.lib</ImportLibrary>
@@ -205,6 +205,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.host.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.host.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -225,24 +226,29 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.host.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\cfgs.host.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.controller.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.mvc.h" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.controller.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
+      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

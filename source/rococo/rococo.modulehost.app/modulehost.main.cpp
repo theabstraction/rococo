@@ -14,7 +14,8 @@ using namespace Rococo::Strings;
 
 cstr ErrorCaption = "Rococo Module Host App - error!";
 
-typedef IMVC_ControllerSupervisor* (*FN_Create_MVC_Controller)(IMVC_Host& host, cstr commandLine);
+typedef IMVC_ControllerSupervisor* (*FN_Create_MVC_Controller)(IMVC_Host& host, IMVC_View& view, cstr commandLine);
+typedef IMVC_ViewSupervisor* (*FN_Create_MVC_View)(IMVC_Host& host, HINSTANCE hAppInstance, cstr commandLine);
 
 class MVC_Host : public IMVC_Host
 {
@@ -38,17 +39,52 @@ public:
 	}
 };
 
+struct AutoLib
+{
+	HMODULE lib = NULL;
+
+	~AutoLib()
+	{
+		if (lib)
+		{
+			FreeLibrary(lib);
+		}
+	}
+
+	void Load(cstr filename)
+	{
+		if (lib)
+		{
+			Throw(0, "Library already configured. API implementation error trying to overwrite with new DLL: %s", filename);
+		}
+
+		lib = LoadLibraryA(filename);
+		if (lib == nullptr)
+		{
+			Throw(GetLastError(), "Could not load %s", filename);
+		}
+	}
+
+	operator HMODULE() 
+	{
+		return lib;
+	}
+};
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, int nShowCmd)
 {
 	UNUSED(nShowCmd);
 	UNUSED(hInstance);
 
-	HMODULE hLib = NULL;
+	AutoLib hController;
+	AutoLib hView;
 
 	try
 	{
 		MVC_Host host;
 
+
+		// Controller
 		char controllerPath[MAX_PATH];
 		Rococo::Strings::CLI::GetCommandLineArgument("-controller:"_fstring, commandLine, controllerPath, MAX_PATH, "");
 		if (*controllerPath == 0)
@@ -56,19 +92,32 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, int nSho
 			Throw(0, "No -controller:<path> specified for the controller module on the command line");
 		}
 
-		hLib = LoadLibraryA(controllerPath);
-		if (hLib == nullptr)
-		{
-			Throw(GetLastError(), "Could not load %s", controllerPath);
-		}
-
-		FN_Create_MVC_Controller mvcFactory = (FN_Create_MVC_Controller) GetProcAddress(hLib, "CreateMVCController");
-		if (!mvcFactory)
+		hController.Load(controllerPath);		
+		FN_Create_MVC_Controller controllerFactory = (FN_Create_MVC_Controller) GetProcAddress(hController, "CreateMVCController");
+		if (!controllerFactory)
 		{
 			Throw(GetLastError(), "GetProcAddress('CreateMVCController' in %s) failed", controllerPath);
 		}
 
-		AutoFree<IMVC_ControllerSupervisor> controller = mvcFactory(host, commandLine);
+		// View
+		char viewPath[MAX_PATH];
+		Rococo::Strings::CLI::GetCommandLineArgument("-view:"_fstring, commandLine, viewPath, MAX_PATH, "");
+		if (*viewPath == 0)
+		{
+			Throw(0, "No -view:<path> specified for the view module on the command line");
+		}
+
+		hView.Load(viewPath);
+
+		FN_Create_MVC_View viewFactory = (FN_Create_MVC_View)GetProcAddress(hView, "CreateMVCView");
+		if (!viewFactory)
+		{
+			Throw(GetLastError(), "GetProcAddress('CreateMVCView' in %s) failed", viewPath);
+		}
+
+		AutoFree<IMVC_ViewSupervisor> view = viewFactory(host, hInstance, commandLine);
+		AutoFree<IMVC_ControllerSupervisor> controller = controllerFactory(host, *view, commandLine);
+
 		host.DoMainloop(*controller);
 	}
 	catch (IException& ex)
@@ -76,8 +125,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, int nSho
 		Rococo::Windows::ShowErrorBox(Rococo::Windows::NoParent(), ex, "SexyStudio Standalone App error");
 		return ex.ErrorCode();
 	}
-
-	FreeLibrary(hLib);
 
 	return 0;
 }

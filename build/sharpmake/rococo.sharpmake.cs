@@ -1278,6 +1278,8 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
         }
@@ -1295,6 +1297,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
         }
@@ -1312,6 +1315,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
         }

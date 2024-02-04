@@ -81,6 +81,7 @@
     <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h">
       <Filter>RAL</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\rococo.abstract.editor.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
@@ -127,6 +128,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.mplat.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.mplat.main.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.mplat.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.mvc.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ninja.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.octree.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.os.h" />

@@ -25,12 +25,12 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 using namespace Rococo;
 using namespace Rococo::MVC;
 
-namespace Rococo::CFGS
+namespace Rococo::Abedit
 {
-    IMVC_ControllerSupervisor* CreateMVCControllerInternal(IMVC_Host& host, IMVC_View& view, cstr commandLine);
+    IMVC_ViewSupervisor* CreateAbstractEditor(IMVC_Host& host, HINSTANCE hInstance, cstr commandLine);
 }
 
-MVC_EXPORT_C_API IMVC_ControllerSupervisor * CreateMVCController(IMVC_Host & host, IMVC_View& view, cstr commandLine)
+MVC_EXPORT_C_API IMVC_ViewSupervisor* CreateMVCView(IMVC_Host& host, HINSTANCE hInstance, cstr commandLine)
 {
-    return CFGS::CreateMVCControllerInternal(host, view, commandLine);
+    return Abedit::CreateAbstractEditor(host, hInstance, commandLine);
 }
