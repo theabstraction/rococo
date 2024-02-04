@@ -27,10 +27,10 @@ using namespace Rococo::MVC;
 
 namespace Rococo::Abedit
 {
-    IMVC_ViewSupervisor* CreateAbstractEditor(IMVC_Host& host, HINSTANCE hInstance, cstr commandLine);
+    IMVC_ViewSupervisor* CreateAbstractEditor(IMVC_Host& host, HWND hHostWindow, HINSTANCE hInstance, cstr commandLine);
 }
 
-MVC_EXPORT_C_API IMVC_ViewSupervisor* CreateMVCView(IMVC_Host& host, HINSTANCE hInstance, cstr commandLine)
+MVC_EXPORT_C_API IMVC_ViewSupervisor* CreateMVCView(IMVC_Host& host, HWND hHostWindow, HINSTANCE hInstance, cstr commandLine)
 {
-    return Abedit::CreateAbstractEditor(host, hInstance, commandLine);
+    return Abedit::CreateAbstractEditor(host, hHostWindow, hInstance, commandLine);
 }

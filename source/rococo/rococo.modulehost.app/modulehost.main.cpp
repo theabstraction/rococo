@@ -15,7 +15,7 @@ using namespace Rococo::Strings;
 cstr ErrorCaption = "Rococo Module Host App - error!";
 
 typedef IMVC_ControllerSupervisor* (*FN_Create_MVC_Controller)(IMVC_Host& host, IMVC_View& view, cstr commandLine);
-typedef IMVC_ViewSupervisor* (*FN_Create_MVC_View)(IMVC_Host& host, HINSTANCE hAppInstance, cstr commandLine);
+typedef IMVC_ViewSupervisor* (*FN_Create_MVC_View)(IMVC_Host& host, HWND hHostWindow, HINSTANCE hAppInstance, cstr commandLine);
 
 class MVC_Host : public IMVC_Host
 {
@@ -115,7 +115,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, int nSho
 			Throw(GetLastError(), "GetProcAddress('CreateMVCView' in %s) failed", viewPath);
 		}
 
-		AutoFree<IMVC_ViewSupervisor> view = viewFactory(host, hInstance, commandLine);
+		HWND hNoHostWindow = NULL;
+		AutoFree<IMVC_ViewSupervisor> view = viewFactory(host, hNoHostWindow, hInstance, commandLine);
 		AutoFree<IMVC_ControllerSupervisor> controller = controllerFactory(host, *view, commandLine);
 
 		host.DoMainloop(*controller);

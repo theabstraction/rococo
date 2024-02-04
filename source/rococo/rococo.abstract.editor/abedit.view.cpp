@@ -12,13 +12,18 @@ namespace ANON
 	struct AbstractEditor : Rococo::Abedit::IAbstractEditorSupervisor
 	{
 		IMVC_Host& host;
+		HWND hHostWindow;
 
 		AutoFree<IUIPaletteSupervisor> palette;
 		AutoFree<IUIPropertiesSupervisor> properties;
 		AutoFree<IUIBlankSlateSupervisor> slate;
 
-		AbstractEditor(IMVC_Host& _host): host(_host)
+		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow): host(_host), hHostWindow(_hHostWindow)
 		{
+			// TODO - create a child or mainwindow from the host module that yield a HWND
+			// Create three children, palette, properties and slate that have subwindows of HWND
+			// Pass subwindow context to palette, properties and slate
+			// Define and implement palette properties and slate
 			palette = Internal::CreatePalette();
 			properties = Internal::CreateProperties();
 			slate = Internal::CreateBlankSlate();
@@ -48,8 +53,10 @@ namespace ANON
 	struct AbstractEditor_MVC_View : IMVC_ViewSupervisor, IAbstractEditorFactory
 	{
 		IMVC_Host& host;
+		HWND hHostWindow;
 
-		AbstractEditor_MVC_View(IMVC_Host& _host, HINSTANCE _hInstance, cstr _commandLine): host(_host)
+		AbstractEditor_MVC_View(IMVC_Host& _host, HWND _hHostWindow, HINSTANCE _hInstance, cstr _commandLine):
+			host(_host), hHostWindow(hHostWindow)
 		{
 			UNUSED(_commandLine);
 			UNUSED(_hInstance);
@@ -85,7 +92,7 @@ namespace ANON
 
 		IAbstractEditorSupervisor* CreateAbstractEditor() override
 		{
-			return new AbstractEditor(host);
+			return new AbstractEditor(host, hHostWindow);
 		}
 	};
 }
@@ -93,8 +100,8 @@ namespace ANON
 // Abstract Editor
 namespace Rococo::Abedit
 {
-	IMVC_ViewSupervisor* CreateAbstractEditor(IMVC_Host& host, HINSTANCE hInstance, cstr commandLine)
+	IMVC_ViewSupervisor* CreateAbstractEditor(IMVC_Host& host, HWND hHostWindow, HINSTANCE hInstance, cstr commandLine)
 	{
-		return new ANON::AbstractEditor_MVC_View(host, hInstance, commandLine);
+		return new ANON::AbstractEditor_MVC_View(host, hHostWindow, hInstance, commandLine);
 	}
 }
