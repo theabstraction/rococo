@@ -1,11 +1,13 @@
 #include <rococo.mvc.h>
 #include <rococo.os.win32.h>
-#include <rococo.abstract.editor.h>
+#include <rococo.abstract.editor.win32.h>
 #include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Abedit;
 using namespace Rococo::MVC;
+
+HINSTANCE GetDllInstance();
 
 namespace ANON
 {
@@ -14,12 +16,15 @@ namespace ANON
 		IMVC_Host& host;
 		HWND hHostWindow;
 
+		AutoFree<IAbeditMainWindow> mainWindow;
 		AutoFree<IUIPaletteSupervisor> palette;
 		AutoFree<IUIPropertiesSupervisor> properties;
 		AutoFree<IUIBlankSlateSupervisor> slate;
 
 		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow): host(_host), hHostWindow(_hHostWindow)
 		{
+			mainWindow = Internal::CreateMainWindow(_hHostWindow, GetDllInstance());
+
 			// TODO - create a child or mainwindow from the host module that yield a HWND
 			// Create three children, palette, properties and slate that have subwindows of HWND
 			// Pass subwindow context to palette, properties and slate
@@ -56,7 +61,7 @@ namespace ANON
 		HWND hHostWindow;
 
 		AbstractEditor_MVC_View(IMVC_Host& _host, HWND _hHostWindow, HINSTANCE _hInstance, cstr _commandLine):
-			host(_host), hHostWindow(hHostWindow)
+			host(_host), hHostWindow(_hHostWindow)
 		{
 			UNUSED(_commandLine);
 			UNUSED(_hInstance);

@@ -58,4 +58,9 @@ namespace Rococo::Abedit
 	{
 		virtual IAbstractEditorSupervisor * CreateAbstractEditor() = 0;
 	};
+
+	ROCOCO_INTERFACE IAbeditMainWindow
+	{
+		virtual void Free() = 0;
+	};
 }

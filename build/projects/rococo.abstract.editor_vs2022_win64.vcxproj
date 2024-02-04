@@ -238,6 +238,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\rococo.abstract.editor.win32.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.abstract.editor\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abedit.view.cpp" />
@@ -245,6 +247,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.palette.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.props.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.slate.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -290,5 +293,11 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\source\rococo\rococo.abstract.editor\rococo.abstract.editor.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\source\rococo\rococo.abstract.editor\icon1.ico" />
   </ItemGroup>
 </Project>
