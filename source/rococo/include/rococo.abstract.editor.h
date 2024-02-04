@@ -44,6 +44,7 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditor
 	{
+		virtual bool IsVisible() const = 0;
 		virtual IUIBlankSlate& Slate() = 0;
 		virtual IUIPalette& Palette() = 0;
 		virtual IUIProperties& Properties() = 0;
@@ -62,5 +63,6 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IAbeditMainWindow
 	{
 		virtual void Free() = 0;
+		virtual bool IsVisible() const = 0;
 	};
 }

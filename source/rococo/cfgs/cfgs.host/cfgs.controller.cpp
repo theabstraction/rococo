@@ -36,7 +36,8 @@ namespace ANON
 
 		bool IsRunning() const override
 		{
-			return false;
+			bool isVisible = editor->IsVisible();
+			return isVisible;
 		}
 	};
 }

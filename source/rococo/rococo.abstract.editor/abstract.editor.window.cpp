@@ -24,6 +24,11 @@ namespace ANON
 			delete this;
 		}
 
+		bool IsVisible() const override
+		{
+			return IsWindowVisible(hMainWindow);
+		}
+
 		static ATOM CreateCustomAtom(HINSTANCE dllInstance)
 		{
 			WNDCLASSEXA classDef = { 0 };
@@ -56,11 +61,11 @@ namespace ANON
 		void Create(HWND hOwner)
 		{
 			DWORD exStyle = 0;
-			DWORD style = 0;
+			DWORD style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 			int x = 0;
 			int y = 0;
-			int dx = 0;
-			int dy = 0;
+			int dx = 800;
+			int dy = 600;
 			cstr title = "Rococo Abstract Editor";
 			HINSTANCE hInstance = NULL;
 			hMainWindow = CreateWindowExA(exStyle, "AbEditMainWindow_1_0", title, style, x, y, dx, dy, hOwner, NULL, hInstance, NULL);
@@ -68,6 +73,8 @@ namespace ANON
 			{
 				Throw(GetLastError(), "%s: Failed to create a window of class AbEditMainWindow_1_0", __FUNCTION__);
 			}
+
+			ShowWindow(hOwner, SW_SHOW);
 		}
 	};
 }

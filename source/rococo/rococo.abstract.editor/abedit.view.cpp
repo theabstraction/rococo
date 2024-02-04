@@ -39,6 +39,11 @@ namespace ANON
 			delete this;
 		}
 
+		bool IsVisible() const override
+		{
+			return mainWindow->IsVisible();
+		}
+
 		IUIPalette& Palette() override
 		{
 			return *palette;
