@@ -240,7 +240,7 @@ namespace Rococo
             );
         }
 
-        protected RococoProject(string name) : this(name, name)
+        protected RococoProject(string nameAndSubdirectoryInOneString) : this(nameAndSubdirectoryInOneString, nameAndSubdirectoryInOneString)
         {
         }
 
@@ -1236,6 +1236,87 @@ namespace Rococo
         }
     }
 
+    public static class SolutionFolders
+    {
+        public static string CFGS
+        {
+            get
+            {
+                return " - Control-Flow Graph System";
+            }
+        }
+    }
+
+    // This app hosts abstract MVC objects implemented as DLLs and links them together. It assumes very little about what is being hosted
+    [Sharpmake.Generate]
+    public class RococoModuleHostApp : RococoProject
+    {
+        public RococoModuleHostApp() : base("rococo.modulehost.app")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.SolutionFolder = SolutionFolders.CFGS;
+        }
+    }
+
+    // An MVC view object that provides a property sheet, toolbar, context menu and flat space for editing. On Windows used basic HWND mechanics to provide editing
+    [Sharpmake.Generate]
+    public class RococoAbstractEditor : RococoProject
+    {
+        public RococoAbstractEditor() : base("rococo.abstract.editor")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.SolutionFolder = SolutionFolders.CFGS;
+        }
+    }
+
+    // A controller/marshaller that populates the abstract editor with control-flow graph widgets
+    [Sharpmake.Generate]
+    public class CFGSFlatEditorMarshaller : RococoProject
+    {
+        public CFGSFlatEditorMarshaller() : base("cfgs.editor.marshaller", "cfgs/cfgs.editor.marshaller")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.SolutionFolder = SolutionFolders.CFGS;
+        }
+    }
+
+    // A controller/marshaller that populates the abstract editor with control-flow graph widgets
+    [Sharpmake.Generate]
+    public class CFGSHostModule : RococoProject
+    {
+        public CFGSHostModule() : base("cfgs.host", "cfgs/cfgs.host")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.SolutionFolder = SolutionFolders.CFGS;
+        }
+    }
+
     [Sharpmake.Generate]
     public class RococoSexyStudioAppProject : RococoProject
     {
@@ -1813,6 +1894,14 @@ namespace Rococo
             conf.AddProject<RococoSexyStudioTestProject>(target);
             conf.AddProject<RococoSexyStudio4NPPProject>(target);
         }
+
+        public static void AddControlFlowGraphStudio(Solution.Configuration conf, Target target)
+        {
+            conf.AddProject<RococoModuleHostApp>(target);
+            conf.AddProject<RococoAbstractEditor>(target);
+            conf.AddProject<CFGSFlatEditorMarshaller>(target);
+            conf.AddProject<CFGSHostModule>(target);
+        }
     }
 
     [Sharpmake.Generate]
@@ -1847,6 +1936,7 @@ namespace Rococo
             SolutionBuilder.AddSexySuite(conf, target);
             SolutionBuilder.AddThirdPartyLibs(conf, target);
             SolutionBuilder.AddSexyStudio(conf, target);
+            SolutionBuilder.AddControlFlowGraphStudio(conf, target);
             conf.AddProject<RococoDX11HLSLCompilerProject>(target);
             conf.AddProject<RococoDX11HLSLMonitorProject>(target);
             conf.AddProject<RococoBuildFinalProject>(target);
