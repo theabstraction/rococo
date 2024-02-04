@@ -21,9 +21,9 @@ namespace ANON
 		AutoFree<IUIPropertiesSupervisor> properties;
 		AutoFree<IUIBlankSlateSupervisor> slate;
 
-		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow): host(_host), hHostWindow(_hHostWindow)
+		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow, const EditorSessionConfig& config): host(_host), hHostWindow(_hHostWindow)
 		{
-			mainWindow = Internal::CreateMainWindow(_hHostWindow, GetDllInstance());
+			mainWindow = Internal::CreateMainWindow(_hHostWindow, GetDllInstance(), IN config);
 
 			// TODO - create a child or mainwindow from the host module that yield a HWND
 			// Create three children, palette, properties and slate that have subwindows of HWND
@@ -100,9 +100,9 @@ namespace ANON
 			Throw(0, "%s: Cannot Cast to %s. Only known interface is %s", __FUNCTION__, interfaceId, onlyKnownInterface);
 		}
 
-		IAbstractEditorSupervisor* CreateAbstractEditor() override
+		IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config) override
 		{
-			return new AbstractEditor(host, hHostWindow);
+			return new AbstractEditor(host, hHostWindow, config);
 		}
 	};
 }

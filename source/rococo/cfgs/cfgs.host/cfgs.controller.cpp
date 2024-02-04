@@ -22,7 +22,12 @@ namespace ANON
 				Throw(0, "%s: Expected an IAbstractEditorFactory to be non-NULL", __FUNCTION__);
 			}
 
-			editor = editorFactory->CreateAbstractEditor();
+			Rococo::Abedit::EditorSessionConfig config;
+			config.defaultPosLeft = -1;
+			config.defaultPosTop = -1;
+			config.defaultWidth = 1366;
+			config.defaultHeight = 768;
+			editor = editorFactory->CreateAbstractEditor(IN config);
 			if (!editor)
 			{
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);

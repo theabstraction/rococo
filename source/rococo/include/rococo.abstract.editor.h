@@ -55,9 +55,17 @@ namespace Rococo::Abedit
 		virtual void Free() = 0;
 	};
 
+	struct EditorSessionConfig
+	{
+		int defaultWidth; // +ve to specify a default editor width
+		int defaultHeight; // +ve to specify a default editor height
+		int defaultPosLeft; // -ve to use system default
+		int defaultPosTop; // -ve to use system default
+	};
+
 	ROCOCO_INTERFACE IAbstractEditorFactory
 	{
-		virtual IAbstractEditorSupervisor * CreateAbstractEditor() = 0;
+		virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config) = 0;
 	};
 
 	ROCOCO_INTERFACE IAbeditMainWindow

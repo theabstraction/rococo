@@ -8,6 +8,6 @@ namespace Rococo::Abedit
 {
 	namespace Internal
 	{
-		IAbeditMainWindow* CreateMainWindow(HWND hParent, HINSTANCE dllInstance);
+		IAbeditMainWindow* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config);
 	}
 }

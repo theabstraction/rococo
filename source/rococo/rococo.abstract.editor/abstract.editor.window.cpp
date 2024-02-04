@@ -2,11 +2,14 @@
 
 #include <rococo.abstract.editor.win32.h>
 #include "resource.h"
+#include <rococo.os.h>
 
 using namespace Rococo;
 
 namespace ANON
 {
+	static const char* const abEditClassName = "AbEditMainWindow_1_0";
+
 	struct AbeditMainWindow: Rococo::Abedit::IAbeditMainWindow
 	{
 		HWND hMainWindow = NULL;
@@ -40,7 +43,7 @@ namespace ANON
 			classDef.hIcon = LoadIconA(dllInstance, MAKEINTRESOURCEA(IDI_ICON_LARGE));
 			classDef.hIconSm = LoadIconA(dllInstance, MAKEINTRESOURCEA(IDI_ICON_LARGE));
 			classDef.hInstance = (HINSTANCE) GetModuleHandleA(NULL);
-			classDef.lpszClassName = "AbEditMainWindow_1_0";
+			classDef.lpszClassName = abEditClassName;
 			classDef.lpszMenuName = NULL;
 			classDef.lpfnWndProc = DefWindowProcA;
 
@@ -58,17 +61,19 @@ namespace ANON
 			return atom;
 		}
 
-		void Create(HWND hOwner)
+		void Create(HWND hOwner, const Abedit::EditorSessionConfig& config)
 		{
 			DWORD exStyle = 0;
 			DWORD style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-			int x = 0;
-			int y = 0;
-			int dx = 800;
-			int dy = 600;
+			int x = config.defaultPosLeft > 0 ? config.defaultPosLeft : CW_USEDEFAULT;
+			int y = config.defaultPosTop > 0 ? config.defaultPosTop : CW_USEDEFAULT;
+
+			int dx = config.defaultWidth > 0 ? config.defaultWidth : 1280;
+			int dy = config.defaultHeight > 0 ? config.defaultHeight : 768;
+
 			cstr title = "Rococo Abstract Editor";
 			HINSTANCE hInstance = NULL;
-			hMainWindow = CreateWindowExA(exStyle, "AbEditMainWindow_1_0", title, style, x, y, dx, dy, hOwner, NULL, hInstance, NULL);
+			hMainWindow = CreateWindowExA(exStyle, abEditClassName, title, style, x, y, dx, dy, hOwner, NULL, hInstance, NULL);
 			if (!hMainWindow)
 			{
 				Throw(GetLastError(), "%s: Failed to create a window of class AbEditMainWindow_1_0", __FUNCTION__);
@@ -81,7 +86,7 @@ namespace ANON
 
 namespace Rococo::Abedit::Internal
 {
-	IAbeditMainWindow* CreateMainWindow(HWND hParent, HINSTANCE dllInstance)
+	IAbeditMainWindow* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config)
 	{
 		static ATOM atom = ANON::AbeditMainWindow::CreateCustomAtom(dllInstance);
 		if (!atom)
@@ -90,7 +95,7 @@ namespace Rococo::Abedit::Internal
 		}
 
 		AutoFree<ANON::AbeditMainWindow> window = new ANON::AbeditMainWindow();
-		window->Create(hParent);
+		window->Create(hParent, config);
 		return window.Release();
 	}
 }
