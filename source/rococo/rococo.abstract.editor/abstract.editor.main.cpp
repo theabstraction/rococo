@@ -3,6 +3,8 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files
 #include <windows.h>
+#include <rococo.window.h>
+#include "resource.h"
 
 static HINSTANCE dllInstance = NULL;
 
@@ -15,6 +17,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     {
     case DLL_PROCESS_ATTACH:
         dllInstance = hModule;
+        {
+            HICON hLargeIcon = LoadIconA(dllInstance, MAKEINTRESOURCEA(IDI_ICON_LARGE));
+            HICON hSmallIcon = LoadIconA(dllInstance, MAKEINTRESOURCEA(IDI_ICON_LARGE));
+            Rococo::Windows::InitRococoWindows(hModule, hLargeIcon, hSmallIcon, nullptr, nullptr);
+        }
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:

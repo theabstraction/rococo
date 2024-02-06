@@ -36,6 +36,8 @@ public:
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+
+		Beep(512, 500);
 	}
 };
 
@@ -118,6 +120,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, int nSho
 		HWND hNoHostWindow = NULL;
 		AutoFree<IMVC_ViewSupervisor> view = viewFactory(host, hNoHostWindow, hInstance, commandLine);
 		AutoFree<IMVC_ControllerSupervisor> controller = controllerFactory(host, *view, commandLine);
+
+		controller->TerminateOnMainWindowClose();
 
 		host.DoMainloop(*controller);
 	}

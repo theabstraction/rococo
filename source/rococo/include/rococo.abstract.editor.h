@@ -53,6 +53,19 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IAbstractEditorSupervisor : IAbstractEditor
 	{
 		virtual void Free() = 0;
+		virtual void HideWindow() = 0;
+	};
+
+	ROCOCO_INTERFACE IAbeditMainWindow
+	{
+		virtual void Free() = 0;
+		virtual void Hide() = 0;
+		virtual bool IsVisible() const = 0;
+	};
+
+	ROCOCO_INTERFACE IAbstractEditorMainWindowEventHandler
+	{
+		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
 	};
 
 	struct EditorSessionConfig
@@ -65,12 +78,6 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditorFactory
 	{
-		virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config) = 0;
-	};
-
-	ROCOCO_INTERFACE IAbeditMainWindow
-	{
-		virtual void Free() = 0;
-		virtual bool IsVisible() const = 0;
+		virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler) = 0;
 	};
 }

@@ -3,99 +3,109 @@
 #include <rococo.abstract.editor.win32.h>
 #include "resource.h"
 #include <rococo.os.h>
+#include <rococo.window.h>
 
 using namespace Rococo;
+using namespace Rococo::Abedit;
+using namespace Rococo::Windows;
 
 namespace ANON
 {
 	static const char* const abEditClassName = "AbEditMainWindow_1_0";
 
-	struct AbeditMainWindow: Rococo::Abedit::IAbeditMainWindow
+	class AbeditMainWindow : public StandardWindowHandler, public IAbeditMainWindow
 	{
-		HWND hMainWindow = NULL;
+	private:
+		IAbstractEditorMainWindowEventHandler& eventHandler;
+		IDialogSupervisor* window;
+
+		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler) : eventHandler(_eventHandler), window(nullptr)
+		{
+
+		}
 
 		~AbeditMainWindow()
 		{
-			if (hMainWindow)
-			{
-				CloseWindow(hMainWindow);
-			}
+			Rococo::Free(window); // top level windows created with CreateDialogWindow have to be manually freed
 		}
 
-		void Free() override
+	public:
+		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& sessionConfig)
+		{
+			UNUSED(hDll);
+
+			Vec2i span{ 1366, 640 };
+			span.x = sessionConfig.defaultWidth > 0 ? sessionConfig.defaultWidth : span.x;
+			span.y = sessionConfig.defaultHeight > 0 ? sessionConfig.defaultHeight : span.y;
+
+			Vec2i topLeft{ 32, 32 };
+			if (sessionConfig.defaultPosLeft < 0) topLeft.x = CW_USEDEFAULT;
+			if (sessionConfig.defaultPosTop < 0) topLeft.y = CW_USEDEFAULT;
+
+			WindowConfig config;
+			Rococo::Windows::SetOverlappedWindowConfig(config, topLeft, span, hParentWnd, "DX11 64-bit Rococo API Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, NULL);
+			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
+		}
+
+		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
+		static AbeditMainWindow* Create(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
+		{
+			auto m = new AbeditMainWindow(eventHandler);
+			m->PostConstruct(hDll, hParentWnd, config);
+			return m;
+		}
+
+		void Free()
 		{
 			delete this;
 		}
 
+		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_CLOSE:
+
+				break;
+			}
+			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
+		}
+
+		void OnMenuCommand(HWND hWnd, DWORD id) override
+		{
+			UNUSED(hWnd);
+			UNUSED(id);
+		}
+
+		void OnClose(HWND hWnd) override
+		{
+			eventHandler.OnRequestToClose(*this);
+		}
+
+		void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) override
+		{
+			UNUSED(hWnd);
+			UNUSED(span);
+			UNUSED(type);
+		}
+
+		void Hide() override
+		{
+			ShowWindow(*window, SW_MINIMIZE);
+		}
+
 		bool IsVisible() const override
 		{
-			return IsWindowVisible(hMainWindow);
-		}
-
-		static ATOM CreateCustomAtom(HINSTANCE dllInstance)
-		{
-			WNDCLASSEXA classDef = { 0 };
-			classDef.cbSize = sizeof(classDef);
-			classDef.style = 0;
-			classDef.cbWndExtra = 0;
-			classDef.hbrBackground = (HBRUSH)COLOR_WINDOW;
-			classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
-			classDef.hIcon = LoadIconA(dllInstance, MAKEINTRESOURCEA(IDI_ICON_LARGE));
-			classDef.hIconSm = LoadIconA(dllInstance, MAKEINTRESOURCEA(IDI_ICON_LARGE));
-			classDef.hInstance = (HINSTANCE) GetModuleHandleA(NULL);
-			classDef.lpszClassName = abEditClassName;
-			classDef.lpszMenuName = NULL;
-			classDef.lpfnWndProc = DefWindowProcA;
-
-			auto atom = RegisterClassExA(&classDef);
-
-			if (atom == 0)
-			{
-				int err = GetLastError();
-				if (err != ERROR_CLASS_ALREADY_EXISTS)
-				{
-					Throw(err, "Error creating custom atom. Bad hIcon/hInstance maybe?");
-				}
-			}
-
-			return atom;
-		}
-
-		void Create(HWND hOwner, const Abedit::EditorSessionConfig& config)
-		{
-			DWORD exStyle = 0;
-			DWORD style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-			int x = config.defaultPosLeft > 0 ? config.defaultPosLeft : CW_USEDEFAULT;
-			int y = config.defaultPosTop > 0 ? config.defaultPosTop : CW_USEDEFAULT;
-
-			int dx = config.defaultWidth > 0 ? config.defaultWidth : 1280;
-			int dy = config.defaultHeight > 0 ? config.defaultHeight : 768;
-
-			cstr title = "Rococo Abstract Editor";
-			HINSTANCE hInstance = NULL;
-			hMainWindow = CreateWindowExA(exStyle, abEditClassName, title, style, x, y, dx, dy, hOwner, NULL, hInstance, NULL);
-			if (!hMainWindow)
-			{
-				Throw(GetLastError(), "%s: Failed to create a window of class AbEditMainWindow_1_0", __FUNCTION__);
-			}
-
-			ShowWindow(hOwner, SW_SHOW);
+			return IsWindowVisible(*window);
 		}
 	};
 }
 
 namespace Rococo::Abedit::Internal
 {
-	IAbeditMainWindow* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config)
+	IAbeditMainWindow* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
 	{
-		static ATOM atom = ANON::AbeditMainWindow::CreateCustomAtom(dllInstance);
-		if (!atom)
-		{
-			Throw(GetLastError(), "%s: could not create main window atom", __FUNCTION__);
-		}
-
-		AutoFree<ANON::AbeditMainWindow> window = new ANON::AbeditMainWindow();
-		window->Create(hParent, config);
+		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler);
 		return window.Release();
 	}
 }

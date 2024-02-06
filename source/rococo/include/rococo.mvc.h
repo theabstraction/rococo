@@ -17,6 +17,7 @@ namespace Rococo::MVC
 	ROCOCO_INTERFACE IMVC_ControllerSupervisor : IMVC_Controller
 	{
 		virtual void Free() = 0;
+		virtual void TerminateOnMainWindowClose() = 0;
 	};
 
 	ROCOCO_INTERFACE IMVC_View

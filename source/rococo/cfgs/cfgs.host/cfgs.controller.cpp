@@ -2,13 +2,18 @@
 #include <rococo.abstract.editor.h>
 
 using namespace Rococo;
+using namespace Rococo::Abedit;
 using namespace Rococo::MVC;
 
 namespace ANON
 {
-	struct CFGS_Controller: IMVC_ControllerSupervisor
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler
 	{
-		AutoFree<Rococo::Abedit::IAbstractEditorSupervisor> editor;
+		AutoFree<IAbstractEditorSupervisor> editor;
+
+		bool terminateOnMainWindowClose = false;
+
+		bool isRunning = true;
 
 		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine)
 		{
@@ -22,12 +27,12 @@ namespace ANON
 				Throw(0, "%s: Expected an IAbstractEditorFactory to be non-NULL", __FUNCTION__);
 			}
 
-			Rococo::Abedit::EditorSessionConfig config;
+			EditorSessionConfig config;
 			config.defaultPosLeft = -1;
 			config.defaultPosTop = -1;
 			config.defaultWidth = 1366;
 			config.defaultHeight = 768;
-			editor = editorFactory->CreateAbstractEditor(IN config);
+			editor = editorFactory->CreateAbstractEditor(IN config, *this);
 			if (!editor)
 			{
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
@@ -42,7 +47,19 @@ namespace ANON
 		bool IsRunning() const override
 		{
 			bool isVisible = editor->IsVisible();
-			return isVisible;
+			return isRunning && isVisible;
+		}
+
+		void OnRequestToClose(IAbeditMainWindow& sender)
+		{
+			sender.Hide();	
+			isRunning = false;
+		}
+
+		void TerminateOnMainWindowClose() override
+		{
+			terminateOnMainWindowClose = true;
+
 		}
 	};
 }
