@@ -16,7 +16,7 @@ namespace ANON
 		IMVC_Host& host;
 		HWND hHostWindow;
 
-		AutoFree<IAbeditMainWindow> mainWindow;
+		AutoFree<IAbeditMainWindowSupervisor> mainWindow;
 		AutoFree<IUIPaletteSupervisor> palette;
 		AutoFree<IUIPropertiesSupervisor> properties;
 		AutoFree<IUIBlankSlateSupervisor> slate;
@@ -30,7 +30,7 @@ namespace ANON
 			// Pass subwindow context to palette, properties and slate
 			// Define and implement palette properties and slate
 			palette = Internal::CreatePalette();
-			properties = Internal::CreateProperties();
+			properties = Internal::CreateProperties(mainWindow->PropertiesPanel());
 			slate = Internal::CreateBlankSlate();
 		}
 

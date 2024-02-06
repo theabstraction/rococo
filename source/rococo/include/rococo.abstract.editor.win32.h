@@ -4,10 +4,23 @@
 
 #include <rococo.os.win32.h>
 
+namespace Rococo::Windows
+{
+	struct IParentWindowSupervisor;
+}
+
 namespace Rococo::Abedit
 {
+	ROCOCO_INTERFACE IAbeditMainWindowSupervisor : IAbeditMainWindow
+	{
+		virtual Rococo::Windows::IParentWindowSupervisor& PropertiesPanel() = 0;
+	};
+
 	namespace Internal
 	{
-		IAbeditMainWindow* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler);
+		IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler);
+		IUIBlankSlateSupervisor* CreateBlankSlate();
+		IUIPaletteSupervisor* CreatePalette();
+		IUIPropertiesSupervisor* CreateProperties(Rococo::Windows::IParentWindowSupervisor& propertiesPanelArea);
 	}
 }

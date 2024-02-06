@@ -7,7 +7,7 @@ namespace Rococo::Abedit
 {
 	ROCOCO_INTERFACE IUIProperties
 	{
-
+		virtual void Populate() = 0;
 	};
 
 	ROCOCO_INTERFACE IUIPalette
@@ -34,13 +34,6 @@ namespace Rococo::Abedit
 	{
 		virtual void Free() = 0;
 	};
-
-	namespace Internal
-	{
-		IUIBlankSlateSupervisor* CreateBlankSlate();
-		IUIPaletteSupervisor* CreatePalette();
-		IUIPropertiesSupervisor* CreateProperties();
-	}
 
 	ROCOCO_INTERFACE IAbstractEditor
 	{

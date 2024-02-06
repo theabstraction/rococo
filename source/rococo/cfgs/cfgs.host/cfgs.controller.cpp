@@ -37,6 +37,8 @@ namespace ANON
 			{
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
 			}
+
+			editor->Properties().Populate();
 		}
 
 		void Free() override
