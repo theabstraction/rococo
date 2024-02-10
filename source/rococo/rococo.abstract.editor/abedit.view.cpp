@@ -11,7 +11,7 @@ HINSTANCE GetDllInstance();
 
 namespace ANON
 {
-	struct AbstractEditor : Rococo::Abedit::IAbstractEditorSupervisor
+	struct AbstractEditor : Rococo::Abedit::IAbstractEditorSupervisor, Rococo::Abedit::IUIPropertyEvents
 	{
 		IMVC_Host& host;
 		HWND hHostWindow;
@@ -23,7 +23,7 @@ namespace ANON
 
 		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler): host(_host), hHostWindow(_hHostWindow)
 		{
-			mainWindow = Internal::CreateMainWindow(_hHostWindow, GetDllInstance(), IN config, IN eventHandler);
+			mainWindow = Internal::CreateMainWindow(_hHostWindow, GetDllInstance(), IN config, IN eventHandler, *this);
 
 			// TODO - create a child or mainwindow from the host module that yield a HWND
 			// Create three children, palette, properties and slate that have subwindows of HWND
@@ -62,6 +62,11 @@ namespace ANON
 		IUIBlankSlate& Slate() override
 		{
 			return *slate;
+		}
+
+		void OnEditorChanged(ControlPropertyId id) override
+		{
+			UNUSED(id);
 		}
 	};
 

@@ -16,9 +16,10 @@ namespace ANON
 	class AbeditPropertiesWindow : public StandardWindowHandler
 	{
 	private:
+		IUIPropertyEvents& propertyEventHandler;
 		IParentWindowSupervisor* window;
 
-		AbeditPropertiesWindow() : window(nullptr)
+		AbeditPropertiesWindow(IUIPropertyEvents& _propertyEventHandler) : propertyEventHandler(_propertyEventHandler), window(nullptr)
 		{
 		}
 
@@ -62,7 +63,20 @@ namespace ANON
 			EndPaint(*window, &ps);
 		}
 
-		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) override
+		{
+			auto id = LOWORD(wParam);
+			auto command = HIWORD(wParam);
+			if (command == EN_CHANGE)
+			{
+				propertyEventHandler.OnEditorChanged(ControlPropertyId{ id });
+				return 0L;
+			}
+
+			return StandardWindowHandler::OnCommand(hWnd, wParam, lParam);
+		}
+
+		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (msg)
 			{
@@ -92,9 +106,9 @@ namespace ANON
 
 		ColourScheme scheme;
 	public:
-		static AbeditPropertiesWindow* Create(IWindow* parent)
+		static AbeditPropertiesWindow* Create(IUIPropertyEvents& propertyEventHandler, IWindow* parent)
 		{
-			auto node = new AbeditPropertiesWindow();
+			auto node = new AbeditPropertiesWindow(propertyEventHandler);
 			node->SetBackgroundColour(RGB(192, 192, 192));
 			node->PostConstruct(parent);
 			return node;
@@ -145,7 +159,7 @@ namespace ANON
 			return propertiesPanel->Supervisor();
 		}
 
-		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& sessionConfig)
+		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& sessionConfig, IUIPropertyEvents& propertyEvents)
 		{
 			UNUSED(hDll);
 
@@ -161,7 +175,7 @@ namespace ANON
 			Rococo::Windows::SetOverlappedWindowConfig(config, topLeft, span, hParentWnd, "Rococo Abstract Editor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, NULL);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
-			propertiesPanel = AbeditPropertiesWindow::Create(window);
+			propertiesPanel = AbeditPropertiesWindow::Create(propertyEvents, window);
 
 			Layout();
 		}
@@ -171,16 +185,16 @@ namespace ANON
 			RECT rect;
 			GetClientRect(*window, &rect);
 
-			int propertiesWidth = 200;
+			int propertiesWidth = 600;
 
 			MoveWindow(propertiesPanel->GetWindow(), rect.right - propertiesWidth, 0, propertiesWidth, rect.bottom, TRUE);
 		}
 
 		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
-		static AbeditMainWindow* Create(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
+		static AbeditMainWindow* Create(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, IUIPropertyEvents& propertyEvents)
 		{
 			auto m = new AbeditMainWindow(eventHandler);
-			m->PostConstruct(hDll, hParentWnd, config);
+			m->PostConstruct(hDll, hParentWnd, config, propertyEvents);
 			return m;
 		}
 
@@ -236,9 +250,9 @@ namespace ANON
 
 namespace Rococo::Abedit::Internal
 {
-	IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
+	IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, IUIPropertyEvents& propertyEvents)
 	{
-		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler);
+		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler, propertyEvents);
 		return window.Release();
 	}
 }

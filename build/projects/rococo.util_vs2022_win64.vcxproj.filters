@@ -20,5 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.validators.h" />
   </ItemGroup>
 </Project>

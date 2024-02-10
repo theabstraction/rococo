@@ -1,19 +1,31 @@
 #include <rococo.mvc.h>
 #include <rococo.abstract.editor.h>
+#include <rococo.strings.h>
+#include <rococo.validators.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 using namespace Rococo::Abedit;
 using namespace Rococo::MVC;
+using namespace Rococo::Validators;
 
 namespace ANON
 {
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyManager
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
 
 		bool terminateOnMainWindowClose = false;
 
 		bool isRunning = true;
+
+		HString element = "Uranium";
+		int32 atomicNumber = 92;
+		float atomicWeight = 238.0f;
+		double valency = 6.01;
+		bool isRadioactive = true;
+
+		char fullDesc[256] = { 0 };
 
 		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine)
 		{
@@ -38,7 +50,25 @@ namespace ANON
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
 			}
 
-			editor->Properties().Populate();
+			FormatDesc();
+
+			auto& props = editor->Properties();
+			props.Build(*this);
+		}
+
+		void FormatDesc()
+		{
+			SafeFormat(fullDesc, "Element #%d '%s': weight %f, valency %g. %s", atomicNumber, element.c_str(), atomicWeight, valency, isRadioactive ? "<radioactive>" : "<stable>");
+		}
+
+		void SerializeProperties(IPropertySerializer& serializer) override
+		{
+			serializer.Target("e1", "Element", element, 12);
+			serializer.Target("an", "Atomic Number", atomicNumber, AllInt32sAreValid(), Int32Decimals());
+			serializer.Target("aw", "Atomic Weight", atomicWeight, AllFloatsAreValid(), FloatDecimals());
+			serializer.Target("va", "Valency", valency, AllDoublesAreValid(), DoubleDecimals());
+			serializer.Target("ra", "Is RadioActive", isRadioactive, AllBoolsAreValid(), BoolFormatter());
+			serializer.AddHeader("Desc", fullDesc);
 		}
 
 		void Free() override
@@ -52,7 +82,7 @@ namespace ANON
 			return isRunning && isVisible;
 		}
 
-		void OnRequestToClose(IAbeditMainWindow& sender)
+		void OnRequestToClose(IAbeditMainWindow& sender) override
 		{
 			sender.Hide();	
 			isRunning = false;
@@ -61,7 +91,6 @@ namespace ANON
 		void TerminateOnMainWindowClose() override
 		{
 			terminateOnMainWindowClose = true;
-
 		}
 	};
 }

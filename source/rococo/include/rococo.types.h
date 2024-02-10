@@ -819,4 +819,15 @@ namespace Rococo::IO
 	struct IInstallation;
 }
 
+namespace Rococo::Validators
+{
+	enum class EValidationPurpose;
+
+	template<class VALUE_TYPE>
+	struct IValueValidator;
+
+	template<class VALUE_TYPE>
+	struct IValueFormatter;
+}
+
 #endif

@@ -1,6 +1,7 @@
 #define ROCOCO_API __declspec(dllexport)
 #include <rococo.parse.h>
 #include <rococo.strings.h>
+#include <rococo.validators.h>
 #include <memory.h>
 
 using namespace Rococo;
@@ -730,3 +731,127 @@ namespace Rococo::Parse
 		return _TryParseExponentForm(OUT y, IN s);
 	}
 } // Rococo::Parse
+
+namespace Rococo::Validators
+{
+	template<class VALUE_TYPE>
+	struct Impl_AllPrimitivesAreValid : IValueValidator<VALUE_TYPE>
+	{
+		void ThrowIfBad(VALUE_TYPE value, EValidationPurpose purpose) const override
+		{
+			UNUSED(value)
+			UNUSED(purpose)
+		}
+	};
+
+	ROCOCO_API IValueValidator<int32>& AllInt32sAreValid() { static Impl_AllPrimitivesAreValid<int32> impl; return impl; }
+	ROCOCO_API IValueValidator<int64>& AllInt64sAreValid() { static Impl_AllPrimitivesAreValid<int64> impl; return impl; }
+	ROCOCO_API IValueValidator<uint32>& AllUInt32sAreValid() { static Impl_AllPrimitivesAreValid<uint32> impl; return impl; }
+	ROCOCO_API IValueValidator<uint64>& AllUInt64sAreValid() { static Impl_AllPrimitivesAreValid<uint64> impl; return impl; }
+	ROCOCO_API IValueValidator<bool>& AllBoolsAreValid() { static Impl_AllPrimitivesAreValid<bool> impl; return impl; }
+	ROCOCO_API IValueValidator<float>& AllFloatsAreValid() { static Impl_AllPrimitivesAreValid<float> impl; return impl; }
+	ROCOCO_API IValueValidator<double>& AllDoublesAreValid() { static Impl_AllPrimitivesAreValid<double> impl; return impl; }
+
+	ROCOCO_API IValueFormatter<int32>& Int32Decimals()
+	{
+		struct Impl : IValueFormatter<int32>
+		{
+			void Format(char* buffer, size_t capacity, int32 value) const override
+			{
+				SafeFormat(buffer, capacity, "%d", value);
+			}
+		};
+
+		static Impl anon;
+		return anon;
+
+	}
+
+	ROCOCO_API IValueFormatter<int64>& Int64Decimals()
+	{
+		struct Impl : IValueFormatter<int64>
+		{
+			void Format(char* buffer, size_t capacity, int64 value) const override
+			{
+				SafeFormat(buffer, capacity, "%lld", value);
+			}
+		};
+
+		static Impl anon;
+		return anon;
+
+	}
+
+	ROCOCO_API IValueFormatter<uint32>& Uint32Decimals()
+	{
+		struct Impl : IValueFormatter<uint32>
+		{
+			void Format(char* buffer, size_t capacity, uint32 value) const override
+			{
+				SafeFormat(buffer, capacity, "%u", value);
+			}
+		};
+
+		static Impl anon;
+		return anon;
+
+	}
+
+	ROCOCO_API IValueFormatter<uint64>& Uint64Decimals()
+	{
+		struct Impl : IValueFormatter<uint64>
+		{
+			void Format(char* buffer, size_t capacity, uint64 value) const override
+			{
+				SafeFormat(buffer, capacity, "%llu", value);
+			}
+		};
+
+		static Impl anon;
+		return anon;
+
+	}
+
+	ROCOCO_API IValueFormatter<bool>& BoolFormatter()
+	{
+		struct Impl : IValueFormatter<bool>
+		{
+			void Format(char* buffer, size_t capacity, bool value) const override
+			{
+				SafeFormat(buffer, capacity, "%s", value ? "true" : "false");
+			}
+		};
+
+		static Impl anon;
+		return anon;
+
+	}
+
+	ROCOCO_API IValueFormatter<float>& FloatDecimals()
+	{
+		struct Impl : IValueFormatter<float>
+		{
+			void Format(char* buffer, size_t capacity, float value) const override
+			{
+				SafeFormat(buffer, capacity, "%f", value);
+			}
+		};
+
+		static Impl anon;
+		return anon;
+	}
+
+	ROCOCO_API IValueFormatter<double>& DoubleDecimals()
+	{
+		struct Impl : IValueFormatter<double>
+		{
+			void Format(char* buffer, size_t capacity, double value) const override
+			{
+				SafeFormat(buffer, capacity, "%llg", value);
+			}
+		};
+
+		static Impl anon;
+		return anon;
+	}
+}

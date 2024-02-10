@@ -2,12 +2,47 @@
 
 #include <rococo.types.h>
 
+namespace Rococo::Strings
+{
+	class HString;
+}
+
 // Abstract Editor - namespace for the property+palette+blank-slate GUI
 namespace Rococo::Abedit
 {
+	struct ControlPropertyId
+	{
+		uint16 value;
+	};
+
+	ROCOCO_INTERFACE IPropertySerializer
+	{
+		virtual void AddHeader(cstr displayName, cstr displayText) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, Rococo::Strings::HString& value, int capacity) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, int32& value, Rococo::Validators::IValueValidator<int32>& validator, Rococo::Validators::IValueFormatter<int32>& formatter) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, int64& value, Rococo::Validators::IValueValidator<int64>& validator, Rococo::Validators::IValueFormatter<int64>& formatter) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, float& value, Rococo::Validators::IValueValidator<float>& validator, Rococo::Validators::IValueFormatter<float>& formatter) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, double& value, Rococo::Validators::IValueValidator<double>& validator, Rococo::Validators::IValueFormatter<double>& formatter) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, bool& value, Rococo::Validators::IValueValidator<bool>& validator, Rococo::Validators::IValueFormatter<bool>& formatter) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, uint32& value, Rococo::Validators::IValueValidator<uint32>& validator, Rococo::Validators::IValueFormatter<uint32>& formatter) = 0;
+		virtual void Target(cstr propertyIdentifier, cstr displayName, uint64& value, Rococo::Validators::IValueValidator<uint64>& validator, Rococo::Validators::IValueFormatter<uint64>& formatter) = 0;
+	};
+
+	ROCOCO_INTERFACE IPropertyManager
+	{
+		virtual void SerializeProperties(IPropertySerializer& serializer) = 0;
+	};
+
 	ROCOCO_INTERFACE IUIProperties
 	{
-		virtual void Populate() = 0;
+		// Invoke SerializeProperties on the manager using the internal property builder
+		virtual void Build(IPropertyManager& manager) = 0;
+
+		// Tells the UI system to attempt to validate and copy data from the visual editor to the property manager
+		virtual void UpdateFromVisuals(ControlPropertyId id, IPropertyManager& manager) = 0;
+
+		// Try to get the latest edited string for the given property
+		virtual bool TryGetEditorString(cstr propertyIdentifier, OUT Rococo::Strings::HString& value) = 0;
 	};
 
 	ROCOCO_INTERFACE IUIPalette
@@ -18,6 +53,11 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IUIBlankSlate
 	{
 
+	};
+
+	ROCOCO_INTERFACE IUIPropertyEvents
+	{
+		virtual void OnEditorChanged(ControlPropertyId id) = 0;
 	};
 
 	ROCOCO_INTERFACE IUIPropertiesSupervisor: IUIProperties
