@@ -31,6 +31,7 @@ namespace ANON
 	{
 		virtual void Free() = 0;
 		virtual void OnEditorChanged() = 0;
+		virtual void OnEditorLostKeyboardFocus() = 0;
 	};
 
 	struct VisualStyle
@@ -179,6 +180,11 @@ namespace ANON
 		{
 			UNUSED(id);
 		}
+
+		void OnEditorLostKeyboardFocus() override
+		{
+			Beep(1024, 500);
+		}
 	};
 
 	struct StringConstant : IPropertySupervisor
@@ -241,6 +247,11 @@ namespace ANON
 		void OnEditorChanged() override
 		{
 			
+		}
+
+		void OnEditorLostKeyboardFocus() override
+		{
+
 		}
 	};
 
@@ -392,7 +403,6 @@ namespace ANON
 				if (!IsLegal(*readCursor, REF dotCount))
 				{
 					// Illegal character -> skip to next
-					*readCursor++;
 				}
 				else
 				{
@@ -516,8 +526,21 @@ namespace ANON
 				return;
 			}
 
+			// If a bad key was removed from the middle of the string then the cursor selection would have advanced by one. 
+			// We need to retract it by 1 in this case, otherwise bad keys serve as cursor forward, which looks odd
+			if (start == end  && end > 0 && end < strlen(text.data()))
+			{
+				end--;
+				start--;
+			}
+
 			SendMessageA(*editor, WM_SETTEXT, 0, (LPARAM) text.data());
 			SendMessage(*editor, EM_SETSEL, end, end);
+		}
+
+		void OnEditorLostKeyboardFocus() override
+		{
+			
 		}
 	};
 
@@ -627,6 +650,14 @@ namespace ANON
 			if (!p) return;
 
 			p->OnEditorChanged();
+		}
+
+		void OnEditorLostKeyboardFocus(ControlPropertyId id) override
+		{
+			auto* p = FindControlById(id);
+			if (!p) return;
+
+			p->OnEditorLostKeyboardFocus();
 		}
 
 		void Populate()

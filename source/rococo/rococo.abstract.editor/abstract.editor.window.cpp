@@ -69,10 +69,14 @@ namespace ANON
 		{
 			auto id = LOWORD(wParam);
 			auto command = HIWORD(wParam);
-			if (command == EN_CHANGE)
+			switch (command)
 			{
-				properties->OnEditorChanged(ControlPropertyId{ id });
-				return 0L;
+				case EN_CHANGE:
+					properties->OnEditorChanged(ControlPropertyId{ id });
+					return 0L;
+				case EN_KILLFOCUS:	
+					properties->OnEditorLostKeyboardFocus(ControlPropertyId{ id });
+					return 0L;
 			}
 
 			return StandardWindowHandler::OnCommand(hWnd, wParam, lParam);

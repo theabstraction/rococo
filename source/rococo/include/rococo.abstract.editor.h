@@ -59,6 +59,7 @@ namespace Rococo::Abedit
 	{
 		virtual void Free() = 0;
 		virtual void OnEditorChanged(ControlPropertyId id) = 0;
+		virtual void OnEditorLostKeyboardFocus(ControlPropertyId id) = 0;
 	};
 
 	ROCOCO_INTERFACE IUIPaletteSupervisor: IUIPalette
