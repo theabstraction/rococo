@@ -55,14 +55,10 @@ namespace Rococo::Abedit
 
 	};
 
-	ROCOCO_INTERFACE IUIPropertyEvents
-	{
-		virtual void OnEditorChanged(ControlPropertyId id) = 0;
-	};
-
 	ROCOCO_INTERFACE IUIPropertiesSupervisor: IUIProperties
 	{
 		virtual void Free() = 0;
+		virtual void OnEditorChanged(ControlPropertyId id) = 0;
 	};
 
 	ROCOCO_INTERFACE IUIPaletteSupervisor: IUIPalette

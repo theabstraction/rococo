@@ -14,11 +14,12 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IAbeditMainWindowSupervisor : IAbeditMainWindow
 	{
 		virtual Rococo::Windows::IParentWindowSupervisor& PropertiesPanel() = 0;
+		virtual IUIProperties& Properties() = 0;
 	};
 
 	namespace Internal
 	{
-		IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, IUIPropertyEvents& propertyEvents);
+		IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler);
 		IUIBlankSlateSupervisor* CreateBlankSlate();
 		IUIPaletteSupervisor* CreatePalette();
 		IUIPropertiesSupervisor* CreateProperties(Rococo::Windows::IParentWindowSupervisor& propertiesPanelArea);

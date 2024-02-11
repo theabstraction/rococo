@@ -30,6 +30,7 @@ namespace ANON
 	struct IPropertySupervisor : IProperty
 	{
 		virtual void Free() = 0;
+		virtual void OnEditorChanged() = 0;
 	};
 
 	struct VisualStyle
@@ -173,6 +174,11 @@ namespace ANON
 		{
 			return ANON::TryGetEditorString(editor, REF value);
 		}
+
+		void OnEditorChanged() override
+		{
+			UNUSED(id);
+		}
 	};
 
 	struct StringConstant : IPropertySupervisor
@@ -231,8 +237,193 @@ namespace ANON
 		{
 			return ANON::TryGetEditorString(editor, REF value);
 		}
+
+		void OnEditorChanged() override
+		{
+			
+		}
 	};
 
+	static bool IsDigit(char c)
+	{
+		return c >= '0' && c <= '9';
+	}
+
+	template<class VALUE_TYPE>
+	struct EditorFilter
+	{
+		bool RemoveIllegalCharacters(char* targetBuffer, size_t nChars)
+		{
+			UNUSED(nChars);
+			UNUSED(targetBuffer);
+			return false;
+		}
+	};
+
+	template<>
+	struct EditorFilter<int32>
+	{
+		bool RemoveIllegalCharacters(char* targetBuffer, size_t nChars)
+		{
+			char* writeCursor = targetBuffer;
+			const char* readCursor = targetBuffer;
+			const char* endChar = targetBuffer + nChars;
+
+			if (*targetBuffer == '-' || *targetBuffer == '+')
+			{
+				readCursor++;
+				writeCursor++;
+			}
+
+			for (; readCursor < endChar; readCursor++)
+			{
+				if (!IsDigit(*readCursor))
+				{
+					// Illegal character -> skip to next
+					continue;
+				}
+				else
+				{
+					if (writeCursor != readCursor)
+					{
+						*writeCursor = *readCursor;
+					}
+					
+					writeCursor++;
+				}
+			}
+
+			if (readCursor != writeCursor)
+			{
+				*writeCursor = 0;
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+	template<>
+	struct EditorFilter<int64>
+	{
+		bool RemoveIllegalCharacters(char* targetBuffer, size_t nChars)
+		{
+			EditorFilter<int32> subFilter;
+			return subFilter.RemoveIllegalCharacters(targetBuffer, nChars);
+		}
+	};
+
+	template<>
+	struct EditorFilter<uint32>
+	{
+		bool RemoveIllegalCharacters(char* targetBuffer, size_t nChars)
+		{
+			char* writeCursor = targetBuffer;
+			const char* endChar = targetBuffer + nChars;
+			const char* readCursor = targetBuffer;
+
+			for (; readCursor < endChar; readCursor++)
+			{
+				if (!IsDigit(*readCursor))
+				{
+					// Illegal character -> skip to next
+					*readCursor++;
+				}
+				else
+				{
+					if (writeCursor != readCursor)
+					{
+						*writeCursor = *readCursor;
+					}
+
+					writeCursor++;
+				}
+			}
+
+			if (readCursor != writeCursor)
+			{
+				*writeCursor = 0;
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+	template<>
+	struct EditorFilter<uint64>
+	{
+		bool RemoveIllegalCharacters(char* targetBuffer, size_t nChars)
+		{
+			EditorFilter<uint32> subFilter;
+			return subFilter.RemoveIllegalCharacters(targetBuffer, nChars);
+		}
+	};
+
+	template<>
+	struct EditorFilter<double>
+	{
+		bool IsLegal(char c, REF int& dotCount)
+		{
+			if (dotCount == 0 && c == '.')
+			{
+				dotCount++;
+				return true;
+			}
+
+			return IsDigit(c);
+		}
+
+		bool RemoveIllegalCharacters(char* targetBuffer, size_t nChars)
+		{
+			char* writeCursor = targetBuffer;
+			const char* readCursor = targetBuffer;
+			const char* endChar = targetBuffer + nChars;
+			int dotCount = 0;
+
+			if (*targetBuffer == '-' || *targetBuffer == '+')
+			{
+				readCursor++;
+				writeCursor++;
+			}
+
+			for (; readCursor < endChar; readCursor++)
+			{
+				if (!IsLegal(*readCursor, REF dotCount))
+				{
+					// Illegal character -> skip to next
+					*readCursor++;
+				}
+				else
+				{
+					if (writeCursor != readCursor)
+					{
+						*writeCursor = *readCursor;
+					}
+
+					writeCursor++;
+				}
+			}
+
+			if (readCursor != writeCursor)
+			{
+				*writeCursor = 0;
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+	template<>
+	struct EditorFilter<float>
+	{
+		bool RemoveIllegalCharacters(char* targetBuffer, size_t nChars)
+		{
+			EditorFilter<double> subFilter;
+			return subFilter.RemoveIllegalCharacters(targetBuffer, nChars);
+		}
+	};
 
 	template<class VALUE_TYPE>
 	struct PrimitiveProperty : IPropertySupervisor
@@ -299,6 +490,34 @@ namespace ANON
 		bool TryGetEditorString(REF HString& value)
 		{
 			return ANON::TryGetEditorString(editor, REF value);
+		}
+
+		void OnEditorChanged() override
+		{
+			if (!editor) return;
+
+			LRESULT nChars = SendMessage(*editor, WM_GETTEXTLENGTH, 0, 0);
+			if (nChars <= 0)
+			{
+				return;
+			}
+
+			std::vector<char> text;
+			text.resize(nChars + 1);
+
+			LRESULT nCharsCopied = SendMessageA(*editor, WM_GETTEXT, text.size(), (LPARAM) text.data());
+
+			DWORD start, end;
+			SendMessage(*editor, EM_GETSEL, (WPARAM) & start, (LPARAM) & end);
+
+			EditorFilter<VALUE_TYPE> filter;
+			if (!filter.RemoveIllegalCharacters(text.data(), (size_t)nCharsCopied))
+			{
+				return;
+			}
+
+			SendMessageA(*editor, WM_SETTEXT, 0, (LPARAM) text.data());
+			SendMessage(*editor, EM_SETSEL, end, end);
 		}
 	};
 
@@ -387,6 +606,27 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		IPropertySupervisor* FindControlById(ControlPropertyId id)
+		{
+			for (auto* p : properties)
+			{
+				if (p->IsForControl(id))
+				{
+					return p;
+				}
+			}
+
+			return nullptr;
+		}
+
+		void OnEditorChanged(ControlPropertyId id) override
+		{
+			auto* p = FindControlById(id);
+			if (!p) return;
+
+			p->OnEditorChanged();
 		}
 
 		void Populate()
@@ -545,7 +785,7 @@ namespace ANON
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
 			{
-				value = atof(newValue);
+				value = (float) atof(newValue);
 			}
 		}
 	}

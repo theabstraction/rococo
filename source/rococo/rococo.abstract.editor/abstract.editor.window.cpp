@@ -16,10 +16,10 @@ namespace ANON
 	class AbeditPropertiesWindow : public StandardWindowHandler
 	{
 	private:
-		IUIPropertyEvents& propertyEventHandler;
 		IParentWindowSupervisor* window;
+		AutoFree<IUIPropertiesSupervisor> properties;
 
-		AbeditPropertiesWindow(IUIPropertyEvents& _propertyEventHandler) : propertyEventHandler(_propertyEventHandler), window(nullptr)
+		AbeditPropertiesWindow() : window(nullptr)
 		{
 		}
 
@@ -36,6 +36,8 @@ namespace ANON
 			DWORD style = WS_VISIBLE | WS_CHILD;
 			SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", style, 0);
 			window = Windows::CreateChildWindow(config, this);
+
+			properties = Internal::CreateProperties(*window);
 		}
 
 		void OnPaint()
@@ -69,7 +71,7 @@ namespace ANON
 			auto command = HIWORD(wParam);
 			if (command == EN_CHANGE)
 			{
-				propertyEventHandler.OnEditorChanged(ControlPropertyId{ id });
+				properties->OnEditorChanged(ControlPropertyId{ id });
 				return 0L;
 			}
 
@@ -106,9 +108,9 @@ namespace ANON
 
 		ColourScheme scheme;
 	public:
-		static AbeditPropertiesWindow* Create(IUIPropertyEvents& propertyEventHandler, IWindow* parent)
+		static AbeditPropertiesWindow* Create(IWindow* parent)
 		{
-			auto node = new AbeditPropertiesWindow(propertyEventHandler);
+			auto node = new AbeditPropertiesWindow();
 			node->SetBackgroundColour(RGB(192, 192, 192));
 			node->PostConstruct(parent);
 			return node;
@@ -134,6 +136,11 @@ namespace ANON
 		{
 			return *window;
 		}
+
+		IUIProperties& Properties()
+		{
+			return *properties;
+		}
 	};
 
 	class AbeditMainWindow : public StandardWindowHandler, public IAbeditMainWindowSupervisor
@@ -154,12 +161,17 @@ namespace ANON
 		}
 
 	public:
-		Rococo::Windows::IParentWindowSupervisor& PropertiesPanel()
+		Rococo::Windows::IParentWindowSupervisor& PropertiesPanel() override
 		{
 			return propertiesPanel->Supervisor();
 		}
 
-		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& sessionConfig, IUIPropertyEvents& propertyEvents)
+		Rococo::Abedit::IUIProperties& Properties() override
+		{
+			return propertiesPanel->Properties();
+		}
+
+		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& sessionConfig)
 		{
 			UNUSED(hDll);
 
@@ -175,7 +187,7 @@ namespace ANON
 			Rococo::Windows::SetOverlappedWindowConfig(config, topLeft, span, hParentWnd, "Rococo Abstract Editor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, NULL);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
-			propertiesPanel = AbeditPropertiesWindow::Create(propertyEvents, window);
+			propertiesPanel = AbeditPropertiesWindow::Create(window);
 
 			Layout();
 		}
@@ -191,10 +203,10 @@ namespace ANON
 		}
 
 		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
-		static AbeditMainWindow* Create(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, IUIPropertyEvents& propertyEvents)
+		static AbeditMainWindow* Create(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
 		{
 			auto m = new AbeditMainWindow(eventHandler);
-			m->PostConstruct(hDll, hParentWnd, config, propertyEvents);
+			m->PostConstruct(hDll, hParentWnd, config);
 			return m;
 		}
 
@@ -250,9 +262,9 @@ namespace ANON
 
 namespace Rococo::Abedit::Internal
 {
-	IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, IUIPropertyEvents& propertyEvents)
+	IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
 	{
-		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler, propertyEvents);
+		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler);
 		return window.Release();
 	}
 }
