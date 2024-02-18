@@ -92,6 +92,12 @@ namespace ANON
 			element.AcceptVisit(visitor, *this);
 		}
 
+		void OnBooleanButtonChanged(IProperty& property) override
+		{
+			auto& props = editor->Properties();
+			props.UpdateFromVisuals(property, *this);
+		}
+
 		void OnPropertyEditorLostFocus(Rococo::Abedit::IProperty& property) override
 		{
 			auto& props = editor->Properties();

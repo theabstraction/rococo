@@ -16,6 +16,7 @@ namespace ANON
 	ROCOCO_INTERFACE IPropertySupervisor : Rococo::Abedit::IProperty
 	{
 		virtual void Free() = 0;
+		virtual void OnButtonClicked() = 0;
 		virtual void OnEditorChanged() = 0;
 		virtual void OnEditorLostKeyboardFocus() = 0;
 		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId) = 0;
@@ -48,6 +49,18 @@ namespace ANON
 		if (trueMaxLen == 0) trueMaxLen = 32768;
 		SendMessageA(*editor, EM_SETLIMITTEXT, trueMaxLen, 0);
 		return editor;
+	}
+
+	Rococo::Windows::IWindowSupervisor* AddCheckbox(const VisualStyle& style, IParentWindowSupervisor& panel, bool value, int yOffset, ControlPropertyId id)
+	{
+		RECT containerRect;
+		GetClientRect(panel, &containerRect);
+
+		if (containerRect.right < style.minSpan) containerRect.right = style.minSpan;
+
+		auto* checkbox = Rococo::Windows::AddCheckBox(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, "", id.value, WS_VISIBLE | BS_CHECKBOX, 0);
+		if (checkbox) SendMessage(*checkbox, BM_SETCHECK, value ? BST_CHECKED : BST_UNCHECKED, 0);
+		return checkbox;
 	}
 
 	Rococo::Windows::IWindowSupervisor* AddImmutableEditor(const VisualStyle& style, IParentWindowSupervisor& panel, cstr text, int yOffset, ControlPropertyId id)
@@ -169,6 +182,11 @@ namespace ANON
 			return ANON::TryGetEditorString(editor, REF value);
 		}
 
+		void OnButtonClicked() override
+		{
+
+		}
+
 		void OnEditorChanged() override
 		{
 			isDirty = true;
@@ -269,6 +287,11 @@ namespace ANON
 		void OnEditorChanged() override
 		{
 			isDirty = true;
+		}
+
+		void OnButtonClicked() override
+		{
+
 		}
 
 		void OnEditorLostKeyboardFocus() override
@@ -547,6 +570,11 @@ namespace ANON
 			return ANON::TryGetEditorString(editor, REF value);
 		}
 
+		void OnButtonClicked() override
+		{
+
+		}
+
 		std::vector<char> textBuffer;
 
 		void OnEditorChanged() override
@@ -600,11 +628,136 @@ namespace ANON
 
 			if (editor)
 			{
-				VALUE_TYPE value = * (const VALUE_TYPE*) data;
+				VALUE_TYPE value = *(const VALUE_TYPE*)data;
 
 				char text[64];
 				formatter.Format(text, sizeof text, value);
-				SendMessageA(*editor, WM_SETTEXT, 0, (LPARAM) text);
+				SendMessageA(*editor, WM_SETTEXT, 0, (LPARAM)text);
+			}
+		}
+
+		bool IsDirty() const override
+		{
+			return isDirty;
+		}
+	};
+
+	struct BooleanProperty : IPropertySupervisor
+	{
+		HString id;
+		bool initialValue;
+		HString displayName;
+		VisualStyle style;
+		bool isDirty = false;
+
+		IWindowSupervisor* checkbox = nullptr;
+
+		IValueValidator<bool>& validator;
+		IPropertyUIEvents& events;
+
+		BooleanProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) :
+			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), events(stub.eventHandler)
+		{
+			if (displayName.length() == 0)
+			{
+				Throw(0, "%s: blank display name", __FUNCTION__);
+			}
+
+			validator.ThrowIfBad(initialValue, EValidationPurpose::Construction);
+
+			if (id.length() == 0)
+			{
+				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
+			}
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId)
+		{
+			enum { MAX_PRIMITIVE_LEN = 24 };
+
+			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+
+			if (checkbox)
+			{
+				Throw(0, "%s: unexpected non-null checkbox for %s", __FUNCTION__, displayName.c_str());
+			}
+
+			GuiRect editorRect{  };
+			checkbox = ANON::AddCheckbox(style, panel, initialValue, yOffset, editorId);
+			return GetEditorRect(style, panel, yOffset);
+		}
+
+		cstr Id() const override
+		{
+			return id;
+		}
+
+		bool IsForControl(ControlPropertyId id) const
+		{
+			return checkbox && GetWindowLongPtrA(*checkbox, GWLP_ID) == id.value;
+		}
+
+		ControlPropertyId ControlId() const override
+		{
+			if (!checkbox)
+			{
+				return { 0 };
+			}
+
+			return { (uint16)GetWindowLongPtrA(*checkbox, GWLP_ID) };
+		}
+
+		bool TryGetEditorString(REF HString& value)
+		{
+			if (!checkbox)
+			{
+				return false;
+			}
+
+			LRESULT result = SendMessageA(*checkbox, BM_GETSTATE, 0, 0);
+			value = (result & BST_CHECKED) != 0 ? "true" : "false";
+			
+			return true;
+			
+		}
+
+		void OnButtonClicked() override
+		{
+			LRESULT result = SendMessageA(*checkbox, BM_GETSTATE, 0, 0);
+			bool isChecked = (result & BST_CHECKED);
+			SendMessageA(*checkbox, BM_SETCHECK, isChecked ? BST_UNCHECKED : BST_CHECKED, 0);
+			OnEditorChanged();
+			events.OnBooleanButtonChanged(*this);
+		}
+
+		void OnEditorChanged() override
+		{
+			if (!checkbox) return;
+			isDirty = true;
+		}
+
+		void OnEditorLostKeyboardFocus() override
+		{
+			events.OnPropertyEditorLostFocus(*this);
+		}
+
+		void UpdateWidget(const void* data, size_t sizeOfData) override
+		{
+			if (sizeOfData != sizeof(bool))
+			{
+				Throw(0, "%s: bad size match", __FUNCTION__);
+			}
+
+			if (checkbox)
+			{
+				bool value = *(const bool*)data;
+
+				SendMessageA(*checkbox, BM_SETCHECK, value ? BST_CHECKED : BST_UNCHECKED, 0);
 			}
 		}
 
@@ -702,6 +855,11 @@ namespace ANON
 			Throw(0, "%s: property %s incorrectly raised lost focus event", __FUNCTION__, property.Id());
 		}
 
+		void OnBooleanButtonChanged(IProperty& property) override
+		{
+			Throw(0, "%s: property %s incorrectly raised button changed event", __FUNCTION__, property.Id());
+		}
+
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
 		{
 			UNUSED(agent);
@@ -785,6 +943,14 @@ namespace ANON
 			if (!p) return;
 
 			p->OnEditorChanged();
+		}
+
+		void OnButtonClicked(ControlPropertyId id) override
+		{
+			auto* p = FindControlById(id);
+			if (!p) return;
+
+			p->OnButtonClicked();
 		}
 
 		void OnEditorLostKeyboardFocus(ControlPropertyId id) override
@@ -888,7 +1054,7 @@ namespace ANON
 
 	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<bool>(stub, marshaller));
+		container.properties.push_back(new BooleanProperty(stub, marshaller));
 	}
 
 	void PropertyRefresher::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)

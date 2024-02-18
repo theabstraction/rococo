@@ -77,6 +77,9 @@ namespace ANON
 				case EN_KILLFOCUS:	
 					properties->OnEditorLostKeyboardFocus(ControlPropertyId{ id });
 					return 0L;
+				case BN_CLICKED:
+					properties->OnButtonClicked(ControlPropertyId{ id });
+					return 0L;
 			}
 
 			return StandardWindowHandler::OnCommand(hWnd, wParam, lParam);

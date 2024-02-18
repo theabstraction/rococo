@@ -43,6 +43,7 @@ namespace Rococo::Abedit
 	// When a property is visited, the editor associated with the property can raise events. These are responded to by the implementors of this interface
 	ROCOCO_INTERFACE IPropertyUIEvents
 	{
+		virtual void OnBooleanButtonChanged(IProperty& property) = 0;
 		virtual void OnPropertyEditorLostFocus(IProperty& property) = 0;
 		virtual void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) = 0;
 	};
@@ -144,6 +145,7 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IUIPropertiesSupervisor: IUIProperties
 	{
 		virtual void Free() = 0;
+		virtual void OnButtonClicked(ControlPropertyId id) = 0;
 		virtual void OnEditorChanged(ControlPropertyId id) = 0;
 		virtual void OnEditorLostKeyboardFocus(ControlPropertyId id) = 0;
 	};
