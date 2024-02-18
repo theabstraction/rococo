@@ -11,7 +11,44 @@ using namespace Rococo::Validators;
 
 namespace ANON
 {
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyManager
+	struct Element: IEstateAgent
+	{
+		HString name = "Uranium";
+		int32 atomicNumber = 92;
+		float atomicWeight = 238.0f;
+		double valency = 6.01;
+		bool isRadioactive = true;
+		char fullDesc[256] = { 0 };
+
+		void FormatDesc()
+		{
+			SafeFormat(fullDesc, "Element #%d '%s': weight %f, valency %g. %s", atomicNumber, name.c_str(), atomicWeight, valency, isRadioactive ? "<radioactive>" : "<stable>");
+		}
+
+		void AcceptVisit(IPropertyVisitor& visitor, IPropertyUIEvents& eventHandler) override
+		{
+			MARSHAL_STRING(visitor, "e1", "Element", eventHandler, REF name, 12);
+			MARSHAL_PRIMITIVE(visitor, "an", "Atomic Number", eventHandler, REF atomicNumber, AllInt32sAreValid(), Int32Decimals());
+			MARSHAL_PRIMITIVE(visitor, "aw", "Atomic Weight", eventHandler, REF atomicWeight, AllFloatsAreValid(), FloatDecimals());
+			MARSHAL_PRIMITIVE(visitor, "va", "Valency", eventHandler, REF valency, AllDoublesAreValid(), DoubleDecimals());
+			MARSHAL_PRIMITIVE(visitor, "ra", "Is Radioactive", eventHandler, REF isRadioactive, AllBoolsAreValid(), BoolFormatter());
+
+			/* 
+				We have an example here, of a variable fullDesc that is dependent on the other variables, so when they are updated by the visitor
+				we need to recompute it. We also need to signal that the editor/viewer for the dependent variable 
+			*/
+
+			visitor.VisitHeader("Desc", "Description", fullDesc);
+
+			if (visitor.IsWritingToReferences())
+			{
+				FormatDesc();
+				eventHandler.OnDependentVariableChanged("Desc", *this);
+			}
+		}
+	};
+
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
 
@@ -19,13 +56,7 @@ namespace ANON
 
 		bool isRunning = true;
 
-		HString element = "Uranium";
-		int32 atomicNumber = 92;
-		float atomicWeight = 238.0f;
-		double valency = 6.01;
-		bool isRadioactive = true;
-
-		char fullDesc[256] = { 0 };
+		Element element;
 
 		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine)
 		{
@@ -50,25 +81,26 @@ namespace ANON
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
 			}
 
-			FormatDesc();
+			element.FormatDesc();
 
 			auto& props = editor->Properties();
-			props.Build(*this);
+			props.BuildEditorsForProperties(*this);
 		}
 
-		void FormatDesc()
+		void VisitVenue(IPropertyVisitor& visitor) override
 		{
-			SafeFormat(fullDesc, "Element #%d '%s': weight %f, valency %g. %s", atomicNumber, element.c_str(), atomicWeight, valency, isRadioactive ? "<radioactive>" : "<stable>");
+			element.AcceptVisit(visitor, *this);
 		}
 
-		void SerializeProperties(IPropertySerializer& serializer) override
+		void OnPropertyEditorLostFocus(Rococo::Abedit::IProperty& property) override
 		{
-			serializer.Target("e1", "Element", element, 12);
-			serializer.Target("an", "Atomic Number", atomicNumber, AllInt32sAreValid(), Int32Decimals());
-			serializer.Target("aw", "Atomic Weight", atomicWeight, AllFloatsAreValid(), FloatDecimals());
-			serializer.Target("va", "Valency", valency, AllDoublesAreValid(), DoubleDecimals());
-			serializer.Target("ra", "Is RadioActive", isRadioactive, AllBoolsAreValid(), BoolFormatter());
-			serializer.AddHeader("Desc", fullDesc);
+			auto& props = editor->Properties();
+			props.UpdateFromVisuals(property, *this);
+		}
+
+		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
+		{
+			editor->Properties().Refresh(propertyId, agent);
 		}
 
 		void Free() override

@@ -13,25 +13,12 @@ using namespace Rococo::Validators;
 
 namespace ANON
 {
-	struct IProperty
-	{
-		// Represents the property in the panel and returns the containing rectangle in the panel co-ordinates
-		// The yOffset parameter determines the y co-ordinate of the top left of the panel
-		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId) = 0;
-
-		virtual cstr Id() const = 0;
-
-		// Windows Control Id for the editor
-		virtual bool IsForControl(ControlPropertyId id) const = 0;
-
-		virtual bool TryGetEditorString(REF HString& value) = 0;
-	};
-
-	struct IPropertySupervisor : IProperty
+	ROCOCO_INTERFACE IPropertySupervisor : Rococo::Abedit::IProperty
 	{
 		virtual void Free() = 0;
 		virtual void OnEditorChanged() = 0;
 		virtual void OnEditorLostKeyboardFocus() = 0;
+		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId) = 0;
 	};
 
 	struct VisualStyle
@@ -114,32 +101,28 @@ namespace ANON
 		HString initialString;
 		HString displayName;
 		VisualStyle style;
-
+		bool isDirty = false;
+		IPropertyUIEvents& events;
 		IWindowSupervisor* editor{ nullptr };
 
 		enum { HARD_CAP = 32767 };
 
-		StringProperty(cstr _id, int _capacity, cstr _displayName, cstr _initialString):
-			id(_id), initialString(_initialString), capacity(HARD_CAP), displayName(_displayName)
+		StringProperty(UIPropertyMarshallingStub& stub, REF Rococo::Strings::HString& value, int _capacity):
+			id(stub.propertyIdentifier), initialString(value), capacity(HARD_CAP), displayName(stub.displayName), events(stub.eventHandler)
 		{
 			if (_capacity > 0 && _capacity < HARD_CAP)
 			{
 				capacity = (size_t) _capacity;
 			}
 
-			if (_displayName == nullptr || *_displayName == 0)
+			if (stub.displayName == nullptr || *stub.displayName == 0)
 			{
 				Throw(0, "%s: blank display name", __FUNCTION__);
 			}
 
-			if (_initialString == nullptr || *_initialString == 0)
+			if (stub.propertyIdentifier == nullptr || *stub.propertyIdentifier == 0)
 			{
-				Throw(0, "%s: '%s' blank initial string", __FUNCTION__, _displayName);
-			}
-
-			if (_id == nullptr || *_id == 0)
-			{
-				Throw(0, "%s: '%s' blank id", __FUNCTION__, _displayName);
+				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
 			}
 		}
 
@@ -171,6 +154,16 @@ namespace ANON
 			return editor && GetWindowLongPtrA(*editor, GWLP_ID) == id.value;
 		}
 
+		ControlPropertyId ControlId() const
+		{
+			if (!editor)
+			{
+				return { 0 };
+			}
+
+			return { (uint16)GetWindowLongPtrA(*editor, GWLP_ID) };
+		}
+
 		bool TryGetEditorString(REF HString& value)
 		{
 			return ANON::TryGetEditorString(editor, REF value);
@@ -178,28 +171,47 @@ namespace ANON
 
 		void OnEditorChanged() override
 		{
-			UNUSED(id);
+			isDirty = true;
 		}
 
 		void OnEditorLostKeyboardFocus() override
 		{
-			Beep(1024, 500);
+			events.OnPropertyEditorLostFocus(*this);
+		}
+
+		bool IsDirty() const override
+		{
+			return isDirty;
+		}
+
+		void UpdateWidget(const void* data, size_t sizeOfData) override
+		{
+			UNUSED(sizeOfData);
+			cstr text = (cstr)data;
+			if (*editor) SetWindowTextA(*editor, text);
 		}
 	};
 
 	struct StringConstant : IPropertySupervisor
 	{
+		HString propertyId;
 		HString initialString;
 		HString displayName;
 		VisualStyle style;
+		bool isDirty = false;
 
 		IWindowSupervisor* editor{ nullptr };
 
 		enum { HARD_CAP = 32767 };
 
-		StringConstant(cstr _displayName, cstr _initialString) :
-			displayName(_displayName), initialString(_initialString)
+		StringConstant(cstr _propertyId, cstr _displayName, cstr _initialString) :
+			propertyId(_propertyId), displayName(_displayName), initialString(_initialString)
 		{
+			if (_propertyId == nullptr || *_propertyId == 0)
+			{
+				Throw(0, "%s: blank property Id", __FUNCTION__);
+			}
+
 			if (_displayName == nullptr || *_displayName == 0)
 			{
 				Throw(0, "%s: blank display name", __FUNCTION__);
@@ -231,27 +243,48 @@ namespace ANON
 
 		cstr Id() const override
 		{
-			return "#StringConstant";
+			return propertyId;
 		}
 
-		bool IsForControl(ControlPropertyId id) const
+		bool IsForControl(ControlPropertyId id) const override
 		{
 			return editor && GetWindowLongPtrA(*editor, GWLP_ID) == id.value;
 		}
 
-		bool TryGetEditorString(REF HString& value)
+		ControlPropertyId ControlId() const override
+		{
+			if (!editor)
+			{
+				return {0};
+			}
+
+			return { (uint16) GetWindowLongPtrA(*editor, GWLP_ID) };
+		}
+
+		bool TryGetEditorString(REF HString& value) override
 		{
 			return ANON::TryGetEditorString(editor, REF value);
 		}
 
 		void OnEditorChanged() override
 		{
-			
+			isDirty = true;
 		}
 
 		void OnEditorLostKeyboardFocus() override
 		{
+		}
 
+		void UpdateWidget(const void* data, size_t sizeOfData) override
+		{
+			UNUSED(sizeOfData);
+			cstr text = (cstr)data;
+			if (*editor) SetWindowTextA(*editor, text);
+		}
+
+		bool IsDirty() const override
+		{
+			return isDirty;
 		}
 	};
 
@@ -442,25 +475,27 @@ namespace ANON
 		VALUE_TYPE initialValue;
 		HString displayName;
 		VisualStyle style;
+		bool isDirty = false;
 
 		IWindowSupervisor* editor{ nullptr };
 
 		IValueValidator<VALUE_TYPE>& validator;
 		IValueFormatter<VALUE_TYPE>& formatter;
+		IPropertyUIEvents& events;
 
-		PrimitiveProperty(cstr _id, cstr _displayName, VALUE_TYPE _initialValue, IValueValidator<VALUE_TYPE>& _validator, IValueFormatter<VALUE_TYPE>& _formatter) :
-			id(_id), initialValue(_initialValue), displayName(_displayName), validator(_validator), formatter(_formatter)
+		PrimitiveProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<VALUE_TYPE>&  marshaller) :
+			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), formatter(marshaller.formatter), events(stub.eventHandler)
 		{
-			if (_displayName == nullptr || *_displayName == 0)
+			if (displayName.length() == 0)
 			{
 				Throw(0, "%s: blank display name", __FUNCTION__);
 			}
 
-			validator.ThrowIfBad(_initialValue, EValidationPurpose::Construction);
+			validator.ThrowIfBad(initialValue, EValidationPurpose::Construction);
 
-			if (_id == nullptr || *_id == 0)
+			if (id.length() == 0)
 			{
-				Throw(0, "%s: '%s' blank id", __FUNCTION__, _displayName);
+				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
 			}
 		}
 
@@ -497,14 +532,28 @@ namespace ANON
 			return editor && GetWindowLongPtrA(*editor, GWLP_ID) == id.value;
 		}
 
+		ControlPropertyId ControlId() const override
+		{
+			if (!editor)
+			{
+				return { 0 };
+			}
+
+			return { (uint16)GetWindowLongPtrA(*editor, GWLP_ID) };
+		}
+
 		bool TryGetEditorString(REF HString& value)
 		{
 			return ANON::TryGetEditorString(editor, REF value);
 		}
 
+		std::vector<char> textBuffer;
+
 		void OnEditorChanged() override
 		{
 			if (!editor) return;
+
+			isDirty = true;
 
 			LRESULT nChars = SendMessage(*editor, WM_GETTEXTLENGTH, 0, 0);
 			if (nChars <= 0)
@@ -512,41 +561,62 @@ namespace ANON
 				return;
 			}
 
-			std::vector<char> text;
-			text.resize(nChars + 1);
+			textBuffer.resize(nChars + 1);
 
-			LRESULT nCharsCopied = SendMessageA(*editor, WM_GETTEXT, text.size(), (LPARAM) text.data());
+			LRESULT nCharsCopied = SendMessageA(*editor, WM_GETTEXT, textBuffer.size(), (LPARAM)textBuffer.data());
 
 			DWORD start, end;
-			SendMessage(*editor, EM_GETSEL, (WPARAM) & start, (LPARAM) & end);
+			SendMessage(*editor, EM_GETSEL, (WPARAM) &start, (LPARAM) &end);
 
 			EditorFilter<VALUE_TYPE> filter;
-			if (!filter.RemoveIllegalCharacters(text.data(), (size_t)nCharsCopied))
+			if (!filter.RemoveIllegalCharacters(textBuffer.data(), (size_t)nCharsCopied))
 			{
 				return;
 			}
 
 			// If a bad key was removed from the middle of the string then the cursor selection would have advanced by one. 
 			// We need to retract it by 1 in this case, otherwise bad keys serve as cursor forward, which looks odd
-			if (start == end  && end > 0 && end < strlen(text.data()))
+			if (start == end  && end > 0 && end < strlen(textBuffer.data()))
 			{
 				end--;
 				start--;
 			}
 
-			SendMessageA(*editor, WM_SETTEXT, 0, (LPARAM) text.data());
+			SendMessageA(*editor, WM_SETTEXT, 0, (LPARAM)textBuffer.data());
 			SendMessage(*editor, EM_SETSEL, end, end);
 		}
 
 		void OnEditorLostKeyboardFocus() override
 		{
-			
+			events.OnPropertyEditorLostFocus(*this);
+		}
+
+		void UpdateWidget(const void* data, size_t sizeOfData) override
+		{
+			if (sizeOfData != sizeof(VALUE_TYPE))
+			{
+				Throw(0, "%s: bad size match", __FUNCTION__);
+			}
+
+			if (editor)
+			{
+				VALUE_TYPE value = * (const VALUE_TYPE*) data;
+
+				char text[64];
+				formatter.Format(text, sizeof text, value);
+				SendMessageA(*editor, WM_SETTEXT, 0, (LPARAM) text);
+			}
+		}
+
+		bool IsDirty() const override
+		{
+			return isDirty;
 		}
 	};
 
 	struct Properties;
 
-	struct PropertyBuilder : IPropertySerializer
+	struct PropertyBuilder : IPropertyVisitor
 	{
 		Properties& container;
 
@@ -555,18 +625,51 @@ namespace ANON
 
 		}
 
-		void AddHeader(cstr displayName, cstr displayText) override;
-		void Target(cstr id, cstr displayName, Rococo::Strings::HString& value, int capacity) override;
-		void Target(cstr id, cstr displayName, int32& value, IValueValidator<int32>& validator, IValueFormatter<int32>& formatter) override;
-		void Target(cstr id, cstr displayName, int64& value, IValueValidator<int64>& validator, IValueFormatter<int64>& formatter) override;
-		void Target(cstr id, cstr displayName, float& value, IValueValidator<float>& validator, IValueFormatter<float>& formatter) override;
-		void Target(cstr id, cstr displayName, double& value, IValueValidator<double>& validator, IValueFormatter<double>& formatter) override;
-		void Target(cstr id, cstr displayName, bool& value, IValueValidator<bool>& validator, IValueFormatter<bool>& formatter) override;
-		void Target(cstr id, cstr displayName, uint32& value, IValueValidator<uint32>& validator, IValueFormatter<uint32>& formatter) override;
-		void Target(cstr id, cstr displayName, uint64& value, IValueValidator<uint64>& validator, IValueFormatter<uint64>& formatter) override;
+		bool IsWritingToReferences() const override
+		{
+			return false;
+		}
+
+		void VisitHeader(cstr propertyId, cstr displayName, cstr displayText) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, Rococo::Strings::HString& value, int capacity) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int32>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint32>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int64>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint64>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) override;
 	};
 
-	struct PropertyEventRouting : IPropertySerializer
+	struct PropertyRefresher : IPropertyVisitor
+	{
+		Properties& container;
+
+		// The lifetime of the property refresher is withing the lifetime of the propertyId pointer
+		cstr onlyThisPropertyId;
+
+		PropertyRefresher(Properties& _container, cstr _propertyId) : container(_container), onlyThisPropertyId(_propertyId)
+		{
+
+		}
+
+		bool IsWritingToReferences() const override
+		{
+			return false;
+		}
+
+		void VisitHeader(cstr propertyId, cstr displayName, cstr displayText) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, Rococo::Strings::HString& value, int capacity) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int32>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint32>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int64>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint64>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) override;
+	};
+
+	struct PropertyEventRouting : IPropertyVisitor
 	{
 		Properties& container;
 		cstr id;
@@ -576,15 +679,34 @@ namespace ANON
 
 		}
 
-		void AddHeader(cstr displayName, cstr displayText) override;
-		void Target(cstr id, cstr displayName, Rococo::Strings::HString& value, int capacity) override;
-		void Target(cstr id, cstr displayName, int32& value, IValueValidator<int32>& validator, IValueFormatter<int32>& formatter) override;
-		void Target(cstr id, cstr displayName, int64& value, IValueValidator<int64>& validator, IValueFormatter<int64>& formatter) override;
-		void Target(cstr id, cstr displayName, float& value, IValueValidator<float>& validator, IValueFormatter<float>& formatter) override;
-		void Target(cstr id, cstr displayName, double& value, IValueValidator<double>& validator, IValueFormatter<double>& formatter) override;
-		void Target(cstr id, cstr displayName, bool& value, IValueValidator<bool>& validator, IValueFormatter<bool>& formatter) override;
-		void Target(cstr id, cstr displayName, uint32& value, IValueValidator<uint32>& validator, IValueFormatter<uint32>& formatter) override;
-		void Target(cstr id, cstr displayName, uint64& value, IValueValidator<uint64>& validator, IValueFormatter<uint64>& formatter) override;
+		bool IsWritingToReferences() const override
+		{
+			return true;
+		}
+
+		void VisitHeader(cstr propertyId, cstr displayName, cstr displayText) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, Rococo::Strings::HString& value, int capacity) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int32>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint32>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int64>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint64>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller) override;
+		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) override;
+	};
+
+	struct AssertiveNullEventHandler : Rococo::Abedit::IPropertyUIEvents
+	{
+		void OnPropertyEditorLostFocus(IProperty& property) override
+		{
+			Throw(0, "%s: property %s incorrectly raised lost focus event", __FUNCTION__, property.Id());
+		}
+
+		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
+		{
+			UNUSED(agent);
+			Throw(0, "%s: property %s incorrectly raised dependency variable change. Check to see if the agent raised such an event when visitor.IsWritingToReferences() was false", __FUNCTION__, propertyId);
+		}
 	};
 
 	struct Properties : IUIPropertiesSupervisor
@@ -644,6 +766,19 @@ namespace ANON
 			return nullptr;
 		}
 
+		IProperty* FindPropertyById(cstr propertyIdentifier)
+		{
+			for (auto* p : properties)
+			{
+				if (Eq(p->Id(), propertyIdentifier))
+				{
+					return p;
+				}
+			}
+
+			return nullptr;
+		}
+
 		void OnEditorChanged(ControlPropertyId id) override
 		{
 			auto* p = FindControlById(id);
@@ -676,23 +811,17 @@ namespace ANON
 			}
 		}
 
-		void Build(IPropertyManager& manager) override
+		void BuildEditorsForProperties(IPropertyVenue& venue) override
 		{
 			Clear();
-			manager.SerializeProperties(builder);
+			venue.VisitVenue(builder);
 			Populate();
 		}
 
-		void UpdateFromVisuals(ControlPropertyId id, IPropertyManager& manager) override
+		void UpdateFromVisuals(IProperty& p, IPropertyVenue& venue) override
 		{
-			for (auto* p : properties)
-			{
-				if (p->IsForControl(id))
-				{
-					PropertyEventRouting eventRouting(*this, p->Id());
-					manager.SerializeProperties(eventRouting);
-				}
-			}
+			PropertyEventRouting eventRouting(*this, p.Id());
+			venue.VisitVenue(eventRouting);
 		}
 
 		bool TryGetEditorString(cstr propertyIdentifier, REF HString& value) override
@@ -705,65 +834,133 @@ namespace ANON
 
 			return i->second->TryGetEditorString(REF value);
 		}
+
+		void Refresh(cstr onlyThisPropertyId, Rococo::Abedit::IEstateAgent& agent) override
+		{
+			PropertyRefresher refresher(*this, onlyThisPropertyId);
+			AssertiveNullEventHandler throwOnEvent;
+
+			// Enumerate through the agent's properties and refreshes those that match the id supplied here
+			agent.AcceptVisit(refresher, throwOnEvent);
+		}
 	};
 
-	void PropertyBuilder::AddHeader(cstr displayName, cstr displayText)
+	void PropertyBuilder::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)
 	{
-		container.properties.push_back(new StringConstant(displayName, displayText));
+		container.properties.push_back(new StringConstant(propertyId, displayName, displayText));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, Rococo::Strings::HString& value, int capacity)
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, REF Rococo::Strings::HString& value, int capacity)
 	{
-		container.properties.push_back(new StringProperty(id, capacity, displayName, value));
+		container.properties.push_back(new StringProperty(stub, REF value, capacity));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, int32& value, IValueValidator<int32>& validator, IValueFormatter<int32>& formatter)
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int32>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<int32>(id, displayName, value, validator, formatter));
+		container.properties.push_back(new PrimitiveProperty<int32>(stub, marshaller));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, int64& value, IValueValidator<int64>& validator, IValueFormatter<int64>& formatter)
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint32>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<int64>(id, displayName, value, validator, formatter));
+		container.properties.push_back(new PrimitiveProperty<uint32>(stub, marshaller));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, float& value, IValueValidator<float>& validator, IValueFormatter<float>& formatter)
+
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int64>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<float>(id, displayName, value, validator, formatter));
+		container.properties.push_back(new PrimitiveProperty<int64>(stub, marshaller));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, double& value, IValueValidator<double>& validator, IValueFormatter<double>& formatter)
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint64>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<double>(id, displayName, value, validator, formatter));
+		container.properties.push_back(new PrimitiveProperty<uint64>(stub, marshaller));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, bool& value, IValueValidator<bool>& validator, IValueFormatter<bool>& formatter)
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<bool>(id, displayName, value, validator, formatter));
+		container.properties.push_back(new PrimitiveProperty<float>(stub, marshaller));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, uint32& value, IValueValidator<uint32>& validator, IValueFormatter<uint32>& formatter)
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<uint32>(id, displayName, value, validator, formatter));
+		container.properties.push_back(new PrimitiveProperty<double>(stub, marshaller));
 	}
 
-	void PropertyBuilder::Target(cstr id, cstr displayName, uint64& value, IValueValidator<uint64>& validator, IValueFormatter<uint64>& formatter)
+	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<uint64>(id, displayName, value, validator, formatter));
+		container.properties.push_back(new PrimitiveProperty<bool>(stub, marshaller));
 	}
 
-	void PropertyEventRouting::AddHeader(cstr displayName, cstr displayText)
+	void PropertyRefresher::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)
 	{
+		UNUSED(displayName);
+		IProperty* p = Eq(propertyId, this->onlyThisPropertyId) ? container.FindPropertyById(propertyId) : nullptr;
+		if (p) p->UpdateWidget((const void*) displayText, strlen(displayText));
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, REF Rococo::Strings::HString& value, int capacity)
+	{
+		UNUSED(value);
+		UNUSED(capacity);
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(value.c_str(), value.length());
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int32>& marshaller)
+	{
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint32>& marshaller)
+	{
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int64>& marshaller)
+	{
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint64>& marshaller)
+	{
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller)
+	{
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller)
+	{
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyRefresher::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller)
+	{
+		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
+		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyEventRouting::VisitHeader(cstr id, cstr displayName, cstr displayText)
+	{
+		UNUSED(id);
 		UNUSED(displayName);
 		UNUSED(displayText);
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, Rococo::Strings::HString& value, int capacity)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, REF Rococo::Strings::HString& value, int capacity)
 	{
+		UNUSED(stub);
 		UNUSED(capacity);
-		UNUSED(displayName);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
@@ -773,93 +970,81 @@ namespace ANON
 		}
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, int32& value, IValueValidator<int32>& validator, IValueFormatter<int32>& formatter)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int32>& marshaller)
 	{
-		UNUSED(displayName);
-		UNUSED(validator);
-		UNUSED(formatter);
+		UNUSED(stub);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
 			{
-				value = atoi(newValue);
+				marshaller.value = atoi(newValue);
 			}
 		}
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, int64& value, IValueValidator<int64>& validator, IValueFormatter<int64>& formatter)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int64>& marshaller)
 	{
-		UNUSED(displayName);
-		UNUSED(validator);
-		UNUSED(formatter);
+		UNUSED(stub);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
 			{
-				value = atoll(newValue);
+				marshaller.value = atoll(newValue);
 			}
 		}
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, float& value, IValueValidator<float>& validator, IValueFormatter<float>& formatter)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller)
 	{
-		UNUSED(displayName);
-		UNUSED(validator);
-		UNUSED(formatter);
+		UNUSED(stub);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
 			{
-				value = (float) atof(newValue);
+				marshaller.value = (float) atof(newValue);
 			}
 		}
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, double& value, IValueValidator<double>& validator, IValueFormatter<double>& formatter)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller)
 	{
-		UNUSED(displayName);
-		UNUSED(validator);
-		UNUSED(formatter);
+		UNUSED(stub);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
 			{
-				value = atof(newValue);
+				marshaller.value = atof(newValue);
 			}
 		}
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, bool& value, IValueValidator<bool>& validator, IValueFormatter<bool>& formatter)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller)
 	{
-		UNUSED(displayName);
-		UNUSED(validator);
-		UNUSED(formatter);
+		UNUSED(stub);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
 			{
-				value = Eq(newValue, "true");
+				marshaller.value = Eq(newValue, "true");
 			}
 		}
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, uint32& value, IValueValidator<uint32>& validator, IValueFormatter<uint32>& formatter)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint32>& marshaller)
 	{
-		UNUSED(displayName);
-		UNUSED(validator);
-		UNUSED(formatter);
+		UNUSED(stub);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
@@ -867,19 +1052,17 @@ namespace ANON
 				uint32 newUint32;
 				if (1 == sscanf_s(newValue.c_str(), "%u", &newUint32))
 				{
-					value = newUint32;
+					marshaller.value = newUint32;
 				}
 			}
 		}
 	}
 
-	void PropertyEventRouting::Target(cstr id, cstr displayName, uint64& value, IValueValidator<uint64>& validator, IValueFormatter<uint64>& formatter)
+	void PropertyEventRouting::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<uint64>& marshaller)
 	{
-		UNUSED(displayName);
-		UNUSED(validator);
-		UNUSED(formatter);
+		UNUSED(stub);
 
-		if (Eq(this->id, id))
+		if (Eq(this->id, stub.propertyIdentifier))
 		{
 			HString newValue;
 			if (container.TryGetEditorString(id, OUT newValue))
@@ -887,7 +1070,7 @@ namespace ANON
 				uint64 newUint64;
 				if (1 == sscanf_s(newValue.c_str(), "%llu", &newUint64))
 				{
-					value = newUint64;
+					marshaller.value = newUint64;
 				}
 			}
 		}
