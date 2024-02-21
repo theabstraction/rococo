@@ -58,7 +58,7 @@ namespace ANON
 
 		if (containerRect.right < style.minSpan) containerRect.right = style.minSpan;
 
-		auto* editor = Rococo::Windows::AddEditor(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, currentOptionText, id.value, WS_VISIBLE | ES_READONLY, 0);
+		auto* editor = Rococo::Windows::AddSuperComboBox(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, currentOptionText, id.value, WS_VISIBLE, 0);
 
 		size_t trueMaxLen = max(strlen(currentOptionText), maxCharacters);
 		if (trueMaxLen == 0) trueMaxLen = 32768;

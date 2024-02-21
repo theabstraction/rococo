@@ -143,7 +143,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.windows.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.windows.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.windows.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.windows.lib</ImportLibrary>
@@ -300,5 +302,8 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.windows\super.combo.box.inl" />
   </ItemGroup>
 </Project>

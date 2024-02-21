@@ -356,6 +356,7 @@ namespace Rococo::Windows
 #include "wired.handler.inl"
 #include "listbox.inl"
 #include "rich.editor.inl"
+#include "super.combo.box.inl"
 #include "tab.control.inl"
 #include "tree.control.inl"
 #include "combo.control.inl"
@@ -484,6 +485,14 @@ namespace Rococo
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
 			return parent.AddChild(childConfig, "EDIT", id);
+		}
+
+		IWindowSupervisor* AddSuperComboBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx)
+		{
+			WindowConfig childConfig;
+			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
+			SuperComboBox* b = SuperComboBox::Create(childConfig, parent);
+			return b;
 		}
 
 		ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx)
