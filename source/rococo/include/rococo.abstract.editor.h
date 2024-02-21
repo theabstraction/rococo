@@ -72,6 +72,34 @@ namespace Rococo::Abedit
 		IPropertyUIEvents& eventHandler;
 	};
 
+	ROCOCO_INTERFACE IEnumVector
+	{
+		// Returns the number of elements in the enumeration
+		[[nodiscard]] virtual size_t Count() const = 0;
+
+		// Populates the ith enum name. Returns true if i is within bounds
+		[[nodiscard]] virtual bool GetEnumName(size_t i, Strings::IStringPopulator& populator) const = 0;
+
+		// Populates the ith enum description or not if i is out of bounds. Returns true if i is within bounds
+		[[nodiscard]] virtual bool GetEnumDescription(size_t i, Strings::IStringPopulator& populator) const = 0;
+	};
+
+	ROCOCO_INTERFACE IEnumVectorSupervisor: IEnumVector
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_INTERFACE IEnumDescriptor
+	{
+		// get or create an enum list. IEnumListSupervisor::Free() is called to free when the caller no longer needs the list
+		virtual IEnumVectorSupervisor* CreateEnumList() = 0;
+	};
+
+	struct OptionRef
+	{
+		Rococo::Strings::HString& value;
+	};
+
 	// A visitor to an agent is informed of the properties of the agent via these methods
 	// They can be used to serialize data and to sync widgets
 	ROCOCO_INTERFACE IPropertyVisitor
@@ -104,6 +132,9 @@ namespace Rococo::Abedit
 
 		// Target a variable to visit
 		virtual void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) = 0;
+
+		// Target an option to visit, also provides an option list
+		virtual void VisitOption(UIPropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) = 0;
 	};
 
 	// Handles property vistors

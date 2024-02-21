@@ -51,6 +51,21 @@ namespace ANON
 		return editor;
 	}
 
+	Rococo::Windows::IWindowSupervisor* AddOptionsList(const VisualStyle& style, IParentWindowSupervisor& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, ControlPropertyId id)
+	{
+		RECT containerRect;
+		GetClientRect(panel, &containerRect);
+
+		if (containerRect.right < style.minSpan) containerRect.right = style.minSpan;
+
+		auto* editor = Rococo::Windows::AddEditor(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, currentOptionText, id.value, WS_VISIBLE | ES_READONLY, 0);
+
+		size_t trueMaxLen = max(strlen(currentOptionText), maxCharacters);
+		if (trueMaxLen == 0) trueMaxLen = 32768;
+		SendMessageA(*editor, EM_SETLIMITTEXT, trueMaxLen, 0);
+		return editor;
+	}
+
 	Rococo::Windows::IWindowSupervisor* AddCheckbox(const VisualStyle& style, IParentWindowSupervisor& panel, bool value, int yOffset, ControlPropertyId id)
 	{
 		RECT containerRect;
@@ -642,6 +657,94 @@ namespace ANON
 		}
 	};
 
+	struct OptionVectorProperty : IPropertySupervisor
+	{
+		AutoFree<IEnumVectorSupervisor> enumVector;
+		HString id;
+		HString displayName;
+		VisualStyle style;
+		IWindowSupervisor* selectedOptionEditor { nullptr };
+		HString selectedText;
+		int stringCapacity = 0;
+
+		OptionVectorProperty(UIPropertyMarshallingStub& stub, IEnumVectorSupervisor* newOwnedEnumVector, REF OptionRef& opt, size_t _stringCapacity):
+			enumVector(newOwnedEnumVector), displayName(stub.displayName), id(stub.propertyIdentifier), selectedText(opt.value)
+		{
+			if (_stringCapacity > 0x7FFFULL)
+			{
+				Throw(0, "%s: <%s> <%s> String capacity exceeded maximum of 32767 characters", __FUNCTION__, stub.propertyIdentifier, stub.displayName);
+			}
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId)
+		{
+			enum { MAX_PRIMITIVE_LEN = 24 };
+
+			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+
+			if (selectedOptionEditor)
+			{
+				Throw(0, "%s: unexpected non-null selectedOptionEditor for %s", __FUNCTION__, displayName.c_str());
+			}
+
+			selectedOptionEditor = ANON::AddOptionsList(style, panel, selectedText, yOffset, stringCapacity, editorId);
+			return GetEditorRect(style, panel, yOffset);
+		}
+
+		cstr Id() const override
+		{
+			return id;
+		}
+
+		bool IsForControl(ControlPropertyId id) const
+		{
+			return selectedOptionEditor && GetWindowLongPtrA(*selectedOptionEditor, GWLP_ID) == id.value;
+		}
+
+		ControlPropertyId ControlId() const override
+		{
+			if (!selectedOptionEditor)
+			{
+				return { 0 };
+			}
+
+			return { (uint16)GetWindowLongPtrA(*selectedOptionEditor, GWLP_ID) };
+		}
+
+		bool TryGetEditorString(REF HString& value)
+		{
+			return ANON::TryGetEditorString(selectedOptionEditor, REF value);
+		}
+
+		void OnButtonClicked() override
+		{
+		}
+
+		void OnEditorChanged() override
+		{
+		}
+
+		void OnEditorLostKeyboardFocus() override
+		{
+		}
+
+		void UpdateWidget(const void* data, size_t sizeOfData) override
+		{
+			UNUSED(data);
+			UNUSED(sizeOfData);
+		}
+
+		bool IsDirty() const override
+		{
+			return false;
+		}
+	};
+
 	struct BooleanProperty : IPropertySupervisor
 	{
 		HString id;
@@ -792,6 +895,7 @@ namespace ANON
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller) override;
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) override;
+		void VisitOption(UIPropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)  override;
 	};
 
 	struct PropertyRefresher : IPropertyVisitor
@@ -820,6 +924,7 @@ namespace ANON
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller) override;
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) override;
+		void VisitOption(UIPropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
 	};
 
 	struct PropertyEventRouting : IPropertyVisitor
@@ -846,6 +951,7 @@ namespace ANON
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<float>& marshaller) override;
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) override;
+		void VisitOption(UIPropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
 	};
 
 	struct AssertiveNullEventHandler : Rococo::Abedit::IPropertyUIEvents
@@ -1031,7 +1137,6 @@ namespace ANON
 		container.properties.push_back(new PrimitiveProperty<uint32>(stub, marshaller));
 	}
 
-
 	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<int64>& marshaller)
 	{
 		container.properties.push_back(new PrimitiveProperty<int64>(stub, marshaller));
@@ -1055,6 +1160,21 @@ namespace ANON
 	void PropertyBuilder::VisitProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller)
 	{
 		container.properties.push_back(new BooleanProperty(stub, marshaller));
+	}
+
+	void PropertyBuilder::VisitOption(UIPropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)
+	{
+		UNUSED(stub);
+		UNUSED(value);
+		UNUSED(stringCapacity);
+		UNUSED(enumDesc);
+
+		AutoFree<IEnumVectorSupervisor> enumVector = enumDesc.CreateEnumList();
+		if (enumVector)
+		{		
+			container.properties.push_back(new OptionVectorProperty(stub, enumVector, REF value, stringCapacity));
+			enumVector.Release();
+		}
 	}
 
 	void PropertyRefresher::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)
@@ -1112,6 +1232,14 @@ namespace ANON
 	{
 		IProperty* p = Eq(stub.propertyIdentifier, this->onlyThisPropertyId) ? container.FindPropertyById(stub.propertyIdentifier) : nullptr;
 		if (p) p->UpdateWidget(&marshaller.value, sizeof marshaller.value);
+	}
+
+	void PropertyRefresher::VisitOption(UIPropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)
+	{
+		UNUSED(stub);
+		UNUSED(value);
+		UNUSED(stringCapacity);
+		UNUSED(enumDesc);
 	}
 
 	void PropertyEventRouting::VisitHeader(cstr id, cstr displayName, cstr displayText)
@@ -1240,6 +1368,14 @@ namespace ANON
 				}
 			}
 		}
+	}
+
+	void PropertyEventRouting::VisitOption(UIPropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)
+	{
+		UNUSED(stub);
+		UNUSED(value);
+		UNUSED(stringCapacity);
+		UNUSED(enumDesc);
 	}
 }
 
