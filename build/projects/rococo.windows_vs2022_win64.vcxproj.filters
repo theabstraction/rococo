@@ -24,6 +24,7 @@
     <ClInclude Include="..\..\source\rococo\rococo.windows\trackbar.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\tree.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\wired.handler.inl" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.editors.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.rc" />

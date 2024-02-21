@@ -4,6 +4,7 @@
 #include <rococo.strings.h>
 #include <rococo.validators.h>
 #include <rococo.hashtable.h>
+#include <rococo.editors.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -51,14 +52,14 @@ namespace ANON
 		return editor;
 	}
 
-	Rococo::Windows::IWindowSupervisor* AddOptionsList(const VisualStyle& style, IParentWindowSupervisor& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, ControlPropertyId id)
+	Rococo::Windows::IWin32SuperComboBox* AddOptionsList(Editors::ISuperListSpec& spec, const VisualStyle& style, IParentWindowSupervisor& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, ControlPropertyId id)
 	{
 		RECT containerRect;
 		GetClientRect(panel, &containerRect);
 
 		if (containerRect.right < style.minSpan) containerRect.right = style.minSpan;
 
-		auto* editor = Rococo::Windows::AddSuperComboBox(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, currentOptionText, id.value, WS_VISIBLE, 0);
+		auto* editor = Rococo::Windows::AddSuperComboBox(panel, spec, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, currentOptionText, id.value, WS_VISIBLE, 0);
 
 		size_t trueMaxLen = max(strlen(currentOptionText), maxCharacters);
 		if (trueMaxLen == 0) trueMaxLen = 32768;
@@ -657,22 +658,86 @@ namespace ANON
 		}
 	};
 
-	struct OptionVectorProperty : IPropertySupervisor
+	struct StdVectorPopulateDelegate: IStringPopulator
+	{
+		std::vector<char>& dest;
+
+		StdVectorPopulateDelegate(std::vector<char>& _dest): dest(_dest)
+		{
+
+		}
+
+		void Populate(cstr text) override
+		{
+			CopyString(dest.data(), dest.size(), text);
+		}
+	};
+
+	struct OptionVectorProperty : IPropertySupervisor, Editors::ISuperListSpec, Editors::ISuperListEvents
 	{
 		AutoFree<IEnumVectorSupervisor> enumVector;
 		HString id;
 		HString displayName;
 		VisualStyle style;
-		IWindowSupervisor* selectedOptionEditor { nullptr };
+		IWin32SuperComboBox* selectedOptionEditor { nullptr };
 		HString selectedText;
 		int stringCapacity = 0;
+		std::vector<char> keyBuffer;
+		std::vector<char> descBuffer;
+
+		IPropertyUIEvents& events;
 
 		OptionVectorProperty(UIPropertyMarshallingStub& stub, IEnumVectorSupervisor* newOwnedEnumVector, REF OptionRef& opt, size_t _stringCapacity):
-			enumVector(newOwnedEnumVector), displayName(stub.displayName), id(stub.propertyIdentifier), selectedText(opt.value)
+			enumVector(newOwnedEnumVector), displayName(stub.displayName), id(stub.propertyIdentifier), selectedText(opt.value), events(stub.eventHandler)
 		{
+			if (!enumVector)
+			{
+				Throw(0, "%s: No enum vector", __FUNCTION__);
+			}
+
 			if (_stringCapacity > 0x7FFFULL)
 			{
 				Throw(0, "%s: <%s> <%s> String capacity exceeded maximum of 32767 characters", __FUNCTION__, stub.propertyIdentifier, stub.displayName);
+			}
+
+			if (_stringCapacity < 2)
+			{
+				Throw(0, "%s: <%s> <%s> String capacity needs to be 2 or more characters", __FUNCTION__, stub.propertyIdentifier, stub.displayName);
+			}
+
+			keyBuffer.resize(_stringCapacity);
+			descBuffer.resize(_stringCapacity);
+		}
+
+		// Editors::ISuperListSpec method
+		Editors::ISuperListEvents& EventHandler() override
+		{
+			return *this;
+		}
+
+		// Editors::ISuperListEvents method
+		void OnDoubleClickAtSelection(size_t index) override
+		{
+			Select(index);
+		}
+
+		// Editors::ISuperListEvents method
+		void OnReturnAtSelection(size_t index) override
+		{
+			Select(index);
+		}
+
+		void Select(size_t index)
+		{
+			if (index < enumVector->Count())
+			{
+				StdVectorPopulateDelegate delegateToKey(keyBuffer);
+				enumVector->GetEnumName(index, delegateToKey);
+
+				selectedText = keyBuffer.data();
+
+				selectedOptionEditor->ComboBuilder().SetSelection(selectedText);
+				selectedOptionEditor->ComboBuilder().HidePopup();
 			}
 		}
 
@@ -683,8 +748,6 @@ namespace ANON
 
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId)
 		{
-			enum { MAX_PRIMITIVE_LEN = 24 };
-
 			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (selectedOptionEditor)
@@ -692,7 +755,24 @@ namespace ANON
 				Throw(0, "%s: unexpected non-null selectedOptionEditor for %s", __FUNCTION__, displayName.c_str());
 			}
 
-			selectedOptionEditor = ANON::AddOptionsList(style, panel, selectedText, yOffset, stringCapacity, editorId);
+			selectedOptionEditor = ANON::AddOptionsList(*this, style, panel, selectedText, yOffset, stringCapacity, editorId);
+
+			auto& builder = selectedOptionEditor->ListBuilder();
+
+			builder.AddColumnWithMaxWidth("Option");
+			
+			for (size_t i = 0; i < enumVector->Count(); ++i)
+			{
+				StdVectorPopulateDelegate delegateToKey(keyBuffer);
+				enumVector->GetEnumName(i, delegateToKey);
+
+				StdVectorPopulateDelegate delegateToDesc(descBuffer);
+				enumVector->GetEnumDescription(i, delegateToDesc);
+
+				// Column zero is keyed for the enum name, but also displays the key name
+				builder.AddKeyValue(keyBuffer.data(), keyBuffer.data());
+			}
+
 			return GetEditorRect(style, panel, yOffset);
 		}
 

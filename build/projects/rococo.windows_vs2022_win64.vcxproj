@@ -238,6 +238,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\rococo.editors.h" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\button.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\child.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\combo.control.inl" />

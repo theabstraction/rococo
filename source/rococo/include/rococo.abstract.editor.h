@@ -78,10 +78,10 @@ namespace Rococo::Abedit
 		[[nodiscard]] virtual size_t Count() const = 0;
 
 		// Populates the ith enum name. Returns true if i is within bounds
-		[[nodiscard]] virtual bool GetEnumName(size_t i, Strings::IStringPopulator& populator) const = 0;
+		/* discardable */ virtual bool GetEnumName(size_t i, Strings::IStringPopulator& populator) const = 0;
 
 		// Populates the ith enum description or not if i is out of bounds. Returns true if i is within bounds
-		[[nodiscard]] virtual bool GetEnumDescription(size_t i, Strings::IStringPopulator& populator) const = 0;
+		/* discardable */ virtual bool GetEnumDescription(size_t i, Strings::IStringPopulator& populator) const = 0;
 	};
 
 	ROCOCO_INTERFACE IEnumVectorSupervisor: IEnumVector
@@ -107,7 +107,7 @@ namespace Rococo::Abedit
 		virtual void VisitHeader(cstr propertyId, cstr displayName, cstr displayText) = 0;
 
 		// return true if the visitor is writing data from the visual editors to the target variables
-		virtual bool IsWritingToReferences() const = 0;
+		[[nodiscard]] virtual bool IsWritingToReferences() const = 0;
 
 		// Target a variable to visit
 		virtual void VisitProperty(UIPropertyMarshallingStub& stub, Rococo::Strings::HString& value, int capacity) = 0;
@@ -157,7 +157,7 @@ namespace Rococo::Abedit
 		virtual void UpdateFromVisuals(IProperty& p, IPropertyVenue& venue) = 0;
 
 		// Try to get the latest edited string for the given property
-		virtual bool TryGetEditorString(cstr propertyIdentifier, OUT Rococo::Strings::HString& value) = 0;
+		[[nodiscard]] virtual bool TryGetEditorString(cstr propertyIdentifier, OUT Rococo::Strings::HString& value) = 0;
 
 		// Tell the editor that an agent's property has changed and it should update the associated editor/view to reflect the change
 		virtual void Refresh(cstr onlyThisPropertyId, IEstateAgent& agent) = 0;
@@ -227,7 +227,7 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditorFactory
 	{
-		virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler) = 0;
+		[[nodiscard]] virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler) = 0;
 	};
 }
 

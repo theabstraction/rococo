@@ -1,12 +1,69 @@
+#include <rococo.editors.h>
+
 namespace Rococo::Windows
 {
-	class SuperListBox : public IWindowSupervisor, IWindowHandler
+	class SuperListBox : public IWindowSupervisor, IWindowHandler, public Editors::ISuperListBuilder
 	{
 		HWND hWnd = nullptr;
+		HWND hWndList = nullptr;
+		Editors::ISuperListSpec& spec;
 
-		SuperListBox()
+		SuperListBox(Editors::ISuperListSpec& _spec): spec(_spec)
 		{
 
+		}
+
+		void AddColumn(cstr name, int pixelWidth) override
+		{
+			LV_COLUMNA item;
+			item = { 0 };
+			item.mask = LVCF_TEXT | LVCF_WIDTH;
+			item.pszText = (char*)name;
+			item.cx = pixelWidth;
+			if (-1 == ListView_InsertColumn(hWndList, 10000, &item))
+			{
+				Throw(0, "%s: Error inserting item %s into a ListView header", __FUNCTION__, name);
+			}
+		}
+
+		void AddColumnWithMaxWidth(cstr name) override
+		{
+			RECT rect;
+			GetClientRect(hWndList, &rect);
+
+			LV_COLUMNA item;
+			item = { 0 };
+			item.mask = LVCF_TEXT | LVCF_WIDTH;
+			item.pszText = (char*)name;
+			item.cx = rect.right;
+			if (-1 == ListView_InsertColumn(hWndList, 10000, &item))
+			{
+				Throw(0, "%s: Error inserting item %s into a ListView header", __FUNCTION__, name);
+			}
+		}
+
+		void AddKeyValue(cstr key, cstr value) override
+		{
+			LV_ITEM item = { 0 };
+			item.mask = LVIF_TEXT;
+			item.pszText = (char*)value;
+			item.iItem = 0x7FFFFFFF;
+			item.cchTextMax = 256;
+			ListView_InsertItem(hWndList, &item);
+		}
+
+		void Select(cstr key) override
+		{
+			LVFINDINFOA f = { 0 };
+			f.flags = LVFI_STRING;
+			f.psz = key;
+
+			int pos = ListView_FindItem(hWndList, 0, &f);
+
+			if (pos > 0)
+			{
+				ListView_SetSelectionMark(hWndList, pos);
+			}
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
@@ -31,11 +88,39 @@ namespace Rococo::Windows
 			}
 			case WM_NOTIFY:
 			{
-				NMHDR* header = (NMHDR*)lParam;
-				break;
+				return OnNotify(hWnd, wParam, lParam);
 			}
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		}
+
+		LRESULT OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		{
+			UINT_PTR id = wParam;
+			UNUSED(id);
+			auto* header = (NMHDR*)lParam;
+			if (header->code == LVN_ITEMCHANGED)
+			{
+				auto& n = *(LPNMLISTVIEW)header;
+				return TRUE;
+			}
+			else if (header->code == NM_RETURN)
+			{
+				int iPos = ListView_GetNextItem(hWndList, -1, LVNI_SELECTED);
+				if (iPos >= 0)
+				{
+					spec.EventHandler().OnReturnAtSelection(iPos);
+				}
+			}
+			else if (header->code == NM_DBLCLK)
+			{
+				NMITEMACTIVATE* a = (NMITEMACTIVATE*)(header);
+				if (a->iItem > 0)
+				{
+					spec.EventHandler().OnDoubleClickAtSelection(a->iItem);
+				}
+			}
+			return DefWindowProc(hWnd, WM_NOTIFY, wParam, lParam);
 		}
 
 		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
@@ -59,6 +144,8 @@ namespace Rococo::Windows
 		{
 		}
 
+		enum { DLG_CTRL_LIST_ID = 1001 };
+
 		void Construct(const WindowConfig& childConfig, IWindow& parent)
 		{
 			WindowConfig c = childConfig;
@@ -66,6 +153,22 @@ namespace Rococo::Windows
 			c.exStyle = 0;
 			c.hWndParent = parent;
 			hWnd = CreateWindowIndirect(customClassName, c, static_cast<IWindowHandler*>(this));
+
+			RECT rect;
+			GetClientRect(hWnd, &rect);
+
+			
+			WindowConfig listConfig = { 0 };
+			
+			listConfig.left = 10;
+			listConfig.top = 10;
+			listConfig.width = rect.right - 20;
+			listConfig.height = rect.bottom - 20;
+			listConfig.hWndParent = hWnd;
+			listConfig.style |= WS_CHILD | WS_VISIBLE | LVS_REPORT;
+
+			hWndList = CreateWindowIndirect(WC_LISTVIEWA, listConfig, nullptr);
+			SetDlgCtrlID(hWndList, DLG_CTRL_LIST_ID);
 		}
 
 		void OnPretranslateMessage(MSG&) override
@@ -73,14 +176,14 @@ namespace Rococo::Windows
 
 		}
 	public:
-		static SuperListBox* Create(const WindowConfig& childConfig, IWindow& parent)
+		static SuperListBox* Create(Editors::ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent)
 		{
 			if (customAtom == 0)
 			{
 				customAtom = CreateCustomAtom();
 			}
 
-			SuperListBox* p = new SuperListBox();
+			SuperListBox* p = new SuperListBox(spec);
 			p->Construct(childConfig, parent);
 			return p;
 		}
@@ -106,7 +209,7 @@ namespace Rococo::Windows
 		}
 	};
 
-	class SuperComboBox : public IWindowSupervisor, private IWindowHandler
+	class SuperComboBox : public IWin32SuperComboBox, private IWindowHandler, Editors::ISuperComboBuilder
 	{
 	private:
 		HWND hWnd = nullptr;
@@ -114,9 +217,31 @@ namespace Rococo::Windows
 		HWND hWndLeftListToggle = nullptr;
 		HWND hWndRightListToggle = nullptr;
 		AutoFree<SuperListBox> listBox;
+		Editors::ISuperListSpec& spec;
 
-		SuperComboBox()
+		SuperComboBox(Editors::ISuperListSpec& _spec): spec(_spec)
 		{
+		}
+
+		Editors::ISuperListBuilder& ListBuilder() override
+		{
+			return *listBox;
+		}
+
+		Editors::ISuperComboBuilder& ComboBuilder() override
+		{
+			return *this;
+		}
+
+		void HidePopup() override
+		{
+			ShowWindow(*listBox, SW_HIDE);
+		}
+
+		void SetSelection(cstr keyName) override
+		{
+			SetWindowText(hWndEditControl, keyName);
+			ListBuilder().Select(keyName);
 		}
 
 		void OnToggleClick(HWND hSender)
@@ -293,7 +418,7 @@ namespace Rococo::Windows
 			listConfig.hWndParent = hWnd;
 			listConfig.width = 200;
 			listConfig.height = 320;
-			listBox = SuperListBox::Create(listConfig, *this);
+			listBox = SuperListBox::Create(spec, listConfig, *this);
 		}
 
 		void OnPretranslateMessage(MSG&) override
@@ -301,14 +426,14 @@ namespace Rococo::Windows
 
 		}
 	public:
-		static SuperComboBox* Create(const WindowConfig& childConfig, IWindow& parent)
+		static SuperComboBox* Create(Editors::ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent)
 		{
 			if (customAtom == 0)
 			{
 				customAtom = CreateCustomAtom();
 			}
 
-			SuperComboBox* p = new SuperComboBox();
+			SuperComboBox* p = new SuperComboBox(spec);
 			p->Construct(childConfig, parent);
 			return p;
 		}
