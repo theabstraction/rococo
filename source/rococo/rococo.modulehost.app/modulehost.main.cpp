@@ -28,13 +28,18 @@ public:
 		PostQuitMessage(0);
 	}
 
-	void DoMainloop(IMVC_Controller& controller)
+	void DoMainloop(IMVC_ControllerSupervisor& controller)
 	{
 		MSG msg;
 		while (isRunning && controller.IsRunning() && GetMessage(&msg, NULL, 0, 0))
 		{
+			if (msg.message == WM_QUIT)
+			{
+				break;
+			}
+
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageA(&msg);
 		}
 
 		Beep(512, 500);

@@ -11,6 +11,13 @@ namespace Rococo::Windows
 
 namespace Rococo::Abedit
 {
+	ROCOCO_INTERFACE IButtonState
+	{
+		virtual bool IsChecked() const = 0;
+		virtual bool IsGrayed() const = 0;
+		virtual void Render(DRAWITEMSTRUCT& d) = 0;
+	};
+
 	ROCOCO_INTERFACE IAbeditMainWindowSupervisor : IAbeditMainWindow
 	{
 		virtual Rococo::Windows::IParentWindowSupervisor& PropertiesPanel() = 0;
@@ -24,4 +31,8 @@ namespace Rococo::Abedit
 		IUIPaletteSupervisor* CreatePalette();
 		IUIPropertiesSupervisor* CreateProperties(Rococo::Windows::IParentWindowSupervisor& propertiesPanelArea);
 	}
+
+	enum { WM_NAVIGATE_BY_TAB = WM_USER + 0x201 };
+
+	HINSTANCE GetAbEditorInstance();
 }

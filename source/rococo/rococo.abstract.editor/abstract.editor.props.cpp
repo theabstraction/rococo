@@ -6,6 +6,9 @@
 #include <rococo.hashtable.h>
 #include <rococo.editors.h>
 
+#include <commctrl.h>
+#pragma comment(lib, "Comctl32.lib")
+
 using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::Windows;
@@ -20,6 +23,7 @@ namespace ANON
 		virtual void OnButtonClicked() = 0;
 		virtual void OnEditorChanged() = 0;
 		virtual void OnEditorLostKeyboardFocus() = 0;
+		virtual bool TryTakeFocus() = 0;
 		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId) = 0;
 	};
 
@@ -37,6 +41,56 @@ namespace ANON
 		Rococo::Windows::AddLabel(panel, GuiRect{ style.defaultPadding, yOffset, style.labelSpan - style.defaultPadding, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE, 0);
 	}
 
+	enum { NAV_TARGET_CLASS_ID = 42, ABEDIT_BTN_CLASS_ID = 9000 };
+
+	static LRESULT NavigationTargetProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+	{
+		UNUSED(dwRefData);
+
+		if (uIdSubclass == NAV_TARGET_CLASS_ID)
+		{
+			switch (uMsg)
+			{
+			case WM_KEYDOWN:
+			{
+				if (wParam == VK_TAB)
+				{
+					PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 0);
+					return 0L;
+				}
+
+				break;
+			}
+			}
+		}
+
+		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+	}
+
+	static LRESULT AbEditCheckBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+	{
+		UNUSED(dwRefData);
+
+		if (uIdSubclass == ABEDIT_BTN_CLASS_ID)
+		{
+			switch (uMsg)
+			{
+			case WM_KEYDOWN:
+				{
+					if (wParam == VK_TAB)
+					{
+						PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 0);
+						return 0L;
+					}
+
+					break;
+				}
+			}
+		}
+
+		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+	}
+
 	Rococo::Windows::IWindowSupervisor* AddEditor(const VisualStyle& style, IParentWindowSupervisor& panel, cstr text, size_t maxCharacters, int yOffset, ControlPropertyId id)
 	{
 		RECT containerRect;
@@ -45,6 +99,8 @@ namespace ANON
 		if (containerRect.right < style.minSpan) containerRect.right = style.minSpan;
 
 		auto* editor = Rococo::Windows::AddEditor(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE, 0);
+
+		SetWindowSubclass(*editor, NavigationTargetProc, NAV_TARGET_CLASS_ID, 0);
 
 		size_t trueMaxLen = max(strlen(text), maxCharacters);
 		if (trueMaxLen == 0) trueMaxLen = 32768;
@@ -67,15 +123,23 @@ namespace ANON
 		return editor;
 	}
 
-	Rococo::Windows::IWindowSupervisor* AddCheckbox(const VisualStyle& style, IParentWindowSupervisor& panel, bool value, int yOffset, ControlPropertyId id)
+	HWND AddCheckbox(const VisualStyle& style, IParentWindowSupervisor& panel, int yOffset, ControlPropertyId id, Abedit::IButtonState* stateManager)
 	{
 		RECT containerRect;
 		GetClientRect(panel, &containerRect);
 
 		if (containerRect.right < style.minSpan) containerRect.right = style.minSpan;
 
-		auto* checkbox = Rococo::Windows::AddCheckBox(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, "", id.value, WS_VISIBLE | BS_CHECKBOX, 0);
-		if (checkbox) SendMessage(*checkbox, BM_SETCHECK, value ? BST_CHECKED : BST_UNCHECKED, 0);
+		HWND checkbox = CreateWindowExA(0, "BUTTON", "", WS_CHILD | BS_OWNERDRAW, style.labelSpan, yOffset, containerRect.right, style.rowHeight, panel, (HMENU) id.value, GetAbEditorInstance(), NULL);
+		if (!checkbox)
+		{
+			Throw(GetLastError(), "Error creating AbEditor checkbox");
+		}
+
+		SetWindowLongPtrA(checkbox, GWLP_USERDATA, (LONG_PTR) stateManager);
+		SetWindowSubclass(checkbox, AbEditCheckBoxProc, ABEDIT_BTN_CLASS_ID, 0);
+		ShowWindow(checkbox, SW_SHOW);
+		
 		return checkbox;
 	}
 
@@ -211,11 +275,25 @@ namespace ANON
 		void OnEditorLostKeyboardFocus() override
 		{
 			events.OnPropertyEditorLostFocus(*this);
+
+			if (*editor) InvalidateRect(*editor, NULL, TRUE);
 		}
 
 		bool IsDirty() const override
 		{
 			return isDirty;
+		}
+
+		bool TryTakeFocus() override
+		{
+			if (!editor)
+			{
+				return false;
+			}
+
+			SetFocus(*editor);
+			InvalidateRect(*editor, NULL, TRUE);
+			return true;
 		}
 
 		void UpdateWidget(const void* data, size_t sizeOfData) override
@@ -298,6 +376,11 @@ namespace ANON
 		bool TryGetEditorString(REF HString& value) override
 		{
 			return ANON::TryGetEditorString(editor, REF value);
+		}
+
+		bool TryTakeFocus() override
+		{
+			return false;
 		}
 
 		void OnEditorChanged() override
@@ -586,6 +669,23 @@ namespace ANON
 			return ANON::TryGetEditorString(editor, REF value);
 		}
 
+		bool TryTakeFocus() override
+		{
+			if (!editor)
+			{
+				return false;
+			}
+
+			SetFocus(*editor);
+			LRESULT nChars = SendMessage(*editor, WM_GETTEXTLENGTH, 0, 0);
+			SendMessage(*editor, EM_SETSEL, nChars, nChars);			
+
+			InvalidateRect(*editor, NULL, TRUE);
+			UpdateWindow(*editor);
+
+			return true;
+		}
+
 		void OnButtonClicked() override
 		{
 
@@ -633,6 +733,8 @@ namespace ANON
 		void OnEditorLostKeyboardFocus() override
 		{
 			events.OnPropertyEditorLostFocus(*this);
+
+			if (*editor) InvalidateRect(*editor, NULL, TRUE);
 		}
 
 		void UpdateWidget(const void* data, size_t sizeOfData) override
@@ -813,6 +915,11 @@ namespace ANON
 		{
 		}
 
+		bool TryTakeFocus() override
+		{
+			return false;
+		}
+
 		void UpdateWidget(const void* data, size_t sizeOfData) override
 		{
 			UNUSED(data);
@@ -825,7 +932,7 @@ namespace ANON
 		}
 	};
 
-	struct BooleanProperty : IPropertySupervisor
+	struct BooleanProperty : IPropertySupervisor, IButtonState
 	{
 		HString id;
 		bool initialValue;
@@ -833,7 +940,7 @@ namespace ANON
 		VisualStyle style;
 		bool isDirty = false;
 
-		IWindowSupervisor* checkbox = nullptr;
+		HWND checkbox = nullptr;
 
 		IValueValidator<bool>& validator;
 		IPropertyUIEvents& events;
@@ -859,6 +966,68 @@ namespace ANON
 			delete this;
 		}
 
+		bool IsChecked() const override
+		{
+			return initialValue;
+		}
+
+		bool IsGrayed() const override
+		{
+			return false;
+		}
+
+		void DrawTick(HDC dc, const RECT& buttonRect)
+		{
+			HPEN hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
+
+			MoveToEx(dc, buttonRect.left + 2, (buttonRect.bottom + buttonRect.top) / 2 - 2, NULL);
+			LineTo(dc, (buttonRect.left + buttonRect.right) / 2, buttonRect.bottom - 2);
+
+			LineTo(dc, buttonRect.right + 6, buttonRect.top - 2);
+
+			SelectObject(dc, hOldPen);
+			DeleteObject(hPen);
+		}
+
+		void Render(DRAWITEMSTRUCT& d) override
+		{
+			RECT r;
+			GetClientRect(checkbox, &r);
+
+			bool isFocus = GetFocus() == checkbox;
+			HBRUSH hBrush = CreateSolidBrush(isFocus ?  RGB(255, 224, 224) : RGB(255, 255, 255));
+			FillRect(d.hDC, &r, hBrush);
+
+			int height = r.bottom;
+
+			RECT buttonRect;
+			buttonRect.left = r.left + 3;
+			buttonRect.top = r.top + 3;
+			buttonRect.bottom = r.bottom - 3;
+			buttonRect.right = buttonRect.left + height - 6;
+
+			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+			HPEN hOldPen = (HPEN) SelectObject(d.hDC, hPen);
+
+			MoveToEx(d.hDC, buttonRect.left, buttonRect.bottom, NULL);
+			LineTo(d.hDC, buttonRect.right, buttonRect.bottom);
+			LineTo(d.hDC, buttonRect.right, buttonRect.top);
+			LineTo(d.hDC, buttonRect.left, buttonRect.top);
+			LineTo(d.hDC, buttonRect.left, buttonRect.bottom);
+
+			SelectObject(d.hDC, hOldPen);
+
+			DeleteObject(hPen);
+
+			if (initialValue)
+			{
+				DrawTick(d.hDC, buttonRect);
+			}
+			
+			DeleteObject(hBrush);
+		}
+
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId)
 		{
 			enum { MAX_PRIMITIVE_LEN = 24 };
@@ -870,8 +1039,7 @@ namespace ANON
 				Throw(0, "%s: unexpected non-null checkbox for %s", __FUNCTION__, displayName.c_str());
 			}
 
-			GuiRect editorRect{  };
-			checkbox = ANON::AddCheckbox(style, panel, initialValue, yOffset, editorId);
+			checkbox = ANON::AddCheckbox(style, panel, yOffset, editorId, static_cast<IButtonState*>(this));
 			return GetEditorRect(style, panel, yOffset);
 		}
 
@@ -882,7 +1050,7 @@ namespace ANON
 
 		bool IsForControl(ControlPropertyId id) const
 		{
-			return checkbox && GetWindowLongPtrA(*checkbox, GWLP_ID) == id.value;
+			return checkbox && GetWindowLongPtrA(checkbox, GWLP_ID) == id.value;
 		}
 
 		ControlPropertyId ControlId() const override
@@ -892,7 +1060,7 @@ namespace ANON
 				return { 0 };
 			}
 
-			return { (uint16)GetWindowLongPtrA(*checkbox, GWLP_ID) };
+			return { (uint16)GetWindowLongPtrA(checkbox, GWLP_ID) };
 		}
 
 		bool TryGetEditorString(REF HString& value)
@@ -902,18 +1070,26 @@ namespace ANON
 				return false;
 			}
 
-			LRESULT result = SendMessageA(*checkbox, BM_GETSTATE, 0, 0);
-			value = (result & BST_CHECKED) != 0 ? "true" : "false";
+			value = initialValue ? "true" : "false";
 			
+			return true;			
+		}
+
+		bool TryTakeFocus() override
+		{
+			if (!checkbox)
+			{
+				return false;
+			}
+
+			if (checkbox) SetFocus(checkbox);
+			if (checkbox) InvalidateRect(checkbox, NULL, TRUE);
 			return true;
-			
 		}
 
 		void OnButtonClicked() override
 		{
-			LRESULT result = SendMessageA(*checkbox, BM_GETSTATE, 0, 0);
-			bool isChecked = (result & BST_CHECKED);
-			SendMessageA(*checkbox, BM_SETCHECK, isChecked ? BST_UNCHECKED : BST_CHECKED, 0);
+			initialValue = !initialValue;
 			OnEditorChanged();
 			events.OnBooleanButtonChanged(*this);
 		}
@@ -922,11 +1098,13 @@ namespace ANON
 		{
 			if (!checkbox) return;
 			isDirty = true;
+			InvalidateRect(checkbox, NULL, TRUE);
 		}
 
 		void OnEditorLostKeyboardFocus() override
 		{
 			events.OnPropertyEditorLostFocus(*this);
+			if (checkbox) InvalidateRect(checkbox, NULL, TRUE);
 		}
 
 		void UpdateWidget(const void* data, size_t sizeOfData) override
@@ -938,9 +1116,8 @@ namespace ANON
 
 			if (checkbox)
 			{
-				bool value = *(const bool*)data;
-
-				SendMessageA(*checkbox, BM_SETCHECK, value ? BST_CHECKED : BST_UNCHECKED, 0);
+				initialValue = *(const bool*)data;
+				InvalidateRect(checkbox, NULL, TRUE);
 			}
 		}
 
@@ -1121,6 +1298,28 @@ namespace ANON
 			}
 
 			return nullptr;
+		}
+
+		void NavigateByTabFrom(ControlPropertyId id)
+		{
+			for (size_t i = 0; i < properties.size() - 1; i++)
+			{
+				auto& currentFocus = properties[i];
+				if (currentFocus->IsForControl(id))
+				{					
+					i++;
+					while (i < properties.size())
+					{
+						if (properties[i]->TryTakeFocus())
+						{							
+							return;
+						}
+
+						i++;
+					}
+					return;
+				}
+			}
 		}
 
 		void OnEditorChanged(ControlPropertyId id) override

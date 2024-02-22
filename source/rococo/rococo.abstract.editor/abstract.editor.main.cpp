@@ -44,6 +44,11 @@ using namespace Rococo::MVC;
 namespace Rococo::Abedit
 {
     IMVC_ViewSupervisor* CreateAbstractEditor(IMVC_Host& host, HWND hHostWindow, HINSTANCE hInstance, cstr commandLine);
+
+    HINSTANCE GetAbEditorInstance()
+    {
+        return GetDllInstance();
+    }
 }
 
 MVC_EXPORT_C_API IMVC_ViewSupervisor* CreateMVCView(IMVC_Host& host, HWND hHostWindow, HINSTANCE hInstance, cstr commandLine)

@@ -19,13 +19,26 @@ namespace ANON
 		IParentWindowSupervisor* window;
 		AutoFree<IUIPropertiesSupervisor> properties;
 
+		HBRUSH hFocusBrush = nullptr;
+		COLORREF focusColour;
+
+		HBRUSH hButtonFocusBrush = nullptr;
+		COLORREF buttonFocusColour;
+
 		AbeditPropertiesWindow() : window(nullptr)
 		{
+			focusColour = RGB(255, 240, 240);
+			hFocusBrush = CreateSolidBrush(focusColour);
+
+			buttonFocusColour = RGB(192, 128, 128);
+			hButtonFocusBrush = CreateSolidBrush(buttonFocusColour);
 		}
 
 		~AbeditPropertiesWindow()
 		{
 			Rococo::Free(window);
+
+			DeleteObject(hFocusBrush);
 		}
 
 		void PostConstruct(IWindow* parent)
@@ -89,9 +102,66 @@ namespace ANON
 		{
 			switch (msg)
 			{
+			case WM_CTLCOLOREDIT:
+			{
+				HWND hEditor = (HWND)lParam;
+
+				HDC hdc = (HDC)wParam;
+
+				if (GetFocus() == hEditor)
+				{
+					SetTextColor(hdc, RGB(0, 0, 0));
+					SetBkColor(hdc, focusColour);
+					return (LRESULT) hFocusBrush;
+				}
+				else
+				{
+					SetTextColor(hdc, RGB(0, 0, 0));
+					SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+					return (LRESULT)GetSysColorBrush(COLOR_WINDOW);
+				}
+			}
+			case WM_CTLCOLORBTN:
+			{
+				HWND hButton = (HWND)lParam;
+
+				HDC hdc = (HDC)wParam;
+
+				if (GetFocus() == hButton)
+				{
+					SetTextColor(hdc, RGB(0, 0, 0));
+					SetBkColor(hdc, buttonFocusColour);
+					return (LRESULT)hButtonFocusBrush;
+				}
+				else
+				{
+					SetTextColor(hdc, RGB(0, 0, 0));
+					SetBkColor(hdc, GetSysColor(COLOR_BTNFACE));
+					return (LRESULT)GetSysColorBrush(COLOR_BTNFACE);
+				}
+			}
 			case WM_PAINT:
 				OnPaint();
 				return 0L;
+			case WM_NAVIGATE_BY_TAB:
+				{
+					ControlPropertyId id{ (uint16) wParam };
+					properties->NavigateByTabFrom(id);
+					return 0L;
+				}
+			case WM_DRAWITEM:
+			{
+				DRAWITEMSTRUCT* d = (DRAWITEMSTRUCT*)lParam;
+				if (d->CtlType == ODT_BUTTON)
+				{
+					auto* manager = (IButtonState*) GetWindowLongPtrA(d->hwndItem, GWLP_USERDATA);
+					if (manager)
+					{
+						manager->Render(*d);
+						return 0L;
+					}
+				}
+			}
 			}
 
 			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
@@ -227,7 +297,6 @@ namespace ANON
 			switch (msg)
 			{
 			case WM_CLOSE:
-
 				break;
 			}
 			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
