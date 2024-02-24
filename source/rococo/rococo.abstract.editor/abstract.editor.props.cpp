@@ -26,6 +26,7 @@ namespace ANON
 		virtual void OnEditorLostKeyboardFocus() = 0;
 		virtual bool TryTakeFocus() = 0;
 		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId) = 0;
+		virtual GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) = 0;
 	};
 
 	struct VisualStyle
@@ -39,7 +40,7 @@ namespace ANON
 
 	void AddLabel(const VisualStyle& style, IParentWindowSupervisor& panel, cstr text, int yOffset, ControlPropertyId id)
 	{
-		Rococo::Windows::AddLabel(panel, GuiRect{ style.defaultPadding, yOffset, style.labelSpan - style.defaultPadding, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE, 0);
+		Rococo::Windows::AddLabel(panel, GuiRect{ style.defaultPadding, yOffset, style.labelSpan - style.defaultPadding, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
 	}
 
 	enum { NAV_TARGET_CLASS_ID = 42, ABEDIT_BTN_CLASS_ID = 9000 };
@@ -189,6 +190,19 @@ namespace ANON
 		return totalRect;
 	}
 
+	GuiRect LayoutSimpleEditor(IParentWindowSupervisor& panel, const VisualStyle& style, ControlPropertyId labelId, HWND hEditor, int yOffset)
+	{
+		HWND hLabel = GetDlgItem(panel, labelId.value);
+
+		RECT rect;
+		GetClientRect(panel, &rect);
+
+		MoveWindow(hLabel, 0, yOffset, style.labelSpan - style.defaultPadding, style.rowHeight, TRUE);
+		MoveWindow(hEditor, style.labelSpan, yOffset, rect.right - style.labelSpan, style.rowHeight, TRUE);
+
+		return GetEditorRect(style, panel, yOffset);
+	}
+
 	bool TryGetEditorString(IWindowSupervisor* editor, REF HString& value)
 	{
 		if (!editor)
@@ -223,6 +237,7 @@ namespace ANON
 		bool isDirty = false;
 		IPropertyUIEvents& events;
 		IWindowSupervisor* editor{ nullptr };
+		ControlPropertyId labelId{ 0 };
 
 		enum { HARD_CAP = 32767 };
 
@@ -257,6 +272,7 @@ namespace ANON
 
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId)
 		{
+			this->labelId = labelId;
 			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (editor)
@@ -266,6 +282,11 @@ namespace ANON
 
 			editor = AddEditor(style, panel, initialString.c_str(), capacity, yOffset, editorId);
 			return GetEditorRect(style, panel, yOffset);
+		}
+
+		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
+		{
+			return LayoutSimpleEditor(panel, style, labelId, *editor, yOffset);
 		}
 
 		cstr Id() const override
@@ -343,6 +364,8 @@ namespace ANON
 		VisualStyle style;
 		bool isDirty = false;
 
+		ControlPropertyId labelId{ 0 };
+
 		IWindowSupervisor* editor{ nullptr };
 
 		enum { HARD_CAP = 32767 };
@@ -378,6 +401,8 @@ namespace ANON
 
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId constantId) override
 		{
+			this->labelId = labelId;
+
 			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (editor)
@@ -387,6 +412,11 @@ namespace ANON
 
 			editor = AddImmutableEditor(style, panel, initialString.c_str(), yOffset, constantId);
 			return GetEditorRect(style, panel, yOffset);
+		}
+
+		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
+		{
+			return LayoutSimpleEditor(panel, style, labelId, *editor, yOffset);
 		}
 
 		cstr Id() const override
@@ -641,6 +671,8 @@ namespace ANON
 		IValueFormatter<VALUE_TYPE>& formatter;
 		IPropertyUIEvents& events;
 
+		ControlPropertyId labelId{ 0 };
+
 		PrimitiveProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<VALUE_TYPE>&  marshaller) :
 			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), formatter(marshaller.formatter), events(stub.eventHandler)
 		{
@@ -674,6 +706,8 @@ namespace ANON
 			char initialText[MAX_PRIMITIVE_LEN];
 			formatter.Format(initialText, MAX_PRIMITIVE_LEN, initialValue);
 
+			this->labelId = labelId;
+
 			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (editor)
@@ -683,6 +717,11 @@ namespace ANON
 
 			editor = AddEditor(style, panel, initialText, MAX_PRIMITIVE_LEN, yOffset, editorId);
 			return GetEditorRect(style, panel, yOffset);
+		}
+
+		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
+		{
+			return LayoutSimpleEditor(panel, style, labelId, *editor, yOffset);
 		}
 
 		cstr Id() const override
@@ -829,6 +868,7 @@ namespace ANON
 		std::vector<char> descBuffer;
 
 		IPropertyUIEvents& events;
+		ControlPropertyId labelId{ 0 };
 
 		OptionVectorProperty(UIPropertyMarshallingStub& stub, IEnumVectorSupervisor* newOwnedEnumVector, REF OptionRef& opt, size_t _stringCapacity):
 			enumVector(newOwnedEnumVector), displayName(stub.displayName), id(stub.propertyIdentifier), selectedText(opt.value), events(stub.eventHandler)
@@ -896,6 +936,8 @@ namespace ANON
 
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId)
 		{
+			this->labelId = labelId;
+
 			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (selectedOptionEditor)
@@ -922,6 +964,11 @@ namespace ANON
 			}
 
 			return GetEditorRect(style, panel, yOffset);
+		}
+
+		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
+		{
+			return LayoutSimpleEditor(panel, style, labelId, *selectedOptionEditor, yOffset);
 		}
 
 		cstr Id() const override
@@ -999,6 +1046,8 @@ namespace ANON
 
 		IValueValidator<bool>& validator;
 		IPropertyUIEvents& events;
+
+		ControlPropertyId labelId{ 0 };
 
 		BooleanProperty(UIPropertyMarshallingStub& stub, UIPrimitiveMarshaller<bool>& marshaller) :
 			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), events(stub.eventHandler)
@@ -1103,6 +1152,7 @@ namespace ANON
 		{
 			enum { MAX_PRIMITIVE_LEN = 24 };
 
+			this->labelId = labelId;
 			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (checkbox)
@@ -1112,6 +1162,11 @@ namespace ANON
 
 			checkbox = ANON::AddCheckbox(style, panel, yOffset, editorId, static_cast<IOwnerDrawItem*>(this));
 			return GetEditorRect(style, panel, yOffset);
+		}
+
+		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
+		{
+			return LayoutSimpleEditor(panel, style, labelId, checkbox, yOffset);
 		}
 
 		cstr Id() const override
@@ -1334,6 +1389,19 @@ namespace ANON
 		~Properties()
 		{
 			Clear();
+		}
+
+		void Layout()
+		{
+			int lastY = 2;
+
+			for (auto* p : properties)
+			{
+				GuiRect rect = p->Layout(panelArea, lastY);
+				lastY = rect.bottom + 2;
+			}
+
+			InvalidateRect(panelArea, NULL, TRUE);
 		}
 
 		ControlPropertyId Next()

@@ -4,6 +4,7 @@
 #include "resource.h"
 #include <rococo.os.h>
 #include <rococo.window.h>
+#include <windowsx.h>
 
 using namespace Rococo;
 using namespace Rococo::Abedit;
@@ -162,18 +163,19 @@ namespace ANON
 				return 0L;
 				}
 			case WM_DRAWITEM:
-			{
-				DRAWITEMSTRUCT* d = (DRAWITEMSTRUCT*)lParam;
-				if (d->CtlType == ODT_BUTTON)
 				{
-					auto* item = (IOwnerDrawItem*) GetWindowLongPtrA(d->hwndItem, GWLP_USERDATA);
-					if (item)
+					DRAWITEMSTRUCT* d = (DRAWITEMSTRUCT*)lParam;
+					if (d->CtlType == ODT_BUTTON)
 					{
-						item->DrawItem(*d);
-						return 0L;
+						auto* item = (IOwnerDrawItem*) GetWindowLongPtrA(d->hwndItem, GWLP_USERDATA);
+						if (item)
+						{
+							item->DrawItem(*d);
+							return 0L;
+						}
 					}
 				}
-			}
+				break;
 			}
 
 			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
@@ -181,6 +183,7 @@ namespace ANON
 
 		void LayoutChildren()
 		{
+			properties->Layout();
 		}
 
 		void OnSize(HWND, const Vec2i& span, RESIZE_TYPE) override
@@ -232,12 +235,173 @@ namespace ANON
 		}
 	};
 
+	enum
+	{
+		WM_PAINT_SPLITTER_PREVIEW = WM_USER + 1,
+		WM_SET_HORZ_SPLITTER
+	};
+
+	class AbeditSplitter: public StandardWindowHandler
+	{
+	private:
+		IDialogSupervisor* window = nullptr;
+
+		AbeditSplitter()
+		{
+
+		}
+
+		~AbeditSplitter()
+		{
+			Rococo::Free(window); // top level windows created with CreateDialogWindow have to be manually freed
+		}
+
+		int dragStart = -1;
+		int dragNew = -1;
+
+		RECT previousGuideRect{ -1,-1,-1,-1 };
+	public:
+		operator HWND()
+		{
+			return *window;
+		}
+
+		void OnErase(HDC dc)
+		{
+			HBRUSH hBrush = (HBRUSH) GetStockObject(LTGRAY_BRUSH);
+			RECT rect;
+			GetClientRect(*window, &rect);
+			FillRect(dc, &rect, hBrush);
+		}
+
+		void PaintGuide()
+		{
+			HWND hParent = GetParent(*window);
+			HDC dc = GetDC(hParent);
+
+			RECT guideRect = GetGuideRect();
+
+			FillRect(dc, &guideRect, (HBRUSH)GetStockObject(GRAY_BRUSH));
+			
+			ReleaseDC(hParent, dc);
+
+			ValidateRect(hParent, &guideRect);
+
+			if (previousGuideRect.left > -1)
+			{
+				InvalidateRect(hParent, &previousGuideRect, TRUE);
+			}
+
+			previousGuideRect = guideRect;
+		}
+
+		RECT GetGuideRect()
+		{
+			HWND hParent = GetParent(*window);
+
+			RECT windowScreenRect;
+			GetWindowRect(*window, &windowScreenRect);
+
+			POINT windowParentRect{ windowScreenRect.left, windowScreenRect.top };
+			ScreenToClient(hParent, &windowParentRect);
+
+			POINT p, q;
+			p.x = windowParentRect.x + dragNew;
+			p.y = windowParentRect.y;
+			q.x = p.x;
+			q.y = windowScreenRect.bottom - windowScreenRect.top;
+
+			return RECT{ p.x - 1,  p.y, q.x + 1, q.y };
+		}
+
+		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_ERASEBKGND:
+				OnErase((HDC) wParam);
+				return 0L;
+			case WM_SETCURSOR:
+				SetCursor(LoadCursor(NULL, IDC_SIZEWE));
+				return 0L;
+			case WM_LBUTTONDOWN:
+				dragStart = GET_X_LPARAM(lParam);
+				dragNew = dragStart;
+				SetCapture(*window);
+				return 0L;
+			case WM_MOUSEMOVE:
+				if (dragStart >= 0)
+				{
+					dragNew = GET_X_LPARAM(lParam);
+					RECT guideRect = GetGuideRect();
+					InvalidateRect(GetParent(hWnd), &guideRect, TRUE);
+				}
+				return 0L;
+			case WM_LBUTTONUP:
+				if (dragStart != -1)
+				{
+					SetCapture(NULL);
+
+					RECT screenRect;
+					GetWindowRect(hWnd, &screenRect);
+
+					POINT topLeft = { screenRect.left, screenRect.top };
+					ScreenToClient(GetParent(hWnd), &topLeft);
+
+					SendMessage(GetParent(hWnd), WM_SET_HORZ_SPLITTER, topLeft.x + dragNew - dragStart, 0);
+					dragStart = -1;
+					dragNew = -1;
+				}
+
+				return 0L;
+			case WM_PAINT_SPLITTER_PREVIEW:
+				if (dragStart != -1)
+				{
+					PaintGuide();
+				}
+				return 0L;
+			}
+			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
+		}
+
+		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, Vec2i topLeft, Vec2i span)
+		{
+			UNUSED(hDll);
+
+			GuiRect rect{ topLeft.x, topLeft.y, topLeft.x + span.x, topLeft.y + span.y };
+
+			WindowConfig config;
+			Rococo::Windows::SetChildWindowConfig(config, rect, hParentWnd, "Splitter", WS_CHILD | WS_VISIBLE, 0);
+			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
+
+			Layout();
+		}
+
+		void Layout()
+		{
+		}
+
+		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
+		static AbeditSplitter* Create(HINSTANCE hDll, HWND hParentWnd, Vec2i topLeft, Vec2i span)
+		{
+			auto m = new AbeditSplitter();
+			m->PostConstruct(hDll, hParentWnd, topLeft, span);
+			return m;
+		}
+
+		void Free()
+		{
+			delete this;
+		}
+	};
+
 	class AbeditMainWindow : public StandardWindowHandler, public IAbeditMainWindowSupervisor
 	{
 	private:
 		IAbstractEditorMainWindowEventHandler& eventHandler;
 		IDialogSupervisor* window;
 		AbeditPropertiesWindow* propertiesPanel;
+		AbeditSplitter* rhsSplitter;
 
 		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler) : eventHandler(_eventHandler), window(nullptr), propertiesPanel(nullptr)
 		{
@@ -276,17 +440,22 @@ namespace ANON
 			Rococo::Windows::SetOverlappedWindowConfig(config, topLeft, span, hParentWnd, "Rococo Abstract Editor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, NULL);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
+			rhsSplitter = AbeditSplitter::Create(hDll, *window, { 0,0 }, { 0,0 });
+
 			propertiesPanel = AbeditPropertiesWindow::Create(window);
 
 			Layout();
 		}
+
+		int propertiesWidth = 600;
+		int splitterSpan = 4;
 
 		void Layout()
 		{
 			RECT rect;
 			GetClientRect(*window, &rect);
 
-			int propertiesWidth = 600;
+			MoveWindow(*rhsSplitter, rect.right - propertiesWidth - splitterSpan, 0, splitterSpan, rect.bottom, TRUE);
 
 			MoveWindow(propertiesPanel->GetWindow(), rect.right - propertiesWidth, 0, propertiesWidth, rect.bottom, TRUE);
 		}
@@ -309,6 +478,22 @@ namespace ANON
 			switch (msg)
 			{
 			case WM_CLOSE:
+				break;
+			case WM_PAINT:
+				SendMessage(*rhsSplitter, WM_PAINT_SPLITTER_PREVIEW, 0, 0);
+				break;
+			case WM_SET_HORZ_SPLITTER:
+				{
+					int newSplitterPos = wParam;
+					RECT rect;
+					GetClientRect(hWnd, &rect);
+					propertiesWidth = rect.right - (newSplitterPos + splitterSpan);
+
+					propertiesWidth = Rococo::max(splitterSpan, propertiesWidth);
+					propertiesWidth = Rococo::min((int) rect.right - 20, propertiesWidth);
+
+					Layout();
+				}
 				break;
 			}
 			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);

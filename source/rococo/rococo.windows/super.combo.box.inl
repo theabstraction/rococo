@@ -390,7 +390,7 @@ namespace Rococo::Windows
 				else
 				{
 					// We want to display the drop down to the right
-					target.left = absOrigin.x + buttonRect.right;
+					target.left = absOrigin.x + buttonRect.right - popupRect.right;
 				}
 			}
 
@@ -546,20 +546,24 @@ namespace Rococo::Windows
 				break;
 			}
 
+			Reconstruct();
+
 			return 0L;
 		}
 
-		void SyncSize()
+		void Reconstruct()
 		{
-		}
+			if (hWndLeftListToggle)
+			{
+				DestroyWindow(hWndLeftListToggle);
+				hWndLeftListToggle = nullptr;
+			}
 
-		void Construct(const WindowConfig& childConfig, IWindow& parent)
-		{
-			WindowConfig c = childConfig;
-			c.style = WS_CHILD | WS_VISIBLE;
-			c.exStyle = 0;
-			c.hWndParent = parent;
-			hWnd = CreateWindowIndirect(customClassName, c, static_cast<IWindowHandler*>(this));
+			if (hWndRightListToggle)
+			{
+				DestroyWindow(hWndRightListToggle);
+				hWndRightListToggle = nullptr;
+			}
 
 			RECT r;
 			GetClientRect(hWnd, &r);
@@ -583,22 +587,37 @@ namespace Rococo::Windows
 				}
 			}
 
-			DWORD editorExStyle = 0;
-			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_READONLY, editorOffset, 0, width - buttonWidth - editorOffset, height, hWnd, NULL, hThisInstance, NULL);
-			SetWindowTextA(hWndEditControl, childConfig.windowName);
-			SetWindowSubclass(hWndEditControl, SuperEditorProc, SUPER_EDITOR_CLASS_ID, 0);
-
+			MoveWindow(hWndEditControl, editorOffset, 0, width - buttonWidth - editorOffset, height, TRUE);
+			
 			if (buttonWidth > 0)
 			{
 				DWORD buttonStyle = WS_CHILD | WS_VISIBLE | BS_FLAT;
 
-				hWndRightListToggle = CreateWindowExA(editorExStyle, "BUTTON", "*", buttonStyle, r.right - r.left - buttonWidth, 0, buttonWidth, height, hWnd, NULL, hThisInstance, NULL);
+				DWORD toggleExStyle = 0;
+
+				hWndRightListToggle = CreateWindowExA(toggleExStyle, "BUTTON", "*", buttonStyle, r.right - r.left - buttonWidth, 0, buttonWidth, height, hWnd, NULL, hThisInstance, NULL);
 
 				if (editorOffset > 0)
 				{
-					hWndLeftListToggle = CreateWindowExA(editorExStyle, "BUTTON", "*", buttonStyle, 0, 0, buttonWidth, height, hWnd, NULL, hThisInstance, NULL);
+					hWndLeftListToggle = CreateWindowExA(toggleExStyle, "BUTTON", "*", buttonStyle, 0, 0, buttonWidth, height, hWnd, NULL, hThisInstance, NULL);
 				}
 			}
+		}
+
+		void Construct(const WindowConfig& childConfig, IWindow& parent)
+		{
+			WindowConfig c = childConfig;
+			c.style = WS_CHILD | WS_VISIBLE;
+			c.exStyle = 0;
+			c.hWndParent = parent;
+			hWnd = CreateWindowIndirect(customClassName, c, static_cast<IWindowHandler*>(this));
+
+			DWORD editorExStyle = 0;
+			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_READONLY, 0, 0, 0, 0, hWnd, NULL, hThisInstance, NULL);
+			SetWindowTextA(hWndEditControl, childConfig.windowName);
+			SetWindowSubclass(hWndEditControl, SuperEditorProc, SUPER_EDITOR_CLASS_ID, 0);
+
+			Reconstruct();
 
 			WindowConfig listConfig = { 0 };
 			listConfig.hWndParent = hWnd;

@@ -177,6 +177,7 @@ namespace Rococo::Abedit
 	{
 		virtual void AdvanceSelection(ControlPropertyId id) = 0;
 		virtual void Free() = 0;
+		virtual void Layout() = 0;
 		virtual void NavigateByTabFrom(ControlPropertyId id, int delta) = 0;
 		virtual void OnButtonClicked(ControlPropertyId id) = 0;
 		virtual void OnEditorChanged(ControlPropertyId id) = 0;

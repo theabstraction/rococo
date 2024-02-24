@@ -65,8 +65,8 @@ namespace ANON
 
 		void AcceptVisit(IPropertyVisitor& visitor, IPropertyUIEvents& eventHandler) override
 		{
-			MARSHAL_STRING(visitor, "e1", "Element", eventHandler, REF name, 12);
 			MARSHAL_PRIMITIVE(visitor, "an", "Atomic Number", eventHandler, REF atomicNumber, AllInt32sAreValid(), Int32Decimals());
+			MARSHAL_STRING(visitor, "e1", "Element", eventHandler, REF name, 12);
 			MARSHAL_PRIMITIVE(visitor, "aw", "Atomic Weight", eventHandler, REF atomicWeight, AllFloatsAreValid(), FloatDecimals());
 			MARSHAL_PRIMITIVE(visitor, "va", "Valency", eventHandler, REF valency, AllDoublesAreValid(), DoubleDecimals());
 			MARSHAL_PRIMITIVE(visitor, "ra", "Is Radioactive", eventHandler, REF isRadioactive, AllBoolsAreValid(), BoolFormatter());
