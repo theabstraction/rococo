@@ -296,6 +296,11 @@ namespace Rococo
 		ROCOCO_WINDOWS_API GuiRect ClientArea(HWND hWnd);
 		ROCOCO_WINDOWS_API GuiRect WindowArea(HWND hWnd);
 
+		ROCOCO_INTERFACE IOwnerDrawItem
+		{
+			virtual void DrawItem(DRAWITEMSTRUCT & d) = 0;
+		};
+
 		ROCOCO_INTERFACE IWindowSupervisor : public IWindow
 		{
 			virtual void Free() = 0;

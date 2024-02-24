@@ -15,6 +15,13 @@ namespace Rococo::Editors
 		virtual ISuperListEvents& EventHandler() = 0;
 	};
 
+	enum
+	{
+		WM_POPUP_COMBO_LIST = WM_USER + 1,
+		WM_ADVANCE_COMBO_LIST,
+		WM_USE_COMBO_LIST_OPTION
+	};
+
 	ROCOCO_INTERFACE ISuperListBuilder
 	{
 		virtual void AddColumn(cstr name, int pixelWidth) = 0;

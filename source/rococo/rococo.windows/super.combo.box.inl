@@ -10,7 +10,6 @@ namespace Rococo::Windows
 
 		SuperListBox(Editors::ISuperListSpec& _spec): spec(_spec)
 		{
-
 		}
 
 		void AddColumn(cstr name, int pixelWidth) override
@@ -52,18 +51,17 @@ namespace Rococo::Windows
 			ListView_InsertItem(hWndList, &item);
 		}
 
-		void Select(cstr key) override
+		int GetFirstSelection() const
 		{
-			LVFINDINFOA f = { 0 };
-			f.flags = LVFI_STRING;
-			f.psz = key;
-
-			int pos = ListView_FindItem(hWndList, 0, &f);
-
-			if (pos > 0)
+			for (int i = 0; i < ListView_GetItemCount(hWndList); ++i)
 			{
-				ListView_SetSelectionMark(hWndList, pos);
+				if (LVIS_SELECTED == ListView_GetItemState(hWndList, i, LVIS_SELECTED))
+				{
+					return i;
+				}
 			}
+
+			return -1;
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
@@ -110,6 +108,7 @@ namespace Rococo::Windows
 				if (iPos >= 0)
 				{
 					spec.EventHandler().OnReturnAtSelection(iPos);
+					return 0L;
 				}
 			}
 			else if (header->code == NM_DBLCLK)
@@ -118,6 +117,7 @@ namespace Rococo::Windows
 				if (a->iItem > 0)
 				{
 					spec.EventHandler().OnDoubleClickAtSelection(a->iItem);
+					return 0L;
 				}
 			}
 			return DefWindowProc(hWnd, WM_NOTIFY, wParam, lParam);
@@ -160,12 +160,12 @@ namespace Rococo::Windows
 			
 			WindowConfig listConfig = { 0 };
 			
-			listConfig.left = 10;
-			listConfig.top = 10;
-			listConfig.width = rect.right - 20;
-			listConfig.height = rect.bottom - 20;
+			listConfig.left = 0;
+			listConfig.top = 0;
+			listConfig.width = rect.right;
+			listConfig.height = rect.bottom;
 			listConfig.hWndParent = hWnd;
-			listConfig.style |= WS_CHILD | WS_VISIBLE | LVS_REPORT;
+			listConfig.style |= WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
 
 			hWndList = CreateWindowIndirect(WC_LISTVIEWA, listConfig, nullptr);
 			SetDlgCtrlID(hWndList, DLG_CTRL_LIST_ID);
@@ -193,6 +193,56 @@ namespace Rococo::Windows
 			DestroyWindow(hWnd);
 		}
 
+		void AdvanceSelection(int delta)
+		{
+			int i = GetFirstSelection();
+
+			if (i < 0 || i >= ListView_GetItemCount(hWndList))
+			{
+				return;
+			}
+
+			i += delta;
+
+			if (i < 0)
+			{
+				i = ListView_GetItemCount(hWndList) - 1;
+			}
+			else if (i >= ListView_GetItemCount(hWndList))
+			{
+				i = 0;
+			}
+
+			ListView_SetItemState(hWndList, i, LVIS_SELECTED, LVIS_SELECTED);
+		}
+
+		void Select(cstr key) override
+		{
+			LVFINDINFOA f = { 0 };
+			f.flags = LVFI_STRING;
+			f.psz = key;
+
+			int pos = ListView_FindItem(hWndList, 0, &f);
+
+			if (pos > 0)
+			{
+				ListView_SetItemState(hWndList, pos, LVIS_SELECTED, LVIS_SELECTED);
+			}
+		}
+
+		int GetSelection(char* key, size_t sizeofKeyBuffer)
+		{
+			int pos = GetFirstSelection();
+
+			if (pos < 0)
+			{
+				return pos;
+			}
+
+			ListView_GetItemText(hWndList, pos, 0, key, sizeofKeyBuffer);
+			return pos;
+		}
+
 		IWindowHandler& Handler() override
 		{
 			return *this;
@@ -209,6 +259,43 @@ namespace Rococo::Windows
 		}
 	};
 
+	enum { SUPER_EDITOR_CLASS_ID = 15007 };
+
+	static LRESULT SuperEditorProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+	{
+		using namespace Rococo::Editors;
+
+		UNUSED(dwRefData);
+
+		if (uIdSubclass == SUPER_EDITOR_CLASS_ID)
+		{
+			switch (uMsg)
+			{
+			case WM_KEYUP:
+				if (wParam == VK_SPACE)
+				{
+					PostMessage(GetParent(hWnd), WM_POPUP_COMBO_LIST, 0, 0);
+					return 0L;
+				}
+				if (wParam == VK_DOWN)
+				{
+					PostMessage(GetParent(hWnd), WM_ADVANCE_COMBO_LIST, 1, 0);
+				}
+				if (wParam == VK_UP)
+				{
+					PostMessage(GetParent(hWnd), WM_ADVANCE_COMBO_LIST, -1, 0);
+				}
+				if (wParam == VK_RETURN)
+				{
+					PostMessage(GetParent(hWnd), WM_USE_COMBO_LIST_OPTION, 0, 0);
+				}
+				return 0L;
+			}
+		}
+
+		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+	}
+
 	class SuperComboBox : public IWin32SuperComboBox, private IWindowHandler, Editors::ISuperComboBuilder
 	{
 	private:
@@ -219,8 +306,13 @@ namespace Rococo::Windows
 		AutoFree<SuperListBox> listBox;
 		Editors::ISuperListSpec& spec;
 
+		HBRUSH hFocusBrush;
+		COLORREF focusColour;
+
 		SuperComboBox(Editors::ISuperListSpec& _spec): spec(_spec)
 		{
+			focusColour = RGB(255, 240, 240);
+			hFocusBrush = CreateSolidBrush(focusColour);
 		}
 
 		Editors::ISuperListBuilder& ListBuilder() override
@@ -236,10 +328,22 @@ namespace Rococo::Windows
 		void HidePopup() override
 		{
 			ShowWindow(*listBox, SW_HIDE);
+			SetFocus(hWndEditControl);
 		}
+
+		enum { MAX_KEY_LEN = 1024 };
 
 		void SetSelection(cstr keyName) override
 		{
+			if (keyName == nullptr || *keyName == 0)
+			{
+				Throw(0, "%s: blank key", __FUNCTION__);
+			}
+
+			if (strlen(keyName) >= MAX_KEY_LEN)
+			{
+				Throw(0, "%s: bad key length. Max is %u characters", MAX_KEY_LEN - 1, __FUNCTION__);
+			}
 			SetWindowText(hWndEditControl, keyName);
 			ListBuilder().Select(keyName);
 		}
@@ -299,6 +403,18 @@ namespace Rococo::Windows
 			MoveWindow(hWndListEditorPopup, target.left, target.top, target.right - target.left, target.bottom - target.top, FALSE);
 
 			ShowWindow(hWndListEditorPopup, IsWindowVisible(hWndListEditorPopup) ? SW_HIDE : SW_SHOW);
+
+			if (IsWindowVisible(hWndListEditorPopup))
+			{
+				char key[MAX_KEY_LEN];
+				int len = GetWindowTextA(hWndEditControl, key, sizeof key);
+				if (len > 0 && len < MAX_KEY_LEN)
+				{
+					listBox->Select(key);
+				}
+			}
+
+			SetFocus(hWndEditControl);
 		}
 
 		LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
@@ -313,6 +429,13 @@ namespace Rococo::Windows
 			case BN_CLICKED:
 				OnToggleClick(hSender);
 				return 0L;
+			case EN_KILLFOCUS:
+				if (!IsWindowVisible(*listBox))
+				{
+					DWORD wParamParent = (DWORD)MAKELONG(GetWindowLongPtrA(hWnd, GWLP_ID), EN_KILLFOCUS);
+					PostMessage(GetParent(hWnd), WM_COMMAND, wParamParent, (LPARAM) hWnd);
+				}
+				return 0L;
 			}
 
 			return DefWindowProc(hWnd, WM_COMMAND, wParam, lParam);
@@ -320,8 +443,29 @@ namespace Rococo::Windows
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
+			using namespace Rococo::Editors;
+
 			switch (uMsg)
 			{
+			case WM_CTLCOLORSTATIC:
+			{
+				HWND hEditor = (HWND)lParam;
+
+				HDC hdc = (HDC)wParam;
+
+				if (GetFocus() == hEditor)
+				{
+					SetTextColor(hdc, RGB(0, 0, 0));
+					SetBkColor(hdc, focusColour);
+					return (LRESULT)hFocusBrush;
+				}
+				else
+				{
+					SetTextColor(hdc, RGB(0, 0, 0));
+					SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+					return (LRESULT)GetSysColorBrush(COLOR_WINDOW);
+				}
+			}
 			case WM_DRAWITEM:
 				{
 					auto* d = (DRAWITEMSTRUCT*)lParam;
@@ -343,6 +487,47 @@ namespace Rococo::Windows
 			}
 			case WM_COMMAND:
 				return OnCommand(hWnd, wParam, lParam);
+			case WM_POPUP_COMBO_LIST:
+				if (hWndLeftListToggle)
+				{
+					OnToggleClick(hWndLeftListToggle);
+				}
+				else if (hWndRightListToggle)
+				{
+					OnToggleClick(hWndRightListToggle);
+				}
+				return 0L;
+			case WM_ADVANCE_COMBO_LIST:
+				if (IsWindowVisible(*listBox))
+				{
+					listBox->AdvanceSelection(wParam);
+				}
+				else
+				{
+					PostMessage(GetParent(hWnd), WM_ADVANCE_COMBO_LIST, GetWindowLongPtrA(*listBox, GWLP_ID), wParam);
+				}
+				return 0L;
+			case WM_USE_COMBO_LIST_OPTION:
+				if (IsWindowVisible(*listBox))
+				{
+					char key[MAX_KEY_LEN];
+					int pos = listBox->GetSelection(key, MAX_KEY_LEN);
+					if (pos > 0)
+					{
+						SetWindowTextA(hWndEditControl, key);
+					}
+
+					ShowWindow(*listBox, SW_HIDE);
+					SetFocus(hWndEditControl);
+				}
+				else
+				{
+					PostMessage(GetParent(hWnd), WM_ADVANCE_COMBO_LIST, GetWindowLongPtrA(*listBox, GWLP_ID), 1);
+				}
+				return 0L;
+			case WM_SETFOCUS:
+				SetFocus(hWndEditControl);
+				return 0L;
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
@@ -399,8 +584,9 @@ namespace Rococo::Windows
 			}
 
 			DWORD editorExStyle = 0;
-			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "<todo>", WS_CHILD | WS_VISIBLE | ES_READONLY, editorOffset, 0, width - buttonWidth - editorOffset, height, hWnd, NULL, hThisInstance, NULL);
+			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_READONLY, editorOffset, 0, width - buttonWidth - editorOffset, height, hWnd, NULL, hThisInstance, NULL);
 			SetWindowTextA(hWndEditControl, childConfig.windowName);
+			SetWindowSubclass(hWndEditControl, SuperEditorProc, SUPER_EDITOR_CLASS_ID, 0);
 
 			if (buttonWidth > 0)
 			{
@@ -441,6 +627,7 @@ namespace Rococo::Windows
 		~SuperComboBox()
 		{
 			DestroyWindow(hWnd);
+			DeleteObject(hFocusBrush);
 		}
 
 		IWindowHandler& Handler() override

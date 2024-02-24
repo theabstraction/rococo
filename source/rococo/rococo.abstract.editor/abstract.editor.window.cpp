@@ -1,5 +1,5 @@
 #include <rococo.os.win32.h>
-
+#include <rococo.editors.h>
 #include <rococo.abstract.editor.win32.h>
 #include "resource.h"
 #include <rococo.os.h>
@@ -146,18 +146,30 @@ namespace ANON
 			case WM_NAVIGATE_BY_TAB:
 				{
 					ControlPropertyId id{ (uint16) wParam };
-					properties->NavigateByTabFrom(id);
+					properties->NavigateByTabFrom(id, (int) lParam);
 					return 0L;
+				}
+			case Rococo::Editors::WM_ADVANCE_COMBO_LIST:
+			{
+				ControlPropertyId id{ (uint16)wParam };
+				properties->NavigateByTabFrom(id, (int)lParam);
+				return 0L;
+			}
+			case WM_ADVANCE_SELECTION:
+				{
+				ControlPropertyId id{ (uint16)wParam };
+				properties->AdvanceSelection(id);
+				return 0L;
 				}
 			case WM_DRAWITEM:
 			{
 				DRAWITEMSTRUCT* d = (DRAWITEMSTRUCT*)lParam;
 				if (d->CtlType == ODT_BUTTON)
 				{
-					auto* manager = (IButtonState*) GetWindowLongPtrA(d->hwndItem, GWLP_USERDATA);
-					if (manager)
+					auto* item = (IOwnerDrawItem*) GetWindowLongPtrA(d->hwndItem, GWLP_USERDATA);
+					if (item)
 					{
-						manager->Render(*d);
+						item->DrawItem(*d);
 						return 0L;
 					}
 				}

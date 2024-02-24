@@ -19,6 +19,7 @@ namespace ANON
 {
 	ROCOCO_INTERFACE IPropertySupervisor : Rococo::Abedit::IProperty
 	{
+		virtual void AdvanceSelection() = 0;
 		virtual void Free() = 0;
 		virtual void OnButtonClicked() = 0;
 		virtual void OnEditorChanged() = 0;
@@ -43,7 +44,7 @@ namespace ANON
 
 	enum { NAV_TARGET_CLASS_ID = 42, ABEDIT_BTN_CLASS_ID = 9000 };
 
-	static LRESULT NavigationTargetProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+	static LRESULT AbEditEditorProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 	{
 		UNUSED(dwRefData);
 
@@ -51,17 +52,34 @@ namespace ANON
 		{
 			switch (uMsg)
 			{
-			case WM_KEYDOWN:
-			{
-				if (wParam == VK_TAB)
+			case WM_KEYUP:
+				if (wParam == VK_TAB || wParam == VK_RETURN || wParam == VK_DOWN)
 				{
-					PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 0);
+					PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 1);
 					return 0L;
 				}
 
+				if (wParam == VK_UP)
+				{
+					PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), -1);
+					return 0L;
+				}
+				return 0L;	
+			case WM_KEYDOWN:
+			{
+				if (wParam == VK_TAB || wParam == VK_RETURN)
+				{
+					return 0L;
+				}
 				break;
 			}
-			}
+			case WM_CHAR:
+				if (wParam == VK_TAB || wParam == VK_RETURN)
+				{
+					return 0L;
+				}
+				break;
+			}			
 		}
 
 		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
@@ -75,15 +93,23 @@ namespace ANON
 		{
 			switch (uMsg)
 			{
-			case WM_KEYDOWN:
+			case WM_KEYUP:
+				if (wParam == VK_TAB || wParam == VK_DOWN || wParam == VK_RETURN)
 				{
-					if (wParam == VK_TAB)
-					{
-						PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 0);
-						return 0L;
-					}
+					PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 1);
+					return 0L;
+				}
 
-					break;
+				if (wParam == VK_UP)
+				{
+					PostMessage(GetParent(hWnd), WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), -1);
+					return 0L;
+				}
+
+				if (wParam == VK_SPACE)
+				{
+					PostMessage(GetParent(hWnd), WM_ADVANCE_SELECTION, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 0);
+					return 0L;
 				}
 			}
 		}
@@ -100,7 +126,7 @@ namespace ANON
 
 		auto* editor = Rococo::Windows::AddEditor(panel, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE, 0);
 
-		SetWindowSubclass(*editor, NavigationTargetProc, NAV_TARGET_CLASS_ID, 0);
+		SetWindowSubclass(*editor, AbEditEditorProc, NAV_TARGET_CLASS_ID, 0);
 
 		size_t trueMaxLen = max(strlen(text), maxCharacters);
 		if (trueMaxLen == 0) trueMaxLen = 32768;
@@ -123,7 +149,7 @@ namespace ANON
 		return editor;
 	}
 
-	HWND AddCheckbox(const VisualStyle& style, IParentWindowSupervisor& panel, int yOffset, ControlPropertyId id, Abedit::IButtonState* stateManager)
+	HWND AddCheckbox(const VisualStyle& style, IParentWindowSupervisor& panel, int yOffset, ControlPropertyId id, IOwnerDrawItem* item)
 	{
 		RECT containerRect;
 		GetClientRect(panel, &containerRect);
@@ -136,7 +162,7 @@ namespace ANON
 			Throw(GetLastError(), "Error creating AbEditor checkbox");
 		}
 
-		SetWindowLongPtrA(checkbox, GWLP_USERDATA, (LONG_PTR) stateManager);
+		SetWindowLongPtrA(checkbox, GWLP_USERDATA, (LONG_PTR)item);
 		SetWindowSubclass(checkbox, AbEditCheckBoxProc, ABEDIT_BTN_CLASS_ID, 0);
 		ShowWindow(checkbox, SW_SHOW);
 		
@@ -222,6 +248,11 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void AdvanceSelection() override
+		{
+
 		}
 
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, ControlPropertyId labelId, ControlPropertyId editorId)
@@ -333,6 +364,11 @@ namespace ANON
 			{
 				Throw(0, "%s: '%s' blank initial string", __FUNCTION__, _displayName);
 			}
+		}
+
+		void AdvanceSelection() override
+		{
+
 		}
 
 		void Free() override
@@ -621,6 +657,11 @@ namespace ANON
 			}
 		}
 
+		void AdvanceSelection() override
+		{
+
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -811,6 +852,11 @@ namespace ANON
 			descBuffer.resize(_stringCapacity);
 		}
 
+		void AdvanceSelection() override
+		{
+
+		}
+
 		// Editors::ISuperListSpec method
 		Editors::ISuperListEvents& EventHandler() override
 		{
@@ -913,11 +959,20 @@ namespace ANON
 
 		void OnEditorLostKeyboardFocus() override
 		{
+			if (*selectedOptionEditor) InvalidateRect(*selectedOptionEditor, NULL, TRUE);
 		}
 
 		bool TryTakeFocus() override
 		{
-			return false;
+			if (!selectedOptionEditor)
+			{
+				return false;
+			}
+
+			SetFocus(*selectedOptionEditor);
+			InvalidateRect(*selectedOptionEditor, NULL, TRUE);
+
+			return true;
 		}
 
 		void UpdateWidget(const void* data, size_t sizeOfData) override
@@ -932,7 +987,7 @@ namespace ANON
 		}
 	};
 
-	struct BooleanProperty : IPropertySupervisor, IButtonState
+	struct BooleanProperty : IPropertySupervisor, IOwnerDrawItem
 	{
 		HString id;
 		bool initialValue;
@@ -961,36 +1016,68 @@ namespace ANON
 			}
 		}
 
+		void AdvanceSelection() override
+		{
+			initialValue = !initialValue;
+			OnEditorChanged();
+			events.OnBooleanButtonChanged(*this);
+		}
+
 		void Free() override
 		{
 			delete this;
 		}
 
-		bool IsChecked() const override
-		{
-			return initialValue;
-		}
-
-		bool IsGrayed() const override
-		{
-			return false;
-		}
-
 		void DrawTick(HDC dc, const RECT& buttonRect)
 		{
-			HPEN hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+			HPEN hPen = CreatePen(PS_SOLID, 4, RGB(0, 192, 0));
 			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
 
+			// The downslash
 			MoveToEx(dc, buttonRect.left + 2, (buttonRect.bottom + buttonRect.top) / 2 - 2, NULL);
 			LineTo(dc, (buttonRect.left + buttonRect.right) / 2, buttonRect.bottom - 2);
 
+			// The upslash
 			LineTo(dc, buttonRect.right + 6, buttonRect.top - 2);
 
 			SelectObject(dc, hOldPen);
 			DeleteObject(hPen);
 		}
 
-		void Render(DRAWITEMSTRUCT& d) override
+		void DrawTickRect(HDC dc, const RECT& buttonRect)
+		{
+			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
+
+			MoveToEx(dc, buttonRect.left, buttonRect.bottom, NULL);
+			LineTo(dc, buttonRect.right, buttonRect.bottom);
+			LineTo(dc, buttonRect.right, buttonRect.top);
+			LineTo(dc, buttonRect.left, buttonRect.top);
+			LineTo(dc, buttonRect.left, buttonRect.bottom);
+
+			SelectObject(dc, hOldPen);
+
+			DeleteObject(hPen);
+		}
+
+		void GetTickRect(OUT RECT& rect)
+		{
+			RECT r;
+			if (!GetClientRect(checkbox, &r))
+			{
+				rect = { -1, -1, -1, -1 };
+				return;
+			}
+
+			int height = r.bottom;
+
+			rect.left = r.left + 3;
+			rect.top = r.top + 3;
+			rect.bottom = r.bottom - 3;
+			rect.right = rect.left + height - 6;
+		}
+
+		void DrawItem(DRAWITEMSTRUCT& d) override
 		{
 			RECT r;
 			GetClientRect(checkbox, &r);
@@ -999,26 +1086,10 @@ namespace ANON
 			HBRUSH hBrush = CreateSolidBrush(isFocus ?  RGB(255, 224, 224) : RGB(255, 255, 255));
 			FillRect(d.hDC, &r, hBrush);
 
-			int height = r.bottom;
-
 			RECT buttonRect;
-			buttonRect.left = r.left + 3;
-			buttonRect.top = r.top + 3;
-			buttonRect.bottom = r.bottom - 3;
-			buttonRect.right = buttonRect.left + height - 6;
+			GetTickRect(OUT buttonRect);
 
-			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-			HPEN hOldPen = (HPEN) SelectObject(d.hDC, hPen);
-
-			MoveToEx(d.hDC, buttonRect.left, buttonRect.bottom, NULL);
-			LineTo(d.hDC, buttonRect.right, buttonRect.bottom);
-			LineTo(d.hDC, buttonRect.right, buttonRect.top);
-			LineTo(d.hDC, buttonRect.left, buttonRect.top);
-			LineTo(d.hDC, buttonRect.left, buttonRect.bottom);
-
-			SelectObject(d.hDC, hOldPen);
-
-			DeleteObject(hPen);
+			DrawTickRect(d.hDC, buttonRect);
 
 			if (initialValue)
 			{
@@ -1039,7 +1110,7 @@ namespace ANON
 				Throw(0, "%s: unexpected non-null checkbox for %s", __FUNCTION__, displayName.c_str());
 			}
 
-			checkbox = ANON::AddCheckbox(style, panel, yOffset, editorId, static_cast<IButtonState*>(this));
+			checkbox = ANON::AddCheckbox(style, panel, yOffset, editorId, static_cast<IOwnerDrawItem*>(this));
 			return GetEditorRect(style, panel, yOffset);
 		}
 
@@ -1089,9 +1160,24 @@ namespace ANON
 
 		void OnButtonClicked() override
 		{
-			initialValue = !initialValue;
-			OnEditorChanged();
-			events.OnBooleanButtonChanged(*this);
+			POINT pos;
+			if (!GetCursorPos(&pos))
+			{
+				return;
+			}
+
+			if (!ScreenToClient(checkbox, &pos))
+			{
+				return;
+			}
+
+			RECT buttonRect;
+			GetTickRect(OUT buttonRect);
+
+			if (pos.x > buttonRect.left && pos.x < buttonRect.right && pos.y > buttonRect.top && pos.y < buttonRect.bottom)
+			{
+				AdvanceSelection();
+			}
 		}
 
 		void OnEditorChanged() override
@@ -1300,23 +1386,83 @@ namespace ANON
 			return nullptr;
 		}
 
-		void NavigateByTabFrom(ControlPropertyId id)
+		void NavigateByTabFrom(ControlPropertyId id, int delta)
 		{
-			for (size_t i = 0; i < properties.size() - 1; i++)
+			if (delta > 0)
 			{
-				auto& currentFocus = properties[i];
-				if (currentFocus->IsForControl(id))
-				{					
-					i++;
-					while (i < properties.size())
+				for (size_t i = 0; i < properties.size() - 1; i++)
+				{
+					auto& currentFocus = properties[i];
+					if (currentFocus->IsForControl(id))
+					{
+						i++;
+						while (i < properties.size())
+						{
+							if (properties[i]->TryTakeFocus())
+							{
+								return;
+							}
+
+							i++;
+						}
+						return;
+					}
+				}
+
+				// If the final property is the target then begin enumerating new targets from slot zero
+				if (properties.size() > 0  && properties[properties.size() - 1]->IsForControl(id))
+				{
+					for (size_t i = 0; i < properties.size(); i++)
 					{
 						if (properties[i]->TryTakeFocus())
-						{							
+						{
 							return;
 						}
-
-						i++;
 					}
+				}
+			}
+			else
+			{
+				for (size_t i = 1; i < properties.size(); i++)
+				{
+					auto& currentFocus = properties[i];
+					if (currentFocus->IsForControl(id))
+					{
+						i--;
+						while (i >= 0)
+						{
+							if (properties[i]->TryTakeFocus())
+							{
+								return;
+							}
+
+							i--;
+						}
+						return;
+					}
+				}
+
+				// If the final property is the target then begin enumerating new targets from slot zero
+				if (properties.size() > 0 && properties[0]->IsForControl(id))
+				{
+					for (size_t i = properties.size() - 1; i >= 1; i--)
+					{
+						if (properties[i]->TryTakeFocus())
+						{
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		void AdvanceSelection(ControlPropertyId id)
+		{
+			for (auto* p: properties)
+			{
+				if (p->IsForControl(id))
+				{
+					p->AdvanceSelection();
 					return;
 				}
 			}

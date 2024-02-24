@@ -356,13 +356,13 @@ namespace Rococo::Windows
 #include "wired.handler.inl"
 #include "listbox.inl"
 #include "rich.editor.inl"
-#include "super.combo.box.inl"
 #include "tab.control.inl"
 #include "tree.control.inl"
 #include "combo.control.inl"
 #include "trackbar.control.inl"
 #include "menu.inl"
 #include "listview.inl"
+#include "super.combo.box.inl"
 
 namespace Rococo
 {

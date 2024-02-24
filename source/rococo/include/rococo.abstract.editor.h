@@ -173,10 +173,11 @@ namespace Rococo::Abedit
 
 	};
 
-	ROCOCO_INTERFACE IUIPropertiesSupervisor: IUIProperties
+	ROCOCO_INTERFACE IUIPropertiesSupervisor : IUIProperties
 	{
+		virtual void AdvanceSelection(ControlPropertyId id) = 0;
 		virtual void Free() = 0;
-		virtual void NavigateByTabFrom(ControlPropertyId id) = 0;
+		virtual void NavigateByTabFrom(ControlPropertyId id, int delta) = 0;
 		virtual void OnButtonClicked(ControlPropertyId id) = 0;
 		virtual void OnEditorChanged(ControlPropertyId id) = 0;
 		virtual void OnEditorLostKeyboardFocus(ControlPropertyId id) = 0;
