@@ -127,7 +127,7 @@ namespace Rococo::Windows::Internal
 		return editor;
 	}
 
-	Rococo::Windows::IWin32SuperComboBox* AddOptionsList(Editors::ISuperListSpec& spec, const VisualStyle& style, IParentWindowSupervisor& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, UI::SysWidgetId id)
+	Rococo::Windows::IWin32SuperComboBox* AddOptionsList(ISuperListSpec& spec, const VisualStyle& style, IParentWindowSupervisor& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, UI::SysWidgetId id)
 	{
 		RECT containerRect;
 		GetClientRect(panel, &containerRect);
@@ -847,7 +847,7 @@ namespace Rococo::Windows::Internal
 		}
 	};
 
-	struct OptionVectorProperty : IPropertySupervisor, Editors::ISuperListSpec, Editors::ISuperListEvents
+	struct OptionVectorProperty : IPropertySupervisor, ISuperListSpec, ISuperListEvents
 	{
 		AutoFree<IEnumVectorSupervisor> enumVector;
 		HString id;
@@ -890,7 +890,7 @@ namespace Rococo::Windows::Internal
 		}
 
 		// Editors::ISuperListSpec method
-		Editors::ISuperListEvents& EventHandler() override
+		ISuperListEvents& EventHandler() override
 		{
 			return *this;
 		}

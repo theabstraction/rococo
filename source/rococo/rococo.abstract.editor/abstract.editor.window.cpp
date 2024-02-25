@@ -151,7 +151,7 @@ namespace ANON
 					properties->NavigateByTabFrom(id, (int) lParam);
 					return 0L;
 				}
-			case Rococo::Editors::WM_ADVANCE_COMBO_LIST:
+			case WM_ADVANCE_COMBO_LIST:
 			{
 				UI::SysWidgetId id{ (uint16)wParam };
 				properties->NavigateByTabFrom(id, (int)lParam);
@@ -485,7 +485,7 @@ namespace ANON
 				break;
 			case WM_SET_HORZ_SPLITTER:
 				{
-					int newSplitterPos = wParam;
+					int newSplitterPos =  (int) wParam;
 					RECT rect;
 					GetClientRect(hWnd, &rect);
 					propertiesWidth = rect.right - (newSplitterPos + splitterSpan);

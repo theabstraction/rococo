@@ -2,13 +2,13 @@
 
 namespace Rococo::Windows
 {
-	class SuperListBox : public IWindowSupervisor, IWindowHandler, public Editors::ISuperListBuilder
+	class SuperListBox : public IWindowSupervisor, IWindowHandler, public ISuperListBuilder
 	{
 		HWND hWnd = nullptr;
 		HWND hWndList = nullptr;
-		Editors::ISuperListSpec& spec;
+		ISuperListSpec& spec;
 
-		SuperListBox(Editors::ISuperListSpec& _spec): spec(_spec)
+		SuperListBox(ISuperListSpec& _spec): spec(_spec)
 		{
 		}
 
@@ -175,7 +175,7 @@ namespace Rococo::Windows
 
 		}
 	public:
-		static SuperListBox* Create(Editors::ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent)
+		static SuperListBox* Create(ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent)
 		{
 			if (customAtom == 0)
 			{
@@ -295,7 +295,7 @@ namespace Rococo::Windows
 		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 	}
 
-	class SuperComboBox : public IWin32SuperComboBox, private IWindowHandler, Editors::ISuperComboBuilder
+	class SuperComboBox : public IWin32SuperComboBox, private IWindowHandler, ISuperComboBuilder
 	{
 	private:
 		HWND hWnd = nullptr;
@@ -303,23 +303,23 @@ namespace Rococo::Windows
 		HWND hWndLeftListToggle = nullptr;
 		HWND hWndRightListToggle = nullptr;
 		AutoFree<SuperListBox> listBox;
-		Editors::ISuperListSpec& spec;
+		ISuperListSpec& spec;
 
 		HBRUSH hFocusBrush;
 		COLORREF focusColour;
 
-		SuperComboBox(Editors::ISuperListSpec& _spec): spec(_spec)
+		SuperComboBox(ISuperListSpec& _spec): spec(_spec)
 		{
 			focusColour = RGB(255, 240, 240);
 			hFocusBrush = CreateSolidBrush(focusColour);
 		}
 
-		Editors::ISuperListBuilder& ListBuilder() override
+		ISuperListBuilder& ListBuilder() override
 		{
 			return *listBox;
 		}
 
-		Editors::ISuperComboBuilder& ComboBuilder() override
+		ISuperComboBuilder& ComboBuilder() override
 		{
 			return *this;
 		}
@@ -624,7 +624,7 @@ namespace Rococo::Windows
 
 		}
 	public:
-		static SuperComboBox* Create(Editors::ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent, ControlId id)
+		static SuperComboBox* Create(ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent, ControlId id)
 		{
 			if (customAtom == 0)
 			{
