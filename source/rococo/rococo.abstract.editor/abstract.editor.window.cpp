@@ -184,7 +184,7 @@ namespace ANON
 
 		void LayoutChildren()
 		{
-			properties->Layout();
+			properties->LayouVertically();
 		}
 
 		void OnSize(HWND, const Vec2i& span, RESIZE_TYPE) override

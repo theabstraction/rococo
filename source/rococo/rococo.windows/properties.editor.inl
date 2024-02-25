@@ -1383,7 +1383,7 @@ namespace Rococo::Windows::Internal
 			Clear();
 		}
 
-		void Layout()
+		void LayouVertically() override
 		{
 			int lastY = 2;
 
