@@ -2,10 +2,14 @@
 #include <rococo.os.win32.h>
 #include <rococo.abstract.editor.win32.h>
 #include <rococo.strings.h>
+#include <rococo.properties.h>
+#include <rococo.editors.h>
 
 using namespace Rococo;
 using namespace Rococo::Abedit;
 using namespace Rococo::MVC;
+using namespace Rococo::Reflection;
+using namespace Rococo::Editors;
 
 HINSTANCE GetDllInstance();
 
@@ -52,7 +56,7 @@ namespace ANON
 			return *palette;
 		}
 
-		IUIProperties& Properties() override
+		IUIPropertiesEditor& Properties() override
 		{
 			return mainWindow->Properties();
 		}

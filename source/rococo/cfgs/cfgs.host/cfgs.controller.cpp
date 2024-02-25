@@ -2,12 +2,16 @@
 #include <rococo.abstract.editor.h>
 #include <rococo.strings.h>
 #include <rococo.validators.h>
+#include <rococo.properties.h>
+#include <rococo.editors.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::Abedit;
 using namespace Rococo::MVC;
 using namespace Rococo::Validators;
+using namespace Rococo::Reflection;
+using namespace Rococo::Editors;
 
 namespace ANON
 {
@@ -86,7 +90,7 @@ namespace ANON
 			}
 
 			
-			UIPropertyMarshallingStub stub { "cl", "Class", eventHandler };
+			PropertyMarshallingStub stub { "cl", "Class", eventHandler };
 
 			struct ElementClassEnumerator : IEnumDescriptor, IEnumVectorSupervisor
 			{
@@ -198,13 +202,13 @@ namespace ANON
 			element.AcceptVisit(visitor, *this);
 		}
 
-		void OnBooleanButtonChanged(IProperty& property) override
+		void OnBooleanButtonChanged(IPropertyEditor& property) override
 		{
 			auto& props = editor->Properties();
 			props.UpdateFromVisuals(property, *this);
 		}
 
-		void OnPropertyEditorLostFocus(Rococo::Abedit::IProperty& property) override
+		void OnPropertyEditorLostFocus(Reflection::IPropertyEditor& property) override
 		{
 			auto& props = editor->Properties();
 			props.UpdateFromVisuals(property, *this);

@@ -9,6 +9,7 @@
 using namespace Rococo;
 using namespace Rococo::Abedit;
 using namespace Rococo::Windows;
+using namespace Rococo::Editors;
 
 namespace ANON
 {
@@ -18,7 +19,7 @@ namespace ANON
 	{
 	private:
 		IParentWindowSupervisor* window;
-		AutoFree<IUIPropertiesSupervisor> properties;
+		AutoFree<IUIPropertiesEditorSupervisor> properties;
 
 		HBRUSH hFocusBrush = nullptr;
 		COLORREF focusColour;
@@ -51,7 +52,7 @@ namespace ANON
 			SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", style, 0);
 			window = Windows::CreateChildWindow(config, this);
 
-			properties = Internal::CreateProperties(*window);
+			properties = Windows::CreatePropertiesEditor(*window);
 		}
 
 		void OnPaint()
@@ -86,13 +87,13 @@ namespace ANON
 			switch (command)
 			{
 				case EN_CHANGE:
-					properties->OnEditorChanged(ControlPropertyId{ id });
+					properties->OnEditorChanged(UI::SysWidgetId{ id });
 					return 0L;
 				case EN_KILLFOCUS:	
-					properties->OnEditorLostKeyboardFocus(ControlPropertyId{ id });
+					properties->OnEditorLostKeyboardFocus(UI::SysWidgetId{ id });
 					return 0L;
 				case BN_CLICKED:
-					properties->OnButtonClicked(ControlPropertyId{ id });
+					properties->OnButtonClicked(UI::SysWidgetId{ id });
 					return 0L;
 			}
 
@@ -146,19 +147,19 @@ namespace ANON
 				return 0L;
 			case WM_NAVIGATE_BY_TAB:
 				{
-					ControlPropertyId id{ (uint16) wParam };
+					UI::SysWidgetId id{ (uint16) wParam };
 					properties->NavigateByTabFrom(id, (int) lParam);
 					return 0L;
 				}
 			case Rococo::Editors::WM_ADVANCE_COMBO_LIST:
 			{
-				ControlPropertyId id{ (uint16)wParam };
+				UI::SysWidgetId id{ (uint16)wParam };
 				properties->NavigateByTabFrom(id, (int)lParam);
 				return 0L;
 			}
 			case WM_ADVANCE_SELECTION:
 				{
-				ControlPropertyId id{ (uint16)wParam };
+				UI::SysWidgetId id{ (uint16)wParam };
 				properties->AdvanceSelection(id);
 				return 0L;
 				}
@@ -229,7 +230,7 @@ namespace ANON
 			return *window;
 		}
 
-		IUIProperties& Properties()
+		IUIPropertiesEditor& Properties()
 		{
 			return *properties;
 		}
@@ -414,12 +415,12 @@ namespace ANON
 		}
 
 	public:
-		Rococo::Windows::IParentWindowSupervisor& PropertiesPanel() override
+		IParentWindowSupervisor& PropertiesPanel() override
 		{
 			return propertiesPanel->Supervisor();
 		}
 
-		Rococo::Abedit::IUIProperties& Properties() override
+		Rococo::Editors::IUIPropertiesEditor& Properties() override
 		{
 			return propertiesPanel->Properties();
 		}

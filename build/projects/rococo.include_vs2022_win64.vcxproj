@@ -245,6 +245,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.package.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.parse.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.post.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.properties.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.quadtree.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.random.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.reflector.h" />

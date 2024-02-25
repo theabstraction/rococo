@@ -247,6 +247,15 @@ namespace Rococo
 
 	struct IDictionary;
 
+	namespace UI
+	{
+		// The system dependent widget id. On Windows each specifies the control id for child window
+		struct SysWidgetId
+		{
+			uint16 value;
+		};
+	}
+
 	namespace Strings
 	{
 		struct StringBuilder;
@@ -335,6 +344,11 @@ namespace Rococo
 	namespace Script
 	{
 		struct IScriptSystemFactory;
+	}
+
+	namespace Strings
+	{
+		class HString;
 	}
 
 	struct IScriptEnumerator;

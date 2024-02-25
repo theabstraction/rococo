@@ -363,6 +363,7 @@ namespace Rococo::Windows
 #include "menu.inl"
 #include "listview.inl"
 #include "super.combo.box.inl"
+#include "properties.editor.inl"
 
 namespace Rococo
 {
@@ -491,7 +492,7 @@ namespace Rococo
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
-			SuperComboBox* b = SuperComboBox::Create(spec, childConfig, parent);
+			SuperComboBox* b = SuperComboBox::Create(spec, childConfig, parent, id);
 			return b;
 		}
 

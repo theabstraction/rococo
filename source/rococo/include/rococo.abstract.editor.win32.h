@@ -9,12 +9,17 @@ namespace Rococo::Windows
 	struct IParentWindowSupervisor;
 }
 
+namespace Rococo::Editors
+{
+	struct IUIPropertiesEditor;
+}
+
 namespace Rococo::Abedit
 {
 	ROCOCO_INTERFACE IAbeditMainWindowSupervisor : IAbeditMainWindow
 	{
 		virtual Rococo::Windows::IParentWindowSupervisor& PropertiesPanel() = 0;
-		virtual IUIProperties& Properties() = 0;
+		virtual Rococo::Editors::IUIPropertiesEditor& Properties() = 0;
 	};
 
 	namespace Internal
@@ -22,14 +27,7 @@ namespace Rococo::Abedit
 		IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler);
 		IUIBlankSlateSupervisor* CreateBlankSlate();
 		IUIPaletteSupervisor* CreatePalette();
-		IUIPropertiesSupervisor* CreateProperties(Rococo::Windows::IParentWindowSupervisor& propertiesPanelArea);
 	}
-
-	enum
-	{
-		WM_NAVIGATE_BY_TAB = WM_USER + 0x201,
-		WM_ADVANCE_SELECTION
-	};
 
 	HINSTANCE GetAbEditorInstance();
 }

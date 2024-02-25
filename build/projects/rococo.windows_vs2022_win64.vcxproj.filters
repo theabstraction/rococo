@@ -31,5 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\source\rococo\rococo.windows\super.combo.box.inl" />
+    <None Include="..\..\source\rococo\rococo.windows\properties.editor.inl" />
   </ItemGroup>
 </Project>

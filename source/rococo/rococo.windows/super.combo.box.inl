@@ -43,6 +43,7 @@ namespace Rococo::Windows
 
 		void AddKeyValue(cstr key, cstr value) override
 		{
+			UNUSED(key);
 			LV_ITEM item = { 0 };
 			item.mask = LVIF_TEXT;
 			item.pszText = (char*)value;
@@ -68,12 +69,6 @@ namespace Rococo::Windows
 		{
 			switch (uMsg)
 			{
-			case WM_DRAWITEM:
-			{
-				auto* d = (DRAWITEMSTRUCT*)lParam;
-				break;
-			}
-			break;
 			case WM_RBUTTONUP:
 			{
 				POINT cursorPos;
@@ -100,6 +95,7 @@ namespace Rococo::Windows
 			if (header->code == LVN_ITEMCHANGED)
 			{
 				auto& n = *(LPNMLISTVIEW)header;
+				UNUSED(n);
 				return TRUE;
 			}
 			else if (header->code == NM_RETURN)
@@ -127,6 +123,9 @@ namespace Rococo::Windows
 		{
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
+
+			UNUSED(width);
+			UNUSED(height);
 
 			switch (wParam)
 			{
@@ -239,7 +238,7 @@ namespace Rococo::Windows
 				return pos;
 			}
 
-			ListView_GetItemText(hWndList, pos, 0, key, sizeofKeyBuffer);
+			ListView_GetItemText(hWndList, pos, 0, key, (int) sizeofKeyBuffer);
 			return pos;
 		}
 
@@ -283,7 +282,7 @@ namespace Rococo::Windows
 				}
 				if (wParam == VK_UP)
 				{
-					PostMessage(GetParent(hWnd), WM_ADVANCE_COMBO_LIST, -1, 0);
+					PostMessage(GetParent(hWnd), WM_ADVANCE_COMBO_LIST, (WPARAM) - 1, 0);
 				}
 				if (wParam == VK_RETURN)
 				{
@@ -422,6 +421,8 @@ namespace Rococo::Windows
 			auto id = LOWORD(wParam);
 			auto command = HIWORD(wParam);
 
+			UNUSED(id);
+
 			HWND hSender = (HWND)lParam;
 
 			switch (command)
@@ -466,12 +467,6 @@ namespace Rococo::Windows
 					return (LRESULT)GetSysColorBrush(COLOR_WINDOW);
 				}
 			}
-			case WM_DRAWITEM:
-				{
-					auto* d = (DRAWITEMSTRUCT*)lParam;
-					break;
-				}
-				break;
 			case WM_RBUTTONUP:
 			{
 				POINT cursorPos;
@@ -480,11 +475,6 @@ namespace Rococo::Windows
 			}
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
-			case WM_NOTIFY:
-			{
-				NMHDR* header = (NMHDR*)lParam;
-				break;
-			}
 			case WM_COMMAND:
 				return OnCommand(hWnd, wParam, lParam);
 			case WM_POPUP_COMBO_LIST:
@@ -500,7 +490,7 @@ namespace Rococo::Windows
 			case WM_ADVANCE_COMBO_LIST:
 				if (IsWindowVisible(*listBox))
 				{
-					listBox->AdvanceSelection(wParam);
+					listBox->AdvanceSelection((int)wParam);
 				}
 				else
 				{
@@ -536,6 +526,9 @@ namespace Rococo::Windows
 		{
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
+
+			UNUSED(width);
+			UNUSED(height);
 
 			switch (wParam)
 			{
@@ -604,7 +597,7 @@ namespace Rococo::Windows
 			}
 		}
 
-		void Construct(const WindowConfig& childConfig, IWindow& parent)
+		void Construct(const WindowConfig& childConfig, IWindow& parent, ControlId id)
 		{
 			WindowConfig c = childConfig;
 			c.style = WS_CHILD | WS_VISIBLE;
@@ -613,7 +606,7 @@ namespace Rococo::Windows
 			hWnd = CreateWindowIndirect(customClassName, c, static_cast<IWindowHandler*>(this));
 
 			DWORD editorExStyle = 0;
-			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_READONLY, 0, 0, 0, 0, hWnd, NULL, hThisInstance, NULL);
+			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_READONLY, 0, 0, 0, 0, hWnd, (HMENU) id , hThisInstance, NULL);
 			SetWindowTextA(hWndEditControl, childConfig.windowName);
 			SetWindowSubclass(hWndEditControl, SuperEditorProc, SUPER_EDITOR_CLASS_ID, 0);
 
@@ -631,7 +624,7 @@ namespace Rococo::Windows
 
 		}
 	public:
-		static SuperComboBox* Create(Editors::ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent)
+		static SuperComboBox* Create(Editors::ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent, ControlId id)
 		{
 			if (customAtom == 0)
 			{
@@ -639,7 +632,7 @@ namespace Rococo::Windows
 			}
 
 			SuperComboBox* p = new SuperComboBox(spec);
-			p->Construct(childConfig, parent);
+			p->Construct(childConfig, parent, id);
 			return p;
 		}
 
