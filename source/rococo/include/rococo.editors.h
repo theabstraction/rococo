@@ -38,6 +38,27 @@ namespace Rococo::Editors
 		virtual void OnEditorChanged(UI::SysWidgetId id) = 0;
 		virtual void OnEditorLostKeyboardFocus(UI::SysWidgetId id) = 0;
 	};
+
+	ROCOCO_INTERFACE IUI2DGridEvents
+	{
+
+	};
+
+	ROCOCO_INTERFACE IUI2DGridSlate
+	{
+		virtual double ScaleFactor() const = 0;
+		virtual void SetScaleFactor(double newValue) = 0;
+		virtual void SetHorizontalDomain(double left, double right) = 0;
+		virtual void SetVerticalDomain(double top, double bottom) = 0;
+		virtual void SetCentrePosition(double x, double y) = 0;
+		virtual void SetSmallestGradation(double gradationDelta) = 0;
+	};
+
+	ROCOCO_INTERFACE IUI2DGridSlateSupervisor : IUI2DGridSlate
+	{
+		virtual void Free() = 0;
+		virtual void ResizeToParent() = 0;
+	};
 }
 
 namespace Rococo::Windows
@@ -47,4 +68,5 @@ namespace Rococo::Windows
 	// Create a properties editor window, hosted by the propertiesPanelArea. The host needs to respond to window events and invoke IUIPropertiesEditorSupervisor method appropriately
 	// An example is given in rococo.abstract.editor\abstract.editor.window.cpp
 	ROCOCO_WINDOWS_API Editors::IUIPropertiesEditorSupervisor* CreatePropertiesEditor(IParentWindowSupervisor& propertiesPanelArea);
+	ROCOCO_WINDOWS_API Editors::IUI2DGridSlateSupervisor* Create2DGrid(IParentWindowSupervisor& gridArea, uint32 style, Editors::IUI2DGridEvents& eventHandler);
 }

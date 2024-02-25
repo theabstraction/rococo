@@ -396,22 +396,73 @@ namespace ANON
 		}
 	};
 
+	class AbeditSlate: public StandardWindowHandler
+	{
+	private:
+		AutoFree<IParentWindowSupervisor> window;
+		HBRUSH hBrush{ nullptr };
+
+		void PostConstruct(HWND hParent)
+		{
+			WindowConfig config;
+			Rococo::Windows::SetChildWindowConfig(config, GuiRect{ 0,0,0,0 }, hParent, "Slate", WS_CHILD | WS_VISIBLE, 0);
+			hBrush = CreateSolidBrush(RGB(0, 255, 0));
+			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
+		}
+
+		~AbeditSlate()
+		{
+			DeleteObject(hBrush);
+		}
+	public:
+		void OnEraseBackground(HDC dc)
+		{
+			RECT rect;
+			GetClientRect(*window, &rect);
+			FillRect(dc, &rect, hBrush);
+		}
+
+		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			switch (msg)
+			{
+			case WM_ERASEBKGND:
+				OnEraseBackground((HDC)wParam);
+				return 1L;
+			}
+			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
+		}
+
+		static AbeditSlate* Create(HWND hParent)
+		{
+			auto node = new AbeditSlate();
+			node->SetBackgroundColour(RGB(192, 192, 192));
+			node->PostConstruct(hParent);
+			return node;
+		}
+
+		IParentWindowSupervisor& Window()
+		{
+			return *window;
+		}
+
+		void Free()
+		{
+			delete this;
+		}
+	};
+
 	class AbeditMainWindow : public StandardWindowHandler, public IAbeditMainWindowSupervisor
 	{
 	private:
 		IAbstractEditorMainWindowEventHandler& eventHandler;
-		IDialogSupervisor* window;
-		AbeditPropertiesWindow* propertiesPanel;
-		AbeditSplitter* rhsSplitter;
+		AutoFree<IParentWindowSupervisor> window;
+		AutoFree<AbeditPropertiesWindow> propertiesPanel;
+		AutoFree<AbeditSplitter> rhsSplitter;
+		AutoFree<AbeditSlate> slate;
 
 		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler) : eventHandler(_eventHandler), window(nullptr), propertiesPanel(nullptr)
 		{
-
-		}
-
-		~AbeditMainWindow()
-		{
-			Rococo::Free(window); // top level windows created with CreateDialogWindow have to be manually freed
 		}
 
 	public:
@@ -423,6 +474,11 @@ namespace ANON
 		Rococo::Editors::IUIPropertiesEditor& Properties() override
 		{
 			return propertiesPanel->Properties();
+		}
+
+		IParentWindowSupervisor& SlateWindow() override
+		{
+			return slate->Window();
 		}
 
 		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& sessionConfig)
@@ -442,8 +498,8 @@ namespace ANON
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
 			rhsSplitter = AbeditSplitter::Create(hDll, *window, { 0,0 }, { 0,0 });
-
 			propertiesPanel = AbeditPropertiesWindow::Create(window);
+			slate = AbeditSlate::Create(*window);
 
 			Layout();
 		}
@@ -456,9 +512,13 @@ namespace ANON
 			RECT rect;
 			GetClientRect(*window, &rect);
 
-			MoveWindow(*rhsSplitter, rect.right - propertiesWidth - splitterSpan, 0, splitterSpan, rect.bottom, TRUE);
+			int splitterLeft = rect.right - propertiesWidth - splitterSpan;
 
+			MoveWindow(slate->Window(), 0, 0, splitterLeft, rect.bottom, TRUE);
+			MoveWindow(*rhsSplitter, splitterLeft, 0, splitterSpan, rect.bottom, TRUE);
 			MoveWindow(propertiesPanel->GetWindow(), rect.right - propertiesWidth, 0, propertiesWidth, rect.bottom, TRUE);
+
+			eventHandler.OnSlateResized();
 		}
 
 		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 

@@ -364,6 +364,7 @@ namespace Rococo::Windows
 #include "listview.inl"
 #include "super.combo.box.inl"
 #include "properties.editor.inl"
+#include "grid_2D.inl"
 
 namespace Rococo
 {
@@ -510,6 +511,15 @@ namespace Rococo
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, containerStyleEx);
 			ListViewSupervisor* t = ListViewSupervisor::Create(childConfig, parent, eventHandler, containerStyle);
 			return t;
+		}
+
+		ROCOCO_WINDOWS_API Editors::IUI2DGridSlateSupervisor* Create2DGrid(IParentWindowSupervisor& panel, uint32 style, Editors::IUI2DGridEvents& eventHandler)
+		{
+			GuiRect rect{ 0,0,0,0 };
+			WindowConfig childConfig;
+			Windows::SetChildWindowConfig(childConfig, rect, panel, "grid", style | WS_CHILD, 0);
+			Grid_2D* g = Grid_2D::Create(childConfig, eventHandler);
+			return g;
 		}
 
 		ROCOCO_WINDOWS_API ColourScheme::ColourScheme() :

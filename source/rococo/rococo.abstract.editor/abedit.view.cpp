@@ -15,14 +15,13 @@ HINSTANCE GetDllInstance();
 
 namespace ANON
 {
-	struct AbstractEditor : Rococo::Abedit::IAbstractEditorSupervisor
+	struct AbstractEditor : Rococo::Abedit::IWin32AbstractEditorSupervisor
 	{
 		IMVC_Host& host;
 		HWND hHostWindow;
 
 		AutoFree<IAbeditMainWindowSupervisor> mainWindow;
 		AutoFree<IUIPaletteSupervisor> palette;
-		AutoFree<IUIBlankSlateSupervisor> slate;
 
 		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler): host(_host), hHostWindow(_hHostWindow)
 		{
@@ -33,7 +32,16 @@ namespace ANON
 			// Pass subwindow context to palette, properties and slate
 			// Define and implement palette properties and slate
 			palette = Internal::CreatePalette();
-			slate = Internal::CreateBlankSlate();
+		}
+
+		virtual ~AbstractEditor()
+		{
+
+		}
+
+		cstr Implementation() const override
+		{
+			return IMPLEMENTATION_TYPE_WIN32_HWND;
 		}
 
 		void Free() override
@@ -61,9 +69,9 @@ namespace ANON
 			return mainWindow->Properties();
 		}
 
-		IUIBlankSlate& Slate() override
+		Windows::IParentWindowSupervisor& Slate() override
 		{
-			return *slate;
+			return mainWindow->SlateWindow();
 		}
 	};
 

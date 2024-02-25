@@ -606,7 +606,7 @@ namespace Rococo::Windows
 			hWnd = CreateWindowIndirect(customClassName, c, static_cast<IWindowHandler*>(this));
 
 			DWORD editorExStyle = 0;
-			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_READONLY, 0, 0, 0, 0, hWnd, (HMENU) id , hThisInstance, NULL);
+			hWndEditControl = CreateWindowExA(editorExStyle, "EDIT", "", WS_CHILD | WS_VISIBLE | ES_READONLY, 0, 0, 0, 0, hWnd, (HMENU)(size_t) id , hThisInstance, NULL);
 			SetWindowTextA(hWndEditControl, childConfig.windowName);
 			SetWindowSubclass(hWndEditControl, SuperEditorProc, SUPER_EDITOR_CLASS_ID, 0);
 

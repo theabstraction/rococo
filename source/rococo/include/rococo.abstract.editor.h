@@ -2,6 +2,8 @@
 
 #include <rococo.types.h>
 
+#define IMPLEMENTATION_TYPE_WIN32_HWND "Win32-HWND"
+
 namespace Rococo::Editors
 {
 	struct IUIPropertiesEditor;
@@ -23,17 +25,7 @@ namespace Rococo::Abedit
 
 	};
 
-	ROCOCO_INTERFACE IUIBlankSlate
-	{
-
-	};
-
 	ROCOCO_INTERFACE IUIPaletteSupervisor: IUIPalette
-	{
-		virtual void Free() = 0;
-	};
-
-	ROCOCO_INTERFACE IUIBlankSlateSupervisor : IUIBlankSlate
 	{
 		virtual void Free() = 0;
 	};
@@ -41,7 +33,6 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IAbstractEditor
 	{
 		virtual [[nodiscard]] bool IsVisible() const = 0;
-		virtual [[nodiscard]] IUIBlankSlate& Slate() = 0;
 		virtual [[nodiscard]] IUIPalette& Palette() = 0;
 		virtual [[nodiscard]] Editors::IUIPropertiesEditor& Properties() = 0;
 	};
@@ -50,18 +41,20 @@ namespace Rococo::Abedit
 	{
 		virtual void Free() = 0;
 		virtual void HideWindow() = 0;
+		virtual cstr Implementation() const = 0;
 	};
 
 	ROCOCO_INTERFACE IAbeditMainWindow
 	{
 		virtual void Free() = 0;
 		virtual void Hide() = 0;
-		virtual bool IsVisible() const = 0;
+		virtual [[nodiscard]] bool IsVisible() const = 0;
 	};
 
 	ROCOCO_INTERFACE IAbstractEditorMainWindowEventHandler
 	{
 		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
+		virtual void OnSlateResized() = 0;
 	};
 
 	struct EditorSessionConfig
@@ -77,3 +70,18 @@ namespace Rococo::Abedit
 		[[nodiscard]] virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler) = 0;
 	};
 }
+
+#ifdef _WIN32
+namespace Rococo::Windows
+{
+	struct IParentWindowSupervisor;
+}
+
+namespace Rococo::Abedit
+{
+	ROCOCO_INTERFACE IWin32AbstractEditorSupervisor : IAbstractEditorSupervisor
+	{
+		virtual Windows::IParentWindowSupervisor& Slate() = 0;
+	};
+}
+#endif

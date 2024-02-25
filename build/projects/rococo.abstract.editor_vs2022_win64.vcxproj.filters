@@ -4,7 +4,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abedit.view.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.main.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.palette.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.slate.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.abstract.editor\abstract.editor.window.cpp" />
   </ItemGroup>
   <ItemGroup>

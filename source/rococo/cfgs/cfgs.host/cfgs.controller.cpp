@@ -13,6 +13,11 @@ using namespace Rococo::Validators;
 using namespace Rococo::Reflection;
 using namespace Rococo::Editors;
 
+namespace Rococo::CFGS
+{
+	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
+}
+
 namespace ANON
 {
 	enum class ELEMENT_CLASS
@@ -158,9 +163,10 @@ namespace ANON
 		}
 	};
 
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
+		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
 
 		bool terminateOnMainWindowClose = false;
 
@@ -192,6 +198,9 @@ namespace ANON
 			}
 
 			element.FormatDesc();
+
+			gridSlate = CFGS::Create2DGridControl(*editor, *this);
+			gridSlate->ResizeToParent();
 
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
@@ -234,6 +243,14 @@ namespace ANON
 		{
 			sender.Hide();	
 			isRunning = false;
+		}
+
+		void OnSlateResized() override
+		{
+			if (gridSlate)
+			{
+				gridSlate->ResizeToParent();
+			}
 		}
 
 		void TerminateOnMainWindowClose() override
