@@ -257,6 +257,43 @@ namespace ANON
 		{
 			terminateOnMainWindowClose = true;
 		}
+
+		void GridEvent_OnControlWheelRotated(int ticks, uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		{
+			UNUSED(cursorPosition);
+			UNUSED(gridEventWheelFlags);
+
+			double currentScale = gridSlate->ScaleFactor();
+			double newScale = currentScale;
+
+			const double multiplier_per_tick = 1.1;
+			const double max_scale = 10.0;
+
+			while (ticks > 0)
+			{
+				if (newScale < max_scale)
+				{
+					newScale *= multiplier_per_tick;
+				}
+				ticks--;
+			}
+
+			while (ticks < 0)
+			{
+				if (newScale > 1.0)
+				{
+					newScale /= multiplier_per_tick;
+				}
+				ticks++;
+			}
+
+			if (newScale < multiplier_per_tick)
+			{
+				newScale = 1.0;
+			}
+
+			gridSlate->SetScaleFactor(newScale);
+		}
 	};
 }
 

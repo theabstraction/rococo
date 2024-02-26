@@ -39,9 +39,21 @@ namespace Rococo::Editors
 		virtual void OnEditorLostKeyboardFocus(UI::SysWidgetId id) = 0;
 	};
 
+	enum GRID_EVENT_WHEEL_FLAGS
+	{
+		GRID_EVENT_WHEEL_FLAGS_NONE = 0,
+		GRID_EVENT_WHEEL_FLAGS_HELD_CTRL = 0x0008,
+		GRID_EVENT_WHEEL_FLAGS_HELD_LBUTTON = 0x0001,
+		GRID_EVENT_WHEEL_FLAGS_HELD_R_RBUTTON = 0x0002,
+		GRID_EVENT_WHEEL_FLAGS_HELD_M_BUTTON = 0x0010,
+		GRID_EVENT_WHEEL_FLAGS_HELD_SHIFT = 0x0004
+	};
+
 	ROCOCO_INTERFACE IUI2DGridEvents
 	{
-
+		// Triggered when the control wheel (such as the mouse wheel) rotates a definite number of clicks. 
+		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
+		virtual void GridEvent_OnControlWheelRotated(int32 clicks, uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
 	};
 
 	ROCOCO_INTERFACE IUI2DGridSlate

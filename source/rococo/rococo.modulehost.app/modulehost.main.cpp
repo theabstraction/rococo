@@ -41,8 +41,6 @@ public:
 			TranslateMessage(&msg);
 			DispatchMessageA(&msg);
 		}
-
-		Beep(512, 500);
 	}
 };
 

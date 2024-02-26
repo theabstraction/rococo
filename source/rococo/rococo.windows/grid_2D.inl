@@ -45,6 +45,8 @@ namespace Rococo::Windows
 		AutoFree<IParentWindowSupervisor> window;
 		IUI2DGridEvents& eventHandler;
 
+		int16 wheelDeltaSum = 0;
+
 		Grid_2D(IUI2DGridEvents& _handler) :
 			eventHandler(_handler)
 		{
@@ -59,21 +61,35 @@ namespace Rococo::Windows
 			FillRect(dc, &rect, hBrush);
 		}
 
+		void ScaleDC(HDC dc)
+		{
+			XFORM t;
+			t.eM11 = (float)scaleFactor;
+			t.eM12 = t.eM21 = 0.0;
+			t.eM22 = (float)scaleFactor;
+			t.eDx = 0.0;
+			t.eDy = 0.0;
+
+			SetWorldTransform(dc, &t);
+		}
+
 		void OnPaint(HDC dc, const RECT& subRect)
 		{
+			UNUSED(subRect);
+			
 			Pen pen(PS_SOLID, 1, RGB(128, 128, 255));
 			PenContext usePen(pen, dc);
 
 			for (double x = left; x < right; x += smallestGradation)
 			{
-				int iX = (int)x;
+				int iX = (int) (x * scaleFactor);
 				MoveToEx(dc, iX, (int) -bottom, NULL);
 				LineTo(dc, iX, (int) -top);
 			}
 
 			for (double y = bottom; y < top; y += smallestGradation)
 			{
-				int iY = -(int)y;
+				int iY = -(int)(y * scaleFactor);
 				MoveToEx(dc, (int) left, iY, NULL);
 				LineTo(dc, (int) right, iY);
 			}
@@ -88,13 +104,42 @@ namespace Rococo::Windows
 			case WM_ERASEBKGND:
 				OnEraseBackground((HDC)wParam);
 				return 1L;
+			case WM_MOUSEWHEEL:
+				{
+					uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
+					int16 wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+					wheelDeltaSum += wheelDelta;
+
+					int32 clicks = 0;
+
+					while (wheelDeltaSum >= 120)
+					{
+						clicks++;
+						wheelDeltaSum -= 120;
+					}
+
+					while (wheelDeltaSum <= -120)
+					{
+						clicks--;
+						wheelDeltaSum += 120;
+					}
+
+					if (clicks != 0)
+					{
+						int32 xPos = GET_X_LPARAM(lParam);
+						int32 yPos = GET_Y_LPARAM(lParam);
+
+						eventHandler.GridEvent_OnControlWheelRotated(clicks, fwKeys, Vec2i { xPos, yPos });
+					}
+				}
+				return 0L;
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
-				HDC hdc = BeginPaint(*window, &ps);
-
-				OnPaint(hdc, ps.rcPaint);
-
+				HDC dc = BeginPaint(*window, &ps);
+				//int oldMode = SetGraphicsMode(dc, GM_ADVANCED);				
+				OnPaint(dc, ps.rcPaint);
+				//SetGraphicsMode(dc, oldMode);
 				EndPaint(*window, &ps);
 			}
 			return 0;
@@ -139,6 +184,7 @@ namespace Rococo::Windows
 		void SetScaleFactor(double newValue) override
 		{
 			scaleFactor = newValue;
+			InvalidateRect(*window, NULL, TRUE);
 		}
 
 		void SetHorizontalDomain(double left, double right) override
