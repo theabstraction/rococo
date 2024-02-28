@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 namespace Rococo::Windows
 {
 	class Pen
@@ -39,6 +41,12 @@ namespace Rococo::Windows
 		}
 	};
 
+	struct GVec2
+	{
+		double x;
+		double y;
+	};
+
 	class Grid_2D : public IUI2DGridSlateSupervisor, private IWindowHandler
 	{
 	private:
@@ -46,6 +54,16 @@ namespace Rococo::Windows
 		IUI2DGridEvents& eventHandler;
 
 		int16 wheelDeltaSum = 0;
+
+		double viewScaleFactor = 1.0; // Number of pixels per unit distance in the world
+		double worldLeft = -4096.0;
+		double worldRight = 4096.0;
+		double worldTop = 4096.0;
+		double worldBottom = -4096.0;
+		GVec2 viewOrigin{ 0, 0 }; // World co-ordinates of the screen centre
+		double mapSmallestGradation = 100.0; // Width of grid lines in world units
+		double minPixelSpan = 8.0; // Smallest visible gradation span
+		GVec2 viewSpan = { 1.0, 1.0 };
 
 		Grid_2D(IUI2DGridEvents& _handler) :
 			eventHandler(_handler)
@@ -61,38 +79,94 @@ namespace Rococo::Windows
 			FillRect(dc, &rect, hBrush);
 		}
 
-		void ScaleDC(HDC dc)
+		GVec2 Quantize(const GVec2& worldSpace, double delta)
 		{
-			XFORM t;
-			t.eM11 = (float)scaleFactor;
-			t.eM12 = t.eM21 = 0.0;
-			t.eM22 = (float)scaleFactor;
-			t.eDx = 0.0;
-			t.eDy = 0.0;
+			double integralComponentX = 0;
+			double remainderX = std::modf(worldSpace.x / delta, &integralComponentX);
 
-			SetWorldTransform(dc, &t);
+			double integralComponentY = 0;
+			double remainderY = std::modf(worldSpace.y / delta, &integralComponentY);
+
+			return GVec2{ integralComponentX * delta, integralComponentY * delta };
+		}
+
+		void PaintGradation(HDC dc, Pen& pen, double worldGradationSpan)
+		{
+			double pixelSpan = worldGradationSpan * viewScaleFactor;
+			if (pixelSpan < minPixelSpan)
+			{
+				return;
+			}
+
+			PenContext usePen(pen, dc);
+
+			GVec2 bottomLeft{ 0,viewSpan.y };
+			GVec2 screenInWorldSpaceBottomLeft = ScreenToWorld(bottomLeft);
+
+			GVec2 topRight{ viewSpan.x, 0 };
+			GVec2 screenInWorldSpaceTopRight = ScreenToWorld(topRight);
+
+			GVec2 bl = Quantize(screenInWorldSpaceBottomLeft, worldGradationSpan);
+			GVec2 tr = Quantize(screenInWorldSpaceTopRight, worldGradationSpan);
+			tr.x += worldGradationSpan;
+			tr.y += worldGradationSpan;
+			bl.x -= worldGradationSpan;
+			bl.y -= worldGradationSpan;
+
+			for (double x = bl.x; x < tr.x; x += worldGradationSpan)
+			{
+				GVec2 worldLineTop{ x, worldTop };
+				GVec2 worldLineButtom{ x, worldBottom };
+
+				GVec2 viewLineTop = WorldToScreen(worldLineTop);
+				GVec2 viewLineBottom = WorldToScreen(worldLineButtom);
+
+				MoveToEx(dc, (int)viewLineTop.x, (int)viewLineTop.y, NULL);
+				LineTo(dc, (int)viewLineBottom.x, (int)viewLineBottom.y);
+			}
+
+			for (double y = bl.y; y < tr.y; y += worldGradationSpan)
+			{
+				GVec2 worldLineLeft{ worldLeft, y };
+				GVec2 worldLineRight{ worldRight, y };
+
+				GVec2 viewLineLeft = WorldToScreen(worldLineLeft);
+				GVec2 viewLineRight = WorldToScreen(worldLineRight);
+
+				MoveToEx(dc, (int)viewLineLeft.x, (int)viewLineLeft.y, NULL);
+				LineTo(dc, (int)viewLineRight.x, (int)viewLineRight.y);
+			}
 		}
 
 		void OnPaint(HDC dc, const RECT& subRect)
 		{
 			UNUSED(subRect);
 			
-			Pen pen(PS_SOLID, 1, RGB(128, 128, 255));
-			PenContext usePen(pen, dc);
+			Pen pen1(PS_SOLID, 1, RGB(16, 16, 32));
+			Pen pen2(PS_SOLID, 1, RGB(32, 32, 64));
+			Pen pen3(PS_SOLID, 1, RGB(64, 64, 128));
 
-			for (double x = left; x < right; x += smallestGradation)
-			{
-				int iX = (int) (x * scaleFactor);
-				MoveToEx(dc, iX, (int) -bottom, NULL);
-				LineTo(dc, iX, (int) -top);
-			}
+			PaintGradation(dc, pen1, mapSmallestGradation / 10.0);
+			PaintGradation(dc, pen2, mapSmallestGradation);
+			PaintGradation(dc, pen3, mapSmallestGradation * 10.0);
+		}
 
-			for (double y = bottom; y < top; y += smallestGradation)
+		GVec2 WorldToScreen(const GVec2& p) const
+		{
+			return GVec2
 			{
-				int iY = -(int)(y * scaleFactor);
-				MoveToEx(dc, (int) left, iY, NULL);
-				LineTo(dc, (int) right, iY);
-			}
+				 p.x * viewScaleFactor + 0.5 * viewSpan.x,
+				 -p.y * viewScaleFactor + 0.5 * viewSpan.y,
+			};
+		}
+
+		GVec2 ScreenToWorld(const GVec2& pixelPos) const
+		{
+			return GVec2
+			{
+				 (pixelPos.x - 0.5 * viewSpan.x) / viewScaleFactor,
+				 -1.0  * (pixelPos.y - 0.5 * viewSpan.y) / viewScaleFactor,
+			};
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
@@ -149,65 +223,49 @@ namespace Rococo::Windows
 
 		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
 		{
+			UNUSED(wParam);
+
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
 
-			UNUSED(width);
-			UNUSED(height);
-
-			switch (wParam)
-			{
-			case SIZE_RESTORED:
-			case SIZE_MAXSHOW:
-			case SIZE_MAXIMIZED:
-			case SIZE_MAXHIDE:
-				break;
-			}
+			viewSpan.x = (double)width;
+			viewSpan.y = (double)height;
 
 			return 0L;
 		}
 
-		double scaleFactor = 1.0;
-		double left = -4096.0;
-		double right = 4096.0;
-		double top = 4096.0;
-		double bottom = -4096.0;
-		double originX = 0.0;
-		double originY = 0.0;
-		double smallestGradation = 32.0;
-
 		double ScaleFactor() const override
 		{
-			return scaleFactor;
+			return viewScaleFactor;
 		}
 
 		void SetScaleFactor(double newValue) override
 		{
-			scaleFactor = newValue;
+			viewScaleFactor = newValue;
 			InvalidateRect(*window, NULL, TRUE);
 		}
 
 		void SetHorizontalDomain(double left, double right) override
 		{
-			this->left = left;
-			this->right = right;
+			this->worldLeft = left;
+			this->worldRight = right;
 		}
 
 		void SetVerticalDomain(double top, double bottom) override
 		{
-			this->top = top;
-			this->bottom = bottom;
+			this->worldTop = top;
+			this->worldBottom = bottom;
 		}
 
 		void SetCentrePosition(double x, double y) override
 		{
-			originX = x;
-			originY = y;
+			viewOrigin.x = x;
+			viewOrigin.y = y;
 		}
 
 		void SetSmallestGradation(double gradationDelta) override
 		{
-			smallestGradation = gradationDelta;
+			mapSmallestGradation = gradationDelta;
 		}
 
 		void OnPretranslateMessage(MSG&) override
