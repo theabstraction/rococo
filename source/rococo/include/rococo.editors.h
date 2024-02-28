@@ -54,6 +54,18 @@ namespace Rococo::Editors
 		// Triggered when the control wheel (such as the mouse wheel) rotates a definite number of clicks. 
 		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
 		virtual void GridEvent_OnControlWheelRotated(int32 clicks, uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+
+		// Triggered when the cursor moves within the grid (or even outside when the cursor is captured) 
+		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
+		virtual void GridEvent_OnCursorMove(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+
+		// Triggered when the default activate button of the cursor control (such as the left mouse button) is held down when the cursor is over the grid area
+		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
+		virtual void GridEvent_OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+
+		// Triggered when the default activate button of the cursor control (such as the left mouse button) is released when the cursor is over the grid area
+		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
+		virtual void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
 	};
 
 	ROCOCO_INTERFACE IUI2DGridSlate
@@ -64,6 +76,21 @@ namespace Rococo::Editors
 		virtual void SetVerticalDomain(double top, double bottom) = 0;
 		virtual void SetCentrePosition(double x, double y) = 0;
 		virtual void SetSmallestGradation(double gradationDelta) = 0;
+
+		// Begins a drag operation on the grid, using the specified pixel position as the start co-ordinate
+		virtual void BeginDrag(Vec2i referencePixelPosition) = 0;
+
+		// Ends a drag operation on the grid, using the specified pixel position as the end co-ordinate
+		virtual void EndDrag(Vec2i referencePixelPosition) = 0;
+
+		// Temporarily updates the visuals of the grid, using the specified pixel position as the preview co-ordinate
+		virtual void PreviewDrag(Vec2i referencePixelPosition) = 0;
+
+		// Tells the underlying widget system that cursor button and move events should be directed to the grid and not outside of it
+		virtual void CaptureCursorInput() = 0;
+
+		// Tells the underlying widget system that cursor events outside of the grid should not be routed to the grid any longer
+		virtual void ReleaseCapture() = 0;
 	};
 
 	ROCOCO_INTERFACE IUI2DGridSlateSupervisor : IUI2DGridSlate

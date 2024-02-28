@@ -151,12 +151,17 @@ namespace Rococo::Windows
 			PaintGradation(dc, pen3, mapSmallestGradation * 10.0);
 		}
 
+		const GVec2& GetCurrentlyVisibleOrigin() const
+		{
+			return previewOrigin.x < 1.e30 ? previewOrigin : viewOrigin;
+		}
+
 		GVec2 WorldToScreen(const GVec2& p) const
 		{
 			return GVec2
 			{
-				 p.x * viewScaleFactor + 0.5 * viewSpan.x,
-				 -p.y * viewScaleFactor + 0.5 * viewSpan.y,
+				 p.x - GetCurrentlyVisibleOrigin().x * viewScaleFactor + 0.5 * viewSpan.x,
+				 -(p.y - GetCurrentlyVisibleOrigin().y) * viewScaleFactor + 0.5 * viewSpan.y,
 			};
 		}
 
@@ -164,9 +169,57 @@ namespace Rococo::Windows
 		{
 			return GVec2
 			{
-				 (pixelPos.x - 0.5 * viewSpan.x) / viewScaleFactor,
-				 -1.0  * (pixelPos.y - 0.5 * viewSpan.y) / viewScaleFactor,
+				 (pixelPos.x - 0.5 * viewSpan.x) / viewScaleFactor + GetCurrentlyVisibleOrigin().x,
+				 -1.0  * (pixelPos.y - 0.5 * viewSpan.y) / viewScaleFactor + GetCurrentlyVisibleOrigin().y,
 			};
+		}
+
+		Vec2i dragStart = { -1,-1 };
+
+		GVec2 previewOrigin{ 1e40,1e40 };
+
+		void BeginDrag(Vec2i referencePixelPosition) override
+		{
+			dragStart = referencePixelPosition;
+		}
+
+		void EndDrag(Vec2i referencePixelPosition) override
+		{
+			if (dragStart.x != -1)
+			{
+				Vec2i delta = dragStart - referencePixelPosition;
+				dragStart = { -1,-1 };
+
+				GVec2 worldCentreInPixels = WorldToScreen(viewOrigin);
+				GVec2 newWorldCentreInPixels = { worldCentreInPixels.x + (double)delta.x,  worldCentreInPixels.y + (double)delta.y };
+				GVec2 newWorldCentreInWorldUnits = ScreenToWorld(newWorldCentreInPixels);
+				viewOrigin = newWorldCentreInWorldUnits;
+				previewOrigin = { 1e40,1e40 };
+				InvalidateRect(*window, NULL, TRUE);
+			}
+		}
+
+		void PreviewDrag(Vec2i referencePixelPosition)
+		{
+			if (dragStart.x != -1)
+			{
+				Vec2i delta = dragStart - referencePixelPosition;
+				GVec2 worldCentreInPixels = WorldToScreen(viewOrigin);
+				GVec2 newWorldCentreInPixels = { worldCentreInPixels.x + (double)delta.x,  worldCentreInPixels.y + (double)delta.y };
+				GVec2 newWorldCentreInWorldUnits = ScreenToWorld(newWorldCentreInPixels);
+				previewOrigin = newWorldCentreInWorldUnits;
+				InvalidateRect(*window, NULL, TRUE);
+			}
+		}
+
+		void CaptureCursorInput() override
+		{
+			::SetCapture(*window);
+		}
+
+		void ReleaseCapture() override
+		{
+			::SetCapture(nullptr);
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
@@ -178,6 +231,22 @@ namespace Rococo::Windows
 			case WM_ERASEBKGND:
 				OnEraseBackground((HDC)wParam);
 				return 1L;
+			case WM_LBUTTONDOWN:
+				{
+					uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
+					int32 xPos = GET_X_LPARAM(lParam);
+					int32 yPos = GET_Y_LPARAM(lParam);
+					eventHandler.GridEvent_OnLeftButtonDown(fwKeys, Vec2i{ xPos, yPos });
+				}
+				return 0L;
+			case WM_LBUTTONUP:
+				{
+					uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
+					int32 xPos = GET_X_LPARAM(lParam);
+					int32 yPos = GET_Y_LPARAM(lParam);
+					eventHandler.GridEvent_OnLeftButtonUp(fwKeys, Vec2i{ xPos, yPos });
+				}
+				return 0L;
 			case WM_MOUSEWHEEL:
 				{
 					uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
@@ -207,6 +276,14 @@ namespace Rococo::Windows
 					}
 				}
 				return 0L;
+			case WM_MOUSEMOVE:
+					{
+						uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
+						int32 xPos = GET_X_LPARAM(lParam);
+						int32 yPos = GET_Y_LPARAM(lParam);
+						eventHandler.GridEvent_OnCursorMove(fwKeys, Vec2i{ xPos, yPos });
+					}
+					return 0L;
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
