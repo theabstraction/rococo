@@ -315,6 +315,18 @@ namespace ANON
 			gridSlate->ReleaseCapture();
 			gridSlate->EndDrag(cursorPosition);
 		}
+
+		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override
+		{
+			gr.SetFillOptions(RGBAb(192, 0, 0));
+
+			Vec2i span = gr.Span();
+			Vec2i centre = { span.x / 2, span.y / 2 };
+
+			GuiRect blob{ centre.x - 2, centre.y - 2, centre.x + 2, centre.y + 2 };
+
+			gr.FillRect(blob);
+		}
 	};
 }
 

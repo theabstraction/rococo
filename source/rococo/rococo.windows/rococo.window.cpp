@@ -350,6 +350,7 @@ namespace Rococo::Windows
 	}
 }
 
+#include "dc-renderer.inl"
 #include "button.control.inl"
 #include "child.inl"
 #include "dialog.inl"

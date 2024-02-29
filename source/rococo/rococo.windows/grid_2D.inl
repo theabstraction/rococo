@@ -224,6 +224,9 @@ namespace Rococo::Windows
 			PaintGradation(dc, pen1, mapSmallestGradation / 10.0);
 			PaintGradation(dc, pen2, mapSmallestGradation);
 			PaintGradation(dc, pen3, mapSmallestGradation * 10.0);
+
+			DC_Renderer renderer(dc, *window);
+			eventHandler.GridEvent_PaintForeground(renderer);
 		}
 
 		const GVec2& GetCurrentlyVisibleOrigin() const

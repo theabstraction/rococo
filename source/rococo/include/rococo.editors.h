@@ -49,6 +49,19 @@ namespace Rococo::Editors
 		GRID_EVENT_WHEEL_FLAGS_HELD_SHIFT = 0x0004
 	};
 
+	ROCOCO_INTERFACE IFlatGuiRenderer
+	{
+		virtual void FillRect(const GuiRect & rect) = 0;
+		virtual void LineTo(Vec2i pos) = 0;
+		virtual void MoveTo(Vec2i pos) = 0;
+
+		virtual void SetLineOptions(RGBAb colour) = 0;
+		virtual void SetFillOptions(RGBAb colour) = 0;
+
+		virtual Vec2i CursorPosition() const = 0;
+		virtual Vec2i Span() const = 0;
+	};
+
 	ROCOCO_INTERFACE IUI2DGridEvents
 	{
 		// Triggered when the control wheel (such as the mouse wheel) rotates a definite number of clicks. 
@@ -66,6 +79,8 @@ namespace Rococo::Editors
 		// Triggered when the default activate button of the cursor control (such as the left mouse button) is released when the cursor is over the grid area
 		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
 		virtual void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+
+		virtual void GridEvent_PaintForeground(IFlatGuiRenderer& renderer) = 0;
 	};
 
 	ROCOCO_INTERFACE IUI2DGridSlate
