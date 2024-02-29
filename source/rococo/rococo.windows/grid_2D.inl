@@ -129,10 +129,10 @@ namespace Rococo::Windows
 			for (double x = bl.x; x < tr.x; x += worldGradationSpan)
 			{
 				GVec2 worldLineTop{ x, worldTop };
-				GVec2 worldLineButtom{ x, worldBottom };
+				GVec2 worldLineBottom{ x, worldBottom };
 
 				GVec2 viewLineTop = WorldToScreen(worldLineTop);
-				GVec2 viewLineBottom = WorldToScreen(worldLineButtom);
+				GVec2 viewLineBottom = WorldToScreen(worldLineBottom);
 
 				MoveToEx(dc, (int)viewLineTop.x, (int)viewLineTop.y, NULL);
 				LineTo(dc, (int)viewLineBottom.x, (int)viewLineBottom.y);
@@ -235,7 +235,7 @@ namespace Rococo::Windows
 		{
 			return GVec2
 			{
-				 p.x - GetCurrentlyVisibleOrigin().x * viewScaleFactor + 0.5 * viewSpan.x,
+				 (p.x - GetCurrentlyVisibleOrigin().x) * viewScaleFactor + 0.5 * viewSpan.x,
 				 -(p.y - GetCurrentlyVisibleOrigin().y) * viewScaleFactor + 0.5 * viewSpan.y,
 			};
 		}
