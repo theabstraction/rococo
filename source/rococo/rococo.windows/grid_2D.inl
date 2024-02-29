@@ -65,9 +65,22 @@ namespace Rococo::Windows
 		double minPixelSpan = 8.0; // Smallest visible gradation span
 		GVec2 viewSpan = { 1.0, 1.0 };
 
-		Grid_2D(IUI2DGridEvents& _handler) :
-			eventHandler(_handler)
+		Grid_2D(IUI2DGridEvents& _handler, bool isDoubleBuffered) :
+			eventHandler(_handler), isBuffered(isDoubleBuffered)
 		{
+		}
+
+		~Grid_2D()
+		{
+			if (memDC)
+			{
+				DeleteDC(memDC);
+			}
+
+			if (hMemBitmap)
+			{
+				DeleteBitmap(hMemBitmap);
+			}
 		}
 
 		void OnEraseBackground(HDC dc)
@@ -136,6 +149,68 @@ namespace Rococo::Windows
 				MoveToEx(dc, (int)viewLineLeft.x, (int)viewLineLeft.y, NULL);
 				LineTo(dc, (int)viewLineRight.x, (int)viewLineRight.y);
 			}
+		}
+
+		HDC memDC = NULL;
+		HBITMAP hMemBitmap = NULL;
+		Vec2i memSpan{ 0,0 };
+
+		void OnPaintBuffered(HDC dc, const RECT& subRect)
+		{
+			RECT windowRect;
+			GetClientRect(*window, &windowRect);
+
+			if (windowRect.right != memSpan.x || windowRect.bottom != memSpan.y || memDC == nullptr)
+			{
+				if (memDC)
+				{					
+					DeleteDC(memDC);					
+					memDC = nullptr;
+					hMemBitmap = nullptr;
+				}
+
+				if (hMemBitmap)
+				{
+					DeleteBitmap(hMemBitmap);
+					hMemBitmap = nullptr;
+				}
+
+				memDC = CreateCompatibleDC(dc);
+				if (!memDC)
+				{
+					OnPaint(dc, subRect);
+					return;
+				}
+
+				memSpan.x = windowRect.right;
+				memSpan.y = windowRect.bottom;
+
+				hMemBitmap = CreateCompatibleBitmap(dc, memSpan.x, memSpan.y);
+				if (!hMemBitmap)
+				{
+					DeleteDC(memDC);
+					memDC = nullptr;
+					OnPaint(dc, subRect);
+					return;
+				}
+			}
+
+			auto oldBitmap = SelectObject(memDC, hMemBitmap);
+
+			BITMAPINFO info = { 0 };
+			info.bmiHeader.biSize = sizeof info;
+
+			int result = GetDIBits(memDC, hMemBitmap, 0, 0, NULL, &info, DIB_RGB_COLORS);
+
+			HBRUSH hBackBrush = CreateSolidBrush(RGB(0, 0, 0));
+			FillRect(memDC, &windowRect, hBackBrush);
+			DeleteObject(hBackBrush);
+				
+			OnPaint(memDC, subRect);
+
+			BitBlt(dc, 0, 0, memSpan.x, memSpan.y, memDC, 0, 0, SRCCOPY);
+
+			SelectObject(memDC, oldBitmap);
 		}
 
 		void OnPaint(HDC dc, const RECT& subRect)
@@ -222,6 +297,8 @@ namespace Rococo::Windows
 			::SetCapture(nullptr);
 		}
 
+		const bool isBuffered;
+
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (uMsg)
@@ -229,7 +306,7 @@ namespace Rococo::Windows
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_ERASEBKGND:
-				OnEraseBackground((HDC)wParam);
+				if (!isBuffered) OnEraseBackground((HDC)wParam);
 				return 1L;
 			case WM_LBUTTONDOWN:
 				{
@@ -287,10 +364,17 @@ namespace Rococo::Windows
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
-				HDC dc = BeginPaint(*window, &ps);
-				//int oldMode = SetGraphicsMode(dc, GM_ADVANCED);				
-				OnPaint(dc, ps.rcPaint);
-				//SetGraphicsMode(dc, oldMode);
+				HDC dc = BeginPaint(*window, &ps);	
+
+				if (isBuffered)
+				{
+					OnPaintBuffered(dc, ps.rcPaint);
+				}
+				else
+				{
+					OnPaint(dc, ps.rcPaint);
+				}
+
 				EndPaint(*window, &ps);
 			}
 			return 0;
@@ -357,9 +441,9 @@ namespace Rococo::Windows
 			MoveWindow(*window, 0, 0, rect.right, rect.bottom, TRUE);
 		}
 	public:
-		static Grid_2D* Create(const WindowConfig& config, IUI2DGridEvents& eventHandler)
+		static Grid_2D* Create(const WindowConfig& config, IUI2DGridEvents& eventHandler, bool useDoubleBuffering)
 		{
-			Grid_2D* p = new Grid_2D(eventHandler);
+			Grid_2D* p = new Grid_2D(eventHandler, useDoubleBuffering);
 			p->window = CreateChildWindow(config, static_cast<IWindowHandler*>(p));
 
 			return p;

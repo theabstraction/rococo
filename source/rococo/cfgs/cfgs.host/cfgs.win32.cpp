@@ -14,7 +14,7 @@ namespace Rococo::CFGS
 		}
 
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
-		return Rococo::Windows::Create2DGrid(super.Slate(), WS_VISIBLE | WS_CHILD, eventHandler);
+		return Rococo::Windows::Create2DGrid(super.Slate(), WS_VISIBLE | WS_CHILD, eventHandler, true);
 	}
 }
 

@@ -513,12 +513,12 @@ namespace Rococo
 			return t;
 		}
 
-		ROCOCO_WINDOWS_API Editors::IUI2DGridSlateSupervisor* Create2DGrid(IParentWindowSupervisor& panel, uint32 style, Editors::IUI2DGridEvents& eventHandler)
+		ROCOCO_WINDOWS_API Editors::IUI2DGridSlateSupervisor* Create2DGrid(IParentWindowSupervisor& panel, uint32 style, Editors::IUI2DGridEvents& eventHandler, bool useDoubleBuffering)
 		{
 			GuiRect rect{ 0,0,0,0 };
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, panel, "grid", style | WS_CHILD, 0);
-			Grid_2D* g = Grid_2D::Create(childConfig, eventHandler);
+			Grid_2D* g = Grid_2D::Create(childConfig, eventHandler, useDoubleBuffering);
 			return g;
 		}
 
