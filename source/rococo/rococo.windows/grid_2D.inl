@@ -41,13 +41,7 @@ namespace Rococo::Windows
 		}
 	};
 
-	struct GVec2
-	{
-		double x;
-		double y;
-	};
-
-	class Grid_2D : public IUI2DGridSlateSupervisor, private IWindowHandler
+	class Grid_2D : public IUI2DGridSlateSupervisor, public IDesignTransformations, private IWindowHandler
 	{
 	private:
 		AutoFree<IParentWindowSupervisor> window;
@@ -58,12 +52,12 @@ namespace Rococo::Windows
 		double viewScaleFactor = 1.0; // Number of pixels per unit distance in the world
 		double worldLeft = -4096.0;
 		double worldRight = 4096.0;
-		double worldTop = 4096.0;
-		double worldBottom = -4096.0;
-		GVec2 viewOrigin{ 0, 0 }; // World co-ordinates of the screen centre
+		double worldTop = -4096.0;
+		double worldBottom = 4096.0;
+		DesignerVec2 viewOrigin{ 0, 0 }; // World co-ordinates of the screen centre
 		double mapSmallestGradation = 100.0; // Width of grid lines in world units
 		double minPixelSpan = 8.0; // Smallest visible gradation span
-		GVec2 viewSpan = { 1.0, 1.0 };
+		Vec2i viewSpan = { 1, 1 }; // Span of the window in pixels
 
 		Grid_2D(IUI2DGridEvents& _handler, bool isDoubleBuffered) :
 			eventHandler(_handler), isBuffered(isDoubleBuffered)
@@ -83,6 +77,11 @@ namespace Rococo::Windows
 			}
 		}
 
+		IDesignTransformations& Transforms() override
+		{
+			return *this;
+		}
+
 		void OnEraseBackground(HDC dc)
 		{
 			HBRUSH hBrush = GetStockBrush(BLACK_BRUSH);
@@ -92,15 +91,17 @@ namespace Rococo::Windows
 			FillRect(dc, &rect, hBrush);
 		}
 
-		GVec2 Quantize(const GVec2& worldSpace, double delta)
+		DesignerVec2 Quantize(const DesignerVec2& worldSpace, double delta)
 		{
 			double integralComponentX = 0;
 			double remainderX = std::modf(worldSpace.x / delta, &integralComponentX);
+			UNUSED(remainderX);
 
 			double integralComponentY = 0;
 			double remainderY = std::modf(worldSpace.y / delta, &integralComponentY);
+			UNUSED(remainderY);
 
-			return GVec2{ integralComponentX * delta, integralComponentY * delta };
+			return DesignerVec2{ integralComponentX * delta, integralComponentY * delta };
 		}
 
 		void PaintGradation(HDC dc, Pen& pen, double worldGradationSpan)
@@ -113,41 +114,41 @@ namespace Rococo::Windows
 
 			PenContext usePen(pen, dc);
 
-			GVec2 bottomLeft{ 0,viewSpan.y };
-			GVec2 screenInWorldSpaceBottomLeft = ScreenToWorld(bottomLeft);
+			Vec2i topLeft{ 0, 0 };
+			DesignerVec2 screenInWorldSpaceTopLeft = ScreenToWorld(topLeft);
 
-			GVec2 topRight{ viewSpan.x, 0 };
-			GVec2 screenInWorldSpaceTopRight = ScreenToWorld(topRight);
+			Vec2i bottomRight{ viewSpan.x, viewSpan.y };
+			DesignerVec2 screenInWorldSpaceBottomRight = ScreenToWorld(bottomRight);
 
-			GVec2 bl = Quantize(screenInWorldSpaceBottomLeft, worldGradationSpan);
-			GVec2 tr = Quantize(screenInWorldSpaceTopRight, worldGradationSpan);
-			tr.x += worldGradationSpan;
-			tr.y += worldGradationSpan;
-			bl.x -= worldGradationSpan;
-			bl.y -= worldGradationSpan;
+			DesignerVec2 tl = Quantize(screenInWorldSpaceTopLeft, worldGradationSpan);
+			DesignerVec2 br = Quantize(screenInWorldSpaceBottomRight, worldGradationSpan);
+			tl.x -= worldGradationSpan;
+			tl.y -= worldGradationSpan;
+			br.x += worldGradationSpan;
+			br.y += worldGradationSpan;
 
-			for (double x = bl.x; x < tr.x; x += worldGradationSpan)
+			for (double x = tl.x; x < br.x; x += worldGradationSpan)
 			{
-				GVec2 worldLineTop{ x, worldTop };
-				GVec2 worldLineBottom{ x, worldBottom };
+				DesignerVec2 worldLineTop{ x, worldTop };
+				DesignerVec2 worldLineBottom{ x, worldBottom };
 
-				GVec2 viewLineTop = WorldToScreen(worldLineTop);
-				GVec2 viewLineBottom = WorldToScreen(worldLineBottom);
+				Vec2i viewLineTop = WorldToScreen(worldLineTop);
+				Vec2i viewLineBottom = WorldToScreen(worldLineBottom);
 
-				MoveToEx(dc, (int)viewLineTop.x, (int)viewLineTop.y, NULL);
-				LineTo(dc, (int)viewLineBottom.x, (int)viewLineBottom.y);
+				MoveToEx(dc, viewLineTop.x, viewLineTop.y, NULL);
+				LineTo(dc, viewLineBottom.x, viewLineBottom.y);
 			}
 
-			for (double y = bl.y; y < tr.y; y += worldGradationSpan)
+			for (double y = tl.y; y < br.y; y += worldGradationSpan)
 			{
-				GVec2 worldLineLeft{ worldLeft, y };
-				GVec2 worldLineRight{ worldRight, y };
+				DesignerVec2 worldLineLeft{ worldLeft, y };
+				DesignerVec2 worldLineRight{ worldRight, y };
 
-				GVec2 viewLineLeft = WorldToScreen(worldLineLeft);
-				GVec2 viewLineRight = WorldToScreen(worldLineRight);
+				Vec2i viewLineLeft = WorldToScreen(worldLineLeft);
+				Vec2i viewLineRight = WorldToScreen(worldLineRight);
 
-				MoveToEx(dc, (int)viewLineLeft.x, (int)viewLineLeft.y, NULL);
-				LineTo(dc, (int)viewLineRight.x, (int)viewLineRight.y);
+				MoveToEx(dc, viewLineLeft.x, viewLineLeft.y, NULL);
+				LineTo(dc, viewLineRight.x, viewLineRight.y);
 			}
 		}
 
@@ -201,6 +202,7 @@ namespace Rococo::Windows
 			info.bmiHeader.biSize = sizeof info;
 
 			int result = GetDIBits(memDC, hMemBitmap, 0, 0, NULL, &info, DIB_RGB_COLORS);
+			UNUSED(result);
 
 			HBRUSH hBackBrush = CreateSolidBrush(RGB(0, 0, 0));
 			FillRect(memDC, &windowRect, hBackBrush);
@@ -229,32 +231,34 @@ namespace Rococo::Windows
 			eventHandler.GridEvent_PaintForeground(renderer);
 		}
 
-		const GVec2& GetCurrentlyVisibleOrigin() const
+		const DesignerVec2& GetCurrentlyVisibleOrigin() const
 		{
 			return previewOrigin.x < 1.e30 ? previewOrigin : viewOrigin;
 		}
 
-		GVec2 WorldToScreen(const GVec2& p) const
+		Vec2i WorldToScreen(const DesignerVec2& p) const override
 		{
-			return GVec2
+			DesignerVec2 q =
 			{
 				 (p.x - GetCurrentlyVisibleOrigin().x) * viewScaleFactor + 0.5 * viewSpan.x,
-				 -(p.y - GetCurrentlyVisibleOrigin().y) * viewScaleFactor + 0.5 * viewSpan.y,
+				 (p.y - GetCurrentlyVisibleOrigin().y) * viewScaleFactor + 0.5 * viewSpan.y,
 			};
+
+			return Vec2i{ (int32)q.x, (int32)q.y };
 		}
 
-		GVec2 ScreenToWorld(const GVec2& pixelPos) const
+		DesignerVec2 ScreenToWorld(Vec2i pixelPos) const override
 		{
-			return GVec2
+			return DesignerVec2
 			{
 				 (pixelPos.x - 0.5 * viewSpan.x) / viewScaleFactor + GetCurrentlyVisibleOrigin().x,
-				 -1.0  * (pixelPos.y - 0.5 * viewSpan.y) / viewScaleFactor + GetCurrentlyVisibleOrigin().y,
+				 (pixelPos.y - 0.5 * viewSpan.y) / viewScaleFactor + GetCurrentlyVisibleOrigin().y,
 			};
 		}
 
 		Vec2i dragStart = { -1,-1 };
 
-		GVec2 previewOrigin{ 1e40,1e40 };
+		DesignerVec2 previewOrigin{ 1e40,1e40 };
 
 		void BeginDrag(Vec2i referencePixelPosition) override
 		{
@@ -268,9 +272,9 @@ namespace Rococo::Windows
 				Vec2i delta = dragStart - referencePixelPosition;
 				dragStart = { -1,-1 };
 
-				GVec2 worldCentreInPixels = WorldToScreen(viewOrigin);
-				GVec2 newWorldCentreInPixels = { worldCentreInPixels.x + (double)delta.x,  worldCentreInPixels.y + (double)delta.y };
-				GVec2 newWorldCentreInWorldUnits = ScreenToWorld(newWorldCentreInPixels);
+				Vec2i worldCentreInPixels = WorldToScreen(viewOrigin);
+				Vec2i newWorldCentreInPixels = { worldCentreInPixels.x + delta.x,  worldCentreInPixels.y + delta.y };
+				DesignerVec2 newWorldCentreInWorldUnits = ScreenToWorld(newWorldCentreInPixels);
 				viewOrigin = newWorldCentreInWorldUnits;
 				previewOrigin = { 1e40,1e40 };
 				InvalidateRect(*window, NULL, TRUE);
@@ -282,9 +286,9 @@ namespace Rococo::Windows
 			if (dragStart.x != -1)
 			{
 				Vec2i delta = dragStart - referencePixelPosition;
-				GVec2 worldCentreInPixels = WorldToScreen(viewOrigin);
-				GVec2 newWorldCentreInPixels = { worldCentreInPixels.x + (double)delta.x,  worldCentreInPixels.y + (double)delta.y };
-				GVec2 newWorldCentreInWorldUnits = ScreenToWorld(newWorldCentreInPixels);
+				Vec2i worldCentreInPixels = WorldToScreen(viewOrigin);
+				Vec2i newWorldCentreInPixels = { worldCentreInPixels.x + delta.x,  worldCentreInPixels.y + delta.y };
+				DesignerVec2 newWorldCentreInWorldUnits = ScreenToWorld(newWorldCentreInPixels);
 				previewOrigin = newWorldCentreInWorldUnits;
 				InvalidateRect(*window, NULL, TRUE);
 			}
@@ -392,8 +396,8 @@ namespace Rococo::Windows
 			DWORD width = LOWORD(lParam);
 			DWORD height = HIWORD(lParam);
 
-			viewSpan.x = (double)width;
-			viewSpan.y = (double)height;
+			viewSpan.x = width;
+			viewSpan.y = height;
 
 			return 0L;
 		}
@@ -421,10 +425,9 @@ namespace Rococo::Windows
 			this->worldBottom = bottom;
 		}
 
-		void SetCentrePosition(double x, double y) override
+		void SetCentrePosition(const DesignerVec2&  pos) override
 		{
-			viewOrigin.x = x;
-			viewOrigin.y = y;
+			viewOrigin = pos;
 		}
 
 		void SetSmallestGradation(double gradationDelta) override
@@ -467,4 +470,21 @@ namespace Rococo::Windows
 			delete this;
 		}
 	};
+}
+
+namespace Rococo::Editors
+{
+	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignTransformations& transforms)
+	{
+		Vec2i topLeft = transforms.WorldToScreen({ designerRect.left, designerRect.top });
+		Vec2i bottomRight = transforms.WorldToScreen({ designerRect.right, designerRect.bottom });
+		return GuiRect{ topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
+	}
+
+	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& screenRect, IDesignTransformations& transforms)
+	{
+		DesignerVec2 topLeft = transforms.ScreenToWorld({ screenRect.left, screenRect.top });
+		DesignerVec2 bottomRight = transforms.ScreenToWorld({ screenRect.right, screenRect.bottom });
+		return DesignerRect{ topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
+	}
 }

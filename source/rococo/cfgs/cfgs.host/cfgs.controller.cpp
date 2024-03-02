@@ -3,7 +3,7 @@
 #include <rococo.strings.h>
 #include <rococo.validators.h>
 #include <rococo.properties.h>
-#include <rococo.editors.h>
+#include <rococo.cfgs.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -167,6 +167,8 @@ namespace ANON
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
+		AutoFree<CFGS::ICFGSRenderer> renderer;
+		AutoFree<CFGS::ICFGSSupervisor> nodes;
 
 		bool terminateOnMainWindowClose = false;
 
@@ -178,6 +180,9 @@ namespace ANON
 		{
 			UNUSED(_commandLine);
 			UNUSED(_host);
+
+			renderer = CFGS::CreateCFGSRenderer();
+			nodes = CFGS::CreateCFGSTestSystem();
 
 			Abedit::IAbstractEditorFactory* editorFactory = nullptr;
 			view.Cast((void**)&editorFactory, "Rococo::Abedit::IAbstractEditorFactory");
@@ -318,14 +323,7 @@ namespace ANON
 
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override
 		{
-			gr.SetFillOptions(RGBAb(192, 0, 0));
-
-			Vec2i span = gr.Span();
-			Vec2i centre = { span.x / 2, span.y / 2 };
-
-			GuiRect blob{ centre.x - 2, centre.y - 2, centre.x + 2, centre.y + 2 };
-
-			gr.FillRect(blob);
+			renderer->Render(gr, *nodes, gridSlate->Transforms());
 		}
 	};
 }

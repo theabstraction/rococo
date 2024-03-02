@@ -49,6 +49,7 @@ namespace Rococo::Editors
 		GRID_EVENT_WHEEL_FLAGS_HELD_SHIFT = 0x0004
 	};
 
+	// Provides methods for rendering to a fairly boring flat shaded GUI system, such as the Win32 GDI API
 	ROCOCO_INTERFACE IFlatGuiRenderer
 	{
 		virtual void FillRect(const GuiRect & rect) = 0;
@@ -83,13 +84,36 @@ namespace Rococo::Editors
 		virtual void GridEvent_PaintForeground(IFlatGuiRenderer& renderer) = 0;
 	};
 
+	// Double precision rectangle, with bottom >= top and right >= left. It represents a rectangle in designer co-ordinates
+	struct DesignerRect
+	{
+		double left;
+		double top;
+		double right;
+		double bottom;
+	};
+
+	// Design vector. Designer grids in this namespace use double precision components
+	struct DesignerVec2
+	{
+		double x;
+		double y;
+	};
+
+	// This interface exposes methods for converting between design co-ordinates (with double precision components) to screen co-ordinates (pixels/texels) with int32 components
+	ROCOCO_INTERFACE IDesignTransformations
+	{
+		virtual	Vec2i WorldToScreen(const DesignerVec2& designPos) const = 0;
+		virtual DesignerVec2 ScreenToWorld(Vec2i pixelPos) const = 0;
+	};
+
 	ROCOCO_INTERFACE IUI2DGridSlate
 	{
 		virtual double ScaleFactor() const = 0;
 		virtual void SetScaleFactor(double newValue) = 0;
 		virtual void SetHorizontalDomain(double left, double right) = 0;
 		virtual void SetVerticalDomain(double top, double bottom) = 0;
-		virtual void SetCentrePosition(double x, double y) = 0;
+		virtual void SetCentrePosition(const DesignerVec2& pos) = 0;
 		virtual void SetSmallestGradation(double gradationDelta) = 0;
 
 		// Begins a drag operation on the grid, using the specified pixel position as the start co-ordinate
@@ -106,7 +130,12 @@ namespace Rococo::Editors
 
 		// Tells the underlying widget system that cursor events outside of the grid should not be routed to the grid any longer
 		virtual void ReleaseCapture() = 0;
+
+		virtual IDesignTransformations& Transforms() = 0;
 	};
+
+	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignTransformations& transforms);
+	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& designerRect, IDesignTransformations& transforms);
 
 	ROCOCO_INTERFACE IUI2DGridSlateSupervisor : IUI2DGridSlate
 	{

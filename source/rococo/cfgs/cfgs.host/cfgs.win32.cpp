@@ -4,6 +4,9 @@
 #include <rococo.abstract.editor.h>
 #include <rococo.strings.h>
 
+#pragma comment(lib, "cfgs.editor.marshaller.lib")
+#pragma comment(lib, "rococo.windows.lib")
+
 namespace Rococo::CFGS
 {
 	Editors::IUI2DGridSlateSupervisor* Create2DGridControl(Abedit::IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler)
