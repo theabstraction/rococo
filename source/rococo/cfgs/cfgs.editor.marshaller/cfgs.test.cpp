@@ -1,6 +1,10 @@
 #include <rococo.cfgs.h>
 #include <vector>
 #include <rococo.strings.h>
+#include <rococo.time.h>
+#include <rococo.os.h>
+#include <unordered_map>
+#include <atomic>
 
 using namespace Rococo::Editors;
 using namespace Rococo::Strings;
@@ -60,13 +64,16 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class TestNode: public ICFGSNode
+	static std::atomic<int32> uniqueCounter = 0;
+
+	class TestNode: public ICFGSNode, public IRenderScheme
 	{
 		HString typeName;
 		DesignerRect designRect;
 
 		std::vector<TestSocket*> sockets;
 
+		NodeId uniqueId;
 	public:
 		TestNode(cstr _typeName, cstr result, DesignerVec2 pos): typeName(_typeName)
 		{
@@ -76,6 +83,23 @@ namespace Rococo::CFGS::Internal
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result));
+
+			struct Username : IStringPopulator
+			{
+				uint64 hash = 0;
+
+				void Populate(cstr text) override
+				{
+					hash = Strings::XXHash64Arg(text, strlen(text));
+				}
+			} username;
+
+			OS::GetCurrentUserName(username);
+
+			int32 next = uniqueCounter++;
+			int64 next64 = next;
+
+			SafeFormat(uniqueId.subValues.bufValue, "%llX", next64 + (Rococo::Time::UTCTime() ^ username.hash) );
 		}
 
 		~TestNode()
@@ -89,6 +113,11 @@ namespace Rococo::CFGS::Internal
 		CFGSNodeType Type() const override
 		{
 			return { typeName };
+		}
+
+		NodeId UniqueId() const override
+		{
+			return uniqueId;
 		}
 
 		const ICFGSSocket& operator[](int32 index)  override
@@ -110,13 +139,33 @@ namespace Rococo::CFGS::Internal
 		{
 			return designRect;
 		}
+
+		const IRenderScheme& Scheme() const override
+		{
+			return *this;
+		}
+
+		void GetFillColours(OUT ColourSchemeQuantum& q) const override
+		{
+			q.dullBackColour = RGBAb(64, 192, 64);
+			q.litBackColour = RGBAb(128, 255, 128);
+		}
+	};
+
+	struct NodeHasher
+	{
+		size_t operator()(const NodeId& id) const noexcept
+		{
+			return id.subValues.iValues[0] ^ id.subValues.iValues[1];
+		}
 	};
 
 	class TestNodes: public ICFGSSupervisor, ICFGSNodeEnumerator
 	{
 	private:
 		std::vector<TestNode*> nodes;
-
+		std::unordered_map<NodeId, TestNode*, NodeHasher> mapIdToNode;
+		std::vector<TestNode*> zOrderDescending;
 	public:
 		TestNodes()
 		{
@@ -124,6 +173,17 @@ namespace Rococo::CFGS::Internal
 			nodes.push_back(new TestNode("Subtract", "A - B", { 200, 0 }));
 			nodes.push_back(new TestNode("Multiply", "A x B", { 400, 0 }));
 			nodes.push_back(new TestNode("Divide", "A / B", { 600, 0 }));
+
+			mapIdToNode.reserve(nodes.size());
+			for (auto* n : nodes)
+			{
+				zOrderDescending.push_back(n);
+
+				if (!mapIdToNode.insert(std::make_pair(n->UniqueId(), n)).second)
+				{
+					Throw(0, "A very rare event occured, a 64-bit duplicate hash value was generated!");
+				}
+			}
 		}
 
 		~TestNodes()
@@ -131,6 +191,55 @@ namespace Rococo::CFGS::Internal
 			for (auto* n : nodes)
 			{
 				delete n;
+			}
+		}
+
+		const ICFGSNode& GetByZOrderAscending(int32 index) override
+		{
+			int32 count = (int32)nodes.size();
+
+			if (index < 0 || index >= count)
+			{
+				Throw(0, "%s: bad index %d. Node count is %llu", __FUNCTION__, index, nodes.size());
+			}
+
+			return *zOrderDescending[count - index - 1];
+		}
+
+		const ICFGSNode& GetByZOrderDescending(int32 index) override
+		{
+			if (index < 0 || index >= (int32)nodes.size())
+			{
+				Throw(0, "%s: bad index %d. Node count is %llu", __FUNCTION__, index, nodes.size());
+			}
+
+			return *zOrderDescending[index];
+		}
+
+		void MakeTopMost(const ICFGSNode& node)
+		{
+			for (auto i = zOrderDescending.begin(); i != zOrderDescending.end(); i++)
+			{
+				if (&node == *i)
+				{
+					std::vector<TestNode*> reorderedNodes;
+					reorderedNodes.reserve(zOrderDescending.size());
+
+					reorderedNodes.push_back(*i);
+
+					auto j = zOrderDescending.begin();
+					j++;
+
+					for (; j != zOrderDescending.end(); j++)
+					{
+						if (*j != *i)
+						{
+							reorderedNodes.push_back(*j);
+						}
+					}
+
+					zOrderDescending.swap(reorderedNodes);
+				}
 			}
 		}
 
@@ -147,6 +256,12 @@ namespace Rococo::CFGS::Internal
 		int32 Count() const override
 		{
 			return (int32) nodes.size();
+		}
+
+		const ICFGSNode* FindNode(NodeId id) const override
+		{
+			auto i = mapIdToNode.find(id);
+			return i != mapIdToNode.end() ? i->second : nullptr;
 		}
 
 		void Free() override

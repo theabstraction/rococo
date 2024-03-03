@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <rococo.debugging.h>
 #include <dbghelp.h>
+#include <lmcons.h>
 
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
@@ -2216,6 +2217,20 @@ namespace Rococo::OS
 	ROCOCO_API cstr GetCommandLineText()
 	{
 		return GetCommandLineA();
+	}
+
+	ROCOCO_API void GetCurrentUserName(Strings::IStringPopulator& populator)
+	{
+		char username[UNLEN + 1];
+		DWORD cb = sizeof(username);
+		if (GetUserNameA(username, &cb))
+		{
+			populator.Populate(username);
+		}
+		else
+		{
+			populator.Populate("<unknown-user>");
+		}
 	}
 
 	ROCOCO_API void CopyStringToClipboard(cstr text)

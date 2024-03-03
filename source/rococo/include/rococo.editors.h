@@ -84,6 +84,13 @@ namespace Rococo::Editors
 		virtual void GridEvent_PaintForeground(IFlatGuiRenderer& renderer) = 0;
 	};
 
+	// Design vector. Designer grids in this namespace use double precision components
+	struct DesignerVec2
+	{
+		double x;
+		double y;
+	};
+
 	// Double precision rectangle, with bottom >= top and right >= left. It represents a rectangle in designer co-ordinates
 	struct DesignerRect
 	{
@@ -91,13 +98,8 @@ namespace Rococo::Editors
 		double top;
 		double right;
 		double bottom;
-	};
 
-	// Design vector. Designer grids in this namespace use double precision components
-	struct DesignerVec2
-	{
-		double x;
-		double y;
+		ROCOCO_WINDOWS_API bool Contains(const DesignerVec2& pt);
 	};
 
 	// This interface exposes methods for converting between design co-ordinates (with double precision components) to screen co-ordinates (pixels/texels) with int32 components
@@ -140,6 +142,7 @@ namespace Rococo::Editors
 	ROCOCO_INTERFACE IUI2DGridSlateSupervisor : IUI2DGridSlate
 	{
 		virtual void Free() = 0;
+		virtual void QueueRedraw() = 0;
 		virtual void ResizeToParent() = 0;
 	};
 }

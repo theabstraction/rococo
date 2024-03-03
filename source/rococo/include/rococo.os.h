@@ -204,6 +204,7 @@ namespace Rococo::OS
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
 	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
 	ROCOCO_API cstr GetCommandLineText();
+	ROCOCO_API void GetCurrentUserName(Strings::IStringPopulator& populator);
 }
 
 namespace Rococo::Windows

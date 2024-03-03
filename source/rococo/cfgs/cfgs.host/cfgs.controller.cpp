@@ -163,11 +163,11 @@ namespace ANON
 		}
 	};
 
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
-		AutoFree<CFGS::ICFGSRenderer> renderer;
+		AutoFree<CFGS::ICFGSGui> renderer;
 		AutoFree<CFGS::ICFGSSupervisor> nodes;
 
 		bool terminateOnMainWindowClose = false;
@@ -181,7 +181,6 @@ namespace ANON
 			UNUSED(_commandLine);
 			UNUSED(_host);
 
-			renderer = CFGS::CreateCFGSRenderer();
 			nodes = CFGS::CreateCFGSTestSystem();
 
 			Abedit::IAbstractEditorFactory* editorFactory = nullptr;
@@ -206,6 +205,8 @@ namespace ANON
 
 			gridSlate = CFGS::Create2DGridControl(*editor, *this);
 			gridSlate->ResizeToParent();
+
+			renderer = CFGS::CreateCFGSGui(*nodes, gridSlate->Transforms(), *this);
 
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
@@ -304,6 +305,7 @@ namespace ANON
 		{
 			UNUSED(gridEventWheelFlags);
 			gridSlate->PreviewDrag(cursorPosition);
+			renderer->OnCursorMove(cursorPosition);
 		}
 
 		void GridEvent_OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
@@ -323,7 +325,12 @@ namespace ANON
 
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override
 		{
-			renderer->Render(gr, *nodes, gridSlate->Transforms());
+			renderer->Render(gr);
+		}
+
+		void CFGSGuiEventHandler_OnNodeHoverChanged(const CFGS::NodeId& id) override
+		{
+			gridSlate->QueueRedraw();
 		}
 	};
 }

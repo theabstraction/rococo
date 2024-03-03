@@ -78,11 +78,56 @@ namespace Rococo::CFGS
 		cstr Value;
 	};
 
+	struct ColourSchemeQuantum
+	{
+		// The background colour for the entity
+		RGBAb dullBackColour;
+
+		// The background colour for the entity when highlighted
+		RGBAb litBackColour;
+	};
+
+	ROCOCO_INTERFACE IRenderScheme
+	{
+		virtual void GetFillColours(OUT ColourSchemeQuantum & q) const = 0;
+	};
+
+	struct NodeId
+	{
+		enum { UNIQUE_BUFFER_LEN = 16 };
+
+		NodeId()
+		{
+			subValues.iValues[0] = subValues.iValues[1] = 0;
+		}
+
+		union UTypes
+		{
+			char bufValue[UNIQUE_BUFFER_LEN];
+			int64 iValues[2];
+		} subValues;
+
+		bool operator == (const NodeId& other) const
+		{
+			bool result = this->subValues.iValues[0] == other.subValues.iValues[0] && this->subValues.iValues[1] == other.subValues.iValues[1];
+			return result;
+		}
+
+		bool operator != (const NodeId& other) const
+		{
+			return !(*this == other);
+		}
+	};
+
 	ROCOCO_INTERFACE ICFGSNode
 	{
 		virtual [[nodiscard]] CFGSNodeType Type() const = 0;
+
+		// A unique id generated at node construction that is immutable. It is *highly* unlikely any two nodes will have the same id
+		virtual [[nodiscard]] NodeId UniqueId() const = 0;
 		virtual [[nodiscard]] const ICFGSSocket& operator[](int32 index) = 0;
 		virtual [[nodiscard]] int32 SocketCount() const = 0;
+		virtual [[nodiscard]] const IRenderScheme& Scheme() const = 0;
 
 		// Returns a copy of the designer bounds for the graph node.
 		virtual [[nodiscard]] Rococo::Editors::DesignerRect GetDesignRectangle() const = 0;
@@ -90,8 +135,23 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSNodeEnumerator
 	{
+		// gets a node by index. The order does not change unless nodes are added, inserted or removed.
 		virtual [[nodiscard]] const ICFGSNode & operator[](int32 index) = 0;
+
+		// gets a node by zorder ascending starting with the bottom node. The order can be changed using the MakeTopMost method
+		virtual [[nodiscard]] const ICFGSNode& GetByZOrderAscending(int32 index) = 0;
+
+		// gets a node by zorder descending starting with the top most node. The order can be changed using the MakeTopMost method
+		virtual [[nodiscard]] const ICFGSNode& GetByZOrderDescending(int32 index) = 0;
+
+		// gives the node count, which is used in operator [] and GetByZOrderDescending
 		virtual [[nodiscard]] int32 Count() const = 0;
+
+		// finds a node with the given UniqueId
+		virtual [[nodiscard]] const ICFGSNode* FindNode(NodeId id) const = 0;
+
+		// If the node argument is a member of the node set, then make it top most in z order
+		virtual void MakeTopMost(const ICFGSNode& node) = 0;
 	};
 
 	// Interface to the control-flow graph system
@@ -107,12 +167,18 @@ namespace Rococo::CFGS
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSRenderer
+	ROCOCO_INTERFACE ICFGSGuiEventHandler
 	{
-		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr, ICFGS& cfgs, Rococo::Editors::IDesignTransformations& transforms) = 0;
+		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId & id) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSGui
+	{
+		virtual void OnCursorMove(Vec2i cursorPosition) = 0;
+		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
 		virtual void Free() = 0;
 	};
 
-	CFGS_MARSHALLER_API ICFGSRenderer* CreateCFGSRenderer();
+	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, Rococo::Editors::IDesignTransformations& transforms, ICFGSGuiEventHandler& eventHandler);
 	CFGS_MARSHALLER_API ICFGSSupervisor* CreateCFGSTestSystem();
 }

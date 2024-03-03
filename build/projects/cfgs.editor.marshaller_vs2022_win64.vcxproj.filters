@@ -2,6 +2,6 @@
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.test.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.renderer.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.gui.cpp" />
   </ItemGroup>
 </Project>

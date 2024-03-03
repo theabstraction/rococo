@@ -440,6 +440,11 @@ namespace Rococo::Windows
 
 		}
 
+		void QueueRedraw() override
+		{
+			InvalidateRect(*window, NULL, TRUE);
+		}
+
 		void ResizeToParent() override
 		{
 			RECT rect;
@@ -486,5 +491,10 @@ namespace Rococo::Editors
 		DesignerVec2 topLeft = transforms.ScreenToWorld({ screenRect.left, screenRect.top });
 		DesignerVec2 bottomRight = transforms.ScreenToWorld({ screenRect.right, screenRect.bottom });
 		return DesignerRect{ topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
+	}
+
+	ROCOCO_WINDOWS_API bool DesignerRect::Contains(const DesignerVec2& pt)
+	{
+		return pt.x > left && pt.x <= right && pt.y > top && pt.y < bottom;
 	}
 }

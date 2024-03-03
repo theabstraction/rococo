@@ -238,7 +238,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.renderer.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.gui.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.test.cpp" />
   </ItemGroup>
   <ItemGroup>
