@@ -1298,8 +1298,11 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
+            conf.Defines.Add("CFGS_MARSHALLER_API=__declspec(dllexport)");
         }
     }
 

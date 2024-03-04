@@ -8,30 +8,26 @@
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.window.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.darkmode.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.imagelists.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.rc" />
     <ClCompile Include="..\..\source\rococo\rococo.windows\variable.editor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.windows\button.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\child.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\combo.control.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\dc-renderer.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\dialog.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\grid_2D.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\listbox.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\listview.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\menu.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\properties.editor.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\resource.h" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\rich.editor.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\super.combo.box.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\tab.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\trackbar.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\tree.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\wired.handler.inl" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.editors.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\..\source\rococo\rococo.windows\rococo.windows.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.windows\super.combo.box.inl" />
-    <None Include="..\..\source\rococo\rococo.windows\properties.editor.inl" />
-    <None Include="..\..\source\rococo\rococo.windows\grid_2D.inl" />
   </ItemGroup>
 </Project>

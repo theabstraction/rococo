@@ -1,4 +1,5 @@
 #include <rococo.cfgs.h>
+#include <rococo.maths.h>
 
 using namespace Rococo::Editors;
 using namespace Rococo::CFGS;
@@ -20,6 +21,44 @@ namespace Rococo::CFGS::Internal
 		return nullptr;
 	}
 
+	void ShrinkRect(REF GuiRect& rect, int nPixelsEachBorder)
+	{
+		rect.left += nPixelsEachBorder;
+		rect.top += nPixelsEachBorder;
+		rect.right -= nPixelsEachBorder;
+		rect.bottom -= nPixelsEachBorder;
+	}
+
+	static bool IsLeftSide(const ICFGSSocket& socket)
+	{
+		switch (socket.SocketClassification())
+		{
+		case SocketClass::InputRef:
+		case SocketClass::InputVar:
+		case SocketClass::ConstInputRef:
+		case SocketClass::Trigger:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	RGBAb GetSocketColour(const ICFGSSocket& socket, bool isLit)
+	{
+		switch (socket.SocketClassification())
+		{
+		case SocketClass::Trigger:
+		case SocketClass::Exit:
+			return isLit ? RGBAb(0, 255, 0) : RGBAb(0, 192, 0);
+		case SocketClass::InputRef:
+		case SocketClass::InputVar:
+		case SocketClass::ConstInputRef:
+			return isLit ? RGBAb(0, 255, 255) : RGBAb(0, 192, 192);
+		default:
+			return isLit ? RGBAb(128, 128, 255) : RGBAb(96, 96, 192);
+		}
+	}
+
 	class CFGSGui : public ICFGSGui
 	{
 	private:
@@ -37,7 +76,7 @@ namespace Rococo::CFGS::Internal
 
 		void SetHovered(NodeId id)
 		{
-			if (lastHoveredNode != id)
+			if (lastHoveredNode != id || lastHoveredNode != NodeId())
 			{
 				lastHoveredNode = id;
 				eventHandler.CFGSGuiEventHandler_OnNodeHoverChanged(id);
@@ -63,6 +102,68 @@ namespace Rococo::CFGS::Internal
 			return npRect;
 		}
 
+
+		void RenderLeftSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignTransformations& transforms, int yIndex)
+		{
+			DesignerRect designerParentRect = node.GetDesignRectangle();
+			GuiRect parentRect = WorldToScreen(designerParentRect, transforms);
+
+			int32 socketTop = parentRect.top + 30;
+
+			GuiRect circleRect{ parentRect.left + 20, socketTop + yIndex * 20, parentRect.left + 40, socketTop + (yIndex+1) * 20 };
+			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
+
+			Vec2i cursorPos = fgr.CursorPosition();
+			bool isLit = IsPointInRect(cursorPos, circleRect);
+
+			ShrinkRect(circleRect, 2);
+			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+
+			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
+
+			fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Left | EFGAF_VCentre);
+		}
+
+		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignTransformations& transforms, int yIndex)
+		{
+			DesignerRect designerParentRect = node.GetDesignRectangle();
+			GuiRect parentRect = WorldToScreen(designerParentRect, transforms);
+
+			int32 socketTop = parentRect.top + 30;
+			
+			GuiRect circleRect{ parentRect.right - 40, socketTop + yIndex * 20, parentRect.right - 20, socketTop + (yIndex + 1) * 20 };
+			GuiRect socketTextRect{ (parentRect.right + parentRect.left) / 2, circleRect.top, circleRect.left, circleRect.bottom };
+
+			Vec2i cursorPos = fgr.CursorPosition();
+			bool isLit = IsPointInRect(cursorPos, circleRect);
+
+			ShrinkRect(circleRect, 2);
+			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+
+			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
+
+			fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Right | EFGAF_VCentre);
+		}
+
+		void RenderSockets(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms)
+		{
+			int32 leftIndex = 0;
+			int32 rightIndex = 0;
+
+			for (int i = 0; i < node.SocketCount(); ++i)
+			{				
+				auto& socket = node[i];
+				if (IsLeftSide(socket))
+				{
+					RenderLeftSocket(fgr, node, socket, transforms, leftIndex++);
+				}
+				else
+				{
+					RenderRightSocket(fgr, node, socket, transforms, rightIndex++);
+				}
+			}
+		}
+
 		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms)
 		{
 			auto rect = node.GetDesignRectangle();
@@ -80,16 +181,9 @@ namespace Rococo::CFGS::Internal
 			ColourSchemeQuantum typeNameColours;
 			node.Scheme().GetTypeNameColours(OUT typeNameColours);
 
-			fgr.SetLineOptions(isLit ? RGBAb(192, 192, 0) : RGBAb(128, 128, 0));
+			RGBAb lineColour = isLit ? RGBAb(192, 192, 0) : RGBAb(128, 128, 0);
 
-			fgr.DrawRoundedRect(nodeRect, 16);
-
-		//	fgr.MoveLineStartTo({ nodeRect.left, nodeRect.top });
-		//	fgr.DrawLineTo({ nodeRect.right, nodeRect.top });
-		//	fgr.DrawLineTo({ nodeRect.right, nodeRect.bottom });
-
-		//	fgr.DrawLineTo({ nodeRect.left, nodeRect.bottom });
-		//	fgr.DrawLineTo({ nodeRect.left, nodeRect.top });
+			fgr.DrawRoundedRect(nodeRect, 16, lineColour);
 
 			GuiRect namePlateRect = ComputeNamePlateRect(nodeRect);
 
@@ -99,7 +193,7 @@ namespace Rococo::CFGS::Internal
 			fgr.SetFillOptions(isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour);
 			fgr.SetTextOptions(isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour, isLit ? typeNameColours.litColour : typeNameColours.dullColour);
 
-			fgr.DrawRoundedRect(namePlateRect, 16);
+			fgr.DrawRoundedRect(namePlateRect, 16, lineColour);
 
 			GuiRect namePlateTextRect = namePlateRect;
 
@@ -109,7 +203,9 @@ namespace Rococo::CFGS::Internal
 
 			namePlateTextRect.left += 2;
 
-			fgr.DrawText(namePlateTextRect, node.Type().Value);
+			fgr.DrawText(namePlateTextRect, node.Type().Value, EFGAF_Left | EFGAF_VCentre);
+
+			RenderSockets(fgr, node, transforms);
 		}
 
 		void OnCursorMove(Vec2i pixelPosition) override

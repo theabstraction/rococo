@@ -80,9 +80,10 @@ namespace Rococo::CFGS::Internal
 		{
 			designRect = { pos.x, pos.y, pos.x + 150, pos.y + 100 };
 
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, ""));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, "Start"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B"));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result));
 
 			struct Username : IStringPopulator
@@ -121,7 +122,7 @@ namespace Rococo::CFGS::Internal
 			return uniqueId;
 		}
 
-		const ICFGSSocket& operator[](int32 index)  override
+		const ICFGSSocket& operator[](int32 index) const override
 		{
 			if (index < 0 || index >= (int32)sockets.size())
 			{

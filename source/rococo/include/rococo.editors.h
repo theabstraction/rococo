@@ -49,18 +49,28 @@ namespace Rococo::Editors
 		GRID_EVENT_WHEEL_FLAGS_HELD_SHIFT = 0x0004
 	};
 
+	enum EFlatGuiAlignmentFlags
+	{
+		EFGAF_None,
+		EFGAF_Left = 0x0000,
+		EFGAF_Right = 0x0002,
+		EFGAF_Top = 0x0000,
+		EFGAF_Bottom = 0x0008,
+		EFGAF_VCentre = 0x010
+	};
+
 	// Provides methods for rendering to a fairly boring flat shaded GUI system, such as the Win32 GDI API
 	ROCOCO_INTERFACE IFlatGuiRenderer
 	{
-		virtual void DrawLineTo(Vec2i pos) = 0;
-		virtual void DrawText(const GuiRect & rect, cstr text) = 0;
+		virtual void DrawCircle(const GuiRect& rect, RGBAb edgeColour, int thickness, RGBAb fillColour) = 0;
+		virtual void DrawLineTo(Vec2i pos, RGBAb edgeColour, int thickness) = 0;
+		virtual void DrawText(const GuiRect & rect, cstr text, uint32 flatGuiAlignmentFlags) = 0;
 		virtual void DrawFilledRect(const GuiRect & rect) = 0;
-		virtual void DrawRoundedRect(const GuiRect& rect, int border) = 0;
+		virtual void DrawRoundedRect(const GuiRect& rect, int border, RGBAb lineColour) = 0;
 
 		virtual void MoveLineStartTo(Vec2i pos) = 0;
 
 		virtual void SetTextOptions(RGBAb backColour, RGBAb textColour) = 0;
-		virtual void SetLineOptions(RGBAb colour) = 0;
 		virtual void SetFillOptions(RGBAb colour) = 0;
 
 		virtual Vec2i CursorPosition() const = 0;

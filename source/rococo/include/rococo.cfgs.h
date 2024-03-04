@@ -127,7 +127,7 @@ namespace Rococo::CFGS
 
 		// A unique id generated at node construction that is immutable. It is *highly* unlikely any two nodes will have the same id
 		virtual [[nodiscard]] NodeId UniqueId() const = 0;
-		virtual [[nodiscard]] const ICFGSSocket& operator[](int32 index) = 0;
+		virtual [[nodiscard]] const ICFGSSocket& operator[](int32 index) const = 0;
 		virtual [[nodiscard]] int32 SocketCount() const = 0;
 		virtual [[nodiscard]] const IRenderScheme& Scheme() const = 0;
 

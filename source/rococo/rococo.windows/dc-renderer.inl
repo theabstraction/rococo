@@ -1,5 +1,7 @@
 #include <rococo.editors.h>
 
+using namespace Rococo::Editors;
+
 namespace Rococo::Windows
 {
 	class DC_Renderer : public Rococo::Editors::IFlatGuiRenderer
@@ -48,11 +50,41 @@ namespace Rococo::Windows
 			return span;
 		}
 
-		void DrawText(const GuiRect& rect, cstr text) override
+		void DrawCircle(const GuiRect& rect, RGBAb edgeColour, int thickness, RGBAb fillColour) override
+		{
+			HBRUSH hBrush = fillColour.alpha > 0 ? CreateSolidBrush(RGB(fillColour.red, fillColour.green, fillColour.blue)) : GetStockBrush(NULL_BRUSH);
+			HBRUSH hOldBrush = (HBRUSH) SelectObject(dc, hBrush);
+			HPEN hPen = edgeColour.alpha > 0 ? CreatePen(PS_SOLID, thickness, RGB(edgeColour.red, edgeColour.green, edgeColour.blue)) : GetStockPen(NULL_PEN);
+			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
+			::Ellipse(dc, rect.left, rect.top, rect.right, rect.bottom);
+			SelectObject(dc, hOldBrush);
+			SelectObject(dc, hOldPen);
+			DeleteObject(hBrush);
+			DeleteObject(hPen);
+		}
+
+		void DrawText(const GuiRect& rect, cstr text, uint32 flags) override
 		{
 			RECT textRect{ rect.left, rect.top, rect.right, rect.bottom };
 
-			::DrawTextA(dc, text, (int) strlen(text), &textRect, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
+			DWORD dtText = DT_SINGLELINE;
+
+			if (HasFlag(EFGAF_Right, flags))
+			{
+				dtText |= DT_RIGHT;
+			}
+
+			if (HasFlag(EFGAF_Bottom, flags))
+			{
+				dtText |= DT_BOTTOM;
+			}
+
+			if (HasFlag(EFGAF_VCentre, flags))
+			{
+				dtText |= DT_VCENTER;
+			}
+
+			::DrawTextA(dc, text, (int) strlen(text), &textRect, dtText);
 		}
 
 		void DrawFilledRect(const GuiRect& rect) override
@@ -60,15 +92,27 @@ namespace Rococo::Windows
 			::FillRect(dc, reinterpret_cast<const RECT*>(&rect), hBrush);
 		}
 
-		void DrawRoundedRect(const GuiRect& rect, int border) override
+		void DrawRoundedRect(const GuiRect& rect, int border, RGBAb edgeColour) override
 		{
+			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(edgeColour.red, edgeColour.green, edgeColour.blue));
+			HPEN hOldPen = (HPEN) SelectObject(dc, hPen);
+
 			Vec2i span = { rect.right - rect.left, rect.bottom - rect.top };
 			::RoundRect(dc, rect.left, rect.top, rect.right, rect.bottom, border, border);
+
+			SelectObject(dc, hOldPen);
+			DeleteObject(hPen);
 		}
 
-		void DrawLineTo(Vec2i pos) override
+		void DrawLineTo(Vec2i pos, RGBAb edgeColour, int thickness) override
 		{
+			if (edgeColour.alpha == 0) return;
+
+			HPEN hPen = CreatePen(PS_SOLID, thickness, RGB(edgeColour.red, edgeColour.green, edgeColour.blue));
+			HPEN hOldPen = (HPEN) SelectObject(dc, hPen);
 			::LineTo(dc, pos.x, pos.y);
+			SelectObject(dc, hOldPen);
+			DeleteObject(hPen);
 		}
 
 		void MoveLineStartTo(Vec2i pos) override
@@ -80,13 +124,6 @@ namespace Rococo::Windows
 		{
 			SetBkColor(dc, RGB(backColour.red, backColour.green, backColour.blue));
 			SetTextColor(dc, RGB(textColour.red, textColour.green, textColour.blue));
-		}
-
-		void SetLineOptions(RGBAb colour) override
-		{
-			DeleteObject(hPen);
-			hPen = CreatePen(PS_SOLID, 1, RGB(colour.red, colour.green, colour.blue));
-			SelectObject(dc, hPen);
 		}
 
 		void SetFillOptions(RGBAb colour) override

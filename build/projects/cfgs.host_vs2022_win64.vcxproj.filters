@@ -5,7 +5,4 @@
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.main.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.win32.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.cfgs.h" />
-  </ItemGroup>
 </Project>

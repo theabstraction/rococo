@@ -143,8 +143,7 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.windows.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.windows.lib</ImportLibrary>
@@ -230,24 +229,26 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.windows.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.windows.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\include\rococo.editors.h" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\button.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\child.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\combo.control.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\dc-renderer.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\dialog.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\grid_2D.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\listbox.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\listview.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\menu.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\properties.editor.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\resource.h" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\rich.editor.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.windows\super.combo.box.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\tab.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\trackbar.control.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.windows\tree.control.inl" />
@@ -303,10 +304,5 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.windows\grid_2D.inl" />
-    <None Include="..\..\source\rococo\rococo.windows\properties.editor.inl" />
-    <None Include="..\..\source\rococo\rococo.windows\super.combo.box.inl" />
   </ItemGroup>
 </Project>

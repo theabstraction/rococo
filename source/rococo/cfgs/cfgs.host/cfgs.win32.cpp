@@ -21,4 +21,3 @@ namespace Rococo::CFGS
 	}
 }
 
-#pragma comment(lib, "rococo.windows.lib")
