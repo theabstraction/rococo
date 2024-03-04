@@ -52,10 +52,14 @@ namespace Rococo::Editors
 	// Provides methods for rendering to a fairly boring flat shaded GUI system, such as the Win32 GDI API
 	ROCOCO_INTERFACE IFlatGuiRenderer
 	{
-		virtual void FillRect(const GuiRect & rect) = 0;
-		virtual void LineTo(Vec2i pos) = 0;
-		virtual void MoveTo(Vec2i pos) = 0;
+		virtual void DrawLineTo(Vec2i pos) = 0;
+		virtual void DrawText(const GuiRect & rect, cstr text) = 0;
+		virtual void DrawFilledRect(const GuiRect & rect) = 0;
+		virtual void DrawRoundedRect(const GuiRect& rect, int border) = 0;
 
+		virtual void MoveLineStartTo(Vec2i pos) = 0;
+
+		virtual void SetTextOptions(RGBAb backColour, RGBAb textColour) = 0;
 		virtual void SetLineOptions(RGBAb colour) = 0;
 		virtual void SetFillOptions(RGBAb colour) = 0;
 

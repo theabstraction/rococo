@@ -81,15 +81,17 @@ namespace Rococo::CFGS
 	struct ColourSchemeQuantum
 	{
 		// The background colour for the entity
-		RGBAb dullBackColour;
+		RGBAb dullColour;
 
 		// The background colour for the entity when highlighted
-		RGBAb litBackColour;
+		RGBAb litColour;
 	};
 
 	ROCOCO_INTERFACE IRenderScheme
 	{
 		virtual void GetFillColours(OUT ColourSchemeQuantum & q) const = 0;
+		virtual void GetTypeNameColours(OUT ColourSchemeQuantum& q) const = 0;
+		virtual void GetTypeNamePlateColours(OUT ColourSchemeQuantum& q) const = 0;
 	};
 
 	struct NodeId

@@ -74,6 +74,7 @@ namespace Rococo::CFGS::Internal
 		std::vector<TestSocket*> sockets;
 
 		NodeId uniqueId;
+
 	public:
 		TestNode(cstr _typeName, cstr result, DesignerVec2 pos): typeName(_typeName)
 		{
@@ -99,7 +100,7 @@ namespace Rococo::CFGS::Internal
 			int32 next = uniqueCounter++;
 			int64 next64 = next;
 
-			SafeFormat(uniqueId.subValues.bufValue, "%llX", next64 + (Rococo::Time::UTCTime() ^ username.hash) );
+			SafeFormat(uniqueId.subValues.bufValue, "%llX", next64 * (Rococo::Time::UTCTime() ^ username.hash) );
 		}
 
 		~TestNode()
@@ -147,8 +148,20 @@ namespace Rococo::CFGS::Internal
 
 		void GetFillColours(OUT ColourSchemeQuantum& q) const override
 		{
-			q.dullBackColour = RGBAb(64, 192, 64);
-			q.litBackColour = RGBAb(128, 255, 128);
+			q.dullColour = RGBAb(4, 12, 4);
+			q.litColour = RGBAb(6, 18, 6);
+		}
+
+		void GetTypeNameColours(OUT ColourSchemeQuantum& q) const override
+		{
+			q.dullColour = RGBAb(0, 0, 0);
+			q.litColour = RGBAb(0, 0, 0);
+		}
+
+		void GetTypeNamePlateColours(OUT ColourSchemeQuantum& q) const override
+		{
+			q.dullColour = RGBAb(48, 144, 48);
+			q.litColour = RGBAb(64, 192, 64);
 		}
 	};
 

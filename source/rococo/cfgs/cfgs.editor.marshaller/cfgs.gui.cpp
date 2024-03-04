@@ -5,6 +5,21 @@ using namespace Rococo::CFGS;
 
 namespace Rococo::CFGS::Internal
 {
+	static const ICFGSNode* FindTopMostNodeContainingPoint(DesignerVec2 point, ICFGSNodeEnumerator& nodes)
+	{
+		for (int32 i = 0; i < nodes.Count(); ++i)
+		{
+			auto& node = nodes.GetByZOrderDescending(i);
+			DesignerRect rect = node.GetDesignRectangle();
+			if (rect.Contains(point))
+			{
+				return &node;
+			}
+		}
+
+		return nullptr;
+	}
+
 	class CFGSGui : public ICFGSGui
 	{
 	private:
@@ -34,6 +49,20 @@ namespace Rococo::CFGS::Internal
 			delete this;
 		}
 
+		GuiRect ComputeNamePlateRect(const GuiRect& nodeRect)
+		{
+			enum
+			{
+				LeftMargin = 1,
+				TopMargin = 1,
+				RightMargin = 1,
+				PlateHeight = 24
+			};
+
+			GuiRect npRect { nodeRect.left + LeftMargin, nodeRect.top + TopMargin, nodeRect.right - RightMargin, nodeRect.top + PlateHeight };
+			return npRect;
+		}
+
 		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms)
 		{
 			auto rect = node.GetDesignRectangle();
@@ -44,24 +73,43 @@ namespace Rococo::CFGS::Internal
 			ColourSchemeQuantum nodeRectColours;
 			node.Scheme().GetFillColours(OUT nodeRectColours);
 
-			fgr.SetFillOptions(isLit ? nodeRectColours.litBackColour : nodeRectColours.dullBackColour);
+			RGBAb backColour = isLit ? nodeRectColours.litColour : nodeRectColours.dullColour;
 
-			fgr.FillRect(nodeRect);
-		}
+			fgr.SetFillOptions(backColour);
 
-		static const ICFGSNode* FindTopMostNodeContainingPoint(DesignerVec2 point, ICFGSNodeEnumerator& nodes)
-		{
-			for (int32 i = 0; i < nodes.Count(); ++i)
-			{
-				auto& node = nodes.GetByZOrderDescending(i);
-				DesignerRect rect = node.GetDesignRectangle();
-				if (rect.Contains(point))
-				{
-					return &node;
-				}
-			}
+			ColourSchemeQuantum typeNameColours;
+			node.Scheme().GetTypeNameColours(OUT typeNameColours);
 
-			return nullptr;
+			fgr.SetLineOptions(isLit ? RGBAb(192, 192, 0) : RGBAb(128, 128, 0));
+
+			fgr.DrawRoundedRect(nodeRect, 16);
+
+		//	fgr.MoveLineStartTo({ nodeRect.left, nodeRect.top });
+		//	fgr.DrawLineTo({ nodeRect.right, nodeRect.top });
+		//	fgr.DrawLineTo({ nodeRect.right, nodeRect.bottom });
+
+		//	fgr.DrawLineTo({ nodeRect.left, nodeRect.bottom });
+		//	fgr.DrawLineTo({ nodeRect.left, nodeRect.top });
+
+			GuiRect namePlateRect = ComputeNamePlateRect(nodeRect);
+
+			ColourSchemeQuantum typeNamePlateColours;
+			node.Scheme().GetTypeNamePlateColours(OUT typeNamePlateColours);
+
+			fgr.SetFillOptions(isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour);
+			fgr.SetTextOptions(isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour, isLit ? typeNameColours.litColour : typeNameColours.dullColour);
+
+			fgr.DrawRoundedRect(namePlateRect, 16);
+
+			GuiRect namePlateTextRect = namePlateRect;
+
+			namePlateRect.top = (namePlateRect.bottom + namePlateRect.top) >> 1;
+
+			fgr.DrawFilledRect(namePlateRect);
+
+			namePlateTextRect.left += 2;
+
+			fgr.DrawText(namePlateTextRect, node.Type().Value);
 		}
 
 		void OnCursorMove(Vec2i pixelPosition) override

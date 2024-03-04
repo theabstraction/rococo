@@ -48,19 +48,38 @@ namespace Rococo::Windows
 			return span;
 		}
 
-		void FillRect(const GuiRect& rect) override
+		void DrawText(const GuiRect& rect, cstr text) override
+		{
+			RECT textRect{ rect.left, rect.top, rect.right, rect.bottom };
+
+			::DrawTextA(dc, text, (int) strlen(text), &textRect, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
+		}
+
+		void DrawFilledRect(const GuiRect& rect) override
 		{
 			::FillRect(dc, reinterpret_cast<const RECT*>(&rect), hBrush);
 		}
 
-		void LineTo(Vec2i pos) override
+		void DrawRoundedRect(const GuiRect& rect, int border) override
+		{
+			Vec2i span = { rect.right - rect.left, rect.bottom - rect.top };
+			::RoundRect(dc, rect.left, rect.top, rect.right, rect.bottom, border, border);
+		}
+
+		void DrawLineTo(Vec2i pos) override
 		{
 			::LineTo(dc, pos.x, pos.y);
 		}
 
-		void MoveTo(Vec2i pos) override
+		void MoveLineStartTo(Vec2i pos) override
 		{
 			::MoveToEx(dc, pos.x, pos.y, NULL);
+		}
+
+		void SetTextOptions(RGBAb backColour, RGBAb textColour) override
+		{
+			SetBkColor(dc, RGB(backColour.red, backColour.green, backColour.blue));
+			SetTextColor(dc, RGB(textColour.red, textColour.green, textColour.blue));
 		}
 
 		void SetLineOptions(RGBAb colour) override

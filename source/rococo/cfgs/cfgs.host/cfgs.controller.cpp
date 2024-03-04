@@ -330,6 +330,7 @@ namespace ANON
 
 		void CFGSGuiEventHandler_OnNodeHoverChanged(const CFGS::NodeId& id) override
 		{
+			UNUSED(id);
 			gridSlate->QueueRedraw();
 		}
 	};
