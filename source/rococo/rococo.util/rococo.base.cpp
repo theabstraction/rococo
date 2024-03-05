@@ -1,4 +1,5 @@
 #define ROCOCO_API __declspec(dllexport)
+#define ROCOCO_ID_API ROCOCO_API
 #include <rococo.debugging.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
@@ -24,11 +25,44 @@ namespace Rococo
 }
 #endif
 
+#include <rococo.ids.h>
+#include <rococo.os.h>
+#include <rococo.time.h>
+#include <atomic>
+
 namespace Rococo
 {
 	ROCOCO_API bool IsPointerValid(const void* ptr)
 	{
 		return ptr != nullptr;
+	}
+
+	static std::atomic<int32> uniqueCounter = 0;
+
+	ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId()
+	{
+		UniqueIdHolder id;
+
+		struct Username : IStringPopulator
+		{
+			uint64 hash = 0;
+
+			void Populate(cstr text) override
+			{
+				hash = Strings::XXHash64Arg(text, strlen(text));
+			}
+		} username;
+
+		OS::GetCurrentUserName(username);
+
+		int32 next = uniqueCounter++;
+		int64 threadId = ((int64) Rococo::OS::GetCurrentThreadIdentifier()) << 32;
+		int64 next64 = threadId + (int64) next;
+
+		id.iValues[0] = next64;
+		id.iValues[1] = username.hash ^ Rococo::Time::UTCTime();
+
+		return id;
 	}
 
 	namespace IO

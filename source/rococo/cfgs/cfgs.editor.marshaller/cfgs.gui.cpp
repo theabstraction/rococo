@@ -113,7 +113,7 @@ namespace Rococo::CFGS::Internal
 
 			int32 socketTop = parentRect.top + 30;
 
-			GuiRect circleRect{ parentRect.left + 20, socketTop + yIndex * 20, parentRect.left + 40, socketTop + (yIndex+1) * 20 };
+			GuiRect circleRect{ parentRect.left + 6, socketTop + yIndex * 20, parentRect.left + 26, socketTop + (yIndex+1) * 20 };
 			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
 
 			Vec2i cursorPos = fgr.CursorPosition();
@@ -125,6 +125,15 @@ namespace Rococo::CFGS::Internal
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
 			fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Left | EFGAF_VCentre);
+
+			if (socket.CableCount() > 0)
+			{
+				fgr.MoveLineStartTo(Centre(circleRect));
+				fgr.DrawLineTo({ parentRect.left, Centre(circleRect).y }, GetSocketColour(socket, false), 2);
+
+				ShrinkRect(circleRect, 4);
+				fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+			}
 		}
 
 		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignTransformations& transforms, int yIndex)
@@ -134,7 +143,7 @@ namespace Rococo::CFGS::Internal
 
 			int32 socketTop = parentRect.top + 30;
 			
-			GuiRect circleRect{ parentRect.right - 40, socketTop + yIndex * 20, parentRect.right - 20, socketTop + (yIndex + 1) * 20 };
+			GuiRect circleRect{ parentRect.right - 26, socketTop + yIndex * 20, parentRect.right - 6, socketTop + (yIndex + 1) * 20 };
 			GuiRect socketTextRect{ (parentRect.right + parentRect.left) / 2, circleRect.top, circleRect.left, circleRect.bottom };
 
 			Vec2i cursorPos = fgr.CursorPosition();
@@ -146,6 +155,15 @@ namespace Rococo::CFGS::Internal
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
 			fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Right | EFGAF_VCentre);
+
+			if (socket.CableCount() > 0)
+			{
+				fgr.MoveLineStartTo(Centre(circleRect));
+				fgr.DrawLineTo({ parentRect.right, Centre(circleRect).y }, GetSocketColour(socket, false), 2);
+
+				ShrinkRect(circleRect, 4);
+				fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+			}
 		}
 
 		void RenderSockets(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms)
@@ -165,6 +183,46 @@ namespace Rococo::CFGS::Internal
 					RenderRightSocket(fgr, node, socket, transforms, rightIndex++);
 				}
 			}
+		}
+
+		bool TryGetSocketGeometry(const ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour)
+		{
+			int32 leftIndex = 0;
+			int32 rightIndex = 0;
+
+			DesignerRect designerParentRect = node.GetDesignRectangle();
+			GuiRect parentRect = WorldToScreen(designerParentRect, transforms);
+			int32 socketTop = parentRect.top + 30;
+
+			for (int i = 0; i < node.SocketCount(); ++i)
+			{
+				auto& socket = node[i];
+
+				if (IsLeftSide(socket))
+				{
+					if (socket.Id() == socketId)
+					{
+						circleRect = { parentRect.left + 6, socketTop + leftIndex * 20, parentRect.left + 26, socketTop + (leftIndex + 1) * 20 };
+						edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
+						lineColour = GetSocketColour(socket, false);
+						return true;
+					}
+					leftIndex++;
+				}
+				else
+				{
+					if (socket.Id() == socketId)
+					{
+						circleRect = { parentRect.right - 26, socketTop + rightIndex * 20, parentRect.right - 6, socketTop + (rightIndex + 1) * 20 };
+						edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
+						lineColour = GetSocketColour(socket, false);
+						return true;
+					}
+					rightIndex++;
+				}
+			}
+
+			return false;
 		}
 
 		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms)
@@ -211,8 +269,47 @@ namespace Rococo::CFGS::Internal
 			RenderSockets(fgr, node, transforms);
 		}
 
+		void RenderCable(IFlatGuiRenderer& fgr, const ICFGSNode& start, SocketId startSocket, const ICFGSNode& end, SocketId endSocket)
+		{		
+			GuiRect circle;
+			RGBAb colour;
+			Vec2i startPixelPos;
+			if (!TryGetSocketGeometry(start, startSocket, OUT circle, OUT startPixelPos, OUT colour))
+			{
+				return;
+			}
+
+			Vec2i endPixelPos;
+			if (!TryGetSocketGeometry(end, endSocket, OUT circle, OUT endPixelPos, OUT colour))
+			{
+				return;
+			}
+
+			fgr.DrawSpline(startPixelPos, { 120, 0 }, endPixelPos, { -120, 0 }, colour);
+		}
+
+		void RenderCablesUnderneath(IFlatGuiRenderer& fgr)
+		{
+			auto& cables = cfgs.Cables();
+			for (int32 i = 0; i < cables.Count(); i++)
+			{
+				auto start = cables[i].ExitPoint();
+				auto end = cables[i].EntryPoint();
+
+				auto* nodeStart = cfgs.Nodes().FindNode(start.node);
+				auto* nodeEnd = cfgs.Nodes().FindNode(end.node);
+
+				if (nodeStart && nodeEnd)
+				{
+					RenderCable(fgr, *nodeStart, start.socket, *nodeEnd, end.socket);
+				}
+			}
+		}
+
 		void Render(IFlatGuiRenderer& fgr) override
 		{
+			RenderCablesUnderneath(fgr);
+
 			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
@@ -293,10 +390,10 @@ namespace Rococo::CFGS::Internal
 
 				dragId = NodeId();
 
-				return false;
+				return true;
 			}
 
-			return true;
+			return false;
 		}
 	};
 }

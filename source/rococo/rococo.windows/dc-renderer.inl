@@ -63,6 +63,23 @@ namespace Rococo::Windows
 			DeleteObject(hPen);
 		}
 
+		void DrawSpline(Vec2i start, Vec2i startDirection, Vec2i end, Vec2i endDirection, RGBAb colour) override
+		{
+			HPEN hPen = CreatePen(PS_SOLID, 2, RGB(colour.red, colour.green, colour.blue));
+			HPEN hOldPen = (HPEN) SelectObject(dc, hPen);
+
+			POINT points[4];
+			points[0] = { start.x, start.y };
+			points[1] = { start.x + startDirection.x, start.y + startDirection.y };
+			points[2] = { end.x + endDirection.x, end.y + endDirection.y };
+			points[3] = { end.x, end.y };
+			
+			::PolyBezier(dc, points, sizeof points / sizeof POINT);
+
+			SelectObject(dc, hOldPen);
+			DeleteObject(hPen);
+		}
+
 		void DrawText(const GuiRect& rect, cstr text, uint32 flags) override
 		{
 			RECT textRect{ rect.left, rect.top, rect.right, rect.bottom };

@@ -7,6 +7,8 @@
 # define CFGS_MARSHALLER_API ROCOCO_API_IMPORT
 #endif
 
+#include <rococo.ids.h>
+
 namespace Rococo::CFGS
 {
 	enum class SocketPlacement
@@ -54,8 +56,13 @@ namespace Rococo::CFGS
 
 	struct ICFGSNode;
 
+	MAKE_UNIQUE_TYPEID(SocketId)
+	MAKE_UNIQUE_TYPEID(CableId)
+
 	ROCOCO_INTERFACE ICFGSSocket
 	{
+		virtual void AddCable(CableId id) = 0;
+
 		// Return the face or vertex where the socket is placed. Conceptually the cable to the socket extends outwards through the specified face
 		virtual [[nodiscard]] SocketPlacement Placement() const = 0;
 
@@ -71,6 +78,15 @@ namespace Rococo::CFGS
 
 		// Typically the variable name
 		virtual [[nodiscard]] cstr Name() const = 0;
+
+		// A unique id assigned at socket creation that never changes
+		virtual [[nodiscard]] SocketId Id() const = 0;
+
+		// Returns the number of cables
+		virtual [[nodiscard]] int CableCount() const = 0;
+
+		// returns the cable at the given index. Throws an exception if the index is out of bounds
+		virtual [[nodiscard]] CableId GetCable(int32 index) const = 0;
 	};
 
 	struct CFGSNodeType
@@ -94,40 +110,11 @@ namespace Rococo::CFGS
 		virtual void GetTypeNamePlateColours(OUT ColourSchemeQuantum& q) const = 0;
 	};
 
-	struct NodeId
-	{
-		enum { UNIQUE_BUFFER_LEN = 16 };
-
-		NodeId()
-		{
-			subValues.iValues[0] = subValues.iValues[1] = 0;
-		}
-
-		union UTypes
-		{
-			char bufValue[UNIQUE_BUFFER_LEN];
-			int64 iValues[2];
-		} subValues;
-
-		bool operator == (const NodeId& other) const
-		{
-			bool result = this->subValues.iValues[0] == other.subValues.iValues[0] && this->subValues.iValues[1] == other.subValues.iValues[1];
-			return result;
-		}
-
-		bool operator != (const NodeId& other) const
-		{
-			return !(*this == other);
-		}
-
-		operator bool() const
-		{
-			return subValues.iValues[0] != 0 || subValues.iValues[1] != 0;
-		}
-	};
+	MAKE_UNIQUE_TYPEID(NodeId)
 
 	ROCOCO_INTERFACE ICFGSNode
 	{
+		virtual ICFGSSocket* FindSocket(cstr name) = 0;
 		virtual [[nodiscard]] CFGSNodeType Type() const = 0;
 
 		// A unique id generated at node construction that is immutable. It is *highly* unlikely any two nodes will have the same id
@@ -141,6 +128,24 @@ namespace Rococo::CFGS
 
 		// Force GetDesignRectangle to return the internal rect offset by the specified value. If makePermanent is set to true the internal rect is set to the old value + offset.
 		virtual void SetDesignOffset(const Rococo::Editors::DesignerVec2& offset, bool makePermanent) = 0;
+	};
+
+	struct CableConnection
+	{
+		NodeId node;
+		SocketId socket;
+	};
+
+	ROCOCO_INTERFACE ICFGSCable
+	{
+		// Where a cable starts from, always an exit
+		virtual [[nodiscard]] CableConnection ExitPoint() const = 0;
+
+		// Where a cable attaches to, always an entrance
+		virtual [[nodiscard]] CableConnection EntryPoint() const = 0;
+
+		// The unique id generated when the cable was created. The id never changes
+		virtual [[nodiscard]] CableId Id() const = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeEnumerator
@@ -167,10 +172,20 @@ namespace Rococo::CFGS
 		virtual void MakeTopMost(const ICFGSNode& node) = 0;
 	};
 
+	ROCOCO_INTERFACE ICFGSCableEnumerator
+	{
+		// gives the cable count, which is used to bound operator []
+		virtual [[nodiscard]] int32 Count() const = 0;
+
+		// Return the cable at the given index. If the index is out of bounds an IException is thrown
+		virtual [[nodiscard]] const ICFGSCable& operator[](int32 index) const = 0;
+	};
+
 	// Interface to the control-flow graph system
 	ROCOCO_INTERFACE ICFGS
 	{
-		virtual ICFGSNodeEnumerator & Nodes() = 0;
+		virtual ICFGSCableEnumerator& Cables() = 0;
+		virtual ICFGSNodeEnumerator& Nodes() = 0;
 		virtual void Free() = 0;
 	};
 

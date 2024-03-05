@@ -408,6 +408,8 @@ namespace Rococo::Windows
 			viewSpan.x = width;
 			viewSpan.y = height;
 
+			InvalidateRect(*window, NULL, TRUE);
+
 			return 0L;
 		}
 

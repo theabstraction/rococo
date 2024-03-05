@@ -67,6 +67,7 @@ namespace Rococo::Editors
 		virtual void DrawText(const GuiRect & rect, cstr text, uint32 flatGuiAlignmentFlags) = 0;
 		virtual void DrawFilledRect(const GuiRect & rect) = 0;
 		virtual void DrawRoundedRect(const GuiRect& rect, int border, RGBAb lineColour) = 0;
+		virtual void DrawSpline(Vec2i start, Vec2i startDirection, Vec2i end, Vec2i endDirection, RGBAb colour) = 0;
 
 		virtual void MoveLineStartTo(Vec2i pos) = 0;
 
