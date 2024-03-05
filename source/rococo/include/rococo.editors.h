@@ -121,6 +121,7 @@ namespace Rococo::Editors
 	{
 		virtual	Vec2i WorldToScreen(const DesignerVec2& designPos) const = 0;
 		virtual DesignerVec2 ScreenToWorld(Vec2i pixelPos) const = 0;
+		virtual DesignerVec2 ScreenDeltaToWorldDelta(Vec2i pixelDelta) const = 0;
 	};
 
 	ROCOCO_INTERFACE IUI2DGridSlate

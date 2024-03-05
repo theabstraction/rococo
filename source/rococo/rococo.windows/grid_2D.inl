@@ -256,6 +256,15 @@ namespace Rococo::Windows
 			};
 		}
 
+		DesignerVec2 ScreenDeltaToWorldDelta(Vec2i pixelDelta) const override
+		{
+			return DesignerVec2
+			{
+				 pixelDelta.x / viewScaleFactor,
+				 pixelDelta.y / viewScaleFactor,
+			};
+		}
+
 		Vec2i dragStart = { -1,-1 };
 
 		DesignerVec2 previewOrigin{ 1e40,1e40 };

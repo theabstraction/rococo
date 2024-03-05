@@ -119,6 +119,11 @@ namespace Rococo::CFGS
 		{
 			return !(*this == other);
 		}
+
+		operator bool() const
+		{
+			return subValues.iValues[0] != 0 || subValues.iValues[1] != 0;
+		}
 	};
 
 	ROCOCO_INTERFACE ICFGSNode
@@ -133,6 +138,9 @@ namespace Rococo::CFGS
 
 		// Returns a copy of the designer bounds for the graph node.
 		virtual [[nodiscard]] Rococo::Editors::DesignerRect GetDesignRectangle() const = 0;
+
+		// Force GetDesignRectangle to return the internal rect offset by the specified value. If makePermanent is set to true the internal rect is set to the old value + offset.
+		virtual void SetDesignOffset(const Rococo::Editors::DesignerVec2& offset, bool makePermanent) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeEnumerator
@@ -151,6 +159,9 @@ namespace Rococo::CFGS
 
 		// finds a node with the given UniqueId
 		virtual [[nodiscard]] const ICFGSNode* FindNode(NodeId id) const = 0;
+
+		// finds a node with the given UniqueId
+		virtual [[nodiscard]] ICFGSNode* FindNode(NodeId id) = 0;
 
 		// If the node argument is a member of the node set, then make it top most in z order
 		virtual void MakeTopMost(const ICFGSNode& node) = 0;
@@ -171,13 +182,23 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSGuiEventHandler
 	{
-		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId & id) = 0;
+		virtual void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) = 0;
+		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSGui
 	{
-		virtual void OnCursorMove(Vec2i cursorPosition) = 0;
+		// Respond to cursor move event, returns true if the event is consumed
+		virtual bool OnCursorMove(Vec2i cursorPosition) = 0;
+
+		// Respond to cursor click event, returns true if the event is consumed
+		virtual bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+
+		// Respond to cursor click event, returns true if the event is consumed
+		virtual bool OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
+
 		virtual void Free() = 0;
 	};
 

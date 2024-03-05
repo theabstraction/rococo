@@ -167,7 +167,7 @@ namespace ANON
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
-		AutoFree<CFGS::ICFGSGui> renderer;
+		AutoFree<CFGS::ICFGSGui> gui;
 		AutoFree<CFGS::ICFGSSupervisor> nodes;
 
 		bool terminateOnMainWindowClose = false;
@@ -206,7 +206,7 @@ namespace ANON
 			gridSlate = CFGS::Create2DGridControl(*editor, *this);
 			gridSlate->ResizeToParent();
 
-			renderer = CFGS::CreateCFGSGui(*nodes, gridSlate->Transforms(), *this);
+			gui = CFGS::CreateCFGSGui(*nodes, gridSlate->Transforms(), *this);
 
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
@@ -304,8 +304,11 @@ namespace ANON
 		void GridEvent_OnCursorMove(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(gridEventWheelFlags);
-			gridSlate->PreviewDrag(cursorPosition);
-			renderer->OnCursorMove(cursorPosition);
+
+			if (!gui->OnCursorMove(cursorPosition))
+			{
+				gridSlate->PreviewDrag(cursorPosition);
+			}
 		}
 
 		void GridEvent_OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
@@ -313,22 +316,36 @@ namespace ANON
 			UNUSED(gridEventWheelFlags);
 
 			gridSlate->CaptureCursorInput();
-			gridSlate->BeginDrag(cursorPosition);
+
+			if (!gui->OnLeftButtonDown(gridEventWheelFlags, cursorPosition))
+			{
+				gridSlate->BeginDrag(cursorPosition);
+			}
 		}
 
 		void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(gridEventWheelFlags);
 			gridSlate->ReleaseCapture();
-			gridSlate->EndDrag(cursorPosition);
+
+			if (!gui->OnLeftButtonUp(gridEventWheelFlags, cursorPosition))
+			{
+				gridSlate->EndDrag(cursorPosition);
+			}
 		}
 
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override
 		{
-			renderer->Render(gr);
+			gui->Render(gr);
 		}
 
 		void CFGSGuiEventHandler_OnNodeHoverChanged(const CFGS::NodeId& id) override
+		{
+			UNUSED(id);
+			gridSlate->QueueRedraw();
+		}
+
+		void CFGSGuiEventHandler_OnNodeDragged(const CFGS::NodeId& id) override
 		{
 			UNUSED(id);
 			gridSlate->QueueRedraw();

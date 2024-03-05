@@ -67,6 +67,9 @@ namespace Rococo::CFGS::Internal
 		ICFGSGuiEventHandler& eventHandler;
 
 		NodeId lastHoveredNode;
+
+		NodeId dragId;
+		Vec2i dragStart{ 0,0 };
 	public:
 		CFGSGui(ICFGS& _cfgs, Rococo::Editors::IDesignTransformations& _transforms, ICFGSGuiEventHandler& _eventHandler):
 			cfgs(_cfgs), transforms(_transforms), eventHandler(_eventHandler)
@@ -76,7 +79,7 @@ namespace Rococo::CFGS::Internal
 
 		void SetHovered(NodeId id)
 		{
-			if (lastHoveredNode != id || lastHoveredNode != NodeId())
+			if (lastHoveredNode || lastHoveredNode != id)
 			{
 				lastHoveredNode = id;
 				eventHandler.CFGSGuiEventHandler_OnNodeHoverChanged(id);
@@ -208,8 +211,32 @@ namespace Rococo::CFGS::Internal
 			RenderSockets(fgr, node, transforms);
 		}
 
-		void OnCursorMove(Vec2i pixelPosition) override
+		void Render(IFlatGuiRenderer& fgr) override
 		{
+			auto& nodes = cfgs.Nodes();
+			for (int32 i = 0; i < nodes.Count(); ++i)
+			{
+				RenderNode(fgr, nodes.GetByZOrderAscending(i), transforms);
+			}
+		}
+
+		bool OnCursorMove(Vec2i pixelPosition) override
+		{
+			if (dragId)
+			{
+				Vec2i delta = pixelPosition - dragStart;
+				DesignerVec2 designerDelta = transforms.ScreenDeltaToWorldDelta(delta);
+				
+				auto* node = cfgs.Nodes().FindNode(dragId);
+				if (node)
+				{
+					node->SetDesignOffset(designerDelta, false);
+					eventHandler.CFGSGuiEventHandler_OnNodeDragged(dragId);
+				}
+
+				return true;
+			}
+
 			DesignerVec2 designerPos = transforms.ScreenToWorld(pixelPosition);
 
 			const ICFGSNode* topMostNode = FindTopMostNodeContainingPoint(designerPos, cfgs.Nodes());
@@ -221,15 +248,55 @@ namespace Rococo::CFGS::Internal
 			{
 				SetHovered(NodeId());
 			}
+
+			return false;
 		}
 
-		void Render(IFlatGuiRenderer& fgr) override
+		bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
 		{
+			UNUSED(gridEventWheelFlags);
+
 			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
-				RenderNode(fgr, nodes.GetByZOrderAscending(i), transforms);
+				auto& node = nodes[i];
+				auto rect = node.GetDesignRectangle();
+				GuiRect nodeRect = WorldToScreen(rect, transforms);
+
+				if (IsPointInRect(cursorPosition, nodeRect))
+				{
+					dragId = node.UniqueId();
+					nodes.MakeTopMost(node);
+					dragStart = cursorPosition;
+					return true;
+				}
 			}
+
+			return false;
+		}
+
+		bool OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition)override
+		{
+			UNUSED(gridEventWheelFlags);
+
+			if (dragId)
+			{
+				Vec2i delta = cursorPosition - dragStart;
+				DesignerVec2 designerDelta = transforms.ScreenDeltaToWorldDelta(delta);
+
+				auto* node = cfgs.Nodes().FindNode(dragId);
+				if (node)
+				{
+					node->SetDesignOffset(designerDelta, true);					
+					eventHandler.CFGSGuiEventHandler_OnNodeDragged(dragId);
+				}
+
+				dragId = NodeId();
+
+				return false;
+			}
+
+			return true;
 		}
 	};
 }

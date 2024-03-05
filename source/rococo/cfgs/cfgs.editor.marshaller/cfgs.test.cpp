@@ -137,9 +137,35 @@ namespace Rococo::CFGS::Internal
 			return (int32) sockets.size();
 		}
 
+		// Gives the delta offset of the reported design rectangle. This enables dragging the node and reverting to the original position
+		DesignerVec2 currentOffset{ 0,0 };
+
 		DesignerRect GetDesignRectangle() const override
 		{
-			return designRect;
+			return
+			{ 
+				designRect.left + currentOffset.x,
+				designRect.top + currentOffset.y,
+				designRect.right + currentOffset.x,
+				designRect.bottom + currentOffset.y
+			};
+		}
+
+		void SetDesignOffset(const DesignerVec2& offset, bool makePermanent) override
+		{
+			if (makePermanent)
+			{
+				designRect.left += currentOffset.x;
+				designRect.top += currentOffset.y;
+				designRect.right += currentOffset.x;
+				designRect.bottom += currentOffset.y;
+
+				currentOffset = { 0, 0 };
+			}
+			else
+			{
+				currentOffset = offset;
+			}
 		}
 
 		const IRenderScheme& Scheme() const override
@@ -241,10 +267,8 @@ namespace Rococo::CFGS::Internal
 
 					reorderedNodes.push_back(*i);
 
-					auto j = zOrderDescending.begin();
-					j++;
 
-					for (; j != zOrderDescending.end(); j++)
+					for (auto j = zOrderDescending.begin(); j != zOrderDescending.end(); j++)
 					{
 						if (*j != *i)
 						{
@@ -253,6 +277,7 @@ namespace Rococo::CFGS::Internal
 					}
 
 					zOrderDescending.swap(reorderedNodes);
+					return;
 				}
 			}
 		}
@@ -273,6 +298,12 @@ namespace Rococo::CFGS::Internal
 		}
 
 		const ICFGSNode* FindNode(NodeId id) const override
+		{
+			auto i = mapIdToNode.find(id);
+			return i != mapIdToNode.end() ? i->second : nullptr;
+		}
+
+		ICFGSNode* FindNode(NodeId id) override
 		{
 			auto i = mapIdToNode.find(id);
 			return i != mapIdToNode.end() ? i->second : nullptr;
