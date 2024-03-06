@@ -1319,6 +1319,8 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
         }

@@ -485,7 +485,7 @@ namespace Rococo::Sex::SEXML
 						type = SEXMLValueType::StringLiteral;
 						break;
 					default:
-						Throw(attributeFunction, "Expecting either an atomic or string literal for the value of the attribute");
+						Throw(attributeFunction, "Expecting either an atomic or string literal for the value of the attribute. Perhaps you are missing a colon ':' that specifies the sub-directives from the attributes.");
 					}
 
 					auto* pMemory = root.Allocator().Allocate(sizeof StringValue);
@@ -546,7 +546,14 @@ namespace Rococo::Sex::SEXML
 					Throw(sName, "The directive namespace length was %d characters. The limit is %d characters", name->Length, MAX_FQNAME_LENGTH);
 				}
 
-				Rococo::Strings::ValidateFQNamespace(name->Buffer);
+				try
+				{
+					Rococo::Strings::ValidateFQNamespace(name->Buffer);
+				}
+				catch (IException& ex)
+				{
+					Throw(sName, "Error validating the directive '%s': %s", name->Buffer, ex.Message());
+				}
 
 				int firstSub = 0;
 
@@ -846,7 +853,7 @@ namespace Rococo::Sex::SEXML
 		const ISEXMLDirective* dir = FindDirective(items, directiveName, startIndex);
 		if (!dir)
 		{
-			Rococo::Sex::Throw(items.S(), "Could not find <%s>", directiveName);
+			Rococo::Sex::Throw(items.S(), "Could not find a directive (%s ...) in the SXML file", directiveName);
 		}
 		return *dir;
 	}

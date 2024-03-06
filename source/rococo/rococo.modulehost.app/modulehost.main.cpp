@@ -84,6 +84,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, int nSho
 	AutoLib hController;
 	AutoLib hView;
 
+	Rococo::OS::SetBreakPoints(OS::Flags::BreakFlag_All);
+
 	try
 	{
 		MVC_Host host;

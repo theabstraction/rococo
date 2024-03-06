@@ -1,1 +1,39 @@
-(control-flow-graph-system SXML version 1.0)
+(ControlFlowGraphSystem (FileFormat SXML)(Version 1.0))
+(Nodes
+	:
+	(Node 
+		(Type "I32::Add")
+		(XPos 10)
+		(yPos 10)
+		:
+		(Socket
+			(Type "Flow")
+			(Class "Trigger")
+			(Label "Start")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "A")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "B")
+		)
+		
+		(Socket
+			(Type "Flow")
+			(Class "Exit")
+			(Label "End")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "OutputValue")
+			(Label "A+B")
+		)
+	)
+)

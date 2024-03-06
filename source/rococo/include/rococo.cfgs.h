@@ -49,6 +49,8 @@ namespace Rococo::CFGS
 		ConstOutputRef
 	};
 
+	CFGS_MARSHALLER_API bool TryParse(OUT SocketClass& sclass, cstr text);
+
 	struct CFGSSocketType
 	{
 		cstr Value;
@@ -151,6 +153,17 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] bool IsSelected() const = 0;
 	};
 
+	ROCOCO_INTERFACE ICFGSNodeBuilder
+	{
+		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSNodeSetBuilder
+	{
+		virtual ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft) = 0;
+		virtual void DeleteAllNodes() = 0;
+	};
+
 	ROCOCO_INTERFACE ICFGSNodeEnumerator
 	{
 		// gets a node by index. The order does not change unless nodes are added, inserted or removed.
@@ -173,6 +186,8 @@ namespace Rococo::CFGS
 
 		// If the node argument is a member of the node set, then make it top most in z order
 		virtual void MakeTopMost(const ICFGSNode& node) = 0;
+
+		virtual ICFGSNodeSetBuilder& Builder() = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSCableEnumerator
@@ -191,7 +206,6 @@ namespace Rococo::CFGS
 	{
 		virtual ICFGSCableEnumerator& Cables() = 0;
 		virtual ICFGSNodeEnumerator& Nodes() = 0;
-		virtual void Free() = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSSupervisor: ICFGS

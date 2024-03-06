@@ -4,6 +4,12 @@
 #include <rococo.validators.h>
 #include <rococo.properties.h>
 #include <rococo.cfgs.h>
+#include <rococo.sexml.h>
+#include <rococo.io.h>
+#include <rococo.os.h>
+#include <rococo.functional.h>
+#include <sexy.types.h>
+#include <Sexy.S-Parser.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -12,11 +18,13 @@ using namespace Rococo::MVC;
 using namespace Rococo::Validators;
 using namespace Rococo::Reflection;
 using namespace Rococo::Editors;
+using namespace Rococo::Sex;
+using namespace Rococo::Sex::SEXML;
 
 namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
-	bool TryGetUserSelectedCFGSPath(OUT U8FilePath& path, IAbstractEditorSupervisor& editor);
+	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 }
 
 namespace ANON
@@ -362,17 +370,95 @@ namespace ANON
 			gridSlate->QueueRedraw();
 		}
 
-		void LoadGraph(cstr filename)
+		void OnLoadGraphNode(const ISEXMLDirective& node)
 		{
+			auto& type = AsString(node["Type"]);
 			
+			auto& nb = nodes->Nodes().Builder().AddNode(type.c_str(), {10, 10});
+
+			auto nChildren = node.NumberOfChildren();
+			for (size_t i = 0; i < nChildren; i++)
+			{
+				auto& socket = node[i];
+				if (!Strings::Eq(socket.FQName(), "Socket"))
+				{
+					Throw(node.S(), "Expecting (Socket ...)");
+				}
+
+				auto& socketType = SEXML::AsString(socket["Type"]);
+				auto& socketClass = SEXML::AsString(socket["Class"]);
+				auto& socketLabel = SEXML::AsString(socket["Label"]);
+
+				CFGS::SocketClass sclass;
+				if (CFGS::TryParse(OUT sclass, socketClass.c_str()))
+				{
+					nb.AddSocket(socketType.c_str(), sclass, socketLabel.c_str());
+				}
+			}
+		}
+
+		void OnLoadGraphSXML(const ISEXMLDirectiveList& topLevelDirectives)
+		{
+			size_t startIndex = 0;
+			auto& header = GetDirective(topLevelDirectives, "ControlFlowGraphSystem", IN OUT startIndex);		
+			auto& format = SEXML::AsString(header["FileFormat"]);
+			if (!Strings::Eq(format.c_str(), "SXML"))
+			{
+				Throw(format.S(), "Expecting (FileFormat SEXML) in the ControlFlowGraphSystem directive");
+			}
+
+			auto& version = SEXML::AsString(header["Version"]);
+			if (!Strings::Eq(version.c_str(), "1.0"))
+			{
+				Throw(version.S(), "Expecting (Version 1.0) in the ControlFlowGraphSystem directive. Value was '%s'", version.c_str());
+			}
+
+			startIndex = 0;
+			auto& nodes = GetDirective(topLevelDirectives, "Nodes", IN OUT startIndex);
+			
+			auto nChildren = nodes.NumberOfChildren();
+			for (size_t i = 0; i < nChildren; i++)
+			{
+				auto& node = nodes[i];
+				if (!Strings::Eq(node.FQName(), "Node"))
+				{
+					Throw(node.S(), "Expecting (Node ...)");
+				}
+
+				OnLoadGraphNode(node);
+			}
+
+			gridSlate->QueueRedraw();
+		}
+
+		void LoadGraph(const wchar_t* filename)
+		{
+			auto lambda = [this](const ISEXMLDirectiveList& directives)
+			{
+				this->nodes->Nodes().Builder().DeleteAllNodes();
+				this->OnLoadGraphSXML(directives);
+			};
+
+			Rococo::OS::LoadSXMLBySysPath(filename, lambda);
 		}
 
 		void OnSelectFileToLoad(IAbeditMainWindow& sender) override
 		{
-			U8FilePath path;
-			if (CFGS::TryGetUserSelectedCFGSPath(OUT path, *editor))
+			WideFilePath sysPath;
+			if (CFGS::TryGetUserSelectedCFGSPath(OUT sysPath, *editor))
 			{
-				LoadGraph(path);
+				try
+				{
+					LoadGraph(sysPath);
+				}
+				catch (Sex::ParseException& ex)
+				{
+					Rococo::Throw(ex.ErrorCode(), "Error loading %ls at line %d:\n\t%s", sysPath.buf, ex.Start().y + 1, ex.Message());
+				}
+				catch (IException& ex)
+				{
+					Rococo::Throw(ex.ErrorCode(), "Error loading %ls: %s", sysPath.buf, ex.Message());
+				}
 			}
 		}
 	};

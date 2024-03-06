@@ -91,7 +91,7 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class TestNode : public ICFGSNode, public IRenderScheme
+	class TestNode : public ICFGSNode, public IRenderScheme, public ICFGSNodeBuilder
 	{
 		HString typeName;
 		DesignerRect designRect;
@@ -101,17 +101,24 @@ namespace Rococo::CFGS::Internal
 		NodeId uniqueId;
 
 	public:
-		TestNode(cstr _typeName, cstr result, DesignerVec2 pos) : typeName(_typeName)
+		TestNode(cstr _typeName, DesignerVec2 pos) : typeName(_typeName)
 		{
 			designRect = { pos.x, pos.y, pos.x + 150, pos.y + 100 };
+			uniqueId.id = Rococo::MakeNewUniqueId();
+		}
 
+		void AddTestSockets(cstr result)
+		{
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, "Start"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End"));
 			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result));
+		}
 
-			uniqueId.id = Rococo::MakeNewUniqueId();
+		void AddSocket(cstr type, SocketClass socketClass, cstr label) override
+		{
+			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label));
 		}
 
 		~TestNode()
@@ -313,10 +320,17 @@ namespace Rococo::CFGS::Internal
 
 		~CableSet()
 		{
+			Clear();
+		}
+
+		void Clear()
+		{
 			for (auto* cable : cables)
 			{
 				delete cable;
 			}
+
+			cables.clear();
 		}
 
 		int32 Count() const override
@@ -375,7 +389,7 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class TestNodes: public ICFGSSupervisor, ICFGSNodeEnumerator
+	class TestNodes: public ICFGSSupervisor, ICFGSNodeEnumerator, ICFGSNodeSetBuilder
 	{
 	private:
 		std::vector<TestNode*> nodes;
@@ -385,14 +399,21 @@ namespace Rococo::CFGS::Internal
 	public:
 		TestNodes()
 		{
-			auto* adder = new TestNode("Add", "A + B", { 0, 0 });
+			auto* adder = new TestNode("Add", { 0, 0 });
+			adder->AddTestSockets("A+B");
 			nodes.push_back(adder);
 
-			auto* subtracter = new TestNode("Subtract", "A - B", { 200, 0 });
+			auto* subtracter = new TestNode("Subtract", { 200, 0 });
+			subtracter->AddTestSockets("A-B");
 			nodes.push_back(subtracter);
 
-			nodes.push_back(new TestNode("Multiply", "A x B", { 400, 0 }));
-			nodes.push_back(new TestNode("Divide", "A / B", { 600, 0 }));
+			auto* multiplier = new TestNode("Multiply", { 400, 0 });
+			multiplier->AddTestSockets("A * B");
+			nodes.push_back(multiplier);
+
+			auto* divider = new TestNode("Divide", { 600, 0 });
+			divider->AddTestSockets("A / B");
+			nodes.push_back(divider);
 
 			auto& cable0 = cables.AddNew(adder->ExitPoint(0));
 			cable0.SetEntryPoint(subtracter->EntryPoint(0));
@@ -407,17 +428,32 @@ namespace Rococo::CFGS::Internal
 
 				if (!mapIdToNode.insert(std::make_pair(n->UniqueId(), n)).second)
 				{
-					Throw(0, "A very rare event occured, a 64-bit duplicate hash value was generated!");
+					Throw(0, "A very rare event occured, a 128-bit duplicate hash value was generated!");
 				}
 			}
 		}
 
 		~TestNodes()
 		{
+			DeleteAllNodes();
+		}
+
+		ICFGSNodeSetBuilder& Builder() override
+		{
+			return *this;
+		}
+
+		void DeleteAllNodes() override
+		{
 			for (auto* n : nodes)
 			{
 				delete n;
 			}
+
+			nodes.clear();
+			cables.Clear();
+			mapIdToNode.clear();
+			zOrderDescending.clear();
 		}
 
 		const ICFGSNode& GetByZOrderAscending(int32 index) override
@@ -476,6 +512,20 @@ namespace Rococo::CFGS::Internal
 			}
 
 			return *nodes[index];
+		}
+
+		ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft) override
+		{
+			auto* node = new TestNode(typeString, topLeft);
+			nodes.push_back(node);
+			zOrderDescending.push_back(node);
+
+			if (!mapIdToNode.insert(std::make_pair(node->UniqueId(), node)).second)
+			{
+				Throw(0, "A very rare event occured, a 128-bit duplicate hash value was generated!");
+			}
+
+			return *node;
 		}
 
 		int32 Count() const override

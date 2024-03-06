@@ -23,23 +23,23 @@ namespace Rococo::CFGS
 		return Rococo::Windows::Create2DGrid(super.Slate(), WS_VISIBLE | WS_CHILD, eventHandler, true);
 	}
 
-	bool TryGetUserSelectedCFGSPath(OUT U8FilePath& path, Abedit::IAbstractEditorSupervisor& editor)
+	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
 		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
 
-		OPENFILENAMEA spec = { 0 };
+		OPENFILENAMEW spec = { 0 };
 		spec.lStructSize = sizeof(spec);
 		spec.hwndOwner = hRoot;
-		spec.lpstrFilter = "control-flow graph SXML file\0*.cfgs.sxml\0\0";
+		spec.lpstrFilter = L"control-flow graph SXML file\0*.cfgs.sxml\0\0";
 		spec.nFilterIndex = 1;
 
 		spec.lpstrFile = path.buf;
 		*path.buf = 0;
-		spec.nMaxFile = sizeof path;
+		spec.nMaxFile = sizeof path / sizeof(wchar_t);
 
-		char title[256];
-		Strings::SecureFormat(title, sizeof(title), "Select a flow graph file");
+		wchar_t title[256];
+		Strings::SecureFormat(title, 256, L"Select a flow graph file");
 		spec.lpstrTitle = title;
 
 		spec.Flags = 0;
@@ -49,9 +49,9 @@ namespace Rococo::CFGS
 
 		bool isOpen = false;
 
-		if (GetOpenFileNameA(&spec))
+		if (GetOpenFileNameW(&spec))
 		{
-			SetWindowTextA(hRoot, spec.lpstrFile);
+			SetWindowTextW(hRoot, spec.lpstrFile);
 			isOpen = true;
 		}
 

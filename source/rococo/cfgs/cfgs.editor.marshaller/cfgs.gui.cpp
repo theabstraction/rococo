@@ -466,8 +466,40 @@ namespace Rococo::CFGS::Internal
 	};
 }
 
+#include <rococo.hashtable.h>
+
+static Rococo::stringmap<Rococo::CFGS::SocketClass> mapStringToClass;
+
 namespace Rococo::CFGS
 {
+	CFGS_MARSHALLER_API bool TryParse(OUT SocketClass& sclass, cstr text)
+	{
+		if (mapStringToClass.empty())
+		{
+			mapStringToClass.insert("None", SocketClass::None);
+			mapStringToClass.insert("Trigger", SocketClass::Trigger);
+			mapStringToClass.insert("Exit", SocketClass::Exit);
+			mapStringToClass.insert("InputVar", SocketClass::InputVar);
+			mapStringToClass.insert("OutputValue", SocketClass::OutputValue);
+			mapStringToClass.insert("InputRef", SocketClass::InputRef);
+			mapStringToClass.insert("ConstInputRef", SocketClass::ConstInputRef);
+			mapStringToClass.insert("OutputRef", SocketClass::OutputRef);
+			mapStringToClass.insert("ConstOutputRef", SocketClass::ConstOutputRef);
+		}
+
+		auto i = mapStringToClass.find(text);
+		if (i != mapStringToClass.end())
+		{
+			OUT sclass = i->second;
+			return true;
+		}
+		else
+		{
+			OUT sclass = SocketClass::None;
+			return false;
+		}
+	}
+
 	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler)
 	{
 		return new Internal::CFGSGui(cfgs, designSpace, eventHandler);

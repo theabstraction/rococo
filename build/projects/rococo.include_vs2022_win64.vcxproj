@@ -225,6 +225,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.handles.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.hashtable.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ide.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ids.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.imaging.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.imports.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.impressario.inl" />

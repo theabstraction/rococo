@@ -288,4 +288,8 @@ namespace Rococo::OS
 
 	// Sets the default organization string. Must be definite
 	ROCOCO_SEXML_API void SetDefaultOrganization(cstr defaultOrganization);
+
+	ROCOCO_SEXML_API void LoadSXMLBySysPath(const wchar_t* filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
+	
+	ROCOCO_SEXML_API void LoadSXMLBySysPath(cstr filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 }

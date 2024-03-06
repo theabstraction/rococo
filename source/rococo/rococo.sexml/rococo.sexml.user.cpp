@@ -178,4 +178,51 @@ namespace Rococo::OS
 
 		s_defaultOrganization = defaultOrganization;
 	}
+
+	ROCOCO_SEXML_API void LoadSXMLBySysPath(const wchar_t* filename, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
+	{
+		struct ANON : IStringPopulator
+		{
+			HString result;
+			void Populate(cstr text) override
+			{
+				result = text;
+			}
+		} onLoadFile;
+
+		IO::LoadAsciiTextFile(onLoadFile, filename);
+
+		AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(65_kilobytes, 0, "LoadUserDataAllocator");
+
+		U8FilePath u8Path;
+		Assign(u8Path, filename);
+
+		Auto<ISParser> parser = CreateSexParser_2_0(*allocator);
+		Auto<ISourceCode> src = parser->ProxySourceBuffer(onLoadFile.result.c_str(), (int)onLoadFile.result.length(), Vec2i{ 0,0 }, u8Path);
+		Auto<ISParserTree> tree;
+
+		try
+		{
+			tree = parser->CreateTree(*src);
+		}
+		catch (ParseException& ex)
+		{
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
+		}
+		catch (...)
+		{
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, u8Path.buf);
+		}
+
+		AutoFree<ISEXMLRootSupervisor> root = CreateSEXMLParser(*allocator, tree->Root());
+
+		onLoad.Invoke(*root);
+	}
+
+	ROCOCO_SEXML_API void LoadSXMLBySysPath(cstr filename, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		LoadSXMLBySysPath(wPath, onLoad);
+	}
 }

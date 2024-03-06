@@ -200,6 +200,8 @@ namespace Rococo::OS
 	ROCOCO_API void PrintDebug(const char* format, ...);	
 	ROCOCO_API [[nodiscard]] bool IsDebugging();
 	ROCOCO_API void BreakOnThrow(Flags::BreakFlag flag);
+
+	// Merge Flags::BreakFlag to provide the argument to SetBreakPoints
 	ROCOCO_API void SetBreakPoints(int flags);
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
 	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
