@@ -54,6 +54,7 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IAbstractEditorMainWindowEventHandler
 	{
 		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
+		virtual void OnSelectFileToLoad(IAbeditMainWindow& sender) = 0;
 		virtual void OnSlateResized() = 0;
 	};
 
@@ -63,6 +64,7 @@ namespace Rococo::Abedit
 		int defaultHeight; // +ve to specify a default editor height
 		int defaultPosLeft; // -ve to use system default
 		int defaultPosTop; // -ve to use system default
+		bool slateHasMenu; // true to enable menu on the blank slate window
 	};
 
 	ROCOCO_INTERFACE IAbstractEditorFactory

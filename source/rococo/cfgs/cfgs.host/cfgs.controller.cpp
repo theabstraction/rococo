@@ -16,6 +16,7 @@ using namespace Rococo::Editors;
 namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
+	bool TryGetUserSelectedCFGSPath(OUT U8FilePath& path, IAbstractEditorSupervisor& editor);
 }
 
 namespace ANON
@@ -195,6 +196,7 @@ namespace ANON
 			config.defaultPosTop = -1;
 			config.defaultWidth = 1366;
 			config.defaultHeight = 768;
+			config.slateHasMenu = true;
 			editor = editorFactory->CreateAbstractEditor(IN config, *this);
 			if (!editor)
 			{
@@ -358,6 +360,20 @@ namespace ANON
 		{
 			UNUSED(id);
 			gridSlate->QueueRedraw();
+		}
+
+		void LoadGraph(cstr filename)
+		{
+			
+		}
+
+		void OnSelectFileToLoad(IAbeditMainWindow& sender) override
+		{
+			U8FilePath path;
+			if (CFGS::TryGetUserSelectedCFGSPath(OUT path, *editor))
+			{
+				LoadGraph(path);
+			}
 		}
 	};
 }

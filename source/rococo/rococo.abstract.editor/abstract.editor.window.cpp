@@ -460,11 +460,22 @@ namespace ANON
 		AutoFree<AbeditPropertiesWindow> propertiesPanel;
 		AutoFree<AbeditSplitter> rhsSplitter;
 		AutoFree<AbeditSlate> slate;
+		AutoFree<IWin32Menu> mainMenu;
+
+		enum class MenuItem: uint16
+		{
+			Load = 3500,
+			Exit = 3501
+		};
 
 		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler) : eventHandler(_eventHandler), window(nullptr), propertiesPanel(nullptr)
 		{
+			mainMenu = Windows::CreateMenu(false);
 		}
 
+		~AbeditMainWindow()
+		{
+		}
 	public:
 		IParentWindowSupervisor& PropertiesPanel() override
 		{
@@ -493,8 +504,12 @@ namespace ANON
 			if (sessionConfig.defaultPosLeft < 0) topLeft.x = CW_USEDEFAULT;
 			if (sessionConfig.defaultPosTop < 0) topLeft.y = CW_USEDEFAULT;
 
+			auto& filePopup = mainMenu->AddPopup("&File");
+			filePopup.AddString("&Load...", (int32)MenuItem::Load);
+			filePopup.AddString("E&xit", (int32)MenuItem::Exit);
+
 			WindowConfig config;
-			Rococo::Windows::SetOverlappedWindowConfig(config, topLeft, span, hParentWnd, "Rococo Abstract Editor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, NULL);
+			Rococo::Windows::SetOverlappedWindowConfig(config, topLeft, span, hParentWnd, "Rococo Abstract Editor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, sessionConfig.slateHasMenu ? *mainMenu : (HMENU) nullptr);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
 			rhsSplitter = AbeditSplitter::Create(hDll, *window, { 0,0 }, { 0,0 });
@@ -534,10 +549,30 @@ namespace ANON
 			delete this;
 		}
 
+		void OnMenuSelected(uint16 id)
+		{
+			auto item = static_cast<MenuItem>(id);
+			switch (item)
+			{
+			case MenuItem::Load:
+				eventHandler.OnSelectFileToLoad(*this);
+				break;
+			case MenuItem::Exit:
+				eventHandler.OnRequestToClose(*this);
+				break;
+			}
+		}
+
 		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (msg)
 			{
+			case WM_COMMAND:
+				if (HIWORD(wParam) == 0)
+				{
+					OnMenuSelected(LOWORD(wParam));
+					return 0L;
+				}
 			case WM_CLOSE:
 				break;
 			case WM_PAINT:
