@@ -225,6 +225,6 @@ namespace Rococo::CFGS
 		virtual void Free() = 0;
 	};
 
-	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, Rococo::Editors::IDesignTransformations& transforms, ICFGSGuiEventHandler& eventHandler);
+	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
 	CFGS_MARSHALLER_API ICFGSSupervisor* CreateCFGSTestSystem();
 }

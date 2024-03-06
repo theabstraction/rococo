@@ -69,7 +69,7 @@ namespace Rococo::CFGS::Internal
 	{
 	private:
 		ICFGS& cfgs;
-		IDesignTransformations& transforms;
+		IDesignSpace& designSpace;
 		ICFGSGuiEventHandler& eventHandler;
 
 		NodeId lastHoveredNode;
@@ -77,8 +77,8 @@ namespace Rococo::CFGS::Internal
 		NodeId dragId;
 		Vec2i dragStart{ 0,0 };
 	public:
-		CFGSGui(ICFGS& _cfgs, Rococo::Editors::IDesignTransformations& _transforms, ICFGSGuiEventHandler& _eventHandler):
-			cfgs(_cfgs), transforms(_transforms), eventHandler(_eventHandler)
+		CFGSGui(ICFGS& _cfgs, Rococo::Editors::IDesignSpace& _designSpace, ICFGSGuiEventHandler& _eventHandler):
+			cfgs(_cfgs), designSpace(_designSpace), eventHandler(_eventHandler)
 		{
 
 		}
@@ -117,10 +117,10 @@ namespace Rococo::CFGS::Internal
 		}
 
 
-		void RenderLeftSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignTransformations& transforms, int yIndex)
+		void RenderLeftSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
-			GuiRect parentRect = WorldToScreen(designerParentRect, transforms);
+			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
 			int32 socketTop = parentRect.top + 30;
 
@@ -147,10 +147,10 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignTransformations& transforms, int yIndex)
+		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
-			GuiRect parentRect = WorldToScreen(designerParentRect, transforms);
+			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
 			int32 socketTop = parentRect.top + 30;
 			
@@ -177,7 +177,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void RenderSockets(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms)
+		void RenderSockets(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace)
 		{
 			int32 leftIndex = 0;
 			int32 rightIndex = 0;
@@ -187,11 +187,11 @@ namespace Rococo::CFGS::Internal
 				auto& socket = node[i];
 				if (IsLeftSide(socket))
 				{
-					RenderLeftSocket(fgr, node, socket, transforms, leftIndex++);
+					RenderLeftSocket(fgr, node, socket, designSpace, leftIndex++);
 				}
 				else
 				{
-					RenderRightSocket(fgr, node, socket, transforms, rightIndex++);
+					RenderRightSocket(fgr, node, socket, designSpace, rightIndex++);
 				}
 			}
 		}
@@ -202,7 +202,7 @@ namespace Rococo::CFGS::Internal
 			int32 rightIndex = 0;
 
 			DesignerRect designerParentRect = node.GetDesignRectangle();
-			GuiRect parentRect = WorldToScreen(designerParentRect, transforms);
+			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 			int32 socketTop = parentRect.top + 30;
 
 			for (int i = 0; i < node.SocketCount(); ++i)
@@ -236,10 +236,10 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms, RenderPhase phase)
+		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace, RenderPhase phase)
 		{
 			auto rect = node.GetDesignRectangle();
-			GuiRect nodeRect = WorldToScreen(rect, transforms);
+			GuiRect nodeRect = WorldToScreen(rect, designSpace);
 
 			if (phase == RenderPhase::Indices)
 			{
@@ -282,7 +282,7 @@ namespace Rococo::CFGS::Internal
 
 			fgr.DrawText(namePlateTextRect, node.Type().Value, EFGAF_Left | EFGAF_VCentre);
 
-			RenderSockets(fgr, node, transforms);
+			RenderSockets(fgr, node, designSpace);
 		}
 
 		void RenderCable(IFlatGuiRenderer& fgr, const ICFGSNode& start, SocketId startSocket, const ICFGSNode& end, SocketId endSocket, int cableIndex, RenderPhase phase, bool isLit)
@@ -346,7 +346,7 @@ namespace Rococo::CFGS::Internal
 			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
-				RenderNode(fgr, nodes.GetByZOrderAscending(i), transforms, RenderPhase::RGB);
+				RenderNode(fgr, nodes.GetByZOrderAscending(i), designSpace, RenderPhase::RGB);
 			}
 		}
 
@@ -357,7 +357,7 @@ namespace Rococo::CFGS::Internal
 			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
-				RenderNode(fgr, nodes.GetByZOrderAscending(i), transforms, RenderPhase::Indices);
+				RenderNode(fgr, nodes.GetByZOrderAscending(i), designSpace, RenderPhase::Indices);
 			}
 		}
 
@@ -366,7 +366,7 @@ namespace Rococo::CFGS::Internal
 			if (dragId)
 			{
 				Vec2i delta = pixelPosition - dragStart;
-				DesignerVec2 designerDelta = transforms.ScreenDeltaToWorldDelta(delta);
+				DesignerVec2 designerDelta = designSpace.ScreenDeltaToWorldDelta(delta);
 				
 				auto* node = cfgs.Nodes().FindNode(dragId);
 				if (node)
@@ -378,7 +378,7 @@ namespace Rococo::CFGS::Internal
 				return true;
 			}
 
-			DesignerVec2 designerPos = transforms.ScreenToWorld(pixelPosition);
+			DesignerVec2 designerPos = designSpace.ScreenToWorld(pixelPosition);
 
 			const ICFGSNode* topMostNode = FindTopMostNodeContainingPoint(designerPos, cfgs.Nodes());
 			if (topMostNode)
@@ -402,7 +402,7 @@ namespace Rococo::CFGS::Internal
 			{
 				auto& node = nodes[i];
 				auto rect = node.GetDesignRectangle();
-				GuiRect nodeRect = WorldToScreen(rect, transforms);
+				GuiRect nodeRect = WorldToScreen(rect, designSpace);
 
 				if (IsPointInRect(cursorPosition, nodeRect))
 				{
@@ -416,7 +416,7 @@ namespace Rococo::CFGS::Internal
 			auto& cables = cfgs.Cables();
 
 			RGBAb indices;
-			if (transforms.TryGetIndicesAt(cursorPosition, indices))
+			if (designSpace.TryGetIndicesAt(cursorPosition, indices))
 			{
 				if (indices.blue == 128)
 				{
@@ -447,7 +447,7 @@ namespace Rococo::CFGS::Internal
 			if (dragId)
 			{
 				Vec2i delta = cursorPosition - dragStart;
-				DesignerVec2 designerDelta = transforms.ScreenDeltaToWorldDelta(delta);
+				DesignerVec2 designerDelta = designSpace.ScreenDeltaToWorldDelta(delta);
 
 				auto* node = cfgs.Nodes().FindNode(dragId);
 				if (node)
@@ -468,9 +468,9 @@ namespace Rococo::CFGS::Internal
 
 namespace Rococo::CFGS
 {
-	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, IDesignTransformations& transforms, ICFGSGuiEventHandler& eventHandler)
+	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler)
 	{
-		return new Internal::CFGSGui(cfgs, transforms, eventHandler);
+		return new Internal::CFGSGui(cfgs, designSpace, eventHandler);
 	}
 }
 

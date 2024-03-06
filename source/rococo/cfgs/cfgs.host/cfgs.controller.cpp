@@ -206,7 +206,7 @@ namespace ANON
 			gridSlate = CFGS::Create2DGridControl(*editor, *this);
 			gridSlate->ResizeToParent();
 
-			gui = CFGS::CreateCFGSGui(*nodes, gridSlate->Transforms(), *this);
+			gui = CFGS::CreateCFGSGui(*nodes, gridSlate->DesignSpace(), *this);
 
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);

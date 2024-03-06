@@ -41,7 +41,7 @@ namespace Rococo::Windows
 		}
 	};
 
-	class Grid_2D : public IUI2DGridSlateSupervisor, public IDesignTransformations, private IWindowHandler
+	class Grid_2D : public IUI2DGridSlateSupervisor, public IDesignSpace, private IWindowHandler
 	{
 	private:
 		AutoFree<IParentWindowSupervisor> window;
@@ -107,7 +107,7 @@ namespace Rococo::Windows
 			return false;
 		}
 
-		IDesignTransformations& Transforms() override
+		IDesignSpace& DesignSpace() override
 		{
 			return *this;
 		}
@@ -556,17 +556,17 @@ namespace Rococo::Windows
 
 namespace Rococo::Editors
 {
-	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignTransformations& transforms)
+	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignSpace& designSpace)
 	{
-		Vec2i topLeft = transforms.WorldToScreen({ designerRect.left, designerRect.top });
-		Vec2i bottomRight = transforms.WorldToScreen({ designerRect.right, designerRect.bottom });
+		Vec2i topLeft = designSpace.WorldToScreen({ designerRect.left, designerRect.top });
+		Vec2i bottomRight = designSpace.WorldToScreen({ designerRect.right, designerRect.bottom });
 		return GuiRect{ topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
 	}
 
-	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& screenRect, IDesignTransformations& transforms)
+	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& screenRect, IDesignSpace& designSpace)
 	{
-		DesignerVec2 topLeft = transforms.ScreenToWorld({ screenRect.left, screenRect.top });
-		DesignerVec2 bottomRight = transforms.ScreenToWorld({ screenRect.right, screenRect.bottom });
+		DesignerVec2 topLeft = designSpace.ScreenToWorld({ screenRect.left, screenRect.top });
+		DesignerVec2 bottomRight = designSpace.ScreenToWorld({ screenRect.right, screenRect.bottom });
 		return DesignerRect{ topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
 	}
 

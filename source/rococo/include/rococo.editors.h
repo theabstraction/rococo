@@ -120,8 +120,8 @@ namespace Rococo::Editors
 		ROCOCO_WINDOWS_API bool Contains(const DesignerVec2& pt);
 	};
 
-	// This interface exposes methods for converting between design co-ordinates (with double precision components) to screen co-ordinates (pixels/texels) with int32 components
-	ROCOCO_INTERFACE IDesignTransformations
+	// This interface exposes methods for converting between design co-ordinates (with double precision components) to screen co-ordinates (pixels/texels) with int32 components, and getting at the index buffer for the representation
+	ROCOCO_INTERFACE IDesignSpace
 	{
 		virtual	Vec2i WorldToScreen(const DesignerVec2& designPos) const = 0;
 		virtual DesignerVec2 ScreenToWorld(Vec2i pixelPos) const = 0;
@@ -153,11 +153,11 @@ namespace Rococo::Editors
 		// Tells the underlying widget system that cursor events outside of the grid should not be routed to the grid any longer
 		virtual void ReleaseCapture() = 0;
 
-		virtual IDesignTransformations& Transforms() = 0;
+		virtual IDesignSpace& DesignSpace() = 0;
 	};
 
-	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignTransformations& transforms);
-	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& designerRect, IDesignTransformations& transforms);
+	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignSpace& designSpace);
+	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& designerRect, IDesignSpace& designSpace);
 
 	ROCOCO_INTERFACE IUI2DGridSlateSupervisor : IUI2DGridSlate
 	{
