@@ -146,6 +146,9 @@ namespace Rococo::CFGS
 
 		// The unique id generated when the cable was created. The id never changes
 		virtual [[nodiscard]] CableId Id() const = 0;
+
+		// True if is selected in the visual editor
+		virtual [[nodiscard]] bool IsSelected() const = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeEnumerator
@@ -179,6 +182,8 @@ namespace Rococo::CFGS
 
 		// Return the cable at the given index. If the index is out of bounds an IException is thrown
 		virtual [[nodiscard]] const ICFGSCable& operator[](int32 index) const = 0;
+
+		virtual [[nodiscard]] void VisuallySelect(int32 index, OUT bool& changed) = 0;
 	};
 
 	// Interface to the control-flow graph system
@@ -213,6 +218,9 @@ namespace Rococo::CFGS
 		virtual bool OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
 
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
+
+		// Callback for painting indices. This is used to paint cable indices to enable easy detection of bezier curves under the mouse cursor
+		virtual void RenderIndices(Rococo::Editors::IFlatGuiRenderer& fgr) = 0;
 
 		virtual void Free() = 0;
 	};

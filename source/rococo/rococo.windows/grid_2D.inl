@@ -75,6 +75,36 @@ namespace Rococo::Windows
 			{
 				DeleteBitmap(hMemBitmap);
 			}
+
+			if (indexDC)
+			{
+				DeleteDC(indexDC);
+			}
+
+			if (hOldIndexBitmap)
+			{
+				DeleteBitmap(hOldIndexBitmap);
+			}
+
+			if (hIndexBitmap)
+			{
+				DeleteBitmap(hIndexBitmap);
+			}
+		}
+
+		bool TryGetIndicesAt(Vec2i position, OUT RGBAb& indices) const override
+		{
+			if (indexDC)
+			{
+				COLORREF colour = GetPixel(indexDC, position.x, position.y);
+				indices.red = GetRValue(colour);
+				indices.green = GetGValue(colour);
+				indices.blue = GetBValue(colour);
+				indices.alpha = 255;
+				return true;
+			}
+
+			return false;
 		}
 
 		IDesignTransformations& Transforms() override
@@ -155,6 +185,9 @@ namespace Rococo::Windows
 		HDC memDC = NULL;
 		HBITMAP hMemBitmap = NULL;
 		Vec2i memSpan{ 0,0 };
+		HDC indexDC = NULL;
+		HBITMAP hIndexBitmap = NULL;
+		HBITMAP hOldIndexBitmap = NULL;
 
 		void OnPaintBuffered(HDC dc, const RECT& subRect)
 		{
@@ -163,11 +196,28 @@ namespace Rococo::Windows
 
 			if (windowRect.right != memSpan.x || windowRect.bottom != memSpan.y || memDC == nullptr)
 			{
+				if (indexDC)
+				{
+					DeleteDC(indexDC);
+					indexDC = nullptr;
+				}
+
+				if (hIndexBitmap)
+				{
+					DeleteBitmap(hIndexBitmap);
+					hIndexBitmap = nullptr;
+				}
+
+				if (hOldIndexBitmap)
+				{
+					DeleteBitmap(hOldIndexBitmap);
+					hOldIndexBitmap = nullptr;
+				}
+
 				if (memDC)
 				{					
 					DeleteDC(memDC);					
 					memDC = nullptr;
-					hMemBitmap = nullptr;
 				}
 
 				if (hMemBitmap)
@@ -179,7 +229,7 @@ namespace Rococo::Windows
 				memDC = CreateCompatibleDC(dc);
 				if (!memDC)
 				{
-					OnPaint(dc, subRect);
+					OnPaintRGB(dc, subRect);
 					return;
 				}
 
@@ -191,8 +241,15 @@ namespace Rococo::Windows
 				{
 					DeleteDC(memDC);
 					memDC = nullptr;
-					OnPaint(dc, subRect);
+					OnPaintRGB(dc, subRect);
 					return;
+				}
+
+				indexDC = CreateCompatibleDC(dc);
+				if (indexDC)
+				{
+					hIndexBitmap = CreateBitmap(memSpan.x, memSpan.y, 4, 8, NULL);
+					hOldIndexBitmap = (HBITMAP) SelectObject(indexDC, hIndexBitmap);
 				}
 			}
 
@@ -206,19 +263,21 @@ namespace Rococo::Windows
 
 			HBRUSH hBackBrush = CreateSolidBrush(RGB(0, 0, 0));
 			FillRect(memDC, &windowRect, hBackBrush);
+			FillRect(indexDC, &windowRect, hBackBrush);
 			DeleteObject(hBackBrush);
 				
-			OnPaint(memDC, subRect);
+			OnPaintRGB(memDC, subRect);
+			OnPaintIndices(indexDC, subRect);
 
 			BitBlt(dc, 0, 0, memSpan.x, memSpan.y, memDC, 0, 0, SRCCOPY);
 
 			SelectObject(memDC, oldBitmap);
 		}
 
-		void OnPaint(HDC dc, const RECT& subRect)
+		void OnPaintRGB(HDC dc, const RECT& subRect)
 		{
 			UNUSED(subRect);
-			
+
 			Pen pen1(PS_SOLID, 1, RGB(16, 16, 32));
 			Pen pen2(PS_SOLID, 1, RGB(32, 32, 64));
 			Pen pen3(PS_SOLID, 1, RGB(64, 64, 128));
@@ -229,6 +288,13 @@ namespace Rococo::Windows
 
 			DC_Renderer renderer(dc, *window);
 			eventHandler.GridEvent_PaintForeground(renderer);
+		}
+
+		void OnPaintIndices(HDC dc, const RECT& subRect)
+		{
+			UNUSED(subRect);
+			DC_Renderer renderer(dc, *window);
+			eventHandler.GridEvent_PaintForegroundIndices(renderer);
 		}
 
 		const DesignerVec2& GetCurrentlyVisibleOrigin() const
@@ -388,7 +454,7 @@ namespace Rococo::Windows
 				}
 				else
 				{
-					OnPaint(dc, ps.rcPaint);
+					OnPaintRGB(dc, ps.rcPaint);
 				}
 
 				EndPaint(*window, &ps);

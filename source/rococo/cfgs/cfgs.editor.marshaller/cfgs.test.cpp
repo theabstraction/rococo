@@ -260,7 +260,7 @@ namespace Rococo::CFGS::Internal
 		CableConnection exitPoint;
 		CableConnection entryPoint;
 		CableId id;
-
+		bool isSelected = false;
 	public:
 		CableImpl(const CableConnection& _exitPoint):
 			exitPoint( _exitPoint)
@@ -286,6 +286,16 @@ namespace Rococo::CFGS::Internal
 		CableId Id() const override
 		{
 			return id;
+		}
+
+		bool IsSelected() const
+		{
+			return isSelected;
+		}
+
+		void Select(bool value)
+		{
+			isSelected = value;
 		}
 	};
 
@@ -322,6 +332,46 @@ namespace Rococo::CFGS::Internal
 			}
 
 			return *cables[index];
+		}
+
+		void VisuallySelect(int32 index, OUT bool& changed) override
+		{
+			if (index >= 0 && index < (int32)cables.size())
+			{
+				if (cables[index]->IsSelected())
+				{
+					changed = false;
+					return;
+				}
+			}
+
+			bool atLeastOnePreviousSelection = false;
+
+			for (auto* c : cables)
+			{
+				if (c->IsSelected())
+				{
+					atLeastOnePreviousSelection = true;
+				}
+
+				c->Select(false);
+			}
+
+			if (index >= 0 && index < (int32)cables.size())
+			{
+				cables[index]->Select(true);
+				changed = true;
+				return;
+			}
+
+			if (atLeastOnePreviousSelection)
+			{
+				changed = true;
+			}
+			else
+			{
+				changed = false;
+			}
 		}
 	};
 

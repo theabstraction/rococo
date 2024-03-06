@@ -59,6 +59,12 @@ namespace Rococo::CFGS::Internal
 		}
 	}
 
+	enum class RenderPhase
+	{
+		RGB,
+		Indices
+	};
+
 	class CFGSGui : public ICFGSGui
 	{
 	private:
@@ -73,6 +79,11 @@ namespace Rococo::CFGS::Internal
 	public:
 		CFGSGui(ICFGS& _cfgs, Rococo::Editors::IDesignTransformations& _transforms, ICFGSGuiEventHandler& _eventHandler):
 			cfgs(_cfgs), transforms(_transforms), eventHandler(_eventHandler)
+		{
+
+		}
+
+		virtual ~CFGSGui()
 		{
 
 		}
@@ -185,7 +196,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		bool TryGetSocketGeometry(const ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour)
+		bool TryGetSocketGeometry(const ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour, bool isLit)
 		{
 			int32 leftIndex = 0;
 			int32 rightIndex = 0;
@@ -204,7 +215,7 @@ namespace Rococo::CFGS::Internal
 					{
 						circleRect = { parentRect.left + 6, socketTop + leftIndex * 20, parentRect.left + 26, socketTop + (leftIndex + 1) * 20 };
 						edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
-						lineColour = GetSocketColour(socket, false);
+						lineColour = GetSocketColour(socket, isLit);
 						return true;
 					}
 					leftIndex++;
@@ -215,7 +226,7 @@ namespace Rococo::CFGS::Internal
 					{
 						circleRect = { parentRect.right - 26, socketTop + rightIndex * 20, parentRect.right - 6, socketTop + (rightIndex + 1) * 20 };
 						edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
-						lineColour = GetSocketColour(socket, false);
+						lineColour = GetSocketColour(socket, isLit);
 						return true;
 					}
 					rightIndex++;
@@ -225,10 +236,16 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms)
+		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignTransformations& transforms, RenderPhase phase)
 		{
 			auto rect = node.GetDesignRectangle();
 			GuiRect nodeRect = WorldToScreen(rect, transforms);
+
+			if (phase == RenderPhase::Indices)
+			{
+				fgr.DrawFilledRect(nodeRect, RGBAb(255,255,255,255));
+				return;
+			}
 
 			bool isLit = lastHoveredNode == node.UniqueId();
 
@@ -237,30 +254,29 @@ namespace Rococo::CFGS::Internal
 
 			RGBAb backColour = isLit ? nodeRectColours.litColour : nodeRectColours.dullColour;
 
-			fgr.SetFillOptions(backColour);
-
 			ColourSchemeQuantum typeNameColours;
 			node.Scheme().GetTypeNameColours(OUT typeNameColours);
 
 			RGBAb lineColour = isLit ? RGBAb(192, 192, 0) : RGBAb(128, 128, 0);
 
-			fgr.DrawRoundedRect(nodeRect, 16, lineColour);
+			fgr.DrawRoundedRect(nodeRect, 16, backColour, lineColour);
 
 			GuiRect namePlateRect = ComputeNamePlateRect(nodeRect);
 
 			ColourSchemeQuantum typeNamePlateColours;
 			node.Scheme().GetTypeNamePlateColours(OUT typeNamePlateColours);
 
-			fgr.SetFillOptions(isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour);
-			fgr.SetTextOptions(isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour, isLit ? typeNameColours.litColour : typeNameColours.dullColour);
+			RGBAb backPlateColour = isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour;
 
-			fgr.DrawRoundedRect(namePlateRect, 16, lineColour);
+			fgr.SetTextOptions(backPlateColour, isLit ? typeNameColours.litColour : typeNameColours.dullColour);
+
+			fgr.DrawRoundedRect(namePlateRect, 16, backPlateColour, lineColour);
 
 			GuiRect namePlateTextRect = namePlateRect;
 
 			namePlateRect.top = (namePlateRect.bottom + namePlateRect.top) >> 1;
 
-			fgr.DrawFilledRect(namePlateRect);
+			fgr.DrawFilledRect(namePlateRect, backPlateColour);
 
 			namePlateTextRect.left += 2;
 
@@ -269,51 +285,79 @@ namespace Rococo::CFGS::Internal
 			RenderSockets(fgr, node, transforms);
 		}
 
-		void RenderCable(IFlatGuiRenderer& fgr, const ICFGSNode& start, SocketId startSocket, const ICFGSNode& end, SocketId endSocket)
+		void RenderCable(IFlatGuiRenderer& fgr, const ICFGSNode& start, SocketId startSocket, const ICFGSNode& end, SocketId endSocket, int cableIndex, RenderPhase phase, bool isLit)
 		{		
 			GuiRect circle;
 			RGBAb colour;
 			Vec2i startPixelPos;
-			if (!TryGetSocketGeometry(start, startSocket, OUT circle, OUT startPixelPos, OUT colour))
+			if (!TryGetSocketGeometry(start, startSocket, OUT circle, OUT startPixelPos, OUT colour, isLit))
 			{
 				return;
 			}
 
 			Vec2i endPixelPos;
-			if (!TryGetSocketGeometry(end, endSocket, OUT circle, OUT endPixelPos, OUT colour))
+			if (!TryGetSocketGeometry(end, endSocket, OUT circle, OUT endPixelPos, OUT colour, isLit))
 			{
 				return;
 			}
 
-			fgr.DrawSpline(startPixelPos, { 120, 0 }, endPixelPos, { -120, 0 }, colour);
+			if (phase == RenderPhase::RGB)
+			{
+				fgr.DrawSpline(2, startPixelPos, { 120, 0 }, endPixelPos, { -120, 0 }, colour);
+				return;
+			}
+			
+			if (cableIndex > 65535)
+			{
+				// The very definition of spaghetti coding
+				return;
+			}
+
+			uint32 fakeRed = cableIndex & 0x000000FF;
+			uint32 fakeGreen = (cableIndex >> 8) & 0x000000FF;
+			uint8 fakeBlue = 128; // 128 indicates a cable index
+
+			fgr.DrawSpline(6, startPixelPos, { 120, 0 }, endPixelPos, { -120, 0 }, RGBAb((uint8)fakeRed, (uint8)fakeGreen, fakeBlue, 255));
 		}
 
-		void RenderCablesUnderneath(IFlatGuiRenderer& fgr)
+		void RenderCablesUnderneath(IFlatGuiRenderer& fgr, RenderPhase phase)
 		{
 			auto& cables = cfgs.Cables();
 			for (int32 i = 0; i < cables.Count(); i++)
 			{
-				auto start = cables[i].ExitPoint();
-				auto end = cables[i].EntryPoint();
+				auto& cable = cables[i];
+				auto start = cable.ExitPoint();
+				auto end = cable.EntryPoint();
 
 				auto* nodeStart = cfgs.Nodes().FindNode(start.node);
 				auto* nodeEnd = cfgs.Nodes().FindNode(end.node);
 
 				if (nodeStart && nodeEnd)
 				{
-					RenderCable(fgr, *nodeStart, start.socket, *nodeEnd, end.socket);
+					RenderCable(fgr, *nodeStart, start.socket, *nodeEnd, end.socket, i, phase, cable.IsSelected());
 				}
 			}
 		}
 
 		void Render(IFlatGuiRenderer& fgr) override
 		{
-			RenderCablesUnderneath(fgr);
+			RenderCablesUnderneath(fgr, RenderPhase::RGB);
 
 			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
-				RenderNode(fgr, nodes.GetByZOrderAscending(i), transforms);
+				RenderNode(fgr, nodes.GetByZOrderAscending(i), transforms, RenderPhase::RGB);
+			}
+		}
+
+		void RenderIndices(IFlatGuiRenderer& fgr) override
+		{
+			RenderCablesUnderneath(fgr, RenderPhase::Indices);
+
+			auto& nodes = cfgs.Nodes();
+			for (int32 i = 0; i < nodes.Count(); ++i)
+			{
+				RenderNode(fgr, nodes.GetByZOrderAscending(i), transforms, RenderPhase::Indices);
 			}
 		}
 
@@ -367,6 +411,30 @@ namespace Rococo::CFGS::Internal
 					dragStart = cursorPosition;
 					return true;
 				}
+			}
+
+			auto& cables = cfgs.Cables();
+
+			RGBAb indices;
+			if (transforms.TryGetIndicesAt(cursorPosition, indices))
+			{
+				if (indices.blue == 128)
+				{
+					// Indicates a cable index
+					uint32 cableIndexRed = (uint32)(uint8) indices.red;
+					uint32 cableIndexGreen = (uint32)(uint8)indices.green;
+					uint32 cableIndex = cableIndexRed | (cableIndexGreen << 8);
+					
+					bool wasChanged = false;
+					cables.VisuallySelect(cableIndex, OUT wasChanged);
+					
+					return wasChanged;
+				}
+
+				bool wasChanged = false;
+				cables.VisuallySelect(-1, OUT wasChanged);
+
+				return wasChanged;
 			}
 
 			return false;

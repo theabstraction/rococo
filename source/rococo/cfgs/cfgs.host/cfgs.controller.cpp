@@ -321,6 +321,10 @@ namespace ANON
 			{
 				gridSlate->BeginDrag(cursorPosition);
 			}
+			else
+			{
+				gridSlate->QueueRedraw();
+			}
 		}
 
 		void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
@@ -337,6 +341,11 @@ namespace ANON
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override
 		{
 			gui->Render(gr);
+		}
+
+		void GridEvent_PaintForegroundIndices(IFlatGuiRenderer& gr) override
+		{
+			gui->RenderIndices(gr);
 		}
 
 		void CFGSGuiEventHandler_OnNodeHoverChanged(const CFGS::NodeId& id) override

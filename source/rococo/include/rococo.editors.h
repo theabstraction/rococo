@@ -65,14 +65,13 @@ namespace Rococo::Editors
 		virtual void DrawCircle(const GuiRect& rect, RGBAb edgeColour, int thickness, RGBAb fillColour) = 0;
 		virtual void DrawLineTo(Vec2i pos, RGBAb edgeColour, int thickness) = 0;
 		virtual void DrawText(const GuiRect & rect, cstr text, uint32 flatGuiAlignmentFlags) = 0;
-		virtual void DrawFilledRect(const GuiRect & rect) = 0;
-		virtual void DrawRoundedRect(const GuiRect& rect, int border, RGBAb lineColour) = 0;
-		virtual void DrawSpline(Vec2i start, Vec2i startDirection, Vec2i end, Vec2i endDirection, RGBAb colour) = 0;
+		virtual void DrawFilledRect(const GuiRect& rect, RGBAb colour) = 0;
+		virtual void DrawRoundedRect(const GuiRect& rect, int border, RGBAb backColour, RGBAb lineColour) = 0;
+		virtual void DrawSpline(int thickness, Vec2i start, Vec2i startDirection, Vec2i end, Vec2i endDirection, RGBAb colour) = 0;
 
 		virtual void MoveLineStartTo(Vec2i pos) = 0;
 
 		virtual void SetTextOptions(RGBAb backColour, RGBAb textColour) = 0;
-		virtual void SetFillOptions(RGBAb colour) = 0;
 
 		virtual Vec2i CursorPosition() const = 0;
 		virtual Vec2i Span() const = 0;
@@ -96,7 +95,11 @@ namespace Rococo::Editors
 		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
 		virtual void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
 
+		// Provides a renderer object for painting over the grid
 		virtual void GridEvent_PaintForeground(IFlatGuiRenderer& renderer) = 0;
+
+		// Provides a renderer object for painting indices in the index bitmap. This bitmap is not visible, but provides GetPixelAt(...) functionality for detecting entities. Useful for collision detection and item selection
+		virtual void GridEvent_PaintForegroundIndices(IFlatGuiRenderer& renderer) = 0;
 	};
 
 	// Design vector. Designer grids in this namespace use double precision components
@@ -123,6 +126,7 @@ namespace Rococo::Editors
 		virtual	Vec2i WorldToScreen(const DesignerVec2& designPos) const = 0;
 		virtual DesignerVec2 ScreenToWorld(Vec2i pixelPos) const = 0;
 		virtual DesignerVec2 ScreenDeltaToWorldDelta(Vec2i pixelDelta) const = 0;
+		virtual bool TryGetIndicesAt(Vec2i pixelPos, OUT RGBAb& indices) const = 0;
 	};
 
 	ROCOCO_INTERFACE IUI2DGridSlate
