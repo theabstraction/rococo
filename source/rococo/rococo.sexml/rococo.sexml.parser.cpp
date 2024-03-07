@@ -900,6 +900,19 @@ namespace Rococo::Sex::SEXML
 		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringValue&>(value);
 	}
 
+	ROCOCO_SEXML_API double AsAtomicDouble(const ISEXMLAttributeValue& value)
+	{
+		cstr text = AsAtomic(value).c_str();
+
+		double dValue = 0.0;
+		if (sscanf_s(text, "%lg", &dValue) != 1)
+		{
+			Throw(value.S(), "Failed to parse %s as a double precision number", text);
+		}
+
+		return dValue;
+	}
+
 	ROCOCO_SEXML_API int32 AsAtomicInt32(const ISEXMLAttributeValue& value)
 	{
 		cstr text = AsAtomic(value).c_str();

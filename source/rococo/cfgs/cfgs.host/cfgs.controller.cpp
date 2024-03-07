@@ -373,8 +373,10 @@ namespace ANON
 		void OnLoadGraphNode(const ISEXMLDirective& node)
 		{
 			auto& type = AsString(node["Type"]);
+			double xPos = AsAtomicDouble(node["XPos"]);
+			double yPos = AsAtomicDouble(node["YPos"]);
 			
-			auto& nb = nodes->Nodes().Builder().AddNode(type.c_str(), {10, 10});
+			auto& nb = nodes->Nodes().Builder().AddNode(type.c_str(), {xPos, yPos});
 
 			auto nChildren = node.NumberOfChildren();
 			for (size_t i = 0; i < nChildren; i++)
@@ -393,6 +395,10 @@ namespace ANON
 				if (CFGS::TryParse(OUT sclass, socketClass.c_str()))
 				{
 					nb.AddSocket(socketType.c_str(), sclass, socketLabel.c_str());
+				}
+				else
+				{
+					Throw(socketClass.S(), "Could not parse %s as a SocketClass enum.", socketClass.c_str());
 				}
 			}
 		}

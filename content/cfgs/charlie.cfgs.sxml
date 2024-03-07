@@ -3,8 +3,8 @@
 	:
 	(Node 
 		(Type "I32::Add")
-		(XPos 10)
-		(yPos 10)
+		(XPos -400)
+		(YPos 10)
 		:
 		(Socket
 			(Type "Flow")
@@ -33,7 +33,115 @@
 		(Socket
 			(Type "Int32")
 			(Class "OutputValue")
-			(Label "A+B")
+			(Label "A + B")
+		)
+	)
+	
+	(Node 
+		(Type "I32::Subtract")
+		(XPos -200)
+		(YPos 10)
+		:
+		(Socket
+			(Type "Flow")
+			(Class "Trigger")
+			(Label "Start")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "A")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "B")
+		)
+		
+		(Socket
+			(Type "Flow")
+			(Class "Exit")
+			(Label "End")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "OutputValue")
+			(Label "A - B")
+		)
+	)
+	
+	(Node 
+		(Type "I32::Multiply")
+		(XPos 0)
+		(YPos 10)
+		:
+		(Socket
+			(Type "Flow")
+			(Class "Trigger")
+			(Label "Start")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "A")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "B")
+		)
+		
+		(Socket
+			(Type "Flow")
+			(Class "Exit")
+			(Label "End")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "OutputValue")
+			(Label "A x B")
+		)
+	)
+	
+	(Node 
+		(Type "I32::Divide")
+		(XPos 200)
+		(YPos 10)
+		:
+		(Socket
+			(Type "Flow")
+			(Class "Trigger")
+			(Label "Start")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "A")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "InputVar")
+			(Label "B")
+		)
+		
+		(Socket
+			(Type "Flow")
+			(Class "Exit")
+			(Label "End")
+		)
+		
+		(Socket
+			(Type "Int32")
+			(Class "OutputValue")
+			(Label "A / B")
 		)
 	)
 )

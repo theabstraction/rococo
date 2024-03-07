@@ -89,6 +89,7 @@ namespace Rococo::Sex::SEXML
 
 	ROCOCO_SEXML_API [[nodiscard]] const ISexyXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] int32 AsAtomicInt32(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] double AsAtomicDouble(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] const ISexyXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] bool AsBool(const ISEXMLAttributeValue& value);
