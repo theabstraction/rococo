@@ -131,6 +131,13 @@ namespace Rococo::CFGS
 		gridSlate.QueueRedraw();
 	}
 
+	void AddId(cstr key, UniqueIdHolder id, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+	{
+		char buf[128];
+		Strings::SafeFormat(buf, "%X %X", id.iValues[0], id.iValues[1]);
+		sb.AddStringLiteral(key, buf);
+	}
+
 	void LoadGraph(IUI2DGridSlateSupervisor& gridSlate, ICFGSDatabase& db, const wchar_t* filename)
 	{
 		auto lambda = [&gridSlate, &db](const ISEXMLDirectiveList& directives)
@@ -140,13 +147,6 @@ namespace Rococo::CFGS
 			};
 
 		Rococo::OS::LoadSXMLBySysPath(filename, lambda);
-	}
-
-	void AddId(cstr key, UniqueIdHolder id, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
-	{
-		char buf[128];
-		Strings::SafeFormat(buf, "%X %X", id.iValues[0], id.iValues[1]);
-		sb.AddStringLiteral(key, buf);
 	}
 
 	void SaveCurrentGraph(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
