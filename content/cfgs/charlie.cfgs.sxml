@@ -5,8 +5,8 @@
 (Nodes :
 	(Node
 		(Type "I32::Add")
-		(XPos -400.000000)
-		(YPos 10.000000)
+		(XPos -305.000000)
+		(YPos -186.000000)
 		(Id "F 0") :
 		(Socket
 			(Label "Start")
@@ -47,8 +47,8 @@
 
 	(Node
 		(Type "I32::Subtract")
-		(XPos -200.000000)
-		(YPos 10.000000)
+		(XPos -125.000000)
+		(YPos -69.000000)
 		(Id "F 1") :
 		(Socket
 			(Label "Start")
@@ -89,8 +89,8 @@
 
 	(Node
 		(Type "I32::Multiply")
-		(XPos 0.000000)
-		(YPos 10.000000)
+		(XPos -52.000000)
+		(YPos 109.000000)
 		(Id "F 2") :
 		(Socket
 			(Label "Start")
@@ -131,8 +131,8 @@
 
 	(Node
 		(Type "I32::Divide")
-		(XPos 200.000000)
-		(YPos 10.000000)
+		(XPos 176.000000)
+		(YPos -156.000000)
 		(Id "F 3") :
 		(Socket
 			(Label "Start")
@@ -176,8 +176,8 @@
 	(Cable
 		(StartNode "F 0")
 		(StartSocket "0 4")
-		(EndNode "F 0")
-		(EndSocket "0 4")
+		(EndNode "F 1")
+		(EndSocket "0 6")
 	) // Cable
 
 ) // Cables

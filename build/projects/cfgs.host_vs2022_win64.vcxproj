@@ -143,7 +143,8 @@
       <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.host.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\cfgs.host.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.host.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\cfgs.host.lib</ImportLibrary>
@@ -240,6 +242,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.controller.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.serialization.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.win32.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
