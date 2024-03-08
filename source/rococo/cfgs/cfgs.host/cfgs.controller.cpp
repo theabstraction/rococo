@@ -555,16 +555,16 @@ namespace ANON
 				sb.AddStringLiteral("Type", node.Type().Value);
 				sb.AddAtomicAttribute("XPos", node.GetDesignRectangle().left);
 				sb.AddAtomicAttribute("YPos", node.GetDesignRectangle().top);
-				AddId("NodeId", node.UniqueId().id, sb);
+				AddId("Id", node.UniqueId().id, sb);
 
 				for (int j = 0; j < node.SocketCount(); j++)
 				{
 					auto& socket = node[j];
 					sb.AddDirective("Socket");
 
-					sb.AddStringLiteral("Name", socket.Name());
+					sb.AddStringLiteral("Label", socket.Name());
 					sb.AddStringLiteral("Type", socket.Type().Value);
-					AddId("SocketId", socket.Id().id, sb);
+					AddId("Id", socket.Id().id, sb);
 					sb.AddAtomicAttribute("Class", CFGS::ToString(socket.SocketClassification()));
 
 					sb.CloseDirective();

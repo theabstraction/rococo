@@ -1,181 +1,183 @@
-(ControlFlowGraphSystem (FileFormat SXML)(Version 1.0))
-(Nodes
-	:
-	(Node 
+(ControlFlowGraphSystem
+	(FileFormat SXML)
+	(Version 1.0)
+) // ControlFlowGraphSystem
+(Nodes :
+	(Node
 		(Type "I32::Add")
-		(XPos -400)
-		(YPos 10)
-		(Id "F 0")
-		:
+		(XPos -400.000000)
+		(YPos 10.000000)
+		(Id "F 0") :
 		(Socket
-			(Type "Flow")
-			(Class "Trigger")
 			(Label "Start")
+			(Type "Flow")
 			(Id "0 1")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "A")
-			(Id "0 2")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "B")
-			(Id "0 3")
-		)
-		
-		(Socket
-			(Type "Flow")
-			(Class "Exit")
-			(Label "End")
-			(Id "0 4")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "OutputValue")
-			(Label "A + B")
-			(Id "0 5")
-		)
-	)
-	
-	(Node 
-		(Type "I32::Subtract")
-		(XPos -200)
-		(YPos 10)
-		(Id "F 1")
-		:
-		(Socket
-			(Type "Flow")
-			(Class "Trigger")
-			(Label "Start")
-			(Id "0 6")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "A")
-			(Id "0 7")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "B")
-			(Id "0 8")
-		)
-		
-		(Socket
-			(Type "Flow")
-			(Class "Exit")
-			(Label "End")
-			(Id "0 9")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "OutputValue")
-			(Label "A - B")
-			(Id "0 A")
-		)
-	)
-	
-	(Node 
-		(Type "I32::Multiply")
-		(XPos 0)
-		(YPos 10)
-		(Id "F 2")
-		:
-		(Socket
-			(Type "Flow")
-			(Class "Trigger")
-			(Label "Start")
-			(Id "0 B")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "A")
-			(Id "0 C")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "B")
-			(Id "0 D")
-		)
-		
-		(Socket
-			(Type "Flow")
-			(Class "Exit")
-			(Label "End")
-			(Id "0 E")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "OutputValue")
-			(Label "A x B")
-			(Id "0 F")
-		)
-	)
-	
-	(Node 
-		(Type "I32::Divide")
-		(XPos 200)
-		(YPos 10)
-		(Id "F 3")
-		:
-		(Socket
-			(Type "Flow")
-			(Class "Trigger")
-			(Label "Start")
-			(Id "0 10")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "A")
-			(Id "0 11")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "InputVar")
-			(Label "B")
-			(Id "0 12")
-		)
-		
-		(Socket
-			(Type "Flow")
-			(Class "Exit")
-			(Label "End")
-			(Id "0 13")
-		)
-		
-		(Socket
-			(Type "Int32")
-			(Class "OutputValue")
-			(Label "A / B")
-			(Id "0 14")
-		)
-	)
-)
+			(Class Trigger)
+		) // Socket
 
-(Cables
-	:
-	(Cable 
+		(Socket
+			(Label "A")
+			(Type "Int32")
+			(Id "0 2")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "B")
+			(Type "Int32")
+			(Id "0 3")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "End")
+			(Type "Flow")
+			(Id "0 4")
+			(Class Exit)
+		) // Socket
+
+		(Socket
+			(Label "A + B")
+			(Type "Int32")
+			(Id "0 5")
+			(Class OutputValue)
+		) // Socket
+
+	) // Node
+
+	(Node
+		(Type "I32::Subtract")
+		(XPos -200.000000)
+		(YPos 10.000000)
+		(Id "F 1") :
+		(Socket
+			(Label "Start")
+			(Type "Flow")
+			(Id "0 6")
+			(Class Trigger)
+		) // Socket
+
+		(Socket
+			(Label "A")
+			(Type "Int32")
+			(Id "0 7")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "B")
+			(Type "Int32")
+			(Id "0 8")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "End")
+			(Type "Flow")
+			(Id "0 9")
+			(Class Exit)
+		) // Socket
+
+		(Socket
+			(Label "A - B")
+			(Type "Int32")
+			(Id "0 A")
+			(Class OutputValue)
+		) // Socket
+
+	) // Node
+
+	(Node
+		(Type "I32::Multiply")
+		(XPos 0.000000)
+		(YPos 10.000000)
+		(Id "F 2") :
+		(Socket
+			(Label "Start")
+			(Type "Flow")
+			(Id "0 B")
+			(Class Trigger)
+		) // Socket
+
+		(Socket
+			(Label "A")
+			(Type "Int32")
+			(Id "0 C")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "B")
+			(Type "Int32")
+			(Id "0 D")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "End")
+			(Type "Flow")
+			(Id "0 E")
+			(Class Exit)
+		) // Socket
+
+		(Socket
+			(Label "A x B")
+			(Type "Int32")
+			(Id "0 F")
+			(Class OutputValue)
+		) // Socket
+
+	) // Node
+
+	(Node
+		(Type "I32::Divide")
+		(XPos 200.000000)
+		(YPos 10.000000)
+		(Id "F 3") :
+		(Socket
+			(Label "Start")
+			(Type "Flow")
+			(Id "0 10")
+			(Class Trigger)
+		) // Socket
+
+		(Socket
+			(Label "A")
+			(Type "Int32")
+			(Id "0 11")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "B")
+			(Type "Int32")
+			(Id "0 12")
+			(Class InputVar)
+		) // Socket
+
+		(Socket
+			(Label "End")
+			(Type "Flow")
+			(Id "0 13")
+			(Class Exit)
+		) // Socket
+
+		(Socket
+			(Label "A / B")
+			(Type "Int32")
+			(Id "0 14")
+			(Class OutputValue)
+		) // Socket
+
+	) // Node
+
+) // Nodes
+(Cables :
+	(Cable
 		(StartNode "F 0")
 		(StartSocket "0 4")
-		(EndNode "F 1")
-		(EndSocket "0 6")
-	)
-)
+		(EndNode "F 0")
+		(EndSocket "0 4")
+	) // Cable
+
+) // Cables
