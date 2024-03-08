@@ -5,35 +5,41 @@
 		(Type "I32::Add")
 		(XPos -400)
 		(YPos 10)
+		(Id "F 0")
 		:
 		(Socket
 			(Type "Flow")
 			(Class "Trigger")
 			(Label "Start")
+			(Id "0 1")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "A")
+			(Id "0 2")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "B")
+			(Id "0 3")
 		)
 		
 		(Socket
 			(Type "Flow")
 			(Class "Exit")
 			(Label "End")
+			(Id "0 4")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "OutputValue")
 			(Label "A + B")
+			(Id "0 5")
 		)
 	)
 	
@@ -41,35 +47,41 @@
 		(Type "I32::Subtract")
 		(XPos -200)
 		(YPos 10)
+		(Id "F 1")
 		:
 		(Socket
 			(Type "Flow")
 			(Class "Trigger")
 			(Label "Start")
+			(Id "0 6")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "A")
+			(Id "0 7")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "B")
+			(Id "0 8")
 		)
 		
 		(Socket
 			(Type "Flow")
 			(Class "Exit")
 			(Label "End")
+			(Id "0 9")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "OutputValue")
 			(Label "A - B")
+			(Id "0 A")
 		)
 	)
 	
@@ -77,35 +89,41 @@
 		(Type "I32::Multiply")
 		(XPos 0)
 		(YPos 10)
+		(Id "F 2")
 		:
 		(Socket
 			(Type "Flow")
 			(Class "Trigger")
 			(Label "Start")
+			(Id "0 B")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "A")
+			(Id "0 C")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "B")
+			(Id "0 D")
 		)
 		
 		(Socket
 			(Type "Flow")
 			(Class "Exit")
 			(Label "End")
+			(Id "0 E")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "OutputValue")
 			(Label "A x B")
+			(Id "0 F")
 		)
 	)
 	
@@ -113,35 +131,51 @@
 		(Type "I32::Divide")
 		(XPos 200)
 		(YPos 10)
+		(Id "F 3")
 		:
 		(Socket
 			(Type "Flow")
 			(Class "Trigger")
 			(Label "Start")
+			(Id "0 10")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "A")
+			(Id "0 11")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "InputVar")
 			(Label "B")
+			(Id "0 12")
 		)
 		
 		(Socket
 			(Type "Flow")
 			(Class "Exit")
 			(Label "End")
+			(Id "0 13")
 		)
 		
 		(Socket
 			(Type "Int32")
 			(Class "OutputValue")
 			(Label "A / B")
+			(Id "0 14")
 		)
+	)
+)
+
+(Cables
+	:
+	(Cable 
+		(StartNode "F 0")
+		(StartSocket "0 4")
+		(EndNode "F 1")
+		(EndSocket "0 6")
 	)
 )

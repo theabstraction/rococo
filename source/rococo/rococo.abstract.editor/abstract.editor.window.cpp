@@ -464,8 +464,11 @@ namespace ANON
 
 		enum class MenuItem: uint16
 		{
-			Load = 3500,
-			Exit = 3501
+			New = 3500,
+			Load,
+			Save,
+			SaveAs,
+			Exit
 		};
 
 		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler) : eventHandler(_eventHandler), window(nullptr), propertiesPanel(nullptr)
@@ -505,7 +508,10 @@ namespace ANON
 			if (sessionConfig.defaultPosTop < 0) topLeft.y = CW_USEDEFAULT;
 
 			auto& filePopup = mainMenu->AddPopup("&File");
+			filePopup.AddString("&New", (int32)MenuItem::New);
 			filePopup.AddString("&Load...", (int32)MenuItem::Load);
+			filePopup.AddString("&Save", (int32)MenuItem::Save);
+			filePopup.AddString("&Save As...", (int32)MenuItem::SaveAs);
 			filePopup.AddString("E&xit", (int32)MenuItem::Exit);
 
 			WindowConfig config;
@@ -557,6 +563,8 @@ namespace ANON
 			case MenuItem::Load:
 				eventHandler.OnSelectFileToLoad(*this);
 				break;
+			case MenuItem::Save:
+				eventHandler.OnSelectSave(*this);
 			case MenuItem::Exit:
 				eventHandler.OnRequestToClose(*this);
 				break;

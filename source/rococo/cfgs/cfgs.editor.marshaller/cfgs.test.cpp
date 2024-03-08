@@ -24,7 +24,7 @@ namespace Rococo::CFGS::Internal
 		SocketId id;
 		std::vector<CableId> cables;
 	public:
-		TestSocket(TestNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name) :
+		TestSocket(TestNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name, SocketId _id) :
 			parent(_parent),
 			placement(_placement),
 			socketType(_type.Value),
@@ -32,7 +32,7 @@ namespace Rococo::CFGS::Internal
 			designRect{ 0, 0, 150, 100 },
 			name(_name)
 		{
-			id.id = Rococo::MakeNewUniqueId();
+			id = _id ? _id : SocketId{ Rococo::MakeNewUniqueId() };
 		}
 
 		void AddCable(CableId id) override
@@ -101,24 +101,24 @@ namespace Rococo::CFGS::Internal
 		NodeId uniqueId;
 
 	public:
-		TestNode(cstr _typeName, DesignerVec2 pos) : typeName(_typeName)
+		TestNode(cstr _typeName, DesignerVec2 pos, NodeId id) : typeName(_typeName)
 		{
 			designRect = { pos.x, pos.y, pos.x + 150, pos.y + 100 };
-			uniqueId.id = Rococo::MakeNewUniqueId();
+			uniqueId = id ? id : NodeId{ Rococo::MakeNewUniqueId() };
 		}
 
 		void AddTestSockets(cstr result)
 		{
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, "Start"));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A"));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B"));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End"));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, "Start", SocketId()));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A", SocketId()));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B", SocketId()));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End", SocketId()));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result, SocketId()));
 		}
 
-		void AddSocket(cstr type, SocketClass socketClass, cstr label) override
+		void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) override
 		{
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label));
+			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label, id));
 		}
 
 		~TestNode()
@@ -127,6 +127,19 @@ namespace Rococo::CFGS::Internal
 			{
 				delete s;
 			}
+		}
+
+		ICFGSSocket* FindSocket(SocketId id) override
+		{
+			for (auto* s : sockets)
+			{
+				if (s->Id() == id)
+				{
+					return s;
+				}
+			}
+
+			return nullptr;
 		}
 
 		ICFGSSocket* FindSocket(cstr name) override
@@ -318,6 +331,15 @@ namespace Rococo::CFGS::Internal
 			return *newCable;
 		}
 
+		void Add(NodeId startNode, SocketId startSocket, NodeId endNode, SocketId endSocket) override
+		{
+			CableConnection start{ startNode, startSocket };
+			auto& cable = AddNew(start);
+
+			CableConnection end{ endNode, endSocket };
+			cable.SetEntryPoint(end);
+		}
+
 		~CableSet()
 		{
 			Clear();
@@ -389,7 +411,7 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class TestNodes: public ICFGSSupervisor, ICFGSNodeEnumerator, ICFGSNodeSetBuilder
+	class TestNodes: public ICFGSDatabaseSupervisor, ICFGSNodeEnumerator, ICFGSNodeSetBuilder
 	{
 	private:
 		std::vector<TestNode*> nodes;
@@ -399,38 +421,6 @@ namespace Rococo::CFGS::Internal
 	public:
 		TestNodes()
 		{
-			auto* adder = new TestNode("Add", { 0, 0 });
-			adder->AddTestSockets("A+B");
-			nodes.push_back(adder);
-
-			auto* subtracter = new TestNode("Subtract", { 200, 0 });
-			subtracter->AddTestSockets("A-B");
-			nodes.push_back(subtracter);
-
-			auto* multiplier = new TestNode("Multiply", { 400, 0 });
-			multiplier->AddTestSockets("A * B");
-			nodes.push_back(multiplier);
-
-			auto* divider = new TestNode("Divide", { 600, 0 });
-			divider->AddTestSockets("A / B");
-			nodes.push_back(divider);
-
-			auto& cable0 = cables.AddNew(adder->ExitPoint(0));
-			cable0.SetEntryPoint(subtracter->EntryPoint(0));
-
-			adder->FindSocket("End")->AddCable(cable0.Id());
-			subtracter->FindSocket("Start")->AddCable(cable0.Id());
-			
-			mapIdToNode.reserve(nodes.size());
-			for (auto* n : nodes)
-			{
-				zOrderDescending.push_back(n);
-
-				if (!mapIdToNode.insert(std::make_pair(n->UniqueId(), n)).second)
-				{
-					Throw(0, "A very rare event occured, a 128-bit duplicate hash value was generated!");
-				}
-			}
 		}
 
 		~TestNodes()
@@ -441,6 +431,43 @@ namespace Rococo::CFGS::Internal
 		ICFGSNodeSetBuilder& Builder() override
 		{
 			return *this;
+		}
+
+		void ConnectCablesToSockets() override
+		{
+			for (int32 i = 0; i < cables.Count(); ++i)
+			{
+				auto& cable = cables[i];
+				auto start = cable.ExitPoint();
+				auto end = cable.EntryPoint();
+
+				auto* pStartNode = FindNode(start.node);
+				if (!pStartNode)
+				{
+					Throw(0, "Cannot find the start node for cable %d", i);
+				}
+
+				auto* pEndNode = FindNode(end.node);
+				if (!pEndNode)
+				{
+					Throw(0, "Cannot find the end node for cable %d", i);
+				}
+
+				auto* pStartSocket = pStartNode->FindSocket(start.socket);
+				if (!pStartSocket)
+				{
+					Throw(0, "Cannot find the start socket for cable %d", i);
+				}
+
+				auto* pEndSocket = pEndNode->FindSocket(end.socket);
+				if (!pEndSocket)
+				{
+					Throw(0, "Cannot find the start socket for cable %d", i);
+				}
+
+				pStartSocket->AddCable(cable.Id());
+				pEndSocket->AddCable(cable.Id());
+			}
 		}
 
 		void DeleteAllNodes() override
@@ -514,9 +541,9 @@ namespace Rococo::CFGS::Internal
 			return *nodes[index];
 		}
 
-		ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft) override
+		ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) override
 		{
-			auto* node = new TestNode(typeString, topLeft);
+			auto* node = new TestNode(typeString, topLeft, id);
 			nodes.push_back(node);
 			zOrderDescending.push_back(node);
 
@@ -569,7 +596,7 @@ namespace Rococo::CFGS::Internal
 
 namespace Rococo::CFGS
 {
-	CFGS_MARSHALLER_API ICFGSSupervisor* CreateCFGSTestSystem()
+	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSTestSystem()
 	{
 		return new Internal::TestNodes();
 	}

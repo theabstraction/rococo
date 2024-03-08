@@ -10,6 +10,7 @@
 #include <rococo.functional.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
+#include <stdio.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -25,6 +26,7 @@ namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
+	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath);
 }
 
 namespace ANON
@@ -177,7 +179,7 @@ namespace ANON
 		AutoFree<IAbstractEditorSupervisor> editor;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
 		AutoFree<CFGS::ICFGSGui> gui;
-		AutoFree<CFGS::ICFGSSupervisor> nodes;
+		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
 
 		bool terminateOnMainWindowClose = false;
 
@@ -190,7 +192,7 @@ namespace ANON
 			UNUSED(_commandLine);
 			UNUSED(_host);
 
-			nodes = CFGS::CreateCFGSTestSystem();
+			db = CFGS::CreateCFGSTestSystem();
 
 			Abedit::IAbstractEditorFactory* editorFactory = nullptr;
 			view.Cast((void**)&editorFactory, "Rococo::Abedit::IAbstractEditorFactory");
@@ -211,12 +213,14 @@ namespace ANON
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
 			}
 
+			CFGS::SetTitleWithFilename(*editor, nullptr);
+
 			element.FormatDesc();
 
 			gridSlate = CFGS::Create2DGridControl(*editor, *this);
 			gridSlate->ResizeToParent();
 
-			gui = CFGS::CreateCFGSGui(*nodes, gridSlate->DesignSpace(), *this);
+			gui = CFGS::CreateCFGSGui(*db, gridSlate->DesignSpace(), *this);
 
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
@@ -370,13 +374,34 @@ namespace ANON
 			gridSlate->QueueRedraw();
 		}
 
+		UniqueIdHolder AsUniqueId(const ISEXMLAttributeValue& a)
+		{
+			fstring id = AsString(a).ToFString();
+			
+			UniqueIdHolder uniqueId;
+			if (sscanf_s(id, "%llx %llx", &uniqueId.iValues[0], &uniqueId.iValues[1]) != 2)
+			{
+				Throw(a.S(), "Expecting two 64-bit hexademical strings. Format is (Id \"<int64-hex> <int64-hex>\")");
+			}
+
+			return uniqueId;
+		}
+
+		template<class T>
+		T AsId(const ISEXMLAttributeValue& a)
+		{
+			UniqueIdHolder id = AsUniqueId(a);
+			return T{ id };
+		}
+
 		void OnLoadGraphNode(const ISEXMLDirective& node)
 		{
 			auto& type = AsString(node["Type"]);
 			double xPos = AsAtomicDouble(node["XPos"]);
 			double yPos = AsAtomicDouble(node["YPos"]);
-			
-			auto& nb = nodes->Nodes().Builder().AddNode(type.c_str(), {xPos, yPos});
+			auto nodeId = AsId<CFGS::NodeId>(node["Id"]);
+
+			auto& nb = db->Nodes().Builder().AddNode(type.c_str(), {xPos, yPos}, nodeId );
 
 			auto nChildren = node.NumberOfChildren();
 			for (size_t i = 0; i < nChildren; i++)
@@ -390,17 +415,28 @@ namespace ANON
 				auto& socketType = SEXML::AsString(socket["Type"]);
 				auto& socketClass = SEXML::AsString(socket["Class"]);
 				auto& socketLabel = SEXML::AsString(socket["Label"]);
+				auto socketId = AsId<CFGS::SocketId>(socket["Id"]);
 
 				CFGS::SocketClass sclass;
 				if (CFGS::TryParse(OUT sclass, socketClass.c_str()))
 				{
-					nb.AddSocket(socketType.c_str(), sclass, socketLabel.c_str());
+					nb.AddSocket(socketType.c_str(), sclass, socketLabel.c_str(), socketId);
 				}
 				else
 				{
 					Throw(socketClass.S(), "Could not parse %s as a SocketClass enum.", socketClass.c_str());
 				}
 			}
+		}
+
+		void OnLoadGraphCable(const ISEXMLDirective& cable)
+		{
+			auto startNodeId   = AsId<CFGS::NodeId>(cable["StartNode"]);
+			auto startSocketId = AsId<CFGS::SocketId>(cable["StartSocket"]);
+			auto endNodeId     = AsId<CFGS::NodeId>(cable["EndNode"]);
+			auto endSocketId   = AsId<CFGS::SocketId>(cable["EndSocket"]);
+
+			db->Cables().Add(startNodeId, startSocketId, endNodeId, endSocketId);
 		}
 
 		void OnLoadGraphSXML(const ISEXMLDirectiveList& topLevelDirectives)
@@ -422,7 +458,7 @@ namespace ANON
 			startIndex = 0;
 			auto& nodes = GetDirective(topLevelDirectives, "Nodes", IN OUT startIndex);
 			
-			auto nChildren = nodes.NumberOfChildren();
+			size_t nChildren = nodes.NumberOfChildren();
 			for (size_t i = 0; i < nChildren; i++)
 			{
 				auto& node = nodes[i];
@@ -434,6 +470,22 @@ namespace ANON
 				OnLoadGraphNode(node);
 			}
 
+			startIndex = 0;
+			auto& cables = GetDirective(topLevelDirectives, "Cables", IN OUT startIndex);
+			size_t nCables = cables.NumberOfChildren();
+			for (size_t i = 0; i < nCables; i++)
+			{
+				auto& cable = cables[i];
+				if (!Strings::Eq(cable.FQName(), "Cable"))
+				{
+					Throw(cable.S(), "Expecting (Cable ...)");
+				}
+
+				OnLoadGraphCable(cable);
+			}
+
+			db->ConnectCablesToSockets();
+
 			gridSlate->QueueRedraw();
 		}
 
@@ -441,30 +493,51 @@ namespace ANON
 		{
 			auto lambda = [this](const ISEXMLDirectiveList& directives)
 			{
-				this->nodes->Nodes().Builder().DeleteAllNodes();
+				this->db->Nodes().Builder().DeleteAllNodes();
 				this->OnLoadGraphSXML(directives);
 			};
 
 			Rococo::OS::LoadSXMLBySysPath(filename, lambda);
 		}
 
+		WideFilePath lastSavedSysPath;
+
 		void OnSelectFileToLoad(IAbeditMainWindow& sender) override
 		{
+			UNUSED(sender);
+
 			WideFilePath sysPath;
 			if (CFGS::TryGetUserSelectedCFGSPath(OUT sysPath, *editor))
 			{
 				try
 				{
 					LoadGraph(sysPath);
+					lastSavedSysPath = sysPath;
+					CFGS::SetTitleWithFilename(*editor, sysPath);
 				}
 				catch (Sex::ParseException& ex)
 				{
-					Rococo::Throw(ex.ErrorCode(), "Error loading %ls at line %d:\n\t%s", sysPath.buf, ex.Start().y + 1, ex.Message());
+					Rococo::Throw(ex.ErrorCode(), "Error loading %ls at line %d pos %d:\n\t%s", sysPath.buf, ex.Start().y + 1, ex.Start().x + 1, ex.Message());
 				}
 				catch (IException& ex)
 				{
 					Rococo::Throw(ex.ErrorCode(), "Error loading %ls: %s", sysPath.buf, ex.Message());
 				}
+			}
+		}
+
+		void OnSelectSave(IAbeditMainWindow& sender) override
+		{
+			UNUSED(sender);
+
+			if (lastSavedSysPath.buf[0] == 0)
+			{
+				return;
+			}
+
+			if (!EndsWith(lastSavedSysPath, L".cfgs.sxml"))
+			{
+				Rococo::Throw(0, "%ls:\nOnly perimitted to save files with extension cfgs.sxml", lastSavedSysPath.buf);
 			}
 		}
 	};
@@ -476,5 +549,10 @@ namespace Rococo::CFGS
 	IMVC_ControllerSupervisor* CreateMVCControllerInternal(IMVC_Host& host, IMVC_View& view, cstr commandLine)
 	{
 		return new ANON::CFGS_Controller(host, view, commandLine);
+	}
+
+	const wchar_t* GetCFGSAppTitle()
+	{
+		return L"Rococo Control-Graph Flow System Editor";
 	}
 }

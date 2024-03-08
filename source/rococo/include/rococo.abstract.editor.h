@@ -55,6 +55,7 @@ namespace Rococo::Abedit
 	{
 		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
 		virtual void OnSelectFileToLoad(IAbeditMainWindow& sender) = 0;
+		virtual void OnSelectSave(IAbeditMainWindow& sender) = 0;
 		virtual void OnSlateResized() = 0;
 	};
 
@@ -84,6 +85,7 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IWin32AbstractEditorSupervisor : IAbstractEditorSupervisor
 	{
 		virtual Windows::IParentWindowSupervisor& Slate() = 0;
+		virtual void SetTitleWithPath(const wchar_t* mainTitle, const wchar_t* filePath) = 0;
 	};
 }
 #endif

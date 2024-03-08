@@ -4,6 +4,7 @@
 #include <rococo.strings.h>
 #include <rococo.properties.h>
 #include <rococo.editors.h>
+#include <rococo.window.h>
 
 using namespace Rococo;
 using namespace Rococo::Abedit;
@@ -72,6 +73,28 @@ namespace ANON
 		Windows::IParentWindowSupervisor& Slate() override
 		{
 			return mainWindow->SlateWindow();
+		}
+
+		void SetTitleWithPath(const wchar_t* mainTitle, const wchar_t* filePath) override
+		{
+			if (hHostWindow)
+			{
+				enum { WM_SET_TITLE_WITH_PATH = WM_USER + 9000 };
+				SendMessageW(hHostWindow, WM_SET_TITLE_WITH_PATH, (WPARAM)mainTitle, (LPARAM)filePath);
+			}
+			else
+			{
+				if (filePath != nullptr)
+				{
+					wchar_t fullTitle[sizeof(U8FilePath) + 128];
+					Strings::SafeFormat(fullTitle, L"%ls: %ls", mainTitle, filePath);
+					SetWindowTextW(GetParent(mainWindow->SlateWindow()), fullTitle);
+				}
+				else
+				{
+					SetWindowTextW(GetParent(mainWindow->SlateWindow()), mainTitle);
+				}
+			}
 		}
 	};
 

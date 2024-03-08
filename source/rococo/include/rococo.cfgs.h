@@ -49,7 +49,7 @@ namespace Rococo::CFGS
 		ConstOutputRef
 	};
 
-	CFGS_MARSHALLER_API bool TryParse(OUT SocketClass& sclass, cstr text);
+	CFGS_MARSHALLER_API [[nodiscard]] bool TryParse(OUT SocketClass& sclass, cstr text);
 
 	struct CFGSSocketType
 	{
@@ -58,8 +58,14 @@ namespace Rococo::CFGS
 
 	struct ICFGSNode;
 
+	// socket identifier - no two sockets on a graph will have the same id
 	MAKE_UNIQUE_TYPEID(SocketId)
+
+	// cable identifier - no two cables on a graph will have the same id
 	MAKE_UNIQUE_TYPEID(CableId)
+
+	// node identifier - no two nodes on a graph will have the same id
+	MAKE_UNIQUE_TYPEID(NodeId)
 
 	ROCOCO_INTERFACE ICFGSSocket
 	{
@@ -112,17 +118,27 @@ namespace Rococo::CFGS
 		virtual void GetTypeNamePlateColours(OUT ColourSchemeQuantum& q) const = 0;
 	};
 
-	MAKE_UNIQUE_TYPEID(NodeId)
-
 	ROCOCO_INTERFACE ICFGSNode
 	{
+		// Returns the first socket found with a matching id. If nothing is found null is returned
+		virtual ICFGSSocket* FindSocket(SocketId id) = 0;
+
+		// Returns the first socket found with a matching name. If nothing is found null is returned
 		virtual ICFGSSocket* FindSocket(cstr name) = 0;
+
+		// The type of node
 		virtual [[nodiscard]] CFGSNodeType Type() const = 0;
 
 		// A unique id generated at node construction that is immutable. It is *highly* unlikely any two nodes will have the same id
 		virtual [[nodiscard]] NodeId UniqueId() const = 0;
+
+		// Returns the node at the specified index. Throws an exception if [index] is out of bounds
 		virtual [[nodiscard]] const ICFGSSocket& operator[](int32 index) const = 0;
+
+		// Number of sockets implemented on the node
 		virtual [[nodiscard]] int32 SocketCount() const = 0;
+
+		// The skin settings for the graph
 		virtual [[nodiscard]] const IRenderScheme& Scheme() const = 0;
 
 		// Returns a copy of the designer bounds for the graph node.
@@ -146,7 +162,7 @@ namespace Rococo::CFGS
 		// Where a cable attaches to, always an entrance
 		virtual [[nodiscard]] CableConnection EntryPoint() const = 0;
 
-		// The unique id generated when the cable was created. The id never changes
+		// The unique id generated when the cable was created. The id never changes for the lifetime of the application, although the id does not get serialized
 		virtual [[nodiscard]] CableId Id() const = 0;
 
 		// True if is selected in the visual editor
@@ -155,12 +171,12 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSNodeBuilder
 	{
-		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label) = 0;
+		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
 	{
-		virtual ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft) = 0;
+		virtual [[nodiscard]] ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) = 0;
 		virtual void DeleteAllNodes() = 0;
 	};
 
@@ -187,30 +203,37 @@ namespace Rococo::CFGS
 		// If the node argument is a member of the node set, then make it top most in z order
 		virtual void MakeTopMost(const ICFGSNode& node) = 0;
 
-		virtual ICFGSNodeSetBuilder& Builder() = 0;
+		virtual [[nodiscard]] ICFGSNodeSetBuilder& Builder() = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSCableEnumerator
 	{
+		virtual void Add(NodeId startNodeId, SocketId startSocketId, NodeId endNodeId, SocketId endSocketId) = 0;
+
 		// gives the cable count, which is used to bound operator []
 		virtual [[nodiscard]] int32 Count() const = 0;
 
 		// Return the cable at the given index. If the index is out of bounds an IException is thrown
 		virtual [[nodiscard]] const ICFGSCable& operator[](int32 index) const = 0;
 
+		// Highlight the given cable by index. The [changed] variable is set to true if and only if this would result in an observable change.
+		// If the index does not correspond to a cable then nothing is selected
 		virtual [[nodiscard]] void VisuallySelect(int32 index, OUT bool& changed) = 0;
 	};
 
 	// Interface to the control-flow graph system
-	ROCOCO_INTERFACE ICFGS
+	ROCOCO_INTERFACE ICFGSDatabase
 	{
-		virtual ICFGSCableEnumerator& Cables() = 0;
-		virtual ICFGSNodeEnumerator& Nodes() = 0;
+		virtual [[nodiscard]] ICFGSCableEnumerator& Cables() = 0;
+		virtual [[nodiscard]] ICFGSNodeEnumerator& Nodes() = 0;
+
+		// Once nodes and cables are defined, call this method
+		virtual void ConnectCablesToSockets() = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSSupervisor: ICFGS
+	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase
 	{
-		virtual ICFGSNodeEnumerator & Nodes() = 0;
+		virtual [[nodiscard]] ICFGSNodeEnumerator & Nodes() = 0;
 		virtual void Free() = 0;
 	};
 
@@ -223,22 +246,26 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSGui
 	{
 		// Respond to cursor move event, returns true if the event is consumed
-		virtual bool OnCursorMove(Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] bool OnCursorMove(Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual bool OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] bool OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
 
+		// This is used to paint the RGB elements to the screen. The caller will typically render to a bitmap then periodically blit it to the screen
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
 
-		// Callback for painting indices. This is used to paint cable indices to enable easy detection of bezier curves under the mouse cursor
+		// This is used to paint cable indices to enable easy detection of bezier curves under the mouse cursor
+		// The caller will typically render to an index buffer that does not get rendered to the screen
 		virtual void RenderIndices(Rococo::Editors::IFlatGuiRenderer& fgr) = 0;
 
 		virtual void Free() = 0;
 	};
 
-	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
-	CFGS_MARSHALLER_API ICFGSSupervisor* CreateCFGSTestSystem();
+	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGui* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
+	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSTestSystem();
+
+	const wchar_t* GetCFGSAppTitle();
 }

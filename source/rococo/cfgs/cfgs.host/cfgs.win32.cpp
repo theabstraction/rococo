@@ -7,6 +7,7 @@
 #pragma comment(lib, "cfgs.editor.marshaller.lib")
 #pragma comment(lib, "rococo.windows.lib")
 #include <stdlib.h>
+#include <rococo.cfgs.h>
 
 using namespace Rococo::Abedit;
 
@@ -58,6 +59,12 @@ namespace Rococo::CFGS
 		SetCurrentDirectoryA(currentDirectory);
 
 		return isOpen;
+	}
+
+	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath)
+	{
+		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
+		super.SetTitleWithPath(GetCFGSAppTitle(), filePath);
 	}
 }
 

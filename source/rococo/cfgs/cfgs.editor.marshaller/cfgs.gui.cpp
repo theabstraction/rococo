@@ -68,7 +68,7 @@ namespace Rococo::CFGS::Internal
 	class CFGSGui : public ICFGSGui
 	{
 	private:
-		ICFGS& cfgs;
+		ICFGSDatabase& cfgs;
 		IDesignSpace& designSpace;
 		ICFGSGuiEventHandler& eventHandler;
 
@@ -77,7 +77,7 @@ namespace Rococo::CFGS::Internal
 		NodeId dragId;
 		Vec2i dragStart{ 0,0 };
 	public:
-		CFGSGui(ICFGS& _cfgs, Rococo::Editors::IDesignSpace& _designSpace, ICFGSGuiEventHandler& _eventHandler):
+		CFGSGui(ICFGSDatabase& _cfgs, Rococo::Editors::IDesignSpace& _designSpace, ICFGSGuiEventHandler& _eventHandler):
 			cfgs(_cfgs), designSpace(_designSpace), eventHandler(_eventHandler)
 		{
 
@@ -500,7 +500,7 @@ namespace Rococo::CFGS
 		}
 	}
 
-	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGS& cfgs, IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler)
+	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGSDatabase& cfgs, IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler)
 	{
 		return new Internal::CFGSGui(cfgs, designSpace, eventHandler);
 	}
