@@ -434,25 +434,25 @@ namespace Rococo::Bakes
 			Throw(0, "Expecting bakefile to have extension .23x");
 		}
 	
-		auto onLoad = [bakeFile23x](uint8* data, size_t length)
-		{
-			for (uint32 i = 0; i < 16; i++)
+		OS::LoadBinaryFile(bakeFile23x,
+			[bakeFile23x](uint8* data, size_t length)
 			{
-				MapMapDesc desc = FindMipMapInBakedFile(data, length, i);
-				switch (desc.compressionType)
+				for (uint32 i = 0; i < 16; i++)
 				{
-				case CompressionType::JPG:
-					ExportBakeFile(desc.compressedData, desc.lengthInBytes, desc.span, bakeFile23x, ".jpg");
-					break;
-				case CompressionType::TIFF:
-					ExportBakeFile(desc.compressedData, desc.lengthInBytes, desc.span, bakeFile23x, ".tif");
-					break;
-				case CompressionType::RAW:
-					if (desc.image) CompressAndExportBakeFile(desc.image, desc.span, bakeFile23x);
+					MapMapDesc desc = FindMipMapInBakedFile(data, length, i);
+					switch (desc.compressionType)
+					{
+					case CompressionType::JPG:
+						ExportBakeFile(desc.compressedData, desc.lengthInBytes, desc.span, bakeFile23x, ".jpg");
+						break;
+					case CompressionType::TIFF:
+						ExportBakeFile(desc.compressedData, desc.lengthInBytes, desc.span, bakeFile23x, ".tif");
+						break;
+					case CompressionType::RAW:
+						if (desc.image) CompressAndExportBakeFile(desc.image, desc.span, bakeFile23x);
+					}
 				}
 			}
-		};
-
-		OS::LoadBinaryFile(onLoad, bakeFile23x);
+		);
 	}
 }

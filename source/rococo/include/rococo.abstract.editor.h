@@ -53,6 +53,7 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditorMainWindowEventHandler
 	{
+		virtual void GetErrorTitle(char* titleBuffer, size_t capacity) const = 0;
 		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
 		virtual void OnSelectFileToLoad(IAbeditMainWindow& sender) = 0;
 		virtual void OnSelectSave(IAbeditMainWindow& sender) = 0;

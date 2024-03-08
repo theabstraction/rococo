@@ -264,6 +264,7 @@ namespace Rococo::CFGS
 		virtual void Free() = 0;
 	};
 
+	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketClass sclass);
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGui* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSTestSystem();
 

@@ -259,6 +259,11 @@ namespace ANON
 			return isRunning && isVisible;
 		}
 
+		void GetErrorTitle(char* titleBuffer, size_t capacity) const
+		{
+			SafeFormat(titleBuffer, capacity, "%ls: Error!", CFGS::GetCFGSAppTitle());
+		}
+
 		void OnRequestToClose(IAbeditMainWindow& sender) override
 		{
 			sender.Hide();	
@@ -526,6 +531,67 @@ namespace ANON
 			}
 		}
 
+		void AddId(cstr key, UniqueIdHolder id, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+		{
+			char buf[128];
+			Strings::SafeFormat(buf, "%X %X", id.iValues[0], id.iValues[1]);
+			sb.AddStringLiteral(key, buf);
+		}
+
+		void SaveCurrentGraph(Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+		{
+			sb.AddDirective("ControlFlowGraphSystem");
+				sb.AddAtomicAttribute("FileFormat", "SXML");
+				sb.AddAtomicAttribute("Version", "1.0");
+			sb.CloseDirective();
+
+			sb.AddDirective("Nodes");
+			auto& nodes = db->Nodes();
+			for (int i = 0; i < nodes.Count(); i++)
+			{
+				auto& node = nodes[i];
+
+				sb.AddDirective("Node");
+				sb.AddStringLiteral("Type", node.Type().Value);
+				sb.AddAtomicAttribute("XPos", node.GetDesignRectangle().left);
+				sb.AddAtomicAttribute("YPos", node.GetDesignRectangle().top);
+				AddId("NodeId", node.UniqueId().id, sb);
+
+				for (int j = 0; j < node.SocketCount(); j++)
+				{
+					auto& socket = node[j];
+					sb.AddDirective("Socket");
+
+					sb.AddStringLiteral("Name", socket.Name());
+					sb.AddStringLiteral("Type", socket.Type().Value);
+					AddId("SocketId", socket.Id().id, sb);
+					sb.AddAtomicAttribute("Class", CFGS::ToString(socket.SocketClassification()));
+
+					sb.CloseDirective();
+				}
+
+				sb.CloseDirective();
+			}
+
+			sb.CloseDirective();
+
+			sb.AddDirective("Cables");
+			auto& cables = db->Cables();
+
+			for (int i = 0; i < cables.Count(); ++i)
+			{
+				auto& cable = cables[i];
+				sb.AddDirective("Cable");
+					AddId("StartNode", cable.ExitPoint().node.id, sb);
+					AddId("StartSocket", cable.ExitPoint().socket.id, sb);
+					AddId("EndNode", cable.ExitPoint().node.id, sb);
+					AddId("EndSocket", cable.ExitPoint().socket.id, sb);
+				sb.CloseDirective();
+			}
+
+			sb.CloseDirective();
+		}
+
 		void OnSelectSave(IAbeditMainWindow& sender) override
 		{
 			UNUSED(sender);
@@ -539,6 +605,29 @@ namespace ANON
 			{
 				Rococo::Throw(0, "%ls:\nOnly perimitted to save files with extension cfgs.sxml", lastSavedSysPath.buf);
 			}
+
+			try
+			{
+				WideFilePath wBackPath;
+				Format(wBackPath, L"%ls.bak", lastSavedSysPath.buf);
+
+				Rococo::OS::LoadBinaryFile(lastSavedSysPath,
+					[wBackPath](const uint8* fileData, size_t length)
+					{
+						Rococo::IO::SaveBinaryFile(wBackPath, fileData, length);
+					}
+				);
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "Error attempting to backup control flow graph to %ls.bak. %s", lastSavedSysPath.buf, ex.Message());
+			}
+
+			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+				{
+					this->SaveCurrentGraph(sb);
+				}
+			);
 		}
 	};
 }

@@ -299,10 +299,10 @@ namespace Rococo::Strings
 namespace Rococo::OS
 {
 	// Open a file and invokes a callback with a pointer to content. The file is closed at the point that the callback is invoked. 
-	ROCOCO_API void LoadAsciiTextFile(Function<void(cstr)> callback, const wchar_t* filename);
-	ROCOCO_API void LoadAsciiTextFile(Function<void(cstr)> callback, cstr filename);
-	ROCOCO_API void LoadBinaryFile(Function<void(uint8* buffer, size_t fileLength)> callback, const wchar_t* filename);
-	ROCOCO_API void LoadBinaryFile(Function<void(uint8* buffer, size_t fileLength)> callback, cstr filename);
+	ROCOCO_API void LoadAsciiTextFile(const wchar_t* filename, Function<void(cstr)> callback);
+	ROCOCO_API void LoadAsciiTextFile(cstr filename, Function<void(cstr)> callback);
+	ROCOCO_API void LoadBinaryFile(const wchar_t* filename, Function<void(uint8* buffer, size_t fileLength)> callback);
+	ROCOCO_API void LoadBinaryFile(cstr filename, Function<void(uint8* buffer, size_t fileLength)> callback);
 }
 
 #endif // ROCOCO_FUNCTIONAL_H

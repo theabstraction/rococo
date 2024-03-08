@@ -225,4 +225,29 @@ namespace Rococo::OS
 		Assign(wPath, filename);
 		LoadSXMLBySysPath(wPath, onLoad);
 	}
+
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(const wchar_t* filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
+	{
+		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
+		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);
+
+		try
+		{
+			onBuild.Invoke(*pBuilder);
+			pBuilder->ValidateClosed();
+		}
+		catch (IException& ex)
+		{
+			Throw(ex.ErrorCode(), "%s: %s", __FUNCTION__, ex.Message());
+		}
+
+		IO::SaveAsciiTextFile(IO::TargetDirectory_Root, filename, *dsb->Builder());
+	}
+
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(cstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		SaveSXMLBySysPath(wPath, onBuild);
+	}
 }

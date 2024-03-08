@@ -76,7 +76,7 @@ namespace Rococo
 
 namespace Rococo::OS
 {
-	ROCOCO_API void LoadAsciiTextFile(Function<void(cstr)> onLoad, const wchar_t* filename)
+	ROCOCO_API void LoadAsciiTextFile(const wchar_t* filename, Function<void(cstr)> onLoad)
 	{
 		std::vector<char> asciiData;
 
@@ -116,7 +116,7 @@ namespace Rococo::OS
 		onLoad.InvokeElseThrow(asciiData.data());
 	}
 
-	ROCOCO_API void LoadAsciiTextFile(Function<void(cstr)> onLoad, cstr filename)
+	ROCOCO_API void LoadAsciiTextFile(cstr filename, Function<void(cstr)> onLoad)
 	{
 		std::vector<char> asciiData;
 
@@ -156,7 +156,7 @@ namespace Rococo::OS
 		onLoad.InvokeElseThrow(asciiData.data());
 	}
 
-	void LoadBinaryFile(Function<void(uint8* buffer, size_t fileLength)> onLoad, const wchar_t* filename)
+	void LoadBinaryFile(const wchar_t* filename, Function<void(uint8* buffer, size_t fileLength)> onLoad)
 	{
 		std::vector<uint8> binData;
 
@@ -195,7 +195,7 @@ namespace Rococo::OS
 		onLoad.InvokeElseThrow(binData.data(), binData.size());
 	}
 
-	void LoadBinaryFile(Function<void(uint8* buffer, size_t fileLength)> onLoad, cstr filename)
+	void LoadBinaryFile(cstr filename, Function<void(uint8* buffer, size_t fileLength)> onLoad)
 	{
 		std::vector<uint8> binData;
 

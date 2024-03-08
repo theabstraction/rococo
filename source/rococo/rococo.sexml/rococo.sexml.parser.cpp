@@ -53,7 +53,7 @@ namespace Rococo::Sex::SEXML
 		}
 	};
 
-	struct StringValue: ISexyXMLAttributeStringValue
+	struct StringValue: ISEXMLAttributeStringValue
 	{
 #ifdef _DEBUG
 		cstr value; // having a value as a member increases memory cost, but eases debugging in the watch view
@@ -269,7 +269,7 @@ namespace Rococo::Sex::SEXML
 	};
 #pragma pack(pop)
 
-	struct ListValue: ISexyXMLAttributeStringListValue
+	struct ListValue: ISEXMLAttributeStringListValue
 	{
 		cr_sex s;
 		SEXMLValueType type;
@@ -858,7 +858,7 @@ namespace Rococo::Sex::SEXML
 		return *dir;
 	}
 
-	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value)
+	ROCOCO_SEXML_API const ISEXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())
 		{
@@ -869,10 +869,10 @@ namespace Rococo::Sex::SEXML
 			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list.");
 		}
 
-		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringValue&>(value);
+		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringValue&>(value);
 	}
 
-	ROCOCO_SEXML_API const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
+	ROCOCO_SEXML_API const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())
 		{
@@ -884,10 +884,10 @@ namespace Rococo::Sex::SEXML
 			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list.");
 		}
 
-		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringListValue&>(value);
+		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringListValue&>(value);
 	}
 
-	ROCOCO_SEXML_API const ISexyXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value)
+	ROCOCO_SEXML_API const ISEXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())
 		{
@@ -897,7 +897,7 @@ namespace Rococo::Sex::SEXML
 			Rococo::Sex::Throw(value.S(), "Cannot interpret value as an atomic.");
 		}
 
-		return static_cast<const Rococo::Sex::SEXML::ISexyXMLAttributeStringValue&>(value);
+		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringValue&>(value);
 	}
 
 	ROCOCO_SEXML_API double AsAtomicDouble(const ISEXMLAttributeValue& value)

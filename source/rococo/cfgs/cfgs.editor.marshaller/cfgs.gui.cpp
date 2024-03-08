@@ -469,10 +469,11 @@ namespace Rococo::CFGS::Internal
 #include <rococo.hashtable.h>
 
 static Rococo::stringmap<Rococo::CFGS::SocketClass> mapStringToClass;
+static std::unordered_map<Rococo::CFGS::SocketClass,const char*> mapClassToString;
 
 namespace Rococo::CFGS
 {
-	CFGS_MARSHALLER_API bool TryParse(OUT SocketClass& sclass, cstr text)
+	void PopulateSocketClass()
 	{
 		if (mapStringToClass.empty())
 		{
@@ -485,7 +486,17 @@ namespace Rococo::CFGS
 			mapStringToClass.insert("ConstInputRef", SocketClass::ConstInputRef);
 			mapStringToClass.insert("OutputRef", SocketClass::OutputRef);
 			mapStringToClass.insert("ConstOutputRef", SocketClass::ConstOutputRef);
+
+			for (auto& i : mapStringToClass)
+			{
+				mapClassToString[i.second] = i.first;
+			}
 		}
+	}
+
+	CFGS_MARSHALLER_API bool TryParse(OUT SocketClass& sclass, cstr text)
+	{
+		PopulateSocketClass();
 
 		auto i = mapStringToClass.find(text);
 		if (i != mapStringToClass.end())
@@ -497,6 +508,21 @@ namespace Rococo::CFGS
 		{
 			OUT sclass = SocketClass::None;
 			return false;
+		}
+	}
+
+	CFGS_MARSHALLER_API cstr ToString(SocketClass sclass)
+	{
+		PopulateSocketClass();
+
+		auto i = mapClassToString.find(sclass);
+		if (i != mapClassToString.end())
+		{
+			return i->second;
+		}
+		else
+		{
+			Throw(0, "Unknown sclass: %d", (int32)sclass);
 		}
 	}
 

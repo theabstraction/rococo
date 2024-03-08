@@ -62,7 +62,7 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] const int32* X() const = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyXMLAttributeStringListValue : ISEXMLAttributeValue
+	ROCOCO_INTERFACE ISEXMLAttributeStringListValue : ISEXMLAttributeValue
 	{
 		virtual [[nodiscard]] size_t NumberOfElements() const = 0;
 
@@ -70,7 +70,7 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] fstring operator[](size_t index) const = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyXMLAttributeStringValue : ISEXMLAttributeValue
+	ROCOCO_INTERFACE ISEXMLAttributeStringValue : ISEXMLAttributeValue
 	{
 		// Maximum string length is 0x7FFFFFFF bytes, or 1 byte under 2GB
 		virtual [[nodiscard]] cstr c_str() const = 0;
@@ -87,11 +87,11 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] const ISEXMLAttributeValue& Value() const = 0;
 	};
 
-	ROCOCO_SEXML_API [[nodiscard]] const ISexyXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] int32 AsAtomicInt32(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] double AsAtomicDouble(const ISEXMLAttributeValue& value);
-	ROCOCO_SEXML_API [[nodiscard]] const ISexyXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
-	ROCOCO_SEXML_API [[nodiscard]] const ISexyXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] bool AsBool(const ISEXMLAttributeValue& value);
 
 	using cr_sattr = const ISEXMLAttribute&;
@@ -293,4 +293,8 @@ namespace Rococo::OS
 	ROCOCO_SEXML_API void LoadSXMLBySysPath(const wchar_t* filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 	
 	ROCOCO_SEXML_API void LoadSXMLBySysPath(cstr filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
+
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(cstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
+
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(const wchar_t* filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
 }

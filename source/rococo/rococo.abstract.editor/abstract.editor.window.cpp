@@ -558,16 +558,27 @@ namespace ANON
 		void OnMenuSelected(uint16 id)
 		{
 			auto item = static_cast<MenuItem>(id);
-			switch (item)
+
+			try
 			{
-			case MenuItem::Load:
-				eventHandler.OnSelectFileToLoad(*this);
-				break;
-			case MenuItem::Save:
-				eventHandler.OnSelectSave(*this);
-			case MenuItem::Exit:
-				eventHandler.OnRequestToClose(*this);
-				break;
+				switch (item)
+				{
+				case MenuItem::Load:
+					eventHandler.OnSelectFileToLoad(*this);
+					break;
+				case MenuItem::Save:
+					eventHandler.OnSelectSave(*this);
+					break;
+				case MenuItem::Exit:
+					eventHandler.OnRequestToClose(*this);
+					break;
+				}
+			}
+			catch (IException& ex)
+			{
+				char title[256];
+				eventHandler.GetErrorTitle(title, sizeof title);
+				Rococo::Windows::ShowErrorBox(*window, ex, title);
 			}
 		}
 
