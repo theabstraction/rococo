@@ -1308,6 +1308,26 @@ namespace Rococo
 
     // A controller/marshaller that populates the abstract editor with control-flow graph widgets
     [Sharpmake.Generate]
+    public class CFGSContextPopupForSexy : RococoProject
+    {
+        public CFGSContextPopupForSexy() : base("cfgs.popup.sexy", "cfgs/cfgs.popup.sexy")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.SolutionFolder = SolutionFolders.CFGS;
+            conf.Defines.Add("CFGS_CONTEXT_POPUP_API=__declspec(dllexport)");
+        }
+    }
+
+    // A controller/marshaller that populates the abstract editor with control-flow graph widgets
+    [Sharpmake.Generate]
     public class CFGSHostModule : RococoProject
     {
         public CFGSHostModule() : base("cfgs.host", "cfgs/cfgs.host")
@@ -1909,6 +1929,7 @@ namespace Rococo
             conf.AddProject<RococoModuleHostApp>(target);
             conf.AddProject<RococoAbstractEditor>(target);
             conf.AddProject<CFGSFlatEditorMarshaller>(target);
+            conf.AddProject<CFGSContextPopupForSexy>(target);
             conf.AddProject<CFGSHostModule>(target);
         }
     }

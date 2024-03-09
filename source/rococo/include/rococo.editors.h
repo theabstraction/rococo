@@ -80,20 +80,24 @@ namespace Rococo::Editors
 	ROCOCO_INTERFACE IUI2DGridEvents
 	{
 		// Triggered when the control wheel (such as the mouse wheel) rotates a definite number of clicks. 
-		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
-		virtual void GridEvent_OnControlWheelRotated(int32 clicks, uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		// The buttonFlags is a combination of EKeyHeldFlags bits
+		virtual void GridEvent_OnControlWheelRotated(int32 clicks, uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Triggered when the cursor moves within the grid (or even outside when the cursor is captured) 
-		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
-		virtual void GridEvent_OnCursorMove(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		// The buttonFlags is a combination of EKeyHeldFlags bits
+		virtual void GridEvent_OnCursorMove(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Triggered when the default activate button of the cursor control (such as the left mouse button) is held down when the cursor is over the grid area
-		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
-		virtual void GridEvent_OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		// The buttonFlags is a combination of EKeyHeldFlags bits
+		virtual void GridEvent_OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Triggered when the default activate button of the cursor control (such as the left mouse button) is released when the cursor is over the grid area
-		// The gridEventWheelFlags is a combination of GRID_EVENT_WHEEL_FLAGS bits
-		virtual void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		// The buttonFlags is a combination of EKeyHeldFlags bits
+		virtual void GridEvent_OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+
+		// Triggered when the default activate button of the context control (such as the right mouse button) is released when the cursor is over the grid area
+		// The buttonFlags is a combination of EKeyHeldFlags bits
+		virtual void GridEvent_OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Provides a renderer object for painting over the grid
 		virtual void GridEvent_PaintForeground(IFlatGuiRenderer& renderer) = 0;
@@ -126,6 +130,8 @@ namespace Rococo::Editors
 		virtual	Vec2i WorldToScreen(const DesignerVec2& designPos) const = 0;
 		virtual DesignerVec2 ScreenToWorld(Vec2i pixelPos) const = 0;
 		virtual DesignerVec2 ScreenDeltaToWorldDelta(Vec2i pixelDelta) const = 0;
+
+		// Retrieve the indices from the index buffer for the screen view
 		virtual bool TryGetIndicesAt(Vec2i pixelPos, OUT RGBAb& indices) const = 0;
 	};
 

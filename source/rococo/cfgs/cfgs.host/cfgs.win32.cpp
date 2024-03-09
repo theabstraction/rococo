@@ -24,6 +24,34 @@ namespace Rococo::CFGS
 		return Rococo::Windows::Create2DGrid(super.Slate(), WS_VISIBLE | WS_CHILD, eventHandler, true);
 	}
 
+	typedef ICFGSContextPopupSupervisor * (*FN_CreateWin32ContextPopup)(HWND hHostWindow, ICFGSDatabase & db);
+
+	ICFGSContextPopupSupervisor* CreateContextPopup(IAbstractEditorSupervisor& editor, ICFGSDatabase& db)
+	{
+		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
+		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
+
+		cstr dllname = "cfgs.popup.sexy.dll";
+
+		HMODULE hPopupModule = LoadLibraryA(dllname);
+		if (!hPopupModule)
+		{
+			Throw(GetLastError(), "Could not load CFGS popups library: %s", dllname);
+		}
+
+		cstr procName = "CFGSCreateWin32ContextPopup";
+
+		FARPROC factoryProc = GetProcAddress(hPopupModule, procName);
+		if (!factoryProc)
+		{
+			Throw(GetLastError(), "Could not load find '%s' in %s", procName, dllname);
+		}
+
+		FN_CreateWin32ContextPopup createPopup = (FN_CreateWin32ContextPopup)factoryProc;
+
+		return createPopup(hRoot, db);
+	}
+
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);

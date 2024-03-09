@@ -222,9 +222,6 @@ namespace Rococo::CFGS
 		// Gives the cable count, which is used to bound operator []
 		virtual [[nodiscard]] int32 Count() const = 0;
 
-		// Removes the cable from the collection. It is gone for good.
-		virtual void Delete(int32 index) = 0;
-
 		// Return the cable at the given index. If the index is out of bounds an IException is thrown
 		virtual [[nodiscard]] const ICFGSCable& operator[](int32 index) const = 0;
 
@@ -241,6 +238,7 @@ namespace Rococo::CFGS
 
 		// Once nodes and cables are defined, call this method
 		virtual void ConnectCablesToSockets() = 0;
+		virtual void DeleteCable(int32 cableIndex) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase
@@ -249,11 +247,22 @@ namespace Rococo::CFGS
 		virtual void Free() = 0;
 	};
 
+	ROCOCO_INTERFACE ICFGSContextPopup
+	{
+		virtual void MakeVisibleAt(Vec2i position) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSContextPopupSupervisor: ICFGSContextPopup
+	{
+		virtual void Free() = 0;
+	};
+
 	ROCOCO_INTERFACE ICFGSGuiEventHandler
 	{
 		virtual void CFGSGuiEventHandler_OnCableLaying(const CableConnection& anchor) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) = 0;
+		virtual void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSGui
@@ -266,6 +275,9 @@ namespace Rococo::CFGS
 
 		// Respond to cursor click event, returns true if the event is consumed
 		virtual [[nodiscard]] bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+
+		// Respond to cursor context click event, returns true if the event is consumed
+		virtual [[nodiscard]] bool OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// This is used to paint the RGB elements to the screen. The caller will typically render to a bitmap then periodically blit it to the screen
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;

@@ -406,6 +406,14 @@ namespace Rococo::Windows
 					eventHandler.GridEvent_OnLeftButtonUp(fwKeys, Vec2i{ xPos, yPos });
 				}
 				return 0L;
+			case WM_RBUTTONUP:
+			{
+				uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
+				int32 xPos = GET_X_LPARAM(lParam);
+				int32 yPos = GET_Y_LPARAM(lParam);
+				eventHandler.GridEvent_OnRightButtonUp(fwKeys, Vec2i{ xPos, yPos });
+			}
+				return 0L;
 			case WM_MOUSEWHEEL:
 				{
 					uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);

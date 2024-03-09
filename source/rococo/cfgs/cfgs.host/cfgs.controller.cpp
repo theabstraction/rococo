@@ -25,6 +25,8 @@ using namespace Rococo::Sex::SEXML;
 namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
+	ICFGSContextPopupSupervisor* CreateContextPopup(IAbstractEditorSupervisor& editor, ICFGSDatabase& db);
+
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath);
 	void LoadGraph(ICFGSDatabase& db, const wchar_t* filename);
@@ -179,6 +181,7 @@ namespace ANON
 	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
+		AutoFree<CFGS::ICFGSContextPopupSupervisor> popupPanel;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
 		AutoFree<CFGS::ICFGSGui> gui;
 		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
@@ -226,6 +229,8 @@ namespace ANON
 
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
+
+			popupPanel = CFGS::CreateContextPopup(*editor, *db);
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
@@ -285,10 +290,10 @@ namespace ANON
 			terminateOnMainWindowClose = true;
 		}
 
-		void GridEvent_OnControlWheelRotated(int ticks, uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		void GridEvent_OnControlWheelRotated(int ticks, uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(cursorPosition);
-			UNUSED(gridEventWheelFlags);
+			UNUSED(buttonFlags);
 
 			double currentScale = gridSlate->ScaleFactor();
 			double newScale = currentScale;
@@ -322,9 +327,9 @@ namespace ANON
 			gridSlate->SetScaleFactor(newScale);
 		}
 
-		void GridEvent_OnCursorMove(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		void GridEvent_OnCursorMove(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
-			UNUSED(gridEventWheelFlags);
+			UNUSED(buttonFlags);
 
 			if (!gui->OnCursorMove(cursorPosition))
 			{
@@ -332,11 +337,11 @@ namespace ANON
 			}
 		}
 
-		void GridEvent_OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		void GridEvent_OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			gridSlate->CaptureCursorInput();
 
-			if (!gui->OnLeftButtonDown(gridEventWheelFlags, cursorPosition))
+			if (!gui->OnLeftButtonDown(buttonFlags, cursorPosition))
 			{
 				gridSlate->BeginDrag(cursorPosition);
 			}
@@ -344,16 +349,21 @@ namespace ANON
 			gridSlate->QueueRedraw();
 		}
 
-		void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		void GridEvent_OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			gridSlate->ReleaseCapture();
 
-			if (!gui->OnLeftButtonUp(gridEventWheelFlags, cursorPosition))
+			if (!gui->OnLeftButtonUp(buttonFlags, cursorPosition))
 			{
 				gridSlate->EndDrag(cursorPosition);
 			}
 
 			gridSlate->QueueRedraw();
+		}
+
+		void GridEvent_OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
+		{
+			gui->OnRightButtonUp(buttonFlags, cursorPosition);
 		}
 
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override
@@ -382,6 +392,11 @@ namespace ANON
 		{
 			UNUSED(id);
 			gridSlate->QueueRedraw();
+		}
+
+		void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) override
+		{
+			popupPanel->MakeVisibleAt(cursorPosition);
 		}
 
 		WideFilePath lastSavedSysPath;

@@ -521,6 +521,12 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
+		void DeleteCable(int32 cableIndex)
+		{
+			cables.Delete(cableIndex);
+			ConnectCablesToSockets();
+		}
+
 		void DeleteAllNodes() override
 		{
 			for (auto* n : nodes)
