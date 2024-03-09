@@ -448,10 +448,8 @@ namespace Rococo::CFGS::Internal
 		// Where the connection is anchored when placing a new cable
 		CableConnection connectionAnchor;
 
-		bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		const ICFGSNode* FindNodeAt(Vec2i screenPosition)
 		{
-			UNUSED(gridEventWheelFlags);
-
 			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
@@ -459,23 +457,37 @@ namespace Rococo::CFGS::Internal
 				auto rect = node.GetDesignRectangle();
 				GuiRect nodeRect = WorldToScreen(rect, designSpace);
 
-				if (IsPointInRect(cursorPosition, nodeRect))
+				if (IsPointInRect(screenPosition, nodeRect))
 				{
-					nodes.MakeTopMost(node);
+					return &node;
+				}
+			}
 
-					const ICFGSSocket* socket = FindSocketAt(cursorPosition, node);
-					if (!socket)
-					{
-						dragId = node.UniqueId();
-						dragStart = cursorPosition;
-						return true;
-					}
-					else
-					{	
-						connectionAnchor.node = node.UniqueId();
-						connectionAnchor.socket = socket->Id();
-						return true;
-					}
+			return nullptr;
+		}
+
+		bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		{
+			UNUSED(gridEventWheelFlags);
+
+			const ICFGSNode* node = FindNodeAt(cursorPosition);
+
+			if (node)
+			{
+				cfgs.Nodes().MakeTopMost(*node);
+
+				const ICFGSSocket* socket = FindSocketAt(cursorPosition, *node);
+				if (!socket)
+				{
+					dragId = node->UniqueId();
+					dragStart = cursorPosition;
+					return true;
+				}
+				else
+				{
+					connectionAnchor.node = node->UniqueId();
+					connectionAnchor.socket = socket->Id();
+					return true;
 				}
 			}
 
@@ -529,6 +541,18 @@ namespace Rococo::CFGS::Internal
 
 			if (connectionAnchor.node)
 			{
+				const ICFGSNode* entranceNode = FindNodeAt(cursorPosition);
+
+				if (entranceNode)
+				{
+					auto* entranceSocket = FindSocketAt(cursorPosition, *entranceNode);
+					if (entranceSocket)
+					{
+						cfgs.Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->UniqueId(), entranceSocket->Id());
+						cfgs.ConnectCablesToSockets();
+					}
+				}
+
 				connectionAnchor = CableConnection();
 				return true;
 			}
