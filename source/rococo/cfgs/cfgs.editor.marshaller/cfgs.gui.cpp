@@ -466,9 +466,9 @@ namespace Rococo::CFGS::Internal
 			return nullptr;
 		}
 
-		bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
+		bool OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
-			UNUSED(gridEventWheelFlags);
+			UNUSED(buttonFlags);
 
 			const ICFGSNode* node = FindNodeAt(cursorPosition);
 
@@ -505,7 +505,7 @@ namespace Rococo::CFGS::Internal
 					
 					bool wasChanged = false;
 					cables.VisuallySelect(cableIndex, OUT wasChanged);
-					
+				
 					return wasChanged;
 				}
 
@@ -518,10 +518,8 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		bool OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition)override
+		bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
 		{
-			UNUSED(gridEventWheelFlags);
-
 			if (dragId)
 			{
 				Vec2i delta = cursorPosition - dragStart;
@@ -555,6 +553,27 @@ namespace Rococo::CFGS::Internal
 
 				connectionAnchor = CableConnection();
 				return true;
+			}
+
+			if (HasFlag(KEY_HELD_FLAG_CTRL, buttonFlags))
+			{
+				auto& cables = cfgs.Cables();
+
+				RGBAb indices;
+				if (designSpace.TryGetIndicesAt(cursorPosition, indices))
+				{
+					if (indices.blue == 128)
+					{
+						// Indicates a cable index
+						uint32 cableIndexRed = (uint32)(uint8)indices.red;
+						uint32 cableIndexGreen = (uint32)(uint8)indices.green;
+						uint32 cableIndex = cableIndexRed | (cableIndexGreen << 8);
+
+						cables.Delete(cableIndex);
+						cfgs.ConnectCablesToSockets();
+						return true;
+					}
+				}
 			}
 
 			return false;

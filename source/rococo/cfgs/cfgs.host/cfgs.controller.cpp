@@ -340,10 +340,8 @@ namespace ANON
 			{
 				gridSlate->BeginDrag(cursorPosition);
 			}
-			else
-			{
-				gridSlate->QueueRedraw();
-			}
+			
+			gridSlate->QueueRedraw();
 		}
 
 		void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
@@ -354,6 +352,8 @@ namespace ANON
 			{
 				gridSlate->EndDrag(cursorPosition);
 			}
+
+			gridSlate->QueueRedraw();
 		}
 
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override

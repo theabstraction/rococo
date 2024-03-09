@@ -40,6 +40,11 @@ namespace Rococo::CFGS::Internal
 			cables.push_back(id);
 		}
 
+		void Clear()
+		{
+			cables.clear();
+		}
+
 		// Return the face or vertex where the socket is placed. Conceptually the cable to the socket extends outwards through the specified face
 		SocketPlacement Placement() const override
 		{
@@ -134,6 +139,14 @@ namespace Rococo::CFGS::Internal
 		void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) override
 		{
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label, id));
+		}
+
+		void ClearSockets()
+		{
+			for (auto* s : sockets)
+			{
+				s->Clear();
+			}
 		}
 
 		~TestNode()
@@ -375,6 +388,24 @@ namespace Rococo::CFGS::Internal
 			return (int32) cables.size();
 		}
 
+		void Delete(int32 index)
+		{
+			if (index < 0 || index >+ (int32)cables.size())
+			{
+				return;
+			}
+
+			delete cables[index];
+			cables[index] = nullptr;
+
+			for (int32 i = index; i < cables.size() - 1; i++)
+			{
+				cables[i] = cables[i + 1];
+			}
+
+			cables.pop_back();
+		}
+
 		const ICFGSCable& operator[](int32 index) const override
 		{
 			if (index < 0 || index >= cables.size())
@@ -450,6 +481,11 @@ namespace Rococo::CFGS::Internal
 
 		void ConnectCablesToSockets() override
 		{
+			for (size_t i = 0; i < nodes.size(); i++)
+			{
+				nodes[i]->ClearSockets();
+			}
+
 			for (int32 i = 0; i < cables.Count(); ++i)
 			{
 				auto& cable = cables[i];

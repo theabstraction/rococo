@@ -219,8 +219,11 @@ namespace Rococo::CFGS
 	{
 		virtual void Add(NodeId startNodeId, SocketId startSocketId, NodeId endNodeId, SocketId endSocketId) = 0;
 
-		// gives the cable count, which is used to bound operator []
+		// Gives the cable count, which is used to bound operator []
 		virtual [[nodiscard]] int32 Count() const = 0;
+
+		// Removes the cable from the collection. It is gone for good.
+		virtual void Delete(int32 index) = 0;
 
 		// Return the cable at the given index. If the index is out of bounds an IException is thrown
 		virtual [[nodiscard]] const ICFGSCable& operator[](int32 index) const = 0;
@@ -259,10 +262,10 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] bool OnCursorMove(Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] bool OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// This is used to paint the RGB elements to the screen. The caller will typically render to a bitmap then periodically blit it to the screen
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
