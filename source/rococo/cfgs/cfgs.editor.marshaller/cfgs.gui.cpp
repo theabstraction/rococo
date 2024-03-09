@@ -116,14 +116,29 @@ namespace Rococo::CFGS::Internal
 			return npRect;
 		}
 
-		void RenderLeftSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
+		void ComputeLeftSocketGeometry(const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
 			int32 socketTop = parentRect.top + 30;
 
-			GuiRect circleRect{ parentRect.left + 6, socketTop + yIndex * 20, parentRect.left + 26, socketTop + (yIndex+1) * 20 };
+			GuiRect circleRect{ parentRect.left + 6, socketTop + yIndex * 20, parentRect.left + 26, socketTop + (yIndex + 1) * 20 };
+			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
+
+			Vec2i edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
+			socket.SetLastGeometry(circleRect, edgePoint);
+		}
+
+		void RenderLeftSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace)
+		{
+			GuiRect circleRect{ -1,-1,-1,-1 };
+			Vec2i edgePoint{ -1, -1 };
+			socket.GetLastGeometry(OUT circleRect, OUT edgePoint);
+
+			DesignerRect designerParentRect = node.GetDesignRectangle();
+			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
+
 			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
 
 			Vec2i cursorPos = fgr.CursorPosition();
@@ -131,9 +146,6 @@ namespace Rococo::CFGS::Internal
 
 			ShrinkRect(circleRect, 2);
 			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
-
-			Vec2i edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
-			socket.SetLastGeometry(circleRect, edgePoint);
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
@@ -149,14 +161,29 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
+		void ComputeRightSocketGeometry(const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
 			int32 socketTop = parentRect.top + 30;
-			
+
 			GuiRect circleRect{ parentRect.right - 26, socketTop + yIndex * 20, parentRect.right - 6, socketTop + (yIndex + 1) * 20 };
+			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
+
+			Vec2i edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
+			socket.SetLastGeometry(circleRect, edgePoint);
+		}
+
+		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace)
+		{
+			GuiRect circleRect{ -1,-1,-1,-1 };
+			Vec2i edgePoint{ -1, -1 };
+			socket.GetLastGeometry(OUT circleRect, OUT edgePoint);
+
+			DesignerRect designerParentRect = node.GetDesignRectangle();
+			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
+			
 			GuiRect socketTextRect{ (parentRect.right + parentRect.left) / 2, circleRect.top, circleRect.left, circleRect.bottom };
 
 			Vec2i cursorPos = fgr.CursorPosition();
@@ -164,9 +191,6 @@ namespace Rococo::CFGS::Internal
 
 			ShrinkRect(circleRect, 2);
 			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
-
-			Vec2i edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
-			socket.SetLastGeometry(circleRect, edgePoint);
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
@@ -184,19 +208,35 @@ namespace Rococo::CFGS::Internal
 
 		void RenderSockets(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace)
 		{
-			int32 leftIndex = 0;
-			int32 rightIndex = 0;
-
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{				
 				auto& socket = node[i];
 				if (IsLeftSide(socket))
 				{
-					RenderLeftSocket(fgr, node, socket, designSpace, leftIndex++);
+					RenderLeftSocket(fgr, node, socket, designSpace);
 				}
 				else
 				{
-					RenderRightSocket(fgr, node, socket, designSpace, rightIndex++);
+					RenderRightSocket(fgr, node, socket, designSpace);
+				}
+			}
+		}
+
+		void ComputeSocketGeometry(const ICFGSNode& node, IDesignSpace& designSpace)
+		{
+			int32 leftIndex = 0;
+			int32 rightIndex = 0;
+
+			for (int i = 0; i < node.SocketCount(); ++i)
+			{
+				auto& socket = node[i];
+				if (IsLeftSide(socket))
+				{
+					ComputeLeftSocketGeometry(node, socket, designSpace, leftIndex++);
+				}
+				else
+				{
+					ComputeRightSocketGeometry(node, socket, designSpace, rightIndex++);
 				}
 			}
 		}
@@ -284,7 +324,7 @@ namespace Rococo::CFGS::Internal
 
 			if (phase == RenderPhase::RGB)
 			{
-				fgr.DrawSpline(2, startPixelPos, { 120, 0 }, endPixelPos, { -120, 0 }, colour);
+				fgr.DrawSpline(2, startPixelPos, { 60, 0 }, endPixelPos, { -60, 0 }, colour);
 				return;
 			}
 			
@@ -298,7 +338,7 @@ namespace Rococo::CFGS::Internal
 			uint32 fakeGreen = (cableIndex >> 8) & 0x000000FF;
 			uint8 fakeBlue = 128; // 128 indicates a cable index
 
-			fgr.DrawSpline(6, startPixelPos, { 120, 0 }, endPixelPos, { -120, 0 }, RGBAb((uint8)fakeRed, (uint8)fakeGreen, fakeBlue, 255));
+			fgr.DrawSpline(6, startPixelPos, { 60, 0 }, endPixelPos, { -60, 0 }, RGBAb((uint8)fakeRed, (uint8)fakeGreen, fakeBlue, 255));
 		}
 
 		void RenderCablesUnderneath(IFlatGuiRenderer& fgr, RenderPhase phase)
@@ -367,9 +407,14 @@ namespace Rococo::CFGS::Internal
 
 		void Render(IFlatGuiRenderer& fgr) override
 		{
+			auto& nodes = cfgs.Nodes();
+			for (int32 i = 0; i < nodes.Count(); ++i)
+			{
+				ComputeSocketGeometry(nodes[i], designSpace);
+			}
+
 			RenderCablesUnderneath(fgr, RenderPhase::RGB);
 
-			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
 				RenderNode(fgr, nodes.GetByZOrderAscending(i), designSpace, RenderPhase::RGB);
