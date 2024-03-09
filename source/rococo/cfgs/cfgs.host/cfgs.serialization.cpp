@@ -81,7 +81,7 @@ namespace Rococo::CFGS
 		db.Cables().Add(startNodeId, startSocketId, endNodeId, endSocketId);
 	}
 
-	void LoadGraphSXML(IUI2DGridSlateSupervisor& gridSlate, ICFGSDatabase& db, const ISEXMLDirectiveList& topLevelDirectives)
+	void LoadGraphSXML(ICFGSDatabase& db, const ISEXMLDirectiveList& topLevelDirectives)
 	{
 		size_t startIndex = 0;
 		auto& header = GetDirective(topLevelDirectives, "ControlFlowGraphSystem", IN OUT startIndex);
@@ -127,8 +127,6 @@ namespace Rococo::CFGS
 		}
 
 		db.ConnectCablesToSockets();
-
-		gridSlate.QueueRedraw();
 	}
 
 	void AddId(cstr key, UniqueIdHolder id, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
@@ -138,12 +136,12 @@ namespace Rococo::CFGS
 		sb.AddStringLiteral(key, buf);
 	}
 
-	void LoadGraph(IUI2DGridSlateSupervisor& gridSlate, ICFGSDatabase& db, const wchar_t* filename)
+	void LoadGraph(ICFGSDatabase& db, const wchar_t* filename)
 	{
-		auto lambda = [&gridSlate, &db](const ISEXMLDirectiveList& directives)
+		auto lambda = [&db](const ISEXMLDirectiveList& directives)
 			{
 				db.Nodes().Builder().DeleteAllNodes();
-				LoadGraphSXML(gridSlate, db, directives);
+				LoadGraphSXML(db, directives);
 			};
 
 		Rococo::OS::LoadSXMLBySysPath(filename, lambda);

@@ -116,7 +116,6 @@ namespace Rococo::CFGS::Internal
 			return npRect;
 		}
 
-
 		void RenderLeftSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
@@ -132,6 +131,9 @@ namespace Rococo::CFGS::Internal
 
 			ShrinkRect(circleRect, 2);
 			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+
+			Vec2i edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
+			socket.SetLastGeometry(circleRect, edgePoint);
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
@@ -162,6 +164,9 @@ namespace Rococo::CFGS::Internal
 
 			ShrinkRect(circleRect, 2);
 			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+
+			Vec2i edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
+			socket.SetLastGeometry(circleRect, edgePoint);
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
@@ -198,38 +203,14 @@ namespace Rococo::CFGS::Internal
 
 		bool TryGetSocketGeometry(const ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour, bool isLit)
 		{
-			int32 leftIndex = 0;
-			int32 rightIndex = 0;
-
-			DesignerRect designerParentRect = node.GetDesignRectangle();
-			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
-			int32 socketTop = parentRect.top + 30;
-
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{
 				auto& socket = node[i];
-
-				if (IsLeftSide(socket))
+				if (socket.Id() == socketId)
 				{
-					if (socket.Id() == socketId)
-					{
-						circleRect = { parentRect.left + 6, socketTop + leftIndex * 20, parentRect.left + 26, socketTop + (leftIndex + 1) * 20 };
-						edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
-						lineColour = GetSocketColour(socket, isLit);
-						return true;
-					}
-					leftIndex++;
-				}
-				else
-				{
-					if (socket.Id() == socketId)
-					{
-						circleRect = { parentRect.right - 26, socketTop + rightIndex * 20, parentRect.right - 6, socketTop + (rightIndex + 1) * 20 };
-						edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
-						lineColour = GetSocketColour(socket, isLit);
-						return true;
-					}
-					rightIndex++;
+					socket.GetLastGeometry(OUT circleRect, OUT edgePoint);
+					lineColour = GetSocketColour(socket, isLit);
+					return circleRect.left < circleRect.right;
 				}
 			}
 
@@ -339,6 +320,51 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
+		void RenderConnectionVoyage(IFlatGuiRenderer& fgr)
+		{
+			if (!connectionAnchor.node)
+			{
+				return;
+			}
+
+			auto* node = cfgs.Nodes().FindNode(connectionAnchor.node);
+			if (!node)
+			{
+				return;
+			}
+
+			GuiRect socketRect = { -1,-1,-1,-1 };
+			Vec2i edgePoint = { -1, -1 };
+			RGBAb lineColour{ 0,0,0,0 };
+			if (!TryGetSocketGeometry(*node, connectionAnchor.socket, OUT socketRect, OUT edgePoint, OUT lineColour, true))
+			{
+				return;
+			}
+
+			GuiRect parentRect = WorldToScreen(node->GetDesignRectangle(), designSpace);
+
+			Vec2i cursorPosition = fgr.CursorPosition();
+
+			int32 delta = 1;
+
+			Vec2i socketCentre = Centre(socketRect);
+
+			if (cursorPosition.x > edgePoint.x)
+			{
+				delta = max(120, cursorPosition.x - edgePoint.x);
+			}
+			else if (cursorPosition.x > socketCentre.x)
+			{
+				delta = IsPointInRect(cursorPosition, parentRect) ? -1 : max(120, cursorPosition.x - socketCentre.x);
+			}
+			else
+			{
+				delta = IsPointInRect(cursorPosition, parentRect) ? -1 : max(-120, socketCentre.x - cursorPosition.x);
+			}
+
+			fgr.DrawSpline(3, socketCentre, { delta, 0}, cursorPosition, {-delta,0}, lineColour);
+		}
+
 		void Render(IFlatGuiRenderer& fgr) override
 		{
 			RenderCablesUnderneath(fgr, RenderPhase::RGB);
@@ -348,6 +374,8 @@ namespace Rococo::CFGS::Internal
 			{
 				RenderNode(fgr, nodes.GetByZOrderAscending(i), designSpace, RenderPhase::RGB);
 			}
+
+			RenderConnectionVoyage(fgr);
 		}
 
 		void RenderIndices(IFlatGuiRenderer& fgr) override
@@ -378,6 +406,12 @@ namespace Rococo::CFGS::Internal
 				return true;
 			}
 
+			if (connectionAnchor.node)
+			{
+				eventHandler.CFGSGuiEventHandler_OnCableLaying(connectionAnchor);
+				return true;
+			}
+
 			DesignerVec2 designerPos = designSpace.ScreenToWorld(pixelPosition);
 
 			const ICFGSNode* topMostNode = FindTopMostNodeContainingPoint(designerPos, cfgs.Nodes());
@@ -393,6 +427,27 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
+		const ICFGSSocket* FindSocketAt(Vec2i screenPosition, const ICFGSNode& node) const
+		{
+			for (int i = 0; i < node.SocketCount(); ++i)
+			{
+				auto& socket = node[i];
+				OUT GuiRect rect = { -1,-1,-1,-1 };
+				OUT Vec2i edgePt = { -1, -1 };
+				socket.GetLastGeometry(OUT rect, OUT edgePt);
+
+				if (IsPointInRect(screenPosition, rect))
+				{
+					return &socket;
+				}
+			}
+
+			return nullptr;
+		}
+
+		// Where the connection is anchored when placing a new cable
+		CableConnection connectionAnchor;
+
 		bool OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(gridEventWheelFlags);
@@ -400,16 +455,27 @@ namespace Rococo::CFGS::Internal
 			auto& nodes = cfgs.Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
-				auto& node = nodes[i];
+				auto& node = nodes.GetByZOrderDescending(i);
 				auto rect = node.GetDesignRectangle();
 				GuiRect nodeRect = WorldToScreen(rect, designSpace);
 
 				if (IsPointInRect(cursorPosition, nodeRect))
 				{
-					dragId = node.UniqueId();
 					nodes.MakeTopMost(node);
-					dragStart = cursorPosition;
-					return true;
+
+					const ICFGSSocket* socket = FindSocketAt(cursorPosition, node);
+					if (!socket)
+					{
+						dragId = node.UniqueId();
+						dragStart = cursorPosition;
+						return true;
+					}
+					else
+					{	
+						connectionAnchor.node = node.UniqueId();
+						connectionAnchor.socket = socket->Id();
+						return true;
+					}
 				}
 			}
 
@@ -458,6 +524,12 @@ namespace Rococo::CFGS::Internal
 
 				dragId = NodeId();
 
+				return true;
+			}
+
+			if (connectionAnchor.node)
+			{
+				connectionAnchor = CableConnection();
 				return true;
 			}
 

@@ -95,6 +95,15 @@ namespace Rococo::CFGS
 
 		// returns the cable at the given index. Throws an exception if the index is out of bounds
 		virtual [[nodiscard]] CableId GetCable(int32 index) const = 0;
+
+		// Returns the last place that the socket was computed for rendering, along with the edge point through whih its cable protrudes
+		virtual [[nodiscard]] void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const = 0;
+
+		// Sets the last place that the rectangle was computed for rendering.
+		// Note we use mutable data and a const function. But since geometry will be const between most frames, its not so bad
+		// [circleRect] is the rect bounding the socket circle. 
+		// [edgePoint] is the point on the perimeter of the node through which the cable leading to the socket connects
+		virtual [[nodiscard]] void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) const = 0;
 	};
 
 	struct CFGSNodeType
@@ -239,6 +248,7 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSGuiEventHandler
 	{
+		virtual void CFGSGuiEventHandler_OnCableLaying(const CableConnection& anchor) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) = 0;
 	};

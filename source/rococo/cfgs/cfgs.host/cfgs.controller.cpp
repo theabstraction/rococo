@@ -27,7 +27,7 @@ namespace Rococo::CFGS
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath);
-	void LoadGraph(IUI2DGridSlateSupervisor& gridSlate, ICFGSDatabase& db, const wchar_t* filename);
+	void LoadGraph(ICFGSDatabase& db, const wchar_t* filename);
 	void SaveCurrentGraph(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb);
 }
 
@@ -334,8 +334,6 @@ namespace ANON
 
 		void GridEvent_OnLeftButtonDown(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
 		{
-			UNUSED(gridEventWheelFlags);
-
 			gridSlate->CaptureCursorInput();
 
 			if (!gui->OnLeftButtonDown(gridEventWheelFlags, cursorPosition))
@@ -350,7 +348,6 @@ namespace ANON
 
 		void GridEvent_OnLeftButtonUp(uint32 gridEventWheelFlags, Vec2i cursorPosition) override
 		{
-			UNUSED(gridEventWheelFlags);
 			gridSlate->ReleaseCapture();
 
 			if (!gui->OnLeftButtonUp(gridEventWheelFlags, cursorPosition))
@@ -367,6 +364,12 @@ namespace ANON
 		void GridEvent_PaintForegroundIndices(IFlatGuiRenderer& gr) override
 		{
 			gui->RenderIndices(gr);
+		}
+
+		void CFGSGuiEventHandler_OnCableLaying(const CFGS::CableConnection& anchor)
+		{
+			UNUSED(anchor);
+			gridSlate->QueueRedraw();
 		}
 
 		void CFGSGuiEventHandler_OnNodeHoverChanged(const CFGS::NodeId& id) override
@@ -392,7 +395,8 @@ namespace ANON
 			{
 				try
 				{
-					CFGS::LoadGraph(*gridSlate, *db, sysPath);
+					CFGS::LoadGraph(*db, sysPath);
+					gridSlate->QueueRedraw();
 					lastSavedSysPath = sysPath;
 					CFGS::SetTitleWithFilename(*editor, sysPath);
 				}

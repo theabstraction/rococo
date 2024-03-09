@@ -89,6 +89,21 @@ namespace Rococo::CFGS::Internal
 
 			return cables[index];
 		}
+
+		mutable GuiRect lastCircleRect{ -1, -1, -1, -1 };
+		mutable Vec2i lastEdgePoint{ -1, -1 };
+
+		void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const
+		{
+			lastCircleRect = this->lastCircleRect;
+			lastEdgePoint = this->lastEdgePoint;
+		}
+
+		void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) const override
+		{
+			lastCircleRect = circleRect;
+			lastEdgePoint = edgePoint;
+		}
 	};
 
 	class TestNode : public ICFGSNode, public IRenderScheme, public ICFGSNodeBuilder

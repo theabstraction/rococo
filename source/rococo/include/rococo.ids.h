@@ -32,6 +32,11 @@ namespace Rococo
 		{
 			return iValues[0] != 0 || iValues[1] != 0;
 		}
+
+		size_t HashCode() const
+		{
+			return iValues[0] ^ iValues[1];
+		}
 	};
 
 	ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId();
@@ -62,7 +67,7 @@ struct TYPENAME										\
 	{															\
 		size_t operator()(const TYPENAME& t) const noexcept		\
 		{														\
-			return t.id.iValues[0] ^ t.id.iValues[1];			\
+			return t.id.HashCode();								\
 		}														\
 	};															\
 };	
