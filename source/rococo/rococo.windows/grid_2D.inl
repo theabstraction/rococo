@@ -379,6 +379,12 @@ namespace Rococo::Windows
 			::SetCapture(nullptr);
 		}
 
+		Vec2i GetDesktopPositionFromGridPosition(Vec2i gridPosition) override
+		{
+			POINT p = { gridPosition.x, gridPosition.y };
+			return ClientToScreen(*window, &p) ? Vec2i{ p.x, p.y } : Vec2i{ -1,-1 };
+		}
+
 		const bool isBuffered;
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override

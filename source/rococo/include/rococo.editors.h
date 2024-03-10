@@ -160,6 +160,8 @@ namespace Rococo::Editors
 		virtual void ReleaseCapture() = 0;
 
 		virtual IDesignSpace& DesignSpace() = 0;
+
+		virtual Vec2i GetDesktopPositionFromGridPosition(Vec2i gridPosition) = 0;
 	};
 
 	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignSpace& designSpace);

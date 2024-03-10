@@ -249,7 +249,7 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSContextPopup
 	{
-		virtual void MakeVisibleAt(Vec2i position) = 0;
+		virtual void MakeVisibleAt(Vec2i desktopPositiion) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSContextPopupSupervisor: ICFGSContextPopup
