@@ -397,7 +397,7 @@ namespace ANON
 		void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) override
 		{
 			Vec2i desktopPosition = gridSlate->GetDesktopPositionFromGridPosition(cursorPosition);
-			popupPanel->MakeVisibleAt(desktopPosition);
+			popupPanel->OpenPopupForDesignerSpace(desktopPosition, gridSlate->DesignSpace().ScreenToWorld(cursorPosition));
 		}
 
 		WideFilePath lastSavedSysPath;
