@@ -448,7 +448,7 @@ namespace Rococo
 		}
 
 		// Release our hold on the pointer, but does not free it. Then returns it
-		FORCE_INLINE T* Release()
+		FORCE_INLINE T* Detach()
 		{
 			T* output = t;
 			t = nullptr;

@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{70185C10-DFC6-4A45-BEC4-CF20C77281D1}</ProjectGuid>
+    <ProjectGuid>{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>cfgs.popup.sexy</RootNamespace>
+    <RootNamespace>cfgs.sexy.ide</RootNamespace>
     <ProjectName>cfgs.sexy.ide</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
@@ -44,23 +44,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>cfgs.popup.sexy</TargetName>
+    <TargetName>cfgs.sexy.ide</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\cfgs.popup.sexy\</IntDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>cfgs.popup.sexy</TargetName>
+    <TargetName>cfgs.sexy.ide</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\cfgs.popup.sexy\</IntDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -111,16 +111,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\cfgs.popup.sexy\cfgs.popup.sexy_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\cfgs.sexy.ide_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -143,11 +143,10 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\cfgs.popup.sexy.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\debug\cfgs.sexy.ide.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -198,16 +197,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\cfgs.popup.sexy\cfgs.popup.sexy_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\cfgs.sexy.ide_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -230,18 +229,17 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.popup.sexy.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\cfgs.popup.sexy.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.map</MapFileName>
+      <ImportLibrary>..\..\gen\lib\win64\release\cfgs.sexy.ide.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.popup.sexy\cfgs.popup.sexy.win32.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.popup.sexy\cfgs.sexy.ide.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.popup.sexy.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

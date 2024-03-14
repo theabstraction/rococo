@@ -24,32 +24,32 @@ namespace Rococo::CFGS
 		return Rococo::Windows::Create2DGrid(super.Slate(), WS_VISIBLE | WS_CHILD, eventHandler, true);
 	}
 
-	typedef ICFGSContextPopupSupervisor * (*FN_CreateWin32ContextPopup)(HWND hHostWindow, ICFGSDatabase & db);
+	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db);
 
-	ICFGSContextPopupSupervisor* CreateContextPopup(IAbstractEditorSupervisor& editor, ICFGSDatabase& db)
+	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
 		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
 
-		cstr dllname = "cfgs.popup.sexy.dll";
+		cstr dllname = "cfgs.sexy.ide.dll";
 
 		HMODULE hPopupModule = LoadLibraryA(dllname);
 		if (!hPopupModule)
 		{
-			Throw(GetLastError(), "Could not load CFGS popups library: %s", dllname);
+			Throw(GetLastError(), "%s: Could not load library: %s", __FUNCTION__, dllname);
 		}
 
-		cstr procName = "CFGSCreateWin32ContextPopup";
+		cstr procName = "Create_CFGS_Win32_IDE";
 
 		FARPROC factoryProc = GetProcAddress(hPopupModule, procName);
 		if (!factoryProc)
 		{
-			Throw(GetLastError(), "Could not load find '%s' in %s", procName, dllname);
+			Throw(GetLastError(), "%s: Could not load find '%s' in %s", __FUNCTION__, procName, dllname);
 		}
 
-		FN_CreateWin32ContextPopup createPopup = (FN_CreateWin32ContextPopup)factoryProc;
+		FN_Create_CFGS_Win32_IDE createIDE = (FN_Create_CFGS_Win32_IDE)factoryProc;
 
-		return createPopup(hRoot, db);
+		return createIDE(hRoot, db);
 	}
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor)

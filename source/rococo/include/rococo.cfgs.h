@@ -247,12 +247,24 @@ namespace Rococo::CFGS
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSContextPopup
+	ROCOCO_INTERFACE ICFGSDesignerSpacePopup
 	{
-		virtual void OpenPopupForDesignerSpace(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) = 0;
+		virtual bool IsVisible() const = 0;
+		virtual void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) = 0;
+		virtual void Hide() = 0;;
 	};
 
-	ROCOCO_INTERFACE ICFGSContextPopupSupervisor: ICFGSContextPopup
+	ROCOCO_INTERFACE ICFGSDesignerSpacePopupSupervisor: ICFGSDesignerSpacePopup
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment
+	{
+		virtual ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment
 	{
 		virtual void Free() = 0;
 	};

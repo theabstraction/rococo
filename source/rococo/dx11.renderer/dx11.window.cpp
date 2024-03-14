@@ -302,7 +302,7 @@ namespace Rococo
 		{
 			AutoFree<ANON::DX11GraphicsWindow> g = new ANON::DX11GraphicsWindow(eventHandler, factory, renderer, windowClass, ws, linkedToDX11Controls);
 			g->PostConstruct();
-			return g.Release();
+			return g.Detach();
 		}
 	}
 }

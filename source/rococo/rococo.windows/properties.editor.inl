@@ -1658,7 +1658,7 @@ namespace Rococo::Windows::Internal
 		if (enumVector)
 		{
 			container.properties.push_back(new OptionVectorProperty(stub, enumVector, REF value, stringCapacity));
-			enumVector.Release();
+			enumVector.Detach();
 		}
 	}
 

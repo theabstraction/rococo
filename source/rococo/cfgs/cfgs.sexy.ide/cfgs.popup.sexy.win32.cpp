@@ -10,7 +10,7 @@ using namespace Rococo::Windows;
 
 namespace ANON
 {
-	struct Popup : ICFGSContextPopupSupervisor, StandardWindowHandler, IListViewEvents
+	struct Popup : ICFGSDesignerSpacePopupSupervisor, StandardWindowHandler, IListViewEvents
 	{
 		struct NodeOptionHeader
 		{
@@ -51,28 +51,28 @@ namespace ANON
 
 		void SelectAdd(const NodeOptionHeader& header)
 		{
-			auto& node = db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
+			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
 			ShowWindow(*window, SW_HIDE);
 			InvalidateRect(hHostWindow, NULL, TRUE);
 		}
 
 		void SelectSubtract(const NodeOptionHeader& header)
 		{
-			auto& node = db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
+			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
 			ShowWindow(*window, SW_HIDE);
 			InvalidateRect(hHostWindow, NULL, TRUE);
 		}
 
 		void SelectMultiply(const NodeOptionHeader& header)
 		{
-			auto& node = db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
+			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
 			ShowWindow(*window, SW_HIDE);
 			InvalidateRect(hHostWindow, NULL, TRUE);
 		}
 
 		void SelectDivide(const NodeOptionHeader& header)
 		{
-			auto& node = db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
+			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
 			ShowWindow(*window, SW_HIDE);
 			InvalidateRect(hHostWindow, NULL, TRUE);
 		}
@@ -82,20 +82,19 @@ namespace ANON
 			delete this;
 		}
 
-		void OpenPopupForDesignerSpace(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) override
+		bool IsVisible() const override
 		{
-			if (IsWindowVisible(*window))
-			{
-				ShowWindow(*window, SW_HIDE);
-				return;
-			}
+			return IsWindowVisible(*window);
+		}
 
+		void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) override
+		{
 			this->designPosition = designPosition;
 
 			referencePosition = Vec2i {desktopPosition.x + 16, desktopPosition.y };
 			Layout();
 
-			SetCursor(LoadCursorA(NULL, MAKEINTRESOURCEA(IDC_WAIT)));
+			SetCursor(LoadCursorA(NULL, IDC_WAIT));
 
 			listView->UIList().ClearRows();
 
@@ -107,9 +106,14 @@ namespace ANON
 				listView->UIList().AddRow(row);
 			}
 
-			SetCursor(LoadCursorA(NULL, MAKEINTRESOURCEA(IDC_ARROW)));
+			SetCursor(LoadCursorA(NULL, IDC_ARROW));
 
 			ShowWindow(*window, SW_SHOW);
+		}
+
+		void Hide() override
+		{
+			ShowWindow(*window, SW_HIDE);
 		}
 
 		void Create()
@@ -163,12 +167,6 @@ namespace ANON
 
 		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
 		{
-			switch (msg)
-			{
-			default:
-			break;
-			}
-
 			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
 		}
 
@@ -183,26 +181,29 @@ namespace ANON
 			(this->*option.method)(option.header);
 		}
 
-		void OnDrawItem(DRAWITEMSTRUCT& dis) override
+		void OnDrawItem(DRAWITEMSTRUCT&) override
 		{
 
 		}
 
-		void OnMeasureItem(MEASUREITEMSTRUCT& mis) override
+		void OnMeasureItem(MEASUREITEMSTRUCT&) override
 		{
 
 		}
 
-		void OnSize(HWND hWnd, const Vec2i& span, RESIZE_TYPE type) override
+		void OnSize(HWND, const Vec2i&, RESIZE_TYPE) override
 		{
 			Layout();
 		}
 	};
 }
 
-extern "C" CFGS_CONTEXT_POPUP_API ICFGSContextPopupSupervisor* CFGSCreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& db)
+namespace Rococo::CFGS
 {
-	auto *popup = new ANON::Popup(hHostWindow, db);
-	popup->Create();
-	return popup;
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& db)
+	{
+		auto* popup = new ANON::Popup(hHostWindow, db);
+		popup->Create();
+		return popup;
+	}
 }

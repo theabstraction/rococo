@@ -653,6 +653,6 @@ namespace Rococo::Abedit::Internal
 	IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
 	{
 		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler);
-		return window.Release();
+		return window.Detach();
 	}
 }

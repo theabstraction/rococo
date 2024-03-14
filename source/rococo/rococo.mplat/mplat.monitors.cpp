@@ -64,7 +64,7 @@ namespace Rococo::IO
 								shaderMonitor->AddIncludePath(includePath);
 							}
 
-							result = shaderMonitor.Release();
+							result = shaderMonitor.Detach();
 							return;
 						}
 					}

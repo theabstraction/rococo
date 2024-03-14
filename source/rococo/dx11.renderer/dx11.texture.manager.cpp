@@ -427,22 +427,14 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 	Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span, TextureArrayCreationFlags flags)
 	{
-		AutoFree<MipMappedTextureArray> tx = nullptr;
-
 		try
 		{
-			tx = new MipMappedTextureArray(device, dc, EComponentType::UNORM_8BITS, 4, span, numberOfElements, flags);
-		}
-		catch (IException&)
-		{
-			throw;
+			return new MipMappedTextureArray(device, dc, EComponentType::UNORM_8BITS, 4, span, numberOfElements, flags);
 		}
 		catch (std::exception& stdEx)
 		{
 			Throw(0, "%s: %s\nError allocating %u elements of span %u x %u", __FUNCTION__, stdEx.what(), numberOfElements, span, span);
 		}
-		
-		return tx.Release();
 	}
 
 	IDX11Materials& Materials() override

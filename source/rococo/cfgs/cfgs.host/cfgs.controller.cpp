@@ -25,7 +25,7 @@ using namespace Rococo::Sex::SEXML;
 namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
-	ICFGSContextPopupSupervisor* CreateContextPopup(IAbstractEditorSupervisor& editor, ICFGSDatabase& db);
+	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db);
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath);
@@ -181,7 +181,7 @@ namespace ANON
 	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
-		AutoFree<CFGS::ICFGSContextPopupSupervisor> popupPanel;
+		AutoFree<CFGS::ICFGSIntegratedDevelopmentEnvironmentSupervisor> ide;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
 		AutoFree<CFGS::ICFGSGui> gui;
 		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
@@ -230,7 +230,7 @@ namespace ANON
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
 
-			popupPanel = CFGS::CreateContextPopup(*editor, *db);
+			ide = CFGS::Create_CFGS_IDE(*editor, *db);
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
@@ -396,8 +396,16 @@ namespace ANON
 
 		void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) override
 		{
-			Vec2i desktopPosition = gridSlate->GetDesktopPositionFromGridPosition(cursorPosition);
-			popupPanel->OpenPopupForDesignerSpace(desktopPosition, gridSlate->DesignSpace().ScreenToWorld(cursorPosition));
+			auto& popup = ide->DesignerSpacePopup();
+			if (popup.IsVisible())
+			{
+				popup.Hide();
+			}
+			else
+			{
+				Vec2i desktopPosition = gridSlate->GetDesktopPositionFromGridPosition(cursorPosition);
+				ide->DesignerSpacePopup().ShowAt(desktopPosition, gridSlate->DesignSpace().ScreenToWorld(cursorPosition));
+			}
 		}
 
 		WideFilePath lastSavedSysPath;

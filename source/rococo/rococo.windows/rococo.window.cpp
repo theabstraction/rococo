@@ -122,12 +122,11 @@ namespace Rococo
 
 	  void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
 	  {
-		  /*
-		  if (_hInstance == nullptr)
+		  if (hThisInstance)
 		  {
-			  Throw(0, "Rococo::Windows::InitRococoWindows(...): _hInstance was nul");
+			  // hThisInstance was already defined
+			  return;
 		  }
-		  */
 
 		  hThisInstance = _hInstance;
 		  hLargeIcon = _hLargeIcon;
