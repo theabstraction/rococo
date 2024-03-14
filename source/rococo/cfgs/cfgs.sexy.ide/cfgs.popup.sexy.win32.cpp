@@ -3,10 +3,17 @@
 #include <rococo.cfgs.h>
 #include <vector>
 #include <CommCtrl.h>
+#include <rococo.sexystudio.api.h>
+#include <../sexystudio/sexystudio.api.h>
+#include <rococo.strings.h>
+#include <rococo.functional.h>
+#include <stdio.h>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
 using namespace Rococo::Windows;
+using namespace Rococo::SexyStudio;
+using namespace Rococo::Strings;
 
 namespace ANON
 {
@@ -14,8 +21,8 @@ namespace ANON
 	{
 		struct NodeOptionHeader
 		{
-			cstr visibleName;
-			cstr url;
+			HString visibleName;
+			HString url;
 		};
 
 		using OPTION_METHOD = void (Popup::*)(const NodeOptionHeader& header);
@@ -27,54 +34,97 @@ namespace ANON
 		};
 
 		HWND hHostWindow;
-		ICFGSDatabase& db;
+		ICFGSDatabase& cfgs;
+		SexyStudio::ISexyDatabase& db;
 		Vec2i referencePosition{ 0,0 };
 		Editors::DesignerVec2 designPosition;
 
 		AutoFree<IParentWindowSupervisor> window;
 		AutoFree<IListViewSupervisor> listView;
 
-		std::vector<NodeOption> options =
-		{
-			{ "Int32.Add",		"Sys.Maths.Int32.Add", &Popup::SelectAdd },
-			{ "Int32.Subtract", "Sys.Maths.Int32.Subtract", &Popup::SelectSubtract },
-			{ "Int32.Multiply", "Sys.Maths.Int32.Multiply", &Popup::SelectMultiply },
-			{ "Int32.Divide",	 "Sys.Maths.Int32.Divide", &Popup::SelectDivide },
-		};
+		std::vector<NodeOption> options;
 
 		enum { Width = 640, Height = 480 };
 
-		Popup(HWND _hHostWindow, ICFGSDatabase& _db) : hHostWindow(_hHostWindow), db(_db)
+		Popup(HWND _hHostWindow, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db) : hHostWindow(_hHostWindow), cfgs(_cfgs), db(_db)
 		{
 
 		}
 
-		void SelectAdd(const NodeOptionHeader& header)
+		ISXYPublicFunction* FindFirstFunctionIf(ISxyNamespace& ns, Rococo::Function<bool (ISxyNamespace& ns, ISXYPublicFunction& f)> lambda)
 		{
-			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
-			ShowWindow(*window, SW_HIDE);
-			InvalidateRect(hHostWindow, NULL, TRUE);
+			for (int i = 0; i < ns.FunctionCount(); i++)
+			{
+				auto& f = ns.GetFunction(i);
+				if (lambda(ns, f))
+				{
+					return &f;
+				}
+			}
+
+			for (int i = 0; i < ns.SubspaceCount(); i++)
+			{
+				ISxyNamespace& subspace = ns[i];
+				auto* f = FindFirstFunctionIf(subspace, lambda);
+				if (f)
+				{
+					return f;
+				}
+			}
+
+			return nullptr;
 		}
 
-		void SelectSubtract(const NodeOptionHeader& header)
+		void SelectFunction(const NodeOptionHeader& header)
 		{
-			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
-			ShowWindow(*window, SW_HIDE);
-			InvalidateRect(hHostWindow, NULL, TRUE);
-		}
+			Substring url = Substring::ToSubstring(header.url);
+			cstr at = Strings::ReverseFind('@', url);
+			Substring fName = Substring{ url.start, at };
+			
+			size_t ptr;
+			if (1 != sscanf_s(at + 1, "%llX", &ptr))
+			{
+				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+			}
+	
+			ISXYPublicFunction* f = FindFirstFunctionIf(db.GetRootNamespace(),
+				[&fName, ptr](ISxyNamespace& ns, ISXYPublicFunction& f) -> bool
+				{
+					if (!Eq(f.PublicName(), fName))
+					{
+						return false;
+					}
 
-		void SelectMultiply(const NodeOptionHeader& header)
-		{
-			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
-			ShowWindow(*window, SW_HIDE);
-			InvalidateRect(hHostWindow, NULL, TRUE);
-		}
+					return ((size_t)&f) == ptr;
+				}
+			);
 
-		void SelectDivide(const NodeOptionHeader& header)
-		{
-			db.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
-			ShowWindow(*window, SW_HIDE);
-			InvalidateRect(hHostWindow, NULL, TRUE);
+			if (f)
+			{
+				auto& node = cfgs.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
+				node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
+				node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
+
+				for (int i = 0; i < f->LocalFunction()->InputCount(); i++)
+				{
+					cstr name = f->LocalFunction()->InputName(i);
+					cstr type = f->LocalFunction()->InputType(i);
+
+					node.AddSocket(type, SocketClass::InputVar, name, SocketId());
+				}
+
+				for (int i = 0; i < f->LocalFunction()->OutputCount(); i++)
+				{
+					cstr name = f->LocalFunction()->OutputName(i);
+					cstr type = f->LocalFunction()->OutputType(i);
+
+					node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
+				}
+
+
+				ShowWindow(*window, SW_HIDE);
+				InvalidateRect(hHostWindow, NULL, TRUE);
+			}
 		}
 
 		void Free() override
@@ -87,6 +137,47 @@ namespace ANON
 			return IsWindowVisible(*window);
 		}
 
+		void AppendAllFunctions(ISxyNamespace& ns)
+		{
+			for (int i = 0; i < ns.FunctionCount(); i++)
+			{
+				auto& f = ns.GetFunction(i);
+
+				NodeOption opt;
+
+				char visibleName[256];
+				StackStringBuilder visibleNameBuilder(visibleName, sizeof visibleName);
+
+				ns.AppendFullNameToStringBuilder(visibleNameBuilder);
+				visibleNameBuilder << "." << f.PublicName();
+
+				opt.header.visibleName = visibleName;
+
+				char url[256];
+				SafeFormat(url, "%s@%llX", f.PublicName(), (size_t) f.PublicName());
+
+				opt.header.url = url;
+				opt.method = &Popup::SelectFunction;
+
+				options.push_back(opt);
+			}
+
+			for (int i = 0; i < ns.SubspaceCount(); i++)
+			{
+				AppendAllFunctions(ns[i]);
+			}
+		}
+
+		void PopulateOptionsBackingList()
+		{
+			if (!options.empty())
+			{
+				return;
+			}
+
+			AppendAllFunctions(db.GetRootNamespace());
+		}
+
 		void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) override
 		{
 			this->designPosition = designPosition;
@@ -97,6 +188,8 @@ namespace ANON
 			SetCursor(LoadCursorA(NULL, IDC_WAIT));
 
 			listView->UIList().ClearRows();
+
+			PopulateOptionsBackingList();
 
 			cstr row[2] = { "", nullptr };
 
@@ -200,9 +293,9 @@ namespace ANON
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& db)
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db)
 	{
-		auto* popup = new ANON::Popup(hHostWindow, db);
+		auto* popup = new ANON::Popup(hHostWindow, cfgs, db);
 		popup->Create();
 		return popup;
 	}

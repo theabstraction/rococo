@@ -202,6 +202,7 @@ namespace Rococo::SexyStudio
 	ROCOCO_INTERFACE ISxyNamespace
 	{
 		virtual int AliasCount() const = 0;
+		virtual void AppendFullNameToStringBuilder(REF StringBuilder& sb) const = 0;
 		virtual cstr GetNSAliasFrom(int index) const = 0;
 		virtual	cstr GetNSAliasTo(int index) const = 0;
 		virtual	cstr GetAliasSourcePath(int index) const = 0;

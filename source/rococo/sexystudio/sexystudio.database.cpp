@@ -853,6 +853,11 @@ namespace ANON
 			}
 		}
 
+		void AppendFullNameToStringBuilder(REF StringBuilder& sb) const override
+		{
+			AppendFullName(*this, sb);
+		}
+
 		int AliasCount() const override
 		{
 			return (int) nsAlias.size();

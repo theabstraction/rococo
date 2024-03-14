@@ -1828,8 +1828,11 @@ LOGFONTA MakeDefaultFont()
 
 using namespace Rococo::AutoComplete;
 
+struct Factory;
+
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 {
+	Factory& host;
 	AutoFree<IPublisherSupervisor> publisher;
 	AutoFree<ISexyDatabaseSupervisor> database;
 	FactoryConfig& config;
@@ -2177,7 +2180,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		return *database;
 	}
 
-	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config) :
+	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config, Factory& _host) :
+		host(_host),
 		config(_config),
 		publisher(Rococo::Events::CreatePublisher()),
 		database(CreateSexyDatabase(_config)),
@@ -2276,14 +2280,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		publisher->Publish(nullArgs, evContentChange);
 	}
 
-	~SexyStudioIDE()
-	{
-		delete explorer;
-		delete sheets;
-
-		config.Save();
-	}
-
+	~SexyStudioIDE();
+	
 	void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item)
 	{
 		int64 caretPos = editor.GetCaretPos();
@@ -3121,6 +3119,7 @@ const char* const URL_factory = "Rococo.SexyStudio.ISexyStudioFactory1";
 struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 {
 	FactoryConfig config;
+	int refCount = 1;
 
 	Factory()
 	{
@@ -3159,16 +3158,39 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 
 	ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) override
 	{
-		ISexyStudioInstance1* ide = new SexyStudioIDE(topLevelParent, eventHandler, config);
-		ShowWindow(ide->GetIDEFrame(), SW_HIDE);
-		return ide;
+		refCount++;
+
+		try
+		{
+			ISexyStudioInstance1* ide = new SexyStudioIDE(topLevelParent, eventHandler, config, *this);
+			ShowWindow(ide->GetIDEFrame(), SW_HIDE);
+			return ide;
+		}
+		catch (...)
+		{
+			refCount--;
+			throw;
+		}
 	}
 
 	void Free() override
 	{
-		delete this;
+		refCount--;
+		if (refCount == 0)
+		{
+			delete this;
+		}
 	}
 };
+
+SexyStudioIDE::~SexyStudioIDE()
+{
+	delete explorer;
+	delete sheets;
+
+	config.Save();
+	host.Free();
+}
 
 static bool isInitialized = false;
 

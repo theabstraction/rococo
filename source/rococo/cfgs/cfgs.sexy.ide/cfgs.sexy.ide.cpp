@@ -11,7 +11,7 @@ using namespace Rococo::Windows;
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& db);
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db);
 }
 
 namespace ANON
@@ -47,23 +47,39 @@ namespace ANON
 		}
 	};
 
+	struct Sexy_CFGS_Core
+	{
+		SexyStudio::ISexyDatabase& db;
+		ICFGSDatabase& cfgs;
+
+		Sexy_CFGS_Core(SexyStudio::ISexyDatabase& _db, ICFGSDatabase& _cfgs):
+			db(_db), cfgs(_cfgs)
+		{
+
+		}
+
+		void Free()
+		{
+			delete this;
+		}
+	};
+
 	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor
 	{
 		HWND hHostWindow;
-		ICFGSDatabase& db;
+		ICFGSDatabase& cfgs;
 		SexyIDEWindow ideWindow;
 
 		AutoFree<ICFGSDesignerSpacePopupSupervisor> designerSpacePopup;
 		AutoFree<ISexyStudioFactory1> ssFactory;
+		AutoFree<Sexy_CFGS_Core> core;
 
-		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _db): hHostWindow(_hHostWindow), db(_db)
+		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs): hHostWindow(_hHostWindow), cfgs(_cfgs)
 		{
 		}
 
 		void Create()
 		{
-			designerSpacePopup = CreateWin32ContextPopup(hHostWindow, db);
-
 			HMODULE hSexyStudio = LoadLibraryA("sexystudio.dll");
 			if (!hSexyStudio)
 			{
@@ -84,7 +100,11 @@ namespace ANON
 				Throw(nErr, "CreateSexyStudioFactory with URL %s failed", interfaceURL);
 			}	
 
-			ideWindow.Create(hHostWindow, *ssFactory);		
+			ideWindow.Create(hHostWindow, *ssFactory);	
+
+			core = new Sexy_CFGS_Core(ideWindow.ideInstance->GetDatabase(), cfgs);
+
+			designerSpacePopup = CreateWin32ContextPopup(hHostWindow, cfgs, ideWindow.ideInstance->GetDatabase());
 		}
 
 		void Free() override
