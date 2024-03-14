@@ -39,6 +39,7 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditorSupervisor : IAbstractEditor
 	{
+		virtual void BringToFront() = 0;
 		virtual void Free() = 0;
 		virtual void HideWindow() = 0;
 		virtual cstr Implementation() const = 0;

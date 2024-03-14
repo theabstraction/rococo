@@ -231,6 +231,8 @@ namespace ANON
 			props.BuildEditorsForProperties(*this);
 
 			ide = CFGS::Create_CFGS_IDE(*editor, *db);
+
+			editor->BringToFront();
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override

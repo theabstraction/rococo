@@ -88,14 +88,16 @@ namespace ANON
 			}
 	
 			ISXYPublicFunction* f = FindFirstFunctionIf(db.GetRootNamespace(),
-				[&fName, ptr](ISxyNamespace& ns, ISXYPublicFunction& f) -> bool
+				[&fName, ptr](ISxyNamespace&, ISXYPublicFunction& f) -> bool
 				{
 					if (!Eq(f.PublicName(), fName))
 					{
 						return false;
 					}
 
-					return ((size_t)&f) == ptr;
+					return true;
+
+					// return ((size_t)&f) == ptr;
 				}
 			);
 
@@ -139,9 +141,25 @@ namespace ANON
 
 		void AppendAllFunctions(ISxyNamespace& ns)
 		{
+			if (Eq(ns.Name(), "Native"))
+			{
+				return;
+			}
+
+			if (Eq(ns.Name(), "EntryPoint"))
+			{
+				return;
+			}
+
 			for (int i = 0; i < ns.FunctionCount(); i++)
 			{
 				auto& f = ns.GetFunction(i);
+
+				if (f.PublicName()[0] == '_')
+				{
+					// Skip C++ only functions
+					continue;
+				}
 
 				NodeOption opt;
 

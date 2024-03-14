@@ -40,6 +40,11 @@ namespace ANON
 
 		}
 
+		void BringToFront() override
+		{
+			BringWindowToTop(GetParent(mainWindow->SlateWindow()));
+		}
+
 		cstr Implementation() const override
 		{
 			return IMPLEMENTATION_TYPE_WIN32_HWND;
