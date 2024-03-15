@@ -6589,6 +6589,44 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestMutableArgFunction(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(function DoubleVec (const Vec2i p)(out Vec2i result) -> :"
+			"	(result.x = p.x * 2)"
+			"	(result.y = p.y * 2)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(result = (Sys.Print type.Name))"
+			"   (Vec2i p = 7 9)"
+			"   (Vec2i q)"
+			"   (DoubleVec p q)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		printf("\n");
+
+		int x = vm.PopInt32();
+		validate(x == 32);
+	}
+
 	void TestConstArgFunction(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -17654,6 +17692,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestMutableArgFunction);
 		TEST(TestConstArgFunction);
 		TEST(TestWhileLoopContinueWithStruct);
 	//	TEST(TestNegateVariable5);

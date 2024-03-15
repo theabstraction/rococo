@@ -570,6 +570,16 @@ namespace Rococo::Script
 
 				AddInput(f, sexStructType, sexIdentifier, inputItem);
 			}
+			else if (AreEqual(type, "out"))
+			{
+				AssertNotTooFewElements(inputItem, 3);
+				AssertNotTooManyElements(inputItem, 3);
+
+				cr_sex sexStructType = GetAtomicArg(inputItem, 1);
+				cr_sex sexIdentifier = GetAtomicArg(inputItem, 2);
+
+				AddInput(f, sexStructType, sexIdentifier, inputItem);
+			}
 			else
 			{
 				AssertNotTooManyElements(inputItem, 2);
