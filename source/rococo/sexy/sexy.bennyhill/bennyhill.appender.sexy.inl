@@ -92,7 +92,15 @@ namespace
 				}
 			}
 
-			appender.Append("(%s %s)", i->second.sexyType.c_str(), svalue.c_str());
+			if (typeIndex > 0)
+			{
+				cstr qualifier = s[0].c_str();
+				appender.Append("(const %s %s)", i->second.sexyType.c_str(), svalue.c_str());
+			}
+			else
+			{
+				appender.Append("(%s %s)", i->second.sexyType.c_str(), svalue.c_str());
+			}
 		}
 	}
 

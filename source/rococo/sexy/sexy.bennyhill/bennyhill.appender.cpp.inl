@@ -102,7 +102,7 @@ namespace Rococo
 		int outputIndex = GetOutputPosition(method);
 		if (outputIndex >= method.NumberOfElements())
 		{
-			appender.Append(("\tvirtual void %s("), methodName);
+			appender.Append("\tvirtual void %s(", methodName);
 		}
 		else
 		{
@@ -117,24 +117,24 @@ namespace Rococo
 			cstr outputType = StringFrom(stype);
 			cstr outputName = StringFrom(sname);
 
-			appender.Append(("\tvirtual "));
+			appender.Append("\tvirtual ");
 
 			auto i = pc.primitives.find(outputType);
 			if (i != pc.primitives.end())
 			{
 				AppendCppType(appender, s, outputType, pc);
-				appender.Append(("/* %s */ %s("), outputName, methodName);
+				appender.Append("/* %s */ %s(", outputName, methodName);
 			}
 			else
 			{
 				auto j = pc.interfaces.find(outputType);
 				if (j == pc.interfaces.end())
 				{
-					Throw(stype, ("Expecting primitive return type or interface"));
+					Throw(stype, "Expecting primitive return type or interface");
 				}
 
 				AppendCppType(appender, s, outputType, pc);
-				appender.Append(("* /* %s */ %s("), outputName, methodName);
+				appender.Append("* /* %s */ %s(", outputName, methodName);
 			}
 		}
 
@@ -149,7 +149,7 @@ namespace Rococo
 			if (IsAtomic(s))
 			{
 				cstr arg = s.c_str();
-				if (AreEqual(arg, ("->")))
+				if (AreEqual(arg, "->"))
 				{
 					i++;
 					break;
@@ -164,7 +164,7 @@ namespace Rococo
 				typeIndex++;
 				valueIndex++;
 
-				if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), ("const")))
+				if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), "const"))
 				{
 					Throw(s[0], ("Expecting 'const' as first argument in 3 element input expression"));
 				}
@@ -172,7 +172,7 @@ namespace Rococo
 
 			cr_sex stype = s.GetElement(typeIndex);
 			cstr type = StringFrom(s, typeIndex);
-			if (!AreEqual(type, ("#")))
+			if (!AreEqual(type, "#"))
 			{
 				cr_sex sname = s.GetElement(valueIndex);
 
@@ -185,7 +185,7 @@ namespace Rococo
 				if (inputCount > 1) appender.Append((", "));
 				inputCount++;
 
-				if (s.NumberOfElements() == 3 || AreEqual(inputtype, ("IString")))
+				if (s.NumberOfElements() == 3 || AreEqual(inputtype, "IString"))
 				{
 					appender.Append("const ");
 				}
@@ -197,7 +197,7 @@ namespace Rococo
 					appender.Append('&');
 				}
 
-				appender.Append((" %s"), name);
+				appender.Append(" %s", name);
 			}
 		}
 
@@ -213,13 +213,13 @@ namespace Rococo
 
 			if (i > firstOutput)
 			{
-				if (i > 1) appender.Append((", "));
+				if (i > 1) appender.Append(", ");
 			}
 			else appender.Append((", /* -> */ "));
 
 			AppendCppType(appender, s, outputType, pc);
 
-			appender.Append(("& %s"), name);
+			appender.Append("& %s", name);
 		}
 
 		appender.Append(") %s= 0;", startIndex == 0 ? "" : "const ");
