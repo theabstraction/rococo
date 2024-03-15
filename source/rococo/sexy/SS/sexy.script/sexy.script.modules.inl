@@ -520,7 +520,9 @@ namespace Rococo::Script
 
 			cr_sex sexType = GetAtomicArg(inputItem, 0);
 
-			if (AreEqual(sexType.String(), ("array")))
+			cstr type = sexType.c_str();
+
+			if (AreEqual(type, "array"))
 			{
 				AssertNotTooFewElements(inputItem, 3);
 				AssertNotTooManyElements(inputItem, 3);
@@ -530,7 +532,7 @@ namespace Rococo::Script
 
 				AddGenericInput(f, "_Array", sexIdentifier, elementType, inputItem, script);				
 			}
-			else if (AreEqual(sexType.String(), "list"))
+			else if (AreEqual(type, "list"))
 			{
 				AssertNotTooFewElements(inputItem, 3);
 				AssertNotTooManyElements(inputItem, 3);
@@ -540,16 +542,16 @@ namespace Rococo::Script
 				
 				AddGenericInput(f, "_List", sexIdentifier, elementType, inputItem, script);				
 			}
-			else if (AreEqual(sexType.String(), ("map")))
+			else if (AreEqual(type, "map"))
 			{
 				AssertNotTooFewElements(inputItem, 4);
 				cr_sex keyType = GetAtomicArg(inputItem, 1);
 				cr_sex valueType = GetAtomicArg(inputItem, 2);
 				cr_sex sexIdentifier = GetAtomicArg(inputItem, 3);
 
-				AddGenericInput(f, ("_Map"), sexIdentifier, keyType, valueType, inputItem, script);
+				AddGenericInput(f, "_Map", sexIdentifier, keyType, valueType, inputItem, script);
 			}
-			else if (AreEqual(sexType.String(), ("closure")))
+			else if (AreEqual(type, "closure"))
 			{
 				AssertNotTooFewElements(inputItem, 3);
 				AssertNotTooManyElements(inputItem, 3);
@@ -557,6 +559,16 @@ namespace Rococo::Script
 				cr_sex sArchetype = GetAtomicArg(inputItem, 1);
 				cr_sex sId = GetAtomicArg(inputItem, 2);
 				AddClosureInput(f, sArchetype, sId, inputItem);
+			}
+			else if (AreEqual(type, "const"))
+			{
+				AssertNotTooFewElements(inputItem, 3);
+				AssertNotTooManyElements(inputItem, 3);
+
+				cr_sex sexStructType = GetAtomicArg(inputItem, 1);
+				cr_sex sexIdentifier = GetAtomicArg(inputItem, 2);
+
+				AddInput(f, sexStructType, sexIdentifier, inputItem);
 			}
 			else
 			{
