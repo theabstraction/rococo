@@ -63,9 +63,16 @@ namespace
 			typeIndex++;
 			valueIndex++;
 
-			if (!IsAtomic(s[0]) || !AreEqual(s[0].String(), ("const")))
+			cr_sex sQualifier = GetAtomicArg(s, 0);
+			cstr qualifier = sQualifier.c_str();
+
+			if (AreEqual(qualifier, "const") || AreEqual(qualifier, "out"))
 			{
-				Throw(s[0], "Expecting 'const' as first argument in 3 element input expression");
+				// dandy
+			}
+			else
+			{
+				Throw(s[0], "Expecting one of const|out as first argument in 3 element input expression");
 			}
 		}
 
@@ -95,7 +102,20 @@ namespace
 			if (typeIndex > 0)
 			{
 				cstr qualifier = s[0].c_str();
-				appender.Append("(const %s %s)", i->second.sexyType.c_str(), svalue.c_str());
+				if (AreEqual(qualifier, "const"))
+				{
+					appender.Append("(const ");
+				}
+				else if (AreEqual(qualifier, "out"))
+				{
+					appender.Append("(out ");
+				}
+				else
+				{
+					Throw(s[0], "Unknown qualifier");
+				}
+
+				appender.Append("%s %s)", i->second.sexyType.c_str(), svalue.c_str());
 			}
 			else
 			{
