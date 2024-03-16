@@ -255,7 +255,7 @@ namespace
 			return *(heightMap.data() + (x + y * (cellsPerAxis + 1)));
 		}
 
-		void GetBounds(Vec3& minPoint, Vec3& maxPoint) override
+		void GetBounds(OUT Vec3& minPoint, OUT Vec3& maxPoint) override
 		{
 			if (bounds.Span().x == 0)
 			{

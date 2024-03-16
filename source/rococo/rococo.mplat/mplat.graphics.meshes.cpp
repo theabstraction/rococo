@@ -429,7 +429,7 @@ namespace
 		  }
 	  }
 
-	  void Span(Vec3& span, const fstring& name) override
+	  void Span(OUT Vec3& span, const fstring& name) override
 	  {
 		  auto i = meshes.find((cstr)name);
 		  if (i == meshes.end())

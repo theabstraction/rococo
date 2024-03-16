@@ -4,7 +4,7 @@
 	
 	(context factory Rococo.Components.Generated.ISkeletonBase)
 	(methods
-		(SetSkeletonByName (const IString name))
+		(SetSkeletonByName (IString name))
 		(const GetSkeletonName (IStringBuilder sb))
 	)
 

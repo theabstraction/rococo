@@ -293,12 +293,12 @@ struct Gui : public MHost::IGui
 		DrawQuad(right);
 	}
 
-	void EvalTextSpan(const fstring& text, int32 fontIndex, Vec2& pixelSpan) override
+	void EvalTextSpan(const fstring& text, int32 fontIndex, OUT Vec2& pixelSpan) override
 	{
 		Rococo::Graphics::EvalTextSpan(gc, text, fontIndex, pixelSpan);
 	}
 
-	void GetFontDescription(int32 fontIndex, Strings::IStringPopulator& familyName, MHost::Graphics::FontDesc& desc) const override
+	void GetFontDescription(int32 fontIndex, Strings::IStringPopulator& familyName, OUT MHost::Graphics::FontDesc& desc) const override
 	{
 		auto& font = gc.Resources().FontMetrics();
 		auto& glyphSet = font[fontIndex];

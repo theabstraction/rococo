@@ -175,7 +175,7 @@ namespace
 			return (int32) topFaces.size();
 		}
 
-		void GetBottomTriangle(int32 index, Triangle& pos, Triangle2d& uv, float z) override
+		void GetBottomTriangle(int32 index, Triangle& pos, OUT Triangle2d& uv, float z) override
 		{
 			if (index < 0 || index >= (int32) topFaces.size())
 			{
@@ -196,7 +196,7 @@ namespace
 			uv.C = t.C;
 		}
 
-		void GetTopTriangle(int32 index, Triangle& pos, Triangle2d& uv, float z) override
+		void GetTopTriangle(int32 index, Triangle& pos, OUT Triangle2d& uv, float z) override
 		{
 			if (index < 0 || index >= (int32)topFaces.size())
 			{

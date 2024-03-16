@@ -122,7 +122,7 @@ namespace Rococo
 			auto i = pc.primitives.find(outputType);
 			if (i != pc.primitives.end())
 			{
-				AppendCppType(appender, s, outputType, pc);
+				AppendCppType(EQualifier::None, appender, s, outputType, pc);
 				appender.Append("/* %s */ %s(", outputName, methodName);
 			}
 			else
@@ -133,7 +133,7 @@ namespace Rococo
 					Throw(stype, "Expecting primitive return type or interface");
 				}
 
-				AppendCppType(appender, s, outputType, pc);
+				AppendCppType(EQualifier::None, appender, s, outputType, pc);
 				appender.Append("* /* %s */ %s(", outputName, methodName);
 			}
 		}
@@ -158,6 +158,7 @@ namespace Rococo
 
 			int typeIndex = 0;
 			int valueIndex = 1;
+			EQualifier eQualifier = EQualifier::Constant; // by default input reference are constant
 
 			if (s.NumberOfElements() == 3)
 			{
@@ -167,13 +168,21 @@ namespace Rococo
 				cr_sex sQualifier = GetAtomicArg(s, 0);
 				cstr qualifier = sQualifier.c_str();
 
-				if (AreEqual(qualifier, "const") || AreEqual(qualifier, "out"))
+				if (AreEqual(qualifier, "const"))
 				{
-					// dandy
+					eQualifier = EQualifier::Constant;
+				}
+				else if (AreEqual(qualifier, "out"))
+				{
+					eQualifier = EQualifier::Output;
+				}
+				else if (AreEqual(qualifier, "ref"))
+				{
+					eQualifier = EQualifier::Ref;
 				}
 				else
 				{
-					Throw(s[0], "Expecting one of const|out as first argument in 3 element input expression");
+					Throw(s[0], "Expecting one of const|out|ref as first argument in 3 element input expression");
 				}
 			}
 
@@ -192,30 +201,27 @@ namespace Rococo
 				if (inputCount > 1) appender.Append((", "));
 				inputCount++;
 
-				if (s.NumberOfElements() == 2 && AreEqual(inputtype, "IString"))
+				if (s.NumberOfElements() == 2)
 				{
-					appender.Append("const ");
-				}
-				else if (s.NumberOfElements() == 3)
-				{
-					cr_sex sQualifier = GetAtomicArg(s, 0);
-					cstr qualifier = sQualifier.c_str();
-
-					if (AreEqual(qualifier, "const"))
-					{
-						appender.Append("const ");
-					}
-					else if (AreEqual(qualifier, "out"))
-					{
-						appender.Append("OUT ");
-					}
+					eQualifier = EQualifier::Constant;
 				}
 
-				AppendCppType(appender, s, inputtype, pc);
-
-				if (pc.structs.find(inputtype) != pc.structs.end())
+				if (AreEqual(inputtype, "IString"))
 				{
-					appender.Append('&');
+					appender.Append("const fstring&");
+				}
+				else if (AreEqual(inputtype, "IStringBuilder"))
+				{
+					appender.Append("REF Rococo::Strings::IStringPopulator&");
+				}
+				else
+				{
+					AppendCppType(eQualifier, appender, s, inputtype, pc);
+
+					if (pc.structs.find(inputtype) != pc.structs.end())
+					{
+						appender.Append('&');
+					}
 				}
 
 				appender.Append(" %s", name);
@@ -238,7 +244,7 @@ namespace Rococo
 			}
 			else appender.Append((", /* -> */ "));
 
-			AppendCppType(appender, s, outputType, pc);
+			AppendCppType(EQualifier::None, appender, s, outputType, pc);
 
 			appender.Append("& %s", name);
 		}
@@ -526,7 +532,7 @@ namespace Rococo
 			}
 		}
 
-		appender.Append(nsDepth > 0 ? ("\t};") : ("};"));
+		appender.Append(nsDepth > 0 ? "\t};" : "};");
 
 		if (nsDepth > 0)
 		{
@@ -554,11 +560,11 @@ namespace Rococo
 			while (depth > 0)
 			{
 				depth--;
-				appender.Append(("}"));
+				appender.Append("}");
 			}
 		}
 
-		appender.Append(("\n\n"));
+		appender.Append("\n\n");
 	}
 
 	typedef std::unordered_map<stdstring, int> TAttributeMap;
@@ -626,7 +632,7 @@ namespace Rococo
 				if (!isString && !isStringBuilder)
 				{
 					appender.Append("\t\t");
-					AppendCppType(appender, stype, sxhtype, pc);
+					AppendCppType(EQualifier::None, appender, stype, sxhtype, pc);
 				}
 
 				if (!isString && pc.structs.find(sxhtype) != pc.structs.end() && !isStringBuilder)
@@ -657,7 +663,7 @@ namespace Rococo
 				if (isString)
 				{
 					appender.Append("\t\t");
-					AppendCppType(appender, stype, sxhtype, pc);
+					AppendCppType(EQualifier::None, appender, stype, sxhtype, pc);
 					appender.Append(" %s {", fieldName);
 					appender.Append(" _%s->buffer, _%s->length };\n\n", fieldName, fieldName);
 				}

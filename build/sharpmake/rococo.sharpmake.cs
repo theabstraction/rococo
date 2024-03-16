@@ -1404,7 +1404,7 @@ namespace Rococo
     {
         public RococoAudioProject() : base("rococo.audio")
         {
-            base.SourceFiles.Add("rococo.audio.sxh");
+            base.SourceFiles.Add("audio.sxh");
             base.SourceFiles.Add("config.xc");
             SourceFiles.Add(@"..\include\rococo.audio.h");
         }

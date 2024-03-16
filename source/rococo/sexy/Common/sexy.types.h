@@ -280,6 +280,14 @@ namespace Rococo
 
 		typedef const ISExpression& cr_sex;
 
+		enum class EQualifier
+		{
+			None,
+			Constant,
+			Output,
+			Ref
+		};
+
 		FORCE_INLINE bool operator != (const ISExpression& s, const char* token)
 		{
 			return !(s == token);

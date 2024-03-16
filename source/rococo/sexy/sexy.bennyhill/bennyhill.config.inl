@@ -222,7 +222,7 @@ namespace
 			ValidateSexyVariable(field, fieldName);
 
 			cppTypeAppender.Append(("\t\t"));
-			AppendCppType(cppTypeAppender, field, fieldType, pc);
+			AppendCppType(EQualifier::None, cppTypeAppender, field, fieldType, pc);
 			cppTypeAppender.Append((" %s;\n"), fieldName);
 		}
 

@@ -192,5 +192,5 @@ namespace Rococo
    Rococo::cstr StringFrom(Rococo::Sex::cr_sex s);
    Rococo::cstr StringFrom(Rococo::Sex::cr_sex command, int elementIndex);
 
-   void AppendCppType(FileAppender& appender, cr_sex field, cstr fieldtype, const ParseContext& pc);
+   void AppendCppType(EQualifier qualifier, FileAppender& appender, cr_sex field, cstr fieldtype, const ParseContext& pc);
 }

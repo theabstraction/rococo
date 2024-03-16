@@ -4,8 +4,8 @@
 	
 	(context factory Rococo.Components.Generated.IBodyBase)
 	(methods
-		(const GetModel (Matrix4x4 model)->  )
-		(const GetScale (Vec3 scale) -> )
+		(const GetModel (out Matrix4x4 model)->  )
+		(const GetScale (out Vec3 scale) -> )
 		(const Parent -> (ROID parent))
 		
 		(SetModelMatrix (const Matrix4x4 model)-> )		

@@ -83,7 +83,7 @@ namespace Rococo
       }
    }
 
-   void AppendCppType(FileAppender& appender, cr_sex field, cstr sxhfieldtype, const ParseContext& pc)
+   void AppendCppType(EQualifier eQualifier, FileAppender& appender, cr_sex field, cstr sxhfieldtype, const ParseContext& pc)
    {
       cstr cpptypeDef = NULL;
       auto i = pc.primitives.find(sxhfieldtype);
@@ -91,7 +91,23 @@ namespace Rococo
       else
       {
          auto j = pc.structs.find(sxhfieldtype);
-         if (j != pc.structs.end()) cpptypeDef = j->second.cppType.c_str();
+		 if (j != pc.structs.end())
+		 {
+			 cpptypeDef = j->second.cppType.c_str();
+
+			 switch (eQualifier)
+			 {
+			 case EQualifier::Constant:
+				 appender.Append("const ");
+				 break;
+			 case EQualifier::Output:
+				 appender.Append("OUT ");
+				 break;
+			 case EQualifier::Ref:
+				 appender.Append("REF ");
+				 break;
+			 }
+		 }
          else
          {
             auto k = pc.interfaces.find(sxhfieldtype);

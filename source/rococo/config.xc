@@ -42,6 +42,8 @@
 (primitive SampleFilter Int32 Rococo.Graphics.SampleFilter)
 (primitive SampleIndex Int32 Rococo.Graphics.SampleIndex)
 (primitive ELegacySoundShape Int32 Rococo.Audio.ELegacySoundShape)
+(primitive IString Sys.Type.IString fstring)
+(primitive IStringBuilder Sys.Type.IStringBuilder Rococo.Strings.IStringPopulator)
 
 // (struct <name> <sexy-name> <cpp-name>)  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
@@ -54,8 +56,6 @@
 (struct Rect Sys.Maths.Recti GuiRect)
 (struct Rectf Sys.Maths.Rectf GuiRectf)
 (struct Matrix4x4 Sys.Maths.Matrix4x4 Matrix4x4)
-(struct IString Sys.Type.IString fstring)
-(struct IStringBuilder Sys.Type.IStringBuilder Rococo.Strings.IStringPopulator)
 (struct FPSAngles Sys.Maths.FPSAngles FPSAngles)
 (struct Quad Sys.Maths.Quadf Quad)
 (struct Triangle Sys.Maths.Triangle Triangle)

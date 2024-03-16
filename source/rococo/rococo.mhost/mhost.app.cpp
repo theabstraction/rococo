@@ -307,12 +307,12 @@ namespace MHost
 			sceneManager.OnCompile(ss);
 		}
 
-		boolean32 TryGetSpriteSpec(const fstring& resourceName, BitmapLocation& loc) override
+		boolean32 TryGetSpriteSpec(const fstring& resourceName, OUT BitmapLocation& loc) override
 		{
-			return platform.graphics.renderer.GuiResources().SpriteBuilder().TryGetBitmapLocation(resourceName, loc);
+			return platform.graphics.renderer.GuiResources().SpriteBuilder().TryGetBitmapLocation(resourceName, OUT loc);
 		}
 
-		void GetSpriteSpec(const fstring& resourceName, Rococo::Textures::BitmapLocation& loc) override
+		void GetSpriteSpec(const fstring& resourceName, OUT BitmapLocation& loc) override
 		{
 			if (!TryGetSpriteSpec(resourceName, loc))
 			{
@@ -580,14 +580,14 @@ namespace MHost
 			platform.graphics.GR.GarbageCollect();
 		}
 
-		void AppendEventString(IStringPopulator& sb, MHost::GuiTypes::GuiEvent& ev) override
+		void AppendEventString(IStringPopulator& sb, OUT MHost::GuiTypes::GuiEvent& ev) override
 		{
 			if (ev.stringId) sb.Populate(ev.stringId);
 		}
 
 		std::list<GuiTypes::GuiEvent> guiEventList;
 
-		boolean32 GetNextGuiEvent(MHost::GuiTypes::GuiEvent& emittedEvent) override
+		boolean32 GetNextGuiEvent(OUT MHost::GuiTypes::GuiEvent& emittedEvent) override
 		{
 			if (!guiEventList.empty())
 			{
@@ -750,7 +750,7 @@ namespace MHost
 			platform.graphics.renderer.Render(sceneManager);
 		}
 
-		void PollKeyState(KeyState& keyState) override
+		void PollKeyState(OUT KeyState& keyState) override
 		{
 			Rococo::OS::PollKeys(keyState.keys);
 		}

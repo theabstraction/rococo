@@ -1104,7 +1104,7 @@ namespace ANON
 			delete this;
 		}
 
-		boolean32 PopNextTriangle(VertexTriangle& t) override
+		boolean32 PopNextTriangle(OUT VertexTriangle& t) override
 		{
 			if (triangles.empty())
 			{
