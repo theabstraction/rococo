@@ -564,7 +564,7 @@ namespace Rococo
 	typedef std::unordered_map<stdstring, int> TAttributeMap;
 	bool HasAttributeThrows(const TAttributeMap& map)
 	{
-		return map.find(("throws")) != map.end();
+		return map.find("throws") != map.end();
 	}
 
 	void AddNativeInputs(TAttributeMap& attributes, FileAppender& appender, cr_sex methodArgs, int inputStart, int inputEnd, const ParseContext& pc)
@@ -575,7 +575,7 @@ namespace Rococo
 
 			if (s.NumberOfElements() != 2 && s.NumberOfElements() != 3)
 			{
-				Throw(s, ("Expected input argument pair (<type> <value>) or (const <type> value)"));
+				Throw(s, "Expected input argument pair (<type> <value>) or (const <type> value)");
 			}
 
 			int typeIndex = 0;
@@ -605,27 +605,27 @@ namespace Rococo
 			cstr sxhtype = StringFrom(stype);
 			cstr fieldName = StringFrom(svalue);
 
-			if (AreEqual(sxhtype, ("#")))
+			if (AreEqual(sxhtype, "#"))
 			{
 				attributes.insert(std::make_pair(fieldName, 1));
 			}
 			else
 			{
 				bool isString = false;
-				if (AreEqual(sxhtype, ("IString")) || AreEqual(sxhtype, ("Sys.Text.IString")))
+				if (AreEqual(sxhtype, "IString") || AreEqual(sxhtype, "Sys.Text.IString"))
 				{
 					isString = true;
 				}
 
 				bool isStringBuilder = false;
-				if (AreEqual(sxhtype, ("IStringBuilder")) || AreEqual(sxhtype, ("Sys.Text.IStringBuilder")))
+				if (AreEqual(sxhtype, "IStringBuilder") || AreEqual(sxhtype, "Sys.Text.IStringBuilder"))
 				{
 					isStringBuilder = true;
 				}
 
 				if (!isString && !isStringBuilder)
 				{
-					appender.Append(("\t\t"));
+					appender.Append("\t\t");
 					AppendCppType(appender, stype, sxhtype, pc);
 				}
 
@@ -638,35 +638,35 @@ namespace Rococo
 
 				if (isString)
 				{
-					appender.Append(("\t\t_offset += sizeof(IString*);\n"));
+					appender.Append("\t\t_offset += sizeof(IString*);\n");
 				}
 				else if (isStringBuilder)
 				{
-					appender.Append(("\t\t_offset += sizeof(VirtualTable**);\n"));
+					appender.Append("\t\t_offset += sizeof(VirtualTable**);\n");
 				}
 				else
 				{
-					appender.Append(("\t\t_offset += sizeof(%s);\n"), fieldName);
+					appender.Append("\t\t_offset += sizeof(%s);\n", fieldName);
 				}
 
-				if (isString) appender.Append(("\t\tIString* _%s;\n"), fieldName);
-				if (isStringBuilder) appender.Append(("\t\tVirtualTable** %s;\n"), fieldName);
+				if (isString) appender.Append("\t\tIString* _%s;\n", fieldName);
+				if (isStringBuilder) appender.Append("\t\tVirtualTable** %s;\n", fieldName);
 
-				appender.Append(isString ? ("\t\tReadInput(_%s, _sf, -_offset);\n") : ("\t\tReadInput(%s, _sf, -_offset);\n"), fieldName);
+				appender.Append(isString ? "\t\tReadInput(_%s, _sf, -_offset);\n" : "\t\tReadInput(%s, _sf, -_offset);\n", fieldName);
 
 				if (isString)
 				{
-					appender.Append(("\t\t"));
+					appender.Append("\t\t");
 					AppendCppType(appender, stype, sxhtype, pc);
-					appender.Append((" %s {"), fieldName);
-					appender.Append((" _%s->buffer, _%s->length };\n\n"), fieldName, fieldName);
+					appender.Append(" %s {", fieldName);
+					appender.Append(" _%s->buffer, _%s->length };\n\n", fieldName, fieldName);
 				}
 				else if (isStringBuilder)
 				{
-					appender.Append(("\t\tRococo::Helpers::StringPopulator _%sPopulator(_nce, %s);"), fieldName, fieldName);
+					appender.Append("\t\tRococo::Helpers::StringPopulator _%sPopulator(_nce, %s);", fieldName, fieldName);
 				}
 
-				appender.Append(("\n"));
+				appender.Append("\n");
 			}
 		}
 	}
@@ -803,23 +803,23 @@ namespace Rococo
 			cr_sex svalue = s.GetElement(typeIndex + 1);
 			cstr type = StringFrom(stype);
 
-			if (!AreEqual(type, ("#")))
+			if (!AreEqual(type, "#"))
 			{
 				if (inputCount > 1) appender.Append((", "));
 				inputCount++;
 
-				if (AreEqual(type, ("IStringBuilder")) || AreEqual(type, ("Sys.Type.IStringBuilder")))
+				if (AreEqual(type, "IStringBuilder") || AreEqual(type, "Sys.Type.IStringBuilder"))
 				{
-					appender.Append(("_%sPopulator"), StringFrom(svalue));
+					appender.Append("_%sPopulator", StringFrom(svalue));
 				}
 				else
 				{
-					if (!AreEqual(type, ("IString")) && !AreEqual(type, ("Sys.Type.IString")) && pc.structs.find(type) != pc.structs.end())
+					if (!AreEqual(type, "IString") && !AreEqual(type, "Sys.Type.IString") && pc.structs.find(type) != pc.structs.end())
 					{
 						appender.Append('*');
 					}
 
-					appender.Append(("%s"), StringFrom(svalue));
+					appender.Append("%s", StringFrom(svalue));
 				}
 			}
 			else

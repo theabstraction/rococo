@@ -316,7 +316,7 @@
 (function IGuiOverlayGetNextGuiEvent105  (Pointer hObject)(MHost.GuiTypes.GuiEvent ev) -> (Bool wasExtracted) : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 903))
 (alias IGuiOverlayGetNextGuiEvent105 MHost.Native.IGuiOverlayGetNextGuiEvent)
 
-(function AddVec2fVec2f106 (const Sys.Maths.Vec2 a)(const Sys.Maths.Vec2 b)(Sys.Maths.Vec2 sum) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 716))
+(function AddVec2fVec2f106 (const Sys.Maths.Vec2 a)(const Sys.Maths.Vec2 b)(out Sys.Maths.Vec2 sum) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 716))
 (alias AddVec2fVec2f106 Sys.Geometry.F32.AddVec2fVec2f)
 
 (function ToRGBAb107 (const RGBA colourF32x4) -> (Int32 colourB8x4) : (source "C:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 97))
@@ -1117,7 +1117,7 @@
 (function IsInfinity372 (Float64 x) -> (Bool isInfinity) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 505))
 (alias IsInfinity372 Sys.Maths.F64.IsInfinity)
 
-(function ToMatrix373 (const Sys.Maths.Quat q)(Sys.Maths.Matrix4x4 r) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 749))
+(function ToMatrix373 (const Sys.Maths.Quat q)(out Sys.Maths.Matrix4x4 r) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 749))
 (alias ToMatrix373 Sys.Geometry.Q.ToMatrix)
 
 (function IConfigInt374  (Pointer hObject)(Sys.Type.IString name)(Int32 value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7122))
@@ -1195,7 +1195,7 @@
 (function IRodTesselatorSetMaterialTop398  (Pointer hObject)(const Rococo.MaterialVertexData top) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10363))
 (alias IRodTesselatorSetMaterialTop398 Rococo.Graphics.Native.IRodTesselatorSetMaterialTop)
 
-(function MultiplyMatrix4x4fMatrix4x4f399 (const Sys.Maths.Matrix4x4 a)(const Sys.Maths.Matrix4x4 b)(Sys.Maths.Matrix4x4 product) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 763))
+(function MultiplyMatrix4x4fMatrix4x4f399 (const Sys.Maths.Matrix4x4 a)(const Sys.Maths.Matrix4x4 b)(out Sys.Maths.Matrix4x4 product) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 763))
 (alias MultiplyMatrix4x4fMatrix4x4f399 Sys.Geometry.M4x4.MultiplyMatrix4x4fMatrix4x4f)
 
 (function IRodTesselatorSetUVScale400  (Pointer hObject)(Float32 sUV) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10365))
@@ -1234,7 +1234,7 @@
 (function GetHandleForIRendererConfig0411   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10964))
 (alias GetHandleForIRendererConfig0411 Rococo.Graphics.Native.GetHandleForIRendererConfig0)
 
-(function DivideVec3fFloat32412 (const Sys.Maths.Vec3 vector)(Float32 denominator)(Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 713))
+(function DivideVec3fFloat32412 (const Sys.Maths.Vec3 vector)(Float32 denominator)(out Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 713))
 (alias DivideVec3fFloat32412 Sys.Geometry.F32.DivideVec3fFloat32)
 
 (function IRendererConfigSetSampler413  (Pointer hObject)(const Rococo.SampleStateDef ssd)(Int32 index) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10965))
@@ -1252,7 +1252,7 @@
 (function ILandscapeTesselatorGenerateByRecursiveSubdivision417  (Pointer hObject)(Sys.SI.Metres maxAltitude) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10552))
 (alias ILandscapeTesselatorGenerateByRecursiveSubdivision417 Rococo.Graphics.Native.ILandscapeTesselatorGenerateByRecursiveSubdivision)
 
-(function DivideVec2fFloat32418 (const Sys.Maths.Vec2 vector)(Float32 denominator)(Sys.Maths.Vec2 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 714))
+(function DivideVec2fFloat32418 (const Sys.Maths.Vec2 vector)(Float32 denominator)(out Sys.Maths.Vec2 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 714))
 (alias DivideVec2fFloat32418 Sys.Geometry.F32.DivideVec2fFloat32)
 
 (function ILandscapeTesselatorGetBounds419  (Pointer hObject)(Sys.Maths.Vec3 minPoint)(out Sys.Maths.Vec3 maxPoint) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10553))
@@ -1351,7 +1351,7 @@
 (function IConfigBool450  (Pointer hObject)(Sys.Type.IString name)(Bool value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7124))
 (alias IConfigBool450 Rococo.Configuration.Native.IConfigBool)
 
-(function MultiplyVec3fFloat32451 (const Sys.Maths.Vec3 vector)(Float32 scale)(Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 712))
+(function MultiplyVec3fFloat32451 (const Sys.Maths.Vec3 vector)(Float32 scale)(out Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 712))
 (alias MultiplyVec3fFloat32451 Sys.Geometry.F32.MultiplyVec3fFloat32)
 
 (function IConfigText452  (Pointer hObject)(Sys.Type.IString name)(Sys.Type.IString value) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7125))
@@ -1465,7 +1465,7 @@
 (function GetStructName488  (Pointer structPtr) -> (Sys.Type.IString name) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 784))
 (alias GetStructName488 Sys.Reflection.Native.GetStructName)
 
-(function MultiplyFloat32Vec2f489 (Float32 scale)(const Sys.Maths.Vec2 vector)(Sys.Maths.Vec2 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 717))
+(function MultiplyFloat32Vec2f489 (Float32 scale)(const Sys.Maths.Vec2 vector)(out Sys.Maths.Vec2 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 717))
 (alias MultiplyFloat32Vec2f489 Sys.Geometry.F32.MultiplyFloat32Vec2f)
 
 (function FastStringBuilderAppendAsDecimal490  (Sys.Type.IStringBuilder sb) -> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1823))
@@ -1741,22 +1741,22 @@
 (function SetWriterBuffering580  (Sys.IO.IWriter writer)(Int32 length)(Int32 mode)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1263))
 (alias SetWriterBuffering580 Sys.IO.Native.SetWriterBuffering)
 
-(function AddVec3fVec3f581 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(Sys.Maths.Vec3 sum) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 709))
+(function AddVec3fVec3f581 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(out Sys.Maths.Vec3 sum) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 709))
 (alias AddVec3fVec3f581 Sys.Geometry.F32.AddVec3fVec3f)
 
-(function SubtractVec3fVec3f582 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(Sys.Maths.Vec3 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 710))
+(function SubtractVec3fVec3f582 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(out Sys.Maths.Vec3 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 710))
 (alias SubtractVec3fVec3f582 Sys.Geometry.F32.SubtractVec3fVec3f)
 
-(function MultiplyFloat32Vec3f583 (Float32 scale)(const Sys.Maths.Vec3 vector)(Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 711))
+(function MultiplyFloat32Vec3f583 (Float32 scale)(const Sys.Maths.Vec3 vector)(out Sys.Maths.Vec3 scaledVector) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 711))
 (alias MultiplyFloat32Vec3f583 Sys.Geometry.F32.MultiplyFloat32Vec3f)
 
-(function SubtractVec2fVec2f584 (const Sys.Maths.Vec2 a)(const Sys.Maths.Vec2 b)(Sys.Maths.Vec2 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 715))
+(function SubtractVec2fVec2f584 (const Sys.Maths.Vec2 a)(const Sys.Maths.Vec2 b)(out Sys.Maths.Vec2 difference) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 715))
 (alias SubtractVec2fVec2f584 Sys.Geometry.F32.SubtractVec2fVec2f)
 
-(function GetTriSpan585 (const Sys.Maths.Vec3 d)(const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(Sys.Maths.Vec2 span) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 718))
+(function GetTriSpan585 (const Sys.Maths.Vec3 d)(const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(out Sys.Maths.Vec2 span) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 718))
 (alias GetTriSpan585 Sys.Geometry.F32.GetTriSpan)
 
-(function MultiplyVec3fVec3f586 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(Sys.Maths.Vec3 crossProduct) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 721))
+(function MultiplyVec3fVec3f586 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(out Sys.Maths.Vec3 crossProduct) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 721))
 (alias MultiplyVec3fVec3f586 Sys.Geometry.F32.MultiplyVec3fVec3f)
 
 (function LengthVec2587 (const Sys.Maths.Vec2 a) -> (Float32 len) : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 724))
@@ -1783,13 +1783,13 @@
 (function NormalizeVec2594 (Sys.Maths.Vec2 n) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 734))
 (alias NormalizeVec2594 Sys.Geometry.F32.NormalizeVec2)
 
-(function GetNormal595 (Sys.Maths.Triangle t)(Sys.Maths.Vec3 normal) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 735))
+(function GetNormal595 (Sys.Maths.Triangle t)(out Sys.Maths.Vec3 normal) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 735))
 (alias GetNormal595 Sys.Geometry.F32.GetNormal)
 
-(function LerpVec3596 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(Float32 t)(Sys.Maths.Vec3 mixed) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 736))
+(function LerpVec3596 (const Sys.Maths.Vec3 a)(const Sys.Maths.Vec3 b)(Float32 t)(out Sys.Maths.Vec3 mixed) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 736))
 (alias LerpVec3596 Sys.Geometry.F32.LerpVec3)
 
-(function TryGetCommonSegment597 (Sys.Maths.Vec3 a)(Sys.Maths.Vec3 b)(Sys.Maths.Quadf p)(Sys.Maths.Quadf q) -> (Bool matched) : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 737))
+(function TryGetCommonSegment597 (out Sys.Maths.Vec3 a)(out Sys.Maths.Vec3 b)(const Sys.Maths.Quadf p)(const Sys.Maths.Quadf q) -> (Bool matched) : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 737))
 (alias TryGetCommonSegment597 Sys.Geometry.F32.TryGetCommonSegment)
 
 (function RotateAboutX598 (Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rX) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 759))
@@ -1798,19 +1798,19 @@
 (function RotateAboutY599 (Sys.Maths.Degrees degrees)(Sys.Maths.Matrix4x4 rY) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 760))
 (alias RotateAboutY599 Sys.Geometry.M4x4.RotateAboutY)
 
-(function MakeTranslateMatrix600 (const Sys.Maths.Vec3 ds)(Sys.Maths.Matrix4x4 t) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 762))
+(function MakeTranslateMatrix600 (const Sys.Maths.Vec3 ds)(out Sys.Maths.Matrix4x4 t) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 762))
 (alias MakeTranslateMatrix600 Sys.Geometry.M4x4.MakeTranslateMatrix)
 
-(function MultiplyMatrix4x4fVec3f601 (const Sys.Maths.Matrix4x4 m)(const Sys.Maths.Vec3 v3)(Float32 w)(Sys.Maths.Vec4 mv4) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 765))
+(function MultiplyMatrix4x4fVec3f601 (const Sys.Maths.Matrix4x4 m)(const Sys.Maths.Vec3 v3)(Float32 w)(out Sys.Maths.Vec4 mv4) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 765))
 (alias MultiplyMatrix4x4fVec3f601 Sys.Geometry.M4x4.MultiplyMatrix4x4fVec3f)
 
-(function GetRotationQuat602 (Sys.Maths.Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Sys.Maths.Quat q) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 747))
+(function GetRotationQuat602 (Sys.Maths.Degrees theta)(Float32 i)(Float32 j)(Float32 k)(out Sys.Maths.Quat q) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 747))
 (alias GetRotationQuat602 Sys.Geometry.Q.GetRotationQuat)
 
 (function WriteAsDecimal603  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1244))
 (alias WriteAsDecimal603 Sys.IO.Native.WriteAsDecimal)
 
-(function MultiplyQuatfQuatf604 (const Sys.Maths.Quat a)(const Sys.Maths.Quat b)(Sys.Maths.Quat output) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 748))
+(function MultiplyQuatfQuatf604 (const Sys.Maths.Quat a)(const Sys.Maths.Quat b)(out Sys.Maths.Quat output) ->  : (source "C:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 748))
 (alias MultiplyQuatfQuatf604 Sys.Geometry.Q.MultiplyQuatfQuatf)
 
 (function AnyColour605 (Int32 rMin)(Int32 rMax)(Int32 gMin)(Int32 gMax)(Int32 bMin)(Int32 bMax)(Int32 aMin)(Int32 aMax) -> (Int32 colour) : (source "C:\work\rococo\source\rococo\rococo.mathsex\mathsex.random.inl" 145))

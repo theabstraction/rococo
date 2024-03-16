@@ -165,7 +165,7 @@ namespace Rococo
 		  result = f * v;
 	  }
 
-	  void GetTriSpan(cr_vec3 c, cr_vec3 a, cr_vec3 b, Vec2& span)
+	  void GetTriSpan(cr_vec3 c, cr_vec3 a, cr_vec3 b, OUT Vec2& span)
 	  {
 		  Vec3 vertical = a - c;
 		  Vec3 tangental = b - a;
@@ -173,12 +173,12 @@ namespace Rococo
 		  span = Vec2 { Length(tangental), Length(vertical) };
 	  }
 
-      void MultiplyMatrixByRef(const Matrix4x4& a, const Matrix4x4& b, Matrix4x4& c)
+      void MultiplyMatrixByRef(const Matrix4x4& a, const Matrix4x4& b, OUT Matrix4x4& c)
       {
          Multiply(c, a, b);
       }
 
-      void CrossByRef(const Vec3& a, const Vec3& b, Vec3& c)
+      void CrossByRef(const Vec3& a, const Vec3& b, OUT Vec3& c)
       {
          XMVECTOR xa = XMLoadFloat3((const XMFLOAT3*) &a.x);
          XMVECTOR xb = XMLoadFloat3((const XMFLOAT3*) &b.x);
@@ -267,7 +267,7 @@ namespace Rococo
 		  a.z *= scale;
 	  }
 
-	  void GetNormal(const Triangle& t, Vec3& normal)
+	  void GetNormal(const Triangle& t, OUT Vec3& normal)
 	  {
 		  Vec3 ba = t.A - t.B;
 		  Vec3 bc = t.C - t.B;
@@ -278,23 +278,23 @@ namespace Rococo
 		  }
 	  }
 
-	  void LerpVec3(const Vec3& a, const Vec3& b, float t, Vec3& mixed)
+	  void LerpVec3(const Vec3& a, const Vec3& b, float t, OUT Vec3& mixed)
 	  {
 		  mixed = a * (1.0f - t) + b * t;
 	  }
 
-	  void TransformVector(const Matrix4x4& m, const Vec4& v, Vec4& mv)
+	  void TransformVector(const Matrix4x4& m, const Vec4& v, OUT Vec4& mv)
 	  {
 		  mv = m * v;
 	  }
 
-	  void TransformVector(const Matrix4x4& m, const Vec3& v3, float w, Vec4& mv)
+	  void TransformVector(const Matrix4x4& m, const Vec3& v3, float w, OUT Vec4& mv)
 	  {
 		  Vec4 v4 = Vec4::FromVec3(v3, w);
 		  mv = m * v4;
 	  }
 
-	  void GetRotationQuat(Degrees theta, float i, float j, float k, Quat& q)
+	  void GetRotationQuat(Degrees theta, float i, float j, float k, OUT Quat& q)
 	  {
 		  Degrees halfTheta{ 0.5f * theta };
 
@@ -307,7 +307,7 @@ namespace Rococo
 		  q.v.z = k * s;
 	  }
 
-	  void MultiplyQuatByQuat(const Quat& p, const Quat& q, Quat& pq)
+	  void MultiplyQuatByQuat(const Quat& p, const Quat& q, OUT Quat& pq)
 	  {
 		  XMVECTOR P = XMLoadFloat4((const XMFLOAT4*)&p);
 		  XMVECTOR Q = XMLoadFloat4((const XMFLOAT4*)&q);
@@ -315,34 +315,34 @@ namespace Rococo
 		  XMStoreFloat4((XMFLOAT4*) &pq, PQ);
 	  }
 
-	  void UnitQuatToMatrix(const Quat& q, Matrix4x4& rotation)
+	  void UnitQuatToMatrix(const Quat& q, OUT Matrix4x4& rotation)
 	  {
 		  XMVECTOR Q = XMLoadFloat4((const XMFLOAT4*)&q);
 		  XMMATRIX R = XMMatrixRotationQuaternion(Q);
 		  XMStoreFloat4x4((XMFLOAT4X4*)&rotation, R);
 	  }
 
-      void RotateAboutZThetaDegrees(Degrees theta, Matrix4x4& Rz)
+      void RotateAboutZThetaDegrees(Degrees theta, OUT Matrix4x4& Rz)
       {
           Rz = Matrix4x4::RotateRHAnticlockwiseZ(theta);
       }
 
-	  void RotateAboutYThetaDegrees(Degrees theta, Matrix4x4& Rz)
+	  void RotateAboutYThetaDegrees(Degrees theta, OUT Matrix4x4& Rz)
 	  {
 		  Rz = Matrix4x4::RotateRHAnticlockwiseY(theta);
 	  }
 
-	  void RotateAboutXThetaDegrees(Degrees theta, Matrix4x4& Rz)
+	  void RotateAboutXThetaDegrees(Degrees theta, OUT Matrix4x4& Rz)
 	  {
 		  Rz = Matrix4x4::RotateRHAnticlockwiseX(theta);
 	  }
 
-	  void MakeTranslateMatrix(cr_vec3 ds, Matrix4x4& T)
+	  void MakeTranslateMatrix(cr_vec3 ds, OUT Matrix4x4& T)
 	  {
 		  T = Matrix4x4::Translate(ds);
 	  }
 
-	  boolean32 TryGetCommonSegment(Vec3& a, Vec3& b, const Quad& P, const Quad& Q)
+	  boolean32 TryGetCommonSegment(OUT Vec3& a, OUT Vec3& b, const Quad& P, const Quad& Q)
 	  {
 		  const Vec3* p = &P.a;
 		  const Vec3* q = &Q.a;

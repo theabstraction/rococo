@@ -408,6 +408,12 @@ void AppendNativeFunction(cr_sex functionDef, const ParseContext& pc, FileAppend
 			type = StringFrom(*stype);
 			svalue = &s[2];
 		}
+		else if (Eq(type, "out"))
+		{
+			stype = &s[1];
+			type = StringFrom(*stype);
+			svalue = &s[2];
+		}
 
 		if (!AreEqual(type, "#"))
 		{
