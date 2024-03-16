@@ -579,18 +579,35 @@ namespace Rococo::Script
 	{
 		AssertCompound(s);
 		AssertNotTooFewElements(s, 2);
-		AssertNotTooManyElements(s, 2);
+		AssertNotTooManyElements(s, 3);
 
-		return GetAtomicArg(s, 0).c_str();
+		if (s.NumberOfElements() == 3)
+		{
+			cr_sex sQualifier = GetAtomicArg(s, 0);
+			cstr qualifier = sQualifier.c_str();
+			if (AreEqual(qualifier, "const") || AreEqual(qualifier, "out") || AreEqual(qualifier, "ref"))
+			{
+				// Just dandy
+			}
+			else
+			{
+				Throw(sQualifier, "Unexpected qualifier in expression. Expecting one of const|out|ref");
+			}
+			return GetAtomicArg(s, 1).c_str();
+		}
+		else
+		{
+			return GetAtomicArg(s, 0).c_str();
+		}
 	}
 
 	cstr GetArgNameFromExpression(cr_sex s)
 	{
 		AssertCompound(s);
 		AssertNotTooFewElements(s, 2);
-		AssertNotTooManyElements(s, 2);
+		AssertNotTooManyElements(s, 3);
 
-		return GetAtomicArg(s, 1).c_str();
+		return GetAtomicArg(s, s.NumberOfElements() == 2 ? 1 : 2).c_str();
 	}
 
 	void CALLTYPE_C OnCallbackInvoked(VariantValue* registers, void* context)
