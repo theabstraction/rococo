@@ -951,7 +951,28 @@ private:
 		{
 			auto idInputArg = classTree->AppendItem(idFunction);
 			char desc[256];
-			SafeFormat(desc, "%s %s", archetype.InputType(k), archetype.InputName(k));
+
+			cstr qualifier;
+
+			auto inputQualifier = archetype.InputQualifier(k);
+
+			switch (inputQualifier)
+			{
+			default:
+				qualifier = "";
+				break;
+			case EQualifier::Constant:
+				qualifier = "const ";
+				break;
+			case EQualifier::Output:
+				qualifier = "output ";
+				break;
+			case EQualifier::Ref:
+				qualifier = "ref ";
+				break;
+			}
+
+			SafeFormat(desc, "%s%s %s", qualifier, archetype.InputType(k), archetype.InputName(k));
 			classTree->SetItemText(idInputArg, desc);
 			classTree->SetItemImage(idInputArg, (int)ClassImageIndex::INPUT);
 		}
@@ -2299,6 +2320,29 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		for (int i = 0; i < f.InputCount(); ++i)
 		{
 			sb.AppendChar('(');
+
+			EQualifier inputQualifier = f.InputQualifier(i);
+
+			cstr qualifier;
+
+			switch (inputQualifier)
+			{
+			default:
+				qualifier = "";
+				break;
+			case EQualifier::Constant:
+				qualifier = "const ";
+				break;
+			case EQualifier::Output:
+				qualifier = "output ";
+				break;
+			case EQualifier::Ref:
+				qualifier = "ref ";
+				break;
+			}
+			
+			sb << qualifier;
+
 			sb << f.InputType(i);
 			sb.AppendChar(' ');
 			sb << f.InputName(i);

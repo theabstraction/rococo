@@ -21,6 +21,7 @@ namespace Rococo
 	{
 		struct ISExpression;
 		typedef const ISExpression& cr_sex;
+		enum class EQualifier;
 
 		bool IsCompound(cr_sex s);
 	}
@@ -118,6 +119,7 @@ namespace Rococo::SexyStudio
 		virtual cstr PublicName() const = 0;
 		virtual int InputCount() const = 0;
 		virtual int OutputCount() const = 0;
+		virtual Sex::EQualifier InputQualifier(int index) const = 0;
 		virtual cstr InputType(int index) const = 0;
 		virtual cstr OutputType(int index) const = 0;
 		virtual cstr InputName(int index) const = 0;

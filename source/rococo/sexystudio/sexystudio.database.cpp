@@ -166,10 +166,37 @@ namespace ANON
 			return lineNumber;
 		}
 
+		Sex::EQualifier InputQualifier(int index) const override
+		{
+			auto& sArg = psMethod->GetElement(index + 1 + classOffset);
+			if (sArg.NumberOfElements() == 2)
+			{
+				return Sex::EQualifier::None;
+			}
+
+			cstr qualifier = AlwaysGetAtomic(sArg, 0);
+			if (Eq(qualifier, "const"))
+			{
+				return Sex::EQualifier::Constant;
+			}
+			else if (Eq(qualifier, "out"))
+			{
+				return Sex::EQualifier::Output;
+			}
+			else if (Eq(qualifier, "ref"))
+			{
+				return Sex::EQualifier::Ref;
+			}
+			else
+			{
+				return Sex::EQualifier::None;
+			}
+		}
+
 		cstr InputType(int index) const override
 		{
 			cr_sex sArg = psMethod->GetElement(index + 1 + classOffset);
-			return AlwaysGetAtomic(sArg, 0);
+			return AlwaysGetAtomic(sArg, sArg.NumberOfElements() == 3 ? 1 : 0);
 		}
 
 		cstr OutputType(int index) const override
@@ -181,7 +208,7 @@ namespace ANON
 		cstr InputName(int index) const override
 		{
 			cr_sex sArg = psMethod->GetElement(index + 1 + classOffset);
-			return AlwaysGetAtomic(sArg, 1);
+			return AlwaysGetAtomic(sArg, sArg.NumberOfElements() == 3 ? 2 : 1);
 		}
 
 		cstr OutputName(int index) const override
@@ -387,14 +414,14 @@ namespace ANON
 		{
 			int i = 3 + index;
 			cr_sex sInput = sDef->GetElement(i);
-			return AlwaysGetAtomic(sInput, 0);
+			return AlwaysGetAtomic(sInput, sInput.NumberOfElements() == 3 ? 1 : 0);
 		}
 
 		cstr InputName(int index) const  override
 		{
 			int i = 3 + index;
 			cr_sex sInput = sDef->GetElement(i);
-			return AlwaysGetAtomic(sInput, 1);
+			return AlwaysGetAtomic(sInput, sInput.NumberOfElements() == 3 ? 2 : 1);
 		}
 
 		std::string shortName;
@@ -689,7 +716,7 @@ namespace ANON
 		cstr InputType(int index) const override
 		{
 			auto& sArg = sDef[index + 2];
-			return AlwaysGetAtomic(sArg, 0);
+			return AlwaysGetAtomic(sArg, sArg.NumberOfElements() == 3 ? 1 : 0);
 		}
 
 		cstr OutputType(int index) const override
@@ -701,7 +728,34 @@ namespace ANON
 		cstr InputName(int index) const override
 		{
 			auto& sArg = sDef[index + 2];
-			return AlwaysGetAtomic(sArg, 1);
+			return AlwaysGetAtomic(sArg, sArg.NumberOfElements() == 3 ? 2 : 1);
+		}
+
+		Sex::EQualifier InputQualifier(int index) const override
+		{
+			auto& sArg = sDef[index + 2];
+			if (sArg.NumberOfElements() == 2)
+			{
+				return Sex::EQualifier::None;
+			}
+
+			cstr qualifier = AlwaysGetAtomic(sArg, 0);
+			if (Eq(qualifier, "const"))
+			{
+				return Sex::EQualifier::Constant;
+			}
+			else if (Eq(qualifier, "out"))
+			{
+				return Sex::EQualifier::Output;
+			}
+			else if (Eq(qualifier, "ref"))
+			{
+				return Sex::EQualifier::Ref;
+			}
+			else
+			{
+				return Sex::EQualifier::None;
+			}
 		}
 
 		cstr OutputName(int index) const override
@@ -1331,10 +1385,37 @@ namespace ANON
 			return bodyIndex - mapIndex - 1;
 		}
 
+		Sex::EQualifier InputQualifier(int index) const override
+		{
+			auto& sArg = sFunction.GetElement(index + 2);
+			if (sArg.NumberOfElements() == 2)
+			{
+				return Sex::EQualifier::None;
+			}
+
+			cstr qualifier = AlwaysGetAtomic(sArg, 0);
+			if (Eq(qualifier, "const"))
+			{
+				return Sex::EQualifier::Constant;
+			}
+			else if (Eq(qualifier, "out"))
+			{
+				return Sex::EQualifier::Output;
+			}
+			else if (Eq(qualifier, "ref"))
+			{
+				return Sex::EQualifier::Ref;
+			}
+			else
+			{
+				return Sex::EQualifier::None;
+			}
+		}
+
 		cstr InputType(int index) const override
 		{
 			cr_sex sArg = sFunction.GetElement(index + 2);
-			return AlwaysGetAtomic(sArg, 0);
+			return AlwaysGetAtomic(sArg, sArg.NumberOfElements() == 3 ? 1 : 0);
 		}
 
 		cstr OutputType(int index) const override
@@ -1346,7 +1427,7 @@ namespace ANON
 		cstr InputName(int index) const override
 		{
 			cr_sex sArg = sFunction.GetElement(index + 2);
-			return AlwaysGetAtomic(sArg, 1);
+			return AlwaysGetAtomic(sArg, sArg.NumberOfElements() == 3 ? 2 : 1);
 		}
 
 		cstr OutputName(int index) const override
@@ -1453,6 +1534,13 @@ namespace ANON
 				if (IsAtomic(sArg[0]) && IsAtomic(sArg[1]))
 				{
 					return { sArg[0].c_str(), sArg[1].c_str() };
+				}
+			}
+			else if (sArg.NumberOfElements() == 3)
+			{
+				if (IsAtomic(sArg[1]) && IsAtomic(sArg[2]))
+				{
+					return { sArg[1].c_str(), sArg[2].c_str() };
 				}
 			}
 
@@ -2871,7 +2959,27 @@ namespace ANON
 					{
 						cstr inputName = l->InputName(j);
 						cstr inputType = l->InputType(j);
-						argBuilder.AppendFormat("(%s %s)", inputType, inputName);
+						EQualifier inputQualifier = l->InputQualifier(j);
+
+						cstr qualifier;
+
+						switch (inputQualifier)
+						{
+						case EQualifier::None:
+							qualifier = "";
+							break;
+						case EQualifier::Constant:
+							qualifier = "const ";
+							break;
+						case EQualifier::Output:
+							qualifier = "output ";
+							break;
+						case EQualifier::Ref:
+							qualifier = "ref ";
+							break;
+						}
+
+						argBuilder.AppendFormat("(%s%s %s)", inputType, inputName);
 					}
 
 					argBuilder << " -> ";

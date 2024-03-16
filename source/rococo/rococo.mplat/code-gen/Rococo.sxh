@@ -462,8 +462,13 @@
 		(GetRimQuad(Float32 zHigh)(Float32 zLow)(Int32 index)(out Quad quad))
 		(GetRimVertex (Int32 index)(out Vec2 p))
 		(TesselateUniform -> (Int32 nTrianglesPerFace))
+		
+		// Get a triangle from the bottom of the generated geometry, setting the z component with the given argument
 		(GetBottomTriangle (Int32 index)(out Triangle pos)(out Triangle2d uv)(Float32 z))
+		
+		// Get a triangle from the top of the generated geometry, setting the z component with the given argument
 		(GetTopTriangle (Int32 index)(out Triangle pos)(out Triangle2d uv)(Float32 z))
+		
 		(SetTransform (const Matrix4x4 transform))
 	)
 	(factory Rococo.Graphics.RimTesselator)
