@@ -161,9 +161,9 @@ namespace AudioAnon
 			installation.ConvertSysPathToPingPath(sysPath, expandedPingPath);
 		}
 
-		void LoadResource(cstr utf8Path, ILoadEventsCallback& onLoaded) override
+		bool TryLoadResource(cstr utf8Path, ILoadEventsCallback& onLoaded, OUT ErrorCode& errorCode) override
 		{	
-			installation.LoadResource(utf8Path, onLoaded);
+			return installation.TryLoadResource(utf8Path, onLoaded, OUT errorCode);
 		}
 
 		void Free() override

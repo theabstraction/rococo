@@ -166,8 +166,8 @@ namespace Rococo::Audio
 	ROCOCO_INTERFACE IAudioInstallationSupervisor
 	{
 		// Attempt to load a resource specified by [utf8Path]. Invokes the cb to first assign a file length, and second to provide a reader to the caller to extract file contents
-		// On error it will throw an exception
-		virtual void LoadResource(cstr utf8Path, IO::ILoadEventsCallback& cb) = 0;
+		// On error it will return false
+		virtual bool TryLoadResource(cstr utf8Path, IO::ILoadEventsCallback& cb, OUT ErrorCode& errorCode) = 0;
 
 		// Overwrites [normalizedPath] with a utf-8 interpretation of the [utf8Path] which uniquely identifies the resource.
 		// The purpose is to map many possible representations of a resource to one that serves as a key identifier in the system.

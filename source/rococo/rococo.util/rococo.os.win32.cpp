@@ -1587,6 +1587,27 @@ namespace WIN32_ANON
 			os.LoadAbsolute(absPath, cb);
 		}
 
+		bool TryLoadResource(cstr pingPath, ILoadEventsCallback& cb, OUT ErrorCode& errorCode) override
+		{
+			if (pingPath == nullptr || rlen(pingPath) < 2)
+			{
+				errorCode = (ErrorCode)E_INVALIDARG;
+				return false;
+			}
+
+			WideFilePath absPath;
+			if (pingPath[0] == '!' || pingPath[0] == '#')
+			{
+				ConvertPingPathToSysPath(pingPath, absPath);
+			}
+			else
+			{
+				Assign(absPath, pingPath);
+			}
+
+			return os.TryLoadAbsolute(absPath, cb, OUT errorCode);
+		}
+
 		void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) override
 		{
 			if (pingPath == nullptr || rlen(pingPath) < 2) Throw(E_INVALIDARG, "Win32OS::LoadResource failed: <resourcePath> was blank");
@@ -2000,6 +2021,82 @@ namespace WIN32_ANON
 
 				offset += (ptrdiff_t)chunk;
 				bytesLeft -= (int64)chunk;
+			}
+		}
+
+		bool TryLoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
+		{
+			sysErrorCode = (ErrorCode) 0;
+
+			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			if (hFile == INVALID_HANDLE_VALUE)
+			{
+				sysErrorCode = (ErrorCode)HRESULT_FROM_WIN32(GetLastError());
+				return false; 
+			}
+
+			try
+			{
+				LARGE_INTEGER len;
+				if (!GetFileSizeEx(hFile, &len))
+				{
+
+				}
+
+				cb.OnFileOpen(len.QuadPart);
+
+				struct LoadError : IException
+				{
+					int code;
+
+					LoadError(int _code): code(_code)
+					{
+
+					}
+
+					cstr Message() const override
+					{
+						return __FUNCTION__;
+					}
+
+					int32 ErrorCode() const override
+					{
+						return (int32) code;
+					}
+
+					Debugging::IStackFrameEnumerator* StackFrames() override
+					{
+						return nullptr;
+					}
+				};
+
+				struct Reader : ILoadEventReader
+				{
+					HANDLE hFile;
+					const wchar_t* absPath;
+
+					Reader(HANDLE _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
+
+					void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
+					{
+						DWORD bytesReadAPI;
+						if (!ReadFile(hFile, buffer, capacity, &bytesReadAPI, nullptr))
+						{
+							throw LoadError(HRESULT_FROM_WIN32(GetLastError()));
+						}
+
+						bytesRead = bytesReadAPI;
+					}
+				} reader(hFile, absPath);
+
+				cb.OnDataAvailable(reader);
+
+				return true;
+			}
+			catch (IException& ex)
+			{
+				sysErrorCode = (ErrorCode)ex.ErrorCode();
+				return false;
 			}
 		}
 

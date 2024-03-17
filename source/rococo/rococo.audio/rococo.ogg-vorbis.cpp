@@ -232,13 +232,10 @@ namespace AudioAnon
 			}
 		} cb(encodedData);
 
-		try
+		ErrorCode errorCode;
+		if (!installation.TryLoadResource(utf8Path, cb, errorCode))
 		{
-			installation.LoadResource(utf8Path, cb);
-		}
-		catch (IException& ex)
-		{
-			Throw(ex.ErrorCode(), "%s: error loading %s: %s", __FUNCTION__, utf8Path, ex.Message());
+			ThrowMissingResourceFile(errorCode, "Error loading audio file", utf8Path);
 		}
 	}
 
@@ -279,14 +276,32 @@ namespace AudioAnon
 			// Our algorithm expands the mp3 into a scratch buffer. This grows to accomodate the largest decoded MP3 put through the system
 			// The sample we extract copies the relevant portion of the scratch buffer - this way we ensure the minimum of memory fragmentation.
 
-			try
+			struct MediaLoadFailure : IException
 			{
-				PopulateMediaBufferWithFileData(installation, utf8Path, encodedDataSingleThreadedPrivateHeap);
-			}
-			catch (IException& ex)
-			{
-				Throw(ex.ErrorCode(), "%s: %s", __FUNCTION__, ex.Message());
-			}
+				char buffer[1024];
+
+				MediaLoadFailure(cstr filename)
+				{
+					SafeFormat(buffer, "Error loading file: %s", filename);
+				}
+
+				cstr Message() const override
+				{
+					return buffer;
+				}
+
+				int32 ErrorCode() const override
+				{
+					return 0;
+				}
+
+				Debugging::IStackFrameEnumerator* StackFrames() override
+				{
+					return nullptr;
+				}
+			};
+
+			PopulateMediaBufferWithFileData(installation, utf8Path, encodedDataSingleThreadedPrivateHeap);
 
 			size_t length = encodedDataSingleThreadedPrivateHeap.size();
 			if (length == 0)

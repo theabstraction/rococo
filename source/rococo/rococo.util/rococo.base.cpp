@@ -238,6 +238,33 @@ namespace Rococo
 		throw ex;
 	}
 
+	ROCOCO_API void ThrowMissingResourceFile(ErrorCode code, cstr description, cstr filename)
+	{
+		struct MissingResourceFile : IException
+		{
+			char message[1024] = { 0 };
+			Rococo::ErrorCode code;
+
+			cstr Message() const override
+			{
+				return message;
+			}
+
+			int ErrorCode() const override
+			{
+				return (int) code;
+			}
+
+			Debugging::IStackFrameEnumerator* StackFrames() override
+			{
+				return nullptr;
+			}
+		} err;
+
+		SafeFormat(err.message, "%s: %s", description, filename);
+		throw err;
+	}
+
 	ROCOCO_API void ThrowIllFormedSExpression(int32 displacement, cstr format, ...)
 	{
 		va_list args;

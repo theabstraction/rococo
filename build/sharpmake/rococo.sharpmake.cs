@@ -664,6 +664,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
+            conf.AddPublicDependency<RococoMPlatProject>(target);
         }
     }
 

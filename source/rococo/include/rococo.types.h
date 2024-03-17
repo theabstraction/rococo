@@ -105,6 +105,11 @@ namespace Rococo
 
 	typedef const char* cstr;
 
+	enum class ErrorCode : int
+	{
+		None = 0
+	};
+
 	typedef float float32;
 	typedef double float64;
 	typedef void* pointer;
@@ -383,6 +388,8 @@ namespace Rococo
 	[[ noreturn ]]
 	ROCOCO_API void Throw(int32 errorCode, cstr format, ...);
 #endif
+
+	ROCOCO_API void ThrowMissingResourceFile(ErrorCode code, cstr description, cstr filename);
 
 	template<class T> struct IEventCallback
 	{

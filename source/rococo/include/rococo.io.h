@@ -362,6 +362,7 @@ namespace Rococo::IO
 		virtual void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const = 0;
 		virtual size_t MaxPath() const = 0;
 		virtual void Monitor(const wchar_t* absPath) = 0;
+		virtual bool TryLoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const = 0;
 	};
 
 	ROCOCO_INTERFACE IInstallation
@@ -371,6 +372,7 @@ namespace Rococo::IO
 		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) = 0;
 		virtual bool TryLoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
+		virtual bool TryLoadResource(cstr pingPath, ILoadEventsCallback& cb, OUT ErrorCode& errorCode) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& path) const = 0;
 		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const = 0;

@@ -99,6 +99,11 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 		return baseInstallation->TryLoadResource(pingPath, buffer, maxFileLength);
 	}
 
+	bool TryLoadResource(cstr pingPath, ILoadEventsCallback& cb, OUT ErrorCode& errorCode) override
+	{
+		return baseInstallation->TryLoadResource(pingPath, cb, OUT errorCode);
+	}
+
 	void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const override
 	{
 		baseInstallation->ConvertPingPathToSysPath(pingPath, path);

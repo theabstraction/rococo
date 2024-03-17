@@ -208,7 +208,7 @@ namespace Rococo
 
 				if (AreEqual(inputtype, "IString"))
 				{
-					appender.Append("const fstring&");
+					appender.Append("const Rococo::fstring&");
 				}
 				else if (AreEqual(inputtype, "IStringBuilder"))
 				{

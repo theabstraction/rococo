@@ -232,13 +232,10 @@ namespace AudioAnon
 			}
 		} cb(buffer);
 
-		try
+		ErrorCode errorCode;
+		if (!installation.TryLoadResource(utf8Path, cb, OUT errorCode))
 		{
-			installation.LoadResource(utf8Path, cb);
-		}
-		catch (IException& ex)
-		{
-			Throw(ex.ErrorCode(), "%s: error loading %s: %s", __FUNCTION__, utf8Path, ex.Message());
+			ThrowMissingResourceFile(errorCode, "Could not load MP3 file", utf8Path);
 		}
 	}
 
@@ -447,7 +444,16 @@ namespace AudioAnon
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "AudioDecoder(MP3).StreamInputFile(%s) failed:\n %s", utf8Path, ex.Message());
+				if (ex.StackFrames())
+				{
+					// Assume we were given an exception with detailed stack info because a serious problem occured, in which case it may be deep API and missing the resource name
+					Throw(ex.ErrorCode(), "AudioDecoder(MP3).StreamInputFile(%s) failed:\n %s", utf8Path, ex.Message());
+				}
+				else
+				{
+					// stack frames are missing, because we just a missing resource, and we assume that is covered by the exception message
+					throw;
+				}
 			}
 		}
 		
@@ -459,7 +465,17 @@ namespace AudioAnon
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "%s:\n%s: %s", __FUNCTION__, utf8Path, ex.Message());
+				if (ex.StackFrames())
+				{
+					// Assume we were given an exception with detailed stack info because a serious problem occured, in which case it may be deep API and missing the resource name
+					Throw(ex.ErrorCode(), "%s:\n%s: %s", __FUNCTION__, utf8Path, ex.Message());
+				}
+				else
+				{
+					// stack frames are missing, because we just a missing resource, and we assume that is covered by the exception message
+					isStreaming = true;
+					return;
+				}
 			}
 
 			HRESULT hr;
