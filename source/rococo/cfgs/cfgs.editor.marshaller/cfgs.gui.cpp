@@ -1,5 +1,6 @@
 #include <rococo.cfgs.h>
 #include <rococo.maths.h>
+#include <rococo.strings.h>
 
 using namespace Rococo::Editors;
 using namespace Rococo::CFGS;
@@ -257,6 +258,62 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
+		cstr GetFirstAlphaNumericOnRight(cstr qualifiedIdentifier)
+		{
+			cstr end = qualifiedIdentifier + Strings::StringLength(qualifiedIdentifier);
+			cstr rhs = end - 1;
+
+			while (rhs > qualifiedIdentifier)
+			{
+				if (Strings::IsAlphaNumeric(*rhs))
+				{
+					rhs--;
+				}
+				else
+				{
+					rhs++;
+					break;
+				}
+			}
+
+			if (rhs >= qualifiedIdentifier && rhs < end)
+			{
+				return rhs;
+			}
+			else
+			{
+				return qualifiedIdentifier;
+			}
+		}
+
+		bool Abbreviate(char* buffer, size_t sizeofBuffer, cstr text)
+		{
+			cstr src = text;
+
+			char* dest = buffer;
+			char* end = buffer + sizeofBuffer;
+
+			while (*src != 0 && dest < end)
+			{
+				if (Strings::IsCapital(*src) || Strings::IsNumeric(*src))
+				{
+					*dest++ = *src++;
+				}
+				else
+				{
+					src++;
+				}
+			}
+
+			end[-1] = 0;
+			if (dest < end)
+			{
+				*dest = 0;
+			}
+
+			return *buffer != 0;
+		}
+
 		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace, RenderPhase phase)
 		{
 			auto rect = node.GetDesignRectangle();
@@ -301,7 +358,39 @@ namespace Rococo::CFGS::Internal
 
 			namePlateTextRect.left += 2;
 
-			fgr.DrawText(namePlateTextRect, node.Type().Value, EFGAF_Left | EFGAF_VCentre);
+			cstr text = node.Type().Value;
+
+			int width = fgr.MeasureText(text);
+
+			if (width < Width(namePlateTextRect))
+			{
+				fgr.DrawText(namePlateTextRect, node.Type().Value, EFGAF_Left | EFGAF_VCentre);
+			}
+			else
+			{
+				cstr rhs = GetFirstAlphaNumericOnRight(text);
+				width = fgr.MeasureText(rhs);
+				if (width < Width(namePlateTextRect))
+				{
+					fgr.DrawText(namePlateTextRect, rhs, EFGAF_Left | EFGAF_VCentre);
+				}
+				else
+				{
+					char abbreviations[10];
+					if (Abbreviate(abbreviations, sizeof abbreviations, rhs))
+					{
+						width = fgr.MeasureText(abbreviations);
+						if (width < Width(namePlateTextRect))
+						{
+							fgr.DrawText(namePlateTextRect, abbreviations, EFGAF_Left | EFGAF_VCentre);
+						}
+						else
+						{
+							fgr.DrawText(namePlateTextRect, "...", EFGAF_Left | EFGAF_VCentre);
+						}
+					}
+				}
+			}
 
 			RenderSockets(fgr, node, designSpace);
 		}

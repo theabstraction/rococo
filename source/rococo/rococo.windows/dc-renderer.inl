@@ -95,6 +95,13 @@ namespace Rococo::Windows
 			::DrawTextA(dc, text, (int) strlen(text), &textRect, dtText);
 		}
 
+		int MeasureText(cstr text)
+		{
+			SIZE len;
+			::GetTextExtentPointA(dc, text, strlen(text), &len);
+			return (int)len.cx;
+		}
+
 		void DrawFilledRect(const GuiRect& rect, RGBAb backColour) override
 		{
 			auto hBrush = CreateSolidBrush(RGB(backColour.red, backColour.green, backColour.blue));

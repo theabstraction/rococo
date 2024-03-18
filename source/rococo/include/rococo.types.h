@@ -224,6 +224,14 @@ namespace Rococo
 		void* pValue;
 	};
 
+	enum class EQualifier
+	{
+		None,
+		Constant,
+		Output,
+		Ref
+	};
+
 	namespace Windows
 	{
 		struct IWindow;

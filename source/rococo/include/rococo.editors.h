@@ -68,7 +68,7 @@ namespace Rococo::Editors
 		virtual void DrawFilledRect(const GuiRect& rect, RGBAb colour) = 0;
 		virtual void DrawRoundedRect(const GuiRect& rect, int border, RGBAb backColour, RGBAb lineColour) = 0;
 		virtual void DrawSpline(int thickness, Vec2i start, Vec2i startDirection, Vec2i end, Vec2i endDirection, RGBAb colour) = 0;
-
+		virtual int  MeasureText(cstr text) = 0;
 		virtual void MoveLineStartTo(Vec2i pos) = 0;
 
 		virtual void SetTextOptions(RGBAb backColour, RGBAb textColour) = 0;

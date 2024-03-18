@@ -51,12 +51,12 @@ namespace ANON
 
 		}
 
-		ISXYPublicFunction* FindFirstFunctionIf(ISxyNamespace& ns, Rococo::Function<bool (ISxyNamespace& ns, ISXYPublicFunction& f)> lambda)
+		ISXYPublicFunction* FindFirstFunctionIf(ISxyNamespace& ns, Rococo::Function<bool (ISxyNamespace& ns, ISXYPublicFunction& f)> predicate)
 		{
 			for (int i = 0; i < ns.FunctionCount(); i++)
 			{
 				auto& f = ns.GetFunction(i);
-				if (lambda(ns, f))
+				if (predicate(ns, f))
 				{
 					return &f;
 				}
@@ -65,7 +65,7 @@ namespace ANON
 			for (int i = 0; i < ns.SubspaceCount(); i++)
 			{
 				ISxyNamespace& subspace = ns[i];
-				auto* f = FindFirstFunctionIf(subspace, lambda);
+				auto* f = FindFirstFunctionIf(subspace, predicate);
 				if (f)
 				{
 					return f;
@@ -109,10 +109,21 @@ namespace ANON
 
 				for (int i = 0; i < f->LocalFunction()->InputCount(); i++)
 				{
+					auto qualifier = f->LocalFunction()->InputQualifier(i);
+
 					cstr name = f->LocalFunction()->InputName(i);
 					cstr type = f->LocalFunction()->InputType(i);
 
-					node.AddSocket(type, SocketClass::InputVar, name, SocketId());
+					switch (qualifier)
+					{
+					case EQualifier::None: // constant by default
+					case EQualifier::Constant:
+					case EQualifier::Ref: // refs require the variable input to be defined
+						node.AddSocket(type, SocketClass::InputVar, name, SocketId());
+						break;
+					case EQualifier::Output:
+						node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
+					}
 				}
 
 				for (int i = 0; i < f->LocalFunction()->OutputCount(); i++)

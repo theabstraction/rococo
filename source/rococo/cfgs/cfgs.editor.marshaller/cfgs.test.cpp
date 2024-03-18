@@ -120,6 +120,8 @@ namespace Rococo::CFGS::Internal
 
 		NodeId uniqueId;
 
+		int inputCount = 0;
+		int outputCount = 0;
 	public:
 		TestNode(cstr _typeName, DesignerVec2 pos, NodeId id) : typeName(_typeName)
 		{
@@ -139,6 +141,30 @@ namespace Rococo::CFGS::Internal
 		void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) override
 		{
 			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label, id));
+			
+			switch(socketClass)
+			{
+			case SocketClass::None:
+				break;
+			case SocketClass::Trigger:
+			case SocketClass::InputVar:
+			case SocketClass::InputRef:
+			case SocketClass::ConstInputRef:
+				inputCount++;
+				break;
+			case SocketClass::OutputRef:
+			case SocketClass::ConstOutputRef:
+			case SocketClass::OutputValue:
+			case SocketClass::Exit:
+				outputCount++;
+				break;
+			};
+
+			int nSlotHorizontals = 2 + max(inputCount, outputCount);
+
+			int height = nSlotHorizontals * 20;
+
+			designRect.bottom = designRect.top + height;
 		}
 
 		void ClearSockets()

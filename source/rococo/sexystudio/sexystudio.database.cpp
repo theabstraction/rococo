@@ -166,30 +166,30 @@ namespace ANON
 			return lineNumber;
 		}
 
-		Sex::EQualifier InputQualifier(int index) const override
+		EQualifier InputQualifier(int index) const override
 		{
 			auto& sArg = psMethod->GetElement(index + 1 + classOffset);
 			if (sArg.NumberOfElements() == 2)
 			{
-				return Sex::EQualifier::None;
+				return EQualifier::None;
 			}
 
 			cstr qualifier = AlwaysGetAtomic(sArg, 0);
 			if (Eq(qualifier, "const"))
 			{
-				return Sex::EQualifier::Constant;
+				return EQualifier::Constant;
 			}
 			else if (Eq(qualifier, "out"))
 			{
-				return Sex::EQualifier::Output;
+				return EQualifier::Output;
 			}
 			else if (Eq(qualifier, "ref"))
 			{
-				return Sex::EQualifier::Ref;
+				return EQualifier::Ref;
 			}
 			else
 			{
-				return Sex::EQualifier::None;
+				return EQualifier::None;
 			}
 		}
 
@@ -731,30 +731,30 @@ namespace ANON
 			return AlwaysGetAtomic(sArg, sArg.NumberOfElements() == 3 ? 2 : 1);
 		}
 
-		Sex::EQualifier InputQualifier(int index) const override
+		EQualifier InputQualifier(int index) const override
 		{
 			auto& sArg = sDef[index + 2];
 			if (sArg.NumberOfElements() == 2)
 			{
-				return Sex::EQualifier::None;
+				return EQualifier::None;
 			}
 
 			cstr qualifier = AlwaysGetAtomic(sArg, 0);
 			if (Eq(qualifier, "const"))
 			{
-				return Sex::EQualifier::Constant;
+				return EQualifier::Constant;
 			}
 			else if (Eq(qualifier, "out"))
 			{
-				return Sex::EQualifier::Output;
+				return EQualifier::Output;
 			}
 			else if (Eq(qualifier, "ref"))
 			{
-				return Sex::EQualifier::Ref;
+				return EQualifier::Ref;
 			}
 			else
 			{
-				return Sex::EQualifier::None;
+				return EQualifier::None;
 			}
 		}
 
@@ -1385,30 +1385,30 @@ namespace ANON
 			return bodyIndex - mapIndex - 1;
 		}
 
-		Sex::EQualifier InputQualifier(int index) const override
+		EQualifier InputQualifier(int index) const override
 		{
 			auto& sArg = sFunction.GetElement(index + 2);
 			if (sArg.NumberOfElements() == 2)
 			{
-				return Sex::EQualifier::None;
+				return EQualifier::None;
 			}
 
 			cstr qualifier = AlwaysGetAtomic(sArg, 0);
 			if (Eq(qualifier, "const"))
 			{
-				return Sex::EQualifier::Constant;
+				return EQualifier::Constant;
 			}
 			else if (Eq(qualifier, "out"))
 			{
-				return Sex::EQualifier::Output;
+				return EQualifier::Output;
 			}
 			else if (Eq(qualifier, "ref"))
 			{
-				return Sex::EQualifier::Ref;
+				return EQualifier::Ref;
 			}
 			else
 			{
-				return Sex::EQualifier::None;
+				return EQualifier::None;
 			}
 		}
 
