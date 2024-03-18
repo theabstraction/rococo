@@ -1462,9 +1462,10 @@ namespace
            UNUSED(ds);
 	   }
 
-	   void OnMeasureItem(MEASUREITEMSTRUCT&) override
+	   void OnMeasureItem(HWND hListView, MEASUREITEMSTRUCT& ms) override
 	   {
-
+           UNUSED(ms);
+           UNUSED(hListView);
 	   }
 
 	   void OnItemChanged(int index) override
@@ -1486,7 +1487,7 @@ namespace
 
 	   void PostConstruct(IWindow& parent, bool ownerDraw)
 	   {
-		   window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), "", eventHandler, LVS_REPORT | (ownerDraw ? LVS_OWNERDRAWFIXED : 0), WS_BORDER, 0);
+		   window = Windows::AddListView(parent, GuiRect(0, 0, 0, 0), "", eventHandler, LVS_REPORT | LVS_NOSORTHEADER | (ownerDraw ? LVS_OWNERDRAWFIXED : 0), WS_BORDER, 0);
 	   }
 
 	   void LayoutChildren()

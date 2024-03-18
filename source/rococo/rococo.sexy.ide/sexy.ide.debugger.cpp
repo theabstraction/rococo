@@ -162,7 +162,7 @@ namespace
 					itemRect.left = x;
 					itemRect.right = x1;
 
-					DrawTextA(d.hDC, text, (int) strlen(text), &itemRect, DT_VCENTER | DT_LEFT);
+					DrawTextA(d.hDC, text, (int) strlen(text), &itemRect, DT_VCENTER | DT_SINGLELINE | DT_LEFT);
 				}
 
 				x = x1;
@@ -179,6 +179,21 @@ namespace
 		}
 
 		SetTextColor(d.hDC, originalColour);
+	}
+
+	NOT_INLINE void LV_MeasureItem(HWND hWnd, MEASUREITEMSTRUCT& ms)
+	{
+		HFONT hFont = (HFONT) SendMessage(hWnd, WM_GETFONT, 0, 0);
+		if (hFont)
+		{
+			HDC dc = GetDC(hWnd);
+			TEXTMETRICA tm;
+			if (GetTextMetricsA(dc, &tm))
+			{
+				ms.itemHeight = tm.tmHeight + 4;
+			}
+			ReleaseDC(hWnd, dc);
+		}
 	}
 
 	class TabbedDebuggerWindowHandler :
@@ -215,9 +230,9 @@ namespace
 				LV_DrawItem(This->scheme, d);
 			}
 
-			void OnMeasureItem(MEASUREITEMSTRUCT&) override
+			void OnMeasureItem(HWND hWnd,MEASUREITEMSTRUCT& ms) override
 			{
-
+				LV_MeasureItem(hWnd, ms);
 			}
 
 			void OnItemChanged(int index) override
@@ -234,9 +249,9 @@ namespace
 				LV_DrawItem(This->scheme, d);
 			}
 
-			void OnMeasureItem(MEASUREITEMSTRUCT&) override
+			void OnMeasureItem(HWND hWnd, MEASUREITEMSTRUCT& ms) override
 			{
-
+				LV_MeasureItem(hWnd, ms);
 			}
 
 			void OnItemChanged(int) override
@@ -253,9 +268,9 @@ namespace
 				LV_DrawItem(This->scheme, d);
 			}
 
-			void OnMeasureItem(MEASUREITEMSTRUCT&) override
+			void OnMeasureItem(HWND hWnd, MEASUREITEMSTRUCT& ms) override
 			{
-
+				LV_MeasureItem(hWnd, ms);
 			}
 
 			void OnItemChanged(int) override

@@ -225,7 +225,7 @@ namespace Rococo::Graphics
 
 		}
 
-		virtual void OnMeasureItem(MEASUREITEMSTRUCT&)
+		virtual void OnMeasureItem(HWND, MEASUREITEMSTRUCT&)
 		{
 
 		}

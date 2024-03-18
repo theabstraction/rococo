@@ -297,7 +297,7 @@ namespace ANON
 
 		}
 
-		void OnMeasureItem(MEASUREITEMSTRUCT&) override
+		void OnMeasureItem(HWND hListView, MEASUREITEMSTRUCT&) override
 		{
 
 		}

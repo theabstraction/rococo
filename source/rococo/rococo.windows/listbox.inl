@@ -67,7 +67,7 @@ namespace Rococo::Windows
 		BOOL OnMeasureItem(HWND, WPARAM, LPARAM lParam)
 		{
 			MEASUREITEMSTRUCT& mis = *LPMEASUREITEMSTRUCT(lParam);
-			itemRenderer.OnMeasureItem(mis);
+			itemRenderer.OnMeasureItem(hWndListBox, mis);
 			return TRUE;
 		}
 

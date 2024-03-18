@@ -379,7 +379,7 @@ namespace Rococo
 			HWND hWnd = CreateWindowExA(c.exStyle, className, c.windowName, c.style, c.left, c.top, c.width, c.height, c.hWndParent, c.hMenu, hThisInstance, _handler);
 			if (hWnd == nullptr)
 			{
-				Throw(GetLastError(), "Rococo::CreateWindowIndirect(...): CreateWindowExW failed");
+				Throw(GetLastError(), "%s: CreateWindowExW(%s) failed", __FUNCTION__, c.windowName);
 			}
 
 			if (className == (cstr)customAtom || Eq(className, customClassName))
@@ -507,10 +507,10 @@ namespace Rococo
 			return t;
 		}
 
-		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, cstr name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD containerStyleEx)
+		IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, cstr name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD listExStyle)
 		{
 			WindowConfig childConfig;
-			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, containerStyleEx);
+			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, listExStyle);
 			ListViewSupervisor* t = ListViewSupervisor::Create(childConfig, parent, eventHandler, containerStyle);
 			return t;
 		}

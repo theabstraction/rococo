@@ -60,7 +60,7 @@ namespace Rococo::Windows
 			if (!itemRenderer) return DefWindowProc(hWnd, WM_MEASUREITEM, wParam, lParam);
 
 			MEASUREITEMSTRUCT& mis = *LPMEASUREITEMSTRUCT(lParam);
-			itemRenderer->OnMeasureItem(mis);
+			itemRenderer->OnMeasureItem(hWndComboBox, mis);
 			return TRUE;
 		}
 

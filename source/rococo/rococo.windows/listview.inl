@@ -83,7 +83,7 @@ namespace Rococo::Windows
 		BOOL OnMeasureItem(HWND, WPARAM, LPARAM lParam)
 		{
 			MEASUREITEMSTRUCT& mis = *LPMEASUREITEMSTRUCT(lParam);
-			eventHandler.OnMeasureItem(mis);
+			eventHandler.OnMeasureItem(hWndListView, mis);
 			return TRUE;
 		}
 
