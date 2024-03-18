@@ -473,7 +473,6 @@ namespace AudioAnon
 				else
 				{
 					// stack frames are missing, because we just a missing resource, and we assume that is covered by the exception message
-					isStreaming = true;
 					return;
 				}
 			}

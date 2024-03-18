@@ -203,6 +203,7 @@ public:
 		{
 			auto& ui = As<UIInvoke>(ev);
 
+			// The command consists of a directive separated from its arguments by a space
 			char directive[256];
 			const char* p = ui.command;
 			for (int i = 0; i < 256; ++i)
@@ -229,21 +230,24 @@ public:
 			}
 			else
 			{
-				Throw(0, "Unhandled UIInvoke handler for \"%s\"", directive);
+				Throw(0, "Unhandled UIInvoke handler for \"%s\". Review the REGISTER_UI_EVENT_HANDLER(...) sections in code", directive);
 			}
 		}
 		else if (ev == evUIPopulate)
 		{
 			auto& pop = As<UIPopulate>(ev);
 
-			auto i = renderElements.find(pop.name);
-			if (i != renderElements.end())
+			if (pop.renderElement == nullptr)
 			{
-				pop.renderElement = i->second;
-			}
-			else
-			{
-				Throw(0, "Unhandled population event:\"%s\"", pop.name);
+				auto i = renderElements.find(pop.name);
+				if (i != renderElements.end())
+				{
+					pop.renderElement = i->second;
+				}
+				else
+				{
+					// Unhandled population event;
+				}
 			}
 		}
 	}
