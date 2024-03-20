@@ -122,9 +122,12 @@ namespace Rococo::CFGS::Internal
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
-			int32 socketTop = parentRect.top + 30;
+			DesignerVec2 designerSocketTopLeft { designerParentRect.left, designerParentRect.top + yIndex * 20 };
+			Vec2i topLeft = designSpace.WorldToScreen(designerSocketTopLeft) + Vec2i{ 6, 30 };
 
-			GuiRect circleRect{ parentRect.left + 6, socketTop + yIndex * 20, parentRect.left + 26, socketTop + (yIndex + 1) * 20 };
+			int diameter = 20;
+
+			GuiRect circleRect{ topLeft.x, topLeft.y, topLeft.x + diameter, topLeft.y + diameter };
 			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
 
 			Vec2i edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
