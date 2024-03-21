@@ -150,6 +150,9 @@ namespace Rococo::Editors
 		// Ends a drag operation on the grid, using the specified pixel position as the end co-ordinate
 		virtual void EndDrag(Vec2i referencePixelPosition) = 0;
 
+		// Returns true if a dragging operation is in progress
+		virtual bool IsDragging() const = 0;
+
 		// Temporarily updates the visuals of the grid, using the specified pixel position as the preview co-ordinate
 		virtual void PreviewDrag(Vec2i referencePixelPosition) = 0;
 

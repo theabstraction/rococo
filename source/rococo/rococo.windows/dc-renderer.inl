@@ -98,7 +98,7 @@ namespace Rococo::Windows
 		int MeasureText(cstr text)
 		{
 			SIZE len;
-			::GetTextExtentPointA(dc, text, strlen(text), &len);
+			::GetTextExtentPointA(dc, text, (int) strlen(text), &len);
 			return (int)len.cx;
 		}
 

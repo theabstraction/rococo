@@ -341,6 +341,12 @@ namespace ANON
 
 		void GridEvent_OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
+			auto& popup = ide->DesignerSpacePopup();
+			if (popup.IsVisible())
+			{
+				popup.Hide();
+			}
+
 			gridSlate->CaptureCursorInput();
 
 			if (!gui->OnLeftButtonDown(buttonFlags, cursorPosition))
@@ -357,7 +363,10 @@ namespace ANON
 
 			if (!gui->OnLeftButtonUp(buttonFlags, cursorPosition))
 			{
-				gridSlate->EndDrag(cursorPosition);
+				if (gridSlate->IsDragging())
+				{
+					gridSlate->EndDrag(cursorPosition);
+				}
 			}
 
 			gridSlate->QueueRedraw();

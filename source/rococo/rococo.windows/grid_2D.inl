@@ -356,6 +356,11 @@ namespace Rococo::Windows
 			}
 		}
 
+		bool IsDragging() const override
+		{
+			return dragStart.x != -1;
+		}
+
 		void PreviewDrag(Vec2i referencePixelPosition)
 		{
 			if (dragStart.x != -1)

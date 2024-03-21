@@ -134,6 +134,11 @@ namespace Rococo::CFGS::Internal
 			socket.SetLastGeometry(circleRect, edgePoint);
 		}
 
+		enum
+		{
+			PADDING_SOCKET_TEXT_RECT_CENTRE = 12
+		};
+
 		void RenderLeftSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace)
 		{
 			GuiRect circleRect{ -1,-1,-1,-1 };
@@ -143,7 +148,7 @@ namespace Rococo::CFGS::Internal
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
-			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
+			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2 - PADDING_SOCKET_TEXT_RECT_CENTRE, circleRect.bottom };
 
 			Vec2i cursorPos = fgr.CursorPosition();
 			bool isLit = IsPointInRect(cursorPos, circleRect);
@@ -153,7 +158,19 @@ namespace Rococo::CFGS::Internal
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
-			fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Left | EFGAF_VCentre);
+			cstr name = socket.Name();
+
+			int pixelWidth = fgr.MeasureText(name);
+			if (pixelWidth >= Width(socketTextRect))
+			{
+				char subname[8];
+				Strings::SafeFormat(subname, "%.3s...", name);
+				fgr.DrawText(socketTextRect, subname, EFGAF_Left | EFGAF_VCentre);
+			}
+			else
+			{
+				fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Left | EFGAF_VCentre);
+			}
 
 			if (socket.CableCount() > 0)
 			{
@@ -188,7 +205,7 @@ namespace Rococo::CFGS::Internal
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 			
-			GuiRect socketTextRect{ (parentRect.right + parentRect.left) / 2, circleRect.top, circleRect.left, circleRect.bottom };
+			GuiRect socketTextRect{ (parentRect.right + parentRect.left) / 2 + PADDING_SOCKET_TEXT_RECT_CENTRE, circleRect.top, circleRect.left, circleRect.bottom };
 
 			Vec2i cursorPos = fgr.CursorPosition();
 			bool isLit = IsPointInRect(cursorPos, circleRect);
@@ -198,7 +215,19 @@ namespace Rococo::CFGS::Internal
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
-			fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Right | EFGAF_VCentre);
+			cstr name = socket.Name();
+
+			int pixelWidth = fgr.MeasureText(name);
+			if (pixelWidth >= Width(socketTextRect))
+			{
+				char subname[8];
+				Strings::SafeFormat(subname, "%.3s...", name);
+				fgr.DrawText(socketTextRect, subname, EFGAF_Right | EFGAF_VCentre);
+			}
+			else
+			{
+				fgr.DrawText(socketTextRect, socket.Name(), EFGAF_Right | EFGAF_VCentre);
+			}
 
 			if (socket.CableCount() > 0)
 			{
