@@ -692,7 +692,7 @@ namespace Rococo::CFGS::Internal
 
 			bool wasChanged = false;
 			cables.VisuallySelect(cable ? foundIndex : -1, OUT wasChanged);
-			return wasChanged;
+			return cable != nullptr;
 		}
 
 		bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
