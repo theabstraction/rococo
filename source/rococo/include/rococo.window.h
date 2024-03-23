@@ -223,18 +223,20 @@ namespace Rococo
 		typedef void(*FN_OnSize)(void* context, HWND hWnd, const Vec2i& span, RESIZE_TYPE type);
 		typedef DWORD(*FN_OnIdle)(void* context);
 		typedef void(*FN_OnPreTranslate)(void* context, MSG& msg);
+		typedef LRESULT (*FN_OnMessage)(void* context, HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, OUT bool& invokeBase);
 
 		ROCOCO_INTERFACE IWiredWindowHandler : public IWindowHandler
 		{
 			virtual void Free() = 0;
 			virtual DWORD OnIdle() = 0;
-			virtual void RouteClose(void* context, FN_OnClose fn) = 0;
+			virtual void RouteClose(void* context, FN_OnClose f) = 0;
 			virtual void RouteControlCommand(void* context, FN_OnControlCommand f) = 0;
 			virtual void RouteIdle(void* context, FN_OnIdle f) = 0;
 			virtual void RouteMenuCommand(void* context, FN_OnMenuCommand f) = 0;
 			virtual void RouteAcceleratorCommand(void* context, FN_OnAcceleratorCommand f) = 0;
-			virtual void RouteSize(void* context, FN_OnSize fn) = 0;
-			virtual void RoutePreTranslate(void* context, FN_OnPreTranslate fn) = 0;
+			virtual void RouteSize(void* context, FN_OnSize f) = 0;
+			virtual void RoutePreTranslate(void* context, FN_OnPreTranslate f) = 0;
+			virtual void RouteMessage(void* context, FN_OnMessage f) = 0;
 		};
 
 		ROCOCO_WINDOWS_API IWiredWindowHandler* CreateWiredHandler();

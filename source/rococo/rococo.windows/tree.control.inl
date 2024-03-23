@@ -187,22 +187,22 @@ namespace Rococo::Windows
 			TreeView_SetTextColor(hTreeWindow, ToCOLORREF(scheme.foreColour));
 		}
 
-		virtual IUITree& operator()()
+		IUITree& operator()()
 		{
 			return *this;
 		}
 
-		virtual operator IUITree& ()
+		operator IUITree& ()
 		{
 			return *this;
 		}
 
-		virtual IUITree& Tree()
+		virtual IUITree& Tree() override
 		{
 			return *this;
 		}
 
-		virtual CheckState GetCheckState(TREE_NODE_ID id) const
+		CheckState GetCheckState(TREE_NODE_ID id) const override
 		{
 			int checkstate = TreeView_GetCheckState(hTreeWindow, ToHTree(id));
 			switch (checkstate)
@@ -216,7 +216,32 @@ namespace Rococo::Windows
 			}
 		}
 
-		virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state)
+		TREE_NODE_ID FindChild(TREE_NODE_ID parentId, cstr withText) override
+		{
+			HTREEITEM hFirstChild = TreeView_GetChild(hTreeWindow, ToHTree(parentId));
+			HTREEITEM hItem = hFirstChild;
+			while (hItem != 0)
+			{
+				TVITEMA item = { 0 };
+				item.hItem = hItem;
+				item.mask = TVIF_TEXT;
+				CHAR buf[MAX_PATH];
+				item.cchTextMax = MAX_PATH;
+				item.pszText = buf;
+				TreeView_GetItem(hTreeWindow, &item);
+
+				if (Eq(buf, withText))
+				{
+					return ToId(hItem);
+				}
+
+				hItem = TreeView_GetNextSibling(hTreeWindow, hItem);
+			}
+
+			return TREE_NODE_ID{ 0 };
+		}
+
+		TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state) override
 		{
 			TVINSERTSTRUCTA z = { 0 };
 			z.hParent = ToHTree(parentId);
@@ -245,7 +270,7 @@ namespace Rococo::Windows
 			return id;
 		}
 
-		virtual void SetId(TREE_NODE_ID nodeId, int64 id)
+		void SetId(TREE_NODE_ID nodeId, int64 id) override
 		{
 			TVITEMEX item = { 0 };
 			item.mask = TVIF_PARAM;
@@ -257,7 +282,7 @@ namespace Rococo::Windows
 			}
 		}
 
-		virtual TREE_NODE_ID AddRootItem(cstr text, CheckState state)
+		TREE_NODE_ID AddRootItem(cstr text, CheckState state) override
 		{
 			TVINSERTSTRUCTA z = { 0 };
 			z.hInsertAfter = TVI_LAST;
@@ -286,27 +311,27 @@ namespace Rococo::Windows
 			return id;
 		}
 
-		virtual void ResetContent()
+		void ResetContent() override
 		{
 			TreeView_DeleteAllItems(hTreeWindow);
 		}
 
-		virtual IWindowHandler& Handler()
+		IWindowHandler& Handler() override
 		{
 			return *this;
 		}
 
-		virtual operator HWND () const
+		operator HWND () const override
 		{
 			return *containerWindow;
 		}
 
-		virtual HWND TreeHandle() const
+		HWND TreeHandle() const override
 		{
 			return hTreeWindow;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}

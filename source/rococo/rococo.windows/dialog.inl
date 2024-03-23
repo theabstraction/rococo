@@ -22,12 +22,12 @@ namespace Rococo::Windows::Impl
 			DeleteAll(children);
 		}
 
-      virtual void OnPretranslateMessage(MSG&)
-      {
+		void OnPretranslateMessage(MSG&) override
+		{
 
-      }
+		}
 
-		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			if (modalHandler)
 			{
@@ -43,12 +43,12 @@ namespace Rococo::Windows::Impl
 			}
 		}
 
-		virtual IWindowHandler& Handler()
+		IWindowHandler& Handler() override
 		{
 			return *this;
 		}
 
-		virtual DWORD BlockModal(IModalControl& control, HWND ownerWindow, IWindowHandler* overrideHandler)
+		DWORD BlockModal(IModalControl& control, HWND ownerWindow, IWindowHandler* overrideHandler) override
 		{
 			this->modalHandler = overrideHandler;
 
@@ -56,7 +56,7 @@ namespace Rococo::Windows::Impl
 
 			ShowWindow(hWnd, SW_SHOW);
 			EnableWindow(ownerWindow, FALSE);
-         SetForegroundWindow(hWnd);
+			SetForegroundWindow(hWnd);
 
 			while (control.IsRunning())
 			{
@@ -66,7 +66,7 @@ namespace Rococo::Windows::Impl
 				MSG msg;
 				while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 				{
-               overrideHandler->OnPretranslateMessage(msg);
+					overrideHandler->OnPretranslateMessage(msg);
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
 				}
@@ -94,17 +94,17 @@ namespace Rococo::Windows::Impl
 			return p;
 		}
 
-		virtual operator HWND () const
+		operator HWND () const override
 		{
 			return hWnd;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual IWindowSupervisor* AddChild(const WindowConfig& _childConfig, cstr className, ControlId id)
+		IWindowSupervisor* AddChild(const WindowConfig& _childConfig, cstr className, ControlId id) override
 		{
 			WindowConfig childConfig = _childConfig;
 			childConfig.hWndParent = hWnd;
@@ -115,7 +115,7 @@ namespace Rococo::Windows::Impl
 			return p;
 		}
 
-		virtual IParentWindowSupervisor* AddChild(const WindowConfig& _childConfig, ControlId id, IWindowHandler* modelessHandler)
+		IParentWindowSupervisor* AddChild(const WindowConfig& _childConfig, ControlId id, IWindowHandler* modelessHandler) override
 		{
 			WindowConfig childConfig = _childConfig;
 			childConfig.hWndParent = hWnd;

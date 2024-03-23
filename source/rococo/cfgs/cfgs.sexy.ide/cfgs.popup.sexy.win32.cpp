@@ -310,7 +310,7 @@ namespace ANON
 
 		void OnMeasureItem(HWND hListView, MEASUREITEMSTRUCT&) override
 		{
-
+			UNUSED(hListView);
 		}
 
 		void OnSize(HWND, const Vec2i&, RESIZE_TYPE) override

@@ -71,10 +71,12 @@ namespace ANON
 	struct FNameValidator : IStringValidator
 	{
 		IVariableEditor& editor;
+		Visitors::TREE_NODE_ID parentId;
+		Visitors::IUITree& tree;
 
-		FNameValidator(IVariableEditor& _editor): editor(_editor)
+		FNameValidator(IVariableEditor& _editor, Visitors::TREE_NODE_ID id, Visitors::IUITree& _tree): editor(_editor), parentId(id), tree(_tree)
 		{
-
+			
 		}
 
 		bool ValidateAndReportErrors(cstr textEditorContent, cstr variableName) override
@@ -84,9 +86,25 @@ namespace ANON
 				editor.SetHintError(variableName, "The name is blank");
 				return false;
 			}
+
 			if (!isupper(*textEditorContent))
 			{
 				editor.SetHintError(variableName, "The first character of a function name must be a capital A-Z");
+				return false;
+			}
+
+			for (cstr p = textEditorContent + 1; *p != 0; p++)
+			{
+				if (!isalnum(*p))
+				{
+					editor.SetHintError(variableName, "The trailing characters of a function name must be alpha numerics. A-Z, a-z or 0-9");
+					return false;
+				}
+			}
+
+			if (0 != tree.FindChild(parentId, textEditorContent).value)
+			{
+				editor.SetHintError(variableName, "The function name already exists in the tree");
 				return false;
 			}
 
@@ -108,14 +126,15 @@ namespace ANON
 
 		void OnItemSelected(Visitors::TREE_NODE_ID id, Visitors::IUITree& origin) override
 		{
-
+			UNUSED(id);
+			UNUSED(origin);
 		}
 
 		void OnItemRightClicked(Visitors::TREE_NODE_ID id, Visitors::IUITree& origin) override
 		{
 			if (id == functionsId)
 			{
-				Vec2i span{ 640, 120 };
+				Vec2i span{ 800, 120 };
 				int labelWidth = 120;
 
 				char fname[128] = { 0 };
@@ -124,13 +143,13 @@ namespace ANON
 				{
 					void OnButtonClicked(cstr variableName) override
 					{
-
+						UNUSED(variableName, origin, functionsId);
 					}
 				} evHandler;
 
 				AutoFree<IVariableEditor> fnameEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a new function...", nullptr, nullptr, &evHandler, nullptr);
 
-				FNameValidator fnameValidator(*fnameEditor);
+				FNameValidator fnameValidator(*fnameEditor, id, origin);
 				fnameEditor->AddStringEditor("Function Name", nullptr, fname, sizeof fname, &fnameValidator);
 				if (fnameEditor->IsModalDialogChoiceYes())
 				{

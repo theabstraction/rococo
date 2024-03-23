@@ -200,6 +200,79 @@ namespace
 		}
 	};
 
+	enum
+	{ 
+		VariableEditEditorProcId = 42, 
+		VariableEditButtonProcId = 43,
+		WM_NAVIGATE_BY_TAB = WM_USER + 1,
+	};
+
+	HWND GetAnscestorWithId(HWND hChildWnd, ControlId targetId)
+	{
+		HWND hWnd = hChildWnd;
+		while (hWnd != nullptr)
+		{
+			auto id = GetWindowLongPtrA(hWnd, GWL_ID);
+			if (targetId == id)
+			{
+				return hWnd;
+			}
+
+			hWnd = GetParent(hWnd);
+		}
+
+		return nullptr;
+	}
+
+	static LRESULT VariableEditEditorProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+	{
+		UNUSED(dwRefData);
+
+		if (uIdSubclass == VariableEditEditorProcId)
+		{
+			switch (uMsg)
+			{
+			case WM_KEYUP:
+				if (wParam == VK_TAB || wParam == VK_RETURN || wParam == VK_DOWN)
+				{
+					HWND hVariableEditorWnd = GetAnscestorWithId(hWnd, 0);
+					if (hVariableEditorWnd)
+					{
+						PostMessage(hVariableEditorWnd, WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 1);
+					}
+					return 0L;
+				}
+
+				if (wParam == VK_UP)
+				{
+					HWND hVariableEditorWnd = GetAnscestorWithId(hWnd, 0);
+					if (hVariableEditorWnd)
+					{
+						PostMessage(hVariableEditorWnd, WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), -1);
+					}
+					return 0L;
+				}
+				return 0L;
+			case WM_KEYDOWN:
+			{
+				if (wParam == VK_TAB || wParam == VK_RETURN)
+				{
+					return 0L;
+				}
+				break;
+			}
+			case WM_CHAR:
+				if (wParam == VK_TAB || wParam == VK_RETURN)
+				{
+					return 0L;
+				}
+				break;
+			}
+		}
+
+		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+	}
+
 	class VariableEditor : public IVariableEditor, private ITabControlEvents, private StandardWindowHandler, public IRichEditorEvents
 	{
 	private:
@@ -282,7 +355,42 @@ namespace
 
 		void OnPretranslateMessage(MSG& msg) override
 		{
-			UNUSED(&msg);
+			switch (msg.message)
+			{
+			case WM_KEYUP:
+				if (msg.wParam == VK_TAB)
+				{
+					HWND hFocusWnd = GetFocus();
+					if (hFocusWnd == *okButton)
+					{
+						SetFocus(*cancelButton);
+						msg.message = WM_NULL;
+					}
+					else if (hFocusWnd == *cancelButton)
+					{
+						HWND firstVisibleEditor = GetNextVisibleEditor(0, nullptr);
+						SetFocus(firstVisibleEditor ? firstVisibleEditor : *okButton);
+						msg.message = WM_NULL;
+					}
+				}
+				else if (msg.wParam == VK_RETURN)
+				{
+					HWND hFocusWnd = GetFocus();
+					if (hFocusWnd == *okButton)
+					{
+						if (TryCompleteDialogElseReportErrors())
+						{
+							dlg.TerminateDialog(IDOK);
+						}
+						msg.message = WM_NULL;
+					}
+					else if (hFocusWnd == *cancelButton)
+					{
+						dlg.TerminateDialog(IDCANCEL);
+						msg.message = WM_NULL;
+					}
+				}
+			}
 		}
 
 		void OnTabRightClicked(int index, const POINT& screenPos) override
@@ -339,6 +447,26 @@ namespace
 			}
 		}
 
+		bool TryCompleteDialogElseReportErrors()
+		{
+			for (VariableDesc& v : variables)
+			{
+				if (v.validator)
+				{
+					char* text = (char*)_malloca(sizeof(char) * v.var.value.textValue.capacity);
+					GetWindowTextA(*v.EditControl, text, v.var.value.textValue.capacity);
+					bool success = v.validator->ValidateAndReportErrors(text, v.name);
+					_freea(text);
+					if (!success)
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
 		LRESULT OnControlCommand(HWND, DWORD notificationCode, ControlId id, HWND hControlCode)
 		{
 			switch (notificationCode)
@@ -364,19 +492,9 @@ namespace
 				switch (id)
 				{
 				case IDOK:
-					for (VariableDesc& v : variables)
+					if (!TryCompleteDialogElseReportErrors())
 					{
-						if (v.validator)
-						{
-							char* text = (char*)_malloca(sizeof(char)* v.var.value.textValue.capacity);
-							GetWindowTextA(*v.EditControl, text, v.var.value.textValue.capacity);
-							bool success = v.validator->ValidateAndReportErrors(text, v.name);
-							_freea(text);
-							if (!success)
-							{
-								return 0L;
-							}
-						}
+						return 0L;
 					}
 					break;
 				default:
@@ -392,6 +510,99 @@ namespace
 		void OnClose(HWND)
 		{
 			dlg.TerminateDialog(IDCANCEL);
+		}
+
+		int GetIndexOfVariableEditor(HWND hWnd) const
+		{
+			if (hWnd == nullptr)
+			{
+				return -1;
+			}
+
+			for (size_t i = 0; i < variables.size(); ++i)
+			{
+				auto& v = variables[i];
+				if (v.CheckBox && *v.CheckBox == hWnd)
+				{
+					return (int) i;
+				}
+
+				if (v.EditControl && *v.EditControl == hWnd)
+				{
+					return (int)i;
+				}
+
+				if (v.ComboControl && *v.ComboControl == hWnd)
+				{
+					return (int)i;
+				}
+
+				if (v.SpecialButtonControl && *v.SpecialButtonControl == hWnd)
+				{
+					return (int)i;
+				}
+			}
+
+			return -1;
+		}
+
+		HWND GetNextVisibleEditor(int startIndex, HWND hExcludeThisHandle)
+		{
+			for (size_t i = startIndex; i < variables.size(); ++i)
+			{
+				auto& v = variables[i];
+				if (IsWindowVisible(*v.StaticControl))
+				{
+					if (v.EditControl && IsWindowVisible(*v.EditControl) && hExcludeThisHandle != *v.EditControl)
+					{
+						return *v.EditControl;
+					}
+
+					if (v.CheckBox && IsWindowVisible(*v.CheckBox) && hExcludeThisHandle != *v.CheckBox)
+					{
+						return *v.CheckBox;
+					}
+
+					if (v.ComboControl && IsWindowVisible(*v.ComboControl) && hExcludeThisHandle != *v.ComboControl)
+					{
+						return *v.ComboControl;
+					}
+
+					if (v.SpecialButtonControl && IsWindowVisible(*v.SpecialButtonControl) && hExcludeThisHandle != *v.SpecialButtonControl)
+					{
+						return *v.SpecialButtonControl;
+					}
+				}
+			}
+
+			return nullptr;
+		}
+
+		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM, LPARAM, OUT bool& wasHandled)
+		{
+			switch (msg)
+			{
+			case WM_NAVIGATE_BY_TAB:
+				wasHandled = true;
+
+				{
+					HWND hFocus = GetFocus();
+					
+					int focusIndex = GetIndexOfVariableEditor(hWnd);
+					if (focusIndex == -1)
+					{
+						SetFocus(*okButton);
+						return 0L;
+					}
+
+					HWND nextVisibleEditor = GetNextVisibleEditor(focusIndex, hFocus);
+					SetFocus(nextVisibleEditor ? nextVisibleEditor : *okButton);	
+				}
+				return 0L;
+			}
+
+			wasHandled = false;
+			return 0L;
 		}
 
 		void OnSize(HWND, const Vec2i&, RESIZE_TYPE)
@@ -517,8 +728,10 @@ namespace
 			
 			IParentWindowSupervisor& tabParent = defaultTab ? tabControl->ClientSpace() : *supervisor;
 
+			bool debugTabs = false;
+
 			WindowConfig childConfig;
-			Windows::SetChildWindowConfig(childConfig, ClientArea(tabParent), tabParent, "", WS_VISIBLE | WS_CHILD, WS_EX_CLIENTEDGE);
+			Windows::SetChildWindowConfig(childConfig, ClientArea(tabParent), tabParent, "", WS_VISIBLE | WS_CHILD, debugTabs ? WS_EX_CLIENTEDGE : 0);
 			tab = tabParent.AddChild(childConfig, (ControlId) -1, this);
 			SetBackgroundColour(GetSysColor(COLOR_3DFACE));
 
@@ -550,12 +763,19 @@ namespace
 					VariableEditor* This = (VariableEditor*)context;
 					This->OnPretranslateMessage(msg);
 				}
+
+				static LRESULT OnMessage(void* context, HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, OUT bool& wasHandled)
+				{
+					VariableEditor* This = (VariableEditor*)context;
+					return This->OnMessage(hWnd, msg, wParam, lParam, OUT wasHandled);
+				}
 			};
 
 			dlg.Router().RouteControlCommand(this, ANON::OnControlCommand);
 			dlg.Router().RouteClose(this, ANON::OnClose);
 			dlg.Router().RouteSize(this, ANON::OnSize);
 			dlg.Router().RoutePreTranslate(this, ANON::OnPreTranslate);
+			dlg.Router().RouteMessage(this, ANON::OnMessage);
 		}
 	public:
 		static VariableEditor* Create(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft)
@@ -650,6 +870,8 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
+
+			SetWindowSubclass(*v.EditControl, VariableEditEditorProc, VariableEditEditorProcId, 0);
 
 			AddToolTip(*v.StaticControl, variableDesc);
 
@@ -767,6 +989,8 @@ namespace
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
 
+			SetWindowSubclass(*v.EditControl, VariableEditEditorProc, VariableEditEditorProcId, 0);
+
 			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
 			sb << variableName;
 
@@ -801,6 +1025,7 @@ namespace
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
 			v.EditControl = AddEditor(*tab, editRect, editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
+			SetWindowSubclass(*v.EditControl, VariableEditEditorProc, VariableEditEditorProcId, 0);
 			v.SpecialButtonControl = Windows::AddPushButton(*tab, buttonRect, "...", nextId++, WS_VISIBLE | BS_PUSHBUTTON, WS_EX_CLIENTEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
 

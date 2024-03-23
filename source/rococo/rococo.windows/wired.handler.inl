@@ -33,6 +33,7 @@ namespace Rococo::Windows
 		FnBind<FN_OnIdle> bindIdle;
 		FnBind<FN_OnSize> bindOnSize;
 		FnBind<FN_OnPreTranslate> bindPreTranslate;
+		FnBind<FN_OnMessage> bindOnMessage;
 
 	public:
 		WiredHandler()
@@ -43,34 +44,34 @@ namespace Rococo::Windows
 		{
 		}
 
-		void RouteIdle(void* context, FN_OnIdle fn)
+		void RouteIdle(void* context, FN_OnIdle f)
 		{
-			bindIdle.Set(context, fn);
+			bindIdle.Set(context, f);
 		}
 
-		void RouteControlCommand(void* context, FN_OnControlCommand fn)
+		void RouteControlCommand(void* context, FN_OnControlCommand f)
 		{
-			bindControlCommand.Set(context, fn);
+			bindControlCommand.Set(context, f);
 		}
 
-		virtual void RouteMenuCommand(void* context, FN_OnMenuCommand fn)
+		virtual void RouteMenuCommand(void* context, FN_OnMenuCommand f)
 		{
-			bindMenuCommand.Set(context, fn);
+			bindMenuCommand.Set(context, f);
 		}
 
-		virtual void RouteSize(void* context, FN_OnSize fn)
+		virtual void RouteSize(void* context, FN_OnSize f)
 		{
-			bindOnSize.Set(context, fn);
+			bindOnSize.Set(context, f);
 		}
 
-		virtual void RouteAcceleratorCommand(void* context, FN_OnAcceleratorCommand fn)
+		virtual void RouteAcceleratorCommand(void* context, FN_OnAcceleratorCommand f)
 		{
-			bindAcceleratorCommand.Set(context, fn);
+			bindAcceleratorCommand.Set(context, f);
 		}
 
-		virtual void RouteClose(void* context, FN_OnClose fn)
+		virtual void RouteClose(void* context, FN_OnClose f)
 		{
-			bindClose.Set(context, fn);
+			bindClose.Set(context, f);
 		}
 
 		void OnControlCommand(HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode)
@@ -81,9 +82,14 @@ namespace Rococo::Windows
 			}
 		}
 
-		void RoutePreTranslate(void* context, FN_OnPreTranslate fn)
+		void RoutePreTranslate(void* context, FN_OnPreTranslate f)
 		{
-			bindPreTranslate.Set(context, fn);
+			bindPreTranslate.Set(context, f);
+		}
+
+		void RouteMessage(void* context, FN_OnMessage f)
+		{
+			bindOnMessage.Set(context, f);
 		}
 
 		DWORD OnIdle()
@@ -157,6 +163,16 @@ namespace Rococo::Windows
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
+			if (bindOnMessage.type != nullptr)
+			{
+				bool wasHandled = false;
+				LRESULT result = bindOnMessage.type(bindOnMessage.context, hWnd, uMsg, wParam, lParam, OUT wasHandled);
+				if (wasHandled)
+				{
+					return result;
+				}
+			}
+
 			switch (uMsg)
 			{
 			case WM_SIZE:
