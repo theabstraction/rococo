@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rococo.types.h>
+#include <rococo.visitors.h>
 
 #define IMPLEMENTATION_TYPE_WIN32_HWND "Win32-HWND"
 
@@ -15,6 +16,11 @@ namespace Rococo::Reflection
 	struct IPropertyEditor;
 	struct IEstateAgent;
 	struct IPropertyVenue;
+}
+
+namespace Rococo::Visitors
+{
+	struct IUITree;
 }
 
 // Abstract Editor - namespace for the property+palette+blank-slate GUI
@@ -32,9 +38,12 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditor
 	{
+		virtual [[nodiscard]] Windows::IWindow& Window() = 0;
 		virtual [[nodiscard]] bool IsVisible() const = 0;
 		virtual [[nodiscard]] IUIPalette& Palette() = 0;
 		virtual [[nodiscard]] Editors::IUIPropertiesEditor& Properties() = 0;
+		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
+		virtual void SetNavigationHandler(Visitors::ITreeControlHandler* handler) = 0;
 	};
 
 	ROCOCO_INTERFACE IAbstractEditorSupervisor : IAbstractEditor
@@ -50,6 +59,8 @@ namespace Rococo::Abedit
 		virtual void Free() = 0;
 		virtual void Hide() = 0;
 		virtual [[nodiscard]] bool IsVisible() const = 0;
+		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
+		virtual void SetNavigationEventHandler(Visitors::ITreeControlHandler* handler) = 0;
 	};
 
 	ROCOCO_INTERFACE IAbstractEditorMainWindowEventHandler

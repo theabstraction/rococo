@@ -98,6 +98,7 @@ namespace
 	{
 		enum { NAME_CAPACITY = 64 };
 		enum { TAB_NAME_CAPACITY = 256 };
+		IRichEditor* ErrorMessage;
 		IWindowSupervisor* StaticControl;
 		IWindowSupervisor* EditControl;
 		IComboBoxSupervisor* ComboControl;
@@ -165,13 +166,48 @@ namespace
 		}
 	}
 
-	class VariableEditor : public IVariableEditor, private ITabControlEvents, private StandardWindowHandler
+	static ATOM customAtom = 0;
+
+	class TooltipPopupWindow : StandardWindowHandler
+	{
+		HWND hWnd = nullptr;
+		
+		TooltipPopupWindow()
+		{
+
+		}
+
+		virtual ~TooltipPopupWindow()
+		{
+
+		}
+
+		void PostConstruct(HWND hParentWnd)
+		{
+			hWnd = hParentWnd;
+		}
+	public:
+		static TooltipPopupWindow* Create(HWND hParentWnd)
+		{
+			AutoFree<TooltipPopupWindow> popup = new TooltipPopupWindow();
+			popup->PostConstruct(hParentWnd);
+			return popup.Detach();
+		}
+
+		void Free()
+		{
+			delete this;
+		}
+	};
+
+	class VariableEditor : public IVariableEditor, private ITabControlEvents, private StandardWindowHandler, public IRichEditorEvents
 	{
 	private:
 		int nextX;
 		int nextY;
 		Vec2i windowSpan;
 		int labelWidth;
+		Vec2i initialTopLeft{ 0,0 };
 
 		typedef std::vector<VariableDesc> TVariables;
 		TVariables variables;
@@ -182,14 +218,25 @@ namespace
 		IButton* cancelButton;
 		ITabControl* tabControl;
 		IParentWindowSupervisor* tab;
-		HWND hwndTip{ nullptr };
 
 		ModalDialogHandler dlg;
 		ControlId nextId;
 
 		IVariableEditorEventHandler* eventHandler;
 
-		virtual void OnSelectionChanged(int index)
+		LRESULT RichEditor_OnCommand(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, IRichEditor& origin) override
+		{
+			UNUSED(origin);
+			return DefWindowProcA(hWnd, uMsg, wParam, lParam);
+		}
+
+		void RichEditor_OnRightButtonUp(const Vec2i& clientPosition, IRichEditor& origin) override
+		{
+			UNUSED(clientPosition);
+			UNUSED(origin);
+		}
+
+		void OnSelectionChanged(int index) override
 		{
 			char tabName[VariableDesc::TAB_NAME_CAPACITY];
 			if (tabControl->GetTabName(index, tabName, VariableDesc::TAB_NAME_CAPACITY))
@@ -206,9 +253,36 @@ namespace
 			}
 		}
 
+		void SetHintError(cstr variableName, cstr message) override
+		{
+			for (VariableDesc& v : variables)
+			{
+				if (Eq(v.name, variableName))
+				{
+					if (!v.ErrorMessage)
+					{
+						GuiRect labelRect = WindowArea(*v.StaticControl);
+						POINT topLeftEditor{ labelRect.right + LABEL_RIGHT_MARGIN, labelRect.top };
+						ScreenToClient(*tab, &topLeftEditor);
+
+						GuiRect errorRect{ topLeftEditor.x, topLeftEditor.y - 20,  ClientArea(*tab).right - 20, topLeftEditor.y };
+						v.ErrorMessage = AddRichEditor(*tab, errorRect, "", (DWORD) - 1, *this, ES_READONLY | WS_VISIBLE);
+					}
+
+					ColourScheme scheme = GetDefaultLightScheme();
+					v.ErrorMessage->SetColourSchemeRecursive(scheme);
+			
+					v.ErrorMessage->ResetContent();
+					v.ErrorMessage->AppendText(RGB(255, 0, 0), RGB(scheme.backColour.red, scheme.backColour.green, scheme.backColour.blue), message);
+					
+					return;
+				}
+			}
+		}
+
 		void OnPretranslateMessage(MSG& msg) override
 		{
-			SendMessage(hwndTip, TTM_RELAYEVENT, 0, (LPARAM)&msg);
+			UNUSED(&msg);
 		}
 
 		void OnTabRightClicked(int index, const POINT& screenPos) override
@@ -245,7 +319,7 @@ namespace
 			SetCurrentDirectoryA(currentDirectory);
 		}
 
-		virtual void OnMenuCommand(HWND, DWORD id)
+		void OnMenuCommand(HWND, DWORD id) override
 		{
 			for (VariableDesc& v : variables)
 			{
@@ -296,11 +370,12 @@ namespace
 						{
 							char* text = (char*)_malloca(sizeof(char)* v.var.value.textValue.capacity);
 							GetWindowTextA(*v.EditControl, text, v.var.value.textValue.capacity);
-							if (!v.validator->ValidateAndReportErrors(text))
+							bool success = v.validator->ValidateAndReportErrors(text, v.name);
+							_freea(text);
+							if (!success)
 							{
 								return 0L;
 							}
-							_freea(text);
 						}
 					}
 					break;
@@ -324,13 +399,78 @@ namespace
 			Resize();
 		}
 
-		enum { CONTROL_BUTTON_LINE = 30 };
+		enum { OK_AND_CANCEL_HEIGHT = 24 };
+		enum { OK_AND_CANCEL_BOTTOM_MARGIN = 12 };
+		enum { STATIC_LEFT_MARGIN = 10, CONTROL_HEIGHT = 20, CONTROL_VERTICAL_SEPARATION = 12, LABEL_RIGHT_MARGIN = 12, EDITOR_RIGHT_MARGIN = 24, COMBO_HEIGHT = 60 };
 
 		void Resize()
 		{
-			GuiRect rect = ClientArea(*supervisor);
-			if (tabControl) MoveWindow(*tabControl, 0, 0, rect.right, rect.bottom - CONTROL_BUTTON_LINE, TRUE);
-			if (tab) MoveWindow(*tab, 0, 0, rect.right, rect.bottom - CONTROL_BUTTON_LINE, TRUE);
+			int captionHeight = GetSystemMetrics(SM_CYSMCAPTION);
+
+			Vec2i newSpan{ windowSpan.x, (3 + (int32)variables.size()) * (CONTROL_HEIGHT + CONTROL_VERTICAL_SEPARATION) + captionHeight};
+
+			if (tabControl)
+			{
+				newSpan.y += 60;
+			}
+
+			MoveWindow(*supervisor, initialTopLeft.x, initialTopLeft.y, newSpan.x, newSpan.y, TRUE);
+
+			GuiRect clientArea = ClientArea(*supervisor);
+			Vec2i clientSpan = Span(clientArea);
+			Vec2i centre = Centre(clientArea);
+
+			int buttonsBottom = clientArea.bottom - OK_AND_CANCEL_BOTTOM_MARGIN;
+			int buttonsTop = buttonsBottom - OK_AND_CANCEL_HEIGHT;
+			
+			int buttonWidth = 80;
+
+			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), "&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
+			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), "&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
+
+			int32 tabHeight = clientSpan.y - (OK_AND_CANCEL_HEIGHT + OK_AND_CANCEL_BOTTOM_MARGIN) - captionHeight;
+
+			if (tabControl)
+			{
+				MoveWindow(*tabControl, 0, 0, clientSpan.x, tabHeight, TRUE);
+				clientArea = ClientArea(tabControl->ClientSpace());
+				clientSpan = Span(clientArea);
+			}
+			else if (tab)
+			{
+				MoveWindow(*tab, 0, 0, clientSpan.x, tabHeight, TRUE);
+			}
+
+			int variableTop = CONTROL_HEIGHT + CONTROL_VERTICAL_SEPARATION;
+
+			int editorLeft = STATIC_LEFT_MARGIN + labelWidth + LABEL_RIGHT_MARGIN;
+			int editorWidth = clientSpan.x - (editorLeft + EDITOR_RIGHT_MARGIN);
+
+			for (VariableDesc& v : variables)
+			{			
+				int editStringWidth = editorWidth;
+
+				if (v.SpecialButtonControl)
+				{
+					if (v.EditControl)
+					{
+						// Shrink the editor to make room for the special button on the right
+						editStringWidth -= CONTROL_HEIGHT;
+						MoveWindow(*v.SpecialButtonControl, editorLeft + editStringWidth, variableTop, CONTROL_HEIGHT, variableTop + CONTROL_HEIGHT, TRUE);
+					}
+					else
+					{
+						MoveWindow(*v.SpecialButtonControl, editorLeft, variableTop, editorWidth, variableTop + COMBO_HEIGHT, TRUE);
+					}
+				}
+
+				if (v.ComboControl) MoveWindow(*v.ComboControl, editorLeft, variableTop, editorWidth, variableTop + COMBO_HEIGHT, TRUE);
+				if (v.EditControl) MoveWindow(*v.EditControl, editorLeft, variableTop, editStringWidth, variableTop + CONTROL_HEIGHT, TRUE);
+				if (v.StaticControl) MoveWindow(*v.StaticControl, STATIC_LEFT_MARGIN, variableTop, labelWidth, variableTop + CONTROL_HEIGHT, TRUE);	
+				if (v.CheckBox) MoveWindow(*v.EditControl, editorLeft, variableTop, editorWidth, variableTop + CONTROL_HEIGHT, TRUE);
+
+				variableTop += CONTROL_VERTICAL_SEPARATION + CONTROL_HEIGHT;
+			}
 		}
 
 		VariableEditor(const Vec2i& span, int _labelWidth, HWND _hwndOwner, IVariableEditorEventHandler* _eventHandler) :
@@ -350,45 +490,40 @@ namespace
 
 		void Construct(cstr appQueryName, cstr defaultTab, cstr defaultTooltip, const Vec2i* topLeft)
 		{
+			if (topLeft != nullptr)
+			{
+				initialTopLeft = *topLeft;
+			}
+			else
+			{
+				POINT pos;
+				initialTopLeft = GetCursorPos(&pos) ? Vec2i {pos.x, pos.y} : Vec2i{ 0,0 };
+			}
+
 			WindowConfig config;
-			Windows::SetOverlappedWindowConfig(config, windowSpan, SW_HIDE, hwndOwner, appQueryName, WS_OVERLAPPED | WS_SYSMENU, 0);
+			Vec2i nullSpan{ 0,0 };
+			Windows::SetOverlappedWindowConfig(config, nullSpan, SW_HIDE, hwndOwner, appQueryName, WS_OVERLAPPED | WS_SYSMENU, 0);
 			supervisor = dlg.CreateDialogWindow(config);
 
 			if (defaultTab)
 			{
-				tabControl = Windows::AddTabs(*supervisor, GuiRect(1, 1, 1, 1), "", (ControlId) - 1, *this, WS_CLIPSIBLINGS | TCS_TOOLTIPS, 0);
+				tabControl = Windows::AddTabs(*supervisor, GuiRect(0, 0, 0, 0), "", (ControlId) - 1, *this, WS_CLIPSIBLINGS | TCS_TOOLTIPS, 0);
 				tabControl->AddTab(defaultTab, defaultTooltip);
 			}
 			else
 			{
 				tabControl = nullptr;
 			}
-
-			hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
-				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-				*supervisor, NULL, GetWindowInstance(*supervisor), NULL);
-
-
-			if (topLeft) MoveWindow(*supervisor, topLeft->x, topLeft->y, windowSpan.x, windowSpan.y, TRUE);
-
+			
 			IParentWindowSupervisor& tabParent = defaultTab ? tabControl->ClientSpace() : *supervisor;
 
 			WindowConfig childConfig;
-			Windows::SetChildWindowConfig(childConfig, ClientArea(tabParent), tabParent, "", WS_VISIBLE | WS_CHILD, 0);
+			Windows::SetChildWindowConfig(childConfig, ClientArea(tabParent), tabParent, "", WS_VISIBLE | WS_CHILD, WS_EX_CLIENTEDGE);
 			tab = tabParent.AddChild(childConfig, (ControlId) -1, this);
 			SetBackgroundColour(GetSysColor(COLOR_3DFACE));
 
-			GuiRect clientArea = ClientArea(*supervisor);
-
-			Vec2i centre = Centre(clientArea);
-
-			int buttonsTop = clientArea.bottom - CONTROL_BUTTON_LINE + 4;
-			int buttonsBottom = buttonsTop + 24;
-
-			int buttonWidth = 80;
-
-			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), "&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
-			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), "&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
+			okButton = Windows::AddPushButton(*supervisor, GuiRect(0, 0, 0, 0), "&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
+			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(0, 0, 0, 0), "&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
 
 			struct ANON
 			{
@@ -421,13 +556,6 @@ namespace
 			dlg.Router().RouteClose(this, ANON::OnClose);
 			dlg.Router().RouteSize(this, ANON::OnSize);
 			dlg.Router().RoutePreTranslate(this, ANON::OnPreTranslate);
-
-			GuiRect windowArea = WindowArea(*supervisor);
-			POINT pos;
-			GetCursorPos(&pos);
-			MoveWindow(*supervisor, pos.x - (Width(windowArea) >> 1), pos.y, Width(windowArea), Height(windowArea), TRUE);
-
-			Resize();
 		}
 	public:
 		static VariableEditor* Create(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft)
@@ -456,7 +584,7 @@ namespace
 
 					char* liveBuffer = (char*)alloca(sizeof(char)* v.var.value.textValue.capacity + 2);
 					GetWindowTextA(*v.EditControl, liveBuffer, v.var.value.textValue.capacity);
-					if (!v.validator->ValidateAndReportErrors(liveBuffer))
+					if (!v.validator->ValidateAndReportErrors(liveBuffer, v.name))
 					{
 						return false;
 					}
@@ -479,20 +607,11 @@ namespace
 
 		void AddToolTip(HWND hwndTool, cstr pszText)
 		{
-			// Associate the tooltip with the tool.
-			TOOLINFOA toolInfo = { 0 };
-			toolInfo.cbSize = sizeof(toolInfo);
-			toolInfo.hwnd = *supervisor;
-			toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-			toolInfo.uId = (UINT_PTR)hwndTool;
-			toolInfo.lpszText = (char*)pszText;
-			GetClientRect(hwndTool, &toolInfo.rect);
-			SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
-
-			SendMessage(hwndTip, TTM_ACTIVATE, TRUE, 0);
+			UNUSED(hwndTool);
+			UNUSED(pszText);
 		}
 
-		virtual void AddBooleanEditor(cstr variableName, bool state)
+		void AddBooleanEditor(cstr variableName, bool state) override
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -516,7 +635,7 @@ namespace
 			nextY += 22;
 		}
 
-		virtual void AddIntegerEditor(cstr variableName, cstr variableDesc, int minimum, int maximum, int defaultValue)
+		void AddIntegerEditor(cstr variableName, cstr variableDesc, int minimum, int maximum, int defaultValue) override
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -547,7 +666,7 @@ namespace
 			nextY += 22;
 		}
 
-		virtual void AddPushButton(cstr variableName, cstr variableDesc)
+		void AddPushButton(cstr variableName, cstr variableDesc) override
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -583,7 +702,7 @@ namespace
 			nextY = buttonRect.bottom + 2;
 		}
 
-		virtual void AddSelection(cstr variableName, cstr variableDesc, char* buffer, uint32 capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)
+		void AddSelection(cstr variableName, cstr variableDesc, char* buffer, uint32 capacityIncludingNullCharacter, ISelection& selection, IStringValidator* validator)  override
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -618,13 +737,13 @@ namespace
 			nextY = comboRect.bottom + 2;
 		}
 
-		virtual void AddTab(cstr tabName, cstr tabToolTip)
+		void AddTab(cstr tabName, cstr tabToolTip) override
 		{
 			tabControl->AddTab(tabName, tabToolTip);
 			nextY = 28;
 		}
 
-		virtual void AddStringEditor(cstr variableName, cstr variableDesc, char* buffer, uint32 capacity, IStringValidator* validator)
+		void AddStringEditor(cstr variableName, cstr variableDesc, char* buffer, uint32 capacity, IStringValidator* validator) override
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -661,7 +780,7 @@ namespace
 			nextY += 22;
 		}
 
-		virtual void AddFilenameEditor(cstr variableName, cstr variableDesc, char* buffer, uint32 capacity, cstr filter, IStringValidator* validator = nullptr)
+		void AddFilenameEditor(cstr variableName, cstr variableDesc, char* buffer, uint32 capacity, cstr filter, IStringValidator* validator = nullptr) override
 		{
 			if (nextY > windowSpan.y - 30)
 			{
@@ -703,7 +822,9 @@ namespace
 
 		void PrepareModal()
 		{
-			for (const VariableDesc& v : variables)
+			Resize();
+
+			for (VariableDesc& v : variables)
 			{
 				SetWindowTextA(*v.StaticControl, v.name);
 
@@ -791,7 +912,7 @@ namespace
 			}
 		}
 
-		virtual bool IsModalDialogChoiceYes()
+		bool IsModalDialogChoiceYes() override
 		{
 			PrepareModal();
 

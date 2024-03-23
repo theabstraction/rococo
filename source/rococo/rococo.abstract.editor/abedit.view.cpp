@@ -16,7 +16,7 @@ HINSTANCE GetDllInstance();
 
 namespace ANON
 {
-	struct AbstractEditor : Rococo::Abedit::IWin32AbstractEditorSupervisor
+	struct AbstractEditor : Rococo::Abedit::IWin32AbstractEditorSupervisor, Windows::IWindow
 	{
 		IMVC_Host& host;
 		HWND hHostWindow;
@@ -38,6 +38,16 @@ namespace ANON
 		virtual ~AbstractEditor()
 		{
 
+		}
+
+		operator HWND() const override
+		{
+			return mainWindow->Handle();
+		}
+
+		Windows::IWindow& Window() override
+		{
+			return *this;
 		}
 
 		void BringToFront() override
@@ -68,6 +78,16 @@ namespace ANON
 		IUIPalette& Palette() override
 		{
 			return *palette;
+		}
+
+		[[nodiscard]] Visitors::IUITree& NavigationTree() override
+		{
+			return mainWindow->NavigationTree();
+		}
+
+		void SetNavigationHandler(Visitors::ITreeControlHandler* handler) override
+		{
+			mainWindow->SetNavigationEventHandler(handler);
 		}
 
 		IUIPropertiesEditor& Properties() override

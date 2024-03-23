@@ -52,11 +52,33 @@ namespace Rococo::Windows
 			case WM_NOTIFY:
 			{
 				NMHDR* header = (NMHDR*)lParam;
-				if (header->code == TVN_SELCHANGED)
+
+				switch (header->code)
 				{
-					LPNMTREEVIEW treeVieww = (LPNMTREEVIEW)header;
-					auto& i = treeVieww->itemNew;
-					eventHandler.OnItemSelected((int64)i.lParam, *this);
+					case TVN_SELCHANGED:
+						{
+							LPNMTREEVIEW treeVieww = (LPNMTREEVIEW)header;
+							auto& i = treeVieww->itemNew;
+							eventHandler.OnItemSelected(ToId(i.hItem), *this);
+						}
+						return 0L;
+					case NM_RCLICK:
+						{
+							DWORD dwpos = GetMessagePos();
+							POINT pos{ (LONG)GET_X_LPARAM(dwpos), (LONG)GET_Y_LPARAM(dwpos) };
+							POINT clientPos = pos;
+							ScreenToClient(hTreeWindow, &clientPos);
+
+							TV_HITTESTINFO data = { 0 };
+							data.pt = clientPos;
+							TreeView_HitTest(hTreeWindow, &data);
+
+							if (data.flags & TVHT_ONITEM && data.hItem != 0)
+							{
+								eventHandler.OnItemRightClicked(ToId(data.hItem), *this);
+							}
+						}
+						return 0L;
 				}
 				break;
 			}

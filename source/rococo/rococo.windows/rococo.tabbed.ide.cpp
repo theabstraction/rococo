@@ -1372,16 +1372,21 @@ namespace
       void Split(IIDENode* nodeA, IIDENode* nodeB);
    };
 
-   class IDETreeView : public StandardWindowHandler, public IIDETreeWindow, private ITreeControlHandler
+   class IDETreeView : public StandardWindowHandler, public IIDETreeWindow, private Visitors::ITreeControlHandler
    {  
    private:
       IParentWindowSupervisor* treeFrame;
       ITreeControlSupervisor* treeClient;
       ITreeControlHandler* handler;
 
-      virtual void OnItemSelected(int64 id, ITreeControlSupervisor& origin)
+      void OnItemSelected(Visitors::TREE_NODE_ID id, IUITree& origin) override
       {
          if (handler) handler->OnItemSelected(id, origin);
+      }
+
+      void OnItemRightClicked(Visitors::TREE_NODE_ID id, IUITree& origin) override
+      {
+          if (handler) handler->OnItemRightClicked(id, origin);
       }
 
       IDETreeView(ITreeControlHandler* _handler) :
@@ -1398,7 +1403,7 @@ namespace
          Rococo::Free(treeFrame);
       }
 
-      virtual operator HWND () const
+      operator HWND () const override
       {
          return *treeFrame;
       }
@@ -1411,7 +1416,7 @@ namespace
          treeClient = Windows::AddTree(*treeFrame, GuiRect(1, 1, 2, 2), "", 1008, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
       }
 
-      virtual void OnSize(HWND, const Vec2i& span, RESIZE_TYPE)
+      void OnSize(HWND, const Vec2i& span, RESIZE_TYPE) override
       {
          MoveWindow(*treeFrame, 0, 0, span.x, span.y, TRUE);
          MoveWindow(*treeClient, 0, 0, span.x, span.y, TRUE);
@@ -1723,9 +1728,10 @@ namespace
 		  }
 	  }
 
-	  LRESULT OnCommand(HWND hWnd, UINT, WPARAM wParam, LPARAM lParam) override
+	  LRESULT RichEditor_OnCommand(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, IRichEditor& origin) override
 	  {
-		  return OnCommand(hWnd, wParam, lParam);
+          UNUSED(origin);
+          return DefWindowProcA(hWnd, msg, wParam, lParam);
 	  }
 
 	  LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
@@ -1749,8 +1755,10 @@ namespace
 		  return StandardWindowHandler::OnCommand(hWnd, wParam, lParam);
 	  }
 
-      void OnRightButtonUp(const Vec2i& pos) override
+      void RichEditor_OnRightButtonUp(const Vec2i& pos, IRichEditor& editor) override
       {
+          UNUSED(editor);
+
 		  if (mapMenuItemToCommand.empty()) return;
 
 		  HMENU hPopupMenu = CreatePopupMenu();

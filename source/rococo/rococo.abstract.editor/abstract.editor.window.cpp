@@ -5,6 +5,7 @@
 #include <rococo.os.h>
 #include <rococo.window.h>
 #include <windowsx.h>
+#include <CommCtrl.h>
 
 using namespace Rococo;
 using namespace Rococo::Abedit;
@@ -242,6 +243,11 @@ namespace ANON
 		WM_SET_HORZ_SPLITTER
 	};
 
+	enum
+	{
+		ABTREE_CONTROL_ID_NAVTREE = 6667
+	};
+
 	class AbeditSplitter: public StandardWindowHandler
 	{
 	private:
@@ -452,12 +458,85 @@ namespace ANON
 		}
 	};
 
+	class AbeditNavigationTree : public StandardWindowHandler, public Visitors::ITreeControlHandler
+	{
+	private:
+		AutoFree<Rococo::Windows::ITreeControlSupervisor> treeControl;
+
+		Visitors::ITreeControlHandler* handler = nullptr;
+
+		void PostConstruct(HWND hParent)
+		{
+			THIS_WINDOW parent(hParent);
+			treeControl = Rococo::Windows::AddTree(parent, GuiRect{ 0,0,0,0 }, "", ControlId{ ABTREE_CONTROL_ID_NAVTREE }, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
+		}
+
+		AbeditNavigationTree()
+		{
+
+		}
+		
+		~AbeditNavigationTree()
+		{
+			
+		}
+
+		void OnItemSelected(Rococo::Visitors::TREE_NODE_ID id, Visitors::IUITree& origin) override
+		{
+			if (handler)
+			{
+				handler->OnItemSelected(id, origin);
+			}
+		}
+
+		void OnItemRightClicked(Rococo::Visitors::TREE_NODE_ID id, Visitors::IUITree& origin) override
+		{
+			if (handler)
+			{
+				handler->OnItemRightClicked(id, origin);
+			}
+		}
+	public:
+		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
+		{
+			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
+		}
+
+		[[nodiscard]] Visitors::IUITree& UITree()
+		{
+			return treeControl->Tree();
+		}
+
+		void SetHandler(Visitors::ITreeControlHandler* handler)
+		{
+			this->handler = handler;
+		}
+
+		static AbeditNavigationTree* Create(HWND hParent)
+		{
+			auto node = new AbeditNavigationTree();
+			node->PostConstruct(hParent);
+			return node;
+		}
+
+		operator HWND() const
+		{
+			return *treeControl;
+		}
+
+		void Free()
+		{
+			delete this;
+		}
+	};
+
 	class AbeditMainWindow : public StandardWindowHandler, public IAbeditMainWindowSupervisor
 	{
 	private:
 		IAbstractEditorMainWindowEventHandler& eventHandler;
 		AutoFree<IParentWindowSupervisor> window;
 		AutoFree<AbeditPropertiesWindow> propertiesPanel;
+		AutoFree<AbeditNavigationTree> navigationTree;
 		AutoFree<AbeditSplitter> rhsSplitter;
 		AutoFree<AbeditSlate> slate;
 		AutoFree<IWin32Menu> mainMenu;
@@ -480,6 +559,11 @@ namespace ANON
 		{
 		}
 	public:
+		HWND Handle() const override
+		{
+			return *window;
+		}
+
 		IParentWindowSupervisor& PropertiesPanel() override
 		{
 			return propertiesPanel->Supervisor();
@@ -493,6 +577,16 @@ namespace ANON
 		IParentWindowSupervisor& SlateWindow() override
 		{
 			return slate->Window();
+		}
+
+		[[nodiscard]] Visitors::IUITree& NavigationTree()
+		{
+			return navigationTree->UITree();
+		}
+
+		void SetNavigationEventHandler(Visitors::ITreeControlHandler* handler)
+		{
+			navigationTree->SetHandler(handler);
 		}
 
 		void PostConstruct(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& sessionConfig)
@@ -521,10 +615,12 @@ namespace ANON
 			rhsSplitter = AbeditSplitter::Create(hDll, *window, { 0,0 }, { 0,0 });
 			propertiesPanel = AbeditPropertiesWindow::Create(window);
 			slate = AbeditSlate::Create(*window);
+			navigationTree = AbeditNavigationTree::Create(*window);
 
 			Layout();
 		}
 
+		int navWidth = 400;
 		int propertiesWidth = 600;
 		int splitterSpan = 4;
 
@@ -535,7 +631,17 @@ namespace ANON
 
 			int splitterLeft = rect.right - propertiesWidth - splitterSpan;
 
-			MoveWindow(slate->Window(), 0, 0, splitterLeft, rect.bottom, TRUE);
+			int slateWidth = splitterLeft;
+
+			int slateLeft = 0;
+			if (navWidth < splitterLeft)
+			{
+				slateWidth -= navWidth;
+				slateLeft = navWidth;
+			}
+
+			MoveWindow(*navigationTree, 0, 0, slateLeft, rect.bottom, TRUE);
+			MoveWindow(slate->Window(), slateLeft, 0, slateWidth, rect.bottom, TRUE);
 			MoveWindow(*rhsSplitter, splitterLeft, 0, splitterSpan, rect.bottom, TRUE);
 			MoveWindow(propertiesPanel->GetWindow(), rect.right - propertiesWidth, 0, propertiesWidth, rect.bottom, TRUE);
 

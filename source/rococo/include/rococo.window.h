@@ -314,10 +314,12 @@ namespace Rococo
 			virtual void SetCheckState(Visitors::CheckState state) = 0;
 		};
 
+		struct IRichEditor;
+
 		ROCOCO_INTERFACE IRichEditorEvents
 		{
-			virtual LRESULT OnCommand(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
-			virtual void OnRightButtonUp(const Vec2i& clientPosition) = 0;
+			virtual LRESULT RichEditor_OnCommand(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, IRichEditor& origin) = 0;
+			virtual void RichEditor_OnRightButtonUp(const Vec2i& clientPosition, IRichEditor& origin) = 0;
 		};
 
 		ROCOCO_INTERFACE IRichEditor : public IWindowSupervisor
@@ -349,11 +351,6 @@ namespace Rococo
 		};
 
 		struct ITreeControlSupervisor;
-
-		ROCOCO_INTERFACE ITreeControlHandler
-		{
-			virtual void OnItemSelected(int64 id, ITreeControlSupervisor& origin) = 0;
-		};
 
 		ROCOCO_INTERFACE IListViewEvents : public IItemRenderer
 		{
@@ -476,7 +473,7 @@ namespace Rococo
 			};
 
 			ROCOCO_WINDOWS_API IIDETextWindow* CreateTextWindow(IWindow& parent, bool isSourceCode = false);
-			ROCOCO_WINDOWS_API IIDETreeWindow* CreateTreeView(IWindow& parent, ITreeControlHandler* handler);
+			ROCOCO_WINDOWS_API IIDETreeWindow* CreateTreeView(IWindow& parent, Visitors::ITreeControlHandler* handler);
 			ROCOCO_WINDOWS_API IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler, bool ownerDraw);
 			ROCOCO_WINDOWS_API ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, OUT LOGFONTW& logFont, OUT bool& isDarkMode, cstr file_prefix);
 		}
@@ -528,7 +525,7 @@ namespace Rococo
 		ROCOCO_WINDOWS_API IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IWin32SuperComboBox* AddSuperComboBox(IParentWindowSupervisor& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
-		ROCOCO_WINDOWS_API ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
+		ROCOCO_WINDOWS_API ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, Visitors::ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, cstr name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD listExStyle);
 		ROCOCO_WINDOWS_API IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API ITabControl* AddTabs(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, ITabControlEvents& eventHandler, DWORD style, DWORD styleEx = 0);

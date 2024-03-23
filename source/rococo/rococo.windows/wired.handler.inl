@@ -32,7 +32,7 @@ namespace Rococo::Windows
 		FnBind<FN_OnClose> bindClose;
 		FnBind<FN_OnIdle> bindIdle;
 		FnBind<FN_OnSize> bindOnSize;
-      FnBind<FN_OnPreTranslate> bindPreTranslate;
+		FnBind<FN_OnPreTranslate> bindPreTranslate;
 
 	public:
 		WiredHandler()
@@ -81,10 +81,10 @@ namespace Rococo::Windows
 			}
 		}
 
-      void RoutePreTranslate(void* context, FN_OnPreTranslate fn)
-      {
-         bindPreTranslate.Set(context, fn);
-      }
+		void RoutePreTranslate(void* context, FN_OnPreTranslate fn)
+		{
+			bindPreTranslate.Set(context, fn);
+		}
 
 		DWORD OnIdle()
 		{
@@ -147,15 +147,15 @@ namespace Rococo::Windows
 			bindOnSize.type(bindOnSize.context, hWnd, Vec2i{ LOWORD(lParam), HIWORD(lParam) }, (RESIZE_TYPE)wParam);
 		}
 
-      virtual void OnPretranslateMessage(MSG& msg)
-      {
-         if (bindPreTranslate.type != nullptr)
-         {
-            bindPreTranslate.type(bindPreTranslate.context, msg);
-         }
-      }
+		void OnPretranslateMessage(MSG& msg) override
+		{
+			if (bindPreTranslate.type != nullptr)
+			{
+				bindPreTranslate.type(bindPreTranslate.context, msg);
+			}
+		}
 
-		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (uMsg)
 			{

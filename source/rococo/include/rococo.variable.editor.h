@@ -12,7 +12,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IStringValidator
 	{
-		virtual bool ValidateAndReportErrors(cstr text) = 0;
+		virtual bool ValidateAndReportErrors(cstr textEditorContent, cstr variableName) = 0;
 	};
 
 	ROCOCO_INTERFACE IVariableEditorEventHandler
@@ -32,6 +32,7 @@ namespace Rococo
 		virtual bool IsModalDialogChoiceYes() = 0;
         virtual bool GetBoolean(cstr variableName) = 0;
 		virtual int GetInteger(cstr variableName) = 0;
+		virtual void SetHintError(cstr variableName, cstr message) = 0;
 		virtual void Free() = 0;
 	};
 

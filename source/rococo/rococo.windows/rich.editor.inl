@@ -23,7 +23,7 @@ namespace Rococo::Windows
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_COMMAND:
-				return eventHandler.OnCommand(hWnd, uMsg, wParam, lParam);
+				return eventHandler.RichEditor_OnCommand(hWnd, uMsg, wParam, lParam, *this);
 			case WM_NOTIFY:
 			{
 				// Disabled in READONLY mode
@@ -33,7 +33,7 @@ namespace Rococo::Windows
 					if (mf->msg == WM_NCRBUTTONUP)
 					{
 						Vec2i pos{ GET_X_LPARAM(mf->lParam), GET_Y_LPARAM(mf->lParam) };
-						eventHandler.OnRightButtonUp(pos);
+						eventHandler.RichEditor_OnRightButtonUp(pos, *this);
 						return 0L;
 					}
 				}
@@ -96,7 +96,26 @@ namespace Rococo::Windows
 				len -= delta;
 
 				SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);
+
+				CHARRANGE rangeBeforeAppend;
+				rangeBeforeAppend.cpMin = -1; // This will give the starting character for the range of added characters
+				rangeBeforeAppend.cpMax = -1;
+				SendMessage(hWndEditor, EM_GETSEL, (WPARAM)&rangeBeforeAppend.cpMin, (LPARAM)&rangeBeforeAppend.cpMax);
+
 				SendMessage(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
+				
+				CHARRANGE rangeAfterAppend;
+				rangeAfterAppend.cpMin = -1;
+				rangeAfterAppend.cpMax = -1; // This will give the end character positiion for the range of added characters
+				SendMessage(hWndEditor, EM_GETSEL, (WPARAM) &rangeAfterAppend.cpMin, (LPARAM) &rangeAfterAppend.cpMax);
+
+				// Select everything we just added
+				CHARRANGE cr4;
+				cr4.cpMin = rangeBeforeAppend.cpMin;
+				cr4.cpMax = rangeAfterAppend.cpMax;
+				SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr4);
+
+				// Then assign the colours
 				SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
 			}
 		}
@@ -116,7 +135,8 @@ namespace Rococo::Windows
 			{
 				auto xPos = GET_X_LPARAM(lParam);
 				auto yPos = GET_Y_LPARAM(lParam);
-				((RichEditor*)dwRefData)->eventHandler.OnRightButtonUp(Vec2i{ xPos, yPos });
+				auto* This = ((RichEditor*)dwRefData);
+				This->eventHandler.RichEditor_OnRightButtonUp(Vec2i{ xPos, yPos }, *This);
 				return TRUE;
 			}
 

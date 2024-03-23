@@ -351,7 +351,11 @@ namespace
 			}
 		}
 
-		void OnItemSelected(int64, ITreeControlSupervisor&) override
+		void OnItemSelected(Rococo::Visitors::TREE_NODE_ID, IUITree&) override
+		{
+		}
+
+		void OnItemRightClicked(Rococo::Visitors::TREE_NODE_ID, IUITree&) override
 		{
 		}
 

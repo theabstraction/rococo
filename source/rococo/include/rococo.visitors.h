@@ -23,6 +23,16 @@ namespace Rococo
 			size_t value;
 		};
 
+		inline bool operator == (TREE_NODE_ID a, TREE_NODE_ID b)
+		{
+			return a.value == b.value;
+		}
+
+		inline bool operator != (TREE_NODE_ID a, TREE_NODE_ID b)
+		{
+			return !(a == b);
+		}
+
 		ROCOCO_INTERFACE IUITree
 		{
 			virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state) = 0;
@@ -40,15 +50,21 @@ namespace Rococo
 			virtual void DeleteRow(int rowIndex) = 0;
 		};
 
-      ROCOCO_INTERFACE ITreePopulator
-      {
-         virtual void Populate(IUITree& tree) = 0;
-      };
+		ROCOCO_INTERFACE ITreePopulator
+		{
+		   virtual void Populate(IUITree & tree) = 0;
+		};
 
-      ROCOCO_INTERFACE IListPopulator
-      {
-         virtual void Populate(IUIList& list) = 0;
-      };
+		ROCOCO_INTERFACE IListPopulator
+		{
+		   virtual void Populate(IUIList & list) = 0;
+		};
+
+		ROCOCO_INTERFACE ITreeControlHandler
+		{
+			virtual void OnItemSelected(TREE_NODE_ID id, IUITree& origin) = 0;
+			virtual void OnItemRightClicked(TREE_NODE_ID id, IUITree& origin) = 0;
+		};
 	}
 
 	typedef cstr VisitorName;
