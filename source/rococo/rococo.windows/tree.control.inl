@@ -273,7 +273,14 @@ namespace Rococo::Windows
 
 		bool Select(TREE_NODE_ID id) override
 		{
-			return TreeView_SelectItem(hTreeWindow, ToHTree(id)) ? true : false;
+			if (TreeView_SelectSetFirstVisible(hTreeWindow, ToHTree(id)))
+			{
+				SetFocus(hTreeWindow);
+				TreeView_Select(hTreeWindow, ToHTree(id), TVGN_CARET);
+				return true;
+			}
+
+			return false;
 		}
 
 		void SetId(TREE_NODE_ID nodeId, int64 id) override

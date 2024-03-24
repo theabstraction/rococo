@@ -238,7 +238,7 @@ namespace ANON
 				{
 					auto newLocalFunctionId = tree.AddChild(localFunctionsId, fname, Visitors::CheckState_NoCheckBox);
 					localFunctionIdSet.insert(newLocalFunctionId);
-					tree.Select(localFunctionsId);
+					tree.Select(newLocalFunctionId);
 				}
 			}
 			else if (id == namespacesId)
@@ -330,18 +330,59 @@ namespace ANON
 				nsEditor->AddStringEditor("Subspace", nullptr, fname, sizeof fname, &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
-					auto newTopLevelNamespaceId = tree.AddChild(id, fname, Visitors::CheckState_NoCheckBox);
-					namespaceIdSet.insert(newTopLevelNamespaceId);
-					tree.Select(newTopLevelNamespaceId);
+					auto newSubspaceId = tree.AddChild(id, fname, Visitors::CheckState_NoCheckBox);
+					namespaceIdSet.insert(newSubspaceId);
+					tree.Select(newSubspaceId);
 				}
 			}
 		}
 
-		bool TryHandleContextMenuItem(uint16 id)
+		void AddFunctionAt(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
-			switch (id)
+			auto i = namespaceIdSet.find(namespaceId);
+			if (i == namespaceIdSet.end())
+			{
+				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				return;
+			}
+
+			Vec2i span{ 800, 120 };
+			int labelWidth = 120;
+
+			char fname[128] = { 0 };
+
+			struct VariableEventHandler : IVariableEditorEventHandler
+			{
+				void OnButtonClicked(cstr variableName) override
+				{
+					UNUSED(variableName);
+				}
+			} evHandler;
+
+			char subspace[128];
+			if (tree.TryGetText(subspace, sizeof subspace, namespaceId))
+			{
+				char ntitle[256];
+				SafeFormat(ntitle, "%s - Add a function to %s...", title, subspace);
+
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &evHandler, nullptr);
+
+				NamespaceValidator fnameValidator(*nsEditor, namespaceId, tree);
+				nsEditor->AddStringEditor("Function", nullptr, fname, sizeof fname, &fnameValidator);
+				if (nsEditor->IsModalDialogChoiceYes())
+				{
+					auto newPublicFunctionId = tree.AddChild(namespaceId, fname, Visitors::CheckState_NoCheckBox);
+					tree.Select(newPublicFunctionId);
+				}
+			}
+		}
+
+		bool TryHandleContextMenuItem(uint16 menuCommandId)
+		{
+			switch (menuCommandId)
 			{
 			case CONTEXT_MENU_ID_ADD_FUNCTION:
+				AddFunctionAt(contextMenuTargetId, editor.NavigationTree());
 				return true;
 			case CONTEXT_MENU_ID_ADD_SUBSPACE:
 				AddNamespaceAt(contextMenuTargetId, editor.NavigationTree());

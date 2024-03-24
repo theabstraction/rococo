@@ -468,7 +468,7 @@ namespace ANON
 		void PostConstruct(HWND hParent)
 		{
 			THIS_WINDOW parent(hParent);
-			treeControl = Rococo::Windows::AddTree(parent, GuiRect{ 0,0,0,0 }, "", ControlId{ ABTREE_CONTROL_ID_NAVTREE }, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER);
+			treeControl = Rococo::Windows::AddTree(parent, GuiRect{ 0,0,0,0 }, "", ControlId{ ABTREE_CONTROL_ID_NAVTREE }, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER | TVS_SHOWSELALWAYS);
 		}
 
 		AbeditNavigationTree()
