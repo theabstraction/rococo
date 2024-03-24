@@ -396,8 +396,18 @@ namespace ANON
 					}
 					else
 					{
-						Beep(512, 200);
-						return;
+						auto k = localFunctionIdSet.find(id);
+						if (k != localFunctionIdSet.end())
+						{
+							contextMenu->AddString("Delete function", CONTEXT_MENU_DELETE_FUNCTION);
+							contextMenu->AddString("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION);
+							contextMenuTargetId = id;
+						}
+						else
+						{
+							Beep(512, 200);
+							return;
+						}
 					}
 				}
 				TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, hWndMenuTarget, NULL);
@@ -496,8 +506,12 @@ namespace ANON
 			auto i = publicFunctionIdSet.find(functionId);
 			if (i == publicFunctionIdSet.end())
 			{
-				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
-				return;
+				auto j = localFunctionIdSet.find(functionId);
+				if (j == localFunctionIdSet.end())
+				{
+					Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+					return;
+				}
 			}
 
 			Vec2i span{ 800, 120 };
@@ -528,8 +542,12 @@ namespace ANON
 			auto i = publicFunctionIdSet.find(functionId);
 			if (i == publicFunctionIdSet.end())
 			{
-				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
-				return;
+				auto j = localFunctionIdSet.find(functionId);
+				if (j == localFunctionIdSet.end())
+				{
+					Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+					return;
+				}
 			}
 
 			Vec2i span{ 800, 120 };
@@ -566,6 +584,7 @@ namespace ANON
 					if (isConfirmed)
 					{
 						publicFunctionIdSet.erase(functionId);
+						localFunctionIdSet.erase(functionId);
 					}
 
 					tree.Delete(functionId);
