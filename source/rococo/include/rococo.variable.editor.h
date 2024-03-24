@@ -15,11 +15,6 @@ namespace Rococo
 		virtual bool ValidateAndReportErrors(cstr textEditorContent, cstr variableName) = 0;
 	};
 
-	ROCOCO_INTERFACE IVariableEditorEventHandler
-	{
-		virtual void OnButtonClicked(cstr variableName) = 0;
-	};
-
 	ROCOCO_INTERFACE IVariableEditor
 	{
 		virtual void AddIntegerEditor(cstr variableName, cstr variableDesc, int minimum, int maximum, int defaultValue) = 0;
@@ -33,7 +28,16 @@ namespace Rococo
         virtual bool GetBoolean(cstr variableName) = 0;
 		virtual int GetInteger(cstr variableName) = 0;
 		virtual void SetHintError(cstr variableName, cstr message) = 0;
+
+		// Sets the enable state of a control. Pass (cstr) IDOK or (cstr) IDCANCEL to control termination button state
+		virtual void SetEnabled(bool isVisible, cstr controlName) = 0;
 		virtual void Free() = 0;
+	};
+
+	ROCOCO_INTERFACE IVariableEditorEventHandler
+	{
+		virtual void OnButtonClicked(cstr variableName, IVariableEditor& editor) = 0;
+		virtual void OnModal(IVariableEditor& editor) = 0;
 	};
 
 	ROCOCO_WINDOWS_API IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr);

@@ -85,6 +85,11 @@ namespace Rococo::Windows
 			hWndComboBox = CreateWindowIndirect("COMBOBOX", configCorrected, nullptr);
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		void OnPretranslateMessage(MSG&) override
 		{
 
@@ -102,42 +107,42 @@ namespace Rococo::Windows
 			return p;
 		}
 
-		virtual IWindowHandler& Handler()
+		IWindowHandler& Handler() override
 		{
 			return *this;
 		}
 
-		virtual operator HWND () const
+		operator HWND () const override
 		{
 			return hWnd;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual int AddString(cstr text)
+		int AddString(cstr text) override
 		{
 			return ComboBox_AddString(hWndComboBox, text);
 		}
 
-		virtual int FindString(cstr text)
+		int FindString(cstr text) override
 		{
 			return ComboBox_FindString(hWndComboBox, 0, text);
 		}
 
-		virtual int GetCurrentSelection()
+		int GetCurrentSelection() override
 		{
 			return ComboBox_GetCurSel(hWndComboBox);
 		}
 
-		virtual void SetCurrentSelection(int index)
+		void SetCurrentSelection(int index) override
 		{
 			ComboBox_SetCurSel(hWndComboBox, index);
 		}
 
-		virtual bool GetString(int index, char* buffer, size_t capacity)
+		bool GetString(int index, char* buffer, size_t capacity) override
 		{
 			int length = ComboBox_GetLBTextLen(hWndComboBox, index);
 			if (length == CB_ERR) return false;

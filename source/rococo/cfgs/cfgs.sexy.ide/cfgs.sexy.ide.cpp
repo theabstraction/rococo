@@ -105,7 +105,7 @@ namespace ANON
 				}
 			}
 
-			if (0 != tree.FindChild(parentId, textEditorContent).value)
+			if (0 != tree.FindFirstChild(parentId, textEditorContent).value)
 			{
 				editor.SetHintError(variableName, "The function name already exists in the tree");
 				return false;
@@ -149,7 +149,7 @@ namespace ANON
 				}
 			}
 
-			if (0 != tree.FindChild(parentId, textEditorContent).value)
+			if (0 != tree.FindFirstChild(parentId, textEditorContent).value)
 			{
 				char msg[256];
 
@@ -171,6 +171,121 @@ namespace ANON
 		}
 	};
 
+	struct RenameNamespaceValidator : IStringValidator
+	{
+		IVariableEditor& editor;
+		Visitors::TREE_NODE_ID id;
+		Visitors::IUITree& tree;
+
+		RenameNamespaceValidator(IVariableEditor& _editor, Visitors::TREE_NODE_ID _id, Visitors::IUITree& _tree) : editor(_editor), id(_id), tree(_tree)
+		{
+
+		}
+
+		bool ValidateAndReportErrors(cstr textEditorContent, cstr variableName) override
+		{
+			if (*textEditorContent == 0)
+			{
+				editor.SetHintError(variableName, "The name is blank");
+				return false;
+			}
+
+			if (!isupper(*textEditorContent))
+			{
+				editor.SetHintError(variableName, "The first character of a subspace name must be a capital A-Z");
+				return false;
+			}
+
+			for (cstr p = textEditorContent + 1; *p != 0; p++)
+			{
+				if (!isalnum(*p))
+				{
+					editor.SetHintError(variableName, "The trailing characters of a subspace name must be alpha numerics. A-Z, a-z or 0-9");
+					return false;
+				}
+			}
+
+			char text[128];
+			if (!tree.TryGetText(text, sizeof text, id))
+			{
+				Throw(0, "Could not get text for the namespace item");
+			}
+
+			auto parentId = tree.GetParent(id);
+			if (parentId.value == 0)
+			{
+				Throw(0, "Could not get parent for the namespace item");
+			}
+
+			auto match = tree.FindFirstChild(parentId, textEditorContent);
+
+			if (match.value)
+			{
+				editor.SetHintError(variableName, "The subspace name already exists");
+				return false;
+			}
+
+			return true;
+		}
+	};
+
+	struct RenameFNameValidator : IStringValidator
+	{
+		IVariableEditor& editor;
+		Visitors::TREE_NODE_ID id;
+		Visitors::IUITree& tree;
+
+		RenameFNameValidator(IVariableEditor& _editor, Visitors::TREE_NODE_ID _id, Visitors::IUITree& _tree) : editor(_editor), id(_id), tree(_tree)
+		{
+
+		}
+
+		bool ValidateAndReportErrors(cstr textEditorContent, cstr variableName) override
+		{
+			if (*textEditorContent == 0)
+			{
+				editor.SetHintError(variableName, "The name is blank");
+				return false;
+			}
+
+			if (!isupper(*textEditorContent))
+			{
+				editor.SetHintError(variableName, "The first character of a function name must be a capital A-Z");
+				return false;
+			}
+
+			for (cstr p = textEditorContent + 1; *p != 0; p++)
+			{
+				if (!isalnum(*p))
+				{
+					editor.SetHintError(variableName, "The trailing characters of a function name must be alpha numerics. A-Z, a-z or 0-9");
+					return false;
+				}
+			}
+
+			char text[128];
+			if (!tree.TryGetText(text, sizeof text, id))
+			{
+				Throw(0, "Could not get text for the function item");
+			}
+
+			auto parentId = tree.GetParent(id);
+			if (parentId.value == 0)
+			{
+				Throw(0, "Could not get parent for the function item");
+			}
+
+			auto match = tree.FindFirstChild(parentId, textEditorContent);
+
+			if (match.value)
+			{
+				editor.SetHintError(variableName, "The function name already exists");
+				return false;
+			}
+
+			return true;
+		}
+	};
 
 	struct NavigationHandler: Visitors::ITreeControlHandler
 	{
@@ -182,13 +297,17 @@ namespace ANON
 
 		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
 		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> localFunctionIdSet;
+		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> publicFunctionIdSet;
 
 		AutoFree<Rococo::Windows::IWin32Menu> contextMenu;
 
 		enum
 		{
 			CONTEXT_MENU_ID_ADD_SUBSPACE = 4001,
-			CONTEXT_MENU_ID_ADD_FUNCTION 
+			CONTEXT_MENU_ID_ADD_FUNCTION,
+			CONTEXT_MENU_DELETE_FUNCTION,
+			CONTEXT_MENU_ID_RENAME_NAMESPACE,
+			CONTEXT_MENU_ID_RENAME_FUNCTION
 		};
 
 		HWND hWndMenuTarget;
@@ -222,15 +341,7 @@ namespace ANON
 
 				char fname[128] = { 0 };
 
-				struct VariableEventHandler : IVariableEditorEventHandler
-				{
-					void OnButtonClicked(cstr variableName) override
-					{
-						UNUSED(variableName);
-					}
-				} evHandler;
-
-				AutoFree<IVariableEditor> fnameEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a new local function...", nullptr, nullptr, &evHandler, nullptr);
+				AutoFree<IVariableEditor> fnameEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a new local function...", nullptr, nullptr, &nullEventHandler, nullptr);
 
 				FNameValidator fnameValidator(*fnameEditor, id, tree);
 				fnameEditor->AddStringEditor("Local Name", nullptr, fname, sizeof fname, &fnameValidator);
@@ -248,15 +359,7 @@ namespace ANON
 
 				char fname[128] = { 0 };
 
-				struct VariableEventHandler : IVariableEditorEventHandler
-				{
-					void OnButtonClicked(cstr variableName) override
-					{
-						UNUSED(variableName);
-					}
-				} evHandler;
-
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a top level namespace...", nullptr, nullptr, &evHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a top level namespace...", nullptr, nullptr, &nullEventHandler, nullptr);
 
 				NamespaceValidator fnameValidator(*nsEditor, id, tree);
 				nsEditor->AddStringEditor("Root Namespace", nullptr, fname, sizeof fname, &fnameValidator);
@@ -279,10 +382,24 @@ namespace ANON
 				{
 					contextMenu->AddString("Add subspace", CONTEXT_MENU_ID_ADD_SUBSPACE);
 					contextMenu->AddString("Add public function", CONTEXT_MENU_ID_ADD_FUNCTION);
+					contextMenu->AddString("Rename namespace", CONTEXT_MENU_ID_RENAME_NAMESPACE);
+					contextMenuTargetId = id;
 				}
-
-				contextMenuTargetId = id;
-
+				else
+				{
+					auto j = publicFunctionIdSet.find(id);
+					if (j != publicFunctionIdSet.end())
+					{
+						contextMenu->AddString("Delete function", CONTEXT_MENU_DELETE_FUNCTION);
+						contextMenu->AddString("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION);
+						contextMenuTargetId = id;
+					}
+					else
+					{
+						Beep(512, 200);
+						return;
+					}
+				}
 				TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, hWndMenuTarget, NULL);
 			}
 		}
@@ -295,6 +412,19 @@ namespace ANON
 			namespacesId = t.AddRootItem("Namespaces", Visitors::CheckState_NoCheckBox);
 			variablesId = t.AddRootItem("Graph Variables", Visitors::CheckState_NoCheckBox);
 		}
+
+		struct NullVariableEditorEventHandler : IVariableEditorEventHandler
+		{
+			void OnButtonClicked(cstr variableName, IVariableEditor&) override
+			{
+				UNUSED(variableName);
+			}
+
+			void OnModal(IVariableEditor&)
+			{
+
+			}
+		} nullEventHandler;
 
 		void AddNamespaceAt(TREE_NODE_ID id, IUITree& tree)
 		{
@@ -310,21 +440,13 @@ namespace ANON
 
 			char fname[128] = { 0 };
 
-			struct VariableEventHandler : IVariableEditorEventHandler
-			{
-				void OnButtonClicked(cstr variableName) override
-				{
-					UNUSED(variableName);
-				}
-			} evHandler;
-
 			char subspace[128];
 			if (tree.TryGetText(subspace, sizeof subspace, id))
 			{
 				char ntitle[256];
 				SafeFormat(ntitle, "%s - Add a subspace to %s...", title, subspace);
 
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &evHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
 
 				NamespaceValidator fnameValidator(*nsEditor, id, tree);
 				nsEditor->AddStringEditor("Subspace", nullptr, fname, sizeof fname, &fnameValidator);
@@ -333,6 +455,120 @@ namespace ANON
 					auto newSubspaceId = tree.AddChild(id, fname, Visitors::CheckState_NoCheckBox);
 					namespaceIdSet.insert(newSubspaceId);
 					tree.Select(newSubspaceId);
+				}
+			}
+		}
+
+		void RenameNamespace(TREE_NODE_ID namespaceId, IUITree& tree)
+		{
+			auto i = namespaceIdSet.find(namespaceId);
+			if (i == namespaceIdSet.end())
+			{
+				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				return;
+			}
+
+			Vec2i span{ 800, 120 };
+			int labelWidth = 120;
+
+			char newSubspace[128] = { 0 };
+
+			char subspace[128];
+			if (tree.TryGetText(subspace, sizeof subspace, namespaceId))
+			{
+				char ntitle[256];
+				SafeFormat(ntitle, "%s - Rename subspace %s...", title, subspace);
+
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
+
+				RenameNamespaceValidator fnameValidator(*nsEditor, namespaceId, tree);
+				nsEditor->AddStringEditor("New Subspace", nullptr, newSubspace, sizeof newSubspace, &fnameValidator);
+				if (nsEditor->IsModalDialogChoiceYes())
+				{
+					tree.SetText(namespaceId, newSubspace);
+					tree.Select(namespaceId);
+				}
+			}
+		}
+
+		void RenameFunction(TREE_NODE_ID functionId, IUITree& tree)
+		{
+			auto i = publicFunctionIdSet.find(functionId);
+			if (i == publicFunctionIdSet.end())
+			{
+				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				return;
+			}
+
+			Vec2i span{ 800, 120 };
+			int labelWidth = 140;
+
+			char newFunctionName[128] = { 0 };
+
+			char functionName[128];
+			if (tree.TryGetText(functionName, sizeof functionName, functionId))
+			{
+				char ntitle[256];
+				SafeFormat(ntitle, "%s - Rename function %s...", title, functionName);
+
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
+
+				RenameFNameValidator fnameValidator(*nsEditor, functionId, tree);
+				nsEditor->AddStringEditor("New Function Name", nullptr, newFunctionName, sizeof newFunctionName, &fnameValidator);
+				if (nsEditor->IsModalDialogChoiceYes())
+				{
+					tree.SetText(functionId, newFunctionName);
+					tree.Select(functionId);
+				}
+			}
+		}
+
+		void DeleteFunction(TREE_NODE_ID functionId, IUITree& tree)
+		{
+			auto i = publicFunctionIdSet.find(functionId);
+			if (i == publicFunctionIdSet.end())
+			{
+				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				return;
+			}
+
+			Vec2i span{ 800, 120 };
+			int labelWidth = 140;
+
+			struct VariableEventHandler : IVariableEditorEventHandler
+			{
+				void OnButtonClicked(cstr variableName, IVariableEditor& editor) override
+				{
+					bool isChecked = editor.GetBoolean(variableName);
+					editor.SetEnabled(isChecked, (cstr) IDOK);
+				}
+
+				void OnModal(IVariableEditor& editor) override
+				{
+					editor.SetEnabled(false, (cstr)IDOK);
+				}
+			} evHandler;
+
+			char functionName[128];
+			if (tree.TryGetText(functionName, sizeof functionName, functionId))
+			{
+				char ntitle[256];
+				SafeFormat(ntitle, "%s - Delete function %s...", title, functionName);
+
+				AutoFree<IVariableEditor> deletionBox = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &evHandler, nullptr);
+
+				cstr confirmText = "Confirm deletion";
+
+				deletionBox->AddBooleanEditor(confirmText, false);
+				if (deletionBox->IsModalDialogChoiceYes())
+				{
+					bool isConfirmed = deletionBox->GetBoolean(confirmText);
+					if (isConfirmed)
+					{
+						publicFunctionIdSet.erase(functionId);
+					}
+
+					tree.Delete(functionId);
 				}
 			}
 		}
@@ -351,27 +587,20 @@ namespace ANON
 
 			char fname[128] = { 0 };
 
-			struct VariableEventHandler : IVariableEditorEventHandler
-			{
-				void OnButtonClicked(cstr variableName) override
-				{
-					UNUSED(variableName);
-				}
-			} evHandler;
-
 			char subspace[128];
 			if (tree.TryGetText(subspace, sizeof subspace, namespaceId))
 			{
 				char ntitle[256];
 				SafeFormat(ntitle, "%s - Add a function to %s...", title, subspace);
 
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &evHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
 
 				NamespaceValidator fnameValidator(*nsEditor, namespaceId, tree);
 				nsEditor->AddStringEditor("Function", nullptr, fname, sizeof fname, &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
 					auto newPublicFunctionId = tree.AddChild(namespaceId, fname, Visitors::CheckState_NoCheckBox);
+					publicFunctionIdSet.insert(newPublicFunctionId);
 					tree.Select(newPublicFunctionId);
 				}
 			}
@@ -386,6 +615,15 @@ namespace ANON
 				return true;
 			case CONTEXT_MENU_ID_ADD_SUBSPACE:
 				AddNamespaceAt(contextMenuTargetId, editor.NavigationTree());
+				return true;
+			case CONTEXT_MENU_ID_RENAME_FUNCTION:
+				RenameFunction(contextMenuTargetId, editor.NavigationTree());
+				return true;
+			case CONTEXT_MENU_ID_RENAME_NAMESPACE:
+				RenameNamespace(contextMenuTargetId, editor.NavigationTree());
+				return true;
+			case CONTEXT_MENU_DELETE_FUNCTION:
+				DeleteFunction(contextMenuTargetId, editor.NavigationTree());
 				return true;
 			}
 

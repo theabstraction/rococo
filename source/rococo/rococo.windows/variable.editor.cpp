@@ -207,7 +207,7 @@ namespace
 		WM_NAVIGATE_BY_TAB = WM_USER + 1,
 	};
 
-	HWND GetAnscestorWithId(HWND hChildWnd, ControlId targetId)
+	HWND GetAncestorWithId(HWND hChildWnd, ControlId targetId)
 	{
 		HWND hWnd = hChildWnd;
 		while (hWnd != nullptr)
@@ -224,6 +224,8 @@ namespace
 		return nullptr;
 	}
 
+	enum { NAV_RETURN = 2, NAV_FORWARD = 1, NAV_BACK = -1 };
+
 	static LRESULT VariableEditEditorProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 	{
 		UNUSED(dwRefData);
@@ -233,22 +235,32 @@ namespace
 			switch (uMsg)
 			{
 			case WM_KEYUP:
-				if (wParam == VK_TAB || wParam == VK_RETURN || wParam == VK_DOWN)
+				if (wParam == VK_RETURN)
 				{
-					HWND hVariableEditorWnd = GetAnscestorWithId(hWnd, 0);
+					HWND hVariableEditorWnd = GetAncestorWithId(hWnd, 0);
 					if (hVariableEditorWnd)
 					{
-						PostMessage(hVariableEditorWnd, WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), 1);
+						PostMessage(hVariableEditorWnd, WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), NAV_RETURN);
+					}
+					return 0L;
+				}
+
+				if (wParam == VK_TAB || wParam == VK_DOWN)
+				{
+					HWND hVariableEditorWnd = GetAncestorWithId(hWnd, 0);
+					if (hVariableEditorWnd)
+					{
+						PostMessage(hVariableEditorWnd, WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), NAV_FORWARD);
 					}
 					return 0L;
 				}
 
 				if (wParam == VK_UP)
 				{
-					HWND hVariableEditorWnd = GetAnscestorWithId(hWnd, 0);
+					HWND hVariableEditorWnd = GetAncestorWithId(hWnd, 0);
 					if (hVariableEditorWnd)
 					{
-						PostMessage(hVariableEditorWnd, WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), -1);
+						PostMessage(hVariableEditorWnd, WM_NAVIGATE_BY_TAB, (LPARAM)GetWindowLongPtrA(hWnd, GWLP_ID), NAV_BACK);
 					}
 					return 0L;
 				}
@@ -347,7 +359,7 @@ namespace
 			
 					v.ErrorMessage->ResetContent();
 					v.ErrorMessage->AppendText(RGB(255, 0, 0), RGB(scheme.backColour.red, scheme.backColour.green, scheme.backColour.blue), message);
-					
+
 					return;
 				}
 			}
@@ -431,7 +443,7 @@ namespace
 		{
 			for (VariableDesc& v : variables)
 			{
-				if (v.SpecialButtonControl != nullptr && GetDlgCtrlID(*v.SpecialButtonControl) == (int) id)
+				if (v.SpecialButtonControl != nullptr && GetDlgCtrlID(*v.SpecialButtonControl) == (int)id)
 				{
 					if (v.var.type == EVariantType_String)
 					{
@@ -439,16 +451,25 @@ namespace
 					}
 					else if (v.var.type == EVariantType_None)
 					{
-						eventHandler->OnButtonClicked(v.name);
+						eventHandler->OnButtonClicked(v.name, *this);
 					}
 
 					return;
+				}
+				else if (v.CheckBox != nullptr && GetDlgCtrlID(*v.CheckBox) == (int)id)
+				{
+					eventHandler->OnButtonClicked(v.name, *this);
 				}
 			}
 		}
 
 		bool TryCompleteDialogElseReportErrors()
 		{
+			if (!IsWindowEnabled(*okButton))
+			{
+				return false;
+			}
+
 			for (VariableDesc& v : variables)
 			{
 				if (v.validator)
@@ -578,7 +599,7 @@ namespace
 			return nullptr;
 		}
 
-		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM, LPARAM, OUT bool& wasHandled)
+		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM, LPARAM id, OUT bool& wasHandled)
 		{
 			switch (msg)
 			{
@@ -591,7 +612,18 @@ namespace
 					int focusIndex = GetIndexOfVariableEditor(hWnd);
 					if (focusIndex == -1)
 					{
-						SetFocus(*okButton);
+						if (id == NAV_RETURN)
+						{
+							if (TryCompleteDialogElseReportErrors())
+							{
+								dlg.TerminateDialog(IDOK);
+							}
+						}
+						else
+						{
+							SetFocus(*okButton);
+						}
+
 						return 0L;
 					}
 
@@ -636,9 +668,9 @@ namespace
 			
 			int buttonWidth = 80;
 
-			okButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x - buttonWidth - 20, buttonsTop, centre.x - 20, buttonsBottom), "&OK", IDOK, WS_VISIBLE | BS_DEFPUSHBUTTON, 0);
-			cancelButton = Windows::AddPushButton(*supervisor, GuiRect(centre.x + 20, buttonsTop, centre.x + buttonWidth + 20, buttonsBottom), "&Cancel", IDCANCEL, WS_VISIBLE | BS_PUSHBUTTON, 0);
-
+			MoveWindow(*okButton, centre.x - buttonWidth - 20, buttonsTop, buttonWidth, OK_AND_CANCEL_HEIGHT, TRUE);
+			MoveWindow(*cancelButton, centre.x + buttonWidth + 20, buttonsTop, buttonWidth, OK_AND_CANCEL_HEIGHT, TRUE);
+			
 			int32 tabHeight = clientSpan.y - (OK_AND_CANCEL_HEIGHT + OK_AND_CANCEL_BOTTOM_MARGIN) - captionHeight;
 
 			if (tabControl)
@@ -678,7 +710,7 @@ namespace
 				if (v.ComboControl) MoveWindow(*v.ComboControl, editorLeft, variableTop, editorWidth, variableTop + COMBO_HEIGHT, TRUE);
 				if (v.EditControl) MoveWindow(*v.EditControl, editorLeft, variableTop, editStringWidth, variableTop + CONTROL_HEIGHT, TRUE);
 				if (v.StaticControl) MoveWindow(*v.StaticControl, STATIC_LEFT_MARGIN, variableTop, labelWidth, variableTop + CONTROL_HEIGHT, TRUE);	
-				if (v.CheckBox) MoveWindow(*v.EditControl, editorLeft, variableTop, editorWidth, variableTop + CONTROL_HEIGHT, TRUE);
+				if (v.CheckBox) MoveWindow(*v.CheckBox, editorLeft, variableTop, editorWidth, variableTop + CONTROL_HEIGHT, TRUE);
 
 				variableTop += CONTROL_VERTICAL_SEPARATION + CONTROL_HEIGHT;
 			}
@@ -697,6 +729,48 @@ namespace
 		{
 			nextX = 10;
 			nextY = 28;
+		}
+
+		void OnModal() override
+		{
+			HWND hTarget = GetNextVisibleEditor(0, NULL);
+			SetFocus(hTarget);
+
+			if (eventHandler)
+			{
+				eventHandler->OnModal(*this);
+			}
+		}
+
+		void SetEnabled(bool _isEnabled, cstr controlName)
+		{
+			BOOL isEnabled = _isEnabled ? TRUE : FALSE;
+			if (controlName == (cstr)IDOK)
+			{
+				EnableWindow(*okButton, isEnabled);
+				SendMessage(*okButton, BM_SETDONTCLICK, isEnabled, 0);
+				return;
+			}
+
+			if (controlName == (cstr) IDCANCEL)
+			{
+				EnableWindow(*cancelButton, isEnabled);
+				SendMessage(*okButton, BM_SETDONTCLICK, isEnabled, 0);
+				return;
+			}
+
+			for (auto& v : variables)
+			{
+				if (Eq(v.name, controlName))
+				{
+					if (v.StaticControl) EnableWindow(*v.StaticControl, isEnabled);
+					if (v.CheckBox) EnableWindow(*v.CheckBox, isEnabled);
+					if (v.ComboControl) EnableWindow(*v.ComboControl, isEnabled);
+					if (v.EditControl) EnableWindow(*v.EditControl, isEnabled);
+					if (v.SpecialButtonControl) EnableWindow(*v.SpecialButtonControl, isEnabled);
+					return;
+				}
+			}
 		}
 
 		void Construct(cstr appQueryName, cstr defaultTab, cstr defaultTooltip, const Vec2i* topLeft)
@@ -769,6 +843,12 @@ namespace
 					VariableEditor* This = (VariableEditor*)context;
 					return This->OnMessage(hWnd, msg, wParam, lParam, OUT wasHandled);
 				}
+
+				static void OnModal(void* context)
+				{
+					VariableEditor* This = (VariableEditor*)context;
+					return This->OnModal();
+				}
 			};
 
 			dlg.Router().RouteControlCommand(this, ANON::OnControlCommand);
@@ -776,6 +856,7 @@ namespace
 			dlg.Router().RouteSize(this, ANON::OnSize);
 			dlg.Router().RoutePreTranslate(this, ANON::OnPreTranslate);
 			dlg.Router().RouteMessage(this, ANON::OnMessage);
+			dlg.Router().RouteOnModal(this, ANON::OnModal);
 		}
 	public:
 		static VariableEditor* Create(HWND hwndOwner, const Vec2i& span, int labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler, const Vec2i* topLeft)
@@ -839,10 +920,17 @@ namespace
 			}
 
 			VariableDesc v = { 0 };
-			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			if (tabControl)
+			{
+				tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			}
+			else
+			{
+				v.tabName[0] = 0;
+			}
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
-			v.CheckBox = AddCheckBox(*tab, GetDefaultEditRect(), "", nextId++, BS_AUTOCHECKBOX | WS_VISIBLE, 0);
+			v.CheckBox = AddCheckBox(*tab, GetDefaultEditRect(), "", nextId++, BS_AUTOCHECKBOX | BS_TOP | WS_VISIBLE | BS_LEFT, 0);
 
 			StackStringBuilder sb(v.name, v.NAME_CAPACITY);
 			sb << variableName;
@@ -863,7 +951,14 @@ namespace
 			}
 
 			VariableDesc v = { 0 };
-			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			if (tabControl)
+			{
+				tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			}
+			else
+			{
+				v.tabName[0] = 0;
+			}
 
 			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
@@ -901,7 +996,14 @@ namespace
 			}
 
 			VariableDesc v = { 0 };
-			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			if (tabControl)
+			{
+				tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			}
+			else
+			{
+				v.tabName[0] = 0;
+			}
 
 			GuiRect labelRect = GetDefaultLabelRect();
 
@@ -932,7 +1034,14 @@ namespace
 			}
 
 			VariableDesc v = { 0 };
-			tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			if (tabControl)
+			{
+				tabControl->GetTabName(tabControl->TabCount() - 1, v.tabName, VariableDesc::TAB_NAME_CAPACITY);
+			}
+			else
+			{
+				v.tabName[0] = 0;
+			}
 
 			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
@@ -985,7 +1094,7 @@ namespace
 			char editor[256];
 			SecureFormat(editor, sizeof(editor), "Edit_%s", variableName);
 
-			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
+			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_SIMPLE, 0);
 			v.EditControl = AddEditor(*tab, GetDefaultEditRect(), editor, nextId++, WS_VISIBLE, WS_EX_CLIENTEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
 
@@ -1209,7 +1318,11 @@ namespace
 			{
 				if (strcmp(variableName, v.name) == 0)
 				{
-					if (v.var.type == EVariantType_Bool)
+					if (v.CheckBox)
+					{
+						return v.CheckBox->GetCheckState() == Visitors::CheckState::CheckState_Ticked;
+					}
+					else if (v.var.type == EVariantType_Bool)
 					{
 						return v.var.value.int32Value == 1;
 					}

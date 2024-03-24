@@ -150,6 +150,11 @@ namespace Rococo::Windows
 			StandardResizeControlWithTitleBar(hWnd, hWndListBox, hTitle);
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		void OnPretranslateMessage(MSG&) override
 		{
 

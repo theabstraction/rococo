@@ -185,6 +185,7 @@ namespace Rococo
 		{
 			virtual void OnPretranslateMessage(MSG& msg) = 0;
 			virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+			virtual void OnModal() = 0;
 		};
 
 		class StandardWindowHandler : public IWindowHandler
@@ -201,6 +202,7 @@ namespace Rococo
 			ROCOCO_WINDOWS_API virtual LRESULT OnInput(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			ROCOCO_WINDOWS_API virtual LRESULT OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			ROCOCO_WINDOWS_API virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+			ROCOCO_WINDOWS_API virtual void OnModal();
 			ROCOCO_WINDOWS_API virtual LRESULT OnTimer(HWND hWnd, WPARAM wParam, LPARAM lParam);
 			ROCOCO_WINDOWS_API virtual void OnClose(HWND hWnd);
 			ROCOCO_WINDOWS_API virtual LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam);
@@ -224,6 +226,7 @@ namespace Rococo
 		typedef DWORD(*FN_OnIdle)(void* context);
 		typedef void(*FN_OnPreTranslate)(void* context, MSG& msg);
 		typedef LRESULT (*FN_OnMessage)(void* context, HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, OUT bool& invokeBase);
+		typedef void (*FN_OnModal)(void* context);
 
 		ROCOCO_INTERFACE IWiredWindowHandler : public IWindowHandler
 		{
@@ -237,6 +240,7 @@ namespace Rococo
 			virtual void RouteSize(void* context, FN_OnSize f) = 0;
 			virtual void RoutePreTranslate(void* context, FN_OnPreTranslate f) = 0;
 			virtual void RouteMessage(void* context, FN_OnMessage f) = 0;
+			virtual void RouteOnModal(void* context, FN_OnModal f) = 0;
 		};
 
 		ROCOCO_WINDOWS_API IWiredWindowHandler* CreateWiredHandler();

@@ -170,6 +170,11 @@ namespace Rococo::Windows
 			SetDlgCtrlID(hWndList, DLG_CTRL_LIST_ID);
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		void OnPretranslateMessage(MSG&) override
 		{
 
@@ -617,6 +622,11 @@ namespace Rococo::Windows
 			listConfig.width = 200;
 			listConfig.height = 320;
 			listBox = SuperListBox::Create(spec, listConfig, *this);
+		}
+
+		void OnModal() override
+		{
+
 		}
 
 		void OnPretranslateMessage(MSG&) override

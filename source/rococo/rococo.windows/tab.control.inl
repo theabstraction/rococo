@@ -284,6 +284,11 @@ namespace Rococo::Windows
 			SetWindowSubclass(hWndTabControl, TabSubclassMsgHandler, SUBCLASS_ID, (DWORD_PTR) this);
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		void OnPretranslateMessage(MSG&) override
 		{
 

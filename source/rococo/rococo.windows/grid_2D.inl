@@ -483,6 +483,11 @@ namespace Rococo::Windows
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		LRESULT OnSize(HWND, WPARAM wParam, LPARAM lParam)
 		{
 			UNUSED(wParam);

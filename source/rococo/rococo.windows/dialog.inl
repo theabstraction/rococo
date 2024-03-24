@@ -27,6 +27,11 @@ namespace Rococo::Windows::Impl
 
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			if (modalHandler)
@@ -57,6 +62,8 @@ namespace Rococo::Windows::Impl
 			ShowWindow(hWnd, SW_SHOW);
 			EnableWindow(ownerWindow, FALSE);
 			SetForegroundWindow(hWnd);
+
+			modalHandler->OnModal();
 
 			while (control.IsRunning())
 			{

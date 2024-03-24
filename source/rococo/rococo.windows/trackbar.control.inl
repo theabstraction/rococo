@@ -52,6 +52,11 @@ namespace Rococo::Windows
 			return 0L;
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		void OnPretranslateMessage(MSG&) override
 		{
 

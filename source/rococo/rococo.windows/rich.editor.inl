@@ -193,6 +193,11 @@ namespace Rococo::Windows
 			DestroyWindow(hWnd);
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		void OnPretranslateMessage(MSG&) override
 		{
 

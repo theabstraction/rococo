@@ -19,12 +19,17 @@ namespace Rococo::Windows
 			DeleteAll(children);
 		}
 
-		virtual void OnPretranslateMessage(MSG&)
+		void OnModal() override
 		{
 
 		}
 
-		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		void OnPretranslateMessage(MSG&) override
+		{
+
+		}
+
+		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			if (modelessHandler)
 			{
@@ -36,7 +41,7 @@ namespace Rococo::Windows
 			}
 		}
 
-		virtual IWindowHandler& Handler()
+		IWindowHandler& Handler() override
 		{
 			return *this;
 		}

@@ -533,7 +533,7 @@ namespace Rococo
 			foreSelectColour(RGBAb(0, 0, 0, 240)),
 			foreComment(RGBAb(0, 64, 0, 255)),
 			pressedColour(RGBAb(224, 224, 224, 255)),
-			edgeColour(RGBAb(128,128,128,255)),
+			edgeColour(RGBAb(128, 128, 128, 255)),
 			pressedEdgeColour(RGBAb(64, 64, 64, 255))
 		{
 		}
@@ -634,10 +634,10 @@ namespace Rococo
 			return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
 		}
 
-      LRESULT StandardWindowHandler::OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam)
-      {
-         return DefWindowProc(hWnd, WM_KEYDOWN, wParam, lParam);
-      }
+		LRESULT StandardWindowHandler::OnKeydown(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		{
+			return DefWindowProc(hWnd, WM_KEYDOWN, wParam, lParam);
+		}
 
 		LRESULT StandardWindowHandler::OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
@@ -652,15 +652,15 @@ namespace Rococo
 				OnDestroy(hWnd);
 				return 0;
 			case WM_PAINT:
-				{
-					PAINTSTRUCT ps;
-					HDC hdc = BeginPaint(hWnd, &ps);
+			{
+				PAINTSTRUCT ps;
+				HDC hdc = BeginPaint(hWnd, &ps);
 
-					OnPaint(hWnd, ps, hdc);
+				OnPaint(hWnd, ps, hdc);
 
-					EndPaint(hWnd, &ps);
-					return 0L;
-				}
+				EndPaint(hWnd, &ps);
+				return 0L;
+			}
 			case WM_SIZE:
 				OnSize(hWnd, Vec2i{ LOWORD(lParam), HIWORD(lParam) }, (RESIZE_TYPE)wParam);
 				return 0L;
@@ -675,17 +675,21 @@ namespace Rococo
 			case WM_INPUT:
 				return OnInput(hWnd, wParam, lParam);
 			case WM_TIMER:
-				return OnTimer(hWnd, wParam, lParam);	
+				return OnTimer(hWnd, wParam, lParam);
 			case WM_KEYDOWN:
 				return OnKeydown(hWnd, wParam, lParam);
 			}
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-      LRESULT StandardWindowHandler::OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam)
-      {
-         return DefWindowProc(hWnd, WM_SETCURSOR, wParam, lParam);
-      }
+		void StandardWindowHandler::OnModal()
+		{
+		}
+
+		LRESULT StandardWindowHandler::OnSetCursor(HWND hWnd, WPARAM wParam, LPARAM lParam)
+		{
+			return DefWindowProc(hWnd, WM_SETCURSOR, wParam, lParam);
+		}
 
 		LRESULT StandardWindowHandler::OnControlCommand(HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode)
 		{

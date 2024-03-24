@@ -34,6 +34,7 @@ namespace Rococo::Windows
 		FnBind<FN_OnSize> bindOnSize;
 		FnBind<FN_OnPreTranslate> bindPreTranslate;
 		FnBind<FN_OnMessage> bindOnMessage;
+		FnBind<FN_OnModal> bindOnModal;
 
 	public:
 		WiredHandler()
@@ -44,34 +45,39 @@ namespace Rococo::Windows
 		{
 		}
 
-		void RouteIdle(void* context, FN_OnIdle f)
+		void RouteIdle(void* context, FN_OnIdle f) override
 		{
 			bindIdle.Set(context, f);
 		}
 
-		void RouteControlCommand(void* context, FN_OnControlCommand f)
+		void RouteControlCommand(void* context, FN_OnControlCommand f) override
 		{
 			bindControlCommand.Set(context, f);
 		}
 
-		virtual void RouteMenuCommand(void* context, FN_OnMenuCommand f)
+		void RouteMenuCommand(void* context, FN_OnMenuCommand f) override
 		{
 			bindMenuCommand.Set(context, f);
 		}
 
-		virtual void RouteSize(void* context, FN_OnSize f)
+		void RouteSize(void* context, FN_OnSize f) override
 		{
 			bindOnSize.Set(context, f);
 		}
 
-		virtual void RouteAcceleratorCommand(void* context, FN_OnAcceleratorCommand f)
+		void RouteAcceleratorCommand(void* context, FN_OnAcceleratorCommand f) override
 		{
 			bindAcceleratorCommand.Set(context, f);
 		}
 
-		virtual void RouteClose(void* context, FN_OnClose f)
+		void RouteClose(void* context, FN_OnClose f) override
 		{
 			bindClose.Set(context, f);
+		}
+
+		void RouteOnModal(void* context, FN_OnModal f) override
+		{
+			bindOnModal.Set(context, f);
 		}
 
 		void OnControlCommand(HWND hWnd, DWORD notificationCode, ControlId id, HWND hControlCode)
@@ -101,6 +107,14 @@ namespace Rococo::Windows
 			else
 			{
 				return 1000;
+			}
+		}
+
+		void OnModal() override
+		{
+			if (bindOnModal.type != nullptr)
+			{
+				bindOnModal.type(bindOnModal.context);
 			}
 		}
 

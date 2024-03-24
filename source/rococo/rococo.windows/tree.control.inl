@@ -156,6 +156,11 @@ namespace Rococo::Windows
 			StandardResizeControlWithTitleBar(*containerWindow, hTreeWindow, hTitle);
 		}
 
+		void OnModal() override
+		{
+
+		}
+
 		void OnPretranslateMessage(MSG&) override
 		{
 
@@ -216,7 +221,7 @@ namespace Rococo::Windows
 			}
 		}
 
-		TREE_NODE_ID FindChild(TREE_NODE_ID parentId, cstr withText) override
+		TREE_NODE_ID FindFirstChild(TREE_NODE_ID parentId, cstr withText) override
 		{
 			HTREEITEM hFirstChild = TreeView_GetChild(hTreeWindow, ToHTree(parentId));
 			HTREEITEM hItem = hFirstChild;
@@ -236,6 +241,36 @@ namespace Rococo::Windows
 				}
 
 				hItem = TreeView_GetNextSibling(hTreeWindow, hItem);
+			}
+
+			return TREE_NODE_ID{ 0 };
+		}
+
+		TREE_NODE_ID FindNextChild(TREE_NODE_ID siblingId, cstr withText) override
+		{
+			HTREEITEM hItem = ToHTree(siblingId);
+
+			while (hItem != 0)
+			{
+				hItem = TreeView_GetNextSibling(hTreeWindow, hItem);
+
+				if (!hItem)
+				{
+					break;
+				}
+
+				TVITEMA item = { 0 };
+				item.hItem = hItem;
+				item.mask = TVIF_TEXT;
+				CHAR buf[MAX_PATH];
+				item.cchTextMax = MAX_PATH;
+				item.pszText = buf;
+				TreeView_GetItem(hTreeWindow, &item);
+
+				if (Eq(buf, withText))
+				{
+					return ToId(hItem);
+				}
 			}
 
 			return TREE_NODE_ID{ 0 };
@@ -269,6 +304,16 @@ namespace Rococo::Windows
 			if (!isOK) Throw(GetLastError(), "TreeView_SetItem (TEXT/STATE) failed");
 
 			return id;
+		}
+
+		void Delete(TREE_NODE_ID id) override
+		{
+			TreeView_DeleteItem(hTreeWindow, ToHTree(id));
+		}
+
+		[[nodiscard]] TREE_NODE_ID GetParent(TREE_NODE_ID childId) override
+		{
+			return ToId(TreeView_GetParent(hTreeWindow, ToHTree(childId)));
 		}
 
 		bool Select(TREE_NODE_ID id) override
@@ -329,15 +374,27 @@ namespace Rococo::Windows
 			TreeView_DeleteAllItems(hTreeWindow);
 		}
 
-		bool TryGetText(char* subspace, size_t sizeofSubspace, TREE_NODE_ID id) override
+		void SetText(TREE_NODE_ID nodeId, cstr text) override
 		{
-			if (!subspace) Throw(0, "%s: null subspace argument", __FUNCTION__);
+			if (!text) Throw(0, "%s: null text argument", __FUNCTION__);
+
+			TVITEMEX y = { 0 };
+			y.mask = TVIF_TEXT | TVIF_HANDLE;
+			y.hItem = ToHTree(nodeId);
+			y.pszText = (char*) text;
+
+			TreeView_SetItem(hTreeWindow, &y);
+		}
+
+		bool TryGetText(char* buffer, size_t sizeofBuffer, TREE_NODE_ID id) override
+		{
+			if (!buffer) Throw(0, "%s: null buffer argument", __FUNCTION__);
 
 			TVITEMEX y = { 0 };
 			y.mask = TVIF_TEXT | TVIF_HANDLE;
 			y.hItem = ToHTree(id);
-			y.pszText = subspace;
-			y.cchTextMax = (int) sizeofSubspace;
+			y.pszText = buffer;
+			y.cchTextMax = (int)sizeofBuffer;
 
 			return TreeView_GetItem(hTreeWindow, &y) ? true : false;
 		}

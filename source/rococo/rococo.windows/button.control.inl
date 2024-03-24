@@ -4,7 +4,7 @@ namespace Rococo::Windows
 	{
 	private:
 		HWND hWnd;
-	
+
 		ButtonSupervisor() :
 			hWnd(nullptr)
 		{
@@ -15,10 +15,15 @@ namespace Rococo::Windows
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 
-      void OnPretranslateMessage(MSG&) override
-      {
+		void OnModal() override
+		{
 
-      }
+		}
+
+		void OnPretranslateMessage(MSG&) override
+		{
+
+		}
 	public:
 		static ButtonSupervisor* Create(const WindowConfig& config, IParentWindowSupervisor&)
 		{
@@ -27,22 +32,22 @@ namespace Rococo::Windows
 			return p;
 		}
 
-		virtual IWindowHandler& Handler()
+		IWindowHandler& Handler() override
 		{
 			return *this;
 		}
 
-		virtual operator HWND () const
+		operator HWND () const override
 		{
 			return hWnd;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
 
-		virtual Visitors::CheckState GetCheckState()  const
+		Visitors::CheckState GetCheckState()  const override
 		{
 			switch (SendMessage(hWnd, BM_GETCHECK, 0, 0))
 			{
@@ -52,7 +57,7 @@ namespace Rococo::Windows
 			}
 		}
 
-		virtual void SetCheckState(Visitors::CheckState state)
+		void SetCheckState(Visitors::CheckState state) override
 		{
 			switch (state)
 			{
