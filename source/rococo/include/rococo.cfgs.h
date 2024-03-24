@@ -261,7 +261,8 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment
 	{
-		virtual ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
+		virtual [[nodiscard]] ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
+		virtual [[nodiscard]] bool TryHandleContextMenuItem(uint16) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment

@@ -21,6 +21,14 @@ namespace Rococo
 		struct TREE_NODE_ID
 		{
 			size_t value;
+
+			struct Hasher
+			{
+				size_t operator()(const TREE_NODE_ID& id) const noexcept
+				{
+					return id.value;
+				}
+			};
 		};
 
 		inline bool operator == (TREE_NODE_ID a, TREE_NODE_ID b)
@@ -35,11 +43,13 @@ namespace Rococo
 
 		ROCOCO_INTERFACE IUITree
 		{
-			virtual TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state) = 0;
-			virtual TREE_NODE_ID FindChild(TREE_NODE_ID parentId, cstr withText) = 0;
-			virtual TREE_NODE_ID AddRootItem(cstr text, CheckState state) = 0;
+			virtual [[nodiscard]] TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state) = 0;
+			virtual [[nodiscard]] TREE_NODE_ID FindChild(TREE_NODE_ID parentId, cstr withText) = 0;
+			virtual [[nodiscard]] TREE_NODE_ID AddRootItem(cstr text, CheckState state) = 0;
 			virtual void ResetContent() = 0;
+			virtual bool Select(TREE_NODE_ID id) = 0;
 			virtual void SetId(TREE_NODE_ID nodeId, int64 id) = 0;
+			virtual [[nodiscard]] bool TryGetText(char* subspace, size_t sizeofSubspace, TREE_NODE_ID id) = 0;
 		};
 
 		ROCOCO_INTERFACE IUIList

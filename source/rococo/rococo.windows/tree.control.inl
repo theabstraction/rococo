@@ -267,7 +267,13 @@ namespace Rococo::Windows
 			y.hItem = ToHTree(id);
 			BOOL isOK = TreeView_SetItem(hTreeWindow, &y);
 			if (!isOK) Throw(GetLastError(), "TreeView_SetItem (TEXT/STATE) failed");
+
 			return id;
+		}
+
+		bool Select(TREE_NODE_ID id) override
+		{
+			return TreeView_SelectItem(hTreeWindow, ToHTree(id)) ? true : false;
 		}
 
 		void SetId(TREE_NODE_ID nodeId, int64 id) override
@@ -314,6 +320,19 @@ namespace Rococo::Windows
 		void ResetContent() override
 		{
 			TreeView_DeleteAllItems(hTreeWindow);
+		}
+
+		bool TryGetText(char* subspace, size_t sizeofSubspace, TREE_NODE_ID id) override
+		{
+			if (!subspace) Throw(0, "%s: null subspace argument", __FUNCTION__);
+
+			TVITEMEX y = { 0 };
+			y.mask = TVIF_TEXT | TVIF_HANDLE;
+			y.hItem = ToHTree(id);
+			y.pszText = subspace;
+			y.cchTextMax = (int) sizeofSubspace;
+
+			return TreeView_GetItem(hTreeWindow, &y) ? true : false;
 		}
 
 		IWindowHandler& Handler() override

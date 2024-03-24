@@ -43,6 +43,7 @@ namespace Rococo::Abedit
 		virtual [[nodiscard]] IUIPalette& Palette() = 0;
 		virtual [[nodiscard]] Editors::IUIPropertiesEditor& Properties() = 0;
 		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
+		virtual [[nodiscard]] Windows::IWindow& ContainerWindow() = 0;
 		virtual void SetNavigationHandler(Visitors::ITreeControlHandler* handler) = 0;
 	};
 
@@ -66,6 +67,7 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IAbstractEditorMainWindowEventHandler
 	{
 		virtual void GetErrorTitle(char* titleBuffer, size_t capacity) const = 0;
+		virtual void OnContextMenuItemSelected(uint16 cmdId, IAbeditMainWindow& sender) = 0;
 		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
 		virtual void OnSelectFileToLoad(IAbeditMainWindow& sender) = 0;
 		virtual void OnSelectSave(IAbeditMainWindow& sender) = 0;

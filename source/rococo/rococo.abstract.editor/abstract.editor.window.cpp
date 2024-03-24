@@ -530,7 +530,7 @@ namespace ANON
 		}
 	};
 
-	class AbeditMainWindow : public StandardWindowHandler, public IAbeditMainWindowSupervisor
+	class AbeditMainWindow : public StandardWindowHandler, public IAbeditMainWindowSupervisor, public IWindow
 	{
 	private:
 		IAbstractEditorMainWindowEventHandler& eventHandler;
@@ -564,6 +564,16 @@ namespace ANON
 			return *window;
 		}
 
+		operator HWND() const override
+		{
+			return Handle();
+		}
+
+		Rococo::Windows::IWindow& Container() override
+		{
+			return *this;
+		}
+
 		IParentWindowSupervisor& PropertiesPanel() override
 		{
 			return propertiesPanel->Supervisor();
@@ -579,7 +589,7 @@ namespace ANON
 			return slate->Window();
 		}
 
-		[[nodiscard]] Visitors::IUITree& NavigationTree()
+		[[nodiscard]] Visitors::IUITree& NavigationTree() override
 		{
 			return navigationTree->UITree();
 		}
@@ -677,6 +687,9 @@ namespace ANON
 					break;
 				case MenuItem::Exit:
 					eventHandler.OnRequestToClose(*this);
+					break;
+				default:
+					eventHandler.OnContextMenuItemSelected(id, *this);
 					break;
 				}
 			}

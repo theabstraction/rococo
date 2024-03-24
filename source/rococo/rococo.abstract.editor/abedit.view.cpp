@@ -50,6 +50,11 @@ namespace ANON
 			return *this;
 		}
 
+		Windows::IWindow& ContainerWindow() override
+		{
+			return mainWindow->Container();
+		}
+
 		void BringToFront() override
 		{
 			BringWindowToTop(GetParent(mainWindow->SlateWindow()));

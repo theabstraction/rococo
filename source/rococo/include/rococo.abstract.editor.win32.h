@@ -21,6 +21,7 @@ namespace Rococo::Abedit
 		virtual Rococo::Windows::IParentWindowSupervisor& PropertiesPanel() = 0;
 		virtual Rococo::Editors::IUIPropertiesEditor& Properties() = 0;
 		virtual Rococo::Windows::IParentWindowSupervisor& SlateWindow() = 0;
+		virtual Rococo::Windows::IWindow& Container() = 0;
 		virtual HWND Handle() const = 0;
 	};
 

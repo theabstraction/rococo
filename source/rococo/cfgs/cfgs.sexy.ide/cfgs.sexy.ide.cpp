@@ -6,11 +6,14 @@
 #include <rococo.abstract.editor.h>
 #include <rococo.visitors.h>
 #include <rococo.variable.editor.h>
+#include <rococo.strings.h>
+#include <unordered_set>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Windows;
+using namespace Rococo::Visitors;
 
 namespace Rococo::CFGS
 {
@@ -112,27 +115,107 @@ namespace ANON
 		}
 	};
 
-	struct NavigationHandler: Visitors::ITreeControlHandler
+	struct NamespaceValidator : IStringValidator
 	{
-		Rococo::Visitors::TREE_NODE_ID functionsId = { 0 };
-		Rococo::Visitors::TREE_NODE_ID variablesId = { 0 };
+		IVariableEditor& editor;
+		Visitors::TREE_NODE_ID parentId;
+		Visitors::IUITree& tree;
 
-		Rococo::Abedit::IAbstractEditor& editor;
-
-		NavigationHandler(Rococo::Abedit::IAbstractEditor& _editor) : editor(_editor)
+		NamespaceValidator(IVariableEditor& _editor, Visitors::TREE_NODE_ID id, Visitors::IUITree& _tree) : editor(_editor), parentId(id), tree(_tree)
 		{
 
 		}
 
-		void OnItemSelected(Visitors::TREE_NODE_ID id, Visitors::IUITree& origin) override
+		bool ValidateAndReportErrors(cstr textEditorContent, cstr variableName) override
+		{
+			if (*textEditorContent == 0)
+			{
+				editor.SetHintError(variableName, "The name is blank");
+				return false;
+			}
+
+			if (!isupper(*textEditorContent))
+			{
+				editor.SetHintError(variableName, "The first character of a subspace name must be a capital A-Z");
+				return false;
+			}
+
+			for (cstr p = textEditorContent + 1; *p != 0; p++)
+			{
+				if (!isalnum(*p))
+				{
+					editor.SetHintError(variableName, "The trailing characters of a subspace name must be alpha numerics. A-Z, a-z or 0-9");
+					return false;
+				}
+			}
+
+			if (0 != tree.FindChild(parentId, textEditorContent).value)
+			{
+				char msg[256];
+
+				char subspace[128];
+				if (tree.TryGetText(subspace, sizeof subspace, parentId))
+				{
+					SafeFormat(msg, "The subspace name already exists in '%s'", subspace);
+				}
+				else
+				{
+					SafeFormat(msg, "The subspace name already exists in the root namespace");
+				}
+
+				editor.SetHintError(variableName, msg);
+				return false;
+			}
+
+			return true;
+		}
+	};
+
+
+	struct NavigationHandler: Visitors::ITreeControlHandler
+	{
+		TREE_NODE_ID localFunctionsId = { 0 };
+		TREE_NODE_ID namespacesId = { 0 };
+		TREE_NODE_ID variablesId = { 0 };
+
+		Rococo::Abedit::IAbstractEditor& editor;
+
+		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
+		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> localFunctionIdSet;
+
+		AutoFree<Rococo::Windows::IWin32Menu> contextMenu;
+
+		enum
+		{
+			CONTEXT_MENU_ID_ADD_SUBSPACE = 4001,
+			CONTEXT_MENU_ID_ADD_FUNCTION 
+		};
+
+		HWND hWndMenuTarget;
+		TREE_NODE_ID contextMenuTargetId;
+
+		NavigationHandler(Rococo::Abedit::IAbstractEditor& _editor) : editor(_editor), hWndMenuTarget(_editor.ContainerWindow())
+		{
+			contextMenu = CreateMenu(true);
+		}
+
+		void ClearMenu()
+		{
+			while (GetMenuItemCount(*contextMenu))
+			{
+				DeleteMenu(*contextMenu, 0, MF_BYPOSITION);
+			}
+		}
+
+		void OnItemSelected(TREE_NODE_ID id, IUITree& origin) override
 		{
 			UNUSED(id);
 			UNUSED(origin);
 		}
 
-		void OnItemRightClicked(Visitors::TREE_NODE_ID id, Visitors::IUITree& origin) override
+		void OnItemRightClicked(TREE_NODE_ID id, IUITree& tree) override
 		{
-			if (id == functionsId)
+			if (id == localFunctionsId)
 			{
 				Vec2i span{ 800, 120 };
 				int labelWidth = 120;
@@ -143,18 +226,64 @@ namespace ANON
 				{
 					void OnButtonClicked(cstr variableName) override
 					{
-						UNUSED(variableName, origin, functionsId);
+						UNUSED(variableName);
 					}
 				} evHandler;
 
-				AutoFree<IVariableEditor> fnameEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a new function...", nullptr, nullptr, &evHandler, nullptr);
+				AutoFree<IVariableEditor> fnameEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a new local function...", nullptr, nullptr, &evHandler, nullptr);
 
-				FNameValidator fnameValidator(*fnameEditor, id, origin);
-				fnameEditor->AddStringEditor("Function Name", nullptr, fname, sizeof fname, &fnameValidator);
+				FNameValidator fnameValidator(*fnameEditor, id, tree);
+				fnameEditor->AddStringEditor("Local Name", nullptr, fname, sizeof fname, &fnameValidator);
 				if (fnameEditor->IsModalDialogChoiceYes())
 				{
-					origin.AddChild(functionsId, fname, Visitors::CheckState_NoCheckBox);
+					auto newLocalFunctionId = tree.AddChild(localFunctionsId, fname, Visitors::CheckState_NoCheckBox);
+					localFunctionIdSet.insert(newLocalFunctionId);
+					tree.Select(localFunctionsId);
 				}
+			}
+			else if (id == namespacesId)
+			{
+				Vec2i span{ 800, 120 };
+				int labelWidth = 120;
+
+				char fname[128] = { 0 };
+
+				struct VariableEventHandler : IVariableEditorEventHandler
+				{
+					void OnButtonClicked(cstr variableName) override
+					{
+						UNUSED(variableName);
+					}
+				} evHandler;
+
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a top level namespace...", nullptr, nullptr, &evHandler, nullptr);
+
+				NamespaceValidator fnameValidator(*nsEditor, id, tree);
+				nsEditor->AddStringEditor("Root Namespace", nullptr, fname, sizeof fname, &fnameValidator);
+				if (nsEditor->IsModalDialogChoiceYes())
+				{
+					auto newTopLevelNamespaceId = tree.AddChild(namespacesId, fname, Visitors::CheckState_NoCheckBox);
+					namespaceIdSet.insert(newTopLevelNamespaceId);
+					tree.Select(newTopLevelNamespaceId);
+				}
+			}
+			else
+			{
+				POINT screenPos = { 0,0 };
+				GetCursorPos(&screenPos);
+
+				ClearMenu();
+
+				auto i = namespaceIdSet.find(id);
+				if (i != namespaceIdSet.end())
+				{
+					contextMenu->AddString("Add subspace", CONTEXT_MENU_ID_ADD_SUBSPACE);
+					contextMenu->AddString("Add public function", CONTEXT_MENU_ID_ADD_FUNCTION);
+				}
+
+				contextMenuTargetId = id;
+
+				TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, hWndMenuTarget, NULL);
 			}
 		}
 
@@ -162,8 +291,64 @@ namespace ANON
 		{
 			auto& t = editor.NavigationTree();
 			t.ResetContent();
-			functionsId = t.AddRootItem("Function Graphs", Visitors::CheckState_NoCheckBox);
+			localFunctionsId = t.AddRootItem("Local Functions", Visitors::CheckState_NoCheckBox);
+			namespacesId = t.AddRootItem("Namespaces", Visitors::CheckState_NoCheckBox);
 			variablesId = t.AddRootItem("Graph Variables", Visitors::CheckState_NoCheckBox);
+		}
+
+		void AddNamespaceAt(TREE_NODE_ID id, IUITree& tree)
+		{
+			auto i = namespaceIdSet.find(id);
+			if (i == namespaceIdSet.end())
+			{
+				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				return;
+			}
+
+			Vec2i span{ 800, 120 };
+			int labelWidth = 120;
+
+			char fname[128] = { 0 };
+
+			struct VariableEventHandler : IVariableEditorEventHandler
+			{
+				void OnButtonClicked(cstr variableName) override
+				{
+					UNUSED(variableName);
+				}
+			} evHandler;
+
+			char subspace[128];
+			if (tree.TryGetText(subspace, sizeof subspace, id))
+			{
+				char ntitle[256];
+				SafeFormat(ntitle, "%s - Add a subspace to %s...", title, subspace);
+
+				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &evHandler, nullptr);
+
+				NamespaceValidator fnameValidator(*nsEditor, id, tree);
+				nsEditor->AddStringEditor("Subspace", nullptr, fname, sizeof fname, &fnameValidator);
+				if (nsEditor->IsModalDialogChoiceYes())
+				{
+					auto newTopLevelNamespaceId = tree.AddChild(id, fname, Visitors::CheckState_NoCheckBox);
+					namespaceIdSet.insert(newTopLevelNamespaceId);
+					tree.Select(newTopLevelNamespaceId);
+				}
+			}
+		}
+
+		bool TryHandleContextMenuItem(uint16 id)
+		{
+			switch (id)
+			{
+			case CONTEXT_MENU_ID_ADD_FUNCTION:
+				return true;
+			case CONTEXT_MENU_ID_ADD_SUBSPACE:
+				AddNamespaceAt(contextMenuTargetId, editor.NavigationTree());
+				return true;
+			}
+
+			return false;
 		}
 	};
 
@@ -226,6 +411,11 @@ namespace ANON
 		ICFGSDesignerSpacePopup& DesignerSpacePopup() override
 		{
 			return *designerSpacePopup;
+		}
+
+		bool TryHandleContextMenuItem(uint16 id) override
+		{
+			return navHandler.TryHandleContextMenuItem(id);
 		}
 	};
 }

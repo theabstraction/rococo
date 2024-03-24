@@ -483,6 +483,13 @@ namespace ANON
 				}
 			);
 		}
+
+		void OnContextMenuItemSelected(uint16 id, Rococo::Abedit::IAbeditMainWindow& sender)
+		{
+			UNUSED(sender);
+			bool wasHandled = ide->TryHandleContextMenuItem(id);
+			UNUSED(wasHandled);
+		}
 	};
 }
 
