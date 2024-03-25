@@ -1336,7 +1336,7 @@ namespace
 			Throw(0, "VariableEditor::GetInteger('%s'). Item not found", variableName);
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}

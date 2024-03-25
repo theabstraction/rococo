@@ -230,6 +230,8 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] void VisuallySelect(int32 index, OUT bool& changed) = 0;
 	};
 
+	MAKE_UNIQUE_TYPEID(FunctionId);
+
 	// Interface to the control-flow graph system
 	ROCOCO_INTERFACE ICFGSDatabase
 	{
@@ -239,6 +241,10 @@ namespace Rococo::CFGS
 		// Once nodes and cables are defined, call this method
 		virtual void ConnectCablesToSockets() = 0;
 		virtual void DeleteCable(int32 cableIndex) = 0;
+
+		virtual FunctionId CreateFunction() = 0;
+		virtual void DeleteFunction(FunctionId id) = 0;
+		virtual void BuildFunction(FunctionId id) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase

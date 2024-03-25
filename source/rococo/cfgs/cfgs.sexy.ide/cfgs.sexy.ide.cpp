@@ -7,6 +7,7 @@
 #include <rococo.visitors.h>
 #include <rococo.variable.editor.h>
 #include <rococo.strings.h>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace Rococo;
@@ -14,6 +15,7 @@ using namespace Rococo::CFGS;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Windows;
 using namespace Rococo::Visitors;
+using namespace Rococo::Abedit;
 
 namespace Rococo::CFGS
 {
@@ -289,15 +291,15 @@ namespace ANON
 
 	struct NavigationHandler: Visitors::ITreeControlHandler
 	{
-		TREE_NODE_ID localFunctionsId = { 0 };
-		TREE_NODE_ID namespacesId = { 0 };
-		TREE_NODE_ID variablesId = { 0 };
+		TREE_NODE_ID localFunctionsId;
+		TREE_NODE_ID namespacesId;
+		TREE_NODE_ID variablesId;
 
-		Rococo::Abedit::IAbstractEditor& editor;
+		IAbstractEditor& editor;
 
 		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
-		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> localFunctionIdSet;
-		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> publicFunctionIdSet;
+		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> localFunctionMap;
+		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> publicFunctionMap;
 
 		AutoFree<Rococo::Windows::IWin32Menu> contextMenu;
 
@@ -313,9 +315,24 @@ namespace ANON
 		HWND hWndMenuTarget;
 		TREE_NODE_ID contextMenuTargetId;
 
-		NavigationHandler(Rococo::Abedit::IAbstractEditor& _editor) : editor(_editor), hWndMenuTarget(_editor.ContainerWindow())
+		ICFGSDatabase& cfgs;
+
+		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs) : editor(_editor), hWndMenuTarget(_editor.ContainerWindow()), cfgs(_cfgs)
 		{
 			contextMenu = CreateMenu(true);
+		}
+
+		~NavigationHandler()
+		{
+			for (auto& i : localFunctionMap)
+			{
+				cfgs.DeleteFunction(i.second);
+			}
+
+			for (auto& i : publicFunctionMap)
+			{
+				cfgs.DeleteFunction(i.second);
+			}
 		}
 
 		void ClearMenu()
@@ -348,7 +365,9 @@ namespace ANON
 				if (fnameEditor->IsModalDialogChoiceYes())
 				{
 					auto newLocalFunctionId = tree.AddChild(localFunctionsId, fname, Visitors::CheckState_NoCheckBox);
-					localFunctionIdSet.insert(newLocalFunctionId);
+
+					FunctionId f = cfgs.CreateFunction();
+					localFunctionMap.insert(std::make_pair(newLocalFunctionId, f));
 					tree.Select(newLocalFunctionId);
 				}
 			}
@@ -387,8 +406,8 @@ namespace ANON
 				}
 				else
 				{
-					auto j = publicFunctionIdSet.find(id);
-					if (j != publicFunctionIdSet.end())
+					auto j = publicFunctionMap.find(id);
+					if (j != publicFunctionMap.end())
 					{
 						contextMenu->AddString("Delete function", CONTEXT_MENU_DELETE_FUNCTION);
 						contextMenu->AddString("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION);
@@ -396,8 +415,8 @@ namespace ANON
 					}
 					else
 					{
-						auto k = localFunctionIdSet.find(id);
-						if (k != localFunctionIdSet.end())
+						auto k = localFunctionMap.find(id);
+						if (k != localFunctionMap.end())
 						{
 							contextMenu->AddString("Delete function", CONTEXT_MENU_DELETE_FUNCTION);
 							contextMenu->AddString("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION);
@@ -503,11 +522,11 @@ namespace ANON
 
 		void RenameFunction(TREE_NODE_ID functionId, IUITree& tree)
 		{
-			auto i = publicFunctionIdSet.find(functionId);
-			if (i == publicFunctionIdSet.end())
+			auto i = publicFunctionMap.find(functionId);
+			if (i == publicFunctionMap.end())
 			{
-				auto j = localFunctionIdSet.find(functionId);
-				if (j == localFunctionIdSet.end())
+				auto j = localFunctionMap.find(functionId);
+				if (j == localFunctionMap.end())
 				{
 					Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
 					return;
@@ -539,11 +558,11 @@ namespace ANON
 
 		void DeleteFunction(TREE_NODE_ID functionId, IUITree& tree)
 		{
-			auto i = publicFunctionIdSet.find(functionId);
-			if (i == publicFunctionIdSet.end())
+			auto i = publicFunctionMap.find(functionId);
+			if (i == publicFunctionMap.end())
 			{
-				auto j = localFunctionIdSet.find(functionId);
-				if (j == localFunctionIdSet.end())
+				auto j = localFunctionMap.find(functionId);
+				if (j == localFunctionMap.end())
 				{
 					Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
 					return;
@@ -583,8 +602,21 @@ namespace ANON
 					bool isConfirmed = deletionBox->GetBoolean(confirmText);
 					if (isConfirmed)
 					{
-						publicFunctionIdSet.erase(functionId);
-						localFunctionIdSet.erase(functionId);
+						auto k = publicFunctionMap.find(functionId);
+						if (k != publicFunctionMap.end())
+						{
+							cfgs.DeleteFunction(k->second);
+							publicFunctionMap.erase(k);
+						}
+						else
+						{
+							auto l = localFunctionMap.find(functionId);
+							if (l != localFunctionMap.end())
+							{
+								cfgs.DeleteFunction(l->second);
+								publicFunctionMap.erase(l);
+							}
+						}
 					}
 
 					tree.Delete(functionId);
@@ -619,7 +651,7 @@ namespace ANON
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
 					auto newPublicFunctionId = tree.AddChild(namespaceId, fname, Visitors::CheckState_NoCheckBox);
-					publicFunctionIdSet.insert(newPublicFunctionId);
+					publicFunctionMap.insert(std::make_pair(newPublicFunctionId, cfgs.CreateFunction()));
 					tree.Select(newPublicFunctionId);
 				}
 			}
@@ -660,11 +692,11 @@ namespace ANON
 		AutoFree<ISexyStudioFactory1> ssFactory;
 		AutoFree<Sexy_CFGS_Core> core;
 
-		Rococo::Abedit::IAbstractEditor& editor;
+		IAbstractEditor& editor;
 
 		NavigationHandler navHandler;
 
-		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, Rococo::Abedit::IAbstractEditor& _editor): hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), navHandler(_editor)
+		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor): hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), navHandler(_editor, _cfgs)
 		{
 		}
 

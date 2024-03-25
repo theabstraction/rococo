@@ -490,6 +490,9 @@ namespace Rococo::CFGS::Internal
 		std::unordered_map<NodeId, TestNode*, NodeId::Hasher> mapIdToNode;
 		std::vector<TestNode*> zOrderDescending;
 		CableSet cables;
+
+		typedef std::unordered_map<FunctionId, int, FunctionId::Hasher> TFunctions;
+		TFunctions mapIdToFunction;
 	public:
 		TestNodes()
 		{
@@ -503,6 +506,43 @@ namespace Rococo::CFGS::Internal
 		ICFGSNodeSetBuilder& Builder() override
 		{
 			return *this;
+		}
+
+		FunctionId CreateFunction() override
+		{
+			TFunctions::iterator i;
+
+			for(;;)
+			{
+				FunctionId id{ MakeNewUniqueId() };
+				auto insertion = mapIdToFunction.insert(std::make_pair(id, 0));
+				if (insertion.second)
+				{
+					// Insertion took place, thus id must be unique to the collection
+					i = insertion.first;
+					break;
+				}
+			}
+
+			return i->first;
+		}
+
+		void DeleteFunction(FunctionId id) override
+		{
+			auto i = mapIdToFunction.find(id);
+			if (i != mapIdToFunction.end())
+			{
+				mapIdToFunction.erase(i);
+			}
+		}
+
+		void BuildFunction(FunctionId id) override
+		{
+			auto i = mapIdToFunction.find(id);
+			if (i == mapIdToFunction.end())
+			{
+				Throw(0, "%s: No such function id {%X, %X}", __FUNCTION__, id.id.iValues[0], id.id.iValues[1]);
+			}
 		}
 
 		void ConnectCablesToSockets() override
