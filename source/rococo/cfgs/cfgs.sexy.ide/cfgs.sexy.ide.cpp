@@ -19,7 +19,7 @@ using namespace Rococo::Abedit;
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db);
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db);
 }
 
 namespace ANON
@@ -291,11 +291,12 @@ namespace ANON
 
 	struct NavigationHandler: Visitors::ITreeControlHandler
 	{
-		TREE_NODE_ID localFunctionsId;
-		TREE_NODE_ID namespacesId;
-		TREE_NODE_ID variablesId;
+		TREE_NODE_ID localFunctionsId = { 0 };
+		TREE_NODE_ID namespacesId = { 0 };
+		TREE_NODE_ID variablesId = { 0 };
 
 		IAbstractEditor& editor;
+		ICFGSDatabase& cfgs;
 
 		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> localFunctionMap;
@@ -312,12 +313,11 @@ namespace ANON
 			CONTEXT_MENU_ID_RENAME_FUNCTION
 		};
 
-		HWND hWndMenuTarget;
-		TREE_NODE_ID contextMenuTargetId;
+		HWND hWndMenuTarget{ nullptr };
+		TREE_NODE_ID contextMenuTargetId = { 0 };
 
-		ICFGSDatabase& cfgs;
 
-		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs) : editor(_editor), hWndMenuTarget(_editor.ContainerWindow()), cfgs(_cfgs)
+		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs) : editor(_editor), cfgs(_cfgs), hWndMenuTarget(_editor.ContainerWindow())
 		{
 			contextMenu = CreateMenu(true);
 		}
@@ -345,8 +345,23 @@ namespace ANON
 
 		void OnItemSelected(TREE_NODE_ID id, IUITree& origin) override
 		{
-			UNUSED(id);
 			UNUSED(origin);
+
+			auto i = localFunctionMap.find(id);
+			if (i != localFunctionMap.end())
+			{
+				cfgs.BuildFunction(i->second);
+			}
+			else
+			{
+				auto j = publicFunctionMap.find(id);
+				if (j != publicFunctionMap.end())
+				{
+					cfgs.BuildFunction(j->second);
+				}
+			}
+
+			editor.RefreshSlate();
 		}
 
 		void OnItemRightClicked(TREE_NODE_ID id, IUITree& tree) override
@@ -391,9 +406,6 @@ namespace ANON
 			}
 			else
 			{
-				POINT screenPos = { 0,0 };
-				GetCursorPos(&screenPos);
-
 				ClearMenu();
 
 				auto i = namespaceIdSet.find(id);
@@ -429,6 +441,9 @@ namespace ANON
 						}
 					}
 				}
+
+				POINT screenPos = { 0,0 };
+				GetCursorPos(&screenPos);
 				TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, hWndMenuTarget, NULL);
 			}
 		}
@@ -688,8 +703,8 @@ namespace ANON
 		ICFGSDatabase& cfgs;
 		SexyIDEWindow ideWindow;
 
-		AutoFree<ICFGSDesignerSpacePopupSupervisor> designerSpacePopup;
 		AutoFree<ISexyStudioFactory1> ssFactory;
+		AutoFree<ICFGSDesignerSpacePopupSupervisor> designerSpacePopup;
 		AutoFree<Sexy_CFGS_Core> core;
 
 		IAbstractEditor& editor;
@@ -726,7 +741,7 @@ namespace ANON
 
 			core = new Sexy_CFGS_Core(ideWindow.ideInstance->GetDatabase(), cfgs);
 
-			designerSpacePopup = CreateWin32ContextPopup(hHostWindow, cfgs, ideWindow.ideInstance->GetDatabase());
+			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase());
 
 			editor.SetNavigationHandler(&navHandler);
 

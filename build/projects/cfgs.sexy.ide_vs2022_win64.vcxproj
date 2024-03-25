@@ -240,7 +240,6 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.function.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.popup.sexy.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.cpp" />
   </ItemGroup>

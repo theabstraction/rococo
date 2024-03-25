@@ -8,12 +8,14 @@
 #include <rococo.strings.h>
 #include <rococo.functional.h>
 #include <stdio.h>
+#include <rococo.abstract.editor.h>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
 using namespace Rococo::Windows;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Strings;
+using namespace Rococo::Abedit;
 
 namespace ANON
 {
@@ -33,11 +35,11 @@ namespace ANON
 			OPTION_METHOD method;
 		};
 
-		HWND hHostWindow;
+		IAbstractEditor& editor;
 		ICFGSDatabase& cfgs;
 		SexyStudio::ISexyDatabase& db;
 		Vec2i referencePosition{ 0,0 };
-		Editors::DesignerVec2 designPosition;
+		Editors::DesignerVec2 designPosition{ 0,0 };
 
 		AutoFree<IParentWindowSupervisor> window;
 		AutoFree<IListViewSupervisor> listView;
@@ -46,7 +48,7 @@ namespace ANON
 
 		enum { Width = 640, Height = 480 };
 
-		Popup(HWND _hHostWindow, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db) : hHostWindow(_hHostWindow), cfgs(_cfgs), db(_db)
+		Popup(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db) : editor(_editor), cfgs(_cfgs), db(_db)
 		{
 
 		}
@@ -142,7 +144,7 @@ namespace ANON
 
 
 				ShowWindow(*window, SW_HIDE);
-				InvalidateRect(hHostWindow, NULL, TRUE);
+				editor.RefreshSlate();
 			}
 		}
 
@@ -248,7 +250,7 @@ namespace ANON
 		{
 			Windows::WindowConfig config;
 			DWORD style = 0;
-			SetPopupWindowConfig(config, GuiRect{ 0, 0, 0, 0 }, hHostWindow, "ContextPopup", style, 0);
+			SetPopupWindowConfig(config, GuiRect{ 0, 0, 0, 0 }, editor.ContainerWindow(), "ContextPopup", style, 0);
 			window = Windows::CreateChildWindow(config, this);
 
 			GuiRect nullRect{ 0,0,0,0 };
@@ -328,9 +330,9 @@ namespace ANON
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(HWND hHostWindow, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db)
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db)
 	{
-		auto* popup = new ANON::Popup(hHostWindow, cfgs, db);
+		auto* popup = new ANON::Popup(editor, cfgs, db);
 		popup->Create();
 		return popup;
 	}

@@ -705,6 +705,8 @@ namespace ANON
 		{
 			switch (msg)
 			{
+			case WM_ERASEBKGND:
+				return 0L;
 			case WM_COMMAND:
 				if (HIWORD(wParam) == 0)
 				{

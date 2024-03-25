@@ -44,6 +44,7 @@ namespace Rococo::Abedit
 		virtual [[nodiscard]] Editors::IUIPropertiesEditor& Properties() = 0;
 		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
 		virtual [[nodiscard]] Windows::IWindow& ContainerWindow() = 0;
+		virtual void RefreshSlate() = 0;
 		virtual void SetNavigationHandler(Visitors::ITreeControlHandler* handler) = 0;
 	};
 

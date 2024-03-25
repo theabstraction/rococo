@@ -45,6 +45,11 @@ namespace ANON
 			return mainWindow->Handle();
 		}
 
+		void RefreshSlate() override
+		{
+			InvalidateRect(mainWindow->SlateWindow(), NULL, FALSE);
+		}
+
 		Windows::IWindow& Window() override
 		{
 			return *this;

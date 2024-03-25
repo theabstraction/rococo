@@ -721,11 +721,7 @@ namespace Rococo::CFGS::Internal
 
 		void BuildFunction(FunctionId id) override
 		{
-			auto i = mapIdToFunction.find(id);
-			if (i == mapIdToFunction.end())
-			{
-				Throw(0, "%s: No such function id {%X, %X}", __FUNCTION__, id.id.iValues[0], id.id.iValues[1]);
-			}
+			currentFunctionId = id;
 		}
 
 		void Free() override
