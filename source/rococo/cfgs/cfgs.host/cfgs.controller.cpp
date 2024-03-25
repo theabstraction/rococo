@@ -181,11 +181,11 @@ namespace ANON
 	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
-		AutoFree<CFGS::ICFGSIntegratedDevelopmentEnvironmentSupervisor> ide;
+		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
 		AutoFree<CFGS::ICFGSGui> gui;
-		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
-
+		AutoFree<CFGS::ICFGSIntegratedDevelopmentEnvironmentSupervisor> ide;
+		
 		bool terminateOnMainWindowClose = false;
 
 		bool isRunning = true;
