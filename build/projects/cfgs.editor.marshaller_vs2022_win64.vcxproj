@@ -143,7 +143,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.maths.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.editor.marshaller.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\cfgs.editor.marshaller.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.maths.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.editor.marshaller.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\cfgs.editor.marshaller.lib</ImportLibrary>
@@ -239,7 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.gui.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.test.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.editor.marshaller\cfgs.database.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

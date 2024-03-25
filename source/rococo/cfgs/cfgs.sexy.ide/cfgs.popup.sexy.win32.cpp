@@ -87,7 +87,7 @@ namespace ANON
 				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
 			}
 	
-			ISXYPublicFunction* f = FindFirstFunctionIf(db.GetRootNamespace(),
+			ISXYPublicFunction* sexyFunction = FindFirstFunctionIf(db.GetRootNamespace(),
 				[&fName, ptr](ISxyNamespace&, ISXYPublicFunction& f) -> bool
 				{
 					if (!Eq(f.PublicName(), fName))
@@ -101,18 +101,24 @@ namespace ANON
 				}
 			);
 
-			if (f)
+			if (sexyFunction)
 			{
-				auto& node = cfgs.Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
+				auto* graph = cfgs.CurrentFunction();
+				if (!graph)
+				{
+					return;
+				}
+
+				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
 				node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
 				node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
 
-				for (int i = 0; i < f->LocalFunction()->InputCount(); i++)
+				for (int i = 0; i < sexyFunction->LocalFunction()->InputCount(); i++)
 				{
-					auto qualifier = f->LocalFunction()->InputQualifier(i);
+					auto qualifier = sexyFunction->LocalFunction()->InputQualifier(i);
 
-					cstr name = f->LocalFunction()->InputName(i);
-					cstr type = f->LocalFunction()->InputType(i);
+					cstr name = sexyFunction->LocalFunction()->InputName(i);
+					cstr type = sexyFunction->LocalFunction()->InputType(i);
 
 					switch (qualifier)
 					{
@@ -126,10 +132,10 @@ namespace ANON
 					}
 				}
 
-				for (int i = 0; i < f->LocalFunction()->OutputCount(); i++)
+				for (int i = 0; i < sexyFunction->LocalFunction()->OutputCount(); i++)
 				{
-					cstr name = f->LocalFunction()->OutputName(i);
-					cstr type = f->LocalFunction()->OutputType(i);
+					cstr name = sexyFunction->LocalFunction()->OutputName(i);
+					cstr type = sexyFunction->LocalFunction()->OutputType(i);
 
 					node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
 				}

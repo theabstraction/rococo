@@ -230,10 +230,10 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] void VisuallySelect(int32 index, OUT bool& changed) = 0;
 	};
 
+	// A function contains a single graph. We could just as well have named it GraphId, but most use cases graphs are for functions
 	MAKE_UNIQUE_TYPEID(FunctionId);
 
-	// Interface to the control-flow graph system
-	ROCOCO_INTERFACE ICFGSDatabase
+	ROCOCO_INTERFACE ICFGSFunction
 	{
 		virtual [[nodiscard]] ICFGSCableEnumerator& Cables() = 0;
 		virtual [[nodiscard]] ICFGSNodeEnumerator& Nodes() = 0;
@@ -241,15 +241,19 @@ namespace Rococo::CFGS
 		// Once nodes and cables are defined, call this method
 		virtual void ConnectCablesToSockets() = 0;
 		virtual void DeleteCable(int32 cableIndex) = 0;
+	};
 
+	// Interface to the control-flow graph system
+	ROCOCO_INTERFACE ICFGSDatabase
+	{
 		virtual FunctionId CreateFunction() = 0;
 		virtual void DeleteFunction(FunctionId id) = 0;
 		virtual void BuildFunction(FunctionId id) = 0;
+		virtual ICFGSFunction* CurrentFunction() = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase
 	{
-		virtual [[nodiscard]] ICFGSNodeEnumerator & Nodes() = 0;
 		virtual void Free() = 0;
 	};
 
@@ -310,7 +314,7 @@ namespace Rococo::CFGS
 
 	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketClass sclass);
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGui* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
-	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSTestSystem();
+	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase();
 
 	const wchar_t* GetCFGSAppTitle();
 }

@@ -197,7 +197,7 @@ namespace ANON
 			UNUSED(_commandLine);
 			UNUSED(_host);
 
-			db = CFGS::CreateCFGSTestSystem();
+			db = CFGS::CreateCFGSDatabase();
 
 			Abedit::IAbstractEditorFactory* editorFactory = nullptr;
 			view.Cast((void**)&editorFactory, "Rococo::Abedit::IAbstractEditorFactory");

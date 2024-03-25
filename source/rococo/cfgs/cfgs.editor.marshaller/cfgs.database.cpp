@@ -10,12 +10,12 @@ using namespace Rococo::Strings;
 
 namespace Rococo::CFGS::Internal
 {
-	class TestNode;
+	class CFGSNode;
 
-	class TestSocket : public ICFGSSocket
+	class CFGSSocket : public ICFGSSocket
 	{
 	private:
-		TestNode* parent;
+		CFGSNode* parent;
 		SocketPlacement placement;
 		DesignerRect designRect;
 		HString socketType;
@@ -24,7 +24,7 @@ namespace Rococo::CFGS::Internal
 		SocketId id;
 		std::vector<CableId> cables;
 	public:
-		TestSocket(TestNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name, SocketId _id) :
+		CFGSSocket(CFGSNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name, SocketId _id) :
 			parent(_parent),
 			placement(_placement),
 			socketType(_type.Value),
@@ -111,19 +111,19 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class TestNode : public ICFGSNode, public IRenderScheme, public ICFGSNodeBuilder
+	class CFGSNode : public ICFGSNode, public IRenderScheme, public ICFGSNodeBuilder
 	{
 		HString typeName;
 		DesignerRect designRect;
 
-		std::vector<TestSocket*> sockets;
+		std::vector<CFGSSocket*> sockets;
 
 		NodeId uniqueId;
 
 		int inputCount = 0;
 		int outputCount = 0;
 	public:
-		TestNode(cstr _typeName, DesignerVec2 pos, NodeId id) : typeName(_typeName)
+		CFGSNode(cstr _typeName, DesignerVec2 pos, NodeId id) : typeName(_typeName)
 		{
 			designRect = { pos.x, pos.y, pos.x + 150, pos.y + 100 };
 			uniqueId = id ? id : NodeId{ Rococo::MakeNewUniqueId() };
@@ -131,16 +131,16 @@ namespace Rococo::CFGS::Internal
 
 		void AddTestSockets(cstr result)
 		{
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, "Start", SocketId()));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A", SocketId()));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B", SocketId()));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End", SocketId()));
-			sockets.push_back(new TestSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result, SocketId()));
+			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, "Start", SocketId()));
+			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A", SocketId()));
+			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B", SocketId()));
+			sockets.push_back(new CFGSSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End", SocketId()));
+			sockets.push_back(new CFGSSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result, SocketId()));
 		}
 
 		void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) override
 		{
-			sockets.push_back(new TestSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label, id));
+			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label, id));
 			
 			switch(socketClass)
 			{
@@ -175,7 +175,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		~TestNode()
+		~CFGSNode()
 		{
 			for (auto* s : sockets)
 			{
@@ -483,22 +483,15 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class TestNodes: public ICFGSDatabaseSupervisor, ICFGSNodeEnumerator, ICFGSNodeSetBuilder
+	class CFGSFunction: public ICFGSFunction, ICFGSNodeEnumerator, ICFGSNodeSetBuilder
 	{
-	private:
-		std::vector<TestNode*> nodes;
-		std::unordered_map<NodeId, TestNode*, NodeId::Hasher> mapIdToNode;
-		std::vector<TestNode*> zOrderDescending;
+		std::vector<CFGSNode*> nodes;
+		std::unordered_map<NodeId, CFGSNode*, NodeId::Hasher> mapIdToNode;
+		std::vector<CFGSNode*> zOrderDescending;
 		CableSet cables;
 
-		typedef std::unordered_map<FunctionId, int, FunctionId::Hasher> TFunctions;
-		TFunctions mapIdToFunction;
 	public:
-		TestNodes()
-		{
-		}
-
-		~TestNodes()
+		~CFGSFunction()
 		{
 			DeleteAllNodes();
 		}
@@ -506,43 +499,6 @@ namespace Rococo::CFGS::Internal
 		ICFGSNodeSetBuilder& Builder() override
 		{
 			return *this;
-		}
-
-		FunctionId CreateFunction() override
-		{
-			TFunctions::iterator i;
-
-			for(;;)
-			{
-				FunctionId id{ MakeNewUniqueId() };
-				auto insertion = mapIdToFunction.insert(std::make_pair(id, 0));
-				if (insertion.second)
-				{
-					// Insertion took place, thus id must be unique to the collection
-					i = insertion.first;
-					break;
-				}
-			}
-
-			return i->first;
-		}
-
-		void DeleteFunction(FunctionId id) override
-		{
-			auto i = mapIdToFunction.find(id);
-			if (i != mapIdToFunction.end())
-			{
-				mapIdToFunction.erase(i);
-			}
-		}
-
-		void BuildFunction(FunctionId id) override
-		{
-			auto i = mapIdToFunction.find(id);
-			if (i == mapIdToFunction.end())
-			{
-				Throw(0, "%s: No such function id {%X, %X}", __FUNCTION__, id.id.iValues[0], id.id.iValues[1]);
-			}
 		}
 
 		void ConnectCablesToSockets() override
@@ -634,7 +590,7 @@ namespace Rococo::CFGS::Internal
 			{
 				if (&node == *i)
 				{
-					std::vector<TestNode*> reorderedNodes;
+					std::vector<CFGSNode*> reorderedNodes;
 					reorderedNodes.reserve(zOrderDescending.size());
 
 					reorderedNodes.push_back(*i);
@@ -666,7 +622,7 @@ namespace Rococo::CFGS::Internal
 
 		ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) override
 		{
-			auto* node = new TestNode(typeString, topLeft, id);
+			auto* node = new CFGSNode(typeString, topLeft, id);
 			nodes.push_back(node);
 			zOrderDescending.push_back(node);
 
@@ -680,7 +636,7 @@ namespace Rococo::CFGS::Internal
 
 		int32 Count() const override
 		{
-			return (int32) nodes.size();
+			return (int32)nodes.size();
 		}
 
 		const ICFGSNode* FindNode(NodeId id) const override
@@ -695,11 +651,6 @@ namespace Rococo::CFGS::Internal
 			return i != mapIdToNode.end() ? i->second : nullptr;
 		}
 
-		void Free() override
-		{
-			delete this;
-		}
-
 		ICFGSNodeEnumerator& Nodes() override
 		{
 			return *this;
@@ -711,7 +662,79 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	ICFGSNode& TestSocket::ParentNode() const
+	class CFGSDatabase: public ICFGSDatabaseSupervisor
+	{
+	private:
+		typedef std::unordered_map<FunctionId, CFGSFunction*, FunctionId::Hasher> TFunctions;
+		TFunctions mapIdToFunction;
+		FunctionId currentFunctionId;
+
+	public:
+		CFGSDatabase()
+		{
+		}
+
+		~CFGSDatabase()
+		{
+			for (auto& i : mapIdToFunction)
+			{
+				delete i.second;
+			}
+		}
+
+		ICFGSFunction* CurrentFunction() override
+		{
+			auto i = mapIdToFunction.find(currentFunctionId);
+			return i != mapIdToFunction.end() ? i->second : nullptr;
+		}
+
+		FunctionId CreateFunction() override
+		{
+			TFunctions::iterator i;
+
+			for(;;)
+			{
+				FunctionId id{ MakeNewUniqueId() };
+				auto insertion = mapIdToFunction.insert(std::make_pair(id, (CFGSFunction*) nullptr));
+				if (insertion.second)
+				{
+					// Insertion took place, thus id must be unique to the collection
+					i = insertion.first;
+					break;
+				}
+			}
+
+			i->second = new CFGSFunction();
+
+			return i->first;
+		}
+
+		void DeleteFunction(FunctionId id) override
+		{
+			auto i = mapIdToFunction.find(id);
+			if (i != mapIdToFunction.end())
+			{
+				delete i->second;
+				mapIdToFunction.erase(i);
+			}
+		}
+
+		void BuildFunction(FunctionId id) override
+		{
+			auto i = mapIdToFunction.find(id);
+			if (i == mapIdToFunction.end())
+			{
+				Throw(0, "%s: No such function id {%X, %X}", __FUNCTION__, id.id.iValues[0], id.id.iValues[1]);
+			}
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
+	ICFGSNode& CFGSSocket::ParentNode() const
 	{
 		return *parent;
 	}
@@ -719,8 +742,8 @@ namespace Rococo::CFGS::Internal
 
 namespace Rococo::CFGS
 {
-	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSTestSystem()
+	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase()
 	{
-		return new Internal::TestNodes();
+		return new Internal::CFGSDatabase();
 	}
 }

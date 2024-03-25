@@ -36,14 +36,14 @@ namespace Rococo::CFGS
 		return T{ id };
 	}
 
-	void LoadGraphNode(ICFGSDatabase& db, const ISEXMLDirective& node)
+	void LoadGraphNode(ICFGSFunction& f, const ISEXMLDirective& node)
 	{
 		auto& type = AsString(node["Type"]);
 		double xPos = AsAtomicDouble(node["XPos"]);
 		double yPos = AsAtomicDouble(node["YPos"]);
 		auto nodeId = AsId<CFGS::NodeId>(node["Id"]);
 
-		auto& nb = db.Nodes().Builder().AddNode(type.c_str(), { xPos, yPos }, nodeId);
+		auto& nb = f.Nodes().Builder().AddNode(type.c_str(), { xPos, yPos }, nodeId);
 
 		auto nChildren = node.NumberOfChildren();
 		for (size_t i = 0; i < nChildren; i++)
@@ -71,17 +71,17 @@ namespace Rococo::CFGS
 		}
 	}
 
-	void LoadGraphCable(ICFGSDatabase& db, const ISEXMLDirective& cable)
+	void LoadGraphCable(ICFGSFunction& f, const ISEXMLDirective& cable)
 	{
 		auto startNodeId = AsId<CFGS::NodeId>(cable["StartNode"]);
 		auto startSocketId = AsId<CFGS::SocketId>(cable["StartSocket"]);
 		auto endNodeId = AsId<CFGS::NodeId>(cable["EndNode"]);
 		auto endSocketId = AsId<CFGS::SocketId>(cable["EndSocket"]);
 
-		db.Cables().Add(startNodeId, startSocketId, endNodeId, endSocketId);
+		f.Cables().Add(startNodeId, startSocketId, endNodeId, endSocketId);
 	}
 
-	void LoadGraphSXML(ICFGSDatabase& db, const ISEXMLDirectiveList& topLevelDirectives)
+	void LoadGraphSXML(ICFGSFunction& f, const ISEXMLDirectiveList& topLevelDirectives)
 	{
 		size_t startIndex = 0;
 		auto& header = GetDirective(topLevelDirectives, "ControlFlowGraphSystem", IN OUT startIndex);
@@ -109,7 +109,7 @@ namespace Rococo::CFGS
 				Throw(node.S(), "Expecting (Node ...)");
 			}
 
-			LoadGraphNode(db, node);
+			LoadGraphNode(f, node);
 		}
 
 		startIndex = 0;
@@ -123,10 +123,10 @@ namespace Rococo::CFGS
 				Throw(cable.S(), "Expecting (Cable ...)");
 			}
 
-			LoadGraphCable(db, cable);
+			LoadGraphCable(f, cable);
 		}
 
-		db.ConnectCablesToSockets();
+		f.ConnectCablesToSockets();
 	}
 
 	void AddId(cstr key, UniqueIdHolder id, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
@@ -138,10 +138,16 @@ namespace Rococo::CFGS
 
 	void LoadGraph(ICFGSDatabase& db, const wchar_t* filename)
 	{
-		auto lambda = [&db](const ISEXMLDirectiveList& directives)
+		auto* f = db.CurrentFunction();
+		if (!f)
+		{
+			return;
+		}
+
+		auto lambda = [f](const ISEXMLDirectiveList& directives)
 			{
-				db.Nodes().Builder().DeleteAllNodes();
-				LoadGraphSXML(db, directives);
+				f->Nodes().Builder().DeleteAllNodes();
+				LoadGraphSXML(*f, directives);
 			};
 
 		Rococo::OS::LoadSXMLBySysPath(filename, lambda);
@@ -155,7 +161,14 @@ namespace Rococo::CFGS
 		sb.CloseDirective();
 
 		sb.AddDirective("Nodes");
-		auto& nodes = db.Nodes();
+
+		auto* f = db.CurrentFunction();
+		if (!f)
+		{
+			return;
+		}
+
+		auto& nodes = f->Nodes();
 		for (int i = 0; i < nodes.Count(); i++)
 		{
 			auto& node = nodes[i];
@@ -185,7 +198,7 @@ namespace Rococo::CFGS
 		sb.CloseDirective();
 
 		sb.AddDirective("Cables");
-		auto& cables = db.Cables();
+		auto& cables = f->Cables();
 
 		for (int i = 0; i < cables.Count(); ++i)
 		{

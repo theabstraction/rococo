@@ -464,15 +464,21 @@ namespace Rococo::CFGS::Internal
 
 		void RenderCablesUnderneath(IFlatGuiRenderer& fgr, RenderPhase phase)
 		{
-			auto& cables = cfgs.Cables();
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return;
+			}
+
+			auto& cables = f->Cables();
 			for (int32 i = 0; i < cables.Count(); i++)
 			{
 				auto& cable = cables[i];
 				auto start = cable.ExitPoint();
 				auto end = cable.EntryPoint();
 
-				auto* nodeStart = cfgs.Nodes().FindNode(start.node);
-				auto* nodeEnd = cfgs.Nodes().FindNode(end.node);
+				auto* nodeStart = f->Nodes().FindNode(start.node);
+				auto* nodeEnd = f->Nodes().FindNode(end.node);
 
 				if (nodeStart && nodeEnd)
 				{
@@ -488,7 +494,13 @@ namespace Rococo::CFGS::Internal
 				return;
 			}
 
-			auto* node = cfgs.Nodes().FindNode(connectionAnchor.node);
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return;
+			}
+
+			auto* node = f->Nodes().FindNode(connectionAnchor.node);
 			if (!node)
 			{
 				return;
@@ -528,7 +540,13 @@ namespace Rococo::CFGS::Internal
 
 		void Render(IFlatGuiRenderer& fgr) override
 		{
-			auto& nodes = cfgs.Nodes();
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return;
+			}
+
+			auto& nodes = f->Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
 				ComputeSocketGeometry(nodes[i], designSpace);
@@ -546,9 +564,15 @@ namespace Rococo::CFGS::Internal
 
 		void RenderIndices(IFlatGuiRenderer& fgr) override
 		{
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return;
+			}
+
 			RenderCablesUnderneath(fgr, RenderPhase::Indices);
 
-			auto& nodes = cfgs.Nodes();
+			auto& nodes = f->Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
 				RenderNode(fgr, nodes.GetByZOrderAscending(i), designSpace, RenderPhase::Indices);
@@ -557,12 +581,18 @@ namespace Rococo::CFGS::Internal
 
 		bool OnCursorMove(Vec2i pixelPosition) override
 		{
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return false;
+			}
+
 			if (dragId)
 			{
 				Vec2i delta = pixelPosition - dragStart;
 				DesignerVec2 designerDelta = designSpace.ScreenDeltaToWorldDelta(delta);
 				
-				auto* node = cfgs.Nodes().FindNode(dragId);
+				auto* node = f->Nodes().FindNode(dragId);
 				if (node)
 				{
 					node->SetDesignOffset(designerDelta, false);
@@ -580,7 +610,7 @@ namespace Rococo::CFGS::Internal
 
 			DesignerVec2 designerPos = designSpace.ScreenToWorld(pixelPosition);
 
-			const ICFGSNode* topMostNode = FindTopMostNodeContainingPoint(designerPos, cfgs.Nodes());
+			const ICFGSNode* topMostNode = FindTopMostNodeContainingPoint(designerPos, f->Nodes());
 			if (topMostNode)
 			{
 				SetHovered(topMostNode->UniqueId());	
@@ -616,7 +646,13 @@ namespace Rococo::CFGS::Internal
 
 		const ICFGSNode* FindNodeAt(Vec2i screenPosition)
 		{
-			auto& nodes = cfgs.Nodes();
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return nullptr;
+			}
+
+			auto& nodes = f->Nodes();
 			for (int32 i = 0; i < nodes.Count(); ++i)
 			{
 				auto& node = nodes.GetByZOrderDescending(i);
@@ -636,7 +672,14 @@ namespace Rococo::CFGS::Internal
 		// In the event that no cable lies under the screen co-ordinate the index is set to -1 and nullptr is returned
 		const ICFGSCable* FindCableAt(Vec2i screenPosition, OUT int32& index)
 		{
-			auto& cables = cfgs.Cables();
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				index = -1;
+				return nullptr;
+			}
+
+			auto& cables = f->Cables();
 
 			RGBAb indices;
 			if (designSpace.TryGetIndicesAt(screenPosition, indices))
@@ -664,11 +707,17 @@ namespace Rococo::CFGS::Internal
 		{
 			UNUSED(buttonFlags);
 
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return false;
+			}
+
 			const ICFGSNode* node = FindNodeAt(cursorPosition);
 
 			if (node)
 			{
-				cfgs.Nodes().MakeTopMost(*node);
+				f->Nodes().MakeTopMost(*node);
 
 				const ICFGSSocket* socket = FindSocketAt(cursorPosition, *node);
 				if (!socket)
@@ -685,7 +734,7 @@ namespace Rococo::CFGS::Internal
 				}
 			}
 
-			auto& cables = cfgs.Cables();
+			auto& cables = f->Cables();
 
 			int32 foundIndex = -1;
 			const ICFGSCable* cable = FindCableAt(cursorPosition, OUT foundIndex);
@@ -697,12 +746,18 @@ namespace Rococo::CFGS::Internal
 
 		bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
 		{
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return false;
+			}
+
 			if (dragId)
 			{
 				Vec2i delta = cursorPosition - dragStart;
 				DesignerVec2 designerDelta = designSpace.ScreenDeltaToWorldDelta(delta);
 
-				auto* node = cfgs.Nodes().FindNode(dragId);
+				auto* node = f->Nodes().FindNode(dragId);
 				if (node)
 				{
 					node->SetDesignOffset(designerDelta, true);					
@@ -723,8 +778,8 @@ namespace Rococo::CFGS::Internal
 					auto* entranceSocket = FindSocketAt(cursorPosition, *entranceNode);
 					if (entranceSocket)
 					{
-						cfgs.Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->UniqueId(), entranceSocket->Id());
-						cfgs.ConnectCablesToSockets();
+						f->Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->UniqueId(), entranceSocket->Id());
+						f->ConnectCablesToSockets();
 					}
 				}
 
@@ -738,7 +793,7 @@ namespace Rococo::CFGS::Internal
 				auto* cable = FindCableAt(cursorPosition, OUT foundIndex);
 				if (cable)
 				{
-					cfgs.DeleteCable(foundIndex);
+					f->DeleteCable(foundIndex);
 					return true;
 				}
 			}
@@ -749,6 +804,12 @@ namespace Rococo::CFGS::Internal
 		bool OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
 		{
 			UNUSED(buttonFlags);
+
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return false;
+			}
 
 			if (dragId || connectionAnchor.node)
 			{
