@@ -489,8 +489,15 @@ namespace Rococo::CFGS::Internal
 		std::unordered_map<NodeId, CFGSNode*, NodeId::Hasher> mapIdToNode;
 		std::vector<CFGSNode*> zOrderDescending;
 		CableSet cables;
+		mutable HString name; // we lazily evaluate name with [cstr Name() const] when it has not been defined elsewhere
+		FunctionId id;
 
 	public:
+		CFGSFunction(FunctionId _id): id(_id)
+		{
+			
+		}
+
 		~CFGSFunction()
 		{
 			DeleteAllNodes();
@@ -499,6 +506,21 @@ namespace Rococo::CFGS::Internal
 		ICFGSNodeSetBuilder& Builder() override
 		{
 			return *this;
+		}
+
+		cstr Name() const override
+		{
+			if (name.length() == 0)
+			{
+				Strings::Format(name, "Fn%llXx%llX", id.id.iValues[0], id.id.iValues[1]);
+			}
+
+			return name;
+		}
+
+		void SetName(cstr name) override
+		{
+			this->name = name;
 		}
 
 		void ConnectCablesToSockets() override
@@ -682,10 +704,9 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		ICFGSFunction* CurrentFunction() override
+		void BuildFunction(FunctionId id) override
 		{
-			auto i = mapIdToFunction.find(currentFunctionId);
-			return i != mapIdToFunction.end() ? i->second : nullptr;
+			currentFunctionId = id;
 		}
 
 		FunctionId CreateFunction() override
@@ -704,9 +725,21 @@ namespace Rococo::CFGS::Internal
 				}
 			}
 
-			i->second = new CFGSFunction();
+			i->second = new CFGSFunction(i->first);
 
 			return i->first;
+		}
+
+		ICFGSFunction* FindFunction(FunctionId id) override
+		{
+			auto i = mapIdToFunction.find(id);
+			return i != mapIdToFunction.end() ? i->second : nullptr;
+		}
+
+		ICFGSFunction* CurrentFunction() override
+		{
+			auto i = mapIdToFunction.find(currentFunctionId);
+			return i != mapIdToFunction.end() ? i->second : nullptr;
 		}
 
 		void DeleteFunction(FunctionId id) override
@@ -717,11 +750,6 @@ namespace Rococo::CFGS::Internal
 				delete i->second;
 				mapIdToFunction.erase(i);
 			}
-		}
-
-		void BuildFunction(FunctionId id) override
-		{
-			currentFunctionId = id;
 		}
 
 		void Free() override

@@ -241,6 +241,8 @@ namespace Rococo::CFGS
 		// Once nodes and cables are defined, call this method
 		virtual void ConnectCablesToSockets() = 0;
 		virtual void DeleteCable(int32 cableIndex) = 0;
+		virtual cstr Name() const = 0;
+		virtual void SetName(cstr name) = 0;
 	};
 
 	// Interface to the control-flow graph system
@@ -250,6 +252,7 @@ namespace Rococo::CFGS
 		virtual void DeleteFunction(FunctionId id) = 0;
 		virtual void BuildFunction(FunctionId id) = 0;
 		virtual ICFGSFunction* CurrentFunction() = 0;
+		virtual ICFGSFunction* FindFunction(FunctionId id) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase

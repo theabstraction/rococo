@@ -187,6 +187,8 @@ namespace Rococo::Strings
 		ROCOCO_API size_t ComputeHash() const;
 	};
 
+	ROCOCO_API void Format(OUT HString& target, cstr format, ...);
+
 	inline bool operator == (const HString& a, const HString& b)
 	{
 		return Eq(a, b);

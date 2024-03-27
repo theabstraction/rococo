@@ -713,6 +713,7 @@ namespace ANON
 					OnMenuSelected(LOWORD(wParam));
 					return 0L;
 				}
+				break;
 			case WM_CLOSE:
 				break;
 			case WM_PAINT:

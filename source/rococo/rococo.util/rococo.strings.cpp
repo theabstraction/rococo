@@ -237,6 +237,48 @@ namespace Rococo::Strings
 		}
 	}
 
+	void Format(OUT HString& target, cstr format, ...)
+	{
+		thread_local std::vector<char> buffer;
+
+		if (buffer.size() == 0)
+		{
+#ifdef _DEBUG
+			buffer.resize(1);
+#else
+			buffer.resize(256);
+#endif
+		}
+
+		va_list args;
+		va_start(args, format);
+		
+		for (;;)
+		{
+			_set_errno(0);
+			int count = _vsnprintf_s(buffer.data(), buffer.size(), _TRUNCATE, format, args);
+			if (count == -1)
+			{
+				int err;
+				_get_errno(&err);
+				if (err != 0)
+				{
+					Throw(0, "%s returned an error code %d. %s", __FUNCTION__, err, strerror(err));
+				}
+				else // Truncated, so double the buffer size and try again
+				{
+					buffer.resize(buffer.size() * 2ULL);
+				}
+			}
+			else
+			{
+				// No truncation
+				target = buffer.data();
+				return;
+			}
+		}
+	}
+
 	ROCOCO_UTIL_API int32 Format(U8FilePath& path, cstr format, ...)
 	{
 		va_list args;

@@ -379,9 +379,14 @@ namespace ANON
 				fnameEditor->AddStringEditor("Local Name", nullptr, fname, sizeof fname, &fnameValidator);
 				if (fnameEditor->IsModalDialogChoiceYes())
 				{
+					char fullname[256];
+					GetFQName(fullname, sizeof fullname, fname, tree, { 0 });
+
 					auto newLocalFunctionId = tree.AddChild(localFunctionsId, fname, Visitors::CheckState_NoCheckBox);
 
 					FunctionId f = cfgs.CreateFunction();
+					cfgs.FindFunction(f)->SetName(fullname);
+
 					localFunctionMap.insert(std::make_pair(newLocalFunctionId, f));
 					tree.Select(newLocalFunctionId);
 				}
@@ -639,6 +644,58 @@ namespace ANON
 			}
 		}
 
+		static char* WriteBackwardsAndReturnEndPos(char* startOfBuffer, char* endPos, cstr token)
+		{
+			size_t len = strlen(token);
+			endPos -= len;
+			if (endPos < startOfBuffer)
+			{
+				return nullptr;
+			}
+
+			memcpy_s(endPos, endPos - startOfBuffer, token, len);
+			return endPos;
+		}
+
+		void GetFQName(char* buffer, size_t sizeOfBuffer, cstr typeName, IUITree& tree, TREE_NODE_ID tailNamespaceId) const
+		{
+			if (sizeOfBuffer < 8)
+			{
+				Throw(0, "Titchy sizeOfBuffer");
+			}
+
+			char* temp = (char*) _alloca(sizeOfBuffer);
+
+			char* end = temp + sizeOfBuffer;
+
+			end--;
+			*end = 0;
+
+			end = WriteBackwardsAndReturnEndPos(temp, end, typeName);
+
+			TREE_NODE_ID namespaceId = tailNamespaceId;
+
+			for (;;)
+			{
+				auto i = namespaceIdSet.find(namespaceId);
+				if (i == namespaceIdSet.end())
+				{
+					// No more namespaces, so we fully qualified the name
+					strcpy_s(buffer, sizeOfBuffer, end);
+					return;
+				}
+
+				char subspace[128];
+				if (tree.TryGetText(subspace, sizeof subspace, namespaceId))
+				{
+					end = WriteBackwardsAndReturnEndPos(temp, end, ".");
+					end = WriteBackwardsAndReturnEndPos(temp, end, subspace);
+				}
+
+				namespaceId = tree.GetParent(namespaceId);
+			}
+		}
+
 		void AddFunctionAt(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
 			auto i = namespaceIdSet.find(namespaceId);
@@ -665,8 +722,14 @@ namespace ANON
 				nsEditor->AddStringEditor("Function", nullptr, fname, sizeof fname, &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
+					char fullname[256];
+					GetFQName(fullname, sizeof fullname, fname, tree, namespaceId);
+
 					auto newPublicFunctionId = tree.AddChild(namespaceId, fname, Visitors::CheckState_NoCheckBox);
-					publicFunctionMap.insert(std::make_pair(newPublicFunctionId, cfgs.CreateFunction()));
+					auto id = cfgs.CreateFunction();
+					auto* f = cfgs.FindFunction(id);
+					f->SetName(fullname);
+					publicFunctionMap.insert(std::make_pair(newPublicFunctionId, id));
 					tree.Select(newPublicFunctionId);
 				}
 			}
