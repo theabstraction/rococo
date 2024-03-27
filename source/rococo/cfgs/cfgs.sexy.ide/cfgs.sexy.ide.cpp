@@ -508,6 +508,38 @@ namespace ANON
 			}
 		}
 
+		void UpdateAllFunctionNames(TREE_NODE_ID namespaceId, IUITree& tree)
+		{
+			TREE_NODE_ID childId = tree.FindFirstChild(namespaceId, nullptr);
+			while (childId.value != 0)
+			{
+				auto i = namespaceIdSet.find(childId);
+				if (i == namespaceIdSet.end())
+				{
+					UpdateAllFunctionNames(childId, tree);
+				}
+				else
+				{
+					// We have a function
+					auto j = publicFunctionMap.find(childId);
+					if (j != publicFunctionMap.end())
+					{
+						FunctionId id = j->second;
+
+						char fname[256];
+						if (tree.TryGetText(fname, sizeof fname, childId))
+						{
+							char fqName[256];
+							GetFQName(fqName, sizeof fqName, fname, tree, namespaceId);
+							cfgs.FindFunction(id)->SetName(fqName);
+						}
+					}
+				}
+
+				childId = tree.FindNextChild(childId, nullptr);
+			}
+		}
+
 		void RenameNamespace(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
 			auto i = namespaceIdSet.find(namespaceId);
@@ -536,6 +568,8 @@ namespace ANON
 				{
 					tree.SetText(namespaceId, newSubspace);
 					tree.Select(namespaceId);
+
+					UpdateAllFunctionNames(namespaceId, tree);
 				}
 			}
 		}
@@ -561,6 +595,8 @@ namespace ANON
 			char functionName[128];
 			if (tree.TryGetText(functionName, sizeof functionName, functionId))
 			{
+				SafeFormat(newFunctionName, "%s", functionName);
+
 				char ntitle[256];
 				SafeFormat(ntitle, "%s - Rename function %s...", title, functionName);
 
@@ -572,6 +608,32 @@ namespace ANON
 				{
 					tree.SetText(functionId, newFunctionName);
 					tree.Select(functionId);
+
+					TREE_NODE_ID namespaceId{ 0 };
+
+					FunctionId id;
+
+					i = publicFunctionMap.find(functionId);
+					if (i != publicFunctionMap.end())
+					{
+						id = i->second;
+						namespaceId = tree.GetParent(functionId);
+					}
+					else
+					{
+						auto j = localFunctionMap.find(functionId);
+						if (j != localFunctionMap.end())
+						{
+							id = j->second;
+						}
+					}
+
+					if (id)
+					{
+						char fqName[256];
+						GetFQName(fqName, sizeof fqName, newFunctionName, tree, namespaceId);
+						cfgs.FindFunction(id)->SetName(fqName);
+					}
 				}
 			}
 		}

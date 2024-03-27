@@ -44,7 +44,11 @@ namespace Rococo
 		ROCOCO_INTERFACE IUITree
 		{
 			virtual [[nodiscard]] TREE_NODE_ID AddChild(TREE_NODE_ID parentId, cstr text, CheckState state) = 0;
+
+			// Find the first child of the parent that matches the text exactly if the text is not null, else it returns the first child of the parent
 			virtual [[nodiscard]] TREE_NODE_ID FindFirstChild(TREE_NODE_ID parentId, cstr withText) = 0;
+
+			// Find the next sibling that matches the text exactly if the text is not null, else it returns the ntext sibling
 			virtual [[nodiscard]] TREE_NODE_ID FindNextChild(TREE_NODE_ID siblingId, cstr withText) = 0;
 			virtual [[nodiscard]] TREE_NODE_ID GetParent(TREE_NODE_ID childId) = 0;
 			virtual [[nodiscard]] TREE_NODE_ID AddRootItem(cstr text, CheckState state) = 0;
@@ -53,7 +57,7 @@ namespace Rococo
 			virtual bool Select(TREE_NODE_ID id) = 0;
 			virtual void SetId(TREE_NODE_ID nodeId, int64 id) = 0;
 			virtual void SetText(TREE_NODE_ID nodeId, cstr text) = 0;
-			virtual [[nodiscard]] bool TryGetText(char* subspace, size_t sizeofSubspace, TREE_NODE_ID id) = 0;
+			virtual [[nodiscard]] bool TryGetText(char* buffer, size_t sizeofBuffer, TREE_NODE_ID id) = 0;
 		};
 
 		ROCOCO_INTERFACE IUIList

@@ -235,9 +235,9 @@ namespace Rococo::Windows
 				item.pszText = buf;
 				TreeView_GetItem(hTreeWindow, &item);
 
-				if (Eq(buf, withText))
+				if (withText == nullptr || Eq(buf, withText))
 				{
-					return ToId(hItem);
+					return ToId(hItem);			
 				}
 
 				hItem = TreeView_GetNextSibling(hTreeWindow, hItem);
@@ -267,7 +267,7 @@ namespace Rococo::Windows
 				item.pszText = buf;
 				TreeView_GetItem(hTreeWindow, &item);
 
-				if (Eq(buf, withText))
+				if (withText == nullptr || Eq(buf, withText))
 				{
 					return ToId(hItem);
 				}
