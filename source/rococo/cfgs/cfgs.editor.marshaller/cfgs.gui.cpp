@@ -66,7 +66,8 @@ namespace Rococo::CFGS::Internal
 		Indices
 	};
 
-	class CFGSGui : public ICFGSGui
+	// The implementation is designed to be minimalist, it merely renders the nodes and cables and allows the mouse to drag cables and nodes.
+	class CFGSGui : public ICFGSGuiSupervisor
 	{
 	private:
 		ICFGSDatabase& cfgs;
@@ -896,7 +897,7 @@ namespace Rococo::CFGS
 		}
 	}
 
-	CFGS_MARSHALLER_API ICFGSGui* CreateCFGSGui(ICFGSDatabase& cfgs, IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler)
+	CFGS_MARSHALLER_API ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler)
 	{
 		return new Internal::CFGSGui(cfgs, designSpace, eventHandler);
 	}

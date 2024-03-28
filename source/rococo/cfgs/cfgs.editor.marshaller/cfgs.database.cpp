@@ -4,6 +4,7 @@
 #include <rococo.time.h>
 #include <rococo.os.h>
 #include <unordered_map>
+#include <rococo.functional.h>
 
 using namespace Rococo::Editors;
 using namespace Rococo::Strings;
@@ -734,6 +735,14 @@ namespace Rococo::CFGS::Internal
 		{
 			auto i = mapIdToFunction.find(id);
 			return i != mapIdToFunction.end() ? i->second : nullptr;
+		}
+
+		void ForEachFunction(Rococo::Function<void(ICFGSFunction& f)> callback)
+		{
+			for (auto& i : mapIdToFunction)
+			{
+				callback(*i.second);
+			}
 		}
 
 		ICFGSFunction* CurrentFunction() override

@@ -30,7 +30,7 @@ namespace Rococo::CFGS
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath);
 	void LoadGraph(ICFGSDatabase& db, const wchar_t* filename);
-	void SaveCurrentGraph(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb);
+	void SaveDatabase(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb);
 }
 
 namespace ANON
@@ -183,7 +183,7 @@ namespace ANON
 		AutoFree<IAbstractEditorSupervisor> editor;
 		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
-		AutoFree<CFGS::ICFGSGui> gui;
+		AutoFree<CFGS::ICFGSGuiSupervisor> gui;
 		AutoFree<CFGS::ICFGSIntegratedDevelopmentEnvironmentSupervisor> ide;
 		
 		bool terminateOnMainWindowClose = false;
@@ -460,13 +460,13 @@ namespace ANON
 				Rococo::Throw(0, "%ls:\nOnly perimitted to save files with extension cfgs.sxml", lastSavedSysPath.buf);
 			}
 
+			WideFilePath wBackPath;
+			Format(wBackPath, L"%ls.bak", lastSavedSysPath.buf);
+
 			try
 			{
-				WideFilePath wBackPath;
-				Format(wBackPath, L"%ls.bak", lastSavedSysPath.buf);
-
 				Rococo::OS::LoadBinaryFile(lastSavedSysPath,
-					[wBackPath](const uint8* fileData, size_t length)
+					[&wBackPath](const uint8* fileData, size_t length)
 					{
 						Rococo::IO::SaveBinaryFile(wBackPath, fileData, length);
 					}
@@ -474,12 +474,12 @@ namespace ANON
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "Error attempting to backup control flow graph to %ls.bak. %s", lastSavedSysPath.buf, ex.Message());
+				Throw(ex.ErrorCode(), "Error attempting to backup control flow graph to %ls. %s", wBackPath.buf, ex.Message());
 			}
 
 			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 				{
-					CFGS::SaveCurrentGraph(*db, sb);
+					CFGS::SaveDatabase(*db, sb);
 				}
 			);
 		}

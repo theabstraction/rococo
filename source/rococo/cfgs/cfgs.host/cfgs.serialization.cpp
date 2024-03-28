@@ -129,7 +129,7 @@ namespace Rococo::CFGS
 		f.ConnectCablesToSockets();
 	}
 
-	void AddId(cstr key, UniqueIdHolder id, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+	void AddId(cstr key, UniqueIdHolder id, ISEXMLBuilder& sb)
 	{
 		char buf[128];
 		Strings::SafeFormat(buf, "%X %X", id.iValues[0], id.iValues[1]);
@@ -153,22 +153,11 @@ namespace Rococo::CFGS
 		Rococo::OS::LoadSXMLBySysPath(filename, lambda);
 	}
 
-	void SaveCurrentGraph(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+	void SaveGraph(ICFGSFunction& f, ISEXMLBuilder& sb)
 	{
-		sb.AddDirective("ControlFlowGraphSystem");
-		sb.AddAtomicAttribute("FileFormat", "SXML");
-		sb.AddAtomicAttribute("Version", "1.0");
-		sb.CloseDirective();
-
 		sb.AddDirective("Nodes");
 
-		auto* f = db.CurrentFunction();
-		if (!f)
-		{
-			return;
-		}
-
-		auto& nodes = f->Nodes();
+		auto& nodes = f.Nodes();
 		for (int i = 0; i < nodes.Count(); i++)
 		{
 			auto& node = nodes[i];
@@ -198,7 +187,7 @@ namespace Rococo::CFGS
 		sb.CloseDirective();
 
 		sb.AddDirective("Cables");
-		auto& cables = f->Cables();
+		auto& cables = f.Cables();
 
 		for (int i = 0; i < cables.Count(); ++i)
 		{
@@ -210,6 +199,28 @@ namespace Rococo::CFGS
 			AddId("EndSocket", cable.EntryPoint().socket.id, sb);
 			sb.CloseDirective();
 		}
+
+		sb.CloseDirective();
+	}
+
+	void SaveDatabase(ICFGSDatabase& db, ISEXMLBuilder& sb)
+	{
+		sb.AddDirective("ControlFlowGraphSystem");
+		sb.AddAtomicAttribute("FileFormat", "SXML");
+		sb.AddAtomicAttribute("Version", "1.0");
+		sb.CloseDirective();
+
+		sb.AddDirective("Functions");
+
+		db.ForEachFunction(
+			[&sb](ICFGSFunction& f) 
+			{
+				sb.AddDirective("Function");
+				sb.AddStringLiteral("FQName", f.Name());
+				SaveGraph(f, sb);
+				sb.CloseDirective();
+			}
+		);
 
 		sb.CloseDirective();
 	}

@@ -253,6 +253,9 @@ namespace Rococo::CFGS
 		virtual void BuildFunction(FunctionId id) = 0;
 		virtual ICFGSFunction* CurrentFunction() = 0;
 		virtual ICFGSFunction* FindFunction(FunctionId id) = 0;
+
+		// Enumerate functions. Do not delete or append to the database during the enumeration
+		virtual void ForEachFunction(Rococo::Function<void(ICFGSFunction& f)> callback) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase
@@ -291,6 +294,8 @@ namespace Rococo::CFGS
 		virtual void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) = 0;
 	};
 
+
+	// An interface for rendering elements and manipulating them with the mouse. 
 	ROCOCO_INTERFACE ICFGSGui
 	{
 		// Respond to cursor move event, returns true if the event is consumed
@@ -308,15 +313,20 @@ namespace Rococo::CFGS
 		// This is used to paint the RGB elements to the screen. The caller will typically render to a bitmap then periodically blit it to the screen
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
 
-		// This is used to paint cable indices to enable easy detection of bezier curves under the mouse cursor
-		// The caller will typically render to an index buffer that does not get rendered to the screen
+		// This is used to paint indices to an index buffer to enable easy detection of gui objects under the mouse cursor
 		virtual void RenderIndices(Rococo::Editors::IFlatGuiRenderer& fgr) = 0;
+	};
 
+	ROCOCO_INTERFACE ICFGSGuiSupervisor : ICFGSGui
+	{
 		virtual void Free() = 0;
 	};
 
 	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketClass sclass);
-	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGui* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
+
+	// Creates a gui for a CFGS database
+	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
+
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase();
 
 	const wchar_t* GetCFGSAppTitle();
