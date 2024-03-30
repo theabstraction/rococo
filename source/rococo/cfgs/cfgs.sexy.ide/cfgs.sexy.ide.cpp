@@ -9,6 +9,7 @@
 #include <rococo.strings.h>
 #include <rococo.sexml.h>
 #include <rococo.functional.h>
+#include <..\sexystudio\sexystudio.api.h>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -933,7 +934,7 @@ namespace ANON
 		void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive)
 		{
 			size_t startIndex = 0;
-			auto& namespaces = directive.GetFirstChild(IN OUT startIndex, DIRECTIVE_NAMESPACES);
+			auto& namespaces = directive.GetDirectivesFirstChild(IN OUT startIndex, DIRECTIVE_NAMESPACES);
 			LoadNamespace(namespaces, namespacesId);
 
 			cfgs.ForEachFunction(
@@ -1028,6 +1029,43 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		bool AreTypesEquivalent(cstr a, cstr b) const
+		{
+			auto& sexyDatabase = ideWindow.ideInstance->GetDatabase();
+			return sexyDatabase.AreTypesEquivalent(a, b);
+		}
+
+		bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target) const override
+		{
+			auto* f = cfgs.CurrentFunction();
+			if (!f)
+			{
+				return false;
+			}
+
+			auto* srcNode = f->Nodes().FindNode(anchor.node);
+			if (!srcNode)
+			{
+				return false;
+			}
+
+			auto* srcSocket = srcNode->FindSocket(anchor.socket);
+			if (!srcSocket)
+			{
+				return false;
+			}
+
+			cstr srcType = srcSocket->Type().Value;
+			cstr trgType = target.Type().Value;
+
+			if (!AreTypesEquivalent(srcType, trgType))
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		ICFGSDesignerSpacePopup& DesignerSpacePopup() override

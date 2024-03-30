@@ -2201,6 +2201,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		return *database;
 	}
 
+	const ISexyDatabase& GetDatabase() const
+	{
+		return *database;
+	}
+
 	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config, Factory& _host) :
 		host(_host),
 		config(_config),

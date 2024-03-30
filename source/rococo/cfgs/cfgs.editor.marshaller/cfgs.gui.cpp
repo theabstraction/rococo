@@ -779,8 +779,12 @@ namespace Rococo::CFGS::Internal
 					auto* entranceSocket = FindSocketAt(cursorPosition, *entranceNode);
 					if (entranceSocket)
 					{
-						f->Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->UniqueId(), entranceSocket->Id());
-						f->ConnectCablesToSockets();
+						bool isPermitted = eventHandler.CFGSGuiEventHandler_IsConnectionPermitted(connectionAnchor, *entranceSocket);
+						if (isPermitted)
+						{
+							f->Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->UniqueId(), entranceSocket->Id());
+							f->ConnectCablesToSockets();
+						}
 					}
 				}
 

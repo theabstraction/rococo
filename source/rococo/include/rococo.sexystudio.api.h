@@ -63,6 +63,7 @@ namespace Rococo::SexyStudio
 		virtual IWindow& GetIDEFrame() = 0;
 		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
 		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
+		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
 
 		/*
 			cr_substring candidate - some substring in .sxy source text

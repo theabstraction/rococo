@@ -718,7 +718,7 @@ namespace Rococo::Sex::SEXML
 				return nullptr;
 			}
 
-			const ISEXMLDirective& GetFirstChild(IN OUT size_t& startIndex, cstr fqName) const override
+			const ISEXMLDirective& GetDirectivesFirstChild(IN OUT size_t& startIndex, cstr fqName) const override
 			{
 				const ISEXMLDirective* directive = FindFirstChild(IN OUT startIndex, fqName);
 				if (!directive)

@@ -145,7 +145,7 @@ namespace Rococo::Sex::SEXML
 		// [startIndex] is updated to the matching directive's index.
 		// if [fqName] is null then returns the child at [startIndex]
 		// If no child satisfies the critera an exception is thrown citing the parent expression and the fqName
-		virtual [[nodiscard]] const ISEXMLDirective& GetFirstChild(IN OUT size_t& startIndex, cstr fqName) const = 0;
+		virtual [[nodiscard]] const ISEXMLDirective& GetDirectivesFirstChild(IN OUT size_t& startIndex, cstr fqName) const = 0;
 
 		// Finds the first directive that matches the fqName starting with [startIndex].
 		// [startIndex] is updated to the matching directive's index.

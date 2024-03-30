@@ -203,6 +203,9 @@ namespace Rococo::SexyStudio
 	{
 		virtual int AliasCount() const = 0;
 		virtual void AppendFullNameToStringBuilder(REF StringBuilder& sb) const = 0;
+		virtual const ISxyNamespace* FindSubspaceByShortName(cstr shortname) const = 0;
+		virtual const ISxyNamespace* FindSubspace(cstr fqNamespace) const = 0;
+		virtual const ISXYType* FindType(cr_substring typeName) const = 0;
 		virtual cstr GetNSAliasFrom(int index) const = 0;
 		virtual	cstr GetNSAliasTo(int index) const = 0;
 		virtual	cstr GetAliasSourcePath(int index) const = 0;
@@ -283,9 +286,12 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE ISexyDatabase: IPingPathResolver
 	{
+		virtual bool AreTypesEquivalent(cstr a, cstr b) const = 0;
 		virtual void Clear() = 0;
 		virtual IFactoryConfig& Config() = 0;
 		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual const ISXYType* FindFQType(cstr typeName) const = 0;
+		virtual const ISXYType* FindPrimitiveOrFQType(cstr typeName) const = 0;
 		virtual const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;

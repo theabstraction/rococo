@@ -89,7 +89,7 @@ namespace Rococo::CFGS
 		}
 
 		size_t startIndex = 0;
-		const ISEXMLDirective& nodes = fDirective.GetFirstChild(IN OUT startIndex, "Nodes");
+		const ISEXMLDirective& nodes = fDirective.GetDirectivesFirstChild(IN OUT startIndex, "Nodes");
 
 		size_t nChildren = nodes.NumberOfChildren();
 		for (size_t i = 0; i < nChildren; i++)
@@ -100,7 +100,7 @@ namespace Rococo::CFGS
 		}
 
 		startIndex = 1;
-		const ISEXMLDirective& cables = fDirective.GetFirstChild(IN OUT startIndex, "Cables");
+		const ISEXMLDirective& cables = fDirective.GetDirectivesFirstChild(IN OUT startIndex, "Cables");
 
 		size_t nCables = cables.NumberOfChildren();
 		for (size_t i = 0; i < nCables; i++)

@@ -296,9 +296,10 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment
 	{
 		virtual [[nodiscard]] ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
-		virtual [[nodiscard]] bool TryHandleContextMenuItem(uint16) = 0;
+		virtual [[nodiscard]] bool IsConnectionPermitted(const Rococo::CFGS::CableConnection& anchor, const Rococo::CFGS::ICFGSSocket& target) const = 0;
 		virtual void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) = 0;
 		virtual void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) = 0;
+		virtual [[nodiscard]] bool TryHandleContextMenuItem(uint16) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment
@@ -312,6 +313,7 @@ namespace Rococo::CFGS
 		virtual void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) = 0;
+		virtual bool CFGSGuiEventHandler_IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& targetSocket) const = 0;
 	};
 
 

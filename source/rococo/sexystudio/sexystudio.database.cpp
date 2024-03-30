@@ -553,6 +553,66 @@ namespace ANON
 		}
 	};
 
+	struct SxyPrimitive : ISXYType, ISXYLocalType
+	{
+		HString publicName;
+
+		SxyPrimitive()
+		{
+
+		}
+
+		SxyPrimitive(cstr _publicName) : publicName(_publicName)
+		{
+
+		}
+
+		ISXYLocalType* LocalType() override
+		{
+			return this;
+		}
+
+		const ISXYLocalType* LocalType(void) const override
+		{
+			return this;
+		}
+
+		cstr PublicName(void) const override
+		{
+			return publicName;
+		}
+
+		int FieldCount(void) const override
+		{
+			return 0;
+		}
+
+		SXYField GetField(int) const override
+		{
+			Throw(0, "%s: Primitives never have fields.", __FUNCTION__);
+		}
+
+		bool IsStrong(void) const override
+		{
+			return false;
+		}
+
+		cstr LocalName(void) const override
+		{
+			return publicName;
+		}
+
+		cstr SourcePath(void) const override
+		{
+			return "";
+		}
+
+		int LineNumber(void) const override
+		{
+			return 0;
+		}
+	};
+
 	struct SXYStruct : ISXYLocalType
 	{
 		cr_sex sStructDef;
@@ -784,48 +844,6 @@ namespace ANON
 		virtual void Free() = 0;
 	};
 
-	const ISxyNamespace* FindSubspaceByShortName(const ISxyNamespace& ns, cstr shortname)
-	{
-		for (int i = 0; i < ns.SubspaceCount(); i++)
-		{
-			auto& subspace = ns[i];
-			if (Eq(subspace.Name(), shortname))
-			{
-				return &subspace;
-			}
-		}
-
-		return nullptr;
-	}
-
-	const ISxyNamespace* FindSubspace(const ISxyNamespace& ns, cstr fqNamespace)
-	{
-		if (fqNamespace == nullptr || *fqNamespace == 0)
-		{
-			return nullptr;
-		}
-
-		NamespaceSplitter splitter(fqNamespace);
-
-		cstr branchName, subspaceName;
-		if (splitter.SplitHead(OUT branchName, OUT subspaceName))
-		{
-			auto* branch = FindSubspaceByShortName(ns, branchName);
-			if (branch)
-			{
-				return FindSubspace(*branch, subspaceName);
-			}
-			else
-			{
-				return nullptr;
-			}
-		}
-		else
-		{
-			return FindSubspaceByShortName(ns, fqNamespace);
-		}
-	}
-
 	struct ImplicitNamespaces : IImplicitNamespacesSupervisor
 	{
 		std::vector<const ISxyNamespace*> implicits;
@@ -855,7 +873,7 @@ namespace ANON
 
 		bool AddImplicitNamespace(cstr fqName) override
 		{
-			const ISxyNamespace* ns = FindSubspace(root, fqName);
+			const ISxyNamespace* ns = root.FindSubspace(fqName);
 			if (ns)
 			{
 				for (auto* existing : implicits)
@@ -915,6 +933,48 @@ namespace ANON
 		int AliasCount() const override
 		{
 			return (int) nsAlias.size();
+		}
+
+		const ISxyNamespace* FindSubspaceByShortName(cstr shortname) const override
+		{
+			for (int i = 0; i < SubspaceCount(); i++)
+			{
+				auto& subspace = (*this)[i];
+				if (Eq(subspace.Name(), shortname))
+				{
+					return &subspace;
+				}
+			}
+
+			return nullptr;
+		}
+
+		const ISxyNamespace* FindSubspace(cstr fqNamespace) const override
+		{
+			if (fqNamespace == nullptr || *fqNamespace == 0)
+			{
+				return nullptr;
+			}
+
+			NamespaceSplitter splitter(fqNamespace);
+
+			cstr branchName, subspaceName;
+			if (splitter.SplitHead(OUT branchName, OUT subspaceName))
+			{
+				auto* branch = FindSubspaceByShortName(branchName);
+				if (branch)
+				{
+					return branch->FindSubspace(subspaceName);
+				}
+				else
+				{
+					return nullptr;
+				}
+			}
+			else
+			{
+				return FindSubspaceByShortName(fqNamespace);
+			}
 		}
 
 		cstr GetNSAliasFrom(int index) const override
@@ -1093,6 +1153,24 @@ namespace ANON
 			}
 
 			return *subspaces[index];
+		}
+
+		const ISXYType* FindType(cr_substring typeName) const override
+		{
+			auto i = std::find_if(structures.begin(), structures.end(),
+				[&typeName](const SXYPublicStruct& spf)
+				{
+					return Eq(typeName, spf.PublicName());
+				}
+			);
+
+			if (i == structures.end())
+			{
+				return nullptr;
+			}
+
+			const auto& result = *i;
+			return &result;
 		}
 
 		cstr Name() const override
@@ -2723,6 +2801,105 @@ namespace ANON
 			}
 
 			return true;
+		}
+
+		const ISXYType* FindFQType(cstr typeName) const override
+		{
+			cstr tokenStart = typeName;
+
+			cstr dotPos = Strings::FindChar(typeName, '.');
+			if (!dotPos)
+			{
+				// The function is not fully qualified, so its namespace is unknown
+				return nullptr;
+			}
+
+			const ISxyNamespace* parent = &rootNS;
+
+			for (;;)
+			{
+				Substring subspace{ tokenStart, dotPos };
+
+				char subspaceBuffer[128];
+				if (!subspace.TryCopyWithoutTruncate(subspaceBuffer, sizeof subspaceBuffer))
+				{
+					return nullptr;
+				}
+
+				auto* child = parent->FindSubspace(subspaceBuffer);
+				if (!child)
+				{
+					return nullptr;
+				}
+
+				parent = child;
+
+				cstr nextDotPos = Strings::FindChar(dotPos + 1, '.');
+
+				tokenStart = dotPos + 1;
+
+				if (nextDotPos == nullptr)
+				{
+					return child->FindType(Substring::ToSubstring(tokenStart));
+				}
+
+				dotPos = nextDotPos;
+			}
+		}
+
+		mutable stringmap<SxyPrimitive> nameToPrimitive;
+
+		const ISXYType* FindPrimitiveType(cstr typeName) const
+		{
+			if (nameToPrimitive.empty())
+			{
+				nameToPrimitive.insert("Float32", SxyPrimitive("Float32"));
+				nameToPrimitive.insert("Float64", SxyPrimitive("Float64"));
+				nameToPrimitive.insert("Int32", SxyPrimitive("Int32"));
+				nameToPrimitive.insert("Int64", SxyPrimitive("Int64"));
+				nameToPrimitive.insert("Bool", SxyPrimitive("Bool"));
+				nameToPrimitive.insert("Pointer", SxyPrimitive("Pointer"));
+			}
+
+			auto i = nameToPrimitive.find(typeName);
+			return i != nameToPrimitive.end() ? &i->second : nullptr;
+		}
+
+		const ISXYType* FindPrimitiveOrFQType(cstr typeName) const override
+		{
+			auto* type = FindFQType(typeName);
+			if (type)
+			{
+				return type;
+			}
+
+			return FindPrimitiveType(typeName);
+		}
+
+		bool AreTypesEquivalent(Rococo::cstr a , Rococo::cstr b) const override
+		{
+			if (!a || !b)
+			{
+				return false;
+			}
+
+			const ISXYType* A = FindPrimitiveOrFQType(a);
+			const ISXYType* B = FindPrimitiveOrFQType(b);
+
+			if (!A || !B)
+			{
+				return false;
+			}
+
+			auto* localA = A->LocalType();
+			auto* localB = B->LocalType();
+
+			if (!localA || !localB)
+			{
+				return false;
+			}
+
+			return localA == localB;
 		}
 
 		bool EnumerateVariableAndFieldList(cr_substring candidate, cr_substring typeString, ISexyFieldEnumerator& fieldEnumerator) override

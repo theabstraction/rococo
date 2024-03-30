@@ -420,6 +420,11 @@ namespace ANON
 			}
 		}
 
+		bool CFGSGuiEventHandler_IsConnectionPermitted(const Rococo::CFGS::CableConnection& anchor, const Rococo::CFGS::ICFGSSocket& target) const override
+		{
+			return ide->IsConnectionPermitted(anchor, target);
+		}
+
 		WideFilePath lastSavedSysPath;
 
 		void OnSelectFileToLoad(IAbeditMainWindow& sender) override
