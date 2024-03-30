@@ -1080,7 +1080,7 @@ private:
 
 			char desc[256];
 
-			if (localType->IsStrong())
+			if (localType && localType->IsStrong())
 			{
 				char strongdesc[64];
 				SafeFormat(strongdesc, "%s (strong %s)", type.PublicName(), localType->GetField(0).type);

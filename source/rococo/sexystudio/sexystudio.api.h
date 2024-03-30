@@ -205,6 +205,7 @@ namespace Rococo::SexyStudio
 		virtual void AppendFullNameToStringBuilder(REF StringBuilder& sb) const = 0;
 		virtual const ISxyNamespace* FindSubspaceByShortName(cstr shortname) const = 0;
 		virtual const ISxyNamespace* FindSubspace(cstr fqNamespace) const = 0;
+		virtual cstr FindAliasFrom(cstr source) const = 0;
 		virtual const ISXYType* FindType(cr_substring typeName) const = 0;
 		virtual cstr GetNSAliasFrom(int index) const = 0;
 		virtual	cstr GetNSAliasTo(int index) const = 0;

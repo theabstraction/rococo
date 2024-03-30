@@ -987,6 +987,19 @@ namespace ANON
 			return nsAlias[index].publicName.c_str();
 		}
 
+		cstr FindAliasFrom(cstr source) const override
+		{
+			for (auto& a : nsAlias)
+			{
+				if (Eq(a.publicName.c_str(), source))
+				{
+					return a.sAliasDef[1].c_str();
+				}
+			}
+
+			return nullptr;
+		}
+
 		ISxyNamespace* GetParent() override
 		{
 			return parent;
@@ -2803,8 +2816,38 @@ namespace ANON
 			return true;
 		}
 
+		// We use this variable to limit FindFQType call depth
+		// Potentially the source code may create a circular alias chain, e.g A is aliased to B, B to C and C to A.
+		// We need to evaluate the basis from which everything is aliased for a given chain.
+		// Call depth is limited to the enum so that a circular chain does not cause a stack overflow
+		mutable int findCallDepth = 0;
+
+		enum { MAX_FIND_FQ_TYPE_DEPTH = 10 };
+
+		// Increments a counter on construct, decrements it on destruct. Used to evaulate call depth
+		struct AutoGuard
+		{
+			int& counter;
+			AutoGuard(int& _counter): counter(_counter)
+			{
+				counter++;
+			}
+
+			~AutoGuard()
+			{
+				counter--;
+			}
+		};
+
 		const ISXYType* FindFQType(cstr typeName) const override
 		{
+			AutoGuard guard(REF findCallDepth);
+
+			if (findCallDepth > MAX_FIND_FQ_TYPE_DEPTH)
+			{
+				return nullptr;
+			}
+
 			cstr tokenStart = typeName;
 
 			cstr dotPos = Strings::FindChar(typeName, '.');
@@ -2840,7 +2883,23 @@ namespace ANON
 
 				if (nextDotPos == nullptr)
 				{
-					return child->FindType(Substring::ToSubstring(tokenStart));
+					auto* type = child->FindType(Substring::ToSubstring(tokenStart));
+					if (type)
+					{
+						return type;
+					}
+					else
+					{
+						cstr originalType = child->FindAliasFrom(tokenStart);
+						if (originalType)
+						{
+							return FindPrimitiveOrFQType(originalType);
+						}
+						else
+						{
+							return nullptr;
+						}
+					}
 				}
 
 				dotPos = nextDotPos;
@@ -2896,7 +2955,7 @@ namespace ANON
 
 			if (!localA || !localB)
 			{
-				return false;
+				return Eq(A->PublicName(), B->PublicName());
 			}
 
 			return localA == localB;
@@ -3356,6 +3415,11 @@ namespace ANON
 			//     1) from one namespace to another (alias Sys.Type.Float32 Sys.OpenGL.GLfloat)
 			//     2) a local object to a namespace (alias Main EntryPoint.Main)
 
+			if (strstr(const_aliasTo, "Degrees") != nullptr)
+			{
+				printf("doomed");
+			}
+
 			char publicName[Rococo::NAMESPACE_MAX_LENGTH];
 			char implicitName[Rococo::NAMESPACE_MAX_LENGTH];
 
@@ -3407,10 +3471,19 @@ namespace ANON
 				{
 					ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS, s);
 					ns.AliasFunction(aliasFrom, file, publicName);
+					return;
 				}
 
 				auto j = file.structures.find(aliasFrom);
 				if (j != file.structures.end())
+				{
+					ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS, s);
+					ns.AliasStruct(aliasFrom, file, publicName);
+					return;
+				}
+
+				auto* aliasedType = FindPrimitiveType(aliasFrom);
+				if (aliasedType)
 				{
 					ISxyNamespace& ns = InsertNamespaceRecursiveSANSEnd(aliasTo, rootNS, s);
 					ns.AliasStruct(aliasFrom, file, publicName);
