@@ -29,6 +29,11 @@ namespace Rococo
 					return id.value;
 				}
 			};
+
+			operator bool() const
+			{
+				return value != 0;
+			}
 		};
 
 		inline bool operator == (TREE_NODE_ID a, TREE_NODE_ID b)
@@ -58,6 +63,7 @@ namespace Rococo
 			virtual void SetId(TREE_NODE_ID nodeId, int64 id) = 0;
 			virtual void SetText(TREE_NODE_ID nodeId, cstr text) = 0;
 			virtual [[nodiscard]] bool TryGetText(char* buffer, size_t sizeofBuffer, TREE_NODE_ID id) = 0;
+			virtual void RefreshGUI() = 0;
 		};
 
 		ROCOCO_INTERFACE IUIList

@@ -89,6 +89,43 @@ namespace Rococo::CFGS
 		return isOpen;
 	}
 
+	bool TryGetUserCFGSSavePath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor)
+	{
+		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
+		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
+
+		OPENFILENAMEW spec = { 0 };
+		spec.lStructSize = sizeof(spec);
+		spec.hwndOwner = hRoot;
+		spec.lpstrFilter = L"control-flow graph SXML file\0*.cfgs.sxml\0\0";
+		spec.nFilterIndex = 1;
+
+		spec.lpstrFile = path.buf;
+		*path.buf = 0;
+		spec.nMaxFile = sizeof path / sizeof(wchar_t);
+
+		wchar_t title[256];
+		Strings::SecureFormat(title, 256, L"Save a flow graph file");
+		spec.lpstrTitle = title;
+
+		spec.Flags = 0;
+
+		char currentDirectory[_MAX_PATH];
+		GetCurrentDirectoryA(_MAX_PATH, currentDirectory);
+
+		bool isSaved = false;
+
+		if (GetSaveFileNameW(&spec))
+		{
+			SetWindowTextW(hRoot, spec.lpstrFile);
+			isSaved = true;
+		}
+
+		SetCurrentDirectoryA(currentDirectory);
+
+		return isSaved;
+	}
+
 	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);

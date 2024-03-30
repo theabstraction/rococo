@@ -653,6 +653,21 @@ namespace Rococo::Sex::SEXML
 				return *this;
 			}
 
+			void Assert(cstr expectedFqName) const override
+			{
+				if (expectedFqName == nullptr)
+				{
+					Throw(S(), "%s(nullptr)", __FUNCTION__);
+				}
+
+				if (Strings::Eq(expectedFqName, FQName()))
+				{
+					return;
+				}
+
+				Throw(S(), "FQName: '%s' did not match the expected '%s'", FQName(), expectedFqName);
+			}
+
 			cstr FQName() const override
 			{
 				return sDirective[0].c_str();
@@ -681,6 +696,36 @@ namespace Rococo::Sex::SEXML
 				}
 
 				return *children[index];
+			}
+
+			const ISEXMLDirective* FindFirstChild(IN OUT size_t& startIndex, cstr fqName) const override
+			{
+				if (startIndex >= children.size())
+				{
+					return nullptr;
+				}
+
+				for (size_t i = startIndex; i < children.size(); i++)
+				{
+					auto& child = children[i];
+					if (fqName == nullptr || Strings::Eq(child->FQName(), fqName))
+					{
+						OUT startIndex = i;
+						return children[i];
+					}
+				}
+
+				return nullptr;
+			}
+
+			const ISEXMLDirective& GetFirstChild(IN OUT size_t& startIndex, cstr fqName) const override
+			{
+				const ISEXMLDirective* directive = FindFirstChild(IN OUT startIndex, fqName);
+				if (!directive)
+				{
+					Throw(S(), "%s: Expecting a directive (%s ...)", fqName ? fqName : "<any>");
+				}
+				return *directive;
 			}
 
 			// get the name-value pair by index as it appears in the SEXML file

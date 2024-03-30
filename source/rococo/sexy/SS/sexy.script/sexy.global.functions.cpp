@@ -210,9 +210,9 @@ namespace
             TREE_NODE_ID rootId;
             IUITree* tree;
             const Rococo::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IStructure& s, cstr alias)
+            CALLBACK_CONTROL operator()(const Rococo::Compiler::IStructure& s, cstr alias) override
             {
-               if (childStructuresId.value == 0) childStructuresId = tree->AddChild(rootId, "[Structures]", CheckState_Clear);
+               if (!childStructuresId) childStructuresId = tree->AddChild(rootId, "[Structures]", CheckState_Clear);
 
                char desc[256];
                SafeFormat(desc, sizeof(desc), "%s.%s", ns->FullName()->Buffer, alias);
@@ -249,7 +249,7 @@ namespace
             const Rococo::Compiler::INamespace* ns;
             virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFunction& f, cstr alias)
             {
-               if (childFunctionsId.value == 0) childFunctionsId = tree->AddChild(rootId, "[Functions]", CheckState_Clear);
+               if (!childFunctionsId) childFunctionsId = tree->AddChild(rootId, "[Functions]", CheckState_Clear);
 
                TREE_NODE_ID typeId;
                char desc[256];
@@ -314,9 +314,9 @@ namespace
             TREE_NODE_ID rootId;
             IUITree* tree;
             const Rococo::Compiler::INamespace* ns;
-            virtual CALLBACK_CONTROL operator()(const Rococo::Compiler::IFactory& f, cstr alias)
+            CALLBACK_CONTROL operator()(const Rococo::Compiler::IFactory& f, cstr alias) override
             {
-               if (childFactoryId.value == 0) childFactoryId = tree->AddChild(rootId, "[Factories]", CheckState_Clear);
+               if (!childFactoryId) childFactoryId = tree->AddChild(rootId, "[Factories]", CheckState_Clear);
 
                TREE_NODE_ID typeId;
                char desc[256];

@@ -110,6 +110,9 @@ namespace Rococo::Sex::SEXML
 			MAX_FQNAME_LENGTH = 128
 		};
 
+		// If the fqName does not match the argument the method throws an exception citing the fqName, the expected fqName and the expression associated with the directive
+		virtual void Assert(cstr expectedFqName) const = 0;
+
 		// A fully qualified name. It consists of a dot separated namespace, with each subspace beginning with a capital letter A-Z, and followed by any alphanumeric character [A-Z] | [a-z] | [0-9]. 
 		// There is a maximum of 63 characters per subspace and a maximum of 127 characters in the total subspace. Example: Rococo.Sex.SEXML.HAL9000
 		virtual [[nodiscard]] cstr FQName() const = 0;
@@ -137,6 +140,18 @@ namespace Rococo::Sex::SEXML
 		virtual [[nodiscard]] size_t NumberOfChildren() const = 0;
 
 		virtual [[nodiscard]] const ISEXMLDirective& GetChild(size_t index) const = 0;
+
+		// Finds the first directive that matches the fqName starting with [startIndex].
+		// [startIndex] is updated to the matching directive's index.
+		// if [fqName] is null then returns the child at [startIndex]
+		// If no child satisfies the critera an exception is thrown citing the parent expression and the fqName
+		virtual [[nodiscard]] const ISEXMLDirective& GetFirstChild(IN OUT size_t& startIndex, cstr fqName) const = 0;
+
+		// Finds the first directive that matches the fqName starting with [startIndex].
+		// [startIndex] is updated to the matching directive's index.
+		// if [fqName] is null then returns the child at [startIndex]
+		// If no child satisfies the criteria returns nullptr
+		virtual [[nodiscard]] const ISEXMLDirective* FindFirstChild(IN OUT size_t& startIndex, cstr fqName) const = 0;
 
 		inline [[nodiscard]] const ISEXMLDirective& operator[](size_t index) const
 		{

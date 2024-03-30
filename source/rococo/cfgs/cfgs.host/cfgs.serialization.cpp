@@ -81,7 +81,39 @@ namespace Rococo::CFGS
 		f.Cables().Add(startNodeId, startSocketId, endNodeId, endSocketId);
 	}
 
-	void LoadGraphSXML(ICFGSFunction& f, const ISEXMLDirectiveList& topLevelDirectives)
+	void LoadGraphFunction(ICFGSFunction& f, const ISEXMLDirective& fDirective)
+	{
+		if (fDirective.NumberOfChildren() != 2)
+		{
+			Throw(fDirective.S(), "Expecting one and only one [Nodes] element, and one and only one [Cables] element");
+		}
+
+		size_t startIndex = 0;
+		const ISEXMLDirective& nodes = fDirective.GetFirstChild(IN OUT startIndex, "Nodes");
+
+		size_t nChildren = nodes.NumberOfChildren();
+		for (size_t i = 0; i < nChildren; i++)
+		{
+			auto& node = nodes[i];
+			node.Assert("Node");		
+			LoadGraphNode(f, node);
+		}
+
+		startIndex = 1;
+		const ISEXMLDirective& cables = fDirective.GetFirstChild(IN OUT startIndex, "Cables");
+
+		size_t nCables = cables.NumberOfChildren();
+		for (size_t i = 0; i < nCables; i++)
+		{
+			auto& cable = cables[i];
+			cable.Assert("Cable");
+			LoadGraphCable(f, cable);
+		}
+
+		f.ConnectCablesToSockets();
+	}
+
+	void LoadDatabase(ICFGSDatabase& db, const ISEXMLDirectiveList& topLevelDirectives, ICFGSLoader& loader)
 	{
 		size_t startIndex = 0;
 		auto& header = GetDirective(topLevelDirectives, "ControlFlowGraphSystem", IN OUT startIndex);
@@ -97,36 +129,27 @@ namespace Rococo::CFGS
 			Throw(version.S(), "Expecting (Version 1.0) in the ControlFlowGraphSystem directive. Value was '%s'", version.c_str());
 		}
 
-		startIndex = 0;
-		auto& nodes = GetDirective(topLevelDirectives, "Nodes", IN OUT startIndex);
+		startIndex = 1;
+		auto& functions = GetDirective(topLevelDirectives, "Functions", IN OUT startIndex);
 
-		size_t nChildren = nodes.NumberOfChildren();
+		size_t nChildren = functions.NumberOfChildren();
 		for (size_t i = 0; i < nChildren; i++)
 		{
-			auto& node = nodes[i];
-			if (!Strings::Eq(node.FQName(), "Node"))
-			{
-				Throw(node.S(), "Expecting (Node ...)");
-			}
+			auto& function = functions[i];
+			function.Assert("Function");
+		
+			FunctionId id = db.CreateFunction();
+			auto* f = db.FindFunction(id);
 
-			LoadGraphNode(f, node);
+			auto& name = SEXML::AsString(function["FQName"]);
+			f->SetName(name.c_str());
+
+			LoadGraphFunction(*f, function);
 		}
 
-		startIndex = 0;
-		auto& cables = GetDirective(topLevelDirectives, "Cables", IN OUT startIndex);
-		size_t nCables = cables.NumberOfChildren();
-		for (size_t i = 0; i < nCables; i++)
-		{
-			auto& cable = cables[i];
-			if (!Strings::Eq(cable.FQName(), "Cable"))
-			{
-				Throw(cable.S(), "Expecting (Cable ...)");
-			}
-
-			LoadGraphCable(f, cable);
-		}
-
-		f.ConnectCablesToSockets();
+		startIndex = 1;
+		auto& navigation = GetDirective(topLevelDirectives, "Navigation", IN OUT startIndex);
+		loader.Loader_OnLoadNavigation(navigation);
 	}
 
 	void AddId(cstr key, UniqueIdHolder id, ISEXMLBuilder& sb)
@@ -136,21 +159,15 @@ namespace Rococo::CFGS
 		sb.AddStringLiteral(key, buf);
 	}
 
-	void LoadGraph(ICFGSDatabase& db, const wchar_t* filename)
+	void LoadDatabase(ICFGSDatabase& db, const wchar_t* filename, ICFGSLoader& loader)
 	{
-		auto* f = db.CurrentFunction();
-		if (!f)
-		{
-			return;
-		}
-
-		auto lambda = [f](const ISEXMLDirectiveList& directives)
+		Rococo::OS::LoadSXMLBySysPath(filename,
+			[&db, &loader](const ISEXMLDirectiveList& directives)
 			{
-				f->Nodes().Builder().DeleteAllNodes();
-				LoadGraphSXML(*f, directives);
-			};
-
-		Rococo::OS::LoadSXMLBySysPath(filename, lambda);
+				db.Clear();
+				LoadDatabase(db, directives, loader);
+			}
+		);
 	}
 
 	void SaveGraph(ICFGSFunction& f, ISEXMLBuilder& sb)
@@ -203,7 +220,7 @@ namespace Rococo::CFGS
 		sb.CloseDirective();
 	}
 
-	void SaveDatabase(ICFGSDatabase& db, ISEXMLBuilder& sb)
+	void SaveDatabase(ICFGSDatabase& db, ISEXMLBuilder& sb, ICFGArchiver& archiver)
 	{
 		sb.AddDirective("ControlFlowGraphSystem");
 		sb.AddAtomicAttribute("FileFormat", "SXML");
@@ -222,6 +239,10 @@ namespace Rococo::CFGS
 			}
 		);
 
+		sb.CloseDirective();
+
+		sb.AddDirective("Navigation");
+		archiver.Archiver_OnSaveNavigation(sb);
 		sb.CloseDirective();
 	}
 }

@@ -504,6 +504,11 @@ namespace Rococo::CFGS::Internal
 			DeleteAllNodes();
 		}
 
+		FunctionId Id() const override
+		{
+			return id;
+		}
+
 		ICFGSNodeSetBuilder& Builder() override
 		{
 			return *this;
@@ -699,15 +704,20 @@ namespace Rococo::CFGS::Internal
 
 		~CFGSDatabase()
 		{
+			Clear();
+		}
+		
+		void BuildFunction(FunctionId id) override
+		{
+			currentFunctionId = id;
+		}
+
+		void Clear() override
+		{
 			for (auto& i : mapIdToFunction)
 			{
 				delete i.second;
 			}
-		}
-
-		void BuildFunction(FunctionId id) override
-		{
-			currentFunctionId = id;
 		}
 
 		FunctionId CreateFunction() override

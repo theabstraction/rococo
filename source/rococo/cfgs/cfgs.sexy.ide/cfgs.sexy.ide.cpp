@@ -7,6 +7,8 @@
 #include <rococo.visitors.h>
 #include <rococo.variable.editor.h>
 #include <rococo.strings.h>
+#include <rococo.sexml.h>
+#include <rococo.functional.h>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -214,14 +216,14 @@ namespace ANON
 			}
 
 			auto parentId = tree.GetParent(id);
-			if (parentId.value == 0)
+			if (!parentId)
 			{
 				Throw(0, "Could not get parent for the namespace item");
 			}
 
 			auto match = tree.FindFirstChild(parentId, textEditorContent);
 
-			if (match.value)
+			if (match)
 			{
 				editor.SetHintError(variableName, "The subspace name already exists");
 				return false;
@@ -289,7 +291,7 @@ namespace ANON
 		}
 	};
 
-	struct NavigationHandler: Visitors::ITreeControlHandler
+	struct NavigationHandler : Visitors::ITreeControlHandler
 	{
 		TREE_NODE_ID localFunctionsId = { 0 };
 		TREE_NODE_ID namespacesId = { 0 };
@@ -511,7 +513,7 @@ namespace ANON
 		void UpdateAllFunctionNames(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
 			TREE_NODE_ID childId = tree.FindFirstChild(namespaceId, nullptr);
-			while (childId.value != 0)
+			while (childId)
 			{
 				auto i = namespaceIdSet.find(childId);
 				if (i == namespaceIdSet.end())
@@ -659,7 +661,7 @@ namespace ANON
 				void OnButtonClicked(cstr variableName, IVariableEditor& editor) override
 				{
 					bool isChecked = editor.GetBoolean(variableName);
-					editor.SetEnabled(isChecked, (cstr) IDOK);
+					editor.SetEnabled(isChecked, (cstr)IDOK);
 				}
 
 				void OnModal(IVariableEditor& editor) override
@@ -726,7 +728,7 @@ namespace ANON
 				Throw(0, "Titchy sizeOfBuffer");
 			}
 
-			char* temp = (char*) _alloca(sizeOfBuffer);
+			char* temp = (char*)_alloca(sizeOfBuffer);
 
 			char* end = temp + sizeOfBuffer;
 
@@ -820,6 +822,156 @@ namespace ANON
 
 			return false;
 		}
+
+		void SaveNamespace(Rococo::Sex::SEXML::ISEXMLBuilder& sb, TREE_NODE_ID namespaceId)
+		{
+			auto& tree = editor.NavigationTree();
+
+			TREE_NODE_ID childId = tree.FindFirstChild(namespaceId, nullptr);
+			while (childId.value)
+			{
+				if (namespaceIdSet.find(childId) != namespaceIdSet.end())
+				{
+					char subspace[128];
+					if (tree.TryGetText(subspace, sizeof subspace, childId))
+					{
+						sb.AddDirective("Subspace");
+						sb.AddAtomicAttribute("name", subspace);
+
+						SaveNamespace(sb, childId);
+
+						sb.CloseDirective();
+					}
+				}
+
+				if (publicFunctionMap.find(childId) != publicFunctionMap.end())
+				{
+					char name[128];
+					if (tree.TryGetText(name, sizeof name, childId))
+					{
+						sb.AddDirective("Function");
+						sb.AddAtomicAttribute("name", name);
+						sb.CloseDirective();
+					}
+				}
+
+				childId = tree.FindNextChild(childId, nullptr);
+			}
+		}
+
+		const char* const DIRECTIVE_LOCALFUNCTIONS = "LocalFunctions";
+		const char* const DIRECTIVE_NAMESPACES = "Namespaces";
+		const char* const DIRECTIVE_SUBSPACE = "Subspace";
+
+		void LoadNamespace(const Rococo::Sex::SEXML::ISEXMLDirective& parentNamespace, TREE_NODE_ID parentSpaceId)
+		{
+			auto& tree = editor.NavigationTree();
+
+			size_t startIndex = 0;
+			for (;;)
+			{
+				auto* subspace = parentNamespace.FindFirstChild(IN OUT startIndex, DIRECTIVE_SUBSPACE);
+				if (!subspace)
+				{
+					return;
+				}
+				startIndex++;
+
+				auto& subspaceName = Sex::SEXML::AsString((*subspace)["name"]);
+				auto subspaceId = tree.AddChild(parentSpaceId, subspaceName.c_str(), Visitors::CheckState_NoCheckBox);
+
+				LoadNamespace(*subspace, subspaceId);
+			}
+		}
+
+		void AddFunctionToTree(const ICFGSFunction& f)
+		{
+			auto& tree = editor.NavigationTree();
+
+			cstr fname = f.Name();
+			cstr tokenStart = fname;
+
+			cstr dotPos = Strings::FindChar(fname, '.');
+			if (!dotPos)
+			{
+				auto localId = tree.AddChild(localFunctionsId, fname, CheckState_NoCheckBox);
+				localFunctionMap.insert(std::make_pair(localId, f.Id()));
+				return;
+			}
+
+			TREE_NODE_ID parentId = namespacesId;
+
+			for(;;)
+			{
+				Substring subspaceRange{ tokenStart, dotPos };
+
+				char subspace[128];
+				subspaceRange.CopyWithTruncate(subspace, sizeof subspace);
+
+				auto subspaceId = tree.FindFirstChild(parentId, subspace);
+				if (!subspaceId)
+				{
+					subspaceId = tree.AddChild(parentId, subspace, Visitors::CheckState_NoCheckBox);
+				}
+
+				parentId = subspaceId;
+				
+				cstr nextDotPos = Strings::FindChar(dotPos + 1, '.');
+
+				if (nextDotPos == nullptr)
+				{
+					auto publicId = tree.AddChild(parentId, tokenStart, Visitors::CheckState_NoCheckBox);
+					publicFunctionMap.insert(std::make_pair(publicId, f.Id()));
+					return;
+				}
+
+				tokenStart = dotPos + 1;
+				dotPos = nextDotPos;
+			}
+		}
+
+		void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive)
+		{
+			size_t startIndex = 0;
+			auto& namespaces = directive.GetFirstChild(IN OUT startIndex, DIRECTIVE_NAMESPACES);
+			LoadNamespace(namespaces, namespacesId);
+
+			cfgs.ForEachFunction(
+				[this](ICFGSFunction& f)
+				{
+					AddFunctionToTree(f);
+				}
+			);
+		}
+
+		void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+		{
+			auto& tree = editor.NavigationTree();
+
+			sb.AddDirective(DIRECTIVE_LOCALFUNCTIONS);
+
+			TREE_NODE_ID childId = tree.FindFirstChild(localFunctionsId, nullptr);
+			while (childId.value)
+			{
+				char name[128];
+				if (tree.TryGetText(name, sizeof name, childId))
+				{
+					sb.AddDirective("Function");
+					sb.AddAtomicAttribute("name", name);
+					sb.CloseDirective();
+				}
+
+				childId = tree.FindNextChild(childId, nullptr);
+			}
+
+			sb.CloseDirective();
+
+			sb.AddDirective(DIRECTIVE_NAMESPACES);
+
+			SaveNamespace(sb, namespacesId);
+
+			sb.CloseDirective();
+		}
 	};
 
 	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor
@@ -886,6 +1038,16 @@ namespace ANON
 		bool TryHandleContextMenuItem(uint16 id) override
 		{
 			return navHandler.TryHandleContextMenuItem(id);
+		}
+
+		void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) override
+		{
+			navHandler.LoadNavigation(directive);
+		}
+
+		void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) override
+		{
+			navHandler.SaveNavigation(sb);
 		}
 	};
 }

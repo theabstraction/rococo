@@ -28,9 +28,10 @@ namespace Rococo::CFGS
 	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db);
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
+	bool TryGetUserCFGSSavePath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor);
 	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath);
-	void LoadGraph(ICFGSDatabase& db, const wchar_t* filename);
-	void SaveDatabase(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb);
+	void LoadDatabase(ICFGSDatabase& db, const wchar_t* filename, CFGS::ICFGSLoader& loader);
+	void SaveDatabase(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb, ICFGArchiver& archiver);
 }
 
 namespace ANON
@@ -178,7 +179,7 @@ namespace ANON
 		}
 	};
 
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler, CFGS::ICFGArchiver, CFGS::ICFGSLoader
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
 		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
@@ -430,10 +431,11 @@ namespace ANON
 			{
 				try
 				{
-					CFGS::LoadGraph(*db, sysPath);
+					CFGS::LoadDatabase(*db, sysPath, *this);
 					gridSlate->QueueRedraw();
 					lastSavedSysPath = sysPath;
 					CFGS::SetTitleWithFilename(*editor, sysPath);
+					editor->NavigationTree().RefreshGUI();
 				}
 				catch (Sex::ParseException& ex)
 				{
@@ -443,6 +445,21 @@ namespace ANON
 				{
 					Rococo::Throw(ex.ErrorCode(), "Error loading %ls: %s", sysPath.buf, ex.Message());
 				}
+			}
+		}
+
+		void OnSelectFileToSave(IAbeditMainWindow& sender) override
+		{
+			UNUSED(sender);
+
+			UNUSED(sender);
+
+			WideFilePath sysPath;
+			if (CFGS::TryGetUserCFGSSavePath(OUT sysPath, *editor))
+			{
+				lastSavedSysPath = sysPath;
+				OnSelectSave(sender);
+				CFGS::SetTitleWithFilename(*editor, sysPath);		
 			}
 		}
 
@@ -479,9 +496,19 @@ namespace ANON
 
 			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 				{
-					CFGS::SaveDatabase(*db, sb);
+					CFGS::SaveDatabase(*db, sb, *this);
 				}
 			);
+		}
+
+		void Archiver_OnSaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) override
+		{
+			ide->SaveNavigation(sb);
+		}
+
+		void Loader_OnLoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) override
+		{
+			ide->LoadNavigation(directive);
 		}
 
 		void OnContextMenuItemSelected(uint16 id, Rococo::Abedit::IAbeditMainWindow& sender)

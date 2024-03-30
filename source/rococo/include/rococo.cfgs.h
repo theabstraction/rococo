@@ -9,6 +9,12 @@
 
 #include <rococo.ids.h>
 
+namespace Rococo::Sex::SEXML
+{
+	struct ISEXMLBuilder;
+	struct ISEXMLDirective;
+}
+
 namespace Rococo::CFGS
 {
 	enum class SocketPlacement
@@ -243,11 +249,13 @@ namespace Rococo::CFGS
 		virtual void DeleteCable(int32 cableIndex) = 0;
 		virtual cstr Name() const = 0;
 		virtual void SetName(cstr name) = 0;
+		virtual FunctionId Id() const = 0;
 	};
 
 	// Interface to the control-flow graph system
 	ROCOCO_INTERFACE ICFGSDatabase
 	{
+		virtual void Clear() = 0;
 		virtual FunctionId CreateFunction() = 0;
 		virtual void DeleteFunction(FunctionId id) = 0;
 		virtual void BuildFunction(FunctionId id) = 0;
@@ -275,10 +283,22 @@ namespace Rococo::CFGS
 		virtual void Free() = 0;
 	};
 
+	ROCOCO_INTERFACE ICFGArchiver
+	{
+		virtual void Archiver_OnSaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSLoader
+	{
+		virtual void Loader_OnLoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) = 0;
+	};
+
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment
 	{
 		virtual [[nodiscard]] ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
 		virtual [[nodiscard]] bool TryHandleContextMenuItem(uint16) = 0;
+		virtual void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) = 0;
+		virtual void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment

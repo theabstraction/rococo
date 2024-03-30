@@ -685,6 +685,9 @@ namespace ANON
 				case MenuItem::Save:
 					eventHandler.OnSelectSave(*this);
 					break;
+				case MenuItem::SaveAs:
+					eventHandler.OnSelectFileToSave(*this);
+					break;
 				case MenuItem::Exit:
 					eventHandler.OnRequestToClose(*this);
 					break;

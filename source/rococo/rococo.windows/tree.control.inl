@@ -43,7 +43,7 @@ namespace Rococo::Windows
 		{
 		}
 
-		virtual LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			switch (uMsg)
 			{
@@ -109,6 +109,11 @@ namespace Rococo::Windows
 			}
 
 			return 0L;
+		}
+
+		void RefreshGUI() override
+		{
+			InvalidateRect(hTreeWindow, NULL, TRUE);
 		}
 
 		void Construct(const WindowConfig& treeConfig, IWindow& parent, ControlId id)

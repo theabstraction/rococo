@@ -2,182 +2,133 @@
 	(FileFormat SXML)
 	(Version 1.0)
 ) // ControlFlowGraphSystem
-(Nodes :
-	(Node
-		(Type "I32::Add")
-		(XPos -305.000000)
-		(YPos -186.000000)
-		(Id "F 0") :
-		(Socket
-			(Label "Start")
-			(Type "Flow")
-			(Id "0 1")
-			(Class Trigger)
-		) // Socket
+(Functions :
+	(Function
+		(FQName "Throw") :
+		(Nodes :
+			(Node
+				(Type "Sys.Geometry.F32.DivideVec2fFloat32")
+				(XPos -309.500000)
+				(YPos -293.500000)
+				(Id "1 8EB65DB5") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "2 8EB65DB5")
+					(Class Trigger)
+				) // Socket
 
-		(Socket
-			(Label "A")
-			(Type "Int32")
-			(Id "0 2")
-			(Class InputVar)
-		) // Socket
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "3 8EB65DB5")
+					(Class Exit)
+				) // Socket
 
-		(Socket
-			(Label "B")
-			(Type "Int32")
-			(Id "0 3")
-			(Class InputVar)
-		) // Socket
+				(Socket
+					(Label "vector")
+					(Type "Sys.Maths.Vec2")
+					(Id "4 8EB65DB5")
+					(Class InputVar)
+				) // Socket
 
-		(Socket
-			(Label "End")
-			(Type "Flow")
-			(Id "0 4")
-			(Class Exit)
-		) // Socket
+				(Socket
+					(Label "denominator")
+					(Type "Float32")
+					(Id "5 8EB65DB5")
+					(Class InputVar)
+				) // Socket
 
-		(Socket
-			(Label "A + B")
-			(Type "Int32")
-			(Id "0 5")
-			(Class OutputValue)
-		) // Socket
+				(Socket
+					(Label "scaledVector")
+					(Type "Sys.Maths.Vec2")
+					(Id "6 8EB65DB5")
+					(Class OutputValue)
+				) // Socket
 
-	) // Node
+			) // Node
 
-	(Node
-		(Type "I32::Subtract")
-		(XPos -125.000000)
-		(YPos -69.000000)
-		(Id "F 1") :
-		(Socket
-			(Label "Start")
-			(Type "Flow")
-			(Id "0 6")
-			(Class Trigger)
-		) // Socket
+		) // Nodes
 
-		(Socket
-			(Label "A")
-			(Type "Int32")
-			(Id "0 7")
-			(Class InputVar)
-		) // Socket
+		(Cables
+		) // Cables
 
-		(Socket
-			(Label "B")
-			(Type "Int32")
-			(Id "0 8")
-			(Class InputVar)
-		) // Socket
+	) // Function
 
-		(Socket
-			(Label "End")
-			(Type "Flow")
-			(Id "0 9")
-			(Class Exit)
-		) // Socket
+	(Function
+		(FQName "Sys.IO.MetaGate") :
+		(Nodes :
+			(Node
+				(Type "Sys.Geometry.F32.AddVec2fVec2f")
+				(XPos -111.000000)
+				(YPos -172.500000)
+				(Id "2 4B1E76D") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "3 4B1E76D")
+					(Class Trigger)
+				) // Socket
 
-		(Socket
-			(Label "A - B")
-			(Type "Int32")
-			(Id "0 A")
-			(Class OutputValue)
-		) // Socket
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "4 4B1E76D")
+					(Class Exit)
+				) // Socket
 
-	) // Node
+				(Socket
+					(Label "a")
+					(Type "Sys.Maths.Vec2")
+					(Id "5 4B1E76D")
+					(Class InputVar)
+				) // Socket
 
-	(Node
-		(Type "I32::Multiply")
-		(XPos -52.000000)
-		(YPos 109.000000)
-		(Id "F 2") :
-		(Socket
-			(Label "Start")
-			(Type "Flow")
-			(Id "0 B")
-			(Class Trigger)
-		) // Socket
+				(Socket
+					(Label "b")
+					(Type "Sys.Maths.Vec2")
+					(Id "6 4B1E76D")
+					(Class InputVar)
+				) // Socket
 
-		(Socket
-			(Label "A")
-			(Type "Int32")
-			(Id "0 C")
-			(Class InputVar)
-		) // Socket
+				(Socket
+					(Label "sum")
+					(Type "Sys.Maths.Vec2")
+					(Id "7 4B1E76D")
+					(Class OutputValue)
+				) // Socket
 
-		(Socket
-			(Label "B")
-			(Type "Int32")
-			(Id "0 D")
-			(Class InputVar)
-		) // Socket
+			) // Node
 
-		(Socket
-			(Label "End")
-			(Type "Flow")
-			(Id "0 E")
-			(Class Exit)
-		) // Socket
+		) // Nodes
 
-		(Socket
-			(Label "A x B")
-			(Type "Int32")
-			(Id "0 F")
-			(Class OutputValue)
-		) // Socket
+		(Cables
+		) // Cables
 
-	) // Node
+	) // Function
 
-	(Node
-		(Type "I32::Divide")
-		(XPos 176.000000)
-		(YPos -156.000000)
-		(Id "F 3") :
-		(Socket
-			(Label "Start")
-			(Type "Flow")
-			(Id "0 10")
-			(Class Trigger)
-		) // Socket
+) // Functions
+(Navigation :
+	(LocalFunctions :
+		(Function
+			(name Throw)
+		) // Function
 
-		(Socket
-			(Label "A")
-			(Type "Int32")
-			(Id "0 11")
-			(Class InputVar)
-		) // Socket
+	) // LocalFunctions
 
-		(Socket
-			(Label "B")
-			(Type "Int32")
-			(Id "0 12")
-			(Class InputVar)
-		) // Socket
+	(Namespaces :
+		(Subspace
+			(name Sys) :
+			(Subspace
+				(name IO) :
+				(Function
+					(name MetaGate)
+				) // Function
 
-		(Socket
-			(Label "End")
-			(Type "Flow")
-			(Id "0 13")
-			(Class Exit)
-		) // Socket
+			) // Subspace
 
-		(Socket
-			(Label "A / B")
-			(Type "Int32")
-			(Id "0 14")
-			(Class OutputValue)
-		) // Socket
+		) // Subspace
 
-	) // Node
+	) // Namespaces
 
-) // Nodes
-(Cables :
-	(Cable
-		(StartNode "F 0")
-		(StartSocket "0 4")
-		(EndNode "F 1")
-		(EndSocket "0 6")
-	) // Cable
-
-) // Cables
+) // Navigation
