@@ -5,13 +5,15 @@
 #include <rococo.os.h>
 #include <unordered_map>
 #include <rococo.functional.h>
+#include <rococo.properties.h>
 
 using namespace Rococo::Editors;
+using namespace Rococo::Reflection;
 using namespace Rococo::Strings;
 
 namespace Rococo::CFGS::Internal
 {
-	class CFGSNode;
+	struct CFGSNode;
 
 	class CFGSSocket : public ICFGSSocket
 	{
@@ -34,6 +36,14 @@ namespace Rococo::CFGS::Internal
 			name(_name)
 		{
 			id = _id ? _id : SocketId{ Rococo::MakeNewUniqueId() };
+		}
+
+		void AcceptVisitor(IPropertyVisitor& visitor, uint64, IPropertyUIEvents&)
+		{
+			visitor.VisitHeader("class", "Classification", ToString(classification));
+			visitor.VisitHeader("type", "SocketType", socketType);
+			visitor.VisitHeader("name", "Name", name);
+			visitor.VisitHeader("placement", "Placement", ToString(placement));
 		}
 
 		void AddCable(CableId id) override
@@ -112,7 +122,7 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class CFGSNode : public ICFGSNode, public IRenderScheme, public ICFGSNodeBuilder
+	struct CFGSNode : public ICFGSNode, public IRenderScheme, public ICFGSNodeBuilder
 	{
 		HString typeName;
 		DesignerRect designRect;
@@ -123,11 +133,27 @@ namespace Rococo::CFGS::Internal
 
 		int inputCount = 0;
 		int outputCount = 0;
-	public:
+
 		CFGSNode(cstr _typeName, DesignerVec2 pos, NodeId id) : typeName(_typeName)
 		{
 			designRect = { pos.x, pos.y, pos.x + 150, pos.y + 100 };
 			uniqueId = id ? id : NodeId{ Rococo::MakeNewUniqueId() };
+		}
+
+		void AcceptVisitor(IPropertyVisitor& visitor, IPropertyUIEvents& events)
+		{
+			ArrayHeaderControl socketHeader;
+			socketHeader.isElementDeleteSupported = false;
+			socketHeader.isExpandable = false;
+			socketHeader.isOrderImmutable = true;
+			socketHeader.minElements = 0;
+			socketHeader.maxElements = 32'768;
+
+			PropertyMarshallingStub socketStub{ "sockets", "Sockets", events };
+			visitor.VisitArrayHeader(socketStub, socketHeader);
+
+			ELEMENT_VISITOR_BY_METHOD<CFGSSocket> byMethod;
+			VisitPointerArray(visitor, events, sockets, byMethod);
 		}
 
 		void AddTestSockets(cstr result)
@@ -484,7 +510,26 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	class CFGSFunction: public ICFGSFunction, ICFGSNodeEnumerator, ICFGSNodeSetBuilder
+	struct CFGSArgumentEventHandler : IPropertyUIEvents
+	{
+		void OnBooleanButtonChanged(IPropertyEditor& property) override
+		{
+			UNUSED(property);
+		}
+
+		void OnPropertyEditorLostFocus(IPropertyEditor& property) override
+		{
+			UNUSED(property);
+		}
+
+		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
+		{
+			UNUSED(propertyId);
+			UNUSED(agent);
+		}
+	};
+
+	class CFGSFunction: public ICFGSFunction, ICFGSNodeEnumerator, ICFGSNodeSetBuilder, IPropertyVenue
 	{
 		std::vector<CFGSNode*> nodes;
 		std::unordered_map<NodeId, CFGSNode*, NodeId::Hasher> mapIdToNode;
@@ -493,8 +538,13 @@ namespace Rococo::CFGS::Internal
 		mutable HString name; // we lazily evaluate name with [cstr Name() const] when it has not been defined elsewhere
 		FunctionId id;
 
+		CFGSNode beginNode;
+		CFGSNode returnNode;
 	public:
-		CFGSFunction(FunctionId _id): id(_id)
+		CFGSFunction(FunctionId _id) :
+			id(_id),
+			beginNode("_Begin",DesignerVec2{ 0, 0 }, NodeId{ MakeNewUniqueId() }),
+			returnNode("_Return", DesignerVec2 { 200 , 200}, NodeId { MakeNewUniqueId() })
 		{
 			
 		}
@@ -687,6 +737,69 @@ namespace Rococo::CFGS::Internal
 		ICFGSCableEnumerator& Cables() override
 		{
 			return cables;
+		}
+
+		IPropertyVenue& PropertyVenue() override
+		{
+			return *this;
+		}
+
+		void VisitVenue(IPropertyVisitor& visitor) override
+		{
+			struct InputEventHandler: IPropertyUIEvents
+			{
+				void OnBooleanButtonChanged(IPropertyEditor&) override
+				{
+
+				}
+
+				void OnPropertyEditorLostFocus(IPropertyEditor&) override
+				{
+
+				}
+
+				void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
+				{
+					UNUSED(propertyId);
+					UNUSED(agent);
+				}
+			} inputEventHandler;
+
+			struct OutputEventHandler : IPropertyUIEvents
+			{
+				void OnBooleanButtonChanged(IPropertyEditor&) override
+				{
+
+				}
+
+				void OnPropertyEditorLostFocus(IPropertyEditor&) override
+				{
+
+				}
+
+				void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
+				{
+					UNUSED(propertyId);
+					UNUSED(agent);
+				}
+			} outputEventHandler;
+
+			ArrayHeaderControl socketHeader;
+			socketHeader.isElementDeleteSupported = true;
+			socketHeader.isExpandable = true;
+			socketHeader.isOrderImmutable = false;
+			socketHeader.minElements = 0;
+			socketHeader.maxElements = 32'768;
+
+			ELEMENT_VISITOR_BY_METHOD<CFGSSocket> byMethod;
+
+			PropertyMarshallingStub inputStub{ "inputs", "Inputs", inputEventHandler };
+			visitor.VisitArrayHeader(inputStub, socketHeader);
+			VisitPointerArray(visitor, inputEventHandler, beginNode.sockets, byMethod);
+
+			PropertyMarshallingStub outputStub{ "output", "Outputs", inputEventHandler };
+			visitor.VisitArrayHeader(outputStub, socketHeader);
+			VisitPointerArray(visitor, outputEventHandler, returnNode.sockets, byMethod);
 		}
 	};
 

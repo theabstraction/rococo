@@ -93,6 +93,15 @@ namespace Rococo::Reflection
 		IPropertyUIEvents& eventHandler;
 	};
 
+	struct ArrayHeaderControl
+	{
+		uint64 minElements;
+		uint64 maxElements;
+		bool isExpandable: 1;
+		bool isElementDeleteSupported: 1;
+		bool isOrderImmutable : 1;
+	};
+
 	// A visitor to an agent is informed of the properties of the agent via these methods
 	// They can be used to serialize data and to sync widgets
 	ROCOCO_INTERFACE IPropertyVisitor
@@ -128,6 +137,8 @@ namespace Rococo::Reflection
 
 		// Target an option to visit, also provides an option list
 		virtual void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) = 0;
+
+		virtual void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) = 0;
 	};
 
 	// An object that handles property vistors. Can be thought of as 'the object to be serialized'. Event handler events may be triggered by the visitation
@@ -168,3 +179,59 @@ namespace Rococo::Reflection
 	PropertyMarshallingStub pm_stub { id, displayName, eventHandler }; \
 	visitor.VisitProperty(pm_stub, REF variableRef, capacity); \
 }	
+
+namespace Rococo::Reflection
+{
+	template<typename ARRAY>
+	inline size_t GetArrayLength(const ARRAY& theArray)
+	{
+		return theArray.size();
+	}
+
+	template<typename ARRAY>
+	inline auto& GetArrayElementRef(ARRAY& theArray, size_t index)
+	{
+		return theArray[index];
+	}
+
+	template<typename ARRAY>
+	inline auto* GetArrayElementPointer(ARRAY& theArray, size_t index)
+	{
+		return theArray[index];
+	}
+
+	// Invokes element.AcceptVisit(visitor, index, eventHandler)
+	template<typename ELEMENT>
+	struct ELEMENT_VISITOR_BY_METHOD
+	{
+		void AcceptVisitor(IPropertyVisitor& visitor, ELEMENT& element, size_t index, IPropertyUIEvents& eventHandler)
+		{
+			element.AcceptVisitor(visitor, index, eventHandler);
+		}
+	};
+
+	template<typename ARRAY, typename ELEMENT_VISITOR>
+	inline void VisitObjectArray(IPropertyVisitor& visitor, IPropertyUIEvents& eventHandler, ARRAY& theArray, ELEMENT_VISITOR& elementVisitor)
+	{
+		size_t arrayLength = GetArrayLength(theArray);
+		for (size_t i = 0; i < arrayLength; i++)
+		{
+			auto& elementRef = GetArrayElementRef(theArray, i);
+			elementVisitor.AcceptVisit(visitor, elementRef, i, eventHandler);
+		}
+	}
+
+	template<typename ARRAY, typename ELEMENT_VISITOR>
+	inline void VisitPointerArray(IPropertyVisitor& visitor, IPropertyUIEvents& eventHandler, ARRAY& theArray, ELEMENT_VISITOR& elementVisitor)
+	{
+		size_t arrayLength = GetArrayLength(theArray);
+		for (size_t i = 0; i < arrayLength; i++)
+		{
+			auto* elementRef = GetArrayElementPointer(theArray, i);
+			if (elementRef)
+			{
+				elementVisitor.AcceptVisitor(visitor, *elementRef, i, eventHandler);
+			}
+		}
+	}
+}

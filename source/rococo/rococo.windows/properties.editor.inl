@@ -1026,6 +1026,113 @@ namespace Rococo::Windows::Internal
 		}
 	};
 
+	struct ArrayHeaderProperty : IPropertySupervisor
+	{
+		HString id;
+		HString displayName;
+		VisualStyle style;
+		IWin32SuperComboBox* selectedOptionEditor{ nullptr };
+		
+		IPropertyUIEvents& events;
+		UI::SysWidgetId labelId{ 0 };
+
+		const ArrayHeaderControl control;
+
+		ArrayHeaderProperty(PropertyMarshallingStub& stub, const ArrayHeaderControl& _control) :
+			control(_control),
+			displayName(stub.displayName),
+			id(stub.propertyIdentifier), 
+			events(stub.eventHandler)
+		{
+		}
+
+		void AdvanceSelection() override
+		{
+
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		{
+			this->labelId = labelId;
+
+			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+
+			return GetEditorRect(style, panel, yOffset);
+		}
+
+		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
+		{
+			return LayoutSimpleEditor(panel, style, labelId, *selectedOptionEditor, yOffset);
+		}
+
+		cstr Id() const override
+		{
+			return id;
+		}
+
+		bool IsForControl(UI::SysWidgetId id) const override
+		{
+			return selectedOptionEditor && GetWindowLongPtrA(*selectedOptionEditor, GWLP_ID) == id.value;
+		}
+
+		UI::SysWidgetId ControlId() const override
+		{
+			if (!selectedOptionEditor)
+			{
+				return { 0 };
+			}
+
+			return { (uint16)GetWindowLongPtrA(*selectedOptionEditor, GWLP_ID) };
+		}
+
+		bool TryGetEditorString(REF HString& value)
+		{
+			return Internal::TryGetEditorString(selectedOptionEditor, REF value);
+		}
+
+		void OnButtonClicked() override
+		{
+		}
+
+		void OnEditorChanged() override
+		{
+		}
+
+		void OnEditorLostKeyboardFocus() override
+		{
+			if (*selectedOptionEditor) InvalidateRect(*selectedOptionEditor, NULL, TRUE);
+		}
+
+		bool TryTakeFocus() override
+		{
+			if (!selectedOptionEditor)
+			{
+				return false;
+			}
+
+			SetFocus(*selectedOptionEditor);
+			InvalidateRect(*selectedOptionEditor, NULL, TRUE);
+
+			return true;
+		}
+
+		void UpdateWidget(const void* data, size_t sizeOfData) override
+		{
+			UNUSED(data);
+			UNUSED(sizeOfData);
+		}
+
+		bool IsDirty() const override
+		{
+			return false;
+		}
+	};
+
 	struct BooleanProperty : IPropertySupervisor, IOwnerDrawItem
 	{
 		HString id;
@@ -1286,6 +1393,7 @@ namespace Rococo::Windows::Internal
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller) override;
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)  override;
+		void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
 	};
 
 	struct PropertyRefresher : IPropertyVisitor
@@ -1315,6 +1423,7 @@ namespace Rococo::Windows::Internal
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller) override;
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
+		void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
 	};
 
 	struct PropertyEventRouting : IPropertyVisitor
@@ -1342,6 +1451,7 @@ namespace Rococo::Windows::Internal
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller) override;
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
+		void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
 	};
 
 	struct AssertiveNullEventHandler : Rococo::Reflection::IPropertyUIEvents
@@ -1662,6 +1772,11 @@ namespace Rococo::Windows::Internal
 		}
 	}
 
+	void PropertyBuilder::VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
+	{
+		container.properties.push_back(new ArrayHeaderProperty(arrayStub, control));
+	}
+
 	void PropertyRefresher::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)
 	{
 		UNUSED(displayName);
@@ -1725,6 +1840,11 @@ namespace Rococo::Windows::Internal
 		UNUSED(value);
 		UNUSED(stringCapacity);
 		UNUSED(enumDesc);
+	}
+
+	void PropertyRefresher::VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
+	{
+
 	}
 
 	void PropertyEventRouting::VisitHeader(cstr id, cstr displayName, cstr displayText)
@@ -1861,6 +1981,11 @@ namespace Rococo::Windows::Internal
 		UNUSED(value);
 		UNUSED(stringCapacity);
 		UNUSED(enumDesc);
+	}
+
+	void PropertyEventRouting::VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
+	{
+
 	}
 }
 

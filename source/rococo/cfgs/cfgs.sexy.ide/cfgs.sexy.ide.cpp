@@ -364,6 +364,12 @@ namespace ANON
 				}
 			}
 
+			auto* f = cfgs.CurrentFunction();
+			if (f)
+			{
+				editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
+			}
+
 			editor.RefreshSlate();
 		}
 

@@ -22,7 +22,7 @@ namespace Rococo::CFGS
 		Left = 0,
 		Right = 1,
 		Top = 2,
-		bottom = 3
+		Bottom = 3
 	};
 
 	enum class SocketClass
@@ -250,6 +250,7 @@ namespace Rococo::CFGS
 		virtual cstr Name() const = 0;
 		virtual void SetName(cstr name) = 0;
 		virtual FunctionId Id() const = 0;
+		virtual Rococo::Reflection::IPropertyVenue& PropertyVenue() = 0;
 	};
 
 	// Interface to the control-flow graph system
@@ -345,6 +346,8 @@ namespace Rococo::CFGS
 	};
 
 	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketClass sclass);
+
+	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketPlacement placement);
 
 	// Creates a gui for a CFGS database
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
