@@ -194,6 +194,7 @@ namespace Rococo::Windows
 
 		~SuperListBox()
 		{
+			DestroyWindow(hWndList);
 			DestroyWindow(hWnd);
 		}
 
@@ -648,6 +649,9 @@ namespace Rococo::Windows
 
 		~SuperComboBox()
 		{
+			DestroyWindow(hWndLeftListToggle);
+			DestroyWindow(hWndRightListToggle);
+			DestroyWindow(hWndEditControl);
 			DestroyWindow(hWnd);
 			DeleteObject(hFocusBrush);
 		}

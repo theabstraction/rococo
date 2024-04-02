@@ -17,7 +17,7 @@ namespace Rococo::Windows
 		~ChildWindowImpl()
 		{
 			DeleteAll(children);
-			CloseWindow(hWnd);
+			DestroyWindow(hWnd);
 		}
 
 		void OnModal() override

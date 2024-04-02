@@ -127,7 +127,7 @@ namespace Rococo::Windows::Internal
 		return editor;
 	}
 
-	Rococo::Windows::IWin32SuperComboBox* AddOptionsList(ISuperListSpec& spec, const VisualStyle& style, IParentWindowSupervisor& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, UI::SysWidgetId id)
+	Rococo::Windows::IWin32SuperComboBox* AddOptionsList(ISuperListSpec& spec, const VisualStyle& style, IWindow& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, UI::SysWidgetId id)
 	{
 		RECT containerRect;
 		GetClientRect(panel, &containerRect);
@@ -853,7 +853,7 @@ namespace Rococo::Windows::Internal
 		HString id;
 		HString displayName;
 		VisualStyle style;
-		IWin32SuperComboBox* selectedOptionEditor{ nullptr };
+		AutoFree<IWin32SuperComboBox> selectedOptionEditor;
 		HString selectedText;
 		int stringCapacity = 0;
 		std::vector<char> keyBuffer;
@@ -882,6 +882,11 @@ namespace Rococo::Windows::Internal
 
 			keyBuffer.resize(_stringCapacity);
 			descBuffer.resize(_stringCapacity);
+		}
+
+		virtual ~OptionVectorProperty()
+		{
+
 		}
 
 		void AdvanceSelection() override

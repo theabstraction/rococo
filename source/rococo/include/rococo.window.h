@@ -531,7 +531,7 @@ namespace Rococo
 		ROCOCO_WINDOWS_API ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
-		ROCOCO_WINDOWS_API IWin32SuperComboBox* AddSuperComboBox(IParentWindowSupervisor& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
+		ROCOCO_WINDOWS_API IWin32SuperComboBox* AddSuperComboBox(IWindow& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, Visitors::ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, cstr name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD listExStyle);
 		ROCOCO_WINDOWS_API IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx = 0);
