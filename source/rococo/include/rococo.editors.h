@@ -17,6 +17,9 @@ namespace Rococo::Editors
 		// Invoke VisitVenue on the venue using the internal property builder
 		virtual void BuildEditorsForProperties(Reflection::IPropertyVenue& venue) = 0;
 
+		// Delete all properties from the editor
+		virtual void Clear() = 0;
+
 		// Tells the UI system to attempt to validate and copy data from the visual editor for the specified property to the venue
 		virtual void UpdateFromVisuals(Reflection::IPropertyEditor& sourceEditor, Reflection::IPropertyVenue& targetVenue) = 0;
 

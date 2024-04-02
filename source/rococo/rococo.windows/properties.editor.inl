@@ -1031,8 +1031,7 @@ namespace Rococo::Windows::Internal
 		HString id;
 		HString displayName;
 		VisualStyle style;
-		IWin32SuperComboBox* selectedOptionEditor{ nullptr };
-		
+
 		IPropertyUIEvents& events;
 		UI::SysWidgetId labelId{ 0 };
 
@@ -1056,7 +1055,7 @@ namespace Rococo::Windows::Internal
 			delete this;
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId /* editorId */ )
 		{
 			this->labelId = labelId;
 
@@ -1067,7 +1066,14 @@ namespace Rococo::Windows::Internal
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
 		{
-			return LayoutSimpleEditor(panel, style, labelId, *selectedOptionEditor, yOffset);
+			HWND hLabel = GetDlgItem(panel, labelId.value);
+
+			RECT rect;
+			GetClientRect(panel, &rect);
+
+			MoveWindow(hLabel, 0, yOffset, style.labelSpan - style.defaultPadding, style.rowHeight, TRUE);
+			
+			return GetEditorRect(style, panel, yOffset);
 		}
 
 		cstr Id() const override
@@ -1075,24 +1081,19 @@ namespace Rococo::Windows::Internal
 			return id;
 		}
 
-		bool IsForControl(UI::SysWidgetId id) const override
+		bool IsForControl(UI::SysWidgetId /* id */) const override
 		{
-			return selectedOptionEditor && GetWindowLongPtrA(*selectedOptionEditor, GWLP_ID) == id.value;
+			return false;
 		}
 
 		UI::SysWidgetId ControlId() const override
 		{
-			if (!selectedOptionEditor)
-			{
-				return { 0 };
-			}
-
-			return { (uint16)GetWindowLongPtrA(*selectedOptionEditor, GWLP_ID) };
+			return { 0 };
 		}
 
-		bool TryGetEditorString(REF HString& value)
+		bool TryGetEditorString(REF HString& /* value */)
 		{
-			return Internal::TryGetEditorString(selectedOptionEditor, REF value);
+			return false;
 		}
 
 		void OnButtonClicked() override
@@ -1105,20 +1106,12 @@ namespace Rococo::Windows::Internal
 
 		void OnEditorLostKeyboardFocus() override
 		{
-			if (*selectedOptionEditor) InvalidateRect(*selectedOptionEditor, NULL, TRUE);
+			
 		}
 
 		bool TryTakeFocus() override
 		{
-			if (!selectedOptionEditor)
-			{
-				return false;
-			}
-
-			SetFocus(*selectedOptionEditor);
-			InvalidateRect(*selectedOptionEditor, NULL, TRUE);
-
-			return true;
+			return false;
 		}
 
 		void UpdateWidget(const void* data, size_t sizeOfData) override
@@ -1162,6 +1155,11 @@ namespace Rococo::Windows::Internal
 			{
 				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
 			}
+		}
+
+		virtual ~BooleanProperty()
+		{
+			DestroyWindow(checkbox);
 		}
 
 		void AdvanceSelection() override
@@ -1512,8 +1510,10 @@ namespace Rococo::Windows::Internal
 			return nextId;
 		}
 
-		void Clear()
+		void Clear() override
 		{
+			panelArea.ClearChildren();
+
 			nextId = { 0 };
 
 			for (auto* p : properties)
@@ -1842,7 +1842,7 @@ namespace Rococo::Windows::Internal
 		UNUSED(enumDesc);
 	}
 
-	void PropertyRefresher::VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
+	void PropertyRefresher::VisitArrayHeader(PropertyMarshallingStub& /* arrayStub */, const ArrayHeaderControl& /* control */)
 	{
 
 	}
@@ -1983,7 +1983,7 @@ namespace Rococo::Windows::Internal
 		UNUSED(enumDesc);
 	}
 
-	void PropertyEventRouting::VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
+	void PropertyEventRouting::VisitArrayHeader(PropertyMarshallingStub& /* arrayStub */, const ArrayHeaderControl& /* control */)
 	{
 
 	}

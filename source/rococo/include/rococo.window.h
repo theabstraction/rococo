@@ -349,6 +349,7 @@ namespace Rococo
 		{
 			virtual IWindowSupervisor* AddChild(const WindowConfig& childConfig, cstr className, ControlId id) = 0;
 			virtual IParentWindowSupervisor* AddChild(const WindowConfig& childConfig, ControlId id, IWindowHandler* windowHandler) = 0;
+			virtual void ClearChildren() = 0;
 		};
 
 		ROCOCO_INTERFACE IDialogSupervisor : public IParentWindowSupervisor

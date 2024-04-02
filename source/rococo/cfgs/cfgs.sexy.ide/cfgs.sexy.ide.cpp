@@ -367,6 +367,7 @@ namespace ANON
 			auto* f = cfgs.CurrentFunction();
 			if (f)
 			{
+				editor.Properties().Clear();
 				editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
 			}
 

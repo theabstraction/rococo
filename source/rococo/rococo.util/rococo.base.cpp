@@ -238,7 +238,7 @@ namespace Rococo
 		throw ex;
 	}
 
-	ROCOCO_API void ThrowMissingResourceFile(ErrorCode code, cstr description, cstr filename)
+	ROCOCO_API void ThrowMissingResourceFile(ErrorCode /* code */, cstr description, cstr filename)
 	{
 		struct MissingResourceFile : IException
 		{
