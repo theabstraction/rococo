@@ -3,6 +3,7 @@
 #include <rococo.hashtable.h>
 #include <rococo.validators.h>
 #include <rococo.functional.h>
+#include <rococo.ids.h>
 
 using namespace Rococo::Reflection;
 using namespace Rococo::Editors;
@@ -13,6 +14,7 @@ namespace Rococo::Windows::Internal
 	ROCOCO_INTERFACE IPropertySection
 	{
 		virtual bool IsExpanded() const = 0;
+		virtual int IndentationPixels() const = 0;
 	};
 
 	ROCOCO_INTERFACE IPropertySupervisor : Rococo::Reflection::IPropertyEditor
@@ -25,6 +27,7 @@ namespace Rococo::Windows::Internal
 		virtual void OnEditorLostKeyboardFocus() = 0;
 		virtual bool TryTakeFocus() = 0;
 		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId) = 0;
+		virtual void Hide() = 0;
 		virtual GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) = 0;
 	};
 
@@ -37,9 +40,10 @@ namespace Rococo::Windows::Internal
 		int rowHeight = 20;
 	};
 
-	void AddLabel(const VisualStyle& style, IParentWindowSupervisor& panel, cstr text, int yOffset, UI::SysWidgetId id)
+	[[nodiscard]] IWindow* AddLabel(const IPropertySection& section, const VisualStyle& style, IParentWindowSupervisor& panel, cstr text, int yOffset, UI::SysWidgetId id)
 	{
-		Rococo::Windows::AddLabel(panel, GuiRect{ style.defaultPadding, yOffset, style.labelSpan - style.defaultPadding, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
+		int left = section.IndentationPixels();
+		return Rococo::Windows::AddLabel(panel, GuiRect{ left + style.defaultPadding, yOffset, style.labelSpan - style.defaultPadding + left, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
 	}
 
 	IButton* AddClickButton(IParentWindowSupervisor& panel, cstr text, UI::SysWidgetId id)
@@ -185,26 +189,36 @@ namespace Rococo::Windows::Internal
 		return editor;
 	}
 
-	GuiRect GetEditorRect(const VisualStyle& style, IParentWindowSupervisor& panel, int yOffset)
+	GuiRect GetEditorRect(const IPropertySection& section, const VisualStyle& style, IParentWindowSupervisor& panel, int yOffset)
 	{
 		RECT containerRect;
 		GetClientRect(panel, &containerRect);
 
-		GuiRect totalRect{ style.defaultPadding, yOffset, containerRect.right - style.rightPadding, yOffset + style.rowHeight };
+		int left = section.IndentationPixels();
+		GuiRect totalRect{ left + style.defaultPadding, yOffset, containerRect.right - style.rightPadding, yOffset + style.rowHeight };
 		return totalRect;
 	}
 
-	GuiRect LayoutSimpleEditor(IParentWindowSupervisor& panel, const VisualStyle& style, UI::SysWidgetId labelId, HWND hEditor, int yOffset)
+	[[nodiscard]] GuiRect LayoutSimpleEditor(const IPropertySection& section,  IParentWindowSupervisor& panel, const VisualStyle& style, UI::SysWidgetId labelId, HWND hEditor, int yOffset)
 	{
 		HWND hLabel = GetDlgItem(panel, labelId.value);
 
 		RECT rect;
 		GetClientRect(panel, &rect);
 
-		MoveWindow(hLabel, 0, yOffset, style.labelSpan - style.defaultPadding, style.rowHeight, TRUE);
-		MoveWindow(hEditor, style.labelSpan, yOffset, rect.right - style.labelSpan, style.rowHeight, TRUE);
+		int left = section.IndentationPixels();
 
-		return GetEditorRect(style, panel, yOffset);
+		if (hLabel)
+		{
+			MoveWindow(hLabel, left, yOffset, style.labelSpan - style.defaultPadding - left, style.rowHeight, TRUE);
+		}
+
+		if (hEditor)
+		{
+			MoveWindow(hEditor, left + style.labelSpan, yOffset, rect.right - style.labelSpan - left, style.rowHeight, TRUE);
+		}
+
+		return GetEditorRect(section, style, panel, yOffset);
 	}
 
 	bool TryGetEditorString(IWindowSupervisor* editor, REF HString& value)
@@ -240,7 +254,8 @@ namespace Rococo::Windows::Internal
 		VisualStyle style;
 		bool isDirty = false;
 		IPropertyUIEvents& events;
-		IWindowSupervisor* editor{ nullptr };
+		IWindowSupervisor* editor = nullptr;
+		IWindow* label = nullptr;
 		UI::SysWidgetId labelId{ 0 };
 
 		IPropertySection& section;
@@ -284,7 +299,7 @@ namespace Rococo::Windows::Internal
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
 		{
 			this->labelId = labelId;
-			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+			label = AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (editor)
 			{
@@ -292,12 +307,18 @@ namespace Rococo::Windows::Internal
 			}
 
 			editor = AddEditor(style, panel, initialString.c_str(), capacity, yOffset, editorId);
-			return GetEditorRect(style, panel, yOffset);
+			return GetEditorRect(section, style, panel, yOffset);
+		}
+
+		void Hide() override
+		{
+			MoveWindow(*label, 0, 0, 0, 0, TRUE);
+			MoveWindow(*editor, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
 		{
-			return LayoutSimpleEditor(panel, style, labelId, *editor, yOffset);
+			return LayoutSimpleEditor(section, panel, style, labelId, *editor, yOffset);
 		}
 
 		cstr Id() const override
@@ -377,7 +398,8 @@ namespace Rococo::Windows::Internal
 
 		UI::SysWidgetId labelId{ 0 };
 
-		IWindowSupervisor* editor{ nullptr };
+		IWindowSupervisor* editor = nullptr;
+		IWindow* label = nullptr;
 
 		IPropertySection& section;
 
@@ -389,16 +411,6 @@ namespace Rococo::Windows::Internal
 			if (_propertyId == nullptr || *_propertyId == 0)
 			{
 				Throw(0, "%s: blank property Id", __FUNCTION__);
-			}
-
-			if (_displayName == nullptr || *_displayName == 0)
-			{
-				Throw(0, "%s: blank display name", __FUNCTION__);
-			}
-
-			if (_initialString == nullptr || *_initialString == 0)
-			{
-				Throw(0, "%s: '%s' blank initial string", __FUNCTION__, _displayName);
 			}
 		}
 
@@ -420,21 +432,27 @@ namespace Rococo::Windows::Internal
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId constantId) override
 		{
 			this->labelId = labelId;
-
-			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+			this->label = displayName.length() > 0 ? AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId) : nullptr;
 
 			if (editor)
 			{
 				Throw(0, "%s: unexpected non-null editor for %s", __FUNCTION__, displayName.c_str());
 			}
 
-			editor = AddImmutableEditor(style, panel, initialString.c_str(), yOffset, constantId);
-			return GetEditorRect(style, panel, yOffset);
+			editor = initialString.length() > 0 ? AddImmutableEditor(style, panel, initialString.c_str(), yOffset, constantId) : nullptr;
+
+			return GetEditorRect(section, style, panel, yOffset);
+		}
+
+		void Hide() override
+		{
+			if (label) MoveWindow(*label, 0, 0, 0, 0, TRUE);
+			if (editor) MoveWindow(*editor, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
 		{
-			return LayoutSimpleEditor(panel, style, labelId, *editor, yOffset);
+			return LayoutSimpleEditor(section, panel, style, labelId, editor ? (HWND) *editor : NULL, yOffset);
 		}
 
 		cstr Id() const override
@@ -683,6 +701,8 @@ namespace Rococo::Windows::Internal
 		VisualStyle style;
 		bool isDirty = false;
 
+		IWindow* label = nullptr;
+
 		IWindowSupervisor* editor{ nullptr };
 
 		IValueValidator<VALUE_TYPE>& validator;
@@ -732,8 +752,7 @@ namespace Rococo::Windows::Internal
 			formatter.Format(initialText, MAX_PRIMITIVE_LEN, initialValue);
 
 			this->labelId = labelId;
-
-			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+			this->label = AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (editor)
 			{
@@ -741,12 +760,18 @@ namespace Rococo::Windows::Internal
 			}
 
 			editor = AddEditor(style, panel, initialText, MAX_PRIMITIVE_LEN, yOffset, editorId);
-			return GetEditorRect(style, panel, yOffset);
+			return GetEditorRect(section, style, panel, yOffset);
+		}
+
+		void Hide() override
+		{
+			MoveWindow(*label, 0, 0, 0, 0, TRUE);
+			MoveWindow(*editor, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
 		{
-			return LayoutSimpleEditor(panel, style, labelId, *editor, yOffset);
+			return LayoutSimpleEditor(section, panel, style, labelId, *editor, yOffset);
 		}
 
 		cstr Id() const override
@@ -887,6 +912,7 @@ namespace Rococo::Windows::Internal
 		HString displayName;
 		VisualStyle style;
 		AutoFree<IWin32SuperComboBox> selectedOptionEditor;
+		IWindow* label = nullptr;
 		HString selectedText;
 		int stringCapacity = 0;
 		std::vector<char> keyBuffer;
@@ -974,8 +1000,7 @@ namespace Rococo::Windows::Internal
 		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
 		{
 			this->labelId = labelId;
-
-			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+			this->label = AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (selectedOptionEditor)
 			{
@@ -1000,12 +1025,18 @@ namespace Rococo::Windows::Internal
 				builder.AddKeyValue(keyBuffer.data(), keyBuffer.data());
 			}
 
-			return GetEditorRect(style, panel, yOffset);
+			return GetEditorRect(section, style, panel, yOffset);
+		}
+
+		void Hide() override
+		{
+			MoveWindow(*label, 0, 0, 0, 0, TRUE);
+			MoveWindow(*selectedOptionEditor, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
 		{
-			return LayoutSimpleEditor(panel, style, labelId, *selectedOptionEditor, yOffset);
+			return LayoutSimpleEditor(section, panel, style, labelId, *selectedOptionEditor, yOffset);
 		}
 
 		cstr Id() const override
@@ -1119,9 +1150,14 @@ namespace Rococo::Windows::Internal
 		{
 			this->labelId = labelId;
 
-			button = Internal::AddClickButton(panel, "Add Element", editorId);
+			button = Internal::AddClickButton(panel, "+", editorId);
 
 			return Layout(panel, yOffset);
+		}
+
+		void Hide() override
+		{
+			if (button) MoveWindow(*button, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
@@ -1129,7 +1165,7 @@ namespace Rococo::Windows::Internal
 			RECT panelRect;
 			GetClientRect(panel, &panelRect);
 
-			GuiRect rect { 0, yOffset, 100, yOffset + style.rowHeight };
+			GuiRect rect { panelRect.right - 20, yOffset, panelRect.right, yOffset + style.rowHeight };
 			if (button)
 			{
 				MoveWindow(*button, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, TRUE);
@@ -1214,6 +1250,8 @@ namespace Rococo::Windows::Internal
 
 		IPropertySection& section;
 
+		IWindow* label = nullptr;
+
 		CollapserProperty(PropertyMarshallingStub& stub, IPropertySection& _section) :
 			displayName(stub.displayName),
 			id(stub.propertyIdentifier),
@@ -1234,7 +1272,12 @@ namespace Rococo::Windows::Internal
 
 		bool IsExpanded() const override
 		{
-			return isExpanded;
+			return section.IsExpanded() ? isExpanded : false;
+		}
+
+		int IndentationPixels() const override
+		{
+			return section.IndentationPixels() + 4;
 		}
 
 		void AdvanceSelection() override
@@ -1253,15 +1296,19 @@ namespace Rococo::Windows::Internal
 
 			this->hCheckBox = AddCheckbox(style, panel, 0, editorId, this);
 
-			Rococo::Windows::AddLabel(panel, GuiRect{ 0, 0, 0, 0 }, displayName, labelId.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
-
+			label = Rococo::Windows::AddLabel(panel, GuiRect{ 0, 0, 0, 0 }, displayName, labelId.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
+			
 			return Layout(panel, yOffset);
+		}
+
+		void Hide() override
+		{
+			MoveWindow(*label, 0, 0, 0, 0, TRUE);
+			MoveWindow(hCheckBox, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
 		{
-			HWND hLabel = GetDlgItem(panel, labelId.value);
-
 			RECT rect;
 			GetClientRect(panel, &rect);
 
@@ -1270,10 +1317,12 @@ namespace Rococo::Windows::Internal
 				triangleButtonRHS = 20
 			};
 
-			MoveWindow(hLabel, triangleButtonRHS, yOffset, rect.right - triangleButtonRHS, style.rowHeight, TRUE);
-			MoveWindow(hCheckBox, 0, yOffset, triangleButtonRHS, style.rowHeight, TRUE);
+			int32 left = section.IndentationPixels() + triangleButtonRHS;
 
-			return GuiRect{ triangleButtonRHS, yOffset, rect.right, yOffset + style.rowHeight };
+			MoveWindow(*label, left, yOffset, rect.right - left, style.rowHeight, TRUE);
+			MoveWindow(hCheckBox, section.IndentationPixels(), yOffset, left, style.rowHeight, TRUE);
+
+			return GuiRect{ left, yOffset, rect.right, yOffset + style.rowHeight };
 		}
 
 		enum
@@ -1419,6 +1468,9 @@ namespace Rococo::Windows::Internal
 		{
 			isExpanded = !isExpanded;
 			InvalidateRect(hCheckBox, NULL, TRUE);
+
+			HWND hPropertiesContainer = GetParent(hCheckBox);
+			PostMessage(hPropertiesContainer, WM_LAYOUT, 0, 0);
 		}
 
 		void OnEditorChanged() override
@@ -1463,6 +1515,8 @@ namespace Rococo::Windows::Internal
 		UI::SysWidgetId labelId{ 0 };
 
 		IPropertySection& section;
+
+		IWindow* label = nullptr;
 
 		BooleanProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller, IPropertySection& _section) :
 			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), events(stub.eventHandler), section(_section)
@@ -1578,7 +1632,7 @@ namespace Rococo::Windows::Internal
 			enum { MAX_PRIMITIVE_LEN = 24 };
 
 			this->labelId = labelId;
-			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+			this->label = AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId);
 
 			if (checkbox)
 			{
@@ -1586,12 +1640,18 @@ namespace Rococo::Windows::Internal
 			}
 
 			checkbox = Internal::AddCheckbox(style, panel, yOffset, editorId, static_cast<IOwnerDrawItem*>(this));
-			return GetEditorRect(style, panel, yOffset);
+			return GetEditorRect(section, style, panel, yOffset);
+		}
+
+		void Hide()
+		{
+			MoveWindow(*label, 0, 0, 0, 0, TRUE);
+			MoveWindow(checkbox, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
 		{
-			return LayoutSimpleEditor(panel, style, labelId, checkbox, yOffset);
+			return LayoutSimpleEditor(section, panel, style, labelId, checkbox, yOffset);
 		}
 
 		cstr Id() const override
@@ -1703,16 +1763,27 @@ namespace Rococo::Windows::Internal
 
 		PropertyBuilder(PropertyEditorEnsemble& _container) : container(_container)
 		{
+			Clear();
+		}
+
+		void Clear()
+		{
 			struct RootSection : IPropertySection
 			{
 				bool IsExpanded() const override
 				{
 					return true;
 				}
+
+				int IndentationPixels() const override
+				{
+					return 0;
+				}
 			};
-			
+
 			static RootSection s_RootSection;
 
+			sections.clear();
 			sections.push_back(&s_RootSection);
 		}
 
@@ -1741,7 +1812,10 @@ namespace Rococo::Windows::Internal
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller) override;
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)  override;
-		void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
+		void BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
+		void EndArray() override;
+		void BeginIndex(int index) override;
+		void EndIndex() override;
 	};
 
 	struct PropertyRefresher : IPropertyVisitor
@@ -1771,7 +1845,10 @@ namespace Rococo::Windows::Internal
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller) override;
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
-		void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
+		void BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
+		void EndArray() override;
+		void BeginIndex(int index) override;
+		void EndIndex() override;
 	};
 
 	struct PropertyEventRouting : IPropertyVisitor
@@ -1799,7 +1876,10 @@ namespace Rococo::Windows::Internal
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<double>& marshaller) override;
 		void VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller) override;
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
-		void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
+		void BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
+		void EndArray() override;
+		void BeginIndex(int index) override;
+		void EndIndex() override;
 	};
 
 	struct AssertiveNullEventHandler : Rococo::Reflection::IPropertyUIEvents
@@ -1832,7 +1912,7 @@ namespace Rococo::Windows::Internal
 		IParentWindowSupervisor& panelArea;
 
 		std::vector<IPropertySupervisor*> properties;
-		stringmap< IPropertySupervisor*> identifierToProperty;
+		stringmap<IPropertySupervisor*> identifierToProperty;
 
 		PropertyBuilder builder;
 
@@ -1853,8 +1933,15 @@ namespace Rococo::Windows::Internal
 
 			for (auto* p : properties)
 			{
-				GuiRect rect = p->Layout(panelArea, lastY);
-				lastY = rect.bottom + 2;
+				if (p->Section().IsExpanded())
+				{				
+					GuiRect rect = p->Layout(panelArea, lastY);
+					lastY = rect.bottom + 2;
+				}
+				else
+				{
+					p->Hide();
+				}
 			}
 
 			InvalidateRect(panelArea, NULL, TRUE);
@@ -1879,6 +1966,7 @@ namespace Rococo::Windows::Internal
 
 			properties.clear();
 			identifierToProperty.clear();
+			builder.Clear();
 		}
 
 		void Free() override
@@ -2128,12 +2216,49 @@ namespace Rococo::Windows::Internal
 		}
 	}
 
-	void PropertyBuilder::VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
+	void PropertyBuilder::BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
 	{
 		auto* collapser = new CollapserProperty(arrayStub, CurrentSection());
-		sections.push_back(collapser);
 		container.properties.push_back(collapser);
+		sections.push_back(collapser);
 		container.properties.push_back(new ArrayControlProperty(arrayStub, *collapser, control));
+	}
+
+	void PropertyBuilder::EndArray()
+	{
+		sections.pop_back();
+
+		if (sections.empty())
+		{
+			Throw(0, "%s: unmatched section pop", __FUNCTION__);
+		}
+	}
+
+	void PropertyBuilder::BeginIndex(int index)
+	{
+		char collapserId[64];
+		UniqueIdHolder id = MakeNewUniqueId();
+		SafeFormat(collapserId, "%llx %llx_collapser", id.iValues[0], id.iValues[1]);
+
+		char displayName[32];
+		SafeFormat(displayName, "%d. ", index);
+
+		static AssertiveNullEventHandler nullHandler;
+
+		PropertyMarshallingStub indexStub{ collapserId, displayName, nullHandler };
+		auto* collapser = new CollapserProperty(indexStub, CurrentSection());
+		container.properties.push_back(collapser);		
+		sections.push_back(collapser);
+	}
+
+	void PropertyBuilder::EndIndex()
+	{
+		sections.pop_back();
+
+		if (sections.empty())
+		{
+			Throw(0, "%s: unmatched section pop", __FUNCTION__);
+		}
 	}
 
 	void PropertyRefresher::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)
@@ -2201,7 +2326,22 @@ namespace Rococo::Windows::Internal
 		UNUSED(enumDesc);
 	}
 
-	void PropertyRefresher::VisitArrayHeader(PropertyMarshallingStub& /* arrayStub */, const ArrayHeaderControl& /* control */)
+	void PropertyRefresher::BeginArray(PropertyMarshallingStub& /* arrayStub */, const ArrayHeaderControl& /* control */)
+	{
+
+	}
+
+	void PropertyRefresher::EndArray()
+	{
+
+	}
+
+	void PropertyRefresher::BeginIndex(int index)
+	{
+		UNUSED(index);
+	}
+
+	void PropertyRefresher::EndIndex()
 	{
 
 	}
@@ -2342,7 +2482,22 @@ namespace Rococo::Windows::Internal
 		UNUSED(enumDesc);
 	}
 
-	void PropertyEventRouting::VisitArrayHeader(PropertyMarshallingStub& /* arrayStub */, const ArrayHeaderControl& /* control */)
+	void PropertyEventRouting::BeginArray(PropertyMarshallingStub& /* arrayStub */, const ArrayHeaderControl& /* control */)
+	{
+
+	}
+
+	void PropertyEventRouting::EndArray()
+	{
+
+	}
+
+	void PropertyEventRouting::BeginIndex(int index)
+	{
+		UNUSED(index);
+	}
+
+	void PropertyEventRouting::EndIndex()
 	{
 
 	}

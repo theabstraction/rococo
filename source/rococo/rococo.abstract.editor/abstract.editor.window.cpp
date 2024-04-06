@@ -103,6 +103,9 @@ namespace ANON
 		{
 			switch (msg)
 			{
+			case WM_LAYOUT:
+				properties->LayouVertically();
+				return 0L;
 			case WM_CTLCOLOREDIT:
 			{
 				HWND hEditor = (HWND)lParam;

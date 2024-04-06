@@ -144,7 +144,16 @@ namespace Rococo::Reflection
 		// Target an option to visit, also provides an option list
 		virtual void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) = 0;
 
-		virtual void VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) = 0;
+		virtual void BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) = 0;
+
+		// Exits the current array section
+		virtual void EndArray() = 0;
+
+		// Adds a new section based on an integer index
+		virtual void BeginIndex(int index) = 0;
+
+		// Exits the current index section
+		virtual void EndIndex() = 0;
 	};
 
 	// An object that handles property vistors. Can be thought of as 'the object to be serialized'. Event handler events may be triggered by the visitation

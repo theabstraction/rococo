@@ -502,7 +502,10 @@ namespace Rococo
 			WM_ADVANCE_COMBO_LIST = 21002,
 			WM_USE_COMBO_LIST_OPTION = 21003,
 			WM_NAVIGATE_BY_TAB = 21004,
-			WM_ADVANCE_SELECTION = 21005
+			WM_ADVANCE_SELECTION = 21005,
+
+			// The parent should layout its children
+			WM_LAYOUT = 21006
 		};
 
 		ROCOCO_INTERFACE ISuperListBuilder

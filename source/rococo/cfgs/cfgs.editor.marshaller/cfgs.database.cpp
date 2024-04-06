@@ -151,9 +151,11 @@ namespace Rococo::CFGS::Internal
 			socketHeader.maxElements = 32'768;
 
 			PropertyMarshallingStub socketStub{ "sockets", "Sockets", events };
-			visitor.VisitArrayHeader(socketStub, socketHeader);
+			visitor.BeginArray(socketStub, socketHeader);
 
 			VisitPointerArray(visitor, events, sockets);
+
+			visitor.EndArray();
 		}
 
 		void AddTestSockets(cstr result)
@@ -801,34 +803,64 @@ namespace Rococo::CFGS::Internal
 			char inputId[256];
 			GetInputArrayId(inputId);
 			PropertyMarshallingStub inputStub{ inputId, "Inputs", db.InputArgumentHandler()};
-			visitor.VisitArrayHeader(inputStub, socketHeader);
-			VisitPointerArray(visitor, db.InputArgumentHandler(), beginNode.sockets);
-
+			visitor.BeginArray(inputStub, socketHeader);
+		
 			int index = 0;
+			char argId[256];
 			for (auto* s : beginNode.sockets)
 			{
-				char argId[256];
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Type", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 
-				char displayName[256];
-				SafeFormat(displayName, "[%d] type", index);
+				visitor.BeginIndex(index);
 
 				HString socketType = s->Type().Value;
 				HString socketName = s->Name();
 
-				MARSHAL_STRING(visitor, argId, displayName, db.InputArgumentHandler(), socketType, 256);
+				MARSHAL_STRING(visitor, argId, "Type", db.InputArgumentHandler(), socketType, 256);
 
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Name", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
-				SafeFormat(displayName, "[%d] name", index);
-				MARSHAL_STRING(visitor, argId, displayName, db.InputArgumentHandler(), socketName, 256);
+				MARSHAL_STRING(visitor, argId, "Name", db.InputArgumentHandler(), socketName, 256);
+
+				visitor.EndIndex();
+
+				index++;
 			}
+
+			visitor.EndArray();
+
+			SafeFormat(argId, "Fn%llx %llx_InputBlackSpace", id.id.iValues[0], id.id.iValues[1]);
+			visitor.VisitHeader(argId, "", "");
 
 			char outputId[256];
 			GetOutputArrayId(outputId);
 
 			PropertyMarshallingStub outputStub{ outputId, "Outputs", db.OutputArgumentHandler() };
-			visitor.VisitArrayHeader(outputStub, socketHeader);
-			VisitPointerArray(visitor, db.OutputArgumentHandler(), returnNode.sockets);
+			visitor.BeginArray(outputStub, socketHeader);
+
+			index = 0;
+			for (auto* s : returnNode.sockets)
+			{
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutType", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+
+				visitor.BeginIndex(index);
+
+				HString socketType = s->Type().Value;
+				HString socketName = s->Name();
+
+				MARSHAL_STRING(visitor, argId, "Type", db.OutputArgumentHandler(), socketType, 256);
+
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutName", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+				MARSHAL_STRING(visitor, argId, "Name", db.OutputArgumentHandler(), socketName, 256);
+
+				visitor.EndIndex();
+
+				index++;
+			}
+
+			visitor.EndArray();
+
+			SafeFormat(argId, "Fn%llx %llx_OutputBlackSpace", id.id.iValues[0], id.id.iValues[1]);
+			visitor.VisitHeader(argId, "", "");
 		}
 	};
 
