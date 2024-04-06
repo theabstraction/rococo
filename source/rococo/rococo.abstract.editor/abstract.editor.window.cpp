@@ -19,7 +19,7 @@ namespace ANON
 	class AbeditPropertiesWindow : public StandardWindowHandler
 	{
 	private:
-		IParentWindowSupervisor* window;
+		AutoFree<IParentWindowSupervisor> window;
 		AutoFree<IUIPropertiesEditorSupervisor> properties;
 
 		HBRUSH hFocusBrush = nullptr;
@@ -39,8 +39,6 @@ namespace ANON
 
 		~AbeditPropertiesWindow()
 		{
-			Rococo::Free(window);
-
 			DeleteObject(hFocusBrush);
 		}
 

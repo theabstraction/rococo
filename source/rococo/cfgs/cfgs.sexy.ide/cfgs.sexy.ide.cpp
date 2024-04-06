@@ -923,17 +923,19 @@ namespace ANON
 				}
 
 				parentId = subspaceId;
+
+				cstr nextToken = dotPos + 1;
 				
-				cstr nextDotPos = Strings::FindChar(dotPos + 1, '.');
+				cstr nextDotPos = Strings::FindChar(nextToken, '.');
 
 				if (nextDotPos == nullptr)
 				{
-					auto publicId = tree.AddChild(parentId, tokenStart, Visitors::CheckState_NoCheckBox);
+					auto publicId = tree.AddChild(parentId, nextToken, Visitors::CheckState_NoCheckBox);
 					publicFunctionMap.insert(std::make_pair(publicId, f.Id()));
 					return;
 				}
 
-				tokenStart = dotPos + 1;
+				tokenStart = nextToken;
 				dotPos = nextDotPos;
 			}
 		}

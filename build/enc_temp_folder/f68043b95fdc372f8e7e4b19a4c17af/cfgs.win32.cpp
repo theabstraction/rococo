@@ -78,7 +78,6 @@ namespace Rococo::CFGS
 
 		bool isOpen = false;
 
-		// This outputs: onecore\vm\dv\storage\plan9\rdr\dll\util.cpp(99)\p9np.dll. No idea why. Maybe one day it will go away
 		if (GetOpenFileNameW(&spec))
 		{
 			SetWindowTextW(hRoot, spec.lpstrFile);
