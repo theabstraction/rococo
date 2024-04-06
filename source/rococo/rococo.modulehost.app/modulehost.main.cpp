@@ -38,6 +38,11 @@ public:
 				break;
 			}
 
+			if (msg.hwnd == nullptr)
+			{
+				controller.OnWindowlessMessage(msg.message);
+			}
+
 			TranslateMessage(&msg);
 			DispatchMessageA(&msg);
 		}

@@ -26,6 +26,7 @@ namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
 	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db);
+	ICFGSMessagingSupervisor* CreateMessagingService();
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 	bool TryGetUserCFGSSavePath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor);
@@ -182,6 +183,7 @@ namespace ANON
 	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler, CFGS::ICFGArchiver, CFGS::ICFGSLoader
 	{
 		AutoFree<IAbstractEditorSupervisor> editor;
+		AutoFree<CFGS::ICFGSMessagingSupervisor> messaging;
 		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
 		AutoFree<CFGS::ICFGSGuiSupervisor> gui;
@@ -197,8 +199,6 @@ namespace ANON
 		{
 			UNUSED(_commandLine);
 			UNUSED(_host);
-
-			db = CFGS::CreateCFGSDatabase();
 
 			Abedit::IAbstractEditorFactory* editorFactory = nullptr;
 			view.Cast((void**)&editorFactory, "Rococo::Abedit::IAbstractEditorFactory");
@@ -220,6 +220,10 @@ namespace ANON
 			}
 
 			CFGS::SetTitleWithFilename(*editor, nullptr);
+
+			messaging = CFGS::CreateMessagingService();
+
+			db = CFGS::CreateCFGSDatabase(*messaging);
 
 			element.FormatDesc();
 
@@ -262,6 +266,14 @@ namespace ANON
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
 		{
 			editor->Properties().Refresh(propertyId, agent);
+		}
+
+		void OnWindowlessMessage(uint32 messageId) override
+		{
+			if (messaging->IsDBHousekeeping(messageId))
+			{
+				db->DoHouseKeeping();
+			}
 		}
 
 		void Free() override

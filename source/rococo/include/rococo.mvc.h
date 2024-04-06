@@ -18,6 +18,7 @@ namespace Rococo::MVC
 	{
 		virtual void Free() = 0;
 		virtual void TerminateOnMainWindowClose() = 0;
+		virtual void OnWindowlessMessage(uint32 messageId) = 0;
 	};
 
 	ROCOCO_INTERFACE IMVC_View

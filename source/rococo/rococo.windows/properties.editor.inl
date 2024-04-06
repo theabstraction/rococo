@@ -1164,14 +1164,14 @@ namespace Rococo::Windows::Internal
 
 		void OnButtonClicked() override
 		{
+			InvalidateRect(*button, NULL, TRUE);
+
 			events.OnArrayEvent(id,
 				[this](IArrayProperty& a)
 				{
 					a.Append();
 				}
 			);
-			
-			InvalidateRect(*button, NULL, TRUE);
 		}
 
 		void OnEditorChanged() override
@@ -1220,6 +1220,11 @@ namespace Rococo::Windows::Internal
 			events(stub.eventHandler),
 			section(_section)
 		{
+		}
+
+		virtual ~CollapserProperty()
+		{
+			DestroyWindow(hCheckBox);
 		}
 
 		const IPropertySection& Section() const override

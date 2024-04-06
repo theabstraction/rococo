@@ -265,10 +265,26 @@ namespace Rococo::CFGS
 
 		// Enumerate functions. Do not delete or append to the database during the enumeration
 		virtual void ForEachFunction(Rococo::Function<void(ICFGSFunction& f)> callback) = 0;
+
+		// Attaches a listener to the CFGS database. The listener's lifespan must encompass that of the CFGS editor
+		virtual void ListenForChange(Rococo::Function<void(FunctionId id)> callback) = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase
+	ROCOCO_INTERFACE ICFGSMessaging
 	{
+		virtual bool IsDBHousekeeping(uint32 id) const = 0;
+		virtual void PostDBHousekeeping() = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSMessagingSupervisor: ICFGSMessaging
+	{
+		virtual void Free() = 0;
+
+	};
+
+	ROCOCO_INTERFACE ICFGSDatabaseSupervisor : ICFGSDatabase
+	{
+		virtual void DoHouseKeeping() = 0;
 		virtual void Free() = 0;
 	};
 
@@ -352,7 +368,7 @@ namespace Rococo::CFGS
 	// Creates a gui for a CFGS database
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
 
-	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase();
+	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase(ICFGSMessaging& messaging);
 
 	const wchar_t* GetCFGSAppTitle();
 }

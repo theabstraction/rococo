@@ -1000,6 +1000,18 @@ namespace ANON
 
 		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor): hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), navHandler(_editor, _cfgs)
 		{
+			_cfgs.ListenForChange(
+				[this](FunctionId id) 
+				{
+					auto* f = cfgs.CurrentFunction();
+					if (f && f->Id() == id)
+					{
+						editor.Properties().Clear();
+						editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
+						editor.RefreshSlate();
+					}
+				}
+			);
 		}
 
 		void Create()

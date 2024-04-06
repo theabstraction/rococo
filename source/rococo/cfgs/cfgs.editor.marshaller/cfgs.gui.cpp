@@ -870,7 +870,7 @@ namespace Rococo::CFGS
 {
 	void PopulateSocketClass()
 	{
-		if (mapStringToClass.empty())
+		if (mapClassToString.empty())
 		{
 			for (auto& i : mapStringToClass)
 			{

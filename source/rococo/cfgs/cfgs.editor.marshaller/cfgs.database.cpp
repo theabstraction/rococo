@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <rococo.functional.h>
 #include <rococo.properties.h>
+#include <rococo.validators.h>
 
 using namespace Rococo::Editors;
 using namespace Rococo::Reflection;
@@ -532,6 +533,8 @@ namespace Rococo::CFGS::Internal
 	{
 		virtual IPropertyUIEvents& InputArgumentHandler() = 0;
 		virtual IPropertyUIEvents& OutputArgumentHandler() = 0;
+
+		virtual void NotifyChange(FunctionId id) = 0;
 	};
 
 	class CFGSFunction: public ICFGSFunction, ICFGSNodeEnumerator, ICFGSNodeSetBuilder, IPropertyVenue
@@ -801,6 +804,25 @@ namespace Rococo::CFGS::Internal
 			visitor.VisitArrayHeader(inputStub, socketHeader);
 			VisitPointerArray(visitor, db.InputArgumentHandler(), beginNode.sockets);
 
+			int index = 0;
+			for (auto* s : beginNode.sockets)
+			{
+				char argId[256];
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Type", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+
+				char displayName[256];
+				SafeFormat(displayName, "[%d] type", index);
+
+				HString socketType = s->Type().Value;
+				HString socketName = s->Name();
+
+				MARSHAL_STRING(visitor, argId, displayName, db.InputArgumentHandler(), socketType, 256);
+
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Name", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+				SafeFormat(displayName, "[%d] name", index);
+				MARSHAL_STRING(visitor, argId, displayName, db.InputArgumentHandler(), socketName, 256);
+			}
+
 			char outputId[256];
 			GetOutputArrayId(outputId);
 
@@ -812,7 +834,7 @@ namespace Rococo::CFGS::Internal
 
 	struct SocketArrayBuilder: IArrayProperty
 	{
-		std::vector<CFGSSocket*> target;
+		std::vector<CFGSSocket*>* target;
 		CFGSNode* node;
 		SocketPlacement placement;
 		CFGSSocketType type;
@@ -820,7 +842,7 @@ namespace Rococo::CFGS::Internal
 
 		void Append() override
 		{
-			target.push_back(new CFGSSocket(node, placement, type, classification, "undefined-name", SocketId()));
+			target->push_back(new CFGSSocket(node, placement, type, classification, "undefined-name", SocketId()));
 		}
 	};		
 
@@ -871,8 +893,10 @@ namespace Rococo::CFGS::Internal
 						builder.node = &F.BeginNode();
 						builder.classification = SocketClass::InputVar;
 						builder.placement = SocketPlacement::Left;
+						builder.target = &F.BeginNode().sockets;
 						builder.type = CFGSSocketType{ "Int32" };
 						callback(builder);
+						db.NotifyChange(f.Id());
 						return;
 					}
 					else if (F.IsOutputArrayId(arrayId))
@@ -881,8 +905,10 @@ namespace Rococo::CFGS::Internal
 						builder.node = &F.BeginNode();
 						builder.classification = SocketClass::OutputValue;
 						builder.placement = SocketPlacement::Right;
+						builder.target = &F.ReturnNode().sockets;
 						builder.type = CFGSSocketType{ "Int32" };
 						callback(builder);
+						db.NotifyChange(f.Id());
 						return;
 					}
 				}
@@ -899,9 +925,15 @@ namespace Rococo::CFGS::Internal
 
 		ArgumentEventHandler inputEventHandler;
 		ArgumentEventHandler outputEventHandler;
+
+		std::vector<Rococo::Function<void(FunctionId id)>> notifyListeners;
+
+		ICFGSMessaging& messaging;
+
 	public:
-		CFGSDatabase(): inputEventHandler(*this), outputEventHandler(*this)
+		CFGSDatabase(ICFGSMessaging& _messaging): inputEventHandler(*this), outputEventHandler(*this), messaging(_messaging)
 		{
+
 		}
 
 		~CFGSDatabase()
@@ -987,6 +1019,40 @@ namespace Rococo::CFGS::Internal
 		{
 			delete this;
 		}
+
+		void ListenForChange(Rococo::Function<void(FunctionId id)> callback) override
+		{
+			notifyListeners.push_back(callback);
+		}
+
+		std::vector<FunctionId> changedIds;
+
+		void NotifyChange(FunctionId id) override
+		{
+			changedIds.push_back(id);
+			messaging.PostDBHousekeeping();
+		}
+
+		void DoHouseKeeping() override
+		{
+			FunctionId id;
+
+			if (changedIds.size() > 0)
+			{
+				id = changedIds.back();
+				changedIds.pop_back();
+			}
+
+			if (id)
+			{
+				for (auto& listener: notifyListeners)
+				{
+					listener.Invoke(id);
+				}
+
+				messaging.PostDBHousekeeping();
+			}
+		}
 	};
 
 	ICFGSNode& CFGSSocket::ParentNode() const
@@ -997,8 +1063,8 @@ namespace Rococo::CFGS::Internal
 
 namespace Rococo::CFGS
 {
-	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase()
+	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase(ICFGSMessaging& messaging)
 	{
-		return new Internal::CFGSDatabase();
+		return new Internal::CFGSDatabase(messaging);
 	}
 }

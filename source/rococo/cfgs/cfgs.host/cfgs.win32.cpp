@@ -26,6 +26,40 @@ namespace Rococo::CFGS
 
 	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor);
 
+	ICFGSMessagingSupervisor* CreateMessagingService()
+	{
+		struct MessagingService : ICFGSMessagingSupervisor
+		{
+			UINT WM_DO_CFGS_HOUSEKEEPING = 0;
+
+			MessagingService()
+			{
+				WM_DO_CFGS_HOUSEKEEPING = RegisterWindowMessageA("WM_DO_CFGS_HOUSEKEEPING");
+				if (!WM_DO_CFGS_HOUSEKEEPING)
+				{
+					Throw(0, "Failed to register WM_DO_CFGS_HOUSEKEEPING");
+				}
+			}
+
+			bool IsDBHousekeeping(uint32 id) const override
+			{
+				return WM_DO_CFGS_HOUSEKEEPING == id;
+			}
+
+			void PostDBHousekeeping() override
+			{
+				PostMessageA(NULL, WM_DO_CFGS_HOUSEKEEPING, 0, 0);
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+		};
+
+		return new MessagingService();
+	}
+
 	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
