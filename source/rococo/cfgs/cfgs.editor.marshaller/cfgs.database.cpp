@@ -152,8 +152,7 @@ namespace Rococo::CFGS::Internal
 			PropertyMarshallingStub socketStub{ "sockets", "Sockets", events };
 			visitor.VisitArrayHeader(socketStub, socketHeader);
 
-			ELEMENT_VISITOR_BY_METHOD<CFGSSocket> byMethod;
-			VisitPointerArray(visitor, events, sockets, byMethod);
+			VisitPointerArray(visitor, events, sockets);
 		}
 
 		void AddTestSockets(cstr result)
@@ -791,15 +790,13 @@ namespace Rococo::CFGS::Internal
 			socketHeader.minElements = 0;
 			socketHeader.maxElements = 32'768;
 
-			ELEMENT_VISITOR_BY_METHOD<CFGSSocket> byMethod;
-
 			PropertyMarshallingStub inputStub{ "inputs", "Inputs", inputEventHandler };
 			visitor.VisitArrayHeader(inputStub, socketHeader);
-			VisitPointerArray(visitor, inputEventHandler, beginNode.sockets, byMethod);
+			VisitPointerArray(visitor, inputEventHandler, beginNode.sockets);
 
 			PropertyMarshallingStub outputStub{ "output", "Outputs", inputEventHandler };
 			visitor.VisitArrayHeader(outputStub, socketHeader);
-			VisitPointerArray(visitor, outputEventHandler, returnNode.sockets, byMethod);
+			VisitPointerArray(visitor, outputEventHandler, returnNode.sockets);
 		}
 	};
 

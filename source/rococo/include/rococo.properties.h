@@ -221,16 +221,16 @@ namespace Rococo::Reflection
 		}
 	}
 
-	template<typename ARRAY, typename ELEMENT_VISITOR>
-	inline void VisitPointerArray(IPropertyVisitor& visitor, IPropertyUIEvents& eventHandler, ARRAY& theArray, ELEMENT_VISITOR& elementVisitor)
+	template<typename ARRAY>
+	inline void VisitPointerArray(IPropertyVisitor& visitor, IPropertyUIEvents& eventHandler, ARRAY& theArray)
 	{
 		size_t arrayLength = GetArrayLength(theArray);
 		for (size_t i = 0; i < arrayLength; i++)
 		{
-			auto* elementRef = GetArrayElementPointer(theArray, i);
-			if (elementRef)
+			auto* elementPtr = GetArrayElementPointer(theArray, i);
+			if (elementPtr)
 			{
-				elementVisitor.AcceptVisitor(visitor, *elementRef, i, eventHandler);
+				elementPtr->AcceptVisitor(visitor, i, eventHandler);
 			}
 		}
 	}

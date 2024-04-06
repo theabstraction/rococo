@@ -1031,28 +1031,28 @@ namespace Rococo::Windows::Internal
 		}
 	};
 
-	struct ArrayHeaderProperty : IPropertySupervisor
+	struct CollapserProperty : IPropertySupervisor, IOwnerDrawItem
 	{
 		HString id;
 		HString displayName;
 		VisualStyle style;
 
+		bool isExpanded = true;
+		HWND hCheckBox = nullptr;
+
 		IPropertyUIEvents& events;
 		UI::SysWidgetId labelId{ 0 };
 
-		const ArrayHeaderControl control;
-
-		ArrayHeaderProperty(PropertyMarshallingStub& stub, const ArrayHeaderControl& _control) :
-			control(_control),
+		CollapserProperty(PropertyMarshallingStub& stub) :
 			displayName(stub.displayName),
-			id(stub.propertyIdentifier), 
+			id(stub.propertyIdentifier),
 			events(stub.eventHandler)
 		{
 		}
 
 		void AdvanceSelection() override
 		{
-
+			
 		}
 
 		void Free() override
@@ -1060,13 +1060,15 @@ namespace Rococo::Windows::Internal
 			delete this;
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId /* editorId */ )
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
 		{
 			this->labelId = labelId;
 
-			AddLabel(style, panel, displayName.c_str(), yOffset, labelId);
+			this->hCheckBox = AddCheckbox(style, panel, 0, editorId, this);
 
-			return GetEditorRect(style, panel, yOffset);
+			Rococo::Windows::AddLabel(panel, GuiRect{ 0, 0, 0, 0 }, displayName, labelId.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
+
+			return Layout(panel, yOffset);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
@@ -1076,9 +1078,129 @@ namespace Rococo::Windows::Internal
 			RECT rect;
 			GetClientRect(panel, &rect);
 
-			MoveWindow(hLabel, 0, yOffset, style.labelSpan - style.defaultPadding, style.rowHeight, TRUE);
-			
-			return GetEditorRect(style, panel, yOffset);
+			enum 
+			{ 
+				triangleButtonRHS = 20
+			};
+
+			MoveWindow(hLabel, triangleButtonRHS, yOffset, rect.right - triangleButtonRHS, style.rowHeight, TRUE);
+			MoveWindow(hCheckBox, 0, yOffset, triangleButtonRHS, style.rowHeight, TRUE);
+
+			return GuiRect{ triangleButtonRHS, yOffset, rect.right, yOffset + style.rowHeight };
+		}
+
+		enum
+		{
+			TRIANGLE_ELEVATION = 4,
+			TRIANGLE_TOP_PADDING = 0,
+			TRIANGLE_RIGHT_PADDING = 4,
+			QUAD_HEIGHT = 2,
+			QUAD_LEFT_PADDING = 2
+		};
+
+		void DrawCollapsed(HDC dc, const RECT& buttonRect)
+		{
+			HBRUSH hBrush = CreateSolidBrush(RGB(64, 64, 64));
+
+			// HPEN hPen = CreatePen(PS_SOLID, 1, RGB(64, 64, 64));
+			HPEN hOldPen = (HPEN)SelectObject(dc, GetStockObject(NULL_PEN));
+			HBRUSH hOldBrush = (HBRUSH)SelectObject(dc, hBrush);
+
+			POINT quad[4];
+			quad[0].x = buttonRect.left + QUAD_LEFT_PADDING;
+			quad[0].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			quad[1].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			quad[1].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			quad[2].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			quad[2].y = buttonRect.bottom - TRIANGLE_ELEVATION - QUAD_HEIGHT;
+			quad[3].x = buttonRect.left + QUAD_LEFT_PADDING;
+			quad[3].y = buttonRect.bottom - TRIANGLE_ELEVATION - QUAD_HEIGHT;
+
+			Polygon(dc, quad, 4);
+
+			SelectObject(dc, hOldBrush);
+			SelectObject(dc, hOldPen);
+		}
+
+		void DrawExpanded(HDC dc, const RECT& buttonRect)
+		{
+			HBRUSH hBrush = CreateSolidBrush(RGB(64, 64, 64));
+
+			// HPEN hPen = CreatePen(PS_SOLID, 1, RGB(64, 64, 64));
+			HPEN hOldPen = (HPEN)SelectObject(dc, GetStockObject(NULL_PEN));
+			HBRUSH hOldBrush = (HBRUSH)SelectObject(dc, hBrush);
+
+			POINT tri[3];
+			tri[0].x = buttonRect.left;
+			tri[0].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			tri[1].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			tri[1].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			tri[2].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			tri[2].y = buttonRect.top + TRIANGLE_TOP_PADDING;
+
+			Polygon(dc, tri, 3);
+
+			SelectObject(dc, hOldBrush);
+			SelectObject(dc, hOldPen);
+		}
+
+		void DrawRect(HDC dc, const RECT& buttonRect)
+		{
+			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
+
+			MoveToEx(dc, buttonRect.left, buttonRect.bottom, NULL);
+			LineTo(dc, buttonRect.right, buttonRect.bottom);
+			LineTo(dc, buttonRect.right, buttonRect.top);
+			LineTo(dc, buttonRect.left, buttonRect.top);
+			LineTo(dc, buttonRect.left, buttonRect.bottom);
+
+			SelectObject(dc, hOldPen);
+
+			DeleteObject(hPen);
+		}
+
+		void GetTickRect(OUT RECT& rect)
+		{
+			RECT r;
+			if (!GetClientRect(hCheckBox, &r))
+			{
+				rect = { -1, -1, -1, -1 };
+				return;
+			}
+
+			int height = r.bottom;
+
+			rect.left = r.left + 3;
+			rect.top = r.top + 3;
+			rect.bottom = r.bottom - 3;
+			rect.right = rect.left + height - 6;
+		}
+
+		void DrawItem(DRAWITEMSTRUCT& d) override
+		{
+			RECT r;
+			GetClientRect(hCheckBox, &r);
+
+			bool isFocus = GetFocus() == hCheckBox;
+			HBRUSH hBrush = CreateSolidBrush(isFocus ? RGB(255, 224, 224) : RGB(255, 255, 255));
+			FillRect(d.hDC, &r, hBrush);
+
+			RECT buttonRect;
+			GetTickRect(OUT buttonRect);
+
+		//	DrawRect(d.hDC, buttonRect);
+
+			if (isExpanded)
+			{
+				DrawExpanded(d.hDC, buttonRect);
+			}
+			else
+			{
+				DrawCollapsed(d.hDC, buttonRect);
+			}
+
+			DeleteObject(hBrush);
 		}
 
 		cstr Id() const override
@@ -1086,14 +1208,19 @@ namespace Rococo::Windows::Internal
 			return id;
 		}
 
-		bool IsForControl(UI::SysWidgetId /* id */) const override
+		bool IsForControl(UI::SysWidgetId id) const override
 		{
-			return false;
+			return hCheckBox && GetWindowLongPtrA(hCheckBox, GWLP_ID) == id.value;
 		}
 
 		UI::SysWidgetId ControlId() const override
 		{
-			return { 0 };
+			if (!hCheckBox)
+			{
+				return { 0 };
+			}
+
+			return { (uint16)GetWindowLongPtrA(hCheckBox, GWLP_ID) };
 		}
 
 		bool TryGetEditorString(REF HString& /* value */)
@@ -1103,6 +1230,8 @@ namespace Rococo::Windows::Internal
 
 		void OnButtonClicked() override
 		{
+			isExpanded = !isExpanded;
+			InvalidateRect(hCheckBox, NULL, TRUE);
 		}
 
 		void OnEditorChanged() override
@@ -1111,7 +1240,7 @@ namespace Rococo::Windows::Internal
 
 		void OnEditorLostKeyboardFocus() override
 		{
-			
+
 		}
 
 		bool TryTakeFocus() override
@@ -1128,6 +1257,17 @@ namespace Rococo::Windows::Internal
 		bool IsDirty() const override
 		{
 			return false;
+		}
+	};
+
+	struct ArrayHeaderProperty : CollapserProperty
+	{
+		const ArrayHeaderControl control;
+
+		ArrayHeaderProperty(PropertyMarshallingStub& stub, const ArrayHeaderControl& _control) : 
+			control(_control),
+			CollapserProperty(stub)
+		{
 		}
 	};
 
@@ -1598,7 +1738,7 @@ namespace Rococo::Windows::Internal
 			}
 			else
 			{
-				for (size_t i = 1; i < properties.size(); i++)
+				for (int64 i = 1; i < (int64) properties.size(); i++)
 				{
 					auto& currentFocus = properties[i];
 					if (currentFocus->IsForControl(id))
