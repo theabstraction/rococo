@@ -9,10 +9,16 @@ using namespace Rococo::Validators;
 
 namespace Rococo::Windows::Internal
 {
+	ROCOCO_INTERFACE IPropertySection
+	{
+		virtual bool IsExpanded() const = 0;
+	};
+
 	ROCOCO_INTERFACE IPropertySupervisor : Rococo::Reflection::IPropertyEditor
 	{
 		virtual void AdvanceSelection() = 0;
 		virtual void Free() = 0;
+		virtual const IPropertySection& Section() const = 0;
 		virtual void OnButtonClicked() = 0;
 		virtual void OnEditorChanged() = 0;
 		virtual void OnEditorLostKeyboardFocus() = 0;
@@ -33,6 +39,11 @@ namespace Rococo::Windows::Internal
 	void AddLabel(const VisualStyle& style, IParentWindowSupervisor& panel, cstr text, int yOffset, UI::SysWidgetId id)
 	{
 		Rococo::Windows::AddLabel(panel, GuiRect{ style.defaultPadding, yOffset, style.labelSpan - style.defaultPadding, yOffset + style.rowHeight }, text, id.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
+	}
+
+	IButton* AddClickButton(IParentWindowSupervisor& panel, cstr text, UI::SysWidgetId id)
+	{
+		return Rococo::Windows::AddPushButton(panel, { 0,0,0,0 }, text, id.value, WS_VISIBLE, BS_PUSHBUTTON);
 	}
 
 	enum { NAV_TARGET_CLASS_ID = 42, ABEDIT_BTN_CLASS_ID = 9000 };
@@ -231,10 +242,12 @@ namespace Rococo::Windows::Internal
 		IWindowSupervisor* editor{ nullptr };
 		UI::SysWidgetId labelId{ 0 };
 
+		IPropertySection& section;
+
 		enum { HARD_CAP = 32767 };
 
-		StringProperty(PropertyMarshallingStub& stub, REF Rococo::Strings::HString& value, int _capacity) :
-			id(stub.propertyIdentifier), initialString(value), capacity(HARD_CAP), displayName(stub.displayName), events(stub.eventHandler)
+		StringProperty(PropertyMarshallingStub& stub, REF Rococo::Strings::HString& value, int _capacity, IPropertySection& _section) :
+			id(stub.propertyIdentifier), initialString(value), capacity(HARD_CAP), displayName(stub.displayName), events(stub.eventHandler), section(_section)
 		{
 			if (_capacity > 0 && _capacity < HARD_CAP)
 			{
@@ -251,6 +264,11 @@ namespace Rococo::Windows::Internal
 				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
 			}
 		}
+
+		const IPropertySection& Section() const override
+		{
+			return section;
+		};
 
 		void Free() override
 		{
@@ -360,10 +378,12 @@ namespace Rococo::Windows::Internal
 
 		IWindowSupervisor* editor{ nullptr };
 
+		IPropertySection& section;
+
 		enum { HARD_CAP = 32767 };
 
-		StringConstant(cstr _propertyId, cstr _displayName, cstr _initialString) :
-			propertyId(_propertyId), displayName(_displayName), initialString(_initialString)
+		StringConstant(cstr _propertyId, cstr _displayName, cstr _initialString, IPropertySection& _section) :
+			propertyId(_propertyId), displayName(_displayName), initialString(_initialString), section(_section)
 		{
 			if (_propertyId == nullptr || *_propertyId == 0)
 			{
@@ -380,6 +400,11 @@ namespace Rococo::Windows::Internal
 				Throw(0, "%s: '%s' blank initial string", __FUNCTION__, _displayName);
 			}
 		}
+
+		const IPropertySection& Section() const override
+		{
+			return section;
+		};
 
 		void AdvanceSelection() override
 		{
@@ -665,8 +690,10 @@ namespace Rococo::Windows::Internal
 
 		UI::SysWidgetId labelId{ 0 };
 
-		PrimitiveProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<VALUE_TYPE>& marshaller) :
-			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), formatter(marshaller.formatter), events(stub.eventHandler)
+		IPropertySection& section;
+
+		PrimitiveProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<VALUE_TYPE>& marshaller, IPropertySection& _section) :
+			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), formatter(marshaller.formatter), events(stub.eventHandler), section(_section)
 		{
 			if (displayName.length() == 0)
 			{
@@ -679,6 +706,11 @@ namespace Rococo::Windows::Internal
 			{
 				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
 			}
+		}
+
+		const IPropertySection& Section() const override
+		{
+			return section;
 		}
 
 		void AdvanceSelection() override
@@ -862,8 +894,10 @@ namespace Rococo::Windows::Internal
 		IPropertyUIEvents& events;
 		UI::SysWidgetId labelId{ 0 };
 
-		OptionVectorProperty(PropertyMarshallingStub& stub, IEnumVectorSupervisor* newOwnedEnumVector, REF OptionRef& opt, size_t _stringCapacity) :
-			enumVector(newOwnedEnumVector), displayName(stub.displayName), id(stub.propertyIdentifier), selectedText(opt.value), events(stub.eventHandler)
+		IPropertySection& section;
+
+		OptionVectorProperty(PropertyMarshallingStub& stub, IEnumVectorSupervisor* newOwnedEnumVector, REF OptionRef& opt, size_t _stringCapacity, IPropertySection& _section) :
+			enumVector(newOwnedEnumVector), displayName(stub.displayName), id(stub.propertyIdentifier), selectedText(opt.value), events(stub.eventHandler), section(_section)
 		{
 			if (!enumVector)
 			{
@@ -888,6 +922,11 @@ namespace Rococo::Windows::Internal
 		{
 
 		}
+
+		const IPropertySection& Section() const override
+		{
+			return section;
+		};
 
 		void AdvanceSelection() override
 		{
@@ -1031,7 +1070,200 @@ namespace Rococo::Windows::Internal
 		}
 	};
 
-	struct CollapserProperty : IPropertySupervisor, IOwnerDrawItem
+	struct ArrayControlProperty : IPropertySupervisor
+	{
+		HString id;
+		HString displayName;
+		VisualStyle style;
+
+		AutoFree<IButton> button;
+
+		IPropertyUIEvents& events;
+		UI::SysWidgetId labelId{ 0 };
+
+		IPropertySection& section;
+
+		const ArrayHeaderControl control;
+
+		ArrayControlProperty(PropertyMarshallingStub& stub, IPropertySection& _section, const ArrayHeaderControl& _control) :
+			displayName(stub.displayName),
+			events(stub.eventHandler),
+			section(_section),
+			control(_control)
+		{
+			Strings::Format(id, "%s_header", stub.propertyIdentifier);
+		}
+
+		virtual ~ArrayControlProperty()
+		{
+
+		}
+
+		const IPropertySection& Section() const override
+		{
+			return section;
+		}
+
+		void AdvanceSelection() override
+		{
+
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		{
+			this->labelId = labelId;
+
+			button = Internal::AddClickButton(panel, "Add Element", editorId);
+
+			return Layout(panel, yOffset);
+		}
+
+		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
+		{
+			RECT panelRect;
+			GetClientRect(panel, &panelRect);
+
+			GuiRect rect { 0, yOffset, 100, yOffset + style.rowHeight };
+			if (button)
+			{
+				MoveWindow(*button, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, TRUE);
+			}
+			return rect;
+		}
+
+		enum
+		{
+			TRIANGLE_ELEVATION = 4,
+			TRIANGLE_TOP_PADDING = 0,
+			TRIANGLE_RIGHT_PADDING = 4,
+			QUAD_HEIGHT = 2,
+			QUAD_LEFT_PADDING = 2
+		};
+
+		void DrawCollapsed(HDC dc, const RECT& buttonRect)
+		{
+			HBRUSH hBrush = CreateSolidBrush(RGB(64, 64, 64));
+
+			// HPEN hPen = CreatePen(PS_SOLID, 1, RGB(64, 64, 64));
+			HPEN hOldPen = (HPEN)SelectObject(dc, GetStockObject(NULL_PEN));
+			HBRUSH hOldBrush = (HBRUSH)SelectObject(dc, hBrush);
+
+			POINT quad[4];
+			quad[0].x = buttonRect.left + QUAD_LEFT_PADDING;
+			quad[0].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			quad[1].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			quad[1].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			quad[2].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			quad[2].y = buttonRect.bottom - TRIANGLE_ELEVATION - QUAD_HEIGHT;
+			quad[3].x = buttonRect.left + QUAD_LEFT_PADDING;
+			quad[3].y = buttonRect.bottom - TRIANGLE_ELEVATION - QUAD_HEIGHT;
+
+			Polygon(dc, quad, 4);
+
+			SelectObject(dc, hOldBrush);
+			SelectObject(dc, hOldPen);
+		}
+
+		void DrawExpanded(HDC dc, const RECT& buttonRect)
+		{
+			HBRUSH hBrush = CreateSolidBrush(RGB(64, 64, 64));
+
+			// HPEN hPen = CreatePen(PS_SOLID, 1, RGB(64, 64, 64));
+			HPEN hOldPen = (HPEN)SelectObject(dc, GetStockObject(NULL_PEN));
+			HBRUSH hOldBrush = (HBRUSH)SelectObject(dc, hBrush);
+
+			POINT tri[3];
+			tri[0].x = buttonRect.left;
+			tri[0].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			tri[1].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			tri[1].y = buttonRect.bottom - TRIANGLE_ELEVATION;
+			tri[2].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
+			tri[2].y = buttonRect.top + TRIANGLE_TOP_PADDING;
+
+			Polygon(dc, tri, 3);
+
+			SelectObject(dc, hOldBrush);
+			SelectObject(dc, hOldPen);
+		}
+
+		void DrawRect(HDC dc, const RECT& buttonRect)
+		{
+			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
+
+			MoveToEx(dc, buttonRect.left, buttonRect.bottom, NULL);
+			LineTo(dc, buttonRect.right, buttonRect.bottom);
+			LineTo(dc, buttonRect.right, buttonRect.top);
+			LineTo(dc, buttonRect.left, buttonRect.top);
+			LineTo(dc, buttonRect.left, buttonRect.bottom);
+
+			SelectObject(dc, hOldPen);
+
+			DeleteObject(hPen);
+		}
+
+		cstr Id() const override
+		{
+			return id;
+		}
+
+		bool IsForControl(UI::SysWidgetId id) const override
+		{
+			return button && GetWindowLongPtrA(*button, GWLP_ID) == id.value;
+		}
+
+		UI::SysWidgetId ControlId() const override
+		{
+			if (!button)
+			{
+				return { 0 };
+			}
+
+			return { (uint16)GetWindowLongPtrA(*button, GWLP_ID) };
+		}
+
+		bool TryGetEditorString(REF HString& /* value */)
+		{
+			return false;
+		}
+
+		void OnButtonClicked() override
+		{
+			InvalidateRect(*button, NULL, TRUE);
+		}
+
+		void OnEditorChanged() override
+		{
+		}
+
+		void OnEditorLostKeyboardFocus() override
+		{
+
+		}
+
+		bool TryTakeFocus() override
+		{
+			return false;
+		}
+
+		void UpdateWidget(const void* data, size_t sizeOfData) override
+		{
+			UNUSED(data);
+			UNUSED(sizeOfData);
+		}
+
+		bool IsDirty() const override
+		{
+			return false;
+		}
+	};
+
+	struct CollapserProperty : IPropertySupervisor, IOwnerDrawItem, IPropertySection
 	{
 		HString id;
 		HString displayName;
@@ -1043,11 +1275,24 @@ namespace Rococo::Windows::Internal
 		IPropertyUIEvents& events;
 		UI::SysWidgetId labelId{ 0 };
 
-		CollapserProperty(PropertyMarshallingStub& stub) :
+		IPropertySection& section;
+
+		CollapserProperty(PropertyMarshallingStub& stub, IPropertySection& _section) :
 			displayName(stub.displayName),
 			id(stub.propertyIdentifier),
-			events(stub.eventHandler)
+			events(stub.eventHandler),
+			section(_section)
 		{
+		}
+
+		const IPropertySection& Section() const override
+		{
+			return section;
+		};
+
+		bool IsExpanded() const override
+		{
+			return isExpanded;
 		}
 
 		void AdvanceSelection() override
@@ -1260,17 +1505,6 @@ namespace Rococo::Windows::Internal
 		}
 	};
 
-	struct ArrayHeaderProperty : CollapserProperty
-	{
-		const ArrayHeaderControl control;
-
-		ArrayHeaderProperty(PropertyMarshallingStub& stub, const ArrayHeaderControl& _control) : 
-			control(_control),
-			CollapserProperty(stub)
-		{
-		}
-	};
-
 	struct BooleanProperty : IPropertySupervisor, IOwnerDrawItem
 	{
 		HString id;
@@ -1286,8 +1520,10 @@ namespace Rococo::Windows::Internal
 
 		UI::SysWidgetId labelId{ 0 };
 
-		BooleanProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller) :
-			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), events(stub.eventHandler)
+		IPropertySection& section;
+
+		BooleanProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller, IPropertySection& _section) :
+			id(stub.propertyIdentifier), initialValue(marshaller.value), displayName(stub.displayName), validator(marshaller.validator), events(stub.eventHandler), section(_section)
 		{
 			if (displayName.length() == 0)
 			{
@@ -1306,6 +1542,11 @@ namespace Rococo::Windows::Internal
 		{
 			DestroyWindow(checkbox);
 		}
+
+		const IPropertySection& Section() const override
+		{
+			return section;
+		};
 
 		void AdvanceSelection() override
 		{
@@ -1516,14 +1757,36 @@ namespace Rococo::Windows::Internal
 	{
 		PropertyEditorEnsemble& container;
 
+		std::vector<IPropertySection*> sections;
+
 		PropertyBuilder(PropertyEditorEnsemble& _container) : container(_container)
 		{
+			struct RootSection : IPropertySection
+			{
+				bool IsExpanded() const override
+				{
+					return true;
+				}
+			};
+			
+			static RootSection s_RootSection;
 
+			sections.push_back(&s_RootSection);
 		}
 
 		bool IsWritingToReferences() const override
 		{
 			return false;
+		}
+
+		IPropertySection& CurrentSection()
+		{
+			if (sections.empty())
+			{
+				Throw(0, "%s: Bad section", __FUNCTION__);
+			}
+
+			return *sections.back();
 		}
 
 		void VisitHeader(cstr propertyId, cstr displayName, cstr displayText) override;
@@ -1859,47 +2122,47 @@ namespace Rococo::Windows::Internal
 
 	void PropertyBuilder::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)
 	{
-		container.properties.push_back(new StringConstant(propertyId, displayName, displayText));
+		container.properties.push_back(new StringConstant(propertyId, displayName, displayText, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, REF Rococo::Strings::HString& value, int capacity)
 	{
-		container.properties.push_back(new StringProperty(stub, REF value, capacity));
+		container.properties.push_back(new StringProperty(stub, REF value, capacity, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<int32>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<int32>(stub, marshaller));
+		container.properties.push_back(new PrimitiveProperty<int32>(stub, marshaller, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<uint32>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<uint32>(stub, marshaller));
+		container.properties.push_back(new PrimitiveProperty<uint32>(stub, marshaller, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<int64>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<int64>(stub, marshaller));
+		container.properties.push_back(new PrimitiveProperty<int64>(stub, marshaller, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<uint64>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<uint64>(stub, marshaller));
+		container.properties.push_back(new PrimitiveProperty<uint64>(stub, marshaller, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<float>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<float>(stub, marshaller));
+		container.properties.push_back(new PrimitiveProperty<float>(stub, marshaller, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<double>& marshaller)
 	{
-		container.properties.push_back(new PrimitiveProperty<double>(stub, marshaller));
+		container.properties.push_back(new PrimitiveProperty<double>(stub, marshaller, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitProperty(PropertyMarshallingStub& stub, PrimitiveMarshaller<bool>& marshaller)
 	{
-		container.properties.push_back(new BooleanProperty(stub, marshaller));
+		container.properties.push_back(new BooleanProperty(stub, marshaller, CurrentSection()));
 	}
 
 	void PropertyBuilder::VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)
@@ -1912,14 +2175,17 @@ namespace Rococo::Windows::Internal
 		AutoFree<IEnumVectorSupervisor> enumVector = enumDesc.CreateEnumList();
 		if (enumVector)
 		{
-			container.properties.push_back(new OptionVectorProperty(stub, enumVector, REF value, stringCapacity));
+			container.properties.push_back(new OptionVectorProperty(stub, enumVector, REF value, stringCapacity, CurrentSection()));
 			enumVector.Detach();
 		}
 	}
 
 	void PropertyBuilder::VisitArrayHeader(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
 	{
-		container.properties.push_back(new ArrayHeaderProperty(arrayStub, control));
+		auto* collapser = new CollapserProperty(arrayStub, CurrentSection());
+		sections.push_back(collapser);
+		container.properties.push_back(collapser);
+		container.properties.push_back(new ArrayControlProperty(arrayStub, *collapser, control));
 	}
 
 	void PropertyRefresher::VisitHeader(cstr propertyId, cstr displayName, cstr displayText)
