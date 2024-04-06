@@ -2,6 +2,7 @@
 #include <rococo.properties.h>
 #include <rococo.hashtable.h>
 #include <rococo.validators.h>
+#include <rococo.functional.h>
 
 using namespace Rococo::Reflection;
 using namespace Rococo::Editors;
@@ -1136,77 +1137,6 @@ namespace Rococo::Windows::Internal
 			return rect;
 		}
 
-		enum
-		{
-			TRIANGLE_ELEVATION = 4,
-			TRIANGLE_TOP_PADDING = 0,
-			TRIANGLE_RIGHT_PADDING = 4,
-			QUAD_HEIGHT = 2,
-			QUAD_LEFT_PADDING = 2
-		};
-
-		void DrawCollapsed(HDC dc, const RECT& buttonRect)
-		{
-			HBRUSH hBrush = CreateSolidBrush(RGB(64, 64, 64));
-
-			// HPEN hPen = CreatePen(PS_SOLID, 1, RGB(64, 64, 64));
-			HPEN hOldPen = (HPEN)SelectObject(dc, GetStockObject(NULL_PEN));
-			HBRUSH hOldBrush = (HBRUSH)SelectObject(dc, hBrush);
-
-			POINT quad[4];
-			quad[0].x = buttonRect.left + QUAD_LEFT_PADDING;
-			quad[0].y = buttonRect.bottom - TRIANGLE_ELEVATION;
-			quad[1].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
-			quad[1].y = buttonRect.bottom - TRIANGLE_ELEVATION;
-			quad[2].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
-			quad[2].y = buttonRect.bottom - TRIANGLE_ELEVATION - QUAD_HEIGHT;
-			quad[3].x = buttonRect.left + QUAD_LEFT_PADDING;
-			quad[3].y = buttonRect.bottom - TRIANGLE_ELEVATION - QUAD_HEIGHT;
-
-			Polygon(dc, quad, 4);
-
-			SelectObject(dc, hOldBrush);
-			SelectObject(dc, hOldPen);
-		}
-
-		void DrawExpanded(HDC dc, const RECT& buttonRect)
-		{
-			HBRUSH hBrush = CreateSolidBrush(RGB(64, 64, 64));
-
-			// HPEN hPen = CreatePen(PS_SOLID, 1, RGB(64, 64, 64));
-			HPEN hOldPen = (HPEN)SelectObject(dc, GetStockObject(NULL_PEN));
-			HBRUSH hOldBrush = (HBRUSH)SelectObject(dc, hBrush);
-
-			POINT tri[3];
-			tri[0].x = buttonRect.left;
-			tri[0].y = buttonRect.bottom - TRIANGLE_ELEVATION;
-			tri[1].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
-			tri[1].y = buttonRect.bottom - TRIANGLE_ELEVATION;
-			tri[2].x = buttonRect.right - TRIANGLE_RIGHT_PADDING;
-			tri[2].y = buttonRect.top + TRIANGLE_TOP_PADDING;
-
-			Polygon(dc, tri, 3);
-
-			SelectObject(dc, hOldBrush);
-			SelectObject(dc, hOldPen);
-		}
-
-		void DrawRect(HDC dc, const RECT& buttonRect)
-		{
-			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
-
-			MoveToEx(dc, buttonRect.left, buttonRect.bottom, NULL);
-			LineTo(dc, buttonRect.right, buttonRect.bottom);
-			LineTo(dc, buttonRect.right, buttonRect.top);
-			LineTo(dc, buttonRect.left, buttonRect.top);
-			LineTo(dc, buttonRect.left, buttonRect.bottom);
-
-			SelectObject(dc, hOldPen);
-
-			DeleteObject(hPen);
-		}
-
 		cstr Id() const override
 		{
 			return id;
@@ -1234,6 +1164,13 @@ namespace Rococo::Windows::Internal
 
 		void OnButtonClicked() override
 		{
+			events.OnArrayEvent(id,
+				[this](IArrayProperty& a)
+				{
+					a.Append();
+				}
+			);
+			
 			InvalidateRect(*button, NULL, TRUE);
 		}
 
@@ -1870,6 +1807,12 @@ namespace Rococo::Windows::Internal
 		void OnBooleanButtonChanged(IPropertyEditor& property) override
 		{
 			Throw(0, "%s: property %s incorrectly raised button changed event", __FUNCTION__, property.Id());
+		}
+
+		void OnArrayEvent(cstr arrayId, Function<void(IArrayProperty&)> callback) override
+		{
+			UNUSED(arrayId);
+			UNUSED(callback);
 		}
 
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override

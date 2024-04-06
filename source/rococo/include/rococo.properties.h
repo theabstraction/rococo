@@ -72,9 +72,15 @@ namespace Rococo::Reflection
 		return PrimitiveMarshaller<VALUE_TYPE> { value, validator, formatter };
 	}
 
+	ROCOCO_INTERFACE IArrayProperty
+	{
+		virtual void Append() = 0;
+	};
+
 	// When a property is visited, an editor associated with the property may raise events. These are responded to by the implementors of this interface
 	ROCOCO_INTERFACE IPropertyUIEvents
 	{
+		virtual void OnArrayEvent(cstr arrayId, Function<void(IArrayProperty&)> callback) = 0;
 		virtual void OnBooleanButtonChanged(IPropertyEditor & property) = 0;
 		virtual void OnPropertyEditorLostFocus(IPropertyEditor& property) = 0;
 		virtual void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) = 0;

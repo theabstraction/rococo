@@ -253,6 +253,12 @@ namespace ANON
 			props.UpdateFromVisuals(property, *this);
 		}
 
+		void OnArrayEvent(cstr arrayId, Function<void(IArrayProperty&)> callback) override
+		{
+			UNUSED(arrayId);
+			UNUSED(callback);
+		}
+
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
 		{
 			editor->Properties().Refresh(propertyId, agent);

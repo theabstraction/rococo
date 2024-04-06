@@ -528,6 +528,12 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
+	ROCOCO_INTERFACE ICFGSDatabaseSupervisorInternal : ICFGSDatabaseSupervisor
+	{
+		virtual IPropertyUIEvents& InputArgumentHandler() = 0;
+		virtual IPropertyUIEvents& OutputArgumentHandler() = 0;
+	};
+
 	class CFGSFunction: public ICFGSFunction, ICFGSNodeEnumerator, ICFGSNodeSetBuilder, IPropertyVenue
 	{
 		std::vector<CFGSNode*> nodes;
@@ -539,11 +545,14 @@ namespace Rococo::CFGS::Internal
 
 		CFGSNode beginNode;
 		CFGSNode returnNode;
+
+		ICFGSDatabaseSupervisorInternal& db;
 	public:
-		CFGSFunction(FunctionId _id) :
+		CFGSFunction(ICFGSDatabaseSupervisorInternal& _db, FunctionId _id) :
 			id(_id),
 			beginNode("_Begin",DesignerVec2{ 0, 0 }, NodeId{ MakeNewUniqueId() }),
-			returnNode("_Return", DesignerVec2 { 200 , 200}, NodeId { MakeNewUniqueId() })
+			returnNode("_Return", DesignerVec2 { 200 , 200}, NodeId { MakeNewUniqueId() }),
+			db(_db)
 		{
 			
 		}
@@ -551,6 +560,16 @@ namespace Rococo::CFGS::Internal
 		~CFGSFunction()
 		{
 			DeleteAllNodes();
+		}
+
+		CFGSNode& BeginNode()
+		{
+			return beginNode;
+		}
+
+		CFGSNode& ReturnNode()
+		{
+			return returnNode;
 		}
 
 		FunctionId Id() const override
@@ -743,46 +762,32 @@ namespace Rococo::CFGS::Internal
 			return *this;
 		}
 
+		void GetInputArrayId(char inputId[256]) const
+		{
+			SafeFormat(inputId, 256, "Fn%llx-%llx@inputs", id.id.iValues[0], id.id.iValues[1]);
+		}
+
+		void GetOutputArrayId(char inputId[256]) const
+		{
+			SafeFormat(inputId, 256, "Fn%llx-%llx@outputs", id.id.iValues[0], id.id.iValues[1]);
+		}
+
+		bool IsInputArrayId(cstr id) const
+		{
+			char inputId[256];
+			GetInputArrayId(inputId);
+			return Strings::Eq(inputId, id);
+		}
+
+		bool IsOutputArrayId(cstr id) const
+		{
+			char inputId[256];
+			GetOutputArrayId(inputId);
+			return Strings::Eq(inputId, id);
+		}
+
 		void VisitVenue(IPropertyVisitor& visitor) override
 		{
-			struct InputEventHandler: IPropertyUIEvents
-			{
-				void OnBooleanButtonChanged(IPropertyEditor&) override
-				{
-
-				}
-
-				void OnPropertyEditorLostFocus(IPropertyEditor&) override
-				{
-
-				}
-
-				void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
-				{
-					UNUSED(propertyId);
-					UNUSED(agent);
-				}
-			} inputEventHandler;
-
-			struct OutputEventHandler : IPropertyUIEvents
-			{
-				void OnBooleanButtonChanged(IPropertyEditor&) override
-				{
-
-				}
-
-				void OnPropertyEditorLostFocus(IPropertyEditor&) override
-				{
-
-				}
-
-				void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
-				{
-					UNUSED(propertyId);
-					UNUSED(agent);
-				}
-			} outputEventHandler;
-
 			ArrayHeaderControl socketHeader;
 			socketHeader.isElementDeleteSupported = true;
 			socketHeader.isExpandable = true;
@@ -790,31 +795,128 @@ namespace Rococo::CFGS::Internal
 			socketHeader.minElements = 0;
 			socketHeader.maxElements = 32'768;
 
-			PropertyMarshallingStub inputStub{ "inputs", "Inputs", inputEventHandler };
+			char inputId[256];
+			GetInputArrayId(inputId);
+			PropertyMarshallingStub inputStub{ inputId, "Inputs", db.InputArgumentHandler()};
 			visitor.VisitArrayHeader(inputStub, socketHeader);
-			VisitPointerArray(visitor, inputEventHandler, beginNode.sockets);
+			VisitPointerArray(visitor, db.InputArgumentHandler(), beginNode.sockets);
 
-			PropertyMarshallingStub outputStub{ "output", "Outputs", inputEventHandler };
+			char outputId[256];
+			GetOutputArrayId(outputId);
+
+			PropertyMarshallingStub outputStub{ outputId, "Outputs", db.OutputArgumentHandler() };
 			visitor.VisitArrayHeader(outputStub, socketHeader);
-			VisitPointerArray(visitor, outputEventHandler, returnNode.sockets);
+			VisitPointerArray(visitor, db.OutputArgumentHandler(), returnNode.sockets);
 		}
 	};
 
-	class CFGSDatabase: public ICFGSDatabaseSupervisor
+	struct SocketArrayBuilder: IArrayProperty
+	{
+		std::vector<CFGSSocket*> target;
+		CFGSNode* node;
+		SocketPlacement placement;
+		CFGSSocketType type;
+		SocketClass classification;
+
+		void Append() override
+		{
+			target.push_back(new CFGSSocket(node, placement, type, classification, "undefined-name", SocketId()));
+		}
+	};		
+
+	struct ArgumentEventHandler : IPropertyUIEvents
+	{
+		ICFGSDatabaseSupervisorInternal& db;
+
+		ArgumentEventHandler(ICFGSDatabaseSupervisorInternal& _db): db(_db) {}
+
+		void OnBooleanButtonChanged(IPropertyEditor&) override
+		{
+
+		}
+
+		void OnPropertyEditorLostFocus(IPropertyEditor&) override
+		{
+
+		}
+
+		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
+		{
+			UNUSED(propertyId);
+			UNUSED(agent);
+		}
+
+		void OnArrayEvent(cstr fullArrayId, Function<void(IArrayProperty&)> callback) override
+		{
+			auto header = "_header"_fstring;
+
+			if (!EndsWith(fullArrayId, header))
+			{
+				return;
+			}
+
+			char arrayId[256];
+			CopyString(arrayId, sizeof arrayId, fullArrayId);
+
+			size_t len = strlen(arrayId);
+
+			arrayId[len - header.length] = 0;
+
+			db.ForEachFunction([arrayId, this, &callback](ICFGSFunction& f)
+				{
+					auto& F = static_cast<CFGSFunction&>(f);
+					if (F.IsInputArrayId(arrayId))
+					{
+						SocketArrayBuilder builder;
+						builder.node = &F.BeginNode();
+						builder.classification = SocketClass::InputVar;
+						builder.placement = SocketPlacement::Left;
+						builder.type = CFGSSocketType{ "Int32" };
+						callback(builder);
+						return;
+					}
+					else if (F.IsOutputArrayId(arrayId))
+					{
+						SocketArrayBuilder builder;
+						builder.node = &F.BeginNode();
+						builder.classification = SocketClass::OutputValue;
+						builder.placement = SocketPlacement::Right;
+						builder.type = CFGSSocketType{ "Int32" };
+						callback(builder);
+						return;
+					}
+				}
+			);
+		}
+	};
+
+	class CFGSDatabase: public ICFGSDatabaseSupervisorInternal
 	{
 	private:
 		typedef std::unordered_map<FunctionId, CFGSFunction*, FunctionId::Hasher> TFunctions;
 		TFunctions mapIdToFunction;
 		FunctionId currentFunctionId;
 
+		ArgumentEventHandler inputEventHandler;
+		ArgumentEventHandler outputEventHandler;
 	public:
-		CFGSDatabase()
+		CFGSDatabase(): inputEventHandler(*this), outputEventHandler(*this)
 		{
 		}
 
 		~CFGSDatabase()
 		{
 			Clear();
+		}
+
+		IPropertyUIEvents& InputArgumentHandler() override
+		{
+			return inputEventHandler;
+		}
+
+		IPropertyUIEvents& OutputArgumentHandler() override
+		{
+			return outputEventHandler;
 		}
 		
 		void BuildFunction(FunctionId id) override
@@ -846,7 +948,7 @@ namespace Rococo::CFGS::Internal
 				}
 			}
 
-			i->second = new CFGSFunction(i->first);
+			i->second = new CFGSFunction(*this, i->first);
 
 			return i->first;
 		}
