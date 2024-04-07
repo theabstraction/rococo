@@ -376,14 +376,7 @@ namespace ANON
 				}
 			}
 
-			auto* f = cfgs.CurrentFunction();
-			if (f)
-			{
-				editor.Properties().Clear();
-				editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
-			}
-
-			editor.RefreshSlate();
+			RegenerateProperties();
 		}
 
 		void OnItemRightClicked(TREE_NODE_ID id, IUITree& tree) override
