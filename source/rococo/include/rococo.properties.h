@@ -80,9 +80,10 @@ namespace Rococo::Reflection
 	// When a property is visited, an editor associated with the property may raise events. These are responded to by the implementors of this interface
 	ROCOCO_INTERFACE IPropertyUIEvents
 	{
-		virtual void OnArrayEvent(cstr arrayId, Function<void(IArrayProperty&)> callback) = 0;
+		virtual void CallArrayMethod(cstr arrayId, Function<void(IArrayProperty&)> callback) = 0;
 		virtual void OnBooleanButtonChanged(IPropertyEditor & property) = 0;
 		virtual void OnPropertyEditorLostFocus(IPropertyEditor& property) = 0;
+		virtual void OnDeleteSection(cstr sectionId) = 0;
 		virtual void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) = 0;
 	};
 
@@ -150,7 +151,7 @@ namespace Rococo::Reflection
 		virtual void EndArray() = 0;
 
 		// Adds a new section based on an integer index
-		virtual void BeginIndex(int index) = 0;
+		virtual void BeginIndex(cstr sectionId, int index, bool hasDeleteButton, IPropertyUIEvents& eventHandler) = 0;
 
 		// Exits the current index section
 		virtual void EndIndex() = 0;

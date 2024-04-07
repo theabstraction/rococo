@@ -13,6 +13,7 @@ namespace Rococo::Windows::Internal
 {
 	ROCOCO_INTERFACE IPropertySection
 	{
+		virtual bool HasDeleteButton() const = 0;
 		virtual bool IsExpanded() const = 0;
 		virtual int IndentationPixels() const = 0;
 	};
@@ -22,11 +23,13 @@ namespace Rococo::Windows::Internal
 		virtual void AdvanceSelection() = 0;
 		virtual void Free() = 0;
 		virtual const IPropertySection& Section() const = 0;
-		virtual void OnButtonClicked() = 0;
+		virtual void OnButtonClicked(UI::SysWidgetId id) = 0;
 		virtual void OnEditorChanged() = 0;
 		virtual void OnEditorLostKeyboardFocus() = 0;
 		virtual bool TryTakeFocus() = 0;
-		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId) = 0;
+
+		// The caller should increment the editorId if they require more than one control, other than the label
+		virtual GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId) = 0;
 		virtual void Hide() = 0;
 		virtual GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) = 0;
 	};
@@ -210,12 +213,12 @@ namespace Rococo::Windows::Internal
 
 		if (hLabel)
 		{
-			MoveWindow(hLabel, left, yOffset, style.labelSpan - style.defaultPadding - left, style.rowHeight, TRUE);
+			MoveWindow(hLabel, left, yOffset, style.labelSpan, style.rowHeight, TRUE);
 		}
 
 		if (hEditor)
 		{
-			MoveWindow(hEditor, left + style.labelSpan, yOffset, rect.right - style.labelSpan - left, style.rowHeight, TRUE);
+			MoveWindow(hEditor, left + style.labelSpan, yOffset, rect.right - style.labelSpan, style.rowHeight, TRUE);
 		}
 
 		return GetEditorRect(section, style, panel, yOffset);
@@ -296,7 +299,7 @@ namespace Rococo::Windows::Internal
 
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId)
 		{
 			this->labelId = labelId;
 			label = AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId);
@@ -346,9 +349,9 @@ namespace Rococo::Windows::Internal
 			return Internal::TryGetEditorString(editor, REF value);
 		}
 
-		void OnButtonClicked() override
+		void OnButtonClicked(UI::SysWidgetId id) override
 		{
-
+			UNUSED(id);
 		}
 
 		void OnEditorChanged() override
@@ -429,7 +432,7 @@ namespace Rococo::Windows::Internal
 			delete this;
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId constantId) override
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId) override
 		{
 			this->labelId = labelId;
 			this->label = displayName.length() > 0 ? AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId) : nullptr;
@@ -439,7 +442,7 @@ namespace Rococo::Windows::Internal
 				Throw(0, "%s: unexpected non-null editor for %s", __FUNCTION__, displayName.c_str());
 			}
 
-			editor = initialString.length() > 0 ? AddImmutableEditor(style, panel, initialString.c_str(), yOffset, constantId) : nullptr;
+			editor = initialString.length() > 0 ? AddImmutableEditor(style, panel, initialString.c_str(), yOffset, editorId) : nullptr;
 
 			return GetEditorRect(section, style, panel, yOffset);
 		}
@@ -490,7 +493,7 @@ namespace Rococo::Windows::Internal
 			isDirty = true;
 		}
 
-		void OnButtonClicked() override
+		void OnButtonClicked(UI::SysWidgetId) override
 		{
 
 		}
@@ -744,7 +747,7 @@ namespace Rococo::Windows::Internal
 			delete this;
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId) override
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId) override
 		{
 			enum { MAX_PRIMITIVE_LEN = 24 };
 
@@ -816,7 +819,7 @@ namespace Rococo::Windows::Internal
 			return true;
 		}
 
-		void OnButtonClicked() override
+		void OnButtonClicked(UI::SysWidgetId) override
 		{
 
 		}
@@ -997,7 +1000,7 @@ namespace Rococo::Windows::Internal
 			delete this;
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId)
 		{
 			this->labelId = labelId;
 			this->label = AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId);
@@ -1064,7 +1067,7 @@ namespace Rococo::Windows::Internal
 			return Internal::TryGetEditorString(selectedOptionEditor, REF value);
 		}
 
-		void OnButtonClicked() override
+		void OnButtonClicked(UI::SysWidgetId) override
 		{
 		}
 
@@ -1146,7 +1149,7 @@ namespace Rococo::Windows::Internal
 			delete this;
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId)
 		{
 			this->labelId = labelId;
 
@@ -1198,11 +1201,11 @@ namespace Rococo::Windows::Internal
 			return false;
 		}
 
-		void OnButtonClicked() override
+		void OnButtonClicked(UI::SysWidgetId /* buttonId */) override
 		{
 			InvalidateRect(*button, NULL, TRUE);
 
-			events.OnArrayEvent(id,
+			events.CallArrayMethod(id,
 				[this](IArrayProperty& a)
 				{
 					a.Append();
@@ -1242,15 +1245,21 @@ namespace Rococo::Windows::Internal
 		HString displayName;
 		VisualStyle style;
 
+		bool hasDeleteButton = false;
 		bool isExpanded = true;
-		HWND hCheckBox = nullptr;
+		HWND hExpanderButton = nullptr;
+		
+		AutoFree<IButton> deleteButton;
 
 		IPropertyUIEvents& events;
-		UI::SysWidgetId labelId{ 0 };
 
 		IPropertySection& section;
 
 		IWindow* label = nullptr;
+
+		UI::SysWidgetId labelId{ 0 };
+		UI::SysWidgetId editorId{ 0 };
+		UI::SysWidgetId deleteId{ 0 };
 
 		CollapserProperty(PropertyMarshallingStub& stub, IPropertySection& _section) :
 			displayName(stub.displayName),
@@ -1262,7 +1271,22 @@ namespace Rococo::Windows::Internal
 
 		virtual ~CollapserProperty()
 		{
-			DestroyWindow(hCheckBox);
+			DestroyWindow(hExpanderButton);
+		}
+
+		void EnableDeleteButton(bool enable)
+		{
+			hasDeleteButton = enable;
+
+			if (deleteButton)
+			{
+				PostMessage(GetParent(*deleteButton), WM_LAYOUT, 0, 0);
+			}
+		}
+
+		bool HasDeleteButton() const override
+		{
+			return hasDeleteButton;
 		}
 
 		const IPropertySection& Section() const override
@@ -1290,21 +1314,25 @@ namespace Rococo::Windows::Internal
 			delete this;
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId) override
 		{
 			this->labelId = labelId;
+			this->editorId = editorId;
+			this->hExpanderButton = AddCheckbox(style, panel, 0, editorId, this);
+			this->label = Rococo::Windows::AddLabel(panel, GuiRect{ 0, 0, 0, 0 }, displayName, labelId.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
 
-			this->hCheckBox = AddCheckbox(style, panel, 0, editorId, this);
+			this->deleteId = UI::SysWidgetId{ (uint16)(editorId.value + 1) };
+			OUT editorId = deleteId;
 
-			label = Rococo::Windows::AddLabel(panel, GuiRect{ 0, 0, 0, 0 }, displayName, labelId.value, WS_VISIBLE | SS_LEFTNOWORDWRAP, 0);
-			
+			this->deleteButton = AddClickButton(panel, "x", deleteId);
 			return Layout(panel, yOffset);
 		}
 
 		void Hide() override
 		{
 			MoveWindow(*label, 0, 0, 0, 0, TRUE);
-			MoveWindow(hCheckBox, 0, 0, 0, 0, TRUE);
+			MoveWindow(hExpanderButton, 0, 0, 0, 0, TRUE);
+			MoveWindow(*deleteButton, 0, 0, 0, 0, TRUE);
 		}
 
 		GuiRect Layout(IParentWindowSupervisor& panel, int yOffset) override
@@ -1312,15 +1340,26 @@ namespace Rococo::Windows::Internal
 			RECT rect;
 			GetClientRect(panel, &rect);
 
-			enum 
-			{ 
-				triangleButtonRHS = 20
+			enum
+			{
+				triangleButtonRHS = 20,
+				deleteButtonWidth = 16,
+				deleteButtonRHSMargin = 40
 			};
 
 			int32 left = section.IndentationPixels() + triangleButtonRHS;
 
 			MoveWindow(*label, left, yOffset, rect.right - left, style.rowHeight, TRUE);
-			MoveWindow(hCheckBox, section.IndentationPixels(), yOffset, left, style.rowHeight, TRUE);
+			MoveWindow(hExpanderButton, section.IndentationPixels(), yOffset, left, style.rowHeight, TRUE);
+			
+			if (hasDeleteButton)
+			{
+				MoveWindow(*deleteButton, rect.right - deleteButtonWidth - deleteButtonRHSMargin, yOffset + 2, deleteButtonWidth, style.rowHeight - 4, TRUE);
+			}
+			else
+			{
+				MoveWindow(*deleteButton, 0, 0, 0, 0, TRUE);
+			}
 
 			return GuiRect{ left, yOffset, rect.right, yOffset + style.rowHeight };
 		}
@@ -1380,26 +1419,10 @@ namespace Rococo::Windows::Internal
 			SelectObject(dc, hOldPen);
 		}
 
-		void DrawRect(HDC dc, const RECT& buttonRect)
-		{
-			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-			HPEN hOldPen = (HPEN)SelectObject(dc, hPen);
-
-			MoveToEx(dc, buttonRect.left, buttonRect.bottom, NULL);
-			LineTo(dc, buttonRect.right, buttonRect.bottom);
-			LineTo(dc, buttonRect.right, buttonRect.top);
-			LineTo(dc, buttonRect.left, buttonRect.top);
-			LineTo(dc, buttonRect.left, buttonRect.bottom);
-
-			SelectObject(dc, hOldPen);
-
-			DeleteObject(hPen);
-		}
-
-		void GetTickRect(OUT RECT& rect)
+		void GetExpanderRect(OUT RECT& rect)
 		{
 			RECT r;
-			if (!GetClientRect(hCheckBox, &r))
+			if (!GetClientRect(hExpanderButton, &r))
 			{
 				rect = { -1, -1, -1, -1 };
 				return;
@@ -1416,16 +1439,14 @@ namespace Rococo::Windows::Internal
 		void DrawItem(DRAWITEMSTRUCT& d) override
 		{
 			RECT r;
-			GetClientRect(hCheckBox, &r);
+			GetClientRect(hExpanderButton, &r);
 
-			bool isFocus = GetFocus() == hCheckBox;
+			bool isFocus = GetFocus() == hExpanderButton;
 			HBRUSH hBrush = CreateSolidBrush(isFocus ? RGB(255, 224, 224) : RGB(255, 255, 255));
 			FillRect(d.hDC, &r, hBrush);
 
 			RECT buttonRect;
-			GetTickRect(OUT buttonRect);
-
-		//	DrawRect(d.hDC, buttonRect);
+			GetExpanderRect(OUT buttonRect);
 
 			if (isExpanded)
 			{
@@ -1446,17 +1467,27 @@ namespace Rococo::Windows::Internal
 
 		bool IsForControl(UI::SysWidgetId id) const override
 		{
-			return hCheckBox && GetWindowLongPtrA(hCheckBox, GWLP_ID) == id.value;
+			if (editorId.value == id.value)
+			{
+				return true;
+			}
+
+			if (hasDeleteButton && deleteId.value == id.value)
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		UI::SysWidgetId ControlId() const override
 		{
-			if (!hCheckBox)
+			if (!hExpanderButton)
 			{
 				return { 0 };
 			}
 
-			return { (uint16)GetWindowLongPtrA(hCheckBox, GWLP_ID) };
+			return { (uint16)GetWindowLongPtrA(hExpanderButton, GWLP_ID) };
 		}
 
 		bool TryGetEditorString(REF HString& /* value */)
@@ -1464,13 +1495,22 @@ namespace Rococo::Windows::Internal
 			return false;
 		}
 
-		void OnButtonClicked() override
+		void OnButtonClicked(UI::SysWidgetId buttonId) override
 		{
-			isExpanded = !isExpanded;
-			InvalidateRect(hCheckBox, NULL, TRUE);
+			HWND hPropertiesContainer = GetParent(hExpanderButton);
 
-			HWND hPropertiesContainer = GetParent(hCheckBox);
-			PostMessage(hPropertiesContainer, WM_LAYOUT, 0, 0);
+			if (buttonId.value == editorId.value)
+			{
+				isExpanded = !isExpanded;
+				InvalidateRect(hExpanderButton, NULL, TRUE);
+				PostMessage(hPropertiesContainer, WM_LAYOUT, 0, 0);
+			}
+
+			if (hasDeleteButton && buttonId.value == deleteId.value)
+			{
+				events.OnDeleteSection(this->id);
+				PostMessage(hPropertiesContainer, WM_REGENERATE, 0, 0);
+			}
 		}
 
 		void OnEditorChanged() override
@@ -1627,7 +1667,7 @@ namespace Rococo::Windows::Internal
 			DeleteObject(hBrush);
 		}
 
-		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, UI::SysWidgetId editorId)
+		GuiRect AddToPanel(IParentWindowSupervisor& panel, int yOffset, UI::SysWidgetId labelId, IN OUT UI::SysWidgetId& editorId)
 		{
 			enum { MAX_PRIMITIVE_LEN = 24 };
 
@@ -1698,7 +1738,7 @@ namespace Rococo::Windows::Internal
 			return true;
 		}
 
-		void OnButtonClicked() override
+		void OnButtonClicked(UI::SysWidgetId) override
 		{
 			POINT pos;
 			if (!GetCursorPos(&pos))
@@ -1770,6 +1810,11 @@ namespace Rococo::Windows::Internal
 		{
 			struct RootSection : IPropertySection
 			{
+				bool HasDeleteButton() const override
+				{
+					return false;
+				}
+
 				bool IsExpanded() const override
 				{
 					return true;
@@ -1814,7 +1859,7 @@ namespace Rococo::Windows::Internal
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)  override;
 		void BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
 		void EndArray() override;
-		void BeginIndex(int index) override;
+		void BeginIndex(cstr sectionId, int index, bool hasDeleteButton, IPropertyUIEvents& eventHandler) override;
 		void EndIndex() override;
 	};
 
@@ -1847,7 +1892,7 @@ namespace Rococo::Windows::Internal
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
 		void BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
 		void EndArray() override;
-		void BeginIndex(int index) override;
+		void BeginIndex(cstr sectionId, int index, bool hasDeleteButton, IPropertyUIEvents& eventHandler) override;
 		void EndIndex() override;
 	};
 
@@ -1878,7 +1923,7 @@ namespace Rococo::Windows::Internal
 		void VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc) override;
 		void BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control) override;
 		void EndArray() override;
-		void BeginIndex(int index) override;
+		void BeginIndex(cstr sectionId, int index, bool hasDeleteButton, IPropertyUIEvents& eventHandler) override;
 		void EndIndex() override;
 	};
 
@@ -1894,16 +1939,22 @@ namespace Rococo::Windows::Internal
 			Throw(0, "%s: property %s incorrectly raised button changed event", __FUNCTION__, property.Id());
 		}
 
-		void OnArrayEvent(cstr arrayId, Function<void(IArrayProperty&)> callback) override
+		void CallArrayMethod(cstr arrayId, Function<void(IArrayProperty&)> callback) override
 		{
 			UNUSED(arrayId);
 			UNUSED(callback);
+			Throw(0, "%s: %s incorrect API call", __FUNCTION__, arrayId);
 		}
 
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
 		{
 			UNUSED(agent);
 			Throw(0, "%s: property %s incorrectly raised dependency variable change. Check to see if the agent raised such an event when visitor.IsWritingToReferences() was false", __FUNCTION__, propertyId);
+		}
+
+		void OnDeleteSection(cstr sectionId)
+		{
+			Throw(0, "%s: %s incorrect API call", __FUNCTION__, sectionId);
 		}
 	};
 
@@ -2095,7 +2146,7 @@ namespace Rococo::Windows::Internal
 			auto* p = FindControlById(id);
 			if (!p) return;
 
-			p->OnButtonClicked();
+			p->OnButtonClicked(id);
 		}
 
 		void OnEditorLostKeyboardFocus(UI::SysWidgetId id) override
@@ -2112,7 +2163,20 @@ namespace Rococo::Windows::Internal
 
 			for (auto* p : properties)
 			{
-				GuiRect rect = p->AddToPanel(panelArea, lastY, Next(), Next());
+				UI::SysWidgetId labelId = Next();
+
+				if (labelId.value > 65500)
+				{
+					// Stick this as a maximum value. Naive implementation limits the number of widgets to max-uint16-value 65535
+					// If more properties exist, then unfortunately they do not get rendered.
+					// However with this many properties we really should be doing something better than adding them all to the list.
+					return;
+				}
+
+				UI::SysWidgetId editorId = Next(); 	// The value is modified by AddToPanel to be the last editorId added to the panel 
+				GuiRect rect = p->AddToPanel(panelArea, lastY, labelId, IN OUT editorId);
+				nextId = editorId;
+
 				lastY = rect.bottom + 2;
 
 				if (!identifierToProperty.insert(p->Id(), p).second)
@@ -2234,19 +2298,14 @@ namespace Rococo::Windows::Internal
 		}
 	}
 
-	void PropertyBuilder::BeginIndex(int index)
+	void PropertyBuilder::BeginIndex(cstr sectionId, int index, bool deleteEnabled, IPropertyUIEvents& eventHandler)
 	{
-		char collapserId[64];
-		UniqueIdHolder id = MakeNewUniqueId();
-		SafeFormat(collapserId, "%llx %llx_collapser", id.iValues[0], id.iValues[1]);
-
 		char displayName[32];
 		SafeFormat(displayName, "%d. ", index);
 
-		static AssertiveNullEventHandler nullHandler;
-
-		PropertyMarshallingStub indexStub{ collapserId, displayName, nullHandler };
+		PropertyMarshallingStub indexStub{ sectionId, displayName, eventHandler };
 		auto* collapser = new CollapserProperty(indexStub, CurrentSection());
+		collapser->EnableDeleteButton(deleteEnabled);
 		container.properties.push_back(collapser);		
 		sections.push_back(collapser);
 	}
@@ -2336,8 +2395,11 @@ namespace Rococo::Windows::Internal
 
 	}
 
-	void PropertyRefresher::BeginIndex(int index)
+	void PropertyRefresher::BeginIndex(cstr sectionId, int index, bool hasDeleteButton, IPropertyUIEvents& eventHandler)
 	{
+		UNUSED(sectionId);
+		UNUSED(eventHandler);
+		UNUSED(hasDeleteButton);
 		UNUSED(index);
 	}
 
@@ -2492,8 +2554,11 @@ namespace Rococo::Windows::Internal
 
 	}
 
-	void PropertyEventRouting::BeginIndex(int index)
+	void PropertyEventRouting::BeginIndex(cstr sectionId, int index, bool hasDeleteButton, IPropertyUIEvents& eventHandler)
 	{
+		UNUSED(sectionId);
+		UNUSED(eventHandler);
+		UNUSED(hasDeleteButton);
 		UNUSED(index);
 	}
 

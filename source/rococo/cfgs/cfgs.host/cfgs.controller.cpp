@@ -257,10 +257,15 @@ namespace ANON
 			props.UpdateFromVisuals(property, *this);
 		}
 
-		void OnArrayEvent(cstr arrayId, Function<void(IArrayProperty&)> callback) override
+		void CallArrayMethod(cstr arrayId, Function<void(IArrayProperty&)> callback) override
 		{
 			UNUSED(arrayId);
 			UNUSED(callback);
+		}
+
+		void OnDeleteSection(cstr sectionId) override
+		{
+			UNUSED(sectionId);
 		}
 
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
@@ -534,11 +539,16 @@ namespace ANON
 			ide->LoadNavigation(directive);
 		}
 
-		void OnContextMenuItemSelected(uint16 id, Rococo::Abedit::IAbeditMainWindow& sender)
+		void OnContextMenuItemSelected(uint16 id, Rococo::Abedit::IAbeditMainWindow& sender) override
 		{
 			UNUSED(sender);
 			bool wasHandled = ide->TryHandleContextMenuItem(id);
 			UNUSED(wasHandled);
+		}
+
+		void OnRegenerate(Rococo::Abedit::IAbeditMainWindow& sender) override
+		{
+			ide->RegenerateProperties();
 		}
 	};
 }

@@ -346,6 +346,18 @@ namespace ANON
 			}
 		}
 
+		void RegenerateProperties()
+		{
+			auto* f = cfgs.CurrentFunction();
+			if (f)
+			{
+				editor.Properties().Clear();
+				editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
+			}
+
+			editor.RefreshSlate();
+		}
+
 		void OnItemSelected(TREE_NODE_ID id, IUITree& origin) override
 		{
 			UNUSED(origin);
@@ -1107,6 +1119,11 @@ namespace ANON
 		void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) override
 		{
 			navHandler.SaveNavigation(sb);
+		}
+
+		void RegenerateProperties()
+		{
+			navHandler.RegenerateProperties();
 		}
 	};
 }

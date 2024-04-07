@@ -196,6 +196,26 @@ namespace Rococo::CFGS::Internal
 			designRect.bottom = designRect.top + height;
 		}
 
+		void DeleteSocket(SocketId id)
+		{
+			for (size_t i = 0; i < sockets.size(); i++)
+			{
+				auto* s = sockets[i];
+				if (s->Id() == id)
+				{
+					delete s;
+
+					for (size_t j = i + 1; j < sockets.size(); j++)
+					{
+						sockets[j-1] = sockets[j];
+					}
+
+					sockets.pop_back();
+					return;
+				}
+			}			
+		}
+
 		void ClearSockets()
 		{
 			for (auto* s : sockets)
@@ -809,13 +829,14 @@ namespace Rococo::CFGS::Internal
 			char argId[256];
 			for (auto* s : beginNode.sockets)
 			{
-				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Type", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_InBeginIndex", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 
-				visitor.BeginIndex(index);
+				visitor.BeginIndex(argId, index, true, db.InputArgumentHandler());
 
 				HString socketType = s->Type().Value;
 				HString socketName = s->Name();
 
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Type", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 				MARSHAL_STRING(visitor, argId, "Type", db.InputArgumentHandler(), socketType, 256);
 
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Name", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
@@ -840,13 +861,13 @@ namespace Rococo::CFGS::Internal
 			index = 0;
 			for (auto* s : returnNode.sockets)
 			{
-				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutType", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
-
-				visitor.BeginIndex(index);
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutBeginIndex", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+				visitor.BeginIndex(argId, index, true, db.OutputArgumentHandler());
 
 				HString socketType = s->Type().Value;
 				HString socketName = s->Name();
 
+				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutType", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 				MARSHAL_STRING(visitor, argId, "Type", db.OutputArgumentHandler(), socketType, 256);
 
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutName", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
@@ -889,6 +910,54 @@ namespace Rococo::CFGS::Internal
 
 		}
 
+		void OnDeleteSection(cstr sectionId) override
+		{
+			if (!EndsWith(sectionId, "BeginIndex"))
+			{
+				return;
+			}
+
+			Substring s = Substring::ToSubstring(sectionId);
+
+			cstr finalChar = ReverseFind('_', s);
+			if (!finalChar)
+			{
+				return;
+			}
+			
+			bool isInput = strstr(finalChar, "In") != nullptr;
+
+			Substring itemId = { sectionId, finalChar };
+
+			db.ForEachFunction([isInput, &itemId, this](ICFGSFunction& f)
+				{
+					auto& F = static_cast<CFGSFunction&>(f);					
+					auto& node = isInput ? F.BeginNode() : F.ReturnNode();
+
+					SocketId targetId;
+
+					for (int i = 0; i < node.SocketCount(); i++)
+					{
+						auto& s = node[i];
+						
+						char argId[256];
+						SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx", F.Id().id.iValues[0], F.Id().id.iValues[1], s.Id().id.iValues[0], s.Id().id.iValues[1]);
+
+						if (Eq(itemId, argId))
+						{
+							targetId = s.Id();
+							break;
+						}
+					}
+
+					if (targetId)
+					{
+						node.DeleteSocket(targetId);
+					}
+				}
+			);
+		}
+
 		void OnPropertyEditorLostFocus(IPropertyEditor&) override
 		{
 
@@ -900,7 +969,7 @@ namespace Rococo::CFGS::Internal
 			UNUSED(agent);
 		}
 
-		void OnArrayEvent(cstr fullArrayId, Function<void(IArrayProperty&)> callback) override
+		void CallArrayMethod(cstr fullArrayId, Function<void(IArrayProperty&)> callback) override
 		{
 			auto header = "_header"_fstring;
 

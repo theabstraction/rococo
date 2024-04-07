@@ -106,6 +106,9 @@ namespace ANON
 			case WM_LAYOUT:
 				properties->LayouVertically();
 				return 0L;
+			case WM_REGENERATE:
+				PostMessage(GetParent(hWnd), WM_REGENERATE, 0, 0);
+				return 0L;
 			case WM_CTLCOLOREDIT:
 			{
 				HWND hEditor = (HWND)lParam;
@@ -710,6 +713,9 @@ namespace ANON
 			switch (msg)
 			{
 			case WM_ERASEBKGND:
+				return 0L;
+			case WM_REGENERATE:
+				eventHandler.OnRegenerate(*this);
 				return 0L;
 			case WM_COMMAND:
 				if (HIWORD(wParam) == 0)
