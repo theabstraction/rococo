@@ -293,7 +293,7 @@ namespace ANON
 		}
 	};
 
-	struct TypeOptions : Rococo::Reflection::IEnumDescriptor, Rococo::Reflection::IEnumVectorSupervisor
+	struct TypeVector: Rococo::Reflection::IEnumVectorSupervisor
 	{
 		struct TypeBinding
 		{
@@ -301,16 +301,17 @@ namespace ANON
 			HString enumDescription;
 		};
 
+		ISexyDatabase& sexyDB;
+
 		std::vector<TypeBinding> typeList;
 
-		ISexyDatabase& sexyDB;
-		bool isInputElseOutput;
-
-		TypeOptions(ISexyDatabase& _sexyDB, bool _isInputElseOutput):
-			sexyDB(_sexyDB),
-			isInputElseOutput(_isInputElseOutput)
+		TypeVector(ISexyDatabase& _sexyDB) : sexyDB(_sexyDB)
 		{
-
+			if (typeList.empty())
+			{
+				auto& root = sexyDB.GetRootNamespace();
+				AppendNamespaceStructsRecursive(root);
+			}
 		}
 
 		void AppendNamespaceStructsRecursive(Rococo::SexyStudio::ISxyNamespace& subspace)
@@ -339,19 +340,9 @@ namespace ANON
 			}
 		}
 
-		Rococo::Reflection::IEnumVectorSupervisor* CreateEnumList() override
-		{
-			if (typeList.empty())
-			{
-				auto& root = sexyDB.GetRootNamespace();
-				AppendNamespaceStructsRecursive(root);
-			}
-			return this;
-		}
-
 		void Free() override
 		{
-			// NOP
+			delete this;
 		}
 
 		size_t Count() const override
@@ -381,6 +372,24 @@ namespace ANON
 			populator.Populate(typeList[i].enumDescription);
 
 			return true;
+		}
+	};
+
+	struct TypeOptions : Rococo::Reflection::IEnumDescriptor
+	{
+		ISexyDatabase& sexyDB;
+		bool isInputElseOutput;
+
+		TypeOptions(ISexyDatabase& _sexyDB, bool _isInputElseOutput):
+			sexyDB(_sexyDB),
+			isInputElseOutput(_isInputElseOutput)
+		{
+
+		}
+
+		Rococo::Reflection::IEnumVectorSupervisor* CreateEnumList() override
+		{
+			return new TypeVector(sexyDB);
 		}
 	};
 
@@ -1216,6 +1225,16 @@ namespace ANON
 		void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) override
 		{
 			navHandler->SaveNavigation(sb);
+		}
+
+		void OnPropertyChanged(Rococo::Reflection::IPropertyEditor& property) override
+		{
+			auto* f = cfgs.CurrentFunction();
+			if (f)
+			{
+				auto& props = editor.Properties();
+				props.UpdateFromVisuals(property, f->PropertyVenue());
+			}
 		}
 
 		void RegenerateProperties()

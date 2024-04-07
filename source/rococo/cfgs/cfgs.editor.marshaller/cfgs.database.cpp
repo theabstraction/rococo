@@ -92,6 +92,16 @@ namespace Rococo::CFGS::Internal
 			return id;
 		}
 
+		void SetName(cstr name)
+		{
+			this->name = name;
+		}
+
+		void SetType(CFGSSocketType type)
+		{
+			this->socketType = type.Value;
+		}
+
 		int CableCount() const override
 		{
 			return (int32) cables.size();
@@ -854,11 +864,16 @@ namespace Rococo::CFGS::Internal
 					HString socketType = s->Type().Value;
 					OptionRef optCurrentType{ socketType };
 					visitor.VisitOption(optionStub, REF optCurrentType, 256, *inputTypeOptions);
+
+					auto& S = *static_cast<CFGSSocket*>(s);
+					S.SetType(CFGSSocketType{ socketType });
 				}
 
 				HString socketName = s->Name();
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Name", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 				MARSHAL_STRING(visitor, argId, "Name", db.InputArgumentHandler(), socketName, 256);
+
+				s->SetName(socketName);
 
 				visitor.EndIndex();
 
@@ -892,11 +907,13 @@ namespace Rococo::CFGS::Internal
 					HString socketType = s->Type().Value;
 					OptionRef optCurrentType{ socketType };
 					visitor.VisitOption(optionStub, REF optCurrentType, 256, *outputTypeOptions);
+					auto& S = *static_cast<CFGSSocket*>(s);
+					S.SetType(CFGSSocketType{ socketType });
 				}
 
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutName", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 				MARSHAL_STRING(visitor, argId, "Name", db.OutputArgumentHandler(), socketName, 256);
-
+				s->SetName(socketName);
 				visitor.EndIndex();
 
 				index++;
@@ -926,12 +943,20 @@ namespace Rococo::CFGS::Internal
 	struct ArgumentEventHandler : IPropertyUIEvents
 	{
 		ICFGSDatabaseSupervisorInternal& db;
+		ICFGSMessaging& messaging;
 
-		ArgumentEventHandler(ICFGSDatabaseSupervisorInternal& _db): db(_db) {}
-
-		void OnBooleanButtonChanged(IPropertyEditor&) override
+		ArgumentEventHandler(ICFGSDatabaseSupervisorInternal& _db, ICFGSMessaging& _messaging): db(_db), messaging(_messaging)
 		{
+		}
 
+		void OnBooleanButtonChanged(IPropertyEditor& property) override
+		{
+			messaging.OnPropertyChanged(property);
+		}
+
+		void OnPropertyEditorLostFocus(Reflection::IPropertyEditor& property) override
+		{
+			messaging.OnPropertyChanged(property);
 		}
 
 		void OnDeleteSection(cstr sectionId) override
@@ -980,11 +1005,6 @@ namespace Rococo::CFGS::Internal
 					}
 				}
 			);
-		}
-
-		void OnPropertyEditorLostFocus(IPropertyEditor&) override
-		{
-
 		}
 
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
@@ -1056,7 +1076,7 @@ namespace Rococo::CFGS::Internal
 		ICFGSMessaging& messaging;
 
 	public:
-		CFGSDatabase(ICFGSMessaging& _messaging): inputEventHandler(*this), outputEventHandler(*this), messaging(_messaging)
+		CFGSDatabase(ICFGSMessaging& _messaging): inputEventHandler(*this, _messaging), outputEventHandler(*this, _messaging), messaging(_messaging)
 		{
 
 		}

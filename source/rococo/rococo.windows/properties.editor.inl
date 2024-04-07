@@ -2536,12 +2536,15 @@ namespace Rococo::Windows::Internal
 		}
 	}
 
-	void PropertyEventRouting::VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)
+	void PropertyEventRouting::VisitOption(PropertyMarshallingStub& stub, REF OptionRef& option, int stringCapacity, IEnumDescriptor& enumDesc)
 	{
-		UNUSED(stub);
-		UNUSED(value);
-		UNUSED(stringCapacity);
 		UNUSED(enumDesc);
+		UNUSED(stringCapacity);
+
+		if (Eq(id, stub.propertyIdentifier))
+		{
+			container.TryGetEditorString(id, OUT option.value);
+		}
 	}
 
 	void PropertyEventRouting::BeginArray(PropertyMarshallingStub& /* arrayStub */, const ArrayHeaderControl& /* control */)

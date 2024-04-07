@@ -282,7 +282,12 @@ namespace Rococo::CFGS
 		virtual void ListenForChange(Rococo::Function<void(FunctionId id)> callback) = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSMessaging
+	ROCOCO_INTERFACE ICFGSPropertyChangeHandler
+	{
+		virtual void OnPropertyChanged(Reflection::IPropertyEditor & property) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSMessaging: ICFGSPropertyChangeHandler
 	{
 		virtual bool IsDBHousekeeping(uint32 id) const = 0;
 		virtual void PostDBHousekeeping() = 0;
@@ -291,7 +296,6 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSMessagingSupervisor: ICFGSMessaging
 	{
 		virtual void Free() = 0;
-
 	};
 
 	ROCOCO_INTERFACE ICFGSDatabaseSupervisor : ICFGSDatabase
@@ -330,6 +334,7 @@ namespace Rococo::CFGS
 		virtual void RegenerateProperties() = 0;
 		virtual void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) = 0;
 		virtual [[nodiscard]] bool TryHandleContextMenuItem(uint16) = 0;
+		virtual void OnPropertyChanged(Reflection::IPropertyEditor& property) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment

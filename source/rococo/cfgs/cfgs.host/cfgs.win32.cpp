@@ -26,13 +26,14 @@ namespace Rococo::CFGS
 
 	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor);
 
-	ICFGSMessagingSupervisor* CreateMessagingService()
+	ICFGSMessagingSupervisor* CreateMessagingService(ICFGSPropertyChangeHandler& changeHandler)
 	{
 		struct MessagingService : ICFGSMessagingSupervisor
 		{
 			UINT WM_DO_CFGS_HOUSEKEEPING = 0;
+			ICFGSPropertyChangeHandler& changeHandler;
 
-			MessagingService()
+			MessagingService(ICFGSPropertyChangeHandler& _changeHandler): changeHandler(_changeHandler)
 			{
 				WM_DO_CFGS_HOUSEKEEPING = RegisterWindowMessageA("WM_DO_CFGS_HOUSEKEEPING");
 				if (!WM_DO_CFGS_HOUSEKEEPING)
@@ -46,6 +47,11 @@ namespace Rococo::CFGS
 				return WM_DO_CFGS_HOUSEKEEPING == id;
 			}
 
+			void OnPropertyChanged(Rococo::Reflection::IPropertyEditor& property) override
+			{
+				changeHandler.OnPropertyChanged(property);
+			}
+
 			void PostDBHousekeeping() override
 			{
 				PostMessageA(NULL, WM_DO_CFGS_HOUSEKEEPING, 0, 0);
@@ -57,7 +63,7 @@ namespace Rococo::CFGS
 			}
 		};
 
-		return new MessagingService();
+		return new MessagingService(changeHandler);
 	}
 
 	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db)

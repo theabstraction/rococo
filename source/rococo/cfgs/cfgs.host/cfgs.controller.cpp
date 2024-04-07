@@ -26,7 +26,7 @@ namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
 	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db);
-	ICFGSMessagingSupervisor* CreateMessagingService();
+	ICFGSMessagingSupervisor* CreateMessagingService(ICFGSPropertyChangeHandler& changeHandler);
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 	bool TryGetUserCFGSSavePath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor);
@@ -195,6 +195,19 @@ namespace ANON
 
 		Element element;
 
+		struct ChangeHandler : CFGS::ICFGSPropertyChangeHandler
+		{
+			CFGS::ICFGSIntegratedDevelopmentEnvironmentSupervisor* ide = nullptr;
+
+			void OnPropertyChanged(Reflection::IPropertyEditor& property) override
+			{
+				if (ide)
+				{
+					ide->OnPropertyChanged(property);
+				}
+			}
+		} changeHandler;
+
 		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine)
 		{
 			UNUSED(_commandLine);
@@ -221,7 +234,7 @@ namespace ANON
 
 			CFGS::SetTitleWithFilename(*editor, nullptr);
 
-			messaging = CFGS::CreateMessagingService();
+			messaging = CFGS::CreateMessagingService(changeHandler);
 
 			db = CFGS::CreateCFGSDatabase(*messaging);
 
@@ -238,6 +251,8 @@ namespace ANON
 			ide = CFGS::Create_CFGS_IDE(*editor, *db);
 
 			editor->BringToFront();
+
+			changeHandler.ide = ide;
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
