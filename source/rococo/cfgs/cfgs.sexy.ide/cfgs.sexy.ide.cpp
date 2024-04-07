@@ -9,6 +9,7 @@
 #include <rococo.strings.h>
 #include <rococo.sexml.h>
 #include <rococo.functional.h>
+#include <rococo.properties.h>
 #include <..\sexystudio\sexystudio.api.h>
 #include <unordered_map>
 #include <unordered_set>
@@ -292,6 +293,97 @@ namespace ANON
 		}
 	};
 
+	struct TypeOptions : Rococo::Reflection::IEnumDescriptor, Rococo::Reflection::IEnumVectorSupervisor
+	{
+		struct TypeBinding
+		{
+			HString enumName;
+			HString enumDescription;
+		};
+
+		std::vector<TypeBinding> typeList;
+
+		ISexyDatabase& sexyDB;
+		bool isInputElseOutput;
+
+		TypeOptions(ISexyDatabase& _sexyDB, bool _isInputElseOutput):
+			sexyDB(_sexyDB),
+			isInputElseOutput(_isInputElseOutput)
+		{
+
+		}
+
+		void AppendNamespaceStructsRecursive(Rococo::SexyStudio::ISxyNamespace& subspace)
+		{
+			char structName[256] = { 0 };
+			StackStringBuilder sb(structName, sizeof structName, StringBuilder::CursorState::BUILD_EXISTING);
+
+			int nTypes = subspace.TypeCount();
+			for (int i = 0; i < nTypes; i++)
+			{
+				auto& type = subspace.GetType(i);
+
+				subspace.AppendFullNameToStringBuilder(sb);
+				sb.AppendChar('.');
+				sb << type.PublicName();
+				typeList.push_back({ structName, structName });
+
+				sb.Clear();
+			}
+
+			int nSubspaces = subspace.SubspaceCount();
+			for (int i = 0; i < nSubspaces; i++)
+			{
+				auto& subspaceChild = subspace[i];
+				AppendNamespaceStructsRecursive(subspaceChild);
+			}
+		}
+
+		Rococo::Reflection::IEnumVectorSupervisor* CreateEnumList() override
+		{
+			if (typeList.empty())
+			{
+				auto& root = sexyDB.GetRootNamespace();
+				AppendNamespaceStructsRecursive(root);
+			}
+			return this;
+		}
+
+		void Free() override
+		{
+			// NOP
+		}
+
+		size_t Count() const override
+		{
+			return typeList.size();
+		}
+
+		bool GetEnumName(size_t i, Strings::IStringPopulator& populator) const override
+		{
+			if (i >= typeList.size())
+			{
+				return false;
+			}
+
+			populator.Populate(typeList[i].enumName);
+
+			return true;
+		}
+
+		bool GetEnumDescription(size_t i, Strings::IStringPopulator& populator) const override
+		{
+			if (i >= typeList.size())
+			{
+				return false;
+			}
+
+			populator.Populate(typeList[i].enumDescription);
+
+			return true;
+		}
+	};
+
 	struct NavigationHandler : Visitors::ITreeControlHandler
 	{
 		TREE_NODE_ID localFunctionsId = { 0 };
@@ -300,6 +392,7 @@ namespace ANON
 
 		IAbstractEditor& editor;
 		ICFGSDatabase& cfgs;
+		ISexyDatabase& sexyDB;
 
 		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> localFunctionMap;
@@ -319,8 +412,10 @@ namespace ANON
 		HWND hWndMenuTarget{ nullptr };
 		TREE_NODE_ID contextMenuTargetId = { 0 };
 
+		TypeOptions inputTypes;
+		TypeOptions outputTypes;
 
-		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs) : editor(_editor), cfgs(_cfgs), hWndMenuTarget(_editor.ContainerWindow())
+		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db) : editor(_editor), cfgs(_cfgs), sexyDB(_db), hWndMenuTarget(_editor.ContainerWindow()), inputTypes(_db, true), outputTypes(_db, false)
 		{
 			contextMenu = CreateMenu(true);
 		}
@@ -351,6 +446,8 @@ namespace ANON
 			auto* f = cfgs.CurrentFunction();
 			if (f)
 			{
+				f->SetInputTypeOptions(&inputTypes);
+				f->SetOutputTypeOptions(&outputTypes);
 				editor.Properties().Clear();
 				editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
 			}
@@ -987,6 +1084,11 @@ namespace ANON
 
 			sb.CloseDirective();
 		}
+
+		void Free()
+		{
+			delete this;
+		}
 	};
 
 	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor
@@ -1001,9 +1103,9 @@ namespace ANON
 
 		IAbstractEditor& editor;
 
-		NavigationHandler navHandler;
+		AutoFree<NavigationHandler> navHandler;
 
-		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor): hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), navHandler(_editor, _cfgs)
+		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor): hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor)
 		{
 			_cfgs.ListenForChange(
 				[this](FunctionId id) 
@@ -1045,11 +1147,13 @@ namespace ANON
 
 			core = new Sexy_CFGS_Core(ideWindow.ideInstance->GetDatabase(), cfgs);
 
+			navHandler = new NavigationHandler(editor, cfgs, core->db);
+
 			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase());
 
-			editor.SetNavigationHandler(&navHandler);
+			editor.SetNavigationHandler(navHandler);
 
-			navHandler.RefreshNavigationTree();
+			navHandler->RefreshNavigationTree();
 		}
 
 		void Free() override
@@ -1101,22 +1205,22 @@ namespace ANON
 
 		bool TryHandleContextMenuItem(uint16 id) override
 		{
-			return navHandler.TryHandleContextMenuItem(id);
+			return navHandler->TryHandleContextMenuItem(id);
 		}
 
 		void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) override
 		{
-			navHandler.LoadNavigation(directive);
+			navHandler->LoadNavigation(directive);
 		}
 
 		void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) override
 		{
-			navHandler.SaveNavigation(sb);
+			navHandler->SaveNavigation(sb);
 		}
 
 		void RegenerateProperties()
 		{
-			navHandler.RegenerateProperties();
+			navHandler->RegenerateProperties();
 		}
 	};
 }

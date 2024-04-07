@@ -9,6 +9,11 @@
 
 #include <rococo.ids.h>
 
+namespace Rococo::Reflection
+{
+	struct IEnumDescriptor;
+}
+
 namespace Rococo::Sex::SEXML
 {
 	struct ISEXMLBuilder;
@@ -249,6 +254,13 @@ namespace Rococo::CFGS
 		virtual void DeleteCable(int32 cableIndex) = 0;
 		virtual cstr Name() const = 0;
 		virtual void SetName(cstr name) = 0;
+
+		// Set which options are available for the beginNode socket types. The [typeOptions] pointer must be valid for the lifetime of property manipulation
+		virtual void SetInputTypeOptions(Rococo::Reflection::IEnumDescriptor* typeOptions) = 0;
+
+		// Set which options are available for the returnNode socket types. The [typeOptions] pointer must be valid for the lifetime of property manipulation
+		virtual void SetOutputTypeOptions(Rococo::Reflection::IEnumDescriptor* typeOptions) = 0;
+
 		virtual FunctionId Id() const = 0;
 		virtual Rococo::Reflection::IPropertyVenue& PropertyVenue() = 0;
 	};

@@ -572,6 +572,9 @@ namespace Rococo::CFGS::Internal
 		CFGSNode returnNode;
 
 		ICFGSDatabaseSupervisorInternal& db;
+
+		IEnumDescriptor* inputTypeOptions = nullptr;
+		IEnumDescriptor* outputTypeOptions = nullptr;
 	public:
 		CFGSFunction(ICFGSDatabaseSupervisorInternal& _db, FunctionId _id) :
 			id(_id),
@@ -585,6 +588,16 @@ namespace Rococo::CFGS::Internal
 		~CFGSFunction()
 		{
 			DeleteAllNodes();
+		}
+
+		void SetInputTypeOptions(Rococo::Reflection::IEnumDescriptor* inputTypes)
+		{
+			this->inputTypeOptions = inputTypes;
+		}
+
+		void SetOutputTypeOptions(Rococo::Reflection::IEnumDescriptor* outputTypes)
+		{
+			this->outputTypeOptions = outputTypes;
 		}
 
 		CFGSNode& BeginNode()
@@ -833,12 +846,17 @@ namespace Rococo::CFGS::Internal
 
 				visitor.BeginIndex(argId, index, true, db.InputArgumentHandler());
 
-				HString socketType = s->Type().Value;
+				if (inputTypeOptions)
+				{
+					SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Type", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+
+					PropertyMarshallingStub optionStub{ argId, "Type", db.InputArgumentHandler() };
+					HString socketType = s->Type().Value;
+					OptionRef optCurrentType{ socketType };
+					visitor.VisitOption(optionStub, REF optCurrentType, 256, *inputTypeOptions);
+				}
+
 				HString socketName = s->Name();
-
-				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Type", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
-				MARSHAL_STRING(visitor, argId, "Type", db.InputArgumentHandler(), socketType, 256);
-
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_Name", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 				MARSHAL_STRING(visitor, argId, "Name", db.InputArgumentHandler(), socketName, 256);
 
@@ -864,11 +882,17 @@ namespace Rococo::CFGS::Internal
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutBeginIndex", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 				visitor.BeginIndex(argId, index, true, db.OutputArgumentHandler());
 
-				HString socketType = s->Type().Value;
 				HString socketName = s->Name();
 
-				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutType", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
-				MARSHAL_STRING(visitor, argId, "Type", db.OutputArgumentHandler(), socketType, 256);
+				if (outputTypeOptions)
+				{
+					SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutType", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
+
+					PropertyMarshallingStub optionStub{ argId, "Type", db.OutputArgumentHandler() };
+					HString socketType = s->Type().Value;
+					OptionRef optCurrentType{ socketType };
+					visitor.VisitOption(optionStub, REF optCurrentType, 256, *outputTypeOptions);
+				}
 
 				SafeFormat(argId, "Fn%llx %llx, Sck %llx %llx_OutName", id.id.iValues[0], id.id.iValues[1], s->Id().id.iValues[0], s->Id().id.iValues[1]);
 				MARSHAL_STRING(visitor, argId, "Name", db.OutputArgumentHandler(), socketName, 256);

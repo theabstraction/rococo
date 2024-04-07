@@ -548,6 +548,7 @@ namespace ANON
 
 		void OnRegenerate(Rococo::Abedit::IAbeditMainWindow& sender) override
 		{
+			UNUSED(sender);
 			ide->RegenerateProperties();
 		}
 	};
