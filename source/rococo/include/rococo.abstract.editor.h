@@ -88,7 +88,7 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditorFactory
 	{
-		[[nodiscard]] virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler) = 0;
+		[[nodiscard]] virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, Rococo::Events::IPublisher& publisher) = 0;
 	};
 }
 

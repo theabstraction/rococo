@@ -8,6 +8,7 @@
 #include <rococo.io.h>
 #include <rococo.os.h>
 #include <rococo.functional.h>
+#include <rococo.events.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <stdio.h>
@@ -25,7 +26,7 @@ using namespace Rococo::Sex::SEXML;
 namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
-	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db);
+	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db, Rococo::Events::IPublisher& publisher);
 	ICFGSMessagingSupervisor* CreateMessagingService(ICFGSPropertyChangeHandler& changeHandler);
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
@@ -182,6 +183,7 @@ namespace ANON
 
 	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler, CFGS::ICFGArchiver, CFGS::ICFGSLoader
 	{
+		AutoFree<Rococo::Events::IPublisherSupervisor> publisher;
 		AutoFree<IAbstractEditorSupervisor> editor;
 		AutoFree<CFGS::ICFGSMessagingSupervisor> messaging;
 		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
@@ -208,7 +210,7 @@ namespace ANON
 			}
 		} changeHandler;
 
-		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine)
+		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine): publisher(Events::CreatePublisher())
 		{
 			UNUSED(_commandLine);
 			UNUSED(_host);
@@ -226,7 +228,7 @@ namespace ANON
 			config.defaultWidth = 1366;
 			config.defaultHeight = 768;
 			config.slateHasMenu = true;
-			editor = editorFactory->CreateAbstractEditor(IN config, *this);
+			editor = editorFactory->CreateAbstractEditor(IN config, *this, *publisher);
 			if (!editor)
 			{
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
@@ -236,7 +238,7 @@ namespace ANON
 
 			messaging = CFGS::CreateMessagingService(changeHandler);
 
-			db = CFGS::CreateCFGSDatabase(*messaging);
+			db = CFGS::CreateCFGSDatabase(*messaging, *publisher);
 
 			element.FormatDesc();
 
@@ -248,7 +250,7 @@ namespace ANON
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
 
-			ide = CFGS::Create_CFGS_IDE(*editor, *db);
+			ide = CFGS::Create_CFGS_IDE(*editor, *db, *publisher);
 
 			editor->BringToFront();
 

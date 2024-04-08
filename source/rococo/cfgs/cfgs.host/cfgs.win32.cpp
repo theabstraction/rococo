@@ -24,7 +24,7 @@ namespace Rococo::CFGS
 		return Rococo::Windows::Create2DGrid(super.Slate(), WS_VISIBLE | WS_CHILD, eventHandler, true);
 	}
 
-	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor);
+	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor, Rococo::Events::IPublisher& publisher);
 
 	ICFGSMessagingSupervisor* CreateMessagingService(ICFGSPropertyChangeHandler& changeHandler)
 	{
@@ -66,7 +66,7 @@ namespace Rococo::CFGS
 		return new MessagingService(changeHandler);
 	}
 
-	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db)
+	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db, Rococo::Events::IPublisher& publisher)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
 		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
@@ -89,7 +89,7 @@ namespace Rococo::CFGS
 
 		FN_Create_CFGS_Win32_IDE createIDE = (FN_Create_CFGS_Win32_IDE)factoryProc;
 
-		return createIDE(hRoot, db, editor);
+		return createIDE(hRoot, db, editor, publisher);
 	}
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor)

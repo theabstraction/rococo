@@ -12,267 +12,273 @@ namespace Rococo::Strings
 
 namespace
 {
-   using namespace Rococo;
-   using namespace Rococo::Events;
+	using namespace Rococo;
+	using namespace Rococo::Events;
 
-   struct EventIdMapHasher
-   {
-      size_t operator()(EventHash id) const
-      {
-         return (size_t)id;
-      }
-   };
+	struct EventIdMapHasher
+	{
+		size_t operator()(EventHash id) const
+		{
+			return (size_t)id;
+		}
+	};
 
-   struct LargestPossibleEvent : EventArgs
-   {
-      char data[256 - sizeof EventArgs]; 
-   };
+	struct LargestPossibleEvent : EventArgs
+	{
+		enum { LARGEST_POSSIBLE_EVENT_LENGTH = 256 };
+		char data[LARGEST_POSSIBLE_EVENT_LENGTH - sizeof EventArgs];
+	};
 
-   struct EventBinding
-   {
-	  EventIdRef ref;
-      LargestPossibleEvent largestPossibleEvent;
-      bool isLossy;
+	struct EventBinding
+	{
+		EventIdRef ref;
+		LargestPossibleEvent largestPossibleEvent;
+		bool isLossy;
 
-      EventBinding& operator = (const EventBinding& src)
-      {
-         memcpy(&largestPossibleEvent, &src.largestPossibleEvent, src.largestPossibleEvent.sizeInBytes);
-         isLossy = src.isLossy;
-         return *this;
-      }
-   };
+		EventBinding& operator = (const EventBinding& src)
+		{
+			static_assert(sizeof LargestPossibleEvent == LargestPossibleEvent::LARGEST_POSSIBLE_EVENT_LENGTH);
 
-   struct Publisher : public IPublisherSupervisor
-   {
-      std::unordered_map<EventHash, std::vector<IObserver*>, EventIdMapHasher> eventHandlers;
-      std::unordered_map<IObserver*, std::vector<EventHash>> knownObservers;
-      std::vector<EventBinding> postedEvents;
-      std::vector<EventBinding> outgoingEvents;
-	  std::unordered_map<EventHash, HString> hashToNames;
-	  stringmap<uint32> persistentStrings;
+			memcpy(&largestPossibleEvent, &src.largestPossibleEvent, src.largestPossibleEvent.sizeInBytes);
+			isLossy = src.isLossy;
+			return *this;
+		}
+	};
 
-      enum { LOSS_AT = 32, MAX_Q = 64 };
+	struct Publisher : public IPublisherSupervisor
+	{
+		std::unordered_map<EventHash, std::vector<IObserver*>, EventIdMapHasher> eventHandlers;
+		std::unordered_map<IObserver*, std::vector<EventHash>> knownObservers;
+		std::vector<EventBinding> postedEvents;
+		std::vector<EventBinding> outgoingEvents;
+		std::unordered_map<EventHash, HString> hashToNames;
+		stringmap<uint32> persistentStrings;
 
-      void FlushLossyPackets()
-      {
-		 auto delPoint = std::remove_if(postedEvents.begin(), postedEvents.end(), [](const EventBinding& b)->bool
-			 {
-				 return b.isLossy;
-			 }
-		 );
-         postedEvents.erase(delPoint, postedEvents.end());
-      }
+		enum { LOSS_AT = 32, MAX_Q = 64 };
 
-      void RawPost(const EventArgs& ev, const EventIdRef& ref, bool isLossy) override
-      {
-         static_assert(sizeof(LargestPossibleEvent) == 256, "Unhandled LargestPossibleEvent event size");
+		void FlushLossyPackets()
+		{
+			auto delPoint = std::remove_if(postedEvents.begin(), postedEvents.end(), [](const EventBinding& b)->bool
+				{
+					return b.isLossy;
+				}
+			);
+			postedEvents.erase(delPoint, postedEvents.end());
+		}
 
-		 if (ref.name == nullptr)
-		 {
-			 Throw(0, "IPublisher::RawPost(...): event name was null");
-		 }
+		void RawPost(const EventArgs& ev, const EventIdRef& ref, bool isLossy) override
+		{
+			static_assert(sizeof(LargestPossibleEvent) == 256);
 
-		 LazyInit(ref);
+			if (ref.name == nullptr)
+			{
+				Throw(0, "%s: event name was null", __FUNCTION__);
+			}
 
-         if (ev.sizeInBytes < sizeof(EventArgs) || ev.sizeInBytes > sizeof(LargestPossibleEvent))
-         {
-            Throw(0, "Publisher: cannot post event. The event.sizeInBytes was > %llu. Check that it was posted correctly", sizeof(LargestPossibleEvent));
-         }
+			LazyInit(ref);
 
-         if (isLossy && postedEvents.size() > LOSS_AT)
-         {
-            FlushLossyPackets();
+			if (ev.sizeInBytes < sizeof(EventArgs))
+			{
+				Throw(0, "Publisher: cannot post event. The event.sizeInBytes was < sizeof(EventArgs). Check that it was posted correctly");
+			}
 
-            if (postedEvents.size() > LOSS_AT)
-            {
-               return;
-            }
-         }
+			if (ev.sizeInBytes > sizeof(LargestPossibleEvent))
+			{
+				Throw(0, "Publisher: cannot post event. The event.sizeInBytes was > %llu. Check that it was posted correctly", sizeof(LargestPossibleEvent));
+			}
 
-         if (postedEvents.size() >= MAX_Q)
-         {
-            Throw(0, "Publisher: Queue capacity reached");
-         }
+			if (isLossy && postedEvents.size() > LOSS_AT)
+			{
+				FlushLossyPackets();
 
-         EventBinding evb;
-         auto* src = reinterpret_cast<const LargestPossibleEvent*>(&ev);
-         auto* dst = &evb.largestPossibleEvent;
-         memcpy(dst, src, sizeof(LargestPossibleEvent));
-         evb.isLossy = isLossy;
-		 evb.ref = ref;
-         postedEvents.push_back(evb);
-      }
+				if (postedEvents.size() > LOSS_AT)
+				{
+					return;
+				}
+			}
 
-	  void Deliver() override
-	  {
-		  std::swap(outgoingEvents, postedEvents);
-		  postedEvents.clear();
+			if (postedEvents.size() >= MAX_Q)
+			{
+				Throw(0, "Publisher: Queue capacity reached");
+			}
 
-		  for (auto& i : outgoingEvents)
-		  {
-			  RawPublish(i.largestPossibleEvent, i.ref);
-		  }
-		  outgoingEvents.clear();
-	  }
+			EventBinding evb;
+			auto* src = reinterpret_cast<const LargestPossibleEvent*>(&ev);
+			auto* dst = &evb.largestPossibleEvent;
+			memcpy(dst, src, sizeof(LargestPossibleEvent));
+			evb.isLossy = isLossy;
+			evb.ref = ref;
+			postedEvents.push_back(evb);
+		}
 
-      void Unsubscribe(IObserver* observer) override
-      {
-         auto i = knownObservers.find(observer);
-         if (i != knownObservers.end())
-         {
-            for (auto& ev : i->second)
-            {
-               auto j = eventHandlers.find(ev);
-               if (j != eventHandlers.end())
-               {
-                  auto& observers = j->second;
-                  observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
-               }
-            }
+		void Deliver() override
+		{
+			std::swap(outgoingEvents, postedEvents);
+			postedEvents.clear();
 
-            knownObservers.erase(i);
-         }
-      }
+			for (auto& i : outgoingEvents)
+			{
+				RawPublish(i.largestPossibleEvent, i.ref);
+			}
+			outgoingEvents.clear();
+		}
 
-	  void Subscribe(IObserver* observer, const EventIdRef& id) override
-	  {
-		  if (id.name == nullptr)
-		  {
-			  Throw(0, "IPublisher::Subscribe(...): event name was null");
-		  }
+		void Unsubscribe(IObserver* observer) override
+		{
+			auto i = knownObservers.find(observer);
+			if (i != knownObservers.end())
+			{
+				for (auto& ev : i->second)
+				{
+					auto j = eventHandlers.find(ev);
+					if (j != eventHandlers.end())
+					{
+						auto& observers = j->second;
+						observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
+					}
+				}
 
-		  LazyInit(id);
+				knownObservers.erase(i);
+			}
+		}
 
-		  auto i = knownObservers.find(observer);
-		  if (i == knownObservers.end())
-		  {
-			  knownObservers[observer] = std::vector<EventHash>{ id.hashCode };
-		  }
-		  else
-		  {
-			  i->second.push_back(id.hashCode);
-		  }
+		void Subscribe(IObserver* observer, const EventIdRef& id) override
+		{
+			if (id.name == nullptr)
+			{
+				Throw(0, "IPublisher::Subscribe(...): event name was null");
+			}
 
-		  auto j = eventHandlers.find(id.hashCode);
-		  if (j == eventHandlers.end())
-		  {
-			  eventHandlers[id.hashCode] = std::vector<IObserver*>{ observer };
-		  }
-		  else
-		  {
-			  j->second.push_back(observer);
-		  }
-	  }
+			LazyInit(id);
 
-	  void LazyInit(const EventIdRef& mutableRef)
-	  {
-		  if (mutableRef.hashCode != 0) return;
-		  auto hashValue = FastHash(mutableRef.name);
-		  auto i = hashToNames.find(hashValue);
-		  if (i == hashToNames.end())
-		  {
-			  hashToNames.insert(std::make_pair(hashValue, HString(mutableRef.name)));
-		  }
-		  else
-		  {
-			  auto currentBindingName = i->second.c_str();
-			  if (!Eq(currentBindingName, mutableRef.name))
-			  {
-				  Throw(0, "EventHash clash between %s and %s", currentBindingName, mutableRef.name);
-			  }
-		  }
+			auto i = knownObservers.find(observer);
+			if (i == knownObservers.end())
+			{
+				knownObservers[observer] = std::vector<EventHash>{ id.hashCode };
+			}
+			else
+			{
+				i->second.push_back(id.hashCode);
+			}
 
-		  mutableRef.hashCode = hashValue;
-	  }
+			auto j = eventHandlers.find(id.hashCode);
+			if (j == eventHandlers.end())
+			{
+				eventHandlers[id.hashCode] = std::vector<IObserver*>{ observer };
+			}
+			else
+			{
+				j->second.push_back(observer);
+			}
+		}
 
-	  void RawPublish(EventArgs& args, const EventIdRef& id) override
-	  {
-		  if (id.name == nullptr)
-		  {
-			  Throw(0, "IPublisher::RawPublish(...): event name was null");
-		  }
+		void LazyInit(const EventIdRef& mutableRef)
+		{
+			if (mutableRef.hashCode != 0) return;
+			auto hashValue = FastHash(mutableRef.name);
+			auto i = hashToNames.insert(std::make_pair(hashValue, HString(mutableRef.name)));
+			if (i.second)
+			{
+				// insertion took place
+			}
+			else
+			{
+				// The event name is already known to the system
+				cstr currentBindingName = i.first->second.c_str();
+				if (!Eq(currentBindingName, mutableRef.name))
+				{
+					Throw(0, "EventHash clash between %s and %s", currentBindingName, mutableRef.name);
+				}
+			}
 
-		  LazyInit(id);
+			mutableRef.hashCode = hashValue;
+		}
 
-		  auto i = eventHandlers.find(id.hashCode);
-		  if (i != eventHandlers.end())
-		  {
-			  // Create a temporary iteration table
-			  size_t count = i->second.size();
-			  IObserver** observers = (IObserver**)alloca(sizeof(void*) * count);
-			  for (size_t j = 0; j < count; ++j)
-			  {
-				  observers[j] = i->second[j];
-			  }
+		void RawPublish(EventArgs& args, const EventIdRef& id) override
+		{
+			if (id.name == nullptr)
+			{
+				Throw(0, "%s: event name was null", __FUNCTION__);
+			}
 
-			  // We are now free to modify the eventHandlers container without invalidating the enumeration
-			  for (size_t j = 0; j < count; ++j)
-			  {
-				  auto k = knownObservers.find(observers[j]);
-				  if (k != knownObservers.end())
-				  {
-					  Event ev{ *this, args, id };
-					  observers[j]->OnEvent(ev);
-				  }
-			  }
-		  }
-	  }
+			LazyInit(id);
 
-	  void ThrowBadEvent(const Event& ev) override
-	  {
-		  Throw(0, "Event %s: body was incorrect size", ev.id.name);
-	  }
+			auto i = eventHandlers.find(id.hashCode);
+			if (i != eventHandlers.end())
+			{
+				// Create a temporary iteration table
+				size_t count = i->second.size();
+				IObserver** observers = (IObserver**)alloca(sizeof(void*) * count);
+				for (size_t j = 0; j < count; ++j)
+				{
+					observers[j] = i->second[j];
+				}
 
-      void Free() override
-      {
-         delete this;
-      }
+				// We are now free to modify the eventHandlers container without invalidating the enumeration
+				for (size_t j = 0; j < count; ++j)
+				{
+					auto k = knownObservers.find(observers[j]);
+					if (k != knownObservers.end())
+					{
+						Event ev{ *this, args, id };
+						observers[j]->OnEvent(ev);
+					}
+				}
+			}
+		}
 
-	  bool Match(const Event& args, const EventIdRef& id) override
-	  {
-		  if (id.hashCode == 0)
-		  {
-			  if (id.name == nullptr)
-			  {
-				  Throw(0, "Publisher::Match(args,id) -> id.name was NULL");
-			  }
-			  LazyInit(id);
-		  }
+		void ThrowBadEvent(const Event& ev) override
+		{
+			Throw(0, "Event %s: body was incorrect size", ev.id.name);
+		}
 
-		  return args.id.hashCode == id.hashCode;
-	  }
+		void Free() override
+		{
+			delete this;
+		}
 
-	  const char* CreatePersistentString(const char* volatileString)
-	  {
-		  auto i = persistentStrings.find(volatileString);
-		  if (i == persistentStrings.end())
-		  {
-			  i = persistentStrings.insert(volatileString,0).first;
-		  }
+		bool Match(const Event& args, const EventIdRef& id) override
+		{
+			if (id.hashCode == 0)
+			{
+				if (id.name == nullptr)
+				{
+					Throw(0, "Publisher::Match(args,id) -> id.name was NULL");
+				}
+				LazyInit(id);
+			}
 
-		  return i->first;
-	  }
+			return args.id.hashCode == id.hashCode;
+		}
 
-	  EventIdRef CreateEventIdFromVolatileString(const char* volatileString) override
-	  {
-		  if (volatileString == nullptr)
-		  {
-			  Throw(0, "IPublisher::CreateEventIdFromVolatileString(...). Argument NULL");
-		  }
+		const char* CreatePersistentString(const char* volatileString)
+		{
+			auto i = persistentStrings.find(volatileString);
+			if (i == persistentStrings.end())
+			{
+				i = persistentStrings.insert(volatileString, 0).first;
+			}
 
-		  auto* s = CreatePersistentString(volatileString);
-		  return EventIdRef{ s, FastHash(volatileString) };
-	  }
-   };
+			return i->first;
+		}
+
+		EventIdRef CreateEventIdFromVolatileString(const char* volatileString) override
+		{
+			if (volatileString == nullptr)
+			{
+				Throw(0, "IPublisher::CreateEventIdFromVolatileString(...). Argument NULL");
+			}
+
+			auto* s = CreatePersistentString(volatileString);
+			return EventIdRef{ s, FastHash(volatileString) };
+		}
+	};
 }
 
-namespace Rococo
+namespace Rococo::Events
 {
-	namespace Events
+	ROCOCO_API IPublisherSupervisor* CreatePublisher()
 	{
-		ROCOCO_API IPublisherSupervisor* CreatePublisher()
-		{
-			return new Publisher();
-		}
-	} // Events
-} // Rococo
+		return new Publisher();
+	}
+}

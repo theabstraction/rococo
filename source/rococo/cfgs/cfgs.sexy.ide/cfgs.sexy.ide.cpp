@@ -424,7 +424,9 @@ namespace ANON
 		TypeOptions inputTypes;
 		TypeOptions outputTypes;
 
-		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db) : editor(_editor), cfgs(_cfgs), sexyDB(_db), hWndMenuTarget(_editor.ContainerWindow()), inputTypes(_db, true), outputTypes(_db, false)
+		Rococo::Events::IPublisher& publisher;
+
+		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, Rococo::Events::IPublisher& _publisher) : editor(_editor), cfgs(_cfgs), sexyDB(_db), hWndMenuTarget(_editor.ContainerWindow()), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher)
 		{
 			contextMenu = CreateMenu(true);
 		}
@@ -1114,7 +1116,10 @@ namespace ANON
 
 		AutoFree<NavigationHandler> navHandler;
 
-		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor): hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor)
+		Rococo::Events::IPublisher& publisher;
+
+		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor, Rococo::Events::IPublisher& _publisher):
+			hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), publisher(_publisher)
 		{
 			_cfgs.ListenForChange(
 				[this](FunctionId id) 
@@ -1156,7 +1161,7 @@ namespace ANON
 
 			core = new Sexy_CFGS_Core(ideWindow.ideInstance->GetDatabase(), cfgs);
 
-			navHandler = new NavigationHandler(editor, cfgs, core->db);
+			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher);
 
 			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase());
 
@@ -1244,9 +1249,9 @@ namespace ANON
 	};
 }
 
-extern "C" __declspec(dllexport) ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_Win32_IDE(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor)
+extern "C" __declspec(dllexport) ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_Win32_IDE(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor, Rococo::Events::IPublisher& publisher)
 {
-	AutoFree<ANON::Sexy_CFGS_IDE> ide = new ANON::Sexy_CFGS_IDE(hHostWindow, db, editor);
+	AutoFree<ANON::Sexy_CFGS_IDE> ide = new ANON::Sexy_CFGS_IDE(hHostWindow, db, editor, publisher);
 	ide->Create();
 	return ide.Detach();
 }

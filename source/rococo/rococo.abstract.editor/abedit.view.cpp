@@ -24,9 +24,12 @@ namespace ANON
 		AutoFree<IAbeditMainWindowSupervisor> mainWindow;
 		AutoFree<IUIPaletteSupervisor> palette;
 
-		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler): host(_host), hHostWindow(_hHostWindow)
+		Rococo::Events::IPublisher& publisher;
+
+		AbstractEditor(IMVC_Host& _host, HWND _hHostWindow, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, Rococo::Events::IPublisher& _publisher):
+			host(_host), hHostWindow(_hHostWindow), publisher(_publisher)
 		{
-			mainWindow = Internal::CreateMainWindow(_hHostWindow, GetDllInstance(), IN config, IN eventHandler);
+			mainWindow = Internal::CreateMainWindow(_hHostWindow, GetDllInstance(), IN config, IN eventHandler, IN _publisher);
 
 			// TODO - create a child or mainwindow from the host module that yield a HWND
 			// Create three children, palette, properties and slate that have subwindows of HWND
@@ -173,9 +176,9 @@ namespace ANON
 			Throw(0, "%s: Cannot Cast to %s. Only known interface is %s", __FUNCTION__, interfaceId, onlyKnownInterface);
 		}
 
-		IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler) override
+		IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, Rococo::Events::IPublisher& publisher) override
 		{
-			return new AbstractEditor(host, hHostWindow, config, eventHandler);
+			return new AbstractEditor(host, hHostWindow, config, eventHandler, publisher);
 		}
 	};
 }

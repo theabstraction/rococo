@@ -1074,9 +1074,9 @@ namespace Rococo::CFGS::Internal
 		std::vector<Rococo::Function<void(FunctionId id)>> notifyListeners;
 
 		ICFGSMessaging& messaging;
-
+		Rococo::Events::IPublisher& publisher;
 	public:
-		CFGSDatabase(ICFGSMessaging& _messaging): inputEventHandler(*this, _messaging), outputEventHandler(*this, _messaging), messaging(_messaging)
+		CFGSDatabase(ICFGSMessaging& _messaging, Rococo::Events::IPublisher& _publisher): inputEventHandler(*this, _messaging), outputEventHandler(*this, _messaging), messaging(_messaging), publisher(_publisher)
 		{
 
 		}
@@ -1208,8 +1208,8 @@ namespace Rococo::CFGS::Internal
 
 namespace Rococo::CFGS
 {
-	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase(ICFGSMessaging& messaging)
+	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase(ICFGSMessaging& messaging, Rococo::Events::IPublisher& publisher)
 	{
-		return new Internal::CFGSDatabase(messaging);
+		return new Internal::CFGSDatabase(messaging, publisher);
 	}
 }

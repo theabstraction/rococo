@@ -386,7 +386,7 @@ namespace Rococo::CFGS
 	// Creates a gui for a CFGS database
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
 
-	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase(ICFGSMessaging& messaging);
+	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase(ICFGSMessaging& messaging, Rococo::Events::IPublisher& publisher);
 
 	const wchar_t* GetCFGSAppTitle();
 }
