@@ -69,7 +69,6 @@ namespace Rococo::Abedit
 	{
 		virtual void GetErrorTitle(char* titleBuffer, size_t capacity) const = 0;
 		virtual void OnContextMenuItemSelected(uint16 cmdId, IAbeditMainWindow& sender) = 0;
-		virtual void OnRegenerate(IAbeditMainWindow& sender) = 0;
 		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
 		virtual void OnSelectFileToSave(IAbeditMainWindow& sender) = 0;
 		virtual void OnSelectFileToLoad(IAbeditMainWindow& sender) = 0;

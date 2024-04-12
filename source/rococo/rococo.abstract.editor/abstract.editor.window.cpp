@@ -53,7 +53,7 @@ namespace ANON
 			SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", style, 0);
 			window = Windows::CreateChildWindow(config, this);
 
-			properties = Windows::CreatePropertiesEditor(*window);
+			properties = Windows::CreatePropertiesEditor(*window, publisher);
 		}
 
 		void OnPaint()
@@ -107,9 +107,6 @@ namespace ANON
 			{
 			case WM_LAYOUT:
 				properties->LayouVertically();
-				return 0L;
-			case WM_REGENERATE:
-				PostMessage(GetParent(hWnd), WM_REGENERATE, 0, 0);
 				return 0L;
 			case WM_CTLCOLOREDIT:
 			{
@@ -723,9 +720,6 @@ namespace ANON
 			switch (msg)
 			{
 			case WM_ERASEBKGND:
-				return 0L;
-			case WM_REGENERATE:
-				eventHandler.OnRegenerate(*this);
 				return 0L;
 			case WM_COMMAND:
 				if (HIWORD(wParam) == 0)

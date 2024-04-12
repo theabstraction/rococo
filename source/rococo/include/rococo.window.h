@@ -506,9 +506,6 @@ namespace Rococo
 
 			// The parent should layout its children
 			WM_LAYOUT = 21006,
-
-			// The parent should regenerate its children, if it can, not merely lay out the existing ones
-			WM_REGENERATE = 21007
 		};
 
 		ROCOCO_INTERFACE ISuperListBuilder

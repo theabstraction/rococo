@@ -187,6 +187,6 @@ namespace Rococo::Windows
 
 	// Create a properties editor window, hosted by the propertiesPanelArea. The host needs to respond to window events and invoke IUIPropertiesEditorSupervisor method appropriately
 	// An example is given in rococo.abstract.editor\abstract.editor.window.cpp
-	ROCOCO_WINDOWS_API Editors::IUIPropertiesEditorSupervisor* CreatePropertiesEditor(IParentWindowSupervisor& propertiesPanelArea);
+	ROCOCO_WINDOWS_API Editors::IUIPropertiesEditorSupervisor* CreatePropertiesEditor(IParentWindowSupervisor& propertiesPanelArea, Events::IPublisher& publisher);
 	ROCOCO_WINDOWS_API Editors::IUI2DGridSlateSupervisor* Create2DGrid(IParentWindowSupervisor& gridArea, uint32 style, Editors::IUI2DGridEvents& eventHandler, bool useDoubleBuffering);
 }

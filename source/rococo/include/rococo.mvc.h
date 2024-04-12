@@ -16,6 +16,7 @@ namespace Rococo::MVC
 
 	ROCOCO_INTERFACE IMVC_ControllerSupervisor : IMVC_Controller
 	{
+		virtual void DoHousekeeping() = 0;
 		virtual void Free() = 0;
 		virtual void TerminateOnMainWindowClose() = 0;
 		virtual void OnWindowlessMessage(uint32 messageId) = 0;

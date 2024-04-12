@@ -1102,7 +1102,9 @@ namespace ANON
 		}
 	};
 
-	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor
+	auto evRegenerate = "EvRegenerate"_event;
+
+	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor, Events::IObserver
 	{
 		HWND hHostWindow;
 		ICFGSDatabase& cfgs;
@@ -1133,6 +1135,8 @@ namespace ANON
 					}
 				}
 			);
+
+			publisher.Subscribe(this, evRegenerate);
 		}
 
 		void Create()
@@ -1242,9 +1246,12 @@ namespace ANON
 			}
 		}
 
-		void RegenerateProperties()
+		void OnEvent(Events::Event& ev)
 		{
-			navHandler->RegenerateProperties();
+			if (ev == evRegenerate)
+			{
+				navHandler->RegenerateProperties();
+			}
 		}
 	};
 }

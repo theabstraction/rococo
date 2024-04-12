@@ -45,6 +45,8 @@ public:
 
 			TranslateMessage(&msg);
 			DispatchMessageA(&msg);
+
+			controller.DoHousekeeping();
 		}
 	}
 };

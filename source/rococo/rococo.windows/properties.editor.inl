@@ -2,6 +2,7 @@
 #include <rococo.properties.h>
 #include <rococo.hashtable.h>
 #include <rococo.validators.h>
+#include <rococo.events.h>
 #include <rococo.functional.h>
 #include <rococo.ids.h>
 
@@ -1252,8 +1253,8 @@ namespace Rococo::Windows::Internal
 		AutoFree<IButton> deleteButton;
 
 		IPropertyUIEvents& events;
-
 		IPropertySection& section;
+		Events::IPublisher& publisher;
 
 		IWindow* label = nullptr;
 
@@ -1261,11 +1262,12 @@ namespace Rococo::Windows::Internal
 		UI::SysWidgetId editorId{ 0 };
 		UI::SysWidgetId deleteId{ 0 };
 
-		CollapserProperty(PropertyMarshallingStub& stub, IPropertySection& _section) :
+		CollapserProperty(PropertyMarshallingStub& stub, IPropertySection& _section, Events::IPublisher& _publisher) :
 			displayName(stub.displayName),
 			id(stub.propertyIdentifier),
 			events(stub.eventHandler),
-			section(_section)
+			section(_section),
+			publisher(_publisher)
 		{
 		}
 
@@ -1509,7 +1511,9 @@ namespace Rococo::Windows::Internal
 			if (hasDeleteButton && buttonId.value == deleteId.value)
 			{
 				events.OnDeleteSection(this->id);
-				PostMessage(hPropertiesContainer, WM_REGENERATE, 0, 0);
+
+				Events::EventArgs noArgs;
+				publisher.Post(noArgs, "EvRegenerate"_event, false);
 			}
 		}
 
@@ -1798,10 +1802,11 @@ namespace Rococo::Windows::Internal
 	struct PropertyBuilder : IPropertyVisitor
 	{
 		PropertyEditorEnsemble& container;
+		Events::IPublisher& publisher;
 
 		std::vector<IPropertySection*> sections;
 
-		PropertyBuilder(PropertyEditorEnsemble& _container) : container(_container)
+		PropertyBuilder(PropertyEditorEnsemble& _container, Events::IPublisher& _publisher) : container(_container), publisher(_publisher)
 		{
 			Clear();
 		}
@@ -1969,7 +1974,7 @@ namespace Rococo::Windows::Internal
 
 		UI::SysWidgetId nextId{ 0 };
 
-		PropertyEditorEnsemble(IParentWindowSupervisor& _panelArea) : panelArea(_panelArea), builder(*this)
+		PropertyEditorEnsemble(IParentWindowSupervisor& _panelArea, Events::IPublisher& _publisher) : panelArea(_panelArea), builder(*this, _publisher)
 		{
 		}
 
@@ -2282,7 +2287,7 @@ namespace Rococo::Windows::Internal
 
 	void PropertyBuilder::BeginArray(PropertyMarshallingStub& arrayStub, const ArrayHeaderControl& control)
 	{
-		auto* collapser = new CollapserProperty(arrayStub, CurrentSection());
+		auto* collapser = new CollapserProperty(arrayStub, CurrentSection(), publisher);
 		container.properties.push_back(collapser);
 		sections.push_back(collapser);
 		container.properties.push_back(new ArrayControlProperty(arrayStub, *collapser, control));
@@ -2304,7 +2309,7 @@ namespace Rococo::Windows::Internal
 		SafeFormat(displayName, "%d. ", index);
 
 		PropertyMarshallingStub indexStub{ sectionId, displayName, eventHandler };
-		auto* collapser = new CollapserProperty(indexStub, CurrentSection());
+		auto* collapser = new CollapserProperty(indexStub, CurrentSection(), publisher);
 		collapser->EnableDeleteButton(deleteEnabled);
 		container.properties.push_back(collapser);		
 		sections.push_back(collapser);
@@ -2573,8 +2578,8 @@ namespace Rococo::Windows::Internal
 
 namespace Rococo::Windows
 {
-	ROCOCO_WINDOWS_API Editors::IUIPropertiesEditorSupervisor* CreatePropertiesEditor(Rococo::Windows::IParentWindowSupervisor& panelArea)
+	ROCOCO_WINDOWS_API Editors::IUIPropertiesEditorSupervisor* CreatePropertiesEditor(Rococo::Windows::IParentWindowSupervisor& panelArea, Events::IPublisher& publisher)
 	{
-		return new Internal::PropertyEditorEnsemble(panelArea);
+		return new Internal::PropertyEditorEnsemble(panelArea, publisher);
 	}
 }

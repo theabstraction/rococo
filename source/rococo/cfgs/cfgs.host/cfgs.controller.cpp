@@ -563,10 +563,9 @@ namespace ANON
 			UNUSED(wasHandled);
 		}
 
-		void OnRegenerate(Rococo::Abedit::IAbeditMainWindow& sender) override
+		void DoHousekeeping() override
 		{
-			UNUSED(sender);
-			ide->RegenerateProperties();
+			publisher->Deliver();
 		}
 	};
 }
