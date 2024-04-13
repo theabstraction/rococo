@@ -312,7 +312,6 @@ namespace Rococo::CFGS
 		virtual bool TryHandleContextMenuItem(uint16 id) = 0;
 		virtual void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) = 0;
 		virtual void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) = 0;
-		virtual void OnPropertyChanged(Rococo::Reflection::IPropertyEditor& property) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment

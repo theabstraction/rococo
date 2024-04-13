@@ -21,6 +21,7 @@ using namespace Rococo::SexyStudio;
 using namespace Rococo::Windows;
 using namespace Rococo::Visitors;
 using namespace Rococo::Abedit;
+using namespace Rococo::Events;
 
 static const char* title = "CFGS SexyStudio IDE";
 static auto evRegenerate = "EvRegenerate"_event;
@@ -382,8 +383,51 @@ namespace Rococo::CFGS::IDE::Sexy
 		}
 	};
 
-	struct NavigationHandler : ICFGSIDENavigation, Visitors::ITreeControlHandler, Events::IObserver
+	struct NavigationHandler : ICFGSIDENavigation, Visitors::ITreeControlHandler
 	{
+		struct NavigationMessageMap : IObserver
+		{
+			IPublisher& publisher;
+			NavigationHandler& parent;
+
+			NavigationMessageMap(IPublisher& _publisher, NavigationHandler& _parent) : publisher(_publisher), parent(_parent) {}
+
+			~NavigationMessageMap()
+			{
+				publisher.Unsubscribe(this);
+			}
+
+			typedef void (NavigationHandler::*METHOD_HANDLER)(EventArgs& args);
+
+			struct MethodBinding
+			{
+				EventIdRef id;
+				METHOD_HANDLER handler;
+			};
+
+			std::vector<MethodBinding> methods;
+
+			template<class METHOD_POINTER>
+			void AddHandler(EventIdRef id, METHOD_POINTER ptr)
+			{
+				publisher.Subscribe(this, id);
+				methods.push_back(MethodBinding{ id, reinterpret_cast<METHOD_HANDLER>(ptr) });
+			}
+
+			void OnEvent(Event& ev) override
+			{
+				for (auto& method : methods)
+				{
+					if (method.id == ev)
+					{
+						auto methodPtr = method.handler;
+						(parent.*methodPtr)(ev.args);
+						return;
+					}
+				}
+			}
+		} messageMap;
+
 		TREE_NODE_ID localFunctionsId = { 0 };
 		TREE_NODE_ID namespacesId = { 0 };
 		TREE_NODE_ID variablesId = { 0 };
@@ -410,21 +454,19 @@ namespace Rococo::CFGS::IDE::Sexy
 		TypeOptions inputTypes;
 		TypeOptions outputTypes;
 
-		Rococo::Events::IPublisher& publisher;
+		IPublisher& publisher;
 		ICFGSIDEGui& gui;
 
-		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, Rococo::Events::IPublisher& _publisher, ICFGSIDEGui& _gui) :
-			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui)
+		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui) :
+			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this)
 		{
-			publisher.Subscribe(this, evRegenerate);
-			publisher.Subscribe(this, evFunctionChanged);
-			publisher.Subscribe(this, evPropertyChanged);
+			messageMap.AddHandler(evRegenerate, &NavigationHandler::OnRegenerate);
+			messageMap.AddHandler(evPropertyChanged, &NavigationHandler::OnPropertyChanged);
+			messageMap.AddHandler(evFunctionChanged, &NavigationHandler::OnFunctionChanged);
 		}
 
 		~NavigationHandler()
 		{
-			publisher.Unsubscribe(this);
-
 			for (auto& i : localFunctionMap)
 			{
 				cfgs.DeleteFunction(i.second);
@@ -436,37 +478,28 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
-		void OnPropertyChanged(Rococo::Reflection::IPropertyEditor& property) override
+		void OnPropertyChanged(TEventArgs<Rococo::Reflection::IPropertyEditor*>& args)
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (f)
 			{
 				auto& props = editor.Properties();
-				props.UpdateFromVisuals(property, f->PropertyVenue());
+				props.UpdateFromVisuals(*args, f->PropertyVenue());
 			}
 		}
 
-		void OnEvent(Events::Event& ev)
+		void OnFunctionChanged(FunctionIdArg& arg)
 		{
-			if (ev == evRegenerate)
+			auto* f = cfgs.CurrentFunction();
+			if (f && f->Id() == arg.functionId)
 			{
 				RegenerateProperties();
 			}
-			else if (ev == evFunctionChanged)
-			{
-				auto& arg = As<FunctionIdArg>(ev);
-				
-				auto* f = cfgs.CurrentFunction();
-				if (f && f->Id() == arg.functionId)
-				{
-					RegenerateProperties();
-				}
-			}
-			else if (ev == evPropertyChanged)
-			{
-				auto& args = As<TEventArgs<Rococo::Reflection::IPropertyEditor*>>(ev);
-				OnPropertyChanged(*args);
-			}
+		}
+
+		void OnRegenerate(EventArgs&)
+		{
+			RegenerateProperties();
 		}
 
 		void RegenerateProperties()
