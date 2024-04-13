@@ -205,7 +205,7 @@ namespace ANON
 			{
 				if (ide)
 				{
-					ide->OnPropertyChanged(property);
+					ide->Navigation().OnPropertyChanged(property);
 				}
 			}
 		} changeHandler;
@@ -548,18 +548,18 @@ namespace ANON
 
 		void Archiver_OnSaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) override
 		{
-			ide->SaveNavigation(sb);
+			ide->Navigation().SaveNavigation(sb);
 		}
 
 		void Loader_OnLoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) override
 		{
-			ide->LoadNavigation(directive);
+			ide->Navigation().LoadNavigation(directive);
 		}
 
 		void OnContextMenuItemSelected(uint16 id, Rococo::Abedit::IAbeditMainWindow& sender) override
 		{
 			UNUSED(sender);
-			bool wasHandled = ide->TryHandleContextMenuItem(id);
+			bool wasHandled = ide->Navigation().TryHandleContextMenuItem(id);
 			UNUSED(wasHandled);
 		}
 

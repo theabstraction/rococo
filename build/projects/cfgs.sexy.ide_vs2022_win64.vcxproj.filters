@@ -4,4 +4,7 @@
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.popup.sexy.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.navigation.inl" />
+  </ItemGroup>
 </Project>
