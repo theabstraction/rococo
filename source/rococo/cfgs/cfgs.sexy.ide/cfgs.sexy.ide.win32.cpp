@@ -1,4 +1,7 @@
+#include <rococo.types.h>
 #include "cfgs.sexy.navigation.inl"
+#include <rococo.os.win32.h>
+#include <rococo.window.h>
 
 using namespace Rococo::CFGS::IDE::Sexy;
 
@@ -34,7 +37,7 @@ namespace ANON
 		}
 	};
 
-	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor
+	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor, ICFGSIDEGui, ICFGSIDEContextMenu
 	{
 		HWND hHostWindow;
 		ICFGSDatabase& cfgs;
@@ -50,21 +53,81 @@ namespace ANON
 
 		Rococo::Events::IPublisher& publisher;
 
+		AutoFree<Rococo::Windows::IWin32Menu> contextMenu;
+		HWND hWndMenuTarget{ nullptr };
+
 		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor, Rococo::Events::IPublisher& _publisher):
-			hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), publisher(_publisher)
+			hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), publisher(_publisher), contextMenu(CreateMenu(true)), hWndMenuTarget(editor.ContainerWindow())
 		{
-			_cfgs.ListenForChange(
-				[this](FunctionId id) 
+		}
+
+		ICFGSIDEContextMenu& ContextMenu() override
+		{
+			return *this;
+		}
+
+		void ContextMenu_Clear() override
+		{
+			while (GetMenuItemCount(*contextMenu))
+			{
+				DeleteMenu(*contextMenu, 0, MF_BYPOSITION);
+			}
+		}
+
+		void ContextMenu_AddButton(cstr text, uint64 menuId, cstr keyCommand) override
+		{
+			contextMenu->AddString(text, menuId, keyCommand);
+		}
+
+		void ContextMenu_Show() override
+		{
+			POINT screenPos = { 0,0 };
+			GetCursorPos(&screenPos);
+			TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, hWndMenuTarget, NULL);
+		}
+
+		bool GetUserConfirmation(cstr text, cstr caption) override
+		{
+			Vec2i span{ 800, 120 };
+			int labelWidth = 140;
+
+			struct VariableEventHandler : IVariableEditorEventHandler
+			{
+				void OnButtonClicked(cstr variableName, IVariableEditor& editor) override
 				{
-					auto* f = cfgs.CurrentFunction();
-					if (f && f->Id() == id)
-					{
-						editor.Properties().Clear();
-						editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
-						editor.RefreshSlate();
-					}
+					bool isChecked = editor.GetBoolean(variableName);
+					editor.SetEnabled(isChecked, (cstr)IDOK);
 				}
-			);
+
+				void OnModal(IVariableEditor& editor) override
+				{
+					editor.SetEnabled(false, (cstr)IDOK);
+				}
+			} evHandler;
+
+			AutoFree<IVariableEditor> deletionBox = CreateVariableEditor(span, labelWidth, caption, &evHandler);
+
+			deletionBox->AddBooleanEditor(text, false);
+			if (deletionBox->IsModalDialogChoiceYes())
+			{
+				bool isConfirmed = deletionBox->GetBoolean(text);
+				if (isConfirmed)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		IVariableEditor* CreateVariableEditor(const Vec2i& span, int32 labelWidth, cstr appQueryName, IVariableEditorEventHandler* eventHandler) override
+		{
+			return Rococo::CreateVariableEditor(editor.Window(), span, labelWidth, appQueryName, nullptr, nullptr, eventHandler, nullptr);
+		}
+
+		void ShowAlertBox(cstr text, cstr caption) override
+		{
+			Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), text, caption, MB_ICONEXCLAMATION);
 		}
 
 		void Create()
@@ -93,7 +156,7 @@ namespace ANON
 
 			core = new Sexy_CFGS_Core(ideWindow.ideInstance->GetDatabase(), cfgs);
 
-			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher);
+			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this);
 
 			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase());
 

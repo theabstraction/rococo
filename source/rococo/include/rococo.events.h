@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rococo.types.h>
+#include <rococo.eventargs.h>
 
 namespace Rococo
 {
@@ -10,44 +10,8 @@ namespace Rococo
 
 namespace Rococo::Events
 {
-	typedef uint32 EventHash;
-
-#pragma pack(push,1)
-	struct EventIdRef
-	{
-		const char* name;
-		mutable EventHash hashCode;
-	};
-
-	struct EventArgs
-	{
-		int64 sizeInBytes;
-	};
-#pragma pack(pop)
-
-	template<class T> struct TEventArgs : public EventArgs
-	{
-		T value;
-		operator T () { return value; }
-	};
-
-	template<class T, class U> struct T2EventArgs : public EventArgs
-	{
-		T value1;
-		U value2;
-	};
-
-	class IPublisher;
-
-	struct Event
-	{
-		IPublisher& publisher;
-		EventArgs& args;
-		EventIdRef id;
-	};
-
 	// Used by GUI panels to request an upate to a label or field just before rendering.
-		// A request is sent out by the gui panel, and the formatter object responds with the same id, but setting isRequested to false
+	// A request is sent out by the gui panel, and the formatter object responds with the same id, but setting isRequested to false
 	struct TextOutputEvent : EventArgs
 	{
 		bool isGetting;
@@ -190,13 +154,4 @@ namespace Rococo::Events
 			}
 		}
 	};
-}
-
-namespace Rococo
-{
-	inline Events::EventIdRef operator "" _event(cstr name, size_t len)
-	{
-		UNUSED(len);
-		return Events::EventIdRef{ name, 0 };
-	}
 }

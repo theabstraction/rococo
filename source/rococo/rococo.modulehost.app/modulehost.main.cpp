@@ -30,6 +30,14 @@ public:
 
 	void DoMainloop(IMVC_ControllerSupervisor& controller)
 	{
+		auto timerId = SetTimer(NULL, 0, 16, NULL);
+		if (timerId == 0)
+		{
+			Throw(GetLastError(), "Failed to create system timer");
+		}
+
+		uint64 frameCount = 0;
+
 		MSG msg;
 		while (isRunning && controller.IsRunning() && GetMessage(&msg, NULL, 0, 0))
 		{
@@ -38,16 +46,16 @@ public:
 				break;
 			}
 
-			if (msg.hwnd == nullptr)
+			if (msg.message == WM_TIMER)
 			{
-				controller.OnWindowlessMessage(msg.message);
+				controller.DoHousekeeping(frameCount++);
 			}
 
 			TranslateMessage(&msg);
 			DispatchMessageA(&msg);
-
-			controller.DoHousekeeping();
 		}
+
+		KillTimer(NULL, timerId);
 	}
 };
 

@@ -27,7 +27,6 @@ namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
 	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db, Rococo::Events::IPublisher& publisher);
-	ICFGSMessagingSupervisor* CreateMessagingService(ICFGSPropertyChangeHandler& changeHandler);
 
 	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
 	bool TryGetUserCFGSSavePath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor);
@@ -185,7 +184,6 @@ namespace ANON
 	{
 		AutoFree<Rococo::Events::IPublisherSupervisor> publisher;
 		AutoFree<IAbstractEditorSupervisor> editor;
-		AutoFree<CFGS::ICFGSMessagingSupervisor> messaging;
 		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
 		AutoFree<CFGS::ICFGSGuiSupervisor> gui;
@@ -196,19 +194,6 @@ namespace ANON
 		bool isRunning = true;
 
 		Element element;
-
-		struct ChangeHandler : CFGS::ICFGSPropertyChangeHandler
-		{
-			CFGS::ICFGSIntegratedDevelopmentEnvironmentSupervisor* ide = nullptr;
-
-			void OnPropertyChanged(Reflection::IPropertyEditor& property) override
-			{
-				if (ide)
-				{
-					ide->Navigation().OnPropertyChanged(property);
-				}
-			}
-		} changeHandler;
 
 		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine): publisher(Events::CreatePublisher())
 		{
@@ -236,9 +221,7 @@ namespace ANON
 
 			CFGS::SetTitleWithFilename(*editor, nullptr);
 
-			messaging = CFGS::CreateMessagingService(changeHandler);
-
-			db = CFGS::CreateCFGSDatabase(*messaging, *publisher);
+			db = CFGS::CreateCFGSDatabase(*publisher);
 
 			element.FormatDesc();
 
@@ -253,8 +236,6 @@ namespace ANON
 			ide = CFGS::Create_CFGS_IDE(*editor, *db, *publisher);
 
 			editor->BringToFront();
-
-			changeHandler.ide = ide;
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
@@ -288,14 +269,6 @@ namespace ANON
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
 		{
 			editor->Properties().Refresh(propertyId, agent);
-		}
-
-		void OnWindowlessMessage(uint32 messageId) override
-		{
-			if (messaging->IsDBHousekeeping(messageId))
-			{
-				db->DoHouseKeeping();
-			}
 		}
 
 		void Free() override
@@ -563,8 +536,9 @@ namespace ANON
 			UNUSED(wasHandled);
 		}
 
-		void DoHousekeeping() override
+		void DoHousekeeping(uint64 frameIndex) override
 		{
+			UNUSED(frameIndex);
 			publisher->Deliver();
 		}
 	};

@@ -1,13 +1,10 @@
 #pragma once
 
-#include <rococo.os.win32.h>
 #include <rococo.cfgs.h>
 #include <rococo.sexystudio.api.h>
-#include <rococo.window.h>
 #include <rococo.os.h>
 #include <rococo.abstract.editor.h>
 #include <rococo.visitors.h>
-#include <rococo.variable.editor.h>
 #include <rococo.strings.h>
 #include <rococo.sexml.h>
 #include <rococo.functional.h>
@@ -15,6 +12,8 @@
 #include <..\sexystudio\sexystudio.api.h>
 #include <unordered_map>
 #include <unordered_set>
+#include <ctype.h>
+#include <rococo.variable.editor.h>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -25,10 +24,27 @@ using namespace Rococo::Abedit;
 
 static const char* title = "CFGS SexyStudio IDE";
 static auto evRegenerate = "EvRegenerate"_event;
+static auto evFunctionChanged = "EvFunctionChanged"_event;
+static auto evPropertyChanged = "EvPropertyChanged"_event;
 
 namespace Rococo::CFGS
 {
 	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db);
+
+	ROCOCO_INTERFACE ICFGSIDEContextMenu
+	{
+		virtual void ContextMenu_AddButton(cstr text, uint64 menuId, cstr keyCommand) = 0;
+		virtual void ContextMenu_Clear() = 0;
+		virtual void ContextMenu_Show() = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSIDEGui
+	{
+		virtual ICFGSIDEContextMenu& ContextMenu() = 0;	
+		virtual void ShowAlertBox(cstr text, cstr caption) = 0;
+		virtual bool GetUserConfirmation(cstr text, cstr caption) = 0;
+		virtual IVariableEditor* CreateVariableEditor(const Vec2i& span, int32 labelWidth, cstr appQueryName, IVariableEditorEventHandler* eventHandler) = 0;
+	};
 }
 
 namespace Rococo::CFGS::IDE::Sexy
@@ -380,8 +396,6 @@ namespace Rococo::CFGS::IDE::Sexy
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> localFunctionMap;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> publicFunctionMap;
 
-		AutoFree<Rococo::Windows::IWin32Menu> contextMenu;
-
 		enum
 		{
 			CONTEXT_MENU_ID_ADD_SUBSPACE = 4001,
@@ -391,18 +405,20 @@ namespace Rococo::CFGS::IDE::Sexy
 			CONTEXT_MENU_ID_RENAME_FUNCTION
 		};
 
-		HWND hWndMenuTarget{ nullptr };
 		TREE_NODE_ID contextMenuTargetId = { 0 };
 
 		TypeOptions inputTypes;
 		TypeOptions outputTypes;
 
 		Rococo::Events::IPublisher& publisher;
+		ICFGSIDEGui& gui;
 
-		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, Rococo::Events::IPublisher& _publisher) : editor(_editor), cfgs(_cfgs), sexyDB(_db), hWndMenuTarget(_editor.ContainerWindow()), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher)
+		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, Rococo::Events::IPublisher& _publisher, ICFGSIDEGui& _gui) :
+			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui)
 		{
-			contextMenu = CreateMenu(true);
 			publisher.Subscribe(this, evRegenerate);
+			publisher.Subscribe(this, evFunctionChanged);
+			publisher.Subscribe(this, evPropertyChanged);
 		}
 
 		~NavigationHandler()
@@ -436,13 +452,20 @@ namespace Rococo::CFGS::IDE::Sexy
 			{
 				RegenerateProperties();
 			}
-		}
-
-		void ClearMenu()
-		{
-			while (GetMenuItemCount(*contextMenu))
+			else if (ev == evFunctionChanged)
 			{
-				DeleteMenu(*contextMenu, 0, MF_BYPOSITION);
+				auto& arg = As<FunctionIdArg>(ev);
+				
+				auto* f = cfgs.CurrentFunction();
+				if (f && f->Id() == arg.functionId)
+				{
+					RegenerateProperties();
+				}
+			}
+			else if (ev == evPropertyChanged)
+			{
+				auto& args = As<TEventArgs<Rococo::Reflection::IPropertyEditor*>>(ev);
+				OnPropertyChanged(*args);
 			}
 		}
 
@@ -490,7 +513,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				char fname[128] = { 0 };
 
-				AutoFree<IVariableEditor> fnameEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a new local function...", nullptr, nullptr, &nullEventHandler, nullptr);
+				AutoFree<IVariableEditor> fnameEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a new local function...", &nullEventHandler);
 
 				FNameValidator fnameValidator(*fnameEditor, id, tree);
 				fnameEditor->AddStringEditor("Local Name", nullptr, fname, sizeof fname, &fnameValidator);
@@ -515,7 +538,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				char fname[128] = { 0 };
 
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, "CFGS Sexy IDE - Add a top level namespace...", nullptr, nullptr, &nullEventHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a top level namespace...", &nullEventHandler);
 
 				NamespaceValidator fnameValidator(*nsEditor, id, tree);
 				nsEditor->AddStringEditor("Root Namespace", nullptr, fname, sizeof fname, &fnameValidator);
@@ -528,14 +551,14 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 			else
 			{
-				ClearMenu();
+				gui.ContextMenu().ContextMenu_Clear();
 
 				auto i = namespaceIdSet.find(id);
 				if (i != namespaceIdSet.end())
 				{
-					contextMenu->AddString("Add subspace", CONTEXT_MENU_ID_ADD_SUBSPACE);
-					contextMenu->AddString("Add public function", CONTEXT_MENU_ID_ADD_FUNCTION);
-					contextMenu->AddString("Rename namespace", CONTEXT_MENU_ID_RENAME_NAMESPACE);
+					gui.ContextMenu().ContextMenu_AddButton("Add subspace", CONTEXT_MENU_ID_ADD_SUBSPACE, nullptr);
+					gui.ContextMenu().ContextMenu_AddButton("Add public function", CONTEXT_MENU_ID_ADD_FUNCTION, nullptr);
+					gui.ContextMenu().ContextMenu_AddButton("Rename namespace", CONTEXT_MENU_ID_RENAME_NAMESPACE, nullptr);
 					contextMenuTargetId = id;
 				}
 				else
@@ -543,8 +566,8 @@ namespace Rococo::CFGS::IDE::Sexy
 					auto j = publicFunctionMap.find(id);
 					if (j != publicFunctionMap.end())
 					{
-						contextMenu->AddString("Delete function", CONTEXT_MENU_DELETE_FUNCTION);
-						contextMenu->AddString("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION);
+						gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
+						gui.ContextMenu().ContextMenu_AddButton("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION, nullptr);
 						contextMenuTargetId = id;
 					}
 					else
@@ -552,21 +575,18 @@ namespace Rococo::CFGS::IDE::Sexy
 						auto k = localFunctionMap.find(id);
 						if (k != localFunctionMap.end())
 						{
-							contextMenu->AddString("Delete function", CONTEXT_MENU_DELETE_FUNCTION);
-							contextMenu->AddString("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION);
+							gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
+							gui.ContextMenu().ContextMenu_AddButton("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION, nullptr);
 							contextMenuTargetId = id;
 						}
 						else
 						{
-							Beep(512, 200);
 							return;
 						}
 					}
 				}
 
-				POINT screenPos = { 0,0 };
-				GetCursorPos(&screenPos);
-				TrackPopupMenu(*contextMenu, TPM_VERNEGANIMATION | TPM_TOPALIGN | TPM_LEFTALIGN, screenPos.x, screenPos.y, 0, hWndMenuTarget, NULL);
+				gui.ContextMenu().ContextMenu_Show();
 			}
 		}
 
@@ -597,7 +617,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			auto i = namespaceIdSet.find(id);
 			if (i == namespaceIdSet.end())
 			{
-				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
 				return;
 			}
 
@@ -612,7 +632,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				char ntitle[256];
 				SafeFormat(ntitle, "%s - Add a subspace to %s...", title, subspace);
 
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
 
 				NamespaceValidator fnameValidator(*nsEditor, id, tree);
 				nsEditor->AddStringEditor("Subspace", nullptr, fname, sizeof fname, &fnameValidator);
@@ -662,7 +682,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			auto i = namespaceIdSet.find(namespaceId);
 			if (i == namespaceIdSet.end())
 			{
-				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
 				return;
 			}
 
@@ -677,7 +697,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				char ntitle[256];
 				SafeFormat(ntitle, "%s - Rename subspace %s...", title, subspace);
 
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
 
 				RenameNamespaceValidator fnameValidator(*nsEditor, namespaceId, tree);
 				nsEditor->AddStringEditor("New Subspace", nullptr, newSubspace, sizeof newSubspace, &fnameValidator);
@@ -699,7 +719,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				auto j = localFunctionMap.find(functionId);
 				if (j == localFunctionMap.end())
 				{
-					Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+					gui.ShowAlertBox("Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error");
 					return;
 				}
 			}
@@ -717,7 +737,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				char ntitle[256];
 				SafeFormat(ntitle, "%s - Rename function %s...", title, functionName);
 
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
 
 				RenameFNameValidator fnameValidator(*nsEditor, functionId, tree);
 				nsEditor->AddStringEditor("New Function Name", nullptr, newFunctionName, sizeof newFunctionName, &fnameValidator);
@@ -763,58 +783,31 @@ namespace Rococo::CFGS::IDE::Sexy
 				auto j = localFunctionMap.find(functionId);
 				if (j == localFunctionMap.end())
 				{
-					Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+					gui.ShowAlertBox("Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error");
 					return;
 				}
 			}
 
-			Vec2i span{ 800, 120 };
-			int labelWidth = 140;
-
-			struct VariableEventHandler : IVariableEditorEventHandler
-			{
-				void OnButtonClicked(cstr variableName, IVariableEditor& editor) override
-				{
-					bool isChecked = editor.GetBoolean(variableName);
-					editor.SetEnabled(isChecked, (cstr)IDOK);
-				}
-
-				void OnModal(IVariableEditor& editor) override
-				{
-					editor.SetEnabled(false, (cstr)IDOK);
-				}
-			} evHandler;
-
 			char functionName[128];
 			if (tree.TryGetText(functionName, sizeof functionName, functionId))
 			{
-				char ntitle[256];
-				SafeFormat(ntitle, "%s - Delete function %s...", title, functionName);
-
-				AutoFree<IVariableEditor> deletionBox = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &evHandler, nullptr);
-
-				cstr confirmText = "Confirm deletion";
-
-				deletionBox->AddBooleanEditor(confirmText, false);
-				if (deletionBox->IsModalDialogChoiceYes())
-				{
-					bool isConfirmed = deletionBox->GetBoolean(confirmText);
-					if (isConfirmed)
+				char caption[256];
+				SafeFormat(caption, "%s - Delete function %s...", title, functionName);
+				if (gui.GetUserConfirmation("Confirm deletion", caption))
+				{ 
+					auto k = publicFunctionMap.find(functionId);
+					if (k != publicFunctionMap.end())
 					{
-						auto k = publicFunctionMap.find(functionId);
-						if (k != publicFunctionMap.end())
+						cfgs.DeleteFunction(k->second);
+						publicFunctionMap.erase(k);
+					}
+					else
+					{
+						auto l = localFunctionMap.find(functionId);
+						if (l != localFunctionMap.end())
 						{
-							cfgs.DeleteFunction(k->second);
-							publicFunctionMap.erase(k);
-						}
-						else
-						{
-							auto l = localFunctionMap.find(functionId);
-							if (l != localFunctionMap.end())
-							{
-								cfgs.DeleteFunction(l->second);
-								publicFunctionMap.erase(l);
-							}
+							cfgs.DeleteFunction(l->second);
+							publicFunctionMap.erase(l);
 						}
 					}
 
@@ -880,7 +873,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			auto i = namespaceIdSet.find(namespaceId);
 			if (i == namespaceIdSet.end())
 			{
-				Rococo::Windows::ShowMessageBox(editor.ContainerWindow(), "Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error", MB_ICONEXCLAMATION);
+				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
 				return;
 			}
 
@@ -895,7 +888,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				char ntitle[256];
 				SafeFormat(ntitle, "%s - Add a function to %s...", title, subspace);
 
-				AutoFree<IVariableEditor> nsEditor = CreateVariableEditor(editor.Window(), span, labelWidth, ntitle, nullptr, nullptr, &nullEventHandler, nullptr);
+				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
 
 				NamespaceValidator fnameValidator(*nsEditor, namespaceId, tree);
 				nsEditor->AddStringEditor("Function", nullptr, fname, sizeof fname, &fnameValidator);

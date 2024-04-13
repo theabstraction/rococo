@@ -26,46 +26,6 @@ namespace Rococo::CFGS
 
 	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor, Rococo::Events::IPublisher& publisher);
 
-	ICFGSMessagingSupervisor* CreateMessagingService(ICFGSPropertyChangeHandler& changeHandler)
-	{
-		struct MessagingService : ICFGSMessagingSupervisor
-		{
-			UINT WM_DO_CFGS_HOUSEKEEPING = 0;
-			ICFGSPropertyChangeHandler& changeHandler;
-
-			MessagingService(ICFGSPropertyChangeHandler& _changeHandler): changeHandler(_changeHandler)
-			{
-				WM_DO_CFGS_HOUSEKEEPING = RegisterWindowMessageA("WM_DO_CFGS_HOUSEKEEPING");
-				if (!WM_DO_CFGS_HOUSEKEEPING)
-				{
-					Throw(0, "Failed to register WM_DO_CFGS_HOUSEKEEPING");
-				}
-			}
-
-			bool IsDBHousekeeping(uint32 id) const override
-			{
-				return WM_DO_CFGS_HOUSEKEEPING == id;
-			}
-
-			void OnPropertyChanged(Rococo::Reflection::IPropertyEditor& property) override
-			{
-				changeHandler.OnPropertyChanged(property);
-			}
-
-			void PostDBHousekeeping() override
-			{
-				PostMessageA(NULL, WM_DO_CFGS_HOUSEKEEPING, 0, 0);
-			}
-
-			void Free() override
-			{
-				delete this;
-			}
-		};
-
-		return new MessagingService(changeHandler);
-	}
-
 	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db, Rococo::Events::IPublisher& publisher)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);

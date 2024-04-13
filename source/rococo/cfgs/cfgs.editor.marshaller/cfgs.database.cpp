@@ -7,6 +7,7 @@
 #include <rococo.functional.h>
 #include <rococo.properties.h>
 #include <rococo.validators.h>
+#include <rococo.events.h>
 
 using namespace Rococo::Editors;
 using namespace Rococo::Reflection;
@@ -565,8 +566,6 @@ namespace Rococo::CFGS::Internal
 	{
 		virtual IPropertyUIEvents& InputArgumentHandler() = 0;
 		virtual IPropertyUIEvents& OutputArgumentHandler() = 0;
-
-		virtual void NotifyChange(FunctionId id) = 0;
 	};
 
 	class CFGSFunction: public ICFGSFunction, ICFGSNodeEnumerator, ICFGSNodeSetBuilder, IPropertyVenue
@@ -928,35 +927,52 @@ namespace Rococo::CFGS::Internal
 
 	struct SocketArrayBuilder: IArrayProperty
 	{
+		FunctionId functionId;
 		std::vector<CFGSSocket*>* target;
 		CFGSNode* node;
 		SocketPlacement placement;
 		CFGSSocketType type;
 		SocketClass classification;
+		Events::IPublisher& publisher;
+
+		SocketArrayBuilder(Events::IPublisher& _publisher): publisher(_publisher)
+		{
+
+		}
 
 		void Append() override
 		{
 			target->push_back(new CFGSSocket(node, placement, type, classification, "undefined-name", SocketId()));
+
+			FunctionIdArg arg;
+			arg.functionId = functionId;
+			publisher.Post(arg, "EvFunctionChanged"_event, false);
 		}
 	};		
+
+	static auto evPropertyChanged = "EvPropertyChanged"_event;
 
 	struct ArgumentEventHandler : IPropertyUIEvents
 	{
 		ICFGSDatabaseSupervisorInternal& db;
-		ICFGSMessaging& messaging;
+		Events::IPublisher& publisher;
 
-		ArgumentEventHandler(ICFGSDatabaseSupervisorInternal& _db, ICFGSMessaging& _messaging): db(_db), messaging(_messaging)
+		ArgumentEventHandler(ICFGSDatabaseSupervisorInternal& _db, Events::IPublisher& _publisher): db(_db), publisher(_publisher)
 		{
 		}
 
 		void OnBooleanButtonChanged(IPropertyEditor& property) override
 		{
-			messaging.OnPropertyChanged(property);
+			Events::TEventArgs<IPropertyEditor*> args;
+			args.value = &property;
+			publisher.Publish(args, evPropertyChanged);
 		}
 
 		void OnPropertyEditorLostFocus(Reflection::IPropertyEditor& property) override
 		{
-			messaging.OnPropertyChanged(property);
+			Events::TEventArgs<IPropertyEditor*> args;
+			args.value = &property;
+			publisher.Publish(args, evPropertyChanged);
 		}
 
 		void OnDeleteSection(cstr sectionId) override
@@ -1013,6 +1029,7 @@ namespace Rococo::CFGS::Internal
 			UNUSED(agent);
 		}
 
+		// Search for the function with an input or output array that is identified with the unique id, and provide an interface to it
 		void CallArrayMethod(cstr fullArrayId, Function<void(IArrayProperty&)> callback) override
 		{
 			auto header = "_header"_fstring;
@@ -1034,27 +1051,25 @@ namespace Rococo::CFGS::Internal
 					auto& F = static_cast<CFGSFunction&>(f);
 					if (F.IsInputArrayId(arrayId))
 					{
-						SocketArrayBuilder builder;
+						SocketArrayBuilder builder(publisher);
+						builder.functionId = F.Id();
 						builder.node = &F.BeginNode();
 						builder.classification = SocketClass::InputVar;
 						builder.placement = SocketPlacement::Left;
 						builder.target = &F.BeginNode().sockets;
 						builder.type = CFGSSocketType{ "Int32" };
 						callback(builder);
-						db.NotifyChange(f.Id());
-						return;
 					}
 					else if (F.IsOutputArrayId(arrayId))
 					{
-						SocketArrayBuilder builder;
+						SocketArrayBuilder builder(publisher);
+						builder.functionId = F.Id();
 						builder.node = &F.BeginNode();
 						builder.classification = SocketClass::OutputValue;
 						builder.placement = SocketPlacement::Right;
 						builder.target = &F.ReturnNode().sockets;
 						builder.type = CFGSSocketType{ "Int32" };
 						callback(builder);
-						db.NotifyChange(f.Id());
-						return;
 					}
 				}
 			);
@@ -1071,12 +1086,12 @@ namespace Rococo::CFGS::Internal
 		ArgumentEventHandler inputEventHandler;
 		ArgumentEventHandler outputEventHandler;
 
-		std::vector<Rococo::Function<void(FunctionId id)>> notifyListeners;
-
-		ICFGSMessaging& messaging;
 		Rococo::Events::IPublisher& publisher;
 	public:
-		CFGSDatabase(ICFGSMessaging& _messaging, Rococo::Events::IPublisher& _publisher): inputEventHandler(*this, _messaging), outputEventHandler(*this, _messaging), messaging(_messaging), publisher(_publisher)
+		CFGSDatabase(Rococo::Events::IPublisher& _publisher): 
+			inputEventHandler(*this, _publisher), 
+			outputEventHandler(*this, _publisher),
+			publisher(_publisher)
 		{
 
 		}
@@ -1164,40 +1179,6 @@ namespace Rococo::CFGS::Internal
 		{
 			delete this;
 		}
-
-		void ListenForChange(Rococo::Function<void(FunctionId id)> callback) override
-		{
-			notifyListeners.push_back(callback);
-		}
-
-		std::vector<FunctionId> changedIds;
-
-		void NotifyChange(FunctionId id) override
-		{
-			changedIds.push_back(id);
-			messaging.PostDBHousekeeping();
-		}
-
-		void DoHouseKeeping() override
-		{
-			FunctionId id;
-
-			if (changedIds.size() > 0)
-			{
-				id = changedIds.back();
-				changedIds.pop_back();
-			}
-
-			if (id)
-			{
-				for (auto& listener: notifyListeners)
-				{
-					listener.Invoke(id);
-				}
-
-				messaging.PostDBHousekeeping();
-			}
-		}
 	};
 
 	ICFGSNode& CFGSSocket::ParentNode() const
@@ -1208,8 +1189,8 @@ namespace Rococo::CFGS::Internal
 
 namespace Rococo::CFGS
 {
-	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase(ICFGSMessaging& messaging, Rococo::Events::IPublisher& publisher)
+	CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase(Rococo::Events::IPublisher& publisher)
 	{
-		return new Internal::CFGSDatabase(messaging, publisher);
+		return new Internal::CFGSDatabase(publisher);
 	}
 }
