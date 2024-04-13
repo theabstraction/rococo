@@ -528,6 +528,7 @@ namespace Rococo
 		{
 			virtual ISuperListBuilder& ListBuilder() = 0;
 			virtual ISuperComboBuilder& ComboBuilder() = 0;
+			virtual void GetSelectedText(Strings::IStringPopulator& populator) = 0;
 		};
 
 		ROCOCO_WINDOWS_API IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);

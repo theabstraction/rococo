@@ -993,6 +993,8 @@ namespace Rococo::Windows::Internal
 
 				selectedOptionEditor->ComboBuilder().SetSelection(selectedText);
 				selectedOptionEditor->ComboBuilder().HidePopup();
+
+				events.OnPropertyEditorLostFocus(*this);
 			}
 		}
 
@@ -1065,7 +1067,9 @@ namespace Rococo::Windows::Internal
 
 		bool TryGetEditorString(REF HString& value)
 		{
-			return Internal::TryGetEditorString(selectedOptionEditor, REF value);
+			HStringPopulator populator(REF value);
+			selectedOptionEditor->GetSelectedText(populator);
+			return true;
 		}
 
 		void OnButtonClicked(UI::SysWidgetId) override
@@ -2272,11 +2276,6 @@ namespace Rococo::Windows::Internal
 
 	void PropertyBuilder::VisitOption(PropertyMarshallingStub& stub, REF OptionRef& value, int stringCapacity, IEnumDescriptor& enumDesc)
 	{
-		UNUSED(stub);
-		UNUSED(value);
-		UNUSED(stringCapacity);
-		UNUSED(enumDesc);
-
 		AutoFree<IEnumVectorSupervisor> enumVector = enumDesc.CreateEnumList();
 		if (enumVector)
 		{

@@ -634,6 +634,21 @@ namespace Rococo::Windows
 		{
 
 		}
+
+		void GetSelectedText(Strings::IStringPopulator& populator) override
+		{
+			int len = GetWindowTextLengthA(hWndEditControl);
+			if (len <= 0)
+			{
+				return;
+			}
+
+			char* buf = (char*)_alloca(len + 1);
+			if (GetWindowTextA(hWndEditControl, buf, len + 1) > 0)
+			{
+				populator.Populate(buf);
+			}
+		}
 	public:
 		static SuperComboBox* Create(ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent, ControlId id)
 		{

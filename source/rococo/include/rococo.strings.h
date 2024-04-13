@@ -225,6 +225,21 @@ namespace Rococo::Strings
 		};
 	};
 
+	struct HStringPopulator: IStringPopulator
+	{
+		HString& target;
+
+		HStringPopulator(HString& _target): target(_target)
+		{
+
+		}
+
+		void Populate(cstr text) override
+		{
+			target = text;
+		}
+	};
+
 	struct IDynamicStringBuilder
 	{
 		virtual StringBuilder& Builder() = 0;
