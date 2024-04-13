@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <ctype.h>
 #include <rococo.variable.editor.h>
+#include <rococo.events.map.h>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -385,48 +386,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 	struct NavigationHandler : ICFGSIDENavigation, Visitors::ITreeControlHandler
 	{
-		struct NavigationMessageMap : IObserver
-		{
-			IPublisher& publisher;
-			NavigationHandler& parent;
-
-			NavigationMessageMap(IPublisher& _publisher, NavigationHandler& _parent) : publisher(_publisher), parent(_parent) {}
-
-			~NavigationMessageMap()
-			{
-				publisher.Unsubscribe(this);
-			}
-
-			typedef void (NavigationHandler::*METHOD_HANDLER)(EventArgs& args);
-
-			struct MethodBinding
-			{
-				EventIdRef id;
-				METHOD_HANDLER handler;
-			};
-
-			std::vector<MethodBinding> methods;
-
-			template<class METHOD_POINTER>
-			void AddHandler(EventIdRef id, METHOD_POINTER ptr)
-			{
-				publisher.Subscribe(this, id);
-				methods.push_back(MethodBinding{ id, reinterpret_cast<METHOD_HANDLER>(ptr) });
-			}
-
-			void OnEvent(Event& ev) override
-			{
-				for (auto& method : methods)
-				{
-					if (method.id == ev)
-					{
-						auto methodPtr = method.handler;
-						(parent.*methodPtr)(ev.args);
-						return;
-					}
-				}
-			}
-		} messageMap;
+		MessageMap<NavigationHandler> messageMap;
 
 		TREE_NODE_ID localFunctionsId = { 0 };
 		TREE_NODE_ID namespacesId = { 0 };

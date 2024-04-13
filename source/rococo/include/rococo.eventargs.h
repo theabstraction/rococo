@@ -38,6 +38,7 @@ namespace Rococo::Events
 		IPublisher& publisher;
 		EventArgs& args;
 		EventIdRef id;
+		cstr callerSignature;
 	};
 }
 

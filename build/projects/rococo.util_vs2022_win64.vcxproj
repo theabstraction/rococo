@@ -142,7 +142,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.util.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.util.lib</ImportLibrary>
@@ -239,7 +241,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.base.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.event.map.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.heap.string.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.observer.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.ex.cpp" />

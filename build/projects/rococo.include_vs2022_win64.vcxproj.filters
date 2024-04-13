@@ -185,6 +185,7 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.eventargs.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.events.map.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">

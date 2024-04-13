@@ -55,8 +55,8 @@ namespace Rococo::Events
 	class ROCOCO_NO_VTABLE IPublisher
 	{
 	private:
-		virtual void RawPost(const EventArgs& ev, const EventIdRef& id, bool isLossy) = 0;
-		virtual void RawPublish(EventArgs& ev, const EventIdRef& id) = 0;
+		virtual void RawPost(const EventArgs& ev, const EventIdRef& id, bool isLossy, cstr senderSignature) = 0;
+		virtual void RawPublish(EventArgs& ev, const EventIdRef& id, cstr senderSignature) = 0;
 	public:
 		virtual bool Match(const Event& ev, const EventIdRef& ref) = 0;
 		virtual EventIdRef CreateEventIdFromVolatileString(const char* volatileString) = 0;
@@ -68,12 +68,12 @@ namespace Rococo::Events
 		template<class T> inline void Post(T& ev, const EventIdRef& id, bool isLossy)
 		{
 			ev.sizeInBytes = sizeof(T);
-			RawPost(ev, id, isLossy);
+			RawPost(ev, id, isLossy, __FUNCSIG__);
 		}
 		template<class T> inline void Publish(T& ev, const EventIdRef& id)
 		{
 			ev.sizeInBytes = sizeof(T);
-			RawPublish(ev, id);
+			RawPublish(ev, id, __FUNCSIG__);
 		}
 	};
 
@@ -100,58 +100,4 @@ namespace Rococo::Events
 		if (t.sizeInBytes != sizeof(T)) ev.publisher.ThrowBadEvent(ev);
 		return t;
 	}
-
-	class EventMapBacking
-	{
-	public:
-		EventMapBacking();
-	private:
-		int64 backing[8] = { 0 };
-	};
-
-	class EventMap : private EventMapBacking
-	{
-	public:
-		EventMap();
-		~EventMap();
-
-		EventMapBacking& Backing() { return *this; }
-
-		void* Find(EventIdRef id);
-		bool TryAdd(EventIdRef id, void* ptr);
-	};
-
-	template<class HANDLER>
-	class MessageMap
-	{
-	public:
-		typedef void (HANDLER::* EventHandlerMethod)(EventArgs& ev);
-
-	private:
-		EventMap routingTable;
-
-	public:
-		MessageMap()
-		{
-
-		}
-
-		void Add(EventIdRef id, EventHandlerMethod method)
-		{
-			if (!routingTable.TryAdd(id, method))
-			{
-				Throw(0, "The routing table already had the method: %s", id.name);
-			}
-		}
-
-		void RouteEvent(HANDLER& handler, Event ev)
-		{
-			auto* methodVoid = routingTable.Find(ev.id);
-			if (methodVoid)
-			{
-				auto* method = reinterpret_cast<EventHandlerMethod>(methodVoid);
-				(handler.*method)(ev.args);
-			}
-		}
-	};
 }

@@ -33,6 +33,7 @@ namespace
 	{
 		EventIdRef ref;
 		LargestPossibleEvent largestPossibleEvent;
+		cstr senderSignature;
 		bool isLossy;
 
 		EventBinding& operator = (const EventBinding& src)
@@ -41,6 +42,7 @@ namespace
 
 			memcpy(&largestPossibleEvent, &src.largestPossibleEvent, src.largestPossibleEvent.sizeInBytes);
 			isLossy = src.isLossy;
+			senderSignature = src.senderSignature;
 			return *this;
 		}
 	};
@@ -66,7 +68,7 @@ namespace
 			postedEvents.erase(delPoint, postedEvents.end());
 		}
 
-		void RawPost(const EventArgs& ev, const EventIdRef& ref, bool isLossy) override
+		void RawPost(const EventArgs& ev, const EventIdRef& ref, bool isLossy, cstr senderSignature) override
 		{
 			static_assert(sizeof(LargestPossibleEvent) == 256);
 
@@ -108,6 +110,7 @@ namespace
 			memcpy(dst, src, sizeof(LargestPossibleEvent));
 			evb.isLossy = isLossy;
 			evb.ref = ref;
+			evb.senderSignature =  senderSignature;
 			postedEvents.push_back(evb);
 		}
 
@@ -118,7 +121,7 @@ namespace
 
 			for (auto& i : outgoingEvents)
 			{
-				RawPublish(i.largestPossibleEvent, i.ref);
+				RawPublish(i.largestPossibleEvent, i.ref, i.senderSignature);
 			}
 			outgoingEvents.clear();
 		}
@@ -194,7 +197,7 @@ namespace
 			mutableRef.hashCode = hashValue;
 		}
 
-		void RawPublish(EventArgs& args, const EventIdRef& id) override
+		void RawPublish(EventArgs& args, const EventIdRef& id, cstr senderSignature) override
 		{
 			if (id.name == nullptr)
 			{
@@ -220,7 +223,7 @@ namespace
 					auto k = knownObservers.find(observers[j]);
 					if (k != knownObservers.end())
 					{
-						Event ev{ *this, args, id };
+						Event ev{ *this, args, id, senderSignature };
 						observers[j]->OnEvent(ev);
 					}
 				}
@@ -280,5 +283,64 @@ namespace Rococo::Events
 	ROCOCO_API IPublisherSupervisor* CreatePublisher()
 	{
 		return new Publisher();
+	}
+
+	cstr FindMethodArgsFromFuncSig(cstr functionSignature)
+	{
+		cstr a = functionSignature;
+		cstr result = a;
+
+		auto indirector = "::* )("_fstring;
+		
+		for (;;)
+		{
+			a = strstr(a, indirector);
+			if (a == nullptr)
+			{
+				break;
+			}
+
+			a = a + indirector.length;
+			result = a;
+		}
+
+		return result;
+	}
+
+	ROCOCO_API void ValidateMethodReturnsVoid(const EventIdRef& id, cstr functionSignature)
+	{
+		cstr voidDef = strstr(functionSignature, "<void(__cdecl ");
+		if (voidDef == nullptr)
+		{
+			Throw(0, "Error subscribing to event '%s': Expected method to be of type void.\n%s", id.name, functionSignature);
+		}
+	}
+
+	ROCOCO_API void ValidateEventSignature(const Event& ev, cstr functionSignature)
+	{
+		cstr fargs = FindMethodArgsFromFuncSig(functionSignature);
+
+		Substring evArgType;
+		evArgType.start = Strings::FindChar(ev.callerSignature, '<');
+		if (!evArgType.start)
+		{
+			Throw(0, "Expected caller signature to be CallMethod<TYPE>(...) but no <: %s", ev.callerSignature);
+		}
+
+		evArgType.start++;
+		evArgType.finish = strstr(evArgType.start, ">(");
+		if (!evArgType.finish)
+		{
+			Throw(0, "Expected  caller signature to be CallMethod<TYPE>(...) but no >", ev.callerSignature);
+		}
+
+		int64 len = evArgType.Length();
+
+		if (Strings::Compare(fargs, evArgType.start, len) != 0 || !Eq(fargs + len, " &))"))
+		{
+			char buf[192];
+			evArgType.CopyWithTruncate(buf, sizeof buf);
+			Throw(0, "Expected method handler for %s to be of type void (%s& args).\nCaller: %s\nHandler: %s", ev.id.name, buf, ev.callerSignature, functionSignature);
+		}
 	}
 }
