@@ -47,34 +47,44 @@ namespace Rococo
 		{
 			UniqueIdHolder id;
 
-			struct Username : IStringPopulator
-			{
-				uint64 hash = 0;
+			static uint64 userTimeHash = 0;
 
-				void Populate(cstr text) override
+			if (userTimeHash == 0)
+			{
+				struct Username : IStringPopulator
 				{
-					char cipherCrud[256];
-					SafeFormat(cipherCrud, "%s_%lld_%lld", text, (int64)Rococo::OS::GetCurrentThreadIdentifier(), (int64) Rococo::Time::UTCTime());
-					hash = Strings::XXHash64Arg(cipherCrud, strlen(cipherCrud));
-					memset(cipherCrud, 0, sizeof cipherCrud);
-				}
-			} username;
+					uint64 hash = 0;
 
-			Rococo::OS::GetCurrentUserName(username);
+					void Populate(cstr text) override
+					{
+						char cipherCrud[256];
+						SafeFormat(cipherCrud, "%s_%lld_%lld", text, (int64)Rococo::OS::GetCurrentThreadIdentifier(), (int64)Rococo::Time::UTCTime());
+						hash = Strings::XXHash64Arg(cipherCrud, strlen(cipherCrud));
+						memset(cipherCrud, 0, sizeof cipherCrud);
+					}
+				} username;
 
-			uint64 randValue;
-			if (0 == _rdrand64_step(&randValue))
-			{
-				randValue = Rococo::Time::TickCount();
+				Rococo::OS::GetCurrentUserName(username);
+
+				userTimeHash = username.hash;
 			}
 
-			randValue &= 0xFFFF'FFFF'0000'0000ULL;
+			static uint64 cpuHash = 0;
+			if (cpuHash == 0)
+			{
+				if (0 == _rdrand64_step(&cpuHash))
+				{
+					cpuHash = Rococo::Time::TickCount();
+				}
+
+				cpuHash &= 0xFFFF'FFFF'0000'0000ULL;
+			}
 
 			int32 next = uniqueCounter++;
-			int64 next64 = randValue | (int64)next;
+			int64 cpuHashAndCounter = cpuHash | (int64)next;
 
-			id.iValues[0] = next64;
-			id.iValues[1] = username.hash ^ Rococo::Time::UTCTime();
+			id.iValues[0] = cpuHashAndCounter;
+			id.iValues[1] = userTimeHash;
 
 			return id;
 		}
