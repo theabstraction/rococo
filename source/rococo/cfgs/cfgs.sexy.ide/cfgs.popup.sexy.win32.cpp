@@ -111,7 +111,7 @@ namespace ANON
 					return;
 				}
 
-				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::MakeNewUniqueId() });
+				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
 				node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
 				node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
 

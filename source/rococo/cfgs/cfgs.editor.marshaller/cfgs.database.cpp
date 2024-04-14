@@ -37,7 +37,7 @@ namespace Rococo::CFGS::Internal
 			designRect{ 0, 0, 150, 100 },
 			name(_name)
 		{
-			id = _id ? _id : SocketId{ Rococo::MakeNewUniqueId() };
+			id = _id ? _id : SocketId{ Rococo::Ids::MakeNewUniqueId() };
 		}
 
 		void AcceptVisitor(IPropertyVisitor& visitor, uint64, IPropertyUIEvents&)
@@ -149,7 +149,7 @@ namespace Rococo::CFGS::Internal
 		CFGSNode(cstr _typeName, DesignerVec2 pos, NodeId id) : typeName(_typeName)
 		{
 			designRect = { pos.x, pos.y, pos.x + 150, pos.y + 100 };
-			uniqueId = id ? id : NodeId{ Rococo::MakeNewUniqueId() };
+			uniqueId = id ? id : NodeId{ Rococo::Ids::MakeNewUniqueId() };
 		}
 
 		void AcceptVisitor(IPropertyVisitor& visitor, IPropertyUIEvents& events)
@@ -399,7 +399,7 @@ namespace Rococo::CFGS::Internal
 		CableImpl(const CableConnection& _exitPoint):
 			exitPoint( _exitPoint)
 		{
-			id.id = Rococo::MakeNewUniqueId();
+			id.id = Rococo::Ids::MakeNewUniqueId();
 		}
 
 		void SetEntryPoint(const CableConnection& entryPoint)
@@ -587,8 +587,8 @@ namespace Rococo::CFGS::Internal
 	public:
 		CFGSFunction(ICFGSDatabaseSupervisorInternal& _db, FunctionId _id) :
 			id(_id),
-			beginNode("_Begin",DesignerVec2{ 0, 0 }, NodeId{ MakeNewUniqueId() }),
-			returnNode("_Return", DesignerVec2 { 200 , 200}, NodeId { MakeNewUniqueId() }),
+			beginNode("_Begin",DesignerVec2{ 0, 0 }, NodeId{ Ids::MakeNewUniqueId() }),
+			returnNode("_Return", DesignerVec2 { 200 , 200}, NodeId { Ids::MakeNewUniqueId() }),
 			db(_db)
 		{
 			
@@ -1130,7 +1130,7 @@ namespace Rococo::CFGS::Internal
 
 			for(;;)
 			{
-				FunctionId id{ MakeNewUniqueId() };
+				FunctionId id{ Ids::MakeNewUniqueId() };
 				auto insertion = mapIdToFunction.insert(std::make_pair(id, (CFGSFunction*) nullptr));
 				if (insertion.second)
 				{

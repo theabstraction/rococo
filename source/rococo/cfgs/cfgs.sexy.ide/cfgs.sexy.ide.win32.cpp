@@ -200,7 +200,7 @@ namespace ANON
 
 			builder.AddDirective("Recent");
 				cstr activeFileName = config.ActiveFile();
-				builder.AddStringLiteral("Active", activeFileName ? activeFileName : "");
+				builder.AddStringLiteral("ActiveFile", activeFileName ? activeFileName : "");
 
 				auto* f = cfgs.CurrentFunction();
 				if (!f)
@@ -246,7 +246,7 @@ namespace ANON
 
 			auto& recent = GetDirective(topLevelDirectives, "Recent", IN OUT startIndex);
 
-			cstr activeFilename = AsString(recent["Active"]).c_str();
+			cstr activeFilename = AsString(recent["ActiveFile"]).c_str();
 			if (activeFilename)
 			{
 				if (config.TryLoadActiveFile(activeFilename))

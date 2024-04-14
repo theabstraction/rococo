@@ -39,9 +39,12 @@ namespace Rococo
 		}
 	};
 
-	ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId();
-	ROCOCO_ID_API void PopulateAsGuid(UniqueIdHolder id, Strings::IStringPopulator& populator);
-	ROCOCO_ID_API bool TryScanGuid(OUT UniqueIdHolder& id, cstr buffer);
+	namespace Ids
+	{
+		ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId();
+		ROCOCO_ID_API void PopulateAsGuid(UniqueIdHolder id, Strings::IStringPopulator& populator);
+		ROCOCO_ID_API bool TryScanGuid(OUT UniqueIdHolder& id, cstr buffer);
+	}
 }
 
 #define MAKE_UNIQUE_TYPEID(TYPENAME)				\
