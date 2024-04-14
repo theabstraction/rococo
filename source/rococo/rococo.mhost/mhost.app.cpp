@@ -254,7 +254,7 @@ namespace MHost
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
 						{
-							SafeFormat(te.text, "%s", be.message);
+							CopyString(te.text, sizeof te.text, be.message);
 						}
 					}
 					else if (ev == evPopulateBusyResourceId)
@@ -262,7 +262,7 @@ namespace MHost
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
 						{
-							SafeFormat(te.text, "%s", be.pingPath.buf);
+							CopyString(te.text, sizeof te.text, be.pingPath.buf);
 						}
 					}
 				}

@@ -54,7 +54,7 @@ struct DX11Meshes : public IDX11Meshes
 	{
 		if (!id || id.value >= meshBuffers.size())
 		{
-			SafeFormat(desc, 256, "invalid id");
+			CopyString(desc, 256, "invalid id");
 		}
 		else
 		{
@@ -76,7 +76,7 @@ struct DX11Meshes : public IDX11Meshes
 			}
 			else
 			{
-				SafeFormat(desc, 256, "Null object");
+				CopyString(desc, 256, "Null object");
 			}
 		}
 	}
