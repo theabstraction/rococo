@@ -74,7 +74,7 @@ namespace Rococo
 			{
 				if (0 == _rdrand64_step(&cpuHash))
 				{
-					cpuHash = Rococo::Time::TickCount();
+					cpuHash = Rococo::Time::TickCount() << 32;
 				}
 
 				cpuHash &= 0xFFFF'FFFF'0000'0000ULL;
