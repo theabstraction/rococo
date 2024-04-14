@@ -2,6 +2,7 @@
 #include "cfgs.sexy.navigation.inl"
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
+#include <rococo.sexml.h>
 
 using namespace Rococo::CFGS::IDE::Sexy;
 
@@ -37,6 +38,9 @@ namespace ANON
 		}
 	};
 
+	static const char* const CONFIG_SECTION = "cfgs.sexy.ide";
+	static const char* const CONFIG_VERSION = "1.0.0.0";
+
 	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor, ICFGSIDEGui, ICFGSIDEContextMenu
 	{
 		HWND hHostWindow;
@@ -56,8 +60,10 @@ namespace ANON
 		AutoFree<Rococo::Windows::IWin32Menu> contextMenu;
 		HWND hWndMenuTarget{ nullptr };
 
-		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor, Rococo::Events::IPublisher& _publisher):
-			hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), publisher(_publisher), contextMenu(CreateMenu(true)), hWndMenuTarget(editor.ContainerWindow())
+		ICFGSControllerConfig& config;
+
+		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor, Rococo::Events::IPublisher& _publisher, ICFGSControllerConfig& _config):
+			hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), publisher(_publisher), contextMenu(CreateMenu(true)), hWndMenuTarget(editor.ContainerWindow()), config(_config)
 		{
 		}
 
@@ -184,12 +190,78 @@ namespace ANON
 		{
 			return *designerSpacePopup;
 		}
+
+		void SaveConfig(Rococo::Sex::SEXML::ISEXMLBuilder& builder)
+		{
+			builder.AddDirective("Header");
+			 builder.AddAtomicAttribute("Version", CONFIG_VERSION);
+			 builder.AddAtomicAttribute("App", "Sexy_CFGS_IDE");
+			builder.CloseDirective();
+
+			builder.AddDirective("Recent");
+			 cstr activeFileName = config.ActiveFile();
+			 builder.AddStringLiteral("Active", activeFileName ? activeFileName : "");
+			builder.CloseDirective();
+		}
+
+		void OnExit() override
+		{
+			Rococo::OS::SaveUserSEXML(nullptr, CONFIG_SECTION, [this]
+				(Rococo::Sex::SEXML::ISEXMLBuilder& builder)
+				{
+					SaveConfig(builder);
+				}
+			);
+		}
+
+		void LoadConfig(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+		{
+			using namespace Rococo::Sex::SEXML;
+
+			size_t startIndex = 0;
+			auto& header = GetDirective(topLevelDirectives, "Header", IN OUT startIndex);
+
+			cstr version = AsString(header["Version"]).c_str();
+			if (!Eq(version, CONFIG_VERSION))
+			{
+				Throw(0, "Bad version %s. Expecting %s", version, CONFIG_VERSION);
+			}
+
+			cstr app = AsString(header["App"]).c_str();
+			if (!Eq(app, "Sexy_CFGS_IDE"))
+			{
+				Throw(0, "Bad app %s. Expecting Sexy_CFGS_IDE", app);
+			}
+
+			auto& recent = GetDirective(topLevelDirectives, "Recent", IN OUT startIndex);
+
+			cstr activeFilename = AsString(recent["Active"]).c_str();
+			if (activeFilename)
+			{
+				config.TryLoadActiveFile(activeFilename);
+			}
+		}
+
+		void OnInitComplete() override
+		{
+			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, CONFIG_SECTION))
+			{
+				return;
+			}
+
+			Rococo::OS::LoadUserSEXML(nullptr, CONFIG_SECTION, [this]
+				(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+				{
+					LoadConfig(topLevelDirectives);
+				}
+			);
+		}
 	};
 }
 
-extern "C" __declspec(dllexport) ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_Win32_IDE(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor, Rococo::Events::IPublisher& publisher)
+extern "C" __declspec(dllexport) ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_Win32_IDE(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor, Rococo::Events::IPublisher& publisher, ICFGSControllerConfig& config)
 {
-	AutoFree<ANON::Sexy_CFGS_IDE> ide = new ANON::Sexy_CFGS_IDE(hHostWindow, db, editor, publisher);
+	AutoFree<ANON::Sexy_CFGS_IDE> ide = new ANON::Sexy_CFGS_IDE(hHostWindow, db, editor, publisher, config);
 	ide->Create();
 	return ide.Detach();
 }

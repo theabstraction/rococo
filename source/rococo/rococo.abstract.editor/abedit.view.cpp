@@ -113,7 +113,7 @@ namespace ANON
 			return mainWindow->SlateWindow();
 		}
 
-		void SetTitleWithPath(const wchar_t* mainTitle, const wchar_t* filePath) override
+		void SetTitleWithPath(cstr mainTitle, cstr filePath) override
 		{
 			if (hHostWindow)
 			{
@@ -124,13 +124,13 @@ namespace ANON
 			{
 				if (filePath != nullptr)
 				{
-					wchar_t fullTitle[sizeof(U8FilePath) + 128];
-					Strings::SafeFormat(fullTitle, L"%ls: %ls", mainTitle, filePath);
-					SetWindowTextW(GetParent(mainWindow->SlateWindow()), fullTitle);
+					char fullTitle[sizeof(U8FilePath) + 128];
+					Strings::SafeFormat(fullTitle, "%s: %s", mainTitle, filePath);
+					SetWindowTextA(GetParent(mainWindow->SlateWindow()), fullTitle);
 				}
 				else
 				{
-					SetWindowTextW(GetParent(mainWindow->SlateWindow()), mainTitle);
+					SetWindowTextA(GetParent(mainWindow->SlateWindow()), mainTitle);
 				}
 			}
 		}

@@ -18,6 +18,8 @@ namespace Rococo::MVC
 	{
 		virtual void DoHousekeeping(uint64 frameIndex) = 0;
 		virtual void Free() = 0;
+		virtual void OnExit() = 0;
+		virtual void OnInitComplete() = 0;
 		virtual void TerminateOnMainWindowClose() = 0;
 	};
 

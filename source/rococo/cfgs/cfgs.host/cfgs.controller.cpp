@@ -26,12 +26,12 @@ using namespace Rococo::Sex::SEXML;
 namespace Rococo::CFGS
 {
 	IUI2DGridSlateSupervisor* Create2DGridControl(IAbstractEditorSupervisor& editor, Rococo::Editors::IUI2DGridEvents& eventHandler);
-	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db, Rococo::Events::IPublisher& publisher);
+	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db, Rococo::Events::IPublisher& publisher, ICFGSControllerConfig& config);
 
-	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, IAbstractEditorSupervisor& editor);
-	bool TryGetUserCFGSSavePath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor);
-	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath);
-	void LoadDatabase(ICFGSDatabase& db, const wchar_t* filename, CFGS::ICFGSLoader& loader);
+	bool TryGetUserSelectedCFGSPath(OUT U8FilePath& path, IAbstractEditorSupervisor& editor);
+	bool TryGetUserCFGSSavePath(OUT U8FilePath& path, Abedit::IAbstractEditorSupervisor& editor);
+	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, cstr filePath);
+	void LoadDatabase(ICFGSDatabase& db, cstr filename, CFGS::ICFGSLoader& loader);
 	void SaveDatabase(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb, ICFGArchiver& archiver);
 }
 
@@ -180,7 +180,7 @@ namespace ANON
 		}
 	};
 
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler, CFGS::ICFGArchiver, CFGS::ICFGSLoader
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler, CFGS::ICFGArchiver, CFGS::ICFGSLoader, CFGS::ICFGSControllerConfig
 	{
 		AutoFree<Rococo::Events::IPublisherSupervisor> publisher;
 		AutoFree<IAbstractEditorSupervisor> editor;
@@ -233,7 +233,7 @@ namespace ANON
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
 
-			ide = CFGS::Create_CFGS_IDE(*editor, *db, *publisher);
+			ide = CFGS::Create_CFGS_IDE(*editor, *db, *publisher, *this);
 
 			editor->BringToFront();
 		}
@@ -280,6 +280,16 @@ namespace ANON
 		{
 			bool isVisible = editor->IsVisible();
 			return isRunning && isVisible;
+		}
+
+		void OnExit() override
+		{
+			ide->OnExit();
+		}
+
+		void OnInitComplete() override
+		{
+			ide->OnInitComplete();
 		}
 
 		void GetErrorTitle(char* titleBuffer, size_t capacity) const
@@ -438,31 +448,36 @@ namespace ANON
 			return ide->IsConnectionPermitted(anchor, target);
 		}
 
-		WideFilePath lastSavedSysPath;
+		U8FilePath lastSavedSysPath;
+
+		void Load(cstr filename)
+		{
+			try
+			{
+				CFGS::LoadDatabase(*db, filename, *this);
+				gridSlate->QueueRedraw();
+				CopyString(lastSavedSysPath.buf, U8FilePath::CAPACITY, filename);
+				CFGS::SetTitleWithFilename(*editor, lastSavedSysPath);
+				editor->NavigationTree().RefreshGUI();
+			}
+			catch (Sex::ParseException& ex)
+			{
+				Rococo::Throw(ex.ErrorCode(), "Error loading %ls at line %d pos %d:\n\t%s", filename, ex.Start().y + 1, ex.Start().x + 1, ex.Message());
+			}
+			catch (IException& ex)
+			{
+				Rococo::Throw(ex.ErrorCode(), "Error loading %ls: %s", filename, ex.Message());
+			}
+		}
 
 		void OnSelectFileToLoad(IAbeditMainWindow& sender) override
 		{
 			UNUSED(sender);
 
-			WideFilePath sysPath;
+			U8FilePath sysPath;
 			if (CFGS::TryGetUserSelectedCFGSPath(OUT sysPath, *editor))
 			{
-				try
-				{
-					CFGS::LoadDatabase(*db, sysPath, *this);
-					gridSlate->QueueRedraw();
-					lastSavedSysPath = sysPath;
-					CFGS::SetTitleWithFilename(*editor, sysPath);
-					editor->NavigationTree().RefreshGUI();
-				}
-				catch (Sex::ParseException& ex)
-				{
-					Rococo::Throw(ex.ErrorCode(), "Error loading %ls at line %d pos %d:\n\t%s", sysPath.buf, ex.Start().y + 1, ex.Start().x + 1, ex.Message());
-				}
-				catch (IException& ex)
-				{
-					Rococo::Throw(ex.ErrorCode(), "Error loading %ls: %s", sysPath.buf, ex.Message());
-				}
+				Load(sysPath);
 			}
 		}
 
@@ -472,12 +487,30 @@ namespace ANON
 
 			UNUSED(sender);
 
-			WideFilePath sysPath;
+			U8FilePath sysPath;
 			if (CFGS::TryGetUserCFGSSavePath(OUT sysPath, *editor))
 			{
 				lastSavedSysPath = sysPath;
 				OnSelectSave(sender);
 				CFGS::SetTitleWithFilename(*editor, sysPath);		
+			}
+		}
+
+		cstr ActiveFile() override
+		{
+			return lastSavedSysPath.buf[0] != 0 ? lastSavedSysPath.buf : nullptr;
+		}
+
+		bool TryLoadActiveFile(cstr filename) override
+		{
+			try
+			{
+				Load(filename);
+				return true;
+			}
+			catch (IException&)
+			{
+				return false;
 			}
 		}
 
@@ -490,26 +523,26 @@ namespace ANON
 				return;
 			}
 
-			if (!EndsWith(lastSavedSysPath, L".cfgs.sxml"))
+			if (!EndsWith(lastSavedSysPath, ".cfgs.sxml"))
 			{
-				Rococo::Throw(0, "%ls:\nOnly perimitted to save files with extension cfgs.sxml", lastSavedSysPath.buf);
+				Rococo::Throw(0, "%s:\nOnly perimitted to save files with extension cfgs.sxml", lastSavedSysPath.buf);
 			}
 
-			WideFilePath wBackPath;
-			Format(wBackPath, L"%ls.bak", lastSavedSysPath.buf);
+			U8FilePath backPath;
+			Format(backPath, "%s.bak", lastSavedSysPath.buf);
 
 			try
 			{
 				Rococo::OS::LoadBinaryFile(lastSavedSysPath,
-					[&wBackPath](const uint8* fileData, size_t length)
+					[&backPath](const uint8* fileData, size_t length)
 					{
-						Rococo::IO::SaveBinaryFile(wBackPath, fileData, length);
+						Rococo::IO::SaveBinaryFile(backPath, fileData, length);
 					}
 				);
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "Error attempting to backup control flow graph to %ls. %s", wBackPath.buf, ex.Message());
+				Throw(ex.ErrorCode(), "Error attempting to backup control flow graph to %s. %s", backPath.buf, ex.Message());
 			}
 
 			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
@@ -552,8 +585,8 @@ namespace Rococo::CFGS
 		return new ANON::CFGS_Controller(host, view, commandLine);
 	}
 
-	const wchar_t* GetCFGSAppTitle()
+	cstr GetCFGSAppTitle()
 	{
-		return L"Rococo Control-Graph Flow System Editor";
+		return "Rococo Control-Graph Flow System Editor";
 	}
 }

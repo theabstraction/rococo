@@ -159,7 +159,7 @@ namespace Rococo::CFGS
 		sb.AddStringLiteral(key, buf);
 	}
 
-	void LoadDatabase(ICFGSDatabase& db, const wchar_t* filename, ICFGSLoader& loader)
+	void LoadDatabase(ICFGSDatabase& db, cstr filename, ICFGSLoader& loader)
 	{
 		Rococo::OS::LoadSXMLBySysPath(filename,
 			[&db, &loader](const ISEXMLDirectiveList& directives)

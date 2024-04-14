@@ -102,7 +102,7 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IWin32AbstractEditorSupervisor : IAbstractEditorSupervisor
 	{
 		virtual Windows::IParentWindowSupervisor& Slate() = 0;
-		virtual void SetTitleWithPath(const wchar_t* mainTitle, const wchar_t* filePath) = 0;
+		virtual void SetTitleWithPath(cstr mainTitle, cstr filePath) = 0;
 	};
 }
 #endif

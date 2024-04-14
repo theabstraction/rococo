@@ -143,7 +143,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR commandLine, int nSho
 
 		controller->TerminateOnMainWindowClose();
 
+		controller->OnInitComplete();
+
 		host.DoMainloop(*controller);
+
+		controller->OnExit();
 	}
 	catch (IException& ex)
 	{
