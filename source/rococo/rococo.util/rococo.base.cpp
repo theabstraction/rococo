@@ -68,7 +68,7 @@ namespace Rococo
 				randValue = Rococo::Time::TickCount();
 			}
 
-			randValue &= 0xFFFFFFFFFFFF0000ULL;
+			randValue &= 0xFFFF'FFFF'0000'0000ULL;
 
 			int32 next = uniqueCounter++;
 			int64 next64 = randValue | (int64)next;
