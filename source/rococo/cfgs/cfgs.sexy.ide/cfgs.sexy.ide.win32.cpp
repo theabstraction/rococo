@@ -194,14 +194,25 @@ namespace ANON
 		void SaveConfig(Rococo::Sex::SEXML::ISEXMLBuilder& builder)
 		{
 			builder.AddDirective("Header");
-			 builder.AddAtomicAttribute("Version", CONFIG_VERSION);
-			 builder.AddAtomicAttribute("App", "Sexy_CFGS_IDE");
+				 builder.AddAtomicAttribute("Version", CONFIG_VERSION);
+				 builder.AddAtomicAttribute("App", "Sexy_CFGS_IDE");
 			builder.CloseDirective();
 
 			builder.AddDirective("Recent");
-			 cstr activeFileName = config.ActiveFile();
-			 builder.AddStringLiteral("Active", activeFileName ? activeFileName : "");
-			builder.CloseDirective();
+				cstr activeFileName = config.ActiveFile();
+				builder.AddStringLiteral("Active", activeFileName ? activeFileName : "");
+
+				auto* f = cfgs.CurrentFunction();
+				if (!f)
+				{
+					builder.AddStringLiteral("ActiveFunction", "");
+				}
+				else
+				{
+					builder.AddAtomicAttribute("ActiveFunction", f->Name());
+				}
+
+			 builder.CloseDirective();
 		}
 
 		void OnExit() override
@@ -238,7 +249,11 @@ namespace ANON
 			cstr activeFilename = AsString(recent["Active"]).c_str();
 			if (activeFilename)
 			{
-				config.TryLoadActiveFile(activeFilename);
+				if (config.TryLoadActiveFile(activeFilename))
+				{
+					cstr fqName = AsString(recent["ActiveFunction"]).c_str();
+					navHandler->SelectFunction(fqName);
+				}
 			}
 		}
 

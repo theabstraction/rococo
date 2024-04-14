@@ -476,6 +476,25 @@ namespace Rococo::CFGS::IDE::Sexy
 			editor.RefreshSlate();
 		}
 
+		void SelectFunction(cstr fqName)
+		{
+			FunctionId id;
+			cfgs.ForEachFunction([&id, fqName](ICFGSFunction& f)
+				{
+					if (Eq(f.Name(), fqName))
+					{
+						id = f.Id();
+					}				
+				}
+			);
+
+			if (id)
+			{
+				cfgs.BuildFunction(id);
+				RegenerateProperties();
+			}
+		}
+
 		void OnItemSelected(TREE_NODE_ID id, IUITree& origin) override
 		{
 			UNUSED(origin);

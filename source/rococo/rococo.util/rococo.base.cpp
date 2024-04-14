@@ -29,6 +29,7 @@ namespace Rococo
 #include <rococo.os.h>
 #include <rococo.time.h>
 #include <atomic>
+#include <ctype.h>
 
 namespace Rococo
 {
@@ -63,6 +64,123 @@ namespace Rococo
 		id.iValues[1] = username.hash ^ Rococo::Time::UTCTime();
 
 		return id;
+	}
+
+	struct MehGuid
+	{
+		// Example: 30dd879c-ee2f-11db-8314-0800200c9a66
+		uint32 a;
+		uint16 b;
+		uint16 c;
+		uint16 d;
+		uint16 e;
+		uint32 f;
+	};
+
+	union GuidAndUniqueId
+	{
+		GuidAndUniqueId(): id(), guid() {}
+		UniqueIdHolder id;
+		MehGuid guid;
+	};
+
+	static_assert(sizeof MehGuid == sizeof UniqueIdHolder);
+	static_assert(sizeof GuidAndUniqueId == 16);
+
+	ROCOCO_ID_API void PopulateAsGuid(UniqueIdHolder id, IStringPopulator& populator)
+	{
+		GuidAndUniqueId glue;
+		glue.id = id;
+
+		MehGuid g = glue.guid;
+
+		// Example: 30dd879c-ee2f-11db-8314-0800200c9a66
+		char guidBuffer[40];
+		SafeFormat(guidBuffer, "%8.8x-%4.4x-%4.4x-%4.4x-%4.4x%8.8x", g.a, g.b, g.c, g.d, g.e, g.f);
+		populator.Populate(guidBuffer);
+	}
+
+	bool TryGrabHexToken(OUT uint32& value, cstr start, cstr end)
+	{
+		char buffer[16];
+
+		char* dest = buffer;
+
+		for (cstr s = start; s < end; s++)
+		{
+			char c = *s;
+			if (!isalnum(c))
+			{
+				return false;
+			}
+
+			*dest++ = c;
+		}
+
+		*dest++ = 0;
+
+		if (sscanf_s(buffer, "%x", &value) != 1)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	ROCOCO_ID_API bool TryScanGuid(OUT UniqueIdHolder& id, cstr buffer)
+	{
+		if (strlen(buffer) != 36)
+		{
+			return false;
+		}
+
+		uint32 a; // the first 8 digits
+		if (!TryGrabHexToken(a, buffer, buffer + 8))
+		{
+			return false;
+		}
+
+		uint32 b; // the next 4 digits
+		if (!TryGrabHexToken(b, buffer+9, buffer + 13))
+		{
+			return false;
+		}
+
+		uint32 c; // the next 4 digits
+		if (!TryGrabHexToken(c, buffer + 14, buffer + 18))
+		{
+			return false;
+		}
+		
+		uint32 d; // the next 4 digits
+		if (!TryGrabHexToken(d, buffer + 19, buffer + 23))
+		{
+			return false;
+		}
+
+		uint32 e; // the first 4 digits of the final 12 digit block
+		if (!TryGrabHexToken(e, buffer + 24, buffer + 28))
+		{
+			return false;
+		}
+
+		uint32 f; // The final 8 digits of the final 12 digit block
+		if (!TryGrabHexToken(f, buffer + 28, buffer + 36))
+		{
+			return false;
+		}
+
+		GuidAndUniqueId glue;
+		glue.guid.a = a;
+		glue.guid.b = (uint16) b;
+		glue.guid.c = (uint16) c;
+		glue.guid.d = (uint16) d;
+		glue.guid.e = (uint16) e;
+		glue.guid.f = f;
+
+		id = glue.id;
+
+		return true;
 	}
 
 	namespace IO
