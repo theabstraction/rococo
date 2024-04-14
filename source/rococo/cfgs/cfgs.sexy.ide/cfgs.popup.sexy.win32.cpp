@@ -44,6 +44,8 @@ namespace ANON
 		AutoFree<IParentWindowSupervisor> window;
 		AutoFree<IListViewSupervisor> listView;
 
+		HWND hListTitle{ 0 };
+
 		std::vector<NodeOption> options;
 
 		enum { Width = 640, Height = 480 };
@@ -253,11 +255,13 @@ namespace ANON
 			SetPopupWindowConfig(config, GuiRect{ 0, 0, 0, 0 }, editor.ContainerWindow(), "ContextPopup", style, 0);
 			window = Windows::CreateChildWindow(config, this);
 
+			hListTitle = CreateWindowExA(0, WC_STATICA, "Add node...", SS_CENTER | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, *window, NULL, NULL, NULL);
+
 			GuiRect nullRect{ 0,0,0,0 };
-			listView = AddListView(*window, nullRect, "", *this, LVS_REPORT | WS_VISIBLE | WS_CHILD, WS_VISIBLE | WS_CHILD, 0);
+			listView = AddListView(*window, nullRect, "", *this, LVS_REPORT | WS_VISIBLE | WS_CHILD | LVS_NOCOLUMNHEADER, WS_VISIBLE | WS_CHILD, 0);
 
 			cstr columns[] = { "Add Node...", nullptr };
-			int32 widths[] = { Width, 0 };
+			int32 widths[] = { Width - 18, 0 };
 			listView->UIList().SetColumns(columns, widths);
 
 			Layout();
@@ -292,7 +296,11 @@ namespace ANON
 			}
 
 			MoveWindow(*window, x, y, Width, Height, FALSE);
-			MoveWindow(*listView, 0, 0, Width, Height, FALSE);
+
+			enum { TITLE_HEIGHT = 24 };
+
+			MoveWindow(hListTitle, 0, 0, Width, TITLE_HEIGHT, FALSE);
+			MoveWindow(*listView, 0, TITLE_HEIGHT, Width, Height - TITLE_HEIGHT, FALSE);
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override

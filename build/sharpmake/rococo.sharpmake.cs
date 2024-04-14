@@ -1343,6 +1343,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
             conf.AddPublicDependency<SexySParserProject>(target);
+            conf.AddPublicDependency<CFGSFlatEditorMarshaller>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
         }

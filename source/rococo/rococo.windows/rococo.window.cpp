@@ -491,11 +491,11 @@ namespace Rococo
 			return parent.AddChild(childConfig, "EDIT", id);
 		}
 
-		IWin32SuperComboBox* AddSuperComboBox(IWindow& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx)
+		IWin32SuperComboBox* AddSuperComboBox(IWindow& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, Vec2i listSpan, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
-			SuperComboBox* b = SuperComboBox::Create(spec, childConfig, parent, id);
+			SuperComboBox* b = SuperComboBox::Create(spec, childConfig, parent, id, listSpan);
 			return b;
 		}
 

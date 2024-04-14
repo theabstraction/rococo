@@ -147,14 +147,14 @@ namespace Rococo::Windows::Internal
 		return editor;
 	}
 
-	Rococo::Windows::IWin32SuperComboBox* AddOptionsList(ISuperListSpec& spec, const VisualStyle& style, IWindow& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, UI::SysWidgetId id)
+	Rococo::Windows::IWin32SuperComboBox* AddOptionsList(ISuperListSpec& spec, const VisualStyle& style, IWindow& panel, cstr currentOptionText, int yOffset, size_t maxCharacters, UI::SysWidgetId id, Vec2i listSpan)
 	{
 		RECT containerRect;
 		GetClientRect(panel, &containerRect);
 
 		if (containerRect.right < style.minSpan) containerRect.right = style.minSpan;
 
-		auto* editor = Rococo::Windows::AddSuperComboBox(panel, spec, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, currentOptionText, id.value, WS_VISIBLE, 0);
+		auto* editor = Rococo::Windows::AddSuperComboBox(panel, spec, GuiRect{ style.labelSpan, yOffset, containerRect.right, yOffset + style.rowHeight }, currentOptionText, id.value, listSpan, WS_VISIBLE, 0);
 
 		size_t trueMaxLen = max(strlen(currentOptionText), maxCharacters);
 		if (trueMaxLen == 0) trueMaxLen = 32768;
@@ -909,6 +909,8 @@ namespace Rococo::Windows::Internal
 		}
 	};
 
+	static int maxContentWidth = 200;
+
 	struct OptionVectorProperty : IPropertySupervisor, ISuperListSpec, ISuperListEvents
 	{
 		AutoFree<IEnumVectorSupervisor> enumVector;
@@ -1013,7 +1015,8 @@ namespace Rococo::Windows::Internal
 				Throw(0, "%s: unexpected non-null selectedOptionEditor for %s", __FUNCTION__, displayName.c_str());
 			}
 
-			selectedOptionEditor = Internal::AddOptionsList(*this, style, panel, selectedText, yOffset, stringCapacity, editorId);
+			float goldenRatio = 1.618f;
+			selectedOptionEditor = Internal::AddOptionsList(*this, style, panel, selectedText, yOffset, stringCapacity, editorId, Vec2i { maxContentWidth, (int) (maxContentWidth * goldenRatio) });
 
 			auto& builder = selectedOptionEditor->ListBuilder();
 
@@ -1030,6 +1033,10 @@ namespace Rococo::Windows::Internal
 				// Column zero is keyed for the enum name, but also displays the key name
 				builder.AddKeyValue(keyBuffer.data(), keyBuffer.data());
 			}
+
+			int contentWidth = builder.GetMaxContentWidth() + 40;
+			maxContentWidth = max(maxContentWidth, contentWidth);
+			builder.SetSpan({ contentWidth, (int)(goldenRatio * contentWidth) });
 
 			return GetEditorRect(section, style, panel, yOffset);
 		}

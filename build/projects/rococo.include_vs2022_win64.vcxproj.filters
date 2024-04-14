@@ -105,7 +105,9 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.DirectX.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.dx12.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.editors.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.eventargs.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.events.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.events.map.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.file.browser.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.hq.h" />
@@ -184,8 +186,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.eventargs.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.events.map.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">
