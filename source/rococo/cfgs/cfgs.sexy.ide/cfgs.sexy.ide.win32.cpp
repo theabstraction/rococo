@@ -3,6 +3,7 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 #include <rococo.sexml.h>
+#include <rococo.maths.i32.h>
 
 using namespace Rococo::CFGS::IDE::Sexy;
 
@@ -62,9 +63,22 @@ namespace ANON
 
 		ICFGSControllerConfig& config;
 
+		MessageMap<Sexy_CFGS_IDE> messageMap;
+
+		GuiRect lastWindowRect;
+
 		Sexy_CFGS_IDE(HWND _hHostWindow, ICFGSDatabase& _cfgs, IAbstractEditor& _editor, Rococo::Events::IPublisher& _publisher, ICFGSControllerConfig& _config):
-			hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), publisher(_publisher), contextMenu(CreateMenu(true)), hWndMenuTarget(editor.ContainerWindow()), config(_config)
+			hHostWindow(_hHostWindow), cfgs(_cfgs), editor(_editor), publisher(_publisher), contextMenu(CreateMenu(true)), hWndMenuTarget(editor.ContainerWindow()), config(_config), messageMap(_publisher, *this), lastWindowRect{ 0,0,0,0 }
 		{
+			messageMap.AddHandler("EvWindowResized"_event, &Sexy_CFGS_IDE::OnWindowResized);
+		}
+
+		void OnWindowResized(Abedit::WindowResizedArgs& args)
+		{
+			if (args.source == Abedit::WindowResizedArgs::SourceId::MainWindow)
+			{
+				lastWindowRect = args.screenPosition;
+			}
 		}
 
 		ICFGSIDEContextMenu& ContextMenu() override
@@ -191,6 +205,23 @@ namespace ANON
 			return *designerSpacePopup;
 		}
 
+		void SaveRect(const GuiRect& rect, Rococo::Sex::SEXML::ISEXMLBuilder& builder)
+		{
+			builder.AddAtomicAttribute("Left", rect.left);
+			builder.AddAtomicAttribute("Top", rect.top);
+			builder.AddAtomicAttribute("Right", rect.right);
+			builder.AddAtomicAttribute("Bottom", rect.bottom);
+		}
+
+		GuiRect AsRect(const Rococo::Sex::SEXML::ISEXMLDirective& directive)
+		{
+			int32 left = AsAtomicInt32(directive["Left"]);
+			int32 top = AsAtomicInt32(directive["Top"]);
+			int32 right = AsAtomicInt32(directive["Right"]);
+			int32 bottom = AsAtomicInt32(directive["Bottom"]);
+			return GuiRect{ left, top, right, bottom };
+		}
+
 		void SaveConfig(Rococo::Sex::SEXML::ISEXMLBuilder& builder)
 		{
 			builder.AddDirective("Header");
@@ -211,6 +242,20 @@ namespace ANON
 				{
 					builder.AddAtomicAttribute("ActiveFunction", f->Name());
 				}
+
+			 builder.CloseDirective();
+
+			 builder.AddDirective("MainWindow");
+
+			 if (lastWindowRect.right > lastWindowRect.left)
+			 {
+				 SaveRect(lastWindowRect, builder);
+			 }
+			 else
+			 {
+				 GuiRect nullRect = { 0,0,0,0 };
+				 SaveRect(nullRect, builder);
+			 }
 
 			 builder.CloseDirective();
 		}
@@ -255,10 +300,34 @@ namespace ANON
 					navHandler->SelectFunction(fqName);
 				}
 			}
+
+			auto& mainWindow = GetDirective(topLevelDirectives, "MainWindow", IN OUT startIndex);
+
+			GuiRect rect = AsRect(mainWindow);
+
+			Vec2i span = Span(rect);
+
+			Vec2i maxSpan = GetDesktopSpan();
+			Vec2i minSpan = { 128, 128 };
+
+			if (span.x > 0 && span.y > 0)
+			{
+				span.x = clamp(span.x, minSpan.x, maxSpan.x);
+				span.y = clamp(span.y, minSpan.y, maxSpan.y);
+
+				if (GetParent(editor.ContainerWindow()) == nullptr)
+				{
+					MoveWindow(editor.ContainerWindow(), rect.left, rect.top, span.x, span.y, TRUE);
+				}
+			}
 		}
 
 		void OnInitComplete() override
 		{
+			RECT editorRect;
+			GetWindowRect(editor.ContainerWindow(), &editorRect);
+			lastWindowRect = FromRECT(editorRect);
+
 			if (!Rococo::OS::IsUserSEXMLExistant(nullptr, CONFIG_SECTION))
 			{
 				return;

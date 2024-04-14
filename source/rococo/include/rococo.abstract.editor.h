@@ -2,6 +2,7 @@
 
 #include <rococo.types.h>
 #include <rococo.visitors.h>
+#include <rococo.eventargs.h>
 
 #define IMPLEMENTATION_TYPE_WIN32_HWND "Win32-HWND"
 
@@ -26,6 +27,18 @@ namespace Rococo::Visitors
 // Abstract Editor - namespace for the property+palette+blank-slate GUI
 namespace Rococo::Abedit
 {
+	struct WindowResizedArgs : Rococo::Events::EventArgs
+	{
+		GuiRect screenPosition;
+
+		enum class SourceId
+		{
+			MainWindow
+		};
+
+		SourceId source;
+	};
+
 	ROCOCO_INTERFACE IUIPalette
 	{
 

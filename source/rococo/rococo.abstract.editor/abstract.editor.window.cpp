@@ -6,6 +6,7 @@
 #include <rococo.window.h>
 #include <windowsx.h>
 #include <CommCtrl.h>
+#include <rococo.events.h>
 
 using namespace Rococo;
 using namespace Rococo::Abedit;
@@ -770,6 +771,20 @@ namespace ANON
 			Layout();
 
 			InvalidateRect(hWnd, NULL, TRUE);
+
+			if (type != RESIZE_TYPE_MINIMIZED && span.x > -16000)
+			{
+				RECT rect;
+				GetWindowRect(hWnd, &rect);
+
+				WindowResizedArgs args;
+				args.screenPosition.left = rect.left;
+				args.screenPosition.right = rect.right;
+				args.screenPosition.top = rect.top;
+				args.screenPosition.bottom = rect.bottom;
+				args.source = WindowResizedArgs::SourceId::MainWindow;
+				publisher.Publish(args, "EvWindowResized"_event);
+			}
 		}
 
 		void Hide() override
