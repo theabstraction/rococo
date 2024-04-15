@@ -708,6 +708,8 @@ namespace Rococo::CFGS::Internal
 		{
 			UNUSED(buttonFlags);
 
+			eventHandler.CFGSGuiEventHandler_OnNodeSelected(NodeId());
+
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
 			{
@@ -763,6 +765,7 @@ namespace Rococo::CFGS::Internal
 				{
 					node->SetDesignOffset(designerDelta, true);					
 					eventHandler.CFGSGuiEventHandler_OnNodeDragged(dragId);
+					eventHandler.CFGSGuiEventHandler_OnNodeSelected(dragId);
 				}
 
 				dragId = NodeId();

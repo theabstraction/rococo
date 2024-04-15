@@ -52,10 +52,16 @@ namespace Rococo::Events
 	   virtual void OnEvent(Event & ev) = 0;
 	};
 
+	enum class PostQuality
+	{
+		Guaranteed,
+		Lossy
+	};
+
 	class ROCOCO_NO_VTABLE IPublisher
 	{
 	private:
-		virtual void RawPost(const EventArgs& ev, const EventIdRef& id, bool isLossy, cstr senderSignature) = 0;
+		virtual void RawPost(const EventArgs& ev, const EventIdRef& id, PostQuality quality, cstr senderSignature) = 0;
 		virtual void RawPublish(EventArgs& ev, const EventIdRef& id, cstr senderSignature) = 0;
 	public:
 		virtual bool Match(const Event& ev, const EventIdRef& ref) = 0;
@@ -65,11 +71,19 @@ namespace Rococo::Events
 		virtual void Unsubscribe(IObserver* observer) = 0;
 		virtual void ThrowBadEvent(const Event& ev) = 0;
 
-		template<class T> inline void Post(T& ev, const EventIdRef& id, bool isLossy)
+		template<class T> inline void Post(T& ev, const EventIdRef& id, PostQuality quality = PostQuality::Guaranteed)
 		{
 			ev.sizeInBytes = sizeof(T);
-			RawPost(ev, id, isLossy, __FUNCSIG__);
+			RawPost(ev, id, quality, __FUNCSIG__);
 		}
+
+		template<class T> inline void PostOneArg(T arg, const EventIdRef& id, PostQuality quality = PostQuality::Guaranteed)
+		{
+			TEventArgs<T> args;
+			args.value = arg;
+			Post(args, id, quality);
+		}
+
 		template<class T> inline void Publish(T& ev, const EventIdRef& id)
 		{
 			ev.sizeInBytes = sizeof(T);

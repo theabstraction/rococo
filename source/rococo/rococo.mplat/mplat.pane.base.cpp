@@ -62,7 +62,7 @@ void BasePane::Invoke(IPublisher& publisher, int32 stateIndex)
 
 			if (c.defer)
 			{
-				publisher.Post(invoke, evUIInvoke, true);
+				publisher.Post(invoke, evUIInvoke, PostQuality::Lossy);
 			}
 			else
 			{

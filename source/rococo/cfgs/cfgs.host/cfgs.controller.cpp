@@ -429,6 +429,11 @@ namespace ANON
 			gridSlate->QueueRedraw();
 		}
 
+		void CFGSGuiEventHandler_OnNodeSelected(const CFGS::NodeId& id) override
+		{
+			publisher->PostOneArg(id, "OnNodeSelected"_event);
+		}
+
 		void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) override
 		{
 			auto& popup = ide->DesignerSpacePopup();

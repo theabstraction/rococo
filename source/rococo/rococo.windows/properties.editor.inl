@@ -1524,7 +1524,7 @@ namespace Rococo::Windows::Internal
 				events.OnDeleteSection(this->id);
 
 				Events::EventArgs noArgs;
-				publisher.Post(noArgs, "EvRegenerate"_event, false);
+				publisher.Post(noArgs, "EvRegenerate"_event);
 			}
 		}
 

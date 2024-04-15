@@ -23,11 +23,9 @@ using namespace Rococo::Windows;
 using namespace Rococo::Visitors;
 using namespace Rococo::Abedit;
 using namespace Rococo::Events;
+using namespace Rococo::Reflection;
 
 static const char* title = "CFGS SexyStudio IDE";
-static auto evRegenerate = "EvRegenerate"_event;
-static auto evFunctionChanged = "EvFunctionChanged"_event;
-static auto evPropertyChanged = "EvPropertyChanged"_event;
 
 namespace Rococo::CFGS
 {
@@ -232,7 +230,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		Visitors::TREE_NODE_ID id;
 		Visitors::IUITree& tree;
 
-		RenameFNameValidator(IVariableEditor& _editor, Visitors::TREE_NODE_ID _id, Visitors::IUITree& _tree) : editor(_editor), id(_id), tree(_tree)
+		RenameFNameValidator(IVariableEditor& _editor, TREE_NODE_ID _id, IUITree& _tree) : editor(_editor), id(_id), tree(_tree)
 		{
 
 		}
@@ -305,7 +303,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
-		void AppendNamespaceStructsRecursive(Rococo::SexyStudio::ISxyNamespace& subspace)
+		void AppendNamespaceStructsRecursive(ISxyNamespace& subspace)
 		{
 			char structName[256] = { 0 };
 			StackStringBuilder sb(structName, sizeof structName, StringBuilder::CursorState::BUILD_EXISTING);
@@ -341,7 +339,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			return typeList.size();
 		}
 
-		bool GetEnumName(size_t i, Strings::IStringPopulator& populator) const override
+		bool GetEnumName(size_t i, IStringPopulator& populator) const override
 		{
 			if (i >= typeList.size())
 			{
@@ -353,7 +351,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			return true;
 		}
 
-		bool GetEnumDescription(size_t i, Strings::IStringPopulator& populator) const override
+		bool GetEnumDescription(size_t i, IStringPopulator& populator) const override
 		{
 			if (i >= typeList.size())
 			{
@@ -384,7 +382,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		}
 	};
 
-	struct NavigationHandler : ICFGSIDENavigation, Visitors::ITreeControlHandler
+	struct NavigationHandler : ICFGSIDENavigation, ITreeControlHandler
 	{
 		MessageMap<NavigationHandler> messageMap;
 
@@ -417,12 +415,15 @@ namespace Rococo::CFGS::IDE::Sexy
 		IPublisher& publisher;
 		ICFGSIDEGui& gui;
 
+		NodeId selectedNode;
+
 		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui) :
 			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this)
 		{
-			messageMap.AddHandler(evRegenerate, &NavigationHandler::OnRegenerate);
-			messageMap.AddHandler(evPropertyChanged, &NavigationHandler::OnPropertyChanged);
-			messageMap.AddHandler(evFunctionChanged, &NavigationHandler::OnFunctionChanged);
+			messageMap.AddHandler("EvRegenerate"_event, &NavigationHandler::OnRegenerate);
+			messageMap.AddHandler("EvPropertyChanged"_event, &NavigationHandler::OnPropertyChanged);
+			messageMap.AddHandler("EvFunctionChanged"_event, &NavigationHandler::OnFunctionChanged);
+			messageMap.AddHandler("OnNodeSelected"_event, &NavigationHandler::OnNodeSelected);
 		}
 
 		~NavigationHandler()
@@ -438,7 +439,12 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
-		void OnPropertyChanged(TEventArgs<Rococo::Reflection::IPropertyEditor*>& args)
+		void OnNodeSelected(TEventArgs<NodeId>& args)
+		{
+			selectedNode = args;
+		}
+
+		void OnPropertyChanged(TEventArgs<IPropertyEditor*>& args)
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (f)

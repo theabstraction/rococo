@@ -41,8 +41,13 @@ namespace Rococo
 
 	namespace Ids
 	{
+		struct GuidString
+		{
+			char buffer[48];
+		};
+
 		ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId();
-		ROCOCO_ID_API void PopulateAsGuid(UniqueIdHolder id, Strings::IStringPopulator& populator);
+		ROCOCO_ID_API void ToGuidString(UniqueIdHolder id, OUT GuidString& guidString);
 		ROCOCO_ID_API bool TryScanGuid(OUT UniqueIdHolder& id, cstr buffer);
 	}
 }

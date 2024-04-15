@@ -946,7 +946,7 @@ namespace Rococo::CFGS::Internal
 
 			FunctionIdArg arg;
 			arg.functionId = functionId;
-			publisher.Post(arg, "EvFunctionChanged"_event, false);
+			publisher.Post(arg, "EvFunctionChanged"_event);
 		}
 	};		
 

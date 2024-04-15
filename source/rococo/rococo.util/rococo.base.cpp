@@ -110,7 +110,7 @@ namespace Rococo
 		static_assert(sizeof MehGuid == sizeof UniqueIdHolder);
 		static_assert(sizeof GuidAndUniqueId == 16);
 
-		ROCOCO_ID_API void PopulateAsGuid(UniqueIdHolder id, IStringPopulator& populator)
+		ROCOCO_ID_API void ToGuidString(UniqueIdHolder id, OUT GuidString& guidString)
 		{
 			GuidAndUniqueId glue;
 			glue.id = id;
@@ -118,9 +118,7 @@ namespace Rococo
 			MehGuid g = glue.guid;
 
 			// Example: 30dd879c-ee2f-11db-8314-0800200c9a66
-			char guidBuffer[40];
-			SafeFormat(guidBuffer, "%8.8x-%4.4x-%4.4x-%4.4x-%4.4x%8.8x", g.a, g.b, g.c, g.d, g.e, g.f);
-			populator.Populate(guidBuffer);
+			SafeFormat(guidString.buffer, "%8.8x-%4.4x-%4.4x-%4.4x-%4.4x%8.8x", g.a, g.b, g.c, g.d, g.e, g.f);
 		}
 
 		bool TryGrabHexToken(OUT uint32& value, cstr start, cstr end)

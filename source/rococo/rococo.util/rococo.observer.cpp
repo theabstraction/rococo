@@ -68,7 +68,7 @@ namespace
 			postedEvents.erase(delPoint, postedEvents.end());
 		}
 
-		void RawPost(const EventArgs& ev, const EventIdRef& ref, bool isLossy, cstr senderSignature) override
+		void RawPost(const EventArgs& ev, const EventIdRef& ref, PostQuality quality, cstr senderSignature) override
 		{
 			static_assert(sizeof(LargestPossibleEvent) == 256);
 
@@ -89,7 +89,7 @@ namespace
 				Throw(0, "Publisher: cannot post event. The event.sizeInBytes was > %llu. Check that it was posted correctly", sizeof(LargestPossibleEvent));
 			}
 
-			if (isLossy && postedEvents.size() > LOSS_AT)
+			if (quality == PostQuality::Lossy && postedEvents.size() > LOSS_AT)
 			{
 				FlushLossyPackets();
 
@@ -108,7 +108,7 @@ namespace
 			auto* src = reinterpret_cast<const LargestPossibleEvent*>(&ev);
 			auto* dst = &evb.largestPossibleEvent;
 			memcpy(dst, src, sizeof(LargestPossibleEvent));
-			evb.isLossy = isLossy;
+			evb.isLossy = quality == PostQuality::Lossy;
 			evb.ref = ref;
 			evb.senderSignature =  senderSignature;
 			postedEvents.push_back(evb);

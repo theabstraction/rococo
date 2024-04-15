@@ -347,6 +347,7 @@ namespace Rococo::CFGS
 		virtual void CFGSGuiEventHandler_OnCableLaying(const CableConnection& anchor) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) = 0;
+		virtual void CFGSGuiEventHandler_OnNodeSelected(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) = 0;
 		virtual bool CFGSGuiEventHandler_IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& targetSocket) const = 0;
 	};
