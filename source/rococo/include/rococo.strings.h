@@ -359,6 +359,18 @@ namespace Rococo::Strings
 
 	ROCOCO_API_EXPORT void GetSecureHashInfo(SecureHashInfo& info, const char* buffer, size_t bufferLength);
 
+	template<uint32 capacity>
+	struct PopulationBuffer : IStringPopulator
+	{
+		char data[capacity];
+		operator cstr() const { return data; }
+
+		void Populate(cstr text) override
+		{
+			CopyString(data, capacity, text);
+		}
+	};
+
 	namespace CLI
 	{
 		struct CommandLineOption

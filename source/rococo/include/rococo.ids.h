@@ -43,7 +43,7 @@ namespace Rococo
 	{
 		struct GuidString
 		{
-			char buffer[48];
+			char buffer[40];
 		};
 
 		ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId();

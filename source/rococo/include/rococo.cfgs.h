@@ -116,6 +116,12 @@ namespace Rococo::CFGS
 		// [circleRect] is the rect bounding the socket circle. 
 		// [edgePoint] is the point on the perimeter of the node through which the cable leading to the socket connects
 		virtual [[nodiscard]] void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) const = 0;
+
+		// Tries to assign an opauque string keyed by the [fieldName]. Note that the field set is mutable
+		virtual [[nodiscard]] void SetField(cstr fieldName, cstr fieldValue) const = 0;
+
+		// Tries to retrieve an opaque string by field name.
+		virtual bool TryGetField(cstr fieldName, Strings::IStringPopulator& populator) const = 0;
 	};
 
 	struct CFGSNodeType

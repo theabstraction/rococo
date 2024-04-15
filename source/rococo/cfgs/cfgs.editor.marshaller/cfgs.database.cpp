@@ -3,7 +3,7 @@
 #include <rococo.strings.h>
 #include <rococo.time.h>
 #include <rococo.os.h>
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <rococo.functional.h>
 #include <rococo.properties.h>
 #include <rococo.validators.h>
@@ -131,6 +131,33 @@ namespace Rococo::CFGS::Internal
 		{
 			lastCircleRect = circleRect;
 			lastEdgePoint = edgePoint;
+		}
+
+		mutable stringmap<HString> fields;
+
+		void SetField(cstr fieldName, cstr fieldValue) const override
+		{
+			fields[fieldName] = fieldValue;
+		}
+
+		bool TryGetField(cstr fieldName, IStringPopulator& populator) const override
+		{
+			auto i = fields.find(fieldName);
+			if (i != fields.end())
+			{
+				populator.Populate(i->second);
+				return true;
+			}
+
+			return false;
+		}
+
+		void EnumerateFields(Rococo::Function<void(cstr fieldName, cstr fieldValue)> callback)
+		{
+			for (auto i : fields)
+			{
+				callback.Invoke(i.first, i.second);
+			}
 		}
 	};
 

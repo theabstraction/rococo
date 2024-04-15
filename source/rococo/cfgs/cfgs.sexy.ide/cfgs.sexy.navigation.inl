@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <rococo.variable.editor.h>
 #include <rococo.events.map.h>
+#include <rococo.validators.h>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -24,6 +25,7 @@ using namespace Rococo::Visitors;
 using namespace Rococo::Abedit;
 using namespace Rococo::Events;
 using namespace Rococo::Reflection;
+using namespace Rococo::Validators;
 
 static const char* title = "CFGS SexyStudio IDE";
 
@@ -382,6 +384,269 @@ namespace Rococo::CFGS::IDE::Sexy
 		}
 	};
 
+	struct VisitorId
+	{
+		char buf[128];
+		operator cstr() { return buf; }
+	};
+
+	VisitorId FormatWithId(cstr prefix, UniqueIdHolder idHolder)
+	{
+		VisitorId id;
+		SecureFormat(id.buf, "%s_%llx_%llx", prefix, idHolder.iValues[0], idHolder.iValues[1]);
+		return id;
+	}
+
+	VisitorId FormatWithId(cstr prefix, cstr subprefix, UniqueIdHolder idHolder)
+	{
+		VisitorId id;
+		SecureFormat(id.buf, "%s_%s_%llx_%llx", prefix, subprefix, idHolder.iValues[0], idHolder.iValues[1]);
+		return id;
+	}
+
+	struct TargetNode : IPropertyVenue, IPropertyUIEvents
+	{
+		ICFGSNode* node = nullptr;
+
+		void CallArrayMethod(cstr arrayId, Function<void(IArrayProperty&)> callback) override
+		{
+			UNUSED(arrayId);
+			UNUSED(callback);
+		}
+
+		void OnBooleanButtonChanged(IPropertyEditor& property) override
+		{
+			UNUSED(property);
+		}
+
+		void OnPropertyEditorLostFocus(IPropertyEditor& property) override
+		{
+			UNUSED(property);
+		}
+
+		void OnDeleteSection(cstr sectionId) override
+		{
+			UNUSED(sectionId);
+		}
+
+		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
+		{
+			UNUSED(propertyId);
+			UNUSED(agent);
+		}
+
+		bool IsPrimitive(cstr type) const
+		{
+			if (Eq(type, "Float32") || Eq(type, "Sys.Type.Float32"))
+			{
+				return true;
+			}
+			else if (Eq(type, "Float64") || Eq(type, "Sys.Type.Float64"))
+			{
+				return true;
+			}
+			else if (Eq(type, "Int32") || Eq(type, "Sys.Type.Int32"))
+			{
+				return true;
+			}
+			else if (Eq(type, "Int64") || Eq(type, "Sys.Type.Int64"))
+			{
+				return true;
+			}
+			else if (Eq(type, "Bool") || Eq(type, "Sys.Type.Bool"))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		VisitorId FieldId(cstr type, cstr variableName)
+		{
+			VisitorId id;
+			if (!FindChar(variableName, '.'))
+			{			
+				SafeFormat(id.buf, "%s %s", type, variableName);			
+			}
+			else
+			{
+				SafeFormat(id.buf, "%s <value>", type);
+			}
+
+			return id;
+		}
+
+		void RecursivelyVisitFields(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName)
+		{
+			cstr type = socket.Type().Value;
+
+			if (Eq(type, "Float32") || Eq(type, "Sys.Type.Float32"))
+			{
+				float fValue = 0.0f;
+
+				PopulationBuffer<64> fBuffer;
+				if (socket.TryGetField(variableName, fBuffer))
+				{
+					_CRT_FLOAT f;
+					if (0 == _atoflt(&f, fBuffer))
+					{
+						fValue = f.f;
+					}
+				}
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Float32", variableName), *this, REF fValue, AllFloatsAreValid(), FloatDecimals());
+
+				if (visitor.IsWritingToReferences())
+				{
+					SafeFormat(fBuffer.data, "%f", fValue);
+					socket.SetField(variableName, fBuffer);
+				}
+			}
+			else if (Eq(type, "Float64") || Eq(type, "Sys.Type.Float64"))
+			{
+				double dValue = 0.0;
+
+				PopulationBuffer<64> dBuffer;
+				if (socket.TryGetField(variableName, dBuffer))
+				{
+					_CRT_DOUBLE f;
+					if (0 == _atodbl(&f, dBuffer.data))
+					{
+						dValue = f.x;
+					}
+				}
+
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Float64", variableName), *this, REF dValue, AllDoublesAreValid(), DoubleDecimals());
+
+				if (visitor.IsWritingToReferences())
+				{
+					SafeFormat(dBuffer.data, "%llf", dValue);
+					socket.SetField(variableName, dBuffer);
+				}
+			}
+			else if (Eq(type, "Int32") || Eq(type, "Sys.Type.Int32"))
+			{
+				int32 iValue = 0;
+
+				PopulationBuffer<64> iBuffer;
+				if (socket.TryGetField(variableName, iBuffer))
+				{
+					iValue = atoi(iBuffer);
+				}
+
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Int32", variableName), *this, REF iValue, AllInt32sAreValid(), Int32Decimals());
+
+				if (visitor.IsWritingToReferences())
+				{
+					SafeFormat(iBuffer.data, "%d", iValue);
+					socket.SetField(variableName, iBuffer);
+				}
+			}
+			else if (Eq(type, "Int64") || Eq(type, "Sys.Type.Int64"))
+			{
+				int64 iValue = 0;
+
+				PopulationBuffer<64> iBuffer;
+				if (socket.TryGetField(variableName, iBuffer))
+				{
+					iValue = _atoi64(iBuffer);
+				}
+
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Int64", variableName), *this, REF iValue, AllInt64sAreValid(), Int64Decimals());
+
+				if (visitor.IsWritingToReferences())
+				{
+					SafeFormat(iBuffer.data, "%d", iValue);
+					socket.SetField(variableName, iBuffer);
+				}
+			}
+			else if (Eq(type, "Bool") || Eq(type, "Sys.Type.Bool"))
+			{
+				bool truthValue = 0;
+
+				PopulationBuffer<64> buffer;
+				if (socket.TryGetField(variableName, buffer))
+				{
+					truthValue = Eq(buffer, "true");
+				}
+
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Bool", variableName), *this, REF truthValue, AllBoolsAreValid(), BoolFormatter());
+
+				if (visitor.IsWritingToReferences())
+				{
+					SafeFormat(buffer.data, "%s", truthValue ? "true" : "false");
+					socket.SetField(variableName, buffer);
+				}
+			}
+		}
+
+		void VisitVenue(IPropertyVisitor& visitor) override
+		{
+			if (node == nullptr) Throw(0, "%s: node should have assigned prior to the visitation", __FUNCTION__);
+
+			auto& n = *node;
+
+			visitor.VisitHeader(FormatWithId("NodeHeader", n.UniqueId()), "Callee", n.Type().Value);
+			visitor.VisitHeader(FormatWithId("NodeHeaderBlank", n.UniqueId()), "", "");
+
+			int inputCount = 0;
+			int outputCount = 0;
+
+			for (int32 i = 0; i < n.SocketCount(); i++)
+			{
+				auto& s = n[i];
+				char desc[256];
+
+				switch (s.SocketClassification())
+				{
+				case SocketClass::ConstInputRef:
+				case SocketClass::InputRef:
+				case SocketClass::InputVar:
+					inputCount++;
+					if (inputCount == 1)
+					{
+						visitor.VisitHeader(FormatWithId("NodeInputHeader", n.UniqueId()), "Inputs", "");
+					}
+
+					if (!IsPrimitive(s.Type().Value))
+					{
+						SafeFormat(desc, "%s %s", s.Type().Value, s.Name());
+						visitor.VisitHeader(FormatWithId("SocketInHeader", s.Id()), "", desc);
+					}
+					RecursivelyVisitFields(s, visitor, s.Name());
+					break;
+				}
+			}
+
+			if (inputCount > 0)
+			{
+				visitor.VisitHeader(FormatWithId("NodeInputHeaderSpacer", n.UniqueId()), "", "");
+			}
+
+			for (int32 i = 0; i < n.SocketCount(); i++)
+			{
+				auto& s = n[i];
+				char desc[256];
+				switch (s.SocketClassification())
+				{
+				case SocketClass::ConstOutputRef:
+				case SocketClass::OutputRef:
+				case SocketClass::OutputValue:
+					outputCount++;
+					if (outputCount == 1)
+					{
+						visitor.VisitHeader(FormatWithId("NodeOutputHeader", n.UniqueId()), "Outputs", "");
+					}
+
+					SafeFormat(desc, "%s %s", s.Type().Value, s.Name());
+					visitor.VisitHeader(FormatWithId("SocketOutHeader", s.Id()), "", desc);
+					break;
+				}
+			}
+		}
+	};
+
 	struct NavigationHandler : ICFGSIDENavigation, ITreeControlHandler
 	{
 		MessageMap<NavigationHandler> messageMap;
@@ -417,6 +682,8 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		NodeId selectedNode;
 
+		TargetNode targetNode;
+
 		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui) :
 			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this)
 		{
@@ -442,6 +709,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		void OnNodeSelected(TEventArgs<NodeId>& args)
 		{
 			selectedNode = args;
+			RegenerateProperties();
 		}
 
 		void OnPropertyChanged(TEventArgs<IPropertyEditor*>& args)
@@ -473,10 +741,29 @@ namespace Rococo::CFGS::IDE::Sexy
 			auto* f = cfgs.CurrentFunction();
 			if (f)
 			{
-				f->SetInputTypeOptions(&inputTypes);
-				f->SetOutputTypeOptions(&outputTypes);
 				editor.Properties().Clear();
-				editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
+
+				if (!selectedNode)
+				{
+					f->SetInputTypeOptions(&inputTypes);
+					f->SetOutputTypeOptions(&outputTypes);
+					editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
+				}
+				else
+				{
+					auto* node = f->Nodes().FindNode(selectedNode);
+					if (!node)
+					{
+						selectedNode = NodeId();
+						RegenerateProperties();
+						return;
+					}
+					else
+					{
+						targetNode.node = node;
+						editor.Properties().BuildEditorsForProperties(targetNode);
+					}
+				}
 			}
 
 			editor.RefreshSlate();
