@@ -109,11 +109,25 @@ namespace Rococo::Reflection
 		bool isOrderImmutable : 1;
 	};
 
+	struct PropertyFormatSpec
+	{
+		bool hideDisplayName : 1;
+		bool emphasize : 1;
+
+		PropertyFormatSpec(): hideDisplayName(false), emphasize(false)
+		{
+			
+		}
+	};
+
 	// A visitor to an agent is informed of the properties of the agent via these methods
 	// They can be used to serialize data and to sync widgets
+	// Note that display names, provided in the PropertyMarshallingStubs can contain special control sequences.
+	// (Currently there is only one)
+	//     #@ - This tells the property editor to not display the label
 	ROCOCO_INTERFACE IPropertyVisitor
 	{
-		virtual void VisitHeader(cstr propertyId, cstr displayName, cstr displayText) = 0;
+		virtual void VisitHeader(cstr propertyId, cstr displayName, cstr displayText, PropertyFormatSpec spec = PropertyFormatSpec()) = 0;
 
 		// return true if the visitor is writing data from the visual editors to the target variables
 		[[nodiscard]] virtual bool IsWritingToReferences() const = 0;

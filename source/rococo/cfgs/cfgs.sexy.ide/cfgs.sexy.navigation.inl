@@ -478,7 +478,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			return id;
 		}
 
-		void RecursivelyVisitFields(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName)
+		bool TryVisitPrimitive(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName)
 		{
 			cstr type = socket.Type().Value;
 
@@ -579,6 +579,25 @@ namespace Rococo::CFGS::IDE::Sexy
 					socket.SetField(variableName, buffer);
 				}
 			}
+			else
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		void RecursivelyVisitFields(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName)
+		{
+			if (TryVisitPrimitive(socket, visitor, variableName))
+			{
+				return;
+			}
+
+			cstr type = socket.Type().Value;
+
+			int64 iValue = 42;
+			MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId(type, variableName), *this, REF iValue, AllInt64sAreValid(), Int64Decimals());
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
@@ -596,7 +615,6 @@ namespace Rococo::CFGS::IDE::Sexy
 			for (int32 i = 0; i < n.SocketCount(); i++)
 			{
 				auto& s = n[i];
-				char desc[256];
 
 				switch (s.SocketClassification())
 				{
@@ -606,14 +624,12 @@ namespace Rococo::CFGS::IDE::Sexy
 					inputCount++;
 					if (inputCount == 1)
 					{
-						visitor.VisitHeader(FormatWithId("NodeInputHeader", n.UniqueId()), "Inputs", "");
+						PropertyFormatSpec spec;
+						spec.hideDisplayName = true;
+						spec.emphasize = true;
+						visitor.VisitHeader(FormatWithId("NodeInputHeader", n.UniqueId()), "", "Inputs", spec);
 					}
 
-					if (!IsPrimitive(s.Type().Value))
-					{
-						SafeFormat(desc, "%s %s", s.Type().Value, s.Name());
-						visitor.VisitHeader(FormatWithId("SocketInHeader", s.Id()), "", desc);
-					}
 					RecursivelyVisitFields(s, visitor, s.Name());
 					break;
 				}
