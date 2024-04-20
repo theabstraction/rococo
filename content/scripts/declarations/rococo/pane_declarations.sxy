@@ -957,9 +957,6 @@
 (function IPaneSetColourFont319  (Pointer hObject)(Int32 normal)(Int32 hilight) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 851))
 (alias IPaneSetColourFont319 Rococo.GUI.Native.IPaneSetColourFont)
 
-(function GetRotationQuat320 (Sys.Maths.Degrees theta)(Float32 i)(Float32 j)(Float32 k)(Sys.Maths.Quat q) ->  : (source "C:\work\rococo\source\rococo\rococo.sexy.mathsex\mathsex.vectors.inl" 435))
-(alias GetRotationQuat320 Sys.Geometry.F32.GetRotationQuat)
-
 (function GetHandleForICoroutineControl0321   -> (Pointer hObject) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" 86))
 (alias GetHandleForICoroutineControl0321 Sys.Native.GetHandleForICoroutineControl0)
 

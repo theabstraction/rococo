@@ -468,13 +468,15 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
-		VisitorId FieldId(cstr type, cstr variableName)
+		VisitorId FieldId(cstr type, cstr variableName, cstr overrideType)
 		{
-			Substring fqTypeName = Substring::ToSubstring(type);
+			cstr trueType = overrideType ? overrideType : type;
+
+			Substring fqTypeName = Substring::ToSubstring(trueType);
 			cstr publicName = ReverseFind('.', fqTypeName);
 			if (!publicName)
 			{
-				publicName = type;
+				publicName = trueType;
 			}
 			else
 			{
@@ -486,7 +488,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			return id;
 		}
 
-		bool TryVisitPrimitive(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr type, cstr variableName)
+		bool TryVisitPrimitive(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr type, cstr variableName, cstr displayTypeOverride)
 		{
 			if (Eq(type, "Float32") || Eq(type, "Sys.Type.Float32"))
 			{
@@ -501,7 +503,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						fValue = f.f;
 					}
 				}
-				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Float32", variableName), *this, REF fValue, AllFloatsAreValid(), FloatDecimals());
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Float32", variableName, displayTypeOverride), *this, REF fValue, AllFloatsAreValid(), FloatDecimals());
 
 				if (visitor.IsWritingToReferences())
 				{
@@ -523,7 +525,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					}
 				}
 
-				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Float64", variableName), *this, REF dValue, AllDoublesAreValid(), DoubleDecimals());
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Float64", variableName, displayTypeOverride), *this, REF dValue, AllDoublesAreValid(), DoubleDecimals());
 
 				if (visitor.IsWritingToReferences())
 				{
@@ -541,7 +543,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					iValue = atoi(iBuffer);
 				}
 
-				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Int32", variableName), *this, REF iValue, AllInt32sAreValid(), Int32Decimals());
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Int32", variableName, displayTypeOverride), *this, REF iValue, AllInt32sAreValid(), Int32Decimals());
 
 				if (visitor.IsWritingToReferences())
 				{
@@ -559,7 +561,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					iValue = _atoi64(iBuffer);
 				}
 
-				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Int64", variableName), *this, REF iValue, AllInt64sAreValid(), Int64Decimals());
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Int64", variableName, displayTypeOverride), *this, REF iValue, AllInt64sAreValid(), Int64Decimals());
 
 				if (visitor.IsWritingToReferences())
 				{
@@ -577,7 +579,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					truthValue = Eq(buffer, "true");
 				}
 
-				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Bool", variableName), *this, REF truthValue, AllBoolsAreValid(), BoolFormatter());
+				MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId("Bool", variableName, displayTypeOverride), *this, REF truthValue, AllBoolsAreValid(), BoolFormatter());
 
 				if (visitor.IsWritingToReferences())
 				{
@@ -593,11 +595,11 @@ namespace Rococo::CFGS::IDE::Sexy
 			return true;
 		}
 
-		void VisitField(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr typeString, cstr variableName, int depth, int index, cstr typeSource)
+		void VisitField(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr typeString, cstr variableName, int depth, int index, cstr typeSource, cstr displayTypeOverride)
 		{
 			UNUSED(index);
 
-			if (TryVisitPrimitive(socket, visitor, typeString, variableName))
+			if (TryVisitPrimitive(socket, visitor, typeString, variableName, displayTypeOverride))
 			{
 				return;
 			}
@@ -609,6 +611,11 @@ namespace Rococo::CFGS::IDE::Sexy
 				return;
 			}
 
+			auto sid = socket.Id().id;
+
+			char sectionId[256];
+			SafeFormat(sectionId, "%s_%llx_%llx", variableName, sid.iValues[0], sid.iValues[1]);
+
 			const ISXYLocalType* localType = nullptr;
 
 			auto* publicType = db.FindPrimitiveOrFQType(typeString);
@@ -616,6 +623,11 @@ namespace Rococo::CFGS::IDE::Sexy
 			if (publicType)
 			{
 				localType = publicType->LocalType();
+				if (localType == nullptr)
+				{
+					VisitField(socket, visitor, publicType->PublicName(), variableName, depth + 1, index, typeSource, typeString);
+					return;
+				}
 			}
 
 			if (!localType)
@@ -628,11 +640,6 @@ namespace Rococo::CFGS::IDE::Sexy
 				return;
 			}
 
-			auto sid = socket.Id().id;
-
-			char sectionId[256];
-			SafeFormat(sectionId, "%s_%llx_%llx", variableName, sid.iValues[0], sid.iValues[1]);
-
 			visitor.VisitHeader(sectionId, typeString, variableName);
 
 			for (int i = 0; i < localType->FieldCount(); i++)
@@ -644,7 +651,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				if (IsPrimitive(field.type))
 				{
-					VisitField(socket, visitor, field.type, extFieldName, depth + 1, index, typeSource);
+					VisitField(socket, visitor, field.type, extFieldName, depth + 1, index, typeSource, nullptr);
 				}
 				else
 				{
@@ -655,14 +662,14 @@ namespace Rococo::CFGS::IDE::Sexy
 						continue;
 					}
 
-					VisitField(socket, visitor, resolvedType->LocalName(), extFieldName, depth + 1, index, resolvedType->SourcePath());
+					VisitField(socket, visitor, resolvedType->LocalName(), extFieldName, depth + 1, index, resolvedType->SourcePath(), nullptr);
 				}
 			}
 		}
 
 		void VisitSocket(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName, int index)
 		{
-			VisitField(socket, visitor, socket.Type().Value, variableName, 0, index, nullptr);
+			VisitField(socket, visitor, socket.Type().Value, variableName, 0, index, nullptr, nullptr);
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
@@ -717,11 +724,18 @@ namespace Rococo::CFGS::IDE::Sexy
 					outputCount++;
 					if (outputCount == 1)
 					{
-						visitor.VisitHeader(FormatWithId("NodeOutputHeader", n.UniqueId()), "Outputs", "");
+						PropertyFormatSpec spec;
+						spec.hideDisplayName = true;
+						spec.emphasize = true;
+						visitor.VisitHeader(FormatWithId("NodeOutputHeader", n.UniqueId()), "", "Outputs", spec);
 					}
 
 					SafeFormat(desc, "%s %s", s.Type().Value, s.Name());
-					visitor.VisitHeader(FormatWithId("SocketOutHeader", s.Id()), "", desc);
+
+					PropertyFormatSpec spec;
+					spec.hideDisplayName = true;
+					spec.emphasize = false;
+					visitor.VisitHeader(FormatWithId("SocketOutHeader", s.Id()), "", desc, spec);
 					break;
 				}
 			}
