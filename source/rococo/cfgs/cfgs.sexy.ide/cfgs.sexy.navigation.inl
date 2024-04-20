@@ -767,10 +767,10 @@ namespace Rococo::CFGS::IDE::Sexy
 			auto* f = cfgs.CurrentFunction();
 			if (f)
 			{
-				editor.Properties().Clear();
-
 				if (!selectedNode)
 				{
+					targetNode.node = nullptr;
+					editor.Properties().Clear();
 					f->SetInputTypeOptions(&inputTypes);
 					f->SetOutputTypeOptions(&outputTypes);
 					editor.Properties().BuildEditorsForProperties(f->PropertyVenue());
@@ -780,14 +780,20 @@ namespace Rococo::CFGS::IDE::Sexy
 					auto* node = f->Nodes().FindNode(selectedNode);
 					if (!node)
 					{
+						targetNode.node = nullptr;
+						editor.Properties().Clear();
 						selectedNode = NodeId();
 						RegenerateProperties();
 						return;
 					}
 					else
 					{
-						targetNode.node = node;
-						editor.Properties().BuildEditorsForProperties(targetNode);
+						if (targetNode.node != node)
+						{
+							targetNode.node = node;
+							editor.Properties().Clear();
+							editor.Properties().BuildEditorsForProperties(targetNode);
+						}
 					}
 				}
 			}

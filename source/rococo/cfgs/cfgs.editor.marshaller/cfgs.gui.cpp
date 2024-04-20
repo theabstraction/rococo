@@ -708,8 +708,6 @@ namespace Rococo::CFGS::Internal
 		{
 			UNUSED(buttonFlags);
 
-			eventHandler.CFGSGuiEventHandler_OnNodeSelected(NodeId());
-
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
 			{
@@ -772,6 +770,8 @@ namespace Rococo::CFGS::Internal
 
 				return true;
 			}
+
+			eventHandler.CFGSGuiEventHandler_OnNodeSelected(NodeId());
 
 			if (connectionAnchor.node)
 			{
