@@ -204,6 +204,7 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
 	{
 		virtual [[nodiscard]] ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) = 0;
+		virtual void DeleteNode(NodeId id) = 0;
 		virtual void DeleteAllNodes() = 0;
 	};
 

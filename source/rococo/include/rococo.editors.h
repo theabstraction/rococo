@@ -82,6 +82,9 @@ namespace Rococo::Editors
 
 	ROCOCO_INTERFACE IUI2DGridEvents
 	{
+		// Indicates the back button was released while the control had focus. Typically used to delete nodes
+		virtual void GridEvent_OnBackReleased() = 0;
+
 		// Triggered when the control wheel (such as the mouse wheel) rotates a definite number of clicks. 
 		// The buttonFlags is a combination of EKeyHeldFlags bits
 		virtual void GridEvent_OnControlWheelRotated(int32 clicks, uint32 buttonFlags, Vec2i cursorPosition) = 0;

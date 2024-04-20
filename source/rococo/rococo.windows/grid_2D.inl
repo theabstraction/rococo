@@ -406,6 +406,7 @@ namespace Rococo::Windows
 					uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
 					int32 xPos = GET_X_LPARAM(lParam);
 					int32 yPos = GET_Y_LPARAM(lParam);
+					SetFocus(hWnd);
 					eventHandler.GridEvent_OnLeftButtonDown(fwKeys, Vec2i{ xPos, yPos });
 				}
 				return 0L;
@@ -462,6 +463,13 @@ namespace Rococo::Windows
 						eventHandler.GridEvent_OnCursorMove(fwKeys, Vec2i{ xPos, yPos });
 					}
 					return 0L;
+			case WM_KEYUP:
+				if (wParam == VK_BACK)
+				{
+					eventHandler.GridEvent_OnBackReleased();
+					return 0;
+				}
+				break;
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;

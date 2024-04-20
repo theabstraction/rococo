@@ -411,6 +411,12 @@ namespace ANON
 			gui->RenderIndices(gr);
 		}
 
+		void GridEvent_OnBackReleased() override
+		{
+			Events::EventArgs nullArgs;
+			publisher->Post(nullArgs, "DeleteNode"_event);
+		}
+
 		void CFGSGuiEventHandler_OnCableLaying(const CFGS::CableConnection& anchor)
 		{
 			UNUSED(anchor);

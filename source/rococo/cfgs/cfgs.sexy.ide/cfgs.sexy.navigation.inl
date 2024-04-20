@@ -786,6 +786,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			messageMap.AddHandler("EvPropertyChanged"_event, &NavigationHandler::OnPropertyChanged);
 			messageMap.AddHandler("EvFunctionChanged"_event, &NavigationHandler::OnFunctionChanged);
 			messageMap.AddHandler("OnNodeSelected"_event, &NavigationHandler::OnNodeSelected);
+			messageMap.AddHandler("DeleteNode"_event, &NavigationHandler::OnTryDeleteNode);
 		}
 
 		~NavigationHandler()
@@ -829,6 +830,29 @@ namespace Rococo::CFGS::IDE::Sexy
 		void OnRegenerate(EventArgs&)
 		{
 			RegenerateProperties();
+		}
+
+		void OnTryDeleteNode(EventArgs&)
+		{
+			if (targetNode.node != nullptr)
+			{
+				auto* f = cfgs.CurrentFunction();
+				if (f)
+				{
+					auto id = targetNode.node->UniqueId();
+
+					cstr nodeType = targetNode.node->Type().Value;
+
+					char caption[256];
+					SafeFormat(caption, "%s - Delete node %s?", title, nodeType);
+					if (gui.GetUserConfirmation("Confirm deletion", caption))
+					{
+						targetNode.node = nullptr;
+						f->Nodes().Builder().DeleteNode(id);
+						editor.RefreshSlate();
+					}
+				}
+			}
 		}
 
 		void RegenerateProperties()
@@ -1198,7 +1222,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			if (tree.TryGetText(functionName, sizeof functionName, functionId))
 			{
 				char caption[256];
-				SafeFormat(caption, "%s - Delete function %s...", title, functionName);
+				SafeFormat(caption, "%s - Delete function %s?", title, functionName);
 				if (gui.GetUserConfirmation("Confirm deletion", caption))
 				{ 
 					auto k = publicFunctionMap.find(functionId);

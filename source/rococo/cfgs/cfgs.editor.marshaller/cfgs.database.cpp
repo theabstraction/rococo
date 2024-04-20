@@ -1,5 +1,4 @@
 #include <rococo.cfgs.h>
-#include <vector>
 #include <rococo.strings.h>
 #include <rococo.time.h>
 #include <rococo.os.h>
@@ -8,6 +7,8 @@
 #include <rococo.properties.h>
 #include <rococo.validators.h>
 #include <rococo.events.h>
+#include <vector>
+#include <algorithm>
 
 using namespace Rococo::Editors;
 using namespace Rococo::Reflection;
@@ -519,6 +520,18 @@ namespace Rococo::CFGS::Internal
 			cables.pop_back();
 		}
 
+		void Delete(NodeId id)
+		{
+			auto end = std::remove_if(cables.begin(), cables.end(),
+				[&id](const CableImpl* cable)
+				{
+					return cable->EntryPoint().node == id || cable->ExitPoint().node == id;
+				}
+			);
+
+			cables.erase(end, cables.end());
+		}
+
 		const ICFGSCable& operator[](int32 index) const override
 		{
 			if (index < 0 || index >= cables.size())
@@ -713,10 +726,30 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void DeleteCable(int32 cableIndex)
+		void DeleteCable(int32 cableIndex) override
 		{
 			cables.Delete(cableIndex);
 			ConnectCablesToSockets();
+		}
+
+		void DeleteNode(NodeId id) override
+		{
+			CFGSNode* node = nullptr;
+			auto j = mapIdToNode.find(id);
+			if (j != mapIdToNode.end())
+			{
+				node = j->second;
+				mapIdToNode.erase(j);
+			}
+
+			delete node;
+			auto end = std::remove(nodes.begin(), nodes.end(), node);
+			nodes.erase(end, nodes.end());
+
+			auto zend = std::remove(zOrderDescending.begin(), zOrderDescending.end(), node);
+			zOrderDescending.erase(zend, zOrderDescending.end());
+
+			cables.Delete(id);
 		}
 
 		void DeleteAllNodes() override
