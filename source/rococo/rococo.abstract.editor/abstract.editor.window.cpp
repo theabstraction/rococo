@@ -128,10 +128,20 @@ namespace ANON
 					return (LRESULT)GetSysColorBrush(COLOR_WINDOW);
 				}
 			}
+			case WM_CTLCOLORSTATIC:
+			{
+				HDC hdc = (HDC)wParam;
+
+				SetTextColor(hdc, RGB(0, 0, 0));
+
+				COLORREF bkColour = RGB(224, 224, 224);
+
+				SetBkColor(hdc, bkColour);
+				return (LRESULT)CreateSolidBrush(bkColour);
+			}
 			case WM_CTLCOLORBTN:
 			{
 				HWND hButton = (HWND)lParam;
-
 				HDC hdc = (HDC)wParam;
 
 				if (GetFocus() == hButton)

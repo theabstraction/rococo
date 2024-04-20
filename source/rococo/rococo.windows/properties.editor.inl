@@ -12,9 +12,10 @@ using namespace Rococo::Validators;
 
 namespace Rococo::Windows::Internal
 {
-	ROCOCO_INTERFACE ILabelEnumeration
+	ROCOCO_INTERFACE IControlRegistry
 	{
-		virtual void AddLabel(HWND hLabel) = 0;
+		virtual void AddCodeEditor(HWND hEditor) = 0;
+		virtual void AddLabel(HWND hLabel) = 0;		
 	};
 
 	ROCOCO_INTERFACE IPropertySection
@@ -22,7 +23,7 @@ namespace Rococo::Windows::Internal
 		virtual bool HasDeleteButton() const = 0;
 		virtual bool IsExpanded() const = 0;
 		virtual int IndentationPixels() const = 0;
-		virtual ILabelEnumeration& LabelEnumerator() const = 0;
+		virtual IControlRegistry& Registry() const = 0;
 	};
 
 	ROCOCO_INTERFACE IPropertySupervisor : Rococo::Reflection::IPropertyEditor
@@ -809,7 +810,7 @@ namespace Rococo::Windows::Internal
 			this->labelId = labelId;
 			this->label = AddLabel(section, style, panel, displayName.c_str(), yOffset, labelId);
 
-			section.LabelEnumerator().AddLabel(*label);
+			section.Registry().AddLabel(*label);
 
 			if (editor)
 			{
@@ -817,6 +818,7 @@ namespace Rococo::Windows::Internal
 			}
 
 			editor = AddEditor(style, panel, initialText, MAX_PRIMITIVE_LEN, yOffset, editorId);
+			section.Registry().AddCodeEditor(*editor);
 
 			Layout(panel, yOffset);
 
@@ -1329,15 +1331,15 @@ namespace Rococo::Windows::Internal
 		UI::SysWidgetId editorId{ 0 };
 		UI::SysWidgetId deleteId{ 0 };
 
-		ILabelEnumeration& labelEnumerator;
+		IControlRegistry& registry;
 
-		CollapserProperty(PropertyMarshallingStub& stub, IPropertySection& _section, Events::IPublisher& _publisher, ILabelEnumeration& _labelEnumerator) :
+		CollapserProperty(PropertyMarshallingStub& stub, IPropertySection& _section, Events::IPublisher& _publisher, IControlRegistry& _registry) :
 			displayName(stub.displayName),
 			id(stub.propertyIdentifier),
 			events(stub.eventHandler),
 			section(_section),
 			publisher(_publisher),
-			labelEnumerator(_labelEnumerator)
+			registry(_registry)
 		{
 		}
 
@@ -1346,9 +1348,9 @@ namespace Rococo::Windows::Internal
 			DestroyWindow(hExpanderButton);
 		}
 
-		ILabelEnumeration& LabelEnumerator() const override
+		IControlRegistry& Registry() const override
 		{
-			return labelEnumerator;
+			return registry;
 		}
 
 		void EnableDeleteButton(bool enable)
@@ -1876,7 +1878,7 @@ namespace Rococo::Windows::Internal
 
 	struct RootSection : IPropertySection
 	{
-		ILabelEnumeration& labelEnumerator;
+		IControlRegistry& registry;
 
 		bool HasDeleteButton() const override
 		{
@@ -1893,19 +1895,19 @@ namespace Rococo::Windows::Internal
 			return 0;
 		}
 
-		ILabelEnumeration& LabelEnumerator() const override
+		IControlRegistry& Registry() const override
 		{
-			return labelEnumerator;
+			return registry;
 		}
 
-		RootSection(ILabelEnumeration& _labelEnumerator): 
-			labelEnumerator(_labelEnumerator)
+		RootSection(IControlRegistry& _registry):
+			registry(_registry)
 		{
 
 		}
 	};
 
-	struct PropertyBuilder : IPropertyVisitor, ILabelEnumeration
+	struct PropertyBuilder : IPropertyVisitor, IControlRegistry
 	{
 		PropertyEditorEnsemble& container;
 		Events::IPublisher& publisher;
@@ -1914,9 +1916,23 @@ namespace Rococo::Windows::Internal
 
 		RootSection rootSection;
 
+		HFONT hLabelFont = 0;
+
 		PropertyBuilder(PropertyEditorEnsemble& _container, Events::IPublisher& _publisher) : container(_container), publisher(_publisher), rootSection(*this)
 		{
+			LOGFONTA f = { 0 };
+			CopyString(f.lfFaceName, sizeof f.lfFaceName, "Courier New");
+			f.lfHeight = 16;
+			f.lfWeight = FW_BLACK;
+			f.lfQuality = CLEARTYPE_QUALITY;
+			hLabelFont = CreateFontIndirectA(&f);
+
 			Clear();
+		}
+
+		~PropertyBuilder()
+		{
+			DeleteFont(hLabelFont);
 		}
 
 		std::unordered_map<HWND, int> mapLabels;
@@ -1924,6 +1940,12 @@ namespace Rococo::Windows::Internal
 		void AddLabel(HWND hLabel)
 		{
 			mapLabels.insert(std::pair<const HWND, int>(hLabel, 0));
+			SendMessageA(hLabel, WM_SETFONT, (WPARAM)hLabelFont, FALSE);
+		}
+
+		void AddCodeEditor(HWND hEditor)
+		{
+			SendMessageA(hEditor, WM_SETFONT, (WPARAM)hLabelFont, FALSE);
 		}
 
 		void Clear()
@@ -2090,11 +2112,12 @@ namespace Rococo::Windows::Internal
 				RECT rect;
 				GetClientRect(hWnd, &rect);
 
-				if (rect.right > maxLabelLength)
-				{
-					maxLabelLength = rect.right;
-				}
+				maxLabelLength = max(maxLabelLength, (int) rect.right);
 			}
+
+			enum { LABEL_RHS_PADDING = 8 };
+
+			maxLabelLength += LABEL_RHS_PADDING;
 
 			for (auto labelWnd : builder.mapLabels)
 			{
@@ -2140,10 +2163,6 @@ namespace Rococo::Windows::Internal
 
 		void Clear() override
 		{
-			panelArea.ClearChildren();
-
-			nextId = { 0 };
-
 			for (auto* p : properties)
 			{
 				p->Free();
@@ -2152,6 +2171,13 @@ namespace Rococo::Windows::Internal
 			properties.clear();
 			identifierToProperty.clear();
 			builder.Clear();
+
+			// We tell the panel to clear children last as we didnt get around to implement child windows with reference counting
+			// So we dont want to render our pointers in the [properties] list invalid.
+			// Clearing children calls DestroyWindow on children which triggers event handlers such as KILl FOCUS. We shutdown properties before that happens
+			panelArea.ClearChildren();
+
+			nextId = { 0 };
 		}
 
 		void Free() override

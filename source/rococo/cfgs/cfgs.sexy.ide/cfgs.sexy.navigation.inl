@@ -20,7 +20,6 @@
 using namespace Rococo;
 using namespace Rococo::CFGS;
 using namespace Rococo::SexyStudio;
-using namespace Rococo::Windows;
 using namespace Rococo::Visitors;
 using namespace Rococo::Abedit;
 using namespace Rococo::Events;
@@ -465,14 +464,25 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		VisitorId FieldId(cstr type, cstr variableName)
 		{
-			VisitorId id;
-			if (!FindChar(variableName, '.'))
-			{			
-				SafeFormat(id.buf, "%s %s", type, variableName);			
+			Substring fqTypeName = Substring::ToSubstring(type);
+			cstr publicName = ReverseFind('.', fqTypeName);
+			if (!publicName)
+			{
+				publicName = type;
 			}
 			else
 			{
-				SafeFormat(id.buf, "%s <value>", type);
+				publicName++;
+			}
+
+			VisitorId id;
+			if (!FindChar(variableName, '.'))
+			{			
+				SafeFormat(id.buf, "%s %s", publicName, variableName);
+			}
+			else
+			{
+				SafeFormat(id.buf, "%s <value>", publicName);
 			}
 
 			return id;
