@@ -2906,6 +2906,24 @@ namespace ANON
 			}
 		}
 
+		const ISXYLocalType* ResolveLocalType(cstr sourceFile, cstr localTypeName) const override
+		{
+			auto i = filenameToFile.find(sourceFile);
+			if (i == filenameToFile.end())
+			{
+				return nullptr;
+			}
+
+			auto& file = i->second;
+			auto j = file->structures.find(localTypeName);
+			if (j == file->structures.end())
+			{
+				return nullptr;
+			}
+
+			return &j->second;
+		}
+
 		mutable stringmap<SxyPrimitive> nameToPrimitive;
 
 		const ISXYType* FindPrimitiveType(cstr typeName) const

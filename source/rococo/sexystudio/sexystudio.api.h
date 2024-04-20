@@ -301,6 +301,7 @@ namespace Rococo::SexyStudio
 		virtual ISxyNamespace& GetRootNamespace() = 0;
 		virtual bool HasResource(cstr id) const = 0;
 		virtual void MarkResource(cstr id) = 0;
+		virtual const ISXYLocalType* ResolveLocalType(cstr sourceFile, cstr localTypeName) const = 0;
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;

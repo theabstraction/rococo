@@ -406,6 +406,12 @@ namespace Rococo::CFGS::IDE::Sexy
 	struct TargetNode : IPropertyVenue, IPropertyUIEvents
 	{
 		ICFGSNode* node = nullptr;
+		ISexyDatabase& db;
+
+		TargetNode(ISexyDatabase& _db): db(_db)
+		{
+
+		}
 
 		void CallArrayMethod(cstr arrayId, Function<void(IArrayProperty&)> callback) override
 		{
@@ -476,22 +482,12 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 
 			VisitorId id;
-			if (!FindChar(variableName, '.'))
-			{			
-				SafeFormat(id.buf, "%s %s", publicName, variableName);
-			}
-			else
-			{
-				SafeFormat(id.buf, "%s <value>", publicName);
-			}
-
+			SafeFormat(id.buf, "%s %s", publicName, variableName);
 			return id;
 		}
 
-		bool TryVisitPrimitive(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName)
+		bool TryVisitPrimitive(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr type, cstr variableName)
 		{
-			cstr type = socket.Type().Value;
-
 			if (Eq(type, "Float32") || Eq(type, "Sys.Type.Float32"))
 			{
 				float fValue = 0.0f;
@@ -597,17 +593,76 @@ namespace Rococo::CFGS::IDE::Sexy
 			return true;
 		}
 
-		void RecursivelyVisitFields(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName)
+		void VisitField(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr typeString, cstr variableName, int depth, int index, cstr typeSource)
 		{
-			if (TryVisitPrimitive(socket, visitor, variableName))
+			UNUSED(index);
+
+			if (TryVisitPrimitive(socket, visitor, typeString, variableName))
 			{
 				return;
 			}
 
-			cstr type = socket.Type().Value;
+			enum { MAX_VISIT_FIELD_DEPTH = 5};
 
-			int64 iValue = 42;
-			MARSHAL_PRIMITIVE(visitor, FormatWithId("Field", variableName, socket.Id()), FieldId(type, variableName), *this, REF iValue, AllInt64sAreValid(), Int64Decimals());
+			if (depth >= MAX_VISIT_FIELD_DEPTH)
+			{
+				return;
+			}
+
+			const ISXYLocalType* localType = nullptr;
+
+			auto* publicType = db.FindPrimitiveOrFQType(typeString);
+
+			if (publicType)
+			{
+				localType = publicType->LocalType();
+			}
+
+			if (!localType)
+			{
+				localType = db.ResolveLocalType(typeSource, typeString);
+			}
+
+			if (!localType)
+			{
+				return;
+			}
+
+			auto sid = socket.Id().id;
+
+			char sectionId[256];
+			SafeFormat(sectionId, "%s_%llx_%llx", variableName, sid.iValues[0], sid.iValues[1]);
+
+			visitor.VisitHeader(sectionId, typeString, variableName);
+
+			for (int i = 0; i < localType->FieldCount(); i++)
+			{
+				auto field = localType->GetField(i);
+
+				char extFieldName[128];
+				SafeFormat(extFieldName, "%s.%s", variableName, field.name);
+
+				if (IsPrimitive(field.type))
+				{
+					VisitField(socket, visitor, field.type, extFieldName, depth + 1, index, typeSource);
+				}
+				else
+				{
+					auto* resolvedType = db.ResolveLocalType(localType->SourcePath(), field.type);
+
+					if (!resolvedType)
+					{
+						continue;
+					}
+
+					VisitField(socket, visitor, resolvedType->LocalName(), extFieldName, depth + 1, index, resolvedType->SourcePath());
+				}
+			}
+		}
+
+		void VisitSocket(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName, int index)
+		{
+			VisitField(socket, visitor, socket.Type().Value, variableName, 0, index, nullptr);
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
@@ -640,7 +695,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						visitor.VisitHeader(FormatWithId("NodeInputHeader", n.UniqueId()), "", "Inputs", spec);
 					}
 
-					RecursivelyVisitFields(s, visitor, s.Name());
+					VisitSocket(s, visitor, s.Name(), inputCount);
 					break;
 				}
 			}
@@ -711,7 +766,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		TargetNode targetNode;
 
 		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui) :
-			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this)
+			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this), targetNode(_db)
 		{
 			messageMap.AddHandler("EvRegenerate"_event, &NavigationHandler::OnRegenerate);
 			messageMap.AddHandler("EvPropertyChanged"_event, &NavigationHandler::OnPropertyChanged);
