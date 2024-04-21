@@ -4,6 +4,8 @@
 
 (Prohibitions
 	(#List Namespaces
+		//The context popup that appears when you right-click in the CFGS node editor window contains a list of functions to add to the graph.
+		// This is the list of namespace that will be excluded from the listing.
 		MHost
 		MPlat
 	)
