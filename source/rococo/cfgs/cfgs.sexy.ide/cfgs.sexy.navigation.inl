@@ -627,8 +627,20 @@ namespace Rococo::CFGS::IDE::Sexy
 					char displaytext[128];
 					SafeFormat(displaytext, "IString %s", variableName);
 
-					HString defaultString = "quick-brown-squirrel";
+					HString defaultString;
+
+					HStringPopulator populator(REF defaultString);
+					if (!socket.TryGetField(variableName, populator))
+					{
+						Format(defaultString, "%s: %s has been defined as this crud", node->Type().Value, variableName);
+					}
+
 					MARSHAL_STRING(visitor, sectionId, displaytext, *this, defaultString, 4096);
+
+					if (visitor.IsWritingToReferences())
+					{
+						socket.SetField(variableName, defaultString);
+					}
 				}
 				else
 				{

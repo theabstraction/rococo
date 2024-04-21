@@ -59,457 +59,9 @@
 		(FQName "Sys.IO.MetaGate") :
 		(Nodes :
 			(Node
-				(Type "Sys.Geometry.F32.AddVec2fVec2f")
-				(XPos -233.354234)
-				(YPos -168.039169)
-				(Id "2 4B1E76D") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "3 4B1E76D")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "4 4B1E76D")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "a")
-					(Type "Sys.Maths.Vec2")
-					(Id "5 4B1E76D")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "b")
-					(Type "Sys.Maths.Vec2")
-					(Id "6 4B1E76D")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "sum")
-					(Type "Sys.Maths.Vec2")
-					(Id "7 4B1E76D")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Geometry.F32.LengthVec2")
-				(XPos -32.818974)
-				(YPos -171.901326)
-				(Id "2 FCA04DED") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "3 FCA04DED")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "4 FCA04DED")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "a")
-					(Type "Sys.Maths.Vec2")
-					(Id "5 FCA04DED")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "len")
-					(Type "Float32")
-					(Id "6 FCA04DED")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Throw")
-				(XPos 354.000000)
-				(YPos 64.000000)
-				(Id "7 408671ED") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "8 408671ED")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "9 408671ED")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "errorCode")
-					(Type "Int32")
-					(Id "A 408671ED")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "message")
-					(Type "IString")
-					(Id "B 408671ED")
-					(Class InputVar)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Geometry.F32.LengthSq")
-				(XPos -370.000000)
-				(YPos 101.000000)
-				(Id "C 408671ED") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "D 408671ED")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "E 408671ED")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "a")
-					(Type "Sys.Maths.Vec3")
-					(Id "F 408671ED")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "lenSq")
-					(Type "Float32")
-					(Id "10 408671ED")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "MHost.OS.LoadExpression")
-				(XPos -191.000000)
-				(YPos -580.000000)
-				(Id "11 408671ED") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "12 408671ED")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "13 408671ED")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "name")
-					(Type "Sys.Type.IString")
-					(Id "14 408671ED")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "s")
-					(Type "Sys.Reflection.IExpression")
-					(Id "15 408671ED")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Maths.F32.IsInfinity")
-				(XPos 318.000000)
-				(YPos -446.000000)
-				(Id "16 408671ED") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "17 408671ED")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "18 408671ED")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "x")
-					(Type "Float32")
-					(Id "19 408671ED")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "isInfinity")
-					(Type "Bool")
-					(Id "1A 408671ED")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Type.NewStringBuilder")
-				(XPos 507.000000)
-				(YPos -267.000000)
-				(Id "1B 408671ED") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "1C 408671ED")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "1D 408671ED")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "capacity")
-					(Type "Int32")
-					(Id "1E 408671ED")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "sb")
-					(Type "Sys.Type.IStringBuilder")
-					(Id "1F 408671ED")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Time.AppendCTime")
-				(XPos 514.000000)
-				(YPos -178.000000)
-				(Id "20 408671ED") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "21 408671ED")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "22 408671ED")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "sb")
-					(Type "Sys.Type.IStringBuilder")
-					(Id "23 408671ED")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "nChars")
-					(Type "Int32")
-					(Id "24 408671ED")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Geometry.F32.SafeNormalizeVec4")
-				(XPos -415.272181)
-				(YPos -339.116181)
-				(Id "7 3928B2A6") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "8 3928B2A6")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "9 3928B2A6")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "n")
-					(Type "Sys.Maths.Vec4")
-					(Id "A 3928B2A6")
-					(Class InputVar)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.IO.CommandLine")
-				(XPos -42.918679)
-				(YPos -282.345218)
-				(Id "B 3928B2A6") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "C 3928B2A6")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "D 3928B2A6")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "path")
-					(Type "IString")
-					(Id "E 3928B2A6")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.IO.AppendCmdKeyAndValue")
-				(XPos 59.246437)
-				(YPos 64.269765)
-				(Id "F 3928B2A6") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "10 3928B2A6")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "11 3928B2A6")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "argIndex")
-					(Type "Int32")
-					(Id "12 3928B2A6")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "sbKey")
-					(Type "IStringBuilder")
-					(Id "13 3928B2A6")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "sbValue")
-					(Type "IStringBuilder")
-					(Id "14 3928B2A6")
-					(Class InputVar)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Type.Strings.IsLowerCase")
-				(XPos 47.117245)
-				(YPos 231.279408)
-				(Id "15 3928B2A6") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "16 3928B2A6")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "17 3928B2A6")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "c")
-					(Type "Int32")
-					(Id "18 3928B2A6")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "isSo")
-					(Type "Bool")
-					(Id "19 3928B2A6")
-					(Class OutputValue)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "Sys.Type.Strings.MakeSysSlashes")
-				(XPos -341.483402)
-				(YPos 281.662205)
-				(Id "1A 3928B2A6") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "1B 3928B2A6")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "1C 3928B2A6")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "sb")
-					(Type "Sys.Type.IStringBuilder")
-					(Id "1D 3928B2A6")
-					(Class InputVar)
-				) // Socket
-
-			) // Node
-
-			(Node
 				(Type "Sys.Geometry.Q.MultiplyQuatfQuatf")
-				(XPos -479.103079)
-				(YPos -101.806862)
+				(XPos -59.134475)
+				(YPos -40.843678)
 				(Id "1E 3928B2A6") :
 				(Socket
 					(Label "Start")
@@ -548,7 +100,7 @@
 
 						(Field
 							(Name a.s)
-							(Value "0.000000")
+							(Value "4.000000")
 						) // Field
 
 					) // Fields
@@ -563,22 +115,22 @@
 					(Fields :
 						(Field
 							(Name b.v.x)
-							(Value "0.000000")
+							(Value "5.000000")
 						) // Field
 
 						(Field
 							(Name b.v.y)
-							(Value "0.000000")
+							(Value "6.000000")
 						) // Field
 
 						(Field
 							(Name b.v.z)
-							(Value "0.000000")
+							(Value "7.000000")
 						) // Field
 
 						(Field
 							(Name b.s)
-							(Value "0.000000")
+							(Value "8.000000")
 						) // Field
 
 					) // Fields
@@ -617,16 +169,60 @@
 
 			) // Node
 
+			(Node
+				(Type "Sys.Throw")
+				(XPos -37.190083)
+				(YPos -220.247934)
+				(Id "6 257703D4") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "7 257703D4")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "8 257703D4")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "errorCode")
+					(Type "Int32")
+					(Id "9 257703D4")
+					(Class InputVar) :
+					(Fields :
+						(Field
+							(Name errorCode)
+							(Value "2")
+						) // Field
+
+					) // Fields
+
+				) // Socket
+
+				(Socket
+					(Label "message")
+					(Type "IString")
+					(Id "A 257703D4")
+					(Class InputVar) :
+					(Fields :
+						(Field
+							(Name message)
+							(Value "")
+						) // Field
+
+					) // Fields
+
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
-		(Cables :
-			(Cable
-				(StartNode "2 4B1E76D")
-				(StartSocket "7 4B1E76D")
-				(EndNode "2 FCA04DED")
-				(EndSocket "5 FCA04DED")
-			) // Cable
-
+		(Cables
 		) // Cables
 
 	) // Function

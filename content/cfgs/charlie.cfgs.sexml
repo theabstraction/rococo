@@ -169,6 +169,57 @@
 
 			) // Node
 
+			(Node
+				(Type "Sys.Throw")
+				(XPos -37.190083)
+				(YPos -220.247934)
+				(Id "6 257703D4") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "7 257703D4")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "8 257703D4")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "errorCode")
+					(Type "Int32")
+					(Id "9 257703D4")
+					(Class InputVar) :
+					(Fields :
+						(Field
+							(Name errorCode)
+							(Value "2")
+						) // Field
+
+					) // Fields
+
+				) // Socket
+
+				(Socket
+					(Label "message")
+					(Type "IString")
+					(Id "A 257703D4")
+					(Class InputVar) :
+					(Fields :
+						(Field
+							(Name message)
+							(Value "Bumblebee")
+						) // Field
+
+					) // Fields
+
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
 		(Cables
