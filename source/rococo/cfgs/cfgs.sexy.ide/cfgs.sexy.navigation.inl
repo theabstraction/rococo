@@ -782,11 +782,11 @@ namespace Rococo::CFGS::IDE::Sexy
 		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui) :
 			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this), targetNode(_db)
 		{
-			messageMap.AddHandler("EvRegenerate"_event, &NavigationHandler::OnRegenerate);
-			messageMap.AddHandler("EvPropertyChanged"_event, &NavigationHandler::OnPropertyChanged);
-			messageMap.AddHandler("EvFunctionChanged"_event, &NavigationHandler::OnFunctionChanged);
-			messageMap.AddHandler("OnNodeSelected"_event, &NavigationHandler::OnNodeSelected);
-			messageMap.AddHandler("DeleteNode"_event, &NavigationHandler::OnTryDeleteNode);
+			messageMap.AddHandler("Regenerate"_event, &NavigationHandler::OnRegenerate);
+			messageMap.AddHandler("PropertyChanged"_event, &NavigationHandler::OnPropertyChanged);
+			messageMap.AddHandler("FunctionChanged"_event, &NavigationHandler::OnFunctionChanged);
+			messageMap.AddHandler("NodeSelected"_event, &NavigationHandler::OnNodeSelected);
+			messageMap.AddHandler("TryDeleteNode"_event, &NavigationHandler::OnTryDeleteNode);
 		}
 
 		~NavigationHandler()

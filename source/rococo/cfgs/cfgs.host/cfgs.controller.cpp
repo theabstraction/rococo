@@ -414,7 +414,7 @@ namespace ANON
 		void GridEvent_OnBackReleased() override
 		{
 			Events::EventArgs nullArgs;
-			publisher->Post(nullArgs, "DeleteNode"_event);
+			publisher->Post(nullArgs, "TryDeleteNode"_event);
 		}
 
 		void CFGSGuiEventHandler_OnCableLaying(const CFGS::CableConnection& anchor)
@@ -437,7 +437,7 @@ namespace ANON
 
 		void CFGSGuiEventHandler_OnNodeSelected(const CFGS::NodeId& id) override
 		{
-			publisher->PostOneArg(id, "OnNodeSelected"_event);
+			publisher->PostOneArg(id, "NodeSelected"_event);
 		}
 
 		void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) override

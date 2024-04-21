@@ -1006,11 +1006,11 @@ namespace Rococo::CFGS::Internal
 
 			FunctionIdArg arg;
 			arg.functionId = functionId;
-			publisher.Post(arg, "EvFunctionChanged"_event);
+			publisher.Post(arg, "FunctionChanged"_event);
 		}
 	};		
 
-	static auto evPropertyChanged = "EvPropertyChanged"_event;
+	static auto evPropertyChanged = "PropertyChanged"_event;
 
 	struct ArgumentEventHandler : IPropertyUIEvents
 	{
