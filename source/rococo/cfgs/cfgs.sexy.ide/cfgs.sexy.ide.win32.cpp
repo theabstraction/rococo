@@ -4,6 +4,10 @@
 #include <rococo.window.h>
 #include <rococo.sexml.h>
 #include <rococo.maths.i32.h>
+#include <rococo.io.h>
+#include <rococo.hashtable.h>
+#include <sexy.types.h>
+#include <Sexy.S-Parser.h>
 
 using namespace Rococo::CFGS::IDE::Sexy;
 
@@ -42,7 +46,7 @@ namespace ANON
 	static const char* const CONFIG_SECTION = "cfgs.sexy.ide";
 	static const char* const CONFIG_VERSION = "1.0.0.0";
 
-	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor, ICFGSIDEGui, ICFGSIDEContextMenu
+	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor, ICFGSIDEGui, ICFGSIDEContextMenu, INamespaceValidator
 	{
 		HWND hHostWindow;
 		ICFGSDatabase& cfgs;
@@ -178,7 +182,7 @@ namespace ANON
 
 			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this);
 
-			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase());
+			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase(), *this);
 
 			editor.SetNavigationHandler(navHandler);
 
@@ -270,6 +274,23 @@ namespace ANON
 			);
 		}
 
+		bool TryGetAssociatedFilterFile(OUT U8FilePath& filterFile, cstr filenameAsKey)
+		{
+			U8FilePath key;
+			Assign(key, filenameAsKey);
+			while (IO::MakeContainerDirectory(key.buf))
+			{
+				Format(filterFile, "%scfgs.filter.sexml", key.buf);
+				
+				if (IO::IsFileExistant(filterFile))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		void LoadConfig(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
 		{
 			using namespace Rococo::Sex::SEXML;
@@ -318,6 +339,87 @@ namespace ANON
 				if (GetParent(editor.ContainerWindow()) == nullptr)
 				{
 					MoveWindow(editor.ContainerWindow(), rect.left, rect.top, span.x, span.y, TRUE);
+				}
+			}
+		}
+
+		stringmap<int> prohibitedNamespaces;
+
+		void ClearFilters()
+		{
+			prohibitedNamespaces.clear();
+		}
+
+		bool IsLegalNamespace(cstr ns) const override
+		{
+			if (prohibitedNamespaces.find(ns) != prohibitedNamespaces.end())
+			{
+				return false;
+			}
+
+			for (auto& pns : prohibitedNamespaces)
+			{
+				if (StartsWith(ns, pns.first))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		void LoadFilter(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+		{
+			size_t startIndex = 0;
+			auto& header = GetDirective(topLevelDirectives, "CFGSFilter", IN OUT startIndex);
+
+			auto& version = AsString(header["Version"]);
+			if (!Eq(version.c_str(), CONFIG_VERSION))
+			{
+				Throw(version.S(), "Bad version %s. Expecting %s", version.c_str(), CONFIG_VERSION);
+			}
+
+			auto& prohibitions = GetDirective(topLevelDirectives, "Prohibitions", IN OUT startIndex);
+			auto& items = AsStringList(prohibitions["Namespaces"]);
+
+			ClearFilters();
+
+			for (size_t i = 0; i < items.NumberOfElements(); i++)
+			{
+				cstr item = items[i];
+				int dummy = 0;
+				prohibitedNamespaces.insert(item, dummy);
+			}
+		}
+
+		void OnLoaded(cstr filename) override
+		{
+			U8FilePath filterFile;
+			if (TryGetAssociatedFilterFile(OUT filterFile, filename))
+			{
+				try
+				{
+					Rococo::OS::LoadSXMLBySysPath(filterFile, [this]
+					(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+						{
+							LoadFilter(topLevelDirectives);
+						}
+					);
+				}
+				catch (ParseException& pex)
+				{
+					char caption[256];
+					SafeFormat(caption, "Error loading filter file", filterFile.buf);
+
+					char line[256];
+					SafeFormat(line, "%s\nLine %d char %d to line %d char %d\n%s", filterFile.buf, pex.Start().y, pex.Start().x, pex.End().y, pex.End().x, pex.Message());
+					ShowMessageBox(editor.Window(), line, caption, MB_ICONEXCLAMATION);
+				}
+				catch (IException& ex)
+				{
+					char caption[256];
+					SafeFormat(caption, "Error loading %s", filterFile.buf);
+					ShowErrorBox(editor.Window(), ex, caption);
 				}
 			}
 		}

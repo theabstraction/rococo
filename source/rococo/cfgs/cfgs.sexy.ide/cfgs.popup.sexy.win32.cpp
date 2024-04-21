@@ -38,6 +38,7 @@ namespace ANON
 		IAbstractEditor& editor;
 		ICFGSDatabase& cfgs;
 		SexyStudio::ISexyDatabase& db;
+		INamespaceValidator& nv;
 		Vec2i referencePosition{ 0,0 };
 		Editors::DesignerVec2 designPosition{ 0,0 };
 
@@ -50,7 +51,7 @@ namespace ANON
 
 		enum { Width = 640, Height = 480 };
 
-		Popup(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db) : editor(_editor), cfgs(_cfgs), db(_db)
+		Popup(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db, INamespaceValidator& _nv) : editor(_editor), cfgs(_cfgs), db(_db), nv(_nv)
 		{
 
 		}
@@ -188,6 +189,12 @@ namespace ANON
 				StackStringBuilder visibleNameBuilder(visibleName, sizeof visibleName);
 
 				ns.AppendFullNameToStringBuilder(visibleNameBuilder);
+
+				if (!nv.IsLegalNamespace(visibleName))
+				{
+					continue;
+				}
+
 				visibleNameBuilder << "." << f.PublicName();
 
 				opt.header.visibleName = visibleName;
@@ -338,9 +345,9 @@ namespace ANON
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db)
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator)
 	{
-		auto* popup = new ANON::Popup(editor, cfgs, db);
+		auto* popup = new ANON::Popup(editor, cfgs, db, namespaceValidator);
 		popup->Create();
 		return popup;
 	}

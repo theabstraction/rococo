@@ -517,6 +517,7 @@ namespace ANON
 			try
 			{
 				Load(filename);
+				ide->OnLoaded(filename);
 				return true;
 			}
 			catch (IException&)

@@ -1182,6 +1182,8 @@ namespace Rococo::CFGS::Internal
 			{
 				delete i.second;
 			}
+
+			mapIdToFunction.clear();
 		}
 
 		FunctionId CreateFunction() override

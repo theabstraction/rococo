@@ -1,0 +1,10 @@
+(CFGSFilter
+	(Version 1.0.0.0)
+)
+
+(Prohibitions
+	(#List Namespaces
+		MHost
+		MPlat
+	)
+)

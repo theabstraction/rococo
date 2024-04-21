@@ -336,6 +336,11 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] bool IsConnectionPermitted(const Rococo::CFGS::CableConnection& anchor, const Rococo::CFGS::ICFGSSocket& target) const = 0;
 	};
 
+	ROCOCO_INTERFACE INamespaceValidator
+	{
+		virtual bool IsLegalNamespace(cstr ns) const = 0;
+	};
+
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment
 	{
 		virtual void Free() = 0;
@@ -347,6 +352,9 @@ namespace Rococo::CFGS
 		// Called just before main loop is invoked. At this points all of the key objects that the ide relies upon should have been initialized
 		// The IDE will typically implement the function to load a configuration file containing window placement and such
 		virtual void OnInitComplete() = 0;
+
+		// Called just after a file is successfully loaded
+		virtual void OnLoaded(cstr filename) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSGuiEventHandler
