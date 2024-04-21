@@ -60,8 +60,8 @@
 		(Nodes :
 			(Node
 				(Type "Sys.Geometry.F32.AddVec2fVec2f")
-				(XPos -111.000000)
-				(YPos -172.500000)
+				(XPos -233.354234)
+				(YPos -168.039169)
 				(Id "2 4B1E76D") :
 				(Socket
 					(Label "Start")
@@ -100,9 +100,51 @@
 
 			) // Node
 
+			(Node
+				(Type "Sys.Geometry.F32.LengthVec2")
+				(XPos -32.818974)
+				(YPos -171.901326)
+				(Id "2 FCA04DED") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "3 FCA04DED")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "4 FCA04DED")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "a")
+					(Type "Sys.Maths.Vec2")
+					(Id "5 FCA04DED")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "len")
+					(Type "Float32")
+					(Id "6 FCA04DED")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
-		(Cables
+		(Cables :
+			(Cable
+				(StartNode "2 4B1E76D")
+				(StartSocket "7 4B1E76D")
+				(EndNode "2 FCA04DED")
+				(EndSocket "5 FCA04DED")
+			) // Cable
+
 		) // Cables
 
 	) // Function
@@ -116,19 +158,7 @@
 
 	) // LocalFunctions
 
-	(Namespaces :
-		(Subspace
-			(name Sys) :
-			(Subspace
-				(name IO) :
-				(Function
-					(name MetaGate)
-				) // Function
-
-			) // Subspace
-
-		) // Subspace
-
+	(Namespaces
 	) // Namespaces
 
 ) // Navigation

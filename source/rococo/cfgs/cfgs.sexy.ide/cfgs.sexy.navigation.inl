@@ -630,7 +630,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				}
 			}
 
-			if (!localType)
+			if (!localType && typeSource)
 			{
 				localType = db.ResolveLocalType(typeSource, typeString);
 			}

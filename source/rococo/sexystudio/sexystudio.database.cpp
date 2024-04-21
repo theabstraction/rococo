@@ -2908,6 +2908,16 @@ namespace ANON
 
 		const ISXYLocalType* ResolveLocalType(cstr sourceFile, cstr localTypeName) const override
 		{
+			if (sourceFile == nullptr)
+			{
+				Throw(0, "%s: [sourceFile] nullptr", __FUNCTION__);
+			}
+
+			if (localTypeName == nullptr)
+			{
+				Throw(0, "%s: [localTypeName] nullptr", __FUNCTION__);
+			}
+
 			auto i = filenameToFile.find(sourceFile);
 			if (i == filenameToFile.end())
 			{
