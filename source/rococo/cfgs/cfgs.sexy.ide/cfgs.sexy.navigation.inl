@@ -618,6 +618,30 @@ namespace Rococo::CFGS::IDE::Sexy
 
 			const ISXYLocalType* localType = nullptr;
 
+			auto* interfaceType = db.FindInterface(typeString);
+			if (interfaceType)
+			{
+				if (Eq(typeString, "Sys.Type.IString") || Eq(typeString, "IString") || Eq(typeString, "Type.IString"))
+				{
+					char displaytext[128];
+					SafeFormat(displaytext, "IString %s", variableName);
+
+					HString defaultString = "quick-brown-squirrel";
+					MARSHAL_STRING(visitor, sectionId, displaytext, *this, defaultString, 4096);
+				}
+				else
+				{
+					char displaytext[128];
+					SafeFormat(displaytext, "%s %s = <null %s>", typeString, variableName, interfaceType->PublicName());
+
+					PropertyFormatSpec spec;
+					spec.emphasize = false;
+					spec.hideDisplayName = true;
+					visitor.VisitHeader(sectionId, "", displaytext, spec);
+				}
+				return;
+			}
+
 			auto* publicType = db.FindPrimitiveOrFQType(typeString);
 
 			if (publicType)
