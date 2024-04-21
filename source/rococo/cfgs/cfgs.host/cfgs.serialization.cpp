@@ -68,6 +68,21 @@ namespace Rococo::CFGS
 			{
 				Throw(socketClass.S(), "Could not parse %s as a SocketClass enum.", socketClass.c_str());
 			}
+
+			size_t startIndex = 0;
+			const ISEXMLDirective* optFields = socket.FindFirstChild(IN OUT startIndex, "Fields");
+			if (optFields)
+			{
+				auto& fields = *optFields;
+				for (size_t j = 0; j < fields.NumberOfChildren(); ++j)
+				{
+					auto& field = fields[j];
+					auto& name = AsString(field["Name"]);
+					auto& value = AsString(field["Value"]);
+
+					nb.AddField(name.c_str(), value.c_str(), socketId);
+				}
+			}
 		}
 	}
 
@@ -194,6 +209,26 @@ namespace Rococo::CFGS
 				sb.AddStringLiteral("Type", socket.Type().Value);
 				AddId("Id", socket.Id().id, sb);
 				sb.AddAtomicAttribute("Class", CFGS::ToString(socket.SocketClassification()));
+
+				size_t fieldCount = socket.EnumerateFields([](cstr, cstr, size_t) {});
+				
+				if (fieldCount > 0)
+				{
+					sb.AddDirective("Fields");
+
+					socket.EnumerateFields(
+						[&sb](cstr name, cstr value, size_t index) 
+						{
+							UNUSED(index);
+							sb.AddDirective("Field");
+							sb.AddAtomicAttribute("Name", name);
+							sb.AddStringLiteral("Value", value);
+							sb.CloseDirective();
+						}
+					);
+
+					sb.CloseDirective();
+				}
 
 				sb.CloseDirective();
 			}

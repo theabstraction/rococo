@@ -407,8 +407,9 @@ namespace Rococo::CFGS::IDE::Sexy
 	{
 		ICFGSNode* node = nullptr;
 		ISexyDatabase& db;
+		IPublisher& publisher;
 
-		TargetNode(ISexyDatabase& _db): db(_db)
+		TargetNode(ISexyDatabase& _db, IPublisher& _publisher): db(_db), publisher(_publisher)
 		{
 
 		}
@@ -426,7 +427,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void OnPropertyEditorLostFocus(IPropertyEditor& property) override
 		{
-			UNUSED(property);
+			publisher.PostOneArg(&property, "PropertyChanged"_event);
 		}
 
 		void OnDeleteSection(cstr sectionId) override
@@ -698,7 +699,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void VisitVenue(IPropertyVisitor& visitor) override
 		{
-			if (node == nullptr) Throw(0, "%s: node should have assigned prior to the visitation", __FUNCTION__);
+			if (node == nullptr) Throw(0, "%s: node should have been assigned prior to the visitation", __FUNCTION__);
 
 			auto& n = *node;
 
@@ -804,7 +805,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		TargetNode targetNode;
 
 		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui) :
-			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this), targetNode(_db)
+			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this), targetNode(_db, _publisher)
 		{
 			messageMap.AddHandler("Regenerate"_event, &NavigationHandler::OnRegenerate);
 			messageMap.AddHandler("PropertyChanged"_event, &NavigationHandler::OnPropertyChanged);
@@ -845,7 +846,15 @@ namespace Rococo::CFGS::IDE::Sexy
 			if (f)
 			{
 				auto& props = editor.Properties();
-				props.UpdateFromVisuals(*args, f->PropertyVenue());
+
+				if (targetNode.node != nullptr)
+				{
+					props.UpdateFromVisuals(*args, targetNode);
+				}
+				else
+				{
+					props.UpdateFromVisuals(*args, f->PropertyVenue());
+				}
 			}
 		}
 

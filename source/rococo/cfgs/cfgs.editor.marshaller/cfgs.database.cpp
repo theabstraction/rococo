@@ -153,12 +153,16 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		void EnumerateFields(Rococo::Function<void(cstr fieldName, cstr fieldValue)> callback)
+		size_t EnumerateFields(Rococo::Function<void(cstr fieldName, cstr fieldValue, size_t index)> callback) const override
 		{
+			size_t index = 0;
+
 			for (auto i : fields)
 			{
-				callback.Invoke(i.first, i.second);
+				callback.Invoke(i.first, i.second, index++);
 			}
+
+			return fields.size();
 		}
 	};
 
@@ -204,6 +208,15 @@ namespace Rococo::CFGS::Internal
 			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B", SocketId()));
 			sockets.push_back(new CFGSSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End", SocketId()));
 			sockets.push_back(new CFGSSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result, SocketId()));
+		}
+
+		void AddField(cstr name, cstr value, SocketId socketId) override
+		{
+			auto* s = FindSocket(socketId);
+			if (s)
+			{
+				s->SetField(name, value);
+			}
 		}
 
 		void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) override

@@ -122,6 +122,8 @@ namespace Rococo::CFGS
 
 		// Tries to retrieve an opaque string by field name.
 		virtual bool TryGetField(cstr fieldName, Strings::IStringPopulator& populator) const = 0;
+
+		virtual size_t EnumerateFields(Rococo::Function<void(cstr name, cstr value, size_t index)> callback) const = 0;
 	};
 
 	struct CFGSNodeType
@@ -199,6 +201,7 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSNodeBuilder
 	{
 		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
+		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
