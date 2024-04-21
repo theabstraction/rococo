@@ -536,9 +536,9 @@ namespace ANON
 				return;
 			}
 
-			if (!EndsWith(lastSavedSysPath, ".cfgs.sxml"))
+			if (!EndsWith(lastSavedSysPath, ".cfgs.sexml"))
 			{
-				Rococo::Throw(0, "%s:\nOnly perimitted to save files with extension cfgs.sxml", lastSavedSysPath.buf);
+				Rococo::Throw(0, "%s:\nOnly perimitted to save files with extension cfgs.sexml", lastSavedSysPath.buf);
 			}
 
 			U8FilePath backPath;

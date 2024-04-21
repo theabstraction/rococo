@@ -60,7 +60,7 @@ namespace Rococo::CFGS
 		OPENFILENAMEA spec = { 0 };
 		spec.lStructSize = sizeof(spec);
 		spec.hwndOwner = hRoot;
-		spec.lpstrFilter = "control-flow graph SXML file\0*.cfgs.sxml\0\0";
+		spec.lpstrFilter = "control-flow graph SXML file\0*.cfgs.sexml\0\0";
 		spec.nFilterIndex = 1;
 
 		spec.lpstrFile = path.buf;
