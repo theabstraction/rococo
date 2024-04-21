@@ -2955,12 +2955,22 @@ namespace ANON
 		const ISXYType* FindPrimitiveOrFQType(cstr typeName) const override
 		{
 			auto* type = FindFQType(typeName);
-			if (type)
+			if (!type)
 			{
-				return type;
+				type = FindPrimitiveType(typeName);
+				if (!type)
+				{
+					auto dot = FindDot(typeName);
+					if (*dot == 0)
+					{
+						char sysType[256];
+						SafeFormat(sysType, "Sys.Type.%s", typeName);
+						type = FindFQType(sysType);
+					}
+				}
 			}
 
-			return FindPrimitiveType(typeName);
+			return type;
 		}
 
 		bool AreTypesEquivalent(Rococo::cstr a , Rococo::cstr b) const override
