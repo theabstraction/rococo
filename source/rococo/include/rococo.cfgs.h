@@ -343,6 +343,9 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment
 	{
+		// Tells the IDE we are about to load something new, so delete all cached data
+		virtual void Clear() = 0;
+
 		virtual void Free() = 0;
 
 		// Called just after the mainloop finishes. At this point the application is ready to exit, though objects will not have been destroyed

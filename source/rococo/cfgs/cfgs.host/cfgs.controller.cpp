@@ -465,6 +465,7 @@ namespace ANON
 		{
 			try
 			{
+				ide->Clear();
 				CFGS::LoadDatabase(*db, filename, *this);
 				gridSlate->QueueRedraw();
 				CopyString(lastSavedSysPath.buf, U8FilePath::CAPACITY, filename);

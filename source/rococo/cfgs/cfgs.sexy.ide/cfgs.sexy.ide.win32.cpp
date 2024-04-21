@@ -313,7 +313,7 @@ namespace ANON
 			auto& recent = GetDirective(topLevelDirectives, "Recent", IN OUT startIndex);
 
 			cstr activeFilename = AsString(recent["ActiveFile"]).c_str();
-			if (activeFilename)
+			if (activeFilename && *activeFilename)
 			{
 				if (config.TryLoadActiveFile(activeFilename))
 				{
@@ -390,6 +390,11 @@ namespace ANON
 				int dummy = 0;
 				prohibitedNamespaces.insert(item, dummy);
 			}
+		}
+
+		void Clear() override
+		{
+			navHandler->Clear();
 		}
 
 		void OnLoaded(cstr filename) override

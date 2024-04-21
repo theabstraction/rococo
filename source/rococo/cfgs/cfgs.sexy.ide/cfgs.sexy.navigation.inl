@@ -826,6 +826,13 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
+		void Clear()
+		{
+			targetNode.node = nullptr;
+			selectedNode = NodeId();
+			RefreshNavigationTree();
+		}
+
 		void OnNodeSelected(TEventArgs<NodeId>& args)
 		{
 			selectedNode = args;
