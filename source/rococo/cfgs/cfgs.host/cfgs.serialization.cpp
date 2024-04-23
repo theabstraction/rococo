@@ -62,7 +62,7 @@ namespace Rococo::CFGS
 			CFGS::SocketClass sclass;
 			if (CFGS::TryParse(OUT sclass, socketClass.c_str()))
 			{
-				nb.AddSocket(socketType.c_str(), sclass, socketLabel.c_str(), socketId);
+				nb.AddSocket(socketType.c_str(), sclass, socketLabel.c_str(), socketId, RGBAb(0, 0, 0, 0), RGBAb(0, 0, 0, 0));
 			}
 			else
 			{

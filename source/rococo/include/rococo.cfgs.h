@@ -83,6 +83,8 @@ namespace Rococo::CFGS
 	{
 		virtual void AddCable(CableId id) = 0;
 
+		virtual RGBAb GetSocketColour(bool isLit) const = 0;
+	
 		// Return the face or vertex where the socket is placed. Conceptually the cable to the socket extends outwards through the specified face
 		virtual [[nodiscard]] SocketPlacement Placement() const = 0;
 
@@ -200,7 +202,8 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSNodeBuilder
 	{
-		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
+		// Adds a socket to the node. If the alpha component of the override parameters is non-zero, their RGB components are used to define the colour of the socket in the GUI
+		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id, RGBAb overrideColour, RGBAb overrideHilightColour) = 0;
 		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
 	};
 

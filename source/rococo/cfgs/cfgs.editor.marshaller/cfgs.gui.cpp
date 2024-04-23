@@ -44,22 +44,6 @@ namespace Rococo::CFGS::Internal
 		}
 	}
 
-	RGBAb GetSocketColour(const ICFGSSocket& socket, bool isLit)
-	{
-		switch (socket.SocketClassification())
-		{
-		case SocketClass::Trigger:
-		case SocketClass::Exit:
-			return isLit ? RGBAb(0, 255, 0) : RGBAb(0, 192, 0);
-		case SocketClass::InputRef:
-		case SocketClass::InputVar:
-		case SocketClass::ConstInputRef:
-			return isLit ? RGBAb(0, 255, 255) : RGBAb(0, 192, 192);
-		default:
-			return isLit ? RGBAb(128, 128, 255) : RGBAb(96, 96, 192);
-		}
-	}
-
 	enum class RenderPhase
 	{
 		RGB,
@@ -155,7 +139,7 @@ namespace Rococo::CFGS::Internal
 			bool isLit = IsPointInRect(cursorPos, circleRect);
 
 			ShrinkRect(circleRect, 2);
-			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+			fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
@@ -176,10 +160,10 @@ namespace Rococo::CFGS::Internal
 			if (socket.CableCount() > 0)
 			{
 				fgr.MoveLineStartTo(Centre(circleRect));
-				fgr.DrawLineTo({ parentRect.left, Centre(circleRect).y }, GetSocketColour(socket, false), 2);
+				fgr.DrawLineTo({ parentRect.left, Centre(circleRect).y }, socket.GetSocketColour(false), 2);
 
 				ShrinkRect(circleRect, 4);
-				fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+				fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 			}
 		}
 
@@ -212,7 +196,7 @@ namespace Rococo::CFGS::Internal
 			bool isLit = IsPointInRect(cursorPos, circleRect);
 
 			ShrinkRect(circleRect, 2);
-			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+			fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 
 			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
 
@@ -233,10 +217,10 @@ namespace Rococo::CFGS::Internal
 			if (socket.CableCount() > 0)
 			{
 				fgr.MoveLineStartTo(Centre(circleRect));
-				fgr.DrawLineTo({ parentRect.right, Centre(circleRect).y }, GetSocketColour(socket, false), 2);
+				fgr.DrawLineTo({ parentRect.right, Centre(circleRect).y }, socket.GetSocketColour(false), 2);
 
 				ShrinkRect(circleRect, 4);
-				fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+				fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 			}
 		}
 
@@ -283,7 +267,7 @@ namespace Rococo::CFGS::Internal
 				if (socket.Id() == socketId)
 				{
 					socket.GetLastGeometry(OUT circleRect, OUT edgePoint);
-					lineColour = GetSocketColour(socket, isLit);
+					lineColour = socket.GetSocketColour(isLit);
 					return circleRect.left < circleRect.right;
 				}
 			}

@@ -82,6 +82,17 @@ namespace ANON
 			return nullptr;
 		}
 
+		struct Colours
+		{
+			RGBAb normal;
+			RGBAb hilight;
+		};
+
+		Colours GetColoursForType(cstr typeName)
+		{
+			return { RGBAb(128, 0, 0, 1), RGBAb(255,0,0,1) };
+		}
+
 		void SelectFunction(const NodeOptionHeader& header)
 		{
 			Substring url = Substring::ToSubstring(header.url);
@@ -117,8 +128,8 @@ namespace ANON
 				}
 
 				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
-				node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
-				node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
+				node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId(), RGBAb(0, 255, 0, 1), RGBAb(0, 128, 0, 1));
+				node.AddSocket("Flow", SocketClass::Exit, "End", SocketId(), RGBAb(0, 255, 0, 1), RGBAb(0, 128, 0, 1));
 
 				for (int i = 0; i < sexyFunction->LocalFunction()->InputCount(); i++)
 				{
@@ -127,16 +138,8 @@ namespace ANON
 					cstr name = sexyFunction->LocalFunction()->InputName(i);
 					cstr type = sexyFunction->LocalFunction()->InputType(i);
 
-					switch (qualifier)
-					{
-					case EQualifier::None: // constant by default
-					case EQualifier::Constant:
-					case EQualifier::Ref: // refs require the variable input to be defined
-						node.AddSocket(type, SocketClass::InputVar, name, SocketId());
-						break;
-					case EQualifier::Output:
-						node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
-					}
+					Colours colours = GetColoursForType(type);
+					node.AddSocket(type, SocketClass::InputVar, name, SocketId(), colours.normal, colours.hilight);
 				}
 
 				for (int i = 0; i < sexyFunction->LocalFunction()->OutputCount(); i++)
@@ -144,7 +147,8 @@ namespace ANON
 					cstr name = sexyFunction->LocalFunction()->OutputName(i);
 					cstr type = sexyFunction->LocalFunction()->OutputType(i);
 
-					node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
+					Colours colours = GetColoursForType(type);
+					node.AddSocket(type, SocketClass::OutputValue, name, SocketId(), colours.normal, colours.hilight);
 				}
 
 
