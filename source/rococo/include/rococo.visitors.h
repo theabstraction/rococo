@@ -34,6 +34,11 @@ namespace Rococo
 			{
 				return value != 0;
 			}
+
+			static TREE_NODE_ID Root()
+			{
+				return TREE_NODE_ID{ 0 };
+			}
 		};
 
 		inline bool operator == (TREE_NODE_ID a, TREE_NODE_ID b)

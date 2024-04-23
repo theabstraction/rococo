@@ -702,6 +702,9 @@ namespace Rococo::CFGS::IDE::Sexy
 					VisitField(socket, visitor, resolvedType->LocalName(), extFieldName, depth + 1, index, resolvedType->SourcePath(), nullptr);
 				}
 			}
+
+			SafeFormat(sectionId, "%s_%llx_%llx_blank", variableName, sid.iValues[0], sid.iValues[1]);
+			visitor.VisitHeader(sectionId, "", "");
 		}
 
 		void VisitSocket(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName, int index)

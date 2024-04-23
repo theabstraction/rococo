@@ -220,6 +220,41 @@
 
 			) // Node
 
+			(Node
+				(Type "Sys.Geometry.M4x4.MakeTranslateMatrix")
+				(XPos 359.000000)
+				(YPos 9.500000)
+				(Id "8959F68E00000006 E990B9B53E97E56F") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "8959F68E00000007 E990B9B53E97E56F")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "8959F68E00000008 E990B9B53E97E56F")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "ds")
+					(Type "Sys.Maths.Vec3")
+					(Id "8959F68E00000009 E990B9B53E97E56F")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "t")
+					(Type "Sys.Maths.Matrix4x4")
+					(Id "8959F68E0000000A E990B9B53E97E56F")
+					(Class InputVar)
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
 		(Cables

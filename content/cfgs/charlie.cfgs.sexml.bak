@@ -211,7 +211,7 @@
 					(Fields :
 						(Field
 							(Name message)
-							(Value "")
+							(Value "Bumblebee")
 						) // Field
 
 					) // Fields

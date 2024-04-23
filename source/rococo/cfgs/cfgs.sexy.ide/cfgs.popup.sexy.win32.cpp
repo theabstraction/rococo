@@ -16,10 +16,11 @@ using namespace Rococo::Windows;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Strings;
 using namespace Rococo::Abedit;
+using namespace Rococo::Visitors;
 
 namespace ANON
 {
-	struct Popup : ICFGSDesignerSpacePopupSupervisor, StandardWindowHandler, IListViewEvents
+	struct Popup : ICFGSDesignerSpacePopupSupervisor, StandardWindowHandler, Visitors::ITreeControlHandler
 	{
 		struct NodeOptionHeader
 		{
@@ -32,7 +33,8 @@ namespace ANON
 		struct NodeOption
 		{
 			NodeOptionHeader header;
-			OPTION_METHOD method;
+			OPTION_METHOD method{ nullptr };
+			TREE_NODE_ID nodeId{ 0 };
 		};
 
 		IAbstractEditor& editor;
@@ -43,11 +45,11 @@ namespace ANON
 		Editors::DesignerVec2 designPosition{ 0,0 };
 
 		AutoFree<IParentWindowSupervisor> window;
-		AutoFree<IListViewSupervisor> listView;
+		AutoFree<ITreeControlSupervisor> treeControl;
 
 		HWND hListTitle{ 0 };
 
-		std::vector<NodeOption> options;
+		std::vector<NodeOption> functions;
 
 		enum { Width = 640, Height = 480 };
 
@@ -205,7 +207,7 @@ namespace ANON
 				opt.header.url = url;
 				opt.method = &Popup::SelectFunction;
 
-				options.push_back(opt);
+				functions.push_back(opt);
 			}
 
 			for (int i = 0; i < ns.SubspaceCount(); i++)
@@ -216,13 +218,37 @@ namespace ANON
 
 		void PopulateOptionsBackingList()
 		{
-			if (!options.empty())
+			if (!functions.empty())
 			{
 				return;
 			}
 
 			AppendAllFunctions(db.GetRootNamespace());
 		}
+
+		TREE_NODE_ID AddFunctionNameToTree(cstr functionName, TREE_NODE_ID branch)
+		{
+			cstr dot = FindChar(functionName, '.');
+			if (!dot)
+			{
+				auto functionId = treeControl->Tree().AddChild(branch, functionName, CheckState_NoCheckBox);
+				return functionId;
+			}
+			else
+			{
+				char subspace[256];
+				strncpy_s(subspace, functionName, dot - functionName);
+
+				auto subspaceId = treeControl->Tree().FindFirstChild(branch, subspace);
+				if (!subspaceId)
+				{
+					subspaceId = treeControl->Tree().AddChild(branch, subspace, CheckState_NoCheckBox);
+				}
+
+				return AddFunctionNameToTree(dot + 1, subspaceId);
+			}
+		}
+			
 
 		void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) override
 		{
@@ -233,16 +259,15 @@ namespace ANON
 
 			SetCursor(LoadCursorA(NULL, IDC_WAIT));
 
-			listView->UIList().ClearRows();
+			treeControl->Tree().ResetContent();
 
 			PopulateOptionsBackingList();
 
-			cstr row[2] = { "", nullptr };
 
-			for (auto& opt : options)
+			for (auto& f : functions)
 			{
-				row[0] = opt.header.visibleName;
-				listView->UIList().AddRow(row);
+				TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, TREE_NODE_ID::Root());
+				f.nodeId = optionId;
 			}
 
 			SetCursor(LoadCursorA(NULL, IDC_ARROW));
@@ -265,11 +290,7 @@ namespace ANON
 			hListTitle = CreateWindowExA(0, WC_STATICA, "Add node...", SS_CENTER | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, *window, NULL, NULL, NULL);
 
 			GuiRect nullRect{ 0,0,0,0 };
-			listView = AddListView(*window, nullRect, "", *this, LVS_REPORT | WS_VISIBLE | WS_CHILD | LVS_NOCOLUMNHEADER, WS_VISIBLE | WS_CHILD, 0);
-
-			cstr columns[] = { "Add Node...", nullptr };
-			int32 widths[] = { Width - 18, 0 };
-			listView->UIList().SetColumns(columns, widths);
+			treeControl = AddTree(*window, nullRect, "", 0, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER | TVS_SHOWSELALWAYS);
 
 			Layout();
 		}
@@ -307,7 +328,7 @@ namespace ANON
 			enum { TITLE_HEIGHT = 24 };
 
 			MoveWindow(hListTitle, 0, 0, Width, TITLE_HEIGHT, FALSE);
-			MoveWindow(*listView, 0, TITLE_HEIGHT, Width, Height - TITLE_HEIGHT, FALSE);
+			MoveWindow(*treeControl, 0, TITLE_HEIGHT, Width, Height - TITLE_HEIGHT, FALSE);
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
@@ -315,25 +336,29 @@ namespace ANON
 			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
 		}
 
-		void OnItemChanged(int index) override
+		void OnItemSelected(TREE_NODE_ID id, IUITree& origin) override
 		{
-			if (index < 0 || index >= (int32)options.size())
+			UNUSED(origin);
+
+			if (!id)
 			{
 				return;
 			}
 
-			auto& option = options[index];
-			(this->*option.method)(option.header);
+			for (auto& f : functions)
+			{
+				if (f.nodeId == id)
+				{
+					(this->*f.method)(f.header);
+					break;
+				}
+			}
 		}
 
-		void OnDrawItem(DRAWITEMSTRUCT&) override
+		void OnItemRightClicked(TREE_NODE_ID id, IUITree& origin) override
 		{
-
-		}
-
-		void OnMeasureItem(HWND hListView, MEASUREITEMSTRUCT&) override
-		{
-			UNUSED(hListView);
+			UNUSED(id);
+			UNUSED(origin);
 		}
 
 		void OnSize(HWND, const Vec2i&, RESIZE_TYPE) override

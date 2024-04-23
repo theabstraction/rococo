@@ -170,7 +170,7 @@ namespace Rococo::CFGS
 	void AddId(cstr key, UniqueIdHolder id, ISEXMLBuilder& sb)
 	{
 		char buf[128];
-		Strings::SafeFormat(buf, "%X %X", id.iValues[0], id.iValues[1]);
+		Strings::SafeFormat(buf, "%llX %llX", id.iValues[0], id.iValues[1]);
 		sb.AddStringLiteral(key, buf);
 	}
 
