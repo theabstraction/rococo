@@ -1594,6 +1594,11 @@ namespace Rococo::CFGS::IDE::Sexy
 			return false;
 		}
 
+		if (srcSocket->SocketClassification() == SocketClass::Exit && target.SocketClassification() == SocketClass::Trigger)
+		{
+			return srcSocket->CableCount() == 0;
+		}
+
 		cstr srcType = srcSocket->Type().Value;
 		cstr trgType = target.Type().Value;
 
