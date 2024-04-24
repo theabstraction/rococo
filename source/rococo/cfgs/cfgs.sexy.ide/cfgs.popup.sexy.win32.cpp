@@ -88,9 +88,45 @@ namespace ANON
 			RGBAb hilight;
 		};
 
-		Colours GetColoursForType(cstr typeName)
+		struct ColourTypeBinding
 		{
-			return { RGBAb(128, 0, 0, 1), RGBAb(255,0,0,1) };
+			cstr typeName;
+			cstr fqTypeName;
+			Colours colours;
+		};
+
+		Colours GetColoursForType(cstr typeName)
+		{			
+			static std::vector<ColourTypeBinding> bindings =
+			{
+				{ "Float32", "Sys.Type.Float32", { RGBAb(128,64,64,1),  RGBAb(255,128,128,1)   }},
+				{ "Float64", "Sys.Type.Float64", { RGBAb(192,128,0,1),  RGBAb(255,192,0,1)   }},
+				{ "Int32",   "Sys.Type.Int32",   { RGBAb(128,128,128,1), RGBAb(224,224,224,1) }},
+				{ "Int64",   "Sys.Type.Int64",   { RGBAb(144,112,128,1), RGBAb(255,160,224,1) }},
+				{ "Bool",    "Sys.Type.Bool",    { RGBAb(192,128,192,1),  RGBAb(224,192,224,1) }},
+			};
+
+			for (auto b : bindings)
+			{
+				if (Eq(b.typeName, typeName))
+				{
+					return b.colours;
+				}
+
+				if (Eq(b.fqTypeName, typeName))
+				{
+					return b.colours;
+				}
+			}
+
+			if (db.FindInterface(typeName) != nullptr)
+			{
+				return { RGBAb(128,128,224,1),  RGBAb(192,192,255,1) };
+			}
+			else
+			{
+				return { RGBAb(192,192,0,1),  RGBAb(255,255,0,1) };
+			}
 		}
 
 		void SelectFunction(const NodeOptionHeader& header)
@@ -106,16 +142,15 @@ namespace ANON
 			}
 	
 			ISXYPublicFunction* sexyFunction = FindFirstFunctionIf(db.GetRootNamespace(),
-				[&fName, ptr](ISxyNamespace&, ISXYPublicFunction& f) -> bool
+				[&fName, ptr](ISxyNamespace& ns, ISXYPublicFunction& f) -> bool
 				{
-					if (!Eq(f.PublicName(), fName))
-					{
-						return false;
-					}
-
-					return true;
-
-					// return ((size_t)&f) == ptr;
+					char fqName[256];
+					StackStringBuilder sb(fqName, sizeof fqName);
+					ns.AppendFullNameToStringBuilder(sb);
+					sb << ".";
+					sb << f.PublicName();
+					
+					return Eq(fqName, fName);
 				}
 			);
 
@@ -133,8 +168,6 @@ namespace ANON
 
 				for (int i = 0; i < sexyFunction->LocalFunction()->InputCount(); i++)
 				{
-					auto qualifier = sexyFunction->LocalFunction()->InputQualifier(i);
-
 					cstr name = sexyFunction->LocalFunction()->InputName(i);
 					cstr type = sexyFunction->LocalFunction()->InputType(i);
 
@@ -206,7 +239,7 @@ namespace ANON
 				opt.header.visibleName = visibleName;
 
 				char url[256];
-				SafeFormat(url, "%s@%llX", f.PublicName(), (size_t) f.PublicName());
+				SafeFormat(url, "%s@%llX", visibleName, (size_t) f.PublicName());
 
 				opt.header.url = url;
 				opt.method = &Popup::SelectFunction;
