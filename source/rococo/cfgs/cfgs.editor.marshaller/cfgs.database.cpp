@@ -31,7 +31,7 @@ namespace Rococo::CFGS::Internal
 		RGBAb colour;
 		RGBAb hilightColour;
 
-		CFGSSocket(CFGSNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name, SocketId _id, RGBAb _overrideColour, RGBAb _overrideHilightColour) :
+		CFGSSocket(CFGSNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name, SocketId _id) :
 			parent(_parent),
 			placement(_placement),
 			socketType(_type.Value),
@@ -59,16 +59,6 @@ namespace Rococo::CFGS::Internal
 				colour = RGBAb(96, 96, 192);
 				break;
 			}
-
-			if (_overrideColour.alpha > 0)
-			{
-				colour = RGBAb(_overrideColour.red, _overrideColour.green, _overrideColour.blue);
-			}
-
-			if (_overrideHilightColour.alpha > 0)
-			{
-				hilightColour = RGBAb(_overrideHilightColour.red, _overrideHilightColour.green, _overrideHilightColour.blue);
-			}
 		}
 
 		void AcceptVisitor(IPropertyVisitor& visitor, uint64, IPropertyUIEvents&)
@@ -87,6 +77,12 @@ namespace Rococo::CFGS::Internal
 		RGBAb GetSocketColour(bool isLit) const override
 		{
 			return isLit ? hilightColour : colour;
+		}
+
+		void SetColours(RGBAb normalColour, RGBAb litColour) override
+		{
+			this->colour = normalColour;
+			this->hilightColour = litColour;
 		}
 
 		void Clear()
@@ -236,15 +232,6 @@ namespace Rococo::CFGS::Internal
 			visitor.EndArray();
 		}
 
-		void AddTestSockets(cstr result)
-		{
-			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ "Flow" }, SocketClass::Trigger, "Start", SocketId(), RGBAb(0,0,0,0), RGBAb(0,0,0,0)));
-			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "A", SocketId(), RGBAb(0, 0, 0, 0), RGBAb(0, 0, 0, 0)));
-			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ "Int32" }, SocketClass::InputVar, "B", SocketId(), RGBAb(0, 0, 0, 0), RGBAb(0, 0, 0, 0)));
-			sockets.push_back(new CFGSSocket(this, SocketPlacement::Right, CFGSSocketType{ "Flow" }, SocketClass::Exit, "End", SocketId(), RGBAb(0, 0, 0, 0), RGBAb(0, 0, 0, 0)));
-			sockets.push_back(new CFGSSocket(this, SocketPlacement::Right, CFGSSocketType{ "Int32" }, SocketClass::OutputValue, result, SocketId(), RGBAb(0, 0, 0, 0), RGBAb(0, 0, 0, 0)));
-		}
-
 		void AddField(cstr name, cstr value, SocketId socketId) override
 		{
 			auto* s = FindSocket(socketId);
@@ -254,9 +241,10 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id, RGBAb overrideColour, RGBAb overrideHilightColour) override
+		ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) override
 		{
-			sockets.push_back(new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label, id, overrideColour, overrideHilightColour));
+			auto* s = new CFGSSocket(this, SocketPlacement::Left, CFGSSocketType{ type }, socketClass, label, id);
+			sockets.push_back(s);
 			
 			switch(socketClass)
 			{
@@ -281,6 +269,8 @@ namespace Rococo::CFGS::Internal
 			int height = nSlotHorizontals * 20;
 
 			designRect.bottom = designRect.top + height;
+
+			return *s;
 		}
 
 		void DeleteSocket(SocketId id)
@@ -1050,7 +1040,7 @@ namespace Rococo::CFGS::Internal
 
 		void Append() override
 		{
-			target->push_back(new CFGSSocket(node, placement, type, classification, "undefined-name", SocketId(), RGBAb(0, 0, 0, 0), RGBAb(0, 0, 0, 0)));
+			target->push_back(new CFGSSocket(node, placement, type, classification, "undefined-name", SocketId()));
 
 			FunctionIdArg arg;
 			arg.functionId = functionId;

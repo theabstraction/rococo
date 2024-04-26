@@ -123,13 +123,13 @@ namespace ANON
 			{
 				return { RGBAb(128,128,224,1),  RGBAb(192,192,255,1) };
 			}
-			else
+			else // Other stuff, needs a bit of love
 			{
 				return { RGBAb(192,192,0,1),  RGBAb(255,255,0,1) };
 			}
 		}
 
-		void SelectFunction(const NodeOptionHeader& header)
+		void AddNewNodeForFunction(const NodeOptionHeader& header)
 		{
 			Substring url = Substring::ToSubstring(header.url);
 			cstr at = Strings::ReverseFind('@', url);
@@ -163,8 +163,10 @@ namespace ANON
 				}
 
 				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
-				node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId(), RGBAb(0, 255, 0, 1), RGBAb(0, 128, 0, 1));
-				node.AddSocket("Flow", SocketClass::Exit, "End", SocketId(), RGBAb(0, 255, 0, 1), RGBAb(0, 128, 0, 1));
+				auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
+				flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
+				flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
 
 				for (int i = 0; i < sexyFunction->LocalFunction()->InputCount(); i++)
 				{
@@ -172,7 +174,8 @@ namespace ANON
 					cstr type = sexyFunction->LocalFunction()->InputType(i);
 
 					Colours colours = GetColoursForType(type);
-					node.AddSocket(type, SocketClass::InputVar, name, SocketId(), colours.normal, colours.hilight);
+					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
+					socket.SetColours(colours.normal, colours.hilight);
 				}
 
 				for (int i = 0; i < sexyFunction->LocalFunction()->OutputCount(); i++)
@@ -181,7 +184,8 @@ namespace ANON
 					cstr type = sexyFunction->LocalFunction()->OutputType(i);
 
 					Colours colours = GetColoursForType(type);
-					node.AddSocket(type, SocketClass::OutputValue, name, SocketId(), colours.normal, colours.hilight);
+					auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
+					socket.SetColours(colours.normal, colours.hilight);
 				}
 
 
@@ -242,7 +246,7 @@ namespace ANON
 				SafeFormat(url, "%s@%llX", visibleName, (size_t) f.PublicName());
 
 				opt.header.url = url;
-				opt.method = &Popup::SelectFunction;
+				opt.method = &Popup::AddNewNodeForFunction;
 
 				functions.push_back(opt);
 			}

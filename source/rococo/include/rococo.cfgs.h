@@ -113,6 +113,8 @@ namespace Rococo::CFGS
 		// Returns the last place that the socket was computed for rendering, along with the edge point through whih its cable protrudes
 		virtual [[nodiscard]] void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const = 0;
 
+		virtual void SetColours(RGBAb normalColour, RGBAb litColour) = 0;
+
 		// Sets the last place that the rectangle was computed for rendering.
 		// Note we use mutable data and a const function. But since geometry will be const between most frames, its not so bad
 		// [circleRect] is the rect bounding the socket circle. 
@@ -203,7 +205,7 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSNodeBuilder
 	{
 		// Adds a socket to the node. If the alpha component of the override parameters is non-zero, their RGB components are used to define the colour of the socket in the GUI
-		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id, RGBAb overrideColour, RGBAb overrideHilightColour) = 0;
+		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
 		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
 	};
 
