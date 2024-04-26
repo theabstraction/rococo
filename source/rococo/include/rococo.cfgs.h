@@ -113,7 +113,7 @@ namespace Rococo::CFGS
 		// Returns the last place that the socket was computed for rendering, along with the edge point through whih its cable protrudes
 		virtual [[nodiscard]] void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const = 0;
 
-		virtual void SetColours(RGBAb normalColour, RGBAb litColour) = 0;
+		virtual void SetColours(RGBAb normalColour, RGBAb litColour) const = 0;
 
 		// Sets the last place that the rectangle was computed for rendering.
 		// Note we use mutable data and a const function. But since geometry will be const between most frames, its not so bad

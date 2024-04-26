@@ -201,7 +201,7 @@ namespace ANON
 
 		bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target) const override
 		{
-			return Rococo::CFGS::IDE::Sexy::IsConnectionPermitted(anchor, target, cfgs, core->db);
+			return Rococo::CFGS::IsConnectionPermitted(anchor, target, cfgs, core->db);
 		}
 
 		ICFGSDesignerSpacePopup& DesignerSpacePopup() override
@@ -446,6 +446,8 @@ namespace ANON
 					LoadConfig(topLevelDirectives);
 				}
 			);
+
+			ConfigCFGS(cfgs, core->db);
 		}
 	};
 }

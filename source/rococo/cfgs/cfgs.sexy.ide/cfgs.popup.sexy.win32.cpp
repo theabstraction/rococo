@@ -1,14 +1,15 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 #include <rococo.cfgs.h>
-#include <vector>
 #include <CommCtrl.h>
+#include "cfgs.sexy.ide.h"
 #include <rococo.sexystudio.api.h>
-#include <../sexystudio/sexystudio.api.h>
-#include <rococo.strings.h>
+#include "..\sexystudio\sexystudio.api.h"
 #include <rococo.functional.h>
+#include <rococo.strings.h>
 #include <stdio.h>
 #include <rococo.abstract.editor.h>
+#include <vector>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -82,53 +83,6 @@ namespace ANON
 			return nullptr;
 		}
 
-		struct Colours
-		{
-			RGBAb normal;
-			RGBAb hilight;
-		};
-
-		struct ColourTypeBinding
-		{
-			cstr typeName;
-			cstr fqTypeName;
-			Colours colours;
-		};
-
-		Colours GetColoursForType(cstr typeName)
-		{			
-			static std::vector<ColourTypeBinding> bindings =
-			{
-				{ "Float32", "Sys.Type.Float32", { RGBAb(128,64,64,1),  RGBAb(255,128,128,1)   }},
-				{ "Float64", "Sys.Type.Float64", { RGBAb(192,128,0,1),  RGBAb(255,192,0,1)   }},
-				{ "Int32",   "Sys.Type.Int32",   { RGBAb(128,128,128,1), RGBAb(224,224,224,1) }},
-				{ "Int64",   "Sys.Type.Int64",   { RGBAb(144,112,128,1), RGBAb(255,160,224,1) }},
-				{ "Bool",    "Sys.Type.Bool",    { RGBAb(192,128,192,1),  RGBAb(224,192,224,1) }},
-			};
-
-			for (auto b : bindings)
-			{
-				if (Eq(b.typeName, typeName))
-				{
-					return b.colours;
-				}
-
-				if (Eq(b.fqTypeName, typeName))
-				{
-					return b.colours;
-				}
-			}
-
-			if (db.FindInterface(typeName) != nullptr)
-			{
-				return { RGBAb(128,128,224,1),  RGBAb(192,192,255,1) };
-			}
-			else // Other stuff, needs a bit of love
-			{
-				return { RGBAb(192,192,0,1),  RGBAb(255,255,0,1) };
-			}
-		}
-
 		void AddNewNodeForFunction(const NodeOptionHeader& header)
 		{
 			Substring url = Substring::ToSubstring(header.url);
@@ -173,7 +127,7 @@ namespace ANON
 					cstr name = sexyFunction->LocalFunction()->InputName(i);
 					cstr type = sexyFunction->LocalFunction()->InputType(i);
 
-					Colours colours = GetColoursForType(type);
+					Colours colours = GetColoursForType(type, db);
 					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
 					socket.SetColours(colours.normal, colours.hilight);
 				}
@@ -183,7 +137,7 @@ namespace ANON
 					cstr name = sexyFunction->LocalFunction()->OutputName(i);
 					cstr type = sexyFunction->LocalFunction()->OutputType(i);
 
-					Colours colours = GetColoursForType(type);
+					Colours colours = GetColoursForType(type, db);
 					auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
 					socket.SetColours(colours.normal, colours.hilight);
 				}

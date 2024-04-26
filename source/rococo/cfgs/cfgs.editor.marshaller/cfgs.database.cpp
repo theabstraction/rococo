@@ -28,8 +28,8 @@ namespace Rococo::CFGS::Internal
 		SocketClass classification;
 		SocketId id;
 		std::vector<CableId> cables;
-		RGBAb colour;
-		RGBAb hilightColour;
+		mutable RGBAb colour;
+		mutable RGBAb hilightColour;
 
 		CFGSSocket(CFGSNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name, SocketId _id) :
 			parent(_parent),
@@ -79,7 +79,7 @@ namespace Rococo::CFGS::Internal
 			return isLit ? hilightColour : colour;
 		}
 
-		void SetColours(RGBAb normalColour, RGBAb litColour) override
+		void SetColours(RGBAb normalColour, RGBAb litColour) const override
 		{
 			this->colour = normalColour;
 			this->hilightColour = litColour;

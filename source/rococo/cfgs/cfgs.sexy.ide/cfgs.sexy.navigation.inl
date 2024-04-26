@@ -16,6 +16,7 @@
 #include <rococo.variable.editor.h>
 #include <rococo.events.map.h>
 #include <rococo.validators.h>
+#include "cfgs.sexy.ide.h"
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -1573,40 +1574,4 @@ namespace Rococo::CFGS::IDE::Sexy
 			delete this;
 		}
 	};
-
-	bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target, ICFGSDatabase& cfgs, const ISexyDatabase& db)
-	{
-		auto* f = cfgs.CurrentFunction();
-		if (!f)
-		{
-			return false;
-		}
-
-		auto* srcNode = f->Nodes().FindNode(anchor.node);
-		if (!srcNode)
-		{
-			return false;
-		}
-
-		auto* srcSocket = srcNode->FindSocket(anchor.socket);
-		if (!srcSocket)
-		{
-			return false;
-		}
-
-		if (srcSocket->SocketClassification() == SocketClass::Exit && target.SocketClassification() == SocketClass::Trigger)
-		{
-			return srcSocket->CableCount() == 0;
-		}
-
-		cstr srcType = srcSocket->Type().Value;
-		cstr trgType = target.Type().Value;
-
-		if (!db.AreTypesEquivalent(srcType, trgType))
-		{
-			return false;
-		}
-
-		return true;
-	}
 }
