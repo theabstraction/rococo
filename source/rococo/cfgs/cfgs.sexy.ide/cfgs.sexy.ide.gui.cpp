@@ -122,7 +122,6 @@ namespace Rococo::CFGS
 					for (auto i : colourSchemeMap)
 					{
 						sortedMap.push_back({ i.first, i.second });
-
 					}
 
 					std::sort(sortedMap.begin(), sortedMap.end(), [](const Binding& a, const Binding& b)
