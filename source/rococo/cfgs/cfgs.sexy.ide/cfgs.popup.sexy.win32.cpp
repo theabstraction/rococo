@@ -41,6 +41,7 @@ namespace ANON
 		IAbstractEditor& editor;
 		ICFGSDatabase& cfgs;
 		SexyStudio::ISexyDatabase& db;
+		ICFGSCosmetics& cosmetics;
 		INamespaceValidator& nv;
 		Vec2i referencePosition{ 0,0 };
 		Editors::DesignerVec2 designPosition{ 0,0 };
@@ -54,7 +55,7 @@ namespace ANON
 
 		enum { Width = 640, Height = 480 };
 
-		Popup(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db, INamespaceValidator& _nv) : editor(_editor), cfgs(_cfgs), db(_db), nv(_nv)
+		Popup(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db, INamespaceValidator& _nv, ICFGSCosmetics& _cosmetics) : editor(_editor), cfgs(_cfgs), db(_db), nv(_nv), cosmetics(_cosmetics)
 		{
 
 		}
@@ -127,7 +128,7 @@ namespace ANON
 					cstr name = sexyFunction->LocalFunction()->InputName(i);
 					cstr type = sexyFunction->LocalFunction()->InputType(i);
 
-					Colours colours = GetColoursForType(type, db);
+					Colours colours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
 					socket.SetColours(colours.normal, colours.hilight);
 				}
@@ -137,7 +138,7 @@ namespace ANON
 					cstr name = sexyFunction->LocalFunction()->OutputName(i);
 					cstr type = sexyFunction->LocalFunction()->OutputType(i);
 
-					Colours colours = GetColoursForType(type, db);
+					Colours colours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
 					socket.SetColours(colours.normal, colours.hilight);
 				}
@@ -365,9 +366,9 @@ namespace ANON
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator)
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics)
 	{
-		auto* popup = new ANON::Popup(editor, cfgs, db, namespaceValidator);
+		auto* popup = new ANON::Popup(editor, cfgs, db, namespaceValidator, cosmetics);
 		popup->Create();
 		return popup;
 	}

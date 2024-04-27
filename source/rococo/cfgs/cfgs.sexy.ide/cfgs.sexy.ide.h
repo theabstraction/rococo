@@ -28,12 +28,22 @@ namespace Rococo::CFGS
 	// Returns true if the anchor is allowed to connect to the target
 	bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target, ICFGSDatabase& cfgs, const SexyStudio::ISexyDatabase& db);
 
-	// Assign cosmetic choices to a particular socket
-	void ConfigSocket(const ICFGSSocket& socket, SexyStudio::ISexyDatabase& db);
+	ROCOCO_INTERFACE ICFGSCosmetics
+	{
+		// Assign cosmetic choices to a particular socket
+		virtual void ConfigSocketCosmetics(const ICFGSSocket& socket);
 
-	// Enumerates all functions in the cfgs system and assigns cosmetic choices
-	void ConfigCFGS(ICFGSDatabase &cfgs, SexyStudio::ISexyDatabase & db);
+		// Enumerates all functions in the cfgs system and assigns cosmetic choices
+		virtual void ConfigCFGSCosmetics(ICFGSDatabase& cfgs);
 
-	// For a given typename find the appropriate colours for decorating cables and sockets.
-	Colours GetColoursForType(cstr typeName, SexyStudio::ISexyDatabase& db);
+		// For a given typename find the appropriate colours for decorating cables and sockets.
+		virtual Colours GetColoursForType(cstr typeName);
+	};
+
+	ROCOCO_INTERFACE ICFGSCosmeticsSupervisor : ICFGSCosmetics
+	{
+		virtual void Free() = 0;
+	};
+
+	ICFGSCosmeticsSupervisor* CreateCosmetics(SexyStudio::ISexyDatabase& db);
 }

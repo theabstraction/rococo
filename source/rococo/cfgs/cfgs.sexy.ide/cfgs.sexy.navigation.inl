@@ -31,7 +31,7 @@ static const char* title = "CFGS SexyStudio IDE";
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator);
+	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics);
 
 	ROCOCO_INTERFACE ICFGSIDEContextMenu
 	{

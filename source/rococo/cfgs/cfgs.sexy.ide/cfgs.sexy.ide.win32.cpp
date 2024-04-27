@@ -55,6 +55,7 @@ namespace ANON
 		AutoFree<ISexyStudioFactory1> ssFactory;
 		AutoFree<ICFGSDesignerSpacePopupSupervisor> designerSpacePopup;
 		AutoFree<Sexy_CFGS_Core> core;
+		AutoFree<ICFGSCosmeticsSupervisor> cosmetics;
 
 		IAbstractEditor& editor;
 
@@ -180,9 +181,11 @@ namespace ANON
 
 			core = new Sexy_CFGS_Core(ideWindow.ideInstance->GetDatabase(), cfgs);
 
+			cosmetics = CreateCosmetics(core->db);
+
 			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this);
 
-			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase(), *this);
+			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase(), *this, *cosmetics);
 
 			editor.SetNavigationHandler(navHandler);
 
@@ -447,7 +450,7 @@ namespace ANON
 				}
 			);
 
-			ConfigCFGS(cfgs, core->db);
+			cosmetics->ConfigCFGSCosmetics(cfgs);
 		}
 	};
 }

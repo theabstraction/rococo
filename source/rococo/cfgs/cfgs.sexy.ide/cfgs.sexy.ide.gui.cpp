@@ -46,80 +46,99 @@ namespace Rococo::CFGS
 		return true;
 	}
 
-	void ConfigSocket(const ICFGSSocket& socket, ISexyDatabase& db)
+	struct Cosmetics : ICFGSCosmeticsSupervisor
 	{
-		switch (socket.SocketClassification())
-		{
-		case SocketClass::ConstOutputRef:
-		case SocketClass::ConstInputRef:
-		case SocketClass::InputVar:
-		case SocketClass::InputRef:
-		case SocketClass::OutputRef:
-		case SocketClass::OutputValue:
-		{
-			auto colours = CFGS::GetColoursForType(socket.Type().Value, db);
-			socket.SetColours(colours.normal, colours.hilight);
-			return;
-		}
-		case SocketClass::Exit:
-		case SocketClass::Trigger:
-			socket.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
-			return;
-		}
-	}
+		ISexyDatabase& db;
 
-	void ConfigCFGS(ICFGSDatabase& cfgs, ISexyDatabase& db)
-	{
-		cfgs.ForEachFunction(
-			[&db](ICFGSFunction& f)
+		Cosmetics(ISexyDatabase& _db) : db(_db)
+		{
+		}
+
+		void Free()
+		{
+			delete this;
+		}
+
+		void ConfigSocketCosmetics(const ICFGSSocket& socket) override
+		{
+			switch (socket.SocketClassification())
 			{
-				auto& nodes = f.Nodes();
-				int32 nNodes = nodes.Count();
-				for (int32 i = 0; i < nNodes; i++)
+			case SocketClass::ConstOutputRef:
+			case SocketClass::ConstInputRef:
+			case SocketClass::InputVar:
+			case SocketClass::InputRef:
+			case SocketClass::OutputRef:
+			case SocketClass::OutputValue:
+			{
+				auto colours = GetColoursForType(socket.Type().Value);
+				socket.SetColours(colours.normal, colours.hilight);
+				return;
+			}
+			case SocketClass::Exit:
+			case SocketClass::Trigger:
+				socket.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				return;
+			}
+		}
+
+		void ConfigCFGSCosmetics(ICFGSDatabase& cfgs) override
+		{
+			cfgs.ForEachFunction(
+				[this](ICFGSFunction& f)
 				{
-					auto& node = nodes[i];
-					int nSockets = node.SocketCount();
-					for (int32 j = 0; j < nSockets; j++)
+					auto& nodes = f.Nodes();
+					int32 nNodes = nodes.Count();
+					for (int32 i = 0; i < nNodes; i++)
 					{
-						auto& socket = node[j];
-						ConfigSocket(socket, db);
+						auto& node = nodes[i];
+						int nSockets = node.SocketCount();
+						for (int32 j = 0; j < nSockets; j++)
+						{
+							auto& socket = node[j];
+							ConfigSocketCosmetics(socket);
+						}
 					}
 				}
-			}
-		);
-	}
+			);
+		}
 
-	Colours GetColoursForType(cstr typeName, ISexyDatabase& db)
+		Colours GetColoursForType(cstr typeName) override
+		{
+			static std::vector<ColourTypeBinding> bindings =
+			{
+				{ "Float32", "Sys.Type.Float32", { RGBAb(128,64,64,1),    RGBAb(255,128,128,1) }},
+				{ "Float64", "Sys.Type.Float64", { RGBAb(192,128,0,1),    RGBAb(255,192,0,1)   }},
+				{ "Int32",   "Sys.Type.Int32",   { RGBAb(128,128,128,1),  RGBAb(224,224,224,1) }},
+				{ "Int64",   "Sys.Type.Int64",   { RGBAb(144,112,128,1),  RGBAb(255,160,224,1) }},
+				{ "Bool",    "Sys.Type.Bool",    { RGBAb(192,128,192,1),  RGBAb(224,192,224,1) }},
+			};
+
+			for (auto b : bindings)
+			{
+				if (Eq(b.typeName, typeName))
+				{
+					return b.colours;
+				}
+
+				if (Eq(b.fqTypeName, typeName))
+				{
+					return b.colours;
+				}
+			}
+
+			if (db.FindInterface(typeName) != nullptr)
+			{
+				return { RGBAb(128,128,224,1),  RGBAb(192,192,255,1) };
+			}
+			else // Other stuff, needs a bit of love
+			{
+				return { RGBAb(192,192,0,1),  RGBAb(255,255,0,1) };
+			}
+		}
+	};
+
+	ICFGSCosmeticsSupervisor* CreateCosmetics(ISexyDatabase& db)
 	{
-		static std::vector<ColourTypeBinding> bindings =
-		{
-			{ "Float32", "Sys.Type.Float32", { RGBAb(128,64,64,1),    RGBAb(255,128,128,1) }},
-			{ "Float64", "Sys.Type.Float64", { RGBAb(192,128,0,1),    RGBAb(255,192,0,1)   }},
-			{ "Int32",   "Sys.Type.Int32",   { RGBAb(128,128,128,1),  RGBAb(224,224,224,1) }},
-			{ "Int64",   "Sys.Type.Int64",   { RGBAb(144,112,128,1),  RGBAb(255,160,224,1) }},
-			{ "Bool",    "Sys.Type.Bool",    { RGBAb(192,128,192,1),  RGBAb(224,192,224,1) }},
-		};
-
-		for (auto b : bindings)
-		{
-			if (Eq(b.typeName, typeName))
-			{
-				return b.colours;
-			}
-
-			if (Eq(b.fqTypeName, typeName))
-			{
-				return b.colours;
-			}
-		}
-
-		if (db.FindInterface(typeName) != nullptr)
-		{
-			return { RGBAb(128,128,224,1),  RGBAb(192,192,255,1) };
-		}
-		else // Other stuff, needs a bit of love
-		{
-			return { RGBAb(192,192,0,1),  RGBAb(255,255,0,1) };
-		}
+		return new Cosmetics(db);
 	}
 }
