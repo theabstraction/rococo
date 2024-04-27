@@ -60,8 +60,8 @@
 		(Nodes :
 			(Node
 				(Type "Sys.Geometry.Q.MultiplyQuatfQuatf")
-				(XPos -59.134475)
-				(YPos -40.843678)
+				(XPos -48.889273)
+				(YPos -27.183409)
 				(Id "1E 3928B2A6") :
 				(Socket
 					(Label "Start")
@@ -171,8 +171,8 @@
 
 			(Node
 				(Type "Sys.Throw")
-				(XPos -37.190083)
-				(YPos -220.247934)
+				(XPos 209.821983)
+				(YPos -170.456061)
 				(Id "6 257703D4") :
 				(Socket
 					(Label "Start")
@@ -222,8 +222,8 @@
 
 			(Node
 				(Type "Sys.Geometry.M4x4.MakeTranslateMatrix")
-				(XPos 359.000000)
-				(YPos 9.500000)
+				(XPos -50.910472)
+				(YPos 107.147132)
 				(Id "8959F68E00000006 E990B9B53E97E56F") :
 				(Socket
 					(Label "Start")
@@ -255,9 +255,240 @@
 
 			) // Node
 
+			(Node
+				(Type "Sys.Maths.I32.HasFlags")
+				(XPos -48.516768)
+				(YPos -254.946283)
+				(Id "48D723F900000006 97E1F9C3C08FDEBE") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "48D723F900000007 97E1F9C3C08FDEBE")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "48D723F900000008 97E1F9C3C08FDEBE")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "flags")
+					(Type "Int32")
+					(Id "48D723F900000009 97E1F9C3C08FDEBE")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "flag")
+					(Type "Int32")
+					(Id "48D723F90000000A 97E1F9C3C08FDEBE")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "result")
+					(Type "Bool")
+					(Id "48D723F90000000B 97E1F9C3C08FDEBE")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.I64.LeftShift")
+				(XPos -12.875603)
+				(YPos -375.678393)
+				(Id "48D723F90000000C 97E1F9C3C08FDEBE") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "48D723F90000000D 97E1F9C3C08FDEBE")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "48D723F90000000E 97E1F9C3C08FDEBE")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "x")
+					(Type "Int64")
+					(Id "48D723F90000000F 97E1F9C3C08FDEBE")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "bitCount")
+					(Type "Int64")
+					(Id "48D723F900000010 97E1F9C3C08FDEBE")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "value")
+					(Type "Int64")
+					(Id "48D723F900000011 97E1F9C3C08FDEBE")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.F32.Floor")
+				(XPos -205.543152)
+				(YPos -409.313576)
+				(Id "48D723F900000012 97E1F9C3C08FDEBE") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "48D723F900000013 97E1F9C3C08FDEBE")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "48D723F900000014 97E1F9C3C08FDEBE")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "x")
+					(Type "Float32")
+					(Id "48D723F900000015 97E1F9C3C08FDEBE")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "value")
+					(Type "Float32")
+					(Id "48D723F900000016 97E1F9C3C08FDEBE")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.F64.IsNormal")
+				(XPos -208.062292)
+				(YPos -254.013269)
+				(Id "48D723F900000017 97E1F9C3C08FDEBE") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "48D723F900000018 97E1F9C3C08FDEBE")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "48D723F900000019 97E1F9C3C08FDEBE")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "x")
+					(Type "Float64")
+					(Id "48D723F90000001A 97E1F9C3C08FDEBE")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "isNormal")
+					(Type "Bool")
+					(Id "48D723F90000001B 97E1F9C3C08FDEBE")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Reflection.NewExpressionBuilder")
+				(XPos -207.877342)
+				(YPos -142.835925)
+				(Id "A3C5A6B100000006 B125AC812F2F5CD9") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "A3C5A6B100000007 B125AC812F2F5CD9")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "A3C5A6B100000008 B125AC812F2F5CD9")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "origin")
+					(Type "Sys.Reflection.IExpression")
+					(Id "A3C5A6B100000009 B125AC812F2F5CD9")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "builder")
+					(Type "Sys.Reflection.IExpressionBuilder")
+					(Id "A3C5A6B10000000A B125AC812F2F5CD9")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Type.NewPathBuilder")
+				(XPos -33.868436)
+				(YPos -131.625057)
+				(Id "A3ED5FDE00000007 A93D524FFE9E0CE6") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "A3ED5FDE00000008 A93D524FFE9E0CE6")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "A3ED5FDE00000009 A93D524FFE9E0CE6")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "sb")
+					(Type "IStringBuilder")
+					(Id "A3ED5FDE0000000A A93D524FFE9E0CE6")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
-		(Cables
+		(Cables :
+			(Cable
+				(StartNode "48D723F900000012 97E1F9C3C08FDEBE")
+				(StartSocket "48D723F900000014 97E1F9C3C08FDEBE")
+				(EndNode "48D723F90000000C 97E1F9C3C08FDEBE")
+				(EndSocket "48D723F90000000D 97E1F9C3C08FDEBE")
+			) // Cable
+
+			(Cable
+				(StartNode "A3ED5FDE00000007 A93D524FFE9E0CE6")
+				(StartSocket "A3ED5FDE00000009 A93D524FFE9E0CE6")
+				(EndNode "6 257703D4")
+				(EndSocket "7 257703D4")
+			) // Cable
+
 		) // Cables
 
 	) // Function
