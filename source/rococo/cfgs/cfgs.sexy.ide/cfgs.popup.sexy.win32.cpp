@@ -110,6 +110,92 @@ namespace ANON
 			return nullptr;
 		}
 
+		ISXYFactory* FindFirstFactoryIf(ISxyNamespace& ns, Rococo::Function<bool(ISxyNamespace& ns, ISXYFactory& x)> predicate)
+		{
+			for (int i = 0; i < ns.FactoryCount(); i++)
+			{
+				auto& x = ns.GetFactory(i);
+				if (predicate(ns, x))
+				{
+					return &x;
+				}
+			}
+
+			for (int i = 0; i < ns.SubspaceCount(); i++)
+			{
+				ISxyNamespace& subspace = ns[i];
+				auto* x = FindFirstFactoryIf(subspace, predicate);
+				if (x)
+				{
+					return x;
+				}
+			}
+
+			return nullptr;
+		}
+
+		void AddNewNodeForFactory(const NodeOptionHeader& header)
+		{
+			Substring url = Substring::ToSubstring(header.url);
+			cstr at = Strings::ReverseFind('@', url);
+			Substring fName = Substring{ url.start, at };
+
+			size_t ptr;
+			if (1 != sscanf_s(at + 1, "%llX", &ptr))
+			{
+				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+			}
+
+			ISXYFactory* sexyFactory = FindFirstFactoryIf(db.GetRootNamespace(),
+				[&fName, ptr](ISxyNamespace& ns, ISXYFactory& f) -> bool
+				{
+					char fqName[256];
+					StackStringBuilder sb(fqName, sizeof fqName);
+					ns.AppendFullNameToStringBuilder(sb);
+					sb << ".";
+					sb << f.PublicName();
+
+					return Eq(fqName, fName);
+				}
+			);
+
+			if (sexyFactory)
+			{
+				auto* graph = cfgs.CurrentFunction();
+				if (!graph)
+				{
+					return;
+				}
+
+				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
+				auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
+				flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
+				flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+
+				for (int i = 0; i < sexyFactory->InputCount(); i++)
+				{
+					cstr name = sexyFactory->InputName(i);
+					cstr type = sexyFactory->InputType(i);
+
+					Colours colours = cosmetics.GetColoursForType(type);
+					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
+					socket.SetColours(colours.normal, colours.hilight);
+				}
+
+				char interfaceName[256];
+				sexyFactory->GetDefinedInterface(interfaceName, sizeof interfaceName);
+
+				Colours colours = cosmetics.GetColoursForType(interfaceName);
+				auto& socket = node.AddSocket(interfaceName, SocketClass::OutputValue, "*this", SocketId());
+				socket.SetColours(colours.normal, colours.hilight);
+
+				ShowWindow(*window, SW_HIDE);
+				editor.RefreshSlate();
+			}
+		}
+
+
 		void AddNewNodeForFunction(const NodeOptionHeader& header)
 		{
 			Substring url = Substring::ToSubstring(header.url);
@@ -281,6 +367,59 @@ namespace ANON
 			return IsWindowVisible(*window);
 		}
 
+		void AppendAllFactories(ISxyNamespace& ns)
+		{
+			if (Eq(ns.Name(), "Native"))
+			{
+				return;
+			}
+
+			if (Eq(ns.Name(), "EntryPoint"))
+			{
+				return;
+			}
+
+			for (int i = 0; i < ns.FactoryCount(); i++)
+			{
+				auto& f = ns.GetFactory(i);
+
+				if (f.PublicName()[0] == '_')
+				{
+					// Skip C++ only functions
+					continue;
+				}
+
+				NodeOption opt;
+
+				char visibleName[256];
+				StackStringBuilder visibleNameBuilder(visibleName, sizeof visibleName);
+
+				ns.AppendFullNameToStringBuilder(visibleNameBuilder);
+
+				if (!nv.IsLegalNamespace(visibleName))
+				{
+					continue;
+				}
+
+				visibleNameBuilder << "." << f.PublicName();
+
+				opt.header.visibleName = visibleName;
+
+				char url[256];
+				SafeFormat(url, "%s@%llX", visibleName, (size_t)f.PublicName());
+
+				opt.header.url = url;
+				opt.method = &Popup::AddNewNodeForFactory;
+
+				functions.push_back(opt);
+			}
+
+			for (int i = 0; i < ns.SubspaceCount(); i++)
+			{
+				AppendAllFactories(ns[i]);
+			}
+		}
+
 		void AppendAllFunctions(ISxyNamespace& ns)
 		{
 			if (Eq(ns.Name(), "Native"))
@@ -403,6 +542,7 @@ namespace ANON
 
 			AppendAllFunctions(db.GetRootNamespace());
 			AppendAllMethods(db.GetRootNamespace());
+			AppendAllFactories(db.GetRootNamespace());
 		}
 
 		void AddMethodsForInterface(const ISXYInterface& refInterface, const ISxyNamespace& ns, int depth = 0)
@@ -519,6 +659,7 @@ namespace ANON
 
 			auto functionId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Functions", CheckState_NoCheckBox);
 			auto methodId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
+			auto factoryId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Factories", CheckState_NoCheckBox);
 
 			for (auto& f : functions)
 			{
@@ -530,6 +671,11 @@ namespace ANON
 				else if (f.method == &Popup::AddNewNodeForMethod)
 				{
 					TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, methodId);
+					f.nodeId = optionId;
+				}
+				else if (f.method == &Popup::AddNewNodeForFactory)
+				{
+					TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, factoryId);
 					f.nodeId = optionId;
 				}
 			}
