@@ -83,7 +83,7 @@ namespace Rococo::CFGS
 	{
 		virtual void AddCable(CableId id) = 0;
 
-		virtual RGBAb GetSocketColour(bool isLit) const = 0;
+		virtual [[nodiscard]] RGBAb GetSocketColour(bool isLit) const = 0;
 	
 		// Return the face or vertex where the socket is placed. Conceptually the cable to the socket extends outwards through the specified face
 		virtual [[nodiscard]] SocketPlacement Placement() const = 0;
@@ -154,10 +154,10 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSNode
 	{
 		// Returns the first socket found with a matching id. If nothing is found null is returned
-		virtual ICFGSSocket* FindSocket(SocketId id) = 0;
+		virtual [[nodiscard]] ICFGSSocket* FindSocket(SocketId id) = 0;
 
 		// Returns the first socket found with a matching name. If nothing is found null is returned
-		virtual ICFGSSocket* FindSocket(cstr name) = 0;
+		virtual [[nodiscard]] ICFGSSocket* FindSocket(cstr name) = 0;
 
 		// The type of node
 		virtual [[nodiscard]] CFGSNodeType Type() const = 0;
@@ -207,7 +207,7 @@ namespace Rococo::CFGS
 		// Adds a socket to the node. If the alpha component of the override parameters is non-zero, their RGB components are used to define the colour of the socket in the GUI
 		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
 		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
-		virtual NodeId Id() const = 0;
+		virtual [[nodiscard]] NodeId Id() const = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
@@ -266,10 +266,13 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] ICFGSCableEnumerator& Cables() = 0;
 		virtual [[nodiscard]] ICFGSNodeEnumerator& Nodes() = 0;
 
+		virtual [[nodiscard]] const ICFGSNode& BeginNode() const = 0;
+		virtual [[nodiscard]] const ICFGSNode& ReturnNode() const = 0;
+
 		// Once nodes and cables are defined, call this method
 		virtual void ConnectCablesToSockets() = 0;
 		virtual void DeleteCable(int32 cableIndex) = 0;
-		virtual cstr Name() const = 0;
+		virtual [[nodiscard]] cstr Name() const = 0;
 		virtual void SetName(cstr name) = 0;
 
 		// Set which options are available for the beginNode socket types. The [typeOptions] pointer must be valid for the lifetime of property manipulation
@@ -278,7 +281,7 @@ namespace Rococo::CFGS
 		// Set which options are available for the returnNode socket types. The [typeOptions] pointer must be valid for the lifetime of property manipulation
 		virtual void SetOutputTypeOptions(Rococo::Reflection::IEnumDescriptor* typeOptions) = 0;
 
-		virtual FunctionId Id() const = 0;
+		virtual [[nodiscard]] FunctionId Id() const = 0;
 		virtual Rococo::Reflection::IPropertyVenue& PropertyVenue() = 0;
 	};
 
@@ -286,11 +289,11 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSDatabase
 	{
 		virtual void Clear() = 0;
-		virtual FunctionId CreateFunction() = 0;
+		virtual [[nodiscard]] FunctionId CreateFunction() = 0;
 		virtual void DeleteFunction(FunctionId id) = 0;
 		virtual void BuildFunction(FunctionId id) = 0;
-		virtual ICFGSFunction* CurrentFunction() = 0;
-		virtual ICFGSFunction* FindFunction(FunctionId id) = 0;
+		virtual [[nodiscard]] ICFGSFunction* CurrentFunction() = 0;
+		virtual [[nodiscard]] ICFGSFunction* FindFunction(FunctionId id) = 0;
 
 		// Enumerate functions. Do not delete or append to the database during the enumeration
 		virtual void ForEachFunction(Rococo::Function<void(ICFGSFunction& f)> callback) = 0;
@@ -299,7 +302,7 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSControllerConfig
 	{
 		// Retrieves the full path of the currently active cfgs file, or nullptr if none are active
-		virtual cstr ActiveFile() = 0;
+		virtual [[nodiscard]] cstr ActiveFile() = 0;
 
 		virtual bool TryLoadActiveFile(cstr filename) = 0;
 	};
@@ -311,7 +314,7 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSDesignerSpacePopup
 	{
-		virtual bool IsVisible() const = 0;
+		virtual [[nodiscard]] bool IsVisible() const = 0;
 		virtual void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) = 0;
 		virtual void Hide() = 0;;
 	};
@@ -347,7 +350,7 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE INamespaceValidator
 	{
-		virtual bool IsLegalNamespace(cstr ns) const = 0;
+		virtual [[nodiscard]] bool IsLegalNamespace(cstr ns) const = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment
@@ -426,5 +429,5 @@ namespace Rococo::CFGS
 
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase(Rococo::Events::IPublisher& publisher);
 
-	cstr GetCFGSAppTitle();
+	[[nodiscard]] cstr GetCFGSAppTitle();
 }

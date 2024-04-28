@@ -185,7 +185,7 @@ namespace ANON
 
 			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase(), *this, *cosmetics);
 
-			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this, *designerSpacePopup);
+			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this, *designerSpacePopup, *cosmetics);
 
 			editor.SetNavigationHandler(navHandler);
 
