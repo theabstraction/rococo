@@ -7,6 +7,7 @@
 #include <rococo.api.h>
 #include <rococo.window.h>
 #include <rococo.mvc.h>
+#include <rococo.time.h>
 
 using namespace Rococo;
 using namespace Rococo::MVC;
@@ -30,32 +31,27 @@ public:
 
 	void DoMainloop(IMVC_ControllerSupervisor& controller)
 	{
-		auto timerId = SetTimer(NULL, 0, 16, NULL);
-		if (timerId == 0)
-		{
-			Throw(GetLastError(), "Failed to create system timer");
-		}
-
 		uint64 frameCount = 0;
 
 		MSG msg;
-		while (isRunning && controller.IsRunning() && GetMessage(&msg, NULL, 0, 0))
+		while (isRunning && controller.IsRunning())
 		{
-			if (msg.message == WM_QUIT)
+			enum { MAX_HOUSEKEEPING_POLL_PERIOD_MS = 16  };
+
+			MsgWaitForMultipleObjects(0, NULL, TRUE, MAX_HOUSEKEEPING_POLL_PERIOD_MS, QS_ALLINPUT);
+			while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 			{
-				break;
+				if (msg.message == WM_QUIT)
+				{
+					return;
+				}
+
+				TranslateMessage(&msg);
+				DispatchMessageA(&msg);
 			}
 
-			if (msg.message == WM_TIMER)
-			{
-				controller.DoHousekeeping(frameCount++);
-			}
-
-			TranslateMessage(&msg);
-			DispatchMessageA(&msg);
+			controller.DoHousekeeping(frameCount++);
 		}
-
-		KillTimer(NULL, timerId);
 	}
 };
 
