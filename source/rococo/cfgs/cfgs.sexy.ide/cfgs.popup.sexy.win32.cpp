@@ -614,6 +614,7 @@ namespace ANON
 				if (f.nodeId == id)
 				{
 					(this->*f.method)(f.header);
+					functions.clear();
 					break;
 				}
 			}
