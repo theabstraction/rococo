@@ -342,7 +342,7 @@ namespace Rococo::CFGS::Internal
 				return;
 			}
 
-			bool isLit = lastHoveredNode == node.UniqueId();
+			bool isLit = lastHoveredNode == node.Id();
 
 			ColourSchemeQuantum nodeRectColours;
 			node.Scheme().GetFillColours(OUT nodeRectColours);
@@ -564,7 +564,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		bool OnCursorMove(Vec2i pixelPosition) override
+		WasHandled OnCursorMove(Vec2i pixelPosition) override
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
@@ -598,7 +598,7 @@ namespace Rococo::CFGS::Internal
 			const ICFGSNode* topMostNode = FindTopMostNodeContainingPoint(designerPos, f->Nodes());
 			if (topMostNode)
 			{
-				SetHovered(topMostNode->UniqueId());	
+				SetHovered(topMostNode->Id());	
 			}
 			else
 			{
@@ -688,7 +688,7 @@ namespace Rococo::CFGS::Internal
 			return nullptr;
 		}
 
-		bool OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) override
+		WasHandled OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(buttonFlags);
 
@@ -707,13 +707,13 @@ namespace Rococo::CFGS::Internal
 				const ICFGSSocket* socket = FindSocketAt(cursorPosition, *node);
 				if (!socket)
 				{
-					dragId = node->UniqueId();
+					dragId = node->Id();
 					dragStart = cursorPosition;
 					return true;
 				}
 				else
 				{
-					connectionAnchor.node = node->UniqueId();
+					connectionAnchor.node = node->Id();
 					connectionAnchor.socket = socket->Id();
 					return true;
 				}
@@ -729,12 +729,45 @@ namespace Rococo::CFGS::Internal
 			return cable != nullptr;
 		}
 
-		bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
+		WasHandled OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
 			{
 				return false;
+			}
+
+			if (connectionAnchor.node)
+			{
+				const ICFGSNode* entranceNode = FindNodeAt(cursorPosition);
+
+				if (entranceNode)
+				{
+					auto* entranceSocket = FindSocketAt(cursorPosition, *entranceNode);
+					if (entranceSocket)
+					{
+						bool isPermitted = eventHandler.CFGSGuiEventHandler_IsConnectionPermitted(connectionAnchor, *entranceSocket);
+						if (isPermitted)
+						{
+							f->Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->Id(), entranceSocket->Id());
+							f->ConnectCablesToSockets();
+						}
+					}
+				}
+				else
+				{
+					// Potentially we are dragging some cable that may imply a set of useful endpoints (such as an interface that implies a connection to a method).
+
+					CableDropped cableDrop;
+					cableDrop.functionId = f->Id();
+					cableDrop.anchor = connectionAnchor;
+					cableDrop.dropPoint = cursorPosition;
+					cableDrop.designPoint = designSpace.ScreenToWorld(cursorPosition);
+					eventHandler.CFGSGuiEventHandler_OnCableDropped(cableDrop);
+				}
+
+				connectionAnchor = CableConnection();
+				return true;
 			}
 
 			if (dragId)
@@ -757,28 +790,6 @@ namespace Rococo::CFGS::Internal
 
 			eventHandler.CFGSGuiEventHandler_OnNodeSelected(NodeId());
 
-			if (connectionAnchor.node)
-			{
-				const ICFGSNode* entranceNode = FindNodeAt(cursorPosition);
-
-				if (entranceNode)
-				{
-					auto* entranceSocket = FindSocketAt(cursorPosition, *entranceNode);
-					if (entranceSocket)
-					{
-						bool isPermitted = eventHandler.CFGSGuiEventHandler_IsConnectionPermitted(connectionAnchor, *entranceSocket);
-						if (isPermitted)
-						{
-							f->Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->UniqueId(), entranceSocket->Id());
-							f->ConnectCablesToSockets();
-						}
-					}
-				}
-
-				connectionAnchor = CableConnection();
-				return true;
-			}
-
 			if (HasFlag(KEY_HELD_FLAG_CTRL, buttonFlags))
 			{
 				int32 foundIndex = -1;
@@ -793,7 +804,7 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		bool OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
+		WasHandled OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(buttonFlags);
 

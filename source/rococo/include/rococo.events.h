@@ -77,6 +77,8 @@ namespace Rococo::Events
 			RawPost(ev, id, quality, __FUNCSIG__);
 		}
 
+		// Posts a message that is wrapped up in type TEventArgs<T>. 
+		// The event handler method should have signature void Instance::Handler(TEventArgs<T>& args)
 		template<class T> inline void PostOneArg(T arg, const EventIdRef& id, PostQuality quality = PostQuality::Guaranteed)
 		{
 			TEventArgs<T> args;

@@ -380,7 +380,7 @@ namespace Rococo::CFGS::Internal
 			return { typeName };
 		}
 
-		NodeId UniqueId() const override
+		NodeId Id() const override
 		{
 			return uniqueId;
 		}
@@ -867,7 +867,7 @@ namespace Rococo::CFGS::Internal
 			nodes.push_back(node);
 			zOrderDescending.push_back(node);
 
-			if (!mapIdToNode.insert(std::make_pair(node->UniqueId(), node)).second)
+			if (!mapIdToNode.insert(std::make_pair(node->Id(), node)).second)
 			{
 				Throw(0, "A very rare event occured, a 128-bit duplicate hash value was generated!");
 			}
@@ -1041,10 +1041,7 @@ namespace Rococo::CFGS::Internal
 		void Append() override
 		{
 			target->push_back(new CFGSSocket(node, placement, type, classification, "undefined-name", SocketId()));
-
-			FunctionIdArg arg;
-			arg.functionId = functionId;
-			publisher.Post(arg, "FunctionChanged"_event);
+			publisher.PostOneArg(functionId, "FunctionChanged"_event);
 		}
 	};		
 

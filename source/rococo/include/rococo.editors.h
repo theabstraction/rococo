@@ -137,7 +137,8 @@ namespace Rococo::Editors
 		virtual DesignerVec2 ScreenToWorld(Vec2i pixelPos) const = 0;
 		virtual DesignerVec2 ScreenDeltaToWorldDelta(Vec2i pixelDelta) const = 0;
 
-		// Retrieve the indices from the index buffer for the screen view
+		// Retrieve the indices from the index buffer for the screen view. 
+		// N.B the index buffer is separate from the colour buffer. The implementation, purpose and behaviour of the index buffer is dependent on the architecture and beyond the scope of documentation here.
 		virtual bool TryGetIndicesAt(Vec2i pixelPos, OUT RGBAb& indices) const = 0;
 	};
 

@@ -391,6 +391,11 @@ namespace Rococo::Windows
 			TreeView_SetItem(hTreeWindow, &y);
 		}
 
+		void ScrollTo(TREE_NODE_ID nodeId) override
+		{
+			TreeView_EnsureVisible(hTreeWindow, ToHTree(nodeId));
+		}
+
 		bool TryGetText(char* buffer, size_t sizeofBuffer, TREE_NODE_ID id) override
 		{
 			if (!buffer) Throw(0, "%s: null buffer argument", __FUNCTION__);

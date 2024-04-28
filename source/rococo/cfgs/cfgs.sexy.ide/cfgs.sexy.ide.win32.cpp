@@ -53,7 +53,7 @@ namespace ANON
 		SexyIDEWindow ideWindow;
 
 		AutoFree<ISexyStudioFactory1> ssFactory;
-		AutoFree<ICFGSDesignerSpacePopupSupervisor> designerSpacePopup;
+		AutoFree<ICFGSSexyPopup> designerSpacePopup;
 		AutoFree<Sexy_CFGS_Core> core;
 		AutoFree<ICFGSCosmeticsSupervisor> cosmetics;
 
@@ -183,9 +183,9 @@ namespace ANON
 
 			cosmetics = CreateCosmetics(core->db);
 
-			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this);
-
 			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase(), *this, *cosmetics);
+
+			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this, *designerSpacePopup);
 
 			editor.SetNavigationHandler(navHandler);
 
@@ -207,7 +207,7 @@ namespace ANON
 			return Rococo::CFGS::IsConnectionPermitted(anchor, target, cfgs, core->db);
 		}
 
-		ICFGSDesignerSpacePopup& DesignerSpacePopup() override
+		ICFGSSexyPopup& DesignerSpacePopup() override
 		{
 			return *designerSpacePopup;
 		}

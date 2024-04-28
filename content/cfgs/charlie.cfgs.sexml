@@ -171,8 +171,8 @@
 
 			(Node
 				(Type "Sys.Throw")
-				(XPos 209.821983)
-				(YPos -170.456061)
+				(XPos 221.821983)
+				(YPos -141.456061)
 				(Id "6 257703D4") :
 				(Socket
 					(Label "Start")
@@ -472,6 +472,41 @@
 
 			) // Node
 
+			(Node
+				(Type "Sys.Type.IStringBuilder_AppendAsNewLine")
+				(XPos 215.000000)
+				(YPos 10.500000)
+				(Id "F35F2A9A00000008 B1E44FEEFBF5ADCC") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "F35F2A9A00000009 B1E44FEEFBF5ADCC")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "F35F2A9A0000000A B1E44FEEFBF5ADCC")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "*this")
+					(Type "Sys.Type.IStringBuilder")
+					(Id "F35F2A9A0000000B B1E44FEEFBF5ADCC")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "null")
+					(Type "AsNewLine")
+					(Id "F35F2A9A0000000C B1E44FEEFBF5ADCC")
+					(Class InputVar)
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
 		(Cables :
@@ -487,6 +522,13 @@
 				(StartSocket "A3ED5FDE00000009 A93D524FFE9E0CE6")
 				(EndNode "6 257703D4")
 				(EndSocket "7 257703D4")
+			) // Cable
+
+			(Cable
+				(StartNode "A3ED5FDE00000007 A93D524FFE9E0CE6")
+				(StartSocket "A3ED5FDE0000000A A93D524FFE9E0CE6")
+				(EndNode "F35F2A9A00000008 B1E44FEEFBF5ADCC")
+				(EndSocket "F35F2A9A0000000B B1E44FEEFBF5ADCC")
 			) // Cable
 
 		) // Cables

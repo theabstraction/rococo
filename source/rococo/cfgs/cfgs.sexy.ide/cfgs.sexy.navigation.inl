@@ -31,7 +31,7 @@ static const char* title = "CFGS SexyStudio IDE";
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics);
+	ICFGSSexyPopup* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics);
 
 	ROCOCO_INTERFACE ICFGSIDEContextMenu
 	{
@@ -719,8 +719,8 @@ namespace Rococo::CFGS::IDE::Sexy
 
 			auto& n = *node;
 
-			visitor.VisitHeader(FormatWithId("NodeHeader", n.UniqueId()), "Callee", n.Type().Value);
-			visitor.VisitHeader(FormatWithId("NodeHeaderBlank", n.UniqueId()), "", "");
+			visitor.VisitHeader(FormatWithId("NodeHeader", n.Id()), "Callee", n.Type().Value);
+			visitor.VisitHeader(FormatWithId("NodeHeaderBlank", n.Id()), "", "");
 
 			int inputCount = 0;
 			int outputCount = 0;
@@ -740,7 +740,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						PropertyFormatSpec spec;
 						spec.hideDisplayName = true;
 						spec.emphasize = true;
-						visitor.VisitHeader(FormatWithId("NodeInputHeader", n.UniqueId()), "", "Inputs", spec);
+						visitor.VisitHeader(FormatWithId("NodeInputHeader", n.Id()), "", "Inputs", spec);
 					}
 
 					VisitSocket(s, visitor, s.Name(), inputCount);
@@ -750,7 +750,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 			if (inputCount > 0)
 			{
-				visitor.VisitHeader(FormatWithId("NodeInputHeaderSpacer", n.UniqueId()), "", "");
+				visitor.VisitHeader(FormatWithId("NodeInputHeaderSpacer", n.Id()), "", "");
 			}
 
 			for (int32 i = 0; i < n.SocketCount(); i++)
@@ -768,7 +768,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						PropertyFormatSpec spec;
 						spec.hideDisplayName = true;
 						spec.emphasize = true;
-						visitor.VisitHeader(FormatWithId("NodeOutputHeader", n.UniqueId()), "", "Outputs", spec);
+						visitor.VisitHeader(FormatWithId("NodeOutputHeader", n.Id()), "", "Outputs", spec);
 					}
 
 					SafeFormat(desc, "%s %s", s.Type().Value, s.Name());
@@ -794,6 +794,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		IAbstractEditor& editor;
 		ICFGSDatabase& cfgs;
 		ISexyDatabase& sexyDB;
+		ICFGSSexyPopup& popup;
 
 		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> localFunctionMap;
@@ -820,14 +821,15 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		TargetNode targetNode;
 
-		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui) :
-			editor(_editor), cfgs(_cfgs), sexyDB(_db), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this), targetNode(_db, _publisher)
+		NavigationHandler(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, ISexyDatabase& _db, IPublisher& _publisher, ICFGSIDEGui& _gui, ICFGSSexyPopup& _popup) :
+			editor(_editor), cfgs(_cfgs), sexyDB(_db), popup(_popup), inputTypes(_db, true), outputTypes(_db, false), publisher(_publisher), gui(_gui), messageMap(_publisher, *this), targetNode(_db, _publisher)
 		{
 			messageMap.AddHandler("Regenerate"_event, &NavigationHandler::OnRegenerate);
 			messageMap.AddHandler("PropertyChanged"_event, &NavigationHandler::OnPropertyChanged);
 			messageMap.AddHandler("FunctionChanged"_event, &NavigationHandler::OnFunctionChanged);
 			messageMap.AddHandler("NodeSelected"_event, &NavigationHandler::OnNodeSelected);
 			messageMap.AddHandler("TryDeleteNode"_event, &NavigationHandler::OnTryDeleteNode);
+			messageMap.AddHandler("CableDropped"_event, &NavigationHandler::OnCableDropped);
 		}
 
 		~NavigationHandler()
@@ -874,10 +876,42 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
-		void OnFunctionChanged(FunctionIdArg& arg)
+		void OnCableDropped(CableDropped& args)
 		{
 			auto* f = cfgs.CurrentFunction();
-			if (f && f->Id() == arg.functionId)
+			if (!f || f->Id() != args.functionId)
+			{
+				return;
+			}
+
+			auto* node = f->Nodes().FindNode(args.anchor.node);
+			if (!node)
+			{
+				return;
+			}
+
+			auto* socket = node->FindSocket(args.anchor.socket);
+			if (!socket)
+			{
+				return;
+			}
+
+			cstr sexyType = socket->Type().Value;
+
+			const ISxyNamespace* pNamespace = nullptr;
+			auto* pInterface = sexyDB.FindInterface(sexyType, &pNamespace);
+			if (!pInterface || !pNamespace)
+			{
+				return;
+			}
+
+			popup.ShowInterface(args.dropPoint, args.designPoint, *pInterface, *pNamespace, args);
+		}
+
+		void OnFunctionChanged(TEventArgs<FunctionId>& arg)
+		{
+			auto* f = cfgs.CurrentFunction();
+			if (f && f->Id() == arg)
 			{
 				RegenerateProperties();
 			}
@@ -895,7 +929,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				auto* f = cfgs.CurrentFunction();
 				if (f)
 				{
-					auto id = targetNode.node->UniqueId();
+					auto id = targetNode.node->Id();
 
 					cstr nodeType = targetNode.node->Type().Value;
 

@@ -163,7 +163,7 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] CFGSNodeType Type() const = 0;
 
 		// A unique id generated at node construction that is immutable. It is *highly* unlikely any two nodes will have the same id
-		virtual [[nodiscard]] NodeId UniqueId() const = 0;
+		virtual [[nodiscard]] NodeId Id() const = 0;
 
 		// Returns the node at the specified index. Throws an exception if [index] is out of bounds
 		virtual [[nodiscard]] const ICFGSSocket& operator[](int32 index) const = 0;
@@ -207,6 +207,7 @@ namespace Rococo::CFGS
 		// Adds a socket to the node. If the alpha component of the override parameters is non-zero, their RGB components are used to define the colour of the socket in the GUI
 		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
 		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
+		virtual NodeId Id() const = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
@@ -368,8 +369,17 @@ namespace Rococo::CFGS
 		virtual void OnLoaded(cstr filename) = 0;
 	};
 
+	struct CableDropped : Events::EventArgs
+	{
+		FunctionId functionId;
+		CableConnection anchor;
+		Vec2i dropPoint;
+		Editors::DesignerVec2 designPoint;
+	};
+
 	ROCOCO_INTERFACE ICFGSGuiEventHandler
 	{
+		virtual void CFGSGuiEventHandler_OnCableDropped(const CableDropped & dropInfo) = 0;
 		virtual void CFGSGuiEventHandler_OnCableLaying(const CableConnection& anchor) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) = 0;
@@ -378,21 +388,22 @@ namespace Rococo::CFGS
 		virtual bool CFGSGuiEventHandler_IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& targetSocket) const = 0;
 	};
 
+	using WasHandled = bool;
 
 	// An interface for rendering elements and manipulating them with the mouse. 
 	ROCOCO_INTERFACE ICFGSGui
 	{
 		// Respond to cursor move event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnCursorMove(Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnCursorMove(Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Respond to cursor context click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// This is used to paint the RGB elements to the screen. The caller will typically render to a bitmap then periodically blit it to the screen
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
@@ -416,9 +427,4 @@ namespace Rococo::CFGS
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase(Rococo::Events::IPublisher& publisher);
 
 	cstr GetCFGSAppTitle();
-
-	struct FunctionIdArg : Events::EventArgs
-	{
-		FunctionId functionId;
-	};
 }

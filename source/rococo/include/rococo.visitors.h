@@ -69,6 +69,7 @@ namespace Rococo
 			virtual void SetText(TREE_NODE_ID nodeId, cstr text) = 0;
 			virtual [[nodiscard]] bool TryGetText(char* buffer, size_t sizeofBuffer, TREE_NODE_ID id) = 0;
 			virtual void RefreshGUI() = 0;
+			virtual void ScrollTo(TREE_NODE_ID nodeId) = 0;
 		};
 
 		ROCOCO_INTERFACE IUIList

@@ -17,7 +17,7 @@ using namespace Rococo::Sex::SEXML;
 
 namespace Rococo::CFGS
 {
-	bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target, ICFGSDatabase& cfgs, const ISexyDatabase& db)
+	bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target, ICFGSDatabase& cfgs, ISexyDatabase& db)
 	{
 		auto* f = cfgs.CurrentFunction();
 		if (!f)
@@ -45,12 +45,20 @@ namespace Rococo::CFGS
 		cstr srcType = srcSocket->Type().Value;
 		cstr trgType = target.Type().Value;
 
-		if (!db.AreTypesEquivalent(srcType, trgType))
+		if (db.AreTypesEquivalent(srcType, trgType))
 		{
-			return false;
+			return true;
 		}
 
-		return true;
+		auto* srcInterface = db.FindInterface(srcType);
+		auto* trgInterface = db.FindInterface(trgType);
+
+		if (srcInterface && srcInterface == trgInterface)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	RGBAb GetSolidColour(const ISEXMLDirective& directive)

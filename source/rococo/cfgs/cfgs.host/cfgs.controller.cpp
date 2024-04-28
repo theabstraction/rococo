@@ -22,6 +22,7 @@ using namespace Rococo::Reflection;
 using namespace Rococo::Editors;
 using namespace Rococo::Sex;
 using namespace Rococo::Sex::SEXML;
+using namespace Rococo::CFGS;
 
 namespace Rococo::CFGS
 {
@@ -31,7 +32,7 @@ namespace Rococo::CFGS
 	bool TryGetUserSelectedCFGSPath(OUT U8FilePath& path, IAbstractEditorSupervisor& editor);
 	bool TryGetUserCFGSSavePath(OUT U8FilePath& path, Abedit::IAbstractEditorSupervisor& editor);
 	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, cstr filePath);
-	void LoadDatabase(ICFGSDatabase& db, cstr filename, CFGS::ICFGSLoader& loader);
+	void LoadDatabase(ICFGSDatabase& db, cstr filename, ICFGSLoader& loader);
 	void SaveDatabase(ICFGSDatabase& db, Rococo::Sex::SEXML::ISEXMLBuilder& sb, ICFGArchiver& archiver);
 }
 
@@ -180,14 +181,14 @@ namespace ANON
 		}
 	};
 
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, CFGS::ICFGSGuiEventHandler, CFGS::ICFGArchiver, CFGS::ICFGSLoader, CFGS::ICFGSControllerConfig
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, ICFGSGuiEventHandler, ICFGArchiver, ICFGSLoader, ICFGSControllerConfig
 	{
 		AutoFree<Rococo::Events::IPublisherSupervisor> publisher;
 		AutoFree<IAbstractEditorSupervisor> editor;
-		AutoFree<CFGS::ICFGSDatabaseSupervisor> db;
+		AutoFree<ICFGSDatabaseSupervisor> db;
 		AutoFree<IUI2DGridSlateSupervisor> gridSlate;
-		AutoFree<CFGS::ICFGSGuiSupervisor> gui;
-		AutoFree<CFGS::ICFGSIntegratedDevelopmentEnvironmentSupervisor> ide;
+		AutoFree<ICFGSGuiSupervisor> gui;
+		AutoFree<ICFGSIntegratedDevelopmentEnvironmentSupervisor> ide;
 		
 		bool terminateOnMainWindowClose = false;
 
@@ -219,21 +220,21 @@ namespace ANON
 				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
 			}
 
-			CFGS::SetTitleWithFilename(*editor, nullptr);
+			SetTitleWithFilename(*editor, nullptr);
 
-			db = CFGS::CreateCFGSDatabase(*publisher);
+			db = CreateCFGSDatabase(*publisher);
 
 			element.FormatDesc();
 
-			gridSlate = CFGS::Create2DGridControl(*editor, *this);
+			gridSlate = Create2DGridControl(*editor, *this);
 			gridSlate->ResizeToParent();
 
-			gui = CFGS::CreateCFGSGui(*db, gridSlate->DesignSpace(), *this);
+			gui = CreateCFGSGui(*db, gridSlate->DesignSpace(), *this);
 
 			auto& props = editor->Properties();
 			props.BuildEditorsForProperties(*this);
 
-			ide = CFGS::Create_CFGS_IDE(*editor, *db, *publisher, *this);
+			ide = Create_CFGS_IDE(*editor, *db, *publisher, *this);
 
 			editor->BringToFront();
 		}
@@ -294,7 +295,7 @@ namespace ANON
 
 		void GetErrorTitle(char* titleBuffer, size_t capacity) const
 		{
-			SafeFormat(titleBuffer, capacity, "%ls: Error!", CFGS::GetCFGSAppTitle());
+			SafeFormat(titleBuffer, capacity, "%ls: Error!", GetCFGSAppTitle());
 		}
 
 		void OnRequestToClose(IAbeditMainWindow& sender) override
@@ -417,25 +418,25 @@ namespace ANON
 			publisher->Post(nullArgs, "TryDeleteNode"_event);
 		}
 
-		void CFGSGuiEventHandler_OnCableLaying(const CFGS::CableConnection& anchor)
+		void CFGSGuiEventHandler_OnCableLaying(const CableConnection& anchor)
 		{
 			UNUSED(anchor);
 			gridSlate->QueueRedraw();
 		}
 
-		void CFGSGuiEventHandler_OnNodeHoverChanged(const CFGS::NodeId& id) override
+		void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) override
 		{
 			UNUSED(id);
 			gridSlate->QueueRedraw();
 		}
 
-		void CFGSGuiEventHandler_OnNodeDragged(const CFGS::NodeId& id) override
+		void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) override
 		{
 			UNUSED(id);
 			gridSlate->QueueRedraw();
 		}
 
-		void CFGSGuiEventHandler_OnNodeSelected(const CFGS::NodeId& id) override
+		void CFGSGuiEventHandler_OnNodeSelected(const NodeId& id) override
 		{
 			publisher->PostOneArg(id, "NodeSelected"_event);
 		}
@@ -454,9 +455,15 @@ namespace ANON
 			}
 		}
 
-		bool CFGSGuiEventHandler_IsConnectionPermitted(const Rococo::CFGS::CableConnection& anchor, const Rococo::CFGS::ICFGSSocket& target) const override
+		bool CFGSGuiEventHandler_IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target) const override
 		{
 			return ide->IsConnectionPermitted(anchor, target);
+		}
+
+		void CFGSGuiEventHandler_OnCableDropped(const CableDropped& crDropInfo) override
+		{
+			CableDropped dropInfo = crDropInfo;
+			publisher->Post(dropInfo, "CableDropped"_event);
 		}
 
 		U8FilePath lastSavedSysPath;
@@ -466,10 +473,10 @@ namespace ANON
 			try
 			{
 				ide->Clear();
-				CFGS::LoadDatabase(*db, filename, *this);
+				LoadDatabase(*db, filename, *this);
 				gridSlate->QueueRedraw();
 				CopyString(lastSavedSysPath.buf, U8FilePath::CAPACITY, filename);
-				CFGS::SetTitleWithFilename(*editor, lastSavedSysPath);
+				SetTitleWithFilename(*editor, lastSavedSysPath);
 				editor->NavigationTree().RefreshGUI();
 			}
 			catch (Sex::ParseException& ex)
@@ -487,7 +494,7 @@ namespace ANON
 			UNUSED(sender);
 
 			U8FilePath sysPath;
-			if (CFGS::TryGetUserSelectedCFGSPath(OUT sysPath, *editor))
+			if (TryGetUserSelectedCFGSPath(OUT sysPath, *editor))
 			{
 				Load(sysPath);
 			}
@@ -500,11 +507,11 @@ namespace ANON
 			UNUSED(sender);
 
 			U8FilePath sysPath;
-			if (CFGS::TryGetUserCFGSSavePath(OUT sysPath, *editor))
+			if (TryGetUserCFGSSavePath(OUT sysPath, *editor))
 			{
 				lastSavedSysPath = sysPath;
 				OnSelectSave(sender);
-				CFGS::SetTitleWithFilename(*editor, sysPath);		
+				SetTitleWithFilename(*editor, sysPath);		
 			}
 		}
 
@@ -560,7 +567,7 @@ namespace ANON
 
 			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 				{
-					CFGS::SaveDatabase(*db, sb, *this);
+					SaveDatabase(*db, sb, *this);
 				}
 			);
 		}

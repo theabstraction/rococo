@@ -21,7 +21,7 @@ using namespace Rococo::Visitors;
 
 namespace ANON
 {
-	struct Popup : ICFGSDesignerSpacePopupSupervisor, StandardWindowHandler, Visitors::ITreeControlHandler
+	struct Popup : ICFGSSexyPopup, StandardWindowHandler, Visitors::ITreeControlHandler
 	{
 		struct NodeOptionHeader
 		{
@@ -52,6 +52,8 @@ namespace ANON
 		HWND hListTitle{ 0 };
 
 		std::vector<NodeOption> functions;
+
+		CableDropped dropInfo;
 
 		enum { Width = 640, Height = 480 };
 
@@ -199,66 +201,74 @@ namespace ANON
 				}
 			);
 
-			if (sexyInterface)
+			if (!sexyInterface)
 			{
-				auto* graph = cfgs.CurrentFunction();
-				if (!graph)
-				{
-					return;
-				}
-
-				Substring methodName{ underscore + 1, at };
-
-				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
-				auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
-				flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
-				auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
-				flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
-
-				ISXYFunction* pMethod = nullptr;
-				for (int j = 0; j < sexyInterface->MethodCount(); j++)
-				{
-					auto& sMethod = sexyInterface->GetMethod(j);
-					if (Eq(sMethod.PublicName(), methodName))
-					{
-						pMethod = &sMethod;
-					}
-				}
-
-				if (pMethod)
-				{
-					char fqNameBuffer[256];
-					fqName.CopyWithTruncate(fqNameBuffer, sizeof fqNameBuffer);
-
-					Colours thisColours = cosmetics.GetColoursForType(fqNameBuffer);
-					auto& thisSocket = node.AddSocket(fqNameBuffer, SocketClass::InputVar, "*this", SocketId());
-					thisSocket.SetColours(thisColours.normal, thisColours.hilight);
-
-					for (int i = 0; i < pMethod->InputCount(); i++)
-					{
-						cstr name = pMethod->InputName(i);
-						cstr type = pMethod->InputType(i);
-
-						Colours colours = cosmetics.GetColoursForType(type);
-						auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
-						socket.SetColours(colours.normal, colours.hilight);
-					}
-
-					for (int i = 0; i < pMethod->OutputCount(); i++)
-					{
-						cstr name = pMethod->OutputName(i);
-						cstr type = pMethod->OutputType(i);
-
-						Colours colours = cosmetics.GetColoursForType(type);
-						auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
-						socket.SetColours(colours.normal, colours.hilight);
-					}
-				}
-
-
-				ShowWindow(*window, SW_HIDE);
-				editor.RefreshSlate();
+				return;
 			}
+
+			auto* graph = cfgs.CurrentFunction();
+			if (!graph)
+			{
+				return;
+			}
+
+			Substring methodName{ underscore + 1, at };
+
+			auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
+			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
+			flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+			auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
+			flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+
+			ISXYFunction* pMethod = nullptr;
+			for (int j = 0; j < sexyInterface->MethodCount(); j++)
+			{
+				auto& sMethod = sexyInterface->GetMethod(j);
+				if (Eq(sMethod.PublicName(), methodName))
+				{
+					pMethod = &sMethod;
+				}
+			}
+
+			if (pMethod)
+			{
+				char fqNameBuffer[256];
+				fqName.CopyWithTruncate(fqNameBuffer, sizeof fqNameBuffer);
+
+				Colours thisColours = cosmetics.GetColoursForType(fqNameBuffer);
+				auto& thisSocket = node.AddSocket(fqNameBuffer, SocketClass::InputVar, "*this", SocketId());
+				thisSocket.SetColours(thisColours.normal, thisColours.hilight);
+
+				for (int i = 0; i < pMethod->InputCount(); i++)
+				{
+					cstr name = pMethod->InputName(i);
+					cstr type = pMethod->InputType(i);
+
+					Colours colours = cosmetics.GetColoursForType(type);
+					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
+					socket.SetColours(colours.normal, colours.hilight);
+				}
+
+				for (int i = 0; i < pMethod->OutputCount(); i++)
+				{
+					cstr name = pMethod->OutputName(i);
+					cstr type = pMethod->OutputType(i);
+
+					Colours colours = cosmetics.GetColoursForType(type);
+					auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
+					socket.SetColours(colours.normal, colours.hilight);
+				}
+
+				if (dropInfo.anchor.node)
+				{
+					graph->Cables().Add(dropInfo.anchor.node, dropInfo.anchor.socket, node.Id(), thisSocket.Id());
+					graph->ConnectCablesToSockets();
+				}
+			}
+
+			ShowWindow(*window, SW_HIDE);
+
+			editor.RefreshSlate();
 		}
 
 		void Free() override
@@ -395,6 +405,40 @@ namespace ANON
 			AppendAllMethods(db.GetRootNamespace());
 		}
 
+		void PopulateOptionsBackingList(const ISXYInterface& refInterface, const ISxyNamespace& ns)
+		{
+			if (!functions.empty())
+			{
+				return;
+			}
+
+			char fqInterfaceName[256];
+			StackStringBuilder fqNameBuilder(fqInterfaceName, sizeof fqInterfaceName);
+
+			ns.AppendFullNameToStringBuilder(fqNameBuilder);
+
+			fqNameBuilder << "." << refInterface.PublicName();
+
+			for (int j = 0; j < refInterface.MethodCount(); j++)
+			{
+				auto& m = refInterface.GetMethod(j);
+
+				char methodName[256];
+				SecureFormat(methodName, "%s_%s", fqInterfaceName, m.PublicName());
+
+				NodeOption opt;
+				opt.header.visibleName = methodName;
+
+				char url[256];
+				SafeFormat(url, "%s@%llX", methodName, (size_t) refInterface.PublicName());
+
+				opt.header.url = url;
+				opt.method = &Popup::AddNewNodeForMethod;
+
+				functions.push_back(opt);
+			}
+		}
+
 		TREE_NODE_ID AddFunctionNameToTree(cstr functionName, TREE_NODE_ID branch)
 		{
 			cstr dot = FindChar(functionName, '.');
@@ -441,6 +485,8 @@ namespace ANON
 		void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) override
 		{
 			this->designPosition = designPosition;
+			dropInfo.anchor.node = NodeId();
+			dropInfo.anchor.socket = SocketId();
 
 			referencePosition = Vec2i {desktopPosition.x + 16, desktopPosition.y };
 			Layout();
@@ -563,12 +609,52 @@ namespace ANON
 		{
 			Layout();
 		}
+
+		void ShowInterface(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition, const SexyStudio::ISXYInterface& refInterface, const SexyStudio::ISxyNamespace& ns, const CableDropped& dropInfo) override
+		{
+			this->designPosition = designPosition;
+			this->dropInfo = dropInfo;
+
+			referencePosition = Vec2i{ desktopPosition.x + 16, desktopPosition.y };
+
+			Layout();
+
+			SetCursor(LoadCursorA(NULL, IDC_WAIT));
+
+			treeControl->Tree().ResetContent();
+
+			PopulateOptionsBackingList(refInterface, ns);
+
+			auto methodId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
+
+			TREE_NODE_ID firstId{ 0 };
+
+			for (auto& f : functions)
+			{
+				if (f.method == &Popup::AddNewNodeForMethod)
+				{
+					TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, methodId);
+					f.nodeId = optionId;
+
+					if (!firstId) firstId = optionId;
+				}
+			}
+
+			SetCursor(LoadCursorA(NULL, IDC_ARROW));
+
+			ShowWindow(*window, SW_SHOW);
+
+			if (firstId)
+			{
+				treeControl->Tree().ScrollTo(firstId);
+			}
+		}
 	};
 }
 
 namespace Rococo::CFGS
 {
-	ICFGSDesignerSpacePopupSupervisor* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics)
+	ICFGSSexyPopup* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics)
 	{
 		auto* popup = new ANON::Popup(editor, cfgs, db, namespaceValidator, cosmetics);
 		popup->Create();

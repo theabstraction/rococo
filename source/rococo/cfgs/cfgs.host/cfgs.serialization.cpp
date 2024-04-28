@@ -198,7 +198,7 @@ namespace Rococo::CFGS
 			sb.AddStringLiteral("Type", node.Type().Value);
 			sb.AddAtomicAttribute("XPos", node.GetDesignRectangle().left);
 			sb.AddAtomicAttribute("YPos", node.GetDesignRectangle().top);
-			AddId("Id", node.UniqueId().id, sb);
+			AddId("Id", node.Id().id, sb);
 
 			for (int j = 0; j < node.SocketCount(); j++)
 			{
