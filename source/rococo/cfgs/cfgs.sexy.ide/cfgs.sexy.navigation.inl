@@ -946,6 +946,69 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
+		void AddBeginNodeIfMissing(ICFGSFunction& f)
+		{
+			Editors::DesignerVec2 topLeft{ 1.0e40, 1.0e40 };
+
+			cstr beginNodeType = "<Begin>";
+
+			for (int i = 0; i < f.Nodes().Count(); i++)
+			{
+				auto& node = f.Nodes()[i];
+				if (Eq(f.Nodes()[i].Type().Value, beginNodeType))
+				{
+					return;
+				}
+
+				Editors::DesignerRect rect = node.GetDesignRectangle();
+
+				topLeft.x = min(rect.left, topLeft.x);
+				topLeft.y = min(rect.top, topLeft.y);
+			}
+
+			// We are missing a Begin node
+			topLeft.x = min(topLeft.x, 1.0e40);
+			topLeft.y = min(topLeft.y, 1.0e40);
+
+			topLeft.x -= 120.0;
+			topLeft.y -= 120.0;
+
+			auto& beginNode = f.Nodes().Builder().AddNode(beginNodeType, topLeft, NodeId());
+
+			auto& flowOut = beginNode.AddSocket("Flow", SocketClass::Exit, "Execute", SocketId());
+			flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+
+			// The input nodes for the function are the output nodes for the beginNode
+			auto& outputSpec = f.BeginNode();
+			for (int i = 0; i < outputSpec.SocketCount(); i++)
+			{
+				auto& output = outputSpec[i];
+				cstr outputType = output.Type().Value;
+				cstr outputName = output.Name();
+
+				SocketClass outputClass = SocketClass::None;
+
+				switch (output.SocketClassification())
+				{
+				case SocketClass::ConstInputRef:
+					outputClass = SocketClass::ConstOutputRef;
+					break;
+				case SocketClass::InputVar:
+					outputClass = SocketClass::OutputValue;
+					break;
+				case SocketClass::InputRef:
+					outputClass = SocketClass::OutputRef;
+					break;
+				default:
+					continue;
+				}
+
+				auto& outputSocket = beginNode.AddSocket(outputType, outputClass, outputName, SocketId());
+				auto colours = cosmetics.GetColoursForType(outputType);
+				outputSocket.SetColours(colours.normal, colours.hilight);
+			}
+		}
+
 		void RegenerateProperties()
 		{
 			auto* f = cfgs.CurrentFunction();
@@ -981,68 +1044,9 @@ namespace Rococo::CFGS::IDE::Sexy
 					}
 				}
 
-				Editors::DesignerVec2 topLeft{ 1.0e40, 1.0e40 };
-
-				cstr beginNodeType = "<Begin>";
-
-				for (int i = 0; i < f->Nodes().Count(); i++)
-				{
-					auto& node = f->Nodes()[i];
-					if (Eq(f->Nodes()[i].Type().Value, beginNodeType))
-					{
-						goto finish;
-					}
-
-					Editors::DesignerRect rect = node.GetDesignRectangle();
-
-					topLeft.x = min(rect.left, topLeft.x);
-					topLeft.y = min(rect.top, topLeft.y);
-				}
-
-				// We are missing a Begin node
-				topLeft.x = min(topLeft.x, 1.0e40);
-				topLeft.y = min(topLeft.y, 1.0e40);
-
-				topLeft.x -= 120.0;
-				topLeft.y -= 120.0;
-
-				auto& beginNode = f->Nodes().Builder().AddNode(beginNodeType, topLeft, NodeId());
-
-				auto& flowOut = beginNode.AddSocket("Flow", SocketClass::Exit, "Execute", SocketId());
-				flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
-
-				// The input nodes for the function are the output nodes for the beginNode
-				auto& outputSpec = f->BeginNode();
-				for (int i = 0; i < outputSpec.SocketCount(); i++)
-				{
-					auto& output = outputSpec[i];
-					cstr outputType = output.Type().Value;
-					cstr outputName = output.Name();
-
-					SocketClass outputClass = SocketClass::None;
-
-					switch (output.SocketClassification())
-					{
-					case SocketClass::ConstInputRef:
-						outputClass = SocketClass::ConstOutputRef;
-						break;
-					case SocketClass::InputVar:
-						outputClass = SocketClass::OutputValue;
-						break;
-					case SocketClass::InputRef:
-						outputClass = SocketClass::OutputRef;
-						break;
-					default:
-						continue;
-					}
-
-					auto& outputSocket = beginNode.AddSocket(outputType, outputClass, outputName, SocketId());
-					auto colours = cosmetics.GetColoursForType(outputType);
-					outputSocket.SetColours(colours.normal, colours.hilight);
-				}
+				AddBeginNodeIfMissing(*f);
 			}
 
-		finish:
 			editor.RefreshSlate();
 		}
 

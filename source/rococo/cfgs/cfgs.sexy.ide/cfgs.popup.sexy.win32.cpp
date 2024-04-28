@@ -167,7 +167,7 @@ namespace ANON
 					return;
 				}
 
-				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
+				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId());
 				auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
 				flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
 				auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
@@ -229,9 +229,10 @@ namespace ANON
 					return;
 				}
 
-				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
+				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId());
 				auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
-				flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				Colours flowColours = cosmetics.GetColoursForType("__Flow");
+				flowIn.SetColours(flowColours.normal, flowColours.hilight);
 				auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
 				flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
 
@@ -300,11 +301,12 @@ namespace ANON
 
 			Substring methodName{ underscore + 1, at };
 
-			auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId{ Rococo::Ids::MakeNewUniqueId() });
+			auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId());
 			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
-			flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+			Colours colours = cosmetics.GetColoursForType("__Flow");
+			flowIn.SetColours(colours.normal, colours.hilight);
 			auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
-			flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+			flowOut.SetColours(colours.normal, colours.hilight);
 
 			ISXYFunction* pMethod = nullptr;
 			for (int j = 0; j < sexyInterface->MethodCount(); j++)
@@ -330,9 +332,9 @@ namespace ANON
 					cstr name = pMethod->InputName(i);
 					cstr type = pMethod->InputType(i);
 
-					Colours colours = cosmetics.GetColoursForType(type);
+					Colours inputColours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
-					socket.SetColours(colours.normal, colours.hilight);
+					socket.SetColours(inputColours.normal, inputColours.hilight);
 				}
 
 				for (int i = 0; i < pMethod->OutputCount(); i++)
@@ -340,9 +342,9 @@ namespace ANON
 					cstr name = pMethod->OutputName(i);
 					cstr type = pMethod->OutputType(i);
 
-					Colours colours = cosmetics.GetColoursForType(type);
+					Colours outputColours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
-					socket.SetColours(colours.normal, colours.hilight);
+					socket.SetColours(outputColours.normal, outputColours.hilight);
 				}
 
 				if (dropInfo.anchor.node)
@@ -350,6 +352,54 @@ namespace ANON
 					graph->Cables().Add(dropInfo.anchor.node, dropInfo.anchor.socket, node.Id(), thisSocket.Id());
 					graph->ConnectCablesToSockets();
 				}
+			}
+
+			ShowWindow(*window, SW_HIDE);
+
+			editor.RefreshSlate();
+		}
+
+		void AddReturnNode(const NodeOptionHeader& header)
+		{
+			UNUSED(header);
+
+			auto* graph = cfgs.CurrentFunction();
+			if (!graph)
+			{
+				return;
+			}
+
+			auto& node = graph->Nodes().Builder().AddNode("<Return>", designPosition, NodeId() );
+			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Terminate", SocketId());
+			Colours flowColours = cosmetics.GetColoursForType("__Flow");
+			flowIn.SetColours(flowColours.normal, flowColours.hilight);
+			
+			auto& inputSpec = graph->ReturnNode();
+
+			for (int i = 0; i < inputSpec.SocketCount(); i++)
+			{
+				auto& s = inputSpec[i];
+
+				SocketClass inputClass = SocketClass::None;
+
+				switch (s.SocketClassification())
+				{
+				case SocketClass::OutputValue:
+					inputClass = SocketClass::InputVar;
+					break;
+				case SocketClass::OutputRef:
+					inputClass = SocketClass::InputRef;
+					break;
+				case SocketClass::ConstOutputRef:
+					inputClass = SocketClass::OutputRef;
+					break;
+				default:
+					continue;
+				}
+
+				auto& inputSocket = node.AddSocket(s.Type().Value, inputClass, s.Name(), SocketId());
+				Colours inputColours = cosmetics.GetColoursForType(s.Type().Value);
+				inputSocket.SetColours(inputColours.normal, inputColours.hilight);
 			}
 
 			ShowWindow(*window, SW_HIDE);
@@ -661,6 +711,9 @@ namespace ANON
 			auto methodId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
 			auto factoryId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Factories", CheckState_NoCheckBox);
 
+			auto specialId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Special", CheckState_NoCheckBox);
+			auto returnId = treeControl->Tree().AddChild(specialId, "<Return>", CheckState_NoCheckBox);
+
 			for (auto& f : backingList)
 			{
 				if (f.method == &Popup::AddNewNodeForFunction)
@@ -679,6 +732,14 @@ namespace ANON
 					f.nodeId = optionId;
 				}
 			}
+
+			NodeOption returnOpt;
+			returnOpt.header.url = "<return>";
+			returnOpt.header.visibleName = "<return>";
+			returnOpt.method = &Popup::AddReturnNode;
+			returnOpt.nodeId = returnId;
+
+			backingList.push_back(returnOpt);
 
 			SetCursor(LoadCursorA(NULL, IDC_ARROW));
 

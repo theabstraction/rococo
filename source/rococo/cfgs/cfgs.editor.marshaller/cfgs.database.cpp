@@ -704,7 +704,7 @@ namespace Rococo::CFGS::Internal
 
 		const ICFGSNode& ReturnNode() const override
 		{
-			return beginNode;
+			return returnNode;
 		}
 
 		FunctionId Id() const override
