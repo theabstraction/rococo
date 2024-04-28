@@ -51,7 +51,7 @@ namespace ANON
 
 		HWND hListTitle{ 0 };
 
-		std::vector<NodeOption> functions;
+		std::vector<NodeOption> backingList;
 
 		CableDropped dropInfo;
 
@@ -367,7 +367,7 @@ namespace ANON
 			return IsWindowVisible(*window);
 		}
 
-		void AppendAllFactories(ISxyNamespace& ns)
+		void AppendAllFactoriesToBackingList(ISxyNamespace& ns)
 		{
 			if (Eq(ns.Name(), "Native"))
 			{
@@ -411,16 +411,16 @@ namespace ANON
 				opt.header.url = url;
 				opt.method = &Popup::AddNewNodeForFactory;
 
-				functions.push_back(opt);
+				backingList.push_back(opt);
 			}
 
 			for (int i = 0; i < ns.SubspaceCount(); i++)
 			{
-				AppendAllFactories(ns[i]);
+				AppendAllFactoriesToBackingList(ns[i]);
 			}
 		}
 
-		void AppendAllFunctions(ISxyNamespace& ns)
+		void AppendAllFunctionsToBackingList(ISxyNamespace& ns)
 		{
 			if (Eq(ns.Name(), "Native"))
 			{
@@ -464,16 +464,16 @@ namespace ANON
 				opt.header.url = url;
 				opt.method = &Popup::AddNewNodeForFunction;
 
-				functions.push_back(opt);
+				backingList.push_back(opt);
 			}
 
 			for (int i = 0; i < ns.SubspaceCount(); i++)
 			{
-				AppendAllFunctions(ns[i]);
+				AppendAllFunctionsToBackingList(ns[i]);
 			}
 		}
 
-		void AppendAllMethods(ISxyNamespace& ns)
+		void AppendAllMethodsToBackingList(ISxyNamespace& ns)
 		{
 			if (Eq(ns.Name(), "Native"))
 			{
@@ -523,26 +523,26 @@ namespace ANON
 					opt.header.url = url;
 					opt.method = &Popup::AddNewNodeForMethod;
 
-					functions.push_back(opt);
+					backingList.push_back(opt);
 				}
 			}
 
 			for (int i = 0; i < ns.SubspaceCount(); i++)
 			{
-				AppendAllMethods(ns[i]);
+				AppendAllMethodsToBackingList(ns[i]);
 			}
 		}
 
 		void PopulateOptionsBackingList()
 		{
-			if (!functions.empty())
+			if (!backingList.empty())
 			{
 				return;
 			}
 
-			AppendAllFunctions(db.GetRootNamespace());
-			AppendAllMethods(db.GetRootNamespace());
-			AppendAllFactories(db.GetRootNamespace());
+			AppendAllFunctionsToBackingList(db.GetRootNamespace());
+			AppendAllMethodsToBackingList(db.GetRootNamespace());
+			AppendAllFactoriesToBackingList(db.GetRootNamespace());
 		}
 
 		void AddMethodsForInterface(const ISXYInterface& refInterface, const ISxyNamespace& ns, int depth = 0)
@@ -570,7 +570,7 @@ namespace ANON
 				opt.header.url = url;
 				opt.method = &Popup::AddNewNodeForMethod;
 
-				functions.push_back(opt);
+				backingList.push_back(opt);
 			}
 
 			const ISxyNamespace* baseNS = nullptr;
@@ -591,7 +591,7 @@ namespace ANON
 
 		void PopulateOptionsBackingList(const ISXYInterface& refInterface, const ISxyNamespace& ns)
 		{
-			if (!functions.empty())
+			if (!backingList.empty())
 			{
 				return;
 			}
@@ -661,7 +661,7 @@ namespace ANON
 			auto methodId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
 			auto factoryId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Factories", CheckState_NoCheckBox);
 
-			for (auto& f : functions)
+			for (auto& f : backingList)
 			{
 				if (f.method == &Popup::AddNewNodeForFunction)
 				{
@@ -755,12 +755,12 @@ namespace ANON
 				return;
 			}
 
-			for (auto& f : functions)
+			for (auto& f : backingList)
 			{
 				if (f.nodeId == id)
 				{
 					(this->*f.method)(f.header);
-					functions.clear();
+					backingList.clear();
 					break;
 				}
 			}
@@ -796,7 +796,7 @@ namespace ANON
 
 			TREE_NODE_ID firstId{ 0 };
 
-			for (auto& f : functions)
+			for (auto& f : backingList)
 			{
 				if (f.method == &Popup::AddNewNodeForMethod)
 				{
