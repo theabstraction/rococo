@@ -17,6 +17,48 @@ using namespace Rococo::Sex::SEXML;
 
 namespace Rococo::CFGS
 {
+	bool IsInterfaceDerivedFromAnother(ISexyDatabase& db, const ISXYInterface& derivedInterface, const ISXYInterface& potentialBaseInterface, const ISxyNamespace& potentialBaseNS, int depth = 0)
+	{
+		if (&derivedInterface == &potentialBaseInterface)
+		{
+			return true;
+		}
+
+		enum { MAX_RECURSION_DEPTH = 10 };
+
+		// We need to cap iteration depth in case source code is incorrect and some interface has specified itself as an ancestor
+		if (depth > MAX_RECURSION_DEPTH)
+		{
+			return false;
+		}
+
+		char fqPotentialName[256];
+		StackStringBuilder sb(fqPotentialName, sizeof fqPotentialName);		
+		potentialBaseNS.AppendFullNameToStringBuilder(sb);
+		sb << ".";
+		sb << potentialBaseInterface.PublicName();
+
+		auto* fqBaseName = derivedInterface.Base();
+		if (!fqBaseName)
+		{
+			return false;
+		}
+
+		if (Eq(fqBaseName, fqPotentialName))
+		{
+			return true;
+		}
+
+		const ISxyNamespace* baseNS = nullptr;
+		auto* baseInterface = db.FindInterface(fqBaseName, &baseNS);
+		if (!baseInterface)
+		{
+			return false;
+		}
+
+		return IsInterfaceDerivedFromAnother(db, *baseInterface, potentialBaseInterface, potentialBaseNS, depth + 1);
+	}
+
 	bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target, ICFGSDatabase& cfgs, ISexyDatabase& db)
 	{
 		auto* f = cfgs.CurrentFunction();
@@ -51,11 +93,16 @@ namespace Rococo::CFGS
 		}
 
 		auto* srcInterface = db.FindInterface(srcType);
-		auto* trgInterface = db.FindInterface(trgType);
 
-		if (srcInterface && srcInterface == trgInterface)
+		const ISxyNamespace* trgNamespace = nullptr;
+		auto* trgInterface = db.FindInterface(trgType, &trgNamespace);
+
+		if (srcInterface && trgInterface)
 		{
-			return true;
+			if (IsInterfaceDerivedFromAnother(db, *srcInterface, *trgInterface, *trgNamespace))
+			{
+				return true;
+			}
 		}
 
 		return false;

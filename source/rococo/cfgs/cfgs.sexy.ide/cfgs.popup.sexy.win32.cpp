@@ -405,13 +405,8 @@ namespace ANON
 			AppendAllMethods(db.GetRootNamespace());
 		}
 
-		void PopulateOptionsBackingList(const ISXYInterface& refInterface, const ISxyNamespace& ns)
+		void AddMethodsForInterface(const ISXYInterface& refInterface, const ISxyNamespace& ns, int depth = 0)
 		{
-			if (!functions.empty())
-			{
-				return;
-			}
-
 			char fqInterfaceName[256];
 			StackStringBuilder fqNameBuilder(fqInterfaceName, sizeof fqInterfaceName);
 
@@ -430,13 +425,38 @@ namespace ANON
 				opt.header.visibleName = methodName;
 
 				char url[256];
-				SafeFormat(url, "%s@%llX", methodName, (size_t) refInterface.PublicName());
+				SafeFormat(url, "%s@%llX", methodName, (size_t)refInterface.PublicName());
 
 				opt.header.url = url;
 				opt.method = &Popup::AddNewNodeForMethod;
 
 				functions.push_back(opt);
 			}
+
+			const ISxyNamespace* baseNS = nullptr;
+			cstr base = refInterface.Base();
+
+			enum { MAX_RECURSIVE_DEPTH = 10};
+
+			// we limit recursion because source code could erroneously specify an interface to be its own ancestor
+			if (base && depth < MAX_RECURSIVE_DEPTH)
+			{
+				auto* baseInterface = db.FindInterface(base, &baseNS);
+				if (baseInterface)
+				{
+					AddMethodsForInterface(*baseInterface, *baseNS, depth + 1);
+				}
+			}
+		}
+
+		void PopulateOptionsBackingList(const ISXYInterface& refInterface, const ISxyNamespace& ns)
+		{
+			if (!functions.empty())
+			{
+				return;
+			}
+
+			AddMethodsForInterface(refInterface, ns);
 		}
 
 		TREE_NODE_ID AddFunctionNameToTree(cstr functionName, TREE_NODE_ID branch)
