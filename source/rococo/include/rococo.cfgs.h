@@ -162,6 +162,9 @@ namespace Rococo::CFGS
 		// Returns the first socket found with a matching name. If nothing is found null is returned
 		virtual [[nodiscard]] ICFGSSocket* FindSocket(cstr name) = 0;
 
+		// Deletes the first socket with matching id. May invalidate iteration of sockets, be careful
+		virtual void DeleteSocket(SocketId id) = 0;
+
 		// The type of node
 		virtual [[nodiscard]] CFGSNodeType Type() const = 0;
 

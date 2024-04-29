@@ -933,45 +933,46 @@ namespace Rococo::CFGS::IDE::Sexy
 
 					auto& requiredSpec = f->BeginNode();
 
+					std::vector<SocketId> obsoleteSockets;
+
 					for (int j = 0; j < n.SocketCount(); j++)
 					{
 						auto& s = n[j];
 						cstr name = s.Name();	
 
-						if (IsInputClass(s.SocketClassification()))
+						if (IsOutputClass(s.SocketClassification()))
 						{
 							auto* requiredSocket = FindSocket(requiredSpec, name);
 							if (!requiredSocket)
 							{
-								// we are missing a socket
-
-								auto classification = FlipInputOutputClass(s.SocketClassification());
-								if (classification != SocketClass::None)
-								{
-									n.AddSocket(s.Type().Value, classification, name, SocketId());
-								}
-							}
-							else
-							{
-								if (!Eq(requiredSocket->Type().Value, s.Type().Value))
-								{
-									s.SetType(CFGSSocketType{ requiredSocket->Type().Value });
-								}
+								// Our template does not have the named socket, so we must remove it from our begin node
+								obsoleteSockets.push_back(s.Id());
 							}
 						}
+					}
+
+					for (auto& id : obsoleteSockets)
+					{
+						n.DeleteSocket(id);
 					}
 
 					for (int j = 0; j < requiredSpec.SocketCount(); j++)
 					{
 						auto& requiredSocket = requiredSpec[j];
-						if (IsOutputClass(requiredSocket.SocketClassification()))
+						if (IsInputClass(requiredSocket.SocketClassification()))
 						{
 							cstr name = requiredSocket.Name();
 
 							auto* nodeSocket = FindSocket(n, name);
 							if (!nodeSocket)
 							{
-
+								auto classification = FlipInputOutputClass(requiredSocket.SocketClassification());
+								if (classification != SocketClass::None)
+								{
+									auto& socket = n.AddSocket(requiredSocket.Type().Value, classification, name, SocketId());
+									auto colours = cosmetics.GetColoursForType(requiredSocket.Type().Value);
+									socket.SetColours(colours.normal, colours.hilight);
+								}
 							}
 						}
 					}
