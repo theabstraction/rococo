@@ -113,16 +113,17 @@ namespace Rococo::CFGS
 		// Returns the last place that the socket was computed for rendering, along with the edge point through whih its cable protrudes
 		virtual [[nodiscard]] void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const = 0;
 
-		virtual void SetColours(RGBAb normalColour, RGBAb litColour) const = 0;
+		virtual void SetColours(RGBAb normalColour, RGBAb litColour) = 0;
 
 		// Sets the last place that the rectangle was computed for rendering.
-		// Note we use mutable data and a const function. But since geometry will be const between most frames, its not so bad
 		// [circleRect] is the rect bounding the socket circle. 
 		// [edgePoint] is the point on the perimeter of the node through which the cable leading to the socket connects
-		virtual [[nodiscard]] void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) const = 0;
+		virtual [[nodiscard]] void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) = 0;
 
-		// Tries to assign an opauque string keyed by the [fieldName]. Note that the field set is mutable
-		virtual [[nodiscard]] void SetField(cstr fieldName, cstr fieldValue) const = 0;
+		// Tries to assign an opauque string keyed by the [fieldName].
+		virtual [[nodiscard]] void SetField(cstr fieldName, cstr fieldValue) = 0;
+
+		virtual void SetType(CFGSSocketType type) = 0;
 
 		// Tries to retrieve an opaque string by field name.
 		virtual bool TryGetField(cstr fieldName, Strings::IStringPopulator& populator) const = 0;
@@ -153,6 +154,8 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSNode
 	{
+		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
+
 		// Returns the first socket found with a matching id. If nothing is found null is returned
 		virtual [[nodiscard]] ICFGSSocket* FindSocket(SocketId id) = 0;
 
@@ -166,7 +169,7 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] NodeId Id() const = 0;
 
 		// Returns the node at the specified index. Throws an exception if [index] is out of bounds
-		virtual [[nodiscard]] const ICFGSSocket& operator[](int32 index) const = 0;
+		virtual [[nodiscard]] ICFGSSocket& operator[](int32 index) = 0;
 
 		// Number of sockets implemented on the node
 		virtual [[nodiscard]] int32 SocketCount() const = 0;
@@ -220,22 +223,19 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSNodeEnumerator
 	{
 		// gets a node by index. The order does not change unless nodes are added, inserted or removed.
-		virtual [[nodiscard]] const ICFGSNode & operator[](int32 index) = 0;
+		virtual [[nodiscard]] ICFGSNode & operator[](int32 index) = 0;
 
 		// gets a node by zorder ascending starting with the bottom node. The order can be changed using the MakeTopMost method
-		virtual [[nodiscard]] const ICFGSNode& GetByZOrderAscending(int32 index) = 0;
+		virtual [[nodiscard]] ICFGSNode& GetByZOrderAscending(int32 index) = 0;
 
 		// gets a node by zorder descending starting with the top most node. The order can be changed using the MakeTopMost method
-		virtual [[nodiscard]] const ICFGSNode& GetByZOrderDescending(int32 index) = 0;
+		virtual [[nodiscard]] ICFGSNode& GetByZOrderDescending(int32 index) = 0;
 
 		// gives the node count, which is used in operator [] and GetByZOrderDescending
 		virtual [[nodiscard]] int32 Count() const = 0;
 
 		// finds a node with the given UniqueId
-		virtual [[nodiscard]] const ICFGSNode* FindNode(NodeId id) const = 0;
-
-		// finds a node with the given UniqueId
-		virtual [[nodiscard]] ICFGSNode* FindNode(NodeId id) = 0;
+		virtual [[nodiscard]] ICFGSNode* FindNode(NodeId id) const = 0;
 
 		// If the node argument is a member of the node set, then make it top most in z order
 		virtual void MakeTopMost(const ICFGSNode& node) = 0;
@@ -251,7 +251,7 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] int32 Count() const = 0;
 
 		// Return the cable at the given index. If the index is out of bounds an IException is thrown
-		virtual [[nodiscard]] const ICFGSCable& operator[](int32 index) const = 0;
+		virtual [[nodiscard]] ICFGSCable& operator[](int32 index) = 0;
 
 		// Highlight the given cable by index. The [changed] variable is set to true if and only if this would result in an observable change.
 		// If the index does not correspond to a cable then nothing is selected
@@ -266,8 +266,8 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] ICFGSCableEnumerator& Cables() = 0;
 		virtual [[nodiscard]] ICFGSNodeEnumerator& Nodes() = 0;
 
-		virtual [[nodiscard]] const ICFGSNode& BeginNode() const = 0;
-		virtual [[nodiscard]] const ICFGSNode& ReturnNode() const = 0;
+		virtual [[nodiscard]] ICFGSNode& BeginNode() = 0;
+		virtual [[nodiscard]] ICFGSNode& ReturnNode() = 0;
 
 		// Once nodes and cables are defined, call this method
 		virtual void ConnectCablesToSockets() = 0;

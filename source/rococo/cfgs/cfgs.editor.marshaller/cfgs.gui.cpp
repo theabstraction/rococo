@@ -102,7 +102,7 @@ namespace Rococo::CFGS::Internal
 			return npRect;
 		}
 
-		void ComputeLeftSocketGeometry(const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
+		void CacheLeftSocketGeometry(const ICFGSNode& node, ICFGSSocket& cacheTargetSocket, const IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
@@ -116,7 +116,7 @@ namespace Rococo::CFGS::Internal
 			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
 
 			Vec2i edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
-			socket.SetLastGeometry(circleRect, edgePoint);
+			cacheTargetSocket.SetLastGeometry(circleRect, edgePoint);
 		}
 
 		enum
@@ -167,7 +167,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void ComputeRightSocketGeometry(const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
+		void CacheRightSocketGeometry(const ICFGSNode& node, ICFGSSocket& cacheTargetSocket, const IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
@@ -178,7 +178,7 @@ namespace Rococo::CFGS::Internal
 			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
 
 			Vec2i edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
-			socket.SetLastGeometry(circleRect, edgePoint);
+			cacheTargetSocket.SetLastGeometry(circleRect, edgePoint);
 		}
 
 		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace)
@@ -224,7 +224,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void RenderSockets(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace)
+		void RenderSockets(IFlatGuiRenderer& fgr, ICFGSNode& node, IDesignSpace& designSpace)
 		{
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{				
@@ -240,7 +240,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void ComputeSocketGeometry(const ICFGSNode& node, IDesignSpace& designSpace)
+		void ComputeSocketGeometry(ICFGSNode& node, IDesignSpace& designSpace)
 		{
 			int32 leftIndex = 0;
 			int32 rightIndex = 0;
@@ -250,16 +250,16 @@ namespace Rococo::CFGS::Internal
 				auto& socket = node[i];
 				if (IsLeftSide(socket))
 				{
-					ComputeLeftSocketGeometry(node, socket, designSpace, leftIndex++);
+					CacheLeftSocketGeometry(node, socket, designSpace, leftIndex++);
 				}
 				else
 				{
-					ComputeRightSocketGeometry(node, socket, designSpace, rightIndex++);
+					CacheRightSocketGeometry(node, socket, designSpace, rightIndex++);
 				}
 			}
 		}
 
-		bool TryGetSocketGeometry(const ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour, bool isLit)
+		bool TryGetSocketGeometry(ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour, bool isLit)
 		{
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{
@@ -331,7 +331,7 @@ namespace Rococo::CFGS::Internal
 			return *buffer != 0;
 		}
 
-		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace, RenderPhase phase)
+		void RenderNode(IFlatGuiRenderer& fgr, ICFGSNode& node, IDesignSpace& designSpace, RenderPhase phase)
 		{
 			auto rect = node.GetDesignRectangle();
 			GuiRect nodeRect = WorldToScreen(rect, designSpace);
@@ -412,7 +412,7 @@ namespace Rococo::CFGS::Internal
 			RenderSockets(fgr, node, designSpace);
 		}
 
-		void RenderCable(IFlatGuiRenderer& fgr, const ICFGSNode& start, SocketId startSocket, const ICFGSNode& end, SocketId endSocket, int cableIndex, RenderPhase phase, bool isLit)
+		void RenderCable(IFlatGuiRenderer& fgr, ICFGSNode& start, SocketId startSocket, ICFGSNode& end, SocketId endSocket, int cableIndex, RenderPhase phase, bool isLit)
 		{		
 			GuiRect circle;
 			RGBAb colour;
@@ -608,7 +608,7 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		const ICFGSSocket* FindSocketAt(Vec2i screenPosition, const ICFGSNode& node) const
+		const ICFGSSocket* FindSocketAt(Vec2i screenPosition, ICFGSNode& node) const
 		{
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{
@@ -629,7 +629,7 @@ namespace Rococo::CFGS::Internal
 		// Where the connection is anchored when placing a new cable
 		CableConnection connectionAnchor;
 
-		const ICFGSNode* FindNodeAt(Vec2i screenPosition)
+		ICFGSNode* FindNodeAt(Vec2i screenPosition)
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
@@ -698,7 +698,7 @@ namespace Rococo::CFGS::Internal
 				return false;
 			}
 
-			const ICFGSNode* node = FindNodeAt(cursorPosition);
+			ICFGSNode* node = FindNodeAt(cursorPosition);
 
 			if (node)
 			{
@@ -739,7 +739,7 @@ namespace Rococo::CFGS::Internal
 
 			if (connectionAnchor.node)
 			{
-				const ICFGSNode* entranceNode = FindNodeAt(cursorPosition);
+				ICFGSNode* entranceNode = FindNodeAt(cursorPosition);
 
 				if (entranceNode)
 				{

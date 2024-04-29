@@ -30,7 +30,7 @@ namespace Rococo::CFGS
 	ROCOCO_INTERFACE ICFGSCosmetics
 	{
 		// Assign cosmetic choices to a particular socket
-		virtual void ConfigSocketCosmetics(const ICFGSSocket& socket) = 0;
+		virtual void ConfigSocketCosmetics(ICFGSSocket& socket) = 0;
 
 		// Enumerates all functions in the cfgs system and assigns cosmetic choices
 		virtual void ConfigCFGSCosmetics(ICFGSDatabase& cfgs) = 0;

@@ -174,8 +174,8 @@ namespace Rococo::Editors
 		virtual Vec2i GetDesktopPositionFromGridPosition(Vec2i gridPosition) = 0;
 	};
 
-	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignSpace& designSpace);
-	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& designerRect, IDesignSpace& designSpace);
+	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, const IDesignSpace& designSpace);
+	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& designerRect, const IDesignSpace& designSpace);
 
 	ROCOCO_INTERFACE IUI2DGridSlateSupervisor : IUI2DGridSlate
 	{

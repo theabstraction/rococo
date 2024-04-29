@@ -490,7 +490,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			return id;
 		}
 
-		bool TryVisitPrimitive(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr type, cstr variableName, cstr displayTypeOverride)
+		bool TryVisitPrimitive(ICFGSSocket& socket, IPropertyVisitor& visitor, cstr type, cstr variableName, cstr displayTypeOverride)
 		{
 			if (Eq(type, "Float32") || Eq(type, "Sys.Type.Float32"))
 			{
@@ -597,7 +597,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			return true;
 		}
 
-		void VisitField(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr typeString, cstr variableName, int depth, int index, cstr typeSource, cstr displayTypeOverride)
+		void VisitField(ICFGSSocket& socket, IPropertyVisitor& visitor, cstr typeString, cstr variableName, int depth, int index, cstr typeSource, cstr displayTypeOverride)
 		{
 			UNUSED(index);
 
@@ -708,7 +708,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			visitor.VisitHeader(sectionId, "", "");
 		}
 
-		void VisitSocket(const ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName, int index)
+		void VisitSocket(ICFGSSocket& socket, IPropertyVisitor& visitor, cstr variableName, int index)
 		{
 			VisitField(socket, visitor, socket.Type().Value, variableName, 0, index, nullptr, nullptr);
 		}
@@ -831,6 +831,8 @@ namespace Rococo::CFGS::IDE::Sexy
 			messageMap.AddHandler("NodeSelected"_event, &NavigationHandler::OnNodeSelected);
 			messageMap.AddHandler("TryDeleteNode"_event, &NavigationHandler::OnTryDeleteNode);
 			messageMap.AddHandler("CableDropped"_event, &NavigationHandler::OnCableDropped);
+			messageMap.AddHandler("BeginNodeModified"_event, &NavigationHandler::OnBeginNodeModified);
+			messageMap.AddHandler("ReturnNodeModified"_event, &NavigationHandler::OnReturnNodeModified);
 		}
 
 		~NavigationHandler()
@@ -851,6 +853,154 @@ namespace Rococo::CFGS::IDE::Sexy
 			targetNode.node = nullptr;
 			selectedNode = NodeId();
 			RefreshNavigationTree();
+		}
+
+		ICFGSSocket* FindSocket(ICFGSNode& node, cstr name)
+		{
+			for (int i = 0; i < node.SocketCount(); ++i)
+			{
+				auto& s = node[i];
+				if (Eq(s.Name(), name))
+				{
+					return &s;
+				}
+			}
+
+			return nullptr;
+		}
+
+		bool IsInputClass(SocketClass x)
+		{
+			switch (x)
+			{
+			case SocketClass::ConstInputRef:
+			case SocketClass::InputRef:
+			case SocketClass::InputVar:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		bool IsOutputClass(SocketClass x)
+		{
+			switch (x)
+			{
+			case SocketClass::ConstOutputRef:
+			case SocketClass::OutputRef:
+			case SocketClass::OutputValue:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		SocketClass FlipInputOutputClass(SocketClass x)
+		{
+			switch (x)
+			{
+			case SocketClass::ConstInputRef:
+				return SocketClass::ConstOutputRef;
+			case SocketClass::ConstOutputRef:
+				return SocketClass::ConstInputRef;
+			case SocketClass::InputRef:
+				return SocketClass::OutputRef;
+			case SocketClass::OutputRef:
+				return SocketClass::InputRef;
+			case SocketClass::InputVar:
+				return SocketClass::OutputValue;
+			case SocketClass::OutputValue:
+				return SocketClass::InputVar;
+			default:
+				return SocketClass::None;
+			}
+		}
+
+		void OnBeginNodeModified(TEventArgs<FunctionId>& functionId)
+		{
+			auto* f = cfgs.FindFunction(functionId);
+			if (!f)
+			{
+				return;
+			}
+
+			for (int i = 0; i < f->Nodes().Count(); ++i)
+			{
+				auto& n = f->Nodes()[i];
+				if (Eq(n.Type().Value, "<Begin>"))
+				{
+					// Update begin node
+
+					auto& requiredSpec = f->BeginNode();
+
+					for (int j = 0; j < n.SocketCount(); j++)
+					{
+						auto& s = n[j];
+						cstr name = s.Name();	
+
+						if (IsInputClass(s.SocketClassification()))
+						{
+							auto* requiredSocket = FindSocket(requiredSpec, name);
+							if (!requiredSocket)
+							{
+								// we are missing a socket
+
+								auto classification = FlipInputOutputClass(s.SocketClassification());
+								if (classification != SocketClass::None)
+								{
+									n.AddSocket(s.Type().Value, classification, name, SocketId());
+								}
+							}
+							else
+							{
+								if (!Eq(requiredSocket->Type().Value, s.Type().Value))
+								{
+									s.SetType(CFGSSocketType{ requiredSocket->Type().Value });
+								}
+							}
+						}
+					}
+
+					for (int j = 0; j < requiredSpec.SocketCount(); j++)
+					{
+						auto& requiredSocket = requiredSpec[j];
+						if (IsOutputClass(requiredSocket.SocketClassification()))
+						{
+							cstr name = requiredSocket.Name();
+
+							auto* nodeSocket = FindSocket(n, name);
+							if (!nodeSocket)
+							{
+
+							}
+						}
+					}
+
+					return;
+				}
+			}
+		}
+
+		void OnReturnNodeModified(TEventArgs<FunctionId>& functionId)
+		{
+			auto* f = cfgs.FindFunction(functionId);
+			if (!f)
+			{
+				return;
+			}
+
+			for (int i = 0; i < f->Nodes().Count(); ++i)
+			{
+				auto& n = f->Nodes()[i];
+				if (Eq(n.Type().Value, "<Return>"))
+				{
+					// Update return node
+
+					auto& requiredSpec = f->ReturnNode();
+
+					return;
+				}
+			}
 		}
 
 		void OnNodeSelected(TEventArgs<NodeId>& args)

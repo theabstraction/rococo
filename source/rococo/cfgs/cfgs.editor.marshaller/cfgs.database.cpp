@@ -28,8 +28,8 @@ namespace Rococo::CFGS::Internal
 		SocketClass classification;
 		SocketId id;
 		std::vector<CableId> cables;
-		mutable RGBAb colour;
-		mutable RGBAb hilightColour;
+		RGBAb colour;
+		RGBAb hilightColour;
 
 		CFGSSocket(CFGSNode* _parent, SocketPlacement _placement, CFGSSocketType _type, SocketClass _classification, cstr _name, SocketId _id) :
 			parent(_parent),
@@ -79,7 +79,7 @@ namespace Rococo::CFGS::Internal
 			return isLit ? hilightColour : colour;
 		}
 
-		void SetColours(RGBAb normalColour, RGBAb litColour) const override
+		void SetColours(RGBAb normalColour, RGBAb litColour) override
 		{
 			this->colour = normalColour;
 			this->hilightColour = litColour;
@@ -150,24 +150,24 @@ namespace Rococo::CFGS::Internal
 			return cables[index];
 		}
 
-		mutable GuiRect lastCircleRect{ -1, -1, -1, -1 };
-		mutable Vec2i lastEdgePoint{ -1, -1 };
+		GuiRect lastCircleRect{ -1, -1, -1, -1 };
+		Vec2i lastEdgePoint{ -1, -1 };
 
-		void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const
+		void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const override
 		{
 			lastCircleRect = this->lastCircleRect;
 			lastEdgePoint = this->lastEdgePoint;
 		}
 
-		void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) const override
+		void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) override
 		{
 			lastCircleRect = circleRect;
 			lastEdgePoint = edgePoint;
 		}
 
-		mutable stringmap<HString> fields;
+		stringmap<HString> fields;
 
-		void SetField(cstr fieldName, cstr fieldValue) const override
+		void SetField(cstr fieldName, cstr fieldValue) override
 		{
 			fields[fieldName] = fieldValue;
 		}
@@ -385,7 +385,7 @@ namespace Rococo::CFGS::Internal
 			return uniqueId;
 		}
 
-		const ICFGSSocket& operator[](int32 index) const override
+		ICFGSSocket& operator[](int32 index) override
 		{
 			if (index < 0 || index >= (int32)sockets.size())
 			{
@@ -570,7 +570,7 @@ namespace Rococo::CFGS::Internal
 			cables.erase(end, cables.end());
 		}
 
-		const ICFGSCable& operator[](int32 index) const override
+		ICFGSCable& operator[](int32 index) override
 		{
 			if (index < 0 || index >= cables.size())
 			{
@@ -687,22 +687,22 @@ namespace Rococo::CFGS::Internal
 			this->outputTypeOptions = outputTypes;
 		}
 
-		CFGSNode& BeginNode()
+		CFGSNode& ConcreteBeginNode()
 		{
 			return beginNode;
 		}
 
-		const ICFGSNode& BeginNode() const override
+		ICFGSNode& BeginNode() override
 		{
 			return beginNode;
 		}
 
-		CFGSNode& ReturnNode()
+		CFGSNode& ConcreteReturnNode()
 		{
 			return returnNode;
 		}
 
-		const ICFGSNode& ReturnNode() const override
+		ICFGSNode& ReturnNode() override
 		{
 			return returnNode;
 		}
@@ -813,7 +813,7 @@ namespace Rococo::CFGS::Internal
 			zOrderDescending.clear();
 		}
 
-		const ICFGSNode& GetByZOrderAscending(int32 index) override
+		ICFGSNode& GetByZOrderAscending(int32 index) override
 		{
 			int32 count = (int32)nodes.size();
 
@@ -825,7 +825,7 @@ namespace Rococo::CFGS::Internal
 			return *zOrderDescending[count - index - 1];
 		}
 
-		const ICFGSNode& GetByZOrderDescending(int32 index) override
+		ICFGSNode& GetByZOrderDescending(int32 index) override
 		{
 			if (index < 0 || index >= (int32)nodes.size())
 			{
@@ -861,7 +861,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		const ICFGSNode& operator[](int32 index) override
+		ICFGSNode& operator[](int32 index) override
 		{
 			if (index < 0 || index >= (int32)nodes.size())
 			{
@@ -879,6 +879,9 @@ namespace Rococo::CFGS::Internal
 
 			if (!mapIdToNode.insert(std::make_pair(node->Id(), node)).second)
 			{
+				nodes.pop_back();
+				zOrderDescending.pop_back();
+				delete node;
 				Throw(0, "A very rare event occured, a 128-bit duplicate hash value was generated!");
 			}
 
@@ -890,13 +893,7 @@ namespace Rococo::CFGS::Internal
 			return (int32)nodes.size();
 		}
 
-		const ICFGSNode* FindNode(NodeId id) const override
-		{
-			auto i = mapIdToNode.find(id);
-			return i != mapIdToNode.end() ? i->second : nullptr;
-		}
-
-		ICFGSNode* FindNode(NodeId id) override
+		ICFGSNode* FindNode(NodeId id) const override
 		{
 			auto i = mapIdToNode.find(id);
 			return i != mapIdToNode.end() ? i->second : nullptr;
@@ -1102,7 +1099,9 @@ namespace Rococo::CFGS::Internal
 			db.ForEachFunction([isInput, &itemId, this](ICFGSFunction& f)
 				{
 					auto& F = static_cast<CFGSFunction&>(f);					
-					auto& node = isInput ? F.BeginNode() : F.ReturnNode();
+					auto& node = isInput ? F.ConcreteBeginNode() : F.ConcreteReturnNode();
+
+					publisher.PostOneArg(f.Id(), isInput ? "BeginNodeModified"_event : "ReturnNodeModified"_event);
 
 					SocketId targetId;
 
@@ -1158,23 +1157,25 @@ namespace Rococo::CFGS::Internal
 					{
 						SocketArrayBuilder builder(publisher);
 						builder.functionId = F.Id();
-						builder.node = &F.BeginNode();
+						builder.node = &F.ConcreteBeginNode();
 						builder.classification = SocketClass::InputVar;
 						builder.placement = SocketPlacement::Left;
-						builder.target = &F.BeginNode().sockets;
+						builder.target = &F.ConcreteBeginNode().sockets;
 						builder.type = CFGSSocketType{ "Int32" };
 						callback(builder);
+						publisher.PostOneArg(builder.functionId, "BeginNodeModified"_event);
 					}
 					else if (F.IsOutputArrayId(arrayId))
 					{
 						SocketArrayBuilder builder(publisher);
 						builder.functionId = F.Id();
-						builder.node = &F.BeginNode();
+						builder.node = &F.ConcreteReturnNode();
 						builder.classification = SocketClass::OutputValue;
 						builder.placement = SocketPlacement::Right;
-						builder.target = &F.ReturnNode().sockets;
-						builder.type = CFGSSocketType{ "Int32" };
+						builder.target = &F.ConcreteReturnNode().sockets;
+						builder.type = CFGSSocketType{ "Int64" };
 						callback(builder);
+						publisher.PostOneArg(builder.functionId, "ReturnNodeModified"_event);
 					}
 				}
 			);

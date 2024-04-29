@@ -279,7 +279,7 @@ namespace Rococo::CFGS
 			}
 		}
 
-		void ConfigSocketCosmetics(const ICFGSSocket& socket) override
+		void ConfigSocketCosmetics(ICFGSSocket& socket) override
 		{
 			switch (socket.SocketClassification())
 			{
