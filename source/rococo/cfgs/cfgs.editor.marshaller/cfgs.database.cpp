@@ -1092,7 +1092,7 @@ namespace Rococo::CFGS::Internal
 				return;
 			}
 			
-			bool isInput = strstr(finalChar, "In") != nullptr;
+			bool isInput = strstr(finalChar, "InBeginIndex") != nullptr;
 
 			Substring itemId = { sectionId, finalChar };
 
@@ -1100,8 +1100,6 @@ namespace Rococo::CFGS::Internal
 				{
 					auto& F = static_cast<CFGSFunction&>(f);					
 					auto& node = isInput ? F.ConcreteBeginNode() : F.ConcreteReturnNode();
-
-					publisher.PostOneArg(f.Id(), isInput ? "BeginNodeModified"_event : "ReturnNodeModified"_event);
 
 					SocketId targetId;
 
@@ -1123,6 +1121,8 @@ namespace Rococo::CFGS::Internal
 					{
 						node.DeleteSocket(targetId);
 					}
+
+					publisher.PostOneArg(f.Id(), isInput ? "BeginNodeModified"_event : "ReturnNodeModified"_event);
 				}
 			);
 		}

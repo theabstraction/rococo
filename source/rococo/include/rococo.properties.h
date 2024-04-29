@@ -2,6 +2,8 @@
 
 #include <rococo.types.h>
 
+// Deprecated API, used by CFGS. Basically its too complex to marshal. Go back to the drawing board with a new design
+
 namespace Rococo::Reflection
 {
 	struct IEstateAgent;

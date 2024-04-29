@@ -916,6 +916,61 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
+		// Assumes n is a begin node
+		void SyncBeginNode(ICFGSNode& n, ICFGSFunction& f)
+		{
+			auto& requiredSpec = f.BeginNode();
+
+			std::vector<SocketId> obsoleteSockets;
+
+			for (int j = 0; j < n.SocketCount(); j++)
+			{
+				auto& s = n[j];
+				cstr name = s.Name();
+
+				if (IsOutputClass(s.SocketClassification()))
+				{
+					auto* requiredSocket = FindSocket(requiredSpec, name);
+					if (!requiredSocket)
+					{
+						// Our template does not have the named socket, so we must remove it from our begin node
+						obsoleteSockets.push_back(s.Id());
+					}
+					else
+					{
+						s.SetType(requiredSocket->Type());
+						s.SetColours(requiredSocket->GetSocketColour(false), requiredSocket->GetSocketColour(true));
+					}
+				}
+			}
+
+			for (auto& id : obsoleteSockets)
+			{
+				n.DeleteSocket(id);
+			}
+
+			for (int j = 0; j < requiredSpec.SocketCount(); j++)
+			{
+				auto& requiredSocket = requiredSpec[j];
+				if (IsInputClass(requiredSocket.SocketClassification()))
+				{
+					cstr name = requiredSocket.Name();
+
+					auto* nodeSocket = FindSocket(n, name);
+					if (!nodeSocket)
+					{
+						auto classification = FlipInputOutputClass(requiredSocket.SocketClassification());
+						if (classification != SocketClass::None)
+						{
+							auto& socket = n.AddSocket(requiredSocket.Type().Value, classification, name, SocketId());
+							auto colours = cosmetics.GetColoursForType(requiredSocket.Type().Value);
+							socket.SetColours(colours.normal, colours.hilight);
+						}
+					}
+				}
+			}
+		}
+
 		void OnBeginNodeModified(TEventArgs<FunctionId>& functionId)
 		{
 			auto* f = cfgs.FindFunction(functionId);
@@ -930,54 +985,67 @@ namespace Rococo::CFGS::IDE::Sexy
 				if (Eq(n.Type().Value, "<Begin>"))
 				{
 					// Update begin node
+					SyncBeginNode(n, *f);
 
-					auto& requiredSpec = f->BeginNode();
+					// We are only expecting one begin node per graph, so we break rather than continue
+					break;
+				}
+			}
 
-					std::vector<SocketId> obsoleteSockets;
+			editor.RefreshSlate();
+		}
 
-					for (int j = 0; j < n.SocketCount(); j++)
+		// Assumes n is a return node
+		void SyncReturnNode(ICFGSNode& n, ICFGSFunction& f)
+		{
+			auto& requiredSpec = f.ReturnNode();
+
+			std::vector<SocketId> obsoleteSockets;
+
+			for (int j = 0; j < n.SocketCount(); j++)
+			{
+				auto& s = n[j];
+				cstr name = s.Name();
+
+				if (IsInputClass(s.SocketClassification()))
+				{
+					auto* requiredSocket = FindSocket(requiredSpec, name);
+					if (!requiredSocket)
 					{
-						auto& s = n[j];
-						cstr name = s.Name();	
+						// Our template does not have the named socket, so we must remove it from our begin node
+						obsoleteSockets.push_back(s.Id());
+					}
+					else
+					{
+						s.SetType(requiredSocket->Type());
+						s.SetColours(requiredSocket->GetSocketColour(false), requiredSocket->GetSocketColour(true));
+					}
+				}
+			}
 
-						if (IsOutputClass(s.SocketClassification()))
+			for (auto& id : obsoleteSockets)
+			{
+				n.DeleteSocket(id);
+			}
+
+			for (int j = 0; j < requiredSpec.SocketCount(); j++)
+			{
+				auto& requiredSocket = requiredSpec[j];
+				if (IsOutputClass(requiredSocket.SocketClassification()))
+				{
+					cstr name = requiredSocket.Name();
+
+					auto* nodeSocket = FindSocket(n, name);
+					if (!nodeSocket)
+					{
+						auto classification = FlipInputOutputClass(requiredSocket.SocketClassification());
+						if (classification != SocketClass::None)
 						{
-							auto* requiredSocket = FindSocket(requiredSpec, name);
-							if (!requiredSocket)
-							{
-								// Our template does not have the named socket, so we must remove it from our begin node
-								obsoleteSockets.push_back(s.Id());
-							}
+							auto& socket = n.AddSocket(requiredSocket.Type().Value, classification, name, SocketId());
+							auto colours = cosmetics.GetColoursForType(requiredSocket.Type().Value);
+							socket.SetColours(colours.normal, colours.hilight);
 						}
 					}
-
-					for (auto& id : obsoleteSockets)
-					{
-						n.DeleteSocket(id);
-					}
-
-					for (int j = 0; j < requiredSpec.SocketCount(); j++)
-					{
-						auto& requiredSocket = requiredSpec[j];
-						if (IsInputClass(requiredSocket.SocketClassification()))
-						{
-							cstr name = requiredSocket.Name();
-
-							auto* nodeSocket = FindSocket(n, name);
-							if (!nodeSocket)
-							{
-								auto classification = FlipInputOutputClass(requiredSocket.SocketClassification());
-								if (classification != SocketClass::None)
-								{
-									auto& socket = n.AddSocket(requiredSocket.Type().Value, classification, name, SocketId());
-									auto colours = cosmetics.GetColoursForType(requiredSocket.Type().Value);
-									socket.SetColours(colours.normal, colours.hilight);
-								}
-							}
-						}
-					}
-
-					return;
 				}
 			}
 		}
@@ -995,13 +1063,14 @@ namespace Rococo::CFGS::IDE::Sexy
 				auto& n = f->Nodes()[i];
 				if (Eq(n.Type().Value, "<Return>"))
 				{
-					// Update return node
+					SyncReturnNode(n, *f);
 
-					auto& requiredSpec = f->ReturnNode();
-
-					return;
+					// There may be more than one return node, so we continue rather than break
+					continue;
 				}
 			}
+
+			editor.RefreshSlate();
 		}
 
 		void OnNodeSelected(TEventArgs<NodeId>& args)
@@ -1024,6 +1093,8 @@ namespace Rococo::CFGS::IDE::Sexy
 				else
 				{
 					props.UpdateFromVisuals(*args, f->PropertyVenue());
+					publisher.PostOneArg(f->Id(), "BeginNodeModified"_event);
+					publisher.PostOneArg(f->Id(), "ReturnNodeModified"_event);
 				}
 			}
 		}
