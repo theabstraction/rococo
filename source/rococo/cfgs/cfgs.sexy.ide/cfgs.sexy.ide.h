@@ -11,12 +11,6 @@ namespace Rococo::SexyStudio
 
 namespace Rococo::CFGS
 {
-	struct Colours
-	{
-		RGBAb normal;
-		RGBAb hilight;
-	};
-
 	struct ColourTypeBinding
 	{
 		cstr typeName;
@@ -46,7 +40,17 @@ namespace Rococo::CFGS
 
 	ICFGSCosmeticsSupervisor* CreateCosmetics(SexyStudio::ISexyDatabase& db);
 
-	struct ICFGSSexyPopup : ICFGSDesignerSpacePopupSupervisor
+	ROCOCO_INTERFACE ICFGSVariableEnumerator
+	{
+		virtual void ForEachVariable(Function<void(cstr name, cstr type)> callback) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSDesignerSpacePopupPopulator
+	{
+		virtual ICFGSVariableEnumerator& Variables() = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSSexyPopup : ICFGSDesignerSpacePopupSupervisor
 	{
 		virtual void ShowInterface(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition, const SexyStudio::ISXYInterface& refInterface, const SexyStudio::ISxyNamespace& ns, const CableDropped& dropInfo) = 0;
 	};

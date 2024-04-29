@@ -141,7 +141,13 @@ namespace Rococo::CFGS::Internal
 			ShrinkRect(circleRect, 2);
 			fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 
-			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
+			Colours colours = node.GetBackColours();
+
+			bool isParentLit = IsPointInRect(cursorPos, parentRect);
+
+			RGBAb backColour = isParentLit ? colours.hilight : colours.normal;
+
+			fgr.SetTextOptions(backColour, RGBAb(255, 255, 255, 255));
 
 			cstr name = socket.Name();
 
@@ -198,10 +204,16 @@ namespace Rococo::CFGS::Internal
 			Vec2i cursorPos = fgr.CursorPosition();
 			bool isLit = IsPointInRect(cursorPos, circleRect);
 
+			bool isParentLit = IsPointInRect(cursorPos, parentRect);
+
 			ShrinkRect(circleRect, 2);
 			fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 
-			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
+			Colours colours = node.GetBackColours();
+
+			RGBAb backColour = isParentLit ? colours.hilight : colours.normal;
+
+			fgr.SetTextOptions(backColour, RGBAb(255, 255, 255, 255));
 
 			cstr name = socket.Name();
 
@@ -350,7 +362,16 @@ namespace Rococo::CFGS::Internal
 			ColourSchemeQuantum nodeRectColours;
 			node.Scheme().GetFillColours(OUT nodeRectColours);
 
+			Colours overrides = node.GetBackColours();
+
 			RGBAb backColour = isLit ? nodeRectColours.litColour : nodeRectColours.dullColour;
+
+			RGBAb overrideColour = isLit ? overrides.hilight : overrides.normal;
+
+			if (overrideColour.alpha > 0)
+			{
+				backColour = overrideColour;
+			}
 
 			ColourSchemeQuantum typeNameColours;
 			node.Scheme().GetTypeNameColours(OUT typeNameColours);
@@ -365,6 +386,15 @@ namespace Rococo::CFGS::Internal
 			node.Scheme().GetTypeNamePlateColours(OUT typeNamePlateColours);
 
 			RGBAb backPlateColour = isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour;
+
+			Colours nodeTabColours = node.GetTabColours();
+
+			RGBAb overridePlateColour = isLit ? nodeTabColours.hilight : nodeTabColours.normal;
+
+			if (overridePlateColour.alpha > 0)
+			{
+				backPlateColour = overridePlateColour;
+			}
 
 			fgr.SetTextOptions(backPlateColour, isLit ? typeNameColours.litColour : typeNameColours.dullColour);
 

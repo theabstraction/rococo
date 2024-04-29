@@ -142,6 +142,8 @@ namespace Rococo::CFGS
 			colourSchemeMap["__Flow"]           = { RGBAb(0,224,0,1),      RGBAb(0,255,0,1)     };
 			colourSchemeMap["__Interfaces"]     = { RGBAb(32,224,32,1),    RGBAb(64,255,64,1)   };
 			colourSchemeMap["__Structs"]        = { RGBAb(32,64,224,1),    RGBAb(64,128,255,1)  };
+			colourSchemeMap["__Variables"]      = { RGBAb(0,0,32,1),       RGBAb(0,0,64,1)      };
+			colourSchemeMap["__VariablesTab"]	= { RGBAb(128,128,224,1),  RGBAb(160,160,255,1) };
 
 			Reload();
 		}
@@ -290,13 +292,12 @@ namespace Rococo::CFGS
 			case SocketClass::OutputRef:
 			case SocketClass::OutputValue:
 			{
-				auto colours = GetColoursForType(socket.Type().Value);
-				socket.SetColours(colours.normal, colours.hilight);
+				socket.SetColours(GetColoursForType(socket.Type().Value));
 				return;
 			}
 			case SocketClass::Exit:
 			case SocketClass::Trigger:
-				socket.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				socket.SetColours(GetColoursForType("__Flow"));
 				return;
 			}
 		}

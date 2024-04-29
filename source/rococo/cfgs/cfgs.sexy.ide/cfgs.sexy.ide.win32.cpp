@@ -47,7 +47,7 @@ namespace ANON
 	static const char* const CONFIG_SECTION = "cfgs.sexy.ide";
 	static const char* const CONFIG_VERSION = "1.0.0.0";
 
-	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor, ICFGSIDEGui, ICFGSIDEContextMenu, INamespaceValidator
+	struct Sexy_CFGS_IDE : ICFGSIntegratedDevelopmentEnvironmentSupervisor, ICFGSIDEGui, ICFGSIDEContextMenu, INamespaceValidator, ICFGSDesignerSpacePopupPopulator
 	{
 		HWND hHostWindow;
 		ICFGSDatabase& cfgs;
@@ -282,7 +282,7 @@ namespace ANON
 
 			cosmetics = CreateCosmetics(core->db);
 
-			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase(), *this, *cosmetics);
+			designerSpacePopup = CreateWin32ContextPopup(editor, cfgs, ideWindow.ideInstance->GetDatabase(), *this, *cosmetics, *this);
 
 			navHandler = new NavigationHandler(editor, cfgs, core->db, publisher, *this, *designerSpacePopup, *cosmetics);
 
@@ -550,6 +550,11 @@ namespace ANON
 			);
 
 			cosmetics->ConfigCFGSCosmetics(cfgs);
+		}
+
+		ICFGSVariableEnumerator& Variables() override
+		{
+			return *navHandler;
 		}
 	};
 }

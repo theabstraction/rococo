@@ -55,9 +55,12 @@ namespace ANON
 
 		CableDropped dropInfo;
 
+		ICFGSDesignerSpacePopupPopulator& populator;
+
 		enum { Width = 640, Height = 480 };
 
-		Popup(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db, INamespaceValidator& _nv, ICFGSCosmetics& _cosmetics) : editor(_editor), cfgs(_cfgs), db(_db), nv(_nv), cosmetics(_cosmetics)
+		Popup(IAbstractEditor& _editor, ICFGSDatabase& _cfgs, SexyStudio::ISexyDatabase& _db, INamespaceValidator& _nv, ICFGSCosmetics& _cosmetics, ICFGSDesignerSpacePopupPopulator& _populator) : 
+			editor(_editor), cfgs(_cfgs), db(_db), nv(_nv), cosmetics(_cosmetics), populator(_populator)
 		{
 
 		}
@@ -169,9 +172,9 @@ namespace ANON
 
 				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId());
 				auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
-				flowIn.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				flowIn.SetColours(cosmetics.GetColoursForType("__Flow"));
 				auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
-				flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				flowOut.SetColours(cosmetics.GetColoursForType("__Flow"));
 
 				for (int i = 0; i < sexyFactory->InputCount(); i++)
 				{
@@ -180,7 +183,7 @@ namespace ANON
 
 					Colours colours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
-					socket.SetColours(colours.normal, colours.hilight);
+					socket.SetColours(colours);
 				}
 
 				char interfaceName[256];
@@ -188,7 +191,7 @@ namespace ANON
 
 				Colours colours = cosmetics.GetColoursForType(interfaceName);
 				auto& socket = node.AddSocket(interfaceName, SocketClass::OutputValue, "*this", SocketId());
-				socket.SetColours(colours.normal, colours.hilight);
+				socket.SetColours(colours);
 
 				ShowWindow(*window, SW_HIDE);
 				editor.RefreshSlate();
@@ -232,9 +235,9 @@ namespace ANON
 				auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId());
 				auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
 				Colours flowColours = cosmetics.GetColoursForType("__Flow");
-				flowIn.SetColours(flowColours.normal, flowColours.hilight);
+				flowIn.SetColours(flowColours);
 				auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
-				flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+				flowOut.SetColours(flowColours);
 
 				for (int i = 0; i < sexyFunction->LocalFunction()->InputCount(); i++)
 				{
@@ -243,7 +246,7 @@ namespace ANON
 
 					Colours colours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
-					socket.SetColours(colours.normal, colours.hilight);
+					socket.SetColours(colours);
 				}
 
 				for (int i = 0; i < sexyFunction->LocalFunction()->OutputCount(); i++)
@@ -253,7 +256,7 @@ namespace ANON
 
 					Colours colours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
-					socket.SetColours(colours.normal, colours.hilight);
+					socket.SetColours(colours);
 				}
 
 
@@ -304,9 +307,9 @@ namespace ANON
 			auto& node = graph->Nodes().Builder().AddNode(header.visibleName, designPosition, NodeId());
 			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
 			Colours colours = cosmetics.GetColoursForType("__Flow");
-			flowIn.SetColours(colours.normal, colours.hilight);
+			flowIn.SetColours(colours);
 			auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
-			flowOut.SetColours(colours.normal, colours.hilight);
+			flowOut.SetColours(colours);
 
 			ISXYFunction* pMethod = nullptr;
 			for (int j = 0; j < sexyInterface->MethodCount(); j++)
@@ -325,7 +328,7 @@ namespace ANON
 
 				Colours thisColours = cosmetics.GetColoursForType(fqNameBuffer);
 				auto& thisSocket = node.AddSocket(fqNameBuffer, SocketClass::InputVar, "*this", SocketId());
-				thisSocket.SetColours(thisColours.normal, thisColours.hilight);
+				thisSocket.SetColours(thisColours);
 
 				for (int i = 0; i < pMethod->InputCount(); i++)
 				{
@@ -334,7 +337,7 @@ namespace ANON
 
 					Colours inputColours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::InputVar, name, SocketId());
-					socket.SetColours(inputColours.normal, inputColours.hilight);
+					socket.SetColours(inputColours);
 				}
 
 				for (int i = 0; i < pMethod->OutputCount(); i++)
@@ -344,7 +347,7 @@ namespace ANON
 
 					Colours outputColours = cosmetics.GetColoursForType(type);
 					auto& socket = node.AddSocket(type, SocketClass::OutputValue, name, SocketId());
-					socket.SetColours(outputColours.normal, outputColours.hilight);
+					socket.SetColours(outputColours);
 				}
 
 				if (dropInfo.anchor.node)
@@ -372,7 +375,7 @@ namespace ANON
 			auto& node = graph->Nodes().Builder().AddNode("<Return>", designPosition, NodeId() );
 			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Terminate", SocketId());
 			Colours flowColours = cosmetics.GetColoursForType("__Flow");
-			flowIn.SetColours(flowColours.normal, flowColours.hilight);
+			flowIn.SetColours(flowColours);
 			
 			auto& inputSpec = graph->ReturnNode();
 
@@ -399,8 +402,86 @@ namespace ANON
 
 				auto& inputSocket = node.AddSocket(s.Type().Value, inputClass, s.Name(), SocketId());
 				Colours inputColours = cosmetics.GetColoursForType(s.Type().Value);
-				inputSocket.SetColours(inputColours.normal, inputColours.hilight);
+				inputSocket.SetColours(inputColours);
 			}
+
+			ShowWindow(*window, SW_HIDE);
+
+			editor.RefreshSlate();
+		}
+
+		void AddGetNode(const NodeOptionHeader& header)
+		{
+			cstr space = FindChar(header.url, ' ');
+			if (!space)
+			{
+				return;
+			}
+
+			Substring name{ header.url, space };
+			cstr type = space + 1;
+
+			char nameBuffer[256];
+			name.CopyWithTruncate(nameBuffer, sizeof nameBuffer);
+
+			auto* graph = cfgs.CurrentFunction();
+			if (!graph)
+			{
+				return;
+			}
+
+			char desc[256];
+			SafeFormat(desc, "<Get> %s - %s", nameBuffer, type);
+
+			auto& node = graph->Nodes().Builder().AddNode(desc, designPosition, NodeId());
+			auto colours = cosmetics.GetColoursForType("__Variables");
+			node.SetColours(colours, cosmetics.GetColoursForType("__VariablesTab"));
+			auto& valueSocket = node.AddSocket(type, SocketClass::ConstOutputRef, nameBuffer, SocketId());
+			colours = cosmetics.GetColoursForType(type);
+			valueSocket.SetColours(colours);
+
+			ShowWindow(*window, SW_HIDE);
+
+			editor.RefreshSlate();
+		}
+
+		void AddSetNode(const NodeOptionHeader& header)
+		{
+			cstr space = FindChar(header.url, ' ');
+			if (!space)
+			{
+				return;
+			}
+
+
+			Substring name{ header.url, space };
+			cstr type = space + 1;
+
+			char nameBuffer[256];
+			name.CopyWithTruncate(nameBuffer, sizeof nameBuffer);
+
+			auto* graph = cfgs.CurrentFunction();
+			if (!graph)
+			{
+				return;
+			}
+
+			char desc[256];
+			SafeFormat(desc, "<Set> %s - %s", nameBuffer, type);
+
+			auto& node = graph->Nodes().Builder().AddNode(desc, designPosition, NodeId());
+			auto colours = cosmetics.GetColoursForType("__Variables");
+			node.SetColours(colours, cosmetics.GetColoursForType("__VariablesTab"));
+
+			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
+			colours = cosmetics.GetColoursForType("__Flow");
+			flowIn.SetColours(colours);
+			auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
+			flowOut.SetColours(colours);
+
+			auto& assignSocket = node.AddSocket(type, SocketClass::ConstInputRef, nameBuffer, SocketId());
+			colours = cosmetics.GetColoursForType(type);
+			assignSocket.SetColours(colours);
 
 			ShowWindow(*window, SW_HIDE);
 
@@ -714,6 +795,8 @@ namespace ANON
 			auto specialId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Special", CheckState_NoCheckBox);
 			auto returnId = treeControl->Tree().AddChild(specialId, "<Return>", CheckState_NoCheckBox);
 
+			auto variablesId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Variables", CheckState_NoCheckBox);
+
 			for (auto& f : backingList)
 			{
 				if (f.method == &Popup::AddNewNodeForFunction)
@@ -740,6 +823,39 @@ namespace ANON
 			returnOpt.nodeId = returnId;
 
 			backingList.push_back(returnOpt);
+
+			populator.Variables().ForEachVariable(
+				[this, variablesId](cstr name, cstr type) 
+				{
+					char url[256];
+					SafeFormat(url, "%s %s", name, type);
+
+					char desc[256];
+					SafeFormat(desc, "GET %s (%s)", name, type);
+
+					TREE_NODE_ID getVariableId = AddFunctionNameToTree(desc, variablesId);
+				
+					NodeOption opt;
+					opt.header.url = url;
+					opt.header.visibleName = desc;
+					opt.method = &Popup::AddGetNode;
+					opt.nodeId = getVariableId;
+
+					backingList.push_back(opt);
+
+					SafeFormat(desc, "SET %s (%s)", name, type);
+
+					TREE_NODE_ID setVariableId = AddFunctionNameToTree(desc, variablesId);
+
+					opt.header.url = url;
+					opt.header.visibleName = desc;
+					opt.method = &Popup::AddSetNode;
+					opt.nodeId = setVariableId;
+
+					backingList.push_back(opt);
+				}
+			);
+
 
 			SetCursor(LoadCursorA(NULL, IDC_ARROW));
 
@@ -882,9 +998,9 @@ namespace ANON
 
 namespace Rococo::CFGS
 {
-	ICFGSSexyPopup* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics)
+	ICFGSSexyPopup* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics, ICFGSDesignerSpacePopupPopulator& populator)
 	{
-		auto* popup = new ANON::Popup(editor, cfgs, db, namespaceValidator, cosmetics);
+		auto* popup = new ANON::Popup(editor, cfgs, db, namespaceValidator, cosmetics, populator);
 		popup->Create();
 		return popup;
 	}

@@ -31,7 +31,7 @@ static const char* title = "CFGS SexyStudio IDE";
 
 namespace Rococo::CFGS
 {
-	ICFGSSexyPopup* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics);
+	ICFGSSexyPopup* CreateWin32ContextPopup(IAbstractEditor& editor, ICFGSDatabase& cfgs, SexyStudio::ISexyDatabase& db, INamespaceValidator& namespaceValidator, ICFGSCosmetics& cosmetics, ICFGSDesignerSpacePopupPopulator& populator);
 
 	ROCOCO_INTERFACE ICFGSIDEContextMenu
 	{
@@ -843,7 +843,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		HString defaultValue;
 	};
 
-	struct NavigationHandler : ICFGSIDENavigation, ITreeControlHandler
+	struct NavigationHandler : ICFGSIDENavigation, ITreeControlHandler, ICFGSVariableEnumerator
 	{
 		MessageMap<NavigationHandler> messageMap;
 
@@ -916,6 +916,21 @@ namespace Rococo::CFGS::IDE::Sexy
 			targetNode.node = nullptr;
 			selectedNode = NodeId();
 			RefreshNavigationTree();
+		}
+
+		void ForEachVariable(Function<void(cstr name, cstr type)> callback)
+		{
+			TREE_NODE_ID child = editor.NavigationTree().FindFirstChild(variablesId, nullptr);
+			while (child)
+			{
+				auto i = variableIdSet.find(child);
+				if (i != variableIdSet.end())
+				{
+					callback.Invoke(i->second.name, i->second.type);
+				}
+
+				child = editor.NavigationTree().FindNextChild(child, nullptr);
+			}
 		}
 
 		ICFGSSocket* FindSocket(ICFGSNode& node, cstr name)
@@ -1002,7 +1017,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					else
 					{
 						s.SetType(requiredSocket->Type());
-						s.SetColours(requiredSocket->GetSocketColour(false), requiredSocket->GetSocketColour(true));
+						s.SetColours({ requiredSocket->GetSocketColour(false), requiredSocket->GetSocketColour(true) });
 					}
 				}
 			}
@@ -1027,7 +1042,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						{
 							auto& socket = n.AddSocket(requiredSocket.Type().Value, classification, name, SocketId());
 							auto colours = cosmetics.GetColoursForType(requiredSocket.Type().Value);
-							socket.SetColours(colours.normal, colours.hilight);
+							socket.SetColours(colours);
 						}
 					}
 				}
@@ -1081,7 +1096,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					else
 					{
 						s.SetType(requiredSocket->Type());
-						s.SetColours(requiredSocket->GetSocketColour(false), requiredSocket->GetSocketColour(true));
+						s.SetColours({ requiredSocket->GetSocketColour(false), requiredSocket->GetSocketColour(true) });
 					}
 				}
 			}
@@ -1106,7 +1121,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						{
 							auto& socket = n.AddSocket(requiredSocket.Type().Value, classification, name, SocketId());
 							auto colours = cosmetics.GetColoursForType(requiredSocket.Type().Value);
-							socket.SetColours(colours.normal, colours.hilight);
+							socket.SetColours(colours);
 						}
 					}
 				}
@@ -1261,7 +1276,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			auto& beginNode = f.Nodes().Builder().AddNode(beginNodeType, topLeft, NodeId());
 
 			auto& flowOut = beginNode.AddSocket("Flow", SocketClass::Exit, "Execute", SocketId());
-			flowOut.SetColours(RGBAb(0, 224, 0, 255), RGBAb(0, 255, 0, 255));
+			flowOut.SetColours(cosmetics.GetColoursForType("__Flow"));
 
 			// The input nodes for the function are the output nodes for the beginNode
 			auto& outputSpec = f.BeginNode();
@@ -1290,7 +1305,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				auto& outputSocket = beginNode.AddSocket(outputType, outputClass, outputName, SocketId());
 				auto colours = cosmetics.GetColoursForType(outputType);
-				outputSocket.SetColours(colours.normal, colours.hilight);
+				outputSocket.SetColours(colours);
 			}
 		}
 
@@ -1437,7 +1452,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					auto newVariableId = tree.AddChild(variablesId, fname, Visitors::CheckState_NoCheckBox);
 					tree.AddChild(newVariableId, "Type: Int32", Visitors::CheckState_NoCheckBox);
 					tree.AddChild(newVariableId, "Default: 0", Visitors::CheckState_NoCheckBox);
-					variableIdSet.insert(std::make_pair(newVariableId, VariableDef { "Int32", fname, "0"}));
+					variableIdSet.insert(std::make_pair(newVariableId, VariableDef { fname, "Int32", "0"}));
 					tree.Select(newVariableId);
 				}
 			}

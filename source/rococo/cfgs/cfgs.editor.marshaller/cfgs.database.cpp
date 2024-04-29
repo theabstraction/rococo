@@ -79,10 +79,10 @@ namespace Rococo::CFGS::Internal
 			return isLit ? hilightColour : colour;
 		}
 
-		void SetColours(RGBAb normalColour, RGBAb litColour) override
+		void SetColours(const Colours& colours) override
 		{
-			this->colour = normalColour;
-			this->hilightColour = litColour;
+			this->colour = colours.normal;
+			this->hilightColour = colours.hilight;
 		}
 
 		void Clear()
@@ -209,10 +209,19 @@ namespace Rococo::CFGS::Internal
 		int inputCount = 0;
 		int outputCount = 0;
 
+		Colours nodeColours{ RGBAb { 0, 0, 0, 0 }, RGBAb { 0, 0, 0, 0 } };
+		Colours nodeTabColours{ RGBAb { 0, 0, 0, 0 }, RGBAb { 0, 0, 0, 0 } };
+
 		CFGSNode(cstr _typeName, DesignerVec2 pos, NodeId id) : typeName(_typeName)
 		{
 			designRect = { pos.x, pos.y, pos.x + 150, pos.y + 100 };
 			uniqueId = id ? id : NodeId{ Rococo::Ids::MakeNewUniqueId() };
+		}
+
+		void SetColours(const Colours& backColours, const Colours& tabColours) override
+		{
+			nodeColours = backColours;
+			nodeTabColours = tabColours;
 		}
 
 		void AcceptVisitor(IPropertyVisitor& visitor, IPropertyUIEvents& events)
@@ -402,6 +411,16 @@ namespace Rococo::CFGS::Internal
 
 		// Gives the delta offset of the reported design rectangle. This enables dragging the node and reverting to the original position
 		DesignerVec2 currentOffset{ 0,0 };
+
+		Colours GetBackColours() const override
+		{
+			return nodeColours;
+		}
+
+		Colours GetTabColours() const override
+		{
+			return nodeTabColours;
+		}
 
 		DesignerRect GetDesignRectangle() const override
 		{

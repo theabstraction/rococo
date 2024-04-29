@@ -23,6 +23,12 @@ namespace Rococo::Sex::SEXML
 
 namespace Rococo::CFGS
 {
+	struct Colours
+	{
+		RGBAb normal;
+		RGBAb hilight;
+	};
+
 	enum class SocketPlacement
 	{
 		Left = 0,
@@ -113,7 +119,7 @@ namespace Rococo::CFGS
 		// Returns the last place that the socket was computed for rendering, along with the edge point through whih its cable protrudes
 		virtual [[nodiscard]] void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const = 0;
 
-		virtual void SetColours(RGBAb normalColour, RGBAb litColour) = 0;
+		virtual void SetColours(const Colours& colours) = 0;
 
 		// Sets the last place that the rectangle was computed for rendering.
 		// [circleRect] is the rect bounding the socket circle. 
@@ -185,6 +191,10 @@ namespace Rococo::CFGS
 
 		// Force GetDesignRectangle to return the internal rect offset by the specified value. If makePermanent is set to true the internal rect is set to the old value + offset.
 		virtual void SetDesignOffset(const Rococo::Editors::DesignerVec2& offset, bool makePermanent) = 0;
+
+		virtual [[nodiscard]] Colours GetBackColours() const = 0;
+
+		virtual [[nodiscard]] Colours GetTabColours() const = 0;
 	};
 
 	struct CableConnection
@@ -214,6 +224,7 @@ namespace Rococo::CFGS
 		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
 		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
 		virtual [[nodiscard]] NodeId Id() const = 0;
+		virtual void SetColours(const Colours& colours, const Colours& tabColours) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
