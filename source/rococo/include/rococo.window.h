@@ -401,6 +401,7 @@ namespace Rococo
 			virtual bool GetString(int index, char* buffer, size_t capacity) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
+			virtual void SetSelectionHeight(int pixels) = 0;
 		};
 
 		ROCOCO_INTERFACE ITrackBarSupervisor : public IWindowSupervisor

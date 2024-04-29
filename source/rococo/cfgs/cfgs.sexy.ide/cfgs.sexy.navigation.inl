@@ -45,6 +45,7 @@ namespace Rococo::CFGS
 		virtual ICFGSIDEContextMenu& ContextMenu() = 0;	
 		virtual void ShowAlertBox(cstr text, cstr caption) = 0;
 		virtual bool GetUserConfirmation(cstr text, cstr caption) = 0;
+		virtual bool TryGetTypeFromSelectorBox(cstr text, cstr caption, cstr defaultType, char* resultBuffer,  size_t sizeofResultBuffer) = 0;
 		virtual IVariableEditor* CreateVariableEditor(const Vec2i& span, int32 labelWidth, cstr appQueryName, IVariableEditorEventHandler* eventHandler) = 0;
 	};
 }
@@ -87,7 +88,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				return false;
 			}
 
-			if (!isupper(*textEditorContent))
+			if (*textEditorContent < 'A' || *textEditorContent > 'Z')
 			{
 				editor.SetHintError(variableName, "The first character of a function name must be a capital A-Z");
 				return false;
@@ -160,6 +161,58 @@ namespace Rococo::CFGS::IDE::Sexy
 					SafeFormat(msg, "The subspace name already exists in the root namespace");
 				}
 
+				editor.SetHintError(variableName, msg);
+				return false;
+			}
+
+			return true;
+		}
+	};
+
+	struct VariableValidator : IStringValidator
+	{
+		IVariableEditor& editor;
+		Visitors::TREE_NODE_ID parentId;
+		Visitors::IUITree& tree;
+
+		VariableValidator(IVariableEditor& _editor, Visitors::TREE_NODE_ID id, Visitors::IUITree& _tree) : editor(_editor), parentId(id), tree(_tree)
+		{
+
+		}
+
+		bool ValidateAndReportErrors(cstr textEditorContent, cstr variableName) override
+		{
+			if (*textEditorContent == 0)
+			{
+				editor.SetHintError(variableName, "The name is blank");
+				return false;
+			}
+
+			if (*textEditorContent < 'a' || *textEditorContent > 'z')
+			{
+				editor.SetHintError(variableName, "The first character of a subspace name must be a lower case a-z");
+				return false;
+			}
+
+			for (cstr p = textEditorContent + 1; *p != 0; p++)
+			{
+				if (!isalnum(*p))
+				{
+					editor.SetHintError(variableName, "The trailing characters of a variable name must be alpha numerics. A-Z, a-z or 0-9");
+					return false;
+				}
+			}
+
+			if (0 != tree.FindFirstChild(parentId, textEditorContent).value)
+			{
+				char msg[256];
+
+				char vname[128];
+				if (tree.TryGetText(vname, sizeof vname, parentId))
+				{
+					SafeFormat(msg, "A variable with that name already exists");
+				}
+				
 				editor.SetHintError(variableName, msg);
 				return false;
 			}
@@ -783,6 +836,13 @@ namespace Rococo::CFGS::IDE::Sexy
 		}
 	};
 
+	struct VariableDef
+	{
+		HString name;
+		HString type;
+		HString defaultValue;
+	};
+
 	struct NavigationHandler : ICFGSIDENavigation, ITreeControlHandler
 	{
 		MessageMap<NavigationHandler> messageMap;
@@ -800,6 +860,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> localFunctionMap;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> publicFunctionMap;
+		std::unordered_map<TREE_NODE_ID, VariableDef, TREE_NODE_ID::Hasher> variableIdSet;
 
 		enum
 		{
@@ -807,7 +868,9 @@ namespace Rococo::CFGS::IDE::Sexy
 			CONTEXT_MENU_ID_ADD_FUNCTION,
 			CONTEXT_MENU_DELETE_FUNCTION,
 			CONTEXT_MENU_ID_RENAME_NAMESPACE,
-			CONTEXT_MENU_ID_RENAME_FUNCTION
+			CONTEXT_MENU_ID_RENAME_FUNCTION,
+			CONTEXT_MENU_CHANGE_VARIABLE_TYPE,
+			CONTEXT_MENU_CHANGE_VARIABLE_DEFAULT
 		};
 
 		TREE_NODE_ID contextMenuTargetId = { 0 };
@@ -1357,6 +1420,27 @@ namespace Rococo::CFGS::IDE::Sexy
 					tree.Select(newTopLevelNamespaceId);
 				}
 			}
+			else if (id == variablesId)
+			{
+				Vec2i span{ 800, 120 };
+				int labelWidth = 120;
+
+				char fname[128] = { 0 };
+
+				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a new variable...", &nullEventHandler);
+
+				VariableValidator vnameValidator(*nsEditor, id, tree);
+
+				nsEditor->AddStringEditor("Name", nullptr, fname, sizeof fname, &vnameValidator);
+				if (nsEditor->IsModalDialogChoiceYes())
+				{
+					auto newVariableId = tree.AddChild(variablesId, fname, Visitors::CheckState_NoCheckBox);
+					tree.AddChild(newVariableId, "Type: Int32", Visitors::CheckState_NoCheckBox);
+					tree.AddChild(newVariableId, "Default: 0", Visitors::CheckState_NoCheckBox);
+					variableIdSet.insert(std::make_pair(newVariableId, VariableDef { "Int32", fname, "0"}));
+					tree.Select(newVariableId);
+				}
+			}
 			else
 			{
 				gui.ContextMenu().ContextMenu_Clear();
@@ -1389,7 +1473,25 @@ namespace Rococo::CFGS::IDE::Sexy
 						}
 						else
 						{
-							return;
+							auto variableId = tree.GetParent(id);
+							auto l = variableIdSet.find(variableId);
+							if (l != variableIdSet.end())
+							{
+								char buffer[256];
+								if (tree.TryGetText(buffer, sizeof buffer, id))
+								{
+									if (StartsWith(buffer, "Type: "))
+									{
+										gui.ContextMenu().ContextMenu_AddButton("Change type", CONTEXT_MENU_CHANGE_VARIABLE_TYPE, nullptr);
+										contextMenuTargetId = variableId;
+									}
+									else if (StartsWith(buffer, "Default: "))
+									{
+										gui.ContextMenu().ContextMenu_AddButton("Change default value", CONTEXT_MENU_CHANGE_VARIABLE_DEFAULT, nullptr);
+										contextMenuTargetId = variableId;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -1583,6 +1685,43 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
+		void ChangeVariableType(TREE_NODE_ID variableId, IUITree& tree)
+		{
+			UNUSED(tree);
+
+			auto i = variableIdSet.find(variableId);
+			if (i == variableIdSet.end())
+			{
+				return;
+			}
+
+			auto& def = i->second;
+
+			char caption[256];
+			SafeFormat(caption, "Select a new type for %s", def.name.c_str());
+
+			char newType[256];
+			if (gui.TryGetTypeFromSelectorBox("Type: ", caption, def.type, newType, sizeof newType))
+			{
+				def.type = newType;
+
+				auto typeId = tree.FindFirstChild(variableId, nullptr);
+
+				char buffer[256];
+				tree.TryGetText(buffer, sizeof buffer, typeId);
+
+				if (StartsWith(buffer, "Type: "))
+				{
+					SafeFormat(buffer, "Type: %s", newType);
+					tree.SetText(typeId, buffer);
+				}
+				else
+				{
+					Throw(0, "Could not find type. Unexpected!");
+				}
+			}
+		}
+
 		void DeleteFunction(TREE_NODE_ID functionId, IUITree& tree)
 		{
 			auto i = publicFunctionMap.find(functionId);
@@ -1733,6 +1872,9 @@ namespace Rococo::CFGS::IDE::Sexy
 				return true;
 			case CONTEXT_MENU_DELETE_FUNCTION:
 				DeleteFunction(contextMenuTargetId, editor.NavigationTree());
+				return true;
+			case CONTEXT_MENU_CHANGE_VARIABLE_TYPE:
+				ChangeVariableType(contextMenuTargetId, editor.NavigationTree());
 				return true;
 			}
 

@@ -8,6 +8,7 @@
 #include <rococo.hashtable.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
+#include <algorithm>
 
 using namespace Rococo::CFGS::IDE::Sexy;
 
@@ -142,6 +143,104 @@ namespace ANON
 				}
 			}
 
+			return false;
+		}
+
+		void ForEachType(Function<void (cstr name)> callback, ISxyNamespace& ns)
+		{
+			for (int i = 0; i < ns.TypeCount(); i++)
+			{
+				auto& type = ns.GetType(i);
+
+				char fullName[256];
+				StackStringBuilder sb(fullName, sizeof fullName);
+				ns.AppendFullNameToStringBuilder(sb);
+				sb << ".";
+				sb << type.PublicName();
+
+				callback.Invoke(fullName);
+			}
+
+			for (int i = 0; i < ns.SubspaceCount(); i++)
+			{
+				auto& subspace = ns[i];
+				ForEachType(callback, subspace);
+			}
+		}
+
+		bool Rococo::CFGS::ICFGSIDEGui::TryGetTypeFromSelectorBox(Rococo::cstr prompt, Rococo::cstr caption, Rococo::cstr defaultType, char* resultBuffer, size_t sizeofResultBuffer)
+		{
+			Vec2i span{ 800, 120 };
+			int labelWidth = 140;
+
+			struct VariableEventHandler : IVariableEditorEventHandler
+			{
+				void OnButtonClicked(cstr variableName, IVariableEditor& editor) override
+				{
+					UNUSED(variableName);
+					UNUSED(editor);
+				}
+
+				void OnModal(IVariableEditor& editor) override
+				{
+					UNUSED(editor);
+				}
+			} evHandler;
+
+			AutoFree<IVariableEditor> typeBox = CreateVariableEditor(span, labelWidth, caption, &evHandler);
+
+			SafeFormat(resultBuffer, sizeof resultBuffer, "%s", defaultType);
+
+			struct : ISelection
+			{
+				cstr defaultType = nullptr;
+				std::vector<HString> typenames;
+
+				size_t Count() const override
+				{
+					return typenames.size();
+				}
+
+				cstr GetElement(size_t index) const override
+				{
+					return typenames[index];
+				}
+
+				cstr GetDefaultItem() const override
+				{
+					return defaultType;
+				}
+			} selection;	
+
+			selection.defaultType = defaultType;
+
+			selection.typenames = { "Bool", "Float32", "Float64", "Int32", "Int64 "};
+
+			ForEachType(
+				[&selection](cstr fqName)
+				{
+					selection.typenames.push_back(HString(fqName));
+				},
+				core->db.GetRootNamespace()
+			);
+
+			auto start = selection.typenames.begin();
+			std::advance(start, 5);
+
+			std::sort(start, selection.typenames.end(),
+				[](const HString& a, const HString& b)
+				{
+					return strcmp(a, b) < 0;
+				}
+			);
+
+			typeBox->AddSelection(prompt, "The type to assign to the variable", resultBuffer, (uint32) sizeofResultBuffer, selection);
+			typeBox->SetSelectionHeight(prompt, 200);
+
+			if (typeBox->IsModalDialogChoiceYes())
+			{
+				return true;
+			}
 			return false;
 		}
 
