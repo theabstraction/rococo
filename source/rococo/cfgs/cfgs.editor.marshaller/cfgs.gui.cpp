@@ -963,6 +963,53 @@ namespace Rococo::CFGS
 	{
 		return new Internal::CFGSGui(cfgs, designSpace, eventHandler);
 	}
+
+	CFGS_MARSHALLER_API bool IsInputClass(SocketClass x)
+	{
+		switch (x)
+		{
+		case SocketClass::ConstInputRef:
+		case SocketClass::InputRef:
+		case SocketClass::InputVar:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	CFGS_MARSHALLER_API bool IsOutputClass(SocketClass x)
+	{
+		switch (x)
+		{
+		case SocketClass::ConstOutputRef:
+		case SocketClass::OutputRef:
+		case SocketClass::OutputValue:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	CFGS_MARSHALLER_API SocketClass FlipInputOutputClass(SocketClass x)
+	{
+		switch (x)
+		{
+		case SocketClass::ConstInputRef:
+			return SocketClass::ConstOutputRef;
+		case SocketClass::ConstOutputRef:
+			return SocketClass::ConstInputRef;
+		case SocketClass::InputRef:
+			return SocketClass::OutputRef;
+		case SocketClass::OutputRef:
+			return SocketClass::InputRef;
+		case SocketClass::InputVar:
+			return SocketClass::OutputValue;
+		case SocketClass::OutputValue:
+			return SocketClass::InputVar;
+		default:
+			return SocketClass::None;
+		}
+	}
 }
 
 #ifdef _WIN32

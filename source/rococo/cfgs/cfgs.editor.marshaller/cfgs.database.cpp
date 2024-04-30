@@ -197,7 +197,7 @@ namespace Rococo::CFGS::Internal
 		}
 	};
 
-	struct CFGSNode : public ICFGSNode, public IRenderScheme, public ICFGSNodeBuilder
+	struct CFGSNode : public ICFGSNode, public IRenderScheme
 	{
 		HString typeName;
 		DesignerRect designRect;
@@ -471,6 +471,24 @@ namespace Rococo::CFGS::Internal
 		{
 			q.dullColour = RGBAb(48, 144, 48);
 			q.litColour = RGBAb(64, 192, 64);
+		}
+
+		void SetLoc(const Editors::DesignerVec2& absPosition) override
+		{
+			double width = designRect.right - designRect.left;
+			double height = designRect.bottom - designRect.top;
+			
+			designRect = { absPosition.x, absPosition.y, absPosition.x + width, absPosition.y + height }; 
+		}
+
+		void SetType(cstr type) override
+		{
+			typeName = type;
+		}
+
+		void SetId(NodeId id) override
+		{
+			this->uniqueId = id;
 		}
 	};
 
@@ -890,7 +908,7 @@ namespace Rococo::CFGS::Internal
 			return *nodes[index];
 		}
 
-		ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) override
+		ICFGSNode& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) override
 		{
 			auto* node = new CFGSNode(typeString, topLeft, id);
 			nodes.push_back(node);

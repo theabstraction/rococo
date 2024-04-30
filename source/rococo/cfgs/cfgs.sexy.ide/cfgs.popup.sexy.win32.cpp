@@ -410,6 +410,64 @@ namespace ANON
 			editor.RefreshSlate();
 		}
 
+		void AddNodeFromTemplate(const NodeOptionHeader& header)
+		{
+			UNUSED(header);
+
+			auto* graph = cfgs.CurrentFunction();
+			if (!graph)
+			{
+				return;
+			}
+
+			auto* templateFunction = cfgs.FindFunction(templateId);
+			if (!templateFunction)
+			{
+				return;
+			}
+
+			auto& node = graph->Nodes().Builder().AddNode(templateFunction->Name(), designPosition, NodeId());
+			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Start", SocketId());
+			Colours flowColours = cosmetics.GetColoursForType("__Flow");
+			flowIn.SetColours(flowColours);
+			auto& flowOut = node.AddSocket("Flow", SocketClass::Exit, "End", SocketId());
+			flowOut.SetColours(flowColours);
+
+			auto& beginTemplate = templateFunction->BeginNode();
+
+			for (int i = 0; i < beginTemplate.SocketCount(); i++)
+			{
+				auto& s = beginTemplate[i];
+				
+				auto socketClass = s.SocketClassification();
+				if (IsInputClass(socketClass))
+				{
+					Colours colours = cosmetics.GetColoursForType(s.Type().Value);
+					auto& socket = node.AddSocket(s.Type().Value, socketClass, s.Name(), SocketId());
+					socket.SetColours(colours);
+				}
+			}
+
+			auto& returnTemplate = templateFunction->ReturnNode();
+
+			for (int i = 0; i < returnTemplate.SocketCount(); i++)
+			{
+				auto& s = returnTemplate[i];
+
+				auto socketClass = FlipInputOutputClass(s.SocketClassification());
+				if (IsOutputClass(socketClass))
+				{
+					Colours colours = cosmetics.GetColoursForType(s.Type().Value);
+					auto& socket = node.AddSocket(s.Type().Value, socketClass, s.Name(), SocketId());
+					socket.SetColours(colours);
+				}
+			}
+
+			ShowWindow(*window, SW_HIDE);
+
+			editor.RefreshSlate();
+		}
+
 		void AddGetNode(const NodeOptionHeader& header)
 		{
 			cstr space = FindChar(header.url, ' ');
@@ -795,6 +853,24 @@ namespace ANON
 			auto specialId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Special", CheckState_NoCheckBox);
 			auto returnId = treeControl->Tree().AddChild(specialId, "<Return>", CheckState_NoCheckBox);
 
+			TREE_NODE_ID templateControlId{ 0 };
+			auto* templateFunction = cfgs.FindFunction(templateId);
+			if (templateFunction)
+			{
+				char templateDesc[256];
+				SafeFormat(templateDesc, "<Template>: %s", templateFunction->Name());
+
+				templateControlId = treeControl->Tree().AddChild(specialId, templateDesc, CheckState_NoCheckBox);
+
+				NodeOption templateOpt;
+				templateOpt.header.url = templateFunction->Name();
+				templateOpt.header.visibleName = templateDesc;
+				templateOpt.method = &Popup::AddNodeFromTemplate;
+				templateOpt.nodeId = templateControlId;
+
+				backingList.push_back(templateOpt);
+			}
+
 			auto variablesId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Variables", CheckState_NoCheckBox);
 
 			for (auto& f : backingList)
@@ -952,6 +1028,13 @@ namespace ANON
 		void OnSize(HWND, const Vec2i&, RESIZE_TYPE) override
 		{
 			Layout();
+		}
+
+		FunctionId templateId;
+
+		void SetTemplate(FunctionId id) override
+		{
+			templateId = id;
 		}
 
 		void ShowInterface(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition, const SexyStudio::ISXYInterface& refInterface, const SexyStudio::ISxyNamespace& ns, const CableDropped& dropInfo) override

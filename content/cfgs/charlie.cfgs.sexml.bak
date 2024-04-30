@@ -6,10 +6,38 @@
 	(Function
 		(FQName "Throw") :
 		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "49D42B950000000A 18BEC18D0C317717") :
+				(Socket
+					(Label "errorCode")
+					(Type "Int32")
+					(Id "2F9D515000000009 954CA8FECE73BD49")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "errorString")
+					(Type "Int32")
+					(Id "2F9D51500000000B 954CA8FECE73BD49")
+					(Class InputVar)
+				) // Socket
+
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 200.000000)
+				(YPos 200.000000)
+				(Id "49D42B950000000B 18BEC18D0C317717")
+			) // ReturnNode
+
 			(Node
 				(Type "Sys.Geometry.F32.DivideVec2fFloat32")
-				(XPos -309.500000)
-				(YPos -293.500000)
+				(XPos -439.533237)
+				(YPos -325.745439)
 				(Id "1 8EB65DB5") :
 				(Socket
 					(Label "Start")
@@ -48,6 +76,34 @@
 
 			) // Node
 
+			(Node
+				(Type "<Begin>")
+				(XPos -438.500000)
+				(YPos -498.500000)
+				(Id "8F8E08410000000E 2C54F9A48E5135D8") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "8F8E08410000000F 2C54F9A48E5135D8")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "errorCode")
+					(Type "Int32")
+					(Id "2F9D51500000000C 954CA8FECE73BD49")
+					(Class OutputValue)
+				) // Socket
+
+				(Socket
+					(Label "errorString")
+					(Type "Int32")
+					(Id "2F9D51500000000D 954CA8FECE73BD49")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
 		(Cables
@@ -58,6 +114,20 @@
 	(Function
 		(FQName "Sys.IO.MetaGate") :
 		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "49D42B950000000D 18BEC18D0C317717")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 200.000000)
+				(YPos 200.000000)
+				(Id "49D42B950000000E 18BEC18D0C317717")
+			) // ReturnNode
+
 			(Node
 				(Type "Sys.Geometry.Q.MultiplyQuatfQuatf")
 				(XPos -48.889273)
@@ -171,8 +241,8 @@
 
 			(Node
 				(Type "Sys.Throw")
-				(XPos 209.821983)
-				(YPos -170.456061)
+				(XPos 221.821983)
+				(YPos -141.456061)
 				(Id "6 257703D4") :
 				(Socket
 					(Label "Start")
@@ -472,6 +542,76 @@
 
 			) // Node
 
+			(Node
+				(Type "Sys.Type.IStringBuilder_AppendAsNewLine")
+				(XPos 215.000000)
+				(YPos 10.500000)
+				(Id "F35F2A9A00000008 B1E44FEEFBF5ADCC") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "F35F2A9A00000009 B1E44FEEFBF5ADCC")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "F35F2A9A0000000A B1E44FEEFBF5ADCC")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "*this")
+					(Type "Sys.Type.IStringBuilder")
+					(Id "F35F2A9A0000000B B1E44FEEFBF5ADCC")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "null")
+					(Type "AsNewLine")
+					(Id "F35F2A9A0000000C B1E44FEEFBF5ADCC")
+					(Class InputVar)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "<Begin>")
+				(XPos -328.062292)
+				(YPos -529.313576)
+				(Id "8F8E084100000009 2C54F9A48E5135D8") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "8F8E08410000000A 2C54F9A48E5135D8")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "<Template>: Throw")
+				(XPos -24.042074)
+				(YPos -568.369647)
+				(Id "8F8E08410000000B 2C54F9A48E5135D8") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "8F8E08410000000C 2C54F9A48E5135D8")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "8F8E08410000000D 2C54F9A48E5135D8")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
 		(Cables :
@@ -487,6 +627,13 @@
 				(StartSocket "A3ED5FDE00000009 A93D524FFE9E0CE6")
 				(EndNode "6 257703D4")
 				(EndSocket "7 257703D4")
+			) // Cable
+
+			(Cable
+				(StartNode "A3ED5FDE00000007 A93D524FFE9E0CE6")
+				(StartSocket "A3ED5FDE0000000A A93D524FFE9E0CE6")
+				(EndNode "F35F2A9A00000008 B1E44FEEFBF5ADCC")
+				(EndSocket "F35F2A9A0000000B B1E44FEEFBF5ADCC")
 			) // Cable
 
 		) // Cables

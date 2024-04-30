@@ -68,6 +68,9 @@ namespace Rococo::CFGS
 	};
 
 	CFGS_MARSHALLER_API [[nodiscard]] bool TryParse(OUT SocketClass& sclass, cstr text);
+	CFGS_MARSHALLER_API [[nodiscard]] bool IsInputClass(SocketClass x);
+	CFGS_MARSHALLER_API [[nodiscard]] bool IsOutputClass(SocketClass x);
+	CFGS_MARSHALLER_API [[nodiscard]] SocketClass FlipInputOutputClass(SocketClass x);
 
 	struct CFGSSocketType
 	{
@@ -162,6 +165,10 @@ namespace Rococo::CFGS
 	{
 		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
 
+		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
+
+		virtual void SetColours(const Colours& colours, const Colours& tabColours) = 0;
+
 		// Returns the first socket found with a matching id. If nothing is found null is returned
 		virtual [[nodiscard]] ICFGSSocket* FindSocket(SocketId id) = 0;
 
@@ -195,6 +202,12 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] Colours GetBackColours() const = 0;
 
 		virtual [[nodiscard]] Colours GetTabColours() const = 0;
+
+		virtual void SetLoc(const Rococo::Editors::DesignerVec2& absPosition) = 0;
+
+		virtual void SetType(cstr type) = 0;
+
+		virtual void SetId(NodeId id) = 0;
 	};
 
 	struct CableConnection
@@ -218,18 +231,9 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] bool IsSelected() const = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSNodeBuilder
-	{
-		// Adds a socket to the node. If the alpha component of the override parameters is non-zero, their RGB components are used to define the colour of the socket in the GUI
-		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
-		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
-		virtual [[nodiscard]] NodeId Id() const = 0;
-		virtual void SetColours(const Colours& colours, const Colours& tabColours) = 0;
-	};
-
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
 	{
-		virtual [[nodiscard]] ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) = 0;
+		virtual [[nodiscard]] ICFGSNode& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) = 0;
 		virtual void DeleteNode(NodeId id) = 0;
 		virtual void DeleteAllNodes() = 0;
 	};
@@ -330,6 +334,7 @@ namespace Rococo::CFGS
 	{
 		virtual [[nodiscard]] bool IsVisible() const = 0;
 		virtual void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) = 0;
+		virtual void SetTemplate(FunctionId id) = 0;
 		virtual void Hide() = 0;;
 	};
 

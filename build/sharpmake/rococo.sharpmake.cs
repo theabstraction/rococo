@@ -1322,6 +1322,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
+            conf.AddPublicDependency<CFGSFlatEditorMarshaller>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
             conf.Defines.Add("CFGS_CONTEXT_POPUP_API=__declspec(dllexport)");

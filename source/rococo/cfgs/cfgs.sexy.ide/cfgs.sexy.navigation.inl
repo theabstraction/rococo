@@ -870,10 +870,12 @@ namespace Rococo::CFGS::IDE::Sexy
 			CONTEXT_MENU_ID_RENAME_NAMESPACE,
 			CONTEXT_MENU_ID_RENAME_FUNCTION,
 			CONTEXT_MENU_CHANGE_VARIABLE_TYPE,
-			CONTEXT_MENU_CHANGE_VARIABLE_DEFAULT
+			CONTEXT_MENU_CHANGE_VARIABLE_DEFAULT,
+			CONTEXT_MENU_SET_TEMPLATE
 		};
 
 		TREE_NODE_ID contextMenuTargetId = { 0 };
+		TREE_NODE_ID templateId = { 0 };
 
 		TypeOptions inputTypes;
 		TypeOptions outputTypes;
@@ -945,53 +947,6 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 
 			return nullptr;
-		}
-
-		bool IsInputClass(SocketClass x)
-		{
-			switch (x)
-			{
-			case SocketClass::ConstInputRef:
-			case SocketClass::InputRef:
-			case SocketClass::InputVar:
-				return true;
-			default:
-				return false;
-			}
-		}
-
-		bool IsOutputClass(SocketClass x)
-		{
-			switch (x)
-			{
-			case SocketClass::ConstOutputRef:
-			case SocketClass::OutputRef:
-			case SocketClass::OutputValue:
-				return true;
-			default:
-				return false;
-			}
-		}
-
-		SocketClass FlipInputOutputClass(SocketClass x)
-		{
-			switch (x)
-			{
-			case SocketClass::ConstInputRef:
-				return SocketClass::ConstOutputRef;
-			case SocketClass::ConstOutputRef:
-				return SocketClass::ConstInputRef;
-			case SocketClass::InputRef:
-				return SocketClass::OutputRef;
-			case SocketClass::OutputRef:
-				return SocketClass::InputRef;
-			case SocketClass::InputVar:
-				return SocketClass::OutputValue;
-			case SocketClass::OutputValue:
-				return SocketClass::InputVar;
-			default:
-				return SocketClass::None;
-			}
 		}
 
 		// Assumes n is a begin node
@@ -1473,6 +1428,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					auto j = publicFunctionMap.find(id);
 					if (j != publicFunctionMap.end())
 					{
+						gui.ContextMenu().ContextMenu_AddButton("Set template", CONTEXT_MENU_SET_TEMPLATE, nullptr);
 						gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
 						gui.ContextMenu().ContextMenu_AddButton("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION, nullptr);
 						contextMenuTargetId = id;
@@ -1482,6 +1438,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						auto k = localFunctionMap.find(id);
 						if (k != localFunctionMap.end())
 						{
+							gui.ContextMenu().ContextMenu_AddButton("Set template", CONTEXT_MENU_SET_TEMPLATE, nullptr);
 							gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
 							gui.ContextMenu().ContextMenu_AddButton("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION, nullptr);
 							contextMenuTargetId = id;
@@ -1890,6 +1847,25 @@ namespace Rococo::CFGS::IDE::Sexy
 				return true;
 			case CONTEXT_MENU_CHANGE_VARIABLE_TYPE:
 				ChangeVariableType(contextMenuTargetId, editor.NavigationTree());
+				return true;
+			case CONTEXT_MENU_SET_TEMPLATE:
+				templateId = contextMenuTargetId;
+				{
+					auto i = localFunctionMap.find(templateId);
+					if (i != localFunctionMap.end())
+					{
+						popup.SetTemplate(i->second);
+					}
+					else
+					{
+						auto j = publicFunctionMap.find(templateId);
+						if (j != publicFunctionMap.end())
+						{
+							popup.SetTemplate(j->second);
+						}
+					}
+				}
+				
 				return true;
 			}
 
