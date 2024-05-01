@@ -54,130 +54,135 @@ namespace Rococo
 			SendMessage(hControlWindow, WM_SETFONT, (WPARAM)hControlFont, TRUE);
 		}
 
-      void SetTitleFont(HWND hTitleBar)
-      {
-         SendMessage(hTitleBar, WM_SETFONT, (WPARAM)hTitleFont, 0);
-      }
+		ROCOCO_WINDOWS_API HFONT GetControlFont()
+		{
+			return hControlFont;
+		}
 
-      IWindow& NullParent()
-      {
-         class NullParentClass : public IWindow
-         {
-         public:
-            virtual operator HWND () const
-            {
-               return nullptr;
-            }
-         };
+		void SetTitleFont(HWND hTitleBar)
+		{
+			SendMessage(hTitleBar, WM_SETFONT, (WPARAM)hTitleFont, 0);
+		}
 
-         static NullParentClass s_null;
-         return s_null;
-      }
+		IWindow& NullParent()
+		{
+			class NullParentClass : public IWindow
+			{
+			public:
+				virtual operator HWND () const
+				{
+					return nullptr;
+				}
+			};
 
-	  bool OpenChooseFontBox(HWND hParent, LOGFONTW& output)
-	  {
-		  if (!IsWindow(hParent))
-		  {
-			  ShowMessageBox(Rococo::Windows::NoParent(), "Could not get a valid parent window for the font box", "Little font error", MB_ICONEXCLAMATION);
-			  return false;
-		  }
+			static NullParentClass s_null;
+			return s_null;
+		}
 
-		  CHOOSEFONTW font = { 0 };
-		  font.lStructSize = sizeof(font);
-		  font.hInstance = hThisInstance;
-		  font.hwndOwner = hParent;
+		bool OpenChooseFontBox(HWND hParent, LOGFONTW& output)
+		{
+			if (!IsWindow(hParent))
+			{
+				ShowMessageBox(Rococo::Windows::NoParent(), "Could not get a valid parent window for the font box", "Little font error", MB_ICONEXCLAMATION);
+				return false;
+			}
 
-		  LOGFONTW f = { 0 };
-		  SecureFormat(f.lfFaceName, LF_FACESIZE, L"Courier New");
+			CHOOSEFONTW font = { 0 };
+			font.lStructSize = sizeof(font);
+			font.hInstance = hThisInstance;
+			font.hwndOwner = hParent;
 
-		  font.lpLogFont = &f;
-		  font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INACTIVEFONTS | CF_INITTOLOGFONTSTRUCT;
+			LOGFONTW f = { 0 };
+			SecureFormat(f.lfFaceName, LF_FACESIZE, L"Courier New");
 
-		  DWORD success = ChooseFontW(&font);
-		  if (success)
-		  {
-			  output = f;
-			  return true;
-		  }
-		  else
-		  {
-			  DWORD err = CommDlgExtendedError();
-			  if (err)
-			  {
-				  char msg[256];
-				  SafeFormat(msg, "Could not create font dialog: CommDlgExtendedError error %u", err);
-				  THIS_WINDOW parent(hParent);
-				  ShowMessageBox(parent, msg, "Little font error", MB_ICONEXCLAMATION);
+			font.lpLogFont = &f;
+			font.Flags = CF_FIXEDPITCHONLY | CF_FORCEFONTEXIST | CF_INACTIVEFONTS | CF_INITTOLOGFONTSTRUCT;
 
-				  output = LOGFONTW{ 0 };
-			  }
-			  return false;
-		  }
-	  }
+			DWORD success = ChooseFontW(&font);
+			if (success)
+			{
+				output = f;
+				return true;
+			}
+			else
+			{
+				DWORD err = CommDlgExtendedError();
+				if (err)
+				{
+					char msg[256];
+					SafeFormat(msg, "Could not create font dialog: CommDlgExtendedError error %u", err);
+					THIS_WINDOW parent(hParent);
+					ShowMessageBox(parent, msg, "Little font error", MB_ICONEXCLAMATION);
 
-	  ROCOCO_WINDOWS_API COLORREF ToCOLORREF(RGBAb colour)
-	  {
-		  return RGB(colour.red, colour.green, colour.blue);
-	  }
+					output = LOGFONTW{ 0 };
+				}
+				return false;
+			}
+		}
 
-	  void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
-	  {
-		  if (hThisInstance)
-		  {
-			  // hThisInstance was already defined
-			  return;
-		  }
+		ROCOCO_WINDOWS_API COLORREF ToCOLORREF(RGBAb colour)
+		{
+			return RGB(colour.red, colour.green, colour.blue);
+		}
 
-		  hThisInstance = _hInstance;
-		  hLargeIcon = _hLargeIcon;
-		  hSmallIcon = _hSmallIcon;
+		void InitRococoWindows(HINSTANCE _hInstance, HICON _hLargeIcon, HICON _hSmallIcon, const LOGFONTA* titleFont, const LOGFONTA* controlFont)
+		{
+			if (hThisInstance)
+			{
+				// hThisInstance was already defined
+				return;
+			}
 
-		  LOGFONTA defaultTitleFont = { 0 };
-		  SafeFormat(defaultTitleFont.lfFaceName, sizeof(defaultTitleFont.lfFaceName), "Consolas");
-		  defaultTitleFont.lfHeight = 14;
+			hThisInstance = _hInstance;
+			hLargeIcon = _hLargeIcon;
+			hSmallIcon = _hSmallIcon;
 
-		  hTitleFont = CreateFontIndirectA(titleFont ? titleFont : &defaultTitleFont);
-		  if (hTitleFont == nullptr)
-		  {
-			  Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&titlefont) returned nul");
-		  }
+			LOGFONTA defaultTitleFont = { 0 };
+			SafeFormat(defaultTitleFont.lfFaceName, sizeof(defaultTitleFont.lfFaceName), "Consolas");
+			defaultTitleFont.lfHeight = 14;
 
-		  LOGFONTA defaultControlFont = { 0 };
-		  SafeFormat(defaultControlFont.lfFaceName, sizeof(defaultControlFont.lfFaceName), "Consolas");
-		  defaultControlFont.lfHeight = 14;
+			hTitleFont = CreateFontIndirectA(titleFont ? titleFont : &defaultTitleFont);
+			if (hTitleFont == nullptr)
+			{
+				Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&titlefont) returned nul");
+			}
 
-		  hControlFont = CreateFontIndirectA(controlFont ? controlFont : &defaultControlFont);
-		  if (hControlFont == nullptr)
-		  {
-			  Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&controlFont) returned nul");
-		  }
+			LOGFONTA defaultControlFont = { 0 };
+			SafeFormat(defaultControlFont.lfFaceName, sizeof(defaultControlFont.lfFaceName), "Consolas");
+			defaultControlFont.lfHeight = 14;
 
-		  BOOL isTrue = TRUE, isFalse = FALSE;
-		  SystemParametersInfo(SPI_SETMENUANIMATION, 0, &isTrue, 0);
-		  SystemParametersInfo(SPI_SETMENUFADE, 0, &isFalse, 0);
+			hControlFont = CreateFontIndirectA(controlFont ? controlFont : &defaultControlFont);
+			if (hControlFont == nullptr)
+			{
+				Throw(GetLastError(), "Rococo::Windows::InitRococoWindows(...): CreateFontIndirect(&controlFont) returned nul");
+			}
 
-		  InitCommonControls();
+			BOOL isTrue = TRUE, isFalse = FALSE;
+			SystemParametersInfo(SPI_SETMENUANIMATION, 0, &isTrue, 0);
+			SystemParametersInfo(SPI_SETMENUFADE, 0, &isFalse, 0);
 
-		  struct ANON
-		  {
-			  static void Cleanup()
-			  {
-				  if (hTitleFont)
-				  {
-					  DeleteObject(hTitleFont);
-					  hTitleFont = nullptr;
-				  }
+			InitCommonControls();
 
-				  if (hControlFont)
-				  {
-					  DeleteObject(hControlFont);
-					  hControlFont = nullptr;
-				  }
-			  }
-		  };
+			struct ANON
+			{
+				static void Cleanup()
+				{
+					if (hTitleFont)
+					{
+						DeleteObject(hTitleFont);
+						hTitleFont = nullptr;
+					}
 
-		  atexit(ANON::Cleanup);
-	  }
+					if (hControlFont)
+					{
+						DeleteObject(hControlFont);
+						hControlFont = nullptr;
+					}
+				}
+			};
+
+			atexit(ANON::Cleanup);
+		}
 
 		void ValidateInit()
 		{
@@ -491,11 +496,11 @@ namespace Rococo
 			return parent.AddChild(childConfig, "EDIT", id);
 		}
 
-		IWin32SuperComboBox* AddSuperComboBox(IParentWindowSupervisor& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx)
+		IWin32SuperComboBox* AddSuperComboBox(IWindow& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, Vec2i listSpan, DWORD style, DWORD styleEx)
 		{
 			WindowConfig childConfig;
 			Windows::SetChildWindowConfig(childConfig, rect, nullptr, name, style, styleEx);
-			SuperComboBox* b = SuperComboBox::Create(spec, childConfig, parent, id);
+			SuperComboBox* b = SuperComboBox::Create(spec, childConfig, parent, id, listSpan);
 			return b;
 		}
 

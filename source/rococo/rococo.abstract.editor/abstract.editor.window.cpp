@@ -6,6 +6,7 @@
 #include <rococo.window.h>
 #include <windowsx.h>
 #include <CommCtrl.h>
+#include <rococo.events.h>
 
 using namespace Rococo;
 using namespace Rococo::Abedit;
@@ -19,7 +20,7 @@ namespace ANON
 	class AbeditPropertiesWindow : public StandardWindowHandler
 	{
 	private:
-		IParentWindowSupervisor* window;
+		AutoFree<IParentWindowSupervisor> window;
 		AutoFree<IUIPropertiesEditorSupervisor> properties;
 
 		HBRUSH hFocusBrush = nullptr;
@@ -28,7 +29,9 @@ namespace ANON
 		HBRUSH hButtonFocusBrush = nullptr;
 		COLORREF buttonFocusColour;
 
-		AbeditPropertiesWindow() : window(nullptr)
+		Rococo::Events::IPublisher& publisher;
+
+		AbeditPropertiesWindow(Rococo::Events::IPublisher& _publisher) : window(nullptr), publisher(_publisher)
 		{
 			focusColour = RGB(255, 240, 240);
 			hFocusBrush = CreateSolidBrush(focusColour);
@@ -39,8 +42,6 @@ namespace ANON
 
 		~AbeditPropertiesWindow()
 		{
-			Rococo::Free(window);
-
 			DeleteObject(hFocusBrush);
 		}
 
@@ -53,7 +54,7 @@ namespace ANON
 			SetChildWindowConfig(config, GuiRect{ 0, 0, 8, 8 }, *parent, "Blank", style, 0);
 			window = Windows::CreateChildWindow(config, this);
 
-			properties = Windows::CreatePropertiesEditor(*window);
+			properties = Windows::CreatePropertiesEditor(*window, publisher);
 		}
 
 		void OnPaint()
@@ -105,6 +106,9 @@ namespace ANON
 		{
 			switch (msg)
 			{
+			case WM_LAYOUT:
+				properties->LayouVertically();
+				return 0L;
 			case WM_CTLCOLOREDIT:
 			{
 				HWND hEditor = (HWND)lParam;
@@ -124,10 +128,20 @@ namespace ANON
 					return (LRESULT)GetSysColorBrush(COLOR_WINDOW);
 				}
 			}
+			case WM_CTLCOLORSTATIC:
+			{
+				HDC hdc = (HDC)wParam;
+
+				SetTextColor(hdc, RGB(0, 0, 0));
+
+				COLORREF bkColour = RGB(224, 224, 224);
+
+				SetBkColor(hdc, bkColour);
+				return (LRESULT)CreateSolidBrush(bkColour);
+			}
 			case WM_CTLCOLORBTN:
 			{
 				HWND hButton = (HWND)lParam;
-
 				HDC hdc = (HDC)wParam;
 
 				if (GetFocus() == hButton)
@@ -202,9 +216,9 @@ namespace ANON
 
 		ColourScheme scheme;
 	public:
-		static AbeditPropertiesWindow* Create(IWindow* parent)
+		static AbeditPropertiesWindow* Create(IWindow* parent, Rococo::Events::IPublisher& publisher)
 		{
-			auto node = new AbeditPropertiesWindow();
+			auto node = new AbeditPropertiesWindow(publisher);
 			node->SetBackgroundColour(RGB(192, 192, 192));
 			node->PostConstruct(parent);
 			return node;
@@ -407,6 +421,7 @@ namespace ANON
 	private:
 		AutoFree<IParentWindowSupervisor> window;
 		HBRUSH hBrush{ nullptr };
+		Rococo::Events::IPublisher& publisher;
 
 		void PostConstruct(HWND hParent)
 		{
@@ -414,6 +429,11 @@ namespace ANON
 			Rococo::Windows::SetChildWindowConfig(config, GuiRect{ 0,0,0,0 }, hParent, "Slate", WS_CHILD | WS_VISIBLE, 0);
 			hBrush = CreateSolidBrush(RGB(0, 255, 0));
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
+		}
+
+		AbeditSlate(Rococo::Events::IPublisher& _publisher): publisher(_publisher)
+		{
+
 		}
 
 		~AbeditSlate()
@@ -439,9 +459,9 @@ namespace ANON
 			return StandardWindowHandler::OnMessage(hWnd, msg, wParam, lParam);
 		}
 
-		static AbeditSlate* Create(HWND hParent)
+		static AbeditSlate* Create(HWND hParent, Rococo::Events::IPublisher& publisher)
 		{
-			auto node = new AbeditSlate();
+			auto node = new AbeditSlate(publisher);
 			node->SetBackgroundColour(RGB(192, 192, 192));
 			node->PostConstruct(hParent);
 			return node;
@@ -462,7 +482,7 @@ namespace ANON
 	{
 	private:
 		AutoFree<Rococo::Windows::ITreeControlSupervisor> treeControl;
-
+		Rococo::Events::IPublisher& publisher;
 		Visitors::ITreeControlHandler* handler = nullptr;
 
 		void PostConstruct(HWND hParent)
@@ -471,7 +491,7 @@ namespace ANON
 			treeControl = Rococo::Windows::AddTree(parent, GuiRect{ 0,0,0,0 }, "", ControlId{ ABTREE_CONTROL_ID_NAVTREE }, *this, WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_BORDER | TVS_SHOWSELALWAYS);
 		}
 
-		AbeditNavigationTree()
+		AbeditNavigationTree(Rococo::Events::IPublisher& _publisher): publisher(_publisher)
 		{
 
 		}
@@ -512,9 +532,9 @@ namespace ANON
 			this->handler = handler;
 		}
 
-		static AbeditNavigationTree* Create(HWND hParent)
+		static AbeditNavigationTree* Create(HWND hParent, Rococo::Events::IPublisher& publisher)
 		{
-			auto node = new AbeditNavigationTree();
+			auto node = new AbeditNavigationTree(publisher);
 			node->PostConstruct(hParent);
 			return node;
 		}
@@ -541,6 +561,8 @@ namespace ANON
 		AutoFree<AbeditSlate> slate;
 		AutoFree<IWin32Menu> mainMenu;
 
+		Rococo::Events::IPublisher& publisher;
+
 		enum class MenuItem: uint16
 		{
 			New = 3500,
@@ -550,7 +572,7 @@ namespace ANON
 			Exit
 		};
 
-		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler) : eventHandler(_eventHandler), window(nullptr), propertiesPanel(nullptr)
+		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler, Rococo::Events::IPublisher& _publisher) : eventHandler(_eventHandler), window(nullptr), propertiesPanel(nullptr), publisher(_publisher)
 		{
 			mainMenu = Windows::CreateMenu(false);
 		}
@@ -623,9 +645,9 @@ namespace ANON
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
 			rhsSplitter = AbeditSplitter::Create(hDll, *window, { 0,0 }, { 0,0 });
-			propertiesPanel = AbeditPropertiesWindow::Create(window);
-			slate = AbeditSlate::Create(*window);
-			navigationTree = AbeditNavigationTree::Create(*window);
+			propertiesPanel = AbeditPropertiesWindow::Create(window, publisher);
+			slate = AbeditSlate::Create(*window, publisher);
+			navigationTree = AbeditNavigationTree::Create(*window, publisher);
 
 			Layout();
 		}
@@ -659,9 +681,9 @@ namespace ANON
 		}
 
 		// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
-		static AbeditMainWindow* Create(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
+		static AbeditMainWindow* Create(HINSTANCE hDll, HWND hParentWnd, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, Rococo::Events::IPublisher& publisher)
 		{
-			auto m = new AbeditMainWindow(eventHandler);
+			auto m = new AbeditMainWindow(eventHandler, publisher);
 			m->PostConstruct(hDll, hParentWnd, config);
 			return m;
 		}
@@ -759,6 +781,20 @@ namespace ANON
 			Layout();
 
 			InvalidateRect(hWnd, NULL, TRUE);
+
+			if (type != RESIZE_TYPE_MINIMIZED && span.x > -16000)
+			{
+				RECT rect;
+				GetWindowRect(hWnd, &rect);
+
+				WindowResizedArgs args;
+				args.screenPosition.left = rect.left;
+				args.screenPosition.right = rect.right;
+				args.screenPosition.top = rect.top;
+				args.screenPosition.bottom = rect.bottom;
+				args.source = WindowResizedArgs::SourceId::MainWindow;
+				publisher.Publish(args, "EvWindowResized"_event);
+			}
 		}
 
 		void Hide() override
@@ -775,9 +811,9 @@ namespace ANON
 
 namespace Rococo::Abedit::Internal
 {
-	IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler)
+	IAbeditMainWindowSupervisor* CreateMainWindow(HWND hParent, HINSTANCE dllInstance, const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, Rococo::Events::IPublisher& publisher)
 	{
-		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler);
+		AutoFree<ANON::AbeditMainWindow> window = ANON::AbeditMainWindow::Create(dllInstance, hParent, config, eventHandler, publisher);
 		return window.Detach();
 	}
 }

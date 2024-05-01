@@ -91,6 +91,8 @@ namespace Rococo
 
 		ROCOCO_WINDOWS_API IWindow& NullParent();
 
+		ROCOCO_WINDOWS_API HFONT GetControlFont();
+
 		ROCOCO_INTERFACE ICommandTarget
 		{
 			virtual void OnAcceleratorCommand(DWORD id) = 0;
@@ -349,6 +351,7 @@ namespace Rococo
 		{
 			virtual IWindowSupervisor* AddChild(const WindowConfig& childConfig, cstr className, ControlId id) = 0;
 			virtual IParentWindowSupervisor* AddChild(const WindowConfig& childConfig, ControlId id, IWindowHandler* windowHandler) = 0;
+			virtual void ClearChildren() = 0;
 		};
 
 		ROCOCO_INTERFACE IDialogSupervisor : public IParentWindowSupervisor
@@ -398,6 +401,7 @@ namespace Rococo
 			virtual bool GetString(int index, char* buffer, size_t capacity) = 0;
 			virtual int GetCurrentSelection() = 0;
 			virtual void SetCurrentSelection(int index) = 0;
+			virtual void SetSelectionHeight(int pixels) = 0;
 		};
 
 		ROCOCO_INTERFACE ITrackBarSupervisor : public IWindowSupervisor
@@ -501,7 +505,10 @@ namespace Rococo
 			WM_ADVANCE_COMBO_LIST = 21002,
 			WM_USE_COMBO_LIST_OPTION = 21003,
 			WM_NAVIGATE_BY_TAB = 21004,
-			WM_ADVANCE_SELECTION = 21005
+			WM_ADVANCE_SELECTION = 21005,
+
+			// The parent should layout its children
+			WM_LAYOUT = 21006,
 		};
 
 		ROCOCO_INTERFACE ISuperListBuilder
@@ -509,9 +516,12 @@ namespace Rococo
 			virtual void AddColumn(cstr name, int pixelWidth) = 0;
 			virtual void AddColumnWithMaxWidth(cstr name) = 0;
 			virtual void AddKeyValue(cstr key, cstr value) = 0;
+			virtual int GetMaxContentWidth() const = 0;
 
 			// Selects the first item with matching key
 			virtual void Select(cstr key) = 0;
+
+			virtual void SetSpan(Vec2i span) = 0;
 		};
 
 		ROCOCO_INTERFACE ISuperComboBuilder
@@ -524,13 +534,14 @@ namespace Rococo
 		{
 			virtual ISuperListBuilder& ListBuilder() = 0;
 			virtual ISuperComboBuilder& ComboBuilder() = 0;
+			virtual void GetSelectedText(Strings::IStringPopulator& populator) = 0;
 		};
 
 		ROCOCO_WINDOWS_API IButton* AddPushButton(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API ICheckbox* AddCheckBox(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IWindowSupervisor* AddLabel(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IWindowSupervisor* AddEditor(IParentWindowSupervisor& parent, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
-		ROCOCO_WINDOWS_API IWin32SuperComboBox* AddSuperComboBox(IParentWindowSupervisor& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, DWORD style, DWORD styleEx = 0);
+		ROCOCO_WINDOWS_API IWin32SuperComboBox* AddSuperComboBox(IWindow& parent, ISuperListSpec& spec, const GuiRect& rect, cstr name, ControlId id, Vec2i listSpan, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API ITreeControlSupervisor* AddTree(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, Visitors::ITreeControlHandler& eventHandler, DWORD style, DWORD styleEx = 0);
 		ROCOCO_WINDOWS_API IListViewSupervisor* AddListView(IWindow& parent, const GuiRect& rect, cstr name, IListViewEvents& eventHandler, DWORD style, DWORD containerStyle, DWORD listExStyle);
 		ROCOCO_WINDOWS_API IRichEditor* AddRichEditor(IWindow& parent, const GuiRect& rect, cstr name, ControlId id, IRichEditorEvents& eventHandler, DWORD style, DWORD styleEx = 0);

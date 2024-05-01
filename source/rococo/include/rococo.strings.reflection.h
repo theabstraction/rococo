@@ -99,7 +99,7 @@ namespace Rococo::Reflection
 				Throw(0, "%s: capacity too large", __FUNCTION__);
 			}
 
-			SafeFormat(buffer, "%ws", src);
+			CopyString(buffer, CAPACITY, src);
 		}
 
 		operator Reflection::IReflectedString& () { return *this; }
@@ -116,7 +116,7 @@ namespace Rococo::Reflection
 
 		void WriteString(cstr s) override
 		{
-			SafeFormat(buffer, CAPACITY, "%s", s);
+			CopyString(buffer, CAPACITY, s);
 			SafeFormat(src, CAPACITY, L"%ws", s);
 		}
 	};

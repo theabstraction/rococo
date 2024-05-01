@@ -10,6 +10,11 @@ namespace Rococo::Windows
 		{
 		}
 
+		~ButtonSupervisor()
+		{
+			DestroyWindow(hWnd);
+		}
+
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
 		{
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);

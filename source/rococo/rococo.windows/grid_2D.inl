@@ -406,6 +406,7 @@ namespace Rococo::Windows
 					uint16 fwKeys = GET_KEYSTATE_WPARAM(wParam);
 					int32 xPos = GET_X_LPARAM(lParam);
 					int32 yPos = GET_Y_LPARAM(lParam);
+					SetFocus(hWnd);
 					eventHandler.GridEvent_OnLeftButtonDown(fwKeys, Vec2i{ xPos, yPos });
 				}
 				return 0L;
@@ -462,6 +463,13 @@ namespace Rococo::Windows
 						eventHandler.GridEvent_OnCursorMove(fwKeys, Vec2i{ xPos, yPos });
 					}
 					return 0L;
+			case WM_KEYUP:
+				if (wParam == VK_BACK)
+				{
+					eventHandler.GridEvent_OnBackReleased();
+					return 0;
+				}
+				break;
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
@@ -580,14 +588,14 @@ namespace Rococo::Windows
 
 namespace Rococo::Editors
 {
-	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignSpace& designSpace)
+	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, const IDesignSpace& designSpace)
 	{
 		Vec2i topLeft = designSpace.WorldToScreen({ designerRect.left, designerRect.top });
 		Vec2i bottomRight = designSpace.WorldToScreen({ designerRect.right, designerRect.bottom });
 		return GuiRect{ topLeft.x, topLeft.y, bottomRight.x, bottomRight.y };
 	}
 
-	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& screenRect, IDesignSpace& designSpace)
+	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& screenRect, const IDesignSpace& designSpace)
 	{
 		DesignerVec2 topLeft = designSpace.ScreenToWorld({ screenRect.left, screenRect.top });
 		DesignerVec2 bottomRight = designSpace.ScreenToWorld({ screenRect.right, screenRect.bottom });

@@ -150,11 +150,11 @@ struct WindowsArrayFont : IArrayFontSupervisor
 
 		if (spec.fontName && *spec.fontName != 0)
 		{
-			SafeFormat(logFont.lfFaceName, sizeof logFont.lfFaceName, "%s", spec.fontName);
+			CopyString(logFont.lfFaceName, sizeof logFont.lfFaceName, spec.fontName);
 		}
 		else
 		{
-			SafeFormat(logFont.lfFaceName, sizeof logFont.lfFaceName, "Courier New");
+			CopyString(logFont.lfFaceName, sizeof logFont.lfFaceName, "Courier New");
 		}
 
 		logFont.lfItalic = (BYTE) spec.italic;

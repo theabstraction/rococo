@@ -263,7 +263,9 @@ namespace Rococo::Strings
 				_get_errno(&err);
 				if (err != 0)
 				{
-					Throw(0, "%s returned an error code %d. %s", __FUNCTION__, err, strerror(err));
+					char errBuf[256];
+					strerror_s(errBuf, err);
+					Throw(0, "%s returned an error code %d. %s", __FUNCTION__, err, errBuf);
 				}
 				else // Truncated, so double the buffer size and try again
 				{

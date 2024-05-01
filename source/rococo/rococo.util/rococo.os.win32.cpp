@@ -2328,6 +2328,7 @@ namespace Rococo::OS
 		{
 			populator.Populate("<unknown-user>");
 		}
+		memset(username, 0, UNLEN + 1);
 	}
 
 	ROCOCO_API void CopyStringToClipboard(cstr text)

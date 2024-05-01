@@ -199,7 +199,7 @@ namespace Rococo::Animation
 			KeyFrame key;
 			key.duration = duration;
 			key.loop = loopAnimation;
-			SafeFormat(key.name, "%s", (cstr)frameName);
+			CopyString(key.name, MAX_POSENAME_LEN, (cstr)frameName);
 
 			frames.push_back(key);
 

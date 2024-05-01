@@ -2,11 +2,46 @@
 
 namespace Rococo::Windows
 {
+	enum { SUPER_EDITOR_CLASS_ID = 15007, SUPER_LIST_CLASS_ID };
+
+	static LRESULT SuperListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+	{
+		using namespace Rococo::Editors;
+
+		UNUSED(dwRefData);
+
+		if (uIdSubclass == SUPER_LIST_CLASS_ID)
+		{
+			switch (uMsg)
+			{
+			case WM_NOTIFY:
+				{
+					UINT_PTR id = wParam;
+					UNUSED(id);
+					auto* header = (NMHEADERA*)lParam;
+
+					switch(header->hdr.code)
+					{
+					case HDN_BEGINTRACKA:
+					case HDN_BEGINTRACKW:
+						return TRUE;
+					default:
+						break;
+					}
+				}
+			}
+		}
+
+		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+	}
+
 	class SuperListBox : public IWindowSupervisor, IWindowHandler, public ISuperListBuilder
 	{
 		HWND hWnd = nullptr;
 		HWND hWndList = nullptr;
 		ISuperListSpec& spec;
+
+		int maxContentWidth = 0;
 
 		SuperListBox(ISuperListSpec& _spec): spec(_spec)
 		{
@@ -16,9 +51,10 @@ namespace Rococo::Windows
 		{
 			LV_COLUMNA item;
 			item = { 0 };
-			item.mask = LVCF_TEXT | LVCF_WIDTH;
+			item.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT;
 			item.pszText = (char*)name;
 			item.cx = pixelWidth;
+			item.fmt = LVCFMT_FIXED_WIDTH;
 			if (-1 == ListView_InsertColumn(hWndList, 10000, &item))
 			{
 				Throw(0, "%s: Error inserting item %s into a ListView header", __FUNCTION__, name);
@@ -32,9 +68,10 @@ namespace Rococo::Windows
 
 			LV_COLUMNA item;
 			item = { 0 };
-			item.mask = LVCF_TEXT | LVCF_WIDTH;
+			item.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT;
 			item.pszText = (char*)name;
-			item.cx = rect.right;
+			item.cx = rect.right - 20;
+			item.fmt = LVCFMT_FIXED_WIDTH;
 			if (-1 == ListView_InsertColumn(hWndList, 10000, &item))
 			{
 				Throw(0, "%s: Error inserting item %s into a ListView header", __FUNCTION__, name);
@@ -50,6 +87,9 @@ namespace Rococo::Windows
 			item.iItem = 0x7FFFFFFF;
 			item.cchTextMax = 256;
 			ListView_InsertItem(hWndList, &item);
+
+			int widthPixels = ListView_GetStringWidth(hWndList, value);
+			maxContentWidth = max(maxContentWidth, widthPixels);
 		}
 
 		int GetFirstSelection() const
@@ -63,6 +103,11 @@ namespace Rococo::Windows
 			}
 
 			return -1;
+		}
+
+		int GetMaxContentWidth() const override
+		{
+			return maxContentWidth;
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
@@ -155,7 +200,6 @@ namespace Rococo::Windows
 
 			RECT rect;
 			GetClientRect(hWnd, &rect);
-
 			
 			WindowConfig listConfig = { 0 };
 			
@@ -164,10 +208,25 @@ namespace Rococo::Windows
 			listConfig.width = rect.right;
 			listConfig.height = rect.bottom;
 			listConfig.hWndParent = hWnd;
-			listConfig.style |= WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
+			listConfig.style |= WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL | LVS_NOCOLUMNHEADER;
 
 			hWndList = CreateWindowIndirect(WC_LISTVIEWA, listConfig, nullptr);
 			SetDlgCtrlID(hWndList, DLG_CTRL_LIST_ID);
+
+			SetWindowSubclass(hWndList, SuperListProc, SUPER_LIST_CLASS_ID, 0);
+		}
+
+		void SetSpan(Vec2i span) override
+		{
+			MoveWindow(hWnd, 0, 0, span.x, span.y, IsWindowVisible(hWndList) ? TRUE : FALSE);
+			MoveWindow(hWndList, 0, 0, span.x, span.y, IsWindowVisible(hWndList) ? TRUE : FALSE);
+
+			LV_COLUMNA item;
+			item = { 0 };
+			item.mask = LVCF_WIDTH | LVCF_FMT;
+			item.cx = span.x - 20;
+			item.fmt = LVCFMT_FIXED_WIDTH;
+			ListView_SetColumn(hWndList, 0, &item);
 		}
 
 		void OnModal() override
@@ -194,6 +253,7 @@ namespace Rococo::Windows
 
 		~SuperListBox()
 		{
+			DestroyWindow(hWndList);
 			DestroyWindow(hWnd);
 		}
 
@@ -262,8 +322,6 @@ namespace Rococo::Windows
 			delete this;
 		}
 	};
-
-	enum { SUPER_EDITOR_CLASS_ID = 15007 };
 
 	static LRESULT SuperEditorProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 	{
@@ -602,7 +660,7 @@ namespace Rococo::Windows
 			}
 		}
 
-		void Construct(const WindowConfig& childConfig, IWindow& parent, ControlId id)
+		void Construct(const WindowConfig& childConfig, IWindow& parent, ControlId id, Vec2i listSpan)
 		{
 			WindowConfig c = childConfig;
 			c.style = WS_CHILD | WS_VISIBLE;
@@ -619,8 +677,8 @@ namespace Rococo::Windows
 
 			WindowConfig listConfig = { 0 };
 			listConfig.hWndParent = hWnd;
-			listConfig.width = 200;
-			listConfig.height = 320;
+			listConfig.width = listSpan.x;
+			listConfig.height = listSpan.y;
 			listBox = SuperListBox::Create(spec, listConfig, *this);
 		}
 
@@ -633,8 +691,23 @@ namespace Rococo::Windows
 		{
 
 		}
+
+		void GetSelectedText(Strings::IStringPopulator& populator) override
+		{
+			int len = GetWindowTextLengthA(hWndEditControl);
+			if (len <= 0)
+			{
+				return;
+			}
+
+			char* buf = (char*)_alloca(len + 1);
+			if (GetWindowTextA(hWndEditControl, buf, len + 1) > 0)
+			{
+				populator.Populate(buf);
+			}
+		}
 	public:
-		static SuperComboBox* Create(ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent, ControlId id)
+		static SuperComboBox* Create(ISuperListSpec& spec, const WindowConfig& childConfig, IWindow& parent, ControlId id, Vec2i listSpan)
 		{
 			if (customAtom == 0)
 			{
@@ -642,12 +715,15 @@ namespace Rococo::Windows
 			}
 
 			SuperComboBox* p = new SuperComboBox(spec);
-			p->Construct(childConfig, parent, id);
+			p->Construct(childConfig, parent, id, listSpan);
 			return p;
 		}
 
 		~SuperComboBox()
 		{
+			DestroyWindow(hWndLeftListToggle);
+			DestroyWindow(hWndRightListToggle);
+			DestroyWindow(hWndEditControl);
 			DestroyWindow(hWnd);
 			DeleteObject(hFocusBrush);
 		}

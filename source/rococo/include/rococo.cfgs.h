@@ -2,12 +2,18 @@
 
 #include <rococo.types.h>
 #include <rococo.editors.h>
+#include <rococo.eventargs.h>
 
 #ifndef CFGS_MARSHALLER_API
 # define CFGS_MARSHALLER_API ROCOCO_API_IMPORT
 #endif
 
 #include <rococo.ids.h>
+
+namespace Rococo::Reflection
+{
+	struct IEnumDescriptor;
+}
 
 namespace Rococo::Sex::SEXML
 {
@@ -17,12 +23,18 @@ namespace Rococo::Sex::SEXML
 
 namespace Rococo::CFGS
 {
+	struct Colours
+	{
+		RGBAb normal;
+		RGBAb hilight;
+	};
+
 	enum class SocketPlacement
 	{
 		Left = 0,
 		Right = 1,
 		Top = 2,
-		bottom = 3
+		Bottom = 3
 	};
 
 	enum class SocketClass
@@ -56,6 +68,9 @@ namespace Rococo::CFGS
 	};
 
 	CFGS_MARSHALLER_API [[nodiscard]] bool TryParse(OUT SocketClass& sclass, cstr text);
+	CFGS_MARSHALLER_API [[nodiscard]] bool IsInputClass(SocketClass x);
+	CFGS_MARSHALLER_API [[nodiscard]] bool IsOutputClass(SocketClass x);
+	CFGS_MARSHALLER_API [[nodiscard]] SocketClass FlipInputOutputClass(SocketClass x);
 
 	struct CFGSSocketType
 	{
@@ -77,6 +92,8 @@ namespace Rococo::CFGS
 	{
 		virtual void AddCable(CableId id) = 0;
 
+		virtual [[nodiscard]] RGBAb GetSocketColour(bool isLit) const = 0;
+	
 		// Return the face or vertex where the socket is placed. Conceptually the cable to the socket extends outwards through the specified face
 		virtual [[nodiscard]] SocketPlacement Placement() const = 0;
 
@@ -105,11 +122,22 @@ namespace Rococo::CFGS
 		// Returns the last place that the socket was computed for rendering, along with the edge point through whih its cable protrudes
 		virtual [[nodiscard]] void GetLastGeometry(OUT GuiRect& lastCircleRect, OUT Vec2i& lastEdgePoint) const = 0;
 
+		virtual void SetColours(const Colours& colours) = 0;
+
 		// Sets the last place that the rectangle was computed for rendering.
-		// Note we use mutable data and a const function. But since geometry will be const between most frames, its not so bad
 		// [circleRect] is the rect bounding the socket circle. 
 		// [edgePoint] is the point on the perimeter of the node through which the cable leading to the socket connects
-		virtual [[nodiscard]] void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) const = 0;
+		virtual [[nodiscard]] void SetLastGeometry(const GuiRect& circleRect, Vec2i edgePoint) = 0;
+
+		// Tries to assign an opauque string keyed by the [fieldName].
+		virtual [[nodiscard]] void SetField(cstr fieldName, cstr fieldValue) = 0;
+
+		virtual void SetType(CFGSSocketType type) = 0;
+
+		// Tries to retrieve an opaque string by field name.
+		virtual bool TryGetField(cstr fieldName, Strings::IStringPopulator& populator) const = 0;
+
+		virtual size_t EnumerateFields(Rococo::Function<void(cstr name, cstr value, size_t index)> callback) const = 0;
 	};
 
 	struct CFGSNodeType
@@ -135,20 +163,29 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSNode
 	{
+		virtual ICFGSSocket& AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
+
+		virtual void AddField(cstr name, cstr value, SocketId socketId) = 0;
+
+		virtual void SetColours(const Colours& colours, const Colours& tabColours) = 0;
+
 		// Returns the first socket found with a matching id. If nothing is found null is returned
-		virtual ICFGSSocket* FindSocket(SocketId id) = 0;
+		virtual [[nodiscard]] ICFGSSocket* FindSocket(SocketId id) = 0;
 
 		// Returns the first socket found with a matching name. If nothing is found null is returned
-		virtual ICFGSSocket* FindSocket(cstr name) = 0;
+		virtual [[nodiscard]] ICFGSSocket* FindSocket(cstr name) = 0;
+
+		// Deletes the first socket with matching id. May invalidate iteration of sockets, be careful
+		virtual void DeleteSocket(SocketId id) = 0;
 
 		// The type of node
 		virtual [[nodiscard]] CFGSNodeType Type() const = 0;
 
 		// A unique id generated at node construction that is immutable. It is *highly* unlikely any two nodes will have the same id
-		virtual [[nodiscard]] NodeId UniqueId() const = 0;
+		virtual [[nodiscard]] NodeId Id() const = 0;
 
 		// Returns the node at the specified index. Throws an exception if [index] is out of bounds
-		virtual [[nodiscard]] const ICFGSSocket& operator[](int32 index) const = 0;
+		virtual [[nodiscard]] ICFGSSocket& operator[](int32 index) = 0;
 
 		// Number of sockets implemented on the node
 		virtual [[nodiscard]] int32 SocketCount() const = 0;
@@ -161,6 +198,16 @@ namespace Rococo::CFGS
 
 		// Force GetDesignRectangle to return the internal rect offset by the specified value. If makePermanent is set to true the internal rect is set to the old value + offset.
 		virtual void SetDesignOffset(const Rococo::Editors::DesignerVec2& offset, bool makePermanent) = 0;
+
+		virtual [[nodiscard]] Colours GetBackColours() const = 0;
+
+		virtual [[nodiscard]] Colours GetTabColours() const = 0;
+
+		virtual void SetLoc(const Rococo::Editors::DesignerVec2& absPosition) = 0;
+
+		virtual void SetType(cstr type) = 0;
+
+		virtual void SetId(NodeId id) = 0;
 	};
 
 	struct CableConnection
@@ -184,36 +231,29 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] bool IsSelected() const = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSNodeBuilder
-	{
-		virtual void AddSocket(cstr type, SocketClass socketClass, cstr label, SocketId id) = 0;
-	};
-
 	ROCOCO_INTERFACE ICFGSNodeSetBuilder
 	{
-		virtual [[nodiscard]] ICFGSNodeBuilder& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) = 0;
+		virtual [[nodiscard]] ICFGSNode& AddNode(cstr typeString, const Rococo::Editors::DesignerVec2& topLeft, NodeId id) = 0;
+		virtual void DeleteNode(NodeId id) = 0;
 		virtual void DeleteAllNodes() = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSNodeEnumerator
 	{
 		// gets a node by index. The order does not change unless nodes are added, inserted or removed.
-		virtual [[nodiscard]] const ICFGSNode & operator[](int32 index) = 0;
+		virtual [[nodiscard]] ICFGSNode & operator[](int32 index) = 0;
 
 		// gets a node by zorder ascending starting with the bottom node. The order can be changed using the MakeTopMost method
-		virtual [[nodiscard]] const ICFGSNode& GetByZOrderAscending(int32 index) = 0;
+		virtual [[nodiscard]] ICFGSNode& GetByZOrderAscending(int32 index) = 0;
 
 		// gets a node by zorder descending starting with the top most node. The order can be changed using the MakeTopMost method
-		virtual [[nodiscard]] const ICFGSNode& GetByZOrderDescending(int32 index) = 0;
+		virtual [[nodiscard]] ICFGSNode& GetByZOrderDescending(int32 index) = 0;
 
 		// gives the node count, which is used in operator [] and GetByZOrderDescending
 		virtual [[nodiscard]] int32 Count() const = 0;
 
 		// finds a node with the given UniqueId
-		virtual [[nodiscard]] const ICFGSNode* FindNode(NodeId id) const = 0;
-
-		// finds a node with the given UniqueId
-		virtual [[nodiscard]] ICFGSNode* FindNode(NodeId id) = 0;
+		virtual [[nodiscard]] ICFGSNode* FindNode(NodeId id) const = 0;
 
 		// If the node argument is a member of the node set, then make it top most in z order
 		virtual void MakeTopMost(const ICFGSNode& node) = 0;
@@ -229,7 +269,7 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] int32 Count() const = 0;
 
 		// Return the cable at the given index. If the index is out of bounds an IException is thrown
-		virtual [[nodiscard]] const ICFGSCable& operator[](int32 index) const = 0;
+		virtual [[nodiscard]] ICFGSCable& operator[](int32 index) = 0;
 
 		// Highlight the given cable by index. The [changed] variable is set to true if and only if this would result in an observable change.
 		// If the index does not correspond to a cable then nothing is selected
@@ -244,37 +284,57 @@ namespace Rococo::CFGS
 		virtual [[nodiscard]] ICFGSCableEnumerator& Cables() = 0;
 		virtual [[nodiscard]] ICFGSNodeEnumerator& Nodes() = 0;
 
+		virtual [[nodiscard]] ICFGSNode& BeginNode() = 0;
+		virtual [[nodiscard]] ICFGSNode& ReturnNode() = 0;
+
 		// Once nodes and cables are defined, call this method
 		virtual void ConnectCablesToSockets() = 0;
 		virtual void DeleteCable(int32 cableIndex) = 0;
-		virtual cstr Name() const = 0;
+		virtual [[nodiscard]] cstr Name() const = 0;
 		virtual void SetName(cstr name) = 0;
-		virtual FunctionId Id() const = 0;
+
+		// Set which options are available for the beginNode socket types. The [typeOptions] pointer must be valid for the lifetime of property manipulation
+		virtual void SetInputTypeOptions(Rococo::Reflection::IEnumDescriptor* typeOptions) = 0;
+
+		// Set which options are available for the returnNode socket types. The [typeOptions] pointer must be valid for the lifetime of property manipulation
+		virtual void SetOutputTypeOptions(Rococo::Reflection::IEnumDescriptor* typeOptions) = 0;
+
+		virtual [[nodiscard]] FunctionId Id() const = 0;
+		virtual Rococo::Reflection::IPropertyVenue& PropertyVenue() = 0;
 	};
 
 	// Interface to the control-flow graph system
 	ROCOCO_INTERFACE ICFGSDatabase
 	{
 		virtual void Clear() = 0;
-		virtual FunctionId CreateFunction() = 0;
+		virtual [[nodiscard]] FunctionId CreateFunction() = 0;
 		virtual void DeleteFunction(FunctionId id) = 0;
 		virtual void BuildFunction(FunctionId id) = 0;
-		virtual ICFGSFunction* CurrentFunction() = 0;
-		virtual ICFGSFunction* FindFunction(FunctionId id) = 0;
+		virtual [[nodiscard]] ICFGSFunction* CurrentFunction() = 0;
+		virtual [[nodiscard]] ICFGSFunction* FindFunction(FunctionId id) = 0;
 
 		// Enumerate functions. Do not delete or append to the database during the enumeration
 		virtual void ForEachFunction(Rococo::Function<void(ICFGSFunction& f)> callback) = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSDatabaseSupervisor: ICFGSDatabase
+	ROCOCO_INTERFACE ICFGSControllerConfig
+	{
+		// Retrieves the full path of the currently active cfgs file, or nullptr if none are active
+		virtual [[nodiscard]] cstr ActiveFile() = 0;
+
+		virtual bool TryLoadActiveFile(cstr filename) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSDatabaseSupervisor : ICFGSDatabase
 	{
 		virtual void Free() = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSDesignerSpacePopup
 	{
-		virtual bool IsVisible() const = 0;
+		virtual [[nodiscard]] bool IsVisible() const = 0;
 		virtual void ShowAt(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition) = 0;
+		virtual void SetTemplate(FunctionId id) = 0;
 		virtual void Hide() = 0;;
 	};
 
@@ -293,44 +353,79 @@ namespace Rococo::CFGS
 		virtual void Loader_OnLoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) = 0;
 	};
 
-	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment
+	ROCOCO_INTERFACE ICFGSIDENavigation
 	{
-		virtual [[nodiscard]] ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
-		virtual [[nodiscard]] bool IsConnectionPermitted(const Rococo::CFGS::CableConnection& anchor, const Rococo::CFGS::ICFGSSocket& target) const = 0;
+		virtual bool TryHandleContextMenuItem(uint16 id) = 0;
 		virtual void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive) = 0;
 		virtual void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb) = 0;
-		virtual [[nodiscard]] bool TryHandleContextMenuItem(uint16) = 0;
+	};
+
+	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment
+	{
+		virtual [[nodiscard]] ICFGSIDENavigation& Navigation() = 0;
+		virtual [[nodiscard]] ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
+		virtual [[nodiscard]] bool IsConnectionPermitted(const Rococo::CFGS::CableConnection& anchor, const Rococo::CFGS::ICFGSSocket& target) const = 0;
+	};
+
+	ROCOCO_INTERFACE INamespaceValidator
+	{
+		virtual [[nodiscard]] bool IsLegalNamespace(cstr ns) const = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironmentSupervisor : ICFGSIntegratedDevelopmentEnvironment
 	{
+		// Tells the IDE we are about to load something new, so delete all cached data
+		virtual void Clear() = 0;
+
 		virtual void Free() = 0;
+
+		// Called just after the mainloop finishes. At this point the application is ready to exit, though objects will not have been destroyed
+		// The IDE will typically implement the function to save a configuration file ready for OnInitComplete() in the next session
+		virtual void OnExit() = 0;
+
+		// Called just before main loop is invoked. At this points all of the key objects that the ide relies upon should have been initialized
+		// The IDE will typically implement the function to load a configuration file containing window placement and such
+		virtual void OnInitComplete() = 0;
+
+		// Called just after a file is successfully loaded
+		virtual void OnLoaded(cstr filename) = 0;
+	};
+
+	struct CableDropped : Events::EventArgs
+	{
+		FunctionId functionId;
+		CableConnection anchor;
+		Vec2i dropPoint;
+		Editors::DesignerVec2 designPoint;
 	};
 
 	ROCOCO_INTERFACE ICFGSGuiEventHandler
 	{
+		virtual void CFGSGuiEventHandler_OnCableDropped(const CableDropped & dropInfo) = 0;
 		virtual void CFGSGuiEventHandler_OnCableLaying(const CableConnection& anchor) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeDragged(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_OnNodeHoverChanged(const NodeId& id) = 0;
+		virtual void CFGSGuiEventHandler_OnNodeSelected(const NodeId& id) = 0;
 		virtual void CFGSGuiEventHandler_PopupContextGUI(Vec2i cursorPosition) = 0;
 		virtual bool CFGSGuiEventHandler_IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& targetSocket) const = 0;
 	};
 
+	using WasHandled = bool;
 
 	// An interface for rendering elements and manipulating them with the mouse. 
 	ROCOCO_INTERFACE ICFGSGui
 	{
 		// Respond to cursor move event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnCursorMove(Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnCursorMove(Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Respond to cursor click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// Respond to cursor context click event, returns true if the event is consumed
-		virtual [[nodiscard]] bool OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
+		virtual [[nodiscard]] WasHandled OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) = 0;
 
 		// This is used to paint the RGB elements to the screen. The caller will typically render to a bitmap then periodically blit it to the screen
 		virtual void Render(Rococo::Editors::IFlatGuiRenderer & fgr) = 0;
@@ -346,10 +441,12 @@ namespace Rococo::CFGS
 
 	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketClass sclass);
 
+	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketPlacement placement);
+
 	// Creates a gui for a CFGS database
 	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
 
-	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase();
+	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase(Rococo::Events::IPublisher& publisher);
 
-	const wchar_t* GetCFGSAppTitle();
+	[[nodiscard]] cstr GetCFGSAppTitle();
 }

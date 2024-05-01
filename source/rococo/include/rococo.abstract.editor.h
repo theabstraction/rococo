@@ -2,6 +2,7 @@
 
 #include <rococo.types.h>
 #include <rococo.visitors.h>
+#include <rococo.eventargs.h>
 
 #define IMPLEMENTATION_TYPE_WIN32_HWND "Win32-HWND"
 
@@ -26,6 +27,18 @@ namespace Rococo::Visitors
 // Abstract Editor - namespace for the property+palette+blank-slate GUI
 namespace Rococo::Abedit
 {
+	struct WindowResizedArgs : Rococo::Events::EventArgs
+	{
+		GuiRect screenPosition;
+
+		enum class SourceId
+		{
+			MainWindow
+		};
+
+		SourceId source;
+	};
+
 	ROCOCO_INTERFACE IUIPalette
 	{
 
@@ -87,7 +100,7 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditorFactory
 	{
-		[[nodiscard]] virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler) = 0;
+		[[nodiscard]] virtual IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, Rococo::Events::IPublisher& publisher) = 0;
 	};
 }
 
@@ -102,7 +115,7 @@ namespace Rococo::Abedit
 	ROCOCO_INTERFACE IWin32AbstractEditorSupervisor : IAbstractEditorSupervisor
 	{
 		virtual Windows::IParentWindowSupervisor& Slate() = 0;
-		virtual void SetTitleWithPath(const wchar_t* mainTitle, const wchar_t* filePath) = 0;
+		virtual void SetTitleWithPath(cstr mainTitle, cstr filePath) = 0;
 	};
 }
 #endif

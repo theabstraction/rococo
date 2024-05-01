@@ -24,9 +24,9 @@ namespace Rococo::CFGS
 		return Rococo::Windows::Create2DGrid(super.Slate(), WS_VISIBLE | WS_CHILD, eventHandler, true);
 	}
 
-	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor);
+	typedef ICFGSIntegratedDevelopmentEnvironmentSupervisor* (*FN_Create_CFGS_Win32_IDE)(HWND hHostWindow, ICFGSDatabase& db, Rococo::Abedit::IAbstractEditor& editor, Rococo::Events::IPublisher& publisher, ICFGSControllerConfig& config);
 
-	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db)
+	ICFGSIntegratedDevelopmentEnvironmentSupervisor* Create_CFGS_IDE(IAbstractEditorSupervisor& editor, ICFGSDatabase& db, Rococo::Events::IPublisher& publisher, ICFGSControllerConfig& config)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
 		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
@@ -49,26 +49,26 @@ namespace Rococo::CFGS
 
 		FN_Create_CFGS_Win32_IDE createIDE = (FN_Create_CFGS_Win32_IDE)factoryProc;
 
-		return createIDE(hRoot, db, editor);
+		return createIDE(hRoot, db, editor, publisher, config);
 	}
 
-	bool TryGetUserSelectedCFGSPath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor)
+	bool TryGetUserSelectedCFGSPath(OUT U8FilePath& path, Abedit::IAbstractEditorSupervisor& editor)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
 		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
 
-		OPENFILENAMEW spec = { 0 };
+		OPENFILENAMEA spec = { 0 };
 		spec.lStructSize = sizeof(spec);
 		spec.hwndOwner = hRoot;
-		spec.lpstrFilter = L"control-flow graph SXML file\0*.cfgs.sxml\0\0";
+		spec.lpstrFilter = "control-flow graph SXML file\0*.cfgs.sexml\0\0";
 		spec.nFilterIndex = 1;
 
 		spec.lpstrFile = path.buf;
 		*path.buf = 0;
 		spec.nMaxFile = sizeof path / sizeof(wchar_t);
 
-		wchar_t title[256];
-		Strings::SecureFormat(title, 256, L"Select a flow graph file");
+		char title[256];
+		Strings::SecureFormat(title, 256, "Select a flow graph file");
 		spec.lpstrTitle = title;
 
 		spec.Flags = 0;
@@ -78,9 +78,10 @@ namespace Rococo::CFGS
 
 		bool isOpen = false;
 
-		if (GetOpenFileNameW(&spec))
+		// This outputs: onecore\vm\dv\storage\plan9\rdr\dll\util.cpp(99)\p9np.dll. No idea why. Maybe one day it will go away
+		if (GetOpenFileNameA(&spec))
 		{
-			SetWindowTextW(hRoot, spec.lpstrFile);
+			SetWindowTextA(hRoot, spec.lpstrFile);
 			isOpen = true;
 		}
 
@@ -89,23 +90,23 @@ namespace Rococo::CFGS
 		return isOpen;
 	}
 
-	bool TryGetUserCFGSSavePath(OUT WideFilePath& path, Abedit::IAbstractEditorSupervisor& editor)
+	bool TryGetUserCFGSSavePath(OUT U8FilePath& path, Abedit::IAbstractEditorSupervisor& editor)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
 		HWND hRoot = GetAncestor(super.Slate(), GA_ROOT);
 
-		OPENFILENAMEW spec = { 0 };
+		OPENFILENAMEA spec = { 0 };
 		spec.lStructSize = sizeof(spec);
 		spec.hwndOwner = hRoot;
-		spec.lpstrFilter = L"control-flow graph SXML file\0*.cfgs.sxml\0\0";
+		spec.lpstrFilter = "control-flow graph SXML file\0*.cfgs.sxml\0\0";
 		spec.nFilterIndex = 1;
 
 		spec.lpstrFile = path.buf;
 		*path.buf = 0;
-		spec.nMaxFile = sizeof path / sizeof(wchar_t);
+		spec.nMaxFile = U8FilePath::CAPACITY;
 
-		wchar_t title[256];
-		Strings::SecureFormat(title, 256, L"Save a flow graph file");
+		char title[256];
+		Strings::SecureFormat(title, 256, "Save a flow graph file");
 		spec.lpstrTitle = title;
 
 		spec.Flags = 0;
@@ -115,9 +116,9 @@ namespace Rococo::CFGS
 
 		bool isSaved = false;
 
-		if (GetSaveFileNameW(&spec))
+		if (GetSaveFileNameA(&spec))
 		{
-			SetWindowTextW(hRoot, spec.lpstrFile);
+			SetWindowTextA(hRoot, spec.lpstrFile);
 			isSaved = true;
 		}
 
@@ -126,7 +127,7 @@ namespace Rococo::CFGS
 		return isSaved;
 	}
 
-	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, const wchar_t* filePath)
+	void SetTitleWithFilename(IAbstractEditorSupervisor& editor, cstr filePath)
 	{
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
 		super.SetTitleWithPath(GetCFGSAppTitle(), filePath);

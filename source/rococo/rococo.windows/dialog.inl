@@ -89,6 +89,11 @@ namespace Rococo::Windows::Impl
 			return control.OnExitModal();
 		}
 	public:
+		void ClearChildren() override
+		{
+			DeleteAll(children);
+		}
+
 		static DialogWindowImpl* Create(const WindowConfig& config, IWindowHandler* modelessHandler = nullptr)
 		{
 			if (customAtom == 0)

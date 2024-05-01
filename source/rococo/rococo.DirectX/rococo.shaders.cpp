@@ -78,7 +78,7 @@ namespace ANON
 			if (*error || hr != S_OK)
 			{
 				char msg[4096];
-				SafeFormat(msg, "%s", error);
+				CopyString(msg, sizeof msg, error);
 				s.errMsg = msg;
 				if (hr == S_OK) s.hr = E_FAIL;
 			}
@@ -109,7 +109,7 @@ namespace ANON
 					inputQueue.pop_back();
 
 					U8FilePath resourceName; // This will be valid after the unlock section
-					Format(resourceName, "%s", shaders[nextId.index - 1].resourceName.c_str());
+					CopyString(resourceName.buf, U8FilePath::CAPACITY, shaders[nextId.index - 1].resourceName.c_str());
 
 					sync->Unlock();
 

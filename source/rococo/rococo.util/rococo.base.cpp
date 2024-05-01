@@ -29,6 +29,8 @@ namespace Rococo
 #include <rococo.os.h>
 #include <rococo.time.h>
 #include <atomic>
+#include <ctype.h>
+#include <immintrin.h>
 
 namespace Rococo
 {
@@ -37,32 +39,170 @@ namespace Rococo
 		return ptr != nullptr;
 	}
 
-	static std::atomic<int32> uniqueCounter = 0;
-
-	ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId()
+	namespace Ids
 	{
-		UniqueIdHolder id;
+		static std::atomic<int32> uniqueCounter = 0;
 
-		struct Username : IStringPopulator
+		ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId()
 		{
-			uint64 hash = 0;
+			UniqueIdHolder id;
 
-			void Populate(cstr text) override
+			static uint64 userTimeHash = 0;
+
+			if (userTimeHash == 0)
 			{
-				hash = Strings::XXHash64Arg(text, strlen(text));
+				struct Username : IStringPopulator
+				{
+					uint64 hash = 0;
+
+					void Populate(cstr text) override
+					{
+						char cipherCrud[256];
+						SafeFormat(cipherCrud, "%s_%lld_%lld", text, (int64)Rococo::OS::GetCurrentThreadIdentifier(), (int64)Rococo::Time::UTCTime());
+						hash = Strings::XXHash64Arg(cipherCrud, strlen(cipherCrud));
+						memset(cipherCrud, 0, sizeof cipherCrud);
+					}
+				} username;
+
+				Rococo::OS::GetCurrentUserName(username);
+
+				userTimeHash = username.hash;
 			}
-		} username;
 
-		OS::GetCurrentUserName(username);
+			static uint64 cpuHash = 0;
+			if (cpuHash == 0)
+			{
+				if (0 == _rdrand64_step(&cpuHash))
+				{
+					cpuHash = Rococo::Time::TickCount() << 32;
+				}
 
-		int32 next = uniqueCounter++;
-		int64 threadId = ((int64) Rococo::OS::GetCurrentThreadIdentifier()) << 32;
-		int64 next64 = threadId + (int64) next;
+				cpuHash &= 0xFFFF'FFFF'0000'0000ULL;
+			}
 
-		id.iValues[0] = next64;
-		id.iValues[1] = username.hash ^ Rococo::Time::UTCTime();
+			int32 next = uniqueCounter++;
+			int64 cpuHashAndCounter = cpuHash | (int64)next;
 
-		return id;
+			id.iValues[0] = cpuHashAndCounter;
+			id.iValues[1] = userTimeHash;
+
+			return id;
+		}
+
+		struct MehGuid
+		{
+			// Example: 30dd879c-ee2f-11db-8314-0800200c9a66
+			uint32 a;
+			uint16 b;
+			uint16 c;
+			uint16 d;
+			uint16 e;
+			uint32 f;
+		};
+
+		union GuidAndUniqueId
+		{
+			GuidAndUniqueId() : id(), guid() {}
+			UniqueIdHolder id;
+			MehGuid guid;
+		};
+
+		static_assert(sizeof MehGuid == sizeof UniqueIdHolder);
+		static_assert(sizeof GuidAndUniqueId == 16);
+
+		ROCOCO_ID_API void ToGuidString(UniqueIdHolder id, OUT GuidString& guidString)
+		{
+			GuidAndUniqueId glue;
+			glue.id = id;
+
+			MehGuid g = glue.guid;
+
+			// Example: 30dd879c-ee2f-11db-8314-0800200c9a66
+			SafeFormat(guidString.buffer, "%8.8x-%4.4x-%4.4x-%4.4x-%4.4x%8.8x", g.a, g.b, g.c, g.d, g.e, g.f);
+		}
+
+		bool TryGrabHexToken(OUT uint32& value, cstr start, cstr end)
+		{
+			char buffer[16];
+
+			char* dest = buffer;
+
+			for (cstr s = start; s < end; s++)
+			{
+				char c = *s;
+				if (!isalnum(c))
+				{
+					return false;
+				}
+
+				*dest++ = c;
+			}
+
+			*dest++ = 0;
+
+			if (sscanf_s(buffer, "%x", &value) != 1)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		ROCOCO_ID_API bool TryScanGuid(OUT UniqueIdHolder& id, cstr buffer)
+		{
+			if (strlen(buffer) != 36)
+			{
+				return false;
+			}
+
+			uint32 a; // the first 8 digits
+			if (!TryGrabHexToken(a, buffer, buffer + 8))
+			{
+				return false;
+			}
+
+			uint32 b; // the next 4 digits
+			if (!TryGrabHexToken(b, buffer + 9, buffer + 13))
+			{
+				return false;
+			}
+
+			uint32 c; // the next 4 digits
+			if (!TryGrabHexToken(c, buffer + 14, buffer + 18))
+			{
+				return false;
+			}
+
+			uint32 d; // the next 4 digits
+			if (!TryGrabHexToken(d, buffer + 19, buffer + 23))
+			{
+				return false;
+			}
+
+			uint32 e; // the first 4 digits of the final 12 digit block
+			if (!TryGrabHexToken(e, buffer + 24, buffer + 28))
+			{
+				return false;
+			}
+
+			uint32 f; // The final 8 digits of the final 12 digit block
+			if (!TryGrabHexToken(f, buffer + 28, buffer + 36))
+			{
+				return false;
+			}
+
+			GuidAndUniqueId glue;
+			glue.guid.a = a;
+			glue.guid.b = (uint16)b;
+			glue.guid.c = (uint16)c;
+			glue.guid.d = (uint16)d;
+			glue.guid.e = (uint16)e;
+			glue.guid.f = f;
+
+			id = glue.id;
+
+			return true;
+		}
 	}
 
 	namespace IO
@@ -238,7 +378,7 @@ namespace Rococo
 		throw ex;
 	}
 
-	ROCOCO_API void ThrowMissingResourceFile(ErrorCode code, cstr description, cstr filename)
+	ROCOCO_API void ThrowMissingResourceFile(ErrorCode /* code */, cstr description, cstr filename)
 	{
 		struct MissingResourceFile : IException
 		{

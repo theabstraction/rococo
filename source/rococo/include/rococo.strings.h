@@ -225,6 +225,21 @@ namespace Rococo::Strings
 		};
 	};
 
+	struct HStringPopulator: IStringPopulator
+	{
+		HString& target;
+
+		HStringPopulator(HString& _target): target(_target)
+		{
+
+		}
+
+		void Populate(cstr text) override
+		{
+			target = text;
+		}
+	};
+
 	struct IDynamicStringBuilder
 	{
 		virtual StringBuilder& Builder() = 0;
@@ -343,6 +358,18 @@ namespace Rococo::Strings
 	};
 
 	ROCOCO_API_EXPORT void GetSecureHashInfo(SecureHashInfo& info, const char* buffer, size_t bufferLength);
+
+	template<uint32 capacity>
+	struct PopulationBuffer : IStringPopulator
+	{
+		char data[capacity];
+		operator cstr() const { return data; }
+
+		void Populate(cstr text) override
+		{
+			CopyString(data, capacity, text);
+		}
+	};
 
 	namespace CLI
 	{

@@ -17,6 +17,7 @@ namespace Rococo::Windows
 		~ChildWindowImpl()
 		{
 			DeleteAll(children);
+			DestroyWindow(hWnd);
 		}
 
 		void OnModal() override
@@ -47,6 +48,11 @@ namespace Rococo::Windows
 		}
 
 	public:
+		void ClearChildren() override
+		{
+			DeleteAll(children);
+		}
+
 		static ChildWindowImpl* Create(const WindowConfig& config, IWindowHandler* modelessHandler = nullptr)
 		{
 			if (customAtom == 0)

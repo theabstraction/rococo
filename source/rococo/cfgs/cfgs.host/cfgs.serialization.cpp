@@ -36,15 +36,8 @@ namespace Rococo::CFGS
 		return T{ id };
 	}
 
-	void LoadGraphNode(ICFGSFunction& f, const ISEXMLDirective& node)
+	void LoadSockets(ICFGSNode& nb, const ISEXMLDirective& node)
 	{
-		auto& type = AsString(node["Type"]);
-		double xPos = AsAtomicDouble(node["XPos"]);
-		double yPos = AsAtomicDouble(node["YPos"]);
-		auto nodeId = AsId<CFGS::NodeId>(node["Id"]);
-
-		auto& nb = f.Nodes().Builder().AddNode(type.c_str(), { xPos, yPos }, nodeId);
-
 		auto nChildren = node.NumberOfChildren();
 		for (size_t i = 0; i < nChildren; i++)
 		{
@@ -68,7 +61,60 @@ namespace Rococo::CFGS
 			{
 				Throw(socketClass.S(), "Could not parse %s as a SocketClass enum.", socketClass.c_str());
 			}
+
+			size_t startIndex = 0;
+			const ISEXMLDirective* optFields = socket.FindFirstChild(IN OUT startIndex, "Fields");
+			if (optFields)
+			{
+				auto& fields = *optFields;
+				for (size_t j = 0; j < fields.NumberOfChildren(); ++j)
+				{
+					auto& field = fields[j];
+					auto& name = AsString(field["Name"]);
+					auto& value = AsString(field["Value"]);
+
+					nb.AddField(name.c_str(), value.c_str(), socketId);
+				}
+			}
 		}
+	}
+
+	void LoadBeginNode(ICFGSFunction& f, const ISEXMLDirective& node)
+	{
+		auto& type = AsString(node["Type"]);
+		auto nodeId = AsId<CFGS::NodeId>(node["Id"]);
+
+		auto& nb = f.BeginNode();
+		nb.SetType(type.c_str());
+		nb.SetLoc(Editors::DesignerVec2{ 0, 0 });
+		nb.SetId(nodeId);
+		
+		LoadSockets(nb, node);
+	}
+
+	void LoadReturnNode(ICFGSFunction& f, const ISEXMLDirective& node)
+	{
+		auto& type = AsString(node["Type"]);
+		auto nodeId = AsId<CFGS::NodeId>(node["Id"]);
+
+		auto& nb = f.ReturnNode();
+		nb.SetType(type.c_str());
+		nb.SetLoc(Editors::DesignerVec2{ 0, 0 });
+		nb.SetId(nodeId);
+
+		LoadSockets(nb, node);
+	}
+
+	void LoadGraphNode(ICFGSFunction& f, const ISEXMLDirective& node)
+	{
+		auto& type = AsString(node["Type"]);
+		double xPos = AsAtomicDouble(node["XPos"]);
+		double yPos = AsAtomicDouble(node["YPos"]);
+		auto nodeId = AsId<CFGS::NodeId>(node["Id"]);
+
+		auto& nb = f.Nodes().Builder().AddNode(type.c_str(), { xPos, yPos }, nodeId);
+
+		LoadSockets(nb, node);
 	}
 
 	void LoadGraphCable(ICFGSFunction& f, const ISEXMLDirective& cable)
@@ -89,14 +135,24 @@ namespace Rococo::CFGS
 		}
 
 		size_t startIndex = 0;
-		const ISEXMLDirective& nodes = fDirective.GetDirectivesFirstChild(IN OUT startIndex, "Nodes");
+		const ISEXMLDirective& nodeDirectives = fDirective.GetDirectivesFirstChild(IN OUT startIndex, "Nodes");
 
-		size_t nChildren = nodes.NumberOfChildren();
+		size_t nChildren = nodeDirectives.NumberOfChildren();
 		for (size_t i = 0; i < nChildren; i++)
 		{
-			auto& node = nodes[i];
-			node.Assert("Node");		
-			LoadGraphNode(f, node);
+			auto& nodeDirective = nodeDirectives[i];
+			if (Strings::Eq(nodeDirective.FQName(), "Node"))
+			{
+				LoadGraphNode(f, nodeDirective);
+			}
+			else if (Strings::Eq(nodeDirective.FQName(), "BeginNode"))
+			{
+				LoadBeginNode(f, nodeDirective);
+			}
+			else if (Strings::Eq(nodeDirective.FQName(), "ReturnNode"))
+			{
+				LoadReturnNode(f, nodeDirective);
+			}
 		}
 
 		startIndex = 1;
@@ -155,11 +211,11 @@ namespace Rococo::CFGS
 	void AddId(cstr key, UniqueIdHolder id, ISEXMLBuilder& sb)
 	{
 		char buf[128];
-		Strings::SafeFormat(buf, "%X %X", id.iValues[0], id.iValues[1]);
+		Strings::SafeFormat(buf, "%llX %llX", id.iValues[0], id.iValues[1]);
 		sb.AddStringLiteral(key, buf);
 	}
 
-	void LoadDatabase(ICFGSDatabase& db, const wchar_t* filename, ICFGSLoader& loader)
+	void LoadDatabase(ICFGSDatabase& db, cstr filename, ICFGSLoader& loader)
 	{
 		Rococo::OS::LoadSXMLBySysPath(filename,
 			[&db, &loader](const ISEXMLDirectiveList& directives)
@@ -170,34 +226,66 @@ namespace Rococo::CFGS
 		);
 	}
 
+	void SaveNode(ICFGSNode& node, ISEXMLBuilder& sb)
+	{
+		sb.AddStringLiteral("Type", node.Type().Value);
+		sb.AddAtomicAttribute("XPos", node.GetDesignRectangle().left);
+		sb.AddAtomicAttribute("YPos", node.GetDesignRectangle().top);
+		AddId("Id", node.Id().id, sb);
+
+		for (int j = 0; j < node.SocketCount(); j++)
+		{
+			auto& socket = node[j];
+			sb.AddDirective("Socket");
+
+			sb.AddStringLiteral("Label", socket.Name());
+			sb.AddStringLiteral("Type", socket.Type().Value);
+			AddId("Id", socket.Id().id, sb);
+			sb.AddAtomicAttribute("Class", CFGS::ToString(socket.SocketClassification()));
+
+			size_t fieldCount = socket.EnumerateFields([](cstr, cstr, size_t) {});
+
+			if (fieldCount > 0)
+			{
+				sb.AddDirective("Fields");
+
+				socket.EnumerateFields(
+					[&sb](cstr name, cstr value, size_t index)
+					{
+						UNUSED(index);
+						sb.AddDirective("Field");
+						sb.AddAtomicAttribute("Name", name);
+						sb.AddStringLiteral("Value", value);
+						sb.CloseDirective();
+					}
+				);
+
+				sb.CloseDirective();
+			}
+
+			sb.CloseDirective();
+		}
+	}
+
 	void SaveGraph(ICFGSFunction& f, ISEXMLBuilder& sb)
 	{
 		sb.AddDirective("Nodes");
+
+		sb.AddDirective("BeginNode");
+		SaveNode(f.BeginNode(), sb);
+		sb.CloseDirective();
+
+		sb.AddDirective("ReturnNode");
+		SaveNode(f.ReturnNode(), sb);
+		sb.CloseDirective();
 
 		auto& nodes = f.Nodes();
 		for (int i = 0; i < nodes.Count(); i++)
 		{
 			auto& node = nodes[i];
 
-			sb.AddDirective("Node");
-			sb.AddStringLiteral("Type", node.Type().Value);
-			sb.AddAtomicAttribute("XPos", node.GetDesignRectangle().left);
-			sb.AddAtomicAttribute("YPos", node.GetDesignRectangle().top);
-			AddId("Id", node.UniqueId().id, sb);
-
-			for (int j = 0; j < node.SocketCount(); j++)
-			{
-				auto& socket = node[j];
-				sb.AddDirective("Socket");
-
-				sb.AddStringLiteral("Label", socket.Name());
-				sb.AddStringLiteral("Type", socket.Type().Value);
-				AddId("Id", socket.Id().id, sb);
-				sb.AddAtomicAttribute("Class", CFGS::ToString(socket.SocketClassification()));
-
-				sb.CloseDirective();
-			}
-
+			sb.AddDirective("Node");	
+			SaveNode(node, sb);
 			sb.CloseDirective();
 		}
 

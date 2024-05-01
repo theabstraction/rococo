@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rococo.types.h>
+#include <rococo.eventargs.h>
 
 namespace Rococo
 {
@@ -10,44 +10,8 @@ namespace Rococo
 
 namespace Rococo::Events
 {
-	typedef uint32 EventHash;
-
-#pragma pack(push,1)
-	struct EventIdRef
-	{
-		const char* name;
-		mutable EventHash hashCode;
-	};
-
-	struct EventArgs
-	{
-		int64 sizeInBytes;
-	};
-#pragma pack(pop)
-
-	template<class T> struct TEventArgs : public EventArgs
-	{
-		T value;
-		operator T () { return value; }
-	};
-
-	template<class T, class U> struct T2EventArgs : public EventArgs
-	{
-		T value1;
-		U value2;
-	};
-
-	class IPublisher;
-
-	struct Event
-	{
-		IPublisher& publisher;
-		EventArgs& args;
-		EventIdRef id;
-	};
-
 	// Used by GUI panels to request an upate to a label or field just before rendering.
-		// A request is sent out by the gui panel, and the formatter object responds with the same id, but setting isRequested to false
+	// A request is sent out by the gui panel, and the formatter object responds with the same id, but setting isRequested to false
 	struct TextOutputEvent : EventArgs
 	{
 		bool isGetting;
@@ -88,11 +52,17 @@ namespace Rococo::Events
 	   virtual void OnEvent(Event & ev) = 0;
 	};
 
+	enum class PostQuality
+	{
+		Guaranteed,
+		Lossy
+	};
+
 	class ROCOCO_NO_VTABLE IPublisher
 	{
 	private:
-		virtual void RawPost(const EventArgs& ev, const EventIdRef& id, bool isLossy) = 0;
-		virtual void RawPublish(EventArgs& ev, const EventIdRef& id) = 0;
+		virtual void RawPost(const EventArgs& ev, const EventIdRef& id, PostQuality quality, cstr senderSignature) = 0;
+		virtual void RawPublish(EventArgs& ev, const EventIdRef& id, cstr senderSignature) = 0;
 	public:
 		virtual bool Match(const Event& ev, const EventIdRef& ref) = 0;
 		virtual EventIdRef CreateEventIdFromVolatileString(const char* volatileString) = 0;
@@ -101,15 +71,25 @@ namespace Rococo::Events
 		virtual void Unsubscribe(IObserver* observer) = 0;
 		virtual void ThrowBadEvent(const Event& ev) = 0;
 
-		template<class T> inline void Post(T& ev, const EventIdRef& id, bool isLossy)
+		template<class T> inline void Post(T& ev, const EventIdRef& id, PostQuality quality = PostQuality::Guaranteed)
 		{
 			ev.sizeInBytes = sizeof(T);
-			RawPost(ev, id, isLossy);
+			RawPost(ev, id, quality, __FUNCSIG__);
 		}
+
+		// Posts a message that is wrapped up in type TEventArgs<T>. 
+		// The event handler method should have signature void Instance::Handler(TEventArgs<T>& args)
+		template<class T> inline void PostOneArg(T arg, const EventIdRef& id, PostQuality quality = PostQuality::Guaranteed)
+		{
+			TEventArgs<T> args;
+			args.value = arg;
+			Post(args, id, quality);
+		}
+
 		template<class T> inline void Publish(T& ev, const EventIdRef& id)
 		{
 			ev.sizeInBytes = sizeof(T);
-			RawPublish(ev, id);
+			RawPublish(ev, id, __FUNCSIG__);
 		}
 	};
 
@@ -135,68 +115,5 @@ namespace Rococo::Events
 		T& t = static_cast<T&>(ev.args);
 		if (t.sizeInBytes != sizeof(T)) ev.publisher.ThrowBadEvent(ev);
 		return t;
-	}
-
-	class EventMapBacking
-	{
-	public:
-		EventMapBacking();
-	private:
-		int64 backing[8] = { 0 };
-	};
-
-	class EventMap : private EventMapBacking
-	{
-	public:
-		EventMap();
-		~EventMap();
-
-		EventMapBacking& Backing() { return *this; }
-
-		void* Find(EventIdRef id);
-		bool TryAdd(EventIdRef id, void* ptr);
-	};
-
-	template<class HANDLER>
-	class MessageMap
-	{
-	public:
-		typedef void (HANDLER::* EventHandlerMethod)(EventArgs& ev);
-
-	private:
-		EventMap routingTable;
-
-	public:
-		MessageMap()
-		{
-
-		}
-
-		void Add(EventIdRef id, EventHandlerMethod method)
-		{
-			if (!routingTable.TryAdd(id, method))
-			{
-				Throw(0, "The routing table already had the method: %s", id.name);
-			}
-		}
-
-		void RouteEvent(HANDLER& handler, Event ev)
-		{
-			auto* methodVoid = routingTable.Find(ev.id);
-			if (methodVoid)
-			{
-				auto* method = reinterpret_cast<EventHandlerMethod>(methodVoid);
-				(handler.*method)(ev.args);
-			}
-		}
-	};
-}
-
-namespace Rococo
-{
-	inline Events::EventIdRef operator "" _event(cstr name, size_t len)
-	{
-		UNUSED(len);
-		return Events::EventIdRef{ name, 0 };
 	}
 }

@@ -28,6 +28,7 @@ namespace Rococo
         virtual bool GetBoolean(cstr variableName) = 0;
 		virtual int GetInteger(cstr variableName) = 0;
 		virtual void SetHintError(cstr variableName, cstr message) = 0;
+		virtual void SetSelectionHeight(cstr variableName, int heightPixels) = 0;
 
 		// Sets the enable state of a control. Pass (cstr) IDOK or (cstr) IDCANCEL to control termination button state
 		virtual void SetEnabled(bool isVisible, cstr controlName) = 0;

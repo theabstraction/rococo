@@ -142,6 +142,11 @@ namespace Rococo::Windows
 			ComboBox_SetCurSel(hWndComboBox, index);
 		}
 
+		void SetSelectionHeight(int pixels) override
+		{
+			ComboBox_SetItemHeight(hWndComboBox, -1, pixels);
+		}
+
 		bool GetString(int index, char* buffer, size_t capacity) override
 		{
 			int length = ComboBox_GetLBTextLen(hWndComboBox, index);

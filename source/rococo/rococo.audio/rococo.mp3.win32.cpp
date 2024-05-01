@@ -426,7 +426,7 @@ namespace AudioAnon
 
 		void StreamInputFile(cstr path) override
 		{
-			Format(nextMusicFile, "%s", path);
+			CopyString(nextMusicFile.buf, U8FilePath::CAPACITY, path);
 			nextIndex++;
 			
 			OS::WakeUp(*thread);

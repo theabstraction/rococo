@@ -232,6 +232,11 @@ namespace Rococo
 		Ref
 	};
 
+	namespace Events
+	{
+		class IPublisher;
+	}
+
 	namespace Windows
 	{
 		struct IWindow;

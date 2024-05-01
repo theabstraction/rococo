@@ -17,6 +17,9 @@ namespace Rococo::Editors
 		// Invoke VisitVenue on the venue using the internal property builder
 		virtual void BuildEditorsForProperties(Reflection::IPropertyVenue& venue) = 0;
 
+		// Delete all properties from the editor
+		virtual void Clear() = 0;
+
 		// Tells the UI system to attempt to validate and copy data from the visual editor for the specified property to the venue
 		virtual void UpdateFromVisuals(Reflection::IPropertyEditor& sourceEditor, Reflection::IPropertyVenue& targetVenue) = 0;
 
@@ -79,6 +82,9 @@ namespace Rococo::Editors
 
 	ROCOCO_INTERFACE IUI2DGridEvents
 	{
+		// Indicates the back button was released while the control had focus. Typically used to delete nodes
+		virtual void GridEvent_OnBackReleased() = 0;
+
 		// Triggered when the control wheel (such as the mouse wheel) rotates a definite number of clicks. 
 		// The buttonFlags is a combination of EKeyHeldFlags bits
 		virtual void GridEvent_OnControlWheelRotated(int32 clicks, uint32 buttonFlags, Vec2i cursorPosition) = 0;
@@ -131,7 +137,8 @@ namespace Rococo::Editors
 		virtual DesignerVec2 ScreenToWorld(Vec2i pixelPos) const = 0;
 		virtual DesignerVec2 ScreenDeltaToWorldDelta(Vec2i pixelDelta) const = 0;
 
-		// Retrieve the indices from the index buffer for the screen view
+		// Retrieve the indices from the index buffer for the screen view. 
+		// N.B the index buffer is separate from the colour buffer. The implementation, purpose and behaviour of the index buffer is dependent on the architecture and beyond the scope of documentation here.
 		virtual bool TryGetIndicesAt(Vec2i pixelPos, OUT RGBAb& indices) const = 0;
 	};
 
@@ -167,8 +174,8 @@ namespace Rococo::Editors
 		virtual Vec2i GetDesktopPositionFromGridPosition(Vec2i gridPosition) = 0;
 	};
 
-	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, IDesignSpace& designSpace);
-	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& designerRect, IDesignSpace& designSpace);
+	ROCOCO_WINDOWS_API GuiRect WorldToScreen(const DesignerRect& designerRect, const IDesignSpace& designSpace);
+	ROCOCO_WINDOWS_API DesignerRect ScreenToWorld(const GuiRect& designerRect, const IDesignSpace& designSpace);
 
 	ROCOCO_INTERFACE IUI2DGridSlateSupervisor : IUI2DGridSlate
 	{
@@ -184,6 +191,6 @@ namespace Rococo::Windows
 
 	// Create a properties editor window, hosted by the propertiesPanelArea. The host needs to respond to window events and invoke IUIPropertiesEditorSupervisor method appropriately
 	// An example is given in rococo.abstract.editor\abstract.editor.window.cpp
-	ROCOCO_WINDOWS_API Editors::IUIPropertiesEditorSupervisor* CreatePropertiesEditor(IParentWindowSupervisor& propertiesPanelArea);
+	ROCOCO_WINDOWS_API Editors::IUIPropertiesEditorSupervisor* CreatePropertiesEditor(IParentWindowSupervisor& propertiesPanelArea, Events::IPublisher& publisher);
 	ROCOCO_WINDOWS_API Editors::IUI2DGridSlateSupervisor* Create2DGrid(IParentWindowSupervisor& gridArea, uint32 style, Editors::IUI2DGridEvents& eventHandler, bool useDoubleBuffering);
 }

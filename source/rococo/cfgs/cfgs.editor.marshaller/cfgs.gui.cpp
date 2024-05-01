@@ -44,22 +44,6 @@ namespace Rococo::CFGS::Internal
 		}
 	}
 
-	RGBAb GetSocketColour(const ICFGSSocket& socket, bool isLit)
-	{
-		switch (socket.SocketClassification())
-		{
-		case SocketClass::Trigger:
-		case SocketClass::Exit:
-			return isLit ? RGBAb(0, 255, 0) : RGBAb(0, 192, 0);
-		case SocketClass::InputRef:
-		case SocketClass::InputVar:
-		case SocketClass::ConstInputRef:
-			return isLit ? RGBAb(0, 255, 255) : RGBAb(0, 192, 192);
-		default:
-			return isLit ? RGBAb(128, 128, 255) : RGBAb(96, 96, 192);
-		}
-	}
-
 	enum class RenderPhase
 	{
 		RGB,
@@ -118,21 +102,21 @@ namespace Rococo::CFGS::Internal
 			return npRect;
 		}
 
-		void ComputeLeftSocketGeometry(const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
+		void CacheLeftSocketGeometry(const ICFGSNode& node, ICFGSSocket& cacheTargetSocket, const IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
-			DesignerVec2 designerSocketTopLeft { designerParentRect.left, designerParentRect.top + yIndex * 20 };
-			Vec2i topLeft = designSpace.WorldToScreen(designerSocketTopLeft) + Vec2i{ 6, 30 };
-
 			int diameter = 20;
+
+			DesignerVec2 designerSocketTopLeft { designerParentRect.left, designerParentRect.top + yIndex * diameter };
+			Vec2i topLeft = designSpace.WorldToScreen(designerSocketTopLeft) + Vec2i{ 6, 30 };
 
 			GuiRect circleRect{ topLeft.x, topLeft.y, topLeft.x + diameter, topLeft.y + diameter };
 			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
 
 			Vec2i edgePoint = { parentRect.left, (circleRect.top + circleRect.bottom) / 2 };
-			socket.SetLastGeometry(circleRect, edgePoint);
+			cacheTargetSocket.SetLastGeometry(circleRect, edgePoint);
 		}
 
 		enum
@@ -155,9 +139,15 @@ namespace Rococo::CFGS::Internal
 			bool isLit = IsPointInRect(cursorPos, circleRect);
 
 			ShrinkRect(circleRect, 2);
-			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+			fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 
-			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
+			Colours colours = node.GetBackColours();
+
+			bool isParentLit = IsPointInRect(cursorPos, parentRect);
+
+			RGBAb backColour = isParentLit ? colours.hilight : colours.normal;
+
+			fgr.SetTextOptions(backColour, RGBAb(255, 255, 255, 255));
 
 			cstr name = socket.Name();
 
@@ -176,25 +166,28 @@ namespace Rococo::CFGS::Internal
 			if (socket.CableCount() > 0)
 			{
 				fgr.MoveLineStartTo(Centre(circleRect));
-				fgr.DrawLineTo({ parentRect.left, Centre(circleRect).y }, GetSocketColour(socket, false), 2);
+				fgr.DrawLineTo({ parentRect.left, Centre(circleRect).y }, socket.GetSocketColour(false), 2);
 
 				ShrinkRect(circleRect, 4);
-				fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+				fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 			}
 		}
 
-		void ComputeRightSocketGeometry(const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace, int yIndex)
+		void CacheRightSocketGeometry(const ICFGSNode& node, ICFGSSocket& cacheTargetSocket, const IDesignSpace& designSpace, int yIndex)
 		{
 			DesignerRect designerParentRect = node.GetDesignRectangle();
 			GuiRect parentRect = WorldToScreen(designerParentRect, designSpace);
 
-			int32 socketTop = parentRect.top + 30;
+			int diameter = 20;
 
-			GuiRect circleRect{ parentRect.right - 26, socketTop + yIndex * 20, parentRect.right - 6, socketTop + (yIndex + 1) * 20 };
+			DesignerVec2 designerSocketTopLeft{ designerParentRect.left, designerParentRect.top + yIndex * diameter };
+			Vec2i topLeft = designSpace.WorldToScreen(designerSocketTopLeft) + Vec2i{ 6, 30 };
+
+			GuiRect circleRect{ parentRect.right - 26, topLeft.y, parentRect.right - 6, topLeft.y + diameter };
 			GuiRect socketTextRect{ circleRect.right, circleRect.top, (parentRect.right + parentRect.left) / 2, circleRect.bottom };
 
 			Vec2i edgePoint = { parentRect.right, (circleRect.top + circleRect.bottom) / 2 };
-			socket.SetLastGeometry(circleRect, edgePoint);
+			cacheTargetSocket.SetLastGeometry(circleRect, edgePoint);
 		}
 
 		void RenderRightSocket(IFlatGuiRenderer& fgr, const ICFGSNode& node, const ICFGSSocket& socket, IDesignSpace& designSpace)
@@ -211,10 +204,16 @@ namespace Rococo::CFGS::Internal
 			Vec2i cursorPos = fgr.CursorPosition();
 			bool isLit = IsPointInRect(cursorPos, circleRect);
 
-			ShrinkRect(circleRect, 2);
-			fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+			bool isParentLit = IsPointInRect(cursorPos, parentRect);
 
-			fgr.SetTextOptions(RGBAb(0, 0, 0, 0), RGBAb(255, 255, 255, 255));
+			ShrinkRect(circleRect, 2);
+			fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
+
+			Colours colours = node.GetBackColours();
+
+			RGBAb backColour = isParentLit ? colours.hilight : colours.normal;
+
+			fgr.SetTextOptions(backColour, RGBAb(255, 255, 255, 255));
 
 			cstr name = socket.Name();
 
@@ -233,14 +232,14 @@ namespace Rococo::CFGS::Internal
 			if (socket.CableCount() > 0)
 			{
 				fgr.MoveLineStartTo(Centre(circleRect));
-				fgr.DrawLineTo({ parentRect.right, Centre(circleRect).y }, GetSocketColour(socket, false), 2);
+				fgr.DrawLineTo({ parentRect.right, Centre(circleRect).y }, socket.GetSocketColour(false), 2);
 
 				ShrinkRect(circleRect, 4);
-				fgr.DrawCircle(circleRect, GetSocketColour(socket, isLit), 2, RGBAb(0, 0, 0, 0));
+				fgr.DrawCircle(circleRect, socket.GetSocketColour(isLit), 2, RGBAb(0, 0, 0, 0));
 			}
 		}
 
-		void RenderSockets(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace)
+		void RenderSockets(IFlatGuiRenderer& fgr, ICFGSNode& node, IDesignSpace& designSpace)
 		{
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{				
@@ -256,7 +255,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		void ComputeSocketGeometry(const ICFGSNode& node, IDesignSpace& designSpace)
+		void ComputeSocketGeometry(ICFGSNode& node, IDesignSpace& designSpace)
 		{
 			int32 leftIndex = 0;
 			int32 rightIndex = 0;
@@ -266,16 +265,16 @@ namespace Rococo::CFGS::Internal
 				auto& socket = node[i];
 				if (IsLeftSide(socket))
 				{
-					ComputeLeftSocketGeometry(node, socket, designSpace, leftIndex++);
+					CacheLeftSocketGeometry(node, socket, designSpace, leftIndex++);
 				}
 				else
 				{
-					ComputeRightSocketGeometry(node, socket, designSpace, rightIndex++);
+					CacheRightSocketGeometry(node, socket, designSpace, rightIndex++);
 				}
 			}
 		}
 
-		bool TryGetSocketGeometry(const ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour, bool isLit)
+		bool TryGetSocketGeometry(ICFGSNode& node, SocketId socketId, OUT GuiRect& circleRect, OUT Vec2i& edgePoint, RGBAb& lineColour, bool isLit)
 		{
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{
@@ -283,7 +282,7 @@ namespace Rococo::CFGS::Internal
 				if (socket.Id() == socketId)
 				{
 					socket.GetLastGeometry(OUT circleRect, OUT edgePoint);
-					lineColour = GetSocketColour(socket, isLit);
+					lineColour = socket.GetSocketColour(isLit);
 					return circleRect.left < circleRect.right;
 				}
 			}
@@ -347,7 +346,7 @@ namespace Rococo::CFGS::Internal
 			return *buffer != 0;
 		}
 
-		void RenderNode(IFlatGuiRenderer& fgr, const ICFGSNode& node, IDesignSpace& designSpace, RenderPhase phase)
+		void RenderNode(IFlatGuiRenderer& fgr, ICFGSNode& node, IDesignSpace& designSpace, RenderPhase phase)
 		{
 			auto rect = node.GetDesignRectangle();
 			GuiRect nodeRect = WorldToScreen(rect, designSpace);
@@ -358,12 +357,21 @@ namespace Rococo::CFGS::Internal
 				return;
 			}
 
-			bool isLit = lastHoveredNode == node.UniqueId();
+			bool isLit = lastHoveredNode == node.Id();
 
 			ColourSchemeQuantum nodeRectColours;
 			node.Scheme().GetFillColours(OUT nodeRectColours);
 
+			Colours overrides = node.GetBackColours();
+
 			RGBAb backColour = isLit ? nodeRectColours.litColour : nodeRectColours.dullColour;
+
+			RGBAb overrideColour = isLit ? overrides.hilight : overrides.normal;
+
+			if (overrideColour.alpha > 0)
+			{
+				backColour = overrideColour;
+			}
 
 			ColourSchemeQuantum typeNameColours;
 			node.Scheme().GetTypeNameColours(OUT typeNameColours);
@@ -378,6 +386,15 @@ namespace Rococo::CFGS::Internal
 			node.Scheme().GetTypeNamePlateColours(OUT typeNamePlateColours);
 
 			RGBAb backPlateColour = isLit ? typeNamePlateColours.litColour : typeNamePlateColours.dullColour;
+
+			Colours nodeTabColours = node.GetTabColours();
+
+			RGBAb overridePlateColour = isLit ? nodeTabColours.hilight : nodeTabColours.normal;
+
+			if (overridePlateColour.alpha > 0)
+			{
+				backPlateColour = overridePlateColour;
+			}
 
 			fgr.SetTextOptions(backPlateColour, isLit ? typeNameColours.litColour : typeNameColours.dullColour);
 
@@ -428,7 +445,7 @@ namespace Rococo::CFGS::Internal
 			RenderSockets(fgr, node, designSpace);
 		}
 
-		void RenderCable(IFlatGuiRenderer& fgr, const ICFGSNode& start, SocketId startSocket, const ICFGSNode& end, SocketId endSocket, int cableIndex, RenderPhase phase, bool isLit)
+		void RenderCable(IFlatGuiRenderer& fgr, ICFGSNode& start, SocketId startSocket, ICFGSNode& end, SocketId endSocket, int cableIndex, RenderPhase phase, bool isLit)
 		{		
 			GuiRect circle;
 			RGBAb colour;
@@ -580,7 +597,7 @@ namespace Rococo::CFGS::Internal
 			}
 		}
 
-		bool OnCursorMove(Vec2i pixelPosition) override
+		WasHandled OnCursorMove(Vec2i pixelPosition) override
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
@@ -614,7 +631,7 @@ namespace Rococo::CFGS::Internal
 			const ICFGSNode* topMostNode = FindTopMostNodeContainingPoint(designerPos, f->Nodes());
 			if (topMostNode)
 			{
-				SetHovered(topMostNode->UniqueId());	
+				SetHovered(topMostNode->Id());	
 			}
 			else
 			{
@@ -624,7 +641,7 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		const ICFGSSocket* FindSocketAt(Vec2i screenPosition, const ICFGSNode& node) const
+		const ICFGSSocket* FindSocketAt(Vec2i screenPosition, ICFGSNode& node) const
 		{
 			for (int i = 0; i < node.SocketCount(); ++i)
 			{
@@ -645,7 +662,7 @@ namespace Rococo::CFGS::Internal
 		// Where the connection is anchored when placing a new cable
 		CableConnection connectionAnchor;
 
-		const ICFGSNode* FindNodeAt(Vec2i screenPosition)
+		ICFGSNode* FindNodeAt(Vec2i screenPosition)
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
@@ -704,7 +721,7 @@ namespace Rococo::CFGS::Internal
 			return nullptr;
 		}
 
-		bool OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) override
+		WasHandled OnLeftButtonDown(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(buttonFlags);
 
@@ -714,7 +731,7 @@ namespace Rococo::CFGS::Internal
 				return false;
 			}
 
-			const ICFGSNode* node = FindNodeAt(cursorPosition);
+			ICFGSNode* node = FindNodeAt(cursorPosition);
 
 			if (node)
 			{
@@ -723,13 +740,13 @@ namespace Rococo::CFGS::Internal
 				const ICFGSSocket* socket = FindSocketAt(cursorPosition, *node);
 				if (!socket)
 				{
-					dragId = node->UniqueId();
+					dragId = node->Id();
 					dragStart = cursorPosition;
 					return true;
 				}
 				else
 				{
-					connectionAnchor.node = node->UniqueId();
+					connectionAnchor.node = node->Id();
 					connectionAnchor.socket = socket->Id();
 					return true;
 				}
@@ -745,12 +762,45 @@ namespace Rococo::CFGS::Internal
 			return cable != nullptr;
 		}
 
-		bool OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
+		WasHandled OnLeftButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			auto* f = cfgs.CurrentFunction();
 			if (!f)
 			{
 				return false;
+			}
+
+			if (connectionAnchor.node)
+			{
+				ICFGSNode* entranceNode = FindNodeAt(cursorPosition);
+
+				if (entranceNode)
+				{
+					auto* entranceSocket = FindSocketAt(cursorPosition, *entranceNode);
+					if (entranceSocket)
+					{
+						bool isPermitted = eventHandler.CFGSGuiEventHandler_IsConnectionPermitted(connectionAnchor, *entranceSocket);
+						if (isPermitted)
+						{
+							f->Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->Id(), entranceSocket->Id());
+							f->ConnectCablesToSockets();
+						}
+					}
+				}
+				else
+				{
+					// Potentially we are dragging some cable that may imply a set of useful endpoints (such as an interface that implies a connection to a method).
+
+					CableDropped cableDrop;
+					cableDrop.functionId = f->Id();
+					cableDrop.anchor = connectionAnchor;
+					cableDrop.dropPoint = cursorPosition;
+					cableDrop.designPoint = designSpace.ScreenToWorld(cursorPosition);
+					eventHandler.CFGSGuiEventHandler_OnCableDropped(cableDrop);
+				}
+
+				connectionAnchor = CableConnection();
+				return true;
 			}
 
 			if (dragId)
@@ -763,6 +813,7 @@ namespace Rococo::CFGS::Internal
 				{
 					node->SetDesignOffset(designerDelta, true);					
 					eventHandler.CFGSGuiEventHandler_OnNodeDragged(dragId);
+					eventHandler.CFGSGuiEventHandler_OnNodeSelected(dragId);
 				}
 
 				dragId = NodeId();
@@ -770,27 +821,7 @@ namespace Rococo::CFGS::Internal
 				return true;
 			}
 
-			if (connectionAnchor.node)
-			{
-				const ICFGSNode* entranceNode = FindNodeAt(cursorPosition);
-
-				if (entranceNode)
-				{
-					auto* entranceSocket = FindSocketAt(cursorPosition, *entranceNode);
-					if (entranceSocket)
-					{
-						bool isPermitted = eventHandler.CFGSGuiEventHandler_IsConnectionPermitted(connectionAnchor, *entranceSocket);
-						if (isPermitted)
-						{
-							f->Cables().Add(connectionAnchor.node, connectionAnchor.socket, entranceNode->UniqueId(), entranceSocket->Id());
-							f->ConnectCablesToSockets();
-						}
-					}
-				}
-
-				connectionAnchor = CableConnection();
-				return true;
-			}
+			eventHandler.CFGSGuiEventHandler_OnNodeSelected(NodeId());
 
 			if (HasFlag(KEY_HELD_FLAG_CTRL, buttonFlags))
 			{
@@ -806,7 +837,7 @@ namespace Rococo::CFGS::Internal
 			return false;
 		}
 
-		bool OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition)override
+		WasHandled OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
 			UNUSED(buttonFlags);
 
@@ -843,25 +874,35 @@ namespace Rococo::CFGS::Internal
 
 #include <rococo.hashtable.h>
 
-static Rococo::stringmap<Rococo::CFGS::SocketClass> mapStringToClass;
+static Rococo::stringmap<Rococo::CFGS::SocketClass> mapStringToClass =
+{
+	{ "None", SocketClass::None },
+	{ "Trigger", SocketClass::Trigger },
+	{ "Exit", SocketClass::Exit },
+	{ "InputVar", SocketClass::InputVar },
+	{ "OutputValue", SocketClass::OutputValue },
+	{ "InputRef", SocketClass::InputRef },
+	{ "ConstInputRef", SocketClass::ConstInputRef },
+	{ "OutputRef", SocketClass::OutputRef },
+	{ "ConstOutputRef", SocketClass::ConstOutputRef }
+};
+
 static std::unordered_map<Rococo::CFGS::SocketClass,const char*> mapClassToString;
+
+static std::unordered_map<Rococo::CFGS::SocketPlacement, const char*> mapPlacementToString = 
+{
+	{ Rococo::CFGS::SocketPlacement::Left, "Left" },
+	{ Rococo::CFGS::SocketPlacement::Right, "Right" },
+	{ Rococo::CFGS::SocketPlacement::Top, "Top" },
+	{ Rococo::CFGS::SocketPlacement::Bottom, "Bottom" },
+};
 
 namespace Rococo::CFGS
 {
 	void PopulateSocketClass()
 	{
-		if (mapStringToClass.empty())
+		if (mapClassToString.empty())
 		{
-			mapStringToClass.insert("None", SocketClass::None);
-			mapStringToClass.insert("Trigger", SocketClass::Trigger);
-			mapStringToClass.insert("Exit", SocketClass::Exit);
-			mapStringToClass.insert("InputVar", SocketClass::InputVar);
-			mapStringToClass.insert("OutputValue", SocketClass::OutputValue);
-			mapStringToClass.insert("InputRef", SocketClass::InputRef);
-			mapStringToClass.insert("ConstInputRef", SocketClass::ConstInputRef);
-			mapStringToClass.insert("OutputRef", SocketClass::OutputRef);
-			mapStringToClass.insert("ConstOutputRef", SocketClass::ConstOutputRef);
-
 			for (auto& i : mapStringToClass)
 			{
 				mapClassToString[i.second] = i.first;
@@ -871,8 +912,6 @@ namespace Rococo::CFGS
 
 	CFGS_MARSHALLER_API bool TryParse(OUT SocketClass& sclass, cstr text)
 	{
-		PopulateSocketClass();
-
 		auto i = mapStringToClass.find(text);
 		if (i != mapStringToClass.end())
 		{
@@ -888,8 +927,6 @@ namespace Rococo::CFGS
 
 	CFGS_MARSHALLER_API cstr ToString(SocketClass sclass)
 	{
-		PopulateSocketClass();
-
 		auto i = mapClassToString.find(sclass);
 		if (i != mapClassToString.end())
 		{
@@ -897,13 +934,81 @@ namespace Rococo::CFGS
 		}
 		else
 		{
+			PopulateSocketClass();
+
+			i = mapClassToString.find(sclass);
+			if (i != mapClassToString.end())
+			{
+				return i->second;
+			}
+
 			Throw(0, "Unknown sclass: %d", (int32)sclass);
+		}
+	}
+
+	CFGS_MARSHALLER_API cstr ToString(SocketPlacement placement)
+	{
+		auto i = mapPlacementToString.find(placement);
+		if (i != mapPlacementToString.end())
+		{
+			return i->second;
+		}
+		else
+		{
+			Throw(0, "Unknown placement: %d", (int32)placement);
 		}
 	}
 
 	CFGS_MARSHALLER_API ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler)
 	{
 		return new Internal::CFGSGui(cfgs, designSpace, eventHandler);
+	}
+
+	CFGS_MARSHALLER_API bool IsInputClass(SocketClass x)
+	{
+		switch (x)
+		{
+		case SocketClass::ConstInputRef:
+		case SocketClass::InputRef:
+		case SocketClass::InputVar:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	CFGS_MARSHALLER_API bool IsOutputClass(SocketClass x)
+	{
+		switch (x)
+		{
+		case SocketClass::ConstOutputRef:
+		case SocketClass::OutputRef:
+		case SocketClass::OutputValue:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	CFGS_MARSHALLER_API SocketClass FlipInputOutputClass(SocketClass x)
+	{
+		switch (x)
+		{
+		case SocketClass::ConstInputRef:
+			return SocketClass::ConstOutputRef;
+		case SocketClass::ConstOutputRef:
+			return SocketClass::ConstInputRef;
+		case SocketClass::InputRef:
+			return SocketClass::OutputRef;
+		case SocketClass::OutputRef:
+			return SocketClass::InputRef;
+		case SocketClass::InputVar:
+			return SocketClass::OutputValue;
+		case SocketClass::OutputValue:
+			return SocketClass::InputVar;
+		default:
+			return SocketClass::None;
+		}
 	}
 }
 

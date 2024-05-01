@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.base.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.event.map.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.heap.string.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.observer.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.ex.cpp" />

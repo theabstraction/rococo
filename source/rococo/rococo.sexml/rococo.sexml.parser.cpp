@@ -755,7 +755,7 @@ namespace Rococo::Sex::SEXML
 				auto* a = FindAttributeByName(name);
 				if (!a)
 				{
-					Rococo::Sex::Throw(sDirective, "Cannot find attribute [%s]", name);
+					Rococo::Sex::Throw(sDirective, "Cannot find attribute [%s] in %s", name, FQName());
 				}
 				return *a;
 			}
@@ -926,7 +926,7 @@ namespace Rococo::Sex::SEXML
 		case Rococo::Sex::SEXML::SEXMLValueType::MixedStringList:
 			break;
 		default:
-			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list.");
+			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list. Expecting #List");
 		}
 
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringListValue&>(value);

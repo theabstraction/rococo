@@ -365,6 +365,18 @@ namespace
 			}
 		}
 
+		void SetSelectionHeight(cstr variableName, int heightPixels) override
+		{
+			for (VariableDesc& v : variables)
+			{
+				if (Eq(v.name, variableName))
+				{
+					v.ComboControl->SetSelectionHeight(heightPixels);
+					return;
+				}
+			}
+		}
+
 		void OnPretranslateMessage(MSG& msg) override
 		{
 			switch (msg.message)
@@ -1048,10 +1060,10 @@ namespace
 
 			GuiRect labelRect = GetDefaultLabelRect();
 			GuiRect comboRect = GetDefaultEditRect();
-			comboRect.bottom += 60;
+			comboRect.bottom += 180;
 
 			v.StaticControl = AddLabel(*tab, GetDefaultLabelRect(), variableName, (ControlId) -1, WS_VISIBLE | SS_RIGHT, 0);
-			v.ComboControl = AddComboBox(*tab, comboRect, editor, nextId++, WS_VISIBLE | CBS_SIMPLE | CBS_HASSTRINGS | CBS_DISABLENOSCROLL, 0, WS_EX_STATICEDGE);
+			v.ComboControl = AddComboBox(*tab, comboRect, editor, nextId++, WS_VISIBLE | WS_VSCROLL | CBS_SIMPLE | CBS_HASSTRINGS | CBS_DROPDOWNLIST, 0, WS_EX_STATICEDGE);
 			AddToolTip(*v.StaticControl, variableDesc);
 
 			StackStringBuilder sb(v.name, v.NAME_CAPACITY);

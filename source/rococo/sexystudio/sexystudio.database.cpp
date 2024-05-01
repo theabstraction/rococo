@@ -2906,6 +2906,34 @@ namespace ANON
 			}
 		}
 
+		const ISXYLocalType* ResolveLocalType(cstr sourceFile, cstr localTypeName) const override
+		{
+			if (sourceFile == nullptr)
+			{
+				Throw(0, "%s: [sourceFile] nullptr", __FUNCTION__);
+			}
+
+			if (localTypeName == nullptr)
+			{
+				Throw(0, "%s: [localTypeName] nullptr", __FUNCTION__);
+			}
+
+			auto i = filenameToFile.find(sourceFile);
+			if (i == filenameToFile.end())
+			{
+				return nullptr;
+			}
+
+			auto& file = i->second;
+			auto j = file->structures.find(localTypeName);
+			if (j == file->structures.end())
+			{
+				return nullptr;
+			}
+
+			return &j->second;
+		}
+
 		mutable stringmap<SxyPrimitive> nameToPrimitive;
 
 		const ISXYType* FindPrimitiveType(cstr typeName) const
@@ -2927,12 +2955,22 @@ namespace ANON
 		const ISXYType* FindPrimitiveOrFQType(cstr typeName) const override
 		{
 			auto* type = FindFQType(typeName);
-			if (type)
+			if (!type)
 			{
-				return type;
+				type = FindPrimitiveType(typeName);
+				if (!type)
+				{
+					auto dot = FindDot(typeName);
+					if (*dot == 0)
+					{
+						char sysType[256];
+						SafeFormat(sysType, "Sys.Type.%s", typeName);
+						type = FindFQType(sysType);
+					}
+				}
 			}
 
-			return FindPrimitiveType(typeName);
+			return type;
 		}
 
 		bool AreTypesEquivalent(Rococo::cstr a , Rococo::cstr b) const override
