@@ -72,7 +72,7 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE ICompileSection
 	{
-		virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData = nullptr) = 0;
+		virtual void Compile(ICodeBuilder & builder, IProgramObject & object, ControlFlowData * controlFlowData = nullptr) = 0;
 	};
 
 	ROCOCO_INTERFACE IArgumentBuilder : public IArgument
@@ -108,17 +108,17 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE IFunctionAliasBuilder : public IFunctionAlias
 	{
-		virtual IFunctionBuilder& GetFunction() = 0;
+		virtual IFunctionBuilder & GetFunction() = 0;
 	};
 
 	ROCOCO_INTERFACE IStructAliasBuilder : public IStructAlias
 	{
-		virtual IStructureBuilder& GetStructure() = 0;
+		virtual IStructureBuilder & GetStructure() = 0;
 	};
 
 	ROCOCO_INTERFACE IFunctionEnumeratorBuilder : public IFunctionEnumerator
 	{
-		virtual IFunctionAliasBuilder& operator[](int index) = 0;
+		virtual IFunctionAliasBuilder & operator[](int index) = 0;
 	};
 
 	SEXYUTIL_API IFunctionBuilder* FindByName(IFunctionEnumeratorBuilder& e, cstr publicName);
@@ -128,26 +128,26 @@ namespace Rococo::Compiler
 		virtual void Release(uint8 * pInstance) = 0;
 	};
 
-	ROCOCO_INTERFACE IMemberLifeSupervisor: IMemberLife
+	ROCOCO_INTERFACE IMemberLifeSupervisor : IMemberLife
 	{
 		virtual void Free() = 0;
 	};
-	
+
 	ROCOCO_INTERFACE IMemberBuilder : public IMember
 	{
-		virtual IStructureBuilder* UnderlyingType() = 0;
+		virtual IStructureBuilder * UnderlyingType() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg1Type() = 0;
 		virtual IStructureBuilder* UnderlyingGenericArg2Type() = 0;
 		virtual void SetLifeTimeManager(IMemberLife* life) = 0;
 		virtual void Release(uint8* pInstance) = 0;
 	};
-	
+
 	ROCOCO_INTERFACE IStructureBuilder : public IStructure
 	{
-        virtual void Free() = 0;
+		virtual void Free() = 0;
 		virtual IModuleBuilder& Module() = 0;
 		virtual void AddAttribute(const Rococo::Sex::ISExpression& sourceDef, bool isCustom) = 0;
-		virtual void AddInterface(cstr interfaceFullName) = 0;		
+		virtual void AddInterface(cstr interfaceFullName) = 0;
 		virtual IMemberBuilder& AddMember(const NameString& name, const TypeString& type, cstr genericArg1 = nullptr, cstr genericArg2 = nullptr) = 0;
 		virtual void AddInterfaceMember(const NameString& name, const TypeString& type) = 0;
 		virtual void Seal() = 0;
@@ -163,7 +163,7 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE IModuleBuilder : public IModule
 	{
-		virtual void ClearPrefixes() = 0;		
+		virtual void ClearPrefixes() = 0;
 		virtual void Clear() = 0;
 		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const Sex::ISExpression*) = 0;
 		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const Sex::ISExpression*) = 0;
@@ -185,28 +185,28 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE IInterfaceBuilder : public IInterface
 	{
-		virtual IAttributes& Attributes() = 0;
+		virtual IAttributes & Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
 		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const Sex::ISExpression*) = 0;
-		virtual void PostCompile() = 0;	
+		virtual void PostCompile() = 0;
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) = 0;
 	};
 
 	ROCOCO_INTERFACE IFactoryBuilder : public IFactory
 	{
-		virtual void SetInline(IFunctionBuilder* f, IStructureBuilder* s) = 0; // Used in the compilation phase to set the inline implementation for the factory
+		virtual void SetInline(IFunctionBuilder * f, IStructureBuilder * s) = 0; // Used in the compilation phase to set the inline implementation for the factory
 		virtual IFunctionBuilder& Constructor() = 0;
 		virtual IStructureBuilder* InlineClass() = 0; // if not NULL indicates the concrete class of the inline constructor
 	};
 
 	ROCOCO_INTERFACE IMacroBuilder : public IMacro
 	{
-		virtual IFunctionBuilder& Implementation() = 0;
+		virtual IFunctionBuilder & Implementation() = 0;
 	};
 
 	ROCOCO_INTERFACE INamespaceBuilder : public INamespace
 	{
-		virtual INamespaceBuilder* Parent() = 0;
+		virtual INamespaceBuilder * Parent() = 0;
 		virtual INamespaceBuilder& GetChild(size_t index) = 0;
 		virtual INamespaceBuilder* FindSubspace(cstr childName) = 0;
 		virtual INamespaceBuilder& AddNamespace(cstr childName, ADDNAMESPACEFLAGS flags) = 0;
@@ -217,7 +217,7 @@ namespace Rococo::Compiler
 		virtual void Alias(cstr publicName, IFunctionBuilder& f) = 0;
 		virtual void Clear() = 0;
 		virtual IInterfaceBuilder* DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base) = 0;
-		
+
 		virtual IInterfaceBuilder& GetInterface(int index) = 0;
 
 		virtual IArchetype* FindArchetype(cstr name) = 0;
@@ -245,14 +245,14 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE IProgramObject : public IPublicProgramObject
 	{
-		virtual IModuleBuilder& AddModule(cstr name) = 0;		
+		virtual IModuleBuilder & AddModule(cstr name) = 0;
 		virtual IModuleBuilder& GetModule(int index) = 0;
 		virtual INamespaceBuilder& GetRootNamespace() = 0;
 		virtual IModuleBuilder& IntrinsicModule() = 0;
 		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) = 0;
-		virtual void ResolveNativeTypes(const void** pSrcErr) = 0;		
+		virtual void ResolveNativeTypes(const void** pSrcErr) = 0;
 		virtual bool ResolveDefinitions(const void** pSrcErr) = 0;
-		virtual cstr RegisterSymbol(cstr text) = 0;		
+		virtual cstr RegisterSymbol(cstr text) = 0;
 		virtual CommonStructures& Common() = 0;
 		virtual void InitCommon() = 0;
 		virtual const CallbackIds& GetCallbackIds() const = 0;
@@ -289,20 +289,20 @@ namespace Rococo::Compiler
 	ROCOCO_INTERFACE IBinaryExpression
 	{
 		// Evaluate and put the result/reference into the target register.
-		virtual void EvaluateBranch(ICodeBuilder& builder, IProgramObject& object, int target) = 0;
+		virtual void EvaluateBranch(ICodeBuilder & builder, IProgramObject & object, int target) = 0;
 
-		// Get the left half of the expression. If NULL, then the expression is atomic
-		virtual IBinaryExpression* GetLeft() = 0;
+	// Get the left half of the expression. If NULL, then the expression is atomic
+	virtual IBinaryExpression* GetLeft() = 0;
 
-		// Get the right half of the expression. If NULL, then the expression is not binary
-		virtual IBinaryExpression* GetRight() = 0;		
+	// Get the right half of the expression. If NULL, then the expression is not binary
+	virtual IBinaryExpression* GetRight() = 0;
 	};
 
 	struct StackRecoveryData
 	{
 		int TotalDisplacement;
 		int InstancePosStart;
-		int InstancePosCount;	
+		int InstancePosCount;
 	};
 
 	struct GlobalValue
@@ -326,7 +326,7 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE ICodeBuilder : public IFunctionCode
 	{
-	  virtual void Free() = 0;
+	    virtual void Free() = 0;
 		virtual IFunctionBuilder& Owner() = 0;
 
 		virtual const bool NeedsParentsSF() const = 0;
@@ -348,6 +348,10 @@ namespace Rococo::Compiler
 		/* D4 = source, D5 = target
 		   if source and target are different, decrement target refcount and increment source refcount */
 		virtual void Append_UpdateRefsOnSourceAndTarget() = 0;
+
+		virtual void AddDestructors(size_t startPosition, size_t endPosition) = 0;
+
+		virtual size_t GetLabelPosition(cstr labelName) = 0;
 
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32),
 		   returns pointer to object in D4 (vPtr)
@@ -394,6 +398,9 @@ namespace Rococo::Compiler
 		virtual int GetOffset(size_t variableIndex) const = 0;
 		virtual void AssignClosureParentSFtoD6() = 0;
 
+		virtual void MarkGoto(size_t gotoPosition, cstr labelName) = 0;
+		virtual void MarkLabel(cstr labelName) = 0;
+
 		virtual void PopControlFlowPoint() = 0;
 		virtual void PushControlFlowPoint(const ControlFlowData& controlFlowData) = 0;
 		virtual bool TryGetControlFlowPoint(OUT ControlFlowData& data) = 0;
@@ -421,6 +428,8 @@ namespace Rococo::Compiler
 		// Hack: allow variables to be defined with zero size. To be used in conjunction with references that refer to variables created at compile time
 		// rather than at run-time. When the system sees a class instance named XXX and zero allocsize, it looks for _ref_XXX. The pseudo variable provides typeinfo.
 		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData) = 0;
+
+		virtual void PreventMoreVariablesUntil(cstr label) = 0;
 	};
 
 	SEXYUTIL_API IStructureBuilder* FindMember(IStructureBuilder& s, cstr name);

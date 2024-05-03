@@ -645,6 +645,8 @@ namespace Rococo
         void CompileContinue(CCompileEnvironment& ce, cr_sex s);
         void CompileDoWhile(CCompileEnvironment& ce, cr_sex s);
         void CompileForEach(CCompileEnvironment& ce, cr_sex s);
+        void CompileGoto(CCompileEnvironment& ce, cr_sex s);
+        void CompileLabel(CCompileEnvironment& ce, cr_sex s);
         void CompileArrayDeclaration(CCompileEnvironment& ce, cr_sex s);
         void CompileListDeclaration(CCompileEnvironment& ce, cr_sex s);
         void CompileMapDeclaration(CCompileEnvironment& ce, cr_sex s);

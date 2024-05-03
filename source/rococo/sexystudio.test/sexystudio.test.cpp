@@ -1514,10 +1514,8 @@ void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
 
-	TestShowTipForFunction();
-	return;
-
 	TestPromptForMacro();
+	TestShowTipForFunction();
 
 	TestPromptForMacro2();
 	TestPromptForMacro3();

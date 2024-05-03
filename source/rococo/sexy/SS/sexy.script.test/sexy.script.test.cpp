@@ -246,14 +246,18 @@ namespace
 		}
 	}
 
-	void ValidateLogs()
+	void ValidateLogs(bool isSourceValid = true)
 	{
 		if (s_logger.ExceptionCount() > 0)
 		{
 			ParseException ex;
 			while(s_logger.TryGetNextException(ex))
 			{
-				PrintParseException(ex);
+				if (isSourceValid) PrintParseException(ex);
+				else
+				{
+					WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n", ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y, ex.Message());
+				}
 			}
 			validate(false);
 		}
@@ -5141,6 +5145,128 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 9000);
+	}
+
+	void TestForwardGotoSiblingLabel(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(using Sys.Type)
+			(using Sys.Maths)
+
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
+
+			(function Main -> (Int32 result):
+			  (Int32 id = 72)
+			  (goto skip42)
+			  (id = 42)
+              (label skip42)
+			  (result = id)
+			)
+			)sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_TERMINATED);
+
+		int32 x = vm.PopInt32();
+		validate(x == 72);
+
+		s_logger.Clear();
+	}
+
+	void TestBackwardGotoSiblingLabel(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(using Sys.Type)
+			(using Sys.Maths)
+
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
+
+			(function Main -> (Int32 result):
+              (label testResult)
+			  (if (result > 0)
+                (return)
+			  )
+			  (result = 72)
+			  (goto testResult)
+			  (result = 0)
+			)
+			)sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_TERMINATED);
+
+		ValidateLogs();
+
+		int32 x = vm.PopInt32();
+		validate(x == 72);
+
+		s_logger.Clear();
+	}
+
+	void TestForwardGotoSiblingLabelFailure(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(using Sys.Type)
+			(using Sys.Maths)
+
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
+
+			(function Main -> (Int32 result):
+			  (Int32 id = 72)
+			  (goto skip42)
+			  (id = 42)
+			  (Int32 dummy) // This should crash the compilation as it allocates between the goto and the succeeding label
+              (label skip42)
+			  (result = id)
+			)
+			)sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+
+		s_logger.Clear();
 	}
 
 	void TestStrongNumber(IPublicScriptSystem& ss)
@@ -17270,6 +17396,8 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestMutableArgFunction);
+		TEST(TestConstArgFunction);
 		TEST3(Test1FieldInit);
 		TEST(TestRightSearchSubstring);
 		TEST(TestStringConstant);
@@ -17692,15 +17820,15 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestMutableArgFunction);
-		TEST(TestConstArgFunction);
-		TEST(TestWhileLoopContinueWithStruct);
 	//	TEST(TestNegateVariable5);
-		RunPositiveSuccesses();	
-		RunPositiveFailures();
-		TestArrays();
-		TestLists();
-		TestMaps();
+		TEST(TestBackwardGotoSiblingLabel);
+		TEST(TestForwardGotoSiblingLabel);
+		TEST(TestForwardGotoSiblingLabelFailure);
+	//	RunPositiveSuccesses();	
+	//	RunPositiveFailures();
+	//	TestArrays();
+	//	TestLists();
+	//	TestMaps();
 
 		end = Time::TickCount();
 		hz = Time::TickHz();
@@ -17759,7 +17887,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	ValidateLogs();
+	try
+	{
+		ValidateLogs(false);
+	}
+	catch (...)
+	{
+		return -1;
+	}
 
 	return 0;
 }

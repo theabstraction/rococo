@@ -43,6 +43,7 @@
 using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::Parse;
+using namespace Rococo::Sex;
 
 namespace Rococo
 {
@@ -194,6 +195,7 @@ namespace Anon
 	typedef TSexyVector<int> TSectionStack;
 	typedef TSexyHashMap<size_t,SymbolValue> TPCSymbols;
 	typedef TSexyVector<const IStructure*> TTypeVector;
+	typedef TSexyStringMap<int> TOutstandingLabels;
 
 	class CodeBuilder: public ICodeBuilder
 	{
@@ -224,6 +226,10 @@ namespace Anon
 		TVariables variables;
 		TVariables expiredVariables;
 		TControlStack controlStack;
+
+		TOutstandingLabels outstandingLabels;
+
+		TSexyStringMap<size_t> mapLabelToPosition;
 		
 		Variable* TryGetVariableByName(cstr name, OUT int32& offsetCorrect);		
 		const Variable* TryGetVariableByName(cstr name, OUT int32& offsetCorrect) const;
@@ -238,6 +244,8 @@ namespace Anon
 		int AddVariableToVariables(Variable* v);
 
 		int nextId;
+
+		TSexyHashMap<size_t, cstr, std::hash<size_t>, std::equal_to<size_t>> mapGotoStatementsToLabels;
 	public:
 		CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF);
 		~CodeBuilder(void);
@@ -254,55 +262,60 @@ namespace Anon
 
 		virtual IFunctionBuilder& Owner() { return f; }
 		virtual const IFunction& Owner() const { return f; }
-		virtual void AddExpression(IBinaryExpression& tree);
-		virtual void Begin();
-		virtual void EnterSection();
-		virtual void Append_DecRef();
-		virtual void Append_IncRef();
-		virtual void Append_IncDerivativeRefs(cstr value);
-		virtual void Append_GetAllocSize();
-		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData);
-		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData);
-		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData);
-		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData);
-		virtual void AssignLiteral(const NameString& name, cstr valueLiteral);
-		virtual void AssignPointer(const NameString& name, const void* ptr);
-		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget);
-		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection);
-		virtual void AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth);
-		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset);
-		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def);
-		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def);
-		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value);
-		virtual void AssignTempToVariable(int srcIndex, cstr target);
-		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type);
-		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type);
-		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type);
-		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type);
-		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection);
-		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition);
-		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection);
-		virtual void Append_UpdateRefsOnSourceAndTarget();
-		virtual void LeaveSection();
-		virtual void End();
-		virtual VARTYPE GetVarType(cstr name) const;
-		virtual const IStructure* GetVarStructure(cstr name) const;
-		virtual void AssignClosureParentSFtoD6();
-		virtual void EnableClosures(cstr targetVariable);
-		virtual void Free() { delete this; }
-		virtual bool TryGetVariableByName(OUT MemberDef& def, cstr name) const;
-		virtual int GetVariableCount() const;
-		virtual void GetVariableByIndex(OUT MemberDef& def, cstr& name, int index) const;
-		virtual void PopControlFlowPoint();
-		virtual void PushControlFlowPoint(const ControlFlowData& controlFlowData);
-		virtual bool TryGetControlFlowPoint(OUT ControlFlowData& data);
-		virtual const bool NeedsParentsSF() const { return codeReferencesParentsSF; }
+		virtual void AddExpression(IBinaryExpression& tree) override;
+		virtual void AddDestructors(size_t startPosition, size_t endPosition) override;
+		virtual size_t GetLabelPosition(cstr labelName) override;
+		virtual void MarkGoto(size_t gotoPosition, cstr labelName) override;
+		virtual void MarkLabel(cstr labelName) override;
+		virtual void PreventMoreVariablesUntil(cstr label) override;
+		virtual void Begin() override;
+		virtual void EnterSection() override;
+		virtual void Append_DecRef()  override;
+		virtual void Append_IncRef() override;
+		virtual void Append_IncDerivativeRefs(cstr value) override;
+		virtual void Append_GetAllocSize() override;
+		virtual void AddVariable(const NameString& name, const TypeString& type, void* userData) override;
+		virtual void AddVariable(const NameString& name, const IStructure& type, void* userData) override;
+		virtual void AddVariableRef(const NameString& name, const IStructure& type, void* userData) override;
+		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData) override;
+		virtual void AssignLiteral(const NameString& name, cstr valueLiteral) override;
+		virtual void AssignPointer(const NameString& name, const void* ptr) override;
+		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget) override;
+		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection) override;
+		virtual void AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth) override;
+		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset) override;
+		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) override;
+		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) override;
+		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) override;
+		virtual void AssignTempToVariable(int srcIndex, cstr target) override;
+		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type) override;
+		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type) override;
+		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) override;
+		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) override;
+		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection) override;
+		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition) override;
+		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection) override;
+		virtual void Append_UpdateRefsOnSourceAndTarget()  override;
+		virtual void LeaveSection()  override;
+		virtual void End()  override;
+		virtual VARTYPE GetVarType(cstr name) const  override;
+		virtual const IStructure* GetVarStructure(cstr name) const  override;
+		virtual void AssignClosureParentSFtoD6() override;
+		virtual void EnableClosures(cstr targetVariable) override;
+		virtual void Free() override { delete this; }
+		virtual bool TryGetVariableByName(OUT MemberDef& def, cstr name) const override;
+		virtual int GetVariableCount() const override;
+		virtual void GetVariableByIndex(OUT MemberDef& def, cstr& name, int index) const override;
+		virtual void PopControlFlowPoint() override;
+		virtual void PushControlFlowPoint(const ControlFlowData& controlFlowData) override;
+		virtual bool TryGetControlFlowPoint(OUT ControlFlowData& data) override;
+		virtual const bool NeedsParentsSF() const override { return codeReferencesParentsSF; }
 
-		virtual void PopLastVariables(int count, bool expireVariables);
-		virtual const StackRecoveryData& GetRequiredStackCorrection(size_t codeOffset) const;
-		virtual void NoteStackCorrection(int stackCorrection);
-		virtual void NoteDestructorPosition(int instancePosition, const IStructure& type);
-		virtual int GetDestructorFromInstancePos(int instancePosition) const
+		virtual void PopLastVariables(int count, bool expireVariables) override;
+		virtual const StackRecoveryData& GetRequiredStackCorrection(size_t codeOffset) const override;
+		virtual void NoteStackCorrection(int stackCorrection) override;
+		virtual void NoteDestructorPosition(int instancePosition, const IStructure& type) override;
+		virtual int GetDestructorFromInstancePos(int instancePosition) const override
 		{
 			if (instancePosition < 0 || instancePosition >= (int) destructorPositions.size())
 			{
@@ -310,30 +323,30 @@ namespace Anon
 			}
 			return destructorPositions[instancePosition]; 
 		}
-		virtual const IStructure& GetTypeFromInstancePos(int instancePosition) const { return *posToType[instancePosition]; }
+		virtual const IStructure& GetTypeFromInstancePos(int instancePosition) const override { return *posToType[instancePosition]; }
 
-		virtual void AddSymbol(cstr text);
-		virtual void MarkExpression(const void* sourceExpression);
-		virtual void DeleteSymbols();
-		virtual SymbolValue GetSymbol(size_t pcAddressOffset) const;
+		virtual void AddSymbol(cstr text) override;
+		virtual void MarkExpression(const void* sourceExpression) override;
+		virtual void DeleteSymbols() override;
+		virtual SymbolValue GetSymbol(size_t pcAddressOffset) const override;
 
-		virtual int GetLocalVariableSymbolCount() const;
-		virtual void GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT cstr& name, IN int index) const;
-		virtual bool GetLocalVariableSymbolByName(OUT MemberDef& def, OUT cstr name, IN size_t pcAddress) const;
+		virtual int GetLocalVariableSymbolCount() const override;
+		virtual void GetLocalVariableSymbolByIndex(OUT MemberDef& def, OUT cstr& name, IN int index) const override;
+		virtual bool GetLocalVariableSymbolByName(OUT MemberDef& def, OUT cstr name, IN size_t pcAddress) const override;
 
-		virtual void PushVariable(const MemberDef& def);
-		virtual void PushVariableRef(cstr source, int interfaceIndex);
+		virtual void PushVariable(const MemberDef& def) override;
+		virtual void PushVariableRef(cstr source, int interfaceIndex) override;
 
-		virtual int GetOffset(size_t argIndex) const;
+		virtual int GetOffset(size_t argIndex) const override;
 
-		virtual int GetThisOffset() const;
-		virtual void SetThisOffset(int offset);
+		virtual int GetThisOffset() const override;
+		virtual void SetThisOffset(int offset) override;
 
-		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData);
-		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData);
-		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData);
+		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData) override;
+		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData) override;
+		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) override;
 
-		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface);
+		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface) override;
 
 		bool TryAssignClassInterfaceToInterface(cstr source, cstr target, const IStructure* srcType, const IStructure*trgType);
 	};
@@ -1371,6 +1384,103 @@ namespace Anon
 		AssignClosureParentSFtoD6();
 	}
 
+	void AddDestructor(CodeBuilder& cb, Variable& v)
+	{
+		Throw(0, "Not implemented");
+	}
+
+	void CodeBuilder::AddDestructors(size_t startPosition, size_t endPosition)
+	{
+		int64 startIndex = INT64_MAX;
+		int64 lastIndex = -1LL;
+
+		for (int64 i = 0; i < (int64) variables.size(); i++)
+		{
+			auto& v = variables[i];
+			size_t pos = v->PCStart();
+			if (pos > startPosition && pos < endPosition)
+			{
+				startIndex = min(startIndex, i);
+				lastIndex = max(lastIndex, i);
+			}
+		}
+
+		for (int64 i = lastIndex; i >= startIndex; i--)
+		{
+			AddDestructor(*this, *variables[i]);
+		}
+	}
+
+	size_t CodeBuilder::GetLabelPosition(cstr labelName)
+	{
+		auto i = mapLabelToPosition.find(labelName);
+		if (i == mapLabelToPosition.end())
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "Label [%s] was not found prior to its reference", labelName);
+		}
+
+		return i->second;
+	}
+
+	void CodeBuilder::MarkGoto(size_t gotoPosition, cstr labelName)
+	{
+		// [gotoPosition] is the bytecode address from the start of the function of our (goto <labelName>) expression
+		// [labelName] is the name of a succeeding (never preceding) label (label <labelName>). Assumes the [labelName] pointer is valid for the lifetime of the CodeBuilder
+
+		mapGotoStatementsToLabels[gotoPosition] = labelName;
+	}
+
+	int32 Diff(cstr src, size_t gotoPosition, size_t labelPosition)
+	{
+		int64 a = (int64)gotoPosition;
+		int64 b = (int64)labelPosition;
+		int64 c = a - b;
+		if (c < (int64)INT_MIN || c >(int64) INT_MAX)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, src, "Offset too large, reduce function size");
+		}
+
+		return (int32)c;
+	}
+
+	void CodeBuilder::MarkLabel(cstr labelName)
+	{
+		size_t labelWritePosition = assembler->WritePosition();
+
+		if (!mapLabelToPosition.insert(labelName, labelWritePosition).second)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "duplicate label: %s", labelName);
+		}
+
+		// The label is no longer outstanding, if it was ever so, so remove it from the map:
+		auto i = outstandingLabels.find(labelName);
+		if (i != outstandingLabels.end())
+		{
+			outstandingLabels.erase(i);
+		}
+
+		// for each (goto <labelName>) set the program counter displacement to point to the labelWritePosition
+		for (auto g : mapGotoStatementsToLabels)
+		{
+			if (Eq(g.second, labelName))
+			{
+				int32 PCOffset = Diff(__FUNCTION__, labelWritePosition, g.first);
+				assembler->SetWriteModeToOverwrite(g.first);
+				assembler->Append_Branch(PCOffset);
+			}
+		}
+
+		assembler->SetWriteModeToAppend();
+
+		assembler->Append_NoOperation();
+	}
+
+	void CodeBuilder::PreventMoreVariablesUntil(cstr label)
+	{
+		// Appending variables to the code builder suspended until outstandingLabels is empty(). This prevents gotos from circumventing variable initialization. 
+		outstandingLabels.insert(label, 0);
+	}
+
 	void CodeBuilder::End()
 	{
 		sectionIndex--;
@@ -1452,6 +1562,11 @@ namespace Anon
 
 	void CodeBuilder::AddVariable(const Rococo::Compiler::NameString& name, const Rococo::Compiler::TypeString& type, void* userData)
 	{
+		if (!outstandingLabels.empty())
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr) outstandingLabels.begin()->first);
+		}
+
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variable [%s] already defined in this scope", name.c_str());
@@ -1480,6 +1595,11 @@ namespace Anon
 
 	void CodeBuilder::AddInterfaceVariable(const NameString& name, const IStructure& type, void* userData)
 	{
+		if (!outstandingLabels.empty())
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr)outstandingLabels.begin()->first);
+		}
+
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variable [%s] already defined in this scope", name.c_str());
@@ -1501,6 +1621,11 @@ namespace Anon
 
 	void CodeBuilder::AddVariable(const Rococo::Compiler::NameString& name, const IStructure& type, void* userData)
 	{
+		if (!outstandingLabels.empty())
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr)outstandingLabels.begin()->first);
+		}
+
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Variable [%s] already defined in this scope"), name.c_str());

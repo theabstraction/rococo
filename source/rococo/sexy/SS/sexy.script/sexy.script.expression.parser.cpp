@@ -2995,6 +2995,8 @@ namespace Rococo
 				map["debug"] = CompileTrip;
 				map["serialize"] = CompileSerialize;
 				map["reflect"] = CompileReflect;
+				map["goto"] = CompileGoto;
+				map["label"] = CompileLabel;
 			}
 
 			auto i = functionMap->find(token->Buffer);

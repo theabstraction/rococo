@@ -480,5 +480,134 @@ namespace Rococo
             AppendDeconstruct(ce, s, true);
             ce.Builder.LeaveSection();
         }
+
+        bool IsLabel(cr_sex s, cstr labelText)
+        {
+            if (s.NumberOfElements() == 2)
+            {
+                cr_sex sDirective = s[0];
+                cr_sex sArg = s[1];
+
+                if (IsAtomic(sDirective) && IsAtomic(sArg))
+                {
+                    if (Eq(sDirective.c_str(), "label"))
+                    {
+                        cstr labelArg = sArg.c_str();
+                        if (Eq(labelArg, labelText))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        int32 FindLabelIndexFromChildrenWithoutDescent(cr_sex s, cstr labelText)
+        {
+            for (int32 i = 0; i < s.NumberOfElements(); i++)
+            {
+                cr_sex sChild = s[i];
+                if (sChild.NumberOfElements() == 2)
+                {
+                    if (IsLabel(sChild, labelText))
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        inline int32 Diff(cr_sex s, size_t posA, size_t posB)
+        {
+            int64 a = (int64)posA;
+            int64 b = (int64)posB;
+            int64 delta = a - b;
+            if (delta < (int64)INT_MIN || delta > (int64) INT_MAX)
+            {
+                Throw(s, "Unexpected diff length. Do not use gigabyte length functions.");
+            }
+            return (int32)delta;
+        }
+
+        void CompileGoto(CCompileEnvironment& ce, cr_sex s)
+        {
+            if (s.NumberOfElements() != 2 || !IsAtomic(s[1]))
+            {
+                Throw(s, "Expecting two atomic elements (goto <label>). Where <label> is a camel-case string defined in either a sibling or parent of the expression containing the goto statement.");
+            }
+
+            cr_sex sLabel = s[1];
+
+            cstr labelName = sLabel.c_str();
+
+            AssertLocalIdentifier(sLabel);
+
+            cr_sex sParent = *s.Parent();
+
+            int32 gotoIndex = sParent.GetIndexOf(s);
+
+            int32 labelIndex = FindLabelIndexFromChildrenWithoutDescent(sParent, labelName);
+
+            if (labelIndex == -1)
+            {
+                Throw(s, "(label %s) was not a sibling expression of the (goto %s) expression", labelName, labelName);
+            }
+
+            try
+            {
+                if (labelIndex > gotoIndex)
+                {
+                    size_t gotoPosition = ce.Builder.Assembler().WritePosition();
+                    ce.Builder.PreventMoreVariablesUntil(labelName);
+                    ce.Builder.Assembler().Append_Branch(0); // This will get overwritten with label delta
+                    ce.Builder.MarkGoto(gotoPosition, labelName);
+                }
+                else
+                {
+                    size_t gotoCleanupPosition = ce.Builder.Assembler().WritePosition();
+                    size_t labelPosition = ce.Builder.GetLabelPosition(labelName);
+                    ce.Builder.AddDestructors(labelPosition, gotoCleanupPosition);
+                    int32 delta = Diff(s, labelPosition, gotoCleanupPosition);
+                    ce.Builder.Assembler().Append_Branch(delta);
+                }
+            }
+            catch (ParseException&)
+            {
+                throw;
+            }
+            catch (IException& ex)
+            {
+                Throw(s, "%s", ex.Message());
+            }
+        }
+
+        void CompileLabel(CCompileEnvironment& ce, cr_sex s)
+        {
+            if (s.NumberOfElements() != 2 || !IsAtomic(s[1]))
+            {
+                Throw(s, "Expecting two atomic elements (label <labelName>). Where <labelName> is a camel-case string");
+            }
+
+            cr_sex sLabel = s[1];
+
+            cstr labelName = sLabel.c_str();
+
+            AssertLocalIdentifier(sLabel);
+
+            try
+            {
+                ce.Builder.MarkLabel(labelName);
+            }
+            catch (IException& ex)
+            {
+                Throw(sLabel, "(label %s) failed to compile: %s", labelName,  ex.Message());
+            }
+
+            AddSymbol(ce.Builder, "(label %s)", labelName);
+        }
     }//Script
 }//Sexy
