@@ -362,6 +362,7 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSIntegratedDevelopmentEnvironment
 	{
+		virtual void Compile() = 0;
 		virtual [[nodiscard]] ICFGSIDENavigation& Navigation() = 0;
 		virtual [[nodiscard]] ICFGSDesignerSpacePopup& DesignerSpacePopup() = 0;
 		virtual [[nodiscard]] bool IsConnectionPermitted(const Rococo::CFGS::CableConnection& anchor, const Rococo::CFGS::ICFGSSocket& target) const = 0;

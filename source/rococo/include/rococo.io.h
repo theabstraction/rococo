@@ -101,6 +101,7 @@ namespace Rococo::IO
 	ROCOCO_API bool IsDirectory(cstr filename);
 	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text);
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
 	ROCOCO_API bool IsFileExistant(const char* path);
 	ROCOCO_API bool IsFileExistant(const wchar_t* path);

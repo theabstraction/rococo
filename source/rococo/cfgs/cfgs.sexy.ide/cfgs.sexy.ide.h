@@ -54,4 +54,6 @@ namespace Rococo::CFGS
 	{
 		virtual void ShowInterface(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition, const SexyStudio::ISXYInterface& refInterface, const SexyStudio::ISxyNamespace& ns, const CableDropped& dropInfo) = 0;
 	};
+
+	void Compile(Rococo::SexyStudio::ISexyDatabase& db, CFGS::ICFGSDatabase& cfgs);
 }

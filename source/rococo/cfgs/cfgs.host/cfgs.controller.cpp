@@ -205,6 +205,7 @@ namespace ANON
 			Load,
 			Save,
 			SaveAs,
+			Compile,
 			Exit
 		};
 
@@ -249,12 +250,14 @@ namespace ANON
 			ide = Create_CFGS_IDE(*editor, *db, *publisher, *this);
 
 			auto& mainMenu = editor->Menu();
-			auto & filePopup = mainMenu.AddPopup("&File");
+			auto& filePopup = mainMenu.AddPopup("&File");
+			auto& buildPopup = mainMenu.AddPopup("&Build");
 			filePopup.AddString("&New", (int32)MenuItem::New);
 			filePopup.AddString("&Load...", (int32)MenuItem::Load);
 			filePopup.AddString("&Save", (int32)MenuItem::Save);
 			filePopup.AddString("&Save As...", (int32)MenuItem::SaveAs);
 			filePopup.AddString("E&xit", (int32)MenuItem::Exit);
+			buildPopup.AddString("C&ompile", (int32)MenuItem::Compile);
 
 			editor->BringToFront();
 
@@ -287,6 +290,9 @@ namespace ANON
 					break;
 				case MenuItem::Exit:
 					OnRequestToClose(*args.sender);
+					break;
+				case MenuItem::Compile:
+					ide->Compile();
 					break;
 				default:
 					OnContextMenuItemSelected(args.menuId, *args.sender);

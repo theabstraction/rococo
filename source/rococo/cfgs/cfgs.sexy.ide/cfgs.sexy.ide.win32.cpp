@@ -301,6 +301,18 @@ namespace ANON
 			delete this;
 		}
 
+		void Compile() override
+		{
+			try
+			{
+				Rococo::CFGS::Compile(core->db, core->cfgs);
+			}
+			catch (IException& ex)
+			{
+				ShowErrorBox(editor.Window(), ex, CONFIG_SECTION);
+			}
+		}
+
 		bool IsConnectionPermitted(const CableConnection& anchor, const ICFGSSocket& target) const override
 		{
 			return Rococo::CFGS::IsConnectionPermitted(anchor, target, cfgs, core->db);

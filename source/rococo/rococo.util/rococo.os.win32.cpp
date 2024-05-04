@@ -2556,6 +2556,13 @@ namespace Rococo::IO
 		}
 	}
 
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		SaveAsciiTextFile(target, wPath, text);
+	}
+
 	ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname)
 	{
 		wchar_t* userDocPath;
