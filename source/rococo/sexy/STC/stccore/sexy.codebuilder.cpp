@@ -712,13 +712,13 @@ namespace Anon
 		return false;
 	}
 
-	void PopInterface(CodeBuilder& builder, cstr name)
+	void ReleaseInterface(CodeBuilder& builder, cstr name)
 	{
 		builder.AssignVariableToTemp(name, 0, 0);
 		builder.Append_DecRef();
 	}
 
-	void PopMembers(CodeBuilder& builder, const IStructure* s, cstr name)
+	void ReleaseMembers(CodeBuilder& builder, const IStructure* s, cstr name)
 	{
 		if (!s) return; // Primitive type
 
@@ -731,11 +731,11 @@ namespace Anon
 
 			if (m.IsInterfaceVariable())
 			{
-				PopInterface(builder, fullname);
+				ReleaseInterface(builder, fullname);
 			}
 			else
 			{
-				PopMembers(builder, m.UnderlyingType(), fullname);
+				ReleaseMembers(builder, m.UnderlyingType(), fullname);
 			}
 		}
 	}
@@ -773,7 +773,7 @@ namespace Anon
 			}
 			else if (v->ResolvedType().VarType() == VARTYPE_Derivative && v->Usage() == ARGUMENTUSAGE_BYVALUE)
 			{
-				PopMembers(*this, &v->ResolvedType(), v->Name());
+				ReleaseMembers(*this, &v->ResolvedType(), v->Name());
 			}
 
 			if (expireVariables)
@@ -1384,11 +1384,6 @@ namespace Anon
 		AssignClosureParentSFtoD6();
 	}
 
-	void AddDestructor(CodeBuilder& cb, Variable& v)
-	{
-		Throw(0, "Not implemented");
-	}
-
 	void CodeBuilder::AddDestructors(size_t startPosition, size_t endPosition)
 	{
 		int64 startIndex = INT64_MAX;
@@ -1405,10 +1400,48 @@ namespace Anon
 			}
 		}
 
+		int32 bytesToFree = 0;
+
 		for (int64 i = lastIndex; i >= startIndex; i--)
 		{
-			AddDestructor(*this, *variables[i]);
+			auto& v = *variables[i];
+
+			int vOffset = v.Offset();
+
+			if (vOffset < 0) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Serious algorithmic error in compile. An attempt was made to deconstruct an argument to a function inside the function");
+
+			if (v.Location() != VARLOCATION_OUTPUT && v.ResolvedType().InterfaceCount() > 0)
+			{
+				if (v.ResolvedType().Name()[0] == '_')
+				{
+					AssignVariableToTemp(v.Name(), 0, 0);
+					Append_DecRef();
+				}
+			}
+			else if (v.ResolvedType().VarType() == VARTYPE_Derivative && v.Usage() == ARGUMENTUSAGE_BYVALUE)
+			{
+				ReleaseMembers(*this, &v.ResolvedType(), v.Name());
+			}
+
+			int tempDepth = v.TempDepthOnRelease();
+			if (tempDepth >= 0)
+			{
+				if (bytesToFree > 0)
+				{
+					Assembler().Append_StackAlloc(-bytesToFree);
+					bytesToFree = 0;
+				}
+
+				BITCOUNT bits = v.ResolvedType().SizeOfStruct() == 4 ? BITCOUNT_32 : BITCOUNT_64;
+				Assembler().Append_RestoreRegister((VM::DINDEX)tempDepth + VM::REGISTER_D4, bits);
+			}
+			else
+			{
+				bytesToFree += v.AllocSize();
+			}
 		}
+
+		Assembler().Append_StackAlloc(-bytesToFree);
 	}
 
 	size_t CodeBuilder::GetLabelPosition(cstr labelName)

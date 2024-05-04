@@ -571,7 +571,8 @@ namespace Rococo
                     size_t gotoCleanupPosition = ce.Builder.Assembler().WritePosition();
                     size_t labelPosition = ce.Builder.GetLabelPosition(labelName);
                     ce.Builder.AddDestructors(labelPosition, gotoCleanupPosition);
-                    int32 delta = Diff(s, labelPosition, gotoCleanupPosition);
+                    size_t gotoBranchPosition = ce.Builder.Assembler().WritePosition();
+                    int32 delta = Diff(s, labelPosition, gotoBranchPosition);
                     ce.Builder.Assembler().Append_Branch(delta);
                 }
             }
@@ -600,14 +601,13 @@ namespace Rococo
 
             try
             {
+                AddSymbol(ce.Builder, "(label %s)", labelName);
                 ce.Builder.MarkLabel(labelName);
             }
             catch (IException& ex)
             {
                 Throw(sLabel, "(label %s) failed to compile: %s", labelName,  ex.Message());
             }
-
-            AddSymbol(ce.Builder, "(label %s)", labelName);
         }
     }//Script
 }//Sexy
