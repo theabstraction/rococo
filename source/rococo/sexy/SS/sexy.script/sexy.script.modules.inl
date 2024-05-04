@@ -1515,11 +1515,11 @@ namespace Rococo::Script
 			 return;
 		}
 
-		int mapIndex = GetIndexOf(2, fdef, ("->"));
-		if (mapIndex == -1) Throw(fdef, ("Expecting mapping token '->' inside the function definition"));
+		int mapIndex = GetIndexOf(2, fdef, "->");
+		if (mapIndex == -1) Throw(fdef, "Expecting mapping token '->' inside the function definition");
 
-		int bodyIndex = GetIndexOf(mapIndex, fdef, (":"));
-		if (bodyIndex == -1) Throw(fdef, ("Expecting body indicator token ':' after the mapping token and inside the function definition"));
+		int bodyIndex = GetIndexOf(mapIndex, fdef, ":");
+		if (bodyIndex == -1) Throw(fdef, "Expecting body indicator token ':' after the mapping token and inside the function definition");
 
 		ICodeBuilder& builder = f.Builder();
 		
@@ -1532,11 +1532,23 @@ namespace Rococo::Script
 		
 		builder.Begin();
 
-			CCompileEnvironment ce(script, builder);
-			CompileSetOutputToNull(REF f);
-			CompileTransformableExpressionSequence(ce, bodyIndex+1, fdef);
+		CCompileEnvironment ce(script, builder);
 
-		builder.End();
+		try
+		{
+			CompileSetOutputToNull(REF f);
+			CompileTransformableExpressionSequence(ce, bodyIndex + 1, fdef);
+
+			builder.End();
+		}
+		catch (ParseException&)
+		{
+			throw;
+		}
+		catch (IException& ex)
+		{
+			Throw(fdef, "%s", ex.Message());
+		}
 
 #ifdef _DEBUG
 		if (Rococo::OS::IsDebugging())

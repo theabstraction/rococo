@@ -195,7 +195,13 @@ namespace Anon
 	typedef TSexyVector<int> TSectionStack;
 	typedef TSexyHashMap<size_t,SymbolValue> TPCSymbols;
 	typedef TSexyVector<const IStructure*> TTypeVector;
-	typedef TSexyStringMap<int> TOutstandingLabels;
+
+	struct OutstandingLabel
+	{
+		cstr labelName;
+		int32 sectionIndex;
+	};
+	typedef std::vector<OutstandingLabel> TOutstandingLabels;
 
 	class CodeBuilder: public ICodeBuilder
 	{
@@ -1492,12 +1498,29 @@ namespace Anon
 			Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "duplicate label: %s", labelName);
 		}
 
-		// The label is no longer outstanding, if it was ever so, so remove it from the map:
-		auto i = outstandingLabels.find(labelName);
-		if (i != outstandingLabels.end())
+		for (auto i = outstandingLabels.begin(); i != outstandingLabels.end(); i++)
 		{
-			outstandingLabels.erase(i);
+			if (Eq(i->labelName, labelName))
+			{
+				if (i->sectionIndex >= sectionIndex)
+				{
+					i->labelName = nullptr;
+				}
+				else
+				{
+					Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "Label %s was nested too deeply out of scope of the previous goto statement", labelName);
+				}
+			}
 		}
+
+		auto firstRemovedItem = std::remove_if(outstandingLabels.begin(), outstandingLabels.end(),
+			[](const OutstandingLabel& label)
+			{
+				return label.labelName == nullptr;
+			}
+		);
+
+		outstandingLabels.erase(firstRemovedItem, outstandingLabels.end());
 
 		// for each (goto <labelName>) set the program counter displacement to point to the labelWritePosition. Anything that maps is stripped from the list, so that 
 		// at the end of the function the map should be empty, as all labels have been resolved
@@ -1527,7 +1550,10 @@ namespace Anon
 	void CodeBuilder::PreventMoreVariablesUntil(cstr label)
 	{
 		// Appending variables to the code builder suspended until outstandingLabels is empty(). This prevents gotos from circumventing variable initialization. 
-		outstandingLabels.insert(label, 0);
+		OutstandingLabel x;
+		x.labelName = label;
+		x.sectionIndex = sectionIndex;
+		outstandingLabels.push_back(x);
 	}
 
 	void CodeBuilder::End()
@@ -1540,7 +1566,7 @@ namespace Anon
 
 		if (!mapGotoStatementsToLabels.empty())
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unmatched goto statement. Expecting label %s", mapGotoStatementsToLabels.begin()->second);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unmatched goto statement. Expecting label %s in either a sibling or ancestor of the goto statement", mapGotoStatementsToLabels.begin()->second);
 		}
 
 		int endOfTemps = 0;
@@ -1618,7 +1644,7 @@ namespace Anon
 	{
 		if (!outstandingLabels.empty())
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr) outstandingLabels.begin()->first);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr) outstandingLabels.begin()->labelName);
 		}
 
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
@@ -1651,7 +1677,7 @@ namespace Anon
 	{
 		if (!outstandingLabels.empty())
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr)outstandingLabels.begin()->first);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr)outstandingLabels.begin()->labelName);
 		}
 
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
@@ -1677,7 +1703,7 @@ namespace Anon
 	{
 		if (!outstandingLabels.empty())
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr)outstandingLabels.begin()->first);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Variables cannot be added between the previous goto expression and the label %s. The jump would circumvent the variable definition", (cstr)outstandingLabels.begin()->labelName);
 		}
 
 		if (IsVariableDefinedAtLevel(sectionIndex, name.c_str()))
@@ -2950,6 +2976,13 @@ namespace Anon
 		}
 
 		sectionIndex--;
+
+		for (auto& label : outstandingLabels)
+		{
+			// Once we leave a section that contained the goto statement, we are only permitted to search for labels in the ancestors and not other sections with the same depth
+			label.sectionIndex = min(label.sectionIndex, sectionIndex);
+		}
+
 		if (sectionIndex < 0)
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Section closed without a corresponding open");

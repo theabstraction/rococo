@@ -5187,6 +5187,45 @@ R"((namespace EntryPoint)
 		s_logger.Clear();
 	}
 
+	void TestForwardGotoSiblingLabelWithFailure(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(using Sys.Type)
+			(using Sys.Maths)
+
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
+
+			(function Main -> (Int32 result):
+			  (Int32 id = 72)
+			  (goto skip42)
+			  (id = 42)
+              (
+                    (label skip42)
+              )
+			  (result = id)
+			)
+			)sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+
+		s_logger.Clear();
+	}
+
 	void TestBackwardGotoSiblingLabel(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = R"sexy(
@@ -5319,6 +5358,98 @@ R"((namespace EntryPoint)
 
 		int32 x = vm.PopInt32();
 		validate(x == 5);
+
+		s_logger.Clear();
+	}
+
+	void TestBackwardGotoParentLabelWithCleanup(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(using Sys.Type)
+			(using Sys.Maths)
+
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
+
+			(function Main -> (Int32 result):
+              (Int32 x)
+              (label testResult)
+              (Int32 y)
+              (if (result > 0)
+                (Int32 z)
+                (return)
+              )
+			  (Int32 w)
+			  (result = 5)
+			  (if (result > 0)
+                (Int32 p)
+                (goto testResult)
+              )
+
+			  (Int32 q)
+			)
+			)sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_TERMINATED);
+
+		ValidateLogs();
+
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+
+		s_logger.Clear();
+	}
+
+	void TestBackwardGotoParentLabelWithFailure(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(using Sys.Type)
+			(using Sys.Maths)
+
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
+
+			(function Main -> (Int32 result):
+              (if (result > 0)
+                (label testResult) // the label is neither a sibling nor an ancestor of the goto statement below, so is prohibited
+                (return)
+              )
+			  (result = 5)
+			  (if (result > 0)
+                (goto testResult)
+              )
+			)
+			)sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
 
 		s_logger.Clear();
 	}
@@ -17907,22 +18038,29 @@ R"(
 		TEST(TestTypeInference1);
 	}
 
-	void RunTests()
+	void RunGotoTests()
 	{
-		int64 start, end, hz;
-		start = Time::TickCount();
-
-	//	TEST(TestNegateVariable5);
+		TEST(TestForwardGotoSiblingLabelWithFailure);
+		TEST(TestBackwardGotoParentLabelWithCleanup);
+		TEST(TestBackwardGotoParentLabelWithFailure);
 		TEST(TestBackwardGotoParentLabel);
 		TEST(TestBackwardGotoSiblingLabelWithCleanup);
 		TEST(TestBackwardGotoSiblingLabel);
 		TEST(TestForwardGotoSiblingLabel);
 		TEST(TestForwardGotoSiblingLabelFailure);
-	//	RunPositiveSuccesses();	
-	//	RunPositiveFailures();
-	//	TestArrays();
-	//	TestLists();
-	//	TestMaps();
+	}
+
+	void RunTests()
+	{
+		int64 start, end, hz;
+		start = Time::TickCount();
+
+		RunPositiveSuccesses();	
+		RunGotoTests();
+		RunPositiveFailures();
+		TestArrays();
+		TestLists();
+		TestMaps();
 
 		end = Time::TickCount();
 		hz = Time::TickHz();
