@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs-to-sexy.compiler.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.popup.sexy.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.gui.cpp" />
     <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.win32.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs-to-sexy.compiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.h" />

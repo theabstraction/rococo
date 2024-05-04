@@ -14,13 +14,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ECS", "ECS", "{CA3EF6C8-5EF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RAL", "RAL", "{9A64C4C0-C38F-6714-8A58-018765228342}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.compiler", "projects\dx11.hlsl.compiler_vs2022_win64.vcxproj", "{BB332028-215F-B71A-24CB-0B2A1B19388C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cfgs.sexy.cli", "projects\cfgs.sexy.cli_vs2022_win64.vcxproj", "{3B265A4A-47FF-B18A-E7A8-5142F41CA5FB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cfgs.editor.marshaller", "projects\cfgs.editor.marshaller_vs2022_win64.vcxproj", "{07130163-03D6-1F17-9EEB-8CEDD52F2E07}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cfgs.host", "projects\cfgs.host_vs2022_win64.vcxproj", "{BDB227D6-3A10-ABED-5214-43BD62E86BE4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cfgs.sexy.ide", "projects\cfgs.sexy.ide_vs2022_win64.vcxproj", "{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.compiler", "projects\dx11.hlsl.compiler_vs2022_win64.vcxproj", "{BB332028-215F-B71A-24CB-0B2A1B19388C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.monitor", "projects\dx11.hlsl.monitor_vs2022_win64.vcxproj", "{41BB5607-981C-BB79-CF71-93BF8A7E969F}"
 EndProject
@@ -173,10 +175,10 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.ActiveCfg = Debug|x64
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.Build.0 = Debug|x64
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.ActiveCfg = Release|x64
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.Build.0 = Release|x64
+		{3B265A4A-47FF-B18A-E7A8-5142F41CA5FB}.Debug|x64.ActiveCfg = Debug|x64
+		{3B265A4A-47FF-B18A-E7A8-5142F41CA5FB}.Debug|x64.Build.0 = Debug|x64
+		{3B265A4A-47FF-B18A-E7A8-5142F41CA5FB}.Release|x64.ActiveCfg = Release|x64
+		{3B265A4A-47FF-B18A-E7A8-5142F41CA5FB}.Release|x64.Build.0 = Release|x64
 		{07130163-03D6-1F17-9EEB-8CEDD52F2E07}.Debug|x64.ActiveCfg = Debug|x64
 		{07130163-03D6-1F17-9EEB-8CEDD52F2E07}.Debug|x64.Build.0 = Debug|x64
 		{07130163-03D6-1F17-9EEB-8CEDD52F2E07}.Release|x64.ActiveCfg = Release|x64
@@ -189,6 +191,10 @@ Global
 		{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}.Debug|x64.Build.0 = Debug|x64
 		{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}.Release|x64.ActiveCfg = Release|x64
 		{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}.Release|x64.Build.0 = Release|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.ActiveCfg = Debug|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.Build.0 = Debug|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.ActiveCfg = Release|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.Build.0 = Release|x64
 		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.ActiveCfg = Debug|x64
 		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.Build.0 = Debug|x64
 		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Release|x64.ActiveCfg = Release|x64
@@ -426,6 +432,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{3B265A4A-47FF-B18A-E7A8-5142F41CA5FB} = {CECC448C-869E-0026-D89A-3F660E2392D5}
 		{07130163-03D6-1F17-9EEB-8CEDD52F2E07} = {CECC448C-869E-0026-D89A-3F660E2392D5}
 		{BDB227D6-3A10-ABED-5214-43BD62E86BE4} = {CECC448C-869E-0026-D89A-3F660E2392D5}
 		{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA} = {CECC448C-869E-0026-D89A-3F660E2392D5}

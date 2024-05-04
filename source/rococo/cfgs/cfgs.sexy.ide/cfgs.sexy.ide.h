@@ -56,4 +56,10 @@ namespace Rococo::CFGS
 	};
 
 	void Compile(Rococo::SexyStudio::ISexyDatabase& db, CFGS::ICFGSDatabase& cfgs);
+
+	ROCOCO_INTERFACE ICFGSSexyCLI
+	{
+		virtual void Compile() = 0;
+		virtual void Free() = 0;
+	};
 }
