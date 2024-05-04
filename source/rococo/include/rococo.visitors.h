@@ -122,6 +122,15 @@ namespace Rococo
 	{
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 	};
+
+	namespace Windows
+	{
+		ROCOCO_INTERFACE IMenuBuilder
+		{
+			virtual IMenuBuilder & AddPopup(cstr name) = 0; // Returns the popup with the given name, or creates a new one if it was not found
+			virtual void AddString(cstr name, uint64 id, cstr keyCmd = nullptr) = 0;
+		};
+	}
 }
 
 #endif // Rococo_VISITORS_H

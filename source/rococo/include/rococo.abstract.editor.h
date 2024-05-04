@@ -57,6 +57,7 @@ namespace Rococo::Abedit
 		virtual [[nodiscard]] Editors::IUIPropertiesEditor& Properties() = 0;
 		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
 		virtual [[nodiscard]] Windows::IWindow& ContainerWindow() = 0;
+		virtual [[nodiscard]] Windows::IMenuBuilder& Menu() = 0;
 		virtual void RefreshSlate() = 0;
 		virtual void SetNavigationHandler(Visitors::ITreeControlHandler* handler) = 0;
 	};
@@ -75,17 +76,20 @@ namespace Rococo::Abedit
 		virtual void Hide() = 0;
 		virtual [[nodiscard]] bool IsVisible() const = 0;
 		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
+		virtual [[nodiscard]] Windows::IMenuBuilder& MenuBuilder() = 0;
 		virtual void SetNavigationEventHandler(Visitors::ITreeControlHandler* handler) = 0;
+	};
+
+	struct AbeditMenuEvent : Events::EventArgs
+	{
+		uint16 menuId;
+		IAbeditMainWindow* sender;
 	};
 
 	ROCOCO_INTERFACE IAbstractEditorMainWindowEventHandler
 	{
 		virtual void GetErrorTitle(char* titleBuffer, size_t capacity) const = 0;
-		virtual void OnContextMenuItemSelected(uint16 cmdId, IAbeditMainWindow& sender) = 0;
 		virtual void OnRequestToClose(IAbeditMainWindow& sender) = 0;
-		virtual void OnSelectFileToSave(IAbeditMainWindow& sender) = 0;
-		virtual void OnSelectFileToLoad(IAbeditMainWindow& sender) = 0;
-		virtual void OnSelectSave(IAbeditMainWindow& sender) = 0;
 		virtual void OnSlateResized() = 0;
 	};
 

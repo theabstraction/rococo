@@ -563,15 +563,6 @@ namespace ANON
 
 		Rococo::Events::IPublisher& publisher;
 
-		enum class MenuItem: uint16
-		{
-			New = 3500,
-			Load,
-			Save,
-			SaveAs,
-			Exit
-		};
-
 		AbeditMainWindow(IAbstractEditorMainWindowEventHandler& _eventHandler, Rococo::Events::IPublisher& _publisher) : eventHandler(_eventHandler), window(nullptr), propertiesPanel(nullptr), publisher(_publisher)
 		{
 			mainMenu = Windows::CreateMenu(false);
@@ -633,13 +624,6 @@ namespace ANON
 			if (sessionConfig.defaultPosLeft < 0) topLeft.x = CW_USEDEFAULT;
 			if (sessionConfig.defaultPosTop < 0) topLeft.y = CW_USEDEFAULT;
 
-			auto& filePopup = mainMenu->AddPopup("&File");
-			filePopup.AddString("&New", (int32)MenuItem::New);
-			filePopup.AddString("&Load...", (int32)MenuItem::Load);
-			filePopup.AddString("&Save", (int32)MenuItem::Save);
-			filePopup.AddString("&Save As...", (int32)MenuItem::SaveAs);
-			filePopup.AddString("E&xit", (int32)MenuItem::Exit);
-
 			WindowConfig config;
 			Rococo::Windows::SetOverlappedWindowConfig(config, topLeft, span, hParentWnd, "Rococo Abstract Editor", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, sessionConfig.slateHasMenu ? *mainMenu : (HMENU) nullptr);
 			window = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
@@ -688,6 +672,11 @@ namespace ANON
 			return m;
 		}
 
+		IMenuBuilder& MenuBuilder()
+		{
+			return *mainMenu;
+		}
+
 		void Free()
 		{
 			delete this;
@@ -695,28 +684,13 @@ namespace ANON
 
 		void OnMenuSelected(uint16 id)
 		{
-			auto item = static_cast<MenuItem>(id);
+			AbeditMenuEvent ev;
+			ev.menuId = id;
+			ev.sender = this;
 
 			try
 			{
-				switch (item)
-				{
-				case MenuItem::Load:
-					eventHandler.OnSelectFileToLoad(*this);
-					break;
-				case MenuItem::Save:
-					eventHandler.OnSelectSave(*this);
-					break;
-				case MenuItem::SaveAs:
-					eventHandler.OnSelectFileToSave(*this);
-					break;
-				case MenuItem::Exit:
-					eventHandler.OnRequestToClose(*this);
-					break;
-				default:
-					eventHandler.OnContextMenuItemSelected(id, *this);
-					break;
-				}
+				publisher.Publish(ev, "AbeditMenuSelected"_event);
 			}
 			catch (IException& ex)
 			{

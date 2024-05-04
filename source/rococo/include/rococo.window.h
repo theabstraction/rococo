@@ -79,11 +79,9 @@ namespace Rococo
 		ROCOCO_WINDOWS_API void SetControlFont(HWND hControlWindow); // Sets the font of the window to the default control font specified in InitRococoWindows
 		ROCOCO_WINDOWS_API void SetTitleFont(HWND hTitleBar);  // Sets the font of the window to the default title font specified in InitRococoWindows
 
-		ROCOCO_INTERFACE IWin32Menu
+		ROCOCO_INTERFACE IWin32Menu: IMenuBuilder
 		{
 			virtual operator HMENU () = 0;
-			virtual IWin32Menu& AddPopup(cstr name) = 0; // Returns the popup with the given name, or creates a new one if it was not found
-			virtual void AddString(cstr name, UINT_PTR id, cstr keyCmd = nullptr) = 0;
 			virtual void Free() = 0;
 		};
 

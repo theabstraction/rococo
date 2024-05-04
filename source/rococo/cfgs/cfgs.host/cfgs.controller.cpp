@@ -23,6 +23,7 @@ using namespace Rococo::Editors;
 using namespace Rococo::Sex;
 using namespace Rococo::Sex::SEXML;
 using namespace Rococo::CFGS;
+using namespace Rococo::Events;
 
 namespace Rococo::CFGS
 {
@@ -181,7 +182,9 @@ namespace ANON
 		}
 	};
 
-	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, ICFGSGuiEventHandler, ICFGArchiver, ICFGSLoader, ICFGSControllerConfig
+	static auto evMenu = "AbeditMenuSelected"_event;
+
+	struct CFGS_Controller: IMVC_ControllerSupervisor, IAbstractEditorMainWindowEventHandler, IPropertyVenue, IPropertyUIEvents, IUI2DGridEvents, ICFGSGuiEventHandler, ICFGArchiver, ICFGSLoader, ICFGSControllerConfig, Events::IObserver
 	{
 		AutoFree<Rococo::Events::IPublisherSupervisor> publisher;
 		AutoFree<IAbstractEditorSupervisor> editor;
@@ -195,6 +198,15 @@ namespace ANON
 		bool isRunning = true;
 
 		Element element;
+
+		enum class MenuItem : uint16
+		{
+			New = 3500,
+			Load,
+			Save,
+			SaveAs,
+			Exit
+		};
 
 		CFGS_Controller(IMVC_Host& _host, IMVC_View& view, cstr _commandLine): publisher(Events::CreatePublisher())
 		{
@@ -236,7 +248,51 @@ namespace ANON
 
 			ide = Create_CFGS_IDE(*editor, *db, *publisher, *this);
 
+			auto& mainMenu = editor->Menu();
+			auto & filePopup = mainMenu.AddPopup("&File");
+			filePopup.AddString("&New", (int32)MenuItem::New);
+			filePopup.AddString("&Load...", (int32)MenuItem::Load);
+			filePopup.AddString("&Save", (int32)MenuItem::Save);
+			filePopup.AddString("&Save As...", (int32)MenuItem::SaveAs);
+			filePopup.AddString("E&xit", (int32)MenuItem::Exit);
+
 			editor->BringToFront();
+
+			publisher->Subscribe(this, evMenu);
+		}
+
+		virtual ~CFGS_Controller()
+		{
+			publisher->Unsubscribe(this);
+		}
+
+		void OnEvent(Event& ev) override
+		{
+			if (ev == evMenu)
+			{
+				auto& args = As<Abedit::AbeditMenuEvent>(ev);
+
+				auto item = static_cast<MenuItem>(args.menuId);
+
+				switch (item)
+				{
+				case MenuItem::Load:
+					OnSelectFileToLoad(*args.sender);
+					break;
+				case MenuItem::Save:
+					OnSelectSave(*args.sender);
+					break;
+				case MenuItem::SaveAs:
+					OnSelectFileToSave(*args.sender);
+					break;
+				case MenuItem::Exit:
+					OnRequestToClose(*args.sender);
+					break;
+				default:
+					OnContextMenuItemSelected(args.menuId, *args.sender);
+					break;
+				}
+			}
 		}
 
 		void VisitVenue(IPropertyVisitor& visitor) override
@@ -489,7 +545,7 @@ namespace ANON
 			}
 		}
 
-		void OnSelectFileToLoad(IAbeditMainWindow& sender) override
+		void OnSelectFileToLoad(IAbeditMainWindow& sender)
 		{
 			UNUSED(sender);
 
@@ -500,7 +556,7 @@ namespace ANON
 			}
 		}
 
-		void OnSelectFileToSave(IAbeditMainWindow& sender) override
+		void OnSelectFileToSave(IAbeditMainWindow& sender)
 		{
 			UNUSED(sender);
 
@@ -534,7 +590,7 @@ namespace ANON
 			}
 		}
 
-		void OnSelectSave(IAbeditMainWindow& sender) override
+		void OnSelectSave(IAbeditMainWindow& sender)
 		{
 			UNUSED(sender);
 
@@ -582,7 +638,7 @@ namespace ANON
 			ide->Navigation().LoadNavigation(directive);
 		}
 
-		void OnContextMenuItemSelected(uint16 id, Rococo::Abedit::IAbeditMainWindow& sender) override
+		void OnContextMenuItemSelected(uint16 id, Rococo::Abedit::IAbeditMainWindow& sender)
 		{
 			UNUSED(sender);
 			bool wasHandled = ide->Navigation().TryHandleContextMenuItem(id);

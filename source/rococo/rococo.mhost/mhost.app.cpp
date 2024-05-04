@@ -515,6 +515,8 @@ namespace MHost
 			{
 				return ID_SUBSYSTEM(id & 0xFFFFFFFF);
 			}
+
+			return ID_SUBSYSTEM::Invalid();
 		}
 
 		void AppendToMenuRecursive(Rococo::Gui::IGRWidgetMainFrame& frame, Rococo::Gui::GRMenuItemId parentMenu, ISubsystem& subsystem, ID_SUBSYSTEM id)

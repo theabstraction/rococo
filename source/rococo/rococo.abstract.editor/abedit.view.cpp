@@ -48,6 +48,11 @@ namespace ANON
 			return mainWindow->Handle();
 		}
 
+		Windows::IMenuBuilder& Menu() override
+		{
+			return mainWindow->MenuBuilder();
+		}
+
 		void RefreshSlate() override
 		{
 			InvalidateRect(mainWindow->SlateWindow(), NULL, FALSE);
