@@ -5278,6 +5278,51 @@ R"((namespace EntryPoint)
 		s_logger.Clear();
 	}
 
+	void TestBackwardGotoParentLabel(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"sexy(
+			(using Sys.Type)
+			(using Sys.Maths)
+
+			(namespace EntryPoint)
+			 (alias Main EntryPoint.Main)
+
+			(function Main -> (Int32 result):
+              (label testResult)
+              (if (result > 0)
+                (return)
+              )
+			  (result = 5)
+			  (if (result > 0)
+                (goto testResult)
+              )
+			)
+			)sexy";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		ss.AddTree(tree());
+		ss.Compile();
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		VM::IVirtualMachine& vm = ss.PublicProgramObject().VirtualMachine();
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_TERMINATED);
+
+		ValidateLogs();
+
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+
+		s_logger.Clear();
+	}
+
 	void TestForwardGotoSiblingLabelFailure(IPublicScriptSystem& ss)
 	{
 		cstr srcCode = R"sexy(
@@ -17868,6 +17913,7 @@ R"(
 		start = Time::TickCount();
 
 	//	TEST(TestNegateVariable5);
+		TEST(TestBackwardGotoParentLabel);
 		TEST(TestBackwardGotoSiblingLabelWithCleanup);
 		TEST(TestBackwardGotoSiblingLabel);
 		TEST(TestForwardGotoSiblingLabel);

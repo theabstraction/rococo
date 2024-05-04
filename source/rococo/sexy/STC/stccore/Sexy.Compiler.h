@@ -351,6 +351,7 @@ namespace Rococo::Compiler
 
 		virtual void AddDestructors(size_t startPosition, size_t endPosition) = 0;
 
+		// Finds the program counter delta for the label position. Returns (size_t) -1 if no label has been identified to the end point of the current compilation state
 		virtual size_t GetLabelPosition(cstr labelName) = 0;
 
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32),

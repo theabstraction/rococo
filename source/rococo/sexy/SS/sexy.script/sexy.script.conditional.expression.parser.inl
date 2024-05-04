@@ -504,23 +504,6 @@ namespace Rococo
             return false;
         }
 
-        int32 FindLabelIndexFromChildrenWithoutDescent(cr_sex s, cstr labelText)
-        {
-            for (int32 i = 0; i < s.NumberOfElements(); i++)
-            {
-                cr_sex sChild = s[i];
-                if (sChild.NumberOfElements() == 2)
-                {
-                    if (IsLabel(sChild, labelText))
-                    {
-                        return i;
-                    }
-                }
-            }
-
-            return -1;
-        }
-
         inline int32 Diff(cr_sex s, size_t posA, size_t posB)
         {
             int64 a = (int64)posA;
@@ -537,7 +520,7 @@ namespace Rococo
         {
             if (s.NumberOfElements() != 2 || !IsAtomic(s[1]))
             {
-                Throw(s, "Expecting two atomic elements (goto <label>). Where <label> is a camel-case string defined in either a sibling or parent of the expression containing the goto statement.");
+                Throw(s, "Expecting two atomic elements (goto <label>). Where <label> is a camel-case string defined in either a sibling or ancestor of the expression containing the goto statement.");
             }
 
             cr_sex sLabel = s[1];
@@ -548,18 +531,11 @@ namespace Rococo
 
             cr_sex sParent = *s.Parent();
 
-            int32 gotoIndex = sParent.GetIndexOf(s);
-
-            int32 labelIndex = FindLabelIndexFromChildrenWithoutDescent(sParent, labelName);
-
-            if (labelIndex == -1)
-            {
-                Throw(s, "(label %s) was not a sibling expression of the (goto %s) expression", labelName, labelName);
-            }
+            size_t labelPosition = ce.Builder.GetLabelPosition(labelName);
 
             try
             {
-                if (labelIndex > gotoIndex)
+                if (labelPosition == (size_t) -1LL)
                 {
                     size_t gotoPosition = ce.Builder.Assembler().WritePosition();
                     ce.Builder.PreventMoreVariablesUntil(labelName);
@@ -569,7 +545,6 @@ namespace Rococo
                 else
                 {
                     size_t gotoCleanupPosition = ce.Builder.Assembler().WritePosition();
-                    size_t labelPosition = ce.Builder.GetLabelPosition(labelName);
                     ce.Builder.AddDestructors(labelPosition, gotoCleanupPosition);
                     size_t gotoBranchPosition = ce.Builder.Assembler().WritePosition();
                     int32 delta = Diff(s, labelPosition, gotoBranchPosition);

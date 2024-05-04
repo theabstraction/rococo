@@ -229,7 +229,12 @@ namespace Anon
 
 		TOutstandingLabels outstandingLabels;
 
-		TSexyStringMap<size_t> mapLabelToPosition;
+		struct LabelInfo
+		{
+			size_t pcOffset;
+			int32 sectionIndex;
+		};
+		TSexyStringMap<LabelInfo> mapLabelToPosition;
 		
 		Variable* TryGetVariableByName(cstr name, OUT int32& offsetCorrect);		
 		const Variable* TryGetVariableByName(cstr name, OUT int32& offsetCorrect) const;
@@ -1449,10 +1454,10 @@ namespace Anon
 		auto i = mapLabelToPosition.find(labelName);
 		if (i == mapLabelToPosition.end())
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "Label [%s] was not found prior to its reference", labelName);
+			return (size_t)-1LL;
 		}
 
-		return i->second;
+		return i->second.pcOffset;
 	}
 
 	void CodeBuilder::MarkGoto(size_t gotoPosition, cstr labelName)
@@ -1478,9 +1483,11 @@ namespace Anon
 
 	void CodeBuilder::MarkLabel(cstr labelName)
 	{
-		size_t labelWritePosition = assembler->WritePosition();
+		LabelInfo label;
+		label.pcOffset = assembler->WritePosition();
+		label.sectionIndex = sectionIndex;
 
-		if (!mapLabelToPosition.insert(labelName, labelWritePosition).second)
+		if (!mapLabelToPosition.insert(labelName, label).second)
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "duplicate label: %s", labelName);
 		}
@@ -1492,14 +1499,23 @@ namespace Anon
 			outstandingLabels.erase(i);
 		}
 
-		// for each (goto <labelName>) set the program counter displacement to point to the labelWritePosition
-		for (auto g : mapGotoStatementsToLabels)
+		// for each (goto <labelName>) set the program counter displacement to point to the labelWritePosition. Anything that maps is stripped from the list, so that 
+		// at the end of the function the map should be empty, as all labels have been resolved
+		auto j = mapGotoStatementsToLabels.begin();
+		while (j != mapGotoStatementsToLabels.end())
 		{
+			auto& g = *j;
 			if (Eq(g.second, labelName))
 			{
-				int32 PCOffset = Diff(__FUNCTION__, labelWritePosition, g.first);
+				int32 PCOffset = Diff(__FUNCTION__, label.pcOffset, g.first);
 				assembler->SetWriteModeToOverwrite(g.first);
 				assembler->Append_Branch(PCOffset);
+				
+				j = mapGotoStatementsToLabels.erase(j);
+			}
+			else
+			{
+				j++;
 			}
 		}
 
@@ -1520,6 +1536,11 @@ namespace Anon
 		if (sectionIndex > 0)
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Section not closed");
+		}
+
+		if (!mapGotoStatementsToLabels.empty())
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unmatched goto statement. Expecting label %s", mapGotoStatementsToLabels.begin()->second);
 		}
 
 		int endOfTemps = 0;
@@ -2914,6 +2935,20 @@ namespace Anon
 
 	void CodeBuilder::LeaveSection()
 	{
+		// Erase labels in the section, as goto statements are only allowed to jump into siblings or ancestors
+		auto i = mapLabelToPosition.begin();
+		while (i != mapLabelToPosition.end())
+		{
+			if (i->second.sectionIndex == sectionIndex)
+			{
+				i = mapLabelToPosition.erase(i);
+			}
+			else
+			{
+				i++;
+			}
+		}
+
 		sectionIndex--;
 		if (sectionIndex < 0)
 		{
