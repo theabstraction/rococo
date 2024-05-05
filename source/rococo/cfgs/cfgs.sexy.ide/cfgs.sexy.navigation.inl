@@ -847,8 +847,8 @@ namespace Rococo::CFGS::IDE::Sexy
 	{
 		MessageMap<NavigationHandler> messageMap;
 
-		TREE_NODE_ID localFunctionsId = { 0 };
-		TREE_NODE_ID namespacesId = { 0 };
+		TREE_NODE_ID privateMethodsId = { 0 };
+		TREE_NODE_ID publicMethodsId = { 0 };
 		TREE_NODE_ID variablesId = { 0 };
 
 		IAbstractEditor& editor;
@@ -857,9 +857,9 @@ namespace Rococo::CFGS::IDE::Sexy
 		ICFGSSexyPopup& popup;
 		ICFGSCosmetics& cosmetics;
 
-		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespaceIdSet;
-		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> localFunctionMap;
-		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> publicFunctionMap;
+		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespacesIdSet;
+		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> privateMethodsMap;
+		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> publicMethodsMap;
 		std::unordered_map<TREE_NODE_ID, VariableDef, TREE_NODE_ID::Hasher> variableIdSet;
 
 		enum
@@ -902,12 +902,12 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		~NavigationHandler()
 		{
-			for (auto& i : localFunctionMap)
+			for (auto& i : privateMethodsMap)
 			{
 				cfgs.DeleteFunction(i.second);
 			}
 
-			for (auto& i : publicFunctionMap)
+			for (auto& i : publicMethodsMap)
 			{
 				cfgs.DeleteFunction(i.second);
 			}
@@ -1207,6 +1207,11 @@ namespace Rococo::CFGS::IDE::Sexy
 
 			cstr beginNodeType = "<Begin>";
 
+			if (f.Nodes().Count() == 0)
+			{
+				topLeft = { -100, -100 };
+			}
+
 			for (int i = 0; i < f.Nodes().Count(); i++)
 			{
 				auto& node = f.Nodes()[i];
@@ -1328,15 +1333,15 @@ namespace Rococo::CFGS::IDE::Sexy
 		{
 			UNUSED(origin);
 
-			auto i = localFunctionMap.find(id);
-			if (i != localFunctionMap.end())
+			auto i = privateMethodsMap.find(id);
+			if (i != privateMethodsMap.end())
 			{
 				cfgs.BuildFunction(i->second);
 			}
 			else
 			{
-				auto j = publicFunctionMap.find(id);
-				if (j != publicFunctionMap.end())
+				auto j = publicMethodsMap.find(id);
+				if (j != publicMethodsMap.end())
 				{
 					cfgs.BuildFunction(j->second);
 				}
@@ -1347,32 +1352,32 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void OnItemRightClicked(TREE_NODE_ID id, IUITree& tree) override
 		{
-			if (id == localFunctionsId)
+			if (id == privateMethodsId)
 			{
 				Vec2i span{ 800, 120 };
 				int labelWidth = 120;
 
 				char fname[128] = { 0 };
 
-				AutoFree<IVariableEditor> fnameEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a new local function...", &nullEventHandler);
+				AutoFree<IVariableEditor> fnameEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a new private method...", &nullEventHandler);
 
 				FNameValidator fnameValidator(*fnameEditor, id, tree);
-				fnameEditor->AddStringEditor("Local Name", nullptr, fname, sizeof fname, &fnameValidator);
+				fnameEditor->AddStringEditor("Private Name", nullptr, fname, sizeof fname, &fnameValidator);
 				if (fnameEditor->IsModalDialogChoiceYes())
 				{
-					char fullname[256];
-					GetFQName(fullname, sizeof fullname, fname, tree, { 0 });
+					char fullname[256] = "_";
+					CopyString(fullname+1, sizeof fullname - 1, fname);
 
-					auto newLocalFunctionId = tree.AddChild(localFunctionsId, fname, Visitors::CheckState_NoCheckBox);
+					auto newPrivateMethodId = tree.AddChild(privateMethodsId, fname, Visitors::CheckState_NoCheckBox);
 
 					FunctionId f = cfgs.CreateFunction();
 					cfgs.FindFunction(f)->SetName(fullname);
 
-					localFunctionMap.insert(std::make_pair(newLocalFunctionId, f));
-					tree.Select(newLocalFunctionId);
+					privateMethodsMap.insert(std::make_pair(newPrivateMethodId, f));
+					tree.Select(newPrivateMethodId);
 				}
 			}
-			else if (id == namespacesId)
+			else if (id == publicMethodsId)
 			{
 				Vec2i span{ 800, 120 };
 				int labelWidth = 120;
@@ -1385,8 +1390,8 @@ namespace Rococo::CFGS::IDE::Sexy
 				nsEditor->AddStringEditor("Root Namespace", nullptr, fname, sizeof fname, &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
-					auto newTopLevelNamespaceId = tree.AddChild(namespacesId, fname, Visitors::CheckState_NoCheckBox);
-					namespaceIdSet.insert(newTopLevelNamespaceId);
+					auto newTopLevelNamespaceId = tree.AddChild(publicMethodsId, fname, Visitors::CheckState_NoCheckBox);
+					namespacesIdSet.insert(newTopLevelNamespaceId);
 					tree.Select(newTopLevelNamespaceId);
 				}
 			}
@@ -1415,8 +1420,8 @@ namespace Rococo::CFGS::IDE::Sexy
 			{
 				gui.ContextMenu().ContextMenu_Clear();
 
-				auto i = namespaceIdSet.find(id);
-				if (i != namespaceIdSet.end())
+				auto i = namespacesIdSet.find(id);
+				if (i != namespacesIdSet.end())
 				{
 					gui.ContextMenu().ContextMenu_AddButton("Add subspace", CONTEXT_MENU_ID_ADD_SUBSPACE, nullptr);
 					gui.ContextMenu().ContextMenu_AddButton("Add public function", CONTEXT_MENU_ID_ADD_FUNCTION, nullptr);
@@ -1425,8 +1430,8 @@ namespace Rococo::CFGS::IDE::Sexy
 				}
 				else
 				{
-					auto j = publicFunctionMap.find(id);
-					if (j != publicFunctionMap.end())
+					auto j = publicMethodsMap.find(id);
+					if (j != publicMethodsMap.end())
 					{
 						gui.ContextMenu().ContextMenu_AddButton("Set template", CONTEXT_MENU_SET_TEMPLATE, nullptr);
 						gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
@@ -1435,8 +1440,8 @@ namespace Rococo::CFGS::IDE::Sexy
 					}
 					else
 					{
-						auto k = localFunctionMap.find(id);
-						if (k != localFunctionMap.end())
+						auto k = privateMethodsMap.find(id);
+						if (k != privateMethodsMap.end())
 						{
 							gui.ContextMenu().ContextMenu_AddButton("Set template", CONTEXT_MENU_SET_TEMPLATE, nullptr);
 							gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
@@ -1476,8 +1481,8 @@ namespace Rococo::CFGS::IDE::Sexy
 		{
 			auto& t = editor.NavigationTree();
 			t.ResetContent();
-			localFunctionsId = t.AddRootItem("Local Functions", Visitors::CheckState_NoCheckBox);
-			namespacesId = t.AddRootItem("Namespaces", Visitors::CheckState_NoCheckBox);
+			privateMethodsId = t.AddRootItem("Private Methods", Visitors::CheckState_NoCheckBox);
+			publicMethodsId = t.AddRootItem("Public Methods", Visitors::CheckState_NoCheckBox);
 			variablesId = t.AddRootItem("Graph Variables", Visitors::CheckState_NoCheckBox);
 		}
 
@@ -1496,8 +1501,8 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void AddNamespaceAt(TREE_NODE_ID id, IUITree& tree)
 		{
-			auto i = namespaceIdSet.find(id);
-			if (i == namespaceIdSet.end())
+			auto i = namespacesIdSet.find(id);
+			if (i == namespacesIdSet.end())
 			{
 				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
 				return;
@@ -1521,7 +1526,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
 					auto newSubspaceId = tree.AddChild(id, fname, Visitors::CheckState_NoCheckBox);
-					namespaceIdSet.insert(newSubspaceId);
+					namespacesIdSet.insert(newSubspaceId);
 					tree.Select(newSubspaceId);
 				}
 			}
@@ -1532,25 +1537,23 @@ namespace Rococo::CFGS::IDE::Sexy
 			TREE_NODE_ID childId = tree.FindFirstChild(namespaceId, nullptr);
 			while (childId)
 			{
-				auto i = namespaceIdSet.find(childId);
-				if (i == namespaceIdSet.end())
+				auto i = namespacesIdSet.find(childId);
+				if (i == namespacesIdSet.end())
 				{
 					UpdateAllFunctionNames(childId, tree);
 				}
 				else
 				{
 					// We have a function
-					auto j = publicFunctionMap.find(childId);
-					if (j != publicFunctionMap.end())
+					auto j = publicMethodsMap.find(childId);
+					if (j != publicMethodsMap.end())
 					{
 						FunctionId id = j->second;
 
 						char fname[256];
 						if (tree.TryGetText(fname, sizeof fname, childId))
 						{
-							char fqName[256];
-							GetFQName(fqName, sizeof fqName, fname, tree, namespaceId);
-							cfgs.FindFunction(id)->SetName(fqName);
+							cfgs.FindFunction(id)->SetName(fname);
 						}
 					}
 				}
@@ -1561,8 +1564,8 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void RenameNamespace(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
-			auto i = namespaceIdSet.find(namespaceId);
-			if (i == namespaceIdSet.end())
+			auto i = namespacesIdSet.find(namespaceId);
+			if (i == namespacesIdSet.end())
 			{
 				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
 				return;
@@ -1595,11 +1598,11 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void RenameFunction(TREE_NODE_ID functionId, IUITree& tree)
 		{
-			auto i = publicFunctionMap.find(functionId);
-			if (i == publicFunctionMap.end())
+			auto i = publicMethodsMap.find(functionId);
+			if (i == publicMethodsMap.end())
 			{
-				auto j = localFunctionMap.find(functionId);
-				if (j == localFunctionMap.end())
+				auto j = privateMethodsMap.find(functionId);
+				if (j == privateMethodsMap.end())
 				{
 					gui.ShowAlertBox("Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error");
 					return;
@@ -1632,16 +1635,16 @@ namespace Rococo::CFGS::IDE::Sexy
 
 					FunctionId id;
 
-					i = publicFunctionMap.find(functionId);
-					if (i != publicFunctionMap.end())
+					i = publicMethodsMap.find(functionId);
+					if (i != publicMethodsMap.end())
 					{
 						id = i->second;
 						namespaceId = tree.GetParent(functionId);
 					}
 					else
 					{
-						auto j = localFunctionMap.find(functionId);
-						if (j != localFunctionMap.end())
+						auto j = privateMethodsMap.find(functionId);
+						if (j != privateMethodsMap.end())
 						{
 							id = j->second;
 						}
@@ -1649,9 +1652,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 					if (id)
 					{
-						char fqName[256];
-						GetFQName(fqName, sizeof fqName, newFunctionName, tree, namespaceId);
-						cfgs.FindFunction(id)->SetName(fqName);
+						cfgs.FindFunction(id)->SetName(newFunctionName);
 					}
 				}
 			}
@@ -1696,11 +1697,11 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void DeleteFunction(TREE_NODE_ID functionId, IUITree& tree)
 		{
-			auto i = publicFunctionMap.find(functionId);
-			if (i == publicFunctionMap.end())
+			auto i = publicMethodsMap.find(functionId);
+			if (i == publicMethodsMap.end())
 			{
-				auto j = localFunctionMap.find(functionId);
-				if (j == localFunctionMap.end())
+				auto j = privateMethodsMap.find(functionId);
+				if (j == privateMethodsMap.end())
 				{
 					gui.ShowAlertBox("Internal error. Could not identify the selected function", "CFGS Sexy IDE - Algorithmic Error");
 					return;
@@ -1714,19 +1715,19 @@ namespace Rococo::CFGS::IDE::Sexy
 				SafeFormat(caption, "%s - Delete function %s?", title, functionName);
 				if (gui.GetUserConfirmation("Confirm deletion", caption))
 				{ 
-					auto k = publicFunctionMap.find(functionId);
-					if (k != publicFunctionMap.end())
+					auto k = publicMethodsMap.find(functionId);
+					if (k != publicMethodsMap.end())
 					{
 						cfgs.DeleteFunction(k->second);
-						publicFunctionMap.erase(k);
+						publicMethodsMap.erase(k);
 					}
 					else
 					{
-						auto l = localFunctionMap.find(functionId);
-						if (l != localFunctionMap.end())
+						auto l = privateMethodsMap.find(functionId);
+						if (l != privateMethodsMap.end())
 						{
 							cfgs.DeleteFunction(l->second);
-							publicFunctionMap.erase(l);
+							publicMethodsMap.erase(l);
 						}
 					}
 
@@ -1748,49 +1749,10 @@ namespace Rococo::CFGS::IDE::Sexy
 			return endPos;
 		}
 
-		void GetFQName(char* buffer, size_t sizeOfBuffer, cstr typeName, IUITree& tree, TREE_NODE_ID tailNamespaceId) const
-		{
-			if (sizeOfBuffer < 8)
-			{
-				Throw(0, "Titchy sizeOfBuffer");
-			}
-
-			char* temp = (char*)_alloca(sizeOfBuffer);
-
-			char* end = temp + sizeOfBuffer;
-
-			end--;
-			*end = 0;
-
-			end = WriteBackwardsAndReturnEndPos(temp, end, typeName);
-
-			TREE_NODE_ID namespaceId = tailNamespaceId;
-
-			for (;;)
-			{
-				auto i = namespaceIdSet.find(namespaceId);
-				if (i == namespaceIdSet.end())
-				{
-					// No more namespaces, so we fully qualified the name
-					strcpy_s(buffer, sizeOfBuffer, end);
-					return;
-				}
-
-				char subspace[128];
-				if (tree.TryGetText(subspace, sizeof subspace, namespaceId))
-				{
-					end = WriteBackwardsAndReturnEndPos(temp, end, ".");
-					end = WriteBackwardsAndReturnEndPos(temp, end, subspace);
-				}
-
-				namespaceId = tree.GetParent(namespaceId);
-			}
-		}
-
 		void AddFunctionAt(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
-			auto i = namespaceIdSet.find(namespaceId);
-			if (i == namespaceIdSet.end())
+			auto i = namespacesIdSet.find(namespaceId);
+			if (i == namespacesIdSet.end())
 			{
 				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
 				return;
@@ -1813,14 +1775,14 @@ namespace Rococo::CFGS::IDE::Sexy
 				nsEditor->AddStringEditor("Function", nullptr, fname, sizeof fname, &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
-					char fullname[256];
-					GetFQName(fullname, sizeof fullname, fname, tree, namespaceId);
+					char fullname[256] = "_";
+					CopyString(fullname + 1, sizeof fullname - 1, fname);
 
 					auto newPublicFunctionId = tree.AddChild(namespaceId, fname, Visitors::CheckState_NoCheckBox);
 					auto id = cfgs.CreateFunction();
 					auto* f = cfgs.FindFunction(id);
 					f->SetName(fullname);
-					publicFunctionMap.insert(std::make_pair(newPublicFunctionId, id));
+					publicMethodsMap.insert(std::make_pair(newPublicFunctionId, id));
 					tree.Select(newPublicFunctionId);
 				}
 			}
@@ -1851,15 +1813,15 @@ namespace Rococo::CFGS::IDE::Sexy
 			case CONTEXT_MENU_SET_TEMPLATE:
 				templateId = contextMenuTargetId;
 				{
-					auto i = localFunctionMap.find(templateId);
-					if (i != localFunctionMap.end())
+					auto i = privateMethodsMap.find(templateId);
+					if (i != privateMethodsMap.end())
 					{
 						popup.SetTemplate(i->second);
 					}
 					else
 					{
-						auto j = publicFunctionMap.find(templateId);
-						if (j != publicFunctionMap.end())
+						auto j = publicMethodsMap.find(templateId);
+						if (j != publicMethodsMap.end())
 						{
 							popup.SetTemplate(j->second);
 						}
@@ -1872,121 +1834,32 @@ namespace Rococo::CFGS::IDE::Sexy
 			return false;
 		}
 
-		void SaveNamespace(Rococo::Sex::SEXML::ISEXMLBuilder& sb, TREE_NODE_ID namespaceId)
-		{
-			auto& tree = editor.NavigationTree();
-
-			TREE_NODE_ID childId = tree.FindFirstChild(namespaceId, nullptr);
-			while (childId.value)
-			{
-				if (namespaceIdSet.find(childId) != namespaceIdSet.end())
-				{
-					char subspace[128];
-					if (tree.TryGetText(subspace, sizeof subspace, childId))
-					{
-						sb.AddDirective("Subspace");
-						sb.AddAtomicAttribute("name", subspace);
-
-						SaveNamespace(sb, childId);
-
-						sb.CloseDirective();
-					}
-				}
-
-				if (publicFunctionMap.find(childId) != publicFunctionMap.end())
-				{
-					char name[128];
-					if (tree.TryGetText(name, sizeof name, childId))
-					{
-						sb.AddDirective("Function");
-						sb.AddAtomicAttribute("name", name);
-						sb.CloseDirective();
-					}
-				}
-
-				childId = tree.FindNextChild(childId, nullptr);
-			}
-		}
-
 		const char* const DIRECTIVE_LOCALFUNCTIONS = "LocalFunctions";
 		const char* const DIRECTIVE_NAMESPACES = "Namespaces";
 		const char* const DIRECTIVE_SUBSPACE = "Subspace";
-
-		void LoadNamespace(const Rococo::Sex::SEXML::ISEXMLDirective& parentNamespace, TREE_NODE_ID parentSpaceId)
-		{
-			auto& tree = editor.NavigationTree();
-
-			size_t startIndex = 0;
-			for (;;)
-			{
-				auto* subspace = parentNamespace.FindFirstChild(IN OUT startIndex, DIRECTIVE_SUBSPACE);
-				if (!subspace)
-				{
-					return;
-				}
-				startIndex++;
-
-				auto& subspaceName = Sex::SEXML::AsString((*subspace)["name"]);
-				auto subspaceId = tree.AddChild(parentSpaceId, subspaceName.c_str(), Visitors::CheckState_NoCheckBox);
-
-				LoadNamespace(*subspace, subspaceId);
-			}
-		}
 
 		void AddFunctionToTree(const ICFGSFunction& f)
 		{
 			auto& tree = editor.NavigationTree();
 
 			cstr fname = f.Name();
-			cstr tokenStart = fname;
 
-			cstr dotPos = Strings::FindChar(fname, '.');
-			if (!dotPos)
+			bool hasLeadingUnderscore = *fname == '_';
+			if (hasLeadingUnderscore)
 			{
-				auto localId = tree.AddChild(localFunctionsId, fname, CheckState_NoCheckBox);
-				localFunctionMap.insert(std::make_pair(localId, f.Id()));
-				return;
+				auto id = tree.AddChild(privateMethodsId, fname + 1, CheckState_NoCheckBox);
+				privateMethodsMap.insert(std::make_pair(id, f.Id()));
 			}
-
-			TREE_NODE_ID parentId = namespacesId;
-
-			for (;;)
+			else
 			{
-				Substring subspaceRange{ tokenStart, dotPos };
-
-				char subspace[128];
-				subspaceRange.CopyWithTruncate(subspace, sizeof subspace);
-
-				auto subspaceId = tree.FindFirstChild(parentId, subspace);
-				if (!subspaceId)
-				{
-					subspaceId = tree.AddChild(parentId, subspace, Visitors::CheckState_NoCheckBox);
-				}
-
-				parentId = subspaceId;
-
-				cstr nextToken = dotPos + 1;
-
-				cstr nextDotPos = Strings::FindChar(nextToken, '.');
-
-				if (nextDotPos == nullptr)
-				{
-					auto publicId = tree.AddChild(parentId, nextToken, Visitors::CheckState_NoCheckBox);
-					publicFunctionMap.insert(std::make_pair(publicId, f.Id()));
-					return;
-				}
-
-				tokenStart = nextToken;
-				dotPos = nextDotPos;
+				auto id = tree.AddChild(publicMethodsId, fname, CheckState_NoCheckBox);
+				publicMethodsMap.insert(std::make_pair(id, f.Id()));
 			}
 		}
 
-		void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& directive)
+		void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& navDirective)
 		{
-			size_t startIndex = 0;
-			auto& namespaces = directive.GetDirectivesFirstChild(IN OUT startIndex, DIRECTIVE_NAMESPACES);
-			LoadNamespace(namespaces, namespacesId);
-
+			UNUSED(navDirective);
 			cfgs.ForEachFunction(
 				[this](ICFGSFunction& f)
 				{
@@ -2001,7 +1874,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 			sb.AddDirective(DIRECTIVE_LOCALFUNCTIONS);
 
-			TREE_NODE_ID childId = tree.FindFirstChild(localFunctionsId, nullptr);
+			TREE_NODE_ID childId = tree.FindFirstChild(privateMethodsId, nullptr);
 			while (childId.value)
 			{
 				char name[128];
@@ -2014,12 +1887,6 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				childId = tree.FindNextChild(childId, nullptr);
 			}
-
-			sb.CloseDirective();
-
-			sb.AddDirective(DIRECTIVE_NAMESPACES);
-
-			SaveNamespace(sb, namespacesId);
 
 			sb.CloseDirective();
 		}

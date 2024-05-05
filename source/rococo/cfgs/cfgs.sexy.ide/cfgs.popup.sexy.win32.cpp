@@ -806,8 +806,8 @@ namespace ANON
 						interfaceNameId = treeControl->Tree().AddChild(branch, shortInterfaceName, CheckState_NoCheckBox);
 					}
 
-					auto methodId = treeControl->Tree().AddChild(interfaceNameId, underscore + 1, CheckState_NoCheckBox);
-					return methodId;
+					auto publicMethodsId = treeControl->Tree().AddChild(interfaceNameId, underscore + 1, CheckState_NoCheckBox);
+					return publicMethodsId;
 				}
 				else
 				{
@@ -847,7 +847,7 @@ namespace ANON
 			PopulateOptionsBackingList();
 
 			auto functionId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Functions", CheckState_NoCheckBox);
-			auto methodId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
+			auto publicMethodsId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
 			auto factoryId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Factories", CheckState_NoCheckBox);
 
 			auto specialId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Special", CheckState_NoCheckBox);
@@ -882,7 +882,7 @@ namespace ANON
 				}
 				else if (f.method == &Popup::AddNewNodeForMethod)
 				{
-					TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, methodId);
+					TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, publicMethodsId);
 					f.nodeId = optionId;
 				}
 				else if (f.method == &Popup::AddNewNodeForFactory)
@@ -1052,7 +1052,7 @@ namespace ANON
 
 			PopulateOptionsBackingList(refInterface, ns);
 
-			auto methodId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
+			auto publicMethodsId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Methods", CheckState_NoCheckBox);
 
 			TREE_NODE_ID firstId{ 0 };
 
@@ -1060,7 +1060,7 @@ namespace ANON
 			{
 				if (f.method == &Popup::AddNewNodeForMethod)
 				{
-					TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, methodId);
+					TREE_NODE_ID optionId = AddFunctionNameToTree(f.header.visibleName, publicMethodsId);
 					f.nodeId = optionId;
 
 					if (!firstId) firstId = optionId;

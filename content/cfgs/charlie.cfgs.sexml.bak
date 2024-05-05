@@ -29,8 +29,8 @@
 
 			(ReturnNode
 				(Type "_Return")
-				(XPos 200.000000)
-				(YPos 200.000000)
+				(XPos 0.000000)
+				(YPos 0.000000)
 				(Id "49D42B950000000B 18BEC18D0C317717")
 			) // ReturnNode
 
@@ -112,20 +112,34 @@
 	) // Function
 
 	(Function
-		(FQName "Sys.IO.MetaGate") :
+		(FQName "MetaGate") :
 		(Nodes :
 			(BeginNode
 				(Type "_Begin")
 				(XPos 0.000000)
 				(YPos 0.000000)
-				(Id "49D42B950000000D 18BEC18D0C317717")
+				(Id "49D42B950000000D 18BEC18D0C317717") :
+				(Socket
+					(Label "index")
+					(Type "Int32")
+					(Id "E9299D1400000009 DD9D27C1A570996")
+					(Class InputVar)
+				) // Socket
+
 			) // BeginNode
 
 			(ReturnNode
 				(Type "_Return")
-				(XPos 200.000000)
-				(YPos 200.000000)
-				(Id "49D42B950000000E 18BEC18D0C317717")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "49D42B950000000E 18BEC18D0C317717") :
+				(Socket
+					(Label "returnValue")
+					(Type "Int64")
+					(Id "E9299D140000000C DD9D27C1A570996")
+					(Class OutputValue)
+				) // Socket
+
 			) // ReturnNode
 
 			(Node
@@ -589,25 +603,32 @@
 					(Class Exit)
 				) // Socket
 
+				(Socket
+					(Label "index")
+					(Type "Int32")
+					(Id "E9299D140000000B DD9D27C1A570996")
+					(Class OutputValue)
+				) // Socket
+
 			) // Node
 
 			(Node
-				(Type "<Template>: Throw")
-				(XPos -24.042074)
-				(YPos -568.369647)
-				(Id "8F8E08410000000B 2C54F9A48E5135D8") :
+				(Type "<Return>")
+				(XPos 269.638959)
+				(YPos -504.728126)
+				(Id "E9299D140000000D DD9D27C1A570996") :
 				(Socket
-					(Label "Start")
+					(Label "Terminate")
 					(Type "Flow")
-					(Id "8F8E08410000000C 2C54F9A48E5135D8")
+					(Id "E9299D140000000E DD9D27C1A570996")
 					(Class Trigger)
 				) // Socket
 
 				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "8F8E08410000000D 2C54F9A48E5135D8")
-					(Class Exit)
+					(Label "returnValue")
+					(Type "Int64")
+					(Id "E9299D140000000F DD9D27C1A570996")
+					(Class InputVar)
 				) // Socket
 
 			) // Node
@@ -640,16 +661,107 @@
 
 	) // Function
 
+	(Function
+		(FQName "_Devil") :
+		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "707234EE0000000A 5051B78F12E508D6")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 200.000000)
+				(YPos 200.000000)
+				(Id "707234EE0000000B 5051B78F12E508D6")
+			) // ReturnNode
+
+			(Node
+				(Type "<Begin>")
+				(XPos 10000000000000000303786028427003666890752.000000)
+				(YPos 10000000000000000303786028427003666890752.000000)
+				(Id "707234EE0000000C 5051B78F12E508D6") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "707234EE0000000D 5051B78F12E508D6")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Rococo.IContextMenu_AddString")
+				(XPos -751.000000)
+				(YPos -810.500000)
+				(Id "707234EE0000000E 5051B78F12E508D6") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "707234EE0000000F 5051B78F12E508D6")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "707234EE00000010 5051B78F12E508D6")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "*this")
+					(Type "Rococo.IContextMenu")
+					(Id "707234EE00000011 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "branchId")
+					(Type "Int32")
+					(Id "707234EE00000012 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "displayName")
+					(Type "Sys.Type.IString")
+					(Id "707234EE00000013 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "eventName")
+					(Type "Sys.Type.IString")
+					(Id "707234EE00000014 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "shortcutKey")
+					(Type "Sys.Type.IString")
+					(Id "707234EE00000015 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+			) // Node
+
+		) // Nodes
+
+		(Cables
+		) // Cables
+
+	) // Function
+
 ) // Functions
 (Navigation :
 	(LocalFunctions :
 		(Function
-			(name Throw)
+			(name Devil)
 		) // Function
 
 	) // LocalFunctions
-
-	(Namespaces
-	) // Namespaces
 
 ) // Navigation
