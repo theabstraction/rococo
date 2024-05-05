@@ -4,6 +4,7 @@
 #include <rococo.os.h>
 #include <rococo.events.h>
 #include <rococo.sexml.h>
+#include <stdio.h>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -11,14 +12,10 @@ using namespace Rococo::SexyStudio;
 using namespace Rococo::Strings;
 using namespace Rococo::Sex::SEXML;
 
-static void GetTargetFilename(OUT U8FilePath& target)
-{
-	Format(target, "C:\\work\\rococo\\content\\scripts\\cfgs\\test.cfgs.sxy");
-}
-
 static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs)
 {
-	sb << "Hello world!";
+	UNUSED(db);
+	UNUSED(cfgs);
 }
 
 static bool CompileToString(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs) noexcept
@@ -44,21 +41,18 @@ static bool CompileToString(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase&
 
 namespace Rococo::CFGS
 {
-	void Compile(ISexyDatabase& db, ICFGSDatabase& cfgs)
+	void Compile(ISexyDatabase& db, ICFGSDatabase& cfgs, Strings::IStringPopulator& populator)
 	{
-		U8FilePath targetPath;
-		GetTargetFilename(OUT targetPath);
-
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(32768);
 		auto& sb = dsb->Builder();
 
 		bool success = CompileToString(sb, db, cfgs);
 
-		IO::SaveAsciiTextFile(IO::TargetDirectory_Root, targetPath, *sb);
+		populator.Populate(*sb);
 
 		if (!success)
 		{
-			Throw(0, "Error compiling %s. Check file for more information", targetPath.buf);
+			Throw(0, "Error compiling cfgs into sexy. Check file for more information");
 		}
 	}
 }
@@ -104,9 +98,7 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 	AutoFree<ISexyStudioFactory1> ssFactory;
 	SexyIDEWindow ideWindow;
 
-	cstr targetFile = nullptr;
-
-	CLI_Compiler(int argc, char* argv[])
+	CLI_Compiler()
 	{
 		publisher = Events::CreatePublisher();
 
@@ -133,17 +125,6 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 		ideWindow.Create(*ssFactory);
 
 		cfgs = CreateCFGSDatabase(*publisher);
-
-		for (int i = 0; i < argc; i++)
-		{
-			cstr arg = argv[i];
-			fstring prefix = "-cfgs:"_fstring;
-
-			if (StartsWith(arg, prefix))
-			{
-				targetFile = arg + prefix.length;
-			}
-		}
 	}
 
 	ISexyDatabase& DB()
@@ -151,7 +132,7 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 		return ideWindow.ideInstance->GetDatabase();
 	}
 
-	void Compile()
+	void Compile(cstr targetFile) override
 	{
 		if (!targetFile)
 		{
@@ -159,7 +140,16 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 		}
 
 		LoadDatabase(*cfgs, targetFile, *this);
-		Rococo::CFGS::Compile(DB(), *cfgs);
+
+		struct : Strings::IStringPopulator
+		{
+			void Populate(cstr text) override
+			{
+				puts(text);
+			}
+		} onCompile;
+
+		Rococo::CFGS::Compile(DB(), *cfgs, onCompile);
 	}
 
 	void Free() override
@@ -173,7 +163,7 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 	}
 };
 
-extern "C" __declspec(dllexport) ICFGSSexyCLI* Create_CFGS_Win32_CLI(int argc, char* argv[])
+extern "C" __declspec(dllexport) ICFGSSexyCLI* Create_CFGS_Win32_CLI()
 {
-	return new CLI_Compiler(argc, argv);
+	return new CLI_Compiler();
 }

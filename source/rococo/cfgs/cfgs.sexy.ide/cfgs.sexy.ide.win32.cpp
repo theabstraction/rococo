@@ -305,7 +305,15 @@ namespace ANON
 		{
 			try
 			{
-				Rococo::CFGS::Compile(core->db, core->cfgs);
+				struct : IStringPopulator
+				{
+					void Populate(cstr text) override
+					{
+						cstr filename = "C:\\work\\rococo\\content\\scripts\\cfgs\\test.cfgs.sxy";
+						IO::SaveAsciiTextFile(IO::TargetDirectory_Root, filename, to_fstring(text));
+					}
+				} onCompile;
+				Rococo::CFGS::Compile(core->db, core->cfgs, onCompile);
 			}
 			catch (IException& ex)
 			{

@@ -55,11 +55,11 @@ namespace Rococo::CFGS
 		virtual void ShowInterface(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition, const SexyStudio::ISXYInterface& refInterface, const SexyStudio::ISxyNamespace& ns, const CableDropped& dropInfo) = 0;
 	};
 
-	void Compile(Rococo::SexyStudio::ISexyDatabase& db, CFGS::ICFGSDatabase& cfgs);
+	void Compile(Rococo::SexyStudio::ISexyDatabase& db, CFGS::ICFGSDatabase& cfgs, Strings::IStringPopulator& populator);
 
 	ROCOCO_INTERFACE ICFGSSexyCLI
 	{
-		virtual void Compile() = 0;
+		virtual void Compile(cstr targetFile) = 0;
 		virtual void Free() = 0;
 	};
 }

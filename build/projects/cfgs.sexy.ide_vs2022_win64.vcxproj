@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>cfgs.editor.marshaller.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cfgs.editor.marshaller.lib;cfgs.host.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -226,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>cfgs.editor.marshaller.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cfgs.editor.marshaller.lib;cfgs.host.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -291,6 +291,11 @@
     </ProjectReference>
     <ProjectReference Include="rococo.sexml_vs2022_win64.vcxproj">
       <Project>{AE85B54B-E7B4-7488-34AA-23A839360CB8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="cfgs.host_vs2022_win64.vcxproj">
+      <Project>{BDB227D6-3A10-ABED-5214-43BD62E86BE4}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

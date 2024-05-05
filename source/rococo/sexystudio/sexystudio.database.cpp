@@ -3453,11 +3453,6 @@ namespace ANON
 			//     1) from one namespace to another (alias Sys.Type.Float32 Sys.OpenGL.GLfloat)
 			//     2) a local object to a namespace (alias Main EntryPoint.Main)
 
-			if (strstr(const_aliasTo, "Degrees") != nullptr)
-			{
-				printf("doomed");
-			}
-
 			char publicName[Rococo::NAMESPACE_MAX_LENGTH];
 			char implicitName[Rococo::NAMESPACE_MAX_LENGTH];
 
