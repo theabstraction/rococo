@@ -4,6 +4,7 @@
 #include <rococo.os.h>
 #include <rococo.events.h>
 #include <rococo.sexml.h>
+#include <rococo.functional.h>
 #include <stdio.h>
 
 using namespace Rococo;
@@ -14,8 +15,39 @@ using namespace Rococo::Sex::SEXML;
 
 static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs)
 {
+	sb << "(interface Sys.CFGS.IMyObject\n";
+
+	cfgs.ForEachFunction(
+		[&sb](ICFGSFunction& f)
+		{
+			cstr name = f.Name();
+			if (name[0] != '_')
+			{
+				// Public method
+				sb.AppendFormat("  (%s -> )\n", name);
+			}
+		}
+	);
+
+	sb << ")\n\n";
+
+	sb << "(class MyObject (implements Sys.CFGS.IMyObject)\n";
+	sb << ")\n";
+
+
+	cfgs.ForEachFunction(
+		[&sb](ICFGSFunction& f)
+		{
+			cstr name = f.Name();
+			if (name[0] == '_') name++;
+
+			// Public method
+			sb.AppendFormat("\n(method MyObject.%s -> : \n", name);			
+			sb.AppendFormat(")\n");
+		}
+	);
+
 	UNUSED(db);
-	UNUSED(cfgs);
 }
 
 static bool CompileToString(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs) noexcept
