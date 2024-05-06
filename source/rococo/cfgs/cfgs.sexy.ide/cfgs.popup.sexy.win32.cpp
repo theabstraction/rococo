@@ -901,8 +901,10 @@ namespace ANON
 			backingList.push_back(returnOpt);
 
 			populator.Variables().ForEachVariable(
-				[this, variablesId](cstr name, cstr type) 
+				[this, variablesId](cstr name, cstr type, cstr defaultValue) 
 				{
+					UNUSED(defaultValue);
+
 					char url[256];
 					SafeFormat(url, "%s %s", name, type);
 
@@ -931,7 +933,6 @@ namespace ANON
 					backingList.push_back(opt);
 				}
 			);
-
 
 			SetCursor(LoadCursorA(NULL, IDC_ARROW));
 

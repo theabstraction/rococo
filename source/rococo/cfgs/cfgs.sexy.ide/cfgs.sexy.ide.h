@@ -42,7 +42,7 @@ namespace Rococo::CFGS
 
 	ROCOCO_INTERFACE ICFGSVariableEnumerator
 	{
-		virtual void ForEachVariable(Function<void(cstr name, cstr type)> callback) = 0;
+		virtual void ForEachVariable(Function<void(cstr name, cstr type, cstr defaultValue)> callback) = 0;
 	};
 
 	ROCOCO_INTERFACE ICFGSDesignerSpacePopupPopulator
@@ -55,7 +55,19 @@ namespace Rococo::CFGS
 		virtual void ShowInterface(Vec2i desktopPosition, Rococo::Editors::DesignerVec2 designPosition, const SexyStudio::ISXYInterface& refInterface, const SexyStudio::ISxyNamespace& ns, const CableDropped& dropInfo) = 0;
 	};
 
-	void Compile(Rococo::SexyStudio::ISexyDatabase& db, CFGS::ICFGSDatabase& cfgs, Strings::IStringPopulator& populator);
+	ROCOCO_INTERFACE ICompileExportsSpec
+	{
+		// The public full qualified interface name. Standard protocol is to take a noun that captures the essence of the method set and prefix with an I.
+		virtual cstr InterfaceName() const = 0;
+
+		// The public full qualified factory name. Standard protocol is to take the short interface name and replace the leading 'I' with 'New', so that IDog would have factory NewDog, IPrinter would have factory NewPrinter
+		virtual cstr FactoryName() const = 0;
+
+		// the private implementation class name. Standard protocol is to take the short interface name and strip the leading 'I', so that IDog would have class Dog, IPrinter would have class Printer
+		virtual cstr ClassName() const = 0;
+	};
+
+	void Compile(Rococo::SexyStudio::ISexyDatabase& db, CFGS::ICFGSDatabase& cfgs, Strings::IStringPopulator& populator, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables);
 
 	ROCOCO_INTERFACE ICFGSSexyCLI
 	{

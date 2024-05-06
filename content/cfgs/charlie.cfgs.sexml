@@ -753,15 +753,15 @@
 
 			(ReturnNode
 				(Type "_Return")
-				(XPos 200.000000)
-				(YPos 200.000000)
+				(XPos 0.000000)
+				(YPos 0.000000)
 				(Id "5D45494E0000000E 6A16FFC6DE60BC9")
 			) // ReturnNode
 
 			(Node
 				(Type "<Begin>")
-				(XPos 10000000000000000303786028427003666890752.000000)
-				(YPos 10000000000000000303786028427003666890752.000000)
+				(XPos 0.000000)
+				(YPos 0.000000)
 				(Id "5D45494E0000000F 6A16FFC6DE60BC9") :
 				(Socket
 					(Label "Execute")
@@ -791,5 +791,26 @@
 		) // Function
 
 	) // LocalFunctions
+
+	(Variables :
+		(Variable
+			(Name index)
+			(Type Int32)
+			(Default 0)
+		) // Variable
+
+		(Variable
+			(Name speed)
+			(Type Float32)
+			(Default 0)
+		) // Variable
+
+		(Variable
+			(Name isActive)
+			(Type Bool)
+			(Default 0)
+		) // Variable
+
+	) // Variables
 
 ) // Navigation

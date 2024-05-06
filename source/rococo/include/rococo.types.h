@@ -309,7 +309,7 @@ namespace Rococo
 		// An interface that allows a method to populate a buffer from a cstr pointer without having to return the pointer. Rather it calls the populator's populate method
 		// The aim is to eliminate the need for temporary heap allocation of string data. 
 		// Imagine a function 'cstr ToString(Int32 i)' that converts integers to strings. A function that returns a cstr would need to populate a temporary buffer, and return a reference to it, creating lifetime issues.
-		// Instead we would write 'void ToString(IStringPopulator& populator)'. The internal buffer would be removed from the stack before the function returns, eliminating lifetime issue.
+		// Instead we would write 'void ToString(int i, IStringPopulator& populator)'. The internal buffer would be removed from the stack before the function returns, eliminating lifetime issue.
 		ROCOCO_INTERFACE IStringPopulator
 		{
 		   virtual void Populate(cstr text) = 0;

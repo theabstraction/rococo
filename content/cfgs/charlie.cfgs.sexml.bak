@@ -673,24 +673,10 @@
 
 			(ReturnNode
 				(Type "_Return")
-				(XPos 200.000000)
-				(YPos 200.000000)
+				(XPos 0.000000)
+				(YPos 0.000000)
 				(Id "707234EE0000000B 5051B78F12E508D6")
 			) // ReturnNode
-
-			(Node
-				(Type "<Begin>")
-				(XPos 10000000000000000303786028427003666890752.000000)
-				(YPos 10000000000000000303786028427003666890752.000000)
-				(Id "707234EE0000000C 5051B78F12E508D6") :
-				(Socket
-					(Label "Execute")
-					(Type "Flow")
-					(Id "707234EE0000000D 5051B78F12E508D6")
-					(Class Exit)
-				) // Socket
-
-			) // Node
 
 			(Node
 				(Type "Rococo.IContextMenu_AddString")
@@ -755,11 +741,53 @@
 
 	) // Function
 
+	(Function
+		(FQName "_Spook") :
+		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "5D45494E0000000D 6A16FFC6DE60BC9")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 200.000000)
+				(YPos 200.000000)
+				(Id "5D45494E0000000E 6A16FFC6DE60BC9")
+			) // ReturnNode
+
+			(Node
+				(Type "<Begin>")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "5D45494E0000000F 6A16FFC6DE60BC9") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "5D45494E00000010 6A16FFC6DE60BC9")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+		) // Nodes
+
+		(Cables
+		) // Cables
+
+	) // Function
+
 ) // Functions
 (Navigation :
 	(LocalFunctions :
 		(Function
 			(name Devil)
+		) // Function
+
+		(Function
+			(name Spook)
 		) // Function
 
 	) // LocalFunctions

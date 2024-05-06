@@ -920,7 +920,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			RefreshNavigationTree();
 		}
 
-		void ForEachVariable(Function<void(cstr name, cstr type)> callback)
+		void ForEachVariable(Function<void(cstr name, cstr type, cstr dfeaultValue)> callback) override
 		{
 			TREE_NODE_ID child = editor.NavigationTree().FindFirstChild(variablesId, nullptr);
 			while (child)
@@ -928,7 +928,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				auto i = variableIdSet.find(child);
 				if (i != variableIdSet.end())
 				{
-					callback.Invoke(i->second.name, i->second.type);
+					callback.Invoke(i->second.name, i->second.type, i->second.defaultValue);
 				}
 
 				child = editor.NavigationTree().FindNextChild(child, nullptr);
@@ -1736,19 +1736,6 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
-		static char* WriteBackwardsAndReturnEndPos(char* startOfBuffer, char* endPos, cstr token)
-		{
-			size_t len = strlen(token);
-			endPos -= len;
-			if (endPos < startOfBuffer)
-			{
-				return nullptr;
-			}
-
-			memcpy_s(endPos, endPos - startOfBuffer, token, len);
-			return endPos;
-		}
-
 		void AddFunctionAt(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
 			auto i = namespacesIdSet.find(namespaceId);
@@ -1835,8 +1822,8 @@ namespace Rococo::CFGS::IDE::Sexy
 		}
 
 		const char* const DIRECTIVE_LOCALFUNCTIONS = "LocalFunctions";
-		const char* const DIRECTIVE_NAMESPACES = "Namespaces";
-		const char* const DIRECTIVE_SUBSPACE = "Subspace";
+		const char* const DIRECTIVE_VARIABLES = "Variables";
+		const char* const DIRECTIVE_VARIABLE = "Variable";
 
 		void AddFunctionToTree(const ICFGSFunction& f)
 		{
@@ -1859,13 +1846,41 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void LoadNavigation(const Rococo::Sex::SEXML::ISEXMLDirective& navDirective)
 		{
-			UNUSED(navDirective);
 			cfgs.ForEachFunction(
 				[this](ICFGSFunction& f)
 				{
 					AddFunctionToTree(f);
 				}
 			);
+
+			size_t startIndex = 0;
+			const auto* varDirective = navDirective.FindFirstChild(REF startIndex, DIRECTIVE_VARIABLES);
+			if (varDirective)
+			{
+				auto& tree = editor.NavigationTree();
+
+				auto& variables = varDirective->Children();
+
+				for (size_t i = 0; i < variables.NumberOfDirectives(); i++)
+				{
+					auto& variable = variables[i];
+
+					cstr name = SEXML::AsAtomic(variable["Name"]).c_str();
+					cstr type = SEXML::AsAtomic(variable["Type"]).c_str();
+					cstr defaultValue = SEXML::AsAtomic(variable["Default"]).c_str();
+
+					char typeDesc[256];
+					SafeFormat(typeDesc, "Type: %s", type);
+
+					char defaultDesc[256];
+					SafeFormat(defaultDesc, "Default: %s", defaultValue);
+
+					auto newVariableId = tree.AddChild(variablesId, name, Visitors::CheckState_NoCheckBox);
+					tree.AddChild(newVariableId, typeDesc, Visitors::CheckState_NoCheckBox);
+					tree.AddChild(newVariableId, defaultDesc, Visitors::CheckState_NoCheckBox);
+					variableIdSet.insert(std::make_pair(newVariableId, VariableDef{ name, type, defaultValue }));
+				}
+			}
 		}
 
 		void SaveNavigation(Rococo::Sex::SEXML::ISEXMLBuilder& sb)
@@ -1887,6 +1902,21 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				childId = tree.FindNextChild(childId, nullptr);
 			}
+
+			sb.CloseDirective();
+
+			sb.AddDirective(DIRECTIVE_VARIABLES);
+
+			ForEachVariable(
+				[this, &sb](cstr name, cstr type, cstr defaultValue)
+				{
+					sb.AddDirective(DIRECTIVE_VARIABLE);
+					sb.AddAtomicAttribute("Name", name);
+					sb.AddAtomicAttribute("Type", type);
+					sb.AddAtomicAttribute("Default", defaultValue);
+					sb.CloseDirective();
+				}
+			);
 
 			sb.CloseDirective();
 		}

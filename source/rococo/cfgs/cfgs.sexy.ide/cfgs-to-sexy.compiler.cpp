@@ -5,7 +5,11 @@
 #include <rococo.events.h>
 #include <rococo.sexml.h>
 #include <rococo.functional.h>
+#include <..\sexystudio\sexystudio.api.h>
 #include <stdio.h>
+#include <rococo.hashtable.h>
+#include <sexy.types.h>
+#include <Sexy.S-Parser.h>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -13,9 +17,57 @@ using namespace Rococo::SexyStudio;
 using namespace Rococo::Strings;
 using namespace Rococo::Sex::SEXML;
 
-static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs)
+static Rococo::stringmap<int> knownPrimitives;
+
+
+cstr GetCorrectedDefaultValue(const ISXYType* type, cstr defaultValue)
 {
-	sb << "(interface Sys.CFGS.IMyObject\n";
+	if (!type)
+	{
+		return nullptr;
+	}
+
+	if (knownPrimitives.empty())
+	{
+		knownPrimitives["Float32"] = 0;
+		knownPrimitives["Float64"] = 0;
+		knownPrimitives["Int32"] = 0;
+		knownPrimitives["Int64"] = 0;
+	}
+
+	auto* localType = type->LocalType();
+
+	if (localType && localType->FieldCount() == 1)
+	{
+		if (knownPrimitives.find(localType->GetField(0).type) != knownPrimitives.end())
+		{
+			return defaultValue;
+		}
+		else if (Eq(localType->GetField(0).type, "Bool"))
+		{
+			if (Eq(defaultValue, "0"))
+			{
+				return "false";
+			}
+
+			if (Eq(defaultValue, "1"))
+			{
+				return "true";
+			}
+
+			if (Eq(defaultValue, "true") || Eq(defaultValue, "false"))
+			{
+				return defaultValue;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables)
+{
+	sb.AppendFormat("(interface %s\n", exportSpec.InterfaceName());
 
 	cfgs.ForEachFunction(
 		[&sb](ICFGSFunction& f)
@@ -31,7 +83,25 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 
 	sb << ")\n\n";
 
-	sb << "(class MyObject (implements Sys.CFGS.IMyObject)\n";
+	sb.AppendFormat("(class %s (implements %s)\n", exportSpec.InterfaceName(), exportSpec.ClassName());
+
+	variables.ForEachVariable(
+		[&sb, &db](cstr name, cstr type, cstr defaultValue)
+		{
+			const ISXYType* sxyType = db.FindPrimitiveOrFQType(type);
+			cstr correctedDefaultValue = GetCorrectedDefaultValue(sxyType, defaultValue);
+			if (correctedDefaultValue)
+			{
+				sb.AppendFormat("  (%s %s = %s)\n", type, name, correctedDefaultValue);
+			}
+			else
+			{
+				sb.AppendFormat("  (%s %s)\n", type, name);
+			}
+		}
+	);
+
+
 	sb << ")\n";
 
 
@@ -50,11 +120,11 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 	UNUSED(db);
 }
 
-static bool CompileToString(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs) noexcept
+static bool CompileToString(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables) noexcept
 {
 	try
 	{
-		CompileToStringProtected(sb, db, cfgs);
+		CompileToStringProtected(sb, db, cfgs, exportSpec, variables);
 		return true;
 	}
 	catch (IException& ex)
@@ -73,12 +143,12 @@ static bool CompileToString(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase&
 
 namespace Rococo::CFGS
 {
-	void Compile(ISexyDatabase& db, ICFGSDatabase& cfgs, Strings::IStringPopulator& populator)
+	void Compile(ISexyDatabase& db, ICFGSDatabase& cfgs, Strings::IStringPopulator& populator, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables)
 	{
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(32768);
 		auto& sb = dsb->Builder();
 
-		bool success = CompileToString(sb, db, cfgs);
+		bool success = CompileToString(sb, db, cfgs, exportSpec, variables);
 
 		populator.Populate(*sb);
 
@@ -123,7 +193,7 @@ namespace Rococo::CFGS
 	ROCOCO_API_IMPORT void LoadDatabase(ICFGSDatabase& db, cstr filename, ICFGSLoader& loader);
 }
 
-struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
+struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader, ICFGSVariableEnumerator
 {
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher;
 	AutoFree<ICFGSDatabaseSupervisor> cfgs;
@@ -164,14 +234,20 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 		return ideWindow.ideInstance->GetDatabase();
 	}
 
+	void ForEachVariable(Rococo::Function<void(Rococo::cstr name, Rococo::cstr type, Rococo::cstr defaultValue)> callback)
+	{
+		for (auto& v : variables)
+		{
+			callback.Invoke(v.first, v.second.type, v.second.defaultValue);
+		}
+	}
+
 	void Compile(cstr targetFile) override
 	{
 		if (!targetFile)
 		{
 			Throw(0, "No target file. Specify -cfgs:<target_file> on command line");
 		}
-
-		LoadDatabase(*cfgs, targetFile, *this);
 
 		struct : Strings::IStringPopulator
 		{
@@ -181,7 +257,33 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 			}
 		} onCompile;
 
-		Rococo::CFGS::Compile(DB(), *cfgs, onCompile);
+		struct spec : ICompileExportsSpec
+		{
+			cstr InterfaceName() const override
+			{
+				return "Sys.CFGS.ITest";
+			}
+
+			cstr FactoryName() const override
+			{
+				return "Sys.CFGS.NewTest";
+			}
+
+			cstr ClassName() const override
+			{
+				return "Test";
+			}
+		} exportSpec;
+
+		try
+		{
+			LoadDatabase(*cfgs, targetFile, *this);
+			Rococo::CFGS::Compile(DB(), *cfgs, onCompile, exportSpec, *this);
+		}
+		catch (ParseException& ex)
+		{
+			Throw(ex.ErrorCode(), "%s: parse error at line %d pos %d.\n\t%s", targetFile, ex.Start().y, ex.Start().x, ex.Message());
+		}
 	}
 
 	void Free() override
@@ -189,9 +291,33 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader
 		delete this;
 	}
 
-	void Loader_OnLoadNavigation(const ISEXMLDirective& directive) override
+	struct VariableDef
 	{
-		UNUSED(directive);
+		HString type;
+		HString defaultValue;
+	};
+
+	stringmap<VariableDef> variables;
+
+	void Loader_OnLoadNavigation(const ISEXMLDirective& navDirective) override
+	{
+		size_t startIndex = 0;
+		const auto* varDirective = navDirective.FindFirstChild(REF startIndex, "Variables");
+		if (varDirective)
+		{
+			auto& variableList = varDirective->Children();
+
+			for (size_t i = 0; i < variableList.NumberOfDirectives(); i++)
+			{
+				auto& variable = variableList[i];
+
+				cstr name = SEXML::AsAtomic(variable["Name"]).c_str();
+				cstr type = SEXML::AsAtomic(variable["Type"]).c_str();
+				cstr defaultValue = SEXML::AsAtomic(variable["Default"]).c_str();
+
+				variables.insert(name, VariableDef{  type, defaultValue });
+			}
+		}
 	}
 };
 

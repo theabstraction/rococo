@@ -313,7 +313,26 @@ namespace ANON
 						IO::SaveAsciiTextFile(IO::TargetDirectory_Root, filename, to_fstring(text));
 					}
 				} onCompile;
-				Rococo::CFGS::Compile(core->db, core->cfgs, onCompile);
+
+				struct spec : ICompileExportsSpec
+				{
+					cstr InterfaceName() const override
+					{
+						return "Sys.CFGS.ITest";
+					}
+
+					cstr FactoryName() const override
+					{
+						return "Sys.CFGS.NewTest";
+					}
+
+					cstr ClassName() const override
+					{
+						return "Test";
+					}
+				} exportSpec;
+
+				Rococo::CFGS::Compile(core->db, core->cfgs, onCompile, exportSpec, *navHandler);
 			}
 			catch (IException& ex)
 			{

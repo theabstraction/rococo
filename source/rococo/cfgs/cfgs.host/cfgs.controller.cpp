@@ -543,7 +543,7 @@ namespace ANON
 			}
 			catch (Sex::ParseException& ex)
 			{
-				Rococo::Throw(ex.ErrorCode(), "Error loading %ls at line %d pos %d:\n\t%s", filename, ex.Start().y + 1, ex.Start().x + 1, ex.Message());
+				Rococo::Throw(ex.ErrorCode(), "Error loading %s at line %d pos %d:\n\t%s", filename, ex.Start().y + 1, ex.Start().x + 1, ex.Message());
 			}
 			catch (IException& ex)
 			{
