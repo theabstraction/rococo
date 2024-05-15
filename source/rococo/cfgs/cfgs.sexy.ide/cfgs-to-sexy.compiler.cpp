@@ -65,6 +65,11 @@ cstr GetCorrectedDefaultValue(const ISXYType* type, cstr defaultValue)
 	return nullptr;
 }
 
+static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb)
+{
+
+}
+
 static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables)
 {
 	sb.AppendFormat("(interface %s\n", exportSpec.InterfaceName());
@@ -112,8 +117,41 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 			if (name[0] == '_') name++;
 
 			// Public method
-			sb.AppendFormat("\n(method MyObject.%s -> : \n", name);			
-			sb.AppendFormat(")\n");
+			sb.AppendFormat("\n(method MyObject.%s", name);
+
+			auto& beginNode = f.BeginNode();
+			for (int i = 0; i < beginNode.SocketCount(); i++)
+			{
+				auto& input = beginNode[i];
+				switch (input.SocketClassification())
+				{
+				case SocketClass::ConstInputRef:
+				case SocketClass::InputRef:
+				case SocketClass::InputVar:
+					sb.AppendFormat(" (%s %s)", input.Type(), input.Name());
+				}
+			}
+
+			sb << " -> ";
+
+			auto& returnNode = f.ReturnNode();
+			for (int i = 0; i < returnNode.SocketCount(); i++)
+			{
+				auto& output = returnNode[i];
+				switch (output.SocketClassification())
+				{
+				case SocketClass::ConstOutputRef:
+				case SocketClass::OutputRef:
+				case SocketClass::OutputValue:
+					sb.AppendFormat("(%s %s) ", output.Type(), output.Name());
+				}
+			}
+
+			sb.AppendFormat(":\n");
+
+			CompileFunctionBody(f, sb);
+
+			sb.AppendFormat("\n)\n");
 		}
 	);
 
