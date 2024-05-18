@@ -203,7 +203,7 @@ static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection
 	return node->FindSocket(outputConnection.socket);
 }
 
-static void AppendArgumentToFunctionCall(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, ICFGSFunction& graph)
+static void AppendDeclareAndAssignArgumentToFunctionCall(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, ICFGSFunction& graph)
 {
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s %s)\n", argType, argName);
@@ -232,7 +232,7 @@ static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISX
 	{
 		cstr argType = f.InputType(i);
 		cstr argName = f.InputName(i);
-		AppendArgumentToFunctionCall(sb, argType, argName, fqFunctionName, f, calleeNode, graph);
+		AppendDeclareAndAssignArgumentToFunctionCall(sb, argType, argName, fqFunctionName, f, calleeNode, graph);
 	}
 
 	// Next we declare outputs
