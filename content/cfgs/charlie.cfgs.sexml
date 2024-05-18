@@ -4,6 +4,100 @@
 ) // ControlFlowGraphSystem
 (Functions :
 	(Function
+		(FQName "_Devil") :
+		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "707234EE0000000A 5051B78F12E508D6")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "707234EE0000000B 5051B78F12E508D6")
+			) // ReturnNode
+
+			(Node
+				(Type "Rococo.IContextMenu_AddString")
+				(XPos -751.000000)
+				(YPos -810.500000)
+				(Id "707234EE0000000E 5051B78F12E508D6") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "707234EE0000000F 5051B78F12E508D6")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "707234EE00000010 5051B78F12E508D6")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "*this")
+					(Type "Rococo.IContextMenu")
+					(Id "707234EE00000011 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "branchId")
+					(Type "Int32")
+					(Id "707234EE00000012 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "displayName")
+					(Type "Sys.Type.IString")
+					(Id "707234EE00000013 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "eventName")
+					(Type "Sys.Type.IString")
+					(Id "707234EE00000014 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "shortcutKey")
+					(Type "Sys.Type.IString")
+					(Id "707234EE00000015 5051B78F12E508D6")
+					(Class InputVar)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "<Begin>")
+				(XPos -871.000000)
+				(YPos -930.500000)
+				(Id "AAB3668A0000000F 83E40ABD91917A9") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "AAB3668A00000010 83E40ABD91917A9")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+		) // Nodes
+
+		(Cables
+		) // Cables
+
+	) // Function
+
+	(Function
 		(FQName "Throw") :
 		(Nodes :
 			(BeginNode
@@ -706,100 +800,13 @@
 				(EndSocket "1F 3928B2A6")
 			) // Cable
 
-		) // Cables
+			(Cable
+				(StartNode "8F8E084100000009 2C54F9A48E5135D8")
+				(StartSocket "E9299D140000000B DD9D27C1A570996")
+				(EndNode "6 257703D4")
+				(EndSocket "9 257703D4")
+			) // Cable
 
-	) // Function
-
-	(Function
-		(FQName "_Devil") :
-		(Nodes :
-			(BeginNode
-				(Type "_Begin")
-				(XPos 0.000000)
-				(YPos 0.000000)
-				(Id "707234EE0000000A 5051B78F12E508D6")
-			) // BeginNode
-
-			(ReturnNode
-				(Type "_Return")
-				(XPos 0.000000)
-				(YPos 0.000000)
-				(Id "707234EE0000000B 5051B78F12E508D6")
-			) // ReturnNode
-
-			(Node
-				(Type "Rococo.IContextMenu_AddString")
-				(XPos -751.000000)
-				(YPos -810.500000)
-				(Id "707234EE0000000E 5051B78F12E508D6") :
-				(Socket
-					(Label "Start")
-					(Type "Flow")
-					(Id "707234EE0000000F 5051B78F12E508D6")
-					(Class Trigger)
-				) // Socket
-
-				(Socket
-					(Label "End")
-					(Type "Flow")
-					(Id "707234EE00000010 5051B78F12E508D6")
-					(Class Exit)
-				) // Socket
-
-				(Socket
-					(Label "*this")
-					(Type "Rococo.IContextMenu")
-					(Id "707234EE00000011 5051B78F12E508D6")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "branchId")
-					(Type "Int32")
-					(Id "707234EE00000012 5051B78F12E508D6")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "displayName")
-					(Type "Sys.Type.IString")
-					(Id "707234EE00000013 5051B78F12E508D6")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "eventName")
-					(Type "Sys.Type.IString")
-					(Id "707234EE00000014 5051B78F12E508D6")
-					(Class InputVar)
-				) // Socket
-
-				(Socket
-					(Label "shortcutKey")
-					(Type "Sys.Type.IString")
-					(Id "707234EE00000015 5051B78F12E508D6")
-					(Class InputVar)
-				) // Socket
-
-			) // Node
-
-			(Node
-				(Type "<Begin>")
-				(XPos -871.000000)
-				(YPos -930.500000)
-				(Id "AAB3668A0000000F 83E40ABD91917A9") :
-				(Socket
-					(Label "Execute")
-					(Type "Flow")
-					(Id "AAB3668A00000010 83E40ABD91917A9")
-					(Class Exit)
-				) // Socket
-
-			) // Node
-
-		) // Nodes
-
-		(Cables
 		) // Cables
 
 	) // Function

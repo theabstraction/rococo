@@ -144,20 +144,100 @@ static int GetNumberOfCallers(ICFGSFunction& f, ICFGSNode& node)
 	return count;
 }
 
-static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISXYFunction& g)
+static ICFGSSocket* FindSocketInput(ICFGSNode& node, cstr argType, cstr argName)
 {
-	for (int i = 0; i < g.InputCount(); i++)
+	int matchingTypeCount = 0;
+	int firstMatchingTypeIndex = -1;
+
+	for (int i = 0; i < node.SocketCount(); i++)
 	{
-		cstr argType = g.InputType(i);
-		cstr argName = g.InputName(i);
-		AppendTabs(sb, 1);
-		sb.AppendFormat("(%s %s)\n", argType, argName);
+		auto& s = node[i];
+		if (Eq(s.Type().Value, argType))
+		{
+			matchingTypeCount++;
+			if (firstMatchingTypeIndex == -1)
+			{
+				firstMatchingTypeIndex = i;
+			}
+
+			if (Eq(s.Name(), argName))
+			{
+				return &s;
+			}
+		}
 	}
 
-	for (int i = 0; i < g.OutputCount(); i++)
+	// We didn't match the arg name, but the type was unique, so assume the argument has undergone a cosmetic name change
+	if (matchingTypeCount == 1)
 	{
-		cstr argType = g.OutputType(i);
-		cstr argName = g.OutputName(i);
+		return &node[firstMatchingTypeIndex];
+	}
+
+	return nullptr;
+}
+
+static CableConnection FindConnectionToInput(ICFGSFunction& graph, ICFGSSocket& inputSocket)
+{
+	auto& cables = graph.Cables();
+
+	for (int i = 0; i < cables.Count(); i++)
+	{
+		auto& cable = cables[i];
+		if (cable.EntryPoint().socket == inputSocket.Id())
+		{
+			return cable.ExitPoint();
+		}
+	}
+
+	return CableConnection{};
+}
+
+static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection outputConnection)
+{
+	auto* node = graph.Nodes().FindNode(outputConnection.node);
+	if (!node)
+	{
+		return nullptr;
+	}
+
+	return node->FindSocket(outputConnection.socket);
+}
+
+static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, ICFGSFunction& graph)
+{
+	for (int i = 0; i < f.InputCount(); i++)
+	{
+		cstr argType = f.InputType(i);
+		cstr argName = f.InputName(i);
+		AppendTabs(sb, 1);
+		sb.AppendFormat("(%s %s)\n", argType, argName);
+
+		auto* inputForThisArg = FindSocketInput(calleeNode, argType, argName);
+		if (!inputForThisArg)
+		{
+			continue;
+		}
+
+		CableConnection outputConnection = FindConnectionToInput(graph, *inputForThisArg);
+		if (!outputConnection.node)
+		{
+			continue;
+		}
+
+		ICFGSSocket* outputSocket = FindConnectionToOutput(graph, outputConnection);
+		if (!Eq(outputSocket->Type().Value, inputForThisArg->Type().Value))
+		{
+			Throw(0, "Type mismatch between %s and %s for %s argument (%s %s)", outputSocket->Type().Value, inputForThisArg->Type().Value, fqFunctionName, argType, argName);
+		}
+
+		AppendTabs(sb, 1);
+		sb.AppendFormat("(%s = %s)\n", argName, outputSocket->Name());
+	}
+
+	for (int i = 0; i < f.OutputCount(); i++)
+	{
+		cstr argType = f.OutputType(i);
+		cstr argName = f.OutputName(i);
 
 		AppendTabs(sb, 1);
 		sb.AppendFormat("(%s %s)\n", argType, argName);
@@ -166,27 +246,27 @@ static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISX
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s", fqFunctionName);
 
-	for (int i = 0; i < g.InputCount(); i++)
+	for (int i = 0; i < f.InputCount(); i++)
 	{
-		cstr argName = g.InputName(i);
+		cstr argName = f.InputName(i);
 		sb.AppendFormat(" %s ", argName);
 	}
 
-	if (g.OutputCount() > 0)
+	if (f.OutputCount() > 0)
 	{
 		sb << " -> ";
 	}
 
-	for (int i = 0; i < g.OutputCount(); i++)
+	for (int i = 0; i < f.OutputCount(); i++)
 	{
-		cstr argName = g.OutputName(i);
+		cstr argName = f.OutputName(i);
 		sb.AppendFormat(" %s", argName);
 	}
 
 	sb << ")\n\n";
 }
 
-static void AppendNodeImplementation(StringBuilder& sb, cstr fqType, ISexyDatabase& db)
+static void AppendNodeImplementation(StringBuilder& sb, cstr fqType, ISexyDatabase& db, ICFGSFunction& graph, ICFGSNode& calleeNode)
 {
 	auto* aliasedFunction = db.FindFunction(fqType);
 	if (aliasedFunction)
@@ -194,12 +274,20 @@ static void AppendNodeImplementation(StringBuilder& sb, cstr fqType, ISexyDataba
 		auto* localFunction = aliasedFunction->LocalFunction();
 		if (localFunction)
 		{
-			AppendFunctionCall(sb, fqType, *localFunction);
+			AppendFunctionCall(sb, fqType, *localFunction, calleeNode, graph);
 		}
+		else
+		{
+			Throw(0, "Could not find local function aliased to %s", fqType);
+		}
+	}
+	else
+	{
+		Throw(0, "Could not find public function aliased as %s", fqType);
 	}
 }
 
-static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDatabase& db)
+static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDatabase& db, ICFGSFunction& graph)
 {
 	ICFGSNode* callerNode = FindBeginNode(f);
 
@@ -244,7 +332,7 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDataba
 				sb.AppendFormat("(label %s)\n", label);
 			}
 
-			AppendNodeImplementation(sb, calleeNode->Type().Value, db);
+			AppendNodeImplementation(sb, calleeNode->Type().Value, db, graph, *calleeNode);
 
 			nodeLabels.insert(std::make_pair(calleeNode, HString(label)));
 
@@ -338,7 +426,7 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 
 			sb.AppendFormat(":\n");
 
-			CompileFunctionBody(f, sb, db);
+			CompileFunctionBody(f, sb, db, f);
 
 			sb.AppendFormat("\n)\n");
 		}
