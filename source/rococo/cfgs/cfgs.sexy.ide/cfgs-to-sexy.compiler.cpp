@@ -203,32 +203,39 @@ static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection
 	return node->FindSocket(outputConnection.socket);
 }
 
+static void AppendArgumentToFunctionCall(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, ICFGSFunction& graph)
+{
+	AppendTabs(sb, 1);
+	sb.AppendFormat("(%s %s)\n", argType, argName);
+
+	auto* inputForThisArg = FindSocketInput(calleeNode, argType, argName);
+	if (!inputForThisArg)
+	{
+		return;
+	}
+
+	CableConnection outputConnection = FindConnectionToInput(graph, *inputForThisArg);
+	ICFGSSocket* outputSocket = FindConnectionToOutput(graph, outputConnection);
+	if (!Eq(outputSocket->Type().Value, inputForThisArg->Type().Value))
+	{
+		Throw(0, "Type mismatch between %s and %s for %s argument (%s %s)", outputSocket->Type().Value, inputForThisArg->Type().Value, fqFunctionName, argType, argName);
+	}
+
+	AppendTabs(sb, 1);
+	sb.AppendFormat("(%s = %s)\n", argName, outputSocket->Name());
+}
+
 static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, ICFGSFunction& graph)
 {
+	// First we declare and assign inputs
 	for (int i = 0; i < f.InputCount(); i++)
 	{
 		cstr argType = f.InputType(i);
 		cstr argName = f.InputName(i);
-		AppendTabs(sb, 1);
-		sb.AppendFormat("(%s %s)\n", argType, argName);
-
-		auto* inputForThisArg = FindSocketInput(calleeNode, argType, argName);
-		if (!inputForThisArg)
-		{
-			continue;
-		}
-
-		CableConnection outputConnection = FindConnectionToInput(graph, *inputForThisArg);
-		ICFGSSocket* outputSocket = FindConnectionToOutput(graph, outputConnection);
-		if (!Eq(outputSocket->Type().Value, inputForThisArg->Type().Value))
-		{
-			Throw(0, "Type mismatch between %s and %s for %s argument (%s %s)", outputSocket->Type().Value, inputForThisArg->Type().Value, fqFunctionName, argType, argName);
-		}
-
-		AppendTabs(sb, 1);
-		sb.AppendFormat("(%s = %s)\n", argName, outputSocket->Name());
+		AppendArgumentToFunctionCall(sb, argType, argName, fqFunctionName, f, calleeNode, graph);
 	}
 
+	// Next we declare outputs
 	for (int i = 0; i < f.OutputCount(); i++)
 	{
 		cstr argType = f.OutputType(i);
@@ -238,6 +245,7 @@ static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISX
 		sb.AppendFormat("(%s %s)\n", argType, argName);
 	}
 
+	// Finally invoke the function, mapping inputs to ouputs
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s", fqFunctionName);
 
