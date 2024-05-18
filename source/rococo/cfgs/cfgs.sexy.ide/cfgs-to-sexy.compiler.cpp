@@ -127,11 +127,28 @@ static ICFGSNode* FindBeginNode(ICFGSFunction& f)
 	return nullptr;
 }
 
+static int GetNumberOfCallers(ICFGSFunction& f, ICFGSNode& node)
+{
+	int count = 0;
+
+	auto& cables = f.Cables();
+	for (int i = 0; i < cables.Count(); i++)
+	{
+		auto& cable = cables[i];
+		if (cable.EntryPoint().node == node.Id())
+		{
+			count++;
+		}
+	}
+
+	return count;
+}
+
 static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb)
 {
-	ICFGSNode* currentNode = FindBeginNode(f);
+	ICFGSNode* callerNode = FindBeginNode(f);
 
-	if (currentNode == nullptr)
+	if (callerNode == nullptr)
 	{
 		return;
 	}
@@ -142,14 +159,14 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb)
 
 	while (true)
 	{
-		ICFGSCable* outgoingCable = FindOutgoingCable(*currentNode, f);
+		ICFGSCable* outgoingCable = FindOutgoingCable(*callerNode, f);
 		if (!outgoingCable)
 		{
 			return;
 		}
 
-		auto* nextNode = f.Nodes().FindNode(outgoingCable->ExitPoint().node);
-		if (!nextNode)
+		auto* calleeNode = f.Nodes().FindNode(outgoingCable->EntryPoint().node);
+		if (!calleeNode)
 		{
 			return;
 		}
@@ -159,17 +176,28 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb)
 			sb << "\n";
 		}
 
-		auto i = nodeLabels.find(nextNode);
+		auto i = nodeLabels.find(calleeNode);
 		if (i == nodeLabels.end())
 		{
 			// Unhandled node, so we add implementation for it
 			char label[64];
 			SafeFormat(label, "node%d", nodeIndex++);
 			AppendTabs(sb, 1);
-			sb.AppendFormat("(label %s)\n", label);
+
+			if (GetNumberOfCallers(f, *calleeNode) > 1)
+			{
+				sb.AppendFormat("(label %s)\n", label);
+			}
+
 			AppendTabs(sb, 1);
-			sb.AppendFormat("(%s)\n", nextNode->Type());
-			nodeLabels.insert(std::make_pair(nextNode, HString(label)));
+
+			cstr type = calleeNode->Type().Value;
+
+			sb.AppendFormat("(%s)\n", type);
+
+			nodeLabels.insert(std::make_pair(calleeNode, HString(label)));
+
+			callerNode = calleeNode;
 		}
 		else
 		{
@@ -198,7 +226,7 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 
 	sb << ")\n\n";
 
-	sb.AppendFormat("(class %s (implements %s)\n", exportSpec.InterfaceName(), exportSpec.ClassName());
+	sb.AppendFormat("(class %s (implements %s)\n", exportSpec.ClassName(), exportSpec.InterfaceName());
 
 	variables.ForEachVariable(
 		[&sb, &db](cstr name, cstr type, cstr defaultValue)

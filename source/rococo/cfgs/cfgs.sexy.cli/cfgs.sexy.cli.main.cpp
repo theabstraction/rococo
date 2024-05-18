@@ -25,14 +25,14 @@ struct AutoModule
 
 #include <stdio.h>
 
-int MainProtected(int argc, char* argv[])
+void MainProtected(int argc, char* argv[])
 {
 	cstr dllname = "cfgs.sexy.ide.dll";
 
 	if (argc == 1)
 	{
 		printf("Usage:\n\t-compile:<sexml-source> compiles the sexml-source file\n");
-		return 0;
+		return;
 	}
 
 	AutoModule mod;
@@ -63,18 +63,18 @@ int MainProtected(int argc, char* argv[])
 			cli->Compile(arg + prefix.length);
 		}
 	}
-
-	return 0;
 }
 
 int main(int argc, char* argv[])
 {
 	try
 	{
-		return MainProtected(argc, argv);
+		MainProtected(argc, argv);
+		return 0;
 	}
 	catch (IException& ex)
 	{
 		printf("%s", ex.Message());
+		return ex.ErrorCode();
 	}
 }
