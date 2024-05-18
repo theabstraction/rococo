@@ -166,10 +166,10 @@ static ICFGSSocket* FindSocketInput(ICFGSNode& node, cstr argType, cstr argName)
 			}
 		}
 	}
-
-	// We didn't match the arg name, but the type was unique, so assume the argument has undergone a cosmetic name change
+	
 	if (matchingTypeCount == 1)
 	{
+		// We didn't match the arg name, but the type was unique, so assume the argument has undergone a cosmetic name change
 		return &node[firstMatchingTypeIndex];
 	}
 
@@ -219,11 +219,6 @@ static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISX
 		}
 
 		CableConnection outputConnection = FindConnectionToInput(graph, *inputForThisArg);
-		if (!outputConnection.node)
-		{
-			continue;
-		}
-
 		ICFGSSocket* outputSocket = FindConnectionToOutput(graph, outputConnection);
 		if (!Eq(outputSocket->Type().Value, inputForThisArg->Type().Value))
 		{
