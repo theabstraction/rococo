@@ -15,12 +15,6 @@
 
 #include <rococo.time.h>
 
-#ifdef _WIN32
-#pragma comment(lib, "rococo.windows.lib")
-#pragma comment(lib, "rococo.util.lib")
-#pragma comment(lib, "rococo.audio.lib")
-#endif
-
 using namespace Rococo;
 using namespace Rococo::IO;
 

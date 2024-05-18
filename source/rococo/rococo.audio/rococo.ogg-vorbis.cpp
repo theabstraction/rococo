@@ -9,8 +9,6 @@
 
 #include <vector>
 
-#pragma comment(lib, "lib-vorbis-file.lib")
-
 using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Audio;

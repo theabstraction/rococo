@@ -24,8 +24,6 @@
 # include <errno.h>
 #endif
 
-#pragma comment(lib, "rococo.util.lib")
-
 namespace
 {
    using namespace Rococo;

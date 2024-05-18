@@ -3,11 +3,6 @@
 
 #include <rococo.types.h>
 
-#ifdef _WIN32
-#pragma comment(lib, "rococo.windows.lib")
-#pragma comment(lib, "rococo.util.lib")
-#endif
-
 namespace
 {
 	using namespace Rococo;

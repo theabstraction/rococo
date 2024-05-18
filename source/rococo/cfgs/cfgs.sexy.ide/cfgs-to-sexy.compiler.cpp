@@ -9,7 +9,9 @@
 #include <stdio.h>
 #include <rococo.hashtable.h>
 #include <sexy.types.h>
+#include <rococo.strings.ex.h>
 #include <Sexy.S-Parser.h>
+#include <unordered_map>
 
 using namespace Rococo;
 using namespace Rococo::CFGS;
@@ -65,9 +67,117 @@ cstr GetCorrectedDefaultValue(const ISXYType* type, cstr defaultValue)
 	return nullptr;
 }
 
+static ICFGSSocket* FindCallee(ICFGSNode& caller)
+{
+	for (int i = 0; i < caller.SocketCount(); i++)
+	{
+		auto& socket = caller[i];
+		if (socket.SocketClassification() == SocketClass::Exit)
+		{
+			return &socket;
+		}
+	}
+
+	return nullptr;
+}
+
+static ICFGSCable* FindOutgoingCable(ICFGSNode& node, ICFGSFunction& f)
+{
+	ICFGSSocket* s = FindCallee(node);
+	if (!s)
+	{
+		return nullptr;
+	}
+
+	auto& cables = f.Cables();
+
+	for (int i = 0; i < cables.Count(); i++)
+	{
+		auto& cable = cables[i];
+		if (cable.ExitPoint().socket == s->Id())
+		{
+			return &cable;
+		}
+	}
+
+	return nullptr;
+}
+
+static void AppendTabs(StringBuilder& sb, int count)
+{
+	int spacesPerTab = 4;
+	for (int i = 0; i < count * spacesPerTab; i++)
+	{
+		sb << " ";
+	}
+}
+
+static ICFGSNode* FindBeginNode(ICFGSFunction& f)
+{
+	auto& nodes = f.Nodes();
+	for (int i = 0; i < nodes.Count(); i++)
+	{
+		auto& node = nodes[i];
+		if (Eq(node.Type().Value, "<Begin>"))
+		{
+			return &node;
+		}
+	}
+
+	return nullptr;
+}
+
 static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb)
 {
+	ICFGSNode* currentNode = FindBeginNode(f);
 
+	if (currentNode == nullptr)
+	{
+		return;
+	}
+
+	std::unordered_map<ICFGSNode*, HString> nodeLabels;
+
+	int nodeIndex = 1;
+
+	while (true)
+	{
+		ICFGSCable* outgoingCable = FindOutgoingCable(*currentNode, f);
+		if (!outgoingCable)
+		{
+			return;
+		}
+
+		auto* nextNode = f.Nodes().FindNode(outgoingCable->ExitPoint().node);
+		if (!nextNode)
+		{
+			return;
+		}
+
+		if (!nodeLabels.empty())
+		{
+			sb << "\n";
+		}
+
+		auto i = nodeLabels.find(nextNode);
+		if (i == nodeLabels.end())
+		{
+			// Unhandled node, so we add implementation for it
+			char label[64];
+			SafeFormat(label, "node%d", nodeIndex++);
+			AppendTabs(sb, 1);
+			sb.AppendFormat("(label %s)\n", label);
+			AppendTabs(sb, 1);
+			sb.AppendFormat("(%s)\n", nextNode->Type());
+			nodeLabels.insert(std::make_pair(nextNode, HString(label)));
+		}
+		else
+		{
+			AppendTabs(sb, 1);
+			sb.AppendFormat("(goto %s)\n", i->second.c_str());
+			return;
+		}
+	}
 }
 
 static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables)

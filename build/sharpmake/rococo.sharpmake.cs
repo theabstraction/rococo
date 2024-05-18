@@ -567,7 +567,6 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.SolutionFolder = "ECS";
             AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
@@ -587,7 +586,6 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
@@ -608,7 +606,6 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
@@ -629,7 +626,6 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
@@ -730,7 +726,6 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.AddPublicDependency<SexyScriptProject>(target);
         }
@@ -1131,13 +1126,8 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
 
-            conf.ExportAdditionalLibrariesEvenForStaticLib = true;
-            DependencySetting buildFirst = DependencySetting.OnlyBuildOrder;
-            conf.AddPrivateDependency<RococoECSProject>(target, buildFirst);
-            conf.AddPrivateDependency<RococoComponentsAnimationProject>(target, buildFirst);
-            conf.AddPrivateDependency<RococoComponentsBodyProject>(target, buildFirst);
-            conf.AddPrivateDependency<RococoComponentsSkeletonProject>(target, buildFirst);
-            conf.AddPrivateDependency<RococoAudioProject>(target, buildFirst);
+            conf.ExportAdditionalLibrariesEvenForStaticLib = false;
+            //DependencySetting buildFirst = DependencySetting.OnlyBuildOrder;
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
@@ -1227,7 +1217,6 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<SexyScriptProject>(target);
             conf.AddPublicDependency<SexySParserProject>(target);
@@ -1440,6 +1429,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_AUDIO_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<VorbisFileProject>(target);
             conf.IncludePaths.Add(@"..\..\3rd-party\libvorbis\include\");
             conf.IncludePaths.Add(@"..\..\3rd-party\libogg\include\");
             AddSXHFileBuildStep(conf, target, "Audio.sxh", "config.xc", @"rococo\audio", true);

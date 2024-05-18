@@ -18,9 +18,6 @@
 
 #include "dx11.imports.inl"
 
-#pragma comment(lib, "lib-tiff.lib" )
-#pragma comment(lib, "lib-jpg.lib" )
-
 namespace Rococo
 {
 	namespace DX11

@@ -4,8 +4,6 @@
 #include <rococo.abstract.editor.h>
 #include <rococo.strings.h>
 #include <commdlg.h>
-#pragma comment(lib, "cfgs.editor.marshaller.lib")
-#pragma comment(lib, "rococo.windows.lib")
 #include <stdlib.h>
 #include <rococo.cfgs.h>
 

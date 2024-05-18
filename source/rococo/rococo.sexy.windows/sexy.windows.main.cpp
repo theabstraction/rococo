@@ -1,11 +1,5 @@
 #include "sexy.windows.internal.h"
 
-#ifdef _WIN32
-#pragma comment(lib, "sexy.script.lib")
-#pragma comment(lib, "rococo.sexy.ide.lib")
-#pragma comment(lib, "rococo.windows.lib")
-#endif
-
 namespace ANON
 {
 	using namespace Rococo::SexyWindows;

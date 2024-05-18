@@ -31,9 +31,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-#ifdef _WIN32
-# pragma comment(lib, "rococo.audio.lib")
-#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #undef DrawText

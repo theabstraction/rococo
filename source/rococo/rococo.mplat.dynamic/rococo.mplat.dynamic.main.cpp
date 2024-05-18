@@ -1,8 +1,5 @@
 #include <rococo.mplat.main.inl>
 
-#pragma comment(lib, "lib-tiff.lib" )
-#pragma comment(lib, "lib-jpg.lib" )
-
 using namespace Rococo;
 
 BOOL WINAPI DllMain(_In_ HINSTANCE hinstDLL, _In_ DWORD fdwReason, _In_ LPVOID lpvReserved)

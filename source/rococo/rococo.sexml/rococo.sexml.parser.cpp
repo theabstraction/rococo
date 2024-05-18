@@ -23,6 +23,7 @@ namespace Rococo::Sex::SEXML
 	template<class T>
 	void VALIDATE_SIMPLE_INTERFACE(T* This, cstr functionName)
 	{
+		UNUSED(functionName);
 #ifdef _DEBUG
 		ISEXMLAttributeValue* iThis = static_cast<ISEXMLAttributeValue*>(This);
 		ISEXMLAttributeValue* iThis2 = reinterpret_cast<ISEXMLAttributeValue*>(This);
@@ -30,6 +31,8 @@ namespace Rococo::Sex::SEXML
 		{
 			Rococo::Throw(0, "%s: ISEXMLAttributeValue vtable needs to be first member of any of its implementations", functionName);
 		}
+#else
+		UNUSED(This);
 #endif
 	}
 

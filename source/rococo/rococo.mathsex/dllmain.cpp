@@ -2,9 +2,6 @@
 #include <rococo.types.h>
 #include <windows.h>
 
-#pragma comment(lib, "rococo.maths.lib")
-#pragma comment(lib, "rococo.util.lib")
-
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD  ul_reason_for_call,LPVOID lpReserved)
 {
 	UNUSED(lpReserved);
