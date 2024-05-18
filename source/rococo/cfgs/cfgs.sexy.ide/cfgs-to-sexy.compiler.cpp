@@ -144,7 +144,62 @@ static int GetNumberOfCallers(ICFGSFunction& f, ICFGSNode& node)
 	return count;
 }
 
-static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb)
+static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISXYFunction& g)
+{
+	for (int i = 0; i < g.InputCount(); i++)
+	{
+		cstr argType = g.InputType(i);
+		cstr argName = g.InputName(i);
+		AppendTabs(sb, 1);
+		sb.AppendFormat("(%s %s)\n", argType, argName);
+	}
+
+	for (int i = 0; i < g.OutputCount(); i++)
+	{
+		cstr argType = g.OutputType(i);
+		cstr argName = g.OutputName(i);
+
+		AppendTabs(sb, 1);
+		sb.AppendFormat("(%s %s)\n", argType, argName);
+	}
+
+	AppendTabs(sb, 1);
+	sb.AppendFormat("(%s", fqFunctionName);
+
+	for (int i = 0; i < g.InputCount(); i++)
+	{
+		cstr argName = g.InputName(i);
+		sb.AppendFormat(" %s ", argName);
+	}
+
+	if (g.OutputCount() > 0)
+	{
+		sb << " -> ";
+	}
+
+	for (int i = 0; i < g.OutputCount(); i++)
+	{
+		cstr argName = g.OutputName(i);
+		sb.AppendFormat(" %s", argName);
+	}
+
+	sb << ")\n\n";
+}
+
+static void AppendNodeImplementation(StringBuilder& sb, cstr fqType, ISexyDatabase& db)
+{
+	auto* aliasedFunction = db.FindFunction(fqType);
+	if (aliasedFunction)
+	{
+		auto* localFunction = aliasedFunction->LocalFunction();
+		if (localFunction)
+		{
+			AppendFunctionCall(sb, fqType, *localFunction);
+		}
+	}
+}
+
+static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDatabase& db)
 {
 	ICFGSNode* callerNode = FindBeginNode(f);
 
@@ -182,18 +237,14 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb)
 			// Unhandled node, so we add implementation for it
 			char label[64];
 			SafeFormat(label, "node%d", nodeIndex++);
-			AppendTabs(sb, 1);
 
 			if (GetNumberOfCallers(f, *calleeNode) > 1)
 			{
+				AppendTabs(sb, 1);
 				sb.AppendFormat("(label %s)\n", label);
 			}
 
-			AppendTabs(sb, 1);
-
-			cstr type = calleeNode->Type().Value;
-
-			sb.AppendFormat("(%s)\n", type);
+			AppendNodeImplementation(sb, calleeNode->Type().Value, db);
 
 			nodeLabels.insert(std::make_pair(calleeNode, HString(label)));
 
@@ -249,7 +300,7 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 
 
 	cfgs.ForEachFunction(
-		[&sb](ICFGSFunction& f)
+		[&sb,&db](ICFGSFunction& f)
 		{
 			cstr name = f.Name();
 			if (name[0] == '_') name++;
@@ -287,7 +338,7 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 
 			sb.AppendFormat(":\n");
 
-			CompileFunctionBody(f, sb);
+			CompileFunctionBody(f, sb, db);
 
 			sb.AppendFormat("\n)\n");
 		}

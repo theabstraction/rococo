@@ -551,6 +551,11 @@ namespace ANON
 		{
 			return localFunction;
 		}
+
+		const ISXYFunction* LocalFunction() const override
+		{
+			return localFunction;
+		}
 	};
 
 	struct SxyPrimitive : ISXYType, ISXYLocalType
@@ -933,6 +938,19 @@ namespace ANON
 		int AliasCount() const override
 		{
 			return (int) nsAlias.size();
+		}
+
+		const ISXYPublicFunction* FindFunction(cstr shortName) const override
+		{
+			for (auto& f : functions)
+			{
+				if (Eq(f.publicName.c_str(), shortName))
+				{
+					return &f;
+				}
+			}
+
+			return nullptr;
 		}
 
 		const ISxyNamespace* FindSubspaceByShortName(cstr shortname) const override
@@ -2414,6 +2432,25 @@ namespace ANON
 			{
 				AppendAllMacroChildrenFromRoot(postHashPrefix, exportList, ns[i]);
 			}
+		}
+
+		const ISXYPublicFunction* FindFunction(cstr fqFunctionName) override
+		{
+			NamespaceSplitter splitter(fqFunctionName);
+
+			cstr nsPrefix, shortName;
+			if (!splitter.SplitTail(OUT nsPrefix, OUT shortName))
+			{
+				return nullptr;
+			}
+
+			auto* ns = GetRootNamespace().FindSubspace(nsPrefix);
+			if (!ns)
+			{
+				return nullptr;
+			}
+
+			return ns->FindFunction(shortName);
 		}
 
 		const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) override

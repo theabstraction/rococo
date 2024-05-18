@@ -185,6 +185,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual cstr PublicName() const = 0;
 		virtual ISXYFunction* LocalFunction() = 0;
+		virtual const ISXYFunction* LocalFunction() const = 0;
 	};
 
 	struct ISxyNamespace;
@@ -203,6 +204,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual int AliasCount() const = 0;
 		virtual void AppendFullNameToStringBuilder(REF StringBuilder& sb) const = 0;
+		virtual const ISXYPublicFunction* FindFunction(cstr shortName) const = 0;
 		virtual const ISxyNamespace* FindSubspaceByShortName(cstr shortname) const = 0;
 		virtual const ISxyNamespace* FindSubspace(cstr fqNamespace) const = 0;
 		virtual cstr FindAliasFrom(cstr source) const = 0;
@@ -294,6 +296,7 @@ namespace Rococo::SexyStudio
 		virtual const ISXYType* FindFQType(cstr typeName) const = 0;
 		virtual const ISXYType* FindPrimitiveOrFQType(cstr typeName) const = 0;
 		virtual const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) = 0;
+		virtual const ISXYPublicFunction* FindFunction(cstr fqFunctionName) = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
 		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void ForEachAutoCompleteMacroCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
