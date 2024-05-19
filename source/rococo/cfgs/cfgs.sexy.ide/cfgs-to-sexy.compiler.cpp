@@ -203,7 +203,64 @@ static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection
 	return node->FindSocket(outputConnection.socket);
 }
 
-static void AppendDeclareAndAssignArgumentToFunctionCall(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, ICFGSFunction& graph)
+static void ValidateDefaultCharacterAsNonString(cstr text, cstr argName, cstr fqFunctionName, cstr graphName)
+{
+	for (cstr p = text; *p != 0; p++)
+	{
+		if (*p <= 32)
+		{
+			Throw(0, "Bad blank space %d in default value string for %s of %s for graph %s", (int)*p, argName, fqFunctionName, graphName);
+		}
+
+		switch (*p)
+		{
+		case '(':
+		case ')':
+		case '\'':
+		case '"':
+		case '/':
+		case '\\':
+			Throw(0, "Bad character %d in default value string for %s of %s for graph %s", (int)*p, argName, fqFunctionName, graphName);
+		}
+	}
+}
+
+static void AssignDefaultValueToVariable(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, ICFGSFunction& graph, ICFGSSocket& inputSocket)
+{
+	struct : IStringPopulator
+	{
+		char data[4096];
+
+		void Populate(cstr text)
+		{
+			SecureFormat(data, "%s", text);
+		}
+	} buffer;
+
+	if (!inputSocket.TryGetField(argName, buffer))
+	{
+		return;
+	}
+
+	AppendTabs(sb, 1);
+	sb.AppendFormat("(%s = ", argName);
+
+	if (Eq(argType, "Sys.Type.IString") || (Eq(argType, "IString")))
+	{
+		sb.AppendChar('"');
+		Rococo::Strings::AppendEscapedSexyString(sb, buffer.data);
+		sb.AppendChar('"');
+	}
+	else
+	{
+		ValidateDefaultCharacterAsNonString(buffer.data, argName, fqFunctionName, graph.Name());
+		sb << buffer.data;
+	}
+
+	sb << ")\n";
+}
+
+static void AppendDeclareAndAssignArgumentToFunctionCall(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode, ICFGSFunction& graph)
 {
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s %s)\n", argType, argName);
@@ -216,6 +273,12 @@ static void AppendDeclareAndAssignArgumentToFunctionCall(StringBuilder& sb, cstr
 
 	CableConnection outputConnection = FindConnectionToInput(graph, *inputForThisArg);
 	ICFGSSocket* outputSocket = FindConnectionToOutput(graph, outputConnection);
+	if (!outputSocket)
+	{
+		AssignDefaultValueToVariable(sb, argType, argName, fqFunctionName, graph, *inputForThisArg);
+		return;
+	}
+
 	if (!Eq(outputSocket->Type().Value, inputForThisArg->Type().Value))
 	{
 		Throw(0, "Type mismatch between %s and %s for %s argument (%s %s)", outputSocket->Type().Value, inputForThisArg->Type().Value, fqFunctionName, argType, argName);
@@ -232,7 +295,7 @@ static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISX
 	{
 		cstr argType = f.InputType(i);
 		cstr argName = f.InputName(i);
-		AppendDeclareAndAssignArgumentToFunctionCall(sb, argType, argName, fqFunctionName, f, calleeNode, graph);
+		AppendDeclareAndAssignArgumentToFunctionCall(sb, argType, argName, fqFunctionName, calleeNode, graph);
 	}
 
 	// Next we declare outputs
@@ -350,26 +413,89 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDataba
 	}
 }
 
+static void AppendInputDeclarations(StringBuilder& sb, ICFGSFunction& f)
+{
+	auto& beginNode = f.BeginNode();
+	for (int i = 0; i < beginNode.SocketCount(); i++)
+	{
+		auto& input = beginNode[i];
+		switch (input.SocketClassification())
+		{
+		case SocketClass::ConstInputRef:
+		case SocketClass::InputRef:
+		case SocketClass::InputVar:
+			sb.AppendFormat(" (%s %s)", input.Type(), input.Name());
+		}
+	}
+}
+
+static void AppendOutputDeclarations(StringBuilder& sb, ICFGSFunction& f)
+{
+	auto& returnNode = f.ReturnNode();
+	for (int i = 0; i < returnNode.SocketCount(); i++)
+	{
+		auto& output = returnNode[i];
+		switch (output.SocketClassification())
+		{
+		case SocketClass::ConstOutputRef:
+		case SocketClass::OutputRef:
+		case SocketClass::OutputValue:
+			sb.AppendFormat("(%s %s) ", output.Type(), output.Name());
+		}
+	}
+}
+
+static void AppendMethodImplementingFunction(StringBuilder& sb, ISexyDatabase& db, ICompileExportsSpec& exportSpec, ICFGSFunction& f)
+{
+	// Methods that begin with underscore are deemed local methods private to an implementation and not exposed by an interface.
+	// Since the Sexy language does not permit underscores in any local identifier, we skip leading underscores
+	cstr name = f.Name();
+	if (name[0] == '_') name++;
+
+	/* Methods look like this
+	 
+	(method Dog.Bark (Decibals dB)(Hz hz)(Vec3 location) -> (Bool barkSucceeded): 
+		(this.system.emit dB hz location "Bark.mp3" -> barkSucceeded)
+	)
+	 
+	*/
+
+	sb.AppendFormat("\n(method %s.%s", exportSpec.ClassName(), name);
+
+	AppendInputDeclarations(sb, f);
+
+	sb << " -> ";
+
+	AppendOutputDeclarations(sb, f);
+
+	sb.AppendFormat(":\n");
+
+	CompileFunctionBody(f, sb, db, f);
+
+	sb.AppendFormat("\n)\n");
+}
+
 static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables)
 {
+	// Build the interface definition
 	sb.AppendFormat("(interface %s\n", exportSpec.InterfaceName());
-
 	cfgs.ForEachFunction(
 		[&sb](ICFGSFunction& f)
 		{
+			// Methods that begin with underscore are deemed local methods private to an implementation and not exposed by an interface.
 			cstr name = f.Name();
 			if (name[0] != '_')
 			{
 				// Public method
-				sb.AppendFormat("  (%s -> )\n", name);
+				AppendTabs(sb, 1);
+				sb.AppendFormat("(%s -> )\n", name);
 			}
 		}
 	);
-
 	sb << ")\n\n";
 
+	// Build the class definition that specifies the implementation interface and member variables
 	sb.AppendFormat("(class %s (implements %s)\n", exportSpec.ClassName(), exportSpec.InterfaceName());
-
 	variables.ForEachVariable(
 		[&sb, &db](cstr name, cstr type, cstr defaultValue)
 		{
@@ -377,65 +503,25 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 			cstr correctedDefaultValue = GetCorrectedDefaultValue(sxyType, defaultValue);
 			if (correctedDefaultValue)
 			{
-				sb.AppendFormat("  (%s %s = %s)\n", type, name, correctedDefaultValue);
+				AppendTabs(sb, 1);
+				sb.AppendFormat("(%s %s = %s)\n", type, name, correctedDefaultValue);
 			}
 			else
 			{
-				sb.AppendFormat("  (%s %s)\n", type, name);
+				AppendTabs(sb, 1);
+				sb.AppendFormat("(%s %s)\n", type, name);
 			}
 		}
 	);
-
-
 	sb << ")\n";
 
-
+	// Turn the graphs (functions) into methods for our new class.
 	cfgs.ForEachFunction(
-		[&sb,&db](ICFGSFunction& f)
-		{
-			cstr name = f.Name();
-			if (name[0] == '_') name++;
-
-			// Public method
-			sb.AppendFormat("\n(method MyObject.%s", name);
-
-			auto& beginNode = f.BeginNode();
-			for (int i = 0; i < beginNode.SocketCount(); i++)
-			{
-				auto& input = beginNode[i];
-				switch (input.SocketClassification())
-				{
-				case SocketClass::ConstInputRef:
-				case SocketClass::InputRef:
-				case SocketClass::InputVar:
-					sb.AppendFormat(" (%s %s)", input.Type(), input.Name());
-				}
-			}
-
-			sb << " -> ";
-
-			auto& returnNode = f.ReturnNode();
-			for (int i = 0; i < returnNode.SocketCount(); i++)
-			{
-				auto& output = returnNode[i];
-				switch (output.SocketClassification())
-				{
-				case SocketClass::ConstOutputRef:
-				case SocketClass::OutputRef:
-				case SocketClass::OutputValue:
-					sb.AppendFormat("(%s %s) ", output.Type(), output.Name());
-				}
-			}
-
-			sb.AppendFormat(":\n");
-
-			CompileFunctionBody(f, sb, db, f);
-
-			sb.AppendFormat("\n)\n");
+		[&sb, &db, &exportSpec](ICFGSFunction& f)
+		{ 
+			AppendMethodImplementingFunction(sb, db, exportSpec, f);
 		}
 	);
-
-	UNUSED(db);
 }
 
 static bool CompileToString(StringBuilder& sb, ISexyDatabase& db, ICFGSDatabase& cfgs, ICompileExportsSpec& exportSpec, ICFGSVariableEnumerator& variables) noexcept
