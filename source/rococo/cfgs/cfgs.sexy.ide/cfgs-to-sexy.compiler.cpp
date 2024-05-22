@@ -23,10 +23,25 @@ static Rococo::stringmap<int> knownPrimitives;
 
 struct BuildBundle
 {
+	struct NodeData
+	{
+		HString label;
+		int index;
+	};
+	std::unordered_map<ICFGSNode*, NodeData> nodeLabels;
+
+	int nextNodeIndex = 1;
+
 	StringBuilder& sb;
 	ISexyDatabase& db;
 	ICFGSFunction& graph;
 	ICompileExportsSpec& exportSpec;
+
+	BuildBundle(StringBuilder& _sb, ISexyDatabase& _db, ICFGSFunction& _graph, ICompileExportsSpec& _exportSpec):
+		sb(_sb), db(_db), graph(_graph), exportSpec(_exportSpec)
+	{
+
+	}
 
 	void AppendMethodImplementingFunction();
 	void AppendInputDeclarations();
@@ -35,7 +50,11 @@ struct BuildBundle
 	void AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode);
 	void AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode);
 	void AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode);
-	void AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket);
+	void AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket, ICFGSNode& calleeNode);
+
+	int GetNodeIndex(ICFGSNode& node);
+
+	void AppendArgForNode(cstr baseArgName, ICFGSNode& node);
 };
 
 cstr GetCorrectedDefaultValue(const ISXYType* type, cstr defaultValue)
@@ -241,7 +260,7 @@ static void ValidateDefaultCharacterAsNonString(cstr text, cstr argName, cstr fq
 	}
 }
 
-void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket)
+void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket, ICFGSNode& calleeNode)
 {
 	HString data;
 	HStringPopulator populator(data);
@@ -252,7 +271,12 @@ void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr 
 	}
 
 	AppendTabs(sb, 1);
-	sb.AppendFormat("(%s = ", argName);
+
+	sb << "(";
+
+	AppendArgForNode(argName, calleeNode);
+
+	sb << " = ";
 
 	if (Eq(argType, "Sys.Type.IString") || (Eq(argType, "IString")))
 	{
@@ -269,10 +293,29 @@ void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr 
 	sb << ")\n";
 }
 
+void BuildBundle::AppendArgForNode(cstr baseArgName, ICFGSNode& node)
+{
+	int index = GetNodeIndex(node);
+	sb.AppendFormat("%sForNode%d", baseArgName, index);
+}
+
+int BuildBundle::GetNodeIndex(ICFGSNode& node)
+{
+	auto i = nodeLabels.find(&node);
+	if (i == nodeLabels.end())
+	{
+		i = nodeLabels.insert(std::make_pair(&node, NodeData{ "", nextNodeIndex++ })).first;	
+	}
+
+	return i->second.index;
+}
+
 void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode)
 {
 	AppendTabs(sb, 1);
-	sb.AppendFormat("(%s %s)\n", argType, argName);
+	sb.AppendFormat("(%s ", argType);
+	AppendArgForNode(argName, calleeNode);
+	sb << ")\n";
 
 	auto* inputForThisArg = FindSocketInput(calleeNode, argType, argName);
 	if (!inputForThisArg)
@@ -284,7 +327,7 @@ void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cst
 	ICFGSSocket* outputSocket = FindConnectionToOutput(graph, outputConnection);
 	if (!outputSocket)
 	{
-		AssignDefaultValueToVariable(argType, argName, fqFunctionName, *inputForThisArg);
+		AssignDefaultValueToVariable(argType, argName, fqFunctionName, *inputForThisArg, calleeNode);
 		return;
 	}
 
@@ -293,49 +336,59 @@ void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cst
 		Throw(0, "Type mismatch between %s and %s for %s argument (%s %s)", outputSocket->Type().Value, inputForThisArg->Type().Value, fqFunctionName, argType, argName);
 	}
 
+	auto* callerNode = graph.Nodes().FindNode(outputConnection.node);
+
 	AppendTabs(sb, 1);
-	sb.AppendFormat("(%s = %s)\n", argName, outputSocket->Name());
+	sb << "(";
+	AppendArgForNode(argName, calleeNode);
+	sb << " = ";
+	AppendArgForNode(outputSocket->Name(), *callerNode);
+	sb << ")\n";
 }
 
-void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode)
+void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode)
 {
 	// First we declare and assign inputs
-	for (int i = 0; i < f.InputCount(); i++)
+	for (int i = 0; i < sexyFunction.InputCount(); i++)
 	{
-		cstr argType = f.InputType(i);
-		cstr argName = f.InputName(i);
+		cstr argType = sexyFunction.InputType(i);
+		cstr argName = sexyFunction.InputName(i);
 		AppendDeclareAndAssignArgumentToFunctionCall(argType, argName, fqFunctionName, calleeNode);
 	}
 
 	// Next we declare outputs
-	for (int i = 0; i < f.OutputCount(); i++)
+	for (int i = 0; i < sexyFunction.OutputCount(); i++)
 	{
-		cstr argType = f.OutputType(i);
-		cstr argName = f.OutputName(i);
+		cstr argType = sexyFunction.OutputType(i);
+		cstr argName = sexyFunction.OutputName(i);
 
 		AppendTabs(sb, 1);
-		sb.AppendFormat("(%s %s)\n", argType, argName);
+		sb.AppendFormat("(%s ", argType);
+		AppendArgForNode(argName, calleeNode);
+		sb << ")\n";
 	}
 
 	// Finally invoke the function, mapping inputs to ouputs
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s", fqFunctionName);
 
-	for (int i = 0; i < f.InputCount(); i++)
+	for (int i = 0; i < sexyFunction.InputCount(); i++)
 	{
-		cstr argName = f.InputName(i);
-		sb.AppendFormat(" %s ", argName);
+		cstr argName = sexyFunction.InputName(i);
+		sb << " ";
+		AppendArgForNode(argName, calleeNode);
 	}
 
-	if (f.OutputCount() > 0)
+	if (sexyFunction.OutputCount() > 0)
 	{
 		sb << " -> ";
 	}
 
-	for (int i = 0; i < f.OutputCount(); i++)
+	for (int i = 0; i < sexyFunction.OutputCount(); i++)
 	{
-		cstr argName = f.OutputName(i);
-		sb.AppendFormat(" %s", argName);
+		cstr argName = sexyFunction.OutputName(i);
+		sb << " ";
+		AppendArgForNode(argName, calleeNode);
 	}
 
 	sb << ")\n\n";
@@ -364,16 +417,14 @@ void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode)
 
 void BuildBundle::CompileFunctionBody()
 {
+	nodeLabels.clear();
+
 	ICFGSNode* callerNode = FindBeginNode(graph);
 
 	if (callerNode == nullptr)
 	{
 		return;
 	}
-
-	std::unordered_map<ICFGSNode*, HString> nodeLabels;
-
-	int nodeIndex = 1;
 
 	while (true)
 	{
@@ -394,12 +445,14 @@ void BuildBundle::CompileFunctionBody()
 			sb << "\n";
 		}
 
+		int index = GetNodeIndex(*calleeNode);
+
 		auto i = nodeLabels.find(calleeNode);
-		if (i == nodeLabels.end())
+		if (i->second.label.length() == 0)
 		{
 			// Unhandled node, so we add implementation for it
 			char label[64];
-			SafeFormat(label, "node%d", nodeIndex++);
+			SafeFormat(label, "node%d", index);
 
 			if (GetNumberOfCallers(graph, *calleeNode) > 1)
 			{
@@ -409,14 +462,14 @@ void BuildBundle::CompileFunctionBody()
 
 			AppendNodeImplementation(calleeNode->Type().Value, *calleeNode);
 
-			nodeLabels.insert(std::make_pair(calleeNode, HString(label)));
+			i->second.label = label;
 
 			callerNode = calleeNode;
 		}
 		else
 		{
 			AppendTabs(sb, 1);
-			sb.AppendFormat("(goto %s)\n", i->second.c_str());
+			sb.AppendFormat("(goto %s)\n", i->second.label.c_str());
 			return;
 		}
 	}
@@ -508,18 +561,11 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 	variables.ForEachVariable(
 		[&sb, &db](cstr name, cstr type, cstr defaultValue)
 		{
+			UNUSED(defaultValue);
 			const ISXYType* sxyType = db.FindPrimitiveOrFQType(type);
-			cstr correctedDefaultValue = GetCorrectedDefaultValue(sxyType, defaultValue);
-			if (correctedDefaultValue)
-			{
-				AppendTabs(sb, 1);
-				sb.AppendFormat("(%s %s = %s)\n", type, name, correctedDefaultValue);
-			}
-			else
-			{
-				AppendTabs(sb, 1);
-				sb.AppendFormat("(%s %s)\n", type, name);
-			}
+			UNUSED(sxyType);
+			AppendTabs(sb, 1);
+			sb.AppendFormat("(%s %s)\n", type, name);
 		}
 	);
 	sb << ")\n";
@@ -528,7 +574,7 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 	cfgs.ForEachFunction(
 		[&sb, &db, &exportSpec](ICFGSFunction& f)
 		{ 
-			BuildBundle bundle{ sb, db, f, exportSpec };
+			BuildBundle bundle(sb, db, f, exportSpec);
 			bundle.AppendMethodImplementingFunction();
 		}
 	);
