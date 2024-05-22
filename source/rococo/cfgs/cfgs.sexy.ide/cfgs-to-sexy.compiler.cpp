@@ -21,6 +21,22 @@ using namespace Rococo::Sex::SEXML;
 
 static Rococo::stringmap<int> knownPrimitives;
 
+struct BuildBundle
+{
+	StringBuilder& sb;
+	ISexyDatabase& db;
+	ICFGSFunction& graph;
+	ICompileExportsSpec& exportSpec;
+
+	void AppendMethodImplementingFunction();
+	void AppendInputDeclarations();
+	void AppendOutputDeclarations();
+	void CompileFunctionBody();
+	void AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode);
+	void AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode);
+	void AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode);
+	void AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket);
+};
 
 cstr GetCorrectedDefaultValue(const ISXYType* type, cstr defaultValue)
 {
@@ -225,19 +241,12 @@ static void ValidateDefaultCharacterAsNonString(cstr text, cstr argName, cstr fq
 	}
 }
 
-static void AssignDefaultValueToVariable(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, ICFGSFunction& graph, ICFGSSocket& inputSocket)
+void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket)
 {
-	struct : IStringPopulator
-	{
-		char data[4096];
-
-		void Populate(cstr text)
-		{
-			SecureFormat(data, "%s", text);
-		}
-	} buffer;
-
-	if (!inputSocket.TryGetField(argName, buffer))
+	HString data;
+	HStringPopulator populator(data);
+	
+	if (!inputSocket.TryGetField(argName, populator))
 	{
 		return;
 	}
@@ -248,19 +257,19 @@ static void AssignDefaultValueToVariable(StringBuilder& sb, cstr argType, cstr a
 	if (Eq(argType, "Sys.Type.IString") || (Eq(argType, "IString")))
 	{
 		sb.AppendChar('"');
-		Rococo::Strings::AppendEscapedSexyString(sb, buffer.data);
+		Rococo::Strings::AppendEscapedSexyString(sb, data);
 		sb.AppendChar('"');
 	}
 	else
 	{
-		ValidateDefaultCharacterAsNonString(buffer.data, argName, fqFunctionName, graph.Name());
-		sb << buffer.data;
+		ValidateDefaultCharacterAsNonString(data, argName, fqFunctionName, graph.Name());
+		sb << data.c_str();
 	}
 
 	sb << ")\n";
 }
 
-static void AppendDeclareAndAssignArgumentToFunctionCall(StringBuilder& sb, cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode, ICFGSFunction& graph)
+void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode)
 {
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s %s)\n", argType, argName);
@@ -275,7 +284,7 @@ static void AppendDeclareAndAssignArgumentToFunctionCall(StringBuilder& sb, cstr
 	ICFGSSocket* outputSocket = FindConnectionToOutput(graph, outputConnection);
 	if (!outputSocket)
 	{
-		AssignDefaultValueToVariable(sb, argType, argName, fqFunctionName, graph, *inputForThisArg);
+		AssignDefaultValueToVariable(argType, argName, fqFunctionName, *inputForThisArg);
 		return;
 	}
 
@@ -288,14 +297,14 @@ static void AppendDeclareAndAssignArgumentToFunctionCall(StringBuilder& sb, cstr
 	sb.AppendFormat("(%s = %s)\n", argName, outputSocket->Name());
 }
 
-static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, ICFGSFunction& graph)
+void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode)
 {
 	// First we declare and assign inputs
 	for (int i = 0; i < f.InputCount(); i++)
 	{
 		cstr argType = f.InputType(i);
 		cstr argName = f.InputName(i);
-		AppendDeclareAndAssignArgumentToFunctionCall(sb, argType, argName, fqFunctionName, calleeNode, graph);
+		AppendDeclareAndAssignArgumentToFunctionCall(argType, argName, fqFunctionName, calleeNode);
 	}
 
 	// Next we declare outputs
@@ -332,7 +341,7 @@ static void AppendFunctionCall(StringBuilder& sb, cstr fqFunctionName, const ISX
 	sb << ")\n\n";
 }
 
-static void AppendNodeImplementation(StringBuilder& sb, cstr fqType, ISexyDatabase& db, ICFGSFunction& graph, ICFGSNode& calleeNode)
+void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode)
 {
 	auto* aliasedFunction = db.FindFunction(fqType);
 	if (aliasedFunction)
@@ -340,7 +349,7 @@ static void AppendNodeImplementation(StringBuilder& sb, cstr fqType, ISexyDataba
 		auto* localFunction = aliasedFunction->LocalFunction();
 		if (localFunction)
 		{
-			AppendFunctionCall(sb, fqType, *localFunction, calleeNode, graph);
+			AppendFunctionCall(fqType, *localFunction, calleeNode);
 		}
 		else
 		{
@@ -353,9 +362,9 @@ static void AppendNodeImplementation(StringBuilder& sb, cstr fqType, ISexyDataba
 	}
 }
 
-static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDatabase& db, ICFGSFunction& graph)
+void BuildBundle::CompileFunctionBody()
 {
-	ICFGSNode* callerNode = FindBeginNode(f);
+	ICFGSNode* callerNode = FindBeginNode(graph);
 
 	if (callerNode == nullptr)
 	{
@@ -368,13 +377,13 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDataba
 
 	while (true)
 	{
-		ICFGSCable* outgoingCable = FindOutgoingCable(*callerNode, f);
+		ICFGSCable* outgoingCable = FindOutgoingCable(*callerNode, graph);
 		if (!outgoingCable)
 		{
 			return;
 		}
 
-		auto* calleeNode = f.Nodes().FindNode(outgoingCable->EntryPoint().node);
+		auto* calleeNode = graph.Nodes().FindNode(outgoingCable->EntryPoint().node);
 		if (!calleeNode)
 		{
 			return;
@@ -392,13 +401,13 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDataba
 			char label[64];
 			SafeFormat(label, "node%d", nodeIndex++);
 
-			if (GetNumberOfCallers(f, *calleeNode) > 1)
+			if (GetNumberOfCallers(graph, *calleeNode) > 1)
 			{
 				AppendTabs(sb, 1);
 				sb.AppendFormat("(label %s)\n", label);
 			}
 
-			AppendNodeImplementation(sb, calleeNode->Type().Value, db, graph, *calleeNode);
+			AppendNodeImplementation(calleeNode->Type().Value, *calleeNode);
 
 			nodeLabels.insert(std::make_pair(calleeNode, HString(label)));
 
@@ -413,9 +422,9 @@ static void CompileFunctionBody(ICFGSFunction& f, StringBuilder& sb, ISexyDataba
 	}
 }
 
-static void AppendInputDeclarations(StringBuilder& sb, ICFGSFunction& f)
+void BuildBundle::AppendInputDeclarations()
 {
-	auto& beginNode = f.BeginNode();
+	auto& beginNode = graph.BeginNode();
 	for (int i = 0; i < beginNode.SocketCount(); i++)
 	{
 		auto& input = beginNode[i];
@@ -429,9 +438,9 @@ static void AppendInputDeclarations(StringBuilder& sb, ICFGSFunction& f)
 	}
 }
 
-static void AppendOutputDeclarations(StringBuilder& sb, ICFGSFunction& f)
+void BuildBundle::AppendOutputDeclarations()
 {
-	auto& returnNode = f.ReturnNode();
+	auto& returnNode = graph.ReturnNode();
 	for (int i = 0; i < returnNode.SocketCount(); i++)
 	{
 		auto& output = returnNode[i];
@@ -445,11 +454,11 @@ static void AppendOutputDeclarations(StringBuilder& sb, ICFGSFunction& f)
 	}
 }
 
-static void AppendMethodImplementingFunction(StringBuilder& sb, ISexyDatabase& db, ICompileExportsSpec& exportSpec, ICFGSFunction& f)
+void BuildBundle::AppendMethodImplementingFunction()
 {
 	// Methods that begin with underscore are deemed local methods private to an implementation and not exposed by an interface.
 	// Since the Sexy language does not permit underscores in any local identifier, we skip leading underscores
-	cstr name = f.Name();
+	cstr name = graph.Name();
 	if (name[0] == '_') name++;
 
 	/* Methods look like this
@@ -462,15 +471,15 @@ static void AppendMethodImplementingFunction(StringBuilder& sb, ISexyDatabase& d
 
 	sb.AppendFormat("\n(method %s.%s", exportSpec.ClassName(), name);
 
-	AppendInputDeclarations(sb, f);
+	AppendInputDeclarations();
 
 	sb << " -> ";
 
-	AppendOutputDeclarations(sb, f);
+	AppendOutputDeclarations();
 
 	sb.AppendFormat(":\n");
 
-	CompileFunctionBody(f, sb, db, f);
+	CompileFunctionBody();
 
 	sb.AppendFormat("\n)\n");
 }
@@ -519,7 +528,8 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 	cfgs.ForEachFunction(
 		[&sb, &db, &exportSpec](ICFGSFunction& f)
 		{ 
-			AppendMethodImplementingFunction(sb, db, exportSpec, f);
+			BuildBundle bundle{ sb, db, f, exportSpec };
+			bundle.AppendMethodImplementingFunction();
 		}
 	);
 }
