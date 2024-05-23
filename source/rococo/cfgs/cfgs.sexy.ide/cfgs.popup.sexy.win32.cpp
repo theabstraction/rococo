@@ -410,6 +410,36 @@ namespace ANON
 			editor.RefreshSlate();
 		}
 
+		void AddIfElseNode(const NodeOptionHeader& header)
+		{
+			UNUSED(header);
+
+			auto* graph = cfgs.CurrentFunction();
+			if (!graph)
+			{
+				return;
+			}
+
+			auto& node = graph->Nodes().Builder().AddNode("<IfElse>", designPosition, NodeId());
+			auto& flowIn = node.AddSocket("Flow", SocketClass::Trigger, "Begin", SocketId());
+			Colours flowColours = cosmetics.GetColoursForType("__Flow");
+			flowIn.SetColours(flowColours);
+
+			auto& whenTrue = node.AddSocket("Flow", SocketClass::Exit, "True", SocketId());
+			whenTrue.SetColours(flowColours);
+
+			auto& whenFalse = node.AddSocket("Flow", SocketClass::Exit, "False", SocketId());
+			whenFalse.SetColours(flowColours);
+
+			auto& boolSocket = node.AddSocket("Bool", SocketClass::InputVar, "condition", SocketId());
+			Colours inputColours = cosmetics.GetColoursForType("Bool");
+			boolSocket.SetColours(inputColours);
+
+			ShowWindow(*window, SW_HIDE);
+
+			editor.RefreshSlate();
+		}
+
 		void AddNodeFromTemplate(const NodeOptionHeader& header)
 		{
 			UNUSED(header);
@@ -870,6 +900,16 @@ namespace ANON
 
 				backingList.push_back(templateOpt);
 			}
+
+			auto branchNodelId = treeControl->Tree().AddChild(specialId, "if...else", CheckState_NoCheckBox);
+
+			NodeOption branchNodeOpt;
+			branchNodeOpt.header.url = "branch";
+			branchNodeOpt.header.visibleName = "if...else";
+			branchNodeOpt.method = &Popup::AddIfElseNode;
+			branchNodeOpt.nodeId = branchNodelId;
+
+			backingList.push_back(branchNodeOpt);
 
 			auto variablesId = treeControl->Tree().AddChild(TREE_NODE_ID::Root(), "Variables", CheckState_NoCheckBox);
 

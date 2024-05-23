@@ -48,6 +48,7 @@ struct BuildBundle
 	void AppendOutputDeclarations();
 	void CompileFunctionBody();
 	void AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode);
+	void AppendBranchOnCondition(ICFGSNode& calleeNode);
 	void AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode);
 	void AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode);
 	void AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket, ICFGSNode& calleeNode);
@@ -116,9 +117,45 @@ static ICFGSSocket* FindCallee(ICFGSNode& caller)
 	return nullptr;
 }
 
+static ICFGSSocket* FindNamedCallee(cstr name, ICFGSNode& caller)
+{
+	for (int i = 0; i < caller.SocketCount(); i++)
+	{
+		auto& socket = caller[i];
+		if (socket.SocketClassification() == SocketClass::Exit && Eq(socket.Name(), name))
+		{
+			return &socket;
+		}
+	}
+
+	return nullptr;
+}
+
 static ICFGSCable* FindOutgoingCable(ICFGSNode& node, ICFGSFunction& f)
 {
 	ICFGSSocket* s = FindCallee(node);
+	if (!s)
+	{
+		return nullptr;
+	}
+
+	auto& cables = f.Cables();
+
+	for (int i = 0; i < cables.Count(); i++)
+	{
+		auto& cable = cables[i];
+		if (cable.ExitPoint().socket == s->Id())
+		{
+			return &cable;
+		}
+	}
+
+	return nullptr;
+}
+
+static ICFGSCable* FindNamedOutgoingCable(cstr name, ICFGSNode& node, ICFGSFunction& f)
+{
+	ICFGSSocket* s = FindNamedCallee(name, node);
 	if (!s)
 	{
 		return nullptr;
@@ -394,6 +431,67 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 	sb << ")\n\n";
 }
 
+void BuildBundle::AppendBranchOnCondition(ICFGSNode& branchNode)
+{
+	AppendDeclareAndAssignArgumentToFunctionCall("Bool", "condition", "if...else", branchNode);
+	AppendTabs(sb, 1);
+	sb << "(if ";
+	AppendArgForNode("condition", branchNode);
+	sb << "\n";
+
+	ICFGSCable* truthCable = FindNamedOutgoingCable("True", branchNode, graph);
+	if (!truthCable)
+	{
+		AppendTabs(sb, 1);
+		sb << "(return)\n";
+		return;
+	}
+
+	auto* truthCallee = graph.Nodes().FindNode(truthCable->EntryPoint().node);
+	if (!truthCallee)
+	{
+		AppendTabs(sb, 1);
+		sb << "(return)\n";
+		return;
+	}
+
+	int truthIndex = GetNodeIndex(*truthCallee);
+
+	AppendTabs(sb, 2);
+	sb.AppendFormat("(goto node%d)\n", truthIndex);
+	
+	AppendTabs(sb, 1);
+	sb << "else\n";
+
+	ICFGSCable* falseCable = FindNamedOutgoingCable("False", branchNode, graph);
+	if (!falseCable)
+	{
+		AppendTabs(sb, 2);
+		sb << "(return)\n";
+		AppendTabs(sb, 1);
+		sb << ")\n";
+		return;
+	}
+
+	auto* falseCallee = graph.Nodes().FindNode(falseCable->EntryPoint().node);
+	if (!falseCallee)
+	{
+		AppendTabs(sb, 2);
+		sb << "(return)\n";
+		AppendTabs(sb, 1);
+		sb << ")\n";
+		return;
+	}
+
+	int falseIndex = GetNodeIndex(*truthCallee);
+
+	AppendTabs(sb, 2);
+	sb.AppendFormat("(goto node%d)\n", falseIndex);
+
+	AppendTabs(sb, 1);
+	sb << ")\n\n";
+}
+
 void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode)
 {
 	auto* aliasedFunction = db.FindFunction(fqType);
@@ -411,7 +509,14 @@ void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode)
 	}
 	else
 	{
-		Throw(0, "Could not find public function aliased as %s", fqType);
+		if (Eq(fqType, "<IfElse>"))
+		{
+			AppendBranchOnCondition(calleeNode);
+		}
+		else
+		{
+			Throw(0, "Could not find public function aliased as %s", fqType);
+		}
 	}
 }
 
