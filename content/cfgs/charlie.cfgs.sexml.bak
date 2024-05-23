@@ -582,7 +582,15 @@
 					(Label "x")
 					(Type "Float64")
 					(Id "48D723F90000001A 97E1F9C3C08FDEBE")
-					(Class InputVar)
+					(Class InputVar) :
+					(Fields :
+						(Field
+							(Name x)
+							(Value "4.000000")
+						) // Field
+
+					) // Fields
+
 				) // Socket
 
 				(Socket

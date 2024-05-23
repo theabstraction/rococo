@@ -213,6 +213,142 @@
 	) // Function
 
 	(Function
+		(FQName "Rope") :
+		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "B75C3B4A00000018 82E75707474C6059")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 200.000000)
+				(YPos 200.000000)
+				(Id "B75C3B4A00000019 82E75707474C6059")
+			) // ReturnNode
+
+			(Node
+				(Type "<Begin>")
+				(XPos -220.000000)
+				(YPos -220.000000)
+				(Id "B75C3B4A0000001A 82E75707474C6059") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "B75C3B4A0000001B 82E75707474C6059")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.F32.ArcCos")
+				(XPos 123.563343)
+				(YPos -179.756723)
+				(Id "B75C3B4A00000023 82E75707474C6059") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "B75C3B4A00000024 82E75707474C6059")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "B75C3B4A00000025 82E75707474C6059")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "x")
+					(Type "Float32")
+					(Id "B75C3B4A00000026 82E75707474C6059")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "value")
+					(Type "Float32")
+					(Id "B75C3B4A00000027 82E75707474C6059")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.F32.Cos")
+				(XPos -30.425145)
+				(YPos 200.868048)
+				(Id "B75C3B4A00000028 82E75707474C6059") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "B75C3B4A00000029 82E75707474C6059")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "B75C3B4A0000002A 82E75707474C6059")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "radians")
+					(Type "Float32")
+					(Id "B75C3B4A0000002B 82E75707474C6059")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "value")
+					(Type "Float32")
+					(Id "B75C3B4A0000002C 82E75707474C6059")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+		) // Nodes
+
+		(Cables :
+			(Cable
+				(StartNode "B75C3B4A00000023 82E75707474C6059")
+				(StartSocket "B75C3B4A00000025 82E75707474C6059")
+				(EndNode "B75C3B4A00000028 82E75707474C6059")
+				(EndSocket "B75C3B4A00000029 82E75707474C6059")
+			) // Cable
+
+			(Cable
+				(StartNode "B75C3B4A00000023 82E75707474C6059")
+				(StartSocket "B75C3B4A00000027 82E75707474C6059")
+				(EndNode "B75C3B4A00000028 82E75707474C6059")
+				(EndSocket "B75C3B4A0000002B 82E75707474C6059")
+			) // Cable
+
+			(Cable
+				(StartNode "B75C3B4A0000001A 82E75707474C6059")
+				(StartSocket "B75C3B4A0000001B 82E75707474C6059")
+				(EndNode "B75C3B4A00000023 82E75707474C6059")
+				(EndSocket "B75C3B4A00000024 82E75707474C6059")
+			) // Cable
+
+			(Cable
+				(StartNode "B75C3B4A00000028 82E75707474C6059")
+				(StartSocket "B75C3B4A0000002A 82E75707474C6059")
+				(EndNode "B75C3B4A00000023 82E75707474C6059")
+				(EndSocket "B75C3B4A00000024 82E75707474C6059")
+			) // Cable
+
+		) // Cables
+
+	) // Function
+
+	(Function
 		(FQName "MetaGate") :
 		(Nodes :
 			(BeginNode

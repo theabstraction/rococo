@@ -857,7 +857,6 @@ namespace Rococo::CFGS::IDE::Sexy
 		ICFGSSexyPopup& popup;
 		ICFGSCosmetics& cosmetics;
 
-		std::unordered_set<TREE_NODE_ID, TREE_NODE_ID::Hasher> namespacesIdSet;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> privateMethodsMap;
 		std::unordered_map<TREE_NODE_ID, FunctionId, TREE_NODE_ID::Hasher> publicMethodsMap;
 		std::unordered_map<TREE_NODE_ID, VariableDef, TREE_NODE_ID::Hasher> variableIdSet;
@@ -867,7 +866,6 @@ namespace Rococo::CFGS::IDE::Sexy
 			CONTEXT_MENU_ID_ADD_SUBSPACE = 4001,
 			CONTEXT_MENU_ID_ADD_FUNCTION,
 			CONTEXT_MENU_DELETE_FUNCTION,
-			CONTEXT_MENU_ID_RENAME_NAMESPACE,
 			CONTEXT_MENU_ID_RENAME_FUNCTION,
 			CONTEXT_MENU_CHANGE_VARIABLE_TYPE,
 			CONTEXT_MENU_CHANGE_VARIABLE_DEFAULT,
@@ -1384,15 +1382,19 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				char fname[128] = { 0 };
 
-				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a top level namespace...", &nullEventHandler);
+				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a new public method...", &nullEventHandler);
 
 				NamespaceValidator fnameValidator(*nsEditor, id, tree);
-				nsEditor->AddStringEditor("Root Namespace", nullptr, fname, sizeof fname, &fnameValidator);
+				nsEditor->AddStringEditor("Public Name", nullptr, fname, sizeof fname, &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
-					auto newTopLevelNamespaceId = tree.AddChild(publicMethodsId, fname, Visitors::CheckState_NoCheckBox);
-					namespacesIdSet.insert(newTopLevelNamespaceId);
-					tree.Select(newTopLevelNamespaceId);
+					auto newFunctionId = tree.AddChild(publicMethodsId, fname, Visitors::CheckState_NoCheckBox);
+
+					FunctionId f = cfgs.CreateFunction();
+					cfgs.FindFunction(f)->SetName(fname);
+
+					publicMethodsMap.insert(std::make_pair(newFunctionId, f));
+					tree.Select(newFunctionId);
 				}
 			}
 			else if (id == variablesId)
@@ -1420,18 +1422,18 @@ namespace Rococo::CFGS::IDE::Sexy
 			{
 				gui.ContextMenu().ContextMenu_Clear();
 
-				auto i = namespacesIdSet.find(id);
-				if (i != namespacesIdSet.end())
+				auto j = publicMethodsMap.find(id);
+				if (j != publicMethodsMap.end())
 				{
-					gui.ContextMenu().ContextMenu_AddButton("Add subspace", CONTEXT_MENU_ID_ADD_SUBSPACE, nullptr);
-					gui.ContextMenu().ContextMenu_AddButton("Add public function", CONTEXT_MENU_ID_ADD_FUNCTION, nullptr);
-					gui.ContextMenu().ContextMenu_AddButton("Rename namespace", CONTEXT_MENU_ID_RENAME_NAMESPACE, nullptr);
+					gui.ContextMenu().ContextMenu_AddButton("Set template", CONTEXT_MENU_SET_TEMPLATE, nullptr);
+					gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
+					gui.ContextMenu().ContextMenu_AddButton("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION, nullptr);
 					contextMenuTargetId = id;
 				}
 				else
 				{
-					auto j = publicMethodsMap.find(id);
-					if (j != publicMethodsMap.end())
+					auto k = privateMethodsMap.find(id);
+					if (k != privateMethodsMap.end())
 					{
 						gui.ContextMenu().ContextMenu_AddButton("Set template", CONTEXT_MENU_SET_TEMPLATE, nullptr);
 						gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
@@ -1440,33 +1442,22 @@ namespace Rococo::CFGS::IDE::Sexy
 					}
 					else
 					{
-						auto k = privateMethodsMap.find(id);
-						if (k != privateMethodsMap.end())
+						auto variableId = tree.GetParent(id);
+						auto l = variableIdSet.find(variableId);
+						if (l != variableIdSet.end())
 						{
-							gui.ContextMenu().ContextMenu_AddButton("Set template", CONTEXT_MENU_SET_TEMPLATE, nullptr);
-							gui.ContextMenu().ContextMenu_AddButton("Delete function", CONTEXT_MENU_DELETE_FUNCTION, nullptr);
-							gui.ContextMenu().ContextMenu_AddButton("Rename function", CONTEXT_MENU_ID_RENAME_FUNCTION, nullptr);
-							contextMenuTargetId = id;
-						}
-						else
-						{
-							auto variableId = tree.GetParent(id);
-							auto l = variableIdSet.find(variableId);
-							if (l != variableIdSet.end())
+							char buffer[256];
+							if (tree.TryGetText(buffer, sizeof buffer, id))
 							{
-								char buffer[256];
-								if (tree.TryGetText(buffer, sizeof buffer, id))
+								if (StartsWith(buffer, "Type: "))
 								{
-									if (StartsWith(buffer, "Type: "))
-									{
-										gui.ContextMenu().ContextMenu_AddButton("Change type", CONTEXT_MENU_CHANGE_VARIABLE_TYPE, nullptr);
-										contextMenuTargetId = variableId;
-									}
-									else if (StartsWith(buffer, "Default: "))
-									{
-										gui.ContextMenu().ContextMenu_AddButton("Change default value", CONTEXT_MENU_CHANGE_VARIABLE_DEFAULT, nullptr);
-										contextMenuTargetId = variableId;
-									}
+									gui.ContextMenu().ContextMenu_AddButton("Change type", CONTEXT_MENU_CHANGE_VARIABLE_TYPE, nullptr);
+									contextMenuTargetId = variableId;
+								}
+								else if (StartsWith(buffer, "Default: "))
+								{
+									gui.ContextMenu().ContextMenu_AddButton("Change default value", CONTEXT_MENU_CHANGE_VARIABLE_DEFAULT, nullptr);
+									contextMenuTargetId = variableId;
 								}
 							}
 						}
@@ -1499,100 +1490,25 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		} nullEventHandler;
 
-		void AddNamespaceAt(TREE_NODE_ID id, IUITree& tree)
-		{
-			auto i = namespacesIdSet.find(id);
-			if (i == namespacesIdSet.end())
-			{
-				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
-				return;
-			}
-
-			Vec2i span{ 800, 120 };
-			int labelWidth = 120;
-
-			char fname[128] = { 0 };
-
-			char subspace[128];
-			if (tree.TryGetText(subspace, sizeof subspace, id))
-			{
-				char ntitle[256];
-				SafeFormat(ntitle, "%s - Add a subspace to %s...", title, subspace);
-
-				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
-
-				NamespaceValidator fnameValidator(*nsEditor, id, tree);
-				nsEditor->AddStringEditor("Subspace", nullptr, fname, sizeof fname, &fnameValidator);
-				if (nsEditor->IsModalDialogChoiceYes())
-				{
-					auto newSubspaceId = tree.AddChild(id, fname, Visitors::CheckState_NoCheckBox);
-					namespacesIdSet.insert(newSubspaceId);
-					tree.Select(newSubspaceId);
-				}
-			}
-		}
-
 		void UpdateAllFunctionNames(TREE_NODE_ID namespaceId, IUITree& tree)
 		{
 			TREE_NODE_ID childId = tree.FindFirstChild(namespaceId, nullptr);
 			while (childId)
 			{
-				auto i = namespacesIdSet.find(childId);
-				if (i == namespacesIdSet.end())
+				// We have a function
+				auto j = publicMethodsMap.find(childId);
+				if (j != publicMethodsMap.end())
 				{
-					UpdateAllFunctionNames(childId, tree);
-				}
-				else
-				{
-					// We have a function
-					auto j = publicMethodsMap.find(childId);
-					if (j != publicMethodsMap.end())
-					{
-						FunctionId id = j->second;
+					FunctionId id = j->second;
 
-						char fname[256];
-						if (tree.TryGetText(fname, sizeof fname, childId))
-						{
-							cfgs.FindFunction(id)->SetName(fname);
-						}
+					char fname[256];
+					if (tree.TryGetText(fname, sizeof fname, childId))
+					{
+						cfgs.FindFunction(id)->SetName(fname);
 					}
 				}
 
 				childId = tree.FindNextChild(childId, nullptr);
-			}
-		}
-
-		void RenameNamespace(TREE_NODE_ID namespaceId, IUITree& tree)
-		{
-			auto i = namespacesIdSet.find(namespaceId);
-			if (i == namespacesIdSet.end())
-			{
-				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
-				return;
-			}
-
-			Vec2i span{ 800, 120 };
-			int labelWidth = 120;
-
-			char newSubspace[128] = { 0 };
-
-			char subspace[128];
-			if (tree.TryGetText(subspace, sizeof subspace, namespaceId))
-			{
-				char ntitle[256];
-				SafeFormat(ntitle, "%s - Rename subspace %s...", title, subspace);
-
-				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
-
-				RenameNamespaceValidator fnameValidator(*nsEditor, namespaceId, tree);
-				nsEditor->AddStringEditor("New Subspace", nullptr, newSubspace, sizeof newSubspace, &fnameValidator);
-				if (nsEditor->IsModalDialogChoiceYes())
-				{
-					tree.SetText(namespaceId, newSubspace);
-					tree.Select(namespaceId);
-
-					UpdateAllFunctionNames(namespaceId, tree);
-				}
 			}
 		}
 
@@ -1736,60 +1652,12 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 		}
 
-		void AddFunctionAt(TREE_NODE_ID namespaceId, IUITree& tree)
-		{
-			auto i = namespacesIdSet.find(namespaceId);
-			if (i == namespacesIdSet.end())
-			{
-				gui.ShowAlertBox("Internal error. Could not identify the selected namespace", "CFGS Sexy IDE - Algorithmic Error");
-				return;
-			}
-
-			Vec2i span{ 800, 120 };
-			int labelWidth = 120;
-
-			char fname[128] = { 0 };
-
-			char subspace[128];
-			if (tree.TryGetText(subspace, sizeof subspace, namespaceId))
-			{
-				char ntitle[256];
-				SafeFormat(ntitle, "%s - Add a function to %s...", title, subspace);
-
-				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
-
-				NamespaceValidator fnameValidator(*nsEditor, namespaceId, tree);
-				nsEditor->AddStringEditor("Function", nullptr, fname, sizeof fname, &fnameValidator);
-				if (nsEditor->IsModalDialogChoiceYes())
-				{
-					char fullname[256] = "_";
-					CopyString(fullname + 1, sizeof fullname - 1, fname);
-
-					auto newPublicFunctionId = tree.AddChild(namespaceId, fname, Visitors::CheckState_NoCheckBox);
-					auto id = cfgs.CreateFunction();
-					auto* f = cfgs.FindFunction(id);
-					f->SetName(fullname);
-					publicMethodsMap.insert(std::make_pair(newPublicFunctionId, id));
-					tree.Select(newPublicFunctionId);
-				}
-			}
-		}
-
 		bool TryHandleContextMenuItem(uint16 menuCommandId)
 		{
 			switch (menuCommandId)
 			{
-			case CONTEXT_MENU_ID_ADD_FUNCTION:
-				AddFunctionAt(contextMenuTargetId, editor.NavigationTree());
-				return true;
-			case CONTEXT_MENU_ID_ADD_SUBSPACE:
-				AddNamespaceAt(contextMenuTargetId, editor.NavigationTree());
-				return true;
 			case CONTEXT_MENU_ID_RENAME_FUNCTION:
 				RenameFunction(contextMenuTargetId, editor.NavigationTree());
-				return true;
-			case CONTEXT_MENU_ID_RENAME_NAMESPACE:
-				RenameNamespace(contextMenuTargetId, editor.NavigationTree());
 				return true;
 			case CONTEXT_MENU_DELETE_FUNCTION:
 				DeleteFunction(contextMenuTargetId, editor.NavigationTree());
