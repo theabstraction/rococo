@@ -98,6 +98,44 @@
 	) // Function
 
 	(Function
+		(FQName "_Spook") :
+		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "5D45494E0000000D 6A16FFC6DE60BC9")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "5D45494E0000000E 6A16FFC6DE60BC9")
+			) // ReturnNode
+
+			(Node
+				(Type "<Begin>")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "5D45494E0000000F 6A16FFC6DE60BC9") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "5D45494E00000010 6A16FFC6DE60BC9")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+		) // Nodes
+
+		(Cables
+		) // Cables
+
+	) // Function
+
+	(Function
 		(FQName "Throw") :
 		(Nodes :
 			(BeginNode
@@ -224,8 +262,8 @@
 
 			(ReturnNode
 				(Type "_Return")
-				(XPos 200.000000)
-				(YPos 200.000000)
+				(XPos 0.000000)
+				(YPos 0.000000)
 				(Id "B75C3B4A00000019 82E75707474C6059")
 			) // ReturnNode
 
@@ -280,8 +318,8 @@
 
 			(Node
 				(Type "Sys.Maths.F32.Cos")
-				(XPos -30.425145)
-				(YPos 200.868048)
+				(XPos -58.839685)
+				(YPos -112.540092)
 				(Id "B75C3B4A00000028 82E75707474C6059") :
 				(Socket
 					(Label "Start")
@@ -313,23 +351,79 @@
 
 			) // Node
 
+			(Node
+				(Type "<IfElse>")
+				(XPos 530.931764)
+				(YPos -9.629293)
+				(Id "EB24B3960000001E 505DF98DAD7C222F") :
+				(Socket
+					(Label "Begin")
+					(Type "Flow")
+					(Id "EB24B3960000001F 505DF98DAD7C222F")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "True")
+					(Type "Flow")
+					(Id "EB24B39600000020 505DF98DAD7C222F")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "False")
+					(Type "Flow")
+					(Id "EB24B39600000021 505DF98DAD7C222F")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "condition")
+					(Type "Bool")
+					(Id "EB24B39600000022 505DF98DAD7C222F")
+					(Class InputVar)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.F32.IsFinite")
+				(XPos 294.211589)
+				(YPos -178.938197)
+				(Id "EB24B39600000026 505DF98DAD7C222F") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "EB24B39600000027 505DF98DAD7C222F")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "EB24B39600000028 505DF98DAD7C222F")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "x")
+					(Type "Float32")
+					(Id "EB24B39600000029 505DF98DAD7C222F")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "isFinite")
+					(Type "Bool")
+					(Id "EB24B3960000002A 505DF98DAD7C222F")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
 		) // Nodes
 
 		(Cables :
-			(Cable
-				(StartNode "B75C3B4A00000023 82E75707474C6059")
-				(StartSocket "B75C3B4A00000025 82E75707474C6059")
-				(EndNode "B75C3B4A00000028 82E75707474C6059")
-				(EndSocket "B75C3B4A00000029 82E75707474C6059")
-			) // Cable
-
-			(Cable
-				(StartNode "B75C3B4A00000023 82E75707474C6059")
-				(StartSocket "B75C3B4A00000027 82E75707474C6059")
-				(EndNode "B75C3B4A00000028 82E75707474C6059")
-				(EndSocket "B75C3B4A0000002B 82E75707474C6059")
-			) // Cable
-
 			(Cable
 				(StartNode "B75C3B4A0000001A 82E75707474C6059")
 				(StartSocket "B75C3B4A0000001B 82E75707474C6059")
@@ -342,6 +436,48 @@
 				(StartSocket "B75C3B4A0000002A 82E75707474C6059")
 				(EndNode "B75C3B4A00000023 82E75707474C6059")
 				(EndSocket "B75C3B4A00000024 82E75707474C6059")
+			) // Cable
+
+			(Cable
+				(StartNode "B75C3B4A00000023 82E75707474C6059")
+				(StartSocket "B75C3B4A00000027 82E75707474C6059")
+				(EndNode "EB24B39600000026 505DF98DAD7C222F")
+				(EndSocket "EB24B39600000029 505DF98DAD7C222F")
+			) // Cable
+
+			(Cable
+				(StartNode "B75C3B4A00000023 82E75707474C6059")
+				(StartSocket "B75C3B4A00000025 82E75707474C6059")
+				(EndNode "EB24B39600000026 505DF98DAD7C222F")
+				(EndSocket "EB24B39600000027 505DF98DAD7C222F")
+			) // Cable
+
+			(Cable
+				(StartNode "EB24B39600000026 505DF98DAD7C222F")
+				(StartSocket "EB24B39600000028 505DF98DAD7C222F")
+				(EndNode "EB24B3960000001E 505DF98DAD7C222F")
+				(EndSocket "EB24B3960000001F 505DF98DAD7C222F")
+			) // Cable
+
+			(Cable
+				(StartNode "EB24B39600000026 505DF98DAD7C222F")
+				(StartSocket "EB24B3960000002A 505DF98DAD7C222F")
+				(EndNode "EB24B3960000001E 505DF98DAD7C222F")
+				(EndSocket "EB24B39600000022 505DF98DAD7C222F")
+			) // Cable
+
+			(Cable
+				(StartNode "B75C3B4A00000028 82E75707474C6059")
+				(StartSocket "B75C3B4A0000002C 82E75707474C6059")
+				(EndNode "B75C3B4A00000023 82E75707474C6059")
+				(EndSocket "B75C3B4A00000026 82E75707474C6059")
+			) // Cable
+
+			(Cable
+				(StartNode "EB24B3960000001E 505DF98DAD7C222F")
+				(StartSocket "EB24B39600000020 505DF98DAD7C222F")
+				(EndNode "B75C3B4A00000028 82E75707474C6059")
+				(EndSocket "B75C3B4A00000029 82E75707474C6059")
 			) // Cable
 
 		) // Cables
@@ -951,44 +1087,6 @@
 				(EndSocket "9 257703D4")
 			) // Cable
 
-		) // Cables
-
-	) // Function
-
-	(Function
-		(FQName "_Spook") :
-		(Nodes :
-			(BeginNode
-				(Type "_Begin")
-				(XPos 0.000000)
-				(YPos 0.000000)
-				(Id "5D45494E0000000D 6A16FFC6DE60BC9")
-			) // BeginNode
-
-			(ReturnNode
-				(Type "_Return")
-				(XPos 0.000000)
-				(YPos 0.000000)
-				(Id "5D45494E0000000E 6A16FFC6DE60BC9")
-			) // ReturnNode
-
-			(Node
-				(Type "<Begin>")
-				(XPos 0.000000)
-				(YPos 0.000000)
-				(Id "5D45494E0000000F 6A16FFC6DE60BC9") :
-				(Socket
-					(Label "Execute")
-					(Type "Flow")
-					(Id "5D45494E00000010 6A16FFC6DE60BC9")
-					(Class Exit)
-				) // Socket
-
-			) // Node
-
-		) // Nodes
-
-		(Cables
 		) // Cables
 
 	) // Function
