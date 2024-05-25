@@ -30,6 +30,8 @@ struct BuildBundle
 	};
 	std::unordered_map<ICFGSNode*, NodeData> nodeLabels;
 
+	stringmap<int> argNames;
+
 	int nextNodeIndex = 1;
 
 	StringBuilder& sb;
@@ -55,7 +57,7 @@ struct BuildBundle
 
 	int GetNodeIndex(ICFGSNode& node);
 
-	void AppendArgForNode(cstr baseArgName, ICFGSNode& node);
+	cstr GetArgForNode(cstr baseArgName, ICFGSNode& node);
 };
 
 cstr GetCorrectedDefaultValue(const ISXYType* type, cstr defaultValue)
@@ -309,11 +311,7 @@ void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr 
 
 	AppendTabs(sb, 1);
 
-	sb << "(";
-
-	AppendArgForNode(argName, calleeNode);
-
-	sb << " = ";
+	sb.AppendFormat("(%s = ", GetArgForNode(argName, calleeNode));
 
 	if (Eq(argType, "Sys.Type.IString") || (Eq(argType, "IString")))
 	{
@@ -330,10 +328,43 @@ void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr 
 	sb << ")\n";
 }
 
-void BuildBundle::AppendArgForNode(cstr baseArgName, ICFGSNode& node)
+static int CountNumberOfArgsWithNameInGraph(ICFGSFunction& graph, cstr argName)
+{
+	int count = 0;
+
+	for (int i = 0; i < graph.Nodes().Count(); i++)
+	{
+		auto& node = graph.Nodes()[i];
+
+		for (int j = 0; j < node.SocketCount(); j++)
+		{
+			auto& socket = node[j];
+			if (Eq(socket.Name(), argName))
+			{
+				count++;
+			}
+		}
+	}
+
+	return count;
+}
+
+cstr BuildBundle::GetArgForNode(cstr baseArgName, ICFGSNode& node)
 {
 	int index = GetNodeIndex(node);
-	sb.AppendFormat("%sForNode%d", baseArgName, index);
+
+	char fullArg[512];
+	SafeFormat(fullArg, "%sForNode%d", baseArgName, index);
+
+	auto i = argNames.find(fullArg);
+	if (i == argNames.end())
+	{
+		int nConflicts = CountNumberOfArgsWithNameInGraph(graph, fullArg);
+
+		i = argNames.insert(fullArg, 0).first;
+	}
+
+	return i->first;
 }
 
 int BuildBundle::GetNodeIndex(ICFGSNode& node)
@@ -350,9 +381,7 @@ int BuildBundle::GetNodeIndex(ICFGSNode& node)
 void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode)
 {
 	AppendTabs(sb, 1);
-	sb.AppendFormat("(%s ", argType);
-	AppendArgForNode(argName, calleeNode);
-	sb << ")\n";
+	sb.AppendFormat("(%s %s)\n", argType, GetArgForNode(argName, calleeNode));
 
 	auto* inputForThisArg = FindSocketInput(calleeNode, argType, argName);
 	if (!inputForThisArg)
@@ -376,11 +405,7 @@ void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cst
 	auto* callerNode = graph.Nodes().FindNode(outputConnection.node);
 
 	AppendTabs(sb, 1);
-	sb << "(";
-	AppendArgForNode(argName, calleeNode);
-	sb << " = ";
-	AppendArgForNode(outputSocket->Name(), *callerNode);
-	sb << ")\n";
+	sb.AppendFormat("(%s = %s)", GetArgForNode(argName, calleeNode), GetArgForNode(outputSocket->Name(), *callerNode));
 }
 
 void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode)
@@ -400,9 +425,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 		cstr argName = sexyFunction.OutputName(i);
 
 		AppendTabs(sb, 1);
-		sb.AppendFormat("(%s ", argType);
-		AppendArgForNode(argName, calleeNode);
-		sb << ")\n";
+		sb.AppendFormat("(%s %s)\n", argType, GetArgForNode(argName, calleeNode));
 	}
 
 	// Finally invoke the function, mapping inputs to ouputs
@@ -412,8 +435,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 	for (int i = 0; i < sexyFunction.InputCount(); i++)
 	{
 		cstr argName = sexyFunction.InputName(i);
-		sb << " ";
-		AppendArgForNode(argName, calleeNode);
+		sb << " " << GetArgForNode(argName, calleeNode);
 	}
 
 	if (sexyFunction.OutputCount() > 0)
@@ -424,8 +446,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 	for (int i = 0; i < sexyFunction.OutputCount(); i++)
 	{
 		cstr argName = sexyFunction.OutputName(i);
-		sb << " ";
-		AppendArgForNode(argName, calleeNode);
+		sb << " " << GetArgForNode(argName, calleeNode);
 	}
 
 	sb << ")\n\n";
@@ -435,9 +456,7 @@ void BuildBundle::AppendBranchOnCondition(ICFGSNode& branchNode)
 {
 	AppendDeclareAndAssignArgumentToFunctionCall("Bool", "condition", "if...else", branchNode);
 	AppendTabs(sb, 1);
-	sb << "(if ";
-	AppendArgForNode("condition", branchNode);
-	sb << "\n";
+	sb << "(if " << GetArgForNode("condition", branchNode) << "\n";
 
 	ICFGSCable* truthCable = FindNamedOutgoingCable("True", branchNode, graph);
 	if (!truthCable)
@@ -523,6 +542,7 @@ void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode)
 void BuildBundle::CompileFunctionBody()
 {
 	nodeLabels.clear();
+	argNames.clear();
 
 	ICFGSNode* callerNode = FindBeginNode(graph);
 
