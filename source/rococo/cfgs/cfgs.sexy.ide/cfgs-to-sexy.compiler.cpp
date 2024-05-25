@@ -359,9 +359,15 @@ cstr BuildBundle::GetArgForNode(cstr baseArgName, ICFGSNode& node)
 	auto i = argNames.find(fullArg);
 	if (i == argNames.end())
 	{
-		int nConflicts = CountNumberOfArgsWithNameInGraph(graph, fullArg);
-
-		i = argNames.insert(fullArg, 0).first;
+		int nConflicts = CountNumberOfArgsWithNameInGraph(graph, baseArgName) - 1;
+		if (nConflicts == 0)
+		{
+			return baseArgName;
+		}
+		else
+		{
+			i = argNames.insert(fullArg, 0).first;
+		}
 	}
 
 	return i->first;
