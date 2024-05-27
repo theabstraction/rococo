@@ -97,6 +97,7 @@ static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection
 	return node->FindSocket(outputConnection.socket);
 }
 
+// A bundle of interfaces for compiling graphs into Sexy
 struct BuildBundle
 {
 	struct NodeData
@@ -873,9 +874,6 @@ void BuildBundle::CompileNodeInsideFunctionBodyRecursive(ICFGSNode& callerNode, 
 
 void BuildBundle::CompileFunctionBody()
 {
-	nodeLabels.clear();
-	argNames.clear();
-
 	ICFGSNode* callerNode = FindBeginNode(graph);
 
 	if (callerNode == nullptr)
