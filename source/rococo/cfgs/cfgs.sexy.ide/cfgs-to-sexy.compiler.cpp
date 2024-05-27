@@ -21,6 +21,82 @@ using namespace Rococo::Sex::SEXML;
 
 static Rococo::stringmap<int> knownPrimitives;
 
+bool HasNoInputsNorTriggers(ICFGSNode& node)
+{
+	for (int i = 0; i < node.SocketCount(); i++)
+	{
+		switch (node[i].SocketClassification())
+		{
+		case SocketClass::Trigger:
+		case SocketClass::InputRef:
+		case SocketClass::InputVar:
+		case SocketClass::ConstInputRef:
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool IsChildOf(cstr parent, cstr child)
+{
+	if (!EndsWith(parent, child))
+	{
+		return false;
+	}
+
+	// Ensure that our parent has form <root>.<child>, so that child is not merely a trailing string of subpace or function name such as Quit to RageQuit.
+	// We want Game.App.Quit to have a child Quit or child App.Quit, but we do not want Game.App.RageQuit to have a child Quit
+
+	auto parentLen = strlen(parent);
+	auto childLen = strlen(child);
+
+	if (parentLen == childLen)
+	{
+		return true;
+	}
+
+	char leadChar = parent[parentLen - childLen - 1];
+	return leadChar == '.';
+}
+
+bool DoTypesMatch(cstr a, cstr b)
+{
+	if (Eq(a, b))
+	{
+		return true;
+	}
+
+	return IsChildOf(a, b) || IsChildOf(b, a);
+}
+
+static CableConnection FindConnectionToInput(ICFGSFunction& graph, ICFGSSocket& inputSocket)
+{
+	auto& cables = graph.Cables();
+
+	for (int i = 0; i < cables.Count(); i++)
+	{
+		auto& cable = cables[i];
+		if (cable.EntryPoint().socket == inputSocket.Id())
+		{
+			return cable.ExitPoint();
+		}
+	}
+
+	return CableConnection{};
+}
+
+static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection outputConnection)
+{
+	auto* node = graph.Nodes().FindNode(outputConnection.node);
+	if (!node)
+	{
+		return nullptr;
+	}
+
+	return node->FindSocket(outputConnection.socket);
+}
+
 struct BuildBundle
 {
 	struct NodeData
@@ -53,8 +129,10 @@ struct BuildBundle
 	void CompileCalleeNodeInsideFunctionBodyRecursive(ICFGSNode& calleeNode, int branchDepth, int chainLinkCount);
 	void AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount);
 	void AppendBranchOnCondition(ICFGSNode& calleeNode, int branchDepth, int chainLinkCount);
-	void AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode);
-	void AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode);
+	void AppendGetVariable(ICFGSNode& calleeNode, int branchDepth, int chainLinkCount);
+	void AppendSetVariable(ICFGSNode& calleeNode, int branchDepth, int chainLinkCount);
+	void AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& f, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount);
+	void AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount);
 	void AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket, ICFGSNode& calleeNode);
 
 	int GetNodeIndex(ICFGSNode& node);
@@ -252,33 +330,6 @@ static ICFGSSocket* FindSocketInput(ICFGSNode& node, cstr argType, cstr argName)
 	return nullptr;
 }
 
-static CableConnection FindConnectionToInput(ICFGSFunction& graph, ICFGSSocket& inputSocket)
-{
-	auto& cables = graph.Cables();
-
-	for (int i = 0; i < cables.Count(); i++)
-	{
-		auto& cable = cables[i];
-		if (cable.EntryPoint().socket == inputSocket.Id())
-		{
-			return cable.ExitPoint();
-		}
-	}
-
-	return CableConnection{};
-}
-
-static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection outputConnection)
-{
-	auto* node = graph.Nodes().FindNode(outputConnection.node);
-	if (!node)
-	{
-		return nullptr;
-	}
-
-	return node->FindSocket(outputConnection.socket);
-}
-
 static void ValidateDefaultCharacterAsNonString(cstr text, cstr argName, cstr fqFunctionName, cstr graphName)
 {
 	for (cstr p = text; *p != 0; p++)
@@ -387,39 +438,7 @@ int BuildBundle::GetNodeIndex(ICFGSNode& node)
 	return i->second.index;
 }
 
-bool IsChildOf(cstr parent, cstr child)
-{
-	if (!EndsWith(parent, child))
-	{
-		return false;
-	}
-
-	// Ensure that our parent has form <root>.<child>, so that child is not merely a trailing string of subpace or function name such as Quit to RageQuit.
-	// We want Game.App.Quit to have a child Quit or child App.Quit, but we do not want Game.App.RageQuit to have a child Quit
-
-	auto parentLen = strlen(parent);
-	auto childLen = strlen(child);
-
-	if (parentLen == childLen)
-	{
-		return true;
-	}
-
-	char leadChar = parent[parentLen - childLen - 1];
-	return leadChar == '.';
-}
-
-bool DoTypesMatch(cstr a, cstr b)
-{
-	if (Eq(a, b))
-	{
-		return true;
-	}
-
-	return IsChildOf(a, b) || IsChildOf(b, a);
-}
-
-void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode)
+void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
 {
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s %s)\n", argType, GetArgForNode(argName, calleeNode));
@@ -443,10 +462,16 @@ void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cst
 		Throw(0, "Type mismatch between %s and %s for %s argument (%s %s)", outputSocket->Type().Value, inputForThisArg->Type().Value, fqFunctionName, argType, argName);
 	}
 
-	auto* callerNode = graph.Nodes().FindNode(outputConnection.node);
+	auto* constNode = graph.Nodes().FindNode(outputConnection.node);
+
+	if (HasNoInputsNorTriggers(*constNode))
+	{
+		// If a function has no inputs nor triggers we can evaluate it Just-in-Time before the point of application
+		AppendNodeImplementation(constNode->Type().Value, *constNode, branchDepth, chainLinkCount + 1);
+	}
 
 	AppendTabs(sb, 1);
-	sb.AppendFormat("(%s = %s)\n", GetArgForNode(argName, calleeNode), GetArgForNode(outputSocket->Name(), *callerNode));
+	sb.AppendFormat("(%s = %s)\n", GetArgForNode(argName, calleeNode), GetArgForNode(outputSocket->Name(), *constNode));
 }
 
 // Appends the expression prefix (<fqFunctionName <arg1> ... <argN> to the builder
@@ -461,7 +486,7 @@ void AppendInvokeFunction(BuildBundle& bundle, cstr fqFunctionName, const ISXYFu
 	}
 }
 
-void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode)
+void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
 {
 	// TODO - optimize this so that for the case of functions of 1 output we put the function call inline with the output declaration, e.g (Float32 x = (Sys.Maths.SinDegrees 45))
 	// First we declare and assign inputs
@@ -469,7 +494,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 	{
 		cstr argType = sexyFunction.InputType(i);
 		cstr argName = sexyFunction.InputName(i);
-		AppendDeclareAndAssignArgumentToFunctionCall(argType, argName, fqFunctionName, calleeNode);
+		AppendDeclareAndAssignArgumentToFunctionCall(argType, argName, fqFunctionName, calleeNode, branchDepth, chainLinkCount);
 	}
 
 	// Next we declare outputs
@@ -488,17 +513,20 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 	{
 		case 0:
 		{
+		// Function has no output so we invoke it like this (<fn-name>)
 			AppendInvokeFunction(*this, fqFunctionName, sexyFunction, calleeNode);
 			break;
 		}
 		case 1:
 		{
+		// Function has one output so invoke it inline like this: (variableName = (<fn-name> <inputs...>))
 			cstr outputArgName = sexyFunction.OutputName(0);
 			sb.AppendFormat("(%s = ", GetArgForNode(outputArgName, calleeNode));
 			AppendInvokeFunction(*this, fqFunctionName, sexyFunction, calleeNode);
 			sb << ")";
 			break;
 		}
+		// Function has multiple outputs, so invoke it like this: (<fn-name <inputs ...> -> <outputs ...>)
 		default:
 		{
 			// Finally invoke the function, mapping inputs to ouputs
@@ -528,7 +556,7 @@ void BuildBundle::AppendBranchOnCondition(ICFGSNode& branchNode, int branchDepth
 
 	// TODO - optimize this to elimanate the condition variable and place the boolean value directly in the (if <condition > ... ) statement
 
-	AppendDeclareAndAssignArgumentToFunctionCall("Bool", "condition", "if...else", branchNode);
+	AppendDeclareAndAssignArgumentToFunctionCall("Bool", "condition", "if...else", branchNode, branchDepth, chainLinkCount);
 
 	sb << "\n";
 
@@ -595,6 +623,163 @@ void BuildBundle::AppendBranchOnCondition(ICFGSNode& branchNode, int branchDepth
 	if (falseCallee) CompileCalleeNodeInsideFunctionBodyRecursive(*falseCallee, branchDepth + 1, 0);
 }
 
+ICFGSSocket* GetAssignValueSocket(ICFGSNode& setNode)
+{
+	for (int i = 0; i < setNode.SocketCount(); i++)
+	{
+		auto& s = setNode[i];
+		switch (s.SocketClassification())
+		{
+		case SocketClass::InputVar:
+		case SocketClass::InputRef:
+		case SocketClass::ConstInputRef:
+			return &s;
+		}
+	}
+
+	return nullptr;
+}
+
+ICFGSSocket* GetRetrieveValueSocket(ICFGSNode& setNode)
+{
+	for (int i = 0; i < setNode.SocketCount(); i++)
+	{
+		auto& s = setNode[i];
+		switch (s.SocketClassification())
+		{
+		case SocketClass::OutputRef:
+		case SocketClass::OutputValue:
+		case SocketClass::ConstOutputRef:
+			return &s;
+		}
+	}
+
+	return nullptr;
+}
+
+void BuildBundle::AppendGetVariable(ICFGSNode& getNode, int branchDepth, int chainLinkCount)
+{
+	UNUSED(chainLinkCount);
+	UNUSED(branchDepth);
+
+	cstr getString = getNode.Type().Value;
+
+	char bracketSet[8];
+	char variableName[256];
+	char dash[2];
+	char typeName[256];
+
+	uint32 sizeofBracketSet = sizeof bracketSet;
+	uint32 sizeofVariableName = sizeof variableName;
+	uint32 sizeofTypeName = sizeof typeName;
+
+	// [<Get>] <variable> - <type>
+	if (4 != sscanf_s(getString, "%s %s %s %s", bracketSet, sizeofBracketSet, variableName, sizeofVariableName, dash, 2, typeName, sizeofTypeName))
+	{
+		Throw(0, "Expecting 4 arguments in setNode: %s", getString);
+	}
+
+	if (!Eq(bracketSet, "<Get>"))
+	{
+		Throw(0, "Expectign <Get> as first argument in GetNode: %s", getString);
+	}
+
+	ICFGSSocket* s = GetRetrieveValueSocket(getNode);
+	if (!s)
+	{
+		Throw(0, "No retrieval socket for node: %s", getString);
+	}
+
+	if (!DoTypesMatch(typeName, s->Type().Value))
+	{
+		Throw(0, "Type mismatch for %s vs %s for %s", typeName, s->Type().Value, getString);
+	}
+
+	AppendTabs(sb, 1);
+
+	sb.AppendFormat("(%s = this.%s)\n", GetArgForNode(s->Name(), getNode),  variableName);
+}
+
+
+void BuildBundle::AppendSetVariable(ICFGSNode& setNode, int branchDepth, int chainLinkCount)
+{
+	UNUSED(chainLinkCount);
+	UNUSED(branchDepth);
+
+	cstr setString = setNode.Type().Value;
+
+	char bracketSet[8];
+	char variableName[256];
+	char dash[2];
+	char typeName[256];
+
+	uint32 sizeofBracketSet = sizeof bracketSet;
+	uint32 sizeofVariableName = sizeof variableName;
+	uint32 sizeofTypeName = sizeof typeName;
+
+	// [<Set>] <variable> - <type>
+	if (4 != sscanf_s(setString, "%s %s %s %s", bracketSet, sizeofBracketSet, variableName, sizeofVariableName, dash, 2, typeName, sizeofTypeName))
+	{
+		Throw(0, "Expecting 4 arguments in setNode: %s", setString);
+	}
+
+	if (!Eq(bracketSet, "<Set>"))
+	{
+		Throw(0, "Expectign <Set> as first argument in SetNode: %s", setString);
+	}
+
+	ICFGSSocket* s = GetAssignValueSocket(setNode);
+	if (!s)
+	{
+		Throw(0, "No assignment socket for node: %s", setString);
+	}
+
+	if (!DoTypesMatch(typeName, s->Type().Value))
+	{
+		Throw(0, "Type mismatch for %s vs %s for %s", typeName, s->Type().Value, setString);
+	}
+
+	AppendTabs(sb, 1);
+
+	CableConnection outputConnection = FindConnectionToInput(graph, *s);	
+	auto* outputNode = graph.Nodes().FindNode(outputConnection.node);
+	if (outputNode)
+	{
+		auto* outputSocket = outputNode->FindSocket(outputConnection.socket);
+		if (!outputSocket)
+		{
+			Throw(0, "Expecting output connection socket, but none found for %s", outputNode->Type());
+		}
+
+		if (!DoTypesMatch(typeName, outputSocket->Type().Value))
+		{
+			Throw(0, "Type mismatch for [%s of %s] with [%s of %s]", typeName, setString, outputSocket->Type().Value, outputNode->Type().Value);
+		}
+
+		sb.AppendFormat("(this.%s = %s)\n", variableName, GetArgForNode(outputSocket->Name(), *outputNode));
+	}
+	else
+	{
+		HString fieldValue;
+		HStringPopulator fieldValuePopulator(fieldValue);
+		if (!s->TryGetField(s->Name(), fieldValuePopulator))
+		{
+			Throw(0, "No attribute %s for (socket %s %s) of %s", s->Name(), s->Type().Value, s->Name(), setNode.Type().Value);
+		}
+
+		if (DoTypesMatch(typeName, "Sys.Type.String"))
+		{
+			sb.AppendFormat("(this.%s = \"", variableName);
+			AppendEscapedSexyString(sb, fieldValue);
+			sb << "\")\n";
+		}
+		else
+		{
+			sb.AppendFormat("(this.%s = %s)\n", variableName, fieldValue.c_str());
+		}
+	}
+}
+
 void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
 {
 	auto* aliasedFunction = db.FindFunction(fqType);
@@ -603,7 +788,7 @@ void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode, i
 		auto* localFunction = aliasedFunction->LocalFunction();
 		if (localFunction)
 		{
-			AppendFunctionCall(fqType, *localFunction, calleeNode);
+			AppendFunctionCall(fqType, *localFunction, calleeNode, branchDepth, chainLinkCount);
 			CompileNodeInsideFunctionBodyRecursive(calleeNode, branchDepth, chainLinkCount + 1);
 		}
 		else
@@ -617,9 +802,18 @@ void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode, i
 		{
 			AppendBranchOnCondition(calleeNode, branchDepth, chainLinkCount + 1);
 		}
+		else if (StartsWith(fqType, "<Set>"))
+		{
+			AppendSetVariable(calleeNode, branchDepth, chainLinkCount + 1);
+			CompileNodeInsideFunctionBodyRecursive(calleeNode, branchDepth, chainLinkCount + 2);
+		}
+		else if (StartsWith(fqType, "<Get>"))
+		{
+			AppendGetVariable(calleeNode, branchDepth, chainLinkCount + 1);
+		}
 		else
 		{
-			Throw(0, "Could not find public function aliased as %s", fqType);
+			Throw(0, "%s: not implemented", fqType);
 		}
 	}
 }
