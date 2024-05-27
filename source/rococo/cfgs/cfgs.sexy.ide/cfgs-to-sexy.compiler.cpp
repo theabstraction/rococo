@@ -97,9 +97,10 @@ static ICFGSSocket* FindConnectionToOutput(ICFGSFunction& graph, CableConnection
 	return node->FindSocket(outputConnection.socket);
 }
 
-// A bundle of interfaces and containers for compiling a graph into Sexy. Every graph has its own bundle.
-struct BuildBundle
+// A bundle of interfaces and containers for compiling a graph into Sexy. Every graph has its own builder.
+class GraphBuilder
 {
+private:
 	struct NodeData
 	{
 		HString label;
@@ -116,13 +117,9 @@ struct BuildBundle
 	ICFGSFunction& graph;
 	ICompileExportsSpec& exportSpec;
 
-	BuildBundle(StringBuilder& _sb, ISexyDatabase& _db, ICFGSFunction& _graph, ICompileExportsSpec& _exportSpec):
-		sb(_sb), db(_db), graph(_graph), exportSpec(_exportSpec)
-	{
+	std::vector<ICFGSNode*> callstack;
 
-	}
-
-	void AppendMethodImplementingFunction();
+	void AppendInvokeFunction(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode);
 	void AppendInputDeclarations();
 	void AppendOutputDeclarations();
 	void CompileFunctionBody();
@@ -139,6 +136,14 @@ struct BuildBundle
 	int GetNodeIndex(ICFGSNode& node);
 
 	cstr GetArgForNode(cstr baseArgName, ICFGSNode& node);
+
+public:
+	GraphBuilder(StringBuilder& _sb, ISexyDatabase& _db, ICFGSFunction& _graph, ICompileExportsSpec& _exportSpec) :
+		sb(_sb), db(_db), graph(_graph), exportSpec(_exportSpec)
+	{
+
+	}
+	void AppendMethodImplementingFunction();
 };
 
 cstr GetCorrectedDefaultValue(const ISXYType* type, cstr defaultValue)
@@ -354,7 +359,7 @@ static void ValidateDefaultCharacterAsNonString(cstr text, cstr argName, cstr fq
 	}
 }
 
-void BuildBundle::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket, ICFGSNode& calleeNode)
+void GraphBuilder::AssignDefaultValueToVariable(cstr argType, cstr argName, cstr fqFunctionName, ICFGSSocket& inputSocket, ICFGSNode& calleeNode)
 {
 	HString data;
 	HStringPopulator populator(data);
@@ -404,7 +409,7 @@ static int CountNumberOfArgsWithNameInGraph(ICFGSFunction& graph, cstr argName)
 	return count;
 }
 
-cstr BuildBundle::GetArgForNode(cstr baseArgName, ICFGSNode& node)
+cstr GraphBuilder::GetArgForNode(cstr baseArgName, ICFGSNode& node)
 {
 	int index = GetNodeIndex(node);
 
@@ -428,7 +433,7 @@ cstr BuildBundle::GetArgForNode(cstr baseArgName, ICFGSNode& node)
 	return i->first;
 }
 
-int BuildBundle::GetNodeIndex(ICFGSNode& node)
+int GraphBuilder::GetNodeIndex(ICFGSNode& node)
 {
 	auto i = nodeLabels.find(&node);
 	if (i == nodeLabels.end())
@@ -439,7 +444,7 @@ int BuildBundle::GetNodeIndex(ICFGSNode& node)
 	return i->second.index;
 }
 
-void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cstr argName, cstr fqFunctionName, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
 {
 	AppendTabs(sb, 1);
 	sb.AppendFormat("(%s %s)\n", argType, GetArgForNode(argName, calleeNode));
@@ -463,31 +468,39 @@ void BuildBundle::AppendDeclareAndAssignArgumentToFunctionCall(cstr argType, cst
 		Throw(0, "Type mismatch between %s and %s for %s argument (%s %s)", outputSocket->Type().Value, inputForThisArg->Type().Value, fqFunctionName, argType, argName);
 	}
 
-	auto* constNode = graph.Nodes().FindNode(outputConnection.node);
+	auto* outputNode = graph.Nodes().FindNode(outputConnection.node);
 
-	if (HasNoInputsNorTriggers(*constNode))
+	if (HasNoInputsNorTriggers(*outputNode))
 	{
 		// If a function has no inputs nor triggers we can evaluate it Just-in-Time before the point of application
-		AppendNodeImplementation(constNode->Type().Value, *constNode, branchDepth, chainLinkCount + 1);
+		AppendNodeImplementation(outputNode->Type().Value, *outputNode, branchDepth, chainLinkCount + 1);
+	}
+	else
+	{
+		if (std::find(callstack.begin(), callstack.end(), outputNode) == callstack.end())
+		{
+			cstr requiredArg = GetArgForNode(outputSocket->Name(), *outputNode);
+			Throw(0, "Cannot find the supplier of the argument %s in the callstack, which means the output value of %s was never computed ahead of its required access", requiredArg, outputNode->Type().Value);
+		}
 	}
 
 	AppendTabs(sb, 1);
-	sb.AppendFormat("(%s = %s)\n", GetArgForNode(argName, calleeNode), GetArgForNode(outputSocket->Name(), *constNode));
+	sb.AppendFormat("(%s = %s)\n", GetArgForNode(argName, calleeNode), GetArgForNode(outputSocket->Name(), *outputNode));
 }
 
 // Appends the expression prefix (<fqFunctionName <arg1> ... <argN> to the builder
-void AppendInvokeFunction(BuildBundle& bundle, cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode)
+void GraphBuilder::AppendInvokeFunction(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode)
 {
-	bundle.sb.AppendFormat("(%s", fqFunctionName);
+	sb.AppendFormat("(%s", fqFunctionName);
 
 	for (int i = 0; i < sexyFunction.InputCount(); i++)
 	{
 		cstr argName = sexyFunction.InputName(i);
-		bundle.sb << " " << bundle.GetArgForNode(argName, calleeNode);
+		sb << " " << GetArgForNode(argName, calleeNode);
 	}
 }
 
-void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& sexyFunction, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
 {
 	// TODO - optimize this so that for the case of functions of 1 output we put the function call inline with the output declaration, e.g (Float32 x = (Sys.Maths.SinDegrees 45))
 	// First we declare and assign inputs
@@ -515,7 +528,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 		case 0:
 		{
 		// Function has no output so we invoke it like this (<fn-name>)
-			AppendInvokeFunction(*this, fqFunctionName, sexyFunction, calleeNode);
+			AppendInvokeFunction(fqFunctionName, sexyFunction, calleeNode);
 			break;
 		}
 		case 1:
@@ -523,7 +536,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 		// Function has one output so invoke it inline like this: (variableName = (<fn-name> <inputs...>))
 			cstr outputArgName = sexyFunction.OutputName(0);
 			sb.AppendFormat("(%s = ", GetArgForNode(outputArgName, calleeNode));
-			AppendInvokeFunction(*this, fqFunctionName, sexyFunction, calleeNode);
+			AppendInvokeFunction(fqFunctionName, sexyFunction, calleeNode);
 			sb << ")";
 			break;
 		}
@@ -531,7 +544,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 		default:
 		{
 			// Finally invoke the function, mapping inputs to ouputs
-			AppendInvokeFunction(*this, fqFunctionName, sexyFunction, calleeNode);
+			AppendInvokeFunction(fqFunctionName, sexyFunction, calleeNode);
 
 			if (sexyFunction.OutputCount() > 0)
 			{
@@ -551,7 +564,7 @@ void BuildBundle::AppendFunctionCall(cstr fqFunctionName, const ISXYFunction& se
 	sb << ")\n\n";
 }
 
-void BuildBundle::AppendBranchOnCondition(ICFGSNode& branchNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::AppendBranchOnCondition(ICFGSNode& branchNode, int branchDepth, int chainLinkCount)
 {
 	UNUSED(chainLinkCount);
 
@@ -658,7 +671,7 @@ ICFGSSocket* GetRetrieveValueSocket(ICFGSNode& setNode)
 	return nullptr;
 }
 
-void BuildBundle::AppendGetVariable(ICFGSNode& getNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::AppendGetVariable(ICFGSNode& getNode, int branchDepth, int chainLinkCount)
 {
 	UNUSED(chainLinkCount);
 	UNUSED(branchDepth);
@@ -702,7 +715,7 @@ void BuildBundle::AppendGetVariable(ICFGSNode& getNode, int branchDepth, int cha
 }
 
 // TODO - optimize this to set variables inline if the assignation comes from a <GET> node
-void BuildBundle::AppendSetVariable(ICFGSNode& setNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::AppendSetVariable(ICFGSNode& setNode, int branchDepth, int chainLinkCount)
 {
 	UNUSED(chainLinkCount);
 	UNUSED(branchDepth);
@@ -790,7 +803,7 @@ void BuildBundle::AppendSetVariable(ICFGSNode& setNode, int branchDepth, int cha
 	}
 }
 
-void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
 {
 	auto* aliasedFunction = db.FindFunction(fqType);
 	if (aliasedFunction)
@@ -828,7 +841,7 @@ void BuildBundle::AppendNodeImplementation(cstr fqType, ICFGSNode& calleeNode, i
 	}
 }
 
-void BuildBundle::CompileCalleeNodeInsideFunctionBodyRecursive(ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::CompileCalleeNodeInsideFunctionBodyRecursive(ICFGSNode& calleeNode, int branchDepth, int chainLinkCount)
 {
 	if (!nodeLabels.empty())
 	{
@@ -862,7 +875,7 @@ void BuildBundle::CompileCalleeNodeInsideFunctionBodyRecursive(ICFGSNode& callee
 	}
 }
 
-void BuildBundle::CompileNodeInsideFunctionBodyRecursive(ICFGSNode& callerNode, int branchDepth, int chainLinkCount)
+void GraphBuilder::CompileNodeInsideFunctionBodyRecursive(ICFGSNode& callerNode, int branchDepth, int chainLinkCount)
 {
 	ICFGSCable* outgoingCable = FindOutgoingCable(callerNode, graph);
 	if (!outgoingCable)
@@ -878,10 +891,14 @@ void BuildBundle::CompileNodeInsideFunctionBodyRecursive(ICFGSNode& callerNode, 
 		return;
 	}
 
+	callstack.push_back(calleeNode);
+
 	CompileCalleeNodeInsideFunctionBodyRecursive(*calleeNode, branchDepth, chainLinkCount);
+
+	callstack.pop_back();
 }
 
-void BuildBundle::CompileFunctionBody()
+void GraphBuilder::CompileFunctionBody()
 {
 	ICFGSNode* callerNode = FindBeginNode(graph);
 
@@ -890,10 +907,19 @@ void BuildBundle::CompileFunctionBody()
 		return;
 	}
 
+	callstack.push_back(callerNode);
+
 	CompileNodeInsideFunctionBodyRecursive(*callerNode, 0, 0);
+
+	if (callstack.size() != 1)
+	{
+		Throw(0, "Incorrect callstack length: %llu", callstack.size());
+	}
+
+	callstack.pop_back();
 }
 
-void BuildBundle::AppendInputDeclarations()
+void GraphBuilder::AppendInputDeclarations()
 {
 	auto& beginNode = graph.BeginNode();
 	for (int i = 0; i < beginNode.SocketCount(); i++)
@@ -909,7 +935,7 @@ void BuildBundle::AppendInputDeclarations()
 	}
 }
 
-void BuildBundle::AppendOutputDeclarations()
+void GraphBuilder::AppendOutputDeclarations()
 {
 	auto& returnNode = graph.ReturnNode();
 	for (int i = 0; i < returnNode.SocketCount(); i++)
@@ -925,7 +951,7 @@ void BuildBundle::AppendOutputDeclarations()
 	}
 }
 
-void BuildBundle::AppendMethodImplementingFunction()
+void GraphBuilder::AppendMethodImplementingFunction()
 {
 	// Methods that begin with underscore are deemed local methods private to an implementation and not exposed by an interface.
 	// Since the Sexy language does not permit underscores in any local identifier, we skip leading underscores
@@ -992,7 +1018,7 @@ static void CompileToStringProtected(StringBuilder& sb, ISexyDatabase& db, ICFGS
 	cfgs.ForEachFunction(
 		[&sb, &db, &exportSpec](ICFGSFunction& f)
 		{ 
-			BuildBundle bundle(sb, db, f, exportSpec);
+			GraphBuilder bundle(sb, db, f, exportSpec);
 			bundle.AppendMethodImplementingFunction();
 		}
 	);

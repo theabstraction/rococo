@@ -2088,7 +2088,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 		Substring type;
 		bool isThis;
-		if (type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
+		if ((type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc)))
 		{
 			if (isThis)
 			{
@@ -2780,7 +2780,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 		Substring type;
 		bool isThis;
-		if (type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc))
+		if ((type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc)))
 		{
 			Substring branchType = type;
 			Substring subsearch = searchToken;

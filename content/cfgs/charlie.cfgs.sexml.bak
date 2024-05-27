@@ -15,8 +15,8 @@
 
 			(ReturnNode
 				(Type "_Return")
-				(XPos 200.000000)
-				(YPos 200.000000)
+				(XPos 0.000000)
+				(YPos 0.000000)
 				(Id "C747900F00000022 4CF766ECB7B3B23B")
 			) // ReturnNode
 
@@ -265,6 +265,135 @@
 	) // Function
 
 	(Function
+		(FQName "TestMissingRequiredArg") :
+		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "35DDD6A00000012 50CB5E8F0C9CF566")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 200.000000)
+				(YPos 200.000000)
+				(Id "35DDD6A00000013 50CB5E8F0C9CF566")
+			) // ReturnNode
+
+			(Node
+				(Type "<Begin>")
+				(XPos -220.000000)
+				(YPos -220.000000)
+				(Id "35DDD6A00000014 50CB5E8F0C9CF566") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "35DDD6A00000015 50CB5E8F0C9CF566")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.I32.BitwiseAnd")
+				(XPos 426.000000)
+				(YPos -220.500000)
+				(Id "35DDD6A00000016 50CB5E8F0C9CF566") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "35DDD6A00000017 50CB5E8F0C9CF566")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "35DDD6A00000018 50CB5E8F0C9CF566")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "x")
+					(Type "Int32")
+					(Id "35DDD6A00000019 50CB5E8F0C9CF566")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "y")
+					(Type "Int32")
+					(Id "35DDD6A0000001A 50CB5E8F0C9CF566")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "result")
+					(Type "Int32")
+					(Id "35DDD6A0000001B 50CB5E8F0C9CF566")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "Sys.Maths.I64.ToInt32")
+				(XPos 7.000000)
+				(YPos -67.500000)
+				(Id "35DDD6A0000001C 50CB5E8F0C9CF566") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "35DDD6A0000001D 50CB5E8F0C9CF566")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "35DDD6A0000001E 50CB5E8F0C9CF566")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "x")
+					(Type "Int64")
+					(Id "35DDD6A0000001F 50CB5E8F0C9CF566")
+					(Class InputVar)
+				) // Socket
+
+				(Socket
+					(Label "value")
+					(Type "Int32")
+					(Id "35DDD6A00000020 50CB5E8F0C9CF566")
+					(Class OutputValue)
+				) // Socket
+
+			) // Node
+
+		) // Nodes
+
+		(Cables :
+			(Cable
+				(StartNode "35DDD6A00000014 50CB5E8F0C9CF566")
+				(StartSocket "35DDD6A00000015 50CB5E8F0C9CF566")
+				(EndNode "35DDD6A00000016 50CB5E8F0C9CF566")
+				(EndSocket "35DDD6A00000017 50CB5E8F0C9CF566")
+			) // Cable
+
+			(Cable
+				(StartNode "35DDD6A0000001C 50CB5E8F0C9CF566")
+				(StartSocket "35DDD6A00000020 50CB5E8F0C9CF566")
+				(EndNode "35DDD6A00000016 50CB5E8F0C9CF566")
+				(EndSocket "35DDD6A0000001A 50CB5E8F0C9CF566")
+			) // Cable
+
+		) // Cables
+
+	) // Function
+
+	(Function
 		(FQName "_Spook") :
 		(Nodes :
 			(BeginNode
@@ -302,6 +431,100 @@
 
 	) // Function
 
+	(Function
+		(FQName "SetFromGet") :
+		(Nodes :
+			(BeginNode
+				(Type "_Begin")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "E66D4A0F0000000D 5B0B75568384E825")
+			) // BeginNode
+
+			(ReturnNode
+				(Type "_Return")
+				(XPos 0.000000)
+				(YPos 0.000000)
+				(Id "E66D4A0F0000000E 5B0B75568384E825")
+			) // ReturnNode
+
+			(Node
+				(Type "<Begin>")
+				(XPos -220.000000)
+				(YPos -220.000000)
+				(Id "E66D4A0F0000000F 5B0B75568384E825") :
+				(Socket
+					(Label "Execute")
+					(Type "Flow")
+					(Id "E66D4A0F00000010 5B0B75568384E825")
+					(Class Exit)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "<Set> newIndex - Int32")
+				(XPos 165.955335)
+				(YPos -220.427070)
+				(Id "E66D4A0F00000011 5B0B75568384E825") :
+				(Socket
+					(Label "Start")
+					(Type "Flow")
+					(Id "E66D4A0F00000012 5B0B75568384E825")
+					(Class Trigger)
+				) // Socket
+
+				(Socket
+					(Label "End")
+					(Type "Flow")
+					(Id "E66D4A0F00000013 5B0B75568384E825")
+					(Class Exit)
+				) // Socket
+
+				(Socket
+					(Label "newIndex")
+					(Type "Int32")
+					(Id "E66D4A0F00000014 5B0B75568384E825")
+					(Class ConstInputRef)
+				) // Socket
+
+			) // Node
+
+			(Node
+				(Type "<Get> index - Int32")
+				(XPos -15.805270)
+				(YPos -171.317838)
+				(Id "E66D4A0F00000015 5B0B75568384E825") :
+				(Socket
+					(Label "index")
+					(Type "Int32")
+					(Id "E66D4A0F00000016 5B0B75568384E825")
+					(Class ConstOutputRef)
+				) // Socket
+
+			) // Node
+
+		) // Nodes
+
+		(Cables :
+			(Cable
+				(StartNode "E66D4A0F00000015 5B0B75568384E825")
+				(StartSocket "E66D4A0F00000016 5B0B75568384E825")
+				(EndNode "E66D4A0F00000011 5B0B75568384E825")
+				(EndSocket "E66D4A0F00000014 5B0B75568384E825")
+			) // Cable
+
+			(Cable
+				(StartNode "E66D4A0F0000000F 5B0B75568384E825")
+				(StartSocket "E66D4A0F00000010 5B0B75568384E825")
+				(EndNode "E66D4A0F00000011 5B0B75568384E825")
+				(EndSocket "E66D4A0F00000012 5B0B75568384E825")
+			) // Cable
+
+		) // Cables
+
+	) // Function
+
 ) // Functions
 (Navigation :
 	(LocalFunctions :
@@ -331,6 +554,12 @@
 		(Variable
 			(Name isActive)
 			(Type Bool)
+			(Default 0)
+		) // Variable
+
+		(Variable
+			(Name newIndex)
+			(Type Int32)
 			(Default 0)
 		) // Variable
 
