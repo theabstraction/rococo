@@ -536,6 +536,7 @@ namespace ANON
 			{
 				ide->Clear();
 				LoadDatabase(*db, filename, *this);
+				db->SetOrigin(filename);
 				gridSlate->QueueRedraw();
 				CopyString(lastSavedSysPath.buf, U8FilePath::CAPACITY, filename);
 				SetTitleWithFilename(*editor, lastSavedSysPath);
@@ -630,6 +631,7 @@ namespace ANON
 			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 				{
 					SaveDatabase(*db, sb, *this);
+					db->SetOrigin(lastSavedSysPath);
 				}
 			);
 		}

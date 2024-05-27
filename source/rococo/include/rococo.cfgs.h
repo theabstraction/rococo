@@ -312,6 +312,8 @@ namespace Rococo::CFGS
 		virtual void BuildFunction(FunctionId id) = 0;
 		virtual [[nodiscard]] ICFGSFunction* CurrentFunction() = 0;
 		virtual [[nodiscard]] ICFGSFunction* FindFunction(FunctionId id) = 0;
+		virtual cstr Origin() const = 0;
+		virtual void SetOrigin(cstr originName) = 0;
 
 		// Enumerate functions. Do not delete or append to the database during the enumeration
 		virtual void ForEachFunction(Rococo::Function<void(ICFGSFunction& f)> callback) = 0;

@@ -1324,6 +1324,28 @@ namespace Rococo::CFGS::Internal
 		{
 			delete this;
 		}
+
+		HString origin = "Unknown";
+
+		cstr Origin() const override
+		{
+			return origin;
+		}
+
+		void SetOrigin(cstr originName) override
+		{
+			Substring sOriginName{ originName, originName + strlen(originName) };
+			
+			auto lastBackSlash = ReverseFind('\\', sOriginName);
+			if (lastBackSlash)
+			{
+				origin = lastBackSlash + 1;
+			}
+			else
+			{
+				origin = originName;
+			}
+		}
 	};
 
 	ICFGSNode& CFGSSocket::ParentNode() const
