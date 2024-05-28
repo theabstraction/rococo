@@ -101,7 +101,7 @@ namespace ANON
 		{
 			for (auto d : frameDescriptors)
 			{
-				d.panel->Free();
+				d.panel->ReleasePanel();
 			}
 
 			delete eventQueue;

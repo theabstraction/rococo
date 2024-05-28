@@ -470,7 +470,7 @@ namespace Rococo::Gui
 		virtual void BuildWidgetCallstackRecursiveUnderPoint(Vec2i point, IGRPanelEventBuilder& wb) = 0;
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
 		virtual void SetWidget(IGRWidgetSupervisor& widget) = 0;
-		virtual void Free() = 0;
+		virtual void ReleasePanel() = 0;
 	};
 
 	enum class EGRQueryInterfaceResult

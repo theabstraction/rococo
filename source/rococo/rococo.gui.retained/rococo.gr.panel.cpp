@@ -32,12 +32,12 @@ namespace GRANON
 		AutoFree<IGRSchemeSupervisor> scheme;
 		bool preventInvalidationFromChildren = false;
 		bool isCollapsed = false;
-
+		int64 refCount = 0;
 		int64 flags = 0;
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
 		{
-
+			refCount = 1;
 		}
 
 		IGRPanel& Add(EGRPanelFlags flag) override
@@ -154,7 +154,7 @@ namespace GRANON
 		{
 			for (auto* child : children)
 			{
-				child->Free();
+				child->ReleasePanel();
 			}
 
 			children.clear();
@@ -235,7 +235,7 @@ namespace GRANON
 			{
 				for (auto* child : children)
 				{
-					child->Free();
+					child->ReleasePanel();
 				}
 				children.clear();
 				return;
@@ -257,7 +257,7 @@ namespace GRANON
 				{
 					if (child->IsMarkedForDeletion())
 					{
-						child->Free();
+						child->ReleasePanel();
 					}
 					else
 					{
@@ -335,9 +335,13 @@ namespace GRANON
 			root.CaptureCursor(*this);
 		}
 
-		void Free() override
+		void ReleasePanel() override
 		{
-			delete this;
+			refCount--;
+			if (refCount == 0)
+			{
+				delete this;
+			}
 		}
 
 		IGRPanel& Resize(Vec2i span) override
