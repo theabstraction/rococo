@@ -6,7 +6,7 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRMainFrame: IGRWidgetMainFrame, IGRWidget
+	struct GRMainFrame: IGRWidgetMainFrame, IGWidgetSupervisor
 	{
 		cstr name;
 		IGRPanel& panel;

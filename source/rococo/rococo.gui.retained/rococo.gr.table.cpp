@@ -29,7 +29,7 @@ namespace GRANON
 		int32 rowHeight;
 	};
 
-	struct GRTable : IGRWidgetTable, IGRWidget, IGRNavigator
+	struct GRTable : IGRWidgetTable, IGWidgetSupervisor, IGRNavigator
 	{
 		IGRPanel& panel;
 

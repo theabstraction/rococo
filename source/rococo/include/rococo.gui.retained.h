@@ -481,7 +481,6 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRWidget: IGRBase
 	{
-		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 		virtual void Layout(const GuiRect& parentDimensions) = 0;
 		virtual EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
 		virtual EGREventRouting OnCursorClick(GRCursorEvent& ce) = 0;
@@ -489,11 +488,16 @@ namespace Rococo::Gui
 		virtual void OnCursorLeave() = 0;
 		virtual EGREventRouting OnCursorMove(GRCursorEvent& ce) = 0;
 		virtual EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) = 0;
-		virtual IGRPanel& Panel() = 0;
 
 		// Invoked by the IGRRetained render call
 		virtual void Render(IGRRenderContext& g) = 0;
 
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
+	};
+
+	ROCOCO_INTERFACE IGWidgetSupervisor: IGRWidget
+	{
 		// Invoked by the IGRRetained instance management logic
 		virtual void Free() = 0;
 	};
@@ -654,7 +658,7 @@ namespace Rococo::Gui
 	};
 
 	// A widget with a rectangular background for holding child widgets
-	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetDivision : IGWidgetSupervisor
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 	};
@@ -933,7 +937,7 @@ namespace Rococo::Gui
 	};
 
 	// A vertical list that aligns its children vertically
-	ROCOCO_INTERFACE IGRWidgetVerticalList : IGRWidget
+	ROCOCO_INTERFACE IGRWidgetVerticalList : IGWidgetSupervisor
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 	};

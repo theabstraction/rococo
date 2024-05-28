@@ -35,7 +35,7 @@ namespace ANON
 		}
 	};
 
-	struct GRVerticalScrollerWithButtons : IGRWidgetVerticalScrollerWithButtons, IGRWidget
+	struct GRVerticalScrollerWithButtons : IGRWidgetVerticalScrollerWithButtons, IGWidgetSupervisor
 	{
 		IGRPanel& panel;
 		IGRWidgetButton* topButton = nullptr;

@@ -113,12 +113,15 @@ namespace Rococo::Memory
 
 		T* allocate(std::size_t nElements)
 		{
-			return reinterpret_cast<T*> (moduleAllocatorFunctions.Allocate(nElements * sizeof(T)));
+			return reinterpret_cast<T*>(Rococo::Memory::GetDefaultAllocators().Allocate((nElements * sizeof(T))));
+			// return reinterpret_cast<T*> (moduleAllocatorFunctions.Allocate(nElements * sizeof(T)));
 		}
 		void deallocate(T* p, std::size_t n) noexcept
 		{
 			UNUSED(n);
-			moduleAllocatorFunctions.Free(p); // If you get a complaint here, check the instructions at the start of the file
+			Rococo::Memory::GetDefaultAllocators().Free(p);
+			//UNUSED(n);
+			//moduleAllocatorFunctions.Free(p); // If you get a complaint here, check the instructions at the start of the file
 		}
 
 		template <class T1, class U>

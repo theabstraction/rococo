@@ -18,6 +18,16 @@ namespace Rococo::Memory
 		size_t totalFreed = 0;
 		AllocatorMetrics stats;
 
+		DeepTrackingAllocator()
+		{
+			Rococo::Debugging::Log("Constructed deep tracking allocator: %s\n", __FUNCSIG__);
+		}
+
+		~DeepTrackingAllocator()
+		{
+			Rococo::Debugging::Log("Destructed deep tracking allocator: %s\n", __FUNCSIG__);
+		}
+
 		struct TrackingString
 		{
 			// char msg[256]; // For some types of leak analysis it may be useful to add extra tracking data. The requirements are leak specific and too broad to define in a general API
@@ -206,6 +216,7 @@ namespace Rococo::Memory
 
 			if (buffer)
 			{
+				// If you have a crash here on exit, it probably means your DeepTrackingAllocator was defined after your global IAllocator instance
 				auto i = tracking.find((BufferAddress) buffer);
 				if (i != tracking.end())
 				{

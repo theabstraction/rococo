@@ -61,11 +61,6 @@ void* FirstTimeAllocator(size_t nBytes)                                 \
 void FirstTimeDeallocator(void* buffer)                                 \
 {                                                                       \
     UNUSED(buffer);                                                     \
-}                                                                       \
-                                                                        \
-namespace Rococo::Memory                                                \
-{                                                                       \
-    IAllocator& GetDX11Allocator() { return *IALLOCATORSUPERVISOR; }    \
 }
 
 #define DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(IALLOCATORSUPERVISOR, initialSizeInKB, friendlyName)     \

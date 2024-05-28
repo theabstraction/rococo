@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRViewportWidget : IGRWidgetViewport, IGRWidget, IGRScrollerEvents, IGRFocusNotifier
+	struct GRViewportWidget : IGRWidgetViewport, IGWidgetSupervisor, IGRScrollerEvents, IGRFocusNotifier
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* clipArea = nullptr; // Represents the rectangle to the left of the scroller

@@ -36,7 +36,7 @@ using namespace Rococo::Memory;
 
 // If defined will use std allocators rather than those for specific for sexy. Best used/defined when SexyScript is shipped in DLL modules
 #ifdef USE_STD_ALLOCATOR_FOR_SEXY 
-# error "Undefine USE_STD_ALLOCATOR_FOR_SEXY -> otherwise this code results in infintie recrusion"
+# error "Undefine USE_STD_ALLOCATOR_FOR_SEXY -> otherwise this code results in infintie recursion"
 #endif
 
 _NODISCARD _Ret_notnull_ _Post_writable_byte_size_(nBytes) _VCRT_ALLOCATOR
