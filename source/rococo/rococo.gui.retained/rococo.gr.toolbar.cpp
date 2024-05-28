@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRToolbar : IGRWidgetToolbar, IGWidgetSupervisor
+	struct GRToolbar : IGRWidgetToolbar, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		EGRAlignment childAlignment = EGRAlignment::Left;

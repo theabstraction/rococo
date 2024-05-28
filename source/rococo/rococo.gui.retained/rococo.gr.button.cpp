@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRButton : IGRWidgetButton, IGWidgetSupervisor
+	struct GRButton : IGRWidgetButton, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		EGRClickCriterion clickCriterion = EGRClickCriterion::OnDown;

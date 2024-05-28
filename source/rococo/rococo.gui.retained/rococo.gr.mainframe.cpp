@@ -6,7 +6,7 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRMainFrame: IGRWidgetMainFrame, IGWidgetSupervisor
+	struct GRMainFrame: IGRWidgetMainFrameSupervisor, IGRWidgetSupervisor
 	{
 		cstr name;
 		IGRPanel& panel;
@@ -157,6 +157,11 @@ namespace GRANON
 			return *this;
 		}
 
+		IGRWidgetSupervisor& WidgetSupervisor() override
+		{
+			return *this;
+		}
+
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetMainFrame>(this, ppOutputArg, interfaceId);
@@ -171,7 +176,7 @@ namespace Rococo::Gui
 		return "IGRWidgetMainFrame";
 	}
 
-	IGRWidgetMainFrame* CreateGRMainFrame(cstr name, IGRPanel& panel)
+	IGRWidgetMainFrameSupervisor* CreateGRMainFrame(cstr name, IGRPanel& panel)
 	{
 		auto* frame = new GRANON::GRMainFrame(name, panel);
 		frame->PostConstruct();

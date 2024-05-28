@@ -360,7 +360,7 @@ namespace GRANON
 		}
 	};
 
-	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGWidgetSupervisor, IGRWidgetCollapserEvents
+	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidgetSupervisor, IGRWidgetCollapserEvents
 	{
 		IGRPanel& panel;
 		Previewer previewer;

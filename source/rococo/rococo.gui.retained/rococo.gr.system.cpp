@@ -18,7 +18,7 @@ using namespace Rococo::Gui;
 namespace Rococo::Gui
 {
 	IGRLayoutSupervisor* CreateFullScreenLayout();
-	IGRWidgetMainFrame* CreateGRMainFrame(cstr name, IGRPanel& panel);
+	IGRWidgetMainFrameSupervisor* CreateGRMainFrame(cstr name, IGRPanel& panel);
 	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent);
 
 	bool operator == (const GuiRect& a, const GuiRect& b)
@@ -151,7 +151,7 @@ namespace ANON
 
 			auto* newFramePanel = CreatePanel(*this, nullptr);
 			auto* newFrame = CreateGRMainFrame(last.id.c_str(), * newFramePanel);
-			newFramePanel->SetWidget(newFrame->Widget());
+			newFramePanel->SetWidget(newFrame->WidgetSupervisor());
 			last.panel = newFramePanel;
 			last.frame = newFrame;
 
@@ -351,7 +351,7 @@ namespace ANON
 			parent.InvalidateLayout(false);
 			auto& widget = factory.CreateWidget(panel);
 			auto& superPanel = static_cast<IGRPanelSupervisor&>(panel);
-			superPanel.SetWidget(widget);
+			superPanel.SetWidget(static_cast<IGRWidgetSupervisor&>(widget));
 			mapIdToPanel.try_emplace(panel.Id(), &panel);
 			return widget;
 		}

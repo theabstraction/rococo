@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRText : IGRWidgetText, IGWidgetSupervisor
+	struct GRText : IGRWidgetText, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		std::string text;

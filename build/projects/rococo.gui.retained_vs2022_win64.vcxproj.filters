@@ -21,6 +21,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.with.buttons.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.viewport.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\source\rococo\rococo.gui.retained\gr.natvis" />

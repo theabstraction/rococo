@@ -19,7 +19,7 @@ namespace GRANON
 	{
 		GRPanel* parent;
 		IGRPanelRoot& root;
-		IGRWidget* widget = nullptr; // Should always be set immediately after construction
+		IGRWidgetSupervisor* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
 		Vec2i minimalSpan{ 0,0 };
@@ -59,6 +59,7 @@ namespace GRANON
 
 		virtual ~GRPanel()
 		{
+			widget->Free();
 			static_cast<IGRSystemSupervisor&>(root.GR()).NotifyPanelDeleted(uniqueId);
 			ClearChildren();
 		}
@@ -500,7 +501,7 @@ namespace GRANON
 			return span;
 		}
 
-		void SetWidget(IGRWidget& widget) override
+		void SetWidget(IGRWidgetSupervisor& widget) override
 		{
 			this->widget = &widget;
 		}

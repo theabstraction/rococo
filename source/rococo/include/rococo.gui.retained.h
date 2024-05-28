@@ -13,6 +13,7 @@ namespace Rococo::Gui
 {
 	struct IGRPanel;
 	struct IGRWidget;
+	struct IGRWidgetSupervisor;
 	struct IGRSystem;
 	struct IGRWidgetEditBox;
 
@@ -468,7 +469,7 @@ namespace Rococo::Gui
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) = 0;
 		virtual void BuildWidgetCallstackRecursiveUnderPoint(Vec2i point, IGRPanelEventBuilder& wb) = 0;
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
-		virtual void SetWidget(IGRWidget& widget) = 0;
+		virtual void SetWidget(IGRWidgetSupervisor& widget) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -496,7 +497,7 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 	};
 
-	ROCOCO_INTERFACE IGWidgetSupervisor: IGRWidget
+	ROCOCO_INTERFACE IGRWidgetSupervisor: IGRWidget
 	{
 		// Invoked by the IGRRetained instance management logic
 		virtual void Free() = 0;
@@ -658,7 +659,7 @@ namespace Rococo::Gui
 	};
 
 	// A widget with a rectangular background for holding child widgets
-	ROCOCO_INTERFACE IGRWidgetDivision : IGWidgetSupervisor
+	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidgetSupervisor
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 	};
@@ -764,6 +765,12 @@ namespace Rococo::Gui
 
 		// The part of the main frame that is below the title bar. If there is no title bar the client area covers the entire area
 		virtual IGRWidgetDivision& ClientArea() = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetMainFrameSupervisor: IGRWidgetMainFrame
+	{
+		// The widget for the main frame
+		virtual IGRWidgetSupervisor& WidgetSupervisor() = 0;
 	};
 
 	enum class EGRDebugFlags
@@ -937,7 +944,7 @@ namespace Rococo::Gui
 	};
 
 	// A vertical list that aligns its children vertically
-	ROCOCO_INTERFACE IGRWidgetVerticalList : IGWidgetSupervisor
+	ROCOCO_INTERFACE IGRWidgetVerticalList : IGRWidgetSupervisor
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 	};

@@ -149,7 +149,7 @@ namespace GRANON
 		root = new MenuBranch(*this, rootId, nullptr);
 	}
 
-	struct GRMenuBar : IGRWidgetMenuBar, IGWidgetSupervisor
+	struct GRMenuBar : IGRWidgetMenuBar, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		GRMenuTree tree;

@@ -8,7 +8,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GREditBox : IGRWidgetEditBox, IGREditorMicromanager, IGWidgetSupervisor
+	struct GREditBox : IGRWidgetEditBox, IGREditorMicromanager, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		std::vector<char> text;

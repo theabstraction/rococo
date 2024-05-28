@@ -13,7 +13,7 @@ namespace GRANON
 	static const char* const defaultExpandPath = "$(COLLAPSER_EXPAND)";
 	static const char* const defaultInlinePath = "$(COLLAPSER_COLLAPSE)";
 
-	struct GRCollapser : IGRWidgetCollapser, IGWidgetSupervisor
+	struct GRCollapser : IGRWidgetCollapser, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		IGRWidgetCollapserEvents& eventHandler;

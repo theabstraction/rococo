@@ -8,7 +8,7 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRSplitter : IGRWidgetSplitter, IGWidgetSupervisor
+	struct GRSplitter : IGRWidgetSplitter, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* first = nullptr;

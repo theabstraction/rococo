@@ -15,7 +15,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGWidgetSupervisor
+	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		IGRScrollerEvents& events;
