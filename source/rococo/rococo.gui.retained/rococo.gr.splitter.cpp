@@ -110,6 +110,13 @@ namespace GRANON
 			}
 			else if (ce.click.LeftButtonDown)
 			{
+				if (virtualDraggerStartPos > 0)
+				{
+					// We lost focus and missed the previous mouse down
+					virtualDraggerStartPos = -1;
+					draggerStartPos = realDraggerStartPos;
+					return EGREventRouting::Terminate;;
+				}
 				if (IsPointInRect(ce.position, draggerRect))
 				{
 					panel.Focus();
@@ -130,7 +137,11 @@ namespace GRANON
 		{
 			if (!panel.HasFocus())
 			{
-				virtualDraggerStartPos = -1;
+				if (virtualDraggerStartPos >= 0)
+				{
+					virtualDraggerStartPos = -1;
+					draggerStartPos = realDraggerStartPos;
+				}
 			}
 
 			bool isDraggerHovered = IsPointInRect(ce.position, draggerRect);

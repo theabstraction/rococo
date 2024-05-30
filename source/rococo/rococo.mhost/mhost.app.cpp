@@ -528,29 +528,26 @@ namespace MHost
 				}
 			);
 
-			char text[256];
-			SafeFormat(text, "Profile %s...", subsystem.SubsystemName());
-
-			Gui::GRMenuButtonItem button;
-			button.isEnabled = 1;
-			button.isImplementedInCPP = 1;
-			button.metaData.intData = (int64)( SUBSYSTEM_BITS::HIGHBITS) | (int64) id.value;
-			button.metaData.stringData = subsystem.SubsystemName();
-			button.text = text;
-
 			if (childCount)
 			{
-				auto idChildMenu = frame.MenuBar().AddSubMenu(parentMenu, Gui::GRMenuSubMenu(subsystem.SubsystemName()));
-				frame.MenuBar().AddButton(idChildMenu, button);
-
-				platform.misc.subSystems.ForEachChild(subsystem, [this, &frame, idChildMenu](ISubsystem& subsystem, ID_SUBSYSTEM id)
+				platform.misc.subSystems.ForEachChild(subsystem, [this, &frame, parentMenu](ISubsystem& subsystem, ID_SUBSYSTEM id)
 					{
-						AppendToMenuRecursive(frame, idChildMenu, subsystem, id);
+						AppendToMenuRecursive(frame, parentMenu, subsystem, id);
 					}
 				);
 			}
 			else
 			{
+				char text[256];
+				SafeFormat(text, "Profile %s...", subsystem.SubsystemName());
+
+				Gui::GRMenuButtonItem button;
+				button.isEnabled = 1;
+				button.isImplementedInCPP = 1;
+				button.metaData.intData = (int64)(SUBSYSTEM_BITS::HIGHBITS) | (int64)id.value;
+				button.metaData.stringData = subsystem.SubsystemName();
+				button.text = text;
+
 				frame.MenuBar().AddButton(parentMenu, button);
 			}
 		}
