@@ -277,7 +277,7 @@ namespace ANON
 
 			ClearFrame(*frame);
 			
-			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, false).SetDraggerMinMax(240, 8192);
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, true).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 
 			frameSplitter.EvOnSplitSizeChanged().Add(

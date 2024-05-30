@@ -128,6 +128,11 @@ namespace GRANON
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			if (!panel.HasFocus())
+			{
+				virtualDraggerStartPos = -1;
+			}
+
 			bool isDraggerHovered = IsPointInRect(ce.position, draggerRect);
 			if (isDraggerHovered)
 			{
