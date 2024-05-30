@@ -833,12 +833,6 @@ namespace MHost
 			if (isVisible)
 			{
 				platform.creator.editor.AddHook(this);
-				auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
-				if (frame)
-				{
-					Gui::SetUniformColourForAllRenderStates(frame->Widget().Panel(), Gui::EGRSchemeColourSurface::BACKGROUND, RGBAb(0, 0, 0, 0));
-					Gui::SetUniformColourForAllRenderStates(frame->ClientArea().Panel(), Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
-				}
 
 				GuiTypes::GuiEvent ev;
 				ev.stringId = "";
@@ -853,7 +847,6 @@ namespace MHost
 				ev.eventId = GuiTypes::GuiEventId::GRisHidden;
 				guiEventList.push_back(ev);
 			}
-			// creator.editor.Preview(platform.graphics.GR, GetTestTarget())
 		}
 
 		void SetGUIToggleKey(int32 vkeyCode) override

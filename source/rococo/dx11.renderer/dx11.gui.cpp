@@ -1045,6 +1045,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         ReflectStackFormat(v, "SpriteArray", "%d textures of width %dx%d", spriteArray->TextureCount(), spriteArray->Width(), spriteArray->Width());
 
         Reflect(v, "guiDepthState", *guiDepthState);
+        
         Reflect(v, "alphaBlend", *alphaBlend);
         Reflect(v, "spriteRasterizer", *spriteRasterizering);
     }

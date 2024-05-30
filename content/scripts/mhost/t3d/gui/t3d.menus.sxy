@@ -46,6 +46,7 @@
 		(buttonName.Clear)
 		(methodPascalCase.Clear)
 		(t.AppendMethodName methodName i)
+		// Tranform method names into paths so OnObjectsCreateBottleClicked becomes Objects.Create.Bottle
 		(Int32 dotOnPos = (Sys.Type.Strings.FindLeftNoCase methodName 0  ".On"))		
 		(if (dotOnPos > 0)
 			(dotOnPos += 3)

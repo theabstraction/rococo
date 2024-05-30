@@ -34,8 +34,7 @@
 )
 
 (method GuiInputThread.ReleaseMouse (IEventHandler handler)-> :
-	(IEventHandler nullHandler)
-	(this.modalSink = nullHandler)
+	(this.modalSink = 0)
 	(this.engine.ReleaseMouse)
 )
 

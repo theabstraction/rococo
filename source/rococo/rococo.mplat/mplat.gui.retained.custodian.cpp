@@ -117,30 +117,47 @@ namespace ANON
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
-			GuiRect visibleRect = lastScissorRect.IsNormalized() ? IntersectNormalizedRects(absRect, lastScissorRect) : absRect;
+			if (!lastScissorRect.IsNormalized())
+			{
+				return;
+			}
+
+			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 			Rococo::Graphics::DrawRectangle(*rc, visibleRect, colour, colour);
 		}
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
-			GuiRect visibleRect = lastScissorRect.IsNormalized() ? IntersectNormalizedRects(absRect, lastScissorRect) : absRect;
+			if (!lastScissorRect.IsNormalized())
+			{
+				return;
+			}
+
+			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 			Rococo::Graphics::DrawBorderAround(*rc, visibleRect, Vec2i{ 1,1 }, colour1, colour2);
 		}
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
-			GuiRect visibleRect = lastScissorRect.IsNormalized() ? IntersectNormalizedRects(absRect, lastScissorRect) : absRect;
+			if (!lastScissorRect.IsNormalized())
+			{
+				return;
+			}
+
+			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 			RenderTask task{ ERenderTaskType::Edge, visibleRect, colour1, colour2 };
 			lastTasks.push_back(task);
 		}
 
 		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) override
 		{
-			if (lastScissorRect.IsNormalized())
+			if (!lastScissorRect.IsNormalized())
 			{
-				rc->FlushLayer();
-				rc->SetScissorRect(lastScissorRect);
+				return;
 			}
+
+			rc->FlushLayer();
+			rc->SetScissorRect(lastScissorRect);
 
 			// If there is nothing to display, then render a space character, which will give the caret a rectangle to work with
 			fstring editText = text.length > 0 ? text : " "_fstring;
@@ -226,16 +243,18 @@ namespace ANON
 			}
 			Rococo::Graphics::DrawLine(*rc, 1, glyphCallback.caretStart, glyphCallback.caretEnd, blinkColour);
 
-			if (lastScissorRect.IsNormalized())
-			{
-				rc->FlushLayer();
-				rc->ClearScissorRect();
-			}
+			rc->FlushLayer();
+			rc->ClearScissorRect();
 		}
 
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
 			UNUSED(targetRect);
+
+			if (!lastScissorRect.IsNormalized())
+			{
+				return;
+			}
 
 			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
 			{

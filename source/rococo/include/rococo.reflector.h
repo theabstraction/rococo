@@ -108,6 +108,7 @@ namespace Rococo::Reflection
 		}
 	};
 
+	// Adds method virtual void Visit(IReflectionVisitor& v)
 	ROCOCO_INTERFACE IReflectionTarget
 	{
 		virtual void Visit(IReflectionVisitor& v) = 0;

@@ -368,6 +368,7 @@ namespace GRANON
 
 		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler) : panel(owningPanel), populationEventHandler(_populationEventHandler)
 		{
+			owningPanel.SetClipChildren(true);
 		}
 
 		void Free() override
