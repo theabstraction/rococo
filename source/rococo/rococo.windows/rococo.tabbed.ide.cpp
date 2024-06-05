@@ -1751,6 +1751,10 @@ namespace
 		  POINT p{ pos.x, pos.y };
 		  ClientToScreen(*this, &p);
           UINT iResult = TrackPopupMenu(hPopupMenu, TPM_RETURNCMD | TPM_NONOTIFY | TPM_TOPALIGN | TPM_LEFTALIGN, p.x, p.y, 0, static_cast<IWindow&>(*this), NULL);
+          if (iResult == 0)
+          {
+              return;
+          }
 
           code = ID_USER_START;
           for (auto i : mapMenuItemToCommand)

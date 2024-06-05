@@ -2384,7 +2384,7 @@ namespace Rococo::Script
 				if (pSrcError)
 				{
 					auto& s = *reinterpret_cast<const ISExpression*>(pSrcError);
-					Throw(s, "Error resolving type");
+					Throw(s, "Error resolving type. Check the log to identify for members causing problems.");
 				}
 
 				Vec2i start, end;

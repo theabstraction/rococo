@@ -2510,15 +2510,15 @@ namespace ANON
 				{
 					auto& usingNS = implicits->GetImplicitNamespace(i);
 
-					int interfaceCount = usingNS[i].InterfaceCount();
+					int interfaceCount = usingNS.InterfaceCount();
 					for (int j = 0; j < interfaceCount; ++j)
 					{
-						auto& refInterface = usingNS[i].GetInterface(j);
+						auto& refInterface = usingNS.GetInterface(j);
 						if (Eq(refInterface.PublicName(), typeString))
 						{
 							if (ppNamespace)
 							{
-								*ppNamespace = &ns[i];
+								*ppNamespace = &usingNS;
 							}
 							return &refInterface;
 						}
@@ -2609,7 +2609,14 @@ namespace ANON
 			for (int j = 0; j < typeCount; ++j)
 			{
 				auto& type = ns.GetType(j);
-				if (Eq(type.LocalType()->LocalName(), typeString))
+				if (type.LocalType())
+				{
+					if (Eq(type.LocalType()->LocalName(), typeString))
+					{
+						return &type;
+					}
+				}
+				else if (FindDot(type.PublicName()) == 0 && Eq(type.PublicName(), typeString))
 				{
 					return &type;
 				}
