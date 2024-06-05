@@ -397,6 +397,8 @@ namespace Rococo::Gui
 		virtual void PreventInvalidationFromChildren() = 0;
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
+
+		// The (dx, dy) offset delta from the top left of the parent to the top left of the child
 		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;
 		// Returns the child with the given index. If the index does not map to a child it returns nullptr
 		virtual IGRPanel* GetChild(int32 index) = 0;

@@ -25,6 +25,11 @@
 #define ROCOCO_UTILS_EX_API ROCOCO_API_IMPORT
 #endif
 
+// This is a new definition. Long term goal is to apply all forward declarations of ROCOCO_INTERFACES with this prefix.
+#ifndef DECLARE_ROCOCO_INTERFACE
+#define DECLARE_ROCOCO_INTERFACE struct
+#endif
+
 #include <rococo.compiler.options.h>
 
 #ifndef _WIN32
@@ -658,6 +663,12 @@ namespace Rococo
 	{
 		float x;
 		float y;
+	};
+
+	struct Vec2F64
+	{
+		double x;
+		double y;
 	};
 
 	struct Vec3

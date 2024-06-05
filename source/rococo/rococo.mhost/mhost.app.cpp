@@ -7,6 +7,7 @@
 #include <rococo.sexy.api.h>
 #include <rococo.package.h>
 #include <rococo.gui.retained.h>
+#include <rococo.os.h>
 
 #include "..\rococo.mplat\mplat.editor.h"
 
@@ -207,7 +208,7 @@ namespace MHost
 		HString mainScript;
 		bool queuedForExecute = false;
 
-		Vec2 cursorPosition;
+		Vec2 cursorPosition{ 0,0 };
 
 		int32 guiToggleKey = 0;
 
@@ -940,8 +941,8 @@ namespace MHost
 				items.push_back(token);
 			}
 		} args;
-
-		Rococo::Strings::SplitString(cmdLine, 0, args);
+		
+		Rococo::Strings::SplitString(cmdLine, 0, args, " ");
 
 		AppArgs appArgs;
 		appArgs.mainScript = "!scripts/mhost/mhost_startup.sxy";
@@ -951,13 +952,27 @@ namespace MHost
 			cstr arg = args.items[i].c_str();
 			if (arg[0] == '-')
 			{
-				// Opt
+				// Opt				
 			}
 			else
 			{
 				// filename
 				appArgs.mainScript = arg;
 				break;
+			}
+		}
+
+		for (size_t i = 1; i < args.items.size(); ++i)
+		{
+			cstr arg = args.items[i].c_str();
+			if (arg[0] == '-')
+			{
+				// Opt
+				if (EqI("-debug", arg))
+				{
+					Windows::ShowMessageBox(p.graphics.renderer.CurrentWindow(), "-debug was specified on the command line. Attach your debugger now", "rococo.mhost.exe Startup Prompt", (uint32)Windows::SHOW_WINDOW_TYPE::INFO);
+					Rococo::OS::TripDebugger();
+				}
 			}
 		}
 

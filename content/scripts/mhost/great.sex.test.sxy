@@ -1,0 +1,56 @@
+(' #import (mhost "MHost"))
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys.Maths)
+(using Sys.Type)
+(using MPlat)
+(using MHost)
+(using MHost.OS)
+(using Rococo)
+(using Rococo.Entities)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(IHQFonts fonts (HQFonts))
+	
+	(fonts.Build (#HQFontMenuFont))
+	(fonts.SetFaceName "Consolas")
+	(fonts.AddRange 32 126)
+	(fonts.SetHeight 16)
+	(fonts.Commit)
+	
+	(fonts.Build (#HQFontEditorFont))
+	(fonts.SetFaceName "Courier New")
+	(fonts.MakeBold)
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 24)
+	(fonts.Commit)
+
+	(fonts.Build (#HQFontTitleFont))
+	(fonts.SetFaceName "Tahoma")
+	(fonts.AddRange 32 127)
+	(fonts.SetHeight 80)
+	(fonts.Commit)
+	
+	(fonts.Build (#HQFontDebuggerFont))
+	(fonts.SetFaceName "Consolas")
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 28)
+	(fonts.Commit)
+	
+	(fonts.Build (#HQFontInfoFont))
+	(fonts.SetFaceName "Times New Roman")
+	(fonts.AddRange 32 127)
+	(fonts.AddCharacters "£")
+	(fonts.SetHeight 28)
+	(fonts.Commit)
+		
+	(IEngine engine (Engine))
+	(engine.SetNextScript "!scripts/mhost/blank.slate.sxy")
+)

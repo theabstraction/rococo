@@ -70,6 +70,7 @@
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.roid.h">
       <Filter>components</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\great.sex.h" />
     <ClInclude Include="..\..\source\rococo\include\mplat.components.decl.h" />
     <ClInclude Include="..\..\source\rococo\include\mplat.to.app.events.inl" />
     <ClInclude Include="..\..\source\rococo\include\mplat\mplat.events.h">

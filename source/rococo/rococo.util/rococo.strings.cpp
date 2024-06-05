@@ -799,7 +799,7 @@ namespace Rococo::Strings
 		return strncmp(a, b, len);
 	}
 
-	ROCOCO_UTIL_API void SplitString(const char* text, size_t length, IStringPopulator& onSubString)
+	ROCOCO_UTIL_API void SplitString(const char* text, size_t length, IStringPopulator& onSubString, cstr delimiter)
 	{
 		if (length == 0) length = rlen(text);
 		size_t bytecount = sizeof(char) * (length + 1);
@@ -808,15 +808,15 @@ namespace Rococo::Strings
 		buf[length] = 0;
 
 		char* next_token = nullptr;
-		char* token = strtok_s(buf, "|", &next_token);
+		char* token = strtok_s(buf, delimiter, &next_token);
 		while (token != nullptr)
 		{
 			onSubString.Populate(token);
-			token = strtok_s(nullptr, "|", &next_token);
+			token = strtok_s(nullptr, delimiter, &next_token);
 		}
 	}
 
-	ROCOCO_UTIL_API size_t CountSubStrings(cstr text, size_t length)
+	ROCOCO_UTIL_API size_t CountSubStrings(cstr text, size_t length, cstr delimiter)
 	{
 		struct : IStringPopulator
 		{
@@ -829,7 +829,7 @@ namespace Rococo::Strings
 		} cb;
 
 		cb.count = 0;
-		SplitString(text, length, cb);
+		SplitString(text, length, cb, delimiter);
 		return cb.count;
 	}
 

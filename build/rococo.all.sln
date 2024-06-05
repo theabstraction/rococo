@@ -100,6 +100,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.fonts", "projects\ro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.graphics", "projects\rococo.graphics_vs2022_win64.vcxproj", "{98758B0E-0228-6309-35AA-150ADEE82114}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.great.sex", "projects\rococo.great.sex_vs2022_win64.vcxproj", "{9FA3A990-0DF2-F17B-B70C-F02598CCBDA7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.great.sex.test", "projects\rococo.great.sex.test_vs2022_win64.vcxproj", "{6A837CAF-2E71-D552-57FD-E61DDC6770DC}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.gui.retained", "projects\rococo.gui.retained_vs2022_win64.vcxproj", "{16A5F3CB-8C28-5290-B8A4-0A487742AA0D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.include", "projects\rococo.include_vs2022_win64.vcxproj", "{95629C09-666F-E66B-C5CA-BE8D561354EA}"
@@ -290,6 +294,14 @@ Global
 		{98758B0E-0228-6309-35AA-150ADEE82114}.Debug|x64.Build.0 = Debug|x64
 		{98758B0E-0228-6309-35AA-150ADEE82114}.Release|x64.ActiveCfg = Release|x64
 		{98758B0E-0228-6309-35AA-150ADEE82114}.Release|x64.Build.0 = Release|x64
+		{9FA3A990-0DF2-F17B-B70C-F02598CCBDA7}.Debug|x64.ActiveCfg = Debug|x64
+		{9FA3A990-0DF2-F17B-B70C-F02598CCBDA7}.Debug|x64.Build.0 = Debug|x64
+		{9FA3A990-0DF2-F17B-B70C-F02598CCBDA7}.Release|x64.ActiveCfg = Release|x64
+		{9FA3A990-0DF2-F17B-B70C-F02598CCBDA7}.Release|x64.Build.0 = Release|x64
+		{6A837CAF-2E71-D552-57FD-E61DDC6770DC}.Debug|x64.ActiveCfg = Debug|x64
+		{6A837CAF-2E71-D552-57FD-E61DDC6770DC}.Debug|x64.Build.0 = Debug|x64
+		{6A837CAF-2E71-D552-57FD-E61DDC6770DC}.Release|x64.ActiveCfg = Release|x64
+		{6A837CAF-2E71-D552-57FD-E61DDC6770DC}.Release|x64.Build.0 = Release|x64
 		{16A5F3CB-8C28-5290-B8A4-0A487742AA0D}.Debug|x64.ActiveCfg = Debug|x64
 		{16A5F3CB-8C28-5290-B8A4-0A487742AA0D}.Debug|x64.Build.0 = Debug|x64
 		{16A5F3CB-8C28-5290-B8A4-0A487742AA0D}.Release|x64.ActiveCfg = Release|x64

@@ -1114,6 +1114,40 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoGreatSexProject : RococoProject
+    {
+        public RococoGreatSexProject() : base("rococo.great.sex")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("ROCOCO_GREAT_SEX_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoGuiRetainedProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoGreatSexTestProject : RococoProject
+    {
+        public RococoGreatSexTestProject() : base("rococo.great.sex.test")
+        {
+            
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoGreatSexProject>(target);
+            conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoMPlatProject : RococoProject
     {
         public RococoMPlatProject() : base("rococo.mplat")
@@ -1912,6 +1946,8 @@ namespace Rococo
             conf.AddProject<RococoFontsProject>(target);
             conf.AddProject<RococoFileBrowserProject>(target);
             conf.AddProject<RococoGuiRetainedProject>(target);
+            conf.AddProject<RococoGreatSexProject>(target);
+            conf.AddProject<RococoGreatSexTestProject>(target);
             conf.AddProject<RococoMPlatProject>(target);
             conf.AddProject<RococoMPlatDynamicProject>(target);
             conf.AddProject<RococoMHostProject>(target);

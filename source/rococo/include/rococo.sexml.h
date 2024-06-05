@@ -91,8 +91,11 @@ namespace Rococo::Sex::SEXML
 	ROCOCO_SEXML_API [[nodiscard]] int32 AsAtomicInt32(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] double AsAtomicDouble(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] uint64 AsFlags(const ISEXMLAttributeValue& value, Function<uint64(const fstring& token)> mapNameToFlag);
 	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] bool AsBool(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeSmallVectorIValue& AsSmallIVector(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeSmallVectorValue& AsSmallVector(const ISEXMLAttributeValue& value);
 
 	using cr_sattr = const ISEXMLAttribute&;
 
@@ -160,6 +163,13 @@ namespace Rococo::Sex::SEXML
 
 		virtual [[nodiscard]] const ISEXMLDirectiveList& Children() const = 0;
 	};
+
+	ROCOCO_SEXML_API [[nodiscard]] Vec2i GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, Vec2i defaultValues);
+	ROCOCO_SEXML_API [[nodiscard]] GuiRect GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, GuiRect defaultValues);
+	ROCOCO_SEXML_API [[nodiscard]] bool TryGetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, OUT Vec2i& resultValues);
+	ROCOCO_SEXML_API [[nodiscard]] bool TryGetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, OUT Vec2F64& resultValues);
+	ROCOCO_SEXML_API [[nodiscard]] bool GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, bool defaultValue);
+	ROCOCO_SEXML_API [[nodiscard]] const fstring GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, const fstring defaultValue);
 
 	ROCOCO_INTERFACE ISEXMLDirectiveList
 	{

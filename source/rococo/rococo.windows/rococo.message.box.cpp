@@ -46,9 +46,9 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/
 
 namespace Rococo::Windows
 {
-    ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 uType)
+    ROCOCO_WINDOWS_API int ShowMessageBox(IWindow& window, cstr text, cstr caption, uint32 type)
     {
-        return MessageBoxA(window, text, caption, uType);
+        return MessageBoxA(window, text, caption, type);
     }
 
     ROCOCO_API_EXPORT void ShowExceptionDialog(const ExceptionDialogSpec& spec, HWND parent, IException& ex);

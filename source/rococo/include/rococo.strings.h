@@ -345,7 +345,7 @@ namespace Rococo::Strings
 
 	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
 
-	ROCOCO_API void SplitString(cstr text, size_t length, IStringPopulator& onSubString);
+	ROCOCO_API void SplitString(cstr text, size_t length, IStringPopulator& onSubString, cstr delimiter);
 
 	struct SecureHashInfo
 	{

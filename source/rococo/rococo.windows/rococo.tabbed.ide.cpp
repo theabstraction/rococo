@@ -1734,27 +1734,6 @@ namespace
           return DefWindowProcA(hWnd, msg, wParam, lParam);
 	  }
 
-	  LRESULT OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
-	  {
-		  auto wNotifyCode = HIWORD(wParam); // notification code
-		  auto wID = LOWORD(wParam); // item, control, or accelerator identifier
-		  auto hwndCtl = (HWND)lParam;
-
-          UNUSED(hwndCtl);
-
-		  if (wNotifyCode == 0)
-		  {
-			  // A menu
-			  if (wID >= ID_USER_START && wID <= (ID_USER_START + mapMenuItemToCommand.size()))
-			  {
-				  OnUserMenuClicked(wID - ID_USER_START);
-				  return 0;
-			  }
-		  }
-
-		  return StandardWindowHandler::OnCommand(hWnd, wParam, lParam);
-	  }
-
       void RichEditor_OnRightButtonUp(const Vec2i& pos, IRichEditor& editor) override
       {
           UNUSED(editor);
@@ -1771,7 +1750,17 @@ namespace
 
 		  POINT p{ pos.x, pos.y };
 		  ClientToScreen(*this, &p);
-		  TrackPopupMenu(hPopupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, p.x, p.y, 0, *this, NULL);
+          UINT iResult = TrackPopupMenu(hPopupMenu, TPM_RETURNCMD | TPM_NONOTIFY | TPM_TOPALIGN | TPM_LEFTALIGN, p.x, p.y, 0, static_cast<IWindow&>(*this), NULL);
+
+          code = ID_USER_START;
+          for (auto i : mapMenuItemToCommand)
+          {
+              UINT id = code++;
+              if (id == iResult)
+              {
+                  OnUserMenuClicked(id - ID_USER_START);
+              }
+          }
       }
 
 	  void AddContextMenuItem(cstr key, const uint8* command, size_t lenOfCommand) override
