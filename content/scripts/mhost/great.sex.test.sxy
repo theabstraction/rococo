@@ -52,5 +52,5 @@
 	(fonts.Commit)
 		
 	(IEngine engine (Engine))
-	(engine.SetNextScript "!scripts/mhost/blank.slate.sxy")
+	(engine.SetNextScript "!scripts/mhost/great.sex.screen.sxy")
 )

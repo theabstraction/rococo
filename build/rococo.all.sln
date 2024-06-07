@@ -138,6 +138,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.texture.tool", "proj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "projects\rococo.util_vs2022_win64.vcxproj", "{62184609-95D1-1E60-D8CD-3755550224A5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util.test", "projects\rococo.util.test_vs2022_win64.vcxproj", "{DD885CC4-B083-9561-8526-757FB26EEB2B}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.version.generator", "projects\rococo.version.generator_vs2022_win64.vcxproj", "{D74CC97A-586D-A40E-12FC-91AEAC89350A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "projects\rococo.windows_vs2022_win64.vcxproj", "{82217C37-348A-32E9-39E2-871C1E8CA026}"
@@ -370,6 +372,10 @@ Global
 		{62184609-95D1-1E60-D8CD-3755550224A5}.Debug|x64.Build.0 = Debug|x64
 		{62184609-95D1-1E60-D8CD-3755550224A5}.Release|x64.ActiveCfg = Release|x64
 		{62184609-95D1-1E60-D8CD-3755550224A5}.Release|x64.Build.0 = Release|x64
+		{DD885CC4-B083-9561-8526-757FB26EEB2B}.Debug|x64.ActiveCfg = Debug|x64
+		{DD885CC4-B083-9561-8526-757FB26EEB2B}.Debug|x64.Build.0 = Debug|x64
+		{DD885CC4-B083-9561-8526-757FB26EEB2B}.Release|x64.ActiveCfg = Release|x64
+		{DD885CC4-B083-9561-8526-757FB26EEB2B}.Release|x64.Build.0 = Release|x64
 		{D74CC97A-586D-A40E-12FC-91AEAC89350A}.Debug|x64.ActiveCfg = Debug|x64
 		{D74CC97A-586D-A40E-12FC-91AEAC89350A}.Debug|x64.Build.0 = Debug|x64
 		{D74CC97A-586D-A40E-12FC-91AEAC89350A}.Release|x64.ActiveCfg = Release|x64

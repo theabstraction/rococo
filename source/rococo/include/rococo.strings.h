@@ -194,6 +194,16 @@ namespace Rococo::Strings
 		return Eq(a, b);
 	}
 
+	inline bool operator == (const HString& a, cstr b)
+	{
+		return Eq(a, b);
+	}
+
+	inline bool operator == (cstr a, const HString& b)
+	{
+		return Eq(a, b);
+	}
+
 	inline bool operator != (const HString& a, const HString& b)
 	{
 		return !(a == b);

@@ -1,0 +1,117 @@
+(' #import (mhost "MHost"))
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+	
+(using Sys)
+(using Sys.Maths)
+(using Sys.Type)
+(using Sys.Random)
+(using MHost)
+(using MHost.OS)
+(using MHost.Graphics)
+(using Rococo)
+(using Rococo.Graphics)
+(using Rococo.Audio)
+
+(namespace RPG)
+(using RPG)
+
+(class GuiInputThread 
+	(implements Sys.ICoroutine)
+	(IEngine engine)
+)
+
+(method GuiInputThread.Construct (IEngine engine) : 
+	(this.engine = engine)
+)
+
+(factory RPG.NewGuiInputThread ICoroutine (IEngine engine):
+	(construct GuiInputThread engine)
+)
+
+(method GuiInputThread.Run -> :
+	(IKeyboard keyboard (Keyboard))
+/*	
+	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
+	(Int32 rightKey = (keyboard.GetVKeyFromName "D"))
+	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
+	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
+	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
+*/
+	
+	(while this.engine.IsRunning
+		(KeyState keys)
+		(this.engine.PollKeyState keys)
+		
+		(yield 10000)
+	)
+)
+
+(interface MHost.IWorld
+	(Advance ->)
+	(RenderGui (IGui gui)-> )
+)
+
+(class World 
+	(implements IWorld)
+	(implements ICoroutine)
+	
+	(IEngine engine)
+	(Vec2 screenSpan)
+)
+
+(method World.Construct (IEngine engine) -> :
+	(this.engine = engine)
+)
+
+(factory RPG.NewWorld IWorld (IEngine engine) : 
+	(construct World engine)
+)
+
+(method World.Advance  -> :
+)
+
+(method World.RenderGui (IGui gc) -> :
+	(gc.GetScreenSpan this.screenSpan)
+)
+
+(method World.Run -> :
+	(while this.engine.IsRunning
+		(this.Advance)
+		(yield 1000)
+	)
+)
+
+(function Main (Int32 id) -> (Int32 exitCode):
+	(IEngine engine (Engine))
+	
+	(IWorld world (NewWorld engine))
+	
+	(ICoroutineControl coroutines (Coroutines))
+	
+	(ICoroutine guiThread (NewGuiInputThread engine))
+	(coroutines.Add guiThread)
+	
+	(cast world -> ICoroutine worldThread)
+	(coroutines.Add worldThread)
+	
+	(IKeyboard keyboard (Keyboard))
+	
+	(Sys.Reflection.IExpressionBuilder sxml = (MHost.OS.LoadExpression (Sys.Type.IStringname aŠú) -> (Sys.Reflection.IExpression s)) 
+	
+	(engine.SetModalDialog sxml)
+	
+	(while engine.IsRunning
+		(while (coroutines.Continue > 0))
+		
+		(GuiPopulator p =
+			(closure (IGui gui) -> : 
+				(world.RenderGui gui)
+			)
+		)
+		
+		(engine.Render p)	
+		(engine.YieldForSystemMessages 5)
+	)
+)

@@ -495,6 +495,22 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoUtilsTestProject : RococoProject
+    {
+        public RococoUtilsTestProject() : base("rococo.util.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoIncludeProject : RococoProject
     {
         public RococoIncludeProject() : base("rococo.include", "include")
@@ -1954,6 +1970,7 @@ namespace Rococo
             conf.AddProject<RococoAudioProject>(target);
             conf.AddProject<RococoAudioTestProject>(target);
             conf.AddProject<RococoECSTestProject>(target);
+            conf.AddProject<RococoUtilsTestProject>(target);
             conf.AddProject<RococoIncludeProject>(target);
             conf.AddProject<SexyIncludeProject>(target);
             conf.AddProject<RococoAssetsProject>(target);
@@ -2183,6 +2200,7 @@ namespace Rococo
             arguments.Generate<RococoSexyStudio4NPPProject>();
 
             arguments.Generate<RococoECSTestProject>();
+            arguments.Generate<RococoUtilsTestProject>();
             arguments.Generate<SexyDotNetCLIProject>();
             //arguments.Generate<SexyDotNetIDEProject>();
             arguments.Generate<RococoIncludeProject>();
