@@ -18,17 +18,17 @@ void validateEq(cstr a, cstr b, cstr function, int line)
 
 	if (a != nullptr && b == nullptr)
 	{
-		Throw(0, "%s #%d: Validation failure. LHS(%s) != RHS(<null>)", function, line, a);
+		Throw(0, "\t%s #%d: Validation failure. LHS(%s) != RHS(<null>)", function, line, a);
 	}
 
 	if (a == nullptr && b != nullptr)
 	{
-		Throw(0, "%s #%d: Validation failure. LHS(<null>) != RHS(%s)", function, line, b);
+		Throw(0, "\t%s #%d: Validation failure. LHS(<null>) != RHS(%s)", function, line, b);
 	}
 
 	if (!Eq(a, b))
 	{
-		Throw(0, "%s #%d: Validation failure. LHS(%s) != RHS(%s)", function, line, a, b);
+		Throw(0, "\t%s #%d: Validation failure. LHS(%s) != RHS(%s)", function, line, a, b);
 	}
 }
 
@@ -36,7 +36,7 @@ void validateEq(int32 a, int32 b, cstr function, int line)
 {
 	if (a != b)
 	{
-		Throw(0, "%s #%d: Validation failure. LHS(%d) != RHS(%d)", function, line, a, b);
+		Throw(0, "\t%s #%d: Validation failure. LHS(%d) != RHS(%d)", function, line, a, b);
 	}
 }
 
@@ -44,7 +44,7 @@ void validateEq(float a, float b, cstr function, int line)
 {
 	if (a != b)
 	{
-		Throw(0, "%s #%d: Validation failure. LHS(%f) != RHS(%f)", function, line, a, b);
+		Throw(0, "\t%s #%d: Validation failure. LHS(%f) != RHS(%f)", function, line, a, b);
 	}
 }
 
@@ -52,23 +52,24 @@ void validateEq(bool a, bool b, cstr function, int line)
 {
 	if (a != b)
 	{
-		Throw(0, "%s #%d: Validation failure. LHS(%s) != RHS(%s)", function, line, a ? "true" : "false", b ? "true" : "false");
+		Throw(0, "\t%s #%d: Validation failure. LHS(%s) != RHS(%s)", function, line, a ? "true" : "false", b ? "true" : "false");
 	}
 }
 
 #define ValidateEq(a, b) validateEq(a, b, __FUNCTION__, __LINE__);
 
+#define TEST(f) { printf("%s...", #f); f(); printf("completed\n"); }
 
-void TestJSon1()
+void ParseSimpleJson()
 {
 	cstr davidJson = R"(
 {
-	name: david,
-	age: 99,
-	sex: bloke
-	profession: actor
-	skill: 8.7
-	active: false
+	name : "David",
+	age : 99,
+	sex : "bloke",
+	profession : "actor",
+	skill : 8.7,
+	active : false,
 }
 )";
 
@@ -76,7 +77,7 @@ void TestJSon1()
 	AutoFree<INameValueTreeSupervisor> tree = jp->Parse(davidJson);
 	auto& root = tree->Root();
 
-	ValidateEq(root["name"], "david");
+	ValidateEq(root["name"], "David");
 	ValidateEq(root["sex"], "bloke");
 	ValidateEq(root["profession"], "actor");
 
@@ -86,9 +87,9 @@ void TestJSon1()
 	ValidateEq(root.TryGet("active", OUT wasFound, true), false);
 }
 
-int MainProtected(int arc, char* argv[])
+int MainProtected(int, char*[])
 {
-	TestJSon1();
+	TEST(ParseSimpleJson);
 	return 0;
 }
 
