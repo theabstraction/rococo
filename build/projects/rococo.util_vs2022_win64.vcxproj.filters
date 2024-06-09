@@ -4,6 +4,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.base.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.heap.string.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.json.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.observer.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.ex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.mac.cpp" />
@@ -16,7 +17,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.throw.cr_sex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.windows.ide.stdout.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\sha256.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.json.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />

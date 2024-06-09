@@ -124,6 +124,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.imports.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.impressario.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.io.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.json.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.map.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.maths.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.maths.i32.h" />
@@ -187,7 +188,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.json.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">

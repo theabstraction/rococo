@@ -1446,6 +1446,26 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoSexyStudioLanguageServerProject : RococoProject
+    {
+        public RococoSexyStudioLanguageServerProject() : base("sexystudio.LS")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoSexyStudioProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<RococoSexInferenceProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
+            conf.SolutionFolder = " - SexyStudio";
+        }
+    }
+
+
+    [Sharpmake.Generate]
     public class RococoSexyStudio4NPPProject : RococoProject
     {
         public RococoSexyStudio4NPPProject() : base("sexystudio.4.NPP")
@@ -1522,6 +1542,7 @@ namespace Rococo
             conf.AddPrivateDependency<SexyBennyHillProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoSexyStudioTestProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoSexyStudio4NPPProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoSexyStudioLanguageServerProject>(target, DependencySetting.OnlyBuildOrder);
         }
     }
 
@@ -1989,6 +2010,7 @@ namespace Rococo
             conf.AddProject<RococoSexyStudioAppProject>(target);
             conf.AddProject<RococoSexyStudioTestProject>(target);
             conf.AddProject<RococoSexyStudio4NPPProject>(target);
+            conf.AddProject<RococoSexyStudioLanguageServerProject>(target);
         }
 
         public static void AddControlFlowGraphStudio(Solution.Configuration conf, Target target)
@@ -2193,6 +2215,7 @@ namespace Rococo
             arguments.Generate<RococoSexyStudioProject>();
             arguments.Generate<RococoSexyStudioAppProject>();
             arguments.Generate<RococoSexyStudioTestProject>();
+            arguments.Generate<RococoSexyStudioLanguageServerProject>();
             arguments.Generate<RococoAudioProject>();
             arguments.Generate<RococoAudioTestProject>();
             arguments.Generate<RococoBuildFinalProject>();
