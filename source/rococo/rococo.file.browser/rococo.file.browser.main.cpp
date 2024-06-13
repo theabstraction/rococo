@@ -219,7 +219,7 @@ struct FileBrowser : public IFileBrowser
 	void Layout(IFileBrowserRenderContext& rc)
 	{
 		GuiRect containerRect = rc.GetContainerRect();
-		if (memcmp(&containerRect, &this->containerRect, sizeof(GuiRect)) != 0)
+		if (containerRect != this->containerRect)
 		{
 			this->containerRect = containerRect;
 			fileRect = containerRect;

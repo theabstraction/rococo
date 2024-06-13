@@ -229,14 +229,6 @@ namespace Rococo
 		void* pValue;
 	};
 
-	enum class EQualifier
-	{
-		None,
-		Constant,
-		Output,
-		Ref
-	};
-
 	namespace Events
 	{
 		class IPublisher;
@@ -261,12 +253,6 @@ namespace Rococo
 	{
 		return fstring{ msg, (int32)length };
 	}
-
-	template<typename COLOUR_STRUCT>
-	ROCOCO_INTERFACE IImagePopulator
-	{
-		virtual void OnImage(const COLOUR_STRUCT * pixelBuffer, int width, int height) = 0;
-	};
 
 	struct IDictionary;
 
@@ -388,15 +374,6 @@ namespace Rococo
 		virtual cstr Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
 		virtual Debugging::IStackFrameEnumerator* StackFrames() = 0;
-	};
-
-	class RecursionGuard
-	{
-	private:
-		int32& counter;
-	public:
-		FORCE_INLINE RecursionGuard(int32& _counter) : counter(_counter) { counter++; }
-		FORCE_INLINE ~RecursionGuard() { counter--; }
 	};
 
 #if USE_VSTUDIO_SAL
@@ -596,56 +573,6 @@ namespace Rococo
 		return a * a;
 	}
 
-	struct Kilograms
-	{
-		float value;
-		FORCE_INLINE operator float() const { return value; }
-	};
-
-	FORCE_INLINE Kilograms operator "" _kg(long double value)
-	{
-		return Kilograms{ (float)value };
-	}
-
-	struct Metres
-	{
-		float value;
-		FORCE_INLINE operator float() const { return value; }
-	};
-
-	FORCE_INLINE Metres operator "" _metres(long double value)
-	{
-		return Metres{ (float)value };
-	}
-
-
-	FORCE_INLINE Metres operator "" _metres(unsigned long long value)
-	{
-		return Metres{ (float)value };
-	}
-
-	struct Seconds
-	{
-		float value;
-		FORCE_INLINE operator float() const { return value; }
-	};
-
-	FORCE_INLINE Seconds operator "" _seconds(long double value)
-	{
-		return Seconds{ (float)value };
-	}
-
-	struct MetresPerSecond
-	{
-		float value;
-		FORCE_INLINE operator float() const { return value; }
-	};
-
-	FORCE_INLINE MetresPerSecond operator "" _mps(long double value)
-	{
-		return MetresPerSecond{ (float)value };
-	}
-
 	struct GuiRect
 	{
 		int32 left = 0;
@@ -680,6 +607,11 @@ namespace Rococo
 		FORCE_INLINE static Vec3 FromVec2(const Vec2& pos, float z)
 		{
 			return Vec3{ pos.x, pos.y, z };
+		}
+
+		FORCE_INLINE [[nodiscard]] const Vec2& Flatten()
+		{
+			return *reinterpret_cast<const Vec2*>(this);
 		}
 	};
 
@@ -757,11 +689,6 @@ namespace Rococo
 
 		[[nodiscard]] AABB RotateBounds(const Matrix4x4& m) const;
 	};
-
-	FORCE_INLINE  [[nodiscard]] const Vec2& Flatten(const Vec3& a)
-	{
-		return *reinterpret_cast<const Vec2*>(&a);
-	}
 
 	ROCOCO_INTERFACE IAllocator
 	{
@@ -847,10 +774,7 @@ namespace Rococo
 {
 	template<int OPTIMAL_SIZE, class RETURN_TYPE, typename ... ARGS>
 	class ArbitraryFunction;
-}
 
-namespace Rococo
-{
 	template<class U, class V> struct tuple
 	{
 		U first;

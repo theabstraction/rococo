@@ -1,4 +1,5 @@
 #pragma once
+#include <rococo.SI.h>
 #include <rococo.animation.types.h>
 
 namespace Rococo::Entities

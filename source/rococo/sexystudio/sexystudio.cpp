@@ -28,6 +28,7 @@
 #include <rococo.sexml.h>
 #include <rococo.debugging.h>
 #include <rococo.functional.h>
+#include <rococo.api.qualifiers.h>
 
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "ComCtl32.lib")

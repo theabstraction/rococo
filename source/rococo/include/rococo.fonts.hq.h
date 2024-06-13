@@ -2,6 +2,11 @@
 
 #include <rococo.types.h>
 
+namespace Rococo::Imaging
+{
+	template<class T> struct IImagePopulator;
+}
+
 namespace Rococo::Graphics::Fonts
 {
 	ROCOCO_INTERFACE IFontGlyphBuilder
@@ -58,7 +63,7 @@ namespace Rococo::Graphics::Fonts
 			In general the consumer uses ForEachGlyph to iterate over all registered glyphs
 			then calls GenerateImage in the callback to get an image, and saves it to memory or disk
 		*/
-		virtual void GenerateImage(const char32_t charCode, IImagePopulator<GRAYSCALE>& populator) = 0;
+		virtual void GenerateImage(const char32_t charCode, Imaging::IImagePopulator<GRAYSCALE>& populator) = 0;
 	};
 
 	ROCOCO_INTERFACE IArrayFontSupervisor : IArrayFont

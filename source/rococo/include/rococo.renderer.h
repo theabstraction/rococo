@@ -1,6 +1,7 @@
 #ifndef ROCOCO_RENDERER_H
 # define ROCOCO_RENDERER_H
 
+#include <rococo.SI.h>
 #include <rococo.api.h>
 #include <rococo.maths.h>
 //#include <rococo.io.h>

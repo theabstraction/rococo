@@ -457,7 +457,7 @@ namespace Rococo
 	[[nodiscard]] inline float LengthSq(cr_vec3 v) { return v * v; }
 	[[nodiscard]] inline float Square(float x) { return x * x; }
 	[[nodiscard]] inline float Cube(float x) { return x * x * x; }
-	[[nodiscard]] inline bool IsInRange(cr_vec3 v, const Metres range) { return LengthSq(v) < Square(range); }
+	[[nodiscard]] inline bool IsInRange(cr_vec3 v, float range) { return LengthSq(v) < Square(range); }
 	[[nodiscard]] float Length(cr_vec3 v);
 	void swap(float& a, float &b);
 	[[nodiscard]] Vec3 Normalize(cr_vec3 v);

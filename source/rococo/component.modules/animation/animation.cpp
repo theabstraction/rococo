@@ -1,3 +1,4 @@
+#include <rococo.SI.h>
 #include <rococo.animation.h>
 #include <rococo.maths.h>
 #include <rococo.strings.h>

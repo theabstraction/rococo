@@ -42,6 +42,7 @@
 #include <rococo.api.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
+#include <rococo.api.qualifiers.h>
 #include <unordered_set>
 
 std::unordered_set<std::string> allCppHeaders;

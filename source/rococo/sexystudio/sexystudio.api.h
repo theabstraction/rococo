@@ -23,6 +23,8 @@ namespace Rococo
 		typedef const ISExpression& cr_sex;
 		bool IsCompound(cr_sex s);
 	}
+
+	enum class EQualifier;
 }
 
 namespace Rococo::SexyStudio

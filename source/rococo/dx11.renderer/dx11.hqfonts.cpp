@@ -1,5 +1,6 @@
 #include "dx11.renderer.h"
-#include "rococo.fonts.hq.h"
+#include <rococo.fonts.hq.h>
+#include <rococo.imaging.h>
 #include <vector>
 
 using namespace Rococo;
@@ -209,7 +210,7 @@ namespace Rococo::DX11
 				size_t index = 0;
 				void OnEvent(const Fonts::GlyphDesc& gd) override
 				{
-					struct : IImagePopulator<GRAYSCALE>
+					struct : Imaging::IImagePopulator<GRAYSCALE>
 					{
 						size_t index;
 						OSFont* font;

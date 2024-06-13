@@ -17,6 +17,12 @@
 
 namespace Rococo::Imaging
 {
+	template<typename COLOUR_STRUCT>
+	ROCOCO_INTERFACE IImagePopulator
+	{
+		virtual void OnImage(const COLOUR_STRUCT * pixelBuffer, int width, int height) = 0;
+	};
+
 	struct IImageLoadEvents
 	{
 		virtual void OnError(const char* message) = 0;

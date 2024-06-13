@@ -16,6 +16,7 @@
 #include <rococo.os.h>
 
 #include "rococo.sexystudio.api.h"
+#include "rococo.api.qualifiers.h"
 
 using namespace Rococo;
 using namespace Rococo::Sex;

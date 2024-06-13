@@ -6,6 +6,7 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 #include <rococo.fonts.hq.h>
+#include <rococo.imaging.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -273,7 +274,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		return metrics;
 	}
 
-	void GenerateImage(const char32_t charCode, IImagePopulator<GRAYSCALE>& populator) override
+	void GenerateImage(const char32_t charCode, Imaging::IImagePopulator<GRAYSCALE>& populator) override
 	{
 		wchar_t text[2] = { 0,0 };
 		text[0] = charCode > 32768 ? '?' : (wchar_t) charCode;

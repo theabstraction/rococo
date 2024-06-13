@@ -35,6 +35,7 @@
 
 #include <algorithm>
 #include <rococo.functional.h>
+#include <rococo.api.qualifiers.h>
 
 void AddIntroduction(FileAppender& appender, cstr sexyFileInl, const ParseContext& pc, cstr headerFile);
 
