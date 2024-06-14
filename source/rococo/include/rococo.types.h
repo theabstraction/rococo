@@ -384,8 +384,6 @@ namespace Rococo
 	ROCOCO_API void Throw(int32 errorCode, cstr format, ...);
 #endif
 
-	ROCOCO_API void ThrowMissingResourceFile(ErrorCode code, cstr description, cstr filename);
-
 	template<class T> struct IEventCallback
 	{
 		virtual void OnEvent(T& arg) = 0;

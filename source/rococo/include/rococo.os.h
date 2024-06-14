@@ -16,6 +16,8 @@ namespace Rococo
 
 	// Quit a section without error
 	ROCOCO_API void ThrowNoError();
+
+	ROCOCO_API void ThrowMissingResourceFile(ErrorCode code, cstr description, cstr filename);
 }
 
 namespace Rococo::IO

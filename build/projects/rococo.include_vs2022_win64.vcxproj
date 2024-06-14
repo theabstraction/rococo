@@ -197,6 +197,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.api.qualifiers.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.app.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.asset.generator.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.assets.h" />

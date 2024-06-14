@@ -88,6 +88,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.animation.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.api.qualifiers.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.app.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.asset.generator.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.assets.h" />
@@ -114,6 +115,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.hq.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.functional.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.graphics.types.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.guards.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.gui.retained.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.handles.h" />
@@ -159,6 +161,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.ide.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.map.expert.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexystudio.api.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.SI.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.SI.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.stl.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.ex.h" />
@@ -188,8 +191,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.SI.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.guards.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">
