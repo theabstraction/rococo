@@ -175,19 +175,7 @@ bool IsPluginValid();
 
 extern "C" __declspec(dllexport) const TCHAR * getName()
 {
-	static wchar_t name[128] = { 0 };
-
-	cstr errMsg = IsPluginValid() ? "": " (Could not load the Autocomplete DLL)";
-
-	if (*name == 0)
-	{
-#ifdef _DEBUG
-		swprintf_s(name, L"SexyStudio for Notepad++ (Debug Build %hs)%hs", __TIMESTAMP__, errMsg);
-#else
-		swprintf_s(name, L"SexyStudio for Notepad++ (Build %hs)%hs", __TIMESTAMP__, errMsg);
-#endif
-	}
-	return name;
+	return L"SexyStudio";
 }
 
 extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)

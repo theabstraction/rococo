@@ -22,7 +22,7 @@ namespace Rococo::Sex::Inference
 	inline TypeInference TypeInference_None() { return TypeInference{ Strings::Substring::Null(), Strings::Substring::Null() }; }
 
 	// An engine that attempts to infer the type of a variable by iterating through the source code that precedes it use. The source code is not required to be syntactically perfect
-	class BadlyFormattedTypeInferenceEngine
+	class FaultTolerantSexyTypeInferenceEngine
 	{
 		cstr textBuffer;
 
@@ -35,7 +35,7 @@ namespace Rococo::Sex::Inference
 		ROCOCO_MISC_UTILS_API TypeInference FindNextPossibleDeclaration(Strings::cr_substring specimen);
 		ROCOCO_MISC_UTILS_API cstr GetMatchEnd(Strings::cr_substring token, cstr candidate, cstr endGuard);
 	public:
-		ROCOCO_MISC_UTILS_API BadlyFormattedTypeInferenceEngine(cstr _textBuffer);
+		ROCOCO_MISC_UTILS_API FaultTolerantSexyTypeInferenceEngine(cstr _textBuffer);
 
 		ROCOCO_MISC_UTILS_API TypeInference InferLocalVariableVariableType(Strings::cr_substring token);
 		ROCOCO_MISC_UTILS_API TypeInference InferContainerClass(Strings::cr_substring token);

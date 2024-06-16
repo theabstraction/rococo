@@ -589,6 +589,7 @@ void TestLocalStruct2(ISexyDatabase&)
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
 
+
 struct SexyStudioEventHandler : ISexyStudioEventHandler
 {
 	bool TryOpenEditor(cstr filename, int lineNumber) override
@@ -703,6 +704,9 @@ public:
 	Substring doc;
 	int64 caretPos;
 
+	HString lastDefinedPath;
+	int lastDefinitionLineNumber = 0;
+
 	TestEditor(fstring document, int64 _caretPos):
 		doc { document.buffer, document.buffer + document.length }, caretPos(_caretPos)
 	{
@@ -731,9 +735,26 @@ public:
 		return caretPos;
 	}
 
+	cstr LastDefinitionFile()
+	{
+		return lastDefinedPath.c_str();
+	}
+
+	int LastDefintionLineNumber()
+	{
+		return lastDefinitionLineNumber;
+	}
+
+	void GotoDefinition(const char* path, int lineNumber) override
+	{
+		lastDefinedPath = path;
+		lastDefinitionLineNumber = lineNumber;
+		printf("\tGotoDefinition('%s', %d)\n", path, lineNumber);
+	}
+
 	void ShowCallTipAtCaretPos(cstr tip) const
 	{
-		printf("CallTip %s\n", tip);
+		printf("\tCallTip %s\n", tip);
 	}
 
 	void SetAutoCompleteCancelWhenCaretMoved() override
@@ -1201,6 +1222,341 @@ void TestFullEditor_SearchForFactories2()
 	sexyIDE->UpdateAutoComplete(editor);
 }
 
+void TestFullEditor_GotoDefinitionFail()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+(using Sys.Type)
+
+// This will *not* yield a definition. The type inference system does not match identifiers to type at the point of creation. E.g (IException ex) does not match ex to IException, as this would cause unwanted code prompts/completion in the constructor. 
+// ex will only get matched to IException following construction/declaration
+(function Main -> (Int32 exitCode):
+	(IException ex 
+))<CODE>";
+
+	FileDesc desc(file, 'x');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+}
+
+void TestFullEditor_GotoDefinitionAtFunction()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+(using Sys.Type)
+
+// This *will* yield a definition. The type inference system match identifiers to type after the point of creation. E.g (IException ex) match ex to IException, as long as the string 'ex' is used after the close parenthesis
+(function Main (IException ex) -> (Int32 exitCode):
+	(ex 
+))<CODE>";
+
+	FileDesc desc(file, 'x');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!Eq(editor.LastDefinitionFile(), "<this>"))
+	{
+		Throw(0, "Expecting <this>");
+	}
+
+	if (editor.LastDefintionLineNumber() != 6)
+	{
+		Throw(0, "Expecting line 6");
+	}
+}
+
+void TestFullEditor_GotoDefinitionFail2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+(using Sys.Type)
+	(expialodocious 
+))<CODE>";
+
+	FileDesc desc(file, 'x');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!Eq(editor.LastDefinitionFile(), ""))
+	{
+		Throw(0, "Expecting blank");
+	}
+
+	if (editor.LastDefintionLineNumber() != 0)
+	{
+		Throw(0, "Expecting line 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfInterface()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+(using Sys.Type)
+	(IException ex 
+))<CODE>";
+
+	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
+	{
+		Throw(0, "Expecting blank");
+	}
+
+	if (editor.LastDefintionLineNumber() < 0)
+	{
+		Throw(0, "Expecting line 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfInterface2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+(using Sys.Type)
+	(Sys.Type.IException ex 
+))<CODE>";
+
+	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
+	{
+		Throw(0, "Expecting Sys.Type.sxy");
+	}
+
+	if (editor.LastDefintionLineNumber() < 0)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfInterface3()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Type)
+	(Type.IException ex 
+))<CODE>";
+
+	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
+	{
+		Throw(0, "Expecting Sys.Type.sxy");
+	}
+
+	if (editor.LastDefintionLineNumber() < 1)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfStruct()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Type)
+	(Vec3 ex 
+))<CODE>";
+
+	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
+	{
+		Throw(0, "Expecting Sys.Maths.sxy");
+	}
+
+	if (editor.LastDefintionLineNumber() <= 0)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfFunction()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Type)
+	(Float32 ooroot2 = Sin 45)
+))<CODE>";
+
+	FileDesc desc(file, 'i'); // This should match Sin and goto the definition of Sin
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f32.inl"))
+	{
+		Throw(0, "Expecting sys.maths.f32.inl");
+	}
+
+	if (editor.LastDefintionLineNumber() <= 0)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfFunction2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Type)
+	(Float32 ooroot2 = F64.Sin 45)
+))<CODE>";
+
+	FileDesc desc(file, 'i'); // This should match Sin and goto the definition of F64.Sin
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
+	{
+		Throw(0, "Expecting sys.maths.f32.inl");
+	}
+
+	if (editor.LastDefintionLineNumber() <= 0)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfFunction3()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Type)
+	(Float32 ooroot2 = Sys.Maths.F64.Sin 45)
+))<CODE>";
+
+	FileDesc desc(file, 'i'); // This should match Sys.Maths.F64.Sin and goto the definition of Sys.Maths.F32.Sin
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
+	{
+		Throw(0, "Expecting sys.maths.f32.inl");
+	}
+
+	if (editor.LastDefintionLineNumber() <= 0)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfStruct2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Type)
+	(Maths.Vec3 ex 
+))<CODE>";
+
+	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
+	{
+		Throw(0, "Expecting Sys.Maths.sxy");
+	}
+
+	if (editor.LastDefintionLineNumber() <= 0)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
+void TestFullEditor_GotoDefinitionOfStruct3()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+		R"<CODE>((namespace EntryPoint)
+(alias Main EntryPoint.Main)
+
+(using Sys)
+(using Sys.Type)
+	(Sys.Maths.Vec3 ex 
+))<CODE>";
+
+	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+
+	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
+	{
+		Throw(0, "Expecting Sys.Maths.sxy");
+	}
+
+	if (editor.LastDefintionLineNumber() <= 0)
+	{
+		Throw(0, "Expecting line > 0");
+	}
+}
+
 void TestFullEditor_SearchForMacro()
 {
 	Intro(__FUNCTION__);
@@ -1514,6 +1870,23 @@ void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
 
+	TestFullEditor_GotoDefinitionOfFunction();
+	TestFullEditor_GotoDefinitionOfFunction2();
+	TestFullEditor_GotoDefinitionOfFunction3();
+
+	TestFullEditor_GotoDefinitionOfStruct();
+	TestFullEditor_GotoDefinitionOfStruct2();
+	TestFullEditor_GotoDefinitionOfStruct3();
+	return;
+
+	TestFullEditor_GotoDefinitionFail2();
+	// TestFullEditor_GotoDefinitionAtFunction();
+	TestFullEditor_GotoDefinitionOfInterface();
+	TestFullEditor_GotoDefinitionOfInterface2();
+	TestFullEditor_GotoDefinitionOfInterface3();
+	TestFullEditor_GotoDefinitionOfStruct();
+	return;
+
 	TestPromptForMacro();
 	TestShowTipForFunction();
 
@@ -1545,6 +1918,8 @@ void MainProtected2(HMODULE /* hLib */)
 	TestFullEditor_SearchLocalStructForInterface();
 	TestFullEditor_SearchForFactories();
 	TestFullEditor_SearchForFactories2();
+	TestFullEditor_GotoDefinitionFail();
+	TestFullEditor_GotoDefinitionAtFunction();
 	TestComplexCase1();
 }
 

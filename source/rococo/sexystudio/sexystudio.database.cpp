@@ -2435,23 +2435,157 @@ namespace ANON
 			}
 		}
 
-		const ISXYPublicFunction* FindFunction(cstr fqFunctionName) override
+
+		// Recursive enumeration of all subspaces and their descendants of the branch. The callback returns true to continue enumeration, else returns false to terminate it.
+		bool ForEachSubspace(ISxyNamespace& branch, Rococo::Function<bool(const ISxyNamespace& ns)> callback)
 		{
-			NamespaceSplitter splitter(fqFunctionName);
+			if (!callback.Invoke(branch))
+			{
+				return false;
+			}
+
+			for (int i = 0; i < branch.SubspaceCount(); i++)
+			{
+				auto& subspace = branch[i];
+				if (!ForEachSubspace(subspace, callback))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		void ForeachSubspaceInTree(const ISxyNamespace& branch, const fstring& subspaceName, int depth, Rococo::Function<void(const ISxyNamespace& ns)> callback)
+		{
+			char name[256];
+			StackStringBuilder nameBuilder(name, sizeof name);
+			AppendFullName(branch, nameBuilder);
+
+			fstring fname = to_fstring(name);
+			
+			if (Eq(fname, subspaceName))
+			{
+				callback.Invoke(branch);
+				return;
+			}
+
+			if (fname.length > subspaceName.length && EndsWith(name, subspaceName) && name[fname.length - subspaceName.length - 1] == '.')
+			{
+				callback.Invoke(branch);
+				return;
+			}
+
+			for (int i = 0; i < branch.SubspaceCount(); i++)
+			{
+				auto& subspace = branch[i];
+				ForeachSubspaceInTree(subspace, subspaceName, depth + 1, callback);
+			}
+		}
+
+		const ISXYPublicFunction* FindFunction(cstr functionName) override
+		{
+			NamespaceSplitter splitter(functionName);
 
 			cstr nsPrefix, shortName;
 			if (!splitter.SplitTail(OUT nsPrefix, OUT shortName))
 			{
-				return nullptr;
+				const ISXYPublicFunction* result = nullptr;
+
+				ForEachSubspace(GetRootNamespace(), [functionName, &result](const ISxyNamespace& ns) -> bool
+					{
+						auto* f = ns.FindFunction(functionName);
+						if (f && !result)
+						{
+							result = f;
+							return false;
+						}
+
+						return true;
+					}
+				);
+
+				return result;
 			}
 
-			auto* ns = GetRootNamespace().FindSubspace(nsPrefix);
-			if (!ns)
+			const ISXYPublicFunction* result = nullptr;
+			int count = 0;
+
+			ForeachSubspaceInTree(GetRootNamespace(), to_fstring(nsPrefix), 0, [&count, shortName, &result](const ISxyNamespace& ns)
+				{
+					if (count == 0)
+					{
+						auto* f = ns.FindFunction(shortName);
+						if (f && count == 0)
+						{
+							result = f;
+						}
+						count++;
+					}
+				}
+			);
+
+			return result;
+		}
+
+		const ISXYInterface* FindInterfaceAtBranch(const ISxyNamespace& ns, cstr interfaceName)
+		{
+			for (int i = 0; i < ns.InterfaceCount(); i++)
 			{
-				return nullptr;
+				auto& refInterface = ns.GetInterface(i);
+				if (Eq(refInterface.PublicName(), interfaceName))
+				{
+					return &refInterface;
+				}
 			}
 
-			return ns->FindFunction(shortName);
+			return nullptr;
+		}
+
+		const ISXYType* FindType(cstr typeName) override
+		{
+			NamespaceSplitter splitter(typeName);
+
+			cstr body, tail;
+			if (splitter.SplitTail(body, tail))
+			{
+				if (!isupper(*tail))
+				{
+					return nullptr;
+				}
+
+				auto* ns = GetRootNamespace().FindSubspace(body);
+				if (ns)
+				{
+					const ISXYType* pType = ns->FindType(Substring::ToSubstring(typeName));
+					if (pType)
+					{
+						return pType;
+					}
+				}
+
+				const ISXYType* pFirstStruct = nullptr;
+				int count = 0;
+
+				ForeachSubspaceInTree(GetRootNamespace(), to_fstring(body), 0, [this, &count, &pFirstStruct, body, tail](const ISxyNamespace& ns)
+					{
+						const ISXYType* pType = ns.FindType(Substring::ToSubstring(tail));
+						if (pType)
+						{
+							if (count == 0)
+							{
+								pFirstStruct = pType;
+							}
+
+							count++;
+						}
+					}
+				);
+
+				return pFirstStruct;
+			}
+
+			return RecursivelySearchForType(GetRootNamespace(), Substring::ToSubstring(typeName));
 		}
 
 		const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) override
@@ -2460,6 +2594,47 @@ namespace ANON
 			if (direct)
 			{
 				return direct;
+			}
+
+			NamespaceSplitter splitter(typeString);
+
+			cstr body, tail;
+			if (splitter.SplitTail(OUT body, OUT tail))
+			{
+				if (!isupper(*tail))
+				{
+					return nullptr;
+				}
+
+				auto* ns = GetRootNamespace().FindSubspace(body);
+				if (ns)
+				{
+					const ISXYInterface* pInterface = FindInterfaceAtBranch(*ns, body);
+					if (pInterface)
+					{
+						return pInterface;
+					}
+				}
+				
+				const ISXYInterface* pFirstInterface = nullptr;
+				int count = 0;
+				
+				ForeachSubspaceInTree(GetRootNamespace(), to_fstring(body), 0, [this, &count, &pFirstInterface, body, tail](const ISxyNamespace& ns)
+					{
+						const ISXYInterface* pInterface = FindInterfaceAtBranch(ns, tail);
+						if (pInterface)
+						{
+							if (count == 0)
+							{
+								pFirstInterface = pInterface;
+							}
+
+							count++;
+						}
+					}
+				);
+
+				return pFirstInterface;
 			}
 
 			return RecursivelySearchForInterface(GetRootNamespace(), typeString, ppNamespace);

@@ -3007,6 +3007,166 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		);
 	}
 
+	std::vector<char> docTemp;
+
+	int GetLineNumber(cstr doc, cstr target)
+	{
+		int lineNumber = 1;
+		for (cstr p = doc; p < target; p++)
+		{
+			if (*p == '\n')
+			{
+				lineNumber++;
+			}
+		}
+		return lineNumber;
+	}
+
+	void GotoDefinitionOfLowerCaseItem(cr_substring substringDoc, cstr doc, ISexyEditor& editor)
+	{
+		Sex::Inference::FaultTolerantSexyTypeInferenceEngine engine(doc);
+		auto inference = engine.InferLocalVariableVariableType(substringDoc);
+	
+		if (inference.declarationType && inference.declarationVariable)
+		{
+			char type[256];
+			inference.declarationType.CopyWithTruncate(type, sizeof type);
+
+			char var[256];
+			inference.declarationVariable.CopyWithTruncate(var, sizeof var);
+
+			int lineNumber = GetLineNumber(doc, inference.declarationType.start);
+
+			editor.GotoDefinition("<this>", lineNumber);
+		}
+	}
+
+	void GotoDefinitionOfUpperCaseItem(cr_substring substringDoc, ISexyEditor& editor)
+	{
+		if (!substringDoc)
+		{
+			editor.GotoDefinition("Huh?", 1);
+			return;
+		}
+
+		char fqName[256];
+		if (!substringDoc.TryCopyWithoutTruncate(fqName, sizeof fqName))
+		{
+			return;
+		}
+
+		auto* type = database->FindType(fqName);
+		if (type)
+		{
+			auto* localType = type->LocalType();
+			if (localType)
+			{
+				editor.GotoDefinition(localType->SourcePath(), localType->LineNumber());
+			}
+
+			return;
+		}
+
+		auto* pInterface = database->FindInterface(fqName);
+		if (pInterface)
+		{
+			editor.GotoDefinition(pInterface->SourcePath(), pInterface->GetDefinition().Start().y);
+			return;
+		}
+
+		auto* f = database->FindFunction(fqName);
+		if (f)
+		{
+			auto* localFunction = f->LocalFunction();
+			if (localFunction)
+			{
+				editor.GotoDefinition(localFunction->SourcePath(), localFunction->LineNumber());
+				return;
+			}
+		}
+	}
+
+	void ExpandSearchTokenToRightSpace(REF Substring& searchToken, cr_substring doc)
+	{
+		cstr p = searchToken.end();
+		for (;p < doc.end(); p++)
+		{
+			if (IsAlphaNumeric(*p) || *p == '.')
+			{
+				// Blankspace
+				continue;
+			}	
+			else
+			{
+				break;
+			}
+		}
+
+		searchToken.finish = p;
+	}
+
+	Substring GetDocSubstringAtCaret(ISexyEditor& editor)
+	{
+		Substring substringLine = GetCurrentLine(editor);
+		if (!substringLine)
+		{
+			return Substring::Null();
+		}
+
+		EditorCursor cursor;
+		editor.GetCursor(cursor);
+
+		Substring doc = CachedDoc(editor);
+
+		cstr activationPoint;
+		Substring searchToken = GetSearchTokenWithinLine(substringLine, cursor, activationPoint);
+
+		if (!searchToken)
+		{
+			return Substring::Null();
+		}
+
+		ExpandSearchTokenToRightSpace(searchToken, doc);
+
+		int64 docPos = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
+		if (docPos < 0)
+		{
+			return Substring::Null();
+		}
+
+		size_t len = Length(searchToken);
+		Substring s{ doc.start + docPos, doc.start + docPos + len };
+		return s;
+	}
+	
+	void GotoDefinitionOfSelectedToken(ISexyEditor& editor) override
+	{		
+		Substring substringDoc = GetDocSubstringAtCaret(editor);
+		ExpandSearchTokenToRightSpace(REF substringDoc, CachedDoc(editor));
+		
+		if (!substringDoc)
+		{
+			editor.GotoDefinition("Huh?", 1);
+			return;
+		}
+
+		if (islower(*substringDoc.start))
+		{
+			Substring doc = CachedDoc(editor);
+			// token could be a keyword or variable identifier
+			GotoDefinitionOfLowerCaseItem(substringDoc, doc.start, editor);
+		}
+		else if (isupper(*substringDoc.start))
+		{
+			// token could be a type, namespace or function name
+			GotoDefinitionOfUpperCaseItem(substringDoc, editor);
+		}
+		else
+		{
+			editor.GotoDefinition("Ayup?", 1);
+		}
+	}
+
 	void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* fullPath) override
 	{
 		if (fullPath)

@@ -96,6 +96,9 @@ namespace Rococo
 			// Get the caret position of the editor
 			virtual int64 GetCaretPos() const = 0;
 
+			// Tells the editor to hilight the file path and line number. The interpretation of 'hilight' is up to the implementation on the editor
+			virtual void GotoDefinition(const char* path, int lineNumber) = 0;
+
 			// Show call tip at caret position
 			virtual void ShowCallTipAtCaretPos(cstr tip) const = 0;
 

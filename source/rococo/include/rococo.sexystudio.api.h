@@ -70,6 +70,10 @@ namespace Rococo::SexyStudio
 			char args[1024] - output buffer
 		*/
 		virtual void GetHintForCandidate(cr_substring candidate, char args[1024]) = 0;
+
+		// Tells the Sexy IDE to compute the definition of the selected token and invoke ISexyEditor::GotoDefinition with the result
+		virtual void GotoDefinitionOfSelectedToken(ISexyEditor& editor) = 0;
+
 		virtual void ReplaceSelectedText(ISexyEditor& editor, cstr item) = 0;
 		virtual void SetTitle(cstr title) = 0;
 		virtual void Activate() = 0;

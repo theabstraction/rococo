@@ -295,6 +295,8 @@ void pluginCleanUp()
     }
 }
 
+void gotoDefinition();
+
 //
 // Initialization of your plugin commands
 // You should fill your plugins commands here
@@ -315,7 +317,7 @@ void commandMenuInit()
         //            bool check0nInit                // optional. Make this menu item be checked visually
         //            );
         setCommand(1, TEXT("Show Sexy IDE"), showSexyIDE, NULL, false);
-    //  setCommand(2, TEXT("Generate Autocomplete data..."), generateAutocompleteData, NULL, false);
+        setCommand(2, TEXT("Goto definition"), gotoDefinition, NULL, false);
     }
 }
 
@@ -395,6 +397,13 @@ public:
     int64 GetCaretPos() const override
     {
         return SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
+    }
+
+    void GotoDefinition(const char* path, int lineNumber) override
+    {
+        char msg[512];
+        _snprintf_s(msg, _TRUNCATE, "Definition found: %s @ line %d", path, lineNumber);
+        MessageBoxA(nppData._nppHandle, msg, "Notepad++ Goto definition", MB_ICONINFORMATION);
     }
 
     void ShowCallTipAtCaretPos(cstr tip) const
@@ -503,6 +512,15 @@ public:
         autoCompleteIndex = 0;
     }
 };
+
+void gotoDefinition()
+{
+    if (sexyIDE)
+    {
+        SexyEditor_Scintilla editor(nppData._nppHandle);
+        sexyIDE->GotoDefinitionOfSelectedToken(editor);
+    }
+}
 
 void onCalltipClicked(HWND hScintilla, int argValue)
 {

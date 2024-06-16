@@ -957,7 +957,7 @@ R"(
 	(function IncCat (Float32 catastrophe)(mangy cat)(Int32 cat) -> : (cat += 1))
 )";
 
-	BadlyFormattedTypeInferenceEngine engine(bad_code);
+	FaultTolerantSexyTypeInferenceEngine engine(bad_code);
 	cstr cat1 = strstr(bad_code, "cat");
 	cstr cat2 = strstr(cat1 + 1, "cat");
 	cstr cat3 = strstr(cat2 + 1, "cat");
@@ -981,7 +981,7 @@ void TestCodeInferenceInterfaces()
 	(function IncCat (Sys.Type.IStringBuilder sb) -> : (sb.Append))
 )";
 
-	BadlyFormattedTypeInferenceEngine engine(bad_code);
+	FaultTolerantSexyTypeInferenceEngine engine(bad_code);
 	cstr sbPos = strstr(bad_code, "sb.");
 
 	VALIDATE(sbPos != nullptr);
