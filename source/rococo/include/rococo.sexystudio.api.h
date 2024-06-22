@@ -58,9 +58,15 @@ namespace Rococo::SexyStudio
 		virtual EIDECloseResponse OnIDEClose(IWindow & topLevelParent) = 0;
 	};
 
+	ROCOCO_INTERFACE IPreviewEventHandler
+	{
+		virtual void OnJumpToCode(const char* path, int lineNumber) = 0;
+	};
+
 	ROCOCO_INTERFACE ISexyStudioInstance1
 	{
 		virtual IWindow& GetIDEFrame() = 0;
+		virtual void PopupPreview(IWindow& hParent, cstr token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler) = 0;
 		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
 		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
 		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;

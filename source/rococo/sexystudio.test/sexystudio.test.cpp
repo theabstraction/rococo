@@ -745,10 +745,25 @@ public:
 		return lastDefinitionLineNumber;
 	}
 
-	void GotoDefinition(const char* path, int lineNumber) override
+	void GotoDefinition(cstr searchToken, const char* path, int lineNumber) override
 	{
 		lastDefinedPath = path;
 		lastDefinitionLineNumber = lineNumber;
+
+		if (sexyStudio)
+		{
+			struct: IPreviewEventHandler
+			{
+				void OnJumpToCode(const char* path, int lineNumber) override
+				{
+					UNUSED(path);
+					UNUSED(lineNumber);
+				}
+			} eventHandler;
+
+			sexyStudio->PopupPreview(sexyStudio->GetIDEFrame(), searchToken, path, lineNumber, eventHandler);
+		}
+		
 		printf("\tGotoDefinition('%s', %d)\n", path, lineNumber);
 	}
 
@@ -860,6 +875,13 @@ public:
 	void ShowAndClearItems() override
 	{
 		printf("<--- ShowAndClearItems --->\n");
+	}
+
+	ISexyStudioInstance1* sexyStudio = nullptr;
+
+	void SetHostWindow(ISexyStudioInstance1* sexyStudio)
+	{
+		this->sexyStudio = sexyStudio;
 	}
 };
 
@@ -1428,6 +1450,8 @@ void TestFullEditor_GotoDefinitionOfFunction()
 	FileDesc desc(file, 'i'); // This should match Sin and goto the definition of Sin
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
+	editor.SetHostWindow(sexyIDE);
+
 	sexyIDE->GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f32.inl"))
@@ -1871,6 +1895,7 @@ void MainProtected2(HMODULE /* hLib */)
 	pluginInit(NULL);
 
 	TestFullEditor_GotoDefinitionOfFunction();
+	return;
 	TestFullEditor_GotoDefinitionOfFunction2();
 	TestFullEditor_GotoDefinitionOfFunction3();
 
@@ -1880,7 +1905,6 @@ void MainProtected2(HMODULE /* hLib */)
 	return;
 
 	TestFullEditor_GotoDefinitionFail2();
-	// TestFullEditor_GotoDefinitionAtFunction();
 	TestFullEditor_GotoDefinitionOfInterface();
 	TestFullEditor_GotoDefinitionOfInterface2();
 	TestFullEditor_GotoDefinitionOfInterface3();

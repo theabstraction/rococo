@@ -399,11 +399,39 @@ public:
         return SendMessageA(hScintilla, SCI_GETCURRENTPOS, 0, 0);
     }
 
-    void GotoDefinition(const char* path, int lineNumber) override
+    void GotoDefinition(const char* searchToken, const char* path, int lineNumber) override
     {
-        char msg[512];
-        _snprintf_s(msg, _TRUNCATE, "Definition found: %s @ line %d", path, lineNumber);
-        MessageBoxA(nppData._nppHandle, msg, "Notepad++ Goto definition", MB_ICONINFORMATION);
+        if (sexyIDE)
+        {
+            struct : IPreviewEventHandler
+            {
+                SexyEditor_Scintilla* This = 0;
+                void OnJumpToCode(const char* path, int lineNumber) override
+                {
+                    BOOL success;
+                    if constexpr(sizeof(TCHAR) == sizeof(char))
+                    {
+                        success = (BOOL) SendMessageW(nppData._nppHandle, NPPM_DOOPEN, (LPARAM)path, 0);
+                    }
+                    else
+                    {
+                        WideFilePath wPath;
+                        swprintf_s(wPath.buf, L"%hs", path);
+                        success = (BOOL) SendMessageW(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)wPath.buf);
+                    }
+
+                    if (success == TRUE)
+                    {
+                        SendMessage(nppData._scintillaMainHandle, SCI_SETFIRSTVISIBLELINE, max(lineNumber-1,0), 0);
+                    }
+                }
+            } eventHandler;
+
+            eventHandler.This = this;
+
+            THIS_WINDOW topLevelWindow(hScintilla);
+            sexyIDE->PopupPreview(topLevelWindow, searchToken, path, lineNumber, eventHandler);
+        }
     }
 
     void ShowCallTipAtCaretPos(cstr tip) const
@@ -517,7 +545,7 @@ void gotoDefinition()
 {
     if (sexyIDE)
     {
-        SexyEditor_Scintilla editor(nppData._nppHandle);
+        SexyEditor_Scintilla editor(nppData._scintillaMainHandle);
         sexyIDE->GotoDefinitionOfSelectedToken(editor);
     }
 }

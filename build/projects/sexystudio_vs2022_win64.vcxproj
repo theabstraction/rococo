@@ -143,7 +143,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.sex.inference.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexystudio.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.graphics.lib;rococo.sex.inference.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexystudio.lib</ImportLibrary>
@@ -246,6 +248,7 @@
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.database.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.delegates.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.layouts.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.preview.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.projects.cpp" />
     <ResourceCompile Include="..\..\source\rococo\sexystudio\sexystudio.rc" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.themes.cpp" />

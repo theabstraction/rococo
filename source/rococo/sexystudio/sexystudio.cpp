@@ -1852,6 +1852,8 @@ using namespace Rococo::AutoComplete;
 
 struct Factory;
 
+void ShowPreviewPopup(IWindow& hParent, const char* token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler);
+
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 {
 	Factory& host;
@@ -1882,7 +1884,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		SafeFormat(callTipArgs, "%s", tip);
 	}
 
-	void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor)
+	void PopupPreview(IWindow& hParent, cstr token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler) override
+	{
+		ShowPreviewPopup(hParent, token, path, lineNumber, eventHandler);
+	}
+
+	void ReplaceCurrentSelectionWithCallTip(Rococo::AutoComplete::ISexyEditor& editor) override
 	{
 		int64 caretPos = editor.GetCaretPos();
 
@@ -3037,7 +3044,10 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 
 			int lineNumber = GetLineNumber(doc, inference.declarationType.start);
 
-			editor.GotoDefinition("<this>", lineNumber);
+			char docToken[32];
+			substringDoc.CopyWithTruncate(docToken, sizeof docToken);
+
+			editor.GotoDefinition(docToken, "<this>", lineNumber);
 		}
 	}
 
@@ -3045,9 +3055,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	{
 		if (!substringDoc)
 		{
-			editor.GotoDefinition("Huh?", 1);
+			editor.GotoDefinition("?", "Huh?", 1);
 			return;
 		}
+
+		char docToken[32];
+		substringDoc.CopyWithTruncate(docToken, sizeof docToken);
 
 		char fqName[256];
 		if (!substringDoc.TryCopyWithoutTruncate(fqName, sizeof fqName))
@@ -3061,7 +3074,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			auto* localType = type->LocalType();
 			if (localType)
 			{
-				editor.GotoDefinition(localType->SourcePath(), localType->LineNumber());
+				editor.GotoDefinition(docToken, localType->SourcePath(), localType->LineNumber());
 			}
 
 			return;
@@ -3070,7 +3083,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		auto* pInterface = database->FindInterface(fqName);
 		if (pInterface)
 		{
-			editor.GotoDefinition(pInterface->SourcePath(), pInterface->GetDefinition().Start().y);
+			editor.GotoDefinition(docToken, pInterface->SourcePath(), pInterface->GetDefinition().Start().y);
 			return;
 		}
 
@@ -3080,24 +3093,24 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			auto* localFunction = f->LocalFunction();
 			if (localFunction)
 			{
-				editor.GotoDefinition(localFunction->SourcePath(), localFunction->LineNumber());
+				editor.GotoDefinition(docToken, localFunction->SourcePath(), localFunction->LineNumber());
 				return;
 			}
 		}
 	}
 
-	void ExpandSearchTokenToRightSpace(REF Substring& searchToken, cr_substring doc)
+	void ExpandSearchTokenToRight(REF Substring& searchToken, cr_substring doc)
 	{
-		cstr p = searchToken.end();
+		cstr p = searchToken.begin();
 		for (;p < doc.end(); p++)
 		{
-			if (IsAlphaNumeric(*p) || *p == '.')
+			if (IsAlphaNumeric(*p))
 			{
-				// Blankspace
 				continue;
 			}	
 			else
 			{
+				// Blankspace or some other break such as / or .
 				break;
 			}
 		}
@@ -3126,8 +3139,6 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 			return Substring::Null();
 		}
 
-		ExpandSearchTokenToRightSpace(searchToken, doc);
-
 		int64 docPos = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
 		if (docPos < 0)
 		{
@@ -3142,15 +3153,23 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	void GotoDefinitionOfSelectedToken(ISexyEditor& editor) override
 	{		
 		Substring substringDoc = GetDocSubstringAtCaret(editor);
-		ExpandSearchTokenToRightSpace(REF substringDoc, CachedDoc(editor));
+		if (!substringDoc)
+		{
+			return;
+		}
+		ExpandSearchTokenToRight(REF substringDoc, CachedDoc(editor));
 		
 		if (!substringDoc)
 		{
-			editor.GotoDefinition("Huh?", 1);
+			editor.GotoDefinition("?", "Huh?", 1);
 			return;
 		}
 
-		if (islower(*substringDoc.start))
+		if (Eq("this", substringDoc))
+		{
+			// TODO - send us to the class
+		}
+		else if (islower(*substringDoc.start))
 		{
 			Substring doc = CachedDoc(editor);
 			// token could be a keyword or variable identifier
@@ -3163,7 +3182,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 		}
 		else
 		{
-			editor.GotoDefinition("Ayup?", 1);
+			editor.GotoDefinition("?", "Ayup?", 1);
 		}
 	}
 
