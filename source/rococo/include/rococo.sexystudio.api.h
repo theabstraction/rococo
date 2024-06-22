@@ -60,7 +60,11 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE IPreviewEventHandler
 	{
-		virtual void OnJumpToCode(const char* path, int lineNumber) = 0;
+		// The editor is asked to jump to a code section. If the handler returns true the previewer reveals the back button
+		virtual bool OnJumpToCode(const char* path, int lineNumber) = 0;
+
+		// The previewer back button has been clicked
+		virtual void OnBackButtonClicked() = 0;
 	};
 
 	ROCOCO_INTERFACE ISexyStudioInstance1

@@ -13,19 +13,20 @@ enum class Ids
 {
 	STATUS_BAR = 7000,
 	PATH_BAR,
-	GOTO_BUTTON
+	GOTO_BUTTON,
+	BACK_BUTTON
 };
 
 class MainWindowHandler : public StandardWindowHandler, public IModalControl
 {
 	struct PathEvents : Windows::IRichEditorEvents
 	{
-		LRESULT RichEditor_OnCommand(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, IRichEditor& origin) override
+		LRESULT RichEditor_OnCommand(HWND, UINT, WPARAM, LPARAM, IRichEditor&) override
 		{
 			return 0L;
 		}
 
-		void RichEditor_OnRightButtonUp(const Vec2i& clientPosition, IRichEditor& origin) override
+		void RichEditor_OnRightButtonUp(const Vec2i&, IRichEditor&) override
 		{
 		}
 	};
@@ -66,8 +67,19 @@ private:
 		{
 			if (filename.length() > 0)
 			{
-				eventHandler.OnJumpToCode(filename, lineNumber);
+				if (eventHandler.OnJumpToCode(filename, lineNumber))
+				{
+					HWND hBackButton = GetDlgItem(*window, (int)Ids::BACK_BUTTON);
+					if (!IsWindowVisible(hBackButton))
+					{
+						ShowWindow(hBackButton, SW_SHOW);
+					}
+				}
 			}
+		}
+		else if (id == (ControlId)Ids::BACK_BUTTON)
+		{
+			eventHandler.OnBackButtonClicked();
 		}
 	}
 
@@ -100,6 +112,15 @@ private:
 		moveToRect.right = clientRect.right - 10;
 		moveToRect.bottom = clientRect.top + 40;
 		Rococo::Windows::AddPushButton(*window, moveToRect, "->", (ControlId)Ids::GOTO_BUTTON, WS_BORDER);
+
+		GuiRect backButtonRect;
+		backButtonRect.left = clientRect.right - 52;
+		backButtonRect.top = clientRect.top + 10;
+		backButtonRect.right = clientRect.right - 32;
+		backButtonRect.bottom = clientRect.top + 40;
+		auto* backButton = Rococo::Windows::AddPushButton(*window, backButtonRect, "<-", (ControlId)Ids::BACK_BUTTON, WS_BORDER);
+
+		ShowWindow(*backButton, SW_HIDE);
 
 		GuiRect labelRect;
 		labelRect.left = clientRect.left + 10;
@@ -271,7 +292,7 @@ void ShowPreviewPopup(Rococo::Windows::IWindow& hParent, const char* token, cons
 		return;
 	}
 
-	HWND hRoot = GetAncestor(hParent, GA_ROOT);
+	HWND hRoot = GetAncestor(hParent, GA_ROOTOWNER);
 
 	ShowWindow(hRoot, SW_SHOW);
 
@@ -281,5 +302,5 @@ void ShowPreviewPopup(Rococo::Windows::IWindow& hParent, const char* token, cons
 
 	mainWindowHandler->SetPreviewTarget(token, path, lineNumber);
 
-	mainWindowHandler->DoModal(hRoot);	
+	mainWindowHandler->DoModal(hRoot);
 }

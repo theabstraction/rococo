@@ -754,10 +754,16 @@ public:
 		{
 			struct: IPreviewEventHandler
 			{
-				void OnJumpToCode(const char* path, int lineNumber) override
+				void OnBackButtonClicked() override
+				{
+
+				}
+
+				bool OnJumpToCode(const char* path, int lineNumber) override
 				{
 					UNUSED(path);
 					UNUSED(lineNumber);
+					return true;
 				}
 			} eventHandler;
 

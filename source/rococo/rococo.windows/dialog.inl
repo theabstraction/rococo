@@ -73,6 +73,10 @@ namespace Rococo::Windows::Impl
 				MSG msg;
 				while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 				{
+					if (msg.hwnd == ownerWindow)
+					{
+						BringWindowToTop(hWnd);
+					}
 					overrideHandler->OnPretranslateMessage(msg);
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
