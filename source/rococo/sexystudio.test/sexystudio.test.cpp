@@ -972,7 +972,7 @@ void TestFullEditor_SearchLocalStructForInterface()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchLocalStructForInterfaceMethod()
@@ -1005,7 +1005,7 @@ void TestFullEditor_SearchLocalStructForInterfaceMethod()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchLocalStructForM4x4()
@@ -1031,7 +1031,7 @@ void TestFullEditor_SearchLocalStructForM4x4()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchLocalStructForIString()
@@ -1057,7 +1057,7 @@ void TestFullEditor_SearchLocalStructForIString()
 	FileDesc desc(file, 'n');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchLocalStructForIStringAndDot()
@@ -1083,7 +1083,7 @@ void TestFullEditor_SearchLocalStructForIStringAndDot()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStruct()
@@ -1112,7 +1112,7 @@ cstr file =
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
@@ -1141,7 +1141,7 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue()
@@ -1170,7 +1170,7 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
@@ -1191,7 +1191,7 @@ void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchFQType()
@@ -1210,7 +1210,7 @@ void TestFullEditor_SearchFQType()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchForFactories()
@@ -1228,7 +1228,7 @@ void TestFullEditor_SearchForFactories()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchForFactories2()
@@ -1247,7 +1247,7 @@ void TestFullEditor_SearchForFactories2()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_GotoDefinitionFail()
@@ -1268,7 +1268,7 @@ void TestFullEditor_GotoDefinitionFail()
 	FileDesc desc(file, 'x');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 }
 
 void TestFullEditor_GotoDefinitionAtFunction()
@@ -1288,7 +1288,7 @@ void TestFullEditor_GotoDefinitionAtFunction()
 	FileDesc desc(file, 'x');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!Eq(editor.LastDefinitionFile(), "<this>"))
 	{
@@ -1315,7 +1315,7 @@ void TestFullEditor_GotoDefinitionFail2()
 	FileDesc desc(file, 'x');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!Eq(editor.LastDefinitionFile(), ""))
 	{
@@ -1342,7 +1342,7 @@ void TestFullEditor_GotoDefinitionOfInterface()
 	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
@@ -1369,7 +1369,7 @@ void TestFullEditor_GotoDefinitionOfInterface2()
 	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
@@ -1398,7 +1398,7 @@ void TestFullEditor_GotoDefinitionOfInterface3()
 	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
@@ -1427,7 +1427,7 @@ void TestFullEditor_GotoDefinitionOfStruct()
 	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
@@ -1458,7 +1458,7 @@ void TestFullEditor_GotoDefinitionOfFunction()
 
 	editor.SetHostWindow(sexyIDE);
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f32.inl"))
 	{
@@ -1487,7 +1487,7 @@ void TestFullEditor_GotoDefinitionOfFunction2()
 	FileDesc desc(file, 'i'); // This should match Sin and goto the definition of F64.Sin
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
 	{
@@ -1516,7 +1516,7 @@ void TestFullEditor_GotoDefinitionOfFunction3()
 	FileDesc desc(file, 'i'); // This should match Sys.Maths.F64.Sin and goto the definition of Sys.Maths.F32.Sin
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
 	{
@@ -1545,7 +1545,7 @@ void TestFullEditor_GotoDefinitionOfStruct2()
 	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
@@ -1574,7 +1574,7 @@ void TestFullEditor_GotoDefinitionOfStruct3()
 	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->GotoDefinitionOfSelectedToken(editor);
+	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
@@ -1603,7 +1603,7 @@ void TestFullEditor_SearchForMacro()
 	FileDesc desc(file, 'E');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestComplexCase1()
@@ -1635,7 +1635,7 @@ void TestComplexCase1()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestSuggestAtDot()
@@ -1653,7 +1653,7 @@ void TestSuggestAtDot()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestSuggestBeyondDot()
@@ -1671,7 +1671,7 @@ void TestSuggestBeyondDot()
 	FileDesc desc(file, 'e');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFullEditor_SearchFQType2()
@@ -1692,7 +1692,7 @@ void TestFullEditor_SearchFQType2()
 	FileDesc desc(file, 'r');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestDeepMemberInference()
@@ -1716,7 +1716,7 @@ void TestDeepMemberInference()
 	FileDesc desc(file, 'a');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestDeepMemberInference2()
@@ -1740,7 +1740,7 @@ void TestDeepMemberInference2()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestFQStruct()
@@ -1758,7 +1758,7 @@ R"<CODE>(
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 
@@ -1776,7 +1776,7 @@ void TestNamespaceAppendsStruct()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestPromptForMacro()
@@ -1793,7 +1793,7 @@ void TestPromptForMacro()
 	FileDesc desc(file, 'S');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestPromptForMacro2()
@@ -1810,7 +1810,7 @@ void TestPromptForMacro2()
 	FileDesc desc(file, 's');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestPromptForMacro3()
@@ -1827,7 +1827,7 @@ void TestPromptForMacro3()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestPromptForMacro4()
@@ -1844,7 +1844,7 @@ void TestPromptForMacro4()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestPromptForMacro5()
@@ -1861,7 +1861,7 @@ void TestPromptForMacro5()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestPromptForMacro6()
@@ -1878,7 +1878,7 @@ void TestPromptForMacro6()
 	FileDesc desc(file, ' '); // Ensure the <CODE> section has space after the build token but not after the build token's parenthesis
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void TestShowTipForFunction()
@@ -1893,7 +1893,7 @@ void TestShowTipForFunction()
 	FileDesc desc(file, ' '); // Ensure the <CODE> section has space after the GetCmdArgCount token but not after the build token's parenthesis
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
 void MainProtected2(HMODULE /* hLib */)

@@ -74,16 +74,13 @@ namespace Rococo::SexyStudio
 		virtual void SetTitle(cstr title) = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyStudioInstance1
+	ROCOCO_INTERFACE ISexyStudioCompletionGaffer
 	{
-		virtual ISexyStudioGUI& Gui() = 0;
 		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
-		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
-		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
 
 		/*
-			cr_substring candidate - some substring in .sxy source text
-			char args[1024] - output buffer
+		cr_substring candidate - some substring in .sxy source text
+		char args[1024] - output buffer
 		*/
 		virtual void GetHintForCandidate(cr_substring candidate, char args[1024]) = 0;
 
@@ -91,8 +88,19 @@ namespace Rococo::SexyStudio
 		virtual void GotoDefinitionOfSelectedToken(ISexyEditor& editor) = 0;
 
 		virtual void ReplaceSelectedText(ISexyEditor& editor, cstr item) = 0;
-		virtual void Activate() = 0;
+
 		virtual void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* filepath = nullptr) = 0;
+	};
+
+	ROCOCO_INTERFACE ISexyStudioInstance1
+	{
+		virtual ISexyStudioCompletionGaffer& Gaffer() = 0;
+		virtual ISexyStudioGUI& Gui() = 0;
+
+		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
+		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
+
+		virtual void Activate() = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Free() = 0;
 	};

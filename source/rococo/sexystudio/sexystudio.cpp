@@ -1854,7 +1854,7 @@ struct Factory;
 
 void ShowPreviewPopup(IWindow& hParent, const char* token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler);
 
-struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI
+struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI, ISexyStudioCompletionGaffer
 {
 	Factory& host;
 	AutoFree<IPublisherSupervisor> publisher;
@@ -1880,6 +1880,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI
 	ISexyStudioEventHandler& eventHandler;
 
 	ISexyStudioGUI& Gui() override
+	{
+		return *this;
+	}
+
+	ISexyStudioCompletionGaffer& Gaffer()
 	{
 		return *this;
 	}

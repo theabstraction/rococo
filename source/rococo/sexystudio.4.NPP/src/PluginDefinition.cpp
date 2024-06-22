@@ -588,7 +588,7 @@ void gotoDefinition()
     if (sexyIDE)
     {
         SexyEditor_Scintilla editor(nppData._scintillaMainHandle);
-        sexyIDE->GotoDefinitionOfSelectedToken(editor);
+        sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
     }
 }
 
@@ -598,7 +598,7 @@ void onCalltipClicked(HWND hScintilla, int argValue)
     if (sexyIDE)
     {
         SexyEditor_Scintilla editor(hScintilla);
-        sexyIDE->ReplaceCurrentSelectionWithCallTip(editor);
+        sexyIDE->Gaffer().ReplaceCurrentSelectionWithCallTip(editor);
         SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
     }
 }
@@ -608,7 +608,7 @@ void onUserItemSelected(HWND hScintilla, int idList, cstr item)
     if (sexyIDE && idList == USERLIST_SEXY_AUTOCOMPLETE)
     {
         SexyEditor_Scintilla editor(hScintilla);
-        sexyIDE->ReplaceSelectedText(editor, item);
+        sexyIDE->Gaffer().ReplaceSelectedText(editor, item);
     }
 }
 
@@ -654,7 +654,7 @@ void onCharAdded(HWND hScintilla, char c)
 
         SendMessageA(hScintilla, SCI_CALLTIPCANCEL, 0, 0);
         SexyEditor_Scintilla editor(hScintilla);
-        sexyIDE->UpdateAutoComplete(editor, filename);
+        sexyIDE->Gaffer().UpdateAutoComplete(editor, filename);
         ValidateMemory();
     }
 }
