@@ -260,7 +260,7 @@ void pluginInit(HANDLE hModule)
 
         if (sexyIDE)
         {
-            sexyIDE->SetTitle("SexyStudio For Notepad++");
+            sexyIDE->Gui().SetTitle("SexyStudio For Notepad++");
         }
     }
     catch (IException& ex)
@@ -453,7 +453,7 @@ public:
                                 _snprintf_s(currentFile.buf, _TRUNCATE, "%ws", currentPath);
                             }
 
-                            currentLineNumber = SendMessage(nppData._nppHandle, NPPM_GETCURRENTLINE, 0, 0);
+                            currentLineNumber = (int) SendMessage(nppData._nppHandle, NPPM_GETCURRENTLINE, 0, 0);
                         }
                     }
 
@@ -472,7 +472,7 @@ public:
             eventHandler.This = this;
 
             THIS_WINDOW topLevelWindow(hScintilla);
-            sexyIDE->PopupPreview(topLevelWindow, searchToken, path, lineNumber, eventHandler);
+            sexyIDE->Gui().PopupPreview(topLevelWindow, searchToken, path, lineNumber, eventHandler);
         }
     }
 

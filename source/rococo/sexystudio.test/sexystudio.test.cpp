@@ -689,7 +689,7 @@ void pluginInit(HANDLE /* hModule */)
 
 		if (sexyIDE)
 		{
-			sexyIDE->SetTitle("SexyStudio For Notepad++");
+			sexyIDE->Gui().SetTitle("SexyStudio For Notepad++");
 		}
 	}
 	catch (IException& ex)
@@ -767,7 +767,7 @@ public:
 				}
 			} eventHandler;
 
-			sexyStudio->PopupPreview(sexyStudio->GetIDEFrame(), searchToken, path, lineNumber, eventHandler);
+			sexyStudio->Gui().PopupPreview(sexyStudio->Gui().GetIDEFrame(), searchToken, path, lineNumber, eventHandler);
 		}
 		
 		printf("\tGotoDefinition('%s', %d)\n", path, lineNumber);

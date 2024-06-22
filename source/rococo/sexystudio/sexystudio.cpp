@@ -1854,7 +1854,7 @@ struct Factory;
 
 void ShowPreviewPopup(IWindow& hParent, const char* token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler);
 
-struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
+struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI
 {
 	Factory& host;
 	AutoFree<IPublisherSupervisor> publisher;
@@ -1878,6 +1878,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip
 	char src_line[1024];
 
 	ISexyStudioEventHandler& eventHandler;
+
+	ISexyStudioGUI& Gui() override
+	{
+		return *this;
+	}
 
 	void SetCalltipForReplacement(cstr tip) override
 	{
@@ -3392,7 +3397,7 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 		try
 		{
 			ISexyStudioInstance1* ide = new SexyStudioIDE(topLevelParent, eventHandler, config, *this);
-			ShowWindow(ide->GetIDEFrame(), SW_HIDE);
+			ShowWindow(ide->Gui().GetIDEFrame(), SW_HIDE);
 			return ide;
 		}
 		catch (...)

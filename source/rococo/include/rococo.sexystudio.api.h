@@ -67,10 +67,16 @@ namespace Rococo::SexyStudio
 		virtual void OnBackButtonClicked() = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyStudioInstance1
+	ROCOCO_INTERFACE ISexyStudioGUI
 	{
 		virtual IWindow& GetIDEFrame() = 0;
 		virtual void PopupPreview(IWindow& hParent, cstr token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler) = 0;
+		virtual void SetTitle(cstr title) = 0;
+	};
+
+	ROCOCO_INTERFACE ISexyStudioInstance1
+	{
+		virtual ISexyStudioGUI& Gui() = 0;
 		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
 		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
 		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
@@ -85,7 +91,6 @@ namespace Rococo::SexyStudio
 		virtual void GotoDefinitionOfSelectedToken(ISexyEditor& editor) = 0;
 
 		virtual void ReplaceSelectedText(ISexyEditor& editor, cstr item) = 0;
-		virtual void SetTitle(cstr title) = 0;
 		virtual void Activate() = 0;
 		virtual void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* filepath = nullptr) = 0;
 		virtual bool IsRunning() const = 0;

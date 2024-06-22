@@ -46,7 +46,7 @@ void MainProtected(HINSTANCE, HMODULE hLib)
 		} eventHandler;
 
 		AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
-		ShowWindow(instance->GetIDEFrame(), SW_SHOW);
+		ShowWindow(instance->Gui().GetIDEFrame(), SW_SHOW);
 		
 		MSG msg;
 		while (instance->IsRunning() && GetMessage(&msg, NULL, 0, 0))

@@ -1088,7 +1088,7 @@ struct SexyIDEWindow : ISexyStudioEventHandler
 
 	bool TryOpenEditor(cstr filePath, int lineNumber) override
 	{
-		Rococo::OS::ShellOpenDocument(ideInstance->GetIDEFrame(), "CFGS SexyStudio IDE. Open file... ", filePath, lineNumber);
+		Rococo::OS::ShellOpenDocument(ideInstance->Gui().GetIDEFrame(), "CFGS SexyStudio IDE. Open file... ", filePath, lineNumber);
 		return true;
 	}
 

@@ -27,19 +27,19 @@ namespace ANON
 		{
 			UNUSED(hHostWindow);
 			ideInstance = factory.CreateSexyIDE(Windows::NoParent(), *this);
-			ShowWindow(ideInstance->GetIDEFrame(), SW_SHOW);
+			ShowWindow(ideInstance->Gui().GetIDEFrame(), SW_SHOW);
 		}
 
 		bool TryOpenEditor(cstr filePath, int lineNumber) override
 		{
-			Rococo::OS::ShellOpenDocument(ideInstance->GetIDEFrame(), "CFGS SexyStudio IDE. Open file... ", filePath, lineNumber);
+			Rococo::OS::ShellOpenDocument(ideInstance->Gui().GetIDEFrame(), "CFGS SexyStudio IDE. Open file... ", filePath, lineNumber);
 			return true;
 		}
 
 		EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
 		{
 			UNUSED(topLevelParent);
-			ShowWindow(ideInstance->GetIDEFrame(), SW_HIDE);
+			ShowWindow(ideInstance->Gui().GetIDEFrame(), SW_HIDE);
 			return EIDECloseResponse::Continue;
 		}
 	};
