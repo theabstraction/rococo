@@ -89,6 +89,8 @@ private:
 		return StandardWindowHandler::OnMessage(hWnd, uMsg, wParam, lParam);
 	}
 
+	enum { BackButtonRHSOffsetToLHS = 52 };
+
 	void PostConstruct()
 	{
 		WindowConfig config;
@@ -115,7 +117,7 @@ private:
 		Rococo::Windows::AddPushButton(*window, moveToRect, "->", (ControlId)Ids::GOTO_BUTTON, WS_BORDER);
 
 		GuiRect backButtonRect;
-		backButtonRect.left = clientRect.right - 52;
+		backButtonRect.left = clientRect.right - BackButtonRHSOffsetToLHS;
 		backButtonRect.top = clientRect.top + 10;
 		backButtonRect.right = clientRect.right - 32;
 		backButtonRect.bottom = clientRect.top + 40;
@@ -189,13 +191,15 @@ public:
 		hCodeFont = CreateFontIndirectA(&codeLogFont);
 	}
 
-	void SetPreviewTarget(const char* token, const char* path, int lineNumber)
+
+	// Configure the preview dialog, with the [searchToken] appended to the title, and the goto box populated with the [path] and [lineNumber]
+	void SetPreviewTarget(const char* searchToken, const char* path, int lineNumber)
 	{
 		this->filename = path;
 		this->lineNumber = lineNumber;
 
-		char fullTitle[256];
-		SafeFormat(fullTitle, "SexyStudio Preview Definition...[%s]", token);
+		char fullTitle[256] = { 0 };
+		SafeFormat(fullTitle, "SexyStudio Preview Definition...[%s]", searchToken);
 
 		SetWindowTextA(*window, fullTitle);
 
@@ -206,33 +210,42 @@ public:
 
 		HFONT oldFont = (HFONT) SelectObject(dc, hCodeFont);
 
-		TEXTMETRICA metrics;
-		GetTextMetricsA(dc, &metrics);
+		TEXTMETRICA codeFontMetrics;
+		GetTextMetricsA(dc, &codeFontMetrics);
 
-		int fontHeightPixels = metrics.tmHeight + metrics.tmInternalLeading + metrics.tmExternalLeading;
+		int fontHeightPixels = codeFontMetrics.tmHeight + codeFontMetrics.tmInternalLeading + codeFontMetrics.tmExternalLeading;
 
 		RECT clientRect;
 		GetClientRect(*window, &clientRect);
 
-		int pathWidth = clientRect.right - 60;
+		enum { PathToBackButtonPadding = 8 };
+		enum { ButtonPairWidth = BackButtonRHSOffsetToLHS + PathToBackButtonPadding };
+
+		enum { PATH_EDITOR_PADDING = 10 };
+
+		int pathWidth = clientRect.right - ButtonPairWidth - PATH_EDITOR_PADDING;
 
 
 		SIZE extent;
 
-		cstr activePath = path;
+		cstr visiblePath = path;
 		
-		for (int i = 0; i < 100; i++)
+		// Strip characters from the left hand side of the path until it fits in the designated rich text editor space
+		for (;;)
 		{
-			char fullPathAndLine[MAX_PATH + 128];
-			SafeFormat(fullPathAndLine, "%s%s line %d", activePath != path ? "...." : "", activePath, lineNumber);
+			char fullPathAndLine[MAX_PATH + 128] = { 0 };
+			SafeFormat(fullPathAndLine, "%s%s line %d", visiblePath != path ? "...." : "", visiblePath, lineNumber);
 			GetTextExtentPointA(dc, fullPathAndLine, (int)strlen(fullPathAndLine), &extent);
 
-			if (extent.cx >= pathWidth - 4)
+			enum { PathRHS_SafeZone = 4};
+
+			if (extent.cx >= pathWidth - PathRHS_SafeZone)
 			{
-				activePath = activePath + 4;
-				if (activePath > path + strlen(path))
+				enum { NCharsToStrip = 4 };
+				visiblePath += NCharsToStrip;
+				if (visiblePath >= path + strlen(path))
 				{
-					activePath = "....";
+					visiblePath = "...";
 					break;
 				}
 			}
@@ -248,12 +261,11 @@ public:
 
 		SendMessage(pathPreview->EditorHandle(), WM_SETFONT, (WPARAM)hCodeFont, 0);
 
-		GuiRect pathRect;
-		pathRect.left = clientRect.left + 10;
-		pathRect.top = clientRect.top + 10;
-		pathRect.right = clientRect.left + 10 + pathWidth;
-		pathRect.bottom = clientRect.top + 40;
-		MoveWindow(*pathPreview, pathRect.left, pathRect.top, pathWidth, fontHeightPixels + 4, TRUE);
+		int xPos = clientRect.left + PATH_EDITOR_PADDING;
+		int yPos = clientRect.top + PATH_EDITOR_PADDING;
+
+		enum { EDITOR_VDELTA_SAFEZONE = 4};
+		MoveWindow(*pathPreview, xPos, yPos, pathWidth, fontHeightPixels + EDITOR_VDELTA_SAFEZONE, TRUE);
 
 		ColourScheme scheme;
 		scheme.backColour = RGBAb(0, 0, 0, 255);
@@ -261,17 +273,28 @@ public:
 
 		pathPreview->ResetContent();
 
-		if (activePath != path)
+		if (visiblePath != path)
 		{
-			pathPreview->AppendText(RGB(192, 192, 192), RGB(0, 0, 0), "....");
+			pathPreview->AppendText(RGB(192, 192, 192), RGB(0, 0, 0), "...");
 		}
-		pathPreview->AppendText(RGB(192, 192, 192), RGB(0,0,0), activePath);
+		pathPreview->AppendText(RGB(192, 192, 192), RGB(0,0,0), visiblePath);
 		pathPreview->AppendText(RGB(224, 224, 224), RGB(0, 0, 0), " line ");
 
 		char line[64];
 		SafeFormat(line, "%d", lineNumber);
 
 		pathPreview->AppendText(RGB(255, 255, 0), RGB(0, 0, 0), line);
+
+		HWND hBackButton = GetDlgItem(*window, static_cast<int>(Ids::BACK_BUTTON));
+
+		enum { ButtonWidth = 20 };
+		MoveWindow(hBackButton, xPos + pathWidth + PathToBackButtonPadding, yPos, ButtonWidth, fontHeightPixels + EDITOR_VDELTA_SAFEZONE, TRUE);
+
+		HWND hGotoButton = GetDlgItem(*window, static_cast<int>(Ids::GOTO_BUTTON));
+
+		enum { ButtonToButtonHPadding = 4 };
+
+		MoveWindow(hGotoButton, xPos + pathWidth + PathToBackButtonPadding + ButtonToButtonHPadding + ButtonWidth, yPos, ButtonWidth, fontHeightPixels + EDITOR_VDELTA_SAFEZONE, TRUE);
 	}
 };
 
