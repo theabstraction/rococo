@@ -11,8 +11,7 @@ using namespace Rococo::Windows;
 
 enum class Ids
 {
-	STATUS_BAR = 7000,
-	PATH_BAR,
+	PATH_BAR = 7000,
 	GOTO_BUTTON,
 	BACK_BUTTON
 };
@@ -42,7 +41,7 @@ private:
 	PathEvents pathControlEvents;
 
 	HString filename;
-	int lineNumber;
+	int lineNumber = 0;
 
 	Rococo::SexyStudio::IPreviewEventHandler& eventHandler;
 
@@ -63,6 +62,8 @@ private:
 
 	void OnMenuCommand(HWND hWnd, DWORD id) override
 	{
+		UNUSED(hWnd);
+
 		if (id == (ControlId)Ids::GOTO_BUTTON)
 		{
 			if (filename.length() > 0)
@@ -122,13 +123,7 @@ private:
 
 		ShowWindow(*backButton, SW_HIDE);
 
-		GuiRect labelRect;
-		labelRect.left = clientRect.left + 10;
-		labelRect.top = clientRect.bottom - 40;
-		labelRect.right = clientRect.right - 10;
-		labelRect.bottom = clientRect.bottom - 10;
-		Rococo::Windows::AddLabel(*window, labelRect, "", (ControlId)Ids::STATUS_BAR, WS_BORDER);
-		FormatStatus();
+		SetBackgroundColour(RGB(0, 0, 32));
 	}
 public:
 	// This is our post construct pattern. Allow the constructor to return to initialize the v-tables, then call PostConstruct to create the window 
@@ -148,11 +143,6 @@ public:
 	{
 		info.ptMinTrackSize = { 800,600 };
 		info.ptMaxTrackSize = { 800,600 };
-	}
-
-	void FormatStatus()
-	{
-		SetDlgItemTextA(*window, (ControlId)Ids::STATUS_BAR, "Hello there!");
 	}
 
 	void OnClose(HWND) override
@@ -209,7 +199,7 @@ public:
 
 		SetWindowTextA(*window, fullTitle);
 
-		const int height = 25;
+		const int height = 18;
 		SyncCodeFont(height);
 
 		HDC dc = GetDC(*window);
