@@ -83,6 +83,16 @@
 	)
 )
 
+(function GetSexmlForGui -> (Sys.Reflection.IExpression sexml):
+(Sys.Reflection.IExpression s = '
+(
+	(Div (#List Panel.Anchors dog)
+	)
+)
+)	
+(sexml = s)
+)
+
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IEngine engine (Engine))
 	
@@ -97,10 +107,8 @@
 	(coroutines.Add worldThread)
 	
 	(IKeyboard keyboard (Keyboard))
-	
-	(Sys.Reflection.IExpressionBuilder sxml = (MHost.OS.LoadExpression (Sys.Type.IStringname aŠú) -> (Sys.Reflection.IExpression s)) 
-	
-	(engine.SetModalDialog sxml)
+			
+	(engine.AddSexmlSheet GetSexmlForGui)
 	
 	(while engine.IsRunning
 		(while (coroutines.Continue > 0))

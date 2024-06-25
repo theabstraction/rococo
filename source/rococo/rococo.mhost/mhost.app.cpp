@@ -6,8 +6,9 @@
 #include <rococo.ui.h>
 #include <rococo.sexy.api.h>
 #include <rococo.package.h>
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 #include <rococo.os.h>
+#include <rococo.great.sex.h>
 
 #include "..\rococo.mplat\mplat.editor.h"
 
@@ -25,6 +26,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Textures;
 using namespace Rococo::Script;
 using namespace MHost::OS;
+using namespace Rococo::Sex;
 
 struct AppArgs
 {
@@ -213,6 +215,7 @@ namespace MHost
 		int32 guiToggleKey = 0;
 
 		AutoFree<IPackageSupervisor> packageMHost;
+		AutoFree<GreatSex::IGreatSexGeneratorSupervisor> greatSex;
 
 		struct ShaderMonitorHook : IO::IShaderMonitorEventHook
 		{
@@ -324,6 +327,7 @@ namespace MHost
 		App(Platform& _platform, IDirectAppControl& _control, const AppArgs& args) :
 			platform(_platform), control(_control), sceneManager(_platform)
 		{
+			greatSex = GreatSex::CreateGreatSexGenerator(Rococo::Memory::CheckedAllocator());
 			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy", nullptr, Rococo::NoImplicitIncludes());
 			shaderMonitorHook.app = this;
 
@@ -923,6 +927,33 @@ namespace MHost
 		void PostCreate()
 		{
 			platform.graphics.shaderMonitorEventsProxy.AddHook(&shaderMonitorHook);
+		}
+
+		void AddSexmlSheet(Rococo::Script::ISxyExpressionRef sexml) override
+		{
+			cr_sex s = Rococo::Compiler::GetExpression(sexml);
+
+			SetEditorVisibility(true);
+
+			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			if (!frame)
+			{
+				Throw(0, "Could not find %s inside the platform.graphics.GR object", ID_EDITOR_FRAME);
+			}
+
+			struct Cleaner : IEventCallback<Rococo::Gui::IGRPanel>
+			{
+				void OnEvent(Gui::IGRPanel& panel) override
+				{
+					panel.MarkForDelete();
+				}
+			} eraseChildren;
+
+			frame->ClientArea().Panel().EnumerateChildren(&eraseChildren);
+
+			platform.graphics.GR.GarbageCollect();
+
+			greatSex->AppendWidgetTreeFromSexML(s, frame->ClientArea());
 		}
 	};
 }

@@ -147,7 +147,7 @@
 (function AppendMethodName49  (Sys.Type.IStringBuilder sb)(Int32 methodIndex) (Pointer structPtr) -> (Int32 nameLength) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 763))
 (alias AppendMethodName49 Sys.Reflection.Native.AppendMethodName)
 
-(function GetSysMessage50  (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message) : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 472))
+(function GetSysMessage50  (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.exception.logic.inl" 472))
 (alias GetSysMessage50 Sys.Type.GetSysMessage)
 
 (function FastStringBuilderStripLeft51  (Sys.Type.IStringBuilder sb) (Int32 leftPos)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1827))
@@ -159,7 +159,7 @@
 (function MaxOf53 (Int64 x)(Int64 y) -> (Int64 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 205))
 (alias MaxOf53 Sys.Maths.I64.MaxOf)
 
-(function _throw54  (Sys.Type.Pointer ex)-> : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 471))
+(function _throw54  (Sys.Type.Pointer ex)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.exception.logic.inl" 471))
 (alias _throw54 Sys.Type._throw)
 
 (function Mod55 (Int32 numerator)(Int32 denominator) -> (Int32 remainder) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 395))

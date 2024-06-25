@@ -3489,8 +3489,8 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			ss.AddNativeCall(ns, ANON::CpuHz, NULL,"CpuHz -> (Int64 hz)", __FUNCTION__, __LINE__, false, 0);
-			ss.AddNativeCall(ns, ANON::CpuTime, NULL,"CpuTime -> (Int64 count)", __FUNCTION__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::CpuHz, NULL,"CpuHz -> (Int64 hz)", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::CpuTime, NULL,"CpuTime -> (Int64 count)", __FILE__, __LINE__, false, 0);
 		}
 		catch (IException& ex)
 		{
@@ -3533,7 +3533,7 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			ss.AddNativeCall(ns, ANON::Square, NULL,"Square (Int32 x)-> (Int32 y)", __FUNCTION__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::Square, NULL,"Square (Int32 x)-> (Int32 y)", __FILE__, __LINE__, false, 0);
 		}
 		catch (IException& ex)
 		{
@@ -3581,7 +3581,7 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			ss.AddNativeCall(ns, ANON::George, NULL,"George (Int32 x)(Int32 y)-> (Int32 pxy)(Int32 dxy)", __FUNCTION__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::George, NULL,"George (Int32 x)(Int32 y)-> (Int32 pxy)(Int32 dxy)", __FILE__, __LINE__, false, 0);
 		}
 		catch (IException& ex)
 		{
@@ -4311,7 +4311,7 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL,"InvokeTest ->", __FUNCTION__, __LINE__, false, 0);
+			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL,"InvokeTest ->", __FILE__, __LINE__, false, 0);
 		}
 		catch (IException& ex)
 		{
@@ -4368,7 +4368,7 @@ R"((namespace EntryPoint)
 
 		try
 		{
-			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL,"InvokeTest ->", __FUNCTION__, __LINE__, false, 0);
+			ss.AddNativeCall(nsSys, ANON::InvokeTest, NULL,"InvokeTest ->", __FILE__, __LINE__, false, 0);
 		}
 		catch (IException& ex)
 		{
@@ -14734,7 +14734,7 @@ R"((namespace EntryPoint)
 		};
 
 		const INamespace& ns = ss.AddNativeNamespace("Test");
-		ss.AddNativeCall(ns, ANON::GetPointer, NULL,"GetPointer (Int32 id) -> (Pointer pointer)", __FUNCTION__, __LINE__, false, 0);
+		ss.AddNativeCall(ns, ANON::GetPointer, NULL,"GetPointer (Int32 id) -> (Pointer pointer)", __FILE__, __LINE__, false, 0);
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
 
 		vm.Push((void*) 0); // Allocate stack space for the int32 result
@@ -16404,7 +16404,7 @@ R"(
 		   }
 	   };
 
-	   ss.AddNativeCall(ns, MessageDispatcher::Dispatch, nullptr, "DispatchMessage (Sys.DispatchEventHandler handler) -> ", __FUNCTION__, __LINE__, true, 0);
+	   ss.AddNativeCall(ns, MessageDispatcher::Dispatch, nullptr, "DispatchMessage (Sys.DispatchEventHandler handler) -> ", __FILE__, __LINE__, true, 0);
 
 	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 

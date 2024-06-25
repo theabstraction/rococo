@@ -209,6 +209,10 @@ namespace Rococo
 		{
 			void* pSexyInterfacePointer;
 		};
+		struct ISxyExpressionRef
+		{
+			void* internal;
+		};
 	}
 
 	template<class T> struct FilePath

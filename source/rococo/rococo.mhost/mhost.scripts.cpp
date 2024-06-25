@@ -191,7 +191,7 @@ namespace MHost
 				Interop::AddNativeCalls_MHostIDictionaryStream(args.ss, &platform.os.installation);
 
 				auto& mhostOS = args.ss.AddNativeNamespace("MHost.OS");
-				args.ss.AddNativeCall(mhostOS, ScriptContext::NativeLoadExpression, this, "LoadExpression (Sys.Type.IString name) -> (Sys.Reflection.IExpression s)", __FUNCTION__, __LINE__);
+				args.ss.AddNativeCall(mhostOS, ScriptContext::NativeLoadExpression, this, "LoadExpression (Sys.Type.IString name) -> (Sys.Reflection.IExpression s)", __FILE__, __LINE__);
 
 				engine->SetRunningScriptContext(&args.ss);
 

@@ -688,6 +688,9 @@ namespace Rococo {
 			virtual int GetOffset(size_t variableIndex) const = 0;
 		};
 
+		// Extracts the cr_sex wrapped inside of a SexyScript IExpression object. If the object is not the native C++ Expression defined for Reflection.sxy an exception is thrown
+		SEXYUTIL_API const Rococo::Sex::ISExpression& GetExpression(Rococo::Script::ISxyExpressionRef sexyIExpressionRef);
+
 		SEXYUTIL_API const IMember* FindMember(const IStructure& s, cstr name, OUT int& offset);
 		SEXYUTIL_API const IStructure* FindMember(const IStructure& s, cstr name);
 		SEXYUTIL_API bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr interfaceName, cstr methodName);

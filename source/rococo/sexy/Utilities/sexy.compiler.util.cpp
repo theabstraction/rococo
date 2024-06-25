@@ -43,6 +43,26 @@ using namespace Rococo::Strings;
 
 namespace Rococo::Compiler
 {
+	SEXYUTIL_API const Rococo::Sex::ISExpression& GetExpression(Rococo::Script::ISxyExpressionRef sexyIExpressionRef)
+	{
+		const auto& ip = reinterpret_cast<const Rococo::Compiler::InterfacePointer&>(sexyIExpressionRef);
+		auto* stub = InterfaceToInstance(ip);
+
+		struct ExpressionObject : Rococo::Compiler::ObjectStub
+		{
+			const Rococo::Sex::ISExpression* s;
+		};
+
+		if (!Eq(stub->Desc->TypeInfo->Module().Name(), "!scripts/native/Sys.Reflection.sxy"))
+		{
+			Throw(0, "%s: IExpression implementation must be the native C++ Expression defined for Sys.Reflection.sxy. The implementation was %s", __FUNCTION__, stub->Desc->TypeInfo->Module().Name());
+		}
+
+		auto* sHolder = static_cast<ExpressionObject*>(stub);
+
+		return *sHolder->s;
+	}
+
 	SEXYUTIL_API IStructureBuilder* FindMember(IStructureBuilder& s, cstr name)
 	{
 		for(int i = 0; i < s.MemberCount(); i++)

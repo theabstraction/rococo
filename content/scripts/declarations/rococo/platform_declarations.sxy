@@ -177,7 +177,7 @@
 (function IRigBuilderSetScale59  (Pointer hObject)(Sys.Type.IString name)(Float32 sx)(Float32 sy)(Float32 sz) ->  : (source "C:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 1700))
 (alias IRigBuilderSetScale59 Rococo.Entities.Native.IRigBuilderSetScale)
 
-(function GetSysMessage60  (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message) : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 472))
+(function GetSysMessage60  (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.exception.logic.inl" 472))
 (alias GetSysMessage60 Sys.Type.GetSysMessage)
 
 (function AddConfig61  (Sys.Type.ComponentRef outputRef) (ROID id) ->  : (source "C:\work\rococo\source\rococo\component.modules\configuration\code-gen\config.sxh.inl" 71))
@@ -1242,7 +1242,7 @@
 (function WriteAsHex414  (Sys.IO.IWriter writer)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" 1246))
 (alias WriteAsHex414 Sys.IO.Native.WriteAsHex)
 
-(function _throw415  (Sys.Type.Pointer ex)-> : (source "Rococo::Script::CDefaultExceptionLogic::InstallThrowHandler" 471))
+(function _throw415  (Sys.Type.Pointer ex)-> : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.exception.logic.inl" 471))
 (alias _throw415 Sys.Type._throw)
 
 (function MaxOf416 (Int64 x)(Int64 y) -> (Int64 maxValue) : (source "C:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i64.inl" 205))

@@ -85,6 +85,7 @@
 		(GetNextMouseEvent (out MouseEvent me)->(Bool wasPopped))
 		(GetNextKeyboardEvent(out KeyboardEvent ke)->(Bool wasPopped))
 		(Render (GuiPopulator populator))
+		(AddSexmlSheet (IExpression sexml))
 		
 		(const IsAppModal -> (Bool isModal))
 		(const IsRunning -> (Bool isRunning))

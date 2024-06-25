@@ -8,7 +8,7 @@
 #include "rococo.os.win32.h"
 #include "rococo.os.h"
 #include "rococo.time.h"
-#include "..\STC\\stccore\Sexy.Compiler.h"
+#include "..\STC\stccore\Sexy.Compiler.h"
 
 #include <sexy.unordered_map.h>
 #include <sexy.vector.h>

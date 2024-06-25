@@ -694,7 +694,7 @@ namespace Rococo
 				break;
 			}
 
-			Throw(directive, ("Cannot determine RHS of assignment"));
+			Throw(directive, "Cannot determine RHS of assignment");
 		}
 
 		void CompileAssignAtomicValueToMember(CCompileEnvironment& ce, const IMember& member, cr_sex src, cstr targetVariable)

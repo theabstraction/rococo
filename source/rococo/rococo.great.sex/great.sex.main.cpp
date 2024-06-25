@@ -1,4 +1,4 @@
-#include <great.sex.h>
+#include <rococo.great.sex.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.sexml.h>
@@ -135,7 +135,28 @@ namespace Rococo::GreatSex
 			auto i = widgetHandlers.find(fqName);
 			if (i == widgetHandlers.end())
 			{
-				Throw(directive.S(), "Unhandled widget directive: %s", fqName);
+				AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(256);
+				auto& sb = dsb->Builder();
+				sb << "Known directives: ";
+
+				bool first = true;
+				for (auto h : widgetHandlers)
+				{
+					if (!first)
+					{
+						sb << ", ";
+					}
+					else
+					{
+						first = false;
+					}
+
+					sb << (cstr) h.first;
+				}
+
+				auto knownDirectives = *sb;
+
+				Throw(directive.S(), "Unhandled widget directive: %s.\n%s", fqName, (cstr) knownDirectives);
 			}
 
 			auto f = i->second;

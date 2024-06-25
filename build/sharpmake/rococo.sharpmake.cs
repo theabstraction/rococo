@@ -1147,23 +1147,6 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
-    public class RococoGreatSexTestProject : RococoProject
-    {
-        public RococoGreatSexTestProject() : base("rococo.great.sex.test")
-        {
-            
-        }
-
-        [Configure()]
-        public void ConfigureAll(Configuration conf, Target target)
-        {
-            StandardInit(conf, target, Configuration.OutputType.Exe);
-            conf.AddPublicDependency<RococoGreatSexProject>(target);
-            conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
-        }
-    }
-
-    [Sharpmake.Generate]
     public class RococoMPlatProject : RococoProject
     {
         public RococoMPlatProject() : base("rococo.mplat")
@@ -1230,6 +1213,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.AddPrivateDependency<RococoSEXMLProject>(target);
+            conf.AddPrivateDependency<RococoGreatSexProject>(target);
             conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
 
             // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\
@@ -1963,7 +1947,6 @@ namespace Rococo
             conf.AddProject<RococoFileBrowserProject>(target);
             conf.AddProject<RococoGuiRetainedProject>(target);
             conf.AddProject<RococoGreatSexProject>(target);
-            conf.AddProject<RococoGreatSexTestProject>(target);
             conf.AddProject<RococoMPlatProject>(target);
             conf.AddProject<RococoMPlatDynamicProject>(target);
             conf.AddProject<RococoMHostProject>(target);

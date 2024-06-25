@@ -50,7 +50,12 @@
 	(fonts.AddCharacters "£")
 	(fonts.SetHeight 28)
 	(fonts.Commit)
-		
+	
+	(ISpriteBuilder sprites (SpriteBuilder))
+	(sprites.AddEachSpriteInDirectory "!textures\toolbars")
+	(sprites.AddEachSpriteInDirectory "!textures\toolbars\3rd-party\www.aha-soft.com")
+	(sprites.LoadAllSprites)
+			
 	(IEngine engine (Engine))
 	(engine.SetNextScript "!scripts/mhost/great.sex.screen.sxy")
 )

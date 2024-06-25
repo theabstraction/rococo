@@ -30,12 +30,16 @@ namespace Rococo::Sex::SEXML
 		Raw						// The S expression of ISEXMLAttributeValue gives the raw expression, there is nothing to cast
 	};
 
+	DECLARE_ROCOCO_INTERFACE ISEXMLAttribute;
+
 	ROCOCO_INTERFACE ISEXMLAttributeValue
 	{
 		virtual [[nodiscard]] SEXMLValueType Type() const = 0;
 
 		// Source expression
 		virtual [[nodiscard]] cr_sex S() const = 0;
+
+		virtual [[nodiscard]] const ISEXMLAttribute& Attribute() const = 0;
 
 		virtual ~ISEXMLAttributeValue() {}
 	};

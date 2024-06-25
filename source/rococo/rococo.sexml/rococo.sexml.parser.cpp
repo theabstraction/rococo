@@ -40,10 +40,16 @@ namespace Rococo::Sex::SEXML
 	struct RawValue : ISEXMLAttributeValue
 	{
 		cr_sex s;
+		const ISEXMLAttribute& a;
 
-		RawValue(cr_sex _s) noexcept : s(_s)
+		RawValue(const ISEXMLAttribute& _a, cr_sex _s) noexcept : s(_s), a(_a)
 		{
 			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+		}
+
+		const ISEXMLAttribute& Attribute() const override
+		{
+			return a;
 		}
 
 		SEXMLValueType Type() const override
@@ -63,13 +69,19 @@ namespace Rococo::Sex::SEXML
 		cstr value; // having a value as a member increases memory cost, but eases debugging in the watch view
 #endif
 		cr_sex s;
+		const ISEXMLAttribute& a;
 
-		StringValue(cr_sex _s) noexcept : s(_s)
+		StringValue(const ISEXMLAttribute& _a, cr_sex _s) noexcept : s(_s), a(_a)
 		{
 #ifdef _DEBUG
 			value = s.c_str();
 #endif
 			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+		}
+
+		const ISEXMLAttribute& Attribute() const override
+		{
+			return a;
 		}
 
 		SEXMLValueType Type() const override
@@ -111,8 +123,9 @@ namespace Rococo::Sex::SEXML
 
 		// (#VecN <name> <x> <y> ...) 
 		cr_sex sAttribute;
+		const ISEXMLAttribute& a;
 
-		SmallVectorI(cr_sex s, const int* args) noexcept :sAttribute(s)
+		SmallVectorI(const ISEXMLAttribute& _a, cr_sex s, const int* args) noexcept :sAttribute(s), a(_a)
 		{
 			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
 
@@ -124,6 +137,11 @@ namespace Rococo::Sex::SEXML
 			{
 				t[i] = args[i];
 			}
+		}
+
+		const ISEXMLAttribute& Attribute() const override
+		{
+			return a;
 		}
 
 		int NumberOfDimensions() const override
@@ -146,7 +164,7 @@ namespace Rococo::Sex::SEXML
 			return sAttribute;
 		}
 
-		static SmallVectorI* Create(IAllocator& allocator, cr_sex sAttribute)
+		static SmallVectorI* Create(ISEXMLAttribute& a, IAllocator& allocator, cr_sex sAttribute)
 		{
 			int32 items[4];
 
@@ -187,7 +205,7 @@ namespace Rococo::Sex::SEXML
 			}
 
 			void* pMemory = allocator.Allocate(sizeof SmallVectorI);
-			return new (pMemory) SmallVectorI(sAttribute, items);
+			return new (pMemory) SmallVectorI(a, sAttribute, items);
 		}
 	};
 #pragma pack(pop)
@@ -202,8 +220,9 @@ namespace Rococo::Sex::SEXML
 
 		// (#VecN <name> <x> <y> ...) 
 		cr_sex sAttribute;
+		const ISEXMLAttribute& a;
 
-		SmallVector(cr_sex s, const double* args) :sAttribute(s)
+		SmallVector(const ISEXMLAttribute& _a, cr_sex s, const double* args) :sAttribute(s), a(_a)
 		{
 			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
 
@@ -215,6 +234,11 @@ namespace Rococo::Sex::SEXML
 			{
 				x0[i] = args[i];
 			}
+		}
+
+		const ISEXMLAttribute& Attribute() const override
+		{
+			return a;
 		}
 
 		int NumberOfDimensions() const override
@@ -237,7 +261,7 @@ namespace Rococo::Sex::SEXML
 			return sAttribute;
 		}
 
-		static SmallVector* Create(IAllocator& allocator, cr_sex sAttribute)
+		static SmallVector* Create(ISEXMLAttribute& a, IAllocator& allocator, cr_sex sAttribute)
 		{
 			double items[4];
 
@@ -268,7 +292,7 @@ namespace Rococo::Sex::SEXML
 			}
 
 			void* pMemory = allocator.Allocate(sizeof SmallVector);
-			return new (pMemory) SmallVector(sAttribute, items);
+			return new (pMemory) SmallVector(a, sAttribute, items);
 		}
 	};
 #pragma pack(pop)
@@ -277,10 +301,16 @@ namespace Rococo::Sex::SEXML
 	{
 		cr_sex s;
 		SEXMLValueType type;
+		const ISEXMLAttribute& a;
 
-		ListValue(cr_sex sAttribute, SEXMLValueType _type) noexcept : s(sAttribute), type(_type)
+		ListValue(const ISEXMLAttribute& _a, cr_sex sAttribute, SEXMLValueType _type) noexcept : s(sAttribute), type(_type), a(_a)
 		{
 			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+		}
+
+		const ISEXMLAttribute& Attribute() const override
+		{
+			return a;
 		}
 
 		cr_sex S() const override
@@ -377,13 +407,13 @@ namespace Rococo::Sex::SEXML
 					// Raw expression (' <name> (...)) - The value of the raw expression is the third argument which can be anything, atomic, string literal, null or compound
 					type = SEXMLValueType::Raw;
 					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
-					a = new (pMemory) RawValue(sAttribute[2]);
+					a = new (pMemory) RawValue(*this, sAttribute[2]);
 				}
 				else if (Eq(fName, "#Vec2"))
 				{
 					// (#Vec2 <name> <x> <y>)
 					type = SEXMLValueType::SmallVector;
-					a = SmallVector::Create(root.Allocator(), sAttribute);
+					a = SmallVector::Create(*this, root.Allocator(), sAttribute);
 					if (a->S().NumberOfElements() != 6)
 					{
 						Throw(a->S(), "Expecting two arguments (#Vec3 <name> <Vx> <Vy>)");
@@ -393,7 +423,7 @@ namespace Rococo::Sex::SEXML
 				{
 					// (#Vec3 <name> <x> <y> <z>)
 					type = SEXMLValueType::SmallVector;
-					a = SmallVector::Create(root.Allocator(), sAttribute);
+					a = SmallVector::Create(*this, root.Allocator(), sAttribute);
 					if (a->S().NumberOfElements() != 6)
 					{
 						Throw(a->S(), "Expecting three arguments (#Vec3 <name> <Vx> <Vy> <Vz>)");
@@ -403,7 +433,7 @@ namespace Rococo::Sex::SEXML
 				{
 					// (#Vec4 <name> <x> <y> <z> <w>)
 					type = SEXMLValueType::SmallVector;
-					a = SmallVector::Create(root.Allocator(), sAttribute);
+					a = SmallVector::Create(*this, root.Allocator(), sAttribute);
 					if (a->S().NumberOfElements() != 6)
 					{
 						Throw(a->S(), "Expecting four arguments (#Vec4 <name> <Vx> <Vy> <Vz> <Sw>)");
@@ -413,7 +443,7 @@ namespace Rococo::Sex::SEXML
 				{
 					// (#Quat <name> <Vx> <Vy> <Vz> <Sw>)
 					type = SEXMLValueType::SmallVector;
-					a = SmallVector::Create(root.Allocator(), sAttribute);
+					a = SmallVector::Create(*this, root.Allocator(), sAttribute);
 					if (a->S().NumberOfElements() != 6)
 					{
 						Throw(a->S(), "Expecting four arguments (#Quat <name> <Vx> <Vy> <Vz> <Sw>)");
@@ -423,7 +453,7 @@ namespace Rococo::Sex::SEXML
 				{
 					// (#Vec2i <name> <x> <y>)
 					type = SEXMLValueType::SmallVectorI;
-					a = SmallVectorI::Create(root.Allocator(), sAttribute);
+					a = SmallVectorI::Create(*this, root.Allocator(), sAttribute);
 					if (a->S().NumberOfElements() != 4)
 					{
 						Throw(a->S(), "Expecting two arguments (#Vec2i <name> <x> <y>)");
@@ -433,7 +463,7 @@ namespace Rococo::Sex::SEXML
 				{
 					// (#Recti <name> <left> <top> <right> <bottom>)
 					type = SEXMLValueType::SmallVectorI;
-					a = SmallVectorI::Create(root.Allocator(), sAttribute);
+					a = SmallVectorI::Create(*this, root.Allocator(), sAttribute);
 					if (a->S().NumberOfElements() != 6)
 					{
 						Throw(a->S(), "Expecting four arguments (#Recti <name> <left> <top> <right> <bottom>)");
@@ -482,7 +512,7 @@ namespace Rococo::Sex::SEXML
 					}
 
 					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
-					a = new (pMemory) ListValue(sAttribute, type);
+					a = new (pMemory) ListValue(*this, sAttribute, type);
 				}
 				else
 				{
@@ -517,7 +547,7 @@ namespace Rococo::Sex::SEXML
 					}
 
 					auto* pMemory = root.Allocator().Allocate(sizeof StringValue);
-					a = new (pMemory) StringValue(sValue);
+					a = new (pMemory) StringValue(*this, sValue);
 				}
 
 				attributeName = ValidateAttributeNameAndGet(sAttribute, namePos);
@@ -881,7 +911,7 @@ namespace Rococo::Sex::SEXML
 		Rococo::Throw(0, "Bad parameter");
 	}
 
-	ROCOCO_SEXML_API ISEXMLRootSupervisor* CreateSEXMLParser(IAllocator& allocator, cr_sex sRoot)
+	ROCOCO_SEXML_API [[nodiscard]] ISEXMLRootSupervisor* CreateSEXMLParser(IAllocator& allocator, cr_sex sRoot)
 	{
 		_invalid_parameter_handler old = _set_invalid_parameter_handler(OnBadParameter);
 
@@ -901,7 +931,7 @@ namespace Rococo::Sex::SEXML
 		}
 	}
 
-	ROCOCO_SEXML_API const ISEXMLDirective* FindDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLDirective* FindDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
 	{
 		if (startIndex >= items.NumberOfDirectives())
 		{
@@ -921,7 +951,7 @@ namespace Rococo::Sex::SEXML
 		return nullptr;
 	}
 
-	ROCOCO_SEXML_API const ISEXMLDirective& GetDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLDirective& GetDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
 	{
 		const ISEXMLDirective* dir = FindDirective(items, directiveName, startIndex);
 		if (!dir)
@@ -931,7 +961,7 @@ namespace Rococo::Sex::SEXML
 		return *dir;
 	}
 
-	ROCOCO_SEXML_API const ISEXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value)
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())
 		{
@@ -939,13 +969,13 @@ namespace Rococo::Sex::SEXML
 		case Rococo::Sex::SEXML::SEXMLValueType::StringLiteral:
 			break;
 		default:
-			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list.");
+			Rococo::Sex::Throw(value.S(), "Cannot interpret %s value as a string.", value.Attribute().Name());
 		}
 
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringValue&>(value);
 	}
 
-	ROCOCO_SEXML_API const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
+	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())
 		{
@@ -954,7 +984,7 @@ namespace Rococo::Sex::SEXML
 		case Rococo::Sex::SEXML::SEXMLValueType::MixedStringList:
 			break;
 		default:
-			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list. Expecting #List");
+			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a string list. Expecting (#List %s <args...>)", value.Attribute().Name());
 		}
 
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringListValue&>(value);
@@ -975,7 +1005,7 @@ namespace Rococo::Sex::SEXML
 			}
 			catch (IException& ex)
 			{
-				Throw(items.S(), "Error parsing element[%d]: %s", ex.Message());
+				Throw(items.S(), "Error parsing element[%d] for %s: %s", i, value.Attribute().Name(), ex.Message());
 			}
 		}
 
@@ -989,7 +1019,7 @@ namespace Rococo::Sex::SEXML
 		case Rococo::Sex::SEXML::SEXMLValueType::SmallVectorI:
 			break;
 		default:
-			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a Vector. Expecting #Vec<N>");
+			Rococo::Sex::Throw(value.S(), "Cannot interpret %s value as a Vector. Expecting #Vec<N>", value.Attribute().Name());
 		}
 
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeSmallVectorIValue&>(value);
@@ -1002,7 +1032,7 @@ namespace Rococo::Sex::SEXML
 		case Rococo::Sex::SEXML::SEXMLValueType::SmallVector:
 			break;
 		default:
-			Rococo::Sex::Throw(value.S(), "Cannot interpret value as a Vector. Expecting #Vec<N>");
+			Rococo::Sex::Throw(value.S(), "Cannot interpret %s value as a Vector. Expecting #Vec<N>", value.Attribute().Name());
 		}
 
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeSmallVectorValue&>(value);

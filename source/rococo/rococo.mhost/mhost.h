@@ -21,6 +21,7 @@ namespace Rococo
 	namespace Script
 	{
 		struct ArchetypeCallback;
+		struct ISxyExpression;
 	}
 }
 
@@ -85,6 +86,7 @@ namespace MHost
 }
 
 #include <rococo.io.h>
+#include <sexy.compiler.public.h>
 #include <..\rococo.mhost\code-gen\mhost.sxh.h>
 
 namespace MHost

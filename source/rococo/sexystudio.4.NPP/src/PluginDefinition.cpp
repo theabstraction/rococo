@@ -457,7 +457,14 @@ public:
                         }
                     }
 
-                    return This->TrySendOpenScintillaAtLine(path, lineNumber);
+                    if (strcmp("<this>", path) == 0)
+                    {
+                        return This->TrySendOpenScintillaAtLine(currentFile, lineNumber);
+                    }
+                    else
+                    {
+                        return This->TrySendOpenScintillaAtLine(path, lineNumber);
+                    }
                 }
 
                 void OnBackButtonClicked() override

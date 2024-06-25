@@ -1,3 +1,4 @@
+#pragma once
 #include <rococo.types.h>
 
 #ifndef ROCOCO_GUI_RETAINED_API

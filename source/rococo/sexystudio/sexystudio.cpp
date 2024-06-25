@@ -3054,7 +3054,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 			int lineNumber = GetLineNumber(doc, inference.declarationType.start);
 
-			char docToken[32];
+			char docToken[256];
 			substringDoc.CopyWithTruncate(docToken, sizeof docToken);
 
 			editor.GotoDefinition(docToken, "<this>", lineNumber);
@@ -3069,7 +3069,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			return;
 		}
 
-		char docToken[32];
+		char docToken[256];
 		substringDoc.CopyWithTruncate(docToken, sizeof docToken);
 
 		char fqName[256];
@@ -3109,9 +3109,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		}
 	}
 
-	void ExpandSearchTokenToRight(REF Substring& searchToken, cr_substring doc)
+	NOT_INLINE void ExpandSearchTokenToRight(REF Substring& searchToken, cr_substring doc)
 	{
-		cstr p = searchToken.begin();
+		cstr p = searchToken.end();
 		for (;p < doc.end(); p++)
 		{
 			if (IsAlphaNumeric(*p))
