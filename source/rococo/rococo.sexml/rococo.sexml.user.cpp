@@ -89,7 +89,7 @@ namespace Rococo::OS
 		IO::LoadAsciiTextFile(onLoadFile, wFullName);
 
 		AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(65_kilobytes, 0, "LoadUserDataAllocator");
-
+		
 		U8FilePath u8Path;
 		Assign(u8Path, wFullName);
 				

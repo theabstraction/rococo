@@ -511,7 +511,7 @@ namespace Rococo::Sex::SEXML
 						type = SEXMLValueType::AtomicList;
 					}
 
-					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
+					auto* pMemory = root.Allocator().Allocate(sizeof ListValue);
 					a = new (pMemory) ListValue(*this, sAttribute, type);
 				}
 				else
