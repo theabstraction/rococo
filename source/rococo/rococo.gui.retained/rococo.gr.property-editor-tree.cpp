@@ -751,6 +751,11 @@ namespace GRANON
 				viewport->SetDomainHeight(sumTotalHeight);
 			}
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRPropertyEditorTree";
+		}
 	};
 }
 

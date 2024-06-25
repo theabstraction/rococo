@@ -167,6 +167,11 @@ namespace GRANON
 
 			return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRVerticalList";
+		}
 	};
 
 	struct GRVerticalListFactory : IGRWidgetFactory

@@ -382,6 +382,12 @@ namespace Rococo::Gui
 		// It marks the layout as having been computed
 		virtual void ConfirmLayout() = 0;
 
+		// Append a useful debugging string to the builder
+		virtual void AppendDesc(Strings::StringBuilder& sb) = 0;
+
+		// Assign a useful debugging string to the panel.
+		virtual void SetDesc(cstr text) = 0;
+
 		// Enumerate the panel and its ancestors for a colour, if none found returns the second argument (which defaults to bright red).
 		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState state, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
 
@@ -498,6 +504,8 @@ namespace Rococo::Gui
 
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
+
+		virtual cstr GetImplementationTypeName() const = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSupervisor: IGRWidget

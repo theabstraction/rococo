@@ -294,6 +294,11 @@ namespace ANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRViewportWidget";
+		}
 	};
 
 	struct : IGRWidgetFactory

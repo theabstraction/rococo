@@ -166,6 +166,11 @@ namespace GRANON
 		{
 			return Gui::QueryForParticularInterface<IGRWidgetMainFrame>(this, ppOutputArg, interfaceId);
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRMainFrame";
+		}
 	};
 }
 

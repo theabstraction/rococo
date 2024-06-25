@@ -365,6 +365,11 @@ namespace GRANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRButton";
+		}
 	};
 
 	struct GRButtonFactory : IGRWidgetFactory

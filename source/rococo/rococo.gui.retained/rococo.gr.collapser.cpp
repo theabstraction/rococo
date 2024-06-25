@@ -179,6 +179,11 @@ namespace GRANON
 			GRCollapser* instance = (GRCollapser*)this;
 			return Gui::QueryForParticularInterface<IGRWidgetCollapser, GRCollapser>(instance, ppOutputArg, interfaceId);
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRCollapser";
+		}
 	};
 
 	struct GRCollapserFactory : IGRWidgetFactory

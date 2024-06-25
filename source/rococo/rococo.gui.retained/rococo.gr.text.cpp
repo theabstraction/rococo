@@ -118,6 +118,11 @@ namespace GRANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRText";
+		}
 	};
 
 	struct GRTextFactory : Rococo::Gui::IGRWidgetFactory

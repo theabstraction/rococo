@@ -213,6 +213,11 @@ namespace GRANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRSplitter";
+		}
 	};
 
 	struct GRSplitterFactory : IGRWidgetFactory

@@ -319,6 +319,11 @@ namespace ANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRVerticalScroller";
+		}
 	};
 
 	struct VerticalScrollerFactory : IGRWidgetFactory

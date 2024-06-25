@@ -34,6 +34,7 @@ namespace GRANON
 		bool isCollapsed = false;
 		int64 refCount = 0;
 		int64 flags = 0;
+		HString desc;
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
 		{
@@ -44,6 +45,16 @@ namespace GRANON
 		{
 			flags |= (int64) flag;
 			return *this;
+		}
+
+		void AppendDesc(Strings::StringBuilder& sb) override
+		{
+			sb.AppendFormat("%s (id %lld)", desc.c_str(), Id());
+		}
+
+		void SetDesc(cstr text) override
+		{
+			desc = text;
 		}
 
 		bool HasFlag(EGRPanelFlags flag) const override
@@ -508,6 +519,7 @@ namespace GRANON
 		void SetWidget(IGRWidgetSupervisor& widget) override
 		{
 			this->widget = &widget;
+			this->desc = widget.GetImplementationTypeName();
 		}
 
 		IGRWidget& Widget() override
@@ -654,14 +666,18 @@ namespace Rococo::Gui
 		if (newSpan.x == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
 			char message[256];
-			SafeFormat(message, "Panel %lld width was computed to be zero", child.Id());
+			Strings::StackStringBuilder sb(message, sizeof message);
+			child.AppendDesc(sb);
+			sb << ": width was computed to be zero";
 			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanWidth, __FUNCTION__, message);
 		}
 
 		if (newSpan.y == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
 			char message[256];
-			SafeFormat(message, "Panel %lld height was computed to be zero", child.Id());
+			Strings::StackStringBuilder sb(message, sizeof message);
+			child.AppendDesc(sb);
+			sb << ": height was computed to be zero";
 			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanHeight, __FUNCTION__, message);
 		}
 

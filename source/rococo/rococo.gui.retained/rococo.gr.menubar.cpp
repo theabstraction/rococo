@@ -501,6 +501,11 @@ namespace GRANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRMenuBar";
+		}
 	};
 
 	struct GRMenuBarFactory : IGRWidgetFactory

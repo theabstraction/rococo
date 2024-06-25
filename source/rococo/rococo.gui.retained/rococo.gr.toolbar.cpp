@@ -160,6 +160,11 @@ namespace GRANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRToolbar";
+		}
 	};
 
 	struct GRToolbarFactory : IGRWidgetFactory

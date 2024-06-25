@@ -80,6 +80,11 @@ namespace GRANON
 		{
 			return QueryForParticularInterface<IGRWidgetDivision>(this, ppOutputArg, interfaceId);
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRDivision";
+		}
 	};
 
 	struct GRDivFactory : IGRWidgetFactory

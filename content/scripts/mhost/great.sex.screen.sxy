@@ -84,13 +84,22 @@
 )
 
 (function GetSexmlForGui -> (Sys.Reflection.IExpression sexml):
-(Sys.Reflection.IExpression s = '
-(
-	(Div (#List Panel.Anchors dog)
-	)
+	(Sys.Reflection.IExpression s = '	(
+	
+// Taking liberties with indentation standards here - we want to demonstrate embedding a SEXML document within a SexyScript. Normally in a standalone SEXML file the SEXML tree is at the root, so we would have no containing parenthesis	
+// and the root directives would be aligned to the left of the page without blankspace
+	
+	
+
+(Div (#List Panel.Anchors vexpand hexpand)
+
 )
-)	
-(sexml = s)
+
+
+
+										)
+	)	
+	(sexml = s)
 )
 
 (function Main (Int32 id) -> (Int32 exitCode):

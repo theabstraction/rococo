@@ -330,6 +330,11 @@ namespace GRANON
 		{
 			return *this;
 		}
+
+		cstr GetImplementationTypeName() const override
+		{
+			return "GRTable";
+		}
 	};
 
 	struct GRTableFactory : IGRWidgetFactory
