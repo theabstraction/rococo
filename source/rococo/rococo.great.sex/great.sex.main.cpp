@@ -30,6 +30,8 @@ namespace Rococo::GreatSex
 	{
 		auto& panel = widget.Panel();
 
+		panel.SetAssociatedSExpression(widgetDirective.S());
+
 		Vec2i offset = GetOptionalAttribute(widgetDirective, "Panel.Offset", Vec2i {0,0});
 		panel.SetParentOffset(offset);
 
@@ -74,6 +76,81 @@ namespace Rococo::GreatSex
 		GenerateChildren(generator, divDirective, div);
 	}
 
+	uint8 GetUByteValue(const Rococo::Sex::SEXML::ISEXMLDirective& directive, cstr attributeName)
+	{
+		int value = SEXML::AsAtomicInt32(directive[attributeName]);
+		if (value < 0 || value > 255)
+		{
+			Throw(directive.S(), "Domain of %s is [0,255]", attributeName);
+		}
+		return (uint8) value;
+	}
+
+	RGBAb GetColour(const Rococo::Sex::SEXML::ISEXMLDirective& colourDirective)
+	{
+		uint8 red = GetUByteValue(colourDirective, "Red");
+		uint8 green = GetUByteValue(colourDirective, "Green");
+		uint8 blue = GetUByteValue(colourDirective, "Blue");
+		uint8 alpha = GetUByteValue(colourDirective, "Alpha");
+		return RGBAb(red, green, blue, alpha);
+	}
+
+
+	void SetColourFromDirective(cstr colourName, EGRSchemeColourSurface surface, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective)
+	{
+		size_t startIndex = 0;
+		auto* colourDirective = schemeDirective.FindFirstChild(REF startIndex, colourName);
+		if (colourDirective)
+		{
+			RGBAb colour = GetColour(*colourDirective);
+			widget.Panel().Set(surface, colour, state);
+		}
+	}
+
+	void ApplyToRenderState(const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget)
+	{
+		SetColourFromDirective("ColourBackground", EGRSchemeColourSurface::CONTAINER_BACKGROUND, state, widget, schemeDirective);
+	}
+
+	void OnScheme(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Rococo::Gui::IGRWidget& widget)
+	{
+		UNUSED(generator);
+
+		size_t index = 0;
+		while (auto* directiveAppliesTo = schemeDirective.FindFirstChild(REF index, "ApplyTo"))
+		{
+			index++;
+
+			Gui::GRRenderState state(0, 0, 0);
+			auto& states = SEXML::AsStringList(directiveAppliesTo->GetAttributeByName("RenderStates").Value());
+			for (int i = 0; i < states.NumberOfElements(); ++i)
+			{
+				if (Eq(states[i], "focused"_fstring))
+				{
+					state.value.bitValues.focused = true;
+				}
+				else if (Eq(states[i], "hovered"_fstring))
+				{
+					state.value.bitValues.hovered = true;
+				}
+				else if (Eq(states[i], "pressed"_fstring))
+				{
+					state.value.bitValues.pressed = true;
+				}
+				else if (Eq(states[i], "default"_fstring))
+				{
+					
+				}
+				else
+				{
+					Throw(directiveAppliesTo->S(), "Unknown render state: %s", (cstr)states[i]);
+				}
+			}
+
+			ApplyToRenderState(schemeDirective, state, widget);
+		}
+	}
+
 	void OnVerticalList(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& verticalListDirective, Rococo::Gui::IGRWidget& parent)
 	{
 		auto& verticalList = Rococo::Gui::CreateVerticalList(parent);
@@ -103,6 +180,7 @@ namespace Rococo::GreatSex
 		GreatSexGenerator(IAllocator& _sexmlAllocator): sexmlAllocator(_sexmlAllocator)
 		{
 			AddHandler("Div", OnDivision);
+			AddHandler("Scheme", OnScheme);
 		}
 
 		virtual ~GreatSexGenerator()

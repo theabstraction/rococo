@@ -14,6 +14,9 @@
 #include <rococo.hashtable.h>
 #include <rococo.time.h>
 
+#include <sexy.types.h>
+#include <Sexy.S-Parser.h>
+
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Graphics;
@@ -526,14 +529,22 @@ namespace ANON
 			delete this;
 		}
 
-		void RaiseError(EGRErrorCode, cstr function, cstr format, ...) override
+		void RaiseError(const Sex::ISExpression* associatedSExpression, EGRErrorCode, cstr function, cstr format, ...) override
 		{
 			char message[1024];
 			va_list args;
 			va_start(args, format);
 			Strings::SafeVFormat(message, sizeof message, format, args);
 			va_end(args);
-			Throw(0, "%s: %s", function, message);
+
+			if (associatedSExpression)
+			{
+				Throw(*associatedSExpression, "%s: %s", function, message);
+			}
+			else
+			{
+				Throw(0, "%s: %s", function, message);
+			}
 		}
 
 		void Render(IGuiRenderContext& rc, IGRSystem& gr) override

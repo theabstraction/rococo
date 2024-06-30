@@ -10,6 +10,12 @@ namespace Rococo
 	struct KeyboardEvent;
 }
 
+namespace Rococo::Sex
+{
+	struct ISExpression;
+	typedef const ISExpression& cr_sex;
+}
+
 namespace Rococo::Gui
 {
 	struct IGRPanel;
@@ -214,15 +220,15 @@ namespace Rococo::Gui
 	{
 		struct Bits
 		{
-			int32 pressed : 1;
-			int32 hovered : 1;
-			int32 focused : 1;
+			uint32 pressed : 1;
+			uint32 hovered : 1;
+			uint32 focused : 1;
 		};
 
 		union Value
 		{
 			Bits bitValues;
-			int32 intValue;
+			uint32 intValue;
 		} value;
 
 		GRRenderState(bool pressed, bool hovered, bool focused)
@@ -462,6 +468,10 @@ namespace Rococo::Gui
 
 		// Assign minimal span
 		virtual void SetMinimalSpan(Vec2i span) = 0;
+
+		virtual const Sex::ISExpression* GetAssociatedSExpression() const = 0;
+
+		virtual void SetAssociatedSExpression(Sex::cr_sex s) = 0;
 
 		// Add extra rendering before and after widget rendering for the panel
 		virtual void SetPanelRenderer(IGRPanelRenderer* renderer) = 0;
@@ -873,6 +883,7 @@ namespace Rococo::Gui
 	enum EGRErrorCode
 	{
 		None,
+		BadAnchors,
 		BadSpanHeight,
 		BadSpanWidth,
 		Generic,

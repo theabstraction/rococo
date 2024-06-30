@@ -35,7 +35,7 @@ namespace GRANON
 				int dy = child->Span().y;
 				if (dy <= 0 && enforcePositiveChildHeights)
 				{
-					panel.Root().Custodian().RaiseError(EGRErrorCode::Generic, __FUNCTION__, "Child #%lld of vertical list %lld had zero height", child->Id(), panel.Id());
+					panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::Generic, __FUNCTION__, "Child #%lld of vertical list %lld had zero height", child->Id(), panel.Id());
 				}
 				child->Resize({Width(panelDimensions) - padding.left - padding.right, dy});
 				top += dy + padding.top + padding.bottom;

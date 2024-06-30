@@ -493,7 +493,7 @@ namespace GRANON
 			case PrimitiveType::CSTR:
 				if (field.value.stringValue.capacity > 0x7FFF'FFFFUL)
 				{
-					table.Widget().Panel().Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
+					table.Widget().Panel().Root().Custodian().RaiseError(table.Widget().Panel().GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
 				}
 				capacity = (int32) field.value.stringValue.capacity;
 				break;
@@ -584,7 +584,7 @@ namespace GRANON
 					pData = pData->parent;
 				}
 
-				parentContainer.Panel().Root().Custodian().RaiseError(EGRErrorCode::BadSpanHeight, __FUNCTION__, "%s", message);
+				parentContainer.Panel().Root().Custodian().RaiseError(parentContainer.Panel().GetAssociatedSExpression(), EGRErrorCode::BadSpanHeight, __FUNCTION__, "%s", message);
 				return;
 			}
 

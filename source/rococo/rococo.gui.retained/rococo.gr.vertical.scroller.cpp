@@ -38,7 +38,7 @@ namespace ANON
 		{
 			if (panel.EnumerateChildren(nullptr) != 0)
 			{
-				panel.Root().Custodian().RaiseError(EGRErrorCode::Generic, __FUNCTION__, "Vertical scrollbars should not have children");
+				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::Generic, __FUNCTION__, "Vertical scrollbars should not have children");
 			}
 
 			sliderZone.left = panelDimensions.left + 1;
@@ -304,7 +304,7 @@ namespace ANON
 		{
 			if (position < 0 || position > MAX_SCROLL_INT)
 			{
-				panel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
+				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
 				return;
 			}
 			this->sliderPosition = position;

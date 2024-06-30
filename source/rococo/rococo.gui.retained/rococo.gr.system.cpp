@@ -133,7 +133,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
 				IGRWidgetMainFrame* frame = nullptr;
 				return *frame;
 			}
@@ -163,7 +163,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
 				return;
 			}
 
@@ -225,7 +225,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
 				return;
 			}
 
@@ -674,7 +674,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				this->custodian.RaiseError(EGRErrorCode::RecursionLocked, __FUNCTION__, "Error, API consumer attempted to DispatchMessages from within a GR locked section.");
+				this->custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "Error, API consumer attempted to DispatchMessages from within a GR locked section.");
 			}
 
 			std::swap(dispatchQueue, eventQueue);

@@ -162,7 +162,7 @@ namespace GRANON
 			if (owningPanel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				owningPanel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				owningPanel.Root().Custodian().RaiseError(owningPanel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
 				return;
 			}
 			auto rootId = 0;
@@ -174,7 +174,7 @@ namespace GRANON
 			auto* branch = tree.FindBranch(parentMenu);
 			if (!branch)
 			{
-				panel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
 				return false;
 			}
 
@@ -198,7 +198,7 @@ namespace GRANON
 			auto* parent = tree.FindBranch(parentMenu);
 			if (!parent)
 			{
-				panel.Root().Custodian().RaiseError(EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
 				return GRMenuItemId{ -1 };
 			}
 

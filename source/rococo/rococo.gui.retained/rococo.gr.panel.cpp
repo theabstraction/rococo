@@ -35,10 +35,21 @@ namespace GRANON
 		int64 refCount = 0;
 		int64 flags = 0;
 		HString desc;
+		const Sex::ISExpression* associatedSExpression = nullptr;
 
 		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
 		{
 			refCount = 1;
+		}
+
+		const Sex::ISExpression* GetAssociatedSExpression() const override
+		{
+			return associatedSExpression;
+		}
+
+		void SetAssociatedSExpression(Sex::cr_sex s) override
+		{
+			associatedSExpression = &s;
 		}
 
 		IGRPanel& Add(EGRPanelFlags flag) override
@@ -563,6 +574,22 @@ namespace Rococo::Gui
 		return new GRANON::GRPanel(root, parent);
 	}
 
+	void Throw(IGRPanel& panel, EGRErrorCode code, cstr function, cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+		char desc[256];
+		Strings::StackStringBuilder sb(desc, sizeof desc);
+		panel.AppendDesc(sb);
+
+		char message[1024];
+		strcpy_s(message, desc);
+		Strings::SafeVFormat(message + strlen(desc), sizeof message - strlen(desc), format, args);
+
+		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), code, function, message);
+		va_end(args);
+	}
+
 	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions)
 	{
 		auto anchors = child.Anchors();
@@ -573,16 +600,22 @@ namespace Rococo::Gui
 
 		if (newSpan.x == 0 && !anchors.expandsHorizontally  && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
-			char message[256];
-			SafeFormat(message, "Panel %lld was not set to expand horizontally and its current width is zero, hence will remain zero width", child.Id());
-			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanWidth, __FUNCTION__, message);
+			Throw(child, EGRErrorCode::BadSpanWidth, __FUNCTION__, "Panel was not set to expand horizontally and its current width is zero, hence will remain zero width");
 		}
 
 		if (newSpan.y == 0 && !anchors.expandsVertically && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
-			char message[256];
-			SafeFormat(message, "Panel %lld was not set to expand vertically and its current height is zero, hence will remain zero height", child.Id());
-			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanHeight, __FUNCTION__, message);
+			Throw(child, EGRErrorCode::BadSpanHeight, __FUNCTION__, "Panel was not set to expand vertically and its current height is zero, hence will remain zero height");
+		}
+
+		if (anchors.left == 0 && anchors.right == 0 && newSpan.x == 0)
+		{
+			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel was neither anchored to the left or to the right and had zero horizontal span");
+		}
+
+		if (anchors.top == 0 && anchors.bottom == 0 && newSpan.y == 0)
+		{
+			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel was neither anchored to the top or to the bottom and had zero vertical span");
 		}
 
 		if (anchors.left)
@@ -665,20 +698,12 @@ namespace Rococo::Gui
 
 		if (newSpan.x == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
-			char message[256];
-			Strings::StackStringBuilder sb(message, sizeof message);
-			child.AppendDesc(sb);
-			sb << ": width was computed to be zero";
-			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanWidth, __FUNCTION__, message);
+			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel width was computed to be zero");
 		}
 
 		if (newSpan.y == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
 		{
-			char message[256];
-			Strings::StackStringBuilder sb(message, sizeof message);
-			child.AppendDesc(sb);
-			sb << ": height was computed to be zero";
-			child.Root().Custodian().RaiseError(EGRErrorCode::BadSpanHeight, __FUNCTION__, message);
+			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel height was computed to be zero");
 		}
 
 		child.Resize(newSpan);

@@ -469,7 +469,7 @@ namespace Rococo::Sex::SEXML
 						Throw(a->S(), "Expecting four arguments (#Recti <name> <left> <top> <right> <bottom>)");
 					}
 				}
-				else if (Eq(fName, "#List"))
+				else if (Eq(fName, "#List") || Eq(fName, "[]"))
 				{
 					// set to raw until we determine what is in the list
 					type = SEXMLValueType::Raw;
@@ -525,7 +525,7 @@ namespace Rococo::Sex::SEXML
 
 					if (!IsAlphabetical(fName[0]))
 					{
-						Throw(attributeFunction, "Expecting either the quote character (') , a #<type> or a name that begins with a capital or lower case letter [A-Z] | [a-z]");
+						Throw(attributeFunction, "Expecting either the quote character (') ,[], a #<type> or a name that begins with a capital or lower case letter [A-Z] | [a-z]");
 					}
 
 					if (s.NumberOfElements() != 2)
