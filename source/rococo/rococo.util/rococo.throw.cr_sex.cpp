@@ -123,9 +123,9 @@ namespace Rococo
 			endPos(end),
 			source(_source)
 		{
-			CopyString(srcName, MAX_ERRMSG_LEN, name);
-			CopyString(errText, MAX_ERRMSG_LEN, err);
-			CopyString(specimenText, MAX_ERRMSG_LEN, specimen);
+			CopyString(srcName, ParseException::MAX_SRC_LEN, name);
+			CopyString(errText, ParseException::MAX_ERR_LEN, err);
+			CopyString(specimenText, ParseException::MAX_SPECIMEN_LEN, specimen);
 		}
 
 		ROCOCO_API void Throw(ParseException& ex)

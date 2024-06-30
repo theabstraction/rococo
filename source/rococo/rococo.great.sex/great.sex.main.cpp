@@ -96,7 +96,7 @@ namespace Rococo::GreatSex
 	}
 
 
-	void SetColourFromDirective(cstr colourName, EGRSchemeColourSurface surface, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective)
+	bool ApplyColourFromDirective(cstr colourName, EGRSchemeColourSurface surface, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective)
 	{
 		size_t startIndex = 0;
 		auto* colourDirective = schemeDirective.FindFirstChild(REF startIndex, colourName);
@@ -104,50 +104,128 @@ namespace Rococo::GreatSex
 		{
 			RGBAb colour = GetColour(*colourDirective);
 			widget.Panel().Set(surface, colour, state);
+			return true;
 		}
+
+		return false;
 	}
+
+	struct ColourDirectiveBind
+	{
+		cstr name;
+		EGRSchemeColourSurface surface;
+	} colourDirectiveBindings[] =
+	{
+		{"ColourBackground", EGRSchemeColourSurface::BACKGROUND },
+		{"ColourButton", EGRSchemeColourSurface::BUTTON },
+		{"ColourButtonEdgeTopLeft", EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT },
+		{"ColourButtonEdgeBottomRight", EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT },
+		{"ColourButtonImageFog", EGRSchemeColourSurface::BUTTON_IMAGE_FOG },
+
+		{"ColourButtonText", EGRSchemeColourSurface::BUTTON_TEXT },
+
+		{"ColourMenuButton", EGRSchemeColourSurface::MENU_BUTTON },
+		{"ColourMenuButtonEdgeTopLeft", EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT },
+		{"ColourMenuButtonEdgeBottomRight", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
+		{"ColourMenuButtonEdgeBottomRight", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
+
+		{"ColourContainerBackground", EGRSchemeColourSurface::CONTAINER_BACKGROUND },
+		{"ColourContainerTopLeft", EGRSchemeColourSurface::CONTAINER_TOP_LEFT },
+		{"ColourContainerBottomRight", EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT },
+
+		{"ScrollerButtonBackground", EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND },
+		{"ScrollerButtonTopLeft", EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT },
+		{"ScrollerButtonBottomRight", EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT },
+
+		{"ScrollerBarBackground", EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND },
+		{"ScrollerBarTopLeft", EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT },
+		{"ScrollerBarBottomRight", EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT },
+
+		{"ScrollerSliderBackground", EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND },
+		{"ScrollerSliderTopLeft", EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT },
+		{"ScrollerSliderBottomRight", EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT },
+
+		{"ColourEditor", EGRSchemeColourSurface::EDITOR },
+		{"ColourText", EGRSchemeColourSurface::TEXT },
+		{"ColourFocus", EGRSchemeColourSurface::FOCUS_RECTANGLE },
+		{"ColourEditText", EGRSchemeColourSurface::EDIT_TEXT },
+
+		{"ColourSplitterBackground", EGRSchemeColourSurface::SPLITTER_BACKGROUND },
+		{"ColourSplitterEdge", EGRSchemeColourSurface::SPLITTER_EDGE }
+	};
 
 	void ApplyToRenderState(const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget)
 	{
-		SetColourFromDirective("ColourBackground", EGRSchemeColourSurface::CONTAINER_BACKGROUND, state, widget, schemeDirective);
+		for (auto& binding : colourDirectiveBindings)
+		{
+			ApplyColourFromDirective(binding.name, binding.surface, state, widget, schemeDirective);
+		}
 	}
-
+	
 	void OnScheme(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Rococo::Gui::IGRWidget& widget)
 	{
 		UNUSED(generator);
 
-		size_t index = 0;
-		while (auto* directiveAppliesTo = schemeDirective.FindFirstChild(REF index, "ApplyTo"))
+		for (int j = 0; j < schemeDirective.NumberOfChildren(); j++)
 		{
-			index++;
-
-			Gui::GRRenderState state(0, 0, 0);
-			auto& states = SEXML::AsStringList(directiveAppliesTo->GetAttributeByName("RenderStates").Value());
-			for (int i = 0; i < states.NumberOfElements(); ++i)
+			auto& directive = schemeDirective[j];
+			if (Eq(directive.FQName(), "ApplyTo"))
 			{
-				if (Eq(states[i], "focused"_fstring))
+				Gui::GRRenderState state(0, 0, 0);
+				auto& states = SEXML::AsStringList(directive.GetAttributeByName("RenderStates").Value());
+				for (int i = 0; i < states.NumberOfElements(); ++i)
 				{
-					state.value.bitValues.focused = true;
+					if (Eq(states[i], "focused"_fstring))
+					{
+						state.value.bitValues.focused = true;
+					}
+					else if (Eq(states[i], "hovered"_fstring))
+					{
+						state.value.bitValues.hovered = true;
+					}
+					else if (Eq(states[i], "pressed"_fstring))
+					{
+						state.value.bitValues.pressed = true;
+					}
+					else if (Eq(states[i], "default"_fstring))
+					{
+
+					}
+					else
+					{
+						Throw(directive.S(), "Unknown render state: %s", (cstr)states[i]);
+					}
 				}
-				else if (Eq(states[i], "hovered"_fstring))
+
+				ApplyToRenderState(schemeDirective, state, widget);
+			}
+			else
+			{
+				bool foundColour = false;
+				for (auto& bind : colourDirectiveBindings)
 				{
-					state.value.bitValues.hovered = true;
+					if (Eq(bind.name, directive.FQName()))
+					{
+						// Recognized as a colour directive
+						foundColour = true;
+						break;
+					}
 				}
-				else if (Eq(states[i], "pressed"_fstring))
+
+				if (foundColour == false)
 				{
-					state.value.bitValues.pressed = true;
-				}
-				else if (Eq(states[i], "default"_fstring))
-				{
-					
-				}
-				else
-				{
-					Throw(directiveAppliesTo->S(), "Unknown render state: %s", (cstr)states[i]);
+					char possibilities[2048];
+					StackStringBuilder sb(possibilities, sizeof possibilities);
+					sb << "\n\tApplyTo";
+
+					for (auto& bind : colourDirectiveBindings)
+					{
+						sb << "\n\t" << bind.name;
+					}
+
+					Throw(directive.S(), "Unknown directive. Expecting one of %s", possibilities);
 				}
 			}
-
-			ApplyToRenderState(schemeDirective, state, widget);
 		}
 	}
 

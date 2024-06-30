@@ -87,10 +87,14 @@ namespace Rococo::Sex
 		Vec2i startPos;
 		Vec2i endPos;
 		
-		enum {MAX_ERRMSG_LEN = 512};
-		char srcName[MAX_ERRMSG_LEN];
-		char errText[MAX_ERRMSG_LEN];
-		char specimenText[MAX_ERRMSG_LEN];
+		enum {MAX_SRC_LEN = 512};
+		char srcName[MAX_SRC_LEN];
+
+		enum { MAX_ERR_LEN = 4096 };
+		char errText[MAX_ERR_LEN];
+
+		enum { MAX_SPECIMEN_LEN = 256 };
+		char specimenText[MAX_SPECIMEN_LEN];
 		const ISExpression* source;
 
 	public:
