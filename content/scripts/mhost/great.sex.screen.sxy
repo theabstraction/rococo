@@ -92,22 +92,31 @@
 	
 // Start of SEXML
 (Scheme :
-	(ApplyTo ([] RenderStates pressed hovered focused))
-	(ApplyTo ([] RenderStates hovered focused))
+	// This reads as Apply the colour defs to the states specified by their bit combinations. (None of which contained the hovered bit)
+	// Since we have not specified the hovered bit, then this colour scheme applies to all situations that are *not* hovered
 	(ApplyTo ([] RenderStates pressed focused))
-	(ApplyTo ([] RenderStates pressed hovered))
 	(ApplyTo ([] RenderStates pressed))
 	(ApplyTo ([] RenderStates focused))
 	(ColourContainerBackground (Red 0)(Green 40)(Blue 20)(Alpha 255))
 )
 (Scheme :
+	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
+	// Since we have specify the hovered bit in all permutations, then this colour scheme applies to all situations that *are* hovered
 	(ApplyTo ([] RenderStates hovered pressed))
 	(ApplyTo ([] RenderStates hovered focused))
 	(ApplyTo ([] RenderStates hovered))
 	(ColourContainerBackground (Red 0)(Green 60)(Blue 40)(Alpha 255))
 )
-(Div ([] Panel.Anchors left right hexpand top bottom vexpand)
-	
+(Div 
+	(Panel.Description "OutermostDiv")
+	([] Panel.Anchors left right hexpand top bottom vexpand) 
+	(#Recti Panel.Padding 10 10 10 10)
+	:
+	(Div 
+		(Panel.Description "InnerDiv")
+		([] Panel.Anchors left right hexpand top bottom vexpand) 
+		(#Recti Panel.Padding 20 20 20 20)
+	)	
 )
 // End of SEXML
 

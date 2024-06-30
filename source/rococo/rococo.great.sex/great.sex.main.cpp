@@ -38,7 +38,13 @@ namespace Rococo::GreatSex
 		Vec2i minimalSpan = GetOptionalAttribute(widgetDirective, "Panel.Span.Min", { 10,10 });
 		panel.SetMinimalSpan(minimalSpan);
 
+		Vec2i initialSpan = GetOptionalAttribute(widgetDirective, "Panel.Span", { 10,10 });
+		panel.Resize(initialSpan);
+
 		uint64 anchorFlags = AsFlags(widgetDirective["Panel.Anchors"], ParseAnchor);
+
+		fstring desc = GetOptionalAttribute(widgetDirective, "Panel.Description", ""_fstring);
+		if (desc.length > 0) panel.SetDesc(desc);
 
 		GRAnchors anchors;
 		reinterpret_cast<uint32&>(anchors) = (uint32)anchorFlags;
