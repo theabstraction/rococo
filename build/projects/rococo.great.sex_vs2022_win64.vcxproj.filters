@@ -2,5 +2,9 @@
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.scheme.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.great.sex\sexml.widgets.simple.inl" />
   </ItemGroup>
 </Project>

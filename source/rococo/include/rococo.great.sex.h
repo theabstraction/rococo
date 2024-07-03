@@ -24,13 +24,26 @@ namespace Rococo::GreatSex
 	{
 		virtual void AppendWidgetTreeFromSexML(const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& branch) = 0;
 		virtual void AppendWidgetTreeFromSexML(const Sex::ISExpression& s, Rococo::Gui::IGRWidget& branch) = 0;
+		virtual void GenerateChildren(const Rococo::Sex::SEXML::ISEXMLDirective& widgetDirective, Rococo::Gui::IGRWidget& widget) = 0;
+		virtual void SetPanelAttributes(Rococo::Gui::IGRWidget& widget, const Rococo::Sex::SEXML::ISEXMLDirective& widgetDirective) = 0;
 	};
 
-	typedef void (*FN_GREAT_SEX_ON_WIDGET)(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& widgetDefinition, Rococo::Gui::IGRWidget& parent);
+	ROCOCO_INTERFACE ISEXMLWidgetFactory
+	{
+		virtual void Generate(IGreatSexGenerator & generator, const Rococo::Sex::SEXML::ISEXMLDirective & widgetDefinition, Rococo::Gui::IGRWidget & parent) = 0;
+	};
+
+	ROCOCO_INTERFACE ISEXMLWidgetFactorySupervisor : ISEXMLWidgetFactory
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_GREAT_SEX_API ISEXMLWidgetFactorySupervisor* CreateSchemeHandler();
 
 	ROCOCO_INTERFACE IGreatSexGeneratorSupervisor : IGreatSexGenerator
 	{
-		virtual void AddHandler(cstr fqName, FN_GREAT_SEX_ON_WIDGET f) = 0;
+		// Factory lifetimes are expected to encompass the lifetime of the GreatSexGenerator, so the reference must be valid until after the generator is destructed.
+		virtual void AddHandler(cstr fqName, ISEXMLWidgetFactory& f) = 0;
 		virtual void Free() = 0;
 	};
 
