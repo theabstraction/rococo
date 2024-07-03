@@ -1025,6 +1025,28 @@ namespace Rococo::Sex::SEXML
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeSmallVectorIValue&>(value);
 	}
 
+	ROCOCO_SEXML_API [[nodiscard]] Vec2i AsVec2i(const ISEXMLAttributeValue& value)
+	{
+		auto& v = AsSmallIVector(value);
+		if (v.NumberOfDimensions() != 2)
+		{
+			Rococo::Sex::Throw(value.S(), "Expecting two integers", value.Attribute().Name());
+		}
+
+		return { v.X()[0], v.X()[1] };
+	}
+
+	ROCOCO_SEXML_API [[nodiscard]] GuiRect AsGuiRect(const ISEXMLAttributeValue& value)
+	{
+		auto& v = AsSmallIVector(value);
+		if (v.NumberOfDimensions() != 4)
+		{
+			Rococo::Sex::Throw(value.S(), "Expecting four integers: left top right bottom", value.Attribute().Name());
+		}
+
+		return { v.X()[0], v.X()[1], v.X()[2], v.X()[3] };
+	}
+
 	ROCOCO_SEXML_API const ISEXMLAttributeSmallVectorValue& AsSmallVector(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())

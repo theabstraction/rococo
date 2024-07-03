@@ -39,7 +39,7 @@ namespace Rococo::GreatSex
 		AutoFree<ISEXMLRootSupervisor> sexmlParser;
 		stringmap<ISEXMLWidgetFactory*> widgetHandlers;
 
-		typedef void(GreatSexGenerator::* MethodForAttribute)(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective);
+		typedef void(GreatSexGenerator::* MethodForAttribute)(IGRPanel& panel, const ISEXMLAttributeValue& value);
 
 		stringmap<MethodForAttribute> attributeHandlers;
 
@@ -141,59 +141,59 @@ namespace Rococo::GreatSex
 			}
 		}
 
-		void OnAttribute_Offset(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_Offset(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			Vec2i offset = GetOptionalAttribute(widgetDirective, attibuteName, Vec2i{ 0,0 });
+			Vec2i offset = SEXML::AsVec2i(value);
 			panel.SetParentOffset(offset);
 		}
 
-		void OnAttribute_Span(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_Span(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			Vec2i initialSpan = GetOptionalAttribute(widgetDirective, attibuteName, Vec2i{ 0,0 });
+			Vec2i initialSpan = SEXML::AsVec2i(value);
 			panel.Resize(initialSpan);
 		}
 
-		void OnAttribute_SpanMin(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_SpanMin(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			Vec2i minimalSpan = GetOptionalAttribute(widgetDirective, attibuteName, Vec2i{ 0,0 });
+			Vec2i minimalSpan = SEXML::AsVec2i(value);
 			panel.SetMinimalSpan(minimalSpan);
 		}
 
-		void OnAttribute_Anchors(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_Anchors(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			uint64 anchorFlags = AsFlags(widgetDirective[attibuteName], ParseAnchor);
+			uint64 anchorFlags = AsFlags(value, ParseAnchor);
 			GRAnchors anchors;
 			reinterpret_cast<uint32&>(anchors) = (uint32)anchorFlags;
 			panel.Add(anchors);
 		}
 
-		void OnAttribute_Description(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_Description(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			fstring desc = GetOptionalAttribute(widgetDirective, attibuteName, ""_fstring);
+			fstring desc = AsString(value).ToFString();
 			if (desc.length > 0) panel.SetDesc(desc);
 		}
 
-		void OnAttribute_CanFocus(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_CanFocus(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			bool canFocus = GetOptionalAttribute(widgetDirective, attibuteName, false);
+			bool canFocus = AsBool(value);
 			if (canFocus)
 			{
 				panel.Add(EGRPanelFlags::AcceptsFocus);
 			}
 		}
 
-		void OnAttribute_TabsCycle(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_TabsCycle(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			bool canFocus = GetOptionalAttribute(widgetDirective, attibuteName, false);
+			bool canFocus = AsBool(value);
 			if (canFocus)
 			{
 				panel.Add(EGRPanelFlags::AcceptsFocus);
 			}
 		}
 
-		void OnAttribute_Padding(cstr attibuteName, IGRPanel& panel, const ISEXMLDirective& widgetDirective)
+		void OnAttribute_Padding(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
-			GuiRect padding = GetOptionalAttribute(widgetDirective, attibuteName, { 0,0,0,0 });
+			GuiRect padding = AsGuiRect(value);
 			panel.Set(GRAnchorPadding{ padding.left, padding.top, padding.right, padding.bottom });
 		}
 
@@ -223,7 +223,7 @@ namespace Rococo::GreatSex
 				if (attributeMethod != attributeHandlers.end())
 				{
 					auto method = attributeMethod->second;
-					(this->*method)(name, panel, widgetDirective);
+					(this->*method)(panel, a.Value());
 				}
 				else
 				{

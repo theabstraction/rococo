@@ -100,6 +100,8 @@ namespace Rococo::Sex::SEXML
 	ROCOCO_SEXML_API [[nodiscard]] bool AsBool(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeSmallVectorIValue& AsSmallIVector(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeSmallVectorValue& AsSmallVector(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] Vec2i AsVec2i(const ISEXMLAttributeValue& value);
+	ROCOCO_SEXML_API [[nodiscard]] GuiRect AsGuiRect(const ISEXMLAttributeValue& value);
 
 	using cr_sattr = const ISEXMLAttribute&;
 
