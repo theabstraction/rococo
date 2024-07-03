@@ -34,6 +34,7 @@ namespace Rococo::GreatSex
 		OnDivision onDivision;
 		AutoFree<ISEXMLWidgetFactorySupervisor> onScheme;
 		OnVerticalList onVerticalList;
+		OnTextLabel onTextLabel;
 
 		IAllocator& sexmlAllocator;
 		AutoFree<ISEXMLRootSupervisor> sexmlParser;
@@ -48,6 +49,7 @@ namespace Rococo::GreatSex
 			AddHandler("Div", onDivision);
 			AddHandler("Scheme", *onScheme);
 			AddHandler("VerticalList", onVerticalList);
+			AddHandler("Label", onTextLabel);
 		}
 
 		virtual ~GreatSexGenerator()
@@ -218,6 +220,11 @@ namespace Rococo::GreatSex
 			{
 				auto& a = widgetDirective.GetAttributeByIndex(i);
 				cstr name = a.Name();
+
+				if (!StartsWith(name, "Panel."))
+				{
+					continue;
+				}
 
 				auto attributeMethod = attributeHandlers.find(name);
 				if (attributeMethod != attributeHandlers.end())

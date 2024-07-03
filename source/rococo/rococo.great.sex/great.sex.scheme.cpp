@@ -53,42 +53,43 @@ namespace Rococo::GreatSex
 		EGRSchemeColourSurface surface;
 	} colourDirectiveBindings[] =
 	{
-		{"Background", EGRSchemeColourSurface::BACKGROUND },
-		{"Button", EGRSchemeColourSurface::BUTTON },
-		{"ButtonEdgeTopLeft", EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT },
-		{"ButtonEdgeBottomRight", EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT },
-		{"ButtonImageFog", EGRSchemeColourSurface::BUTTON_IMAGE_FOG },
+		{"Colour.Background", EGRSchemeColourSurface::BACKGROUND },
+		{"Colour.Button", EGRSchemeColourSurface::BUTTON },
+		{"Colour.Button.Edge.Top.Left", EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT },
+		{"Colour.Button.Edge.Bottom.Right", EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT },
+		{"Colour.Button.Image.Fog", EGRSchemeColourSurface::BUTTON_IMAGE_FOG },
 
-		{"ButtonText", EGRSchemeColourSurface::BUTTON_TEXT },
+		{"Colour.Button.Text", EGRSchemeColourSurface::BUTTON_TEXT },
 
-		{"MenuButton", EGRSchemeColourSurface::MENU_BUTTON },
-		{"MenuButtonEdgeTopLeft", EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT },
-		{"MenuButtonEdgeBottomRight", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
-		{"MenuButtonEdgeBottomRight", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
+		{"Colour.Menu.Button", EGRSchemeColourSurface::MENU_BUTTON },
+		{"Colour.Menu.Button.Edge.Top.Left", EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT },
+		{"Colour.Menu.Button.Edge.Bottom.Right", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
+		{"Colour.Menu.Button.Edge.Bottom.Right", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
 
-		{"ContainerBackground", EGRSchemeColourSurface::CONTAINER_BACKGROUND },
-		{"ContainerTopLeft", EGRSchemeColourSurface::CONTAINER_TOP_LEFT },
-		{"ContainerBottomRight", EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT },
+		{"Colour.Container.Background", EGRSchemeColourSurface::CONTAINER_BACKGROUND },
+		{"Colour.Container.TopLeft", EGRSchemeColourSurface::CONTAINER_TOP_LEFT },
+		{"Colour.Container.BottomRight", EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT },
 
-		{"ScrollerButtonBackground", EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND },
-		{"ScrollerButtonTopLeft", EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT },
-		{"ScrollerButtonBottomRight", EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT },
+		{"Colour.Scroller.Button.Background", EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND },
+		{"Colour.Scroller.Button.Top.Left", EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT },
+		{"Colour.Scroller.Button.Bottom.Right", EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT },
 
-		{"ScrollerBarBackground", EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND },
-		{"ScrollerBarTopLeft", EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT },
-		{"ScrollerBarBottomRight", EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT },
+		{"Colour.Scroller.Bar.Background", EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND },
+		{"Colour.Scroller.Bar.Top.Left", EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT },
+		{"Colour.Scroller.Bar.Bottom.Right", EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT },
 
-		{"ScrollerSliderBackground", EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND },
-		{"ScrollerSliderTopLeft", EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT },
-		{"ScrollerSliderBottomRight", EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT },
+		{"Colour.Scroller.Slider.Background", EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND },
+		{"Colour.Scroller.Slider.Top.Left", EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT },
+		{"Colour.Scroller.Slider.Bottom.Right", EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT },
 
-		{"Editor", EGRSchemeColourSurface::EDITOR },
-		{"Text", EGRSchemeColourSurface::TEXT },
-		{"Focus", EGRSchemeColourSurface::FOCUS_RECTANGLE },
-		{"EditText", EGRSchemeColourSurface::EDIT_TEXT },
+		{"Colour.Editor", EGRSchemeColourSurface::EDITOR },
+		{"Colour.Text", EGRSchemeColourSurface::TEXT },
+		{"Colour.Focus", EGRSchemeColourSurface::FOCUS_RECTANGLE },
+		{"Colour.EditText", EGRSchemeColourSurface::EDIT_TEXT },
+		{"Colour.Label", EGRSchemeColourSurface::LABEL_BACKGROUND },
 
-		{"SplitterBackground", EGRSchemeColourSurface::SPLITTER_BACKGROUND },
-		{"SplitterEdge", EGRSchemeColourSurface::SPLITTER_EDGE }
+		{"Colour.Splitter.Background", EGRSchemeColourSurface::SPLITTER_BACKGROUND },
+		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE }
 	};
 
 	void ApplyToRenderState(const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget)

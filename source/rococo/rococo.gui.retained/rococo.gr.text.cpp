@@ -75,6 +75,14 @@ namespace GRANON
 			bool isHovered = g.IsHovered(panel);
 
 			GRRenderState rs(false, isHovered, false);
+
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::LABEL_BACKGROUND, rs);
+			g.DrawRect(rect, backColour);
+
+			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
+			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
+			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
+
 			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(EGRSchemeColourSurface::TEXT, rs));
 		}
 
