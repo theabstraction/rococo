@@ -97,7 +97,9 @@
 	(ApplyTo ([] RenderStates pressed focused))
 	(ApplyTo ([] RenderStates pressed))
 	(ApplyTo ([] RenderStates focused))
-	(Colour.Container.Background (Red 0)(Green 40)(Blue 20)(Alpha 255))
+	(ApplyTo ([] RenderStates default))
+	(Colour.Container.Background (Red 0)(Green 0)(Blue 0)(Alpha 255))
+	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
 )
 (Scheme :
 	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
@@ -105,7 +107,8 @@
 	(ApplyTo ([] RenderStates hovered pressed))
 	(ApplyTo ([] RenderStates hovered focused))
 	(ApplyTo ([] RenderStates hovered))
-	(Colour.Container.Background (Red 0)(Green 60)(Blue 40)(Alpha 255))
+	(Colour.Container.Background (Red 16)(Green 16)(Blue 16)(Alpha 255))
+	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
 )
 (Div 
 	(Panel.Description "OutermostDiv")
@@ -113,38 +116,25 @@
 	(#Recti Panel.Padding 10 10 10 10)
 	:
 	(Label
-		(Text "Hello World")
+		(Text "Solution")
 		(Panel.Description "SelectionTreeHeader")
 		([] Panel.Anchors left top vexpand) 
-		(#Recti Panel.Padding 2 2 0 2)
-		(#Vec2i Panel.Offset 2 2)
-		(#Vec2i Panel.Span 398 30)
-		:
-		(Scheme :
-			// This reads as Apply the colour defs to the states specified by their bit combinations. (None of which contained the hovered bit)
-			// Since we have not specified the hovered bit, then this colour scheme applies to all situations that are *not* hovered
-			(ApplyTo ([] RenderStates pressed focused))
-			(ApplyTo ([] RenderStates pressed))
-			(ApplyTo ([] RenderStates focused))
-			(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
-		)
-		(Scheme :
-			// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
-			// Since we have specifyied the hovered bit in all permutations, then this colour scheme applies to all situations that *are* hovered
-			(ApplyTo ([] RenderStates hovered pressed))
-			(ApplyTo ([] RenderStates hovered focused))
-			(ApplyTo ([] RenderStates hovered))
-			(Colour.Label (Red 64)(Green 64)(Blue 64)(Alpha 255))
-		)
+		(#Recti Panel.Padding 0 0 0 0)
+		(#Vec2i Panel.Span 300 30)
 	)
-	/*
+	
 	(VerticalList
 		(Panel.Description "SelectionTreeVList")
 		([] Panel.Anchors left top bottom vexpand) 
-		(#Recti Panel.Padding 2 42 0 2)
-		(#Vec2i Panel.Span 400 0)
+		(#Recti Panel.Padding 0 32 0 0)
+		(#Vec2i Panel.Span 300 0)
 	)
-*/	
+	
+	(Div 
+		(Panel.Description "OutermostDiv")
+		([] Panel.Anchors left right hexpand top bottom vexpand) 
+		(#Recti Panel.Padding 302 0 0 0)
+	)
 )
 // End of SEXML
 

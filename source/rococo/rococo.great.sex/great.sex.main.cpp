@@ -196,7 +196,7 @@ namespace Rococo::GreatSex
 		void OnAttribute_Padding(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
 			GuiRect padding = AsGuiRect(value);
-			panel.Set(GRAnchorPadding{ padding.left, padding.top, padding.right, padding.bottom });
+			panel.Set(GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom });
 		}
 
 		void SetPanelAttributes(IGRWidget& widget, const ISEXMLDirective& widgetDirective) override
@@ -236,7 +236,7 @@ namespace Rococo::GreatSex
 				{
 					char err[4096];
 					StackStringBuilder sb(err, sizeof err);
-					sb << "Unknown attribute " << name << ". Known attributes :";
+					sb << "Unknown Panel attribute " << name << ". Known attributes :";
 
 					int count = 0;
 					for (auto h : attributeHandlers)
