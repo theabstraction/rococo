@@ -1091,6 +1091,17 @@ namespace Rococo::Sex::SEXML
 		return value.ToFString();
 	}
 
+	ROCOCO_SEXML_API [[nodiscard]] int GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, int defaultValue)
+	{
+		auto* a = directive.FindAttributeByName(attributeName);
+		if (!a)
+		{
+			return defaultValue;
+		}
+
+		return AsAtomicInt32(a->Value());
+	}
+
 	ROCOCO_SEXML_API GuiRect GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, GuiRect defaultValues)
 	{
 		auto* a = directive.FindAttributeByName(attributeName);

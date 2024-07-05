@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRVerticalList : IGRWidgetVerticalList, IGRNavigator
+	struct GRVerticalList : IGRWidgetVerticalList, IGRNavigator, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 		bool enforcePositiveChildHeights;
@@ -21,6 +21,11 @@ namespace GRANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		IGRWidget& Widget() override
+		{
+			return *this;
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -201,7 +206,7 @@ namespace Rococo::Gui
 	{
 		GRANON::GRVerticalListFactory factory(enforcePositiveChildHeights);
 		auto& gr = parent.Panel().Root().GR();
-		auto& list = static_cast<IGRWidgetVerticalList&>(gr.AddWidget(parent.Panel(), factory));
-		return list;
+		auto* list = Cast<IGRWidgetVerticalList>(gr.AddWidget(parent.Panel(), factory));
+		return *list;
 	}
 }

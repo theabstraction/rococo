@@ -176,6 +176,7 @@ namespace Rococo::Sex::SEXML
 	ROCOCO_SEXML_API [[nodiscard]] bool TryGetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, OUT Vec2F64& resultValues);
 	ROCOCO_SEXML_API [[nodiscard]] bool GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, bool defaultValue);
 	ROCOCO_SEXML_API [[nodiscard]] const fstring GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, const fstring defaultValue);
+	ROCOCO_SEXML_API [[nodiscard]] int GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, int defaultValue);
 
 	ROCOCO_INTERFACE ISEXMLDirectiveList
 	{

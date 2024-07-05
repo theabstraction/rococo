@@ -622,7 +622,7 @@ namespace GRANON
 			titleDescription.SetAlignment(rightCentered, { 0,0 });
 
 			auto& list = CreateVerticalList(collapser.ClientArea());
-			list.Panel().Set(GRAnchors::ExpandAll());
+			list.Widget().Panel().Set(GRAnchors::ExpandAll());
 
 			int32 firstSimpleFieldIndex = -1;
 			int32 nextSimpleFieldIndex = -1;
@@ -647,18 +647,18 @@ namespace GRANON
 				{
 					if (firstSimpleFieldIndex >= 0)
 					{
-						AddFieldTable(data, firstSimpleFieldIndex, nextSimpleFieldIndex, list, depth);
+						AddFieldTable(data, firstSimpleFieldIndex, nextSimpleFieldIndex, list.Widget(), depth);
 						firstSimpleFieldIndex = -1;
 						nextSimpleFieldIndex = -1;
 					}
 
-					AddSubObject(data.fields[i], list, depth + 1);
+					AddSubObject(data.fields[i], list.Widget(), depth + 1);
 				}
 			}
 
 			if (firstSimpleFieldIndex >= 0)
 			{
-				AddFieldTable(data, firstSimpleFieldIndex, (int32)data.fields.size() - 1, list, depth);
+				AddFieldTable(data, firstSimpleFieldIndex, (int32)data.fields.size() - 1, list.Widget(), depth);
 			}
 		}
 
@@ -709,7 +709,7 @@ namespace GRANON
 			
 			if (!collapserParent.IsCollapsed())
 			{
-				for (int i = 0; auto * child = list->Panel().GetChild(i); i++)
+				for (int i = 0; auto * child = list->Widget().Panel().GetChild(i); i++)
 				{
 					IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(child->Widget());
 					if (collapser)

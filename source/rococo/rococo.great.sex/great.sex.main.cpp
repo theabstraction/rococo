@@ -7,13 +7,13 @@
 #include <rococo.functional.h>
 #include <rococo.strings.h>
 
+#define MATCH(text, value, numericEquilvalent) if (Strings::EqI(text,value)) return numericEquilvalent;
+
 #include "sexml.widgets.simple.inl"
 
 using namespace Rococo::Gui;
 using namespace Rococo::Sex;
 using namespace Rococo::Sex::SEXML;
-
-#define MATCH(text, value, numericEquilvalent) if (Strings::EqI(text,value)) return numericEquilvalent;
 
 namespace Rococo::GreatSex
 {
@@ -31,10 +31,12 @@ namespace Rococo::GreatSex
 	struct GreatSexGenerator : IGreatSexGeneratorSupervisor
 	{
 		// Widget Handlers, defined first
-		OnDivision onDivision;
+		DivisionFactory onDivision;
 		AutoFree<ISEXMLWidgetFactorySupervisor> onScheme;
-		OnVerticalList onVerticalList;
-		OnTextLabel onTextLabel;
+		VerticalListFactory onVerticalList;
+		TextLabelFactory onTextLabel;
+		ButtonFactory onButton;
+		ToolbarFactory onToolbar;
 
 		IAllocator& sexmlAllocator;
 		AutoFree<ISEXMLRootSupervisor> sexmlParser;
@@ -46,10 +48,12 @@ namespace Rococo::GreatSex
 
 		GreatSexGenerator(IAllocator& _sexmlAllocator): onScheme(CreateSchemeHandler()), sexmlAllocator(_sexmlAllocator)
 		{
+			AddHandler("Button", onButton);
 			AddHandler("Div", onDivision);
 			AddHandler("Scheme", *onScheme);
 			AddHandler("VerticalList", onVerticalList);
 			AddHandler("Label", onTextLabel);
+			AddHandler("Toolbar", onToolbar);
 		}
 
 		virtual ~GreatSexGenerator()

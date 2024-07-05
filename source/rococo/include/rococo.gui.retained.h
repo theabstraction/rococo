@@ -106,7 +106,7 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	enum class EGRAlignment : int32
+	enum class EGRAlignment : uint64
 	{
 		None = 0,
 		Left = 1,
@@ -967,9 +967,10 @@ namespace Rococo::Gui
 	};
 
 	// A vertical list that aligns its children vertically
-	ROCOCO_INTERFACE IGRWidgetVerticalList : IGRWidgetSupervisor
+	ROCOCO_INTERFACE IGRWidgetVerticalList : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetEditBox : IGRBase
