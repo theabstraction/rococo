@@ -35,6 +35,61 @@ namespace Rococo
 {
 	namespace Script
 	{
+		int FindIndexOfMatchingAtomic(int startIndex, cr_sex s, cstr token);
+		void PostClosure(cr_sex s, IFunctionBuilder& closure, CScript& script);
+
+		template<class T>
+		void EnumerateInputs(const IArchetype& callee, bool isImplicitInput, bool reverse, T lambda)
+		{
+			int virtualIndex = isImplicitInput ? 1 : 0;
+			int inputCount = callee.NumberOfInputs() - virtualIndex;
+
+			if (reverse)
+			{
+				for (int i = inputCount - 1; i >= 0; --i)
+				{
+					int argIndex = i + callee.NumberOfOutputs();
+
+					cstr inputName = callee.GetArgName(argIndex);
+					const IStructure& argType = callee.GetArgument(argIndex);
+					const IArchetype* archetype;
+
+					if (argType.VarType() != VARTYPE_Closure)
+					{
+						archetype = NULL;
+					}
+					else
+					{
+						archetype = argType.Archetype();
+					}
+
+					lambda(inputName, argType, archetype, i);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < inputCount; ++i)
+				{
+					int argIndex = i + callee.NumberOfOutputs();
+
+					cstr inputName = callee.GetArgName(argIndex);
+					const IStructure& argType = callee.GetArgument(argIndex);
+					const IArchetype* archetype;
+
+					if (argType.VarType() != VARTYPE_Closure)
+					{
+						archetype = NULL;
+					}
+					else
+					{
+						archetype = argType.Archetype();
+					}
+
+					lambda(inputName, argType, archetype, i);
+				}
+			}
+		}
+
 		int PushInputs(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, bool isImplicitInput, int firstArgIndex)
 		{
 			int inputStackAllocCount = 0;
@@ -47,7 +102,7 @@ namespace Rococo
 			{
 				if (inputCount + firstArgIndex - 1 >= s.NumberOfElements())
 				{
-					Throw(s, ("Insufficient inputs"));
+					Throw(s, "Insufficient inputs");
 				}
 			}
 
@@ -83,13 +138,13 @@ namespace Rococo
 			if (mapIndex < 0)
 			{
 				// We have a function call with no outputs, so the number of args must match the number of inputs
-				if (s.NumberOfElements() - firstIndex < inputExpressionCount) Throw(s, ("Too few inputs to function call"));
+				if (s.NumberOfElements() - firstIndex < inputExpressionCount) Throw(s, "Too few inputs to function call");
 				mapIndex = s.NumberOfElements();
 			}
 			else
 			{
-				if (mapIndex < inputExpressionCount + 1) Throw(s, ("Too few inputs in function call"));
-				else if (mapIndex > inputExpressionCount + 1) Throw(s, ("Too many inputs in function call"));
+				if (mapIndex < inputExpressionCount + 1) Throw(s, "Too few inputs in function call");
+				else if (mapIndex > inputExpressionCount + 1) Throw(s, "Too many inputs in function call");
 			}
 
 			return mapIndex;
@@ -118,27 +173,193 @@ namespace Rococo
 
 			if (inputCount < nExtraElements)
 			{
-				Throw(s, ("Too many input arguments supplied to the function"));
+				Throw(s, "Too many input arguments supplied to the function");
 			}
 			else if (inputCount > nExtraElements)
 			{
-				Throw(s, ("Too few input arguments supplied to the function"));
+				Throw(s, "Too few input arguments supplied to the function");
 			}
 		}
 
-		bool TryCompilePushClosure(CCompileEnvironment& ce, cr_sex s, bool expecting, const IStructure& inputType, const IArchetype& archetype, cstr argName)
+		// We assume that s has been checked to be a correct sequence of tokens in a lambda. (<archetype-input-args> ->  <archetype-output-args> : (body-directives))"
+		// We do NOT assume that any tokens are correct, other than :, => and ->
+		void CompileParsedLambda(CCompileEnvironment& ce, cr_sex lambdaDef, const IStructure& inputType, const IArchetype& archetype, bool mayUseParentSF, int bodyIndicatorIndex)
 		{
+			// (<archetype-input-args> -> <archetype-output-args> : <body-directives> -> )
+
+			IFunctionBuilder& lambda = ce.Builder.Module().DeclareClosure(ce.Builder.Owner(), mayUseParentSF, &lambdaDef);
+
+			if (archetype.NumberOfOutputs() > 0)
+			{
+				int mapIndex = archetype.NumberOfInputs();
+
+				for (int i = 0; i < archetype.NumberOfOutputs(); i++)
+				{
+					cr_sex outputExpr = lambdaDef.GetElement(i + mapIndex + 1);
+					const IStructure& neededType = archetype.GetArgument(i);
+					cstr argName = archetype.GetArgName(i);
+
+					if (!IsAtomic(outputExpr))
+					{
+						Throw(outputExpr, "Expecting atomic value for output %d(%s %s) of %s", i, neededType.Name(), argName, archetype.Name());
+					}
+
+					AssertLocalIdentifier(outputExpr);
+
+					cstr name = outputExpr.c_str();
+					
+					// Note that in the lambda output names are derived from the lambda itself, rather than the archetype arguments
+					lambda.AddOutput(NameString::From(argName), neededType, (void*)&outputExpr);
+				}
+			}
+
+			for (int i = 0; i < archetype.NumberOfInputs(); ++i)
+			{
+				cr_sex inputExpr = lambdaDef.GetElement(i);
+
+				int inputIndex = i + archetype.NumberOfOutputs();
+				const IStructure& neededType = archetype.GetArgument(inputIndex);
+				cstr argName = archetype.GetArgName(inputIndex);
+
+				AssertLocalIdentifier(inputExpr);
+
+				if (!IsAtomic(inputExpr))
+				{
+					Throw(inputExpr, "Expecting atomic value for input %d(%s %s) of %s", i, neededType.Name(), argName, archetype.Name());
+				}
+
+				// Note that in the lambda input names are derived from the lambda itself, rather than the archetype arguments
+				lambda.AddInput(NameString::From(inputExpr.c_str()), neededType, (void*)&inputExpr);
+			}
+
+			if (!lambda.TryResolveArguments())
+			{
+				try
+				{
+					// We expect ValidateArguments to fail, but rather than return false it throws an informative exception
+					lambda.ValidateArguments();
+				}
+				catch (IException& ex)
+				{
+					// Re-throw specifying the lambdaDef as the source code
+					Throw(lambdaDef, "%s", ex.Message());
+				}
+
+				// We expected validate arguments to fail, but strangely it didn't so throw an opaque error exception
+				Throw(lambdaDef, "Could not resolve all of the function arguments");
+			}
+
+			CodeSection section;
+			lambda.Builder().GetCodeSection(OUT section);
+
+			char targetVariable[MAX_FQ_NAME_LEN];
+			SafeFormat(targetVariable, "lambda_%llu", ce.Builder.NextId());
+
+			AddVariable(ce, NameString::From(targetVariable), inputType);				
+			ce.Builder.EnableClosures(targetVariable);
+
+			AddSymbol(ce.Builder, "%s.bytecodeId = (closure ...)", targetVariable);
+
+			TokenBuffer targetVariableByteCodeId;
+			StringPrint(targetVariableByteCodeId, "%s.bytecodeId", targetVariable);
+
+			VariantValue byteCodeId;
+			byteCodeId.byteCodeIdValue = section.Id;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, byteCodeId, BITCOUNT_64);
+			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariableByteCodeId);
+
+			AddSymbol(ce.Builder, "%s.parentSF = SF", targetVariable);
+
+			TokenBuffer targetVariableParentSF;
+			StringPrint(targetVariableParentSF, "%s.parentSF", targetVariable);
+			ce.Builder.AssignTempToVariable(-2, targetVariableParentSF);
+			
+			MemberDef def;
+			if (!ce.Builder.TryGetVariableByName(OUT def, targetVariable) || def.ResolvedType->Archetype() != &archetype)
+			{
+				Throw(lambdaDef, "Failed to interpret expression as a lambda argument: %s", inputType.Name());
+			}
+
+			PostClosure(lambdaDef, lambda, ce.Script);
+
+			ce.Builder.PushLambdaVar(targetVariable);
+		}
+
+		void CompileLambda(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, const IArchetype& archetype, cstr argName)
+		{
+			if (s.NumberOfElements() < 1)
+			{
+				Throw(s, "Expecting lambda for %s to have at least one elements.\n(<archetype-input-args> -> <archetype-output-args> : (body-directives)", archetype.Name());
+			}
+
+			int bodyIndicatorIndex = FindIndexOfMatchingAtomic(0, s, ":");
+			if (bodyIndicatorIndex == -1)
+			{
+				Throw(s, "Expecting body indicator colon ':' in the lambda expression for %s.\n(<archetype-input-args> -> <archetype-output-args> : (body-directives)", archetype.Name());
+			}
+
+			// Form of lambda: (: <archetype-input-args> => (body-directives) -> <archetype-output-args>)
+			
+			if (s.NumberOfElements() < archetype.NumberOfInputs() + 1)
+			{
+				Throw(s, "The archetype %s takes %d inputs, but the expression was not long enough to specify the inputs", archetype.Name(), archetype.NumberOfInputs());
+			}
+
+			if (archetype.NumberOfOutputs() > 0)
+			{
+				if (s.NumberOfElements() < archetype.NumberOfInputs() + 2 + archetype.NumberOfOutputs())
+				{
+					Throw(s, "Expecting %d element%s for the output of %s following the mapping operator '->' that succeeds the body-directives.\n(<archetype-input-args> -> <archetype-output-args> : (body-directives)", archetype.NumberOfOutputs(), archetype.NumberOfOutputs() > 1 ? "s" : "", archetype.Name());
+				}
+
+				// (<inputs> -> <outputs> : <body>)
+				auto& sMapIndicator = s[archetype.NumberOfInputs()];
+				if (!IsAtomic(sMapIndicator) || !AreEqual(sMapIndicator.String(), "->"))
+				{
+					Throw(sMapIndicator, "Expecting mapping operator ->");
+				}
+			}
+
+			CompileParsedLambda(ce, s, inputType, archetype, argName, bodyIndicatorIndex);
+		}
+
+		void CompilePushLambda(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, const IArchetype& archetype, cstr argName)
+		{
+			// We should have a lambda variable on the lambda variable stack ready for consumption
+			char lambdaName[MAX_FQ_NAME_LEN];
+			ce.Builder.PopLambdaVar(OUT lambdaName);
+
+			MemberDef def;
+			if (!ce.Builder.TryGetVariableByName(OUT def, lambdaName) || def.ResolvedType->Archetype() != &archetype)
+			{
+				Throw(s, "Failed to interpret expression as a lambda argument: %s %s", inputType.Name(), lambdaName);
+			}
+
+			AddArgVariable("lambda", ce, inputType);
+			AddSymbol(ce.Builder, "%s", lambdaName);
+
+			ce.Builder.PushVariable(def);
+		}
+
+		void CompilePushClosure(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, const IArchetype& archetype, cstr argName)
+		{
+			if (IsCompound(s))
+			{
+				CompilePushLambda(ce, s, inputType, archetype, argName);
+				return;
+			}
+
 			AssertAtomic(s);
 
 			cstr fname = s.c_str();
 
-			AddArgVariable(("input_other"), ce, inputType);
+			AddArgVariable("input_other", ce, inputType);
 			ce.Builder.AddSymbol(argName);
 
 			IFunction* f = ce.Builder.Module().FindFunction(fname);
 			if (f != NULL)
 			{
-				ValidateArchetypeMatchesArchetype(s, *f, archetype, ("archetype "));
+				ValidateArchetypeMatchesArchetype(s, *f, archetype, "archetype");
 
 				CodeSection section;
 				f->Code().GetCodeSection(OUT section);
@@ -151,7 +372,7 @@ namespace Rococo
 				zeroRef.charPtrValue = nullptr;
 				ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_64, zeroRef);
 			}
-			else if (AreEqual(("0"), fname))
+			else if (AreEqual("0", fname))
 			{
 				auto& nf = GetNullFunction(ce.Script, archetype);
 
@@ -176,8 +397,6 @@ namespace Rococo
 
 				ce.Builder.PushVariable(def);
 			}
-
-			return true;
 		}
 
 		void CompileInputRefFromFunctionRef(CCompileEnvironment& ce, cr_sex inputExpression, const IStructure& argStruct)
@@ -213,7 +432,7 @@ namespace Rococo
 				Throw(inputExpression, "The input '%s' was not recognized", name);
 			}
 
-			AddArgVariable(("input_getaccessor_return_ref"), ce, argStruct);
+			AddArgVariable("input_getaccessor_return_ref", ce, argStruct);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
 		}
 
@@ -246,7 +465,7 @@ namespace Rococo
 			VariantValue ptr;
 			ptr.vPtrValue = (void*)&sc->header.pVTables[0];
 
-			AddArgVariable(("input_string_literal"), ce, inputType);
+			AddArgVariable("input_string_literal", ce, inputType);
 			ce.Builder.Assembler().Append_PushLiteral(BITCOUNT_POINTER, ptr);
 
 			return true;
@@ -405,7 +624,7 @@ namespace Rococo
 					return false;
 				}
 
-				AddArgVariable(("input_return_as_input_ref"), ce, inputType);
+				AddArgVariable("input_return_as_input_ref", ce, inputType);
 				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
 				return true;
 			default:
@@ -519,7 +738,7 @@ namespace Rococo
 				stackAllocByteCount += 16;
 				break;
 			default:
-				Throw(s, ("Algorithmic error: unhandled bitcount in argument to function"));
+				Throw(s, "Algorithmic error: unhandled bitcount in argument to function");
 			}
 
 			if (IsAtomic(inputExpression))
@@ -531,7 +750,7 @@ namespace Rococo
 					VariantValue immediateValue;
 					if (Parse::TryParse(OUT immediateValue, inputType, inputToken) == Parse::PARSERESULT_GOOD)
 					{
-						AddArgVariable(("input_literal"), ce, inputStruct);
+						AddArgVariable("input_literal", ce, inputStruct);
 						ce.Builder.AddSymbol(inputName);
 						ce.Builder.Assembler().Append_PushLiteral(bits, immediateValue);
 						return stackAllocByteCount;
@@ -584,15 +803,11 @@ namespace Rococo
 			}
 			else if (inputType == VARTYPE_Closure)
 			{
-				if (!TryCompilePushClosure(ce, inputExpression, true, inputStruct, *archetype, inputName))
-				{
-					Throw(inputExpression, "Expected an archetype %s", archetype->Name());
-				}
-
+				CompilePushClosure(ce, inputExpression, inputStruct, *archetype, inputName);
 				return inputStruct.SizeOfStruct();
 			}
 
-			AddArgVariable(("input_other"), ce, inputStruct);
+			AddArgVariable("input_other", ce, inputStruct);
 			ce.Builder.AddSymbol(inputName);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, bits);
 
@@ -804,11 +1019,11 @@ namespace Rococo
 				for (int i = 0; i < callee.NumberOfOutputs(); i++)
 				{
 					const IStructure& s = callee.GetArgument(i);
-					AddArgVariable(("output"), ce, s);
+					AddArgVariable("output", ce, s);
 				}
 
 				char stackAllocHint[256];
-				SafeFormat(stackAllocHint, 256, ("Output for %s"), callee.Name());
+				SafeFormat(stackAllocHint, 256, "Output for %s", callee.Name());
 				ce.Builder.AddSymbol(stackAllocHint);
 
 				ce.Builder.Assembler().Append_StackAlloc(outputStackAllocByteCount);
@@ -845,7 +1060,7 @@ namespace Rococo
 			int inputStackAllocCount = callAtomic ? 0 : PushInputs(ce, s, callee, true, 1);
 			inputStackAllocCount += sizeof(size_t); // Allow a few bytes for the instance pointer
 
-			AddArgVariable(("input_interface"), ce, ce.Object.Common().TypePointer());
+			AddArgVariable("input_interface", ce, ce.Object.Common().TypePointer());
 			AppendVirtualCallAssembly(instanceName, interfaceIndex, methodIndex, ce.Builder, interfaceRef, s, localName);
 			ce.Builder.MarkExpression(&s);
 
@@ -863,6 +1078,64 @@ namespace Rococo
 
 			ce.Builder.AddSymbol(callee.Name());
 			ce.Builder.Assembler().Append_CallById(section.Id);
+		}
+
+		bool IsInputLambda(cr_sex s)
+		{
+			// Expressions of this form are lambdas:
+			// (<input names> -> (output names>) : <directives>)
+			// Hence if we detect the colon in an input directive it is assumed to be a lambda
+			// If there are no outputs this simplifies to (<input-names>: <directives>)
+			// If there are no inputs nor outputs this further simplfies to (: <directives>)
+			// If there are no inputs, outputs, nor directives this simplies to the null lambda (:)
+
+			if (s.NumberOfElements() > 0)
+			{
+				cr_sex arg0 = s[0];
+				if (IsAtomic(arg0) && s[0].c_str()[0] == '#')
+				{
+					// A macro, not a lamba
+					return false;
+				}
+			}
+
+			for (int i = 0; i < s.NumberOfElements(); i++)
+			{
+				cr_sex arg = s[i];
+				if (IsAtomic(arg) && AreEqual(s[i].String(), ":"))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		void AllocateLambda(CCompileEnvironment& ce, cr_sex s, cstr inputName, const IStructure& argType, const IArchetype& archetype)
+		{
+			CompileLambda(ce, s, argType, archetype, inputName);
+		}
+
+		void AllocateLambdas(CCompileEnvironment& ce, cr_sex s, const IFunction& callee, bool isImplicitInput, int firstArgIndex)
+		{
+			EnumerateInputs(callee, isImplicitInput, true, [&ce, &s, firstArgIndex, &callee](cstr inputName, const IStructure& argType, const IArchetype* archetype, int index)
+				{
+					if (archetype)
+					{
+						if (s.NumberOfElements() + firstArgIndex <= index)
+						{
+							// Insufficient items in expression to invoke function
+							Throw(s, "Insufficient arguments to invoke function %s", callee.Name());
+						}
+
+						cr_sex sInputArg = s[firstArgIndex + index];
+						if (IsInputLambda(sInputArg))
+						{
+							AllocateLambda(ce, sInputArg, inputName, argType, *archetype);
+						}
+					}
+				}
+			);
 		}
 
 		int CompileFunctionCallKernel(CCompileEnvironment& ce, cr_sex s, const IFunction& callee)
@@ -886,6 +1159,8 @@ namespace Rococo
 					Throw(s, "The source file %s is not permitted to call %s directly.", s.Tree().Source().Name(), callee.Name());
 				}
 			}
+
+			AllocateLambdas(ce, s, callee, false, 1);
 
 			const int outputStackAllocCount = AllocFunctionOutput(ce, callee, s);
 			int inputStackAllocCount = PushInputs(ce, s, callee, false, 1);
@@ -927,13 +1202,13 @@ namespace Rococo
 		int CompileCloseCallHeader(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, cstr closureVariable)
 		{
 			TokenBuffer parentSF;
-			SafeFormat(parentSF.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.parentSF"), closureVariable);
+			SafeFormat(parentSF.Text, TokenBuffer::MAX_TOKEN_CHARS, "%s.parentSF", closureVariable);
 
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(OUT def, parentSF);
 			ce.Builder.AddSymbol(parentSF);
 
-			AddArgVariable(("closure_parentSF"), ce, *def.ResolvedType);
+			AddArgVariable("closure_parentSF", ce, *def.ResolvedType);
 			ce.Builder.PushVariable(def);
 
 			int sfSize = sizeof(size_t);
@@ -947,11 +1222,11 @@ namespace Rococo
 			int inputStackAllocByteCount = PushInputs(ce, s, archetype, false, 1);
 
 			TokenBuffer pathToId;
-			SafeFormat(pathToId.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.bytecodeId"), closureVariable);
+			SafeFormat(pathToId.Text, TokenBuffer::MAX_TOKEN_CHARS, "%s.bytecodeId", closureVariable);
 			ce.Builder.AssignVariableToTemp(pathToId, 0); // Copy the closure bytecode id to D4
 
 			TokenBuffer callSymbol;
-			SafeFormat(callSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, ("call %s %s"), archetype.Name(), closureVariable);
+			SafeFormat(callSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, "call %s %s", archetype.Name(), closureVariable);
 			ce.Builder.AddSymbol(callSymbol);
 			ce.Builder.Assembler().Append_CallByIdIndirect(VM::REGISTER_D4);
 
@@ -1773,7 +2048,7 @@ namespace Rococo
 
 			ce.Builder.AddSymbol(classInstance);
 
-			AddArgVariable(("instance"), ce, ce.Object.Common().TypePointer());
+			AddArgVariable("instance", ce, ce.Object.Common().TypePointer());
 
 			ce.Builder.AssignVariableRefToTemp(classInstance, 0);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);

@@ -146,9 +146,42 @@ namespace Rococo
          PostClosure(closureDef, closure, ce.Script);
       }
 
+      // Lambdas have form (: <input-names> => (body-directives) -> output)
+      void CompileLambdaExpression(cr_sex lambdaDef, IFunctionBuilder& lambdaFunction, CScript& script)
+      {
+          // (: <input-names> => (body-expression-sequence) -> output)
+
+          ICodeBuilder& builder = lambdaFunction.Builder();
+          builder.Begin();
+
+          CCompileEnvironment ce(script, builder);
+
+          int bodyDirectiveIndex = lambdaFunction.NumberOfInputs() + 1;
+
+          CompileExpressionSequence(ce, bodyDirectiveIndex+1, bodyDirectiveIndex+1, lambdaDef);
+
+          try
+          {
+              builder.End();
+          }
+          catch (IException& e)
+          {
+              Throw(lambdaDef, e.Message());
+          }
+
+          builder.Assembler().Clear();
+      }
+
       void CompileClosureBody(cr_sex closureDef, IFunctionBuilder& closure, CScript& script)
       {
-         int bodyIndex = GetIndexOf(2, closureDef, (":"));
+         int bodyIndex = GetIndexOf(0, closureDef, ":");
+
+         if (bodyIndex == 0)
+         {
+             // Lambda
+             CompileLambdaExpression(closureDef, closure, script);
+             return;
+         }
 
          ICodeBuilder& builder = closure.Builder();
          builder.Begin();
@@ -177,7 +210,7 @@ namespace Rococo
             cr_sex head = s.GetElement(0);
             if (head.Type() == EXPRESSION_TYPE_ATOMIC)
             {
-               if (AreEqual(head.String(), ("closure")))
+               if (AreEqual(head.String(), "closure"))
                {
                   CompileClosureDef(ce, s, closureArchetype, mayUseParentSF);
                   return true;

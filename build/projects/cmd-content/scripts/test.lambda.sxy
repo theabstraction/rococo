@@ -1,0 +1,37 @@
+(namespace EntryPoint)
+ (alias Main EntryPoint.Main)
+
+(using Sys.Type)
+(using Sys.Maths)
+
+(archetype Sys.Type.OnNameStringValueInt32Enum (IString name)(Int32 value) -> (Bool continueEnumeration))
+
+(function ForEachChessPiece (Int32 delta) (Sys.Type.OnNameStringValueInt32Enum callback) -> (Int32 numberOfPieces): 
+    (callback "queen" (10 + delta))
+    (callback "rook" (5 + delta))
+    (callback "bishop" (4 + delta))
+    (callback "knight" (3 + delta))
+    (callback "pawn" (1 + delta))
+    (numberOfPieces = 5)
+)
+
+(function Main -> (Int32 result):
+	(ForEachChessPiece 7 
+		(name value -> continueEnumerator : 
+			(result += value) 
+			(continueEnumeration = true)
+		)
+	)
+)
+
+(function Main2 -> (Int32 result):
+	(Sys.Type.OnNameStringValueInt32Enum callback =
+		(closure (IString name)(Int32 value) -> (Bool continueEnumeration):
+			(result += value)
+			(continueEnumeration = true)
+		)
+	)
+	
+	(debug)
+	(ForEachChessPiece 7 callback)
+)

@@ -10081,6 +10081,62 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestLambda(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+			"(using Sys.Maths)"
+
+			"(archetype Sys.Type.OnNameStringValueInt32Enum (IString name)(Int32 value) -> (Bool continueEnumeration))"
+
+			"(function ForEachChessPiece (Int32 delta) (Sys.Type.OnNameStringValueInt32Enum callback) -> (Int32 numberOfPieces): "
+			"    (callback \"queen\" (10 + delta))"
+			"    (callback \"rook\" (5 + delta))"
+			"    (callback \"bishop\" (4 + delta))"
+			"    (callback \"knight\" (3 + delta))"
+			"    (callback \"pawn\" (1 + delta))"
+			"    (numberOfPieces = 5)"
+			")"
+
+			"(function Main -> (Int32 result):"
+			"	(ForEachChessPiece 7 "
+			"		(name value -> continueEnumeration : "
+			"			(result += value)"
+			"			(continueEnumeration = true)"
+			"		)"
+			"	)"
+			")";
+
+			// This is semantically equivalent to 
+			/*
+			* 
+			* (Sys.Type.OnNameStringValueInt32Enum callback = 
+				(closure (String key)(Int32 value) -> (Bool continueEnumeration):
+					(result += value)
+					(continueEnumeration = true)
+			*	)
+			* )
+			* 
+			* (ForEachChessPiece callback)
+			* 
+			* */
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int32 x = vm.PopInt32();
+		validate(x == 58);
+	}
 
 	void TestArrayElementLockRef(IPublicScriptSystem& ss)
 	{
@@ -17943,6 +17999,7 @@ R"(
 
 		// TEST(TestInstancing); // Disabled until we have total compilation. JIT requires a PC change
 
+		TEST(TestLambda);
 		TEST(TestMemberwiseInit);
 		TEST(TestInternalDestructorsCalled);
 		TEST(TestTryFinallyWithoutThrow);
@@ -18084,7 +18141,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();

@@ -384,7 +384,7 @@ namespace Rococo::Script
 
 		if (!AreEqual(type, "_Array") && !AreEqual(type, "_List"))
 		{
-			Throw(*id.Parent(), ("Unexpected type in generic input definition"));
+			Throw(*id.Parent(), "Unexpected type in generic input definition");
 		}
 	
 		IArgumentBuilder& arg = f.AddInput(NameString::From(idString), TypeString::From(type), TypeString::From(firstTypeString), (void*) &src);			
@@ -410,7 +410,7 @@ namespace Rococo::Script
 		const sexstring firstTypeString = SType.String();
 		const sexstring secondTypeString = TType.String();
 
-		if (!AreEqual(type, ("_Map")))
+		if (!AreEqual(type, "_Map"))
 		{
 			Throw(*id.Parent(), ("Unexpected type in generic input definition"));
 		}
@@ -418,7 +418,7 @@ namespace Rococo::Script
 		IArgumentBuilder& arg = f.AddInput(NameString::From(idString), TypeString::From(type), TypeString::From(firstTypeString), TypeString::From(secondTypeString), (void*) &src);			
 		Resolve(arg, type, idString->Buffer, f.Name(), *id.Parent(), firstTypeString->Buffer);
 
-		if (AreEqual(type, ("_Map")))
+		if (AreEqual(type, "_Map"))
 		{
 			AddMapDef(script, f.Builder(), id.c_str(), *arg.GenericTypeArg1(), *arg.GenericTypeArg2(), src);
 		}
@@ -437,7 +437,7 @@ namespace Rococo::Script
 
 		if (arg.ResolvedType()->VarType() != VARTYPE_Closure)
 		{
-			Throw(type, ("The type must be an archetype in a closure input"));
+			Throw(type, "The type must be an archetype in a closure input");
 		}
 	}
 

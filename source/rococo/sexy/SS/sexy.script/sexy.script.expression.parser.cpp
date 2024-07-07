@@ -3656,7 +3656,7 @@ namespace Rococo
 
 		void StreamSTCEX(StringBuilder& streamer, const STCException& ex)
 		{
-			streamer << ("Compiler exception code: ") << ex.Code() << (".\n") << ("Source: ") << ex.Source() << ("\n. Message: ") << ex.Message();
+			streamer << "Compiler exception code: " << ex.Code() << (".\n") << "Source: " << ex.Source() << "\n. Message: " << ex.Message();
 		}
 
 		void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence);
@@ -3668,8 +3668,6 @@ namespace Rococo
 			try
 			{
 				AssertCompound(s);
-
-				if (s.NumberOfElements() == 0) return;
 
 				cr_sex arg = s.GetElement(0);
 				if (IsAtomic(arg))

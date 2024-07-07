@@ -90,6 +90,7 @@ namespace Rococo
             ce.Builder.AppendDoWhile(bodySection, loopCriterion, CONDITION_IF_NOT_EQUAL);
         }
 
+        // Returns -1 if no matches
         int FindIndexOfMatchingAtomic(int startIndex, cr_sex s, cstr token)
         {
             for (int i = startIndex; i < s.NumberOfElements(); ++i)

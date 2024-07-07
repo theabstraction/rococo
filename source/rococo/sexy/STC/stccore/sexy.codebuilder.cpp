@@ -360,6 +360,29 @@ namespace Anon
 		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface) override;
 
 		bool TryAssignClassInterfaceToInterface(cstr source, cstr target, const IStructure* srcType, const IStructure*trgType);
+
+		uint64 NextId() override
+		{
+			return nextId++;
+		}
+
+		std::vector<HString> lambdaVariables;
+
+		void PushLambdaVar(cstr variableName) override
+		{
+			lambdaVariables.push_back(variableName);
+		}
+
+		void PopLambdaVar(OUT char result[MAX_FQ_NAME_LEN]) override
+		{
+			if (lambdaVariables.empty())
+			{
+				Throw(0, "lambda variables were empty. Internal compiler error.");
+			}
+
+			SafeFormat(OUT result, MAX_FQ_NAME_LEN, "%s", lambdaVariables.back().c_str());
+			lambdaVariables.pop_back();
+		}
 	};
 
 	CodeBuilder::CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF):
@@ -442,7 +465,7 @@ namespace Anon
 	void CodeBuilder::ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData)
 	{
 		TokenBuffer name;
-      SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_archive_D%d_%d"), saveTempDepth + 4, nextId++);
+		SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_archive_D%d_%d"), saveTempDepth + 4, nextId++);
 
 		const IStructure& type =  (bits == BITCOUNT_32) ? Module().Object().Common().TypeInt32() :  Module().Object().Common().TypeInt64();
 
@@ -755,7 +778,7 @@ namespace Anon
 	{
 		int bytesToFree = 0;
 
-		if (variables.size() < count) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct a temp variable that does not exist"));
+		if (variables.size() < count) Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Serious algorithmic error in compile. An attempt was made to deconstruct a temp variable that does not exist");
 
 		for (int i = 0; i < count; i++)
 		{
@@ -770,7 +793,7 @@ namespace Anon
 				v = variables.back();
 			}
 
-			if (v->Offset() < 0)	Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Serious algorithmic error in compile. An attempt was made to deconstruct an argument to a function inside the function"));
+			if (v->Offset() < 0)	Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Serious algorithmic error in compile. An attempt was made to deconstruct an argument to a function inside the function");
 
 			int vOffset = v->Offset();
 
@@ -1074,12 +1097,12 @@ namespace Anon
 		Variable * v = TryGetVariableByName(targetVariable, OUT offsetCorrection);
 		if (v == nullptr)
 		{
-			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, ("Cannot find variable %s"), targetVariable);
+			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, "Cannot find variable %s", targetVariable);
 		}
 
 		if (v->ResolvedType().VarType() != VARTYPE_Closure)
 		{
-			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, ("Variable %s is not a closure"), targetVariable);
+			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, "Variable %s is not a closure", targetVariable);
 		}
 
 		v->AllowCaptureClosure();
@@ -2981,6 +3004,11 @@ namespace Anon
 		{
 			// Once we leave a section that contained the goto statement, we are only permitted to search for labels in the ancestors and not other sections with the same depth
 			label.sectionIndex = min(label.sectionIndex, sectionIndex);
+		}
+
+		if (!lambdaVariables.empty())
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Section closed with an outstanding lambda variable stack");
 		}
 
 		if (sectionIndex < 0)

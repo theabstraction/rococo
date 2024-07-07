@@ -431,6 +431,14 @@ namespace Rococo::Compiler
 		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData) = 0;
 
 		virtual void PreventMoreVariablesUntil(cstr label) = 0;
+
+		virtual uint64 NextId() = 0;
+
+		// Store a lambda variable name for later. Used by the compiler to store the names of temporary lambda references on the stack ahead of invocation
+		virtual void PushLambdaVar(cstr variableName) = 0;
+
+		// Retrieves lambda variable name and removes it from the lambda name stack. Names are thus removed in reverse order of the push operations
+		virtual void PopLambdaVar(OUT char result[MAX_FQ_NAME_LEN]) = 0;
 	};
 
 	SEXYUTIL_API IStructureBuilder* FindMember(IStructureBuilder& s, cstr name);
