@@ -41,6 +41,7 @@ namespace Anon
 		stdstring type;
 		stdstring genericArg1Type;
 		stdstring genericArg2Type;
+		stdstring defaultValue;
 		ARGUMENTUSAGE usage;
 		ARGDIRECTION direction;
 		const IStructureBuilder* resolvedType;
@@ -160,6 +161,16 @@ namespace Anon
 		virtual void* Userdata() const { return userdata; }
 		virtual bool IsClosureInput() const { return isClosureInput; }
 
+		cstr GetDefaultValue() const override
+		{
+			return defaultValue.empty() ? nullptr : defaultValue.c_str();
+		}
+
+		void SetDefault(cstr defaultValue)
+		{
+			this->defaultValue = defaultValue;
+		}
+
 		virtual bool TryResolveArgument()
 		{
 			if (resolvedType != NULL || _TryResolveArgument())
@@ -259,9 +270,30 @@ namespace Anon
 			return popBytes;
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
+		}
+
+		void AddDefaultToCurrentArgument(cstr defaultValueString) override
+		{
+			if (args.empty())
+			{
+				Throw(0, "%s: args were empty", __FUNCTION__);
+			}
+
+			Anon::FunctionArgument* arg = args.back();
+			arg->SetDefault(defaultValueString);
+		}
+
+		virtual cstr GetDefaultValue(int index) const override
+		{
+			if (index < 0 || index >= (int)args.size())
+			{
+				Throw(0, "%s: bad index", index);
+			}
+
+			return args[index]->GetDefaultValue();
 		}
 
 		virtual cstr Name() const									{ return name.c_str(); }

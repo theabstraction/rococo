@@ -324,6 +324,7 @@ namespace Rococo {
 			virtual const int NumberOfInputs() const = 0;
 			virtual const IStructure& GetArgument(int index) const = 0;
 			virtual cstr GetArgName(int index) const = 0;
+			virtual cstr GetDefaultValue(int index) const = 0;
 			virtual const bool IsVirtualMethod() const = 0;
 			virtual const IStructure* GetGenericArg1(int index) const = 0;
 			virtual const void* Definition() const = 0;
@@ -342,6 +343,7 @@ namespace Rococo {
 			virtual bool IsClosureInput() const = 0;
 			virtual const IFunction& Parent() const = 0;
 			virtual void* Userdata() const = 0;
+			virtual cstr GetDefaultValue() const = 0;
 		};
 
 		ROCOCO_INTERFACE IFunction : public IArchetype

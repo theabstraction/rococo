@@ -125,7 +125,9 @@ namespace Rococo
 					archetype = argType.Archetype();
 				}
 
-				int inputStackCost = PushInput(ce, s, i + firstArgIndex, argType, archetype, inputName, callee.GetGenericArg1(argIndex));
+				cstr defaultValue = callee.GetDefaultValue(argIndex);
+
+				int inputStackCost = PushInput(ce, s, i + firstArgIndex, argType, archetype, inputName, callee.GetGenericArg1(argIndex), defaultValue);
 
 				inputStackAllocCount += inputStackCost;
 			}
@@ -712,7 +714,7 @@ namespace Rococo
 			return true;
 		}
 
-		int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, cstr inputName, const IStructure* genericArg1)
+		int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, cstr inputName, const IStructure* genericArg1, cstr defaultValue)
 		{
 			cr_sex inputExpression = s.GetElement(index);
 
@@ -742,9 +744,22 @@ namespace Rococo
 			}
 
 			if (IsAtomic(inputExpression))
-			{
+			{			
 				// Try pushing direct, more efficient than evaluating to a temp variable then pushing the variable
 				cstr inputToken = inputExpression.c_str();
+
+				if (Eq(inputToken, "."))
+				{
+					if (defaultValue == nullptr)
+					{
+						Throw(inputExpression, "No default value matches %s %s", GetFriendlyName(inputStruct), inputName);
+					}
+					else
+					{
+						inputToken = defaultValue;
+					}
+				}
+
 				if (IsNumericTypeOrBoolean(inputType))
 				{
 					VariantValue immediateValue;

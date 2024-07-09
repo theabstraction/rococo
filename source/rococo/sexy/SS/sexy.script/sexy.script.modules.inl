@@ -510,6 +510,31 @@ namespace Rococo::Script
 		Resolve(arg, className, THIS_POINTER_TOKEN, method.Name(), nameExpr);	
 	}
 
+	void AddAttributeToCurrentArgument(REF IFunctionBuilder& f, cr_sex sAttribute)
+	{
+		if (sAttribute.NumberOfElements() == 3)
+		{
+			AssertAtomicMatch(sAttribute[0], "attribute");
+			cr_sex attributeName = sAttribute[1];
+			if (!IsAtomic(attributeName))
+			{
+				Throw(attributeName, "Expecting atomic string, one of [default]");
+			}
+
+			if (Eq(attributeName.c_str(), "default"))
+			{
+				// Generation #1 defaults are simple string substitutions
+				cr_sex defaultValue = sAttribute[2];
+				if (!IsAtomic(defaultValue))
+				{
+					Throw(defaultValue, "Expecting atomic string, which is the default value of the argument");
+				}
+
+				f.AddDefaultToCurrentArgument(defaultValue.c_str());
+			}
+		}
+	}
+
 	void AddInputs(REF IFunctionBuilder& f, cr_sex fdef, int inputStart, int inputEnd, CScript& script)
 	{
 		for(int i = inputStart; i <= inputEnd; ++i)
@@ -580,14 +605,27 @@ namespace Rococo::Script
 
 				AddInput(f, sexStructType, sexIdentifier, inputItem);
 			}
-			else
+			else if (inputItem.NumberOfElements() == 2)
 			{
-				AssertNotTooManyElements(inputItem, 2);
 				cr_sex sexIdentifier = GetAtomicArg(inputItem, 1);
 				AddInput(f, sexType, sexIdentifier, inputItem);
 			}
+			else if(inputItem.NumberOfElements() == 3)
+			{
+				cr_sex sexIdentifier = GetAtomicArg(inputItem, 1);
+				AddInput(f, sexType, sexIdentifier, inputItem);
+
+				cr_sex sAttribute = inputItem[2];
+				if (!IsCompound(sAttribute))
+				{
+					Throw(sAttribute, "Expecting compound attribute element");
+				}
+
+				AddAttributeToCurrentArgument(f, sAttribute);
+			}
 		}	
 	}
+
 
 	void ValidateChildConstructorExists(int startPos, int endPos, cr_sex constructorDef, const IMember& m)
 	{

@@ -46,7 +46,7 @@ namespace Rococo { namespace Sex
 
 	void AssertAtomicMatch(cr_sex s, cstr value)
 	{
-		if (!IsAtomic(s) || !AreEqual(s.String(), ("=")))
+		if (!IsAtomic(s) || !AreEqual(s.String(), value))
 		{
 			Throw(s, "Expecting '%s'  at this position", value);
 		}

@@ -3692,6 +3692,29 @@ R"((namespace EntryPoint)
 		validate(&i1 == i2);
 	} 
 
+	void TestDefaultParameter(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(function Add (Int32 a)(Int32 b (attribute default 7)) -> (Int32 sum):"
+			"	(sum = a + b)"
+			")"
+			"(function Main -> (Int32 result):"
+			"		(result = (Add 4 .))"
+			")"
+			"(namespace EntryPoint)(alias Main EntryPoint.Main)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(115); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 11);
+	}
+
 	void TestMissingMethod(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -18141,6 +18164,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
+
+		TEST(TestDefaultParameter);
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();

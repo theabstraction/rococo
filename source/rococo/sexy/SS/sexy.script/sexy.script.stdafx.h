@@ -455,7 +455,7 @@ namespace Rococo
         IModule& GetSysTypeMemoModule(CScript& script);
         INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, cstr ns, cr_sex s);
         void MarkStackRollback(CCompileEnvironment& ce, cr_sex invokeExpression);
-        int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, cstr inputName, const IStructure* genericArg1);
+        int PushInput(CCompileEnvironment& ce, cr_sex s, int index, const IStructure& inputStruct, const IArchetype* archetype, cstr inputName, const IStructure* genericArg1, cstr defaultValue);
         const IArgument& GetInput(cr_sex s, IFunction& f, int index);
         const IArchetype* GetArchetype(cr_sex s, IFunction& f, int index);
         void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, cstr name, int interfaceIndex);

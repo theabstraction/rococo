@@ -1026,7 +1026,7 @@ namespace Rococo
 			 cstr inputName = callee.GetArgName(i);
 			 const IStructure& argType = callee.GetArgument(i);
          
-			 int inputStackCost = PushInput(ce, s, indices[i], argType, nullptr, inputName, callee.GetGenericArg1(i));
+			 int inputStackCost = PushInput(ce, s, indices[i], argType, nullptr, inputName, callee.GetGenericArg1(i), callee.GetDefaultValue(i));
 			 inputStackAllocCount += inputStackCost;
 		  }
 		  return inputStackAllocCount;

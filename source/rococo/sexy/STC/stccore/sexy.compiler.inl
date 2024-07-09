@@ -140,6 +140,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 			SetStructs(argNameArray, stArray, archArray, _genericArg1Array, numberOfOutputs, numberOfInputs);
 		}
 
+		cstr GetDefaultValue(int index) const override
+		{
+			UNUSED(index);
+			return nullptr;
+		}
+
 		const Rococo::Script::NativeSecurityHandler* Security() const
 		{
 			return nullptr;

@@ -84,6 +84,7 @@ namespace Rococo::Compiler
 	ROCOCO_INTERFACE IFunctionBuilder : public IFunction
 	{
 		virtual void Free() = 0;
+		virtual void AddDefaultToCurrentArgument(cstr defaultValueString) = 0;
 		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddClosureInput(const NameString& name, const TypeString& type, void* userdata) = 0;
 		virtual IArgumentBuilder& AddInput(const NameString& name, const IStructure& type, void* userdata) = 0;
