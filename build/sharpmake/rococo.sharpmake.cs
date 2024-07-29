@@ -1239,6 +1239,38 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class DommeProject : RococoProject
+    {
+        public DommeProject() : base("sexy.domme")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class DommeTestProject : RococoProject
+    {
+        public DommeTestProject() : base("sexy.domme.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<DommeProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoSexyStudioProject : RococoProject
     {
         public RococoSexyStudioProject() : base("sexystudio")
@@ -1915,6 +1947,8 @@ namespace Rococo
             conf.AddProject<SexyMathsProject>(target);
             conf.AddProject<SexyBennyHillProject>(target);
             conf.AddProject<SexyIncludeProject>(target);
+            conf.AddProject<DommeProject>(target);
+            conf.AddProject<DommeTestProject>(target);
         }
 
         public static void AddThirdPartyLibs(Solution.Configuration conf, Target target)
@@ -2207,6 +2241,9 @@ namespace Rococo
             arguments.Generate<RococoDX11HLSLCompilerProject>();
 
             arguments.Generate<RococoRALPipelineProject>();
+
+            arguments.Generate<DommeProject>();
+            arguments.Generate<DommeTestProject>();
         }
     }
 }

@@ -615,6 +615,10 @@ namespace Rococo {
 			virtual const IStructure* GetSysType(SEXY_CLASS_ID id) = 0;
 			virtual IAllocatorMap& AllocatorMap() = 0;
 			virtual size_t FreeLeakedObjects(IEventCallback<LeakArgs>* leakCallback = nullptr) = 0;
+
+			// Advanced methods for micromanaging interface reference counts. Useful for marshalling APIs
+			virtual void DecrementRefCount(InterfacePointer pInterface) = 0;
+			virtual void IncrementRefCount(InterfacePointer pInterface) = 0;
 		};
 
 		SEXYUTIL_API const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);

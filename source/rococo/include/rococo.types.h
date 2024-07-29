@@ -132,7 +132,7 @@ namespace Rococo
 	struct Metres;
 	struct FPSAngles;
 
-	struct IPackage;
+	DECLARE_ROCOCO_INTERFACE IPackage;
 
 	typedef const Vec2& cr_vec2;
 	typedef const Vec3& cr_vec3;
@@ -141,7 +141,7 @@ namespace Rococo
 
 	typedef size_t ID_BYTECODE;
 
-	struct IExpandingBuffer;
+	DECLARE_ROCOCO_INTERFACE IExpandingBuffer;
 
 	struct fstring
 	{
@@ -204,7 +204,7 @@ namespace Rococo
 
 	namespace Script
 	{
-		struct IPublicScriptSystem;
+		DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;
 		struct InterfacePointerToStringBuilder
 		{
 			void* pSexyInterfacePointer;
@@ -240,13 +240,13 @@ namespace Rococo
 
 	namespace Windows
 	{
-		struct IWindow;
+		DECLARE_ROCOCO_INTERFACE IWindow;
 	}
 
 	namespace Strings
 	{
-		struct IVarArgStringFormatter;
-		struct IColourOutputControl;
+		DECLARE_ROCOCO_INTERFACE IVarArgStringFormatter;
+		DECLARE_ROCOCO_INTERFACE IColourOutputControl;
 	}
 
 	struct BoneAngles;
@@ -271,7 +271,7 @@ namespace Rococo
 
 	namespace Strings
 	{
-		struct StringBuilder;
+		DECLARE_ROCOCO_INTERFACE StringBuilder;
 
 		// A substring of a larger string. If start < end start points to the first valid char, and end just after the last valid char, otherwise the string is empty
 		struct Substring
@@ -319,12 +319,12 @@ namespace Rococo
 
 	namespace Windows
 	{
-		struct IWindow;
+		DECLARE_ROCOCO_INTERFACE IWindow;
 	}
 
 	namespace Compiler
 	{
-		struct IStructure;
+		DECLARE_ROCOCO_INTERFACE IStructure;
 	}
 
 	struct Vec2i
@@ -335,13 +335,13 @@ namespace Rococo
 
 	namespace Debugging
 	{
-		struct IStackFrameEnumerator;
+		DECLARE_ROCOCO_INTERFACE IStackFrameEnumerator;
 	}
 
 	namespace Reflection
 	{
-		struct IReflectionTarget;
-		struct IReflectionVisitor;
+		DECLARE_ROCOCO_INTERFACE IReflectionTarget;
+		DECLARE_ROCOCO_INTERFACE IReflectionVisitor;
 	}
 
 	struct ISubsystemMonitor;
@@ -356,7 +356,7 @@ namespace Rococo
 
 	namespace Script
 	{
-		struct IScriptSystemFactory;
+		DECLARE_ROCOCO_INTERFACE IScriptSystemFactory;
 	}
 
 	namespace Strings
@@ -611,7 +611,7 @@ namespace Rococo
 			return Vec3{ pos.x, pos.y, z };
 		}
 
-		FORCE_INLINE [[nodiscard]] const Vec2& Flatten()
+		FORCE_INLINE [[nodiscard]] const Vec2& Flatten() const
 		{
 			return *reinterpret_cast<const Vec2*>(this);
 		}

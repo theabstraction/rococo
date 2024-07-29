@@ -258,8 +258,6 @@ namespace Rococo::Compiler
 		virtual void InitCommon() = 0;
 		virtual const CallbackIds& GetCallbackIds() const = 0;
 		virtual void ClearCustomAllocators() = 0;
-		virtual void DecrementRefCount(InterfacePointer pInterface) = 0;
-		virtual void IncrementRefCount(InterfacePointer pInterface) = 0;
 		virtual IScriptObjectAllocator& GetDefaultObjectAllocator() = 0;
 	};
 

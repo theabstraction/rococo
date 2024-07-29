@@ -4339,11 +4339,13 @@ namespace Rococo::Script
 		}
 		
 		IInterfaceBuilder* interf = MatchInterface(factoryInterfaceExpr, module);
-		if (interf == NULL)	
-			Throw(factoryInterfaceExpr, ("Unknown interface"));
+		if (interf == NULL)
+		{
+			Throw(factoryInterfaceExpr, "Unknown interface %s. Factory semantics: (factory <factory> <interface> (arg1) (arg2): <body>)", interfaceName->Buffer);
+		}
 
 		IFactory* factory = factoryNS->FindFactory(shortName);
-		if (factory != NULL) Throw(factoryNameExpr, ("A factory with the same name exists in the same namespace"));
+		if (factory != NULL) Throw(factoryNameExpr, "A factory with the same name exists in the same namespace");
 
 		IFunctionBuilder& factoryFunction = module.DeclareFunction(FunctionPrototype(factoryName->Buffer, false), &factoryDef);
 

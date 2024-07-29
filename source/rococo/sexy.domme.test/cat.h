@@ -1,0 +1,21 @@
+#pragma once
+
+#include <rococo.domme.h>
+
+namespace Rococo::Animals
+{
+	ROCOCO_INTERFACE ICat
+	{
+		virtual void MakeBiscuits() = 0;
+	};
+
+	ROCOCO_INTERFACE ICatSupervisor : ICat
+	{
+		virtual void Free() = 0;
+	};
+
+	namespace Implementation
+	{
+		ICatSupervisor* CreateCat(Rococo::Sexy::ScriptingResources& scripting);
+	}
+}

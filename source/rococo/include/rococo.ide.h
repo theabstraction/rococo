@@ -14,7 +14,7 @@ namespace Rococo
 		struct IListPopulator;
 	}
 
-	struct IDebuggerWindow;
+	DECLARE_ROCOCO_INTERFACE IDebuggerWindow;
 
 	ROCOCO_INTERFACE IDebugControl
 	{
