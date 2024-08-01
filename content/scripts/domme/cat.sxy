@@ -4,13 +4,8 @@
 	(MakeBiscuits -> )
 )
 
-(interface Rococo.IDog
-	(Bark -> )
-)
-
 (struct CatContext
-	(Rococo.IDog dog)
-	// (Rococo.ICat cat)
+	(Rococo.ICat cat)
 )
 
 (class Cat (implements Rococo.ICat)	

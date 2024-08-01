@@ -215,6 +215,10 @@ namespace Rococo { namespace VM
 		virtual EXECUTERESULT Status() const = 0;
 
 		virtual EXECUTERESULT ExecuteFunction(ID_BYTECODE codeId) = 0;
+
+		// The current implementation of this is slow. Consider a change so a stub is used to invoke the function.
+		// The stub should have an exit OPCODE following the function invocation that terminates the exection of the virtual machine
+		virtual void ExecuteFunctionUntilReturn(ID_BYTECODE codeId) = 0;
 		virtual EXECUTERESULT ExecuteFunctionProtected(ID_BYTECODE codeId) = 0;
 
 		virtual float PopFloat32() = 0;

@@ -629,6 +629,30 @@ namespace Anon
 			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_RETURNED;
 		}
 
+		void ExecuteFunctionUntilReturn(ID_BYTECODE codeId) override
+		{
+			status = EXECUTERESULT_RUNNING;
+
+			const uint8* context = cpu.SF();
+			cpu.Push(context);
+
+			const uint8* returnAddress = cpu.PC();
+			cpu.Push(returnAddress);
+
+			// Then make the new stack frame equal to the stack pointer
+			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
+
+			size_t functionStart = program->GetFunctionAddress(codeId);
+			cpu.SetPC(cpu.ProgramStart + functionStart);
+
+			while (cpu.SF() > context && status == EXECUTERESULT_RUNNING)
+			{
+				Advance();
+			}
+
+			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_RETURNED;
+		}
+
 		virtual EXECUTERESULT ExecuteFunctionProtected(ID_BYTECODE codeId) override
 		{
 			try

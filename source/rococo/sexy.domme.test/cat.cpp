@@ -9,6 +9,8 @@
 #include <rococo.strings.h>
 #include <..\STC\stccore\Sexy.Compiler.h>
 
+#include <stdio.h>
+
 using namespace Rococo::Script;
 using namespace Rococo::Sex;
 using namespace Rococo::Sexy;
@@ -57,99 +59,166 @@ namespace Rococo::Animals::Implementation
 		return *entryPoint;
 	}
 
+	const IArchetype* FindMethod(const IInterface& refInterface, cstr name, int& methodIndex)
+	{
+		for (int i = 0; i < refInterface.MethodCount(); i++)
+		{
+			auto& method = refInterface.GetMethod(i);
+			if (Eq(method.Name(), name))
+			{
+				return &method;
+			}
+		}
+
+		methodIndex = 1;
+		return nullptr;
+	}
+
+	struct Cat : ICatSupervisor
+	{
+		ScriptingResources& scripting;
+
+		ISParserTree* sourceTree = nullptr;
+		AutoFree<IPublicScriptSystem> ss;
+
+		DommeLog logger;
+
+		struct SexyScriptContext
+		{
+			InterfacePointer ip{ nullptr };
+		} scriptContext;
+
+		const IStructure* concreteType = nullptr;
+
+		const IInterface* interface0 = nullptr;
+
+		const IArchetype* makeBiscuitsMethod = nullptr;
+
+		ID_BYTECODE makeBiscuitsCode;
+
+		Cat(ScriptingResources& _scripting) : scripting(_scripting), logger(scripting)
+		{
+			sourceTree = scripting.sourceCache.GetSource("!scripts/domme/cat.sxy");
+
+			Compiler::ProgramInitParameters pip;
+			ss = scripting.ssFactory.CreateScriptSystem(pip, logger);
+			auto* module = ss->AddTree(*sourceTree);
+
+			AddNativeCallSecurity_ToSysNatives(*ss);
+
+			ss->Compile();
+
+			auto& vm = ss->PublicProgramObject().VirtualMachine();
+
+			auto& scriptMain = GetValidDommeObjectEntryPoint(*module);
+
+			Compiler::CodeSection section;
+			scriptMain.Code().GetCodeSection(section);
+
+			ss->PublicProgramObject().SetProgramAndEntryPoint(scriptMain);
+
+			vm.Push(&scriptContext);
+
+			auto& rootNS = ss->PublicProgramObject().GetRootNamespace();
+			auto* rococoNS = rootNS.FindSubspace("Rococo");
+			if (!rococoNS)
+			{
+				Throw(0, "Could not find (namespace Rococo) in %s", sourceTree->Source().Name());
+			}
+
+			auto* icat = rococoNS->FindInterface("ICat");
+			if (!icat)
+			{
+				Throw(0, "Could not find interface Rococo.ICat in %s", sourceTree->Source().Name());
+			}
+
+			auto* nullIcat = icat->UniversalNullInstance();
+			if (!nullIcat)
+			{
+				Throw(0, "Could not find Rococo.ICat universal null object");
+			}
+
+			auto* pNullInterface = GetInterfacePtr(*nullIcat);
+
+			scriptContext.ip = (InterfacePointer)pNullInterface;
+
+			ExecuteFunctionUntilYield(section.Id, *ss, scripting.debuggerWindow, false);
+
+			ObjectStub& object = *InterfaceToInstance(scriptContext.ip);
+			concreteType = object.Desc->TypeInfo;
+
+			if (concreteType->InterfaceCount() == 0)
+			{
+				Throw(0, "Class %s does not implement interfaces", GetFriendlyName(*concreteType));
+			}
+
+			interface0 = &concreteType->GetInterface(0);
+
+			int index = 0;
+			makeBiscuitsMethod = FindMethod(*interface0, "MakeBiscuits", OUT index);
+			if (!makeBiscuitsMethod)
+			{
+				Throw(0, "%s: C++ contract requires a method MakeBiscuits");
+			}
+
+			if (makeBiscuitsMethod->NumberOfOutputs() != 0)
+			{
+				Throw(0, "%s: C++ contract requires zero outputs", makeBiscuitsMethod->Name());
+			}
+
+			if (makeBiscuitsMethod->NumberOfInputs() != 1)
+			{
+				Throw(0, "%s: C++ contract requires no inputs", makeBiscuitsMethod->Name());
+			}
+
+			auto& vtable0 = *object.pVTables[0];
+			ID_BYTECODE* vtableMethods = (ID_BYTECODE*)&vtable0;
+			makeBiscuitsCode = vtableMethods[index + 1];
+		}
+
+		~Cat()
+		{
+		}
+
+		void MakeBiscuits() override
+		{
+			try
+			{
+				// Todo - required fix - push stack frame and pop frame afterwards
+				auto& vm = ss->PublicProgramObject().VirtualMachine();
+
+				vm.Push(scriptContext.ip);
+				vm.ExecuteFunctionUntilReturn(makeBiscuitsCode);
+				vm.PopPointer();
+			}
+			catch (...)
+			{
+				logger.Write("Error invoking " __FUNCTION__);
+				throw;
+			}
+		}
+
+		void Free() override
+		{
+			auto& vm = ss->PublicProgramObject().VirtualMachine();
+
+			VM::ExecutionFlags executionFlags;
+			EXECUTERESULT terminationResult = vm.ContinueExecution(executionFlags, nullptr);
+			if (terminationResult != EXECUTERESULT_TERMINATED)
+			{
+				char msg[256];
+				Strings::SafeFormat(msg, "Expected EXECUTERESULT_TERMINATED for %s", sourceTree->Source().Name());
+				logger.Write(msg);
+			}
+
+			ss->PublicProgramObject().DecrementRefCount(scriptContext.ip);
+
+			delete this;
+		}
+	};
+
 	ICatSupervisor* CreateCat(ScriptingResources& scripting)
 	{
-		struct Cat: ICatSupervisor
-		{
-			ScriptingResources& scripting;
-
-			ISParserTree* sourceTree = nullptr;
-			AutoFree<IPublicScriptSystem> ss;
-
-			DommeLog logger;
-
-			struct SexyScriptContext
-			{
-				InterfacePointer ip{ nullptr };
-			} scriptContext;
-			
-			Cat(ScriptingResources& _scripting): scripting(_scripting), logger(scripting)
-			{
-				sourceTree = scripting.sourceCache.GetSource("!scripts/domme/cat.sxy");
-
-				Compiler::ProgramInitParameters pip;
-				ss = scripting.ssFactory.CreateScriptSystem(pip, logger);
-				auto* module = ss->AddTree(*sourceTree);
-
-				AddNativeCallSecurity_ToSysNatives(*ss);
-
-				ss->Compile();
-
-				auto& vm = ss->PublicProgramObject().VirtualMachine();
-
-				auto& scriptMain = GetValidDommeObjectEntryPoint(*module);
-
-				Compiler::CodeSection section;
-				scriptMain.Code().GetCodeSection(section);
-
-				ss->PublicProgramObject().SetProgramAndEntryPoint(scriptMain);
-
-				vm.Push(&scriptContext);
-
-				auto& rootNS = ss->PublicProgramObject().GetRootNamespace();
-				auto* rococoNS = rootNS.FindSubspace("Rococo");
-				if (!rococoNS)
-				{
-					Throw(0, "Could not find (namespace Rococo) in %s", sourceTree->Source().Name());
-				}
-
-				auto* icat = rococoNS->FindInterface("ICat");
-				if (!icat)
-				{
-					Throw(0, "Could not find interface Rococo.ICat in %s", sourceTree->Source().Name());
-				}
-
-				auto* nullIcat = icat->UniversalNullInstance();
-				if (!nullIcat)
-				{
-					Throw(0, "Could not find Rococo.ICat universal null object");
-				}
-
-				auto* pNullInterface = GetInterfacePtr(*nullIcat);
-
-				scriptContext.ip = (InterfacePointer) pNullInterface;
-
-				ExecuteFunctionUntilYield(section.Id, *ss, scripting.debuggerWindow, false);
-			}
-
-			~Cat()
-			{
-			}
-
-			void MakeBiscuits() override
-			{
-
-			}
-
-			void Free() override
-			{
-				auto& vm = ss->PublicProgramObject().VirtualMachine();
-
-				VM::ExecutionFlags executionFlags;
-				EXECUTERESULT terminationResult = vm.ContinueExecution(executionFlags, nullptr);
-				if (terminationResult != EXECUTERESULT_TERMINATED)
-				{
-					char msg[256];
-					Strings::SafeFormat(msg, "Expected EXECUTERESULT_TERMINATED for %s", sourceTree->Source().Name());
-					logger.Write(msg);
-				}
-
-				ss->PublicProgramObject().DecrementRefCount(scriptContext.ip);				
-				
-				delete this;
-			}
-		};
-
 		return new Cat(scripting);
 	}
 }

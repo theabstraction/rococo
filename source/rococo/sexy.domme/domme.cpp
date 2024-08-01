@@ -27,6 +27,7 @@ namespace Rococo::Sexy
 
 	DOMME_API void DommeLog::OnJITCompileException(Sex::ParseException& ex)
 	{		
-		scripting.debuggerWindow.Log("JIT exception: (Code %d) %s: %s\n", ex.ErrorCode(), ex.Message());
+		cstr sourceName = ex.Source()->Tree().Source().Name();
+		scripting.debuggerWindow.Log("JIT exception: (Code %d) %s: %s. Line %d pos %d\n", ex.ErrorCode(), sourceName, ex.Message(), ex.Start().y, ex.Start().x);
 	}
 }

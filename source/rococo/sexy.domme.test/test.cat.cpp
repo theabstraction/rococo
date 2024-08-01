@@ -7,6 +7,7 @@
 #include <sexy.script.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.os.h>
+#include <rococo.task.queue.h>
 
 using namespace Rococo;
 using namespace Rococo::Sexy;
@@ -26,7 +27,44 @@ int MainProtected(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateTrackingAllocator(16, 1024, "test.cat.allocator");
 
 	AutoFree<ISourceCache> sourceCache = CreateSourceCache(*installation, *allocator);
-	IDebuggerWindow* debuggerWindow = nullptr;
+
+	struct AppControl: OS::IAppControl, Tasks::ITaskQueue
+	{
+		void AdvanceSysMonitors() override
+		{
+
+		}
+
+		// Returns the task queue for the main thread. Include <rococo.task.queue.h> for the definition of the full interface
+		Tasks::ITaskQueue& MainThreadQueue() override
+		{
+			return *this;
+		}
+
+		bool isRunning = true;
+
+		bool IsRunning() const override
+		{
+			return isRunning;
+		}
+
+		void ShutdownApp() override
+		{
+			isRunning = false;
+		}
+
+		void AddTask(Rococo::Function<void()> lambda) override
+		{
+
+		}
+
+		bool ExecuteNext() override
+		{
+			return false;
+		}
+	} appControl;
+
+	IDebuggerWindow* debuggerWindow = CreateDebuggerWindowForStdout(Windows::NoParent(), appControl);
 
 	AutoFree<IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 
