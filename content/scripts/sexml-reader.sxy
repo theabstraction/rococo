@@ -34,9 +34,31 @@
 	(Int32 nDirectives)
 )
 
+(function GetFirstChildThatMatchesArg (Sys.Reflection.IExpression s)(IString arg)->(Int32 indexOfArg):
+	(for (Int32 i = 0)(i < sexmlRoot.ChildCount)(i++)
+		(Sys.Reflection.IExpression child = (s i))
+		(IString text = child.Text)
+		(if (text == ":")
+			(indexOfArg = i)
+			(return)
+		)
+	)
+	
+	(indexOfArg = -1)
+)
+
 (method SEXMLReader.Construct (Sys.Reflection.IExpression sexmlRoot):
 	(this.sexmlRoot = sexmlRoot)
-	(Int32 subdirectiveIndicator = (Sys.Type.Strings.FindLeftNoCase
+	
+	(Int32 indexOfColon = (GetFirstChildThatMatchesArg sexmlRoot ":"))
+	(if (indexOfColon >= 0)
+		(this.nDirectives = ((sexmlRoot.ChildCount - indexOfColon) - 1))
+	)
+	
+	(for (Int32 i = indexOfColon + 1)(i < sexmlRoot.ChildCount)(i++)
+		(Sys.IO.ISEXMLDirective directive (NewDirective (sexmlRoot i)))
+		(topLevelDirectives.Append directive)
+	)
 )
 
 (method SEXMLReader.Root -> (Sys.IO.ISEXMLDirectiveList directives)
