@@ -3471,9 +3471,11 @@ namespace ANON
 						case EQualifier::Ref:
 							qualifier = "ref ";
 							break;
+						default:
+							qualifier = "<unknown qualifier> ";
 						}
 
-						argBuilder.AppendFormat("(%s%s %s)", inputType, inputName);
+						argBuilder.AppendFormat("(%s%s %s)", qualifier, inputType, inputName);
 					}
 
 					argBuilder << " -> ";
