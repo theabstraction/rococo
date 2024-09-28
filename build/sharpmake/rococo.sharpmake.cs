@@ -983,6 +983,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target);
         }
     }
 

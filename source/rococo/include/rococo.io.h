@@ -151,6 +151,7 @@ namespace Rococo::IO
 		bool isDirectory;
 	};
 
+	// Gets the current director path sans end slashes
 	ROCOCO_API void GetCurrentDirectoryPath(U8FilePath& path);
 
 	ROCOCO_API void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext = nullptr);
@@ -409,6 +410,15 @@ namespace Rococo::IO
 		return '\\';
 #else
 		return '/';
+#endif
+	}
+
+	[[nodiscard]] constexpr const char* GetFileSeparatorString() noexcept
+	{
+#ifdef _WIN32
+		return "\\";
+#else
+		return "/";
 #endif
 	}
 	ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity);

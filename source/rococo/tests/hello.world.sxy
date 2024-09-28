@@ -1,0 +1,7 @@
+(namespace EntryPoint)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(#Sys.IO.printf "Hello World!")
+)
+
+(alias Main EntryPoint.Main)

@@ -33,6 +33,8 @@
 
 #include <rococo.time.h>
 
+#include <rococo.sexml.h>
+
 using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Sex;
@@ -599,6 +601,90 @@ int mainProtected(int argc, char* argv[])
 
 	cstr installationPath;
 	GetNextCmdArgValue(argc, argv, 0, "installation=", installationPath);
+
+	HString sexmlInstallationPath;
+
+	if (installationPath == nullptr)
+	{
+		using namespace Rococo::Sex::SEXML;
+
+		U8FilePath containerDir;
+		IO::GetCurrentDirectoryPath(containerDir);
+		
+		while (!installationPath)
+		{
+			U8FilePath installationSpecPath;
+			MakePath(installationSpecPath, containerDir, "cmd.installation.sexml");
+
+			try
+			{
+				if (IsFileExistant(installationSpecPath))
+				{
+					Rococo::OS::LoadSXMLBySysPath(installationSpecPath,
+						[&containerDir, &sexmlInstallationPath, &installationPath]
+						(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+						{
+							size_t startIndex = 0;
+							auto* dirInstallation = SEXML::FindDirective(topLevelDirectives, "Installation", REF startIndex);
+							if (!dirInstallation)
+							{
+								Throw(topLevelDirectives.S(), "Missing [Installation] directive");
+							}
+
+							auto& path = AsString(dirInstallation->GetAttributeByName("Path").Value());
+
+							U8FilePath fullInstallationPath;
+							MakePath(fullInstallationPath, containerDir, path.c_str());
+							if (IO::IsDirectory(fullInstallationPath))
+							{
+								sexmlInstallationPath = fullInstallationPath;
+								installationPath = sexmlInstallationPath;
+							}
+							else
+							{
+								U8FilePath currentDir;
+								IO::GetCurrentDirectoryPath(currentDir);
+								MakePath(fullInstallationPath, currentDir, path.c_str());
+
+								if (IO::IsDirectory(fullInstallationPath))
+								{
+									sexmlInstallationPath = fullInstallationPath;
+									installationPath = sexmlInstallationPath;
+								}
+								else
+								{
+									sexmlInstallationPath = path.c_str();
+									installationPath = sexmlInstallationPath;
+								}
+							}
+						}
+					);
+				}
+				else
+				{
+					size_t len = strlen(containerDir);
+					MakeContainerDirectory(containerDir.buf);
+					if (len == strlen(containerDir.buf))
+					{
+						break;
+					}
+				}
+			}
+			catch (IException& ex)
+			{
+				char errCode[256] = { 0 };
+				if (ex.ErrorCode())
+				{
+					Rococo::OS::FormatErrorMessage(errCode, sizeof errCode, ex.ErrorCode());
+					fprintf(stderr, "Code %d 0x%X: %s\n", ex.ErrorCode(), ex.ErrorCode(), errCode);
+				}
+
+				fprintf(stderr, "Error with %s: %s\n", installationSpecPath.buf, ex.Message());
+				
+				break;
+			}
+		}
+	}
 
 	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 	AutoFree<IO::IInstallationSupervisor> installation = new CmdInstallation(installationPath);

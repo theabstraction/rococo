@@ -345,6 +345,8 @@ namespace Rococo::Strings
 	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
 	ROCOCO_API int32 Format(WideFilePath& path, const wchar_t* format, ...);
 #endif
+
+	ROCOCO_API int32 MakePath(U8FilePath& combinedPath, cstr rootDirectory, cstr subdirectory);
 	ROCOCO_API void Assign(U8FilePath& dest, const wchar_t* wideSrc);
 	ROCOCO_API void Assign(U8FilePath& dest, const char* src);
 	ROCOCO_API void Assign(WideFilePath& dest, const char* src);

@@ -281,6 +281,26 @@ namespace Rococo::Strings
 		}
 	}
 
+	ROCOCO_UTIL_API int32 MakePath(U8FilePath& combinedPath, cstr rootPath, cstr subdirectory)
+	{
+		auto len = strlen(rootPath);
+		if (len > 0)
+		{
+			if (rootPath[len - 1] != IO::GetFileSeparator())
+			{
+				return SecureFormat(combinedPath.buf, "%s%s%s", rootPath, IO::GetFileSeparatorString(), subdirectory);
+			}
+			else
+			{
+				return SecureFormat(combinedPath.buf, "%s%s", rootPath, subdirectory);
+			} 
+		}
+		else
+		{
+			return SecureFormat(combinedPath.buf, "%s%s", IO::GetFileSeparatorString(), subdirectory);
+		}
+	}
+
 	ROCOCO_UTIL_API int32 Format(U8FilePath& path, cstr format, ...)
 	{
 		va_list args;
