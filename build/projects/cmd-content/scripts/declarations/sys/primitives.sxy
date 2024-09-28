@@ -1,0 +1,8 @@
+// Primitive declarations. In the normal course of the compilation of a Sexy script file the aliasing is hardcoded in C++
+
+(alias Float32 Sys.Type.Float32)
+(alias Float64 Sys.Type.Float64)
+(alias Int32 Sys.Type.Int32)
+(alias Int64 Sys.Type.Int64)
+(alias Bool Sys.Type.Bool)
+(alias Pointer Sys.Type.Pointer)

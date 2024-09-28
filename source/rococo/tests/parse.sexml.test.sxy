@@ -1,0 +1,18 @@
+(' #include "!scripts/sexml-reader.sxy")
+
+
+(namespace EntryPoint)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(#Sys.IO.printf "Testing sexml reader!")
+	
+	(Sys.Reflection.IExpression rootXML = ' 
+		(Chocolate
+		)
+	)
+	
+	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml rootXML))
+	(Sys.Sexml.ISEXMLDirectiveList rootDirectives = (reader.Root))
+)
+
+(alias Main EntryPoint.Main)

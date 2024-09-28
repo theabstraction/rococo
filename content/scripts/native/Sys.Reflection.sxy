@@ -22,6 +22,7 @@
 
 (interface Sys.Reflection.IExpressionBuilder
 	(AddAtomic (IString s) ->)
+	(AddStringLiteral (IString s) ->)
 	(AddCompound -> (IExpressionBuilder child))
 	(Copy (IExpression s) ->)
 	(CopyString (IExpression s) -> )
@@ -62,6 +63,10 @@
 
 (method ExpressionBuilder.AddAtomic (IString s) -> :
 	(Sys.Reflection.Native.ExpressionBuilderAddAtomic this.builderPtr s.Buffer)
+)
+
+(method ExpressionBuilder.AddStringLiteral (IString s) -> :
+	(Sys.Reflection.Native.ExpressionBuilderAddStringLiteral this.builderPtr s.Buffer)
 )
 
 (method ExpressionBuilder.InsertCompoundAfter (Int32 index) -> (IExpressionBuilder child) :
@@ -125,6 +130,10 @@
 	(Structure (Int32 index) -> (IStructure structure))
 )
 
+(interface Sys.Reflection.IStructure
+	(Name -> (IString name))
+)
+
 (function GetScriptSystem -> (IScriptSystem ss):
 	(Sys.Reflection.Native.GetScriptSystem -> ss)
 )
@@ -157,69 +166,19 @@
 	(Sys.Reflection.Native.GetStructCount this.modulePtr -> structCount)
 )
 
+(method Module.Structure (Int32 index) -> (IStructure structure):
+	(Sys.ValidateSubscriptRange index 0 this.StructCount "Module.Structure threw an exception: Index out of range")
+	(Sys.Reflection.Native.GetStruct this.modulePtr index -> structure)
+)
+
 (class Structure
-	(defines Sys.Reflection.IStructure)
+	(implements IStructure)
 	(Pointer structPtr)
 )
 
 (method Structure.Name -> (IString name):
 	(Sys.Reflection.Native.GetStructName this.structPtr -> name)
 )
-
-(method Structure.InterfaceCount -> (Int32 nInterfaces):
-	(Sys.Reflection.Native.GetInterfaceCount this.structPtr -> nInterfaces)
-)
-
-(method Structure.IsMethodInputOfType (Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)-> (Bool match):
-	(Sys.Reflection.Native.IsMethodInputOfType methodIndex inputIndex argTypeCandidate this.structPtr -> match)
-)
-
-(method Structure.IsMethodOutputOfType (Int32 methodIndex)(Int32 outputIndex) (Sys.Reflection.IStructure argTypeCandidate)-> (Bool match):
-	(Sys.Reflection.Native.IsMethodOutputOfType methodIndex outputIndex argTypeCandidate this.structPtr -> match)
-)
-
-(method Structure.GetMethodCount -> (Int32 methodCount):
-	(Sys.Reflection.Native.GetMethodCount this.structPtr -> methodCount)
-)
-
-(method Structure.GetInputType (Int32 methodIndex)(Int32 inputIndex) -> (Sys.Reflection.IStructure argType):
-	(Sys.Reflection.Native.GetInputType methodIndex inputIndex this.structPtr -> argType)
-)
-
-(method Structure.GetOutputType (Int32 methodIndex)(Int32 outputIndex) -> (Sys.Reflection.IStructure argType):
-	(Sys.Reflection.Native.GetOutputType methodIndex outputIndex this.structPtr -> argType)
-)
-
-(method Structure.GetMethodArgCounts (Int32 methodIndex) -> (Int32 inputCount)(Int32 outputCount):
-	(Sys.Reflection.Native.GetMethodArgCounts methodIndex this.structPtr -> inputCount outputCount)
-)
-
-(method Structure.AppendInputTypeAndName (Int32 methodIndex)(Int32 inputIndex)(IStringBuilder typeBuilder)(IStringBuilder nameBuilder) -> :
-	(Sys.Reflection.Native.AppendInputTypeAndName methodIndex inputIndex typeBuilder nameBuilder this.structPtr)
-)
-
-(method Structure.AppendOutputTypeAndName (Int32 methodIndex)(Int32 outputIndex)(IStringBuilder typeBuilder)(IStringBuilder nameBuilder) -> :
-	(Sys.Reflection.Native.AppendInputTypeAndName methodIndex outputIndex typeBuilder nameBuilder this.structPtr)
-)
-
-(method Structure.GetInterfaceName -> (IString nameOrNull):
-	(Sys.Reflection.Native.GetInterfaceName this.structPtr -> nameOrNull)
-)
-
-(method Structure.AppendMethodName (IStringBuilder sb) (Int32 methodIndex) -> (Int32 nameLength):
-	(Sys.Reflection.Native.AppendMethodName sb methodIndex this.structPtr -> nameLength)
-)
-
-(method Module.Structure (Int32 index) -> (IStructure structure):
-	(Sys.ValidateSubscriptRange index 0 this.StructCount "Module.Structure threw an exception: Index out of range")
-	(Sys.Reflection.Native.GetStruct this.modulePtr index -> structure)
-)
-
-/*
-(method Structure.Name -> (IString name):
-	(Sys.Reflection.Native.GetStructName this.structPtr -> name)
-)
-*/
 
 (struct SexyAssetFile
 	(Sys.Type.IString pingPath)

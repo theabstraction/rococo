@@ -616,6 +616,17 @@ namespace
 		pBuilder->AddAtomic(pBuffer);
 	}
 
+	void NativeExpressionBuilderAddLiteral(NativeCallEnvironment& e)
+	{
+		ISExpressionBuilder* pBuilder;
+		ReadInput(0, (void*&)pBuilder, e);
+
+		const char* pBuffer;
+		ReadInput(1, (void*&)pBuffer, e);
+
+		pBuilder->AddStringLiteral(pBuffer);
+	}
+
 	void NewExpressionBuilder(NativeCallEnvironment& e)
 	{
 		InterfacePointer ipOrigin;
@@ -787,6 +798,7 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeGetMethodArgCounts, &ss, "GetMethodArgCounts (Int32 methodIndex) (Pointer structPtr) -> (Int32 inputCount)(Int32 outputCount)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeGetMethodCount, &ss, "GetMethodCount (Pointer structPtr) -> (Int32 count)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddAtomic, &ss, "ExpressionBuilderAddAtomic (Pointer builderPtr) (Pointer strBuffer) ->", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddLiteral, &ss, "ExpressionBuilderAddLiteral (Pointer builderPtr) (Pointer strBuffer) ->", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCompound, &ss, "ExpressionBuilderAddCompound (Pointer builderPtr) -> (Sys.Reflection.IExpressionBuilder child)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderInsertCompoundAfter, &ss, "ExpressionBuilderInsertCompoundAfter (Pointer builderPtr)(Int32 index) -> (Sys.Reflection.IExpressionBuilder child)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionBuilderAddCopy, &ss, "ExpressionBuilderAddCopy (Pointer builderPtr) (Pointer xpressPtr) ->", __FILE__, __LINE__, true);

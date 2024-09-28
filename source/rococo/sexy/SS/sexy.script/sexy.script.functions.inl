@@ -2546,11 +2546,32 @@ namespace Rococo
 			switch (c.VarType())
 			{
 			case VARTYPE_Array:
-				return TryCompileAsArrayCall(ce, s, instanceName, methodName);
+				if (!TryCompileAsArrayCall(ce, s, instanceName, methodName))
+				{
+					Throw(s, "%s is an array, but method name unknown. Check log above", instanceName);
+				}
+				else
+				{
+					return true;
+				}
 			case VARTYPE_List:
-				return TryCompileAsListCall(ce, s, instanceName, methodName);
+				if (!TryCompileAsListCall(ce, s, instanceName, methodName))
+				{
+					Throw(s, "%s is a list, but method name unknown. Check log above", instanceName);
+				}
+				else
+				{
+					return true;
+				}
 			case VARTYPE_Map:
-				return TryCompileAsMapCall(ce, s, instanceName, methodName);
+				if (!TryCompileAsMapCall(ce, s, instanceName, methodName))
+				{
+					Throw(s, "%s is a map, but method name unknown. Check log above", instanceName);
+				}
+				else
+				{
+					return true;
+				}
 			case VARTYPE_Derivative:
 				break;
 			default:

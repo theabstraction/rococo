@@ -22,6 +22,7 @@
 
 (interface Sys.Reflection.IExpressionBuilder
 	(AddAtomic (IString s) ->)
+	(AddStringLiteral (IString s) ->)
 	(AddCompound -> (IExpressionBuilder child))
 	(Copy (IExpression s) ->)
 	(CopyString (IExpression s) -> )
@@ -62,6 +63,10 @@
 
 (method ExpressionBuilder.AddAtomic (IString s) -> :
 	(Sys.Reflection.Native.ExpressionBuilderAddAtomic this.builderPtr s.Buffer)
+)
+
+(method ExpressionBuilder.AddStringLiteral (IString s) -> :
+	(Sys.Reflection.Native.ExpressionBuilderAddStringLiteral this.builderPtr s.Buffer)
 )
 
 (method ExpressionBuilder.InsertCompoundAfter (Int32 index) -> (IExpressionBuilder child) :

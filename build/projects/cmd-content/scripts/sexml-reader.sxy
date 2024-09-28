@@ -1,0 +1,289 @@
+(using Sys)
+(using Sys.Type)
+
+(namespace Sys.Sexml)
+
+(interface Sys.Sexml.ISEXMLAttribute
+	(Key -> (IString keyName))
+	(ValueCount -> (Int32 valueCount))
+	(Value (Int32 index) -> (Sys.Reflection.IExpression s))
+	(S -> (Sys.Reflection.IExpression s))
+	(Owner -> (Sys.Sexml.ISEXMLDirective directive))
+)
+
+// (directive (attribute1 ...)(attribute2 ...) : (child1 ...) (child2 ...))
+
+(interface Sys.Sexml.ISEXMLDirective
+	(Attribute (Int32 index) -> (Sys.Sexml.ISEXMLAttribute attr))
+	(Count -> (Int32 nAttributes))
+	(SubDirectives -> (Sys.Sexml.ISEXMLDirectiveList directives))
+	(S -> (Sys.Reflection.IExpression s))
+)
+
+(interface Sys.Sexml.ISEXMLDirectiveList
+	(Count -> (Int32 numberOfDirectives))
+	(Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive))
+)
+
+(interface Sys.Sexml.ISEXMLReader
+	(Root -> (Sys.Sexml.ISEXMLDirectiveList directives))
+	(S -> (Sys.Reflection.IExpression s))
+)
+
+(class SEXMLReader 
+	(implements Sys.Sexml.ISEXMLReader)
+	(implements Sys.Sexml.ISEXMLDirectiveList)
+	
+	(array Sys.Sexml.ISEXMLDirective topLevelDirectives)
+	(array Sys.Sexml.ISEXMLAttribute topLevelAttributes)
+	
+	(Sys.Reflection.IExpression sexmlRoot)
+	
+	(Int32 nDirectives)
+	(Int32 nAttributes)
+)
+
+(function GetFirstChildThatMatchesArg (Sys.Reflection.IExpression s)(IString arg)->(Int32 indexOfArg):
+	(for (Int32 i = 0)(i < s.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression child = (s i))
+		(IString text = child.Text)
+		(if ((Sys.Type.Strings.Compare text ":") != -1)
+			(indexOfArg = i)
+			(return)
+		)
+	)
+	
+	(indexOfArg = -1)
+)
+
+(method SEXMLReader.Construct (Sys.Reflection.IExpression sexmlRoot):
+	(this.sexmlRoot = sexmlRoot)
+	
+	(Int32 indexOfColon = (GetFirstChildThatMatchesArg sexmlRoot ":"))
+	(if (indexOfColon >= 1)
+		(this.nAttributes = indexOfColon - 1)
+		(this.nDirectives = (sexmlRoot.ChildCount - indexOfColon) - 1)
+	else
+		(this.nAttributes = 0)
+		(this.nDirectives = sexmlRoot.ChildCount)
+	)
+	
+	(for (Int32 i = indexOfColon + 1)(i < sexmlRoot.ChildCount)(i += 1)
+		(Sys.Sexml.ISEXMLDirective directive (Sys.Sexml.NewDirective (sexmlRoot i)))
+		(this.topLevelDirectives.Push directive)
+	)
+	
+	(for (Int32 i = 1)(i < indexOfColon)(i += 1)
+		(Sys.Sexml.ISEXMLAttribute a (Sys.Sexml.NewAttribute (sexmlRoot i)))
+		(this.topLevelAttributes.Push a)
+	)
+)
+
+(method SEXMLReader.Root -> (Sys.Sexml.ISEXMLDirectiveList directives):
+	(directives = this)
+)
+
+(method SEXMLReader.Count -> (Int32 numberOfDirectives):
+	(numberOfDirectives = this.nDirectives)
+)
+
+(method SEXMLReader.Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive):
+	(directive = (this.topLevelDirectives index))
+)
+
+(method SEXMLReader.S -> (Sys.Reflection.IExpression s):
+)
+
+(factory Sys.Sexml.ReadSexml Sys.Sexml.ISEXMLReader (Sys.Reflection.IExpression sexmlRoot):
+	(construct SEXMLReader sexmlRoot)
+)
+
+(class SEXMLDirective
+	(implements Sys.Sexml.ISEXMLDirectiveList)
+	(implements Sys.Sexml.ISEXMLDirective)
+	
+	(Sys.Reflection.IExpression sDir)
+	
+	(array Sys.Sexml.ISEXMLDirective subdirectives)
+	(array Sys.Sexml.ISEXMLAttribute attributes)
+		
+	(Int32 nSubdirectives)
+	(Int32 nAttributes)
+)
+
+(method SEXMLDirective.Count -> (Int32 numberOfDirectives):
+	(numberOfDirectives = this.nDirectives)
+)
+
+(method SEXMLDirective.Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive):
+	(directive = (this.subdirectives index))
+)
+
+(method SEXMLDirective.Attribute (Int32 index) -> (Sys.Sexml.ISEXMLAttribute attr):
+	(attr = (this.attributes index))
+)
+
+(method SEXMLDirective.SubDirectives -> (Sys.Sexml.ISEXMLDirectiveList directives):
+	(directives = this)
+)
+
+(method SEXMLDirective.S -> (Sys.Reflection.IExpression s):
+	(s = this.sDir)
+)
+
+(function BuildMatchStatement (Sys.Reflection.IExpression in)(Sys.Reflection.IExpressionBuilder out)-> :
+	(if (in.ChildCount < 3)
+		(in.Throw 0 "Expecting at least 3 children: (#Sys.match <text-variable> (key1 (command1 ...))(key2 (command2 ...)))")
+	)
+	
+	(Sys.Reflection.IExpression variableName = (in 1))
+	
+	(if (variableName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+		(variableName.Throw "Expecting atomic value for <text-variable>")
+	)
+	
+	(for (Int32 i = 2)(i < in.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression matchLine = (in i))
+		
+		(if (matchLine.ChildCount < 2)
+			(matchLine.Throw 0 "Expecting more than one expression on the match line")
+		)
+		
+		(Sys.Reflection.IExpression key = (matchLine 0))
+		
+		(IExpressionBuilder owner = out)
+		
+		(if ((key.Type == (#Sys.Reflection.ExpressionTypeString)) or (key.Type == (#Sys.Reflection.ExpressionTypeAtomic)))
+			(Sys.Type.IString keyName = key.Text)
+			(IExpressionBuilder matchImpl = owner.AddCompound)
+			(matchImpl.AddAtomic "if")
+				(IExpressionBuilder testImpl = matchImpl.AddCompound)
+					(IExpressionBuilder testImplInner = matchImpl.AddCompound)
+						(testImplInner.AddAtomic "Sys.Type.Strings.Compare")
+						(testImplInner.AddAtomic variableName)
+						(testImplInner.AddLiteral keyName)
+					(testImpl.AddAtomic "==")
+					(testImpl.Atomic "0")
+					
+				(for (Int32 j = 1) (j < matchLine.ChildCount)(j += 1)
+					(matchImpl.Copy (matchImpl j))
+				)
+				
+				(matchImpl.AddAtomic "else")
+				(owner = matchImpl)			
+		else
+			(key.Throw 0 "Key: Expecting atomic or string literal")
+		)
+	)
+)
+
+/*  Executes the command expressions with the matching key
+	usage: 
+	(#Sys.match text-variable
+		(key1 (commands...))
+		...
+		(keyN (commands...))
+	)
+*/
+(macro Sys.match in out
+	(Sys.ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#Sys.match text-variable (key1 (command...)(key2 (command ...))))")
+	(BuildMatchStatement in out)
+)
+
+(method SEXMLDirective.Construct (Sys.Reflection.IExpression s) :
+	(this.sDir = s)
+	
+	(Int32 indexOfColon = (GetFirstChildThatMatchesArg s ":"))
+	(if (indexOfColon >= 1)
+		(this.nAttributes = indexOfColon - 1)
+		(this.nDirectives = (s.ChildCount - indexOfColon) - 1)
+	else
+		(this.nAttributes = 0)
+		(this.nDirectives = s.ChildCount)
+	)
+	
+	(for (Int32 i = indexOfColon + 1)(i < s.ChildCount)(i += 1)
+		(Sys.Sexml.ISEXMLDirective directive (Sys.Sexml.NewDirective (s i)))
+		(this.subdirectives.Push directive)
+	)
+	
+	(for (Int32 i = 1)(i < indexOfColon)(i += 1)
+		(Sys.Reflection.IExpression sAttribute = (s i))
+		(if (sAttribute.Type != (#Sys.Reflection.ExpressionTypeCompound))
+			(sAttribute.Throw 0 "Expecting compound definition of an attribute (Key <...value(s)...>)")
+		)
+		
+		(if (sAttribute.ChildCount() < 1)
+			(sAttribute.Throw 0 "Expecting (<keyname> ...) but attribute had no children")
+		)
+	
+		(Sys.Reflection.IExpression sKey = (sAttribute 0))
+		(if (sKey.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+			(sKey.Throw 0 "Expecting expression to be a string key or type indicator")
+		)
+		
+		(Int32 nExpectedValues = 1)
+		
+		(Sys.Type.IString t0 = sKey.Text)
+
+		(#Sys.match t0
+			("#Vec2i" (nExpectedValues = 2))
+			("#Vec3i" (nExpectedValues = 3))
+			("#Vec4i" (nExpectedValues = 4))
+			("#Recti" (nExpectedValues = 4))
+			("#Quat" (nExpectedValues = 4))
+			("#Vec2" (nExpectedValues = 2))
+			("#Vec3" (nExpectedValues = 3))
+			("#Vec4" (nExpectedValues = 4))
+			("#Rect" (nExpectedValues = 4))
+			("#List" (nExpectedValues = sAttribute.ChildCount - 2))
+		)
+		
+		(if (nExpectedValues == 1)
+			(if (sAttribute.ChildCount != 2)
+				(sAttribute.Throw 0 "Expecting two elements: (<key> <value>)")
+			)
+			
+			(Sys.Sexml.ISEXMLAttribute a (Sys.Sexml.NewAttribute SKey.Text sAttribute this))
+			(this.attributes.Push a)
+		else
+			(if (sAttribute.ChildCount != (nExpectedValues + 2))
+				(#Sys.Type.paragraph msg "Expecting (" t0 " <key> <..." nExpectedValues " values...>)")
+				(sAttribute.Throw 0 msg)
+			)
+			
+			(Sys.Reflection.IExpression sKeyName = (sAttribute 1))
+			(if (sKeyName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+				(sKeyName.Throw 0 "Expecting atomic value for keyname")
+			)
+			
+			(Sys.Sexml.ISEXMLAttribute a (Sys.Sexml.NewAttribute sKeyName.Text sAttribute this))
+			(this.attributes.Push a)
+		)
+	)
+)
+
+(factory Sys.Sexml.NewDirective Sys.Sexml.ISEXMLReader (Sys.Reflection.IExpression sexmlDirectiveExpression):
+	(construct SEXMLDirective sexmlDirectiveExpression)
+)
+
+(class SEXMLAttribute
+	(implements Sys.Sexml.ISEXMLAttribute)
+	(Sys.Reflection.IExpression s)
+	(Sys.Sexml.ISEXMLDirective directive)
+	(Sys.Type.IString key)
+)
+
+(method SEXMLAttribute.Construct (Sys.Type.IString key)(Sys.Reflection.IExpression s)(Sys.Sexml.ISEXMLDirective parentDirective):
+	(this.s = s)
+	(this.directive = parentDirective)
+	(this.key = key)
+)
+
+(method SEXMLAttribute.Key -> (IString keyName):
+	(keyName = this.key)
+)
+
+(factory Sys.Sexml.NewAttribute Sys.Sexml.ISEXMLAttribute (Sys.Reflection.IExpression s)(Sys.Sexml.ISEXMLDirective parentDirective):
+	(construct SEXMLAttribute s parentDirective)
+)
