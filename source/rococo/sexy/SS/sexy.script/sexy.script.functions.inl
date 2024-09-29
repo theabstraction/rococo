@@ -623,6 +623,10 @@ namespace Rococo
 			case EXPRESSION_TYPE_COMPOUND:
 				if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
 				{
+					if (s.NumberOfElements() == 1)
+					{
+						return TryCompilePushStructRef(ce, s[0], expectingStructRef, inputType, name, genericArg1);
+					}
 					return false;
 				}
 

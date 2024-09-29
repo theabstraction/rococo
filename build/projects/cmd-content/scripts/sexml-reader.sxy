@@ -41,8 +41,7 @@
 (function GetFirstChildThatMatchesArg (IExpression s)(IString arg)->(Int32 indexOfArg):
 	(for (Int32 i = 0)(i < s.ChildCount)(i += 1)
 		(IExpression child = (s i))
-		(IString text = child.Text)
-		(if ((Sys.Type.Strings.Compare text ":") != -1)
+		(if ((Sys.Type.Strings.Compare (child.Text) ":") != -1)
 			(indexOfArg = i)
 			(return)
 		)
@@ -140,11 +139,13 @@
 			(IExpressionBuilder matchImpl = owner.AddCompound)
 			(matchImpl.AddAtomic "if")
 				(IExpressionBuilder booleanImpl = matchImpl.AddCompound)
-					// (if ((Sys.Type.Strings.Compare key target)== 0) ... else...)
+					// (if ((Sys.Type.Strings.Compare (key) target)== 0) ... else...)
 					(IExpressionBuilder compareInvocationImpl = booleanImpl.AddCompound)
 						(compareInvocationImpl.AddAtomic "Sys.Type.Strings.Compare")
-						(compareInvocationImpl.AddAtomic variableName.Text)
-						(compareInvocationImpl.AddStringLiteral keyName)
+							(IExpressionBuilder variableWrapper = compareInvocationImpl.AddCompound)		
+								(variableWrapper.AddAtomic variableName.Text)
+							(IExpressionBuilder keyWrapper = compareInvocationImpl.AddCompound)
+								(keyWrapper.AddStringLiteral keyName)							
 					(booleanImpl.AddAtomic "==")
 					(booleanImpl.AddAtomic "0")
 					
@@ -201,8 +202,8 @@
 	
 	(for (i = 1)(i < indexOfColon)(i += 1)
 		(IExpression sAttribute = (s i))
-		(Int32 attrType = sAttribute.Type)
-		(if (attrType != (#Sys.Reflection.ExpressionTypeCompound))
+
+		(if (sAttribute.Type != (#Sys.Reflection.ExpressionTypeCompound))
 			(sAttribute.Throw 0 "Expecting compound definition of an attribute (Key <...value(s)...>)")
 		)
 		
@@ -211,16 +212,14 @@
 		)
 	
 		(IExpression sKey = (sAttribute 0))
-		(Int32 keyType = sKey.Type)
-		(if (keyType != (#Sys.Reflection.ExpressionTypeAtomic))
+
+		(if (sKey.Type != (#Sys.Reflection.ExpressionTypeAtomic))
 			(sKey.Throw 0 "Expecting expression to be a string key or type indicator")
 		)
 		
 		(Int32 nExpectedValues = 1)
 		
-		(Sys.Type.IString t0 = sKey.Text)
-
-		(#Sys.StringMatch t0
+		(#Sys.StringMatch sKey.Text
 			("#Vec2i" (nExpectedValues = 2))
 			("#Vec3i" (nExpectedValues = 3))
 			("#Vec4i" (nExpectedValues = 4))
@@ -244,14 +243,13 @@
 			(Int32 childCount = sAttribute.ChildCount)
 			(if (childCount != (nExpectedValues + 2))
 				(
-					(#Sys.Type.paragraph msg "Expecting (" t0 " <key> <..." nExpectedValues " values...>)")
+					(#Sys.Type.paragraph msg "Expecting (" sKey.Text " <key> <..." nExpectedValues " values...>)")
 					(sAttribute.Throw 0 msg)
 				)
 			)
 			
 			(IExpression sKeyName = (sAttribute 1))
-			(Int32 keyNameType = sKeyName.Type)
-			(if (keyNameType != (#Sys.Reflection.ExpressionTypeAtomic))
+			(if (sKeyName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
 				(sKeyName.Throw 0 "Expecting atomic value for keyname")
 			)
 			
@@ -289,11 +287,7 @@
 )
 
 (method SEXMLAttribute.Value (Int32 index) -> (IExpression sValue):
-	(if (s.ChildCount == 2)
-		(sValue = s.Child (index + 1))
-	else
-		(sValue = s.Child (index + 2))
-	)
+	(sValue = (s.ChildCount == 2) ?? (s.Child (index + 1)) (s.Child (index + 2)))
 )
 
 (method SEXMLAttribute.S -> (IExpression sExpr):

@@ -4538,6 +4538,40 @@ R"((namespace EntryPoint)
       validate(x == 55);
    }
 
+   void TestCompareGetAccessorVsCompound(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint)"
+		   "(class Job (defines Sys.IJob))"
+		   "(method Job.Construct : )"
+		   "(method Job.Type -> (Int32 value): (value = 117))"
+		   "(factory EntryPoint.NewJob Sys.IJob : (construct Job))"
+		   "(function Main -> (Int32 result):"
+		   "(Int32 vst2 = 117)"
+		   "     (Sys.IJob job (EntryPoint.NewJob))"
+		   "	  (if (job.Type == (vst2))"
+		   "	      (result = 55)"
+		   "	   else"
+		   "	      (result = 89)"
+		   "	   )"
+		   ")"
+		   "(alias Main EntryPoint.Main)"
+		   ;
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 result
+
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int x = vm.PopInt32();
+	   validate(x == 55);
+   }
+
    void TestCompareGetAccessorWithOne2(IPublicScriptSystem& ss)
    {
       cstr srcCode =
@@ -18165,6 +18199,8 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+	//	TEST(TestCompareGetAccessorWithOne);
+		TEST(TestCompareGetAccessorVsCompound);
 		TEST(TestDefaultParameter);
 		RunPositiveSuccesses();	
 		RunGotoTests();
