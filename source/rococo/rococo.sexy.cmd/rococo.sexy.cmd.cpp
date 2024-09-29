@@ -113,7 +113,17 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 
 	void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& path) const override
 	{
-		baseInstallation->ConvertPingPathToSysPath(pingPath, path);
+		if (*pingPath != '!' && *pingPath != '#')
+		{
+			U8FilePath workingDir;
+			IO::GetCurrentDirectoryPath(workingDir);
+			MakePath(path, workingDir, pingPath);
+			SanitizePath(path.buf);
+		}
+		else
+		{
+			baseInstallation->ConvertPingPathToSysPath(pingPath, path);
+		}
 	}
 
 	void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override

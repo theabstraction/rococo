@@ -12,7 +12,6 @@
 	)
 	
 	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml rootXML))
-	(Sys.Sexml.ISEXMLDirectiveList rootDirectives = (reader.Root))
 )
 
 (alias Main EntryPoint.Main)

@@ -1290,7 +1290,7 @@ namespace Rococo
 				const IInterface& interf = s->GetInterface(i);
 
 				const ISExpression* src;
-				if (interf.Attributes().FindAttribute(("indexed"), (const void*&)src))
+				if (interf.Attributes().FindAttribute("indexed", (const void*&)src))
 				{
 					cr_sex methodNameExpr = GetAtomicArg(*src, 3);
 					for (int j = 0; j < interf.MethodCount(); ++j)
@@ -2747,13 +2747,13 @@ namespace Rococo
 					if (s.NumberOfElements() == 2)
 					{
 						const ISExpression* attr;
-						if (interf.Attributes().FindAttribute(("indexed"), (const void*&)attr))
+						if (interf.Attributes().FindAttribute("indexed", (const void*&)attr))
 						{
 							cr_sex indexMethodExpr = GetAtomicArg(*attr, 3);
 							cstr indexMethodName = indexMethodExpr.c_str();
 							return TryCompileAsMethodCall(ce, s, fname, indexMethodName);
 						}
-						else if (interf.Attributes().FindAttribute(("builder"), (const void*&)attr))
+						else if (interf.Attributes().FindAttribute("builder", (const void*&)attr))
 						{
 							cr_sex appendPrefixExpr = GetAtomicArg(*attr, 2);
 							cstr appendPrefix = appendPrefixExpr.c_str();
