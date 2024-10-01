@@ -76,10 +76,21 @@ namespace
 	{
 		ISExpression* pExpression;
 		ReadInput(0, (void*&) pExpression, e);
+	
+		sexstring s;
 
-		const sexstring s = pExpression->String();
+		switch (pExpression->Type())
+		{
+		case EXPRESSION_TYPE_ATOMIC:
+		case EXPRESSION_TYPE_STRING_LITERAL:
+			s = pExpression->String();
+			break;
+		default:
+			s = nullptr;
+			break;
+		}
 
-		CStringConstant* sc =  ((IScriptSystem&) e.ss).GetStringReflection(s == NULL ? ("") : s->Buffer);
+		CStringConstant* sc = ((IScriptSystem&)e.ss).GetStringReflection(s == NULL ? "" : s->Buffer);
 		WriteString(sc, 0, e);
 	}
 

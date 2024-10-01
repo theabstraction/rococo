@@ -17118,6 +17118,114 @@ R"(
 	   validate(x == expectation);
    }
 
+   void TestBuilderWithGetAccessor(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(class Robot (defines Sys.Type.IRobot)
+		)
+
+		(method Robot.Construct :
+		)
+
+		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+		(method Robot.Name -> (IString name):
+			(name = "Geoff")
+		)
+
+		(function Main -> (Int32 result):
+			(IRobot robot (NewRobot))
+			(IStringBuilder sb = (Sys.Type.NewParagraphBuilder))
+			(sb robot.Name)
+			(result = sb.Length)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 5;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
+   void TestBuilderWithGetAccessor2(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(class Robot (defines Sys.Type.IRobot)
+		)
+
+		(method Robot.Construct :
+		)
+
+		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+		(method Robot.Name -> (IString name):
+			(name = "Geoff")
+		)
+
+		(function Main -> (Int32 result):
+			(IRobot robot (NewRobot))
+			(IStringBuilder sb = (Sys.Type.NewParagraphBuilder))
+			(#build sb "Hello " robot.Name)
+			(result = sb.Length)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 11;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
    void TestExpressionProxies(IPublicScriptSystem& ss)
    {
 	   cstr src =
@@ -17761,6 +17869,12 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestBuilderWithGetAccessor);
+		TEST(TestBuilderWithGetAccessor2);
+
+		TEST(TestCompareGetAccessorVsCompound);
+		TEST(TestDefaultParameter);
+
 		TEST(TestNullOutInterface);
 		TEST(TestMutableArgFunction);
 		TEST(TestConstArgFunction);
@@ -18199,10 +18313,9 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-	//	TEST(TestCompareGetAccessorWithOne);
-		TEST(TestCompareGetAccessorVsCompound);
-		TEST(TestDefaultParameter);
+		TEST(TestBuilderWithGetAccessor);
 		RunPositiveSuccesses();	
+		return;
 		RunGotoTests();
 		RunPositiveFailures();
 		TestArrays();

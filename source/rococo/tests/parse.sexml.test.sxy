@@ -1,17 +1,72 @@
-(' #include "!scripts/sexml-reader.sxy")
-
+(' #include
+	"!scripts/sexml-reader.sxy"
+	"!scripts/Sys/Type/Strings/StringMatch.sxy"
+)
 
 (namespace EntryPoint)
+
+(using Sys.Type)
+
+(function AssertMatchString (IString a)(IString b)-> :
+	(if ((Sys.Type.Strings.Compare a b) != 0)
+		(
+			(#Sys.Type.paragraph msg "Mismatch between " a " and " b)
+			(Sys.Throw 0 msg)
+		)
+	)
+)
+
+(function AssertMatchInt32 (Int32 a)(Int32 b)-> :
+	(if (a != b)
+		(
+			(#Sys.Type.paragraph msg "Mismatch between " a " and " b)
+			(Sys.Throw 0 msg)
+		)
+	)
+)
+
+(function AssertExpressionText (Sys.Reflection.IExpression a)(IString text)-> :
+	(AssertMatchString a.Text text)
+)
+
+
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(#Sys.IO.printf "Testing sexml reader!")
 	
 	(Sys.Reflection.IExpression rootXML = ' 
-		(Chocolate
+		(Food
+			(Type Chocolate)
+			(#Vec2 Position 17.5 45.6)
 		)
 	)
 	
 	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml rootXML))
+	(Sys.Sexml.ISEXMLDirective root = (reader.RootDirective))
+	(AssertMatchString root.Name "Food")
+	
+	(Sys.Sexml.ISEXMLDirectiveList subdirectives = root.SubDirectives)
+	(AssertMatchInt32 subdirectives.DirectiveCount 0)
+	(AssertMatchInt32 root.AttributeCount 2)
+	
+	//(debug)
+	
+	// Check the debugger for the root.attributes array, you can see [0] and [1] are SexmlAttributes are defined, but you cannot see their refcounts. Improve the debugger!
+	
+	(Sys.Sexml.ISEXMLAttribute aType = (root.Attribute 0))
+	(AssertMatchInt32 aType.ValueCount 1)
+	(Sys.Reflection.IExpression a0Value = (aType.Value 0))
+		
+	(Sys.Sexml.ISEXMLAttribute aPos = (root.Attribute 1))
+
+	(Sys.Reflection.IExpression aPosX = (aPos.Value 0))
+	(Sys.Reflection.IExpression aPosY = (aPos.Value 1))
+	
+	(AssertExpressionText aPosX "17.5")
+	(AssertExpressionText aPosY "45.6")
+	
+	//(debug)
+	
 )
 
 (alias Main EntryPoint.Main)

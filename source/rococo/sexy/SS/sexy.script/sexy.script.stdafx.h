@@ -511,6 +511,7 @@ namespace Rococo
             ID_API_CALLBACK ArrayGetRefUnchecked;
             ID_API_CALLBACK ArrayDestructElements;
             ID_API_CALLBACK ArrayGetInterfaceUnchecked;
+            ID_API_CALLBACK ArrayGetInterfaceLockless;
             ID_API_CALLBACK ArrayGetLength;
             ID_API_CALLBACK ArrayGetLastIndex; // D13 points to array, D11 gives last index (-1 for empty arrays)
             ID_API_CALLBACK ArrayReturnLength;

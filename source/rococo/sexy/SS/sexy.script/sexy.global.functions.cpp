@@ -1380,7 +1380,15 @@ namespace Rococo
 						auto* object = InterfaceToInstance((InterfacePointer)subInstance);
 
 						char concreteInfo[256];
-						SafeFormat(concreteInfo, "%s", GetFriendlyName(*object->Desc->TypeInfo));
+
+						if (object->refCount == ObjectStub::NO_REF_COUNT)
+						{
+							SafeFormat(concreteInfo, "%s <no-refcount> @ 0x%.16llX", GetFriendlyName(*object->Desc->TypeInfo), object);
+						}
+						else
+						{
+							SafeFormat(concreteInfo, "%s refcount: %llu @ 0x%.16llX", GetFriendlyName(*object->Desc->TypeInfo), object->refCount, object);
+						}
 						tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
 					}
 					else

@@ -1018,6 +1018,7 @@ namespace Rococo::Script
 			arrayCallbacks.ArrayPopOut64 = core.RegisterCallback(OnInvokeArrayPopOut64, this, "ArrayPopOut64");
 			arrayCallbacks.ArrayDestructElements = core.RegisterCallback(OnInvokeArrayDestructElements, this, "ArrayDestructElements");
 			arrayCallbacks.ArrayGetInterfaceUnchecked = core.RegisterCallback(OnInvokeArrayGetInterfaceUnchecked, this, "ArrayGetInterface");
+			arrayCallbacks.ArrayGetInterfaceLockless = core.RegisterCallback(OnInvokeArrayGetInterfaceLockless, this, "ArrayGetInterfaceLockless");
 			arrayCallbacks.ArrayGetLength = core.RegisterCallback(OnInvokeArrayGetLength, this, "ArrayGetLength");
 			arrayCallbacks.ArrayGetLastIndex = core.RegisterCallback(OnInvokeArrayGetLastIndex, this, "ArrayGetLastIndex");
 			arrayCallbacks.ArrayReturnLength = core.RegisterCallback(OnInvokeArrayReturnLength, this, "ArrayReturnLength");
@@ -1841,6 +1842,7 @@ namespace Rococo::Script
 			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlpha,        nullptr, "IsAlpha (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysTypeStrings, SysTypeStrings::IsNumeric,      nullptr, "IsNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTypeStrings, AssertPascalCaseNamespace, NULL, "AssertPascalCaseNamespace (Sys.Type.IString s) (Int32 maxLength)->", __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)

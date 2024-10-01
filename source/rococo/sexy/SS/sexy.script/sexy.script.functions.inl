@@ -645,7 +645,15 @@ namespace Rococo
 
 			if (!Rococo::IsAlphabetical(vname[0]))
 			{
-				Throw(s, "Could not interpret token as function or variable. Expected: '%s %s'", GetFriendlyName(inputType), name);
+				cstr friendlyName = GetFriendlyName(inputType);
+				if (strcmp(friendlyName, "IString") == 0)
+				{
+					Throw(s, "Expected either a quoted string constant or alphabetic character as first in token to specify a reference to argument '%s %s'", friendlyName, name);
+				}
+				else
+				{
+					Throw(s, "Expected alphabetic character as first in token to specify a reference to argument '%s %s'", friendlyName, name);
+				}
 			}
 
 			MemberDef def;

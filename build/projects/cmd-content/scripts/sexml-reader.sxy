@@ -16,13 +16,14 @@
 
 (interface Sys.Sexml.ISEXMLDirective
 	(Attribute (Int32 index) -> (Sys.Sexml.ISEXMLAttribute attr))
-	(Count -> (Int32 nAttributes))
+	(AttributeCount -> (Int32 nAttributes))
 	(SubDirectives -> (Sys.Sexml.ISEXMLDirectiveList directives))
 	(S -> (IExpression s))
+	(Name -> (IString name))
 )
 
 (interface Sys.Sexml.ISEXMLDirectiveList
-	(Count -> (Int32 numberOfDirectives))
+	(DirectiveCount -> (Int32 numberOfDirectives))
 	(Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive))
 )
 
@@ -41,7 +42,7 @@
 (function GetFirstChildThatMatchesArg (IExpression s)(IString arg)->(Int32 indexOfArg):
 	(for (Int32 i = 0)(i < s.ChildCount)(i += 1)
 		(IExpression child = (s i))
-		(if ((Sys.Type.Strings.Compare (child.Text) ":") != -1)
+		(if ((Sys.Type.Strings.Compare (child.Text) ":") == 0)
 			(indexOfArg = i)
 			(return)
 		)
@@ -58,10 +59,6 @@
 
 (method SEXMLReader.RootDirective -> (Sys.Sexml.ISEXMLDirective directives):
 	(directives = this.rootDirective)
-)
-
-(method SEXMLReader.Count -> (Int32 numberOfDirectives):
-	(numberOfDirectives = this.nDirectives)
 )
 
 (method SEXMLReader.Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive):
@@ -81,6 +78,7 @@
 	(implements Sys.Sexml.ISEXMLDirective)
 	
 	(IExpression sDir)
+	(IString name)
 	
 	(array Sys.Sexml.ISEXMLDirective subdirectives)
 	(array Sys.Sexml.ISEXMLAttribute attributes)
@@ -89,8 +87,12 @@
 	(Int32 nAttributes)
 )
 
-(method SEXMLDirective.Count -> (Int32 numberOfDirectives):
-	(numberOfDirectives = this.nDirectives)
+(method SEXMLDirective.AttributeCount -> (Int32 numberOfAttributes):
+	(numberOfAttributes = this.nAttributes)
+)
+
+(method SEXMLDirective.DirectiveCount -> (Int32 directiveCount):
+	(directiveCount = this.nSubdirectives)
 )
 
 (method SEXMLDirective.Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive):
@@ -109,98 +111,64 @@
 	(s = this.sDir)
 )
 
-(function BuildMatchStatement (IExpression in)(IExpressionBuilder out)-> :
-	(if (in.ChildCount < 3)
-		(in.Throw 0 "Expecting at least 3 children: (#Sys.match <text-variable> (key1 (command1 ...))(key2 (command2 ...)))")
-	)
-	
-	(IExpression variableName = (in 1))
-	
-	(Int32 type = variableName.Type)
-	(if (type != (#Sys.Reflection.ExpressionTypeAtomic))
-		(variableName.Throw 0 "Expecting atomic value for <text-variable>")
-	)
-	
-	(for (Int32 i = 2)(i < in.ChildCount)(i += 1)
-		(IExpression matchLineCommand = (in i))
-		
-		(if (matchLineCommand.ChildCount < 2)
-			(matchLineCommand.Throw 0 "Expecting more than one expression on the match line")
-		)
-		
-		(IExpression key = (matchLineCommand 0))
-		
-		(IExpressionBuilder owner = out)
-		
-		(Int32 matchType = key.Type)
-		
-		(if ((matchType == (#Sys.Reflection.ExpressionTypeString)) or (matchType == (#Sys.Reflection.ExpressionTypeAtomic)))
-			(Sys.Type.IString keyName = key.Text)
-			(IExpressionBuilder matchImpl = owner.AddCompound)
-			(matchImpl.AddAtomic "if")
-				(IExpressionBuilder booleanImpl = matchImpl.AddCompound)
-					// (if ((Sys.Type.Strings.Compare (key) target)== 0) ... else...)
-					(IExpressionBuilder compareInvocationImpl = booleanImpl.AddCompound)
-						(compareInvocationImpl.AddAtomic "Sys.Type.Strings.Compare")
-							(IExpressionBuilder variableWrapper = compareInvocationImpl.AddCompound)		
-								(variableWrapper.AddAtomic variableName.Text)
-							(IExpressionBuilder keyWrapper = compareInvocationImpl.AddCompound)
-								(keyWrapper.AddStringLiteral keyName)							
-					(booleanImpl.AddAtomic "==")
-					(booleanImpl.AddAtomic "0")
-					
-				(for (Int32 j = 1)(j < matchLineCommand.ChildCount)(j += 1)
-					(matchImpl.Copy (matchLineCommand j))
-				)
-				
-				(matchImpl.AddAtomic "else")
-				(owner = matchImpl)			
-		else
-			(key.Throw 0 "Key: Expecting atomic or string literal")
-		)
-	)
-)
-
-/*  Executes the command expressions with the matching key. Atomic or string literals are both legitimate values
-	usage: 
-	(#Sys.StringMatch text-variable
-		(key1 (commands...))
-		...
-		(keyN (commands...))
-	)
-	
-	Example:
-	(IString answer = "Yes")
-	(#Sys.StringMatch answer
-		(Yes (#print "You typed yes"))
-		("No"  (#print "You typed no"))
-	) 
-	
-	the above emits "You typed yes"
-*/
-(macro Sys.StringMatch in out
-	(Sys.ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#Sys.StringMatch text-variable (key1 (command...)(key2 (command ...))))")
-	(BuildMatchStatement in out)
+(method SEXMLDirective.Name -> (IString name):
+	(name = this.name)
 )
 
 (method SEXMLDirective.Construct (IExpression s) :
 	(this.sDir = s)
 	
+		// (directive-name (attribute1 ...)(attribute2 ...) : (sub-directive1 ...)(sub-directive2 ...)
+	
+	(if (s.ChildCount < 1)
+		(s.Throw 0 "Directive must have at least one element")
+	)
+	
+	(IExpression sDirName = (s 0))
+	(if (sDirName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+		(sDirName.Throw 0 "Expecting an atomic expression for the directive name")
+	)
+	
+	(this.name = sDirName.Text)
+		
+	(	
+		try
+		(
+			(Sys.Type.Strings.AssertPascalCaseNamespace this.name 256)
+		)
+		catch e
+		(
+			(sDirName.Throw 0 e.Message)
+		)
+	)
+	
 	(Int32 indexOfColon = (GetFirstChildThatMatchesArg s ":"))
-	(if (indexOfColon >= 1)
-		(this.nAttributes = indexOfColon - 1)
-		(this.nSubdirectives = (s.ChildCount - indexOfColon) - 1)
+
+	(if (indexOfColon == -1)
+		(this.nAttributes = s.ChildCount - 1)
+		(this.nSubdirectives = 0)
 	else
-		(this.nAttributes = 0)
-		(this.nSubdirectives = s.ChildCount)
+		(array Sys.Sexml.ISEXMLDirective subdirectives 4)
+		(this.subdirectives = subdirectives)
+		(this.nAttributes = indexOfColon - 1)
+		(this.nSubdirectives = ((s.ChildCount) - indexOfColon) - 1)
+		
+		(for (Int32 i = indexOfColon + 1)(i < s.ChildCount)(i += 1)
+			(Sys.Sexml.ISEXMLDirective directive (Sys.Sexml.NewDirective (s i)))
+			(this.subdirectives.Push directive)
+		)
 	)
 	
-	(for (Int32 i = indexOfColon + 1)(i < s.ChildCount)(i += 1)
-		(Sys.Sexml.ISEXMLDirective directive (Sys.Sexml.NewDirective (s i)))
-		(this.subdirectives.Push directive)
+	(if (this.nAttributes > 0)
+		(array Sys.Sexml.ISEXMLAttribute attributes 4)
+		(this.attributes = attributes)
 	)
 	
-	(for (i = 1)(i < indexOfColon)(i += 1)
+	(if (indexOfColon == -1)
+		(indexOfColon = s.ChildCount) // The colon is conceptually just off the end of the expression
+	)
+	
+	(for (Int32 i = 1)(i < indexOfColon)(i += 1)
 		(IExpression sAttribute = (s i))
 
 		(if (sAttribute.Type != (#Sys.Reflection.ExpressionTypeCompound))
@@ -219,7 +187,7 @@
 		
 		(Int32 nExpectedValues = 1)
 		
-		(#Sys.StringMatch sKey.Text
+		(#Sys.Type.Strings.StringMatch sKey.Text
 			("#Vec2i" (nExpectedValues = 2))
 			("#Vec3i" (nExpectedValues = 3))
 			("#Vec4i" (nExpectedValues = 4))
@@ -275,7 +243,10 @@
 	(this.s = s)
 	(this.directive = parentDirective)
 	(this.key = key)
-	(this.valueCount = (s.ChildCount == 2) ?? 1 (s.ChildCount - 2))
+	
+	(Bool isChildCountTwo = (s.ChildCount == 2))
+	(Int32 nValues = (s.ChildCount - 2))
+	(this.valueCount = (?? isChildCountTwo 1 nValues))
 )
 
 (method SEXMLAttribute.Key -> (IString keyName):
@@ -287,7 +258,11 @@
 )
 
 (method SEXMLAttribute.Value (Int32 index) -> (IExpression sValue):
-	(sValue = (s.ChildCount == 2) ?? (s.Child (index + 1)) (s.Child (index + 2)))
+	(if (this.s.ChildCount == 2)
+		(sValue = (this.s.Child (index + 1)))
+	else
+		(sValue = (this.s.Child (index + 2)))
+	)
 )
 
 (method SEXMLAttribute.S -> (IExpression sExpr):

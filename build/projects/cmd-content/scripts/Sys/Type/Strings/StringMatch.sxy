@@ -1,0 +1,74 @@
+(using Sys.Reflection)
+
+(function BuildMatchStatement (IExpression in)(IExpressionBuilder out)-> :
+	(if (in.ChildCount < 3)
+		(in.Throw 0 "Expecting at least 3 children: (#Sys.match <text-variable> (key1 (command1 ...))(key2 (command2 ...)))")
+	)
+	
+	(IExpression variableName = (in 1))
+	
+	(if (variableName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+		(variableName.Throw 0 "Expecting atomic value for <text-variable>")
+	)
+	
+	(for (Int32 i = 2)(i < in.ChildCount)(i += 1)
+		(IExpression matchLineCommand = (in i))
+		
+		(if (matchLineCommand.ChildCount < 2)
+			(matchLineCommand.Throw 0 "Expecting more than one expression on the match line")
+		)
+		
+		(IExpression key = (matchLineCommand 0))
+		
+		(IExpressionBuilder owner = out)
+		
+		(Int32 matchType = key.Type)
+		
+		(if ((matchType == (#Sys.Reflection.ExpressionTypeString)) or (matchType == (#Sys.Reflection.ExpressionTypeAtomic)))
+			(Sys.Type.IString keyName = key.Text)
+			(IExpressionBuilder matchImpl = owner.AddCompound)
+			(matchImpl.AddAtomic "if")
+				(IExpressionBuilder booleanImpl = matchImpl.AddCompound)
+					// (if ((Sys.Type.Strings.Compare (key) target)== 0) ... else...)
+					(IExpressionBuilder compareInvocationImpl = booleanImpl.AddCompound)
+						(compareInvocationImpl.AddAtomic "Sys.Type.Strings.Compare")
+							(IExpressionBuilder variableWrapper = compareInvocationImpl.AddCompound)		
+								(variableWrapper.AddAtomic variableName.Text)
+							(IExpressionBuilder keyWrapper = compareInvocationImpl.AddCompound)
+								(keyWrapper.AddStringLiteral keyName)							
+					(booleanImpl.AddAtomic "==")
+					(booleanImpl.AddAtomic "0")
+					
+				(for (Int32 j = 1)(j < matchLineCommand.ChildCount)(j += 1)
+					(matchImpl.Copy (matchLineCommand j))
+				)
+				
+				(matchImpl.AddAtomic "else")
+				(owner = matchImpl)			
+		else
+			(key.Throw 0 "Key: Expecting atomic or string literal")
+		)
+	)
+)
+
+/*  Executes the command expressions with the matching key. Atomic or string literals are both legitimate values
+	usage: 
+	(#Sys.StringMatch text-variable
+		(key1 (commands...))
+		...
+		(keyN (commands...))
+	)
+	
+	Example:
+	(IString answer = "Yes")
+	(#Sys.StringMatch answer
+		(Yes (#print "You typed yes"))
+		("No"  (#print "You typed no"))
+	) 
+	
+	the above emits "You typed yes"
+*/
+(macro Sys.Type.Strings.StringMatch in out
+	(Sys.ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#Sys.StringMatch text-variable (key1 (command...)(key2 (command ...))))")
+	(BuildMatchStatement in out)
+)

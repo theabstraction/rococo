@@ -32,7 +32,7 @@
 */
 
 
-namespace Rococo { namespace Sex
+namespace Rococo::Sex
 {
 	void Throw(cr_sex e, const fstring& f)
 	{
@@ -56,7 +56,7 @@ namespace Rococo { namespace Sex
 	{
 		if (e.Type() != EXPRESSION_TYPE_COMPOUND && e.Type() != EXPRESSION_TYPE_NULL)
 		{
-	        Throw(e, "Expecting compound or null expression, but found a %s expression", ToString(e.Type()));
+			Throw(e, "Expecting compound or null expression, but found a %s expression", ToString(e.Type()));
 		}
 	}
 
@@ -92,7 +92,7 @@ namespace Rococo { namespace Sex
 
 		int len = StringLength(shortName);
 
-		for(int i = 1; i < len; ++i)
+		for (int i = 1; i < len; ++i)
 		{
 			char c = shortName[i];
 			if (!IsAlphaNumeric(c))
@@ -102,33 +102,80 @@ namespace Rococo { namespace Sex
 		}
 	}
 
-	void AssertQualifiedIdentifier(cr_sex e)
+	void AssertPascalCaseNameValid(cstr text, int length, int maxLength, cstr desc)
 	{
-		AssertAtomic(e);
-		const sexstring text = e.String();
-
-		if (text->Length == 0)
+		if (length == 0)
 		{
-			Throw(e, ("Expecting non-blank string identifier"));
+			Rococo::Throw(0, "Expecting non-blank string identifier");
 		}
 
-		if (text->Length >= NAMESPACE_MAX_LENGTH)
+		if (length >= maxLength)
 		{
-			Throw(e, "Expecting typename, but the string was too long. Exceeded %d characters", NAMESPACE_MAX_LENGTH);
+			Rococo::Throw(0, "Expecting %s, but the string was too long. Exceeded %d characters", desc, maxLength);
+		}
+
+		enum STATE
+		{
+			STATE_EXPECTING_NEW_ITEM,
+			STATE_WITHIN_ITEM,
+		} state = STATE_EXPECTING_NEW_ITEM;
+
+		for (int i = 0; i < length; i++)
+		{
+			char c = text[i];
+
+			switch (state)
+			{
+			case STATE_EXPECTING_NEW_ITEM:
+				if (!IsCapital(c))
+				{
+					Rococo::Throw(0, "Expecting %s to begin with capital letter {A-Z} at position[%d]", desc, i);
+				}
+				state = STATE_WITHIN_ITEM;
+				break;
+			case STATE_WITHIN_ITEM:
+				if (c == '.')
+				{
+					state = STATE_EXPECTING_NEW_ITEM;
+				}
+				else if (!IsAlphaNumeric(c))
+				{
+					Rococo::Throw(0, "Expecting alphanumeric {A-Z or a-z or 0-9} in %s at position[%d]", desc, i);
+				}
+				break;
+			}
+		}
+
+		if (state == STATE_EXPECTING_NEW_ITEM)
+		{
+			Rococo::Throw(0, "Expecting %s to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[%d]", desc, length);
+		}
+	}
+
+	void AssertQualifiedIdentifier(cstr text, int length, cstr desc)
+	{
+		if (length == 0)
+		{
+			Rococo::Throw(0, "Expecting non-blank string identifier");
+		}
+
+		if (length >= NAMESPACE_MAX_LENGTH)
+		{
+			Rococo::Throw(0, "Expecting %s, but the string was too long. Exceeded %d characters", desc, NAMESPACE_MAX_LENGTH);
 		}
 
 		int startIndex = 0;
 
-		if (text->Buffer[0] == '$')
+		if (text[0] == '$')
 		{
-			if (text->Length == 1)
+			if (length == 1)
 			{
 				// '$'
 				return;
 			}
-			else if (text->Length > 1 && text->Buffer[1] != '.')
+			else if (length > 1 && text[1] != '.')
 			{
-				Throw(e, "Default namespace character detected, but expected it to be followed by a dot");
+				Rococo::Throw(0, "Default namespace character detected, but expected it to be followed by a dot");
 			}
 
 			startIndex = 2;
@@ -140,16 +187,16 @@ namespace Rococo { namespace Sex
 			STATE_WITHIN_ITEM,
 		} state = STATE_EXPECTING_NEW_ITEM;
 
-		for(int i = startIndex; i < text->Length; i++)
+		for (int i = startIndex; i < length; i++)
 		{
-			char c = text->Buffer[i];
+			char c = text[i];
 
-			switch(state)
+			switch (state)
 			{
 			case STATE_EXPECTING_NEW_ITEM:
 				if (!IsCapital(c))
 				{
-					Throw(e, "Expecting typename '%s' to begin with capital letter {A-Z} at position[%d]", text->Buffer, i);
+					Rococo::Throw(0, "Expecting %s to begin with capital letter {A-Z} at position[%d]", desc, i);
 				}
 				state = STATE_WITHIN_ITEM;
 				break;
@@ -160,7 +207,7 @@ namespace Rococo { namespace Sex
 				}
 				else if (!IsAlphaNumeric(c))
 				{
-					Throw(e, "Expecting alphanumeric {A-Z or a-z or 0-9} at position[%d]", i);
+					Rococo::Throw(0, "Expecting alphanumeric {A-Z or a-z or 0-9} in %s at position[%d]", desc, i);
 				}
 				break;
 			}
@@ -168,7 +215,22 @@ namespace Rococo { namespace Sex
 
 		if (state == STATE_EXPECTING_NEW_ITEM)
 		{
-			Throw(e, "Expecting typename to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[%d]", text->Length);
+			Rococo::Throw(0, "Expecting typename to terminate on an alphanumeric {A-Z or a-z or 0-9} at position[%d]", desc, length);
+		}
+	}
+
+	void AssertQualifiedIdentifier(cr_sex e)
+	{
+		AssertAtomic(e);
+		const sexstring text = e.String();
+
+		try
+		{
+			AssertQualifiedIdentifier(text->Buffer, text->Length, "typename");
+		}
+		catch (IException& ex)
+		{
+			Throw(e, "%s", ex.Message());
 		}
 	}
 
@@ -193,11 +255,11 @@ namespace Rococo { namespace Sex
 			STATE_WITHIN_ITEM,
 		} state = STATE_EXPECTING_NEW_ITEM;
 
-		for(int i = 0; i < text->Length; i++)
+		for (int i = 0; i < text->Length; i++)
 		{
 			char c = text->Buffer[i];
 
-			switch(state)
+			switch (state)
 			{
 			case STATE_EXPECTING_NEW_ITEM:
 				if (!IsLowerCase(c))
@@ -255,7 +317,7 @@ namespace Rococo { namespace Sex
 			Throw(s, "The namespace %s  was unrecognized.", fullName);
 		}
 		return *ns;
-	}			
+	}
 
 	void AssertValidFunctionName(cr_sex e)
 	{
@@ -263,13 +325,13 @@ namespace Rococo { namespace Sex
 
 		const sexstring text = e.String();
 
-		enum {FUNCTION_NAME_MAX_TOTAL_LENGTH = 63 };
+		enum { FUNCTION_NAME_MAX_TOTAL_LENGTH = 63 };
 
-		for(const char* c = text->Buffer; *c != 0; ++c)
+		for (const char* c = text->Buffer; *c != 0; ++c)
 		{
 			if (*c == '.')
 			{
-				ptrdiff_t finalLen = ((ptrdiff_t) text->Length) - (c - text->Buffer) - 1;
+				ptrdiff_t finalLen = ((ptrdiff_t)text->Length) - (c - text->Buffer) - 1;
 				if (finalLen > FUNCTION_NAME_MAX_TOTAL_LENGTH)
 				{
 					Throw(e, "Method name was greater than the maximum length of %d characters", FUNCTION_NAME_MAX_TOTAL_LENGTH);
@@ -295,7 +357,7 @@ namespace Rococo { namespace Sex
 			Throw(e, "Expecting identifier to begin with a lower case letter {a-z} at position[0]");
 		}
 
-		for(int i = 1; i < s->Length; ++i)
+		for (int i = 1; i < s->Length; ++i)
 		{
 			char c = s->Buffer[i];
 
@@ -314,7 +376,7 @@ namespace Rococo { namespace Sex
 		}
 
 		int len = StringLength(name);
-		for(int i = 1; i < len; ++i)
+		for (int i = 1; i < len; ++i)
 		{
 			char c = name[i];
 			if (!IsAlphaNumeric(c))
@@ -335,7 +397,7 @@ namespace Rococo { namespace Sex
 			Throw(e, "Expecting typename to begin with an upper case letter {A-Z} at position[0]");
 		}
 
-		for(int i = 1; i < s->Length; ++i)
+		for (int i = 1; i < s->Length; ++i)
 		{
 			char c = s->Buffer[i];
 			if (!IsAlphaNumeric(c))
@@ -351,7 +413,7 @@ namespace Rococo { namespace Sex
 
 		sexstring text = e.String();
 
-		enum {STRUCT_NAME_MAX_TOTAL_LENGTH = 31 };
+		enum { STRUCT_NAME_MAX_TOTAL_LENGTH = 31 };
 		if (text->Length > STRUCT_NAME_MAX_TOTAL_LENGTH)
 		{
 			Throw(e, "Structure name was greater than the maximum length of %d characters", STRUCT_NAME_MAX_TOTAL_LENGTH);
@@ -362,7 +424,7 @@ namespace Rococo { namespace Sex
 	{
 		AssertTypeIdentifier(src, name);
 
-		enum {INTERFACE_NAME_MAX_TOTAL_LENGTH = 31 };
+		enum { INTERFACE_NAME_MAX_TOTAL_LENGTH = 31 };
 
 		if (StringLength(name) > INTERFACE_NAME_MAX_TOTAL_LENGTH)
 		{
@@ -374,7 +436,7 @@ namespace Rococo { namespace Sex
 	{
 		AssertTypeIdentifier(src, name);
 
-		enum {ARCHETYPE_NAME_MAX_TOTAL_LENGTH = 31 };
+		enum { ARCHETYPE_NAME_MAX_TOTAL_LENGTH = 31 };
 
 		if (StringLength(name) > ARCHETYPE_NAME_MAX_TOTAL_LENGTH)
 		{
@@ -391,7 +453,7 @@ namespace Rococo { namespace Sex
 		}
 	}
 
-	enum { ARGCOUNT_UNSPECIFIED = -1};
+	enum { ARGCOUNT_UNSPECIFIED = -1 };
 	void AssertCompound(cr_sex e, cstr headName, int32 minElements, int32 maxElements)
 	{
 		AssertCompound(e);
@@ -412,7 +474,7 @@ namespace Rococo { namespace Sex
 
 	sexstring GetDefiniteAtomicArg(cr_sex s, cstr headName, int argNumber)
 	{
-		AssertCompound(s, headName, argNumber+1, ARGCOUNT_UNSPECIFIED);
+		AssertCompound(s, headName, argNumber + 1, ARGCOUNT_UNSPECIFIED);
 		const ISExpression& child = s.GetElement(argNumber);
 		AssertAtomic(child);
 		return child.String();
@@ -430,16 +492,16 @@ namespace Rococo { namespace Sex
 		int nInputs = callee.NumberOfInputs();
 		if (callee.IsVirtualMethod()) nInputs--;
 
-		for(int i = 0; i < nInputs; i++)
+		for (int i = 0; i < nInputs; i++)
 		{
-			cstr name = callee.GetArgName(i+callee.NumberOfOutputs());
-			const IStructure& st = callee.GetArgument(i+callee.NumberOfOutputs());
+			cstr name = callee.GetArgName(i + callee.NumberOfOutputs());
+			const IStructure& st = callee.GetArgument(i + callee.NumberOfOutputs());
 			StreamArg(streamer, name, st);
 		}
 
 		streamer << ("->");
 
-		for(int i = 0; i < callee.NumberOfOutputs(); i++)
+		for (int i = 0; i < callee.NumberOfOutputs(); i++)
 		{
 			cstr name = callee.GetArgName(i);
 			const IStructure& st = callee.GetArgument(i);
@@ -469,7 +531,7 @@ namespace Rococo { namespace Sex
 		char fullMethod[256];
 		StackStringBuilder ssb(fullMethod, sizeof fullMethod);
 		StreamFullMethod(ssb, callee);
-					
+
 		Throw(s, "Function call '%s' was supplied with too %s inputs", fullMethod, callee.NumberOfInputs() < numberOfSuppliedInputArgs ? "many" : "few");
 	}
-}}
+}

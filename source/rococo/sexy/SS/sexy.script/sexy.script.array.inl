@@ -211,7 +211,7 @@ namespace Rococo
 		   int64 currentLengthInBytes = (int64) a.ElementCapacity * (int64) a.ElementLength;
 		   if (currentLengthInBytes >= (int64) 1024_megabytes)
 		   {
-			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: the array was at maximum capacity");
+			   ss.ThrowFromNativeCode(0, "ArrayDoubleCapacity failed: the array was at maximum capacity");
 			   return;
 		   }
 
@@ -228,7 +228,7 @@ namespace Rococo
 		   }
 		   catch (...)
 		   {
-			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: out of heap memory");
+			   ss.ThrowFromNativeCode(0, "ArrayDoubleCapacity failed: out of heap memory");
 			   return;
 		   }
 
@@ -242,14 +242,14 @@ namespace Rococo
 		   if (a == nullptr)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.PushAndGetRef failed: null array");
+			   ss.ThrowFromNativeCode(0, "Array.PushAndGetRef failed: null array");
 			   return;
 		   }
 
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.PushAndGetRef failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.PushAndGetRef failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -269,10 +269,17 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   int32 value = registers[VM::REGISTER_D7].int32Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush32 failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush32 failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush32 failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -292,9 +299,15 @@ namespace Rococo
 
 		   IScriptSystem& ss = *(IScriptSystem*)context;
 
+		   if (a == nullptr)
+		   {
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushInterface failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushInterface failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushInterface failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -313,10 +326,17 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   int64 value = registers[VM::REGISTER_D7].int64Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush64 failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush64 failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush64 failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -334,10 +354,17 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   const void* pValue = registers[VM::REGISTER_D7].vPtrValue;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushByRef failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushByRef failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushByRef failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -628,7 +655,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was empty"));
+			   ss.ThrowFromNativeCode(0, "Array.PopOut failed: the array was empty");
 			   return;
 		   }
 	   }
@@ -646,7 +673,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, "Array.Get failed: the index was out of range");
 			   return;
 		   }
 	   }
@@ -656,6 +683,13 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayGet64 failed: the array was null");
+			   return;
+		   }
+
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
 			   const int64* p = ((const int64*) a->Start) + index;
@@ -664,7 +698,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, "Array.Get failed: the index was out of range");
 			   return;
 		   }
 	   }
@@ -674,6 +708,13 @@ namespace Rococo
 		   int32 offset = registers[VM::REGISTER_D5].int32Value;
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
+
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayGetMember32 failed: the array was null");
+			   return;
+		   }
 		
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
@@ -695,6 +736,13 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayGetMember64 failed: the array was null");
+			   return;
+		   }
+
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
 			   const uint8* pElement = ((const uint8*) a->Start) + index * a->ElementLength;
@@ -714,6 +762,13 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
 		   void* structRef = registers[VM::REGISTER_D5].vPtrValue;
+
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayCopyByRef failed: the array was null");
+			   return;
+		   }
 
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
@@ -845,6 +900,17 @@ namespace Rococo
 		   }
 #endif
 
+	   }
+
+	   VM_CALLBACK(ArrayGetInterfaceLockless)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   int32 index = registers[VM::REGISTER_D7].int32Value;
+		   uint8* pElement = ((uint8*)a->Start) + index * a->ElementLength;
+		   InterfacePointer* ppInterface = (InterfacePointer*)pElement;
+		   ObjectStub* pObject = InterfaceToInstance(*ppInterface);
+		   pObject->refCount++;
+		   registers[VM::REGISTER_D7].vPtrValue = *ppInterface;
 	   }
 
 	   VM_CALLBACK(ArrayLock)
@@ -1247,26 +1313,34 @@ namespace Rococo
 
 		   if (!TryCompileArithmeticExpression(ce, s, true, VARTYPE_Int32))
 		   {
-			   Throw(s, ("Expected expression to evaluate to type Int32 to serve as index to array"));
+			   Throw(s, "Expected expression to evaluate to type Int32 to serve as index to array");
 		   } // D7 now contains the array index
 
 		
-		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
-
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
-		   switch(SizeOfElement(elementType))
+
+		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D13
+
+		   if (elementType.InterfaceCount() >= 0)
 		   {
-		   case 4:
-			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet32);
-			   break;
-		   case 8:
-			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet64);
-			   break;
-		   default:
-			   Throw(s, ("Array.Get only support 32-bit and 64-bit types"));
-			   break;
+			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetInterfaceLockless);
+		   }
+		   else
+		   {
+			   switch (SizeOfElement(elementType))
+			   {
+			   case 4:
+				   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet32);
+				   break;
+			   case 8:
+				   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet64);
+				   break;
+			   default:
+				   Throw(s, ("Array.Get only support 32-bit and 64-bit types"));
+				   break;
+			   }
 		   }
 	   }
 
