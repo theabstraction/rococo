@@ -17966,7 +17966,6 @@ R"(
 		TEST(TestFactoryReturnsBaseInterface);
 		TEST(TestLoopBreak);
 		TEST3(TestLoopFinally);
-		TEST3(TestLoopFinally2);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);
 		TEST(TestBadClosureArg7);
@@ -18079,7 +18078,6 @@ R"(
 		TEST(TestFunctionCall4);
 
 		TEST(TestFunctionCallRecursion1);
-		TEST(TestFunctionCallRecursion2);
 		TEST(TestFunctionCallMultiOutput1);
 		TEST(TestStructure);
 		TEST(TestStructure2);
@@ -18144,8 +18142,6 @@ R"(
 
 		TEST(TestClassDefinesInterface);
 
-		TEST(TestStringSplit);
-
 		TEST(TestInterfacePropagation);
 		TEST(TestInstancePropagation);
 		TEST(TestInstanceMemberPropagation);
@@ -18199,16 +18195,11 @@ R"(
 
 		TEST(TestRefTypesInsideClosure);
 
-		TEST(TestMeshStruct4);
 		TEST(TestMeshStruct3);
 		TEST(TestMeshStruct2);
 		TEST(TestMeshStruct);
 
-		TEST(TestPrintModules);
-
 		TEST(TestModuleCount);
-
-		TEST(TestPrintStructs);
 
 		TEST(TestMacro);
 
@@ -18232,17 +18223,11 @@ R"(
 		TEST(TestAddNativeReflectionCall);
 
 		TEST(TestRaw);
-		TEST3(TestConsoleOutput4);
 		TEST(TestPartialCompiles);
-		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput2);
-		TEST3(TestConsoleOutput);
 
-		TEST(TestMacroSiblings3Throws);
 		TEST(TestMacroSiblings);
 
-		TEST3(TestTopLevelMacro2);
-		TEST3(TestStringReplace);
 		TEST3(TestCreateDeclarations);
 
 		TEST(TestAssignNotItself);
@@ -18263,7 +18248,7 @@ R"(
 		TEST(TestTopLevelMacro);
 		TEST(TestDeepCatch);
 		TEST(TestReturnInterfaceEx);
-		TEST(TestExpressionAppendTo);
+		
 		TEST(TestThrowFromCatch);
 		TEST(TestStringArray);
 		TEST(TestGetAccessorSemantics);
@@ -18272,6 +18257,19 @@ R"(
 		TEST(TestTernary);
 		TEST(TestExpressionProxies);
 		TEST(TestExpressionProxies2);
+		TEST3(TestLoopFinally2);
+		TEST(TestFunctionCallRecursion2);
+		TEST(TestStringSplit);
+		TEST(TestMeshStruct4);
+		TEST(TestPrintModules);
+		TEST(TestPrintStructs);
+		TEST3(TestConsoleOutput3);
+		TEST3(TestConsoleOutput);
+		TEST(TestMacroSiblings3Throws);
+		TEST3(TestTopLevelMacro2);
+		TEST3(TestConsoleOutput4);
+		TEST3(TestStringReplace);
+		TEST(TestExpressionAppendTo);
 	}
 
 	void RunPositiveFailures()
@@ -18313,6 +18311,7 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestFunctionCallRecursion2);
 		TEST(TestArrayInt32_3);
 		RunPositiveSuccesses();	
 		RunGotoTests();

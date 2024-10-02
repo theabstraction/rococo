@@ -43,10 +43,10 @@ namespace Rococo
          CodeSection section;
          f.Code().GetCodeSection(OUT section);
 
-         size_t programStart = f.Object().ProgramMemory().GetFunctionAddress(section.Id);
+         size_t functionOffset = f.Object().ProgramMemory().GetFunctionAddress(section.Id);
 
          VM::CPU& cpu = ss.ProgramObject().VirtualMachine().Cpu();
-         cpu.SetPC(cpu.ProgramStart + programStart);
+         cpu.SetPC(cpu.ProgramStart + functionOffset);
       }
 
       enum JIT_TYPE
@@ -62,6 +62,11 @@ namespace Rococo
          f.Builder().DeleteSymbols();
          CompileFunctionFromExpression(f, IN s, script);
          SetPCToFunctionStart(ss, f);
+
+         CodeSection section;
+         f.Builder().GetCodeSection(OUT section);
+
+         ss.ProgramObject().ProgramMemory().SetImmutable(section.Id);
       }
 
       void CompileFactory(IFactoryBuilder& factory, CScript& script, cr_sex s, IScriptSystem& ss)
@@ -75,6 +80,11 @@ namespace Rococo
          factory.Constructor().Builder().DeleteSymbols();
          CompileFactoryBody(factory, s, bodyIndex + 1, script);
          SetPCToFunctionStart(ss, factory.Constructor());
+
+         CodeSection section;
+         factory.Constructor().Builder().GetCodeSection(OUT section);
+
+         ss.ProgramObject().ProgramMemory().SetImmutable(section.Id);
       }
 
 #pragma pack(push,1)
@@ -103,6 +113,11 @@ namespace Rococo
             macro.Implementation().Builder().DeleteSymbols();
             CompileMacroFromExpression(macro, *args->script, *args->s);
             SetPCToFunctionStart(ss, macro.Implementation());
+
+            CodeSection section;
+            macro.Implementation().Builder().GetCodeSection(OUT section);
+
+            ss.ProgramObject().ProgramMemory().SetImmutable(section.Id);
          }
          break;
          default:

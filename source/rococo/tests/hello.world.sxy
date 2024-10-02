@@ -1,10 +1,23 @@
 (namespace EntryPoint)
- (alias Main EntryPoint.Main)
-  
-(using Sys.Type)
-  
-(function Main -> (Int32 result):
-	(array Int32 a 4)
-	(a.Push 1812)
-	(result = (a 0))
+
+(function Main -> (Int32 exitValue1):
+	(debug)
+    (exitValue1 = (MyFunction1 5000))
 )
+
+(function MyFunction1 (Int32 x) -> (Int32 result):
+    (if (x > 100)
+		(result = (MyFunction2 x)) 
+	else 
+		(result = x)
+	)
+)
+
+(function MyFunction2 (Int32 x) -> (Int32 result):
+   (if (x > 100) 
+		(result = (MyFunction1 (x / 2)))
+	else
+		(result = x)
+	)
+)
+(alias Main EntryPoint.Main)

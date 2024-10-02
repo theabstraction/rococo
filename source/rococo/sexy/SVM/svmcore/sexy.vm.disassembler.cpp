@@ -522,9 +522,9 @@ namespace
 
 	void FormatCall(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		rep.ByteCount = 5;
-		int32* offsetPtr = (int32*)(I.ToPC() + 1);
-		format(rep, ("%d"), *offsetPtr);
+		rep.ByteCount = 1 + sizeof(const uint8*);
+		const uint8** functionAddressPtr = (const uint8**)(I.ToPC() + 1);
+		format(rep, "0x%.16llX", *functionAddressPtr);
 	}
 
 	void FormatReturn(const Ins&, OUT IDisassembler::Rep& rep)

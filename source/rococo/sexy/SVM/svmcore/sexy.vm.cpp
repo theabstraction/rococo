@@ -1689,8 +1689,26 @@ namespace Anon
 			cpu.SetPC(cpu.PC() + offsetRegister.int32Value);
 		}
 
+		OPCODE_CALLBACK(Call)
+		{
+			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
+
+			auto* pc = cpu.PC() + 1;
+
+			const uint8* returnAddress = pc + sizeof(const uint8*);
+			cpu.Push(returnAddress);
+
+			// Then make the new stack frame equal to the stack pointer
+			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
+
+			const uint8** functionAddressPtr = (const uint8**) pc;
+			cpu.SetPC(*functionAddressPtr);
+		}
+
 		OPCODE_CALLBACK(CallById)
 		{
+			const uint8* I = cpu.PC();
+
 			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
 
 			const uint8 *returnAddress = cpu.PC() + 1 + sizeof(ID_BYTECODE); 
@@ -1702,6 +1720,14 @@ namespace Anon
 			ID_BYTECODE* pByteCodeId = (ID_BYTECODE*)(cpu.PC() + 1);
 			size_t addressOffset = program->GetFunctionAddress(*pByteCodeId);
 			cpu.SetPC(cpu.ProgramStart + addressOffset);
+
+			if (program->IsImmutable(*pByteCodeId))
+			{
+				// Self-modifying-code to eliminate expensive mapping function
+				auto* overwritePoint = const_cast<uint8*>(I);
+				*overwritePoint++ = VM::Opcodes::Call;
+				*(const uint8**)(overwritePoint) = cpu.ProgramStart + addressOffset;
+			}
 		}
 
 		OPCODE_CALLBACK(CallByIdIndirect)
@@ -1936,20 +1962,6 @@ namespace Anon
 			cpu.AdvancePC(sizeof(size_t));
 
 			memcpy(target, source, *pByteCount);
-		}
-
-		OPCODE_CALLBACK(Call)
-		{
-			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
-
-			const uint8 *returnAddress = cpu.PC() + 5; 
-			cpu.Push(returnAddress);
-
-			// Then make the new stack frame equal to the stack pointer
-			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
-
-			int32* offsetPtr = (int32*) (cpu.PC() + 1);
-			cpu.SetPC(cpu.PC() + *offsetPtr);
 		}
 
 		OPCODE_CALLBACK(Invoke)
