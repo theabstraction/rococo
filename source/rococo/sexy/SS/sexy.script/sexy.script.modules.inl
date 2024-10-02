@@ -1706,9 +1706,8 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 		const auto* pc = registers[REGISTER_PC].uint8PtrValue;
 
-		// This function should have been called via an Invoke, which has moved the PC to just beyond the invoke where we expect
-
-		// Expecting a: Opcodes::SetRegisterImmediate64 + ID_BYTECODE ( functionId) ;
+		// This function should have been called via an Invoke, which has moved the PC to just beyond the invoke where we expect...
+		// Opcodes::SetRegisterImmediate64 + D4 + functionId ;
 
 #ifdef _DEBUG
 		if (*pc++ != Opcodes::SetRegisterImmediate64)
@@ -1718,8 +1717,10 @@ namespace Rococo::Script
 
 		if (*pc++ != 4)
 		{
-			Rococo::Throw(0, "OnInvokeJumpToEncodedAddress: Expecting [SetRegisterImmediate64] [D4] <byte_code_id>");
+			Rococo::Throw(0, "OnInvokeJumpToEncodedAddress: Expecting SetRegisterImmediate64 [D4] <byte_code_id>");
 		}
+#else
+		pc += 2;
 #endif
 
 		const ID_BYTECODE* pId = (const ID_BYTECODE*) pc;
