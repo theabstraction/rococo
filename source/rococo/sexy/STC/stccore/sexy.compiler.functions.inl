@@ -214,6 +214,7 @@ namespace Anon
 		const void *definition;
 		const IStructure* type;
 		int popBytes = 0;
+		ID_BYTECODE proxyId = 0;
 
 		// Assumes security is valid pointer for the lifetime of the function object
 		const Rococo::Script::NativeSecurityHandler* security = nullptr;
@@ -238,6 +239,16 @@ namespace Anon
 			}
 
 		   builder->Free();
+		}
+
+		void SetProxy(ID_BYTECODE id) override
+		{
+			this->proxyId = id;
+		}
+
+		ID_BYTECODE GetProxy() const override
+		{
+			return proxyId;
 		}
 
 		void AddSecurity(const Rococo::Script::NativeSecurityHandler& security) override

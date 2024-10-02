@@ -356,6 +356,7 @@ namespace Rococo {
 			virtual const IArgument* GetArgumentByName(cstr name) const = 0;
 			virtual const IStructure* GetType() const = 0;
 			virtual const int32 GetExtraPopBytes() const = 0; // Number of extra bytes to unwind from stack after function recalls
+			virtual ID_BYTECODE GetProxy() const = 0;
 		};
 
 		inline int ArgCount(const IArchetype& archetype) { return archetype.NumberOfInputs() + archetype.NumberOfOutputs(); }

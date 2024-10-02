@@ -104,6 +104,8 @@ namespace Rococo::Compiler
 
 		virtual void SetType(const IStructure* type) = 0;
 
+		virtual void SetProxy(ID_BYTECODE id) = 0;
+
 		virtual void AddSecurity(const Rococo::Script::NativeSecurityHandler& security) = 0;
 	};
 

@@ -1530,6 +1530,29 @@ namespace Rococo::Script
 		WriteToStandardOutput("\n\n");
 	}
 
+	void CompileProxyFunction(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
+	{
+		CodeSection section;
+		f.Builder().GetCodeSection(OUT section);
+
+		auto proxyId = f.Object().ProgramMemory().AddBytecode();
+		f.SetProxy(proxyId);
+
+		auto& a = f.Builder().Assembler();
+
+		auto& ss = script.System();
+		
+		a.Append_Invoke(ss.GetScriptCallbacks().idJumpToEncodedAddress);
+
+		// Dummy instructions: the JumpToEncodedAddress method looks at the [idValue] instruction below and extracts the value, the register is never changed
+		VariantValue idValue;
+		idValue.byteCodeIdValue = section.Id;
+		a.Append_SetRegisterImmediate(REGISTER_D4, idValue, BITCOUNT_POINTER);
+
+		f.Object().ProgramMemory().UpdateBytecode(proxyId, a);
+
+		a.Clear();
+	}
 
 	void CompileFunctionFromExpression(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
 	{
@@ -1563,6 +1586,7 @@ namespace Rococo::Script
 		
 		if (f.IsVirtualMethod())
 		{
+			CompileProxyFunction(f, fdef, script);
 			// The final input is an interface
 			int thisOffset = ComputeThisOffset(builder.Owner(), fdef);
 			builder.SetThisOffset(thisOffset);
@@ -1675,6 +1699,37 @@ namespace Rococo::Script
 
 		CReflectedClass* childRep = ss.CreateReflectionClass("ExpressionBuilder", (void*) parentBuilder);
 		registers[7].vPtrValue = &childRep->header.pVTables[0];
+	}
+
+	VM_CALLBACK(JumpToEncodedAddress)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		const auto* pc = registers[REGISTER_PC].uint8PtrValue;
+
+		// This function should have been called via an Invoke, which has moved the PC to just beyond the invoke where we expect
+
+		// Expecting a: Opcodes::SetRegisterImmediate64 + ID_BYTECODE ( functionId) ;
+
+#ifdef _DEBUG
+		if (*pc++ != Opcodes::SetRegisterImmediate64)
+		{
+			Rococo::Throw(0, "OnInvokeJumpToEncodedAddress: Expecting [SetRegisterImmediate64] D4 <byte_code_id>");
+		}
+
+		if (*pc++ != 4)
+		{
+			Rococo::Throw(0, "OnInvokeJumpToEncodedAddress: Expecting [SetRegisterImmediate64] [D4] <byte_code_id>");
+		}
+#endif
+
+		const ID_BYTECODE* pId = (const ID_BYTECODE*) pc;
+
+		auto& mem = ss.ProgramObject().ProgramMemory();
+
+		bool isImmutable;
+		size_t functionAddressOffset = mem.GetFunctionAddress(*pId, OUT isImmutable);
+
+		registers[REGISTER_PC].uint8PtrValue = ss.ProgramObject().VirtualMachine().Cpu().ProgramStart + functionAddressOffset;
 	}
 
 	VM_CALLBACK(ThrowNullRef)

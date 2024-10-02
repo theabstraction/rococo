@@ -159,12 +159,13 @@ namespace Anon
 			Throw(0, "No such function: ID_BYTECODE #%lld", id);
 		}
 
-		size_t GetFunctionAddress(ID_BYTECODE id) const
+		size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const
 		{
 			auto i = functions.find(id);			 
 			if (i != functions.end())
 			{
 				const FunctionDef& fd = i->second;
+				isImmutable = fd.isImmutable;
 				return fd.StartIndex;
 			}
 			else

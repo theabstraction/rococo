@@ -275,7 +275,13 @@ namespace Rococo { namespace VM
 		virtual ID_BYTECODE AddBytecode() = 0;
 		virtual void UnloadBytecode(ID_BYTECODE id) = 0;
 		virtual bool UpdateBytecode(ID_BYTECODE id, const IAssembler& assember) = 0;
-		virtual size_t GetFunctionAddress(ID_BYTECODE id) const = 0;
+		virtual size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const = 0;
+
+		inline size_t GetFunctionAddress(ID_BYTECODE id) const
+		{
+			bool isImmutable;
+			return GetFunctionAddress(id, OUT isImmutable);
+		}
 
 		// Returns true if the function address can never be remapped for the lifetime of the program
 		virtual bool IsImmutable(ID_BYTECODE id) const = 0;

@@ -586,7 +586,8 @@ namespace Anon
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			size_t functionStart = program->GetFunctionAddress(codeId);
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(codeId, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
 			PROTECT
@@ -617,7 +618,8 @@ namespace Anon
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			size_t functionStart = program->GetFunctionAddress(codeId);
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(codeId, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
 			while(cpu.SF() > context && status == EXECUTERESULT_RUNNING)
@@ -642,7 +644,8 @@ namespace Anon
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			size_t functionStart = program->GetFunctionAddress(codeId);
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(codeId, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
 			while (cpu.SF() > context && status == EXECUTERESULT_RUNNING)
@@ -1718,10 +1721,11 @@ namespace Anon
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
 			ID_BYTECODE* pByteCodeId = (ID_BYTECODE*)(cpu.PC() + 1);
-			size_t addressOffset = program->GetFunctionAddress(*pByteCodeId);
-			cpu.SetPC(cpu.ProgramStart + addressOffset);
 
-			if (program->IsImmutable(*pByteCodeId))
+			bool isImmutable;
+			size_t addressOffset = program->GetFunctionAddress(*pByteCodeId, OUT isImmutable);
+			cpu.SetPC(cpu.ProgramStart + addressOffset);
+			if (isImmutable)
 			{
 				// Self-modifying-code to eliminate expensive mapping function
 				auto* overwritePoint = const_cast<uint8*>(I);
@@ -1742,7 +1746,9 @@ namespace Anon
 
 			const Ins* I = NextInstruction();
 			const ID_BYTECODE id = cpu.D[I->Opmod1].int32Value;
-			size_t functionStart = program->GetFunctionAddress(id);
+
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
@@ -1781,7 +1787,9 @@ namespace Anon
 			const ID_BYTECODE * vTable = (const ID_BYTECODE*) *pVTable;
 
 			const ID_BYTECODE id = vTable[args->vTableOffset];
-			size_t functionStart = program->GetFunctionAddress(id);
+
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
@@ -1815,7 +1823,9 @@ namespace Anon
 			const ID_BYTECODE * vTable = (const ID_BYTECODE*)*pVTable;
 
 			const ID_BYTECODE id = vTable[args->vTableOffset];
-			size_t functionStart = program->GetFunctionAddress(id);
+
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
@@ -1842,7 +1852,9 @@ namespace Anon
 
 			const ID_BYTECODE* pFunction = (const ID_BYTECODE*) (vTable + methodIndex);
 			ID_BYTECODE id = *pFunction;
-			size_t functionStart = program->GetFunctionAddress(id);
+
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
