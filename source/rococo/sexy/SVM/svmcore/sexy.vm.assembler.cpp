@@ -780,7 +780,7 @@ namespace
 		void Append_CallVirtualFunctionViaRefOnStack(int32 SFoffsetToInterfaceRef, int32 vTableOffset /* nBytes into vtable to find the method id */, int32 instanceToInterfaceOffset) override
 		{
 			ArgsCallVirtualFunctionViaRefOnStack args;
-			args.opcode = Opcodes::CallVitualFunctionViaRefOnStack;
+			args.opcode = Opcodes::CallVirtualFunctionViaRefOnStack;
 			args.SFoffsetToInterfaceRef = SFoffsetToInterfaceRef;
 			args.vTableOffset = vTableOffset >> 3;
 			args.instanceToInterfaceOffset = instanceToInterfaceOffset;
@@ -790,7 +790,7 @@ namespace
 		void Append_CallVirtualFunctionViaMemberOffsetOnStack(int32 SFoffsetToStruct, int32 memberOffset, int32 vTableOffset) override
 		{
 			ArgsCallVirtualFunctionViaMemberOffsetOnStack args;
-			args.opcode = Opcodes::CallVitualFunctionViaMemberOffsetOnStack;
+			args.opcode = Opcodes::CallVirtualFunctionViaMemberOffsetOnStack;
 			args.SFoffsetToStruct = SFoffsetToStruct;
 			args.memberOffsetToInterfaceRef = memberOffset;
 			args.vTableOffset = vTableOffset >> 3;

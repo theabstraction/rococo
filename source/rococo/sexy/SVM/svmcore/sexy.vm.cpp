@@ -108,7 +108,7 @@ namespace Anon
 		case Opcodes::CallById:
 		case Opcodes::CallByIdIndirect:
 		case Opcodes::CallVirtualFunctionByAddress:
-		case Opcodes::CallVitualFunctionViaRefOnStack:
+		case Opcodes::CallVirtualFunctionViaRefOnStack:
 			return true;
 		default:
 			return false;
@@ -201,8 +201,8 @@ namespace Anon
 			ActivateInstruction(CallBy);
 			ActivateInstruction(CallById);
 			ActivateInstruction(CallByIdIndirect);
-			ActivateInstruction(CallVitualFunctionViaRefOnStack);
-			ActivateInstruction(CallVitualFunctionViaMemberOffsetOnStack);
+			ActivateInstruction(CallVirtualFunctionViaRefOnStack);
+			ActivateInstruction(CallVirtualFunctionViaMemberOffsetOnStack);
 			ActivateInstruction(CallVirtualFunctionByAddress);
 			ActivateInstruction(CopySFMemory);
 			ActivateInstruction(CopySFMemoryNear);
@@ -1746,7 +1746,7 @@ namespace Anon
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
-		OPCODE_CALLBACK(CallVitualFunctionViaRefOnStack)
+		OPCODE_CALLBACK(CallVirtualFunctionViaRefOnStack)
 		{
 			/* args:
 			Opcodes::OPCODE opcode;
@@ -1785,7 +1785,7 @@ namespace Anon
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
-		OPCODE_CALLBACK(CallVitualFunctionViaMemberOffsetOnStack)
+		OPCODE_CALLBACK(CallVirtualFunctionViaMemberOffsetOnStack)
 		{
 			struct VirtualTable
 			{

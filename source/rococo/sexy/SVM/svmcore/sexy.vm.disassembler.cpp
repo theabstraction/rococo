@@ -496,7 +496,7 @@ namespace
 		format(rep, (" %s"), RegisterName(I.Opmod1));
 	}
 
-	void FormatCallVitualFunctionViaRefOnStack(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatCallVirtualFunctionViaRefOnStack(const Ins& I, OUT IDisassembler::Rep& rep)
 	{		
 		int32 sfOffset = *((int32*) (I.ToPC() + 1));
 		int32 methodIndex = *((int32*) (I.ToPC() + 5));
@@ -1050,7 +1050,7 @@ namespace
 		rep.ByteCount = sizeof(args);
 	}
 
-	void FormatCallVitualFunctionViaMemberOffsetOnStack(const Ins& I, OUT IDisassembler::Rep& rep)
+	void FormatCallVirtualFunctionViaMemberOffsetOnStack(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		auto& args = (ArgsCallVirtualFunctionViaMemberOffsetOnStack&)I;
 		format(rep, ("(%d.%d) #%d"), args.SFoffsetToStruct, args.memberOffsetToInterfaceRef, args.vTableOffset);
@@ -1177,7 +1177,7 @@ namespace
 		EnableFormatter(DoubleDivide);
 		EnableFormatter(CallBy);
 		EnableFormatter(CallByIdIndirect);
-		EnableFormatter(CallVitualFunctionViaRefOnStack);
+		EnableFormatter(CallVirtualFunctionViaRefOnStack);
 		EnableFormatter(CallVirtualFunctionByAddress);
 		EnableFormatter(CallById);
 		EnableFormatter(Call);
@@ -1226,7 +1226,7 @@ namespace
 		EnableFormatter(SetSFMemberByRefFromSFByValue64);
 		EnableFormatter(SetSFMemberRefFromSFMemberByRef64);
 		EnableFormatter(DereferenceD4);
-		EnableFormatter(CallVitualFunctionViaMemberOffsetOnStack);
+		EnableFormatter(CallVirtualFunctionViaMemberOffsetOnStack);
 		EnableFormatter(GetStackFrameMemberPtrAndDeref);
 		EnableFormatter(SetSFValueFromSFValueLong);
 		EnableFormatter(SetSFMemberRefFromSFValue);
