@@ -18313,9 +18313,8 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestBuilderWithGetAccessor);
+		TEST(TestArrayInt32_3);
 		RunPositiveSuccesses();	
-		return;
 		RunGotoTests();
 		RunPositiveFailures();
 		TestArrays();

@@ -1,7 +1,10 @@
 (namespace EntryPoint)
-
-(function Main (Int32 id)->(Int32 exitCode):
-	(#Sys.IO.printf "Hello World!")
+ (alias Main EntryPoint.Main)
+  
+(using Sys.Type)
+  
+(function Main -> (Int32 result):
+	(array Int32 a 4)
+	(a.Push 1812)
+	(result = (a 0))
 )
-
-(alias Main EntryPoint.Main)

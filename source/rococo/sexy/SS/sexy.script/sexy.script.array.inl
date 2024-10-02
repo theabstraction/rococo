@@ -1323,7 +1323,7 @@ namespace Rococo
 
 		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D13
 
-		   if (elementType.InterfaceCount() >= 0)
+		   if (elementType.InterfaceCount() >= 1)
 		   {
 			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetInterfaceLockless);
 		   }
