@@ -2300,7 +2300,6 @@ namespace Anon
 		{
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot Get bitcount for struct. Unhandled size!"));
-			return BITCOUNT_BAD;
 		case 4:
 			return BITCOUNT_32;
 		case 8:
@@ -2733,7 +2732,6 @@ namespace Anon
 		case CONDITION_IF_LESS_OR_EQUAL: return CONDITION_IF_GREATER_THAN;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled case type 0x%x"), x);
-			return CONDITION_IF_EQUAL;
 		}
 	}
 

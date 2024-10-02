@@ -157,6 +157,7 @@ namespace Rococo::Compiler
 		virtual IMemberBuilder& GetMember(int index) = 0;
 		virtual IInterfaceBuilder& GetInterface(int index) = 0;
 		virtual void ExpandAllocSize(int minimumByteCount) = 0;
+		virtual void FillVirtualTables() = 0;
 		virtual void MakeStrong() = 0;
 		virtual void Update() = 0;
 		virtual void SetConstructor(const IFunction* cons) = 0;

@@ -1786,11 +1786,9 @@ namespace Anon
 								
 			const ID_BYTECODE * vTable = (const ID_BYTECODE*) *pVTable;
 
-			const ID_BYTECODE id = vTable[args->vTableOffset];
+			const ID_BYTECODE functionAddress = vTable[args->vTableOffset];
 
-			bool isImmutable;
-			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
-			cpu.SetPC(cpu.ProgramStart + functionStart);
+			cpu.SetPC((const uint8*)functionAddress);
 		}
 
 		OPCODE_CALLBACK(CallVirtualFunctionViaMemberOffsetOnStack)
@@ -1822,11 +1820,9 @@ namespace Anon
 
 			const ID_BYTECODE * vTable = (const ID_BYTECODE*)*pVTable;
 
-			const ID_BYTECODE id = vTable[args->vTableOffset];
+			const ID_BYTECODE functionAddress = vTable[args->vTableOffset];
 
-			bool isImmutable;
-			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
-			cpu.SetPC(cpu.ProgramStart + functionStart);
+			cpu.SetPC((const uint8*)functionAddress);
 		}
 
 		OPCODE_CALLBACK(CallVirtualFunctionByAddress)
@@ -1851,11 +1847,9 @@ namespace Anon
 			const uint8* vTable = (const uint8*) *pVTable;
 
 			const ID_BYTECODE* pFunction = (const ID_BYTECODE*) (vTable + methodIndex);
-			ID_BYTECODE id = *pFunction;
+			ID_BYTECODE functionAddress = *pFunction;
 
-			bool isImmutable;
-			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
-			cpu.SetPC(cpu.ProgramStart + functionStart);
+			cpu.SetPC((const uint8*) functionAddress);
 		}
 
 		struct MemCopyInfo

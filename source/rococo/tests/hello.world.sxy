@@ -1,23 +1,44 @@
 (namespace EntryPoint)
+ (alias Main EntryPoint.Main)
 
-(function Main -> (Int32 exitValue1):
+(using Sys)
+(using Sys.Maths)
+(using Sys.Reflection)
+
+(class PrintDogs (implements ICoroutine))
+(method PrintDogs.Construct :)
+(factory Sys.NewPrintDogs ICoroutine : (construct PrintDogs))
+(class PrintCats (implements ICoroutine))
+(method PrintCats.Construct :)
+(factory Sys.NewPrintCats ICoroutine : (construct PrintCats))
+
+(method PrintDogs.Run -> :
+	 (Print "RobotDog")
+	 (yield)
+	 (Print "ToyDog")
+	 (yield)
+	 (Print "BigDog")
+)
+
+(method PrintCats.Run -> :
+	(Print "FluffyCat")
+	(yield 50)
+	(Print "MagicCat")
+	(yield)
+	(Print "Mooncat")
+)
+
+(function Main -> (Int32 result):
+	(ICoroutine dogs (NewPrintDogs))
+	(ICoroutine cats (NewPrintCats))
+	(ICoroutineControl coroutines (Coroutines))
+	(coroutines.Add dogs)
+	(coroutines.Add cats)
 	(debug)
-    (exitValue1 = (MyFunction1 5000))
+	(while (coroutines.Continue != 0))
+	(Sys.Print "yo!")
+	(Int64 dogId = (coroutines.Add dogs))
+	(coroutines.Add cats)
+	(coroutines.Release dogId)
+	(while (coroutines.Continue != 0))
 )
-
-(function MyFunction1 (Int32 x) -> (Int32 result):
-    (if (x > 100)
-		(result = (MyFunction2 x)) 
-	else 
-		(result = x)
-	)
-)
-
-(function MyFunction2 (Int32 x) -> (Int32 result):
-   (if (x > 100) 
-		(result = (MyFunction1 (x / 2)))
-	else
-		(result = x)
-	)
-)
-(alias Main EntryPoint.Main)

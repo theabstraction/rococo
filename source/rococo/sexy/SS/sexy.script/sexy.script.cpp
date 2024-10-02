@@ -2134,12 +2134,12 @@ namespace Rococo::Script
 					IStructure& s = module.GetStructure(i);
 					if (s.Prototype().IsClass)
 					{
-						SafeFormat(symbol, 256, ("%s-typeInfo"), s.Name());
+						SafeFormat(symbol, 256, "%s-typeInfo", s.Name());
 						AddSymbol(symbol, s.GetVirtualTable(0));
 
 						for (int k = 1; k <= s.InterfaceCount(); ++k)
 						{
-							SafeFormat(symbol, 256, ("%s-vTable%d"), s.Name(), k);
+							SafeFormat(symbol, 256, "%s-vTable%d", s.Name(), k);
 							AddSymbol(symbol, s.GetVirtualTable(k));
 						}
 					}

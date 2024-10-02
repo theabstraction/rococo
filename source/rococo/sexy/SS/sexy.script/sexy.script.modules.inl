@@ -779,6 +779,8 @@ namespace Rococo::Script
 		return false;
 	}
 
+	void CompileProxyFunction(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script);
+
 	void CompileDeclaration(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
 	{
 		// function <name> (inputType1 inputVar1) ... (inputTypeN inputVarN) -> (outputType1 outputVar1) ... (outputTypeN outputVarN): body )
@@ -835,6 +837,7 @@ namespace Rococo::Script
 		if (f.IsVirtualMethod())
 		{
 			AddThisPointer(REF f, fdef, script);
+			CompileProxyFunction(f, fdef, script);
 		}		
 	}
 
@@ -1586,7 +1589,6 @@ namespace Rococo::Script
 		
 		if (f.IsVirtualMethod())
 		{
-			CompileProxyFunction(f, fdef, script);
 			// The final input is an interface
 			int thisOffset = ComputeThisOffset(builder.Owner(), fdef);
 			builder.SetThisOffset(thisOffset);
@@ -2044,8 +2046,10 @@ namespace Rococo::Script
 		for(int i = 0; i < interf.MethodCount(); ++i)
 		{
 			const IArchetype& nullMethod = interf.GetMethod(i);
-			CompileNullMethod(ss, nullMethod, interf, nullObject, source, ns);
+			CompileNullMethod(ss, nullMethod, interf, nullObject, source, ns);			
 		}
+
+		nullObject.FillVirtualTables();
 	}
 
 	class CScript;
@@ -2618,6 +2622,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					script.CompileVTables();
 					script.MarkCompiled();
 				}
 			} fnctorComplete;
@@ -2944,11 +2949,11 @@ namespace Rococo::Script
 
    void CScript::CompileNullObjects()
    {
-      for (auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
-      {
-         CompileNullObject(System(), *n->Interface, *n->NullObject, *n->Source, *n->NS);
-         n->Interface->PostCompile();
-      }
+	   for (auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
+	   {
+		   CompileNullObject(System(), *n->Interface, *n->NullObject, *n->Source, *n->NS);
+		   n->Interface->PostCompile();
+	   }
    }
 
    void CScript::CompileTopLevelMacro(cr_sex s)
@@ -3013,30 +3018,39 @@ namespace Rococo::Script
 
    void  CScript::CompileNextClosures()
    {
-      // Compiling a local function can enqueue a closure for further compilation, so handle that next
-      while (!closureJobs.empty())
-      {
-         CClosureDef cdef = closureJobs.back();
-         closureJobs.pop_back();
-         CompileClosureBody(*cdef.ClosureExpr, *cdef.Closure, *this);
-      }
+	   // Compiling a local function can enqueue a closure for further compilation, so handle that next
+	   while (!closureJobs.empty())
+	   {
+		   CClosureDef cdef = closureJobs.back();
+		   closureJobs.pop_back();
+		   CompileClosureBody(*cdef.ClosureExpr, *cdef.Closure, *this);
+	   }
    }
 
    void  CScript::CompileLocalFunctions()
    {
-      for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
-      {
-         CompileFunctionFromExpression(*i->second.Fn, *i->second.FnDef, *this);
-      }
+	   for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
+	   {
+		   CompileFunctionFromExpression(*i->second.Fn, *i->second.FnDef, *this);
+	   }
    }
 
-   void  CScript::CompileJITStubs()
+   void CScript::CompileJITStubs()
    {
-      for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
-      {
-         cstr fname = i->second.Fn->Name();
-         CompileJITStub(*i->second.Fn, *i->second.FnDef, *this, GetSystem(*this));
-      }
+	   for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
+	   {
+		   cstr fname = i->second.Fn->Name();
+		   CompileJITStub(*i->second.Fn, *i->second.FnDef, *this, GetSystem(*this));
+	   }
+   }
+
+   void CScript::CompileVTables()
+   {
+	   for(auto& ls: localStructures)
+	   {
+		   auto& s = *ls.Struct;
+		   s.FillVirtualTables();
+	   }
    }
 
    void AppendCompiledNamespacesForOneDirective(TNamespaceDefinitions& nsDefs, cr_sex sDirective, CScript& script)
@@ -3955,7 +3969,7 @@ namespace Rococo::Script
 
 		for(int i = 0; i < module.StructCount();  ++i)
 		{
-			const IStructure& s = module.GetStructure(i);
+			IStructureBuilder& s = module.GetStructure(i);
 			if (s.Prototype().IsClass && !IsNullType(s))
 			{
 				for(int j = 0; j < s.InterfaceCount(); j++)

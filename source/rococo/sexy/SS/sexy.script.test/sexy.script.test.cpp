@@ -6995,6 +6995,34 @@ R"((namespace EntryPoint)
 		validate(x == 0);
 	}
 
+	void TestTypenames(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(result = (Sys.Print type.Name))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 32);
+	}
+
 	void TestMutableArgFunction(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -17869,11 +17897,16 @@ R"(
 	{
 		validate(true);
 
-		TEST(TestBuilderWithGetAccessor);
-		TEST(TestBuilderWithGetAccessor2);
+		TEST(TestTypenames);
 
-		TEST(TestCompareGetAccessorVsCompound);
 		TEST(TestDefaultParameter);
+		TEST(TestStrongNumber);
+		TEST(TestStrongNumber2);
+		TEST(TestStrongNumber3);
+		TEST(TestStrongNumber4);
+		TEST(TestStrongNumber5);
+		TEST(TestStrongNumber6);
+		TEST(TestStrongNumber7);
 
 		TEST(TestNullOutInterface);
 		TEST(TestMutableArgFunction);
@@ -17891,14 +17924,6 @@ R"(
 		TEST(TestCatch);
 		TEST(TestCatchArg);
 
-		TEST(TestStrongNumber);
-		TEST(TestStrongNumber2);
-		TEST(TestStrongNumber3);
-		TEST(TestStrongNumber4);
-		TEST(TestStrongNumber5);
-		TEST(TestStrongNumber6);
-		TEST(TestStrongNumber7);
-
 		TEST(TestStructWithInterface);
 
 		TEST(TestCatchInstanceArg);
@@ -17909,8 +17934,6 @@ R"(
 		TEST(TestAppendSubstring);
 		TEST(TestStringbuilderTruncate);
 
-		TEST(TestEssentialInterface);
-		
 		TEST(TestOperatorOverload3);
 		TEST(TestStaticCast1);
 		TEST(TestCreateNamespace);
@@ -17924,6 +17947,11 @@ R"(
 		TEST(TestAssignFloat64Variable);
 		TEST(TestAssignMatrixVariable);
 		TEST(TestAssignVectorVariableByRef);
+
+		TEST(TestBuilderWithGetAccessor);
+		TEST(TestBuilderWithGetAccessor2);
+
+		TEST(TestCompareGetAccessorVsCompound);
 
 		TEST(TestPublishAPI);
 
@@ -17950,8 +17978,6 @@ R"(
 		TEST(TestCallPrivateMethod2);
 
 		TEST(TestDynamicCast2);
-
-		TEST2(TestCoroutine1);
 
 		TEST(TestDynamicDispatch);
 		TEST(TestPushSecondInterface);
@@ -18270,6 +18296,9 @@ R"(
 		TEST3(TestConsoleOutput4);
 		TEST3(TestStringReplace);
 		TEST(TestExpressionAppendTo);
+
+		TEST(TestEssentialInterface);
+		TEST2(TestCoroutine1);
 	}
 
 	void RunPositiveFailures()
@@ -18311,8 +18340,6 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestFunctionCallRecursion2);
-		TEST(TestArrayInt32_3);
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();

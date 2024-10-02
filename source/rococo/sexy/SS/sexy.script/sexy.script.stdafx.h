@@ -380,6 +380,7 @@ namespace Rococo
             void CompileNextClosures();
             void CompileLocalFunctions();
             void CompileJITStubs();
+            void CompileVTables();
             void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs);
             void AddEnumeratedVirtualMethod(IN cr_sex virtualMethodExpr, IN cstr methodName, REF IInterfaceBuilder& inter, IN size_t vmIndex);
             void AddVirtualMethod(IN cr_sex virtualMethodExpr, REF IInterfaceBuilder& inter, IN size_t vmIndex);

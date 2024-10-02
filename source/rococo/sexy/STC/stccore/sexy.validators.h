@@ -40,7 +40,7 @@
 
 namespace Rococo { namespace Compiler
 {
-	void Throw(ERRORCODE code, cstr source, cstr format, ...);	
+	[[noreturn]] void Throw(ERRORCODE code, cstr source, cstr format, ...);	
 }} // Rococo::Compiler
 
 #define WIDEN2(x) L ## x
