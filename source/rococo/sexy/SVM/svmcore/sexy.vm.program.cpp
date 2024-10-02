@@ -210,6 +210,10 @@ namespace Anon
 			if (i != functions.end())
 			{
 				FunctionDef& fd = i->second;
+				if (fd.isImmutable)
+				{
+					Throw(0, "Bytecode %llu has been set to be immutable", id);
+				}
 
 				fd.UsedLength = newLength;
 
