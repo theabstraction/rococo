@@ -1688,8 +1688,8 @@ namespace Anon
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
 			const Ins* I = NextInstruction();
-			const VariantValue& offsetRegister = cpu.D[I->Opmod1];
-			cpu.SetPC(cpu.PC() + offsetRegister.int32Value);
+			const VariantValue& addressRegister = cpu.D[I->Opmod1];
+			cpu.SetPC(addressRegister.uint8PtrValue);
 		}
 
 		OPCODE_CALLBACK(Call)

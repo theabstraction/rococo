@@ -93,6 +93,7 @@ namespace Rococo
 	typedef unsigned __int32 uint32;
 	typedef unsigned __int64 uint64;
 
+	// Some bytecode identifier. In some contexts, such as virtual tables for interfaces, they encode a function addresses
 	typedef size_t ID_BYTECODE;
 
 #else

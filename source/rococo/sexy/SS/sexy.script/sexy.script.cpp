@@ -1451,7 +1451,11 @@ namespace Rococo::Script
 			cpu.Push(pArgBuffer);
 
 			cpu.SetPC(cpu.ProgramStart);
-			cpu.D[5].byteCodeIdValue = target.byteCodeId;
+
+			auto targetOffset = program.GetFunctionAddress(target.byteCodeId);
+			auto targetAddress = cpu.ProgramStart + targetOffset;
+
+			cpu.D[5].uint8PtrValue = targetAddress;
 
 			VM::ExecutionFlags currentFlags;
 			vm.GetLastFlags(currentFlags);

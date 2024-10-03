@@ -367,15 +367,12 @@ struct Coroutines : public Sys::ICoroutineControl
 			{
 				cpu.SetPC(cpu.ProgramStart);
 
-				size_t offset = spec.runId - (size_t)cpu.ProgramStart;
-				ID_BYTECODE runId = ss.ProgramObject().ProgramMemory().GetFunctionContaingAddress(offset);
-
-				if (runId == 0)
+				if (spec.runId == 0)
 				{
 					Throw(0, "Unexpected bad run id: spec %s", GetFriendlyName(*spec.stub->Desc->TypeInfo));
 				}
 
-				cpu.D[5].byteCodeIdValue = runId;
+				cpu.D[5].byteCodeIdValue = spec.runId;
 
 				cpu.D[VM::REGISTER_SP].uint8PtrValue = spec.registers[VM::REGISTER_SP].uint8PtrValue = spec.startOfStackMemory = stacks.AllocateBuffer();
 				spec.endOfStackMemory = spec.startOfStackMemory + StackPool::StackSize;

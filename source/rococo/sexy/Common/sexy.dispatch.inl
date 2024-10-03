@@ -17,7 +17,11 @@ namespace Rococo
 		   cpu.Push(&args);
 
 		   cpu.SetPC(cpu.ProgramStart);
-		   cpu.D[5].byteCodeIdValue = target.byteCodeId;
+
+		   auto targetOffset = program.GetFunctionAddress(target.byteCodeId);
+		   auto targetAddress = program.StartOfMemory() + targetOffset;
+
+		   cpu.D[5].uint8PtrValue = targetAddress;
 
 		   VM::ExecutionFlags currentFlags;
 		   vm.GetLastFlags(currentFlags);

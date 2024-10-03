@@ -18008,11 +18008,7 @@ R"(
 
 		TEST(TestStartsWith);
 
-		TEST(TestCPPCallback);
-
 		TEST(TestMethodFromClosure);
-
-		TEST(TestCPPCallback);
 
 		TEST(TestEmptyMap);
 
@@ -18271,7 +18267,7 @@ R"(
 		TEST(TestIsMethodInputOfType);
 		TEST(TestIsMethodOutputOfType);
 		TEST(TestInvokeMethodViaReflection);
-		TEST(TestTopLevelMacro);
+
 		TEST(TestDeepCatch);
 		TEST(TestReturnInterfaceEx);
 		
@@ -18292,13 +18288,15 @@ R"(
 		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput);
 		TEST(TestMacroSiblings3Throws);
-		TEST3(TestTopLevelMacro2);
 		TEST3(TestConsoleOutput4);
 		TEST3(TestStringReplace);
 		TEST(TestExpressionAppendTo);
 
 		TEST(TestEssentialInterface);
 		TEST2(TestCoroutine1);
+		TEST(TestTopLevelMacro);
+		TEST3(TestTopLevelMacro2);
+		TEST(TestCPPCallback);
 	}
 
 	void RunPositiveFailures()
@@ -18339,6 +18337,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
+
+		TEST(TestCPPCallback);
 
 		RunPositiveSuccesses();	
 		RunGotoTests();

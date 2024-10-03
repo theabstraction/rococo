@@ -73,7 +73,7 @@ namespace Anon
 {
 	ID_BYTECODE BuildStub(IAssembler& a, IProgramMemory& program)
 	{
-		a.Append_CallByIdIndirect(VM::REGISTER_D5);
+		a.Append_CallByRegister(VM::REGISTER_D5);
 		a.Append_Exit(VM::REGISTER_D4);
 
 		ID_BYTECODE stubId = program.AddBytecode();
@@ -486,7 +486,11 @@ namespace Anon
 		{
 			virtualMachine->SetProgram(program);
 			virtualMachine->InitCpu();
-			virtualMachine->Cpu().D[VM::REGISTER_D5].byteCodeIdValue = bytecodeId;
+
+			size_t functionOffset = bytecodeId == 0 ? 0 : program->GetFunctionAddress(bytecodeId);
+			auto functionAddress = program->StartOfMemory() + functionOffset;
+
+			virtualMachine->Cpu().D[VM::REGISTER_D5].uint8PtrValue = functionAddress;
 		}
 
 		const IStructure* GetSysType(SEXY_CLASS_ID id) override
