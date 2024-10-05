@@ -17672,6 +17672,53 @@ R"(
 	   ValidateLogs();
    }
 
+   // We dont' run this with the other tests, only in itself. By commenting im/out the line player. NoOperation we can determine the cost of a million virtual calls
+   // This was used to determine that self-modifying-code increased virtual table lookup speed by 2.5x, from 40M calls per sec to 
+   // 100M calls per sec on the test platform's i7-11700k @2.5GHz
+   void TestVirtualCallSpeed(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint)"
+		   "(using EntryPoint)"
+		   "(function Main -> (Int32 result):"
+		   "    (IPlayer player (NewPlayer))"
+		   "    (for (Int32 i = 0)(i < 1000000)(i += 1)"
+		   "	    (player.NoOperation)"
+		   "	)"	
+		   ")"
+		   "(alias Main EntryPoint.Main)"
+
+		   "(interface EntryPoint.IPlayer"
+		   "    (NoOperation -> )"
+		   ")"
+
+		   "(class Player (implements IPlayer)"
+		   "    (Int32 id)"
+		   ")"
+
+		   "(method Player.NoOperation -> :"
+		   ")"
+
+		   "(method Player.Construct -> :"
+		   "	(this.id = 0)"
+		   ")"
+
+		   "(factory EntryPoint.NewPlayer IPlayer :"
+		   "   (construct Player)"
+		   ")";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestClassInstance");
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 result
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 0);
+   }
+
 
    void TestArrays()
    {
@@ -18337,16 +18384,12 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
-		TEST(TestCPPCallback);
-
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestMaps();
-
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

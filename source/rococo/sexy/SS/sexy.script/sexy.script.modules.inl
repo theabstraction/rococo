@@ -1545,12 +1545,17 @@ namespace Rococo::Script
 
 		auto& ss = script.System();
 		
-		a.Append_Invoke(ss.GetScriptCallbacks().idJumpToEncodedAddress);
+		a.Append_Invoke(ss.GetScriptCallbacks().idJumpFromProxyToMethod);
 
 		// Dummy instructions: the JumpToEncodedAddress method looks at the [idValue] instruction below and extracts the value, the register is never changed
+		// We could put this before the jump, but that would mean every debug session would potentially step through the argument. By extracting the code manually we avoid that step
 		VariantValue idValue;
 		idValue.byteCodeIdValue = section.Id;
 		a.Append_SetRegisterImmediate(REGISTER_D4, idValue, BITCOUNT_POINTER);
+
+		VariantValue functionRef;
+		functionRef.vPtrValue = &f;
+		a.Append_SetRegisterImmediate(REGISTER_D4, functionRef, BITCOUNT_64);
 
 		f.Object().ProgramMemory().UpdateBytecode(proxyId, a);
 
@@ -1703,23 +1708,26 @@ namespace Rococo::Script
 		registers[7].vPtrValue = &childRep->header.pVTables[0];
 	}
 
-	VM_CALLBACK(JumpToEncodedAddress)
+#define VALIDATE_ARG
+#define ALLOW_REWRITE_VTABLES // This should increase vcall speed by about 2.5x, or from 40M to 100M virtual calls per second on an i7-11700 @ 2.50GHz
+
+	VM_CALLBACK(JumpFromProxyToMethod)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
-		const auto* pc = registers[REGISTER_PC].uint8PtrValue;
+		const uint8* pc = registers[REGISTER_PC].uint8PtrValue;
 
 		// This function should have been called via an Invoke, which has moved the PC to just beyond the invoke where we expect...
 		// Opcodes::SetRegisterImmediate64 + D4 + functionId ;
 
-#ifdef _DEBUG
+#ifdef VALIDATE_ARG
 		if (*pc++ != Opcodes::SetRegisterImmediate64)
 		{
-			Rococo::Throw(0, "OnInvokeJumpToEncodedAddress: Expecting [SetRegisterImmediate64] D4 <byte_code_id>");
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting [SetRegisterImmediate64] D4 <byte_code_id>");
 		}
 
 		if (*pc++ != 4)
 		{
-			Rococo::Throw(0, "OnInvokeJumpToEncodedAddress: Expecting SetRegisterImmediate64 [D4] <byte_code_id>");
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting SetRegisterImmediate64 [D4] <byte_code_id>");
 		}
 #else
 		pc += 2;
@@ -1727,12 +1735,49 @@ namespace Rococo::Script
 
 		const ID_BYTECODE* pId = (const ID_BYTECODE*) pc;
 
+		pc += 8;
+
+#ifdef VALIDATE_ARG
+		if (*pc++ != Opcodes::SetRegisterImmediate64)
+		{
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting [SetRegisterImmediate64] D4 <byte_code_id>");
+		}
+
+		if (*pc++ != 4)
+		{
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting SetRegisterImmediate64 [D4] <byte_code_id>");
+		}
+#else
+		pc += 2;
+#endif
+
+		IFunctionBuilder* f = *(IFunctionBuilder**)pc;
+
 		auto& mem = ss.ProgramObject().ProgramMemory();
 
 		bool isImmutable;
 		size_t functionAddressOffset = mem.GetFunctionAddress(*pId, OUT isImmutable);
+		auto* functionAddress = ss.ProgramObject().VirtualMachine().Cpu().ProgramStart + functionAddressOffset;
 
-		registers[REGISTER_PC].uint8PtrValue = ss.ProgramObject().VirtualMachine().Cpu().ProgramStart + functionAddressOffset;
+#ifdef ALLOW_REWRITE_VTABLES
+		if (isImmutable)
+		{
+			auto* sp = registers[REGISTER_SP].uint8PtrValue;
+			InterfacePointer ip = *(InterfacePointer*)(sp - 24);
+			auto* methods = &ip[0]->FirstMethodId;
+			for (int i = 0; i < 10; i++)
+			{
+				enum { pc_to_proxy_call_delta = -17 }; // This takes us back to the proxy function address
+				if (methods[i] == (ID_BYTECODE)( pc - pc_to_proxy_call_delta))
+				{
+					methods[i] = (ID_BYTECODE)functionAddress;
+					break;
+				}
+			}
+		}
+#endif
+
+		registers[REGISTER_PC].uint8PtrValue = functionAddress;
 	}
 
 	VM_CALLBACK(ThrowNullRef)
