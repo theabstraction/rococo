@@ -2046,7 +2046,7 @@ namespace Rococo
 			{
 				OS::TripDebugger();
 				cstr enigma = typeExpr.c_str();
-				Throw(decl, "%s: Could not match [%s] as either a structure nor an interface in module %s\n"
+				Throw(decl, "%s: Could not match [%s] as either a structure, function nor an interface in module %s\n"
 							"Try specifying %s as a fully qualified type, or add the correct (using <namespace>) directive.", __FUNCTION__, enigma, source.Name(), enigma);
 			}
 

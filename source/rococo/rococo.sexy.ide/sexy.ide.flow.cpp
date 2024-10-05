@@ -53,7 +53,7 @@ namespace
 		virtual void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance)
 		{
 			UNUSED(exceptionInstance);
-			debugger.Log("Unhandled: %s\n%s. Coded %d", exceptionType, message, errorCode);
+			debugger.Log("Unhandled: %s\n%s. Code %d", exceptionType, message, errorCode);
 		}
 
 		virtual void OnJITCompileException(Sex::ParseException& ex)

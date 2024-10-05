@@ -579,6 +579,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		int CountMethodsInDefiningModule() const override;
 		const IArchetype& GetMethodFromModule(int methodIndex) const override;
+
+		void FillVirtualTables() override;
+		void FillVirtualTable(int interfaceIndex);
 	};
 
 	typedef TSexyList<Structure*> TStructureList;

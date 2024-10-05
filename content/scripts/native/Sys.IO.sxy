@@ -218,7 +218,7 @@
 	(stdoutWriterInit.AddAtomic "Sys.IO.IWriter")
 	(stdoutWriterInit.AddAtomic stdoutVar)
 	(stdoutWriterInit.AddAtomic "=")
-	(stdoutWriterInit.AddAtomic "GetStdOut")
+	(stdoutWriterInit.AddAtomic "Sys.IO.GetStdOut")
 	
 	(IExpressionBuilder builderSequence = out.AddCompound)
 	(for (Int32 i = 1) (i < in.ChildCount) (i += 1)

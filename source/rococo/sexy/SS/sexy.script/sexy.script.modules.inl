@@ -779,6 +779,8 @@ namespace Rococo::Script
 		return false;
 	}
 
+	void CompileProxyFunction(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script);
+
 	void CompileDeclaration(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
 	{
 		// function <name> (inputType1 inputVar1) ... (inputTypeN inputVarN) -> (outputType1 outputVar1) ... (outputTypeN outputVarN): body )
@@ -835,6 +837,7 @@ namespace Rococo::Script
 		if (f.IsVirtualMethod())
 		{
 			AddThisPointer(REF f, fdef, script);
+			CompileProxyFunction(f, fdef, script);
 		}		
 	}
 
@@ -1530,6 +1533,34 @@ namespace Rococo::Script
 		WriteToStandardOutput("\n\n");
 	}
 
+	void CompileProxyFunction(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
+	{
+		CodeSection section;
+		f.Builder().GetCodeSection(OUT section);
+
+		auto proxyId = f.Object().ProgramMemory().AddBytecode();
+		f.SetProxy(proxyId);
+
+		auto& a = f.Builder().Assembler();
+
+		auto& ss = script.System();
+		
+		a.Append_Invoke(ss.GetScriptCallbacks().idJumpFromProxyToMethod);
+
+		// Dummy instructions: the JumpToEncodedAddress method looks at the [idValue] instruction below and extracts the value, the register is never changed
+		// We could put this before the jump, but that would mean every debug session would potentially step through the argument. By extracting the code manually we avoid that step
+		VariantValue idValue;
+		idValue.byteCodeIdValue = section.Id;
+		a.Append_SetRegisterImmediate(REGISTER_D4, idValue, BITCOUNT_POINTER);
+
+		VariantValue functionRef;
+		functionRef.vPtrValue = &f;
+		a.Append_SetRegisterImmediate(REGISTER_D4, functionRef, BITCOUNT_64);
+
+		f.Object().ProgramMemory().UpdateBytecode(proxyId, a);
+
+		a.Clear();
+	}
 
 	void CompileFunctionFromExpression(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
 	{
@@ -1675,6 +1706,78 @@ namespace Rococo::Script
 
 		CReflectedClass* childRep = ss.CreateReflectionClass("ExpressionBuilder", (void*) parentBuilder);
 		registers[7].vPtrValue = &childRep->header.pVTables[0];
+	}
+
+#define VALIDATE_ARG
+#define ALLOW_REWRITE_VTABLES // This should increase vcall speed by about 2.5x, or from 40M to 100M virtual calls per second on an i7-11700 @ 2.50GHz
+
+	VM_CALLBACK(JumpFromProxyToMethod)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+		const uint8* pc = registers[REGISTER_PC].uint8PtrValue;
+
+		// This function should have been called via an Invoke, which has moved the PC to just beyond the invoke where we expect...
+		// Opcodes::SetRegisterImmediate64 + D4 + functionId ;
+
+#ifdef VALIDATE_ARG
+		if (*pc++ != Opcodes::SetRegisterImmediate64)
+		{
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting [SetRegisterImmediate64] D4 <byte_code_id>");
+		}
+
+		if (*pc++ != 4)
+		{
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting SetRegisterImmediate64 [D4] <byte_code_id>");
+		}
+#else
+		pc += 2;
+#endif
+
+		const ID_BYTECODE* pId = (const ID_BYTECODE*) pc;
+
+		pc += 8;
+
+#ifdef VALIDATE_ARG
+		if (*pc++ != Opcodes::SetRegisterImmediate64)
+		{
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting [SetRegisterImmediate64] D4 <byte_code_id>");
+		}
+
+		if (*pc++ != 4)
+		{
+			Rococo::Throw(0, "JumpFromProxyToMethod: Expecting SetRegisterImmediate64 [D4] <byte_code_id>");
+		}
+#else
+		pc += 2;
+#endif
+
+		IFunctionBuilder* f = *(IFunctionBuilder**)pc;
+
+		auto& mem = ss.ProgramObject().ProgramMemory();
+
+		bool isImmutable;
+		size_t functionAddressOffset = mem.GetFunctionAddress(*pId, OUT isImmutable);
+		auto* functionAddress = ss.ProgramObject().VirtualMachine().Cpu().ProgramStart + functionAddressOffset;
+
+#ifdef ALLOW_REWRITE_VTABLES
+		if (isImmutable)
+		{
+			auto* sp = registers[REGISTER_SP].uint8PtrValue;
+			InterfacePointer ip = *(InterfacePointer*)(sp - 24);
+			auto* methods = &ip[0]->FirstMethodId;
+			for (int i = 0; i < 10; i++)
+			{
+				enum { pc_to_proxy_call_delta = -17 }; // This takes us back to the proxy function address
+				if (methods[i] == (ID_BYTECODE)( pc - pc_to_proxy_call_delta))
+				{
+					methods[i] = (ID_BYTECODE)functionAddress;
+					break;
+				}
+			}
+		}
+#endif
+
+		registers[REGISTER_PC].uint8PtrValue = functionAddress;
 	}
 
 	VM_CALLBACK(ThrowNullRef)
@@ -1988,8 +2091,10 @@ namespace Rococo::Script
 		for(int i = 0; i < interf.MethodCount(); ++i)
 		{
 			const IArchetype& nullMethod = interf.GetMethod(i);
-			CompileNullMethod(ss, nullMethod, interf, nullObject, source, ns);
+			CompileNullMethod(ss, nullMethod, interf, nullObject, source, ns);			
 		}
+
+		nullObject.FillVirtualTables();
 	}
 
 	class CScript;
@@ -2562,6 +2667,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					script.CompileVTables();
 					script.MarkCompiled();
 				}
 			} fnctorComplete;
@@ -2888,11 +2994,11 @@ namespace Rococo::Script
 
    void CScript::CompileNullObjects()
    {
-      for (auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
-      {
-         CompileNullObject(System(), *n->Interface, *n->NullObject, *n->Source, *n->NS);
-         n->Interface->PostCompile();
-      }
+	   for (auto n = nullDefs.begin(); n != nullDefs.end(); ++n)
+	   {
+		   CompileNullObject(System(), *n->Interface, *n->NullObject, *n->Source, *n->NS);
+		   n->Interface->PostCompile();
+	   }
    }
 
    void CScript::CompileTopLevelMacro(cr_sex s)
@@ -2957,30 +3063,39 @@ namespace Rococo::Script
 
    void  CScript::CompileNextClosures()
    {
-      // Compiling a local function can enqueue a closure for further compilation, so handle that next
-      while (!closureJobs.empty())
-      {
-         CClosureDef cdef = closureJobs.back();
-         closureJobs.pop_back();
-         CompileClosureBody(*cdef.ClosureExpr, *cdef.Closure, *this);
-      }
+	   // Compiling a local function can enqueue a closure for further compilation, so handle that next
+	   while (!closureJobs.empty())
+	   {
+		   CClosureDef cdef = closureJobs.back();
+		   closureJobs.pop_back();
+		   CompileClosureBody(*cdef.ClosureExpr, *cdef.Closure, *this);
+	   }
    }
 
    void  CScript::CompileLocalFunctions()
    {
-      for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
-      {
-         CompileFunctionFromExpression(*i->second.Fn, *i->second.FnDef, *this);
-      }
+	   for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
+	   {
+		   CompileFunctionFromExpression(*i->second.Fn, *i->second.FnDef, *this);
+	   }
    }
 
-   void  CScript::CompileJITStubs()
+   void CScript::CompileJITStubs()
    {
-      for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
-      {
-         cstr fname = i->second.Fn->Name();
-         CompileJITStub(*i->second.Fn, *i->second.FnDef, *this, GetSystem(*this));
-      }
+	   for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
+	   {
+		   cstr fname = i->second.Fn->Name();
+		   CompileJITStub(*i->second.Fn, *i->second.FnDef, *this, GetSystem(*this));
+	   }
+   }
+
+   void CScript::CompileVTables()
+   {
+	   for(auto& ls: localStructures)
+	   {
+		   auto& s = *ls.Struct;
+		   s.FillVirtualTables();
+	   }
    }
 
    void AppendCompiledNamespacesForOneDirective(TNamespaceDefinitions& nsDefs, cr_sex sDirective, CScript& script)
@@ -3899,7 +4014,7 @@ namespace Rococo::Script
 
 		for(int i = 0; i < module.StructCount();  ++i)
 		{
-			const IStructure& s = module.GetStructure(i);
+			IStructureBuilder& s = module.GetStructure(i);
 			if (s.Prototype().IsClass && !IsNullType(s))
 			{
 				for(int j = 0; j < s.InterfaceCount(); j++)
@@ -4339,11 +4454,13 @@ namespace Rococo::Script
 		}
 		
 		IInterfaceBuilder* interf = MatchInterface(factoryInterfaceExpr, module);
-		if (interf == NULL)	
-			Throw(factoryInterfaceExpr, ("Unknown interface"));
+		if (interf == NULL)
+		{
+			Throw(factoryInterfaceExpr, "Unknown interface %s. Factory semantics: (factory <factory> <interface> (arg1) (arg2): <body>)", interfaceName->Buffer);
+		}
 
 		IFactory* factory = factoryNS->FindFactory(shortName);
-		if (factory != NULL) Throw(factoryNameExpr, ("A factory with the same name exists in the same namespace"));
+		if (factory != NULL) Throw(factoryNameExpr, "A factory with the same name exists in the same namespace");
 
 		IFunctionBuilder& factoryFunction = module.DeclareFunction(FunctionPrototype(factoryName->Buffer, false), &factoryDef);
 

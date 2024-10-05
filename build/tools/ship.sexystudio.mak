@@ -17,9 +17,6 @@ $(TARGET)sexystudio.dll: $(BIN)sexystudio.dll
 	-shutdown.npp.bat
 	-copy $(BIN)sexystudio.dll  $(TARGET)
 	
-$(TARGET)sexystudio.LS.exe: $(BIN)sexystudio.LS.exe
-	-copy $(BIN)sexystudio.LS.exe  $(TARGET)
-	
 $(TARGET)sexystudio.app.exe: $(BIN)sexystudio.app.exe
 	-shutdown.npp.bat
 	-copy $(BIN)sexystudio.app.exe  $(TARGET)

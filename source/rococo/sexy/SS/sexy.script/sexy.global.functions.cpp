@@ -1380,7 +1380,15 @@ namespace Rococo
 						auto* object = InterfaceToInstance((InterfacePointer)subInstance);
 
 						char concreteInfo[256];
-						SafeFormat(concreteInfo, "%s", GetFriendlyName(*object->Desc->TypeInfo));
+
+						if (object->refCount == ObjectStub::NO_REF_COUNT)
+						{
+							SafeFormat(concreteInfo, "%s <no-refcount> @ 0x%.16llX", GetFriendlyName(*object->Desc->TypeInfo), object);
+						}
+						else
+						{
+							SafeFormat(concreteInfo, "%s refcount: %llu @ 0x%.16llX", GetFriendlyName(*object->Desc->TypeInfo), object->refCount, object);
+						}
 						tree->AddChild(element, concreteInfo, CheckState_NoCheckBox);
 					}
 					else
@@ -2153,6 +2161,67 @@ namespace Rococo
 		}
 	}
 
+	void ExecuteUntilYield(VM::IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
+	{
+		EXECUTERESULT result = EXECUTERESULT_YIELDED;
+
+		bool captureStructedException = false;
+
+		if (captureStructedException && !OS::IsDebugging())
+		{
+			TRY_PROTECTED
+			{
+				result = ExecuteAndCatchIException(vm, ss, debugger, trace);
+			}
+				CATCH_PROTECTED
+			{
+				result = EXECUTERESULT_SEH;
+			}
+		}
+		else
+		{
+			result = ExecuteAndCatchIException(vm, ss, debugger, trace);
+		}
+
+		switch (result)
+		{
+		case EXECUTERESULT_BREAKPOINT:
+			UpdateDebugger(ss, debugger, 0, true);
+			Throw(0, "Script hit breakpoint");
+			break;
+		case EXECUTERESULT_ILLEGAL:
+			UpdateDebugger(ss, debugger, 0, true);
+			Throw(0, "Script did something bad.");
+			break;
+		case EXECUTERESULT_NO_ENTRY_POINT:
+			Throw(0, "No entry point");
+			break;
+		case EXECUTERESULT_NO_PROGRAM:
+			Throw(0, "No program");
+			break;
+		case EXECUTERESULT_RETURNED:
+			Throw(0, "Unexpected EXECUTERESULT_RETURNED");
+			break;
+		case EXECUTERESULT_SEH:
+			UpdateDebugger(ss, debugger, 0, true);
+			Throw(0, "The script triggered a structured exception handler");
+			break;
+		case EXECUTERESULT_THROWN:
+			UpdateDebugger(ss, debugger, 0, true);
+			Throw(0, "The script triggered a virtual machine exception");
+			break;
+		case EXECUTERESULT_YIELDED:
+			break;
+		case EXECUTERESULT_TERMINATED:
+			UpdateDebugger(ss, debugger, 0, true);
+			Throw(0, "The script terminated while a yield was expected");
+			break;
+		default:
+			Rococo::Throw(0, "Unexpected EXECUTERESULT %d", result);
+			break;
+		}
+	}
+
 	SCRIPTEXPORT_API void ExecuteFunction(ID_BYTECODE bytecodeId, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		ss.PublicProgramObject().SetProgramAndEntryPoint(bytecodeId);
@@ -2187,6 +2256,12 @@ namespace Rococo
 		Execute(vm, ss, debugger, trace);
 
 		args.PopOutputs(argStack);
+	};
+
+	SCRIPTEXPORT_API void ExecuteFunctionUntilYield(ID_BYTECODE bytecodeId, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
+	{
+		auto& vm = ss.PublicProgramObject().VirtualMachine();
+		ExecuteUntilYield(vm, ss, debugger, trace);
 	};
 
 	SCRIPTEXPORT_API void ExecuteFunction(cstr name, IArgEnumerator& args, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)

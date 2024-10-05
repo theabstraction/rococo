@@ -358,9 +358,11 @@ namespace Rococo
 		   IVirtualMachine& vm = po.VirtualMachine();
 
 		   //size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
+
 		   size_t functionStartAddress = po.ProgramMemory().GetFunctionAddress(section.Id);
 
 		   //const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
+
 		   size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
 
 		   const Rococo::Sex::ISExpression* s = (const Rococo::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;

@@ -143,8 +143,7 @@
       <AdditionalDependencies>rococo.gui.retained.lib;rococo.sexml.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.great.sex.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.great.sex.lib</ImportLibrary>
@@ -230,15 +229,14 @@
       <AdditionalDependencies>rococo.gui.retained.lib;rococo.sexml.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.great.sex.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.great.sex.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.great.sex\sexml.widgets.simple.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.great.sex\sexml.widgets.simple.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.main.cpp" />

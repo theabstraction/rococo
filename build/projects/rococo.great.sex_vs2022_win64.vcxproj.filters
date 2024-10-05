@@ -5,6 +5,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.scheme.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\source\rococo\rococo.great.sex\sexml.widgets.simple.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.great.sex\sexml.widgets.simple.inl" />
   </ItemGroup>
 </Project>

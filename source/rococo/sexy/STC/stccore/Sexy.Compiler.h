@@ -104,6 +104,8 @@ namespace Rococo::Compiler
 
 		virtual void SetType(const IStructure* type) = 0;
 
+		virtual void SetProxy(ID_BYTECODE id) = 0;
+
 		virtual void AddSecurity(const Rococo::Script::NativeSecurityHandler& security) = 0;
 	};
 
@@ -155,6 +157,7 @@ namespace Rococo::Compiler
 		virtual IMemberBuilder& GetMember(int index) = 0;
 		virtual IInterfaceBuilder& GetInterface(int index) = 0;
 		virtual void ExpandAllocSize(int minimumByteCount) = 0;
+		virtual void FillVirtualTables() = 0;
 		virtual void MakeStrong() = 0;
 		virtual void Update() = 0;
 		virtual void SetConstructor(const IFunction* cons) = 0;
@@ -258,8 +261,6 @@ namespace Rococo::Compiler
 		virtual void InitCommon() = 0;
 		virtual const CallbackIds& GetCallbackIds() const = 0;
 		virtual void ClearCustomAllocators() = 0;
-		virtual void DecrementRefCount(InterfacePointer pInterface) = 0;
-		virtual void IncrementRefCount(InterfacePointer pInterface) = 0;
 		virtual IScriptObjectAllocator& GetDefaultObjectAllocator() = 0;
 	};
 

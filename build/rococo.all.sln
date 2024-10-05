@@ -147,6 +147,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.bennyhill", "projects\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.compiler", "projects\sexy.compiler_vs2022_win64.vcxproj", "{87496FE8-0053-AED7-44D6-138174796DD1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.domme", "projects\sexy.domme_vs2022_win64.vcxproj", "{234E5B91-213F-CF04-B229-81D9C26D8DBB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.domme.test", "projects\sexy.domme.test_vs2022_win64.vcxproj", "{46170629-1184-8A5F-67C0-C893DC3A392F}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.include", "projects\sexy.include_vs2022_win64.vcxproj", "{2A8B5795-50CD-A77F-5686-687E3ABF7898}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.nativelib.coroutines", "projects\sexy.nativelib.coroutines_vs2022_win64.vcxproj", "{5F88A533-1761-8D6A-810A-34878A10B2CE}"
@@ -387,6 +391,14 @@ Global
 		{87496FE8-0053-AED7-44D6-138174796DD1}.Debug|x64.Build.0 = Debug|x64
 		{87496FE8-0053-AED7-44D6-138174796DD1}.Release|x64.ActiveCfg = Release|x64
 		{87496FE8-0053-AED7-44D6-138174796DD1}.Release|x64.Build.0 = Release|x64
+		{234E5B91-213F-CF04-B229-81D9C26D8DBB}.Debug|x64.ActiveCfg = Debug|x64
+		{234E5B91-213F-CF04-B229-81D9C26D8DBB}.Debug|x64.Build.0 = Debug|x64
+		{234E5B91-213F-CF04-B229-81D9C26D8DBB}.Release|x64.ActiveCfg = Release|x64
+		{234E5B91-213F-CF04-B229-81D9C26D8DBB}.Release|x64.Build.0 = Release|x64
+		{46170629-1184-8A5F-67C0-C893DC3A392F}.Debug|x64.ActiveCfg = Debug|x64
+		{46170629-1184-8A5F-67C0-C893DC3A392F}.Debug|x64.Build.0 = Debug|x64
+		{46170629-1184-8A5F-67C0-C893DC3A392F}.Release|x64.ActiveCfg = Release|x64
+		{46170629-1184-8A5F-67C0-C893DC3A392F}.Release|x64.Build.0 = Release|x64
 		{2A8B5795-50CD-A77F-5686-687E3ABF7898}.Debug|x64.ActiveCfg = Debug|x64
 		{2A8B5795-50CD-A77F-5686-687E3ABF7898}.Debug|x64.Build.0 = Debug|x64
 		{2A8B5795-50CD-A77F-5686-687E3ABF7898}.Release|x64.ActiveCfg = Release|x64

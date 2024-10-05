@@ -215,6 +215,10 @@ namespace Rococo { namespace VM
 		virtual EXECUTERESULT Status() const = 0;
 
 		virtual EXECUTERESULT ExecuteFunction(ID_BYTECODE codeId) = 0;
+
+		// The current implementation of this is slow. Consider a change so a stub is used to invoke the function.
+		// The stub should have an exit OPCODE following the function invocation that terminates the exection of the virtual machine
+		virtual void ExecuteFunctionUntilReturn(ID_BYTECODE codeId) = 0;
 		virtual EXECUTERESULT ExecuteFunctionProtected(ID_BYTECODE codeId) = 0;
 
 		virtual float PopFloat32() = 0;
@@ -271,7 +275,20 @@ namespace Rococo { namespace VM
 		virtual ID_BYTECODE AddBytecode() = 0;
 		virtual void UnloadBytecode(ID_BYTECODE id) = 0;
 		virtual bool UpdateBytecode(ID_BYTECODE id, const IAssembler& assember) = 0;
-		virtual size_t GetFunctionAddress(ID_BYTECODE) const = 0;
+		virtual size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const = 0;
+
+		inline size_t GetFunctionAddress(ID_BYTECODE id) const
+		{
+			bool isImmutable;
+			return GetFunctionAddress(id, OUT isImmutable);
+		}
+
+		// Returns true if the function address can never be remapped for the lifetime of the program
+		virtual bool IsImmutable(ID_BYTECODE id) const = 0;
+
+		// Prevents function address remapping. Essential for optimization, where CallById self-modifies itself to become Call <by address>
+		virtual void SetImmutable(ID_BYTECODE id) = 0;
+
 		virtual size_t GetFunctionLength(ID_BYTECODE id) const = 0;
 		virtual ID_BYTECODE GetFunctionContaingAddress(size_t pcOffset) const = 0;
 	};

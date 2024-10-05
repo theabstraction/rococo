@@ -1018,6 +1018,7 @@ namespace Rococo::Script
 			arrayCallbacks.ArrayPopOut64 = core.RegisterCallback(OnInvokeArrayPopOut64, this, "ArrayPopOut64");
 			arrayCallbacks.ArrayDestructElements = core.RegisterCallback(OnInvokeArrayDestructElements, this, "ArrayDestructElements");
 			arrayCallbacks.ArrayGetInterfaceUnchecked = core.RegisterCallback(OnInvokeArrayGetInterfaceUnchecked, this, "ArrayGetInterface");
+			arrayCallbacks.ArrayGetInterfaceLockless = core.RegisterCallback(OnInvokeArrayGetInterfaceLockless, this, "ArrayGetInterfaceLockless");
 			arrayCallbacks.ArrayGetLength = core.RegisterCallback(OnInvokeArrayGetLength, this, "ArrayGetLength");
 			arrayCallbacks.ArrayGetLastIndex = core.RegisterCallback(OnInvokeArrayGetLastIndex, this, "ArrayGetLastIndex");
 			arrayCallbacks.ArrayReturnLength = core.RegisterCallback(OnInvokeArrayReturnLength, this, "ArrayReturnLength");
@@ -1098,6 +1099,7 @@ namespace Rococo::Script
 			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
 			callbacks.idTransformAt_D4D5retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5retD7, this, "TransformAt");
 			callbacks.idTransformParent_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4retD7, this, "TransformParent");
+			callbacks.idJumpFromProxyToMethod = core.RegisterCallback(OnInvokeJumpFromProxyToMethod, this, "JumpFromProxyToMethod");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 			serializeId = core.RegisterCallback(OnInvokeSerialize, this, "serialize");
@@ -1449,7 +1451,11 @@ namespace Rococo::Script
 			cpu.Push(pArgBuffer);
 
 			cpu.SetPC(cpu.ProgramStart);
-			cpu.D[5].byteCodeIdValue = target.byteCodeId;
+
+			auto targetOffset = program.GetFunctionAddress(target.byteCodeId);
+			auto targetAddress = cpu.ProgramStart + targetOffset;
+
+			cpu.D[5].uint8PtrValue = targetAddress;
 
 			VM::ExecutionFlags currentFlags;
 			vm.GetLastFlags(currentFlags);
@@ -1841,6 +1847,7 @@ namespace Rococo::Script
 			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlpha,        nullptr, "IsAlpha (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysTypeStrings, SysTypeStrings::IsNumeric,      nullptr, "IsNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTypeStrings, AssertPascalCaseNamespace, NULL, "AssertPascalCaseNamespace (Sys.Type.IString s) (Int32 maxLength)->", __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)
@@ -2131,12 +2138,12 @@ namespace Rococo::Script
 					IStructure& s = module.GetStructure(i);
 					if (s.Prototype().IsClass)
 					{
-						SafeFormat(symbol, 256, ("%s-typeInfo"), s.Name());
+						SafeFormat(symbol, 256, "%s-typeInfo", s.Name());
 						AddSymbol(symbol, s.GetVirtualTable(0));
 
 						for (int k = 1; k <= s.InterfaceCount(); ++k)
 						{
-							SafeFormat(symbol, 256, ("%s-vTable%d"), s.Name(), k);
+							SafeFormat(symbol, 256, "%s-vTable%d", s.Name(), k);
 							AddSymbol(symbol, s.GetVirtualTable(k));
 						}
 					}

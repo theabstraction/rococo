@@ -983,6 +983,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target);
         }
     }
 
@@ -1235,6 +1236,38 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class DommeProject : RococoProject
+    {
+        public DommeProject() : base("sexy.domme")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class DommeTestProject : RococoProject
+    {
+        public DommeTestProject() : base("sexy.domme.test")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<DommeProject>(target);
+            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
         }
     }
 
@@ -1915,6 +1948,8 @@ namespace Rococo
             conf.AddProject<SexyMathsProject>(target);
             conf.AddProject<SexyBennyHillProject>(target);
             conf.AddProject<SexyIncludeProject>(target);
+            conf.AddProject<DommeProject>(target);
+            conf.AddProject<DommeTestProject>(target);
         }
 
         public static void AddThirdPartyLibs(Solution.Configuration conf, Target target)
@@ -2207,6 +2242,9 @@ namespace Rococo
             arguments.Generate<RococoDX11HLSLCompilerProject>();
 
             arguments.Generate<RococoRALPipelineProject>();
+
+            arguments.Generate<DommeProject>();
+            arguments.Generate<DommeTestProject>();
         }
     }
 }

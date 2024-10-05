@@ -56,12 +56,13 @@ namespace Anon
 			size_t StartIndex;
 			size_t Length;
 			size_t UsedLength;
+			boolean32 isImmutable;
 		};
 
 		typedef TSexyHashMap<ID_BYTECODE,FunctionDef> TFunctions;
 		TFunctions functions;
 
-		int version;
+		int version = 0;
 	public:
 		ProgramMemory(size_t maxProgramSize)
 		{
@@ -112,6 +113,7 @@ namespace Anon
 			fd.Length = 0;
 			fd.StartIndex = 0;
 			fd.UsedLength = 0;
+			fd.isImmutable = false;
 
 			ID_BYTECODE id = nextId++;
 			functions.insert(std::make_pair(id, fd));
@@ -130,12 +132,40 @@ namespace Anon
 			}			
 		}
 
-		size_t GetFunctionAddress(ID_BYTECODE id) const
+		// Returns true if the function address can never be remapped for the lifetime of the program
+		bool IsImmutable(ID_BYTECODE id) const
+		{
+			auto i = functions.find(id);
+			if (i != functions.end())
+			{
+				const FunctionDef& fd = i->second;
+				return fd.isImmutable;
+			}
+
+			Throw(0, "No such function: ID_BYTECODE #%lld", id);
+		}
+
+		// Prevents function address remapping. Essential for optimization, where CallById self-modifies itself to become Call <by address>
+		void SetImmutable(ID_BYTECODE id)
+		{
+			auto i = functions.find(id);
+			if (i != functions.end())
+			{
+				FunctionDef& fd = i->second;
+				fd.isImmutable = true;
+				return;
+			}
+
+			Throw(0, "No such function: ID_BYTECODE #%lld", id);
+		}
+
+		size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const
 		{
 			auto i = functions.find(id);			 
 			if (i != functions.end())
 			{
 				const FunctionDef& fd = i->second;
+				isImmutable = fd.isImmutable;
 				return fd.StartIndex;
 			}
 			else
@@ -181,6 +211,10 @@ namespace Anon
 			if (i != functions.end())
 			{
 				FunctionDef& fd = i->second;
+				if (fd.isImmutable)
+				{
+					Throw(0, "Bytecode %llu has been set to be immutable", id);
+				}
 
 				fd.UsedLength = newLength;
 

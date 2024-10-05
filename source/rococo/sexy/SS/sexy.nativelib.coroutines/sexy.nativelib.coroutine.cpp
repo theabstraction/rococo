@@ -366,6 +366,12 @@ struct Coroutines : public Sys::ICoroutineControl
 			if (spec.isStarted)
 			{
 				cpu.SetPC(cpu.ProgramStart);
+
+				if (spec.runId == 0)
+				{
+					Throw(0, "Unexpected bad run id: spec %s", GetFriendlyName(*spec.stub->Desc->TypeInfo));
+				}
+
 				cpu.D[5].byteCodeIdValue = spec.runId;
 
 				cpu.D[VM::REGISTER_SP].uint8PtrValue = spec.registers[VM::REGISTER_SP].uint8PtrValue = spec.startOfStackMemory = stacks.AllocateBuffer();

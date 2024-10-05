@@ -274,16 +274,16 @@ namespace Rococo::Script
 
 	void WriteUnhandledException(IScriptSystem& ss, ObjectStub* ex)
 	{
-		ss.ProgramObject().Log().Write(("Unhandled exception. Could not find try-catch block."));
+		ss.ProgramObject().Log().Write("Unhandled exception. Could not find try-catch block.");
 
 		IStructure* exType = ex->Desc->TypeInfo;
 
 		int errorCode = -1;
 		cstr exceptionType = exType->Name();
-		cstr exceptionMessage = ("Unspecified error");
+		cstr exceptionMessage = "Unspecified error";
 
 		const IModule& module = ss.ProgramObject().GetModule(0);
-		const IStructure& nativeExType = *module.FindStructure(("NativeException"));
+		const IStructure& nativeExType = *module.FindStructure("NativeException");
 
 		if (exType == &nativeExType)
 		{
@@ -293,7 +293,7 @@ namespace Rococo::Script
 		}
 
 		int offset;
-		const IMember* member = FindMember(*exType, ("message"), OUT offset);
+		const IMember* member = FindMember(*exType, "message", OUT offset);
 		if (member != NULL)
 		{
 			const IStructure& memberType = *member->UnderlyingType();
@@ -305,7 +305,7 @@ namespace Rococo::Script
 					auto* msgInstance = (ObjectStub*)(((uint8*)msgInterface) + (*msgInterface)->OffsetToInstance);
 					const IStructure& concreteType = *msgInstance->Desc->TypeInfo;
 					int msgOffset ;
-					const IMember* msgMember = FindMember(concreteType, ("buffer"), OUT msgOffset);
+					const IMember* msgMember = FindMember(concreteType, "buffer", OUT msgOffset);
 					if (msgMember != NULL && msgMember->UnderlyingType()->VarType() == VARTYPE_Pointer)
 					{
 						uint8* pItem = ((uint8*)msgInstance) + msgOffset;
@@ -319,7 +319,7 @@ namespace Rococo::Script
 			}			
 		}
 
-		member = FindMember(*exType, ("errorCode"), OUT offset);
+		member = FindMember(*exType, "errorCode", OUT offset);
 		if (member != NULL && member->UnderlyingType()->VarType() == VARTYPE_Int32)
 		{
 			uint8* pItem = ((uint8*) ex) + offset;

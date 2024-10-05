@@ -604,6 +604,24 @@ namespace Rococo
 		  return false;
 	  }
 
+      void CompileBinaryCompareVariableVsCompound(CCompileEnvironment& ce, cr_sex parent, CONDITION op)
+      {
+          ICodeBuilder& builder = ce.Builder;
+
+          cr_sex leftExpr = parent[0];
+          cr_sex rightExpr = parent[2];
+
+          if (IsAtomic(leftExpr) && TryCompileAsCompareStruct(ce, parent, leftExpr, leftExpr.c_str(), op, rightExpr)) return;
+
+          VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+          TryCompileArithmeticExpression(ce, rightExpr, true, varLType);
+          ce.Builder.PopLastVariables(1, true);
+
+          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(varLType));
+
+          AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
+      }
+
       void CompileBinaryCompareVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
       {
          ICodeBuilder& builder = ce.Builder;
@@ -694,7 +712,7 @@ namespace Rococo
       {
          int A = leftToRight ? 1 : 2;
          int B = leftToRight ? 2 : 1;
-         cstr helper = leftToRight ? ("LHS") : ("RHS");
+         cstr helper = leftToRight ? "LHS" : "RHS";
 
          VARTYPE type = ce.Builder.GetVarType(varName);
          if (type == VARTYPE_Derivative)
@@ -704,9 +722,10 @@ namespace Rococo
          else if (type == VARTYPE_Bad)
          {
             type = Parse::GetLiteralType(varName);
-            if (!IsPrimitiveType(type))
+            if (!IsPrimitiveType(type) && leftToRight)
             {
-               Throw(parent, "%s was not recognized either as a literal, or as an identifier", helper);
+                CompileBinaryCompareVariableVsCompound(ce, parent, op);
+                return;
             }
 
             VariantValue value;

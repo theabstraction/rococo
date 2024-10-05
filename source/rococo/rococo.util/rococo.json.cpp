@@ -298,6 +298,7 @@ struct JSonParser: IJSonParserSupervisor
 			return false;
 		}
 		depth--;	
+		return true;
 	}
 
 	void Free() override

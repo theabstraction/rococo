@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{46170629-1184-8A5F-67C0-C893DC3A392F}</ProjectGuid>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <RootNamespace>sexy.domme.test</RootNamespace>
+    <ProjectName>sexy.domme.test</ProjectName>
+  </PropertyGroup>
+  <PropertyGroup Label="Globals">
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>sexy.domme.test</TargetName>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.domme.test\</IntDir>
+    <TargetExt>.exe</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <LinkIncremental>false</LinkIncremental>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.exe</OutputFile>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>sexy.domme.test</TargetName>
+    <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\sexy.domme.test\</IntDir>
+    <TargetExt>.exe</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <LinkIncremental>false</LinkIncremental>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.exe</OutputFile>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN64;_CONSOLE;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexy.domme.test\sexy.domme.test_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.exe</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
+      <TargetMachine>MachineX64</TargetMachine>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>rococo.util.lib;sexy.domme.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.map</MapFileName>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_CONSOLE;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\sexy.domme.test\sexy.domme.test_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.exe</OutputFile>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <SwapRunFromCD>false</SwapRunFromCD>
+      <SwapRunFromNET>false</SwapRunFromNET>
+      <Driver>NotSet</Driver>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ProfileGuidedDatabase>
+      </ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <IgnoreEmbeddedIDL>false</IgnoreEmbeddedIDL>
+      <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <NoEntryPoint>false</NoEntryPoint>
+      <SetChecksum>false</SetChecksum>
+      <TurnOffAssemblyGeneration>false</TurnOffAssemblyGeneration>
+      <TargetMachine>MachineX64</TargetMachine>
+      <Profile>false</Profile>
+      <CLRImageType>Default</CLRImageType>
+      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalDependencies>rococo.util.lib;sexy.domme.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <LargeAddressAware>true</LargeAddressAware>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.domme.test.map</MapFileName>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy.domme.test\cat.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy.domme.test\cat.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.domme.test\test.cat.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ItemGroup>
+    <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
+      <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.domme_vs2022_win64.vcxproj">
+      <Project>{234E5B91-213F-CF04-B229-81D9C26D8DBB}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
+      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
+      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

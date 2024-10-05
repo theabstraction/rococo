@@ -847,6 +847,71 @@ namespace Rococo { namespace Compiler { namespace Impl
 		f.Code().GetCodeSection(OUT codeSection);
 		return codeSection.Id;
 	}
+
+	static_assert(sizeof ID_BYTECODE == sizeof(uint8*));
+
+	void Structure::FillVirtualTables()
+	{
+		for (int i = 0; i < InterfaceCount(); i++)
+		{
+			auto* table = GetVirtualTable(i+1);
+			if (!table)
+			{
+				Rococo::Throw(0, "Unexpected missing vtable for %s", GetFriendlyName(*this));
+			}
+			FillVirtualTable(i);
+		}
+	}
+
+	void Structure::FillVirtualTable(int interfaceIndex)
+	{
+		const IInterface& interf = GetInterface(interfaceIndex);
+
+		auto& obj = module.Object();
+		auto* programStart = obj.ProgramMemory().StartOfMemory();
+		if (programStart == nullptr)
+		{
+			Rococo::Throw(0, "Cannot init vtables: program start was null");
+		}
+		
+		for (int k = 0; k < interf.MethodCount(); k++)
+		{
+			auto& method = interf.GetMethod(k);
+
+			const IFunction* implementation = nullptr;
+
+			TokenBuffer qualifiedMethodName;
+			SafeFormat(qualifiedMethodName.Text, TokenBuffer::MAX_TOKEN_CHARS, "%s.%s", name.c_str(), method.Name());
+
+			implementation = module.FindFunction(qualifiedMethodName);
+			if (implementation == NULL)
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, qualifiedMethodName, "Compiler error getting implementation for interface method");
+			}
+
+			ID_BYTECODE proxyId = implementation->GetProxy();
+
+			ID_BYTECODE methodAddressOffset;
+
+			if (IsNullType() || proxyId == 0)
+			{
+				try
+				{
+					methodAddressOffset = obj.ProgramMemory().GetFunctionAddress(GetByteCodeId(*implementation));
+				}
+				catch(...)				
+				{
+					Rococo::Throw(0, "Could not determine method address for %s.", qualifiedMethodName.Text);
+				}
+			}
+			else
+			{
+				methodAddressOffset = obj.ProgramMemory().GetFunctionAddress(proxyId);
+			}
+
+			virtualTables[interfaceIndex + 1][k + 1] = (ID_BYTECODE)(programStart + methodAddressOffset);
+		}
+	}
 	
 	const ID_BYTECODE* Structure::GetVirtualTable(int interfaceIndex) const
 	{
@@ -872,17 +937,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 				for (int k = 0; k < interf.MethodCount(); k++)
 				{
-					const IArchetype& method = interf.GetMethod(k);
-
-					TokenBuffer qualifiedMethodName;
-					SafeFormat(qualifiedMethodName.Text, TokenBuffer::MAX_TOKEN_CHARS, ("%s.%s"), name.c_str(), method.Name());
-					IFunction* implementation = module.FindFunction(qualifiedMethodName);
-					if (implementation == NULL)
-					{
-						Throw(ERRORCODE_COMPILE_ERRORS, qualifiedMethodName, ("Compiler error getting implementation for interface method"));
-					}
-
-					virtualTables[interfaceIndex][k + 1] = GetByteCodeId(*implementation);
+					virtualTables[interfaceIndex][k + 1] = (ID_BYTECODE)0;
 				}
 			}
 		}

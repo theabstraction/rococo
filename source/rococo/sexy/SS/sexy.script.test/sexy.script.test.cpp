@@ -4538,6 +4538,40 @@ R"((namespace EntryPoint)
       validate(x == 55);
    }
 
+   void TestCompareGetAccessorVsCompound(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint)"
+		   "(class Job (defines Sys.IJob))"
+		   "(method Job.Construct : )"
+		   "(method Job.Type -> (Int32 value): (value = 117))"
+		   "(factory EntryPoint.NewJob Sys.IJob : (construct Job))"
+		   "(function Main -> (Int32 result):"
+		   "(Int32 vst2 = 117)"
+		   "     (Sys.IJob job (EntryPoint.NewJob))"
+		   "	  (if (job.Type == (vst2))"
+		   "	      (result = 55)"
+		   "	   else"
+		   "	      (result = 89)"
+		   "	   )"
+		   ")"
+		   "(alias Main EntryPoint.Main)"
+		   ;
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 result
+
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int x = vm.PopInt32();
+	   validate(x == 55);
+   }
+
    void TestCompareGetAccessorWithOne2(IPublicScriptSystem& ss)
    {
       cstr srcCode =
@@ -6959,6 +6993,34 @@ R"((namespace EntryPoint)
 
 		int x = vm.PopInt32();
 		validate(x == 0);
+	}
+
+	void TestTypenames(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
+
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			"(function Main -> (Int32 result):"
+			"	(IStructure type = typeof Sys.Reflection.IExpression)"
+			"	(result = (Sys.Print type.Name))"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 32);
 	}
 
 	void TestMutableArgFunction(IPublicScriptSystem& ss)
@@ -17084,6 +17146,114 @@ R"(
 	   validate(x == expectation);
    }
 
+   void TestBuilderWithGetAccessor(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(class Robot (defines Sys.Type.IRobot)
+		)
+
+		(method Robot.Construct :
+		)
+
+		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+		(method Robot.Name -> (IString name):
+			(name = "Geoff")
+		)
+
+		(function Main -> (Int32 result):
+			(IRobot robot (NewRobot))
+			(IStringBuilder sb = (Sys.Type.NewParagraphBuilder))
+			(sb robot.Name)
+			(result = sb.Length)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 5;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
+   void TestBuilderWithGetAccessor2(IPublicScriptSystem& ss)
+   {
+	   cstr src =
+		   R"(
+		(namespace EntryPoint)
+		(using Sys)
+		(using Sys.Type)
+		(using Sys.Maths)
+		(using Sys.Reflection)
+		(using Sys.Type.Strings)
+
+		(class Robot (defines Sys.Type.IRobot)
+		)
+
+		(method Robot.Construct :
+		)
+
+		(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))
+
+		(method Robot.Name -> (IString name):
+			(name = "Geoff")
+		)
+
+		(function Main -> (Int32 result):
+			(IRobot robot (NewRobot))
+			(IStringBuilder sb = (Sys.Type.NewParagraphBuilder))
+			(#build sb "Hello " robot.Name)
+			(result = sb.Length)
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(src, -1, Vec2i{ 0,0 }, __FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 x
+
+	   vm.Core().SetLogger(&s_logger);
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   validate(result == EXECUTERESULT_TERMINATED);
+	   ValidateLogs();
+
+	   int x = vm.PopInt32();
+	   int expectation = 11;
+	   if (x != expectation)
+	   {
+		   printf("x = %d\n", x);
+	   }
+	   validate(x == expectation);
+   }
+
    void TestExpressionProxies(IPublicScriptSystem& ss)
    {
 	   cstr src =
@@ -17502,6 +17672,53 @@ R"(
 	   ValidateLogs();
    }
 
+   // We dont' run this with the other tests, only in itself. By commenting im/out the line player. NoOperation we can determine the cost of a million virtual calls
+   // This was used to determine that self-modifying-code increased virtual table lookup speed by 2.5x, from 40M calls per sec to 
+   // 100M calls per sec on the test platform's i7-11700k @2.5GHz
+   void TestVirtualCallSpeed(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   "(namespace EntryPoint)"
+		   "(using EntryPoint)"
+		   "(function Main -> (Int32 result):"
+		   "    (IPlayer player (NewPlayer))"
+		   "    (for (Int32 i = 0)(i < 1000000)(i += 1)"
+		   "	    (player.NoOperation)"
+		   "	)"	
+		   ")"
+		   "(alias Main EntryPoint.Main)"
+
+		   "(interface EntryPoint.IPlayer"
+		   "    (NoOperation -> )"
+		   ")"
+
+		   "(class Player (implements IPlayer)"
+		   "    (Int32 id)"
+		   ")"
+
+		   "(method Player.NoOperation -> :"
+		   ")"
+
+		   "(method Player.Construct -> :"
+		   "	(this.id = 0)"
+		   ")"
+
+		   "(factory EntryPoint.NewPlayer IPlayer :"
+		   "   (construct Player)"
+		   ")";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestClassInstance");
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+	   vm.Push(0); // Allocate stack space for the int32 result
+	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+	   int32 x = vm.PopInt32();
+	   validate(x == 0);
+   }
+
 
    void TestArrays()
    {
@@ -17727,6 +17944,17 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestTypenames);
+
+		TEST(TestDefaultParameter);
+		TEST(TestStrongNumber);
+		TEST(TestStrongNumber2);
+		TEST(TestStrongNumber3);
+		TEST(TestStrongNumber4);
+		TEST(TestStrongNumber5);
+		TEST(TestStrongNumber6);
+		TEST(TestStrongNumber7);
+
 		TEST(TestNullOutInterface);
 		TEST(TestMutableArgFunction);
 		TEST(TestConstArgFunction);
@@ -17743,14 +17971,6 @@ R"(
 		TEST(TestCatch);
 		TEST(TestCatchArg);
 
-		TEST(TestStrongNumber);
-		TEST(TestStrongNumber2);
-		TEST(TestStrongNumber3);
-		TEST(TestStrongNumber4);
-		TEST(TestStrongNumber5);
-		TEST(TestStrongNumber6);
-		TEST(TestStrongNumber7);
-
 		TEST(TestStructWithInterface);
 
 		TEST(TestCatchInstanceArg);
@@ -17761,8 +17981,6 @@ R"(
 		TEST(TestAppendSubstring);
 		TEST(TestStringbuilderTruncate);
 
-		TEST(TestEssentialInterface);
-		
 		TEST(TestOperatorOverload3);
 		TEST(TestStaticCast1);
 		TEST(TestCreateNamespace);
@@ -17776,6 +17994,11 @@ R"(
 		TEST(TestAssignFloat64Variable);
 		TEST(TestAssignMatrixVariable);
 		TEST(TestAssignVectorVariableByRef);
+
+		TEST(TestBuilderWithGetAccessor);
+		TEST(TestBuilderWithGetAccessor2);
+
+		TEST(TestCompareGetAccessorVsCompound);
 
 		TEST(TestPublishAPI);
 
@@ -17803,8 +18026,6 @@ R"(
 
 		TEST(TestDynamicCast2);
 
-		TEST2(TestCoroutine1);
-
 		TEST(TestDynamicDispatch);
 		TEST(TestPushSecondInterface);
 		TEST(TestStructArgFromStructArg);
@@ -17818,7 +18039,6 @@ R"(
 		TEST(TestFactoryReturnsBaseInterface);
 		TEST(TestLoopBreak);
 		TEST3(TestLoopFinally);
-		TEST3(TestLoopFinally2);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);
 		TEST(TestBadClosureArg7);
@@ -17835,11 +18055,7 @@ R"(
 
 		TEST(TestStartsWith);
 
-		TEST(TestCPPCallback);
-
 		TEST(TestMethodFromClosure);
-
-		TEST(TestCPPCallback);
 
 		TEST(TestEmptyMap);
 
@@ -17931,7 +18147,6 @@ R"(
 		TEST(TestFunctionCall4);
 
 		TEST(TestFunctionCallRecursion1);
-		TEST(TestFunctionCallRecursion2);
 		TEST(TestFunctionCallMultiOutput1);
 		TEST(TestStructure);
 		TEST(TestStructure2);
@@ -17996,8 +18211,6 @@ R"(
 
 		TEST(TestClassDefinesInterface);
 
-		TEST(TestStringSplit);
-
 		TEST(TestInterfacePropagation);
 		TEST(TestInstancePropagation);
 		TEST(TestInstanceMemberPropagation);
@@ -18051,16 +18264,11 @@ R"(
 
 		TEST(TestRefTypesInsideClosure);
 
-		TEST(TestMeshStruct4);
 		TEST(TestMeshStruct3);
 		TEST(TestMeshStruct2);
 		TEST(TestMeshStruct);
 
-		TEST(TestPrintModules);
-
 		TEST(TestModuleCount);
-
-		TEST(TestPrintStructs);
 
 		TEST(TestMacro);
 
@@ -18084,17 +18292,11 @@ R"(
 		TEST(TestAddNativeReflectionCall);
 
 		TEST(TestRaw);
-		TEST3(TestConsoleOutput4);
 		TEST(TestPartialCompiles);
-		TEST3(TestConsoleOutput3);
 		TEST3(TestConsoleOutput2);
-		TEST3(TestConsoleOutput);
 
-		TEST(TestMacroSiblings3Throws);
 		TEST(TestMacroSiblings);
 
-		TEST3(TestTopLevelMacro2);
-		TEST3(TestStringReplace);
 		TEST3(TestCreateDeclarations);
 
 		TEST(TestAssignNotItself);
@@ -18112,10 +18314,10 @@ R"(
 		TEST(TestIsMethodInputOfType);
 		TEST(TestIsMethodOutputOfType);
 		TEST(TestInvokeMethodViaReflection);
-		TEST(TestTopLevelMacro);
+
 		TEST(TestDeepCatch);
 		TEST(TestReturnInterfaceEx);
-		TEST(TestExpressionAppendTo);
+		
 		TEST(TestThrowFromCatch);
 		TEST(TestStringArray);
 		TEST(TestGetAccessorSemantics);
@@ -18124,6 +18326,24 @@ R"(
 		TEST(TestTernary);
 		TEST(TestExpressionProxies);
 		TEST(TestExpressionProxies2);
+		TEST3(TestLoopFinally2);
+		TEST(TestFunctionCallRecursion2);
+		TEST(TestStringSplit);
+		TEST(TestMeshStruct4);
+		TEST(TestPrintModules);
+		TEST(TestPrintStructs);
+		TEST3(TestConsoleOutput3);
+		TEST3(TestConsoleOutput);
+		TEST(TestMacroSiblings3Throws);
+		TEST3(TestConsoleOutput4);
+		TEST3(TestStringReplace);
+		TEST(TestExpressionAppendTo);
+
+		TEST(TestEssentialInterface);
+		TEST2(TestCoroutine1);
+		TEST(TestTopLevelMacro);
+		TEST3(TestTopLevelMacro2);
+		TEST(TestCPPCallback);
 	}
 
 	void RunPositiveFailures()
@@ -18164,15 +18384,12 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
-		TEST(TestDefaultParameter);
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestMaps();
-
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

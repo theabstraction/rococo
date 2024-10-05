@@ -1,0 +1,5 @@
+(#Sys.entrypoint)
+
+(function Main -> (Int32 result):
+	(result = 777)
+)

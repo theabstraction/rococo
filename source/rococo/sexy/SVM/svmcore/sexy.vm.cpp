@@ -108,7 +108,7 @@ namespace Anon
 		case Opcodes::CallById:
 		case Opcodes::CallByIdIndirect:
 		case Opcodes::CallVirtualFunctionByAddress:
-		case Opcodes::CallVitualFunctionViaRefOnStack:
+		case Opcodes::CallVirtualFunctionViaRefOnStack:
 			return true;
 		default:
 			return false;
@@ -201,8 +201,8 @@ namespace Anon
 			ActivateInstruction(CallBy);
 			ActivateInstruction(CallById);
 			ActivateInstruction(CallByIdIndirect);
-			ActivateInstruction(CallVitualFunctionViaRefOnStack);
-			ActivateInstruction(CallVitualFunctionViaMemberOffsetOnStack);
+			ActivateInstruction(CallVirtualFunctionViaRefOnStack);
+			ActivateInstruction(CallVirtualFunctionViaMemberOffsetOnStack);
 			ActivateInstruction(CallVirtualFunctionByAddress);
 			ActivateInstruction(CopySFMemory);
 			ActivateInstruction(CopySFMemoryNear);
@@ -586,7 +586,8 @@ namespace Anon
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			size_t functionStart = program->GetFunctionAddress(codeId);
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(codeId, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
 			PROTECT
@@ -617,13 +618,39 @@ namespace Anon
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			size_t functionStart = program->GetFunctionAddress(codeId);
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(codeId, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 
 			while(cpu.SF() > context && status == EXECUTERESULT_RUNNING)
 			{
 				Advance();
 				stepCallback->OnStep(*this);
+			}
+
+			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_RETURNED;
+		}
+
+		void ExecuteFunctionUntilReturn(ID_BYTECODE codeId) override
+		{
+			status = EXECUTERESULT_RUNNING;
+
+			const uint8* context = cpu.SF();
+			cpu.Push(context);
+
+			const uint8* returnAddress = cpu.PC();
+			cpu.Push(returnAddress);
+
+			// Then make the new stack frame equal to the stack pointer
+			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
+
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(codeId, OUT isImmutable);
+			cpu.SetPC(cpu.ProgramStart + functionStart);
+
+			while (cpu.SF() > context && status == EXECUTERESULT_RUNNING)
+			{
+				Advance();
 			}
 
 			if (status == EXECUTERESULT_RUNNING) status = EXECUTERESULT_RETURNED;
@@ -1661,12 +1688,30 @@ namespace Anon
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
 			const Ins* I = NextInstruction();
-			const VariantValue& offsetRegister = cpu.D[I->Opmod1];
-			cpu.SetPC(cpu.PC() + offsetRegister.int32Value);
+			const VariantValue& addressRegister = cpu.D[I->Opmod1];
+			cpu.SetPC(addressRegister.uint8PtrValue);
+		}
+
+		OPCODE_CALLBACK(Call)
+		{
+			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
+
+			auto* pc = cpu.PC() + 1;
+
+			const uint8* returnAddress = pc + sizeof(const uint8*);
+			cpu.Push(returnAddress);
+
+			// Then make the new stack frame equal to the stack pointer
+			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
+
+			const uint8** functionAddressPtr = (const uint8**) pc;
+			cpu.SetPC(*functionAddressPtr);
 		}
 
 		OPCODE_CALLBACK(CallById)
 		{
+			const uint8* I = cpu.PC();
+
 			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
 
 			const uint8 *returnAddress = cpu.PC() + 1 + sizeof(ID_BYTECODE); 
@@ -1676,8 +1721,17 @@ namespace Anon
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
 			ID_BYTECODE* pByteCodeId = (ID_BYTECODE*)(cpu.PC() + 1);
-			size_t addressOffset = program->GetFunctionAddress(*pByteCodeId);
+
+			bool isImmutable;
+			size_t addressOffset = program->GetFunctionAddress(*pByteCodeId, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + addressOffset);
+			if (isImmutable)
+			{
+				// Self-modifying-code to eliminate expensive mapping function
+				auto* overwritePoint = const_cast<uint8*>(I);
+				*overwritePoint++ = VM::Opcodes::Call;
+				*(const uint8**)(overwritePoint) = cpu.ProgramStart + addressOffset;
+			}
 		}
 
 		OPCODE_CALLBACK(CallByIdIndirect)
@@ -1692,11 +1746,13 @@ namespace Anon
 
 			const Ins* I = NextInstruction();
 			const ID_BYTECODE id = cpu.D[I->Opmod1].int32Value;
-			size_t functionStart = program->GetFunctionAddress(id);
+
+			bool isImmutable;
+			size_t functionStart = program->GetFunctionAddress(id, OUT isImmutable);
 			cpu.SetPC(cpu.ProgramStart + functionStart);
 		}
 
-		OPCODE_CALLBACK(CallVitualFunctionViaRefOnStack)
+		OPCODE_CALLBACK(CallVirtualFunctionViaRefOnStack)
 		{
 			/* args:
 			Opcodes::OPCODE opcode;
@@ -1730,12 +1786,12 @@ namespace Anon
 								
 			const ID_BYTECODE * vTable = (const ID_BYTECODE*) *pVTable;
 
-			const ID_BYTECODE id = vTable[args->vTableOffset];
-			size_t functionStart = program->GetFunctionAddress(id);
-			cpu.SetPC(cpu.ProgramStart + functionStart);
+			const ID_BYTECODE functionAddress = vTable[args->vTableOffset];
+
+			cpu.SetPC((const uint8*)functionAddress);
 		}
 
-		OPCODE_CALLBACK(CallVitualFunctionViaMemberOffsetOnStack)
+		OPCODE_CALLBACK(CallVirtualFunctionViaMemberOffsetOnStack)
 		{
 			struct VirtualTable
 			{
@@ -1764,9 +1820,9 @@ namespace Anon
 
 			const ID_BYTECODE * vTable = (const ID_BYTECODE*)*pVTable;
 
-			const ID_BYTECODE id = vTable[args->vTableOffset];
-			size_t functionStart = program->GetFunctionAddress(id);
-			cpu.SetPC(cpu.ProgramStart + functionStart);
+			const ID_BYTECODE functionAddress = vTable[args->vTableOffset];
+
+			cpu.SetPC((const uint8*)functionAddress);
 		}
 
 		OPCODE_CALLBACK(CallVirtualFunctionByAddress)
@@ -1791,9 +1847,9 @@ namespace Anon
 			const uint8* vTable = (const uint8*) *pVTable;
 
 			const ID_BYTECODE* pFunction = (const ID_BYTECODE*) (vTable + methodIndex);
-			ID_BYTECODE id = *pFunction;
-			size_t functionStart = program->GetFunctionAddress(id);
-			cpu.SetPC(cpu.ProgramStart + functionStart);
+			ID_BYTECODE functionAddress = *pFunction;
+
+			cpu.SetPC((const uint8*) functionAddress);
 		}
 
 		struct MemCopyInfo
@@ -1912,20 +1968,6 @@ namespace Anon
 			cpu.AdvancePC(sizeof(size_t));
 
 			memcpy(target, source, *pByteCount);
-		}
-
-		OPCODE_CALLBACK(Call)
-		{
-			cpu.Push(cpu.D[REGISTER_SF].vPtrValue);
-
-			const uint8 *returnAddress = cpu.PC() + 5; 
-			cpu.Push(returnAddress);
-
-			// Then make the new stack frame equal to the stack pointer
-			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
-
-			int32* offsetPtr = (int32*) (cpu.PC() + 1);
-			cpu.SetPC(cpu.PC() + *offsetPtr);
 		}
 
 		OPCODE_CALLBACK(Invoke)

@@ -1,0 +1,9 @@
+(' #file.type sys.declarations)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	// Note this file is executed by MHOST with the declaration builder set, creating the sys declarations.sxy file.
+	(Sys.Print "Generated Sys declarations file")
+)
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)

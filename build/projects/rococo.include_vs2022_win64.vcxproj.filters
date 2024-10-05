@@ -104,6 +104,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.debugging.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.debugging.profile.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.DirectX.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.domme.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.dx12.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.editors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.eventargs.h" />

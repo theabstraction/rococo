@@ -24,8 +24,8 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
-	struct IScriptEnumerator;
-	struct ISourceCache;
+	DECLARE_ROCOCO_INTERFACE IScriptEnumerator;
+	DECLARE_ROCOCO_INTERFACE ISourceCache;
 
 	template<>
 	struct Hash<ID_ENTITY>

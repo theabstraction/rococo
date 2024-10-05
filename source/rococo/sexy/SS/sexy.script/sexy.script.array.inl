@@ -211,7 +211,7 @@ namespace Rococo
 		   int64 currentLengthInBytes = (int64) a.ElementCapacity * (int64) a.ElementLength;
 		   if (currentLengthInBytes >= (int64) 1024_megabytes)
 		   {
-			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: the array was at maximum capacity");
+			   ss.ThrowFromNativeCode(0, "ArrayDoubleCapacity failed: the array was at maximum capacity");
 			   return;
 		   }
 
@@ -228,7 +228,7 @@ namespace Rococo
 		   }
 		   catch (...)
 		   {
-			   ss.ThrowFromNativeCode(ERANGE, "ArrayDoubleCapacity failed: out of heap memory");
+			   ss.ThrowFromNativeCode(0, "ArrayDoubleCapacity failed: out of heap memory");
 			   return;
 		   }
 
@@ -242,14 +242,14 @@ namespace Rococo
 		   if (a == nullptr)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.PushAndGetRef failed: null array");
+			   ss.ThrowFromNativeCode(0, "Array.PushAndGetRef failed: null array");
 			   return;
 		   }
 
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.PushAndGetRef failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.PushAndGetRef failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -269,10 +269,17 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   int32 value = registers[VM::REGISTER_D7].int32Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush32 failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush32 failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush32 failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -292,9 +299,15 @@ namespace Rococo
 
 		   IScriptSystem& ss = *(IScriptSystem*)context;
 
+		   if (a == nullptr)
+		   {
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushInterface failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushInterface failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushInterface failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -313,10 +326,17 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   int64 value = registers[VM::REGISTER_D7].int64Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush64 failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPush64 failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPush64 failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -334,10 +354,17 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   const void* pValue = registers[VM::REGISTER_D7].vPtrValue;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushByRef failed: null array");
+			   return;
+		   }
+
 		   if (a->LockNumber > 0)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, "Array.ArrayPushByRef failed: the array was locked for enumeration");
+			   ss.ThrowFromNativeCode(0, "Array.ArrayPushByRef failed: the array was locked for enumeration");
 			   return;
 		   }
 
@@ -628,7 +655,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.PopOut failed: the array was empty"));
+			   ss.ThrowFromNativeCode(0, "Array.PopOut failed: the array was empty");
 			   return;
 		   }
 	   }
@@ -646,7 +673,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, "Array.Get failed: the index was out of range");
 			   return;
 		   }
 	   }
@@ -656,6 +683,13 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayGet64 failed: the array was null");
+			   return;
+		   }
+
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
 			   const int64* p = ((const int64*) a->Start) + index;
@@ -664,7 +698,7 @@ namespace Rococo
 		   else
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*) context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.Get failed: the index was out of range"));
+			   ss.ThrowFromNativeCode(ERANGE, "Array.Get failed: the index was out of range");
 			   return;
 		   }
 	   }
@@ -674,6 +708,13 @@ namespace Rococo
 		   int32 offset = registers[VM::REGISTER_D5].int32Value;
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
+
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayGetMember32 failed: the array was null");
+			   return;
+		   }
 		
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
@@ -695,6 +736,13 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
 
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayGetMember64 failed: the array was null");
+			   return;
+		   }
+
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
 			   const uint8* pElement = ((const uint8*) a->Start) + index * a->ElementLength;
@@ -714,6 +762,13 @@ namespace Rococo
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D4].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
 		   void* structRef = registers[VM::REGISTER_D5].vPtrValue;
+
+		   if (a == nullptr)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(0, "Array.ArrayCopyByRef failed: the array was null");
+			   return;
+		   }
 
 		   if (index >= 0 && index < a->NumberOfElements)
 		   {
@@ -845,6 +900,17 @@ namespace Rococo
 		   }
 #endif
 
+	   }
+
+	   VM_CALLBACK(ArrayGetInterfaceLockless)
+	   {
+		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+		   int32 index = registers[VM::REGISTER_D7].int32Value;
+		   uint8* pElement = ((uint8*)a->Start) + index * a->ElementLength;
+		   InterfacePointer* ppInterface = (InterfacePointer*)pElement;
+		   ObjectStub* pObject = InterfaceToInstance(*ppInterface);
+		   pObject->refCount++;
+		   registers[VM::REGISTER_D7].vPtrValue = *ppInterface;
 	   }
 
 	   VM_CALLBACK(ArrayLock)
@@ -1232,12 +1298,12 @@ namespace Rococo
 
 		   if (elementType.VarType() != type)
 		   {
-			   Throw(s, ("The array element type does not match the type of the variable in the assignment"));
+			   Throw(s, "The array element type does not match the type of the variable in the assignment");
 		   }
 
 		   if (type == VARTYPE_Derivative && *structType != elementType)
 		   {
-			   Throw(s, ("The array element type does not match the type of the variable in the assignment"));
+			   Throw(s, "The array element type does not match the type of the variable in the assignment");
 		   }
 	   }
 
@@ -1247,26 +1313,34 @@ namespace Rococo
 
 		   if (!TryCompileArithmeticExpression(ce, s, true, VARTYPE_Int32))
 		   {
-			   Throw(s, ("Expected expression to evaluate to type Int32 to serve as index to array"));
+			   Throw(s, "Expected expression to evaluate to type Int32 to serve as index to array");
 		   } // D7 now contains the array index
 
 		
-		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
-
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
-		   switch(SizeOfElement(elementType))
+
+		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D13
+
+		   if (elementType.InterfaceCount() >= 1)
 		   {
-		   case 4:
-			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet32);
-			   break;
-		   case 8:
-			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet64);
-			   break;
-		   default:
-			   Throw(s, ("Array.Get only support 32-bit and 64-bit types"));
-			   break;
+			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetInterfaceLockless);
+		   }
+		   else
+		   {
+			   switch (SizeOfElement(elementType))
+			   {
+			   case 4:
+				   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet32);
+				   break;
+			   case 8:
+				   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGet64);
+				   break;
+			   default:
+				   Throw(s, "Array.Get only support 32-bit and 64-bit types");
+				   break;
+			   }
 		   }
 	   }
 
@@ -1278,7 +1352,7 @@ namespace Rococo
 		   const IMember* member = FindMember(elementType, subItemName.c_str(), OUT offset);
 		   if (member == NULL)
 		   {
-			   ThrowTokenNotFound(subItemName, subItemName.c_str(), elementType.Name(), ("member"));
+			   ThrowTokenNotFound(subItemName, subItemName.c_str(), elementType.Name(), "member");
 		   }
 
 		   const IStructure& memberType = *member->UnderlyingType();
@@ -1291,7 +1365,7 @@ namespace Rococo
 
 		   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) 
 		   {
-			   Throw(indexExpr, ("Expected expression to evaluate to type Int32 to serve as index to array"));
+			   Throw(indexExpr, "Expected expression to evaluate to type Int32 to serve as index to array");
 		   } // D7 now contains the array index
 
 		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
@@ -1311,26 +1385,26 @@ namespace Rococo
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayGetMember64);
 			   break;
 		   default:
-			   Throw(indexExpr, ("Array.GetSubElement only support 32-bit and 64-bit types"));
+			   Throw(indexExpr, "Array.GetSubElement only support 32-bit and 64-bit types");
 			   break;
 		   }
 	   }
 
 	   void CompileValidateIndexPositive(CCompileEnvironment& ce, cr_sex s, int tempDepth)
 	   {
-		   ce.Builder.AddSymbol(("ValidateIndexPositive..."));
+		   ce.Builder.AddSymbol("ValidateIndexPositive...");
 		   ce.Builder.Assembler().Append_MoveRegister(tempDepth + VM::REGISTER_D4, VM::REGISTER_D4, BITCOUNT_32); 
 		   ce.Builder.Assembler().Append_Test(VM::REGISTER_D4, BITCOUNT_32);
 
 		   size_t branchPos = ce.Builder.Assembler().WritePosition();
 		   ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_GREATER_OR_EQUAL, 6);
 
-		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, ("Sys.ThrowIndexNegative"));
+		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, "Sys.ThrowIndexNegative");
 		   CodeSection section;
 		   fnThrow.Code().GetCodeSection(section);
 		
 		   ce.Builder.Assembler().Append_CallById(section.Id);
-		   ce.Builder.AddSymbol(("...ValidateIndexPositive"));
+		   ce.Builder.AddSymbol("...ValidateIndexPositive");
 		   ce.Builder.Assembler().Append_NoOperation();
 
 		   size_t skipDelta = ce.Builder.Assembler().WritePosition() - branchPos;
@@ -1347,20 +1421,20 @@ namespace Rococo
 
 		   AppendInvoke(ce, callbacks.ArrayGetLength, s); // the length is now written to D6
 
-		   ce.Builder.AddSymbol(("ValidateIndexLowerThanArrayElementCount..."));
+		   ce.Builder.AddSymbol("ValidateIndexLowerThanArrayElementCount...");
 		   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D6, BITCOUNT_32, VM::REGISTER_D4 + indexTempDepth);
 		   ce.Builder.Assembler().Append_Test(VM::REGISTER_D5, BITCOUNT_32);
 
 		   size_t branchPos = ce.Builder.Assembler().WritePosition();
 		   ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_GREATER_THAN, 6);
 
-		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, ("Sys.ThrowIndexExceededBounds"));
+		   const IFunction& fnThrow = GetFunctionByFQN(ce, s, "Sys.ThrowIndexExceededBounds");
 		   CodeSection section;
 		   fnThrow.Code().GetCodeSection(section);
 		
 		   ce.Builder.Assembler().Append_CallById(section.Id);
 		   MarkStackRollback(ce, s);
-		   ce.Builder.AddSymbol(("ValidateIndexLowerThanArrayElementCount..."));
+		   ce.Builder.AddSymbol("ValidateIndexLowerThanArrayElementCount...");
 		   ce.Builder.Assembler().Append_NoOperation();
 
 		   size_t skipDelta = ce.Builder.Assembler().WritePosition() - branchPos;		
@@ -1376,7 +1450,7 @@ namespace Rococo
 		   {
 			   if (Parse::PARSERESULT_GOOD == Parse::TryParseDecimal(OUT value, s.c_str()))
 			   {
-				   if (value < 0) Throw(s, ("Index must not be negative"));
+				   if (value < 0) Throw(s, "Index must not be negative");
 				   return true;
 			   }
 		   }
@@ -1387,7 +1461,7 @@ namespace Rococo
 	   int AddVariableArrayLock(CCompileEnvironment& ce, int arrayTempDepth)
 	   {
 		   TokenBuffer lockName;
-		   StringPrint(lockName, ("_arrayLock_%d"), ce.SS.NextID());
+		   StringPrint(lockName, "_arrayLock_%d", ce.SS.NextID());
 
 		   const IStructure& lockStruct = *ce.Object.Common().SysNative().FindStructure(("_Lock"));
 		
@@ -1395,17 +1469,17 @@ namespace Rococo
 		   AddVariable(ce, NameString::From(lockName), lockStruct);
 
 		   TokenBuffer lockSource;
-		   StringPrint(lockSource, ("%s._lockSource"), (cstr) lockName);
+		   StringPrint(lockSource, "%s._lockSource", (cstr) lockName);
 		   ce.Builder.AssignTempToVariable(arrayTempDepth, lockSource);
 
 		   TokenBuffer lockMemberOffset;
-		   StringPrint(lockMemberOffset, ("%s._lockMemberOffset"), (cstr) lockName);
+		   StringPrint(lockMemberOffset, "%s._lockMemberOffset", (cstr) lockName);
 
 		   MemberDef def;
 		   ce.Builder.TryGetVariableByName(def, lockMemberOffset);
 
 		   int offset;
-		   const IMember* member = FindMember(ce.StructArray(), ("_lock"), OUT offset);
+		   const IMember* member = FindMember(ce.StructArray(), "_lock", OUT offset);
 
 		   VariantValue lockMemberOffsetValue;
 		   lockMemberOffsetValue.int32Value = offset;
@@ -1420,7 +1494,7 @@ namespace Rococo
 
 		   if (hashIndex != 2)
 		   {
-			   Throw(s.GetElement(2), ("Expecting #"));
+			   Throw(s.GetElement(2), "Expecting #");
 		   }
 
 		   cr_sex elementSpecifier = s.GetElement(hashIndex + 1);
@@ -1445,7 +1519,7 @@ namespace Rococo
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableToTemp(collectionName, 9, 0); // Array ref is now in D13
 				
-		   ce.Builder.AddSymbol(("(foreach...")); 
+		   ce.Builder.AddSymbol("(foreach..."); 
 
 		   cr_sex indexExpr = elementSpecifier.GetElement(1);
 		
@@ -1482,7 +1556,7 @@ namespace Rococo
 
 		   CompileExpressionSequence(ce, 4, s.NumberOfElements()-1, s);				
 	
-		   ce.Builder.AddSymbol(("...foreach)"));
+		   ce.Builder.AddSymbol("...foreach)");
 		//   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock); // Enable popping of the array after enumeration has finished
 	   }
 
@@ -1577,7 +1651,7 @@ namespace Rococo
 
 			   void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
 			   {
-				   ce.Builder.AddSymbol(("while (endIndex > currentIndex)"));
+				   ce.Builder.AddSymbol("while (endIndex > currentIndex)");
 				   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D11, BITCOUNT_32, VM::REGISTER_D12);
 				   builder.Assembler().Append_Test(VM::REGISTER_D10, BITCOUNT_32);
 			   }

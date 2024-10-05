@@ -8,17 +8,17 @@
 
 namespace Rococo
 {
-	struct IMathsVenue;
-	struct IDebuggerWindow;
+	DECLARE_ROCOCO_INTERFACE IMathsVenue;
+	DECLARE_ROCOCO_INTERFACE IDebuggerWindow;
 
 	namespace Compiler
 	{
-		struct IStructure;
+		DECLARE_ROCOCO_INTERFACE IStructure;
 	}
 
 	namespace Script
 	{
-		struct IPublicScriptSystem;
+		DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;
 
 		struct ArchetypeCallback
 		{
@@ -29,25 +29,25 @@ namespace Rococo
 
 	namespace Sex
 	{
-		struct ISExpression;
-		struct ISParserTree;
+		DECLARE_ROCOCO_INTERFACE ISExpression;
+		DECLARE_ROCOCO_INTERFACE ISParserTree;
 		typedef const ISExpression& cr_sex;
 		class ParseException;
 	}
 
-	struct IArgStack
+	ROCOCO_INTERFACE IArgStack
 	{
 		virtual void PushInt32(int32 value) = 0;
 		virtual void PushInt64(int64 value) = 0;
 		virtual void PushPointer(void* value) = 0;
 	};
 
-	struct IOutputStack
+	ROCOCO_INTERFACE IOutputStack
 	{
 		virtual int32 PopInt32() = 0;
 	};
 
-	struct IArgEnumerator
+	ROCOCO_INTERFACE IArgEnumerator
 	{
 		virtual void PushArgs(IArgStack& args) = 0;
 		virtual void PopOutputs(IOutputStack& args) = 0;
@@ -99,6 +99,7 @@ namespace Rococo
 
 	SCRIPTEXPORT_API void InitSexyScript(Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, Strings::StringBuilder* declarationBuilder);
 	SCRIPTEXPORT_API void ExecuteFunction(Rococo::ID_BYTECODE bytecodeId, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
+	SCRIPTEXPORT_API void ExecuteFunctionUntilYield(ID_BYTECODE bytecodeId, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
 	SCRIPTEXPORT_API void ExecuteFunction(cstr name, IArgEnumerator& args, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace);
 	SCRIPTEXPORT_API int32 ExecuteSexyScript(ScriptPerformanceStats& stats, Rococo::Sex::ISParserTree& mainModule, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, int32 param, IScriptCompilationEventHandler& onCompile, bool trace, Strings::StringBuilder* declarationBuilder);
 	SCRIPTEXPORT_API [[nodiscard]] ISourceCache* CreateSourceCache(IO::IInstallation& installation, Rococo::IAllocator& allocator);

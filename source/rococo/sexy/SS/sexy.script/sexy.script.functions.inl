@@ -623,6 +623,10 @@ namespace Rococo
 			case EXPRESSION_TYPE_COMPOUND:
 				if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
 				{
+					if (s.NumberOfElements() == 1)
+					{
+						return TryCompilePushStructRef(ce, s[0], expectingStructRef, inputType, name, genericArg1);
+					}
 					return false;
 				}
 
@@ -641,7 +645,15 @@ namespace Rococo
 
 			if (!Rococo::IsAlphabetical(vname[0]))
 			{
-				Throw(s, "Could not interpret token as function or variable. Expected: '%s %s'", GetFriendlyName(inputType), name);
+				cstr friendlyName = GetFriendlyName(inputType);
+				if (strcmp(friendlyName, "IString") == 0)
+				{
+					Throw(s, "Expected either a quoted string constant or alphabetic character as first in token to specify a reference to argument '%s %s'", friendlyName, name);
+				}
+				else
+				{
+					Throw(s, "Expected alphabetic character as first in token to specify a reference to argument '%s %s'", friendlyName, name);
+				}
 			}
 
 			MemberDef def;
@@ -1290,7 +1302,7 @@ namespace Rococo
 				const IInterface& interf = s->GetInterface(i);
 
 				const ISExpression* src;
-				if (interf.Attributes().FindAttribute(("indexed"), (const void*&)src))
+				if (interf.Attributes().FindAttribute("indexed", (const void*&)src))
 				{
 					cr_sex methodNameExpr = GetAtomicArg(*src, 3);
 					for (int j = 0; j < interf.MethodCount(); ++j)
@@ -2546,11 +2558,32 @@ namespace Rococo
 			switch (c.VarType())
 			{
 			case VARTYPE_Array:
-				return TryCompileAsArrayCall(ce, s, instanceName, methodName);
+				if (!TryCompileAsArrayCall(ce, s, instanceName, methodName))
+				{
+					Throw(s, "%s is an array, but method name unknown. Check log above", instanceName);
+				}
+				else
+				{
+					return true;
+				}
 			case VARTYPE_List:
-				return TryCompileAsListCall(ce, s, instanceName, methodName);
+				if (!TryCompileAsListCall(ce, s, instanceName, methodName))
+				{
+					Throw(s, "%s is a list, but method name unknown. Check log above", instanceName);
+				}
+				else
+				{
+					return true;
+				}
 			case VARTYPE_Map:
-				return TryCompileAsMapCall(ce, s, instanceName, methodName);
+				if (!TryCompileAsMapCall(ce, s, instanceName, methodName))
+				{
+					Throw(s, "%s is a map, but method name unknown. Check log above", instanceName);
+				}
+				else
+				{
+					return true;
+				}
 			case VARTYPE_Derivative:
 				break;
 			default:
@@ -2726,13 +2759,13 @@ namespace Rococo
 					if (s.NumberOfElements() == 2)
 					{
 						const ISExpression* attr;
-						if (interf.Attributes().FindAttribute(("indexed"), (const void*&)attr))
+						if (interf.Attributes().FindAttribute("indexed", (const void*&)attr))
 						{
 							cr_sex indexMethodExpr = GetAtomicArg(*attr, 3);
 							cstr indexMethodName = indexMethodExpr.c_str();
 							return TryCompileAsMethodCall(ce, s, fname, indexMethodName);
 						}
-						else if (interf.Attributes().FindAttribute(("builder"), (const void*&)attr))
+						else if (interf.Attributes().FindAttribute("builder", (const void*&)attr))
 						{
 							cr_sex appendPrefixExpr = GetAtomicArg(*attr, 2);
 							cstr appendPrefix = appendPrefixExpr.c_str();

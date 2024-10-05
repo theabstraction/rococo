@@ -8,13 +8,13 @@ namespace Rococo
 	{
 		enum CheckState : int32;
 		struct TREE_NODE_ID;
-		struct IUITree;
-		struct IUIList;
-		struct ITreePopulator;
-		struct IListPopulator;
+		DECLARE_ROCOCO_INTERFACE IUITree;
+		DECLARE_ROCOCO_INTERFACE IUIList;
+		DECLARE_ROCOCO_INTERFACE ITreePopulator;
+		DECLARE_ROCOCO_INTERFACE IListPopulator;
 	}
 
-	struct IDebuggerWindow;
+	DECLARE_ROCOCO_INTERFACE IDebuggerWindow;
 
 	ROCOCO_INTERFACE IDebugControl
 	{
@@ -75,7 +75,7 @@ namespace Rococo
 
 namespace Rococo::OS
 {
-	struct IAppControl;
+	DECLARE_ROCOCO_INTERFACE IAppControl;
 }
 
 namespace Rococo::Windows::IDE

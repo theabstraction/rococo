@@ -380,6 +380,7 @@ namespace Rococo
             void CompileNextClosures();
             void CompileLocalFunctions();
             void CompileJITStubs();
+            void CompileVTables();
             void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs);
             void AddEnumeratedVirtualMethod(IN cr_sex virtualMethodExpr, IN cstr methodName, REF IInterfaceBuilder& inter, IN size_t vmIndex);
             void AddVirtualMethod(IN cr_sex virtualMethodExpr, REF IInterfaceBuilder& inter, IN size_t vmIndex);
@@ -511,6 +512,7 @@ namespace Rococo
             ID_API_CALLBACK ArrayGetRefUnchecked;
             ID_API_CALLBACK ArrayDestructElements;
             ID_API_CALLBACK ArrayGetInterfaceUnchecked;
+            ID_API_CALLBACK ArrayGetInterfaceLockless;
             ID_API_CALLBACK ArrayGetLength;
             ID_API_CALLBACK ArrayGetLastIndex; // D13 points to array, D11 gives last index (-1 for empty arrays)
             ID_API_CALLBACK ArrayReturnLength;

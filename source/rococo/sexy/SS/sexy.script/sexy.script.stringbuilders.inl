@@ -906,6 +906,21 @@ namespace
 		WriteOutput(0, diff, e);
 	}
 
+	void AssertPascalCaseNamespace(NativeCallEnvironment& e)
+	{
+		InterfacePointer pInterf;
+
+		ReadInput(0, (void*&)pInterf, e);
+
+		int32 maxLength = 0;
+
+		ReadInput(1, maxLength, e);
+
+		auto* s = (InlineString*) InterfaceToInstance(pInterf);
+		
+		AssertPascalCaseNameValid(s->buffer, s->length, 256, "namespace");
+	}
+
 	void StringCompareI(NativeCallEnvironment& e)
 	{
 		cstr s, t;

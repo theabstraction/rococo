@@ -1,0 +1,30 @@
+(namespace Rococo)
+
+(interface Rococo.ICat 
+	(MakeBiscuits -> )
+)
+
+(struct CatContext
+	(Rococo.ICat cat)
+)
+
+(class Cat (implements Rococo.ICat)	
+)
+
+(method Cat.MakeBiscuits -> :
+	(Sys.Print "The cat makes biscuits")
+)
+
+(method Cat.Construct :
+)
+
+(factory Rococo.NewCat Rococo.ICat :
+	(construct Cat)
+)
+
+
+(function CreateDommeObject (CatContext context) -> :
+	(Rococo.ICat cat (Rococo.NewCat))
+	(context.cat = cat)
+	(yield)
+)

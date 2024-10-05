@@ -356,6 +356,7 @@ namespace Rococo {
 			virtual const IArgument* GetArgumentByName(cstr name) const = 0;
 			virtual const IStructure* GetType() const = 0;
 			virtual const int32 GetExtraPopBytes() const = 0; // Number of extra bytes to unwind from stack after function recalls
+			virtual ID_BYTECODE GetProxy() const = 0;
 		};
 
 		inline int ArgCount(const IArchetype& archetype) { return archetype.NumberOfInputs() + archetype.NumberOfOutputs(); }
@@ -615,6 +616,10 @@ namespace Rococo {
 			virtual const IStructure* GetSysType(SEXY_CLASS_ID id) = 0;
 			virtual IAllocatorMap& AllocatorMap() = 0;
 			virtual size_t FreeLeakedObjects(IEventCallback<LeakArgs>* leakCallback = nullptr) = 0;
+
+			// Advanced methods for micromanaging interface reference counts. Useful for marshalling APIs
+			virtual void DecrementRefCount(InterfacePointer pInterface) = 0;
+			virtual void IncrementRefCount(InterfacePointer pInterface) = 0;
 		};
 
 		SEXYUTIL_API const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);

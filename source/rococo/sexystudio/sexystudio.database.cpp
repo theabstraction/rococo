@@ -2999,8 +2999,8 @@ namespace ANON
 				return false;
 			}
 
-			cstr lastDotPos = Strings::ReverseFind('.', variableName);
-			Substring methodPrefix{ lastDotPos + 1, candidateFinish };
+			cstr firstDotPos = Strings::ForwardFind('.', variableName);
+			Substring methodPrefix{ firstDotPos + 1, candidateFinish };
 
 			char prefix[64];
 			if (!methodPrefix.TryCopyWithoutTruncate(prefix, sizeof prefix))
@@ -3471,9 +3471,11 @@ namespace ANON
 						case EQualifier::Ref:
 							qualifier = "ref ";
 							break;
+						default:
+							qualifier = "<unknown qualifier> ";
 						}
 
-						argBuilder.AppendFormat("(%s%s %s)", inputType, inputName);
+						argBuilder.AppendFormat("(%s%s %s)", qualifier, inputType, inputName);
 					}
 
 					argBuilder << " -> ";
