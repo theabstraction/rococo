@@ -10,7 +10,7 @@
 #include <rococo.task.queue.h>
 
 using namespace Rococo;
-using namespace Rococo::Sexy;
+using namespace Rococo::Domme;
 using namespace Rococo::Script;
 using namespace Rococo::Animals;
 using namespace Rococo::Windows::IDE;
@@ -68,11 +68,11 @@ int MainProtected(int argc, char* argv[])
 
 	AutoFree<IScriptSystemFactory> ssFactory = CreateScriptSystemFactory_1_5_0_0();
 
-	Rococo::Sexy::ScriptingResources scripting{ *sourceCache, *debuggerWindow, *ssFactory };
+	Rococo::Domme::ScriptingResources scripting{ *sourceCache, *debuggerWindow, *ssFactory };
 
 	try
 	{
-		AutoFree<ICatSupervisor> cat = Implementation::CreateCat(scripting);
+		AutoFree<ICatSupervisor> cat = Implementation::CreateCat(scripting, "!scripts/domme/cat.sxy");
 		cat->MakeBiscuits();
 	}
 	catch (Sex::ParseException& ex)

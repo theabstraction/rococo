@@ -644,9 +644,7 @@ namespace Anon
 			// Then make the new stack frame equal to the stack pointer
 			cpu.D[REGISTER_SF].charPtrValue = cpu.D[REGISTER_SP].charPtrValue;
 
-			bool isImmutable;
-			size_t functionStart = program->GetFunctionAddress(codeId, OUT isImmutable);
-			cpu.SetPC(cpu.ProgramStart + functionStart);
+			cpu.SetPC((const uint8*) codeId);
 
 			while (cpu.SF() > context && status == EXECUTERESULT_RUNNING)
 			{

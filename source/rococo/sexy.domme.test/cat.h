@@ -16,6 +16,6 @@ namespace Rococo::Animals
 
 	namespace Implementation
 	{
-		ICatSupervisor* CreateCat(Rococo::Sexy::ScriptingResources& scripting);
+		ICatSupervisor* CreateCat(Rococo::Domme::ScriptingResources& scripting, cstr catSourceFile);
 	}
 }
