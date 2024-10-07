@@ -93,7 +93,7 @@ namespace Rococo::Domme
 		return *entryPoint;
 	}
 
-	DommeObject::DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const _scriptInterfaceName) : 
+	DommeObject::DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const _namespace, const char* const _scriptInterfaceName) :
 		logger(_scripting), scripting(_scripting), scriptInterfaceName(_scriptInterfaceName)
 	{
 		sourceTree = scripting.sourceCache.GetSource(sourceName);
@@ -121,19 +121,19 @@ namespace Rococo::Domme
 		auto* rococoNS = rootNS.FindSubspace("Rococo");
 		if (!rococoNS)
 		{
-			Throw(0, "Could not find (namespace Rococo) in %s", sourceTree->Source().Name());
+			Throw(0, "Could not find (namespace %s) in %s", _namespace, sourceTree->Source().Name());
 		}
 
-		auto* icat = rococoNS->FindInterface("ICat");
+		auto* icat = rococoNS->FindInterface("_scriptInterfaceName");
 		if (!icat)
 		{
-			Throw(0, "Could not find interface Rococo.ICat in %s", sourceTree->Source().Name());
+			Throw(0, "Could not find interface %s.%s in %s", _namespace, _scriptInterfaceName, sourceTree->Source().Name());
 		}
 
 		auto* nullIcat = icat->UniversalNullInstance();
 		if (!nullIcat)
 		{
-			Throw(0, "Could not find Rococo.ICat universal null object");
+			Throw(0, "Could not find %s.%s universal null object", _namespace, _scriptInterfaceName);
 		}
 
 		auto* pNullInterface = GetInterfacePtr(*nullIcat);

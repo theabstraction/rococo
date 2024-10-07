@@ -1,5 +1,7 @@
 #include "sexy.script.stdafx.h"
 #include <cstdio>
+#include "rococo.os.h"
+#include "rococo.io.h"
 
 #define ANON_NS Anon::Sys::IO
 
@@ -107,7 +109,9 @@ namespace ANON_NS
 		IStructure* fileWriterType = nullptr;
 		FileWriterInstanceWithInternals stdoutWriter;
 		FileWriterInstanceWithInternals stderrWriter;
-		CStringConstant* commandLineConstant;
+		CStringConstant* sc_commandLineConstant;
+		CStringConstant* sc_exeName;
+		CStringConstant* sc_exePath;
 
 		char envBuffer[32768];
 
@@ -133,7 +137,15 @@ namespace ANON_NS
 			stderrWriter.fp = stderr;
 
 			cstr commandLine = Rococo::OS::GetCommandLineText();
-			commandLineConstant = ss.GetStringReflection(commandLine);
+			sc_commandLineConstant = ss.GetStringReflection(commandLine);
+
+			U8FilePath exeName;
+			Rococo::IO::GetExeName(OUT exeName);
+
+			sc_exeName = ss.GetStringReflection(exeName);
+
+			U8FilePath exePath;
+			Rococo::IO::GetExePath(OUT exePath);
 		}
 
 		FileWriterInstanceWithInternals& ToFileWriter(InterfacePointer ip)
@@ -1032,7 +1044,21 @@ namespace ANON_NS
 	void GetCommandLine(NativeCallEnvironment& e)
 	{
 		auto& ioSystem = From(e);
-		InterfacePointer pCL = &ioSystem.commandLineConstant->header.pVTables[0];
+		InterfacePointer pCL = &ioSystem.sc_commandLineConstant->header.pVTables[0];
+		WriteOutput(0, pCL, e);
+	}
+
+	void GetExeName(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+		InterfacePointer pCL = &ioSystem.sc_exeName->header.pVTables[0];
+		WriteOutput(0, pCL, e);
+	}
+
+	void GetExePath(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+		InterfacePointer pCL = &ioSystem.sc_exePath->header.pVTables[0];
 		WriteOutput(0, pCL, e);
 	}
 
@@ -1237,6 +1263,8 @@ namespace Rococo::Script
 			ss.AddNativeCall(sysIO, ANON_NS::AppendCmdArg, &ioSystem, "AppendCmdArg (IString argIndex)(IStringBuilder sb)->", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::AppendCmdKeyAndValue, &ioSystem, "AppendCmdKeyAndValue (Int32 argIndex)(IStringBuilder sbKey)(IStringBuilder sbValue)->", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::GetCmdArgCount, &ioSystem, "GetCmdArgCount -> (Int32 argCount)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::GetExeName, &ioSystem, "ExeName -> (IString name)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::GetExePath, &ioSystem, "ExePath -> (IString name)", __FILE__, __LINE__, true);
 		}
 
 		const INamespace& sysIONative = ss.AddNativeNamespace("Sys.IO.Native");

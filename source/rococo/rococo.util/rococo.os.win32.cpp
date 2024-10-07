@@ -298,7 +298,7 @@ namespace Rococo
 
 		ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
 		{
-			struct Win32BinArchive: IBinaryArchive
+			struct Win32BinArchive : IBinaryArchive
 			{
 				HANDLE hFile = INVALID_HANDLE_VALUE;
 
@@ -376,8 +376,8 @@ namespace Rococo
 					{
 						Throw(0, "Could not write data. It was greater than 4GB in length");
 					}
-					
-					DWORD nTotal = (DWORD) nTotalBytes;
+
+					DWORD nTotal = (DWORD)nTotalBytes;
 					DWORD nWritten = 0;
 					if (!WriteFile(hFile, pElements, nTotal, &nWritten, NULL) || nWritten != nTotal)
 					{
@@ -459,7 +459,7 @@ namespace Rococo
 					if (!hMap)
 					{
 						CloseHandle(hFile);
-						Throw(GetLastError(), "Error creating map of file: %ls\n", sysPath);						
+						Throw(GetLastError(), "Error creating map of file: %ls\n", sysPath);
 					}
 
 					pMem = MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
@@ -486,7 +486,7 @@ namespace Rococo
 
 				const char* Data() const override
 				{
-					return (const char*) pMem;
+					return (const char*)pMem;
 				}
 
 				const uint64 Length() const override
@@ -513,6 +513,28 @@ namespace Rococo
 			}
 
 			path = out;
+		}
+
+		ROCOCO_API void GetExeName(U8FilePath& path)
+		{
+			U8FilePath fullPath;
+			GetExePath(OUT fullPath);
+
+			auto fp = Substring::ToSubstring(fullPath);
+			cstr slash = ReverseFind(IO::GetFileSeparator(), fp);
+			if (!slash)
+			{
+				path = fullPath;
+			}
+			else
+			{
+				Format(path, "%s", slash + 1);
+			}
+		}
+
+		ROCOCO_API void GetExePath(U8FilePath& path)
+		{
+			::GetModuleFileNameA(NULL, path.buf, path.CAPACITY);
 		}
 
 		void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& path, IOS& os)

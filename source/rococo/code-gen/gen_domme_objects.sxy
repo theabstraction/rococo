@@ -1,0 +1,33 @@
+(' #include "!scripts/sexml-reader.sxy")
+
+(namespace EntryPoint)
+
+(alias Main EntryPoint.Main)
+
+(using Sys.IO)
+(using Sys.Type)
+
+(function GetCmd (IString key) -> (IString result):
+	(IStringBuilder candidate = NewPathBuilder)
+	(IStringBuilder value = NewPathBuilder)
+	(for (Int32 i = 0)(i < Sys.IO.GetCmdArgCount)(i += 1)
+		(candidate.Clear) // Note - code complete did not add IStringBuilder methods
+		(value.Clear)
+		(Sys.IO.AppendCmdKeyAndValue i candidate value)
+		(if ((Sys.Type.Strings.CompareInsensitive key candidate) == 0)
+			(result = value)
+			(return)
+		)
+	)
+)
+
+(function Main (Int32 id)->(Int32 exitCode):
+	(IString exprPath = (GetCmd "sexml"))
+	(if (not (exprPath ?))
+		(#printf "Usage: " Sys.IO.ExeName " sexml=<domme-sexml-spec-path>")
+		(exitCode = -1)
+		(return)
+	)
+	(IExpression expr = (Sys.IO.LoadExpression exprPath))
+	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml expr))
+)

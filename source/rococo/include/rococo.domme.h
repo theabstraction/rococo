@@ -70,7 +70,7 @@ namespace Rococo::Domme
 
 		cstr scriptInterfaceName;
 	public:
-		DOMME_API DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const scriptInterfaceName);
+		DOMME_API DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const _namespace, const char* const scriptInterfaceName);
 		DOMME_API ~DommeObject();
 		DOMME_API int GetMethodIndex(cstr methodName, int expectedInput, int expectedOutputs);
 		Rococo::Script::IPublicScriptSystem& SS() { return *ss; }

@@ -13,7 +13,7 @@ namespace Rococo::Animals::Implementation
 
 		int makeBiscuitsIndex = -1;
 
-		Cat(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, "Rococo.ICat")
+		Cat(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, "Rococo.Animals", "ICat")
 		{
 			makeBiscuitsIndex = D.GetMethodIndex("MakeBiscuits", 1, 0);
 		}

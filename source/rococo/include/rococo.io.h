@@ -113,6 +113,8 @@ namespace Rococo::IO
 	ROCOCO_API void SanitizePath(wchar_t* path);
 	ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes);
 	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes);
+	ROCOCO_API void GetExeName(U8FilePath & path);
+	ROCOCO_API void GetExePath(U8FilePath& path);
 
 	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);

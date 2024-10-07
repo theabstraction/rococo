@@ -13,7 +13,7 @@ namespace Rococo::Sex
 
 namespace Rococo::Strings
 {
-	struct StringBuilder;
+	DECLARE_ROCOCO_INTERFACE StringBuilder;
 }
 
 namespace Rococo::Sex::SEXML
