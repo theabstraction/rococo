@@ -317,6 +317,7 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 	char** args;
 
 	IO::IInstallation& installation;
+	ISourceCache& sourceCache;
 
 	void Free() override
 	{
@@ -337,12 +338,16 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 
 	void OnCompile(ScriptCompileArgs& ssArgs) override
 	{
-		Rococo::Script::AddNativeCallSecurity_ToSysNatives(ssArgs.ss);
-		ssArgs.ss.SetCommandLine(nArgs, args);
-		ssArgs.ss.SetSecurityHandler(*this);
+		auto& ss = ssArgs.ss;
+		Rococo::Script::AddNativeCallSecurity_ToSysNatives(ss);
+		ss.SetCommandLine(nArgs, args);
+		ss.SetSecurityHandler(*this);
+
+		auto& sysIO = ss.AddNativeNamespace("Sys.IO");
+		ss.AddNativeCall(sysIO, Static_LoadExpression, this, "LoadExpression (Sys.Type.IString sysOrPingPath) -> (Sys.Reflection.IExpression s)", __FILE__, __LINE__);
 	}
 
-	ScriptContext(IO::IInstallation& _installation, int argc, char** argv) :installation(_installation)
+	ScriptContext(IO::IInstallation& _installation, ISourceCache& _sourceCache, int argc, char** argv) :installation(_installation), sourceCache(_sourceCache)
 	{
 		this->nArgs = argc;
 		this->args = argv;
@@ -376,7 +381,7 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 
-	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, ISourceCache& sourceCache, IScriptEnumerator& implicitIncludes)
+	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, IScriptEnumerator& implicitIncludes)
 	{
 		try
 		{
@@ -413,6 +418,39 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 	{
 		isRunning = false;
 	
+	}
+
+	static void Static_LoadExpression(NativeCallEnvironment& _nce)
+	{
+		ScriptContext* This = (ScriptContext*)_nce.context;
+		This->LoadExpression(_nce);
+	}
+
+	void LoadExpression(NativeCallEnvironment& _nce)
+	{
+		InterfacePointer pStringInterfaceToPath;
+		ReadInput(0, pStringInterfaceToPath, _nce);
+
+		auto* sc = (CStringConstant*)InterfaceToInstance(pStringInterfaceToPath);
+		if (sc->length == 0 || sc->pointer == nullptr)
+		{
+			Throw(0, "LoadExpression failed. [path] was blank");
+		}
+
+		// Note here that tree is cached, and once created is immutable, so that the represented structure below
+		// always has a valid sExpression pointer for the lifetime of the program.
+		auto* tree = sourceCache.GetSource(sc->pointer);
+
+		const int reflModule = 3;
+		auto* exprStruct = _nce.ss.PublicProgramObject().GetModule(reflModule).FindStructure("Expression");
+		if (exprStruct == nullptr)
+		{
+			Rococo::Throw(0, "Could not find class [Expression] in module %d (Sys.Reflection.sxy)", reflModule);
+		}
+
+		auto* sExpression = _nce.ss.Represent(*exprStruct, &tree->Root());
+		InterfacePointer pExpr = &sExpression->header.pVTables[0];
+		WriteOutput(0, pExpr, _nce);
 	}
 };
 
@@ -699,7 +737,10 @@ int mainProtected(int argc, char* argv[])
 	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 	AutoFree<IO::IInstallationSupervisor> installation = new CmdInstallation(installationPath);
 	
-	ScriptContext sc(*installation, argc, argv);
+	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16384, 0, "sexy-cmd");
+	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation, *allocator, true));
+
+	ScriptContext sc(*installation, *sourceCache, argc, argv);
 	sc.isInteractive = isInteractive;
 
 	if (isInteractive)
@@ -721,9 +762,6 @@ int mainProtected(int argc, char* argv[])
 
 	AutoFree<IScriptSystemFactory> ssFactory(CreateScriptSystemFactory_1_5_0_0());
 
-	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16384, 0, "sexy-cmd");
-	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation, *allocator));
-
 	WideFilePath nativeSourcePath;
 
 	try
@@ -737,7 +775,7 @@ int mainProtected(int argc, char* argv[])
 			{
 				count++;
 				ScriptPerformanceStats stats;
-				int32 exitCode = sc.Execute(result, stats, 0, *ssFactory, *debuggerWindow, *sourceCache, s_CmdIncludes);
+				int32 exitCode = sc.Execute(result, stats, 0, *ssFactory, *debuggerWindow, s_CmdIncludes);
 				if (exitCode != 0)
 				{
 					fprintf(stderr, "Script '%s' returned an error code. %d (0x%8.8x)", result, exitCode, exitCode);

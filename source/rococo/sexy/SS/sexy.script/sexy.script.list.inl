@@ -877,7 +877,7 @@ namespace Rococo::Script
 			{
 				// Elements are IStrings, so we can assign by string literal
 				auto literalValue = value.String();
-				auto strConst = ce.SS.DuplicateStringAsConstant(literalValue->Buffer, literalValue->Length);
+				auto strConst = ce.SS.ReflectTransientStringByDuplication(literalValue->Buffer, literalValue->Length);
 
 				VariantValue v;
 				v.vPtrValue = strConst->header.AddressOfVTable0();

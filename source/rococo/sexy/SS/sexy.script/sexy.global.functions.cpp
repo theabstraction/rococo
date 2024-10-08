@@ -736,13 +736,16 @@ namespace Rococo
 		};
 		TSexyVector<VisitorInfo> visitorData;
 		TSexyVector<IPackage*> packages;
+
+		bool allowSysPaths;
 	public:
-		SourceCache(IInstallation& _installation, IAllocator& _allocator) :
+		SourceCache(IInstallation& _installation, IAllocator& _allocator, bool _allowSysPaths) :
 			fileBuffer(CreateExpandingBuffer(64_kilobytes)),
 			dataBuffer(CreateExpandingBuffer(64_kilobytes)),
 			installation(_installation),
 			allocator(_allocator),
-			parser(CreateSexParser_2_0(_allocator))
+			parser(CreateSexParser_2_0(_allocator)),
+			allowSysPaths(_allowSysPaths)
 		{
 		}
 
@@ -960,10 +963,10 @@ namespace Rococo
 		}
 	};
 
-	SCRIPTEXPORT_API ISourceCache* CreateSourceCache(IInstallation& installation, IAllocator& allocator)
+	SCRIPTEXPORT_API ISourceCache* CreateSourceCache(IInstallation& installation, IAllocator& allocator, bool allowSysPaths)
 	{
 		void* buffer = allocator.Allocate(sizeof SourceCache);
-		auto* cache = new (buffer) SourceCache(installation, allocator);
+		auto* cache = new (buffer) SourceCache(installation, allocator, allowSysPaths);
 		return cache->GetInterface();
 	}
 

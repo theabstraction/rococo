@@ -228,7 +228,7 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 			installation->ConvertSysPathToPingPath(file.fullPath, pingPath);
 
 			auto& SS = (IScriptSystem&)*ss;
-			auto* constant = SS.GetStringReflection(SS.GetPersistentString(pingPath));
+			auto* constant = SS.ReflectImmutableStringPointer(SS.GetPersistentString(pingPath));
 			InterfacePointer pPingPath = (InterfacePointer)(((uint8*)constant) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0);
 			
 			ss->DispatchToSexyClosure(pPingPath, callback);

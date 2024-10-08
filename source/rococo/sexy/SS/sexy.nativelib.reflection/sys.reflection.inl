@@ -90,7 +90,7 @@ namespace
 			break;
 		}
 
-		CStringConstant* sc = ((IScriptSystem&)e.ss).GetStringReflection(s == NULL ? "" : s->Buffer);
+		CStringConstant* sc = ((IScriptSystem&)e.ss).ReflectImmutableStringPointer(s == NULL ? "" : s->Buffer);
 		WriteString(sc, 0, e);
 	}
 
@@ -190,7 +190,7 @@ namespace
 
 		cstr name = pModule->Name();
 
-		CStringConstant* sc = SS.GetStringReflection(name);
+		CStringConstant* sc = SS.ReflectImmutableStringPointer(name);
 		WriteString(sc, 0, e);
 	}
 
@@ -228,7 +228,7 @@ namespace
 		
 		cstr name = pStruct->Name();
 
-		CStringConstant* sc = ((IScriptSystem&)e.ss).GetStringReflection(name);
+		CStringConstant* sc = ((IScriptSystem&)e.ss).ReflectImmutableStringPointer(name);
 		WriteString(sc, 0, e);
 	}
 
@@ -494,7 +494,7 @@ namespace
 		{
 			auto& myInterface = pStruct->GetInterface(0);
 			cstr interfaceName = myInterface.Name();
-			auto sc = SS.DuplicateStringAsConstant(interfaceName);
+			auto sc = SS.ReflectTransientStringByDuplication(interfaceName);
 			WriteOutput(0, sc->header.AddressOfVTable0(), e);
 		}
 	}

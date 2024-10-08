@@ -2,6 +2,7 @@
 #include <cstdio>
 #include "rococo.os.h"
 #include "rococo.io.h"
+#include "rococo.sexy.api.h"
 
 #define ANON_NS Anon::Sys::IO
 
@@ -12,8 +13,8 @@ namespace ANON_NS
 
 namespace Rococo::OS
 {
-	void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
-	cstr GetCommandLineText();
+	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
+	ROCOCO_API cstr GetCommandLineText();
 }
 
 namespace Rococo::Script
@@ -137,15 +138,17 @@ namespace ANON_NS
 			stderrWriter.fp = stderr;
 
 			cstr commandLine = Rococo::OS::GetCommandLineText();
-			sc_commandLineConstant = ss.GetStringReflection(commandLine);
+			sc_commandLineConstant = ss.ReflectImmutableStringPointer(commandLine);
 
 			U8FilePath exeName;
 			Rococo::IO::GetExeName(OUT exeName);
 
-			sc_exeName = ss.GetStringReflection(exeName);
-
+			sc_exeName = ss.ReflectTransientStringByDuplication(exeName);
+			
 			U8FilePath exePath;
 			Rococo::IO::GetExePath(OUT exePath);
+
+			sc_exePath = ss.ReflectTransientStringByDuplication(exePath);
 		}
 
 		FileWriterInstanceWithInternals& ToFileWriter(InterfacePointer ip)

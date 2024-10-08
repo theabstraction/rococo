@@ -1795,7 +1795,7 @@ namespace Rococo::Script
 
 		cstr uniqueString = ss.GetPersistentString(message);
 
-		auto* sc = ss.GetStringReflection(uniqueString);
+		auto* sc = ss.ReflectImmutableStringPointer(uniqueString);
 		ss.ThrowFromNativeCode(0, sc->pointer);
 	}
 

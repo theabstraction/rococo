@@ -270,7 +270,7 @@ namespace Rococo {
 					auto** ipString = (InterfacePointer*)(targetData + offset);
 					ss->ProgramObject().DecrementRefCount(*ipString);
 					
-					auto* sc = ss->GetStringReflection(srcValue->Buffer);
+					auto* sc = ss->ReflectImmutableStringPointer(srcValue->Buffer);
 					auto* scip = (InterfacePointer)&sc->header.pVTables[0];
 					ss->ProgramObject().IncrementRefCount(scip);
 					*ipString = scip;
@@ -1678,7 +1678,7 @@ namespace Rococo::Script
 			}
 		}
 
-		CStringConstant* GetStringReflection(cstr s, int stringLength) override
+		CStringConstant* ReflectImmutableStringPointer(const char* const s, int stringLength) override
 		{
 			if (stringLength < 0) stringLength = StringLength(s);
 
@@ -1730,7 +1730,7 @@ namespace Rococo::Script
 			return sb;
 		}
 
-		CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) override
+		CStringConstant* ReflectTransientStringByDuplication(cstr source, int32 stringLength = -1) override
 		{
 			if (source == nullptr)
 			{
@@ -1743,7 +1743,7 @@ namespace Rococo::Script
 				return pSC;
 			}
 			cstr persistentString = GetPersistentString(source, stringLength);
-			return GetStringReflection(persistentString, stringLength);
+			return ReflectImmutableStringPointer(persistentString, stringLength);
 		}
 
 		CScriptSystemClass* GetScriptSystemClass() override

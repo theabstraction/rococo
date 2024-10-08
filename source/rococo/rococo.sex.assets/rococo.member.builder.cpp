@@ -1016,7 +1016,7 @@ namespace Rococo::Sex::Assets::Impl
 
 		void AddStringConstant(cstr stringRefName, cstr text, int32 stringLength)
 		{
-			CStringConstant* sc = scriptSystem->DuplicateStringAsConstant(text, stringLength);
+			CStringConstant* sc = scriptSystem->ReflectTransientStringByDuplication(text, stringLength);
 			
 			auto i = objects.find(stringRefName);
 			if (i == objects.end())
@@ -1184,7 +1184,7 @@ namespace Rococo::Sex::Assets::Impl
 
 			if (IsIString(*mapKeyType))
 			{
-				auto* sc = scriptSystem->DuplicateStringAsConstant(keyText, keyText.length);
+				auto* sc = scriptSystem->ReflectTransientStringByDuplication(keyText, keyText.length);
 				key.vPtrValue = sc;
 			}
 			else 

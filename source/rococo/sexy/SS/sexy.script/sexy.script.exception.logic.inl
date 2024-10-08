@@ -463,7 +463,7 @@ namespace Rococo::Script
 
 					cstr msgHandle;
 					ReadInput(0, (void*&) msgHandle, e);
-					CStringConstant* sc = ss.GetStringReflection(msgHandle);
+					CStringConstant* sc = ss.ReflectImmutableStringPointer(msgHandle);
 					WriteOutput(0, &sc->header.pVTables[0], e);
 				}
 			};

@@ -694,6 +694,17 @@ namespace Rococo
 				break;
 			}
 
+			// We cannot make any progress other than to try and give a reasonable error message
+			if (sourceValue.NumberOfElements() > 0)
+			{
+				cr_sex srcDirective = sourceValue[0];
+				if (IsAtomic(srcDirective))
+				{
+					cstr srcDirectiveText = srcDirective.c_str();
+					Throw(directive, "Cannot determine RHS of assignment. %s may be the problem", srcDirectiveText);
+				}
+			}
+
 			Throw(directive, "Cannot determine RHS of assignment");
 		}
 
@@ -2745,7 +2756,7 @@ namespace Rococo
 
 			if (IsStringLiteral(sMethodRef))
 			{
-				CStringConstant* sc = ce.SS.GetStringReflection(methodRef);
+				CStringConstant* sc = ce.SS.ReflectImmutableStringPointer(methodRef);
 				InterfacePointer ip = sc->header.AddressOfVTable0();
 				VariantValue v;
 				v.sizetValue = (size_t)ip;

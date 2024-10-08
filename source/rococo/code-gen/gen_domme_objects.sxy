@@ -28,6 +28,6 @@
 		(exitCode = -1)
 		(return)
 	)
-	(IExpression expr = (Sys.IO.LoadExpression exprPath))
+	(Sys.Reflection.IExpression expr = (Sys.IO.LoadExpression exprPath))
 	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml expr))
 )

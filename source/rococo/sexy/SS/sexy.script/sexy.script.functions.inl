@@ -589,7 +589,7 @@ namespace Rococo
 			{
 			case EXPRESSION_TYPE_STRING_LITERAL:
 			{
-				auto* stringConstant = ce.SS.GetStringReflection(s.c_str());
+				auto* stringConstant = ce.SS.ReflectImmutableStringPointer(s.c_str());
 				InterfacePointer pIString = &stringConstant->header.pVTables[0];
 				VariantValue v;
 				v.vPtrValue = pIString;

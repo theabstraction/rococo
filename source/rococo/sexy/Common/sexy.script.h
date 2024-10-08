@@ -396,8 +396,12 @@ namespace Rococo {
 
 			virtual uint8* AppendListNode(ListImage& image) = 0;
 
-			virtual CStringConstant* GetStringReflection(cstr s, int32 stringLength = -1) = 0;
-			virtual CStringConstant* DuplicateStringAsConstant(cstr source, int32 stringLength = -1) = 0;
+			// Assumes that the string bound to the input pointer is immutable for the lifespan of the script and provides a CStringConstant for it that can be used by any script that assumes immutability
+			virtual CStringConstant* ReflectImmutableStringPointer(const char* const s, int32 stringLength = -1) = 0;
+
+			// Duplicates the null terminated string argument and provides a CStringConstant for it that can be used by any script that assumes immutability
+			virtual CStringConstant* ReflectTransientStringByDuplication(cstr source, int32 stringLength = -1) = 0;
+
 			virtual FastStringBuilder* CreateAndPopulateFastStringBuilder(const fstring& text, int32 capacity) = 0;
 
 			virtual void RegisterPackage(IPackage* package) = 0;

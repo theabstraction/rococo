@@ -322,7 +322,7 @@ namespace Rococo::Script
 			if (*strKey->stub.Desc->TypeInfo != ss.ProgramObject().Common().TypeStringLiteral())
 			{
 				// Our string was not a StringConstant, ergo it might be mutable, so we have to copy to an immutable string and refer to that.
-				auto* sc = ss.DuplicateStringAsConstant(strKey->buffer, strKey->length);
+				auto* sc = ss.ReflectTransientStringByDuplication(strKey->buffer, strKey->length);
 				strKey = (InlineString*)sc;
 			}
 
