@@ -27,8 +27,7 @@
 	(Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive))
 )
 
-(interface Sys.Sexml.ISEXMLReader
-	(RootDirective -> (Sys.Sexml.ISEXMLDirective directive))
+(interface Sys.Sexml.ISEXMLReader (extends Sys.Sexml.ISEXMLDirectiveList)
 	(S -> (IExpression s))
 )
 
@@ -36,7 +35,8 @@
 	(implements Sys.Sexml.ISEXMLReader)
 	
 	(IExpression sexmlRoot)
-	(Sys.Sexml.ISEXMLDirective rootDirective)
+	(array Sys.Sexml.ISEXMLDirective rootDirectives)
+	(Int32 nDirectives)
 )
 
 (function GetFirstChildThatMatchesArg (IExpression s)(IString arg)->(Int32 indexOfArg):
@@ -51,14 +51,32 @@
 	(indexOfArg = -1)
 )
 
-(method SEXMLReader.Construct (IExpression sexmlRoot):
+(method SEXMLReader.Construct (Sys.Reflection.IExpression sexmlRoot):
+
 	(this.sexmlRoot = sexmlRoot)	
-	(Sys.Sexml.ISEXMLDirective rootDirective (Sys.Sexml.NewDirective sexmlRoot))
-	(this.rootDirective = rootDirective)
+	
+	(if (sexmlRoot.ChildCount == 0)
+		(sexmlRoot.Throw 0 "SEXMLReader expected a compound expression as its root")
+	)
+	
+	(array Sys.Sexml.ISEXMLDirective rootDirectives 1)
+	(this.rootDirectives = rootDirectives)
+	
+	(for (Int32 i = 0)(i < sexmlRoot.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression child = (sexmlRoot.Child i))
+		(if (child.ChildCount == 0)
+			(child.Throw 0 "SEXMLReader expected a compound directive expression for each child in the root expression")
+		)
+		
+		(Sys.Sexml.ISEXMLDirective rootDirective (Sys.Sexml.NewDirective child))
+		(this.rootDirectives.Push rootDirective)
+	)
+	
+	(this.nDirectives = sexmlRoot.ChildCount)
 )
 
-(method SEXMLReader.RootDirective -> (Sys.Sexml.ISEXMLDirective directives):
-	(directives = this.rootDirective)
+(method SEXMLReader.DirectiveCount -> (Int32 numberOfDirectives):
+	(numberOfDirectives = this.nDirectives)
 )
 
 (method SEXMLReader.Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive):

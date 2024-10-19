@@ -103,7 +103,7 @@
 )
 (Scheme :
 	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
-	// Since we have specifyied the hovered bit in all permutations, then this colour scheme applies to all situations that *are* hovered
+	// Since we have specified the hovered bit in all permutations, then this colour scheme applies to all situations that *are* hovered
 	(ApplyTo ([] RenderStates hovered pressed))
 	(ApplyTo ([] RenderStates hovered pressed focused))
 	(ApplyTo ([] RenderStates hovered focused))
