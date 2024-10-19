@@ -727,6 +727,9 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
+            conf.AddPublicDependency<RococoECSProject>(target);
+            conf.AddPublicDependency<RococoComponentsBodyProject>(target);
+            conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
         }
     }
 
@@ -1148,6 +1151,21 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoDependencyProject : RococoProject
+    {
+        public RococoDependencyProject() : base("rococo.dependency", "rococo.dependency")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoGraphicsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoMPlatProject : RococoProject
     {
         public RococoMPlatProject() : base("rococo.mplat")
@@ -1161,10 +1179,10 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Lib);
 
             conf.ExportAdditionalLibrariesEvenForStaticLib = false;
-            //DependencySetting buildFirst = DependencySetting.OnlyBuildOrder;
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.cpp");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
+            conf.AddPublicDependency<RococoDependencyProject>(target);
             AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
         }
     }
@@ -1186,7 +1204,6 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoFileBrowserProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
-            conf.AddPrivateDependency<RococoECSProject>(target);
             conf.AddPrivateDependency<RococoComponentsAnimationProject>(target);
             conf.AddPrivateDependency<RococoComponentsBodyProject>(target);
             conf.AddPrivateDependency<RococoComponentsConfigurationProject>(target);
@@ -1761,6 +1778,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyCompilerProject>(target);
             conf.AddPublicDependency<SexyCoroutinesProject>(target);
             conf.AddPublicDependency<SexyReflectionProject>(target);
+            conf.AddPublicDependency<SexyMathsProject>(target);
             conf.SolutionFolder = " - Sexy";
         }
     }
@@ -1974,7 +1992,6 @@ namespace Rococo
             conf.AddProject<RococoComponentsSkeletonProject>(target);
             conf.AddProject<RococoSEXMLProject>(target);
             conf.AddProject<RococoMathsProject>(target);
-            conf.AddProject<RococoMathsTestProject>(target);
             conf.AddProject<RococoPackagerProject>(target);
             conf.AddProject<RococoWindowsProject>(target);
             conf.AddProject<RococoSexyIDEProject>(target);
@@ -1984,9 +2001,6 @@ namespace Rococo
             conf.AddProject<RococoFileBrowserProject>(target);
             conf.AddProject<RococoGuiRetainedProject>(target);
             conf.AddProject<RococoGreatSexProject>(target);
-            conf.AddProject<RococoMPlatProject>(target);
-            conf.AddProject<RococoMPlatDynamicProject>(target);
-            conf.AddProject<RococoMHostProject>(target);
             conf.AddProject<RococoAudioProject>(target);
             conf.AddProject<RococoAudioTestProject>(target);
             conf.AddProject<RococoECSTestProject>(target);
@@ -2001,6 +2015,10 @@ namespace Rococo
             conf.AddProject<RococoSexAssetsProject>(target);
             conf.AddProject<RococoSexInferenceProject>(target);
             conf.AddProject<RococoRALPipelineProject>(target);
+            conf.AddProject<RococoMPlatProject>(target);
+            conf.AddProject<RococoMPlatDynamicProject>(target);
+            conf.AddProject<RococoMHostProject>(target);
+            conf.AddProject<RococoMathsTestProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)

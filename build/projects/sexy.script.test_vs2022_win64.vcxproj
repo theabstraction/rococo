@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.nativelib.coroutines.lib;sexy.nativelib.reflection.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.nativelib.coroutines.lib;sexy.nativelib.maths.lib;sexy.nativelib.reflection.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -225,7 +225,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.nativelib.coroutines.lib;sexy.nativelib.reflection.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.nativelib.coroutines.lib;sexy.nativelib.maths.lib;sexy.nativelib.reflection.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -242,6 +242,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="sexy.nativelib.maths_vs2022_win64.vcxproj">
+      <Project>{0658F615-B00D-6603-813E-6094A2007F2D}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
     <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
       <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

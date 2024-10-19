@@ -245,9 +245,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh" />
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\coroutines_declarations.sxh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.nativelib.coroutines\sexy.nativelib.coroutine.cpp" />

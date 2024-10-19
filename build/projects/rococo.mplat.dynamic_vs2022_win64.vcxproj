@@ -244,6 +244,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="rococo.dependency_vs2022_win64.vcxproj">
+      <Project>{798A9973-BBE7-A920-A233-DB186B570A10}</Project>
+      <Name>rococo.dependency</Name>
+      <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="rococo.gui.retained_vs2022_win64.vcxproj">
       <Project>{16A5F3CB-8C28-5290-B8A4-0A487742AA0D}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

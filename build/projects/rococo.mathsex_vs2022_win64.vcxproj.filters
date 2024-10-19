@@ -11,15 +11,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl">
-      <Filter>code-gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex_declarations.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.h" />

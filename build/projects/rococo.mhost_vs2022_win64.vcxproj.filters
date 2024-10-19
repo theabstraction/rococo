@@ -15,15 +15,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl">
-      <Filter>code-gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost_declarations.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />

@@ -246,9 +246,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.base.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.h" />

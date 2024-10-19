@@ -71,7 +71,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -137,7 +137,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>NDEBUG;WIN64;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -199,59 +199,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.ELayoutAlgorithm.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IMobiles.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IParticleSystem.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IRigBuilder.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.EvMouseFlags.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ESoftBoxVertexPurpose.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.HQFont.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ICamera.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IFieldTesselator.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IHQFonts.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ILandscapeTesselator.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMaterialBuilder.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMeshBuilder.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMessaging.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IQuadStackTesselator.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRendererConfig.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRimTesselator.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRodTesselator.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISceneBuilder.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IShaderOptionsConfig.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISoftBoxBuilder.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISpriteBuilder.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISprites.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ITextTesselator.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.MaterialCategory.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.OrientationFlags.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.SampleFilter.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.SampleIndex.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.SampleMethod.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IArrayBox.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IContextMenuPane.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IEnumListPane.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IFramePane.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ILabelPane.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IPane.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IPaneBuilder.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IPaneContainer.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IRadioButton.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IScroller.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ISlider.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ITabContainer.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ITextOutputPane.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IArchive.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IContextMenu.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IInstallationManager.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IKeyboard.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IWorldBuilder.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.inl" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
@@ -327,6 +276,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="rococo.dependency_vs2022_win64.vcxproj">
+      <Project>{798A9973-BBE7-A920-A233-DB186B570A10}</Project>
+      <Name>rococo.dependency</Name>
+      <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="sexy.bennyhill_vs2022_win64.vcxproj">
       <Project>{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}</Project>
       <Name>sexy.bennyhill</Name>

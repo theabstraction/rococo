@@ -11,17 +11,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}</ProjectGuid>
+    <ProjectGuid>{798A9973-BBE7-A920-A233-DB186B570A10}</ProjectGuid>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <RootNamespace>cfgs.sexy.ide</RootNamespace>
-    <ProjectName>cfgs.sexy.ide</ProjectName>
+    <RootNamespace>rococo.dependency</RootNamespace>
+    <ProjectName>rococo.dependency</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -29,7 +29,7 @@
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -44,23 +44,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>cfgs.sexy.ide</TargetName>
+    <TargetName>rococo.dependency</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.dependency\</IntDir>
+    <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.dependency.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>cfgs.sexy.ide</TargetName>
+    <TargetName>rococo.dependency</TargetName>
     <OutDir>..\..\gen\bin\win64\$(configuration)\</OutDir>
-    <IntDir>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\</IntDir>
-    <TargetExt>.dll</TargetExt>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.dependency\</IntDir>
+    <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <LinkIncremental>false</LinkIncremental>
-    <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
+    <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.dependency.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -68,7 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>CFGS_CONTEXT_POPUP_API=__declspec(dllexport);WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;_CONSOLE;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -111,16 +111,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\cfgs.sexy.ide_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.dependency\rococo.dependency_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.dependency.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\debug</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.dependency.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -140,13 +140,12 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>cfgs.editor.marshaller.lib;cfgs.host.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\debug\cfgs.sexy.ide.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.dependency.map</MapFileName>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,7 +153,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>CFGS_CONTEXT_POPUP_API=__declspec(dllexport);NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_CONSOLE;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -197,16 +196,16 @@
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
-      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\cfgs.sexy.ide\cfgs.sexy.ide_compiler.pdb</ProgramDatabaseFileName>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.dependency\rococo.dependency_compiler.pdb</ProgramDatabaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.dll</OutputFile>
+      <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.dependency.exe</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalLibraryDirectories>..\..\gen\lib\win64\$(configuration);..\..\gen\lib\win64\release</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\rococo.dependency.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
       <SwapRunFromCD>false</SwapRunFromCD>
@@ -226,44 +225,23 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>cfgs.editor.marshaller.lib;cfgs.host.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
-      <MapFileName>..\..\gen\bin\win64\$(configuration)\cfgs.sexy.ide.map</MapFileName>
-      <ImportLibrary>..\..\gen\lib\win64\release\cfgs.sexy.ide.lib</ImportLibrary>
+      <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.dependency.map</MapFileName>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.h" />
-    <ClInclude Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.navigation.inl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs-to-sexy.compiler.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.popup.sexy.win32.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.gui.cpp" />
-    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.sexy.ide\cfgs.sexy.ide.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.dependency\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <ProjectReference Include="cfgs.editor.marshaller_vs2022_win64.vcxproj">
-      <Project>{07130163-03D6-1F17-9EEB-8CEDD52F2E07}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
-      <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
-      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
     <ProjectReference Include="lib-jpg_vs2022_win64.vcxproj">
       <Project>{4C709D18-84F3-F3B7-569B-69F9522D35A2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -284,11 +262,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-    <ProjectReference Include="rococo.windows_vs2022_win64.vcxproj">
-      <Project>{82217C37-348A-32E9-39E2-871C1E8CA026}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
     <ProjectReference Include="rococo.component.animation_vs2022_win64.vcxproj">
       <Project>{8F18DC28-1B77-A11E-B2BA-80D1DBD827B8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -301,16 +274,6 @@
     </ProjectReference>
     <ProjectReference Include="rococo.ecs_vs2022_win64.vcxproj">
       <Project>{989FB988-E5BF-6FBF-5327-5B4B4E904985}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.sexml_vs2022_win64.vcxproj">
-      <Project>{AE85B54B-E7B4-7488-34AA-23A839360CB8}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="cfgs.host_vs2022_win64.vcxproj">
-      <Project>{BDB227D6-3A10-ABED-5214-43BD62E86BE4}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

@@ -9,15 +9,6 @@
     <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh.inl">
-      <Filter>code-gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation_declarations.sxh.h">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h">
       <Filter>include\components</Filter>
     </ClInclude>
