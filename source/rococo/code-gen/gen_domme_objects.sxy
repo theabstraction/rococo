@@ -1,4 +1,5 @@
-(' #include "!scripts/sexml-reader.sxy")
+(' #include "!scripts/sexml-reader.sxy" "!scripts/Sys/Type/Strings/StringMatch.sxy")
+
 
 (namespace EntryPoint)
 
@@ -24,7 +25,7 @@
 (function Main (Int32 id)->(Int32 exitCode):
 	(IString exprPath = (GetCmd "sexml"))
 	(if (not (exprPath ?))
-		(#printf "Usage: " Sys.IO.ExeName " sexml=<domme-sexml-spec-path>")
+		(#printf "Usage: " Sys.IO.ExeName " run=gen_domme_objects.sxy sexml=<domme-sexml-spec-path>")
 		(exitCode = -1)
 		(return)
 	)

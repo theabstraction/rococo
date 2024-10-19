@@ -675,7 +675,12 @@ namespace Rococo::Strings
 #ifdef _WIN32
 	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source)
 	{
-		SafeFormat(dest, capacity, "%s", source);
+		strcpy_s(dest, capacity, source);
+	}
+
+	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source, size_t nChars)
+	{
+		strncpy_s(dest, capacity, source, nChars);
 	}
 #else
 	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source)

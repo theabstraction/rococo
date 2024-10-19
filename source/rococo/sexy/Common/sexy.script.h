@@ -59,24 +59,25 @@
 
 namespace Rococo
 {
-	struct ILog;
+	DECLARE_ROCOCO_INTERFACE ILog;
 
 	namespace Compiler
 	{
-		struct IProgramObject;
+		DECLARE_ROCOCO_INTERFACE IProgramObject;
 		struct VirtualTable;
-		struct IStructure;
-		struct IPublicProgramObject;
-		struct IFunction;
-		struct IMemberLife;
+		DECLARE_ROCOCO_INTERFACE IStructure;
+		DECLARE_ROCOCO_INTERFACE IPublicProgramObject;
+		DECLARE_ROCOCO_INTERFACE IFunction;
+		DECLARE_ROCOCO_INTERFACE IMemberLife;
+		DECLARE_ROCOCO_INTERFACE IInterface;
 	}
 
 	namespace Sex
 	{
-		struct ISParser;
-		struct ISParserTree;
-		struct ISExpression;
-		struct ISExpressionBuilder;
+		DECLARE_ROCOCO_INTERFACE ISParser;
+		DECLARE_ROCOCO_INTERFACE ISParserTree;
+		DECLARE_ROCOCO_INTERFACE ISExpression;
+		DECLARE_ROCOCO_INTERFACE ISExpressionBuilder;
 
 		typedef const ISExpression& cr_sex;
 	}
@@ -91,6 +92,9 @@ namespace Rococo {
 	namespace Script
 	{
 		using namespace Rococo::Strings;
+
+		SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IInterface& i);
+		SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IStructure& typeDesc);
 
 		ROCOCO_INTERFACE IFreeable
 		{

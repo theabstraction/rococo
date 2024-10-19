@@ -89,6 +89,32 @@ namespace Rococo::Script
 	size_t GetAlignmentPadding(int alignment, int objectSize);
 	SCRIPTEXPORT_API uint8* GetKeyPointer(MapNode* m);
 	SCRIPTEXPORT_API uint8* GetValuePointer(MapNode* m);
+
+	SCRIPTEXPORT_API bool IsIString(const IInterface& i)
+	{
+		if (Eq(i.NullObjectType().Name(), "_Null_Sys_Type_IString"))
+		{
+			return true;
+		}
+
+		auto* base = i.Base();
+		if (!base)
+		{
+			return false;
+		}
+
+		return IsIString(*base);
+	}
+
+	SCRIPTEXPORT_API bool IsIString(const IStructure& typeDesc)
+	{
+		if (typeDesc.InterfaceCount() == 1)
+		{
+			return IsIString(typeDesc.GetInterface(0));
+		}
+
+		return false;
+	}
 }
 
 namespace Rococo
@@ -1266,22 +1292,6 @@ namespace Rococo
 			tree->AddChild(node, refCount, CheckState_NoCheckBox);
 		}
 
-		bool IsIString(const IInterface& i)
-		{
-			if (Eq(i.NullObjectType().Name(), "_Null_Sys_Type_IString"))
-			{
-				return true;
-			}
-			
-			auto* base = i.Base();
-			if (!base)
-			{
-				return false;
-			}
-
-			return IsIString(*base);
-		}
-
 		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) override
 		{
 			index++;
@@ -1414,6 +1424,10 @@ namespace Rococo
 			if (AreEqual(v.Location, "CPU"))
 			{
 				return;
+			}
+
+			if (IsIString(*def.ResolvedType))
+			{
 			}
 
 			char desc[256];
@@ -2427,10 +2441,11 @@ namespace Rococo::Script
 
 		if (text.length > 0 && bufferLeft > 1)
 		{
-			CopyString(buffer + length, bufferLeft, text);
+			CopyString(buffer + length, bufferLeft, text, text.length);
 
 			length += text.length;
 			length = min(capacity - 1, length);
+			buffer[length] = 0;
 		}
 	}
 }

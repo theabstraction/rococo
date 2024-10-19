@@ -679,7 +679,24 @@ namespace Rococo
 						if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
 						{
 							auto* stringObjt = (CStringConstant*)object;
-							SafeFormat(variable.Value, variable.VALUE_CAPACITY, "%s", stringObjt->pointer);
+							cstr p = stringObjt->pointer;
+
+							if (p == nullptr)
+							{
+								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "<null>");
+							}
+							else if (*p == 0)
+							{
+								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "<blank-string>");
+							}
+							else if (strlen(p) < 64)
+							{
+								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "\"%s\"", stringObjt->pointer);
+							}
+							else
+							{
+								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "\"%.64s...\"", stringObjt->pointer);
+							}
 							break;
 						}
 					}
@@ -730,9 +747,28 @@ namespace Rococo
 			else
 			{
 				const void** ppData = (const void**)pVariableData;
+	
 				TRY_PROTECTED
 				{
-					FormatVariableDesc(variable, "-> %1llX", (int64)*ppData);
+					if (IsIString(*def.ResolvedType))
+					{
+						InterfacePointer* ip = (InterfacePointer*)ppData;
+						auto* s = (CStringConstant*) InterfaceToInstance(*ip);
+						cstr p = s->pointer;
+						size_t len = strlen(p);
+						if (len < 64)
+						{
+							FormatVariableDesc(variable, "-> %1llX \"%s\"", (int64)*ppData, p);
+						}
+						else
+						{
+							FormatVariableDesc(variable, "-> %1llX \"%.64s...\"", (int64)*ppData, p);
+						}
+					}
+					else
+					{
+						FormatVariableDesc(variable, "-> %1llX", (int64)*ppData);
+					}
 				}
 				CATCH_PROTECTED
 				{

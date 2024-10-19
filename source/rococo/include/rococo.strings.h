@@ -314,6 +314,7 @@ namespace Rococo::Strings
 	ROCOCO_API int32 StringLength(const char* s);
 	ROCOCO_API int32 StringLength(const wchar_t* s);
 	ROCOCO_API void CopyString(char* dest, size_t capacity, const char* source);
+	ROCOCO_API void CopyString(char* dest, size_t capacity, const char* source, size_t nChars);
 
 	ROCOCO_API void StringCat(char* buf, cstr source, int maxChars);
 	ROCOCO_API void StringCat(wchar_t* buf, const wchar_t* source, int maxChars);
