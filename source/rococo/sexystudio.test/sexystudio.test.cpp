@@ -1715,6 +1715,127 @@ R"<CODE>(
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
+void TestLocalArrayInference()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(function Main (Int32 id)->(Int32 value):
+	(array Int32 berries 2)
+	(berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestLocalArrayInference2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(function Main (Int32 id)->(Int32 value):
+	(array Sys.Type.Int32 berries 2)
+	(berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestLocalListInference()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(function Main (Int32 id)->(Int32 value):
+	(list Int32 berries 2)
+	(berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestLocalListInference2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(function Main (Int32 id)->(Int32 value):
+	(list Sys.Type.Int32 berries 2)
+	(berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestLocalMapInference()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(function Main (Int32 id)->(Int32 value):
+	(map Int32 IString berries 2)
+	(berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestLocalMapInference2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(function Main (Int32 id)->(Int32 value):
+	(map Sys.Type.Int32 Sys.Type.IString berries 2)
+	(berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+
 void TestThisArrayInference2()
 {
 	Intro(__FUNCTION__);
@@ -2136,9 +2257,18 @@ void MainProtected2(HMODULE /* hLib */)
 	TestThisMapInference();
 	TestThisMapInference2();
 
-skip:
 	TestThisListInference();
 	TestThisListInference2();
+
+	TestLocalArrayInference();
+	TestLocalArrayInference2();
+
+	TestLocalListInference();
+	TestLocalListInference2();
+
+skip:
+	TestLocalMapInference();
+	TestLocalMapInference2();
 }
 
 void MainProtected(HMODULE hLib)

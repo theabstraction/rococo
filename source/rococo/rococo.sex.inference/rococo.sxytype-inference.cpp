@@ -488,35 +488,159 @@ namespace Rococo::Sex::Inference
 				continue;
 			}
 
-			if (!isupper(*startOfType))
+			Substring token{ startOfType, specimen.finish };
+
+			if (StartsWith(token, "array"_fstring))
 			{
-				continue;
-			}
+				TypeInference arrayTypeInference = TypeInference_None();
+				arrayTypeInference.templateContainer = { token.start, token.start + "array"_fstring.length };
 
-			cstr lastTypeChar = FindLastTypeChar({ startOfType, specimen.finish });
-			if (lastTypeChar == nullptr)
+				startOfType = GetEndOfPadding({ arrayTypeInference.templateContainer.finish, specimen.finish });
+				if (startOfType == nullptr)
+				{
+					continue;
+				}
+
+				cstr lastTypeChar = FindLastTypeChar({ startOfType, specimen.finish });
+				if (lastTypeChar == nullptr)
+				{
+					continue;
+				}
+
+				// We will try to match ( <type> <variable>
+				cstr startOfName = GetEndOfPadding({ lastTypeChar, specimen.finish });
+				if (startOfName == nullptr)
+				{
+					continue;
+				}
+
+				if (!islower(*startOfName))
+				{
+					continue;
+				}
+
+				cstr endOfName = FindLastVariableChar({ startOfName, specimen.finish });
+
+				arrayTypeInference.declarationType = { startOfType, lastTypeChar };
+				arrayTypeInference.declarationVariable = { startOfName, endOfName };
+
+				return arrayTypeInference;
+			} 
+			else if (StartsWith(token, "list"_fstring))
 			{
-				continue;
-			}
+				TypeInference listTypeInference = TypeInference_None();
+				listTypeInference.templateContainer = { token.start, token.start + "list"_fstring.length };
 
-			// We will try to match ( <type> <variable>
-			cstr startOfName = GetEndOfPadding({ lastTypeChar, specimen.finish });
-			if (startOfName == nullptr)
+				startOfType = GetEndOfPadding({ listTypeInference.templateContainer.finish, specimen.finish });
+				if (startOfType == nullptr)
+				{
+					continue;
+				}
+
+				cstr lastTypeChar = FindLastTypeChar({ startOfType, specimen.finish });
+				if (lastTypeChar == nullptr)
+				{
+					continue;
+				}
+
+				// We will try to match ( <type> <variable>
+				cstr startOfName = GetEndOfPadding({ lastTypeChar, specimen.finish });
+				if (startOfName == nullptr)
+				{
+					continue;
+				}
+
+				if (!islower(*startOfName))
+				{
+					continue;
+				}
+
+				cstr endOfName = FindLastVariableChar({ startOfName, specimen.finish });
+
+				listTypeInference.declarationType = { startOfType, lastTypeChar };
+				listTypeInference.declarationVariable = { startOfName, endOfName };
+
+				return listTypeInference;
+			}
+			else if (StartsWith(token, "map"_fstring))
 			{
-				continue;
-			}
+				TypeInference listTypeInference = TypeInference_None();
+				listTypeInference.templateContainer = { token.start, token.start + "map"_fstring.length };
 
-			if (!islower(*startOfName))
+				cstr startOfKeyType = GetEndOfPadding({ listTypeInference.templateContainer.finish, specimen.finish });
+				if (startOfKeyType == nullptr)
+				{
+					continue;
+				}
+
+				cstr lastTypeChar = FindLastTypeChar({ startOfKeyType, specimen.finish });
+				if (lastTypeChar == nullptr)
+				{
+					continue;
+				}
+
+				// maps have two types, key and value, so read second here
+
+				cstr startOfValueType = GetEndOfPadding({ lastTypeChar, specimen.finish });
+				if (startOfValueType == nullptr)
+				{
+					continue;
+				}
+
+				lastTypeChar = FindLastTypeChar({ startOfValueType, specimen.finish });
+				if (lastTypeChar == nullptr)
+				{
+					continue;
+				}
+
+				// we should have two types now, separated by spaces
+
+				// We will try to match ( <type> <variable>
+				cstr startOfName = GetEndOfPadding({ lastTypeChar, specimen.finish });
+				if (startOfName == nullptr)
+				{
+					continue;
+				}
+
+				if (!islower(*startOfName))
+				{
+					continue;
+				}
+
+				cstr endOfName = FindLastVariableChar({ startOfName, specimen.finish });
+
+				listTypeInference.declarationType = { startOfKeyType, lastTypeChar };
+				listTypeInference.declarationVariable = { startOfName, endOfName };
+
+				return listTypeInference;
+			}
+			else if (isupper(*startOfType))
 			{
-				continue;
+				cstr lastTypeChar = FindLastTypeChar({ startOfType, specimen.finish });
+				if (lastTypeChar == nullptr)
+				{
+					continue;
+				}
+
+				// We will try to match ( <type> <variable>
+				cstr startOfName = GetEndOfPadding({ lastTypeChar, specimen.finish });
+				if (startOfName == nullptr)
+				{
+					continue;
+				}
+
+				if (!islower(*startOfName))
+				{
+					continue;
+				}
+
+				cstr endOfName = FindLastVariableChar({ startOfName, specimen.finish });
+
+				return TypeInference{ {startOfType, lastTypeChar}, {startOfName, endOfName } };
 			}
-
-			cstr endOfName = FindLastVariableChar({ startOfName, specimen.finish });
-
-			return TypeInference{ {startOfType, lastTypeChar}, {startOfName, endOfName } };
 		}
 
-		return TypeInference{ {nullptr, nullptr},{nullptr,nullptr} };
+		return TypeInference_None();
 	}
 
 	ROCOCO_MISC_UTILS_API cstr FaultTolerantSexyTypeInferenceEngine::GetMatchEnd(cr_substring token, cstr candidate, cstr endGuard)
@@ -534,6 +658,21 @@ namespace Rococo::Sex::Inference
 		return q;
 	}
 
+	Substring TruncateToBeforeFirstDot(cr_substring s)
+	{
+		Substring result = s;
+		for (cstr p = s.start; p != s.finish; p++)
+		{
+			if (*p == '.')
+			{
+				result.finish = p;
+				break;
+			}
+		}
+
+		return result;
+	}
+
 	ROCOCO_MISC_UTILS_API TypeInference FaultTolerantSexyTypeInferenceEngine::InferLocalVariableVariableType(cr_substring candidate)
 	{
 		if (candidate.start < textBuffer)
@@ -541,16 +680,8 @@ namespace Rococo::Sex::Inference
 			Throw(0, "Bad candidate. Ensure the substring is that of the text buffer supplied in the constructor of the class");
 		}
 
-		Substring token = candidate;
-		if (token.Length() > 1)
-		{
-			cstr pos = FindChar(token.start, '.');
-			if (pos)
-			{
-				token.finish = pos;
-			}
-		}
-
+		Substring token = TruncateToBeforeFirstDot(candidate);
+		
 		cstr endGuard = max(textBuffer, token.start - 1); // We want to go back a bit, because we dont expect to find '(function' immediately before the candidate
 
 		// Algorithm -> iterate backwards from tokenBegin and search for '(method' or '(function' to identify the containing function where the type is defined
@@ -577,26 +708,11 @@ namespace Rococo::Sex::Inference
 		return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
 	}
 
-	Substring TruncateToFirstDot(cr_substring s)
-	{
-		Substring result = s;
-		for (cstr p = s.start; p != s.finish; p++)
-		{
-			if (*p == '.')
-			{
-				result.finish = p;
-				break;
-			}
-		}
-
-		return result;
-	}
-
 	ROCOCO_MISC_UTILS_API TypeInference FaultTolerantSexyTypeInferenceEngine::InferParentMember(const TypeInference& classInference, cr_substring name)
 	{
 		if (!classInference.declarationType) return TypeInference_None();
 
-		Substring parentMember = TruncateToFirstDot(name);
+		Substring parentMember = TruncateToBeforeFirstDot(name);
 		
 		TypeInference matchType = TypeInference_None();
 

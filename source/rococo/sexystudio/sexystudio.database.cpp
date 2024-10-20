@@ -3292,6 +3292,7 @@ namespace ANON
 			fieldEnumerator.OnField("Append", Substring::Null());
 			fieldEnumerator.OnField("Prepend", Substring::Null());
 			fieldEnumerator.OnField("Clear", Substring::Null());
+			fieldEnumerator.OnField("Length", Substring::Null());
 		}
 
 		void EnumerateMapMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator)
@@ -3299,6 +3300,7 @@ namespace ANON
 			UNUSED(inference);
 			UNUSED(variable);
 			fieldEnumerator.OnField("Insert", Substring::Null());
+			fieldEnumerator.OnField("Length", Substring::Null());
 		}
 
 		void EnumerateTemplateMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator) override
