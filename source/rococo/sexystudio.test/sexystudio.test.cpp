@@ -1688,7 +1688,7 @@ void TestSuggestBeyondDot()
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
-void TestArrayInference()
+void TestThisArrayInference()
 {
 	Intro(__FUNCTION__);
 
@@ -1715,7 +1715,7 @@ R"<CODE>(
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
-void TestArrayInference2()
+void TestThisArrayInference2()
 {
 	Intro(__FUNCTION__);
 
@@ -1728,6 +1728,115 @@ R"<CODE>(
 	
 	(IExpression sexmlRoot)
 	(array Sys.Sexml.ISEXMLDirective rootDirectives)
+	(Int32 nDirectives)
+)
+
+(method SEXMLReader.DirectiveCount -> (Int32 numberOfDirectives):
+	(numberOfDirectives = this.nDirectives)
+	(this.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestThisMapInference()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(interface Sys.IMagic
+	(Enchant (Int32 id)->(Int32 value))
+)
+
+(class Magic (implements Sys.IMagic)
+	(map Int32 IString berries)
+)
+
+(method Magic.Enchant (Int32 id)->(Int32 value):
+	(this.berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestThisMapInference2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(interface Sys.IMagic
+	(Enchant (Int32 id)->(Int32 value))
+)
+
+(class Magic (implements Sys.IMagic)
+	(map Sys.Type.Int32 Sys.Type.IString berries)
+)
+
+(method Magic.Enchant (Int32 id)->(Int32 value):
+	(this.berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestThisListInference()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(interface Sys.IMagic
+	(Enchant (Int32 id)->(Int32 value))
+)
+
+(class Magic (implements Sys.IMagic)
+	(list Int32 berries)
+)
+
+(method Magic.Enchant (Int32 id)->(Int32 value):
+	(this.berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestThisListInference2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+		R"<CODE>(
+
+(class SEXMLReader 
+	(implements Sys.Sexml.ISEXMLReader)
+	
+	(IExpression sexmlRoot)
+	(list Sys.Sexml.ISEXMLDirective rootDirectives)
 	(Int32 nDirectives)
 )
 
@@ -2021,10 +2130,15 @@ void MainProtected2(HMODULE /* hLib */)
 
 	TestComplexCase1();
 
-	TestArrayInference();
+	TestThisArrayInference();
+	TestThisArrayInference2();
+
+	TestThisMapInference();
+	TestThisMapInference2();
 
 skip:
-	TestArrayInference2();
+	TestThisListInference();
+	TestThisListInference2();
 }
 
 void MainProtected(HMODULE hLib)

@@ -958,7 +958,7 @@ namespace Rococo::Script
 			}
 			else
 			{
-				Throw(keyExpr, ("Expecting IString or numeric as key"));
+				Throw(keyExpr, "Expecting IString or numeric as key");
 			}
 		}
 	}
@@ -1110,13 +1110,13 @@ namespace Rococo::Script
 		}
 		else
 		{
-			Throw(s, "Unknown list method. Known methods: Append, Prepend.");
+			Throw(s, "Unknown map method. Known methods: Insert");
 		}
 	}
 
 	bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, cr_sex s, cstr name, cstr methodName)
 	{
-		if (AreEqual(methodName, ("Pop")))
+		if (AreEqual(methodName, "Pop"))
 		{
 			CompileAsMapNodePop(ce, s, name);
 			return true;
@@ -1134,7 +1134,7 @@ namespace Rococo::Script
 	void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source)
 	{
 		// (node n = (<map-name> <key>))
-		if (source.NumberOfElements() != 2) Throw(source, ("Expecting map lookup expression, in the form (node n = (<map-name> <key>))"));
+		if (source.NumberOfElements() != 2) Throw(source, "Expecting map lookup expression, in the form (node n = (<map-name> <key>))");
 
 		cr_sex mapExpr = GetAtomicArg(source, 0);
 		cr_sex keyExpr = source.GetElement(1);
@@ -1196,12 +1196,12 @@ namespace Rococo::Script
 			VariantValue k;
 			k.vPtrValue = (void*)keyStruct;
 
-			AddSymbol(ce.Builder, ("keytype: %s"), GetFriendlyName(*keyStruct));
+			AddSymbol(ce.Builder, "keytype: %s", GetFriendlyName(*keyStruct));
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D5, k, BITCOUNT_POINTER); // Key type to D5
 
 			VariantValue v;
 			v.vPtrValue = (void*)valueStruct;
-			AddSymbol(ce.Builder, ("valuetype: %s"), GetFriendlyName(*valueStruct));
+			AddSymbol(ce.Builder, "valuetype: %s", GetFriendlyName(*valueStruct));
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER); // Value type to D4
 		}
 

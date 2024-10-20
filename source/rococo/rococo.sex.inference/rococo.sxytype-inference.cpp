@@ -170,9 +170,11 @@ namespace Rococo::Sex::Inference
 		Substring name;
 
 		bool isTypeKeyword = false;
-		enum class State { ExpectingOpen, ExpectingType, ReadingType, ExpectingName, ReadingName, ExpectingClose };
+		enum class State { ExpectingOpen, ExpectingType, ReadingType, ExpectingNextType, ExpectingName, ReadingName, ExpectingClose };
 
 		State state = State::ExpectingOpen;
+
+		int nExpectedTypes = 1;
 
 		for (cstr p = classDef.start; p != classDef.finish; p++)
 		{
@@ -219,9 +221,30 @@ namespace Rococo::Sex::Inference
 
 				// Unexpected character - skip it
 				goto next;
+			case State::ExpectingNextType:
+				if (isspace(c))
+				{
+					goto next;
+				}
+
+				if (isalnum(c))
+				{
+					state = State::ReadingType;
+					goto next;
+				}
+				
+				// Unexpected character - give up
+				return;
 			case State::ReadingType:
 				if (isspace(c))
 				{
+					if (nExpectedTypes > 1)
+					{
+						nExpectedTypes--;
+						state = State::ExpectingNextType;
+						goto next;
+					}
+
 					state = State::ExpectingName;
 					type.finish = p;
 					goto next;
@@ -247,8 +270,12 @@ namespace Rococo::Sex::Inference
 				}
 				else if (isTypeKeyword && isalnum(c))
 				{
-					if (Eq(type, "array"_fstring))
+					if (Eq(type, "array"_fstring) || Eq(type, "map"_fstring) || Eq(type, "list"_fstring))
 					{
+						if (Eq(type, "map"_fstring))
+						{
+							nExpectedTypes = 2;
+						}
 						container = type;
 						type.start = p;
 						state = State::ReadingType;
@@ -550,20 +577,27 @@ namespace Rococo::Sex::Inference
 		return TypeInference{ {nullptr, nullptr},{nullptr, nullptr} };
 	}
 
-	ROCOCO_MISC_UTILS_API TypeInference FaultTolerantSexyTypeInferenceEngine::InferParentMember(const TypeInference& classInference, cr_substring name)
+	Substring TruncateToFirstDot(cr_substring s)
 	{
-		if (!classInference.declarationType) return TypeInference_None();
-
-		Substring parentMember = name;
-		for (cstr p = name.start; p != name.finish; p++)
+		Substring result = s;
+		for (cstr p = s.start; p != s.finish; p++)
 		{
 			if (*p == '.')
 			{
-				parentMember.finish = p;
+				result.finish = p;
 				break;
 			}
 		}
 
+		return result;
+	}
+
+	ROCOCO_MISC_UTILS_API TypeInference FaultTolerantSexyTypeInferenceEngine::InferParentMember(const TypeInference& classInference, cr_substring name)
+	{
+		if (!classInference.declarationType) return TypeInference_None();
+
+		Substring parentMember = TruncateToFirstDot(name);
+		
 		TypeInference matchType = TypeInference_None();
 
 		auto searchForNameAndSetType = [&matchType, &parentMember](cr_substring container, cr_substring memberType, cr_substring memberName)

@@ -3273,6 +3273,8 @@ namespace ANON
 
 		void EnumerateArrayMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator)
 		{
+			UNUSED(inference);
+			UNUSED(variable);
 			fieldEnumerator.OnField("Capacity", Substring::Null());
 			fieldEnumerator.OnField("Length", Substring::Null());
 			fieldEnumerator.OnField("Push", Substring::Null());
@@ -3283,6 +3285,22 @@ namespace ANON
 			fieldEnumerator.OnField("Null", Substring::Null());
 		}
 
+		void EnumerateListMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			UNUSED(inference);
+			UNUSED(variable);
+			fieldEnumerator.OnField("Append", Substring::Null());
+			fieldEnumerator.OnField("Prepend", Substring::Null());
+			fieldEnumerator.OnField("Clear", Substring::Null());
+		}
+
+		void EnumerateMapMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			UNUSED(inference);
+			UNUSED(variable);
+			fieldEnumerator.OnField("Insert", Substring::Null());
+		}
+
 		void EnumerateTemplateMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator) override
 		{
 			auto& container = inference.templateContainer;
@@ -3290,6 +3308,14 @@ namespace ANON
 			if (Eq(container, "array"_fstring))
 			{
 				EnumerateArrayMethods(variable, inference, fieldEnumerator);
+			}
+			else if (Eq(container, "map"_fstring))
+			{
+				EnumerateMapMethods(variable, inference, fieldEnumerator);
+			}
+			else if (Eq(container, "list"_fstring))
+			{
+				EnumerateListMethods(variable, inference, fieldEnumerator);
 			}
 			else
 			{

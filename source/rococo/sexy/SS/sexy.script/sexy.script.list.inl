@@ -1049,17 +1049,17 @@ namespace Rococo::Script
 
 	bool TryCompileAsNodeCall(CCompileEnvironment& ce, cr_sex s, cstr instanceName, cstr methodName)
 	{
-		if (AreEqual(methodName, ("Append")))
+		if (AreEqual(methodName, "Append"))
 		{
 			CompileAsAppendToNode(ce, s, instanceName, false);
 			return true;
 		}
-		else if (AreEqual(methodName, ("Prepend")))
+		else if (AreEqual(methodName, "Prepend"))
 		{
 			CompileAsAppendToNode(ce, s, instanceName, true);
 			return true;
 		}
-		else if (AreEqual(methodName, ("Pop")))
+		else if (AreEqual(methodName, "Pop"))
 		{
 			CompileAsPopNode(ce, s, instanceName);
 			return true;
