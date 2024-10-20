@@ -18,6 +18,8 @@
 #include "rococo.sexystudio.api.h"
 #include "rococo.api.qualifiers.h"
 
+#include "rococo.sxytype-inference.h"
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::SexyStudio;
@@ -3266,6 +3268,38 @@ namespace ANON
 				}
 
 				return AppendMethodsFromType(objectName, candidate.finish, root, typeString, fieldEnumerator);
+			}
+		}
+
+		void EnumerateArrayMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator)
+		{
+			fieldEnumerator.OnField("Capacity", Substring::Null());
+			fieldEnumerator.OnField("Length", Substring::Null());
+			fieldEnumerator.OnField("Push", Substring::Null());
+			fieldEnumerator.OnField("Pop", Substring::Null());
+			fieldEnumerator.OnField("PopOut", Substring::Null());
+			fieldEnumerator.OnField("Clear", Substring::Null());
+			fieldEnumerator.OnField("Set", Substring::Null());
+			fieldEnumerator.OnField("Null", Substring::Null());
+		}
+
+		void EnumerateTemplateMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator) override
+		{
+			auto& container = inference.templateContainer;
+
+			if (Eq(container, "array"_fstring))
+			{
+				EnumerateArrayMethods(variable, inference, fieldEnumerator);
+			}
+			else
+			{
+				char containerText[256];
+				container.CopyWithTruncate(containerText, sizeof containerText);
+
+				char message[256];
+				SafeFormat(message, "Unknown container: %s", containerText);
+				auto msg = Substring::ToSubstring(message);
+				fieldEnumerator.OnHintFound(msg);
 			}
 		}
 

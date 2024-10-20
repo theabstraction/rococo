@@ -2104,9 +2104,10 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidateInDoc, *database, doc);
 
-		Substring type;
+		Rococo::Sex::Inference::TypeInference inference;
 		bool isThis;
-		if ((type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc)))
+		inference = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc);
+		if (inference.declarationType)
 		{
 			if (isThis)
 			{
@@ -2117,28 +2118,32 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 					editor.AutoCompleteBuilder().AddItem(qualifiedFieldName);
 				};
 
-				if (EnumerateFieldsOfClass(type, doc, addFieldToAutocomplete))
+				if (EnumerateFieldsOfClass(inference.declarationType, doc, addFieldToAutocomplete))
 				{
 					editor.AutoCompleteBuilder().ShowAndClearItems();
 				}
 				else
 				{
-					Substring finalType = routeTextToAutoComplete.hint ? routeTextToAutoComplete.hint : type;
+					Substring finalType = routeTextToAutoComplete.hint ? routeTextToAutoComplete.hint : inference.declarationType;
 					ShowCallTipAtCaretPos(editor, finalType);
 				}
 			}
 			else
 			{
-				if (database->EnumerateVariableAndFieldList(variable, type, routeTextToAutoComplete))
+				if (inference.templateContainer)
+				{
+					database->EnumerateTemplateMethods(variable, inference, routeTextToAutoComplete);
+				}
+				else if (database->EnumerateVariableAndFieldList(variable, inference.declarationType, routeTextToAutoComplete))
 				{
 
 				}
 				else
 				{	
-					Rococo::Sex::Inference::EnumerateLocalFields(routeTextToAutoComplete, candidateInDoc, type, doc);
+					Rococo::Sex::Inference::EnumerateLocalFields(routeTextToAutoComplete, candidateInDoc, inference.declarationType, doc);
 					if (!routeTextToAutoComplete.atLeastOneItem)
 					{
-						auto finalType = routeTextToAutoComplete.hint ? routeTextToAutoComplete.hint : type;
+						auto finalType = routeTextToAutoComplete.hint ? routeTextToAutoComplete.hint : inference.declarationType;
 						ShowCallTipAtCaretPos(editor, finalType);
 					}
 				}
@@ -2796,11 +2801,13 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		Substring methodName{ methodSeparator + 1, searchToken.finish - 1 };
 
-		Substring type;
+		Rococo::Sex::Inference::TypeInference type;
 		bool isThis;
-		if ((type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc)))
+		type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, candidateInDoc, doc);
+
+		if (type.declarationType)
 		{
-			Substring branchType = type;
+			Substring branchType = type.declarationType;
 			Substring subsearch = searchToken;
 
 			for (;;)

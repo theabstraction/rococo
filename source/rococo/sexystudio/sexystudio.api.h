@@ -27,6 +27,11 @@ namespace Rococo
 	enum class EQualifier;
 }
 
+namespace Rococo::Sex::Inference
+{
+	struct TypeInference;
+}
+
 namespace Rococo::SexyStudio
 {
 	struct IGuiWidget;
@@ -295,6 +300,7 @@ namespace Rococo::SexyStudio
 		virtual void Clear() = 0;
 		virtual IFactoryConfig& Config() = 0;
 		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void EnumerateTemplateMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual const ISXYType* FindFQType(cstr typeName) const = 0;
 		virtual const ISXYType* FindPrimitiveOrFQType(cstr typeName) const = 0;
 		virtual const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) = 0;

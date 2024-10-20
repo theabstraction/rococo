@@ -65,14 +65,16 @@ R"<CODE>(
 		}
 	} fieldEnumerator;
 
-	Substring type;
+	Rococo::Sex::Inference::TypeInference type;
 	bool isThis;
-	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
+	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, v, sfile);
+
+	if (!type.declarationType)
 	{
 		Throw(0, "Bad inference - type should be Vec2");
 	}
 
-	database.EnumerateVariableAndFieldList(v, type, fieldEnumerator);
+	database.EnumerateVariableAndFieldList(v, type.declarationType, fieldEnumerator);
 
 	printf("*** End of %s ***\n", __FUNCTION__);
 }
@@ -126,14 +128,16 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 		}
 	} fieldEnumerator;
 
-	Substring type;
+	Rococo::Sex::Inference::TypeInference type;
 	bool isThis;
-	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
+	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, v, sfile);
+
+	if (!type.declarationType)
 	{
 		Throw(0, "Bad inference - type should be Vec2");
 	}
 
-	database.EnumerateVariableAndFieldList(v, type, fieldEnumerator);
+	database.EnumerateVariableAndFieldList(v, type.declarationType, fieldEnumerator);
 
 	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __FUNCTION__);
 	if (fieldEnumerator.fieldCount != 2) Throw(0, "Bad field count: %s", __FUNCTION__);
@@ -189,14 +193,16 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 		}
 	} fieldEnumerator;
 
-	Substring type;
+	Rococo::Sex::Inference::TypeInference type;
 	bool isThis;
-	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, v, sfile)))
+	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, v, sfile);
+
+	if (!type.declarationType)
 	{
 		Throw(0, "Bad inference - type should be Vec4");
 	}
 
-	database.EnumerateVariableAndFieldList(v, type, fieldEnumerator);
+	database.EnumerateVariableAndFieldList(v, type.declarationType, fieldEnumerator);
 
 	if (fieldEnumerator.fieldCount != 4) Throw(0, "Bad fieldCount: %s", __FUNCTION__);
 	if (fieldEnumerator.hintCount == 0) Throw(0, "Bad hint count: %s", __FUNCTION__);
@@ -317,14 +323,16 @@ void TestDeduceMethods(ISexyDatabase& database)
 		}
 	} fieldEnumerator;
 
-	Substring type;
+	Rococo::Sex::Inference::TypeInference type;
 	bool isThis;
-	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "IStringBuilder"))
+	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, sb, sfile);
+
+	if (!type.declarationType || !Eq(type.declarationType, "IStringBuilder"))
 	{
 		Throw(0, "Bad inference - type should be IStringBuilder");
 	}
 
-	database.EnumerateVariableAndFieldList(sb, type, fieldEnumerator);
+	database.EnumerateVariableAndFieldList(sb, type.declarationType, fieldEnumerator);
 
 	// We give a bit of range on this method in the case that IStringBuilder is modified in the future
 	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __FUNCTION__);
@@ -382,14 +390,16 @@ void TestDeduceMethods2(ISexyDatabase& database)
 		}
 	} fieldEnumerator;
 
-	Substring type;
+	Rococo::Sex::Inference::TypeInference type;
 	bool isThis;
-	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)) || !Eq(type, "Sys.Type.IStringBuilder"))
+	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, sb, sfile);
+	
+	if (!type.declarationType || !Eq(type.declarationType, "Sys.Type.IStringBuilder"))
 	{
 		Throw(0, "Bad inference - type should be IStringBuilder");
 	}
 
-	database.EnumerateVariableAndFieldList(sb, type, fieldEnumerator);
+	database.EnumerateVariableAndFieldList(sb, type.declarationType, fieldEnumerator);
 
 	// We give a bit of range on this method in the case that IStringBuilder is modified in the future
 	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __FUNCTION__);
@@ -465,19 +475,21 @@ void TestLocalStruct(ISexyDatabase&)
 		}
 	} fieldEnumerator;
 
-	Substring type;
+	Rococo::Sex::Inference::TypeInference type;
 	bool isThis;
-	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
+	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, sb, sfile);
+
+	if (!type.declarationType)
 	{
-		if (!Eq(type, "Thing"))
+		if (!Eq(type.declarationType, "Thing"))
 		{
 			char typeStr[128];
-			type.CopyWithTruncate(typeStr, sizeof typeStr);
+			type.declarationType.CopyWithTruncate(typeStr, sizeof typeStr);
 			Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
 		}
 	}
 
-	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
+	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type.declarationType, sfile);
 
 	if (fieldEnumerator.fieldCount != 3)
 	{
@@ -562,19 +574,21 @@ void TestLocalStruct2(ISexyDatabase&)
 		}
 	} fieldEnumerator;
 
-	Substring type;
+	Rococo::Sex::Inference::TypeInference type;
 	bool isThis;
-	if (!(type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(isThis, sb, sfile)))
+	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, sb, sfile);
+
+	if (!type.declarationType)
 	{
-		if (!Eq(type, "Thing"))
+		if (!Eq(type.declarationType, "Thing"))
 		{
 			char typeStr[128];
-			type.CopyWithTruncate(typeStr, sizeof typeStr);
+			type.declarationType.CopyWithTruncate(typeStr, sizeof typeStr);
 			Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
 		}
 	}
 
-	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type, sfile);
+	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type.declarationType, sfile);
 
 	if (fieldEnumerator.fieldCount != 0)
 	{
@@ -1674,6 +1688,61 @@ void TestSuggestBeyondDot()
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
+void TestArrayInference()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+R"<CODE>(
+
+(interface Sys.IMagic
+	(Enchant (Int32 id)->(Int32 value))
+)
+
+(class Magic (implements Sys.IMagic)
+	(array Int32 berries)
+)
+
+(method Magic.Enchant (Int32 id)->(Int32 value):
+	(this.berries.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+void TestArrayInference2()
+{
+	Intro(__FUNCTION__);
+
+	cstr file =
+
+R"<CODE>(
+
+(class SEXMLReader 
+	(implements Sys.Sexml.ISEXMLReader)
+	
+	(IExpression sexmlRoot)
+	(array Sys.Sexml.ISEXMLDirective rootDirectives)
+	(Int32 nDirectives)
+)
+
+(method SEXMLReader.DirectiveCount -> (Int32 numberOfDirectives):
+	(numberOfDirectives = this.nDirectives)
+	(this.
+
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
 void TestFullEditor_SearchFQType2()
 {
 	Intro(__FUNCTION__);
@@ -1900,22 +1969,21 @@ void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
 
+	goto skip;
 	TestFullEditor_GotoDefinitionOfFunction();
-	return;
+
 	TestFullEditor_GotoDefinitionOfFunction2();
 	TestFullEditor_GotoDefinitionOfFunction3();
 
 	TestFullEditor_GotoDefinitionOfStruct();
 	TestFullEditor_GotoDefinitionOfStruct2();
 	TestFullEditor_GotoDefinitionOfStruct3();
-	return;
 
 	TestFullEditor_GotoDefinitionFail2();
 	TestFullEditor_GotoDefinitionOfInterface();
 	TestFullEditor_GotoDefinitionOfInterface2();
 	TestFullEditor_GotoDefinitionOfInterface3();
 	TestFullEditor_GotoDefinitionOfStruct();
-	return;
 
 	TestPromptForMacro();
 	TestShowTipForFunction();
@@ -1950,7 +2018,13 @@ void MainProtected2(HMODULE /* hLib */)
 	TestFullEditor_SearchForFactories2();
 	TestFullEditor_GotoDefinitionFail();
 	TestFullEditor_GotoDefinitionAtFunction();
+
 	TestComplexCase1();
+
+	TestArrayInference();
+
+skip:
+	TestArrayInference2();
 }
 
 void MainProtected(HMODULE hLib)

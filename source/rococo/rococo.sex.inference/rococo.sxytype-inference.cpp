@@ -165,6 +165,7 @@ namespace Rococo::Sex::Inference
 		UNUSED(className);
 		// classDef will be Name (<type1> <name1>)...(<typeN> <nameN>)
 
+		Substring container = Substring::Null();
 		Substring type;
 		Substring name;
 
@@ -226,7 +227,7 @@ namespace Rococo::Sex::Inference
 					goto next;
 				}
 
-				if (!isalnum(c))
+				if (!isalnum(c) && c != '.')
 				{
 					state = State::ExpectingOpen;
 					goto next;
@@ -248,6 +249,7 @@ namespace Rococo::Sex::Inference
 				{
 					if (Eq(type, "array"_fstring))
 					{
+						container = type;
 						type.start = p;
 						state = State::ReadingType;
 						goto next;
@@ -266,7 +268,7 @@ namespace Rococo::Sex::Inference
 				if (c == ')')
 				{
 					name.finish = p;
-					t(type, name);
+					t(container, type, name);
 					state = State::ExpectingOpen;
 					goto next;
 				}
@@ -289,7 +291,7 @@ namespace Rococo::Sex::Inference
 				}
 				if (c == ')')
 				{
-					t(type, name);
+					t(container, type, name);
 					state = State::ExpectingOpen;
 					goto next;
 				}
@@ -308,8 +310,9 @@ namespace Rococo::Sex::Inference
 
 	void ForEachFieldOfClassDef(cr_substring className, cr_substring classDef, IFieldEnumerator& cb)
 	{
-		auto invokeCallback = [&cb](cr_substring name, cr_substring type)
+		auto invokeCallback = [&cb](cr_substring container, cr_substring name, cr_substring type)
 		{
+			UNUSED(container);
 			char nameBuffer[128];
 			char typeBuffer[128];
 			name.CopyWithTruncate(nameBuffer, sizeof nameBuffer);
@@ -563,12 +566,13 @@ namespace Rococo::Sex::Inference
 
 		TypeInference matchType = TypeInference_None();
 
-		auto searchForNameAndSetType = [&matchType, &parentMember](cr_substring memberType, cr_substring memberName)
+		auto searchForNameAndSetType = [&matchType, &parentMember](cr_substring container, cr_substring memberType, cr_substring memberName)
 		{
 			if (Eq(memberName, parentMember))
 			{
 				matchType.declarationType = memberType;
 				matchType.declarationVariable = memberName;
+				matchType.templateContainer = container;
 			}
 		};
 
@@ -608,14 +612,14 @@ namespace Rococo::Sex::Inference
 	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies
 	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies.
 	*/
-	ROCOCO_MISC_UTILS_API Substring GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
+	ROCOCO_MISC_UTILS_API TypeInference GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
 	{
 		static auto thisRaw = "this"_fstring;
 		static auto thisDot = "this."_fstring;
 
 		if (!token || !document || !islower(*token.start))
 		{
-			return Substring::Null();
+			return TypeInference_None();
 		}
 
 		using namespace Rococo::Sex::Inference;
@@ -628,13 +632,13 @@ namespace Rococo::Sex::Inference
 		{
 			isThis = true;
 			auto classInference = engine.InferContainerClass(token);
-			return classInference.declarationType;
+			return classInference;
 		}
 		else if (Eq(token, thisDot)) // 'this.'
 		{
 			isThis = true;
 			auto classInference = engine.InferContainerClass({ token.start, token.finish - 1 });
-			return classInference.declarationType;
+			return classInference;
 		}
 		else if (StartsWith(token, thisDot)) // 'this.<member-variable>'
 		{
@@ -642,7 +646,7 @@ namespace Rococo::Sex::Inference
 			isThis = false;
 			Substring memberName{ token.start + thisDot.length,token.finish };
 			auto memberInference = engine.InferParentMember(classInference, memberName);
-			return memberInference.declarationType;
+			return memberInference;
 		}
 		else
 		{
@@ -652,11 +656,11 @@ namespace Rococo::Sex::Inference
 
 			if (localVariableInference.declarationType)
 			{
-				return localVariableInference.declarationType;
+				return localVariableInference;
 			}
 			else
 			{
-				return Substring::Null();
+				return TypeInference_None();
 			}
 		}
 	}
