@@ -22,6 +22,126 @@
 	)
 )
 
+(function NamespaceConvertSxyToCpp (IString sxyNamespace) -> (IString cppNamespace):
+	(IStringBuilder sb = (Sys.Type.NewStringBuilder 256))
+	(sb sxyNamespace)
+	(sb.Replace 0 "." "::")
+	(cppNamespace = sb)
+)
+
+// Dog would get converted to dog. apple would remain as apple
+(function ToCamelCase (IString pascalCase) -> (IString camelCase):
+	(IStringBuilder sb = (Sys.Type.NewStringBuilder (pascalCase.Length + 1)))
+	(sb pascalCase)
+	(sb.ToLower 0 0)
+	(camelCase = sb)
+)
+
+(function BuildDommeObject (Sys.Sexml.ISEXMLDirective domme) (IString factoryPrefix) -> :
+	(IStringBuilder sb = (Sys.Type.NewStringBuilder 4096))
+	
+	(IString sxyNamespace = (domme.GetAttributeString "SxyNamespace" true))
+	(IString cppNamespace = (NamespaceConvertSxyToCpp sxyNamespace))
+	
+	(Sys.Sexml.ISEXMLDirectiveList dommeSubdirectives = domme.SubDirectives)
+	
+	(Sys.Sexml.ISEXMLDirective interfaceDirective = (dommeSubdirectives.GetFirstDirective "Interface" true))
+	
+	(IString interfaceName = (interfaceDirective.GetAttributeString "Name" true))
+	(IString implementationClass = (interfaceDirective.GetAttributeString "Implementation" true))
+			
+	(IString headerName = "ICat.h")
+	
+	(#build sb "#include &"" headerName "&"&n")
+	(sb "#include <rococo.domme.h>&n&n")
+
+	(sb "using namespace Rococo;&n")
+	(sb "using namespace Rococo::Domme;&n&n")
+
+	(#build sb "namespace " cppNamespace "::Implementation&n")
+	
+	(sb "{&n")
+	(#build sb "&tstruct " implementationClass " : " interfaceName "Supervisor&n")
+	(sb "&t{&n")
+	(sb "&t&tDommeObject D;&n&n")
+	
+	(#build sb "&t&t" implementationClass "(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, &"" interfaceName "&")&n")
+	(sb "&t&t{&n")
+	
+	(Int32 i = 0)
+	
+	(Sys.Sexml.ISEXMLDirectiveList interfaceSubdirectives = interfaceDirective.SubDirectives)
+	
+	(while true
+		(Sys.Sexml.ISEXMLDirective methodDirective)
+		(Int32 directiveIndex)
+		
+		(interfaceSubdirectives.GetNextDirective i "Method" -> methodDirective directiveIndex)
+		(if (directiveIndex < 0)
+			(break)
+		)
+			
+		(i = directiveIndex + 1)
+		
+		(IString methodName = (methodDirective.GetAttributeString "Name" true))
+		(IString methodVariableName = (ToCamelCase methodName))
+		
+		(#build sb "&t&t&t" methodVariableName "Index = D.GetMethodIndex(&"" methodName "&", 1, 0);&n")
+	)
+	
+	(sb "&t&t}&n&n")
+	
+	(#build sb "&t&t&~" implementationClass "()&n")
+	(sb "&t&t{&n")
+	(sb "&t&t}&n&n&n")
+	
+	(sb "&t&tvoid Free() override&n")
+	(sb "&t&t{&n")
+	(sb "&t&t&tdelete this;&n")
+	(sb "&t&t}&n")
+	
+	
+	(i = 0)
+	(while true
+		(Sys.Sexml.ISEXMLDirective methodDirective)
+		(Int32 directiveIndex)
+		
+		(interfaceSubdirectives.GetNextDirective i "Method" -> methodDirective directiveIndex)
+		(if (directiveIndex < 0)
+			(break)
+		)
+			
+		(i = directiveIndex + 1)
+		
+		(IString methodName = (methodDirective.GetAttributeString "Name" true))
+		(IString methodVariableName = (ToCamelCase methodName))
+		
+		(#build sb "&n&t&tint " methodVariableName "Index = -1;&n&n")
+		
+		(#build sb "&t&tvoid " methodName "() override&n")
+		(sb "&t&t{&n")
+
+		(#build sb "&t&t&tD.CallVirtualMethod(" methodVariableName "Index);&n")
+		(sb "&t&t}&n")
+	)
+	
+	(sb "&t};&n")
+	(sb "}&n&n")
+	
+	(#build sb "namespace " cppNamespace "&n")
+	(sb "{&n")
+	(#build sb "&t" interfaceName "Supervisor* " factoryPrefix implementationClass "(ScriptingResources& scripting, cstr sourceFile)&n")
+	(sb "&t{&n")
+	(#build sb "&t&treturn new Implementation::" implementationClass "(scripting, sourceFile);&n")
+	(sb "&t}&n")
+	(sb "}&n")
+	
+	// define our tab here as four spaces
+	(sb.Replace 0 "&t" "    ")
+	
+	(#printf sb)
+)
+
 (function Main (Int32 id)->(Int32 exitCode):
 	(IString exprPath = (GetCmd "sexml"))
 	(if (not (exprPath ?))
@@ -46,64 +166,12 @@
 		(Sys.Sexml.ISEXMLDirective rootDirective = (reader.Directive i))
 		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "SetDefaults")		
 			(defaultFactoryPrefix = (rootDirective.GetAttributeString "CppFactoryPrefix" true))
+			(continue)
+		)
+		
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Domme")
+			(BuildDommeObject rootDirective defaultFactoryPrefix)
+			(continue)
 		)
 	)
-	
-	(IStringBuilder sb = (Sys.Type.NewStringBuilder 4096))
-	
-	(IString headerName = "ICat.h")
-	(IString nsTarget = "Rococo::Animals")
-	(IString implementationClass = "Cat")
-	(IString interfaceName = "ICat")
-	
-	(#build sb "#include &"" headerName "&"&n")
-	(sb "#include <rococo.domme.h>&n&n")
-
-	(sb "using namespace Rococo;&n")
-	(sb "using namespace Rococo::Domme;&n&n")
-
-	(#build sb "namespace " nsTarget "::Implementation&n")
-	
-	(sb "{&n")
-	(#build sb "&tstruct " implementationClass " : " interfaceName "Supervisor&n")
-	(sb "&t{&n")
-	(sb "&t&tDommeObject D;&n&n")
-	
-	(#build sb "&t&t" implementationClass "(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, &"" interfaceName "&")&n")
-	(sb "&t&t{&n")
-	(#build sb "&t&t&tmakeBiscuitsIndex = D.GetMethodIndex(&"MakeBiscuits&", 1, 0);&n")
-	(sb "&t&t}&n&n")
-	
-	(#build sb "&t&t&~" implementationClass "()&n")
-	(sb "&t&t{&n")
-	(sb "&t&t}&n&n&n")
-	
-	(sb "&t&tvoid Free() override&n")
-	(sb "&t&t{&n")
-	(sb "&t&t&tdelete this;&n")
-	(sb "&t&t}&n&n")
-
-	(sb "&t&tint makeBiscuitsIndex = -1;&n&n")
-
-	(sb "&t&tvoid MakeBiscuits() override&n")
-	(sb "&t&t{&n")
-
-	(sb "&t&t&tD.CallVirtualMethod(makeBiscuitsIndex);&n")
-	(sb "&t&t}&n")
-	
-	(sb "&t};&n")
-	(sb "}&n&n")
-	
-	(#build sb "namespace " nsTarget "&n")
-	(sb "{&n")
-	(#build sb "&t" interfaceName "Supervisor* Create" implementationClass "(ScriptingResources& scripting, cstr sourceFile)&n")
-	(sb "&t{&n")
-	(#build sb "&t&treturn new Implementation::" implementationClass "(scripting, sourceFile);&n")
-	(sb "&t}&n")
-	(sb "}&n")
-	
-	// define our tab here as four spaces
-	(sb.Replace 0 "&t" "    ")
-	
-	(#printf sb)
 )

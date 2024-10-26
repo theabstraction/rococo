@@ -21,12 +21,38 @@
 	:
 	(Interface
 		(Name ICat)
+		(Implementation Cat)
 		(SxyTarget "!script/^^")
 		(CppHeaderTarget "$(source)rococo/include/^^.hpp")
 		(CppSourceTarget "$(source)^^_Domme.cpp")
 		:
 		(Method 
 			(Name MakeBiscuits)
+		)
+		
+		(Method 
+			(Name Mew)
+		)
+	)
+)
+
+
+(Domme
+	(SxyNamespace Rococo.Animals) 
+	:
+	(Interface
+		(Name IDog)
+		(Implementation Dog)
+		(SxyTarget "!script/^^")
+		(CppHeaderTarget "$(source)rococo/include/^^.hpp")
+		(CppSourceTarget "$(source)^^_Domme.cpp")
+		:
+		(Method 
+			(Name Bark)
+		)
+		
+		(Method 
+			(Name GoWalkies)
 		)
 	)
 )

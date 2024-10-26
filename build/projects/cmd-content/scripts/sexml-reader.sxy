@@ -161,7 +161,7 @@
 )
 
 (method SEXMLDirective.GetFirstDirective (IString name)(Bool throwIfMissing) -> (Sys.Sexml.ISEXMLDirective result):
-	(for (Int32 i = 0)(i < this.nDirectives)(i += 1)
+	(for (Int32 i = 0)(i < this.nSubdirectives)(i += 1)
 		(Sys.Sexml.ISEXMLDirective directive = (this.subdirectives i))
 		(if (Sys.Type.Strings.IsExactMatch directive.Name name)
 			(result = directive)
@@ -215,7 +215,7 @@
 )
 
 (method SEXMLDirective.GetNextDirective (Int32 startIndex) (IString name) -> (Sys.Sexml.ISEXMLDirective directive) (Int32 directiveIndex):
-	(for (Int32 i = startIndex)(i < this.nDirectives)(i += 1)
+	(for (Int32 i = startIndex)(i < this.nSubdirectives)(i += 1)
 		(Sys.Sexml.ISEXMLDirective d = (this.subdirectives i))
 		(if (Sys.Type.Strings.IsExactMatch d.Name name)
 			(directive = d)
