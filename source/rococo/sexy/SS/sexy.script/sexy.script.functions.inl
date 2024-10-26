@@ -431,7 +431,7 @@ namespace Rococo
 			if (!TryCompileFunctionCallAndReturnValue(ce, inputExpression, VARTYPE_Derivative, &argStruct, NULL))
 			{
 				cstr name = inputExpression.c_str();
-				Throw(inputExpression, "The input '%s' was not recognized", name);
+				Throw(inputExpression, "The input '%s' was not recognized. Expecting a reference to an object of type %s", name, GetFriendlyName(argStruct));
 			}
 
 			AddArgVariable("input_getaccessor_return_ref", ce, argStruct);

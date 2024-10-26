@@ -3982,21 +3982,21 @@ namespace Rococo::Script
 		}
 	}
 
-	void ValidateClassImplementsMethod(const IArchetype& archetype, const IStructure& classType, cr_sex src, cstr source)
+	void ValidateClassImplementsMethod(const IArchetype& method, const IStructure& classType, cr_sex src, cstr source)
 	{
-		TokenBuffer qualifiedName;
-		StringPrint(qualifiedName, ("%s.%s"), classType.Name(), archetype.Name());
+		TokenBuffer classAndMethod;
+		StringPrint(classAndMethod, "%s.%s", classType.Name(), method.Name());
 
-		const IFunction* f = classType.Module().FindFunction(qualifiedName);
+		const IFunction* f = classType.Module().FindFunction(classAndMethod);
 		if (f == NULL)
 		{
-			Throw(classType.Definition() != NULL ? *(const ISExpression*) classType.Definition() : src, "Expecting method named '%s' inside source module", (cstr)qualifiedName);
+			Throw(classType.Definition() != NULL ? *(const ISExpression*) classType.Definition() : src, "Expecting method named '%s' inside source module", (cstr)classAndMethod);
 		}
 
 		TokenBuffer dottedName;
-		StringPrint(dottedName, ("%s."), source);
+		StringPrint(dottedName, "%s.", source);
 
-		ValidateArchetypeMatchesArchetype(src, *f, archetype, dottedName);
+		ValidateArchetypeMatchesArchetype(src, *f, method, dottedName);
 	}
 
 	void ValidateClassImplementsInterface(const IInterface& interf, const IStructure& classType, cr_sex src)

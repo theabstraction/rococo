@@ -32,6 +32,23 @@
 	(Sys.Reflection.IExpression expr = (Sys.IO.LoadExpression exprPath))
 	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml expr))
 	
+	(Sys.Sexml.ISEXMLDirective header = (reader.GetFirstDirective "Header" true))
+	
+	(IString headerType = (header.GetAttributeString "Type" true))
+	(if (not (Sys.Type.Strings.IsExactMatch headerType "Rococo_Domme"))
+		(Sys.Reflection.IExpression s = header.S)
+		(s.Throw 0 "Cannot find (Type Rococo_Domme) in Header directive")
+	)
+	
+	(IString defaultFactoryPrefix = "New")
+	
+	(for(Int32 i = 0)(i < reader.DirectiveCount)(i += 1)
+		(Sys.Sexml.ISEXMLDirective rootDirective = (reader.Directive i))
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "SetDefaults")		
+			(defaultFactoryPrefix = (rootDirective.GetAttributeString "CppFactoryPrefix" true))
+		)
+	)
+	
 	(IStringBuilder sb = (Sys.Type.NewStringBuilder 4096))
 	
 	(IString headerName = "ICat.h")
@@ -79,7 +96,7 @@
 	
 	(#build sb "namespace " nsTarget "&n")
 	(sb "{&n")
-	(#build sb "&tICatSupervisor* Create" implementationClass "(ScriptingResources& scripting, cstr sourceFile)&n")
+	(#build sb "&t" interfaceName "Supervisor* Create" implementationClass "(ScriptingResources& scripting, cstr sourceFile)&n")
 	(sb "&t{&n")
 	(#build sb "&t&treturn new Implementation::" implementationClass "(scripting, sourceFile);&n")
 	(sb "&t}&n")

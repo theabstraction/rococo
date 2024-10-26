@@ -20,11 +20,15 @@
 	(SubDirectives -> (Sys.Sexml.ISEXMLDirectiveList directives))
 	(S -> (IExpression s))
 	(Name -> (IString name))
+	(FindAttribute (IString name) -> (Sys.Sexml.ISEXMLAttribute attr))
+	(GetAttributeString (IString key)(Bool throwOnError) -> (IString value))
 )
 
 (interface Sys.Sexml.ISEXMLDirectiveList
 	(DirectiveCount -> (Int32 numberOfDirectives))
 	(Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive))
+	(GetFirstDirective (IString name)(Bool throwIfMissing) -> (Sys.Sexml.ISEXMLDirective directive))
+	(GetNextDirective (Int32 startIndex) (IString name) -> (Sys.Sexml.ISEXMLDirective directive)(Int32 directiveIndex))
 )
 
 (interface Sys.Sexml.ISEXMLReader (extends Sys.Sexml.ISEXMLDirectiveList)
@@ -80,12 +84,43 @@
 )
 
 (method SEXMLReader.Directive (Int32 index) -> (Sys.Sexml.ISEXMLDirective directive):
-	(directive = (this.topLevelDirectives index))
+	(directive = (this.rootDirectives index))
 )
 
 (method SEXMLReader.S -> (IExpression s):
-	(s = this.s)
+	(s = this.sexmlRoot)
 )
+
+(method SEXMLReader.GetFirstDirective (IString name)(Bool throwIfMissing) -> (Sys.Sexml.ISEXMLDirective result):
+	(for (Int32 i = 0)(i < this.nDirectives)(i += 1)
+		(Sys.Sexml.ISEXMLDirective directive = (this.rootDirectives i))
+		(if (Sys.Type.Strings.IsExactMatch directive.Name name)
+			(result = directive)
+			(return)
+		)
+	)
+	
+	(if (throwIfMissing)
+		(
+			(#paragraph err "Cannot find root directive '" name "' in sexml")
+			(this.sexmlRoot.Throw 0 err)
+		)
+	)
+)
+
+(method SEXMLReader.GetNextDirective (Int32 startIndex) (IString name) -> (Sys.Sexml.ISEXMLDirective directive) (Int32 directiveIndex):
+	(for (Int32 i = startIndex)(i < this.nDirectives)(i += 1)
+		(Sys.Sexml.ISEXMLDirective d = (this.rootDirectives i))
+		(if (Sys.Type.Strings.IsExactMatch d.Name name)
+			(directive = d)
+			(directiveIndex = i)
+			(return)
+		)
+	)
+	
+	(directiveIndex = -1)
+)
+
 
 (factory Sys.Sexml.ReadSexml Sys.Sexml.ISEXMLReader (IExpression sexmlRoot):
 	(construct SEXMLReader sexmlRoot)
@@ -123,6 +158,83 @@
 
 (method SEXMLDirective.SubDirectives -> (Sys.Sexml.ISEXMLDirectiveList directives):
 	(directives = this)
+)
+
+(method SEXMLDirective.GetFirstDirective (IString name)(Bool throwIfMissing) -> (Sys.Sexml.ISEXMLDirective result):
+	(for (Int32 i = 0)(i < this.nDirectives)(i += 1)
+		(Sys.Sexml.ISEXMLDirective directive = (this.subdirectives i))
+		(if (Sys.Type.Strings.IsExactMatch directive.Name name)
+			(result = directive)
+			(return)
+		)
+	)
+	
+	(if (throwIfMissing)
+		(
+			(#paragraph err "Cannot find directive '" name "' in sexml")
+			(this.sDir.Throw 0 err)
+		)
+	)
+)
+
+(method SEXMLDirective.GetAttributeString (IString key)(Bool throwOnError) -> (IString value):
+	(Sys.Sexml.ISEXMLAttribute a = (this.FindAttribute key))
+	(if (a ?)
+		(if (a.ValueCount != 1)
+			(if (throwOnError)
+				(
+					(#paragraph err "Expecting 1 value for attribute '" key "' in directive " this.name)
+					(this.sDir.Throw 0 err)
+				)
+			)
+		else 
+			(Sys.Reflection.IExpression s = (a.Value 0))
+			(if (s.Type == (#Sys.Reflection.ExpressionTypeAtomic))
+				(s.Text -> value)
+			else
+				(if (s.Type == (#Sys.Reflection.ExpressionTypeString))
+					(s.Text -> value)
+				else
+					(if (throwOnError)
+						(
+							(#paragraph err "Expecting atomic or string literal to '" key "' in directive " this.name)
+							(this.sDir.Throw 0 err)
+						)
+					)
+				)
+			)
+		)
+	else
+		(if (throwOnError)
+			(
+				(#paragraph err "Cannot find attribute '" key "' in directive " this.name)
+				(this.sDir.Throw 0 err)
+			)
+		)
+	)
+)
+
+(method SEXMLDirective.GetNextDirective (Int32 startIndex) (IString name) -> (Sys.Sexml.ISEXMLDirective directive) (Int32 directiveIndex):
+	(for (Int32 i = startIndex)(i < this.nDirectives)(i += 1)
+		(Sys.Sexml.ISEXMLDirective d = (this.subdirectives i))
+		(if (Sys.Type.Strings.IsExactMatch d.Name name)
+			(directive = d)
+			(directiveIndex = i)
+			(return)
+		)
+	)
+	
+	(directiveIndex = -1)
+)
+
+(method SEXMLDirective.FindAttribute (IString name) -> (Sys.Sexml.ISEXMLAttribute attr):
+	(for (Int32 i = 0)(i < this.nAttributes)(i += 1)
+		(Sys.Sexml.ISEXMLAttribute a = (this.Attribute i))
+		(if (Sys.Type.Strings.IsExactMatch a.Key name)
+			(attr = a)
+			(return)
+		)
+	)
 )
 
 (method SEXMLDirective.S -> (IExpression s):

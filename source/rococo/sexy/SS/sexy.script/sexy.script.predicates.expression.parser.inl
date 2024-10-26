@@ -614,8 +614,10 @@ namespace Rococo
           if (IsAtomic(leftExpr) && TryCompileAsCompareStruct(ce, parent, leftExpr, leftExpr.c_str(), op, rightExpr)) return;
 
           VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
-          TryCompileArithmeticExpression(ce, rightExpr, true, varLType);
-          ce.Builder.PopLastVariables(1, true);
+          if (!TryCompileArithmeticExpression(ce, rightExpr, true, varLType))
+          {
+              Throw(rightExpr, "Failed to compile expression as a numeric value");
+          }
 
           ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(varLType));
 

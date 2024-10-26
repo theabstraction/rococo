@@ -295,16 +295,16 @@ namespace Rococo
 
 		void ValidateArchetypeMatchesArchetype(cr_sex s, const IArchetype& f, const IArchetype& requiredArchetype, cstr source)
 		{
-			int delta = requiredArchetype.NumberOfInputs() - f.NumberOfInputs();
+			int delta = f.NumberOfInputs()- requiredArchetype.NumberOfInputs();
 			if (delta != 0)
 			{
-				Throw(s, "There are %s inputs in %s.%s than in that of %s", Comparative(delta), source, f.Name(), requiredArchetype.Name());
+				Throw(s, "There are %s inputs in %s than required by that of %s%s", Comparative(delta),  f.Name(), source, requiredArchetype.Name());
 			}
 
-			delta = requiredArchetype.NumberOfOutputs() - f.NumberOfOutputs();
+			delta = f.NumberOfOutputs() - requiredArchetype.NumberOfOutputs();
 			if (delta != 0)
 			{
-				Throw(s, "There are %s outputs in %s.%s than in that of %s", Comparative(delta), source, f.Name(), requiredArchetype.Name());
+				Throw(s, "There are %s outputs in %s than in that of %s%s", Comparative(delta), f.Name(), source, requiredArchetype.Name());
 			}
 
 			int32 argCount = ArgCount(f);
@@ -393,7 +393,7 @@ namespace Rococo
 				IFunctionBuilder* f = ce.Builder.Module().FindFunction(sourceText);
 				if (f != NULL)
 				{
-					ValidateArchetypeMatchesArchetype(directive, *f, *varStruct.Archetype(), ("archetype "));
+					ValidateArchetypeMatchesArchetype(directive, *f, *varStruct.Archetype(), "archetype ");
 
 					if (f->Builder().NeedsParentsSF() && ce.Builder.Owner().GetArgumentByName(targetVariable) != NULL)
 					{
