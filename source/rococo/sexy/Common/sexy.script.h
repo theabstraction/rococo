@@ -445,6 +445,8 @@ namespace Rococo {
 			virtual bool ValidateMemory() = 0;
 			virtual void SetGlobalVariablesToDefaults() = 0;
 			virtual const IStructure* GetStringBuilderType() const = 0;
+
+			// gets Expression of Sys.Type.Reflection.sxy. If not available throws an IException. Never returns null.
 			virtual const IStructure* GetExpressionType() const = 0;
 			virtual const IStructure* GetExpressionBuilderType() const = 0;
 

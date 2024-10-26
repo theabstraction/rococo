@@ -630,6 +630,98 @@ namespace Rococo
 		   return true;
 	   }
 
+	   void FormatString(REF VariableDesc& desc, cstr prefix, cstr p)
+	   {
+		   if (p == nullptr)
+		   {
+			   SafeFormat(desc.Value, "%s: <null>", prefix);
+		   }
+		   else if (*p == 0)
+		   {
+			   SafeFormat(desc.Value, "%s: <blank-string>", prefix);
+		   }
+		   else if (strlen(p) < 64)
+		   {
+			   SafeFormat(desc.Value, "%s: \"%s\"", prefix, p);
+		   }
+		   else
+		   {
+			   SafeFormat(desc.Value, "%s: \"%.64s...\"", prefix, p);
+		   }
+	   }
+
+	   bool TryFormatIString(REF VariableDesc& desc, IN const ObjectStub& object, IN const IInterface& refInterf)
+	   {
+		   for (const Rococo::Compiler::IInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
+		   {
+			   if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
+			   {
+				   auto& stringObjt = (const CStringConstant&)object;
+				   cstr p = stringObjt.pointer;
+				   FormatString(desc, "", p);
+				   return true;
+			   }
+		   }
+
+		   return false;
+	   }
+
+	   bool TryFormatExpressionProtected(REF VariableDesc& desc, IN const ObjectStub& object, IPublicScriptSystem& ss)
+	   {
+		   if (ss.GetExpressionType() != object.Desc->TypeInfo)
+		   {
+			   return false;
+		   }
+
+		   auto& exprObject = (ObjectStubWithHandle&)object;
+		   const Sex::ISExpression* s = (const Sex::ISExpression*)exprObject.handle;
+
+		   if (s == nullptr)
+		   {
+			   SafeFormat(desc.Value, "Null expression pointer");
+			   return true;
+		   }
+
+		   if (s->Parent() == nullptr)
+		   {
+				SafeFormat(desc.Value, "root: %s", s->Tree().Source().Name());
+			    return true;
+		   }
+		   
+		   switch (s->Type())
+		   {
+		   case EXPRESSION_TYPE_ATOMIC:
+			   FormatString(desc, "atomic: ", s->c_str());
+			   break;
+		   case EXPRESSION_TYPE_STRING_LITERAL:
+			   FormatString(desc, "string: ", s->c_str());
+			   break;
+		   case EXPRESSION_TYPE_NULL:
+			   SafeFormat(desc.Value, "null: line %d, pos %d to line %d pos %d", s->Start().x, s->Start().y, s->End().x, s->End().y);
+			   break;
+		   case EXPRESSION_TYPE_COMPOUND:
+			   SafeFormat(desc.Value, "compound: %d elements. line %d, pos %d to line %d pos %d", s->NumberOfElements(), s->Start().x, s->Start().y, s->End().x, s->End().y);
+			   break;
+		   default:
+			   return false;
+		   }
+
+		   return true;
+	   }
+
+	   bool TryFormatExpression(REF VariableDesc& desc, IN const ObjectStub& object, IPublicScriptSystem& ss)
+	   {
+			TRY_PROTECTED
+			{
+				return TryFormatExpressionProtected(desc, object, ss);
+			}
+			CATCH_PROTECTED
+			{
+				SafeFormat(desc.Value, "<bad expression>");
+				return true;
+			}
+	   }
+
 	   void ForVariable(int index, const IFunction& f, size_t fnOffset, const Rococo::Compiler::IStructure*& lastPseudo, cstr& lastPseudoName, const uint8* sf, IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum)
 	   {
 		   VariableDesc variable = { 0 };
@@ -665,7 +757,7 @@ namespace Rococo
 						object = (ObjectStub*)(pInterface + (*(InterfacePointer)pInterface)->OffsetToInstance);
 						pVariableData = (uint8*)object;
 					}
-						CATCH_PROTECTED
+					CATCH_PROTECTED
 					{
 						SafeFormat(variable.Value, variable.VALUE_CAPACITY, "(bad interface) %p", pVariableData);
 						return;
@@ -674,31 +766,10 @@ namespace Rococo
 					const auto& refInterf = def.ResolvedType->GetInterface(0);
 
 					*variable.Value = 0;
-					for (const Rococo::Compiler::IInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
-					{
-						if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
-						{
-							auto* stringObjt = (CStringConstant*)object;
-							cstr p = stringObjt->pointer;
 
-							if (p == nullptr)
-							{
-								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "<null>");
-							}
-							else if (*p == 0)
-							{
-								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "<blank-string>");
-							}
-							else if (strlen(p) < 64)
-							{
-								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "\"%s\"", stringObjt->pointer);
-							}
-							else
-							{
-								SafeFormat(variable.Value, variable.VALUE_CAPACITY, "\"%.64s...\"", stringObjt->pointer);
-							}
-							break;
-						}
+					if (!TryFormatIString(variable, *object, refInterf))
+					{
+						TryFormatExpression(variable, *object, ss);
 					}
 
 					if (*variable.Value == 0)

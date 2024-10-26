@@ -158,10 +158,8 @@ namespace MHost
 
 				auto* tree = privateSourceCache->GetSource(fileName);
 
-				const int reflModule = 3;
-				exprStruct = _nce.ss.PublicProgramObject().GetModule(reflModule).FindStructure("Expression");
-				if (exprStruct == nullptr) Rococo::Throw(0, "Could not find class [Expression] in module %d (Sys.Reflection.sxy)", reflModule);
-
+				exprStruct = _nce.ss.GetExpressionType();
+				
 				auto* sExpression = _nce.ss.Represent(*exprStruct, &tree->Root());
 				InterfacePointer pExpr = &sExpression->header.pVTables[0];
 				WriteOutput(0, pExpr, _nce);

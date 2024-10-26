@@ -784,7 +784,7 @@ namespace Rococo::Script
 
 		IModuleBuilder& ReflectionModule()
 		{
-			return this->progObjProxy->GetModule(3);
+			return this->progObjProxy->GetModule((int) EModule::Reflection);
 		}
 
 		IModuleBuilder& ReflectionModule() const
@@ -1627,6 +1627,11 @@ namespace Rococo::Script
 			{
 				IModuleBuilder& reflectionModule = ReflectionModule();
 				expressStruct = reflectionModule.FindStructure(("Expression"));
+
+				if (expressStruct == nullptr)
+				{
+					Rococo::Throw(0, "Could not find class [Expression] in module Sys.Reflection.sxy");
+				}
 			}
 
 			return expressStruct;

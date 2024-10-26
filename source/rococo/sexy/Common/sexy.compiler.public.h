@@ -434,6 +434,11 @@ namespace Rococo {
 		inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; }
 		inline bool operator != (const IStructure& a, const IStructure& b) { return &a != &b; }
 
+		enum class EModule : int
+		{
+			Reflection = 3
+		};
+
 		ROCOCO_INTERFACE  IModule
 		{
 			virtual int GetVersion() const = 0;

@@ -441,12 +441,7 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 		// always has a valid sExpression pointer for the lifetime of the program.
 		auto* tree = sourceCache.GetSource(sc->pointer);
 
-		const int reflModule = 3;
-		auto* exprStruct = _nce.ss.PublicProgramObject().GetModule(reflModule).FindStructure("Expression");
-		if (exprStruct == nullptr)
-		{
-			Rococo::Throw(0, "Could not find class [Expression] in module %d (Sys.Reflection.sxy)", reflModule);
-		}
+		auto* exprStruct = _nce.ss.GetExpressionType();
 
 		auto* sExpression = _nce.ss.Represent(*exprStruct, &tree->Root());
 		InterfacePointer pExpr = &sExpression->header.pVTables[0];

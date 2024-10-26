@@ -396,9 +396,9 @@ namespace Rococo
 						}
 					}
 
-					sources.ReleaseAll();
-
 					DebuggerLoop(ss, debugger);
+
+					sources.ReleaseAll();
 				}
 
 				return 0;

@@ -612,7 +612,7 @@ namespace Rococo
 
 			ValidateNotNull(this->typeStringLiteral = obj.GetModule(0).FindStructure("StringConstant"));
 
-			ValidateNotNull(this->typeExpression = obj.GetModule(3).FindStructure("Expression"));
+			ValidateNotNull(this->typeExpression = obj.GetModule((int)EModule::Reflection).FindStructure("Expression"));
 		}
 
 		void Throw(ERRORCODE code, cstr source, cstr format, ...)

@@ -2532,7 +2532,7 @@ namespace Rococo
 				for (const auto* pInterf = &i; pInterf != nullptr; pInterf = pInterf->Base())
 				{
 					// N.B make sure modules match as a security measure
-					if (AreEqual("IExpression", pInterf->Name()) && &pInterf->NullObjectType().Module() == &s.Object().GetModule(3))
+					if (AreEqual("IExpression", pInterf->Name()) && &pInterf->NullObjectType().Module() == &s.Object().GetModule((int) EModule::Reflection))
 					{
 						return true;
 					}
