@@ -31,4 +31,62 @@
 	)
 	(Sys.Reflection.IExpression expr = (Sys.IO.LoadExpression exprPath))
 	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml expr))
+	
+	(IStringBuilder sb = (Sys.Type.NewStringBuilder 4096))
+	
+	(IString headerName = "ICat.h")
+	(IString nsTarget = "Rococo::Animals")
+	(IString implementationClass = "Cat")
+	(IString interfaceName = "ICat")
+	
+	(#build sb "#include &"" headerName "&"&n")
+	(sb "#include <rococo.domme.h>&n&n")
+
+	(sb "using namespace Rococo;&n")
+	(sb "using namespace Rococo::Domme;&n&n")
+
+	(#build sb "namespace " nsTarget "::Implementation&n")
+	
+	(sb "{&n")
+	(#build sb "&tstruct " implementationClass " : " interfaceName "Supervisor&n")
+	(sb "&t{&n")
+	(sb "&t&tDommeObject D;&n&n")
+	
+	(#build sb "&t&t" implementationClass "(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, &"" interfaceName "&")&n")
+	(sb "&t&t{&n")
+	(#build sb "&t&t&tmakeBiscuitsIndex = D.GetMethodIndex(&"MakeBiscuits&", 1, 0);&n")
+	(sb "&t&t}&n&n")
+	
+	(#build sb "&t&t&~" implementationClass "()&n")
+	(sb "&t&t{&n")
+	(sb "&t&t}&n&n&n")
+	
+	(sb "&t&tvoid Free() override&n")
+	(sb "&t&t{&n")
+	(sb "&t&t&tdelete this;&n")
+	(sb "&t&t}&n&n")
+
+	(sb "&t&tint makeBiscuitsIndex = -1;&n&n")
+
+	(sb "&t&tvoid MakeBiscuits() override&n")
+	(sb "&t&t{&n")
+
+	(sb "&t&t&tD.CallVirtualMethod(makeBiscuitsIndex);&n")
+	(sb "&t&t}&n")
+	
+	(sb "&t};&n")
+	(sb "}&n&n")
+	
+	(#build sb "namespace " nsTarget "&n")
+	(sb "{&n")
+	(#build sb "&tICatSupervisor* Create" implementationClass "(ScriptingResources& scripting, cstr sourceFile)&n")
+	(sb "&t{&n")
+	(#build sb "&t&treturn new Implementation::" implementationClass "(scripting, sourceFile);&n")
+	(sb "&t}&n")
+	(sb "}&n")
+	
+	// define our tab here as four spaces
+	(sb.Replace 0 "&t" "    ")
+	
+	(#printf sb)
 )
