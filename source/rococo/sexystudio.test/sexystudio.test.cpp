@@ -2195,6 +2195,27 @@ void TestShowTipForFunction()
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
+void TestShowCompletionsForStruct()
+{
+	cstr file = 
+R"<CODE>(
+(struct DommeContext
+	(Sys.Type.IStringBuilder cppBuilder)
+	(Sys.Type.IStringBuilder headerBuilder)
+	(IString factoryPrefix)
+)
+
+(function Meow -> :
+	(DommeContext dc)
+	(dc.
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
@@ -2266,9 +2287,11 @@ void MainProtected2(HMODULE /* hLib */)
 	TestLocalListInference();
 	TestLocalListInference2();
 
-skip:
 	TestLocalMapInference();
 	TestLocalMapInference2();
+
+skip:
+	TestShowCompletionsForStruct();
 }
 
 void MainProtected(HMODULE hLib)

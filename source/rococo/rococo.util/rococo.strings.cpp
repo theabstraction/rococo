@@ -1085,6 +1085,68 @@ namespace Rococo::Strings
 		length = 0;
 	}
 
+	ROCOCO_UTIL_API bool IsFQNamespace(cr_substring s)
+	{
+		if (s.empty())
+		{
+			return false;
+		}
+
+		if (s.start == nullptr)
+		{
+			return false;
+		}
+
+		if (s.Length() > MAX_FQ_NAME_LEN)
+		{
+			return false;
+		}
+
+		enum State
+		{
+			State_ExpectingSubspace,
+			State_InSupspace,
+		} state = State_ExpectingSubspace;
+
+		for (auto* p = s.start; p != s.finish; p++)
+		{
+			if (state == State_ExpectingSubspace)
+			{
+				if ((*p >= 'A' && *p <= 'Z'))
+				{
+					// Dandy
+					state = State_InSupspace;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else // Insubspace
+			{
+				if ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9'))
+				{
+					// Dandy
+				}
+				else if (*p == '.')
+				{
+					state = State_ExpectingSubspace;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
+		if (state == State_ExpectingSubspace)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	ROCOCO_UTIL_API void ValidateFQNamespace(cstr fqName)
 	{
 		if (fqName == nullptr)

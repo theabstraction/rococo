@@ -300,6 +300,7 @@ namespace Rococo::Strings
 	ROCOCO_API bool IsAlphabetical(char c);
 	ROCOCO_API bool IsNumeric(char c);
 	ROCOCO_API bool IsAlphaNumeric(char c);
+	ROCOCO_API bool IsFQNamespace(cr_substring s);
 	ROCOCO_API bool IsAlphaNumeric(cr_substring s);
 
 	ROCOCO_API size_t HashArg(cstr text);

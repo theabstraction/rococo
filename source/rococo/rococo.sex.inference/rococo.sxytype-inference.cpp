@@ -869,7 +869,7 @@ namespace Rococo::Sex::Inference
 			}
 		}
 
-		if (!IsCapital(*fieldTypeStart) || !IsAlphaNumeric(fieldType))
+		if (!IsCapital(*fieldTypeStart) || !IsFQNamespace(fieldType))
 		{
 			// Field was not a type
 			return EFlowLogic::CONTINUE;
