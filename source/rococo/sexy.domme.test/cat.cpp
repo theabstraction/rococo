@@ -34,9 +34,12 @@ namespace Rococo::Animals::Implementation
 			delete this;
 		}
 	};
+}
 
+namespace Rococo::Animals
+{
 	ICatSupervisor* CreateCat(ScriptingResources& scripting, cstr sourceFile)
 	{
-		return new Cat(scripting, sourceFile);
+		return new Implementation::Cat(scripting, sourceFile);
 	}
 }
