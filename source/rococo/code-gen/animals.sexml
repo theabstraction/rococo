@@ -49,10 +49,21 @@
 		:
 		(Method 
 			(Name Bark)
+			:
+			(Arg
+				(Type Float32)
+				(Name frequencyHz)
+			)
 		)
 		
 		(Method 
 			(Name GoWalkies)
+			:
+			(Arg
+				(Type Vec3)
+				(Name targetPosition)
+				(Attribute const)
+			)
 		)
 	)
 )

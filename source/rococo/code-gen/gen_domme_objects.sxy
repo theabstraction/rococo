@@ -62,6 +62,59 @@
 	(Sys.Type.IStringBuilder headerBuilder)
 	(IString factoryPrefix)
 )
+
+(function IsConstArgument (Sys.Sexml.ISEXMLDirective argDirective) -> (Bool result):
+	(for (Int32 i = 0)(i < argDirective.AttributeCount)(i += 1)
+		(Sys.Sexml.ISEXMLAttribute a = (argDirective.Attribute i))
+		(IString value = (a.ValueAsString true))
+		(if (Sys.Type.Strings.IsExactMatch a.Key "Attribute")
+			(if (Sys.Type.Strings.IsExactMatch value "const")
+				(result = true)
+				(break)
+			)
+		)
+	)
+	
+	(result = false)
+)
+
+(function BuildMethodArgCPP (Sys.Sexml.ISEXMLDirective argDirective) (Sys.Type.IStringBuilder argsBuilder)-> :
+	(IString name = (argDirective.GetAttributeString "Name" true))
+	(IString type = (argDirective.GetAttributeString "Type" true))
+	
+	(if (IsConstArgument argDirective)
+		(argsBuilder "const ")		
+	)
+	
+	(#build argsBuilder type " " name)
+)
+
+(function BuildMethodArgsCPP (Sys.Sexml.ISEXMLDirective methodDirective) (Sys.Type.IStringBuilder argsBuilder) -> :
+	(Sys.Sexml.ISEXMLDirectiveList directives = (methodDirective.SubDirectives))
+	
+	(Bool first = true)
+
+	(Int32 i)
+	(while true
+		(Sys.Sexml.ISEXMLDirective argumentDirective)
+		(Int32 directiveIndex)
+		
+		(directives.GetNextDirective i "Arg" -> argumentDirective directiveIndex)
+		(if (directiveIndex < 0)
+			(break)
+		)
+			
+		(i = directiveIndex + 1)
+		
+		(if first
+			(first = false)
+		else
+			(argsBuilder ", ")
+		)
+		
+		(BuildMethodArgCPP argumentDirective argsBuilder)
+	)
+)
 		
 (function BuildDommeObjectCPP (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
 	(IString sxyNamespace = (domme.GetAttributeString "SxyNamespace" true))
@@ -114,7 +167,11 @@
 		
 		(#build sb "&n&t&tint " methodVariableName "Index = -1;&n&n")
 		
-		(#build sb "&t&tvoid " methodName "() override&n")
+		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
+
+		(BuildMethodArgsCPP methodDirective args)
+		
+		(#build sb "&t&tvoid " methodName "(" args ") override&n")
 		(sb "&t&t{&n")
 
 		(#build sb "&t&t&tD.CallVirtualMethod(" methodVariableName "Index);&n")
@@ -161,7 +218,11 @@
 		(IString methodName = (methodDirective.GetAttributeString "Name" true))
 		(IString methodVariableName = (ToCamelCase methodName))
 		
-		(#build sb "&t&tvirtual void " methodName "() = 0;&n")
+		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
+
+		(BuildMethodArgsCPP methodDirective args)
+		
+		(#build sb "&t&tvirtual void " methodName "(" args ") = 0;&n")
 	)
 	
 	(sb "&t};&n&n")

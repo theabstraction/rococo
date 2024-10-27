@@ -14,8 +14,5 @@ namespace Rococo::Animals
 		virtual void Free() = 0;
 	};
 
-	namespace Implementation
-	{
-		ICatSupervisor* CreateCat(Rococo::Domme::ScriptingResources& scripting, cstr catSourceFile);
-	}
+	ICatSupervisor* CreateCat(Rococo::Domme::ScriptingResources& scripting, cstr catSourceFile);
 }

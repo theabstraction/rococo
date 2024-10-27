@@ -1599,34 +1599,58 @@ namespace Rococo
 
 		void InitDefaultReferences(cr_sex s, CCompileEnvironment& ce, cstr id, const IStructure& st)
 		{
-			if (st.VarType() == VARTYPE_Closure)
+			switch (st.VarType())
 			{
-				MemberDef def;
-				if (!ce.Builder.TryGetVariableByName(OUT def, id) || def.Usage != ARGUMENTUSAGE_BYVALUE)
+				case VARTYPE_Closure:
 				{
-					Throw(s, ("Cannot compile closure. Unhandled syntax"));
+					MemberDef def;
+					if (!ce.Builder.TryGetVariableByName(OUT def, id) || def.Usage != ARGUMENTUSAGE_BYVALUE)
+					{
+						Throw(s, ("Cannot compile closure. Unhandled syntax"));
+					}
+
+					IFunctionBuilder& nullFunction = GetNullFunction(ce.Script, *st.Archetype());
+
+					CodeSection section;
+					nullFunction.Builder().GetCodeSection(section);
+
+					TokenBuffer idcode, idoffset;
+					StringPrint(idcode, ("%s.bytecodeId"), id);
+					StringPrint(idoffset, ("%s.parentSF"), id);
+
+					VariantValue codeRef;
+					codeRef.byteCodeIdValue = section.Id;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, codeRef, BITCOUNT_64);
+					ce.Builder.AssignTempToVariable(0, idcode);
+
+					VariantValue zeroRef;
+					zeroRef.charPtrValue = 0;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_64);
+					ce.Builder.AssignTempToVariable(0, idoffset);
+
+					AddSymbol(ce.Builder, ("%s -> (Null-Function Null-SF)"), id);
 				}
-
-				IFunctionBuilder& nullFunction = GetNullFunction(ce.Script, *st.Archetype());
-
-				CodeSection section;
-				nullFunction.Builder().GetCodeSection(section);
-
-				TokenBuffer idcode, idoffset;
-				StringPrint(idcode, ("%s.bytecodeId"), id);
-				StringPrint(idoffset, ("%s.parentSF"), id);
-
-				VariantValue codeRef;
-				codeRef.byteCodeIdValue = section.Id;
-				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, codeRef, BITCOUNT_64);
-				ce.Builder.AssignTempToVariable(0, idcode);
-
-				VariantValue zeroRef;
-				zeroRef.charPtrValue = 0;
-				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_64);
-				ce.Builder.AssignTempToVariable(0, idoffset);
-
-				AddSymbol(ce.Builder, ("%s -> (Null-Function Null-SF)"), id);
+				break;
+				case VARTYPE_Int32:
+				case VARTYPE_Float32:
+				case VARTYPE_Bool:
+					{
+						VariantValue zeroRef;
+						zeroRef.charPtrValue = 0;
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_32);
+						ce.Builder.AssignTempToVariable(0, id);
+					}
+				break;
+				case VARTYPE_Int64:
+				case VARTYPE_Float64:
+				case VARTYPE_Pointer:
+					{
+						VariantValue zeroRef;
+						zeroRef.charPtrValue = 0;
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_64);
+						ce.Builder.AssignTempToVariable(0, id);
+					}
+				break;
 			}
 		}
 

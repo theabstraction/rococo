@@ -10,6 +10,7 @@
 	(Value (Int32 index) -> (IExpression s))
 	(S -> (IExpression s))
 	(Owner -> (Sys.Sexml.ISEXMLDirective directive))
+	(ValueAsString (Bool throwOnError) -> (IString value))
 )
 
 // (directive (attribute1 ...)(attribute2 ...) : (child1 ...) (child2 ...))
@@ -180,30 +181,7 @@
 (method SEXMLDirective.GetAttributeString (IString key)(Bool throwOnError) -> (IString value):
 	(Sys.Sexml.ISEXMLAttribute a = (this.FindAttribute key))
 	(if (a ?)
-		(if (a.ValueCount != 1)
-			(if (throwOnError)
-				(
-					(#paragraph err "Expecting 1 value for attribute '" key "' in directive " this.name)
-					(this.sDir.Throw 0 err)
-				)
-			)
-		else 
-			(Sys.Reflection.IExpression s = (a.Value 0))
-			(if (s.Type == (#Sys.Reflection.ExpressionTypeAtomic))
-				(s.Text -> value)
-			else
-				(if (s.Type == (#Sys.Reflection.ExpressionTypeString))
-					(s.Text -> value)
-				else
-					(if (throwOnError)
-						(
-							(#paragraph err "Expecting atomic or string literal to '" key "' in directive " this.name)
-							(this.sDir.Throw 0 err)
-						)
-					)
-				)
-			)
-		)
+		(a.ValueAsString throwOnError -> value) 
 	else
 		(if (throwOnError)
 			(
@@ -385,6 +363,33 @@
 
 (method SEXMLAttribute.ValueCount -> (Int32 nValues):
 	(nValues = this.valueCount)
+)
+
+(method SEXMLAttribute.ValueAsString (Bool throwOnError) -> (IString value):
+	(if (this.ValueCount != 1)
+		(if (throwOnError)
+			(
+				(#paragraph err "Expecting 1 value for attribute")
+				(this.s.Throw 0 err)
+			)
+		)
+	else 
+		(Sys.Reflection.IExpression s = (this.Value 0))
+		(if (s.Type == (#Sys.Reflection.ExpressionTypeAtomic))
+			(s.Text -> value)
+		else
+			(if (s.Type == (#Sys.Reflection.ExpressionTypeString))
+				(s.Text -> value)
+			else
+				(if (throwOnError)
+					(
+						(#paragraph err "Expecting atomic or string literal")
+						(this.s.Throw 0 err)
+					)
+				)
+			)
+		)
+	)
 )
 
 (method SEXMLAttribute.Value (Int32 index) -> (IExpression sValue):
