@@ -48,6 +48,6 @@ namespace Rococo::Sex::Inference
 		ROCOCO_MISC_UTILS_API TypeInference InferParentMember(const TypeInference& classInference, Strings::cr_substring token);
 	};
 
-	ROCOCO_MISC_UTILS_API TypeInference GetLocalTypeFromCurrentDocument(bool& isThis, Strings::cr_substring candidate, Strings::cr_substring document);
+	ROCOCO_MISC_UTILS_API TypeInference GetLocalTypeFromCurrentDocument(bool& isThis, Strings::cr_substring candidate, Strings::cr_substring document, int depth = 0);
 	ROCOCO_MISC_UTILS_API void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, Strings::cr_substring searchTerm, Strings::cr_substring type, Strings::cr_substring file);
 }

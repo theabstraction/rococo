@@ -490,7 +490,53 @@ namespace Rococo::Sex::Inference
 
 			Substring token{ startOfType, specimen.finish };
 
-			if (StartsWith(token, "array"_fstring))
+			if (StartsWith(token, "foreach"_fstring))
+			{
+				// (foreach <ref-variable> # <container> <body>)
+
+				TypeInference foreachTypeInference = TypeInference_None();
+
+				foreachTypeInference.templateContainer = { token.start, token.start + "foreach"_fstring.length };
+
+				cstr startOfRef = GetEndOfPadding({ foreachTypeInference.templateContainer.finish, specimen.finish });
+				if (startOfRef == nullptr)
+				{
+					continue;
+				}
+
+				cstr lastRefChar = FindLastVariableChar({ startOfRef, specimen.finish });
+				if (lastRefChar == nullptr)
+				{
+					continue;
+				}
+
+				cstr startOfHash = GetEndOfPadding({ lastRefChar, specimen.finish });
+				if (startOfHash == nullptr)
+				{
+					continue;
+				}
+
+				cstr startOfContainer = GetEndOfPadding({ startOfHash+1, specimen.finish });
+				if (startOfContainer == nullptr)
+				{
+					continue;
+				}
+
+				foreachTypeInference.declarationVariable = { startOfRef, lastRefChar };
+
+				cstr lastContainerChar = FindLastVariableChar({ startOfContainer, specimen.finish });
+				if (lastContainerChar == nullptr)
+				{
+					continue;
+				}
+
+				foreachTypeInference.templateContainer = { startOfContainer, lastContainerChar };
+
+				auto unknown = "foreach"_fstring;
+				foreachTypeInference.declarationType = { unknown, unknown.buffer + unknown.length };
+				return foreachTypeInference;
+			}
+			else if (StartsWith(token, "array"_fstring))
 			{
 				TypeInference arrayTypeInference = TypeInference_None();
 				arrayTypeInference.templateContainer = { token.start, token.start + "array"_fstring.length };
@@ -762,12 +808,12 @@ namespace Rococo::Sex::Inference
 	'this.<member-variable>'....................the member [type] defined in the class for which the containing method applies
 	<local-variable-name>.<children>'...........the member [type] defined in the class for which the containing method applies.
 	*/
-	ROCOCO_MISC_UTILS_API TypeInference GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document)
+	ROCOCO_MISC_UTILS_API TypeInference GetLocalTypeFromCurrentDocument(bool& isThis, cr_substring token, cr_substring document, int depth)
 	{
 		static auto thisRaw = "this"_fstring;
 		static auto thisDot = "this."_fstring;
 
-		if (!token || !document || !islower(*token.start))
+		if (!token || !document || !islower(*token.start) || depth > 3)
 		{
 			return TypeInference_None();
 		}
@@ -806,7 +852,18 @@ namespace Rococo::Sex::Inference
 
 			if (localVariableInference.declarationType)
 			{
-				return localVariableInference;
+				if (Eq(localVariableInference.declarationType, "foreach"_fstring))
+				{
+					auto containerInference = GetLocalTypeFromCurrentDocument(isThis, localVariableInference.templateContainer, document, depth+1);
+					TypeInference elementInference = TypeInference_None();
+					elementInference.declarationType = containerInference.declarationType;
+					elementInference.declarationVariable = token;
+					return elementInference;
+				}
+				else
+				{
+					return localVariableInference;
+				}
 			}
 			else
 			{

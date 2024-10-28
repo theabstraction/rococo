@@ -127,7 +127,6 @@
 	(IString interfaceName = (interfaceDirective.GetAttributeString "Name" true))
 	(IString implementationClass = (interfaceDirective.GetAttributeString "Implementation" true))
 	
-	// TODO Sexysense did not give code completion on cppBuilder, though it works for factoryPrefix
 	(Sys.Type.IStringBuilder sb = dc.cppBuilder)
 			
 	(#build sb "namespace " cppNamespace "::Implementation&n")
@@ -160,7 +159,6 @@
 	(sb "&t&t&tdelete this;&n")
 	(sb "&t&t}&n")
 	
-	// TODO - make sexysense work with iteration variables of foreach
 	(foreach methodDirective # methods	
 		(IString methodName = (methodDirective.GetAttributeString "Name" true))
 		(IString methodVariableName = (ToCamelCase methodName))

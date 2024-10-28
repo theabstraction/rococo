@@ -2216,6 +2216,23 @@ R"<CODE>(
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
+void TestShowCompletionsForeachReferenceVariable()
+{
+	cstr file =
+		R"<CODE>(
+
+(function Meow -> :
+	(array IString names 1)
+	(foreach name # names
+		(name.
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(NULL);
@@ -2290,8 +2307,10 @@ void MainProtected2(HMODULE /* hLib */)
 	TestLocalMapInference();
 	TestLocalMapInference2();
 
-skip:
 	TestShowCompletionsForStruct();
+
+skip:
+	TestShowCompletionsForeachReferenceVariable();
 }
 
 void MainProtected(HMODULE hLib)
