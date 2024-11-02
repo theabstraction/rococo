@@ -132,7 +132,7 @@
 
 		(BuildMethodArgsCPP sMethod args false)
 		
-		(#build sb "&t&tvoid " methodName "(" args ") override&n")
+		(#build sb "&t&t" methodName "(" args " override&n")
 		(sb "&t&t{&n")
 
 		(#build sb "&t&t&tD.CallVirtualMethod(" methodVariableName "Index);&n")
@@ -279,8 +279,18 @@
 	)
 )
 
-(function BuildMethodOutputArgCPP (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder args)-> :
+(function BuildMethodOutputArgCPP (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder argsBuilder)-> :
+	(if (sParameter.ChildCount != 2)
+		(sParameter.Throw 0 "Expecting two arguments to the output specification (<type> <name>. C++ will use the name as a comment, while sxy will use it to name the output parameter")
+	)
 	
+	(Sys.Reflection.IExpression sOutputType = (sParameter 0))
+	(Sys.Reflection.IExpression sOutputName = (sParameter 1))
+	
+	(IString type = (GetAtomicWithAssert sParameter 0 "<type> must be an atomic expression"))
+	(IString name = (GetAtomicWithAssert sParameter 1 "<name> must be an atomic expression"))
+	
+	(#build argsBuilder type " /* " name " */")
 )
 
 (function BuildMethodArgsCPP (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder argsBuilder)(Bool includeDefaultValues)-> :
@@ -291,13 +301,12 @@
 	
 	(for (Int32 i = 1)(i < sMethod.ChildCount)(i += 1)
 		(Sys.Reflection.IExpression parameter = (sMethod i))
-		
-		(if (i > 1)
-			(argsBuilder ", ")
-		)
-		
+			
 		(if (parameter.Type == (#Sys.Reflection.ExpressionTypeCompound))
 			(if (outputIndicator < 0)
+				(if (i > 1)
+					(argsBuilder ", ")
+				)
 				(BuildMethodInputArgCPP parameter argsBuilder includeDefaultValues)
 			else
 				(BuildMethodOutputArgCPP parameter argsBuilder)
@@ -307,12 +316,17 @@
 				(if (Sys.Type.Strings.IsExactMatch "->" parameter.Text)
 					(if (outputIndicator < 0)
 						(outputIndicator = i)
+						(argsBuilder ") -> ")
 					else
 						(parameter.Throw 0 "Unexpected second output indicator")
 					)
 				)
 			)
 		)		
+	)
+	
+	(if (outputIndicator == -1)
+		(argsBuilder ") -> void")
 	)
 )
 
@@ -351,7 +365,7 @@
 		
 		(BuildMethodArgsCPP sMethod args true)
 		
-		(#build sb "&t&tvirtual void " methodName "(" args ") = 0;&n")
+		(#build sb "&t&tvirtual " methodName "(" args " = 0;&n")
 	)
 	
 	(sb "&t};&n&n")
