@@ -404,10 +404,11 @@ namespace Rococo::Sex::SEXML
 						Throw(sAttribute, "Expecting three elements in raw attribute (' <name> <raw>)");
 					}
 
-					// Raw expression (' <name> (...)) - The value of the raw expression is the third argument which can be anything, atomic, string literal, null or compound
+					// Raw expression (' <name> ...) - The value of the raw expression is the s-expression of the attribute itself.
+					// If we were instead to define the third argument as the value, this would entail wrapping a list of items in parenthesis, adding to bloat.
 					type = SEXMLValueType::Raw;
 					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
-					a = new (pMemory) RawValue(*this, sAttribute[2]);
+					a = new (pMemory) RawValue(*this, sAttribute);
 				}
 				else if (Eq(fName, "#Vec2"))
 				{

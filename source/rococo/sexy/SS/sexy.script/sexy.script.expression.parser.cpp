@@ -1528,15 +1528,36 @@ namespace Rococo
 							InitSubmembers(ce, *memberType, sfMemberOffset);
 						}
 					}
-					else if (memberType->VarType() == VARTYPE_Array || memberType->VarType() == VARTYPE_Map || memberType->VarType() == VARTYPE_List)
+					else
 					{
 						VariantValue nullRef;
 						nullRef.vPtrValue = nullptr;
-						ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
-					}
-					else
-					{
-						InitSubmembers(ce, *memberType, sfMemberOffset);
+
+						if (member.Name()[0] != '_')
+						{
+							// Skip C++ defined variables
+							switch (memberType->VarType())
+							{
+							case VARTYPE_Array:
+							case VARTYPE_List:
+							case VARTYPE_Map:
+							case VARTYPE_Pointer:
+								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
+								break;
+							case VARTYPE_Int64:
+							case VARTYPE_Float64:
+								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_64);
+								break;
+							case VARTYPE_Bool:
+							case VARTYPE_Int32:
+							case VARTYPE_Float32:
+								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_32);
+								break;
+							default:
+								InitSubmembers(ce, *memberType, sfMemberOffset);
+								break;
+							}
+						}
 					}
 				}
 				else // Primitve type
@@ -1563,10 +1584,27 @@ namespace Rococo
 		{
 			if (IsPrimitiveType(s.VarType())) return false;
 
+			if (s.Prototype().IsClass)
+			{
+				if (s.MemberCount() > 3)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
 			for(int i = 0; i < s.MemberCount(); ++i)
 			{
 				const IMember& member = s.GetMember(i);
 				const IStructure* memberType = member.UnderlyingType();
+
+				if (IsPrimitiveType(memberType->VarType()))
+				{
+					return true;
+				}
 
 				if (memberType->VarType() == VARTYPE_Array)
 				{

@@ -697,10 +697,10 @@ namespace Rococo
 			   FormatString(desc, "string: ", s->c_str());
 			   break;
 		   case EXPRESSION_TYPE_NULL:
-			   SafeFormat(desc.Value, "null: line %d, pos %d to line %d pos %d", s->Start().x, s->Start().y, s->End().x, s->End().y);
+			   SafeFormat(desc.Value, "null: line %d, pos %d to line %d pos %d", s->Start().y, s->Start().x, s->End().y, s->End().x);
 			   break;
 		   case EXPRESSION_TYPE_COMPOUND:
-			   SafeFormat(desc.Value, "compound: %d elements. line %d, pos %d to line %d pos %d", s->NumberOfElements(), s->Start().x, s->Start().y, s->End().x, s->End().y);
+			   SafeFormat(desc.Value, "compound: %d elements. line %d, pos %d to line %d pos %d", s->NumberOfElements(), s->Start().y, s->Start().x, s->End().y, s->End().x);
 			   break;
 		   default:
 			   return false;

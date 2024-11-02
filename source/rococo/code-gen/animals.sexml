@@ -25,13 +25,9 @@
 		(SxyTarget "!script/^^")
 		(CppHeaderTarget "$(source)rococo/include/^^.hpp")
 		(CppSourceTarget "$(source)^^_Domme.cpp")
-		:
-		(Method 
-			(Name MakeBiscuits)
-		)
-		
-		(Method 
-			(Name Mew)
+		(' Methods
+			(MakeBiscuits)
+			(Mew)
 		)
 	)
 )
@@ -46,24 +42,10 @@
 		(SxyTarget "!script/^^")
 		(CppHeaderTarget "$(source)rococo/include/^^.hpp")
 		(CppSourceTarget "$(source)^^_Domme.cpp")
-		:
-		(Method 
-			(Name Bark)
-			:
-			(Arg
-				(Type Float32)
-				(Name frequencyHz)
-			)
-		)
-		
-		(Method 
-			(Name GoWalkies)
-			:
-			(Arg
-				(Type Vec3)
-				(Name targetPosition)
-				(Attribute const)
-			)
+		(' Methods
+			(Bark (float hz = 512))
+			(GoWalkies (const Vec3& targetPosition))
+			(SetName (const char* name = "&tRover&r&n&x01"))
 		)
 	)
 )

@@ -888,14 +888,14 @@ namespace Rococo
 		   if (!IsLocked(*a))
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: array was unlocked, internal compiler error"));
+			   ss.ThrowFromNativeCode(ERANGE, ("ArrayGetRefUnchecked failed: array was unlocked, internal compiler error"));
 			   return;
 		   }
 
 		   if (index < 0 || index >= a->NumberOfElements)
 		   {
 			   IScriptSystem& ss = *(IScriptSystem*)context;
-			   ss.ThrowFromNativeCode(ERANGE, ("Array.ArrayGetRefUnchecked failed: index out of range, internal compiler error"));
+			   ss.ThrowFromNativeCode(ERANGE, ("ArrayGetRefUnchecked failed: index out of range, internal compiler error"));
 			   return;
 		   }
 #endif
@@ -905,7 +905,16 @@ namespace Rococo
 	   VM_CALLBACK(ArrayGetInterfaceLockless)
 	   {
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
+
 		   int32 index = registers[VM::REGISTER_D7].int32Value;
+
+		   if (index < 0 || index >= a->NumberOfElements)
+		   {
+			   IScriptSystem& ss = *(IScriptSystem*)context;
+			   ss.ThrowFromNativeCode(ERANGE, "ArrayGetInterfaceLockless failed: index out of range");
+			   return;
+		   }
+
 		   uint8* pElement = ((uint8*)a->Start) + index * a->ElementLength;
 		   InterfacePointer* ppInterface = (InterfacePointer*)pElement;
 		   ObjectStub* pObject = InterfaceToInstance(*ppInterface);

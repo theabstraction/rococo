@@ -1667,30 +1667,31 @@ namespace Rococo
 			cstr instance, methodName;
 			if (!splitter.SplitTail(OUT instance, OUT methodName))
 			{
-				// Could be index method
+				// Could be index method or a ?
 				if (s.NumberOfElements() == 2)
 				{
 					instanceStruct = ce.Builder.GetVarStructure(fname);
 					instance = fname;
-					methodName = GetIndexedMethod(ce, s, instanceStruct);
 
-					if (methodName == nullptr)
+					if (IsAtomic(s[1]) && returnType == VARTYPE_Bool)
 					{
-						if (IsAtomic(s[1]) && returnType == VARTYPE_Bool)
+						cstr arg = s[1].c_str();
+						if (Eq(arg, "?") && instanceStruct)
 						{
-							cstr arg = s[1].c_str();
-							if (Eq(arg, "?") && instanceStruct)
+							if (instanceStruct->InterfaceCount() > 0 && IsNullType(*instanceStruct))
 							{
-								if (instanceStruct->InterfaceCount() > 0 && IsNullType(*instanceStruct))
-								{
-									return TryCompileAsTestExistenceAndReturnBool(ce, s, instance, *instanceStruct);
-								}
-								else
-								{
-									Throw(s[0], "(... exists) can only be applied to interface types");
-								}
+								return TryCompileAsTestExistenceAndReturnBool(ce, s, instance, *instanceStruct);
+							}
+							else
+							{
+								Throw(s[0], "(... exists) can only be applied to interface types");
 							}
 						}
+					}
+
+					methodName = GetIndexedMethod(ce, s, instanceStruct);
+					if (!methodName)
+					{
 						return false;
 					}
 				}

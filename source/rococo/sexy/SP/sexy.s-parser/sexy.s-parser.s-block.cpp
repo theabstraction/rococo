@@ -367,7 +367,7 @@ namespace Anon
 
 				if (next != end)
 				{
-					ThrowIllFormedSExpression((int)(end - next), "Parser::Parse failed: too many close parenthesis characters");
+					ThrowIllFormedSExpression((int)(end - next), "%s: Parser::Parse failed: too many close parenthesis characters", name);
 				}
 
 				builder.FinishCompound(sExpression, end, 0, root);
@@ -454,7 +454,7 @@ namespace Anon
 				case ')':
 					if (depth == 0)
 					{
-						ThrowIllFormedSExpression((int)(next - sExpression), "Unexpected close parenthesis at the root expression");
+						ThrowIllFormedSExpression((int)(next - sExpression), "%s: Unexpected close parenthesis at the root expression", name);
 					}
 					builder.FinishCompound(sCompound, next - 1, depth, parent);
 					return next;
@@ -483,7 +483,7 @@ namespace Anon
 
 			if (depth != 0)
 			{
-				ThrowIllFormedSExpression((int)(next - sExpression), "Missing close parenthesis character before end of s-expression");
+				ThrowIllFormedSExpression((int)(next - sExpression), "%s: Missing close parenthesis character before end of s-expression", name);
 			}
 
 			return next;

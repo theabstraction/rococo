@@ -296,6 +296,7 @@
 		(Int32 nExpectedValues = 1)
 		
 		(#Sys.Type.Strings.StringMatch sKey.Text
+			("'" (nExpectedValues = -1))
 			("#Vec2i" (nExpectedValues = 2))
 			("#Vec3i" (nExpectedValues = 3))
 			("#Vec4i" (nExpectedValues = 4))
@@ -308,6 +309,14 @@
 			("#List" (nExpectedValues = sAttribute.ChildCount - 2))
 		)
 		
+		(if (nExpectedValues == -1)
+			(IExpression sAttributeName = (sAttribute 1))
+			// Raw expression of form (' <attribute-name> ...)
+			(Sys.Sexml.ISEXMLAttribute a (Sys.Sexml.NewAttribute sAttributeName.Text sAttribute this))
+			(this.attributes.Push a)
+			(continue)
+		)
+		
 		(if (nExpectedValues == 1)
 			(if (sAttribute.ChildCount != 2)
 				(sAttribute.Throw 0 "Expecting two elements: (<key> <value>)")
@@ -315,23 +324,25 @@
 			
 			(Sys.Sexml.ISEXMLAttribute a (Sys.Sexml.NewAttribute sKey.Text sAttribute this))
 			(this.attributes.Push a)
-		else
-			(Int32 childCount = sAttribute.ChildCount)
-			(if (childCount != (nExpectedValues + 2))
-				(
-					(#Sys.Type.paragraph msg "Expecting (" sKey.Text " <key> <..." nExpectedValues " values...>)")
-					(sAttribute.Throw 0 msg)
-				)
-			)
-			
-			(IExpression sKeyName = (sAttribute 1))
-			(if (sKeyName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
-				(sKeyName.Throw 0 "Expecting atomic value for keyname")
-			)
-			
-			(Sys.Sexml.ISEXMLAttribute a (Sys.Sexml.NewAttribute sKeyName.Text sAttribute this))
-			(this.attributes.Push a)
+			(continue)
 		)
+		
+		
+		(Int32 childCount = sAttribute.ChildCount)
+		(if (childCount != (nExpectedValues + 2))
+			(
+				(#Sys.Type.paragraph msg "Expecting (" sKey.Text " <key> <..." nExpectedValues " values...>)")
+				(sAttribute.Throw 0 msg)
+			)
+		)
+		
+		(IExpression sKeyName = (sAttribute 1))
+		(if (sKeyName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+			(sKeyName.Throw 0 "Expecting atomic value for keyname")
+		)
+		
+		(Sys.Sexml.ISEXMLAttribute a (Sys.Sexml.NewAttribute sKeyName.Text sAttribute this))
+		(this.attributes.Push a)
 	)
 )
 

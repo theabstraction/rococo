@@ -4306,15 +4306,21 @@ R"((namespace EntryPoint)
 	{
 		cstr srcCode =
 			"(namespace EntryPoint)"
-			"(function Main -> (Int32 result):"
+			"(function Main2 -> (Int32 result):"
 			"   (Sys.IRobot robby (Sys.NewRobot))"
-			"   (result = 7)"
+			"   (result = 7 + robby.Arms)"
 			")"
+
+			"(function Main -> (Int32 result):"
+			"   (Main2 -> result)"
+			")"
+
 			"(alias Main EntryPoint.Main)"
 
-			"(class Robot (defines Sys.IRobot))"
+			"(class Robot (defines Sys.IRobot) (Int32 nArms))"
 			"(method Robot.Destruct -> : (Sys.InvokeTest))"
 			"(method Robot.Null -> : )"
+			"(method Robot.Arms -> (Int32 armCount): (armCount = this.nArms))"
 			"(method Robot.Construct -> : )"
 			"(factory Sys.NewRobot Sys.IRobot : (construct Robot))"
 			;

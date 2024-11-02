@@ -1486,7 +1486,7 @@ namespace Rococo::Script
 
 			CCompileEnvironment ce(script, builder);
 
-			InitClassMembers(ce, "this"); // 03062021 TODO - delete this comment
+			InitClassMembers(ce, "this");
 		
 			CompileConstructChildren(ce, mapIndex+1, bodyIndex-1, constructorDef, *type);
 

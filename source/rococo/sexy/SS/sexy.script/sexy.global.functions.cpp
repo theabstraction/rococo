@@ -1124,6 +1124,59 @@ namespace Rococo
 					SafeFormat(value, "IString: <Bad pointer>");
 				}
 			}
+			else if (Eq(name, "_Null_Sys_Reflection_IExpression"))
+			{
+				TRY_PROTECTED
+				{
+					// In the event that we have an Expression
+					// Then we can use the pointer member of the object to determine the s-expression.
+					InterfacePointer p = InterfacePointer(sfItem);
+					auto* object = InterfaceToInstance(InterfacePointer(sfItem));
+					auto* objWithHandle = (ObjectStubWithHandle*) object;
+					const ISExpression* s = (const ISExpression *) objWithHandle->handle;
+					if (object->Desc->TypeInfo == ss.GetExpressionType() && s)
+					{
+						if (s->Parent() == nullptr)
+						{
+							SafeFormat(value, "Expression: <root>");
+						}
+						else
+						{
+							switch (s->Type())
+							{
+							case EXPRESSION_TYPE_ATOMIC:
+							case EXPRESSION_TYPE_STRING_LITERAL:
+								{
+									size_t len = strlen(s->c_str());
+									if (len > 64)
+									{
+										SafeFormat(value, "From line %d pos %d : %.64s...", s->c_str(), s->Start().y, s->Start().x);
+									}
+									else
+									{
+										SafeFormat(value, "From line %d pos %d:  %s", s->c_str(), s->Start().y, s->Start().x);
+									}
+
+									break;
+								}
+							case EXPRESSION_TYPE_COMPOUND:
+								SafeFormat(value, "<compound %d elements>. From line %d pos %d to line %d pos %d", s->NumberOfElements(), s->Start().y, s->Start().x, s->End().y, s->End().x);
+								break;
+							case EXPRESSION_TYPE_NULL:
+								SafeFormat(value, "<null expression>. From line %d pos %d to line %d pos %d", s->NumberOfElements(), s->Start().y, s->Start().x, s->End().y, s->End().x);
+								break;
+							default:
+								SafeFormat(value, "Expression: <Bad pointer>");
+								break;
+							}
+						}
+					}
+				}
+				CATCH_PROTECTED
+				{
+					SafeFormat(value, "Expression: <Bad pointer>");
+				}
+			}
 			else
 			{
 				FormatValue(ss, value, sizeof value, member.UnderlyingType()->VarType(), sfItem);

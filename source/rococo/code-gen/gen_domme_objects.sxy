@@ -37,85 +37,40 @@
 	(camelCase = sb)
 )
 
-(function BuildMethodsArray (Sys.Sexml.ISEXMLDirective interfaceDirective) (array Sys.Sexml.ISEXMLDirective methods) -> :
-	(Int32 i = 0)
-	
-	(Sys.Sexml.ISEXMLDirectiveList interfaceSubdirectives = interfaceDirective.SubDirectives)
-	
-	(while true
-		(Sys.Sexml.ISEXMLDirective methodDirective)
-		(Int32 directiveIndex)
-		
-		(interfaceSubdirectives.GetNextDirective i "Method" -> methodDirective directiveIndex)
-		(if (directiveIndex < 0)
-			(break)
-		)
-			
-		(i = directiveIndex + 1)
-		
-		(methods.Push methodDirective)
-	)
-)
-
 (struct DommeContext
 	(Sys.Type.IStringBuilder cppBuilder)
 	(Sys.Type.IStringBuilder headerBuilder)
 	(IString factoryPrefix)
 )
 
-(function IsConstArgument (Sys.Sexml.ISEXMLDirective argDirective) -> (Bool result):
-	(for (Int32 i = 0)(i < argDirective.AttributeCount)(i += 1)
-		(Sys.Sexml.ISEXMLAttribute a = (argDirective.Attribute i))
-		(IString value = (a.ValueAsString true))
-		(if (Sys.Type.Strings.IsExactMatch a.Key "Attribute")
-			(if (Sys.Type.Strings.IsExactMatch value "const")
-				(result = true)
-				(break)
-			)
+(function AssertCompound (Sys.Reflection.IExpression s)(IString exMessage) -> :
+	(if (s.Type != (#Sys.Reflection.ExpressionTypeCompound))
+		(
+			(#paragraph msg "Expecting compound expression: " exMessage)
+			(s.Throw 0 msg)
+		)
+	)
+)
+
+(function GetAtomicWithAssert  (Sys.Reflection.IExpression s)(Int32 childIndex)(IString exMessage) -> (IString value):
+	(Sys.Reflection.IExpression child = (s.Child childIndex))
+	(if (not (child ?))
+		(
+			(#paragraph msg "No child at position " childIndex ": " exMessage)
+			(child.Throw 0 msg)
 		)
 	)
 	
-	(result = false)
-)
-
-(function BuildMethodArgCPP (Sys.Sexml.ISEXMLDirective argDirective) (Sys.Type.IStringBuilder argsBuilder)-> :
-	(IString name = (argDirective.GetAttributeString "Name" true))
-	(IString type = (argDirective.GetAttributeString "Type" true))
-	
-	(if (IsConstArgument argDirective)
-		(argsBuilder "const ")		
+	(if (child.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+		(
+			(#paragraph msg "Expecting atomic expression: " exMessage)
+			(child.Throw 0 msg)
+		)
 	)
 	
-	(#build argsBuilder type " " name)
+	(child.Text -> value)
 )
 
-(function BuildMethodArgsCPP (Sys.Sexml.ISEXMLDirective methodDirective) (Sys.Type.IStringBuilder argsBuilder) -> :
-	(Sys.Sexml.ISEXMLDirectiveList directives = (methodDirective.SubDirectives))
-	
-	(Bool first = true)
-
-	(Int32 i)
-	(while true
-		(Sys.Sexml.ISEXMLDirective argumentDirective)
-		(Int32 directiveIndex)
-		
-		(directives.GetNextDirective i "Arg" -> argumentDirective directiveIndex)
-		(if (directiveIndex < 0)
-			(break)
-		)
-			
-		(i = directiveIndex + 1)
-		
-		(if first
-			(first = false)
-		else
-			(argsBuilder ", ")
-		)
-		
-		(BuildMethodArgCPP argumentDirective argsBuilder)
-	)
-)
-		
 (function BuildDommeObjectCPP (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
 	(IString sxyNamespace = (domme.GetAttributeString "SxyNamespace" true))
 	(IString cppNamespace = (NamespaceConvertSxyToCpp sxyNamespace))
@@ -139,12 +94,17 @@
 	(#build sb "&t&t" implementationClass "(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, &"" interfaceName "&")&n")
 	(sb "&t&t{&n")
 	
-	(array Sys.Sexml.ISEXMLDirective methods 1)
-	(BuildMethodsArray interfaceDirective methods)
-	
-	(foreach methodDirective # methods
-		(IString methodName = (methodDirective.GetAttributeString "Name" true))
+	(Sys.Sexml.ISEXMLAttribute methods = (interfaceDirective.FindAttribute "Methods"))
+		
+	// (' Methods ...)
+	(Sys.Reflection.IExpression sMethods = methods.S)
+	(for (Int32 i = 2)(i < sMethods.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression sMethod = (sMethods.Child i))
+		(AssertCompound sMethod "Method spec - (Method-Name (input1...)(input2...)->(return-expression)). void methods omit the output indicator '->' and the return-expression")
+		
+		(IString methodName = (GetAtomicWithAssert sMethod 0 "Expecting method name"))
 		(IString methodVariableName = (ToCamelCase methodName))		
+		
 		(#build sb "&t&t&t" methodVariableName "Index = D.GetMethodIndex(&"" methodName "&", 1, 0);&n")
 	)
 	
@@ -159,15 +119,18 @@
 	(sb "&t&t&tdelete this;&n")
 	(sb "&t&t}&n")
 	
-	(foreach methodDirective # methods	
-		(IString methodName = (methodDirective.GetAttributeString "Name" true))
-		(IString methodVariableName = (ToCamelCase methodName))
+	(for (i = 2)(i < sMethods.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression sMethod = (sMethods.Child i))
+		(AssertCompound sMethod "Method spec - (Method-Name (input1...)(input2...)->(return-expression)). void methods omit the output indicator '->' and the return-expression")
+		
+		(IString methodName = (GetAtomicWithAssert sMethod 0 "Expecting method name"))
+		(IString methodVariableName = (ToCamelCase methodName))		
 		
 		(#build sb "&n&t&tint " methodVariableName "Index = -1;&n&n")
 		
 		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
 
-		(BuildMethodArgsCPP methodDirective args)
+		(BuildMethodArgsCPP sMethod args false)
 		
 		(#build sb "&t&tvoid " methodName "(" args ") override&n")
 		(sb "&t&t{&n")
@@ -186,6 +149,171 @@
 	(#build sb "&t&treturn new Implementation::" implementationClass "(scripting, sourceFile);&n")
 	(sb "&t}&n")
 	(sb "}&n&n")
+)
+
+(function GetFirstChar (IString s) -> (Int32 codePoint):
+	(codePoint = (s 0))
+)
+
+(function EscapeCPPString (Sys.Type.IStringBuilder argBuilder)(IString s)(Sys.Reflection.IExpression source) -> :
+	(argBuilder "&"")
+	
+	(Int32 carriageReturn = (GetFirstChar "&r"))
+	(Int32 lineFeed = (GetFirstChar "&n"))
+	(Int32 tab = (GetFirstChar "&t"))
+	(Int32 nul = 0)
+	(Int32 backslash = (GetFirstChar "\"))
+	(Int32 quote = (GetFirstChar "&""))
+	
+	(argBuilder.SetFormat 2 2 true false)
+	
+	(for (Int32 i = 0)(i < s.Length)(i += 1)
+		(Int32 codePoint = (s i))
+		
+		// TODO - write the equivalent of Sys.Type.Strings.StringMatch for character matching
+		
+		(if ((codePoint < 0) or (codePoint > 255))
+			(source.Throw 0 "None ascii/ANSI character in string")
+		)
+		
+		(if (codePoint == quote)
+			(argBuilder "\&"")
+			(continue)				
+		)
+		
+		(if (codePoint == backslash)
+			(argBuilder "\\")
+			(continue)				
+		)
+		
+		(if (codePoint >= 32)
+			(argBuilder.AppendChar codePoint)
+			(continue)
+		)
+		
+		(if (codePoint == carriageReturn)
+			(argBuilder "\r")
+			(continue)				
+		)
+		
+		(if (codePoint == lineFeed)
+			(argBuilder "\n")
+			(continue)				
+		)
+		
+		(if (codePoint == tab)
+			(argBuilder "\t")
+			(continue)				
+		)
+		
+		(if (codePoint == nul)
+			(argBuilder "\0")
+			(continue)				
+		)
+		
+		(argBuilder "\x")
+		
+		(argBuilder Sys.Type.Formatters.Hex)
+		(argBuilder codePoint)
+	)
+	
+	(argBuilder "&"")
+)
+
+(function BuildMethodInputArgCPP (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder argBuilder)(Bool includeDefaultValues)-> :
+
+	(Bool expectingType = true)
+	(Bool expectingName = true)
+	(Bool expectingDefaultAssignment = true)
+
+	(for (Int32 i = 0)(i < sParameter.ChildCount)(i += 1)
+		(IString q = (GetAtomicWithAssert sParameter i "Expecting atomic qualifier to method argument"))
+		(Sys.Reflection.IExpression sQ = (sParameter i))
+		
+		(if (Sys.Type.Strings.IsExactMatch q "const")
+			(argBuilder "const ")
+		else
+			(if expectingType
+				(expectingType = false)
+				(argBuilder q)
+			
+			else 
+				(if expectingName
+					(expectingName = false)
+					(argBuilder " ")
+					(argBuilder q)
+				
+				else
+					(if (not includeDefaultValues)
+						(return)
+					)
+					
+					(if expectingDefaultAssignment
+						(if (Sys.Type.Strings.IsExactMatch q "=")
+							(expectingDefaultAssignment = false)
+							(argBuilder " = ")
+							(Sys.Reflection.IExpression sDefault = (sParameter (i + 1)))
+							(if (not (sDefault ?))
+								(sQ.Throw 0 "Expecting default value to follow the assignment operator")
+							)
+							
+							(if (sDefault.Type == (#Sys.Reflection.ExpressionTypeAtomic))
+								(argBuilder sDefault.Text)
+							else 
+								(if (sDefault.Type == (#Sys.Reflection.ExpressionTypeString))
+									(EscapeCPPString argBuilder sDefault.Text sDefault)
+								else
+									(sDefault.Throw 0 "Expecting atomic or string literal as the default value")
+								)
+							)
+							
+							(break)
+							
+						else
+							(sQ.Throw 0 "Expecting assignment operator '=' to follow the variable name")
+						)
+					)
+				)
+			)
+		)
+	)
+)
+
+(function BuildMethodOutputArgCPP (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder args)-> :
+	
+)
+
+(function BuildMethodArgsCPP (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder argsBuilder)(Bool includeDefaultValues)-> :
+	
+	// (<method-name> (<qualifiers>... <type> <variable-name> = <default>) ... -> (<qualifiers> <return-type> <variable-name>))
+	
+	(Int32 outputIndicator = -1)
+	
+	(for (Int32 i = 1)(i < sMethod.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression parameter = (sMethod i))
+		
+		(if (i > 1)
+			(argsBuilder ", ")
+		)
+		
+		(if (parameter.Type == (#Sys.Reflection.ExpressionTypeCompound))
+			(if (outputIndicator < 0)
+				(BuildMethodInputArgCPP parameter argsBuilder includeDefaultValues)
+			else
+				(BuildMethodOutputArgCPP parameter argsBuilder)
+			)
+		else 
+			(if (parameter.Type == (#Sys.Reflection.ExpressionTypeAtomic))
+				(if (Sys.Type.Strings.IsExactMatch "->" parameter.Text)
+					(if (outputIndicator < 0)
+						(outputIndicator = i)
+					else
+						(parameter.Throw 0 "Unexpected second output indicator")
+					)
+				)
+			)
+		)		
+	)
 )
 
 (function BuildDommeObjectH (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
@@ -208,17 +336,20 @@
 	(#build sb "&tstruct " interfaceName "&n")
 	(sb "&t{&n")
 	
-	(array Sys.Sexml.ISEXMLDirective methods 1)
-	(BuildMethodsArray interfaceDirective methods)
+	(Sys.Sexml.ISEXMLAttribute methods = (interfaceDirective.FindAttribute "Methods"))
 	
-	// TODO - make sexysense work with iteration variables of foreach
-	(foreach methodDirective # methods	
-		(IString methodName = (methodDirective.GetAttributeString "Name" true))
-		(IString methodVariableName = (ToCamelCase methodName))
+	// (' Methods ...)
+	(Sys.Reflection.IExpression sMethods = methods.S)
+	(for (Int32 i = 2)(i < sMethods.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression sMethod = (sMethods.Child i))
+		(AssertCompound sMethod "Method spec - (Method-Name (input1...)(input2...)->(return-expression)). void methods omit the output indicator '->' and the return-expression")
+		
+		(IString methodName = (GetAtomicWithAssert sMethod 0 "Expecting method name"))
+		(IString methodVariableName = (ToCamelCase methodName))		
 		
 		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
-
-		(BuildMethodArgsCPP methodDirective args)
+		
+		(BuildMethodArgsCPP sMethod args true)
 		
 		(#build sb "&t&tvirtual void " methodName "(" args ") = 0;&n")
 	)
