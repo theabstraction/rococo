@@ -130,9 +130,9 @@
 		
 		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
 
-		(BuildMethodArgsCPP sMethod args false)
+		(BuildMethodArgsCPP methodName sMethod args false)
 		
-		(#build sb "&t&t" methodName "(" args " override&n")
+		(#build sb "&t&t" args " override&n")
 		(sb "&t&t{&n")
 
 		(#build sb "&t&t&tD.CallVirtualMethod(" methodVariableName "Index);&n")
@@ -243,6 +243,10 @@
 )
 
 (function BuildMethodOutputArgCPP (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder argsBuilder)-> :
+	(if (not (sParameter ?))
+		(argsBuilder "void")
+	)
+	
 	(if (sParameter.ChildCount != 2)
 		(sParameter.Throw 0 "Expecting two arguments to the output specification (<type> <name>. C++ will use the name as a comment, while sxy will use it to name the output parameter")
 	)
@@ -256,41 +260,54 @@
 	(#build argsBuilder type " /* " name " */")
 )
 
-(function BuildMethodArgsCPP (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder argsBuilder)(Bool includeDefaultValues)-> :
+(function IsAtomicMatch (Sys.Reflection.IExpression s)(IString target) -> (Bool isMatch):
+	(if (s.Type == (#Sys.Reflection.ExpressionTypeAtomic))
+		(Sys.Type.Strings.IsExactMatch s.Text target -> isMatch)
+	)
+)
+
+(function FindTopLevelAtomic (Sys.Reflection.IExpression s)(IString target) -> (Int32 index):
+	(for (Int32 i = 0)(i < s.ChildCount)(i += 1)
+		(Sys.Reflection.IExpression child = (s i))
+		(if (IsAtomicMatch child target)
+			(index = i)
+			(return)
+		)
+	)
+	
+	(index = -1)
+)
+
+(function BuildMethodArgsCPP (IString name) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder argsBuilder)(Bool includeDefaultValues)-> :
 	
 	// (<method-name> (<qualifiers>... <type> <variable-name> = <default>) ... -> (<qualifiers> <return-type> <variable-name>))
 	
-	(Int32 outputIndicator = -1)
+	(Int32 outputIndicator = (FindTopLevelAtomic sMethod "->"))
 	
-	(for (Int32 i = 1)(i < sMethod.ChildCount)(i += 1)
+	(if (outputIndicator > -1)
+		(Sys.Reflection.IExpression outParameter = (sMethod (outputIndicator + 1)))
+		(BuildMethodOutputArgCPP outParameter argsBuilder)
+	else
+		(argsBuilder "void")
+	)
+
+	(#build argsBuilder " " name "(")
+
+	(for (Int32 i = 1)(i < outputIndicator)(i += 1)
 		(Sys.Reflection.IExpression parameter = (sMethod i))
 			
 		(if (parameter.Type == (#Sys.Reflection.ExpressionTypeCompound))
-			(if (outputIndicator < 0)
-				(if (i > 1)
-					(argsBuilder ", ")
-				)
-				(BuildMethodInputArgCPP parameter argsBuilder includeDefaultValues)
-			else
-				(BuildMethodOutputArgCPP parameter argsBuilder)
+			(if (i > 1)
+				(argsBuilder ", ")
 			)
+			
+			(BuildMethodInputArgCPP parameter argsBuilder includeDefaultValues)
 		else 
-			(if (parameter.Type == (#Sys.Reflection.ExpressionTypeAtomic))
-				(if (Sys.Type.Strings.IsExactMatch "->" parameter.Text)
-					(if (outputIndicator < 0)
-						(outputIndicator = i)
-						(argsBuilder ") -> ")
-					else
-						(parameter.Throw 0 "Unexpected second output indicator")
-					)
-				)
-			)
+			(parameter.Throw 0 "Unexpected non-compound expression")
 		)		
 	)
 	
-	(if (outputIndicator == -1)
-		(argsBuilder ") -> void")
-	)
+	(argsBuilder ")")
 )
 
 (function BuildDommeObjectH (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
@@ -326,9 +343,9 @@
 		
 		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
 		
-		(BuildMethodArgsCPP sMethod args true)
+		(BuildMethodArgsCPP methodName sMethod args true)
 		
-		(#build sb "&t&tvirtual " methodName "(" args " = 0;&n")
+		(#build sb "&t&tvirtual " args " = 0;&n")
 	)
 	
 	(sb "&t};&n&n")
