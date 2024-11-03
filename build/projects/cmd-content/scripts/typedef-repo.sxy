@@ -1,0 +1,27 @@
+// "!scripts/typedef-repo.sxy"
+
+(namespace Sys.Type.Domme)
+
+(using Sys.Type)
+
+(class TypeDefs (defines Sys.Type.Domme.ITypeDefs)
+)
+
+(method TypeDefs.Construct :
+)
+
+(method TypeDefs.AddTypedefFile (IString path) -> :
+
+)
+
+(method TypeDefs.MarshalCppName (IString rawCppName)->(IString marshalledCppName):
+	(if (Sys.Type.Strings.IsExactMatch rawCppName "bool")
+		(marshalledCppName = "boolean32")
+	else
+		(marshalledCppName = rawCppName)
+	)
+	
+	
+)
+
+(factory Sys.Type.Domme.TypeDefRepo Sys.Type.Domme.ITypeDefs : (construct TypeDefs))

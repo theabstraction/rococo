@@ -1,4 +1,4 @@
-(' #include "!scripts/sexml-reader.sxy" "!scripts/Sys/Type/Strings/StringMatch.sxy")
+(' #include "!scripts/sexml-reader.sxy" "!scripts/Sys/Type/Strings/StringMatch.sxy" "!scripts/typedef-repo.sxy")
 
 
 (namespace EntryPoint)
@@ -38,6 +38,7 @@
 )
 
 (struct DommeContext
+	(Sys.Type.Domme.ITypeDefs typedefs)
 	(Sys.Type.IStringBuilder cppBuilder)
 	(Sys.Type.IStringBuilder headerBuilder)
 	(IString factoryPrefix)
@@ -135,7 +136,7 @@
 		(#build sb "&t&t" args " override&n")
 		(sb "&t&t{&n")
 		
-		(BuildMarshallingCPP methodVariableName sMethod sb)
+		(BuildMarshallingCPP dc methodVariableName sMethod sb)
 		(sb "&t&t}&n")
 	)
 	
@@ -333,7 +334,7 @@
 	(GetAtomicWithAssert inParameter nameIndex "Expecting variable name" -> varName)
 )
 
-(function BuildMarshallingCPP (IString methodVariableName) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder marshalBuilder)-> :
+(function BuildMarshallingCPP (DommeContext dc) (IString methodVariableName) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder marshalBuilder)-> :
 	
 	// (<method-name> (<qualifiers>... <type> <variable-name> = <default>) ... -> (<qualifiers> <return-type> <variable-name>))
 	
@@ -347,11 +348,11 @@
 	(if (outputIndicator > -1)
 		(Sys.Reflection.IExpression outParameter = (sMethod (outputIndicator + 1)))
 		(if (outParameter ?)
-			(IString varType)
-			(IString varName)
 			(GetMethodElementsCPP outParameter -> outVarType outVarName)
 			
-			(#build marshalBuilder "&t&t&t" outVarType " _vm_out_" outVarName " = 0;&n")
+			(IString marshalledType = (dc.typedefs.MarshalCppName outVarType))
+			
+			(#build marshalBuilder "&t&t&t" marshalledType " _vm_out_" outVarName " = 0;&n")
 			(#build marshalBuilder "&t&t&tD.Push(_vm_out_" outVarName ");&n")	
 		)
 	else
@@ -390,8 +391,8 @@
 		(marshalBuilder ");&n")
 		
 		(if (outVarType ?)
-			(#build marshalBuilder "&t&t&t_vm_out_" outVarName " = D.Pop<" outVarType ">();&n" )	
-			(#build marshalBuilder "&t&t&treturn _vm_out_" outVarName ");&n")
+			(#build marshalBuilder "&t&t&t_vm_out_" outVarName " = D.Pop<" outVarType ">();&n" )
+			(#build marshalBuilder "&t&t&treturn To<" outVarType ">(_vm_out_" outVarName "));&n")
 		)
 	)	
 )
@@ -486,14 +487,24 @@
 	(sbHeader "&tstruct ScriptingResources;&n")
 	(sbHeader "}&n&n")
 	
+	(Sys.Type.Domme.ITypeDefs typedefs (Sys.Type.Domme.TypeDefRepo))
+	
 	(for(Int32 i = 0)(i < reader.DirectiveCount)(i += 1)
+		(Sys.Sexml.ISEXMLDirective rootDirective = (reader.Directive i))
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Typedefs")
+			(IString typeDefFilename =  (rootDirective.GetAttributeString "PathRelativeToThis" true))
+			(typedefs.AddTypedefFile typeDefFilename)
+		)
+	)
+	
+	(for(i = 0)(i < reader.DirectiveCount)(i += 1)
 		(Sys.Sexml.ISEXMLDirective rootDirective = (reader.Directive i))
 		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "SetDefaults")		
 			(defaultFactoryPrefix = (rootDirective.GetAttributeString "CppFactoryPrefix" true))
 			(continue)
 		)
 		
-		(DommeContext context = sb sbHeader defaultFactoryPrefix)
+		(DommeContext context = typedefs sb sbHeader defaultFactoryPrefix)
 		
 		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Domme")
 			(BuildDommeObjectCPP context rootDirective)
