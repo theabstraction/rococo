@@ -22,11 +22,12 @@ namespace Rococo::Animals::Implementation
 		{
 		}
 
-		void MakeBiscuits() override
+		void MakeBiscuits(int nBiscuits) override
 		{
-			// Todo - required fix - push stack frame and pop frame afterwards
-			//auto& vm = D.VM();
+			D.PrepVM();
+			D.Push(nBiscuits);
 			D.CallVirtualMethod(makeBiscuitsIndex);
+			D.PopBytes(sizeof nBiscuits);
 		}
 
 		void Free() override

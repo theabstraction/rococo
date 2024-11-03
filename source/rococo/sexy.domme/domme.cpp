@@ -153,18 +153,39 @@ namespace Rococo::Domme
 		interface0 = &concreteType->GetInterface(0);
 	}
 
+
+
 	void DommeObject::CallVirtualMethod(int methodIndex)
 	{
 		auto& vtable0 = objectStub->pVTables[0];
 		ID_BYTECODE* vtableMethods = (ID_BYTECODE*) vtable0;
 		ID_BYTECODE methodAddress = vtableMethods[methodIndex + 1];
 
-		auto& cpu = vm->Cpu();
-		cpu.SetSF(cpu.SP());
-
 		vm->Push(scriptContext.ip);
 		vm->ExecuteFunctionUntilReturn(methodAddress);
 		vm->PopPointer();
+	}
+
+	void DommeObject::PrepVM()
+	{
+		auto& cpu = vm->Cpu();
+		cpu.SetSF(cpu.SP());
+	}
+
+	void DommeObject::Push(int32 value)
+	{
+		vm->Push(value);
+	}
+
+	void DommeObject::Push(int64 value)
+	{
+		vm->Push(value);
+	}
+
+	void DommeObject::PopBytes(size_t nBytes)
+	{
+		auto& cpu = vm->Cpu();
+		cpu.D[VM::REGISTER_SP].uint8PtrValue -= nBytes;
 	}
 
 	DommeObject::~DommeObject()

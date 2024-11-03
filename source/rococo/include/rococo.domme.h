@@ -69,6 +69,7 @@ namespace Rococo::Domme
 		Rococo::VM::IVirtualMachine* vm;
 
 		cstr scriptInterfaceName;
+
 	public:
 		DOMME_API DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const _namespace, const char* const scriptInterfaceName);
 		DOMME_API ~DommeObject();
@@ -76,5 +77,22 @@ namespace Rococo::Domme
 		Rococo::Script::IPublicScriptSystem& SS() { return *ss; }
 		Rococo::VM::IVirtualMachine& VM() { return *vm; }
 		DOMME_API void CallVirtualMethod(int methodIndex);
+		DOMME_API void Push(int32 value);
+		DOMME_API void Push(int64 value);
+		DOMME_API void PopBytes(size_t nBytes);
+		DOMME_API void PrepVM();
+
+		template<class T> void Push(T tValue)
+		{
+			if (constexpr sizeof T == sizeof int32)
+			{
+				Push((int32)tValue);
+			}
+
+			if (constexpr sizeof T == sizeof int64)
+			{
+				Push((int64)tValue);
+			}
+		}
 	};
 }

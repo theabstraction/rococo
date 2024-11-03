@@ -6,7 +6,7 @@ namespace Rococo::Animals
 {
 	ROCOCO_INTERFACE ICat
 	{
-		virtual void MakeBiscuits() = 0;
+		virtual void MakeBiscuits(int nBiscuits) = 0;
 	};
 
 	ROCOCO_INTERFACE ICatSupervisor : ICat

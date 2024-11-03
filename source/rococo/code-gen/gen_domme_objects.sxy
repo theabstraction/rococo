@@ -134,8 +134,8 @@
 		
 		(#build sb "&t&t" args " override&n")
 		(sb "&t&t{&n")
-
-		(#build sb "&t&t&tD.CallVirtualMethod(" methodVariableName "Index);&n")
+		
+		(BuildMarshallingCPP methodVariableName sMethod sb)
 		(sb "&t&t}&n")
 	)
 	
@@ -281,7 +281,8 @@
 (function BuildMethodArgsCPP (IString name) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder argsBuilder)(Bool includeDefaultValues)-> :
 	
 	// (<method-name> (<qualifiers>... <type> <variable-name> = <default>) ... -> (<qualifiers> <return-type> <variable-name>))
-	
+	// E.g (StartWater (const Pressure& pressure)(float temperature)->(float flow_rate)), which will get converted on the argsBuilder as: 'float /* flow_rate */ StartWater(const Pressure& pressure, float temperature)'
+	 
 	(Int32 outputIndicator = (FindTopLevelAtomic sMethod "->"))
 	
 	(if (outputIndicator > -1)
@@ -289,6 +290,7 @@
 		(BuildMethodOutputArgCPP outParameter argsBuilder)
 	else
 		(argsBuilder "void")
+		(outputIndicator = sMethod.ChildCount)
 	)
 
 	(#build argsBuilder " " name "(")
@@ -308,6 +310,90 @@
 	)
 	
 	(argsBuilder ")")
+)
+
+(function BuildMarshalMethodOutputArgCPP (Sys.Reflection.IExpression outParameter)(Sys.Type.IStringBuilder marshalBuilder) -> :
+)
+
+(function GetMethodElementsCPP (Sys.Reflection.IExpression inParameter)-> (IString varType)(IString varName) :
+	// inParameter: (<optional-const> <type> <name> = <optional-default>)
+	
+	(Int32 nameIndex = 1)
+	
+	(if (inParameter.Type != (#Sys.Reflection.ExpressionTypeCompound))
+		(inParameter.Throw 0 "Expecting compound statement for inParameter")
+	)
+	
+	(GetAtomicWithAssert inParameter 0 "Expecting const or type" -> varType)
+	(if (Sys.Type.Strings.IsExactMatch varType "const")
+		(GetAtomicWithAssert inParameter 1 "Expecting type" -> varType)
+		(nameIndex += 1)
+	)
+	
+	(GetAtomicWithAssert inParameter nameIndex "Expecting variable name" -> varName)
+)
+
+(function BuildMarshallingCPP (IString methodVariableName) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder marshalBuilder)-> :
+	
+	// (<method-name> (<qualifiers>... <type> <variable-name> = <default>) ... -> (<qualifiers> <return-type> <variable-name>))
+	
+	(marshalBuilder "&t&t&tD.PrepVM();&n") 
+	 
+	(Int32 outputIndicator = (FindTopLevelAtomic sMethod "->"))
+	
+	(IString outVarType)
+	(IString outVarName)
+	
+	(if (outputIndicator > -1)
+		(Sys.Reflection.IExpression outParameter = (sMethod (outputIndicator + 1)))
+		(if (outParameter ?)
+			(IString varType)
+			(IString varName)
+			(GetMethodElementsCPP outParameter -> outVarType outVarName)
+			
+			(#build marshalBuilder "&t&t&t" outVarType " _vm_out_" outVarName " = 0;&n")
+			(#build marshalBuilder "&t&t&tD.Push(_vm_out_" outVarName ");&n")	
+		)
+	else
+		(sMethod.ChildCount -> outputIndicator)
+	)
+
+	(for (Int32 i = 1)(i < outputIndicator)(i += 1)
+		(Sys.Reflection.IExpression inParameter = (sMethod i))
+			
+		(IString varType)
+		(IString varName)
+		(GetMethodElementsCPP inParameter -> varType varName)
+		
+		(#build marshalBuilder "&t&t&tD.Push(" varName ");&n")		
+	)
+	
+	(#build marshalBuilder "&t&t&tD.CallVirtualMethod(" methodVariableName "Index);&n")
+	
+	(if ((outputIndicator - 1) > 0)
+		(#build marshalBuilder "&t&t&tD.PopBytes(" )	
+		
+		(for (Int32 i = 1)(i < outputIndicator)(i += 1)
+			(Sys.Reflection.IExpression inParameter = (sMethod i))
+			
+			(if (i > 1)
+				(marshalBuilder " + ")
+			)
+				
+			(IString varType)
+			(IString varName)
+			(GetMethodElementsCPP inParameter -> varType varName)
+			
+			(#build marshalBuilder "sizeof(" varType ")")	
+		)
+		
+		(marshalBuilder ");&n")
+		
+		(if (outVarType ?)
+			(#build marshalBuilder "&t&t&t_vm_out_" outVarName " = D.Pop<" outVarType ">();&n" )	
+			(#build marshalBuilder "&t&t&treturn _vm_out_" outVarName ");&n")
+		)
+	)	
 )
 
 (function BuildDommeObjectH (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
