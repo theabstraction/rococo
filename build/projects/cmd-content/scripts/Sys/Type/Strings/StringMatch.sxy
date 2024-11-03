@@ -1,8 +1,8 @@
 (using Sys.Reflection)
 
-(function BuildMatchStatement (IExpression in)(IExpressionBuilder out)-> :
+(function BuildStringMatch (IExpression in)(IExpressionBuilder out)-> :
 	(if (in.ChildCount < 3)
-		(in.Throw 0 "Expecting at least 3 children: (#Sys.match <text-variable> (key1 (command1 ...))(key2 (command2 ...)))")
+		(in.Throw 0 "Expecting at least 3 children: (#Sys.Type.Strings.StringMatch <text-variable> (key1 (command1 ...))(key2 (command2 ...)))")
 	)
 	
 	(IExpression variableName = (in 1))
@@ -15,7 +15,7 @@
 		(IExpression matchLineCommand = (in i))
 		
 		(if (matchLineCommand.ChildCount < 2)
-			(matchLineCommand.Throw 0 "Expecting more than one expression on the match line")
+			(matchLineCommand.Throw 0 "Expecting more than one expression on the StringMatch line")
 		)
 		
 		(IExpression key = (matchLineCommand 0))
@@ -46,6 +46,98 @@
 				(matchImpl.AddAtomic "else")
 				(owner = matchImpl)			
 		else
+			(key.Throw 0 "StringMatch Key: Expecting atomic or string literal")
+		)
+	)
+)
+
+/*  Executes the command expressions with the matching key. Atomic or string literals are both legitimate values
+	usage: 
+	(#Sys.Type.Strings.StringMatch text-variable
+		(key1 (commands...))
+		...
+		(keyN (commands...))
+	)
+	
+	Example:
+	(IString answer = "Yes")
+	(#Sys.StringMatch answer
+		(Yes (#print "You typed yes"))
+		("No"  (#print "You typed no"))
+	) 
+	
+	the above emits "You typed yes"
+*/
+(macro Sys.Type.Strings.StringMatch in out
+	(Sys.ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#Sys.Type.Strings.StringMatch text-variable (key1 (command...)(key2 (command ...))))")
+	(BuildStringMatch in out)
+)
+
+(function StartsWithChar (Int32 codePointChar)(IString s)->(Bool isTrue):
+	(Int32 firstCharCodePoint = (s 0))
+	(isTrue = (codePointChar == firstCharCodePoint))
+)
+
+(alias StartsWithChar Sys.Type.Strings.StartsWithChar)
+
+(function BuildCharMatch (IExpression in)(IExpressionBuilder out)-> :
+	(if (in.ChildCount < 3)
+		(in.Throw 0 "Expecting at least 3 children: (#Sys.Type.Strings.CharMatch <int32 codepoint> (key1 (command1 ...))(key2 (command2 ...)))")
+	)
+	
+	(IExpression codePointName = (in 1))
+	
+	(if (codePointName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
+		(codePointName.Throw 0 "Expecting atomic value for <int32 codepoint")
+	)
+	
+	(for (Int32 i = 2)(i < in.ChildCount)(i += 1)
+		(IExpression matchLineCommand = (in i))
+		
+		(if (matchLineCommand.Type == (#Sys.Reflection.ExpressionTypeAtomic))
+			(if (Sys.Type.Strings.IsExactMatch "else" matchLineCommand.Text)
+				// we found the finalizing else clause, so all that remains to do is append the remaining expressions onto the end 
+				(while (i < in.ChildCount)
+					(out.Copy (in i))
+					(i += 1)
+				)
+				
+				(return)
+			else
+				(matchLineCommand.Throw 0 "Expecting either a compound match statement or an 'else' atomic expression")
+			)
+		)
+		
+		(if (matchLineCommand.ChildCount < 2)
+			(matchLineCommand.Throw 0 "Expecting more than one expression on the CharMatch line")
+		)
+		
+		(IExpression key = (matchLineCommand 0))
+		
+		(IExpressionBuilder owner = out)
+		
+		(Int32 matchType = key.Type)
+		
+		(if ((matchType == (#Sys.Reflection.ExpressionTypeString)) or (matchType == (#Sys.Reflection.ExpressionTypeAtomic)))
+			(Sys.Type.IString keyName = key.Text)
+			(IExpressionBuilder matchImpl = owner.AddCompound)
+			(matchImpl.AddAtomic "if")
+				(IExpressionBuilder booleanImpl = matchImpl.AddCompound)
+					// (if ((Sys.Type.Strings.Compare (key) target)== 0) ... else...)
+					(IExpressionBuilder compareInvocationImpl = booleanImpl.AddCompound)
+						(compareInvocationImpl.AddAtomic "Sys.Type.Strings.StartsWithChar")
+							(IExpressionBuilder variableWrapper = compareInvocationImpl.AddCompound)		
+								(variableWrapper.AddAtomic codePointName.Text)
+							(IExpressionBuilder keyWrapper = compareInvocationImpl.AddCompound)
+								(keyWrapper.AddStringLiteral keyName)							
+					
+				(for (Int32 j = 1)(j < matchLineCommand.ChildCount)(j += 1)
+					(matchImpl.Copy (matchLineCommand j))
+				)
+				
+				(matchImpl.AddAtomic "else")
+				(owner = matchImpl)			
+		else
 			(key.Throw 0 "Key: Expecting atomic or string literal")
 		)
 	)
@@ -68,7 +160,7 @@
 	
 	the above emits "You typed yes"
 */
-(macro Sys.Type.Strings.StringMatch in out
-	(Sys.ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#Sys.StringMatch text-variable (key1 (command...)(key2 (command ...))))")
-	(BuildMatchStatement in out)
+(macro Sys.Type.Strings.CharMatch in out
+	(Sys.ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#Sys.Type.Strings.CharMatch int32-codepoint-variable (key1 (command...)(key2 (command ...))))")
+	(BuildCharMatch in out)
 )

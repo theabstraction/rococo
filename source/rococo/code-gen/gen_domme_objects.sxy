@@ -170,51 +170,58 @@
 	(for (Int32 i = 0)(i < s.Length)(i += 1)
 		(Int32 codePoint = (s i))
 		
-		// TODO - write the equivalent of Sys.Type.Strings.StringMatch for character matching
-		
-		(if ((codePoint < 0) or (codePoint > 255))
-			(source.Throw 0 "None ascii/ANSI character in string")
-		)
-		
-		(if (codePoint == quote)
+		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("&""))
 			(argBuilder "\&"")
-			(continue)				
+			(goto end)
 		)
-		
-		(if (codePoint == backslash)
-			(argBuilder "\\")
-			(continue)				
+		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("\"))
+			(argBuilder "\\") 
+			(goto end)
 		)
-		
-		(if (codePoint >= 32)
-			(argBuilder.AppendChar codePoint)
-			(continue)
+		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("&n"))
+			(argBuilder "&n")
+			(goto end)
 		)
-		
-		(if (codePoint == carriageReturn)
+		(if (Sys.Type.Strings.StartsWithChar (codePoint) ( "&r" ))
 			(argBuilder "\r")
-			(continue)				
+			(goto end)
+		)
+			
+		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("&t"))
+			(argBuilder "\t") 
+			(goto end)
+		)
+	
+		/* else */
+
+		(if (codePoint >= 32) 
+			(argBuilder.AppendChar codePoint) 
+		else 
+			(argBuilder "\x")
+			(argBuilder Sys.Type.Formatters.Hex)
+			(argBuilder codePoint) 
+		)
+	
+		(label end)
+		
+		/*
+		(#Sys.Type.Strings.CharMatch codePoint
+			("&"" (argBuilder "\&""))
+			("\" (argBuilder "\\"))
+			("&r" (argBuilder "\r"))
+			("&n" (argBuilder "\n"))
+			("&t" (argBuilder "\t"))
+		else
+			(if (codePoint >= 32)
+				(argBuilder.AppendChar codePoint)
+			else				
+				(argBuilder "\x")
+				(argBuilder Sys.Type.Formatters.Hex)
+				(argBuilder codePoint)
+			)
 		)
 		
-		(if (codePoint == lineFeed)
-			(argBuilder "\n")
-			(continue)				
-		)
-		
-		(if (codePoint == tab)
-			(argBuilder "\t")
-			(continue)				
-		)
-		
-		(if (codePoint == nul)
-			(argBuilder "\0")
-			(continue)				
-		)
-		
-		(argBuilder "\x")
-		
-		(argBuilder Sys.Type.Formatters.Hex)
-		(argBuilder codePoint)
+		*/
 	)
 	
 	(argBuilder "&"")

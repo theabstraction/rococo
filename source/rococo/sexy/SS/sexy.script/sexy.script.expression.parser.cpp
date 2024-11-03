@@ -3670,7 +3670,18 @@ namespace Rococo
 				const ISExpression* t = ce.SS.GetTransform(s);
 				if (t != NULL)
 				{
- 					CompileExpression(ce, *t);
+					try
+					{
+						CompileExpression(ce, *t);
+					}
+					catch (ParseException& pex)
+					{
+						Rococo::Sex::Throw(*t, "Error compiling macro %s: %s", token->Buffer, pex.Message());
+					}
+					catch (IException& ex)
+					{
+						Rococo::Sex::Throw(*t, "Error compiling macro %s: %s", token->Buffer, ex.Message());
+					}
 				}
 
 				return;

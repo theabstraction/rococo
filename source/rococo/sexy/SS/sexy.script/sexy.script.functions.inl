@@ -668,7 +668,7 @@ namespace Rococo
 			{
 				if (expectingStructRef)
 				{
-					Throw(s, "Error with %s. The variable is not a derived type. Expected: '%s %s'", ce.Builder.Owner().Name(), GetFriendlyName(inputType), name);
+					Throw(s, "Error with %s. The variable '%s' is not a derived type. Expected: '%s %s'", ce.Builder.Owner().Name(), vname, GetFriendlyName(inputType), name);
 				}
 			}
 
@@ -1207,8 +1207,20 @@ namespace Rococo
 			ValidateSingleOutputAndType(ce, s, callee, returnType, returnArchetype, returnTypeStruct);
 			ValidateInputCount(s, ArgCount(callee) - 1);
 
-			int outputOffset = CompileFunctionCallKernel(ce, s, callee);
-			ReturnOutput(ce, outputOffset, returnType);
+			try
+			{
+				int outputOffset = CompileFunctionCallKernel(ce, s, callee);
+				ReturnOutput(ce, outputOffset, returnType);
+			}
+			catch (ParseException& sex)
+			{
+				Rococo::Sex::Throw(s, "Error compiling %s: %s", callee.Name(), sex.Message());
+			}
+			catch (IException& ex)
+			{
+				Rococo::Sex::Throw(s, "Error compiling %s: %s", callee.Name(), ex.Message());
+			}
+
 			ce.Builder.AssignClosureParentSFtoD6();
 		}
 
