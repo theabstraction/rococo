@@ -134,6 +134,25 @@ namespace Rococo
 			throw ex;
 		}
 
+		ROCOCO_API const ISExpression* GetFirstAtomic(cr_sex s)
+		{
+			if (IsAtomic(s))
+			{
+				return &s;
+			}
+
+			for (int i = 0; i < s.NumberOfElements(); ++i)
+			{
+				auto* theAtomic = GetFirstAtomic(s[i]);
+				if (theAtomic)
+				{
+					return theAtomic;
+				}
+			}
+
+			return nullptr;
+		}
+
 		ROCOCO_API void Throw(cr_sex e, _Printf_format_string_ cstr format, ...)
 		{
 			va_list args;
@@ -142,21 +161,31 @@ namespace Rococo
 			char message[4096];
 			int len = SafeVFormat(message, sizeof(message), format, args);
 
+			StackStringBuilder sb(message + len, sizeof message - len);
+
 			auto* pOriginal = e.GetOriginal();
 			if (pOriginal != nullptr)
 			{
 				cr_sex s = *pOriginal;
-				StackStringBuilder sb(message + len, sizeof message - len);
 
-				char ospecimen[64];
-				GetSpecimen(ospecimen, s);
-				sb.AppendFormat("\nOriginal expression: Line %d pos %d to line %d pos %d. Specimen: %s\n", s.Start().y+1, s.Start().x+1, s.End().y+1, s.End().x+1, ospecimen);
+				const ISExpression* theAtomic = GetFirstAtomic(e);
+				if (theAtomic)
+				{
+					sb.AppendFormat("(near %s)", theAtomic->c_str());
+				}
+
+				char specimen[64];
+				GetSpecimen(specimen, s);
+				ParseException ex(s.Start(), s.End(), s.Tree().Source().Name(), message, specimen, &s);
+				Throw(ex);
 			}
-
-			char specimen[64];
-			GetSpecimen(specimen, e);
-			ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
-			Throw(ex);
+			else
+			{
+				char specimen[64];
+				GetSpecimen(specimen, e);
+				ParseException ex(e.Start(), e.End(), e.Tree().Source().Name(), message, specimen, &e);
+				Throw(ex);
+			}
 		}
 	}
 }

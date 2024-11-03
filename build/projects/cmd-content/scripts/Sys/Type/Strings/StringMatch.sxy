@@ -85,10 +85,15 @@
 		(in.Throw 0 "Expecting at least 3 children: (#Sys.Type.Strings.CharMatch <int32 codepoint> (key1 (command1 ...))(key2 (command2 ...)))")
 	)
 	
+	(Sys.Type.IStringBuilder labelName = (Sys.Type.NewTokenBuilder))
+	(labelName.SetFormat 0 0 false false)
+	(labelName "bcmEnd")
+	(labelName Sys.Maths.I64.GenUnique)
+	
 	(IExpression codePointName = (in 1))
 	
 	(if (codePointName.Type != (#Sys.Reflection.ExpressionTypeAtomic))
-		(codePointName.Throw 0 "Expecting atomic value for <int32 codepoint")
+		(codePointName.Throw 0 "Expecting atomic value for <int32 codepoint>")
 	)
 	
 	(for (Int32 i = 2)(i < in.ChildCount)(i += 1)
@@ -97,12 +102,13 @@
 		(if (matchLineCommand.Type == (#Sys.Reflection.ExpressionTypeAtomic))
 			(if (Sys.Type.Strings.IsExactMatch "else" matchLineCommand.Text)
 				// we found the finalizing else clause, so all that remains to do is append the remaining expressions onto the end 
+				(i += 1)
 				(while (i < in.ChildCount)
 					(out.Copy (in i))
 					(i += 1)
 				)
 				
-				(return)
+				(break)
 			else
 				(matchLineCommand.Throw 0 "Expecting either a compound match statement or an 'else' atomic expression")
 			)
@@ -135,12 +141,18 @@
 					(matchImpl.Copy (matchLineCommand j))
 				)
 				
-				(matchImpl.AddAtomic "else")
+				(IExpressionBuilder jump = matchImpl.AddCompound)
+				(jump.AddAtomic "goto")
+				(jump.AddAtomic labelName)
 				(owner = matchImpl)			
 		else
 			(key.Throw 0 "Key: Expecting atomic or string literal")
 		)
 	)
+	
+	(IExpressionBuilder finalLabel = out.AddCompound)
+	(finalLabel.AddAtomic "label")
+	(finalLabel.AddAtomic labelName)
 )
 
 /*  Executes the command expressions with the matching key. Atomic or string literals are both legitimate values

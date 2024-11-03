@@ -335,7 +335,7 @@ namespace
 			sb->stub.refCount = 1;
 			sb->stub.pVTables[0] = (VirtualTable*) typeFastStringBuilder->GetVirtualTable(1);
 			sb->flags = 0;
-			SafeFormat(sb->prefix, 8, "%s", "%4.4");
+			SafeFormat(sb->prefix, PREFIX_LEN, "%4.4");
 
 			return sb;
 		}
@@ -825,30 +825,34 @@ namespace
 		int precision;
 		ReadInput(1, precision, e);
 
-		if (precision > 9) precision = 9;
+		if (precision > 255) precision = 255;
 
 		int width;
 		ReadInput(2, width, e);
 
-		if (width > 9) precision = 9;
+		if (width > 255) width = 255;
 
-		int isZeroPrefixed; 
+		boolean32 isZeroPrefixed; 
 		ReadInput(3, isZeroPrefixed, e);
 
-		int isRightAligned;
+		boolean32 isRightAligned;
 		ReadInput(4, isRightAligned, e);
 
 		char *t = sb.prefix;
 
 		*t++ = '%';
 
-		if (isRightAligned == 0) *t++ = '-';
-		if (isZeroPrefixed != 0) *t++ = '0';
-		if (width >= 0) *t++ = ('0' + width);
+		if (!isRightAligned) *t++ = '-';
+		if (isZeroPrefixed) *t++ = '0';
+
+		if (width >= 0)
+		{	
+			t += SafeFormat(t, PREFIX_LEN - (t - sb.prefix), "%d", width);
+		}
+
 		if (precision >= 0) 
 		{
-			*t++ = '.';
-			*t++ = ('0' + precision);
+			t += SafeFormat(t, PREFIX_LEN - (t - sb.prefix), ".%d", precision);
 		}
 
 		*t = 0;

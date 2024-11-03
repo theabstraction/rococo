@@ -158,53 +158,11 @@
 (function EscapeCPPString (Sys.Type.IStringBuilder argBuilder)(IString s)(Sys.Reflection.IExpression source) -> :
 	(argBuilder "&"")
 	
-	(Int32 carriageReturn = (GetFirstChar "&r"))
-	(Int32 lineFeed = (GetFirstChar "&n"))
-	(Int32 tab = (GetFirstChar "&t"))
-	(Int32 nul = 0)
-	(Int32 backslash = (GetFirstChar "\"))
-	(Int32 quote = (GetFirstChar "&""))
-	
 	(argBuilder.SetFormat 2 2 true false)
 	
 	(for (Int32 i = 0)(i < s.Length)(i += 1)
 		(Int32 codePoint = (s i))
 		
-		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("&""))
-			(argBuilder "\&"")
-			(goto end)
-		)
-		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("\"))
-			(argBuilder "\\") 
-			(goto end)
-		)
-		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("&n"))
-			(argBuilder "&n")
-			(goto end)
-		)
-		(if (Sys.Type.Strings.StartsWithChar (codePoint) ( "&r" ))
-			(argBuilder "\r")
-			(goto end)
-		)
-			
-		(if (Sys.Type.Strings.StartsWithChar (codePoint) ("&t"))
-			(argBuilder "\t") 
-			(goto end)
-		)
-	
-		/* else */
-
-		(if (codePoint >= 32) 
-			(argBuilder.AppendChar codePoint) 
-		else 
-			(argBuilder "\x")
-			(argBuilder Sys.Type.Formatters.Hex)
-			(argBuilder codePoint) 
-		)
-	
-		(label end)
-		
-		/*
 		(#Sys.Type.Strings.CharMatch codePoint
 			("&"" (argBuilder "\&""))
 			("\" (argBuilder "\\"))
@@ -220,8 +178,6 @@
 				(argBuilder codePoint)
 			)
 		)
-		
-		*/
 	)
 	
 	(argBuilder "&"")

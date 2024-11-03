@@ -285,6 +285,9 @@ namespace Rococo {
 			ThrowIfWouldTruncate = 1 // If set then attempting to write past the capacity of the builder throws an exception
 		};
 
+
+		enum { PREFIX_LEN = 12 };
+
 		struct FastStringBuilder
 		{
 			ObjectStub stub;
@@ -292,7 +295,7 @@ namespace Rococo {
 			char* buffer;
 			int32 capacity;
 			int formatBase;
-			char prefix[12];
+			char prefix[PREFIX_LEN];
 			SPEC spec;
 			int32 flags;
 		};
