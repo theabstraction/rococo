@@ -3,15 +3,52 @@
 (namespace Sys.Type.Domme)
 
 (using Sys.Type)
+(using Sys.IO)
 
 (class TypeDefs (defines Sys.Type.Domme.ITypeDefs)
+	(IStringBuilder rootPath) // defaults to the current directory
+)
+
+(function Slash -> (IString slash):
+	(#token innerSlash)
+	(Sys.IO.AppendDirectorySeparator innerSlash)	
+	(slash = innerSlash)
 )
 
 (method TypeDefs.Construct :
+	(this.rootPath = (Sys.Type.NewPathBuilder))
+	(this.rootPath.ThrowIfAppendWouldTruncate)
+	(Sys.IO.AppendCurrentDirectory this.rootPath)
+	(MakeEndsWithSlash this.rootPath)
 )
 
-(method TypeDefs.AddTypedefFile (IString path) -> :
+(function MakeEndsWithSlash (IStringBuilder path) -> :
+	(if (not (Sys.Type.Strings.EndsWith path Slash))
+		(path.AppendIString Slash)
+	)
+)
 
+(method TypeDefs.SetRootPath (IString rootDirectory) -> :
+	(AssertDirectory rootDirectory)
+	(this.rootPath.Clear)
+	(this.rootPath rootDirectory)
+	(MakeEndsWithSlash this.rootPath)
+)
+
+(method TypeDefs.AddTypedefFile (IString relativeToCurrentPath) -> :
+	(Sys.Type.IStringBuilder absPath = (Sys.Type.NewPathBuilder))
+	(absPath.ThrowIfAppendWouldTruncate)
+	(#build absPath rootPath relativeToCurrentPath)
+	
+	(Sys.Reflection.IExpression sTypedDef = (Sys.IO.LoadExpression absPath))
+	
+	(Sys.Sexml.ISEXMLReader reader = (Sys.Sexml.ReadSexml sTypedDef))
+	
+	(Parse reader)
+)
+
+(method TypeDefs.Parse (Sys.Sexml.ISEXMLReader reader)-> :
+	
 )
 
 (method TypeDefs.MarshalCppName (IString rawCppName)->(IString marshalledCppName):
@@ -20,8 +57,6 @@
 	else
 		(marshalledCppName = rawCppName)
 	)
-	
-	
 )
 
 (factory Sys.Type.Domme.TypeDefRepo Sys.Type.Domme.ITypeDefs : (construct TypeDefs))

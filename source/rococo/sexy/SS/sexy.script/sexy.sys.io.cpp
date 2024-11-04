@@ -1065,6 +1065,51 @@ namespace ANON_NS
 		WriteOutput(0, pCL, e);
 	}
 
+	void Is_Directory(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+
+		IScriptSystem& ss = (IScriptSystem&)e.ss;
+
+		InterfacePointer ipPath;
+		ReadInput(0, ipPath, e);
+
+		CStringConstant* sc = (CStringConstant*)InterfaceToInstance(ipPath);
+
+		if (!sc->length || !sc->pointer)
+		{
+			ss.ThrowNative(0, __FUNCTION__, "No directory was supplied");
+			return;
+		}
+
+		boolean32 result = Rococo::IO::IsDirectory(sc->pointer) ? 1 : 0;
+
+		WriteOutput(0, result, e);
+	}
+
+	void AssertDirectory(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+
+		IScriptSystem& ss = (IScriptSystem&)e.ss;
+
+		InterfacePointer ipPath;
+		ReadInput(0, ipPath, e);
+
+		CStringConstant* sc = (CStringConstant*)InterfaceToInstance(ipPath);
+
+		if (!sc->length || !sc->pointer)
+		{
+			ss.ThrowNative(0, __FUNCTION__, "No directory was supplied");
+			return;
+		}
+
+		if (!Rococo::IO::IsDirectory(sc->pointer))
+		{
+			Throw(0, "%s: '%s' was not a directory", __FUNCTION__, sc->pointer);
+		}		
+	}
+
 	void AppendEnvironmentVariable(NativeCallEnvironment& e)
 	{
 		auto& ioSystem = From(e);
@@ -1121,6 +1166,64 @@ namespace ANON_NS
 			memcpy_s(sb->buffer + sb->length, capacity, ioSystem.envBuffer, requiredLen);
 			sb->length += (int32)requiredLen - 1;
 		}
+	}
+
+	// Emits length of the current directory path to the output
+	void AppendCurrentDirectory(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+
+		IScriptSystem& ss = (IScriptSystem&)e.ss;
+
+		InterfacePointer ipValueBuilder;
+		ReadInput(0, ipValueBuilder, e);
+
+		CClassSysTypeStringBuilder* sb = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipValueBuilder);
+
+		if (!sb->header.Desc->flags.IsSystem)
+		{
+			Throw(0, "%s: string builder was not a System type", __FUNCTION__);
+		}
+
+		U8FilePath path;
+		Rococo::IO::GetCurrentDirectoryPath(OUT path);
+
+		int32 length = (int32)strlen(path);
+		WriteOutput(0, length, e);
+
+		int32 capacity = sb->capacity - sb->length;
+		if (capacity <= length)
+		{
+			Rococo::Throw(0, "%s: string builder capacity %d, length %d was insufficient to safely hold current path '%s' of length %d", __FUNCTION__, sb->capacity, sb->length, path.buf, length);
+		}
+
+		memcpy_s(sb->buffer + sb->length, capacity, path, length);
+		sb->length += (int32)length - 1;
+	}
+
+	void AppendDirectorySeparator(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+
+		IScriptSystem& ss = (IScriptSystem&)e.ss;
+
+		InterfacePointer ipValueBuilder;
+		ReadInput(0, ipValueBuilder, e);
+
+		CClassSysTypeStringBuilder* sb = (CClassSysTypeStringBuilder*)InterfaceToInstance(ipValueBuilder);
+
+		if (!sb->header.Desc->flags.IsSystem)
+		{
+			Throw(0, "%s: string builder was not a System type", __FUNCTION__);
+		}
+
+		int32 capacity = sb->capacity - sb->length;
+		if (capacity <= 0)
+		{
+			Rococo::Throw(0, "%s: string builder capacity exhausted", __FUNCTION__);
+		}
+
+		sb->buffer[sb->length++] = Rococo::IO::GetFileSeparator();
 	}
 
 	void GetCmdArgCount(NativeCallEnvironment& _nce)
@@ -1268,6 +1371,10 @@ namespace Rococo::Script
 			ss.AddNativeCall(sysIO, ANON_NS::GetCmdArgCount, &ioSystem, "GetCmdArgCount -> (Int32 argCount)", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::GetExeName, &ioSystem, "ExeName -> (IString name)", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::GetExePath, &ioSystem, "ExePath -> (IString name)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::AppendCurrentDirectory, &ioSystem, "AppendCurrentDirectory (IStringBuilder sb) -> (Int32 length)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::AppendDirectorySeparator, &ioSystem, "AppendDirectorySeparator (IStringBuilder sb) ->", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::AssertDirectory, &ioSystem, "AssertDirectory (IString path) ->", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::Is_Directory, &ioSystem, "IsDirectory (IString path) -> (Bool isDirectory)", __FILE__, __LINE__, true);
 		}
 
 		const INamespace& sysIONative = ss.AddNativeNamespace("Sys.IO.Native");
