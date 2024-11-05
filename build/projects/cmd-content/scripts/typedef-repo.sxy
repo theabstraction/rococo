@@ -38,17 +38,48 @@
 (method TypeDefs.AddTypedefFile (IString relativeToCurrentPath) -> :
 	(Sys.Type.IStringBuilder absPath = (Sys.Type.NewPathBuilder))
 	(absPath.ThrowIfAppendWouldTruncate)
-	(#build absPath rootPath relativeToCurrentPath)
+	(#build absPath this.rootPath relativeToCurrentPath)
 	
 	(Sys.Reflection.IExpression sTypedDef = (Sys.IO.LoadExpression absPath))
 	
-	(Sys.Sexml.ISEXMLReader reader = (Sys.Sexml.ReadSexml sTypedDef))
+	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml sTypedDef))
 	
-	(Parse reader)
+	(this.Parse reader)
+)
+
+(method TypeDefs.ParseValueType (Sys.Sexml.ISEXMLDirective valueTypeDirective) -> :
+	
+)
+
+(method TypeDefs.ParseMarshallValueType (Sys.Sexml.ISEXMLDirective marshallTypeDirective) -> :
+	
+)
+
+(method TypeDefs.ParseStructType (Sys.Sexml.ISEXMLDirective structTypeDirective) -> :
+	
 )
 
 (method TypeDefs.Parse (Sys.Sexml.ISEXMLReader reader)-> :
+	(Sys.Sexml.ISEXMLDirective header = (reader.GetFirstDirective "Header" true))
 	
+	(IString headerType = (header.GetAttributeString "Type" true))
+	(if (not (Sys.Type.Strings.IsExactMatch headerType "Rococo_Domme_TypeDefs"))
+		(Sys.Reflection.IExpression s = header.S)
+		(s.Throw 0 "Cannot find (Type Rococo_Domme_TypeDefs) in Header directive")
+	)
+	
+	(for(Int32 i = 0)(i < reader.DirectiveCount)(i += 1)
+		(Sys.Sexml.ISEXMLDirective rootDirective = (reader.Directive i))
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "ValueType")
+			(this.ParseValueType rootDirective)
+		)
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "MarshallValueType")
+			(this.ParseMarshallValueType rootDirective)
+		)
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Struct")
+			(this.ParseStructType rootDirective)
+		)
+	)
 )
 
 (method TypeDefs.MarshalCppName (IString rawCppName)->(IString marshalledCppName):

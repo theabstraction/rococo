@@ -1107,153 +1107,162 @@ namespace Rococo
 
       bool TryCompileBooleanExpression(CCompileEnvironment& ce, cr_sex s, bool expected, bool& negate)
       {
-         if (IsCompound(s))
-         {
-            if (s.NumberOfElements() == 1)
-            {
-               cr_sex onlyChild = s.GetElement(0);
-               return TryCompileBooleanExpression(ce, onlyChild, expected, negate);
-            }
-            if (s.NumberOfElements() == 2)
-            {
-               if (TryCompileBooleanValuedFunction(ce, s, expected))
-               {
-                  return true;
-               }
-
-               cr_sex notIndicator = s.GetElement(0);
-               AssertAtomic(notIndicator);
-               if (AreEqual(notIndicator.String(), "not"))
-               {
-                  cr_sex onlyChild = s.GetElement(1);
-                  negate = !negate;
+          if (IsCompound(s))
+          {
+              cr_sex s0 = s[0];
+              if (IsAtomic(s0) && TryCompileMacroInvocation(ce, s, s0.String()))
+              {
+                  const ISExpression* t = ce.SS.GetTransform(s);
+                  if (t != NULL)
+                  {
+                      return TryCompileBooleanExpression(ce, *t, expected, negate);
+                  }
+              }
+              if (s.NumberOfElements() == 1)
+              {
+                  cr_sex onlyChild = s.GetElement(0);
                   return TryCompileBooleanExpression(ce, onlyChild, expected, negate);
-               }
-               else
-               {
-                  if (expected)
-                  {
-                     Throw(s, "Expected 'not' symbol in first argument of a two element binary expression");
-                  }
-                  return false;
-               }
-            }
-            if (s.NumberOfElements() == 3)
-            {
-               cr_sex left = s.GetElement(0);
-               cr_sex opExpr = s.GetElement(1);
-               cr_sex right = s.GetElement(2);
-
-               if (IsBinaryCompareOperator(opExpr))
-               {
-                  CONDITION op = GetBinaryComparisonOp(opExpr, negate);
-                  // Add code to evaluate an expression and copy the result to the tempIndex
-                  CompileBinaryCompareExpression(ce, s, left, op, right);
-
-                  negate = false;
-                  return true;
-               }
-               else if (IsBinaryBooleanOperator(opExpr))
-               {
-                  LOGICAL_OP op = GetBinaryLogicalOp(opExpr);
-                  CompileBinaryBooleanExpression(ce, s, left, op, right);
-                  return true;
-               }
-               else
-               {
+              }
+              if (s.NumberOfElements() == 2)
+              {
                   if (TryCompileBooleanValuedFunction(ce, s, expected))
                   {
-                     return true;
+                      return true;
                   }
 
-                  if (expected)
+                  cr_sex notIndicator = s.GetElement(0);
+                  AssertAtomic(notIndicator);
+                  if (AreEqual(notIndicator.String(), "not"))
                   {
-                     Throw(s, "Expected boolean expression, but could not see a binary predicate operator");
+                      cr_sex onlyChild = s.GetElement(1);
+                      negate = !negate;
+                      return TryCompileBooleanExpression(ce, onlyChild, expected, negate);
                   }
-                  // No binary predicate operator
-                  return false;
-               }
-            }
-            else
-            {
-                if (TryCompileBooleanValuedFunction(ce, s, expected))
-                {
-                    return true;
-                }
+                  else
+                  {
+                      if (expected)
+                      {
+                          Throw(s, "Expected 'not' symbol in first argument of a two element binary expression");
+                      }
+                      return false;
+                  }
+              }
+              if (s.NumberOfElements() == 3)
+              {
+                  cr_sex left = s.GetElement(0);
+                  cr_sex opExpr = s.GetElement(1);
+                  cr_sex right = s.GetElement(2);
 
-                if (expected)
-                {
-                    Throw(s, "Expected expression with 3 elements. This expression had %d elements", s.NumberOfElements());
-                }
-                // All binary predicate expressions have 3 elements
-                return false;
-            }
-         }
-         else if (IsAtomic(s))
-         {
-            cstr token = s.c_str();
+                  if (IsBinaryCompareOperator(opExpr))
+                  {
+                      CONDITION op = GetBinaryComparisonOp(opExpr, negate);
+                      // Add code to evaluate an expression and copy the result to the tempIndex
+                      CompileBinaryCompareExpression(ce, s, left, op, right);
 
-            VariantValue value;
-            if (Parse::TryParseBoolean(OUT value.int32Value, IN token) == Parse::PARSERESULT_GOOD)
-            {
-               if (negate) value.int32Value = !value.int32Value;
-               ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, value, BITCOUNT_32);
-               return true;
-            }
-            else
-            {
-               auto varType = ce.Builder.GetVarType(token);
-               if (VARTYPE_Bool == varType)
-               {
-                  ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
-                  return true;
-               } 
-               else if (varType == VARTYPE_Derivative)
-               {
-                   MemberDef def;
-                   if (!ce.Builder.TryGetVariableByName(def, token))
-                   {
-                       if (expected) Throw(s, "Cannot interpret '%s' as a variable. Not implemented", token);
-                       else return false;
-                   }
-        
-                   if (Eq(def.ResolvedType->Name(), "_MapNode"))
-                   {
-                       // Node ref to D7
-                       AddSymbol(ce.Builder, "%s", token);
-                       ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
-                       AppendInvoke(ce, GetMapCallbacks(ce).DoesMapNodeExist, s);
-                       return true;
-                   }
+                      negate = false;
+                      return true;
+                  }
+                  else if (IsBinaryBooleanOperator(opExpr))
+                  {
+                      LOGICAL_OP op = GetBinaryLogicalOp(opExpr);
+                      CompileBinaryBooleanExpression(ce, s, left, op, right);
+                      return true;
+                  }
+                  else
+                  {
+                      if (TryCompileBooleanValuedFunction(ce, s, expected))
+                      {
+                          return true;
+                      }
 
-                   if (expected) Throw(s, "(%s %s) -> Bool. Not implemented", GetFriendlyName(*def.ResolvedType), token);
-                   else return false;
-               }
-               else
-               {
+                      if (expected)
+                      {
+                          Throw(s, "Expected boolean expression, but could not see a binary predicate operator");
+                      }
+                      // No binary predicate operator
+                      return false;
+                  }
+              }
+              else
+              {
                   if (TryCompileBooleanValuedFunction(ce, s, expected))
                   {
-                     return true;
+                      return true;
                   }
 
                   if (expected)
                   {
-                     Throw(s, ("Expected binary expression, but found an identifier/literal not of the boolean type"));
+                      Throw(s, "Expected expression with 3 elements. This expression had %d elements", s.NumberOfElements());
                   }
-                  // not a boolean
+                  // All binary predicate expressions have 3 elements
                   return false;
-               }
-            }
-         }
-         else
-         {
-            if (expected)
-            {
-               Throw(s, ("Expected binary expression, but expression was neither atomic nor compound"));
-            }
-            // not an atomic or a compound
-            return false;
-         }
+              }
+          }
+          else if (IsAtomic(s))
+          {
+              cstr token = s.c_str();
+
+              VariantValue value;
+              if (Parse::TryParseBoolean(OUT value.int32Value, IN token) == Parse::PARSERESULT_GOOD)
+              {
+                  if (negate) value.int32Value = !value.int32Value;
+                  ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, value, BITCOUNT_32);
+                  return true;
+              }
+              else
+              {
+                  auto varType = ce.Builder.GetVarType(token);
+                  if (VARTYPE_Bool == varType)
+                  {
+                      ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+                      return true;
+                  }
+                  else if (varType == VARTYPE_Derivative)
+                  {
+                      MemberDef def;
+                      if (!ce.Builder.TryGetVariableByName(def, token))
+                      {
+                          if (expected) Throw(s, "Cannot interpret '%s' as a variable. Not implemented", token);
+                          else return false;
+                      }
+
+                      if (Eq(def.ResolvedType->Name(), "_MapNode"))
+                      {
+                          // Node ref to D7
+                          AddSymbol(ce.Builder, "%s", token);
+                          ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+                          AppendInvoke(ce, GetMapCallbacks(ce).DoesMapNodeExist, s);
+                          return true;
+                      }
+
+                      if (expected) Throw(s, "(%s %s) -> Bool. Not implemented", GetFriendlyName(*def.ResolvedType), token);
+                      else return false;
+                  }
+                  else
+                  {
+                      if (TryCompileBooleanValuedFunction(ce, s, expected))
+                      {
+                          return true;
+                      }
+
+                      if (expected)
+                      {
+                          Throw(s, ("Expected binary expression, but found an identifier/literal not of the boolean type"));
+                      }
+                      // not a boolean
+                      return false;
+                  }
+              }
+          }
+          else
+          {
+              if (expected)
+              {
+                  Throw(s, ("Expected binary expression, but expression was neither atomic nor compound"));
+              }
+              // not an atomic or a compound
+              return false;
+          }
       }
    } // Script
 }//Sexy

@@ -194,7 +194,7 @@
 		(IString q = (GetAtomicWithAssert sParameter i "Expecting atomic qualifier to method argument"))
 		(Sys.Reflection.IExpression sQ = (sParameter i))
 		
-		(if (Sys.Type.Strings.IsExactMatch q "const")
+		(if (#eq q "const")
 			(argBuilder "const ")
 		else
 			(if expectingType
@@ -213,7 +213,7 @@
 					)
 					
 					(if expectingDefaultAssignment
-						(if (Sys.Type.Strings.IsExactMatch q "=")
+						(if (#eq q "=")
 							(expectingDefaultAssignment = false)
 							(argBuilder " = ")
 							(Sys.Reflection.IExpression sDefault = (sParameter (i + 1)))
@@ -263,7 +263,7 @@
 
 (function IsAtomicMatch (Sys.Reflection.IExpression s)(IString target) -> (Bool isMatch):
 	(if (s.Type == (#Sys.Reflection.ExpressionTypeAtomic))
-		(Sys.Type.Strings.IsExactMatch s.Text target -> isMatch)
+		(isMatch = (#eq s.Text target))
 	)
 )
 
@@ -326,7 +326,7 @@
 	)
 	
 	(GetAtomicWithAssert inParameter 0 "Expecting const or type" -> varType)
-	(if (Sys.Type.Strings.IsExactMatch varType "const")
+	(if (#eq varType "const")
 		(GetAtomicWithAssert inParameter 1 "Expecting type" -> varType)
 		(nameIndex += 1)
 	)
@@ -460,7 +460,7 @@
 	(Sys.Sexml.ISEXMLDirective header = (reader.GetFirstDirective "Header" true))
 	
 	(IString headerType = (header.GetAttributeString "Type" true))
-	(if (not (Sys.Type.Strings.IsExactMatch headerType "Rococo_Domme"))
+	(if (#neq headerType "Rococo_Domme")
 		(Sys.Reflection.IExpression s = header.S)
 		(s.Throw 0 "Cannot find (Type Rococo_Domme) in Header directive")
 	)
@@ -491,7 +491,7 @@
 	
 	(for(Int32 i = 0)(i < reader.DirectiveCount)(i += 1)
 		(Sys.Sexml.ISEXMLDirective rootDirective = (reader.Directive i))
-		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Typedefs")
+		(if (#eq rootDirective.Name "Typedefs")
 			(IString typeDefFilename =  (rootDirective.GetAttributeString "PathRelativeToThis" true))
 			(typedefs.AddTypedefFile typeDefFilename)
 		)

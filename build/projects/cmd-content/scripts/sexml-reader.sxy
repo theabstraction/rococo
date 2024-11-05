@@ -95,7 +95,7 @@
 (method SEXMLReader.GetFirstDirective (IString name)(Bool throwIfMissing) -> (Sys.Sexml.ISEXMLDirective result):
 	(for (Int32 i = 0)(i < this.nDirectives)(i += 1)
 		(Sys.Sexml.ISEXMLDirective directive = (this.rootDirectives i))
-		(if (Sys.Type.Strings.IsExactMatch directive.Name name)
+		(if (#eq directive.Name name)
 			(result = directive)
 			(return)
 		)
@@ -112,7 +112,7 @@
 (method SEXMLReader.GetNextDirective (Int32 startIndex) (IString name) -> (Sys.Sexml.ISEXMLDirective directive) (Int32 directiveIndex):
 	(for (Int32 i = startIndex)(i < this.nDirectives)(i += 1)
 		(Sys.Sexml.ISEXMLDirective d = (this.rootDirectives i))
-		(if (Sys.Type.Strings.IsExactMatch d.Name name)
+		(if (#eq d.Name name)
 			(directive = d)
 			(directiveIndex = i)
 			(return)
@@ -164,7 +164,7 @@
 (method SEXMLDirective.GetFirstDirective (IString name)(Bool throwIfMissing) -> (Sys.Sexml.ISEXMLDirective result):
 	(for (Int32 i = 0)(i < this.nSubdirectives)(i += 1)
 		(Sys.Sexml.ISEXMLDirective directive = (this.subdirectives i))
-		(if (Sys.Type.Strings.IsExactMatch directive.Name name)
+		(if (#eq directive.Name name)
 			(result = directive)
 			(return)
 		)
@@ -195,7 +195,7 @@
 (method SEXMLDirective.GetNextDirective (Int32 startIndex) (IString name) -> (Sys.Sexml.ISEXMLDirective directive) (Int32 directiveIndex):
 	(for (Int32 i = startIndex)(i < this.nSubdirectives)(i += 1)
 		(Sys.Sexml.ISEXMLDirective d = (this.subdirectives i))
-		(if (Sys.Type.Strings.IsExactMatch d.Name name)
+		(if (#eq d.Name name)
 			(directive = d)
 			(directiveIndex = i)
 			(return)
@@ -208,7 +208,7 @@
 (method SEXMLDirective.FindAttribute (IString name) -> (Sys.Sexml.ISEXMLAttribute attr):
 	(for (Int32 i = 0)(i < this.nAttributes)(i += 1)
 		(Sys.Sexml.ISEXMLAttribute a = (this.Attribute i))
-		(if (Sys.Type.Strings.IsExactMatch a.Key name)
+		(if (#eq a.Key name)
 			(attr = a)
 			(return)
 		)
@@ -318,7 +318,7 @@
 		)
 		
 		(if (nExpectedValues == 1)
-			(if (sAttribute.ChildCount != 2)
+			(if ((#neq "#List" sKey.Text) and (sAttribute.ChildCount != 2))
 				(sAttribute.Throw 0 "Expecting two elements: (<key> <value>)")
 			)
 			

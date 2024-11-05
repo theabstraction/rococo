@@ -1197,8 +1197,9 @@ namespace ANON_NS
 			Rococo::Throw(0, "%s: string builder capacity %d, length %d was insufficient to safely hold current path '%s' of length %d", __FUNCTION__, sb->capacity, sb->length, path.buf, length);
 		}
 
-		memcpy_s(sb->buffer + sb->length, capacity, path, length);
-		sb->length += (int32)length - 1;
+		memcpy_s(sb->buffer + sb->length, capacity, path, length + 1);
+		sb->length += (int32)length;
+		sb->length = min(sb->capacity - 1, sb->length);
 	}
 
 	void AppendDirectorySeparator(NativeCallEnvironment& e)

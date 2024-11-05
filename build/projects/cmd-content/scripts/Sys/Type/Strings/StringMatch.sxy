@@ -1,4 +1,5 @@
 (using Sys.Reflection)
+(using Sys.Type)
 
 (function BuildStringMatch (IExpression in)(IExpressionBuilder out)-> :
 	(if (in.ChildCount < 3)
@@ -175,4 +176,21 @@
 (macro Sys.Type.Strings.CharMatch in out
 	(Sys.ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#Sys.Type.Strings.CharMatch int32-codepoint-variable (key1 (command...)(key2 (command ...))))")
 	(BuildCharMatch in out)
+)
+
+(macro Sys.Type.eq in out
+	(Sys.ValidateSubscriptRange in.ChildCount 3 3 "Usage: (#Sys.Type.eq <string-a> <string-b>")
+	(out.AddAtomic "Sys.Type.Strings.IsExactMatch")
+	(out.Copy (in 1))
+	(out.Copy (in 2))
+)
+
+
+(macro Sys.Type.neq in out
+	(Sys.ValidateSubscriptRange in.ChildCount 3 3 "Usage: (#Sys.Type.neq <string-a> <string-b>) // compares two strings using Sys.Type.Strings.IsExactMatch and returns the negation")
+	(out.AddAtomic "not")
+	(Sys.Reflection.IExpressionBuilder fCallExpr = out.AddCompound)
+	(fCallExpr.AddAtomic "Sys.Type.Strings.IsExactMatch")
+	(fCallExpr.Copy (in 1))
+	(fCallExpr.Copy (in 2))
 )

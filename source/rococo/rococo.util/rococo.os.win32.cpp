@@ -2013,9 +2013,14 @@ namespace WIN32_ANON
 			LARGE_INTEGER len;
 			GetFileSizeEx(hFile, &len);
 
+			if (len.QuadPart == 0)
+			{
+				Throw(0, "Win32OS::LoadResource failed: %ws was blank", absPath);
+			}
+
 			if (maxFileLength > 0 && len.QuadPart > maxFileLength)
 			{
-				Throw(0, "Win32OS::LoadResource failed: File <%s> was too large at over %ld bytes", absPath, maxFileLength);
+				Throw(0, "Win32OS::LoadResource failed: File <%s> was too large at over %lld bytes", absPath, maxFileLength);
 			}
 
 			buffer.Resize(len.QuadPart + 1); // This gives us space for a nul terminating character

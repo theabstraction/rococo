@@ -39,13 +39,13 @@ namespace StringsAnon
 
 		const uint8* GetData() const override
 		{
-			if (internalBuffer.empty()) return nullptr;
+			if (internalBuffer.capacity() == 0) return nullptr;
 			else return &internalBuffer[0];
 		}
 
 		uint8* GetData() override
 		{
-			if (internalBuffer.empty()) return nullptr;
+			if (internalBuffer.capacity() == 0) return nullptr;
 			else return &internalBuffer[0];
 		}
 

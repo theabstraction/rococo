@@ -1,0 +1,29 @@
+(Header 
+	(Type Rococo_Domme_TypeDefs)
+	(Author "Mark Anthony Taylor")
+)
+
+// ValueType define types in C++ and Sexy that are passed...by value. In the Sexy-Script-language outputs must all be value-types.
+// The CPP attribute specifies the principle typename in C++
+// The SXY attribute specifies the bitwise and semantic equivalent in SXY.
+// The Alias attribute gives the list in C++ of equivalent type-names
+(ValueType (CPP int32) (SXY Int32) (#List Alias int long int32 i32 Int32))
+(ValueType (CPP int64) (SXY Int64) (#List Alias i64))
+(ValueType (CPP float) (SXY Float32) (#List Alias float32 f32 Float32 Float))
+(ValueType (CPP double) (SXY Float64) (#List Alias float64 f64 Float64 Double))
+(ValueType (CPP boolean32) (SXY Bool) (#List Alias b32))
+
+// MarshalledValueType define types in C++ and Sexy that are passed by value, but are not bitwise equivalent and require support in C++ marshalling code to correctly map to the Sexy type.
+(MarshalledValueType (CPP bool) (SXY Bool))
+
+// Struct define types in C++ and Sexy that are passed by reference. In the Sexy-Script-language outputs cannot be struct types. All such types in Sexy are defined using the struct definition in a root directive.
+// The CPP attribute specifies the principle typename in C++
+// The SXY attribute specifies the bitwise and semantic equivalent in SXY.
+// The Alias attribute gives the list in C++ of equivalent type-names
+(Struct (CPP Vec2)(SXY Sys.Maths.Vec2)(CPPTarget Rococo::vec2)(#List Alias Rococo::Vec2))
+(Struct (CPP Vec3)(SXY Sys.Maths.Vec3)(CPPTarget Rococo::vec3)(#List Alias Rococo::Vec3))
+(Struct (CPP Vec4)(SXY Sys.Maths.Vec4)(CPPTarget Rococo::vec4)(#List Alias Rococo::Vec4))
+(Struct (CPP Quat)(SXY Sys.Maths.Quat)(CPPTarget Rococo::quat)(#List Alias Rococo::Quat))
+(Struct (CPP Vec2i)(SXY Sys.Maths.Vec2i)(CPPTarget Rococo::vec2i)(#List Alias Rococo::Vec2i))
+(Struct (CPP GuiRectf)(SXY Sys.Maths.Rectf)(CPPTarget Rococo::GuiRectf)(#List Alias Rococo::GuiRectf))
+(Struct (CPP GuiRect)(SXY Sys.Maths.Recti)(CPPTarget Rococo::GuiRecti)(#List Alias Rococo::GuiRecti))
