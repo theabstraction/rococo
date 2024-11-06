@@ -50,6 +50,43 @@ namespace
 		
 		WriteOutput(0, index, e);
 	}
+	
+	void NativeExpressionAppendSourceNameTo(NativeCallEnvironment& e)
+	{
+		const ISExpression* pExpression;
+		ReadInput(0, (void*&) pExpression, e);
+
+		InterfacePointer ip;
+		ReadInput(1, ip, e);
+
+		auto* sbObject = (CClassSysTypeStringBuilder*)InterfaceToInstance(ip);
+
+		auto& sb = *sbObject;
+
+		if (!pExpression)
+		{
+			return;
+		}
+
+		auto* sbType = e.ss.GetStringBuilderType();
+
+		if (sb.header.Desc->TypeInfo != sbType)
+		{
+			Throw(0, "Expecting IStringBuilder to be of type %s", GetFriendlyName(*sbType));
+		}
+
+		cstr src = pExpression->Tree().Source().Name();
+
+		size_t len = strlen(src);
+
+		if (sb.capacity - sb.length <= len)
+		{
+			Throw(0, "Insufficient capacity in string builder to append %s", src);
+		}
+
+		CopyString(sb.buffer + sb.length, sb.capacity - sb.length, src);
+		sb.length += (int32) len;
+	}
 
 	void NativeExpressionGetParent(NativeCallEnvironment& e)
 	{
@@ -785,6 +822,7 @@ namespace
 		ss.AddNativeCall(sysReflectionNative, NativeAppendMethodName, &ss, "AppendMethodName (Sys.Type.IStringBuilder sb)(Int32 methodIndex) (Pointer structPtr) -> (Int32 nameLength)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetChild, &ss, "ExpressionGetChild (Pointer sPtr) (Int32 index) ->  (Sys.Reflection.IExpression child)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionIndexOf, &ss, "ExpressionIndexOf (Pointer sParentHandle) (Pointer sChildHandle) -> (Int32 index)", __FILE__, __LINE__, true);
+		ss.AddNativeCall(sysReflectionNative, NativeExpressionAppendSourceNameTo, &ss, "ExpressionAppendSourceNameTo (Pointer sPtr) (IStringBuilder sb) -> ", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionGetParent, &ss, "ExpressionGetParent (Pointer sPtr) -> (Sys.Reflection.IExpression parent)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionChildCount, &ss, "ExpressionChildCount (Pointer sPtr) -> (Int32 count)", __FILE__, __LINE__, true);
 		ss.AddNativeCall(sysReflectionNative, NativeExpressionAppendTextTo, &ss, "ExpressionAppendTextTo  (Pointer sPtr) (Sys.Type.IStringBuilder sb)->", __FILE__, __LINE__);

@@ -5,8 +5,31 @@
 (using Sys.Type)
 (using Sys.IO)
 
+(class TypeDef (defines Sys.Type.Domme.ITypeDef)
+	(Sys.Sexml.ISEXMLDirective typeDirective)
+)
+
+(method TypeDef.Construct (Sys.Sexml.ISEXMLDirective typeDirective)-> :
+	(this.typeDirective = typeDirective)
+)
+
+(method TypeDef.ThrowWithConflict (Sys.Sexml.ISEXMLDirective typeDirective)(IString msg) -> :
+	(Sys.Reflection.IExpression s = (typeDirective.S))
+	
+	(Sys.Type.IStringBuilder err = (Sys.Type.NewParagraphBuilder))
+	
+	(Sys.Reflection.IExpression sThis = (this.typeDirective.S))
+	(#build err "Conflict: " msg "; Against: ")
+	(sThis.AppendSourceNameTo err)
+	(sb ", line #" sThis.LineNumber ", column #" sThis.Column)
+	(s.Throw 0 err)
+)
+
+(factory Sys.Type.Domme.NewTypeDef Sys.Type.Domme.ITypeDef (Sys.Sexml.ISEXMLDirective typeDirective) : (construct TypeDef typeDirective))
+
 (class TypeDefs (defines Sys.Type.Domme.ITypeDefs)
 	(IStringBuilder rootPath) // defaults to the current directory
+	(map IString Sys.Type.Domme.ITypeDef typenameToTypeDef)
 )
 
 (function Slash -> (IString slash):
@@ -20,7 +43,11 @@
 	(this.rootPath.ThrowIfAppendWouldTruncate)
 	(Sys.IO.AppendCurrentDirectory this.rootPath)
 	(MakeEndsWithSlash this.rootPath)
+	(map IString Sys.Type.Domme.ITypeDef typenameToTypeDef)
+	(this.typenameToTypeDef = typenameToTypeDef)
 )
+
+(factory Sys.Type.Domme.TypeDefRepo Sys.Type.Domme.ITypeDefs : (construct TypeDefs))
 
 (function MakeEndsWithSlash (IStringBuilder path) -> :
 	(if (not (Sys.Type.Strings.EndsWith path Slash))
@@ -47,16 +74,47 @@
 	(this.Parse reader)
 )
 
-(method TypeDefs.ParseValueType (Sys.Sexml.ISEXMLDirective valueTypeDirective) -> :
+(function AddType (TypeDefs typeDefs) (Sys.Sexml.ISEXMLDirective typeDirective) -> :
+	(Sys.Type.Domme.ITypeDef typeDef (Sys.Type.Domme.NewTypeDef typeDirective))
 	
+	// TODO - this.typenameToTypeDef.Inser gives an invalid code-completion)
+	(IString cppType = (typeDirective.GetAttributeString "CPP" true))
+	(node n = (typeDefs.typenameToTypeDef cppType))
+	(if n
+		(Sys.Type.Domme.ITypeDef preExistingTypeDef = n.Value)
+		(Sys.Reflection.IExpression s = (typeDirective.S))
+		(preExistingTypeDef.ThrowWithConflict typeDirective "Duplicate CPP type")
+	)
+	(typeDefs.typenameToTypeDef.Insert cppType typeDef)
+	
+	(Sys.Sexml.ISEXMLAttribute attrAlias = (typeDirective.FindAttribute "Alias"))
+	
+	(for (Int32 i = 0)(i < attrAlias.ValueCount)(i += 1)
+		(Sys.Reflection.IExpression sAttrValue = (attrAlias.Value i))		
+		(IString aliasValue = (sAttrValue.Text))
+		
+		(node n2 = (typeDefs.typenameToTypeDef aliasValue))
+		(if n
+			(Sys.Type.Domme.ITypeDef preExistingTypeDef = n2.Value)
+			(IStringBuilder sbErr = (Sys.Type.NewParagraphBuilder))
+			(#build sbErr "Duplicate CPP type (with alias " aliasValue ")")
+			(preExistingTypeDef.ThrowWithConflict typeDirective sbErr)
+		)
+		
+		(typeDefs.typenameToTypeDef.Insert aliasValue typeDef)
+	)
+)
+
+(method TypeDefs.ParseValueType (Sys.Sexml.ISEXMLDirective valueTypeDirective) -> :
+	(AddType this valueTypeDirective)
 )
 
 (method TypeDefs.ParseMarshallValueType (Sys.Sexml.ISEXMLDirective marshallTypeDirective) -> :
-	
+	(AddType this marshallTypeDirective)
 )
 
 (method TypeDefs.ParseStructType (Sys.Sexml.ISEXMLDirective structTypeDirective) -> :
-	
+	(AddType this structTypeDirective)
 )
 
 (method TypeDefs.Parse (Sys.Sexml.ISEXMLReader reader)-> :
@@ -89,5 +147,3 @@
 		(marshalledCppName = rawCppName)
 	)
 )
-
-(factory Sys.Type.Domme.TypeDefRepo Sys.Type.Domme.ITypeDefs : (construct TypeDefs))

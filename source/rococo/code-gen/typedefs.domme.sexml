@@ -3,10 +3,15 @@
 	(Author "Mark Anthony Taylor")
 )
 
+
+//For ValueType, MarshalledValueType, MarshalledStructType and Struct :
+//   The Alias attribute gives the list in C++ of equivalent type-names
+//   The CPP attribute specifies the principle typename in C++
+//   The ExpandedCPPName attribute gives the expanded C++ name to use when explicit namespacing is required. This will bloat the generated API, and make it harder to read, but may help resolve namespace conflicts. If unspecified no expansion occurs.
+
+
 // ValueType define types in C++ and Sexy that are passed...by value. In the Sexy-Script-language outputs must all be value-types.
-// The CPP attribute specifies the principle typename in C++
 // The SXY attribute specifies the bitwise and semantic equivalent in SXY.
-// The Alias attribute gives the list in C++ of equivalent type-names
 (ValueType (CPP int32) (SXY Int32) (#List Alias int long int32 i32 Int32))
 (ValueType (CPP int64) (SXY Int64) (#List Alias i64))
 (ValueType (CPP float) (SXY Float32) (#List Alias float32 f32 Float32 Float))
@@ -14,16 +19,20 @@
 (ValueType (CPP boolean32) (SXY Bool) (#List Alias b32))
 
 // MarshalledValueType define types in C++ and Sexy that are passed by value, but are not bitwise equivalent and require support in C++ marshalling code to correctly map to the Sexy type.
+// The SXY attribute specifies the semantic equivalent in SXY.
 (MarshalledValueType (CPP bool) (SXY Bool))
 
+// MarshalledStructType define types in C++ and Sexy that are passed by reference, but are not bitwise equivalent and require support in C++ marshalling code to correctly map to the Sexy type.
+// The SXY attribute specifies the semantic equivalent in SXY.
+(MarshalledStructType (CPP IStringPopulator) (SXY IStringBuilder)(ExpandedCPPName Rococo::IStringPopulator)(ProhibitOutput "A Domme method cannot return a reference to an interface"))
+(MarshalledStructType (CPP fstring) (SXY IString)(ExpandedCPPName Rococo::fstring)(#List Alias Rococo::fstring)(ProhibitOutput "To emit a string from a Domme method, pass a string populator as input reference, the Sexy script will see this as an IStringBuilder"))
+
 // Struct define types in C++ and Sexy that are passed by reference. In the Sexy-Script-language outputs cannot be struct types. All such types in Sexy are defined using the struct definition in a root directive.
-// The CPP attribute specifies the principle typename in C++
 // The SXY attribute specifies the bitwise and semantic equivalent in SXY.
-// The Alias attribute gives the list in C++ of equivalent type-names
-(Struct (CPP Vec2)(SXY Sys.Maths.Vec2)(CPPTarget Rococo::vec2)(#List Alias Rococo::Vec2))
-(Struct (CPP Vec3)(SXY Sys.Maths.Vec3)(CPPTarget Rococo::vec3)(#List Alias Rococo::Vec3))
-(Struct (CPP Vec4)(SXY Sys.Maths.Vec4)(CPPTarget Rococo::vec4)(#List Alias Rococo::Vec4))
-(Struct (CPP Quat)(SXY Sys.Maths.Quat)(CPPTarget Rococo::quat)(#List Alias Rococo::Quat))
-(Struct (CPP Vec2i)(SXY Sys.Maths.Vec2i)(CPPTarget Rococo::vec2i)(#List Alias Rococo::Vec2i))
-(Struct (CPP GuiRectf)(SXY Sys.Maths.Rectf)(CPPTarget Rococo::GuiRectf)(#List Alias Rococo::GuiRectf))
-(Struct (CPP GuiRect)(SXY Sys.Maths.Recti)(CPPTarget Rococo::GuiRecti)(#List Alias Rococo::GuiRecti))
+(Struct (CPP Vec2)(SXY Sys.Maths.Vec2)(ExpandedCPPName Rococo::Vec2)(#List Alias Rococo::Vec2))
+(Struct (CPP Vec3)(SXY Sys.Maths.Vec3)(ExpandedCPPName Rococo::Vec3)(#List Alias Rococo::Vec3))
+(Struct (CPP Vec4)(SXY Sys.Maths.Vec4)(ExpandedCPPName Rococo::Vec4)(#List Alias Rococo::Vec4))
+(Struct (CPP Quat)(SXY Sys.Maths.Quat)(ExpandedCPPName Rococo::Quat)(#List Alias Rococo::Quat))
+(Struct (CPP Vec2i)(SXY Sys.Maths.Vec2i)(ExpandedCPPName Rococo::Vec2i)(#List Alias Rococo::Vec2i))
+(Struct (CPP GuiRectf)(SXY Sys.Maths.Rectf)(ExpandedCPPName Rococo::GuiRectf)(#List Alias Rococo::GuiRectf))
+(Struct (CPP GuiRect)(SXY Sys.Maths.Recti)(ExpandedCPPName Rococo::GuiRecti)(#List Alias Rococo::GuiRecti))
