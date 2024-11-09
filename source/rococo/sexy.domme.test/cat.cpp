@@ -1,4 +1,4 @@
-#include "cat.h"
+#include "ICat.h"
 
 #include <rococo.domme.h>
 
@@ -39,7 +39,7 @@ namespace Rococo::Animals::Implementation
 			D.Terminate();
 		}
 
-		void Free() override
+		void _Free() override
 		{
 			delete this;
 		}

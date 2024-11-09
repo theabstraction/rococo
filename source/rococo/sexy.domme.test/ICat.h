@@ -11,7 +11,7 @@ namespace Rococo::Animals
 
 	ROCOCO_INTERFACE ICatSupervisor : ICat
 	{
-		virtual void Free() = 0;
+		virtual void _Free() = 0;
 
 		// Completes the script, terminating the virtual machine
 		virtual void _Terminate() = 0;
@@ -19,3 +19,5 @@ namespace Rococo::Animals
 
 	ICatSupervisor* CreateCat(Rococo::Domme::ScriptingResources& scripting, cstr catSourceFile);
 }
+
+DECLARE_DOMME_INTERFACE(Rococo::Animals::ICatSupervisor)

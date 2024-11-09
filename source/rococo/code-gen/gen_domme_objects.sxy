@@ -72,6 +72,20 @@
 	(child.Text -> value)
 )
 
+(function CountInputAndOutputs (Sys.Reflection.IExpression sMethod)->(Int32 nInputs)(Int32 nOutputs):
+	// (MakeBiscuits (int nBiscuits)(float dt)) : output indicator = -1, nInputs = 2, nOutputs = 0, child count = 3
+	// (MakeBiscuits (int nBiscuits)(float dt)->) : output indicator = 3, nInputs = 2, nOutputs = 0, child count = 4
+	// (MakeBiscuits (int nBiscuits)(float dt)->(Bool isvalid)) : output indicator = 3, nInputs = 2, nOutputs = 1, child count = 5
+
+	(Int32 outputIndicatorIndex = (FindTopLevelAtomic sMethod "->"))
+	(if (outputIndicatorIndex == -1)
+		(nInputs = sMethod.ChildCount - 1)
+	else
+		(nInputs = outputIndicatorIndex - 1)			
+		(nOutputs = ((sMethod.ChildCount - outputIndicatorIndex) - 1))
+	)
+)
+
 (function BuildDommeObjectCPP (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
 	(IString sxyNamespace = (domme.GetAttributeString "SxyNamespace" true))
 	(IString cppNamespace = (NamespaceConvertSxyToCpp sxyNamespace))
@@ -106,7 +120,10 @@
 		(IString methodName = (GetAtomicWithAssert sMethod 0 "Expecting method name"))
 		(IString methodVariableName = (ToCamelCase methodName))		
 		
-		(#build sb "&t&t&t" methodVariableName "Index = D.GetMethodIndex(&"" methodName "&", 1, 0);&n")
+		(Int32 nInputs)
+		(Int32 nOutputs)
+		(CountInputAndOutputs sMethod -> nInputs nOutputs)
+		(#build sb "&t&t&t" methodVariableName "Index = D.GetMethodIndex(&"" methodName "&", " nInputs ", " nOutputs ");&n")
 	)
 	
 	(sb "&t&t}&n&n")
@@ -115,9 +132,13 @@
 	(sb "&t&t{&n")
 	(sb "&t&t}&n&n&n")
 	
-	(sb "&t&tvoid Free() override&n")
+	(sb "&t&tvoid _Free() override&n")
 	(sb "&t&t{&n")
 	(sb "&t&t&tdelete this;&n")
+	(sb "&t&t}&n&n")
+	(sb "&t&tvoid _Terminate() override&n")
+	(sb "&t&t{&n")
+	(sb "&t&t&tD.Terminate();&n")
 	(sb "&t&t}&n")
 	
 	(for (i = 2)(i < sMethods.ChildCount)(i += 1)
@@ -348,8 +369,8 @@
 	
 	// (<method-name> (<qualifiers>... <type> <variable-name> = <default>) ... -> (<qualifiers> <return-type> <variable-name>))
 	
-	(marshalBuilder "&t&t&tD.PrepVM();&n") 
-	 
+	(marshalBuilder "&t&t&tREGISTER_DOMME_CALL(D);&n&n")
+	
 	(Int32 outputIndicator = (FindTopLevelAtomic sMethod "->"))
 	
 	(IString outVarType)
@@ -404,7 +425,9 @@
 			(#build marshalBuilder "&t&t&t_vm_out_" outVarName " = D.Pop<" outVarType ">();&n" )
 			(#build marshalBuilder "&t&t&treturn To<" outVarType ">(_vm_out_" outVarName "));&n")
 		)
-	)	
+	)
+
+	(marshalBuilder "&n&t&t&tVALIDATE_REGISTERS;&n")
 )
 
 (function BuildDommeObjectH (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
@@ -449,12 +472,15 @@
 	
 	(#build sb "&tstruct " interfaceName "Supervisor: "  interfaceName "&n")
 	(sb "&t{&n")
-	(sb "&t&tvirtual void Free() = 0;&n")
+	(sb "&t&tvirtual void _Free() = 0;&n")
+	(sb "&t&tvirtual void _Terminate() = 0;&n")
 	(sb "&t};&n&n")
 	
-	(#build sb "&t" interfaceName "Supervisor* " dc.factoryPrefix implementationClass "(Rococo::Domme::ScriptingResources& scripting, cstr sourceFile);&n")
+	(#build sb "&t" interfaceName "Supervisor* " dc.factoryPrefix implementationClass "(Rococo::Domme::ScriptingResources&& scripting, cstr sourceFile);&n")
 	
 	(sb "}&n&n")
+	
+	(#build sb "DECLARE_DOMME_INTERFACE(" cppNamespace "::" interfaceName ")&n&n")
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -491,12 +517,7 @@
 	(sbHeader "#pragma once&n&n")
 	
 	(sbHeader "#include <rococo.types.h>&n&n")
-	
-	(sbHeader "namespace Rococo::Domme&n")
-	(sbHeader "{&n")
-	(sbHeader "&tstruct ScriptingResources;&n")
-	(sbHeader "}&n&n")
-	
+		
 	(Sys.Type.Domme.ITypeDefs typedefs (Sys.Type.Domme.TypeDefRepo))
 	
 	(for(Int32 i = 0)(i < reader.DirectiveCount)(i += 1)

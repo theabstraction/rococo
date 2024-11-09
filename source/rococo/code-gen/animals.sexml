@@ -30,7 +30,7 @@
 		(CppHeaderTarget "$(source)rococo/include/^^.hpp")
 		(CppSourceTarget "$(source)^^_Domme.cpp")
 		(' Methods
-			(MakeBiscuits)
+			(MakeBiscuits (int nBiscuits)(float dt))
 			(Mew)
 		)
 	)

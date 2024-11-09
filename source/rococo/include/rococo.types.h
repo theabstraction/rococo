@@ -405,12 +405,22 @@ namespace Rococo
 		virtual void Designate(T* t) = 0;
 	};
 
-	template<class T> inline void Free(T* t)
+	template<class T>
+	struct Deallocator
+	{
+		void operator()(T* t)
+		{
+			if (t) t->Free();
+		}
+	};
+
+	template<class T>
+	void Free(T* t)
 	{
 		if (t) t->Free();
 	}
 
-	template<class T> class AutoFree
+	template<class T, class DEALLOCATOR = Deallocator<T>> class AutoFree
 	{
 	private:
 		mutable T* t;
@@ -426,7 +436,8 @@ namespace Rococo
 		{
 			if (t != nullptr && t != src)
 			{
-				Rococo::Free(t);
+				DEALLOCATOR d;
+				d(t);
 			}
 			t = src;
 			return *this;
@@ -434,7 +445,8 @@ namespace Rococo
 
 		FORCE_INLINE AutoFree<T>& operator = (const AutoFree<T>& src)
 		{
-			Rococo::Free(t);
+			DEALLOCATOR d;
+			d(t);
 			t = src.t;
 			src.t = nullptr;
 			return *this;
@@ -442,14 +454,16 @@ namespace Rococo
 
 		FORCE_INLINE AutoFree<T>& operator = (const AutoFree<T>&& src)
 		{
-			Rococo::Free(t);
+			DEALLOCATOR d;
+			d(t);
 			t = src.t;
 			src.t = nullptr;
 		}
 
 		FORCE_INLINE ~AutoFree()
 		{
-			Rococo::Free(t);
+			DEALLOCATOR d;
+			d(t);
 		}
 
 		// Release our hold on the pointer, but does not free it. Then returns it

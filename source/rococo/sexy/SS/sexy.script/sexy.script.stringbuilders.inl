@@ -710,7 +710,7 @@ namespace
 		int32 value;
 		ReadInput(1, value, e);
 
-		cstr suffix = sb.formatBase == 10 ? "d" : "X";
+		cstr suffix = sb.formatBase == 10 ? "%d" : "%X";
 
 		char format[16];
 		MergeFormats(format, sb, suffix);

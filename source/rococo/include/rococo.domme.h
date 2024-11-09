@@ -111,3 +111,19 @@ namespace Rococo::Domme
 # define VALIDATE_REGISTERS
 #endif
 }
+
+#define DECLARE_DOMME_INTERFACE(FQ_INTERFACE_NAME)	\
+namespace Rococo									\
+{													\
+	template<class T> struct Deallocator;			\
+													\
+	template<>										\
+	struct Deallocator<FQ_INTERFACE_NAME>			\
+	{												\
+		void operator()(FQ_INTERFACE_NAME* t)		\
+		{											\
+			if (t) t->_Free();						\
+		}											\
+	};												\
+}
+

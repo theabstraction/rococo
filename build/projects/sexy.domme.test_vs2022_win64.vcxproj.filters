@@ -5,6 +5,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.domme.test\test.cat.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\sexy.domme.test\cat.h" />
+    <ClInclude Include="..\..\source\rococo\sexy.domme.test\ICat.h" />
   </ItemGroup>
 </Project>
