@@ -83,17 +83,10 @@ namespace Rococo::Domme
 		DOMME_API void PopBytes(size_t nBytes);
 		DOMME_API void PrepVM();
 
-		template<class T> void Push(T tValue)
+		void Push(float tValue)
 		{
-			if (constexpr sizeof T == sizeof int32)
-			{
-				Push((int32)tValue);
-			}
-
-			if (constexpr sizeof T == sizeof int64)
-			{
-				Push((int64)tValue);
-			}
+			int* pF = (int*)&tValue;
+			Push(*pF);
 		}
 	};
 

@@ -15,20 +15,21 @@ namespace Rococo::Animals::Implementation
 
 		Cat(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, "Rococo.Animals", "ICat")
 		{
-			makeBiscuitsIndex = D.GetMethodIndex("MakeBiscuits", 1, 0);
+			makeBiscuitsIndex = D.GetMethodIndex("MakeBiscuits", 2, 0);
 		}
 
 		~Cat()
 		{
 		}
 
-		void MakeBiscuits(int nBiscuits) override
+		void MakeBiscuits(int nBiscuits, float dt) override
 		{
 			REGISTER_DOMME_CALL(D);
 
 			D.Push(nBiscuits);
+			D.Push(dt);
 			D.CallVirtualMethod(makeBiscuitsIndex);
-			D.PopBytes(sizeof nBiscuits);
+			D.PopBytes(sizeof nBiscuits + sizeof dt);
 
 			VALIDATE_REGISTERS;
 		}

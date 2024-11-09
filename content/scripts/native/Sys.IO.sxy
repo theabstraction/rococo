@@ -1,3 +1,4 @@
+// Sys.IO requires C++ set pip.addIO = true
 (namespace Sys.IO)
 
 (using Sys.Type)

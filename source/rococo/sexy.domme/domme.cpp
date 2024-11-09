@@ -99,6 +99,7 @@ namespace Rococo::Domme
 		sourceTree = scripting.sourceCache.GetSource(sourceName);
 
 		Compiler::ProgramInitParameters pip;
+		pip.addIO = true;
 		ss = scripting.ssFactory.CreateScriptSystem(pip, logger);
 		auto* module = ss->AddTree(*sourceTree);
 
@@ -225,7 +226,7 @@ namespace Rococo::Domme
 			auto& method = interface0->GetMethod(i);
 			if (Rococo::Strings::Eq(method.Name(), methodName))
 			{
-				if (method.NumberOfInputs() != expectedInputs)
+				if (method.NumberOfInputs() != expectedInputs + 1)
 				{
 					Throw(0, "method %s.%s of %s had input count %d. C++ equivalent had input count %d", scriptInterfaceName, methodName, sourceTree->Source().Name(), method.NumberOfInputs(), expectedInputs);
 				}

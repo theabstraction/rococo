@@ -1,7 +1,10 @@
 (namespace Rococo)
 
+(using Sys.IO)
+(using Sys.Type)
+
 (interface Rococo.ICat 
-	(MakeBiscuits -> )
+	(MakeBiscuits  (Int32 nBiscuits)(Float32 dt) -> )
 )
 
 (struct CatContext
@@ -11,8 +14,8 @@
 (class Cat (implements Rococo.ICat)	
 )
 
-(method Cat.MakeBiscuits -> :
-	(Sys.Print "The cat makes biscuits")
+(method Cat.MakeBiscuits (Int32 nBiscuits)(Float32 dt) -> :
+	(#printf "The cat makes " nBiscuits " biscuits in " dt " seconds.")
 )
 
 (method Cat.Construct :
