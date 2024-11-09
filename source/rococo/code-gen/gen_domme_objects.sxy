@@ -114,11 +114,7 @@
 	
 	(Int32 startPos = (Sys.Type.Strings.FindLeftNoCase tc.sxyNamespace 0 ".") + 1)
 	
-	(IString sxyNamespace = tc.interfaceName)
-	(Int32 sxyNamespaceLen = tc.sxyNamespace.Length)
-
-	(debug)
-	(interfacePathTrailer.AppendSubstring tc.sxyNamespace startPos sxyNamespace.Length)
+	(interfacePathTrailer.AppendSubstring tc.sxyNamespace startPos tc.sxyNamespace.Length)
 	(interfacePathTrailer.Replace 0 "." "/")
 	(interfacePathTrailer "/")
 	(interfacePathTrailer tc.interfaceName)

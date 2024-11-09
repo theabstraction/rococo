@@ -14,7 +14,6 @@
 	(Context c)
 	(c.text = s)
 	(Int32 len = c.text.Length)
-	(debug)
 	(Mop c.text.Length -> x)
 )
 
