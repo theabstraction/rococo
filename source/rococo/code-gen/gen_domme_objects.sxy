@@ -86,6 +86,53 @@
 	)
 )
 
+(struct TargetContext
+	(IString sxyNamespace)
+	(IString interfaceName)
+)
+
+(function GetTargetPath (TargetContext tc) (Sys.Sexml.ISEXMLDirective interfaceDirective) (IString attrName) -> (IString targetPath) : 
+	(IString attrValue = (interfaceDirective.GetAttributeString attrName true))
+	(IStringBuilder sb = (NewPathBuilder))
+	(sb.ThrowIfAppendWouldTruncate)
+	(sb attrValue)
+	
+	(sb.Replace 0 "$(InterfaceName)" tc.interfaceName)
+	
+	(IStringBuilder interfacePath = (NewPathBuilder))
+	(interfacePath.ThrowIfAppendWouldTruncate)
+	
+	(interfacePath tc.sxyNamespace)
+	(interfacePath.Replace 0 "." "/")
+	(interfacePath "/")
+	(interfacePath tc.interfaceName)
+	
+	(sb.Replace 0 "$(InterfacePath)" interfacePath)
+	
+	(IStringBuilder interfacePathTrailer = (NewPathBuilder))
+	(interfacePathTrailer.ThrowIfAppendWouldTruncate)
+	
+	(Int32 startPos = (Sys.Type.Strings.FindLeftNoCase tc.sxyNamespace 0 ".") + 1)
+	
+	(IString sxyNamespace = tc.interfaceName)
+	(Int32 sxyNamespaceLen = tc.sxyNamespace.Length)
+
+	(debug)
+	(interfacePathTrailer.AppendSubstring tc.sxyNamespace startPos sxyNamespace.Length)
+	(interfacePathTrailer.Replace 0 "." "/")
+	(interfacePathTrailer "/")
+	(interfacePathTrailer tc.interfaceName)
+		
+	(sb.Replace 0 "$(InterfacePathTrailer)" interfacePathTrailer)
+	
+	(IStringBuilder currentDir = NewPathBuilder)
+	(Sys.IO.AppendCurrentDirectory currentDir)
+	
+	(sb.Replace 0 "$(CurrentDir)" currentDir)
+	
+	(targetPath = sb)
+)
+
 (function BuildDommeObjectCPP (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
 	(IString sxyNamespace = (domme.GetAttributeString "SxyNamespace" true))
 	(IString cppNamespace = (NamespaceConvertSxyToCpp sxyNamespace))
@@ -97,7 +144,18 @@
 	(IString interfaceName = (interfaceDirective.GetAttributeString "Name" true))
 	(IString implementationClass = (interfaceDirective.GetAttributeString "Implementation" true))
 	
+	(TargetContext tc = sxyNamespace interfaceName)
+	
+	(IString cppHeaderTarget = (GetTargetPath tc interfaceDirective "CppHeaderTarget"))
+	(IString cppSourceTarget = (GetTargetPath tc interfaceDirective "CppSourceTarget"))
+	
 	(Sys.Type.IStringBuilder sb = dc.cppBuilder)
+		
+	(#build sb "#include &"" cppHeaderTarget "&"&n")
+	(sb "#include <rococo.domme.h>&n&n")
+
+	(sb "using namespace Rococo;&n")
+	(sb "using namespace Rococo::Domme;&n&n")	
 			
 	(#build sb "namespace " cppNamespace "::Implementation&n")
 	
@@ -503,16 +561,9 @@
 	
 	(IString defaultFactoryPrefix = "New")
 	
-	(IString headerName = "ICat.h")
-	
+
 	(IStringBuilder sb = Sys.Type.NewStringBuilder 4096)
 	(IStringBuilder sbHeader = Sys.Type.NewStringBuilder 4096)
-		
-	(#build sb "#include &"" headerName "&"&n")
-	(sb "#include <rococo.domme.h>&n&n")
-
-	(sb "using namespace Rococo;&n")
-	(sb "using namespace Rococo::Domme;&n&n")	
 		
 	(sbHeader "#pragma once&n&n")
 	

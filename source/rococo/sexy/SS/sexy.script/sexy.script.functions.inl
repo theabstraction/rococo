@@ -1374,8 +1374,11 @@ namespace Rococo
 
 				offset -= ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
 
+				ce.Builder.PopLastVariables(1, true);
+
 				BITCOUNT bitCount = GetBitCount(returnType);
 				ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, tempDef.SFOffset, offset, bitCount);
+
 				return;
 			}
 
@@ -1557,19 +1560,19 @@ namespace Rococo
 
 				int interfaceToInstanceOffsetByRef = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
 
-				if (returnType == VARTYPE_Int32 && AreEqual(("Length"), methodName))
+				if (returnType == VARTYPE_Int32 && AreEqual("Length", methodName))
 				{
 					if (Compiler::DoesClassImplementInterface(instanceStruct, ce.Object.Common().SysTypeIString()))
 					{
-						CompileAsInlinedItemDirectAndReturnValue(ce, instance, ("length"), VARTYPE_Int32, interfaceToInstanceOffsetByRef);
+						CompileAsInlinedItemDirectAndReturnValue(ce, instance, "length", VARTYPE_Int32, interfaceToInstanceOffsetByRef);
 						return true;
 					}
 				}
-				else if (returnType == VARTYPE_Pointer && AreEqual(("Buffer"), methodName))
+				else if (returnType == VARTYPE_Pointer && AreEqual("Buffer", methodName))
 				{
 					if (Compiler::DoesClassImplementInterface(instanceStruct, ce.Object.Common().SysTypeIString()))
 					{
-						CompileAsInlinedItemDirectAndReturnValue(ce, instance, ("buffer"), VARTYPE_Pointer, interfaceToInstanceOffsetByRef);
+						CompileAsInlinedItemDirectAndReturnValue(ce, instance, "buffer", VARTYPE_Pointer, interfaceToInstanceOffsetByRef);
 						return true;
 					}
 				}

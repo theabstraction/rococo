@@ -15339,6 +15339,41 @@ R"((namespace EntryPoint)
 		validate(x == 11);
 	}
 
+	void TestPushStringLen(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(using Sys.Type)"
+
+			"(struct Context (IString text))"
+
+			"(function Mop (Int32 length) -> (Int32 result): (result = length + 7))"
+			"(function Main -> (Int32 x):"
+			"	(IString s = \"Hello World\")"
+			"   (Context c)"
+			"   (c.text = s)"
+			"	(Mop c.text.Length -> x)"
+			")"
+			"(alias Main EntryPoint.Main)"
+			;
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0x3); // add our output to the stack
+
+		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
+		int x = vm.PopInt32();
+
+		ValidateLogs();
+		validate(result == Rococo::EXECUTERESULT_TERMINATED);
+
+		validate(x == 18);
+	}
+
 	void TestGlobalInt32_2(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -18267,6 +18302,8 @@ R"(
 		TestMaths();
 
 		TEST(TestStringBuilderBig);
+
+		TEST(TestPushStringLen);
 
 		TEST(TestRefTypesInsideClosure);
 

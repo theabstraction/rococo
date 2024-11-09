@@ -1,0 +1,21 @@
+(namespace EntryPoint)
+(using Sys.Type)
+
+(struct Context (IString text))
+
+(function Mop (Int32 length) -> (Int32 result): 
+	(result = length + 7)
+)
+
+(function Main -> (Int32 x):
+	(Int32 x = 9)
+	(IString s = "Hello World")
+	(Int32 y = 27)
+	(Context c)
+	(c.text = s)
+	(Int32 len = c.text.Length)
+	(debug)
+	(Mop c.text.Length -> x)
+)
+
+(alias Main EntryPoint.Main)

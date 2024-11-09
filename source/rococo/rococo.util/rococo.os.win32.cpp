@@ -1506,7 +1506,7 @@ namespace WIN32_ANON
 			}
 			else
 			{
-				Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): unknown prefix. Expecting ! or #", pingPath);
+				Throw(0, "Installation::ConvertPingPathToSysPath(\"%s\"): abspath not found and/or unknown prefix. Expecting ! or #", pingPath);
 			}
 
 			if (strstr(pingPath, "..") != nullptr)
