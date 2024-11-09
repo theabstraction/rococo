@@ -131,7 +131,7 @@
 		
 		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
 
-		(BuildMethodArgsCPP methodName sMethod args false)
+		(BuildMethodArgsCPP dc methodName sMethod args false)
 		
 		(#build sb "&t&t" args " override&n")
 		(sb "&t&t{&n")
@@ -184,8 +184,9 @@
 	(argBuilder "&"")
 )
 
-(function BuildMethodInputArgCPP (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder argBuilder)(Bool includeDefaultValues)-> :
-
+(function BuildMethodInputArgCPP (DommeContext dc) (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder argBuilder)(Bool includeDefaultValues)-> :
+// sParameter will be of form (const <typename> <variableName) = <defaultValue>)
+// The const and default values may be omitted. 
 	(Bool expectingType = true)
 	(Bool expectingName = true)
 	(Bool expectingDefaultAssignment = true)
@@ -199,7 +200,16 @@
 		else
 			(if expectingType
 				(expectingType = false)
-				(argBuilder q)
+				
+				(Sys.Type.Domme.ITypeDef typedefArgType = (dc.typedefs.Find q))
+				(if (not (typedefArgType ?))
+					(Sys.Reflection.IExpression sQ = (sParameter i))
+					(sQ.Throw 0 "Could not match type to a typedef")
+				)
+				
+				(IString cppTypeAndRef = typedefArgType.CppTypeAndRef)
+				
+				(argBuilder cppTypeAndRef)
 			
 			else 
 				(if expectingName
@@ -243,7 +253,7 @@
 	)
 )
 
-(function BuildMethodOutputArgCPP (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder argsBuilder)-> :
+(function BuildMethodOutputArgCPP (DommeContext dc) (Sys.Reflection.IExpression sParameter)(Sys.Type.IStringBuilder argsBuilder)-> :
 	(if (not (sParameter ?))
 		(argsBuilder "void")
 	)
@@ -279,7 +289,7 @@
 	(index = -1)
 )
 
-(function BuildMethodArgsCPP (IString name) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder argsBuilder)(Bool includeDefaultValues)-> :
+(function BuildMethodArgsCPP (DommeContext dc) (IString name) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder argsBuilder)(Bool includeDefaultValues)-> :
 	
 	// (<method-name> (<qualifiers>... <type> <variable-name> = <default>) ... -> (<qualifiers> <return-type> <variable-name>))
 	// E.g (StartWater (const Pressure& pressure)(float temperature)->(float flow_rate)), which will get converted on the argsBuilder as: 'float /* flow_rate */ StartWater(const Pressure& pressure, float temperature)'
@@ -288,7 +298,7 @@
 	
 	(if (outputIndicator > -1)
 		(Sys.Reflection.IExpression outParameter = (sMethod (outputIndicator + 1)))
-		(BuildMethodOutputArgCPP outParameter argsBuilder)
+		(BuildMethodOutputArgCPP dc outParameter argsBuilder)
 	else
 		(argsBuilder "void")
 		(outputIndicator = sMethod.ChildCount)
@@ -304,7 +314,7 @@
 				(argsBuilder ", ")
 			)
 			
-			(BuildMethodInputArgCPP parameter argsBuilder includeDefaultValues)
+			(BuildMethodInputArgCPP dc parameter argsBuilder includeDefaultValues)
 		else 
 			(parameter.Throw 0 "Unexpected non-compound expression")
 		)		
@@ -430,7 +440,7 @@
 		
 		(IStringBuilder args = (Sys.Type.NewStringBuilder 256))
 		
-		(BuildMethodArgsCPP methodName sMethod args true)
+		(BuildMethodArgsCPP dc methodName sMethod args true)
 		
 		(#build sb "&t&tvirtual " args " = 0;&n")
 	)

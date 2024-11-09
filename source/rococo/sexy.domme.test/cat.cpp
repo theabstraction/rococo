@@ -24,10 +24,18 @@ namespace Rococo::Animals::Implementation
 
 		void MakeBiscuits(int nBiscuits) override
 		{
-			D.PrepVM();
+			REGISTER_DOMME_CALL(D);
+
 			D.Push(nBiscuits);
 			D.CallVirtualMethod(makeBiscuitsIndex);
 			D.PopBytes(sizeof nBiscuits);
+
+			VALIDATE_REGISTERS;
+		}
+
+		void _Terminate() override
+		{
+			D.Terminate();
 		}
 
 		void Free() override

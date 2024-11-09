@@ -5,12 +5,31 @@
 (using Sys.Type)
 (using Sys.IO)
 
+(macro Sys.Type.Domme.TypeDefValueType			in out (out.AddAtomic "0x1"))
+(macro Sys.Type.Domme.TypeDefMarshallValueType	in out (out.AddAtomic "0x2"))
+(macro Sys.Type.Domme.TypeDefStructType			in out (out.AddAtomic "0x3"))
+
 (class TypeDef (defines Sys.Type.Domme.ITypeDef)
 	(Sys.Sexml.ISEXMLDirective typeDirective)
+	(Int32 type)
 )
 
-(method TypeDef.Construct (Sys.Sexml.ISEXMLDirective typeDirective)-> :
+(method TypeDef.Construct (Sys.Sexml.ISEXMLDirective typeDirective)(Int32 type)-> :
 	(this.typeDirective = typeDirective)
+	(this.type = type)
+)
+
+(method TypeDef.Type -> (Int32 type):
+	(type = this.type)
+)
+
+(method TypeDef.Directive -> (Sys.Sexml.ISEXMLDirective directive):
+	(directive = this.typeDirective)
+)
+
+(method TypeDef.CppTypeAndRef -> (IString cppTypeAndRef):
+	(IString cppType = (this.typeDirective.GetAttributeString "CPP" true))
+	(cppTypeAndRef = cppType)
 )
 
 (method TypeDef.ThrowWithConflict (Sys.Sexml.ISEXMLDirective typeDirective)(IString msg) -> :
@@ -25,7 +44,7 @@
 	(s.Throw 0 err)
 )
 
-(factory Sys.Type.Domme.NewTypeDef Sys.Type.Domme.ITypeDef (Sys.Sexml.ISEXMLDirective typeDirective) : (construct TypeDef typeDirective))
+(factory Sys.Type.Domme.NewTypeDef Sys.Type.Domme.ITypeDef (Sys.Sexml.ISEXMLDirective typeDirective)(Int32 type) : (construct TypeDef typeDirective type))
 
 (class TypeDefs (defines Sys.Type.Domme.ITypeDefs)
 	(IStringBuilder rootPath) // defaults to the current directory
@@ -45,6 +64,33 @@
 	(MakeEndsWithSlash this.rootPath)
 	(map IString Sys.Type.Domme.ITypeDef typenameToTypeDef)
 	(this.typenameToTypeDef = typenameToTypeDef)
+)
+
+(function FindStructTypeByRef (TypeDefs typedefs)(IString cppTypeNameByRef) -> (Sys.Type.Domme.ITypeDef typedef):
+	(IStringBuilder cppTypeNameSansRef = (Sys.Type.NewPathBuilder))
+	(cppTypeNameSansRef cppTypeNameByRef)
+	(cppTypeNameSansRef.SetLength (cppTypeNameSansRef.Length - 1))
+	
+	(node n = (typedefs.typenameToTypeDef cppTypeNameSansRef))
+	(if n (typedef = n.Value)
+		(if (typedef.Type == (#Sys.Type.Domme.TypeDefStructType))
+			(return)
+		)
+		
+		(Sys.Sexml.ISEXMLDirective directive = typedef.Directive)
+		(Sys.Reflection.IExpression s = directive.S)
+		(s.Throw 0 "Only structs may be passed by-reference")
+	)
+)
+
+(method TypeDefs.Find (IString cppTypeName) -> (Sys.Type.Domme.ITypeDef typedef):
+	(if (Sys.Type.Strings.EndsWith cppTypeName "&&")
+		(FindStructTypeByRef this cppTypeName -> typedef)
+		(return)
+	)
+
+	(node n = (this.typenameToTypeDef cppTypeName))
+	(if n (typedef = n.Value))
 )
 
 (factory Sys.Type.Domme.TypeDefRepo Sys.Type.Domme.ITypeDefs : (construct TypeDefs))
@@ -71,11 +117,11 @@
 	
 	(Sys.Sexml.ISEXMLReader reader (Sys.Sexml.ReadSexml sTypedDef))
 	
-	(this.Parse reader)
+	(Parse this reader)
 )
 
-(function AddType (TypeDefs typeDefs) (Sys.Sexml.ISEXMLDirective typeDirective) -> :
-	(Sys.Type.Domme.ITypeDef typeDef (Sys.Type.Domme.NewTypeDef typeDirective))
+(function AddType (TypeDefs typeDefs) (Sys.Sexml.ISEXMLDirective typeDirective) (Int32 type) -> :
+	(Sys.Type.Domme.ITypeDef typeDef (Sys.Type.Domme.NewTypeDef typeDirective type))
 	
 	// TODO - this.typenameToTypeDef.Inser gives an invalid code-completion)
 	(IString cppType = (typeDirective.GetAttributeString "CPP" true))
@@ -88,11 +134,10 @@
 	(typeDefs.typenameToTypeDef.Insert cppType typeDef)
 	
 	(Sys.Sexml.ISEXMLAttribute attrAlias = (typeDirective.FindAttribute "Alias"))
-	
+
 	(for (Int32 i = 0)(i < attrAlias.ValueCount)(i += 1)
 		(Sys.Reflection.IExpression sAttrValue = (attrAlias.Value i))		
 		(IString aliasValue = (sAttrValue.Text))
-		
 		(node n2 = (typeDefs.typenameToTypeDef aliasValue))
 		(if n
 			(Sys.Type.Domme.ITypeDef preExistingTypeDef = n2.Value)
@@ -105,19 +150,23 @@
 	)
 )
 
-(method TypeDefs.ParseValueType (Sys.Sexml.ISEXMLDirective valueTypeDirective) -> :
-	(AddType this valueTypeDirective)
+(function ParseValueType (TypeDefs typeDefs) (Sys.Sexml.ISEXMLDirective valueTypeDirective) -> :
+	(AddType typeDefs valueTypeDirective (#Sys.Type.Domme.TypeDefValueType))
 )
 
-(method TypeDefs.ParseMarshallValueType (Sys.Sexml.ISEXMLDirective marshallTypeDirective) -> :
-	(AddType this marshallTypeDirective)
+(function ParseMarshallValueType (TypeDefs typeDefs) (Sys.Sexml.ISEXMLDirective marshallTypeDirective) -> :
+	(AddType typeDefs marshallTypeDirective (#Sys.Type.Domme.TypeDefMarshallValueType))
 )
 
-(method TypeDefs.ParseStructType (Sys.Sexml.ISEXMLDirective structTypeDirective) -> :
-	(AddType this structTypeDirective)
+(function ParseStructType(TypeDefs typeDefs)  (Sys.Sexml.ISEXMLDirective structTypeDirective) -> :
+	(AddType typeDefs structTypeDirective (#Sys.Type.Domme.TypeDefStructType))
 )
 
-(method TypeDefs.Parse (Sys.Sexml.ISEXMLReader reader)-> :
+(function ParseMarshallStructType(TypeDefs typeDefs)  (Sys.Sexml.ISEXMLDirective structTypeDirective) -> :
+	(AddType typeDefs structTypeDirective (#Sys.Type.Domme.TypeDefStructType))
+)
+
+(function Parse (TypeDefs typeDefs) (Sys.Sexml.ISEXMLReader reader)-> :
 	(Sys.Sexml.ISEXMLDirective header = (reader.GetFirstDirective "Header" true))
 	
 	(IString headerType = (header.GetAttributeString "Type" true))
@@ -129,13 +178,16 @@
 	(for(Int32 i = 0)(i < reader.DirectiveCount)(i += 1)
 		(Sys.Sexml.ISEXMLDirective rootDirective = (reader.Directive i))
 		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "ValueType")
-			(this.ParseValueType rootDirective)
+			(ParseValueType typeDefs rootDirective)
 		)
-		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "MarshallValueType")
-			(this.ParseMarshallValueType rootDirective)
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "MarshalledValueType")
+			(ParseMarshallValueType typeDefs rootDirective)
+		)
+		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "MarshalledStructType")
+			(ParseMarshallStructType typeDefs rootDirective)
 		)
 		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Struct")
-			(this.ParseStructType rootDirective)
+			(ParseStructType typeDefs rootDirective)
 		)
 	)
 )

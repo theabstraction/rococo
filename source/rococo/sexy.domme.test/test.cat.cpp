@@ -73,7 +73,8 @@ int MainProtected(int argc, char* argv[])
 	try
 	{
 		AutoFree<ICatSupervisor> cat = CreateCat(scripting, "!scripts/domme/cat.sxy");
-		cat->MakeBiscuits(1);
+	//	cat->MakeBiscuits(1);
+		cat->_Terminate();
 	}
 	catch (Sex::ParseException& ex)
 	{
@@ -95,11 +96,16 @@ int main(int argc, char* argv[])
 	}
 	catch (IException& ex)
 	{
-		printf("%s", ex.Message());
-		if (ex.ErrorCode() == 0)
+		printf("%s\n", ex.Message());
+
+		int err = ex.ErrorCode();
+		if (err != 0)
 		{
-			return E_FAIL;
+			char msg[256];
+			Rococo::OS::FormatErrorMessage(msg, sizeof msg, err);
+			printf("Code %d (0x%8.8X): %s", err, err, msg);
 		}
-		return ex.ErrorCode();
+
+		return err;
 	}
 }

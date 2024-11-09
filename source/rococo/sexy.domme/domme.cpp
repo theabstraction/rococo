@@ -121,22 +121,22 @@ namespace Rococo::Domme
 		auto* rococoNS = rootNS.FindSubspace("Rococo");
 		if (!rococoNS)
 		{
-			Throw(0, "Could not find (namespace %s) in %s", _namespace, sourceTree->Source().Name());
+			Throw(0, "%s: Could not find (namespace %s) in %s", __FUNCTION__, _namespace, sourceTree->Source().Name());
 		}
 
-		auto* icat = rococoNS->FindInterface("_scriptInterfaceName");
-		if (!icat)
+		auto* iRef = rococoNS->FindInterface(_scriptInterfaceName);
+		if (!iRef)
 		{
-			Throw(0, "Could not find interface %s.%s in %s", _namespace, _scriptInterfaceName, sourceTree->Source().Name());
+			Throw(0, "%s: Could not find interface %s.%s in %s", __FUNCTION__, _namespace, _scriptInterfaceName, sourceTree->Source().Name());
 		}
 
-		auto* nullIcat = icat->UniversalNullInstance();
-		if (!nullIcat)
+		auto* nullIRef= iRef->UniversalNullInstance();
+		if (!nullIRef)
 		{
-			Throw(0, "Could not find %s.%s universal null object", _namespace, _scriptInterfaceName);
+			Throw(0, "%s: Could not find %s.%s universal null object", __FUNCTION__, _namespace, _scriptInterfaceName);
 		}
 
-		auto* pNullInterface = GetInterfacePtr(*nullIcat);
+		auto* pNullInterface = GetInterfacePtr(*nullIRef);
 
 		scriptContext.ip = (Rococo::Compiler::InterfacePointer) pNullInterface;
 
@@ -147,13 +147,11 @@ namespace Rococo::Domme
 
 		if (concreteType->InterfaceCount() == 0)
 		{
-			Throw(0, "Class %s does not implement interfaces", Rococo::Compiler::GetFriendlyName(*concreteType));
+			Throw(0, "%s: Class %s does not implement interfaces", __FUNCTION__, Rococo::Compiler::GetFriendlyName(*concreteType));
 		}
 
 		interface0 = &concreteType->GetInterface(0);
 	}
-
-
 
 	void DommeObject::CallVirtualMethod(int methodIndex)
 	{
@@ -161,40 +159,53 @@ namespace Rococo::Domme
 		ID_BYTECODE* vtableMethods = (ID_BYTECODE*) vtable0;
 		ID_BYTECODE methodAddress = vtableMethods[methodIndex + 1];
 
+#ifdef _DEBUG
+		if (!vm) Throw(0, "%s: No virtual machine. Script was Terminated", __FUNCTION__);
+#endif
+
 		vm->Push(scriptContext.ip);
 		vm->ExecuteFunctionUntilReturn(methodAddress);
 		vm->PopPointer();
 	}
 
-	void DommeObject::PrepVM()
-	{
-		auto& cpu = vm->Cpu();
-		cpu.SetSF(cpu.SP());
-	}
-
 	void DommeObject::Push(int32 value)
 	{
+#ifdef _DEBUG
+		if (!vm) Throw(0, "%s: No virtual machine. Script was Terminated", __FUNCTION__);
+#endif
 		vm->Push(value);
 	}
 
 	void DommeObject::Push(int64 value)
 	{
+#ifdef _DEBUG
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+#endif
 		vm->Push(value);
 	}
 
 	void DommeObject::PopBytes(size_t nBytes)
 	{
+#ifdef _DEBUG
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+#endif
 		auto& cpu = vm->Cpu();
 		cpu.D[VM::REGISTER_SP].uint8PtrValue -= nBytes;
 	}
 
 	DommeObject::~DommeObject()
 	{
+	}
+
+	void DommeObject::Terminate()
+	{
+#ifdef _DEBUG
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+#endif
 		auto& object = ss->PublicProgramObject();
-		auto& vm = object.VirtualMachine();
 
 		VM::ExecutionFlags executionFlags;
-		EXECUTERESULT terminationResult = vm.ContinueExecution(executionFlags, nullptr);
+		EXECUTERESULT terminationResult = vm->ContinueExecution(executionFlags, nullptr);
 		if (terminationResult != EXECUTERESULT_TERMINATED)
 		{
 			char msg[256];
@@ -203,18 +214,20 @@ namespace Rococo::Domme
 		}
 
 		object.DecrementRefCount(scriptContext.ip);
+
+		vm = nullptr;
 	}
 
-	int DommeObject::GetMethodIndex(cstr methodName, int expectedInput, int expectedOutputs)
+	int DommeObject::GetMethodIndex(cstr methodName, int expectedInputs, int expectedOutputs)
 	{
 		for (int i = 0; i < interface0->MethodCount(); i++)
 		{
 			auto& method = interface0->GetMethod(i);
 			if (Rococo::Strings::Eq(method.Name(), methodName))
 			{
-				if (method.NumberOfInputs() != expectedInput)
+				if (method.NumberOfInputs() != expectedInputs)
 				{
-					Throw(0, "method %s.%s of %s had input count %d. C++ equivalent had input count %d", scriptInterfaceName, methodName, sourceTree->Source().Name(), method.NumberOfInputs(), expectedInput);
+					Throw(0, "method %s.%s of %s had input count %d. C++ equivalent had input count %d", scriptInterfaceName, methodName, sourceTree->Source().Name(), method.NumberOfInputs(), expectedInputs);
 				}
 
 				if (method.NumberOfOutputs() != expectedOutputs)
@@ -227,5 +240,31 @@ namespace Rococo::Domme
 		}
 
 		Throw(0, "No such method %s.%s of %s", scriptInterfaceName, methodName, sourceTree->Source().Name());
+	}
+
+	CallContext::CallContext(DommeObject& _obj): obj(_obj)
+	{
+		auto& cpu = _obj.VM().Cpu();
+		sp = cpu.SP();
+		sf = cpu.SF();
+	}
+
+	CallContext::~CallContext()
+	{
+	}
+
+	void CallContext::ValidateRegisters(cstr caller, cstr file, int lineNumber)
+	{
+		auto& cpu = obj.VM().Cpu();
+
+		if (sp != cpu.SP())
+		{
+			Throw(0, "CallContext::ValidateRegisters failed: sp: %p, cpu.sp: %p, delta %lld [%s: %s line %d]", sp, cpu.SP(), cpu.SP() - sp, caller, file, lineNumber);
+		}
+
+		if (sf != cpu.SF())
+		{
+			Throw(0, "CallContext::ValidateRegisters failed: sf: %p, cpu.sf: %p, delta %lld [%s: %s line %d]", sf, cpu.SF(), cpu.SF() - sf, caller, file, lineNumber);
+		}
 	}
 }

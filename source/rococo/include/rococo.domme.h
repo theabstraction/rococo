@@ -73,7 +73,8 @@ namespace Rococo::Domme
 	public:
 		DOMME_API DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const _namespace, const char* const scriptInterfaceName);
 		DOMME_API ~DommeObject();
-		DOMME_API int GetMethodIndex(cstr methodName, int expectedInput, int expectedOutputs);
+		DOMME_API void Terminate();
+		DOMME_API int GetMethodIndex(cstr methodName, int expectedInputs, int expectedOutputs);
 		Rococo::Script::IPublicScriptSystem& SS() { return *ss; }
 		Rococo::VM::IVirtualMachine& VM() { return *vm; }
 		DOMME_API void CallVirtualMethod(int methodIndex);
@@ -95,4 +96,25 @@ namespace Rococo::Domme
 			}
 		}
 	};
+
+	class CallContext
+	{
+	private:
+		DommeObject& obj;
+
+		const uint8* sp = nullptr;
+		const uint8* sf = nullptr;
+	public:
+		DOMME_API CallContext(DommeObject& _obj);
+		DOMME_API ~CallContext();
+		DOMME_API void ValidateRegisters(cstr caller, cstr file, int lineNumber);
+	};
+
+#ifdef _DEBUG
+# define REGISTER_DOMME_CALL(x) CallContext register_CC(x)
+# define VALIDATE_REGISTERS register_CC.ValidateRegisters(__FUNCTION__, __FILE__, __LINE__);
+#else
+# define REGISTER_DOMME_CALL(x) 
+# define VALIDATE_REGISTERS
+#endif
 }

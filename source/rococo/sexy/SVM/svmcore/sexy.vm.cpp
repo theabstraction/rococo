@@ -465,24 +465,24 @@ namespace Anon
 			}
 		}
 
-      ITraceOutput* currentTracer = nullptr;
+		ITraceOutput* currentTracer = nullptr;
 
-      struct TraceContext
-      {
-         ITraceOutput* previous;
-         CVirtualMachine& vm;
+		struct TraceContext
+		{
+			ITraceOutput* previous;
+			CVirtualMachine& vm;
 
-         TraceContext(CVirtualMachine& _vm, ITraceOutput* tracer): vm(_vm)
-         {
-            previous = vm.currentTracer;
-            vm.currentTracer = tracer;
-         }
+			TraceContext(CVirtualMachine& _vm, ITraceOutput* tracer) : vm(_vm)
+			{
+				previous = vm.currentTracer;
+				vm.currentTracer = tracer;
+			}
 
-         ~TraceContext()
-         {
-            vm.currentTracer = previous;
-         }
-      };
+			~TraceContext()
+			{
+				vm.currentTracer = previous;
+			}
+		};
 
 		ExecutionFlags currentFlags{ false, false, false };
 		void GetLastFlags(ExecutionFlags& flags) const override
@@ -995,47 +995,47 @@ namespace Anon
          return status;
       }
 
-		EXECUTERESULT ProtectedContinue(bool throwToQuit)
-		{
-			status = EXECUTERESULT_RUNNING;
+	  EXECUTERESULT ProtectedContinue(bool throwToQuit)
+	  {
+		  status = EXECUTERESULT_RUNNING;
 
-         if (currentTracer)
-         {
-            return ProtectedContinueAndTrace(*currentTracer);
-         }
+		  if (currentTracer)
+		  {
+			  return ProtectedContinueAndTrace(*currentTracer);
+		  }
 
-         this->throwToQuit = throwToQuit;
-			
-			if (throwToQuit)
-			{
-				try
-				{	
-					for(;;)
-					{
-						Advance();
-					}
-				}
-				catch (TerminateException&)
-				{	
-				}
-				catch(YieldException&)
-				{
-				}
-				catch(IllegalException&)
-				{
-					return EXECUTERESULT_ILLEGAL;
-				}
-			}
-			else
-			{
-				while(status == EXECUTERESULT_RUNNING)
-				{
-					Advance();
-				}
-			}
-			
-			return status;
-		}
+		  this->throwToQuit = throwToQuit;
+
+		  if (throwToQuit)
+		  {
+			  try
+			  {
+				  for (;;)
+				  {
+					  Advance();
+				  }
+			  }
+			  catch (TerminateException&)
+			  {
+			  }
+			  catch (YieldException&)
+			  {
+			  }
+			  catch (IllegalException&)
+			  {
+				  return EXECUTERESULT_ILLEGAL;
+			  }
+		  }
+		  else
+		  {
+			  while (status == EXECUTERESULT_RUNNING)
+			  {
+				  Advance();
+			  }
+		  }
+
+		  return status;
+	  }
 
 		OPCODE_CALLBACK(SetStackFrameImmediate32)
 		{
@@ -2945,12 +2945,12 @@ namespace Anon
 	}
 
 	void CVirtualMachine::Free()
-	{ 
-      // hack, wwe use in-place allocation to create the instance, so dont call delete. See: IVirtualMachine* CreateVirtualMachine(ICore& core)
+	{
+		// hack, wwe use in-place allocation to create the instance, so dont call delete. See: IVirtualMachine* CreateVirtualMachine(ICore& core)
 		this->~CVirtualMachine();
 
-		uint8* mem = (uint8*) this;
-		
+		uint8* mem = (uint8*)this;
+
 		uint8* pCpu = mem - GetCpuToVMOffset();
 
 		Rococo::VM::OS::FreeAlignedMemory(pCpu);
