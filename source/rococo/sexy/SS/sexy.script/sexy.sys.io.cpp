@@ -1143,7 +1143,7 @@ namespace ANON_NS
 					Throw(0, "LoadAndAppendToStringBuilder: file length %llu KB was greater than the specified limit of %llu KB", length >> 10, maxKBll >> 10);
 				}
 				lockLength = length;
-				sb.Expand(length + 1);
+				sb.control->ExpandStringBuilder(sb, length + 1);
 				return (uint8*) sb.buffer;
 			}
 			

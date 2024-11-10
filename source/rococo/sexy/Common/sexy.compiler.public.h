@@ -42,48 +42,44 @@
 # define SEXYUTIL_API ROCOCO_API_IMPORT
 #endif
 
-namespace Rococo::Strings::Impl
-{
-	struct StringPool;
-}
-
 namespace Rococo { namespace VM
 {
-	struct IVirtualMachine;
-	struct IAssembler;
-	struct IProgramMemory;
+	DECLARE_ROCOCO_INTERFACE IVirtualMachine;
+	DECLARE_ROCOCO_INTERFACE IAssembler;
+	DECLARE_ROCOCO_INTERFACE IProgramMemory;
 }} // Rococo::VM
 
 namespace Rococo::Sex
 {
-	struct ISExpression;
+	DECLARE_ROCOCO_INTERFACE ISExpression;
 }
 
 namespace Rococo::Script
 {
 	struct NativeSecurityHandler;
+	DECLARE_ROCOCO_INTERFACE IScriptSystem;
 }
 
 namespace Rococo::Components
 {
-	struct IComponentBase;
-	struct IComponentLife;
+	DECLARE_ROCOCO_INTERFACE IComponentBase;
+	DECLARE_ROCOCO_INTERFACE IComponentLife;
 }
 
 namespace Rococo {
 	namespace Compiler
 	{
-		struct IFunction;
-		struct IFunctionSet;
-		struct IFunctionCode;
-		struct IModule;
-		struct INamespace;
-		struct IPublicProgramObject;
-		struct IStructure;
-		struct IStructureSet;
-		struct IMember;
-		struct IInterface;
-		struct IArchetype;
+		DECLARE_ROCOCO_INTERFACE IFunction;
+		DECLARE_ROCOCO_INTERFACE IFunctionSet;
+		DECLARE_ROCOCO_INTERFACE IFunctionCode;
+		DECLARE_ROCOCO_INTERFACE IModule;
+		DECLARE_ROCOCO_INTERFACE INamespace;
+		DECLARE_ROCOCO_INTERFACE IPublicProgramObject;
+		DECLARE_ROCOCO_INTERFACE IStructure;
+		DECLARE_ROCOCO_INTERFACE IStructureSet;
+		DECLARE_ROCOCO_INTERFACE IMember;
+		DECLARE_ROCOCO_INTERFACE IInterface;
+		DECLARE_ROCOCO_INTERFACE IArchetype;
 
 		struct FunctionPrototype;
 		struct StructurePrototype;
@@ -294,20 +290,24 @@ namespace Rococo {
 
 		enum { PREFIX_LEN = 12 };
 
+		struct IFastStringBuilderControl
+		{
+			virtual void ExpandStringBuilder(struct FastStringBuilder& sb, size_t deltaLength) = 0;
+		};
+
 		struct FastStringBuilder
 		{
 			ObjectStub stub;
 			int32 length;
 			char* buffer;
 			int32 capacity;
-			Rococo::Strings::Impl::StringPool* pool;
+			IFastStringBuilderControl* control;
 			int formatBase;
 			char prefix[PREFIX_LEN];
 			SPEC spec;
 			int32 flags;
 
 			SEXYUTIL_API void AppendAndTruncate(const fstring& text);
-			SEXYUTIL_API void Expand(size_t deltaLength);
 		};
 
 		inline int GetInstanceToInterfaceOffset(int interfaceIndex)

@@ -104,7 +104,7 @@ namespace Rococo
         void AddMember(IStructureBuilder& s, cr_sex field, IScriptSystem& ss);
         IInterfaceBuilder* MatchInterface(cr_sex typeExpr, IModuleBuilder& module);
 
-        struct IStringPool
+        DECLARE_ROCOCO_INTERFACE IStringPool: Rococo::Compiler::IFastStringBuilderControl
         {
             virtual void Free() = 0;
             virtual AllocatorBinding* GetBinding() = 0;

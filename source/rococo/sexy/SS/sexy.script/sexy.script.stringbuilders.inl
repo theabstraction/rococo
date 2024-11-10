@@ -273,6 +273,7 @@ namespace Rococo::Strings::Impl
 				if (freeList_64.empty())
 				{
 					auto* sb64 = new FastStringBuilder_64();
+					sb64->header.buffer = ((char*)sb64) + sizeof(FastStringBuilder);
 					allocList[(char*)sb64] = 0;
 					return &sb64->header;
 				}
@@ -280,6 +281,7 @@ namespace Rococo::Strings::Impl
 				{
 					auto* tail = freeList_64.back();
 					freeList_64.pop_back();
+					tail->header.buffer = ((char*)tail) + sizeof(FastStringBuilder);
 					return &tail->header;
 				}
 			}
@@ -289,12 +291,14 @@ namespace Rococo::Strings::Impl
 				{
 					auto* sb260 = new FastStringBuilder_260();
 					allocList[(char*)sb260] = 0;
+					sb260->header.buffer = ((char*)sb260) + sizeof(FastStringBuilder);
 					return &sb260->header;
 				}
 				else
 				{
 					auto* tail = freeList_260.back();
 					freeList_260.pop_back();
+					tail->header.buffer = ((char*)tail) + sizeof(FastStringBuilder);
 					return &tail->header;
 				}
 			}
@@ -304,20 +308,23 @@ namespace Rococo::Strings::Impl
 				{
 					auto* sb1024 = new FastStringBuilder_1024();
 					allocList[(char*)sb1024] = 0;
+					sb1024->header.buffer = ((char*)sb1024) + sizeof(FastStringBuilder);
 					return &sb1024->header;
 				}
 				else
 				{
 					auto* tail = freeList_1024.back();
 					freeList_1024.pop_back();
+					tail->header.buffer = ((char*)tail) + sizeof(FastStringBuilder);
 					return &tail->header;
 				}
 			}
 			else
 			{
-				auto* sb = (FastStringBuilder*) new char[sizeof(FastStringBuilder) + capacity];
+				auto* sb = new FastStringBuilder();
 				sb->flags |= (int32) StringBuilderFlags::Expandable;
 				allocList[(char*)sb] = 0;
+				sb->buffer = new char[capacity];
 				return sb;
 			}
 		}
@@ -325,12 +332,10 @@ namespace Rococo::Strings::Impl
 		FastStringBuilder* CreateAndInitFields(int32 capacity) override
 		{
 			auto* sb = Create(capacity);
-
-			sb->buffer = ((char*)sb) + sizeof(FastStringBuilder);
 			sb->buffer[0] = 0;
 			sb->capacity = capacity;
 			sb->length = 0;
-			sb->pool = this;
+			sb->control = this;
 			sb->formatBase = 10;
 			sb->spec = SPEC_F;
 			sb->stub.Desc = (ObjectDesc*) typeFastStringBuilder->GetVirtualTable(0);
@@ -338,8 +343,12 @@ namespace Rococo::Strings::Impl
 			sb->stub.pVTables[0] = (VirtualTable*) typeFastStringBuilder->GetVirtualTable(1);
 			sb->flags = 0;
 			SafeFormat(sb->prefix, PREFIX_LEN, "%4.4");
-
 			return sb;
+		}
+
+		void ExpandStringBuilder(FastStringBuilder& sb, size_t deltaLength) override
+		{
+
 		}
 	};
 
@@ -399,7 +408,8 @@ namespace Rococo::Strings::Impl
 			pool.freeList_1024.push_back((FastStringBuilder_1024*)sb);
 			break;
 		default:
-			delete[](char*) sb;
+			delete[] sb->buffer;
+			delete sb;
 			pool.allocList.erase((char*)sb);
 			break;
 		}

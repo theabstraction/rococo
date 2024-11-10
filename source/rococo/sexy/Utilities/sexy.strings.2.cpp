@@ -131,12 +131,4 @@ namespace Rococo::Compiler
 			buffer[length] = 0;
 		}
 	}
-
-	void FastStringBuilder::Expand(size_t deltaLength)
-	{
-		if (!stub.Desc->flags.IsSystem)
-		{
-			Rococo::Throw(0, "Expecting the object to be a System Rococo::Compiler::FastStringBuilder. It was of type %s", stub.Desc->TypeInfo->Name());
-		}
-	}
 }
