@@ -723,6 +723,8 @@ namespace Rococo::Script
 
 namespace Rococo::Script
 {
+	using namespace Rococo::Strings::Impl;
+
 	class CScriptSystem : public IScriptSystem, private INativeSecurity
 	{
 	private:
@@ -2578,6 +2580,20 @@ namespace Rococo::Script
 			else
 			{
 				currentSecuritySystem->ValidateSafeToWrite(*this, pathname);
+			}
+		}
+
+		void ValidateSafeToRead(cstr pathname) override
+		{
+			if (currentSecuritySystem == nullptr)
+			{
+				ThrowFromNativeCode(0, "There is no security module set for the Sexy Script system, so the request to read from the path is rejected, sorry.\n"
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object");
+				return;
+			}
+			else
+			{
+				currentSecuritySystem->ValidateSafeToRead(*this, pathname);
 			}
 		}
 

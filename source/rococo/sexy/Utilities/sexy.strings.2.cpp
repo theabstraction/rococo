@@ -103,3 +103,40 @@ namespace Rococo
 		delete[] buf;
 	}
 }
+
+#include <sexy.compiler.public.h>
+
+namespace Rococo::Compiler
+{
+	void FastStringBuilder::AppendAndTruncate(const fstring& text)
+	{
+		if (!stub.Desc->flags.IsSystem)
+		{
+			Rococo::Throw(0, "Expecting the object to be a System IStringBuilder. It was of type %s", stub.Desc->TypeInfo->Name());
+		}
+
+		int32 bufferLeft = capacity - length;
+
+		if (bufferLeft < 0)
+		{
+			Rococo::Throw(0, "FastStringBuilder had length > capacity");
+		}
+
+		if (text.length > 0 && bufferLeft > 1)
+		{
+			CopyString(buffer + length, bufferLeft, text, text.length);
+
+			length += text.length;
+			length = min(capacity - 1, length);
+			buffer[length] = 0;
+		}
+	}
+
+	void FastStringBuilder::Expand(size_t deltaLength)
+	{
+		if (!stub.Desc->flags.IsSystem)
+		{
+			Rococo::Throw(0, "Expecting the object to be a System Rococo::Compiler::FastStringBuilder. It was of type %s", stub.Desc->TypeInfo->Name());
+		}
+	}
+}

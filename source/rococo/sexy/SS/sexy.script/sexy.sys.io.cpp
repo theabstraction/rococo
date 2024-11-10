@@ -104,6 +104,17 @@ namespace ANON_NS
 	};
 #pragma pack(pop)
 
+	FastStringBuilder& ToFastStringBuilder(InterfacePointer ip)
+	{
+		ObjectStub* stub = InterfaceToInstance(ip);
+		if (!stub->Desc->flags.IsSystem)
+		{
+			Throw(0, "Expecting argument to be a system string builder");
+		}
+
+		return *reinterpret_cast<FastStringBuilder*>(stub);
+	}
+
 	struct IOSystem : IIOSystem
 	{
 		IScriptSystem& ss;
@@ -1087,6 +1098,83 @@ namespace ANON_NS
 		WriteOutput(0, result, e);
 	}
 
+	void LoadAndAppendToStringBuilder(NativeCallEnvironment& e)
+	{
+		auto& ioSystem = From(e);
+
+		IScriptSystem& ss = (IScriptSystem&)e.ss;
+
+		InterfacePointer ipSB;
+		ReadInput(0, ipSB, e);
+
+		auto& sb = ToFastStringBuilder(ipSB);
+
+		InterfacePointer ipPath;
+		ReadInput(1, ipPath, e);
+
+		CStringConstant* sc = (CStringConstant*)InterfaceToInstance(ipPath);
+
+		if (!sc->length || !sc->pointer)
+		{
+			ss.ThrowFromNativeCode(0, __FUNCTION__ ": No directory was supplied");
+			return;
+		}
+
+		cstr path = sc->pointer;
+
+		ss.ValidateSafeToRead(path);
+
+		int32 maxKB;
+		ReadInput(2, maxKB, e);
+
+		uint64 maxKBll = maxKB;
+
+		struct Loader : Rococo::IO::IBinaryFileLoader
+		{
+			FastStringBuilder& sb;
+
+			size_t lockLength = 0;
+			uint64 maxKBll = 0;
+
+			uint8* LockWriter(size_t length) override
+			{
+				if (length > maxKBll)
+				{
+					Throw(0, "LoadAndAppendToStringBuilder: file length %llu KB was greater than the specified limit of %llu KB", length >> 10, maxKBll >> 10);
+				}
+				lockLength = length;
+				sb.Expand(length + 1);
+				return (uint8*) sb.buffer;
+			}
+			
+			void Unlock() override
+			{
+				int32 newLength = sb.length + (int32) lockLength; // N.B this is guaranteed to work by sb.Expand
+				sb.buffer[newLength] = 0;
+				sb.length = newLength;
+			}
+
+			Loader(FastStringBuilder& _sb): sb(_sb)
+			{
+
+			}
+		} loader(sb);
+
+		loader.maxKBll = maxKB;
+
+		try
+		{
+			Rococo::IO::LoadBinaryFile(loader, path, maxKBll * 1024ULL);
+		}
+		catch (IException& ex)
+		{
+			char msg[1024];
+			Rococo::OS::BuildExceptionString(msg, sizeof msg, ex, false);
+			ss.ProgramObject().Log().Write(msg);
+			ss.ThrowFromNativeCode(ex.ErrorCode(), "LoadAndAppendToStringBuilder failed.");
+		}
+	}
+
 	void AssertDirectory(NativeCallEnvironment& e)
 	{
 		auto& ioSystem = From(e);
@@ -1248,17 +1336,6 @@ namespace ANON_NS
 		WriteOutput(count, _sf, -_offset);
 	}
 
-	CClassSysTypeStringBuilder& ToFastStringBuilder(InterfacePointer ip)
-	{
-		ObjectStub* stub = InterfaceToInstance(ip);
-		if (!stub->Desc->flags.IsSystem)
-		{
-			Throw(0, "Expecting argument to be a system string builder");
-		}
-
-		return *reinterpret_cast<CClassSysTypeStringBuilder*>(stub);
-	}
-
 	void AppendString(CClassSysTypeStringBuilder& sb, cstr data, size_t nChars = (size_t) -1)
 	{
 		if (sb.capacity == 0)
@@ -1292,7 +1369,7 @@ namespace ANON_NS
 		auto& sb = ToFastStringBuilder(ip);
 		if (sb.capacity > 0)
 		{
-			AppendString(sb, arg);
+			sb.AppendAndTruncate(to_fstring(arg));
 		}
 	}
 
@@ -1314,7 +1391,7 @@ namespace ANON_NS
 		{
 			char err[256];
 			Rococo::OS::FormatErrorMessage(err, sizeof err, errNumber);
-			AppendString(sb, err);
+			sb.AppendAndTruncate(to_fstring(err));
 		}
 	}
 
@@ -1329,8 +1406,8 @@ namespace ANON_NS
 		InterfacePointer ipValue;
 		ReadInput(2, ipValue, _nce);
 
-		auto& ssbKey = ToFastStringBuilder(ipKey);
-		auto& ssbValue = ToFastStringBuilder(ipValue);
+		auto& sbKey = ToFastStringBuilder(ipKey);
+		auto& sbValue = ToFastStringBuilder(ipValue);
 
 		cstr arg = _nce.ss.GetCommandLineArg(argIndex);
 		if (!*arg)
@@ -1345,8 +1422,8 @@ namespace ANON_NS
 		}
 
 		size_t len = assignmentPoint - arg;
-		AppendString(ssbKey, arg, len);
-		AppendString(ssbValue, assignmentPoint+1);
+		sbKey.AppendAndTruncate(fstring{ arg, (int32) len });
+		sbValue.AppendAndTruncate(to_fstring(assignmentPoint + 1));
 	}
 }
 
@@ -1376,6 +1453,7 @@ namespace Rococo::Script
 			ss.AddNativeCall(sysIO, ANON_NS::AppendDirectorySeparator, &ioSystem, "AppendDirectorySeparator (IStringBuilder sb) ->", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::AssertDirectory, &ioSystem, "AssertDirectory (IString path) ->", __FILE__, __LINE__, true);
 			ss.AddNativeCall(sysIO, ANON_NS::Is_Directory, &ioSystem, "IsDirectory (IString path) -> (Bool isDirectory)", __FILE__, __LINE__, true);
+			ss.AddNativeCall(sysIO, ANON_NS::LoadAndAppendToStringBuilder, &ioSystem, "LoadAndAppendToStringBuilder (IStringBuilder sb)(IString path) (Int32 maxKB) -> ", __FILE__, __LINE__, true);
 		}
 
 		const INamespace& sysIONative = ss.AddNativeNamespace("Sys.IO.Native");

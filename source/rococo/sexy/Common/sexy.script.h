@@ -357,6 +357,7 @@ namespace Rococo {
 
 		ROCOCO_INTERFACE ISecuritySystem
 		{
+			virtual void ValidateSafeToRead(IPublicScriptSystem& ss, cstr pathname) = 0;
 			virtual void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname) = 0;
 		};
 		
@@ -472,6 +473,9 @@ namespace Rococo {
 
 			// Asks the host process whether it is acceptable for the script system to write the file with the given path name
 			virtual void ValidateSafeToWrite(cstr pathname) = 0;
+
+			// Asks the host process whether it is acceptable for the script system to read the file with the given path name
+			virtual void ValidateSafeToRead(cstr pathname) = 0;
 		};
 
 		ROCOCO_INTERFACE IScriptSystemFactory : public IFreeable

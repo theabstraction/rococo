@@ -577,6 +577,7 @@ namespace Rococo
 	{
 		IContextMenuSupervisor* CreateContextMenu(Events::IPublisher& publisher, IContextMenuEvents& eventHandler);
 		void ValidateSafePathToWrite(IO::IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss, cstr pathname);
+		void ValidateSafePathToRead(IO::IInstallation& installation, Rococo::Script::IPublicScriptSystem& ss, cstr pathname);
 	}
 
 	// If this class grows too long, consider adding sub-interfaces to better index the functionality

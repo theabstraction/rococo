@@ -308,6 +308,11 @@ namespace Rococo
 
 				}
 
+				void ValidateSafeToRead(IPublicScriptSystem& ss, cstr pathname)
+				{
+					Rococo::MPlatImpl::ValidateSafePathToRead(platform.os.installation, ss, pathname);
+				}
+
 				void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname)
 				{
 					Rococo::MPlatImpl::ValidateSafePathToWrite(platform.os.installation, ss, pathname);
@@ -439,6 +444,11 @@ namespace Rococo
 					ValidateSafePathToWrite(installation, ss, pathname);
 				}
 
+				void ValidateSafeToRead(IPublicScriptSystem& ss, cstr pathname) override
+				{
+					ValidateSafePathToRead(installation, ss, pathname);
+				}
+
 				IDE::EScriptExceptionFlow GetScriptExceptionFlow(cstr source, cstr message) override
 				{
 					UNUSED(source);
@@ -549,6 +559,40 @@ namespace Rococo
 				stats, onCompile, flow, scriptName, 0,
 				ssf, debugger, sources, noImplicits, appControl, declarationBuilder, installation
 			);
+		}
+
+		void ValidateSafePathToRead(IO::IInstallation& installation, IPublicScriptSystem& ss, cstr pathname)
+		{
+			UNUSED(ss);
+
+			if (pathname == nullptr || *pathname == 0)
+			{
+				Throw(0, "Blank pathname");
+			}
+
+			WideFilePath wPath;
+			Assign(wPath, pathname);
+
+			U8FilePath pingPath;
+			installation.ConvertSysPathToPingPath(wPath, pingPath);
+
+			for (char* c = pingPath.buf; *c != 0; c++)
+			{
+				if (isalpha(*c))
+				{
+					*c = (char)tolower(*c);
+				}
+			}
+
+			if (strstr(pingPath, "/native/") != nullptr)
+			{
+				Throw(0, "Security Error: request to read from %s refused. Path had /native/ subcomponent.", pingPath.buf);
+			}
+
+			if (EndsWith(pingPath, ".sxyz"))
+			{
+				Throw(0, "Security Error: request to read to %s refused. Path had extension .sxyz, which is reserved for packages", pingPath.buf);
+			}
 		}
 
 		void ValidateSafePathToWrite(IO::IInstallation& installation, IPublicScriptSystem& ss, cstr pathname)

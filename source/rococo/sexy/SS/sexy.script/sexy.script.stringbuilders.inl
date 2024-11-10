@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace
+namespace Rococo::Strings::Impl
 {
 	template<uint32 capacity>
 	struct Memo
@@ -316,6 +316,7 @@ namespace
 			else
 			{
 				auto* sb = (FastStringBuilder*) new char[sizeof(FastStringBuilder) + capacity];
+				sb->flags |= (int32) StringBuilderFlags::Expandable;
 				allocList[(char*)sb] = 0;
 				return sb;
 			}
@@ -329,6 +330,7 @@ namespace
 			sb->buffer[0] = 0;
 			sb->capacity = capacity;
 			sb->length = 0;
+			sb->pool = this;
 			sb->formatBase = 10;
 			sb->spec = SPEC_F;
 			sb->stub.Desc = (ObjectDesc*) typeFastStringBuilder->GetVirtualTable(0);
@@ -1194,7 +1196,7 @@ namespace Rococo
 	{
 		IStringPool* NewStringPool()
 		{
-			return new StringPool();
+			return new Rococo::Strings::Impl::StringPool();
 		}
 	}
 }

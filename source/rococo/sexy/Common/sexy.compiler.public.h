@@ -42,6 +42,11 @@
 # define SEXYUTIL_API ROCOCO_API_IMPORT
 #endif
 
+namespace Rococo::Strings::Impl
+{
+	struct StringPool;
+}
+
 namespace Rococo { namespace VM
 {
 	struct IVirtualMachine;
@@ -282,7 +287,8 @@ namespace Rococo {
 		enum class StringBuilderFlags
 		{
 			None = 0, // Default
-			ThrowIfWouldTruncate = 1 // If set then attempting to write past the capacity of the builder throws an exception
+			ThrowIfWouldTruncate = 1, // If set then attempting to write past the capacity of the builder throws an exception
+			Expandable = 2 // If set then the build algorithms may attempt to increase the buffer capacity when required
 		};
 
 
@@ -294,10 +300,14 @@ namespace Rococo {
 			int32 length;
 			char* buffer;
 			int32 capacity;
+			Rococo::Strings::Impl::StringPool* pool;
 			int formatBase;
 			char prefix[PREFIX_LEN];
 			SPEC spec;
 			int32 flags;
+
+			SEXYUTIL_API void AppendAndTruncate(const fstring& text);
+			SEXYUTIL_API void Expand(size_t deltaLength);
 		};
 
 		inline int GetInstanceToInterfaceOffset(int interfaceIndex)

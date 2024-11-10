@@ -1385,7 +1385,7 @@ namespace Rococo
 			if (instanceDef.location == VARLOCATION_TEMP && instanceDef.ResolvedType->Name()[0] == '_')
 			{
 				TokenBuffer fqItemName;
-				StringPrint(fqItemName, ("%s.%s"), instance, item);
+				StringPrint(fqItemName, "%s.%s", instance, item);
 
 				MemberDef itemDef;
 				ce.Builder.TryGetVariableByName(OUT itemDef, fqItemName);
@@ -1399,7 +1399,7 @@ namespace Rococo
 			else
 			{
 				TokenBuffer fqn;
-				StringPrint(fqn, ("%s.%s"), instance, item);
+				StringPrint(fqn, "%s.%s", instance, item);
 
 				ce.Builder.TryGetVariableByName(OUT instanceDef, fqn);
 
@@ -1423,7 +1423,7 @@ namespace Rococo
 			{
 				const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
-				if (AreEqual(("Length"), methodName))
+				if (AreEqual("Length", methodName))
 				{
 					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Length", instance);
@@ -1431,7 +1431,7 @@ namespace Rococo
 					ValidateReturnType(s, returnType, VARTYPE_Int32);
 					return true;
 				}
-				else if (AreEqual(("Capacity"), methodName))
+				else if (AreEqual("Capacity", methodName))
 				{
 					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Capacity", instance);
@@ -1439,7 +1439,7 @@ namespace Rococo
 					ValidateReturnType(s, returnType, VARTYPE_Int32);
 					return true;
 				}
-				else if (AreEqual(("PopOut"), methodName))
+				else if (AreEqual("PopOut", methodName))
 				{
 					CompileAsPopOutFromArray(ce, s, instance, returnType);
 					ValidateReturnType(s, returnType, VARTYPE_Int32);

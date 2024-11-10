@@ -40,7 +40,6 @@
 (struct DommeContext
 	(Sys.Type.Domme.ITypeDefs typedefs)
 	(Sys.Type.IStringBuilder cppBuilder)
-	(Sys.Type.IStringBuilder headerBuilder)
 	(IString factoryPrefix)
 )
 
@@ -484,7 +483,25 @@
 	(marshalBuilder "&n&t&t&tVALIDATE_REGISTERS;&n")
 )
 
+(function OverwriteIfDifferent (IString cppHeaderTarget) (IString header)-> :
+	(Sys.Type.IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+	(sb.ThrowIfAppendWouldTruncate)
+	(Int32 maxKB = 2048)
+	
+	(try
+		(Sys.IO.LoadAndAppendToStringBuilder sb cppHeaderTarget maxKB)
+	catch e
+		(
+		)
+	)
+)
+
 (function BuildDommeObjectH (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
+	(IStringBuilder sb = Sys.Type.NewStringBuilder 4096)
+		
+	(sb "#pragma once&n&n")	
+	(sb "#include <rococo.types.h>&n&n")
+	
 	(IString sxyNamespace = (domme.GetAttributeString "SxyNamespace" true))
 	(IString cppNamespace = (NamespaceConvertSxyToCpp sxyNamespace))
 	
@@ -494,10 +511,7 @@
 	
 	(IString interfaceName = (interfaceDirective.GetAttributeString "Name" true))
 	(IString implementationClass = (interfaceDirective.GetAttributeString "Implementation" true))
-	
-	// TODO Sexysense did not give code completion on cppBuilder, though it works for factoryPrefix
-	(Sys.Type.IStringBuilder sb = dc.headerBuilder)
-			
+		
 	(#build sb "namespace " cppNamespace "&n")
 	
 	(sb "{&n")
@@ -535,6 +549,13 @@
 	(sb "}&n&n")
 	
 	(#build sb "DECLARE_DOMME_INTERFACE(" cppNamespace "::" interfaceName ")&n&n")
+	
+	(sb.Replace 0 "&t" "    ")
+	(#printf sb)
+	
+	(TargetContext tc = sxyNamespace interfaceName)
+	(IString cppHeaderTarget = (GetTargetPath tc interfaceDirective "CppHeaderTarget"))
+	(OverwriteIfDifferent cppHeaderTarget sb)
 )
 
 (function Main (Int32 id)->(Int32 exitCode):
@@ -559,11 +580,6 @@
 	
 
 	(IStringBuilder sb = Sys.Type.NewStringBuilder 4096)
-	(IStringBuilder sbHeader = Sys.Type.NewStringBuilder 4096)
-		
-	(sbHeader "#pragma once&n&n")
-	
-	(sbHeader "#include <rococo.types.h>&n&n")
 		
 	(Sys.Type.Domme.ITypeDefs typedefs (Sys.Type.Domme.TypeDefRepo))
 	
@@ -582,7 +598,7 @@
 			(continue)
 		)
 		
-		(DommeContext context = typedefs sb sbHeader defaultFactoryPrefix)
+		(DommeContext context = typedefs sb defaultFactoryPrefix)
 		
 		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Domme")
 			(BuildDommeObjectCPP context rootDirective)
@@ -594,7 +610,4 @@
 	// define our tab here as four spaces
 	(sb.Replace 0 "&t" "    ")
 	(#printf sb)
-	
-	(sbHeader.Replace 0 "&t" "    ")
-	(#printf sbHeader)
 )

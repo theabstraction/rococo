@@ -6765,6 +6765,12 @@ R"((namespace EntryPoint)
 				UNUSED(ss);
 				UNUSED(pathname);
 			}
+
+			void ValidateSafeToRead(IPublicScriptSystem& ss, cstr pathname)
+			{
+				UNUSED(ss);
+				UNUSED(pathname);
+			}
 		};
 		static SecuritySystem s_security;
 

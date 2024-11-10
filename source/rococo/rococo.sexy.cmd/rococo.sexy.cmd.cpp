@@ -366,6 +366,14 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 		// result = dandy
 	}
 
+	void ValidateSafeToRead(IPublicScriptSystem& ss, cstr pathname) override
+	{
+		UNUSED(ss);
+		UNUSED(pathname);
+		// The cmd script is no better or worse than any other command line utility for security, so if the user wants to read from any file, we have no objections here
+		// result = dandy
+	}
+
 	void AddTask(Rococo::Function<void()> lambda) override
 	{
 		Throw(0, "%s: Not implemented", __FUNCTION__);
