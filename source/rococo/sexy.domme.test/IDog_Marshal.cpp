@@ -1,0 +1,88 @@
+#include <Domme/Animals/IDog.hpp>
+#include <rococo.domme.h>
+
+using namespace Rococo;
+using namespace Rococo::Domme;
+
+namespace Rococo::Animals::Implementation
+{
+    struct Dog : IDogSupervisor
+    {
+        DommeObject D;
+
+        Dog(ScriptingResources _scripting, cstr sourceName) : D(_scripting, sourceName, "Rococo.Animals", "IDog")
+        {
+            barkIndex = D.GetMethodIndex("Bark", 1, 0);
+            goWalkiesIndex = D.GetMethodIndex("GoWalkies", 1, 1);
+            setNameIndex = D.GetMethodIndex("SetName", 1, 0);
+        }
+
+        ~Dog()
+        {
+        }
+
+
+        void _Free() override
+        {
+            delete this;
+        }
+
+        void _Terminate() override
+        {
+            D.Terminate();
+        }
+
+        int barkIndex = -1;
+
+        void Bark(float hz) override
+        {
+            REGISTER_DOMME_CALL(D);
+
+            D.Push(hz);
+            D.CallVirtualMethod(barkIndex);
+            D.PopBytes(sizeof(float));
+
+            VALIDATE_REGISTERS;
+        }
+
+        int goWalkiesIndex = -1;
+
+        bool /* success */ GoWalkies(const Vec3& targetPosition) override
+        {
+            REGISTER_DOMME_CALL(D);
+
+            boolean32 _vm_out_success = 0;
+            D.Push(_vm_out_success);
+            D.PushRef(targetPosition);
+            D.CallVirtualMethod(goWalkiesIndex);
+            D.PopBytes(sizeof(Vec3&));
+            _vm_out_success = D.Pop_boolean32();
+
+            VALIDATE_REGISTERS;
+            return To<bool>(_vm_out_success);
+        }
+
+        int setNameIndex = -1;
+
+        void SetName(fstring name) override
+        {
+            REGISTER_DOMME_CALL(D);
+
+            Rococo::Compiler::InterfacePointer ip_name = D.MarshalString(name);
+            D.PushPtr(ip_name);
+            D.CallVirtualMethod(setNameIndex);
+            D.PopBytes(sizeof(Rococo::Compiler::InterfacePointer));
+
+            VALIDATE_REGISTERS;
+        }
+    };
+}
+
+namespace Rococo::Animals
+{
+    IDogSupervisor* CreateDog(ScriptingResources scripting, cstr sourceFile)
+    {
+        return new Implementation::Dog(scripting, sourceFile);
+    }
+}
+

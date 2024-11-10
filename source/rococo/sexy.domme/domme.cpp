@@ -185,6 +185,14 @@ namespace Rococo::Domme
 		vm->Push(value);
 	}
 
+	void DommeObject::PushPtr(void* ptr)
+	{
+#ifdef _DEBUG
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+#endif
+		vm->Push(ptr);
+	}
+
 	void DommeObject::PopBytes(size_t nBytes)
 	{
 #ifdef _DEBUG
@@ -241,6 +249,17 @@ namespace Rococo::Domme
 		}
 
 		Throw(0, "No such method %s.%s of %s", scriptInterfaceName, methodName, sourceTree->Source().Name());
+	}
+
+	DOMME_API boolean32 DommeObject::Pop_boolean32()
+	{
+		return (boolean32) vm->PopInt32();
+	}
+
+	DOMME_API Rococo::Compiler::InterfacePointer DommeObject::MarshalString(fstring s)
+	{
+		auto* sc = ss->ReflectImmutableStringPointer(s.buffer, s.length);
+		return sc->header.AddressOfVTable0();
 	}
 
 	CallContext::CallContext(DommeObject& _obj): obj(_obj)

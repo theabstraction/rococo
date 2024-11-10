@@ -27,9 +27,22 @@
 	(directive = this.typeDirective)
 )
 
+(method TypeDef.CppType -> (IString cppType):
+	(Sys.Type.IStringBuilder sb = NewPathBuilder)
+	(cppType = (this.typeDirective.GetAttributeString "CPP" true))	
+)
+
 (method TypeDef.CppTypeAndRef -> (IString cppTypeAndRef):
+	(Sys.Type.IStringBuilder sb = NewPathBuilder)
 	(IString cppType = (this.typeDirective.GetAttributeString "CPP" true))
-	(cppTypeAndRef = cppType)
+	
+	(sb cppType)
+	
+	(if (this.type == (#Sys.Type.Domme.TypeDefStructType))
+		(sb "&&")
+	)
+	
+	(cppTypeAndRef = sb)
 )
 
 (method TypeDef.ThrowWithConflict (Sys.Sexml.ISEXMLDirective typeDirective)(IString msg) -> :

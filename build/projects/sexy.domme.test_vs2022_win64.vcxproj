@@ -239,7 +239,8 @@
     <ClInclude Include="..\..\source\rococo\sexy.domme.test\ICat.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\sexy.domme.test\cat.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.domme.test\ICat_Marshal.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.domme.test\IDog_Marshal.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.domme.test\test.cat.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -80,14 +80,25 @@ namespace Rococo::Domme
 		DOMME_API void CallVirtualMethod(int methodIndex);
 		DOMME_API void Push(int32 value);
 		DOMME_API void Push(int64 value);
+		DOMME_API void PushPtr(void* ptr);
 		DOMME_API void PopBytes(size_t nBytes);
 		DOMME_API void PrepVM();
+
+		template<class T>
+		void PushRef(T& t)
+		{
+			PushPtr((void*) &t);
+		}
 
 		void Push(float tValue)
 		{
 			int* pF = (int*)&tValue;
 			Push(*pF);
 		}
+
+		DOMME_API boolean32 Pop_boolean32();
+
+		DOMME_API Rococo::Compiler::InterfacePointer MarshalString(fstring s);
 	};
 
 	class CallContext
@@ -110,6 +121,17 @@ namespace Rococo::Domme
 # define REGISTER_DOMME_CALL(x) 
 # define VALIDATE_REGISTERS
 #endif
+
+	template<class T, class U>
+	T To(const U& u)
+	{
+		BadConversion();
+	}
+
+	bool To(const boolean32& value)
+	{
+		return value == 0 ? false : true;
+	}
 }
 
 #define DECLARE_DOMME_INTERFACE(FQ_INTERFACE_NAME)	\

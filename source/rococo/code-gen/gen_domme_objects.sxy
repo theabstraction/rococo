@@ -39,7 +39,6 @@
 
 (struct DommeContext
 	(Sys.Type.Domme.ITypeDefs typedefs)
-	(Sys.Type.IStringBuilder cppBuilder)
 	(IString factoryPrefix)
 )
 
@@ -141,12 +140,12 @@
 	
 	(TargetContext tc = sxyNamespace interfaceName)
 	
-	(IString cppHeaderTarget = (GetTargetPath tc interfaceDirective "CppHeaderTarget"))
+	(IString cppInclude = (GetTargetPath tc interfaceDirective "CppInclude"))
 	(IString cppSourceTarget = (GetTargetPath tc interfaceDirective "CppSourceTarget"))
 	
-	(Sys.Type.IStringBuilder sb = dc.cppBuilder)
+	(IStringBuilder sb = Sys.Type.NewStringBuilder 4096)
 		
-	(#build sb "#include &"" cppHeaderTarget "&"&n")
+	(#build sb "#include " cppInclude "&n")
 	(sb "#include <rococo.domme.h>&n&n")
 
 	(sb "using namespace Rococo;&n")
@@ -159,7 +158,7 @@
 	(sb "&t{&n")
 	(sb "&t&tDommeObject D;&n&n")
 	
-	(#build sb "&t&t" implementationClass "(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, &"" interfaceName "&")&n")
+	(#build sb "&t&t" implementationClass "(ScriptingResources& _scripting, cstr sourceName) : D(_scripting, sourceName, &"" sxyNamespace "&", &"" interfaceName "&")&n")
 	(sb "&t&t{&n")
 	
 	(Sys.Sexml.ISEXMLAttribute methods = (interfaceDirective.FindAttribute "Methods"))
@@ -224,6 +223,12 @@
 	(#build sb "&t&treturn new Implementation::" implementationClass "(scripting, sourceFile);&n")
 	(sb "&t}&n")
 	(sb "}&n&n")
+		
+	// define our tab here as four spaces
+	(sb.Replace 0 "&t" "    ")
+	(#printf sb)
+	
+	(OverwriteIfDifferent cppSourceTarget sb)
 )
 
 (function GetFirstChar (IString s) -> (Int32 codePoint):
@@ -277,7 +282,6 @@
 				
 				(Sys.Type.Domme.ITypeDef typedefArgType = (dc.typedefs.Find q))
 				(if (not (typedefArgType ?))
-					(Sys.Reflection.IExpression sQ = (sParameter i))
 					(sQ.Throw 0 "Could not match type to a typedef")
 				)
 				
@@ -310,6 +314,7 @@
 							else 
 								(if (sDefault.Type == (#Sys.Reflection.ExpressionTypeString))
 									(EscapeCPPString argBuilder sDefault.Text sDefault)
+									(argBuilder "_fstring")
 								else
 									(sDefault.Throw 0 "Expecting atomic or string literal as the default value")
 								)
@@ -400,7 +405,7 @@
 (function BuildMarshalMethodOutputArgCPP (Sys.Reflection.IExpression outParameter)(Sys.Type.IStringBuilder marshalBuilder) -> :
 )
 
-(function GetMethodElementsCPP (Sys.Reflection.IExpression inParameter)-> (IString varType)(IString varName) :
+(function GetMethodElementsCPP (Sys.Type.Domme.ITypeDefs typedefs) (Sys.Reflection.IExpression inParameter)-> (IString varType)(IString varName)(Bool isStructType) :
 	// inParameter: (<optional-const> <type> <name> = <optional-default>)
 	
 	(Int32 nameIndex = 1)
@@ -416,6 +421,11 @@
 	)
 	
 	(GetAtomicWithAssert inParameter nameIndex "Expecting variable name" -> varName)
+	
+	(Sys.Type.Domme.ITypeDef typedef = (typedefs.Find varType))
+	(if (typedef.Type == (#Sys.Type.Domme.TypeDefStructType))
+		(isStructType = true)
+	)
 )
 
 (function BuildMarshallingCPP (DommeContext dc) (IString methodVariableName) (Sys.Reflection.IExpression sMethod)(Sys.Type.IStringBuilder marshalBuilder)-> :
@@ -428,11 +438,12 @@
 	
 	(IString outVarType)
 	(IString outVarName)
+	(Bool isStructType)
 	
 	(if (outputIndicator > -1)
 		(Sys.Reflection.IExpression outParameter = (sMethod (outputIndicator + 1)))
 		(if (outParameter ?)
-			(GetMethodElementsCPP outParameter -> outVarType outVarName)
+			(GetMethodElementsCPP dc.typedefs outParameter -> outVarType outVarName isStructType)
 			
 			(IString marshalledType = (dc.typedefs.MarshalCppName outVarType))
 			
@@ -448,9 +459,20 @@
 			
 		(IString varType)
 		(IString varName)
-		(GetMethodElementsCPP inParameter -> varType varName)
+		(GetMethodElementsCPP dc.typedefs inParameter -> varType varName isStructType)
 		
-		(#build marshalBuilder "&t&t&tD.Push(" varName ");&n")		
+		(if isStructType 
+			(#build marshalBuilder "&t&t&tD.PushRef(" varName ");&n")
+		else
+			(Sys.Type.Domme.ITypeDef typeDefVar = dc.typedefs.Find varType)
+			(IString cppVarType = (typeDefVar.CppType))
+			(if (#eq cppVarType "fstring")
+				(#build marshalBuilder "&t&t&tRococo::Compiler::InterfacePointer ip_" varName " = D.MarshalString(" varName ");&n")
+				(#build marshalBuilder "&t&t&tD.PushPtr(ip_" varName ");&n")
+			else
+				(#build marshalBuilder "&t&t&tD.Push(" varName ");&n")
+			)
+		)
 	)
 	
 	(#build marshalBuilder "&t&t&tD.CallVirtualMethod(" methodVariableName "Index);&n")
@@ -467,24 +489,34 @@
 				
 			(IString varType)
 			(IString varName)
-			(GetMethodElementsCPP inParameter -> varType varName)
+			(GetMethodElementsCPP dc.typedefs inParameter -> varType varName isStructType)
 			
-			(#build marshalBuilder "sizeof(" varType ")")	
+			(Sys.Type.Domme.ITypeDef typeDefVar = dc.typedefs.Find varType)
+			(IString cppVarType = (typeDefVar.CppType))
+			(if (#eq cppVarType "fstring")
+				(#build marshalBuilder "sizeof(Rococo::Compiler::InterfacePointer)")	
+			else
+				(#build marshalBuilder "sizeof(" varType ")")	
+			)
 		)
 		
 		(marshalBuilder ");&n")
 		
 		(if (outVarType ?)
-			(#build marshalBuilder "&t&t&t_vm_out_" outVarName " = D.Pop<" outVarType ">();&n" )
-			(#build marshalBuilder "&t&t&treturn To<" outVarType ">(_vm_out_" outVarName "));&n")
+			(IString marshalledCppType = (dc.typedefs.MarshalCppName outVarType))
+			(#build marshalBuilder "&t&t&t_vm_out_" outVarName " = D.Pop_" marshalledCppType "();&n" )
+			(marshalBuilder "&n&t&t&tVALIDATE_REGISTERS;&n")
+			(#build marshalBuilder "&t&t&treturn To<" outVarType ">(_vm_out_" outVarName ");&n")
+		else
+			(marshalBuilder "&n&t&t&tVALIDATE_REGISTERS;&n")
 		)
+	else
+		(marshalBuilder "&n&t&t&tVALIDATE_REGISTERS;&n")
 	)
-
-	(marshalBuilder "&n&t&t&tVALIDATE_REGISTERS;&n")
 )
 
 (function OverwriteIfDifferent (IString cppHeaderTarget) (IString header)-> :
-	(Sys.Type.IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+	(Sys.Type.IStringBuilder sb = (Sys.Type.NewStringBuilder 1))
 	(sb.ThrowIfAppendWouldTruncate)
 	(Int32 maxKB = 2048)
 	
@@ -596,10 +628,7 @@
 	)
 	
 	(IString defaultFactoryPrefix = "New")
-	
-
-	(IStringBuilder sb = Sys.Type.NewStringBuilder 4096)
-		
+			
 	(Sys.Type.Domme.ITypeDefs typedefs (Sys.Type.Domme.TypeDefRepo))
 	
 	(for(Int32 i = 0)(i < reader.DirectiveCount)(i += 1)
@@ -617,7 +646,7 @@
 			(continue)
 		)
 		
-		(DommeContext context = typedefs sb defaultFactoryPrefix)
+		(DommeContext context = typedefs defaultFactoryPrefix)
 		
 		(if (Sys.Type.Strings.IsExactMatch rootDirective.Name "Domme")
 			(BuildDommeObjectCPP context rootDirective)
@@ -625,8 +654,4 @@
 			(continue)
 		)
 	)
-	
-	// define our tab here as four spaces
-	(sb.Replace 0 "&t" "    ")
-	(#printf sb)
 )

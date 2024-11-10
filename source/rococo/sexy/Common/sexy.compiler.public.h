@@ -305,7 +305,7 @@ namespace Rococo {
 			int formatBase;
 			char prefix[PREFIX_LEN];
 			SPEC spec;
-			int32 flags;
+			int32 flags = 0;
 
 			SEXYUTIL_API void AppendAndTruncate(const fstring& text);
 		};

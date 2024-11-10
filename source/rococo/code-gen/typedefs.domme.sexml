@@ -21,11 +21,11 @@
 // MarshalledValueType define types in C++ and Sexy that are passed by value, but are not bitwise equivalent and require support in C++ marshalling code to correctly map to the Sexy type.
 // The SXY attribute specifies the semantic equivalent in SXY.
 (MarshalledValueType (CPP bool) (SXY Bool))
+(MarshalledValueType (CPP fstring) (SXY IString)(ExpandedCPPName Rococo::fstring)(#List Alias Rococo::fstring cstr)(ProhibitOutput "To emit a string from a Domme method, pass a string populator as input reference, the Sexy script will see this as an IStringBuilder"))
 
 // MarshalledStructType define types in C++ and Sexy that are passed by reference, but are not bitwise equivalent and require support in C++ marshalling code to correctly map to the Sexy type.
 // The SXY attribute specifies the semantic equivalent in SXY.
 (MarshalledStructType (CPP IStringPopulator) (SXY IStringBuilder)(ExpandedCPPName Rococo::IStringPopulator)(ProhibitOutput "A Domme method cannot return a reference to an interface"))
-(MarshalledStructType (CPP fstring) (SXY IString)(ExpandedCPPName Rococo::fstring)(#List Alias Rococo::fstring cstr)(ProhibitOutput "To emit a string from a Domme method, pass a string populator as input reference, the Sexy script will see this as an IStringBuilder"))
 
 // Struct define types in C++ and Sexy that are passed by reference. In the Sexy-Script-language outputs cannot be struct types. All such types in Sexy are defined using the struct definition in a root directive.
 // The SXY attribute specifies the bitwise and semantic equivalent in SXY.

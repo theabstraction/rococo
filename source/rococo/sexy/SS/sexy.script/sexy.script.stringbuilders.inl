@@ -341,7 +341,6 @@ namespace Rococo::Strings::Impl
 			sb->stub.Desc = (ObjectDesc*) typeFastStringBuilder->GetVirtualTable(0);
 			sb->stub.refCount = 1;
 			sb->stub.pVTables[0] = (VirtualTable*) typeFastStringBuilder->GetVirtualTable(1);
-			sb->flags = 0;
 			SafeFormat(sb->prefix, PREFIX_LEN, "%4.4");
 			return sb;
 		}
