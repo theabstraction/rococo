@@ -348,7 +348,64 @@ namespace Rococo::Strings::Impl
 
 		void ExpandStringBuilder(FastStringBuilder& sb, size_t deltaLength) override
 		{
+			uint64 len = sb.length;
 
+			if (!HasFlag(StringBuilderFlags::Expandable, sb.flags))
+			{
+				// Was of reserved length (64, 260 or 1024 chars)
+				Throw(0, "%s: The string builder was not expandable", __FUNCTION__);
+			}
+
+			if (deltaLength >= 1_gigabytes)
+			{
+				Throw(0, "%s: expansion is capped to 1GB", __FUNCTION__);
+			}
+
+			uint64 targetLen = deltaLength + len;
+
+			if (targetLen >= 1_gigabytes)
+			{
+				Throw(0, "%s: expansion is capped to 1GB", __FUNCTION__);
+			}
+
+			// At this point the target length is guaranteed to be less than 1GB, so an int32 cast is guaranteed to be a +ve int32. capacity is also limited to 1GB.
+
+			int32 newLen = (int32) targetLen;
+
+			int32 newCapacity = sb.capacity;
+
+			while (newCapacity < newLen)
+			{
+				if (newCapacity >= 1_gigabytes)
+				{
+					newCapacity = (int) 1_gigabytes;
+					break;
+				}
+
+				newCapacity *= 2;
+			}
+
+			// since capacity maxes out at 1GB and the length is guaranteed to be less than 1GB, then length < capacity, so we always have a spot for the trailing nul character
+
+			sb.capacity = newCapacity;
+
+			char* newBuffer;
+
+			try
+			{
+				newBuffer = new char[newCapacity];
+			}
+			catch (...)
+			{
+				Throw(0, "%s: expansion failed to allocate %ld bytes", __FUNCTION__, newCapacity);
+			}
+
+			memcpy(newBuffer, sb.buffer, sb.length + 1); // We added 1 to cover the trailing zero
+
+			delete[] sb.buffer;
+			sb.buffer = newBuffer;
+
+			// Note, that it is not our job here to update the length, we merely updated the capacity to allow the length to be legal
 		}
 	};
 

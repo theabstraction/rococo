@@ -847,6 +847,10 @@ namespace ANON_NS
 		{
 			char errMsg[256];
 			strerror_s(errMsg, err);
+
+			char msg[256];
+			SafeFormat(msg, "%s: Could not open %s", __FUNCTION__, sc->pointer);
+			e.ss.PublicProgramObject().Log().Write(msg);
 			e.ss.ThrowNative(0, sc->pointer, errMsg);
 			return;
 		}

@@ -1,0 +1,24 @@
+#pragma once
+
+#include <rococo.domme.h>
+
+namespace Rococo::Animals
+{
+    struct IDog
+    {
+        virtual void Bark(float hz = 512) = 0;
+        virtual bool /* success */ GoWalkies(const Vec3 targetPosition) = 0;
+        virtual void SetName(fstring name = "\tRover\r\n\x%X") = 0;
+    };
+
+    struct IDogSupervisor: IDog
+    {
+        virtual void _Free() = 0;
+        virtual void _Terminate() = 0;
+    };
+
+    IDogSupervisor* CreateDog(Rococo::Domme::ScriptingResources& scripting, cstr sourceFile);
+}
+
+DECLARE_DOMME_INTERFACE(Rococo::Animals::IDog)
+

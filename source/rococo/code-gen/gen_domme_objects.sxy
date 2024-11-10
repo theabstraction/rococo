@@ -488,19 +488,38 @@
 	(sb.ThrowIfAppendWouldTruncate)
 	(Int32 maxKB = 2048)
 	
+	(Sys.IO.IFileWriter writer)
+	
+	(Sys.Type.IStringBuilder headerPath = (Sys.Type.NewPathBuilder))
+	(headerPath.ThrowIfAppendWouldTruncate)
+	
+	(Sys.IO.AppendCurrentDirectory headerPath)
+	(Sys.IO.AppendDirectorySeparator headerPath)
+	(headerPath cppHeaderTarget)
+	
 	(try
-		(Sys.IO.LoadAndAppendToStringBuilder sb cppHeaderTarget maxKB)
+		(
+			(Sys.IO.LoadAndAppendToStringBuilder sb headerPath maxKB)
+			(if (Sys.Type.Strings.IsExactMatch sb header)
+				(return)
+			)
+			
+			(Sys.IO.WriteToFile headerPath -> writer)
+		)
 	catch e
 		(
+			(Sys.IO.WriteToFile headerPath -> writer)
 		)
 	)
+	
+	(writer header)
 )
 
 (function BuildDommeObjectH (DommeContext dc) (Sys.Sexml.ISEXMLDirective domme) -> :
 	(IStringBuilder sb = Sys.Type.NewStringBuilder 4096)
 		
 	(sb "#pragma once&n&n")	
-	(sb "#include <rococo.types.h>&n&n")
+	(sb "#include <rococo.domme.h>&n&n")
 	
 	(IString sxyNamespace = (domme.GetAttributeString "SxyNamespace" true))
 	(IString cppNamespace = (NamespaceConvertSxyToCpp sxyNamespace))

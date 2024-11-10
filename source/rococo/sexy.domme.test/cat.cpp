@@ -1,4 +1,4 @@
-#include "ICat.h"
+#include <Domme/Animals/ICat.hpp>
 
 #include <rococo.domme.h>
 
@@ -50,6 +50,6 @@ namespace Rococo::Animals
 {
 	ICatSupervisor* CreateCat(ScriptingResources& scripting, cstr sourceFile)
 	{
-		return new Implementation::Cat(scripting, sourceFile);
+		return new Rococo::Animals::Implementation::Cat(scripting, sourceFile);
 	}
 }

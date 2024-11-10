@@ -98,8 +98,24 @@ namespace Rococo
          }
 
          GetAtomicArg(s, 0);
-         AssertKeyword(s, 0, ("try"));
-         AssertKeyword(s, 2, ("catch"));
+
+         try
+         {
+             AssertKeyword(s, 0, "try");
+         }
+         catch (ParseException&)
+         {
+             Throw(s[0], "Expecting 'try' keyword as s[0]");
+         }
+
+         try
+         {
+             AssertKeyword(s, 2, "catch");
+         }
+         catch (ParseException&)
+         {
+             Throw(s[2], "Expecting 'catch' keyword as s[2]");
+         }
 
          cr_sex body = s.GetElement(1);
          AssertCompoundOrNull(body);
@@ -110,7 +126,17 @@ namespace Rococo
          cr_sex handler = s.GetElement(4);
          AssertCompoundOrNull(handler);
 
-         if (s.NumberOfElements() == 7) AssertKeyword(s, 5, ("finally"));
+         if (s.NumberOfElements() == 7)
+         {
+             try
+             {
+                 AssertKeyword(s, 5, "finally");
+             }
+             catch (ParseException&)
+             {
+                 Throw(s[5], "Expecting 'finally' keyword as s[5]");
+             }
+         }
 
          const ISExpression* cleanup = NULL;
 

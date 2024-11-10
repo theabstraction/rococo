@@ -28,7 +28,7 @@
 		(Name ICat)
 		(Implementation Cat)
 		(SxyTarget "!script/^^")
-		(CppHeaderTarget "$(InterfacePathTrailer).hpp")
+		(CppHeaderTarget "../include/Domme/$(InterfacePathTrailer).hpp")
 		(CppSourceTarget "$(InterfaceName).cpp")
 		(' Methods
 			(MakeBiscuits (int nBiscuits)(float dt))
@@ -45,7 +45,7 @@
 		(Name IDog)
 		(Implementation Dog)
 		(SxyTarget "!script/^^")
-		(CppHeaderTarget "$(InterfacePathTrailer).hpp")
+		(CppHeaderTarget "../include/Domme/$(InterfacePathTrailer).hpp")
 		(CppSourceTarget "$(InterfaceName).cpp")
 		(' Methods
 			(Bark (float hz = 512))
