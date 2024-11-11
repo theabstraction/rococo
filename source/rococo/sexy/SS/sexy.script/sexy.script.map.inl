@@ -773,7 +773,11 @@ namespace Rococo::Script
 			return;
 		}
 
-		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "MapNodeGetInterface failed. The node did not represent an entry in the map");
+		if (!m->IsExistant)
+		{
+			ss.ThrowFromNativeCodeF(-1, "MapNodeGetInterface failed. The node did not represent an entry in the map");
+			return;
+		}
 
 		InterfacePointer ip = *(InterfacePointer*)GetValuePointer(m);
 		ObjectStub* stub = InterfaceToInstance(ip);
@@ -828,7 +832,11 @@ namespace Rococo::Script
 			pKey->stub.refCount++;
 		}
 		
-		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "node.Key(IString) failed.The node did not represent an entry in the map");
+		if (!m->IsExistant)
+		{
+			ss.ThrowFromNativeCodeF(-1, "node.Key(IString) failed.The node did not represent an entry in the map");
+			return;
+		}
 		
 		registers[VM::REGISTER_D7].vPtrValue = pKey->stub.pVTables;		
 	}

@@ -1175,6 +1175,7 @@ namespace ANON_NS
 			Rococo::OS::BuildExceptionString(msg, sizeof msg, ex, false);
 			ss.ProgramObject().Log().Write(msg);
 			ss.ThrowFromNativeCodeF(ex.ErrorCode(), "LoadAndAppendToStringBuilder failed: %s", ex.Message());
+			return;
 		}
 	}
 
@@ -1287,6 +1288,7 @@ namespace ANON_NS
 		if (capacity <= length)
 		{
 			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity %d, length %d was insufficient to safely hold current path '%s' of length %d", __FUNCTION__, sb->capacity, sb->length, path.buf, length);
+			return;
 		}
 
 		memcpy_s(sb->buffer + sb->length, capacity, path, length + 1);
@@ -1314,6 +1316,7 @@ namespace ANON_NS
 		if (capacity <= 0)
 		{
 			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity exhausted", __FUNCTION__);
+			return;
 		}
 
 		sb->buffer[sb->length++] = Rococo::IO::GetFileSeparator();
