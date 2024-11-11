@@ -32,6 +32,11 @@
 	(cppType = (this.typeDirective.GetAttributeString "CPP" true))	
 )
 
+(method TypeDef.SxyType -> (IString sxyType):
+	(Sys.Type.IStringBuilder sb = NewPathBuilder)
+	(sxyType = (this.typeDirective.GetAttributeString "SXY" true))	
+)
+
 (method TypeDef.CppTypeAndRef -> (IString cppTypeAndRef):
 	(Sys.Type.IStringBuilder sb = NewPathBuilder)
 	(IString cppType = (this.typeDirective.GetAttributeString "CPP" true))

@@ -352,7 +352,7 @@ void NativeAppendCTime(NativeCallEnvironment& _nce)
 	int32 chars;
 	if (nMax > 0)
 	{
-		chars = SafeFormat(sb.buffer, (size_t)nMax, "%.24s", timestamp);
+		chars = SafeFormat(sb.buffer + sb.length, (size_t)nMax, "%.24s", timestamp);
 		sb.length += chars;
 	}
 	else
