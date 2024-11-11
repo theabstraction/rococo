@@ -418,13 +418,13 @@ namespace Rococo::Strings::Impl
 
 		if (capacity <= 0) 
 		{
-			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be positive");
+			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity must be positive");
 			return;
 		}
 
-		if (capacity >= 1024_megabytes)
+		if (capacity > 1024_megabytes)
 		{
-			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity needs to be less than 1 gigabyte");
+			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity must be no greater than 1 gigabyte");
 			return;
 		}
 
