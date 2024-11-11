@@ -473,7 +473,7 @@ namespace Rococo::Script
 			ss.AddNativeCall(ns, ANON::GetSysMessage, &ss, "GetSysMessage (Sys.Type.Pointer msgHandle) -> (Sys.Type.IString message)", __FILE__, __LINE__);
 		}
 
-		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage)
+		void ThrowFromNativeCode(int32 errorCode, cstr format, va_list args)
 		{
 			auto& po = ss.ProgramObject();
 			const IModule& module = po.GetModule(0);
@@ -481,13 +481,16 @@ namespace Rococo::Script
 			
 			int size = GetNullSize(nativeExType);
 
+			char buf[2048];
+			SafeVFormat(buf, sizeof buf, format, args);
+
 			auto& allocator = *po.AllocatorMap().GetAllocator(nativeExType)->memoryAllocator;
 			auto* nex = new (allocator.AllocateObject(sizeof(NativeException))) NativeException();
 			nex->Header.Desc = (ObjectDesc*) nativeExType.GetVirtualTable(0);
 			nex->Header.refCount = 1;
 			nex->Header.pVTables[0] = (VirtualTable*) nativeExType.GetVirtualTable(1);
 			nex->errorCode = errorCode;
-			nex->messageHolder = staticRefMessage;
+			nex->messageHolder = buf;
 			nex->message = nex->messageHolder;
 
 			isWithinException = true;

@@ -441,7 +441,7 @@ namespace Rococo {
 
 			// Call this from within a C++ script function to pass the message up to the try catch block of the sexy script file.
 			// Since it is the virtual machine that has its stack corrected, and not C++, you should immediately return from the calling function after invoking this method
-			virtual void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage) = 0;
+			virtual void ThrowFromNativeCodeF(int32 errorCode, cstr format, ...) = 0;
 			virtual int32 GetIntrinsicModuleCount() const = 0;
 			virtual bool ValidateMemory() = 0;
 			virtual void SetGlobalVariablesToDefaults() = 0;

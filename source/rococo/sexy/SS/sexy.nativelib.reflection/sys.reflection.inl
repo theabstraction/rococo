@@ -783,14 +783,14 @@ namespace
 		{
 			if (pStruct->InterfaceCount() != 1)
 			{
-				e.ss.ThrowFromNativeCode(0, "IStructure.AppendMethodName: requires interface count of 1 only");
+				e.ss.ThrowFromNativeCodeF(0, "IStructure.AppendMethodName: requires interface count of 1 only");
 				return;
 			}
 
 			auto& myInterface = pStruct->GetInterface(0);
 			if (methodIndex < 0 || methodIndex > myInterface.MethodCount())
 			{
-				e.ss.ThrowFromNativeCode(0, "IStructure.AppendMethodName: method Index was out of bounds");
+				e.ss.ThrowFromNativeCodeF(0, "IStructure.AppendMethodName: method Index was out of bounds");
 				return;
 			}
 
@@ -804,7 +804,7 @@ namespace
 		int nBytesWritten = SafeFormat(sbObject->buffer + sbObject->length, sbObject->capacity - sbObject->length, "%s", methodName);
 		if (nBytesWritten < 0)
 		{
-			e.ss.ThrowFromNativeCode(GetLastError(), "IStructure.AppendMethodName: Error appending method name");
+			e.ss.ThrowFromNativeCodeF(GetLastError(), "IStructure.AppendMethodName: Error appending method name");
 			return;
 		}
 

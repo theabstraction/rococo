@@ -418,13 +418,13 @@ namespace Rococo::Strings::Impl
 
 		if (capacity <= 0) 
 		{
-			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity must be positive");
+			e.ss.ThrowFromNativeCodeF(0, "NewStringBuilder failed. Capacity must be positive");
 			return;
 		}
 
 		if (capacity > 1024_megabytes)
 		{
-			e.ss.ThrowFromNativeCode(0, "NewStringBuilder failed. Capacity must be no greater than 1 gigabyte");
+			e.ss.ThrowFromNativeCodeF(0, "NewStringBuilder failed. Capacity must be no greater than 1 gigabyte");
 			return;
 		}
 
@@ -491,7 +491,7 @@ namespace Rococo::Strings::Impl
 		{
 			if (0 != (sb.flags & (int32)StringBuilderFlags::ThrowIfWouldTruncate))
 			{
-				e.ss.ThrowFromNativeCode(0, "Insufficient buffer capacity for append operation");
+				e.ss.ThrowFromNativeCodeF(0, "IStringBuilder.Append: Insufficient buffer capacity for append operation and truncation forbidden");
 				return;
 			}
 
@@ -582,7 +582,7 @@ namespace Rococo::Strings::Impl
 
 		if (sfrom->length == 0)
 		{
-			e.ss.ThrowFromNativeCode(0, "FastStringBuilderReplace: (IString from) - from was blank");
+			e.ss.ThrowFromNativeCodeF(0, "IStringBuilder.Replace: (IString from) - from was blank");
 			return;
 		}
 
@@ -606,7 +606,7 @@ namespace Rococo::Strings::Impl
 			if (nextLength >= sb.capacity)
 			{
 				// Insufficient space to perform replacement
-				e.ss.ThrowFromNativeCode(0, "FastStringBuilderReplace: Insufficient space in buffer to replace character sequence");
+				e.ss.ThrowFromNativeCodeF(0, "IStringBuilder.Replace: Insufficient space in buffer to replace character sequence");
 				return;
 			}
 

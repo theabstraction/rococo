@@ -314,7 +314,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(-1, "ListAppend: the list was null");
+			ss.ThrowFromNativeCodeF(-1, "ListAppend: the list was null");
 			return;
 		}
 	}
@@ -392,7 +392,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			ss.ThrowFromNativeCodeF(0, "Append failed - the list was null");
 			return;
 		}
 	}
@@ -420,7 +420,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			ss.ThrowFromNativeCodeF(0, "Append failed - the list was null");
 			return;
 		}
 	}
@@ -441,7 +441,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(0, "Append failed - the list was null");
+			ss.ThrowFromNativeCodeF(0, "Append failed - the list was null");
 			return;
 		}
 	}
@@ -482,7 +482,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			ss.ThrowFromNativeCodeF(0, "Prepend failed - the list was null");
 			return;
 		}
 	}
@@ -523,7 +523,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			ss.ThrowFromNativeCodeF(0, "Prepend failed - the list was null");
 			return;
 		}
 	}
@@ -552,7 +552,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			ss.ThrowFromNativeCodeF(0, "Prepend failed - the list was null");
 			return;
 		}
 	}
@@ -570,7 +570,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(0, "Prepend failed - the list was null");
+			ss.ThrowFromNativeCodeF(0, "Prepend failed - the list was null");
 			return;
 		}
 	}
@@ -593,13 +593,13 @@ namespace Rococo::Script
 
 		if (n == NULL)
 		{
-			ss.ThrowFromNativeCode(-1, ("Node.Pop failed, as the node was null"));
+			ss.ThrowFromNativeCodeF(-1, ("Node.Pop failed, as the node was null"));
 			return;
 		}
 
 		if (l == NULL)
 		{
-			ss.ThrowFromNativeCode(-1, ("Node.Pop failed, as the node was not in a list"));
+			ss.ThrowFromNativeCodeF(-1, ("Node.Pop failed, as the node was not in a list"));
 			return;
 		}
 
@@ -673,7 +673,7 @@ namespace Rococo::Script
 
 		if (!l || !l->Head)
 		{
-			ss.ThrowFromNativeCode(-1, "ListGetHead: The list was empty");
+			ss.ThrowFromNativeCodeF(-1, "ListGetHead: The list was empty");
 			return;
 		}
 
@@ -689,7 +689,7 @@ namespace Rococo::Script
 
 		if (!l || !l->Head)
 		{
-			ss.ThrowFromNativeCode(-1, "ListGetHead: The list was empty");
+			ss.ThrowFromNativeCodeF(-1, "ListGetHead: The list was empty");
 			return;
 		}
 
@@ -711,7 +711,7 @@ namespace Rococo::Script
 
 		if (!l || !l->Tail)
 		{
-			ss.ThrowFromNativeCode(-1, "ListGetTail: The list was empty");
+			ss.ThrowFromNativeCodeF(-1, "ListGetTail: The list was empty");
 			return;
 		}
 
@@ -763,7 +763,7 @@ namespace Rococo::Script
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (n->Next == NULL)
 		{
-			ss.ThrowFromNativeCode(-1, ("The node had no successor"));
+			ss.ThrowFromNativeCodeF(-1, ("The node had no successor"));
 			return;
 		}
 
@@ -778,7 +778,7 @@ namespace Rococo::Script
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (n->Previous == nullptr)
 		{
-			ss.ThrowFromNativeCode(-1, "The node had no predecessor");
+			ss.ThrowFromNativeCodeF(-1, "The node had no predecessor");
 			return;
 		}
 
@@ -799,7 +799,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(-1, "ListAppendAndGetRef: null list");
+			ss.ThrowFromNativeCodeF(-1, "ListAppendAndGetRef: null list");
 			return;
 		}
 	}
@@ -816,7 +816,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			ss.ThrowFromNativeCode(-1, "ListPrependAndGetRef: null list");
+			ss.ThrowFromNativeCodeF(-1, "ListPrependAndGetRef: null list");
 			return;
 		}
 	}

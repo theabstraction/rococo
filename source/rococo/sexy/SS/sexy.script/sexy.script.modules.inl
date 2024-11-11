@@ -1790,13 +1790,7 @@ namespace Rococo::Script
 		cstr body, tail;
 		splitter.SplitTail(body, tail);
 
-		char message[256];
-		SafeFormat(message, 256, "%s.%s: null reference", i->Name(), tail);
-
-		cstr uniqueString = ss.GetPersistentString(message);
-
-		auto* sc = ss.ReflectImmutableStringPointer(uniqueString);
-		ss.ThrowFromNativeCode(0, sc->pointer);
+		ss.ThrowFromNativeCodeF(0, "%s.%s: null reference", i->Name(), tail);
 	}
 
 	VM_CALLBACK(IsDifferentObject)

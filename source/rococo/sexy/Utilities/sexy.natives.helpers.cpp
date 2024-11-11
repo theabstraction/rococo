@@ -22,9 +22,9 @@ namespace Rococo
 		  auto* stub = InterfaceToInstance(pInterface);
 		  auto* fsb = (FastStringBuilder*)stub;
 
-		  if (fsb->stub.Desc->TypeInfo != _nce.ss.GetStringBuilderType())
+		  if (fsb->stub.Desc->flags.IsSystem)
 		  {
-			  _nce.ss.ThrowFromNativeCode(0, "Builder was not allocated using NewTokenBuilder, NewPathBuilder, NewParagraphBuilder or NewStringBuilder");
+			  _nce.ss.ThrowFromNativeCodeF(0, "Builder %s was not a system string builder", GetFriendlyName(*fsb->stub.Desc->TypeInfo));
               return;
 		  }
 		  builder = fsb;

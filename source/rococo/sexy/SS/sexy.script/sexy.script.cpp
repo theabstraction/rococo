@@ -1495,9 +1495,11 @@ namespace Rococo::Script
 			return nextId++;
 		}
 
-		void ThrowFromNativeCode(int32 errorCode, cstr staticRefMessage) override
+		void ThrowFromNativeCodeF(int32 errorCode, cstr format, ...) override
 		{
-			scripts->ExceptionLogic().ThrowFromNativeCode(errorCode, staticRefMessage);
+			va_list ap;
+			va_start(ap, format);
+			scripts->ExceptionLogic().ThrowFromNativeCode(errorCode, format, ap);
 		}
 
 		void* AlignedMalloc(int32 alignment, int32 capacity) override
@@ -2573,8 +2575,8 @@ namespace Rococo::Script
 		{
 			if (currentSecuritySystem == nullptr)
 			{
-				ThrowFromNativeCode(0, "There is no security module set for the Sexy Script system, so the request to write to the path is rejected, sorry.\n"
-					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object");
+				ThrowFromNativeCodeF(0, "%s(%s): There is no security module set for the Sexy Script system, so the request to write to the path is rejected, sorry.\n"
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __FUNCTION__, pathname);
 				return;
 			}
 			else
@@ -2587,8 +2589,8 @@ namespace Rococo::Script
 		{
 			if (currentSecuritySystem == nullptr)
 			{
-				ThrowFromNativeCode(0, "There is no security module set for the Sexy Script system, so the request to read from the path is rejected, sorry.\n"
-					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object");
+				ThrowFromNativeCodeF(0, "%s(%s): There is no security module set for the Sexy Script system, so the request to read from the path is rejected, sorry.\n"
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __FUNCTION__, pathname);
 				return;
 			}
 			else

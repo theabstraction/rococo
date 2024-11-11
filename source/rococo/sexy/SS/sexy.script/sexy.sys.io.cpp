@@ -870,7 +870,7 @@ namespace ANON_NS
 		if (!file)
 		{
 			fclose(fp);
-			e.ss.ThrowFromNativeCode(0, "Could not allocate FileWriterInstanceWithInternals");
+			e.ss.ThrowFromNativeCodeF(0, "Could not allocate FileWriterInstanceWithInternals");
 			return;
 		}
 
@@ -1120,7 +1120,7 @@ namespace ANON_NS
 
 		if (!sc->length || !sc->pointer)
 		{
-			ss.ThrowFromNativeCode(0, __FUNCTION__ ": No directory was supplied");
+			ss.ThrowFromNativeCodeF(0, "LoadAndAppendToStringBuilder: No directory was supplied");
 			return;
 		}
 
@@ -1144,7 +1144,7 @@ namespace ANON_NS
 			{
 				if (length > maxLength)
 				{
-					Throw(0, "LoadAndAppendToStringBuilder: file length %llu KB was greater than the specified limit of %llu KB", length >> 10, maxLength >> 10);
+					Throw(0, "File length %llu KB was greater than the specified limit of %llu KB", length >> 10, maxLength >> 10);
 				}
 				lockLength = length;
 				sb.control->ExpandStringBuilder(sb, length + 1);
@@ -1174,7 +1174,7 @@ namespace ANON_NS
 			char msg[1024];
 			Rococo::OS::BuildExceptionString(msg, sizeof msg, ex, false);
 			ss.ProgramObject().Log().Write(msg);
-			ss.ThrowFromNativeCode(ex.ErrorCode(), "LoadAndAppendToStringBuilder failed.");
+			ss.ThrowFromNativeCodeF(ex.ErrorCode(), "LoadAndAppendToStringBuilder failed: %s", ex.Message());
 		}
 	}
 
@@ -1191,13 +1191,13 @@ namespace ANON_NS
 
 		if (!sc->length || !sc->pointer)
 		{
-			ss.ThrowNative(0, __FUNCTION__, "No directory was supplied");
+			ss.ThrowFromNativeCodeF(0, "AssertDirectory: No directory was supplied");
 			return;
 		}
 
 		if (!Rococo::IO::IsDirectory(sc->pointer))
 		{
-			Throw(0, "%s: '%s' was not a directory", __FUNCTION__, sc->pointer);
+			ss.ThrowFromNativeCodeF(0, "AssertDirectory: '%s' was not a directory", sc->pointer);
 		}		
 	}
 
@@ -1237,7 +1237,7 @@ namespace ANON_NS
 
 		if (requiredLen > sizeof IOSystem::envBuffer)
 		{
-			ss.ThrowNative(0, __FUNCTION__, "Insufficient buffer");
+			ss.ThrowFromNativeCodeF(0, "AppendEnvironmentVariable: Insufficient buffer. Requires %llu bytes vs %llu", requiredLen, sizeof IOSystem::envBuffer);
 			return;
 		}
 
@@ -1256,6 +1256,7 @@ namespace ANON_NS
 
 			memcpy_s(sb->buffer + sb->length, capacity, ioSystem.envBuffer, requiredLen);
 			sb->length += (int32)requiredLen - 1;
+			sb->buffer[sb->length] = 0;
 		}
 	}
 
@@ -1285,7 +1286,7 @@ namespace ANON_NS
 		int32 capacity = sb->capacity - sb->length;
 		if (capacity <= length)
 		{
-			Rococo::Throw(0, "%s: string builder capacity %d, length %d was insufficient to safely hold current path '%s' of length %d", __FUNCTION__, sb->capacity, sb->length, path.buf, length);
+			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity %d, length %d was insufficient to safely hold current path '%s' of length %d", __FUNCTION__, sb->capacity, sb->length, path.buf, length);
 		}
 
 		memcpy_s(sb->buffer + sb->length, capacity, path, length + 1);
@@ -1312,7 +1313,7 @@ namespace ANON_NS
 		int32 capacity = sb->capacity - sb->length;
 		if (capacity <= 0)
 		{
-			Rococo::Throw(0, "%s: string builder capacity exhausted", __FUNCTION__);
+			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity exhausted", __FUNCTION__);
 		}
 
 		sb->buffer[sb->length++] = Rococo::IO::GetFileSeparator();

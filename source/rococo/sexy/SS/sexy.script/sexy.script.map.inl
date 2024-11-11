@@ -591,7 +591,7 @@ namespace Rococo::Script
 		else
 		{
 			ss.AlignedFree(p);
-			ss.ThrowFromNativeCode(-1, ("Derivative key type not implemented. Legal types: Int32, Int64, Float32, Float64, Bool, IString"));
+			ss.ThrowFromNativeCodeF(-1, "Derivative key type not implemented. Legal types: Int32, Int64, Float32, Float64, Bool, IString");
 			return nullptr;
 		}
 
@@ -620,7 +620,7 @@ namespace Rococo::Script
 
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(-1, ("Derivative key type not implemented. Legal types: Int32, Int64, Float32, Float64, Bool, IString"));
+			ss.ThrowFromNativeCodeF(-1, "Derivative key type not implemented. Legal types: Int32, Int64, Float32, Float64, Bool, IString");
 			return;
 		}
 	}
@@ -644,7 +644,7 @@ namespace Rococo::Script
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Insert failed. Map was null");
 			return;
 		}
 		MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
@@ -658,7 +658,7 @@ namespace Rococo::Script
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Insert failed. Map was null");
 			return;
 		}
 		MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
@@ -672,7 +672,7 @@ namespace Rococo::Script
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Insert failed. Map was null");
 			return;
 		}
 		MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
@@ -687,7 +687,7 @@ namespace Rococo::Script
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Insert failed. Map was null");
 			return;
 		}
 		MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
@@ -703,7 +703,7 @@ namespace Rococo::Script
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Insert failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Insert failed. Map was null");
 			return;
 		}
 		MapNode* n = InsertKey(*m, registers[VM::REGISTER_D8], ss);
@@ -716,7 +716,7 @@ namespace Rococo::Script
 		if (m == nullptr)
 		{
 			IScriptSystem& ss = *(IScriptSystem*)context;
-			ss.ThrowFromNativeCode(0, "TryGet failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "TryGet failed. Map was null");
 			return;
 		}
 		MapNode* node = static_cast<IKeyResolver&>(m->KeyResolver).FindItem(registers[VM::REGISTER_D8], *m);
@@ -730,7 +730,7 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-DoesMapNodeExist failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-DoesMapNodeExist failed. Map was null");
 			return;
 		}
 
@@ -743,11 +743,11 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-Get failed. Map was null");
 			return;
 		}
 		registers[VM::REGISTER_D7].int32Value = *(int32*)GetValuePointer(m);
-		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet32 failed. The node did not represent an entry in the map"));
+		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "MapNodeGet32 failed. The node did not represent an entry in the map");
 	}
 
 	VM_CALLBACK(MapNodeGet64)
@@ -756,11 +756,11 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-Get failed. Map was null");
 			return;
 		}
 		registers[VM::REGISTER_D7].int64Value = *(int64*)GetValuePointer(m);
-		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGet64 failed. The node did not represent an entry in the map"));
+		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "MapNodeGet64 failed. The node did not represent an entry in the map");
 	}
 
 	VM_CALLBACK(MapNodeGetInterface)
@@ -769,11 +769,11 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-Get failed. Map was null");
 			return;
 		}
 
-		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetInterface failed. The node did not represent an entry in the map"));
+		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "MapNodeGetInterface failed. The node did not represent an entry in the map");
 
 		InterfacePointer ip = *(InterfacePointer*)GetValuePointer(m);
 		ObjectStub* stub = InterfaceToInstance(ip);
@@ -791,11 +791,11 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-GetKey32 failed. node was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-GetKey32 failed. node was null");
 			return;
 		}
 		registers[VM::REGISTER_D7].int32Value = *(int32*)GetKeyPointer(m);
-		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetKey32 failed. The node did not represent an entry in the map"));
+		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "MapNodeGetKey32 failed. The node did not represent an entry in the map");
 	}
 
 	VM_CALLBACK(MapNodeGetKey64)
@@ -804,11 +804,11 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-GetKey64 failed. node was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-GetKey64 failed. node was null");
 			return;
 		}
 		registers[VM::REGISTER_D7].int64Value = *(int64*)GetKeyPointer(m);
-		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("MapNodeGetKey64 failed. The node did not represent an entry in the map"));
+		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "MapNodeGetKey64 failed. The node did not represent an entry in the map");
 	}
 
 	VM_CALLBACK(MapNodeGetKeyIString)
@@ -817,7 +817,7 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "node.Key(IString) failed. node was null");
+			ss.ThrowFromNativeCodeF(0, "node.Key(IString) failed. node was null");
 			return;
 		}
 
@@ -828,7 +828,7 @@ namespace Rococo::Script
 			pKey->stub.refCount++;
 		}
 		
-		if (!m->IsExistant) ss.ThrowFromNativeCode(-1, ("node.Key(IString) failed. The node did not represent an entry in the map"));
+		if (!m->IsExistant) ss.ThrowFromNativeCodeF(-1, "node.Key(IString) failed.The node did not represent an entry in the map");
 		
 		registers[VM::REGISTER_D7].vPtrValue = pKey->stub.pVTables;		
 	}
@@ -839,7 +839,7 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-Get failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-Get failed. Map was null");
 			return;
 		}
 
@@ -847,7 +847,7 @@ namespace Rococo::Script
 
 		if (!m->IsExistant)
 		{
-			ss.ThrowFromNativeCode(-1, ("MapNodeGetRef failed. The node did not represent an entry in the map"));
+			ss.ThrowFromNativeCodeF(-1, "MapNodeGetRef failed. The node did not represent an entry in the map");
 			return;
 		}
 	}
@@ -858,13 +858,13 @@ namespace Rococo::Script
 		MapNode* m = (MapNode*)registers[VM::REGISTER_D7].vPtrValue;
 		if (m == nullptr)
 		{
-			ss.ThrowFromNativeCode(0, "Map Node-Pop failed. Map was null");
+			ss.ThrowFromNativeCodeF(0, "Map Node-Pop failed. Map was null");
 			return;
 		}
 
 		if (!m->IsExistant)
 		{
-			ss.ThrowFromNativeCode(-1, ("MapNodePop failed. The node did not represent an entry in the map"));
+			ss.ThrowFromNativeCodeF(-1, "MapNodePop failed. The node did not represent an entry in the map");
 			return;
 		}
 
