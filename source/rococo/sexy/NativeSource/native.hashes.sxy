@@ -3,6 +3,6 @@
 (require-hash-of !scripts/native/Sys.Type.sxy		  = ba0655d8322285b4b5fa5af7e74c88123cba51767118da589e820aae73176520)
 (require-hash-of !scripts/native/Sys.Maths.sxy		  = 3a49590b86213ad6fa917d431fbc9377320852d3fa1c308e80b1abd559cfe240)
 (require-hash-of !scripts/native/Sys.Type.Strings.sxy = 6cad5f10409e4c968d3f4c937a158d48ecd6ca64a62910b26c07fd9812ca2037)
-(require-hash-of !scripts/native/Sys.IO.sxy 		  = a9d1f71b2db5233db812261202407d7bffb315bcf6e9d21dd6930962a027fd9b)
+(require-hash-of !scripts/native/Sys.IO.sxy 		  = 6b73284e18010a205c189a99e3c7f3a0307e66a9ddd30a45f16c211af493891b)
 (require-hash-of !scripts/native/Sys.Reflection.sxy   = 0b0543c81d986f16c6f57d9033311d8889022361cc6eb074abb95daec8e38241)
 (require-hash-of mhost                                = e7ddef662c816e056a2ab341ff30f5154ab25c31dd88d871e809be044ff6947a)
