@@ -54,7 +54,8 @@ namespace Rococo::Script
 	{
 		ObjectStub Header;
 		int32 errorCode;
-		cstr messageHandle;
+		cstr message;
+		HString messageHolder;
 	};
 #pragma pack(pop)
 
@@ -288,7 +289,7 @@ namespace Rococo::Script
 		if (exType == &nativeExType)
 		{
 			NativeException* nex = (NativeException*) ex;
-			ss.ProgramObject().Log().OnUnhandledException(nex->errorCode, nativeExType.Name(), nex->messageHandle, nex);
+			ss.ProgramObject().Log().OnUnhandledException(nex->errorCode, nativeExType.Name(), nex->message, nex);
 			return;
 		}
 
@@ -481,17 +482,19 @@ namespace Rococo::Script
 			int size = GetNullSize(nativeExType);
 
 			auto& allocator = *po.AllocatorMap().GetAllocator(nativeExType)->memoryAllocator;
-			auto* nex = (NativeException*) allocator.AllocateObject(sizeof(NativeException));
+			auto* nex = new (allocator.AllocateObject(sizeof(NativeException))) NativeException();
 			nex->Header.Desc = (ObjectDesc*) nativeExType.GetVirtualTable(0);
 			nex->Header.refCount = 1;
 			nex->Header.pVTables[0] = (VirtualTable*) nativeExType.GetVirtualTable(1);
 			nex->errorCode = errorCode;
-			nex->messageHandle = staticRefMessage;
+			nex->messageHolder = staticRefMessage;
+			nex->message = nex->messageHolder;
 
 			isWithinException = true;
 			if (!CatchException(exceptionHandlers, ss))
 			{
 				WriteUnhandledException(ss, &nex->Header);
+				nex->~NativeException();
 				allocator.FreeObject(nex);
 				po.VirtualMachine().Throw();
 			}

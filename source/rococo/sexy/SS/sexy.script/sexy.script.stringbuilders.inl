@@ -186,7 +186,7 @@ namespace Rococo::Strings::Impl
 
 	void MergeFormats(char* format, const FastStringBuilder& sb, cstr suffix)
 	{
-		*format = '%%';
+		*format = '%';
 		CopyString(format + 1, 15, sb.prefix);
 		StringCat(format, suffix, 16);
 	}
