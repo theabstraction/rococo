@@ -74,7 +74,7 @@ int MainProtected(int argc, char* argv[])
 	{
 		AutoFree<ICatSupervisor> cat = CreateCat(scripting, "!scripts/domme/cat.sxy");
 		cat->MakeBiscuits(127000, 25.0f);
-		cat->_Terminate();
+		cat->SV_Terminate();
 	}
 	catch (Sex::ParseException& ex)
 	{

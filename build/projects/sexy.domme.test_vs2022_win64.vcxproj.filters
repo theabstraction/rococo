@@ -6,6 +6,7 @@
     <ClCompile Include="..\..\source\rococo\sexy.domme.test\IDog_Marshal.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\sexy.domme.test\ICat.h" />
+    <ClInclude Include="..\..\source\rococo\include\Domme\Animals\ICat.hpp" />
+    <ClInclude Include="..\..\source\rococo\include\Domme\Animals\IDog.hpp" />
   </ItemGroup>
 </Project>

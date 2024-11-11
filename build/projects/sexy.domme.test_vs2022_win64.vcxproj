@@ -236,9 +236,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\sexy.domme.test\ICat.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexy.domme.test\ICat_Marshal.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.domme.test\IDog_Marshal.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.domme.test\test.cat.cpp" />
@@ -267,5 +264,9 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\include\Domme\Animals\ICat.hpp" />
+    <ClInclude Include="..\..\source\rococo\include\Domme\Animals\IDog.hpp" />
   </ItemGroup>
 </Project>

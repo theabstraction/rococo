@@ -186,11 +186,11 @@
 	(sb "&t&t{&n")
 	(sb "&t&t}&n&n&n")
 	
-	(sb "&t&tvoid _Free() override&n")
+	(sb "&t&tvoid SV_Free() override&n")
 	(sb "&t&t{&n")
 	(sb "&t&t&tdelete this;&n")
 	(sb "&t&t}&n&n")
-	(sb "&t&tvoid _Terminate() override&n")
+	(sb "&t&tvoid SV_Terminate() override&n")
 	(sb "&t&t{&n")
 	(sb "&t&t&tD.Terminate();&n")
 	(sb "&t&t}&n")
@@ -684,8 +684,8 @@
 	
 	(#build sb "&tstruct " interfaceName "Supervisor: "  interfaceName "&n")
 	(sb "&t{&n")
-	(sb "&t&tvirtual void _Free() = 0;&n")
-	(sb "&t&tvirtual void _Terminate() = 0;&n")
+	(sb "&t&tvirtual void SV_Free() = 0;&n")
+	(sb "&t&tvirtual void SV_Terminate() = 0;&n")
 	(sb "&t};&n&n")
 	
 	(#build sb "&t" interfaceName "Supervisor* " dc.factoryPrefix implementationClass "(Rococo::Domme::ScriptingResources&& scripting, cstr sourceFile);&n")

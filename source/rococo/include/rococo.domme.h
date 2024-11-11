@@ -145,7 +145,7 @@ namespace Rococo									\
 	{												\
 		void operator()(FQ_INTERFACE_NAME* t)		\
 		{											\
-			if (t) t->_Free();						\
+			if (t) t->SV_Free();					\
 		}											\
 	};												\
 }
