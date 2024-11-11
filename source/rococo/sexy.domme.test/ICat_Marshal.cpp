@@ -12,8 +12,8 @@ namespace Rococo::Animals::Implementation
 
         Cat(ScriptingResources _scripting, cstr sourceName) : D(_scripting, sourceName, "Rococo.Animals", "ICat")
         {
-            makeBiscuitsIndex = D.GetMethodIndex("MakeBiscuits", 2, 0);
-            mewIndex = D.GetMethodIndex("Mew", 0, 0);
+            makeBiscuitsIndex = D.GetMethodIndex("MakeBiscuits", 0002, 0000);
+            mewIndex = D.GetMethodIndex("Mew", 0000, 0000);
         }
 
         ~Cat()
@@ -60,7 +60,7 @@ namespace Rococo::Animals::Implementation
 
 namespace Rococo::Animals
 {
-    ICatSupervisor* CreateCat(ScriptingResources scripting, cstr sourceFile)
+    ICatSupervisor* CreateCat(ScriptingResources& scripting, cstr sourceFile)
     {
         return new Implementation::Cat(scripting, sourceFile);
     }

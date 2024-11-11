@@ -123,12 +123,13 @@ namespace Rococo::Domme
 #endif
 
 	template<class T, class U>
-	T To(const U& u)
+	inline T To(const U& u)
 	{
 		BadConversion();
 	}
 
-	bool To(const boolean32& value)
+	template<>
+	inline bool To(const boolean32& value)
 	{
 		return value == 0 ? false : true;
 	}

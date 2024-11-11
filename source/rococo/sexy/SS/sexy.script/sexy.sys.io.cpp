@@ -1138,13 +1138,13 @@ namespace ANON_NS
 			FastStringBuilder& sb;
 
 			size_t lockLength = 0;
-			uint64 maxKBll = 0;
+			uint64 maxLength = 0;
 
 			uint8* LockWriter(size_t length) override
 			{
-				if (length > maxKBll)
+				if (length > maxLength)
 				{
-					Throw(0, "LoadAndAppendToStringBuilder: file length %llu KB was greater than the specified limit of %llu KB", length >> 10, maxKBll >> 10);
+					Throw(0, "LoadAndAppendToStringBuilder: file length %llu KB was greater than the specified limit of %llu KB", length >> 10, maxLength >> 10);
 				}
 				lockLength = length;
 				sb.control->ExpandStringBuilder(sb, length + 1);
@@ -1158,13 +1158,12 @@ namespace ANON_NS
 				sb.length = newLength;
 			}
 
-			Loader(FastStringBuilder& _sb): sb(_sb)
+			Loader(FastStringBuilder& _sb, int maxKB): sb(_sb)
 			{
-
+				uint64 kb = maxKB;
+				maxLength = kb << 10;
 			}
-		} loader(sb);
-
-		loader.maxKBll = maxKB;
+		} loader(sb, maxKB);
 
 		try
 		{

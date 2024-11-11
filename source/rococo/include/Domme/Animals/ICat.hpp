@@ -19,5 +19,5 @@ namespace Rococo::Animals
     ICatSupervisor* CreateCat(Rococo::Domme::ScriptingResources& scripting, cstr sourceFile);
 }
 
-DECLARE_DOMME_INTERFACE(Rococo::Animals::ICat)
+DECLARE_DOMME_INTERFACE(Rococo::Animals::ICatSupervisor)
 

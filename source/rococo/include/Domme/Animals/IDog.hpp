@@ -8,7 +8,7 @@ namespace Rococo::Animals
     {
         virtual void Bark(float hz = 512) = 0;
         virtual bool /* success */ GoWalkies(const Vec3& targetPosition) = 0;
-        virtual void SetName(fstring name = "\tRover\r\n\x%X"_fstring) = 0;
+        virtual void SetName(fstring name = "\tRover\r\n\x01"_fstring) = 0;
     };
 
     struct IDogSupervisor: IDog
@@ -20,5 +20,5 @@ namespace Rococo::Animals
     IDogSupervisor* CreateDog(Rococo::Domme::ScriptingResources& scripting, cstr sourceFile);
 }
 
-DECLARE_DOMME_INTERFACE(Rococo::Animals::IDog)
+DECLARE_DOMME_INTERFACE(Rococo::Animals::IDogSupervisor)
 

@@ -12,9 +12,9 @@ namespace Rococo::Animals::Implementation
 
         Dog(ScriptingResources _scripting, cstr sourceName) : D(_scripting, sourceName, "Rococo.Animals", "IDog")
         {
-            barkIndex = D.GetMethodIndex("Bark", 1, 0);
-            goWalkiesIndex = D.GetMethodIndex("GoWalkies", 1, 1);
-            setNameIndex = D.GetMethodIndex("SetName", 1, 0);
+            barkIndex = D.GetMethodIndex("Bark", 0001, 0000);
+            goWalkiesIndex = D.GetMethodIndex("GoWalkies", 0001, 0001);
+            setNameIndex = D.GetMethodIndex("SetName", 0001, 0000);
         }
 
         ~Dog()
@@ -80,7 +80,7 @@ namespace Rococo::Animals::Implementation
 
 namespace Rococo::Animals
 {
-    IDogSupervisor* CreateDog(ScriptingResources scripting, cstr sourceFile)
+    IDogSupervisor* CreateDog(ScriptingResources& scripting, cstr sourceFile)
     {
         return new Implementation::Dog(scripting, sourceFile);
     }

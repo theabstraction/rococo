@@ -186,7 +186,8 @@ namespace Rococo::Strings::Impl
 
 	void MergeFormats(char* format, const FastStringBuilder& sb, cstr suffix)
 	{
-		CopyString(format, 16, sb.prefix);
+		*format = '%%';
+		CopyString(format + 1, 15, sb.prefix);
 		StringCat(format, suffix, 16);
 	}
 
@@ -341,7 +342,7 @@ namespace Rococo::Strings::Impl
 			sb->stub.Desc = (ObjectDesc*) typeFastStringBuilder->GetVirtualTable(0);
 			sb->stub.refCount = 1;
 			sb->stub.pVTables[0] = (VirtualTable*) typeFastStringBuilder->GetVirtualTable(1);
-			SafeFormat(sb->prefix, PREFIX_LEN, "%4.4");
+			SafeFormat(sb->prefix, PREFIX_LEN, "4.4");
 			return sb;
 		}
 
@@ -778,7 +779,7 @@ namespace Rococo::Strings::Impl
 		int32 value;
 		ReadInput(1, value, e);
 
-		cstr suffix = sb.formatBase == 10 ? "%d" : "%X";
+		cstr suffix = sb.formatBase == 10 ? "d" : "X";
 
 		char format[16];
 		MergeFormats(format, sb, suffix);
@@ -908,7 +909,7 @@ namespace Rococo::Strings::Impl
 
 		char *t = sb.prefix;
 
-		*t++ = '%';
+		// *t++ = '%';
 
 		if (!isRightAligned) *t++ = '-';
 		if (isZeroPrefixed) *t++ = '0';

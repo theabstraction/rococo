@@ -218,7 +218,7 @@
 	
 	(#build sb "namespace " cppNamespace "&n")
 	(sb "{&n")
-	(#build sb "&t" interfaceName "Supervisor* " dc.factoryPrefix implementationClass "(ScriptingResources& scripting, cstr sourceFile)&n")
+	(#build sb "&t" interfaceName "Supervisor* " dc.factoryPrefix implementationClass "(ScriptingResources&& scripting, cstr sourceFile)&n")
 	(sb "&t{&n")
 	(#build sb "&t&treturn new Implementation::" implementationClass "(scripting, sourceFile);&n")
 	(sb "&t}&n")
@@ -599,7 +599,7 @@
 	
 	(sb "}&n&n")
 	
-	(#build sb "DECLARE_DOMME_INTERFACE(" cppNamespace "::" interfaceName ")&n&n")
+	(#build sb "DECLARE_DOMME_INTERFACE(" cppNamespace "::" interfaceName "Supervisor)&n&n")
 	
 	(sb.Replace 0 "&t" "    ")
 	(#printf sb)
