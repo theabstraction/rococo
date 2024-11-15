@@ -2,6 +2,7 @@
 #include <rococo.renderer.h>
 #include "rococo.dx11.api.h"
 #include "dx11helpers.inl"
+#include <Dxgi1_3.h>
 
 using namespace Rococo::DX11;
 using namespace Rococo::Strings;
@@ -117,8 +118,9 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 
 			if (!mainSwapChain)
 			{
-				DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::GetSwapChainDescription(hWnd);
-				VALIDATEDX11(factory.CreateSwapChain((ID3D11Device*)&device, &swapChainDesc, &mainSwapChain));
+				DXGI_SWAP_CHAIN_DESC swapChainDesc = DX11::MakeSwapChainDescription(hWnd);
+
+				VALIDATEDX11(factory.CreateSwapChain(static_cast<ID3D11Device*>(&device), &swapChainDesc, &mainSwapChain));
 			}
 			else
 			{
@@ -183,16 +185,23 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 		desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
 		desc.Format = DXGI_FORMAT_UNKNOWN;
-		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
-		lastFullscreenDimensions = { mode.DX, mode.DY };
+
+		AutoRelease<IDXGIOutput> output = GetOutput();
+
+		DXGI_MODE_DESC bestMatch;
+
+		VALIDATEDX11(output->FindClosestMatchingMode(&desc, &bestMatch, &device));
+
+		VALIDATEDX11(mainSwapChain->ResizeTarget(&bestMatch));
+		lastFullscreenDimensions = { (int) bestMatch.Width, (int) bestMatch.Height };
 
 		SwitchSwapChainToFullscreen();
 
-		desc.RefreshRate.Numerator = 0;
-		desc.RefreshRate.Denominator = 0;
+		bestMatch.RefreshRate.Numerator = 0;
+		bestMatch.RefreshRate.Denominator = 0;
 
-		VALIDATEDX11(mainSwapChain->ResizeTarget(&desc));
-		lastFullscreenDimensions = { mode.DX, mode.DY };
+		VALIDATEDX11(mainSwapChain->ResizeTarget(&bestMatch));
+		lastFullscreenDimensions = { (int) bestMatch.Width, (int) bestMatch.Height };
 		ResetOutputBuffersForWindow();
 	}
 

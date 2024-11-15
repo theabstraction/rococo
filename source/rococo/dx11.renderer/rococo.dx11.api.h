@@ -1,6 +1,8 @@
 #ifndef ROCOCO_DX11_API_H
 #define ROCOCO_DX11_API_H
 
+#include <dxgi1_2.h>
+
 namespace Rococo
 {
    struct IExpandingBuffer;
@@ -8,7 +10,7 @@ namespace Rococo
    namespace DX11
    {
       D3D11_TEXTURE2D_DESC GetDepthDescription(HWND hWnd);
-      DXGI_SWAP_CHAIN_DESC GetSwapChainDescription(HWND hWnd);
+      DXGI_SWAP_CHAIN_DESC MakeSwapChainDescription(HWND hWnd);
 
       ID3D11DepthStencilState* CreateGuiDepthStencilState(ID3D11Device& device);
       ID3D11DepthStencilState* CreateObjectDepthStencilState(ID3D11Device& device);

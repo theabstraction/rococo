@@ -1,10 +1,11 @@
 #include "dx11.renderer.h"
+#include <dxgi1_2.h>
 
 namespace Rococo
 {
    namespace DX11
    {
-      DXGI_SWAP_CHAIN_DESC GetSwapChainDescription(HWND hWnd)
+      DXGI_SWAP_CHAIN_DESC MakeSwapChainDescription(HWND hWnd)
       {
          RECT rect;
          GetClientRect(hWnd, &rect);
