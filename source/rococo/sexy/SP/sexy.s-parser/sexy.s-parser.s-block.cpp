@@ -57,6 +57,11 @@
 
 using namespace Rococo::Strings;
 
+namespace Rococo::Sex
+{
+	IExpressionTransform* CreateExpressionTransform(cr_sex s);
+}
+
 namespace Rococo
 {
 	void ThrowIllFormedSExpression(int32 displacement, cstr format, ...);
@@ -84,6 +89,7 @@ namespace Anon
 		virtual ISExpressionLinkBuilder* GetFirstChild() = 0;
 		virtual void SetArrayStart(ISExpression** pArray) = 0;
 		virtual void SetOffsets(int32 startOffset, int32 endOffset) = 0;
+		virtual void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const = 0;
 	};
 
 	ROCOCO_INTERFACE IExpressionBuilder
@@ -564,6 +570,7 @@ namespace Anon
 		size_t aIndex = 0;
 
 		std::unordered_map<const ISExpression*, std::vector<HString>>* mapExpressionPtrToCommentBlock = nullptr;
+		mutable std::unordered_map<const ISExpression*, IExpressionTransform*>* transforms = nullptr;
 
 		ExpressionTree(IAllocator& _allocator) : allocator(_allocator)
 		{
@@ -572,12 +579,47 @@ namespace Anon
 
 		~ExpressionTree()
 		{
+			delete transforms;
 			delete mapExpressionPtrToCommentBlock;
 			sParser->Release();
 			if (sourceCode) sourceCode->Release();
 			if (block)
 			{
 				allocator.FreeData(block);
+			}
+		}
+
+		void MakeTransforms() const
+		{
+		}
+
+		IExpressionTransform* Transform(cr_sex s) const
+		{
+			if (!transforms)
+			{
+				transforms = new std::unordered_map<const ISExpression*, IExpressionTransform*>();
+			}
+
+			auto i = transforms->find(&s);
+			if (i != transforms->end())
+			{
+				Throw(s, "Transform for expression already exists");
+			}
+
+			return i->second;
+		}
+
+		void ReleaseTransform(cr_sex s) const
+		{
+			if (transforms)
+			{
+				auto i = transforms->find(&s);
+				if (i != transforms->end())
+				{
+					auto* t = i->second;
+					t->Free();
+					transforms->erase(i);
+				}
 			}
 		}
 
@@ -1003,14 +1045,25 @@ namespace Anon
 		{
 			return token == nullptr;
 		}
+
+		void TransformChild(IExpressionTransform&, cr_sex sCompound) const override
+		{
+			UNUSED(sCompound);
+			Throw(0, __FUNCTION__);
+		}
 	};
 
 	ISExpression& GetISExpression(RootExpression& root) { return root; }
 	cr_sex GetISExpression(const RootExpression& root) { return root; }
 
+	struct ChildTransformArray
+	{
+
+	};
+
 	struct CompoundExpression : ICompoundSExpression
 	{
-		ISExpression* parent = nullptr;
+		ICompoundSExpression* parent = nullptr;
 		ISExpressionLinkBuilder* nextSibling; // used in the generation phase, when expression form a linked list
 
 		CodeOffsets offsets;
@@ -1144,6 +1197,38 @@ namespace Anon
 		{
 			UNUSED(token);
 			return false;
+		}
+
+		IExpressionTransform& TransformThis() const
+		{
+			if (!parent)
+			{
+				Throw(*this, __FUNCTION__ ": not supported - Compound Expression had no parent");
+			}
+
+		    auto& tree = static_cast<const ExpressionTree&>(Tree());
+			
+			auto* transform = tree.Transform(*this);
+
+			try
+			{
+				parent->TransformChild(*transform, *this);
+			}
+			catch (...)
+			{
+				tree.ReleaseTransform(*this);
+				throw;
+			}
+
+			return *transform;
+		}
+
+		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
+		{
+			int index = GetIndexOf(sCompound);
+			if (index < 0)	Throw(*this, __FUNCTION__ ": sCompound was not a child of the parent");
+
+			children.pArray[index] = &transform.Root();
 		}
 	};
 
@@ -1347,6 +1432,7 @@ namespace Anon
 
 			auto* treeMemory = block + totalSize - sizeof(ExpressionTree) - sizeof(RootExpression);
 			auto* tree = new (treeMemory) ExpressionTree(allocator);
+
 			auto* root = new (treeMemory + sizeof(ExpressionTree)) RootExpression();
 			root->tree = tree;
 			tree->root = root;
@@ -1366,7 +1452,8 @@ namespace Anon
 		ICompoundSExpression* Root()
 		{
 			auto* root = block + totalSize - sizeof(RootExpression);
-			return (RootExpression*)root;
+			auto* r = (RootExpression*)root;
+			return r;
 		}
 
 		void ValidateMemory()
