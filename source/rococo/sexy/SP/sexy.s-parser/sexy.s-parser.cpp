@@ -366,6 +366,11 @@ namespace Rococo
 			{
 				return token == c_str(); // throws
 			}
+
+			IExpressionTransform& TransformThis() const override
+			{
+				Throw(inner, __FUNCTION__ ": not supported");
+			}
 		};
 
 		SEXY_SPARSER_API ISExpressionProxy* CreateExpressionProxy(cr_sex inner, IAllocator& allocator, int numberOfElements)

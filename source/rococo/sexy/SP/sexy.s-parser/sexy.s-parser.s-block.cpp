@@ -806,6 +806,11 @@ namespace Anon
 		{
 			return Eq(token, header.Buffer);
 		}
+
+		IExpressionTransform& TransformThis() const override
+		{
+			Throw(*this, __FUNCTION__ ": atomics cannot be transformed");
+		}
 	};
 
 	struct LiteralExpression : ISExpressionLinkBuilder
@@ -907,6 +912,11 @@ namespace Anon
 		bool operator == (const char* token) const override
 		{
 			return Eq(token, header.Buffer);
+		}
+
+		IExpressionTransform& TransformThis() const override
+		{
+			Throw(*this, __FUNCTION__ ": literals cannot be transformed");
 		}
 	};
 
@@ -1046,10 +1056,17 @@ namespace Anon
 			return token == nullptr;
 		}
 
-		void TransformChild(IExpressionTransform&, cr_sex sCompound) const override
+		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
 		{
-			UNUSED(sCompound);
-			Throw(0, __FUNCTION__);
+			int index = GetIndexOf(sCompound);
+			if (index < 0)	Throw(*this, __FUNCTION__ ": sCompound was not a child of the parent");
+
+			children.pArray[index] = &transform.Root();
+		}
+
+		IExpressionTransform& TransformThis() const override
+		{
+			Throw(*this, __FUNCTION__ ": root expressions cannot be transformed");
 		}
 	};
 
@@ -1199,7 +1216,7 @@ namespace Anon
 			return false;
 		}
 
-		IExpressionTransform& TransformThis() const
+		IExpressionTransform& TransformThis() const override
 		{
 			if (!parent)
 			{

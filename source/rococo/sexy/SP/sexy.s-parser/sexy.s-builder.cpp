@@ -124,6 +124,11 @@ namespace ANON
 		{
 			Throw(*this, __FUNCTION__ ": operation not supported on this class");
 		}
+
+		IExpressionTransform& TransformThis() const override
+		{
+			Throw(0, __FUNCTION__ ": not supported");
+		}
 	};
 	
 	void Free(ExpressionBuilder* eb);
@@ -301,6 +306,11 @@ namespace ANON
 		{
 			AddLeaf<LeafExpression<EXPRESSION_TYPE_STRING_LITERAL>>(text);
 		}
+
+		IExpressionTransform& TransformThis() const override
+		{
+			Throw(0, __FUNCTION__ ": not supported");
+		}
 	};
 
 	void Free(ExpressionBuilder* eb)
@@ -437,6 +447,11 @@ namespace ANON
 		ISourceCode* LoadSource(const wchar_t*, const Vec2i&, const char*, long) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
+		}
+
+		IExpressionTransform& TransformThis() const override
+		{
+			Throw(0, __FUNCTION__ ": not supported");
 		}
 	};
 
