@@ -775,7 +775,7 @@ namespace Rococo
 		{
 		}
 
-		IAllocator& Allocator() override
+		IAllocator& Allocator() const override
 		{
 			return allocator;
 		}

@@ -245,6 +245,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton.sxh" />
+    <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\component.modules\skeleton\code-gen\skeleton_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
   </ItemGroup>
   <ItemGroup>

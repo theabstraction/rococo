@@ -244,6 +244,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />

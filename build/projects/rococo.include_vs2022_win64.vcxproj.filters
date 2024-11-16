@@ -70,6 +70,12 @@
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.roid.h">
       <Filter>components</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\Domme\Animals\ICat.hpp">
+      <Filter>Domme\Animals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\Domme\Animals\IDog.hpp">
+      <Filter>Domme\Animals</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\mplat.components.decl.h" />
     <ClInclude Include="..\..\source\rococo\include\mplat.to.app.events.inl" />
     <ClInclude Include="..\..\source\rococo\include\mplat\mplat.events.h">
@@ -196,6 +202,12 @@
   <ItemGroup>
     <Filter Include="3D">
       <UniqueIdentifier>{3696aa76-bb9a-52ba-e621-bfa83da8e64f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domme">
+      <UniqueIdentifier>{e26801e1-61eb-203e-0aa5-6eee66ef3319}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domme\Animals">
+      <UniqueIdentifier>{070ee836-fddc-3bc3-e030-c7cac9498280}</UniqueIdentifier>
     </Filter>
     <Filter Include="RAL">
       <UniqueIdentifier>{9a64c4c0-c38f-6714-8a58-018765228342}</UniqueIdentifier>

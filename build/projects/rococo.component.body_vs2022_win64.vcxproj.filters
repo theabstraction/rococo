@@ -8,6 +8,15 @@
     <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh.inl">
+      <Filter>code-gen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body_declarations.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h">
       <Filter>include\components</Filter>
     </ClInclude>
