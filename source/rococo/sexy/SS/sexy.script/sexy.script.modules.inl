@@ -3005,19 +3005,29 @@ namespace Rococo::Script
 	   }
    }
 
-   void CScript::Compile_S_Macro(cr_sex s)
+   const Rococo::Compiler::IMacro* FindMacro(CScript& script, cstr macroNameExcludingHash, cr_sex s)
    {
-	   fstring fqMacroName = GetAtomicArg(s[0]);
-	   auto& ss = scripts.System();
-	   auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
-
-	   NamespaceSplitter splitter(fqMacroName.buffer + 1);
+	   NamespaceSplitter splitter(macroNameExcludingHash);
 
 	   cstr ns, shortMacroName;
 	   if (!splitter.SplitTail(ns, shortMacroName))
 	   {
-		   Throw(s[0], "Expecting fully qualified macro name");
+		   auto& mod = script.ProgramModule();
+		   for (int i = 0; i < mod.PrefixCount(); ++i)
+		   {
+			   auto& prefix = mod.GetPrefix(i);
+			   auto* macro = prefix.FindMacro(macroNameExcludingHash);
+			   if (macro)
+			   {
+				   return macro;
+			   }
+		   }
+
+		   Throw(s[0], "Could not find macro amongst all the namespaces specified with 'using' directives in the module");
 	   }
+
+	   auto& ss = script.System();
+	   auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
 
 	   auto* macroNS = rootNs.FindSubspace(ns);
 	   if (macroNS == nullptr)
@@ -3031,7 +3041,23 @@ namespace Rococo::Script
 		   Throw(s[0], "Could not find macro %s in namespace %s", shortMacroName, ns);
 	   }
 
+	   return macro;
+   }
+
+   void CScript::Invoke_S_Macro(cr_sex s)
+   {
+	   cstr macroName = GetAtomicArg(s[0]);
+
+	   if (*macroName != '#')
+	   {
+		   Throw(s, "Expecting # in position 0 of s[0]");
+	   }
+
+	   auto* macro = FindMacro(*this, macroName + 1, s);
+
 	   const IFunction& macroFunction = macro->Implementation();
+
+	   auto& ss = System();
 
 	   CallMacro(ss, macroFunction, s);
 
@@ -3070,11 +3096,11 @@ namespace Rococo::Script
 		   auto& s = sParent[i];
 		   if (IsMacroInvocation(s))
 		   {
-			   script.Compile_S_Macro(s);
+			   script.Invoke_S_Macro(s);
 		   }
 		   else
 		   {
-			//   CompileMacrosRecursive(script, s);
+			   CompileMacrosRecursive(script, s);
 		   }
 	   }
    }

@@ -6485,10 +6485,10 @@ R"((namespace EntryPoint)
 			"	(IScriptSystem ss = Sys.Reflection.GetScriptSystem)"
 			"	(Int32 moduleCount = ss.ModuleCount)"
 
-			"   (for (Int32 i = 0)  (i < moduleCount)  (#inc i)"
+			"   (for (Int32 i = 0)  (i < moduleCount)  (i += 1)"
 			"			(IModule module = (ss.Module i))"
 
-			"			(for (Int32 j = 0) (j < module.StructCount) (#inc j)"
+			"			(for (Int32 j = 0) (j < module.StructCount) (j += 1)"
 			"				(IStructure s = (module.Structure j))"
 			"				(Int32 len)"
 			"				(Sys.Print s.Name -> len)"

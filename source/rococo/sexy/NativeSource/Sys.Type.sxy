@@ -58,20 +58,6 @@
 
 (alias Print Sys.Print)
 
-// Example: (i += 1) maps to (i = (i+1) )
-(macro Sys.Type.inc in out
-	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#inc <variable-name>)")
-	(IExpression format = ' ($1 = ($1 + 1)))
-	(out.Substitute in format)
-)
-
-// Example: (#dec i) maps to (i = (i-1) )
-(macro Sys.Type.dec in out
-	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#dec <variable-name>)")
-	(IExpression format = ' ($1 = ($1 - 1)))
-	(out.Substitute in format)
-)
-
 // Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
 (macro Sys.Type.build in out
 	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##build <variable-name> <arg1> ... <argN>)")

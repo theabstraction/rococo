@@ -327,7 +327,7 @@ namespace Rococo
             void AddNodeDef(ICodeBuilder& builder, cstr nodeName, const IStructure& elementType, cr_sex s);
             cr_sex GetActiveRoot();
             cr_sex GetActiveExpression(cr_sex s);
-            void Compile_S_Macro(cr_sex sDirective);
+            void Invoke_S_Macro(cr_sex sDirective);
             void CompileTopLevelMacros();
 
             const bool IsIStringInlined() const;
