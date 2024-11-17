@@ -344,3 +344,77 @@
 )
 
 (alias NullString Sys.Type.NullString)
+
+(function ExpandStringMacroEx (IString factoryName) (IExpression in)(IExpressionBuilder out)(Bool doNotTruncate)-> :
+	(out.AddAtomic "IStringBuilder")
+	(IExpression variableName = (in 1))
+	(out.AddAtomic variableName.Text)
+	(out.AddAtomic "=")
+	(IExpressionBuilder factoryCall = out.AddCompound)
+	(factoryCall.AddAtomic factoryName)
+	
+	(if (in.ChildCount > 2)
+		(IExpressionBuilder parent = out.TransformParent)
+		(Int32 outIndex)
+		(parent.IndexOf in -> outIndex)
+		
+		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))
+
+		(if doNotTruncate
+			(IStringBuilder sb = (NewPathBuilder))
+			(#Sys.Type.build sb variableName.Text ".ThrowIfAppendWouldTruncate")
+			(builderSequence.AddAtomic sb)		
+			(outIndex += 1)
+			(builderSequence = (parent.InsertCompoundAfter outIndex))
+		)
+		
+		(ConvertArgsToExpressionPairs in variableName builderSequence 2)
+	)
+)
+
+(function ExpandStringMacro (IExpression in)(IExpressionBuilder out)-> :
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##string <variable-name> <capacity> <arg1> ... <argN>)")
+	(out.AddAtomic "IStringBuilder")
+	(out.Copy (in 1))
+	(out.AddAtomic "=")
+	(IExpressionBuilder factoryCall = out.AddCompound)
+	(factoryCall.AddAtomic "NewStringBuilder")
+	(factoryCall.Copy (in 2))
+	
+	(if (in.ChildCount > 3)
+		(IExpressionBuilder parent = out.TransformParent)
+		(Int32 outIndex)
+		(parent.IndexOf in -> outIndex)
+		
+		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))	
+		(ConvertArgsToExpressionPairs in (in 1) builderSequence 3)
+	)
+)
+
+(alias ExpandStringMacro Sys.Type.ExpandStringMacro)
+
+// Example (#string sb 64 "Position:" 37 "," 124) maps to (IStringBuilder sb = (NewStringBuilder 64)) ((sb.AppendIString "Position:")(sb.AppendInt32 37) (sb.AppendIString ",") (sb.AppendInt32 124))
+(macro Sys.Type.string in out
+	(ExpandStringMacro in out)
+)
+
+// Usage (#token <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewTokenBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
+// Tokens have 64 character capacity (including the terminating nul char)
+(macro Sys.Type.token in out
+	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##token <variable-name> args...)")
+	(ExpandStringMacroEx "NewTokenBuilder" in out true)
+)
+
+// Usage (#path <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewPathBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
+// Paths have 260 character capacity (including the terminating nul char)
+(macro Sys.Type.path in out
+	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##path <variable-name> args...)")
+	(ExpandStringMacroEx "NewPathBuilder" in out true)
+)
+
+// Usage (#paragraph <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewParagraphBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
+// Paragraphs have 1024 character capacity (including the terminating nul char)
+(macro Sys.Type.paragraph in out
+	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##paragraph <variable-name> args...)")
+	(ExpandStringMacroEx "NewParagraphBuilder" in out false)
+)
