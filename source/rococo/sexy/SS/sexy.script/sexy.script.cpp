@@ -1114,6 +1114,11 @@ namespace Rococo::Script
 
 		ISExpressionBuilder* CreateMacroTransform(cr_sex src) override
 		{
+			/*
+			IExpressionTransform& transform = src.TransformThis();
+			return &transform.Root();
+			*/
+					
 			auto i = mapExpressionToTransform.find(&src);
 			if (i != mapExpressionToTransform.end())
 			{

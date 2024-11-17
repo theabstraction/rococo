@@ -3034,25 +3034,30 @@ namespace Rococo::Script
 	   }
    }
 
-   void CScript::CompileTopLevelMacros()
+   void CompileMacrosRecursive(CScript& script, cr_sex sParent)
    {
-	   cr_sex root = tree.Root();
-	   for (int i = 0; i < root.NumberOfElements(); i++)
+	   for (int i = 0; i < sParent.NumberOfElements(); i++)
 	   {
-		   auto& topLevelItem = root[i];
-		   if (topLevelItem.NumberOfElements() > 0)
+		   auto& s = sParent[i];
+		   if (s.NumberOfElements() > 0)
 		   {
-			   cr_sex sDirective = topLevelItem[0];
+			   cr_sex sDirective = s[0];
 			   if (IsAtomic(sDirective))
 			   {
 				   cstr directive = sDirective.c_str();
 				   if (directive[0] == '#')
 				   {
-					   CompileTopLevelMacro(topLevelItem);
+					   script.CompileTopLevelMacro(s);
 				   }
 			   }
 		   }
 	   }
+   }
+
+   void CScript::CompileTopLevelMacros()
+   {
+	   cr_sex root = tree.Root();
+	   CompileMacrosRecursive(*this, root);
    }
 
    void  CScript::CompileNextClosures()

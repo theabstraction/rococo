@@ -566,7 +566,7 @@ namespace Anon
 		ISParser* sParser = nullptr;
 		IAllocator& allocator;
 		refcount_t refcount = 1;
-
+		mutable IExpressionTransform* transform = nullptr;
 		size_t aIndex = 0;
 
 		std::unordered_map<const ISExpression*, std::vector<HString>>* mapExpressionPtrToCommentBlock = nullptr;
@@ -606,6 +606,10 @@ namespace Anon
 				Throw(s, "Transform for expression already exists");
 			}
 
+			IExpressionTransform* transform = CreateExpressionTransform(s);
+
+			auto binding = std::make_pair(&s, transform);
+			i = transforms->insert(binding).first;
 			return i->second;
 		}
 
@@ -642,7 +646,7 @@ namespace Anon
 
 		const ISExpression& Root() const override
 		{
-			return GetISExpression(*root);
+			return transform ? transform->Root() : GetISExpression(*root);
 		}
 
 		ISParser& Parser() override
@@ -694,6 +698,12 @@ namespace Anon
 			}
 
 			return i->second.size();
+		}
+
+		void TransformRoot(IExpressionTransform& transform, const ICompoundSExpression& root) const
+		{
+			UNUSED(root);
+			this->transform = &transform;
 		}
 	};
 
@@ -1066,7 +1076,26 @@ namespace Anon
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(*this, __FUNCTION__ ": root expressions cannot be transformed");
+			if (!tree)
+			{
+				Throw(*this, __FUNCTION__ ": not supported - Root Expression had no tree");
+			}
+
+			auto& tree = static_cast<const ExpressionTree&>(Tree());
+
+			auto* transform = tree.Transform(*this);
+
+			try
+			{
+				tree.TransformRoot(*transform, *this);
+			}
+			catch (...)
+			{
+				tree.ReleaseTransform(*this);
+				throw;
+			}
+
+			return *transform;
 		}
 	};
 

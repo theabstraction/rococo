@@ -18434,6 +18434,9 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestTopLevelMacro);
+		TEST(TestStaticCast1);
+
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
