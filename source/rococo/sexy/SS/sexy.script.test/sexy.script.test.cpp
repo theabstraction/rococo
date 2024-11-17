@@ -979,41 +979,6 @@ namespace
 		validate(AreAproxEqual(result, 0.62));
 	}
 
-	void TestTopLevelMacro(IPublicScriptSystem& ss)
-	{
-		cstr srcCodeModuleMain =
-			"(#Sys.entrypoint)\n"
-
-			"(function Main -> (Int32 result):\n"
-			"	  (result = 777)\n"
-			")\n"
-			;
-
-		Auto<ISourceCode> scMain = ss.SParser().ProxySourceBuffer(srcCodeModuleMain, -1, Vec2i{ 0,0 }, __FUNCTION__);
-		Auto<ISParserTree> mainTree(ss.SParser().CreateTree(scMain()));
-
-		ss.BeginPartialCompilation(nullptr);
-		ss.PartialCompile();
-
-		IModule* mainModule = ss.AddTree(*mainTree);
-		UNUSED(mainModule);
-		ss.PartialCompile();
-
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
-		validate(ns != NULL);
-		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
-
-		auto& vm = ss.PublicProgramObject().VirtualMachine();
-
-		vm.Push(0); // Allocate stack space for the int32 result
-
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-
-		int x = vm.PopInt32();
-		validate(x == 777);
-	}
-
 	void TestTopLevelMacro2(IPublicScriptSystem& ss)
 	{
 		cstr srcCodeModuleMain =
@@ -18390,7 +18355,6 @@ R"(
 
 		TEST(TestEssentialInterface);
 		TEST2(TestCoroutine1);
-		TEST(TestTopLevelMacro);
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
 	}
@@ -18434,7 +18398,6 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestTopLevelMacro);
 		TEST(TestStaticCast1);
 
 		RunPositiveSuccesses();	

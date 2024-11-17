@@ -1,4 +1,5 @@
-(#Sys.entrypoint)
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
 
 (function Main -> (Int32 result):
 	(result = 777)

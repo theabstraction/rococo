@@ -2334,6 +2334,16 @@ namespace Rococo::Script
 
 			ForEachUncompiledScript(fnctorCompileNamespaces);
 			ResolveNamespaces();
+
+			struct FnctorCompileUsingNamespaces
+			{
+				void Process(CScript& script, cstr name)
+				{
+					script.ComputePrefixes();
+				}
+			} fnctorCompileUsingNamespaces;
+
+			ForEachUncompiledScript(fnctorCompileUsingNamespaces);
 		}
 
 		void CompileTopLevelMacros()
@@ -2457,7 +2467,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
-					script.ComputePrefixes();
+					// script.ComputePrefixes(); // TODO - delete this comment if everything is working
 					script.ComputeStructureNames();	
 				}
 			} fnctorComputeStructNames;
@@ -2995,7 +3005,7 @@ namespace Rococo::Script
 	   }
    }
 
-   void CScript::CompileTopLevelMacro(cr_sex s)
+   void CScript::Compile_S_Macro(cr_sex s)
    {
 	   fstring fqMacroName = GetAtomicArg(s[0]);
 	   auto& ss = scripts.System();
@@ -3034,22 +3044,37 @@ namespace Rococo::Script
 	   }
    }
 
+   bool IsMacroInvocation(cr_sex s)
+   {
+	   // Macros are compound expressions with the first atomic expression led by character #, e.g (#eat fish (type = cod))
+	   if (s.NumberOfElements() > 0)
+	   {
+		   cr_sex sDirective = s[0];
+		   if (IsAtomic(sDirective))
+		   {
+			   cstr directive = sDirective.c_str();
+			   if (directive[0] == '#')
+			   {
+				   return true;
+			   }
+		   }
+	   }
+
+	   return false;
+   }
+
    void CompileMacrosRecursive(CScript& script, cr_sex sParent)
    {
 	   for (int i = 0; i < sParent.NumberOfElements(); i++)
 	   {
 		   auto& s = sParent[i];
-		   if (s.NumberOfElements() > 0)
+		   if (IsMacroInvocation(s))
 		   {
-			   cr_sex sDirective = s[0];
-			   if (IsAtomic(sDirective))
-			   {
-				   cstr directive = sDirective.c_str();
-				   if (directive[0] == '#')
-				   {
-					   script.CompileTopLevelMacro(s);
-				   }
-			   }
+			   script.Compile_S_Macro(s);
+		   }
+		   else
+		   {
+			//   CompileMacrosRecursive(script, s);
 		   }
 	   }
    }

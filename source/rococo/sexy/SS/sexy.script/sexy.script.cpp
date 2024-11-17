@@ -2286,9 +2286,9 @@ namespace Rococo::Script
 
 		void PartialCompile(StringBuilder* declarationBuilder) override
 		{
-			scripts->CompileTopLevelMacros();
-
+			// We need namespaces first, because macros do not have be fully-qualified, this means we cannot macro namespaces or using directives, but these are rare use-cases, and the cost would be FQ each macro.
 			scripts->CompileNamespaces();
+			scripts->CompileTopLevelMacros();
 			scripts->CompileDeclarations();
 
 			InstallNullFunction();
