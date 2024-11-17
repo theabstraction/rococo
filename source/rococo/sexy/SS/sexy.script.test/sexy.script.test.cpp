@@ -454,6 +454,25 @@ namespace
 		return ss.PublicProgramObject().VirtualMachine();
 	}
 
+	// We use this when we have a test that specifies macros in some source tree and invokes it the successor
+	VM::IVirtualMachine& StandardTestInit(IPublicScriptSystem& ss, ISParserTree& macroTree, ISParserTree& mainTree)
+	{
+		IModule* srcModule = ss.AddTree(macroTree);
+		ss.Compile();
+
+		IModule* srcModule2 = ss.AddTree(mainTree);
+		ss.PartialCompile();
+
+		UNUSED(srcModule);
+		UNUSED(srcModule2);
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+
+		return ss.PublicProgramObject().VirtualMachine();
+	}
+
 	void TestAssignInt32Literal(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -6512,34 +6531,38 @@ R"((namespace EntryPoint)
 	void TestMacro(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
-  
+			"(using Sys.Maths)"
+			"(using Sys.Reflection)"
+
+			// Define a macro called 'square' instanced as #square that takes an input IExpression of 'in' and builds an expression 'out', which substitutes for the instance #square
+
+			// square usage: (#square f) evaluates to ((f) * (f))
+			"(macro Sys.Maths.square in out"
+			"	(Sys.ValidateSubscriptRange in.ChildCount 2 3 \"macro square supports one argument only\")"
+			"	(IExpressionBuilder lhs = out.AddCompound)"
+			"	(lhs.Copy (in.Child 1))"
+			"	(out.AddAtomic \"*\")"
+			"	(IExpressionBuilder rhs = out.AddCompound)"
+			"	(rhs.Copy (in.Child 1))"
+			")";
+
+		cstr srcCode2 =
 		"(using Sys.Maths)"
-		"(using Sys.Reflection)"
-  
-		// Define a macro called 'square' instanced as #square that takes an input IExpression of 'in' and builds an expression 'out', which substitutes for the instance #square
-
-		// square usage: (#square f) evaluates to ((f) * (f))
-		"(macro Sys.Maths.square in out"
-		"	(Sys.ValidateSubscriptRange in.ChildCount 2 3 \"macro square supports one argument only\")"
-		"	(IExpressionBuilder lhs = out.AddCompound)"
-		"	(lhs.Copy (in.Child 1))"
-		"	(out.AddAtomic \"*\")"
-		"	(IExpressionBuilder rhs = out.AddCompound)"
-		"	(rhs.Copy (in.Child 1))"
-		")"
-
+		"(namespace EntryPoint)"
+		"   (alias Main EntryPoint.Main)"
 		"(function Main -> (Int32 result):"
 		"	(Int32 i = 7)"
 		"	(result = (#square i))"
 		")"		
 					;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestMacro");
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestMacro");
+		Auto<ISParserTree> tree1(ss.SParser().CreateTree(sc1()));
 
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(srcCode2, -1, Vec2i{ 0,0 }, "TestMacro");
+		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree1(), tree2());		
 
 		vm.Push(0); // Allocate stack space for the int32 result
 
@@ -11177,7 +11200,7 @@ R"((namespace EntryPoint)
 				(Sys.I1 apple (Sys.NewApple))
 				(Sys.I2 i2 = apple.GetI2)
 				(result = i2.Get6)
-			);
+			)
 			)sexy";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
@@ -18400,7 +18423,8 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST3(Test1FieldInit);
+		TEST(TestMacro);
+
 		return;
 
 		RunPositiveSuccesses();	

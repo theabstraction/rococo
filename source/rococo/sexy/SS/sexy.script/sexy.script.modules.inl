@@ -3051,7 +3051,11 @@ namespace Rococo::Script
 			   }
 		   }
 
-		   Throw(s[0], "Could not find macro amongst all the namespaces specified with 'using' directives in the module");
+		   cstr msg = 
+				"Could not find macro amongst all the namespaces specified with 'using' directives in the module.\n"
+				"Macros must be compiled before the source files that invoke them.\n"
+				"Ensure that your build system used partial compilation as each source module was appended.\n";
+		   Throw(s[0], msg);
 	   }
 
 	  // auto& ss = script.System();
