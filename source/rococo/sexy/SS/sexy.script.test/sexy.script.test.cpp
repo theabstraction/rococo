@@ -18399,11 +18399,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
-		TEST(TestStaticCast1);
-
-		return;
-
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
