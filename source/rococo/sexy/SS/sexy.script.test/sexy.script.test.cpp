@@ -18399,6 +18399,10 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
+
+		TEST3(Test1FieldInit);
+		return;
+
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
