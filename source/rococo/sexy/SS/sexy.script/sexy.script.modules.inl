@@ -2143,7 +2143,15 @@ namespace Rococo::Script
 		int globalBaseIndex;
 		TSexyHashMap<const IArchetype*, IFunctionBuilder*> nullArchetypeFunctions;
 
-		bool canInlineString;		
+		bool canInlineString;	
+
+		enum { COMPILE_ALL_MODULES = 0 };
+		
+		struct PartialCompilationLimits
+		{		
+			size_t startingIndex = COMPILE_ALL_MODULES;
+			size_t maxModuleCount = COMPILE_ALL_MODULES;
+		} limits;
 	public:
 		CScripts(IProgramObject& _programObject, IScriptSystem& _system) : programObject(_programObject), system(_system), exceptionLogic(_system), canInlineString(false), globalBaseIndex(0)
 		{			
@@ -2156,6 +2164,18 @@ namespace Rococo::Script
 				CScript* script = i->second;
 				delete script;
 			}
+		}
+
+		void EnterCompileLimits(size_t startingIndex, size_t maxModuleCount)
+		{
+			limits.startingIndex = startingIndex;
+			limits.maxModuleCount = maxModuleCount;
+		}
+
+		void ReleaseCompileLimits()
+		{
+			limits.startingIndex = COMPILE_ALL_MODULES;
+			limits.maxModuleCount = COMPILE_ALL_MODULES;
 		}
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
@@ -2296,9 +2316,14 @@ namespace Rococo::Script
 
 		template<class T> void ForEachUncompiledScript(T& t)
 		{
-			for(auto i = scripts.begin(); i != scripts.end(); ++i)
+			size_t startIndex = limits.startingIndex;
+			size_t endIndex = limits.maxModuleCount == COMPILE_ALL_MODULES ? scripts.size() : limits.maxModuleCount;
+
+			for(auto i = startIndex; i != endIndex; ++i)
 			{
-				CScript* script = i->second;
+				auto& scriptBinding = scripts[i];
+
+				CScript* script = scriptBinding.second;
 				cstr name = script->ProgramModule().Name();	
 
 				cr_sex root = script->Tree().Root();
@@ -3009,6 +3034,9 @@ namespace Rococo::Script
    {
 	   NamespaceSplitter splitter(macroNameExcludingHash);
 
+	   auto& ss = script.System();
+	   auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
+
 	   cstr ns, shortMacroName;
 	   if (!splitter.SplitTail(ns, shortMacroName))
 	   {
@@ -3026,8 +3054,8 @@ namespace Rococo::Script
 		   Throw(s[0], "Could not find macro amongst all the namespaces specified with 'using' directives in the module");
 	   }
 
-	   auto& ss = script.System();
-	   auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
+	  // auto& ss = script.System();
+	  // auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
 
 	   auto* macroNS = rootNs.FindSubspace(ns);
 	   if (macroNS == nullptr)

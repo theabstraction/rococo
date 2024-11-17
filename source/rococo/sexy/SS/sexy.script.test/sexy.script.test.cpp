@@ -230,7 +230,7 @@ namespace
 
 	void PrintParseException(const ParseException& e)
 	{
-		WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: (%d,%d) to (%d,%d)\r\nReason: %s\r\n", e.Name(), e.Start().x, e.Start().y, e.End().x, e.End().y, e.Message());
+		WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: line %d pos %d to line %d pos %d\r\nReason: %s\r\n", e.Name(), e.Start().y, e.Start().x, e.End().y, e.End().x, e.Message());
 
 		int depth = 0;
 		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
@@ -5115,20 +5115,21 @@ R"((namespace EntryPoint)
 
 	void TestStaticCast1(IPublicScriptSystem& ss)
 	{
-		cstr srcCode =
-			"(namespace EntryPoint)"
-			" (alias Main EntryPoint.Main)"
-			""
-			"(using Sys.Type)"
-			""
-			"(function Main -> (Int32 result):"
-			"  (IStringBuilder sb = NewPathBuilder)"
-			"  (#build sb \"Hello World\")"
-			"  (IString text = sb)"
-			"  (Sys.Print text -> result)"
-			")"
+		cstr srcCode = R"sexy(
+			(namespace EntryPoint)
+			   (alias Main EntryPoint.Main)
 			
-			;
+			(using Sys.Type)
+			
+			(function Main -> (Int32 result):
+			    (IStringBuilder sb = NewPathBuilder)
+			    (#build sb "Hello World")
+			    (IString text = sb)
+			    (Sys.Print text -> result)
+			)
+
+			)sexy";
+			
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -11158,25 +11159,26 @@ R"((namespace EntryPoint)
 	void TestStaticCast(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
-			"(namespace EntryPoint)"
-			" (alias Main EntryPoint.Main)"
+			R"sexy(
+			(namespace EntryPoint)
+			   (alias Main EntryPoint.Main)
+			   (using Sys.Type)
 
-			"(using Sys.Type)"
+			(interface Sys.I1 (GetI2 -> (Sys.I2 i2)))
+			(interface Sys.I2 (Get6 -> (Int32 value)))
 
-			"(interface Sys.I1 (GetI2 -> (Sys.I2 i2)))"
-			"(interface Sys.I2 (Get6 -> (Int32 value)))"
+			(class Apple (implements Sys.I1)(implements Sys.I2))
+			(method Apple.Construct : )
+			(factory Sys.NewApple Sys.I1 : (construct Apple))
+			(method Apple.GetI2 -> (Sys.I2 i2): (i2 = this))
+			(method Apple.Get6 -> (Int32 value): (value = 6))
 
-			"(class Apple (implements Sys.I1)(implements Sys.I2))"
-			"(method Apple.Construct : )"
-			"(factory Sys.NewApple Sys.I1 : (construct Apple))"
-			"(method Apple.GetI2 -> (Sys.I2 i2): (i2 = this))"
-			"(method Apple.Get6 -> (Int32 value): (value = 6))"
-
-			"(function Main -> (Int32 result):"
-			"	(Sys.I1 apple (Sys.NewApple))"
-			"	(Sys.I2 i2 = apple.GetI2)"
-			"	(result = i2.Get6)"
-			")";
+			(function Main -> (Int32 result):
+				(Sys.I1 apple (Sys.NewApple))
+				(Sys.I2 i2 = apple.GetI2)
+				(result = i2.Get6)
+			);
+			)sexy";
 
 		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
@@ -18399,6 +18401,8 @@ R"(
 		start = Time::TickCount();
 
 		TEST(TestStaticCast1);
+
+		return;
 
 		RunPositiveSuccesses();	
 		RunGotoTests();

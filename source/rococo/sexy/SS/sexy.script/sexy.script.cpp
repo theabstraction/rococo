@@ -892,6 +892,8 @@ namespace Rococo::Script
 
 		// This is persistent, as it is keyed by persistent strings
 		TSexyStringMap<NativeSecurityHandler*> nsToSecurity;
+
+		int numberOfNativeSources = 4;
 	public:
 		CScriptSystem(
 			TMapNameToSTree& _nativeSources, 
@@ -951,6 +953,7 @@ namespace Rococo::Script
 				if (pip.addIO)
 				{
 					AddCommonSource("Sys.IO.sxy"); // Module 4
+					numberOfNativeSources++;
 				}
 
 #ifdef _WIN32
@@ -1114,10 +1117,8 @@ namespace Rococo::Script
 
 		ISExpressionBuilder* CreateMacroTransform(cr_sex src) override
 		{
-			/*
-			IExpressionTransform& transform = src.TransformThis();
-			return &transform.Root();
-			*/
+			//IExpressionTransform& transform = src.TransformThis();
+			// return &transform.Root();
 					
 			auto i = mapExpressionToTransform.find(&src);
 			if (i != mapExpressionToTransform.end())
@@ -1127,7 +1128,9 @@ namespace Rococo::Script
 			else
 			{
 				TransformData td;
-				td.transform = Rococo::Sex::CreateExpressionTransform(src);
+				IExpressionTransform& transform = src.TransformThis();
+				//td.transform = Rococo::Sex::CreateExpressionTransform(src);
+				td.transform = &transform;
 				mapExpressionToTransform[&src] = td;
 				return &td.transform->Root();
 			}
@@ -2319,6 +2322,11 @@ namespace Rococo::Script
 		void Compile(StringBuilder* declarationBuilder) override
 		{
 			BeginPartialCompilation(declarationBuilder);
+
+			scripts->EnterCompileLimits(0, numberOfNativeSources);
+			PartialCompile(declarationBuilder);
+			scripts->ReleaseCompileLimits();
+
 			PartialCompile(declarationBuilder);
 		}
 

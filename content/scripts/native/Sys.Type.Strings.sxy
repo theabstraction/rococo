@@ -345,32 +345,14 @@
 
 (alias NullString Sys.Type.NullString)
 
-(function ExpandStringMacroEx (IString factoryName) (IExpression in)(IExpressionBuilder out)(Bool doNotTruncate)-> :
-	(out.AddAtomic "IStringBuilder")
-	(IExpression variableName = (in 1))
-	(out.AddAtomic variableName.Text)
-	(out.AddAtomic "=")
-	(IExpressionBuilder factoryCall = out.AddCompound)
-	(factoryCall.AddAtomic factoryName)
-	
-	(if (in.ChildCount > 2)
-		(IExpressionBuilder parent = out.TransformParent)
-		(Int32 outIndex)
-		(parent.IndexOf in -> outIndex)
-		
-		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))
-
-		(if doNotTruncate
-			(IStringBuilder sb = (NewPathBuilder))
-			(#Sys.Type.build sb variableName.Text ".ThrowIfAppendWouldTruncate")
-			(builderSequence.AddAtomic sb)		
-			(outIndex += 1)
-			(builderSequence = (parent.InsertCompoundAfter outIndex))
-		)
-		
-		(ConvertArgsToExpressionPairs in variableName builderSequence 2)
-	)
+// Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
+(macro Sys.Type.build in out
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##build <variable-name> <arg1> ... <argN>)")
+	(ConvertArgsToExpressionPairs in (in 1) out 2)
 )
+
+(using Sys)
+(using Sys.Reflection)
 
 (function ExpandStringMacro (IExpression in)(IExpressionBuilder out)-> :
 	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##string <variable-name> <capacity> <arg1> ... <argN>)")
@@ -398,6 +380,34 @@
 	(ExpandStringMacro in out)
 )
 
+(function ExpandStringMacroEx (IString factoryName) (IExpression in)(IExpressionBuilder out)(Bool doNotTruncate)-> :
+	(out.AddAtomic "IStringBuilder")
+	(IExpression variableName = (in 1))
+	(out.AddAtomic variableName.Text)
+	(out.AddAtomic "=")
+	(IExpressionBuilder factoryCall = out.AddCompound)
+	(factoryCall.AddAtomic factoryName)
+	
+	(if (in.ChildCount > 2)
+		(IExpressionBuilder parent = out.TransformParent)
+		(Int32 outIndex)
+		(parent.IndexOf in -> outIndex)
+		
+		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))
+
+		(if doNotTruncate
+			(IStringBuilder sb = (NewPathBuilder))
+			(sb variableName.Text)
+			(sb	".ThrowIfAppendWouldTruncate")
+			(builderSequence.AddAtomic sb)		
+			(outIndex += 1)
+			(builderSequence = (parent.InsertCompoundAfter outIndex))
+		)
+		
+		(ConvertArgsToExpressionPairs in variableName builderSequence 2)
+	)
+)
+
 // Usage (#token <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewTokenBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
 // Tokens have 64 character capacity (including the terminating nul char)
 (macro Sys.Type.token in out
@@ -418,3 +428,4 @@
 	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##paragraph <variable-name> args...)")
 	(ExpandStringMacroEx "NewParagraphBuilder" in out false)
 )
+
