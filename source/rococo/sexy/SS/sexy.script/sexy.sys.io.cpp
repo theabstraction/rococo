@@ -10,6 +10,7 @@ using namespace Rococo;
 using namespace Rococo::Script;
 using namespace Rococo::Strings;
 using namespace Rococo::Sex;
+using namespace Rococo::Compiler;
 
 namespace ANON_NS
 {

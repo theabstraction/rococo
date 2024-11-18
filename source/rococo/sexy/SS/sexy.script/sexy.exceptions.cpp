@@ -6,6 +6,7 @@
 #include <sexy.vector.h>
 
 using namespace Rococo::VM;
+using namespace Rococo::Compiler;
 
 namespace Rococo::Script
 {
