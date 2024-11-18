@@ -715,9 +715,31 @@ namespace Anon
 	};
 #pragma pack(pop)
 
+	IExpressionTransform& TransformExpression(ICompoundSExpression* parent, cr_sex s, const ExpressionTree& tree)
+	{
+		if (!parent)
+		{
+			Throw(s, __FUNCTION__ ": not supported - Compound Expression had no parent");
+		}
+
+		auto* transform = tree.Transform(s);
+
+		try
+		{
+			parent->TransformChild(*transform, s);
+		}
+		catch (...)
+		{
+			tree.ReleaseTransform(s);
+			throw;
+		}
+
+		return *transform;
+	}
+
 	struct AtomicExpression : ISExpressionLinkBuilder
 	{
-		ISExpression* parent = nullptr;
+		ICompoundSExpression* parent = nullptr;
 		ISExpressionLinkBuilder* next = nullptr;
 		CodeOffsets offsets;
 		sexstring_header header;
@@ -819,13 +841,32 @@ namespace Anon
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(*this, __FUNCTION__ ": atomics cannot be transformed");
+			if (!parent)
+			{
+				Throw(*this, __FUNCTION__ ": not supported - Compound Expression had no parent");
+			}
+
+			auto& tree = static_cast<const ExpressionTree&>(Tree());
+
+			auto* transform = tree.Transform(*this);
+
+			try
+			{
+				parent->TransformChild(*transform, *this);
+			}
+			catch (...)
+			{
+				tree.ReleaseTransform(*this);
+				throw;
+			}
+
+			return *transform;
 		}
 	};
 
 	struct LiteralExpression : ISExpressionLinkBuilder
 	{
-		ISExpression* parent = nullptr;
+		ICompoundSExpression* parent = nullptr;
 		ISExpressionLinkBuilder* next = nullptr;
 		CodeOffsets offsets;
 		sexstring_header header;
@@ -926,7 +967,7 @@ namespace Anon
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(*this, __FUNCTION__ ": literals cannot be transformed");
+			return TransformExpression(parent, *this, static_cast<const ExpressionTree&>(Tree()));
 		}
 	};
 
@@ -1247,26 +1288,7 @@ namespace Anon
 
 		IExpressionTransform& TransformThis() const override
 		{
-			if (!parent)
-			{
-				Throw(*this, __FUNCTION__ ": not supported - Compound Expression had no parent");
-			}
-
-		    auto& tree = static_cast<const ExpressionTree&>(Tree());
-			
-			auto* transform = tree.Transform(*this);
-
-			try
-			{
-				parent->TransformChild(*transform, *this);
-			}
-			catch (...)
-			{
-				tree.ReleaseTransform(*this);
-				throw;
-			}
-
-			return *transform;
+			return TransformExpression(parent, *this, static_cast<const ExpressionTree&>(Tree()));
 		}
 
 		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override

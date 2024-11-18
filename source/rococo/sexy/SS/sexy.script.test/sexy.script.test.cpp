@@ -1006,6 +1006,7 @@ namespace
 			"(namespace EntryPoint)\n"
 			"(alias Main EntryPoint.Main)\n"
 
+			"(using Sys)"
 			"(using Sys.Type)\n"
 			"(using Sys.IO)\n"
 			"(using Sys.Reflection)\n"
@@ -1024,7 +1025,7 @@ namespace
 			"    (stdout.SetPrecision 1)"
 			"    (stdout.SetWidth 4)"
 
-			"    (#printf out)"
+			"    (#Sys.IO.printf out)"
 
 			"    (OptionalSysMathsVec2i v)"
 			"    (v.value.x = 777)"
@@ -6553,13 +6554,12 @@ R"((namespace EntryPoint)
 		"(function Main -> (Int32 result):"
 		"	(Int32 i = 7)"
 		"	(result = (#square i))"
-		")"		
-					;
+		")";
 
-		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestMacro");
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__ "_Macro");
 		Auto<ISParserTree> tree1(ss.SParser().CreateTree(sc1()));
 
-		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(srcCode2, -1, Vec2i{ 0,0 }, "TestMacro");
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(srcCode2, -1, Vec2i{ 0,0 }, __FUNCTION__ "_Main");
 		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree1(), tree2());		
@@ -6575,11 +6575,7 @@ R"((namespace EntryPoint)
 
 	void TestMacroSiblings(IPublicScriptSystem& ss)
 	{
-		cstr srcCode =
-			"(namespace EntryPoint)"
-			" (alias Main EntryPoint.Main)"
-
-			"(using Sys.Maths)"
+		cstr macroCode =
 			"(using Sys.Reflection)"
 
 			// do_twice usage: (#do_twice (s)) evaluates to (s) (s))
@@ -6590,18 +6586,24 @@ R"((namespace EntryPoint)
 			"   (Int32 outIndex = (parent.IndexOf in))"
 			"	(IExpressionBuilder secondInstance = (parent.InsertCompoundAfter outIndex))"
 			"	(secondInstance.Copy (in.Child 1))"
-			")"
-
+			")";
+		cstr mainCode =
+			"(using Sys.Maths)"
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
 			"(function Main -> (Int32 result):"
 			"	(result = 7)"
 			"	(#doTwice (result += 1))"
 			")"
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i{ 0,0 }, __FUNCTION__ "_Macro");
+		Auto<ISParserTree> tree1(ss.SParser().CreateTree(sc1()));
 
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, __FUNCTION__ "_Main");
+		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree1(), tree2());
 
 		vm.Push(0); // Allocate stack space for the int32 result
 
@@ -7751,27 +7753,32 @@ R"((namespace EntryPoint)
 
 	void TestSubstitution(IPublicScriptSystem& ss)
 	{
-		cstr srcCode =
-		"(namespace EntryPoint)"
-		" (alias Main EntryPoint.Main)"
-  
-		"(using Sys.Maths)"
-		"(using Sys.Reflection)"
-  
-		"(function Main -> (Int32 result):"
-		"	(result = 7)"
-		"	(#EntryPoint.double result)"
-		")"
+		cstr macroCode =
+			"(namespace EntryPoint)"
+			"(using Sys.Reflection)"
+			"(macro EntryPoint.double in out"
+			"	(IExpression s = '($1 = ($1 * 2)) )"
+			"	(out.Substitute in s)"
+			")";
 
-		"(macro EntryPoint.double in out"
-		"	(IExpression s = '($1 = ($1 * 2)) )"
-		"	(out.Substitute in s)"
-		")";
+		cstr mainCode =
+			"(namespace EntryPoint)"
+			" (alias Main EntryPoint.Main)"
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestSubstitution");
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+			"(using Sys.Maths)"
+			
+			"(function Main -> (Int32 result):"
+			"	(result = 7)"
+			"	(#EntryPoint.double result)"
+			")";
 
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());		
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i{ 0,0 }, __FUNCTION__ "_Macro");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc1()));
+
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, __FUNCTION__ "_Main");
+		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree(), tree2());		
 
 		vm.Push(0); // Allocate stack space for the int32 result
 
@@ -15493,9 +15500,10 @@ R"((namespace EntryPoint)
 
 	void TestMacroAsArgument1(IPublicScriptSystem& ss)
 	{
-		cstr srcCode =
-			"(macro Sys.Seventeen in out (out.AddAtomic \"0x11\"))"
+		cstr macroCode =
+			"(macro Sys.Seventeen in out (out.AddAtomic \"0x11\"))";
 
+		cstr mainCode = 
 			"(function PassThrough (Int32 x)->(Int32 y) : (y = x))"
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 exitCode):"
@@ -15504,10 +15512,13 @@ R"((namespace EntryPoint)
 			"(alias Main EntryPoint.Main)"
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i {0,0},"TestMacroAsArgument1");
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i {0,0}, __FUNCTION__ "_Macro");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc1()));
 
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, __FUNCTION__ "_Main");
+		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree(), tree2());
 
 		vm.Push(0x00000001);
 		Rococo::EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
@@ -18422,10 +18433,6 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
-		TEST(TestMacro);
-
-		return;
 
 		RunPositiveSuccesses();	
 		RunGotoTests();

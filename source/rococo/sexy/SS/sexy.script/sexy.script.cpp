@@ -523,7 +523,7 @@ namespace Rococo::Script
 	// need compiling per execution session. I guess having TMapFQNToNativeCall & f->TryResolveArguments() compiled once
 	// globally would be a great optimization -> MAT
 
-	void InstallNativeCalls(IN const TMapFQNToNativeCall& nativeCalls, REF INamespaceBuilder& rootNS)
+	void InstallNativeCalls(IN const TMapFQNToNativeCall& nativeCalls, REF INamespaceBuilder& rootNS, bool throwUnresolvedErrors)
 	{
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
@@ -546,12 +546,19 @@ namespace Rococo::Script
 
 			if (!f->TryResolveArguments())
 			{
-				char fullError[2048];
-				StackStringBuilder sb(fullError, sizeof(fullError));
-				sb << nf.Archetype.c_str() << ": Could not resolve argument\n";
-				sb << "Module: " << nf.e.function.Module().Name() << "\n";
-				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
-				Throw(nativeError);
+				if (throwUnresolvedErrors)
+				{
+					char fullError[2048];
+					StackStringBuilder sb(fullError, sizeof(fullError));
+					sb << nf.Archetype.c_str() << ": Could not resolve argument\n";
+					sb << "Module: " << nf.e.function.Module().Name() << "\n";
+					ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
+					Throw(nativeError);
+				}
+				else
+				{
+					continue;
+				}
 			}
 
 			ICodeBuilder& builder = f->Builder();
@@ -2303,7 +2310,7 @@ namespace Rococo::Script
 				AppendNativeCallsAsAliases(IN nativeCalls, *declarationBuilder);
 			}
 
-			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace());
+			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace(), false);
 			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
 
 			scripts->CompileBytecode();
