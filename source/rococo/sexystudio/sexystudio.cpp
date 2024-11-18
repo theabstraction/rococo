@@ -2670,13 +2670,13 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		}
 
 		// We are searching for the pattern '(<interface> <variable-name> '
-		cstr lastOpenBrace = Rococo::ReverseFind('(', searchToken);
+		cstr lastOpenBrace = Rococo::Strings::ReverseFind('(', searchToken);
 		if (lastOpenBrace == nullptr)
 		{
 			return false;
 		}
 
-		cstr lastCloseBrace = Rococo::ReverseFind(')', searchToken);
+		cstr lastCloseBrace = Rococo::Strings::ReverseFind(')', searchToken);
 		if (lastCloseBrace != nullptr && lastCloseBrace > lastOpenBrace)
 		{
 			return false;
@@ -2784,7 +2784,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 	bool TryFindAndShowCallTipForMethods(ISexyEditor& editor, cr_substring searchToken, cr_substring doc)
 	{
 		// Potentially a method call
-		cstr methodSeparator = Rococo::ReverseFind('.', searchToken);
+		cstr methodSeparator = Rococo::Strings::ReverseFind('.', searchToken);
 		if (!methodSeparator || *methodSeparator != '.')
 		{
 			return false;

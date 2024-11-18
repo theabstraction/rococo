@@ -11,12 +11,12 @@
 #include <unordered_set>
 #include <list>
 
+using namespace Rococo;
+using namespace Rococo::Assets;
+using namespace Rococo::Strings;
+
 namespace ANON
 {
-	using namespace Rococo;
-	using namespace Rococo::Assets;
-	using namespace Rococo::Strings;
-
 	const char* const emptyString = "";
 
 	struct FileAsset : IFileAsset

@@ -10,6 +10,7 @@
 using namespace Rococo::Gui;
 using namespace Rococo::Sex;
 using namespace Rococo::Sex::SEXML;
+using namespace Rococo::Strings;
 
 namespace Rococo::GreatSex
 {

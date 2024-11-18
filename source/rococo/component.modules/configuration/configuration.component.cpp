@@ -4,6 +4,8 @@
 #include <components/rococo.ecs.builder.inl>
 #include <rococo.hashtable.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo::Components
 {
 	struct ConfigurationComponent : IConfigurationComponent

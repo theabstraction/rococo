@@ -1,15 +1,14 @@
 #pragma once
 
+#include <rococo.types.h>
 #include <rococo.strings.h>
 #include <unordered_map>
 
 namespace Rococo
 {
-	using namespace Rococo::Strings;
-
 	class FastStringKey
 	{
-		HString persistentData;
+		Rococo::Strings::HString persistentData;
 		cstr data;
 
 		void Persist()
@@ -41,7 +40,7 @@ namespace Rococo
 
 		[[nodiscard]] const int length() const
 		{
-			return StringLength(data);
+			return Strings::StringLength(data);
 		}
 
 		FastStringKey(const FastStringKey& other) :
@@ -65,7 +64,7 @@ namespace Rococo
 
 		[[nodiscard]] bool operator == (const FastStringKey& other) const
 		{
-			return Eq(data, other.data);
+			return Strings::Eq(data, other.data);
 		}
 
 		[[nodiscard]] size_t HashCode() const

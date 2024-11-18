@@ -12,10 +12,11 @@
 
 #include <rococo.package.h>
 
+using namespace Rococo::Strings;
+using namespace Rococo::SexyStudio;
+
 namespace
 {
-	using namespace Rococo::SexyStudio;
-
 	struct SourceTree : ISourceTree
 	{
 		struct Item
@@ -168,7 +169,7 @@ namespace Rococo::SexyStudio
 				}
 				else
 				{
-					if (Rococo::EndsWith(item.fullPath, L".sxy"))
+					if (EndsWith(item.fullPath, L".sxy"))
 					{
 						U8FilePath u8Path;
 						Format(u8Path, "%ls", item.fullPath);

@@ -22,6 +22,7 @@
 #include <string>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 void validate(bool condition, const char* expr, const char* filename, int lineNumber)
 {
