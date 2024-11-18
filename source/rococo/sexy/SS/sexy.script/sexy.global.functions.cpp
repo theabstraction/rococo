@@ -2021,11 +2021,17 @@ namespace Rococo
 		}
 	}
 
+	void AddFluffle(Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, cstr pingPath, cr_sex s)
+	{
+		Throw(s, __FUNCTION__ ": not implemented");
+	}
+
 	void Preprocess(cr_sex sourceRoot, ISourceCache& sources, IScriptEnumerator& implicitIncludes, Rococo::Script::IPublicScriptSystem& ss)
 	{
 		bool hasIncludedFiles = false;
 		bool hasIncludedNatives = false;
 		bool hasIncludedImports = false;
+		bool hasIncludedFluffles = false;
 
 		size_t nImplicitIncludes = implicitIncludes.Count();
 		for (size_t i = 0; i < nImplicitIncludes; ++i)
@@ -2061,7 +2067,7 @@ namespace Rococo
 				{
 					if (hasIncludedFiles)
 					{
-						Throw(sincludeExpr, "An include directive is already been stated. Merge directives.");
+						Throw(sincludeExpr, "An include directive has already been stated. Merge directives.");
 					}
 
 					hasIncludedFiles = true;
@@ -2091,11 +2097,45 @@ namespace Rococo
 						}
 					}
 				}
+				if (squot == "'" && stype == "#fluffle")
+				{
+					if (hasIncludedFluffles)
+					{
+						Throw(sincludeExpr, "A fluffle directive has already been stated. Merge directives.");
+					}
+
+					hasIncludedFluffles = true;
+
+					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
+					{
+						cr_sex sname = sincludeExpr[j];
+
+						if (!IsStringLiteral(sname))
+						{
+							Throw(sname, "expecting string literal in fluffle directive (' #fluffle \"<name1>\" \"<name2 etc>\" ...) ");
+						}
+
+						auto name = sname.String();
+
+						try
+						{
+							AddFluffle(ss, sources, name->Buffer, sname);
+						}
+						catch (ParseException&)
+						{
+							throw;
+						}
+						catch (IException& ex)
+						{
+							Throw(sname, "Error with fluffle. %s", ex.Message());
+						}
+					}
+				}
 				else if (squot == "'" && stype == "#natives")
 				{
 					if (hasIncludedNatives)
 					{
-						Throw(sincludeExpr, "A natives directive is already been stated. Merge directives.");
+						Throw(sincludeExpr, "A natives directive has already been stated. Merge directives.");
 					}
 
 					hasIncludedNatives = true;
@@ -2119,7 +2159,7 @@ namespace Rococo
 				{
 					if (hasIncludedImports)
 					{
-						Throw(sincludeExpr, "An import directive is already been stated. Merge directives.");
+						Throw(sincludeExpr, "An import directive has already been stated. Merge directives.");
 					}
 
 					hasIncludedImports = true;

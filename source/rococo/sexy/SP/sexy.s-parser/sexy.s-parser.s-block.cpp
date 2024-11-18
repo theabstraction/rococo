@@ -1677,7 +1677,7 @@ namespace Anon
 			memcpy(persistentBuffer, buffer, nBytes);
 			literal->header.Length = (int32)nBytes - 1;
 			writePos += sizeofLiteral;
-
+			literal->offsets.endOffset = literal->offsets.startOffset + max(((int32)nBytes) - 1, 0);
 			return next;
 		}
 	};
