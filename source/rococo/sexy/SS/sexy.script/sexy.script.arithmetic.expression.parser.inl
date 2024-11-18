@@ -749,27 +749,6 @@ namespace Rococo
 					// Functions and methods cannot return closures, so no need to check allowClosures flag
 					return true;
 				}
-				else
-				{
-					cr_sex firstItem = s.GetElement(0);
-					if (IsAtomic(firstItem))
-					{
-						if (TryCompileMacroInvocation(ce, s, firstItem.String()))
-						{
-							const ISExpression* transform = ce.SS.GetTransform(s);
-							if (transform != NULL)
-							{
-								return TryCompileAssignArchetype(ce, *transform, type, allowClosures);
-							}
-							else
-							{
-								Throw(s, ("Macro expansion did not yield an arithmetic expression"));
-							}
-						}
-					}
-
-					return false;
-				}
 			}
 			else if (IsAtomic(s))
 			{

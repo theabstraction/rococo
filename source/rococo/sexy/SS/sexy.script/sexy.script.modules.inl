@@ -314,17 +314,14 @@ namespace Rococo::Script
 
 	void AppendAliases(IScriptSystem& ss, IModuleBuilder& module, IN const ISParserTree& tree)
 	{
-		cr_sex root = tree.Root();
-
-		auto* sTransformRoot = ss.GetTransform(root);
-		cr_sex sSequence = sTransformRoot ? *sTransformRoot : root;
+		cr_sex sSequence = tree.Root();
 
 		for(int i = 0; i < sSequence.NumberOfElements(); i++)
 		{
 			cr_sex topLevelItem = sSequence[i];
 			cr_sex elementNameExpr = GetAtomicArg(topLevelItem, 0);
 			cstr elementName = elementNameExpr.c_str();
-			if (AreEqual(elementName, ("alias")))
+			if (AreEqual(elementName, "alias"))
 			{
 				// (alias <qualified-name> <name>)
 				AssertNotTooFewElements(topLevelItem, 3);
@@ -334,25 +331,6 @@ namespace Rococo::Script
 				cr_sex nsName = GetAtomicArg(topLevelItem, 2);					
 
 				AppendAlias(REF module, IN nsName, IN localName);
-			}
-			else if (elementName[0] == '#')
-			{
-				auto* sTransformItem = ss.GetTransform(topLevelItem);
-				if (!sTransformItem)
-				{
-					continue;
-				}
-
-				if (sTransformItem->NumberOfElements() > 0 && IsAtomic(sTransformItem[0]) && AreEqual(sTransformItem[0].String(), "alias"))
-				{
-					AssertNotTooFewElements(*sTransformItem, 3);
-					AssertNotTooManyElements(*sTransformItem, 3);
-
-					cr_sex localName = GetAtomicArg(*sTransformItem, 1);
-					cr_sex nsName = GetAtomicArg(*sTransformItem, 2);
-
-					AppendAlias(REF module, IN nsName, IN localName);
-				}
 			}
 		}
 	}
@@ -1019,58 +997,6 @@ namespace Rococo::Script
 		AppendDeconstructTailVariables(ce, sequence, expire, ce.Builder.SectionArgCount());
 	}
 
-	void CompileTransformableExpressionSequenceProtected(CCompileEnvironment& ce, int start, cr_sex sequence)
-	{
-		if (sequence.Type() == EXPRESSION_TYPE_NULL)
-		{
-			ce.Builder.Assembler().Append_NoOperation();
-			return;
-		}
-
-		AssertCompound(sequence);
-		if (start == 0 && sequence.NumberOfElements() > 0)
-		{
-			cr_sex firstArg = sequence.GetElement(0);
-			if (firstArg.Type() == EXPRESSION_TYPE_ATOMIC)
-			{
-				ce.Builder.EnterSection();
-				CompileExpression(ce, sequence);
-				AppendDeconstruct(ce, sequence, true);
-				ce.Builder.LeaveSection();
-				return;
-			}
-		}
-
-		ce.Builder.EnterSection();
-
-		int i = start;
-		for (;;)
-		{
-			// As we compile expressions macro expansions may add siblings to the parent
-			// The mechanism involves first cloning the immutable parent expression, then inserting elements after the macro expansion into the transform of the parent
-			// This means as we process each expression we have to watch out for transformations of the parent and changes to the NumberOfElements()
-			const ISExpression* sSourceExpression = ce.SS.GetTransform(sequence);
-
-			if (sSourceExpression == nullptr)
-			{
-				sSourceExpression = &sequence;
-			}
-
-			if (i >= sSourceExpression->NumberOfElements())
-			{
-				break;
-			}
-
-			cr_sex s = sSourceExpression->GetElement(i);
-			CompileExpression(ce, s);
-
-			i++;
-		}
-
-		AppendDeconstruct(ce, sequence, true);
-		ce.Builder.LeaveSection();
-	}
-
 	void CompileExpressionSequenceProtected(CCompileEnvironment& ce, int start, int end, cr_sex sequence)
 	{
 		if (sequence.Type() == EXPRESSION_TYPE_NULL)
@@ -1102,12 +1028,6 @@ namespace Rococo::Script
 			CompileExpression(ce, s); 
 		}
 
-		const ISExpression* sTransform = ce.SS.GetTransform(sequence);
-		if (sTransform)
-		{
-			Throw(sequence, "A macro attempted to expand siblings for the compound expression, but it is not expandable. Consider containing the offending code in a nested compound expression");
-		}
-
 		AppendDeconstruct(ce, sequence, true);
 		ce.Builder.LeaveSection();
 	}
@@ -1119,21 +1039,6 @@ namespace Rococo::Script
 			CompileExpressionSequenceProtected(ce, start, end, sequence);
 		}
 		catch(STCException& ex)
-		{
-			char buf[256];
-			StackStringBuilder ssb(buf, sizeof buf);
-			StreamSTCEX(ssb, ex);
-			Throw(sequence, "%s", buf);
-		}
-	}
-
-	void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence)
-	{
-		try
-		{
-			CompileTransformableExpressionSequenceProtected(ce, start, sequence);
-		}
-		catch (STCException& ex)
 		{
 			char buf[256];
 			StackStringBuilder ssb(buf, sizeof buf);
@@ -1606,7 +1511,7 @@ namespace Rococo::Script
 		try
 		{
 			CompileSetOutputToNull(REF f);
-			CompileTransformableExpressionSequence(ce, bodyIndex + 1, fdef);
+			CompileExpressionSequence(ce, bodyIndex + 1, fdef.NumberOfElements() - 1, fdef);
 
 			builder.End();
 		}
@@ -3211,15 +3116,6 @@ namespace Rococo::Script
 
 			nsDefs.push_back(def);
 		}
-		else if (elementName->Buffer[0] == '#')
-		{
-			// Potential macro expansion that may include a namespace definition
-			auto* sTransformDirective = script.System().GetTransform(sDirective);
-			if (sTransformDirective)
-			{
-				AppendCompiledNamespacesForOneDirective(nsDefs, *sTransformDirective, script);
-			}
-		}
    }
 
    void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs, cr_sex root, CScript& script)
@@ -3233,15 +3129,7 @@ namespace Rococo::Script
 	void CScript::AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs)
 	{
 		cr_sex root = tree.Root();	
-		auto* sRootTransform = System().GetTransform(root);
-		if (sRootTransform)
-		{
-			Rococo::Script::AppendCompiledNamespaces(nsDefs, *sRootTransform, *this);
-		}
-		else
-		{
-			Rococo::Script::AppendCompiledNamespaces(nsDefs, root, *this);
-		}
+		Rococo::Script::AppendCompiledNamespaces(nsDefs, root, *this);
 	}
 
 	IStructure* LookupArg(cr_sex s, IModuleBuilder& module, OUT cstr& argName)
@@ -4561,29 +4449,12 @@ namespace Rococo::Script
 
 	cr_sex CScript::GetActiveRoot()
 	{
-		cr_sex realRoot = tree.Root();
-		auto* pTransform = System().GetTransform(realRoot);
-		if (pTransform)
-		{
-			return *pTransform;
-		}
-		else
-		{
-			return realRoot;
-		}
+		return tree.Root();
 	}
 
 	cr_sex CScript::GetActiveExpression(cr_sex s)
 	{
-		auto* pTransform = System().GetTransform(s);
-		if (pTransform)
-		{
-			return *pTransform;
-		}
-		else
-		{
-			return s;
-		}
+		return s;
 	}
 
 	void CScript::ComputeStructureNames()

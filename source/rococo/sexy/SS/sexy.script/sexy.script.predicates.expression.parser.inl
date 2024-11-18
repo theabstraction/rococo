@@ -1110,14 +1110,6 @@ namespace Rococo
           if (IsCompound(s))
           {
               cr_sex s0 = s[0];
-              if (IsAtomic(s0) && TryCompileMacroInvocation(ce, s, s0.String()))
-              {
-                  const ISExpression* t = ce.SS.GetTransform(s);
-                  if (t != NULL)
-                  {
-                      return TryCompileBooleanExpression(ce, *t, expected, negate);
-                  }
-              }
               if (s.NumberOfElements() == 1)
               {
                   cr_sex onlyChild = s.GetElement(0);
