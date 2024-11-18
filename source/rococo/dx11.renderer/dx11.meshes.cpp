@@ -8,6 +8,7 @@
 using namespace Rococo::DX11;
 using namespace Rococo::Strings;
 using namespace Rococo::RAL;
+using namespace Rococo::Graphics;
 
 struct DX11Meshes : public IDX11Meshes
 {

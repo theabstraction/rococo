@@ -82,6 +82,7 @@ namespace
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+using namespace Rococo;
 using namespace Rococo::IO;
 
 namespace Rococo::Script

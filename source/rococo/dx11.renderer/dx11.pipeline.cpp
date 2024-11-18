@@ -10,6 +10,7 @@
 #include <rococo.reflector.h>
 
 using namespace Rococo::Graphics;
+using namespace Rococo::Graphics::Samplers;
 using namespace Rococo::RAL;
 using namespace Rococo::DX11;
 using namespace Rococo::Reflection;

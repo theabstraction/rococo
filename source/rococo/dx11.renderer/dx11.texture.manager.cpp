@@ -9,6 +9,7 @@
 #include "rococo.imaging.h"
 
 using namespace Rococo::DX11;
+using namespace Rococo::Graphics;
 
 struct TextureItem
 {

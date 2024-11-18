@@ -8,6 +8,7 @@
 #include <string>
 
 using namespace Rococo::Strings;
+using namespace Rococo::Graphics;
 
 namespace
 {

@@ -23,6 +23,7 @@ namespace
    };
 }
 
+using namespace Rococo::Graphics;
 using namespace Rococo::DX11;
 using namespace Rococo::Reflection;
 

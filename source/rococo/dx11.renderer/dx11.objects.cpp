@@ -49,7 +49,7 @@ namespace Rococo
 
       const D3D11_INPUT_ELEMENT_DESC* const GetObjectVertexDesc()
       {
-         static_assert(sizeof(ObjectVertex) == 44, "Gui vertex data was not 44 bytes wide");
+         static_assert(sizeof(Rococo::Graphics::ObjectVertex) == 44, "Gui vertex data was not 44 bytes wide");
          return ANON::objectVertexDesc;
       }
 
@@ -61,7 +61,7 @@ namespace Rococo
 
 	  const D3D11_INPUT_ELEMENT_DESC* const GetSkyVertexDesc()
 	  {
-		  static_assert(sizeof(SkyVertex) == 12, "Sky vertex data was not 16 bytes wide");
+		  static_assert(sizeof(Rococo::Graphics::SkyVertex) == 12, "Sky vertex data was not 16 bytes wide");
 		  return ANON::skyVertexDesc;
 	  }
 

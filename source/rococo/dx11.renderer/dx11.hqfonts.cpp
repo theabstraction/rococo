@@ -5,6 +5,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Strings;
+using namespace Rococo::Graphics;
 using namespace Rococo::Graphics::Fonts;
 
 namespace ANON

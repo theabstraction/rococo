@@ -12,6 +12,7 @@
 #pragma comment(lib, "D3dcompiler.lib")
 
 using namespace Rococo::DX11;
+using namespace Rococo::Graphics;
 
 struct DX11Shader
 {
