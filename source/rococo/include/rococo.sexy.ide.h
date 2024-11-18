@@ -8,8 +8,6 @@ namespace Rococo
 {
 	struct MenuCommand;
 
-	using namespace Rococo::Script;
-
 	namespace Windows
 	{
 		struct IWindow;
@@ -31,7 +29,7 @@ namespace Rococo
 
 			ROCOCO_INTERFACE IPersistentScript
 			{
-			   virtual void ExecuteFunction(ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler, bool trace) = 0;
+			   virtual void ExecuteFunction(Script::ArchetypeCallback bytecodeId, IArgEnumerator& args, IScriptExceptionHandler& exceptionHandler, bool trace) = 0;
 			   virtual void ExecuteFunction(cstr name, IArgEnumerator& arg, IScriptExceptionHandler& exceptionHandlers, bool trace) = 0;
 			   virtual void Free() = 0;
 			};
@@ -90,7 +88,7 @@ namespace Rococo
 			Strings::IVarArgStringFormatter& GetStdoutFormatter();
 			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation);
 			IPersistentScript* CreatePersistentScript(size_t maxBytes, Rococo::Script::IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler);
-			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, int32 param, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace, Strings::StringBuilder* declarationBuilder);
+			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, Script::IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, int32 param, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace, Strings::StringBuilder* declarationBuilder);
 		}
 	}
 }

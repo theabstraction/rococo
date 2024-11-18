@@ -20,7 +20,7 @@
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Graphics;
-using namespace Rococo::Textures;
+using namespace Rococo::Graphics::Textures;
 using namespace Rococo::Strings;
 
 namespace ANON
@@ -105,11 +105,11 @@ namespace ANON
 
 			if (heading.degrees == 0)
 			{
-				Rococo::DrawTriangleFacingUp(*rc, absRect, colour);
+				DrawTriangleFacingUp(*rc, absRect, colour);
 			}
 			else
 			{
-				Rococo::DrawTriangleFacingDown(*rc, absRect, colour);
+				DrawTriangleFacingDown(*rc, absRect, colour);
 			}
 
 			if (needsClipping)

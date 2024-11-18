@@ -10,8 +10,6 @@
 
 #include <rococo.ringbuffer.h>
 
-using namespace Rococo::Strings;
-
 namespace Rococo
 {
 	/* 
@@ -90,7 +88,7 @@ namespace Rococo
 		
 		size_t length = 0;
 
-		HString name;
+		Strings::HString name;
 
 		uint64 GetIndex(Handle hItem)
 		{

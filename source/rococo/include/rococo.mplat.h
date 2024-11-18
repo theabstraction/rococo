@@ -233,8 +233,6 @@ namespace Rococo
 
 	IConfigSupervisor* CreateConfig();
 
-	using namespace Rococo::Graphics;
-
 	ROCOCO_INTERFACE IMathsVisitorSupervisor : public IMathsVisitor
 	{
 		 virtual bool AppendKeyboardEvent(const KeyboardEvent & key) = 0;
@@ -243,7 +241,7 @@ namespace Rococo
 		 virtual void CancelSelect() = 0;
 		 virtual void SelectAtPos(Vec2i pos) = 0;
 
-		 virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, int padding) = 0;
+		 virtual void Render(Graphics::IGuiRenderContext& grc, const GuiRect& absRect, int padding) = 0;
 
 		 virtual void Free() = 0;
 	};
@@ -377,10 +375,10 @@ namespace Rococo
 		ROCOCO_INTERFACE IParticleSystemSupervisor : IParticleSystem
 		{
 			virtual void Free() = 0;
-			virtual void AdvanceParticleSimulation(ID_ENTITY id, IRenderer& renderer) = 0;
+			virtual void AdvanceParticleSimulation(ID_ENTITY id, Graphics::IRenderer& renderer) = 0;
 		};
 
-		IParticleSystemSupervisor* CreateParticleSystem(IRenderer& renderer);
+		IParticleSystemSupervisor* CreateParticleSystem(Graphics::IRenderer& renderer);
 
 		IRigs* CreateRigBuilder();
 	}
@@ -426,14 +424,14 @@ namespace Rococo
 		virtual void FreeAllChildren() = 0;
 
 		virtual void Free() = 0;
-		virtual void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
+		virtual void Render(Graphics::IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
 		virtual void SetParent(IPaneSupervisor* parent) = 0;
 	};
 
 	struct IPaneBuilderSupervisor : public GUI::IPaneBuilder
 	{
 		virtual void Free() = 0;
-		virtual void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
+		virtual void Render(Graphics::IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) = 0;
 		virtual IPaneSupervisor* Supervisor() = 0;
 	};
 
@@ -477,7 +475,7 @@ namespace Rococo
 		*   interfaces and functions using the onCompile implementation
 		*/
 		virtual IPaneBuilderSupervisor* BindPanelToScript(cstr scriptName, IScriptCompilationEventHandler* onCompile, IScriptEnumerator* implicitIncludes) = 0;
-		virtual void Render(IGuiRenderContext& grc) = 0;
+		virtual void Render(Graphics::IGuiRenderContext& grc) = 0;
 		virtual void PushTop(IPaneSupervisor* panel, bool isModal) = 0;
 		virtual IPaneSupervisor* Pop() = 0;
 		virtual IPaneSupervisor* Top() = 0;
@@ -537,7 +535,7 @@ namespace Rococo
 			virtual bool AppendEvent(const KeyboardEvent& k, Events::ScrollEvent& updateStatus) = 0;
 			virtual bool AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft, Events::ScrollEvent& updateStatus) = 0;
 			virtual void Free() = 0;
-			virtual void Render(IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_sliderCol, RGBAb sliderCol, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, const Events::EventIdRef& populationEventId) = 0;
+			virtual void Render(Graphics::IGuiRenderContext& grc, const GuiRect& absRect, const Modality& modality, RGBAb hilightColour, RGBAb baseColour, RGBAb hi_sliderCol, RGBAb sliderCol, RGBAb hilightEdge, RGBAb baseEdge, IEventCallback<Events::ScrollEvent>& populator, const Events::EventIdRef& populationEventId) = 0;
 		};
 	}
 
@@ -561,7 +559,7 @@ namespace Rococo
 	{
 		virtual void AppendEvent(const KeyboardEvent& me) = 0;
 		virtual void AppendEvent(const MouseEvent & me) = 0;
-		virtual void Render(IGuiRenderContext & grc) = 0;
+		virtual void Render(Graphics::IGuiRenderContext & grc) = 0;
 		virtual void Free() = 0;
 	};
 
@@ -617,7 +615,7 @@ namespace Rococo
 
 	namespace MPlatImpl
 	{
-		IUtilitiesSupervisor* CreateUtilities(IO::IInstallation& installation, IRenderer& renderer);
+		IUtilitiesSupervisor* CreateUtilities(IO::IInstallation& installation, Graphics::IRenderer& renderer);
 	}
 
 	namespace Graphics
@@ -721,7 +719,7 @@ namespace Rococo
 		struct IMPlatGuiCustodianSupervisor
 		{
 			virtual IGRCustodian& Custodian() = 0;
-			virtual void Render(IGuiRenderContext& rc, IGRSystem& gr) = 0;
+			virtual void Render(Graphics::IGuiRenderContext& rc, IGRSystem& gr) = 0;
 			virtual void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) = 0;
 			virtual void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) = 0;
 			virtual void Free() = 0;
@@ -735,7 +733,7 @@ namespace Rococo
 		// Render config used to set up sampler states et al
 		Graphics::IRendererConfig& rendererConfig;	
 		
-		IRenderer& renderer;
+		Graphics::IRenderer& renderer;
 
 		Graphics::ISprites& sprites;
 
@@ -959,7 +957,7 @@ namespace Rococo::Entities
 	/// <param name="rc">- the 3D render context to render to </param>
 	/// <param name="rod">- the rod tesselator object used to generate geometry</param>
 	/// <param name="rigs">- the set of poses used by the entity object</param>
-	void AddDebugBones(ID_ENTITY id, IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod);
+	void AddDebugBones(ID_ENTITY id, Graphics::IRenderContext& rc, Rococo::Graphics::IRodTesselatorSupervisor& rod);
 }
 
 namespace Rococo::Components::Generated::Interop
