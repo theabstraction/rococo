@@ -48,6 +48,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Sex;
+using namespace Rococo::Strings;
 
 namespace ANON
 {

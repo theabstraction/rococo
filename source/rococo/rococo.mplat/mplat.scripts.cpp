@@ -9,6 +9,8 @@
 #include <string.h>
 #include <3D\rococo.material-builder.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo // declarations herein are to help intellisense do its job.
 {
 	struct IKeyboard;	

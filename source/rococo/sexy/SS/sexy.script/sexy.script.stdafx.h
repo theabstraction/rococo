@@ -151,7 +151,7 @@ namespace Rococo
         Rococo::Sex::ISExpressionProxy& CreateExpressionProxy(CCompileEnvironment& ce, cr_sex inner, int numberOfElements);
         void ValidateAssignment(cr_sex callDef);
         void InitClassMembers(CCompileEnvironment& ce, cstr id);
-        void StreamSTCEX(StringBuilder& sb, const Compiler::STCException& ex);
+        void StreamSTCEX(Strings::StringBuilder& sb, const Compiler::STCException& ex);
         bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype);
 
         class CScripts;
@@ -194,7 +194,7 @@ namespace Rococo
         struct BuilderAndNameKey
         {
             ICodeBuilder* Builder;
-            HString Name;
+            Strings::HString Name;
         };
 
         struct hashBuilderAndNameKey

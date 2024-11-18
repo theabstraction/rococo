@@ -91,8 +91,6 @@ namespace Rococo
 namespace Rococo {
 	namespace Script
 	{
-		using namespace Rococo::Strings;
-
 		SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IInterface& i);
 		SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IStructure& typeDesc);
 
@@ -100,8 +98,6 @@ namespace Rococo {
 		{
 			virtual void Free() = 0;
 		};
-
-		using namespace Rococo::Compiler;
 
 		struct IPublicScriptSystem;
 		struct ArchetypeCallback;
@@ -191,19 +187,19 @@ namespace Rococo {
 #pragma pack(push,1)
 		struct CClassExpression
 		{
-			ObjectStub Header;
+			Compiler::ObjectStub Header;
 			Sex::ISExpression* ExpressionPtr;
 		};
 
 		struct CClassExpressionBuilder
 		{
-			ObjectStub Header;
+			Compiler::ObjectStub Header;
 			Sex::ISExpressionBuilder* BuilderPtr;
 		};
 
 		struct CClassSysTypeStringBuilder
 		{
-			ObjectStub header;
+			Compiler::ObjectStub header;
 			int32 length;
 			char* buffer;
 			int32 capacity;
@@ -213,12 +209,12 @@ namespace Rococo {
 
 		struct CScriptSystemClass
 		{
-			ObjectStub header;
+			Compiler::ObjectStub header;
 		};
 
 		struct CReflectedClass
 		{
-			ObjectStub header;
+			Compiler::ObjectStub header;
 			void* context;
 		};
 #pragma pack(pop)
@@ -261,10 +257,10 @@ namespace Rococo {
 		struct ReflectionArguments
 		{
 			Rococo::Sex::cr_sex s;
-			const IStructure& lhsType;
+			const Compiler::IStructure& lhsType;
 			void* lhsData;
 			cstr rhsName;
-			const IStructure& rhsType;
+			const Compiler::IStructure& rhsType;
 			void* rhsData;
 			IPublicScriptSystem& ss;
 		};
@@ -296,7 +292,7 @@ namespace Rococo {
 #pragma pack(push,1)
 		struct CStringConstant
 		{
-			ObjectStub header;
+			Compiler::ObjectStub header;
 			int32 length;
 			cstr pointer;
 			void* srcExpression;
@@ -313,7 +309,7 @@ namespace Rococo {
 			void* Start;
 			int32 NumberOfElements;
 			int32 ElementCapacity;
-			const IStructure* ElementType;
+			const Compiler::IStructure* ElementType;
 			int32 ElementLength;
 			int32 LockNumber;
 			int64 RefCount;
@@ -324,7 +320,7 @@ namespace Rococo {
 		struct ListNode
 		{
 			ListImage* Container;
-			const IStructure* ElementType;
+			const Compiler::IStructure* ElementType;
 			ListNode* Previous;
 			ListNode* Next;
 			int32 RefCount;
@@ -344,7 +340,7 @@ namespace Rococo {
 			int64 refCount;
 			int32 NumberOfElements;
 			int32 LockNumber;
-			const IStructure* ElementType;
+			const Compiler::IStructure* ElementType;
 			ListNode* Head;
 			ListNode* Tail;
 			int32 ElementSize;
@@ -381,23 +377,23 @@ namespace Rococo {
 			virtual void AlignedFree(void* buffer) = 0;
 
 			// Create an object, use AlignedFree to free up the memory (generally when reference count hits zero)
-			virtual ObjectStub* CreateScriptObject(cstr type, cstr sourceFile) = 0;
+			virtual Compiler::ObjectStub* CreateScriptObject(cstr type, cstr sourceFile) = 0;
 
 			// Create an object, the sizeOfObject can reserve more space than that specified by [compilersView], along C++ access to extra hidden fields. Use AlignedFree to free up the memory (generally when reference count hits zero)
-			virtual ObjectStub* CreateScriptObjectDirect(size_t sizeofObject, const IStructure& compilersView) = 0;
+			virtual Compiler::ObjectStub* CreateScriptObjectDirect(size_t sizeofObject, const Compiler::IStructure& compilersView) = 0;
 
 			// Create a blank array with 0 capacity and no elements. The implementation should allocate memory, set the capacity > 0 and assign elements prior
 			// to allowing the script to process the array. Use ss.AlignedMalloc(16, capacity * a->ElementLength); and assign to the Start variable to set the size.
 			// Use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
-			virtual ArrayImage* CreateArrayImage(const IStructure& type) = 0;
+			virtual ArrayImage* CreateArrayImage(const Compiler::IStructure& type) = 0;
 
 			// Create a blank map with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
 			// and use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
-			virtual MapImage* CreateMapImage(const IStructure& keyType, const IStructure& valueType) = 0;
+			virtual MapImage* CreateMapImage(const Compiler::IStructure& keyType, const Compiler::IStructure& valueType) = 0;
 
 			// Creates a blank linked list with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
 			// and use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
-			virtual ListImage* CreateListImage(const IStructure& valueType) = 0;
+			virtual ListImage* CreateListImage(const Compiler::IStructure& valueType) = 0;
 
 			virtual uint8* AppendListNode(ListImage& image) = 0;
 
@@ -407,7 +403,7 @@ namespace Rococo {
 			// Duplicates the null terminated string argument and provides a CStringConstant for it that can be used by any script that assumes immutability
 			virtual CStringConstant* ReflectTransientStringByDuplication(cstr source, int32 stringLength = -1) = 0;
 
-			virtual FastStringBuilder* CreateAndPopulateFastStringBuilder(const fstring& text, int32 capacity) = 0;
+			virtual Compiler::FastStringBuilder* CreateAndPopulateFastStringBuilder(const fstring& text, int32 capacity) = 0;
 
 			virtual void RegisterPackage(IPackage* package) = 0;
 
@@ -428,9 +424,9 @@ namespace Rococo {
 			 */
 			virtual void LoadSubpackages(cstr namespaceFilter, cstr packageName) = 0;
 			virtual Compiler::IModule* AddTree(Sex::ISParserTree& tree) = 0;
-			virtual void BeginPartialCompilation(StringBuilder* declarationBuilder) = 0;
-			virtual void Compile(StringBuilder* declarationBuilder = nullptr) = 0;
-			virtual void PartialCompile(StringBuilder* declarationBuilder = nullptr) = 0;
+			virtual void BeginPartialCompilation(Strings::StringBuilder* declarationBuilder) = 0;
+			virtual void Compile(Strings::StringBuilder* declarationBuilder = nullptr) = 0;
+			virtual void PartialCompile(Strings::StringBuilder* declarationBuilder = nullptr) = 0;
 			virtual void DispatchToSexyClosure(void* pArgBuffer, const ArchetypeCallback& target) = 0;
 			virtual cstr GetSymbol(const void* ptr) const = 0;
 			virtual Compiler::IPublicProgramObject& PublicProgramObject() = 0;
@@ -445,11 +441,11 @@ namespace Rococo {
 			virtual int32 GetIntrinsicModuleCount() const = 0;
 			virtual bool ValidateMemory() = 0;
 			virtual void SetGlobalVariablesToDefaults() = 0;
-			virtual const IStructure* GetStringBuilderType() const = 0;
+			virtual const Compiler::IStructure* GetStringBuilderType() const = 0;
 
 			// gets Expression of Sys.Type.Reflection.sxy. If not available throws an IException. Never returns null.
-			virtual const IStructure* GetExpressionType() const = 0;
-			virtual const IStructure* GetExpressionBuilderType() const = 0;
+			virtual const Compiler::IStructure* GetExpressionType() const = 0;
+			virtual const Compiler::IStructure* GetExpressionBuilderType() const = 0;
 
 			virtual void CancelRepresentation(void* pSourceInstance) = 0;
 			virtual void EnumRepresentations(IRepresentationEnumeratorCallback& callback) = 0;
@@ -457,10 +453,10 @@ namespace Rococo {
 			virtual CReflectedClass* Represent(const Rococo::Compiler::IStructure& st, void* pSourceInstance) = 0;
 
 			// Returns the interface pointer for the specified null object. If an interface is not matched the function throws an exception
-			virtual InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) = 0;
+			virtual Compiler::InterfacePointer GetUniversalNullObject(cstr instanceType, cstr instanceSource) = 0;
 
 			// Returns the specified type, otherwise throws an exception
-			virtual const IStructure& GetTypeForSource(cstr concreteType, cstr sourceFile) = 0;
+			virtual const Compiler::IStructure& GetTypeForSource(cstr concreteType, cstr sourceFile) = 0;
 
 			virtual void SetCommandLine(int argc, char* argv[]) = 0;
 			virtual cstr GetCommandLineArg(int argc) = 0;
@@ -533,9 +529,9 @@ namespace Rococo {
 			virtual const  Rococo::Sex::ISExpression* GetTransform(Rococo::Sex::cr_sex src) = 0;
 			virtual IIOSystem& IOSystem() = 0;
 
-			virtual IMemberLife* GetListLifetimeManager() = 0;
-			virtual IMemberLife* GetArrayLifetimeManager() = 0;
-			virtual IMemberLife* GetMapLifetimeManager() = 0;
+			virtual Compiler::IMemberLife* GetListLifetimeManager() = 0;
+			virtual Compiler::IMemberLife* GetArrayLifetimeManager() = 0;
+			virtual Compiler::IMemberLife* GetMapLifetimeManager() = 0;
 		};
 
 		SCRIPTEXPORT_API void SetDefaultNativeSourcePath(const wchar_t* pathname);

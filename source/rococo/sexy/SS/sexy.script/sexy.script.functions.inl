@@ -643,7 +643,7 @@ namespace Rococo
 
 			cstr vname = s.c_str();
 
-			if (!Rococo::IsAlphabetical(vname[0]))
+			if (!IsAlphabetical(vname[0]))
 			{
 				cstr friendlyName = GetFriendlyName(inputType);
 				if (strcmp(friendlyName, "IString") == 0)

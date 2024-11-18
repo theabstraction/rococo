@@ -1065,7 +1065,7 @@ namespace Rococo
 
       const IFunction* TryGetMethod(const MemberDef& def, cstr methodName)
       {
-         if (Rococo::IsCapital(methodName[0]))
+         if (IsCapital(methodName[0]))
          {
             TokenBuffer localMethodName;
             StringPrint(localMethodName, ("%s.%s"), def.ResolvedType->Name(), methodName);

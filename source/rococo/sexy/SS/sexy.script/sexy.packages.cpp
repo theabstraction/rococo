@@ -6,6 +6,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Script;
+using namespace Rococo::Strings;
 
 #ifdef __APPLE__
 # define _alloca alloca

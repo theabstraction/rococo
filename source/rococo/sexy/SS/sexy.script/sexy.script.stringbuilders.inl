@@ -1013,7 +1013,7 @@ namespace Rococo::Strings::Impl
 		}
 		else
 		{
-			diff = Rococo::CompareI(s, t);
+			diff = Rococo::Strings::CompareI(s, t);
 		}
 
 		WriteOutput(0, diff, e);

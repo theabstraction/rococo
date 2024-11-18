@@ -84,7 +84,7 @@ namespace
 			Throw(0, "Insufficient capacity in string builder to append %s", src);
 		}
 
-		CopyString(sb.buffer + sb.length, sb.capacity - sb.length, src);
+		Strings::CopyString(sb.buffer + sb.length, sb.capacity - sb.length, src);
 		sb.length += (int32) len;
 	}
 
@@ -170,7 +170,7 @@ namespace
 		if (errorCode != 0)
 		{
 			char buf[1024];
-			SafeFormat(buf, sizeof(buf), "%d: %s", errorCode, message);
+			Strings::SafeFormat(buf, sizeof(buf), "%d: %s", errorCode, message);
 			Throw(*pExpression, "%s", buf);
 		}
 		else
@@ -801,7 +801,7 @@ namespace
 			methodName = pStruct->GetMethodFromModule(methodIndex).Name();
 		}
 
-		int nBytesWritten = SafeFormat(sbObject->buffer + sbObject->length, sbObject->capacity - sbObject->length, "%s", methodName);
+		int nBytesWritten = Strings::SafeFormat(sbObject->buffer + sbObject->length, sbObject->capacity - sbObject->length, "%s", methodName);
 		if (nBytesWritten < 0)
 		{
 			e.ss.ThrowFromNativeCodeF(GetLastError(), "IStructure.AppendMethodName: Error appending method name");

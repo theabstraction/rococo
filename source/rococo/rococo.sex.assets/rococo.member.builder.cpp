@@ -21,6 +21,7 @@ using namespace Rococo::OS;
 using namespace Rococo::Compiler;
 using namespace Rococo::Sexy;
 using namespace Rococo::Script;
+using namespace Rococo::Strings;
 
 namespace Rococo::Sex::Assets::Impl
 {

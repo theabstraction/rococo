@@ -84,6 +84,7 @@ namespace
 
 using namespace Rococo;
 using namespace Rococo::IO;
+using namespace Rococo::Strings;
 
 namespace Rococo::Script
 {

@@ -8,15 +8,16 @@
 #include <sexy.vm.cpu.h>
 #include "..\STC\stccore\Sexy.Compiler.h"
 
+using namespace Rococo;
+using namespace Rococo::Sex;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
    namespace Helpers
-   {
-      using namespace Rococo;
-      using namespace Rococo::Sex;
-      using namespace Rococo::Script;
-      using namespace Rococo::Compiler;
-     
+   {    
       SCRIPTEXPORT_API StringPopulator::StringPopulator(NativeCallEnvironment& _nce, InterfacePointer pInterface)
 	  {
 		  auto* stub = InterfaceToInstance(pInterface);

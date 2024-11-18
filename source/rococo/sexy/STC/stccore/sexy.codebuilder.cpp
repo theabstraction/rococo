@@ -44,6 +44,7 @@ using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::Parse;
 using namespace Rococo::Sex;
+using namespace Rococo::Strings;
 
 namespace Rococo
 {

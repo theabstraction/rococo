@@ -15,10 +15,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
+using namespace Rococo::Strings;
+using namespace Rococo::Sex;
+
 namespace Rococo
 {
     enum class EQualifier;
-    using namespace Sex;
 
     bool AreEqual(cstr s, const sexstring& t);
 

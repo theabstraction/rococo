@@ -64,7 +64,7 @@ namespace
 
 	void ValidateSexyVariable(cr_sex s, cstr name)
 	{
-		if (!Rococo::IsLowerCase(name[0]))
+		if (!IsLowerCase(name[0]))
 		{
 			Throw(s, ("Expecting a lower case letter in the first position"));
 		}

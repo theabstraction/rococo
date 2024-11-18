@@ -40,6 +40,7 @@ using namespace Rococo::IO;
 using namespace Rococo::Sex;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
+using namespace Rococo::Strings;
 
 #ifdef _DEBUG
 #define IS_USING_DEBUG_LIBS true

@@ -59,6 +59,7 @@ using namespace Rococo::Script;
 using namespace Rococo::Compiler;
 using namespace Rococo::Sex;
 using namespace Rococo::VM;
+using namespace Rococo::Strings;
 
 namespace
 {

@@ -297,7 +297,7 @@ namespace
 
 		ReadInput(c, _sf, -_offset);
 
-		boolean32 result = (boolean32) IsAlphaNumeric((char)c) ? 1 : 0;
+		boolean32 result = (boolean32) Strings::IsAlphaNumeric((char)c) ? 1 : 0;
 		_offset += sizeof(result);
 		WriteOutput(result, _sf, -_offset);
 	}
