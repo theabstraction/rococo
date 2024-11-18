@@ -1996,7 +1996,6 @@ namespace Rococo::Script
 		nullObject.FillVirtualTables();
 	}
 
-	class CScript;
 	void RegisterContext(CScript& script, cstr name);
 	cstr emptyString = ("");
 

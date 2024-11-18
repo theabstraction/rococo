@@ -908,22 +908,7 @@ namespace Rococo
 			}
 
 			cr_sex firstItem = s.GetElement(0);
-			if (IsAtomic(firstItem))
-			{
-				if (TryCompileMacroInvocation(ce, s, firstItem.String()))
-				{
-					const ISExpression* transform = ce.SS.GetTransform(s);
-					if (transform != NULL)
-					{
-						return TryCompileArithmeticExpression(ce, *transform, expected, type);
-					}
-					else
-					{
-						Throw(s, ("Macro expansion did not yield an arithmetic expression"));
-					}
-				}
-			}
-
+			
 			if (s.NumberOfElements() == 1)
 			{
 				cr_sex onlyChild = s.GetElement(0);
