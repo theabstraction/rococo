@@ -6,6 +6,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Entities;
+using namespace Rococo::Components;
 
 namespace ANON
 {

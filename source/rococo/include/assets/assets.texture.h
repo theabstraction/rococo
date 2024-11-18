@@ -22,8 +22,6 @@ namespace Rococo::Graphics
 
 namespace Rococo::Assets
 {
-	using namespace Rococo::Graphics;
-
 	enum class ETextureDesignation
 	{
 		Alpha_8Bit,	// The texture is expected to consist of 256 greyscales, 0 to 1.0f
@@ -62,7 +60,7 @@ namespace Rococo::Assets
 		IGraphicsLogger& logger;
 		IGraphicsWindowFactory& factory;
 		IGraphicsWindow& window;
-		ITextureManager& txManager;
+		Rococo::Graphics::ITextureManager& txManager;
 		IAssetManager& assets;
 		IFileAssetFactory& files;
 		ITextureAssetFactory& textures;

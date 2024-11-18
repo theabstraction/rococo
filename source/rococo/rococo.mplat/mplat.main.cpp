@@ -41,6 +41,7 @@ using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
+using namespace Rococo::Components;
 
 static auto evFileUpdated = "OnFileUpdated"_event;
 

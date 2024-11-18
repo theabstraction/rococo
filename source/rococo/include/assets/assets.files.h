@@ -10,8 +10,6 @@ namespace Rococo::IO
 
 namespace Rococo::Assets
 {
-	using namespace Rococo::Strings;
-
 	struct FileData
 	{
 		const uint8* data;
@@ -53,7 +51,7 @@ namespace Rococo::Assets
 	struct AssetStatus
 	{
 		fstring pingPath = { nullptr, 0 };
-		HString statusText;
+		Rococo::Strings::HString statusText;
 		int statusCode = 0;
 		volatile bool isError = false;
 		volatile bool isReady = false; // The last thing to be set to true when the FileAssetFactory has completed loading the asset, or completed poplating the status codes

@@ -12,6 +12,8 @@ DeclareAllocator(TrackingAllocator, ECSModule, g_allocator)
 Rococo::Memory::AllocatorMonitor<ECSModule> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 
+using namespace Rococo::Components;
+
 namespace Rococo::ECS
 {
 	enum { CT_BITFIELD_ARRAY_SIZE = 1, CT_BITFIELD_ELEMENT_BITCOUNT = 64 };

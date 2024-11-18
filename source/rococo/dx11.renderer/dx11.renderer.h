@@ -30,9 +30,6 @@ namespace Rococo::RAL
 
 namespace Rococo::DX11
 {
-	//using namespace Rococo::Graphics;
-	//using namespace Rococo::Graphics::Samplers;
-
 	ROCOCO_INTERFACE IDX11TextureLoader
 	{
 		virtual TextureBind LoadAlphaBitmap(cstr resourceName) = 0;

@@ -20,11 +20,9 @@ namespace Rococo
 
 namespace Rococo
 {
-    using namespace Rococo::Components;
-
     ROCOCO_INTERFACE IECS_ROID_LockedSection
     {
-        virtual void OnLock(ROID roid, IECS& ecs) = 0;
+        virtual void OnLock(Components::ROID roid, IECS& ecs) = 0;
     };
 
     // The (E)ntity (C)omponent (S)ystem
@@ -42,8 +40,8 @@ namespace Rococo
         // Mark all ROIDs as deprecated. Best followed up by a CollectGarbage.
         virtual void DeprecateAll() = 0;
 
-        virtual void Enumerate(IROIDCallback& cb) = 0;
+        virtual void Enumerate(Components::IROIDCallback& cb) = 0;
 
-        virtual bool TryLockedOperation(ROID roid, IECS_ROID_LockedSection& section) = 0;
+        virtual bool TryLockedOperation(Components::ROID roid, IECS_ROID_LockedSection& section) = 0;
 	};
 }

@@ -6,6 +6,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Assets;
+using namespace Rococo::Strings;
 
 using TByteArray = std::vector<uint8>;
 
