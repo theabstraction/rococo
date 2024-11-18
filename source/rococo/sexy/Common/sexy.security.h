@@ -23,7 +23,7 @@ namespace Rococo::Script
 	{
 		// Returns true if the caller is permitted to invoke the function, method or other protected item. 
 		// The implementation may throw an exception with more detailed information or just return false
-		virtual bool IsCallerPermitted(const NativeSecurityHandler& handler, cr_sex callersCode) = 0;
+		virtual bool IsCallerPermitted(const NativeSecurityHandler& handler, Sex::cr_sex callersCode) = 0;
 	};
 
 	struct NativeSecurityHandler
