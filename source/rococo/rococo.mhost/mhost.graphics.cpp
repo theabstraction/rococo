@@ -1,3 +1,4 @@
+#include <rococo.types.h>
 #include "mhost.h"
 #include <rococo.renderer.h>
 #include <rococo.textures.h>
@@ -79,12 +80,12 @@ struct Gui : public MHost::IGui
 
 		Vec2 span = Span(txUV);
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Flip))
+		if (HasFlag(alignmentFlags, AlignmentFlags::Flip))
 		{
 			swap(txUV.top, txUV.bottom);
 		}
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Mirror))
+		if (HasFlag(alignmentFlags, AlignmentFlags::Mirror))
 		{
 			swap(txUV.left, txUV.right);
 		}
@@ -115,12 +116,12 @@ struct Gui : public MHost::IGui
 
 		Vec2 span = Span(txUV);
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Flip))
+		if (HasFlag(alignmentFlags, AlignmentFlags::Flip))
 		{
 			swap(txUV.top, txUV.bottom);
 		}
 
-		if (HasFlag(alignmentFlags, MHost::AlignmentFlags::Mirror))
+		if (HasFlag(alignmentFlags, AlignmentFlags::Mirror))
 		{
 			swap(txUV.left, txUV.right);
 		}

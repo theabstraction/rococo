@@ -18,6 +18,7 @@
 #include "dx11.renderer.h"
 
 using namespace Rococo::Strings;
+using namespace Rococo::Graphics;
 
 namespace ANON
 {

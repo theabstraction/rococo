@@ -36,7 +36,7 @@
 (primitive IdSkeleton Int64 ID_SKELETON)
 (primitive IdPose Int64 ID_POSE)
 (primitive LayoutId Int32 ELayoutAlgorithm)
-(primitive MaterialId Float32 MaterialId)
+(primitive MaterialId Float32 Rococo.Graphics.MaterialId)
 (primitive MaterialCategory Int32 Rococo.Graphics.MaterialCategory)
 (primitive SampleMethod Int32 Rococo.Graphics.SampleMethod)
 (primitive SampleFilter Int32 Rococo.Graphics.SampleFilter)
@@ -66,14 +66,14 @@
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent defstruct and <name> is a unique name for the variable.
 // Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
 
-(struct MaterialVertexData Rococo.MaterialVertexData MaterialVertexData)
+(struct MaterialVertexData Rococo.MaterialVertexData Rococo.Graphics.MaterialVertexData)
 
-(struct Vertex Rococo.ObjectVertex ObjectVertex)
-(struct BoneWeights Rococo.BoneWeights BoneWeights)
-(struct LightSpec Rococo.LightSpec LightSpec)
-(struct QuadColours Rococo.QuadColours QuadColours)
-(struct QuadVertices Rococo.QuadVertices QuadVertices)
-(struct VertexTriangle Rococo.VertexTriangle VertexTriangle)
+(struct Vertex Rococo.ObjectVertex Rococo.Graphics.ObjectVertex)
+(struct BoneWeights Rococo.BoneWeights Rococo.Graphics.BoneWeights)
+(struct LightSpec Rococo.LightSpec Rococo.LightSpec)
+(struct QuadColours Rococo.QuadColours Rococo.Graphics.QuadColours)
+(struct QuadVertices Rococo.QuadVertices Rococo.QuadVertices)
+(struct VertexTriangle Rococo.VertexTriangle Rococo.Graphics.VertexTriangle)
 (struct AABB2d Rococo.AAB2d AABB2d)
 (struct FlameDef Rococo.FlameDef FlameDef)
 (struct SampleStateDef Rococo.SampleStateDef Rococo.Graphics.SampleStateDef)

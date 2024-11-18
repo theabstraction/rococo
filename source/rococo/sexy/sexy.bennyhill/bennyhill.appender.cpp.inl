@@ -426,7 +426,7 @@ namespace Rococo
 		appender.Append("enum class ");
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
 		appender.Append(": ");
-		AppendStructShortName(appender, ec.underlyingType.SexyName());
+		AppendStructShortName(appender, ec.underlyingType.FQName());
 		appender.Append(nsDepth > 0 ? "\n\t{\n" : "\n{\n");
 
 		for (auto& i : ec.values)
@@ -448,7 +448,7 @@ namespace Rococo
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
 		appender.Append("& value);\n");
 
-		appender.Append("\tfstring ToShortString(");
+		appender.Append("\tRococo::fstring ToShortString(");
 		AppendStructShortName(appender, ec.asCppEnum.SexyName());
 		appender.Append(" value); ");
 
