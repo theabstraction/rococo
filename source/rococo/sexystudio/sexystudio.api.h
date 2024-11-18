@@ -1,13 +1,11 @@
 #pragma once
 
 // The SexyStudio Widget API. This file should be kept free of OS dependent data structures and functions
-// Widgets ineract with OS windows via IWindow interface on their Window method
+// Widgets ineract with OS windows via Windows::IWindow interface on their Window method
 
 #include <rococo.api.h>
 #include <rococo.events.h>
 #include <rococo.time.h>
-
-using namespace Rococo::Strings;
 
 namespace Rococo
 {
@@ -21,7 +19,7 @@ namespace Rococo
 	{
 		struct ISExpression;
 		typedef const ISExpression& cr_sex;
-		bool IsCompound(cr_sex s);
+		bool IsCompound(Sex::cr_sex s);
 	}
 
 	enum class EQualifier;
@@ -38,22 +36,18 @@ namespace Rococo::SexyStudio
 	struct IWidgetSet;
 	struct ISexyStudioEventHandler;
 
-	using namespace Rococo::Events;
-	using namespace Rococo::Windows;
-	using namespace Rococo::Sex;
-
 	struct IOSFont;
 
 	struct WidgetContext
 	{
-		IPublisher& publisher;
+		Events::IPublisher& publisher;
 		IOSFont& fontSmallLabel;
 	};
 
 	struct AtomicArg
 	{
-		bool Matches(cr_sex s, int index) const;
-		fstring operator()(cr_sex s, int index) const;
+		bool Matches(Sex::cr_sex s, int index) const;
+		fstring operator()(Sex::cr_sex s, int index) const;
 	};
 
 	class ParseKeyword
@@ -61,8 +55,8 @@ namespace Rococo::SexyStudio
 		fstring keyword;
 	public:
 		ParseKeyword(cstr _keyword);
-		bool Matches(cr_sex s, int index) const;
-		fstring operator()(cr_sex s, int index) const;
+		bool Matches(Sex::cr_sex s, int index) const;
+		fstring operator()(Sex::cr_sex s, int index) const;
 	};
 
 	extern ParseKeyword keywordNamespace;
@@ -75,10 +69,10 @@ namespace Rococo::SexyStudio
 
 	/* Two functions to allow manipulation of ISExpression's without having to include sexy headers*/
 
-	int Len(cr_sex s);
+	int Len(Sex::cr_sex s);
 
 	template<class ACTION, class FIRSTARG, class SECONDARG>
-	inline bool match_compound(cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, ACTION action)
+	inline bool match_compound(Sex::cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, ACTION action)
 	{
 		if (!IsCompound(s)) return false;
 		if (Len(s) < 2) return false;
@@ -93,7 +87,7 @@ namespace Rococo::SexyStudio
 	}
 
 	template<class ACTION, class FIRSTARG, class SECONDARG, class THIRDARG>
-	inline bool match_compound(cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, THIRDARG c, ACTION action)
+	inline bool match_compound(Sex::cr_sex s, int nMaxArgs, FIRSTARG a, SECONDARG b, THIRDARG c, ACTION action)
 	{
 		if (!IsCompound(s)) return false;
 		if (Len(s) < 3) return false;
@@ -110,9 +104,9 @@ namespace Rococo::SexyStudio
 
 	uint64 GetFileLength(cstr filename);
 
-	void AppendAncestorsToString(IWindow& window, StringBuilder& sb);
-	void AppendAncestorsAndRectsToString(IWindow& window, StringBuilder& sb);
-	void AppendDescendantsAndRectsToString(IWindow& window, StringBuilder& sb);
+	void AppendAncestorsToString(Windows::IWindow& window, Strings::StringBuilder& sb);
+	void AppendAncestorsAndRectsToString(Windows::IWindow& window, Strings::StringBuilder& sb);
+	void AppendDescendantsAndRectsToString(Windows::IWindow& window, Strings::StringBuilder& sb);
 
 	ROCOCO_INTERFACE ISXYFile
 	{
@@ -156,7 +150,7 @@ namespace Rococo::SexyStudio
 		virtual ISXYFunction& GetMethod(int index) = 0;
 		virtual const ISXYFunction& GetMethod(int index) const = 0;
 		virtual cstr SourcePath() const = 0;
-		virtual cr_sex GetDefinition() const = 0;
+		virtual Sex::cr_sex GetDefinition() const = 0;
 	};
 
 	struct SXYMethodArgument
@@ -210,12 +204,12 @@ namespace Rococo::SexyStudio
 	ROCOCO_INTERFACE ISxyNamespace
 	{
 		virtual int AliasCount() const = 0;
-		virtual void AppendFullNameToStringBuilder(REF StringBuilder& sb) const = 0;
+		virtual void AppendFullNameToStringBuilder(REF Strings::StringBuilder& sb) const = 0;
 		virtual const ISXYPublicFunction* FindFunction(cstr shortName) const = 0;
 		virtual const ISxyNamespace* FindSubspaceByShortName(cstr shortname) const = 0;
 		virtual const ISxyNamespace* FindSubspace(cstr fqNamespace) const = 0;
 		virtual cstr FindAliasFrom(cstr source) const = 0;
-		virtual const ISXYType* FindType(cr_substring typeName) const = 0;
+		virtual const ISXYType* FindType(Strings::cr_substring typeName) const = 0;
 		virtual cstr GetNSAliasFrom(int index) const = 0;
 		virtual	cstr GetNSAliasTo(int index) const = 0;
 		virtual	cstr GetAliasSourcePath(int index) const = 0;
@@ -244,16 +238,16 @@ namespace Rococo::SexyStudio
 		virtual const ISxyNamespace& operator[] (int index) const = 0;
 
 		virtual cstr Name() const = 0;
-		virtual ISxyNamespace& Update(cstr subspace, cr_sex src) = 0;
-		virtual void UpdateArchetype(cstr name, cr_sex sDef, ISXYFile& file) = 0;
-		virtual void UpdateFactory(cstr name, cr_sex sFactoryDef, ISXYFile& file) = 0;
-		virtual void UpdateInterface(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
-		virtual void UpdateInterfaceViaDefinition(cstr name, cr_sex sInterfaceDef, ISXYFile& file) = 0;
-		virtual void UpdateMacro(cstr name, cr_sex sMacroDef, ISXYFile& file) = 0;
+		virtual ISxyNamespace& Update(cstr subspace, Sex::cr_sex src) = 0;
+		virtual void UpdateArchetype(cstr name, Sex::cr_sex sDef, ISXYFile& file) = 0;
+		virtual void UpdateFactory(cstr name, Sex::cr_sex sFactoryDef, ISXYFile& file) = 0;
+		virtual void UpdateInterface(cstr name, Sex::cr_sex sInterfaceDef, ISXYFile& file) = 0;
+		virtual void UpdateInterfaceViaDefinition(cstr name, Sex::cr_sex sInterfaceDef, ISXYFile& file) = 0;
+		virtual void UpdateMacro(cstr name, Sex::cr_sex sMacroDef, ISXYFile& file) = 0;
 		virtual void SortRecursive() = 0;
 		virtual void AliasFunction(cstr localName, ISXYFile& file, cstr publicName) = 0;
 		virtual void AliasStruct(cstr localName, ISXYFile& file, cstr publicName) = 0;
-		virtual void AliasNSREf(cstr publicName, cr_sex sAliasDef, ISXYFile& file) = 0;
+		virtual void AliasNSREf(cstr publicName, Sex::cr_sex sAliasDef, ISXYFile& file) = 0;
 		virtual int EnumCount() const = 0;
 		virtual cstr GetEnumName(int index) const = 0;
 		virtual cstr GetEnumValue(int index) const = 0;
@@ -267,7 +261,7 @@ namespace Rococo::SexyStudio
 	};
 
 	// Appends the fully qualified namespace of the [ns] argument to the string builder
-	void AppendFullName(IN const ISxyNamespace& ns, REF struct StringBuilder& sb);
+	void AppendFullName(IN const ISxyNamespace& ns, REF struct Strings::StringBuilder& sb);
 
 	ROCOCO_INTERFACE ISolution
 	{
@@ -299,17 +293,17 @@ namespace Rococo::SexyStudio
 		virtual bool AreTypesEquivalent(cstr a, cstr b) const = 0;
 		virtual void Clear() = 0;
 		virtual IFactoryConfig& Config() = 0;
-		virtual bool EnumerateVariableAndFieldList(cr_substring variable, cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
-		virtual void EnumerateTemplateMethods(cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual bool EnumerateVariableAndFieldList(Strings::cr_substring variable, Strings::cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void EnumerateTemplateMethods(Strings::cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual const ISXYType* FindFQType(cstr typeName) const = 0;
 		virtual const ISXYType* FindPrimitiveOrFQType(cstr typeName) const = 0;
 		virtual const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) = 0;
 		virtual const ISXYPublicFunction* FindFunction(cstr fqFunctionName) = 0;
 		virtual const ISXYType* FindType(cstr typeName) = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
-		virtual void ForEachAutoCompleteCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
-		virtual void ForEachAutoCompleteMacroCandidate(cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
-		virtual void GetHintForCandidate(cr_substring prefix, char args[1024]) = 0;
+		virtual void ForEachAutoCompleteCandidate(Strings::cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void ForEachAutoCompleteMacroCandidate(Strings::cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual void GetHintForCandidate(Strings::cr_substring prefix, char args[1024]) = 0;
 		virtual ISxyNamespace& GetRootNamespace() = 0;
 		virtual bool HasResource(cstr id) const = 0;
 		virtual void MarkResource(cstr id) = 0;
@@ -321,7 +315,7 @@ namespace Rococo::SexyStudio
 		virtual ISolution& Solution() = 0;
 	};
 
-	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath, bool addDeclarations);
+	void BuildDatabaseFromProject(ISexyDatabase& database, Sex::cr_sex sProjectRoot, cstr projectPath, bool addDeclarations);
 
 	typedef int64 ID_TREE_ITEM;
 
@@ -394,9 +388,9 @@ namespace Rococo::SexyStudio
 		virtual IWidgetSet* Children() = 0;
 
 		// Get the OS or other implementation of this widget
-		virtual IWindow& Window() = 0;
+		virtual Windows::IWindow& Window() = 0;
 
-		operator IWindow& () { return Window(); }
+		operator Windows::IWindow& () { return Window(); }
 	};
 
 	namespace Widgets
@@ -408,18 +402,18 @@ namespace Rococo::SexyStudio
 		void ExpandBottomFromTop(IGuiWidget& widget, int pixels);
 		void ExpandLeftFromRight(IGuiWidget& widget, int pixels);
 
-		void ExpandToFillParentSpace(IWindow& window);
+		void ExpandToFillParentSpace(Windows::IWindow& window);
 
-		Vec2i GetParentSpan(IWindow& window);
-		GuiRect GetScreenRect(IWindow& window);
-		Vec2i GetSpan(IWindow& widget);
-		GuiRect MapScreenToWindowRect(const GuiRect& rect, IWindow& window);
-		void SetWidgetPosition(IWindow& widget, const GuiRect& rect);
-		void Maximize(IWindow& window);
-		void Minimize(IWindow& window);
+		Vec2i GetParentSpan(Windows::IWindow& window);
+		GuiRect GetScreenRect(Windows::IWindow& window);
+		Vec2i GetSpan(Windows::IWindow& widget);
+		GuiRect MapScreenToWindowRect(const GuiRect& rect, Windows::IWindow& window);
+		void SetWidgetPosition(Windows::IWindow& widget, const GuiRect& rect);
+		void Maximize(Windows::IWindow& window);
+		void Minimize(Windows::IWindow& window);
 
-		void SetSpan(IWindow& window, int32 dx, int32 dy);
-		void SetText(IWindow& window, const char* text);
+		void SetSpan(Windows::IWindow& window, int32 dx, int32 dy);
+		void SetText(Windows::IWindow& window, const char* text);
 	}
 
 	ROCOCO_INTERFACE IWidgetSet
@@ -427,7 +421,7 @@ namespace Rococo::SexyStudio
 		// Add a widget to the widget set, when the set owner is done it will call Free() on the widget
 		virtual void Add(IGuiWidget * widget) = 0;
 		// the parent window to which this widget set belongs
-		virtual IWindow& Parent() = 0;
+		virtual Windows::IWindow& Parent() = 0;
 		// IGuiWidget* iterator begin()
 		virtual IGuiWidget** begin() = 0;
 		// IGuiWidget* iterator end()
@@ -513,40 +507,40 @@ namespace Rococo::SexyStudio
 	ROCOCO_INTERFACE IAsciiStringEditor : IGuiWidgetEditor
 	{
 		virtual void Bind(char* buffer, size_t capacityBytes) = 0;
-		virtual IWindow& OSEditor() = 0;
-		virtual void SetCharacterUpdateEvent(EventIdRef id) = 0;
-		virtual void SetMouseMoveEvent(EventIdRef id) = 0;
+		virtual Windows::IWindow& OSEditor() = 0;
+		virtual void SetCharacterUpdateEvent(Events::EventIdRef id) = 0;
+		virtual void SetMouseMoveEvent(Events::EventIdRef id) = 0;
 		virtual void SetText(cstr text) = 0;
-		virtual void SetUpdateEvent(EventIdRef id) = 0;
+		virtual void SetUpdateEvent(Events::EventIdRef id) = 0;
 		virtual cstr Text() const = 0;
 	};
 
 	ROCOCO_INTERFACE IDropDownList : IGuiWidgetEditor
 	{
-		virtual IWindow& OSDropDown() = 0;
+		virtual Windows::IWindow& OSDropDown() = 0;
 		virtual void AppendItem(cstr text) = 0;	
 		virtual void ClearItems() = 0;
 	};
 
 	ROCOCO_INTERFACE IListWidget : IGuiWidgetEditor
 	{
-		virtual IWindow & OSList() = 0;
+		virtual Windows::IWindow & OSList() = 0;
 		virtual void AppendItem(cstr text) = 0;
 		virtual void ClearItems() = 0;
 	};
 
 	ROCOCO_INTERFACE IFloatingListWidget : IGuiWidget
 	{
-		virtual IWindow & OSList() = 0;
+		virtual Windows::IWindow & OSList() = 0;
 		virtual void AppendItem(cstr text) = 0;
 		virtual void ClearItems() = 0;
-		virtual void RenderWhileMouseInEditorOrList(IWindow& editorWindow) = 0;
-		virtual void SetDoubleClickEvent(EventIdRef id) = 0;
+		virtual void RenderWhileMouseInEditorOrList(Windows::IWindow& editorWindow) = 0;
+		virtual void SetDoubleClickEvent(Events::EventIdRef id) = 0;
 	};
 
 	ROCOCO_INTERFACE IReportWidget : IGuiWidget
 	{
-		virtual IWindow & OSListView() = 0;
+		virtual Windows::IWindow & OSListView() = 0;
 
 		virtual void AddColumn(cstr uniqueId, cstr header, int width) = 0;
 
@@ -574,12 +568,12 @@ namespace Rococo::SexyStudio
 
 	cstr FindDot(cstr s);
 
-	IFloatingListWidget* CreateFloatingListWidget(IWindow& window, WidgetContext& wc);
+	IFloatingListWidget* CreateFloatingListWidget(Windows::IWindow& window, WidgetContext& wc);
 
 	ROCOCO_INTERFACE IFilePathEditor : IGuiWidgetEditor
 	{
 		virtual void Bind(U8FilePath& path, uint32 maxChars) = 0;
-		virtual void SetUpdateEvent(EventIdRef id) = 0;
+		virtual void SetUpdateEvent(Events::EventIdRef id) = 0;
 		virtual void UpdateText() = 0;
 	};
 
@@ -621,10 +615,10 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE IIDEFrame: IDBProgress
 	{
-		virtual IWindow & Window() = 0;
+		virtual Windows::IWindow & Window() = 0;
 		virtual void SetVisible(bool isVisible) = 0;
 		virtual IWidgetSet& Children() = 0;
-		operator IWindow& () { return Window(); };
+		operator Windows::IWindow& () { return Window(); };
 		// Update child geometry. This is issued when the control is resized and also by calling SetVisible
 		virtual void LayoutChildren() = 0;
 		virtual ISexyStudioEventHandler& Events() = 0;
@@ -633,11 +627,11 @@ namespace Rococo::SexyStudio
 	ROCOCO_INTERFACE IIDEFrameSupervisor : IIDEFrame
 	{
 		virtual void Free() = 0;
-		virtual void SetCloseEvent(const EventIdRef& evClose) = 0;
-		virtual void SetResizeEvent(const EventIdRef& evResize) = 0;
+		virtual void SetCloseEvent(const Events::EventIdRef& evClose) = 0;
+		virtual void SetResizeEvent(const Events::EventIdRef& evResize) = 0;
 	};
 
-	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler);
+	IIDEFrameSupervisor* CreateMainIDEFrame(WidgetContext& context, Windows::IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler);
 
 	ROCOCO_INTERFACE IButtonWidget : IGuiWidget
 	{
@@ -725,9 +719,9 @@ namespace Rococo::SexyStudio
 
 	// Use a theme, if the name is unknown a default theme is used
 	// call free to cancel application of the theme
-	ITheme* UseNamedTheme(cstr name, IPublisher& publisher);
+	ITheme* UseNamedTheme(cstr name, Events::IPublisher& publisher);
 
-	Theme GetTheme(IPublisher& publisher);
+	Theme GetTheme(Events::IPublisher& publisher);
 
 	struct ThemeInfo
 	{
@@ -738,5 +732,5 @@ namespace Rococo::SexyStudio
 	void EnumerateThemes(IEventCallback<const ThemeInfo>& cb);
 
 	// uses TEventArg<Theme> 
-	extern EventIdRef evGetTheme;
+	extern Events::EventIdRef evGetTheme;
 }

@@ -12,6 +12,7 @@
 
 #include <rococo.package.h>
 
+using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
 

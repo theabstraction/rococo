@@ -38,6 +38,7 @@ using namespace Rococo::SexyStudio;
 using namespace Rococo::Events;
 using namespace Rococo::Sex;
 using namespace Rococo::Strings;
+using namespace Rococo::Windows;
 
 auto evClose = "EvMainIDEWindowCloseRequest"_event;
 auto evContentChange = "EvContentChange"_event; // TEventArg<cstr>

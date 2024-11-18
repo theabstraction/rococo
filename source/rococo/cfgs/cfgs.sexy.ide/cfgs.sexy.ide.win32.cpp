@@ -11,6 +11,7 @@
 #include <algorithm>
 
 using namespace Rococo::CFGS::IDE::Sexy;
+using namespace Rococo::Windows;
 
 namespace ANON
 {

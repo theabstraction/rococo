@@ -17,9 +17,6 @@ namespace Rococo
 
 namespace Rococo::SexyStudio
 {
-	using namespace Rococo;
-	using namespace Rococo::Windows;
-
 	const char* GetChildClassName();
 	HFONT SetFont(int size, cstr name, HFONT oldFont, HWND hTarget);
 
@@ -153,8 +150,8 @@ namespace Rococo::SexyStudio
 
 	HINSTANCE GetMainInstance();
 
-	void SetPosition(IWindow& window, const GuiRect& rect);
-	Vec2i GetSpan(IWindow& window);
+	void SetPosition(Windows::IWindow& window, const GuiRect& rect);
+	Vec2i GetSpan(Windows::IWindow& window);
 
 	void InitStudioWindows(HINSTANCE hInstance, cstr iconLarge, cstr iconSmall);
 

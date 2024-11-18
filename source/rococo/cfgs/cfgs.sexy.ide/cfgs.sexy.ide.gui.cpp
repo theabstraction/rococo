@@ -14,6 +14,7 @@
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Strings;
 using namespace Rococo::Sex::SEXML;
+using namespace Rococo::Sex;
 
 namespace Rococo::CFGS
 {

@@ -2,6 +2,7 @@
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;
+using namespace Rococo::Windows;
 
 namespace
 {
