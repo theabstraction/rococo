@@ -19,6 +19,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Events;
+using namespace Rococo::Strings;
 
 static auto evFileUpdated = "OnFileUpdated"_event;
 

@@ -36,6 +36,8 @@ struct AppArgs
 
 Gui::GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
 
+using namespace Rococo::Strings;
+
 namespace MHost
 {
 	void AddMHostNativeCallSecurity(Rococo::ScriptCompileArgs& args);

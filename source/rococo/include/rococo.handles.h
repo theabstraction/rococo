@@ -10,6 +10,8 @@
 
 #include <rococo.ringbuffer.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	/* 

@@ -21,6 +21,7 @@ using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Graphics;
 using namespace Rococo::Textures;
+using namespace Rococo::Strings;
 
 namespace ANON
 {

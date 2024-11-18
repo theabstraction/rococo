@@ -20,8 +20,6 @@
 
 #include <3D/rococo.mesh-builder.h>
 
-using namespace Rococo::Strings;
-
 namespace Rococo
 {
 	DECLARE_ROCOCO_INTERFACE IScriptEnumerator;
