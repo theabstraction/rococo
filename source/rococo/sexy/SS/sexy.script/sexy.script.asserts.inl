@@ -509,20 +509,6 @@ namespace Rococo::Sex
 		}
 	}
 
-	bool IsGetAccessor(const IArchetype& callee)
-	{
-		if (callee.NumberOfOutputs() != 1) return false;
-
-		if (callee.IsVirtualMethod())
-		{
-			return callee.NumberOfInputs() == 1;
-		}
-		else
-		{
-			return callee.NumberOfInputs() == 0;
-		}
-	}
-
 	void ValidateNumberOfInputArgs(cr_sex s, const IArchetype& callee, int numberOfSuppliedInputArgs)
 	{
 		if (callee.NumberOfInputs() == numberOfSuppliedInputArgs) return;

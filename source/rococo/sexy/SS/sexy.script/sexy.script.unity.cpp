@@ -45,3 +45,4 @@ using namespace Rococo::VM;
 using namespace Rococo::Strings;
 
 #include "sexy.script.util.inl"
+#include "sexy.script.asserts.inl"

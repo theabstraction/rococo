@@ -290,8 +290,6 @@ namespace Rococo {
 	} // Script
 } // Rococo
 
-//#include "sexy.script.util.inl"
-#include "sexy.script.asserts.inl"
 #include "sexy.script.functions.inl"
 #include "sexy.script.macro.inl"
 #include "sexy.script.matching.inl"
