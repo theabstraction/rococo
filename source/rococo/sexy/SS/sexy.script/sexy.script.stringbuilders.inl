@@ -31,7 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Rococo::Strings::Impl
+namespace Rococo::Strings
 {
 	template<uint32 capacity>
 	struct Memo
@@ -1263,7 +1263,7 @@ namespace Rococo
 	{
 		IStringPool* NewStringPool()
 		{
-			return new Rococo::Strings::Impl::StringPool();
+			return new Rococo::Strings::StringPool();
 		}
 	}
 }

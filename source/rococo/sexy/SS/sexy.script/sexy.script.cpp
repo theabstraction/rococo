@@ -731,8 +731,6 @@ namespace Rococo::Script
 
 namespace Rococo::Script
 {
-	using namespace Rococo::Strings::Impl;
-
 	class CScriptSystem : public IScriptSystem, private INativeSecurity
 	{
 	private:
