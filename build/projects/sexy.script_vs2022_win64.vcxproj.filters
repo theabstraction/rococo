@@ -14,6 +14,7 @@
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.source-cache.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.execution.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
@@ -37,6 +38,7 @@
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stringbuilders.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.util.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.internal.api.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

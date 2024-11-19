@@ -248,6 +248,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.internal.api.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.array.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.asserts.inl" />
@@ -286,6 +287,7 @@
     </ClCompile>
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.os.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
