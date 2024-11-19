@@ -2218,9 +2218,9 @@ namespace Rococo::Script
 			}
 		}
 
-		template<class T> void ForEachUncompiledScript(T& t)
+		template<class T> void ForEachUncompiledScript(T& t, size_t minStartingIndex = 0)
 		{
-			size_t startIndex = limits.startingIndex;
+			size_t startIndex =  max(limits.startingIndex, minStartingIndex);
 			size_t endIndex = limits.maxModuleCount == COMPILE_ALL_MODULES ? scripts.size() : limits.maxModuleCount;
 
 			for(auto i = startIndex; i != endIndex; ++i)
@@ -2275,17 +2275,17 @@ namespace Rococo::Script
 			ForEachUncompiledScript(fnctorCompileUsingNamespaces);
 		}
 
-		void CompileTopLevelMacros()
+		void CompileTopLevelMacros(size_t numberOfNativeModules)
 		{
 			struct FnctorCompileMacros
 			{
 				void Process(CScript& script, cstr name)
 				{
-					script.CompileTopLevelMacros();
+					script.CompileTopLevelMacrosForModule();
 				}
 			} fnctorCompileTopLevelMacros;
 
-			ForEachUncompiledScript(fnctorCompileTopLevelMacros);
+			ForEachUncompiledScript(fnctorCompileTopLevelMacros, numberOfNativeModules);
 		}
 
 		void AddSpecialStructures()
@@ -3041,7 +3041,7 @@ namespace Rococo::Script
 	   }
    }
 
-   void CScript::CompileTopLevelMacros()
+   void CScript::CompileTopLevelMacrosForModule()
    {
 	   cr_sex root = tree.Root();
 	   CompileMacrosRecursive(*this, root);

@@ -323,7 +323,7 @@ namespace Rococo
             Sex::cr_sex GetActiveRoot();
             Sex::cr_sex GetActiveExpression(Sex::cr_sex s);
             void Invoke_S_Macro(Sex::cr_sex sDirective);
-            void CompileTopLevelMacros();
+            void CompileTopLevelMacrosForModule();
 
             const bool IsIStringInlined() const;
 
