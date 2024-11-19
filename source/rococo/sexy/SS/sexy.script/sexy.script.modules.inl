@@ -2029,7 +2029,7 @@ namespace Rococo::Script
 		return script.ProgramModule().FindStructure(className);
 	}
 
-	class CScripts
+	class CScripts: public IScripts
 	{
 		friend CScript;
 	private:
@@ -2132,7 +2132,7 @@ namespace Rococo::Script
 			return module;
 		}
 
-		virtual Sex::ISParserTree* GetSourceCode(const IModule& module)
+		Sex::ISParserTree* GetSourceCode(const IModule& module) override
 		{
 			for(auto i = scripts.begin(); i != scripts.end(); ++i)
 			{
@@ -2147,7 +2147,7 @@ namespace Rococo::Script
 
 		const bool InlineStrings() const { return canInlineString; }
 
-		CDefaultExceptionLogic& ExceptionLogic() { return exceptionLogic; }
+		IExceptionLogic& ExceptionLogic() { return exceptionLogic; }
 
 		CScript* FindDefiningModule(INamespace* ns)
 		{
@@ -2658,6 +2658,21 @@ namespace Rococo::Script
 			}
 		}
 	};
+
+	IScripts::~IScripts()
+	{
+
+	}
+
+	IScripts* NewCScripts(IProgramObject& _programObject, IScriptSystem& _system)
+	{
+		return new CScripts(_programObject, _system);
+	}
+
+	void Delete(IScripts* scripts)
+	{
+		delete scripts;
+	}
 
 	IFunctionBuilder& CScript::GetNullFunction(const IArchetype& archetype)
 	{

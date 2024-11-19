@@ -1479,4 +1479,31 @@ namespace Rococo::Script
 
 		ce.Builder.PopLastVariables(1, true);
 	}
+
+	void RegisterMaps(MapCallbacks& mapCallbacks, VM::ICore& core, IScriptSystem& ss)
+	{
+		mapCallbacks.MapAssign = core.RegisterCallback(OnInvokeMapAssign, &ss, "MapAssign");
+		mapCallbacks.MapRelease = core.RegisterCallback(OnInvokeMapRelease, &ss, "MapRelease");
+		mapCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeMapNodeEnumNext, &ss, "MapNodeEnumNext");
+		mapCallbacks.MapGetHead = core.RegisterCallback(OnInvokeMapGetHead, &ss, "MapGetHead");
+		mapCallbacks.MapInit = core.RegisterCallback(OnInvokeMapInit, &ss, "MapInit");
+		mapCallbacks.DoesMapNodeExist = core.RegisterCallback(OnInvokeDoesMapNodeExist, &ss, "DoesMapNodeExist");
+		mapCallbacks.MapInsert32 = core.RegisterCallback(OnInvokeMapInsert32, &ss, "MapInsert32");
+		mapCallbacks.MapInsert64 = core.RegisterCallback(OnInvokeMapInsert64, &ss, "MapInsert64");
+		mapCallbacks.MapInsertValueByRef = core.RegisterCallback(OnInvokeMapInsertValueByRef, &ss, "MapInsertValueByRef");
+		mapCallbacks.MapInsertAndGetRef = core.RegisterCallback(OnInvokeMapInsertAndGetRef, &ss, "MapInsertAndGetRef");
+		mapCallbacks.MapInsertInterface = core.RegisterCallback(OnInvokeMapInsertInterface, &ss, "MapInsertInterface");
+		mapCallbacks.MapTryGet = core.RegisterCallback(OnInvokeMapTryGet, &ss, "MapTryGet");
+		mapCallbacks.MapNodeGet32 = core.RegisterCallback(OnInvokeMapNodeGet32, &ss, "MapNodeGet32");
+		mapCallbacks.MapNodeGet64 = core.RegisterCallback(OnInvokeMapNodeGet64, &ss, "MapNodeGet64");
+		mapCallbacks.MapNodeGetInterface = core.RegisterCallback(OnInvokeMapNodeGetInterface, &ss, "MapNodeGetInterface");
+		mapCallbacks.MapNodeGetKey32 = core.RegisterCallback(OnInvokeMapNodeGetKey32, &ss, "MapNodeGetKey32");
+		mapCallbacks.MapNodeGetKey64 = core.RegisterCallback(OnInvokeMapNodeGetKey64, &ss, "MapNodeGetKey64");
+		mapCallbacks.MapNodeGetKeyIString = core.RegisterCallback(OnInvokeMapNodeGetKeyIString, &ss, "MapNodeGetKeyIString");
+		mapCallbacks.MapNodeGetRef = core.RegisterCallback(OnInvokeMapNodeGetRef, &ss, "MapNodeGetRef");
+		mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, &ss, "MapNodePop");
+		mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, &ss, "MapNodeReleaseRef");
+		mapCallbacks.MapGetLength = core.RegisterCallback(OnInvokeMapGetLength, &ss, "MapGetLength");
+		mapCallbacks.MapUpdateRefCounts = core.RegisterCallback(OnInvokeMapUpdateRefCounts, &ss, "MapUpdateRefCounts");
+	}
 }// Rococo::Script

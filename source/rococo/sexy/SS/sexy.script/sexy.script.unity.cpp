@@ -39,6 +39,12 @@
 #include <rococo.api.h>
 #include <sexy.security.h>
 #include "sexy.internal.api.h"
+#include <rococo.sexy.api.h>
+#include <rococo.os.h>
+#include <rococo.io.h>
+#include <sexy.types.h>
+
+#include <algorithm>
 
 using namespace Rococo;
 using namespace Rococo::Script;
@@ -50,3 +56,87 @@ using namespace Rococo::Strings;
 #include "sexy.script.util.inl"
 #include "sexy.script.asserts.inl"
 #include "sexy.script.functions.inl"
+#include "sexy.script.macro.inl"
+#include "sexy.script.matching.inl"
+#include "sexy.script.factory.inl"
+#include "sexy.script.closure.inl"
+#include "sexy.script.array.inl"
+#include "sexy.script.list.inl"
+#include "sexy.script.map.inl"
+#include "sexy.script.containers.inl"
+#include "sexy.script.arithmetic.expression.parser.inl"
+#include "sexy.script.predicates.expression.parser.inl"
+#include "sexy.script.conditional.expression.parser.inl"
+#include "sexy.script.exception.logic.inl"
+#include "sexy.script.modules.inl"
+#include "sexy.script.exceptions.inl"
+#include "sexy.script.casts.inl"
+#include "sexy.script.JIT.inl"
+#include "sexy.script.stringbuilders.inl"
+
+namespace Rococo::Script
+{
+	void RegisterMiscAPI(ScriptCallbacks& callbacks, VM::ICore& core, IScriptSystem& ss)
+	{
+		callbacks.idThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, &ss, "ThrowNullRef");
+		callbacks.idYieldMicroseconds = core.RegisterCallback(OnInvokeYieldMicroseconds, &ss.ProgramObject().VirtualMachine(), "YieldMicroseconds");
+		callbacks.idDynamicDispatch = core.RegisterCallback(OnInvokeDynamicDispatch, &ss, "Dispatch");
+		callbacks.idInvokeMethodByName = core.RegisterCallback(OnInvokeInvokeMethodByName, &ss, "InvokeMethod");
+		callbacks.idVariableRefToType = core.RegisterCallback(OnInvokeGetTypeOfClassToD4, &ss, "GetTypeOfClassToD4");
+		callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, &ss, "IsSameObject");
+		callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, &ss, "IsDifferentObject");
+		callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, &ss, "StringIndexToChar");
+		callbacks.idTransformAt_D4D5retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5retD7, &ss, "TransformAt");
+		callbacks.idTransformParent_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4retD7, &ss, "TransformParent");
+		callbacks.idJumpFromProxyToMethod = core.RegisterCallback(OnInvokeJumpFromProxyToMethod, &ss, "JumpFromProxyToMethod");
+	}
+
+	void DefineSysNative(const INamespace& sysNative, IScriptSystem& ss, IStringPool* stringPool, TMemoAllocator& memoAllocator)
+	{
+		ss.AddNativeCall(sysNative, ::AlignedMalloc, &ss, "AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNative, ::AlignedFree, &ss, "AlignedFree (Pointer data)->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNative, DynamicCast, nullptr, "_DynamicCast (Pointer interface) (Pointer instanceRef) ->", __FILE__, __LINE__, false, 0);
+
+		const INamespace& sysNativeStrings = ss.AddNativeNamespace("Sys.Strings.Native");
+		ss.AddNativeCall(sysNativeStrings, NewStringBuilder, stringPool, "NewStringBuilder (Int32 capacity) -> (Sys.Type.IStringBuilder sb)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, DestructStringBuilder, stringPool, "DestructStringBuilder (Sys.Type.IStringBuilder sb)->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, CreateMemoString, &memoAllocator, "CreateMemoString (Sys.Type.IString s) -> (Pointer dest) (Int32 destLength)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FreeMemoString, &memoAllocator, "FreeMemoString (Pointer src) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, StringCompare, NULL, "StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, StringCompareI, NULL, "StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, StringFindLeft, NULL, "StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, StringFindRight, NULL, "StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 leftPos) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendIString, stringPool, "FastStringBuilderAppendIString (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderThrowIfAppendWouldTruncate, stringPool, "FastStringBuilderThrowIfAppendWouldTruncate (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendChar, stringPool, "FastStringBuilderAppendChar (Sys.Type.IStringBuilder sb) (Int32 asciiValue) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendInt32, stringPool, "FastStringBuilderAppendInt32 (Sys.Type.IStringBuilder sb) (Int32 x) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendInt64, stringPool, "FastStringBuilderAppendInt64 (Sys.Type.IStringBuilder sb) (Int64 x) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendFloat32, stringPool, "FastStringBuilderAppendFloat32 (Sys.Type.IStringBuilder sb) (Float32 x) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendFloat64, stringPool, "FastStringBuilderAppendFloat64 (Sys.Type.IStringBuilder sb) (Float64 x) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendBool, stringPool, "FastStringBuilderAppendBool (Sys.Type.IStringBuilder sb) (Bool x) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendPointer, stringPool, "FastStringBuilderAppendPointer (Sys.Type.IStringBuilder sb) (Pointer x) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderClear, stringPool, "FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsDecimal, stringPool, "FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsHex, stringPool, "FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> ", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsSpec, stringPool, "FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> ", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderSetFormat, stringPool, "FastStringBuilderSetFormat (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderStripLeft, stringPool, "FastStringBuilderStripLeft (Sys.Type.IStringBuilder sb) (Int32 leftPos)->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderAppendSubstring, stringPool, "FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderSetLength, stringPool, "FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderSetCase, stringPool, "FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, StringEndsWith, NULL, "StringEndsWith (IString bigString)(IString suffix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, StringStartsWith, NULL, "StringStartsWith (IString bigString)(IString prefix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderMakeSysSlashes, stringPool, "MakeSysSlashes (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysNativeStrings, FastStringBuilderReplace, stringPool, "FastStringBuilderReplace (Sys.Type.IStringBuilder sb)(Int32 startPosition)(IString from)(IString to) ->", __FILE__, __LINE__, false, 0);
+	}
+
+	void DefineSysTypeStrings(const INamespace& sysTypeStrings, IScriptSystem& ss)
+	{
+		ss.AddNativeCall(sysTypeStrings, SysTypeStrings::IsUpperCase, nullptr, "IsUpperCase (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysTypeStrings, SysTypeStrings::IsLowerCase, nullptr, "IsLowerCase (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlpha, nullptr, "IsAlpha (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysTypeStrings, SysTypeStrings::IsNumeric, nullptr, "IsNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
+		ss.AddNativeCall(sysTypeStrings, AssertPascalCaseNamespace, NULL, "AssertPascalCaseNamespace (Sys.Type.IString s) (Int32 maxLength)->", __FILE__, __LINE__, false, 0);
+	}
+}

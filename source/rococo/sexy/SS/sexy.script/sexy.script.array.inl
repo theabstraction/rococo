@@ -1902,5 +1902,41 @@ namespace Rococo
 
 		   ce.Builder.AssignTempToVariable(1, fullName);
 	   }
+
+	   void RegisterArrays(ArrayCallbacks& arrayCallbacks, VM::ICore& core, IScriptSystem& ss)
+	   {
+		   arrayCallbacks.ArrayAssign = core.RegisterCallback(OnInvokeArrayAssign, &ss, "ArrayAssign");
+		   arrayCallbacks.ArrayGetLastIndexToD12 = core.RegisterCallback(OnInvokeArrayGetLastIndexToD12, &ss, "ArrayGetLastIndexToD12");
+		   arrayCallbacks.ArrayGetRefUnchecked = core.RegisterCallback(OnInvokeArrayGetRefUnchecked, &ss, "ArrayGetRefUnchecked");
+		   arrayCallbacks.ArrayLock = core.RegisterCallback(OnInvokeArrayLock, &ss, "ArrayLock");
+		   arrayCallbacks.ArrayUnlock = core.RegisterCallback(OnInvokeArrayUnlock, &ss, "ArrayUnlock");
+		   arrayCallbacks.ArrayClear = core.RegisterCallback(OnInvokeArrayClear, &ss, "ArrayClear");
+		   arrayCallbacks.ArrayPushAndGetRef = core.RegisterCallback(OnInvokeArrayPushAndGetRef, &ss, "ArrayPushAndGetRef");
+		   arrayCallbacks.ArrayPushByRef = core.RegisterCallback(OnInvokeArrayPushByRef, &ss, "ArrayPushByRef");
+		   arrayCallbacks.ArrayUpdateRefCounts = core.RegisterCallback(OnInvokeArrayUpdateRefCounts, &ss, "ArrayUpdateRefCounts");
+		   arrayCallbacks.ArrayPush32 = core.RegisterCallback(OnInvokeArrayPush32, &ss, "ArrayPush32");
+		   arrayCallbacks.ArrayPushInterface = core.RegisterCallback(OnInvokeArrayPushInterface, &ss, "ArrayPushInterface");
+		   arrayCallbacks.ArrayPush64 = core.RegisterCallback(OnInvokeArrayPush64, &ss, "ArrayPush64");
+		   arrayCallbacks.ArrayGet32 = core.RegisterCallback(OnInvokeArrayGet32, &ss, "ArrayGet32");
+		   arrayCallbacks.ArrayGet64 = core.RegisterCallback(OnInvokeArrayGet64, &ss, "ArrayGet64");
+		   arrayCallbacks.ArrayGetMember32 = core.RegisterCallback(OnInvokeArrayGetMember32, &ss, "ArrayGetMember32");
+		   arrayCallbacks.ArrayGetMember64 = core.RegisterCallback(OnInvokeArrayGetMember64, &ss, "ArrayGetMember64");
+		   arrayCallbacks.ArrayCopyByRef = core.RegisterCallback(OnInvokeArrayCopyByRef, &ss, "ArrayCopyByRef");
+		   arrayCallbacks.ArrayInit = core.RegisterCallback(OnInvokeArrayInit, &ss, "ArrayInit");
+		   arrayCallbacks.ArrayRelease = core.RegisterCallback(OnInvokeArrayReleaseRef, &ss, "ArrayReleaseRef");
+		   arrayCallbacks.ArraySet32 = core.RegisterCallback(OnInvokeArraySet32, &ss, "ArraySet32");
+		   arrayCallbacks.ArraySet64 = core.RegisterCallback(OnInvokeArraySet64, &ss, "ArraySet64");
+		   arrayCallbacks.ArraySetByRef = core.RegisterCallback(OnInvokeArraySetByRef, &ss, "ArraySetByRef");
+		   arrayCallbacks.ArrayPop = core.RegisterCallback(OnInvokeArrayPop, &ss, "ArrayPop");
+		   arrayCallbacks.ArrayPopOut32 = core.RegisterCallback(OnInvokeArrayPopOut32, &ss, "ArrayPopOut32");
+		   arrayCallbacks.ArrayPopOut64 = core.RegisterCallback(OnInvokeArrayPopOut64, &ss, "ArrayPopOut64");
+		   arrayCallbacks.ArrayDestructElements = core.RegisterCallback(OnInvokeArrayDestructElements, &ss, "ArrayDestructElements");
+		   arrayCallbacks.ArrayGetInterfaceUnchecked = core.RegisterCallback(OnInvokeArrayGetInterfaceUnchecked, &ss, "ArrayGetInterface");
+		   arrayCallbacks.ArrayGetInterfaceLockless = core.RegisterCallback(OnInvokeArrayGetInterfaceLockless, &ss, "ArrayGetInterfaceLockless");
+		   arrayCallbacks.ArrayGetLength = core.RegisterCallback(OnInvokeArrayGetLength, &ss, "ArrayGetLength");
+		   arrayCallbacks.ArrayGetLastIndex = core.RegisterCallback(OnInvokeArrayGetLastIndex, &ss, "ArrayGetLastIndex");
+		   arrayCallbacks.ArrayReturnLength = core.RegisterCallback(OnInvokeArrayReturnLength, &ss, "ArrayReturnLength");
+		   arrayCallbacks.ArrayReturnCapacity = core.RegisterCallback(OnInvokeArrayReturnCapacity, &ss, "ArrayReturnCapacity");
+	   }
    }//Script
 }//Sexy

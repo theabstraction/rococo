@@ -1348,4 +1348,47 @@ namespace Rococo::Script
 
 		ce.Builder.PopLastVariables(1, true);
 	}
+
+	void RegisterLists(ListCallbacks& listCallbacks, VM::ICore& core, IScriptSystem& ss)
+	{
+		listCallbacks.ListInit = core.RegisterCallback(OnInvokeListInit, &ss, "ListInit");
+		listCallbacks.ListAppend = core.RegisterCallback(OnInvokeListAppend, &ss, "ListAppend");
+		listCallbacks.ListAppendAndGetRef = core.RegisterCallback(OnInvokeListAppendAndGetRef, &ss, "ListAppendAndGetRef");
+		listCallbacks.ListAppend32 = core.RegisterCallback(OnInvokeListAppend32, &ss, "ListAppend32");
+		listCallbacks.ListAppend64 = core.RegisterCallback(OnInvokeListAppend64, &ss, "ListAppend64");
+		listCallbacks.ListAppendInterface = core.RegisterCallback(OnInvokeListAppendInterface, &ss, "ListAppendInterface");
+		listCallbacks.ListPrepend = core.RegisterCallback(OnInvokeListPrepend, &ss, "ListPrepend");
+		listCallbacks.ListPrependAndGetRef = core.RegisterCallback(OnInvokeListPrependAndGetRef, &ss, "ListPrependAndGetRef");
+		listCallbacks.ListPrepend32 = core.RegisterCallback(OnInvokeListPrepend32, &ss, "ListPrepend32");
+		listCallbacks.ListPrepend64 = core.RegisterCallback(OnInvokeListPrepend64, &ss, "ListPrepend64");
+		listCallbacks.ListPrependInterface = core.RegisterCallback(OnInvokeListPrependInterface, &ss, "ListPrependInterface");
+		listCallbacks.ListGetHead = core.RegisterCallback(OnInvokeListGetHead, &ss, "ListGetHead");
+		listCallbacks.ListGetHeadUnreferenced = core.RegisterCallback(OnInvokeListGetHeadUnreferenced, &ss, "ListGetHeadUnreferenced");
+		listCallbacks.ListGetTail = core.RegisterCallback(OnInvokeListGetTail, &ss, "ListGetTail");
+		listCallbacks.ListGetLength = core.RegisterCallback(OnInvokeListGetLength, &ss, "ListGetLength");
+		listCallbacks.NodeGet32 = core.RegisterCallback(OnInvokeNodeGet32, &ss, "NodeGet32");
+		listCallbacks.NodeGet64 = core.RegisterCallback(OnInvokeNodeGet64, &ss, "NodeGet64");
+		listCallbacks.NodeGetInterface = core.RegisterCallback(OnInvokeNodeGetInterface, &ss, "NodeGetInterface");
+		listCallbacks.NodeGetElementRef = core.RegisterCallback(OnInvokeNodeGetElementRef, &ss, "NodeGetElementRef");
+		listCallbacks.NodeNext = core.RegisterCallback(OnInvokeNodeNext, &ss, "NodeNext");
+		listCallbacks.NodePrevious = core.RegisterCallback(OnInvokeNodePrevious, &ss, "NodePrevious");
+		listCallbacks.NodeAppend = core.RegisterCallback(OnInvokeNodeAppend, &ss, "NodeAppend");
+		listCallbacks.NodeAppendInterface = core.RegisterCallback(OnInvokeNodeAppendInterface, &ss, "NodeAppendInterface");
+		listCallbacks.NodeAppend32 = core.RegisterCallback(OnInvokeNodeAppend32, &ss, "NodeAppend32");
+		listCallbacks.NodeAppend64 = core.RegisterCallback(OnInvokeNodeAppend64, &ss, "NodeAppend64");
+		listCallbacks.NodePrepend = core.RegisterCallback(OnInvokeNodePrepend, &ss, "NodePrepend");
+		listCallbacks.NodePrependInterface = core.RegisterCallback(OnInvokeNodePrependInterface, &ss, "NodePrependInterface");
+		listCallbacks.NodePrepend32 = core.RegisterCallback(OnInvokeNodePrepend32, &ss, "NodePrepend32");
+		listCallbacks.NodePrepend64 = core.RegisterCallback(OnInvokeNodePrepend64, &ss, "NodePrepend64");
+		listCallbacks.NodePop = core.RegisterCallback(OnInvokeNodePop, &ss, "NodePop");
+		listCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeNodeEnumNext, &ss, "NodeEnumNext");
+		listCallbacks.NodeHasNext = core.RegisterCallback(OnInvokeNodeHasNext, &ss, "NodeHasNext");
+		listCallbacks.NodeHasPrevious = core.RegisterCallback(OnInvokeNodeHasPrevious, &ss, "NodeHasPrevious");
+		listCallbacks.NodeReleaseRef = core.RegisterCallback(OnInvokeNodeReleaseRef, &ss, "NodeReleaseRef");
+		listCallbacks.ListRelease = core.RegisterCallback(OnInvokeListRelease, &ss, "ListRelease");
+		listCallbacks.ListClear = core.RegisterCallback(OnInvokeListClear, &ss, "ListClear");
+		listCallbacks.ListAssign = core.RegisterCallback(OnInvokeListAssign, &ss, "ListAssign");
+		listCallbacks.NodeGoPrevious = core.RegisterCallback(OnInvokeNodeGoPrevious, &ss, "NodeGoPrevious");
+		listCallbacks.NodeGoNext = core.RegisterCallback(OnInvokeNodeGoNext, &ss, "NodeGoNext");
+	}
 }// Rococo::Script

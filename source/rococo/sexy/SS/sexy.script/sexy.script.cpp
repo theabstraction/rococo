@@ -37,16 +37,11 @@
 #include "..\stc\stccore\sexy.compiler.helpers.h"
 #include "sexy.s-parser.h"
 #include <sexy.vector.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <algorithm>
 
 #include <sexy.stdstrings.h>
-#include <sexy.unordered_map.h>
 #include <sexy.list.h>
 #include <sexy.security.h>
 
-#include <rococo.api.h>
 #include <rococo.sexy.api.h>
 #include <rococo.os.h>
 #include <rococo.io.h>
@@ -57,6 +52,12 @@
 #include "sexy.internal.api.h"
 
 #include <rococo.time.h>
+#include <rococo.api.h>
+#include <sexy.unordered_map.h>
+
+#include <stdlib.h>
+#include <stdarg.h>
+#include <algorithm>
 
 using namespace Rococo;
 using namespace Rococo::Script;
@@ -284,24 +285,6 @@ namespace Rococo {
 		}
 	} // Script
 } // Rococo
-
-#include "sexy.script.macro.inl"
-#include "sexy.script.matching.inl"
-#include "sexy.script.factory.inl"
-#include "sexy.script.closure.inl"
-#include "sexy.script.array.inl"
-#include "sexy.script.list.inl"
-#include "sexy.script.map.inl"
-#include "sexy.script.containers.inl"
-#include "sexy.script.arithmetic.expression.parser.inl"
-#include "sexy.script.predicates.expression.parser.inl"
-#include "sexy.script.conditional.expression.parser.inl"
-#include "sexy.script.exception.logic.inl"
-#include "sexy.script.modules.inl"
-#include "sexy.script.exceptions.inl"
-#include "sexy.script.casts.inl"
-#include "sexy.script.JIT.inl"
-#include "sexy.script.stringbuilders.inl"
 
 VM_CALLBACK(TestD4neqD5_retBoolD7)
 {
@@ -737,7 +720,7 @@ namespace Rococo::Script
 		TMemoAllocator memoAllocator;
 		AutoFree<IProgramObject> progObjProxy;
 		Auto<ISParser> sexParserProxy;
-		CScripts* scripts;
+		IScripts* scripts;
 		ScriptCallbacks callbacks;
 
 		IStructureBuilder* nativeInt32;
@@ -940,7 +923,7 @@ namespace Rococo::Script
 				Rococo::Throw(innerEx.ErrorCode(), "%s", message);
 			}
 
-			scripts = new CScripts(*progObjProxy, *this);
+			scripts = NewCScripts(*progObjProxy, *this);
 
 			nativeInt32 = &progObjProxy->AddIntrinsicStruct("Int32", sizeof(int32), VARTYPE_Int32, NULL);
 			nativeInt64 = &progObjProxy->AddIntrinsicStruct("Int64", sizeof(int64), VARTYPE_Int64, NULL);
@@ -986,7 +969,7 @@ namespace Rococo::Script
 				SafeFormat(msg, "%s: %s (%d,%d) to (%d,%d)\n", ex.Message(), ex.Name(), ex.Start().x, ex.Start().y, ex.End().x, ex.End().y);
 				_logger.Write(msg);
 
-				delete scripts;
+				Delete(scripts);
 				throw;
 			}
 			catch (IException& ex)
@@ -994,7 +977,7 @@ namespace Rococo::Script
 				char msg[2048];
 				SafeFormat(msg, sizeof(msg), "Sexy: Error reading native files: %s\nExpecting them in %ls\n", ex.Message(), srcEnvironment.buf);
 				_logger.Write(msg);
-				delete scripts;
+				Delete(scripts);
 				throw;
 			}
 
@@ -1002,115 +985,12 @@ namespace Rococo::Script
 
 			jitId = core.RegisterCallback(Compile_JIT, this, "Compile_JIT");
 
-			arrayCallbacks.ArrayAssign = core.RegisterCallback(OnInvokeArrayAssign, this, "ArrayAssign");
-			arrayCallbacks.ArrayGetLastIndexToD12 = core.RegisterCallback(OnInvokeArrayGetLastIndexToD12, this, "ArrayGetLastIndexToD12");
-			arrayCallbacks.ArrayGetRefUnchecked = core.RegisterCallback(OnInvokeArrayGetRefUnchecked, this, "ArrayGetRefUnchecked");
-			arrayCallbacks.ArrayLock = core.RegisterCallback(OnInvokeArrayLock, this, "ArrayLock");
-			arrayCallbacks.ArrayUnlock = core.RegisterCallback(OnInvokeArrayUnlock, this, "ArrayUnlock");
-			arrayCallbacks.ArrayClear = core.RegisterCallback(OnInvokeArrayClear, this, "ArrayClear");
-			arrayCallbacks.ArrayPushAndGetRef = core.RegisterCallback(OnInvokeArrayPushAndGetRef, this, "ArrayPushAndGetRef");
-			arrayCallbacks.ArrayPushByRef = core.RegisterCallback(OnInvokeArrayPushByRef, this, "ArrayPushByRef");
-			arrayCallbacks.ArrayUpdateRefCounts = core.RegisterCallback(OnInvokeArrayUpdateRefCounts, this, "ArrayUpdateRefCounts");
-			arrayCallbacks.ArrayPush32 = core.RegisterCallback(OnInvokeArrayPush32, this, "ArrayPush32");
-			arrayCallbacks.ArrayPushInterface = core.RegisterCallback(OnInvokeArrayPushInterface, this, "ArrayPushInterface");
-			arrayCallbacks.ArrayPush64 = core.RegisterCallback(OnInvokeArrayPush64, this, "ArrayPush64");
-			arrayCallbacks.ArrayGet32 = core.RegisterCallback(OnInvokeArrayGet32, this, "ArrayGet32");
-			arrayCallbacks.ArrayGet64 = core.RegisterCallback(OnInvokeArrayGet64, this, "ArrayGet64");
-			arrayCallbacks.ArrayGetMember32 = core.RegisterCallback(OnInvokeArrayGetMember32, this, "ArrayGetMember32");
-			arrayCallbacks.ArrayGetMember64 = core.RegisterCallback(OnInvokeArrayGetMember64, this, "ArrayGetMember64");
-			arrayCallbacks.ArrayCopyByRef = core.RegisterCallback(OnInvokeArrayCopyByRef, this, "ArrayCopyByRef");
-			arrayCallbacks.ArrayInit = core.RegisterCallback(OnInvokeArrayInit, this, "ArrayInit");
-			arrayCallbacks.ArrayRelease = core.RegisterCallback(OnInvokeArrayReleaseRef, this, "ArrayReleaseRef");
-			arrayCallbacks.ArraySet32 = core.RegisterCallback(OnInvokeArraySet32, this, "ArraySet32");
-			arrayCallbacks.ArraySet64 = core.RegisterCallback(OnInvokeArraySet64, this, "ArraySet64");
-			arrayCallbacks.ArraySetByRef = core.RegisterCallback(OnInvokeArraySetByRef, this, "ArraySetByRef");
-			arrayCallbacks.ArrayPop = core.RegisterCallback(OnInvokeArrayPop, this, "ArrayPop");
-			arrayCallbacks.ArrayPopOut32 = core.RegisterCallback(OnInvokeArrayPopOut32, this, "ArrayPopOut32");
-			arrayCallbacks.ArrayPopOut64 = core.RegisterCallback(OnInvokeArrayPopOut64, this, "ArrayPopOut64");
-			arrayCallbacks.ArrayDestructElements = core.RegisterCallback(OnInvokeArrayDestructElements, this, "ArrayDestructElements");
-			arrayCallbacks.ArrayGetInterfaceUnchecked = core.RegisterCallback(OnInvokeArrayGetInterfaceUnchecked, this, "ArrayGetInterface");
-			arrayCallbacks.ArrayGetInterfaceLockless = core.RegisterCallback(OnInvokeArrayGetInterfaceLockless, this, "ArrayGetInterfaceLockless");
-			arrayCallbacks.ArrayGetLength = core.RegisterCallback(OnInvokeArrayGetLength, this, "ArrayGetLength");
-			arrayCallbacks.ArrayGetLastIndex = core.RegisterCallback(OnInvokeArrayGetLastIndex, this, "ArrayGetLastIndex");
-			arrayCallbacks.ArrayReturnLength = core.RegisterCallback(OnInvokeArrayReturnLength, this, "ArrayReturnLength");
-			arrayCallbacks.ArrayReturnCapacity = core.RegisterCallback(OnInvokeArrayReturnCapacity, this, "ArrayReturnCapacity");
+			RegisterArrays(arrayCallbacks, core, *this);
+			RegisterLists(listCallbacks, core, *this);
+			RegisterMaps(mapCallbacks, core, *this);
+			RegisterMiscAPI(callbacks, core, *this);
 
-			listCallbacks.ListInit = core.RegisterCallback(OnInvokeListInit, this, "ListInit");
-			listCallbacks.ListAppend = core.RegisterCallback(OnInvokeListAppend, this, "ListAppend");
-			listCallbacks.ListAppendAndGetRef = core.RegisterCallback(OnInvokeListAppendAndGetRef, this, "ListAppendAndGetRef");
-			listCallbacks.ListAppend32 = core.RegisterCallback(OnInvokeListAppend32, this, "ListAppend32");
-			listCallbacks.ListAppend64 = core.RegisterCallback(OnInvokeListAppend64, this, "ListAppend64");
-			listCallbacks.ListAppendInterface = core.RegisterCallback(OnInvokeListAppendInterface, this, "ListAppendInterface");
-			listCallbacks.ListPrepend = core.RegisterCallback(OnInvokeListPrepend, this, "ListPrepend");
-			listCallbacks.ListPrependAndGetRef = core.RegisterCallback(OnInvokeListPrependAndGetRef, this, "ListPrependAndGetRef");
-			listCallbacks.ListPrepend32 = core.RegisterCallback(OnInvokeListPrepend32, this, "ListPrepend32");
-			listCallbacks.ListPrepend64 = core.RegisterCallback(OnInvokeListPrepend64, this, "ListPrepend64");
-			listCallbacks.ListPrependInterface = core.RegisterCallback(OnInvokeListPrependInterface, this, "ListPrependInterface");
-			listCallbacks.ListGetHead = core.RegisterCallback(OnInvokeListGetHead, this, "ListGetHead");
-			listCallbacks.ListGetHeadUnreferenced = core.RegisterCallback(OnInvokeListGetHeadUnreferenced, this, "ListGetHeadUnreferenced");
-			listCallbacks.ListGetTail = core.RegisterCallback(OnInvokeListGetTail, this, "ListGetTail");
-			listCallbacks.ListGetLength = core.RegisterCallback(OnInvokeListGetLength, this, "ListGetLength");
-			listCallbacks.NodeGet32 = core.RegisterCallback(OnInvokeNodeGet32, this, "NodeGet32");
-			listCallbacks.NodeGet64 = core.RegisterCallback(OnInvokeNodeGet64, this, "NodeGet64");
-			listCallbacks.NodeGetInterface = core.RegisterCallback(OnInvokeNodeGetInterface, this, "NodeGetInterface");
-			listCallbacks.NodeGetElementRef = core.RegisterCallback(OnInvokeNodeGetElementRef, this, "NodeGetElementRef");
-			listCallbacks.NodeNext = core.RegisterCallback(OnInvokeNodeNext, this, "NodeNext");
-			listCallbacks.NodePrevious = core.RegisterCallback(OnInvokeNodePrevious, this, "NodePrevious");
-			listCallbacks.NodeAppend = core.RegisterCallback(OnInvokeNodeAppend, this, "NodeAppend");
-			listCallbacks.NodeAppendInterface = core.RegisterCallback(OnInvokeNodeAppendInterface, this, "NodeAppendInterface");
-			listCallbacks.NodeAppend32 = core.RegisterCallback(OnInvokeNodeAppend32, this, "NodeAppend32");
-			listCallbacks.NodeAppend64 = core.RegisterCallback(OnInvokeNodeAppend64, this, "NodeAppend64");
-			listCallbacks.NodePrepend = core.RegisterCallback(OnInvokeNodePrepend, this, "NodePrepend");
-			listCallbacks.NodePrependInterface = core.RegisterCallback(OnInvokeNodePrependInterface, this, "NodePrependInterface");
-			listCallbacks.NodePrepend32 = core.RegisterCallback(OnInvokeNodePrepend32, this, "NodePrepend32");
-			listCallbacks.NodePrepend64 = core.RegisterCallback(OnInvokeNodePrepend64, this, "NodePrepend64");
-			listCallbacks.NodePop = core.RegisterCallback(OnInvokeNodePop, this, "NodePop");
-			listCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeNodeEnumNext, this, "NodeEnumNext");
-			listCallbacks.NodeHasNext = core.RegisterCallback(OnInvokeNodeHasNext, this, "NodeHasNext");
-			listCallbacks.NodeHasPrevious = core.RegisterCallback(OnInvokeNodeHasPrevious, this, "NodeHasPrevious");
-			listCallbacks.NodeReleaseRef = core.RegisterCallback(OnInvokeNodeReleaseRef, this, "NodeReleaseRef");
-			listCallbacks.ListRelease = core.RegisterCallback(OnInvokeListRelease, this, "ListRelease");
-			listCallbacks.ListClear = core.RegisterCallback(OnInvokeListClear, this, "ListClear");
-			listCallbacks.ListAssign = core.RegisterCallback(OnInvokeListAssign, this, "ListAssign");
-			listCallbacks.NodeGoPrevious = core.RegisterCallback(OnInvokeNodeGoPrevious, this, "NodeGoPrevious");
-			listCallbacks.NodeGoNext = core.RegisterCallback(OnInvokeNodeGoNext, this, "NodeGoNext");
-
-			mapCallbacks.MapAssign = core.RegisterCallback(OnInvokeMapAssign, this, "MapAssign");
-			mapCallbacks.MapRelease = core.RegisterCallback(OnInvokeMapRelease, this, "MapRelease");
-			mapCallbacks.NodeEnumNext = core.RegisterCallback(OnInvokeMapNodeEnumNext, this, "MapNodeEnumNext");
-			mapCallbacks.MapGetHead = core.RegisterCallback(OnInvokeMapGetHead, this, "MapGetHead");
-			mapCallbacks.MapInit = core.RegisterCallback(OnInvokeMapInit, this, "MapInit");
-			mapCallbacks.DoesMapNodeExist = core.RegisterCallback(OnInvokeDoesMapNodeExist, this, "DoesMapNodeExist");
-			mapCallbacks.MapInsert32 = core.RegisterCallback(OnInvokeMapInsert32, this, "MapInsert32");
-			mapCallbacks.MapInsert64 = core.RegisterCallback(OnInvokeMapInsert64, this, "MapInsert64");
-			mapCallbacks.MapInsertValueByRef = core.RegisterCallback(OnInvokeMapInsertValueByRef, this, "MapInsertValueByRef");
-			mapCallbacks.MapInsertAndGetRef = core.RegisterCallback(OnInvokeMapInsertAndGetRef, this, "MapInsertAndGetRef");
-			mapCallbacks.MapInsertInterface = core.RegisterCallback(OnInvokeMapInsertInterface, this, "MapInsertInterface");
-			mapCallbacks.MapTryGet = core.RegisterCallback(OnInvokeMapTryGet, this, "MapTryGet");
-			mapCallbacks.MapNodeGet32 = core.RegisterCallback(OnInvokeMapNodeGet32, this, "MapNodeGet32");
-			mapCallbacks.MapNodeGet64 = core.RegisterCallback(OnInvokeMapNodeGet64, this, "MapNodeGet64");
-			mapCallbacks.MapNodeGetInterface = core.RegisterCallback(OnInvokeMapNodeGetInterface, this, "MapNodeGetInterface");
-			mapCallbacks.MapNodeGetKey32 = core.RegisterCallback(OnInvokeMapNodeGetKey32, this, "MapNodeGetKey32");
-			mapCallbacks.MapNodeGetKey64 = core.RegisterCallback(OnInvokeMapNodeGetKey64, this, "MapNodeGetKey64");
-			mapCallbacks.MapNodeGetKeyIString = core.RegisterCallback(OnInvokeMapNodeGetKeyIString, this, "MapNodeGetKeyIString");
-			mapCallbacks.MapNodeGetRef = core.RegisterCallback(OnInvokeMapNodeGetRef, this, "MapNodeGetRef");
-			mapCallbacks.MapNodePop = core.RegisterCallback(OnInvokeMapNodePop, this, "MapNodePop");
-			mapCallbacks.MapNodeReleaseRef = core.RegisterCallback(OnInvokeMapNodeReleaseRef, this, "MapNodeReleaseRef");
-			mapCallbacks.MapGetLength = core.RegisterCallback(OnInvokeMapGetLength, this, "MapGetLength");
-			mapCallbacks.MapUpdateRefCounts = core.RegisterCallback(OnInvokeMapUpdateRefCounts, this, "MapUpdateRefCounts");
-
-			callbacks.idThrowNullRef = core.RegisterCallback(OnInvokeThrowNullRef, this, "ThrowNullRef");
 			callbacks.idTestD4neqD5_retBoolD7 = core.RegisterCallback(OnInvokeTestD4neqD5_retBoolD7, &ProgramObject().VirtualMachine(), "TestD4neqD5_retBoolD7");
-			callbacks.idYieldMicroseconds = core.RegisterCallback(OnInvokeYieldMicroseconds, &ProgramObject().VirtualMachine(), "YieldMicroseconds");
-			callbacks.idDynamicDispatch = core.RegisterCallback(OnInvokeDynamicDispatch, this, "Dispatch");
-			callbacks.idInvokeMethodByName = core.RegisterCallback(OnInvokeInvokeMethodByName, this, "InvokeMethod");
-			callbacks.idVariableRefToType = core.RegisterCallback(OnInvokeGetTypeOfClassToD4, this, "GetTypeOfClassToD4");
-			callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, this, "IsSameObject");
-			callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, this, "IsDifferentObject");
-			callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, this, "StringIndexToChar");
-			callbacks.idTransformAt_D4D5retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5retD7, this, "TransformAt");
-			callbacks.idTransformParent_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4retD7, this, "TransformParent");
-			callbacks.idJumpFromProxyToMethod = core.RegisterCallback(OnInvokeJumpFromProxyToMethod, this, "JumpFromProxyToMethod");
 			methodMap[("Capacity")] = ("_elementCapacity");
 			methodMap[("Length")] = ("_length");
 			serializeId = core.RegisterCallback(OnInvokeSerialize, this, "serialize");
@@ -1825,52 +1705,8 @@ namespace Rococo::Script
 
 		void DefineSysNative(const INamespace& sysNative)
 		{
-			AddNativeCall(sysNative, ::AlignedMalloc, this, "AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNative, ::AlignedFree, this, "AlignedFree (Pointer data)->", __FILE__, __LINE__, false, 0);
+			Rococo::Script::DefineSysNative(sysNative, *this, stringPool, memoAllocator);
 			AddNativeCall(sysNative, CScriptSystem::_PublishAPI, this, "PublishAPI ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNative, DynamicCast, nullptr, "_DynamicCast (Pointer interface) (Pointer instanceRef) ->", __FILE__, __LINE__, false, 0);
-
-			const INamespace& sysNativeStrings = AddNativeNamespace("Sys.Strings.Native");
-			AddNativeCall(sysNativeStrings, NewStringBuilder, stringPool, "NewStringBuilder (Int32 capacity) -> (Sys.Type.IStringBuilder sb)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, DestructStringBuilder, stringPool, "DestructStringBuilder (Sys.Type.IStringBuilder sb)->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, CreateMemoString, &memoAllocator, "CreateMemoString (Sys.Type.IString s) -> (Pointer dest) (Int32 destLength)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FreeMemoString, &memoAllocator, "FreeMemoString (Pointer src) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, StringCompare, NULL, "StringCompare  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, StringCompareI, NULL, "StringCompareI  (Pointer s) (Pointer t) -> (Int32 diff)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, StringFindLeft, NULL, "StringFindLeft (Pointer containerBuffer) (Int32 containerLength) (Int32 startPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, StringFindRight, NULL, "StringFindRight (Pointer containerBuffer) (Int32 containerLength) (Int32 leftPos) (Int32 rightPos) (Pointer substringBuffer) (Int32 substringLength) (Bool caseIndependent)-> (Int32 position)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendIString, stringPool, "FastStringBuilderAppendIString (Sys.Type.IStringBuilder sb) (Pointer src) (Int32 srclength) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderThrowIfAppendWouldTruncate, stringPool, "FastStringBuilderThrowIfAppendWouldTruncate (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendChar, stringPool, "FastStringBuilderAppendChar (Sys.Type.IStringBuilder sb) (Int32 asciiValue) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendInt32, stringPool, "FastStringBuilderAppendInt32 (Sys.Type.IStringBuilder sb) (Int32 x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendInt64, stringPool, "FastStringBuilderAppendInt64 (Sys.Type.IStringBuilder sb) (Int64 x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendFloat32, stringPool, "FastStringBuilderAppendFloat32 (Sys.Type.IStringBuilder sb) (Float32 x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendFloat64, stringPool, "FastStringBuilderAppendFloat64 (Sys.Type.IStringBuilder sb) (Float64 x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendBool, stringPool, "FastStringBuilderAppendBool (Sys.Type.IStringBuilder sb) (Bool x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendPointer, stringPool, "FastStringBuilderAppendPointer (Sys.Type.IStringBuilder sb) (Pointer x) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderClear, stringPool, "FastStringBuilderClear (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsDecimal, stringPool, "FastStringBuilderAppendAsDecimal (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsHex, stringPool, "FastStringBuilderAppendAsHex (Sys.Type.IStringBuilder sb) -> ", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendAsSpec, stringPool, "FastStringBuilderAppendAsSpec (Sys.Type.IStringBuilder sb) (Int32 type) -> ", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderSetFormat, stringPool, "FastStringBuilderSetFormat (Sys.Type.IStringBuilder sb) (Int32 precision) (Int32 width) (Bool isZeroPrefixed) (Bool isRightAligned)->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderStripLeft, stringPool, "FastStringBuilderStripLeft (Sys.Type.IStringBuilder sb) (Int32 leftPos)->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderAppendSubstring, stringPool, "FastStringBuilderAppendSubstring (Sys.Type.IStringBuilder sb) (Pointer s) (Int32 sLen) (Int32 startPos) (Int32 charsToAppend) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderSetLength, stringPool, "FastStringBuilderSetLength (Sys.Type.IStringBuilder sb)(Int32 length) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderSetCase, stringPool, "FastStringBuilderSetCase (Sys.Type.IStringBuilder sb) (Int32 start) (Int32 end) (Bool toUpper)->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, StringEndsWith, NULL, "StringEndsWith (IString bigString)(IString suffix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, StringStartsWith, NULL, "StringStartsWith (IString bigString)(IString prefix) -> (Bool isSo)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderMakeSysSlashes, stringPool, "MakeSysSlashes (Sys.Type.IStringBuilder sb) ->", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysNativeStrings, FastStringBuilderReplace, stringPool, "FastStringBuilderReplace (Sys.Type.IStringBuilder sb)(Int32 startPosition)(IString from)(IString to) ->", __FILE__, __LINE__, false, 0);
-		}
-
-		void DefineSysTypeStrings(const INamespace& sysTypeStrings)
-		{
-			AddNativeCall(sysTypeStrings, SysTypeStrings::IsUpperCase,    nullptr, "IsUpperCase (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysTypeStrings, SysTypeStrings::IsLowerCase,    nullptr, "IsLowerCase (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlpha,        nullptr, "IsAlpha (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysTypeStrings, SysTypeStrings::IsNumeric,      nullptr, "IsNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysTypeStrings, SysTypeStrings::IsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c)->(Bool isSo)", __FILE__, __LINE__, false, 0);
-			AddNativeCall(sysTypeStrings, AssertPascalCaseNamespace, NULL, "AssertPascalCaseNamespace (Sys.Type.IString s) (Int32 maxLength)->", __FILE__, __LINE__, false, 0);
 		}
 
 		static void _PublishAPI(NativeCallEnvironment& nce)
@@ -2273,7 +2109,7 @@ namespace Rococo::Script
 			DefineSysNative(sysNative);
 
 			INamespaceBuilder& sysTypeStrings = progObjProxy->GetRootNamespace().AddNamespace("Sys.Type.Strings", ADDNAMESPACEFLAGS_CREATE_ROOTS);
-			DefineSysTypeStrings(sysTypeStrings);
+			DefineSysTypeStrings(sysTypeStrings, *this);
 
 			AddNativeCall(sysTime, NativeSysTimeTickHz, nullptr, "TickHz -> (Int64 hz)", __FILE__, __LINE__, false, 0);
 			AddNativeCall(sysTime, NativeSysTimeTickCount, nullptr, "TickCount -> (Int64 tickCount)", __FILE__, __LINE__, false, 0);
