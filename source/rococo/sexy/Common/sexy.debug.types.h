@@ -77,7 +77,7 @@ namespace Rococo
 			const uint8* instance;
 		};
 
-		struct IVariableEnumeratorCallback
+		DECLARE_ROCOCO_INTERFACE IVariableEnumeratorCallback
 		{
 			virtual void OnVariable(size_t index, const VariableDesc& variable, const Rococo::Compiler::MemberDef& def) = 0;
 		};

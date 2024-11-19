@@ -2927,6 +2927,49 @@ namespace Rococo::Script
 	{
 		return script.GetGlobalValue(buffer);
 	}
+
+	NativeCallEnvironment::NativeCallEnvironment(IPublicScriptSystem& _ss, const  Compiler::IFunction& _function, CPU& _cpu, void* _context) :
+		ss(_ss), function(_function), code(_function.Code()), cpu(_cpu), context(_context)
+	{
+	}
+
+	CScriptSystemProxy::~CScriptSystemProxy()
+	{
+		if (ss) ss->Free();
+		if (factory) factory->Free();
+	}
+
+	SCRIPTEXPORT_API void CClassSysTypeStringBuilder::AppendAndTruncate(const fstring& text)
+	{
+		if (!header.Desc->flags.IsSystem)
+		{
+			Throw(0, "Expecting the object to be a System IStringBuilder. It was of type %s", header.Desc->TypeInfo->Name());
+		}
+
+		int32 bufferLeft = capacity - length;
+
+		if (bufferLeft < 0)
+		{
+			Throw(0, "CClassSysTypeStringBuilder had length > capacity");
+		}
+
+		if (text.length > 0 && bufferLeft > 1)
+		{
+			CopyString(buffer + length, bufferLeft, text, text.length);
+
+			length += text.length;
+			length = min(capacity - 1, length);
+			buffer[length] = 0;
+		}
+	}
+
+	SCRIPTEXPORT_API void AddNativeCallSecurity_ToSysNatives(Rococo::Script::IPublicScriptSystem & ss)
+	{
+		AddNativeCallSecurity(ss, "Sys.Native", "!scripts/native/Sys.Type.sxy");
+		AddNativeCallSecurity(ss, "Sys.Reflection.Native", "!scripts/native/Sys.Reflection.sxy");
+		AddNativeCallSecurity(ss, "Sys.IO.Native", "!scripts/native/Sys.IO.sxy");
+		AddNativeCallSecurity(ss, "Sys.Strings.Native", "!scripts/native/Sys.Type.Strings.sxy");
+	}
 }//Rococo::Script
 
 namespace Anon
@@ -2983,22 +3026,11 @@ extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSy
 	}
 }
 
-namespace Rococo { namespace Script
+namespace Rococo::Script
 {
-	NativeCallEnvironment::NativeCallEnvironment(IPublicScriptSystem& _ss, const  Compiler::IFunction& _function, CPU& _cpu, void* _context):
-		ss(_ss), function(_function), code(_function.Code()), cpu(_cpu), context(_context)
-	{
-	}
-
 	CScriptSystemProxy::CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger)
 	{
 		factory = CreateScriptSystemFactory_1_5_0_0();
 		ss = factory->CreateScriptSystem(pip, logger);
 	}
-
-	CScriptSystemProxy::~CScriptSystemProxy()
-	{
-		if (ss) ss->Free();
-		if (factory) factory->Free();
-	}
-}}
+}

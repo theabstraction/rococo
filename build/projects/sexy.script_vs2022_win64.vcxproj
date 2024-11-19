@@ -145,13 +145,15 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexy.script.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q&#x0D;&#x0A;</Command>
+      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -234,13 +236,15 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexy.script.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q&#x0D;&#x0A;</Command>
+      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -268,7 +272,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.exceptions.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.execution.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.global.functions.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.source-cache.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.packages.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" />
@@ -311,5 +317,8 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

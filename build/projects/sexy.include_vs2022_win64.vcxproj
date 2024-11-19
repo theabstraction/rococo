@@ -177,6 +177,7 @@
     <ClInclude Include="..\..\source\rococo\sexy\Common\sexy.vm.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

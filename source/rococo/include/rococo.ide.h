@@ -4,6 +4,8 @@
 
 namespace Rococo
 {
+	DECLARE_ROCOCO_INTERFACE IDebuggerWindow;
+
 	namespace Visitors
 	{
 		enum CheckState : int32;
@@ -13,8 +15,6 @@ namespace Rococo
 		DECLARE_ROCOCO_INTERFACE ITreePopulator;
 		DECLARE_ROCOCO_INTERFACE IListPopulator;
 	}
-
-	DECLARE_ROCOCO_INTERFACE IDebuggerWindow;
 
 	ROCOCO_INTERFACE IDebugControl
 	{
