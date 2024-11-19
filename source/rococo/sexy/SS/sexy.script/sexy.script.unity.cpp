@@ -32,10 +32,13 @@
 */
 
 #include "sexy.script.stdafx.h"
-
 #include <Sexy.S-Parser.h>
 
 #include <sexy.compiler.public.h>
+#include <../STC/stccore/sexy.compiler.helpers.h>
+#include <rococo.api.h>
+#include <sexy.security.h>
+#include "sexy.internal.api.h"
 
 using namespace Rococo;
 using namespace Rococo::Script;
@@ -46,3 +49,4 @@ using namespace Rococo::Strings;
 
 #include "sexy.script.util.inl"
 #include "sexy.script.asserts.inl"
+#include "sexy.script.functions.inl"

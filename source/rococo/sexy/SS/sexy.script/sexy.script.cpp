@@ -56,6 +56,8 @@
 
 #include "sexy.internal.api.h"
 
+#include <rococo.time.h>
+
 using namespace Rococo;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
@@ -135,13 +137,6 @@ namespace Rococo
 
 	using TMapNameToSTree = TSexyHashMapByStdString<ISParserTree*>;
 }
-
-#ifdef _WIN32
-# define VM_CALLBACK_CONVENTION _cdecl
-#else
-# define VM_CALLBACK_CONVENTION
-#endif
-#define VM_CALLBACK(x) void VM_CALLBACK_CONVENTION OnInvoke##x(VariantValue* registers, void* context)
 
 #ifdef __APPLE__
 # define _strcmpi strcasecmp
@@ -290,7 +285,6 @@ namespace Rococo {
 	} // Script
 } // Rococo
 
-#include "sexy.script.functions.inl"
 #include "sexy.script.macro.inl"
 #include "sexy.script.matching.inl"
 #include "sexy.script.factory.inl"
@@ -308,6 +302,12 @@ namespace Rococo {
 #include "sexy.script.casts.inl"
 #include "sexy.script.JIT.inl"
 #include "sexy.script.stringbuilders.inl"
+
+VM_CALLBACK(TestD4neqD5_retBoolD7)
+{
+	auto diff = registers[4].int64Value - registers[5].int64Value;
+	registers[7].int64Value = diff != 0 ? 1 : 0;
+}
 
 void NativeSysTimeTickHz(NativeCallEnvironment& _nce)
 {

@@ -1595,12 +1595,6 @@ namespace Rococo
 			return true;
 		}
 
-		VM_CALLBACK(TestD4neqD5_retBoolD7)
-		{
-			auto diff = registers[4].int64Value - registers[5].int64Value;
-			registers[7].int64Value = diff != 0 ? 1 : 0;
-		}
-
 		bool TryCompileExpressionBuilderCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, const IStructure* returnTypeStruct, const IStructure& instanceStruct)
 		{
 			if (AreEqual(methodName, "TransformParent"))
