@@ -161,6 +161,8 @@
 	(boolSpec.AddAtomic "isValid")
 )
 
+(namespace Sys)
+(namespace Sys.Type)
 (namespace Sys.Type.Macros)
 
 (alias AppendWithCharacterSubstitutions Sys.Type.Macros.AppendWithCharacterSubstitutions)

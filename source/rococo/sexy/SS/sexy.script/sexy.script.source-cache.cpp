@@ -323,9 +323,87 @@ namespace Rococo
 		return cache->GetInterface();
 	}
 
+	void ApplyFluffle(ISourceCache& sourceCache, Rococo::Script::IPublicScriptSystem& ss, cstr fluffleName, cr_sex sFluffleDirective)
+	{
+		// (Fluffle <fluffle-name> "<first source...>" ... "<last_source>")
+		for (int i = 2; i < sFluffleDirective.NumberOfElements(); ++i)
+		{
+			cr_sex s = sFluffleDirective[i];
+			if (!IsStringLiteral(s))
+			{
+				Throw(s, "Expecting string literal ping path");
+			}
+
+			cstr pingPath = s.c_str();
+
+			auto* tree = sourceCache.GetSource(pingPath);
+			ss.AddTree(*tree);
+		}
+
+		ss.PartialCompile();
+	}
+
+	void ApplyFluffleDirectives(ISourceCache& sourceCache, Rococo::Script::IPublicScriptSystem& ss, cr_sex sFluffleDirectives)
+	{
+		/* 
+		
+		(File.Type Fluffle 1.0.0.0)
+		(Fluffle <name> 
+			"<first source...>" ... "<last_source>")
+		)
+		
+		*/
+
+		if (sFluffleDirectives.NumberOfElements() < 1)
+		{
+			Throw(sFluffleDirectives, __FUNCTION__ ": No elements. Need at least one element");
+		}
+
+		cr_sex sType = sFluffleDirectives[0];
+
+		if (!IsCompound(sType) || sType.NumberOfElements() != 3)
+		{
+			Throw(sType, __FUNCTION__ "Expecting compound expression (File.Type Fluffle 1.0.0.0)");
+		}
+
+		if (!Eq(GetAtomicArg(sType[0]), "File.Type"_fstring))
+		{
+			Throw(sType[0], __FUNCTION__ "Expecting 'File.Type'");
+		}
+
+		if (!Eq(GetAtomicArg(sType[1]), "Fluffle"_fstring))
+		{
+			Throw(sType[1], __FUNCTION__ "Expecting 'Fluffle'");
+		}
+
+		if (!Eq(GetAtomicArg(sType[2]), "1.0.0.0"_fstring))
+		{
+			Throw(sType[2], __FUNCTION__ "Expecting '1.0.0.0'");
+		}
+
+		for (int i = 1; i < sFluffleDirectives.NumberOfElements(); ++i)
+		{
+			auto& sDirective = sFluffleDirectives[i];
+			if (sDirective.NumberOfElements() > 2)
+			{
+				auto& sDirectiveName = sDirective[0];
+				if (IsAtomic(sDirectiveName) && Eq(sDirectiveName.c_str(), "Fluffle"))
+				{
+					auto fluffleName = GetAtomicArg(sDirective[1]);
+					ApplyFluffle(sourceCache, ss, fluffleName, sDirective);
+				}
+			}
+		}
+	}
+
 	void AddFluffle(Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, cstr pingPath, cr_sex s)
 	{
-		Throw(s, __FUNCTION__ ": not implemented");
+		U8FilePath flufflePath;
+		Format(flufflePath, "%s/default.fluffle", pingPath);
+
+		auto* fluffle = sources.GetSource(flufflePath);
+
+		ApplyFluffleDirectives(sources, ss, fluffle->Root());
 	}
 
 	void Preprocess(cr_sex sourceRoot, ISourceCache& sources, IScriptEnumerator& implicitIncludes, Rococo::Script::IPublicScriptSystem& ss)
@@ -365,40 +443,6 @@ namespace Rococo
 				cr_sex squot = sincludeExpr[0];
 				cr_sex stype = sincludeExpr[1];
 
-				if (squot == "'" && stype == "#include")
-				{
-					if (hasIncludedFiles)
-					{
-						Throw(sincludeExpr, "An include directive has already been stated. Merge directives.");
-					}
-
-					hasIncludedFiles = true;
-
-					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
-					{
-						cr_sex sname = sincludeExpr[j];
-						if (!IsStringLiteral(sname))
-						{
-							Throw(sname, "expecting string literal in include directive (' #include \"<name1>\" \"<name2 etc>\" ...) ");
-						}
-
-						auto name = sname.String();
-
-						try
-						{
-							auto includedModule = sources.GetSource(name->Buffer);
-							ss.AddTree(*includedModule);
-						}
-						catch (ParseException&)
-						{
-							throw;
-						}
-						catch (IException& ex)
-						{
-							Throw(sname, "Error with include file. %s", ex.Message());
-						}
-					}
-				}
 				if (squot == "'" && stype == "#fluffle")
 				{
 					if (hasIncludedFluffles)
@@ -430,6 +474,40 @@ namespace Rococo
 						catch (IException& ex)
 						{
 							Throw(sname, "Error with fluffle. %s", ex.Message());
+						}
+					}
+				}
+				else if (squot == "'" && stype == "#include")
+				{
+					if (hasIncludedFiles)
+					{
+						Throw(sincludeExpr, "An include directive has already been stated. Merge directives.");
+					}
+
+					hasIncludedFiles = true;
+
+					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
+					{
+						cr_sex sname = sincludeExpr[j];
+						if (!IsStringLiteral(sname))
+						{
+							Throw(sname, "expecting string literal in include directive (' #include \"<name1>\" \"<name2 etc>\" ...) ");
+						}
+
+						auto name = sname.String();
+
+						try
+						{
+							auto includedModule = sources.GetSource(name->Buffer);
+							ss.AddTree(*includedModule);
+						}
+						catch (ParseException&)
+						{
+							throw;
+						}
+						catch (IException& ex)
+						{
+							Throw(sname, "Error with include file. %s", ex.Message());
 						}
 					}
 				}
@@ -503,9 +581,9 @@ namespace Rococo
 
 		sources.RegisterPackages(ss);
 
-		Preprocess(mainModule.Root(), sources, implicitIncludes, ss);
-
-		ss.AddTree(mainModule);
 		ss.Compile(declarationBuilder);
+		Preprocess(mainModule.Root(), sources, implicitIncludes, ss);
+		ss.AddTree(mainModule);
+		ss.PartialCompile(declarationBuilder);
 	}
 } // Rococo::Script

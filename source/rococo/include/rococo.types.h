@@ -109,8 +109,6 @@ namespace Rococo
 
 #endif
 
-	typedef const char* cstr;
-
 	enum class ErrorCode : int
 	{
 		None = 0
@@ -146,10 +144,10 @@ namespace Rococo
 
 	struct fstring
 	{
-		cstr buffer;
+		const char* buffer;
 		int32 length;
 
-		FORCE_INLINE constexpr operator cstr() const noexcept { return buffer; }
+		FORCE_INLINE constexpr operator const char* () const noexcept { return buffer; }
 	};
 
 	template<class T>
@@ -254,7 +252,7 @@ namespace Rococo
 
 	typedef WindowHandle WindowRef;
 
-	FORCE_INLINE constexpr fstring operator"" _fstring (cstr msg, size_t length) noexcept
+	FORCE_INLINE constexpr fstring operator"" _fstring (const char* msg, size_t length) noexcept
 	{
 		return fstring{ msg, (int32)length };
 	}
@@ -277,11 +275,11 @@ namespace Rococo
 		// A substring of a larger string. If start < end start points to the first valid char, and end just after the last valid char, otherwise the string is empty
 		struct Substring
 		{
-			cstr start;
-			cstr finish;
+			const char* start;
+			const char* finish;
 
-			[[nodiscard]] FORCE_INLINE cstr begin() const { return start; }
-			[[nodiscard]] FORCE_INLINE cstr end() const { return finish; }
+			[[nodiscard]] FORCE_INLINE const char* begin() const { return start; }
+			[[nodiscard]] FORCE_INLINE const char* end() const { return finish; }
 
 			[[nodiscard]] FORCE_INLINE bool empty() const { return finish <= start; }
 
@@ -290,7 +288,7 @@ namespace Rococo
 
 			[[nodiscard]] FORCE_INLINE static Substring Null() { return { nullptr,nullptr }; }
 
-			[[nodiscard]] ROCOCO_API static Substring ToSubstring(cstr text);
+			[[nodiscard]] ROCOCO_API static Substring ToSubstring(const char* text);
 
 			// Copies the item into the buffer, truncating data if required, and terminating with a nul character
 			ROCOCO_API void CopyWithTruncate(char* buffer, size_t capacity) const;
@@ -304,11 +302,11 @@ namespace Rococo
 
 		// An interface that allows a method to populate a buffer from a cstr pointer without having to return the pointer. Rather it calls the populator's populate method
 		// The aim is to eliminate the need for temporary heap allocation of string data. 
-		// Imagine a function 'cstr ToString(Int32 i)' that converts integers to strings. A function that returns a cstr would need to populate a temporary buffer, and return a reference to it, creating lifetime issues.
+		// Imagine a function 'const char* ToString(Int32 i)' that converts integers to strings. A function that returns a cstr would need to populate a temporary buffer, and return a reference to it, creating lifetime issues.
 		// Instead we would write 'void ToString(int i, IStringPopulator& populator)'. The internal buffer would be removed from the stack before the function returns, eliminating lifetime issue.
 		ROCOCO_INTERFACE IStringPopulator
 		{
-		   virtual void Populate(cstr text) = 0;
+		   virtual void Populate(const char* text) = 0;
 		};
 	}
 
@@ -376,17 +374,17 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IException
 	{
-		virtual cstr Message() const = 0;
+		virtual const char* Message() const = 0;
 		virtual int32 ErrorCode() const = 0;
 		virtual Debugging::IStackFrameEnumerator* StackFrames() = 0;
 	};
 
 #if USE_VSTUDIO_SAL
 	[[ noreturn ]]
-	ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ cstr format, ...);
+	ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ const char* format, ...);
 #else
 	[[ noreturn ]]
-	ROCOCO_API void Throw(int32 errorCode, cstr format, ...);
+	ROCOCO_API void Throw(int32 errorCode, const char* format, ...);
 #endif
 
 	template<class T> struct IEventCallback
@@ -488,9 +486,9 @@ namespace Rococo
 		virtual void operator()(const T& t) = 0;
 	};
 
-	template<> ROCOCO_INTERFACE IEnumerator<cstr>
+	template<> ROCOCO_INTERFACE IEnumerator<const char*>
 	{
-		virtual void operator()(cstr t) = 0;
+		virtual void operator()(const char* t) = 0;
 	};
 
 	template<class T> ROCOCO_INTERFACE IEnumerable
@@ -500,11 +498,11 @@ namespace Rococo
 		virtual void Enumerate(IEnumerator<T>& cb) = 0;
 	};
 
-	template<> ROCOCO_INTERFACE IEnumerable<cstr>
+	template<> ROCOCO_INTERFACE IEnumerable<const char*>
 	{
-		[[nodiscard]] virtual cstr operator[](size_t index) = 0;
+		[[nodiscard]] virtual const char* operator[](size_t index) = 0;
 		[[nodiscard]] virtual size_t Count() const = 0;
-		virtual void Enumerate(IEnumerator<cstr>& cb) = 0;
+		virtual void Enumerate(IEnumerator<const char*>& cb) = 0;
 	};
 
 	template<class T> ROCOCO_INTERFACE IMutableEnumerator
@@ -602,6 +600,8 @@ namespace Rococo
 
 		FORCE_INLINE bool IsNormalized() const { return right > left && bottom > top; }
 	};
+
+	typedef const char* cstr;
 
 	struct Vec2
 	{

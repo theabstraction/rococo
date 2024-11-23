@@ -1,0 +1,4 @@
+(namespace Sys.Type.Domme)
+(macro Sys.Type.Domme.TypeDefValueType			in out (out.AddAtomic "0x1"))
+(macro Sys.Type.Domme.TypeDefMarshallValueType	in out (out.AddAtomic "0x2"))
+(macro Sys.Type.Domme.TypeDefStructType			in out (out.AddAtomic "0x3"))

@@ -54,6 +54,7 @@
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include <rococo.hashtable.h>
 #include <sexy.vector.h>
+#include <sexy.compiler.public.h>
 
 namespace Rococo
 {

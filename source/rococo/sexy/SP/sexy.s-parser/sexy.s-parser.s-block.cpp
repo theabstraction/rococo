@@ -1087,7 +1087,7 @@ namespace Anon
 		const ISExpression& GetElement(int index) const override
 		{
 #ifdef _DEBUG
-			if (index < 0 || index >= numberOfChildren) Rococo::Throw(0, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
+			if (index < 0 || index >= numberOfChildren) Rococo::Sex::Throw(*this, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
 #endif
 			return *children.pArray[index];
 		}

@@ -1,14 +1,8 @@
 (' #fluffle 
 	"!scripts/Sys/Type/Strings"
-	"!scripts/Sys/Type/Sexml"
+	"!scripts/Sys/Sexml"
+	"!scripts/Sys/Type/Domme"
 )
-
-(' #include 
-//	"!scripts/sexml-reader.sxy"
-//	"!scripts/Sys/Type/Strings/StringMatch.sxy"
-	"!scripts/typedef-repo.sxy"
-)
-
 
 (namespace EntryPoint)
 
