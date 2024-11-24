@@ -24,8 +24,6 @@ namespace Rococo
 		struct IWindowEventHandler;
 	}
 
-	using namespace Rococo::Graphics;
-
 	namespace OS
 	{
 		struct IAppControl;
@@ -45,7 +43,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IGraphicsWindow
 	{
-		virtual IRenderer & Renderer() = 0;
+		virtual Graphics::IRenderer & Renderer() = 0;
 		virtual Windows::IWindow& Window() = 0;
 		virtual void CaptureEvents(IAppEventHandler* handler) = 0;
 		virtual void MakeRenderTarget() = 0;
@@ -105,7 +103,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IGraphicsWindowFactory
 	{
-		virtual IGraphicsWindow * CreateGraphicsWindow(IWindowEventHandler& eventHandler, const WindowSpec & ws, bool linkedToControls) = 0;
+		virtual IGraphicsWindow * CreateGraphicsWindow(Graphics::IWindowEventHandler& eventHandler, const WindowSpec & ws, bool linkedToControls) = 0;
 		virtual void Free() = 0;
 	};
 

@@ -14,10 +14,6 @@ namespace Rococo::SexyStudio
 
 namespace Rococo::SexyStudio
 {
-	using namespace Rococo::Strings;
-	using namespace Rococo::Windows;
-	using namespace Rococo::AutoComplete;
-
 	enum class EMetaDataType: int
 	{
 		BuildDate = 0,
@@ -40,9 +36,9 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE ISexyFieldEnumerator
 	{
-		virtual void OnFieldType(cr_substring fieldType, cr_substring searchRoot) = 0;
-		virtual void OnField(cstr fieldName, cr_substring memberSearchToken) = 0;
-		virtual void OnHintFound(cr_substring hint) = 0;
+		virtual void OnFieldType(Strings::cr_substring fieldType, Strings::cr_substring searchRoot) = 0;
+		virtual void OnField(cstr fieldName, Strings::cr_substring memberSearchToken) = 0;
+		virtual void OnHintFound(Strings::cr_substring hint) = 0;
 	};
 
 	enum class EIDECloseResponse
@@ -55,7 +51,7 @@ namespace Rococo::SexyStudio
 	{
 		// Use the host to open a file with given name and line number. Returns false to allow the default implementation to handle it.
 		virtual bool TryOpenEditor(cstr filePath, int lineNumber) = 0;
-		virtual EIDECloseResponse OnIDEClose(IWindow & topLevelParent) = 0;
+		virtual EIDECloseResponse OnIDEClose(Windows::IWindow & topLevelParent) = 0;
 	};
 
 	ROCOCO_INTERFACE IPreviewEventHandler
@@ -69,27 +65,27 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE ISexyStudioGUI
 	{
-		virtual IWindow& GetIDEFrame() = 0;
-		virtual void PopupPreview(IWindow& hParent, cstr token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler) = 0;
+		virtual Windows::IWindow& GetIDEFrame() = 0;
+		virtual void PopupPreview(Windows::IWindow& hParent, cstr token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler) = 0;
 		virtual void SetTitle(cstr title) = 0;
 	};
 
 	ROCOCO_INTERFACE ISexyStudioCompletionGaffer
 	{
-		virtual void ReplaceCurrentSelectionWithCallTip(ISexyEditor& editor) = 0;
+		virtual void ReplaceCurrentSelectionWithCallTip(AutoComplete::ISexyEditor& editor) = 0;
 
 		/*
 		cr_substring candidate - some substring in .sxy source text
 		char args[1024] - output buffer
 		*/
-		virtual void GetHintForCandidate(cr_substring candidate, char args[1024]) = 0;
+		virtual void GetHintForCandidate(Strings::cr_substring candidate, char args[1024]) = 0;
 
 		// Tells the Sexy IDE to compute the definition of the selected token and invoke ISexyEditor::GotoDefinition with the result
-		virtual void GotoDefinitionOfSelectedToken(ISexyEditor& editor) = 0;
+		virtual void GotoDefinitionOfSelectedToken(AutoComplete::ISexyEditor& editor) = 0;
 
-		virtual void ReplaceSelectedText(ISexyEditor& editor, cstr item) = 0;
+		virtual void ReplaceSelectedText(AutoComplete::ISexyEditor& editor, cstr item) = 0;
 
-		virtual void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* filepath = nullptr) = 0;
+		virtual void UpdateAutoComplete(AutoComplete::ISexyEditor& editor, const wchar_t* filepath = nullptr) = 0;
 	};
 
 	ROCOCO_INTERFACE ISexyStudioInstance1
@@ -107,7 +103,7 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE ISexyStudioFactory1: ISexyStudioBase
 	{
-		virtual ISexyStudioInstance1* CreateSexyIDE(IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) = 0;
+		virtual ISexyStudioInstance1* CreateSexyIDE(Windows::IWindow& topLevelParent, ISexyStudioEventHandler& eventHandler) = 0;
 	};
 	
 	// The name of the interface is passed in the interface parameter. If any parameter is invalid or the URL recognized the function returns a non-zero error code.

@@ -2,8 +2,6 @@
 
 namespace Rococo
 {
-	using namespace Rococo::Strings;
-
 	namespace AutoComplete
 	{
 		class EditorLine
@@ -32,7 +30,7 @@ namespace Rococo
 				line[length] = 0;
 			}
 
-			operator cr_substring() const
+			operator Strings::cr_substring() const
 			{
 				return { line, line + lineLength };
 			}
@@ -78,7 +76,7 @@ namespace Rococo
 
 		ROCOCO_INTERFACE IAutoCompleteBuilder
 		{
-			virtual void AddHint(cr_substring item) = 0;
+			virtual void AddHint(Strings::cr_substring item) = 0;
 			virtual void AddItem(cstr item) = 0;
 			virtual void ShowAndClearItems() = 0;
 		};

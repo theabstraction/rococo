@@ -11,6 +11,8 @@
 #include <vector>
 #include <stdlib.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo::Strings
 {
 	// Heap-allocated immutable string
@@ -217,7 +219,7 @@ namespace ANON
 
 	class KeyValuePair
 	{
-		HString key;
+		Rococo::Strings::HString key;
 		Value data;
 	};
 
@@ -227,14 +229,14 @@ namespace ANON
 	// As a proxy for heap strings it can be used to persist a key-value pair in the hash table.
 	struct StringKey
 	{
-		HString stringKey;
+		Rococo::Strings::HString stringKey;
 		const char* invariantString;
 		size_t hashCode;
 
 		StringKey(cstr stackString, int unused) : invariantString(stackString)
 		{
 			UNUSED(unused);
-			hashCode = FastHash(stackString, strlen(stackString));
+			hashCode = Rococo::Strings::FastHash(stackString, strlen(stackString));
 		}
 
 		StringKey() : invariantString(""), hashCode(0) {}

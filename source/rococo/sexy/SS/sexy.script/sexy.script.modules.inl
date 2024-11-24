@@ -314,17 +314,14 @@ namespace Rococo::Script
 
 	void AppendAliases(IScriptSystem& ss, IModuleBuilder& module, IN const ISParserTree& tree)
 	{
-		cr_sex root = tree.Root();
-
-		auto* sTransformRoot = ss.GetTransform(root);
-		cr_sex sSequence = sTransformRoot ? *sTransformRoot : root;
+		cr_sex sSequence = tree.Root();
 
 		for(int i = 0; i < sSequence.NumberOfElements(); i++)
 		{
 			cr_sex topLevelItem = sSequence[i];
 			cr_sex elementNameExpr = GetAtomicArg(topLevelItem, 0);
 			cstr elementName = elementNameExpr.c_str();
-			if (AreEqual(elementName, ("alias")))
+			if (AreEqual(elementName, "alias"))
 			{
 				// (alias <qualified-name> <name>)
 				AssertNotTooFewElements(topLevelItem, 3);
@@ -334,25 +331,6 @@ namespace Rococo::Script
 				cr_sex nsName = GetAtomicArg(topLevelItem, 2);					
 
 				AppendAlias(REF module, IN nsName, IN localName);
-			}
-			else if (elementName[0] == '#')
-			{
-				auto* sTransformItem = ss.GetTransform(topLevelItem);
-				if (!sTransformItem)
-				{
-					continue;
-				}
-
-				if (sTransformItem->NumberOfElements() > 0 && IsAtomic(sTransformItem[0]) && AreEqual(sTransformItem[0].String(), "alias"))
-				{
-					AssertNotTooFewElements(*sTransformItem, 3);
-					AssertNotTooManyElements(*sTransformItem, 3);
-
-					cr_sex localName = GetAtomicArg(*sTransformItem, 1);
-					cr_sex nsName = GetAtomicArg(*sTransformItem, 2);
-
-					AppendAlias(REF module, IN nsName, IN localName);
-				}
 			}
 		}
 	}
@@ -1019,58 +997,6 @@ namespace Rococo::Script
 		AppendDeconstructTailVariables(ce, sequence, expire, ce.Builder.SectionArgCount());
 	}
 
-	void CompileTransformableExpressionSequenceProtected(CCompileEnvironment& ce, int start, cr_sex sequence)
-	{
-		if (sequence.Type() == EXPRESSION_TYPE_NULL)
-		{
-			ce.Builder.Assembler().Append_NoOperation();
-			return;
-		}
-
-		AssertCompound(sequence);
-		if (start == 0 && sequence.NumberOfElements() > 0)
-		{
-			cr_sex firstArg = sequence.GetElement(0);
-			if (firstArg.Type() == EXPRESSION_TYPE_ATOMIC)
-			{
-				ce.Builder.EnterSection();
-				CompileExpression(ce, sequence);
-				AppendDeconstruct(ce, sequence, true);
-				ce.Builder.LeaveSection();
-				return;
-			}
-		}
-
-		ce.Builder.EnterSection();
-
-		int i = start;
-		for (;;)
-		{
-			// As we compile expressions macro expansions may add siblings to the parent
-			// The mechanism involves first cloning the immutable parent expression, then inserting elements after the macro expansion into the transform of the parent
-			// This means as we process each expression we have to watch out for transformations of the parent and changes to the NumberOfElements()
-			const ISExpression* sSourceExpression = ce.SS.GetTransform(sequence);
-
-			if (sSourceExpression == nullptr)
-			{
-				sSourceExpression = &sequence;
-			}
-
-			if (i >= sSourceExpression->NumberOfElements())
-			{
-				break;
-			}
-
-			cr_sex s = sSourceExpression->GetElement(i);
-			CompileExpression(ce, s);
-
-			i++;
-		}
-
-		AppendDeconstruct(ce, sequence, true);
-		ce.Builder.LeaveSection();
-	}
-
 	void CompileExpressionSequenceProtected(CCompileEnvironment& ce, int start, int end, cr_sex sequence)
 	{
 		if (sequence.Type() == EXPRESSION_TYPE_NULL)
@@ -1102,12 +1028,6 @@ namespace Rococo::Script
 			CompileExpression(ce, s); 
 		}
 
-		const ISExpression* sTransform = ce.SS.GetTransform(sequence);
-		if (sTransform)
-		{
-			Throw(sequence, "A macro attempted to expand siblings for the compound expression, but it is not expandable. Consider containing the offending code in a nested compound expression");
-		}
-
 		AppendDeconstruct(ce, sequence, true);
 		ce.Builder.LeaveSection();
 	}
@@ -1119,21 +1039,6 @@ namespace Rococo::Script
 			CompileExpressionSequenceProtected(ce, start, end, sequence);
 		}
 		catch(STCException& ex)
-		{
-			char buf[256];
-			StackStringBuilder ssb(buf, sizeof buf);
-			StreamSTCEX(ssb, ex);
-			Throw(sequence, "%s", buf);
-		}
-	}
-
-	void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence)
-	{
-		try
-		{
-			CompileTransformableExpressionSequenceProtected(ce, start, sequence);
-		}
-		catch (STCException& ex)
 		{
 			char buf[256];
 			StackStringBuilder ssb(buf, sizeof buf);
@@ -1606,7 +1511,7 @@ namespace Rococo::Script
 		try
 		{
 			CompileSetOutputToNull(REF f);
-			CompileTransformableExpressionSequence(ce, bodyIndex + 1, fdef);
+			CompileExpressionSequence(ce, bodyIndex + 1, fdef.NumberOfElements() - 1, fdef);
 
 			builder.End();
 		}
@@ -2091,7 +1996,6 @@ namespace Rococo::Script
 		nullObject.FillVirtualTables();
 	}
 
-	class CScript;
 	void RegisterContext(CScript& script, cstr name);
 	cstr emptyString = ("");
 
@@ -2125,7 +2029,7 @@ namespace Rococo::Script
 		return script.ProgramModule().FindStructure(className);
 	}
 
-	class CScripts
+	class CScripts: public IScripts
 	{
 		friend CScript;
 	private:
@@ -2143,7 +2047,15 @@ namespace Rococo::Script
 		int globalBaseIndex;
 		TSexyHashMap<const IArchetype*, IFunctionBuilder*> nullArchetypeFunctions;
 
-		bool canInlineString;		
+		bool canInlineString;	
+
+		enum { COMPILE_ALL_MODULES = 0 };
+		
+		struct PartialCompilationLimits
+		{		
+			size_t startingIndex = COMPILE_ALL_MODULES;
+			size_t maxModuleCount = COMPILE_ALL_MODULES;
+		} limits;
 	public:
 		CScripts(IProgramObject& _programObject, IScriptSystem& _system) : programObject(_programObject), system(_system), exceptionLogic(_system), canInlineString(false), globalBaseIndex(0)
 		{			
@@ -2156,6 +2068,18 @@ namespace Rococo::Script
 				CScript* script = i->second;
 				delete script;
 			}
+		}
+
+		void EnterCompileLimits(size_t startingIndex, size_t maxModuleCount)
+		{
+			limits.startingIndex = startingIndex;
+			limits.maxModuleCount = maxModuleCount;
+		}
+
+		void ReleaseCompileLimits()
+		{
+			limits.startingIndex = COMPILE_ALL_MODULES;
+			limits.maxModuleCount = COMPILE_ALL_MODULES;
 		}
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
@@ -2208,7 +2132,7 @@ namespace Rococo::Script
 			return module;
 		}
 
-		virtual Sex::ISParserTree* GetSourceCode(const IModule& module)
+		Sex::ISParserTree* GetSourceCode(const IModule& module) override
 		{
 			for(auto i = scripts.begin(); i != scripts.end(); ++i)
 			{
@@ -2223,7 +2147,7 @@ namespace Rococo::Script
 
 		const bool InlineStrings() const { return canInlineString; }
 
-		CDefaultExceptionLogic& ExceptionLogic() { return exceptionLogic; }
+		IExceptionLogic& ExceptionLogic() { return exceptionLogic; }
 
 		CScript* FindDefiningModule(INamespace* ns)
 		{
@@ -2294,11 +2218,16 @@ namespace Rococo::Script
 			}
 		}
 
-		template<class T> void ForEachUncompiledScript(T& t)
+		template<class T> void ForEachUncompiledScript(T& t, size_t minStartingIndex = 0)
 		{
-			for(auto i = scripts.begin(); i != scripts.end(); ++i)
+			size_t startIndex =  max(limits.startingIndex, minStartingIndex);
+			size_t endIndex = limits.maxModuleCount == COMPILE_ALL_MODULES ? scripts.size() : limits.maxModuleCount;
+
+			for(auto i = startIndex; i != endIndex; ++i)
 			{
-				CScript* script = i->second;
+				auto& scriptBinding = scripts[i];
+
+				CScript* script = scriptBinding.second;
 				cstr name = script->ProgramModule().Name();	
 
 				cr_sex root = script->Tree().Root();
@@ -2334,19 +2263,29 @@ namespace Rococo::Script
 
 			ForEachUncompiledScript(fnctorCompileNamespaces);
 			ResolveNamespaces();
+
+			struct FnctorCompileUsingNamespaces
+			{
+				void Process(CScript& script, cstr name)
+				{
+					script.ComputePrefixes();
+				}
+			} fnctorCompileUsingNamespaces;
+
+			ForEachUncompiledScript(fnctorCompileUsingNamespaces);
 		}
 
-		void CompileTopLevelMacros()
+		void CompileTopLevelMacros(size_t numberOfNativeModules)
 		{
 			struct FnctorCompileMacros
 			{
 				void Process(CScript& script, cstr name)
 				{
-					script.CompileTopLevelMacros();
+					script.CompileTopLevelMacrosForModule();
 				}
 			} fnctorCompileTopLevelMacros;
 
-			ForEachUncompiledScript(fnctorCompileTopLevelMacros);
+			ForEachUncompiledScript(fnctorCompileTopLevelMacros, numberOfNativeModules);
 		}
 
 		void AddSpecialStructures()
@@ -2457,7 +2396,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
-					script.ComputePrefixes();
+					// script.ComputePrefixes(); // TODO - delete this comment if everything is working
 					script.ComputeStructureNames();	
 				}
 			} fnctorComputeStructNames;
@@ -2719,6 +2658,21 @@ namespace Rococo::Script
 			}
 		}
 	};
+
+	IScripts::~IScripts()
+	{
+
+	}
+
+	IScripts* NewCScripts(IProgramObject& _programObject, IScriptSystem& _system)
+	{
+		return new CScripts(_programObject, _system);
+	}
+
+	void Delete(IScripts* scripts)
+	{
+		delete scripts;
+	}
 
 	IFunctionBuilder& CScript::GetNullFunction(const IArchetype& archetype)
 	{
@@ -2995,19 +2949,36 @@ namespace Rococo::Script
 	   }
    }
 
-   void CScript::CompileTopLevelMacro(cr_sex s)
+   const Rococo::Compiler::IMacro* FindMacro(CScript& script, cstr macroNameExcludingHash, cr_sex s)
    {
-	   fstring fqMacroName = GetAtomicArg(s[0]);
-	   auto& ss = scripts.System();
-	   auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
+	   NamespaceSplitter splitter(macroNameExcludingHash);
 
-	   NamespaceSplitter splitter(fqMacroName.buffer + 1);
+	   auto& ss = script.System();
+	   auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
 
 	   cstr ns, shortMacroName;
 	   if (!splitter.SplitTail(ns, shortMacroName))
 	   {
-		   Throw(s[0], "Expecting fully qualified macro name");
+		   auto& mod = script.ProgramModule();
+		   for (int i = 0; i < mod.PrefixCount(); ++i)
+		   {
+			   auto& prefix = mod.GetPrefix(i);
+			   auto* macro = prefix.FindMacro(macroNameExcludingHash);
+			   if (macro)
+			   {
+				   return macro;
+			   }
+		   }
+
+		   cstr msg = 
+				"Could not find macro amongst all the namespaces specified with 'using' directives in the module.\n"
+				"Macros must be compiled before the source files that invoke them.\n"
+				"Ensure that your build system used partial compilation as each source module was appended.\n";
+		   Throw(s[0], msg);
 	   }
+
+	  // auto& ss = script.System();
+	  // auto& rootNs = ss.PublicProgramObject().GetRootNamespace();
 
 	   auto* macroNS = rootNs.FindSubspace(ns);
 	   if (macroNS == nullptr)
@@ -3021,7 +2992,23 @@ namespace Rococo::Script
 		   Throw(s[0], "Could not find macro %s in namespace %s", shortMacroName, ns);
 	   }
 
+	   return macro;
+   }
+
+   void CScript::Invoke_S_Macro(cr_sex s)
+   {
+	   cstr macroName = GetAtomicArg(s[0]);
+
+	   if (*macroName != '#')
+	   {
+		   Throw(s, "Expecting # in position 0 of s[0]");
+	   }
+
+	   auto* macro = FindMacro(*this, macroName + 1, s);
+
 	   const IFunction& macroFunction = macro->Implementation();
+
+	   auto& ss = System();
 
 	   CallMacro(ss, macroFunction, s);
 
@@ -3034,25 +3021,45 @@ namespace Rococo::Script
 	   }
    }
 
-   void CScript::CompileTopLevelMacros()
+   bool IsMacroInvocation(cr_sex s)
    {
-	   cr_sex root = tree.Root();
-	   for (int i = 0; i < root.NumberOfElements(); i++)
+	   // Macros are compound expressions with the first atomic expression led by character #, e.g (#eat fish (type = cod))
+	   if (s.NumberOfElements() > 0)
 	   {
-		   auto& topLevelItem = root[i];
-		   if (topLevelItem.NumberOfElements() > 0)
+		   cr_sex sDirective = s[0];
+		   if (IsAtomic(sDirective))
 		   {
-			   cr_sex sDirective = topLevelItem[0];
-			   if (IsAtomic(sDirective))
+			   cstr directive = sDirective.c_str();
+			   if (directive[0] == '#')
 			   {
-				   cstr directive = sDirective.c_str();
-				   if (directive[0] == '#')
-				   {
-					   CompileTopLevelMacro(topLevelItem);
-				   }
+				   return true;
 			   }
 		   }
 	   }
+
+	   return false;
+   }
+
+   void CompileMacrosRecursive(CScript& script, cr_sex sParent)
+   {
+	   for (int i = 0; i < sParent.NumberOfElements(); i++)
+	   {
+		   auto& s = sParent[i];
+		   if (IsMacroInvocation(s))
+		   {
+			   script.Invoke_S_Macro(s);
+		   }
+		   else
+		   {
+			   CompileMacrosRecursive(script, s);
+		   }
+	   }
+   }
+
+   void CScript::CompileTopLevelMacrosForModule()
+   {
+	   cr_sex root = tree.Root();
+	   CompileMacrosRecursive(*this, root);
    }
 
    void  CScript::CompileNextClosures()
@@ -3123,15 +3130,6 @@ namespace Rococo::Script
 
 			nsDefs.push_back(def);
 		}
-		else if (elementName->Buffer[0] == '#')
-		{
-			// Potential macro expansion that may include a namespace definition
-			auto* sTransformDirective = script.System().GetTransform(sDirective);
-			if (sTransformDirective)
-			{
-				AppendCompiledNamespacesForOneDirective(nsDefs, *sTransformDirective, script);
-			}
-		}
    }
 
    void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs, cr_sex root, CScript& script)
@@ -3145,15 +3143,7 @@ namespace Rococo::Script
 	void CScript::AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs)
 	{
 		cr_sex root = tree.Root();	
-		auto* sRootTransform = System().GetTransform(root);
-		if (sRootTransform)
-		{
-			Rococo::Script::AppendCompiledNamespaces(nsDefs, *sRootTransform, *this);
-		}
-		else
-		{
-			Rococo::Script::AppendCompiledNamespaces(nsDefs, root, *this);
-		}
+		Rococo::Script::AppendCompiledNamespaces(nsDefs, root, *this);
 	}
 
 	IStructure* LookupArg(cr_sex s, IModuleBuilder& module, OUT cstr& argName)
@@ -4473,29 +4463,12 @@ namespace Rococo::Script
 
 	cr_sex CScript::GetActiveRoot()
 	{
-		cr_sex realRoot = tree.Root();
-		auto* pTransform = System().GetTransform(realRoot);
-		if (pTransform)
-		{
-			return *pTransform;
-		}
-		else
-		{
-			return realRoot;
-		}
+		return tree.Root();
 	}
 
 	cr_sex CScript::GetActiveExpression(cr_sex s)
 	{
-		auto* pTransform = System().GetTransform(s);
-		if (pTransform)
-		{
-			return *pTransform;
-		}
-		else
-		{
-			return s;
-		}
+		return s;
 	}
 
 	void CScript::ComputeStructureNames()

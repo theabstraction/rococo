@@ -196,6 +196,7 @@
     <ClInclude Include="..\..\source\rococo\sexy\SP\sexy.s-parser\sexy.s-parser.util.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\sexy\SP\sexy.s-parser\sexy.s-builder.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SP\sexy.s-parser\sexy.s-parser.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SP\sexy.s-parser\sexy.s-parser.s-block.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SP\sexy.s-parser\sexy.s-parser.stdafx.cpp" />

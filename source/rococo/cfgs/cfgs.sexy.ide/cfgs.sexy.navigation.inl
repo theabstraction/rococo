@@ -26,6 +26,8 @@ using namespace Rococo::Abedit;
 using namespace Rococo::Events;
 using namespace Rococo::Reflection;
 using namespace Rococo::Validators;
+using namespace Rococo::Strings;
+using namespace Rococo::Sex;
 
 static const char* title = "CFGS SexyStudio IDE";
 

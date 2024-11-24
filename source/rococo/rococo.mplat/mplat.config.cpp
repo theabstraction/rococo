@@ -3,15 +3,16 @@
 #include <rococo.hashtable.h>
 #include <rococo.io.h>
 
+using namespace Rococo;
+using namespace Rococo::Strings;
+
 namespace
 {
-   using namespace Rococo;
-
    void ValidateKey(const fstring& name)
    {
        try
        {
-           Rococo::ValidateFQNameIdentifier(name);
+           ValidateFQNameIdentifier(name);
        }
        catch (IException& ex)
        {
@@ -68,7 +69,7 @@ namespace
          return (i != mapToBool.end()) ? i->second : false;
       }
 
-      void GetText(const fstring& name, Rococo::IStringPopulator& text) override
+      void GetText(const fstring& name, IStringPopulator& text) override
       {
          auto i = mapToText.find(name);
          if (i != mapToText.end() && i->second.length() > 0)

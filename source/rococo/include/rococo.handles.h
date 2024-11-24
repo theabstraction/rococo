@@ -12,8 +12,6 @@
 
 namespace Rococo
 {
-	using namespace Rococo::Strings;
-
 	/* 
 		A THandle identifies a resource. The underlying data is 64-bits wide
 		The bit fields are thus: [SALT] [INDEX]
@@ -90,7 +88,7 @@ namespace Rococo
 		
 		size_t length = 0;
 
-		HString name;
+		Strings::HString name;
 
 		uint64 GetIndex(Handle hItem)
 		{

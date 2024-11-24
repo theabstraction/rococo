@@ -23,7 +23,8 @@
 using namespace Rococo;
 using namespace Rococo::Entities;
 using namespace Rococo::Events;
-using namespace Rococo::Textures;
+using namespace Rococo::Graphics;
+using namespace Rococo::Graphics::Textures;
 using namespace Rococo::Script;
 using namespace MHost::OS;
 using namespace Rococo::Sex;
@@ -35,6 +36,8 @@ struct AppArgs
 
 
 Gui::GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
+
+using namespace Rococo::Strings;
 
 namespace MHost
 {

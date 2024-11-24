@@ -28,8 +28,7 @@ using namespace Rococo;
 using namespace Rococo::Windows;
 using namespace Rococo::Windows::IDE;
 using namespace Rococo::Visitors;
-
-
+using namespace Rococo::Strings;
 using namespace Rococo::Sex;
 using namespace Rococo::VM;
 

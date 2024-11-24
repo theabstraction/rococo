@@ -18,7 +18,6 @@
 namespace Rococo
 {
     enum class EQualifier;
-    using namespace Sex;
 
     bool AreEqual(cstr s, const sexstring& t);
 
@@ -75,7 +74,7 @@ namespace Rococo
 
         void Set(cstr bennyHillDef)
         {
-            CopyString(this->bennyHillDef, MAX_TOKEN_LEN, bennyHillDef);
+            Strings::CopyString(this->bennyHillDef, MAX_TOKEN_LEN, bennyHillDef);
             GetFQCppStructName(compressedName, fqName, 256, bennyHillDef);
         }
 
@@ -95,7 +94,7 @@ namespace Rococo
         }
     };
 
-    typedef std::vector<const Rococo::Sex::ISExpression*, Memory::SexyAllocator<const ISExpression*>> TExpressions;
+    typedef std::vector<const Rococo::Sex::ISExpression*, Memory::SexyAllocator<const Sex::ISExpression*>> TExpressions;
 
     struct InterfaceContext
     {
@@ -108,9 +107,9 @@ namespace Rococo
         cstr sexyBase = nullptr;
         cstr cppBase = nullptr;
 
-        HString componentAPINamespace;
-        HString componentShortFriendlyName;
-        HString componentAPIName;
+        Strings::HString componentAPINamespace;
+        Strings::HString componentShortFriendlyName;
+        Strings::HString componentAPIName;
 
         bool isSingleton; // If true then the context comes from the native registration method, else it comes from the factory.
         CppType nceContext;
@@ -139,7 +138,7 @@ namespace Rococo
     {
         InterfaceContext ic;
         const Rococo::Sex::ISExpression* sdef;
-        std::vector<const ISExpression*, Memory::SexyAllocator<const ISExpression*>> methodArray;
+        std::vector<const Sex::ISExpression*, Memory::SexyAllocator<const Sex::ISExpression*>> methodArray;
     };
 
     struct EnumContext
@@ -193,5 +192,5 @@ namespace Rococo
     Rococo::cstr StringFrom(Rococo::Sex::cr_sex s);
     Rococo::cstr StringFrom(Rococo::Sex::cr_sex command, int elementIndex);
 
-    void AppendCppType(EQualifier qualifier, FileAppender& appender, cr_sex field, cstr fieldtype, const ParseContext& pc);
+    void AppendCppType(EQualifier qualifier, FileAppender& appender, Sex::cr_sex field, cstr fieldtype, const ParseContext& pc);
 }

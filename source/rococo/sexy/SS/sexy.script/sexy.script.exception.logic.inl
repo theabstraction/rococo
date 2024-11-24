@@ -383,7 +383,7 @@ namespace Rococo::Script
 		return object;
 	}
 
-	class CDefaultExceptionLogic
+	class CDefaultExceptionLogic: public IExceptionLogic
 	{
 	private:
 		TExceptionHandlers exceptionHandlers;
@@ -430,7 +430,7 @@ namespace Rococo::Script
 			isWithinException = false;
 		}
 
-		void AddCatchHandler(ID_BYTECODE id, size_t start, size_t end, size_t handlerOffset)
+		void AddCatchHandler(ID_BYTECODE id, size_t start, size_t end, size_t handlerOffset) override
 		{
 			ExceptionHandler handler;
 			handler.FunctionId = id;

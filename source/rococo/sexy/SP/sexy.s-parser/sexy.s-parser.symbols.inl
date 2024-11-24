@@ -67,7 +67,7 @@ namespace ANON
 		}
 		else
 		{
-			return Compare(a.Text, b.Text, a.Length) < 0;
+			return Strings::Compare(a.Text, b.Text, a.Length) < 0;
 		}
 	}
 

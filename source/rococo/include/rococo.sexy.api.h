@@ -64,7 +64,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE ISourceCache
 	{
-		[[nodiscard]] virtual IAllocator & Allocator() = 0;
+		[[nodiscard]] virtual IAllocator & Allocator() const = 0;
 		[[nodiscard]] virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName) = 0;
 		virtual int LoadSourceAsTextFileElseReturnErrorCode(cstr resourceName, Strings::IStringPopulator& populator) = 0;
 		virtual void Free() = 0;

@@ -39,13 +39,13 @@ namespace Rococo::DX11
 
 using namespace Rococo;
 using namespace Rococo::RAL;
-using namespace Rococo::Fonts;
+using namespace Rococo::Graphics::Fonts;
 using namespace Rococo::Windows;
-using namespace Rococo::Samplers;
+using namespace Rococo::Graphics::Samplers;
 using namespace Rococo::DX11;
 using namespace Rococo::Reflection;
-
-using namespace Rococo::Textures;
+using namespace Rococo::Graphics;
+using namespace Rococo::Graphics::Textures;
 
 class DX11AppRenderer :
 	public IDX11Renderer,

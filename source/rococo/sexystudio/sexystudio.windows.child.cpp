@@ -3,6 +3,8 @@
 #include <rococo.strings.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
+using namespace Rococo::Windows;
 
 namespace Rococo::SexyStudio
 {

@@ -49,6 +49,7 @@
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Compiler;
+using namespace Rococo::Strings;
 
 namespace Rococo
 {
@@ -98,7 +99,7 @@ namespace Rococo
 
 			if (endPos - startPos >= 64)
 			{
-				Rococo::SafeFormat(specimen, 64, ("%.28s... ...%.28s"), startPos, endPos - 28);
+				SafeFormat(specimen, 64, ("%.28s... ...%.28s"), startPos, endPos - 28);
 			}
 			else
 			{

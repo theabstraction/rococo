@@ -8,10 +8,11 @@
 #include <rococo.io.h>
 #include <rococo.ui.h>
 
+using namespace Rococo;
+using namespace Rococo::Strings;
+
 namespace
 {
-   using namespace Rococo;
-
    void InsertCharAtPos(int& caretPos, char* buffer, size_t capacity, char c)
    {
 	   int32 len = StringLength(buffer);

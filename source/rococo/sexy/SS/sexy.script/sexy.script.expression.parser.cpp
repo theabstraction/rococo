@@ -46,6 +46,7 @@ using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Compiler;
 using namespace Rococo::Script;
+using namespace Rococo::Strings;
 
 namespace Rococo 
 { 
@@ -3665,28 +3666,6 @@ namespace Rococo
 
 		void CompileCommand(CCompileEnvironment& ce, cr_sex s, sexstring token)
 		{
-			if (TryCompileMacroInvocation(ce, s, token))
-			{
-				const ISExpression* t = ce.SS.GetTransform(s);
-				if (t != NULL)
-				{
-					try
-					{
-						CompileExpression(ce, *t);
-					}
-					catch (ParseException& pex)
-					{
-						Rococo::Sex::Throw(*t, "Error compiling macro %s: %s", token->Buffer, pex.Message());
-					}
-					catch (IException& ex)
-					{
-						Rococo::Sex::Throw(*t, "Error compiling macro %s: %s", token->Buffer, ex.Message());
-					}
-				}
-
-				return;
-			}
-
 			if (token->Buffer[0] == ('\''))
 			{
 				// Data expression, skip
@@ -3743,8 +3722,6 @@ namespace Rococo
 			streamer << "Compiler exception code: " << ex.Code() << (".\n") << "Source: " << ex.Source() << "\n. Message: " << ex.Message();
 		}
 
-		void CompileTransformableExpressionSequence(CCompileEnvironment& ce, int start, cr_sex sequence);
-
 		void CompileExpression(CCompileEnvironment& ce, cr_sex s)
 		{
 			ce.Builder.MarkExpression(&s);
@@ -3761,7 +3738,7 @@ namespace Rococo
 				}
 				else
 				{
-					CompileTransformableExpressionSequence(ce, 0, s);
+					CompileExpressionSequence(ce, 0, s.NumberOfElements()-1, s);
 				}
 			}
 			catch (STCException& ex)

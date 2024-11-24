@@ -24,6 +24,7 @@ using namespace Rococo::Sex;
 using namespace Rococo::Sexy;
 using namespace Rococo::Sex::Assets;
 using namespace Rococo::Compiler;
+using namespace Rococo::Strings;
 
 namespace
 {

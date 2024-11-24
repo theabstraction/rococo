@@ -39,7 +39,7 @@ void MainProtected(HINSTANCE, HMODULE hLib)
 				return false;
 			}
 
-			EIDECloseResponse OnIDEClose(IWindow&) override
+			EIDECloseResponse OnIDEClose(Windows::IWindow&) override
 			{
 				return EIDECloseResponse::Shutdown;
 			}

@@ -48,6 +48,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Sex;
+using namespace Rococo::Strings;
 
 namespace ANON
 {
@@ -365,6 +366,11 @@ namespace Rococo
 			bool operator == (const char* token) const override
 			{
 				return token == c_str(); // throws
+			}
+
+			IExpressionTransform& TransformThis() const override
+			{
+				Throw(inner, __FUNCTION__ ": not supported");
 			}
 		};
 

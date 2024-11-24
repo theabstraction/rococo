@@ -10,6 +10,7 @@
 #include <rococo.stl.allocators.h>
 
 using namespace Rococo;
+using namespace Rococo::Strings;
 
 namespace MHost
 {

@@ -19,24 +19,16 @@
 
 using namespace Rococo;
 using namespace Rococo::Events;
+using namespace Rococo::Strings;
+using namespace Rococo::Graphics;
 
 static auto evFileUpdated = "OnFileUpdated"_event;
 
-namespace Rococo
+namespace Rococo::MPlatImpl
 {
-	namespace MPlatImpl
-	{
-		GUI::IScrollbar* CreateScrollbar(bool _isVertical);
-	}
-}
-
-namespace Rococo
-{
-	namespace MPlatImpl
-	{
-		// Note - implicityIncludes is NULL, MPlat defaults are used, which may conflict with security.
-		void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder);
-	}
+	GUI::IScrollbar* CreateScrollbar(bool _isVertical);
+	// Note - implicityIncludes is NULL, MPlat defaults are used, which may conflict with security.
+	void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder);
 }
 
 class Utilities :

@@ -10,6 +10,9 @@
 using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::MPlatImpl;
+using namespace Rococo::Graphics;
+using namespace Rococo::Graphics::Fonts;
+using namespace Rococo::Strings;
 
 static auto evFileUpdated = "OnFileUpdated"_event;
 
@@ -516,7 +519,6 @@ namespace Rococo
 
 			int fontHeight = Height(absRect) - 4;
 
-			using namespace Rococo::Fonts;
 			struct : IDrawTextJob
 			{
 				cstr text;
@@ -715,7 +717,7 @@ public:
 		if (evFileUpdated == ev)
 		{
 			auto& fue = As<FileUpdatedEvent>(ev);
-			if (Rococo::Eq(fue.pingPath, scriptFilename.c_str()))
+			if (Eq(fue.pingPath, scriptFilename.c_str()))
 			{
 				RefreshScript();
 			}

@@ -5,10 +5,13 @@
 #include <vector>
 #include <algorithm>
 
+using namespace Rococo;
+using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
+
 namespace
 {
-   using namespace Rococo;
-   using namespace Rococo::Graphics;
+
 
    struct MeshBinding
    {

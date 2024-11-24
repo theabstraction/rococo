@@ -38,7 +38,7 @@ namespace Rococo::Domme
 		scripting.debuggerWindow.Log("JIT exception: (Code %d) %s: %s. Line %d pos %d\n", ex.ErrorCode(), sourceName, ex.Message(), ex.Start().y, ex.Start().x);
 	}
 
-	DOMME_API void TerminateScript(Rococo::Compiler::IPublicProgramObject& object, cstr srcName, Rococo::Script::InterfacePointer scriptInterface)
+	DOMME_API void TerminateScript(Rococo::Compiler::IPublicProgramObject& object, cstr srcName, Compiler::InterfacePointer scriptInterface)
 	{
 		auto& vm = object.VirtualMachine();
 

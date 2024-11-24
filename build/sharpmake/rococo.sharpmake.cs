@@ -1253,6 +1253,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
         }
     }
 

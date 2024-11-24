@@ -6,11 +6,12 @@
 #include <rococo.strings.h>
 #include <rococo.hashtable.h>
 
+using namespace Rococo;
+using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
+
 namespace
 {
-   using namespace Rococo;
-   using namespace Rococo::Graphics;
-
    struct Sprites : public ISpriteBuilderSupervisor
    {
       IRenderer &renderer;

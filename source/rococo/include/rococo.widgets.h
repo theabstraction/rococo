@@ -36,16 +36,14 @@ namespace Rococo
          char text[256];
       };
 
-      using namespace Rococo::Graphics;
-
-      void Draw3DFrame(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, bool isLit);
-      void DrawCenteredLabel(IGuiRenderContext& rc, const GuiRect& rect, struct LabelSet& labelSet, bool isLit);
-      void Draw3DButton(IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, struct LabelSet& labelSet, bool isLit);
+      void Draw3DFrame(Graphics::IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, bool isLit);
+      void DrawCenteredLabel(Graphics::IGuiRenderContext& rc, const GuiRect& rect, struct LabelSet& labelSet, bool isLit);
+      void Draw3DButton(Graphics::IGuiRenderContext& rc, const GuiRect& rect, struct WidgetFrameSet& frameSet, struct LabelSet& labelSet, bool isLit);
 
       ROCOCO_INTERFACE IStatusBar
       {
          virtual void Free() = 0;
-         virtual void Render(IGuiRenderContext& gc, const GuiRect& rect) = 0;
+         virtual void Render(Graphics::IGuiRenderContext& gc, const GuiRect& rect) = 0;
       };
 
       IStatusBar* CreateStatusBar(Events::IPublisher& publisher);

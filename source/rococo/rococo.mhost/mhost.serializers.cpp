@@ -9,12 +9,13 @@
 #include <rococo.os.h>
 #include <rococo.strings.h>
 
+using namespace MHost;
+using namespace Rococo;
+using namespace Rococo::Sex;
+using namespace Rococo::Strings;
+
 namespace Anon
 {
-	using namespace MHost;
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-
 	struct Variant
 	{
 		VARTYPE type;
@@ -374,7 +375,7 @@ namespace Anon
 
 		void SaveTo(const fstring& pingPath) override
 		{
-			AutoFree<Rococo::IDynamicStringBuilder> isb = CreateDynamicStringBuilder(map.size() * 64);
+			AutoFree<IDynamicStringBuilder> isb = CreateDynamicStringBuilder(map.size() * 64);
 
 			auto& sb = isb->Builder();
 

@@ -6,6 +6,7 @@
 
 using namespace Rococo::DX11;
 using namespace Rococo::Strings;
+using namespace Rococo::Graphics;
 
 static uint32 g_windowCount = 0;
 

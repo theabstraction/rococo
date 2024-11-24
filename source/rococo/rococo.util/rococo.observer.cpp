@@ -5,10 +5,9 @@
 #include <algorithm>
 #include <stdlib.h>
 
-namespace Rococo::Strings
-{
-	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
-}
+#include <rococo.strings.h>
+
+using namespace Rococo::Strings;
 
 namespace
 {

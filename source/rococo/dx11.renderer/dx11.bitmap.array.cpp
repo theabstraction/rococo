@@ -8,6 +8,7 @@
 using namespace Rococo;
 using namespace Rococo::DX11;
 using namespace Rococo::Strings;
+using namespace Rococo::Graphics;
 using namespace Rococo::Graphics::Textures;
 
 struct DX11BitmapArray : public IDX11BitmapArray

@@ -3747,7 +3747,7 @@ namespace ANON
 				CopyString(publicName, Rococo::NAMESPACE_MAX_LENGTH, aliasFrom);
 
 				CopyString(implicitName, Rococo::NAMESPACE_MAX_LENGTH, file.filename.c_str());
-				cstr lastSlash = Rococo::ReverseFind('/', Substring { implicitName, implicitName + strlen(implicitName) } );
+				cstr lastSlash = ReverseFind('/', Substring { implicitName, implicitName + strlen(implicitName) } );
 				if (lastSlash)
 				{
 					*const_cast<char*>(lastSlash) = 0;

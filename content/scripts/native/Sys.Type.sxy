@@ -58,109 +58,6 @@
 
 (alias Print Sys.Print)
 
-// Example: (i += 1) maps to (i = (i+1) )
-(macro Sys.Type.inc in out
-	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#inc <variable-name>)")
-	(IExpression format = ' ($1 = ($1 + 1)))
-	(out.Substitute in format)
-)
-
-// Example: (#dec i) maps to (i = (i-1) )
-(macro Sys.Type.dec in out
-	(ValidateSubscriptRange in.ChildCount 2 2 "Usage: (#dec <variable-name>)")
-	(IExpression format = ' ($1 = ($1 - 1)))
-	(out.Substitute in format)
-)
-
-// Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
-(macro Sys.Type.build in out
-	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##build <variable-name> <arg1> ... <argN>)")
-	(ConvertArgsToExpressionPairs in (in 1) out 2)
-)
-
-// Scans the trailing arguments of an expression (... arg1 arg2 .. argN) and appends (lhs arg1)(lhs arg2)...(lhs argN) to the output
-(function ConvertArgsToExpressionPairs (IExpression in)(IExpression lhs)(IExpressionBuilder out)(Int32 startIndex)-> :
-	(for (Int32 i = startIndex) (i < in.ChildCount) (i += 1)
-		(IExpressionBuilder child = out.AddCompound)
-		(child.Copy lhs)
-		(child.Copy (in i))
-	)
-)
-
-(function ExpandStringMacro (IExpression in)(IExpressionBuilder out)-> :
-	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##string <variable-name> <capacity> <arg1> ... <argN>)")
-	(out.AddAtomic "IStringBuilder")
-	(out.Copy (in 1))
-	(out.AddAtomic "=")
-	(IExpressionBuilder factoryCall = out.AddCompound)
-	(factoryCall.AddAtomic "NewStringBuilder")
-	(factoryCall.Copy (in 2))
-	
-	(if (in.ChildCount > 3)
-		(IExpressionBuilder parent = out.TransformParent)
-		(Int32 outIndex)
-		(parent.IndexOf in -> outIndex)
-		
-		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))	
-		(ConvertArgsToExpressionPairs in (in 1) builderSequence 3)
-	)
-)
-
-(function ExpandStringMacroEx (IString factoryName) (IExpression in)(IExpressionBuilder out)(Bool doNotTruncate)-> :
-	(out.AddAtomic "IStringBuilder")
-	(IExpression variableName = (in 1))
-	(out.AddAtomic variableName.Text)
-	(out.AddAtomic "=")
-	(IExpressionBuilder factoryCall = out.AddCompound)
-	(factoryCall.AddAtomic factoryName)
-	
-	(if (in.ChildCount > 2)
-		(IExpressionBuilder parent = out.TransformParent)
-		(Int32 outIndex)
-		(parent.IndexOf in -> outIndex)
-		
-		(IExpressionBuilder builderSequence = (parent.InsertCompoundAfter outIndex))
-
-		(if doNotTruncate
-			(IStringBuilder sb = (NewPathBuilder))
-			(#build sb variableName.Text ".ThrowIfAppendWouldTruncate")
-			(builderSequence.AddAtomic sb)		
-			(outIndex += 1)
-			(builderSequence = (parent.InsertCompoundAfter outIndex))
-		)
-		
-		(ConvertArgsToExpressionPairs in variableName builderSequence 2)
-	)
-)
-
-(alias ExpandStringMacro Sys.Type.ExpandStringMacro)
-
-// Example (#string sb 64 "Position:" 37 "," 124) maps to (IStringBuilder sb = (NewStringBuilder 64)) ((sb.AppendIString "Position:")(sb.AppendInt32 37) (sb.AppendIString ",") (sb.AppendInt32 124))
-(macro Sys.Type.string in out
-	(ExpandStringMacro in out)
-)
-
-// Usage (#token <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewTokenBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
-// Tokens have 64 character capacity (including the terminating nul char)
-(macro Sys.Type.token in out
-	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##token <variable-name> args...)")
-	(ExpandStringMacroEx "NewTokenBuilder" in out true)
-)
-
-// Usage (#path <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewPathBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
-// Paths have 260 character capacity (including the terminating nul char)
-(macro Sys.Type.path in out
-	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##path <variable-name> args...)")
-	(ExpandStringMacroEx "NewPathBuilder" in out true)
-)
-
-// Usage (#paragraph <variable-name> args...) which expands to (IStringBuilder <variable-name> = (NewParagraphBuilder)) ((<variable-name> args1) ... (<variable-name> argsN)).
-// Paragraphs have 1024 character capacity (including the terminating nul char)
-(macro Sys.Type.paragraph in out
-	(ValidateSubscriptRange in.ChildCount 2 1000000 "Usage: (##paragraph <variable-name> args...)")
-	(ExpandStringMacroEx "NewParagraphBuilder" in out false)
-)
-
 (function PublishAPI -> :
 	// requires user directory has folder 'sexydoc'
 	(Sys.Native.PublishAPI)
@@ -227,21 +124,6 @@
 	)
 )
 
-(macro Sys.entrypoint in out
-	(Sys.ValidateSubscriptRange in.ChildCount 1 1 "Usage: (##Sys.entrypoint)")
-	
-	(out.AddAtomic "namespace")
-	(out.AddAtomic "EntryPoint")
-	
-	(IExpressionBuilder parent = out.TransformParent)
-	(Int32 outIndex = (parent.IndexOf in))
-	(IExpressionBuilder aliasBuilder = (parent.InsertCompoundAfter outIndex))
-	
-	(aliasBuilder.AddAtomic "alias")
-	(aliasBuilder.AddAtomic "Main")
-	(aliasBuilder.AddAtomic "EntryPoint.Main")
-)
-
 (function AppendWithCharacterSubstitutions (IStringBuilder builder) (IString text)(IString substituteThis)(IString withThat) -> :
 	(if (substituteThis.Length != 1)
 		(Sys.Throw 0 "Expecting the [substituteThis] string to be of length 1, i.e one ascii character")
@@ -262,10 +144,12 @@
 (function BuildOptionalType (IExpression in)(IExpressionBuilder out) -> :
 	(IExpression sFQType = (in 1))
 
-	(#token mangledTypeName)
+	(IStringBuilder mangledTypeName = (Sys.Type.NewTokenBuilder))
 	(AppendWithCharacterSubstitutions mangledTypeName sFQType.Text "." "")
-	(#token structName "Optional" mangledTypeName)	
 	
+	(IStringBuilder structName = (Sys.Type.NewTokenBuilder))
+	(structName "Optional")
+	(structName mangledTypeName)
 
 	(out.AddAtomic "struct")	
 	(out.AddAtomic structName)
@@ -277,6 +161,8 @@
 	(boolSpec.AddAtomic "isValid")
 )
 
+(namespace Sys)
+(namespace Sys.Type)
 (namespace Sys.Type.Macros)
 
 (alias AppendWithCharacterSubstitutions Sys.Type.Macros.AppendWithCharacterSubstitutions)
@@ -298,3 +184,4 @@
 
 (strong ROID (Int64))
 (alias ROID Sys.Type.ROID)
+

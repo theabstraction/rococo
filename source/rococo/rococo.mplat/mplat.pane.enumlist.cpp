@@ -8,6 +8,8 @@ using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
+using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
 
 class EnumListPane : public BasePane, public GUI::IEnumListPane, public IEventCallback<ScrollEvent>
 {

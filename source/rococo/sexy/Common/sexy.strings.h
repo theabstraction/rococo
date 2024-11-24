@@ -43,11 +43,9 @@
 
 namespace Rococo
 {
-	using namespace Rococo::Strings;
-
 	inline int32 Compare(sexstring a, const char* b)
 	{
-		return Compare(a->Buffer, b);
+		return Strings::Compare(a->Buffer, b);
 	}
 
 	namespace Strings
@@ -58,12 +56,12 @@ namespace Rococo
 
 	inline bool AreEqual(sexstring a, sexstring b)
 	{
-		return a->Length == b->Length && Compare(a->Buffer, b->Buffer) == 0;
+		return a->Length == b->Length && Strings::Compare(a->Buffer, b->Buffer) == 0;
 	}
 
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b)
 	{
-		int delta = Compare(a, b);
+		int delta = Strings::Compare(a, b);
 		return delta == 0;
 	}
 
@@ -74,7 +72,7 @@ namespace Rococo
 
 	template<typename CHARTYPE> inline bool AreEqual(const CHARTYPE* a, const CHARTYPE* b, int count)
 	{
-		return Compare(a, b, count) == 0;
+		return Strings::Compare(a, b, count) == 0;
 	}
 
 	namespace Parse

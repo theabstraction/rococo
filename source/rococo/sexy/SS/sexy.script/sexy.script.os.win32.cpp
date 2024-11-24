@@ -52,6 +52,8 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 
+using namespace Rococo::Strings;
+
 #define BREAK_ON_THROW
 
 #ifndef SCRIPT_IS_LIBRARY
@@ -70,7 +72,8 @@ namespace
 	}
 }
 
-namespace Rococo {
+namespace Rococo
+{
 	namespace OS
 	{
 		bool TryGetDefaultNativeSrcDir(wchar_t* data, size_t capacity)

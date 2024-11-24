@@ -7,6 +7,8 @@
 #include "rococo.io.h"
 
 using namespace Rococo::DX11;
+using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
 
 struct DX11Materials : IDX11Materials
 {

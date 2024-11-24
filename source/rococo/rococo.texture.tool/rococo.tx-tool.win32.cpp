@@ -18,6 +18,7 @@ namespace Rococo::Assets
 using namespace Rococo;
 using namespace Rococo::IO;
 using namespace Rococo::Assets;
+using namespace Rococo::Strings;
 
 bool ConsumeMessagesAndSleepEx(int sleepMilliseconds)
 {

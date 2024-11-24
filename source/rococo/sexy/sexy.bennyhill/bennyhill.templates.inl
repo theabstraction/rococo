@@ -74,6 +74,7 @@ namespace
 	using namespace Rococo::Sex;
 	using namespace Rococo::Script;
 	using namespace Rococo::Compiler;
+	using namespace Rococo::Components;
 
 	RefPointers* ReadRefAndId(OUT ROID& id, IN uint8* _sf, IN OUT ptrdiff_t& _offset)
 	{

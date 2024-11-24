@@ -2,9 +2,7 @@
 #include "rococo.renderer.h"
 #include "dx11helpers.inl"
 
-namespace Rococo
-{
-}
+using namespace Rococo::Graphics;
 
 namespace ANON
 {

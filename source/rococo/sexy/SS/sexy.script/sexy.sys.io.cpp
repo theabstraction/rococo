@@ -6,6 +6,12 @@
 
 #define ANON_NS Anon::Sys::IO
 
+using namespace Rococo;
+using namespace Rococo::Script;
+using namespace Rococo::Strings;
+using namespace Rococo::Sex;
+using namespace Rococo::Compiler;
+
 namespace ANON_NS
 {
 	struct IOSystem;
@@ -24,9 +30,6 @@ namespace Rococo::Script
 
 namespace ANON_NS
 {
-	using namespace Rococo;
-	using namespace Rococo::Script;
-
 	enum FileWriterInstanceFlags
 	{
 		FileWriterInstanceFlags_ApplyFormat = 0x00000001,

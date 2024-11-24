@@ -11,7 +11,8 @@
 using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
-
+using namespace Rococo::AutoComplete;
+using namespace Rococo::Windows;
 
 auto DLL_NAME = L"sexystudio.dll";
 

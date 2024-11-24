@@ -31,76 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
-namespace Rococo::Strings::Impl
+namespace Rococo::Strings
 {
-	template<uint32 capacity>
-	struct Memo
-	{
-		enum { CAPACITY = capacity };
-		char Data[CAPACITY];
-	};
-
-	template<class T>
-	class TFastAllocator
-	{
-	private:
-		typedef TSexyVector<T*> TItems;
-		TItems items;
-		TItems freeItems;
-
-	public:
-		~TFastAllocator()
-		{
-			clear();
-		}
-
-		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
-
-		void clear()
-		{
-			for(auto i = items.begin(); i != items.end(); ++i)
-			{
-				Rococo::Memory::FreeSexyUnknownMemory(*i);
-			}
-
-			items.clear();
-
-			for (auto i = freeItems.begin(); i != freeItems.end(); ++i)
-			{
-				Rococo::Memory::FreeSexyUnknownMemory(*i);
-			}
-
-			freeItems.clear();
-		}
-
-		T* alloc()
-		{
-			T* item;
-
-			if (freeItems.empty())
-			{
-				item = (T*) Rococo::Memory::AllocateSexyMemory(sizeof T);
-			}
-			else
-			{
-				item = freeItems.back();
-				items.push_back(item);
-				freeItems.pop_back();
-			}
-
-			return item;
-		}
-
-		void free(T* item)
-		{
-			freeItems.push_back(item);
-		}
-	};
-
-	typedef Memo<128> TMemo;
-
-	typedef TFastAllocator<TMemo> TMemoAllocator;
-
 	void CreateMemoString(NativeCallEnvironment& e)
 	{
 		TMemoAllocator& allocator = *(TMemoAllocator*) e.context;
@@ -1013,7 +945,7 @@ namespace Rococo::Strings::Impl
 		}
 		else
 		{
-			diff = Rococo::CompareI(s, t);
+			diff = Rococo::Strings::CompareI(s, t);
 		}
 
 		WriteOutput(0, diff, e);
@@ -1263,7 +1195,7 @@ namespace Rococo
 	{
 		IStringPool* NewStringPool()
 		{
-			return new Rococo::Strings::Impl::StringPool();
+			return new Rococo::Strings::StringPool();
 		}
 	}
 }

@@ -70,7 +70,7 @@ struct SexyStudioEventHandler: ISexyStudioEventHandler
         return false;
     }
 
-    EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+    EIDECloseResponse OnIDEClose(Windows::IWindow& topLevelParent) override
     {
         ShowWindow(topLevelParent, SW_HIDE);
         return EIDECloseResponse::Continue;
@@ -478,7 +478,7 @@ public:
 
             eventHandler.This = this;
 
-            THIS_WINDOW topLevelWindow(hScintilla);
+            Windows::THIS_WINDOW topLevelWindow(hScintilla);
             sexyIDE->Gui().PopupPreview(topLevelWindow, searchToken, path, lineNumber, eventHandler);
         }
     }

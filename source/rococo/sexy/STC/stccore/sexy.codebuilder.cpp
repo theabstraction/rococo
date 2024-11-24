@@ -44,6 +44,7 @@ using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::Parse;
 using namespace Rococo::Sex;
+using namespace Rococo::Strings;
 
 namespace Rococo
 {
@@ -2154,7 +2155,7 @@ namespace Anon
 				}
 				else
 				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Type mismatch trying to assign [%s %s] to [%s %s]"), GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
+					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Type mismatch trying to assign [%s %s] to [%s %s]", GetFriendlyName(*sourceDef.ResolvedType), source, GetFriendlyName(*targetDef.ResolvedType), target);
 				}
 			}
 			else
@@ -2165,12 +2166,12 @@ namespace Anon
 
 		if (sourceDef.CapturesLocalVariables && !targetDef.CapturesLocalVariables)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not copy %s to %s. The target variable accepts regular function references, but not closures."), source, target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not copy %s to %s. The target variable accepts regular function references, but not closures.", source, target);
 		}
 
 		if (targetDef.location == VARLOCATION_OUTPUT && trgType->VarType() == VARTYPE_Derivative && !IsNullType(*trgType))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Do not know how to handle derivative type as output. %s %s"), trgType->Name(), (cstr) target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Do not know how to handle derivative type as output. %s %s", trgType->Name(), (cstr) target);
 		}
 
 		if (IsNullType(*trgType))

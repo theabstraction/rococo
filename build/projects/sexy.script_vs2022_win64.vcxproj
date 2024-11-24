@@ -145,13 +145,15 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexy.script.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q&#x0D;&#x0A;</Command>
+      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -234,16 +236,19 @@
       <AdditionalDependencies>rococo.util.lib;sexy.compiler.lib;sexy.s-parser.lib;sexy.util.lib;sexy.vm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.script.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexy.script.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q&#x0D;&#x0A;</Command>
+      <Command>xcopy C:\work\rococo\source\rococo\sexy\NativeSource\*.sxy C:\work\rococo\content\scripts\native /i  /y  /d  /q
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.internal.api.h" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.array.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.asserts.inl" />
@@ -268,7 +273,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.exceptions.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.execution.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.global.functions.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.source-cache.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.packages.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" />
@@ -279,8 +286,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.os.win32.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.s-builder.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.stdafx.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.sys.io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -312,5 +319,8 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

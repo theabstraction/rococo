@@ -9,6 +9,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Strings;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
+using namespace Rococo::Graphics;
 
 struct Tab
 {

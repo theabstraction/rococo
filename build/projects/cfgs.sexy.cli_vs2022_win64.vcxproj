@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -225,7 +225,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -242,6 +242,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
+      <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
     <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
       <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

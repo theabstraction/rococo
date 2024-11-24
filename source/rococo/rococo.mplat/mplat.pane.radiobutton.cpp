@@ -7,6 +7,8 @@ using namespace Rococo;
 using namespace Rococo::Events;
 using namespace Rococo::Windows;
 using namespace Rococo::MPlatImpl;
+using namespace Rococo::Graphics;
+using namespace Rococo::Strings;
 
 class PanelRadioButton : public BasePane, public GUI::IRadioButton, public IObserver
 {

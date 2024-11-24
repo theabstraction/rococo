@@ -259,11 +259,19 @@ namespace Rococo
 
 		struct ISExpressionBuilder;
 
+		DECLARE_ROCOCO_INTERFACE IExpressionTransform;
+
 		ROCOCO_INTERFACE ISExpression
 		{
-			virtual cstr c_str() const = 0; // If this is a string-literal or atomic returns the string pointer, else throws
-			virtual const Vec2i Start() const = 0; // (X.Y) of start relative to tree origin in source file
-			virtual const Vec2i End() const = 0;// (X.Y) of end relative to tree origin in source file
+			// If this is a string-literal or atomic returns the string pointer, else throws
+			virtual cstr c_str() const = 0;
+
+			// (X.Y) of start relative to tree origin in source file
+			virtual const Vec2i Start() const = 0; 
+
+			// (X.Y) of end relative to tree origin in source file
+			virtual const Vec2i End() const = 0;
+
 			virtual EXPRESSION_TYPE Type() const = 0;
 			virtual const sexstring String() const = 0;
 			virtual const ISParserTree& Tree() const = 0;
@@ -275,6 +283,10 @@ namespace Rococo
 			virtual const ISExpression* GetOriginal() const = 0;
 			virtual bool operator == (const char* token) const = 0;
 			virtual void Free() = 0;
+
+			// Tell's the child to notify the parent that it has been transformed, and returns the transform expression. This is used by S-macros.
+			virtual IExpressionTransform& TransformThis() const = 0;
+
 			virtual ~ISExpression() {};
 		};
 

@@ -10,12 +10,13 @@
 
 #include <rococo.file.browser.h>
 
+using namespace Rococo;
+using namespace Rococo::Graphics;
+using namespace Rococo::Events;
+using namespace Rococo::Strings;
+
 namespace
 {
-	using namespace Rococo;
-	using namespace Rococo::Graphics;
-	using namespace Rococo::Events;
-
 	ROCOCO_INTERFACE IBloodyPropertyType
 	{
 		virtual void Click(bool clickedDown, Vec2i pos) = 0;

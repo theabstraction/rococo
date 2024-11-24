@@ -213,8 +213,10 @@
 (using Sys.Reflection)
 
 (function BuildPrintStatement (IExpression in)(IExpressionBuilder out)-> :
-	(#token stdoutVar "stdoutBPS" Sys.Maths.I64.GenUnique)
-	
+	(IStringBuilder stdoutVar = (NewTokenBuilder))
+	(stdoutVar "stdoutBPS")
+	(stdoutVar Sys.Maths.I64.GenUnique)
+		
 	(IExpressionBuilder stdoutWriterInit = out.AddCompound)
 	(stdoutWriterInit.AddAtomic "Sys.IO.IWriter")
 	(stdoutWriterInit.AddAtomic stdoutVar)

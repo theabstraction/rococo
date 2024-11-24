@@ -13,9 +13,6 @@
 
 namespace Rococo
 {
-	using namespace Rococo::Events;
-	using namespace Rococo::Strings;
-
 	namespace MPlatImpl
 	{
 		class BasePane : virtual public IPaneSupervisor
@@ -55,10 +52,10 @@ namespace Rococo
 			   RGBAb(255,255,255, 255),
 			};
 
-			HString bkImageName;
-			Textures::BitmapLocation bkBitmap = { {0,0,0,0},0,{0,0} };
+			Strings::HString bkImageName;
+			Graphics::Textures::BitmapLocation bkBitmap = { {0,0,0,0},0,{0,0} };
 
-			HString bkVolatileBackImageName;
+			Strings::HString bkVolatileBackImageName;
 			ID_VOLATILE_BITMAP bkVolatileId;
 		public:
 
@@ -66,10 +63,10 @@ namespace Rococo
 			IPaneSupervisor* Parent();
 
 			void SetCommand(int32 stateIndex, boolean32 deferAction, const fstring& text) override;
-			void Invoke(IPublisher& publisher, int32 stateIndex);
+			void Invoke(Rococo::Events::IPublisher& publisher, int32 stateIndex);
 			void SetPopulator(int32 stateIndex, const fstring& populatorName);
-			void AppendEventToChildren(IPublisher& publisher, const MouseEvent& me, const Vec2i& absTopLeft, int stateIndex = 0);
-			bool AppendEventToChildren(IPublisher& publisher, const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex = 0);
+			void AppendEventToChildren(Rococo::Events::IPublisher& publisher, const MouseEvent& me, const Vec2i& absTopLeft, int stateIndex = 0);
+			bool AppendEventToChildren(Rococo::Events::IPublisher& publisher, const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex = 0);
 			void AlignLeftEdges(int32 borderPixels, boolean32 preserveSpan) override;
 			void AlignRightEdges(int32 borderPixels, boolean32 preserveSpan) override;
 			void AlignTopEdges(int32 borderPixels, boolean32 preserveSpan) override;
@@ -96,10 +93,10 @@ namespace Rococo
 			void SetColourEdge1(RGBAb normal, RGBAb hilight) override;
 			void SetColourEdge2(RGBAb normal, RGBAb hilight) override;
 			void SetColourFont(RGBAb normal, RGBAb hilight) override;
-			void Populate(IPublisher& publisher, IGuiRenderContext& grc, int32 stateIndex, const Vec2i& topLeft);
-			void RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
-			void RenderBackground(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
-			void RenderChildren(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
+			void Populate(Rococo::Events::IPublisher& publisher, Graphics::IGuiRenderContext& grc, int32 stateIndex, const Vec2i& topLeft);
+			void RenderBkImage(Graphics::IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
+			void RenderBackground(Graphics::IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
+			void RenderChildren(Graphics::IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality);
 		}; // class BasePane
 
 		struct PaneDelegate : public IPaneSupervisor
@@ -256,7 +253,7 @@ namespace Rococo
 				return  current->Supervisor()->SetPopulator(stateIndex, populatorName);
 			}
 
-			void Render(IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
+			void Render(Graphics::IGuiRenderContext& grc, const Vec2i& topLeft, const Modality& modality) override
 			{
 				return current->Render(grc, topLeft, modality);
 			}
@@ -269,15 +266,15 @@ namespace Rococo
 
 		IPaneBuilderSupervisor* CreateDebuggingOverlay(Platform& platfore);
 		Rococo::GUI::IArrayBox* AddArrayBox(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorEventKey, const GuiRect& rect);
-		Rococo::GUI::ITextOutputPane* AddTextOutput(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& eventKey, const GuiRect& rect);
-		Rococo::GUI::IScroller* AddScroller(IPublisher& publisher, BasePane& panel, const fstring& key, const GuiRect& rect, boolean32 isVertical);
-		Rococo::GUI::IContextMenuPane* AddContextMenuPane(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& panel, const fstring& key, const GuiRect& rect, IContextMenuSupervisor& cm);
-		Rococo::GUI::ILabelPane* AddLabel(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect);
+		Rococo::GUI::ITextOutputPane* AddTextOutput(Rococo::Events::IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& eventKey, const GuiRect& rect);
+		Rococo::GUI::IScroller* AddScroller(Rococo::Events::IPublisher& publisher, BasePane& panel, const fstring& key, const GuiRect& rect, boolean32 isVertical);
+		Rococo::GUI::IContextMenuPane* AddContextMenuPane(Rococo::Events::IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& panel, const fstring& key, const GuiRect& rect, IContextMenuSupervisor& cm);
+		Rococo::GUI::ILabelPane* AddLabel(Rococo::Events::IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect);
 		Rococo::GUI::IEnumListPane* AddEnumList(Platform& platform, BasePane& panel, int32 fontIndex, const fstring& populatorId, const GuiRect& rect);
-		Rococo::GUI::ISlider* AddSlider(IPublisher& publisher, IRenderer& renderer, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue);
+		Rococo::GUI::ISlider* AddSlider(Rococo::Events::IPublisher& publisher, Graphics::IRenderer& renderer, BasePane& panel, int32 fontIndex, const fstring& text, const GuiRect& rect, float minValue, float maxValue);
 		Rococo::GUI::IScrollbar* CreateScrollbar(bool _isVertical);
-		void RenderLabel(IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int horzAlign, int vertAlign, Vec2i padding, int fontIndex, const MPlatColourScheme& scheme, bool enableHighlights);
-		Rococo::GUI::IRadioButton* AddRadioButton(IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect);
-		Rococo::GUI::ITabContainer* AddTabContainer(IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& pane, int32 tabHeight, int32 fontIndex, const GuiRect& rect);
+		void RenderLabel(Rococo::Graphics::IGuiRenderContext& grc, cstr text, const GuiRect& absRect, int horzAlign, int vertAlign, Vec2i padding, int fontIndex, const MPlatColourScheme& scheme, bool enableHighlights);
+		Rococo::GUI::IRadioButton* AddRadioButton(Rococo::Events::IPublisher& publisher, BasePane& panel, int32 fontIndex, const fstring& text, const fstring& key, const fstring& value, const GuiRect& rect);
+		Rococo::GUI::ITabContainer* AddTabContainer(Rococo::Events::IPublisher& publisher, IKeyboardSupervisor& keyboard, BasePane& pane, int32 tabHeight, int32 fontIndex, const GuiRect& rect);
 	} // MPlatImpl
 } // Rococo

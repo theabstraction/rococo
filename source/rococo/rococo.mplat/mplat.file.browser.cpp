@@ -12,6 +12,7 @@ using namespace Rococo::Events;
 using namespace Rococo::Browser;
 using namespace Rococo::IO;
 using namespace Rococo::Strings;
+using namespace Rococo::Graphics;
 
 struct FileBrowserStyle: public IFileBrowserStyle
 {

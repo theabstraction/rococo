@@ -18,6 +18,8 @@ using namespace Rococo::CFGS;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::Strings;
 using namespace Rococo::Sex::SEXML;
+using namespace Rococo::Windows;
+using namespace Rococo::Sex;
 
 static Rococo::stringmap<int> knownPrimitives;
 

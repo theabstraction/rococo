@@ -48,6 +48,9 @@
 std::unordered_set<std::string> allCppHeaders;
 std::vector<std::string> allCppHeadersOrdered;
 
+using namespace Rococo::Sex;
+using namespace Rococo::Strings;
+
 namespace Rococo
 { 
 	// Adds pragma once only once per header

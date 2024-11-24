@@ -223,21 +223,6 @@
 	)
 )
 
-(macro Sys.entrypoint in out
-	(Sys.ValidateSubscriptRange in.ChildCount 1 1 "Usage: (##Sys.entrypoint)")
-	
-	(out.AddAtomic "namespace")
-	(out.AddAtomic "EntryPoint")
-	
-	(IExpressionBuilder parent = out.TransformParent)
-	(Int32 outIndex = (parent.IndexOf in))
-	(IExpressionBuilder aliasBuilder = (parent.InsertCompoundAfter outIndex))
-	
-	(aliasBuilder.AddAtomic "alias")
-	(aliasBuilder.AddAtomic "Main")
-	(aliasBuilder.AddAtomic "EntryPoint.Main")
-)
-
 (function AppendWithCharacterSubstitutions (IStringBuilder builder) (IString text)(IString substituteThis)(IString withThat) -> :
 	(if (substituteThis.Length != 1)
 		(Sys.Throw 0 "Expecting the [substituteThis] string to be of length 1, i.e one ascii character")
@@ -273,6 +258,8 @@
 	(boolSpec.AddAtomic "isValid")
 )
 
+(namespace Sys)
+(namespace Sys.Type)
 (namespace Sys.Type.Macros)
 
 (alias AppendWithCharacterSubstitutions Sys.Type.Macros.AppendWithCharacterSubstitutions)

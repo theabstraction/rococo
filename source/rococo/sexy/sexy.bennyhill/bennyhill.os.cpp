@@ -48,6 +48,8 @@
 #include <rococo.api.h>
 #include <rococo.os.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	FileAppender::FileAppender(cstr _filename) : filename(_filename)

@@ -2,6 +2,9 @@
 #include <rococo.hashtable.h>
 #include <rococo.os.h>
 
+using namespace Rococo::Strings;
+using namespace Rococo::Windows;
+
 namespace Rococo::SexyStudio
 {
 	struct ReportWidget : IReportWidget, IWin32WindowMessageLoopHandler

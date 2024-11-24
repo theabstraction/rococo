@@ -2,6 +2,8 @@
 #include <vector>
 #include <rococo.maths.h>
 
+using namespace Rococo::Graphics;
+
 namespace Rococo
 {
 	bool operator == (const RGBAb& a, const RGBAb& b)

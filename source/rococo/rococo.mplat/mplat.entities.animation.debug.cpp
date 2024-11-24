@@ -5,6 +5,7 @@
 using namespace Rococo;
 using namespace Rococo::Entities;
 using namespace Rococo::Graphics;
+using namespace Rococo::Components;
 
 namespace
 {

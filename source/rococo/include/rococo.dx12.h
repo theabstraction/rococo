@@ -33,8 +33,6 @@ namespace Rococo
 
 namespace Rococo::Graphics
 {
-	using namespace Rococo::IO;
-
 	enum class TextureInternalFormat
 	{
 		Greyscale_R8,

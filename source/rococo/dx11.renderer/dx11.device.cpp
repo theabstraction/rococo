@@ -2,6 +2,8 @@
 #include "dx11helpers.inl"
 #include <rococo.renderer.formats.h>
 
+using namespace Rococo::Graphics;
+
 namespace Rococo::DX11
 {
 	void ShowVenueForDevice(IMathsVisitor& visitor, ID3D11Device& device)

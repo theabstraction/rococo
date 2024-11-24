@@ -4,8 +4,6 @@
 #include <rococo.ui.h>
 #include <rococo.renderer.h>
 
-using namespace Rococo;
-
 #pragma pack(push,1)
 
 namespace Rococo
@@ -31,7 +29,7 @@ namespace MHost
 	{
 		struct KeyState
 		{
-			uint8 keys[256];
+			Rococo::uint8 keys[256];
 		};
 	} // OS
 
@@ -39,19 +37,19 @@ namespace MHost
 	{
 		struct FontDesc
 		{
-			float32 ascent;
-			float32 height;
+			float ascent;
+			float height;
 		};
 	}
 
 	struct WorldOrientation
 	{
-		Degrees heading;
-		Degrees elevation;
-		Degrees roll;
+		Rococo::Degrees heading;
+		Rococo::Degrees elevation;
+		Rococo::Degrees roll;
 	};
 
-	ROCOCO_ID(IdTexture, uint64, 0);
+	ROCOCO_ID(IdTexture, Rococo::uint64, 0);
 } // MHost
 
 #pragma pack(pop)
@@ -71,15 +69,15 @@ namespace MHost
 
 	namespace GuiTypes
 	{
-		enum class GuiEventId : int64;
+		enum class GuiEventId : Rococo::int64;
 
 #pragma pack(push,1)
 		struct GuiEvent
 		{
 			GuiEventId eventId;
-			Vec2i buttonPos;
-			int64 metaId;
-			cstr stringId;
+			Rococo::Vec2i buttonPos;
+			Rococo::int64 metaId;
+			Rococo::cstr stringId;
 		};
 #pragma pack(pop)
 	}
@@ -91,24 +89,20 @@ namespace MHost
 
 namespace MHost
 {
-	using namespace Rococo;
-	using namespace Rococo::Graphics;
-	using namespace Rococo::Script;
-
 	ROCOCO_INTERFACE IDicionaryStreamSupervisor: public IDictionaryStream
 	{
 		virtual void Free() = 0;
 	};
 
-	IDicionaryStreamSupervisor* CreateDictionaryStream(IO::IInstallation& installation);
+	IDicionaryStreamSupervisor* CreateDictionaryStream(Rococo::IO::IInstallation& installation);
 
 	// Returns the top left position, using alignment flags to interpret how the pos argument is interpreted
-	IGui* CreateGuiOnStack(char buffer[64], IGuiRenderContext& gc);
+	IGui* CreateGuiOnStack(char buffer[64], Rococo::Graphics::IGuiRenderContext& gc);
 
 	ROCOCO_INTERFACE IEngineSupervisor : public IEngine
 	{
-		virtual void OnCompile(IPublicScriptSystem& ss) = 0;
-		virtual void SetRunningScriptContext(IPublicScriptSystem* ss) = 0;
+		virtual void OnCompile(Rococo::Script::IPublicScriptSystem& ss) = 0;
+		virtual void SetRunningScriptContext(Rococo::Script::IPublicScriptSystem* ss) = 0;
 	};
 
 	ROCOCO_INTERFACE IGuiOverlaySupervisor : public IGuiOverlay
@@ -119,8 +113,8 @@ namespace MHost
 	ROCOCO_INTERFACE IScriptDispatcher
 	{
 		virtual void Free() = 0;
-		virtual void OnCompile(IPublicScriptSystem& ss) = 0;
-		virtual void RouteGuiToScript(IPublicScriptSystem* ss, IGui* gui, const GuiPopulator& populator) = 0;
+		virtual void OnCompile(Rococo::Script::IPublicScriptSystem& ss) = 0;
+		virtual void RouteGuiToScript(Rococo::Script::IPublicScriptSystem* ss, IGui* gui, const GuiPopulator& populator) = 0;
 	};
 
 	IScriptDispatcher* CreateScriptDispatcher();

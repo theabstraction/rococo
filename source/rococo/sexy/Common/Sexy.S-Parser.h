@@ -104,7 +104,7 @@ namespace Rococo::Sex
 		const Vec2i& End() const { return endPos; }
 		cstr Name() const { return srcName; }
 		cstr Message() const { return errText; }
-		int ErrorCode() const { return -1; }
+		int ErrorCode() const { return 0; }
 		const ISExpression* Source() const { return source; }
 		cstr Specimen() const { return specimenText; }
 		Debugging::IStackFrameEnumerator* StackFrames() { return nullptr; }

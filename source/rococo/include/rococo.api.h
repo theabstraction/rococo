@@ -62,22 +62,22 @@ namespace Rococo
 
 	namespace Graphics
 	{
-		struct IRenderer;
-		struct IRenderContext;
-		struct IGuiRenderContext;
+		DECLARE_ROCOCO_INTERFACE IRenderer;
+		DECLARE_ROCOCO_INTERFACE IRenderContext;
+		DECLARE_ROCOCO_INTERFACE IGuiRenderContext;
 	}
 
 	namespace Visitors
 	{
 		enum CheckState : int32;
 		struct TREE_NODE_ID;
-		struct IUITree;
-		struct IUIList;
-		struct ITreePopulator;
-		struct IListPopulator;
+		DECLARE_ROCOCO_INTERFACE IUITree;
+		DECLARE_ROCOCO_INTERFACE IUIList;
+		DECLARE_ROCOCO_INTERFACE ITreePopulator;
+		DECLARE_ROCOCO_INTERFACE IListPopulator;
 	}
 
-	struct IUltraClock;
+	DECLARE_ROCOCO_INTERFACE IUltraClock;
 
 	namespace IO
 	{
@@ -85,7 +85,7 @@ namespace Rococo
 		struct IOS;
 	}
 	
-	struct IBuffer;
+	DECLARE_ROCOCO_INTERFACE IBuffer;
 	struct KeyboardEvent;
 	struct MouseEvent;
 
@@ -93,7 +93,7 @@ namespace Rococo
 
 	namespace Post
 	{
-		struct IPostbox;
+		DECLARE_ROCOCO_INTERFACE IPostbox;
 	}
 
 	ROCOCO_ID(ID_WIDGET, int32, 0);
@@ -105,13 +105,13 @@ namespace Rococo
 
 	typedef const Matrix4x4& cr_m4x4;
 
-	struct IDebuggerWindow;
+	DECLARE_ROCOCO_INTERFACE IDebuggerWindow;
 }
 
 namespace Rococo
 {
-	struct IExpandingBuffer;
-	struct ISubsystemMonitor;
+	DECLARE_ROCOCO_INTERFACE IExpandingBuffer;
+	DECLARE_ROCOCO_INTERFACE ISubsystemMonitor;
 
 	ROCOCO_INTERFACE IPingPathResolver
 	{
@@ -121,13 +121,13 @@ namespace Rococo
 
 	namespace Script
 	{
-		struct IPublicScriptSystem;
+		DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;
 	}
 
 	namespace Sex
 	{
-		struct ISParserTree;
-		struct ISExpression;
+		DECLARE_ROCOCO_INTERFACE ISParserTree;
+		DECLARE_ROCOCO_INTERFACE ISExpression;
 		typedef const ISExpression& cr_sex;
 		class ParseException;
 		
@@ -135,13 +135,13 @@ namespace Rococo
 
 	namespace VM
 	{
-		struct IVirtualMachine;
+		DECLARE_ROCOCO_INTERFACE IVirtualMachine;
 	}
 
 	namespace Cute
 	{
-		struct IMasterWindowFactory;
-		struct IWindowSupervisor;
+		DECLARE_ROCOCO_INTERFACE IMasterWindowFactory;
+		DECLARE_ROCOCO_INTERFACE IWindowSupervisor;
 	}
 
 	namespace Script
@@ -154,7 +154,7 @@ namespace Rococo
 
 namespace Rococo
 {
-	struct IMathsVenue;
+	DECLARE_ROCOCO_INTERFACE IMathsVenue;
 }
 
 #endif

@@ -3,6 +3,8 @@
 #include "rococo.dx11.api.h"
 #include "dx11helpers.inl"
 
+using namespace Rococo::Graphics;
+
 namespace Rococo::DX11
 {
 	using namespace Rococo::Graphics::Samplers;

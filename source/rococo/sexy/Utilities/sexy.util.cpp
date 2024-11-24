@@ -48,6 +48,8 @@
 
 #include <rococo.api.h>
 
+using namespace Rococo::Strings;
+
 namespace Rococo
 {
 	SEXYUTIL_API void LogError(ILog& log, cstr format, ...)

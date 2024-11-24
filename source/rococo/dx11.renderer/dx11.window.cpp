@@ -199,7 +199,7 @@ namespace ANON
 			}
 		}
 	public:
-		DX11GraphicsWindow(IWindowEventHandler& eventHandler, DX11::Factory& _factory, Rococo::DX11::IDX11Renderer& _renderer, ATOM windowsClass, const WindowSpec& _ws, bool _linkedToDX11Controls):
+		DX11GraphicsWindow(Graphics::IWindowEventHandler& eventHandler, DX11::Factory& _factory, Rococo::DX11::IDX11Renderer& _renderer, ATOM windowsClass, const WindowSpec& _ws, bool _linkedToDX11Controls):
 			factory(_factory), renderer(_renderer), ws(_ws), eventBuffer(CreateExpandingBuffer(128)), linkedToDX11Controls(_linkedToDX11Controls)
 		{
 			hWnd = CreateWindowExA(
@@ -284,7 +284,7 @@ namespace ANON
 			delete this;
 		}
 
-		IRenderer& Renderer()
+		Graphics::IRenderer& Renderer()
 		{
 			return renderer;
 		}
@@ -295,7 +295,7 @@ namespace Rococo
 {
 	namespace DX11
 	{
-		IGraphicsWindow* CreateDX11GraphicsWindow(IWindowEventHandler& eventHandler, DX11::Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& ws, bool linkedToDX11Controls)
+		IGraphicsWindow* CreateDX11GraphicsWindow(Graphics::IWindowEventHandler& eventHandler, DX11::Factory& factory, Rococo::DX11::IDX11Renderer& renderer, ATOM windowClass, const WindowSpec& ws, bool linkedToDX11Controls)
 		{
 			AutoFree<ANON::DX11GraphicsWindow> g = new ANON::DX11GraphicsWindow(eventHandler, factory, renderer, windowClass, ws, linkedToDX11Controls);
 			g->PostConstruct();

@@ -140,11 +140,11 @@ namespace Rococo
     {
         // Add a reference to a given component table. The reference must be valid for the lifetime of the ECS system. The ECS system must therefore be destroyed before all linked tables
         // The [return] value is the [tableIndex] of the given table that is presented to the ECS in some component callbacks
-        virtual void LinkComponentTable(IComponentTableSupervisor & table) = 0;
+        virtual void LinkComponentTable(Components::IComponentTableSupervisor & table) = 0;
 
         // Tells the ECS that a ROID has been deprecated by a table. The ECS will pass on the event to all observers, except the source of the deprecation.
-        virtual void OnNotifyAComponentHasDeprecatedARoid(ROID roid, uint32 sourceTableIndex) = 0;
-        virtual void OnNotifyComponentAttachedToROID(ROID roid, uint32 sourceTableIndex) = 0;
+        virtual void OnNotifyAComponentHasDeprecatedARoid(Components::ROID roid, uint32 sourceTableIndex) = 0;
+        virtual void OnNotifyComponentAttachedToROID(Components::ROID roid, uint32 sourceTableIndex) = 0;
         virtual void Free() = 0;
     };
 

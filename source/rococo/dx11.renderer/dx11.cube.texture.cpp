@@ -11,6 +11,7 @@
 using namespace Rococo;
 using namespace Rococo::DX11;
 using namespace Rococo::Graphics::Textures;
+using namespace Rococo::Strings;
 
 namespace Rococo::DX11
 {	

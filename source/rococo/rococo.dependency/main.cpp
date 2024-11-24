@@ -1,5 +1,7 @@
 int main(int argc, char* argv[])
 {
+	argc;
+	argv;
 	// this project exists simply to hack visual studio into compiling this before rococo.mplat is compiled.
 	// Compiling this file forces the DLLs, libs and executables it depends upon to compile first. 
 	// I had trouble making rococo.mplat build order correct, because as a lib, sharpmake appears to ignore its dependencies on DLLs.
