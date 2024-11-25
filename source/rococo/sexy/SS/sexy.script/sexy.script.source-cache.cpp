@@ -63,6 +63,23 @@ namespace Rococo
 		return parser.DuplicateSourceBuffer((cstr)rawData.GetData(), (int)rawData.Length(), Vec2i{ 1,1 }, resourcePath);
 	}
 
+
+	// Given s may be a descendant of some series of macro transformations, we want the original expression that started it all off
+	cr_sex GetOriginator(cr_sex s)
+	{
+		const ISExpression* i = &s;
+		for (;;)
+		{
+			auto* original = i->GetOriginal();
+			if (!original)
+			{
+				return *i;
+			}
+
+			i = original;
+		}
+	}
+
 	class SourceCache : public ISourceCache, private IMathsVenue
 	{
 	private:
@@ -191,8 +208,54 @@ namespace Rococo
 			}
 		}
 
-		ISParserTree* GetSource(cstr pingName) override
+		void AdjustOwnerPath(U8FilePath& ownerPath)
 		{
+			if (*ownerPath == '!')
+			{
+				// Ping paths do not need adjustments
+				return;
+			}
+
+			if (StartsWith(ownerPath, "Package"))
+			{
+
+			}
+		}
+
+		ISParserTree* GetSource(cstr pingName, const Sex::ISExpression* owner) override
+		{
+			constexpr fstring tagOwner = "#owner/"_fstring;
+
+			if (StartsWith(pingName, tagOwner))
+			{
+				if (!owner)
+				{
+					Throw(0, "%s inappropriate - no owning expression", tagOwner.buffer);
+				}
+
+				cr_sex originator = GetOriginator(*owner);
+				cstr sourceName = originator.Tree().Source().Name();
+				U8FilePath ownerPath;
+				Format(ownerPath, "%s", sourceName);
+				IO::MakeContainerDirectory(ownerPath.buf);
+				StringCat(ownerPath.buf, pingName + tagOwner.length, U8FilePath::CAPACITY);
+				AdjustOwnerPath(ownerPath);
+
+				try
+				{
+					auto* src = GetSource(ownerPath, nullptr);
+					return src;
+				}
+				catch(ParseException&)
+				{
+					throw;
+				}
+				catch (IException& ex)
+				{
+					Throw(ex.ErrorCode(), "%s. From %s", ex.Message(), pingName);
+				}
+			}
+
 			auto i = sources.find(pingName);
 			if (i != sources.end())
 			{
@@ -336,7 +399,7 @@ namespace Rococo
 
 			cstr pingPath = s.c_str();
 
-			auto* tree = sourceCache.GetSource(pingPath);
+			auto* tree = sourceCache.GetSource(pingPath, &sFluffleDirective);
 			ss.AddTree(*tree);
 		}
 
@@ -401,18 +464,116 @@ namespace Rococo
 		U8FilePath flufflePath;
 		Format(flufflePath, "%s/default.fluffle", pingPath);
 
-		auto* fluffle = sources.GetSource(flufflePath);
+		auto* fluffle = sources.GetSource(flufflePath, &s);
 
 		ApplyFluffleDirectives(sources, ss, fluffle->Root());
 	}
 
+	void PreprocessRawRootDirective(IPublicScriptSystem& ss, ISourceCache& sources, cr_sex sraw)
+	{
+		cr_sex stype = sraw[1];
+
+		if (stype == "#fluffle")
+		{
+			for (int j = 2; j < sraw.NumberOfElements(); j++)
+			{
+				cr_sex sname = sraw[j];
+
+				if (!IsStringLiteral(sname))
+				{
+					Throw(sname, "expecting string literal in fluffle directive (' #fluffle \"<name1>\" \"<name2 etc>\" ...) ");
+				}
+
+				auto name = sname.String();
+
+				try
+				{
+					AddFluffle(ss, sources, name->Buffer, sname);
+				}
+				catch (ParseException&)
+				{
+					throw;
+				}
+				catch (IException& ex)
+				{
+					Throw(sname, "Error with fluffle. %s", ex.Message());
+				}
+			}
+		}
+		else if (stype == "#include")
+		{
+			for (int j = 2; j < sraw.NumberOfElements(); j++)
+			{
+				cr_sex sname = sraw[j];
+				if (!IsStringLiteral(sname))
+				{
+					Throw(sname, "expecting string literal in include directive (' #include \"<name1>\" \"<name2 etc>\" ...) ");
+				}
+
+				auto name = sname.String();
+
+				try
+				{
+					auto includedModule = sources.GetSource(name->Buffer);
+					ss.AddTree(*includedModule);
+				}
+				catch (ParseException&)
+				{
+					throw;
+				}
+				catch (IException& ex)
+				{
+					Throw(sname, "Error with include file. %s", ex.Message());
+				}
+			}
+		}
+		else if (stype == "#natives")
+		{
+			for (int j = 2; j < sraw.NumberOfElements(); j++)
+			{
+				cr_sex sname = sraw[j];
+				if (!IsStringLiteral(sname))
+				{
+					Throw(sname, "expecting string literal in natives directive (' #natives \"<name1>\" \"<name2 etc>\" ...) ");
+				}
+
+				auto name = sname.String();
+
+				ss.AddNativeLibrary(name->Buffer);
+			}
+		}
+		else if (stype == "#import")
+		{
+			for (int j = 2; j < sraw.NumberOfElements(); j++)
+			{
+				cr_sex simport = sraw[j];
+				if (simport.NumberOfElements() != 2)
+				{
+					Throw(simport, "expecting (<package> <namespace_filter>) literal in import directive");
+				}
+
+				auto packageName = GetAtomicArg(simport[0]);
+				AssertStringLiteral(simport[1]);
+				cstr namespaceFilter = simport[1].c_str();
+
+				try
+				{
+					ss.LoadSubpackages(namespaceFilter, packageName);
+				}
+				catch (ParseException&)
+				{
+					throw;
+				}
+				catch (IException& ex)
+				{
+					Throw(simport, "%s", ex.Message());
+				}
+			}
+		}
+	}
+
 	void Preprocess(cr_sex sourceRoot, ISourceCache& sources, IScriptEnumerator& implicitIncludes, Rococo::Script::IPublicScriptSystem& ss)
 	{
-		bool hasIncludedFiles = false;
-		bool hasIncludedNatives = false;
-		bool hasIncludedImports = false;
-		bool hasIncludedFluffles = false;
-
 		size_t nImplicitIncludes = implicitIncludes.Count();
 		for (size_t i = 0; i < nImplicitIncludes; ++i)
 		{
@@ -437,138 +598,14 @@ namespace Rococo
 
 		for (int i = 0; i < sourceRoot.NumberOfElements(); ++i)
 		{
-			cr_sex sincludeExpr = sourceRoot[i];
-			if (IsCompound(sincludeExpr) && sincludeExpr.NumberOfElements() >= 3)
+			cr_sex sRawExpr = sourceRoot[i];
+			if (IsCompound(sRawExpr) && sRawExpr.NumberOfElements() >= 3)
 			{
-				cr_sex squot = sincludeExpr[0];
-				cr_sex stype = sincludeExpr[1];
-
-				if (squot == "'" && stype == "#fluffle")
+				cr_sex squot = sRawExpr[0];
+				
+				if (squot == "'")
 				{
-					if (hasIncludedFluffles)
-					{
-						Throw(sincludeExpr, "A fluffle directive has already been stated. Merge directives.");
-					}
-
-					hasIncludedFluffles = true;
-
-					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
-					{
-						cr_sex sname = sincludeExpr[j];
-
-						if (!IsStringLiteral(sname))
-						{
-							Throw(sname, "expecting string literal in fluffle directive (' #fluffle \"<name1>\" \"<name2 etc>\" ...) ");
-						}
-
-						auto name = sname.String();
-
-						try
-						{
-							AddFluffle(ss, sources, name->Buffer, sname);
-						}
-						catch (ParseException&)
-						{
-							throw;
-						}
-						catch (IException& ex)
-						{
-							Throw(sname, "Error with fluffle. %s", ex.Message());
-						}
-					}
-				}
-				else if (squot == "'" && stype == "#include")
-				{
-					if (hasIncludedFiles)
-					{
-						Throw(sincludeExpr, "An include directive has already been stated. Merge directives.");
-					}
-
-					hasIncludedFiles = true;
-
-					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
-					{
-						cr_sex sname = sincludeExpr[j];
-						if (!IsStringLiteral(sname))
-						{
-							Throw(sname, "expecting string literal in include directive (' #include \"<name1>\" \"<name2 etc>\" ...) ");
-						}
-
-						auto name = sname.String();
-
-						try
-						{
-							auto includedModule = sources.GetSource(name->Buffer);
-							ss.AddTree(*includedModule);
-						}
-						catch (ParseException&)
-						{
-							throw;
-						}
-						catch (IException& ex)
-						{
-							Throw(sname, "Error with include file. %s", ex.Message());
-						}
-					}
-				}
-				else if (squot == "'" && stype == "#natives")
-				{
-					if (hasIncludedNatives)
-					{
-						Throw(sincludeExpr, "A natives directive has already been stated. Merge directives.");
-					}
-
-					hasIncludedNatives = true;
-
-					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
-					{
-						cr_sex sname = sincludeExpr[j];
-						if (!IsStringLiteral(sname))
-						{
-							Throw(sname, "expecting string literal in natives directive (' #natives \"<name1>\" \"<name2 etc>\" ...) ");
-						}
-
-						auto name = sname.String();
-
-						ss.AddNativeLibrary(name->Buffer);
-					}
-
-					break;
-				}
-				else if (squot == "'" && stype == "#import")
-				{
-					if (hasIncludedImports)
-					{
-						Throw(sincludeExpr, "An import directive has already been stated. Merge directives.");
-					}
-
-					hasIncludedImports = true;
-
-					for (int j = 2; j < sincludeExpr.NumberOfElements(); j++)
-					{
-						cr_sex simport = sincludeExpr[j];
-						if (simport.NumberOfElements() != 2)
-						{
-							Throw(simport, "expecting (<package> <namespace_filter>) literal in import directive");
-						}
-
-						auto packageName = GetAtomicArg(simport[0]);
-						AssertStringLiteral(simport[1]);
-						cstr namespaceFilter = simport[1].c_str();
-
-						try
-						{
-							ss.LoadSubpackages(namespaceFilter, packageName);
-						}
-						catch (ParseException&)
-						{
-							throw;
-						}
-						catch (IException& ex)
-						{
-							Throw(simport, "%s", ex.Message());
-						}
-					}
+					PreprocessRawRootDirective(ss, sources, sRawExpr);
 				}
 			}
 		}
@@ -581,9 +618,15 @@ namespace Rococo
 
 		sources.RegisterPackages(ss);
 
+		auto& object = static_cast<Compiler::IProgramObject&>(ss.PublicProgramObject());
+		object.SetWarningLevel(Compiler::EWarningLevel::Never);
+
 		ss.Compile(declarationBuilder);
 		Preprocess(mainModule.Root(), sources, implicitIncludes, ss);
 		ss.AddTree(mainModule);
+
+		object.SetWarningLevel(Compiler::EWarningLevel::Always);
+
 		ss.PartialCompile(declarationBuilder);
 	}
 } // Rococo::Script

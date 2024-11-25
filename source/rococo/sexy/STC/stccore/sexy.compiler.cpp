@@ -380,6 +380,18 @@ namespace Anon
 			DecObjRefCount(object, *this);
 		}
 
+		EWarningLevel warningLevel = EWarningLevel::Always;
+
+		EWarningLevel GetWarningLevel() const override
+		{
+			return warningLevel;
+		}
+
+		void SetWarningLevel(EWarningLevel level) override
+		{
+			warningLevel = level;
+		}
+
 		void IncrementRefCount(InterfacePointer pInterface) override
 		{
 			IncRefCount(pInterface);

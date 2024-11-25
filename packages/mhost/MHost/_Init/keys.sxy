@@ -1,5 +1,5 @@
 (' #file.type rococo.script.vkeys)
-
+// (' #fluffle "#owner")
 (' #import (mhost "MHost"))
 
 (namespace EntryPoint)
@@ -8,18 +8,6 @@
 (using Sys.Type)
 (using Sys.Reflection)
 (using Rococo)
-
-(macro Rococo.addkeys in out
-	(for (Int32 i = 1) (i < in.ChildCount) (i += 1)
-		(IExpression child = (in i))
-		(IExpression code = (child 0))
-		(IExpression name = (child 1))
-		(IExpressionBuilder assign = out.AddCompound)
-		(assign.AddAtomic "k.SetKeyName")
-		(assign.CopyString name)
-		(assign.Copy code)
-	)
-)
 
 (function Main (Int32 id)->(Int32 exitCode):
 	(IKeyboard k (Keyboard))

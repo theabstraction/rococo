@@ -247,6 +247,12 @@ namespace Rococo::Compiler
 		ID_API_CALLBACK IdUpdateRefsOnSourceAndTarget;
 	};
 
+	enum class EWarningLevel
+	{
+		Always,
+		Never
+	};
+
 	ROCOCO_INTERFACE IProgramObject : public IPublicProgramObject
 	{
 		virtual IModuleBuilder & AddModule(cstr name) = 0;
@@ -262,6 +268,8 @@ namespace Rococo::Compiler
 		virtual const CallbackIds& GetCallbackIds() const = 0;
 		virtual void ClearCustomAllocators() = 0;
 		virtual IScriptObjectAllocator& GetDefaultObjectAllocator() = 0;
+		virtual EWarningLevel GetWarningLevel() const = 0;
+		virtual void SetWarningLevel(EWarningLevel level) = 0;
 	};
 
 	IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);

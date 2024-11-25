@@ -297,9 +297,12 @@ namespace Rococo::Compiler
 
 			if (ns == NULL) 
 			{
-				char buf[256];
-				SafeFormat(buf, "Could not identify namespace %s", body);
-				logger.Write(buf);
+				if (module.Object().GetWarningLevel() == EWarningLevel::Always)
+				{
+					char buf[256];
+					SafeFormat(buf, "Could not identify namespace %s", body);
+					logger.Write(buf);
+				}
 				return NULL;
 			}
 
@@ -316,9 +319,12 @@ namespace Rococo::Compiler
 			}
 			else
 			{
-				char buf[256];
-				SafeFormat(buf, "Cannot find structure %s in namespace %s", tail, body);
-				logger.Write(buf);
+				if (module.Object().GetWarningLevel() == EWarningLevel::Always)
+				{
+					char buf[256];
+					SafeFormat(buf, "Cannot find structure %s in namespace %s", tail, body);
+					logger.Write(buf);
+				}
 			}
 
 			return NULL;

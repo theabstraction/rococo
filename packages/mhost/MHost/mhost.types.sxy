@@ -1,0 +1,41 @@
+(struct FontDesc
+	(Float32 ascent)
+	(Float32 height)
+)
+
+(alias FontDesc MHost.Graphics.FontDesc)
+
+(struct MouseEvent
+    (Int32 usFlags)
+	(Int32 buttons)
+	(Int32 rawButtons)
+	(Int32 x)
+	(Int32 y)
+	(Sys.Maths.Vec2i cursorPos)
+)
+
+(alias MouseEvent MHost.OS.MouseEvent)
+
+(struct VectorI32x4
+	(Int32 x y z w)
+)
+
+(struct MatrixI32x4x4
+	(VectorI32x4 r0 r1 r2 r3)
+)
+
+(struct KeyState
+	(MatrixI32x4x4 a b c d) // This will create a 256 byte structure
+)
+
+// We are only interested in creating a 256 byte structure, the vectors defined here are irrelevant
+(alias KeyState MHost.OS.KeyState)
+
+(struct KeyboardEvent 
+	(Int32 scancode)
+	(Int32 virtualKeyCode)
+	(Int32 asciiValue)
+	(Bool isUp)
+)
+
+(alias KeyboardEvent MHost.OS.KeyboardEvent)

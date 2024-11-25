@@ -237,7 +237,7 @@ namespace Rococo
 
 			for (int i = len - 2; i > 0; --i)
 			{
-				if (filename[i] == L'\\')
+				if (filename[i] == L'\\' || filename[i] == L'/')
 				{
 					filename[i + 1] = 0;
 					return true;
@@ -253,7 +253,7 @@ namespace Rococo
 
 			for (int i = len - 2; i > 0; --i)
 			{
-				if (filename[i] == '\\')
+				if (filename[i] == '\\' || filename[i] == '/')
 				{
 					filename[i + 1] = 0;
 					return true;

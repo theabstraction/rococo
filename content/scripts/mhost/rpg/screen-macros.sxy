@@ -1,0 +1,6 @@
+(namespace RPG)
+
+(macro RPG.IdScreenNewGame in out (out.AddAtomic "0"))
+(macro RPG.IdScreenOpening in out (out.AddAtomic "1"))
+(macro RPG.IdScreenAddCharacter in out (out.AddAtomic "2"))
+(macro RPG.IdScreenWorld in out (out.AddAtomic "3"))

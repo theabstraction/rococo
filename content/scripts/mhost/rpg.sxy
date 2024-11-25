@@ -1,5 +1,7 @@
 (' #import (mhost "MHost"))
 
+(' #fluffle "#owner/rpg")
+
 (' #include 
 	"!scripts/mhost/rpg/controls/credits.sxy"
 	"!scripts/mhost/rpg/controls/gen.name.sxy"
@@ -287,11 +289,6 @@
 (factory RPG.NewOpeningScreen IScreen (IEngine engine) (IBundle bundle): 
 	(construct OpeningScreen engine bundle)
 )
-
-(macro RPG.IdScreenNewGame in out (out.AddAtomic "0"))
-(macro RPG.IdScreenOpening in out (out.AddAtomic "1"))
-(macro RPG.IdScreenAddCharacter in out (out.AddAtomic "2"))
-(macro RPG.IdScreenWorld in out (out.AddAtomic "3"))
 
 (class GameBundle (defines RPG.IBundle)
 	(ISpriteBuilder spriteBuilder)

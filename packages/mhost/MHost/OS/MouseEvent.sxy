@@ -5,17 +5,6 @@
 (using MHost.Graphics.Widgets)
 (using MHost.Events)
 
-(struct MouseEvent
-    (Int32 usFlags)
-	(Int32 buttons)
-	(Int32 rawButtons)
-	(Int32 x)
-	(Int32 y)
-	(Sys.Maths.Vec2i cursorPos)
-)
-
-(alias MouseEvent $)
-
 (function TranslateMouseEvent ($.MouseEvent me)(MHost.Events.IUIEventHandler handler)(MHost.Events.IEventHandler modalSink)-> :
 	(Float32 x = (ToFloat32 me.cursorPos.x))
 	(Float32 y = (ToFloat32 me.cursorPos.y))

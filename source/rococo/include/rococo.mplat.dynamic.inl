@@ -62,7 +62,7 @@ namespace Rococo
 		if (addr == nullptr)
 		{
 			int err = GetLastError();
-			MessageBoxA(nullptr, "Could not find entrypoint in M_Platorm_Dll_Win64_MainDirect", moduleName, MB_ICONERROR);
+			MessageBoxA(nullptr, "Could not find entrypoint M_Platorm_Dll_Win64_MainDirect", moduleName, MB_ICONERROR);
 			return err;
 		}
 

@@ -441,7 +441,7 @@ namespace ANON
 
 			for (auto& file : ns.files)
 			{
-				auto* f = file.Name(); // Package[double]@Sys/Maths/I32/Double.sxy 
+				cstr f = file.Name(); // Package[double]@Sys/Maths/I32/Double.sxy 
 				while (*f++ != '@') {} // Sys/Maths/I32/Double.sxy 
 
 				char defaultNamespace[NAMESPACE_MAX_LENGTH];
@@ -465,9 +465,15 @@ namespace ANON
 							Throw(ex.ErrorCode(), "Error parsing %s\n%s", file.Name(), ex.Message());
 						}
 					}
+
 					auto* module = static_cast<IModuleBuilder*>(ss.AddTree(*file.tree));
 					module->SetPackage(sp.dataPackage, defaultNamespace);
 					count++;
+
+					if (EndsWith(f, "macros.sxy") || EndsWith(f, "partial-compile.sxy"))
+					{
+						ss.PartialCompile();
+					}
 				}
 			}
 

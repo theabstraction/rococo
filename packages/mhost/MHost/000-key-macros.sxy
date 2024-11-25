@@ -1,0 +1,13 @@
+(using Sys.Reflection)
+
+(macro Rococo.addkeys in out
+	(for (Int32 i = 1) (i < in.ChildCount) (i += 1)
+		(IExpression child = (in i))
+		(IExpression code = (child 0))
+		(IExpression name = (child 1))
+		(IExpressionBuilder assign = out.AddCompound)
+		(assign.AddAtomic "k.SetKeyName")
+		(assign.CopyString name)
+		(assign.Copy code)
+	)
+)

@@ -81,7 +81,10 @@ namespace Anon
 							}
 							else
 							{
-								LogError(log, ("Error resolving '%s' of '%s' in '%s'"), genericArg2Type.c_str(), parentFunction.Name(), localMod.Name());
+								if (localMod.Object().GetWarningLevel() == Compiler::EWarningLevel::Always)
+								{
+									LogError(log, "Error resolving '%s' of '%s' in '%s'", genericArg2Type.c_str(), parentFunction.Name(), localMod.Name());
+								}
 								return false;
 							}
 						}
@@ -90,7 +93,10 @@ namespace Anon
 					}
 					else
 					{
-						LogError(log, ("Error resolving '%s' of '%s' in '%s'"), genericArg1Type.c_str(), parentFunction.Name(), localMod.Name());
+						if (localMod.Object().GetWarningLevel() == Compiler::EWarningLevel::Always)
+						{
+							LogError(log, "Error resolving '%s' of '%s' in '%s'", genericArg1Type.c_str(), parentFunction.Name(), localMod.Name());
+						}
 						return false;
 					}
 				}
@@ -101,7 +107,10 @@ namespace Anon
 			}
 			else
 			{
-				LogError(log, ("Error resolving '%s' of '%s' in '%s'"), type.c_str(), parentFunction.Name(), localMod.Name());
+				if (localMod.Object().GetWarningLevel() == Compiler::EWarningLevel::Always)
+				{
+					LogError(log, "Error resolving '%s' of '%s' in '%s'", type.c_str(), parentFunction.Name(), localMod.Name());
+				}
 				return false;
 			}
 		}
