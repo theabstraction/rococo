@@ -1,6 +1,6 @@
 (' #import (mhost "MHost"))
 
-(' #fluffle "#owner/rpg")
+(' #fluffle "#$/rpg")
 
 (' #include 
 	"!scripts/mhost/rpg/controls/credits.sxy"

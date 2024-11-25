@@ -1,2 +1,2 @@
 (File.Type Fluffle 1.0.0.0)
-(Fluffle macros "#owner/screen-macros.sxy")
+(Fluffle macros "#$/screen-macros.sxy")

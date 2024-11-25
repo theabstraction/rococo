@@ -224,7 +224,7 @@ namespace Rococo
 
 		ISParserTree* GetSource(cstr pingName, const Sex::ISExpression* owner) override
 		{
-			constexpr fstring tagOwner = "#owner/"_fstring;
+			constexpr fstring tagOwner = "#$/"_fstring;
 
 			if (StartsWith(pingName, tagOwner))
 			{
