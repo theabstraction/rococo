@@ -462,7 +462,7 @@ namespace Rococo
 	void AddFluffle(Rococo::Script::IPublicScriptSystem& ss, ISourceCache& sources, cstr pingPath, cr_sex s)
 	{
 		U8FilePath flufflePath;
-		Format(flufflePath, "%s/default.fluffle", pingPath);
+		Format(flufflePath, "%s%sdefault.fluffle", pingPath, EndsWith(pingPath, "/") ? "" : "/");
 
 		auto* fluffle = sources.GetSource(flufflePath, &s);
 
