@@ -514,7 +514,7 @@ namespace Rococo
 
 				try
 				{
-					auto includedModule = sources.GetSource(name->Buffer);
+					auto includedModule = sources.GetSource(name->Buffer, &sraw);
 					ss.AddTree(*includedModule);
 				}
 				catch (ParseException&)
