@@ -93,6 +93,11 @@ namespace
 		  return *this;
 	  }
 
+	  void AddQuad(const Rococo::QuadVertices& q) override
+	  {
+
+	  }
+
       void Clear() override
       {
          name[0] = 0;

@@ -1386,6 +1386,7 @@ namespace Rococo::Graphics
 		struct NullMeshBuilder : IMeshBuilder
 		{
 			void AddMesh(const Matrix4x4&, const fstring&) override {}
+			void AddQuad(const QuadVertices&) override {}
 			void AddTriangleEx(const VertexTriangle&) override {}
 			void AddTriangle(const ObjectVertex&, const ObjectVertex&, const ObjectVertex&) override {}
 			void AddBoneWeights(const BoneWeights&, const BoneWeights&, const BoneWeights&) override {}

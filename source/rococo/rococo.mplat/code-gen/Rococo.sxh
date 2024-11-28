@@ -430,6 +430,7 @@
 	(context factory Rococo.Graphics.IMeshBuilder)
 	(methods
 		(AddMesh (const Matrix4x4 transform)(IString sourceName))
+		(AddQuad (QuadVertices q))
 		(AddTriangleEx (const VertexTriangle t))
 		(AddTriangle (const Vertex a)(const Vertex b)(const Vertex c))	
 		(AddBoneWeights (const BoneWeights a)(const BoneWeights b)(const BoneWeights c))
