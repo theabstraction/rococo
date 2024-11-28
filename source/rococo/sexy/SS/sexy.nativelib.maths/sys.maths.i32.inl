@@ -377,36 +377,51 @@ namespace
 		_offset += sizeof(iValue);
 		WriteOutput(iValue, _sf, -_offset);
 	}
+
+	void NativeSysMathsSeedRandom(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		
+		int32 seedValue;
+		ReadInput(seedValue, _sf, -_offset);
+
+		SeedRandom(seedValue);
+	}
 }
 
 namespace Sys { namespace Maths { namespace I32 { 
 	void AddNativeCalls_SysMathsI32(Rococo::Script::IPublicScriptSystem& ss, void* nullContext = nullptr)
 	{
 		UNUSED(nullContext);
-		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.I32"));
-		ss.AddNativeCall(ns, NativeSysMathsI32Clamp, nullptr, ("Clamp(Int32 x)(Int32 lower)(Int32 upper) -> (Int32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32Abs, nullptr, ("Abs(Int32 x) -> (Int32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32LeftShift, nullptr, ("LeftShift(Int32 x)(Int32 bitCount) -> (Int32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32RightShift, nullptr, ("RightShift(Int32 x)(Int32 bitCount) -> (Int32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32MaxOf, nullptr, ("MaxOf(Int32 x)(Int32 y) -> (Int32 maxValue)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32MinOf, nullptr, ("MinOf(Int32 x)(Int32 y) -> (Int32 minValue)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32MinValue, nullptr, ("MinValue -> (Int32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32MaxValue, nullptr, ("MaxValue -> (Int32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32Mod, nullptr, ("Mod(Int32 numerator)(Int32 denominator) -> (Int32 remainder)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32ToInt64, nullptr, ("ToInt64(Int32 x) -> (Int64 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat32, nullptr, ("ToFloat32(Int32 x) -> (Float32 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat64, nullptr, ("ToFloat64(Int32 x) -> (Float64 value)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseAnd, nullptr, ("BitwiseAnd(Int32 x)(Int32 y) -> (Int32 result)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseOr, nullptr, ("BitwiseOr(Int32 x)(Int32 y) -> (Int32 result)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseNot, nullptr, ("BitwiseNot(Int32 x) -> (Int32 notX)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseXor, nullptr, ("BitwiseXor(Int32 x)(Int32 y) -> (Int32 result)"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsI32HasFlags, nullptr, ("HasFlags(Int32 flags)(Int32 flag) -> (Bool result)"), __FILE__, __LINE__);
+
+		const INamespace& nsSysMaths = ss.AddNativeNamespace("Sys.Maths");
+		ss.AddNativeCall(nsSysMaths, NativeSysMathsSeedRandom, nullptr, "SeedRandom (Int32 x) ->", __FILE__, __LINE__);
+
+		const INamespace& ns = ss.AddNativeNamespace("Sys.Maths.I32");
+		ss.AddNativeCall(ns, NativeSysMathsI32Clamp, nullptr, "Clamp(Int32 x)(Int32 lower)(Int32 upper) -> (Int32 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32Abs, nullptr, "Abs(Int32 x) -> (Int32 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32LeftShift, nullptr, "LeftShift(Int32 x)(Int32 bitCount) -> (Int32 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32RightShift, nullptr, "RightShift(Int32 x)(Int32 bitCount) -> (Int32 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32MaxOf, nullptr, "MaxOf(Int32 x)(Int32 y) -> (Int32 maxValue)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32MinOf, nullptr, "MinOf(Int32 x)(Int32 y) -> (Int32 minValue)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32MinValue, nullptr, "MinValue -> (Int32 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32MaxValue, nullptr, "MaxValue -> (Int32 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32Mod, nullptr, "Mod(Int32 numerator)(Int32 denominator) -> (Int32 remainder)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32ToInt64, nullptr, "ToInt64(Int32 x) -> (Int64 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat32, nullptr, "ToFloat32(Int32 x) -> (Float32 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32ToFloat64, nullptr, "ToFloat64(Int32 x) -> (Float64 value)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseAnd, nullptr, "BitwiseAnd(Int32 x)(Int32 y) -> (Int32 result)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseOr, nullptr, "BitwiseOr(Int32 x)(Int32 y) -> (Int32 result)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseNot, nullptr, "BitwiseNot(Int32 x) -> (Int32 notX)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32BitwiseXor, nullptr, "BitwiseXor(Int32 x)(Int32 y) -> (Int32 result)", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI32HasFlags, nullptr, "HasFlags(Int32 flags)(Int32 flag) -> (Bool result)", __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI32FromString, nullptr, "FromString (IString text)->(Int32 value)(Bool isOk)", __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsAddVec2iVec2i, nullptr, ("AddVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)->"), __FILE__, __LINE__);
-		ss.AddNativeCall(ns, NativeSysMathsSubtractVec2iVec2i, nullptr, ("SubtractVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)->"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsAddVec2iVec2i, nullptr, "AddVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)->", __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsSubtractVec2iVec2i, nullptr, "SubtractVec2iVec2i(Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i diff)->", __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI32FromARGB, nullptr, "FromARGB (Int32 alphaByte)(Int32 redByte)(Int32 greenByte)(Int32 blueByte)->(Int32 argb)", __FILE__, __LINE__);
 
-		const INamespace& nsText = ss.AddNativeNamespace(("Sys.Type"));
+		const INamespace& nsText = ss.AddNativeNamespace("Sys.Type");
 		ss.AddNativeCall(nsText, NativeSysTextIsAlphaNumeric, nullptr, "IsAlphaNumeric (Int32 c) -> (Bool isSo)", __FILE__, __LINE__);
 	}
 }}}

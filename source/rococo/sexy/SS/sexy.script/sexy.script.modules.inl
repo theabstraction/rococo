@@ -475,7 +475,7 @@ namespace Rococo::Script
 		cstr className, methodName;
 		if (!splitter.SplitTail(OUT className, OUT methodName))
 		{
-			Throw(nameExpr, ("Expecting qualified method name using syntax: '<class>.<method-name>'"));
+			Throw(nameExpr, "Expecting qualified method name using syntax: '<class>.<method-name>'");
 		}
 
 		IStructure* s = GetLocalStructure(script, className);

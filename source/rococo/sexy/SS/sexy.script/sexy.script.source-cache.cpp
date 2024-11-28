@@ -588,6 +588,11 @@ namespace Rococo
 					ss.ValidateSecureFile(implicitFile, includedModule->Source().SourceStart(), includedModule->Source().SourceLength());
 
 					ss.AddTree(*includedModule);
+
+					if (EndsWith(implicitFile, "partial-compile.sxy"))
+					{
+						ss.PartialCompile();
+					}
 				}
 				catch (IException& ex)
 				{

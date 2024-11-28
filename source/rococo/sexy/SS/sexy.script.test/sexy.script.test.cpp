@@ -17111,7 +17111,7 @@ R"(
 			(Bool isVeryVeryHot = robot.IsHot and isSunny)
 			(if isVeryVeryHot (result += 9005))
 			(Bool isVeryVeryVeryHot = robot.IsHot and robot.IsGlowing)
-			(if isVeryVeryHot (result += 9005))
+			(if isVeryVeryVeryHot (result += 9005))
 		)
 
 		(alias Main EntryPoint.Main)
@@ -17721,7 +17721,7 @@ R"(
 	   ValidateLogs();
    }
 
-   // We dont' run this with the other tests, only in itself. By commenting im/out the line player. NoOperation we can determine the cost of a million virtual calls
+   // We dont' run this with the other tests, only in itself. By commenting in/out the line (player.NoOperation) we can determine the cost of a million virtual calls
    // This was used to determine that self-modifying-code increased virtual table lookup speed by 2.5x, from 40M calls per sec to 
    // 100M calls per sec on the test platform's i7-11700k @2.5GHz
    void TestVirtualCallSpeed(IPublicScriptSystem& ss)

@@ -479,6 +479,7 @@
 	(context factory Rococo.Graphics.IFieldTesselator)
 	(methods
 		(Destruct)
+		(Seed (Int32 seedValue) -> )
 		(InitByFixedCellWidth (const Quad positions)(Float32 maxCellWidth)(Float32 maxCellHeight))
 		(InitByDivisions (const Quad positions)(Int32 xDivs)(Int32 yDivs))
 		(SetUV (const Vec2 uvA) (const Vec2 uvC))

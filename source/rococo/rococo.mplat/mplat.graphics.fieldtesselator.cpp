@@ -88,6 +88,11 @@ namespace
 			}
 		}
 
+		void Seed(int seedValue) override
+		{
+			rng.seed((uint32)seedValue);
+		}
+
 		void InitByFixedCellWidth(const Quad& positions, float maxCellWidth, float maxCellHeight) override
 		{
 			macroQuad = positions;

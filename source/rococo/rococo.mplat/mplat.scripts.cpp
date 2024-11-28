@@ -252,6 +252,7 @@ static void NativeEnumerateFiles(NativeCallEnvironment& nce)
 
 const char* s_MplatImplicitIncludes[] =
 {
+	// TODO - replace this with a fluffle
 	"!scripts/interop/rococo/mplat/mplat_sxh.sxy",
 	"!scripts/interop/rococo/mplat/mplat_gui_sxh.sxy",
 	"!scripts/interop/rococo/mplat/mplat_types.sxy",
@@ -262,7 +263,8 @@ const char* s_MplatImplicitIncludes[] =
 	"!scripts/interop/rococo/components/animation_sxh.sxy",
 	"!scripts/interop/rococo/components/body_sxh.sxy",
 	"!scripts/interop/rococo/components/config_sxh.sxy",
-	"!scripts/interop/rococo/components/skeleton_sxh.sxy"
+	"!scripts/interop/rococo/components/skeleton_sxh.sxy",
+	"!scripts/interop/partial-compile.sxy"
 };
 
 struct MPlatImplicitIncludes : IScriptEnumerator

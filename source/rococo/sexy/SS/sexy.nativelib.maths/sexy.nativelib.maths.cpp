@@ -233,6 +233,11 @@ int64 ToInt64(T t)
 	return (int64)t;
 }
 
+void SeedRandom(int seedValue)
+{
+	srand(seedValue);
+}
+
 #include "sys.maths.f32.inl"
 #include "sys.maths.f64.inl"
 #include "sys.maths.i32.inl"
