@@ -473,7 +473,7 @@ public:
 
 		if (!contextMenuPane)
 		{
-			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panel.context-menu.sxy", &onCompile, nullptr);
+			contextMenuPane = platform->graphics.gui.BindPanelToScript("!scripts/panels/panel.context-menu.sxy", &onCompile, nullptr);
 		}
 
 		platform->graphics.gui.PushTop(contextMenuPane->Supervisor(), true);

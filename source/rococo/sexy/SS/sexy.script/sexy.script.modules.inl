@@ -1669,6 +1669,7 @@ namespace Rococo::Script
 		{
 			auto* sp = registers[REGISTER_SP].uint8PtrValue;
 			InterfacePointer ip = *(InterfacePointer*)(sp - 24);
+			ObjectStub* stub = InterfaceToInstance(ip);
 			auto* methods = &ip[0]->FirstMethodId;
 			for (int i = 0; i < 10; i++)
 			{

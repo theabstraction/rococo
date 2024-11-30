@@ -177,9 +177,6 @@
 
 // Trying out the new strong number types
 
-(strong RococoMPlatTypeROID (Int64))
-(alias RococoMPlatTypeROID Rococo.ROID)
-
 (strong RococoMPlatTypeRGBAb (Int32))
 
 // Defines the top face of a box. The top face has constant z. It has four adjoining faces, the North face, the East face, the South face and the West face.
