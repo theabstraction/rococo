@@ -466,6 +466,8 @@ namespace Rococo
 		virtual void DetachKeyboardSink(IKeyboardSink* ks) = 0;
 		virtual bool IsOverwriting() const = 0;
 		virtual void LogMessage(const char* format, ...) = 0;
+		virtual void ClearFileError(cstr file) = 0;
+		virtual void ShowFileError(cstr file, cstr message) = 0;
 		virtual void ToggleOverwriteMode() = 0;
 		virtual IKeyboardSink* CurrentKeyboardSink() = 0;
 

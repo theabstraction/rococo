@@ -327,8 +327,8 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			char intro[512];
 			SafeFormat(intro, "Error code 0x%8.8X", hr);
 			Log(IO::EShaderLogPriority::Cosmetic, "", "\n");
-			Log(IO::EShaderLogPriority::ErrorCode, path, intro);
-			Log(IO::EShaderLogPriority::Error, "", messages);
+			Log(IO::EShaderLogPriority::ErrorCode, filename, intro);
+			Log(IO::EShaderLogPriority::Error, filename, messages);
 			errorMessages->Release();
 		}
 
@@ -351,8 +351,8 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 		Time::ticks end = Time::TickCount();
 
 
-		SafeFormat(message, "Done in %0.0f ms", (end - now) / ((double)Time::TickHz() * 0.0001f));
-		Log(IO::EShaderLogPriority::Info, filename, message);
+		SafeFormat(message, "Compiled in %0.0f ms", (end - now) / ((double)Time::TickHz() * 0.0001f));
+		Log(IO::EShaderLogPriority::Compiled, filename, message);
 
 		U8FilePath targetFullname;
 		Format(targetFullname, "%hs", filename);

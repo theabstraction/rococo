@@ -129,6 +129,38 @@ public:
 		messageLog.WriteBack();
 	}
 
+	stringmap<std::vector<HString>> mapFileNameToErrorMessages;
+
+	void ClearFileError(cstr file) override
+	{
+		auto i = mapFileNameToErrorMessages.find(file);
+		if (i != mapFileNameToErrorMessages.end())
+		{
+			mapFileNameToErrorMessages.erase(i);
+		}
+	}
+
+	void ShowFileError(cstr file, cstr message) override
+	{
+		auto i = mapFileNameToErrorMessages.find(file);
+		if (i == mapFileNameToErrorMessages.end())
+		{
+			i = mapFileNameToErrorMessages.insert(file, std::vector<HString>()).first;
+		}
+
+		auto& messages = i->second;
+		for (auto& m : messages)
+		{
+			if (Eq(m, message))
+			{
+				// Duplicate
+				return;
+			}
+		}
+
+		messages.push_back(message);
+	}
+
 	IKeyboardSink* CurrentKeyboardSink() override
 	{
 		return keyboardSink;
@@ -382,6 +414,7 @@ public:
 
 		RenderPanels(grc);
 		RenderScrollingLog(grc);
+		RenderFileErrors(grc);
 	}
 
 	void RenderPanels(IGuiRenderContext& grc)
@@ -423,8 +456,13 @@ public:
 		p.panel->Render(grc, { rect.left, rect.top }, modality);
 	}
 
-	void RenderScrollingLog(IGuiRenderContext& grc)
+	void RenderFileErrors(IGuiRenderContext& grc)
 	{
+		if (mapFileNameToErrorMessages.empty())
+		{
+			return;
+		}
+
 		GuiMetrics metrics;
 		grc.Renderer().GetGuiMetrics(metrics);
 
@@ -432,7 +470,38 @@ public:
 		logRect.left = 2;
 		logRect.right = metrics.screenSpan.x - 2;
 		logRect.bottom = metrics.screenSpan.y - 1;
-		logRect.top = logRect.bottom - 100;
+		logRect.top = logRect.top + 100;
+
+		Graphics::DrawRectangle(grc, logRect, RGBAb(0, 0, 0, 255), RGBAb(64, 64, 64, 255));
+		Graphics::DrawBorderAround(grc, Expand(logRect, 1), { 1,1 }, RGBAb(255, 192, 192, 255), RGBAb(255, 255, 255, 255));
+
+		int y = logRect.top + MessageHeightPixels / 2;
+
+		for (auto& i : mapFileNameToErrorMessages)
+		{
+			for (auto& m : i.second)
+			{
+				Graphics::RenderVerticalCentredText(grc, m, RGBAb(255, 255, 255), MessageHeightPixels, { 4, y }, &logRect);
+				y += MessageHeightPixels;
+			}
+		}
+	}
+
+	void RenderScrollingLog(IGuiRenderContext& grc)
+	{
+		GuiMetrics metrics;
+		grc.Renderer().GetGuiMetrics(metrics);
+
+		if (scrollingMessages.empty() && messageLog.IsEmpty())
+		{
+			return;
+		}
+
+		GuiRect logRect;
+		logRect.left = 2;
+		logRect.right = metrics.screenSpan.x - 2;
+		logRect.bottom = metrics.screenSpan.y - 1;
+		logRect.top = 100;
 
 		if (logAlpha)
 		{
@@ -450,7 +519,7 @@ public:
 			VisibleMessage top;
 			if (messageLog.TryPopFront(top.message))
 			{
-				top.y = logRect.bottom;
+				top.y = logRect.bottom - MessageHeightPixels;
 				scrollingMessages.push_back(top);
 				logAlpha = 192;
 			}

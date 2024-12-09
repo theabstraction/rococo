@@ -72,6 +72,7 @@ namespace Rococo::IO
 
 	enum class EShaderLogPriority
 	{
+		Compiled,
 		Cosmetic,
 		Info,
 		Warning,

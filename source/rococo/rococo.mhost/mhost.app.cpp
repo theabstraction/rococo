@@ -228,9 +228,29 @@ namespace MHost
 		{
 			UNUSED(monitor);
 
-			if (priority != IO::EShaderLogPriority::Info)
+			switch (priority)
 			{
-				platform.graphics.gui.LogMessage("%s: %s", file, message);
+			case IO::EShaderLogPriority::Compiled:
+				platform.graphics.gui.ClearFileError(file);
+				{
+					char mhostInfo[1024];
+					if (*file) SafeFormat(mhostInfo, "%s: %s", file, message);
+					else SafeFormat(mhostInfo, "%s", file, message);
+					LogMessageToMHostScript(mhostInfo);
+				}
+				break;
+			case IO::EShaderLogPriority::Info:
+				break;
+			case IO::EShaderLogPriority::ErrorCode:
+			case IO::EShaderLogPriority::Error:
+				platform.graphics.gui.ShowFileError(file, message);
+				break;
+			case IO::EShaderLogPriority::Cosmetic:
+				return;
+			default:
+				if (*file && *message) platform.graphics.gui.LogMessage("%s: %s", file, message);
+				else if (*message) platform.graphics.gui.LogMessage("%s", message);
+				break;
 			}
 		}
 
