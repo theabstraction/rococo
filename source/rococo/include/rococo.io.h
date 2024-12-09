@@ -72,20 +72,21 @@ namespace Rococo::IO
 
 	enum class EShaderLogPriority
 	{
+		Cosmetic,
 		Info,
 		Warning,
+		ErrorCode,
 		Error
-	};
-
-	ROCOCO_INTERFACE IShaderMonitorEvents
-	{
-		virtual void OnLog(IShaderMonitor& monitor, EShaderLogPriority priority, cstr message) = 0;
-		virtual void OnModifiedFileSkipped(IShaderMonitor& monitor, cstr hlslFile) = 0;
 	};
 
 	ROCOCO_INTERFACE IShaderMonitorEventHook
 	{
-		virtual void OnLog(IShaderMonitor& monitor, EShaderLogPriority priority, cstr message) = 0;
+		virtual void OnLog(IShaderMonitor& monitor, EShaderLogPriority priority, cstr file, cstr message) = 0;
+	};
+
+	ROCOCO_INTERFACE IShaderMonitorEvents: IShaderMonitorEventHook
+	{
+		virtual void OnModifiedFileSkipped(IShaderMonitor& monitor, cstr hlslFile) = 0;
 	};
 
 	ROCOCO_INTERFACE IShaderMonitorEventsProxy

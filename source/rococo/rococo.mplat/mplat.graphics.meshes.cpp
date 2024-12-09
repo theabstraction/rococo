@@ -95,7 +95,7 @@ namespace
 
 	  void AddQuad(const Rococo::QuadVertices& q) override
 	  {
-
+		  UNUSED(q);
 	  }
 
       void Clear() override

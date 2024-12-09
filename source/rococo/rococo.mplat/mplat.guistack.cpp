@@ -337,7 +337,7 @@ public:
 
 		deltaScrollTime += DT;
 
-		const double pixelsScrolledPerSecond = 30.0;
+		const double pixelsScrolledPerSecond = 10.0;
 		
 		double deltaScroll = pixelsScrolledPerSecond * deltaScrollTime;
 

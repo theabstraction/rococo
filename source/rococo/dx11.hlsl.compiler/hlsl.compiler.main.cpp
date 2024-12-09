@@ -8,13 +8,48 @@ using namespace Rococo::IO;
 #include <consoleapi.h>
 #include <WinCon.h>
 
+static int row = 0;
+
 int main(int argc, char* argv[])
 {
 	struct ANON: IO::IShaderMonitorEvents
 	{
-		void OnLog(IO::IShaderMonitor&, IO::EShaderLogPriority, cstr text) override
-		{		
-			printf("%s", text);
+		void OnLog(IO::IShaderMonitor&, IO::EShaderLogPriority p, cstr file, cstr text) override
+		{
+			switch (p)
+			{
+			case IO::EShaderLogPriority::Cosmetic:
+				printf("%s%s", file, text);
+				break;
+			case IO::EShaderLogPriority::ErrorCode:
+				printf("%s", text);
+				break;
+			case IO::EShaderLogPriority::Error:
+				printf("%s: %s", file, text);
+				break;
+			default:
+				{
+					row++;
+					U8FilePath path;
+					int nChars = Format(path, "%.128s", file);
+
+					//if ((row % 2) == 0)
+					{
+						if (nChars > 0 && nChars < 125)
+						{
+							for (int i = nChars; i < 128; i++)
+							{
+								path.buf[i] = '.';
+							}
+						}
+
+						path.buf[128] = 0;
+					}
+
+					printf("%-128s %s", path.buf, text);
+				}					
+				break;
+			}
 		}
 
 		void OnModifiedFileSkipped(IO::IShaderMonitor&, cstr hlslFilename) override

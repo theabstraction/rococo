@@ -521,11 +521,11 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 			hooks.erase(hook);
 		}
 
-		void OnLog(IO::IShaderMonitor& monitor, IO::EShaderLogPriority priority, cstr text) override
+		void OnLog(IO::IShaderMonitor& monitor, IO::EShaderLogPriority priority, cstr file, cstr text) override
 		{
 			for (auto* h : hooks)
 			{
-				h->OnLog(monitor, priority, text);
+				h->OnLog(monitor, priority, file, text);
 			}
 		}
 

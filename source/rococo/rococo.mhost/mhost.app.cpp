@@ -202,7 +202,8 @@ namespace MHost
 		public IEngineSupervisor,
 		public IGuiOverlaySupervisor,
 		public Strings::IStringPopulator,
-		public Rococo::MPEditor::IMPEditorEventHandler
+		public Rococo::MPEditor::IMPEditorEventHandler,
+		IO::IShaderMonitorEventHook
 	{
 		Platform& platform;
 		IDirectAppControl& control;
@@ -222,25 +223,15 @@ namespace MHost
 		AutoFree<IPackageSupervisor> packageMHost;
 		AutoFree<GreatSex::IGreatSexGeneratorSupervisor> greatSex;
 
-		struct ShaderMonitorHook : IO::IShaderMonitorEventHook
+		// IO::IShaderMonitorEventHook
+		void OnLog(IO::IShaderMonitor& monitor, IO::EShaderLogPriority priority, cstr file, cstr message) override
 		{
-			App* app;
+			UNUSED(monitor);
 
-			void OnLog(IO::IShaderMonitor& monitor, IO::EShaderLogPriority priority, cstr message) override
+			if (priority != IO::EShaderLogPriority::Info)
 			{
-				UNUSED(monitor);
-
-				if (priority != IO::EShaderLogPriority::Info)
-				{
-					app->LogShaderMessage(message);
-					// app->LogMessageToMHostScript(message);
-				}
+				platform.graphics.gui.LogMessage("%s: %s", file, message);
 			}
-		} shaderMonitorHook;
-
-		void LogShaderMessage(cstr message)
-		{
-			platform.graphics.gui.LogMessage("%s", message);
 		}
 
 		// Busy event handler responds to resource loading and renders progress panel
@@ -340,7 +331,6 @@ namespace MHost
 		{
 			greatSex = GreatSex::CreateGreatSexGenerator(Rococo::Memory::CheckedAllocator());
 			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy", nullptr, Rococo::NoImplicitIncludes());
-			shaderMonitorHook.app = this;
 
 			platform.plumbing.publisher.Subscribe(this, Rococo::Events::evBusy);
 
@@ -358,7 +348,7 @@ namespace MHost
 		~App()
 		{
 			platform.plumbing.publisher.Unsubscribe(this);
-			platform.graphics.shaderMonitorEventsProxy.RemoveHook(&shaderMonitorHook);
+			platform.graphics.shaderMonitorEventsProxy.RemoveHook(this);
 		}
 
 		void Free() override
@@ -937,7 +927,7 @@ namespace MHost
 
 		void PostCreate()
 		{
-			platform.graphics.shaderMonitorEventsProxy.AddHook(&shaderMonitorHook);
+			platform.graphics.shaderMonitorEventsProxy.AddHook(this);
 		}
 
 		void AddSexmlSheet(Rococo::Script::ISxyExpressionRef sexml) override
