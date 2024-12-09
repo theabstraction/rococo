@@ -469,6 +469,7 @@ namespace Rococo
 		virtual void ClearFileError(cstr file) = 0;
 		virtual void ShowFileError(cstr file, cstr message) = 0;
 		virtual void ToggleOverwriteMode() = 0;
+		virtual bool HighFrameRateImproves() const = 0; // Returns true if the gui believes a high frame rate improves the user experience
 		virtual IKeyboardSink* CurrentKeyboardSink() = 0;
 
 		/*

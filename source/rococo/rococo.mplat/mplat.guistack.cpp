@@ -161,6 +161,11 @@ public:
 		messages.push_back(message);
 	}
 
+	bool HighFrameRateImproves() const override
+	{
+		return !scrollingMessages.empty();
+	}
+
 	IKeyboardSink* CurrentKeyboardSink() override
 	{
 		return keyboardSink;
@@ -369,7 +374,7 @@ public:
 
 		deltaScrollTime += DT;
 
-		const double pixelsScrolledPerSecond = 10.0;
+		const double pixelsScrolledPerSecond = 60.0;
 		
 		double deltaScroll = pixelsScrolledPerSecond * deltaScrollTime;
 
@@ -501,7 +506,7 @@ public:
 		logRect.left = 2;
 		logRect.right = metrics.screenSpan.x - 2;
 		logRect.bottom = metrics.screenSpan.y - 1;
-		logRect.top = 100;
+		logRect.top = logRect.bottom - 400;
 
 		if (logAlpha)
 		{
@@ -520,7 +525,12 @@ public:
 			if (messageLog.TryPopFront(top.message))
 			{
 				top.y = logRect.bottom - MessageHeightPixels;
-				scrollingMessages.push_back(top);
+				if (!scrollingMessages.empty())
+				{
+					top.y = scrollingMessages.back().y + MessageHeightPixels;
+				}
+
+				scrollingMessages.push_back(top);				
 				logAlpha = 192;
 			}
 		}
