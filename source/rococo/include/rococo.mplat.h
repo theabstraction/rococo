@@ -461,7 +461,8 @@ namespace Rococo
 	struct IGUIStack
 	{
 		virtual void AppendEvent(const MouseEvent& me) = 0;
-		virtual bool AppendEvent(const KeyboardEvent& ke) = 0; // Returns true if some UI control consumed the keyboard event
+		// Returns true if some UI control consumed the keyboard event
+		virtual bool AppendEvent(const KeyboardEvent& ke) = 0;
 		virtual void AttachKeyboardSink(IKeyboardSink* ks) = 0;
 		virtual void DetachKeyboardSink(IKeyboardSink* ks) = 0;
 		virtual bool IsOverwriting() const = 0;
@@ -469,7 +470,8 @@ namespace Rococo
 		virtual void ClearFileError(cstr file) = 0;
 		virtual void ShowFileError(cstr file, cstr message) = 0;
 		virtual void ToggleOverwriteMode() = 0;
-		virtual bool HighFrameRateImproves() const = 0; // Returns true if the gui believes a high frame rate improves the user experience
+		// Returns true if the gui believes a high frame rate improves the user experience
+		virtual bool HighFrameRateImproves() const = 0;
 		virtual IKeyboardSink* CurrentKeyboardSink() = 0;
 
 		/*
@@ -486,7 +488,8 @@ namespace Rococo
 		virtual void UnregisterEventHandler(ICommandHandler* handler) = 0;
 		virtual void RegisterPopulator(cstr name, IUIElement* renderElement) = 0;
 		virtual void UnregisterPopulator(IUIElement* renderElement) = 0;
-		virtual int32 Count() const = 0; // Number of panes in the stack
+		// Number of panes in the stack
+		virtual int32 Count() const = 0;
 
 		template<class T> inline void UnregisterEventHandler(T* handler)
 		{
