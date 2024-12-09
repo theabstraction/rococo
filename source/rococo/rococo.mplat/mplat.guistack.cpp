@@ -319,34 +319,46 @@ public:
 	Time::ticks lastScrollCheck = 0;
 	int logAlpha = 0;
 
+	double deltaScrollTime = 0;
+
 	void ScrollMessages(const GuiRect& logRect)
 	{
 		Time::ticks now = Time::TickCount();
-		Time::ticks dt = now - lastScrollCheck;
 
-		const int64 pixelsScrolledPerSecond = 60;
-		Time::ticks ticksPerScroll = Time::TickHz() / pixelsScrolledPerSecond;
-
-		if (dt > ticksPerScroll)
+		if (scrollingMessages.empty())
 		{
 			lastScrollCheck = now;
-		}
-		else
-		{
 			return;
 		}
+		
+		Time::ticks dt = now - lastScrollCheck;
 
-		for (auto& m : scrollingMessages)
+		double DT = clamp((double)dt / (double) Time::TickHz(), 0.0, 0.16);
+
+		deltaScrollTime += DT;
+
+		const double pixelsScrolledPerSecond = 30.0;
+		
+		double deltaScroll = pixelsScrolledPerSecond * deltaScrollTime;
+
+		while (deltaScroll >= 1.0f)
 		{
-			m.y -= 1;
+			deltaScroll -= 1.0f;
+			deltaScrollTime -= 1.0 / pixelsScrolledPerSecond;
+
+			lastScrollCheck = now;
+			
+			for (auto& m : scrollingMessages)
+			{
+				m.y -= 1;
+			}
 		}
 
-		if (!scrollingMessages.empty())
+		deltaScrollTime = clamp(deltaScrollTime, 0.0, 1.0);
+
+		if (scrollingMessages.front().y < logRect.top)
 		{
-			if (scrollingMessages.front().y < logRect.top)
-			{
-				scrollingMessages.erase(scrollingMessages.begin());
-			}
+			scrollingMessages.erase(scrollingMessages.begin());
 		}
 	}
 
@@ -366,7 +378,18 @@ public:
 			}
 		}
 
-		if (lastSpan.x == 0 || lastSpan.y == 0 || panels.empty()) return;
+		if (lastSpan.x == 0 || lastSpan.y == 0) return;
+
+		RenderPanels(grc);
+		RenderScrollingLog(grc);
+	}
+
+	void RenderPanels(IGuiRenderContext& grc)
+	{
+		if (panels.empty())
+		{
+			return;
+		}
 
 		Modality modality;
 		modality.isUnderModal = false;
@@ -398,6 +421,12 @@ public:
 		modality.isTop = true;
 		modality.isModal = p.isModal;
 		p.panel->Render(grc, { rect.left, rect.top }, modality);
+	}
+
+	void RenderScrollingLog(IGuiRenderContext& grc)
+	{
+		GuiMetrics metrics;
+		grc.Renderer().GetGuiMetrics(metrics);
 
 		GuiRect logRect;
 		logRect.left = 2;
@@ -407,7 +436,7 @@ public:
 
 		if (logAlpha)
 		{
-			Graphics::DrawRectangle(grc, logRect, RGBAb(0, 0, 0, (uint8) logAlpha), RGBAb(64, 64, 64, (uint8)logAlpha));
+			Graphics::DrawRectangle(grc, logRect, RGBAb(0, 0, 0, (uint8)logAlpha), RGBAb(64, 64, 64, (uint8)logAlpha));
 			Graphics::DrawBorderAround(grc, Expand(logRect, 1), { 1,1 }, RGBAb(192, 192, 192, (uint8)logAlpha), RGBAb(255, 255, 255, (uint8)logAlpha));
 		}
 

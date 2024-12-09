@@ -15,11 +15,14 @@ namespace Rococo::IO
 {
 	typedef Rococo::IO::IShaderMonitor* (*FN_RococoGraphics_CreateShaderMonitor)(Rococo::IO::IShaderMonitorEvents& eventHandler, cstr targetDirectory);
 
-	IO::IShaderMonitor* TryCreateShaderMonitor(Rococo::IO::IShaderMonitorEvents& eventHandler) noexcept
+	IO::IShaderMonitor* TryCreateShaderMonitor(cstr section, Rococo::IO::IShaderMonitorEvents& eventHandler) noexcept
 	{
 		IO::IShaderMonitor* result = nullptr;
 
-		cstr section = "monitor.shader";
+		if (!section || *section == 0)
+		{
+			section = "monitor.shader";
+		}
 
 		try
 		{

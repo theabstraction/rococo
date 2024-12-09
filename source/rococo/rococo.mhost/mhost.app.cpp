@@ -108,6 +108,8 @@ namespace MHost
 			{
 				platform.graphics.GR_Custodian.Render(grc, platform.graphics.GR);
 			}
+
+			platform.graphics.gui.Render(grc);
 		}
 
 		void RenderObjects(IRenderContext& rc, EShadowCasterFilter filter)  override
@@ -230,10 +232,16 @@ namespace MHost
 
 				if (priority != IO::EShaderLogPriority::Info)
 				{
-					app->LogMessageToMHostScript(message);
+					app->LogShaderMessage(message);
+					// app->LogMessageToMHostScript(message);
 				}
 			}
 		} shaderMonitorHook;
+
+		void LogShaderMessage(cstr message)
+		{
+			platform.graphics.gui.LogMessage("%s", message);
+		}
 
 		// Busy event handler responds to resource loading and renders progress panel
 		void OnBusy(const Rococo::Events::BusyEvent& be)

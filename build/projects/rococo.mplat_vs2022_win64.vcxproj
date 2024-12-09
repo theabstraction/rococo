@@ -53,6 +53,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>rococo.mplat</TargetName>
@@ -64,6 +65,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -71,7 +73,8 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -138,7 +141,8 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>NDEBUG;WIN64;_LIB;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>

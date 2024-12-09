@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	AutoFree<IShaderMonitor> monitor = TryCreateShaderMonitor(logger);
+	AutoFree<IShaderMonitor> monitor = TryCreateShaderMonitor(nullptr, logger);
 	if (!monitor)
 	{
 		fprintf(stderr, "Could not create shader monitor.");

@@ -83,7 +83,8 @@ namespace Rococo
 {
 	namespace IO
 	{
-		IO::IShaderMonitor* TryCreateShaderMonitor(IO::IShaderMonitorEvents& events);
+		// If sexmlSection is null or blank a default is chosen
+		IO::IShaderMonitor* TryCreateShaderMonitor(cstr sexmlSection, IO::IShaderMonitorEvents& events);
 	}
 	namespace Graphics
 	{
@@ -541,7 +542,10 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		}
 	} shaderEventHandler;
 
-	AutoFree<IO::IShaderMonitor> shaderMonitor = IO::TryCreateShaderMonitor(shaderEventHandler);
+	U8FilePath shaderCompilerConfigSection;
+	Format(shaderCompilerConfigSection, "%s-%s", title, ".hlsl.compiler");
+
+	AutoFree<IO::IShaderMonitor> shaderMonitor = IO::TryCreateShaderMonitor(shaderCompilerConfigSection, shaderEventHandler);
 
 	AutoFree<OS::IAppControlSupervisor> appControl(OS::CreateAppControl());
 

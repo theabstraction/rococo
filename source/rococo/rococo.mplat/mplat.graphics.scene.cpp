@@ -225,14 +225,14 @@ namespace
       {
       }
 
-      void FlushDrawQueue(ID_SYS_MESH meshId, IRenderContext& rc)
+      void RenderAndFlushDrawQueue(ID_SYS_MESH meshId, IRenderContext& rc)
       {
          if (drawQueue.empty()) return;
          rc.Draw(meshId, &drawQueue[0], (uint32)drawQueue.size());
          drawQueue.clear();
       }
 
-	  void FlushDrawQueue_NoTexture(ID_SYS_MESH meshId, IRenderContext& rc)
+	  void RenderAndFlushDrawQueue_NoTexture(ID_SYS_MESH meshId, IRenderContext& rc)
 	  {
 		  if (drawQueue.empty()) return;
 		  rc.Draw(meshId, &drawQueue[0], (uint32)drawQueue.size());
@@ -259,27 +259,22 @@ namespace
 
 	  void RenderEntities_InternalStatic(IRenderContext& r)
 	  {
-		  ID_SYS_MESH meshId;
-
+		  // Where some statics have a series bodies that share the same mesh, we want to render them as a batch using instancing.
 		  for (auto i : statics)
 		  {
 			  auto body = API::ForIBodyComponent::Get(i);
 			  if (!body)
 			  {
-				  Throw(0, "Scene: Unexpected missing entity with id #%lld", i.Value());
+				  Throw(0, "Scene: Unexpected missing entity with id #%llX", i.Value());
 			  }
 
-			  if (body->Mesh() != meshId)
+			  if (body->Mesh())
 			  {
-				  FlushDrawQueue(meshId, r);
-				  meshId = body->Mesh();
+				  ObjectInstance instance{ body->Model(), body->Scale(), 0.0f, RGBA(0, 0, 0, 0) };
+				  drawQueue.push_back(instance);
+				  RenderAndFlushDrawQueue(body->Mesh(), r);
 			  }
-
-			  ObjectInstance instance{ body->Model(), body->Scale(), 0.0f, RGBA(0, 0, 0, 0) };
-			  drawQueue.push_back(instance);
 		  }
-
-		  if (meshId) FlushDrawQueue(meshId, r);
 	  }
 
 	  void RenderEntities_InternalDynamic(IRenderContext& r)
@@ -305,7 +300,7 @@ namespace
 
 			  if (body->Mesh() != meshId)
 			  {
-				  FlushDrawQueue(meshId, r);
+				  RenderAndFlushDrawQueue(meshId, r);
 				  meshId = body->Mesh();
 			  }
 
@@ -323,12 +318,12 @@ namespace
 						  AddBoneMatrix(root->GetMatrix(), *child, r, index);
 					  }
 				  }
-				  FlushDrawQueue(meshId, r);
+				  RenderAndFlushDrawQueue(meshId, r);
 				  meshId = ID_SYS_MESH::Invalid();
 			  }
 		  }
 
-		  FlushDrawQueue(meshId, r);
+		  RenderAndFlushDrawQueue(meshId, r);
 	  }
 
 	  void RenderEntities_InternalAnyPhase(IRenderContext& r, EShadowCasterFilter filter)
