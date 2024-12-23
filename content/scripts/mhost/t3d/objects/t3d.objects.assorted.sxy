@@ -628,7 +628,15 @@
 		(0 0 0 1)
 	)
 	(IMaterialBuilder matBuilder (MaterialBuilder))
-	(Int64 landscapeId = (instances.AddBody "landscape_0_0" identity noScale 0))
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID landscapeId = ecs.NewROID)
+	
+	(IBody landscapeMesh (AddBody landscapeId))
+	(landscapeMesh.SetScale noScale)
+	(landscapeMesh.SetModelMatrix identity)
+	(landscapeMesh.SetMeshByName "landscape_0_0")
+	
 	(scene.AddStatics landscapeId)
 
 	(IWorldBuilder wb (WorldBuilder))
