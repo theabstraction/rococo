@@ -52,7 +52,6 @@ class DX11AppRenderer :
 	public IRenderContext,
 	public IMathsVenue,
 	public IDX11ResourceLoader,
-	public IRenderingResources,
 	public IRAL,
 	public IDX11SpecialResources,
 	public ISubsystem,
@@ -324,16 +323,10 @@ private:
 		callback(text);
 	}
 
-	ID_CUBE_TEXTURE envId;
-
 	void SetEnvironmentMap(ID_CUBE_TEXTURE envId)
 	{
-		this->envId = envId;
-	}
-
-	ID_CUBE_TEXTURE GetEnvMapId() const override
-	{
-		return envId;
+		auto* envMap = textureManager->DX11CubeTextures().GetShaderView(envId);
+		dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &envMap);
 	}
 
 	void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
@@ -399,7 +392,7 @@ public:
 		meshes(CreateMeshManager(device, dc)),
 		shaders(CreateShaderManager(installation, options, device, dc))
 	{
-		RenderBundle bundle{ installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc, *this, *this, *this };
+		RenderBundle bundle{ installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc, *this, *this };
 
 		pipeline = CreateDX11Pipeline(bundle);
 		lastTick = Time::TickCount();
