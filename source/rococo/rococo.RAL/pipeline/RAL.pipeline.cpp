@@ -61,6 +61,7 @@ namespace Rococo::RAL::Anon
 			skybox = CreateRALSkybox(_ral, _renderStates);
 			gui3D = CreateGui3D(_ral, _renderStates, *this);
 			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_G_Buffer_Renderer(_ral, _renderStates, *this, *this));
+			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_Forward_Renderer(_ral, _renderStates, *this, *this));
 			boneBuffer = CreateRALBoneStateBuffer(_ral, _renderStates);
 
 			// Comment out InitResources(1) to force some initialization during the first frame. This allows initialization to be profiles in graphics debuggers.
