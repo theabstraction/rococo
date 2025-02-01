@@ -287,3 +287,11 @@ namespace Rococo::Memory
 {
 	IAllocator& GetDX11Allocator();
 }
+
+namespace Rococo::RAL
+{
+	ROCOCO_INTERFACE ISysRenderTarget
+	{
+		virtual ID3D11RenderTargetView * GetView() = 0;
+	};
+}

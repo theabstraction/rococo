@@ -60,7 +60,7 @@ namespace Rococo::RAL::Anon
 			lightCones = CreateLightCones(_ral, _renderStates, *this);
 			skybox = CreateRALSkybox(_ral, _renderStates);
 			gui3D = CreateGui3D(_ral, _renderStates, *this);
-			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_Renderer(_ral, _renderStates, *this, *this));
+			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_G_Buffer_Renderer(_ral, _renderStates, *this, *this));
 			boneBuffer = CreateRALBoneStateBuffer(_ral, _renderStates);
 
 			// Comment out InitResources(1) to force some initialization during the first frame. This allows initialization to be profiles in graphics debuggers.
@@ -174,6 +174,16 @@ namespace Rococo::RAL::Anon
 		{
 			AssignAmbientLightToShaders(ambientLight);
 			RenderIlluminatedEntites(scene);
+		}
+
+		void RenderToGBuffers(Rococo::Graphics::IScene& scene)
+		{
+			renderStates.UseObjectRasterizer();
+
+			scene.RenderObjects(ral.RenderContext(), EShadowCasterFilter::UnskinnedCastersOnly);
+			scene.RenderObjects(ral.RenderContext(), EShadowCasterFilter::SkinnedCastersOnly);
+
+			gui3D->Render3DGui();
 		}
 
 		void RenderSpotlightPhase(IScene& scene)

@@ -323,7 +323,7 @@ private:
 		callback(text);
 	}
 
-	void SetEnvironmentMap(ID_CUBE_TEXTURE envId)
+	void SetEnvironmentMap(ID_CUBE_TEXTURE envId) override
 	{
 		auto* envMap = textureManager->DX11CubeTextures().GetShaderView(envId);
 		dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &envMap);

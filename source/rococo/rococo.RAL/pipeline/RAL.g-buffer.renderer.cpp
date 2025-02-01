@@ -8,6 +8,7 @@
 #include <rococo.visitors.h>
 #include <RAL\RAL.h>
 #include <RAL\RAL.pipeline.h>
+#include <rococo.renderer.formats.h>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
@@ -44,8 +45,7 @@ static void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, Sh
 	shadowData.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
 }
 
-
-struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
+struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 {
 	IRAL& ral;
 	IRenderStates& renderStates;
@@ -57,7 +57,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	ID_PIXEL_SHADER idObjPS_Shadows;
 	ID_PIXEL_SHADER idObj_Spotlight_NoEnvMap_PS;
 	ID_PIXEL_SHADER idObj_Ambient_NoEnvMap_PS;
-	ID_PIXEL_SHADER idObjAmbientPS;
+	ID_PIXEL_SHADER idObjGBufferPS;
 	ID_VERTEX_SHADER idObjAmbientVS;
 	ID_VERTEX_SHADER idObjVS_Shadows;
 	ID_VERTEX_SHADER idSkinnedObjVS_Shadows;
@@ -74,11 +74,13 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	int64 entitiesThisFrame = 0;
 	int64 trianglesThisFrame = 0;
 
-	RAL_3D_Object_Renderer(IRAL& _ral, IRenderStates& _renderStates, IRenderPhases& _phases, IPipeline& _pipeline) : ral(_ral), renderStates(_renderStates), renderPhases(_phases), pipeline(_pipeline)
+	GBuffers G;
+
+	RAL_G_Buffer_3D_Object_Renderer(IRAL& _ral, IRenderStates& _renderStates, IRenderPhases& _phases, IPipeline& _pipeline) : ral(_ral), renderStates(_renderStates), renderPhases(_phases), pipeline(_pipeline)
 	{
 		idObjVS = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/object.vs");
 		idObjPS = ral.Shaders().CreatePixelShader("!shaders/compiled/object.ps");
-		idObjAmbientPS = ral.Shaders().CreatePixelShader("!shaders/compiled/ambient.ps");
+		idObjGBufferPS = ral.Shaders().CreatePixelShader("!shaders/compiled/object.gbuffer.ps");
 		idObjAmbientVS = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/ambient.vs");
 		idObjVS_Shadows = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/shadow.vs");
 		idObjPS_Shadows = ral.Shaders().CreatePixelShader("!shaders/compiled/shadow.ps");
@@ -108,6 +110,9 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 		// TODO - make this dynamic
 		shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
+
+		G.ColourBuffer = ral.RALTextures().CreateDynamicRenderTarget("G.ColourBuffer");
+		G.DepthBuffer = ral.RALTextures().CreateDynamicDepthTarget("G.DepthBuffer");
 	}
 
 	void Free() override
@@ -123,8 +128,16 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		entitiesThisFrame = 0;
 
 		renderStates.UseObjectRasterizer();
-
+		
 		builtFirstPass = false;
+
+		if (!targets.renderTarget)
+		{
+			return;
+		}
+
+		G.ColourBuffer->RenderTarget().MatchSpan(targets.renderTarget);
+		G.DepthBuffer->RenderTarget().MatchSpan(targets.renderTarget);
 
 		Lights lights = scene.GetLights();
 		if (lights.lightArray != nullptr && lights.count > 0 && LengthSq(lights.lightArray[0].direction) > 0)
@@ -135,29 +148,19 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 			RenderToShadowBuffer(shadows, scene);
 
-			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
-			ral.ExpandViewportToEntireTexture(targets.depthTarget);
+			ral.ExpandViewportToEntireTexture(targets.renderTarget);
 
-			phase = RenderPhase::DetermineSpotlight;
+			ral.RALTextures().SetRenderTarget(G, targets.depthTarget);
 
 			ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
 
-			for (size_t i = 0; i < lights.count; ++i)
-			{
-				try
-				{
-					RenderSpotlightLitScene(shadows, lights.lightArray[i], scene);
-				}
-				catch (IException& ex)
-				{
-					Throw(ex.ErrorCode(), "Error lighting scene with light #%d: %s", i, ex.Message());
-				}
-			}
+			RenderToGBuffers(scene);
 
-			RenderAmbient(scene, lights.lightArray[0]);
+			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
+
+			// RenderGBuffersToScreen();
 		}
 	}
-
 
 	// Render the scene from the POV of the light-source into the depth-shadow-buffer
 	void RenderToShadowBuffer(ShadowRenderData& shadowRenderData, IScene& scene)
@@ -183,41 +186,13 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		// We now have populated the shadow buffer, which allows our remaining render calls to determine whether a pixel vertex is in shadow
 	}
 
-	// Render without ambient, using the spotlight calculations in the pixel shader
-	void RenderSpotlightLitScene(const ShadowRenderData& shadows, const LightConstantBuffer& lightSubset, IScene& scene)
-	{
-		LightConstantBuffer light = lightSubset;
-
-		ral.Shaders().UseShaders(idObjVS, idObjPS);
-
-		light.time = shadows.time;
-		light.right = shadows.right;
-		light.up = shadows.up;
-		light.worldToShadowBuffer = shadows.worldToScreen;
-
-		TextureDesc desc;
-		light.OOShadowTxWidth = ral.RALTextures().TryGetTextureDesc(OUT desc, shadowBufferId) && desc.width > 0 ? (1.0f / desc.width) : 1.0f;
-
-		UpdateLightBuffer(light);
-		AssignLightStateBufferToShaders();
-
-		SetAccumulativeBlending();
-
-		renderPhases.RenderSpotlightPhase(scene);
-
-		phase = RenderPhase::None;
-
-		renderStates.UseObjectDepthState();
-	}
-
-	void RenderAmbient(IScene& scene, const LightConstantBuffer& ambientLight)
+	void RenderToGBuffers(IScene& scene)
 	{
 		phase = RenderPhase::DetermineAmbient;
 
-		if (ral.Shaders().UseShaders(idObjAmbientVS, idObjAmbientPS))
+		if (ral.Shaders().UseShaders(idObjAmbientVS, idObjGBufferPS))
 		{
-			SetAccumulativeBlending();
-			renderPhases.RenderAmbientPhase(scene, ambientLight);
+			renderPhases.RenderToGBuffers(scene);
 		}
 
 		phase = RenderPhase::None;
@@ -336,8 +311,8 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 namespace Rococo::RAL
 {
-	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Forward_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline)
+	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_G_Buffer_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline)
 	{
-		return new RAL_3D_Object_Renderer(ral, renderStates, phases, pipeline);
+		return new RAL_G_Buffer_3D_Object_Renderer(ral, renderStates, phases, pipeline);
 	}
 }

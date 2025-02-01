@@ -122,7 +122,8 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRenderPhases
 	{
-		virtual void RenderAmbientPhase(Rococo::Graphics::IScene & scene, const Rococo::Graphics::LightConstantBuffer & ambientLight) = 0;
+		virtual void RenderAmbientPhase(Rococo::Graphics::IScene& scene, const Rococo::Graphics::LightConstantBuffer & ambientLight) = 0;
+		virtual void RenderToGBuffers(Rococo::Graphics::IScene& scene) = 0;
 		virtual void RenderSpotlightPhase(Rococo::Graphics::IScene& scene) = 0;
 	};
 
@@ -147,7 +148,8 @@ namespace Rococo::RAL
 		virtual void Free() = 0;
 	};
 
-	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
+	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Forward_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
+	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_G_Buffer_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
 
 	ROCOCO_INTERFACE IRAL_BoneStateBuffer
 	{

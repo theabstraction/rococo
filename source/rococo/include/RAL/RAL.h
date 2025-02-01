@@ -96,6 +96,33 @@ namespace Rococo::RAL
 		bool disableShadowCasting;
 	};
 
+	DECLARE_ROCOCO_INTERFACE ISysRenderTarget;
+
+	ROCOCO_INTERFACE IRenderTarget
+	{
+		virtual void Free() = 0;
+		virtual ISysRenderTarget& SysRenderTarget() = 0;
+		virtual void MatchSpan(ID_TEXTURE targetId) = 0;
+	};
+
+	ROCOCO_INTERFACE IRenderTarget_Colour
+	{
+		virtual IRenderTarget& RenderTarget() = 0;
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_INTERFACE IRenderTarget_Depth
+	{
+		virtual IRenderTarget& RenderTarget() = 0;
+		virtual void Free() = 0;
+	};
+
+	struct GBuffers
+	{
+		AutoFree<IRenderTarget_Colour> ColourBuffer;
+		AutoFree<IRenderTarget_Depth> DepthBuffer;
+	};
+
 	// [R]enderer [A]bstraction [L]ayer, provided to the RAL pipeline implementation 
 	ROCOCO_INTERFACE IRAL
 	{

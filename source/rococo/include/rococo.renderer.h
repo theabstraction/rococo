@@ -18,24 +18,29 @@
 
 namespace Rococo
 {
-	struct IMathsVisitor;
-	struct IMathsVenue;
+	DECLARE_ROCOCO_INTERFACE IMathsVisitor;
+	DECLARE_ROCOCO_INTERFACE IMathsVenue;
 
 	namespace Windows
 	{
-		struct IWindow;
+		DECLARE_ROCOCO_INTERFACE IWindow;
 	}
 
 	namespace Imaging
 	{
-		struct IImageLoadEvents;
+		DECLARE_ROCOCO_INTERFACE IImageLoadEvents;
 	}
 }
 
 namespace Rococo::RAL
 {
-	struct IRAL;
-	struct IPipeline;
+	DECLARE_ROCOCO_INTERFACE IRAL;
+	DECLARE_ROCOCO_INTERFACE IPipeline;
+	DECLARE_ROCOCO_INTERFACE IRenderTarget;
+	DECLARE_ROCOCO_INTERFACE IRenderTarget_Colour;
+	DECLARE_ROCOCO_INTERFACE IRenderTarget_Depth;
+
+	struct GBuffers;
 	struct RALMeshBuffer;
 }
 
@@ -133,9 +138,14 @@ namespace Rococo::Graphics
 	{
 		virtual void AssignToPS(uint32 unitId, ID_TEXTURE texture) = 0;
 		virtual void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) = 0;
+		virtual void SetRenderTarget(RAL::GBuffers& g, ID_TEXTURE depthTarget) = 0;
 
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
 		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) = 0;
+
+		virtual RAL::IRenderTarget_Colour* CreateDynamicRenderTarget(cstr name) = 0;
+		virtual RAL::IRenderTarget_Depth* CreateDynamicDepthTarget(cstr name) = 0;
+
 		virtual ID_VOLATILE_BITMAP CreateVolatileBitmap(cstr pingPath) = 0;
 		virtual void Free() = 0;
 		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) = 0;

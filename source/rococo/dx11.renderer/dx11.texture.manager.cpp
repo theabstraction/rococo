@@ -397,6 +397,140 @@ struct VolatileTextureItem
 	int32 lastError = 0;
 };
 
+struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget
+{
+	HString name;
+	ID3D11RenderTargetView* view = nullptr;
+	ID3D11Texture2D* texture2D = nullptr;
+	IDX11TextureManager& textures;
+	ID3D11Device& device;
+	UINT width = 0;
+	UINT height = 0;
+	DXGI_FORMAT format;
+	
+	RenderTargetQ(DXGI_FORMAT _format, IDX11TextureManager& _textures, ID3D11Device& _device, cstr _name): format(_format), name(_name), textures(_textures), device(_device)
+	{
+
+	}
+
+	void Free() override
+	{
+		if (view) view->Release();
+		view = nullptr;
+
+		if (texture2D) texture2D->Release();
+		texture2D = nullptr;
+	}
+
+	void MatchSpan(ID_TEXTURE targetId) override
+	{
+		auto& tb = textures.GetTexture(targetId);
+		if (!tb.texture)
+		{
+			return;
+		}
+
+		D3D11_TEXTURE2D_DESC targetDesc;
+		tb.texture->GetDesc(&targetDesc);
+
+		if (targetDesc.Width == 0 || targetDesc.Height == 0)
+		{
+			return;
+		}
+			
+		if (width == targetDesc.Width && height == targetDesc.Height)
+		{
+			return;
+		}
+
+		if (view) view->Release();
+		view = nullptr;
+
+		if (texture2D) texture2D->Release();	
+		texture2D = nullptr;
+
+		D3D11_TEXTURE2D_DESC desc;
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = format;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET; 
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = 0;
+		VALIDATEDX11(device.CreateTexture2D(&desc, NULL, &texture2D));
+
+		D3D11_RENDER_TARGET_VIEW_DESC rtdesc;
+		rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtdesc.Texture1D.MipSlice = 0;
+		rtdesc.Format = format;
+		VALIDATEDX11(device.CreateRenderTargetView(texture2D, &rtdesc, &view));
+	}
+
+	RAL::ISysRenderTarget& SysRenderTarget() override
+	{
+		return *this;
+	}
+
+	ID3D11RenderTargetView* GetView() override
+	{
+		return view;
+	}
+};
+
+struct RenderTarget_Colour : RAL::IRenderTarget_Colour
+{
+	RenderTargetQ renderTarget;
+
+	RenderTarget_Colour(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) : renderTarget(DXGI_FORMAT_R8G8B8A8_UNORM, textures, device, _name)
+	{
+
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	RAL::IRenderTarget& RenderTarget() override
+	{
+		return renderTarget;
+	}
+};
+
+struct RenderTarget_Depth : RAL::IRenderTarget_Depth
+{
+	RenderTargetQ renderTarget;
+
+	RenderTarget_Depth(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) : renderTarget(DXGI_FORMAT_R32_FLOAT, textures, device, _name)
+	{
+
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	RAL::IRenderTarget& RenderTarget() override
+	{
+		return renderTarget;
+	}
+};
+
+RAL::IRenderTarget_Colour* CreateDynamicRenderTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+{
+	return new RenderTarget_Colour(name, textures, device);
+}
+
+RAL::IRenderTarget_Depth* CreateDynamicDepthTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+{
+	return new RenderTarget_Depth(name, textures, device);
+}
+
 struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 {
 	ID3D11Device& device;
@@ -425,6 +559,16 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		materials(CreateMaterials(installation, device, dc))
 	{
 
+	}
+
+	RAL::IRenderTarget_Colour* CreateDynamicRenderTarget(cstr name) override
+	{
+		return CreateDynamicRenderTargetObject(name, *this, device);
+	}
+
+	RAL::IRenderTarget_Depth* CreateDynamicDepthTarget(cstr name) override
+	{
+		return CreateDynamicDepthTargetObject(name, *this, device);
 	}
 
 	Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span, TextureArrayCreationFlags flags)
@@ -572,6 +716,24 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 			auto* colourView = specialResources.BackBuffer();
 			dc.OMSetRenderTargets(1, &colourView, depth.depthView);
 		}
+	}
+
+	void SetRenderTarget(RAL::GBuffers& g, ID_TEXTURE depthTarget) override
+	{
+		size_t nGBuffers = sizeof g / sizeof(RAL::IRenderTarget*);
+
+		ID3D11RenderTargetView** views = (ID3D11RenderTargetView**)alloca(sizeof(ID3D11RenderTargetView*) * nGBuffers);
+
+		auto* first = &g.ColourBuffer;
+
+		for (size_t i = 0; i < nGBuffers; i++)
+		{
+			views[i] = first[i]->RenderTarget().SysRenderTarget().GetView();
+		}
+
+		auto depth = GetTextureNoThrow(depthTarget);
+
+		dc.OMSetRenderTargets((UINT) nGBuffers, views, depth.depthView);
 	}
 
 	ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) override
