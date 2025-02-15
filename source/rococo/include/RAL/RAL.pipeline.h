@@ -82,8 +82,8 @@ namespace Rococo::RAL
 	ROCOCO_INTERFACE IPipeline
 	{
 		virtual void AssignGlobalStateBufferToShaders() = 0;
-		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
-		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
+		virtual void DrawViaObjectRenderer(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
+		virtual void RenderLayers(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;

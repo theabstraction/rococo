@@ -422,26 +422,20 @@ struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget
 		texture2D = nullptr;
 	}
 
-	void MatchSpan(ID_TEXTURE targetId) override
+	void MatchSpan(Vec2i span) override
 	{
-		auto& tb = textures.GetTexture(targetId);
-		if (!tb.texture)
-		{
-			return;
-		}
-
-		D3D11_TEXTURE2D_DESC targetDesc;
-		tb.texture->GetDesc(&targetDesc);
-
-		if (targetDesc.Width == 0 || targetDesc.Height == 0)
+		if (span.x <= 0 || span.y <= 0)
 		{
 			return;
 		}
 			
-		if (width == targetDesc.Width && height == targetDesc.Height)
+		if (texture2D != nullptr && (width == (UINT) span.x && height == (UINT) span.y))
 		{
 			return;
 		}
+
+		width = span.x;
+		height = span.y;
 
 		if (view) view->Release();
 		view = nullptr;

@@ -61,7 +61,7 @@ namespace Rococo::RAL::Anon
 			skybox = CreateRALSkybox(_ral, _renderStates);
 			gui3D = CreateGui3D(_ral, _renderStates, *this);
 			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_G_Buffer_Renderer(_ral, _renderStates, *this, *this));
-			TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_Forward_Renderer(_ral, _renderStates, *this, *this));
+		//	TIME_FUNCTION_CALL(objectRendererInitTime, objectRenderer = CreateRAL_3D_Object_Forward_Renderer(_ral, _renderStates, *this, *this));
 			boneBuffer = CreateRALBoneStateBuffer(_ral, _renderStates);
 
 			// Comment out InitResources(1) to force some initialization during the first frame. This allows initialization to be profiles in graphics debuggers.
@@ -155,7 +155,7 @@ namespace Rococo::RAL::Anon
 			sunlightStateBuffer->AssignToVS(CBUFFER_INDEX_SUNLIGHT);
 		}
 
-		void Draw(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override
+		void DrawViaObjectRenderer(RALMeshBuffer& m, const ObjectInstance* instances, uint32 nInstances) override
 		{
 			objectRenderer->Draw(m, instances, nInstances);
 		}
@@ -198,14 +198,17 @@ namespace Rococo::RAL::Anon
 		}
 
 		// Entry point for rendering
-		void Render(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene)
+		void RenderLayers(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) override
 		{
 			outputTargets.depthTarget = ral.GetWindowDepthBufferId();
 
 			ID_CUBE_TEXTURE envId = scene.GetEnvironmentMap();
 			ral.SetEnvironmentMap(envId);
 
-			ral.ExpandViewportToEntireTexture(outputTargets.depthTarget);
+			TextureDesc desc;
+			ral.RALTextures().TryGetTextureDesc(OUT desc, outputTargets.depthTarget);
+
+			ral.ExpandViewportToEntireSpan({ (int)desc.width, (int)desc.height });
 
 			renderStates.SetAndClearCurrentRenderBuffers(scene.GetClearColour(), outputTargets);
 
@@ -246,7 +249,7 @@ namespace Rococo::RAL::Anon
 			
 		}
 
-		[[nodiscard]] cstr SubsystemName() const override
+		cstr SubsystemName() const override
 		{
 			return "RALPipeline";
 		}

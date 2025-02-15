@@ -102,7 +102,7 @@ namespace Rococo::RAL
 	{
 		virtual void Free() = 0;
 		virtual ISysRenderTarget& SysRenderTarget() = 0;
-		virtual void MatchSpan(ID_TEXTURE targetId) = 0;
+		virtual void MatchSpan(Vec2i span) = 0;
 	};
 
 	ROCOCO_INTERFACE IRenderTarget_Colour
@@ -135,7 +135,7 @@ namespace Rococo::RAL
 		virtual void Draw(uint32 nVertices, uint32 startPosition) = 0;
 		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
 		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE txId) = 0;
-		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthTarget) = 0;
+		virtual void ExpandViewportToEntireSpan(Vec2i span) = 0;
 		virtual Rococo::Graphics::IMeshes& Meshes() = 0;
 		virtual Rococo::Graphics::IShaders& Shaders() = 0;
 		virtual Rococo::Graphics::ITextureManager& RALTextures() = 0;

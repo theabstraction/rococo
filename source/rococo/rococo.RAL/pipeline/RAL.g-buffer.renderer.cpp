@@ -61,6 +61,8 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	ID_VERTEX_SHADER idObjAmbientVS;
 	ID_VERTEX_SHADER idObjVS_Shadows;
 	ID_VERTEX_SHADER idSkinnedObjVS_Shadows;
+	ID_VERTEX_SHADER idFSQuadVS;
+	ID_PIXEL_SHADER idFinalPassPS;
 
 	RenderPhase phase = RenderPhase::None;
 	bool builtFirstPass = false;
@@ -68,6 +70,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	AutoFree<IRALConstantDataBuffer> instanceBuffer;
 	AutoFree<IRALConstantDataBuffer> depthRenderStateBuffer;
 	AutoFree<IRALConstantDataBuffer> lightStateBuffer;
+	AutoFree<IRALVertexDataBuffer> fullscreenQuadBuffer;
 
 	ID_TEXTURE shadowBufferId;
 
@@ -84,6 +87,24 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		idObjAmbientVS = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/ambient.vs");
 		idObjVS_Shadows = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/shadow.vs");
 		idObjPS_Shadows = ral.Shaders().CreatePixelShader("!shaders/compiled/shadow.ps");
+		idFinalPassPS = ral.Shaders().CreatePixelShader("!shaders/compiled/gbuffer.final_pass.ps");
+
+		/*
+		struct VertexElement
+		{
+			cstr semanticName;
+			uint32 semanticIndex;
+			VertexElementFormat format;
+			uint32 slot;
+		};
+		*/
+		VertexElement fullQuadVertexDesc[] = 
+		{
+			{ "position", 0, VertexElementFormat::Float2, 0 },
+			{ "texcoord", 0, VertexElementFormat::Float2, 0 },
+			{ nullptr, 0, VertexElementFormat::Float1, 0 }
+		};
+		idFSQuadVS = ral.Shaders().CreateVertexShader("!shaders/compiled/gbuffer.fullscreen_quad.vs", fullQuadVertexDesc);
 
 		idObj_Spotlight_NoEnvMap_PS = ral.Shaders().CreatePixelShader("!shaders/compiled/obj.spotlight.no_env.ps");
 		idObj_Ambient_NoEnvMap_PS = ral.Shaders().CreatePixelShader("!shaders/compiled/obj.ambient.no_env.ps");
@@ -108,6 +129,28 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		depthRenderStateBuffer = ral.CreateConstantBuffer(sizeof DepthRenderData, 1);
 		lightStateBuffer = ral.CreateConstantBuffer(sizeof LightConstantBuffer, 1);
 
+		struct FullScreenQuadVertex
+		{
+			Vec2 normalizedCoordinates;
+			Vec2 uv;
+		};
+
+		fullscreenQuadBuffer = ral.CreateDynamicVertexBuffer(sizeof FullScreenQuadVertex, 6);
+
+		FullScreenQuadVertex fullscreenQuadGeometry[] =
+		{
+			{{-1.0f, -1.0f}, { 0.0f, 0.0f}},
+			{{ 1.0f, -1.0f}, { 1.0f, 0.0f}},
+			{{-1.0f,  1.0f}, { 0.0f, 1.0f}},
+			{{-1.0f,  1.0f}, { 0.0f, 1.0f}},
+			{{ 1.0f, -1.0f}, { 1.0f, 0.0f}},
+			{{ 1.0f,  1.0f}, { 1.0f, 1.0f}},
+		};
+
+		static_assert(sizeof fullscreenQuadGeometry == sizeof FullScreenQuadVertex * 6);
+
+		fullscreenQuadBuffer->CopyDataToBuffer(fullscreenQuadGeometry, sizeof fullscreenQuadGeometry);
+
 		// TODO - make this dynamic
 		shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 
@@ -120,7 +163,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		delete this;
 	}
 
-	// This is the entry point for 3D rendering using this class as the forward renderer
+	// This is the entry point for 3D rendering using this class as the G-buffer renderer
 	// targets.renderTarget of -1 indicates we are rendering to the window directly, and not to a texture
 	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets) override
 	{
@@ -131,13 +174,21 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		
 		builtFirstPass = false;
 
-		if (!targets.renderTarget)
+		TextureDesc spanDesc;
+		if (!ral.RALTextures().TryGetTextureDesc(spanDesc, targets.renderTarget ? targets.renderTarget : ral.GetWindowDepthBufferId()))
+		{
+			Throw(0, "%s failed: TryGetTextureDesc(spanDesc, ...) returned false", __FUNCTION__);
+		}
+
+		Vec2i span = { (int) spanDesc.width, (int) spanDesc.height };
+
+		if (span.x <= 0 || span.y <= 0)
 		{
 			return;
 		}
 
-		G.ColourBuffer->RenderTarget().MatchSpan(targets.renderTarget);
-		G.DepthBuffer->RenderTarget().MatchSpan(targets.renderTarget);
+		G.ColourBuffer->RenderTarget().MatchSpan(span);
+		G.DepthBuffer->RenderTarget().MatchSpan(span);
 
 		Lights lights = scene.GetLights();
 		if (lights.lightArray != nullptr && lights.count > 0 && LengthSq(lights.lightArray[0].direction) > 0)
@@ -145,21 +196,15 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			// The first light has the highest priority, and provides the shadows
 			ShadowRenderData shadows;
 			PrepareShadowDepthDescFromLight(lights.lightArray[0], shadows);
-
 			RenderToShadowBuffer(shadows, scene);
-
-			ral.ExpandViewportToEntireTexture(targets.renderTarget);
-
-			ral.RALTextures().SetRenderTarget(G, targets.depthTarget);
-
-			ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
-
-			RenderToGBuffers(scene);
-
-			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
-
-			// RenderGBuffersToScreen();
 		}
+			
+		ral.RALTextures().SetRenderTarget(G, targets.depthTarget);
+
+		ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
+
+		RenderToGBuffers(scene);
+		RenderGBuffersToScreen(targets);
 	}
 
 	// Render the scene from the POV of the light-source into the depth-shadow-buffer
@@ -190,12 +235,24 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	{
 		phase = RenderPhase::DetermineAmbient;
 
-		if (ral.Shaders().UseShaders(idObjAmbientVS, idObjGBufferPS))
+		if (ral.Shaders().UseShaders(idObjVS, idObjGBufferPS))
 		{
 			renderPhases.RenderToGBuffers(scene);
 		}
 
 		phase = RenderPhase::None;
+	}
+
+	// Assumes we have set the render target and depth target to the screen
+	void RenderGBuffersToScreen(const RenderOutputTargets& targets)
+	{
+		if (ral.Shaders().UseShaders(idFSQuadVS, idFinalPassPS))
+		{
+			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
+
+			ral.BindVertexBuffer(fullscreenQuadBuffer, sizeof Vec2, 0);
+			ral.Draw(6, 0);
+		}
 	}
 
 	void AssignLightStateBufferToShaders()

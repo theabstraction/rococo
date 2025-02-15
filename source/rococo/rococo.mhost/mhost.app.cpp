@@ -297,7 +297,7 @@ namespace MHost
 			platform.graphics.gui.PushTop(busyPanel->Supervisor(), true);
 
 			EmptyScene emptyScene;
-			platform.graphics.renderer.Render(emptyScene);
+			platform.graphics.renderer.RenderToBackBufferAndPresent(emptyScene);
 			platform.graphics.gui.Pop();
 		}
 
@@ -772,7 +772,7 @@ namespace MHost
 				Throw(0, "GuiPopulator undefined");
 			}
 			sceneManager.populator = populator;
-			platform.graphics.renderer.Render(sceneManager);
+			platform.graphics.renderer.RenderToBackBufferAndPresent(sceneManager);
 		}
 
 		void PollKeyState(OUT KeyState& keyState) override

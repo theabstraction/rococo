@@ -45,7 +45,7 @@ static void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, Sh
 }
 
 
-struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
+struct RAL_3D_Object_Forward_Renderer : IRAL_3D_Object_RendererSupervisor
 {
 	IRAL& ral;
 	IRenderStates& renderStates;
@@ -74,7 +74,7 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	int64 entitiesThisFrame = 0;
 	int64 trianglesThisFrame = 0;
 
-	RAL_3D_Object_Renderer(IRAL& _ral, IRenderStates& _renderStates, IRenderPhases& _phases, IPipeline& _pipeline) : ral(_ral), renderStates(_renderStates), renderPhases(_phases), pipeline(_pipeline)
+	RAL_3D_Object_Forward_Renderer(IRAL& _ral, IRenderStates& _renderStates, IRenderPhases& _phases, IPipeline& _pipeline) : ral(_ral), renderStates(_renderStates), renderPhases(_phases), pipeline(_pipeline)
 	{
 		idObjVS = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/object.vs");
 		idObjPS = ral.Shaders().CreatePixelShader("!shaders/compiled/object.ps");
@@ -136,7 +136,14 @@ struct RAL_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			RenderToShadowBuffer(shadows, scene);
 
 			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
-			ral.ExpandViewportToEntireTexture(targets.depthTarget);
+
+			TextureDesc depthDesc;
+			if (!ral.RALTextures().TryGetTextureDesc(OUT depthDesc, targets.depthTarget))
+			{
+				Throw(0, "%s: TryGetTextureDesc(depthDesc, ...) failed", __FUNCTION__);
+			}
+
+			ral.ExpandViewportToEntireSpan({ (int) depthDesc.width, (int) depthDesc.height });
 
 			phase = RenderPhase::DetermineSpotlight;
 
@@ -338,6 +345,6 @@ namespace Rococo::RAL
 {
 	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Forward_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline)
 	{
-		return new RAL_3D_Object_Renderer(ral, renderStates, phases, pipeline);
+		return new RAL_3D_Object_Forward_Renderer(ral, renderStates, phases, pipeline);
 	}
 }

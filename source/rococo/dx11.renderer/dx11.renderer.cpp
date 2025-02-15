@@ -547,16 +547,11 @@ public:
 		return *this;
 	}
 
-	void ExpandViewportToEntireTexture(ID_TEXTURE depthId) override
+	void ExpandViewportToEntireSpan(Vec2i span) override
 	{
-		auto depth = textureManager->GetTexture(depthId).texture;
-
-		D3D11_TEXTURE2D_DESC desc;
-		depth->GetDesc(&desc);
-
 		D3D11_VIEWPORT viewport = { 0 };
-		viewport.Width = FLOAT(desc.Width);
-		viewport.Height = FLOAT(desc.Height);
+		viewport.Width = FLOAT(span.x);
+		viewport.Height = FLOAT(span.y);
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 
@@ -650,7 +645,7 @@ public:
 	void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances) override
 	{
 		auto& m = meshes->GetBuffer(id);
-		pipeline->RALPipeline().Draw(m, instances, nInstances);
+		pipeline->RALPipeline().DrawViaObjectRenderer(m, instances, nInstances);
 	}
 
 	Windows::IWindow& CurrentWindow() override
@@ -669,7 +664,7 @@ public:
 		return pipeline->RALPipeline().Particles();
 	}
 
-	void Render(IScene& scene) override
+	void RenderToBackBufferAndPresent(IScene& scene) override
 	{
 		if (!BackBuffer())
 		{
@@ -687,7 +682,7 @@ public:
 			return;
 		}
 
-		pipeline->RALPipeline().Render(metrics, scene);
+		pipeline->RALPipeline().RenderLayers(metrics, scene);
 
 		now = Time::TickCount();
 

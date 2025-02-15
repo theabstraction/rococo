@@ -447,11 +447,11 @@ namespace Rococo::Graphics
 		virtual IShaders& Shaders() = 0;
 		virtual IParticles& Particles() = 0;
 		virtual size_t EnumerateScreenModes(Rococo::Function<void(const ScreenMode&)> onMode) = 0;
-		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthId) = 0;
+		virtual void ExpandViewportToEntireSpan(Vec2i span) = 0;
 		virtual void CaptureMouse(bool enable) = 0;
 		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
 		virtual IO::IInstallation& Installation() = 0;
-		virtual void Render(IScene& scene) = 0;
+		virtual void RenderToBackBufferAndPresent(IScene& scene) = 0;
 		virtual void SetCursorVisibility(bool isVisible) = 0;
 		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE envId) = 0;
 
