@@ -114,7 +114,7 @@ namespace Rococo::RAL
 	ROCOCO_INTERFACE IRAL_Skybox
 	{
 		virtual void Free() = 0;
-		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
+		virtual void DrawSkyBox(Rococo::Graphics::IScene& scene) = 0;
 	};
 
 	RAL_PIPELINE_API IRAL_Skybox* CreateRALSkybox(IRAL& ral, IRenderStates& renderStates);

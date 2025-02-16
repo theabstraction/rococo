@@ -216,7 +216,7 @@ namespace Rococo::RAL::Anon
 
 			renderStates.ResetSamplersToDefaults();
 
-			skybox->RenderSkyBox(scene);
+			skybox->DrawSkyBox(scene);
 
 			renderStates.AssignGuiShaderResources();
 			renderStates.ResetSamplersToDefaults();

@@ -47,6 +47,12 @@ static void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, Sh
 
 struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 {
+	struct FullScreenQuadVertex
+	{
+		Vec2 normalizedCoordinates;
+		Vec2 uv;
+	};
+
 	IRAL& ral;
 	IRenderStates& renderStates;
 	IRenderPhases& renderPhases;
@@ -128,12 +134,6 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		instanceBuffer = ral.CreateConstantBuffer(sizeof ObjectInstance, 1);
 		depthRenderStateBuffer = ral.CreateConstantBuffer(sizeof DepthRenderData, 1);
 		lightStateBuffer = ral.CreateConstantBuffer(sizeof LightConstantBuffer, 1);
-
-		struct FullScreenQuadVertex
-		{
-			Vec2 normalizedCoordinates;
-			Vec2 uv;
-		};
 
 		fullscreenQuadBuffer = ral.CreateDynamicVertexBuffer(sizeof FullScreenQuadVertex, 6);
 
@@ -249,8 +249,13 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		if (ral.Shaders().UseShaders(idFSQuadVS, idFinalPassPS))
 		{
 			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
-
-			ral.BindVertexBuffer(fullscreenQuadBuffer, sizeof Vec2, 0);
+			ral.ClearBoundVertexBufferArray();
+			ral.BindVertexBuffer(fullscreenQuadBuffer, sizeof FullScreenQuadVertex, 0);
+			ral.CommitBoundVertexBuffers();
+			renderStates.SetDrawTopology(PrimitiveTopology::TRIANGLELIST);
+			renderStates.UseSkyRasterizer();
+			renderStates.DisableWritesOnDepthState();
+			renderStates.DisableBlend();
 			ral.Draw(6, 0);
 		}
 	}

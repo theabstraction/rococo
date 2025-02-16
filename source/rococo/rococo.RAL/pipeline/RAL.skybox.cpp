@@ -37,7 +37,7 @@ struct RAL_Skybox : IRAL_Skybox
 		delete this;
 	}
 
-	void RenderSkyBox(IScene& scene) override
+	void DrawSkyBox(IScene& scene) override
 	{
 		ID_CUBE_TEXTURE cubeId = scene.GetSkyboxCubeId();
 
