@@ -881,6 +881,10 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 				bbResource->Release();
 				return span;
 			}
+			else
+			{
+				return { 0,0 };
+			}
 		}
 
 		Vec2i span = { (int32)desc.width, (int32)desc.height };
