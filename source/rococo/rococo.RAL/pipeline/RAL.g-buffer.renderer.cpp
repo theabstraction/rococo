@@ -174,14 +174,8 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		
 		builtFirstPass = false;
 
-		TextureDesc spanDesc;
-		if (!ral.RALTextures().TryGetTextureDesc(spanDesc, targets.renderTarget ? targets.renderTarget : ral.GetWindowDepthBufferId()))
-		{
-			Throw(0, "%s failed: TryGetTextureDesc(spanDesc, ...) returned false", __FUNCTION__);
-		}
-
-		Vec2i span = { (int) spanDesc.width, (int) spanDesc.height };
-
+		Vec2i span = ral.RALTextures().GetTextureSpan(targets.renderTarget ? targets.renderTarget : ral.GetWindowDepthBufferId());
+		
 		if (span.x <= 0 || span.y <= 0)
 		{
 			return;
@@ -248,6 +242,8 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	{
 		if (ral.Shaders().UseShaders(idFSQuadVS, idFinalPassPS))
 		{
+			Vec2i span = ral.RALTextures().GetRenderTargetSpan(targets.renderTarget);
+			ral.ExpandViewportToEntireSpan(span);
 			ral.RALTextures().SetRenderTarget(targets.depthTarget, targets.renderTarget);
 			ral.ClearBoundVertexBufferArray();
 			ral.BindVertexBuffer(fullscreenQuadBuffer, sizeof FullScreenQuadVertex, 0);

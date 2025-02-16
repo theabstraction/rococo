@@ -155,6 +155,8 @@ namespace Rococo::Graphics
 		virtual void ShowTextureVenue(IMathsVisitor& visitor) = 0;
 		virtual int64 Size() const = 0;
 		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
+		virtual Vec2i GetRenderTargetSpan(ID_TEXTURE id) const = 0;
+		virtual Vec2i GetTextureSpan(ID_TEXTURE id) const = 0;
 
 		virtual void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const = 0;
 		virtual void CompressTiff(const RGBAb* data, Vec2i span, cstr filename) const = 0;

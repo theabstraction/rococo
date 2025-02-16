@@ -841,6 +841,52 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		return true;
 	}
 
+	Vec2i GetTextureSpan(ID_TEXTURE id) const override
+	{
+		TextureDesc desc;
+		if (!TryGetTextureDesc(OUT desc, id))
+		{
+			return { 0,0 };
+		}
+
+		Vec2i span = { (int32)desc.width, (int32)desc.height };
+		return span;
+	}
+
+	Vec2i GetRenderTargetSpan(ID_TEXTURE id) const override
+	{
+		TextureDesc desc;
+		if (!TryGetTextureDesc(OUT desc, id))
+		{
+			auto* backBuffer = specialResources.BackBuffer();
+			if (backBuffer)
+			{
+				Vec2i span = { 0,0 };
+
+				D3D11_RENDER_TARGET_VIEW_DESC bbDesc;
+				ID3D11Resource* bbResource = nullptr;
+				backBuffer->GetResource(OUT &bbResource);
+				ID3D11Texture2D* tx2D = nullptr;
+				if (SUCCEEDED(bbResource->QueryInterface<ID3D11Texture2D>(&tx2D)))
+				{
+					D3D11_TEXTURE2D_DESC bbRDesc;
+					tx2D->GetDesc(OUT & bbRDesc);
+					span = { (int32)bbRDesc.Width, (int32)bbRDesc.Height };
+				}
+				else
+				{
+					span = { 0,0 };
+				}
+				tx2D->Release();
+				bbResource->Release();
+				return span;
+			}
+		}
+
+		Vec2i span = { (int32)desc.width, (int32)desc.height };
+		return span;
+	}
+
 	void ShowTextureVenue(IMathsVisitor& visitor) override
 	{
 		if (orderedTextureList.empty())
