@@ -397,10 +397,11 @@ struct VolatileTextureItem
 	int32 lastError = 0;
 };
 
-struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget
+struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget, RAL::ISysShaderView
 {
 	HString name;
 	ID3D11RenderTargetView* view = nullptr;
+	ID3D11ShaderResourceView* shaderView = nullptr;
 	ID3D11Texture2D* texture2D = nullptr;
 	IDX11TextureManager& textures;
 	ID3D11Device& device;
@@ -420,6 +421,9 @@ struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget
 
 		if (texture2D) texture2D->Release();
 		texture2D = nullptr;
+
+		if (shaderView) shaderView->Release();
+		shaderView = nullptr;
 	}
 
 	void MatchSpan(Vec2i span) override
@@ -443,6 +447,9 @@ struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget
 		if (texture2D) texture2D->Release();	
 		texture2D = nullptr;
 
+		if (shaderView) shaderView->Release();
+		shaderView = nullptr;
+
 		D3D11_TEXTURE2D_DESC desc;
 		desc.Width = width;
 		desc.Height = height;
@@ -462,6 +469,13 @@ struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget
 		rtdesc.Texture1D.MipSlice = 0;
 		rtdesc.Format = format;
 		VALIDATEDX11(device.CreateRenderTargetView(texture2D, &rtdesc, &view));
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderDesc;
+		shaderDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderDesc.Texture2D.MipLevels = 1;
+		shaderDesc.Texture2D.MostDetailedMip = 0;
+		shaderDesc.Format = format;
+		VALIDATEDX11(device.CreateShaderResourceView(texture2D, &shaderDesc, &shaderView));
 	}
 
 	RAL::ISysRenderTarget& SysRenderTarget() override
@@ -472,6 +486,16 @@ struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget
 	ID3D11RenderTargetView* GetView() override
 	{
 		return view;
+	}
+
+	ID3D11ShaderResourceView* GetShaderView() override
+	{
+		return shaderView;
+	}
+
+	RAL::ISysShaderView& SysShaderView() override
+	{
+		return *this;
 	}
 };
 
@@ -712,17 +736,15 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		}
 	}
 
-	void SetRenderTarget(RAL::GBuffers& g, ID_TEXTURE depthTarget) override
+	void SetRenderTarget(RAL::IGBuffers& g, ID_TEXTURE depthTarget) override
 	{
-		size_t nGBuffers = sizeof g / sizeof(RAL::IRenderTarget*);
+		size_t nGBuffers = g.NumberOfTargets();
 
 		ID3D11RenderTargetView** views = (ID3D11RenderTargetView**)alloca(sizeof(ID3D11RenderTargetView*) * nGBuffers);
 
-		auto* first = &g.ColourBuffer;
-
 		for (size_t i = 0; i < nGBuffers; i++)
 		{
-			views[i] = first[i]->RenderTarget().SysRenderTarget().GetView();
+			views[i] = g.GetTarget(i).SysRenderTarget().GetView();
 		}
 
 		auto depth = GetTextureNoThrow(depthTarget);
@@ -863,7 +885,6 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 			{
 				Vec2i span = { 0,0 };
 
-				D3D11_RENDER_TARGET_VIEW_DESC bbDesc;
 				ID3D11Resource* bbResource = nullptr;
 				backBuffer->GetResource(OUT &bbResource);
 				ID3D11Texture2D* tx2D = nullptr;

@@ -97,12 +97,20 @@ namespace Rococo::RAL
 	};
 
 	DECLARE_ROCOCO_INTERFACE ISysRenderTarget;
+	DECLARE_ROCOCO_INTERFACE ISysShaderView;
 
 	ROCOCO_INTERFACE IRenderTarget
 	{
 		virtual void Free() = 0;
 		virtual ISysRenderTarget& SysRenderTarget() = 0;
+		virtual ISysShaderView& SysShaderView() = 0;
 		virtual void MatchSpan(Vec2i span) = 0;
+	};
+
+	ROCOCO_INTERFACE IGBuffers
+	{
+		virtual IRenderTarget& GetTarget(size_t index) = 0;
+		virtual size_t NumberOfTargets() const = 0;
 	};
 
 	ROCOCO_INTERFACE IRenderTarget_Colour
@@ -115,12 +123,6 @@ namespace Rococo::RAL
 	{
 		virtual IRenderTarget& RenderTarget() = 0;
 		virtual void Free() = 0;
-	};
-
-	struct GBuffers
-	{
-		AutoFree<IRenderTarget_Colour> ColourBuffer;
-		AutoFree<IRenderTarget_Depth> DepthBuffer;
 	};
 
 	// [R]enderer [A]bstraction [L]ayer, provided to the RAL pipeline implementation 

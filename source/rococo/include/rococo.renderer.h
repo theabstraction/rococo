@@ -39,8 +39,7 @@ namespace Rococo::RAL
 	DECLARE_ROCOCO_INTERFACE IRenderTarget;
 	DECLARE_ROCOCO_INTERFACE IRenderTarget_Colour;
 	DECLARE_ROCOCO_INTERFACE IRenderTarget_Depth;
-
-	struct GBuffers;
+	DECLARE_ROCOCO_INTERFACE IGBuffers;
 	struct RALMeshBuffer;
 }
 
@@ -138,7 +137,7 @@ namespace Rococo::Graphics
 	{
 		virtual void AssignToPS(uint32 unitId, ID_TEXTURE texture) = 0;
 		virtual void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) = 0;
-		virtual void SetRenderTarget(RAL::GBuffers& g, ID_TEXTURE depthTarget) = 0;
+		virtual void SetRenderTarget(RAL::IGBuffers& g, ID_TEXTURE depthTarget) = 0;
 
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
 		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) = 0;

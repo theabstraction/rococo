@@ -218,11 +218,11 @@ namespace Rococo::RAL::Anon
 
 			skybox->DrawSkyBox(scene);
 
-			renderStates.AssignGuiShaderResources();
-			renderStates.ResetSamplersToDefaults();
-
 			InitResources(metrics.frameIndex);
 			TIME_FUNCTION_CALL(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets));
+
+			renderStates.AssignGuiShaderResources();
+			renderStates.ResetSamplersToDefaults();
 
 			lightCones->DrawLightCones(scene);
 

@@ -297,4 +297,9 @@ namespace Rococo::RAL
 	{
 		virtual ID3D11RenderTargetView * GetView() = 0;
 	};
+
+	ROCOCO_INTERFACE ISysShaderView
+	{
+		virtual ID3D11ShaderResourceView * GetShaderView() = 0;
+	};
 }

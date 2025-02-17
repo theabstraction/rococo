@@ -45,6 +45,30 @@ static void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, Sh
 	shadowData.time = Seconds{ (secondOfMinute / (float)ticksPerSecond) * 0.9999f };
 }
 
+struct GBuffers : IGBuffers
+{
+	AutoFree<IRenderTarget_Colour> ColourBuffer;
+	AutoFree<IRenderTarget_Depth> DepthBuffer;
+
+	IRenderTarget& GetTarget(size_t index) override
+	{
+		switch (index)
+		{
+		case 0:
+			return ColourBuffer->RenderTarget();
+		case 1:
+			return DepthBuffer->RenderTarget();
+		default:
+			Throw(0, __FUNCTION__": index %d out of bounds", index);
+		}
+	}
+
+	size_t NumberOfTargets() const override
+	{
+		return 2;
+	}
+};
+
 struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 {
 	struct FullScreenQuadVertex
@@ -248,6 +272,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			ral.ClearBoundVertexBufferArray();
 			ral.BindVertexBuffer(fullscreenQuadBuffer, sizeof FullScreenQuadVertex, 0);
 			ral.CommitBoundVertexBuffers();
+			renderStates.AssignGBufferToPS(G);
 			renderStates.SetDrawTopology(PrimitiveTopology::TRIANGLELIST);
 			renderStates.UseSkyRasterizer();
 			renderStates.DisableWritesOnDepthState();

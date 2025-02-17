@@ -5,6 +5,7 @@
 #include <rococo.os.h>
 #include <rococo.time.h>
 #include <vector>
+#include <RAL/RAL.h>
 #include <RAL/RAL.pipeline.h>
 #include <rococo.subsystems.h>
 #include <rococo.reflector.h>
@@ -264,6 +265,18 @@ namespace Rococo::DX11
 		void AssignGuiShaderResources() override
 		{
 			gui->AssignShaderResourcesToDC();
+		}
+
+		void AssignGBufferToPS(IGBuffers& g) override
+		{
+			size_t nTargets = g.NumberOfTargets();
+			auto* views = (ID3D11ShaderResourceView**)alloca(sizeof(ID3D11ShaderResourceView *) * nTargets);
+			for (size_t i = 0; i < nTargets; ++i)
+			{
+				views[i] = g.GetTarget(i).SysShaderView().GetShaderView();
+			}
+
+			dc.PSSetShaderResources(/* start slot */ 0, (UINT)nTargets, views);
 		}
 
 		void DisableBlend() override
