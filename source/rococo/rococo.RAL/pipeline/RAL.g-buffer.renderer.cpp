@@ -163,12 +163,12 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 		FullScreenQuadVertex fullscreenQuadGeometry[] =
 		{
-			{{-1.0f, -1.0f}, { 0.0f, 0.0f}},
-			{{ 1.0f, -1.0f}, { 1.0f, 0.0f}},
-			{{-1.0f,  1.0f}, { 0.0f, 1.0f}},
-			{{-1.0f,  1.0f}, { 0.0f, 1.0f}},
-			{{ 1.0f, -1.0f}, { 1.0f, 0.0f}},
-			{{ 1.0f,  1.0f}, { 1.0f, 1.0f}},
+			{{-1.0f, -1.0f}, { 0.0f, 1.0f}},
+			{{ 1.0f, -1.0f}, { 1.0f, 1.0f}},
+			{{-1.0f,  1.0f}, { 0.0f, 0.0f}},
+			{{-1.0f,  1.0f}, { 0.0f, 0.0f}},
+			{{ 1.0f, -1.0f}, { 1.0f, 1.0f}},
+			{{ 1.0f,  1.0f}, { 1.0f, 0.0f}},
 		};
 
 		static_assert(sizeof fullscreenQuadGeometry == sizeof FullScreenQuadVertex * 6);

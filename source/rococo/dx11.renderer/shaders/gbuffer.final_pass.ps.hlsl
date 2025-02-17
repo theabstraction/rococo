@@ -8,5 +8,6 @@ struct FullScreenQuadPixelSpec
 
 float4 main(FullScreenQuadPixelSpec spec) : SV_TARGET
 {
-    return float4(spec.uv.x, spec.uv.y, 0.0f, 1.0f);
+    float4 txColour = tx_GBuffer_Colour.Sample(spriteSampler, spec.uv);
+    return txColour;
 }
