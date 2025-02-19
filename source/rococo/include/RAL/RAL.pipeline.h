@@ -138,7 +138,7 @@ namespace Rococo::RAL
 		// This is the entry point each frame for rendering. The scene will be queried a number of time for each object in the scene.
 		// The objects are individually rendered with the Draw method, with the implementation adjusting render state appropriate for the 
 		// rendering phase.
-		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets) = 0;
+		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets, IRAL_Skybox& skybox) = 0;
 
 		// Invoked by a visitor to expose some internal data to instrumentation
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;

@@ -117,7 +117,7 @@ struct RAL_3D_Object_Forward_Renderer : IRAL_3D_Object_RendererSupervisor
 
 	// This is the entry point for 3D rendering using this class as the forward renderer
 	// targets.renderTarget of -1 indicates we are rendering to the window directly, and not to a texture
-	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets) override
+	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets, IRAL_Skybox& skybox) override
 	{
 		trianglesThisFrame = 0;
 		entitiesThisFrame = 0;
