@@ -49,6 +49,7 @@ struct GBuffers : IGBuffers
 {
 	AutoFree<IRenderTarget_Colour> ColourBuffer;
 	AutoFree<IRenderTarget_Depth> DepthBuffer;
+	AutoFree<IRenderTarget_Normal> NormalBuffer;
 
 	IRenderTarget& GetTarget(size_t index) override
 	{
@@ -58,6 +59,8 @@ struct GBuffers : IGBuffers
 			return ColourBuffer->RenderTarget();
 		case 1:
 			return DepthBuffer->RenderTarget();
+		case 2:
+			return NormalBuffer->RenderTarget();
 		default:
 			Throw(0, __FUNCTION__": index %d out of bounds", index);
 		}
@@ -65,7 +68,7 @@ struct GBuffers : IGBuffers
 
 	size_t NumberOfTargets() const override
 	{
-		return 2;
+		return 3;
 	}
 };
 
@@ -180,6 +183,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 		G.ColourBuffer = ral.RALTextures().CreateDynamicRenderTarget("G.ColourBuffer");
 		G.DepthBuffer = ral.RALTextures().CreateDynamicDepthTarget("G.DepthBuffer");
+		G.NormalBuffer = ral.RALTextures().CreateDynamicNormalTarget("G.NormalBuffer");
 	}
 
 	void Free() override

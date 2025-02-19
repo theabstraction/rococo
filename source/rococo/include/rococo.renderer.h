@@ -39,6 +39,7 @@ namespace Rococo::RAL
 	DECLARE_ROCOCO_INTERFACE IRenderTarget;
 	DECLARE_ROCOCO_INTERFACE IRenderTarget_Colour;
 	DECLARE_ROCOCO_INTERFACE IRenderTarget_Depth;
+	DECLARE_ROCOCO_INTERFACE IRenderTarget_Normal;
 	DECLARE_ROCOCO_INTERFACE IGBuffers;
 	struct RALMeshBuffer;
 }
@@ -145,6 +146,7 @@ namespace Rococo::Graphics
 
 		virtual RAL::IRenderTarget_Colour* CreateDynamicRenderTarget(cstr name) = 0;
 		virtual RAL::IRenderTarget_Depth* CreateDynamicDepthTarget(cstr name) = 0;
+		virtual RAL::IRenderTarget_Normal* CreateDynamicNormalTarget(cstr name) = 0;
 
 		virtual ID_VOLATILE_BITMAP CreateVolatileBitmap(cstr pingPath) = 0;
 		virtual void Free() = 0;
