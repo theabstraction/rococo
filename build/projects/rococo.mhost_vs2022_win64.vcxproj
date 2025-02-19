@@ -354,12 +354,4 @@
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\gbuffer\g.final_pass.ps.hlsl" />
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\gbuffer\g.fullscreen_quad.vs.hlsl" />
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\gbuffer\g.object.ps.hlsl" />
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\lights.api.hlsl" />
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\mplat.api.hlsl" />
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\shadows.api.hlsl" />
-  </ItemGroup>
 </Project>

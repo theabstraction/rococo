@@ -70,6 +70,14 @@ struct GBuffers : IGBuffers
 	{
 		return 3;
 	}
+
+	void MatchSpan(Vec2i span)
+	{
+		for (size_t i = 0; i < NumberOfTargets(); ++i)
+		{
+			GetTarget(i).MatchSpan(span);
+		}
+	}
 };
 
 struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
@@ -209,8 +217,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			return;
 		}
 
-		G.ColourBuffer->RenderTarget().MatchSpan(span);
-		G.DepthBuffer->RenderTarget().MatchSpan(span);
+		G.MatchSpan(span);
 
 		Lights lights = scene.GetLights();
 		if (lights.lightArray != nullptr && lights.count > 0 && LengthSq(lights.lightArray[0].direction) > 0)

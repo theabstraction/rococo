@@ -183,6 +183,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.app", "projects\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.test", "projects\sexystudio.test_vs2022_win64.vcxproj", "{C4505BC3-9EC0-244A-59AC-648EF21C1D92}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.compiler", "projects\dx11.hlsl.compiler_vs2022_win64.vcxproj", "{BB332028-215F-B71A-24CB-0B2A1B19388C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -457,6 +459,10 @@ Global
 		{C4505BC3-9EC0-244A-59AC-648EF21C1D92}.Debug|x64.Build.0 = Debug|x64
 		{C4505BC3-9EC0-244A-59AC-648EF21C1D92}.Release|x64.ActiveCfg = Release|x64
 		{C4505BC3-9EC0-244A-59AC-648EF21C1D92}.Release|x64.Build.0 = Release|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.ActiveCfg = Debug|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.Build.0 = Debug|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.ActiveCfg = Release|x64
+		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

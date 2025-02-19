@@ -265,6 +265,8 @@ Texture2D tx_noisePermutationArray2D : register(t7);
 Texture1D tx_noisePermGradSampler : register(t8);
 
 Texture2D tx_GBuffer_Colour : register(t0);
+Texture2D tx_GBuffer_Depth : register(t1);
+Texture2D tx_GBuffer_Normal : register(t2);
 
 float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
 {

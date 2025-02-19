@@ -543,7 +543,8 @@ struct RenderTarget_Normal : RAL::IRenderTarget_Normal
 {
 	RenderTargetQ renderTarget;
 
-	RenderTarget_Normal(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) : renderTarget(DXGI_FORMAT_R8G8B8A8_SNORM, textures, device, _name)
+	RenderTarget_Normal(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) :
+		renderTarget(DXGI_FORMAT_R8G8B8A8_SNORM, textures, device, _name)
 	{
 
 	}
@@ -781,6 +782,10 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		for (size_t i = 0; i < nGBuffers; i++)
 		{
 			views[i] = g.GetTarget(i).SysRenderTarget().GetView();
+			if (views[i] == nullptr)
+			{
+				Throw(0, __FUNCTION__ ": no ID3D11RenderTargetView for GBuffer[%d] %s", i);
+			}
 		}
 
 		auto depth = GetTextureNoThrow(depthTarget);

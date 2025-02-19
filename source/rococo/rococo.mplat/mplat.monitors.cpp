@@ -35,6 +35,7 @@ namespace Rococo::IO
 						builder.AddStringLiteral("target-path", R"(\work\rococo\content\shaders\compiled\)");
 						builder.OpenListAttribute("include-paths");
 						builder.AddEscapedStringToList(R"(\work\rococo\source\rococo\dx11.renderer\shaders\)");
+						builder.AddEscapedStringToList(R"(\work\rococo\source\rococo\dx11.renderer\shaders\gbuffer)");
 						builder.CloseListAttribute();
 						builder.CloseDirective();
 					}

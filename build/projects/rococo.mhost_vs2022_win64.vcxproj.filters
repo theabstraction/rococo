@@ -29,28 +29,5 @@
     <Filter Include="code-gen">
       <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{a734cd5e-9d05-467c-9e15-5839dbf3bde1}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\gbuffer\g.final_pass.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\gbuffer\g.fullscreen_quad.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\gbuffer\g.object.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\mplat.api.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\lights.api.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\source\rococo\dx11.renderer\shaders\shadows.api.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>
