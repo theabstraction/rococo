@@ -301,11 +301,6 @@ struct RAL_3D_Object_Forward_Renderer : IRAL_3D_Object_RendererSupervisor
 			trianglesThisFrame += m.numberOfVertices / 3;
 		}
 
-		if (overrideShader)
-		{
-			// UseShaders(currentVertexShaderId, currentPixelShaderId);	 
-		}
-
 		if (m.alphaBlending)
 		{
 			if (builtFirstPass)

@@ -230,7 +230,6 @@ struct DX11BitmapArray : public IDX11BitmapArray
 
         return tb.shaderView;
     }
-
 };
 
 namespace Rococo::DX11

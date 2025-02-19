@@ -136,6 +136,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE ITextureManager
 	{
 		virtual void AssignToPS(uint32 unitId, ID_TEXTURE texture) = 0;
+		virtual void AssignMaterialsToPS() = 0;
 		virtual void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) = 0;
 		virtual void SetRenderTarget(RAL::IGBuffers& g, ID_TEXTURE depthTarget) = 0;
 

@@ -1,4 +1,4 @@
-#include "mplat.api.hlsl"
+#include <mplat.api.hlsl>
 
 struct FullScreenQuadPixelSpec
 {

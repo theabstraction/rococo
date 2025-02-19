@@ -112,12 +112,12 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	RAL_G_Buffer_3D_Object_Renderer(IRAL& _ral, IRenderStates& _renderStates, IRenderPhases& _phases, IPipeline& _pipeline) : ral(_ral), renderStates(_renderStates), renderPhases(_phases), pipeline(_pipeline)
 	{
 		idObjVS = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/object.vs");
-		idObjPS = ral.Shaders().CreatePixelShader("!shaders/compiled/object.ps");
-		idObjGBufferPS = ral.Shaders().CreatePixelShader("!shaders/compiled/object.gbuffer.ps");
+		idObjPS = ral.Shaders().CreatePixelShader("!shaders/compiled/g.object.ps");
+		idObjGBufferPS = ral.Shaders().CreatePixelShader("!shaders/compiled/g.object.ps");
 		idObjAmbientVS = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/ambient.vs");
 		idObjVS_Shadows = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/shadow.vs");
 		idObjPS_Shadows = ral.Shaders().CreatePixelShader("!shaders/compiled/shadow.ps");
-		idFinalPassPS = ral.Shaders().CreatePixelShader("!shaders/compiled/gbuffer.final_pass.ps");
+		idFinalPassPS = ral.Shaders().CreatePixelShader("!shaders/compiled/g.final_pass.ps");
 
 		/*
 		struct VertexElement
@@ -134,7 +134,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			{ "texcoord", 0, VertexElementFormat::Float2, 0 },
 			{ nullptr, 0, VertexElementFormat::Float1, 0 }
 		};
-		idFSQuadVS = ral.Shaders().CreateVertexShader("!shaders/compiled/gbuffer.fullscreen_quad.vs", fullQuadVertexDesc);
+		idFSQuadVS = ral.Shaders().CreateVertexShader("!shaders/compiled/g.fullscreen_quad.vs", fullQuadVertexDesc);
 
 		idObj_Spotlight_NoEnvMap_PS = ral.Shaders().CreatePixelShader("!shaders/compiled/obj.spotlight.no_env.ps");
 		idObj_Ambient_NoEnvMap_PS = ral.Shaders().CreatePixelShader("!shaders/compiled/obj.ambient.no_env.ps");
@@ -220,6 +220,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		ral.RALTextures().SetRenderTarget(G, targets.depthTarget);
 
 		ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
+		ral.RALTextures().AssignMaterialsToPS();
 
 		ral.ExpandViewportToEntireSpan(span);
 
@@ -254,12 +255,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	void RenderToGBuffers(IScene& scene)
 	{
 		phase = RenderPhase::DetermineAmbient;
-
-		if (ral.Shaders().UseShaders(idObjVS, idObjGBufferPS))
-		{
-			renderPhases.RenderToGBuffers(scene);
-		}
-
+		renderPhases.RenderToGBuffers(scene);
 		phase = RenderPhase::None;
 	}
 
@@ -312,17 +308,17 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 		entitiesThisFrame += (int64)nInstances;
 
-		bool overrideShader = false;
-
-		if (m.psSpotlightShader && phase == RenderPhase::DetermineSpotlight)
+		switch (phase)
 		{
-			ral.Shaders().UseShaders(m.vsSpotlightShader, m.psSpotlightShader);
-			overrideShader = true;
-		}
-		else if (m.psAmbientShader && phase == RenderPhase::DetermineAmbient)
-		{
-			ral.Shaders().UseShaders(m.vsAmbientShader, m.psAmbientShader);
-			overrideShader = true;
+		case RenderPhase::DetermineAmbient:
+			ral.Shaders().UseShaders(m.vsAmbientShader ? m.vsAmbientShader : idObjVS, m.psAmbientShader ? m.psAmbientShader : idObjPS);
+			break;
+		case RenderPhase::DetermineSpotlight:
+			ral.Shaders().UseShaders(m.vsSpotlightShader ? m.vsSpotlightShader : idObjVS, m.psSpotlightShader ? m.psSpotlightShader : idObjPS);
+			break;
+		default:
+			// Assume that the caller context has already set the shaders
+			break;
 		}
 
 		if (m.alphaBlending)
@@ -352,11 +348,6 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			ral.Draw(m.numberOfVertices, 0);
 
 			trianglesThisFrame += m.numberOfVertices / 3;
-		}
-
-		if (overrideShader)
-		{
-			// UseShaders(currentVertexShaderId, currentPixelShaderId);	 
 		}
 
 		if (m.alphaBlending)

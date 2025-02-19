@@ -218,6 +218,8 @@ namespace Rococo::RAL::Anon
 
 			skybox->DrawSkyBox(scene);
 
+			renderStates.AssignGuiShaderResources();
+
 			InitResources(metrics.frameIndex);
 			TIME_FUNCTION_CALL(objectRenderTimer, objectRenderer->Render3DObjects(scene, outputTargets));
 

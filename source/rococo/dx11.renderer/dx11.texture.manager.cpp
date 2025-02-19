@@ -721,6 +721,12 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		}
 	}
 
+	void AssignMaterialsToPS() override
+	{
+		auto* view = materials->Textures().View();
+		dc.PSGetShaderResources(TXUNIT_MATERIALS, 1, &view);
+	}
+
 	void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) override
 	{
 		auto depth = GetTextureNoThrow(depthTarget);
