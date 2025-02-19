@@ -271,4 +271,11 @@ float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
     return normalize(p.worldPosition.xyz - global.eye.xyz);
 }
 
+struct GBufferOutput
+{
+    float4 colour : SV_TARGET0;
+    float4 depth : SV_TARGET1;
+    float4 normal : SV_TARGET2;
+};
+
 #endif

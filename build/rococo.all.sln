@@ -1,14 +1,16 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = " - Control-Flow Graph System", " - Control-Flow Graph System", "{CECC448C-869E-0026-D89A-3F660E2392D5}"
+VisualStudioVersion = 17.13.35806.99 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "- Control-Flow Graph System", "- Control-Flow Graph System", "{CECC448C-869E-0026-D89A-3F660E2392D5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = " - Global Headers", " - Global Headers", "{C9AAAACC-EE96-9D3D-EB87-F4F3729D4262}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "- Global Headers", "- Global Headers", "{C9AAAACC-EE96-9D3D-EB87-F4F3729D4262}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = " - Sexy", " - Sexy", "{DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "- Sexy", "- Sexy", "{DFC8C8D8-A7B1-B36A-23C7-EE166D2913AD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = " - SexyStudio", " - SexyStudio", "{E956D76C-C527-2E25-0DAC-F741402E38D0}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "- SexyStudio", "- SexyStudio", "{E956D76C-C527-2E25-0DAC-F741402E38D0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = " - Third-Party Projects", " - Third-Party Projects", "{0D6865EB-017D-28AF-5406-DCE3212D9634}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "- Third-Party Projects", "- Third-Party Projects", "{0D6865EB-017D-28AF-5406-DCE3212D9634}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ECS", "ECS", "{CA3EF6C8-5EFF-3A98-2441-126A241C4CFA}"
 EndProject
@@ -21,8 +23,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cfgs.host", "projects\cfgs.host_vs2022_win64.vcxproj", "{BDB227D6-3A10-ABED-5214-43BD62E86BE4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cfgs.sexy.ide", "projects\cfgs.sexy.ide_vs2022_win64.vcxproj", "{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.compiler", "projects\dx11.hlsl.compiler_vs2022_win64.vcxproj", "{BB332028-215F-B71A-24CB-0B2A1B19388C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dx11.hlsl.monitor", "projects\dx11.hlsl.monitor_vs2022_win64.vcxproj", "{41BB5607-981C-BB79-CF71-93BF8A7E969F}"
 EndProject
@@ -205,10 +205,6 @@ Global
 		{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}.Debug|x64.Build.0 = Debug|x64
 		{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}.Release|x64.ActiveCfg = Release|x64
 		{26AC4662-4078-B0F1-0A4A-F477F7FE9CEA}.Release|x64.Build.0 = Release|x64
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.ActiveCfg = Debug|x64
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Debug|x64.Build.0 = Debug|x64
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.ActiveCfg = Release|x64
-		{BB332028-215F-B71A-24CB-0B2A1B19388C}.Release|x64.Build.0 = Release|x64
 		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.ActiveCfg = Debug|x64
 		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Debug|x64.Build.0 = Debug|x64
 		{41BB5607-981C-BB79-CF71-93BF8A7E969F}.Release|x64.ActiveCfg = Release|x64
@@ -501,5 +497,8 @@ Global
 		{50F2A5CB-0BA0-2FF7-5718-68566F7FCCB7} = {E956D76C-C527-2E25-0DAC-F741402E38D0}
 		{8C71C5FF-33DF-365E-B2A4-F9C23459BC12} = {E956D76C-C527-2E25-0DAC-F741402E38D0}
 		{C4505BC3-9EC0-244A-59AC-648EF21C1D92} = {E956D76C-C527-2E25-0DAC-F741402E38D0}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E6DD2E8F-78D6-47E3-812C-4427F4771E16}
 	EndGlobalSection
 EndGlobal
