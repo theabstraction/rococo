@@ -273,6 +273,7 @@ Texture1D tx_noisePermGradSampler : register(t8);
 Texture2D tx_GBuffer_Colour : register(t9);
 Texture2D tx_GBuffer_Depth : register(t10);
 Texture2D tx_GBuffer_Normal : register(t11);
+Texture2D tx_GBuffer_Position : register(t12);
 
 float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
 {
@@ -289,6 +290,7 @@ struct GBufferOutput
     float4 colour : SV_TARGET0;
     float4 depth : SV_TARGET1;
     float4 normal : SV_TARGET2;
+	float4 position: SV_TARGET3;
 };
 
 #endif

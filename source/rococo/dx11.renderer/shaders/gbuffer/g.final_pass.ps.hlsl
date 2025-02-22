@@ -12,13 +12,14 @@ float4 main(GPixelSpec spec) : SV_TARGET
 {
     float4 rawColour = tx_GBuffer_Colour.Sample(spriteSampler, spec.uv);
 	
-    float shadowDensity = 0.15f; // GetShadowDensityDirect(spec.position);
-		 
+    float shadowDensity = GetShadowDensityDirect(spec.position);
+	
     float3 normal = tx_GBuffer_Normal.Sample(spriteSampler, spec.uv).xyz;       
    
     float I = 1.0f; // GetDiffuseSpecularAndFoggedLighting(spec, normal);
 	
-    return shadowDensity * rawColour;
+    return (1.0f - shadowDensity) * rawColour;
+	
 	
     // The following computation requires global value 'light' to have been assigned to the shader
     return BlendColourWithLightAndShadow(rawColour, shadowDensity, I);

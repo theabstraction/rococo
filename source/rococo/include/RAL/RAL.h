@@ -131,6 +131,12 @@ namespace Rococo::RAL
 		virtual void Free() = 0;
 	};
 
+	ROCOCO_INTERFACE IRenderTarget_Vec4
+	{
+		virtual IRenderTarget& RenderTarget() = 0;
+		virtual void Free() = 0;
+	};
+
 	// [R]enderer [A]bstraction [L]ayer, provided to the RAL pipeline implementation 
 	ROCOCO_INTERFACE IRAL
 	{

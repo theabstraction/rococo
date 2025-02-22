@@ -50,6 +50,7 @@ struct GBuffers : IGBuffers
 	AutoFree<IRenderTarget_Colour> ColourBuffer;
 	AutoFree<IRenderTarget_Depth> DepthBuffer;
 	AutoFree<IRenderTarget_Normal> NormalBuffer;
+	AutoFree<IRenderTarget_Vec4> PositionBuffer;
 
 	IRenderTarget& GetTarget(size_t index) override
 	{
@@ -61,6 +62,8 @@ struct GBuffers : IGBuffers
 			return DepthBuffer->RenderTarget();
 		case 2:
 			return NormalBuffer->RenderTarget();
+		case 3:
+			return PositionBuffer->RenderTarget();
 		default:
 			Throw(0, __FUNCTION__": index %d out of bounds", index);
 		}
@@ -68,7 +71,7 @@ struct GBuffers : IGBuffers
 
 	size_t NumberOfTargets() const override
 	{
-		return 3;
+		return 4;
 	}
 
 	void MatchSpan(Vec2i span)
@@ -192,6 +195,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		G.ColourBuffer = ral.RALTextures().CreateDynamicRenderTarget("G.ColourBuffer");
 		G.DepthBuffer = ral.RALTextures().CreateDynamicDepthTarget("G.DepthBuffer");
 		G.NormalBuffer = ral.RALTextures().CreateDynamicNormalTarget("G.NormalBuffer");
+		G.PositionBuffer = ral.RALTextures().CreateDynamicVec4Target("G.PositionBuffer");
 	}
 
 	void Free() override

@@ -5,12 +5,9 @@
 GBufferOutput main(ObjectPixelVertex p)
 {
     GBufferOutput output;
-	//float shadowDensity = GetShadowDensity(p);
-    float4 texel = SampleMaterial(p);
+	output.colour = SampleMaterial(p);
     output.normal = float4(p.worldNormal.xyz, 0.0f);
     output.depth = float4(1.0f, 0.0f, 0.0f, 0.0f);
-    output.colour = texel.xyzw;
+	output.position = float4(p.worldPosition.xyz, 1.0f);
     return output;
-    //float I = GetDiffuseSpecularAndFoggedLighting(p);
-    //return BlendColourWithLightAndShadow(texel, shadowDensity, I);
 }
