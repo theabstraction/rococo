@@ -102,9 +102,14 @@ float GetShadowDensityFromPos(float4 shadowPos)
     return GetShadowDensity_16Sample(shadowPos);
 }
 
+float GetShadowDensityDirect(float4 worldPos)
+{
+    return refShadowModel.GetShadowDensityFromPos(worldPos);
+}
+
 float GetShadowDensity(ObjectPixelVertex p)
 {
-    return refShadowModel.GetShadowDensityFromPos(p.shadowPos);
+    return GetShadowDensityDirect(p.shadowPos);
 }
 
 float4 BlendColourWithLightAndShadow(float4 colour, float shadowDensity, float I)

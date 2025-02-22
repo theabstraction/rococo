@@ -282,7 +282,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			ral.ClearBoundVertexBufferArray();
 			ral.BindVertexBuffer(fullscreenQuadBuffer, sizeof FullScreenQuadVertex, 0);
 			ral.CommitBoundVertexBuffers();
-			renderStates.AssignGBufferToPS(G);
+			renderStates.AssignGBufferToPS(G, TXUNIT_GBUFFER_START);
 			renderStates.SetDrawTopology(PrimitiveTopology::TRIANGLELIST);
 			renderStates.UseSkyRasterizer();
 			renderStates.DisableWritesOnDepthState();

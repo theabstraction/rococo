@@ -52,7 +52,7 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRenderStates
 	{
-		virtual void AssignGBufferToPS(IGBuffers& g) = 0;
+		virtual void AssignGBufferToPS(IGBuffers& g, int startSlot) = 0;
 		virtual void AssignGuiShaderResources() = 0;
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;

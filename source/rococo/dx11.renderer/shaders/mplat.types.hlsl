@@ -123,6 +123,12 @@ struct ObjectPixelVertex
 	float4 colour: COLOR0;
 };
 
+struct GPixelSpec
+{
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
 struct LandPixelVertex
 {
 	float4 position : SV_POSITION0;
@@ -264,13 +270,18 @@ Texture2DArray tx_GlyphArray: register(t6);
 Texture2D tx_noisePermutationArray2D : register(t7);
 Texture1D tx_noisePermGradSampler : register(t8);
 
-Texture2D tx_GBuffer_Colour : register(t0);
-Texture2D tx_GBuffer_Depth : register(t1);
-Texture2D tx_GBuffer_Normal : register(t2);
+Texture2D tx_GBuffer_Colour : register(t9);
+Texture2D tx_GBuffer_Depth : register(t10);
+Texture2D tx_GBuffer_Normal : register(t11);
 
 float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
 {
     return normalize(p.worldPosition.xyz - global.eye.xyz);
+}
+
+float3 ComputeEyeToWorldDirectionG(GPixelSpec p)
+{
+    return normalize(p.position.xyz - global.eye.xyz);
 }
 
 struct GBufferOutput

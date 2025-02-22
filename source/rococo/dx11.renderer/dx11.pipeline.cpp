@@ -267,7 +267,7 @@ namespace Rococo::DX11
 			gui->AssignShaderResourcesToDC();
 		}
 
-		void AssignGBufferToPS(IGBuffers& g) override
+		void AssignGBufferToPS(IGBuffers& g, int startSlot) override
 		{
 			size_t nTargets = g.NumberOfTargets();
 			auto* views = (ID3D11ShaderResourceView**)alloca(sizeof(ID3D11ShaderResourceView *) * nTargets);
@@ -276,7 +276,7 @@ namespace Rococo::DX11
 				views[i] = g.GetTarget(i).SysShaderView().GetShaderView();
 			}
 
-			dc.PSSetShaderResources(/* start slot */ 0, (UINT)nTargets, views);
+			dc.PSSetShaderResources(startSlot, (UINT)nTargets, views);
 		}
 
 		void DisableBlend() override
