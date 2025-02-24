@@ -47,23 +47,23 @@ static void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, Sh
 
 struct GBuffers : IGBuffers
 {
-	AutoFree<IRenderTarget_Colour> ColourBuffer;
-	AutoFree<IRenderTarget_Depth> DepthBuffer;
-	AutoFree<IRenderTarget_Normal> NormalBuffer;
-	AutoFree<IRenderTarget_Vec4> PositionBuffer;
+	AutoFree<IRenderTargetSupervisor> ColourBuffer;
+	AutoFree<IRenderTargetSupervisor> DepthBuffer;
+	AutoFree<IRenderTargetSupervisor> NormalBuffer;
+	AutoFree<IRenderTargetSupervisor> PositionBuffer;
 
 	IRenderTarget& GetTarget(size_t index) override
 	{
 		switch (index)
 		{
 		case 0:
-			return ColourBuffer->RenderTarget();
+			return *ColourBuffer;
 		case 1:
-			return DepthBuffer->RenderTarget();
+			return *DepthBuffer;
 		case 2:
-			return NormalBuffer->RenderTarget();
+			return *NormalBuffer;
 		case 3:
-			return PositionBuffer->RenderTarget();
+			return *PositionBuffer;
 		default:
 			Throw(0, __FUNCTION__": index %d out of bounds", index);
 		}

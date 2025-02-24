@@ -101,7 +101,6 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRenderTarget
 	{
-		virtual void Free() = 0;
 		virtual ISysRenderTarget& SysRenderTarget() = 0;
 		virtual ISysShaderView& SysShaderView() = 0;
 		virtual void MatchSpan(Vec2i span) = 0;
@@ -113,27 +112,8 @@ namespace Rococo::RAL
 		virtual size_t NumberOfTargets() const = 0;
 	};
 
-	ROCOCO_INTERFACE IRenderTarget_Colour
+	ROCOCO_INTERFACE IRenderTargetSupervisor: IRenderTarget
 	{
-		virtual IRenderTarget& RenderTarget() = 0;
-		virtual void Free() = 0;
-	};
-
-	ROCOCO_INTERFACE IRenderTarget_Depth
-	{
-		virtual IRenderTarget& RenderTarget() = 0;
-		virtual void Free() = 0;
-	};
-
-	ROCOCO_INTERFACE IRenderTarget_Normal
-	{
-		virtual IRenderTarget & RenderTarget() = 0;
-		virtual void Free() = 0;
-	};
-
-	ROCOCO_INTERFACE IRenderTarget_Vec4
-	{
-		virtual IRenderTarget& RenderTarget() = 0;
 		virtual void Free() = 0;
 	};
 

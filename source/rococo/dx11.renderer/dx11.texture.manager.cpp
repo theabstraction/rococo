@@ -397,7 +397,7 @@ struct VolatileTextureItem
 	int32 lastError = 0;
 };
 
-struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget, RAL::ISysShaderView
+struct DX11RenderTarget : RAL::IRenderTargetSupervisor, RAL::ISysRenderTarget, RAL::ISysShaderView
 {
 	HString name;
 	ID3D11RenderTargetView* view = nullptr;
@@ -409,7 +409,7 @@ struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget, RAL::ISysShade
 	UINT height = 0;
 	DXGI_FORMAT format;
 	
-	RenderTargetQ(DXGI_FORMAT _format, IDX11TextureManager& _textures, ID3D11Device& _device, cstr _name): format(_format), name(_name), textures(_textures), device(_device)
+	DX11RenderTarget(DXGI_FORMAT _format, cstr _name, IDX11TextureManager& _textures, ID3D11Device& _device): format(_format), name(_name), textures(_textures), device(_device)
 	{
 
 	}
@@ -499,106 +499,24 @@ struct RenderTargetQ : RAL::IRenderTarget, RAL::ISysRenderTarget, RAL::ISysShade
 	}
 };
 
-struct RenderTarget_Colour : RAL::IRenderTarget_Colour
+RAL::IRenderTargetSupervisor* CreateDynamicRenderTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
 {
-	RenderTargetQ renderTarget;
-
-	RenderTarget_Colour(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) : renderTarget(DXGI_FORMAT_R8G8B8A8_UNORM, textures, device, _name)
-	{
-
-	}
-
-	void Free() override
-	{
-		delete this;
-	}
-
-	RAL::IRenderTarget& RenderTarget() override
-	{
-		return renderTarget;
-	}
-};
-
-struct RenderTarget_Depth : RAL::IRenderTarget_Depth
-{
-	RenderTargetQ renderTarget;
-
-	RenderTarget_Depth(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) : renderTarget(DXGI_FORMAT_R32_FLOAT, textures, device, _name)
-	{
-
-	}
-
-	void Free() override
-	{
-		delete this;
-	}
-
-	RAL::IRenderTarget& RenderTarget() override
-	{
-		return renderTarget;
-	}
-};
-
-struct RenderTarget_Normal : RAL::IRenderTarget_Normal
-{
-	RenderTargetQ renderTarget;
-
-	RenderTarget_Normal(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) :
-		renderTarget(DXGI_FORMAT_R8G8B8A8_SNORM, textures, device, _name)
-	{
-
-	}
-
-	void Free() override
-	{
-		delete this;
-	}
-
-	RAL::IRenderTarget& RenderTarget() override
-	{
-		return renderTarget;
-	}
-};
-
-struct RenderTarget_Vec4 : RAL::IRenderTarget_Vec4
-{
-	RenderTargetQ renderTarget;
-
-	RenderTarget_Vec4(cstr _name, IDX11TextureManager& textures, ID3D11Device& device) :
-		renderTarget(DXGI_FORMAT_R32G32B32A32_FLOAT, textures, device, _name)
-	{
-
-	}
-
-	void Free() override
-	{
-		delete this;
-	}
-
-	RAL::IRenderTarget& RenderTarget() override
-	{
-		return renderTarget;
-	}
-};
-
-RAL::IRenderTarget_Colour* CreateDynamicRenderTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
-{
-	return new RenderTarget_Colour(name, textures, device);
+	return new DX11RenderTarget(DXGI_FORMAT_R8G8B8A8_UNORM, name, textures, device);
 }
 
-RAL::IRenderTarget_Depth* CreateDynamicDepthTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+RAL::IRenderTargetSupervisor* CreateDynamicDepthTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
 {
-	return new RenderTarget_Depth(name, textures, device);
+	return new DX11RenderTarget(DXGI_FORMAT_R32_FLOAT, name, textures, device);
 }
 
-RAL::IRenderTarget_Normal* CreateDynamicNormalTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+RAL::IRenderTargetSupervisor* CreateDynamicNormalTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
 {
-	return new RenderTarget_Normal(name, textures, device);
+	return new DX11RenderTarget(DXGI_FORMAT_R8G8B8A8_SNORM, name, textures, device);
 }
 
-RAL::IRenderTarget_Vec4* CreateDynamicVec4TargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+RAL::IRenderTargetSupervisor* CreateDynamicVec4TargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
 {
-	return new RenderTarget_Vec4(name, textures, device);
+	return new DX11RenderTarget(DXGI_FORMAT_R32G32B32A32_FLOAT, name, textures, device);
 }
 
 struct DX11TextureManager : IDX11TextureManager, ICubeTextures
@@ -631,22 +549,22 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 	}
 
-	RAL::IRenderTarget_Colour* CreateDynamicRenderTarget(cstr name) override
+	RAL::IRenderTargetSupervisor* CreateDynamicRenderTarget(cstr name) override
 	{
 		return CreateDynamicRenderTargetObject(name, *this, device);
 	}
 
-	RAL::IRenderTarget_Depth* CreateDynamicDepthTarget(cstr name) override
+	RAL::IRenderTargetSupervisor* CreateDynamicDepthTarget(cstr name) override
 	{
 		return CreateDynamicDepthTargetObject(name, *this, device);
 	}
 
-	RAL::IRenderTarget_Normal* CreateDynamicNormalTarget(cstr name) override
+	RAL::IRenderTargetSupervisor* CreateDynamicNormalTarget(cstr name) override
 	{
 		return CreateDynamicNormalTargetObject(name, *this, device);
 	}
 
-	RAL::IRenderTarget_Vec4* CreateDynamicVec4Target(cstr name) override
+	RAL::IRenderTargetSupervisor* CreateDynamicVec4Target(cstr name) override
 	{
 		return CreateDynamicVec4TargetObject(name, *this, device);
 	}

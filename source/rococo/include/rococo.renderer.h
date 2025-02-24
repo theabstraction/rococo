@@ -37,10 +37,7 @@ namespace Rococo::RAL
 	DECLARE_ROCOCO_INTERFACE IRAL;
 	DECLARE_ROCOCO_INTERFACE IPipeline;
 	DECLARE_ROCOCO_INTERFACE IRenderTarget;
-	DECLARE_ROCOCO_INTERFACE IRenderTarget_Colour;
-	DECLARE_ROCOCO_INTERFACE IRenderTarget_Depth;
-	DECLARE_ROCOCO_INTERFACE IRenderTarget_Normal;
-	DECLARE_ROCOCO_INTERFACE IRenderTarget_Vec4;
+	DECLARE_ROCOCO_INTERFACE IRenderTargetSupervisor;
 	DECLARE_ROCOCO_INTERFACE IGBuffers;
 	struct RALMeshBuffer;
 }
@@ -145,10 +142,10 @@ namespace Rococo::Graphics
 		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
 		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) = 0;
 
-		virtual RAL::IRenderTarget_Colour* CreateDynamicRenderTarget(cstr name) = 0;
-		virtual RAL::IRenderTarget_Depth* CreateDynamicDepthTarget(cstr name) = 0;
-		virtual RAL::IRenderTarget_Normal* CreateDynamicNormalTarget(cstr name) = 0;
-		virtual RAL::IRenderTarget_Vec4* CreateDynamicVec4Target(cstr name) = 0;
+		virtual RAL::IRenderTargetSupervisor* CreateDynamicRenderTarget(cstr name) = 0;
+		virtual RAL::IRenderTargetSupervisor* CreateDynamicDepthTarget(cstr name) = 0;
+		virtual RAL::IRenderTargetSupervisor* CreateDynamicNormalTarget(cstr name) = 0;
+		virtual RAL::IRenderTargetSupervisor* CreateDynamicVec4Target(cstr name) = 0;
 
 		virtual ID_VOLATILE_BITMAP CreateVolatileBitmap(cstr pingPath) = 0;
 		virtual void Free() = 0;
