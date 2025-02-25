@@ -125,6 +125,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 	RAL_G_Buffer_3D_Object_Renderer(IRAL& _ral, IRenderStates& _renderStates, IRenderPhases& _phases, IPipeline& _pipeline) : ral(_ral), renderStates(_renderStates), renderPhases(_phases), pipeline(_pipeline)
 	{
+
 		idObjVS = ral.Shaders().CreateObjectVertexShader("!shaders/compiled/object.vs");
 		idObjPS = ral.Shaders().CreatePixelShader("!shaders/compiled/g.object.ps");
 		idObjGBufferPS = ral.Shaders().CreatePixelShader("!shaders/compiled/g.object.ps");
@@ -142,6 +143,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			uint32 slot;
 		};
 		*/
+		
 		VertexElement fullQuadVertexDesc[] = 
 		{
 			{ "position", 0, VertexElementFormat::Float2, 0 },
@@ -189,6 +191,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 		fullscreenQuadBuffer->CopyDataToBuffer(fullscreenQuadGeometry, sizeof fullscreenQuadGeometry);
 
+
 		// TODO - make this dynamic
 		shadowBufferId = ral.RALTextures().CreateDepthTarget("ShadowBuffer", 2048, 2048);
 
@@ -207,6 +210,8 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	// targets.renderTarget of -1 indicates we are rendering to the window directly, and not to a texture
 	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets, IRAL_Skybox& skybox) override
 	{
+		return;
+
 		trianglesThisFrame = 0;
 		entitiesThisFrame = 0;
 
@@ -292,6 +297,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			renderStates.DisableWritesOnDepthState();
 			renderStates.DisableBlend();
 			ral.Draw(6, 0);
+			renderStates.ReleaseGBufferFromPS(G, TXUNIT_GBUFFER_START);
 		}
 	}
 

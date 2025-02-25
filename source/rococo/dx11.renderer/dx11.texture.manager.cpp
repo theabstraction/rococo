@@ -414,7 +414,7 @@ struct DX11RenderTarget : RAL::IRenderTargetSupervisor, RAL::ISysRenderTarget, R
 
 	}
 
-	void Free() override
+	~DX11RenderTarget()
 	{
 		if (view) view->Release();
 		view = nullptr;
@@ -424,6 +424,11 @@ struct DX11RenderTarget : RAL::IRenderTargetSupervisor, RAL::ISysRenderTarget, R
 
 		if (shaderView) shaderView->Release();
 		shaderView = nullptr;
+	}
+
+	void Free() override
+	{
+		delete this;
 	}
 
 	void MatchSpan(Vec2i span) override

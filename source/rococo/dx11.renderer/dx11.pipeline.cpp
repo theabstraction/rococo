@@ -279,6 +279,18 @@ namespace Rococo::DX11
 			dc.PSSetShaderResources(startSlot, (UINT)nTargets, views);
 		}
 
+		void ReleaseGBufferFromPS(IGBuffers& g, int startSlot) override
+		{
+			size_t nTargets = g.NumberOfTargets();
+			auto* views = (ID3D11ShaderResourceView**)alloca(sizeof(ID3D11ShaderResourceView*) * nTargets);
+			for (size_t i = 0; i < nTargets; ++i)
+			{
+				views[i] = nullptr;
+			}
+
+			dc.PSSetShaderResources(startSlot, (UINT)nTargets, views);
+		}
+
 		void DisableBlend() override
 		{
 			FLOAT blendFactorUnused[] = { 0,0,0,0 };

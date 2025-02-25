@@ -57,6 +57,7 @@ namespace Rococo::RAL
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;
 
+		virtual void ReleaseGBufferFromPS(IGBuffers& g, int startSlot) = 0;
 		virtual void ResetSamplersToDefaults() = 0;
 
 		virtual void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const Rococo::Graphics::RenderOutputTargets& targets) = 0;
