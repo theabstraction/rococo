@@ -210,8 +210,6 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 	// targets.renderTarget of -1 indicates we are rendering to the window directly, and not to a texture
 	void Render3DObjects(IScene& scene, const RenderOutputTargets& targets, IRAL_Skybox& skybox) override
 	{
-		return;
-
 		trianglesThisFrame = 0;
 		entitiesThisFrame = 0;
 
@@ -235,6 +233,8 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 			ShadowRenderData shadows;
 			PrepareShadowDepthDescFromLight(lights.lightArray[0], shadows);
 			RenderToShadowBuffer(shadows, scene);
+
+			UpdateLightBuffer(shadows, lights.lightArray[0]);
 		}
 			
 		ral.RALTextures().SetRenderTarget(G, targets.depthTarget);
@@ -244,6 +244,8 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 
 		ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
 		ral.RALTextures().AssignMaterialsToPS();
+
+		AssignLightStateBufferToShaders();
 
 		RenderToGBuffers(scene);
 		RenderGBuffersToScreen(targets);
@@ -315,8 +317,18 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		depthRenderStateBuffer->AssignToPS(CBUFFER_INDEX_DEPTH_RENDER_DESC);
 	}
 
-	void UpdateLightBuffer(const LightConstantBuffer& light)
+	void UpdateLightBuffer(const ShadowRenderData& shadows, const LightConstantBuffer& lightSubset)
 	{
+		LightConstantBuffer light = lightSubset;
+
+		light.time = 0.0_seconds;
+		light.right = shadows.right;
+		light.up = shadows.up;
+		light.worldToShadowBuffer = shadows.worldToScreen;
+
+		Vec2i shadowSpan = ral.RALTextures().GetTextureSpan(shadowBufferId);
+		light.OOShadowTxWidth = shadowSpan.x > 0 ? (1.0f / shadowSpan.x) : 1.0f;
+
 		lightStateBuffer->CopyDataToBuffer(&light, sizeof light);
 	}
 

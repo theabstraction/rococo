@@ -181,6 +181,8 @@ namespace Rococo::RAL::Anon
 		{
 			renderStates.UseObjectRasterizer();
 
+
+
 			scene.RenderObjects(ral.RenderContext(), EShadowCasterFilter::UnskinnedCastersOnly);
 			scene.RenderObjects(ral.RenderContext(), EShadowCasterFilter::SkinnedCastersOnly);
 
