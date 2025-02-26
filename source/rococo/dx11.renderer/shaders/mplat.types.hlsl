@@ -280,9 +280,9 @@ float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
     return normalize(p.worldPosition.xyz - global.eye.xyz);
 }
 
-float3 ComputeEyeToWorldDirectionG(GPixelSpec p)
+float3 ComputeEyeToWorldDirectionG(GPixelSpec p, float3 worldPosition)
 {
-    return normalize(p.position.xyz - global.eye.xyz);
+    return normalize(worldPosition - global.eye.xyz);
 }
 
 struct GBufferOutput
