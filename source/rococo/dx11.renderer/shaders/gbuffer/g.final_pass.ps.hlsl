@@ -14,13 +14,15 @@ float4 main(GPixelSpec spec) : SV_TARGET
     
     float3 worldPosition = tx_GBuffer_Position.Sample(spriteSampler, spec.uv).xyz;
 	
-    float shadowDensity = GetShadowDensityDirect(float4(worldPosition, 1.0f));
+	float4 shadowPos = Transform_World_To_ShadowBuffer(float4(worldPosition, 1.0f));
+	
+    float shadowDensity = GetShadowDensity_16Sample(shadowPos);
 	
     float3 normal = tx_GBuffer_Normal.Sample(spriteSampler, spec.uv).xyz;       
    
     float I = 1.0f; // GetDiffuseSpecularAndFoggedLighting(spec, normal);
 	
-	float f = 1.0f - shadowDensity;
+	float f = 0.5f + 0.5f * (1.0f - shadowDensity);
 		
     return float4(rawColour.xyz * f,1.0f);
 	

@@ -123,6 +123,7 @@ struct RAL_3D_Object_Forward_Renderer : IRAL_3D_Object_RendererSupervisor
 		entitiesThisFrame = 0;
 
 		renderStates.UseObjectRasterizer();
+		renderStates.UseObjectDepthState();
 
 		builtFirstPass = false;
 
@@ -214,7 +215,7 @@ struct RAL_3D_Object_Forward_Renderer : IRAL_3D_Object_RendererSupervisor
 
 		phase = RenderPhase::None;
 
-		renderStates.UseObjectDepthState();
+		// renderStates.UseObjectDepthState();
 	}
 
 	void RenderAmbient(IScene& scene, const LightConstantBuffer& ambientLight)
@@ -326,6 +327,7 @@ struct RAL_3D_Object_Forward_Renderer : IRAL_3D_Object_RendererSupervisor
 		else
 		{
 			renderStates.DisableBlend();
+			renderStates.UseObjectDepthState();
 			builtFirstPass = true;
 		}
 	}

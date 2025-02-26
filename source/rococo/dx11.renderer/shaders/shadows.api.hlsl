@@ -32,7 +32,7 @@ float GetShadowDensity_16Sample(float4 shadowPos)
         }
     }
 	
-    return shadowDensity / 4.0f;
+    return shadowDensity / 16.0f;
 }
 
 float GetShadowDensity_4Sample(float4 shadowPos)
