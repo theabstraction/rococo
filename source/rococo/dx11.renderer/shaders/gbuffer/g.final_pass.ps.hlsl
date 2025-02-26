@@ -11,17 +11,25 @@ float3 NormalizeSignedValues(float3 s)
 float4 main(GPixelSpec spec) : SV_TARGET
 {
     float4 rawColour = tx_GBuffer_Colour.Sample(spriteSampler, spec.uv);
-    
     float3 worldPosition = tx_GBuffer_Position.Sample(spriteSampler, spec.uv).xyz;
+	float depth = tx_GBuffer_Depth.Sample(spriteSampler, spec.uv).x;
+	float3 normal = tx_GBuffer_Normal.Sample(spriteSampler, spec.uv).xyz;   
 	
 	float4 shadowPos = Transform_World_To_ShadowBuffer(float4(worldPosition, 1.0f));
 	
-    float shadowDensity = GetShadowDensity_16Sample(shadowPos);
-	
-    float3 normal = tx_GBuffer_Normal.Sample(spriteSampler, spec.uv).xyz;       
+    float shadowDensity = GetShadowDensity_16Sample(shadowPos); 
    
     float I = GetDiffuseSpecularAndFoggedLighting(spec, normal, worldPosition);
 	
     // The following computation requires global value 'light' to have been assigned to the shader
-    return BlendColourWithLightAndShadow(rawColour, shadowDensity, I);
+    float4 txColour = BlendColourWithLightAndShadow(rawColour, shadowDensity, I);
+	
+	if (depth == 1.0f)
+	{
+		return rawColour;
+	}
+	else
+	{
+		return txColour;
+	}
 }

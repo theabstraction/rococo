@@ -440,7 +440,7 @@ namespace Rococo::DX11
 			{
 				auto* view = G.GetTarget(i).SysRenderTarget().GetView();
 
-				FLOAT clearcolour[] = { 0.0f, 1.0f, 0.0f, 1.0f };
+				FLOAT clearcolour[] = { 1.0f, 0.0f, 0.0f, 1.0f };
 				dc.ClearRenderTargetView(view, clearcolour);
 			}
 		}
