@@ -5,9 +5,9 @@ float3 GetLightToWorldPosition(ObjectPixelVertex p)
     return p.worldPosition.xyz - light.position.xyz;
 }
 
-float3 GetLightToWorldPositionG(GPixelSpec p)
+float3 GetLightToWorldPositionG(GPixelSpec p, float3 worldPosition)
 {
-    return p.position.xyz - light.position.xyz;
+    return worldPosition - light.position.xyz;
 }
 
 float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
@@ -74,16 +74,17 @@ float GetDiffuseSpecularAndFoggedLighting(ObjectPixelVertex v)
 
 float GetClarityAcrossSpan(float3 cameraSpacePosition);
 
-float GetDiffuseSpecularAndFoggedLighting(GPixelSpec v, float3 normal)
+float GetDiffuseSpecularAndFoggedLighting(GPixelSpec v, float3 normal, float3 worldPosition)
 {
     float3 incident = ComputeEyeToWorldDirectionG(v);
 	
 	// We dont apply the environment here, because by definition the environment is lit by ambient light only
 	
-    float3 lightToPixelVec = GetLightToWorldPositionG(v);
+    float3 lightToPixelVec = GetLightToWorldPositionG(v, worldPosition);
     float3 lightToPixelDir = normalize(lightToPixelVec);
 
     float intensity = GetSpotlightIntensity(lightToPixelDir);
+    
     float diffuse = GetDiffuseG(v, normal, lightToPixelVec, lightToPixelDir);
     
     float3 cameraSpacePosition = { 0, 0, 0 };

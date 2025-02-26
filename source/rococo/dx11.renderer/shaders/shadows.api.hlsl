@@ -117,5 +117,5 @@ float4 BlendColourWithLightAndShadow(float4 colour, float shadowDensity, float I
     colour.xyz *= I;
     colour.xyz *= light.colour.xyz;
 
-    return lerp(float4(colour.xyz, 1.0f), float4(0.0f, 0.0f, 0.0f, 0.0f), shadowDensity);
+    return lerp(float4(colour.xyz, 1.0f), float4(0.0f, 0.0f, 0.0f, 1.0f), shadowDensity);
 }
