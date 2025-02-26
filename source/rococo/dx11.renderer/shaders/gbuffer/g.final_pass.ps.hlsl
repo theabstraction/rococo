@@ -30,6 +30,6 @@ float4 main(GPixelSpec spec) : SV_TARGET
 	}
 	else
 	{
-		return txColour;
+		return float4(txColour.xyz + light.ambient.xyz * rawColour.xyz, 1.0f);
 	}
 }
