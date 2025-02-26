@@ -240,7 +240,11 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		ral.RALTextures().SetRenderTarget(G, targets.depthTarget);
 		ral.ExpandViewportToEntireSpan(span);
 
+		renderStates.ClearGBuffers(G);
+
 		skybox.DrawSkyBox(scene);
+
+		renderStates.DisableBlend();
 
 		ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
 		ral.RALTextures().AssignMaterialsToPS();

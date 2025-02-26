@@ -434,6 +434,17 @@ namespace Rococo::DX11
 			}
 		}
 
+		void ClearGBuffers(IGBuffers& G) override
+		{
+			for (size_t i = 0; i < G.NumberOfTargets(); i++)
+			{
+				auto* view = G.GetTarget(i).SysRenderTarget().GetView();
+
+				FLOAT clearcolour[] = { 0.0f, 1.0f, 0.0f, 1.0f };
+				dc.ClearRenderTargetView(view, clearcolour);
+			}
+		}
+
 		void SetSamplerDefaults(uint32 index, Filter filter, AddressMode u, AddressMode v, AddressMode w, const RGBA& borderColour) override
 		{
 			if (defaultSamplers[index])

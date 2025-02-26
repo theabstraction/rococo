@@ -54,6 +54,7 @@ namespace Rococo::RAL
 	{
 		virtual void AssignGBufferToPS(IGBuffers& g, int startSlot) = 0;
 		virtual void AssignGuiShaderResources() = 0;
+		virtual void ClearGBuffers(IGBuffers& G) = 0;
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;
 
