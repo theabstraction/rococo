@@ -494,8 +494,13 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 		q.a.normal = q.b.normal = q.c.normal = q.d.normal = normal;
 	}
 
-	void AddBottom(float x0, float x1, float y0, float y1, float zBottom, float southDelta, float northDelta, float westDelta, float eastDelta)
+	void AddBottom(float x0, float x1, float y0, float y1, float zBottom, const SoftBoxTopSpec& spec)
 	{
+		float westDelta = spec.westRadius;
+		float eastDelta = spec.eastRadius;
+		float southDelta = spec.southRadius;
+		float northDelta = spec.northRadius;
+
 		/*
 		 
 		x0      x0 - westDelta     x1 - eastDelta      x1		
@@ -560,21 +565,39 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 
 		quads.push_back(bottomNorthQuad);
 
-		SoftBoxTriangle arc;
-
 		if (westDelta)
 		{
-			arc.a.pos = { x0, y1, zBottom };
-			arc.b.pos = { x0 + westDelta, y1, zBottom };
-			arc.c.pos = { x0 + westDelta, yN, zBottom };
+			Vec3 centre { x0 + westDelta, y1, zBottom };
+			Vec3 right{ -1.0f, 0, 0 };
+			Vec3 left{ 0, 1.0f, 0 };
+			AddRoundCorner(centre, westDelta, spec.northEdgeDivisions, left, right, down, false, ESoftBoxVertexPurpose::CentreBottom);
+		}
 
-			arc.a.normal = arc.b.normal = arc.c.normal = down;
+		if (eastDelta)
+		{
+			Vec3 centre{ x1 - eastDelta, y1, zBottom };
+			Vec3 right{ 0.0f, 1.0f, 0 };
+			Vec3 left{ 1.0f, 0.0f, 0 };
+			AddRoundCorner(centre, eastDelta, spec.northEdgeDivisions, left, right, down, false, ESoftBoxVertexPurpose::CentreBottom);
+		}
 
-			arc.a.uv = { uvScale * arc.a.pos.x, uvScale * arc.a.pos.y };
-			arc.b.uv = { uvScale * arc.b.pos.x, uvScale * arc.b.pos.y };
-			arc.c.uv = { uvScale * arc.c.pos.x, uvScale * arc.c.pos.y };
+		if (southDelta)
+		{
+			if (southDelta == eastDelta)
+			{
+				Vec3 centre{ x1 - eastDelta, y0, zBottom };
+				Vec3 right{ 1.0f, 0.0f, 0 };
+				Vec3 left{ 0.0f, -1.0f, 0 };
+				AddRoundCorner(centre, southDelta, spec.southEdgeDivisions, left, right, down, false, ESoftBoxVertexPurpose::CentreBottom);
+			}
 
-			PushTriangle(arc, false);
+			if (southDelta == westDelta)
+			{
+				Vec3 centre{ x0 + westDelta, y0, zBottom };
+				Vec3 right{ 0.0f, -1.0f, 0 };
+				Vec3 left{ -1.0f, 0.0f, 0 };
+				AddRoundCorner(centre, southDelta, spec.southEdgeDivisions, left, right, down, false, ESoftBoxVertexPurpose::CentreBottom);
+			}
 		}
 	}
 public:
@@ -653,7 +676,7 @@ public:
 		float southDelta = spec.southRadius;
 		float northDelta = spec.northRadius;
 
-		AddBottom(-0.5f * spec.width, 0.5f * spec.width, -0.5f * spec.breadth + southDelta, 0.5f * spec.breadth - northDelta, zBottom, southDelta, northDelta, spec.westRadius, spec.eastRadius);
+		AddBottom(-0.5f * spec.width, 0.5f * spec.width, -0.5f * spec.breadth + southDelta, 0.5f * spec.breadth - northDelta, zBottom, spec);
 
 		if (spec.westEdgeDivisions == spec.southEdgeDivisions && spec.westRadius == spec.southRadius)
 		{
