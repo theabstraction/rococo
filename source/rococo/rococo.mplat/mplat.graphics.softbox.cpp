@@ -479,6 +479,104 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 
 		quads.push_back(topQuad);
 	}
+
+	Vec2 ScaleUVByXYPos(Vec3 pos)
+	{
+		return { uvScale * pos.x, uvScale * pos.y };
+	}
+
+	void ScaleUVByXYPosAndSetNormal(SoftBoxQuad& q, Vec3 normal)
+	{
+		q.a.uv = ScaleUVByXYPos(q.a.pos);
+		q.b.uv = ScaleUVByXYPos(q.b.pos);
+		q.c.uv = ScaleUVByXYPos(q.c.pos);
+		q.d.uv = ScaleUVByXYPos(q.d.pos);
+		q.a.normal = q.b.normal = q.c.normal = q.d.normal = normal;
+	}
+
+	void AddBottom(float x0, float x1, float y0, float y1, float zBottom, float southDelta, float northDelta, float westDelta, float eastDelta)
+	{
+		/*
+		 
+		x0      x0 - westDelta     x1 - eastDelta      x1		
+		/////////////////////////////////////////////////  yN
+		//      //                             //      //
+		//      //                             //      //
+		//      //                             //      //
+		/////////////////////////////////////////////////  y1
+		//                                             //
+		//                                             //
+		//                                             //
+		//                                             //
+		//                                             //
+		//                                             //
+		//                                             //
+		//                                             //
+		//                                             //
+		/////////////////////////////////////////////////  y0
+		//      //                             //      //
+		//      //                             //      //
+		//      //                             //      //
+		//      //                             //      //
+		/////////////////////////////////////////////////  yS
+
+		*/
+		SoftBoxQuad bottomQuad;
+
+		bottomQuad.a.pos = { x1, y1, zBottom };
+		bottomQuad.b.pos = { x0, y1, zBottom };
+		bottomQuad.c.pos = { x1, y0, zBottom };
+		bottomQuad.d.pos = { x0, y0, zBottom };
+
+		Vec3 down = { 0, 0, -1.0f };
+
+		ScaleUVByXYPosAndSetNormal(bottomQuad, down);
+
+		SetPurpose(bottomQuad, ESoftBoxVertexPurpose::CentreBottom);
+
+		quads.push_back(bottomQuad);
+
+		float yS = y0 - southDelta;
+
+		SoftBoxQuad bottomSouthQuad;
+		bottomSouthQuad.a.pos = { x1 - eastDelta, y0, zBottom };
+		bottomSouthQuad.b.pos = { x0 + westDelta, y0, zBottom };
+		bottomSouthQuad.c.pos = { x1 - eastDelta, yS, zBottom };
+		bottomSouthQuad.d.pos = { x0 + westDelta, yS, zBottom };
+
+		ScaleUVByXYPosAndSetNormal(bottomSouthQuad, down);
+
+		quads.push_back(bottomSouthQuad);
+
+		float yN = y1 + northDelta;
+
+		SoftBoxQuad bottomNorthQuad;
+		bottomNorthQuad.a.pos = { x1 - eastDelta, yN, zBottom };
+		bottomNorthQuad.b.pos = { x0 + westDelta, yN, zBottom };
+		bottomNorthQuad.c.pos = { x1 - eastDelta, y1, zBottom };
+		bottomNorthQuad.d.pos = { x0 + westDelta, y1, zBottom };
+
+		ScaleUVByXYPosAndSetNormal(bottomNorthQuad, down);
+
+		quads.push_back(bottomNorthQuad);
+
+		SoftBoxTriangle arc;
+
+		if (westDelta)
+		{
+			arc.a.pos = { x0, y1, zBottom };
+			arc.b.pos = { x0 + westDelta, y1, zBottom };
+			arc.c.pos = { x0 + westDelta, yN, zBottom };
+
+			arc.a.normal = arc.b.normal = arc.c.normal = down;
+
+			arc.a.uv = { uvScale * arc.a.pos.x, uvScale * arc.a.pos.y };
+			arc.b.uv = { uvScale * arc.b.pos.x, uvScale * arc.b.pos.y };
+			arc.c.uv = { uvScale * arc.c.pos.x, uvScale * arc.c.pos.y };
+
+			PushTriangle(arc, false);
+		}
+	}
 public:
 	// Create a soft edged box top. The top has a constant z value, the front side is defined as facing North (0 1 0),  the right side is defined as facing East (1 0 0)
 	void CreateSoftBoxTop(const SoftBoxTopSpec& spec) override
@@ -551,6 +649,11 @@ public:
 		AddSouthEdge(x0, x1, y0, spec);
 		AddWestEdge(x0, y0, y1, spec);
 		AddEastEdge(x1, y0, y1, spec);
+
+		float southDelta = spec.southRadius;
+		float northDelta = spec.northRadius;
+
+		AddBottom(-0.5f * spec.width, 0.5f * spec.width, -0.5f * spec.breadth + southDelta, 0.5f * spec.breadth - northDelta, zBottom, southDelta, northDelta, spec.westRadius, spec.eastRadius);
 
 		if (spec.westEdgeDivisions == spec.southEdgeDivisions && spec.westRadius == spec.southRadius)
 		{
