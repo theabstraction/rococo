@@ -40,6 +40,7 @@ namespace Rococo::Graphics
 		TXUNIT_GENERIC_TXARRAY = 6,
 		TXUNIT_NOISE_PERMUTATION = 7,
 		TXUNIT_NOISE_GRADIENT_LOOKUP = 8,
+		TXUNIT_GBUFFER_START = 9
 	};
 
 	namespace Fonts

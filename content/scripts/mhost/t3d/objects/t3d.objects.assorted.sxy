@@ -251,6 +251,18 @@
 		(mb.AddTriangle b d c)
 	)
 	
+	(Int32 nTriangles = box.NumberOfTriangles)
+	(SoftBoxTriangle triangle)
+	(for (i = 0)(i < nTriangles)(i += 1)
+		(box.GetTriangle i triangle)	
+				
+		(ObjectVertexFromBoxVertex triangle.a glass a)
+		(ObjectVertexFromBoxVertex triangle.b glass b)
+		(ObjectVertexFromBoxVertex triangle.c glass c)
+		
+		(mb.AddTriangle a b c)
+	)
+	
 	(mb.End true false)
 	(mb.SetShadowCasting meshId true)
 )
@@ -451,6 +463,11 @@
 )
 
 (function AddBrick (ISceneBuilder scene)-> :
+	(Vec3 scale = 1 1 1)
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID brickId)
+
 	(MakeBrick1 "brick.1") 
 	
 	(Matrix4x4 model = 
@@ -460,10 +477,7 @@
 		(0 0 0 1)
 	)
 	
-	(Vec3 scale = 1 1 1)
-	
-	(IECS ecs (Rococo.ECS.GetECS))
-	(ROID brickId = ecs.NewROID)
+	(brickId = ecs.NewROID)
 	
 	(IBody brick (AddBody brickId))
 	(brick.SetScale scale)
@@ -471,7 +485,7 @@
 	(brick.SetMeshByName "brick.1")
 	
 	(scene.AddStatics brickId)
-	
+		
 	(MakeBrick2 "brick.2") 
 	
 	(Matrix4x4 model2 = 
@@ -628,7 +642,15 @@
 		(0 0 0 1)
 	)
 	(IMaterialBuilder matBuilder (MaterialBuilder))
-	(Int64 landscapeId = (instances.AddBody "landscape_0_0" identity noScale 0))
+	
+	(IECS ecs (Rococo.ECS.GetECS))
+	(ROID landscapeId = ecs.NewROID)
+	
+	(IBody landscapeMesh (AddBody landscapeId))
+	(landscapeMesh.SetScale noScale)
+	(landscapeMesh.SetModelMatrix identity)
+	(landscapeMesh.SetMeshByName "landscape_0_0")
+	
 	(scene.AddStatics landscapeId)
 
 	(IWorldBuilder wb (WorldBuilder))

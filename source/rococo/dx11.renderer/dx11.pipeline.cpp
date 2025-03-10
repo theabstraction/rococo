@@ -5,6 +5,7 @@
 #include <rococo.os.h>
 #include <rococo.time.h>
 #include <vector>
+#include <RAL/RAL.h>
 #include <RAL/RAL.pipeline.h>
 #include <rococo.subsystems.h>
 #include <rococo.reflector.h>
@@ -266,6 +267,30 @@ namespace Rococo::DX11
 			gui->AssignShaderResourcesToDC();
 		}
 
+		void AssignGBufferToPS(IGBuffers& g, int startSlot) override
+		{
+			size_t nTargets = g.NumberOfTargets();
+			auto* views = (ID3D11ShaderResourceView**)alloca(sizeof(ID3D11ShaderResourceView *) * nTargets);
+			for (size_t i = 0; i < nTargets; ++i)
+			{
+				views[i] = g.GetTarget(i).SysShaderView().GetShaderView();
+			}
+
+			dc.PSSetShaderResources(startSlot, (UINT)nTargets, views);
+		}
+
+		void ReleaseGBufferFromPS(IGBuffers& g, int startSlot) override
+		{
+			size_t nTargets = g.NumberOfTargets();
+			auto* views = (ID3D11ShaderResourceView**)alloca(sizeof(ID3D11ShaderResourceView*) * nTargets);
+			for (size_t i = 0; i < nTargets; ++i)
+			{
+				views[i] = nullptr;
+			}
+
+			dc.PSSetShaderResources(startSlot, (UINT)nTargets, views);
+		}
+
 		void DisableBlend() override
 		{
 			FLOAT blendFactorUnused[] = { 0,0,0,0 };
@@ -406,6 +431,17 @@ namespace Rococo::DX11
 			if (clearColour.alpha > 0)
 			{
 				dc.ClearRenderTargetView(rt.renderTargetView, (const FLOAT*)&clearColour);
+			}
+		}
+
+		void ClearGBuffers(IGBuffers& G) override
+		{
+			for (size_t i = 0; i < G.NumberOfTargets(); i++)
+			{
+				auto* view = G.GetTarget(i).SysRenderTarget().GetView();
+
+				FLOAT clearcolour[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+				dc.ClearRenderTargetView(view, clearcolour);
 			}
 		}
 

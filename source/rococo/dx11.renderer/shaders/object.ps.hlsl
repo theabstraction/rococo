@@ -8,5 +8,4 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
 	float4 texel = SampleMaterial(p);
     float I = GetDiffuseSpecularAndFoggedLighting(p);
     return BlendColourWithLightAndShadow(texel, shadowDensity, I);
-
 }

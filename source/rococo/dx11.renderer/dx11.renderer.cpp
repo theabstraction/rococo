@@ -52,7 +52,6 @@ class DX11AppRenderer :
 	public IRenderContext,
 	public IMathsVenue,
 	public IDX11ResourceLoader,
-	public IRenderingResources,
 	public IRAL,
 	public IDX11SpecialResources,
 	public ISubsystem,
@@ -324,16 +323,10 @@ private:
 		callback(text);
 	}
 
-	ID_CUBE_TEXTURE envId;
-
-	void SetEnvironmentMap(ID_CUBE_TEXTURE envId)
+	void SetEnvironmentMap(ID_CUBE_TEXTURE envId) override
 	{
-		this->envId = envId;
-	}
-
-	ID_CUBE_TEXTURE GetEnvMapId() const override
-	{
-		return envId;
+		auto* envMap = textureManager->DX11CubeTextures().GetShaderView(envId);
+		dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &envMap);
 	}
 
 	void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) override
@@ -399,7 +392,7 @@ public:
 		meshes(CreateMeshManager(device, dc)),
 		shaders(CreateShaderManager(installation, options, device, dc))
 	{
-		RenderBundle bundle{ installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc, *this, *this, *this };
+		RenderBundle bundle{ installation, *this, *this, *shaders, *textureManager, *meshes, *this, *this, device, dc, *this, *this };
 
 		pipeline = CreateDX11Pipeline(bundle);
 		lastTick = Time::TickCount();
@@ -554,16 +547,11 @@ public:
 		return *this;
 	}
 
-	void ExpandViewportToEntireTexture(ID_TEXTURE depthId) override
+	void ExpandViewportToEntireSpan(Vec2i span) override
 	{
-		auto depth = textureManager->GetTexture(depthId).texture;
-
-		D3D11_TEXTURE2D_DESC desc;
-		depth->GetDesc(&desc);
-
 		D3D11_VIEWPORT viewport = { 0 };
-		viewport.Width = FLOAT(desc.Width);
-		viewport.Height = FLOAT(desc.Height);
+		viewport.Width = FLOAT(span.x);
+		viewport.Height = FLOAT(span.y);
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 
@@ -657,7 +645,7 @@ public:
 	void Draw(ID_SYS_MESH id, const ObjectInstance* instances, uint32 nInstances) override
 	{
 		auto& m = meshes->GetBuffer(id);
-		pipeline->RALPipeline().Draw(m, instances, nInstances);
+		pipeline->RALPipeline().DrawViaObjectRenderer(m, instances, nInstances);
 	}
 
 	Windows::IWindow& CurrentWindow() override
@@ -676,7 +664,7 @@ public:
 		return pipeline->RALPipeline().Particles();
 	}
 
-	void Render(IScene& scene) override
+	void RenderToBackBufferAndPresent(IScene& scene) override
 	{
 		if (!BackBuffer())
 		{
@@ -694,7 +682,7 @@ public:
 			return;
 		}
 
-		pipeline->RALPipeline().Render(metrics, scene);
+		pipeline->RALPipeline().RenderLayers(metrics, scene);
 
 		now = Time::TickCount();
 

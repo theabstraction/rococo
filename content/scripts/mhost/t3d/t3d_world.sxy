@@ -95,7 +95,7 @@
 
 (method World.Construct : 
 	(this.archive = (GetArchive))
-	(this.archive.LoadVec3 "world.cameraPos" this.cameraPos 0 0 2.5)
+	(this.archive.LoadVec3 "world.cameraPos" this.cameraPos 0 0 2.0)
 	
 	(Float32 elevation = this.archive.LoadF32 "world.camera.elevation" 0)
 	(Float32 bearing = this.archive.LoadF32 "world.camera.bearing" 0)

@@ -397,6 +397,133 @@ struct VolatileTextureItem
 	int32 lastError = 0;
 };
 
+struct DX11RenderTarget : RAL::IRenderTargetSupervisor, RAL::ISysRenderTarget, RAL::ISysShaderView
+{
+	HString name;
+	ID3D11RenderTargetView* view = nullptr;
+	ID3D11ShaderResourceView* shaderView = nullptr;
+	ID3D11Texture2D* texture2D = nullptr;
+	IDX11TextureManager& textures;
+	ID3D11Device& device;
+	UINT width = 0;
+	UINT height = 0;
+	DXGI_FORMAT format;
+	
+	DX11RenderTarget(DXGI_FORMAT _format, cstr _name, IDX11TextureManager& _textures, ID3D11Device& _device): format(_format), name(_name), textures(_textures), device(_device)
+	{
+
+	}
+
+	~DX11RenderTarget()
+	{
+		if (view) view->Release();
+		view = nullptr;
+
+		if (texture2D) texture2D->Release();
+		texture2D = nullptr;
+
+		if (shaderView) shaderView->Release();
+		shaderView = nullptr;
+	}
+
+	void Free() override
+	{
+		delete this;
+	}
+
+	void MatchSpan(Vec2i span) override
+	{
+		if (span.x <= 0 || span.y <= 0)
+		{
+			return;
+		}
+			
+		if (texture2D != nullptr && (width == (UINT) span.x && height == (UINT) span.y))
+		{
+			return;
+		}
+
+		width = span.x;
+		height = span.y;
+
+		if (view) view->Release();
+		view = nullptr;
+
+		if (texture2D) texture2D->Release();	
+		texture2D = nullptr;
+
+		if (shaderView) shaderView->Release();
+		shaderView = nullptr;
+
+		D3D11_TEXTURE2D_DESC desc;
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = format;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET; 
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = 0;
+		VALIDATEDX11(device.CreateTexture2D(&desc, NULL, &texture2D));
+
+		D3D11_RENDER_TARGET_VIEW_DESC rtdesc;
+		rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtdesc.Texture1D.MipSlice = 0;
+		rtdesc.Format = format;
+		VALIDATEDX11(device.CreateRenderTargetView(texture2D, &rtdesc, &view));
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderDesc;
+		shaderDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderDesc.Texture2D.MipLevels = 1;
+		shaderDesc.Texture2D.MostDetailedMip = 0;
+		shaderDesc.Format = format;
+		VALIDATEDX11(device.CreateShaderResourceView(texture2D, &shaderDesc, &shaderView));
+	}
+
+	RAL::ISysRenderTarget& SysRenderTarget() override
+	{
+		return *this;
+	}
+
+	ID3D11RenderTargetView* GetView() override
+	{
+		return view;
+	}
+
+	ID3D11ShaderResourceView* GetShaderView() override
+	{
+		return shaderView;
+	}
+
+	RAL::ISysShaderView& SysShaderView() override
+	{
+		return *this;
+	}
+};
+
+RAL::IRenderTargetSupervisor* CreateDynamicRenderTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+{
+	return new DX11RenderTarget(DXGI_FORMAT_R8G8B8A8_UNORM, name, textures, device);
+}
+
+RAL::IRenderTargetSupervisor* CreateDynamicDepthTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+{
+	return new DX11RenderTarget(DXGI_FORMAT_R32_FLOAT, name, textures, device);
+}
+
+RAL::IRenderTargetSupervisor* CreateDynamicNormalTargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+{
+	return new DX11RenderTarget(DXGI_FORMAT_R8G8B8A8_SNORM, name, textures, device);
+}
+
+RAL::IRenderTargetSupervisor* CreateDynamicVec4TargetObject(cstr name, IDX11TextureManager& textures, ID3D11Device& device)
+{
+	return new DX11RenderTarget(DXGI_FORMAT_R32G32B32A32_FLOAT, name, textures, device);
+}
+
 struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 {
 	ID3D11Device& device;
@@ -425,6 +552,26 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		materials(CreateMaterials(installation, device, dc))
 	{
 
+	}
+
+	RAL::IRenderTargetSupervisor* CreateDynamicRenderTarget(cstr name) override
+	{
+		return CreateDynamicRenderTargetObject(name, *this, device);
+	}
+
+	RAL::IRenderTargetSupervisor* CreateDynamicDepthTarget(cstr name) override
+	{
+		return CreateDynamicDepthTargetObject(name, *this, device);
+	}
+
+	RAL::IRenderTargetSupervisor* CreateDynamicNormalTarget(cstr name) override
+	{
+		return CreateDynamicNormalTargetObject(name, *this, device);
+	}
+
+	RAL::IRenderTargetSupervisor* CreateDynamicVec4Target(cstr name) override
+	{
+		return CreateDynamicVec4TargetObject(name, *this, device);
 	}
 
 	Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span, TextureArrayCreationFlags flags)
@@ -559,6 +706,12 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		}
 	}
 
+	void AssignMaterialsToPS() override
+	{
+		auto* view = materials->Textures().View();
+		dc.PSGetShaderResources(TXUNIT_MATERIALS, 1, &view);
+	}
+
 	void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) override
 	{
 		auto depth = GetTextureNoThrow(depthTarget);
@@ -572,6 +725,26 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 			auto* colourView = specialResources.BackBuffer();
 			dc.OMSetRenderTargets(1, &colourView, depth.depthView);
 		}
+	}
+
+	void SetRenderTarget(RAL::IGBuffers& g, ID_TEXTURE depthTarget) override
+	{
+		size_t nGBuffers = g.NumberOfTargets();
+
+		ID3D11RenderTargetView** views = (ID3D11RenderTargetView**)alloca(sizeof(ID3D11RenderTargetView*) * nGBuffers);
+
+		for (size_t i = 0; i < nGBuffers; i++)
+		{
+			views[i] = g.GetTarget(i).SysRenderTarget().GetView();
+			if (views[i] == nullptr)
+			{
+				Throw(0, __FUNCTION__ ": no ID3D11RenderTargetView for GBuffer[%d] %s", i);
+			}
+		}
+
+		auto depth = GetTextureNoThrow(depthTarget);
+
+		dc.OMSetRenderTargets((UINT) nGBuffers, views, depth.depthView);
 	}
 
 	ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) override
@@ -683,6 +856,55 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		if (!t.texture) return false;
 		GetTextureDesc(desc, *t.texture);
 		return true;
+	}
+
+	Vec2i GetTextureSpan(ID_TEXTURE id) const override
+	{
+		TextureDesc desc;
+		if (!TryGetTextureDesc(OUT desc, id))
+		{
+			return { 0,0 };
+		}
+
+		Vec2i span = { (int32)desc.width, (int32)desc.height };
+		return span;
+	}
+
+	Vec2i GetRenderTargetSpan(ID_TEXTURE id) const override
+	{
+		TextureDesc desc;
+		if (!TryGetTextureDesc(OUT desc, id))
+		{
+			auto* backBuffer = specialResources.BackBuffer();
+			if (backBuffer)
+			{
+				Vec2i span = { 0,0 };
+
+				ID3D11Resource* bbResource = nullptr;
+				backBuffer->GetResource(OUT &bbResource);
+				ID3D11Texture2D* tx2D = nullptr;
+				if (SUCCEEDED(bbResource->QueryInterface<ID3D11Texture2D>(&tx2D)))
+				{
+					D3D11_TEXTURE2D_DESC bbRDesc;
+					tx2D->GetDesc(OUT & bbRDesc);
+					span = { (int32)bbRDesc.Width, (int32)bbRDesc.Height };
+				}
+				else
+				{
+					span = { 0,0 };
+				}
+				tx2D->Release();
+				bbResource->Release();
+				return span;
+			}
+			else
+			{
+				return { 0,0 };
+			}
+		}
+
+		Vec2i span = { (int32)desc.width, (int32)desc.height };
+		return span;
 	}
 
 	void ShowTextureVenue(IMathsVisitor& visitor) override

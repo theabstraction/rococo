@@ -69,7 +69,7 @@ struct RAL_3DGui : IGui3DSupervisor
 			m.numberOfVertices = (uint32)nTriangleBatchCount * 3;
 			m.topology = PrimitiveTopology::TRIANGLELIST;
 
-			pipeline.Draw(m, &one, 1);
+			pipeline.DrawViaObjectRenderer(m, &one, 1);
 
 			nTriangles -= nTriangleBatchCount;
 			cursor += nTriangleBatchCount;
