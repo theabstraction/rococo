@@ -180,6 +180,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.task.queue.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.textures.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.time.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.try-catch.native.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.types.inference.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ui.h" />

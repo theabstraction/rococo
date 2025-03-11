@@ -1877,8 +1877,8 @@ namespace Rococo
             conf.SolutionFolder = " - Sexy";
 
             string flags = "/i  /y  /d  /q";
-            string source = Path.Combine(Roots.RococoSexyPath, "NativeSource\\*.sxy");
-            string destination = Path.Combine(Roots.RococoContentPath, "scripts\\native");
+            string source = "$(SolutionDir)..\\source\\rococo\\sexy\\NativeSource\\*.sxy";
+            string destination = "$(SolutionDir)..\\content\\scripts\\native";
 
             conf.EventPostBuild.Add("xcopy " + source + " " + destination + " " + flags);
         }
