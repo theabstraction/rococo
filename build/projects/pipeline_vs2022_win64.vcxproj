@@ -121,7 +121,7 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\pipeline.lib</OutputFile>
     </Lib>
@@ -184,7 +184,7 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem/>
+      <SubSystem />
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\pipeline.lib</OutputFile>
     </Lib>
@@ -195,6 +195,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.bones.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.forward_renderer.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.g-buffer.renderer.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.gui3D.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.lightcones.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.noise.cpp" />

@@ -52,10 +52,13 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRenderStates
 	{
+		virtual void AssignGBufferToPS(IGBuffers& g, int startSlot) = 0;
 		virtual void AssignGuiShaderResources() = 0;
+		virtual void ClearGBuffers(IGBuffers& G) = 0;
 		virtual void DisableBlend() = 0;
 		virtual void DisableWritesOnDepthState() = 0;
 
+		virtual void ReleaseGBufferFromPS(IGBuffers& g, int startSlot) = 0;
 		virtual void ResetSamplersToDefaults() = 0;
 
 		virtual void SetAndClearCurrentRenderBuffers(const RGBA& clearColour, const Rococo::Graphics::RenderOutputTargets& targets) = 0;
@@ -82,8 +85,8 @@ namespace Rococo::RAL
 	ROCOCO_INTERFACE IPipeline
 	{
 		virtual void AssignGlobalStateBufferToShaders() = 0;
-		virtual void Draw(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
-		virtual void Render(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
+		virtual void DrawViaObjectRenderer(RALMeshBuffer& m, const Rococo::Graphics::ObjectInstance* instances, uint32 nInstances) = 0;
+		virtual void RenderLayers(const Rococo::Graphics::GuiMetrics& metrics, Rococo::Graphics::IScene& scene) = 0;
 		virtual void SetBoneMatrix(uint32 index, cr_m4x4 m) = 0;
 
 		virtual Rococo::Graphics::IGui3D& Gui3D() = 0;
@@ -114,7 +117,7 @@ namespace Rococo::RAL
 	ROCOCO_INTERFACE IRAL_Skybox
 	{
 		virtual void Free() = 0;
-		virtual void RenderSkyBox(Rococo::Graphics::IScene& scene) = 0;
+		virtual void DrawSkyBox(Rococo::Graphics::IScene& scene) = 0;
 	};
 
 	RAL_PIPELINE_API IRAL_Skybox* CreateRALSkybox(IRAL& ral, IRenderStates& renderStates);
@@ -122,7 +125,8 @@ namespace Rococo::RAL
 
 	ROCOCO_INTERFACE IRenderPhases
 	{
-		virtual void RenderAmbientPhase(Rococo::Graphics::IScene & scene, const Rococo::Graphics::LightConstantBuffer & ambientLight) = 0;
+		virtual void RenderAmbientPhase(Rococo::Graphics::IScene& scene, const Rococo::Graphics::LightConstantBuffer & ambientLight) = 0;
+		virtual void RenderToGBuffers(Rococo::Graphics::IScene& scene) = 0;
 		virtual void RenderSpotlightPhase(Rococo::Graphics::IScene& scene) = 0;
 	};
 
@@ -136,7 +140,7 @@ namespace Rococo::RAL
 		// This is the entry point each frame for rendering. The scene will be queried a number of time for each object in the scene.
 		// The objects are individually rendered with the Draw method, with the implementation adjusting render state appropriate for the 
 		// rendering phase.
-		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets) = 0;
+		virtual void Render3DObjects(Rococo::Graphics::IScene& scene, const  Rococo::Graphics::RenderOutputTargets& targets, IRAL_Skybox& skybox) = 0;
 
 		// Invoked by a visitor to expose some internal data to instrumentation
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
@@ -147,7 +151,8 @@ namespace Rococo::RAL
 		virtual void Free() = 0;
 	};
 
-	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
+	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_Forward_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
+	RAL_PIPELINE_API IRAL_3D_Object_RendererSupervisor* CreateRAL_3D_Object_G_Buffer_Renderer(IRAL& ral, IRenderStates& renderStates, IRenderPhases& phases, IPipeline& pipeline);
 
 	ROCOCO_INTERFACE IRAL_BoneStateBuffer
 	{

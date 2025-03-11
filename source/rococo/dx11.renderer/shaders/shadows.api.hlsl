@@ -32,7 +32,7 @@ float GetShadowDensity_16Sample(float4 shadowPos)
         }
     }
 	
-    return shadowDensity / 4.0f;
+    return shadowDensity / 16.0f;
 }
 
 float GetShadowDensity_4Sample(float4 shadowPos)
@@ -102,9 +102,14 @@ float GetShadowDensityFromPos(float4 shadowPos)
     return GetShadowDensity_16Sample(shadowPos);
 }
 
+float GetShadowDensityDirect(float4 worldPos)
+{
+    return refShadowModel.GetShadowDensityFromPos(worldPos);
+}
+
 float GetShadowDensity(ObjectPixelVertex p)
 {
-    return refShadowModel.GetShadowDensityFromPos(p.shadowPos);
+    return GetShadowDensityDirect(p.shadowPos);
 }
 
 float4 BlendColourWithLightAndShadow(float4 colour, float shadowDensity, float I)
@@ -112,5 +117,5 @@ float4 BlendColourWithLightAndShadow(float4 colour, float shadowDensity, float I
     colour.xyz *= I;
     colour.xyz *= light.colour.xyz;
 
-    return lerp(float4(colour.xyz, 1.0f), float4(0.0f, 0.0f, 0.0f, 0.0f), shadowDensity);
+    return lerp(float4(colour.xyz, 1.0f), float4(0.0f, 0.0f, 0.0f, 1.0f), shadowDensity);
 }

@@ -123,11 +123,6 @@ namespace Rococo::DX11
 
 	};
 
-	ROCOCO_INTERFACE IRenderingResources
-	{
-		virtual ID_CUBE_TEXTURE GetEnvMapId() const = 0;
-	};
-
 	D3D11_TEXTURE_ADDRESS_MODE From(Rococo::Graphics::Samplers::AddressMode mode);
 
 	ID3D11SamplerState* GetSampler(ID3D11Device& device, Rococo::Graphics::Samplers::Filter filter, Rococo::Graphics::Samplers::AddressMode u, Rococo::Graphics::Samplers::AddressMode v, Rococo::Graphics::Samplers::AddressMode w, const RGBA& borderColour);
@@ -192,11 +187,14 @@ namespace Rococo::DX11
 	{
 		virtual void Free() = 0;
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
-		virtual TextureBind& GetTexture(ID_TEXTURE id) = 0;
-		virtual IDX11TextureLoader& Loader() = 0;
-		virtual IDX11Materials& Materials() = 0;
-		virtual IDX11CubeTextures& DX11CubeTextures() = 0;
-		virtual ID3D11Texture2D* GetVolatileBitmap(ID_VOLATILE_BITMAP id) = 0;
+
+		// Returns the texture bound to the given id. If out of bounds, throws an exception
+		virtual [[nodiscard]] TextureBind& GetTexture(ID_TEXTURE id) = 0;
+
+		virtual [[nodiscard]] IDX11TextureLoader& Loader() = 0;
+		virtual [[nodiscard]] IDX11Materials& Materials() = 0;
+		virtual [[nodiscard]] IDX11CubeTextures& DX11CubeTextures() = 0;
+		virtual [[nodiscard]] ID3D11Texture2D* GetVolatileBitmap(ID_VOLATILE_BITMAP id) = 0;
 	};
 
 	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc, IDX11SpecialResources& specialResources);
@@ -241,7 +239,6 @@ namespace Rococo::DX11
 		ID3D11Device& device;
 		ID3D11DeviceContext& dc;
 		IDX11ResourceLoader& loader;
-		IRenderingResources& resources;
 		Rococo::RAL::IRAL& RAL;
 	};
 
@@ -292,4 +289,17 @@ namespace Rococo::DX11
 namespace Rococo::Memory
 {
 	IAllocator& GetDX11Allocator();
+}
+
+namespace Rococo::RAL
+{
+	ROCOCO_INTERFACE ISysRenderTarget
+	{
+		virtual ID3D11RenderTargetView * GetView() = 0;
+	};
+
+	ROCOCO_INTERFACE ISysShaderView
+	{
+		virtual ID3D11ShaderResourceView * GetShaderView() = 0;
+	};
 }

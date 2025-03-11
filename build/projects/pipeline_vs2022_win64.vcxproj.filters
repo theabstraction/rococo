@@ -9,6 +9,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.particles.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.pipeline.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.skybox.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.RAL\pipeline\RAL.g-buffer.renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\RAL\RAL.pipeline.h">

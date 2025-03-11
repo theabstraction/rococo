@@ -96,6 +96,27 @@ namespace Rococo::RAL
 		bool disableShadowCasting;
 	};
 
+	DECLARE_ROCOCO_INTERFACE ISysRenderTarget;
+	DECLARE_ROCOCO_INTERFACE ISysShaderView;
+
+	ROCOCO_INTERFACE IRenderTarget
+	{
+		virtual ISysRenderTarget& SysRenderTarget() = 0;
+		virtual ISysShaderView& SysShaderView() = 0;
+		virtual void MatchSpan(Vec2i span) = 0;
+	};
+
+	ROCOCO_INTERFACE IGBuffers
+	{
+		virtual IRenderTarget& GetTarget(size_t index) = 0;
+		virtual size_t NumberOfTargets() const = 0;
+	};
+
+	ROCOCO_INTERFACE IRenderTargetSupervisor: IRenderTarget
+	{
+		virtual void Free() = 0;
+	};
+
 	// [R]enderer [A]bstraction [L]ayer, provided to the RAL pipeline implementation 
 	ROCOCO_INTERFACE IRAL
 	{
@@ -108,7 +129,7 @@ namespace Rococo::RAL
 		virtual void Draw(uint32 nVertices, uint32 startPosition) = 0;
 		virtual ID_TEXTURE GetWindowDepthBufferId() const = 0;
 		virtual void SetEnvironmentMap(ID_CUBE_TEXTURE txId) = 0;
-		virtual void ExpandViewportToEntireTexture(ID_TEXTURE depthTarget) = 0;
+		virtual void ExpandViewportToEntireSpan(Vec2i span) = 0;
 		virtual Rococo::Graphics::IMeshes& Meshes() = 0;
 		virtual Rococo::Graphics::IShaders& Shaders() = 0;
 		virtual Rococo::Graphics::ITextureManager& RALTextures() = 0;

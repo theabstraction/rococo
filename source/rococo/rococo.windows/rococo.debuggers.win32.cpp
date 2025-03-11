@@ -74,6 +74,7 @@ namespace ANON
 			AppendText_ToEditor(hRichEditor, numericErrorLine, RGB(255, 255, 255), RGB(255, 0, 0));
 		}
 		AppendText_ToEditor(hRichEditor, message, RGB(255, 255, 255), RGB(0, 0, 0));
+		AppendText_ToEditor(hRichEditor, "\r\n", RGB(255, 255, 255), RGB(0, 0, 0));
 	}
 
 	void AddRollingLogToRichEditView(HWND hRichEditor)

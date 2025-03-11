@@ -297,7 +297,7 @@ namespace MHost
 			platform.graphics.gui.PushTop(busyPanel->Supervisor(), true);
 
 			EmptyScene emptyScene;
-			platform.graphics.renderer.Render(emptyScene);
+			platform.graphics.renderer.RenderToBackBufferAndPresent(emptyScene);
 			platform.graphics.gui.Pop();
 		}
 
@@ -414,7 +414,11 @@ namespace MHost
 			{
 				LogMessageToMHostScript(message);
 				platform.plumbing.utilities.RefreshResource(pingPath);
-				queuedForExecute = true;
+
+				if (!EndsWith(pingPath, "declarations.sxy"))
+				{
+					queuedForExecute = true;
+				}
 			}
 			else if (Eq(ext, ".ps"))
 			{
@@ -452,7 +456,8 @@ namespace MHost
 		// termination should occur of the user interface has collapsed, or script queued for re-run
 		boolean32 IsRunning() const override 
 		{
-			return platform.os.appControl.IsRunning() && isScriptRunning && !isShutdown;
+			bool isRunning = platform.os.appControl.IsRunning() && isScriptRunning && !isShutdown;
+			return isRunning;
 		}
 
 		void CleanupResources()
@@ -705,6 +710,8 @@ namespace MHost
 
 				// mainScript variable can be changed by a script, so not safe to pass references to the
 				// script and expect it to be unchanged throughout. So duplicate on the stack
+				// note that a change in an sxy file can result in premature script termination and a rerun of the existing script.
+				// see: void OnEvent(FileModifiedArgs & args)
 
 				U8FilePath currentScript;
 				Format(currentScript, "%s", mainScript.c_str());
@@ -772,7 +779,7 @@ namespace MHost
 				Throw(0, "GuiPopulator undefined");
 			}
 			sceneManager.populator = populator;
-			platform.graphics.renderer.Render(sceneManager);
+			platform.graphics.renderer.RenderToBackBufferAndPresent(sceneManager);
 		}
 
 		void PollKeyState(OUT KeyState& keyState) override

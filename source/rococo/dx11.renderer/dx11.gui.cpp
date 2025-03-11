@@ -493,8 +493,6 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     AutoRelease<ID3D11Buffer> textureDescBuffer;
 
-    IRenderingResources& resources;
-
     struct Cursor
     {
         Textures::BitmapLocation sprite;
@@ -504,7 +502,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
 
     DX11Gui(DX11::RenderBundle& bundle):
-        device(bundle.device), dc(bundle.dc), metrics(bundle.metrics), textures(bundle.textures), shaders(bundle.shaders), loader(bundle.loader), resources(bundle.resources)
+        device(bundle.device), dc(bundle.dc), metrics(bundle.metrics), textures(bundle.textures), shaders(bundle.shaders), loader(bundle.loader)
     {
         static_assert(GUI_BUFFER_VERTEX_CAPACITY % 3 == 0, "Capacity must be divisible by 3");
 
@@ -592,9 +590,6 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     void AssignShaderResourcesToDC()
     {
         dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
-
-        auto* envMap = textures.DX11CubeTextures().GetShaderView(resources.GetEnvMapId());
-        dc.PSSetShaderResources(TXUNIT_ENV_MAP, 1, &envMap);
 
         ID3D11ShaderResourceView* materialViews[1] = { textures.Materials().Textures().View() };
         dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
