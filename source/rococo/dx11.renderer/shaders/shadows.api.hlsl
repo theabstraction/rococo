@@ -24,8 +24,11 @@ float GetShadowDensity_16Sample(float4 shadowPos)
     float shadowDensity = 0.0f;
     float2 delta;
 	
+	// The code below stopped working due to unroll warnings as errors [unroll] on both loops works well. As we can see, unrolling is a no-brainer
+	[unroll]
     for (delta.y = -1.5f; delta.y <= 1.5f; delta.y += 1.0f)
     {
+		[unroll]
         for (delta.x = -1.5f; delta.x <= 1.5f; delta.x += 1.0f)
         {
             shadowDensity += SampleShadowWithDelta(shadowPos, delta);
