@@ -2517,6 +2517,99 @@ namespace Rococo::IO
 		}
 	}
 
+	void GetFullPathFromTarget(TargetDirectory target, const wchar_t* relativePath, OUT std::vector<wchar_t>& absPath)
+	{
+		switch (target)
+		{
+		case TargetDirectory_UserDocuments:
+		{
+			PWSTR path; // This could potentially be a long longer than MAX_PATH, as windows allows 32k characters in a path
+			HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path); // A really badly designed API, would have been much better for MSoft to have used a string populator callback, so that freeing memory was not the job of the caller
+			if (FAILED(hr) || path == nullptr)
+			{
+				Throw(hr, "Failed to identify user documents folder. Win32 issue?");
+			}
+
+			try
+			{
+				absPath.resize(wcslen(path) + 2 + wcslen(relativePath));
+				wnsprintfW(absPath.data(), MAX_PATH, L"%ls\\%ls", path, relativePath);
+				CoTaskMemFree(path);
+			}
+			catch (...)
+			{
+				CoTaskMemFree(path);
+				Throw(0, "Error allocating memory for SaveAsciiTextFile");
+			}
+		}
+		break;
+		case TargetDirectory_Root:
+			absPath.resize(MAX_PATH);
+			memcpy(absPath.data(), relativePath, wcslen(relativePath) * sizeof(wchar_t) + 2);
+			break;
+		default:
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(... %ls): Unrecognized target directory", relativePath);
+			break;
+		}
+	}
+
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	{
+		std::vector<wchar_t> fullPath;
+		GetFullPathFromTarget(target, filename, OUT fullPath);
+
+		struct Populator : IStringPopulator
+		{
+			fstring specimen;
+			bool match = false;
+
+			Populator(const fstring& _specimen) : specimen(_specimen)
+			{
+
+			}
+
+			void Populate(const char* text) override
+			{
+				size_t len = strlen(text);
+				if (len >= 2_gigabytes)
+				{
+					return;
+				}
+
+				if (len != (size_t)specimen.length)
+				{
+					return;
+				}
+
+				if (strcmp(text, specimen) == 0)
+				{
+					match = true;
+				}
+			}
+		} onLoad(text);
+
+		try
+		{
+			LoadAsciiTextFile(onLoad, filename);
+		}
+		catch (...)
+		{
+			onLoad.match = false;
+		}
+
+		if (!onLoad.match)
+		{
+			SaveAsciiTextFile(target, filename, text);
+		}
+	}
+
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const char* filename, const fstring& text)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		SaveAsciiTextFileIfDifferent(target, wPath, text);
+	}
+
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
 	{
 		if (text.length > 1024_megabytes)

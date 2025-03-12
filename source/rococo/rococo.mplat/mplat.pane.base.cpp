@@ -774,7 +774,7 @@ public:
 
 			try
 			{
-				Rococo::IO::SaveAsciiTextFile(Rococo::IO::TargetDirectory_Root, wPath, *sb->Builder());
+				Rococo::IO::SaveAsciiTextFileIfDifferent(Rococo::IO::TargetDirectory_Root, wPath, *sb->Builder());
 				hasPublishedDeclarations = true;
 			}
 			catch (...)

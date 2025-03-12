@@ -383,6 +383,7 @@ namespace Rococo::Script
 		rstdstring Archetype;
 		rstdstring sourceFile;
 		int lineNumber;
+		bool declaredSomewhere = false;
 
 		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context, cstr _sourceFile, int _lineNumber) :
 			e(ss, f, cpu, context), sourceFile(_sourceFile), lineNumber(_lineNumber) {}
@@ -419,27 +420,30 @@ namespace Rococo::Script
 
 	void AppendNativeCallsAsAliases(IN const TMapFQNToNativeCall& nativeCalls, StringBuilder& sb)
 	{
-		sb.AppendFormat("(SexyDeclarations - containing %llu functions)\n", nativeCalls.size());
-
 		int index = 1;
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
 			cstr fqName = i->first.c_str();
 			NativeFunction& nf = *i->second;
 
-			NamespaceSplitter splitter(i->first.c_str());
-
-			cstr body, publicName;
-			if (!splitter.SplitTail(OUT body, OUT publicName))
+			if (!nf.declaredSomewhere)
 			{
-				char fullError[2048];
-				SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
-				ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
-				Throw(nativeError);
-			}
+				nf.declaredSomewhere = true;
 
-			sb.AppendFormat("\n(function %s%d %s : (source \"%s\" %d))\n", publicName, index, nf.Archetype.c_str() + strlen(publicName), nf.sourceFile.c_str(), nf.lineNumber);
-			sb.AppendFormat("(alias %s%d %s)\n", publicName, index, i->first.c_str());
+				NamespaceSplitter splitter(i->first.c_str());
+
+				cstr body, publicName;
+				if (!splitter.SplitTail(OUT body, OUT publicName))
+				{
+					char fullError[2048];
+					SafeFormat(fullError, 2048, ("%s: Expecting fully qualified name A.B.C.D."), nf.Archetype.c_str());
+					ParseException nativeError(Vec2i{ 0,0 }, Vec2i{ 0,0 }, NativeModuleSrc, fullError, (""), NULL);
+					Throw(nativeError);
+				}
+
+				sb.AppendFormat("\n(function %s%d %s : (source \"%s\" %d))\n", publicName, index, nf.Archetype.c_str() + strlen(publicName), nf.sourceFile.c_str(), nf.lineNumber);
+				sb.AppendFormat("(alias %s%d %s)\n", publicName, index, i->first.c_str());
+			}
 
 			index++;
 		}
