@@ -4,14 +4,17 @@
 #include <rococo.strings.h>
 #include <rococo.os.win32.h>
 #include <rococo.gr.win32-gdi.h>
+#include <rococo.gui.retained.h>
 
 using namespace Rococo;
+using namespace Rococo::Gui;
 
 struct GR_Win32_EmptyScene: IGR2DScene
 {
-	void Render(IGR2DSceneRenderContext& rc) override
+	void Render(IGRRenderContext& rc) override
 	{
-		rc.DrawBackground();
+		GuiRect windowRect = rc.ScreenDimensions();
+		rc.DrawRect(windowRect, RGBAb(128, 0, 0));
 	}
 };
 
