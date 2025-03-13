@@ -6,8 +6,41 @@
 
 using namespace Rococo;
 
-LRESULT ClientProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+struct GR_Win32_Host
 {
+	HWND hHostWindow = nullptr;
+
+	void OnPaint()
+	{
+		PAINTSTRUCT ps;
+		BeginPaint(hHostWindow, &ps);
+
+		RECT rect;
+		GetClientRect(hHostWindow, &rect);
+
+		HBRUSH redBrush = CreateSolidBrush(RGB(128, 0, 0));
+		auto old = SelectObject(ps.hdc, redBrush);
+
+		FillRect(ps.hdc, &rect, redBrush);
+
+		SelectObject(ps.hdc, old);
+
+		DeleteObject(redBrush);
+
+		EndPaint(hHostWindow, &ps);
+	}
+};
+
+LRESULT HostProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	auto* host = reinterpret_cast<GR_Win32_Host*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
+
+	switch (msg)
+	{
+	case WM_PAINT:
+		host->OnPaint();
+		return 0L;
+	}
 	return DefWindowProcA(hWnd, msg, wParam, lParam);
 }
 
@@ -90,7 +123,7 @@ void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 	classDef.hInstance = hInstance;
 	classDef.lpszClassName = clientClassName;
 	classDef.lpszMenuName = NULL;
-	classDef.lpfnWndProc = ClientProc;
+	classDef.lpfnWndProc = DefWindowProcA;
 }
 
 void RunApp(HWND hWnd)
@@ -109,6 +142,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR c
 	UNUSED(hInstance);
 
 	Rococo::OS::SetBreakPoints(OS::Flags::BreakFlag_All);
+
+	GR_Win32_Host host;
 
 	try
 	{
@@ -176,6 +211,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR c
 		{
 			Throw(GetLastError(), "%s: could not create client window for %s", __FUNCTION__, clientInfo.lpszClassName);
 		}
+
+		host.hHostWindow = hWndClient;
+
+		SetWindowLongPtrA(hWndClient, GWLP_USERDATA, (LONG_PTR) &host);
+		SetWindowLongPtrA(hWndClient, GWLP_WNDPROC, (LONG_PTR)HostProc);
 
 		RunApp(hWnd);
 
