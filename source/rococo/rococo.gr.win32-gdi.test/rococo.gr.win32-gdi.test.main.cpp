@@ -3,31 +3,36 @@
 #include <rococo.io.h>
 #include <rococo.strings.h>
 #include <rococo.os.win32.h>
+#include <rococo.gr.win32-gdi.h>
 
 using namespace Rococo;
+
+struct GR_Win32_EmptyScene: IGR2DScene
+{
+	void Render(IGR2DSceneRenderContext& rc) override
+	{
+		rc.DrawBackground();
+	}
+};
 
 struct GR_Win32_Host
 {
 	HWND hHostWindow = nullptr;
 
+	AutoFree<IGR2DSceneHandlerSupervisor> handler;
+
+	IGR2DScene* scene = nullptr;
+	GR_Win32_EmptyScene emptyScene;
+
+	GR_Win32_Host()
+	{
+		handler = GR::Win32::CreateSceneHandler();
+		scene = &emptyScene;
+	}
+
 	void OnPaint()
 	{
-		PAINTSTRUCT ps;
-		BeginPaint(hHostWindow, &ps);
-
-		RECT rect;
-		GetClientRect(hHostWindow, &rect);
-
-		HBRUSH redBrush = CreateSolidBrush(RGB(128, 0, 0));
-		auto old = SelectObject(ps.hdc, redBrush);
-
-		FillRect(ps.hdc, &rect, redBrush);
-
-		SelectObject(ps.hdc, old);
-
-		DeleteObject(redBrush);
-
-		EndPaint(hHostWindow, &ps);
+		handler->OnPaint(*scene, hHostWindow);
 	}
 };
 
