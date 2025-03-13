@@ -119,7 +119,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\..\..\build\projects;..\..\gen\lib\win64\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\build\projects;..\..\gen\lib\Win64\Debug</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -206,7 +206,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.dll</OutputFile>
       <ShowProgress>NotSet</ShowProgress>
-      <AdditionalLibraryDirectories>..\..\..\..\build\projects;..\..\gen\lib\win64\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\..\build\projects;..\..\gen\lib\Win64\Release</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>..\..\gen\bin\win64\$(configuration)\lib-vorbis-file.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>false</MapExports>

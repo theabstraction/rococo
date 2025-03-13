@@ -819,6 +819,39 @@ namespace Rococo
         }
     }
 
+    [Sharpmake.Generate]
+    public class RococoGRGDIProject : RococoProject
+    {
+        public RococoGRGDIProject() : base("rococo.gr.win32-gdi")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoGRGDITestProject : RococoProject
+    {
+        public RococoGRGDITestProject() : base("rococo.gr.win32-gdi.test")
+        {
+            
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoGRGDIProject>(target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+        }
+    }
+
     [Sharpmake.Compile]
     public class OggProject : Project
     {
@@ -2010,6 +2043,8 @@ namespace Rococo
             conf.AddProject<SexyIncludeProject>(target);
             conf.AddProject<RococoAssetsProject>(target);
             conf.AddProject<RococoAssetsTestProject>(target);
+            conf.AddProject<RococoGRGDIProject>(target);
+            conf.AddProject<RococoGRGDITestProject>(target);
             conf.AddProject<RococoTextureToolProject>(target);
             conf.AddProject<RococoVersioningProject>(target);
             conf.AddProject<RococoGraphicsProject>(target);
@@ -2245,6 +2280,9 @@ namespace Rococo
             arguments.Generate<RococoIncludeProject>();
             arguments.Generate<RococoAssetsProject>();
             arguments.Generate<RococoAssetsTestProject>();
+
+            arguments.Generate<RococoGRGDIProject>();
+            arguments.Generate<RococoGRGDITestProject>();
 
             arguments.Generate<SexyIncludeProject>();
             arguments.Generate<OggProject>();

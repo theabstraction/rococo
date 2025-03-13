@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\rococo.dependency\main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi\rococo.gr.win32-gdi.main.cpp" />
   </ItemGroup>
 </Project>
