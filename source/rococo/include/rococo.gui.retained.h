@@ -8,6 +8,7 @@
 namespace Rococo
 {
 	struct KeyboardEvent;
+	struct MouseEvent;
 }
 
 namespace Rococo::Sex

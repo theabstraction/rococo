@@ -10,6 +10,7 @@
 namespace Rococo::Gui
 {
 	DECLARE_ROCOCO_INTERFACE IGRRenderContext;
+	DECLARE_ROCOCO_INTERFACE IGRCustodian;
 }
 
 namespace Rococo
@@ -37,4 +38,14 @@ namespace Rococo
 namespace Rococo::GR::Win32
 {
 	ROCOCO_GR_GDI_API IGR2DSceneHandlerSupervisor* CreateSceneHandler();
+
+	ROCOCO_INTERFACE IWin32GDICustodianSupervisor
+	{
+		virtual Gui::IGRCustodian& Custodian() = 0;
+		virtual void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) = 0;
+		virtual void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) = 0;
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_GR_GDI_API IWin32GDICustodianSupervisor* CreateGDICustodian();
 }

@@ -3,10 +3,17 @@
 #define ROCOCO_GR_GDI_API ROCOCO_API_EXPORT
 
 #include <rococo.gr.win32-gdi.h>
+
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 #include <rococo.maths.h>
 #include <rococo.maths.i32.h>
+#include <rococo.hashtable.h>
+#include <rococo.ui.h>
+
+#include <sexy.types.h>
+
 #include <vector>
 
 using namespace Rococo::Gui;
@@ -351,10 +358,262 @@ namespace Rococo::GR::Win32::Implementation
 			delete this;
 		}
 	};
+
+	enum class ERenderTaskType
+	{
+		Edge
+	};
+
+	struct RenderTask
+	{
+		ERenderTaskType type;
+		GuiRect target;
+		RGBAb colour1;
+		RGBAb colour2;
+	};
+
+	struct GDIImageMemento : IGRImageMemento
+	{
+		Vec2i span{ 8, 8 };
+		
+		GDIImageMemento(cstr hint, cstr imagePath)
+		{
+			
+		}
+
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override
+		{
+			return false;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		Vec2i Span() const override
+		{
+			return { 0,0 };
+		}
+	};
+
+	const stringmap<cstr> macroToPingPath =
+	{
+		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff" },
+		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/3rd-party/www.aha-soft.com/Forward.tiff" },
+		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/expanded_state.tiff" },
+		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/inline_state.tiff" },
+	};
+
+	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory
+	{
+		// Debugging materials:
+		std::vector<IGRWidget*> history;
+		EGREventRouting lastRoutingStatus = EGREventRouting::Terminate;
+		int64 eventCount = 0;
+
+		GDICustodian()
+		{
+
+		}
+
+		IGRImageMemento* CreateImageMemento(cstr debugHint, cstr codedImagePath) override
+		{
+			auto i = macroToPingPath.find(codedImagePath);
+			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
+			return new GDIImageMemento(debugHint, imagePath);
+		}
+
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
+		{
+			return { 0,0 };
+		}
+
+		void RecordWidget(IGRWidget& widget) override
+		{
+			history.push_back(&widget);
+		}
+
+		void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) override
+		{
+			GRKeyEvent keyEvent{ *this, eventCount, key };
+			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
+			if (lastRoutingStatus == EGREventRouting::NextHandler)
+			{
+				gr.ApplyKeyGlobally(keyEvent);
+			}
+		}
+
+		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
+
+		void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) override
+		{
+			static_assert(sizeof GRCursorClick == sizeof uint16);
+
+			history.clear();
+			if (me.buttonFlags != 0)
+			{
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData };
+				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
+			}
+			else
+			{
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0 };
+				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
+
+				if (currentIcon != cursorEvent.nextIcon)
+				{
+					currentIcon = cursorEvent.nextIcon;
+
+					/*
+					switch (currentIcon)
+					{
+					case EGRCursorIcon::Arrow:
+						sysRenderer.GuiResources().SetSysCursor(EWindowCursor_Default);
+						break;
+					case EGRCursorIcon::LeftAndRightDragger:
+						sysRenderer.GuiResources().SetSysCursor(EWindowCursor_HDrag);
+						break;
+					}
+
+					*/
+				}
+			}
+			eventCount++;
+		}
+
+		IGRCustodian& Custodian() override
+		{
+			return *this;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		void RaiseError(const Sex::ISExpression* associatedSExpression, EGRErrorCode, cstr function, cstr format, ...) override
+		{
+			char message[1024];
+			va_list args;
+			va_start(args, format);
+			Strings::SafeVFormat(message, sizeof message, format, args);
+			va_end(args);
+
+			if (associatedSExpression)
+			{
+				Throw(*associatedSExpression, "%s: %s", function, message);
+			}
+			else
+			{
+				Throw(0, "%s: %s", function, message);
+			}
+		}
+
+
+		/*
+		void Render(IGuiRenderContext& rc, IGRSystem& gr) override
+		{
+			renderer.SetContext(&rc);
+
+			if (renderer.lastScreenDimensions.right > 0 && renderer.lastScreenDimensions.bottom > 0)
+			{
+				gr.RenderGui(renderer);
+			}
+
+			renderer.DrawLastItems();
+
+			renderer.SetContext(nullptr);
+		}
+		*/
+
+		std::vector<char> copyAndPasteBuffer;
+
+		void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
+		{
+			if (!keyEvent.osKeyEvent.IsUp())
+			{
+				switch (keyEvent.osKeyEvent.VKey)
+				{
+				case IO::VirtualKeys::VKCode_BACKSPACE:
+					manager.BackspaceAtCaret();
+					return;
+				case IO::VirtualKeys::VKCode_DELETE:
+					manager.DeleteAtCaret();
+					return;
+				case IO::VirtualKeys::VKCode_ENTER:
+					manager.Return();
+					return;
+				case IO::VirtualKeys::VKCode_LEFT:
+					manager.AddToCaretPos(-1);
+					return;
+				case IO::VirtualKeys::VKCode_RIGHT:
+					manager.AddToCaretPos(1);
+					return;
+				case IO::VirtualKeys::VKCode_HOME:
+					manager.AddToCaretPos(-100'000'000);
+					return;
+				case IO::VirtualKeys::VKCode_END:
+					manager.AddToCaretPos(100'000'000);
+					return;
+				case IO::VirtualKeys::VKCode_C:
+					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+					{
+						// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
+						copyAndPasteBuffer.resize(manager.GetTextAndLength(nullptr, 0));
+						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
+						//Rococo::OS::CopyStringToClipboard(copyAndPasteBuffer.data());
+						copyAndPasteBuffer.clear();
+						return;
+					}
+					else
+					{
+						break;
+					}
+				case IO::VirtualKeys::VKCode_V:
+					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+					{
+						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
+
+						/*
+						struct : IStringPopulator
+						{
+							IGREditorMicromanager* manager = nullptr;
+							void Populate(cstr text) override
+							{
+								for (cstr p = text; *p != 0; p++)
+								{
+									manager->AppendCharAtCaret(*p);
+								}
+							}
+						} cb;
+						cb.manager = &manager;
+						Rococo::OS::PasteStringFromClipboard(cb);
+						*/
+						return;
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				if (keyEvent.osKeyEvent.unicode >= 32 && keyEvent.osKeyEvent.unicode <= 127)
+				{
+					manager.AppendCharAtCaret((char)keyEvent.osKeyEvent.unicode);
+				}
+			}
+		}
+	};
 }
 
 namespace Rococo::GR::Win32
 {
+	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian()
+	{
+		return new Rococo::GR::Win32::Implementation::GDICustodian();
+	}
+
 	ROCOCO_API_EXPORT IGR2DSceneHandlerSupervisor* CreateSceneHandler()
 	{
 		return new Implementation::SceneHandler();
