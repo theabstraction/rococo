@@ -22,7 +22,7 @@ struct GR_Win32_Host
 {
 	HWND hHostWindow = nullptr;
 
-	AutoFree<IGR2DSceneHandlerSupervisor> handler;
+	AutoFree<IGR2DSceneHandlerSupervisor> sceneHandler;
 	AutoFree<Rococo::GR::Win32::IWin32GDICustodianSupervisor> custodian;
 
 	IGR2DScene* scene = nullptr;
@@ -30,14 +30,14 @@ struct GR_Win32_Host
 
 	GR_Win32_Host()
 	{
-		handler = GR::Win32::CreateSceneHandler();
+		sceneHandler = GR::Win32::CreateSceneHandler();
 		custodian = GR::Win32::CreateGDICustodian();
 		scene = &emptyScene;
 	}
 
 	void OnPaint()
 	{
-		handler->OnPaint(*scene, hHostWindow);
+		sceneHandler->OnPaint(*scene, hHostWindow);
 	}
 };
 

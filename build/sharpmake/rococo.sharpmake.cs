@@ -830,6 +830,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
         }
     }
 
