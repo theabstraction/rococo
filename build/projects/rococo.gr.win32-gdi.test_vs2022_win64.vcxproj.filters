@@ -2,5 +2,6 @@
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.win32-gdi.test.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.win32-gdi.render_tests.cpp" />
   </ItemGroup>
 </Project>

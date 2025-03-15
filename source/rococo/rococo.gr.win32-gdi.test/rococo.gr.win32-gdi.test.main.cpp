@@ -18,6 +18,8 @@ struct GR_Win32_EmptyScene: IGR2DScene
 	}
 };
 
+IGR2DScene* TestScene();
+
 struct GR_Win32_Host
 {
 	HWND hHostWindow = nullptr;
@@ -226,6 +228,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR c
 
 		SetWindowLongPtrA(hWndClient, GWLP_USERDATA, (LONG_PTR) &host);
 		SetWindowLongPtrA(hWndClient, GWLP_WNDPROC, (LONG_PTR)HostProc);
+
+		host.scene = TestScene();
+
+		InvalidateRect(hWndClient, NULL, TRUE);
 
 		RunApp(hWnd);
 

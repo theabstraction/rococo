@@ -222,20 +222,20 @@ namespace Rococo::GR::Win32::Implementation
 			FillRect(paintDC, reinterpret_cast<const RECT*>(&absRect), brush);
 		}
 
-		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
+		void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) override
 		{
-			Pen topLeftPen(colour1);
+			Pen topLeftPen(topLeftColour);
 			UsePen usePen(paintDC, topLeftPen);
 			
-			MoveToEx(paintDC, absRect.left, absRect.top, NULL);
-			LineTo(paintDC, absRect.right, absRect.top);
-			LineTo(paintDC, absRect.right, absRect.bottom);
+			MoveToEx(paintDC, absRect.right, absRect.top, NULL);
+			LineTo(paintDC, absRect.left, absRect.top);
+			LineTo(paintDC, absRect.left, absRect.bottom);
 
-			Pen bottomRightPen(colour2);
+			Pen bottomRightPen(bottomRightColour);
 			UsePen usePen2(paintDC, bottomRightPen);
 			
-			LineTo(paintDC, absRect.left, absRect.bottom);
-			LineTo(paintDC, absRect.left, absRect.top);
+			LineTo(paintDC, absRect.right, absRect.bottom);
+			LineTo(paintDC, absRect.right, absRect.top);
 		}
 
 		struct HilightRect
@@ -296,7 +296,7 @@ namespace Rococo::GR::Win32::Implementation
 			{
 				finalRect = Rococo::IntersectNormalizedRects(targetRect, clipRect);
 			}
-			
+
 			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&finalRect), format);
 			SetTextColor(paintDC, oldColour);
 		}
@@ -332,6 +332,8 @@ namespace Rococo::GR::Win32::Implementation
 
 			paintDC = ps.hdc;
 
+			int oldMode = SetBkMode(paintDC, TRANSPARENT);
+
 			scene.Render(*this);
 
 			for (auto& h : hilightRects)
@@ -340,6 +342,8 @@ namespace Rococo::GR::Win32::Implementation
 			}
 
 			hilightRects.clear();
+
+			SetBkMode(paintDC, oldMode);
 
 			EndPaint(hWnd, &ps);
 		}
