@@ -78,6 +78,12 @@ namespace ANON
 
 		}
 
+		// Make/Get font id for the specification required.
+		GRFontId BindFontId(const FontSpec& /* desc */) override
+		{
+			Throw(0, __FUNCTION__ ": not implemented");
+		}
+
 		void DrawLastItems()
 		{
 			for (auto& task : lastTasks)

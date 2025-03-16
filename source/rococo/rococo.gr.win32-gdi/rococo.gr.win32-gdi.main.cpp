@@ -100,6 +100,41 @@ namespace Rococo::GR::Win32::Implementation
 	private:
 	};
 
+	class UseFont
+	{
+		HDC dc;
+		HFONT hOldFont;
+
+	public:
+		UseFont(HDC _dc, HFONT hFont) : dc(_dc)
+		{
+			hOldFont = (HFONT)SelectObject(dc, hFont);
+		}
+
+		~UseFont()
+		{
+			SelectObject(dc, hOldFont);
+		}
+	private:
+	};
+
+	class UseBkMode
+	{
+		HDC dc;
+		int oldMode;
+
+	public:
+		UseBkMode(HDC _dc, int mode) : dc(_dc)
+		{
+			oldMode = SetBkMode(dc, mode);
+		}
+
+		~UseBkMode()
+		{
+			SetBkMode(dc, oldMode);
+		}
+	private:
+	};
 
 	UINT FormatWin32DrawTextAlignment(GRAlignmentFlags alignment)
 	{
@@ -140,12 +175,134 @@ namespace Rococo::GR::Win32::Implementation
 		return format;
 	}
 
+	struct SceneHandler : IGR2DSceneHandlerSupervisor
+	{
+		struct KnownFont
+		{
+			LOGFONTA creator;
+			HFONT handle;
+		};
+
+		std::vector<KnownFont> knownFonts;
+
+		SceneHandler()
+		{
+			FontSpec defaultSpec;
+			defaultSpec.FontName = "Tahoma";
+			BindFontId(defaultSpec);
+			defaultFont = knownFonts[0].handle;
+		}
+
+		~SceneHandler()
+		{
+			for (auto f : knownFonts)
+			{
+				DeleteObject(f.handle);
+			}
+		}
+
+		HFONT defaultFont = NULL;
+
+		HFONT DefaultFont() const
+		{
+			return defaultFont;
+		}
+
+		void OnPaint(IGR2DScene& scene, HWND hWnd) override;
+
+		static bool Match(const LOGFONTA& a, const LOGFONT& b)
+		{
+			if (!Strings::EqI(a.lfFaceName, b.lfFaceName))
+			{
+				return false;
+			}
+
+			if (a.lfHeight != b.lfHeight)
+			{
+				return false;
+			}
+
+			if (a.lfItalic != b.lfItalic)
+			{
+				return false;
+			}
+
+			if (a.lfUnderline != b.lfUnderline)
+			{
+				return false;
+			}
+
+			if (a.lfWeight != b.lfWeight)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		GRFontId BindFontId(const FontSpec& desc)
+		{
+			LOGFONTA f = { 0 };
+			Strings::SafeFormat(f.lfFaceName, "%s", desc.FontName);
+			f.lfHeight = desc.PointSize;
+			f.lfItalic = desc.Italic ? 1 : 0;
+			f.lfWeight = desc.Bold ? FW_BOLD : FW_NORMAL;
+			f.lfUnderline = desc.Underlined ? 1 : 0;
+
+			for (size_t i = 0; i < knownFonts.size(); ++i)
+			{
+				if (Match(f, knownFonts[i].creator))
+				{
+					return static_cast<GRFontId>(i + 2);
+				}
+			}
+
+			HFONT hFont = CreateFontIndirectA(&f);
+			knownFonts.push_back({ f, hFont });
+
+			return static_cast<GRFontId>(knownFonts.size() + 1);
+		}
+
+		void SelectFont(size_t specIndex, HDC dc)
+		{
+			size_t arrayIndex = specIndex - 2;
+			if (arrayIndex < knownFonts.size())
+			{
+				HFONT hFont = knownFonts[arrayIndex].handle;
+
+				// We need to store old. Determine old in render function, creating a default font to select
+				SelectObject(dc, hFont);
+			}
+		}
+
+		void SelectFont(GRFontId fontId, HDC dc)
+		{
+			switch (fontId)
+			{
+			case GRFontId::NONE:
+			case GRFontId::MENU_FONT:
+				SelectFont(2, dc);
+				return;
+			default:
+				SelectFont(static_cast<size_t>(fontId), dc);
+				return;
+			}
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
 	struct SceneRenderer: Gui::IGRRenderContext
 	{
 		HWND hWnd;
 		HDC paintDC = 0;
+
+		SceneHandler& resources;
 		
-		SceneRenderer(HWND _hWnd): hWnd(_hWnd)
+		SceneRenderer(SceneHandler& _resources, HWND _hWnd): hWnd(_hWnd), resources(_resources)
 		{
 
 		}
@@ -259,6 +416,8 @@ namespace Rococo::GR::Win32::Implementation
 			UNUSED(caretPos);
 			UNUSED(spacing);
 
+			resources.SelectFont(fontId, paintDC);
+
 			// To calculate caretPos using GDI:
 			//    Get text metrics of clipped text before caretPos and after the caretPos to get dimensions of caret 
 			//    MoveToEx + LineTo to draw it.
@@ -281,6 +440,8 @@ namespace Rococo::GR::Win32::Implementation
 		{
 			UNUSED(fontId);
 			UNUSED(spacing);
+
+			resources.SelectFont(fontId, paintDC);
 
 			RECT rect{ targetRect.left, targetRect.top, targetRect.right, targetRect.bottom };
 
@@ -325,14 +486,15 @@ namespace Rococo::GR::Win32::Implementation
 			return lastScissorRect.IsNormalized();
 		}
 
-		void Render(IGR2DScene& scene)
+		GRFontId BindFontId(const FontSpec& desc) override
 		{
-			PAINTSTRUCT ps;
-			BeginPaint(hWnd, &ps);
+			return resources.BindFontId(desc);
+		}
 
-			paintDC = ps.hdc;
-
-			int oldMode = SetBkMode(paintDC, TRANSPARENT);
+		void RenderInPaintStruct(IGR2DScene& scene)
+		{
+			UseBkMode bkMode(paintDC, TRANSPARENT);
+			UseFont useFont(paintDC, resources.DefaultFont());
 
 			scene.Render(*this);
 
@@ -342,26 +504,27 @@ namespace Rococo::GR::Win32::Implementation
 			}
 
 			hilightRects.clear();
+		}
 
-			SetBkMode(paintDC, oldMode);
+		void Render(IGR2DScene& scene)
+		{
+			PAINTSTRUCT ps;
+			BeginPaint(hWnd, &ps);
+
+			paintDC = ps.hdc;
+
+			RenderInPaintStruct(scene);
 
 			EndPaint(hWnd, &ps);
 		}
 	};
 
-	struct SceneHandler : IGR2DSceneHandlerSupervisor
+	void SceneHandler::OnPaint(IGR2DScene& scene, HWND hWnd)
 	{
-		void OnPaint(IGR2DScene& scene, HWND hWnd) override
-		{
-			SceneRenderer renderer(hWnd);
-			renderer.Render(scene);
-		}
+		SceneRenderer renderer(*this, hWnd);
+		renderer.Render(scene);
+	}
 
-		void Free() override
-		{
-			delete this;
-		}
-	};
 
 	enum class ERenderTaskType
 	{

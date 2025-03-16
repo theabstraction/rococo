@@ -118,9 +118,10 @@ namespace Rococo::Gui
 		VCentre = 12
 	};
 
-	enum class GRFontId
+	enum class GRFontId: size_t
 	{
-		MENU_FONT = 0, // THE DEFAULT FONT, used for menus and tabs
+		NONE = 0,
+		MENU_FONT = 1, // THE DEFAULT FONT, used for menus and tabs
 	};
 
 	struct GRAlignmentFlags
@@ -148,6 +149,15 @@ namespace Rococo::Gui
 		{
 			return (alignmentFlags & (int32)alignment) != 0;
 		}
+	};
+
+	struct FontSpec
+	{
+		cstr FontName = nullptr;
+		bool Italic = false;
+		bool Bold = false;
+		bool Underlined = false;
+		int PointSize = 12;
 	};
 
 	// The interface to the platform dependent rendering of the retained GUI
@@ -180,6 +190,9 @@ namespace Rococo::Gui
 		virtual void EnableScissors(const GuiRect& scissorRect) = 0;
 		virtual void DisableScissors() = 0;
 		virtual bool TryGetScissorRect(GuiRect& scissorRect) const = 0;
+
+		// Make/Get font id for the specification required.
+		virtual GRFontId BindFontId(const FontSpec& desc) = 0;
 	};
 
 	enum class EGRSchemeColourSurface
