@@ -298,6 +298,11 @@ namespace ANON
 			}
 		}
 
+		bool TryFindFontJustSmallerThanHeight(Rococo::Gui::FontSpec&, int) const
+		{
+			return false;
+		}
+
 		void Flush() override
 		{
 			rc->FlushLayer();

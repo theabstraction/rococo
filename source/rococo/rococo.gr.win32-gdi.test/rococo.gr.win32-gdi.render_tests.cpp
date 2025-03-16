@@ -18,6 +18,13 @@ IGR2DScene* TestDrawRect()
 		{
 			rc.DrawRect(rc.ScreenDimensions(), RGBAb(64, 64, 64));
 
+			FontSpec biggish;
+			biggish.FontName = "Tahoma";
+			biggish.CharHeight = 40;
+			biggish.Bold = true;
+
+			auto fontId = rc.BindFontId(biggish);
+
 			GuiRect topLeftRect{ 20, 20, 400, 60 };
 			RenderButton(rc, topLeftRect);
 			
@@ -25,7 +32,7 @@ IGR2DScene* TestDrawRect()
 			topLeftAlignmentFlags.Add(EGRAlignment::Left);
 			topLeftAlignmentFlags.Add(EGRAlignment::Top);
 
-			rc.DrawText(GRFontId::MENU_FONT, topLeftRect, topLeftRect, topLeftAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, topLeftRect, topLeftRect, topLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect topCentreRect{ 440, 20, 840, 60 };
 			RenderButton(rc, topCentreRect);
@@ -34,7 +41,7 @@ IGR2DScene* TestDrawRect()
 			centreRightAlignmentFlags.Add(EGRAlignment::HCentre);
 			centreRightAlignmentFlags.Add(EGRAlignment::Top);
 
-			rc.DrawText(GRFontId::MENU_FONT, topCentreRect, topCentreRect, centreRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, topCentreRect, topCentreRect, centreRightAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect topRightRect{ 880, 20, 1280, 60 };
 			RenderButton(rc, topRightRect);
@@ -43,7 +50,7 @@ IGR2DScene* TestDrawRect()
 			topRightAlignmentFlags.Add(EGRAlignment::Right);
 			topRightAlignmentFlags.Add(EGRAlignment::Top);
 
-			rc.DrawText(GRFontId::MENU_FONT, topRightRect, topRightRect, topRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, topRightRect, topRightRect, topRightAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect middleLeftRect{ 20, 100, 400, 140 };
 			RenderButton(rc, middleLeftRect);
@@ -52,7 +59,7 @@ IGR2DScene* TestDrawRect()
 			middleLeftAlignmentFlags.Add(EGRAlignment::Left);
 			middleLeftAlignmentFlags.Add(EGRAlignment::VCentre);
 
-			rc.DrawText(GRFontId::MENU_FONT, middleLeftRect, middleLeftRect, middleLeftAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, middleLeftRect, middleLeftRect, middleLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect middleCentreRect{ 440, 100, 840, 140 };
 			RenderButton(rc, middleCentreRect);
@@ -61,7 +68,7 @@ IGR2DScene* TestDrawRect()
 			middleCentreAlignmentFlags.Add(EGRAlignment::HCentre);
 			middleCentreAlignmentFlags.Add(EGRAlignment::VCentre);
 
-			rc.DrawText(GRFontId::MENU_FONT, middleCentreRect, middleCentreRect, middleCentreAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, middleCentreRect, middleCentreRect, middleCentreAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect middleRightRect{ 880, 100, 1280, 140 };
 			RenderButton(rc, middleRightRect);
@@ -70,7 +77,7 @@ IGR2DScene* TestDrawRect()
 			middleRightAlignmentFlags.Add(EGRAlignment::Right);
 			middleRightAlignmentFlags.Add(EGRAlignment::VCentre);
 
-			rc.DrawText(GRFontId::MENU_FONT, middleRightRect, middleRightRect, middleRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, middleRightRect, middleRightRect, middleRightAlignmentFlags, { 0,0 }, "Hello World! qyg My God it is good"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect bottomLeftRect{ 20, 180, 400, 220 };
 			RenderButton(rc, bottomLeftRect);
@@ -79,7 +86,7 @@ IGR2DScene* TestDrawRect()
 			bottomLeftAlignmentFlags.Add(EGRAlignment::Left);
 			bottomLeftAlignmentFlags.Add(EGRAlignment::Bottom);
 
-			rc.DrawText(GRFontId::MENU_FONT, bottomLeftRect, bottomLeftRect, bottomLeftAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, bottomLeftRect, bottomLeftRect, bottomLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect bottomCentreRect{ 440, 180, 840, 220 };
 			RenderButton(rc, bottomCentreRect);
@@ -88,7 +95,7 @@ IGR2DScene* TestDrawRect()
 			bottomCentreAlignmentFlags.Add(EGRAlignment::HCentre);
 			bottomCentreAlignmentFlags.Add(EGRAlignment::Bottom);
 
-			rc.DrawText(GRFontId::MENU_FONT, bottomCentreRect, bottomCentreRect, bottomCentreAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, bottomCentreRect, bottomCentreRect, bottomCentreAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect bottomRightRect{ 880, 180, 1280, 220 };
 			RenderButton(rc, bottomRightRect);
@@ -97,7 +104,7 @@ IGR2DScene* TestDrawRect()
 			bottomRightAlignmentFlags.Add(EGRAlignment::Right);
 			bottomRightAlignmentFlags.Add(EGRAlignment::Bottom);
 
-			rc.DrawText(GRFontId::MENU_FONT, bottomRightRect, bottomRightRect, bottomRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, bottomRightRect, bottomRightRect, bottomRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
 		}
 	};
 

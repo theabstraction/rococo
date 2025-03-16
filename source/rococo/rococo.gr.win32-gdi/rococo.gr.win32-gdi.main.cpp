@@ -244,7 +244,8 @@ namespace Rococo::GR::Win32::Implementation
 		{
 			LOGFONTA f = { 0 };
 			Strings::SafeFormat(f.lfFaceName, "%s", desc.FontName);
-			f.lfHeight = desc.PointSize;
+			f.lfCharSet = (BYTE) desc.CharSet;
+			f.lfHeight = desc.CharHeight;
 			f.lfItalic = desc.Italic ? 1 : 0;
 			f.lfWeight = desc.Bold ? FW_BOLD : FW_NORMAL;
 			f.lfUnderline = desc.Underlined ? 1 : 0;
@@ -438,28 +439,46 @@ namespace Rococo::GR::Win32::Implementation
 
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
-			UNUSED(fontId);
 			UNUSED(spacing);
+
+			if (clipRect.IsNormalized())
+			{
+				HRGN hRegion = CreateRectRgn(clipRect.left, clipRect.top, clipRect.right, clipRect.bottom);
+				SelectClipRgn(paintDC, hRegion);
+			}
 
 			resources.SelectFont(fontId, paintDC);
 
+			TEXTMETRICA tm;
+			GetTextMetricsA(paintDC, &tm);
+
 			RECT rect{ targetRect.left, targetRect.top, targetRect.right, targetRect.bottom };
+
+			if (alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom))
+			{
+				rect.top -= tm.tmInternalLeading;
+			}
+			if (alignment.HasAllFlags(EGRAlignment::VCentre))
+			{
+				rect.top -= (tm.tmInternalLeading >> 1);
+			}
 
 			UINT format = FormatWin32DrawTextAlignment(alignment);
 
 			format += DT_END_ELLIPSIS;
 			format += DT_SINGLELINE;
 			format += DT_NOPREFIX;
+			format += DT_NOCLIP;
+
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
 
-			GuiRect finalRect = targetRect;
-			if (clipRect.IsNormalized() && targetRect.IsNormalized())
-			{
-				finalRect = Rococo::IntersectNormalizedRects(targetRect, clipRect);
-			}
-
-			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&finalRect), format);
+			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
 			SetTextColor(paintDC, oldColour);
+
+			if (clipRect.IsNormalized())
+			{
+				SelectClipRgn(paintDC, nullptr);
+			}
 		}
 
 		// Causes all render operations to complete

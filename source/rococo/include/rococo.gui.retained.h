@@ -151,13 +151,19 @@ namespace Rococo::Gui
 		}
 	};
 
+	enum class ECharSet
+	{
+		ANSI = 0
+	};
+
 	struct FontSpec
 	{
+		ECharSet CharSet = ECharSet::ANSI;
 		cstr FontName = nullptr;
 		bool Italic = false;
 		bool Bold = false;
 		bool Underlined = false;
-		int PointSize = 12;
+		int CharHeight = 12;
 	};
 
 	// The interface to the platform dependent rendering of the retained GUI
