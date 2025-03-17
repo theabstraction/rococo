@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.gr.win32-gdi.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.gr.win32-gdi.lib;rococo.graphics.lib;rococo.gui.retained.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -225,7 +225,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.gr.win32-gdi.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.gr.win32-gdi.lib;rococo.graphics.lib;rococo.gui.retained.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -243,6 +243,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="rococo.gui.retained_vs2022_win64.vcxproj">
+      <Project>{16A5F3CB-8C28-5290-B8A4-0A487742AA0D}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
     <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
       <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

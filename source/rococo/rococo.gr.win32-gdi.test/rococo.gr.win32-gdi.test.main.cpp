@@ -4,7 +4,7 @@
 #include <rococo.strings.h>
 #include <rococo.os.win32.h>
 #include <rococo.gr.win32-gdi.h>
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -24,14 +24,18 @@ struct GR_Win32_Host
 {
 	HWND hHostWindow = nullptr;
 
-	AutoFree<Rococo::GR::Win32::IWin32GDICustodianSupervisor> custodian;
+	AutoFree<Rococo::Gui::IGRSystemSupervisor> grSystem; 
+	AutoFree<Rococo::GR::Win32::IWin32GDICustodianSupervisor> gdiCustodian;
 
 	IGR2DScene* scene = nullptr;
 	GR_Win32_EmptyScene emptyScene;
 
+	GRConfig config;
+
 	GR_Win32_Host()
 	{
-		custodian = GR::Win32::CreateGDICustodian();
+		gdiCustodian = GR::Win32::CreateGDICustodian();
+		grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
 		scene = &emptyScene;
 	}
 
@@ -39,7 +43,7 @@ struct GR_Win32_Host
 	{
 		if (IsWindow(hHostWindow) && IsWindowVisible(hHostWindow))
 		{
-			custodian->OnPaint(*scene, hHostWindow);
+			gdiCustodian->OnPaint(*scene, hHostWindow);
 		}
 	}
 };
