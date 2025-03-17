@@ -113,8 +113,33 @@ IGR2DScene* TestDrawRect()
 				img1 = rc.Images().CreateImageFromPath("up", R"(D:\work\rococo\content\textures\toolbars\builder.tif)");
 			}
 
-			GuiRect image1Rect{ 20, 260, 128, 300 };
-			rc.DrawImage(*img1, image1Rect);
+			GRAlignmentFlags image1Flags;
+			image1Flags.Add(EGRAlignment::Left);
+			image1Flags.Add(EGRAlignment::Top);
+
+			GuiRect image1Rect{ 20, 260, 400, 300 };
+			GuiRect noClipping{ 0,0,0,0 };
+
+			RenderButton(rc, image1Rect);
+			rc.DrawImageUnstretched(*img1, image1Rect, noClipping, image1Flags);
+
+			GRAlignmentFlags image2Flags;
+			image2Flags.Add(EGRAlignment::HCentre);
+			image2Flags.Add(EGRAlignment::VCentre);
+
+			GuiRect image2Rect{ 440, 260, 840, 300 };
+
+			RenderButton(rc, image2Rect);
+			rc.DrawImageUnstretched(*img1, image2Rect, noClipping, image2Flags);
+
+			GRAlignmentFlags image3Flags;
+			image3Flags.Add(EGRAlignment::Right);
+			image3Flags.Add(EGRAlignment::Bottom);
+
+			GuiRect image3Rect{ 880, 260, 1280, 300 };
+
+			RenderButton(rc, image3Rect);
+			rc.DrawImageUnstretched(*img1, image3Rect, noClipping, image3Flags);
 		}
 	};
 

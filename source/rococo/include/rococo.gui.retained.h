@@ -152,6 +152,16 @@ namespace Rococo::Gui
 		{
 			return (alignmentFlags & (int32)alignment) != 0;
 		}
+
+		bool IsHCentred() const
+		{
+			return HasAllFlags(EGRAlignment::HCentre) || !HasSomeFlags(EGRAlignment::HCentre);
+		}
+
+		bool IsVCentred() const
+		{
+			return HasAllFlags(EGRAlignment::VCentre) || !HasSomeFlags(EGRAlignment::VCentre);
+		}
 	};
 
 	enum class ECharSet
@@ -196,7 +206,7 @@ namespace Rococo::Gui
 		/* heading: 0 = N, E = 90 etc */
 		virtual void DrawDirectionArrow(const GuiRect& absRect, RGBAb colour, Degrees heading) = 0;
 
-		virtual void DrawImage(IGRImage& image, const GuiRect& absRect) = 0;
+		virtual void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect, GRAlignmentFlags alignment) = 0;
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
 		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;

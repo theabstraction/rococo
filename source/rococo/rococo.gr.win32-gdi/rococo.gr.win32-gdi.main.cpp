@@ -64,6 +64,41 @@ namespace Rococo::GR::Win32::Implementation
 	private:
 	};
 
+	Vec2i GetTopLeftFromAlignment(GRAlignmentFlags alignment, const GuiRect& rect, Vec2i span)
+	{
+		int x;
+
+		if (alignment.IsHCentred())
+		{
+			x = Centre(rect).x - (span.x >> 1);
+		}
+		else if (alignment.HasSomeFlags(EGRAlignment::Left))
+		{
+			x = rect.left;
+		}
+		else
+		{
+			x = rect.right - span.x;
+		}
+
+		int y;
+
+		if (alignment.IsVCentred())
+		{
+			y = Centre(rect).y - (span.y >> 1);
+		}
+		else if (alignment.HasSomeFlags(EGRAlignment::Top))
+		{
+			y = rect.top;
+		}
+		else
+		{
+			y = rect.bottom - span.y;
+		}
+
+		return { x, y };
+	}
+
 	class Pen
 	{
 	private:
@@ -102,6 +137,31 @@ namespace Rococo::GR::Win32::Implementation
 			SelectObject(dc, hOldPen);
 		}
 	private:
+	};
+
+	class UseClipRect
+	{
+	public:
+		UseClipRect(HDC _dc, const GuiRect& rect) : dc(_dc)
+		{
+			if (rect.IsNormalized())
+			{
+				hRegion = CreateRectRgn(rect.left, rect.top, rect.right, rect.bottom);
+				SelectClipRgn(dc, hRegion);
+			}
+		}
+
+		~UseClipRect()
+		{
+			if (hRegion)
+			{
+				SelectClipRgn(dc, nullptr);
+				DeleteObject(hRegion);
+			}
+		}
+	private:
+		HDC dc = 0;
+		HRGN hRegion = 0;
 	};
 
 	class UseFont
@@ -385,7 +445,7 @@ namespace Rococo::GR::Win32::Implementation
 			SetPolyFillMode(paintDC, oldMode);
 		}
 
-		void DrawImage(IGRImage& image, const GuiRect& absRect) override
+		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect, GRAlignmentFlags alignment) override
 		{
 			HBITMAP hImage = (HBITMAP) static_cast<GDIImage&>(image).hImage;
 
@@ -393,6 +453,8 @@ namespace Rococo::GR::Win32::Implementation
 			{
 				bitmapDC = CreateCompatibleDC(paintDC);
 			}
+
+			UseClipRect useClip(paintDC, clipRect);
 
 			HBITMAP hOldBitmap = (HBITMAP) SelectObject(bitmapDC, hImage);
 
@@ -403,7 +465,10 @@ namespace Rococo::GR::Win32::Implementation
 			blendFunction.BlendFlags = 0;
 			blendFunction.BlendOp = AC_SRC_OVER;
 			blendFunction.SourceConstantAlpha = 255;
-			AlphaBlend(paintDC, absRect.left, absRect.top, absRect.right - absRect.left, absRect.bottom - absRect.top, bitmapDC, 0, 0, span.x, span.y, blendFunction);
+
+			Vec2i p = GetTopLeftFromAlignment(alignment, absRect, span);
+
+			AlphaBlend(paintDC, p.x, p.y, span.x, span.y, bitmapDC, 0, 0, span.x, span.y, blendFunction);
 
 			SelectObject(bitmapDC, hOldBitmap);
 		}
@@ -447,9 +512,10 @@ namespace Rococo::GR::Win32::Implementation
 
 		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) override
 		{
-			UNUSED(fontId);
 			UNUSED(caretPos);
 			UNUSED(spacing);
+
+			UseClipRect useClip(paintDC, clipRect);
 
 			SelectFont(custodian, fontId, paintDC);
 
@@ -470,16 +536,11 @@ namespace Rococo::GR::Win32::Implementation
 
 			SetTextColor(paintDC, oldColour);
 		}
-
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
 			UNUSED(spacing);
 
-			if (clipRect.IsNormalized())
-			{
-				HRGN hRegion = CreateRectRgn(clipRect.left, clipRect.top, clipRect.right, clipRect.bottom);
-				SelectClipRgn(paintDC, hRegion);
-			}
+			UseClipRect useClip(paintDC, clipRect);
 
 			SelectFont(custodian, fontId, paintDC);
 
@@ -508,11 +569,6 @@ namespace Rococo::GR::Win32::Implementation
 
 			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
 			SetTextColor(paintDC, oldColour);
-
-			if (clipRect.IsNormalized())
-			{
-				SelectClipRgn(paintDC, nullptr);
-			}
 		}
 
 		// Causes all render operations to complete
