@@ -19,6 +19,7 @@ struct GR_Win32_EmptyScene: IGR2DScene
 };
 
 IGR2DScene* TestScene();
+void TestWidgets(IGRSystem& gr);
 
 struct GR_Win32_Host
 {
@@ -43,7 +44,8 @@ struct GR_Win32_Host
 	{
 		if (IsWindow(hHostWindow) && IsWindowVisible(hHostWindow))
 		{
-			gdiCustodian->OnPaint(*scene, hHostWindow);
+//			gdiCustodian->OnPaint(*scene, hHostWindow);
+			gdiCustodian->RenderGui(*grSystem, hHostWindow);
 		}
 	}
 };
@@ -124,7 +126,7 @@ void PopulateMainClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 	classDef.cbSize = sizeof(classDef);
 	classDef.style = 0;
 	classDef.cbWndExtra = 0;
-	classDef.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	classDef.hbrBackground = (HBRUSH) COLOR_WINDOW;
 	classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	//classDef.hIcon = LoadIconA(hInstance, (cstr)IDI_ICON1);
 	//classDef.hIconSm = LoadIconA(hInstance, (cstr)IDI_ICON2);
@@ -143,7 +145,7 @@ void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 	classDef.cbSize = sizeof(classDef);
 	classDef.style = 0;
 	classDef.cbWndExtra = 0;
-	classDef.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	classDef.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
 	classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	//classDef.hIcon = LoadIconA(hInstance, (cstr)IDI_ICON1);
 	//classDef.hIconSm = LoadIconA(hInstance, (cstr)IDI_ICON2);
@@ -245,6 +247,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR c
 		SetWindowLongPtrA(hWndClient, GWLP_WNDPROC, (LONG_PTR)HostProc);
 
 		host.scene = TestScene();
+
+		TestWidgets(*host.grSystem);
 
 		InvalidateRect(hWndClient, NULL, TRUE);
 

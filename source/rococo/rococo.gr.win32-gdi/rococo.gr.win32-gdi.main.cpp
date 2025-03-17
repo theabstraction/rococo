@@ -121,6 +121,28 @@ namespace Rococo::GR::Win32::Implementation
 		}
 	};
 
+	class UsePaint
+	{
+		PAINTSTRUCT ps;
+		HWND hWnd;
+	public:
+		UsePaint(HWND _hWnd) : hWnd(_hWnd)
+		{
+			BeginPaint(hWnd, &ps);
+		}
+
+		~UsePaint()
+		{
+			EndPaint(hWnd, &ps);
+		}
+
+		HDC DC() const
+		{
+			return ps.hdc;
+		}
+	};
+
+
 	class UsePen
 	{
 		HDC dc;
@@ -256,7 +278,7 @@ namespace Rococo::GR::Win32::Implementation
 			struct ImageParser : Imaging::IImageLoadEvents
 			{
 				HBITMAP hBitmap = 0;
-				Vec2i span;
+				Vec2i span{ 0,0 };
 
 				void OnError(const char* message) override
 				{
@@ -639,26 +661,10 @@ namespace Rococo::GR::Win32::Implementation
 		IGRFonts& Fonts() override;
 		IGRImages& Images() override;
 
-		struct UsePaint
-		{
-			PAINTSTRUCT ps;
-			HWND hWnd;
-
-			UsePaint(HWND _hWnd): hWnd(_hWnd)
-			{
-				BeginPaint(hWnd, &ps);
-			}
-
-			~UsePaint()
-			{
-				EndPaint(hWnd, &ps);
-			}
-		};
-
 		void Render(IGR2DScene& scene)
 		{
 			UsePaint usePaint(hWnd);
-			paintDC = usePaint.ps.hdc;
+			paintDC = usePaint.DC();
 			RenderInPaintStruct(scene);
 		}
 
@@ -769,7 +775,7 @@ namespace Rococo::GR::Win32::Implementation
 
 		std::vector<KnownFont> knownFonts;
 
-		~GDICustodian()
+		virtual ~GDICustodian()
 		{
 			for (auto f : knownFonts)
 			{
@@ -812,6 +818,14 @@ namespace Rococo::GR::Win32::Implementation
 		{
 			SceneRenderer renderer(*this, hWnd);
 			renderer.Render(scene);
+		}
+
+		void RenderGui(IGRSystem& gr, HWND hWnd) override
+		{
+			UsePaint usePaint(hWnd);
+			SceneRenderer renderer(*this, hWnd);
+			renderer.paintDC = usePaint.DC();
+			gr.RenderGui(renderer);
 		}
 
 		static bool Match(const LOGFONTA& a, const LOGFONT& b)

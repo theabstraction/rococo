@@ -29,6 +29,7 @@ namespace Rococo::GR::Win32
 	{
 		virtual Gui::IGRCustodian& Custodian() = 0;
 		virtual void OnPaint(IGR2DScene& scene, HWND hWnd) = 0;
+		virtual void RenderGui(Gui::IGRSystem& gr, HWND hWnd) = 0;
 		virtual void RouteKeyboardEvent(const KeyboardEvent& key, Gui::IGRSystem& gr) = 0;
 		virtual void RouteMouseEvent(const MouseEvent& me, Gui::IGRSystem& gr) = 0;
 		virtual void Free() = 0;

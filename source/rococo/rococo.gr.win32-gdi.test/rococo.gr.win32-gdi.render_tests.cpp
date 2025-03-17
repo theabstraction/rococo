@@ -152,7 +152,32 @@ IGR2DScene* TestDrawRect()
 	return &scene;
 }
 
+IGR2DScene* TestNoScene()
+{
+	struct Scene : IGR2DScene
+	{
+		void Render(Gui::IGRRenderContext&) override
+		{
+		}
+	};
+	
+	static Scene scene;
+	return &scene;
+}
+
 IGR2DScene* TestScene()
 {
 	return TestDrawRect();
+	//return TestNoScene();
+}
+
+void TestFrame(IGRSystem& gr)
+{
+	GRIdWidget mainFrame { "Main-Frame" };
+	auto& frame = gr.BindFrame(mainFrame);
+}
+
+void TestWidgets(IGRSystem& gr)
+{
+	TestFrame(gr);
 }
