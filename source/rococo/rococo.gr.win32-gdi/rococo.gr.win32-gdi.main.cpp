@@ -20,22 +20,26 @@
 
 #pragma comment(lib, "Msimg32.lib")
 
+#include <gdiplus.h>
+#pragma comment (lib,"Gdiplus.lib")
+
 using namespace Rococo::Gui;
+using namespace Gdiplus;
 
 namespace Rococo::GR::Win32::Implementation
 {
-	class SolidBrush
+	class GDISolidBrush
 	{
 	private:
 		HBRUSH hBrush;
 
 	public:
-		SolidBrush(RGBAb colour)
+		GDISolidBrush(RGBAb colour)
 		{
 			hBrush = CreateSolidBrush(RGB(colour.red, colour.green, colour.blue));
 		}
 
-		~SolidBrush()
+		~GDISolidBrush()
 		{
 			DeleteObject(hBrush);
 		}
@@ -99,18 +103,18 @@ namespace Rococo::GR::Win32::Implementation
 		return { x, y };
 	}
 
-	class Pen
+	class GDIPen
 	{
 	private:
 		HPEN hPen;
 
 	public:
-		Pen(RGBAb colour)
+		GDIPen(RGBAb colour)
 		{
 			hPen = CreatePen(PS_SOLID, 1, RGB(colour.red, colour.green, colour.blue));
 		}
 
-		~Pen()
+		~GDIPen()
 		{
 			DeleteObject(hPen);
 		}
@@ -372,8 +376,9 @@ namespace Rococo::GR::Win32::Implementation
 		HDC bitmapDC = 0;
 
 		GDICustodian& custodian;
+		Graphics g;
 		
-		SceneRenderer(GDICustodian& _custodian, HWND _hWnd): hWnd(_hWnd), custodian(_custodian)
+		SceneRenderer(GDICustodian& _custodian, HWND _hWnd, HDC dc): hWnd(_hWnd), custodian(_custodian), g(dc), paintDC(dc)
 		{
 
 		}
@@ -444,7 +449,7 @@ namespace Rococo::GR::Win32::Implementation
 				v[2] = { absRect.left, (absRect.top + absRect.bottom) >> 1 };
 			}
 
-			SolidBrush brush(colour);
+			GDISolidBrush brush(colour);
 			UseBrush useBrush(paintDC, brush);
 
 			int oldMode = SetPolyFillMode(paintDC, ALTERNATE);
@@ -508,20 +513,20 @@ namespace Rococo::GR::Win32::Implementation
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
-			SolidBrush brush(colour);
-			FillRect(paintDC, reinterpret_cast<const RECT*>(&absRect), brush);
+			SolidBrush solidBrush(Color(colour.red, colour.green, colour.blue, colour.alpha));
+			g.FillRectangle(&solidBrush, absRect.left, absRect.top, Width(absRect), Height(absRect));
 		}
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) override
 		{
-			Pen topLeftPen(topLeftColour);
+			GDIPen topLeftPen(topLeftColour);
 			UsePen usePen(paintDC, topLeftPen);
 			
 			MoveToEx(paintDC, absRect.right, absRect.top, NULL);
 			LineTo(paintDC, absRect.left, absRect.top);
 			LineTo(paintDC, absRect.left, absRect.bottom);
 
-			Pen bottomRightPen(bottomRightColour);
+			GDIPen bottomRightPen(bottomRightColour);
 			UsePen usePen2(paintDC, bottomRightPen);
 			
 			LineTo(paintDC, absRect.right, absRect.bottom);
@@ -713,7 +718,13 @@ namespace Rococo::GR::Win32::Implementation
 
 	bool GDIImage::Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g)
 	{
-		return static_cast<SceneRenderer&>(g).Render(panel, alignment, spacing, hImage);
+		GuiRect rect = panel.AbsRect();
+		rect.left += spacing.x;
+		rect.right -= spacing.x;
+		rect.top += spacing.y;
+		rect.bottom -= spacing.y;
+		g.DrawImageUnstretched(*this, rect, GuiRect{ 0,0,0,0 }, alignment);
+		return true;
 	}
 
 	enum class ERenderTaskType
@@ -806,15 +817,15 @@ namespace Rococo::GR::Win32::Implementation
 
 		void OnPaint(IGR2DScene& scene, HWND hWnd) override
 		{
-			SceneRenderer renderer(*this, hWnd);
+			UsePaint usePaint(hWnd);
+			SceneRenderer renderer(*this, hWnd, usePaint.DC());
 			renderer.Render(scene);
 		}
 
 		void RenderGui(IGRSystem& gr, HWND hWnd) override
 		{
 			UsePaint usePaint(hWnd);
-			SceneRenderer renderer(*this, hWnd);
-			renderer.paintDC = usePaint.DC();
+			SceneRenderer renderer(*this, hWnd, usePaint.DC());
 			gr.RenderGui(renderer);
 		}
 

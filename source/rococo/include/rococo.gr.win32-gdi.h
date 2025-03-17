@@ -1,7 +1,11 @@
 #pragma once
 
 #include <rococo.gr.client.h>
-#include <rococo.os.win32.h>
+#ifdef _WIN32
+# include <rococo.win32.target.win7.h>
+# define NOMINMAX
+# include <windows.h>
+#endif
 
 #ifdef DrawText
 # undef DrawText

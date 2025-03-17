@@ -2,9 +2,16 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 #include <rococo.strings.h>
-#include <rococo.os.win32.h>
+#ifdef _WIN32
+# include <rococo.win32.target.win7.h>
+# define NOMINMAX
+# include <windows.h>
+#endif
 #include <rococo.gr.win32-gdi.h>
 #include <rococo.gui.retained.ex.h>
+#include <gdiplus.h>
+
+#pragma comment (lib,"Gdiplus.lib")
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -165,13 +172,8 @@ void RunApp(HWND /* hWnd */)
 	}
 }
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR commandLine, int nShowCmd)
+int Main(HINSTANCE hInstance, cstr commandLine)
 {
-	UNUSED(nShowCmd);
-	UNUSED(hInstance);
-
-	Rococo::OS::SetBreakPoints(OS::Flags::BreakFlag_All);
-
 	GR_Win32_Host host;
 
 	try
@@ -181,7 +183,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR c
 		Rococo::Strings::CLI::GetCommandLineArgument("-controller:"_fstring, commandLine, controllerPath, MAX_PATH, "");
 		if (*controllerPath != 0)
 		{
-			
+
 		}
 
 		WNDCLASSEXA info;
@@ -243,7 +245,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR c
 
 		host.hHostWindow = hWndClient;
 
-		SetWindowLongPtrA(hWndClient, GWLP_USERDATA, (LONG_PTR) &host);
+		SetWindowLongPtrA(hWndClient, GWLP_USERDATA, (LONG_PTR)&host);
 		SetWindowLongPtrA(hWndClient, GWLP_WNDPROC, (LONG_PTR)HostProc);
 
 		host.scene = TestScene();
@@ -266,4 +268,24 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR c
 	}
 
 	return 0;
+}
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR commandLine, int nShowCmd)
+{
+	UNUSED(nShowCmd);
+	UNUSED(hInstance);
+
+	Rococo::OS::SetBreakPoints(OS::Flags::BreakFlag_All);
+
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR           gdiplusToken;
+
+	// Initialize GDI+.
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+	int result = Main(hInstance, commandLine);
+
+	Gdiplus::GdiplusShutdown(gdiplusToken);
+
+	return result;
 }
