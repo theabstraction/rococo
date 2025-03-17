@@ -171,10 +171,109 @@ IGR2DScene* TestScene()
 	//return TestNoScene();
 }
 
+void BuildMenus(IGRWidgetMainFrame& frame)
+{
+	auto& menu = frame.MenuBar();
+	menu.Widget().Panel().
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+
+	auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
+
+	/*
+	auto editMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Edit"));
+	auto viewMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("View"));
+	auto projectMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Project"));
+	auto windowMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Window"));
+	auto helpMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("Help"));
+
+	menu.AddButton(fileMenu, { "New", { 0, nullptr } });
+	menu.AddButton(fileMenu, { "Open...", { 0, nullptr } });
+	menu.AddButton(fileMenu, { "Save", { 0, nullptr } });
+	menu.AddButton(fileMenu, { "Save As...", { 0, nullptr } });
+	menu.AddButton(fileMenu, { "Exit", { 0, nullptr } });
+
+	menu.AddButton(editMenu, { "Find...", { 0, nullptr } });
+	menu.AddButton(editMenu, { "Replace...", { 0, nullptr } });
+	menu.AddButton(editMenu, { "Copy", { 0, nullptr } });
+	menu.AddButton(editMenu, { "Cut", { 0, nullptr } });
+	menu.AddButton(editMenu, { "Paste", { 0, nullptr } });
+
+	menu.AddButton(viewMenu, { "Solution", { 0, nullptr } });
+	menu.AddButton(viewMenu, { "Classes", { 0, nullptr } });
+	menu.AddButton(viewMenu, { "Repo", { 0, nullptr } });
+	menu.AddButton(viewMenu, { "Debugger", { 0, nullptr } });
+	menu.AddButton(viewMenu, { "Output", { 0, nullptr } });
+
+	menu.AddButton(projectMenu, { "Build", { 0, nullptr } });
+	menu.AddButton(projectMenu, { "Rebuild", { 0, nullptr } });
+	menu.AddButton(projectMenu, { "Debug", { 0, nullptr } });
+	menu.AddButton(projectMenu, { "Cancel", { 0, nullptr } });
+
+	menu.AddButton(windowMenu, { "Split", { 0, nullptr } });
+	menu.AddButton(windowMenu, { "Cascade", { 0, nullptr } });
+	menu.AddButton(windowMenu, { "Merge", { 0, nullptr } });
+
+	auto toggles = menu.AddSubMenu(windowMenu, GRMenuSubMenu("Toggles"));
+	menu.AddButton(toggles, { "Toolkit", { 0, nullptr } });
+	menu.AddButton(toggles, { "Properties", { 0, nullptr } });
+	menu.AddButton(toggles, { "Log", { 0, nullptr } });
+	menu.AddButton(windowMenu, { "Close All", { 0, nullptr } });
+
+	menu.AddButton(helpMenu, { "About...", { 0, nullptr } });
+	menu.AddButton(helpMenu, { "Check for updates", { 0, nullptr } });
+	menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
+	menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
+
+	*/
+
+	auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
+	titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+	titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+	titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+}
+
+enum class ToolbarMetaId : int64 { MINIMIZE = 400'000'001, RESTORE, EXIT };
+
+void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
+{
+	auto& tools = frame.TopRightHandSideTools();
+	tools.SetChildAlignment(EGRAlignment::Right);
+
+	auto& minimizer = CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+	auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+	auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+
+	minimizer.SetMetaData({ (int64)ToolbarMetaId::MINIMIZE, "OnMinimize" }, true);
+	restorer.SetMetaData({ (int64)ToolbarMetaId::RESTORE, "OnRestore" }, true);
+	closer.SetMetaData({ (int64)ToolbarMetaId::EXIT, "OnExit" }, true);
+
+	tools.ResizeToFitChildren();
+}
+
 void TestFrame(IGRSystem& gr)
 {
 	GRIdWidget mainFrame { "Main-Frame" };
 	auto& frame = gr.BindFrame(mainFrame);
+
+	auto& scheme = gr.Root().Scheme();
+	SetSchemeColours_ThemeGrey(scheme);
+
+	BuildMenus(frame);
+	BuildUpperRightToolbar(frame);
+
+	auto& framePanel = frame.Widget().Panel();
+
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 }
 
 void TestWidgets(IGRSystem& gr)

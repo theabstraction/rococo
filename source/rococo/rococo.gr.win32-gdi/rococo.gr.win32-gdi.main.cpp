@@ -273,7 +273,7 @@ namespace Rococo::GR::Win32::Implementation
 		HBITMAP hImage = NULL;
 		Strings::HString hint;
 
-		GDIImage(cstr _hint, cstr imagePath): hint(_hint)
+		GDIImage(cstr _hint, cstr imagePath, IO::IInstallation& installation): hint(_hint)
 		{
 			struct ImageParser : Imaging::IImageLoadEvents
 			{
@@ -327,26 +327,11 @@ namespace Rococo::GR::Win32::Implementation
 				Strings::HString err;
 			} parser;
 
-			struct ImageLoader : IO::IBinaryFileLoader
-			{
-				uint8* LockWriter(size_t length) override
-				{
-					imageBuffer.resize(length);
-					return imageBuffer.data();
-				}
-				
-				void Unlock() override
-				{
-
-				}
-
-				std::vector<uint8> imageBuffer;
-			} loader;
-
 			if (Strings::EndsWithI(imagePath, ".tiff") || (Strings::EndsWithI(imagePath, ".tif")))
 			{
-				Rococo::IO::LoadBinaryFile(loader, imagePath, 32_megabytes);
-				Rococo::Imaging::DecompressTiff(parser, loader.imageBuffer.data(), loader.imageBuffer.size());
+				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
+				installation.LoadResource(imagePath, *buffer, 32_megabytes);
+				Rococo::Imaging::DecompressTiff(parser, buffer->GetData(), buffer->Length());
 			}
 			else
 			{
@@ -759,8 +744,13 @@ namespace Rococo::GR::Win32::Implementation
 		EGREventRouting lastRoutingStatus = EGREventRouting::Terminate;
 		int64 eventCount = 0;
 
+		AutoFree<IO::IOSSupervisor> os;
+		AutoFree<IO::IInstallationSupervisor> installation;
+
 		GDICustodian()
 		{
+			os = IO::GetIOS();
+			installation = IO::CreateInstallation(L"content.indicator.txt", *os);
 			FontSpec defaultSpec;
 			defaultSpec.FontName = "Tahoma";
 			BindFontId(defaultSpec);
@@ -897,7 +887,7 @@ namespace Rococo::GR::Win32::Implementation
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
-			return new GDIImage(debugHint, imagePath);
+			return new GDIImage(debugHint, imagePath, *installation);
 		}
 
 		void RecordWidget(IGRWidget& widget) override
