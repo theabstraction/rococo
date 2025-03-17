@@ -140,6 +140,11 @@ IGR2DScene* TestDrawRect()
 
 			RenderButton(rc, image3Rect);
 			rc.DrawImageUnstretched(*img1, image3Rect, noClipping, image3Flags);
+
+			GuiRect image4Rect{ 20, 340, 400, 380 };
+
+			RenderButton(rc, image4Rect);
+			rc.DrawImageStretched(*img1, image4Rect, noClipping);
 		}
 	};
 

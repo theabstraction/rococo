@@ -206,6 +206,7 @@ namespace Rococo::Gui
 		/* heading: 0 = N, E = 90 etc */
 		virtual void DrawDirectionArrow(const GuiRect& absRect, RGBAb colour, Degrees heading) = 0;
 
+		virtual void DrawImageStretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect) = 0;
 		virtual void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect, GRAlignmentFlags alignment) = 0;
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;

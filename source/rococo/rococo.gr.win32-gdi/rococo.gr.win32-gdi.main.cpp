@@ -445,6 +445,32 @@ namespace Rococo::GR::Win32::Implementation
 			SetPolyFillMode(paintDC, oldMode);
 		}
 
+		void DrawImageStretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect)
+		{
+			HBITMAP hImage = (HBITMAP) static_cast<GDIImage&>(image).hImage;
+
+			if (!bitmapDC)
+			{
+				bitmapDC = CreateCompatibleDC(paintDC);
+			}
+
+			UseClipRect useClip(paintDC, clipRect);
+
+			HBITMAP hOldBitmap = (HBITMAP)SelectObject(bitmapDC, hImage);
+
+			auto span = image.Span();
+
+			BLENDFUNCTION blendFunction;
+			blendFunction.AlphaFormat = AC_SRC_ALPHA;
+			blendFunction.BlendFlags = 0;
+			blendFunction.BlendOp = AC_SRC_OVER;
+			blendFunction.SourceConstantAlpha = 255;
+
+			AlphaBlend(paintDC, absRect.left, absRect.top, Width(absRect), Height(absRect), bitmapDC, 0, 0, span.x, span.y, blendFunction);
+
+			SelectObject(bitmapDC, hOldBitmap);
+		}
+
 		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect, GRAlignmentFlags alignment) override
 		{
 			HBITMAP hImage = (HBITMAP) static_cast<GDIImage&>(image).hImage;
