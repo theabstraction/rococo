@@ -590,7 +590,7 @@ namespace Rococo::Gui
 	};
 
 	// The platform independent view of the platform dependent image associated with some widget
-	ROCOCO_INTERFACE IGRImageMemento
+	ROCOCO_INTERFACE IGRImage
 	{
 		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& rc) = 0;
 		virtual Vec2i Span() const = 0;

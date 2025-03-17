@@ -405,14 +405,14 @@ namespace ANON
 		}
 	};
 
-	struct MPlatImageMemento : IGRImageMemento
+	struct MPlatImage : IGRImage
 	{
 		Vec2i span{ 8, 8 };
 		BitmapLocation sprite = BitmapLocation::None();
 
 		IBitmapArrayBuilder& sprites;
 
-		MPlatImageMemento(cstr hint, cstr imagePath, IBitmapArrayBuilder& _sprites): sprites(_sprites)
+		MPlatImage(cstr hint, cstr imagePath, IBitmapArrayBuilder& _sprites): sprites(_sprites)
 		{
 			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
 			{
@@ -459,11 +459,11 @@ namespace ANON
 			
 		}
 
-		IGRImageMemento* CreateImageMemento(cstr debugHint, cstr codedImagePath) override
+		IGRImage* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
-			return new MPlatImageMemento(debugHint, imagePath, sysRenderer.GuiResources().SpriteBuilder());
+			return new MPlatImage(debugHint, imagePath, sysRenderer.GuiResources().SpriteBuilder());
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override

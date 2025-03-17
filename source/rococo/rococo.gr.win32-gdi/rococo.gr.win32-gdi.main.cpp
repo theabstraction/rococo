@@ -175,135 +175,20 @@ namespace Rococo::GR::Win32::Implementation
 		return format;
 	}
 
-	struct SceneHandler : IGR2DSceneHandlerSupervisor
-	{
-		struct KnownFont
-		{
-			LOGFONTA creator;
-			HFONT handle;
-		};
+	struct GDICustodian;
 
-		std::vector<KnownFont> knownFonts;
-
-		SceneHandler()
-		{
-			FontSpec defaultSpec;
-			defaultSpec.FontName = "Tahoma";
-			BindFontId(defaultSpec);
-			defaultFont = knownFonts[0].handle;
-		}
-
-		~SceneHandler()
-		{
-			for (auto f : knownFonts)
-			{
-				DeleteObject(f.handle);
-			}
-		}
-
-		HFONT defaultFont = NULL;
-
-		HFONT DefaultFont() const
-		{
-			return defaultFont;
-		}
-
-		void OnPaint(IGR2DScene& scene, HWND hWnd) override;
-
-		static bool Match(const LOGFONTA& a, const LOGFONT& b)
-		{
-			if (!Strings::EqI(a.lfFaceName, b.lfFaceName))
-			{
-				return false;
-			}
-
-			if (a.lfHeight != b.lfHeight)
-			{
-				return false;
-			}
-
-			if (a.lfItalic != b.lfItalic)
-			{
-				return false;
-			}
-
-			if (a.lfUnderline != b.lfUnderline)
-			{
-				return false;
-			}
-
-			if (a.lfWeight != b.lfWeight)
-			{
-				return false;
-			}
-
-			return true;
-		}
-
-		GRFontId BindFontId(const FontSpec& desc)
-		{
-			LOGFONTA f = { 0 };
-			Strings::SafeFormat(f.lfFaceName, "%s", desc.FontName);
-			f.lfCharSet = (BYTE) desc.CharSet;
-			f.lfHeight = desc.CharHeight;
-			f.lfItalic = desc.Italic ? 1 : 0;
-			f.lfWeight = desc.Bold ? FW_BOLD : FW_NORMAL;
-			f.lfUnderline = desc.Underlined ? 1 : 0;
-
-			for (size_t i = 0; i < knownFonts.size(); ++i)
-			{
-				if (Match(f, knownFonts[i].creator))
-				{
-					return static_cast<GRFontId>(i + 2);
-				}
-			}
-
-			HFONT hFont = CreateFontIndirectA(&f);
-			knownFonts.push_back({ f, hFont });
-
-			return static_cast<GRFontId>(knownFonts.size() + 1);
-		}
-
-		void SelectFont(size_t specIndex, HDC dc)
-		{
-			size_t arrayIndex = specIndex - 2;
-			if (arrayIndex < knownFonts.size())
-			{
-				HFONT hFont = knownFonts[arrayIndex].handle;
-
-				// We need to store old. Determine old in render function, creating a default font to select
-				SelectObject(dc, hFont);
-			}
-		}
-
-		void SelectFont(GRFontId fontId, HDC dc)
-		{
-			switch (fontId)
-			{
-			case GRFontId::NONE:
-			case GRFontId::MENU_FONT:
-				SelectFont(2, dc);
-				return;
-			default:
-				SelectFont(static_cast<size_t>(fontId), dc);
-				return;
-			}
-		}
-
-		void Free() override
-		{
-			delete this;
-		}
-	};
+	GRFontId BindFontId(GDICustodian& custodian, const FontSpec& desc);
+	HFONT DefaultFont(GDICustodian& custodian);
+	void SelectFont(GDICustodian& custodian, GRFontId fontId, HDC paintDC);
 
 	struct SceneRenderer: Gui::IGRRenderContext
 	{
 		HWND hWnd;
 		HDC paintDC = 0;
 
-		SceneHandler& resources;
+		GDICustodian& custodian;
 		
-		SceneRenderer(SceneHandler& _resources, HWND _hWnd): hWnd(_hWnd), resources(_resources)
+		SceneRenderer(GDICustodian& _custodian, HWND _hWnd): hWnd(_hWnd), custodian(_custodian)
 		{
 
 		}
@@ -417,7 +302,7 @@ namespace Rococo::GR::Win32::Implementation
 			UNUSED(caretPos);
 			UNUSED(spacing);
 
-			resources.SelectFont(fontId, paintDC);
+			SelectFont(custodian, fontId, paintDC);
 
 			// To calculate caretPos using GDI:
 			//    Get text metrics of clipped text before caretPos and after the caretPos to get dimensions of caret 
@@ -447,7 +332,7 @@ namespace Rococo::GR::Win32::Implementation
 				SelectClipRgn(paintDC, hRegion);
 			}
 
-			resources.SelectFont(fontId, paintDC);
+			SelectFont(custodian, fontId, paintDC);
 
 			TEXTMETRICA tm;
 			GetTextMetricsA(paintDC, &tm);
@@ -505,15 +390,15 @@ namespace Rococo::GR::Win32::Implementation
 			return lastScissorRect.IsNormalized();
 		}
 
-		GRFontId BindFontId(const FontSpec& desc) override
+		GRFontId BindFontId(const FontSpec& spec) override
 		{
-			return resources.BindFontId(desc);
+			return Implementation::BindFontId(custodian, spec);
 		}
 
 		void RenderInPaintStruct(IGR2DScene& scene)
 		{
 			UseBkMode bkMode(paintDC, TRANSPARENT);
-			UseFont useFont(paintDC, resources.DefaultFont());
+			UseFont useFont(paintDC, DefaultFont(custodian));
 
 			scene.Render(*this);
 
@@ -536,14 +421,63 @@ namespace Rococo::GR::Win32::Implementation
 
 			EndPaint(hWnd, &ps);
 		}
+
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, HANDLE hImage)
+		{
+			SIZE size;
+			if (!GetBitmapDimensionEx((HBITMAP)hImage, &size))
+			{
+				return false;
+			}
+
+			bool isLeftAligned = alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right);
+			bool isRightAligned = !alignment.HasSomeFlags(EGRAlignment::Left) && alignment.HasSomeFlags(EGRAlignment::Right);
+
+			int32 x = 0;
+
+			GuiRect rect = panel.AbsRect();
+
+			Vec2i ds = { size.cx, size.cy };
+
+			if (isLeftAligned)
+			{
+				x = rect.left + spacing.x;
+			}
+			else if (isRightAligned)
+			{
+				x = rect.right - spacing.x - ds.x;
+			}
+			else
+			{
+				x = (rect.left + rect.right - ds.x) >> 1;
+			}
+
+			int y = 0;
+			bool isTopAligned = alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom);
+			bool isBottomAligned = !alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom);
+
+			if (isTopAligned)
+			{
+				y = rect.top + spacing.y;
+			}
+			else if (isBottomAligned)
+			{
+				y = rect.bottom - spacing.x - ds.y;
+			}
+			else
+			{
+				y = (rect.top + rect.bottom - ds.y) >> 1;
+			}
+
+			HDC hCompatibleDC = CreateCompatibleDC(paintDC);
+			HANDLE hOld = SelectObject(hCompatibleDC, hImage);
+			BitBlt(paintDC, x, y, ds.x, ds.y, hCompatibleDC, 0, 0, SRCCOPY);
+			SelectObject(hCompatibleDC, hOld);
+			DeleteDC(hCompatibleDC);
+
+			return true;
+		}
 	};
-
-	void SceneHandler::OnPaint(IGR2DScene& scene, HWND hWnd)
-	{
-		SceneRenderer renderer(*this, hWnd);
-		renderer.Render(scene);
-	}
-
 
 	enum class ERenderTaskType
 	{
@@ -558,18 +492,29 @@ namespace Rococo::GR::Win32::Implementation
 		RGBAb colour2;
 	};
 
-	struct GDIImageMemento : IGRImageMemento
+	struct GDIImage : IGRImage
 	{
 		Vec2i span{ 8, 8 };
+		HANDLE hImage = NULL;
 		
-		GDIImageMemento(cstr hint, cstr imagePath)
+		GDIImage(cstr hint, cstr imagePath)
 		{
-			
+			UNUSED(hint);
+			hImage = LoadImageA(NULL, imagePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			if (!hImage)
+			{
+				Throw(GetLastError(), __FUNCTION__ ": failed to load %s", imagePath);
+			}
+		}
+
+		~GDIImage()
+		{
+
 		}
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override
 		{
-			return false;
+			return static_cast<SceneRenderer&>(g).Render(panel, alignment, spacing, hImage);
 		}
 
 		void Free() override
@@ -600,19 +545,135 @@ namespace Rococo::GR::Win32::Implementation
 
 		GDICustodian()
 		{
-
+			FontSpec defaultSpec;
+			defaultSpec.FontName = "Tahoma";
+			BindFontId(defaultSpec);
+			defaultFont = knownFonts[0].handle;
 		}
 
-		IGRImageMemento* CreateImageMemento(cstr debugHint, cstr codedImagePath) override
+		struct KnownFont
 		{
-			auto i = macroToPingPath.find(codedImagePath);
-			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
-			return new GDIImageMemento(debugHint, imagePath);
+			LOGFONTA creator;
+			HFONT handle;
+		};
+
+		std::vector<KnownFont> knownFonts;
+
+		~GDICustodian()
+		{
+			for (auto f : knownFonts)
+			{
+				DeleteObject(f.handle);
+			}
+		}
+
+		HFONT defaultFont = NULL;
+
+		HFONT DefaultFont() const
+		{
+			return defaultFont;
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
 		{
-			return { 0,0 };
+			size_t arrayIndex = static_cast<size_t>(fontId) - 2;
+			if (arrayIndex >= knownFonts.size())
+			{
+				return { 0,0 };
+			}
+
+			HFONT hFont = knownFonts[arrayIndex].handle;
+
+			HDC dc = GetDC(NULL);
+			UseFont font(dc, hFont);
+
+			SIZE result;
+			if (!GetTextExtentPoint32A(dc, text, text.length, OUT & result))
+			{
+				return { 0,0 };
+			}
+			else
+			{
+				return { result.cx, result.cy };
+			}
+		}
+
+		void OnPaint(IGR2DScene& scene, HWND hWnd) override
+		{
+			SceneRenderer renderer(*this, hWnd);
+			renderer.Render(scene);
+		}
+
+		static bool Match(const LOGFONTA& a, const LOGFONT& b)
+		{
+			if (!Strings::EqI(a.lfFaceName, b.lfFaceName))
+			{
+				return false;
+			}
+
+			bool match =
+				a.lfHeight == b.lfHeight
+				&& a.lfItalic == b.lfItalic
+				&& a.lfUnderline == b.lfUnderline
+				&& a.lfWeight == b.lfWeight;
+			return match;
+		}
+
+		GRFontId BindFontId(const FontSpec& desc)
+		{
+			LOGFONTA f = { 0 };
+			Strings::SafeFormat(f.lfFaceName, "%s", desc.FontName);
+			f.lfCharSet = (BYTE)desc.CharSet;
+			f.lfHeight = desc.CharHeight;
+			f.lfItalic = desc.Italic ? 1 : 0;
+			f.lfWeight = desc.Bold ? FW_BOLD : FW_NORMAL;
+			f.lfUnderline = desc.Underlined ? 1 : 0;
+
+			for (size_t i = 0; i < knownFonts.size(); ++i)
+			{
+				if (Match(f, knownFonts[i].creator))
+				{
+					return static_cast<GRFontId>(i + 2);
+				}
+			}
+
+			HFONT hFont = CreateFontIndirectA(&f);
+			knownFonts.push_back({ f, hFont });
+
+			return static_cast<GRFontId>(knownFonts.size() + 1);
+		}
+
+		void SelectFont(size_t specIndex, HDC dc)
+		{
+			size_t arrayIndex = specIndex - 2;
+			if (arrayIndex < knownFonts.size())
+			{
+				HFONT hFont = knownFonts[arrayIndex].handle;
+
+				// We need to store old. Determine old in render function, creating a default font to select
+				SelectObject(dc, hFont);
+			}
+		}
+
+		void SelectFont(GRFontId fontId, HDC dc)
+		{
+			switch (fontId)
+			{
+			case GRFontId::NONE:
+			case GRFontId::MENU_FONT:
+				SelectFont(2, dc);
+				return;
+			default:
+				SelectFont(static_cast<size_t>(fontId), dc);
+				return;
+			}
+		}
+
+		IGRImage* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
+		{
+			auto i = macroToPingPath.find(codedImagePath);
+			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
+			return new GDIImage(debugHint, imagePath);
 		}
 
 		void RecordWidget(IGRWidget& widget) override
@@ -791,6 +852,21 @@ namespace Rococo::GR::Win32::Implementation
 			}
 		}
 	};
+
+	GRFontId BindFontId(GDICustodian& custodian, const FontSpec& desc)
+	{
+		return custodian.BindFontId(desc);
+	}
+
+	HFONT DefaultFont(GDICustodian& custodian)
+	{
+		return custodian.DefaultFont();
+	}
+
+	void SelectFont(GDICustodian& custodian, GRFontId fontId, HDC paintDC)
+	{
+		custodian.SelectFont(fontId, paintDC);
+	}
 }
 
 namespace Rococo::GR::Win32
@@ -798,10 +874,5 @@ namespace Rococo::GR::Win32
 	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian()
 	{
 		return new Rococo::GR::Win32::Implementation::GDICustodian();
-	}
-
-	ROCOCO_API_EXPORT IGR2DSceneHandlerSupervisor* CreateSceneHandler()
-	{
-		return new Implementation::SceneHandler();
 	}
 }

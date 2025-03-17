@@ -24,7 +24,6 @@ struct GR_Win32_Host
 {
 	HWND hHostWindow = nullptr;
 
-	AutoFree<IGR2DSceneHandlerSupervisor> sceneHandler;
 	AutoFree<Rococo::GR::Win32::IWin32GDICustodianSupervisor> custodian;
 
 	IGR2DScene* scene = nullptr;
@@ -32,14 +31,13 @@ struct GR_Win32_Host
 
 	GR_Win32_Host()
 	{
-		sceneHandler = GR::Win32::CreateSceneHandler();
 		custodian = GR::Win32::CreateGDICustodian();
 		scene = &emptyScene;
 	}
 
 	void OnPaint()
 	{
-		sceneHandler->OnPaint(*scene, hHostWindow);
+		custodian->OnPaint(*scene, hHostWindow);
 	}
 };
 
@@ -102,8 +100,8 @@ LRESULT MainProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 void PopulateMainClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 {
-	cstr IDI_ICON1 = nullptr;
-	cstr IDI_ICON2 = nullptr;
+	//cstr IDI_ICON1 = nullptr;
+	//cstr IDI_ICON2 = nullptr;
 
 	classDef = { 0 };
 	classDef.cbSize = sizeof(classDef);
@@ -121,8 +119,8 @@ void PopulateMainClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 
 void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 {
-	cstr IDI_ICON1 = nullptr;
-	cstr IDI_ICON2 = nullptr;
+//	cstr IDI_ICON1 = nullptr;
+//	cstr IDI_ICON2 = nullptr;
 
 	classDef = { 0 };
 	classDef.cbSize = sizeof(classDef);
@@ -138,7 +136,7 @@ void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 	classDef.lpfnWndProc = DefWindowProcA;
 }
 
-void RunApp(HWND hWnd)
+void RunApp(HWND /* hWnd */)
 {
 	MSG msg;
 	while (GetMessage(&msg, nullptr, 0, 0))
