@@ -10,11 +10,15 @@
 #include <rococo.maths.h>
 #include <rococo.maths.i32.h>
 #include <rococo.hashtable.h>
+#include <rococo.io.h>
 #include <rococo.ui.h>
+#include <rococo.imaging.h>
 
 #include <sexy.types.h>
 
 #include <vector>
+
+#pragma comment(lib, "Msimg32.lib")
 
 using namespace Rococo::Gui;
 
@@ -181,16 +185,138 @@ namespace Rococo::GR::Win32::Implementation
 	HFONT DefaultFont(GDICustodian& custodian);
 	void SelectFont(GDICustodian& custodian, GRFontId fontId, HDC paintDC);
 
+	struct GDIImage : IGRImageSupervisor
+	{
+		Vec2i span{ 8, 8 };
+		HBITMAP hImage = NULL;
+		Strings::HString hint;
+
+		GDIImage(cstr _hint, cstr imagePath): hint(_hint)
+		{
+			struct ImageParser : Imaging::IImageLoadEvents
+			{
+				HBITMAP hBitmap = 0;
+				Vec2i span;
+
+				void OnError(const char* message) override
+				{
+					err = message;
+				}
+
+				void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+				{
+					HDC screenDC = GetDC(NULL);
+					HDC bitmapDC = CreateCompatibleDC(screenDC);
+
+					if (!bitmapDC)
+					{
+						Throw(GetLastError(), "CreateCompatibleDC returned NULL");
+					}
+
+					SetMapMode(bitmapDC, MM_TEXT);
+
+					hBitmap = CreateCompatibleBitmap(screenDC, span.x, span.y);
+					if (hBitmap == nullptr)
+					{
+						DeleteDC(bitmapDC);
+						Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __FUNCTION__);
+					}
+					
+					BITMAPINFO info = { 0 };
+					info.bmiHeader.biSize = sizeof(info);
+					info.bmiHeader.biWidth = span.x;
+					info.bmiHeader.biHeight = span.y;
+					info.bmiHeader.biPlanes = 1;
+					info.bmiHeader.biBitCount = 32;
+					info.bmiHeader.biCompression = BI_RGB;
+					SetDIBits(bitmapDC, hBitmap, 0, span.y, data, &info, DIB_RGB_COLORS);
+					DeleteDC(bitmapDC);
+
+					this->span = span;
+				}
+
+				void OnAlphaImage(const Vec2i& span, const uint8* data) override
+				{
+					UNUSED(span);
+					UNUSED(data);
+					err = "8bpp images not supported";
+				}
+
+				Strings::HString err;
+			} parser;
+
+			struct ImageLoader : IO::IBinaryFileLoader
+			{
+				uint8* LockWriter(size_t length) override
+				{
+					imageBuffer.resize(length);
+					return imageBuffer.data();
+				}
+				
+				void Unlock() override
+				{
+
+				}
+
+				std::vector<uint8> imageBuffer;
+			} loader;
+
+			if (Strings::EndsWithI(imagePath, ".tiff") || (Strings::EndsWithI(imagePath, ".tif")))
+			{
+				Rococo::IO::LoadBinaryFile(loader, imagePath, 32_megabytes);
+				Rococo::Imaging::DecompressTiff(parser, loader.imageBuffer.data(), loader.imageBuffer.size());
+			}
+			else
+			{
+				Throw(0, "Could not load image: %s. Only tiff files are recognized", imagePath);
+			}
+
+			if (parser.err.length() > 0)
+			{
+				Throw(0, "Could not parse image data for %s. Error: %s", imagePath, parser.err.c_str());
+			}
+
+			hImage = parser.hBitmap;
+			span = parser.span;
+		}
+
+		virtual ~GDIImage()
+		{
+
+		}
+
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override;
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		Vec2i Span() const override
+		{
+			return span;
+		}
+	};
+
 	struct SceneRenderer: Gui::IGRRenderContext
 	{
 		HWND hWnd;
 		HDC paintDC = 0;
+		HDC bitmapDC = 0;
 
 		GDICustodian& custodian;
 		
 		SceneRenderer(GDICustodian& _custodian, HWND _hWnd): hWnd(_hWnd), custodian(_custodian)
 		{
 
+		}
+
+		~SceneRenderer()
+		{
+			if (bitmapDC)
+			{
+				DeleteDC(bitmapDC);
+			}
 		}
 
 		// Get some kind of hover point for the cursor
@@ -257,6 +383,29 @@ namespace Rococo::GR::Win32::Implementation
 			int oldMode = SetPolyFillMode(paintDC, ALTERNATE);
 			Polygon(paintDC, v, 3);		
 			SetPolyFillMode(paintDC, oldMode);
+		}
+
+		void DrawImage(IGRImage& image, const GuiRect& absRect) override
+		{
+			HBITMAP hImage = (HBITMAP) static_cast<GDIImage&>(image).hImage;
+
+			if (!bitmapDC)
+			{
+				bitmapDC = CreateCompatibleDC(paintDC);
+			}
+
+			HBITMAP hOldBitmap = (HBITMAP) SelectObject(bitmapDC, hImage);
+
+			auto span = image.Span();
+
+			BLENDFUNCTION blendFunction;
+			blendFunction.AlphaFormat = AC_SRC_ALPHA;
+			blendFunction.BlendFlags = 0;
+			blendFunction.BlendOp = AC_SRC_OVER;
+			blendFunction.SourceConstantAlpha = 255;
+			AlphaBlend(paintDC, absRect.left, absRect.top, absRect.right - absRect.left, absRect.bottom - absRect.top, bitmapDC, 0, 0, span.x, span.y, blendFunction);
+
+			SelectObject(bitmapDC, hOldBitmap);
 		}
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
@@ -390,11 +539,6 @@ namespace Rococo::GR::Win32::Implementation
 			return lastScissorRect.IsNormalized();
 		}
 
-		GRFontId BindFontId(const FontSpec& spec) override
-		{
-			return Implementation::BindFontId(custodian, spec);
-		}
-
 		void RenderInPaintStruct(IGR2DScene& scene)
 		{
 			UseBkMode bkMode(paintDC, TRANSPARENT);
@@ -410,16 +554,30 @@ namespace Rococo::GR::Win32::Implementation
 			hilightRects.clear();
 		}
 
-		void Render(IGR2DScene& scene)
+		IGRFonts& Fonts() override;
+		IGRImages& Images() override;
+
+		struct UsePaint
 		{
 			PAINTSTRUCT ps;
-			BeginPaint(hWnd, &ps);
+			HWND hWnd;
 
-			paintDC = ps.hdc;
+			UsePaint(HWND _hWnd): hWnd(_hWnd)
+			{
+				BeginPaint(hWnd, &ps);
+			}
 
+			~UsePaint()
+			{
+				EndPaint(hWnd, &ps);
+			}
+		};
+
+		void Render(IGR2DScene& scene)
+		{
+			UsePaint usePaint(hWnd);
+			paintDC = usePaint.ps.hdc;
 			RenderInPaintStruct(scene);
-
-			EndPaint(hWnd, &ps);
 		}
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, HANDLE hImage)
@@ -479,6 +637,12 @@ namespace Rococo::GR::Win32::Implementation
 		}
 	};
 
+
+	bool GDIImage::Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g)
+	{
+		return static_cast<SceneRenderer&>(g).Render(panel, alignment, spacing, hImage);
+	}
+
 	enum class ERenderTaskType
 	{
 		Edge
@@ -492,42 +656,6 @@ namespace Rococo::GR::Win32::Implementation
 		RGBAb colour2;
 	};
 
-	struct GDIImage : IGRImage
-	{
-		Vec2i span{ 8, 8 };
-		HANDLE hImage = NULL;
-		
-		GDIImage(cstr hint, cstr imagePath)
-		{
-			UNUSED(hint);
-			hImage = LoadImageA(NULL, imagePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			if (!hImage)
-			{
-				Throw(GetLastError(), __FUNCTION__ ": failed to load %s", imagePath);
-			}
-		}
-
-		~GDIImage()
-		{
-
-		}
-
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override
-		{
-			return static_cast<SceneRenderer&>(g).Render(panel, alignment, spacing, hImage);
-		}
-
-		void Free() override
-		{
-			delete this;
-		}
-
-		Vec2i Span() const override
-		{
-			return { 0,0 };
-		}
-	};
-
 	const stringmap<cstr> macroToPingPath =
 	{
 		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff" },
@@ -536,7 +664,7 @@ namespace Rococo::GR::Win32::Implementation
 		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/inline_state.tiff" },
 	};
 
-	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory
+	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages
 	{
 		// Debugging materials:
 		std::vector<IGRWidget*> history;
@@ -619,7 +747,7 @@ namespace Rococo::GR::Win32::Implementation
 			return match;
 		}
 
-		GRFontId BindFontId(const FontSpec& desc)
+		GRFontId BindFontId(const FontSpec& desc) override
 		{
 			LOGFONTA f = { 0 };
 			Strings::SafeFormat(f.lfFaceName, "%s", desc.FontName);
@@ -669,7 +797,7 @@ namespace Rococo::GR::Win32::Implementation
 			}
 		}
 
-		IGRImage* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
+		IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
@@ -853,9 +981,14 @@ namespace Rococo::GR::Win32::Implementation
 		}
 	};
 
-	GRFontId BindFontId(GDICustodian& custodian, const FontSpec& desc)
+	IGRFonts& SceneRenderer::Fonts()
 	{
-		return custodian.BindFontId(desc);
+		return custodian;
+	}
+
+	IGRImages& SceneRenderer::Images()
+	{
+		return custodian;
 	}
 
 	HFONT DefaultFont(GDICustodian& custodian)

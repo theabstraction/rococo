@@ -20,8 +20,8 @@ namespace GRANON
 
 		std::string raisedImagePath;
 		std::string pressedImagePath;
-		AutoFree<IGRImage> raisedImage;
-		AutoFree<IGRImage> pressedImage;
+		AutoFree<IGRImageSupervisor> raisedImage;
+		AutoFree<IGRImageSupervisor> pressedImage;
 
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{

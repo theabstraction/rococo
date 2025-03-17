@@ -13,17 +13,20 @@ namespace Rococo
 
 namespace Rococo::Sex
 {
-	struct ISExpression;
+	DECLARE_ROCOCO_INTERFACE ISExpression;
 	typedef const ISExpression& cr_sex;
 }
 
 namespace Rococo::Gui
 {
-	struct IGRPanel;
-	struct IGRWidget;
-	struct IGRWidgetSupervisor;
-	struct IGRSystem;
-	struct IGRWidgetEditBox;
+	DECLARE_ROCOCO_INTERFACE IGRImage;
+	DECLARE_ROCOCO_INTERFACE IGRImageSupervisor;
+	DECLARE_ROCOCO_INTERFACE IGRPanel;
+	DECLARE_ROCOCO_INTERFACE IGRWidget;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetSupervisor;
+	DECLARE_ROCOCO_INTERFACE IGRSystem;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetEditBox;
+	DECLARE_ROCOCO_INTERFACE IGRCustodian;
 
 #pragma pack(push, 1)
 	struct GRCursorClick
@@ -166,6 +169,18 @@ namespace Rococo::Gui
 		int CharHeight = 12;
 	};
 
+	ROCOCO_INTERFACE IGRFonts
+	{
+		virtual GRFontId BindFontId(const FontSpec & desc) = 0;
+	};
+
+	ROCOCO_INTERFACE IGRImages
+	{
+		// The caller will grab the reference to the image and is responsible for calling IGRImage->Free() when the image is no longer used.
+		// The debug hint may be used in error message to help narrow down the source of the error. The error message will typically display the imagePath
+		 virtual IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr imagePath) = 0;
+	};
+
 	// The interface to the platform dependent rendering of the retained GUI
 	ROCOCO_INTERFACE IGRRenderContext
 	{
@@ -180,6 +195,8 @@ namespace Rococo::Gui
 
 		/* heading: 0 = N, E = 90 etc */
 		virtual void DrawDirectionArrow(const GuiRect& absRect, RGBAb colour, Degrees heading) = 0;
+
+		virtual void DrawImage(IGRImage& image, const GuiRect& absRect) = 0;
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
 		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;
@@ -197,8 +214,8 @@ namespace Rococo::Gui
 		virtual void DisableScissors() = 0;
 		virtual bool TryGetScissorRect(GuiRect& scissorRect) const = 0;
 
-		// Make/Get font id for the specification required.
-		virtual GRFontId BindFontId(const FontSpec& desc) = 0;
+		virtual IGRFonts& Fonts() = 0;
+		virtual IGRImages& Images() = 0;
 	};
 
 	enum class EGRSchemeColourSurface
@@ -594,6 +611,10 @@ namespace Rococo::Gui
 	{
 		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& rc) = 0;
 		virtual Vec2i Span() const = 0;
+	};
+
+	ROCOCO_INTERFACE IGRImageSupervisor : IGRImage
+	{
 		virtual void Free() = 0;
 	};
 

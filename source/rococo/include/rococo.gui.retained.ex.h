@@ -41,9 +41,7 @@ namespace Rococo::Gui
 	// The platform dependent implementation of the custodian handles events and routes to the UI appropriately
 	ROCOCO_INTERFACE IGRCustodian
 	{
-		// The caller will grab the reference to the image and is responsible for calling IGRImage->Free() when the image is no longer used.
-		// The debug hint may be used in error message to help narrow down the source of the error. The error message will typically display the imagePath
-		virtual IGRImage * CreateImageFromPath(cstr debugHint, cstr imagePath) = 0;
+		virtual IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr imagePath) = 0;
 
 		// Takes a platform interpreted key event and translates to an editor delta event
 		virtual void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;

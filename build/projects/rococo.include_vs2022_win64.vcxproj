@@ -225,6 +225,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.hq.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.functional.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.gr.client.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.gr.win32-gdi.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.graphics.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.great.sex.h" />

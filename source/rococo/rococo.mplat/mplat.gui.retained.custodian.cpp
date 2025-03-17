@@ -64,6 +64,8 @@ namespace ANON
 		RGBAb colour2;
 	};
 
+	struct MPlatCustodian;
+
 	struct MPlatGR_Renderer : IGRRenderContext
 	{
 		IUtilities& utils;
@@ -73,16 +75,15 @@ namespace ANON
 
 		std::vector<RenderTask> lastTasks;
 
-		MPlatGR_Renderer(IUtilities& _utils) : utils(_utils)
+		MPlatCustodian& custodian;
+
+		MPlatGR_Renderer(MPlatCustodian& _custodian, IUtilities& _utils) : custodian(_custodian), utils(_utils)
 		{
 
 		}
 
-		// Make/Get font id for the specification required.
-		GRFontId BindFontId(const FontSpec& /* desc */) override
-		{
-			Throw(0, __FUNCTION__ ": not implemented");
-		}
+		IGRFonts& Fonts() override;
+		IGRImages& Images() override;
 
 		void DrawLastItems()
 		{
@@ -123,6 +124,13 @@ namespace ANON
 				rc->FlushLayer();
 				rc->ClearScissorRect();
 			}
+		}
+
+		void DrawImage(IGRImage& image, const GuiRect& absRect) override
+		{
+			UNUSED(image);
+			UNUSED(absRect);
+			Throw(0, __FUNCTION__ ": not implemented");
 		}
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
@@ -405,7 +413,7 @@ namespace ANON
 		}
 	};
 
-	struct MPlatImage : IGRImage
+	struct MPlatImage : IGRImageSupervisor
 	{
 		Vec2i span{ 8, 8 };
 		BitmapLocation sprite = BitmapLocation::None();
@@ -444,7 +452,7 @@ namespace ANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/inline_state.tiff" },
 	};
 
-	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory
+	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages
 	{
 		MPlatGR_Renderer renderer;
 		IRenderer& sysRenderer;
@@ -454,12 +462,23 @@ namespace ANON
 		EGREventRouting lastRoutingStatus = EGREventRouting::Terminate;
 		int64 eventCount = 0;
 
-		MPlatCustodian(IUtilities& utils, IRenderer& _sysRenderer): renderer(utils), sysRenderer(_sysRenderer)
+		MPlatCustodian(IUtilities& utils, IRenderer& _sysRenderer): renderer(*this, utils), sysRenderer(_sysRenderer)
 		{
 			
 		}
 
-		IGRImage* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
+		virtual ~MPlatCustodian()
+		{
+
+		}
+
+		GRFontId BindFontId(const FontSpec& spec) override
+		{
+			UNUSED(spec);
+			Throw(0, __FUNCTION__ ": Not implemented");
+		}
+
+		IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
@@ -649,6 +668,16 @@ namespace ANON
 			}
 		}
 	};
+
+	IGRFonts& MPlatGR_Renderer::Fonts()
+	{
+		return custodian;
+	}
+
+	IGRImages& MPlatGR_Renderer::Images()
+	{
+		return custodian;
+	}
 }
 
 namespace Rococo::Gui

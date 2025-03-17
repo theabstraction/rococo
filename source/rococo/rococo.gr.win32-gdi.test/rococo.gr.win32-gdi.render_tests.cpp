@@ -14,6 +14,8 @@ IGR2DScene* TestDrawRect()
 {
 	struct Scene : IGR2DScene
 	{
+		AutoFree<IGRImageSupervisor> img1;
+
 		void Render(Gui::IGRRenderContext& rc) override
 		{
 			rc.DrawRect(rc.ScreenDimensions(), RGBAb(64, 64, 64));
@@ -23,7 +25,7 @@ IGR2DScene* TestDrawRect()
 			biggish.CharHeight = 40;
 			biggish.Bold = true;
 
-			auto fontId = rc.BindFontId(biggish);
+			auto fontId = rc.Fonts().BindFontId(biggish);
 
 			GuiRect topLeftRect{ 20, 20, 400, 60 };
 			RenderButton(rc, topLeftRect);
@@ -105,6 +107,14 @@ IGR2DScene* TestDrawRect()
 			bottomRightAlignmentFlags.Add(EGRAlignment::Bottom);
 
 			rc.DrawText(fontId, bottomRightRect, bottomRightRect, bottomRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+
+			if (!img1)
+			{
+				img1 = rc.Images().CreateImageFromPath("up", R"(D:\work\rococo\content\textures\toolbars\builder.tif)");
+			}
+
+			GuiRect image1Rect{ 20, 260, 128, 300 };
+			rc.DrawImage(*img1, image1Rect);
 		}
 	};
 

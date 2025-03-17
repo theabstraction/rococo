@@ -37,7 +37,10 @@ struct GR_Win32_Host
 
 	void OnPaint()
 	{
-		custodian->OnPaint(*scene, hHostWindow);
+		if (IsWindow(hHostWindow) && IsWindowVisible(hHostWindow))
+		{
+			custodian->OnPaint(*scene, hHostWindow);
+		}
 	}
 };
 
@@ -45,12 +48,22 @@ LRESULT HostProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	auto* host = reinterpret_cast<GR_Win32_Host*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
 
-	switch (msg)
+	try
 	{
-	case WM_PAINT:
-		host->OnPaint();
+		switch (msg)
+		{
+		case WM_PAINT:
+			host->OnPaint();
+			return 0L;
+		}
+	}
+	catch (IException& ex)
+	{
+		Rococo::Windows::ShowErrorBox(Rococo::Windows::NoParent(), ex, "Rococo Module Host error in HostProc");
+		PostQuitMessage(0);
 		return 0L;
 	}
+
 	return DefWindowProcA(hWnd, msg, wParam, lParam);
 }
 
