@@ -307,6 +307,19 @@ namespace Rococo::GR::Win32::Implementation
 						DeleteDC(bitmapDC);
 						Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __FUNCTION__);
 					}
+
+					// We have the const buffer, we don't change its size, only its content.
+					// This allows us to avoid duplicating the buffer to convert to BGRA format
+
+					auto* pMutableData = const_cast<RGBAb*>(data);
+					size_t nElements = span.x * span.y;
+					
+					for (size_t i = 0; i < nElements; i++)
+					{
+						RGBAb& col = pMutableData[i];
+						std::swap(col.blue, col.red);
+						// This swizzles us into BGRA format, which is what Windows wants
+					}
 					
 					BITMAPINFO info = { 0 };
 					info.bmiHeader.biSize = sizeof(info);
