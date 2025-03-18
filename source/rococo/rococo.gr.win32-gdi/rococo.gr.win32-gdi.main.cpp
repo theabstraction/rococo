@@ -15,6 +15,7 @@
 #include <rococo.os.h>
 #include <rococo.window.h>
 #include <rococo.imaging.h>
+#include <Uxtheme.h>
 
 #include <sexy.types.h>
 
@@ -1159,6 +1160,9 @@ namespace Rococo::GR::Win32::Implementation
 		GR_Win32_EmptyScene emptyScene;
 		GRConfig config;
 
+		HDC hMemDC = 0;
+		HBITMAP hBackBuffer = 0;
+
 		static void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 		{
 			classDef = { 0 };
@@ -1173,11 +1177,57 @@ namespace Rococo::GR::Win32::Implementation
 			classDef.lpfnWndProc = DefWindowProcA;
 		}
 
+		struct UsingBackBuffer
+		{
+			GRClientWindow& w;
+
+			HGDIOBJ oldTarget;
+
+			UsingBackBuffer(GRClientWindow& _w): w(_w)
+			{
+				oldTarget = SelectObject(w.hMemDC, w.hBackBuffer);
+			}
+
+			~UsingBackBuffer()
+			{
+				SelectObject(w.hMemDC, oldTarget);
+			}
+		};
+
 		void OnPaint()
 		{
 			UsePaint paint(hWnd);
-			gdiCustodian->OnPaint(*scene, hWnd, paint.DC());
-			gdiCustodian->RenderGui(*grSystem, hWnd, paint.DC());
+
+			if (!hMemDC)
+			{
+				hMemDC = CreateCompatibleDC(paint.DC());
+			}
+
+			RECT rect;
+			GetClientRect(hWnd, &rect);
+
+			if (hBackBuffer)
+			{
+				SIZE dims;
+				GetBitmapDimensionEx(hBackBuffer, &dims);
+
+				if (dims.cx != rect.right || dims.cy != rect.bottom)
+				{
+					DeleteObject(hBackBuffer);
+					hBackBuffer = NULL;
+				}
+			}
+
+			if (!hBackBuffer)
+			{
+				hBackBuffer = CreateCompatibleBitmap(paint.DC(), rect.right, rect.bottom);
+				SetBitmapDimensionEx(hBackBuffer, rect.right, rect.bottom, NULL);
+			}
+
+			UsingBackBuffer ubb(*this);
+			gdiCustodian->OnPaint(*scene, hWnd, hMemDC);
+			gdiCustodian->RenderGui(*grSystem, hWnd, hMemDC);
+			BitBlt(paint.DC(), 0, 0, rect.right, rect.bottom, hMemDC, 0, 0, SRCCOPY);
 		}
 
 		BYTE keystate[256] = { 0 };
@@ -1334,6 +1384,16 @@ namespace Rococo::GR::Win32::Implementation
 
 		virtual ~GRClientWindow()
 		{
+			if (hBackBuffer)
+			{
+				DeleteObject(hBackBuffer);
+			}
+
+			if (hMemDC)
+			{
+				DeleteDC(hMemDC);
+			}
+
 			DestroyWindow(hWnd);
 		}
 
