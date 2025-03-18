@@ -12,6 +12,8 @@
 #include <rococo.hashtable.h>
 #include <rococo.io.h>
 #include <rococo.ui.h>
+#include <rococo.os.h>
+#include <rococo.window.h>
 #include <rococo.imaging.h>
 
 #include <sexy.types.h>
@@ -367,7 +369,7 @@ namespace Rococo::GR::Win32::Implementation
 		HDC bitmapDC = 0;
 
 		GDICustodian& custodian;
-		Graphics g;
+		Gdiplus::Graphics g;
 
 		Vec2i cursor{ 0,0 };
 		
@@ -1113,6 +1115,179 @@ namespace Rococo::GR::Win32::Implementation
 			delete this;
 		}
 	};
+
+	static cstr clientClassName = "GR-Win32-GDI-CLIENT";
+
+	struct GR_Win32_EmptyScene : IGR2DScene
+	{
+		void Render(IGRRenderContext& rc) override
+		{
+			GuiRect windowRect = rc.ScreenDimensions();
+			rc.DrawRect(windowRect, RGBAb(0, 0, 0));
+		}
+	};
+
+	class UsePaint
+	{
+		PAINTSTRUCT ps;
+		HWND hWnd;
+	public:
+		UsePaint(HWND _hWnd) : hWnd(_hWnd)
+		{
+			BeginPaint(hWnd, &ps);
+		}
+
+		~UsePaint()
+		{
+			EndPaint(hWnd, &ps);
+		}
+
+		HDC DC() const
+		{
+			return ps.hdc;
+		}
+	};
+
+
+	struct GRClientWindow: IGRClientWindowSupervisor
+	{
+		HWND hWnd = 0;
+		AutoFree<Rococo::Gui::IGRSystemSupervisor> grSystem;
+		AutoFree<Rococo::GR::Win32::IWin32GDICustodianSupervisor> gdiCustodian;
+
+		IGR2DScene* scene = nullptr;
+		GR_Win32_EmptyScene emptyScene;
+		GRConfig config;
+
+		static void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
+		{
+			classDef = { 0 };
+			classDef.cbSize = sizeof(classDef);
+			classDef.style = 0;
+			classDef.cbWndExtra = 0;
+			classDef.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+			classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
+			classDef.hInstance = hInstance;
+			classDef.lpszClassName = clientClassName;
+			classDef.lpszMenuName = NULL;
+			classDef.lpfnWndProc = DefWindowProcA;
+		}
+
+		void OnPaint()
+		{
+			UsePaint paint(hWnd);
+			gdiCustodian->OnPaint(*scene, hWnd, paint.DC());
+			gdiCustodian->RenderGui(*grSystem, hWnd, paint.DC());
+		}
+
+		static LRESULT GDIProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			auto* This = reinterpret_cast<GRClientWindow*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
+
+			try
+			{
+				switch (msg)
+				{
+				case WM_PAINT:
+					This->OnPaint();
+					return 0L;
+				case WM_ERASEBKGND:
+					return 0L;
+				}
+			}
+			catch (IException& ex)
+			{
+				Rococo::Windows::THIS_WINDOW parent(GetParent(hWnd));
+				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __FUNCTION__);
+				PostQuitMessage(0);
+				return 0L;
+			}
+
+			return DefWindowProcA(hWnd, msg, wParam, lParam);
+		}
+
+		GRClientWindow()
+		{
+			gdiCustodian = GR::Win32::CreateGDICustodian();
+			grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
+			scene = &emptyScene;
+		}
+
+		virtual ~GRClientWindow()
+		{
+
+		}
+
+		void Create(HWND hParentWnd)
+		{
+			if (hParentWnd == nullptr)
+			{
+				Throw(GetLastError(), "%s: parent was NULL", __FUNCTION__);
+			}
+
+			auto hInstance = GetModuleHandleA(NULL);
+
+			WNDCLASSEXA clientInfo;
+			PopulateClientClass(hInstance, clientInfo);
+			ATOM clientClassAtom = RegisterClassExA(&clientInfo);
+			if (clientClassAtom == 0)
+			{
+				Throw(GetLastError(), "Could not create %s class atom", clientInfo.lpszClassName);
+			}
+
+			RECT clientRect;
+			GetClientRect(hParentWnd, &clientRect);
+
+			hWnd = CreateWindowExA(
+				0,
+				clientInfo.lpszClassName,
+				"rococo.gr Win32-GDI Test Window",
+				WS_CHILD | WS_VISIBLE,
+				0, // x
+				0, // y
+				clientRect.right, // width
+				clientRect.bottom, // height
+				hParentWnd,
+				nullptr,
+				hInstance,
+				nullptr);
+
+			if (hWnd == nullptr)
+			{
+				Throw(GetLastError(), "%s: could not create client window for %s", __FUNCTION__, clientInfo.lpszClassName);
+			}
+
+			SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR) this);
+			SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) GDIProc);
+		}
+
+		void LinkScene(IGR2DScene* scene)
+		{
+			if (scene)
+			{
+				this->scene = scene;
+			}
+			else
+			{
+				this->scene = &emptyScene;
+			}
+		}
+
+		void QueuePaint() override
+		{
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+
+		Gui::IGRSystem& GRSystem() override
+		{
+			return *grSystem;
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
 }
 
 namespace Rococo::GR::Win32
@@ -1122,8 +1297,20 @@ namespace Rococo::GR::Win32
 		return new Rococo::GR::Win32::Implementation::GDICustodian();
 	}
 
-	IWin32GDIApp* CreateWin32GDIApp()
+	ROCOCO_API_EXPORT IWin32GDIApp* CreateWin32GDIApp()
 	{
 		return new Implementation::Win32GDIApp();
+	}
+
+	ROCOCO_API_EXPORT IGRClientWindowSupervisor* CreateGRClientWindow(HWND hParentWnd)
+	{
+		auto* window = new Implementation::GRClientWindow();
+		window->Create(hParentWnd);
+		return window;
+	}
+
+	ROCOCO_API_EXPORT cstr GetGRClientClassName()
+	{
+		return Implementation::clientClassName;
 	}
 }

@@ -833,6 +833,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<RococoGuiRetainedProject>(target);
         }
     }
 

@@ -4,106 +4,22 @@
 #include <rococo.strings.h>
 #include <rococo.os.win32.h>
 #include <rococo.gr.win32-gdi.h>
-#include <rococo.gui.retained.ex.h>
+#include <rococo.gui.retained.h>
 
 #pragma comment (lib,"Gdiplus.lib")
 
 using namespace Rococo;
 using namespace Rococo::Gui;
 
-struct GR_Win32_EmptyScene: IGR2DScene
-{
-	void Render(IGRRenderContext& rc) override
-	{
-		GuiRect windowRect = rc.ScreenDimensions();
-		rc.DrawRect(windowRect, RGBAb(0, 0, 0));
-	}
-};
-
 IGR2DScene* TestScene();
 void TestWidgets(IGRSystem& gr);
-
-class UsePaint
-{
-	PAINTSTRUCT ps;
-	HWND hWnd;
-public:
-	UsePaint(HWND _hWnd) : hWnd(_hWnd)
-	{
-		BeginPaint(hWnd, &ps);
-	}
-
-	~UsePaint()
-	{
-		EndPaint(hWnd, &ps);
-	}
-
-	HDC DC() const
-	{
-		return ps.hdc;
-	}
-};
-
-struct GR_Win32_Host
-{
-	HWND hHostWindow = nullptr;
-
-	AutoFree<Rococo::Gui::IGRSystemSupervisor> grSystem; 
-	AutoFree<Rococo::GR::Win32::IWin32GDICustodianSupervisor> gdiCustodian;
-
-	IGR2DScene* scene = nullptr;
-	GR_Win32_EmptyScene emptyScene;
-
-	GRConfig config;
-
-	GR_Win32_Host()
-	{
-		gdiCustodian = GR::Win32::CreateGDICustodian();
-		grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
-		scene = &emptyScene;
-	}
-
-	void OnPaint()
-	{
-		UsePaint paint(hHostWindow);
-		gdiCustodian->OnPaint(*scene, hHostWindow, paint.DC());
-		gdiCustodian->RenderGui(*grSystem, hHostWindow, paint.DC());
-	}
-};
-
-LRESULT HostProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	auto* host = reinterpret_cast<GR_Win32_Host*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
-
-	try
-	{
-		switch (msg)
-		{
-		case WM_PAINT:
-			host->OnPaint();
-			return 0L;
-		case WM_ERASEBKGND:
-			return 0L;
-		}
-	}
-	catch (IException& ex)
-	{
-		Rococo::Windows::ShowErrorBox(Rococo::Windows::NoParent(), ex, "Rococo Module Host error in HostProc");
-		PostQuitMessage(0);
-		return 0L;
-	}
-
-	return DefWindowProcA(hWnd, msg, wParam, lParam);
-}
-
-static cstr clientClassName = "GR-Win32-GDI-CLIENT";
 
 BOOL OnParentResized(HWND hWnd, LPARAM /* lParam */)
 {
 	char className[256];
 	if (RealGetWindowClassA(hWnd, className, (UINT)sizeof className) != 0)
 	{
-		if (strcmp(className, clientClassName) == 0)
+		if (strcmp(className, GR::Win32::GetGRClientClassName()) == 0)
 		{
 			HWND hParent = GetParent(hWnd);
 			RECT clientRect;
@@ -161,25 +77,6 @@ void PopulateMainClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 	classDef.lpfnWndProc = MainProc;
 }
 
-void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
-{
-//	cstr IDI_ICON1 = nullptr;
-//	cstr IDI_ICON2 = nullptr;
-
-	classDef = { 0 };
-	classDef.cbSize = sizeof(classDef);
-	classDef.style = 0;
-	classDef.cbWndExtra = 0;
-	classDef.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
-	classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	//classDef.hIcon = LoadIconA(hInstance, (cstr)IDI_ICON1);
-	//classDef.hIconSm = LoadIconA(hInstance, (cstr)IDI_ICON2);
-	classDef.hInstance = hInstance;
-	classDef.lpszClassName = clientClassName;
-	classDef.lpszMenuName = NULL;
-	classDef.lpfnWndProc = DefWindowProcA;
-}
-
 void RunApp(HWND /* hWnd */)
 {
 	MSG msg;
@@ -192,8 +89,6 @@ void RunApp(HWND /* hWnd */)
 
 int Main(HINSTANCE hInstance, cstr commandLine)
 {
-	GR_Win32_Host host;
-
 	try
 	{
 		// Controller
@@ -231,46 +126,12 @@ int Main(HINSTANCE hInstance, cstr commandLine)
 			Throw(GetLastError(), "%s: could not create overlapped window for %s", __FUNCTION__, info.lpszClassName);
 		}
 
-		WNDCLASSEXA clientInfo;
-		PopulateClientClass(hInstance, clientInfo);
-		ATOM clientClassAtom = RegisterClassExA(&clientInfo);
-		if (clientClassAtom == 0)
-		{
-			Throw(GetLastError(), "Could not create %s class atom", clientInfo.lpszClassName);
-		}
+		AutoFree<GR::Win32::IGRClientWindowSupervisor> grClientWindow = GR::Win32::CreateGRClientWindow(hWnd);
+		grClientWindow->LinkScene(TestScene());
 
-		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);
+		TestWidgets(grClientWindow->GRSystem());
 
-		HWND hWndClient = CreateWindowExA(
-			0,
-			clientInfo.lpszClassName,
-			"rococo.gr Win32-GDI Test Window",
-			WS_CHILD | WS_VISIBLE,
-			0, // x
-			0, // y
-			clientRect.right, // width
-			clientRect.bottom, // height
-			hWnd,
-			nullptr,
-			hInstance,
-			nullptr);
-
-		if (hWndClient == nullptr)
-		{
-			Throw(GetLastError(), "%s: could not create client window for %s", __FUNCTION__, clientInfo.lpszClassName);
-		}
-
-		host.hHostWindow = hWndClient;
-
-		SetWindowLongPtrA(hWndClient, GWLP_USERDATA, (LONG_PTR)&host);
-		SetWindowLongPtrA(hWndClient, GWLP_WNDPROC, (LONG_PTR)HostProc);
-
-		host.scene = TestScene();
-
-		TestWidgets(*host.grSystem);
-
-		InvalidateRect(hWndClient, NULL, TRUE);
+		grClientWindow->QueuePaint();
 
 		RunApp(hWnd);
 

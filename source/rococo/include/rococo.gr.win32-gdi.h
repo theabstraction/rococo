@@ -48,4 +48,25 @@ namespace Rococo::GR::Win32
 
 	// This should be called in any Win32 App that uses this library, it manages GDI startup and shutdown
 	ROCOCO_GR_GDI_API IWin32GDIApp* CreateWin32GDIApp();
+
+	ROCOCO_INTERFACE IGRClientWindow
+	{
+		// Presents the given scene as background in the window. (The GUI is foreground).
+		// The scene object must be valid for the lifetime of the client window, or until LinkScene is invoked again
+		virtual void LinkScene(IGR2DScene* scene) = 0;
+
+		// Triggers WM_PAINT as soon as the message queue is free
+		virtual void QueuePaint() = 0;
+
+		virtual Gui::IGRSystem& GRSystem() = 0;
+	};
+
+	ROCOCO_INTERFACE IGRClientWindowSupervisor : IGRClientWindow
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_GR_GDI_API IGRClientWindowSupervisor* CreateGRClientWindow(HWND hParentWnd);
+
+	ROCOCO_GR_GDI_API cstr GetGRClientClassName();
 }
