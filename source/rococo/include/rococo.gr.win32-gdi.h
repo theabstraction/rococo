@@ -32,12 +32,20 @@ namespace Rococo::GR::Win32
 	ROCOCO_INTERFACE IWin32GDICustodianSupervisor
 	{
 		virtual Gui::IGRCustodian& Custodian() = 0;
-		virtual void OnPaint(IGR2DScene& scene, HWND hWnd) = 0;
-		virtual void RenderGui(Gui::IGRSystem& gr, HWND hWnd) = 0;
+		virtual void OnPaint(IGR2DScene& scene, HWND hWnd, HDC paintDC) = 0;
+		virtual void RenderGui(Gui::IGRSystem& gr, HWND hWnd, HDC paintDC) = 0;
 		virtual void RouteKeyboardEvent(const KeyboardEvent& key, Gui::IGRSystem& gr) = 0;
 		virtual void RouteMouseEvent(const MouseEvent& me, Gui::IGRSystem& gr) = 0;
 		virtual void Free() = 0;
 	};
 
 	ROCOCO_GR_GDI_API IWin32GDICustodianSupervisor* CreateGDICustodian();
+
+	ROCOCO_INTERFACE IWin32GDIApp
+	{
+		virtual void Free() = 0;
+	};
+
+	// This should be called in any Win32 App that uses this library, it manages GDI startup and shutdown
+	ROCOCO_GR_GDI_API IWin32GDIApp* CreateWin32GDIApp();
 }

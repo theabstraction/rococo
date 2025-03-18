@@ -152,12 +152,14 @@ IGR2DScene* TestDrawRect()
 	return &scene;
 }
 
-IGR2DScene* TestNoScene()
+IGR2DScene* TestBlackScene()
 {
 	struct Scene : IGR2DScene
 	{
-		void Render(Gui::IGRRenderContext&) override
+		void Render(Gui::IGRRenderContext& rc) override
 		{
+			GuiRect clientRect = rc.ScreenDimensions();
+			rc.DrawRect(clientRect, RGBAb(0, 0, 0, 255));
 		}
 	};
 	
@@ -167,8 +169,8 @@ IGR2DScene* TestNoScene()
 
 IGR2DScene* TestScene()
 {
-	return TestDrawRect();
-	//return TestNoScene();
+	//return TestDrawRect();
+	return TestBlackScene();
 }
 
 void BuildMenus(IGRWidgetMainFrame& frame)

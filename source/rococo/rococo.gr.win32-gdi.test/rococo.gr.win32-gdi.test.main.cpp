@@ -2,14 +2,9 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 #include <rococo.strings.h>
-#ifdef _WIN32
-# include <rococo.win32.target.win7.h>
-# define NOMINMAX
-# include <windows.h>
-#endif
+#include <rococo.os.win32.h>
 #include <rococo.gr.win32-gdi.h>
 #include <rococo.gui.retained.ex.h>
-#include <gdiplus.h>
 
 #pragma comment (lib,"Gdiplus.lib")
 
@@ -21,12 +16,33 @@ struct GR_Win32_EmptyScene: IGR2DScene
 	void Render(IGRRenderContext& rc) override
 	{
 		GuiRect windowRect = rc.ScreenDimensions();
-		rc.DrawRect(windowRect, RGBAb(128, 0, 0));
+		rc.DrawRect(windowRect, RGBAb(0, 0, 0));
 	}
 };
 
 IGR2DScene* TestScene();
 void TestWidgets(IGRSystem& gr);
+
+class UsePaint
+{
+	PAINTSTRUCT ps;
+	HWND hWnd;
+public:
+	UsePaint(HWND _hWnd) : hWnd(_hWnd)
+	{
+		BeginPaint(hWnd, &ps);
+	}
+
+	~UsePaint()
+	{
+		EndPaint(hWnd, &ps);
+	}
+
+	HDC DC() const
+	{
+		return ps.hdc;
+	}
+};
 
 struct GR_Win32_Host
 {
@@ -49,11 +65,9 @@ struct GR_Win32_Host
 
 	void OnPaint()
 	{
-		if (IsWindow(hHostWindow) && IsWindowVisible(hHostWindow))
-		{
-//			gdiCustodian->OnPaint(*scene, hHostWindow);
-			gdiCustodian->RenderGui(*grSystem, hHostWindow);
-		}
+		UsePaint paint(hHostWindow);
+		gdiCustodian->OnPaint(*scene, hHostWindow, paint.DC());
+		gdiCustodian->RenderGui(*grSystem, hHostWindow, paint.DC());
 	}
 };
 
@@ -67,6 +81,8 @@ LRESULT HostProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 		case WM_PAINT:
 			host->OnPaint();
+			return 0L;
+		case WM_ERASEBKGND:
 			return 0L;
 		}
 	}
@@ -109,6 +125,8 @@ LRESULT MainProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
+	case WM_ERASEBKGND:
+		return 0L;
 	case WM_GETMINMAXINFO:
 		{
 			auto* m = (MINMAXINFO*)lParam;
@@ -270,22 +288,13 @@ int Main(HINSTANCE hInstance, cstr commandLine)
 	return 0;
 }
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /* hPrevInstance */, LPSTR commandLine, int nShowCmd)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR commandLine, int nShowCmd)
 {
 	UNUSED(nShowCmd);
-	UNUSED(hInstance);
+	UNUSED(hPrevInstance);
 
 	Rococo::OS::SetBreakPoints(OS::Flags::BreakFlag_All);
-
-	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-	ULONG_PTR           gdiplusToken;
-
-	// Initialize GDI+.
-	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
+	AutoFree<Rococo::GR::Win32::IWin32GDIApp> gdiApp = Rococo::GR::Win32::CreateWin32GDIApp();
 	int result = Main(hInstance, commandLine);
-
-	Gdiplus::GdiplusShutdown(gdiplusToken);
-
 	return result;
 }

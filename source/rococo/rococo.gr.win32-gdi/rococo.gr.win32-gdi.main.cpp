@@ -125,28 +125,6 @@ namespace Rococo::GR::Win32::Implementation
 		}
 	};
 
-	class UsePaint
-	{
-		PAINTSTRUCT ps;
-		HWND hWnd;
-	public:
-		UsePaint(HWND _hWnd) : hWnd(_hWnd)
-		{
-			BeginPaint(hWnd, &ps);
-		}
-
-		~UsePaint()
-		{
-			EndPaint(hWnd, &ps);
-		}
-
-		HDC DC() const
-		{
-			return ps.hdc;
-		}
-	};
-
-
 	class UsePen
 	{
 		HDC dc;
@@ -530,7 +508,7 @@ namespace Rococo::GR::Win32::Implementation
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
-			SolidBrush solidBrush(Color(colour.red, colour.green, colour.blue, colour.alpha));
+			SolidBrush solidBrush(Color(colour.alpha, colour.red, colour.green, colour.blue));
 			g.FillRectangle(&solidBrush, absRect.left, absRect.top, Width(absRect), Height(absRect));
 		}
 
@@ -650,9 +628,11 @@ namespace Rococo::GR::Win32::Implementation
 			return lastScissorRect.IsNormalized();
 		}
 
-		void RenderInPaintStruct(IGR2DScene& scene)
+		IGRFonts& Fonts() override;
+		IGRImages& Images() override;
+
+		void Render(IGR2DScene& scene)
 		{
-			UseBkMode bkMode(paintDC, TRANSPARENT);
 			UseFont useFont(paintDC, DefaultFont(custodian));
 
 			scene.Render(*this);
@@ -663,16 +643,6 @@ namespace Rococo::GR::Win32::Implementation
 			}
 
 			hilightRects.clear();
-		}
-
-		IGRFonts& Fonts() override;
-		IGRImages& Images() override;
-
-		void Render(IGR2DScene& scene)
-		{
-			UsePaint usePaint(hWnd);
-			paintDC = usePaint.DC();
-			RenderInPaintStruct(scene);
 		}
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, HANDLE hImage)
@@ -870,20 +840,19 @@ namespace Rococo::GR::Win32::Implementation
 			screenDC = GetDC(NULL);
 		}
 
-		void OnPaint(IGR2DScene& scene, HWND hWnd) override
+		void OnPaint(IGR2DScene& scene, HWND hWnd, HDC paintDC) override
 		{
 			SyncToScreen();
-			UsePaint usePaint(hWnd);
-			SceneRenderer renderer(*this, hWnd, usePaint.DC());
+			SceneRenderer renderer(*this, hWnd, paintDC);
+			UseBkMode bkMode(paintDC, TRANSPARENT);
 			renderer.Render(scene);
 		}
 
-		void RenderGui(IGRSystem& gr, HWND hWnd) override
+		void RenderGui(IGRSystem& gr, HWND hWnd, HDC paintDC) override
 		{
 			SyncToScreen();
-			UsePaint usePaint(hWnd);
-			SceneRenderer renderer(*this, hWnd, usePaint.DC());
-			UseBkMode bkMode(usePaint.DC(), TRANSPARENT);
+			SceneRenderer renderer(*this, hWnd, paintDC);
+			UseBkMode bkMode(paintDC, TRANSPARENT);
 			gr.RenderGui(renderer);
 		}
 
@@ -1121,6 +1090,29 @@ namespace Rococo::GR::Win32::Implementation
 	{
 		custodian.SelectFont(fontId, paintDC);
 	}
+
+	struct Win32GDIApp: IWin32GDIApp
+	{
+		Gdiplus::GdiplusStartupInput input;
+		ULONG_PTR token;
+
+		Win32GDIApp()
+		{
+			// Initialize GDI+.
+			Gdiplus::GdiplusStartup(&token, &input, NULL);
+
+		}
+
+		virtual ~Win32GDIApp()
+		{
+			Gdiplus::GdiplusShutdown(token);
+		}
+
+		void Free()
+		{
+			delete this;
+		}
+	};
 }
 
 namespace Rococo::GR::Win32
@@ -1128,5 +1120,10 @@ namespace Rococo::GR::Win32
 	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian()
 	{
 		return new Rococo::GR::Win32::Implementation::GDICustodian();
+	}
+
+	IWin32GDIApp* CreateWin32GDIApp()
+	{
+		return new Implementation::Win32GDIApp();
 	}
 }
