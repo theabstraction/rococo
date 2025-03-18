@@ -1180,6 +1180,117 @@ namespace Rococo::GR::Win32::Implementation
 			gdiCustodian->RenderGui(*grSystem, hWnd, paint.DC());
 		}
 
+		BYTE keystate[256] = { 0 };
+
+		int32 VcodeToUnicode(int32 virtualKeyCode, int32 scancode, HKL layout)
+		{
+			if (!GetKeyboardState(keystate))
+			{
+				// Oh well, assume some previous state was relatively unchanged and valid
+			}
+
+			WCHAR buffer[4] = { 0,0,0,0 };
+			UINT flags = 0;
+			int charsRead = ToUnicodeEx(virtualKeyCode, scancode, keystate, buffer, 4, flags, layout);
+			return (charsRead == 1) ? buffer[0] : 0;
+		}
+
+		std::vector<uint8> rawInputBuffer;
+
+		bool hasFocus = false;
+
+		HKL hKeyboardLayout = 0;
+
+		LRESULT OnRawInput(WPARAM wParam, LPARAM lParam)
+		{
+			POINT p;
+			GetCursorPos(&p);
+			ScreenToClient(hWnd, &p);
+
+			UINT sizeofBuffer = 0;
+			if (NO_ERROR != GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &sizeofBuffer, sizeof(RAWINPUTHEADER)))
+			{
+				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
+			}
+
+			rawInputBuffer.resize(sizeofBuffer);
+
+			auto* buffer = rawInputBuffer.data();
+
+			if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer, &sizeofBuffer, sizeof(RAWINPUTHEADER)) == (UINT)-1)
+			{
+				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
+			}
+
+			RAWINPUT& raw = *((RAWINPUT*)buffer);
+			RAWINPUT* pRaw = &raw;
+
+			if (hasFocus)
+			{
+				if (raw.header.dwType == RIM_TYPEMOUSE)
+				{
+					MouseEvent ev;
+					ev.buttons = raw.data.mouse.ulButtons;
+					ev.dx = raw.data.mouse.lLastX;
+					ev.dy = raw.data.mouse.lLastY;
+					ev.flags = raw.data.mouse.usFlags;
+					ev.cursorPos = { p.x, p.y };
+					gdiCustodian->RouteMouseEvent(ev, *grSystem);
+					QueuePaint();
+				}
+				else if (raw.header.dwType == RIM_TYPEKEYBOARD)
+				{
+					KeyboardEvent key;
+					((RAWKEYBOARD&)key) = raw.data.keyboard;
+					key.unicode = VcodeToUnicode(key.VKey, key.scanCode, hKeyboardLayout);
+					gdiCustodian->RouteKeyboardEvent(key, *grSystem);
+					QueuePaint();
+				}
+
+				return 0;
+			}
+			else
+			{
+				return DefRawInputProc(&pRaw, 1, sizeof(RAWINPUTHEADER));
+			}
+		}
+
+		void RegisterRawInput()
+		{
+			hKeyboardLayout = GetKeyboardLayout(0);
+
+			RAWINPUTDEVICE mouseDesc;
+			mouseDesc.hwndTarget = hWnd;
+			mouseDesc.dwFlags = 0;
+			mouseDesc.usUsage = 0x02;
+			mouseDesc.usUsagePage = 0x01;
+			if (!RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc)))
+			{
+				Throw(GetLastError(), "RegisterRawInputDevices(&mouseDesc, 1, sizeof(mouseDesc) failed");
+			}
+
+			RAWINPUTDEVICE keyboardDesc;
+			keyboardDesc.hwndTarget = hWnd;
+			keyboardDesc.dwFlags = 0;
+			keyboardDesc.usUsage = 0x06;
+			keyboardDesc.usUsagePage = 0x01;
+			if (!RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)))
+			{
+				Throw(GetLastError(), "RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)) failed");
+			}
+		}
+
+		void OnGainFocus()
+		{
+			hasFocus = true;
+			RegisterRawInput();
+		}
+
+		void OnLoseFocus()
+		{
+			hasFocus = false;
+		}
+
 		static LRESULT GDIProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			auto* This = reinterpret_cast<GRClientWindow*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
@@ -1188,11 +1299,19 @@ namespace Rococo::GR::Win32::Implementation
 			{
 				switch (msg)
 				{
+				case WM_SETFOCUS:
+					This->OnGainFocus();
+					return 0L;
+				case WM_KILLFOCUS:
+					This->OnLoseFocus();
+					return 0L;
 				case WM_PAINT:
 					This->OnPaint();
 					return 0L;
 				case WM_ERASEBKGND:
 					return 0L;
+				case WM_INPUT:
+					This->OnRawInput(wParam, lParam);
 				}
 			}
 			catch (IException& ex)
@@ -1352,17 +1471,12 @@ namespace Rococo::GR::Win32::Implementation
 
 		static void PopulateMainClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 		{
-			//cstr IDI_ICON1 = nullptr;
-			//cstr IDI_ICON2 = nullptr;
-
 			classDef = { 0 };
 			classDef.cbSize = sizeof(classDef);
 			classDef.style = 0;
 			classDef.cbWndExtra = 0;
 			classDef.hbrBackground = (HBRUSH)COLOR_WINDOW;
 			classDef.hCursor = LoadCursor(nullptr, IDC_ARROW);
-			//classDef.hIcon = LoadIconA(hInstance, (cstr)IDI_ICON1);
-			//classDef.hIconSm = LoadIconA(hInstance, (cstr)IDI_ICON2);
 			classDef.hInstance = hInstance;
 			classDef.lpszClassName = "GR-Win32-GDI-APP";
 			classDef.lpszMenuName = NULL;
@@ -1370,12 +1484,14 @@ namespace Rococo::GR::Win32::Implementation
 		}
 
 
-		void Create(HWND hOwner)
+		void Create(HWND hOwner, const GRMainFrameConfig& config)
 		{
 			HMODULE hInstance = GetModuleHandle(NULL);
 
 			WNDCLASSEXA info;
 			PopulateMainClass(hInstance, info);
+			info.hIcon = config.hLargeIconPath;
+			info.hIconSm = config.hSmallIconPath;
 			ATOM appClassAtom = RegisterClassExA(&info);
 			if (appClassAtom == 0)
 			{
@@ -1392,7 +1508,7 @@ namespace Rococo::GR::Win32::Implementation
 				CW_USEDEFAULT, // width
 				CW_USEDEFAULT, // height
 				hOwner,
-				nullptr,
+				config.hMainWindowMenu,
 				hInstance,
 				nullptr);
 
@@ -1402,6 +1518,8 @@ namespace Rococo::GR::Win32::Implementation
 			}
 
 			grClientWindow = GR::Win32::CreateGRClientWindow(hWnd);
+
+			PostMessage(*grClientWindow, WM_SETFOCUS, 0, 0);
 		}
 
 		virtual ~GRMainFrameWindow()
@@ -1450,10 +1568,10 @@ namespace Rococo::GR::Win32
 		return Implementation::clientClassName;
 	}
 
-	ROCOCO_API_EXPORT IGRMainFrameWindowSupervisor* CreateGRMainFrameWindow(HWND hOwner)
+	ROCOCO_API_EXPORT IGRMainFrameWindowSupervisor* CreateGRMainFrameWindow(HWND hOwner, const GRMainFrameConfig& config)
 	{
-		AutoFree<Implementation::GRMainFrameWindow> window = new Implementation::GRMainFrameWindow(hOwner);
-		window->Create(hOwner);
+		AutoFree<Implementation::GRMainFrameWindow> window = new Implementation::GRMainFrameWindow();
+		window->Create(hOwner, config);
 		return window.Detach();
 	}
 }

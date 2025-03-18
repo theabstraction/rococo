@@ -14,9 +14,10 @@ using namespace Rococo::Gui;
 IGR2DScene* TestScene();
 void TestWidgets(IGRSystem& gr);
 
-int MainProtected(HINSTANCE hInstance, cstr commandLine)
+int MainProtected()
 {
-	AutoFree<GR::Win32::IGRMainFrameWindowSupervisor> mainFrame = GR::Win32::CreateGRMainFrameWindow(NULL);
+	GR::Win32::GRMainFrameConfig config;
+	AutoFree<GR::Win32::IGRMainFrameWindowSupervisor> mainFrame = GR::Win32::CreateGRMainFrameWindow(NULL, config);
 	auto& client = mainFrame->Client();
 
 	client.LinkScene(TestScene());
@@ -38,13 +39,15 @@ int MainProtected(HINSTANCE hInstance, cstr commandLine)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR commandLine, int nShowCmd)
 {
 	UNUSED(nShowCmd);
+	UNUSED(hInstance);
 	UNUSED(hPrevInstance);
+	UNUSED(commandLine);
 
 	try
 	{
 		Rococo::OS::SetBreakPoints(OS::Flags::BreakFlag_All);
 		AutoFree<Rococo::GR::Win32::IWin32GDIApp> gdiApp = Rococo::GR::Win32::CreateWin32GDIApp();
-		int result = MainProtected(hInstance, commandLine);
+		int result = MainProtected();
 		return result;
 	}
 	catch (IException& ex)

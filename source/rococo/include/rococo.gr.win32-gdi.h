@@ -83,5 +83,12 @@ namespace Rococo::GR::Win32
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_GR_GDI_API IGRMainFrameWindowSupervisor* CreateGRMainFrameWindow(HWND hOwner);
+	struct GRMainFrameConfig
+	{
+		HICON hLargeIconPath = nullptr;
+		HICON hSmallIconPath = nullptr;
+		HMENU hMainWindowMenu = nullptr;
+	};
+
+	ROCOCO_GR_GDI_API IGRMainFrameWindowSupervisor* CreateGRMainFrameWindow(HWND hOwner, const GRMainFrameConfig& config);
 }
