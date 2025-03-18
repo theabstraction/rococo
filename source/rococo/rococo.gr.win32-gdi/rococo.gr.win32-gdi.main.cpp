@@ -390,10 +390,15 @@ namespace Rococo::GR::Win32::Implementation
 
 		GDICustodian& custodian;
 		Graphics g;
+
+		Vec2i cursor{ 0,0 };
 		
 		SceneRenderer(GDICustodian& _custodian, HWND _hWnd, HDC dc): hWnd(_hWnd), custodian(_custodian), g(dc), paintDC(dc)
 		{
-
+			POINT p;
+			GetCursorPos(&p);
+			ScreenToClient(hWnd, &p);
+			cursor = { p.x,p.y };
 		}
 
 		~SceneRenderer()
@@ -407,14 +412,13 @@ namespace Rococo::GR::Win32::Implementation
 		// Get some kind of hover point for the cursor
 		Vec2i CursorHoverPoint() const override
 		{
-			return { 0,0 };
+			return cursor;
 		}
 
 		// It is up to the renderer to decide if a panel is hovered.
 		bool IsHovered(IGRPanel& panel) const override
 		{
-			UNUSED(panel);
-			return false;
+			return IsPointInRect(cursor, panel.AbsRect());
 		}
 
 		// Get the screen dimensions
@@ -771,6 +775,8 @@ namespace Rococo::GR::Win32::Implementation
 		AutoFree<IO::IOSSupervisor> os;
 		AutoFree<IO::IInstallationSupervisor> installation;
 
+		mutable HDC screenDC = nullptr;
+
 		GDICustodian()
 		{
 			os = IO::GetIOS();
@@ -789,12 +795,23 @@ namespace Rococo::GR::Win32::Implementation
 
 		std::vector<KnownFont> knownFonts;
 
+		void ReleaseScreenDC()
+		{
+			if (screenDC)
+			{
+				ReleaseDC(NULL, screenDC);
+				screenDC = NULL;
+			}
+		}
+
 		virtual ~GDICustodian()
 		{
 			for (auto f : knownFonts)
 			{
 				DeleteObject(f.handle);
 			}
+
+			ReleaseScreenDC();
 		}
 
 		HFONT defaultFont = NULL;
@@ -804,32 +821,58 @@ namespace Rococo::GR::Win32::Implementation
 			return defaultFont;
 		}
 
+		const KnownFont* GetFont(GRFontId id) const
+		{
+			size_t arrayIndex = 0;
+
+			switch (id)
+			{
+			case GRFontId::NONE:
+			case GRFontId::MENU_FONT:
+				arrayIndex = 0;
+				break;
+			default:
+				arrayIndex = static_cast<size_t>(id) - 2;
+			}
+
+			if (arrayIndex >= knownFonts.size())
+			{
+				return nullptr;
+			}
+
+			return &knownFonts[arrayIndex];
+		}
+
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
 		{
-			size_t arrayIndex = static_cast<size_t>(fontId) - 2;
-			if (arrayIndex >= knownFonts.size())
+			auto* f = GetFont(fontId);
+			if (!f)
 			{
 				return { 0,0 };
 			}
 
-			HFONT hFont = knownFonts[arrayIndex].handle;
+			UseFont font(screenDC, f->handle);
 
-			HDC dc = GetDC(NULL);
-			UseFont font(dc, hFont);
-
-			SIZE result;
-			if (!GetTextExtentPoint32A(dc, text, text.length, OUT & result))
+			SIZE span;
+			if (!GetTextExtentPoint32A(screenDC, text, text.length, OUT & span))
 			{
 				return { 0,0 };
 			}
 			else
 			{
-				return { result.cx, result.cy };
+				return { span.cx, span.cy };
 			}
+		}
+
+		void SyncToScreen()
+		{
+			ReleaseScreenDC();
+			screenDC = GetDC(NULL);
 		}
 
 		void OnPaint(IGR2DScene& scene, HWND hWnd) override
 		{
+			SyncToScreen();
 			UsePaint usePaint(hWnd);
 			SceneRenderer renderer(*this, hWnd, usePaint.DC());
 			renderer.Render(scene);
@@ -837,8 +880,10 @@ namespace Rococo::GR::Win32::Implementation
 
 		void RenderGui(IGRSystem& gr, HWND hWnd) override
 		{
+			SyncToScreen();
 			UsePaint usePaint(hWnd);
 			SceneRenderer renderer(*this, hWnd, usePaint.DC());
+			UseBkMode bkMode(usePaint.DC(), TRANSPARENT);
 			gr.RenderGui(renderer);
 		}
 
@@ -881,29 +926,12 @@ namespace Rococo::GR::Win32::Implementation
 			return static_cast<GRFontId>(knownFonts.size() + 1);
 		}
 
-		void SelectFont(size_t specIndex, HDC dc)
-		{
-			size_t arrayIndex = specIndex - 2;
-			if (arrayIndex < knownFonts.size())
-			{
-				HFONT hFont = knownFonts[arrayIndex].handle;
-
-				// We need to store old. Determine old in render function, creating a default font to select
-				SelectObject(dc, hFont);
-			}
-		}
-
 		void SelectFont(GRFontId fontId, HDC dc)
 		{
-			switch (fontId)
+			auto* f = GetFont(fontId);
+			if (f)
 			{
-			case GRFontId::NONE:
-			case GRFontId::MENU_FONT:
-				SelectFont(2, dc);
-				return;
-			default:
-				SelectFont(static_cast<size_t>(fontId), dc);
-				return;
+				SelectObject(dc, f->handle);
 			}
 		}
 
@@ -994,23 +1022,6 @@ namespace Rococo::GR::Win32::Implementation
 				Throw(0, "%s: %s", function, message);
 			}
 		}
-
-
-		/*
-		void Render(IGuiRenderContext& rc, IGRSystem& gr) override
-		{
-			renderer.SetContext(&rc);
-
-			if (renderer.lastScreenDimensions.right > 0 && renderer.lastScreenDimensions.bottom > 0)
-			{
-				gr.RenderGui(renderer);
-			}
-
-			renderer.DrawLastItems();
-
-			renderer.SetContext(nullptr);
-		}
-		*/
 
 		std::vector<char> copyAndPasteBuffer;
 

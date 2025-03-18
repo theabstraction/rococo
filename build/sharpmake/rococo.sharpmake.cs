@@ -832,6 +832,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
         }
     }
 
