@@ -15,7 +15,6 @@
 #include <rococo.os.h>
 #include <rococo.window.h>
 #include <rococo.imaging.h>
-#include <Uxtheme.h>
 
 #include <sexy.types.h>
 
@@ -1162,6 +1161,7 @@ namespace Rococo::GR::Win32::Implementation
 
 		HDC hMemDC = 0;
 		HBITMAP hBackBuffer = 0;
+		Vec2i lastSpan{ 0,0 };
 
 		static void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 		{
@@ -1208,10 +1208,7 @@ namespace Rococo::GR::Win32::Implementation
 
 			if (hBackBuffer)
 			{
-				SIZE dims;
-				GetBitmapDimensionEx(hBackBuffer, &dims);
-
-				if (dims.cx != rect.right || dims.cy != rect.bottom)
+				if (lastSpan.x != rect.right || lastSpan.y != rect.bottom)
 				{
 					DeleteObject(hBackBuffer);
 					hBackBuffer = NULL;
@@ -1221,7 +1218,7 @@ namespace Rococo::GR::Win32::Implementation
 			if (!hBackBuffer)
 			{
 				hBackBuffer = CreateCompatibleBitmap(paint.DC(), rect.right, rect.bottom);
-				SetBitmapDimensionEx(hBackBuffer, rect.right, rect.bottom, NULL);
+				lastSpan = { rect.right, rect.bottom };
 			}
 
 			UsingBackBuffer ubb(*this);
