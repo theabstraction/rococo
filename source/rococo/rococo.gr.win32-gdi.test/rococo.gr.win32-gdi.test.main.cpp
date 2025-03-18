@@ -25,6 +25,7 @@ BOOL OnParentResized(HWND hWnd, LPARAM /* lParam */)
 			RECT clientRect;
 			GetClientRect(hParent, &clientRect);
 			MoveWindow(hWnd, 0, 0, clientRect.right, clientRect.bottom, TRUE);
+			InvalidateRect(hWnd, NULL, TRUE);
 		}
 	}
 
