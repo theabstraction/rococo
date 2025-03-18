@@ -59,6 +59,8 @@ namespace Rococo::GR::Win32
 		virtual void QueuePaint() = 0;
 
 		virtual Gui::IGRSystem& GRSystem() = 0;
+
+		virtual operator HWND () = 0;
 	};
 
 	ROCOCO_INTERFACE IGRClientWindowSupervisor : IGRClientWindow
@@ -69,4 +71,17 @@ namespace Rococo::GR::Win32
 	ROCOCO_GR_GDI_API IGRClientWindowSupervisor* CreateGRClientWindow(HWND hParentWnd);
 
 	ROCOCO_GR_GDI_API cstr GetGRClientClassName();
+
+	ROCOCO_INTERFACE IGRMainFrameWindow
+	{
+		virtual IGRClientWindow& Client() = 0;
+		virtual operator HWND() = 0;
+	};
+
+	ROCOCO_INTERFACE IGRMainFrameWindowSupervisor : IGRMainFrameWindow
+	{
+		virtual void Free() = 0;
+	};
+
+	ROCOCO_GR_GDI_API IGRMainFrameWindowSupervisor* CreateGRMainFrameWindow(HWND hOwner);
 }
