@@ -18,6 +18,7 @@ namespace GRANON
 		GRMainFrame(cstr _name, IGRPanel& _panel) : name(_name), panel(_panel)
 		{
 			_panel.SetMinimalSpan({ 320, 200 });
+			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
 		}
 
 		void PostConstruct()
@@ -25,6 +26,8 @@ namespace GRANON
 			if (!clientArea)
 			{
 				clientArea = &CreateDivision(*this);
+				clientArea->Panel().SetExpandToParentHorizontally();
+				clientArea->Panel().SetExpandToParentVertically();
 			}
 		}
 
@@ -127,11 +130,17 @@ namespace GRANON
 			if (!titleBar)
 			{
 				titleBar = &CreateDivision(*this);
+				titleBar->Panel().SetExpandToParentHorizontally();
+				titleBar->Panel().SetConstantHeight(30);
+				titleBar->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
 
 			if (!menuBar)
 			{
 				menuBar = &CreateMenuBar(titleBar->InnerWidget());
+				menuBar->Widget().Panel().SetExpandToParentHorizontally();
+				menuBar->Widget().Panel().SetExpandToParentVertically();
+				menuBar->Widget().Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
 
 			return *menuBar;

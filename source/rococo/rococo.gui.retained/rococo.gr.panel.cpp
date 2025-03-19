@@ -249,6 +249,205 @@ namespace GRANON
 			return parent->NotifyAncestors(event, sourceWidget);
 		}
 
+		enum class ESizingRule
+		{
+			Constant,
+			ExpandToParent,
+			FitChildren
+		};
+		
+		ESizingRule widthSizing = ESizingRule::Constant;
+		ESizingRule heightSizing = ESizingRule::Constant;
+
+		ELayoutDirection layoutDirection = ELayoutDirection::LeftToRight;
+
+		int SumChildWidth()
+		{
+			int sum = 0;
+
+			for (auto* child : children)
+			{
+				sum += child->Span().x;
+			}
+
+			return sum;
+		}
+
+		int MaxChildWidth()
+		{
+			int m = 0;
+
+			for (auto* child : children)
+			{
+				m = max(child->Span().x, m);
+			}
+
+			return m;
+		}
+
+		int SumChildHeight()
+		{
+			int sum = 0;
+
+			for (auto* child : children)
+			{
+				sum += child->Span().y;
+			}
+
+			return sum;
+		}
+
+		int MaxChildHeight()
+		{
+			int m = 0;
+
+			for (auto* child : children)
+			{
+				m = max(child->Span().y, m);
+			}
+
+			return m;
+		}
+
+		void Layout() override
+		{
+			ShrinkToFitRecursive();
+			ExpandToParentRecursive();
+			SetAbsRectRecursive();
+		}
+
+		void SetAbsRectRecursive()
+		{
+			absRect.left = parent ? parent->absRect.left : 0;
+			absRect.left += parentOffset.x;
+
+			absRect.top = parent ? parent->absRect.top : 0;
+			absRect.top += parentOffset.y;
+			absRect.right = absRect.left + span.x;
+			absRect.bottom = absRect.top + span.y;
+
+			int delta = 0;
+
+			switch (layoutDirection)
+			{
+			case ELayoutDirection::LeftToRight:
+				for (auto* child : children)
+				{
+					auto& c = *static_cast<GRPanel*>(child);
+					c.parentOffset.x = delta;
+					c.parentOffset.y = 0;
+					c.SetAbsRectRecursive();
+					delta += c.span.x;
+				}
+				break;
+			case ELayoutDirection::RightToLeft:
+				
+				break;
+			case ELayoutDirection::TopToBottom:
+			case ELayoutDirection::BottomToTop:
+				
+				break;
+			}
+
+			for (auto* child : children)
+			{
+				static_cast<GRPanel*>(child)->SetAbsRectRecursive();
+			}
+		}
+
+		void ExpandToParentRecursive()
+		{
+			if (parent)
+			{
+				if (widthSizing == ESizingRule::ExpandToParent)
+				{
+					span.x = parent->span.x;
+				}
+
+				if (heightSizing == ESizingRule::ExpandToParent)
+				{
+					span.y = parent->span.y;
+				}
+			}
+
+			for (auto* child : children)
+			{
+				static_cast<GRPanel*>(child)->ExpandToParentRecursive();
+			}
+		}
+
+		void ShrinkToFitRecursive()
+		{
+			for (auto* child : children)
+			{
+				static_cast<GRPanel*>(child)->ShrinkToFitRecursive();
+			}
+
+			int width = 0;
+			int height = 0;
+
+			switch (layoutDirection)
+			{
+			case ELayoutDirection::LeftToRight:
+			case ELayoutDirection::RightToLeft:
+				width = SumChildWidth();
+				height = MaxChildHeight();
+				break;
+			case ELayoutDirection::TopToBottom:
+			case ELayoutDirection::BottomToTop:
+				width = MaxChildWidth();
+				height = SumChildHeight();
+				break;
+			}
+
+			if (widthSizing == ESizingRule::FitChildren)
+			{
+				span.x = width;
+			}
+
+			if (heightSizing == ESizingRule::FitChildren)
+			{
+				span.y = height;
+			}
+		}
+
+		void SetLayoutDirection(ELayoutDirection direction) override
+		{
+			this->layoutDirection = direction;
+		}
+
+		void SetFitChildrenHorizontally() override
+		{
+			widthSizing = ESizingRule::FitChildren;
+		}
+
+		void SetFitChildrenVertically() override
+		{
+			heightSizing = ESizingRule::FitChildren;
+		}
+
+		void SetExpandToParentHorizontally() override
+		{
+			widthSizing = ESizingRule::ExpandToParent;
+		}
+
+		void SetExpandToParentVertically() override
+		{
+			heightSizing = ESizingRule::ExpandToParent;
+		}
+
+		void SetConstantWidth(int width) override
+		{
+			widthSizing = ESizingRule::Constant;
+			span.x = width;
+		}
+
+		void SetConstantHeight(int height) override
+		{
+			heightSizing = ESizingRule::Constant;
+			span.y = height;
+		}
+
 		void GarbageCollectRecursive() override
 		{
 			bool removeMarkedChildren = false;

@@ -855,7 +855,7 @@ namespace Rococo::GR::Win32::Implementation
 			SyncToScreen();
 			SceneRenderer renderer(*this, hWnd, paintDC);
 			UseBkMode bkMode(paintDC, TRANSPARENT);
-			gr.RenderGui(renderer);
+			gr.RenderAllFrames(renderer);
 		}
 
 		static bool Match(const LOGFONTA& a, const LOGFONT& b)

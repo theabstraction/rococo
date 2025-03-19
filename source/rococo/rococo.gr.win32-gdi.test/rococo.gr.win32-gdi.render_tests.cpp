@@ -255,10 +255,14 @@ void TestFrame(IGRSystem& gr)
 	GRIdWidget mainFrame { "Main-Frame" };
 	auto& frame = gr.BindFrame(mainFrame);
 
+	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 255), GRGenerateIntensities());
+
 	auto& scheme = gr.Root().Scheme();
 	SetSchemeColours_ThemeGrey(scheme);
 
 	BuildMenus(frame);
+
+	/*
 	BuildUpperRightToolbar(frame);
 
 	auto& framePanel = frame.Widget().Panel();
@@ -273,6 +277,23 @@ void TestFrame(IGRSystem& gr)
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+
+	auto& button = Gui::CreateButton(frame.ClientArea().InnerWidget());
+
+	GRAlignmentFlags alignment;
+	alignment.Add(EGRAlignment::Left);
+	alignment.Add(EGRAlignment::Top);
+
+	GRAnchors anchors;
+	anchors.left = true;
+	anchors.top = true;
+
+	button.Widget().Panel().Anchors() = anchors;
+	button.Widget().Panel().SetMinimalSpan({ 128,32 });
+	button.SetTitle("<Magic>");
+
+	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 255), GRGenerateIntensities());
+	*/
 }
 
 void TestWidgets(IGRSystem& gr)

@@ -264,11 +264,14 @@ namespace ANON
 			if (lastLayedOutScreenDimensions != screenDimensions || invalidatedPanelCount > 0)
 			{
 				lastLayedOutScreenDimensions = screenDimensions;
+
 				for (auto& d : frameDescriptors)
 				{
 					d.panel->InvalidateLayout(true);
 				}
+
 				LayoutFrames();
+
 				invalidatedPanelCount = 0;
 			}
 
@@ -290,6 +293,45 @@ namespace ANON
 					g.DrawRectEdge(rect, colour, colour);
 				}
 			}
+
+			RenderDebugInfo(g);
+		}
+
+		void RenderAllFrames(IGRRenderContext& g) override
+		{
+			if (queueGarbageCollect)
+			{
+				GarbageCollect();
+				queueGarbageCollect = false;
+			}
+
+			auto screenDimensions = g.ScreenDimensions();
+
+			for (auto& d : frameDescriptors)
+			{
+				d.panel->SetConstantWidth(Width(screenDimensions));
+				d.panel->SetConstantHeight(Height(screenDimensions));
+				d.panel->Layout();
+			}
+
+			for (auto& d : frameDescriptors)
+			{
+				d.panel->RenderRecursive(g, screenDimensions);
+				g.DisableScissors();
+			}
+
+			/*
+			if (focusId >= 0)
+			{
+				auto* widget = FindWidget(focusId);
+				GuiRect rect = widget->Panel().AbsRect();
+				if (rect.right > rect.left && rect.bottom > rect.top)
+				{
+					RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
+					g.DrawRectEdge(rect, colour, colour);
+				}
+			}
+			*/
 
 			RenderDebugInfo(g);
 		}

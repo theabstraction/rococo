@@ -430,6 +430,15 @@ namespace Rococo::Gui
 		virtual void OnDeepChildFocusSet(int64 panelId) = 0;
 	};
 
+	enum class ELayoutDirection
+	{
+		None,
+		LeftToRight,
+		RightToLeft,
+		TopToBottom,
+		BottomToTop
+	};
+
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
@@ -524,6 +533,20 @@ namespace Rococo::Gui
 
 		// Add extra rendering before and after widget rendering for the panel
 		virtual void SetPanelRenderer(IGRPanelRenderer* renderer) = 0;
+
+		virtual void SetLayoutDirection(ELayoutDirection direction) = 0;
+
+		virtual void SetFitChildrenHorizontally() = 0;
+
+		virtual void SetFitChildrenVertically() = 0;
+
+		virtual void SetConstantWidth(int width) = 0;
+
+		virtual void SetConstantHeight(int height) = 0;
+
+		virtual void SetExpandToParentHorizontally() = 0;
+
+		virtual void SetExpandToParentVertically() = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)
@@ -532,6 +555,7 @@ namespace Rococo::Gui
 		// A dangerous function, particularly if called within a recursive query. Ensure it is not called on children that are referenced in the callstack
 		virtual void ClearChildren() = 0;
 		virtual void GarbageCollectRecursive() = 0;
+		virtual void Layout() = 0;
 		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g, const GuiRect& clipRect) = 0;
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) = 0;
@@ -904,8 +928,11 @@ namespace Rococo::Gui
 		// Route posted messages to the event handler. This should be called periodically outside of any GR locked sections, such as GR event handlers or rendering routines
 		virtual void DispatchMessages() = 0;
 		
-		// Renders the list of frames
+		// Renders the list of frames (deprecated)
 		virtual void RenderGui(IGRRenderContext& g) = 0;
+
+		// Renders the list of frames
+		virtual void RenderAllFrames(IGRRenderContext& g) = 0;
 
 		virtual IGRPanelRoot& Root() = 0;
 
