@@ -20,9 +20,14 @@ namespace GRANON
 
 		}
 
-		IGRWidget& Widget() override
+		IGRWidget& InnerWidget() override
 		{
 			return *this;
+		}
+
+		IGRPanel& Panel() override
+		{
+			return panel;
 		}
 
 		void Free() override
@@ -55,11 +60,6 @@ namespace GRANON
 		void OnCursorLeave() override
 		{
 
-		}
-
-		IGRPanel& Panel() override
-		{
-			return panel;
 		}
 
 		void Render(IGRRenderContext& g) override

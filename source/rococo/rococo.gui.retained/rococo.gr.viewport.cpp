@@ -21,8 +21,8 @@ namespace ANON
 		void PostConstruct()
 		{
 			clipArea = &CreateDivision(*this);
-			clientOffsetArea = &CreateDivision(clipArea->Widget());
-			clientOffsetArea->Widget().Panel().PreventInvalidationFromChildren();
+			clientOffsetArea = &CreateDivision(clipArea->InnerWidget());
+			clientOffsetArea->Panel().PreventInvalidationFromChildren();
 			vscroller = &CreateVerticalScrollerWithButtons(*this, *this);
 		}
 
@@ -36,7 +36,7 @@ namespace ANON
 			enum { scrollbarWidth = 16 };
 
 			Vec2i clipSpan { Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) };
-			auto& panel = clipArea->Widget().Panel();
+			auto& panel = clipArea->Panel();
 			panel.Resize(clipSpan);
 			panel.SetParentOffset({ 0,0 });
 			panel.InvalidateLayout(false);
@@ -52,7 +52,7 @@ namespace ANON
 				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
 			}
 
-			auto& coaPanel = clientOffsetArea->Widget().Panel();
+			auto& coaPanel = clientOffsetArea->Panel();
 			coaPanel.Resize(clientOffsetSpan);
 			coaPanel.SetParentOffset({ 0, -parentOffset });
 			coaPanel.InvalidateLayout(false);
@@ -120,7 +120,7 @@ namespace ANON
 			{
 				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
 
-				int32 deltaPixels = delta * clipArea->Widget().Panel().Span().y;
+				int32 deltaPixels = delta * clipArea->Panel().Span().y;
 
 				int newPosition = (int)(pageDeltaScale * deltaPixels / scale);
 
@@ -141,10 +141,10 @@ namespace ANON
 				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
 			}
 
-			clipArea->Widget().Panel().InvalidateLayout(false);
-			clientOffsetArea->Widget().Panel().SetParentOffset({ 0, -parentOffset });
-			clientOffsetArea->Widget().Panel().InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(clientOffsetArea->Widget().Panel());
+			clipArea->Panel().InvalidateLayout(false);
+			clientOffsetArea->Panel().SetParentOffset({ 0, -parentOffset });
+			clientOffsetArea->Panel().InvalidateLayout(false);
+			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -171,22 +171,22 @@ namespace ANON
 
 		void ScrollIntoView(const GuiRect& rect)
 		{
-			auto clipRect = clipArea->Widget().Panel().AbsRect();
+			auto clipRect = clipArea->Panel().AbsRect();
 
 			int32 dOffset = 0;
-			if (rect.bottom < clipArea->Widget().Panel().AbsRect().top)
+			if (rect.bottom < clipArea->Panel().AbsRect().top)
 			{
-				dOffset = rect.bottom - clipArea->Widget().Panel().AbsRect().top;
+				dOffset = rect.bottom - clipArea->Panel().AbsRect().top;
 			}
-			else if (rect.top > clipArea->Widget().Panel().AbsRect().bottom)
+			else if (rect.top > clipArea->Panel().AbsRect().bottom)
 			{
 				if (Height(rect) < Height(clipRect))
 				{
-					dOffset = clipArea->Widget().Panel().AbsRect().top - rect.top;
+					dOffset = clipArea->Panel().AbsRect().top - rect.top;
 				}
 				else
 				{
-					dOffset = clipArea->Widget().Panel().AbsRect().bottom - rect.top - 30;
+					dOffset = clipArea->Panel().AbsRect().bottom - rect.top - 30;
 				}
 			}
 			else
@@ -194,7 +194,7 @@ namespace ANON
 				return;
 			}
 
-			int32 parentOffset = clientOffsetArea->Widget().Panel().ParentOffset().y + dOffset;
+			int32 parentOffset = clientOffsetArea->Panel().ParentOffset().y + dOffset;
 
 			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
@@ -203,10 +203,10 @@ namespace ANON
 				vscroller->Scroller().SetSliderPosition(clamp((int32)sliderPixelOffset, 0, m.PixelRange));
 			}
 
-			clipArea->Widget().Panel().InvalidateLayout(false);
-			clientOffsetArea->Widget().Panel().SetParentOffset({ 0, parentOffset });
-			clientOffsetArea->Widget().Panel().InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(clientOffsetArea->Widget().Panel());
+			clipArea->Panel().InvalidateLayout(false);
+			clientOffsetArea->Panel().SetParentOffset({ 0, parentOffset });
+			clientOffsetArea->Panel().InvalidateLayout(false);
+			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
 		void OnDeepChildFocusSet(int64 panelId) override
@@ -217,7 +217,7 @@ namespace ANON
 				return;
 			}
 
-			if (IsCandidateDescendantOfParent(clientOffsetArea->Widget().Panel(), w->Panel()))
+			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
 			{
 				auto rect = w->Panel().AbsRect();
 				ScrollIntoView(rect);
@@ -288,7 +288,7 @@ namespace ANON
 			if (lastKnownDomainHeight != heightInPixels)
 			{
 				lastKnownDomainHeight = heightInPixels;
-				clientOffsetArea->Widget().Panel().Resize({ ClientArea().Widget().Panel().Span().x, max(1, heightInPixels) });
+				clientOffsetArea->Panel().Resize({ ClientArea().Panel().Span().x, max(1, heightInPixels) });
 			}
 		}
 

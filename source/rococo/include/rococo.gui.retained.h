@@ -740,7 +740,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetDivision : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual IGRWidget& InnerWidget() = 0;
+		virtual IGRPanel& Panel() = 0;
 	};
 
 	struct GRColumnSpec

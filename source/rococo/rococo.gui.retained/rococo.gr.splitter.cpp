@@ -77,8 +77,8 @@ namespace GRANON
 		void LayoutHorizontal(const GuiRect& panelDimensions)
 		{
 			realDraggerStartPos = min(realDraggerStartPos, Width(panelDimensions) - draggerThickness);
-			first->Widget().Panel().SetParentOffset({ 0,0 }).Resize({ realDraggerStartPos, Height(panelDimensions)});
-			second->Widget().Panel().SetParentOffset({ realDraggerStartPos + draggerThickness,0 }).Resize({ Width(panelDimensions) - (realDraggerStartPos + draggerThickness), Height(panelDimensions)});
+			first->Panel().SetParentOffset({ 0,0 }).Resize({ realDraggerStartPos, Height(panelDimensions)});
+			second->Panel().SetParentOffset({ realDraggerStartPos + draggerThickness,0 }).Resize({ Width(panelDimensions) - (realDraggerStartPos + draggerThickness), Height(panelDimensions)});
 		}
 
 		void Layout(const GuiRect& panelDimensions) override

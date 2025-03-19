@@ -139,8 +139,8 @@ namespace GRANON
 				{
 					auto& cell = row.cellsInThisRow[colIndex];
 
-					cell.div->Widget().Panel().SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
-					cell.div->Widget().Panel().InvalidateLayout(false);
+					cell.div->Panel().SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
+					cell.div->Panel().InvalidateLayout(false);
 
 					y += row.rowHeight;
 				}
@@ -244,7 +244,7 @@ namespace GRANON
 				int x = 0;
 				for (auto& cell : row.cellsInThisRow)
 				{
-					if (cell.div && IsCandidateDescendantOfParent(cell.div->Widget().Panel(), childlId))
+					if (cell.div && IsCandidateDescendantOfParent(cell.div->Panel(), childlId))
 					{
 						return { y, x };
 					}
@@ -315,7 +315,7 @@ namespace GRANON
 					auto* div = rows[nextCellId.row].cellsInThisRow[nextCellId.column].div;
 					if (div)
 					{
-						if (TrySetDeepFocus(div->Widget().Panel()))
+						if (TrySetDeepFocus(div->Panel()))
 						{
 							return EGREventRouting::Terminate;
 						}

@@ -230,8 +230,8 @@ namespace ANON
 					panel.MarkForDelete();
 				}
 			} cb;
-			frame.ClientArea().Widget().Panel().EnumerateChildren(&cb);
-			frame.ClientArea().Widget().Panel().Root().GR().GarbageCollect();
+			frame.ClientArea().Panel().EnumerateChildren(&cb);
+			frame.ClientArea().Panel().Root().GR().GarbageCollect();
 			frame.Widget().Panel().InvalidateLayout(false);
 		}
 
@@ -277,7 +277,7 @@ namespace ANON
 
 			ClearFrame(*frame);
 			
-			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().Widget(), 240, true).SetDraggerMinMax(240, 8192);
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().InnerWidget(), 240, true).SetDraggerMinMax(240, 8192);
 			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 
 			frameSplitter.EvOnSplitSizeChanged().Add(
@@ -303,7 +303,7 @@ namespace ANON
 				}
 			} popHandler;
 
-			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().Widget(), target, popHandler);
+			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().InnerWidget(), target, popHandler);
 			editorTree.Widget().Panel().Add(GRAnchors::ExpandAll());
 		}
 
