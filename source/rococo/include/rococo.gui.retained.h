@@ -551,13 +551,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidget: IGRBase
 	{
 		virtual void Layout(const GuiRect& parentDimensions) = 0;
-		virtual EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
-		virtual EGREventRouting OnCursorClick(GRCursorEvent& ce) = 0;
-		virtual void OnCursorEnter() = 0;
-		virtual void OnCursorLeave() = 0;
-		virtual EGREventRouting OnCursorMove(GRCursorEvent& ce) = 0;
-		virtual EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) = 0;
-
+		
 		// Invoked by the IGRRetained render call
 		virtual void Render(IGRRenderContext& g) = 0;
 
@@ -567,7 +561,17 @@ namespace Rococo::Gui
 		virtual cstr GetImplementationTypeName() const = 0;
 	};
 
-	ROCOCO_INTERFACE IGRWidgetSupervisor: IGRWidget
+	ROCOCO_INTERFACE IGRWidgetManager : IGRWidget
+	{
+		virtual EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
+		virtual EGREventRouting OnCursorClick(GRCursorEvent& ce) = 0;
+		virtual void OnCursorEnter() = 0;
+		virtual void OnCursorLeave() = 0;
+		virtual EGREventRouting OnCursorMove(GRCursorEvent& ce) = 0;
+		virtual EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetSupervisor: IGRWidgetManager
 	{
 		// Invoked by the IGRRetained instance management logic
 		virtual void Free() = 0;

@@ -166,7 +166,8 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return collapseButton->Widget().OnKeyEvent(keyEvent);
+			auto& widgetManager = static_cast<IGRWidgetManager&>(collapseButton->Widget());
+			return widgetManager.OnKeyEvent(keyEvent);
 		}
 
 		IGRWidget& Widget()

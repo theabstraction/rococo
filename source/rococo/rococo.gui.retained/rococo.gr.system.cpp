@@ -385,7 +385,8 @@ namespace ANON
 					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
 					if (panelSupervisor.RouteCursorClickEvent(ev, false) == EGREventRouting::NextHandler)
 					{
-						return widget->OnCursorClick(ev);
+						auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
+						return widgetManager.OnCursorClick(ev);
 					}
 					else
 					{
@@ -460,7 +461,8 @@ namespace ANON
 						IGRWidget* widget = FindWidget(previousMovementCallstack[j].panelId);
 						if (widget)
 						{
-							widget->OnCursorLeave();
+							auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
+							widgetManager.OnCursorLeave();
 						}
 					}
 
@@ -482,7 +484,8 @@ namespace ANON
 						IGRWidget* widget = FindWidget(movementCallstack[j].panelId);
 						if (widget)
 						{
-							widget->OnCursorEnter();
+							auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
+							widgetManager.OnCursorEnter();
 						}
 					}
 
@@ -570,7 +573,8 @@ namespace ANON
 
 			for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
 			{
-				if (i->panel->Widget().OnCursorMove(ev) == EGREventRouting::Terminate)
+				auto& widgetManager = static_cast<IGRWidgetManager&>(i->panel->Widget());
+				if (widgetManager.OnCursorMove(ev) == EGREventRouting::Terminate)
 				{
 					result = EGREventRouting::Terminate;
 				}
@@ -598,7 +602,8 @@ namespace ANON
 
 			for (auto i = keypressCallstack.rbegin(); i != keypressCallstack.rend(); ++i)
 			{
-				if (i->panel->Widget().OnKeyEvent(keyEvent) == EGREventRouting::Terminate)
+				auto& widgetManager = static_cast<IGRWidgetManager&>(i->panel->Widget());
+				if (widgetManager.OnKeyEvent(keyEvent) == EGREventRouting::Terminate)
 				{
 					return EGREventRouting::Terminate;
 				}
@@ -622,7 +627,8 @@ namespace ANON
 				return EGREventRouting::Terminate;
 			}
 
-			return widget->OnKeyEvent(keyEvent);
+			auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
+			return widgetManager.OnKeyEvent(keyEvent);
 		}
 
 		IGRCustodian& Custodian() override

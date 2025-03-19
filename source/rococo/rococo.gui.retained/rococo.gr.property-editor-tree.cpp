@@ -398,7 +398,8 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			return viewport->VScroller().Scroller().Widget().OnCursorClick(ce);
+			auto& widgetManager = static_cast<IGRWidgetManager&>(viewport->VScroller().Scroller().Widget());
+			return widgetManager.OnCursorClick(ce);
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
