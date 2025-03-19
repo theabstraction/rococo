@@ -7,12 +7,22 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRDivision : IGRWidgetDivision
+	struct GRDivision : IGRWidgetDivision, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
 
 		GRDivision(IGRPanel& owningPanel) : panel(owningPanel)
 		{
+		}
+
+		virtual ~GRDivision()
+		{
+
+		}
+
+		IGRWidget& Widget() override
+		{
+			return *this;
 		}
 
 		void Free() override
@@ -106,7 +116,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& div = static_cast<IGRWidgetDivision&>(gr.AddWidget(parent.Panel(), GRANON::s_DivFactory));
+		auto& div = static_cast<GRANON::GRDivision&>(gr.AddWidget(parent.Panel(), GRANON::s_DivFactory));
 		return div;
 	}
 }

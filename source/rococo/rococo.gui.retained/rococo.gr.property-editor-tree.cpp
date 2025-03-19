@@ -465,7 +465,7 @@ namespace GRANON
 
 			GRAlignmentFlags nameAlignment;
 			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
-			auto& nameText = CreateText(*nameCell).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 2,2 });
+			auto& nameText = CreateText(nameCell->Widget()).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 2,2 });
 			nameText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
 			IGREditFilter* filter = nullptr;
@@ -506,7 +506,7 @@ namespace GRANON
 
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
-			auto& valueText = CreateEditBox(*valueCell, filter, capacity).SetAlignment(valueAlignment, { 2,2 });
+			auto& valueText = CreateEditBox(valueCell->Widget(), filter, capacity).SetAlignment(valueAlignment, {2,2});
 			valueText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 0, 0, 0 });
 
 			if (field.value.type != PrimitiveType::CSTR)
@@ -613,7 +613,7 @@ namespace GRANON
 				SafeFormat(title, "root");
 			}
 
-			auto& titleDescription = Rococo::Gui::CreateText(titleDiv).SetText(title);
+			auto& titleDescription = Rococo::Gui::CreateText(titleDiv.Widget()).SetText(title);
 			titleDescription.Widget().Panel().Add(GRAnchors::ExpandHorizontally()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Set(GRAnchorPadding{ 32, 0, 0, 0 });
 
 			GRAlignmentFlags rightCentered;
@@ -621,7 +621,7 @@ namespace GRANON
 
 			titleDescription.SetAlignment(rightCentered, { 0,0 });
 
-			auto& list = CreateVerticalList(collapser.ClientArea());
+			auto& list = CreateVerticalList(collapser.ClientArea().Widget());
 			list.Widget().Panel().Set(GRAnchors::ExpandAll());
 
 			int32 firstSimpleFieldIndex = -1;
@@ -673,7 +673,7 @@ namespace GRANON
 
 			viewport->SetLineDeltaPixels(30);
 
-			auto& vp = viewport->ClientArea().Panel();
+			auto& vp = viewport->ClientArea().Widget().Panel();
 			SetUniformColourForAllRenderStates(vp, EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
 			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
 			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
@@ -685,7 +685,7 @@ namespace GRANON
 
 			auto* node = previewer.root;
 
-			if (node) SyncUIToPreviewerRecursive(*node, viewport->ClientArea(), 0);
+			if (node) SyncUIToPreviewerRecursive(*node, viewport->ClientArea().Widget(), 0);
 
 			SetCollapserSizes();
 		}
@@ -694,7 +694,7 @@ namespace GRANON
 		{
 			int32 heightOfDescendants = 30;
 
-			auto* collapserChild = collapserParent.ClientArea().Panel().GetChild(0);
+			auto* collapserChild = collapserParent.ClientArea().Widget().Panel().GetChild(0);
 
 			if (!collapserChild)
 			{
@@ -727,7 +727,7 @@ namespace GRANON
 				}
 			}
 
-			collapserParent.Widget().Panel().Resize({ viewport->ClientArea().Panel().Span().x, heightOfDescendants });
+			collapserParent.Widget().Panel().Resize({ viewport->ClientArea().Widget().Panel().Span().x, heightOfDescendants });
 
 			return heightOfDescendants;
 		}
@@ -741,7 +741,7 @@ namespace GRANON
 			}
 			auto& clientArea = viewport->ClientArea();
 
-			auto* rootCollapserPanel = clientArea.Panel().GetChild(0);
+			auto* rootCollapserPanel = clientArea.Widget().Panel().GetChild(0);
 			if (!rootCollapserPanel) return;
 
 			IGRWidgetCollapser* collapser = Cast<IGRWidgetCollapser>(rootCollapserPanel->Widget());

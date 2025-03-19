@@ -75,7 +75,7 @@ namespace GRANON
 		{
 			clientArea = &CreateDivision(*this);
 			titleBar = &CreateDivision(*this);
-			collapseButton = &CreateButton(*titleBar);
+			collapseButton = &CreateButton(titleBar->Widget());
 			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,2});
 			collapseButton->SetRaisedImagePath(collapserExpandPath);
 			collapseButton->SetPressedImagePath(collapserInlinePath);
@@ -91,14 +91,14 @@ namespace GRANON
 		void Layout(const GuiRect& panelDimensions) override
 		{
 			enum { TITLE_BAR_HEIGHT = 30 };
-			titleBar->Panel().Resize({Width(panelDimensions), TITLE_BAR_HEIGHT });
+			titleBar->Widget().Panel().Resize({Width(panelDimensions), TITLE_BAR_HEIGHT });
 
 			Vec2i newClientSpan;
 
 			if (IsCollapsed())
 			{
 				newClientSpan = { Width(panelDimensions), 0 };
-				clientArea->Panel().SetCollapsed(true);
+				clientArea->Widget().Panel().SetCollapsed(true);
 			}
 			else
 			{
@@ -107,11 +107,11 @@ namespace GRANON
 				{
 					newClientSpan.y = TITLE_BAR_HEIGHT;
 				}
-				clientArea->Panel().SetCollapsed(false);
+				clientArea->Widget().Panel().SetCollapsed(false);
 			}
 
-			clientArea->Panel().Resize(newClientSpan);
-			clientArea->Panel().SetParentOffset({ 0, TITLE_BAR_HEIGHT });
+			clientArea->Widget().Panel().Resize(newClientSpan);
+			clientArea->Widget().Panel().SetParentOffset({ 0, TITLE_BAR_HEIGHT });
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

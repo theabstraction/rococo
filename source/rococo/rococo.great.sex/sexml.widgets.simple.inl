@@ -19,8 +19,8 @@ namespace Rococo::GreatSex
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& divDirective, Rococo::Gui::IGRWidget& parent) override
 		{
 			auto& div = Rococo::Gui::CreateDivision(parent);
-			generator.SetPanelAttributes(div, divDirective);
-			generator.GenerateChildren(divDirective, div);
+			generator.SetPanelAttributes(div.Widget(), divDirective);
+			generator.GenerateChildren(divDirective, div.Widget());
 		}
 	};
 

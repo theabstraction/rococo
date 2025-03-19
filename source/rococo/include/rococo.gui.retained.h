@@ -733,9 +733,10 @@ namespace Rococo::Gui
 	};
 
 	// A widget with a rectangular background for holding child widgets
-	ROCOCO_INTERFACE IGRWidgetDivision : IGRWidgetSupervisor
+	ROCOCO_INTERFACE IGRWidgetDivision : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
 	};
 
 	struct GRColumnSpec

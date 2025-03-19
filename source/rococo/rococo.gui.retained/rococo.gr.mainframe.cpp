@@ -49,7 +49,7 @@ namespace GRANON
 			if (titleBar)
 			{
 				clientAreaTop = 30;
-				titleBar->Panel().Resize({ panel.Span().x, clientAreaTop });
+				titleBar->Widget().Panel().Resize({ panel.Span().x, clientAreaTop });
 			}
 
 			GRAnchorPadding paddingOnePixel{ 1, 1, 1, 1 };
@@ -77,7 +77,7 @@ namespace GRANON
 			}
 
 			Vec2i frameSpan = Span(screenDimensions);
-			clientArea->Panel().Resize({ frameSpan.x, frameSpan.y - clientAreaTop }).SetParentOffset({ 0, clientAreaTop });
+			clientArea->Widget().Panel().Resize({ frameSpan.x, frameSpan.y - clientAreaTop }).SetParentOffset({ 0, clientAreaTop });
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -131,7 +131,7 @@ namespace GRANON
 
 			if (!menuBar)
 			{
-				menuBar = &CreateMenuBar(*titleBar);
+				menuBar = &CreateMenuBar(titleBar->Widget());
 			}
 
 			return *menuBar;
@@ -146,7 +146,7 @@ namespace GRANON
 
 			if (!rhsTools)
 			{
-				rhsTools = &CreateToolbar(*titleBar);
+				rhsTools = &CreateToolbar(titleBar->Widget());
 			}
 
 			return *rhsTools;
