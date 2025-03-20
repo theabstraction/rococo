@@ -25,10 +25,13 @@
 #include <gdiplus.h>
 #pragma comment (lib,"Gdiplus.lib")
 
+using namespace Rococo;
+using namespace Rococo::GR;
+using namespace Rococo::GR::Win32;
 using namespace Rococo::Gui;
 using namespace Gdiplus;
 
-namespace Rococo::GR::Win32::Implementation
+namespace GRANON
 {
 	class GDISolidBrush
 	{
@@ -1364,6 +1367,7 @@ namespace Rococo::GR::Win32::Implementation
 			catch (IException& ex)
 			{
 				Rococo::Windows::THIS_WINDOW parent(GetParent(hWnd));
+				SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) DefWindowProc);
 				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __FUNCTION__);
 				PostQuitMessage(0);
 				return 0L;
@@ -1605,29 +1609,29 @@ namespace Rococo::GR::Win32
 {
 	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian()
 	{
-		return new Rococo::GR::Win32::Implementation::GDICustodian();
+		return new GRANON::GDICustodian();
 	}
 
 	ROCOCO_API_EXPORT IWin32GDIApp* CreateWin32GDIApp()
 	{
-		return new Implementation::Win32GDIApp();
+		return new GRANON::Win32GDIApp();
 	}
 
 	ROCOCO_API_EXPORT IGRClientWindowSupervisor* CreateGRClientWindow(HWND hParentWnd)
 	{
-		AutoFree<Implementation::GRClientWindow> window = new Implementation::GRClientWindow();
+		AutoFree<GRANON::GRClientWindow> window = new GRANON::GRClientWindow();
 		window->Create(hParentWnd);
 		return window.Detach();
 	}
 
 	ROCOCO_API_EXPORT cstr GetGRClientClassName()
 	{
-		return Implementation::clientClassName;
+		return GRANON::clientClassName;
 	}
 
 	ROCOCO_API_EXPORT IGRMainFrameWindowSupervisor* CreateGRMainFrameWindow(HWND hOwner, const GRMainFrameConfig& config)
 	{
-		AutoFree<Implementation::GRMainFrameWindow> window = new Implementation::GRMainFrameWindow();
+		AutoFree<GRANON::GRMainFrameWindow> window = new GRANON::GRMainFrameWindow();
 		window->Create(hOwner, config);
 		return window.Detach();
 	}

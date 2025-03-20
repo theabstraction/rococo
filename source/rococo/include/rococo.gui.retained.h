@@ -595,6 +595,12 @@ namespace Rococo::Gui
 		virtual void Render(IGRRenderContext& g) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetLayout : IGRBase
+	{
+		virtual void Layout() = 0;
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+	};
+
 	ROCOCO_INTERFACE IGRWidgetSupervisor: IGRWidgetManager
 	{
 		// Invoked by the IGRRetained instance management logic

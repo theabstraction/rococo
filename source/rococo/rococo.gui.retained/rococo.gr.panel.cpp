@@ -23,7 +23,7 @@ namespace GRANON
 		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
 		Vec2i minimalSpan{ 0,0 };
-		std::vector<IGRPanelSupervisor*> children;
+		std::vector<GRPanel*> children;
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
 		GRAnchors anchors;
@@ -311,9 +311,24 @@ namespace GRANON
 
 		void Layout() override
 		{
+			SetPanelLayoutRecursive();
 			ShrinkToFitRecursive();
 			ExpandToParentRecursive();
 			SetAbsRectRecursive();
+		}
+
+		void SetPanelLayoutRecursive()
+		{
+			for (auto* child : children)
+			{
+				auto* layout = Cast<IGRWidgetLayout>(child->Widget());
+				if (layout)
+				{
+					layout->Layout();
+				}
+
+				child->SetPanelLayoutRecursive();
+			}
 		}
 
 		void SetAbsRectRecursive()
@@ -333,11 +348,10 @@ namespace GRANON
 			case ELayoutDirection::LeftToRight:
 				for (auto* child : children)
 				{
-					auto& c = *static_cast<GRPanel*>(child);
-					c.parentOffset.x = delta;
-					c.parentOffset.y = 0;
-					c.SetAbsRectRecursive();
-					delta += c.span.x;
+					child->parentOffset.x = delta;
+					child->parentOffset.y = 0;
+					child->SetAbsRectRecursive();
+					delta += child->span.x;
 				}
 				break;
 			case ELayoutDirection::RightToLeft:
@@ -351,7 +365,7 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
-				static_cast<GRPanel*>(child)->SetAbsRectRecursive();
+				child->SetAbsRectRecursive();
 			}
 		}
 
@@ -372,7 +386,7 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
-				static_cast<GRPanel*>(child)->ExpandToParentRecursive();
+				child->ExpandToParentRecursive();
 			}
 		}
 
@@ -380,7 +394,7 @@ namespace GRANON
 		{
 			for (auto* child : children)
 			{
-				static_cast<GRPanel*>(child)->ShrinkToFitRecursive();
+				child->ShrinkToFitRecursive();
 			}
 
 			int width = 0;
@@ -473,7 +487,7 @@ namespace GRANON
 
 			if (removeMarkedChildren)
 			{
-				std::vector<IGRPanelSupervisor*> newChildren;
+				std::vector<GRPanel*> newChildren;
 				for (auto* child : children)
 				{
 					if (child->IsMarkedForDeletion())
@@ -984,5 +998,10 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API cstr IGRFocusNotifier::InterfaceId()
 	{
 		return "IGRFocusNotifier";
+	}
+
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetLayout::InterfaceId()
+	{
+		return "IGRWidgetLayout";
 	}
 }

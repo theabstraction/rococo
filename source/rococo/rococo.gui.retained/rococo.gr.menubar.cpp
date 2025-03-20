@@ -149,7 +149,7 @@ namespace GRANON
 		root = new MenuBranch(*this, rootId, nullptr);
 	}
 
-	struct GRMenuBar : IGRWidgetMenuBar, IGRWidgetSupervisor
+	struct GRMenuBar : IGRWidgetMenuBar, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		GRMenuTree tree;
@@ -368,6 +368,12 @@ namespace GRANON
 			delete this;
 		}
 
+		void Layout() override
+		{
+			panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Not implemented");
+			return;
+		}
+
 		void Layout(const GuiRect& panelDimensions) override
 		{
 			UNUSED(panelDimensions);
@@ -494,6 +500,14 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			if (DoInterfaceNamesMatch(interfaceId, IGRWidgetLayout::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = (IGRWidgetLayout*)this;
+				}
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
 			return Gui::QueryForParticularInterface<IGRWidgetMenuBar>(this, ppOutputArg, interfaceId);
 		}
 
