@@ -140,7 +140,6 @@ namespace GRANON
 				menuBar = &CreateMenuBar(titleBar->InnerWidget());
 				menuBar->Widget().Panel().SetExpandToParentHorizontally();
 				menuBar->Widget().Panel().SetExpandToParentVertically();
-				menuBar->Widget().Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
 
 			return *menuBar;

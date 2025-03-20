@@ -205,6 +205,11 @@ namespace GRANON
 
 			bool isHovered = g.IsHovered(panel);
 
+			if (isHovered)
+			{
+				printf("");
+			}
+
 			bool imageRendered = false;
 
 			IGRImage* image = isRaised ? raisedImage : pressedImage;
@@ -225,8 +230,7 @@ namespace GRANON
 
 			if (!imageRendered)
 			{
-				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON_TEXT, rs);
-				colour.alpha = isHovered ? colour.alpha : 3 * (colour.alpha / 4);
+				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : EGRSchemeColourSurface::BUTTON_TEXT, rs);
 				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, colour, g);
 			}
 		}

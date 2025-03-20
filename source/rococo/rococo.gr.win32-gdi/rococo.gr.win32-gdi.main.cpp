@@ -1177,7 +1177,7 @@ namespace GRANON
 			classDef.hInstance = hInstance;
 			classDef.lpszClassName = clientClassName;
 			classDef.lpszMenuName = NULL;
-			classDef.lpfnWndProc = DefWindowProcA;
+			classDef.lpfnWndProc = DefWindowProc;
 		}
 
 		struct UsingBackBuffer
@@ -1367,13 +1367,13 @@ namespace GRANON
 			catch (IException& ex)
 			{
 				Rococo::Windows::THIS_WINDOW parent(GetParent(hWnd));
-				SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) DefWindowProc);
+				SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) DefWindowProc);
 				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __FUNCTION__);
 				PostQuitMessage(0);
 				return 0L;
 			}
 
-			return DefWindowProcA(hWnd, msg, wParam, lParam);
+			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}
 
 		GRClientWindow()
@@ -1437,8 +1437,8 @@ namespace GRANON
 				Throw(GetLastError(), "%s: could not create client window for %s", __FUNCTION__, clientInfo.lpszClassName);
 			}
 
-			SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR) this);
-			SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR) GDIProc);
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) this);
+			SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) GDIProc);
 		}
 
 		void LinkScene(IGR2DScene* scene)
@@ -1527,7 +1527,7 @@ namespace GRANON
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			}
-			return DefWindowProcA(hWnd, msg, wParam, lParam);
+			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}
 
 		static void PopulateMainClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)

@@ -159,6 +159,7 @@ namespace GRANON
 		GRMenuBar(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			owningPanel.SetMinimalSpan({ 100, 24 });
+			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 			if (owningPanel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
@@ -235,9 +236,11 @@ namespace GRANON
 		Vec2i ShrinkPanelToFitText(IGRWidgetButton& button, Vec2i& lastPos)
 		{
 			Vec2i minimalSpan = button.Widget().Panel().MinimalSpan();
-			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  panel.Span().y };
+			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  minimalSpan.y };
 			button.Widget().Panel().Resize(newSpan);
 			button.Widget().Panel().SetParentOffset(lastPos);
+			button.Widget().Panel().SetConstantWidth(newSpan.x);
+			button.Widget().Panel().SetExpandToParentVertically();
 			lastPos.x += newSpan.x + 1;
 			return minimalSpan;
 		}
@@ -307,7 +310,9 @@ namespace GRANON
 					IGRPanel* newChildPanel = panel.GetChild(i);
 					if (newChildPanel)
 					{
-						newChildPanel->Resize({ largestMinimalSpan.x + 2 * BUTTON_X_PADDING, 24 });
+						newChildPanel->SetConstantHeight(largestMinimalSpan.y);
+						newChildPanel->SetConstantWidth(largestMinimalSpan.x + 2 * BUTTON_X_PADDING);
+						newChildPanel->Resize({ largestMinimalSpan.x + 2 * BUTTON_X_PADDING, largestMinimalSpan.y });
 						newChildPanel->SetParentOffset(vertPos);
 						vertPos.y += 24;
 					}
@@ -370,8 +375,11 @@ namespace GRANON
 
 		void Layout() override
 		{
-			panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Not implemented");
-			return;
+			if (isDirty)
+			{
+				ConstructWidgetsFromMenuTree();
+				isDirty = false;
+			}
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
