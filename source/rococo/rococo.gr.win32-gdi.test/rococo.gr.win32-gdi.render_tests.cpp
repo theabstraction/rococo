@@ -177,8 +177,6 @@ void BuildMenus(IGRWidgetMainFrame& frame)
 {
 	auto& menu = frame.MenuBar();
 	menu.Widget().Panel().
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(255, 255, 255, 255), GRGenerateIntensities()).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities()).
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false)).
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, false, false)).
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(false, true, false)).
@@ -186,7 +184,31 @@ void BuildMenus(IGRWidgetMainFrame& frame)
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, true, false)).
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, false, true)).
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(false, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, true, true));
+		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, true, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), GRRenderState(false, false, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, false, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(false, true, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(false, false, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, true, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, false, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(false, true, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, true, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(32, 32, 32, 255), GRRenderState(false, false, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, false, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(false, true, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(false, false, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, true, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, false, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(false, true, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, true, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(32, 32, 32, 255), GRRenderState(false, false, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(true, false, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(false, true, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(80, 80, 80, 255), GRRenderState(true, true, false)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(80, 80, 80, 255), GRRenderState(true, false, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true)).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(80, 80, 80, 255), GRRenderState(true, true, true));
 
 	auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 
@@ -234,9 +256,10 @@ void BuildMenus(IGRWidgetMainFrame& frame)
 	menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
 	menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
 
+	menu.Widget().Panel().Set(GRAnchorPadding{ 2, 2, 2, 2 });
+
 	auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
-	titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-	titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+	titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(32, 32, 32, 255), GRGenerateIntensities());
 	titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 }
 

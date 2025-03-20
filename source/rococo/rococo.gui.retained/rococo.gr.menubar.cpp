@@ -237,8 +237,7 @@ namespace GRANON
 		{
 			Vec2i minimalSpan = button.Widget().Panel().MinimalSpan();
 			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  minimalSpan.y };
-			button.Widget().Panel().Resize(newSpan);
-			button.Widget().Panel().SetParentOffset(lastPos);
+			button.Widget().Panel().SetParentOffset({ lastPos.x, -lastPos.y });
 			button.Widget().Panel().SetConstantWidth(newSpan.x);
 			button.Widget().Panel().SetExpandToParentVertically();
 			lastPos.x += newSpan.x + 1;
@@ -278,7 +277,7 @@ namespace GRANON
 
 		int32 maxDepth = 0;
 
-		void ConstructWidgetsFromBranchRecursive(IGRPanel& origin, MenuBranch& branch, int depth, Vec2i startPos)
+		void ConstructWidgetsFromBranchRecursive(IGRPanel& origin, MenuBranch& branch, int depth, Vec2i startPos, Vec2i barSpan)
 		{
 			UNUSED(origin);
 
@@ -294,6 +293,8 @@ namespace GRANON
 				largestMinimalSpan.x = max(minimalSpan.x, largestMinimalSpan.x);
 				largestMinimalSpan.y = max(minimalSpan.y, largestMinimalSpan.y);
 			}			
+
+			largestMinimalSpan.y = max(max(largestMinimalSpan.y, origin.MinimalSpan().y), barSpan.y);
 
 			if (depth > 0)
 			{
@@ -314,7 +315,7 @@ namespace GRANON
 						newChildPanel->SetConstantWidth(largestMinimalSpan.x + 2 * BUTTON_X_PADDING);
 						newChildPanel->Resize({ largestMinimalSpan.x + 2 * BUTTON_X_PADDING, largestMinimalSpan.y });
 						newChildPanel->SetParentOffset(vertPos);
-						vertPos.y += 24;
+						vertPos.y += largestMinimalSpan.y;
 					}
 				}
 			}
@@ -328,13 +329,13 @@ namespace GRANON
 					Vec2i branchPos;
 					if (depth == 0)
 					{
-						branchPos = activeBranchChild->ParentOffset() + Vec2i{ 0, panel.Span().y };
+						branchPos = activeBranchChild->ParentOffset() + Vec2i{ 0, panel.Span().y - (panel.Padding().top + panel.Padding().bottom )};
 					}
 					else
 					{
 						branchPos = activeBranchChild->ParentOffset() + Vec2i{ activeBranchChild->Span().x, 0 };
 					}
-					ConstructWidgetsFromBranchRecursive(*activeBranchChild, *branch.children[activeBranchIndex].branch, depth + 1, branchPos);
+					ConstructWidgetsFromBranchRecursive(*activeBranchChild, *branch.children[activeBranchIndex].branch, depth + 1, branchPos, barSpan);
 				}
 			}
 		}
@@ -343,7 +344,8 @@ namespace GRANON
 		{
 			// It should be safe to clear children here, because they are not yet within our callstack
 			static_cast<IGRPanelSupervisor&>(panel).ClearChildren();
-			ConstructWidgetsFromBranchRecursive(panel, *tree.root, 0, { 0,0 });
+			Vec2i iconSpan = panel.Span();
+			ConstructWidgetsFromBranchRecursive(panel, *tree.root, 0, { 0, 0 }, iconSpan);
 		}
 
 		void LayoutItems()
@@ -373,13 +375,22 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout() override
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
 		{
 			if (isDirty)
 			{
 				ConstructWidgetsFromMenuTree();
 				isDirty = false;
 			}
+		}
+
+		void LayoutAfterExpand() override
+		{
 		}
 
 		void Layout(const GuiRect& panelDimensions) override

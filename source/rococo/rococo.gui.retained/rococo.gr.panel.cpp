@@ -311,37 +311,59 @@ namespace GRANON
 
 		void Layout() override
 		{
-			SetPanelLayoutRecursive();
+			SetPanelLayoutRecursive(ELayoutPhase::BeforeFit);			
 			ShrinkToFitRecursive();
+
+			SetPanelLayoutRecursive(ELayoutPhase::BeforeExpand);
 			ExpandToParentRecursive();
+
+			SetPanelLayoutRecursive(ELayoutPhase::AfterExpand);
 			SetAbsRectRecursive();
 		}
 
-		void SetPanelLayoutRecursive()
+		enum class ELayoutPhase
+		{
+			BeforeFit,
+			BeforeExpand,
+			AfterExpand
+		};
+
+		void SetPanelLayoutRecursive(ELayoutPhase phase)
 		{
 			for (auto* child : children)
 			{
 				auto* layout = Cast<IGRWidgetLayout>(child->Widget());
 				if (layout)
 				{
-					layout->Layout();
+					switch (phase)
+					{
+					case ELayoutPhase::BeforeFit:
+						layout->LayoutBeforeFit();
+						break;
+					case ELayoutPhase::BeforeExpand:
+						layout->LayoutBeforeExpand();
+						break;
+					default:
+						layout->LayoutAfterExpand();
+						break;
+					}
 				}
 
-				child->SetPanelLayoutRecursive();
+				child->SetPanelLayoutRecursive(phase);
 			}
 		}
 
 		void SetAbsRectRecursive()
 		{
 			absRect.left = parent ? parent->absRect.left : 0;
-			absRect.left += parentOffset.x;
+			absRect.left += parentOffset.x + (parent ? parent->padding.left : 0);
 
 			absRect.top = parent ? parent->absRect.top : 0;
-			absRect.top += parentOffset.y;
+			absRect.top += parentOffset.y + (parent ? parent->padding.top : 0);
 			absRect.right = absRect.left + span.x;
 			absRect.bottom = absRect.top + span.y;
 
-			int delta = 0;
+			int delta = padding.left;
 
 			switch (layoutDirection)
 			{
@@ -380,7 +402,7 @@ namespace GRANON
 
 				if (heightSizing == ESizingRule::ExpandToParent)
 				{
-					span.y = parent->span.y;
+					span.y = parent->span.y - (parent->padding.top + parent->padding.bottom);
 				}
 			}
 
@@ -416,12 +438,12 @@ namespace GRANON
 
 			if (widthSizing == ESizingRule::FitChildren)
 			{
-				span.x = width;
+				span.x = width + padding.left + padding.right;
 			}
 
 			if (heightSizing == ESizingRule::FitChildren)
 			{
-				span.y = height;
+				span.y = height + padding.top + padding.bottom;
 			}
 		}
 

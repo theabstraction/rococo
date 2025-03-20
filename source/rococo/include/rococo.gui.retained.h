@@ -597,7 +597,10 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRWidgetLayout : IGRBase
 	{
-		virtual void Layout() = 0;
+		virtual void LayoutBeforeFit() = 0;
+		virtual void LayoutBeforeExpand() = 0;
+		virtual void LayoutAfterExpand() = 0;
+
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 	};
 
