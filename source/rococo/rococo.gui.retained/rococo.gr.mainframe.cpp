@@ -23,11 +23,14 @@ namespace GRANON
 
 		void PostConstruct()
 		{
+			MakeTitleBar();
+
 			if (!clientArea)
 			{
 				clientArea = &CreateDivision(*this);
 				clientArea->Panel().SetExpandToParentHorizontally();
 				clientArea->Panel().SetExpandToParentVertically();
+				clientArea->Panel().SetDesc("Frame.Client");
 			}
 		}
 
@@ -51,7 +54,7 @@ namespace GRANON
 
 			if (titleBar)
 			{
-				clientAreaTop = 30;
+				clientAreaTop = TOOLBAR_PIXEL_HEIGHT_DEFAULT;
 				titleBar->Panel().Resize({ panel.Span().x, clientAreaTop });
 			}
 
@@ -125,21 +128,37 @@ namespace GRANON
 			return *clientArea;
 		}
 
-		IGRWidgetMenuBar& MenuBar() override
+		void MakeTitleBar()
 		{
 			if (!titleBar)
 			{
 				titleBar = &CreateDivision(*this);
 				titleBar->Panel().SetExpandToParentHorizontally();
-				titleBar->Panel().SetConstantHeight(30);
+				titleBar->Panel().SetConstantHeight(TOOLBAR_PIXEL_HEIGHT_DEFAULT);
 				titleBar->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
+				titleBar->Panel().SetDesc("Frame.TitleBar");
 			}
+		}
+
+		void SetTitleBarHeight(int height) override
+		{
+			if (height >= 0 && height < MAX_SANE_TITLE_HEIGHT)
+			{
+				MakeTitleBar();
+				titleBar->Panel().SetConstantHeight(height);
+			}
+		}
+
+		IGRWidgetMenuBar& MenuBar() override
+		{
+			MakeTitleBar();
 
 			if (!menuBar)
 			{
 				menuBar = &CreateMenuBar(titleBar->InnerWidget());
 				menuBar->Widget().Panel().SetExpandToParentHorizontally();
 				menuBar->Widget().Panel().SetExpandToParentVertically();
+				menuBar->Widget().Panel().SetDesc("Frame.TitleBar.MenuBar");
 			}
 
 			return *menuBar;
@@ -147,14 +166,12 @@ namespace GRANON
 
 		IGRWidgetToolbar& TopRightHandSideTools() override
 		{
-			if (!titleBar)
-			{
-				titleBar = &CreateDivision(*this);
-			}
+			MakeTitleBar();
 
 			if (!rhsTools)
 			{
 				rhsTools = &CreateToolbar(titleBar->InnerWidget());
+				rhsTools->Widget().Panel().SetDesc("Frame.TitleBar.RHS");
 			}
 
 			return *rhsTools;

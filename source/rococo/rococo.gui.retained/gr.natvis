@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<Type Name="GRANON::GRPanel">
-		<DisplayString>{{Id: {uniqueId}. Rect: {absRect}. Span: {span}. ParentOffset: {parentOffset}}</DisplayString>
+		<DisplayString>{{{ desc } #{uniqueId}. {absRect}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRCollapser">
-		<DisplayString>{{Collapser: {panel}. Button {collapseButton}}</DisplayString>
+		<DisplayString>{{Collapser: #{uniqueId}. {absRect}. Desc: { desc }. Button {collapseButton}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRDivision">
-		<DisplayString>{{Division: {panel}}}</DisplayString>
+		<DisplayString>{{Division: #{uniqueId}. {absRect}. Desc: { desc }}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRVerticalList">
-		<DisplayString>{{VerticalList: {panel}}}</DisplayString>
+		<DisplayString>{{VerticalList:#{uniqueId}. {absRect}. Desc: { desc }}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMainFrame">
-		<DisplayString>{{Frame:'{name}'. {panel}}}</DisplayString>
+		<DisplayString>{{"GRMainFrame"}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRToolbar">
-		<DisplayString>{{Toolbar: {panel}}}</DisplayString>
+		<DisplayString>{{Toolbar: #{uniqueId}. {absRect}. Desc: { desc }}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRTable">
-		<DisplayString>{{Table: {panel}, cols {columnHeaders}, rows {rows}}}</DisplayString>
+		<DisplayString>{{Table: #{uniqueId}. {absRect}. Desc: { desc }, cols {columnHeaders}, rows {rows}}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRButton">
 		<DisplayString>{{Button: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMenuBar">
-		<DisplayString>{{Menu. {panel}}</DisplayString>
+		<DisplayString>{{Menu. #{uniqueId}. {absRect}. Desc: { desc }}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRSplitter">
-		<DisplayString>{{Splitter. {panel} L {first}, R {second}</DisplayString>
+		<DisplayString>{{Splitter. #{uniqueId}. {absRect}. Desc: { desc } L {first}, R {second}</DisplayString>
 	</Type>
 	<Type Name="Rococo::Gui::CursorEvent">
 		<DisplayString>{{Pos {position}. Click {click}. Id #{eventId}}}</DisplayString>

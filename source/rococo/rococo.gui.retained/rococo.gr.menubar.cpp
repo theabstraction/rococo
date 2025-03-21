@@ -329,10 +329,12 @@ namespace GRANON
 					Vec2i branchPos;
 					if (depth == 0)
 					{
+						// Our menu line appears vertically under the parent menu button
 						branchPos = activeBranchChild->ParentOffset() + Vec2i{ 0, panel.Span().y - (panel.Padding().top + panel.Padding().bottom )};
 					}
 					else
 					{
+						// Our menu line appears to the right of the parent menu button
 						branchPos = activeBranchChild->ParentOffset() + Vec2i{ activeBranchChild->Span().x, 0 };
 					}
 					ConstructWidgetsFromBranchRecursive(*activeBranchChild, *branch.children[activeBranchIndex].branch, depth + 1, branchPos, barSpan);

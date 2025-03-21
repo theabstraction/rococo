@@ -363,23 +363,32 @@ namespace GRANON
 			absRect.right = absRect.left + span.x;
 			absRect.bottom = absRect.top + span.y;
 
-			int delta = padding.left;
+			int dx = padding.left;
+			int dy = padding.top;
 
 			switch (layoutDirection)
 			{
 			case ELayoutDirection::LeftToRight:
 				for (auto* child : children)
 				{
-					child->parentOffset.x = delta;
+					child->parentOffset.x = dx;
 					child->parentOffset.y = 0;
 					child->SetAbsRectRecursive();
-					delta += child->span.x;
+					dx += child->span.x;
 				}
 				break;
 			case ELayoutDirection::RightToLeft:
 				
 				break;
 			case ELayoutDirection::TopToBottom:
+				for (auto* child : children)
+				{
+					child->parentOffset.x = 0;
+					child->parentOffset.y = dy;
+					child->SetAbsRectRecursive();
+					dy += child->span.y;
+				}
+				break;
 			case ELayoutDirection::BottomToTop:
 				
 				break;
@@ -391,20 +400,131 @@ namespace GRANON
 			}
 		}
 
-		void ExpandToParentRecursive()
+		void ExpandHorizontalSpansForChildren()
 		{
-			if (parent)
+			switch (layoutDirection)
 			{
-				if (widthSizing == ESizingRule::ExpandToParent)
+			case ELayoutDirection::LeftToRight:
+			case ELayoutDirection::RightToLeft:
+			{
+				int nExpandingChildren = 0;
+				int totalXSpanOfFixedWidthChildren = 0;
+
+				for (auto* child : children)
 				{
-					span.x = parent->span.x;
+					if (child->widthSizing == ESizingRule::ExpandToParent)
+					{
+						nExpandingChildren++;
+					}
+					else
+					{
+						totalXSpanOfFixedWidthChildren += child->span.x;
+					}
 				}
 
-				if (heightSizing == ESizingRule::ExpandToParent)
+				int freeSpace = span.x - totalXSpanOfFixedWidthChildren;
+				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
-					span.y = parent->span.y - (parent->padding.top + parent->padding.bottom);
+					for (auto* child : children)
+					{
+						if (child->widthSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.x = 0;
+						}
+					}
+				}
+				else
+				{
+					int averageSpan = freeSpace / nExpandingChildren;
+
+					for (auto* child : children)
+					{
+						if (child->widthSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.x = averageSpan;
+						}
+					}
 				}
 			}
+			break;
+			default:
+			{
+				for (auto* child : children)
+				{
+					if (child->widthSizing == ESizingRule::ExpandToParent)
+					{
+						child->span.x = span.x;
+					}
+				}
+			}
+			break;
+			}
+		}
+
+		void ExpandVerticalSpansForChildren()
+		{
+			switch (layoutDirection)
+			{
+			case ELayoutDirection::BottomToTop:
+			case ELayoutDirection::TopToBottom:
+			{
+				int nExpandingChildren = 0;
+				int totalYSpanOfFixedWidthChildren = 0;
+
+				for (auto* child : children)
+				{
+					if (child->heightSizing == ESizingRule::ExpandToParent)
+					{
+						nExpandingChildren++;
+					}
+					else
+					{
+						totalYSpanOfFixedWidthChildren += child->span.y;
+					}
+				}
+
+				int freeSpace = span.y - totalYSpanOfFixedWidthChildren;
+				if (freeSpace <= 0 || nExpandingChildren == 0)
+				{
+					for (auto* child : children)
+					{
+						if (child->heightSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.y = 0;
+						}
+					}
+				}
+				else
+				{
+					int averageSpan = freeSpace / nExpandingChildren;
+
+					for (auto* child : children)
+					{
+						if (child->heightSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.y = averageSpan;
+						}
+					}
+				}
+			}
+			break;
+			default:
+			{
+				for (auto* child : children)
+				{
+					if (child->heightSizing == ESizingRule::ExpandToParent)
+					{
+						child->span.y = span.y;
+					}
+				}
+			}
+			break;
+			}
+		}
+		void ExpandToParentRecursive()
+		{
+			ExpandHorizontalSpansForChildren();
+			ExpandVerticalSpansForChildren();
 
 			for (auto* child : children)
 			{

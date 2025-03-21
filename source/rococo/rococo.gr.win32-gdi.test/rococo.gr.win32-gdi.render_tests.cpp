@@ -270,21 +270,25 @@ void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	auto& tools = frame.TopRightHandSideTools();
 	tools.SetChildAlignment(EGRAlignment::Right);
 
-	auto& minimizer = CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
-	auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
-	auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+//	auto& minimizer = CreateButton(tools.Widget()).SetTitle("Min").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+//	auto& restorer = CreateButton(tools.Widget()).SetTitle("Max").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Expand.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
+//	auto& closer = CreateButton(tools.Widget()).SetTitle("Close").SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Close.tiff").SetClickCriterion(EGRClickCriterion::OnDownThenUp).SetEventPolicy(EGREventPolicy::PublicEvent);
 
-	minimizer.SetMetaData({ (int64)ToolbarMetaId::MINIMIZE, "OnMinimize" }, true);
-	restorer.SetMetaData({ (int64)ToolbarMetaId::RESTORE, "OnRestore" }, true);
-	closer.SetMetaData({ (int64)ToolbarMetaId::EXIT, "OnExit" }, true);
+//	minimizer.SetMetaData({ (int64)ToolbarMetaId::MINIMIZE, "OnMinimize" }, true);
+//	restorer.SetMetaData({ (int64)ToolbarMetaId::RESTORE, "OnRestore" }, true);
+//	closer.SetMetaData({ (int64)ToolbarMetaId::EXIT, "OnExit" }, true);
 
-	tools.ResizeToFitChildren();
+	tools.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 32, 32, 255), GRGenerateIntensities());
+	tools.Widget().Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
+	tools.Widget().Panel().SetExpandToParentVertically();
+	tools.Widget().Panel().SetConstantWidth(256);
 }
 
 void TestFrame(IGRSystem& gr)
 {
 	GRIdWidget mainFrame { "Main-Frame" };
 	auto& frame = gr.BindFrame(mainFrame);
+	//frame.SetTitleBarHeight(30);
 
 	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 255), GRGenerateIntensities());
 
@@ -293,9 +297,10 @@ void TestFrame(IGRSystem& gr)
 
 	BuildMenus(frame);
 
-	/*
+	
 	BuildUpperRightToolbar(frame);
 
+	/*
 	auto& framePanel = frame.Widget().Panel();
 
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
