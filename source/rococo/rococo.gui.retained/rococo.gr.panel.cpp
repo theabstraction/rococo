@@ -378,7 +378,15 @@ namespace GRANON
 				}
 				break;
 			case ELayoutDirection::RightToLeft:
-				
+				dx = Width(absRect) - padding.right;
+				for (auto i = children.rbegin(); i != children.rend(); ++i)
+				{
+					auto* child = *i;
+					dx -= child->span.x;
+					child->parentOffset.x = dx;
+					child->parentOffset.y = 0;
+					child->SetAbsRectRecursive();
+				}
 				break;
 			case ELayoutDirection::TopToBottom:
 				for (auto* child : children)

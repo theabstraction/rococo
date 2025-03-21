@@ -54,7 +54,7 @@ namespace GRANON
 
 			if (titleBar)
 			{
-				clientAreaTop = TOOLBAR_PIXEL_HEIGHT_DEFAULT;
+				clientAreaTop = 30;
 				titleBar->Panel().Resize({ panel.Span().x, clientAreaTop });
 			}
 
@@ -128,6 +128,8 @@ namespace GRANON
 			return *clientArea;
 		}
 
+		enum { TOOLBAR_PIXEL_HEIGHT_DEFAULT = 30};
+
 		void MakeTitleBar()
 		{
 			if (!titleBar)
@@ -137,15 +139,6 @@ namespace GRANON
 				titleBar->Panel().SetConstantHeight(TOOLBAR_PIXEL_HEIGHT_DEFAULT);
 				titleBar->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
 				titleBar->Panel().SetDesc("Frame.TitleBar");
-			}
-		}
-
-		void SetTitleBarHeight(int height) override
-		{
-			if (height >= 0 && height < MAX_SANE_TITLE_HEIGHT)
-			{
-				MakeTitleBar();
-				titleBar->Panel().SetConstantHeight(height);
 			}
 		}
 

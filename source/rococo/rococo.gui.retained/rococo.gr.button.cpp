@@ -309,6 +309,7 @@ namespace GRANON
 		IGRWidgetButton& SetTitle(cstr title) override
 		{
 			this->title = title == nullptr ? std::string() : title;
+			panel.SetDesc(title);
 			SyncMinimalSpan();
 			return *this;
 		}

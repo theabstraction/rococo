@@ -519,18 +519,23 @@ namespace GRANON
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) override
 		{
-			GDIPen topLeftPen(topLeftColour);
-			UsePen usePen(paintDC, topLeftPen);
-			
-			MoveToEx(paintDC, absRect.right, absRect.top, NULL);
-			LineTo(paintDC, absRect.left, absRect.top);
-			LineTo(paintDC, absRect.left, absRect.bottom);
+			Gdiplus::Pen topLeftPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue));
+			Gdiplus::Point topLeftPoints[3] =
+			{
+				{ absRect.right, absRect.top   },
+				{ absRect.left,  absRect.top   },
+				{ absRect.left, absRect.bottom }
+			};
+			g.DrawLines(&topLeftPen, topLeftPoints, 3);
 
-			GDIPen bottomRightPen(bottomRightColour);
-			UsePen usePen2(paintDC, bottomRightPen);
-			
-			LineTo(paintDC, absRect.right, absRect.bottom);
-			LineTo(paintDC, absRect.right, absRect.top);
+			Gdiplus::Pen bottomRightPen(Gdiplus::Color(bottomRightColour.alpha, bottomRightColour.red, bottomRightColour.green, bottomRightColour.blue));
+			Gdiplus::Point bottomRightPoints[3] =
+			{
+				{ absRect.left, absRect.bottom },
+				{ absRect.right, absRect.bottom },
+				{ absRect.right, absRect.top }
+			};
+			g.DrawLines(&topLeftPen, bottomRightPoints, 3);
 		}
 
 		struct HilightRect

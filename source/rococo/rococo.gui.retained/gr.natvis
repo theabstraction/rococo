@@ -22,7 +22,7 @@
 		<DisplayString>{{Table: #{uniqueId}. {absRect}. Desc: { desc }, cols {columnHeaders}, rows {rows}}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRButton">
-		<DisplayString>{{Button: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
+		<DisplayString>{{Btn: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMenuBar">
 		<DisplayString>{{Menu. #{uniqueId}. {absRect}. Desc: { desc }}</DisplayString>

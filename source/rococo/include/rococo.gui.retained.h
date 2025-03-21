@@ -864,8 +864,6 @@ namespace Rococo::Gui
 	// The main frame with menu, toolbar and client area beneath the title bar
 	ROCOCO_INTERFACE IGRWidgetMainFrame : IGRBase
 	{
-		enum { TOOLBAR_PIXEL_HEIGHT_DEFAULT = 30, MAX_SANE_TITLE_HEIGHT = 1024 };
-
 		// The unique id associated with this interface
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
@@ -880,9 +878,6 @@ namespace Rococo::Gui
 
 		// The part of the main frame that is below the title bar. If there is no title bar the client area covers the entire area
 		virtual IGRWidgetDivision& ClientArea() = 0;
-
-		// Sets a new height for the titlebar, menu bar and upper right toolbar (providing it is in the sane range 0 to MAX_SANE_TITLE_HEIGHT)
-		virtual void SetTitleBarHeight(int height = TOOLBAR_PIXEL_HEIGHT_DEFAULT) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetMainFrameSupervisor: IGRWidgetMainFrame
