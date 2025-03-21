@@ -1,5 +1,6 @@
 #include <rococo.gr.client.h>
 #include <rococo.gui.retained.h>
+#include <rococo.reflector.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -310,7 +311,6 @@ void TestFrame(IGRSystem& gr)
 	
 	BuildUpperRightToolbar(frame);
 
-	/*
 	auto& framePanel = frame.Widget().Panel();
 
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
@@ -324,22 +324,30 @@ void TestFrame(IGRSystem& gr)
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 
-	auto& button = Gui::CreateButton(frame.ClientArea().InnerWidget());
-
-	GRAlignmentFlags alignment;
-	alignment.Add(EGRAlignment::Left);
-	alignment.Add(EGRAlignment::Top);
-
-	GRAnchors anchors;
-	anchors.left = true;
-	anchors.top = true;
-
-	button.Widget().Panel().Anchors() = anchors;
-	button.Widget().Panel().SetMinimalSpan({ 128,32 });
-	button.SetTitle("<Magic>");
-
 	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 255), GRGenerateIntensities());
-	*/
+
+	struct EventHandler: Gui::IGRPropertyEditorPopulationEvents
+	{
+		void OnAddNameValue(IGRWidgetText& nameWidget, IGRWidgetEditBox& editorWidget)
+		{
+
+		}
+	} eventHandler;
+
+	struct Target: Reflection::IReflectionTarget
+	{
+		void Visit(Reflection::IReflectionVisitor& v)
+		{
+			Reflection::Section target(v, "Target");
+			ROCOCO_REFLECT(v, iValue);
+		}
+
+		int iValue = 42;
+	} target;
+
+	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), target, eventHandler);
+	editor.Widget().Panel().SetExpandToParentHorizontally();
+	editor.Widget().Panel().SetExpandToParentVertically();
 }
 
 void TestWidgets(IGRSystem& gr)

@@ -488,10 +488,10 @@ namespace Rococo::DX11
 
 		void Visit(IReflectionVisitor& v) override
 		{
-			Section pipeline("DX11Pipeline", v);
+			Section pipeline(v, "DX11Pipeline");
 
 			{
-				Container samplers("Samplers", v);
+				Container samplers(v, "Samplers");
 
 				for (int i = 0; i < 16; i++)
 				{
@@ -510,7 +510,7 @@ namespace Rococo::DX11
 			}
 
 			{
-				Section rasterizers("Rasterizers", v);
+				Section rasterizers(v, "Rasterizers");
 
 				Reflect(v, "spriteRasterizering", *spriteRasterizering);
 				Reflect(v, "objectRasterizering", *objectRasterizering);
@@ -521,7 +521,7 @@ namespace Rococo::DX11
 
 
 			{
-				Section blending("Blending", v);
+				Section blending(v, "Blending");
 				Reflect(v, "alphaBlend", *alphaBlend);
 				Reflect(v, "alphaAdditiveBlend", *alphaAdditiveBlend);
 				Reflect(v, "disableBlend", *disableBlend);
@@ -530,7 +530,7 @@ namespace Rococo::DX11
 			}
 
 			{
-				Section depthStencil("Depth+Stencil", v);
+				Section depthStencil(v, "Depth+Stencil");
 				Reflect(v, "objDepthState", *objDepthState);
 				Reflect(v, "objDepthState_NoWrite", *objDepthState_NoWrite);
 				Reflect(v, "noDepthTestOrWrite", *noDepthTestOrWrite);

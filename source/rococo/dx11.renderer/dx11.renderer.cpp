@@ -746,10 +746,10 @@ public:
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		Section renderer("DX11AppRenderer", v);
+		Section renderer(v, "DX11AppRenderer");
 
 		{
-			Container container("adapters", v);
+			Container container(v, "adapters");
 
 			for (UINT i = 0; i < 10; i++)
 			{

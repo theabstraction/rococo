@@ -67,7 +67,7 @@ namespace Rococo::Reflection
 	{
 		IReflectionVisitor& visitor;
 	public:
-		Section(cstr sectionName, IReflectionVisitor& _visitor) : visitor(_visitor)
+		Section(IReflectionVisitor& _visitor, cstr sectionName) : visitor(_visitor)
 		{
 			visitor.EnterSection(sectionName);
 		}
@@ -82,7 +82,7 @@ namespace Rococo::Reflection
 	{
 		IReflectionVisitor& visitor;
 	public:
-		Container(cstr name, IReflectionVisitor& _visitor) : visitor(_visitor)
+		Container(IReflectionVisitor& _visitor, cstr name) : visitor(_visitor)
 		{
 			visitor.EnterContainer(name);
 		}
@@ -97,7 +97,7 @@ namespace Rococo::Reflection
 	{
 		IReflectionVisitor& visitor;
 	public:
-		Element(cstr name, IReflectionVisitor& _visitor) : visitor(_visitor)
+		Element(IReflectionVisitor& _visitor, cstr name) : visitor(_visitor)
 		{
 			visitor.EnterElement(name);
 		}
@@ -121,9 +121,9 @@ namespace Rococo::Reflection
 	}
 }
 
-#define ROCOCO_REFLECT(visitor, field) { auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default(); auto value = Reflect(field); visitor.Reflect(#field, value, defaultMetaData); }
+#define ROCOCO_REFLECT(visitor, field) { auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default(); auto value = Rococo::Reflection::Reflect(field); visitor.Reflect(#field, value, defaultMetaData); }
 #define ROCOCO_REFLECT_EX(visitor, field, metaData) visitor.Reflect(#field, field, metaData);
-#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto readOnlyMetaData = Rococo::Reflection::ReflectionMetaData::ReadOnly(); auto value = Reflect(field); visitor.Reflect(#field, value, readOnlyMetaData); }
+#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto readOnlyMetaData = Rococo::Reflection::ReflectionMetaData::ReadOnly(); auto value = Rococo::Reflection::Reflect(field); visitor.Reflect(#field, value, readOnlyMetaData); }
 
 #ifdef INCLUDED_ROCOCO_STRINGS
 # include <rococo.strings.reflection.h>
