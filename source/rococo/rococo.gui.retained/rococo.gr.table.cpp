@@ -68,6 +68,12 @@ namespace GRANON
 				columnHeaders[columnIndex].width = pixelWidth;
 				panel.InvalidateLayout(true);
 			}
+
+			for (auto& row : rows)
+			{
+				auto& cell = row.cellsInThisRow[columnIndex];
+				cell.div->Panel().SetConstantWidth(pixelWidth);
+			}
 		}
 
 		void ExpandToFit()
@@ -94,6 +100,7 @@ namespace GRANON
 				cell.div = &CreateDivision(*this);
 				cell.div->Panel().SetExpandToParentHorizontally();
 				cell.div->Panel().SetConstantHeight(spec.rowHeight);
+				cell.div->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
 
 			panel.InvalidateLayout(true);
@@ -141,8 +148,11 @@ namespace GRANON
 				{
 					auto& cell = row.cellsInThisRow[colIndex];
 
-					cell.div->Panel().SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
-					cell.div->Panel().InvalidateLayout(false);
+					auto& cellpanel = cell.div->Panel();
+					cellpanel.SetParentOffset({ x, y });
+					cellpanel.SetConstantWidth(columnWidth);
+					cellpanel.SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
+					cellpanel.InvalidateLayout(false);
 
 					y += row.rowHeight;
 				}
