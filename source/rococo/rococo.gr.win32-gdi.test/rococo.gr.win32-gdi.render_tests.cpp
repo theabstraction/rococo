@@ -306,10 +306,8 @@ void TestFrame(IGRSystem& gr)
 
 	BuildMenus(frame);
 
-	
 	BuildUpperRightToolbar(frame);
 
-	/*
 	auto& framePanel = frame.Widget().Panel();
 
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
@@ -344,11 +342,12 @@ void TestFrame(IGRSystem& gr)
 		int iValue = 42;
 	} target;
 
-	*/
 
-	//auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), target, eventHandler);
-	//editor.Widget().Panel().SetExpandToParentHorizontally();
-	//editor.Widget().Panel().SetExpandToParentVertically();
+	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), target, eventHandler);
+	editor.Widget().Panel().SetExpandToParentHorizontally();
+	editor.Widget().Panel().SetExpandToParentVertically();
+
+	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
 }
 
 void TestWidgets(IGRSystem& gr)

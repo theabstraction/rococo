@@ -427,8 +427,8 @@ namespace GRANON
 		{
 			auto rect = panel.AbsRect();
 			bool isHovered = g.IsHovered(panel);
-			UNUSED(rect);
-			UNUSED(isHovered);
+			RGBAb colour = panel.GetColour(Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, GRRenderState(false, isHovered, false));
+			g.DrawRect(rect, colour);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
