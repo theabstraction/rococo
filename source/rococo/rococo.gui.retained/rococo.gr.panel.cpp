@@ -26,7 +26,6 @@ namespace GRANON
 		std::vector<GRPanel*> children;
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
-		GRAnchors anchors;
 		GRAnchorPadding padding = { 0 };
 		bool isMarkedForDeletion = false;
 		AutoFree<IGRSchemeSupervisor> scheme;
@@ -124,26 +123,6 @@ namespace GRANON
 		bool IsMarkedForDeletion() const override
 		{
 			return isMarkedForDeletion;
-		}
-
-		GRAnchors Anchors() override
-		{
-			return anchors;
-		}
-
-		IGRPanel& Add(GRAnchors anchors) override
-		{
-			static_assert(sizeof GRAnchors == sizeof uint32);
-			uint32& uThisAnchor = reinterpret_cast<uint32&>(this->anchors);
-			uint32& uArgAnchor = reinterpret_cast<uint32&>(anchors);
-			uThisAnchor = uThisAnchor | uArgAnchor;
-			return *this;
-		}
-
-		IGRPanel& Set(GRAnchors anchors) override
-		{
-			this->anchors = anchors;
-			return *this;
 		}
 
 		GRAnchorPadding Padding() override
@@ -951,139 +930,6 @@ namespace Rococo::Gui
 
 		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), code, function, message);
 		va_end(args);
-	}
-
-	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions)
-	{
-		auto anchors = child.Anchors();
-		auto padding = child.Padding();
-
-		Vec2i newPos = child.ParentOffset();
-		Vec2i newSpan = child.Span();
-
-		if (newSpan.x == 0 && !anchors.expandsHorizontally  && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadSpanWidth, __FUNCTION__, "Panel was not set to expand horizontally and its current width is zero, hence will remain zero width");
-		}
-
-		if (newSpan.y == 0 && !anchors.expandsVertically && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadSpanHeight, __FUNCTION__, "Panel was not set to expand vertically and its current height is zero, hence will remain zero height");
-		}
-
-		if (anchors.left == 0 && anchors.right == 0 && newSpan.x == 0)
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel was neither anchored to the left or to the right and had zero horizontal span");
-		}
-
-		if (anchors.top == 0 && anchors.bottom == 0 && newSpan.y == 0)
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel was neither anchored to the top or to the bottom and had zero vertical span");
-		}
-
-		if (anchors.left)
-		{
-			newPos.x = padding.left;
-
-			if (anchors.right)
-			{
-				if (anchors.expandsHorizontally)
-				{
-					newSpan.x = Width(parentDimensions) - padding.left - padding.right;
-				}
-				else
-				{
-					newPos.x = Centre(parentDimensions).x - (child.Span().x >> 1) - padding.right;
-				}
-			}
-			else if (anchors.expandsHorizontally)
-			{
-				newSpan.x += child.ParentOffset().x - newPos.x;
-			}
-		}
-
-		if (anchors.right)
-		{
-			if (!anchors.left)
-			{
-				if (anchors.expandsHorizontally)
-				{
-					newSpan.x = Width(parentDimensions) - child.ParentOffset().x - padding.right;
-				}
-				else
-				{
-					newPos.x = Width(parentDimensions) - child.Span().x - padding.right;
-				}
-			}
-		}
-
-		newPos.x = max(0, newPos.x);
-		newPos.x = min(Width(parentDimensions), newPos.x);
-		newSpan.x = max(0, newSpan.x);
-
-		if (anchors.top)
-		{
-			newPos.y = padding.top;
-
-			if (anchors.bottom)
-			{
-				if (anchors.expandsVertically)
-				{
-					newSpan.y = Height(parentDimensions) - padding.top - padding.bottom;
-				}
-				else
-				{
-					newPos.y = (Height(parentDimensions) / 2) - child.Span().y - padding.bottom;
-				}
-			}
-			else if (anchors.expandsVertically)
-			{
-				newSpan.y += child.ParentOffset().y - newPos.y;
-			}
-		}
-
-		if (anchors.bottom)
-		{
-			if (!anchors.top)
-			{
-				if (anchors.expandsVertically)
-				{
-					newSpan.y += Height(parentDimensions) - child.ParentOffset().y;
-				}
-				else
-				{
-					newPos.y = Height(parentDimensions) - child.Span().y - padding.bottom;
-				}
-			}
-		}
-
-		child.SetParentOffset(newPos);
-
-		if (newSpan.x == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel width was computed to be zero");
-		}
-
-		if (newSpan.y == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel height was computed to be zero");
-		}
-
-		child.Resize(newSpan);
-	}
-
-	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions)
-	{
-		if (parent.IsCollapsed())
-		{
-			return;
-		}
-
-		int index = 0;
-		while (auto* child = parent.GetChild(index++))
-		{
-			LayoutChildByAnchors(*child, parentDimensions);
-		}
 	}
 
 	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllChildren(IGRPanel& panel)

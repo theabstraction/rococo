@@ -5,9 +5,6 @@
 
 namespace Rococo::Gui
 {
-	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions);
-	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions);
-
 	ROCOCO_INTERFACE IGREventHandler
 	{
 		virtual EGREventRouting OnGREvent(GRWidgetEvent & ev) = 0;

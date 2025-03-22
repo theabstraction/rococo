@@ -18,17 +18,6 @@ using namespace Rococo::Strings;
 
 namespace Rococo::GreatSex
 {
-	uint64 ParseAnchor(const fstring& item)
-	{
-		MATCH(item, "left",		0x0000'0001);
-		MATCH(item, "top",		0x0000'0002);
-		MATCH(item, "right",	0x0000'0004);
-		MATCH(item, "bottom",	0x0000'0008);
-		MATCH(item, "hexpand",	0x0000'0010);
-		MATCH(item, "vexpand",	0x0000'0020);
-		Throw(0, "Unknown anchor - %s. Expecting one of { left, top, right, bottom, hexpand, vexpand }", item.buffer);
-	}
-
 	struct GreatSexGenerator : IGreatSexGeneratorSupervisor
 	{
 		// Widget Handlers, defined first
@@ -166,14 +155,6 @@ namespace Rococo::GreatSex
 			panel.SetMinimalSpan(minimalSpan);
 		}
 
-		void OnAttribute_Anchors(IGRPanel& panel, const ISEXMLAttributeValue& value)
-		{
-			uint64 anchorFlags = AsFlags(value, ParseAnchor);
-			GRAnchors anchors;
-			reinterpret_cast<uint32&>(anchors) = (uint32)anchorFlags;
-			panel.Add(anchors);
-		}
-
 		void OnAttribute_Description(IGRPanel& panel, const ISEXMLAttributeValue& value)
 		{
 			fstring desc = AsString(value).ToFString();
@@ -214,7 +195,6 @@ namespace Rococo::GreatSex
 				attributeHandlers["Panel.Offset"] = &GreatSexGenerator::OnAttribute_Offset;
 				attributeHandlers["Panel.Span"] = &GreatSexGenerator::OnAttribute_Span;
 				attributeHandlers["Panel.Span.Min"] = &GreatSexGenerator::OnAttribute_SpanMin;
-				attributeHandlers["Panel.Anchors"] = &GreatSexGenerator::OnAttribute_Anchors;
 				attributeHandlers["Panel.Description"] = &GreatSexGenerator::OnAttribute_Description;
 				attributeHandlers["Panel.CanFocus"] = &GreatSexGenerator::OnAttribute_CanFocus;
 				attributeHandlers["Panel.TabsCycle"] = &GreatSexGenerator::OnAttribute_TabsCycle;

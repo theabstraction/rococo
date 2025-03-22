@@ -37,7 +37,6 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-			LayoutChildrenByAnchors(panel, panelDimensions);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

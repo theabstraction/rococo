@@ -366,34 +366,6 @@ namespace Rococo::Gui
 		virtual IGRSystem& GR() = 0;
 	};
 
-	struct [[nodiscard]] GRAnchors
-	{
-		ROCOCO_GUI_RETAINED_API GRAnchors();
-
-		uint32 left: 1;	// The widget sticks to the left side of the container
-		uint32 top : 1; // The widget sticks to the top side of the container
-		uint32 right : 1; // The widget sticks to the right side of the container
-		uint32 bottom : 1; // The widget sticks to the bottom side of the container
-		uint32 expandsHorizontally : 1; // If true then sticking to left or right of a container may expand or contract the span. Irrelevant if both left and right anchors are set.
-		uint32 expandsVertically : 1; // If true then sticking to the top of the bottom of a container may expand or contract the span. Irrelevant if both top and bottom anchors are set.
-
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Left();
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors LeftAndRight();
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Right();
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Top();
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors TopAndBottom();
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors Bottom();
-
-		// The widget expands to fill its parent's vertical span
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors ExpandVertically();
-
-		// The widget expands to fill its parent's horizontal span
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors ExpandHorizontally();
-
-		// The widget expands to fill its parent's space
-		ROCOCO_GUI_RETAINED_API static [[nodiscard]] GRAnchors ExpandAll();
-	};
-
 	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom
 	struct GRAnchorPadding
 	{
@@ -483,14 +455,7 @@ namespace Rococo::Gui
 		virtual int64 Id() const = 0;
 		virtual GuiRect AbsRect() const = 0;
 		virtual void CaptureCursor() = 0;
-		virtual GRAnchors Anchors() = 0;
 		virtual GRAnchorPadding Padding() = 0;
-
-		// Overwrites the anchor settings for a panel
-		virtual IGRPanel& Set(GRAnchors anchors) = 0;
-
-		// Add an anchor to the panel
-		virtual IGRPanel& Add(GRAnchors anchors) = 0;
 
 		// Overwrites the padding for an anchor
 		virtual IGRPanel& Set(GRAnchorPadding padding) = 0;

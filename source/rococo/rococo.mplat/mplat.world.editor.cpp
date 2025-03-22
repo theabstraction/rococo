@@ -278,7 +278,6 @@ namespace ANON
 			ClearFrame(*frame);
 			
 			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().InnerWidget(), 240, true).SetDraggerMinMax(240, 8192);
-			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
 
 			frameSplitter.EvOnSplitSizeChanged().Add(
 				[this](int32 newSplitterWidth)
@@ -304,7 +303,6 @@ namespace ANON
 			} popHandler;
 
 			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().InnerWidget(), target, popHandler);
-			editorTree.Widget().Panel().Add(GRAnchors::ExpandAll());
 		}
 
 		Reflection::IReflectionTarget& ReflectionTarget() override

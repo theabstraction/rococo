@@ -368,8 +368,6 @@ namespace GRANON
 			}
 
 			panel.Resize({ spanX, panel.Span().y });
-
-			LayoutChildByAnchors(panel, panel.Parent()->AbsRect());
 		}
 
 		void Free() override

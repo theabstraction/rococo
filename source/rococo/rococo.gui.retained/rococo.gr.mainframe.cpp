@@ -82,28 +82,6 @@ namespace GRANON
 
 			GRAnchorPadding paddingOnePixel{ 1, 1, 1, 1 };
 
-			if (menuBar)
-			{
-				GRAnchors menuAnchors;
-				menuAnchors.left = true;
-				menuAnchors.top = true;
-				menuAnchors.bottom = true;
-				menuAnchors.expandsVertically = true;
-				menuBar->Widget().Panel().Set(menuAnchors).Set(paddingOnePixel).Resize({ 10, clientAreaTop });
-				// The menu bar is a child of the title bar, so should be resized by the title bar
-			}
-
-			if (rhsTools)
-			{
-				GRAnchors rhsToolAnchors;
-				rhsToolAnchors.right = true;
-				rhsToolAnchors.top = true;
-				rhsToolAnchors.bottom = true;
-				rhsToolAnchors.expandsVertically = true;
-				rhsTools->Widget().Panel().Set(rhsToolAnchors).Set(paddingOnePixel);
-				// The rhsTools is a child of the title bar, so should be resized by the title bar
-			}
-
 			Vec2i frameSpan = Span(screenDimensions);
 			clientArea->Panel().Resize({ frameSpan.x, frameSpan.y - clientAreaTop }).SetParentOffset({ 0, clientAreaTop });
 		}
