@@ -6,6 +6,8 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
+	enum { scrollbarWidth = 16 };
+
 	struct GRViewportWidget : IGRWidgetViewport, IGRWidgetSupervisor, IGRScrollerEvents, IGRFocusNotifier
 	{
 		IGRPanel& panel;
@@ -16,14 +18,21 @@ namespace ANON
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			owningPanel.SetMinimalSpan({ 10, 10 });
+			owningPanel.SetLayoutDirection(ELayoutDirection::LeftToRight);
 		}
 
 		void PostConstruct()
 		{
 			clipArea = &CreateDivision(*this);
+			clipArea->Panel().SetExpandToParentVertically();
+			clipArea->Panel().SetExpandToParentHorizontally();
 			clientOffsetArea = &CreateDivision(clipArea->InnerWidget());
 			clientOffsetArea->Panel().PreventInvalidationFromChildren();
+			clientOffsetArea->Panel().SetConstantWidth(64);
+			clientOffsetArea->Panel().SetConstantHeight(64);
 			vscroller = &CreateVerticalScrollerWithButtons(*this, *this);
+			vscroller->Widget().Panel().SetExpandToParentVertically();
+			vscroller->Widget().Panel().SetConstantWidth(scrollbarWidth);
 		}
 
 		void Free() override
@@ -33,8 +42,6 @@ namespace ANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-			enum { scrollbarWidth = 16 };
-
 			Vec2i clipSpan { Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) };
 			auto& panel = clipArea->Panel();
 			panel.Resize(clipSpan);

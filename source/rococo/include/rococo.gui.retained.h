@@ -27,6 +27,7 @@ namespace Rococo::Gui
 	DECLARE_ROCOCO_INTERFACE IGRSystem;
 	DECLARE_ROCOCO_INTERFACE IGRWidgetEditBox;
 	DECLARE_ROCOCO_INTERFACE IGRCustodian;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetViewport;
 
 #pragma pack(push, 1)
 	struct GRCursorClick
@@ -817,6 +818,7 @@ namespace Rococo::Gui
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual IGRWidget& Widget() = 0;
+		virtual IGRWidgetViewport& Viewport() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase

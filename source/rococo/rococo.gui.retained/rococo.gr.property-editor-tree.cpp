@@ -369,6 +369,8 @@ namespace GRANON
 		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler) : panel(owningPanel), populationEventHandler(_populationEventHandler)
 		{
 			owningPanel.SetClipChildren(true);
+			owningPanel.SetExpandToParentHorizontally();
+			owningPanel.SetExpandToParentVertically();
 		}
 
 		void Free() override
@@ -665,16 +667,29 @@ namespace GRANON
 
 		IGRWidgetViewport* viewport = nullptr;
 
+		IGRWidgetViewport& Viewport() override
+		{
+			if (!viewport)
+			{
+				viewport = &CreateViewportWidget(*this);
+				viewport->SetLineDeltaPixels(30);
+
+				auto& vp = viewport->Widget().Panel();
+				vp.SetExpandToParentHorizontally();
+				vp.SetExpandToParentVertically();
+			}
+
+			return *viewport;
+		}
+
 		// Entry point for previewing targets, called by the factory function at the bottom of the page
 		void Preview(IReflectionTarget& target)
 		{
 			target.Visit(previewer);
 
-			viewport = &CreateViewportWidget(*this);
+			auto& viewport = Viewport();
+			auto& vp = viewport.Widget().Panel();
 
-			viewport->SetLineDeltaPixels(30);
-
-			auto& vp = viewport->ClientArea().Panel();
 			SetUniformColourForAllRenderStates(vp, EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
 			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
 			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
@@ -682,11 +697,11 @@ namespace GRANON
 
 			GRAnchors anchors = anchors.ExpandAll();
 
-			viewport->Widget().Panel().Set(anchors);
+			viewport.Widget().Panel().Set(anchors);
 
 			auto* node = previewer.root;
 
-			if (node) SyncUIToPreviewerRecursive(*node, viewport->ClientArea().InnerWidget(), 0);
+			if (node) SyncUIToPreviewerRecursive(*node, viewport.ClientArea().InnerWidget(), 0);
 
 			SetCollapserSizes();
 		}
