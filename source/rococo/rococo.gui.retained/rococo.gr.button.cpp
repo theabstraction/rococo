@@ -196,7 +196,11 @@ namespace GRANON
 		{
 			if (isMenu)
 			{
-				DrawMenuButton(panel, false, isRaised, g);
+				GuiRect buttonRect = Expand(panel.AbsRect(), -2);
+				GRRenderState rs(false, false, false);
+				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON, rs);
+				g.DrawRect(panel.AbsRect(), colour);
+				DrawMenuButton(panel, buttonRect, false, isRaised, g);
 			}
 			else
 			{
@@ -427,19 +431,19 @@ namespace Rococo::Gui
 		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
 	}
 
-	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
+	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, const GuiRect& rect, bool focused, bool raised, IGRRenderContext& g)
 	{
 		UNUSED(focused);
 
 		bool hovered = g.IsHovered(panel);
-
+		
 		GRRenderState rs(!raised, hovered, false);
 		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON, rs);
-		g.DrawRect(panel.AbsRect(), colour);
+		g.DrawRect(rect, colour);
 
 		RGBAb colour1 = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, rs);
 		RGBAb colour2 = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, rs);
-		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
+		g.DrawRectEdge(rect, colour1, colour2);
 	}
 
 	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, IGRRenderContext& g)

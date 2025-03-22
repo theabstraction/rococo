@@ -257,8 +257,6 @@ void BuildMenus(IGRWidgetMainFrame& frame)
 	menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
 	menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
 
-	menu.Widget().Panel().Set(GRAnchorPadding{ 2, 2, 2, 2 });
-
 	auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
 	titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(32, 32, 32, 255), GRGenerateIntensities());
 	titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
@@ -311,6 +309,7 @@ void TestFrame(IGRSystem& gr)
 	
 	BuildUpperRightToolbar(frame);
 
+	/*
 	auto& framePanel = frame.Widget().Panel();
 
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
@@ -345,9 +344,11 @@ void TestFrame(IGRSystem& gr)
 		int iValue = 42;
 	} target;
 
-	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), target, eventHandler);
-	editor.Widget().Panel().SetExpandToParentHorizontally();
-	editor.Widget().Panel().SetExpandToParentVertically();
+	*/
+
+	//auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), target, eventHandler);
+	//editor.Widget().Panel().SetExpandToParentHorizontally();
+	//editor.Widget().Panel().SetExpandToParentVertically();
 }
 
 void TestWidgets(IGRSystem& gr)

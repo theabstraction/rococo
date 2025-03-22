@@ -6,7 +6,7 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRMainFrame: IGRWidgetMainFrameSupervisor, IGRWidgetSupervisor
+	struct GRMainFrame: IGRWidgetMainFrameSupervisor, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		cstr name;
 		IGRPanel& panel;
@@ -18,20 +18,42 @@ namespace GRANON
 		GRMainFrame(cstr _name, IGRPanel& _panel) : name(_name), panel(_panel)
 		{
 			_panel.SetMinimalSpan({ 320, 200 });
-			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+			_panel.SetLayoutDirection(ELayoutDirection::None);
+		}
+
+		void LayoutBeforeFit() override
+		{
+			MakeTitleBar();
+			int titleHeight = titleBar->InnerWidget().Panel().Span().y;
+			titleBar->Panel().SetParentOffset({ 0,0 });
+			clientArea->Panel().SetParentOffset({ 0, titleHeight });
+			clientArea->Panel().SetConstantHeight(panel.Span().y - titleHeight);
+			clientArea->Panel().SetConstantWidth(panel.Span().x);
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+
 		}
 
 		void PostConstruct()
 		{
-			MakeTitleBar();
+			// We construct the client area first, then the title bar to ensure the title bar and menus are rendered after the client area, causing the menus to be on top
 
 			if (!clientArea)
 			{
 				clientArea = &CreateDivision(*this);
-				clientArea->Panel().SetExpandToParentHorizontally();
-				clientArea->Panel().SetExpandToParentVertically();
+				clientArea->Panel().SetConstantWidth(0);
+				clientArea->Panel().SetConstantHeight(0);
 				clientArea->Panel().SetDesc("Frame.Client");
 			}
+
+			MakeTitleBar();
 		}
 
 		void Render(IGRRenderContext& g)
@@ -182,6 +204,12 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
 			return Gui::QueryForParticularInterface<IGRWidgetMainFrame>(this, ppOutputArg, interfaceId);
 		}
 

@@ -330,25 +330,25 @@ namespace GRANON
 
 		void SetPanelLayoutRecursive(ELayoutPhase phase)
 		{
+			auto* layout = Cast<IGRWidgetLayout>(Widget());
+			if (layout)
+			{
+				switch (phase)
+				{
+				case ELayoutPhase::BeforeFit:
+					layout->LayoutBeforeFit();
+					break;
+				case ELayoutPhase::BeforeExpand:
+					layout->LayoutBeforeExpand();
+					break;
+				default:
+					layout->LayoutAfterExpand();
+					break;
+				}
+			}
+
 			for (auto* child : children)
 			{
-				auto* layout = Cast<IGRWidgetLayout>(child->Widget());
-				if (layout)
-				{
-					switch (phase)
-					{
-					case ELayoutPhase::BeforeFit:
-						layout->LayoutBeforeFit();
-						break;
-					case ELayoutPhase::BeforeExpand:
-						layout->LayoutBeforeExpand();
-						break;
-					default:
-						layout->LayoutAfterExpand();
-						break;
-					}
-				}
-
 				child->SetPanelLayoutRecursive(phase);
 			}
 		}
