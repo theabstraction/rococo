@@ -513,29 +513,40 @@ namespace GRANON
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
+			if (colour.alpha == 0)
+			{
+				return;
+			}
+
 			SolidBrush solidBrush(Color(colour.alpha, colour.red, colour.green, colour.blue));
 			g.FillRectangle(&solidBrush, absRect.left, absRect.top, Width(absRect), Height(absRect));
 		}
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) override
 		{
-			Gdiplus::Pen topLeftPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue));
-			Gdiplus::Point topLeftPoints[3] =
+			if (topLeftColour.alpha > 0)
 			{
-				{ absRect.right, absRect.top   },
-				{ absRect.left,  absRect.top   },
-				{ absRect.left, absRect.bottom }
-			};
-			g.DrawLines(&topLeftPen, topLeftPoints, 3);
+				Gdiplus::Pen topLeftPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue));
+				Gdiplus::Point topLeftPoints[3] =
+				{
+					{ absRect.right - 1, absRect.top   },
+					{ absRect.left,  absRect.top   },
+					{ absRect.left, absRect.bottom - 1 }
+				};
+				g.DrawLines(&topLeftPen, topLeftPoints, 3);
+			}
 
-			Gdiplus::Pen bottomRightPen(Gdiplus::Color(bottomRightColour.alpha, bottomRightColour.red, bottomRightColour.green, bottomRightColour.blue));
-			Gdiplus::Point bottomRightPoints[3] =
+			if (bottomRightColour.alpha > 0)
 			{
-				{ absRect.left, absRect.bottom },
-				{ absRect.right, absRect.bottom },
-				{ absRect.right, absRect.top }
-			};
-			g.DrawLines(&topLeftPen, bottomRightPoints, 3);
+				Gdiplus::Pen bottomRightPen(Gdiplus::Color(bottomRightColour.alpha, bottomRightColour.red, bottomRightColour.green, bottomRightColour.blue));
+				Gdiplus::Point bottomRightPoints[3] =
+				{
+					{ absRect.left, absRect.bottom - 1 },
+					{ absRect.right - 1, absRect.bottom - 1 },
+					{ absRect.right - 1, absRect.top }
+				};
+				g.DrawLines(&bottomRightPen, bottomRightPoints, 3);
+			}
 		}
 
 		struct HilightRect
@@ -581,8 +592,6 @@ namespace GRANON
 		}
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
-			UNUSED(spacing);
-
 			UseClipRect useClip(paintDC, clipRect);
 
 			SelectFont(custodian, fontId, paintDC);
@@ -595,7 +604,24 @@ namespace GRANON
 			if (alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom))
 			{
 				rect.top -= tm.tmInternalLeading;
+				rect.top += spacing.y;
 			}
+
+			if (!alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom))
+			{
+				rect.bottom -= spacing.y;
+			}
+
+			if (alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right))
+			{
+				rect.left += spacing.x;
+			}
+
+			if (alignment.HasSomeFlags(EGRAlignment::Right) && !alignment.HasSomeFlags(EGRAlignment::Left))
+			{
+				rect.right -= spacing.x;
+			}
+
 			if (alignment.HasAllFlags(EGRAlignment::VCentre))
 			{
 				rect.top -= (tm.tmInternalLeading >> 1);

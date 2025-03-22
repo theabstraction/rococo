@@ -451,11 +451,7 @@ namespace Rococo::Gui
 		if (text.length == 0) return;
 
 		GuiRect targetRect = panel.AbsRect();
-		targetRect.left += spacing.x;
-		targetRect.right -= spacing.x;
-		targetRect.top += spacing.y;
-		targetRect.bottom -= spacing.y;
-
+		
 		if (targetRect.left > targetRect.right)
 		{
 			std::swap(targetRect.left, targetRect.right);

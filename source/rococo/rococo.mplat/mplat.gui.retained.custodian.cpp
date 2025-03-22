@@ -594,7 +594,7 @@ namespace ANON
 			
 			if (renderer.lastScreenDimensions.right > 0 && renderer.lastScreenDimensions.bottom > 0)
 			{
-				gr.RenderGui(renderer);
+				gr.RenderAllFrames(renderer);
 			}
 
 			renderer.DrawLastItems();

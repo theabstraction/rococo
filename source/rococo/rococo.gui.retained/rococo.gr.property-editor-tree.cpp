@@ -467,7 +467,10 @@ namespace GRANON
 
 			GRAlignmentFlags nameAlignment;
 			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
-			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 2,2 });
+			auto& leftSpacer = CreateDivision(nameCell->InnerWidget());
+			leftSpacer.SetTransparency(0);
+			leftSpacer.Panel().SetConstantWidth(2 + 24 + 24 * depth);
+			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 4,2 });
 			nameText.Widget().Panel().SetExpandToParentHorizontally();
 			nameText.Widget().Panel().SetExpandToParentVertically();
 			nameText.Widget().Panel().Set(GRAnchorPadding{ 4, 0, 0, 0 });
@@ -594,9 +597,11 @@ namespace GRANON
 			}
 
 			auto& collapser = CreateCollapser(parentContainer, *this);
-			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
+			collapser.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0 , 0 });
 			collapser.Widget().Panel().SetExpandToParentHorizontally();
 			collapser.Widget().Panel().SetExpandToParentVertically();
+			collapser.LeftSpacer().Panel().SetConstantWidth(depth * 24);
+			collapser.LeftSpacer().SetTransparency(0.0f);
 			collapser.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 200, 200, 255), GRGenerateIntensities());
 			auto& titleDiv = collapser.TitleBar();
 
@@ -623,7 +628,7 @@ namespace GRANON
 			auto& titleDescription = Rococo::Gui::CreateText(titleDiv.InnerWidget()).SetText(title);
 			titleDescription.Widget().Panel().SetExpandToParentVertically();
 			titleDescription.Widget().Panel().SetExpandToParentHorizontally();
-			titleDescription.Widget().Panel().Set(GRAnchorPadding{ 32, 0, 0, 0 });
+			titleDescription.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0, 0 });
 
 			GRAlignmentFlags rightCentered;
 			rightCentered.Add(EGRAlignment::Left).Add(EGRAlignment::VCentre);

@@ -741,6 +741,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual IGRWidget& InnerWidget() = 0;
 		virtual IGRPanel& Panel() = 0;
+		virtual void SetTransparency(float f = 1.0f) = 0;
 	};
 
 	struct GRColumnSpec
@@ -826,6 +827,9 @@ namespace Rococo::Gui
 
 		// The collapser button is on the left side, so it is recommended to right align any additions and give enough room for the collapser to work
 		virtual IGRWidgetDivision& TitleBar() = 0;
+
+		// The spacer between the left edge of the title bar and the collapser button
+		virtual IGRWidgetDivision& LeftSpacer() = 0;
 	};
 
 	// The main frame with menu, toolbar and client area beneath the title bar
@@ -904,9 +908,6 @@ namespace Rococo::Gui
 		// Route posted messages to the event handler. This should be called periodically outside of any GR locked sections, such as GR event handlers or rendering routines
 		virtual void DispatchMessages() = 0;
 		
-		// Renders the list of frames (deprecated)
-		virtual void RenderGui(IGRRenderContext& g) = 0;
-
 		// Renders the list of frames
 		virtual void RenderAllFrames(IGRRenderContext& g) = 0;
 

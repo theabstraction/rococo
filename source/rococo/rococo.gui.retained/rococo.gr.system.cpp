@@ -246,6 +246,7 @@ namespace ANON
 
 		Vec2i lastRenderedCursorPosition{ -10000000, -10000000 };
 
+		/* TODO - delete this section when the old code is no longer needed as a reference
 		void RenderGui(IGRRenderContext& g) override
 		{
 			if (queueGarbageCollect)
@@ -296,6 +297,7 @@ namespace ANON
 
 			RenderDebugInfo(g);
 		}
+		*/
 
 		void RenderAllFrames(IGRRenderContext& g) override
 		{

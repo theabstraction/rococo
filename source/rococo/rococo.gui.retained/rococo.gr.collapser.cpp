@@ -22,6 +22,7 @@ namespace GRANON
 		IGRWidgetButton* collapseButton = nullptr;
 		IGRWidgetDivision* titleBar = nullptr;
 		IGRWidgetDivision* clientArea = nullptr;
+		IGRWidgetDivision* leftSpacer = nullptr;
 		HString collapserExpandPath = defaultExpandPath;
 		HString collapserInlinePath = defaultInlinePath;
 
@@ -73,6 +74,11 @@ namespace GRANON
 			return *titleBar;
 		}
 
+		IGRWidgetDivision& LeftSpacer() override
+		{
+			return *leftSpacer;
+		}
+
 		void PostConstruct()
 		{
 			panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
@@ -81,11 +87,15 @@ namespace GRANON
 			titleBar->Panel().SetExpandToParentHorizontally();
 			titleBar->Panel().SetConstantHeight(TITLE_BAR_HEIGHT);
 			titleBar->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
-			titleBar->Panel().Set(GRAnchorPadding{ 2, 2, 2, 2 });
+			titleBar->Panel().Set(GRAnchorPadding{ 0, 1, 0, 1 });
 
 			clientArea = &CreateDivision(*this);
 			clientArea->Panel().SetExpandToParentHorizontally();
 			clientArea->Panel().SetExpandToParentVertically();
+
+			leftSpacer = &CreateDivision(titleBar->InnerWidget());
+			leftSpacer->Panel().SetConstantWidth(0);
+			leftSpacer->Panel().SetExpandToParentVertically();
 
 			collapseButton = &CreateButton(titleBar->InnerWidget());
 			collapseButton->Widget().Panel().SetExpandToParentVertically();

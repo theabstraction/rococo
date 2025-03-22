@@ -11,6 +11,8 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 
+		float transparency = 1.0f;
+
 		GRDivision(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 		}
@@ -23,6 +25,11 @@ namespace GRANON
 		IGRWidget& InnerWidget() override
 		{
 			return *this;
+		}
+
+		void SetTransparency(float f) override
+		{
+			transparency = clamp(f, 0.0f, 1.0f);
 		}
 
 		IGRPanel& Panel() override
@@ -61,6 +68,12 @@ namespace GRANON
 
 		}
 
+		RGBAb Modulate(RGBAb colour)
+		{
+			float alpha = transparency * (float)colour.alpha;
+			return RGBAb(colour.red, colour.green, colour.blue, (uint8) alpha);
+		}
+
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
@@ -68,11 +81,11 @@ namespace GRANON
 			GRRenderState rs(false, g.IsHovered(panel), false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
-			g.DrawRect(rect, backColour);
+			g.DrawRect(rect, Modulate(backColour));
 
 			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
 			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
-			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
+			g.DrawRectEdge(rect, Modulate(edge1Colour), Modulate(edge2Colour));
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
