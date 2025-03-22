@@ -469,6 +469,8 @@ namespace GRANON
 			GRAlignmentFlags nameAlignment;
 			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
 			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 2,2 });
+			nameText.Widget().Panel().SetExpandToParentHorizontally();
+			nameText.Widget().Panel().SetExpandToParentVertically();
 			nameText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 4, 0, 0, 0 });
 
 			IGREditFilter* filter = nullptr;
@@ -511,6 +513,8 @@ namespace GRANON
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
 			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity).SetAlignment(valueAlignment, {2,2});
 			valueText.Widget().Panel().Add(GRAnchors::ExpandAll()).Set(GRAnchorPadding{ 0, 0, 0, 0 });
+			valueText.Widget().Panel().SetExpandToParentHorizontally();
+			valueText.Widget().Panel().SetExpandToParentVertically();
 
 			if (field.value.type != PrimitiveType::CSTR)
 			{
@@ -531,6 +535,8 @@ namespace GRANON
 		void AddFieldTable(PreviewData& data, int32 firstValidIndex, int32 lastValidIndex, IGRWidget& parent, int depth)
 		{
 			auto& table = CreateTable(parent);
+			table.Widget().Panel().SetExpandToParentHorizontally();
+			table.Widget().Panel().SetExpandToParentVertically();
 			table.Widget().Panel().Set(GRAnchors::ExpandAll());
 
 			GRColumnSpec nameSpec;
@@ -594,6 +600,9 @@ namespace GRANON
 			auto& collapser = CreateCollapser(parentContainer, *this);
 			collapser.Widget().Panel().Set(GRAnchors::ExpandAll());
 			collapser.Widget().Panel().Set(GRAnchorPadding{ 8 * depth, 0, 0 , 0 });
+			collapser.Widget().Panel().SetExpandToParentHorizontally();
+			collapser.Widget().Panel().SetExpandToParentVertically();
+			collapser.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 200, 200, 255), GRGenerateIntensities());
 			auto& titleDiv = collapser.TitleBar();
 
 			char title[128];
@@ -617,15 +626,19 @@ namespace GRANON
 			}
 
 			auto& titleDescription = Rococo::Gui::CreateText(titleDiv.InnerWidget()).SetText(title);
+			titleDescription.Widget().Panel().SetExpandToParentVertically();
+			titleDescription.Widget().Panel().SetExpandToParentHorizontally();
 			titleDescription.Widget().Panel().Add(GRAnchors::ExpandHorizontally()).Add(GRAnchors::ExpandVertically()).Add(GRAnchors::LeftAndRight()).Add(GRAnchors::TopAndBottom()).Set(GRAnchorPadding{ 32, 0, 0, 0 });
 
 			GRAlignmentFlags rightCentered;
 			rightCentered.Add(EGRAlignment::Left).Add(EGRAlignment::VCentre);
 
-			titleDescription.SetAlignment(rightCentered, { 0,0 });
+			titleDescription.SetAlignment(rightCentered, { 4,0 });
 
 			auto& list = CreateVerticalList(collapser.ClientArea().InnerWidget());
-			list.Widget().Panel().Set(GRAnchors::ExpandAll());
+			list.Widget().Panel().SetExpandToParentHorizontally();
+			list.Widget().Panel().SetExpandToParentVertically();
+			list.Widget().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
 
 			int32 firstSimpleFieldIndex = -1;
 			int32 nextSimpleFieldIndex = -1;

@@ -363,8 +363,8 @@ namespace GRANON
 			absRect.right = absRect.left + span.x;
 			absRect.bottom = absRect.top + span.y;
 
-			int dx = padding.left;
-			int dy = padding.top;
+			int dx = 0;
+			int dy = 0;
 
 			switch (layoutDirection)
 			{
@@ -522,7 +522,7 @@ namespace GRANON
 				{
 					if (child->heightSizing == ESizingRule::ExpandToParent)
 					{
-						child->span.y = span.y;
+						child->span.y = span.y - padding.left - padding.right;
 					}
 				}
 			}

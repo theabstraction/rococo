@@ -92,6 +92,8 @@ namespace GRANON
 			for (auto& cell : rows.back().cellsInThisRow)
 			{
 				cell.div = &CreateDivision(*this);
+				cell.div->Panel().SetExpandToParentHorizontally();
+				cell.div->Panel().SetConstantHeight(spec.rowHeight);
 			}
 
 			panel.InvalidateLayout(true);

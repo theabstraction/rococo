@@ -13,6 +13,8 @@ namespace GRANON
 	static const char* const defaultExpandPath = "$(COLLAPSER_EXPAND)";
 	static const char* const defaultInlinePath = "$(COLLAPSER_COLLAPSE)";
 
+	enum { TITLE_BAR_HEIGHT = 30 };
+
 	struct GRCollapser : IGRWidgetCollapser, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
@@ -73,10 +75,21 @@ namespace GRANON
 
 		void PostConstruct()
 		{
-			clientArea = &CreateDivision(*this);
+			panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+
 			titleBar = &CreateDivision(*this);
+			titleBar->Panel().SetExpandToParentHorizontally();
+			titleBar->Panel().SetConstantHeight(TITLE_BAR_HEIGHT);
+			titleBar->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
+			titleBar->Panel().Set(GRAnchorPadding{ 2, 2, 2, 2 });
+
+			clientArea = &CreateDivision(*this);
+			clientArea->Panel().SetExpandToParentHorizontally();
+			clientArea->Panel().SetExpandToParentVertically();
+
 			collapseButton = &CreateButton(titleBar->InnerWidget());
-			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,2});
+			collapseButton->Widget().Panel().SetExpandToParentVertically();
+			collapseButton->Widget().Panel().SetConstantWidth(TITLE_BAR_HEIGHT - 4);
 			collapseButton->SetRaisedImagePath(collapserExpandPath);
 			collapseButton->SetPressedImagePath(collapserInlinePath);
 			collapseButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
@@ -90,7 +103,6 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
-			enum { TITLE_BAR_HEIGHT = 30 };
 			titleBar->Panel().Resize({Width(panelDimensions), TITLE_BAR_HEIGHT });
 
 			Vec2i newClientSpan;
