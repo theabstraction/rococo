@@ -332,11 +332,11 @@ void TestFrame(IGRSystem& gr)
 		}
 	} eventHandler;
 
-	struct Target: Reflection::IReflectionTarget
+	struct Target1: Reflection::IReflectionTarget
 	{
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
-			Reflection::Section target(v, "Target");
+			Reflection::Section target(v, Name);
 			ROCOCO_REFLECT(v, MeaningOfLife);
 			ROCOCO_REFLECT(v, Age);
 			ROCOCO_REFLECT(v, Height);
@@ -349,6 +349,36 @@ void TestFrame(IGRSystem& gr)
 		double Height = 175.0;
 		double Weight = 60;
 
+	};
+
+	struct Target2 : Reflection::IReflectionTarget
+	{
+		void Visit(Reflection::IReflectionVisitor& v)
+		{
+			Reflection::Section target(v, Name);
+			ROCOCO_REFLECT(v, Earnings);
+			ROCOCO_REFLECT(v, Age);
+			ROCOCO_REFLECT(v, Height);
+			ROCOCO_REFLECT(v, Weight);
+		}
+
+		int Earnings = 300'000'000;
+		Strings::HString Name = "Stan Lee";
+		float Age = 97.0f;
+		double Height = 175.0;
+		double Weight = 65;
+	};
+
+	struct Target : Reflection::IReflectionTarget
+	{
+		Target1 t1;
+		Target2 t2;
+
+		void Visit(Reflection::IReflectionVisitor& v)
+		{
+			t1.Visit(v);
+			t2.Visit(v);
+		}
 	} target;
 
 
