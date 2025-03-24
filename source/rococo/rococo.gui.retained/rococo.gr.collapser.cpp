@@ -79,6 +79,11 @@ namespace GRANON
 			return *leftSpacer;
 		}
 
+		IGRWidgetButton& CollapseButton() override
+		{
+			return *collapseButton;
+		}
+
 		void PostConstruct()
 		{
 			panel.SetLayoutDirection(ELayoutDirection::TopToBottom);

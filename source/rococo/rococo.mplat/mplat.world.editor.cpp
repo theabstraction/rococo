@@ -303,6 +303,7 @@ namespace ANON
 			} popHandler;
 
 			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().InnerWidget(), target, popHandler);
+			UNUSED(editorTree);
 		}
 
 		Reflection::IReflectionTarget& ReflectionTarget() override

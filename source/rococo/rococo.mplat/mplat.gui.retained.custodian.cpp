@@ -456,10 +456,10 @@ namespace ANON
 
 	const stringmap<cstr> macroToPingPath =
 	{
-		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff" },
-		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/3rd-party/www.aha-soft.com/Forward.tiff" },
-		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/expanded_state.tiff" },
-		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/inline_state.tiff" },
+		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
+		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/MAT/collapse.tif" },
+		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
+		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapse.tif" },
 	};
 
 	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages

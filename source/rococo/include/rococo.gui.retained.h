@@ -814,9 +814,9 @@ namespace Rococo::Gui
 		virtual IGRWidget& Widget() = 0;
 
 		// The area under the collapser's title bar. Will be of zero area if the collapse button is engaged
-		virtual IGRWidgetDivision& ClientArea() = 0;
+		virtual [[nodiscard]] IGRWidgetDivision& ClientArea() = 0;
 
-		virtual bool IsCollapsed() const = 0;
+		virtual [[nodiscard]] bool IsCollapsed() const = 0;
 
 		// If the argument is blank defaults to a default expansion icon macro
 		virtual void SetExpandClientAreaImagePath(cstr path) = 0;
@@ -826,10 +826,12 @@ namespace Rococo::Gui
 		virtual void SetCollapsedToInlineImagePath(cstr path) = 0;
 
 		// The collapser button is on the left side, so it is recommended to right align any additions and give enough room for the collapser to work
-		virtual IGRWidgetDivision& TitleBar() = 0;
+		virtual [[nodiscard]] IGRWidgetDivision& TitleBar() = 0;
 
 		// The spacer between the left edge of the title bar and the collapser button
-		virtual IGRWidgetDivision& LeftSpacer() = 0;
+		virtual [[nodiscard]] IGRWidgetDivision& LeftSpacer() = 0;
+
+		virtual [[nodiscard]] IGRWidgetButton& CollapseButton() = 0;
 	};
 
 	// The main frame with menu, toolbar and client area beneath the title bar
@@ -839,22 +841,22 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		// The widget for the main frame
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
-		virtual IGRWidgetMenuBar& MenuBar() = 0;
+		virtual [[nodiscard]] IGRWidgetMenuBar& MenuBar() = 0;
 
 		// Retrieves a reference to the frame's top right tool bar. Typically used for minimize, maximize/restore and close window buttons.
-		virtual IGRWidgetToolbar& TopRightHandSideTools() = 0;
+		virtual [[nodiscard]] IGRWidgetToolbar& TopRightHandSideTools() = 0;
 
 		// The part of the main frame that is below the title bar. If there is no title bar the client area covers the entire area
-		virtual IGRWidgetDivision& ClientArea() = 0;
+		virtual [[nodiscard]] IGRWidgetDivision& ClientArea() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetMainFrameSupervisor: IGRWidgetMainFrame
 	{
 		// The widget for the main frame
-		virtual IGRWidgetSupervisor& WidgetSupervisor() = 0;
+		virtual [[nodiscard]] IGRWidgetSupervisor& WidgetSupervisor() = 0;
 	};
 
 	enum class EGRDebugFlags
@@ -882,19 +884,19 @@ namespace Rococo::Gui
 		virtual void ApplyKeyGlobally(GRKeyEvent& keyEvent) = 0;
 
 		// Associates a frame with an id and returns it. If it already exists, gets the existant one.
-		virtual IGRWidgetMainFrame& BindFrame(GRIdWidget id) = 0;
+		virtual [[nodiscard]] IGRWidgetMainFrame& BindFrame(GRIdWidget id) = 0;
 
 		// Deletes the frame with the given id, invalidating all references to the frame and its panel and its layout
 		virtual void DeleteFrame(GRIdWidget id) = 0;
 
 		// Returns true if at least one GRDebugFlag is present
-		virtual bool HasDebugFlag(EGRDebugFlags flag) const = 0;
+		virtual [[nodiscard]] bool HasDebugFlag(EGRDebugFlags flag) const = 0;
 
 		// Combination of GRDebugFlags to overwrite the current flag state
 		virtual void SetDebugFlags(int grDebugFlags) = 0;
 
 		// Get a frame associated with an id. If none exist, null is returned
-		virtual IGRWidgetMainFrame* FindFrame(GRIdWidget id) = 0;
+		virtual [[nodiscard]] IGRWidgetMainFrame* FindFrame(GRIdWidget id) = 0;
 
 		// Lower the frame so that it is the first to render.
 		virtual void MakeFirstToRender(GRIdWidget id) = 0;
@@ -911,13 +913,13 @@ namespace Rococo::Gui
 		// Renders the list of frames
 		virtual void RenderAllFrames(IGRRenderContext& g) = 0;
 
-		virtual IGRPanelRoot& Root() = 0;
+		virtual [[nodiscard]] IGRPanelRoot& Root() = 0;
 
 		// Invoked by widget factories to add widgets to the retained gui
-		virtual IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory) = 0;
+		virtual [[nodiscard]] IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory) = 0;
 
 		// Constant time lookup of a widget with a given panel Id.
-		virtual IGRWidget* FindWidget(int64 panelId) = 0;
+		virtual [[nodiscard]] IGRWidget* FindWidget(int64 panelId) = 0;
 
 		// Set the visibility status. If invisible, it will ignore all input and not be rendered
 		virtual void SetVisible(bool isVisible) = 0;
@@ -925,7 +927,7 @@ namespace Rococo::Gui
 		// Returns true if the retained GUI is visible and there are frames to show, otherwise false
 		virtual bool IsVisible() const = 0;
 
-		virtual int64 GetFocusId() const = 0;
+		virtual [[nodiscard]] int64 GetFocusId() const = 0;
 
 		// Sets the keyboard focus to the id of a panel.
 		virtual void SetFocus(int64 id = -1);
@@ -937,10 +939,10 @@ namespace Rococo::Gui
 		virtual void UpdateNextFrame(IGRPanel& panel) = 0;
 
 		// Get config
-		virtual const GRRealtimeConfig& Config() const = 0;
+		virtual [[nodiscard]] const GRRealtimeConfig& Config() const = 0;
 
 		// Get a mutable version of the config, used to configure the config
-		virtual GRRealtimeConfig& MutableConfig() = 0;
+		virtual [[nodiscard]] GRRealtimeConfig& MutableConfig() = 0;
 	};
 
 	enum EGRErrorCode
@@ -1114,6 +1116,8 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) EGRPaths::MAX_FULL_PATH_LENGTH);
 
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme);
+
+	ROCOCO_GUI_RETAINED_API void MakeTransparent(IGRPanel& panel, EGRSchemeColourSurface surface);
 
 	// Get an editor filter for 32-bit floating point numbers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetF32Filter();

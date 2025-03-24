@@ -174,6 +174,11 @@ namespace Rococo::Gui
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
 	}
 
+	ROCOCO_GUI_RETAINED_API void MakeTransparent(IGRPanel& panel, EGRSchemeColourSurface surface)
+	{
+		SetUniformColourForAllRenderStates(panel, surface, RGBAb(255, 255, 0, 0));
+	}
+
 	template<class T> void ForEachRenderState(T t)
 	{
 		t(GRRenderState(0, 0, 0));

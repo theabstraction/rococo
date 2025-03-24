@@ -307,7 +307,7 @@ namespace GRANON
 					BITMAPINFO info = { 0 };
 					info.bmiHeader.biSize = sizeof(info);
 					info.bmiHeader.biWidth = span.x;
-					info.bmiHeader.biHeight = span.y;
+					info.bmiHeader.biHeight = -span.y;
 					info.bmiHeader.biPlanes = 1;
 					info.bmiHeader.biBitCount = 32;
 					info.bmiHeader.biCompression = BI_RGB;
@@ -573,11 +573,12 @@ namespace GRANON
 
 			SelectFont(custodian, fontId, paintDC);
 
+			TEXTMETRICA tm;
+			GetTextMetricsA(paintDC, &tm);
+
 			// To calculate caretPos using GDI:
 			//    Get text metrics of clipped text before caretPos and after the caretPos to get dimensions of caret 
 			//    MoveToEx + LineTo to draw it.
-
-			RECT rect{ clipRect.left, clipRect.top, clipRect.right, clipRect.bottom };
 
 			UINT format = FormatWin32DrawTextAlignment(alignment);
 
@@ -586,7 +587,35 @@ namespace GRANON
 			format += DT_NOPREFIX;
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
 
-			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
+			RECT rect{ clipRect.left, clipRect.top, clipRect.right, clipRect.bottom };
+
+			if (alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom))
+			{
+				rect.top -= tm.tmInternalLeading;
+				rect.top += spacing.y;
+			}
+
+			if (!alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom))
+			{
+				rect.bottom -= spacing.y;
+			}
+
+			if (alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right))
+			{
+				rect.left += spacing.x;
+			}
+
+			if (alignment.HasSomeFlags(EGRAlignment::Right) && !alignment.HasSomeFlags(EGRAlignment::Left))
+			{
+				rect.right -= spacing.x;
+			}
+
+			if (alignment.HasAllFlags(EGRAlignment::VCentre))
+			{
+				rect.top -= (tm.tmInternalLeading >> 1);
+			}
+
+			DrawTextA(paintDC, text, text.length, &rect, format);
 
 			SetTextColor(paintDC, oldColour);
 		}
@@ -742,11 +771,28 @@ namespace GRANON
 	bool GDIImage::Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g)
 	{
 		GuiRect rect = panel.AbsRect();
-		rect.left += spacing.x;
-		rect.right -= spacing.x;
-		rect.top += spacing.y;
-		rect.bottom -= spacing.y;
-		g.DrawImageUnstretched(*this, rect, GuiRect{ 0,0,0,0 }, alignment);
+
+		if (alignment.HasSomeFlags(EGRAlignment::Left))
+		{
+			rect.left += spacing.x;
+		}
+
+		if (alignment.HasSomeFlags(EGRAlignment::Right))
+		{
+			rect.right -= spacing.x;
+		}
+
+		if (alignment.HasSomeFlags(EGRAlignment::Top))
+		{
+			rect.top += spacing.y;
+		}
+
+		if (alignment.HasSomeFlags(EGRAlignment::Bottom))
+		{
+			rect.bottom -= spacing.y;
+		}
+
+		g.DrawImageStretched(*this, rect, panel.AbsRect());
 		return true;
 	}
 
@@ -765,10 +811,10 @@ namespace GRANON
 
 	const stringmap<cstr> macroToPingPath =
 	{
-		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff" },
-		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/3rd-party/www.aha-soft.com/Forward.tiff" },
-		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/expanded_state.tiff" },
-		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/inline_state.tiff" },
+		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
+		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/MAT/collapsed.tif" },
+		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
+		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
 	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages

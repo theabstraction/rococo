@@ -465,6 +465,11 @@ namespace GRANON
 			int newRowIndex = table.AddRow({ 30 });
 			auto* nameCell = table.GetCell(0, newRowIndex);
 
+			RGBAb rowColour = RGBAb(255, 255, 255, 255);
+			SetUniformColourForAllRenderStates(nameCell->Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, rowColour);
+			SetUniformColourForAllRenderStates(nameCell->Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rowColour);
+			SetUniformColourForAllRenderStates(nameCell->Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
+
 			GRAlignmentFlags nameAlignment;
 			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
 			auto& leftSpacer = CreateDivision(nameCell->InnerWidget());
@@ -474,6 +479,8 @@ namespace GRANON
 			nameText.Widget().Panel().SetExpandToParentHorizontally();
 			nameText.Widget().Panel().SetExpandToParentVertically();
 			nameText.Widget().Panel().Set(GRAnchorPadding{ 4, 0, 0, 0 });
+			SetUniformColourForAllRenderStates(nameText.Widget().Panel(), EGRSchemeColourSurface::LABEL_BACKGROUND, RGBAb(255, 255, 255, 0));
+			SetUniformColourForAllRenderStates(nameText.Widget().Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
 
 			IGREditFilter* filter = nullptr;
 
@@ -511,9 +518,15 @@ namespace GRANON
 
 			auto* valueCell = table.GetCell(1, newRowIndex);
 
+			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, rowColour);
+			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rowColour);
+			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
+
+			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
+
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
-			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity).SetAlignment(valueAlignment, {2,2});
+			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity).SetAlignment(valueAlignment, {8,2});
 			valueText.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0, 0 });
 			valueText.Widget().Panel().SetExpandToParentHorizontally();
 			valueText.Widget().Panel().SetExpandToParentVertically();
@@ -539,6 +552,10 @@ namespace GRANON
 			auto& table = CreateTable(parent);
 			table.Widget().Panel().SetExpandToParentHorizontally();
 			table.Widget().Panel().SetExpandToParentVertically();
+
+			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDITOR, RGBAb(192, 192, 192));
+			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
+
 
 			GRColumnSpec nameSpec;
 			nameSpec.name = "Name";
@@ -603,6 +620,19 @@ namespace GRANON
 			collapser.LeftSpacer().Panel().SetConstantWidth(depth * 24);
 			collapser.LeftSpacer().SetTransparency(0.0f);
 			collapser.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 200, 200, 255), GRGenerateIntensities());
+
+			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON);
+			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
+			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
+
+			MakeTransparent(collapser.TitleBar().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+			MakeTransparent(collapser.TitleBar().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+
+			collapser.TitleBar().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 255, 255), GRGenerateIntensities());
+
+			GRAlignmentFlags alignment;
+			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+			collapser.CollapseButton().SetAlignment(alignment, { 6,6 });
 			auto& titleDiv = collapser.TitleBar();
 
 			char title[128];
@@ -634,6 +664,12 @@ namespace GRANON
 			rightCentered.Add(EGRAlignment::Left).Add(EGRAlignment::VCentre);
 
 			titleDescription.SetAlignment(rightCentered, { 4,0 });
+
+			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::LABEL_BACKGROUND);
+			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+
+			SetUniformColourForAllRenderStates(titleDescription.Widget().Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
 
 			auto& list = CreateVerticalList(collapser.ClientArea().InnerWidget());
 			list.Widget().Panel().SetExpandToParentHorizontally();
