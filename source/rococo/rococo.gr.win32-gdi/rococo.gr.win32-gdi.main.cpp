@@ -839,6 +839,15 @@ namespace GRANON
 			defaultFont = knownFonts[0].handle;
 		}
 
+		IGRFonts& Fonts() override
+		{
+			if (screenDC == nullptr)
+			{
+				SyncToScreen();
+			}
+			return *this;
+		}
+
 		struct KnownFont
 		{
 			LOGFONTA creator;

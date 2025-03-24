@@ -1144,4 +1144,7 @@ namespace Rococo::Gui
 
 	// Recursively iterates through the panel and its children, will focus the first panel that has acceptsFocus flag set. Returns the new focus if successful, else nullptr
 	ROCOCO_GUI_RETAINED_API IGRPanel* TrySetDeepFocus(IGRPanel& panel);
+
+	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRPanel& panel);
+	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRWidget& widget);
 }

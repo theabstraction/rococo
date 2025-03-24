@@ -49,6 +49,8 @@ namespace Rococo::Gui
 		// Implementation specific error handling. Further in the Rococo libs we just throw an exception,
 		// but not everyone likes exceptions. Generally the error handler should invoke a breakpoint, issue a report and terminate the app.
 		virtual void RaiseError(const Rococo::Sex::ISExpression* associatedSExpression, EGRErrorCode code, cstr function, cstr format, ...) = 0;
+
+		virtual IGRFonts& Fonts() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRCustodianSupervisor : IGRCustodian

@@ -1000,4 +1000,14 @@ namespace Rococo::Gui
 	{
 		return "IGRWidgetLayout";
 	}
+
+	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRPanel& panel)
+	{
+		return panel.Root().Custodian();
+	}
+
+	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRWidget& widget)
+	{
+		return GetCustodian(widget.Panel());
+	}
 }

@@ -482,6 +482,11 @@ namespace ANON
 
 		}
 
+		IGRFonts& Fonts() override
+		{
+			return *this;
+		}
+
 		GRFontId BindFontId(const FontSpec& spec) override
 		{
 			UNUSED(spec);

@@ -95,9 +95,14 @@ namespace GRANON
 			rows.back().cellsInThisRow.resize(columnHeaders.size());
 			rows.back().rowHeight = spec.rowHeight;
 
+			auto& row = CreateDivision(*this);
+			row.Panel().SetConstantHeight(spec.rowHeight);
+			row.Panel().SetExpandToParentHorizontally();
+			row.Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
+
 			for (auto& cell : rows.back().cellsInThisRow)
 			{
-				cell.div = &CreateDivision(*this);
+				cell.div = &CreateDivision(row.InnerWidget());
 				cell.div->Panel().SetExpandToParentHorizontally();
 				cell.div->Panel().SetConstantHeight(spec.rowHeight);
 				cell.div->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);

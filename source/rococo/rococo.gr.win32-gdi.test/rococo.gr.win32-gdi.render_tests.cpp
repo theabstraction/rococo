@@ -1,6 +1,7 @@
 #include <rococo.gr.client.h>
 #include <rococo.gui.retained.h>
 #include <rococo.reflector.h>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -336,10 +337,18 @@ void TestFrame(IGRSystem& gr)
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
 			Reflection::Section target(v, "Target");
-			ROCOCO_REFLECT(v, iValue);
+			ROCOCO_REFLECT(v, MeaningOfLife);
+			ROCOCO_REFLECT(v, Age);
+			ROCOCO_REFLECT(v, Height);
+			ROCOCO_REFLECT(v, Weight);
 		}
 
-		int iValue = 42;
+		int MeaningOfLife = 42;
+		Strings::HString Name = "Arthur Dent";
+		float Age = 42.0f;
+		double Height = 175.0;
+		double Weight = 60;
+
 	} target;
 
 

@@ -214,6 +214,7 @@ namespace GRANON
 				innerRect.right -= 1;
 				innerRect.bottom -= 1;
 				g.DrawRect(innerRect, panel.GetColour(EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225)));
+				g.DrawRectEdge(innerRect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
 			}
 
 			if (!rs.value.bitValues.focused)

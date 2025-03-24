@@ -365,12 +365,29 @@ namespace GRANON
 		IGRPanel& panel;
 		Previewer previewer;
 		IGRPropertyEditorPopulationEvents& populationEventHandler;
+		GRFontId nameplateFont;
+		GRFontId headingFont;
 
 		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler) : panel(owningPanel), populationEventHandler(_populationEventHandler)
 		{
 			owningPanel.SetClipChildren(true);
 			owningPanel.SetExpandToParentHorizontally();
 			owningPanel.SetExpandToParentVertically();
+
+			FontSpec boldFont;
+			boldFont.Bold = true;
+			boldFont.CharHeight = 14;
+			boldFont.CharSet = ECharSet::ANSI;
+			boldFont.FontName = "Consolas";
+			nameplateFont = GetCustodian(owningPanel).Fonts().BindFontId(boldFont);
+
+
+			FontSpec headingFontSpec;
+			headingFontSpec.Bold = true;
+			headingFontSpec.CharHeight = 18;
+			headingFontSpec.CharSet = ECharSet::ANSI;
+			headingFontSpec.FontName = "Consolas";
+			headingFont = GetCustodian(owningPanel).Fonts().BindFontId(boldFont);
 		}
 
 		void Free() override
@@ -465,17 +482,21 @@ namespace GRANON
 			int newRowIndex = table.AddRow({ 30 });
 			auto* nameCell = table.GetCell(0, newRowIndex);
 
-			RGBAb rowColour = RGBAb(255, 255, 255, 255);
-			SetUniformColourForAllRenderStates(nameCell->Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, rowColour);
-			SetUniformColourForAllRenderStates(nameCell->Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rowColour);
-			SetUniformColourForAllRenderStates(nameCell->Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
+			RGBAb rowColour = (newRowIndex % 2 == 0) ? RGBAb(255, 255, 255, 255) : RGBAb(240, 240, 255, 255);
+			SetUniformColourForAllRenderStates(*nameCell->Panel().Parent(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, rowColour);
+			SetUniformColourForAllRenderStates(*nameCell->Panel().Parent(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rowColour);
+			SetUniformColourForAllRenderStates(*nameCell->Panel().Parent(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
 
 			GRAlignmentFlags nameAlignment;
-			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
+			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Right);
 			auto& leftSpacer = CreateDivision(nameCell->InnerWidget());
 			leftSpacer.SetTransparency(0);
 			leftSpacer.Panel().SetConstantWidth(2 + 24 + 24 * depth);
-			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(field.fieldName.c_str()).SetAlignment(nameAlignment, { 4,2 });
+
+			char label[256];
+			Strings::SafeFormat(label, "%s:", field.fieldName.c_str());
+			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(label).SetAlignment(nameAlignment, { 4,2 });
+			nameText.SetFont(nameplateFont);
 			nameText.Widget().Panel().SetExpandToParentHorizontally();
 			nameText.Widget().Panel().SetExpandToParentVertically();
 			nameText.Widget().Panel().Set(GRAnchorPadding{ 4, 0, 0, 0 });
@@ -522,6 +543,23 @@ namespace GRANON
 			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rowColour);
 			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
 
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, true, false));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, true, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, false, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, true, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(true, true, false));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(true, true, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(true, false, true));
+
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, true, false));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, true, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, false, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, true, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(true, true, false));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(true, true, true));
+			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(true, false, true));
+
+
 			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
 
 			GRAlignmentFlags valueAlignment;
@@ -552,6 +590,7 @@ namespace GRANON
 			auto& table = CreateTable(parent);
 			table.Widget().Panel().SetExpandToParentHorizontally();
 			table.Widget().Panel().SetExpandToParentVertically();
+			table.Widget().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
 
 			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDITOR, RGBAb(192, 192, 192));
 			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
@@ -580,7 +619,7 @@ namespace GRANON
 				NameValueControls controls = AddFieldToTable(table, data.fields[j], depth);
 
 				int nameWidth = controls.name.GetTextWidth();
-				const int padding = 16;
+				const int padding = 64;
 				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
 
 				populationEventHandler.OnAddNameValue(controls.name, controls.editor);
@@ -659,6 +698,7 @@ namespace GRANON
 			titleDescription.Widget().Panel().SetExpandToParentVertically();
 			titleDescription.Widget().Panel().SetExpandToParentHorizontally();
 			titleDescription.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0, 0 });
+			titleDescription.SetFont(headingFont);
 
 			GRAlignmentFlags rightCentered;
 			rightCentered.Add(EGRAlignment::Left).Add(EGRAlignment::VCentre);
