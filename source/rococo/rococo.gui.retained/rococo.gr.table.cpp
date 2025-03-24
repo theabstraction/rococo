@@ -132,6 +132,18 @@ namespace GRANON
 			return cell.div;
 		}
 
+		int EstimateHeight() const override
+		{
+			int totalHeight = 0;
+
+			for (auto& row : rows)
+			{
+				totalHeight += row.rowHeight;
+			}
+
+			return totalHeight;
+		}
+
 		void Free() override
 		{
 			delete this;

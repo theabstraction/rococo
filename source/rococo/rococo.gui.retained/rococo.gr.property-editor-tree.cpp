@@ -584,6 +584,15 @@ namespace GRANON
 			return controls;
 		}
 
+		std::vector<int> maxColumnWidthByDepth;
+
+		struct TableList
+		{
+			std::vector<IGRWidgetTable*> tables;
+		};
+
+		std::vector<TableList> tableByDepth;
+
 		// firstValidIndex and lastValidIndex are required to be valid. Iteration includes the final index
 		void AddFieldTable(PreviewData& data, int32 firstValidIndex, int32 lastValidIndex, IGRWidget& parent, int depth)
 		{
@@ -594,7 +603,6 @@ namespace GRANON
 
 			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDITOR, RGBAb(192, 192, 192));
 			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
-
 
 			GRColumnSpec nameSpec;
 			nameSpec.name = "Name";
@@ -625,7 +633,18 @@ namespace GRANON
 				populationEventHandler.OnAddNameValue(controls.name, controls.editor);
 			}
 
-			table.SetColumnWidth(0, nameColumnWidth);
+			while (depth + 1 > (int)maxColumnWidthByDepth.size())
+			{
+				maxColumnWidthByDepth.push_back(0);
+				tableByDepth.push_back(TableList());
+			}
+
+			int& maxColumnWidthForDepth = maxColumnWidthByDepth.back();
+			maxColumnWidthForDepth = max(nameColumnWidth, maxColumnWidthForDepth);
+			table.SetColumnWidth(0, maxColumnWidthForDepth);
+
+			auto& tableList = tableByDepth.back();
+			tableList.tables.push_back(&table);
 		}
 
 		void AddSubObject(PreviewField& subObjectField, IGRWidget& parent, int depth)
@@ -788,6 +807,17 @@ namespace GRANON
 
 			if (node) SyncUIToPreviewerRecursive(*node, viewport.ClientArea().InnerWidget(), 0);
 
+			for (size_t depth = 0; depth < tableByDepth.size(); depth++)
+			{
+				auto& tablesAtDepth = tableByDepth[depth];
+				int maxWidth = maxColumnWidthByDepth[depth];
+				
+				for (auto& t : tableByDepth[depth].tables)
+				{
+					t->SetColumnWidth(0, maxWidth);
+				}
+			}
+
 			SetCollapserSizes();
 		}
 
@@ -822,14 +852,14 @@ namespace GRANON
 						IGRWidgetTable* table = Cast<IGRWidgetTable>(child->Widget());
 						if (table)
 						{
-							heightOfDescendants += table->Widget().Panel().Span().y;
+							heightOfDescendants += table->EstimateHeight();
 						}
 					}
 				}
 			}
 
-			collapserParent.Widget().Panel().Resize({ viewport->ClientArea().Panel().Span().x, heightOfDescendants });
-
+			auto& cp = collapserParent.Widget().Panel();
+			cp.SetConstantHeight(heightOfDescendants);
 			return heightOfDescendants;
 		}
 

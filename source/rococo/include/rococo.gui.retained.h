@@ -771,6 +771,9 @@ namespace Rococo::Gui
 		// Returns a reference to the cell at the given location. If the location indices are out of bounds, the method returns nullptr
 		virtual IGRWidgetDivision* GetCell(int32 column, int32 row) = 0;
 
+		// Compute table height in pixels
+		virtual int EstimateHeight() const = 0;
+
 		// Sets the pixel width of the specified column
 		virtual void SetColumnWidth(int column, int width) = 0;
 	};
