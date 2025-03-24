@@ -109,6 +109,7 @@ namespace GRANON
 			collapseButton->SetPressedImagePath(collapserInlinePath);
 			collapseButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			collapseButton->MakeToggleButton();
+			collapseButton->SetStretchImage(true);
 		}
 
 		void Free() override

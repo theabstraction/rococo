@@ -382,7 +382,9 @@ void TestFrame(IGRSystem& gr)
 	} target;
 
 
-	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), target, eventHandler);
+	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), eventHandler);
+	editor.SetRowHeight(20);
+	editor.View(target);
 	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
 }
 

@@ -371,7 +371,7 @@ namespace ANON
 			return lastScissorRect.IsNormalized();
 		}
 
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const BitmapLocation& sprite)
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, const BitmapLocation& sprite)
 		{
 			if (!rc || sprite.pixelSpan.x <= 0 || sprite.pixelSpan.y <= 0 || sprite.textureIndex < 0) 
 			{
@@ -438,9 +438,9 @@ namespace ANON
 			}
 		}
 
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override
 		{
-			return static_cast<MPlatGR_Renderer&>(g).Render(panel, alignment, spacing, sprite);
+			return static_cast<MPlatGR_Renderer&>(g).Render(panel, alignment, spacing, isStretched, sprite);
 		}
 
 		void Free() override

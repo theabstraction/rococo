@@ -623,7 +623,7 @@ namespace Rococo::Gui
 	// The platform independent view of the platform dependent image associated with some widget
 	ROCOCO_INTERFACE IGRImage
 	{
-		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& rc) = 0;
+		virtual bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& rc) = 0;
 		virtual Vec2i Span() const = 0;
 	};
 
@@ -683,6 +683,8 @@ namespace Rococo::Gui
 		virtual GRButtonFlags GetButtonFlags() const = 0;
 
 		virtual void MakeToggleButton() = 0;
+
+		virtual void SetStretchImage(bool isStretched) = 0;
 	};
 
 	struct GRMenuButtonItem
@@ -788,6 +790,8 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRWidgetViewport& Viewport() = 0;
+		virtual void SetRowHeight(int height) = 0;
+		virtual void View(Reflection::IReflectionTarget& target) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase
@@ -1086,7 +1090,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
-	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, Rococo::Reflection::IReflectionTarget& target, IGRPropertyEditorPopulationEvents& events);
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 

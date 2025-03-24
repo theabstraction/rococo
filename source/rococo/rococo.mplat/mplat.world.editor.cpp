@@ -302,7 +302,8 @@ namespace ANON
 				}
 			} popHandler;
 
-			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().InnerWidget(), target, popHandler);
+			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().InnerWidget(), popHandler);
+			editorTree.View(target);
 			UNUSED(editorTree);
 		}
 

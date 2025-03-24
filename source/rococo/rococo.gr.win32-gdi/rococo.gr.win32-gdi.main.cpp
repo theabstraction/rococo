@@ -352,7 +352,7 @@ namespace GRANON
 
 		}
 
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override;
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override;
 
 		void Free() override
 		{
@@ -768,7 +768,7 @@ namespace GRANON
 	};
 
 
-	bool GDIImage::Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g)
+	bool GDIImage::Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g)
 	{
 		GuiRect rect = panel.AbsRect();
 
@@ -792,7 +792,14 @@ namespace GRANON
 			rect.bottom -= spacing.y;
 		}
 
-		g.DrawImageStretched(*this, rect, panel.AbsRect());
+		if (isStretched)
+		{
+			g.DrawImageStretched(*this, rect, panel.AbsRect());
+		}
+		else
+		{
+			g.DrawImageUnstretched(*this, rect, panel.AbsRect(), alignment);
+		}
 		return true;
 	}
 

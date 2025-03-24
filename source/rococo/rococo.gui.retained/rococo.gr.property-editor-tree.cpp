@@ -475,11 +475,11 @@ namespace GRANON
 			IGRWidgetEditBox& editor;
 		};
 
-		NameValueControls AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int depth)
+		NameValueControls AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int rowHeight, int depth)
 		{
 			UNUSED(depth);
 
-			int newRowIndex = table.AddRow({ 30 });
+			int newRowIndex = table.AddRow(GRRowSpec{ rowHeight } );
 			auto* nameCell = table.GetCell(0, newRowIndex);
 
 			RGBAb rowColour = (newRowIndex % 2 == 0) ? RGBAb(255, 255, 255, 255) : RGBAb(240, 240, 255, 255);
@@ -624,7 +624,7 @@ namespace GRANON
 
 			for (int32 j = firstValidIndex; j <= lastValidIndex; j++)
 			{
-				NameValueControls controls = AddFieldToTable(table, data.fields[j], depth);
+				NameValueControls controls = AddFieldToTable(table, data.fields[j], rowHeight, depth);
 
 				int nameWidth = controls.name.GetTextWidth();
 				const int padding = 64;
@@ -691,8 +691,12 @@ namespace GRANON
 			GRAlignmentFlags alignment;
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 			collapser.CollapseButton().SetAlignment(alignment, { 6,6 });
-			auto& titleDiv = collapser.TitleBar();
 
+			auto& titleDiv = collapser.TitleBar();
+			titleDiv.Panel().SetConstantHeight(rowHeight);
+
+			SetUniformColourForAllRenderStates(titleDiv.InnerWidget().Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, ((depth % 2) == 0) ? RGBAb(240, 255, 240) : RGBAb(255, 240, 240));
+			
 			char title[128];
 			if (data.containerKey.length() > 0)
 			{
@@ -790,8 +794,14 @@ namespace GRANON
 			return *viewport;
 		}
 
-		// Entry point for previewing targets, called by the factory function at the bottom of the page
-		void Preview(IReflectionTarget& target)
+		int rowHeight = 30;
+
+		void SetRowHeight(int height) override
+		{
+			rowHeight = clamp(height, 16, 300);
+		}
+
+		void View(IReflectionTarget& target) override
 		{
 			target.Visit(previewer);
 
@@ -812,7 +822,7 @@ namespace GRANON
 				auto& tablesAtDepth = tableByDepth[depth];
 				int maxWidth = maxColumnWidthByDepth[depth];
 				
-				for (auto& t : tableByDepth[depth].tables)
+				for (auto& t : tablesAtDepth.tables)
 				{
 					t->SetColumnWidth(0, maxWidth);
 				}
@@ -823,7 +833,7 @@ namespace GRANON
 
 		int ComputeAndAssignCollapserHeights(IGRWidgetCollapser& collapserParent)
 		{
-			int32 heightOfDescendants = 30;
+			int32 heightOfDescendants = collapserParent.TitleBar().Panel().Span().y;
 
 			auto* collapserChild = collapserParent.ClientArea().Panel().GetChild(0);
 
@@ -897,7 +907,7 @@ namespace Rococo::Gui
 		return "IGRWidgetPropertyEditorTree";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IReflectionTarget& target, IGRPropertyEditorPopulationEvents& populationEventHandler)
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& populationEventHandler)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
@@ -920,7 +930,6 @@ namespace Rococo::Gui
 
 		GRPropertyEditorTreeFactory factory(populationEventHandler);
 		auto* tree = static_cast<GRANON::GRPropertyEditorTree*>(Cast<IGRWidgetPropertyEditorTree>(gr.AddWidget(parent.Panel(), factory)));
-		tree->Preview(target);
 		return *tree;
 	}
 }

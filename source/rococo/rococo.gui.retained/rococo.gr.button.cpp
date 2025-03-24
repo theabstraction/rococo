@@ -23,6 +23,8 @@ namespace GRANON
 		AutoFree<IGRImageSupervisor> raisedImage;
 		AutoFree<IGRImageSupervisor> pressedImage;
 
+		bool isStretched = false;
+
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
@@ -222,7 +224,7 @@ namespace GRANON
 
 			if (image)
 			{
-				imageRendered = image->Render(panel, alignment, spacing, g);
+				imageRendered = image->Render(panel, alignment, spacing, isStretched, g);
 
 				GuiRect fogRect = panel.AbsRect();
 				fogRect.left += 1;
@@ -356,6 +358,11 @@ namespace GRANON
 		void MakeToggleButton() override
 		{
 			isToggler = true;
+		}
+
+		void SetStretchImage(bool isStretched) override
+		{
+			this->isStretched = isStretched;
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
