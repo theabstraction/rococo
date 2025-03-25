@@ -332,6 +332,35 @@ void TestFrame(IGRSystem& gr)
 		}
 	} eventHandler;
 
+	struct Stats : Reflection::IReflectionTarget
+	{
+		int Toughness;
+		int Speed;
+		int Skill;
+		int Magic;
+		int Charm;
+
+		Stats(int _Toughness, int _Speed, int _Skill, int _Magic, int _Charm) :
+			Toughness(_Toughness),
+			Speed(_Speed),
+			Skill(_Skill),
+			Magic(_Magic),
+			Charm(_Charm)
+		{
+
+		}
+
+		void Visit(Reflection::IReflectionVisitor& v)
+		{
+			Reflection::Section target(v, "Stats");
+			ROCOCO_REFLECT(v, Toughness);
+			ROCOCO_REFLECT(v, Speed);
+			ROCOCO_REFLECT(v, Skill);
+			ROCOCO_REFLECT(v, Magic);
+			ROCOCO_REFLECT(v, Charm);
+		}
+	};
+
 	struct Target1: Reflection::IReflectionTarget
 	{
 		void Visit(Reflection::IReflectionVisitor& v)
@@ -341,6 +370,7 @@ void TestFrame(IGRSystem& gr)
 			ROCOCO_REFLECT(v, Age);
 			ROCOCO_REFLECT(v, Height);
 			ROCOCO_REFLECT(v, Weight);
+			stats.Visit(v);
 		}
 
 		int MeaningOfLife = 42;
@@ -349,6 +379,7 @@ void TestFrame(IGRSystem& gr)
 		double Height = 175.0;
 		double Weight = 60;
 
+		Stats stats = Stats(10, 10, 9, 0, 6);
 	};
 
 	struct Target2 : Reflection::IReflectionTarget
@@ -360,24 +391,83 @@ void TestFrame(IGRSystem& gr)
 			ROCOCO_REFLECT(v, Age);
 			ROCOCO_REFLECT(v, Height);
 			ROCOCO_REFLECT(v, Weight);
+			stats.Visit(v);
 		}
 
 		int Earnings = 300'000'000;
 		Strings::HString Name = "Stan Lee";
-		float Age = 97.0f;
-		double Height = 175.0;
-		double Weight = 65;
+		float Age = 95.0f;
+		double Height = 180.0;
+		double Weight = 68;
+
+		Stats stats = Stats(7, 6, 14, 1, 9);
 	};
+
+	struct Target3 : Reflection::IReflectionTarget
+	{
+		void Visit(Reflection::IReflectionVisitor& v)
+		{
+			Reflection::Section target(v, Name);
+			ROCOCO_REFLECT(v, BestConcerto);
+			ROCOCO_REFLECT(v, BestOpera);
+			ROCOCO_REFLECT(v, Earnings);
+			ROCOCO_REFLECT(v, Age);
+			ROCOCO_REFLECT(v, Height);
+			ROCOCO_REFLECT(v, Weight);
+
+			stats.Visit(v);
+		}
+
+		int Earnings = 500;
+		Strings::HString BestConcerto = "23rd in A Major";
+		Strings::HString BestOpera = "The Marriage of Figaro";
+		Strings::HString Name = "Amadeus Wolfgang Mozart";
+		float Age = 36.0f;
+		double Height = 163.0;
+		double Weight = 50;
+
+		Stats stats = Stats(7, 12, 24, 9, 13);
+	};
+
+	struct Target4 : Reflection::IReflectionTarget
+	{
+		void Visit(Reflection::IReflectionVisitor& v)
+		{
+			Reflection::Section target(v, Name);
+			ROCOCO_REFLECT(v, FunniestJoke);
+			ROCOCO_REFLECT(v, FavouriteDrink);
+			ROCOCO_REFLECT(v, Earnings);
+			ROCOCO_REFLECT(v, Age);
+			ROCOCO_REFLECT(v, Height);
+			ROCOCO_REFLECT(v, Weight);
+			stats.Visit(v);
+		}
+
+		int Earnings = 2500;
+		Strings::HString FunniestJoke = "The one about the monkey";
+		Strings::HString FavouriteDrink = "Orange Juice";
+		Strings::HString Name = "Lee Harvey Oswald";
+		float Age = 24.0f;
+		double Height = 175.0;
+		double Weight = 50;
+
+		Stats stats = Stats(14, 13, 11, 1, 9);
+	};
+
 
 	struct Target : Reflection::IReflectionTarget
 	{
 		Target1 t1;
 		Target2 t2;
+		Target3 t3;
+		Target4 t4;
 
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
 			t1.Visit(v);
 			t2.Visit(v);
+			t3.Visit(v);
+			t4.Visit(v);
 		}
 	} target;
 
