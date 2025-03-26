@@ -255,13 +255,14 @@ namespace ANON
 			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
+			sliderZone.left = rect.left + 1;
+			sliderZone.right = rect.right - 1;
+			sliderZone.top = rect.top + 1;
+			sliderZone.bottom = rect.bottom - 1;
+
+
 			if (rs.value.intValue != 0)
 			{
-				sliderZone.left = rect.left + 1;
-				sliderZone.right = rect.right - 1;
-				sliderZone.top = rect.top + 1;
-				sliderZone.bottom = rect.bottom - 1;
-
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
 
