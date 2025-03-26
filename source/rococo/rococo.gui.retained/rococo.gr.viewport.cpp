@@ -1,5 +1,6 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
+#include <stdio.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -8,7 +9,7 @@ namespace ANON
 {
 	enum { scrollbarWidth = 16 };
 
-	struct GRViewportWidget : IGRWidgetViewport, IGRWidgetSupervisor, IGRScrollerEvents, IGRFocusNotifier
+	struct GRViewportWidget : IGRWidgetViewport, IGRWidgetSupervisor, IGRScrollerEvents, IGRFocusNotifier, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* clipArea = nullptr; // Represents the rectangle to the left of the scroller
@@ -38,6 +39,48 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+			auto span = panel.Span();
+
+			Vec2i clipSpan{ span.x - scrollbarWidth, span.y };
+			auto& panel = clipArea->Panel();
+			panel.SetConstantWidth(clipSpan.x);
+			panel.SetConstantHeight(clipSpan.y);
+			panel.SetParentOffset({ 0,0 });
+			
+			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
+
+			int parentOffset = 0;
+
+			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
+			if (m.PixelRange > 0)
+			{
+				double cursor = clamp((double)m.PixelPosition / (double)m.PixelRange, 0.0, 1.0);
+				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
+			}
+
+			auto& coaPanel = clientOffsetArea->Panel();
+			coaPanel.SetConstantWidth(clientOffsetSpan.x);
+			coaPanel.SetConstantHeight(clientOffsetSpan.y);
+			coaPanel.SetParentOffset({ 0, -parentOffset });
+			
+			auto& vswp = vscroller->Widget().Panel();
+			vswp.SetConstantWidth(scrollbarWidth);
+			vswp.SetConstantHeight(span.y);
+			vswp.SetParentOffset({ span.x - scrollbarWidth, 1 });
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -266,6 +309,12 @@ namespace ANON
 			if (ppOutputArg) *ppOutputArg = nullptr;
 			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
 
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
 			if (DoInterfaceNamesMatch(interfaceId, IGRWidgetViewport::InterfaceId()))
 			{
 				if (ppOutputArg)
@@ -295,7 +344,7 @@ namespace ANON
 			if (lastKnownDomainHeight != heightInPixels)
 			{
 				lastKnownDomainHeight = heightInPixels;
-				clientOffsetArea->Panel().Resize({ ClientArea().Panel().Span().x, max(1, heightInPixels) });
+				clientOffsetArea->Panel().SetConstantHeight(max(1, heightInPixels));
 			}
 		}
 

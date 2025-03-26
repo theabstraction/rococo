@@ -15,7 +15,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidgetSupervisor
+	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRScrollerEvents& events;
@@ -32,6 +32,23 @@ namespace ANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+			auto spec = events.OnCalculateSliderRect(panel.Span().y - 2, *this);
+			sliderHeight = spec.sliderSpanInPixels;
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -240,6 +257,11 @@ namespace ANON
 
 			if (rs.value.intValue != 0)
 			{
+				sliderZone.left = rect.left + 1;
+				sliderZone.right = rect.right - 1;
+				sliderZone.top = rect.top + 1;
+				sliderZone.bottom = rect.bottom - 1;
+
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
 
@@ -312,6 +334,12 @@ namespace ANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
 			return Gui::QueryForParticularInterface<IGRWidgetVerticalScroller>(this, ppOutputArg, interfaceId);
 		}
 

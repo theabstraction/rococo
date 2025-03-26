@@ -360,6 +360,24 @@ namespace GRANON
 		}
 	};
 
+	struct ScrollerWatcher : IGRPanelWatcher
+	{
+		void OnSetConstantHeight(IGRPanel& panel, int height) override
+		{
+			printf("A");
+		}
+
+		void OnSetConstantWidth(IGRPanel& panel, int width) override
+		{
+			printf("B");
+		}
+
+		void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) override
+		{
+			printf("C");
+		}
+	} s_scrollerWatcher;
+
 	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidgetSupervisor, IGRWidgetCollapserEvents
 	{
 		IGRPanel& panel;
@@ -829,6 +847,8 @@ namespace GRANON
 			}
 
 			SetCollapserSizes();
+
+			viewport.VScroller().Widget().Panel().SetPanelWatcher(&s_scrollerWatcher);
 		}
 
 		int ComputeAndAssignCollapserHeights(IGRWidgetCollapser& collapserParent)

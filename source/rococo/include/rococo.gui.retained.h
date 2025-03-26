@@ -28,6 +28,7 @@ namespace Rococo::Gui
 	DECLARE_ROCOCO_INTERFACE IGRWidgetEditBox;
 	DECLARE_ROCOCO_INTERFACE IGRCustodian;
 	DECLARE_ROCOCO_INTERFACE IGRWidgetViewport;
+	DECLARE_ROCOCO_INTERFACE IGRPanelWatcher;
 
 #pragma pack(push, 1)
 	struct GRCursorClick
@@ -290,6 +291,10 @@ namespace Rococo::Gui
 		}
 	};
 
+	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRRenderState rs);
+	ROCOCO_GUI_RETAINED_API void CopyAllColours(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface);
+
+
 	inline GRRenderState GRRenderState_HoveredOnly() { return GRRenderState(false, true, false); }
 
 	// Passed to SetColour(...) methods to indicate that the scheme should automatically generate colour intensities for the various state combinations by varying some colour parameter supplied to the API call
@@ -498,21 +503,26 @@ namespace Rococo::Gui
 		virtual void SetAssociatedSExpression(Sex::cr_sex s) = 0;
 
 		// Add extra rendering before and after widget rendering for the panel
-		virtual void SetPanelRenderer(IGRPanelRenderer* renderer) = 0;
+		virtual IGRPanel& SetPanelRenderer(IGRPanelRenderer* renderer) = 0;
 
-		virtual void SetLayoutDirection(ELayoutDirection direction) = 0;
+		virtual IGRPanel& SetLayoutDirection(ELayoutDirection direction) = 0;
 
-		virtual void SetFitChildrenHorizontally() = 0;
+		virtual IGRPanel& SetFitChildrenHorizontally() = 0;
 
-		virtual void SetFitChildrenVertically() = 0;
+		virtual IGRPanel& SetFitChildrenVertically() = 0;
 
-		virtual void SetConstantWidth(int width) = 0;
+		virtual IGRPanel& SetConstantWidth(int width) = 0;
 
-		virtual void SetConstantHeight(int height) = 0;
+		virtual IGRPanel& SetConstantHeight(int height) = 0;
 
-		virtual void SetExpandToParentHorizontally() = 0;
+		virtual IGRPanel& SetConstantSpan(Vec2i span) = 0;
 
-		virtual void SetExpandToParentVertically() = 0;
+		virtual IGRPanel& SetExpandToParentHorizontally() = 0;
+
+		virtual IGRPanel& SetExpandToParentVertically() = 0;
+
+		// Assigns a new panel watcher, and returns the address of the last one. Can return null if none was assigned (the default)
+		virtual IGRPanelWatcher* SetPanelWatcher(IGRPanelWatcher* newWatcher) = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)
@@ -544,6 +554,14 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 
 		virtual cstr GetImplementationTypeName() const = 0;
+	};
+
+	ROCOCO_INTERFACE IGRPanelWatcher : IGRBase
+	{
+		virtual void OnSetConstantHeight(IGRPanel& panel, int height) = 0;
+		virtual void OnSetConstantWidth(IGRPanel& panel, int width) = 0;
+		virtual void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) = 0;
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 	};
 
 	ROCOCO_INTERFACE IGRWidgetManager : IGRWidget

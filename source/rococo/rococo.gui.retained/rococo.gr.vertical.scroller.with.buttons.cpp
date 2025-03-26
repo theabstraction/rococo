@@ -19,7 +19,7 @@ namespace ANON
 
 		void PostRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext& g) override
 		{
-			GuiRect triangleRect = { absRect.left + 2, absRect.top + 2, absRect.right - 2, absRect.bottom - 2 };
+			GuiRect triangleRect = { absRect.left + 3, absRect.top + 3, absRect.right - 3, absRect.bottom - 3 };
 
 			bool isHovered = g.IsHovered(panel);
 
@@ -35,7 +35,7 @@ namespace ANON
 		}
 	};
 
-	struct GRVerticalScrollerWithButtons : IGRWidgetVerticalScrollerWithButtons, IGRWidgetSupervisor
+	struct GRVerticalScrollerWithButtons : IGRWidgetVerticalScrollerWithButtons, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetButton* topButton = nullptr;
@@ -54,10 +54,11 @@ namespace ANON
 
 		void PostConstruct()
 		{
+			panel.SetLayoutDirection(ELayoutDirection::None);
 			topButton = &CreateButton(*this);
 			bottomButton = &CreateButton(*this);
 			scroller = &CreateVerticalScroller(*this, events);
-
+			scroller->Widget().Panel().SetExpandToParentHorizontally();
 			topButton->Widget().Panel().SetPanelRenderer(&upRenderer);
 			topButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			bottomButton->Widget().Panel().SetPanelRenderer(&downRenderer);
@@ -82,6 +83,29 @@ namespace ANON
 		IGRWidgetButton& TopButton() override
 		{
 			return *topButton;
+		}
+
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+			
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+			int buttonSpan = panel.Span().x;
+			topButton->Widget().Panel().SetConstantSpan(Vec2i{ buttonSpan, buttonSpan });
+			scroller->Widget().Panel().SetConstantHeight(panel.Span().y - 2 * buttonSpan).SetParentOffset({ 0, buttonSpan });;
+			bottomButton->Widget().Panel().SetConstantSpan(Vec2i{ buttonSpan, buttonSpan }).SetParentOffset({ 0, panel.Span().y - buttonSpan });
+
+			CopyAllColours(panel, panel, EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, EGRSchemeColourSurface::BUTTON);
+			CopyAllColours(panel, panel, EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
+			CopyAllColours(panel, panel, EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -166,6 +190,12 @@ namespace ANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
 			return Gui::QueryForParticularInterface<IGRWidgetVerticalScrollerWithButtons>(this, ppOutputArg, interfaceId);
 		}
 

@@ -311,16 +311,23 @@ void TestFrame(IGRSystem& gr)
 
 	auto& framePanel = frame.Widget().Panel();
 
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), GRGenerateIntensities());
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, false, true));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, true, false));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, true, true));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, false, false));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, false, true));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, false));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, true));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(225, 225, 225, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
 
 	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 255), GRGenerateIntensities());
 
@@ -328,7 +335,8 @@ void TestFrame(IGRSystem& gr)
 	{
 		void OnAddNameValue(IGRWidgetText& nameWidget, IGRWidgetEditBox& editorWidget)
 		{
-
+			UNUSED(nameWidget);
+			UNUSED(editorWidget);
 		}
 	} eventHandler;
 
@@ -454,6 +462,30 @@ void TestFrame(IGRSystem& gr)
 		Stats stats = Stats(14, 13, 11, 1, 9);
 	};
 
+	struct Target5 : Reflection::IReflectionTarget
+	{
+		void Visit(Reflection::IReflectionVisitor& v)
+		{
+			Reflection::Section target(v, Name);
+			ROCOCO_REFLECT(v, BestFriend);
+			ROCOCO_REFLECT(v, Lyrics);
+			ROCOCO_REFLECT(v, Earnings);
+			ROCOCO_REFLECT(v, Age);
+			ROCOCO_REFLECT(v, Height);
+			ROCOCO_REFLECT(v, Weight);
+			stats.Visit(v);
+		}
+
+		int Earnings = 12300;
+		Strings::HString BestFriend = "Papagena";
+		Strings::HString Lyrics = "Pa pa pa";
+		Strings::HString Name = "Papageno";
+		float Age = 22.0f;
+		double Height = 178.0;
+		double Weight = 53;
+
+		Stats stats = Stats(15, 12, 11, 4, 12);
+	};
 
 	struct Target : Reflection::IReflectionTarget
 	{
@@ -461,6 +493,7 @@ void TestFrame(IGRSystem& gr)
 		Target2 t2;
 		Target3 t3;
 		Target4 t4;
+		Target5 t5;
 
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
@@ -468,6 +501,7 @@ void TestFrame(IGRSystem& gr)
 			t2.Visit(v);
 			t3.Visit(v);
 			t4.Visit(v);
+			t5.Visit(v);
 		}
 	} target;
 

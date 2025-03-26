@@ -342,6 +342,11 @@ namespace GRANON
 			absRect.right = absRect.left + span.x;
 			absRect.bottom = absRect.top + span.y;
 
+			if (watcher)
+			{
+				watcher->OnSetAbsRect(*this, absRect);
+			}
+
 			int dx = 0;
 			int dy = 0;
 
@@ -554,41 +559,65 @@ namespace GRANON
 			}
 		}
 
-		void SetLayoutDirection(ELayoutDirection direction) override
+		IGRPanel& SetLayoutDirection(ELayoutDirection direction) override
 		{
 			this->layoutDirection = direction;
+			return *this;
 		}
 
-		void SetFitChildrenHorizontally() override
+		IGRPanel& SetFitChildrenHorizontally() override
 		{
 			widthSizing = ESizingRule::FitChildren;
+			return *this;
 		}
 
-		void SetFitChildrenVertically() override
+		IGRPanel& SetFitChildrenVertically() override
 		{
 			heightSizing = ESizingRule::FitChildren;
+			return *this;
 		}
 
-		void SetExpandToParentHorizontally() override
+		IGRPanel& SetExpandToParentHorizontally() override
 		{
 			widthSizing = ESizingRule::ExpandToParent;
+			return *this;
 		}
 
-		void SetExpandToParentVertically() override
+		IGRPanel& SetExpandToParentVertically() override
 		{
 			heightSizing = ESizingRule::ExpandToParent;
+			return *this;
 		}
 
-		void SetConstantWidth(int width) override
+		IGRPanel& SetConstantWidth(int width) override
 		{
+			if (watcher)
+			{
+				watcher->OnSetConstantWidth(*this, width);
+			}
+
 			widthSizing = ESizingRule::Constant;
 			span.x = width;
+			return *this;
 		}
 
-		void SetConstantHeight(int height) override
+		IGRPanel& SetConstantHeight(int height) override
 		{
+			if (watcher)
+			{
+				watcher->OnSetConstantHeight(*this, height);
+			}
+
 			heightSizing = ESizingRule::Constant;
 			span.y = height;
+			return *this;
+		}
+
+		IGRPanel& SetConstantSpan(Vec2i ds) override
+		{
+			SetConstantWidth(ds.x);
+			SetConstantHeight(ds.y);	
+			return *this;
 		}
 
 		void GarbageCollectRecursive() override
@@ -902,9 +931,19 @@ namespace GRANON
 		}
 
 		// Add extra rendering before and after widget rendering for the panel
-		void SetPanelRenderer(IGRPanelRenderer* renderer) override
+		IGRPanel& SetPanelRenderer(IGRPanelRenderer* renderer) override
 		{
 			extraRenderer = renderer;
+			return *this;
+		}
+
+		IGRPanelWatcher* watcher = nullptr;
+
+		IGRPanelWatcher* SetPanelWatcher(IGRPanelWatcher* newWatcher) override
+		{
+			auto* old = watcher;
+			watcher = newWatcher;
+			return old;
 		}
 	};
 }
@@ -914,6 +953,24 @@ namespace Rococo::Gui
 	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent)
 	{
 		return new GRANON::GRPanel(root, parent);
+	}
+
+	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRRenderState rs)
+	{
+		RGBAb c = src.GetColour(srcSurface, rs);
+		target.Set(trgSurface, c, rs);
+	}
+
+	ROCOCO_GUI_RETAINED_API void CopyAllColours(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface)
+	{
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, false, false));
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, false, true));
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, true, false));
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, true, true));
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, false, false));
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, false, true));
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, true, false));
+		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, true, true));
 	}
 
 	void Throw(IGRPanel& panel, EGRErrorCode code, cstr function, cstr format, ...)
@@ -949,6 +1006,11 @@ namespace Rococo::Gui
 			child->InvalidateLayout(false);
 			InvalidateLayoutForAllDescendants(*child);
 		}
+	}
+
+	ROCOCO_GUI_RETAINED_API cstr IGRPanelWatcher::InterfaceId()
+	{
+		return "IGRPanelWatcher";
 	}
 
 	ROCOCO_GUI_RETAINED_API cstr IGRNavigator::InterfaceId()
