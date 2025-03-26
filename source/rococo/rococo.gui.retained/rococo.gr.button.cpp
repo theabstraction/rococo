@@ -20,8 +20,8 @@ namespace GRANON
 
 		std::string raisedImagePath;
 		std::string pressedImagePath;
-		AutoFree<IGRImageSupervisor> raisedImage;
-		AutoFree<IGRImageSupervisor> pressedImage;
+		IGRImage* raisedImage;
+		IGRImage* pressedImage;
 
 		bool isStretched = false;
 
@@ -29,6 +29,11 @@ namespace GRANON
 		{
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 			SyncMinimalSpan();
+		}
+
+		virtual ~GRButton()
+		{
+
 		}
 
 		void Free() override

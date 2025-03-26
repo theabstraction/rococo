@@ -384,11 +384,11 @@ namespace GRANON
 			case ELayoutDirection::BottomToTop:
 				
 				break;
-			}
-
-			for (auto* child : children)
-			{
-				child->SetAbsRectRecursive();
+			default:
+				for (auto* child : children)
+				{
+					child->SetAbsRectRecursive();
+				}
 			}
 		}
 

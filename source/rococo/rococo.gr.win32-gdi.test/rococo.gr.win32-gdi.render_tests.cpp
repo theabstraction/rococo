@@ -169,10 +169,24 @@ IGR2DScene* TestBlackScene()
 	return &scene;
 }
 
+IGR2DScene* TestNoScene()
+{
+	struct Scene : IGR2DScene
+	{
+		void Render(Gui::IGRRenderContext& rc) override
+		{
+		}
+	};
+
+	static Scene scene;
+	return &scene;
+}
+
 IGR2DScene* TestScene()
 {
 	//return TestDrawRect();
-	return TestBlackScene();
+	// return TestBlackScene();
+	return TestNoScene();
 }
 
 void BuildMenus(IGRWidgetMainFrame& frame)
@@ -300,7 +314,7 @@ void TestFrame(IGRSystem& gr)
 	auto& frame = gr.BindFrame(mainFrame);
 	//frame.SetTitleBarHeight(30);
 
-	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 255), GRGenerateIntensities());
+	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 0), GRGenerateIntensities());
 
 	auto& scheme = gr.Root().Scheme();
 	SetSchemeColours_ThemeGrey(scheme);
@@ -329,7 +343,7 @@ void TestFrame(IGRSystem& gr)
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
 
-	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 255), GRGenerateIntensities());
+	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), GRGenerateIntensities());
 
 	struct EventHandler: Gui::IGRPropertyEditorPopulationEvents
 	{
@@ -509,7 +523,7 @@ void TestFrame(IGRSystem& gr)
 	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), eventHandler);
 	editor.SetRowHeight(20);
 	editor.View(target);
-	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
+	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 0), GRGenerateIntensities());
 }
 
 void TestWidgets(IGRSystem& gr)

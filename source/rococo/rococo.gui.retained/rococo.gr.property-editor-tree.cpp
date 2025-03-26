@@ -364,17 +364,17 @@ namespace GRANON
 	{
 		void OnSetConstantHeight(IGRPanel& panel, int height) override
 		{
-			printf("A");
+		//	printf("A");
 		}
 
 		void OnSetConstantWidth(IGRPanel& panel, int width) override
 		{
-			printf("B");
+		//	printf("B");
 		}
 
 		void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) override
 		{
-			printf("C");
+		//	printf("C");
 		}
 	} s_scrollerWatcher;
 

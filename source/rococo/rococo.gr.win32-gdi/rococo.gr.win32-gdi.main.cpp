@@ -15,8 +15,10 @@
 #include <rococo.os.h>
 #include <rococo.window.h>
 #include <rococo.imaging.h>
+#include <rococo.hashtable.h>
 
 #include <sexy.types.h>
+#include <rococo.time.h>
 
 #include <vector>
 
@@ -349,7 +351,10 @@ namespace GRANON
 
 		virtual ~GDIImage()
 		{
-
+			if (hImage)
+			{
+				DeleteObject(hImage);
+			}
 		}
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override;
@@ -518,22 +523,53 @@ namespace GRANON
 				return;
 			}
 
-			SolidBrush solidBrush(Color(colour.alpha, colour.red, colour.green, colour.blue));
-			g.FillRectangle(&solidBrush, absRect.left, absRect.top, Width(absRect), Height(absRect));
+			if (colour.alpha < 255)
+			{
+				SolidBrush solidBrush(Color(colour.alpha, colour.red, colour.green, colour.blue));
+				g.FillRectangle(&solidBrush, absRect.left, absRect.top, Width(absRect), Height(absRect));
+			}
+			else
+			{
+				const RECT& rect = reinterpret_cast<const RECT&>(absRect);
+
+				GDISolidBrush brush(colour);
+				FillRect(paintDC, &rect, brush);
+			}
+		}
+
+		void DrawGDILines(Gdiplus::Point* points, int nVertices, RGBAb colour)
+		{
+			GDIPen pen(colour);
+			UsePen usePen(paintDC, pen);
+
+			MoveToEx(paintDC, points[0].X, points[0].Y, NULL);
+
+			for (int i = 1; i < nVertices; i++)
+			{
+				LineTo(paintDC, points[i].X, points[i].Y);
+			}
 		}
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) override
 		{
 			if (topLeftColour.alpha > 0)
 			{
-				Gdiplus::Pen topLeftPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue));
 				Gdiplus::Point topLeftPoints[3] =
 				{
 					{ absRect.right - 1, absRect.top   },
 					{ absRect.left,  absRect.top   },
 					{ absRect.left, absRect.bottom - 1 }
 				};
-				g.DrawLines(&topLeftPen, topLeftPoints, 3);
+
+				if (topLeftColour.alpha < 255)
+				{
+					Gdiplus::Pen topLeftPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue));
+					g.DrawLines(&topLeftPen, topLeftPoints, 3);
+				}
+				else
+				{
+					DrawGDILines(topLeftPoints, 3, topLeftColour);
+				}
 			}
 
 			if (bottomRightColour.alpha > 0)
@@ -545,7 +581,15 @@ namespace GRANON
 					{ absRect.right - 1, absRect.bottom - 1 },
 					{ absRect.right - 1, absRect.top }
 				};
-				g.DrawLines(&bottomRightPen, bottomRightPoints, 3);
+
+				if (bottomRightColour.alpha < 255)
+				{
+					g.DrawLines(&bottomRightPen, bottomRightPoints, 3);
+				}
+				else
+				{
+					DrawGDILines(bottomRightPoints, 3, bottomRightColour);
+				}
 			}
 		}
 
@@ -836,6 +880,8 @@ namespace GRANON
 
 		mutable HDC screenDC = nullptr;
 
+		stringmap<GDIImage*> images;
+
 		GDICustodian()
 		{
 			os = IO::GetIOS();
@@ -877,6 +923,11 @@ namespace GRANON
 			for (auto f : knownFonts)
 			{
 				DeleteObject(f.handle);
+			}
+
+			for (auto i : images)
+			{
+				i.second->Free();
 			}
 
 			ReleaseScreenDC();
@@ -1006,7 +1057,15 @@ namespace GRANON
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
-			return new GDIImage(debugHint, imagePath, *installation);
+
+			auto it = images.find(imagePath);
+			if (it == images.end())
+			{
+				auto* newImage = new GDIImage(debugHint, imagePath, *installation);
+				it = images.insert(imagePath, newImage).first;
+			}
+
+			return it->second;
 		}
 
 		void RecordWidget(IGRWidget& widget) override
@@ -1318,9 +1377,26 @@ namespace GRANON
 			}
 
 			UsingBackBuffer ubb(*this);
+
+			Time::Timer t1("Custodian Paint");
+			t1.Start();
 			gdiCustodian->OnPaint(*scene, hWnd, hMemDC);
+			t1.End();
+
+
+			Time::Timer t2("Custodian Gui");
+			t2.Start();
 			gdiCustodian->RenderGui(*grSystem, hWnd, hMemDC);
+			t2.End();
+
+			Time::Timer t3("BitBlt");
+			t3.Start();
 			BitBlt(paint.DC(), 0, 0, rect.right, rect.bottom, hMemDC, 0, 0, SRCCOPY);
+			t3.End();
+
+			char text1[256];
+			// Strings::SafeFormat(text1, "gdiCustodian->RenderGui %3.3f ms", Time::ToMilliseconds(t2.ExpiredTime()));
+			//DrawTextA(paint.DC(), text1, (int) strlen(text1), &rect, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
 		}
 
 		BYTE keystate[256] = { 0 };
@@ -1455,6 +1531,10 @@ namespace GRANON
 					return 0L;
 				case WM_INPUT:
 					This->OnRawInput(wParam, lParam);
+					break;
+				case WM_TIMER:
+					InvalidateRect(hWnd, NULL, FALSE);
+					break;
 				}
 			}
 			catch (IException& ex)
@@ -1486,6 +1566,11 @@ namespace GRANON
 			if (hMemDC)
 			{
 				DeleteDC(hMemDC);
+			}
+
+			if (timerId && hWnd)
+			{
+				KillTimer(hWnd, timerId);
 			}
 
 			DestroyWindow(hWnd);
@@ -1532,7 +1617,11 @@ namespace GRANON
 
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) this);
 			SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) GDIProc);
+
+			timerId = SetTimer(hWnd, 1024, 5, NULL);
 		}
+
+		UINT_PTR timerId = 0;
 
 		void LinkScene(IGR2DScene* scene)
 		{
@@ -1606,6 +1695,13 @@ namespace GRANON
 		{
 			switch (msg)
 			{
+			case WM_PAINT:
+				{
+					PAINTSTRUCT ps;
+					BeginPaint(hWnd, &ps);
+					EndPaint(hWnd, &ps);
+				}
+				return 0L;
 			case WM_ERASEBKGND:
 				return 0L;
 			case WM_GETMINMAXINFO:

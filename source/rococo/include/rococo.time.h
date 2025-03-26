@@ -19,7 +19,7 @@ namespace Rococo::Time
 		const char* name;
 
 	public:
-		ROCOCO_API Timer();
+		Timer() = delete;
 		ROCOCO_API void Start();
 		ROCOCO_API void End();
 		ROCOCO_API Time::ticks ExpiredTime();
