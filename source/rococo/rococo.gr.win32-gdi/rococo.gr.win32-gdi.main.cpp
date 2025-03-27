@@ -16,7 +16,7 @@
 #include <rococo.window.h>
 #include <rococo.imaging.h>
 #include <rococo.hashtable.h>
-
+#include <rococo.time.h>
 #include <sexy.types.h>
 #include <rococo.time.h>
 
@@ -370,6 +370,7 @@ namespace GRANON
 		}
 	};
 
+
 	struct SceneRenderer: Gui::IGRRenderContext
 	{
 		HWND hWnd;
@@ -615,17 +616,61 @@ namespace GRANON
 			hilightRects.push_back({ absRect, colour1, colour2 });
 		}
 
-		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) override
+		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
 		{
-			UNUSED(caretPos);
-			UNUSED(spacing);
-
 			UseClipRect useClip(paintDC, clipRect);
 
 			SelectFont(custodian, fontId, paintDC);
 
 			TEXTMETRICA tm;
 			GetTextMetricsA(paintDC, &tm);
+
+			int caretLeftColumn = 0;
+			int caretRightColumn = 0;
+
+			if (caret.CaretPos == 0)
+			{
+				// Caret is at the start
+				// Zero.
+
+				if (text.length > 0)
+				{
+					// Caret right side is the width of the first glyph
+					SIZE ds;
+					if (GetTextExtentPoint32A(paintDC, text, 1, &ds))
+					{
+						caretRightColumn = ds.cx;
+					}
+				}
+			}
+			else if (caret.CaretPos < 0 || caret.CaretPos >= text.length)
+			{
+				// Caret is at the end
+				SIZE ds;
+				if (GetTextExtentPoint32A(paintDC, text, text.length, &ds))
+				{
+					caretLeftColumn = ds.cx;
+				}
+
+				// Caret is the span of the glyph 'A'
+				if (GetTextExtentPoint32A(paintDC, "A", 1, &ds))
+				{
+					caretRightColumn = caretLeftColumn + ds.cx;
+				}
+			}
+			else
+			{
+				SIZE ds;
+				if (GetTextExtentPoint32A(paintDC, text, caret.CaretPos, &ds))
+				{
+					caretLeftColumn = ds.cx;
+				}
+
+				if (GetTextExtentPoint32A(paintDC, text, caret.CaretPos + 1, &ds))
+				{
+					caretRightColumn = ds.cx;
+				}
+			}
 
 			// To calculate caretPos using GDI:
 			//    Get text metrics of clipped text before caretPos and after the caretPos to get dimensions of caret 
@@ -640,15 +685,20 @@ namespace GRANON
 
 			RECT rect{ clipRect.left, clipRect.top, clipRect.right, clipRect.bottom };
 
+			int caretY = 0;
+
 			if (alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom))
 			{
 				rect.top -= tm.tmInternalLeading;
 				rect.top += spacing.y;
+
+				caretY = rect.top + tm.tmHeight;
 			}
 
 			if (!alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom))
 			{
 				rect.bottom -= spacing.y;
+				caretY = rect.bottom - tm.tmInternalLeading;
 			}
 
 			if (alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right))
@@ -664,11 +714,46 @@ namespace GRANON
 			if (alignment.HasAllFlags(EGRAlignment::VCentre))
 			{
 				rect.top -= (tm.tmInternalLeading >> 1);
+				caretY = ((rect.top + rect.bottom + tm.tmHeight) / 2);
 			}
 
 			DrawTextA(paintDC, text, text.length, &rect, format);
 
 			SetTextColor(paintDC, oldColour);
+
+			RGBAb caretColour;
+			
+			if (caret.BlinksPerSecond <= 0)
+			{
+				caretColour = caret.CaretColour1;
+			}
+			else if (caret.BlinksPerSecond > 10)
+			{
+				caretColour = caret.CaretColour2;
+			}
+			else
+			{
+				auto now = Time::TickCount();
+				auto t = now / (Time::TickHz() / caret.BlinksPerSecond);
+				caretColour = (t % caret.BlinksPerSecond == 0) ? caret.CaretColour1 : caret.CaretColour2;
+			}
+			
+			if (caret.IsInserting)
+			{
+				GDIPen pen(caretColour);
+				UsePen usePen(paintDC, pen);
+				MoveToEx(paintDC, rect.left + caretLeftColumn, caretY, NULL);
+				LineTo(paintDC, rect.left + caretRightColumn, caretY);
+			}
+			else
+			{
+				GuiRect caretRect;
+				caretRect.left = rect.left + caretLeftColumn;
+				caretRect.top = caretY - tm.tmHeight;
+				caretRect.right = rect.left + caretRightColumn;
+				caretRect.bottom = caretY;
+				DrawRectEdge(caretRect, caretColour, caretColour);
+			}
 		}
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{

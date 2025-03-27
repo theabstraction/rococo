@@ -177,7 +177,7 @@ namespace ANON
 			lastTasks.push_back(task);
 		}
 
-		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) override
+		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
 		{
 			if (!lastScissorRect.IsNormalized())
 			{
@@ -228,7 +228,7 @@ namespace ANON
 				}
 			} glyphCallback;
 
-			glyphCallback.caretPos = caretPos;
+			glyphCallback.caretPos = caret.CaretPos;
 			glyphCallback.caretWidth = metrics.imgWidth;
 
 			RGBAb transparent(0, 0, 0, 0);
@@ -264,11 +264,7 @@ namespace ANON
 
 			float dt = dticks / (float)Rococo::Time::TickHz();
 
-			RGBAb blinkColour = colour;
-			if (dt > 0.5f)
-			{
-				blinkColour.alpha = colour.alpha / 2;
-			}
+			RGBAb blinkColour = dt > 0.5f ? caret.CaretColour1 : caret.CaretColour2;
 			Rococo::Graphics::DrawLine(*rc, 1, glyphCallback.caretStart, glyphCallback.caretEnd, blinkColour);
 
 			rc->FlushLayer();

@@ -206,6 +206,8 @@ namespace GRANON
 
 			GRRenderState rs(false, g.IsHovered(panel), panel.Id() == panel.Root().GR().GetFocusId());
 
+			RGBAb editorColour = panel.GetColour(EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225));
+
 			if (rs.value.bitValues.focused)
 			{
 				GuiRect innerRect = rect;
@@ -213,7 +215,7 @@ namespace GRANON
 				innerRect.top += 1;
 				innerRect.right -= 1;
 				innerRect.bottom -= 1;
-				g.DrawRect(innerRect, panel.GetColour(EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225)));
+				g.DrawRect(innerRect, editorColour);
 				g.DrawRectEdge(innerRect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
 			}
 
@@ -227,7 +229,14 @@ namespace GRANON
 			else
 			{
 				RGBAb textColour = panel.GetColour(EGRSchemeColourSurface::EDIT_TEXT, rs);
-				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, caretPos, textColour);
+
+				CaretSpec caret;
+				caret.IsInserting = true;
+				caret.CaretPos = caretPos;
+				caret.BlinksPerSecond = 2;
+				caret.CaretColour1 = textColour;
+				caret.CaretColour2 = editorColour;
+				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, textColour, caret);
 			}
 		}
 

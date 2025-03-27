@@ -193,6 +193,18 @@ namespace Rococo::Gui
 		 virtual IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr imagePath) = 0;
 	};
 
+	struct CaretSpec
+	{
+		// Either inserting (true) or overwriting (false)
+		bool IsInserting = false;
+		int32 CaretPos = 0; // Number of characters from left of string at which caret should be rendered
+		RGBAb CaretColour1;
+		RGBAb CaretColour2;
+
+		// Blinks per second: <= 0 use caret colour1, > 10 use caret colour 2, and between 1 and 10, alternative between them at the specified blink rate
+		int BlinksPerSecond = 0;
+	};
+
 	// The interface to the platform dependent rendering of the retained GUI
 	ROCOCO_INTERFACE IGRRenderContext
 	{
@@ -217,7 +229,7 @@ namespace Rococo::Gui
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
 		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;
 
-		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) = 0;
+		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) = 0;
 		virtual void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 
 		// Causes all render operations to complete
