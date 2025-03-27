@@ -179,7 +179,7 @@ namespace ANON
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
 				double cursor = clamp((double)(m.PixelPosition + newPosition) / (double)m.PixelRange, 0.0, 1.0);
-				clientOffsetAreaParentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
+				clientOffsetAreaParentOffset = (int)(cursor * (lastKnownDomainHeight - panel.Span().y));
 			}
 		}
 

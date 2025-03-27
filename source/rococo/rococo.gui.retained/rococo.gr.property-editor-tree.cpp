@@ -802,7 +802,7 @@ namespace GRANON
 			if (!viewport)
 			{
 				viewport = &CreateViewportWidget(*this);
-				viewport->SetLineDeltaPixels(30);
+				viewport->SetLineDeltaPixels(10);
 
 				auto& vp = viewport->Widget().Panel();
 				vp.SetExpandToParentHorizontally();
