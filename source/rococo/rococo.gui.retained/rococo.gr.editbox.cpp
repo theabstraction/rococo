@@ -12,7 +12,7 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 		std::vector<char> text;
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId;
 		GRAlignmentFlags alignment;
 		Vec2i spacing{ 0,0 };
 		int32 caretPos = 0;
@@ -34,7 +34,7 @@ namespace GRANON
 			}
 		};
 
-		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity) : panel(owningPanel), filter(_filter)
+		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), filter(_filter), fontId(_fontId)
 		{
 			text.reserve(capacity);
 			owningPanel.SetMinimalSpan({ 10, 10 });
@@ -342,15 +342,16 @@ namespace GRANON
 	{
 		IGREditFilter* filter;
 		int32 capacity;
+		GRFontId fontId;
 
-		GREditBoxFactory(IGREditFilter* _filter, int32 _capacity): filter(_filter), capacity(_capacity)
+		GREditBoxFactory(IGREditFilter* _filter, int32 _capacity, GRFontId _fontId): filter(_filter), capacity(_capacity), fontId(_fontId)
 		{
 
 		}
 
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GREditBox(panel, filter, capacity);
+			return *new GREditBox(panel, filter, capacity, fontId);
 		}
 	};
 }
@@ -362,7 +363,7 @@ namespace Rococo::Gui
 		return "IGRWidgetEditBox";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity)
+	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity, GRFontId fontId)
 	{
 		if (capacity <= 2)
 		{
@@ -379,7 +380,7 @@ namespace Rococo::Gui
 			capacity = (int32) 1024_megabytes;
 		}
 
-		GRANON::GREditBoxFactory factory(filter, capacity);
+		GRANON::GREditBoxFactory factory(filter, capacity, fontId);
 
 		auto& gr = parent.Panel().Root().GR();
 		auto* editor = Cast<IGRWidgetEditBox>(gr.AddWidget(parent.Panel(), factory));

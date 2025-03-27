@@ -44,6 +44,7 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
+			UNUSED(panelDimensions);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

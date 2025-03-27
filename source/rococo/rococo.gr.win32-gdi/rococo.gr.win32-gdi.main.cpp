@@ -997,6 +997,7 @@ namespace GRANON
 		{
 			LOGFONTA creator;
 			HFONT handle;
+			TEXTMETRICA metrics;
 		};
 
 		std::vector<KnownFont> knownFonts;
@@ -1052,6 +1053,12 @@ namespace GRANON
 			}
 
 			return &knownFonts[arrayIndex];
+		}
+
+		int GetFontHeight(GRFontId id) const override
+		{
+			auto* f = GetFont(id);
+			return f ? f->metrics.tmHeight : 0;
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
@@ -1133,8 +1140,32 @@ namespace GRANON
 			}
 
 			HFONT hFont = CreateFontIndirectA(&f);
-			knownFonts.push_back({ f, hFont });
+			if (!hFont)
+			{
+				return GRFontId::NONE;
+			}
 
+			TEXTMETRICA tm = { 0 };
+			HDC dc = GetDC(nullptr);
+			if (!dc)
+			{
+				RaiseError(nullptr, EGRErrorCode::Generic, __FUNCTION__, "Cannot bind to font. GetDC returned nullptr");
+			}
+			else
+			{
+				auto oldFont = SelectObject(dc, hFont);
+				bool success = GetTextMetricsA(dc, &tm);
+				SelectObject(dc, oldFont);
+
+				DeleteDC(dc);
+
+				if (!success)
+				{
+					RaiseError(nullptr, EGRErrorCode::Generic, __FUNCTION__, "Cannot bind to font. GetTextMetricsA returned false. Error code %d", GetLastError());
+				}
+			}
+
+			knownFonts.push_back({ f, hFont, tm });
 			return static_cast<GRFontId>(knownFonts.size() + 1);
 		}
 

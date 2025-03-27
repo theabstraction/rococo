@@ -184,6 +184,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRFonts
 	{
 		virtual GRFontId BindFontId(const FontSpec & desc) = 0;
+		virtual int GetFontHeight(GRFontId id) const = 0;
 	};
 
 	ROCOCO_INTERFACE IGRImages
@@ -989,6 +990,8 @@ namespace Rococo::Gui
 
 		// Get a mutable version of the config, used to configure the config
 		virtual [[nodiscard]] GRRealtimeConfig& MutableConfig() = 0;
+
+		virtual [[nodiscard]] IGRFonts& Fonts() = 0;
 	};
 
 	enum EGRErrorCode
@@ -1128,8 +1131,29 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 
+	struct PropertyEditorSpec
+	{
+		// The font to use for the name in a name-value pair
+		GRFontId NameplateFontId = GRFontId::NONE;
+
+		// The font to use for a table heading atop a sequence of name-value pairs
+		GRFontId HeadingFontId = GRFontId::NONE;
+
+		// The font to use for a value in a name-value pair
+		GRFontId ValueFontId = GRFontId::NONE;
+		
+		// True displays nameplates with left alignment, otherwise right aligns them
+		bool LeftAlignNameplates = false;
+
+		// Number of pixels to shift nameplates right beneath their immediate heading
+		int LeftHandMargin = 20;
+
+		// Number of pixels to expand the nameplate. 0 may be so tight that some cut off occurs and names get truncated
+		int NamePlateSafeZone = 4;
+	};
+
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
-	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& events);
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& events, const PropertyEditorSpec& spec);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 
@@ -1159,7 +1183,7 @@ namespace Rococo::Gui
 	};
 
 	// Creates an editor widget along with a filter. The filter has to be valid for the lifespan of the editor box
-	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) EGRPaths::MAX_FULL_PATH_LENGTH);
+	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity = (int32) EGRPaths::MAX_FULL_PATH_LENGTH, GRFontId fontId = GRFontId::NONE);
 
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme);
 

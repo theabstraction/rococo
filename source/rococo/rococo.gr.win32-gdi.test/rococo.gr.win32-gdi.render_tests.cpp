@@ -175,6 +175,7 @@ IGR2DScene* TestNoScene()
 	{
 		void Render(Gui::IGRRenderContext& rc) override
 		{
+			UNUSED(rc);
 		}
 	};
 
@@ -519,9 +520,35 @@ void TestFrame(IGRSystem& gr)
 		}
 	} target;
 
+	Gui::PropertyEditorSpec spec;
 
-	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), eventHandler);
-	editor.SetRowHeight(20);
+	FontSpec boldFont;
+	boldFont.Bold = true;
+	boldFont.CharHeight = 44;
+	boldFont.CharSet = ECharSet::ANSI;
+	boldFont.FontName = "Consolas";
+	spec.NameplateFontId = gr.Fonts().BindFontId(boldFont);
+
+	FontSpec headingFontSpec;
+	headingFontSpec.Bold = true;
+	headingFontSpec.CharHeight = 48;
+	headingFontSpec.CharSet = ECharSet::ANSI;
+	headingFontSpec.FontName = "Consolas";
+	spec.HeadingFontId = gr.Fonts().BindFontId(headingFontSpec);
+
+	FontSpec valueFontSpec;
+	valueFontSpec.Bold = false;
+	valueFontSpec.CharHeight = 44;
+	valueFontSpec.CharSet = ECharSet::ANSI;
+	valueFontSpec.FontName = "Consolas";
+	spec.ValueFontId = gr.Fonts().BindFontId(valueFontSpec);
+
+	spec.LeftAlignNameplates = true;
+
+	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), eventHandler, spec);
+
+	editor.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId));
+
 	editor.View(target);
 	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 0), GRGenerateIntensities());
 }

@@ -33,14 +33,14 @@ namespace GRANON
 	struct EditableString
 	{
 		HString text;
-		int32 capacity;
+		int32 capacity = 0;
 	};
 
 	struct PrimitiveVariant
 	{
 		EditableString stringValue;
 		PreviewPrimitive primitive;
-		PrimitiveType type;
+		PrimitiveType type = PrimitiveType::BOOL;
 	};
 
 	void Assign(PrimitiveVariant& v, int32 value)
@@ -360,52 +360,48 @@ namespace GRANON
 		}
 	};
 
-	struct ScrollerWatcher : IGRPanelWatcher
-	{
-		void OnSetConstantHeight(IGRPanel& panel, int height) override
-		{
-		//	printf("A");
-		}
-
-		void OnSetConstantWidth(IGRPanel& panel, int width) override
-		{
-		//	printf("B");
-		}
-
-		void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) override
-		{
-		//	printf("C");
-		}
-	} s_scrollerWatcher;
-
 	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidgetSupervisor, IGRWidgetCollapserEvents
 	{
 		IGRPanel& panel;
 		Previewer previewer;
 		IGRPropertyEditorPopulationEvents& populationEventHandler;
-		GRFontId nameplateFont;
-		GRFontId headingFont;
+		PropertyEditorSpec spec;
 
-		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler) : panel(owningPanel), populationEventHandler(_populationEventHandler)
+		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler, const PropertyEditorSpec& _spec) : panel(owningPanel), populationEventHandler(_populationEventHandler), spec(_spec)
 		{
 			owningPanel.SetClipChildren(true);
 			owningPanel.SetExpandToParentHorizontally();
 			owningPanel.SetExpandToParentVertically();
 
-			FontSpec boldFont;
-			boldFont.Bold = true;
-			boldFont.CharHeight = 14;
-			boldFont.CharSet = ECharSet::ANSI;
-			boldFont.FontName = "Consolas";
-			nameplateFont = GetCustodian(owningPanel).Fonts().BindFontId(boldFont);
+			if (spec.NameplateFontId == GRFontId::NONE)
+			{
+				FontSpec boldFont;
+				boldFont.Bold = true;
+				boldFont.CharHeight = 14;
+				boldFont.CharSet = ECharSet::ANSI;
+				boldFont.FontName = "Consolas";
+				spec.NameplateFontId = GetCustodian(owningPanel).Fonts().BindFontId(boldFont);
+			}
 
+			if (spec.HeadingFontId == GRFontId::NONE)
+			{
+				FontSpec headingFontSpec;
+				headingFontSpec.Bold = true;
+				headingFontSpec.CharHeight = 16;
+				headingFontSpec.CharSet = ECharSet::ANSI;
+				headingFontSpec.FontName = "Consolas";
+				spec.HeadingFontId = GetCustodian(owningPanel).Fonts().BindFontId(headingFontSpec);
+			}
 
-			FontSpec headingFontSpec;
-			headingFontSpec.Bold = true;
-			headingFontSpec.CharHeight = 18;
-			headingFontSpec.CharSet = ECharSet::ANSI;
-			headingFontSpec.FontName = "Consolas";
-			headingFont = GetCustodian(owningPanel).Fonts().BindFontId(boldFont);
+			if (spec.ValueFontId == GRFontId::NONE)
+			{
+				FontSpec valueFontSpec;
+				valueFontSpec.Bold = false;
+				valueFontSpec.CharHeight = 14;
+				valueFontSpec.CharSet = ECharSet::ANSI;
+				valueFontSpec.FontName = "Consolas";
+				spec.ValueFontId = GetCustodian(owningPanel).Fonts().BindFontId(valueFontSpec);
+			}
 		}
 
 		void Free() override
@@ -415,6 +411,7 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions) override
 		{
+			UNUSED(panelDimensions);
 			SetCollapserSizes();
 		}
 
@@ -506,15 +503,15 @@ namespace GRANON
 			SetUniformColourForAllRenderStates(*nameCell->Panel().Parent(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
 
 			GRAlignmentFlags nameAlignment;
-			nameAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Right);
+			nameAlignment.Add(EGRAlignment::VCentre).Add(spec.LeftAlignNameplates ? EGRAlignment::Left : EGRAlignment::Right);
 			auto& leftSpacer = CreateDivision(nameCell->InnerWidget());
 			leftSpacer.SetTransparency(0);
-			leftSpacer.Panel().SetConstantWidth(2 + 24 + 24 * depth);
+			leftSpacer.Panel().SetConstantWidth(spec.LeftHandMargin + 2 + 24 + 24 * depth);
 
 			char label[256];
 			Strings::SafeFormat(label, "%s:", field.fieldName.c_str());
 			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(label).SetAlignment(nameAlignment, { 4,2 });
-			nameText.SetFont(nameplateFont);
+			nameText.SetFont(spec.NameplateFontId);
 			nameText.Widget().Panel().SetExpandToParentHorizontally();
 			nameText.Widget().Panel().SetExpandToParentVertically();
 			nameText.Widget().Panel().Set(GRAnchorPadding{ 4, 0, 0, 0 });
@@ -582,7 +579,7 @@ namespace GRANON
 
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
-			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity).SetAlignment(valueAlignment, {8,2});
+			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity, spec.ValueFontId).SetAlignment(valueAlignment, {8,2});
 			valueText.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0, 0 });
 			valueText.Widget().Panel().SetExpandToParentHorizontally();
 			valueText.Widget().Panel().SetExpandToParentVertically();
@@ -645,7 +642,8 @@ namespace GRANON
 				NameValueControls controls = AddFieldToTable(table, data.fields[j], rowHeight, depth);
 
 				int nameWidth = controls.name.GetTextWidth();
-				const int padding = 64;
+				auto* spacer = controls.name.Widget().Panel().Parent()->GetChild(0);
+				const int padding = spacer->Span().x + spec.NamePlateSafeZone;
 				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
 
 				populationEventHandler.OnAddNameValue(controls.name, controls.editor);
@@ -739,7 +737,7 @@ namespace GRANON
 			titleDescription.Widget().Panel().SetExpandToParentVertically();
 			titleDescription.Widget().Panel().SetExpandToParentHorizontally();
 			titleDescription.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0, 0 });
-			titleDescription.SetFont(headingFont);
+			titleDescription.SetFont(spec.HeadingFontId);
 
 			GRAlignmentFlags rightCentered;
 			rightCentered.Add(EGRAlignment::Left).Add(EGRAlignment::VCentre);
@@ -847,8 +845,6 @@ namespace GRANON
 			}
 
 			SetCollapserSizes();
-
-			viewport.VScroller().Widget().Panel().SetPanelWatcher(&s_scrollerWatcher);
 		}
 
 		int ComputeAndAssignCollapserHeights(IGRWidgetCollapser& collapserParent)
@@ -927,16 +923,18 @@ namespace Rococo::Gui
 		return "IGRWidgetPropertyEditorTree";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& populationEventHandler)
+	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& populationEventHandler, const PropertyEditorSpec& spec)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		struct GRPropertyEditorTreeFactory : IGRWidgetFactory
 		{
 			IGRPropertyEditorPopulationEvents& populationEventHandler;
+			const PropertyEditorSpec& spec;
 
-			GRPropertyEditorTreeFactory(IGRPropertyEditorPopulationEvents& _populationEventHandler):
-				populationEventHandler(_populationEventHandler)
+			GRPropertyEditorTreeFactory(IGRPropertyEditorPopulationEvents& _populationEventHandler, const PropertyEditorSpec& _spec):
+				populationEventHandler(_populationEventHandler),
+				spec(_spec)
 
 			{
 
@@ -944,11 +942,11 @@ namespace Rococo::Gui
 
 			IGRWidget& CreateWidget(IGRPanel& panel)
 			{
-				return *new GRANON::GRPropertyEditorTree(panel, populationEventHandler);
+				return *new GRANON::GRPropertyEditorTree(panel, populationEventHandler, spec);
 			}
 		};
 
-		GRPropertyEditorTreeFactory factory(populationEventHandler);
+		GRPropertyEditorTreeFactory factory(populationEventHandler, spec);
 		auto* tree = static_cast<GRANON::GRPropertyEditorTree*>(Cast<IGRWidgetPropertyEditorTree>(gr.AddWidget(parent.Panel(), factory)));
 		return *tree;
 	}

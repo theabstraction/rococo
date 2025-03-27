@@ -748,6 +748,11 @@ namespace ANON
 			return realtimeConfig;
 		}
 
+		[[nodiscard]] IGRFonts& Fonts() override
+		{
+			return custodian.Fonts();
+		}
+
 		void OnNavigate(EGRNavigationDirective directive)
 		{
 			auto* focusedWidget = FindWidget(focusId);

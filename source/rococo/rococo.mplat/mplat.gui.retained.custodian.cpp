@@ -369,6 +369,8 @@ namespace ANON
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, const BitmapLocation& sprite)
 		{
+			UNUSED(isStretched);
+
 			if (!rc || sprite.pixelSpan.x <= 0 || sprite.pixelSpan.y <= 0 || sprite.textureIndex < 0) 
 			{
 				return false;
@@ -487,6 +489,12 @@ namespace ANON
 		{
 			UNUSED(spec);
 			Throw(0, __FUNCTION__ ": Not implemented");
+		}
+
+		int GetFontHeight(GRFontId id) const override
+		{
+			UNUSED(id);
+			return -1;
 		}
 
 		IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
