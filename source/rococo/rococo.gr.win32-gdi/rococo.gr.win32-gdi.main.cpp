@@ -380,8 +380,10 @@ namespace GRANON
 		Gdiplus::Graphics g;
 
 		Vec2i cursor{ 0,0 };
+
+		int64 captureId;
 		
-		SceneRenderer(GDICustodian& _custodian, HWND _hWnd, HDC dc): hWnd(_hWnd), custodian(_custodian), g(dc), paintDC(dc)
+		SceneRenderer(GDICustodian& _custodian, HWND _hWnd, HDC dc, int64 _captureId): hWnd(_hWnd), custodian(_custodian), g(dc), paintDC(dc), captureId(_captureId)
 		{
 			POINT p;
 			GetCursorPos(&p);
@@ -406,6 +408,11 @@ namespace GRANON
 		// It is up to the renderer to decide if a panel is hovered.
 		bool IsHovered(IGRPanel& panel) const override
 		{
+			if (captureId > 0 && captureId != panel.Id())
+			{
+				return false;
+			}
+			
 			return IsPointInRect(cursor, panel.AbsRect());
 		}
 
@@ -992,15 +999,17 @@ namespace GRANON
 		void OnPaint(IGR2DScene& scene, HWND hWnd, HDC paintDC) override
 		{
 			SyncToScreen();
-			SceneRenderer renderer(*this, hWnd, paintDC);
+			SceneRenderer renderer(*this, hWnd, paintDC, 0);
 			UseBkMode bkMode(paintDC, TRANSPARENT);
 			renderer.Render(scene);
 		}
 
 		void RenderGui(IGRSystem& gr, HWND hWnd, HDC paintDC) override
 		{
+			auto captureId = gr.Root().CapturedPanelId();
+
 			SyncToScreen();
-			SceneRenderer renderer(*this, hWnd, paintDC);
+			SceneRenderer renderer(*this, hWnd, paintDC, captureId);
 			UseBkMode bkMode(paintDC, TRANSPARENT);
 			gr.RenderAllFrames(renderer);
 		}
