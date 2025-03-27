@@ -23,6 +23,14 @@ namespace Rococo::Reflection
 			meta.isReadOnly = true;
 			return meta;
 		}
+
+		bool addThousandMarks = false;
+
+		ReflectionMetaData& AddThousandMarks()
+		{
+			addThousandMarks = true;
+			return *this;
+		}
 	};
 
 	enum class EReflectionDirection

@@ -116,9 +116,9 @@ namespace GRANON
 		HPEN hPen;
 
 	public:
-		GDIPen(RGBAb colour)
+		GDIPen(RGBAb colour, int lineThickness = 1)
 		{
-			hPen = CreatePen(PS_SOLID, 1, RGB(colour.red, colour.green, colour.blue));
+			hPen = CreatePen(PS_SOLID, lineThickness, RGB(colour.red, colour.green, colour.blue));
 		}
 
 		~GDIPen()
@@ -740,7 +740,7 @@ namespace GRANON
 			
 			if (caret.IsInserting)
 			{
-				GDIPen pen(caretColour);
+				GDIPen pen(caretColour, caret.LineThickness);
 				UsePen usePen(paintDC, pen);
 				MoveToEx(paintDC, rect.left + caretLeftColumn, caretY, NULL);
 				LineTo(paintDC, rect.left + caretRightColumn, caretY);

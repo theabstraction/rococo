@@ -204,6 +204,9 @@ namespace Rococo::Gui
 
 		// Blinks per second: <= 0 use caret colour1, > 10 use caret colour 2, and between 1 and 10, alternative between them at the specified blink rate
 		int BlinksPerSecond = 0;
+
+		// Height in pixels of the caret - should generally be determined by the size of the font. 1 is good for small fonts, large fonts should be 2+.
+		int LineThickness = 1;
 	};
 
 	// The interface to the platform dependent rendering of the retained GUI
@@ -1103,6 +1106,9 @@ namespace Rococo::Gui
 
 		// Copies the text to the buffer, truncating if needs be. Returns the length of the internal representation, which includes the trailing nul character. Never returns < 1.
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
+
+		// Returns true if and only if the box is in manual edit mode
+		virtual bool IsEditing() const = 0;
 	};
 
 	struct IGREditorMicromanager;

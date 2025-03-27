@@ -389,14 +389,14 @@ void TestFrame(IGRSystem& gr)
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
 			Reflection::Section target(v, Name);
-			ROCOCO_REFLECT(v, MeaningOfLife);
+			ROCOCO_REFLECT_EX(v, MeaningOfLife, Reflection::ReflectionMetaData::Default().AddThousandMarks());
 			ROCOCO_REFLECT(v, Age);
 			ROCOCO_REFLECT(v, Height);
 			ROCOCO_REFLECT(v, Weight);
 			stats.Visit(v);
 		}
 
-		int MeaningOfLife = 42;
+		int MeaningOfLife = 42021;
 		Strings::HString Name = "Arthur Dent";
 		float Age = 42.0f;
 		double Height = 175.0;
@@ -410,7 +410,7 @@ void TestFrame(IGRSystem& gr)
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
 			Reflection::Section target(v, Name);
-			ROCOCO_REFLECT(v, Earnings);
+			ROCOCO_REFLECT_EX(v, Earnings, Reflection::ReflectionMetaData::Default().AddThousandMarks());
 			ROCOCO_REFLECT(v, Age);
 			ROCOCO_REFLECT(v, Height);
 			ROCOCO_REFLECT(v, Weight);
@@ -484,7 +484,7 @@ void TestFrame(IGRSystem& gr)
 			Reflection::Section target(v, Name);
 			ROCOCO_REFLECT(v, BestFriend);
 			ROCOCO_REFLECT(v, Lyrics);
-			ROCOCO_REFLECT(v, Earnings);
+			ROCOCO_REFLECT_EX(v, Earnings, Reflection::ReflectionMetaData::ReadOnly().AddThousandMarks());
 			ROCOCO_REFLECT(v, Age);
 			ROCOCO_REFLECT(v, Height);
 			ROCOCO_REFLECT(v, Weight);
@@ -547,7 +547,7 @@ void TestFrame(IGRSystem& gr)
 
 	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), eventHandler, spec);
 
-	editor.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId));
+	editor.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId) + 4);
 
 	editor.View(target);
 	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 0), GRGenerateIntensities());

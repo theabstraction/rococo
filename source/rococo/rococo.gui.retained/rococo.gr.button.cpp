@@ -20,8 +20,8 @@ namespace GRANON
 
 		std::string raisedImagePath;
 		std::string pressedImagePath;
-		IGRImage* raisedImage;
-		IGRImage* pressedImage;
+		IGRImage* raisedImage = nullptr;
+		IGRImage* pressedImage = nullptr;
 
 		bool isStretched = false;
 

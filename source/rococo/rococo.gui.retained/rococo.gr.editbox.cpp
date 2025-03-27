@@ -99,6 +99,11 @@ namespace GRANON
 				else
 				{
 					panel.Focus();
+
+					if (!isReadOnly)
+					{
+						OnUpdate();
+					}
 				}
 				return EGREventRouting::Terminate;
 			}
@@ -215,11 +220,15 @@ namespace GRANON
 				innerRect.top += 1;
 				innerRect.right -= 1;
 				innerRect.bottom -= 1;
-				g.DrawRect(innerRect, editorColour);
+
+				if (!isReadOnly)
+				{
+					g.DrawRect(innerRect, editorColour);
+				}
 				g.DrawRectEdge(innerRect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
 			}
 
-			if (!rs.value.bitValues.focused)
+			if (!rs.value.bitValues.focused || isReadOnly)
 			{
 				if (text.size() > 0)
 				{
@@ -236,6 +245,13 @@ namespace GRANON
 				caret.BlinksPerSecond = 2;
 				caret.CaretColour1 = textColour;
 				caret.CaretColour2 = editorColour;
+
+				int height = panel.Root().GR().Fonts().GetFontHeight(fontId);
+				if (height > 20)
+				{
+					caret.LineThickness = 3;
+				}
+
 				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, textColour, caret);
 			}
 		}
@@ -247,7 +263,10 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
+			if (!isReadOnly)
+			{
+				panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -314,6 +333,11 @@ namespace GRANON
 			}
 
 			return (int32) text.size();
+		}
+
+		bool IsEditing() const
+		{
+			return panel.HasFocus() && !isReadOnly;
 		}
 
 		IGRWidgetEditBox& SetReadOnly(bool isReadOnly) override
@@ -601,15 +625,15 @@ namespace Rococo::Gui
 			{
 				scratchBuffer.clear();
 
-				char buffer[12];
+				char buffer[16];
 				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
 
 				int32 originalLength = len;
 
-				if (len >= 12)
+				if (len >= 15)
 				{
-					len = 11;
-					buffer[11] = 0;
+					len = 14;
+					buffer[14] = 0;
 				}
 
 				if (len > 0)
@@ -636,7 +660,11 @@ namespace Rococo::Gui
 				for (int32 i = 1; i < len; ++i)
 				{
 					char c = buffer[i];
-					if (c >= '0' && c <= '9')
+					if (c == ',' && !editor.IsEditing())
+					{ 
+						scratchBuffer.push_back(',');
+					}
+					else if (c >= '0' && c <= '9')
 					{
 						scratchBuffer.push_back(buffer[i]);
 					}

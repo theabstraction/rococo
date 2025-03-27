@@ -97,14 +97,64 @@ namespace GRANON
 	{
 		HString fieldName;
 		PrimitiveVariant value;
+		ReflectionMetaData meta;
 	};
 
-	void ToAscii(const PrimitiveVariant& variant, char* buffer, size_t capacity, int32 radix = 10)
+	// Assuming that srcIntegerRepresentation is an integer (optionally prefixed with minus '-'), fill a buffer with a decimal representation using thousand mark separators
+	void AddThousandMarks(char* buffer, size_t capacity, cstr srcIntegerRepresentation, char thousandMarkSeparator)
+	{
+		size_t nChars = strlen(srcIntegerRepresentation);
+		size_t nNumbers = *srcIntegerRepresentation == '-' ? nChars - 1 : nChars;
+		size_t nTriplets = nNumbers / 3;
+
+		cstr endPos = srcIntegerRepresentation + nChars;
+
+		char* writePos = buffer;
+
+		if (capacity < nNumbers + nTriplets + 1)
+		{
+			Strings::CopyString(buffer, capacity, srcIntegerRepresentation, nNumbers);
+		}
+		else
+		{
+			size_t i = nNumbers;
+
+			cstr readPos = srcIntegerRepresentation;
+			if (*readPos == '-')
+			{
+				*writePos++ = '-';
+				readPos++;
+			}
+
+			while (readPos < endPos)
+			{
+				*writePos++ = *readPos++;
+				i--;
+				if (i % 3 == 0 && *readPos != 0)
+				{
+					*writePos++ = thousandMarkSeparator;
+				}
+			}
+
+			*writePos = 0;
+		}
+	}
+
+	void ToAscii(const PrimitiveVariant& variant, char* buffer, size_t capacity, const ReflectionMetaData& meta, int32 radix = 10)
 	{
 		switch (variant.type)
 		{
 		case PrimitiveType::I32:
-			_itoa_s(variant.primitive.int32Value, buffer, capacity, radix);
+			if (meta.addThousandMarks && radix == 10)
+			{
+				char raw[256];
+				_itoa_s(variant.primitive.int32Value, raw, sizeof raw, radix);
+				AddThousandMarks(buffer, capacity, raw, ',');
+			}
+			else
+			{
+				_itoa_s(variant.primitive.int32Value, buffer, capacity, radix);
+			}
 			break;
 		case PrimitiveType::I64:
 			_i64toa_s(variant.primitive.int64Value, buffer, capacity, radix);
@@ -161,20 +211,22 @@ namespace GRANON
 		std::vector<PreviewField> fields;
 
 		template<class T>
-		PreviewField& AddField(cstr name, T value)
+		PreviewField& AddField(cstr name, T value, const Reflection::ReflectionMetaData& meta)
 		{
 			fields.push_back(PreviewField());
 			auto& back = fields.back();
 			back.fieldName = name;
+			back.meta = meta;
 			Assign(back.value, value);
 			return back;
 		}
 
-		PreviewField& AddField(cstr name, cstr value, int32 capacity)
+		PreviewField& AddField(cstr name, cstr value, int32 capacity, const Reflection::ReflectionMetaData& meta)
 		{
 			fields.push_back(PreviewField());
 			auto& back = fields.back();
 			back.fieldName = name;
+			back.meta = meta;
 			Assign(back.value, value, capacity);
 			return back;
 		}
@@ -275,45 +327,45 @@ namespace GRANON
 			return EReflectionDirection::READ_ONLY;
 		}
 
-		void Reflect(cstr name, int32& value, ReflectionMetaData&) override
+		void Reflect(cstr name, int32& value, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, value);
+			target->AddField(name, value, meta);
 		}
 
-		void Reflect(cstr name, int64& value, ReflectionMetaData&) override
+		void Reflect(cstr name, int64& value, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, value);
+			target->AddField(name, value, meta);
 		}
 
-		void Reflect(cstr name, uint64& value, ReflectionMetaData&) override
+		void Reflect(cstr name, uint64& value, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, value);
+			target->AddField(name, value, meta);
 		}
 
-		void Reflect(cstr name, float& value, ReflectionMetaData&) override
+		void Reflect(cstr name, float& value, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, value);
+			target->AddField(name, value, meta);
 		}
 
-		void Reflect(cstr name, double& value, ReflectionMetaData&) override
+		void Reflect(cstr name, double& value, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, value);
+			target->AddField(name, value, meta);
 		}
 
-		void Reflect(cstr name, bool& value, ReflectionMetaData&) override
+		void Reflect(cstr name, bool& value, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, value);
+			target->AddField(name, value, meta);
 		}
 
-		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData&) override
+		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, stringValue.ReadString(), stringValue.Capacity());
+			target->AddField(name, stringValue.ReadString(), stringValue.Capacity(), meta);
 		}
 
-		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData&) override
+		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& meta) override
 		{
 			auto* subSection = new PreviewData(target);
-			target->AddField(name, subSection);
+			target->AddField(name, subSection, meta);
 			target = subSection;
 			subTarget.Visit(*this);
 			target = subSection->parent;
@@ -322,7 +374,7 @@ namespace GRANON
 		void EnterSection(cstr sectionName)
 		{
 			auto* child = new PreviewData(target, sectionName);
-			target->AddField(sectionName, child);
+			target->AddField(sectionName, child, ReflectionMetaData::Default());
 			target = child;
 		}
 
@@ -334,7 +386,7 @@ namespace GRANON
 		void EnterContainer(cstr name) override
 		{
 			auto* subSection = new PreviewData(target);
-			target->AddField(name, subSection);
+			target->AddField(name, subSection, ReflectionMetaData::Default());
 			subSection->parent = target;
 			target = subSection;
 			target->instanceName = name;
@@ -348,7 +400,7 @@ namespace GRANON
 		void EnterElement(cstr keyName) override
 		{
 			auto* subSection = new PreviewData(target);
-			target->AddField(keyName, subSection);
+			target->AddField(keyName, subSection, ReflectionMetaData::Default());
 			subSection->parent = target;
 			target = subSection;
 			target->containerKey = keyName;
@@ -584,10 +636,15 @@ namespace GRANON
 			valueText.Widget().Panel().SetExpandToParentHorizontally();
 			valueText.Widget().Panel().SetExpandToParentVertically();
 
+			if (field.meta.isReadOnly)
+			{
+				valueText.SetReadOnly(true);
+			}
+
 			if (field.value.type != PrimitiveType::CSTR)
 			{
 				char buf[16];
-				ToAscii(field.value, buf, sizeof buf);
+				ToAscii(field.value, buf, sizeof buf, field.meta);
 				valueText.SetText(buf);
 			}
 			else
