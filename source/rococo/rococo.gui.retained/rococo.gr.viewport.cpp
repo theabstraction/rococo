@@ -15,6 +15,7 @@ namespace ANON
 		IGRWidgetDivision* clipArea = nullptr; // Represents the rectangle to the left of the scroller
 		IGRWidgetDivision* clientOffsetArea = nullptr; // Represents the scrolled data inside the clipArea
 		IGRWidgetVerticalScrollerWithButtons* vscroller = nullptr;
+		int clientOffsetAreaParentOffset = 0;
 
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -27,6 +28,7 @@ namespace ANON
 			clipArea = &CreateDivision(*this);
 			clipArea->Panel().SetExpandToParentVertically();
 			clipArea->Panel().SetExpandToParentHorizontally();
+			clipArea->Panel().SetLayoutDirection(ELayoutDirection::None);
 			clientOffsetArea = &CreateDivision(clipArea->InnerWidget());
 			clientOffsetArea->Panel().PreventInvalidationFromChildren();
 			clientOffsetArea->Panel().SetExpandToParentVertically();
@@ -63,19 +65,10 @@ namespace ANON
 			
 			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
 
-			int parentOffset = 0;
-
-			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
-			if (m.PixelRange > 0)
-			{
-				double cursor = clamp((double)m.PixelPosition / (double)m.PixelRange, 0.0, 1.0);
-				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
-			}
-
 			auto& coaPanel = clientOffsetArea->Panel();
 			coaPanel.SetConstantWidth(clientOffsetSpan.x);
 			coaPanel.SetConstantHeight(clientOffsetSpan.y);
-			coaPanel.SetParentOffset({ 0, -parentOffset });
+			coaPanel.SetParentOffset({ 0, -clientOffsetAreaParentOffset });
 			
 			auto& vswp = vscroller->Widget().Panel();
 			vswp.SetConstantWidth(scrollbarWidth);
@@ -182,19 +175,12 @@ namespace ANON
 
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
 		{
-			int parentOffset = 0;
-
 			GRScrollerMetrics m = scroller.GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
 				double cursor = clamp((double)(m.PixelPosition + newPosition) / (double)m.PixelRange, 0.0, 1.0);
-				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
+				clientOffsetAreaParentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
 			}
-
-			clipArea->Panel().InvalidateLayout(false);
-			clientOffsetArea->Panel().SetParentOffset({ 0, -parentOffset });
-			clientOffsetArea->Panel().InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -244,19 +230,14 @@ namespace ANON
 				return;
 			}
 
-			int32 parentOffset = clientOffsetArea->Panel().ParentOffset().y + dOffset;
+			clientOffsetAreaParentOffset = clientOffsetArea->Panel().ParentOffset().y + dOffset;
 
 			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
-				double sliderPixelOffset = -(double) (m.PixelRange * parentOffset) / (double) (lastKnownDomainHeight - m.SliderZoneSpan);
+				double sliderPixelOffset = -(double) (m.PixelRange * clientOffsetAreaParentOffset) / (double) (lastKnownDomainHeight - m.SliderZoneSpan);
 				vscroller->Scroller().SetSliderPosition(clamp((int32)sliderPixelOffset, 0, m.PixelRange));
 			}
-
-			clipArea->Panel().InvalidateLayout(false);
-			clientOffsetArea->Panel().SetParentOffset({ 0, parentOffset });
-			clientOffsetArea->Panel().InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
 		void OnDeepChildFocusSet(int64 panelId) override

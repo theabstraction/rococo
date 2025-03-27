@@ -1378,25 +1378,32 @@ namespace GRANON
 
 			UsingBackBuffer ubb(*this);
 
+			char debugText[Time::Timer::FORMAT_CAPACITY];
+
 			Time::Timer t1("Custodian Paint");
 			t1.Start();
 			gdiCustodian->OnPaint(*scene, hWnd, hMemDC);
 			t1.End();
 
+			t1.FormatMillisecondsWithName(debugText);
 
 			Time::Timer t2("Custodian Gui");
 			t2.Start();
 			gdiCustodian->RenderGui(*grSystem, hWnd, hMemDC);
 			t2.End();
 
+			t2.FormatMillisecondsWithName(debugText);
+
+		//	DrawTextA(hMemDC, debugText, (int)strlen(debugText), &rect, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+
 			Time::Timer t3("BitBlt");
 			t3.Start();
 			BitBlt(paint.DC(), 0, 0, rect.right, rect.bottom, hMemDC, 0, 0, SRCCOPY);
 			t3.End();
 
-			char text1[256];
-			// Strings::SafeFormat(text1, "gdiCustodian->RenderGui %3.3f ms", Time::ToMilliseconds(t2.ExpiredTime()));
-			//DrawTextA(paint.DC(), text1, (int) strlen(text1), &rect, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+			// BitBlt appears to take around 0.25-0.5 milliseconds, which is ~ DirectX speed.
+			// t3.FormatMillisecondsWithName(debugText);
+			// DrawTextA(paint.DC(), debugText, (int) strlen(debugText), &rect, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
 		}
 
 		BYTE keystate[256] = { 0 };

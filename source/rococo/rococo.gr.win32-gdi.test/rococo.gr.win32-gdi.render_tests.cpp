@@ -185,8 +185,8 @@ IGR2DScene* TestNoScene()
 IGR2DScene* TestScene()
 {
 	//return TestDrawRect();
-	// return TestBlackScene();
-	return TestNoScene();
+	return TestBlackScene();
+	//return TestNoScene();
 }
 
 void BuildMenus(IGRWidgetMainFrame& frame)

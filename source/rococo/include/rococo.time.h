@@ -25,6 +25,9 @@ namespace Rococo::Time
 		ROCOCO_API Time::ticks ExpiredTime();
 
 		ROCOCO_API Timer(const char* const name);
+
+		enum { FORMAT_CAPACITY = 256 };
+		ROCOCO_API void FormatMillisecondsWithName(char buffer[FORMAT_CAPACITY]);
 	};
 }
 

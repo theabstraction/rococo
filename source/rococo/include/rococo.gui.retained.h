@@ -410,10 +410,19 @@ namespace Rococo::Gui
 
 	enum class ELayoutDirection
 	{
+		// With none, the children are expected to have their parent offset assigned manually
 		None,
+
+		// The parent modifies the children's parent offsets so that widgets are laid out from left to right
 		LeftToRight,
+
+		// The parent modifies the children's parent offsets so that widgets are laid out from right to left
 		RightToLeft,
+
+		// The parent modifies the children's parent offsets so that widgets are laid out from top to bottom
 		TopToBottom,
+
+		// The parent modifies the children's parent offsets so that widgets are laid out from bottom to top
 		BottomToTop
 	};
 
