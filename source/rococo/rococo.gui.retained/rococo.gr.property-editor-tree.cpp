@@ -263,6 +263,24 @@ namespace GRANON
 
 	bool ToAscii(const PrimitiveVariant& variant, char* buffer, size_t capacity, const ReflectionMetaData& meta, int32 radix = 10)
 	{
+		char format[8] = "%.nAB";
+
+		char precision = (char) clamp(meta.precision, 0, 9);
+		format[2] = precision + '0';
+
+		switch (variant.type)
+		{
+		case PrimitiveType::F32:
+			format[3] = 'f';
+			format[4] = 0;
+			break;
+		case PrimitiveType::F64:
+			format[3] = 'l';
+			format[4] = 'f';
+			format[5] = 0;
+			break;
+		}
+
 		switch (variant.type)
 		{
 		case PrimitiveType::I32:
@@ -272,9 +290,9 @@ namespace GRANON
 		case PrimitiveType::U64:
 			return _ui64toa_s(variant.primitive.int64Value, buffer, capacity, radix) != 0;
 		case PrimitiveType::F32:
-			return snprintf(buffer, capacity, "%f", variant.primitive.float32Value) > 0;
+			return snprintf(buffer, capacity, format, variant.primitive.float32Value) > 0;
 		case PrimitiveType::F64:
-			return snprintf(buffer, capacity, "%lf", variant.primitive.float64Value) > 0;
+			return snprintf(buffer, capacity, format, variant.primitive.float64Value) > 0;
 		case PrimitiveType::BOOL:
 			return snprintf(buffer, capacity, "%s", variant.primitive.boolValue ? "true" : "false") > 0;
 		case PrimitiveType::CSTR:

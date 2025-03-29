@@ -89,6 +89,14 @@ namespace Rococo::Reflection
 			UNUSED(unused);
 			return *this;
 		}
+
+		int precision = 3;
+
+		ReflectionMetaData& Precision(int value)
+		{
+			precision = value;
+			return *this;
+		}
 	};
 
 	inline ReflectionMetaData Mutable()
