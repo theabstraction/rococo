@@ -375,12 +375,14 @@ void TestFrame(IGRSystem& gr)
 
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
+			auto& statMeta = Reflection::Mutable().Range(1, 24);
+
 			Reflection::Section target(v, "Stats");
-			ROCOCO_REFLECT(v, Toughness);
-			ROCOCO_REFLECT(v, Speed);
-			ROCOCO_REFLECT(v, Skill);
-			ROCOCO_REFLECT(v, Magic);
-			ROCOCO_REFLECT(v, Charm);
+			ROCOCO_REFLECT_EX(v, Toughness, statMeta);
+			ROCOCO_REFLECT_EX(v, Speed, statMeta);
+			ROCOCO_REFLECT_EX(v, Skill, statMeta);
+			ROCOCO_REFLECT_EX(v, Magic, statMeta);
+			ROCOCO_REFLECT_EX(v, Charm, statMeta);
 		}
 	};
 
@@ -389,10 +391,10 @@ void TestFrame(IGRSystem& gr)
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
 			Reflection::Section target(v, Name);
-			ROCOCO_REFLECT_EX(v, MeaningOfLife, Reflection::ReflectionMetaData::Default().AddThousandMarks());
-			ROCOCO_REFLECT(v, Age);
-			ROCOCO_REFLECT(v, Height);
-			ROCOCO_REFLECT(v, Weight);
+			ROCOCO_REFLECT_EX(v, MeaningOfLife, Reflection::Mutable().AddThousandMarks());
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f));
 			stats.Visit(v);
 		}
 
@@ -410,10 +412,10 @@ void TestFrame(IGRSystem& gr)
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
 			Reflection::Section target(v, Name);
-			ROCOCO_REFLECT_EX(v, Earnings, Reflection::ReflectionMetaData::Default().AddThousandMarks());
-			ROCOCO_REFLECT(v, Age);
-			ROCOCO_REFLECT(v, Height);
-			ROCOCO_REFLECT(v, Weight);
+			ROCOCO_REFLECT_EX(v, Earnings, Reflection::Mutable().AddThousandMarks());
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f));
 			stats.Visit(v);
 		}
 
@@ -434,9 +436,9 @@ void TestFrame(IGRSystem& gr)
 			ROCOCO_REFLECT(v, BestConcerto);
 			ROCOCO_REFLECT(v, BestOpera);
 			ROCOCO_REFLECT(v, Earnings);
-			ROCOCO_REFLECT(v, Age);
-			ROCOCO_REFLECT(v, Height);
-			ROCOCO_REFLECT(v, Weight);
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f));
 
 			stats.Visit(v);
 		}
@@ -460,9 +462,9 @@ void TestFrame(IGRSystem& gr)
 			ROCOCO_REFLECT(v, FunniestJoke);
 			ROCOCO_REFLECT(v, FavouriteDrink);
 			ROCOCO_REFLECT(v, Earnings);
-			ROCOCO_REFLECT(v, Age);
-			ROCOCO_REFLECT(v, Height);
-			ROCOCO_REFLECT(v, Weight);
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f));
 			stats.Visit(v);
 		}
 
@@ -484,10 +486,10 @@ void TestFrame(IGRSystem& gr)
 			Reflection::Section target(v, Name);
 			ROCOCO_REFLECT(v, BestFriend);
 			ROCOCO_REFLECT(v, Lyrics);
-			ROCOCO_REFLECT_EX(v, Earnings, Reflection::ReflectionMetaData::ReadOnly().AddThousandMarks());
-			ROCOCO_REFLECT(v, Age);
-			ROCOCO_REFLECT(v, Height);
-			ROCOCO_REFLECT(v, Weight);
+			ROCOCO_REFLECT_EX(v, Earnings, Reflection::ReadOnly().AddThousandMarks());
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f));
 			stats.Visit(v);
 		}
 

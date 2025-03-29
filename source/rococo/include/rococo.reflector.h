@@ -8,9 +8,24 @@
 
 namespace Rococo::Reflection
 {
+	union MetaVariantData
+	{
+		int32 i32Value;
+		int64 i64Value;
+		float f32Value;
+		double f64Value;
+	};
+
+	struct Reflected_HString;
+
 	struct ReflectionMetaData
 	{
 		bool isReadOnly = false;
+
+		ReflectionMetaData()
+		{
+			
+		}
 
 		static ReflectionMetaData Default()
 		{
@@ -31,7 +46,60 @@ namespace Rococo::Reflection
 			addThousandMarks = true;
 			return *this;
 		}
+
+		MetaVariantData min;
+		MetaVariantData max;
+
+		ReflectionMetaData& Range(int32 minValue, int32 maxValue)
+		{
+			min.i32Value = minValue;
+			max.i32Value = maxValue;
+			return *this;
+		}
+
+		ReflectionMetaData& Range(int64 minValue, int64 maxValue)
+		{
+			min.i64Value = minValue;
+			max.i64Value = maxValue;
+			return *this;
+		}
+
+		ReflectionMetaData& Range(float minValue, float maxValue)
+		{
+			min.f32Value = minValue;
+			max.f32Value = maxValue;
+			return *this;
+		}
+
+		ReflectionMetaData& Range(double minValue, double maxValue)
+		{
+			min.f64Value = minValue;
+			max.f64Value = maxValue;
+			return *this;
+		}
+
+		ROCOCO_API ReflectionMetaData& FullRange(int32 unused);
+		ROCOCO_API ReflectionMetaData& FullRange(int64 unused);
+		ROCOCO_API ReflectionMetaData& FullRange(float unused);
+		ROCOCO_API ReflectionMetaData& FullRange(double unused);
+
+		template<class T>
+		ReflectionMetaData& FullRange(T& unused)
+		{
+			UNUSED(unused);
+			return *this;
+		}
 	};
+
+	inline ReflectionMetaData Mutable()
+	{
+		return ReflectionMetaData::Default();
+	}
+
+	inline ReflectionMetaData ReadOnly()
+	{
+		return ReflectionMetaData::ReadOnly();
+	}
 
 	enum class EReflectionDirection
 	{
@@ -129,9 +197,9 @@ namespace Rococo::Reflection
 	}
 }
 
-#define ROCOCO_REFLECT(visitor, field) { auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default(); auto value = Rococo::Reflection::Reflect(field); visitor.Reflect(#field, value, defaultMetaData); }
+#define ROCOCO_REFLECT(visitor, field) { auto value = Rococo::Reflection::Reflect(field); auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default().FullRange(value); visitor.Reflect(#field, value, defaultMetaData); }
 #define ROCOCO_REFLECT_EX(visitor, field, metaData) visitor.Reflect(#field, field, metaData);
-#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto readOnlyMetaData = Rococo::Reflection::ReflectionMetaData::ReadOnly(); auto value = Rococo::Reflection::Reflect(field); visitor.Reflect(#field, value, readOnlyMetaData); }
+#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto value = Rococo::Reflection::Reflect(field); auto& readOnlyMetaData = Rococo::Reflection::ReflectionMetaData::ReadOnly().FullRange(value); visitor.Reflect(#field, value, readOnlyMetaData); }
 
 #ifdef INCLUDED_ROCOCO_STRINGS
 # include <rococo.strings.reflection.h>

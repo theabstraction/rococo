@@ -160,10 +160,10 @@ namespace GRANON
 					{
 						auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
 						auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
-						*origin = result.Value;
+						*origin = clamp(result.Value, meta.min.i32Value, meta.max.i32Value);
 
 						char buffer[16];
-						Format::ToAscii(result.Value, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+						Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
 						sender.SetText(buffer);
 						return EParseAndWriteBackResult::Success;
 					}
@@ -176,12 +176,12 @@ namespace GRANON
 				{
 					if (value.primitiveOrigin != nullptr)
 					{
-						auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
+						auto result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
 						auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
-						*origin = result.Value;
+						*origin = clamp(result.Value, meta.min.i64Value, meta.max.i64Value);
 
 						char buffer[32];
-						Format::ToAscii(result.Value, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+						Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
 						sender.SetText(buffer);
 						return EParseAndWriteBackResult::Success;
 					}
@@ -196,7 +196,26 @@ namespace GRANON
 					{
 						float f = (float) atof(text);
 						auto* origin = reinterpret_cast<float*>(value.primitiveOrigin);
-						*origin = f;
+
+						float f1;
+
+						if (isnan(f))
+						{
+							f1 = meta.min.f32Value;
+						}
+						else if (isinf(f))
+						{
+							f1 = meta.max.f32Value;
+						}
+						else
+						{
+							f1 = clamp(f, meta.min.f32Value, meta.max.f32Value);
+						}
+
+						*origin = f1;
+						char buffer[32];
+						sprintf_s(buffer, "%f", *origin);
+						sender.SetText(buffer);
 						return EParseAndWriteBackResult::Success;
 					}
 					else
@@ -210,7 +229,25 @@ namespace GRANON
 					{
 						double d = atof(text);
 						auto* origin = reinterpret_cast<double*>(value.primitiveOrigin);
-						*origin = d;
+		
+						double d1;
+						if (isnan(d))
+						{
+							d1 = meta.min.f32Value;
+						}
+						else if (isinf(d))
+						{
+							d1 = meta.max.f32Value;
+						}
+						else
+						{
+							d1 = clamp(d, meta.min.f64Value, meta.max.f64Value);
+						}
+
+						*origin = d1;
+						char buffer[32];
+						sprintf_s(buffer, "%f", *origin);
+						sender.SetText(buffer);
 						return EParseAndWriteBackResult::Success;
 					}
 					else
