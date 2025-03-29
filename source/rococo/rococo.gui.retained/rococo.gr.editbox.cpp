@@ -51,7 +51,7 @@ namespace GRANON
 			return caretPos;
 		}
 
-		void OnUpdate()
+		void OnUpdate(EGREditorEventType editorEventType)
 		{
 			if (updateLock > 0)
 			{
@@ -71,9 +71,10 @@ namespace GRANON
 			we.editor = this;
 			we.manager = this;
 			we.caretPos = caretPos;
+			we.editorEventType = editorEventType;
 			we.clickPosition = { 0,0 };
 
-			RouteEventToHandler(panel, we);
+			panel.RouteToParent(we);
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -95,6 +96,7 @@ namespace GRANON
 				if (panel.Root().GR().GetFocusId() == panel.Id())
 				{
 					panel.Root().GR().SetFocus(-1);
+					OnUpdate(EGREditorEventType::LostFocus);
 				}
 				else
 				{
@@ -102,7 +104,7 @@ namespace GRANON
 
 					if (!isReadOnly)
 					{
-						OnUpdate();
+						OnUpdate(EGREditorEventType::ClickFocused);
 					}
 				}
 				return EGREventRouting::Terminate;
@@ -155,7 +157,7 @@ namespace GRANON
 
 				caretPos++;
 
-				OnUpdate();
+				OnUpdate(EGREditorEventType::CharAppended);
 			}
 		}
 
@@ -177,7 +179,7 @@ namespace GRANON
 
 				caretPos--;		
 
-				OnUpdate();
+				OnUpdate(EGREditorEventType::CharBackspaced);
 			}
 		}
 
@@ -195,7 +197,7 @@ namespace GRANON
 					std::advance(i, caretPos);
 					text.erase(i);
 
-					OnUpdate();
+					OnUpdate(EGREditorEventType::CharDeleted);
 				}
 			}
 		}
@@ -203,6 +205,11 @@ namespace GRANON
 		void Return() override
 		{
 			panel.Root().GR().SetFocus(-1);
+
+			if (!isReadOnly)
+			{
+				OnUpdate(EGREditorEventType::LostFocus);
+			}
 		}
 
 		void Render(IGRRenderContext& g) override
@@ -290,7 +297,7 @@ namespace GRANON
 		{
 			if (updateLock > 0)
 			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
+				RaiseError(panel, EGRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
 				return *this;
 			}
 
@@ -315,7 +322,7 @@ namespace GRANON
 
 			caretPos = (int32) len;
 
-			OnUpdate();
+			OnUpdate(EGREditorEventType::SetText);
 		}
 
 		size_t GetCapacity() const override
@@ -391,7 +398,7 @@ namespace Rococo::Gui
 	{
 		if (capacity <= 2)
 		{
-			parent.Panel().Root().Custodian().RaiseError(parent.Panel().GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
 		}
 		else
 		{
@@ -400,7 +407,7 @@ namespace Rococo::Gui
 
 		if (capacity > 1024_megabytes)
 		{
-			parent.Panel().Root().Custodian().RaiseError(parent.Panel().GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
 			capacity = (int32) 1024_megabytes;
 		}
 

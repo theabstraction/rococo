@@ -945,6 +945,37 @@ namespace GRANON
 			watcher = newWatcher;
 			return old;
 		}
+
+		EGREventRouting RouteToParentRecursive(GRWidgetEvent& ev, IGRWidget& sender)
+		{
+			if (parent)
+			{
+				auto followup = parent->widget->OnChildEvent(ev, sender);
+				if (followup == EGREventRouting::NextHandler)
+				{
+					return parent->RouteToParentRecursive(ev, sender);
+				}
+				else
+				{
+					return EGREventRouting::Terminate;
+				}
+			}
+			else
+			{
+				return EGREventRouting::NextHandler;
+			}
+		}
+
+		EGREventRouting RouteToParent(GRWidgetEvent& ev) override
+		{
+			auto followup = RouteToParentRecursive(ev, *widget);
+			if (followup == EGREventRouting::NextHandler)
+			{
+				return RouteEventToHandler(*this, ev);
+			}
+
+			return EGREventRouting::Terminate;
+		}
 	};
 }
 
@@ -985,7 +1016,7 @@ namespace Rococo::Gui
 		strcpy_s(message, desc);
 		Strings::SafeVFormat(message + strlen(desc), sizeof message - strlen(desc), format, args);
 
-		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), code, function, message);
+		RaiseError(panel, code, function, message);
 		va_end(args);
 	}
 
@@ -1071,5 +1102,15 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRWidget& widget)
 	{
 		return GetCustodian(widget.Panel());
+	}
+
+	ROCOCO_GUI_RETAINED_API void RaiseError(IGRPanel& panel, EGRErrorCode errCode, cstr function, const char* format, ...)
+	{
+		char buf[1024];
+		va_list args;
+		va_start(args, format);
+		vsnprintf_s(buf, _TRUNCATE, format, args);
+		va_end(args);
+		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), errCode, function, "%s", buf);
 	}
 }

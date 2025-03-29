@@ -4,7 +4,7 @@
 #include <rococo.strings.h>
 #include <rococo.os.win32.h>
 #include <rococo.gr.win32-gdi.h>
-#include <rococo.gui.retained.h>
+#include <rococo.gui.retained.ex.h>
 
 #pragma comment (lib,"Gdiplus.lib")
 
@@ -26,11 +26,36 @@ int MainProtected()
 
 	client.QueuePaint();
 
+	struct EventHandler : IGREventHandler
+	{
+		EGREventRouting OnGREvent(GRWidgetEvent& ev) override
+		{
+			if (ev.eventType == EGRWidgetEventType::EDITOR_UPDATED)
+			{
+				auto& editorEv = static_cast<GRWidgetEvent_EditorUpdated&>(ev);
+				return OnEditorEvent(editorEv);
+			}
+			else
+			{
+				return EGREventRouting::Terminate;
+			}
+		}
+
+		EGREventRouting OnEditorEvent(GRWidgetEvent_EditorUpdated& ev)
+		{
+			return EGREventRouting::Terminate;
+		}
+	} evHandler;
+
+	client.SetEventHandler(&evHandler);
+
 	MSG msg;
 	while (GetMessage(&msg, nullptr, 0, 0))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
+
+		client.GRSystem().DispatchMessages();
 	}
 
 	return 0;

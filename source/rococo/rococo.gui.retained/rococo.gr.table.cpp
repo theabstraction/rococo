@@ -59,7 +59,7 @@ namespace GRANON
 		{
 			if (columnIndex < 0 || columnIndex > (int) columnHeaders.size())
 			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "column index %d out of bounds. Array size is %llu", columnIndex, columnHeaders.size());
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "column index %d out of bounds. Array size is %llu", columnIndex, columnHeaders.size());
 			}
 
 			int oldWidth = columnHeaders[columnIndex].width;

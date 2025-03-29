@@ -1772,6 +1772,11 @@ namespace GRANON
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
 
+		IGREventHandler* SetEventHandler(Gui::IGREventHandler* eventHandler) override
+		{
+			return grSystem->SetEventHandler(eventHandler);
+		}
+
 		Gui::IGRSystem& GRSystem() override
 		{
 			return *grSystem;

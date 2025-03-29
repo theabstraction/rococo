@@ -3,12 +3,16 @@
 #include <string>
 #include <rococo.reflector.h>
 #include <rococo.strings.h>
+#include <rococo.formatting.h>
 #include <vector>
+#include <unordered_map>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Reflection;
 using namespace Rococo::Strings;
+
+#pragma optimize("", off)
 
 namespace GRANON
 {
@@ -41,145 +45,161 @@ namespace GRANON
 		EditableString stringValue;
 		PreviewPrimitive primitive;
 		PrimitiveType type = PrimitiveType::BOOL;
+
+		// Pointer to the primitive from which this was copied. If the pointer is volatile or temporary, then the orgin will remain null
+		void* primitiveOrigin = nullptr;
 	};
 
-	void Assign(PrimitiveVariant& v, int32 value)
+	void Assign(PrimitiveVariant& v, int32& value, bool retainOrigin)
 	{
 		v.primitive.int32Value = value;
 		v.type = PrimitiveType::I32;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = &value;
+		}
 	}
 
-	void Assign(PrimitiveVariant& v, int64 value)
+	void Assign(PrimitiveVariant& v, int64& value, bool retainOrigin)
 	{
 		v.primitive.int64Value = value;
 		v.type = PrimitiveType::I64;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = &value;
+		}
 	}
 
-	void Assign(PrimitiveVariant& v, uint64 value)
+	void Assign(PrimitiveVariant& v, uint64& value, bool retainOrigin)
 	{
 		v.primitive.uint64Value = value;
 		v.type = PrimitiveType::U64;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = &value;
+		}
 	}
 
-	void Assign(PrimitiveVariant& v, float value)
+	void Assign(PrimitiveVariant& v, float& value, bool retainOrigin)
 	{
 		v.primitive.float32Value = value;
 		v.type = PrimitiveType::F32;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = &value;
+		}
 	}
 
-	void Assign(PrimitiveVariant& v, double value)
+	void Assign(PrimitiveVariant& v, double& value, bool retainOrigin)
 	{
 		v.primitive.float64Value = value;
 		v.type = PrimitiveType::F64;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = &value;
+		}
 	}
 
-	void Assign(PrimitiveVariant& v, bool value)
+	void Assign(PrimitiveVariant& v, bool& value, bool retainOrigin)
 	{
 		v.primitive.boolValue = value;
 		v.type = PrimitiveType::BOOL;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = &value;
+		}
 	}
 
-	void Assign(PrimitiveVariant& v, cstr value, int32 capacity)
+	void Assign(PrimitiveVariant& v, cstr value, int32 capacity, bool retainOrigin)
 	{
 		v.primitive.float64Value = 0;
 		v.stringValue.text = value;
 		v.stringValue.capacity = capacity;
 		v.type = PrimitiveType::CSTR;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = nullptr;
+		}
 	}
 
-	void Assign(PrimitiveVariant& v, PreviewData* subObject)
+	void Assign(PrimitiveVariant& v, PreviewData* subObject, bool retainOrigin)
 	{
 		v.primitive.pSubObject = subObject;
 		v.type = PrimitiveType::SUB_OBJECT;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = subObject;
+		}		
 	}
+
+	enum EParseAndWriteBackResult
+	{
+		Success,
+		NoOrigin,
+		UnknownPrimitiveType
+	};
 
 	struct PreviewField
 	{
 		HString fieldName;
 		PrimitiveVariant value;
 		ReflectionMetaData meta;
+
+		[[nodiscard]] EParseAndWriteBackResult TryParseAndWriteBackToOrigin(cstr text, IGRWidgetEditBox& sender)
+		{
+			if (!value.primitiveOrigin)
+			{
+				return EParseAndWriteBackResult::NoOrigin;
+			}
+
+			switch (value.type)
+			{
+				case PrimitiveType::I32:
+				{
+					if (value.primitiveOrigin != nullptr)
+					{
+						auto result = Format::TryParseInt32FromDecimalStringSkippingThousandMarks(text);
+						int* origin = reinterpret_cast<int*>(value.primitiveOrigin);
+						*origin = result.Value;
+
+						char buffer[16];
+						Format::ToAscii(result.Value, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+						sender.SetText(buffer);
+						return EParseAndWriteBackResult::Success;
+					}
+					else
+					{
+						return EParseAndWriteBackResult::NoOrigin;
+					}
+				}
+			default:
+				return EParseAndWriteBackResult::UnknownPrimitiveType;
+			}
+		}
 	};
 
-	// Assuming that srcIntegerRepresentation is an integer (optionally prefixed with minus '-'), fill a buffer with a decimal representation using thousand mark separators
-	void AddThousandMarks(char* buffer, size_t capacity, cstr srcIntegerRepresentation, char thousandMarkSeparator)
-	{
-		size_t nChars = strlen(srcIntegerRepresentation);
-		size_t nNumbers = *srcIntegerRepresentation == '-' ? nChars - 1 : nChars;
-		size_t nTriplets = nNumbers / 3;
-
-		cstr endPos = srcIntegerRepresentation + nChars;
-
-		char* writePos = buffer;
-
-		if (capacity < nNumbers + nTriplets + 1)
-		{
-			Strings::CopyString(buffer, capacity, srcIntegerRepresentation, nNumbers);
-		}
-		else
-		{
-			size_t i = nNumbers;
-
-			cstr readPos = srcIntegerRepresentation;
-			if (*readPos == '-')
-			{
-				*writePos++ = '-';
-				readPos++;
-			}
-
-			while (readPos < endPos)
-			{
-				*writePos++ = *readPos++;
-				i--;
-				if (i % 3 == 0 && *readPos != 0)
-				{
-					*writePos++ = thousandMarkSeparator;
-				}
-			}
-
-			*writePos = 0;
-		}
-	}
-
-	void ToAscii(const PrimitiveVariant& variant, char* buffer, size_t capacity, const ReflectionMetaData& meta, int32 radix = 10)
+	bool ToAscii(const PrimitiveVariant& variant, char* buffer, size_t capacity, const ReflectionMetaData& meta, int32 radix = 10)
 	{
 		switch (variant.type)
 		{
 		case PrimitiveType::I32:
-			if (meta.addThousandMarks && radix == 10)
-			{
-				char raw[256];
-				_itoa_s(variant.primitive.int32Value, raw, sizeof raw, radix);
-				AddThousandMarks(buffer, capacity, raw, ',');
-			}
-			else
-			{
-				_itoa_s(variant.primitive.int32Value, buffer, capacity, radix);
-			}
-			break;
+			return Format::ToAscii(variant.primitive.int32Value, radix, meta.addThousandMarks, ',', buffer, capacity);
 		case PrimitiveType::I64:
-			_i64toa_s(variant.primitive.int64Value, buffer, capacity, radix);
-			break;
+			return _i64toa_s(variant.primitive.int64Value, buffer, capacity, radix) != 0;
 		case PrimitiveType::U64:
-			_ui64toa_s(variant.primitive.int64Value, buffer, capacity, radix);
-			break;
+			return _ui64toa_s(variant.primitive.int64Value, buffer, capacity, radix) != 0;
 		case PrimitiveType::F32:
-			snprintf(buffer, capacity, "%f", variant.primitive.float32Value);
-			break;
+			return snprintf(buffer, capacity, "%f", variant.primitive.float32Value) > 0;
 		case PrimitiveType::F64:
-			snprintf(buffer, capacity, "%lf", variant.primitive.float64Value);
-			break;
+			return snprintf(buffer, capacity, "%lf", variant.primitive.float64Value) > 0;
 		case PrimitiveType::BOOL:
-			snprintf(buffer, capacity, "%s", variant.primitive.boolValue ? "true" : "false");
-			break;
+			return snprintf(buffer, capacity, "%s", variant.primitive.boolValue ? "true" : "false") > 0;
 		case PrimitiveType::CSTR:
-			snprintf(buffer, capacity, "%s", variant.stringValue.text.c_str());
-			break;
+			return snprintf(buffer, capacity, "%s", variant.stringValue.text.c_str()) > 0;
 		case PrimitiveType::SUB_OBJECT:
-			snprintf(buffer, capacity, "SUB_OBJECT");
-			break;
+			return snprintf(buffer, capacity, "SUB_OBJECT") > 0;
 		default:
-			snprintf(buffer, capacity, "UNKNOWN-TYPE");
-			break;
+			return snprintf(buffer, capacity, "UNKNOWN-TYPE") > 0;			
 		}
 	}
 
@@ -211,13 +231,13 @@ namespace GRANON
 		std::vector<PreviewField> fields;
 
 		template<class T>
-		PreviewField& AddField(cstr name, T value, const Reflection::ReflectionMetaData& meta)
+		PreviewField& AddField(cstr name, T& value, const Reflection::ReflectionMetaData& meta)
 		{
 			fields.push_back(PreviewField());
 			auto& back = fields.back();
 			back.fieldName = name;
 			back.meta = meta;
-			Assign(back.value, value);
+			Assign(back.value, value, true);
 			return back;
 		}
 
@@ -227,7 +247,7 @@ namespace GRANON
 			auto& back = fields.back();
 			back.fieldName = name;
 			back.meta = meta;
-			Assign(back.value, value, capacity);
+			Assign(back.value, value, capacity, true);
 			return back;
 		}
 	};
@@ -419,6 +439,8 @@ namespace GRANON
 		IGRPropertyEditorPopulationEvents& populationEventHandler;
 		PropertyEditorSpec spec;
 
+		std::unordered_map<size_t, PreviewField*> editorToPreviewField;
+
 		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler, const PropertyEditorSpec& _spec) : panel(owningPanel), populationEventHandler(_populationEventHandler), spec(_spec)
 		{
 			owningPanel.SetClipChildren(true);
@@ -516,8 +538,43 @@ namespace GRANON
 			g.DrawRect(rect, colour);
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
+		void UpdateValueFrom(IGRWidgetEditBox& editor)
 		{
+			size_t key = reinterpret_cast<size_t>(&editor);
+			auto i = editorToPreviewField.find(key);
+			if (i == editorToPreviewField.end())
+			{
+				return;
+			}
+
+			char text[256];
+			editor.GetTextAndLength(text, sizeof text);
+
+			auto result = i->second->TryParseAndWriteBackToOrigin(text, editor);
+			if (result != EParseAndWriteBackResult::Success)
+			{
+				RaiseError(editor.Widget().Panel(), EGRErrorCode::Generic, __FUNCTION__, "TryParseAndWriteBackToOrigin failed with code %d", result);
+			}
+		}
+
+		EGREventRouting OnEditorUpdated(GRWidgetEvent_EditorUpdated& update)
+		{
+			IGRWidgetEditBox& editor = *update.editor;
+			if (update.editorEventType == EGREditorEventType::LostFocus)
+			{
+				UpdateValueFrom(editor);
+			}
+			return EGREventRouting::Terminate;
+		}
+
+		EGREventRouting OnChildEvent(GRWidgetEvent& ev, IGRWidget& sender)
+		{
+			UNUSED(sender);
+			if (ev.eventType == EGRWidgetEventType::EDITOR_UPDATED)
+			{
+				auto& editorEv = static_cast<GRWidgetEvent_EditorUpdated&>(ev);
+				return OnEditorUpdated(editorEv);
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -595,7 +652,7 @@ namespace GRANON
 			case PrimitiveType::CSTR:
 				if (field.value.stringValue.capacity > 0x7FFF'FFFFUL)
 				{
-					table.Widget().Panel().Root().Custodian().RaiseError(table.Widget().Panel().GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
+					RaiseError(table.Widget().Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
 				}
 				capacity = (int32) field.value.stringValue.capacity;
 				break;
@@ -644,7 +701,10 @@ namespace GRANON
 			if (field.value.type != PrimitiveType::CSTR)
 			{
 				char buf[16];
-				ToAscii(field.value, buf, sizeof buf, field.meta);
+				if (!ToAscii(field.value, buf, sizeof buf, field.meta))
+				{	
+					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Could not get an ascii representation of the field value");
+				}
 				valueText.SetText(buf);
 			}
 			else
@@ -653,6 +713,10 @@ namespace GRANON
 			}
 
 			NameValueControls controls{ nameText, valueText };
+
+			size_t key = reinterpret_cast<size_t>(&valueText);
+			editorToPreviewField[key] = &field;
+
 			return controls;
 		}
 
@@ -740,7 +804,7 @@ namespace GRANON
 					pData = pData->parent;
 				}
 
-				parentContainer.Panel().Root().Custodian().RaiseError(parentContainer.Panel().GetAssociatedSExpression(), EGRErrorCode::BadSpanHeight, __FUNCTION__, "%s", message);
+				RaiseError(parentContainer.Panel(), EGRErrorCode::BadSpanHeight, __FUNCTION__, "%s", message);
 				return;
 			}
 

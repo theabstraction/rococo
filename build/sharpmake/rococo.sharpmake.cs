@@ -1169,6 +1169,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
         }
     }
 

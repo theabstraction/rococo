@@ -337,7 +337,19 @@ namespace Rococo::Gui
 	{
 		BUTTON_CLICK,
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
-		USER_DEFINED = 1024
+		USER_DEFINED = 1025
+	};
+
+	enum class EGREditorEventType: int
+	{
+		ClickFocused,
+		CharAppended,
+		CharBackspaced,
+		CharDeleted,
+		SetText,
+
+		// The user clicks return or selects another control, usually treated as committing the edit
+		LostFocus
 	};
 
 	struct GRWidgetEvent
@@ -547,7 +559,10 @@ namespace Rococo::Gui
 		virtual IGRPanel& SetExpandToParentVertically() = 0;
 
 		// Assigns a new panel watcher, and returns the address of the last one. Can return null if none was assigned (the default)
+		// Mainly used to debug sizing operations
 		virtual IGRPanelWatcher* SetPanelWatcher(IGRPanelWatcher* newWatcher) = 0;
+
+		virtual EGREventRouting RouteToParent(GRWidgetEvent& ev) = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)
@@ -1117,6 +1132,7 @@ namespace Rococo::Gui
 	{
 		IGRWidgetEditBox* editor;
 		IGREditorMicromanager* manager;
+		EGREditorEventType editorEventType;
 		int32 caretPos;
 	};
 
@@ -1223,4 +1239,6 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRPanel& panel);
 	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRWidget& widget);
+
+	ROCOCO_GUI_RETAINED_API void RaiseError(IGRPanel& panel, EGRErrorCode errCode, cstr function, const char* format, ...);
 }
