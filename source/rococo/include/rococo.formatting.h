@@ -18,6 +18,8 @@ namespace Rococo::Format
 		int Position = 0;
 	};
 
-	bool ToAscii(int iValue, int radix, bool addThousandsMarker, char thousandMarkerChar, char* buffer, size_t capacity);
-	TryParseResult<int> TryParseInt32FromDecimalStringSkippingThousandMarks(cstr asciiText);
+	bool ToAscii(int32 iValue, int radix, bool addThousandsMarker, char thousandMarkerChar, char* buffer, size_t capacity);
+	bool ToAscii(int64 iValue, int radix, bool addThousandsMarker, char thousandMarkerChar, char* buffer, size_t capacity);
+	TryParseResult<int32> TryParseInt32FromDecimalStringSkippingCetera(cstr asciiText);
+	TryParseResult<int64> TryParseInt64FromDecimalStringSkippingCetera(cstr asciiText);
 }

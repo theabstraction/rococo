@@ -158,13 +158,59 @@ namespace GRANON
 				{
 					if (value.primitiveOrigin != nullptr)
 					{
-						auto result = Format::TryParseInt32FromDecimalStringSkippingThousandMarks(text);
-						int* origin = reinterpret_cast<int*>(value.primitiveOrigin);
+						auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
+						auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
 						*origin = result.Value;
 
 						char buffer[16];
 						Format::ToAscii(result.Value, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
 						sender.SetText(buffer);
+						return EParseAndWriteBackResult::Success;
+					}
+					else
+					{
+						return EParseAndWriteBackResult::NoOrigin;
+					}
+				}
+				case PrimitiveType::I64:
+				{
+					if (value.primitiveOrigin != nullptr)
+					{
+						auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
+						auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
+						*origin = result.Value;
+
+						char buffer[32];
+						Format::ToAscii(result.Value, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+						sender.SetText(buffer);
+						return EParseAndWriteBackResult::Success;
+					}
+					else
+					{
+						return EParseAndWriteBackResult::NoOrigin;
+					}
+				}
+				case PrimitiveType::F32:
+				{
+					if (value.primitiveOrigin != nullptr)
+					{
+						float f = (float) atof(text);
+						auto* origin = reinterpret_cast<float*>(value.primitiveOrigin);
+						*origin = f;
+						return EParseAndWriteBackResult::Success;
+					}
+					else
+					{
+						return EParseAndWriteBackResult::NoOrigin;
+					}
+				}
+				case PrimitiveType::F64:
+				{
+					if (value.primitiveOrigin != nullptr)
+					{
+						double d = atof(text);
+						auto* origin = reinterpret_cast<double*>(value.primitiveOrigin);
+						*origin = d;
 						return EParseAndWriteBackResult::Success;
 					}
 					else
