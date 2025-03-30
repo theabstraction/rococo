@@ -527,7 +527,7 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 
 		int Earnings = 12300;
 		Strings::HString BestFriend = "Papagena";
-		Strings::HString Lyrics = "Pa pa pa";
+		char Lyrics[16] = "Pa pa pa";
 		Strings::HString Name = "Papageno";
 		float Age = 22.0f;
 		double Height = 178.0;

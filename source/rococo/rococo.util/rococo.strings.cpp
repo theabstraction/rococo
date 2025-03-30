@@ -1438,15 +1438,14 @@ namespace Rococo::Reflection
 {
 	ROCOCO_UTIL_API void ReflectStackFormat(Reflection::IReflectionVisitor& v, cstr name, const char* format, ...)
 	{
-		char text[256];
+		char text[1024];
 		va_list args;
 		va_start(args, format);
 		SafeVFormat(text, sizeof text, format, args);
 		va_end(args);
 
-		Reflected_StackString rstring(text, sizeof text);
 		auto readOnly = Reflection::ReflectionMetaData::ReadOnly();
-		v.Reflect(name, rstring, readOnly);
+		v.Reflect(name, text, readOnly);
 	}
 
 	void EnterSection(Reflection::IReflectionVisitor& v, const char* format, ...)

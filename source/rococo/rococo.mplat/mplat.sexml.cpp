@@ -134,14 +134,16 @@ namespace Rococo::SEXML::Impl
 			builder.AddAtomicAttribute(name, value);
 		}
 
-		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) override
+		void Reflect(cstr name, char* stringBuffer, size_t capacity, ReflectionMetaData& metaData) override
 		{
+			UNUSED(capacity);
 			UNUSED(metaData);
-			builder.AddStringLiteral(name, stringValue.ReadString());
+			builder.AddStringLiteral(name, stringBuffer);
 		}
 
 		void Reflect(cstr name, Strings::HString& stringRef, ReflectionMetaData& metaData) override
 		{
+			UNUSED(metaData);
 			builder.AddStringLiteral(name, stringRef);
 		}
 

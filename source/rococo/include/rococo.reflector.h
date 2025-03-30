@@ -131,13 +131,6 @@ namespace Rococo::Reflection
 		SIZE_CHECK
 	};
 
-	ROCOCO_INTERFACE IReflectedString
-	{
-		virtual uint32 Capacity() const = 0;
-		virtual cstr ReadString() const = 0;
-		virtual void WriteString(cstr s) = 0;
-	};
-
 	ROCOCO_INTERFACE IReflectionVisitor
 	{
 		// Tell the visitor that the reflection target for the visit is no longer a valid pointer and cannot be used for further reads or writes
@@ -156,8 +149,15 @@ namespace Rococo::Reflection
 		virtual void Reflect(cstr name, float& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, double& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, bool& value, ReflectionMetaData& metaData) = 0;
-		virtual void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, Strings::HString& stringRef, ReflectionMetaData& metaData) = 0;
+		virtual void Reflect(cstr name, char* buffer, size_t capacity, ReflectionMetaData& metaData) = 0;
+
+		template<size_t CAPACITY>
+		inline void Reflect(cstr name, char(&buffer)[CAPACITY], ReflectionMetaData& metaData)
+		{
+			return Reflect(name, buffer, CAPACITY, metaData);
+		}
+
 		virtual void EnterSection(cstr sectionName) = 0;
 		virtual void LeaveSection() = 0;
 	};

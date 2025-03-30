@@ -42,7 +42,7 @@ namespace GRANON
 	struct EditableString
 	{
 		HString text;
-		int32 capacity = 0;
+		size_t capacity = 0;
 	};
 
 	struct PrimitiveVariant
@@ -115,7 +115,7 @@ namespace GRANON
 		}
 	}
 
-	void Assign(PrimitiveVariant& v, cstr value, int32 capacity, bool retainOrigin)
+	void Assign(PrimitiveVariant& v, char* value, size_t capacity, bool retainOrigin)
 	{
 		v.primitive.float64Value = 0;
 		v.stringValue.text = value;
@@ -123,7 +123,7 @@ namespace GRANON
 		v.type = PrimitiveType::CSTR;
 		if (retainOrigin)
 		{
-			v.primitiveOrigin = nullptr;
+			v.primitiveOrigin = value;
 		}
 	}
 
@@ -131,7 +131,7 @@ namespace GRANON
 	{
 		v.primitive.float64Value = 0;
 		v.stringValue.text = stringRef.c_str();
-		v.stringValue.capacity = 256;
+		v.stringValue.capacity = max(4096ULL, stringRef.length() + 1);
 		v.type = PrimitiveType::HSTR;
 		if (retainOrigin)
 		{
@@ -173,116 +173,89 @@ namespace GRANON
 			{
 				case PrimitiveType::I32:
 				{
-					if (value.primitiveOrigin != nullptr)
-					{
-						auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
-						auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
-						*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i32Value, meta.max.i32Value) : result.Value;
+					auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
+					auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
+					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i32Value, meta.max.i32Value) : result.Value;
 
-						char buffer[16];
-						Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
-						sender.SetText(buffer);
-						return EParseAndWriteBackResult::Success;
-					}
-					else
-					{
-						return EParseAndWriteBackResult::NoOrigin;
-					}
+					char buffer[16];
+					Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					sender.SetText(buffer);
+					return EParseAndWriteBackResult::Success;
 				}
 				case PrimitiveType::I64:
 				{
-					if (value.primitiveOrigin != nullptr)
-					{
-						auto result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
-						auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
-						*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i64Value, meta.max.i64Value) : result.Value;
+					auto result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
+					auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
+					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i64Value, meta.max.i64Value) : result.Value;
 
-						char buffer[32];
-						Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
-						sender.SetText(buffer);
-						return EParseAndWriteBackResult::Success;
-					}
-					else
-					{
-						return EParseAndWriteBackResult::NoOrigin;
-					}
+					char buffer[32];
+					Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					sender.SetText(buffer);
+					return EParseAndWriteBackResult::Success;
 				}
 				case PrimitiveType::F32:
 				{
-					if (value.primitiveOrigin != nullptr)
+					float f = (float) atof(text);
+					auto* origin = reinterpret_cast<float*>(value.primitiveOrigin);
+
+					float f1;
+
+					if (isnan(f))
 					{
-						float f = (float) atof(text);
-						auto* origin = reinterpret_cast<float*>(value.primitiveOrigin);
-
-						float f1;
-
-						if (isnan(f))
-						{
-							f1 = meta.min.f32Value;
-						}
-						else if (isinf(f))
-						{
-							f1 = meta.max.f32Value;
-						}
-						else
-						{
-							f1 = meta.hasMinmax ? clamp(f, meta.min.f32Value, meta.max.f32Value) : f;
-						}
-
-						*origin = f1;
-						char buffer[32];
-						sprintf_s(buffer, "%f", *origin);
-						sender.SetText(buffer);
-						return EParseAndWriteBackResult::Success;
+						f1 = meta.min.f32Value;
+					}
+					else if (isinf(f))
+					{
+						f1 = meta.max.f32Value;
 					}
 					else
 					{
-						return EParseAndWriteBackResult::NoOrigin;
+						f1 = meta.hasMinmax ? clamp(f, meta.min.f32Value, meta.max.f32Value) : f;
 					}
+
+					*origin = f1;
+					char buffer[32];
+					sprintf_s(buffer, "%f", *origin);
+					sender.SetText(buffer);
+					return EParseAndWriteBackResult::Success;
 				}
 				case PrimitiveType::F64:
 				{
-					if (value.primitiveOrigin != nullptr)
-					{
-						double d = atof(text);
-						auto* origin = reinterpret_cast<double*>(value.primitiveOrigin);
+					double d = atof(text);
+					auto* origin = reinterpret_cast<double*>(value.primitiveOrigin);
 		
-						double d1;
-						if (isnan(d))
-						{
-							d1 = meta.min.f32Value;
-						}
-						else if (isinf(d))
-						{
-							d1 = meta.max.f32Value;
-						}
-						else
-						{
-							d1 = meta.hasMinmax ? clamp(d, meta.min.f64Value, meta.max.f64Value): d;
-						}
-
-						*origin = d1;
-						char buffer[32];
-						sprintf_s(buffer, "%f", *origin);
-						sender.SetText(buffer);
-						return EParseAndWriteBackResult::Success;
+					double d1;
+					if (isnan(d))
+					{
+						d1 = meta.min.f32Value;
+					}
+					else if (isinf(d))
+					{
+						d1 = meta.max.f32Value;
 					}
 					else
 					{
-						return EParseAndWriteBackResult::NoOrigin;
+						d1 = meta.hasMinmax ? clamp(d, meta.min.f64Value, meta.max.f64Value): d;
 					}
+
+					*origin = d1;
+					char buffer[32];
+					sprintf_s(buffer, "%f", *origin);
+					sender.SetText(buffer);
+					return EParseAndWriteBackResult::Success;
 				}
 				case PrimitiveType::HSTR:
-					if (value.primitiveOrigin != nullptr)
-					{
-						auto* origin = reinterpret_cast<HString*>(value.primitiveOrigin);
-						*origin = text;
-						return EParseAndWriteBackResult::Success;
-					}
-					else
-					{
-						return EParseAndWriteBackResult::NoOrigin;
-					}
+				{
+					auto* origin = reinterpret_cast<HString*>(value.primitiveOrigin);
+					*origin = text;
+					return EParseAndWriteBackResult::Success;
+				}
+				case PrimitiveType::CSTR:
+				{
+					auto* origin = reinterpret_cast<char*>(value.primitiveOrigin);
+					CopyString(origin, value.stringValue.capacity, text);
+					return EParseAndWriteBackResult::Success;
+				}
 			default:
 				return EParseAndWriteBackResult::UnknownPrimitiveType;
 			}
@@ -374,7 +347,7 @@ namespace GRANON
 			return back;
 		}
 
-		PreviewField& AddField(cstr name, cstr value, int32 capacity, const Reflection::ReflectionMetaData& meta)
+		PreviewField& AddField(cstr name, char* value, size_t capacity, const Reflection::ReflectionMetaData& meta)
 		{
 			fields.push_back(new PreviewField());
 			auto& back = *fields.back();
@@ -446,10 +419,11 @@ namespace GRANON
 			fieldCount++;
 		}
 
-		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData&) override
+		void Reflect(cstr name, char* buffer, size_t capacity, ReflectionMetaData&) override
 		{
 			UNUSED(name);
-			UNUSED(stringValue);
+			UNUSED(buffer);
+			UNUSED(capacity);
 			fieldCount++;
 		}
 
@@ -526,9 +500,9 @@ namespace GRANON
 			target->AddField(name, value, meta);
 		}
 
-		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& meta) override
+		void Reflect(cstr name, char* stringBuffer, size_t capacity, ReflectionMetaData& meta) override
 		{
-			target->AddField(name, stringValue.ReadString(), stringValue.Capacity(), meta);
+			target->AddField(name, stringBuffer, capacity, meta);
 		}
 
 		void Reflect(cstr name, Strings::HString& stringRef, ReflectionMetaData& metaData) override
@@ -849,9 +823,12 @@ namespace GRANON
 				}
 				capacity = (int32) field.value.stringValue.capacity;
 				break;
-			default:
-				capacity = 10;
+			case PrimitiveType::HSTR:
+				capacity = (int32)field.value.stringValue.capacity;
 				break;
+			default:
+				capacity = 1;
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad field value type: %d", field.value.type);
 			}
 
 			auto* valueCell = table.GetCell(1, newRowIndex);
@@ -891,7 +868,7 @@ namespace GRANON
 				valueText.SetReadOnly(true);
 			}
 
-			if (field.value.type != PrimitiveType::CSTR)
+			if (field.value.type != PrimitiveType::CSTR && field.value.type != PrimitiveType::HSTR)
 			{
 				char buf[16];
 				if (!ToAscii(field.value, buf, sizeof buf, field.meta))
