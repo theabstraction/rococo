@@ -199,8 +199,10 @@ namespace Rococo::DX11
 
 		AutoFree<RAL::IPipelineSupervisor> RAL_pipeline;
 
+		Reflection::Visitation visitation;
+
 		DX11Pipeline(DX11::RenderBundle& bundle) :
-			installation(bundle.installation), device(bundle.device), dc(bundle.dc), textures(bundle.textures), renderer(bundle.renderer)
+			installation(bundle.installation), device(bundle.device), dc(bundle.dc), textures(bundle.textures), renderer(bundle.renderer), visitation(*this)
 		{
 			objDepthState = DX11::CreateObjectDepthStencilState(device);
 			objDepthState_NoWrite = DX11::CreateObjectDepthStencilState_NoWrite(device);
@@ -484,6 +486,11 @@ namespace Rococo::DX11
 		IReflectionTarget* ReflectionTarget() override
 		{
 			return this;
+		}
+
+		IReflectionVisitation* Visitation() override
+		{
+			return &visitation;
 		}
 
 		void Visit(IReflectionVisitor& v) override

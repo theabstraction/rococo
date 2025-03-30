@@ -343,6 +343,7 @@ void TestFrame(IGRSystem& gr)
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+	framePanel.Set(EGRSchemeColourSurface::READ_ONLY_TEXT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 
 	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), GRGenerateIntensities());
 
@@ -373,6 +374,10 @@ void TestFrame(IGRSystem& gr)
 
 		}
 
+		~Stats()
+		{
+		}
+
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
 			auto& statMeta = Reflection::Mutable().Range(1, 24);
@@ -383,6 +388,11 @@ void TestFrame(IGRSystem& gr)
 			ROCOCO_REFLECT_EX(v, Skill, statMeta);
 			ROCOCO_REFLECT_EX(v, Magic, statMeta);
 			ROCOCO_REFLECT_EX(v, Charm, statMeta);
+		}
+
+		Reflection::IReflectionVisitation* Visitation() override
+		{
+			return nullptr;
 		}
 	};
 
@@ -405,6 +415,11 @@ void TestFrame(IGRSystem& gr)
 		double Weight = 60;
 
 		Stats stats = Stats(10, 10, 9, 0, 6);
+
+		Reflection::IReflectionVisitation* Visitation() override
+		{
+			return nullptr;
+		}
 	};
 
 	struct Target2 : Reflection::IReflectionTarget
@@ -426,6 +441,11 @@ void TestFrame(IGRSystem& gr)
 		double Weight = 68;
 
 		Stats stats = Stats(7, 6, 14, 1, 9);
+
+		Reflection::IReflectionVisitation* Visitation() override
+		{
+			return nullptr;
+		}
 	};
 
 	struct Target3 : Reflection::IReflectionTarget
@@ -452,6 +472,11 @@ void TestFrame(IGRSystem& gr)
 		double Weight = 50;
 
 		Stats stats = Stats(7, 12, 24, 9, 13);
+
+		Reflection::IReflectionVisitation* Visitation() override
+		{
+			return nullptr;
+		}
 	};
 
 	struct Target4 : Reflection::IReflectionTarget
@@ -477,6 +502,11 @@ void TestFrame(IGRSystem& gr)
 		double Weight = 50;
 
 		Stats stats = Stats(14, 13, 11, 1, 9);
+
+		Reflection::IReflectionVisitation* Visitation() override
+		{
+			return nullptr;
+		}
 	};
 
 	struct Target5 : Reflection::IReflectionTarget
@@ -502,15 +532,25 @@ void TestFrame(IGRSystem& gr)
 		double Weight = 53;
 
 		Stats stats = Stats(15, 12, 11, 4, 12);
+
+		Reflection::IReflectionVisitation* Visitation() override
+		{
+			return nullptr;
+		}
 	};
 
-	struct Target : Reflection::IReflectionTarget
+	struct Target : Reflection::VisitationTarget
 	{
 		Target1 t1;
 		Target2 t2;
 		Target3 t3;
 		Target4 t4;
 		Target5 t5;
+
+		Target()
+		{
+
+		}
 
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
@@ -551,7 +591,7 @@ void TestFrame(IGRSystem& gr)
 
 	editor.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId) + 4);
 
-	editor.View(target);
+	editor.View(target.Visitation());
 	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 0), GRGenerateIntensities());
 }
 

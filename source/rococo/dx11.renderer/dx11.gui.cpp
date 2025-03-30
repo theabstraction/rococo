@@ -458,7 +458,7 @@ namespace Rococo::DX11
     }
 }
 
-struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResources, ISubsystem, IReflectionTarget
+struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResources, ISubsystem, VisitationTarget
 {
     ID3D11Device& device;
     ID3D11DeviceContext& dc;

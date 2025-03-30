@@ -274,6 +274,7 @@ namespace Rococo::Gui
 		SCROLLER_SLIDER_BOTTOM_RIGHT,
 		SCROLLER_TRIANGLE_NORMAL,
 		EDITOR,
+		READ_ONLY_TEXT,
 		TEXT,
 		FOCUS_RECTANGLE, // The rectangle surrounding a control to indicate focus, separate from the controls own focus settings
 		EDIT_TEXT, // Text colour when editor box is focused
@@ -849,7 +850,7 @@ namespace Rococo::Gui
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRWidgetViewport& Viewport() = 0;
 		virtual void SetRowHeight(int height) = 0;
-		virtual void View(Reflection::IReflectionTarget& target) = 0;
+		virtual void View(Reflection::IReflectionVisitation* visitation) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase

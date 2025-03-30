@@ -26,7 +26,7 @@ namespace Rococo::MPEditor
 		virtual bool IsVisible() const = 0;
 
 		// Illustrate the reflection target in the gui system
-		virtual void Preview(Rococo::Gui::IGRSystem& gr, Rococo::Reflection::IReflectionTarget& target) = 0;
+		virtual void Preview(Rococo::Gui::IGRSystem& gr, Rococo::Reflection::IReflectionVisitation* visitation) = 0;
 
 		virtual void SetVisibility(bool isVisible) = 0;
 

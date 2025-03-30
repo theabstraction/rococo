@@ -7,7 +7,7 @@ using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::Reflection;
 
-struct TestDog : IReflectionTarget
+struct TestDog : VisitationTarget
 {
 	HString name;
 	HString breed;
@@ -22,7 +22,7 @@ struct TestDog : IReflectionTarget
 	}
 };
 
-struct TestKennel : IReflectionTarget
+struct TestKennel : VisitationTarget
 {
 	int32 taxCode = 0x1891A;
 	float32 cost = 2000.0f;
@@ -45,7 +45,7 @@ struct TestKennel : IReflectionTarget
 	}
 };
 
-struct TestPuppy : IReflectionTarget
+struct TestPuppy : VisitationTarget
 {
 	HString name;
 	int id;
@@ -90,7 +90,7 @@ void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 	}
 }
 
-struct TestHouse : IReflectionTarget
+struct TestHouse : VisitationTarget
 {
 	HString houseName = "BigBen";
 	int houseNumber = 631;

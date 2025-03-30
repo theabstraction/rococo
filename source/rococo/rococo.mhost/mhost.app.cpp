@@ -9,6 +9,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.os.h>
 #include <rococo.great.sex.h>
+#include <rococo.reflector.h>
 
 #include "..\rococo.mplat\mplat.editor.h"
 
@@ -840,7 +841,7 @@ namespace MHost
 						Gui::SetUniformColourForAllRenderStates(frame->Widget().Panel(), Gui::EGRSchemeColourSurface::BACKGROUND, RGBAb(0, 0, 0, 192));
 						Gui::SetUniformColourForAllRenderStates(frame->ClientArea().Panel(), Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
 
-						platform.creator.editor.Preview(platform.graphics.GR, *target);
+						platform.creator.editor.Preview(platform.graphics.GR, target->Visitation());
 					}
 				}
 			}

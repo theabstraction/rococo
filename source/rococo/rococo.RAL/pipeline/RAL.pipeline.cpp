@@ -68,6 +68,11 @@ namespace Rococo::RAL::Anon
 		//	InitResources(1);
 		}
 
+		IReflectionVisitation* Visitation() override
+		{
+			return nullptr;
+		}
+
 		Rococo::Graphics::IGui3D& Gui3D() override
 		{
 			return *gui3D;

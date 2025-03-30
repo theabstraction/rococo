@@ -100,8 +100,9 @@ namespace ANON
 		Platform* platform = nullptr;
 		bool isVisible = false;
 		std::unordered_set<IMPEditorEventHandler*> hooks;
+		Reflection::Visitation visitation;
 
-		MPlatEditor(IGRSystem& _gr): gr(_gr)
+		MPlatEditor(IGRSystem& _gr): gr(_gr), visitation(*this)
 		{
 			static_cast<IGRSystemSupervisor&>(gr).SetEventHandler(this);
 		}
@@ -270,8 +271,13 @@ namespace ANON
 			framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 		}
 
-		void Preview(IGRSystem& gr, IReflectionTarget& target) override
+		void Preview(IGRSystem& gr, IReflectionVisitation* visitation) override
 		{
+			if (!visitation)
+			{
+				Throw(0, __FUNCTION__ ": visitation was null");
+			}
+
 			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);
 			if (!frame) Throw(0, "%s: Unexpected missing frame. gr.FindFrame(ID_EDITOR_FRAME) returned null", __FUNCTION__);
 
@@ -304,8 +310,13 @@ namespace ANON
 
 			PropertyEditorSpec spec;
 			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().InnerWidget(), popHandler, spec);
-			editorTree.View(target);
+			editorTree.View(visitation);
 			UNUSED(editorTree);
+		}
+
+		IReflectionVisitation* Visitation() override
+		{
+			return &visitation;
 		}
 
 		Reflection::IReflectionTarget& ReflectionTarget() override

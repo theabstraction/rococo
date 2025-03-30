@@ -1,6 +1,7 @@
 #define ROCOCO_API __declspec(dllexport)
 #include <rococo.reflector.h>
 #include <limits>
+#include <unordered_set>
 
 namespace Rococo::Reflection
 {
@@ -34,5 +35,49 @@ namespace Rococo::Reflection
 		min.f64Value = std::numeric_limits<double>().min();
 		max.f64Value = std::numeric_limits<double>().min();
 		return *this;
+	}
+
+	struct VisitationImpl
+	{
+		IReflectionTarget& target;
+		std::unordered_set<IReflectionVisitor*> visitors;
+
+		VisitationImpl(IReflectionTarget& _target) : target(_target)
+		{
+		}
+
+		~VisitationImpl()
+		{
+		}
+	};
+
+	ROCOCO_API Visitation::Visitation(IReflectionTarget& target) : impl(new VisitationImpl(target))
+	{
+
+	}
+
+	ROCOCO_API Visitation::~Visitation()
+	{
+		for (auto* v : impl->visitors)
+		{
+			v->CancelVisit(*this);
+		}
+		delete impl;
+	}
+
+	ROCOCO_API bool Visitation::AcceptVisitor(IReflectionVisitor& visitor)
+	{
+		auto i = impl->visitors.insert(&visitor);
+		return i.second;
+	}
+
+	ROCOCO_API void Visitation::OnVisitorGone(IReflectionVisitor& visitor)
+	{
+		impl->visitors.erase(&visitor);
+	}
+
+	ROCOCO_API IReflectionTarget& Visitation::Target()
+	{
+		return impl->target;
 	}
 }

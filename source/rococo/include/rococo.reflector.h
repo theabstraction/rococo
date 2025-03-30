@@ -14,6 +14,11 @@ namespace Rococo::Reflection
 		int64 i64Value;
 		float f32Value;
 		double f64Value;
+
+		MetaVariantData(): i64Value(0)
+		{
+
+		}
 	};
 
 	struct Reflected_HString;
@@ -92,6 +97,7 @@ namespace Rococo::Reflection
 
 		int precision = 3;
 
+		// Precision is typically clamped between 0 to 9 decimal places
 		ReflectionMetaData& Precision(int value)
 		{
 			precision = value;
@@ -130,6 +136,10 @@ namespace Rococo::Reflection
 
 	ROCOCO_INTERFACE IReflectionVisitor
 	{
+		// Tell the visitor that the reflection target for the visit is no longer a valid pointer and cannot be used for further reads or writes
+		// Usually invoked by the destructor of the reflection target.
+		virtual void CancelVisit(IReflectionVisitation& visitation) = 0;
+
 		virtual EReflectionDirection Direction() const = 0;
 		virtual void EnterContainer(cstr name) = 0;
 		virtual void LeaveContainer() = 0;
@@ -192,10 +202,24 @@ namespace Rococo::Reflection
 		}
 	};
 
-	// Adds method virtual void Visit(IReflectionVisitor& v)
+	// A Reflection Visitation occurs when an IReflectionVisitor intends to hold on to a reference to the 
+	// reflection target passed in method Visit(...). This typically occurs when a property editor sallow the user
+	// to make changes to a target after it has been read.
+	ROCOCO_INTERFACE IReflectionVisitation
+	{
+		virtual bool AcceptVisitor(IReflectionVisitor& visitor) = 0;
+		virtual void OnVisitorGone(IReflectionVisitor& visitor) = 0;
+		virtual IReflectionTarget& Target() = 0;
+	};
+
+	// Provides a method for telling a reflection visitor for both its internal state and capacity to handle ongoing visitation
 	ROCOCO_INTERFACE IReflectionTarget
 	{
-		virtual void Visit(IReflectionVisitor& v) = 0;
+		// Informs the visitor of the target's internal state by calling visitor methods for each of its fields
+		virtual void Visit(IReflectionVisitor& visitor) = 0;
+
+		// Returns the visitation object should the target support perisistent/ongoing modification by the visitor
+		virtual IReflectionVisitation* Visitation() = 0;
 	};
 
 	template<class T>
@@ -203,6 +227,40 @@ namespace Rococo::Reflection
 	{
 		return a;
 	}
+
+	struct VisitationImpl;
+
+	// A visitation implementation token, meant for classes to implement IReflectionVisitation with little work
+	// Note that when the visitation object is destructed all visitors are notified via IReflectionVisitor::CancelVisit(IReflectionTarget* target)
+	class Visitation: public IReflectionVisitation
+	{
+		VisitationImpl* impl;
+	public:
+		ROCOCO_API Visitation(IReflectionTarget& _target);
+		ROCOCO_API ~Visitation();
+
+		ROCOCO_API bool AcceptVisitor(IReflectionVisitor& visitor) override;
+		ROCOCO_API void OnVisitorGone(IReflectionVisitor& visitor) override;
+		ROCOCO_API IReflectionTarget& Target();
+	};
+
+	// A visitation base class, adds the visitation token, but leaves Visit(... visitor) to be implemented by derived classes
+	class VisitationTarget : public IReflectionTarget
+	{
+	private:
+		Reflection::Visitation visitation;
+
+	public:
+		VisitationTarget() : visitation(*this)
+		{
+
+		}
+
+		IReflectionVisitation* Visitation() override
+		{
+			return &visitation;
+		}
+	};
 }
 
 #define ROCOCO_REFLECT(visitor, field) { auto value = Rococo::Reflection::Reflect(field); auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default().FullRange(value); visitor.Reflect(#field, value, defaultMetaData); }

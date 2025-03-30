@@ -341,6 +341,7 @@ namespace Rococo
 	{
 		DECLARE_ROCOCO_INTERFACE IReflectionTarget;
 		DECLARE_ROCOCO_INTERFACE IReflectionVisitor;
+		DECLARE_ROCOCO_INTERFACE IReflectionVisitation;
 	}
 
 	struct ISubsystemMonitor;

@@ -351,6 +351,19 @@ namespace GRANON
 			Assign(back.value, value, capacity, true);
 			return back;
 		}
+
+		void CancelVisitRecursive()
+		{
+			for (auto& f : fields)
+			{
+				f.value.primitiveOrigin = nullptr;
+
+				if (f.value.type == PrimitiveType::SUB_OBJECT)
+				{
+					f.value.primitive.pSubObject->CancelVisitRecursive();
+				}
+			}
+		}
 	};
 
 	struct ReflectionEnumerator : IReflectionVisitor
@@ -427,12 +440,15 @@ namespace GRANON
 		}
 	};
 
+	struct GRPropertyEditorTree;
+
 	struct Previewer : IReflectionVisitor
 	{
+		GRPropertyEditorTree& owner;
 		PreviewData* root = nullptr;
 		PreviewData* target = nullptr;
 
-		Previewer()
+		Previewer(GRPropertyEditorTree& _owner): owner(_owner)
 		{
 			root = new PreviewData(nullptr);
 			target = root;
@@ -531,6 +547,8 @@ namespace GRANON
 		{
 			target = target->parent;
 		}
+
+		void CancelVisit(IReflectionVisitation& visitation) override;
 	};
 
 	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidgetSupervisor, IGRWidgetCollapserEvents
@@ -542,7 +560,8 @@ namespace GRANON
 
 		std::unordered_map<size_t, PreviewField*> editorToPreviewField;
 
-		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler, const PropertyEditorSpec& _spec) : panel(owningPanel), populationEventHandler(_populationEventHandler), spec(_spec)
+		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler, const PropertyEditorSpec& _spec) :
+			panel(owningPanel), previewer(*this), populationEventHandler(_populationEventHandler), spec(_spec)
 		{
 			owningPanel.SetClipChildren(true);
 			owningPanel.SetExpandToParentHorizontally();
@@ -582,6 +601,34 @@ namespace GRANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void SetEditorsToReadOnlyRecursive(IGRPanel& panel)
+		{
+			auto* editor = Cast<IGRWidgetEditBox>(panel.Widget());
+			if (editor)
+			{
+				editor->SetReadOnly(true);
+			}
+
+			int nChildren = panel.EnumerateChildren(nullptr);
+			for (int i = 0; i < nChildren; i++)
+			{
+				auto* child = panel.GetChild(i);
+				SetEditorsToReadOnlyRecursive(*child);
+			}
+		}
+
+		bool CancelVisit(IReflectionVisitation& visitation)
+		{
+			auto* target = &visitation.Target();
+			if (target && currentTarget == target)
+			{
+				SetEditorsToReadOnlyRecursive(panel);
+				return true;
+			}
+
+			return false;
 		}
 
 		void Layout(const GuiRect& panelDimensions) override
@@ -1039,9 +1086,26 @@ namespace GRANON
 			rowHeight = clamp(height, 16, 300);
 		}
 
-		void View(IReflectionTarget& target) override
+		IReflectionTarget* currentTarget = nullptr;
+
+		void View(IReflectionVisitation* visitation) override
 		{
-			target.Visit(previewer);
+			if (!visitation || !visitation->AcceptVisitor(previewer))
+			{
+				return;
+			}
+
+			auto* nextTarget = &visitation->Target();
+			if (currentTarget && currentTarget != nextTarget)
+			{
+				currentTarget->Visitation()->OnVisitorGone(previewer);
+			}
+
+			currentTarget = nextTarget;
+
+			editorToPreviewField.clear();
+
+			currentTarget->Visit(previewer);
 
 			auto& viewport = Viewport();
 			auto& vp = viewport.Widget().Panel();
@@ -1136,6 +1200,14 @@ namespace GRANON
 			return "GRPropertyEditorTree";
 		}
 	};
+
+	void Previewer::CancelVisit(IReflectionVisitation& visitation)
+	{
+		if (owner.CancelVisit(visitation))
+		{
+			root->CancelVisitRecursive();
+		}
+	}
 }
 
 namespace Rococo::Gui

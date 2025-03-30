@@ -15,6 +15,12 @@ namespace Rococo::SEXML::Impl
 			builder.AddDirective("Root");
 		}
 
+		void CancelVisit(IReflectionVisitation& visitation) override
+		{
+			// Unexpected -> SXMLBuilderVisitor visitors do not use visitations 
+			UNUSED(visitation);
+		}
+
 		// We cannot stick this in the destructor as it throws on failure, which destructors cannot handle.
 		void Finalize()
 		{

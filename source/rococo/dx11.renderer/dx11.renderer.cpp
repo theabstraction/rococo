@@ -55,7 +55,7 @@ class DX11AppRenderer :
 	public IRAL,
 	public IDX11SpecialResources,
 	public ISubsystem,
-	public IReflectionTarget
+	public VisitationTarget
 {
 private:
 	IO::IInstallation& installation;
@@ -398,7 +398,7 @@ public:
 		lastTick = Time::TickCount();
 	}
 
-	~DX11AppRenderer()
+	virtual ~DX11AppRenderer()
 	{
 		DetachContext();
 	}
