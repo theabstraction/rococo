@@ -160,7 +160,7 @@ namespace GRANON
 					{
 						auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
 						auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
-						*origin = clamp(result.Value, meta.min.i32Value, meta.max.i32Value);
+						*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i32Value, meta.max.i32Value) : result.Value;
 
 						char buffer[16];
 						Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
@@ -178,7 +178,7 @@ namespace GRANON
 					{
 						auto result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
 						auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
-						*origin = clamp(result.Value, meta.min.i64Value, meta.max.i64Value);
+						*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i64Value, meta.max.i64Value) : result.Value;
 
 						char buffer[32];
 						Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
@@ -209,7 +209,7 @@ namespace GRANON
 						}
 						else
 						{
-							f1 = clamp(f, meta.min.f32Value, meta.max.f32Value);
+							f1 = meta.hasMinmax ? clamp(f, meta.min.f32Value, meta.max.f32Value) : f;
 						}
 
 						*origin = f1;
@@ -241,7 +241,7 @@ namespace GRANON
 						}
 						else
 						{
-							d1 = clamp(d, meta.min.f64Value, meta.max.f64Value);
+							d1 = meta.hasMinmax ? clamp(d, meta.min.f64Value, meta.max.f64Value): d;
 						}
 
 						*origin = d1;
@@ -598,6 +598,14 @@ namespace GRANON
 			}
 		}
 
+		virtual ~GRPropertyEditorTree()
+		{
+			if (currentVisitation)
+			{
+				currentVisitation->OnVisitorGone(previewer);
+			}
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -621,9 +629,9 @@ namespace GRANON
 
 		bool CancelVisit(IReflectionVisitation& visitation)
 		{
-			auto* target = &visitation.Target();
-			if (target && currentTarget == target)
+			if (currentVisitation == &visitation)
 			{
+				currentVisitation = nullptr;
 				SetEditorsToReadOnlyRecursive(panel);
 				return true;
 			}
@@ -1086,7 +1094,7 @@ namespace GRANON
 			rowHeight = clamp(height, 16, 300);
 		}
 
-		IReflectionTarget* currentTarget = nullptr;
+		IReflectionVisitation* currentVisitation = nullptr;
 
 		void View(IReflectionVisitation* visitation) override
 		{
@@ -1096,16 +1104,16 @@ namespace GRANON
 			}
 
 			auto* nextTarget = &visitation->Target();
-			if (currentTarget && currentTarget != nextTarget)
+			if (currentVisitation && &currentVisitation->Target() != nextTarget)
 			{
-				currentTarget->Visitation()->OnVisitorGone(previewer);
+				visitation->OnVisitorGone(previewer);
 			}
 
-			currentTarget = nextTarget;
+			currentVisitation = visitation;
 
 			editorToPreviewField.clear();
 
-			currentTarget->Visit(previewer);
+			currentVisitation->Target().Visit(previewer);
 
 			auto& viewport = Viewport();
 			auto& vp = viewport.Widget().Panel();

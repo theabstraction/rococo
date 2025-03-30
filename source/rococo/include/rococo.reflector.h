@@ -25,6 +25,9 @@ namespace Rococo::Reflection
 
 	struct ReflectionMetaData
 	{
+		MetaVariantData min;
+		MetaVariantData max;
+		bool hasMinmax = false;
 		bool isReadOnly = false;
 
 		ReflectionMetaData()
@@ -52,13 +55,11 @@ namespace Rococo::Reflection
 			return *this;
 		}
 
-		MetaVariantData min;
-		MetaVariantData max;
-
 		ReflectionMetaData& Range(int32 minValue, int32 maxValue)
 		{
 			min.i32Value = minValue;
 			max.i32Value = maxValue;
+			hasMinmax = true;
 			return *this;
 		}
 
@@ -66,6 +67,7 @@ namespace Rococo::Reflection
 		{
 			min.i64Value = minValue;
 			max.i64Value = maxValue;
+			hasMinmax = true;
 			return *this;
 		}
 
@@ -73,6 +75,7 @@ namespace Rococo::Reflection
 		{
 			min.f32Value = minValue;
 			max.f32Value = maxValue;
+			hasMinmax = true;
 			return *this;
 		}
 
@@ -80,6 +83,7 @@ namespace Rococo::Reflection
 		{
 			min.f64Value = minValue;
 			max.f64Value = maxValue;
+			hasMinmax = true;
 			return *this;
 		}
 

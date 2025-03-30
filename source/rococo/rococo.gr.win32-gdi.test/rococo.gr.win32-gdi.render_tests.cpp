@@ -12,6 +12,8 @@ void RenderButton(Gui::IGRRenderContext& rc, const GuiRect& rect)
 	rc.DrawRectEdge(rect, RGBAb(224, 224, 224), RGBAb(128, 128, 128));
 }
 
+void RunMessageLoop(IGRClientWindow& client);
+
 IGR2DScene* TestDrawRect()
 {
 	struct Scene : IGR2DScene
@@ -309,7 +311,7 @@ void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	tools.Widget().Panel().SetConstantWidth(256);
 }
 
-void TestFrame(IGRSystem& gr)
+void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 {
 	GRIdWidget mainFrame { "Main-Frame" };
 	auto& frame = gr.BindFrame(mainFrame);
@@ -593,9 +595,11 @@ void TestFrame(IGRSystem& gr)
 
 	editor.View(target.Visitation());
 	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 0), GRGenerateIntensities());
+
+	RunMessageLoop(client);
 }
 
-void TestWidgets(IGRSystem& gr)
+void TestWidgets(IGRClientWindow& client)
 {
-	TestFrame(gr);
+	TestFrame(client, client.GRSystem());
 }

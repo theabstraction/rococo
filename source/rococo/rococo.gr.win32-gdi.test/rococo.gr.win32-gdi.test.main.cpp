@@ -12,18 +12,10 @@ using namespace Rococo;
 using namespace Rococo::Gui;
 
 IGR2DScene* TestScene();
-void TestWidgets(IGRSystem& gr);
+void TestWidgets(IGRClientWindow& client);
 
-int MainProtected()
+void RunMessageLoop(IGRClientWindow& client)
 {
-	GR::Win32::GRMainFrameConfig config;
-	AutoFree<GR::Win32::IGRMainFrameWindowSupervisor> mainFrame = GR::Win32::CreateGRMainFrameWindow(NULL, config);
-	auto& client = mainFrame->Client();
-
-	client.LinkScene(TestScene());
-
-	TestWidgets(client.GRSystem());
-
 	client.QueuePaint();
 
 	struct EventHandler : IGREventHandler
@@ -57,6 +49,17 @@ int MainProtected()
 
 		client.GRSystem().DispatchMessages();
 	}
+}
+
+int MainProtected()
+{
+	GR::Win32::GRMainFrameConfig config;
+	AutoFree<GR::Win32::IGRMainFrameWindowSupervisor> mainFrame = GR::Win32::CreateGRMainFrameWindow(NULL, config);
+	auto& client = mainFrame->Client();
+
+	client.LinkScene(TestScene());
+
+	TestWidgets(client);
 
 	return 0;
 }

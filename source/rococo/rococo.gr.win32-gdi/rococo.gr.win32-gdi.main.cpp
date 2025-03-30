@@ -1429,7 +1429,7 @@ namespace GRANON
 	};
 
 
-	struct GRClientWindow: IGRClientWindowSupervisor
+	struct GRClientWindow: IGRGDIClientWindowSupervisor
 	{
 		HWND hWnd = 0;
 		AutoFree<Rococo::Gui::IGRSystemSupervisor> grSystem;
@@ -1797,7 +1797,7 @@ namespace GRANON
 	{
 		HWND hWnd = 0;
 
-		AutoFree<GR::Win32::IGRClientWindowSupervisor> grClientWindow;
+		AutoFree<GR::Win32::IGRGDIClientWindowSupervisor> grClientWindow;
 
 		GRMainFrameWindow()
 		{
@@ -1943,7 +1943,7 @@ namespace Rococo::GR::Win32
 		return new GRANON::Win32GDIApp();
 	}
 
-	ROCOCO_API_EXPORT IGRClientWindowSupervisor* CreateGRClientWindow(HWND hParentWnd)
+	ROCOCO_API_EXPORT IGRGDIClientWindowSupervisor* CreateGRClientWindow(HWND hParentWnd)
 	{
 		AutoFree<GRANON::GRClientWindow> window = new GRANON::GRClientWindow();
 		window->Create(hParentWnd);
