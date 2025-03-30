@@ -157,6 +157,7 @@ namespace Rococo::Reflection
 		virtual void Reflect(cstr name, double& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, bool& value, ReflectionMetaData& metaData) = 0;
 		virtual void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) = 0;
+		virtual void Reflect(cstr name, Strings::HString& stringRef, ReflectionMetaData& metaData) = 0;
 		virtual void EnterSection(cstr sectionName) = 0;
 		virtual void LeaveSection() = 0;
 	};
@@ -267,9 +268,9 @@ namespace Rococo::Reflection
 	};
 }
 
-#define ROCOCO_REFLECT(visitor, field) { auto value = Rococo::Reflection::Reflect(field); auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default().FullRange(value); visitor.Reflect(#field, value, defaultMetaData); }
+#define ROCOCO_REFLECT(visitor, field) { auto& value = Rococo::Reflection::Reflect(field); auto defaultMetaData = Rococo::Reflection::ReflectionMetaData::Default().FullRange(value); visitor.Reflect(#field, value, defaultMetaData); }
 #define ROCOCO_REFLECT_EX(visitor, field, metaData) visitor.Reflect(#field, field, metaData);
-#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto value = Rococo::Reflection::Reflect(field); auto& readOnlyMetaData = Rococo::Reflection::ReflectionMetaData::ReadOnly().FullRange(value); visitor.Reflect(#field, value, readOnlyMetaData); }
+#define ROCOCO_REFLECT_READ_ONLY(visitor, field) { auto& value = Rococo::Reflection::Reflect(field); auto& readOnlyMetaData = Rococo::Reflection::ReflectionMetaData::ReadOnly().FullRange(value); visitor.Reflect(#field, value, readOnlyMetaData); }
 
 #ifdef INCLUDED_ROCOCO_STRINGS
 # include <rococo.strings.reflection.h>

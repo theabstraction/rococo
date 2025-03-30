@@ -1,6 +1,7 @@
 #include <rococo.sexml.h>
 #include <rococo.reflector.h>
 #include <rococo.functional.h>
+#include <rococo.strings.h>
 
 using namespace Rococo::Reflection;
 
@@ -137,6 +138,11 @@ namespace Rococo::SEXML::Impl
 		{
 			UNUSED(metaData);
 			builder.AddStringLiteral(name, stringValue.ReadString());
+		}
+
+		void Reflect(cstr name, Strings::HString& stringRef, ReflectionMetaData& metaData) override
+		{
+			builder.AddStringLiteral(name, stringRef);
 		}
 
 		int sectionCount = 0;

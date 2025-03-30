@@ -16,39 +16,6 @@
 
 namespace Rococo::Reflection
 {
-	struct Reflected_HString : public IReflectedString
-	{
-		Strings::HString& src;
-
-		Reflected_HString(Strings::HString& _src) : src(_src)
-		{
-
-		}
-
-		operator Reflection::IReflectedString& () { return *this; }
-
-		uint32 Capacity() const override
-		{
-			// TODO, allow meta data to set this explicitly
-			return 4096;
-		}
-
-		cstr ReadString() const override
-		{
-			return src.c_str();
-		}
-
-		void WriteString(cstr s) override
-		{
-			src = s;
-		}
-	};
-
-	inline Reflected_HString Reflect(Strings::HString& a)
-	{
-		return Reflected_HString(a);
-	}
-
 	struct Reflected_StackString : public Reflection::IReflectedString
 	{
 		char* src;

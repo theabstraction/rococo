@@ -20,7 +20,7 @@ namespace GRANON
 
 	enum class PrimitiveType
 	{
-		I32, I64, U64, F32, F64, BOOL, CSTR, SUB_OBJECT
+		I32, I64, U64, F32, F64, BOOL, CSTR, HSTR, SUB_OBJECT
 	};
 
 	union PreviewPrimitive
@@ -32,6 +32,11 @@ namespace GRANON
 		double float64Value;
 		bool boolValue;
 		PreviewData* pSubObject;
+
+		PreviewPrimitive(): uint64Value(0)
+		{
+
+		}
 	};
 
 	struct EditableString
@@ -119,6 +124,18 @@ namespace GRANON
 		if (retainOrigin)
 		{
 			v.primitiveOrigin = nullptr;
+		}
+	}
+
+	void Assign(PrimitiveVariant& v, HString& stringRef, bool retainOrigin)
+	{
+		v.primitive.float64Value = 0;
+		v.stringValue.text = stringRef.c_str();
+		v.stringValue.capacity = 256;
+		v.type = PrimitiveType::HSTR;
+		if (retainOrigin)
+		{
+			v.primitiveOrigin = &stringRef;
 		}
 	}
 
@@ -255,6 +272,17 @@ namespace GRANON
 						return EParseAndWriteBackResult::NoOrigin;
 					}
 				}
+				case PrimitiveType::HSTR:
+					if (value.primitiveOrigin != nullptr)
+					{
+						auto* origin = reinterpret_cast<HString*>(value.primitiveOrigin);
+						*origin = text;
+						return EParseAndWriteBackResult::Success;
+					}
+					else
+					{
+						return EParseAndWriteBackResult::NoOrigin;
+					}
 			default:
 				return EParseAndWriteBackResult::UnknownPrimitiveType;
 			}
@@ -297,6 +325,8 @@ namespace GRANON
 			return snprintf(buffer, capacity, "%s", variant.primitive.boolValue ? "true" : "false") > 0;
 		case PrimitiveType::CSTR:
 			return snprintf(buffer, capacity, "%s", variant.stringValue.text.c_str()) > 0;
+		case PrimitiveType::HSTR:
+			return snprintf(buffer, capacity, "%s", variant.stringValue.text.c_str()) > 0;
 		case PrimitiveType::SUB_OBJECT:
 			return snprintf(buffer, capacity, "SUB_OBJECT") > 0;
 		default:
@@ -318,24 +348,26 @@ namespace GRANON
 		{
 			for (auto& i : fields)
 			{
-				if (i.value.type == PrimitiveType::SUB_OBJECT)
+				if (i->value.type == PrimitiveType::SUB_OBJECT)
 				{
-					auto* subObject = i.value.primitive.pSubObject;
+					auto* subObject = i->value.primitive.pSubObject;
 					delete subObject;
 				}
+
+				delete i;
 			}
 		}
 
 		PreviewData* parent;
 		HString instanceName;
 		HString containerKey;
-		std::vector<PreviewField> fields;
+		std::vector<PreviewField*> fields;
 
 		template<class T>
 		PreviewField& AddField(cstr name, T& value, const Reflection::ReflectionMetaData& meta)
 		{
-			fields.push_back(PreviewField());
-			auto& back = fields.back();
+			fields.push_back(new PreviewField());
+			auto& back = *fields.back();
 			back.fieldName = name;
 			back.meta = meta;
 			Assign(back.value, value, true);
@@ -344,8 +376,8 @@ namespace GRANON
 
 		PreviewField& AddField(cstr name, cstr value, int32 capacity, const Reflection::ReflectionMetaData& meta)
 		{
-			fields.push_back(PreviewField());
-			auto& back = fields.back();
+			fields.push_back(new PreviewField());
+			auto& back = *fields.back();
 			back.fieldName = name;
 			back.meta = meta;
 			Assign(back.value, value, capacity, true);
@@ -354,13 +386,13 @@ namespace GRANON
 
 		void CancelVisitRecursive()
 		{
-			for (auto& f : fields)
+			for (auto* f : fields)
 			{
-				f.value.primitiveOrigin = nullptr;
+				f->value.primitiveOrigin = nullptr;
 
-				if (f.value.type == PrimitiveType::SUB_OBJECT)
+				if (f->value.type == PrimitiveType::SUB_OBJECT)
 				{
-					f.value.primitive.pSubObject->CancelVisitRecursive();
+					f->value.primitive.pSubObject->CancelVisitRecursive();
 				}
 			}
 		}
@@ -497,6 +529,11 @@ namespace GRANON
 		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& meta) override
 		{
 			target->AddField(name, stringValue.ReadString(), stringValue.Capacity(), meta);
+		}
+
+		void Reflect(cstr name, Strings::HString& stringRef, ReflectionMetaData& metaData) override
+		{
+			target->AddField(name, stringRef, metaData);
 		}
 
 		void Reflect(cstr name, IReflectionTarget& subTarget, ReflectionMetaData& meta) override
@@ -916,7 +953,7 @@ namespace GRANON
 
 			for (int32 j = firstValidIndex; j <= lastValidIndex; j++)
 			{
-				NameValueControls controls = AddFieldToTable(table, data.fields[j], rowHeight, depth);
+				NameValueControls controls = AddFieldToTable(table, *data.fields[j], rowHeight, depth);
 
 				int nameWidth = controls.name.GetTextWidth();
 				auto* spacer = controls.name.Widget().Panel().Parent()->GetChild(0);
@@ -1037,7 +1074,7 @@ namespace GRANON
 
 			for (int32 i = 0; i < (int32)data.fields.size(); ++i)
 			{
-				auto& f = data.fields[i];
+				auto& f = *data.fields[i];
 
 				if (f.value.type != PrimitiveType::SUB_OBJECT)
 				{
@@ -1060,7 +1097,7 @@ namespace GRANON
 						nextSimpleFieldIndex = -1;
 					}
 
-					AddSubObject(data.fields[i], list.Widget(), depth + 1);
+					AddSubObject(*data.fields[i], list.Widget(), depth + 1);
 				}
 			}
 
