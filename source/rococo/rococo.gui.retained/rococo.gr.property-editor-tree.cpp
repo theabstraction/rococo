@@ -562,6 +562,22 @@ namespace GRANON
 		void CancelVisit(IReflectionVisitation& visitation) override;
 	};
 
+	void SetEditorsToReadOnlyRecursive(IGRPanel& panel)
+	{
+		auto* editor = Cast<IGRWidgetEditBox>(panel.Widget());
+		if (editor)
+		{
+			editor->SetReadOnly(true);
+		}
+
+		int nChildren = panel.EnumerateChildren(nullptr);
+		for (int i = 0; i < nChildren; i++)
+		{
+			auto* child = panel.GetChild(i);
+			SetEditorsToReadOnlyRecursive(*child);
+		}
+	}
+
 	struct GRPropertyEditorTree: IGRWidgetPropertyEditorTree, IGRWidgetSupervisor, IGRWidgetCollapserEvents
 	{
 		IGRPanel& panel;
@@ -571,12 +587,12 @@ namespace GRANON
 
 		std::unordered_map<size_t, PreviewField*> editorToPreviewField;
 
-		GRPropertyEditorTree(IGRPanel& owningPanel, IGRPropertyEditorPopulationEvents& _populationEventHandler, const PropertyEditorSpec& _spec) :
-			panel(owningPanel), previewer(*this), populationEventHandler(_populationEventHandler), spec(_spec)
+		GRPropertyEditorTree(IGRPanel& panel, IGRPropertyEditorPopulationEvents& _populationEventHandler, const PropertyEditorSpec& _spec) :
+			panel(panel), previewer(*this), populationEventHandler(_populationEventHandler), spec(_spec)
 		{
-			owningPanel.SetClipChildren(true);
-			owningPanel.SetExpandToParentHorizontally();
-			owningPanel.SetExpandToParentVertically();
+			panel.SetClipChildren(true);
+			panel.SetExpandToParentHorizontally();
+			panel.SetExpandToParentVertically();
 
 			if (spec.NameplateFontId == GRFontId::NONE)
 			{
@@ -585,7 +601,7 @@ namespace GRANON
 				boldFont.CharHeight = 14;
 				boldFont.CharSet = ECharSet::ANSI;
 				boldFont.FontName = "Consolas";
-				spec.NameplateFontId = GetCustodian(owningPanel).Fonts().BindFontId(boldFont);
+				spec.NameplateFontId = GetCustodian(panel).Fonts().BindFontId(boldFont);
 			}
 
 			if (spec.HeadingFontId == GRFontId::NONE)
@@ -595,7 +611,7 @@ namespace GRANON
 				headingFontSpec.CharHeight = 16;
 				headingFontSpec.CharSet = ECharSet::ANSI;
 				headingFontSpec.FontName = "Consolas";
-				spec.HeadingFontId = GetCustodian(owningPanel).Fonts().BindFontId(headingFontSpec);
+				spec.HeadingFontId = GetCustodian(panel).Fonts().BindFontId(headingFontSpec);
 			}
 
 			if (spec.ValueFontId == GRFontId::NONE)
@@ -605,7 +621,7 @@ namespace GRANON
 				valueFontSpec.CharHeight = 14;
 				valueFontSpec.CharSet = ECharSet::ANSI;
 				valueFontSpec.FontName = "Consolas";
-				spec.ValueFontId = GetCustodian(owningPanel).Fonts().BindFontId(valueFontSpec);
+				spec.ValueFontId = GetCustodian(panel).Fonts().BindFontId(valueFontSpec);
 			}
 		}
 
@@ -620,22 +636,6 @@ namespace GRANON
 		void Free() override
 		{
 			delete this;
-		}
-
-		void SetEditorsToReadOnlyRecursive(IGRPanel& panel)
-		{
-			auto* editor = Cast<IGRWidgetEditBox>(panel.Widget());
-			if (editor)
-			{
-				editor->SetReadOnly(true);
-			}
-
-			int nChildren = panel.EnumerateChildren(nullptr);
-			for (int i = 0; i < nChildren; i++)
-			{
-				auto* child = panel.GetChild(i);
-				SetEditorsToReadOnlyRecursive(*child);
-			}
 		}
 
 		bool CancelVisit(IReflectionVisitation& visitation)
@@ -773,10 +773,12 @@ namespace GRANON
 			int newRowIndex = table.AddRow(GRRowSpec{ rowHeight } );
 			auto* nameCell = table.GetCell(0, newRowIndex);
 
-			RGBAb rowColour = (newRowIndex % 2 == 0) ? RGBAb(255, 255, 255, 255) : RGBAb(240, 240, 255, 255);
-			SetUniformColourForAllRenderStates(*nameCell->Panel().Parent(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, rowColour);
-			SetUniformColourForAllRenderStates(*nameCell->Panel().Parent(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rowColour);
-			SetUniformColourForAllRenderStates(*nameCell->Panel().Parent(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
+			auto rowSurface = (newRowIndex % 2 == 0) ? EGRSchemeColourSurface::ROW_COLOUR_EVEN : EGRSchemeColourSurface::ROW_COLOUR_ODD;
+
+			auto& rowPanel = *nameCell->Panel().Parent();
+			CopyAllColours(rowPanel, rowPanel, rowSurface, EGRSchemeColourSurface::CONTAINER_BACKGROUND);
+			CopyAllColours(rowPanel, rowPanel, rowSurface, EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+			CopyAllColours(rowPanel, rowPanel, rowSurface, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 
 			GRAlignmentFlags nameAlignment;
 			nameAlignment.Add(EGRAlignment::VCentre).Add(spec.LeftAlignNameplates ? EGRAlignment::Left : EGRAlignment::Right);
@@ -833,27 +835,11 @@ namespace GRANON
 
 			auto* valueCell = table.GetCell(1, newRowIndex);
 
-			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, rowColour);
-			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rowColour);
-			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rowColour);
-
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, true, false));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, true, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, false, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(false, true, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(true, true, false));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(true, true, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 128), GRRenderState(true, false, true));
-
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, true, false));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, true, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, false, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(false, true, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(true, true, false));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(true, true, true));
-			valueCell->Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 128), GRRenderState(true, false, true));
-
-
+			auto& valuePanel = valueCell->Panel();
+			CopyAllColours(valuePanel, valuePanel, rowSurface, EGRSchemeColourSurface::CONTAINER_BACKGROUND);
+			CopyAllColours(valuePanel, valuePanel, rowSurface, EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+			CopyAllColours(valuePanel, valuePanel, rowSurface, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+			
 			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
 
 			GRAlignmentFlags valueAlignment;

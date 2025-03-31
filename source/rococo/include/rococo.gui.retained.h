@@ -280,6 +280,8 @@ namespace Rococo::Gui
 		EDIT_TEXT, // Text colour when editor box is focused
 		SPLITTER_BACKGROUND,
 		SPLITTER_EDGE,
+		ROW_COLOUR_ODD, // Some tables use odd and even colour rows, this sets the colour for the odd rows.
+		ROW_COLOUR_EVEN, // See ROW_COLOUR_ODD
 		USER_DEFINED_START_INDEX = 7000 // Make this the last index, then users can cast a surface to this enum + delta of their choice
 	};
 

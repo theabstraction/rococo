@@ -208,8 +208,11 @@ namespace Rococo::Reflection
 	};
 
 	// A Reflection Visitation occurs when an IReflectionVisitor intends to hold on to a reference to the 
-	// reflection target passed in method Visit(...). This typically occurs when a property editor sallow the user
-	// to make changes to a target after it has been read.
+	// reflection target passed in method Visit(...). An example for such a requirement is when a property editor
+	// allows the user to make changes to a target after it has been read.
+	// We could alternatively have used reference counting or a callback mechanism to achieve the same end, but 
+	// I believed the implementation would not be as efficient, requiring substantially more work for the consumer
+	// of the API.
 	ROCOCO_INTERFACE IReflectionVisitation
 	{
 		virtual bool AcceptVisitor(IReflectionVisitor& visitor) = 0;

@@ -346,6 +346,8 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
 	framePanel.Set(EGRSchemeColourSurface::READ_ONLY_TEXT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::ROW_COLOUR_EVEN, RGBAb(240, 240, 240));
+	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::ROW_COLOUR_ODD, RGBAb(255, 255, 255));
 
 	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), GRGenerateIntensities());
 
@@ -568,21 +570,21 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 
 	FontSpec boldFont;
 	boldFont.Bold = true;
-	boldFont.CharHeight = 44;
+	boldFont.CharHeight = 16;
 	boldFont.CharSet = ECharSet::ANSI;
 	boldFont.FontName = "Consolas";
 	spec.NameplateFontId = gr.Fonts().BindFontId(boldFont);
 
 	FontSpec headingFontSpec;
 	headingFontSpec.Bold = true;
-	headingFontSpec.CharHeight = 48;
+	headingFontSpec.CharHeight = 20;
 	headingFontSpec.CharSet = ECharSet::ANSI;
 	headingFontSpec.FontName = "Consolas";
 	spec.HeadingFontId = gr.Fonts().BindFontId(headingFontSpec);
 
 	FontSpec valueFontSpec;
 	valueFontSpec.Bold = false;
-	valueFontSpec.CharHeight = 44;
+	valueFontSpec.CharHeight = 16;
 	valueFontSpec.CharSet = ECharSet::ANSI;
 	valueFontSpec.FontName = "Consolas";
 	spec.ValueFontId = gr.Fonts().BindFontId(valueFontSpec);
