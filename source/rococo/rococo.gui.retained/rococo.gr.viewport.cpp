@@ -105,7 +105,12 @@ namespace ANON
 			if (lineDeltaPixels == 0) return;
 
 			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			if (m.PixelRange == 0)
+			{
+				OnScrollerNewPositionCalculated(0, scroller);
+				scroller.SetSliderPosition(0);
+			}
+			else if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
 				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
 
@@ -145,7 +150,11 @@ namespace ANON
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
 		{
 			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			if (m.PixelRange == 0)
+			{
+				clientOffsetAreaParentOffset = 0;
+			}
+			else if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
 				double cursor = clamp((double)(m.PixelPosition + newPosition) / (double)m.PixelRange, 0.0, 1.0);
 				clientOffsetAreaParentOffset = (int)(cursor * (lastKnownDomainHeight - panel.Span().y));
