@@ -276,12 +276,17 @@ namespace Rococo::Gui
 		EDITOR,
 		READ_ONLY_TEXT,
 		TEXT,
+		NAME_TEXT, // Gives the label colour in a name-value pair
+		VALUE_TEXT, // For name-value pairs, specifies the font colour for values
 		FOCUS_RECTANGLE, // The rectangle surrounding a control to indicate focus, separate from the controls own focus settings
 		EDIT_TEXT, // Text colour when editor box is focused
 		SPLITTER_BACKGROUND,
 		SPLITTER_EDGE,
 		ROW_COLOUR_ODD, // Some tables use odd and even colour rows, this sets the colour for the odd rows.
-		ROW_COLOUR_EVEN, // See ROW_COLOUR_ODD
+		ROW_COLOUR_EVEN, // See ROW_COLOUR_ODD,
+		COLLAPSER_TITLE_DEPTH_EVEN, // If supported by the collapser tree, colours collapser title backgrounds with even depth
+		COLLAPSER_TITLE_DEPTH_ODD, // If supported by the collapser tree, colours collapser title backgrounds with odd depth
+		COLLAPSER_TITLE_TEXT, // If supported by the collapser tree, colours collapser text
 		USER_DEFINED_START_INDEX = 7000 // Make this the last index, then users can cast a surface to this enum + delta of their choice
 	};
 
@@ -1171,10 +1176,35 @@ namespace Rococo::Gui
 		bool LeftAlignNameplates = false;
 
 		// Number of pixels to shift nameplates right beneath their immediate heading
-		int LeftHandMargin = 20;
+		int LeftHandMargin = 46;
+
+		// Additional number of pixels to shift namesplaces right per point of collapser depth
+		int LeftHandShiftPerDepth = 24; 
 
 		// Number of pixels to expand the nameplate. 0 may be so tight that some cut off occurs and names get truncated
 		int NamePlateSafeZone = 4;
+
+		// Spacing between name cell rect and inner text
+		Vec2i NameTextSpacing = { 4,2 };
+
+		GRAnchorPadding NameCellPadding = { 4, 0, 0, 0 };
+
+		Vec2i EditorCellPadding = { 8, 2 };
+
+		GRAnchorPadding ValueCellPadding = { 0, 0, 0, 0 };
+
+		int NameColumnDefaultWidth = 160;
+
+		int ValueColumnDefaultWidth = 120;
+
+		GRAnchorPadding CollapserPadding = { 0, 0, 0 , 0 };
+
+		Vec2i CollapserButtonSpacing = { 6, 6 };
+
+		GRAnchorPadding TitleDescPadding = { 0, 0, 0, 0 };
+
+		// Number of pixels to scroll vertically. 0 disables, 1,000,000 is maximum.
+		int LineDeltaPixels = 10;
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled

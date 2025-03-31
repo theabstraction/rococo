@@ -35,6 +35,7 @@ void RunMessageLoop(IGRClientWindow& client)
 
 		EGREventRouting OnEditorEvent(GRWidgetEvent_EditorUpdated& ev)
 		{
+			UNUSED(ev);
 			return EGREventRouting::Terminate;
 		}
 	} evHandler;

@@ -770,7 +770,7 @@ namespace GRANON
 		{
 			UNUSED(depth);
 
-			int newRowIndex = table.AddRow(GRRowSpec{ rowHeight } );
+			int newRowIndex = table.AddRow(GRRowSpec{ rowHeight });
 			auto* nameCell = table.GetCell(0, newRowIndex);
 
 			auto rowSurface = (newRowIndex % 2 == 0) ? EGRSchemeColourSurface::ROW_COLOUR_EVEN : EGRSchemeColourSurface::ROW_COLOUR_ODD;
@@ -784,17 +784,18 @@ namespace GRANON
 			nameAlignment.Add(EGRAlignment::VCentre).Add(spec.LeftAlignNameplates ? EGRAlignment::Left : EGRAlignment::Right);
 			auto& leftSpacer = CreateDivision(nameCell->InnerWidget());
 			leftSpacer.SetTransparency(0);
-			leftSpacer.Panel().SetConstantWidth(spec.LeftHandMargin + 2 + 24 + 24 * depth);
+			leftSpacer.Panel().SetConstantWidth(spec.LeftHandMargin + spec.LeftHandShiftPerDepth * depth);
 
 			char label[256];
 			Strings::SafeFormat(label, "%s:", field.fieldName.c_str());
-			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(label).SetAlignment(nameAlignment, { 4,2 });
+			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(label).SetAlignment(nameAlignment, spec.NameTextSpacing);
 			nameText.SetFont(spec.NameplateFontId);
 			nameText.Widget().Panel().SetExpandToParentHorizontally();
 			nameText.Widget().Panel().SetExpandToParentVertically();
-			nameText.Widget().Panel().Set(GRAnchorPadding{ 4, 0, 0, 0 });
-			SetUniformColourForAllRenderStates(nameText.Widget().Panel(), EGRSchemeColourSurface::LABEL_BACKGROUND, RGBAb(255, 255, 255, 0));
-			SetUniformColourForAllRenderStates(nameText.Widget().Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
+			nameText.Widget().Panel().Set(spec.NameCellPadding);
+
+			auto& namePanel = nameText.Widget().Panel();
+			CopyAllColours(namePanel, namePanel, EGRSchemeColourSurface::NAME_TEXT, EGRSchemeColourSurface::TEXT);
 
 			IGREditFilter* filter = nullptr;
 
@@ -823,7 +824,7 @@ namespace GRANON
 				{
 					RaiseError(table.Widget().Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
 				}
-				capacity = (int32) field.value.stringValue.capacity;
+				capacity = (int32)field.value.stringValue.capacity;
 				break;
 			case PrimitiveType::HSTR:
 				capacity = (int32)field.value.stringValue.capacity;
@@ -839,13 +840,12 @@ namespace GRANON
 			CopyAllColours(valuePanel, valuePanel, rowSurface, EGRSchemeColourSurface::CONTAINER_BACKGROUND);
 			CopyAllColours(valuePanel, valuePanel, rowSurface, EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 			CopyAllColours(valuePanel, valuePanel, rowSurface, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
-			
-			SetUniformColourForAllRenderStates(valueCell->Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
+			CopyAllColours(valuePanel, valuePanel, EGRSchemeColourSurface::VALUE_TEXT, EGRSchemeColourSurface::TEXT);
 
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
-			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity, spec.ValueFontId).SetAlignment(valueAlignment, {8,2});
-			valueText.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0, 0 });
+			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity, spec.ValueFontId).SetAlignment(valueAlignment, spec.EditorCellPadding);
+			valueText.Widget().Panel().Set(spec.ValueCellPadding);
 			valueText.Widget().Panel().SetExpandToParentHorizontally();
 			valueText.Widget().Panel().SetExpandToParentVertically();
 
@@ -893,24 +893,21 @@ namespace GRANON
 			table.Widget().Panel().SetExpandToParentVertically();
 			table.Widget().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
 
-			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDITOR, RGBAb(192, 192, 192));
-			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
-
 			GRColumnSpec nameSpec;
 			nameSpec.name = "Name";
 			nameSpec.maxWidth = 240;
 			nameSpec.minWidth = 64;
-			nameSpec.defaultWidth = 120;
+			nameSpec.defaultWidth = spec.NameColumnDefaultWidth;
 			table.AddColumn(nameSpec);
 
 			GRColumnSpec valueSpec;
 			valueSpec.name = "Value";
 			valueSpec.maxWidth = 8192;
 			valueSpec.minWidth = 64;
-			valueSpec.defaultWidth = 120;
+			valueSpec.defaultWidth = spec.ValueColumnDefaultWidth;
 			table.AddColumn(valueSpec);
 
-			table.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(48, 0, 0, 255), GRRenderState(0, 0, 0));
+			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
 
 			int nameColumnWidth = nameSpec.defaultWidth;
 
@@ -965,30 +962,32 @@ namespace GRANON
 			}
 
 			auto& collapser = CreateCollapser(parentContainer, *this);
-			collapser.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0 , 0 });
+			collapser.Widget().Panel().Set(spec.CollapserPadding);
 			collapser.Widget().Panel().SetExpandToParentHorizontally();
 			collapser.Widget().Panel().SetExpandToParentVertically();
 			collapser.LeftSpacer().Panel().SetConstantWidth(depth * 24);
 			collapser.LeftSpacer().SetTransparency(0.0f);
-			collapser.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 200, 200, 255), GRGenerateIntensities());
 
+			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND);
 			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON);
 			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
 			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
 
 			MakeTransparent(collapser.TitleBar().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 			MakeTransparent(collapser.TitleBar().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
-
-			collapser.TitleBar().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 255, 255), GRGenerateIntensities());
+			MakeTransparent(collapser.TitleBar().Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND);
 
 			GRAlignmentFlags alignment;
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
-			collapser.CollapseButton().SetAlignment(alignment, { 6,6 });
+			collapser.CollapseButton().SetAlignment(alignment, spec.CollapserButtonSpacing);
 
 			auto& titleDiv = collapser.TitleBar();
 			titleDiv.Panel().SetConstantHeight(rowHeight);
 
-			SetUniformColourForAllRenderStates(titleDiv.InnerWidget().Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, ((depth % 2) == 0) ? RGBAb(240, 255, 240) : RGBAb(255, 240, 240));
+			//parentContainer.Panel().GetColour(EGRSchemeColourSurface::)
+
+			auto collapserSurface = ((depth % 2) == 0) ? EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN : EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD;
+			CopyAllColours(titleDiv.Panel(), titleDiv.Panel(), collapserSurface, EGRSchemeColourSurface::CONTAINER_BACKGROUND);
 			
 			char title[128];
 			if (data.containerKey.length() > 0)
@@ -1013,7 +1012,7 @@ namespace GRANON
 			auto& titleDescription = Rococo::Gui::CreateText(titleDiv.InnerWidget()).SetText(title);
 			titleDescription.Widget().Panel().SetExpandToParentVertically();
 			titleDescription.Widget().Panel().SetExpandToParentHorizontally();
-			titleDescription.Widget().Panel().Set(GRAnchorPadding{ 0, 0, 0, 0 });
+			titleDescription.Widget().Panel().Set(spec.TitleDescPadding);
 			titleDescription.SetFont(spec.HeadingFontId);
 
 			GRAlignmentFlags rightCentered;
@@ -1025,8 +1024,8 @@ namespace GRANON
 			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 
-			SetUniformColourForAllRenderStates(titleDescription.Widget().Panel(), EGRSchemeColourSurface::TEXT, RGBAb(0, 0, 0, 255));
-
+			CopyAllColours(titleDescription.Widget().Panel(), titleDescription.Widget().Panel(), EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT, EGRSchemeColourSurface::TEXT);
+			
 			auto& list = CreateVerticalList(collapser.ClientArea().InnerWidget());
 			list.Widget().Panel().SetExpandToParentHorizontally();
 			list.Widget().Panel().SetExpandToParentVertically();
@@ -1077,7 +1076,7 @@ namespace GRANON
 			if (!viewport)
 			{
 				viewport = &CreateViewportWidget(*this);
-				viewport->SetLineDeltaPixels(10);
+				viewport->SetLineDeltaPixels(spec.LineDeltaPixels);
 
 				auto& vp = viewport->Widget().Panel();
 				vp.SetExpandToParentHorizontally();
@@ -1117,11 +1116,6 @@ namespace GRANON
 
 			auto& viewport = Viewport();
 			auto& vp = viewport.Widget().Panel();
-
-			SetUniformColourForAllRenderStates(vp, EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
-			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
-			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
-			vp.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
 
 			auto* node = previewer.root;
 
