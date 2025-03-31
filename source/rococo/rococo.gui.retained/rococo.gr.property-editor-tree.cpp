@@ -652,15 +652,11 @@ namespace GRANON
 
 		void OnCollapserExpanded(IGRWidgetCollapser&) override
 		{
-			panel.InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(panel);
 			SetCollapserSizes();
 		}
 
 		void OnCollapserInlined(IGRWidgetCollapser&) override
 		{
-			panel.InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(panel);
 			SetCollapserSizes();
 		}
 

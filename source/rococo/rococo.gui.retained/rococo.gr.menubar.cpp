@@ -228,7 +228,6 @@ namespace GRANON
 		{
 			tree.Clear();
 			isDirty = true;
-			panel.InvalidateLayout(false);
 		}
 
 		enum { BUTTON_X_PADDING = 10 };
@@ -399,7 +398,6 @@ namespace GRANON
 			if (tree.IsActive())
 			{
 				tree.Deactivate();
-				panel.InvalidateLayout(true);
 				isDirty = true;
 				panel.Root().ReleaseCursor();
 				return EGREventRouting::Terminate;
@@ -432,7 +430,6 @@ namespace GRANON
 								{
 									branch->ToggleActive();
 									isDirty = true;
-									panel.InvalidateLayout(true);
 								}
 							}
 						}
@@ -479,7 +476,6 @@ namespace GRANON
 					if (branch)
 					{
 						branch->ToggleActive();
-						panel.InvalidateLayout(true);
 						isDirty = true;
 						if (tree.IsActive()) panel.CaptureCursor();
 					}
@@ -488,7 +484,6 @@ namespace GRANON
 				else
 				{
 					tree.Deactivate();
-					panel.InvalidateLayout(true);
 					isDirty = true;
 				}
 

@@ -177,8 +177,6 @@ namespace ANON
 			return nullptr;
 		}
 
-		GuiRect lastLayedOutScreenDimensions { 0,0,0,0 };
-
 		// Added to a method to prevent the API consumer from modifying the widget tree while the implementation expects the tree hierarchy to be immutable
 		struct RecursionGuard
 		{
@@ -209,71 +207,12 @@ namespace ANON
 			}
 		}
 
-		int invalidatedPanelCount = 0;
-
-		void UpdateNextFrame(IGRPanel& panel)
-		{
-			UNUSED(panel);
-			invalidatedPanelCount++;
-		}
-
 		Vec2i lastRenderedCursorPosition{ -10000000, -10000000 };
-
-		/* TODO - delete this section when the old code is no longer needed as a reference
-		void RenderGui(IGRRenderContext& g) override
-		{
-			if (queueGarbageCollect)
-			{
-				GarbageCollect();
-				queueGarbageCollect = false;
-			}
-
-			lastRenderedCursorPosition = g.CursorHoverPoint();
-
-			badSpanCountThisFrame = 0;
-
-			auto screenDimensions = g.ScreenDimensions();
-			Vec2i topLeft = { screenDimensions.left, screenDimensions.top };
-
-			if (lastLayedOutScreenDimensions != screenDimensions || invalidatedPanelCount > 0)
-			{
-				lastLayedOutScreenDimensions = screenDimensions;
-
-				for (auto& d : frameDescriptors)
-				{
-					d.panel->InvalidateLayout(true);
-				}
-
-				LayoutFrames();
-
-				invalidatedPanelCount = 0;
-			}
-
-			RecursionGuard guard(*this);
-
-			for (auto& d : frameDescriptors)
-			{
-				d.panel->RenderRecursive(g, screenDimensions);
-				g.DisableScissors();
-			}
-
-			if (focusId >= 0)
-			{
-				auto* widget = FindWidget(focusId);
-				GuiRect rect = widget->Panel().AbsRect();
-				if (rect.right > rect.left && rect.bottom > rect.top)
-				{
-					RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
-					g.DrawRectEdge(rect, colour, colour);
-				}
-			}
-
-			RenderDebugInfo(g);
-		}
-		*/
 
 		void RenderAllFrames(IGRRenderContext& g) override
 		{
+			lastRenderedCursorPosition = g.CursorHoverPoint();
+
 			if (queueGarbageCollect)
 			{
 				GarbageCollect();
@@ -365,7 +304,6 @@ namespace ANON
 		IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory)
 		{
 			auto& panel = parent.AddChild();
-			parent.InvalidateLayout(false);
 			auto& widget = factory.CreateWidget(panel);
 			auto& superPanel = static_cast<IGRPanelSupervisor&>(panel);
 			superPanel.SetWidget(static_cast<IGRWidgetSupervisor&>(widget));

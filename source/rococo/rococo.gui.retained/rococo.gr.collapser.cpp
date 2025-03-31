@@ -152,8 +152,6 @@ namespace GRANON
 		{
 			if (sourceWidget.Panel().Id() == collapseButton->Widget().Panel().Id())
 			{
-				panel.InvalidateLayout(true);
-				
 				if (IsCollapsed())
 				{
 					eventHandler.OnCollapserInlined(*this);

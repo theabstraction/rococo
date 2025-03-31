@@ -95,7 +95,6 @@ namespace GRANON
 					int delta = ce.position.x - virtualDraggerStartPos;
 					virtualDraggerStartPos = -1;
 					realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
-					panel.InvalidateLayout(true);
 					draggerStartPos = realDraggerStartPos;
 
 					evOnSplitterChanged.Invoke(realDraggerStartPos);
@@ -148,8 +147,7 @@ namespace GRANON
 			if (updateWithMouseMove && virtualDraggerStartPos >= 0)
 			{
 				int delta = ce.position.x - virtualDraggerStartPos;
-				realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
-				panel.InvalidateLayout(true);
+				realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);;
 			}
 
 			return EGREventRouting::NextHandler;

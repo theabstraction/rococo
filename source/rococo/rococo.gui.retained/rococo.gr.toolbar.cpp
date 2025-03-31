@@ -63,7 +63,6 @@ namespace GRANON
 			while (auto* child = panel.GetChild(index++))
 			{
 				child->Resize(child->MinimalSpan());
-				child->InvalidateLayout(false);
 			}
 
 			if (childAlignment == EGRAlignment::Left)

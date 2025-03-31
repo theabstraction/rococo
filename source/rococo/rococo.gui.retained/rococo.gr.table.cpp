@@ -38,7 +38,6 @@ namespace GRANON
 
 		GRTable(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			panel.PreventInvalidationFromChildren();
 		}
 
 		int32 AddColumn(const GRColumnSpec& spec) override
@@ -49,8 +48,6 @@ namespace GRANON
 			{
 				row.cellsInThisRow.push_back(GRCell{ &CreateDivision(*this) });
 			}
-
-			panel.InvalidateLayout(true);
 
 			return (int32) columnHeaders.size() - 1;
 		}
@@ -66,7 +63,6 @@ namespace GRANON
 			if (oldWidth != pixelWidth)
 			{
 				columnHeaders[columnIndex].width = pixelWidth;
-				panel.InvalidateLayout(true);
 			}
 
 			for (auto& row : rows)
@@ -107,8 +103,6 @@ namespace GRANON
 				cell.div->Panel().SetConstantHeight(spec.rowHeight);
 				cell.div->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
-
-			panel.InvalidateLayout(true);
 
 			ExpandToFit();
 

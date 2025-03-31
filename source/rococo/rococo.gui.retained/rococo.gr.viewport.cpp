@@ -30,7 +30,6 @@ namespace ANON
 			clipArea->Panel().SetExpandToParentHorizontally();
 			clipArea->Panel().SetLayoutDirection(ELayoutDirection::None);
 			clientOffsetArea = &CreateDivision(clipArea->InnerWidget());
-			clientOffsetArea->Panel().PreventInvalidationFromChildren();
 			clientOffsetArea->Panel().SetExpandToParentVertically();
 			clientOffsetArea->Panel().SetExpandToParentHorizontally();
 			vscroller = &CreateVerticalScrollerWithButtons(*this, *this);

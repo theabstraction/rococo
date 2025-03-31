@@ -460,10 +460,6 @@ namespace Rococo::Gui
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
-		// Typically called after a widget resize when the parent need not ask the child to resize itself
-		// It marks the layout as having been computed
-		virtual void ConfirmLayout() = 0;
-
 		// Append a useful debugging string to the builder
 		virtual void AppendDesc(Strings::StringBuilder& sb) = 0;
 
@@ -483,7 +479,6 @@ namespace Rococo::Gui
 		virtual bool IsMarkedForDeletion() const = 0;
 		virtual IGRPanel* Parent() = 0;
 		virtual EGREventRouting NotifyAncestors(GRWidgetEvent& widgetEvent, IGRWidget& widget) = 0;
-		virtual void PreventInvalidationFromChildren() = 0;
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
 
@@ -511,17 +506,11 @@ namespace Rococo::Gui
 
 		virtual IGRPanel& Remove(EGRPanelFlags flag) = 0;
 
-		// Indicates that the layout needs to be recomputed. If the argument is true then the layout of the ancestors are also marked to be recomputed
-		virtual void InvalidateLayout(bool invalidateAncestors) = 0;
-
 		// Returns the boolean collapsed state
 		virtual bool IsCollapsed() const = 0;
 
 		// Retrieve minimal span
 		virtual Vec2i MinimalSpan() const = 0;
-
-		// Indicates the layout has yet to be finalized
-		virtual bool RequiresLayout() const = 0;
 
 		virtual void Focus() = 0;
 		virtual bool HasFocus() const = 0;
@@ -1001,8 +990,6 @@ namespace Rococo::Gui
 		virtual EGREventRouting RouteCursorMoveEvent(GRCursorEvent& mouseEvent) = 0;
 		virtual EGREventRouting RouteKeyEvent(GRKeyEvent& keyEvent) = 0;
 
-		virtual void UpdateNextFrame(IGRPanel& panel) = 0;
-
 		// Get config
 		virtual [[nodiscard]] const GRRealtimeConfig& Config() const = 0;
 
@@ -1250,10 +1237,6 @@ namespace Rococo::Gui
 
 	// Get an editor filter for unsigned 64-bit integers. Valid for the lifespan of the executable
 	ROCOCO_GUI_RETAINED_API IGREditFilter& GetUnsignedFilter();
-
-	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllChildren(IGRPanel& panel);
-
-	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel);
 
 	ROCOCO_GUI_RETAINED_API EGREventRouting RouteEventToHandler(IGRPanel& panel, GRWidgetEvent& ev);
 

@@ -179,38 +179,6 @@ namespace GRANON
 			return uniqueId;
 		}
 
-		bool isLayoutValid = false;
-
-		void ConfirmLayout() override
-		{
-			isLayoutValid = true;
-		}
-
-		void InvalidateLayout(bool invalidateAncestors) override
-		{
-			isLayoutValid = false;
-
-			if (!preventInvalidationFromChildren && invalidateAncestors && parent)
-			{
-				parent->InvalidateLayout(invalidateAncestors);
-			}
-			else
-			{
-				// We have an orphaned the invalidation
-				root.GR().UpdateNextFrame(*this);
-			}
-		}
-
-		void PreventInvalidationFromChildren() override
-		{
-			preventInvalidationFromChildren = true;
-		}
-
-		bool RequiresLayout() const override
-		{
-			return !isLayoutValid;
-		}
-
 		EGREventRouting NotifyAncestors(GRWidgetEvent& event, IGRWidget& sourceWidget) override
 		{
 			if (parent == nullptr)
@@ -742,7 +710,6 @@ namespace GRANON
 			if (this->span != span)
 			{
 				this->span = span;
-				InvalidateLayout(true);
 			}
 			return *this;
 		}
@@ -855,7 +822,6 @@ namespace GRANON
 			if (this->parentOffset != offset)
 			{
 				this->parentOffset = offset;
-				InvalidateLayout(true);
 			}
 			return *this;
 		}
@@ -985,25 +951,6 @@ namespace Rococo::Gui
 
 		RaiseError(panel, code, function, message);
 		va_end(args);
-	}
-
-	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllChildren(IGRPanel& panel)
-	{
-		int32 index = 0;
-		while (auto* child = panel.GetChild(index++))
-		{
-			child->InvalidateLayout(false);
-		}
-	}
-
-	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel)
-	{
-		int32 index = 0;
-		while (auto* child = panel.GetChild(index++))
-		{
-			child->InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(*child);
-		}
 	}
 
 	ROCOCO_GUI_RETAINED_API cstr IGRPanelWatcher::InterfaceId()
