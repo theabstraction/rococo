@@ -1115,8 +1115,6 @@ namespace GRANON
 			currentVisitation->Target().Visit(previewer);
 
 			auto& viewport = Viewport();
-			auto& vp = viewport.Widget().Panel();
-
 			auto* node = previewer.root;
 
 			if (node) SyncUIToPreviewerRecursive(*node, viewport.ClientArea().InnerWidget(), 0);
