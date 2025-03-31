@@ -28,31 +28,6 @@ namespace GRANON
 			return *this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			int index = 0;
-			int top = 0;
-
-			while (auto* child = panel.GetChild(index++))
-			{
-				auto padding = child->Padding();
-				child->SetParentOffset({ padding.left, top + padding.top });
-				int dy = child->Span().y;
-				if (dy <= 0 && enforcePositiveChildHeights)
-				{
-					RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Child #%lld of vertical list %lld had zero height", child->Id(), panel.Id());
-				}
-				child->Resize({Width(panelDimensions) - padding.left - padding.right, dy});
-				top += dy + padding.top + padding.bottom;
-			}
-
-			int overhang = top - Height(panelDimensions);
-			if (overhang > 0)
-			{
-				// We need vertical scrolling
-			}
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			UNUSED(ce);

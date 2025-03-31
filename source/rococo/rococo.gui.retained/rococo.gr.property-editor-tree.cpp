@@ -650,12 +650,6 @@ namespace GRANON
 			return false;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			UNUSED(panelDimensions);
-			SetCollapserSizes();
-		}
-
 		void OnCollapserExpanded(IGRWidgetCollapser&) override
 		{
 			panel.InvalidateLayout(false);

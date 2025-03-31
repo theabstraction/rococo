@@ -42,11 +42,6 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			UNUSED(panelDimensions);
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			UNUSED(ce);

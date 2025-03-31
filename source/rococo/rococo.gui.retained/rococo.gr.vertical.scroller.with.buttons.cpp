@@ -108,32 +108,6 @@ namespace ANON
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			int32 width = Width(panelDimensions);
-			topButton->Widget().Panel().SetParentOffset({ 0,0 });
-			topButton->Widget().Panel().Resize({ width, width });
-
-			scroller->Widget().Panel().SetParentOffset({ 0, width });
-			scroller->Widget().Panel().Resize({ width, Height(panelDimensions) - 2 * width});
-
-			bottomButton->Widget().Panel().SetParentOffset({ 0, Height(panelDimensions) - width });
-			bottomButton->Widget().Panel().Resize({ width, width });
-
-			topButton->Widget().Panel().InvalidateLayout(false);
-			scroller->Widget().Panel().InvalidateLayout(false);
-			bottomButton->Widget().Panel().InvalidateLayout(false);
-
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, GRGenerateIntensities());
-			panel.Set(EGRSchemeColourSurface::BUTTON, backColour, GRGenerateIntensities());
-
-			RGBAb tlEdgeColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, GRGenerateIntensities());
-			panel.Set(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, tlEdgeColour, GRGenerateIntensities());
-
-			RGBAb brEdgeColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, GRGenerateIntensities());
-			panel.Set(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, brEdgeColour, GRGenerateIntensities());
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			UNUSED(ce);

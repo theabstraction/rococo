@@ -580,7 +580,6 @@ namespace Rococo::Gui
 		virtual void ClearChildren() = 0;
 		virtual void GarbageCollectRecursive() = 0;
 		virtual void Layout() = 0;
-		virtual void LayoutRecursive(Vec2i absoluteOrigin) = 0;
 		virtual void RenderRecursive(IGRRenderContext & g, const GuiRect& clipRect) = 0;
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) = 0;
 		virtual void BuildWidgetCallstackRecursiveUnderPoint(Vec2i point, IGRPanelEventBuilder& wb) = 0;
@@ -620,8 +619,6 @@ namespace Rococo::Gui
 		virtual void OnCursorLeave() = 0;
 		virtual EGREventRouting OnCursorMove(GRCursorEvent& ce) = 0;
 		virtual EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) = 0;
-
-		virtual void Layout(const GuiRect& parentDimensions) = 0;
 
 		// Invoked by the IGRRetained render call
 		virtual void Render(IGRRenderContext& g) = 0;

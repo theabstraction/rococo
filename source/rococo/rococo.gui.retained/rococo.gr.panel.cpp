@@ -752,35 +752,6 @@ namespace GRANON
 			return parentOffset;
 		}
 
-		void LayoutRecursive(Vec2i absoluteOrigin) override
-		{
-			Vec2i parentOrigin = parentOffset + absoluteOrigin;
-
-			if (!isLayoutValid)
-			{
-				absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
-			}
-
-			if (!isCollapsed)
-			{
-				if (widget && !isLayoutValid)
-				{
-					widget->Layout(absRect);
-
-					// Layout may invalidate the parent origin or span, in the case that a control adjusts its own size and location
-					parentOrigin = parentOffset + absoluteOrigin;
-					absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
-				}
-
-				for (auto* child : children)
-				{
-					child->LayoutRecursive(parentOrigin);
-				}
-			}
-
-			ConfirmLayout();
-		}
-
 		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) override
 		{
 			if (!widget || isCollapsed)

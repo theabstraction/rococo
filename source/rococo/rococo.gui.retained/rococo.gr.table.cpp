@@ -149,37 +149,6 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			int x = 0;
-
-			for (size_t colIndex = 0; colIndex < columnHeaders.size(); ++colIndex)
-			{
-				const GRColumn& columnSpec = columnHeaders[colIndex];
-
-				int columnWidth = colIndex < columnHeaders.size() - 1 ? columnSpec.width : max(columnSpec.width, Width(panelDimensions) - x);
-
-				int y = 0;
-
-				for (auto& row : rows)
-				{
-					auto& cell = row.cellsInThisRow[colIndex];
-
-					auto& cellpanel = cell.div->Panel();
-					cellpanel.SetParentOffset({ x, y });
-					cellpanel.SetConstantWidth(columnWidth);
-					cellpanel.SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
-					cellpanel.InvalidateLayout(false);
-
-					y += row.rowHeight;
-				}
-
-				x += columnWidth;
-			}
-
-			x = 0;
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			UNUSED(ce);

@@ -66,26 +66,6 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& screenDimensions) override
-		{
-			// The frame is one of the few widgets that resizes itself
-			panel.SetParentOffset(TopLeft(screenDimensions));
-			panel.Resize(Span(screenDimensions));
-
-			int clientAreaTop = 0;
-
-			if (titleBar)
-			{
-				clientAreaTop = 30;
-				titleBar->Panel().Resize({ panel.Span().x, clientAreaTop });
-			}
-
-			GRAnchorPadding paddingOnePixel{ 1, 1, 1, 1 };
-
-			Vec2i frameSpan = Span(screenDimensions);
-			clientArea->Panel().Resize({ frameSpan.x, frameSpan.y - clientAreaTop }).SetParentOffset({ 0, clientAreaTop });
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			UNUSED(ce);

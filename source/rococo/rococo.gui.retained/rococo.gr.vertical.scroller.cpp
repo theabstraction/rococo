@@ -51,22 +51,6 @@ namespace ANON
 			sliderHeight = spec.sliderSpanInPixels;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			if (panel.EnumerateChildren(nullptr) != 0)
-			{
-				RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Vertical scrollbars should not have children");
-			}
-
-			sliderZone.left = panelDimensions.left + 1;
-			sliderZone.right = panelDimensions.right - 1;
-			sliderZone.top = panelDimensions.top + 1;
-			sliderZone.bottom = panelDimensions.bottom - 1;
-
-			auto spec = events.OnCalculateSliderRect(Height(sliderZone), *this);
-			sliderHeight = spec.sliderSpanInPixels;
-		}
-
 		enum class EClick
 		{
 			None,

@@ -117,31 +117,6 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			titleBar->Panel().Resize({Width(panelDimensions), TITLE_BAR_HEIGHT });
-
-			Vec2i newClientSpan;
-
-			if (IsCollapsed())
-			{
-				newClientSpan = { Width(panelDimensions), 0 };
-				clientArea->Panel().SetCollapsed(true);
-			}
-			else
-			{
-				newClientSpan = { Width(panelDimensions), Height(panelDimensions) - TITLE_BAR_HEIGHT };
-				if (newClientSpan.y < 0)
-				{
-					newClientSpan.y = TITLE_BAR_HEIGHT;
-				}
-				clientArea->Panel().SetCollapsed(false);
-			}
-
-			clientArea->Panel().Resize(newClientSpan);
-			clientArea->Panel().SetParentOffset({ 0, TITLE_BAR_HEIGHT });
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			UNUSED(ce);

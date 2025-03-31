@@ -211,16 +211,6 @@ namespace ANON
 			}
 		};
 
-		void LayoutFrames()
-		{
-			RecursionGuard guard(*this);
-			for (auto& d : frameDescriptors)
-			{
-				d.panel->Resize(Span(lastLayedOutScreenDimensions));
-				d.panel->LayoutRecursive({ 0,0 });
-			}
-		}
-
 		void GarbageCollect() override
 		{
 			if (queryDepth > 0)

@@ -76,36 +76,6 @@ namespace ANON
 			vswp.SetParentOffset({ span.x - scrollbarWidth, 1 });
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			Vec2i clipSpan { Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) };
-			auto& panel = clipArea->Panel();
-			panel.Resize(clipSpan);
-			panel.SetParentOffset({ 0,0 });
-			panel.InvalidateLayout(false);
-
-			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
-
-			int parentOffset = 0;
-
-			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
-			if (m.PixelRange > 0)
-			{
-				double cursor = clamp((double)m.PixelPosition / (double)m.PixelRange, 0.0, 1.0);
-				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
-			}
-
-			auto& coaPanel = clientOffsetArea->Panel();
-			coaPanel.Resize(clientOffsetSpan);
-			coaPanel.SetParentOffset({ 0, -parentOffset });
-			coaPanel.InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(coaPanel);
-
-			vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 2 });
-			vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 1 });
-			vscroller->Widget().Panel().InvalidateLayout(false);
-		}
-
 		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller&) override
 		{
 			double sliderSpanToScrollerSpan = scrollerSpan / (double)lastKnownDomainHeight;

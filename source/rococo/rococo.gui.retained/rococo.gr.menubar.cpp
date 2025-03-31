@@ -393,20 +393,6 @@ namespace GRANON
 		{
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			UNUSED(panelDimensions);
-
-			if (isDirty)
-			{
-				ConstructWidgetsFromMenuTree();
-			}
-
-			LayoutItems();
-
-			isDirty = false;
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			UNUSED(ce);

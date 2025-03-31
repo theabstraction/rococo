@@ -81,11 +81,6 @@ namespace GRANON
 			second->Panel().SetParentOffset({ realDraggerStartPos + draggerThickness,0 }).Resize({ Width(panelDimensions) - (realDraggerStartPos + draggerThickness), Height(panelDimensions)});
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			LayoutHorizontal(panelDimensions);
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonUp)

@@ -77,11 +77,6 @@ namespace GRANON
 			panel.RouteToParent(we);
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			UNUSED(panelDimensions);
-		}
-
 		bool preppingSelect = false;
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

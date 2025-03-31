@@ -41,11 +41,6 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			UNUSED(panelDimensions);
-		}
-
 		GRButtonFlags GetButtonFlags() const override
 		{
 			GRButtonFlags flags;
