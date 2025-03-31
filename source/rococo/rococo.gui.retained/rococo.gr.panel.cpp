@@ -775,16 +775,12 @@ namespace GRANON
 				{
 					extraRenderer->PostRender(*this, clipRect, g);
 				}
-
-				for (auto* child : children)
-				{
-					GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
-					child->RenderRecursive(g, childClipRect);
-				}
 			}
-			else
+
+			for (auto* child : children)
 			{
-				root.IncBadSpanCountThisFrame(*this);
+				GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
+				child->RenderRecursive(g, childClipRect);
 			}
 		}
 

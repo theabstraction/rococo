@@ -386,11 +386,6 @@ namespace Rococo::Gui
 		// Returns the Id of the captured panel, or -1, if no capture exists
 		virtual int64 CapturedPanelId() const = 0;
 
-		// Increments the bad span count for the UI. Resets to zero at the start of every gui render
-		virtual void IncBadSpanCountThisFrame(IGRPanel& origin) = 0;
-
-		virtual int BadSpanCount() const = 0;
-
 		// Queue a garbage collect for the next render cycle
 		virtual void QueueGarbageCollect() = 0;
 

@@ -38,8 +38,6 @@ namespace ANON
 		int queryDepth = 0;
 		bool queueGarbageCollect = false;
 
-		int badSpanCountThisFrame = 0;
-
 		int grDebugFlags = 0;
 
 		bool HasDebugFlag(EGRDebugFlags flag) const override
@@ -50,21 +48,6 @@ namespace ANON
 		void SetDebugFlags(int grDebugFlags) override
 		{
 			this->grDebugFlags |= (int)grDebugFlags;
-		}
-
-		int BadSpanCount() const override
-		{
-			if (Rococo::OS::IsDebugging())
-			{
-				Rococo::OS::TripDebugger();
-			}
-			return badSpanCountThisFrame;
-		}
-
-		void IncBadSpanCountThisFrame(IGRPanel& origin) override
-		{
-			UNUSED(origin);
-			badSpanCountThisFrame++;
 		}
 
 		struct FrameDesc
@@ -297,6 +280,8 @@ namespace ANON
 				queueGarbageCollect = false;
 			}
 
+			RecursionGuard guard(*this);
+
 			auto screenDimensions = g.ScreenDimensions();
 
 			for (auto& d : frameDescriptors)
@@ -312,7 +297,6 @@ namespace ANON
 				g.DisableScissors();
 			}
 
-			/*
 			if (focusId >= 0)
 			{
 				auto* widget = FindWidget(focusId);
@@ -323,7 +307,6 @@ namespace ANON
 					g.DrawRectEdge(rect, colour, colour);
 				}
 			}
-			*/
 
 			RenderDebugInfo(g);
 		}
