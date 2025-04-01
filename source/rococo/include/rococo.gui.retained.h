@@ -841,6 +841,13 @@ namespace Rococo::Gui
 		virtual void View(Reflection::IReflectionVisitation* visitation) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetGameOptions : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRWidget& Widget() = 0;
+		virtual IGRPanel& Panel() = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -1188,6 +1195,7 @@ namespace Rococo::Gui
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
 	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& events, const PropertyEditorSpec& spec);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptions& CreateGameOptionsList(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 

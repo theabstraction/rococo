@@ -14,7 +14,7 @@ void BuildMenus(IGRWidgetMainFrame& frame);
 void BuildUpperRightToolbar(IGRWidgetMainFrame& frame);
 void UseTestColourScheme(IGRWidgetMainFrame& frame);
 
-void TestOptions(IGRClientWindow& client, IGRSystem& gr)
+void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 {
 	GRIdWidget mainFrame{ "Main-Frame" };
 	auto& frame = gr.BindFrame(mainFrame);
@@ -112,7 +112,8 @@ struct GraphicsOptions: IGameOptions
 
 void TestGameOptions(IGRClientWindow& client)
 {
-	TestOptions(client, client.GRSystem());
+	GraphicsOptions options;
+	TestOptions(client, client.GRSystem(), options);
 }
 
 void TestWidgets(IGRClientWindow& client)
