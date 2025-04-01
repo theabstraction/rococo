@@ -29,6 +29,12 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 
 	BuildUpperRightToolbar(frame);
 
+	auto& optionsList = CreateGameOptionsList(frame.ClientArea().InnerWidget());
+	optionsList.Panel().SetExpandToParentHorizontally();
+	optionsList.Panel().SetExpandToParentVertically();
+
+	optionsList.Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 255, 255), GRGenerateIntensities());
+
 	RunMessageLoop(client);
 }
 

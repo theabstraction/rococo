@@ -1,25 +1,33 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
+#include <rococo.game.options.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
+using namespace Rococo::Game::Options;
 
 namespace GRANON
 {
-	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor
+	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder
 	{
 		IGRPanel& panel;
+		IGameOptions& options;
 
-		GRGameOptionsList(IGRPanel& owningPanel) : panel(owningPanel)
+		GRGameOptionsList(IGRPanel& _panel, IGameOptions& _options) : panel(_panel), options(_options)
 		{
-			owningPanel.SetMinimalSpan({ 100, 24 });
-			owningPanel.SetLayoutDirection(ELayoutDirection::TopToBottom);
-			if (owningPanel.Parent() == nullptr)
+			_panel.SetMinimalSpan({ 100, 24 });
+			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+			if (_panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				RaiseError(owningPanel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				RaiseError(_panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
 				return;
 			}
+		}
+
+		void PostConstruct()
+		{
+			options.AddOptions(*this);
 		}
 
 		void Free() override
@@ -54,8 +62,9 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext&) override
+		void Render(IGRRenderContext& rc) override
 		{
+			DrawPanelBackground(panel, rc);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
@@ -84,15 +93,38 @@ namespace GRANON
 		{
 			return "GRGameOptionsList";
 		}
+
+		IChoiceInquiry& AddChoice(cstr name) override
+		{
+
+		}
+
+		IBoolInquiry& AddBool(cstr name) override
+		{
+
+		}
+
+		IScalarInquiry& AddScalar(cstr name) override
+		{
+
+		}
+
 	};
 
 	struct GRGameOptionsFactory : IGRWidgetFactory
 	{
+		IGameOptions& options;
+
+		GRGameOptionsFactory(IGameOptions& _options): options(_options)
+		{
+
+		}
+
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRGameOptionsList(panel);
+			return *new GRGameOptionsList(panel, options);
 		}
-	} s_GameOptionsFactory;
+	};
 }
 
 namespace Rococo::Gui
@@ -102,10 +134,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptions";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptions& CreateGameOptionsList(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptions& CreateGameOptionsList(IGRWidget& parent, IGameOptions& options)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& l = static_cast<GRANON::GRGameOptionsList&>(gr.AddWidget(parent.Panel(), GRANON::s_GameOptionsFactory));
+
+		GRANON::GRGameOptionsFactory factory(options);
+		auto& l = static_cast<GRANON::GRGameOptionsList&>(gr.AddWidget(parent.Panel(), factory));
+		l.PostConstruct();
 		return l;
 	}
 }
