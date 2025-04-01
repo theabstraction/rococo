@@ -127,21 +127,8 @@ void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	tools.Widget().Panel().SetConstantWidth(256);
 }
 
-void TestFrame(IGRClientWindow& client, IGRSystem& gr)
+void UseTestColourScheme(IGRWidgetMainFrame& frame)
 {
-	GRIdWidget mainFrame { "Main-Frame" };
-	auto& frame = gr.BindFrame(mainFrame);
-	//frame.SetTitleBarHeight(30);
-
-	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 0), GRGenerateIntensities());
-
-	auto& scheme = gr.Root().Scheme();
-	SetSchemeColours_ThemeGrey(scheme);
-
-	BuildMenus(frame);
-
-	BuildUpperRightToolbar(frame);
-
 	auto& framePanel = frame.Widget().Panel();
 
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false));
@@ -178,6 +165,22 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
 
 	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), GRGenerateIntensities());
+}
+
+void TestFrame(IGRClientWindow& client, IGRSystem& gr)
+{
+	GRIdWidget mainFrame { "Main-Frame" };
+	auto& frame = gr.BindFrame(mainFrame);
+	//frame.SetTitleBarHeight(30);
+
+	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 0), GRGenerateIntensities());
+
+	auto& scheme = gr.Root().Scheme();
+	SetSchemeColours_ThemeGrey(scheme);
+
+	BuildMenus(frame);
+	BuildUpperRightToolbar(frame);
+	UseTestColourScheme(frame);
 
 	struct EventHandler: Gui::IGRPropertyEditorPopulationEvents
 	{
@@ -429,7 +432,7 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 	RunMessageLoop(client);
 }
 
-void TestWidgets(IGRClientWindow& client)
+void TestPropertyEditor(IGRClientWindow& client)
 {
 	TestFrame(client, client.GRSystem());
 }

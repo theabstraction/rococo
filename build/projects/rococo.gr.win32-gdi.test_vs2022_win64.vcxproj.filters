@@ -4,5 +4,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.win32-gdi.test.main.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.property_editor_test.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.render_tests.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.options.test.cpp" />
   </ItemGroup>
 </Project>
