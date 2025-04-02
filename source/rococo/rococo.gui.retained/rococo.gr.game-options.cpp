@@ -1,6 +1,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <rococo.game.options.h>
+#include <rococo.hashtable.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -12,11 +13,16 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 		IGameOptions& options;
+		stringmap<IGRWidgetGameOptionsChoice*> mapNameToChoiceControl;
+		stringmap<IGRWidgetGameOptionsBool*> mapNameToBoolControl;
+		stringmap<IGRWidgetGameOptionsScalar*> mapNameToScalarControl;
 
 		GRGameOptionsList(IGRPanel& _panel, IGameOptions& _options) : panel(_panel), options(_options)
 		{
 			_panel.SetMinimalSpan({ 100, 24 });
 			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+			_panel.SetExpandToParentHorizontally();
+			_panel.SetExpandToParentVertically();
 			if (_panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
@@ -94,21 +100,39 @@ namespace GRANON
 			return "GRGameOptionsList";
 		}
 
+		template<class T>
+		void GuaranteeUnique(T& t, cstr name)
+		{
+			auto i = t.find(name);
+			if (i != t.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "GameOption<%s> already defined. GRGameOptionsList does not support duplicate names", name);
+			}
+		}
+
 		IChoiceInquiry& AddChoice(cstr name) override
 		{
-
+			GuaranteeUnique(mapNameToChoiceControl, name);
+			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this);
+			mapNameToChoiceControl.insert(name, &choiceWidget);
+			return choiceWidget.Inquiry();
 		}
 
 		IBoolInquiry& AddBool(cstr name) override
 		{
-
+			GuaranteeUnique(mapNameToBoolControl, name);
+			IGRWidgetGameOptionsBool& boolWidget = CreateGameOptionsBool(*this);
+			mapNameToBoolControl.insert(name, &boolWidget);
+			return boolWidget.Inquiry();
 		}
 
 		IScalarInquiry& AddScalar(cstr name) override
 		{
-
+			GuaranteeUnique(mapNameToScalarControl, name);
+			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this);
+			mapNameToScalarControl.insert(name, &scalarWidget);
+			return scalarWidget.Inquiry();
 		}
-
 	};
 
 	struct GRGameOptionsFactory : IGRWidgetFactory

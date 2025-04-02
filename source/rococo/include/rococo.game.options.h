@@ -4,23 +4,23 @@
 
 namespace Rococo::Game::Options
 {
-	ROCOCO_INTERFACE IInqury
+	ROCOCO_INTERFACE IInqiury
 	{
 		virtual void SetTitle(cstr title) = 0;
 	};
 
-	ROCOCO_INTERFACE IChoiceInquiry : IInqury
+	ROCOCO_INTERFACE IChoiceInquiry : IInqiury
 	{
-		virtual void AddChoice(cstr choiceName) = 0;
+		virtual void AddChoice(cstr choiceName, cstr choiceText) = 0;
 		virtual void SetActiveChoice(cstr choiceName) = 0;
 	};
 
-	ROCOCO_INTERFACE IBoolInquiry : IInqury
+	ROCOCO_INTERFACE IBoolInquiry : IInqiury
 	{
 		virtual void SetActiveValue(bool value) = 0;
 	};
 
-	ROCOCO_INTERFACE IScalarInquiry : IInqury
+	ROCOCO_INTERFACE IScalarInquiry : IInqiury
 	{
 		virtual void SetActiveValue(double value) = 0;
 		virtual void SetRange(double minValue, double maxValue) = 0;

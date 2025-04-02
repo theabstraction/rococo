@@ -26,7 +26,7 @@ namespace Rococo::Game::Options
 			FN_ScalarInquireFunction ScalarInquiryFunction;
 		} functions;
 
-		cstr name;
+		cstr name = nullptr;
 		EInquiryType type = EInquiryType::Boolean;
 		bool isReadOnly = false;
 	};
@@ -45,7 +45,7 @@ namespace Rococo::Game::Options
 			FN_OnChoiceSelected ChoiceSelectedFunction;
 		} functions;
 
-		cstr name;
+		cstr name = nullptr;
 		EInquiryType type = EInquiryType::Boolean;
 	};
 

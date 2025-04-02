@@ -29,7 +29,7 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 
 	BuildUpperRightToolbar(frame);
 
-	auto& optionsList = CreateGameOptionsList(frame.ClientArea().InnerWidget());
+	auto& optionsList = CreateGameOptionsList(frame.ClientArea().InnerWidget(), options);
 	optionsList.Panel().SetExpandToParentHorizontally();
 	optionsList.Panel().SetExpandToParentVertically();
 
@@ -60,9 +60,9 @@ struct GraphicsOptions: IGameOptions
 	void GetScreenMode(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Screen Mode");
-		inquiry.AddChoice("Fullscreen");
-		inquiry.AddChoice("Windowed");
-		inquiry.AddChoice("Fullscreen Windowed");
+		inquiry.AddChoice("Fullscreen", "Fullscreen");
+		inquiry.AddChoice("Windowed", "Windowed");
+		inquiry.AddChoice("Fullscreen Windowed", "Fullscreen Windowed");
 		inquiry.SetActiveChoice(activeScreenMode);
 	}
 
