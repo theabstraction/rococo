@@ -40,6 +40,9 @@ namespace GRANON
 			button = &Gui::CreateButton(*this);
 			button->Widget().Panel().SetExpandToParentHorizontally();
 			button->Widget().Panel().SetExpandToParentVertically();
+			button->MakeToggleButton();
+			button->SetPressedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/yes.tiff");
+			button->SetRaisedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/no.tiff");
 		}
 
 		void Free() override
