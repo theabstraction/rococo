@@ -14,7 +14,7 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
-		IGRWidgetButton* button = nullptr;
+		IGRWidgetSlider* slider = nullptr;
 
 		GRGameOptionScalarWidget(IGRPanel& _panel) : panel(_panel)
 		{
@@ -36,10 +36,9 @@ namespace GRANON
 			title = &Gui::CreateText(*this);
 			title->Widget().Panel().SetExpandToParentHorizontally();
 			title->Widget().Panel().SetExpandToParentVertically();
-
-			button = &Gui::CreateButton(*this);
-			button->Widget().Panel().SetExpandToParentHorizontally();
-			button->Widget().Panel().SetExpandToParentVertically();
+			slider = &Gui::CreateSlider(*this);
+			slider->Widget().Panel().SetExpandToParentHorizontally();
+			slider->Widget().Panel().SetExpandToParentVertically();
 		}
 
 		void Free() override

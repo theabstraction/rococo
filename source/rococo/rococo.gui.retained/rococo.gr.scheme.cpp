@@ -172,6 +172,11 @@ namespace Rococo::Gui
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+
+		scheme.SetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, RGBAb(255, 255, 255, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 	}
 
 	ROCOCO_GUI_RETAINED_API void MakeTransparent(IGRPanel& panel, EGRSchemeColourSurface surface)

@@ -259,6 +259,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.panel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.property-editor-tree.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.scheme.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.slider.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.splitter.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.system.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.table.cpp" />

@@ -40,6 +40,10 @@ namespace GRANON
 			button = &Gui::CreateButton(*this);
 			button->Widget().Panel().SetExpandToParentHorizontally();
 			button->Widget().Panel().SetExpandToParentVertically();
+
+			CopyAllColours(panel, title->Widget().Panel(), EGRSchemeColourSurface::GAME_OPTION_TEXT, EGRSchemeColourSurface::TEXT);
+			CopyAllColours(panel, title->Widget().Panel(), EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::LABEL_BACKGROUND);
+			CopyAllColours(panel, title->Widget().Panel(), EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::BACKGROUND);
 		}
 
 		void Free() override

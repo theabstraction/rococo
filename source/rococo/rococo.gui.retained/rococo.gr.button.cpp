@@ -305,7 +305,7 @@ namespace GRANON
 			return GRControlMetaData { iMetadata, sMetaData.c_str() };
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
 		{
 			return EGREventRouting::NextHandler;
 		}

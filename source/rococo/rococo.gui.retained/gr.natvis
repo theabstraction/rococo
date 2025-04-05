@@ -24,6 +24,9 @@
 	<Type Name="GRANON::GRButton">
 		<DisplayString>{{Btn: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
 	</Type>
+	<Type Name="GRANON::GRSlider">
+		<DisplayString>{{Slider}}</DisplayString>
+	</Type>
 	<Type Name="GRANON::GRMenuBar">
 		<DisplayString>{{Menu. #{uniqueId}. {absRect}. Desc: { desc }}</DisplayString>
 	</Type>

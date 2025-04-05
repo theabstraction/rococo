@@ -281,9 +281,13 @@ namespace Rococo::Gui
 		SCROLLER_SLIDER_TOP_LEFT,
 		SCROLLER_SLIDER_BOTTOM_RIGHT,
 		SCROLLER_TRIANGLE_NORMAL,
+		SLIDER_BACKGROUND,
+		SLIDER_SLOT_BACKGROUND,
 		EDITOR,
 		READ_ONLY_TEXT,
 		TEXT,
+		GAME_OPTION_BACKGROUND, // Gives the background colour in a game option title
+		GAME_OPTION_TEXT, // Gives the text colour in a game option title
 		NAME_TEXT, // Gives the label colour in a name-value pair
 		VALUE_TEXT, // For name-value pairs, specifies the font colour for values
 		FOCUS_RECTANGLE, // The rectangle surrounding a control to indicate focus, separate from the controls own focus settings
@@ -742,6 +746,22 @@ namespace Rococo::Gui
 		virtual void SetStretchImage(bool isStretched) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetSlider : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual IGRWidget& Widget() = 0;
+
+		// If minValue > maxValue then the order is reversed. If they match are are not finite, the bar is disabled
+		virtual void SetRange(double minValue, double maxValue) = 0;
+
+		// Represents the number of units to increment the position when an extremum button is clicked, or the left/right keys are used 
+		virtual void SetQuantum(double clickDelta) = 0;
+
+		// Note that the true value is clamp of the supplied value using the range values
+		virtual void SetPosition(double value) = 0;
+	};
+
 	struct GRMenuButtonItem
 	{
 		cstr text;
@@ -776,8 +796,6 @@ namespace Rococo::Gui
 	{
 		virtual IGRWidget& CreateWidget(IGRPanel& panel) = 0;
 	};
-
-	ROCOCO_GUI_RETAINED_API IGRWidgetFactory& GetWidgetButtonFactory();
 
 	ROCOCO_INTERFACE IGRWidgetToolbar : IGRBase
 	{
@@ -1241,6 +1259,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent, bool enforcePositiveChildHeights = true);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
+	ROCOCO_GUI_RETAINED_API IGRWidgetSlider& CreateSlider(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
 
