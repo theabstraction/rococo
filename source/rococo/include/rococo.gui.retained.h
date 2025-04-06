@@ -299,6 +299,8 @@ namespace Rococo::Gui
 		COLLAPSER_TITLE_DEPTH_EVEN, // If supported by the collapser tree, colours collapser title backgrounds with even depth
 		COLLAPSER_TITLE_DEPTH_ODD, // If supported by the collapser tree, colours collapser title backgrounds with odd depth
 		COLLAPSER_TITLE_TEXT, // If supported by the collapser tree, colours collapser text
+		GAME_OPTION_TOP_LEFT,
+		GAME_OPTION_BOTTOM_RIGHT,
 		USER_DEFINED_START_INDEX = 7000 // Make this the last index, then users can cast a surface to this enum + delta of their choice
 	};
 
@@ -486,6 +488,8 @@ namespace Rococo::Gui
 
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
 		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+
+		virtual IGRPanel& SetChildPadding(int32 delta) = 0;
 
 		virtual void MarkForDelete() = 0;
 		virtual bool IsMarkedForDeletion() const = 0;
@@ -1246,9 +1250,9 @@ namespace Rococo::Gui
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
 	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& events, const PropertyEditorSpec& spec);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptions& CreateGameOptionsList(IGRWidget& parent, Game::Options::IGameOptions& options);
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent);
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent);
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, GRFontId fontId);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, GRFontId fontId);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, GRFontId fontId);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 

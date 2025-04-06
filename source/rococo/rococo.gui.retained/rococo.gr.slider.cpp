@@ -108,6 +108,8 @@ namespace GRANON
 
 			RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
 			g.DrawRect(sliderSlot, sliderSlotColour);
+
+			
 		}
 
 		GRAlignmentFlags alignment { 0 };

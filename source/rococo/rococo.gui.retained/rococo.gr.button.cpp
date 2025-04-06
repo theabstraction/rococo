@@ -1,6 +1,6 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
-#include <string>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -18,8 +18,8 @@ namespace GRANON
 		bool forSubmenu = false;
 		bool isEventHandlerCPPOnly = false;
 
-		std::string raisedImagePath;
-		std::string pressedImagePath;
+		Strings::HString raisedImagePath;
+		Strings::HString pressedImagePath;
 		IGRImage* raisedImage = nullptr;
 		IGRImage* pressedImage = nullptr;
 
@@ -211,11 +211,6 @@ namespace GRANON
 
 			bool isHovered = g.IsHovered(panel);
 
-			if (isHovered)
-			{
-				printf("");
-			}
-
 			bool imageRendered = false;
 
 			IGRImage* image = isRaised ? raisedImage : pressedImage;
@@ -237,7 +232,7 @@ namespace GRANON
 			if (!imageRendered)
 			{
 				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : EGRSchemeColourSurface::BUTTON_TEXT, rs);
-				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, colour, g);
+				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, g);
 			}
 		}
 
@@ -253,8 +248,8 @@ namespace GRANON
 
 		IGRWidgetButton& SetImagePath(cstr imagePath) override
 		{
-			this->raisedImagePath = imagePath ? imagePath : std::string();
-			this->pressedImagePath = imagePath ? imagePath : std::string();
+			this->raisedImagePath = imagePath ? imagePath : "";
+			this->pressedImagePath = imagePath ? imagePath : "";
 			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
 			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
 			SyncMinimalSpan();
@@ -263,7 +258,7 @@ namespace GRANON
 
 		IGRWidgetButton& SetPressedImagePath(cstr imagePath) override
 		{
-			this->pressedImagePath = imagePath ? imagePath : std::string();
+			this->pressedImagePath = imagePath ? imagePath : "";
 			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
 			SyncMinimalSpan();
 			return *this;
@@ -271,7 +266,7 @@ namespace GRANON
 
 		IGRWidgetButton& SetRaisedImagePath(cstr imagePath) override
 		{
-			this->raisedImagePath = imagePath ? imagePath : std::string();
+			this->raisedImagePath = imagePath ? imagePath : "";
 			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
 			SyncMinimalSpan();
 			return *this;
@@ -290,12 +285,12 @@ namespace GRANON
 		}
 
 		int64 iMetadata = 0;
-		std::string sMetaData;
+		Strings::HString sMetaData;
 
 		IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData, bool isCppOnly) override
 		{
 			iMetadata = metaData.intData;
-			sMetaData = metaData.stringData ? metaData.stringData : std::string();
+			sMetaData = metaData.stringData ? metaData.stringData : "";
 			isEventHandlerCPPOnly = isCppOnly;
 			return *this;
 		}
@@ -310,11 +305,11 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		std::string title;
+		Strings::HString title;
 
 		IGRWidgetButton& SetTitle(cstr title) override
 		{
-			this->title = title == nullptr ? std::string() : title;
+			this->title = title == nullptr ? "" : title;
 			panel.SetDesc(title);
 			SyncMinimalSpan();
 			return *this;
@@ -324,11 +319,11 @@ namespace GRANON
 		{
 			if (titleBuffer == nullptr || nBytes == 0)
 			{
-				return title.size();
+				return title.length();
 			}
 
-			strncpy_s(titleBuffer, nBytes, title.c_str(), _TRUNCATE);
-			return title.size();
+			Strings::CopyString(titleBuffer, nBytes, title, title.length());
+			return title.length();
 		}
 
 		Vec2i EvaluateMinimalSpan() const
@@ -339,7 +334,7 @@ namespace GRANON
 				return image->Span() + Vec2i{2,2};
 			}
 
-			if (title.empty())
+			if (title.length() == 0)
 			{
 				return Vec2i { 8, 8 } ;
 			}
@@ -461,12 +456,12 @@ namespace Rococo::Gui
 		
 		if (targetRect.left > targetRect.right)
 		{
-			std::swap(targetRect.left, targetRect.right);
+			swap_args(targetRect.left, targetRect.right);
 		}
 
 		if (targetRect.bottom < targetRect.top)
 		{
-			std::swap(targetRect.top, targetRect.bottom);
+			swap_args(targetRect.top, targetRect.bottom);
 		}
 
 		g.DrawText(GRFontId::MENU_FONT, targetRect, panel.AbsRect(), alignment, spacing, text, colour);

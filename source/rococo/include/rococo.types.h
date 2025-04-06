@@ -589,6 +589,13 @@ namespace Rococo
 		return a * a;
 	}
 
+	template<class T> FORCE_INLINE void swap_args(T& a, T& b)
+	{
+		T c = a;
+		a = b;
+		b = c;
+	}
+
 	struct GuiRect
 	{
 		int32 left = 0;

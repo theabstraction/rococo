@@ -28,22 +28,29 @@ namespace GRANON
 			}
 
 			panel.SetExpandToParentHorizontally();
-			panel.SetConstantHeight(64);
+			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct()
+		void PostConstruct(GRFontId titleFont)
 		{
 			title = &Gui::CreateText(*this);
 			title->Widget().Panel().SetExpandToParentHorizontally();
 			title->Widget().Panel().SetExpandToParentVertically();
+			title->SetFont(titleFont);
+
+			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 
 			button = &Gui::CreateButton(*this);
 			button->Widget().Panel().SetExpandToParentHorizontally();
 			button->Widget().Panel().SetExpandToParentVertically();
 
-			CopyAllColours(panel, title->Widget().Panel(), EGRSchemeColourSurface::GAME_OPTION_TEXT, EGRSchemeColourSurface::TEXT);
-			CopyAllColours(panel, title->Widget().Panel(), EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::LABEL_BACKGROUND);
-			CopyAllColours(panel, title->Widget().Panel(), EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::BACKGROUND);
+			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON);
+			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
+			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
+
+			int height = 1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont);
+			panel.SetConstantHeight(2 * height);
 		}
 
 		void Free() override
@@ -81,6 +88,11 @@ namespace GRANON
 		void Render(IGRRenderContext& rc) override
 		{
 			DrawPanelBackground(panel, rc);
+
+			GRRenderState edgeState(false, rc.IsHovered(panel), false);
+			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, edgeState);
+			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, edgeState);
+			rc.DrawRectEdge(panel.AbsRect(), topLeftColour, bottomRightColour);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
@@ -152,13 +164,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsChoice";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, GRFontId titleFont)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsChoiceFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionChoiceWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct();
+		l.PostConstruct(titleFont);
 		return l;
 	}
 }

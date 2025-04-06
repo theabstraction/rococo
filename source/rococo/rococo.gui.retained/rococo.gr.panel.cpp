@@ -33,6 +33,7 @@ namespace GRANON
 		bool isCollapsed = false;
 		int64 refCount = 0;
 		int64 flags = 0;
+		int32 childPadding = 0;
 		HString desc;
 		const Sex::ISExpression* associatedSExpression = nullptr;
 
@@ -347,6 +348,7 @@ namespace GRANON
 					child->parentOffset.y = dy;
 					child->SetAbsRectRecursive();
 					dy += child->span.y;
+					dy += childPadding;
 				}
 				break;
 			case ELayoutDirection::BottomToTop:
@@ -382,7 +384,7 @@ namespace GRANON
 					}
 				}
 
-				int freeSpace = span.x - totalXSpanOfFixedWidthChildren;
+				int freeSpace = span.x - totalXSpanOfFixedWidthChildren - padding.left - padding.right;
 				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
 					for (auto* child : children)
@@ -413,7 +415,7 @@ namespace GRANON
 				{
 					if (child->widthSizing == ESizingRule::ExpandToParent)
 					{
-						child->span.x = span.x;
+						child->span.x = span.x - padding.left - padding.right;
 					}
 				}
 			}
@@ -431,6 +433,8 @@ namespace GRANON
 				int nExpandingChildren = 0;
 				int totalYSpanOfFixedWidthChildren = 0;
 
+				int totalChildPadding = 0;
+
 				for (auto* child : children)
 				{
 					if (child->heightSizing == ESizingRule::ExpandToParent)
@@ -443,7 +447,9 @@ namespace GRANON
 					}
 				}
 
-				int freeSpace = span.y - totalYSpanOfFixedWidthChildren;
+				totalChildPadding = (int) (children.size() - 1) * childPadding;
+
+				int freeSpace = span.y - totalYSpanOfFixedWidthChildren - padding.top - padding.bottom - totalChildPadding;
 				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
 					for (auto* child : children)
@@ -474,7 +480,7 @@ namespace GRANON
 				{
 					if (child->heightSizing == ESizingRule::ExpandToParent)
 					{
-						child->span.y = span.y - padding.left - padding.right;
+						child->span.y = span.y - padding.top - padding.bottom;
 					}
 				}
 			}
@@ -678,6 +684,12 @@ namespace GRANON
 			}
 
 			scheme->SetColour(surface, colour, rs);
+			return *this;
+		}
+
+		IGRPanel& SetChildPadding(int32 delta) override
+		{
+			childPadding = delta;
 			return *this;
 		}
 

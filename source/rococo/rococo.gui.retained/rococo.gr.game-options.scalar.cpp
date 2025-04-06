@@ -28,17 +28,27 @@ namespace GRANON
 			}
 
 			panel.SetExpandToParentHorizontally();
-			panel.SetConstantHeight(64);
+			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct()
+		void PostConstruct(GRFontId titleFont)
 		{
 			title = &Gui::CreateText(*this);
 			title->Widget().Panel().SetExpandToParentHorizontally();
 			title->Widget().Panel().SetExpandToParentVertically();
+			title->SetFont(titleFont);
+
+			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+
 			slider = &Gui::CreateSlider(*this);
 			slider->Widget().Panel().SetExpandToParentHorizontally();
 			slider->Widget().Panel().SetExpandToParentVertically();
+
+			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
+
+			int height = 1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont);
+			panel.SetConstantHeight(2 * height);
 		}
 
 		void Free() override
@@ -76,6 +86,12 @@ namespace GRANON
 		void Render(IGRRenderContext& rc) override
 		{
 			DrawPanelBackground(panel, rc);
+
+			GRRenderState edgeState(false, rc.IsHovered(panel), false);
+
+			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, edgeState);
+			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, edgeState);
+			rc.DrawRectEdge(panel.AbsRect(), topLeftColour, bottomRightColour);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
@@ -147,13 +163,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsScalar";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, GRFontId titleFont)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsScalarFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionScalarWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct();
+		l.PostConstruct(titleFont);
 		return l;
 	}
 }

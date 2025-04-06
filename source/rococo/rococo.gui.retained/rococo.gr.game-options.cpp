@@ -16,19 +16,28 @@ namespace GRANON
 		stringmap<IGRWidgetGameOptionsChoice*> mapNameToChoiceControl;
 		stringmap<IGRWidgetGameOptionsBool*> mapNameToBoolControl;
 		stringmap<IGRWidgetGameOptionsScalar*> mapNameToScalarControl;
+		GRFontId titleFont = GRFontId::NONE;
 
 		GRGameOptionsList(IGRPanel& _panel, IGameOptions& _options) : panel(_panel), options(_options)
 		{
-			_panel.SetMinimalSpan({ 100, 24 });
-			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
-			_panel.SetExpandToParentHorizontally();
-			_panel.SetExpandToParentVertically();
-			if (_panel.Parent() == nullptr)
+			panel.SetMinimalSpan({ 100, 24 });
+			panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+			panel.SetExpandToParentHorizontally();
+			panel.SetExpandToParentVertically();
+			if (panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				RaiseError(_panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
 				return;
 			}
+
+			panel.Set(GRAnchorPadding{ 4,4,4,4 });
+			panel.SetChildPadding(16);
+
+			FontSpec font;
+			font.FontName = "Tahoma";
+			font.CharHeight = 48;
+			titleFont = GetCustodian(panel).Fonts().BindFontId(font);
 		}
 
 		void PostConstruct()
@@ -71,7 +80,7 @@ namespace GRANON
 		void Render(IGRRenderContext& rc) override
 		{
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::GAME_OPTION_TEXT, EGRSchemeColourSurface::TEXT);
-			CopyAllColours(panel, panel, EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::LABEL_BACKGROUND);
+			SetUniformColourForAllRenderStates(panel, EGRSchemeColourSurface::LABEL_BACKGROUND, RGBAb(32, 32, 32, 255));
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::BACKGROUND);
 
 			DrawPanelBackground(panel, rc);
@@ -117,7 +126,7 @@ namespace GRANON
 		IChoiceInquiry& AddChoice(cstr name) override
 		{
 			GuaranteeUnique(mapNameToChoiceControl, name);
-			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this);
+			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, titleFont);
 			mapNameToChoiceControl.insert(name, &choiceWidget);
 			return choiceWidget.Inquiry();
 		}
@@ -125,7 +134,7 @@ namespace GRANON
 		IBoolInquiry& AddBool(cstr name) override
 		{
 			GuaranteeUnique(mapNameToBoolControl, name);
-			IGRWidgetGameOptionsBool& boolWidget = CreateGameOptionsBool(*this);
+			IGRWidgetGameOptionsBool& boolWidget = CreateGameOptionsBool(*this, titleFont);
 			mapNameToBoolControl.insert(name, &boolWidget);
 			return boolWidget.Inquiry();
 		}
@@ -133,7 +142,7 @@ namespace GRANON
 		IScalarInquiry& AddScalar(cstr name) override
 		{
 			GuaranteeUnique(mapNameToScalarControl, name);
-			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this);
+			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, titleFont);
 			mapNameToScalarControl.insert(name, &scalarWidget);
 			return scalarWidget.Inquiry();
 		}
