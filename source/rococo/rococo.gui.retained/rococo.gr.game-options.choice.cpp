@@ -14,7 +14,7 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
-		IGRWidgetButton* button = nullptr;
+		IGRWidgetCarousel* carousel = nullptr;
 
 		GRGameOptionChoiceWidget(IGRPanel& _panel) : panel(_panel)
 		{
@@ -35,13 +35,9 @@ namespace GRANON
 		{
 			title = &AddGameOptionTitleWidget(*this, titleFont);
 
-			button = &Gui::CreateButton(*this);
-			button->Widget().Panel().SetExpandToParentHorizontally();
-			button->Widget().Panel().SetExpandToParentVertically();
-
-			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON);
-			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
-			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
+			carousel = &Gui::CreateCarousel(*this);
+			carousel->Widget().Panel().SetExpandToParentHorizontally();
+			carousel->Widget().Panel().SetExpandToParentVertically();
 
 			int height = 1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont);
 			panel.SetConstantHeight(2 * height);
@@ -124,7 +120,7 @@ namespace GRANON
 
 		void AddChoice(cstr choiceName, cstr choiceText) override
 		{
-			
+			carousel->AddOption(choiceName, choiceText);
 		}
 
 		void SetActiveChoice(cstr choiceName) override

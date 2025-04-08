@@ -47,7 +47,7 @@ namespace GRANON
 
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
 
-			int height = 1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont);
+			int height = (int)(1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont));
 			panel.SetConstantHeight(2 * height);
 		}
 

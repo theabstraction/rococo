@@ -245,6 +245,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\dllmain.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.button.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.carousel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.collapser.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.division.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.editbox.cpp" />

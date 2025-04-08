@@ -751,6 +751,15 @@ namespace Rococo::Gui
 		virtual void SetStretchImage(bool isStretched) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetCarousel : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual void AddOption(cstr name, cstr caption) = 0;
+		virtual IGRPanel& Panel() = 0;
+		virtual IGRWidget& Widget() = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetSlider : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -1271,6 +1280,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent, bool enforcePositiveChildHeights = true);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
+	ROCOCO_GUI_RETAINED_API IGRWidgetCarousel& CreateCarousel(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSlider& CreateSlider(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);
