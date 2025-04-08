@@ -128,12 +128,12 @@ namespace GRANON
 
 		void SetRange(double minValue, double maxValue) override
 		{
-			
+			slider->SetRange(minValue, maxValue);
 		}
 
 		void SetActiveValue(double scalarValue) override
 		{
-
+			slider->SetPosition(scalarValue);
 		}
 	};
 

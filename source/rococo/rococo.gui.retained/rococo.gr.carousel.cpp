@@ -10,7 +10,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRCarousel : IGRWidgetCarousel, IGRWidgetSupervisor
+	struct GRCarousel : IGRWidgetCarousel, IGRWidgetSupervisor, IGRWidgetLayout, IGRPanelWatcher
 	{
 		struct Option
 		{
@@ -33,6 +33,8 @@ namespace GRANON
 		
 		GRCarousel(IGRPanel& owningPanel) : panel(owningPanel)
 		{
+			panel.SetLayoutDirection(ELayoutDirection::None);
+			panel.SetPanelWatcher(this);
 		}
 
 		virtual ~GRCarousel()
@@ -45,27 +47,30 @@ namespace GRANON
 			delete this;
 		}
 
+		void PostConstruct()
+		{
+			leftButton = &CreateButton(*this);
+			rightButton = &CreateButton(*this);
+
+			leftButton->SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Previous.tiff");
+			rightButton->SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Next.tiff");
+
+			GRAlignmentFlags alignment;
+			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::Top);
+			leftButton->SetAlignment(alignment, { 0,0 });
+			leftButton->SetAlignment(alignment, { 0, 0 });
+
+			leftButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+			rightButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+		}
+
 		void AddOption(cstr name, cstr caption) override
 		{
 			options.push_back({ name, caption });
 		}
 
-		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent&) override
 		{
-			if (ce.click.LeftButtonUp)
-			{
-				ForEachRenderedOption([this, &ce](int optionIndex, const GuiRect& edge, const Option& option)
-					{
-						UNUSED(option);
-
-						if (IsPointInRect(ce.position, edge))
-						{
-							this->optionIndex = optionIndex;
-						}
-					}
-				);
-			}
-
 			return EGREventRouting::NextHandler;
 		}
 
@@ -78,8 +83,77 @@ namespace GRANON
 		{
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
+		void OnSetConstantHeight(IGRPanel& panel, int height) override
 		{
+
+		}
+
+		void OnSetConstantWidth(IGRPanel& panel, int width) override
+		{
+
+		}
+
+		void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) override
+		{
+			printf("");
+		}
+
+		void LayoutBeforeFit() override
+		{
+			Vec2i buttonSpan = leftButton->ImageSpan();
+
+			Vec2i padding{ 4,4 };
+
+			const auto& rect = panel.AbsRect();
+
+			padding.y = (Height(rect) - buttonSpan.y) / 2;
+
+			GuiRect edge = ComputeEdgeRect();
+			Vec2i centre = Span(panel.AbsRect());
+			centre.x /= 2;
+			centre.y /= 2;
+
+			Vec2i edgeSpan = Span(edge);
+
+			Vec2i leftOffset{  centre.x - (edgeSpan.x / 2) - buttonSpan.x - padding.x, padding.y };
+			Vec2i rightOffset{ centre.x + (edgeSpan.x / 2) + padding.x, padding.y };
+
+			leftButton->Panel().SetParentOffset(leftOffset).SetConstantSpan(buttonSpan);
+			rightButton->Panel().SetParentOffset(rightOffset).SetConstantSpan(buttonSpan);
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+
+		}
+
+		EGREventRouting OnChildEvent(GRWidgetEvent& we, IGRWidget& source) override
+		{
+			if (source == leftButton->Widget())
+			{
+				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
+				{
+					optionIndex++;
+				}
+
+				return EGREventRouting::Terminate;
+			}
+
+			if (source == rightButton->Widget())
+			{
+				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
+				{
+					optionIndex--;
+				}
+
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -98,41 +172,31 @@ namespace GRANON
 			return panel;
 		}
 
-		template<class T>
-		void ForEachRenderedOption(T t)
-		{ 
+		int ModulateOptionIndexToArrayIndex(int index)
+		{
 			int iOptionsSize = (int)options.size();
 
-			while (optionIndex < 0)
+			while (index < 0)
 			{
-				optionIndex += iOptionsSize;
+				index += iOptionsSize;
 			}
 
-			while (optionIndex > iOptionsSize)
+			while (index >= iOptionsSize)
 			{
-				optionIndex -= iOptionsSize;
+				index -= iOptionsSize;
 			}
 
-			int pos = -1;
+			return index;
+		}
 
-			for (int i = optionIndex - 1; i <= optionIndex + 1; i++, pos++)
-			{
-				if (i >= 0 && i < (int)options.size())
-				{
-					int x = (int32)pos * optionSpan;
-					GuiRect optionRect = panel.AbsRect();
-					optionRect.left = Centre(panel.AbsRect()).x + x - (optionSpan / 2);
-					optionRect.right = optionRect.left + optionSpan;
-
-					GuiRect edge = optionRect;
-					edge.left += optionPadding.left;
-					edge.right -= optionPadding.right;
-					edge.top += optionPadding.top;
-					edge.bottom -= optionPadding.bottom;
-
-					t(i, edge, options[i]);
-				}
-			}
+		GuiRect ComputeEdgeRect() const
+		{
+			GuiRect optionRect = panel.AbsRect();
+			optionRect.left = Centre(panel.AbsRect()).x - (optionSpan / 2);
+			optionRect.right = optionRect.left + optionSpan;
+			optionRect.top += optionPadding.top;
+			optionRect.bottom -= optionPadding.bottom;
+			return optionRect;
 		}
 
 		void Render(IGRRenderContext& g) override
@@ -147,27 +211,33 @@ namespace GRANON
 				return;
 			}
 
-			ForEachRenderedOption([this, &g](int optionIndex, const GuiRect& edge, const Option& option)
-				{
-					UNUSED(optionIndex);
+			optionIndex = ModulateOptionIndexToArrayIndex(optionIndex);
 
-					GRAlignmentFlags optionTextAlignment;
-					optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+			GuiRect edge = ComputeEdgeRect();
+			
+			auto& option = options[optionIndex];
 
-					bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge);
-					GRRenderState rs(false, isHovered, false);
-					RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, rs);
-					g.DrawText(GRFontId::MENU_FONT, edge, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
+			GRAlignmentFlags optionTextAlignment;
+			optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 
-					RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, rs);
-					RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, rs);
-					g.DrawRectEdge(edge, topLeftColour, bottomRightColour);
-				}
-			);
+			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge);
+			GRRenderState rs(false, isHovered, false);
+			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, rs);
+			g.DrawText(GRFontId::MENU_FONT, edge, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
+
+			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, rs);
+			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, rs);
+			g.DrawRectEdge(edge, topLeftColour, bottomRightColour);
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
 			return Gui::QueryForParticularInterface<IGRWidgetCarousel, GRCarousel>(this, ppOutputArg, interfaceId);
 		}
 
@@ -186,7 +256,9 @@ namespace GRANON
 	{
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRCarousel(panel);
+			AutoFree<GRCarousel> newCarousel = new GRCarousel(panel);
+			newCarousel->PostConstruct();
+			return *newCarousel.Detach();
 		}
 	} s_CarouselFactory;
 }
@@ -202,7 +274,7 @@ namespace Rococo::Gui
 	{
 		auto& gr = parent.Panel().Root().GR();
 		auto& widget = gr.AddWidget(parent.Panel(), GRANON::s_CarouselFactory);
-		IGRWidgetCarousel* carousel = Cast<IGRWidgetCarousel>(widget);
+		auto* carousel = Cast<IGRWidgetCarousel>(widget);
 		return *carousel;
 	}
 }

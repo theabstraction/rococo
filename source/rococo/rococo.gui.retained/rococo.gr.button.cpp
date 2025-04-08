@@ -272,6 +272,12 @@ namespace GRANON
 			return *this;
 		}
 
+		Vec2i ImageSpan() const override
+		{
+			auto* image = pressedImage ? pressedImage : raisedImage;
+			return image ? image->Span() : Vec2i{ 0,0 };
+		}
+
 		IGRWidgetButton& SetClickCriterion(EGRClickCriterion criterion) override
 		{
 			this->clickCriterion = criterion;

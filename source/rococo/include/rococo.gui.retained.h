@@ -580,7 +580,7 @@ namespace Rococo::Gui
 		virtual void ClearChildren() = 0;
 		virtual void GarbageCollectRecursive() = 0;
 		virtual void Layout() = 0;
-		virtual void RenderRecursive(IGRRenderContext & g, const GuiRect& clipRect) = 0;
+		virtual void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) = 0;
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) = 0;
 		virtual void BuildWidgetCallstackRecursiveUnderPoint(Vec2i point, IGRPanelEventBuilder& wb) = 0;
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
@@ -595,13 +595,18 @@ namespace Rococo::Gui
 		INVALID_ID
 	};
 
-	ROCOCO_INTERFACE IGRWidget: IGRBase
+	ROCOCO_INTERFACE IGRWidget : IGRBase
 	{
-		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRPanel & Panel() = 0;
 		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 
 		virtual cstr GetImplementationTypeName() const = 0;
 	};
+
+	inline bool operator == (IGRWidget& src, IGRWidget& target)
+	{
+		return &src == &target;
+	}
 
 	ROCOCO_INTERFACE IGRPanelWatcher : IGRBase
 	{
@@ -749,6 +754,10 @@ namespace Rococo::Gui
 		virtual void MakeToggleButton() = 0;
 
 		virtual void SetStretchImage(bool isStretched) = 0;
+
+		virtual IGRPanel& Panel() = 0;
+
+		virtual Vec2i ImageSpan() const = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetCarousel : IGRBase
