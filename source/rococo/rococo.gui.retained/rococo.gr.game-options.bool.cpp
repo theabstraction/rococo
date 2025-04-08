@@ -92,12 +92,7 @@ namespace GRANON
 		void Render(IGRRenderContext& rc) override
 		{
 			DrawPanelBackground(panel, rc);
-
-			GRRenderState edgeState(false, rc.IsHovered(panel), false);
-
-			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, edgeState);
-			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, edgeState);
-			rc.DrawRectEdge(panel.AbsRect(), topLeftColour, bottomRightColour);
+			DrawEdge(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, panel, rc);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)

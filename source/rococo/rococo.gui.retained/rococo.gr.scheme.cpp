@@ -141,6 +141,14 @@ namespace Rococo::Gui
 		return new ANON::Scheme();
 	}
 
+	void SetAllHoverStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour)
+	{
+		scheme.SetColour(surface, colour, GRRenderState(false, true, false));
+		scheme.SetColour(surface, colour, GRRenderState(false, true, true));
+		scheme.SetColour(surface, colour, GRRenderState(true, true, true));
+		scheme.SetColour(surface, colour, GRRenderState(true, true, false));
+	}
+
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme)
 	{
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(64, 64, 64, 192));
@@ -178,8 +186,11 @@ namespace Rococo::Gui
 		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
 		scheme.SetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
 
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(255, 255, 255, 255));
+
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255));
 	}
 
 	ROCOCO_GUI_RETAINED_API void MakeTransparent(IGRPanel& panel, EGRSchemeColourSurface surface)

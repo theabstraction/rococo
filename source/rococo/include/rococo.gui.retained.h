@@ -1315,4 +1315,6 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRWidget& widget);
 
 	ROCOCO_GUI_RETAINED_API void RaiseError(IGRPanel& panel, EGRErrorCode errCode, cstr function, const char* format, ...);
+
+	ROCOCO_GUI_RETAINED_API void DrawEdge(EGRSchemeColourSurface topLeft, EGRSchemeColourSurface bottomRight, IGRPanel& panel, IGRRenderContext& rc);
 }

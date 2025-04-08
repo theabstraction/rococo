@@ -1039,4 +1039,12 @@ namespace Rococo::Gui
 		va_end(args);
 		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), errCode, function, "%s", buf);
 	}
+
+	ROCOCO_GUI_RETAINED_API void DrawEdge(EGRSchemeColourSurface topLeft, EGRSchemeColourSurface bottomRight, IGRPanel& panel, IGRRenderContext& rc)
+	{
+		GRRenderState edgeState(false, rc.IsHovered(panel), false);
+		RGBAb topLeftColour = panel.GetColour(topLeft, edgeState);
+		RGBAb bottomRightColour = panel.GetColour(bottomRight, edgeState);
+		rc.DrawRectEdge(panel.AbsRect(), topLeftColour, bottomRightColour);
+	}
 }
