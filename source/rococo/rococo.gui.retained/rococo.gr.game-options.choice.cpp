@@ -33,13 +33,7 @@ namespace GRANON
 
 		void PostConstruct(GRFontId titleFont)
 		{
-			title = &Gui::CreateText(*this);
-			title->Widget().Panel().SetExpandToParentHorizontally();
-			title->Widget().Panel().SetExpandToParentVertically();
-			title->SetFont(titleFont);
-
-			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
-			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+			title = &AddGameOptionTitleWidget(*this, titleFont);
 
 			button = &Gui::CreateButton(*this);
 			button->Widget().Panel().SetExpandToParentHorizontally();
@@ -168,5 +162,19 @@ namespace Rococo::Gui
 		auto& l = static_cast<GRANON::GRGameOptionChoiceWidget&>(gr.AddWidget(parent.Panel(), factory));
 		l.PostConstruct(titleFont);
 		return l;
+	}
+
+	ROCOCO_GUI_RETAINED_API IGRWidgetText& AddGameOptionTitleWidget(IGRWidget& parentWidget, GRFontId titleFont)
+	{
+		auto* title = &Gui::CreateText(parentWidget);
+		title->Widget().Panel().SetExpandToParentHorizontally();
+		title->Widget().Panel().SetExpandToParentVertically();
+		title->SetFont(titleFont);
+		title->SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_TEXT);
+
+		MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+		MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+
+		return *title;
 	}
 }

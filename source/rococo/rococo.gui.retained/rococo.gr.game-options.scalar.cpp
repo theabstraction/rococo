@@ -33,10 +33,7 @@ namespace GRANON
 
 		void PostConstruct(GRFontId titleFont)
 		{
-			title = &Gui::CreateText(*this);
-			title->Widget().Panel().SetExpandToParentHorizontally();
-			title->Widget().Panel().SetExpandToParentVertically();
-			title->SetFont(titleFont);
+			title = &AddGameOptionTitleWidget(*this, titleFont);
 
 			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);

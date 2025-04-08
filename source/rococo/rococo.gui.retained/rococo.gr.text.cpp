@@ -14,6 +14,7 @@ namespace GRANON
 		GRFontId fontId = GRFontId::MENU_FONT;
 		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
+		EGRSchemeColourSurface labelSurface = EGRSchemeColourSurface::TEXT;
 
 		enum { MAX_LENGTH = 128 };
 
@@ -78,7 +79,7 @@ namespace GRANON
 			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
-			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(EGRSchemeColourSurface::TEXT, rs));
+			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(labelSurface, rs));
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
@@ -109,6 +110,12 @@ namespace GRANON
 			{
 				this->text = text;
 			}
+			return *this;
+		}
+
+		IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface)
+		{
+			labelSurface = surface;
 			return *this;
 		}
 

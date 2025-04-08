@@ -702,6 +702,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetText& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetText& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetText& SetText(cstr text) = 0;
+		virtual IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface) = 0;
 		virtual IGRWidget& Widget() = 0;
 	};
 
@@ -1317,4 +1318,6 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void RaiseError(IGRPanel& panel, EGRErrorCode errCode, cstr function, const char* format, ...);
 
 	ROCOCO_GUI_RETAINED_API void DrawEdge(EGRSchemeColourSurface topLeft, EGRSchemeColourSurface bottomRight, IGRPanel& panel, IGRRenderContext& rc);
+
+	ROCOCO_GUI_RETAINED_API IGRWidgetText& AddGameOptionTitleWidget(IGRWidget& parentWidget, GRFontId titleFont);
 }
