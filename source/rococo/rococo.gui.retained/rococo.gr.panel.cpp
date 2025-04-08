@@ -18,7 +18,7 @@ namespace GRANON
 	struct GRPanel: IGRPanelSupervisor
 	{
 		GRPanel* parent;
-		IGRPanelRoot& root;
+		IGRPanelRootSupervisor& root;
 		IGRWidgetSupervisor* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
@@ -31,13 +31,14 @@ namespace GRANON
 		AutoFree<IGRSchemeSupervisor> scheme;
 		bool preventInvalidationFromChildren = false;
 		bool isCollapsed = false;
+		bool isRenderingLast = false;
 		int64 refCount = 0;
 		int64 flags = 0;
 		int32 childPadding = 0;
 		HString desc;
 		const Sex::ISExpression* associatedSExpression = nullptr;
 
-		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
+		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
 		{
 			refCount = 1;
 		}
@@ -659,6 +660,11 @@ namespace GRANON
 			this->isCollapsed = isCollapsed;
 		}
 
+		void SetRenderLast(bool isRenderingLast) override
+		{
+			this->isRenderingLast = isRenderingLast;
+		}
+
 		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
 		{
 			if (scheme && scheme->TryGetColour(surface, colour, rs))
@@ -731,10 +737,16 @@ namespace GRANON
 			return parentOffset;
 		}
 
-		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) override
+		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer) override
 		{
 			if (!widget || isCollapsed)
 			{
+				return;
+			}
+
+			if (isRenderingFirstLayer && isRenderingLast)
+			{
+				root.DeferRendering(*this);
 				return;
 			}
 
@@ -759,7 +771,7 @@ namespace GRANON
 			for (auto* child : children)
 			{
 				GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
-				child->RenderRecursive(g, childClipRect);
+				child->RenderRecursive(g, childClipRect, isRenderingFirstLayer);
 			}
 		}
 
@@ -926,7 +938,7 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent)
+	IGRPanelSupervisor* CreatePanel(IGRPanelRootSupervisor& root, IGRPanelSupervisor* parent)
 	{
 		return new GRANON::GRPanel(root, parent);
 	}

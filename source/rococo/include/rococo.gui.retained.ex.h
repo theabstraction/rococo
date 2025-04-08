@@ -20,6 +20,11 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
+	ROCOCO_INTERFACE IGRPanelRootSupervisor : IGRPanelRoot
+	{
+		virtual void DeferRendering(IGRPanelSupervisor& panel) = 0;
+	};
+
 	// This is the key factory function that creates the Gui system. The custodian handles the platform dependent side of the GUI.
 	ROCOCO_GUI_RETAINED_API IGRSystemSupervisor* CreateGRSystem(GRConfig& config, IGRCustodian& custodian);
 

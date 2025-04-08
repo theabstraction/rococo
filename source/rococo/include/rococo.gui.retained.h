@@ -540,6 +540,8 @@ namespace Rococo::Gui
 		// Sets the boolean collapsed state. If collapsed a panel and its descendants will not be rendered or laid out
 		virtual void SetCollapsed(bool isCollapsed) = 0;
 
+		virtual void SetRenderLast(bool isRenderingLast) = 0;
+
 		// Assign minimal span
 		virtual void SetMinimalSpan(Vec2i span) = 0;
 
@@ -580,7 +582,7 @@ namespace Rococo::Gui
 		virtual void ClearChildren() = 0;
 		virtual void GarbageCollectRecursive() = 0;
 		virtual void Layout() = 0;
-		virtual void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) = 0;
+		virtual void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer) = 0;
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) = 0;
 		virtual void BuildWidgetCallstackRecursiveUnderPoint(Vec2i point, IGRPanelEventBuilder& wb) = 0;
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
@@ -761,6 +763,15 @@ namespace Rococo::Gui
 	};
 
 	ROCOCO_INTERFACE IGRWidgetCarousel : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual void AddOption(cstr name, cstr caption) = 0;
+		virtual IGRPanel& Panel() = 0;
+		virtual IGRWidget& Widget() = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetScrollableMenu : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
@@ -1290,6 +1301,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
 	ROCOCO_GUI_RETAINED_API IGRWidgetCarousel& CreateCarousel(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetScrollableMenu& CreateScrollableMenu(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSlider& CreateSlider(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetText& CreateText(IGRWidget& parent);

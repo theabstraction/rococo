@@ -19,7 +19,7 @@ namespace Rococo::Gui
 {
 	IGRLayoutSupervisor* CreateFullScreenLayout();
 	IGRWidgetMainFrameSupervisor* CreateGRMainFrame(cstr name, IGRPanel& panel);
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent);
+	IGRPanelSupervisor* CreatePanel(IGRPanelRootSupervisor& root, IGRPanelSupervisor* parent);
 
 	bool operator == (const GuiRect& a, const GuiRect& b)
 	{
@@ -29,7 +29,7 @@ namespace Rococo::Gui
 
 namespace ANON
 {
-	struct GRSystem: IGRSystemSupervisor, IGRPanelRoot
+	struct GRSystem: IGRSystemSupervisor, IGRPanelRootSupervisor
 	{
 		IGRCustodian& custodian;
 		GRConfig config;
@@ -209,6 +209,13 @@ namespace ANON
 
 		Vec2i lastRenderedCursorPosition{ -10000000, -10000000 };
 
+		std::vector<IGRPanelSupervisor*> deferredRenderQueue;
+
+		void DeferRendering(IGRPanelSupervisor& panel) override
+		{
+			deferredRenderQueue.push_back(&panel);
+		}
+
 		void RenderAllFrames(IGRRenderContext& g) override
 		{
 			lastRenderedCursorPosition = g.CursorHoverPoint();
@@ -232,7 +239,7 @@ namespace ANON
 
 			for (auto& d : frameDescriptors)
 			{
-				d.panel->RenderRecursive(g, screenDimensions);
+				d.panel->RenderRecursive(g, screenDimensions, true);
 				g.DisableScissors();
 			}
 
@@ -246,6 +253,15 @@ namespace ANON
 					g.DrawRectEdge(rect, colour, colour);
 				}
 			}
+
+			for (auto* panel : deferredRenderQueue)
+			{
+				GuiRect parentRect = panel->Parent() ? panel->Parent()->AbsRect() : screenDimensions;
+				panel->RenderRecursive(g, parentRect, false);
+				g.DisableScissors();
+			}
+
+			deferredRenderQueue.clear();
 
 			RenderDebugInfo(g);
 		}

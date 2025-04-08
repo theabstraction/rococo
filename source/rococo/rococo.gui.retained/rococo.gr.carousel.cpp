@@ -30,6 +30,7 @@ namespace GRANON
 
 		IGRWidgetButton* leftButton = nullptr;
 		IGRWidgetButton* rightButton = nullptr;
+		IGRWidgetScrollableMenu* dropDown = nullptr;
 		
 		GRCarousel(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -62,15 +63,24 @@ namespace GRANON
 
 			leftButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			rightButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+
+			dropDown = &CreateScrollableMenu(*this);
+			dropDown->Panel().SetCollapsed(true);
+			dropDown->Panel().SetRenderLast(true);
 		}
 
 		void AddOption(cstr name, cstr caption) override
 		{
 			options.push_back({ name, caption });
+			dropDown->AddOption(name, caption);
 		}
 
-		EGREventRouting OnCursorClick(GRCursorEvent&) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			if (ce.click.LeftButtonUp)
+			{
+				dropDown->Panel().SetCollapsed(!dropDown->Panel().IsCollapsed());
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -120,6 +130,13 @@ namespace GRANON
 
 			leftButton->Panel().SetParentOffset(leftOffset).SetConstantSpan(buttonSpan);
 			rightButton->Panel().SetParentOffset(rightOffset).SetConstantSpan(buttonSpan);
+
+			if (!dropDown->Panel().IsCollapsed())
+			{
+				dropDown->Panel().SetConstantWidth(edgeSpan.x);
+				dropDown->Panel().SetConstantHeight(512);
+				dropDown->Panel().SetParentOffset({ centre.x - (edgeSpan.x / 2), edge.bottom - rect.top  });
+			}
 		}
 
 		void LayoutBeforeExpand() override
