@@ -761,7 +761,10 @@ namespace Rococo::Gui
 		virtual void SetRange(double minValue, double maxValue) = 0;
 
 		// Represents the number of units to increment the position when an extremum button is clicked, or the left/right keys are used 
-		virtual void SetQuantum(double clickDelta) = 0;
+		virtual void SetQuantum(double quantum) = 0;
+
+		// Sets the text output. Note that with GRFontId::NONE no guage is rendered
+		virtual void SetGuage(GRFontId fontId, int decimalPlaces, int verticalOffset, EGRSchemeColourSurface surface) = 0;
 
 		// Note that the true value is clamp of the supplied value using the range values
 		virtual void SetPosition(double value) = 0;

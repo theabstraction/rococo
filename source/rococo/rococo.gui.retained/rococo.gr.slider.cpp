@@ -1,6 +1,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <rococo.strings.h>
+#include <math.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -18,6 +19,8 @@ namespace GRANON
 		IGRImage* pressedImage = nullptr;
 		GRAnchorPadding slotPadding{ 24, 24, 4, 4 };
 		int sliderPos = 0;
+
+		int lastSliderSpan = 0;
 		
 		GRSlider(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -108,7 +111,54 @@ namespace GRANON
 
 		void UpdateSliderPos(Vec2i cursorPos)
 		{
+			int32 pixelRange = Width(panel.AbsRect()) - slotPadding.left - slotPadding.right;
+			if (pixelRange <= 0)
+			{
+				return;
+			}
+
 			sliderPos = clamp(cursorPos.x, slotPadding.left, Width(panel.AbsRect()) - slotPadding.right);
+
+			double quotient = (sliderPos - slotPadding.left) / (double)pixelRange;
+
+			position = minValue + quotient * (maxValue - minValue);
+
+			if (quantum > 0)
+			{
+				double intPosition = floor(position);
+
+				double qPosition = intPosition;
+
+				for(double q = intPosition; q < position; q += quantum)
+				{
+					qPosition = q;
+				}
+
+				position = qPosition;
+			}
+		}
+
+		void SetSliderPosFromValuePos()
+		{
+			int32 pixelRange = Width(panel.AbsRect()) - slotPadding.left - slotPadding.right;
+			if (pixelRange <= 0)
+			{
+				return;
+			}
+
+			position = clamp(position, minValue, maxValue);
+
+			double range = maxValue - minValue;
+
+			if (range == 0)
+			{
+				return;
+			}
+
+			double posRatio = (position - minValue) / (maxValue - minValue);
+
+			double pixelPos = pixelRange * posRatio + slotPadding.left;
+			sliderPos = (int)pixelPos;
 		}
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
@@ -132,12 +182,25 @@ namespace GRANON
 			this->maxValue = maxValue;
 		}
 
-		double quantum = 1.0;
+		double quantum = 0.25;
+
+		GRFontId guageFont = GRFontId::MENU_FONT;
+		int guageDecimalPlaces = 2;
+		int guageVerticalOffset = 4;
+		EGRSchemeColourSurface guageTextSurface = EGRSchemeColourSurface::GAME_OPTION_TEXT;
+
+		void SetGuage(GRFontId fontId, int decimalPlaces, int verticalOffset, EGRSchemeColourSurface surface)
+		{
+			guageFont = fontId;
+			guageDecimalPlaces = decimalPlaces;
+			guageVerticalOffset = verticalOffset;
+			guageTextSurface = surface;
+		}
 
 		// Represents the number of units to increment the position when an extremum button is clicked, or the left/right keys are used 
-		void SetQuantum(double clickDelta) override
+		void SetQuantum(double quantum) override
 		{
-			quantum = clickDelta;
+			this->quantum = quantum;
 		}
 
 		double position = 0;
@@ -175,6 +238,12 @@ namespace GRANON
 
 			GRRenderState rs(!isRaised, isHovered, false);
 
+			if (lastSliderSpan != Width(panel.AbsRect()))
+			{
+				lastSliderSpan = Width(panel.AbsRect());
+				SetSliderPosFromValuePos();
+			}
+
 			if (image)
 			{
 				GRAlignmentFlags centred;
@@ -182,9 +251,9 @@ namespace GRANON
 
 				Vec2i imageSpan = image->Span();
 
-				sliderPos = clamp(sliderPos, slotPadding.left, Width(panel.AbsRect()) - slotPadding.right);
+				int renderedSliderPos = clamp(sliderPos, slotPadding.left, Width(panel.AbsRect()) - slotPadding.right);
 
-				int x = sliderPos - (imageSpan.x / 2);
+				int x = renderedSliderPos - (imageSpan.x / 2);
 
 				GuiRect targetRect;
 				targetRect.left = x;
@@ -192,6 +261,22 @@ namespace GRANON
 				targetRect.bottom = y + 200;
 				targetRect.right = x + imageSpan.x;
 				g.DrawImageUnstretched(*image, targetRect, panel.AbsRect(), centred);
+			}
+
+			if (guageFont != GRFontId::NONE)
+			{
+				char guageText[16];
+				char format[16];
+
+				Strings::SafeFormat(format, "%%.%df", guageDecimalPlaces);
+
+				Strings::SafeFormat(guageText, format, position);
+
+				GRAlignmentFlags textAlignment;
+				textAlignment.Add(EGRAlignment::Top).Add(EGRAlignment::HCentre);
+
+				RGBAb colour = panel.GetColour(guageTextSurface, rs);
+				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), panel.AbsRect(), textAlignment, { 0, guageVerticalOffset }, to_fstring(guageText), colour);
 			}
 		}
 
