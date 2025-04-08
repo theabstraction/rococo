@@ -1,6 +1,6 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
-#include <string>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -10,6 +10,14 @@ namespace GRANON
 	struct GRSlider : IGRWidgetSlider, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
+
+		bool isRaised = true;
+		Strings::HString raisedImagePath;
+		Strings::HString pressedImagePath;
+		IGRImage* raisedImage = nullptr;
+		IGRImage* pressedImage = nullptr;
+		GRAnchorPadding slotPadding{ 24, 24, 4, 4 };
+		int sliderPos = 0;
 		
 		GRSlider(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -25,9 +33,62 @@ namespace GRANON
 			delete this;
 		}
 
+		Vec2i EvaluateMinimalSpan() const
+		{
+			const IGRImage* image = isRaised ? raisedImage : pressedImage;
+			if (image)
+			{
+				return image->Span() + Vec2i{ 2,2 };
+			}
+
+			return Vec2i{ 8, 8 };
+		}
+
+		void SyncMinimalSpan()
+		{
+			Vec2i minimalSpan = EvaluateMinimalSpan();
+			panel.SetMinimalSpan(minimalSpan);
+		}
+
+		IGRWidgetSlider& SetImagePath(cstr imagePath) override
+		{
+			this->raisedImagePath = imagePath ? imagePath : "";
+			this->pressedImagePath = imagePath ? imagePath : "";
+			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
+			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
+			SyncMinimalSpan();
+			return *this;
+		}
+
+		IGRWidgetSlider& SetPressedImagePath(cstr imagePath) override
+		{
+			this->pressedImagePath = imagePath ? imagePath : "";
+			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
+			SyncMinimalSpan();
+			return *this;
+		}
+
+		IGRWidgetSlider& SetRaisedImagePath(cstr imagePath) override
+		{
+			this->raisedImagePath = imagePath ? imagePath : "";
+			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
+			SyncMinimalSpan();
+			return *this;
+		}
+
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			UNUSED(ce);
+			if (ce.click.LeftButtonDown)
+			{
+				isRaised = false;
+				panel.CaptureCursor();
+				if (!isRaised) UpdateSliderPos(ce.position);
+			}
+			else if (ce.click.LeftButtonUp)
+			{
+				isRaised = true;
+				panel.Root().ReleaseCursor();
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -45,13 +106,14 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
+		void UpdateSliderPos(Vec2i cursorPos)
+		{
+			sliderPos = clamp(cursorPos.x, slotPadding.left, Width(panel.AbsRect()) - slotPadding.right);
+		}
+
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			if (!IsPointInRect(ce.position, panel.AbsRect()) && panel.Root().CapturedPanelId() == panel.Id())
-			{
-				// The cursor has been moved outside the button, so capture should be lost
-				panel.Root().ReleaseCursor();
-			}
+			if (!isRaised) UpdateSliderPos(ce.position);
 			return EGREventRouting::NextHandler;
 		}
 
@@ -96,12 +158,12 @@ namespace GRANON
 			bool isHovered = g.IsHovered(panel);
 
 			GuiRect sliderSlot = panel.AbsRect();
-			sliderSlot.left += 4;
-			sliderSlot.right -= 4;
+			sliderSlot.left += slotPadding.left;
+			sliderSlot.right -= slotPadding.right;
 			
 			int y = Centre(sliderSlot).y;
-			sliderSlot.top = y - 4;
-			sliderSlot.bottom = y + 4;
+			sliderSlot.top = y - slotPadding.top;
+			sliderSlot.bottom = y + slotPadding.bottom;
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, GRRenderState(false, isHovered, false), RGBAb(255,255,0,255));
 			g.DrawRect(panel.AbsRect(), backColour);
@@ -109,7 +171,28 @@ namespace GRANON
 			RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
 			g.DrawRect(sliderSlot, sliderSlotColour);
 
-			
+			IGRImage* image = isRaised ? raisedImage : pressedImage;
+
+			GRRenderState rs(!isRaised, isHovered, false);
+
+			if (image)
+			{
+				GRAlignmentFlags centred;
+				centred.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+
+				Vec2i imageSpan = image->Span();
+
+				sliderPos = clamp(sliderPos, slotPadding.left, Width(panel.AbsRect()) - slotPadding.right);
+
+				int x = sliderPos - (imageSpan.x / 2);
+
+				GuiRect targetRect;
+				targetRect.left = x;
+				targetRect.top = y - 200;
+				targetRect.bottom = y + 200;
+				targetRect.right = x + imageSpan.x;
+				g.DrawImageUnstretched(*image, targetRect, panel.AbsRect(), centred);
+			}
 		}
 
 		GRAlignmentFlags alignment { 0 };

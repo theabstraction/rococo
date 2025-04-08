@@ -42,6 +42,9 @@ namespace GRANON
 			slider->Widget().Panel().SetExpandToParentHorizontally();
 			slider->Widget().Panel().SetExpandToParentVertically();
 
+			slider->SetRaisedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/up.tiff");
+			slider->SetPressedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/update.tiff");
+
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
 
 			int height = 1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont);

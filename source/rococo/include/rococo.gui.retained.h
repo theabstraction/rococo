@@ -765,6 +765,10 @@ namespace Rococo::Gui
 
 		// Note that the true value is clamp of the supplied value using the range values
 		virtual void SetPosition(double value) = 0;
+
+		virtual IGRWidgetSlider& SetImagePath(cstr imagePath) = 0;
+		virtual IGRWidgetSlider& SetPressedImagePath(cstr imagePath) = 0;
+		virtual IGRWidgetSlider& SetRaisedImagePath(cstr imagePath) = 0;
 	};
 
 	struct GRMenuButtonItem
