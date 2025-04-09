@@ -140,6 +140,13 @@ namespace ANON
 					ActivateTarget(ce.position.y);
 				}
 				clickTarget = EClick::None;
+
+				GRWidgetEvent sliderReleased;
+				sliderReleased.eventType = EGRWidgetEventType::SCROLLER_RELEASED;
+				sliderReleased.isCppOnly = true;
+				sliderReleased.iMetaData = sliderPosition;
+				sliderReleased.sMetaData = nullptr;
+				panel.NotifyAncestors(sliderReleased, *this);
 			}
 			else if (ce.click.MouseVWheel)
 			{

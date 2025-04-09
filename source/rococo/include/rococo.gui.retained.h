@@ -366,6 +366,7 @@ namespace Rococo::Gui
 		DROP_DOWN_COLLAPSED, // The drop down control collapsed
 		DROP_DOWN_EXPANDED, // The drop down control expanded
 		BUTTON_CLICK_OUTSIDE, // A control captured a mouse click outside of its panel's AbsRect
+		SCROLLER_RELEASED, // A scroll button was released by letting go of the mouse button 
 		USER_DEFINED = 1025
 	};
 
@@ -520,7 +521,7 @@ namespace Rococo::Gui
 		virtual int32 EnumerateChildren(IEventCallback<IGRPanel>* callback) = 0;
 		virtual int64 Id() const = 0;
 		virtual GuiRect AbsRect() const = 0;
-		virtual void CaptureCursor() = 0;
+		virtual IGRPanel& CaptureCursor() = 0;
 		virtual GRAnchorPadding Padding() = 0;
 
 		// Overwrites the padding for an anchor
@@ -538,7 +539,7 @@ namespace Rococo::Gui
 		// Retrieve minimal span
 		virtual Vec2i MinimalSpan() const = 0;
 
-		virtual void Focus() = 0;
+		virtual IGRPanel& Focus() = 0;
 		virtual bool HasFocus() const = 0;
 
 		virtual void SetClipChildren(bool enabled) = 0;

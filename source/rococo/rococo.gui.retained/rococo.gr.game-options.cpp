@@ -158,6 +158,23 @@ namespace GRANON
 			return EGREventRouting::Terminate;
 		}
 
+		EGREventRouting OnScrollerReleased(GRWidgetEvent&, IGRWidget& sourceWidget)
+		{
+			// If the scroller is part of the scrollable drop down menu, return return focus and cursor capture to the menu
+
+			for (IGRPanel* ancestor = sourceWidget.Panel().Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+			{
+				auto* dropDown = Cast<IGRWidgetScrollableMenu>(ancestor->Widget());
+				if (dropDown)
+				{
+					dropDown->Panel().Focus().CaptureCursor();
+					break;
+				}
+			}
+
+			return EGREventRouting::Terminate;
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
 			switch (widgetEvent.eventType)
@@ -168,6 +185,8 @@ namespace GRANON
 				return OnDropDownExpanded(sourceWidget);
 			case EGRWidgetEventType::CHOICE_MADE:
 				return OnChoiceMade(widgetEvent, sourceWidget);
+			case EGRWidgetEventType::SCROLLER_RELEASED:
+				return OnScrollerReleased(widgetEvent, sourceWidget);
 			}
 
 			return EGREventRouting::NextHandler;

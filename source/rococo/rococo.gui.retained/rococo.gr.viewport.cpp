@@ -164,7 +164,13 @@ namespace ANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			UNUSED(ce);
+			if (ce.wheelDelta != 0)
+			{
+				auto& vscrollerSuper = static_cast<IGRWidgetSupervisor&>(vscroller->Scroller().Widget());
+				vscrollerSuper.OnCursorClick(ce);
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 

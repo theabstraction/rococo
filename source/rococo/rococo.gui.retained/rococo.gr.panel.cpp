@@ -98,7 +98,7 @@ namespace GRANON
 			return Root().GR().GetFocusId() == Id();
 		}
 
-		void Focus() override
+		IGRPanel& Focus() override
 		{
 			Root().GR().SetFocus(Id());
 
@@ -110,6 +110,8 @@ namespace GRANON
 					focusNotifier->OnDeepChildFocusSet(Id());
 				}
 			}
+
+			return *this;
 		}
 
 		bool IsCollapsed() const override
@@ -715,9 +717,10 @@ namespace GRANON
 			return absRect;
 		}
 
-		void CaptureCursor() override
+		IGRPanel& CaptureCursor() override
 		{
 			root.CaptureCursor(*this);
+			return *this;
 		}
 
 		void ReleasePanel() override
