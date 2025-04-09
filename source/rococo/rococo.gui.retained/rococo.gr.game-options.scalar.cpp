@@ -2,6 +2,8 @@
 #include <rococo.maths.i32.h>
 #include <rococo.game.options.h>
 #include <rococo.strings.h>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -58,7 +60,7 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& we) override
 		{
-			if (we.wheelDelta != 0)
+			if (panel.HasFocus() && we.wheelDelta != 0)
 			{
 				int acceleration = GetCustodian(panel).Keys().IsCtrlPressed() ? 10 : 1;
 
@@ -113,14 +115,63 @@ namespace GRANON
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			UNUSED(widgetEvent);
+			if (slider->Widget() == sourceWidget)
+			{
+				switch (widgetEvent.eventType)
+				{
+				case EGRWidgetEventType::SCROLLER_RELEASED:
+					return EGREventRouting::Terminate;
+				}
+			}
+
 			UNUSED(sourceWidget);
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
-			return EGREventRouting::NextHandler;
+			if (!ke.osKeyEvent.IsUp())
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			switch (ke.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_PGUP:
+				slider->Advance(-10);
+				break;
+			case IO::VirtualKeys::VKCode_PGDOWN:
+				slider->Advance(10);
+				break;
+			case IO::VirtualKeys::VKCode_LEFT:
+				slider->Advance(-1);
+				break;
+			case IO::VirtualKeys::VKCode_RIGHT:
+				slider->Advance(1);
+				break;
+			case IO::VirtualKeys::VKCode_HOME:
+				slider->SetPosition(slider->Min());
+				break;
+			case IO::VirtualKeys::VKCode_END:
+				slider->SetPosition(slider->Max());
+				break;
+			case IO::VirtualKeys::VKCode_SPACEBAR:
+			{
+				double midPt = (slider->Max() + slider->Min()) / 2.0;
+				if (slider->Position() <= midPt)
+				{
+					slider->SetPosition(slider->Max());
+				}
+				else
+				{
+					slider->SetPosition(slider->Min());
+				}
+			}
+				break;
+			default:
+				return EGREventRouting::NextHandler;
+			}
+			return EGREventRouting::Terminate;
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

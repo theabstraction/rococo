@@ -51,9 +51,9 @@ namespace GRANON
 			return flags;
 		}
 
-		void FireEvent(GRCursorEvent& ce)
+		void FireEvent(Vec2i clickPosition)
 		{
-			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position, isEventHandlerCPPOnly };
+			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), clickPosition, isEventHandlerCPPOnly };
 
 			if (eventPolicy == EGREventPolicy::PublicEvent)
 			{		
@@ -86,7 +86,7 @@ namespace GRANON
 					}
 
 					SyncMinimalSpan();
-					FireEvent(ce);
+					FireEvent(ce.position);
 				}
 				else if (clickCriterion == EGRClickCriterion::OnDownThenUp)
 				{
@@ -112,7 +112,7 @@ namespace GRANON
 						isRaised = true;
 					}
 					SyncMinimalSpan();
-					FireEvent(ce);
+					FireEvent(ce.position);
 				}
 				else if (clickCriterion == EGRClickCriterion::OnDownThenUp)
 				{
@@ -134,7 +134,7 @@ namespace GRANON
 					if (flipped)
 					{
 						SyncMinimalSpan();
-						FireEvent(ce);
+						FireEvent(ce.position);
 					}
 
 					if (panel.Root().CapturedPanelId() == panel.Id())
@@ -151,7 +151,7 @@ namespace GRANON
 					}
 					else
 					{
-						FireEvent(ce);
+						FireEvent(ce.position);
 					}
 				}
 
@@ -364,6 +364,18 @@ namespace GRANON
 		void SetStretchImage(bool isStretched) override
 		{
 			this->isStretched = isStretched;
+		}
+
+		void Toggle() override
+		{
+			if (!isToggler)
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "The button is not a toggler");
+			}
+
+			isRaised = !isRaised;
+
+			FireEvent(Centre(panel.AbsRect()));
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

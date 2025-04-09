@@ -782,6 +782,8 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 
 		virtual [[nodiscard]] Vec2i ImageSpan() const = 0;
+
+		virtual void Toggle() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetCarousel : IGRBase
@@ -789,6 +791,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual void AddOption(cstr name, cstr caption) = 0;
+		virtual void Advance(int delta) = 0;
 		virtual void SetActiveChoice(cstr name) = 0;
 		virtual [[nodiscard]] IGRWidgetScrollableMenu& DropDown() = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
@@ -811,6 +814,11 @@ namespace Rococo::Gui
 
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
+
+		virtual [[nodiscard]] double Max() const = 0;
+		virtual [[nodiscard]] double Min() const = 0;
+
+		virtual double Position() const = 0;
 
 		// If minValue > maxValue then the order is reversed. If they match are are not finite, the bar is disabled
 		virtual void SetRange(double minValue, double maxValue) = 0;

@@ -74,6 +74,11 @@ namespace GRANON
 			dropDown->AddOption(name, caption);
 		}
 
+		void Advance(int delta)
+		{
+			optionIndex += delta;
+		}
+
 		void SetActiveChoice(cstr name) override
 		{
 			for (size_t i = 0; i < options.size(); i++)

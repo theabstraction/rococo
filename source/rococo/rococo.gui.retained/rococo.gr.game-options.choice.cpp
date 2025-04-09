@@ -2,6 +2,8 @@
 #include <rococo.maths.i32.h>
 #include <rococo.game.options.h>
 #include <rococo.strings.h>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -126,9 +128,25 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
-			return EGREventRouting::NextHandler;
+			if (!ke.osKeyEvent.IsUp())
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			switch (ke.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_LEFT:
+				carousel->Advance(-1);
+				break;
+			case IO::VirtualKeys::VKCode_RIGHT:
+				carousel->Advance(1);
+				break;
+			default:
+				return EGREventRouting::NextHandler;
+			}
+			return EGREventRouting::Terminate;
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

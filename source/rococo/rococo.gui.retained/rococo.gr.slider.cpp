@@ -86,11 +86,20 @@ namespace GRANON
 				isRaised = false;
 				panel.CaptureCursor();
 				if (!isRaised) UpdateSliderPos(ce.position);
+				return EGREventRouting::Terminate;
 			}
 			else if (ce.click.LeftButtonUp)
 			{
 				isRaised = true;
 				panel.Root().ReleaseCursor();
+
+				GRWidgetEvent mouseUp;
+				mouseUp.eventType = EGRWidgetEventType::SCROLLER_RELEASED;
+				mouseUp.isCppOnly = true;
+				mouseUp.iMetaData = 0;
+				mouseUp.sMetaData = GetImplementationTypeName();
+				panel.NotifyAncestors(mouseUp, *this);
+				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;
 		}
@@ -182,6 +191,16 @@ namespace GRANON
 			this->maxValue = maxValue;
 		}
 
+		double Max() const override
+		{
+			return maxValue;
+		}
+
+		double Min() const override
+		{
+			return minValue;
+		}
+
 		double quantum = 0.25;
 
 		GRFontId guageFont = GRFontId::MENU_FONT;
@@ -205,10 +224,16 @@ namespace GRANON
 
 		double position = 0;
 
+		double Position() const override
+		{
+			return position;
+		}
+
 		// Note that the true value is clamp of the supplied value using the range values
 		void SetPosition(double value) override
 		{
 			position = value;
+			SetSliderPosFromValuePos();
 		}
 
 		IGRPanel& Panel() override
