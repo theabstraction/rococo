@@ -68,8 +68,20 @@ namespace GRANON
 			button->SetTitle(caption);
 		}
 
-		EGREventRouting OnCursorClick(GRCursorEvent&) override
+		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			if (ce.click.LeftButtonUp && !IsPointInRect(ce.position, panel.AbsRect()))
+			{
+				GRWidgetEvent ev;
+				ev.clickPosition = ce.position;
+				ev.eventType = EGRWidgetEventType::BUTTON_CLICK_OUTSIDE;
+				ev.iMetaData = 0;
+				ev.isCppOnly = true;
+				ev.panelId = panel.Id();
+				ev.sMetaData = nullptr;
+				panel.NotifyAncestors(ev, *this);
+				return EGREventRouting::Terminate;
+			}
 			return EGREventRouting::NextHandler;
 		}
 

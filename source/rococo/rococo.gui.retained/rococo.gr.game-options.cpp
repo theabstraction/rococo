@@ -95,6 +95,14 @@ namespace GRANON
 				dropDown.Panel().Root().GR().SetFocus(-1);
 				dropDown.Panel().Root().ReleaseCursor();
 				dropDown.Panel().SetRenderLast(false);
+
+				int nChildren = panel.EnumerateChildren(nullptr);
+				for (int i = 0; i < nChildren; i++)
+				{
+					auto* child = panel.GetChild(i);
+					child->Remove(EGRPanelFlags::HintObscure);
+				}
+
 				return EGREventRouting::Terminate;
 			}
 			
@@ -110,6 +118,19 @@ namespace GRANON
 				dropDown.Panel().Focus();
 				dropDown.Panel().CaptureCursor();
 				dropDown.Panel().SetRenderLast(true);
+
+				int nChildren = panel.EnumerateChildren(nullptr);
+
+				for (int i = 0; i < nChildren; i++)
+				{
+					auto* child = panel.GetChild(i);
+					if (child->Widget() != sourceWidget.Panel().Parent()->Widget())
+					{
+						// Something other than the carousel
+						child->Add(EGRPanelFlags::HintObscure);
+					}
+				}
+
 				return EGREventRouting::Terminate;
 			}
 

@@ -15,6 +15,7 @@ namespace GRANON
 		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
 		EGRSchemeColourSurface labelSurface = EGRSchemeColourSurface::TEXT;
+		EGRSchemeColourSurface backSurface = EGRSchemeColourSurface::LABEL_BACKGROUND;
 
 		enum { MAX_LENGTH = 128 };
 
@@ -72,7 +73,7 @@ namespace GRANON
 
 			GRRenderState rs(false, isHovered, false);
 
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::LABEL_BACKGROUND, rs);
+			RGBAb backColour = panel.GetColour(backSurface, rs);
 			g.DrawRect(rect, backColour);
 
 			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
@@ -113,9 +114,15 @@ namespace GRANON
 			return *this;
 		}
 
-		IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface)
+		IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface) override
 		{
 			labelSurface = surface;
+			return *this;
+		}
+
+		IGRWidgetText& SetBackColourSurface(EGRSchemeColourSurface surface) override
+		{
+			backSurface = surface;
 			return *this;
 		}
 

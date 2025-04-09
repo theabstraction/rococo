@@ -74,20 +74,44 @@ namespace GRANON
 			dropDown->AddOption(name, caption);
 		}
 
+		void CollapseDropDownAndNotify(Vec2i clickPosition)
+		{
+			dropDown->Panel().SetCollapsed(true);
+
+			GRWidgetEvent we;
+			we.clickPosition = clickPosition;
+			we.eventType = EGRWidgetEventType::DROP_DOWN_COLLAPSED;
+			we.iMetaData = 0;
+			we.isCppOnly = true;
+			we.panelId = panel.Id();
+			we.sMetaData = "<carousel.dropdown>";
+			panel.NotifyAncestors(we, *this);
+		}
+
+		void ExpandDropDownAndNotify(Vec2i clickPosition)
+		{
+			dropDown->Panel().SetCollapsed(false);
+
+			GRWidgetEvent we;
+			we.clickPosition = clickPosition;
+			we.eventType = EGRWidgetEventType::DROP_DOWN_EXPANDED;
+			we.iMetaData = 0;
+			we.isCppOnly = true;
+			we.panelId = panel.Id();
+			we.sMetaData = "<carousel.dropdown>";
+			panel.NotifyAncestors(we, *this);
+		}
+
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonUp)
 			{
-				dropDown->Panel().SetCollapsed(!dropDown->Panel().IsCollapsed());
-
-				GRWidgetEvent we;
-				we.clickPosition = ce.position;
-				we.eventType = dropDown->Panel().IsCollapsed() ? EGRWidgetEventType::DROP_DOWN_COLLAPSED : EGRWidgetEventType::DROP_DOWN_EXPANDED;
-				we.iMetaData = 0;
-				we.isCppOnly = true;
-				we.panelId = panel.Id();
-				we.sMetaData = "<carousel.dropdown>";
-				panel.NotifyAncestors(we, *this);
+				GuiRect edge = ComputeEdgeRect();
+				if (IsPointInRect(ce.position, edge))
+				{
+					ExpandDropDownAndNotify(ce.position);
+					return EGREventRouting::Terminate;
+				}
 			}
 			return EGREventRouting::NextHandler;
 		}
@@ -131,9 +155,20 @@ namespace GRANON
 
 			if (!dropDown->Panel().IsCollapsed())
 			{
+				if (isCarouselDisabledWhenDropDownVisible)
+				{
+					leftButton->Panel().SetCollapsed(true);
+					rightButton->Panel().SetCollapsed(true);
+				}
+
 				dropDown->Panel().SetConstantWidth(edgeSpan.x);
 				dropDown->Panel().SetConstantHeight(512);
 				dropDown->Panel().SetParentOffset({ centre.x - (edgeSpan.x / 2), edge.bottom - rect.top  });
+			}
+			else
+			{
+				leftButton->Panel().SetCollapsed(false);
+				rightButton->Panel().SetCollapsed(false);
 			}
 		}
 
@@ -169,6 +204,14 @@ namespace GRANON
 				return EGREventRouting::Terminate;
 			}
 
+			if (source == dropDown->Widget())
+			{
+				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK_OUTSIDE)
+				{
+					CollapseDropDownAndNotify(we.clickPosition);
+				}
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -185,6 +228,13 @@ namespace GRANON
 		IGRPanel& Panel() override
 		{
 			return panel;
+		}
+
+		bool isCarouselDisabledWhenDropDownVisible = false;
+
+		void SetDisableCarouselWhenDropDownVisible(bool isDisabledAccordingly) override
+		{
+			isCarouselDisabledWhenDropDownVisible = isDisabledAccordingly;
 		}
 
 		int ModulateOptionIndexToArrayIndex(int index)
@@ -235,7 +285,8 @@ namespace GRANON
 			GRAlignmentFlags optionTextAlignment;
 			optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 
-			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge);
+			bool isDisabled = isCarouselDisabledWhenDropDownVisible && !dropDown->Panel().IsCollapsed();
+			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;
 			GRRenderState rs(false, isHovered, false);
 			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, rs);
 			g.DrawText(GRFontId::MENU_FONT, edge, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);

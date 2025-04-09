@@ -289,6 +289,8 @@ namespace Rococo::Gui
 		TEXT,
 		GAME_OPTION_BACKGROUND, // Gives the background colour in a game option title
 		GAME_OPTION_TEXT, // Gives the text colour in a game option title
+		GAME_OPTION_DISABLED_BACKGROUND, // // Gives the background colour in a disabled game option
+		GAME_OPTION_DISABLED_TEXT, // Gives the text colour in a game option title when the option is not currently selectable
 		NAME_TEXT, // Gives the label colour in a name-value pair
 		VALUE_TEXT, // For name-value pairs, specifies the font colour for values
 		FOCUS_RECTANGLE, // The rectangle surrounding a control to indicate focus, separate from the controls own focus settings
@@ -362,6 +364,7 @@ namespace Rococo::Gui
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		DROP_DOWN_COLLAPSED, // The drop down control collapsed
 		DROP_DOWN_EXPANDED, // The drop down control expanded
+		BUTTON_CLICK_OUTSIDE, // A control captured a mouse click outside of its panel's AbsRect
 		USER_DEFINED = 1025
 	};
 
@@ -441,7 +444,10 @@ namespace Rococo::Gui
 		None = 0,
 		AcceptsFocus = 1,
 		// using tab to navigate a panel's children cycles through to the first if the final one is already focused
-		CycleTabsEndlessly = 2
+		CycleTabsEndlessly = 2,
+
+		// The contents of the panel could be grayed or fogged for a better UI experience
+		HintObscure = 4
 	};
 
 	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
@@ -613,6 +619,11 @@ namespace Rococo::Gui
 		return &src == &target;
 	}
 
+	inline bool operator != (IGRWidget& src, IGRWidget& target)
+	{
+		return &src != &target;
+	}
+
 	ROCOCO_INTERFACE IGRPanelWatcher : IGRBase
 	{
 		virtual void OnSetConstantHeight(IGRPanel& panel, int height) = 0;
@@ -710,6 +721,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual [[nodiscard]] int TextWidth() const = 0;
 		virtual IGRWidgetText& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
+		virtual IGRWidgetText& SetBackColourSurface(EGRSchemeColourSurface surface) = 0;
 		virtual IGRWidgetText& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetText& SetText(cstr text) = 0;
 		virtual IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface) = 0;
@@ -774,6 +786,7 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRWidgetScrollableMenu& DropDown() = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
+		virtual void SetDisableCarouselWhenDropDownVisible(bool isDisabledAccordingly) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetScrollableMenu : IGRBase

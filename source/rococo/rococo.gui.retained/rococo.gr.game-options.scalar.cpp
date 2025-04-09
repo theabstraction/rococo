@@ -85,8 +85,16 @@ namespace GRANON
 
 		void Render(IGRRenderContext& rc) override
 		{
-			DrawPanelBackground(panel, rc);
 			DrawEdge(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, panel, rc);
+
+			if (panel.HasFlag(EGRPanelFlags::HintObscure))
+			{
+				title->SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT).SetBackColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND);
+			}
+			else
+			{
+				title->SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_TEXT).SetBackColourSurface(EGRSchemeColourSurface::LABEL_BACKGROUND);
+			}
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
