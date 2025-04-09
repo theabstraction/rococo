@@ -90,10 +90,39 @@ namespace GRANON
 			}
 		}
 
+		EGREventRouting OnButtonClick(IGRWidget& sourceWidget, Vec2i clickPosition)
+		{
+			auto* button = Cast<IGRWidgetButton>(sourceWidget);
+			if (button)
+			{
+				cstr choice = button->MetaData().stringData;
+
+				GRWidgetEvent choiceMade;
+				choiceMade.clickPosition = clickPosition;
+				choiceMade.eventType = EGRWidgetEventType::CHOICE_MADE;
+				choiceMade.iMetaData = 0;
+				choiceMade.isCppOnly = true;
+				choiceMade.panelId = panel.Id();
+				choiceMade.sMetaData = choice;
+
+				carousel->SetActiveChoice(choice);
+
+				return panel.NotifyAncestors(choiceMade, *this);
+			}
+			else
+			{
+				return EGREventRouting::NextHandler;
+			}
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			UNUSED(widgetEvent);
-			UNUSED(sourceWidget);
+			switch (widgetEvent.eventType)
+			{
+			case EGRWidgetEventType::BUTTON_CLICK:
+				return OnButtonClick(sourceWidget, widgetEvent.clickPosition);
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -134,7 +163,7 @@ namespace GRANON
 
 		void SetActiveChoice(cstr choiceName) override
 		{
-
+			carousel->SetActiveChoice(choiceName);
 		}
 	};
 

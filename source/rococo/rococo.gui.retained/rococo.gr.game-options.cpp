@@ -137,6 +137,27 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
+		EGREventRouting OnChoiceMade(const GRWidgetEvent& choice, IGRWidget& sourceWidget)
+		{
+			auto* choiceSelector = Cast<IGRWidgetGameOptionsChoice>(sourceWidget);
+			if (!choiceSelector)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			for (auto& i : mapNameToChoiceControl)
+			{
+				if (i.second == choiceSelector)
+				{
+					cstr optionName = i.first;
+					cstr optionValue = choice.sMetaData;
+
+					options.DB().Invoke(optionName, optionValue);
+				}
+			}
+			return EGREventRouting::Terminate;
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
 			switch (widgetEvent.eventType)
@@ -145,6 +166,8 @@ namespace GRANON
 				return OnDropDownCollapsed(sourceWidget);
 			case EGRWidgetEventType::DROP_DOWN_EXPANDED:
 				return OnDropDownExpanded(sourceWidget);
+			case EGRWidgetEventType::CHOICE_MADE:
+				return OnChoiceMade(widgetEvent, sourceWidget);
 			}
 
 			return EGREventRouting::NextHandler;

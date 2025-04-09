@@ -361,6 +361,7 @@ namespace Rococo::Gui
 	enum class EGRWidgetEventType
 	{
 		BUTTON_CLICK,
+		CHOICE_MADE, // A choice was selected, the meta data contains the key
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		DROP_DOWN_COLLAPSED, // The drop down control collapsed
 		DROP_DOWN_EXPANDED, // The drop down control expanded
@@ -783,6 +784,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual void AddOption(cstr name, cstr caption) = 0;
+		virtual void SetActiveChoice(cstr name) = 0;
 		virtual [[nodiscard]] IGRWidgetScrollableMenu& DropDown() = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;

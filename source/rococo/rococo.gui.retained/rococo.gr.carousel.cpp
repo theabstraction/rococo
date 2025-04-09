@@ -74,6 +74,20 @@ namespace GRANON
 			dropDown->AddOption(name, caption);
 		}
 
+		void SetActiveChoice(cstr name) override
+		{
+			for (size_t i = 0; i < options.size(); i++)
+			{
+				if (Eq(options[i].key, name))
+				{
+					optionIndex = (int)i;
+					break;
+				}
+			}
+
+			CollapseDropDownAndNotify({ 0,0 });
+		}
+
 		void CollapseDropDownAndNotify(Vec2i clickPosition)
 		{
 			dropDown->Panel().SetCollapsed(true);
@@ -209,6 +223,7 @@ namespace GRANON
 				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK_OUTSIDE)
 				{
 					CollapseDropDownAndNotify(we.clickPosition);
+					return EGREventRouting::Terminate;
 				}
 			}
 

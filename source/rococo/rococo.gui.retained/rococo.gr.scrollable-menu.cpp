@@ -59,13 +59,17 @@ namespace GRANON
 
 		void AddOption(cstr name, cstr caption) override
 		{
-			options.push_back({ name, caption, nullptr });
-
-			auto& back = options.back();
-			auto* button = back.button = &CreateButton(verticalList->Widget());
+			auto* button = &CreateButton(verticalList->Widget());
 			button->Panel().SetExpandToParentHorizontally();
 			button->Panel().SetConstantHeight(64);
 			button->SetTitle(caption);
+			button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+
+			GRControlMetaData metaData;
+			metaData.stringData = name;
+			button->SetMetaData(metaData, true);
+
+			options.push_back({ name, caption, button });
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
