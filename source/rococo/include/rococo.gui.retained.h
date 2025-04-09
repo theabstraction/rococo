@@ -649,11 +649,11 @@ namespace Rococo::Gui
 		virtual void Free() = 0;
 	};
 
-	template<class CAST_TO_THIS_CLASS> inline CAST_TO_THIS_CLASS* Cast(IGRWidget& widget, cstr interfaceId)
+	template<class CAST_TO_THIS_INTERFACE> inline CAST_TO_THIS_INTERFACE* Cast(IGRWidget& widget, cstr interfaceId)
 	{
 		IGRBase* castBase = nullptr;
 		auto result = widget.QueryInterface(&castBase, interfaceId);
-		return result == EGRQueryInterfaceResult::SUCCESS ? static_cast<CAST_TO_THIS_CLASS*>(castBase) : nullptr;
+		return result == EGRQueryInterfaceResult::SUCCESS ? static_cast<CAST_TO_THIS_INTERFACE*>(castBase) : nullptr;
 	};
 
 	template<class CAST_TO_THIS_CLASS> inline CAST_TO_THIS_CLASS* Cast(IGRWidget& widget)

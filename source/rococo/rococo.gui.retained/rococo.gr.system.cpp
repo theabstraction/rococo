@@ -243,6 +243,13 @@ namespace ANON
 				g.DisableScissors();
 			}
 
+			for (auto* panel : deferredRenderQueue)
+			{
+				GuiRect parentRect = panel->Parent() ? panel->Parent()->AbsRect() : screenDimensions;
+				panel->RenderRecursive(g, parentRect, false);
+				g.DisableScissors();
+			}
+
 			if (focusId >= 0)
 			{
 				auto* widget = FindWidget(focusId);
@@ -252,13 +259,6 @@ namespace ANON
 					RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
 					g.DrawRectEdge(rect, colour, colour);
 				}
-			}
-
-			for (auto* panel : deferredRenderQueue)
-			{
-				GuiRect parentRect = panel->Parent() ? panel->Parent()->AbsRect() : screenDimensions;
-				panel->RenderRecursive(g, parentRect, false);
-				g.DisableScissors();
 			}
 
 			deferredRenderQueue.clear();

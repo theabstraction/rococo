@@ -86,10 +86,46 @@ namespace GRANON
 			DrawPanelBackground(panel, rc);
 		}
 
+		EGREventRouting OnDropDownCollapsed(IGRWidget& sourceWidget)
+		{
+			auto* carousel = Cast<IGRWidgetCarousel>(sourceWidget);
+			if (carousel)
+			{
+				auto& dropDown = carousel->DropDown();
+				dropDown.Panel().Root().GR().SetFocus(-1);
+				dropDown.Panel().Root().ReleaseCursor();
+				dropDown.Panel().SetRenderLast(false);
+				return EGREventRouting::Terminate;
+			}
+			
+			return EGREventRouting::NextHandler;
+		}
+
+		EGREventRouting OnDropDownExpanded(IGRWidget& sourceWidget)
+		{
+			auto* carousel = Cast<IGRWidgetCarousel>(sourceWidget);
+			if (carousel)
+			{
+				auto& dropDown = carousel->DropDown();
+				dropDown.Panel().Focus();
+				dropDown.Panel().CaptureCursor();
+				dropDown.Panel().SetRenderLast(true);
+				return EGREventRouting::Terminate;
+			}
+
+			return EGREventRouting::NextHandler;
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			UNUSED(widgetEvent);
-			UNUSED(sourceWidget);
+			switch (widgetEvent.eventType)
+			{
+			case EGRWidgetEventType::DROP_DOWN_COLLAPSED:
+				return OnDropDownCollapsed(sourceWidget);
+			case EGRWidgetEventType::DROP_DOWN_EXPANDED:
+				return OnDropDownExpanded(sourceWidget);
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
