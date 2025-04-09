@@ -25,9 +25,9 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 	auto& scheme = gr.Root().Scheme();
 	SetSchemeColours_ThemeGrey(scheme);
 
-	BuildMenus(frame);
+//	BuildMenus(frame);
 
-	BuildUpperRightToolbar(frame);
+//	BuildUpperRightToolbar(frame);
 
 	auto& optionsList = CreateGameOptionsList(frame.ClientArea().Widget(), options);
 	optionsList.Panel().SetExpandToParentHorizontally();

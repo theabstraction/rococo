@@ -47,7 +47,7 @@ namespace GRANON
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
 
-			int height = 1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont);
+			int height = (int) (1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont));
 			panel.SetConstantHeight(2 * height);
 		}
 
@@ -136,7 +136,7 @@ namespace GRANON
 
 		void SetActiveValue(bool boolValue) override
 		{
-			
+			UNUSED(boolValue);
 		}
 	};
 

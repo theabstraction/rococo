@@ -470,6 +470,6 @@ namespace Rococo::Gui
 			swap_args(targetRect.top, targetRect.bottom);
 		}
 
-		g.DrawText(GRFontId::MENU_FONT, targetRect, panel.AbsRect(), alignment, spacing, text, colour);
+		g.DrawText(GRFontId::MENU_FONT, targetRect, alignment, spacing, text, colour);
 	}
 }

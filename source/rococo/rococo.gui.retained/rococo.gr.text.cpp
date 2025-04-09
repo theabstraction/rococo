@@ -80,7 +80,7 @@ namespace GRANON
 			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
-			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(labelSurface, rs));
+			g.DrawText(fontId, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(labelSurface, rs));
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)

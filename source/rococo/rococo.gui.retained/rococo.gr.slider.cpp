@@ -276,7 +276,7 @@ namespace GRANON
 				textAlignment.Add(EGRAlignment::Top).Add(EGRAlignment::HCentre);
 
 				RGBAb colour = panel.GetColour(guageTextSurface, rs);
-				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), panel.AbsRect(), textAlignment, { 0, guageVerticalOffset }, to_fstring(guageText), colour);
+				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), textAlignment, { 0, guageVerticalOffset }, to_fstring(guageText), colour);
 			}
 
 			bool isObscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);

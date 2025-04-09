@@ -242,8 +242,8 @@ namespace Rococo::Gui
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
 		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;
 
-		virtual void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) = 0;
-		virtual void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
+		virtual void DrawEditableText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) = 0;
+		virtual void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 
 		// Causes all render operations to complete
 		virtual void Flush() = 0;
@@ -558,6 +558,10 @@ namespace Rococo::Gui
 		virtual const Sex::ISExpression* GetAssociatedSExpression() const = 0;
 
 		virtual void SetAssociatedSExpression(Sex::cr_sex s) = 0;
+
+		// For some control clipping is done by a panel other than itself. This method allows the clipping panel to be selected
+		// Clipping panels must have SetClipChildren(true) to be effective. If null, no clipping takes place
+		virtual void SetClippingPanel(IGRPanel* panel) = 0;
 
 		// Add extra rendering before and after widget rendering for the panel
 		virtual IGRPanel& SetPanelRenderer(IGRPanelRenderer* renderer) = 0;

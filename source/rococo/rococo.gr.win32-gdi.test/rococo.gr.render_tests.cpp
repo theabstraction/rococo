@@ -36,7 +36,7 @@ IGR2DScene* TestDrawRect()
 			topLeftAlignmentFlags.Add(EGRAlignment::Left);
 			topLeftAlignmentFlags.Add(EGRAlignment::Top);
 
-			rc.DrawText(fontId, topLeftRect, topLeftRect, topLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, topLeftRect, topLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect topCentreRect{ 440, 20, 840, 60 };
 			RenderButton(rc, topCentreRect);
@@ -45,7 +45,7 @@ IGR2DScene* TestDrawRect()
 			centreRightAlignmentFlags.Add(EGRAlignment::HCentre);
 			centreRightAlignmentFlags.Add(EGRAlignment::Top);
 
-			rc.DrawText(fontId, topCentreRect, topCentreRect, centreRightAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, topCentreRect, centreRightAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect topRightRect{ 880, 20, 1280, 60 };
 			RenderButton(rc, topRightRect);
@@ -54,7 +54,7 @@ IGR2DScene* TestDrawRect()
 			topRightAlignmentFlags.Add(EGRAlignment::Right);
 			topRightAlignmentFlags.Add(EGRAlignment::Top);
 
-			rc.DrawText(fontId, topRightRect, topRightRect, topRightAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, topRightRect, topRightAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect middleLeftRect{ 20, 100, 400, 140 };
 			RenderButton(rc, middleLeftRect);
@@ -63,7 +63,7 @@ IGR2DScene* TestDrawRect()
 			middleLeftAlignmentFlags.Add(EGRAlignment::Left);
 			middleLeftAlignmentFlags.Add(EGRAlignment::VCentre);
 
-			rc.DrawText(fontId, middleLeftRect, middleLeftRect, middleLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, middleLeftRect, middleLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect middleCentreRect{ 440, 100, 840, 140 };
 			RenderButton(rc, middleCentreRect);
@@ -72,7 +72,7 @@ IGR2DScene* TestDrawRect()
 			middleCentreAlignmentFlags.Add(EGRAlignment::HCentre);
 			middleCentreAlignmentFlags.Add(EGRAlignment::VCentre);
 
-			rc.DrawText(fontId, middleCentreRect, middleCentreRect, middleCentreAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, middleCentreRect, middleCentreAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect middleRightRect{ 880, 100, 1280, 140 };
 			RenderButton(rc, middleRightRect);
@@ -81,7 +81,7 @@ IGR2DScene* TestDrawRect()
 			middleRightAlignmentFlags.Add(EGRAlignment::Right);
 			middleRightAlignmentFlags.Add(EGRAlignment::VCentre);
 
-			rc.DrawText(fontId, middleRightRect, middleRightRect, middleRightAlignmentFlags, { 0,0 }, "Hello World! qyg My God it is good"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, middleRightRect, middleRightAlignmentFlags, { 0,0 }, "Hello World! qyg My God it is good"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect bottomLeftRect{ 20, 180, 400, 220 };
 			RenderButton(rc, bottomLeftRect);
@@ -90,7 +90,7 @@ IGR2DScene* TestDrawRect()
 			bottomLeftAlignmentFlags.Add(EGRAlignment::Left);
 			bottomLeftAlignmentFlags.Add(EGRAlignment::Bottom);
 
-			rc.DrawText(fontId, bottomLeftRect, bottomLeftRect, bottomLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, bottomLeftRect, bottomLeftAlignmentFlags, { 0,0 }, "Hello World! qyg"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect bottomCentreRect{ 440, 180, 840, 220 };
 			RenderButton(rc, bottomCentreRect);
@@ -99,7 +99,7 @@ IGR2DScene* TestDrawRect()
 			bottomCentreAlignmentFlags.Add(EGRAlignment::HCentre);
 			bottomCentreAlignmentFlags.Add(EGRAlignment::Bottom);
 
-			rc.DrawText(fontId, bottomCentreRect, bottomCentreRect, bottomCentreAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, bottomCentreRect, bottomCentreAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
 
 			GuiRect bottomRightRect{ 880, 180, 1280, 220 };
 			RenderButton(rc, bottomRightRect);
@@ -108,7 +108,7 @@ IGR2DScene* TestDrawRect()
 			bottomRightAlignmentFlags.Add(EGRAlignment::Right);
 			bottomRightAlignmentFlags.Add(EGRAlignment::Bottom);
 
-			rc.DrawText(fontId, bottomRightRect, bottomRightRect, bottomRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
+			rc.DrawText(fontId, bottomRightRect, bottomRightAlignmentFlags, { 0,0 }, "Hello World!"_fstring, RGBAb(0, 0, 128));
 
 			if (!img1)
 			{

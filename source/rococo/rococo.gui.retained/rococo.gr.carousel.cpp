@@ -176,7 +176,7 @@ namespace GRANON
 				}
 
 				dropDown->Panel().SetConstantWidth(edgeSpan.x);
-				dropDown->Panel().SetConstantHeight(512);
+				dropDown->Panel().SetConstantHeight(120);
 				dropDown->Panel().SetParentOffset({ centre.x - (edgeSpan.x / 2), edge.bottom - rect.top  });
 			}
 			else
@@ -287,7 +287,7 @@ namespace GRANON
 				optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 
 				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, GRRenderState(0, 0, 0));
-				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), panel.AbsRect(), optionTextAlignment, { 0,0 }, "<no options>"_fstring, colour);
+				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), optionTextAlignment, { 0,0 }, "<no options>"_fstring, colour);
 				return;
 			}
 
@@ -304,7 +304,7 @@ namespace GRANON
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;
 			GRRenderState rs(false, isHovered, false);
 			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, rs);
-			g.DrawText(GRFontId::MENU_FONT, edge, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
+			g.DrawText(GRFontId::MENU_FONT, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
 
 			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, rs);
 			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, rs);

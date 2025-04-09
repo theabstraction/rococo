@@ -245,8 +245,7 @@ namespace ANON
 
 			for (auto* panel : deferredRenderQueue)
 			{
-				GuiRect parentRect = panel->Parent() ? panel->Parent()->AbsRect() : screenDimensions;
-				panel->RenderRecursive(g, parentRect, false);
+				panel->RenderRecursive(g, screenDimensions, false);
 				g.DisableScissors();
 			}
 
@@ -278,7 +277,7 @@ namespace ANON
 			char cursorLine[32];
 			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
 
-			g.DrawText(debugFontId, g.ScreenDimensions(), g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
+			g.DrawText(debugFontId, g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
 		}
 
 		void MakeFirstToRender(GRIdWidget id) override

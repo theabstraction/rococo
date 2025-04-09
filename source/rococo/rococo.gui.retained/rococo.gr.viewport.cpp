@@ -32,6 +32,7 @@ namespace ANON
 			clientOffsetArea = &CreateDivision(clipArea->Widget());
 			clientOffsetArea->Panel().SetExpandToParentVertically();
 			clientOffsetArea->Panel().SetExpandToParentHorizontally();
+			clientOffsetArea->Panel().SetClippingPanel(&clipArea->Panel());
 			vscroller = &CreateVerticalScrollerWithButtons(*this, *this);
 			vscroller->Widget().Panel().SetExpandToParentVertically();
 			vscroller->Widget().Panel().SetConstantWidth(scrollbarWidth);

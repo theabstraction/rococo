@@ -271,7 +271,7 @@ namespace ANON
 			rc->ClearScissorRect();
 		}
 
-		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
 			UNUSED(targetRect);
 
@@ -280,9 +280,9 @@ namespace ANON
 				return;
 			}
 
-			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
+			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, targetRect))
 			{
-				if (!AreRectsOverlapped(lastScissorRect, clipRect))
+				if (!AreRectsOverlapped(lastScissorRect, targetRect))
 				{
 					return;
 				}
@@ -303,9 +303,9 @@ namespace ANON
 				break;
 			}
 	
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, text, colour, spacing);
+			Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, hqFontId, text, colour, spacing);
 
-			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
+			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, targetRect))
 			{
 				rc->FlushLayer();
 				rc->ClearScissorRect();

@@ -40,7 +40,7 @@ namespace GRANON
 			carousel->Widget().Panel().SetExpandToParentVertically();
 			carousel->SetDisableCarouselWhenDropDownVisible(true);
 
-			int height = 1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont);
+			int height = (int) (1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont));
 			panel.SetConstantHeight(2 * height);
 		}
 

@@ -524,6 +524,17 @@ namespace GRANON
 			SelectObject(bitmapDC, hOldBitmap);
 		}
 
+		GuiRect MergeWithScissorRect(const GuiRect& targetRect)
+		{
+			GuiRect scissorRect;
+			if (TryGetScissorRect(OUT scissorRect))
+			{
+				return IntersectNormalizedRects(targetRect, scissorRect);
+			}
+
+			return targetRect;
+		}
+
 		void DrawRect(const GuiRect& absRect, RGBAb colour) override
 		{
 			if (colour.alpha == 0)
@@ -531,14 +542,16 @@ namespace GRANON
 				return;
 			}
 
+			GuiRect visibleRect = MergeWithScissorRect(absRect);
+
 			if (colour.alpha < 255)
 			{
 				SolidBrush solidBrush(Color(colour.alpha, colour.red, colour.green, colour.blue));
-				g.FillRectangle(&solidBrush, absRect.left, absRect.top, Width(absRect), Height(absRect));
+				g.FillRectangle(&solidBrush, visibleRect.left, visibleRect.top, Width(visibleRect), Height(visibleRect));
 			}
 			else
 			{
-				const RECT& rect = reinterpret_cast<const RECT&>(absRect);
+				const RECT& rect = reinterpret_cast<const RECT&>(visibleRect);
 
 				GDISolidBrush brush(colour);
 				FillRect(paintDC, &rect, brush);
@@ -549,6 +562,8 @@ namespace GRANON
 		{
 			GDIPen pen(colour);
 			UsePen usePen(paintDC, pen);
+
+			UseClipRect useClip(paintDC, lastScissorRect);
 
 			MoveToEx(paintDC, points[0].X, points[0].Y, NULL);
 
@@ -571,6 +586,7 @@ namespace GRANON
 
 				if (topLeftColour.alpha < 255)
 				{
+					UseClipRect useClip(paintDC, lastScissorRect);
 					Gdiplus::Pen topLeftPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue));
 					g.DrawLines(&topLeftPen, topLeftPoints, 3);
 				}
@@ -616,9 +632,9 @@ namespace GRANON
 			hilightRects.push_back({ absRect, colour1, colour2 });
 		}
 
-		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
+		void DrawEditableText(GRFontId fontId, const GuiRect& textRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
 		{
-			UseClipRect useClip(paintDC, clipRect);
+			UseClipRect useClip(paintDC, lastScissorRect);
 
 			SelectFont(custodian, fontId, paintDC);
 
@@ -683,7 +699,7 @@ namespace GRANON
 			format += DT_NOPREFIX;
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
 
-			RECT rect{ clipRect.left, clipRect.top, clipRect.right, clipRect.bottom };
+			RECT rect{ textRect.left, textRect.top, textRect.right, textRect.bottom };
 
 			int caretY = 0;
 
@@ -755,9 +771,9 @@ namespace GRANON
 				DrawRectEdge(caretRect, caretColour, caretColour);
 			}
 		}
-		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
-			UseClipRect useClip(paintDC, clipRect);
+			UseClipRect useClip(paintDC, lastScissorRect);
 
 			SelectFont(custodian, fontId, paintDC);
 
@@ -801,7 +817,9 @@ namespace GRANON
 
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
 
-			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
+			RECT calcRect = *reinterpret_cast<RECT*>(&rect);
+			DrawTextA(paintDC, text, text.length, &calcRect, format | DT_CALCRECT);
+			int height = DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
 			SetTextColor(paintDC, oldColour);
 		}
 

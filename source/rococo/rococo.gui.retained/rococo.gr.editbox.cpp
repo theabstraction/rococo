@@ -235,7 +235,7 @@ namespace GRANON
 				if (text.size() > 0)
 				{
 					EGRSchemeColourSurface surface = isReadOnly ? EGRSchemeColourSurface::READ_ONLY_TEXT : EGRSchemeColourSurface::TEXT;
-					g.DrawText(fontId, rect, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(surface, rs));
+					g.DrawText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(surface, rs));
 				}
 			}
 			else

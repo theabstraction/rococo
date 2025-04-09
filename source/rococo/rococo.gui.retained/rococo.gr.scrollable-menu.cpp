@@ -30,7 +30,6 @@ namespace GRANON
 		GRAnchorPadding optionPadding{ 4, 4, 16, 16 };
 
 		IGRWidgetViewport* viewport = nullptr;
-		IGRWidgetVerticalList* verticalList = nullptr;
 		
 		GRScrollableMenu(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -50,18 +49,15 @@ namespace GRANON
 		void PostConstruct()
 		{
 			viewport = &CreateViewportWidget(*this);
-			viewport->Widget().Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
-			viewport->SetDomainHeight(32 * (int) options.size());
-
-			verticalList = &CreateVerticalList(viewport->ClientArea().Widget());
-			verticalList->Widget().Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
+			viewport->Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
+			viewport->ClientArea().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom).SetClipChildren(true);
 		}
 
 		void AddOption(cstr name, cstr caption) override
 		{
-			auto* button = &CreateButton(verticalList->Widget());
+			auto* button = &CreateButton(viewport->ClientArea().Widget());
 			button->Panel().SetExpandToParentHorizontally();
-			button->Panel().SetConstantHeight(64);
+			button->Panel().SetConstantHeight(48);
 			button->SetTitle(caption);
 			button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 
@@ -70,6 +66,8 @@ namespace GRANON
 			button->SetMetaData(metaData, true);
 
 			options.push_back({ name, caption, button });
+
+			viewport->SetDomainHeight(options.size() * 48);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

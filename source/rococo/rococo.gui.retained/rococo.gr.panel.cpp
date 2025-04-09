@@ -37,10 +37,16 @@ namespace GRANON
 		int32 childPadding = 0;
 		HString desc;
 		const Sex::ISExpression* associatedSExpression = nullptr;
+		IGRPanelSupervisor* clippingPanel;
 
-		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
+		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++), clippingPanel(this)
 		{
 			refCount = 1;
+		}
+
+		void SetClippingPanel(IGRPanel* panel) override
+		{
+			this->clippingPanel = static_cast<IGRPanelSupervisor*>(panel);
 		}
 
 		const Sex::ISExpression* GetAssociatedSExpression() const override
@@ -752,7 +758,7 @@ namespace GRANON
 
 			if (span.x > 0 && span.y > 0)
 			{
-				GuiRect laxClipRect = clipRect.IsNormalized() ? Expand(clipRect, 1) : clipRect;
+				GuiRect laxClipRect = false && clipRect.IsNormalized() ? Expand(clipRect, 1) : clipRect;
 				g.EnableScissors(laxClipRect);
 
 				if (extraRenderer)
@@ -800,6 +806,18 @@ namespace GRANON
 				if (routing == EGREventRouting::Terminate)
 				{
 					return EGREventRouting::Terminate;
+				}
+			}
+
+			if (parent)
+			{
+				auto* parentClippingPanel = parent->clippingPanel;
+				if (parentClippingPanel && parentClippingPanel->DoesClipChildren())
+				{
+					if (!IsPointInRect(ce.position, parentClippingPanel->AbsRect()))
+					{
+						return EGREventRouting::NextHandler;
+					}
 				}
 			}
 
