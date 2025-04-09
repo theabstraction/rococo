@@ -40,6 +40,11 @@ namespace Rococo::Gui
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
 	};
 
+	ROCOCO_INTERFACE IGRKeyState
+	{
+		virtual bool IsCtrlPressed() const = 0;
+	};
+
 	// The platform dependent implementation of the custodian handles events and routes to the UI appropriately
 	ROCOCO_INTERFACE IGRCustodian
 	{
@@ -56,6 +61,8 @@ namespace Rococo::Gui
 		virtual void RaiseError(const Rococo::Sex::ISExpression* associatedSExpression, EGRErrorCode code, cstr function, cstr format, ...) = 0;
 
 		virtual IGRFonts& Fonts() = 0;
+
+		virtual IGRKeyState& Keys() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRCustodianSupervisor : IGRCustodian

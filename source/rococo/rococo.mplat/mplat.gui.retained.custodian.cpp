@@ -460,7 +460,7 @@ namespace ANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapse.tif" },
 	};
 
-	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages
+	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
 	{
 		MPlatGR_Renderer renderer;
 		IRenderer& sysRenderer;
@@ -483,6 +483,16 @@ namespace ANON
 		IGRFonts& Fonts() override
 		{
 			return *this;
+		}
+
+		IGRKeyState& Keys() override
+		{
+			return *this;
+		}
+
+		bool IsCtrlPressed() const override
+		{
+			return IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL);
 		}
 
 		GRFontId BindFontId(const FontSpec& spec) override

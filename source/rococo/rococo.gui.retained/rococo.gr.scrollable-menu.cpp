@@ -67,7 +67,7 @@ namespace GRANON
 
 			options.push_back({ name, caption, button });
 
-			viewport->SetDomainHeight(options.size() * 48);
+			viewport->SetDomainHeight((int) (options.size() * 48));
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

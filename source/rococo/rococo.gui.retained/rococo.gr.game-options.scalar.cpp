@@ -56,9 +56,23 @@ namespace GRANON
 			delete this;
 		}
 
-		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent& we) override
 		{
-			UNUSED(ce);
+			if (we.wheelDelta != 0)
+			{
+				int acceleration = GetCustodian(panel).Keys().IsCtrlPressed() ? 10 : 1;
+
+				if (we.wheelDelta % 120 == 0)
+				{
+					// Assume Win32 behaviour with 120 units per click
+					slider->Advance(acceleration * (we.wheelDelta / 120));
+				}
+				else
+				{
+					slider->Advance(acceleration * we.wheelDelta);
+				}
+				return EGREventRouting::Terminate;
+			}
 			return EGREventRouting::NextHandler;
 		}
 

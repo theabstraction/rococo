@@ -978,7 +978,7 @@ namespace GRANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages
+	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
 	{
 		// Debugging materials:
 		std::vector<IGRWidget*> history;
@@ -1009,6 +1009,16 @@ namespace GRANON
 				SyncToScreen();
 			}
 			return *this;
+		}
+
+		IGRKeyState& Keys() override
+		{
+			return *this;
+		}
+
+		bool IsCtrlPressed() const override
+		{
+			return GetAsyncKeyState(VK_CONTROL) != 0;
 		}
 
 		struct KnownFont

@@ -303,6 +303,12 @@ namespace GRANON
 		{
 			return "GRSlider";
 		}
+
+		void Advance(int quanta) override
+		{
+			position += quanta * quantum;
+			SetSliderPosFromValuePos();
+		}
 	};
 
 	struct GRSliderFactory : IGRWidgetFactory
