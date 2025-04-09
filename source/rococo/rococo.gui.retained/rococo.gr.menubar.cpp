@@ -419,10 +419,10 @@ namespace GRANON
 					if (IsPointInRect(ce.position, buttonPanel->AbsRect()))
 					{
 						IGRWidgetButton* button = Cast<IGRWidgetButton>(buttonPanel->Widget());
-						if (button && button->GetButtonFlags().forSubMenu)
+						if (button && button->ButtonFlags().forSubMenu)
 						{
 							// In a submenu the meta data is synonymous with the branch id and was not provided by the consumer of the API
-							int64 branchId = button->GetMetaData().intData; 
+							int64 branchId = button->MetaData().intData; 
 							auto* branch = tree.FindBranch(GRMenuItemId{ branchId });
 							if (branch)
 							{
@@ -467,10 +467,10 @@ namespace GRANON
 				IGRWidgetButton* button = Cast<IGRWidgetButton>(sourceWidget);
 				if (!button) return EGREventRouting::NextHandler;
 
-				auto flags = button->GetButtonFlags();
+				auto flags = button->ButtonFlags();
 				if (flags.forSubMenu)
 				{
-					int64 branchId = button->GetMetaData().intData;
+					int64 branchId = button->MetaData().intData;
 					// In a submenu the meta data is synonymous with the branch id and was not provided by the consumer of the API
 					auto* branch = tree.FindBranch(GRMenuItemId{ branchId });// WTF
 					if (branch)

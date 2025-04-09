@@ -422,7 +422,7 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 
 	spec.LeftAlignNameplates = true;
 
-	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().InnerWidget(), eventHandler, spec);
+	auto& editor = Gui::CreatePropertyEditorTree(frame.ClientArea().Widget(), eventHandler, spec);
 
 	editor.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId) + 4);
 

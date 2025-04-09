@@ -10,7 +10,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRCarousel : IGRWidgetCarousel, IGRWidgetSupervisor, IGRWidgetLayout, IGRPanelWatcher
+	struct GRCarousel : IGRWidgetCarousel, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		struct Option
 		{
@@ -35,7 +35,6 @@ namespace GRANON
 		GRCarousel(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			panel.SetLayoutDirection(ELayoutDirection::None);
-			panel.SetPanelWatcher(this);
 		}
 
 		virtual ~GRCarousel()
@@ -80,8 +79,22 @@ namespace GRANON
 			if (ce.click.LeftButtonUp)
 			{
 				dropDown->Panel().SetCollapsed(!dropDown->Panel().IsCollapsed());
+
+				GRWidgetEvent we;
+				we.clickPosition = ce.position;
+				we.eventType = dropDown->Panel().IsCollapsed() ? EGRWidgetEventType::DROP_DOWN_COLLAPSED : EGRWidgetEventType::DROP_DOWN_EXPANDED;
+				we.iMetaData = 0;
+				we.isCppOnly = true;
+				we.panelId = panel.Id();
+				we.sMetaData = "<carousel.dropdown>";
+				panel.NotifyAncestors(we, *this);
 			}
 			return EGREventRouting::NextHandler;
+		}
+
+		IGRWidgetScrollableMenu& DropDown() override
+		{
+			return *dropDown;
 		}
 
 		void OnCursorEnter() override
@@ -91,21 +104,6 @@ namespace GRANON
 
 		void OnCursorLeave() override
 		{
-		}
-
-		void OnSetConstantHeight(IGRPanel& panel, int height) override
-		{
-
-		}
-
-		void OnSetConstantWidth(IGRPanel& panel, int width) override
-		{
-
-		}
-
-		void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) override
-		{
-			printf("");
 		}
 
 		void LayoutBeforeFit() override

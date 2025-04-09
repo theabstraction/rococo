@@ -24,7 +24,7 @@ namespace GRANON
 		void LayoutBeforeFit() override
 		{
 			MakeTitleBar();
-			int titleHeight = titleBar->InnerWidget().Panel().Span().y;
+			int titleHeight = titleBar->Widget().Panel().Span().y;
 			titleBar->Panel().SetParentOffset({ 0,0 });
 			clientArea->Panel().SetParentOffset({ 0, titleHeight });
 			clientArea->Panel().SetConstantHeight(panel.Span().y - titleHeight);
@@ -128,7 +128,7 @@ namespace GRANON
 
 			if (!menuBar)
 			{
-				menuBar = &CreateMenuBar(titleBar->InnerWidget());
+				menuBar = &CreateMenuBar(titleBar->Widget());
 				menuBar->Widget().Panel().SetExpandToParentHorizontally();
 				menuBar->Widget().Panel().SetExpandToParentVertically();
 				menuBar->Widget().Panel().SetDesc("Frame.TitleBar.MenuBar");
@@ -143,7 +143,7 @@ namespace GRANON
 
 			if (!rhsTools)
 			{
-				rhsTools = &CreateToolbar(titleBar->InnerWidget());
+				rhsTools = &CreateToolbar(titleBar->Widget());
 				rhsTools->Widget().Panel().SetDesc("Frame.TitleBar.RHS");
 			}
 

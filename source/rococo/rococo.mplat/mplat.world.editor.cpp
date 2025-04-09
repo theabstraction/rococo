@@ -282,7 +282,7 @@ namespace ANON
 
 			ClearFrame(*frame);
 			
-			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().InnerWidget(), 240, true).SetDraggerMinMax(240, 8192);
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().Widget(), 240, true).SetDraggerMinMax(240, 8192);
 
 			frameSplitter.EvOnSplitSizeChanged().Add(
 				[this](int32 newSplitterWidth)
@@ -308,7 +308,7 @@ namespace ANON
 			} popHandler;
 
 			PropertyEditorSpec spec;
-			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().InnerWidget(), popHandler, spec);
+			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().Widget(), popHandler, spec);
 			editorTree.View(visitation);
 			UNUSED(editorTree);
 		}

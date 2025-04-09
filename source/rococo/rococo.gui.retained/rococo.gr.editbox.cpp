@@ -321,7 +321,7 @@ namespace GRANON
 			OnUpdate(EGREditorEventType::SetText);
 		}
 
-		size_t GetCapacity() const override
+		size_t Capacity() const override
 		{
 			return (int32) text.capacity();
 		}

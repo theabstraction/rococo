@@ -22,7 +22,7 @@ namespace GRANON
 
 		}
 
-		IGRWidget& InnerWidget() override
+		IGRWidget& Widget() override
 		{
 			return *this;
 		}

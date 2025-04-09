@@ -41,7 +41,7 @@ namespace GRANON
 			delete this;
 		}
 
-		GRButtonFlags GetButtonFlags() const override
+		GRButtonFlags ButtonFlags() const override
 		{
 			GRButtonFlags flags;
 			flags.forSubMenu = forSubmenu;
@@ -301,7 +301,7 @@ namespace GRANON
 			return *this;
 		}
 
-		GRControlMetaData GetMetaData() override
+		GRControlMetaData MetaData() override
 		{
 			return GRControlMetaData { iMetadata, sMetaData.c_str() };
 		}

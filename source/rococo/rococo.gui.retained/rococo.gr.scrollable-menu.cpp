@@ -16,6 +16,7 @@ namespace GRANON
 		{
 			HString key;
 			HString value;
+			IGRWidgetButton* button;
 		};
 
 		IGRPanel& panel;
@@ -29,6 +30,7 @@ namespace GRANON
 		GRAnchorPadding optionPadding{ 4, 4, 16, 16 };
 
 		IGRWidgetViewport* viewport = nullptr;
+		IGRWidgetVerticalList* verticalList = nullptr;
 		
 		GRScrollableMenu(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -49,12 +51,21 @@ namespace GRANON
 		{
 			viewport = &CreateViewportWidget(*this);
 			viewport->Widget().Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
-			viewport->SetDomainHeight(32 * options.size());
+			viewport->SetDomainHeight(32 * (int) options.size());
+
+			verticalList = &CreateVerticalList(viewport->ClientArea().Widget());
+			verticalList->Widget().Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
 		}
 
 		void AddOption(cstr name, cstr caption) override
 		{
-			options.push_back({ name, caption });
+			options.push_back({ name, caption, nullptr });
+
+			auto& back = options.back();
+			auto* button = back.button = &CreateButton(verticalList->Widget());
+			button->Panel().SetExpandToParentHorizontally();
+			button->Panel().SetConstantHeight(64);
+			button->SetTitle(caption);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent&) override
@@ -91,20 +102,9 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void Render(IGRRenderContext&) override
 		{
-			if (options.empty())
-			{
-				GRAlignmentFlags optionTextAlignment;
-				optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
-
-				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, GRRenderState(0, 0, 0));
-				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), panel.AbsRect(), optionTextAlignment, { 0,0 }, "<no options>"_fstring, colour);
-				return;
-			}
-
-			DrawPanelBackground(panel, g);
-			g.DrawRect(panel.AbsRect(), RGBAb(255, 255, 0, 255));
+			// Viewport expands to the widget area and covers up everything we would render, so our method is empty
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

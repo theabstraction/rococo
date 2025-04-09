@@ -37,6 +37,7 @@ namespace Rococo::Gui
 	DECLARE_ROCOCO_INTERFACE IGRCustodian;
 	DECLARE_ROCOCO_INTERFACE IGRWidgetViewport;
 	DECLARE_ROCOCO_INTERFACE IGRPanelWatcher;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetScrollableMenu;
 
 #pragma pack(push, 1)
 	struct GRCursorClick
@@ -359,6 +360,8 @@ namespace Rococo::Gui
 	{
 		BUTTON_CLICK,
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
+		DROP_DOWN_COLLAPSED, // The drop down control collapsed
+		DROP_DOWN_EXPANDED, // The drop down control expanded
 		USER_DEFINED = 1025
 	};
 
@@ -599,7 +602,7 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRWidget : IGRBase
 	{
-		virtual [[nodiscard]] IGRPanel & Panel() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 
 		virtual cstr GetImplementationTypeName() const = 0;
@@ -705,19 +708,20 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetText : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual int GetTextWidth() const = 0;
+		virtual [[nodiscard]] int TextWidth() const = 0;
 		virtual IGRWidgetText& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetText& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetText& SetText(cstr text) = 0;
 		virtual IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface) = 0;
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetButton : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// Sets the rule by which events are fired
 		virtual IGRWidgetButton& SetClickCriterion(EGRClickCriterion criterion) = 0;
@@ -749,17 +753,17 @@ namespace Rococo::Gui
 		virtual IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 
 		// Returns meta data set with SetMetaData. The pointers are valid until meta data is changed or the control is destroyed
-		virtual GRControlMetaData GetMetaData() = 0;
+		virtual [[nodiscard]] GRControlMetaData MetaData() = 0;
 
-		virtual GRButtonFlags GetButtonFlags() const = 0;
+		virtual [[nodiscard]] GRButtonFlags ButtonFlags() const = 0;
 
 		virtual void MakeToggleButton() = 0;
 
 		virtual void SetStretchImage(bool isStretched) = 0;
 
-		virtual IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 
-		virtual Vec2i ImageSpan() const = 0;
+		virtual [[nodiscard]] Vec2i ImageSpan() const = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetCarousel : IGRBase
@@ -767,8 +771,9 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual void AddOption(cstr name, cstr caption) = 0;
-		virtual IGRPanel& Panel() = 0;
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRWidgetScrollableMenu& DropDown() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetScrollableMenu : IGRBase
@@ -776,15 +781,16 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual void AddOption(cstr name, cstr caption) = 0;
-		virtual IGRPanel& Panel() = 0;
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSlider : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// If minValue > maxValue then the order is reversed. If they match are are not finite, the bar is disabled
 		virtual void SetRange(double minValue, double maxValue) = 0;
@@ -827,7 +833,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetMenuBar : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget & Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual bool AddButton(GRMenuItemId parentMenu, const GRMenuButtonItem& item) = 0;
 		virtual void ClearMenus() = 0;
 		virtual GRMenuItemId AddSubMenu(GRMenuItemId parentMenu, const GRMenuSubMenu& subMenu) = 0;
@@ -841,7 +848,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetToolbar : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// If not left, then alignment is right
 		virtual void SetChildAlignment(EGRAlignment alignment, int32 interChildPadding = 4, int32 borderPadding = 1) = 0;
@@ -855,8 +863,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetDivision : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& InnerWidget() = 0;
-		virtual IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual void SetTransparency(float f = 1.0f) = 0;
 	};
 
@@ -876,7 +884,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetTable : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// Adds a new column and returns the column index of the new column
 		virtual int32 AddColumn(const GRColumnSpec & spec) = 0;
@@ -902,7 +911,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetPropertyEditorTree : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual IGRWidgetViewport& Viewport() = 0;
 		virtual void SetRowHeight(int height) = 0;
 		virtual void View(Reflection::IReflectionVisitation* visitation) = 0;
@@ -911,38 +921,39 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetGameOptions : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
-		virtual IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsBool : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
-		virtual IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual Game::Options::IBoolInquiry& Inquiry() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsChoice : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
-		virtual IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual Game::Options::IChoiceInquiry& Inquiry() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsScalar : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
-		virtual IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual Game::Options::IScalarInquiry& Inquiry() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		virtual IGRWidgetDivision& First() = 0;
 		virtual IGRWidgetDivision& Second() = 0;
@@ -963,7 +974,8 @@ namespace Rococo::Gui
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// The area under the collapser's title bar. Will be of zero area if the collapse button is engaged
 		virtual [[nodiscard]] IGRWidgetDivision& ClientArea() = 0;
@@ -993,6 +1005,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		// The widget for the main frame
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
@@ -1137,7 +1150,8 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRWidgetScroller : IGRBase
 	{
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual GRScrollerMetrics GetMetrics() const = 0;
 		virtual void SetSliderPosition(int32 topPixelDelta) = 0;
 	};
@@ -1150,7 +1164,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetVerticalScrollerWithButtons : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		virtual IGRWidgetButton& BottomButton() = 0;
 		virtual IGRWidgetVerticalScroller& Scroller() = 0;
@@ -1177,25 +1192,28 @@ namespace Rococo::Gui
 		// Values are clamped from 0 to the maximum
 		virtual void SetLineDeltaPixels(int lineDeltaPixels) = 0;
 
-		virtual IGRWidget& Widget() = 0;
-		virtual IGRWidgetDivision& ClientArea() = 0;
-		virtual IGRWidgetVerticalScrollerWithButtons& VScroller() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRWidgetDivision& ClientArea() = 0;
+		virtual [[nodiscard]] IGRWidgetVerticalScrollerWithButtons& VScroller() = 0;
 	};
 
 	// A vertical list that aligns its children vertically
 	ROCOCO_INTERFACE IGRWidgetVerticalList : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetEditBox : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
 		// Returns length of the internal storage, which includes space for the trailing nul character. Never returns < 2, i.e there is always space for one character and a trailing nul
-		virtual size_t GetCapacity() const = 0;
+		virtual [[nodiscard]] size_t Capacity() const = 0;
 		virtual IGRWidgetEditBox& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetEditBox& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetEditBox& SetReadOnly(bool isReadOnly) = 0;
@@ -1208,7 +1226,7 @@ namespace Rococo::Gui
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
 
 		// Returns true if and only if the box is in manual edit mode
-		virtual bool IsEditing() const = 0;
+		virtual [[nodiscard]] bool IsEditing() const = 0;
 	};
 
 	struct IGREditorMicromanager;

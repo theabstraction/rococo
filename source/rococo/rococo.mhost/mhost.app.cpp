@@ -982,7 +982,7 @@ namespace MHost
 
 			platform.graphics.GR.GarbageCollect();
 
-			greatSex->AppendWidgetTreeFromSexML(s, frame->ClientArea().InnerWidget());
+			greatSex->AppendWidgetTreeFromSexML(s, frame->ClientArea().Widget());
 		}
 	};
 }

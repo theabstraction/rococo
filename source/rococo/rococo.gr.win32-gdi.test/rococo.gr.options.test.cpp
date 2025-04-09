@@ -29,7 +29,7 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 
 	BuildUpperRightToolbar(frame);
 
-	auto& optionsList = CreateGameOptionsList(frame.ClientArea().InnerWidget(), options);
+	auto& optionsList = CreateGameOptionsList(frame.ClientArea().Widget(), options);
 	optionsList.Panel().SetExpandToParentHorizontally();
 	optionsList.Panel().SetExpandToParentVertically();
 

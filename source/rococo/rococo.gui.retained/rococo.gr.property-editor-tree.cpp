@@ -772,13 +772,13 @@ namespace GRANON
 
 			GRAlignmentFlags nameAlignment;
 			nameAlignment.Add(EGRAlignment::VCentre).Add(spec.LeftAlignNameplates ? EGRAlignment::Left : EGRAlignment::Right);
-			auto& leftSpacer = CreateDivision(nameCell->InnerWidget());
+			auto& leftSpacer = CreateDivision(nameCell->Widget());
 			leftSpacer.SetTransparency(0);
 			leftSpacer.Panel().SetConstantWidth(spec.LeftHandMargin + spec.LeftHandShiftPerDepth * depth);
 
 			char label[256];
 			Strings::SafeFormat(label, "%s:", field.fieldName.c_str());
-			auto& nameText = CreateText(nameCell->InnerWidget()).SetText(label).SetAlignment(nameAlignment, spec.NameTextSpacing);
+			auto& nameText = CreateText(nameCell->Widget()).SetText(label).SetAlignment(nameAlignment, spec.NameTextSpacing);
 			nameText.SetFont(spec.NameplateFontId);
 			nameText.Widget().Panel().SetExpandToParentHorizontally();
 			nameText.Widget().Panel().SetExpandToParentVertically();
@@ -834,7 +834,7 @@ namespace GRANON
 
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
-			auto& valueText = CreateEditBox(valueCell->InnerWidget(), filter, capacity, spec.ValueFontId).SetAlignment(valueAlignment, spec.EditorCellPadding);
+			auto& valueText = CreateEditBox(valueCell->Widget(), filter, capacity, spec.ValueFontId).SetAlignment(valueAlignment, spec.EditorCellPadding);
 			valueText.Widget().Panel().Set(spec.ValueCellPadding);
 			valueText.Widget().Panel().SetExpandToParentHorizontally();
 			valueText.Widget().Panel().SetExpandToParentVertically();
@@ -905,7 +905,7 @@ namespace GRANON
 			{
 				NameValueControls controls = AddFieldToTable(table, *data.fields[j], rowHeight, depth);
 
-				int nameWidth = controls.name.GetTextWidth();
+				int nameWidth = controls.name.TextWidth();
 				auto* spacer = controls.name.Widget().Panel().Parent()->GetChild(0);
 				const int padding = spacer->Span().x + spec.NamePlateSafeZone;
 				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
@@ -999,7 +999,7 @@ namespace GRANON
 				SafeFormat(title, "root");
 			}
 
-			auto& titleDescription = Rococo::Gui::CreateText(titleDiv.InnerWidget()).SetText(title);
+			auto& titleDescription = Rococo::Gui::CreateText(titleDiv.Widget()).SetText(title);
 			titleDescription.Widget().Panel().SetExpandToParentVertically();
 			titleDescription.Widget().Panel().SetExpandToParentHorizontally();
 			titleDescription.Widget().Panel().Set(spec.TitleDescPadding);
@@ -1016,7 +1016,7 @@ namespace GRANON
 
 			CopyAllColours(titleDescription.Widget().Panel(), titleDescription.Widget().Panel(), EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT, EGRSchemeColourSurface::TEXT);
 			
-			auto& list = CreateVerticalList(collapser.ClientArea().InnerWidget());
+			auto& list = CreateVerticalList(collapser.ClientArea().Widget());
 			list.Widget().Panel().SetExpandToParentHorizontally();
 			list.Widget().Panel().SetExpandToParentVertically();
 			list.Widget().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
@@ -1107,7 +1107,7 @@ namespace GRANON
 			auto& viewport = Viewport();
 			auto* node = previewer.root;
 
-			if (node) SyncUIToPreviewerRecursive(*node, viewport.ClientArea().InnerWidget(), 0);
+			if (node) SyncUIToPreviewerRecursive(*node, viewport.ClientArea().Widget(), 0);
 
 			for (size_t depth = 0; depth < tableByDepth.size(); depth++)
 			{

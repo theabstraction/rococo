@@ -33,7 +33,7 @@ namespace GRANON
 
 		bool IsCollapsed() const override
 		{
-			return collapseButton ? !collapseButton->GetButtonFlags().isRaised : false;
+			return collapseButton ? !collapseButton->ButtonFlags().isRaised : false;
 		}
 
 		void SetExpandClientAreaImagePath(cstr path) override
@@ -98,11 +98,11 @@ namespace GRANON
 			clientArea->Panel().SetExpandToParentHorizontally();
 			clientArea->Panel().SetExpandToParentVertically();
 
-			leftSpacer = &CreateDivision(titleBar->InnerWidget());
+			leftSpacer = &CreateDivision(titleBar->Widget());
 			leftSpacer->Panel().SetConstantWidth(0);
 			leftSpacer->Panel().SetExpandToParentVertically();
 
-			collapseButton = &CreateButton(titleBar->InnerWidget());
+			collapseButton = &CreateButton(titleBar->Widget());
 			collapseButton->Widget().Panel().SetExpandToParentVertically();
 			collapseButton->Widget().Panel().SetConstantWidth(TITLE_BAR_HEIGHT - 4);
 			collapseButton->SetRaisedImagePath(collapserExpandPath);

@@ -6,6 +6,8 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
+	// Note - this is not that much different from a division widget, and was used for vertical layout before
+	// the panels had such layouts embedded in them.
 	struct GRVerticalList : IGRWidgetVerticalList, IGRNavigator, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
@@ -16,6 +18,7 @@ namespace GRANON
 			enforcePositiveChildHeights(_enforcePositiveChildHeights)
 		{
 			owningPanel.SetMinimalSpan({ 10, 10 });
+			owningPanel.SetLayoutDirection(ELayoutDirection::TopToBottom);
 		}
 
 		void Free() override
