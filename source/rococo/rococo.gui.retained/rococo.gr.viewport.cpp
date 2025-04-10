@@ -45,7 +45,7 @@ namespace ANON
 
 		void LayoutBeforeFit() override
 		{
-
+			SetDomainHeight(nextDomain);
 		}
 
 		void LayoutBeforeExpand() override
@@ -260,8 +260,16 @@ namespace ANON
 			DrawPanelBackground(panel, g);
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
+		int nextDomain = 0;
+
+		EGREventRouting OnChildEvent(GRWidgetEvent& ev, IGRWidget&) override
 		{
+			switch (ev.eventType)
+			{
+			case EGRWidgetEventType::UPDATED_HEIGHT:
+				nextDomain = (int) ev.iMetaData;
+				return EGREventRouting::Terminate;
+			}
 			return EGREventRouting::NextHandler;
 		}
 

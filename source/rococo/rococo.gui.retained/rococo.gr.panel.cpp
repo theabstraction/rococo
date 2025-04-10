@@ -224,6 +224,11 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
 				sum += child->Span().x;
 			}
 
@@ -236,6 +241,11 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
 				m = max(child->Span().x, m);
 			}
 
@@ -248,6 +258,11 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
 				sum += child->Span().y;
 			}
 
@@ -260,6 +275,11 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
 				m = max(child->Span().y, m);
 			}
 
@@ -306,6 +326,11 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
 				child->SetPanelLayoutRecursive(phase);
 			}
 		}
@@ -333,6 +358,11 @@ namespace GRANON
 			case ELayoutDirection::LeftToRight:
 				for (auto* child : children)
 				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
 					child->parentOffset.x = dx;
 					child->parentOffset.y = 0;
 					child->SetAbsRectRecursive();
@@ -344,6 +374,12 @@ namespace GRANON
 				for (auto i = children.rbegin(); i != children.rend(); ++i)
 				{
 					auto* child = *i;
+
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
 					dx -= child->span.x;
 					child->parentOffset.x = dx;
 					child->parentOffset.y = 0;
@@ -353,6 +389,11 @@ namespace GRANON
 			case ELayoutDirection::TopToBottom:
 				for (auto* child : children)
 				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
 					child->parentOffset.x = 0;
 					child->parentOffset.y = dy;
 					child->SetAbsRectRecursive();
@@ -383,6 +424,11 @@ namespace GRANON
 
 				for (auto* child : children)
 				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
 					if (child->widthSizing == ESizingRule::ExpandToParent)
 					{
 						nExpandingChildren++;
@@ -398,6 +444,11 @@ namespace GRANON
 				{
 					for (auto* child : children)
 					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
 						if (child->widthSizing == ESizingRule::ExpandToParent)
 						{
 							child->span.x = 0;
@@ -410,6 +461,11 @@ namespace GRANON
 
 					for (auto* child : children)
 					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
 						if (child->widthSizing == ESizingRule::ExpandToParent)
 						{
 							child->span.x = averageSpan;
@@ -422,6 +478,11 @@ namespace GRANON
 			{
 				for (auto* child : children)
 				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
 					if (child->widthSizing == ESizingRule::ExpandToParent)
 					{
 						child->span.x = span.x - padding.left - padding.right;
@@ -446,6 +507,11 @@ namespace GRANON
 
 				for (auto* child : children)
 				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
 					if (child->heightSizing == ESizingRule::ExpandToParent)
 					{
 						nExpandingChildren++;
@@ -463,6 +529,11 @@ namespace GRANON
 				{
 					for (auto* child : children)
 					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
 						if (child->heightSizing == ESizingRule::ExpandToParent)
 						{
 							child->span.y = 0;
@@ -475,6 +546,11 @@ namespace GRANON
 
 					for (auto* child : children)
 					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
 						if (child->heightSizing == ESizingRule::ExpandToParent)
 						{
 							child->span.y = averageSpan;
@@ -487,6 +563,11 @@ namespace GRANON
 			{
 				for (auto* child : children)
 				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
 					if (child->heightSizing == ESizingRule::ExpandToParent)
 					{
 						child->span.y = span.y - padding.top - padding.bottom;
@@ -503,6 +584,11 @@ namespace GRANON
 
 			for (auto* child : children)
 			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
 				child->ExpandToParentRecursive();
 			}
 		}
@@ -511,6 +597,11 @@ namespace GRANON
 		{
 			for (auto* child : children)
 			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
 				child->ShrinkToFitRecursive();
 			}
 
@@ -701,6 +792,11 @@ namespace GRANON
 			return *this;
 		}
 
+		int32 ChildPadding() const override
+		{
+			return childPadding;
+		}
+
 		IGRPanel& SetChildPadding(int32 delta) override
 		{
 			childPadding = delta;
@@ -873,6 +969,10 @@ namespace GRANON
 
 		Vec2i Span() const override
 		{
+			if (isCollapsed)
+			{
+				return { 0,0 };
+			}
 			return span;
 		}
 

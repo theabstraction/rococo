@@ -367,6 +367,7 @@ namespace Rococo::Gui
 		DROP_DOWN_EXPANDED, // The drop down control expanded
 		BUTTON_CLICK_OUTSIDE, // A control captured a mouse click outside of its panel's AbsRect
 		SCROLLER_RELEASED, // A scroll button was released by letting go of the mouse button 
+		UPDATED_HEIGHT, // A control calculated its new height (passed to iMetaData). A handler should cache this and apply during the next layout
 		USER_DEFINED = 1025
 	};
 
@@ -500,6 +501,7 @@ namespace Rococo::Gui
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
 		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
 
+		virtual int32 ChildPadding() const = 0;
 		virtual IGRPanel& SetChildPadding(int32 delta) = 0;
 
 		virtual void MarkForDelete() = 0;

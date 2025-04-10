@@ -84,6 +84,23 @@ namespace GRANON
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::BACKGROUND);
 
 			DrawPanelBackground(panel, rc);
+
+			int nChildren = panel.EnumerateChildren(nullptr);
+
+			if (nChildren > 0)
+			{
+				auto* lastChild = panel.GetChild(nChildren - 1);
+				int domainHeight = lastChild->ParentOffset().y + lastChild->Span().y + panel.ChildPadding();
+
+				GRWidgetEvent updatedDomainHeight;
+				updatedDomainHeight.eventType = EGRWidgetEventType::UPDATED_HEIGHT;
+				updatedDomainHeight.clickPosition = Centre(panel.AbsRect());
+				updatedDomainHeight.iMetaData = domainHeight;
+				updatedDomainHeight.isCppOnly = true;
+				updatedDomainHeight.panelId = panel.Id();
+				updatedDomainHeight.sMetaData = GetImplementationTypeName();
+				panel.NotifyAncestors(updatedDomainHeight, *this);
+			}
 		}
 
 		EGREventRouting OnDropDownCollapsed(IGRWidget& sourceWidget)
