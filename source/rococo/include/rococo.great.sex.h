@@ -38,7 +38,19 @@ namespace Rococo::GreatSex
 		virtual void Free() = 0;
 	};
 
+	struct ColourDirectiveBind
+	{
+		cstr name;
+		Rococo::Gui::EGRSchemeColourSurface surface;
+	};
+
+	ROCOCO_INTERFACE ISEXMLColourSchemeBuilder
+	{
+		virtual void AddColour(cstr id, RGBAb colour, Rococo::Gui::GRRenderState rs) = 0;
+	};
+
 	ROCOCO_GREAT_SEX_API ISEXMLWidgetFactorySupervisor* CreateSchemeHandler();
+	ROCOCO_GREAT_SEX_API ISEXMLWidgetFactorySupervisor* CreateColourHandler(ISEXMLColourSchemeBuilder& builder);
 
 	ROCOCO_INTERFACE IGreatSexGeneratorSupervisor : IGreatSexGenerator
 	{

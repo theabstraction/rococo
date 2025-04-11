@@ -18,44 +18,92 @@
 	(Colour.Container.Background (Red 16)(Green 16)(Blue 16)(Alpha 255))
 	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
 )
-(Div 
-	(Panel.Description "OutermostDiv")
-	(#Recti Panel.Padding 10 10 10 10)
+
+(Colour 
+	(Id Transparent)
 	:
-	(Label
-		(Text "Solution")
-		(Panel.Description "SelectionTreeHeader")
-		(#Recti Panel.Padding 0 0 0 40)
-		(#Vec2i Panel.Span 300 30)
+	(Spec 
+		([] For pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
 	)
 	
-	(VerticalList
-		(Panel.Description "SelectionTreeVList")
-		(#Recti Panel.Padding 0 32 0 0)
-		(#Vec2i Panel.Span 300 0)
+	(Spec 
+		([] For focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For default)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+)
+
+(Div 
+	(Panel.Description "OutermostDiv")
+	(Panel.Layout TopToBottom)
+	([] Panel.Expand H V)
+	(#Recti Panel.Padding 10 10 10 10)
+	:
+	
+	(Label
+		(Text "Options")
+		(#Recti Panel.Padding 0 0 0 0)
+		(Panel.FixedHeight 30)
+		([] Panel.Expand H)
 	)
 	
 	(Div 
-		(Panel.Description "MainSlate")
-		(#Recti Panel.Padding 302 0 0 0)
+		(Panel.Description "OptionsTabs")
+		(Panel.Layout LeftToRight)
+		(Colour.Container.Background Transparent)
+		([] Panel.Expand H)
+		(Panel.FixedHeight 30)
+		(#Recti Panel.Padding 0 0 0 0)
 		:
-		(Toolbar 
-			(#Recti Panel.Padding 2 2 0 2)
-			(#Vec2i Panel.Span 0 60)
+		
+		(Button
+			(Panel.Description "Cancel-Button")
+			(#Vec2i Panel.Span 60 30)
+			(#Recti Panel.Padding 236 0 0 4)
+			(Text Gameplay)	
 		)
-	)
-	
-	(Button
-		(Panel.Description "OK-Button")
-		(#Vec2i Panel.Span 60 30)
-		(#Recti Panel.Padding 4 0 0 4)
-		(Text OK)
-	)
-	
-	(Button
-		(Panel.Description "Cancel-Button")
-		(#Vec2i Panel.Span 60 30)
-		(#Recti Panel.Padding 236 0 0 4)
-		(Text Cancel)	
+		
+		(Button
+			(#Vec2i Panel.Span 60 30)
+			(#Recti Panel.Padding 4 0 0 4)
+			(Text Graphics)
+		)
+		
+		(Button
+			(Panel.Description "Cancel-Button")
+			(#Vec2i Panel.Span 60 30)
+			(#Recti Panel.Padding 236 0 0 4)
+			(Text Sound)	
+		)
 	)
 )

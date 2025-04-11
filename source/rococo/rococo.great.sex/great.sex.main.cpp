@@ -18,13 +18,22 @@ using namespace Rococo::Strings;
 
 namespace Rococo::GreatSex
 {
+	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements);
+
 	namespace Implementation
 	{
-		struct GreatSexGenerator : IGreatSexGeneratorSupervisor
+		struct ColourBinding
+		{
+			GRRenderState rs;
+			RGBAb colour;
+		};
+
+		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder
 		{
 			// Widget Handlers, defined first
 			DivisionFactory onDivision;
 			AutoFree<ISEXMLWidgetFactorySupervisor> onScheme;
+			AutoFree<ISEXMLWidgetFactorySupervisor> onColour;
 			VerticalListFactory onVerticalList;
 			TextLabelFactory onTextLabel;
 			ButtonFactory onButton;
@@ -38,14 +47,30 @@ namespace Rococo::GreatSex
 
 			stringmap<MethodForAttribute> attributeHandlers;
 
-			GreatSexGenerator(IAllocator& _sexmlAllocator) : onScheme(CreateSchemeHandler()), sexmlAllocator(_sexmlAllocator)
+			stringmap<std::vector<ColourBinding>> colourSpecs;
+
+			stringmap<EGRSchemeColourSurface> nameToColourSurface;
+
+			GreatSexGenerator(IAllocator& _sexmlAllocator) :
+				onScheme(CreateSchemeHandler()),
+				onColour(CreateColourHandler(*this)),
+				sexmlAllocator(_sexmlAllocator)
 			{
+				AddHandler("Colour", *onColour);
 				AddHandler("Button", onButton);
 				AddHandler("Div", onDivision);
 				AddHandler("Scheme", *onScheme);
 				AddHandler("VerticalList", onVerticalList);
 				AddHandler("Label", onTextLabel);
 				AddHandler("Toolbar", onToolbar);
+
+				size_t nElements;
+				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
+
+				for (size_t i = 0; i < nElements; i++)
+				{
+					nameToColourSurface.insert(bindings[i].name, bindings[i].surface);
+				}
 			}
 
 			virtual ~GreatSexGenerator()
@@ -148,7 +173,19 @@ namespace Rococo::GreatSex
 			void OnAttribute_Span(IGRPanel& panel, const ISEXMLAttributeValue& value)
 			{
 				Vec2i initialSpan = SEXML::AsVec2i(value);
-				panel.Resize(initialSpan);
+				panel.SetConstantSpan(initialSpan);
+			}
+
+			void OnAttribute_FixedHeight(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				int height = SEXML::AsAtomicInt32(value);
+				panel.SetConstantHeight(height);
+			}
+
+			void OnAttribute_FixedWidth(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				int width = SEXML::AsAtomicInt32(value);
+				panel.SetConstantWidth(width);
 			}
 
 			void OnAttribute_SpanMin(IGRPanel& panel, const ISEXMLAttributeValue& value)
@@ -187,6 +224,89 @@ namespace Rococo::GreatSex
 				panel.Set(GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom });
 			}
 
+			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
+			{
+				if (Eq(item, "Horizontal") || Eq(item, "H"))
+				{
+					panel.SetExpandToParentHorizontally();
+				}
+				else if (Eq(item, "Vertical") || Eq(item, "V"))
+				{
+					panel.SetExpandToParentVertically();
+				}
+				else
+				{
+					Throw(source, "Unknown expansion argument. Expecting one of H, V, Horizontal, Vertical");
+				}
+			}
+
+			void OnAttribute_Expand(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				if (value.S().NumberOfElements() == 2)
+				{
+					ParseExpansion(panel, AsString(value).c_str(), value.S());
+				}
+				else
+				{
+					auto& list = AsStringList(value);
+					size_t nElements = list.NumberOfElements();
+					for (size_t i = 0; i < nElements; i++)
+					{
+						cstr item = list[i];
+						ParseExpansion(panel, item, list.S()[(int) i + 2]);
+					}
+				}
+			}
+
+			void OnAttribute_Layout(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				auto& avLayout = AsString(value);
+				cstr sLayout = avLayout.c_str();
+
+				ELayoutDirection layout = ELayoutDirection::None;
+				
+				if (Eq(sLayout, "None"))
+				{
+				}
+				else if (Eq(sLayout, "LeftToRight"))
+				{
+					layout = ELayoutDirection::LeftToRight;
+				}
+				else if (Eq(sLayout, "TopToBottom"))
+				{
+					layout = ELayoutDirection::TopToBottom;
+				}
+				else if (Eq(sLayout, "RightToLeft"))
+				{
+					layout = ELayoutDirection::RightToLeft;
+				}
+				else if (Eq(sLayout, "BottomToTop"))
+				{
+					layout = ELayoutDirection::BottomToTop;
+				}
+				else
+				{
+					Throw(value.S(), "Could not interpret %s as a layout. Permitted values are: None, LeftToRight, TopToBottom, RightToLeft, BottomToTop", sLayout);
+				}
+
+				panel.SetLayoutDirection(layout);
+			}
+
+			void OnAttributePrefix_Colour(IGRPanel& panel, cstr name, const ISEXMLAttributeStringValue& value)
+			{
+				auto i = nameToColourSurface.find(name);
+				if (i == nameToColourSurface.end())
+				{
+					Throw(value.S(), "No such colour surface: %s", name);
+				}
+
+				auto spec = colourSpecs.find(value.c_str());
+				for (auto& colourSpec : spec->second)
+				{
+					panel.Set(i->second, colourSpec.colour, colourSpec.rs);
+				}
+			}
+
 			void SetPanelAttributes(IGRWidget& widget, const ISEXMLDirective& widgetDirective) override
 			{
 				auto& panel = widget.Panel();
@@ -196,17 +316,26 @@ namespace Rococo::GreatSex
 				{
 					attributeHandlers["Panel.Offset"] = &GreatSexGenerator::OnAttribute_Offset;
 					attributeHandlers["Panel.Span"] = &GreatSexGenerator::OnAttribute_Span;
+					attributeHandlers["Panel.FixedWidth"] = &GreatSexGenerator::OnAttribute_FixedWidth;
+					attributeHandlers["Panel.FixedHeight"] = &GreatSexGenerator::OnAttribute_FixedHeight;
 					attributeHandlers["Panel.Span.Min"] = &GreatSexGenerator::OnAttribute_SpanMin;
 					attributeHandlers["Panel.Description"] = &GreatSexGenerator::OnAttribute_Description;
 					attributeHandlers["Panel.CanFocus"] = &GreatSexGenerator::OnAttribute_CanFocus;
 					attributeHandlers["Panel.TabsCycle"] = &GreatSexGenerator::OnAttribute_TabsCycle;
 					attributeHandlers["Panel.Padding"] = &GreatSexGenerator::OnAttribute_Padding;
+					attributeHandlers["Panel.Layout"] = &GreatSexGenerator::OnAttribute_Layout;
+					attributeHandlers["Panel.Expand"] = &GreatSexGenerator::OnAttribute_Expand;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)
 				{
 					auto& a = widgetDirective.GetAttributeByIndex(i);
 					cstr name = a.Name();
+
+					if (StartsWith(name, "Colour."))
+					{
+						OnAttributePrefix_Colour(panel, name, AsString(a.Value()));
+					}
 
 					if (!StartsWith(name, "Panel."))
 					{
@@ -240,6 +369,17 @@ namespace Rococo::GreatSex
 						Throw(a.S(), "%s", err);
 					}
 				}
+			}
+
+			void AddColour(cstr id, RGBAb colour, GRRenderState rs) override
+			{
+				auto i = colourSpecs.find(id);
+				if (i == colourSpecs.end())
+				{
+					i = colourSpecs.insert(id, std::vector<ColourBinding>()).first;
+				}
+
+				i->second.push_back({ rs, colour });
 			}
 		};
 	}

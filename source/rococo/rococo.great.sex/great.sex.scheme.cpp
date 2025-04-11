@@ -48,11 +48,7 @@ namespace Rococo::GreatSex
 		return false;
 	}
 
-	struct ColourDirectiveBind
-	{
-		cstr name;
-		EGRSchemeColourSurface surface;
-	} colourDirectiveBindings[] =
+	const ColourDirectiveBind colourDirectiveBindings[] =
 	{
 		{"Colour.Background", EGRSchemeColourSurface::BACKGROUND },
 		{"Colour.Button", EGRSchemeColourSurface::BUTTON },
@@ -92,6 +88,12 @@ namespace Rococo::GreatSex
 		{"Colour.Splitter.Background", EGRSchemeColourSurface::SPLITTER_BACKGROUND },
 		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE }
 	};
+
+	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)
+	{
+		nElements = sizeof(colourDirectiveBindings) / sizeof ColourDirectiveBind;
+		return colourDirectiveBindings;
+	}
 
 	void ApplyToRenderState(const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget)
 	{
