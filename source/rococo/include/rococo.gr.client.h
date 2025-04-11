@@ -36,7 +36,9 @@ namespace Rococo
 
 			virtual IGRSystem& GRSystem() = 0;
 
-			virtual void LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) = 0;
+			// Tries to load a frame specified by the great sex sexml File into the parent widget.
+			// If it fails the client window displays the error and returns false, else it returns true
+			virtual bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) = 0;
 		};
 	}
 }

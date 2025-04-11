@@ -1834,7 +1834,7 @@ namespace GRANON
 			}
 		}
 
-		void LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) override
+		bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) override
 		{
 			AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(64, 0, "GreatSexAllocator");
 			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(*allocator);
@@ -1842,10 +1842,9 @@ namespace GRANON
 			Auto<ISParser> sParser = Sex::CreateSexParser_2_0(*allocator);
 			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_kilobytes);
 
-			cstr name = "!tests/greatsex.test.sexml";
-			Installation().LoadResource(name, *buffer, 16_megabytes);
+			Installation().LoadResource(sexmlFile, *buffer, 16_megabytes);
 
-			Auto<ISourceCode> src = sParser->ProxySourceBuffer((cstr)buffer->GetData(), (int)buffer->Length(), { 0,0 }, name, nullptr);
+			Auto<ISourceCode> src = sParser->ProxySourceBuffer((cstr)buffer->GetData(), (int)buffer->Length(), { 0,0 }, sexmlFile, nullptr);
 
 			try
 			{
@@ -1853,12 +1852,14 @@ namespace GRANON
 				cr_sex s = tree->Root();
 
 				greatSex->AppendWidgetTreeFromSexML(s, parentWidget);
+
+				return true;
 			}
 			catch (ParseException& pex)
 			{
 				ShowError(pex.Start(), pex.End(), pex.Name(), (cstr)buffer->GetData(), pex.Message());
+				return false;
 			}
-
 		}
 
 		void QueuePaint() override
