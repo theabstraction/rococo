@@ -54,8 +54,6 @@ void TestGreatSex(IGRClientWindow& client, IGRSystem& gr, IO::IInstallation& ins
 	}
 	catch (ParseException& pex)
 	{
-		pex.Start();
-		pex.End();
 		client.ShowError(pex.Start(), pex.End(), pex.Name(), (cstr) buffer->GetData(), pex.Message());
 	}
 

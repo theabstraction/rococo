@@ -20,31 +20,26 @@
 )
 (Div 
 	(Panel.Description "OutermostDiv")
-	([] Panel.Anchors left right hexpand top bottom vexpand) 
 	(#Recti Panel.Padding 10 10 10 10)
 	:
 	(Label
 		(Text "Solution")
 		(Panel.Description "SelectionTreeHeader")
-		([] Panel.Anchors left top vexpand) 
 		(#Recti Panel.Padding 0 0 0 40)
 		(#Vec2i Panel.Span 300 30)
 	)
 	
 	(VerticalList
 		(Panel.Description "SelectionTreeVList")
-		([] Panel.Anchors left top bottom vexpand) 
 		(#Recti Panel.Padding 0 32 0 0)
 		(#Vec2i Panel.Span 300 0)
 	)
 	
 	(Div 
 		(Panel.Description "MainSlate")
-		([] Panel.Anchors left right hexpand top bottom vexpand) 
 		(#Recti Panel.Padding 302 0 0 0)
 		:
 		(Toolbar 
-			([] Panel.Anchors left right hexpand top) 
 			(#Recti Panel.Padding 2 2 0 2)
 			(#Vec2i Panel.Span 0 60)
 		)
@@ -52,7 +47,6 @@
 	
 	(Button
 		(Panel.Description "OK-Button")
-		([] Panel.Anchors left bottom) 
 		(#Vec2i Panel.Span 60 30)
 		(#Recti Panel.Padding 4 0 0 4)
 		(Text OK)
@@ -60,7 +54,6 @@
 	
 	(Button
 		(Panel.Description "Cancel-Button")
-		([] Panel.Anchors left bottom) 
 		(#Vec2i Panel.Span 60 30)
 		(#Recti Panel.Padding 236 0 0 4)
 		(Text Cancel)	
