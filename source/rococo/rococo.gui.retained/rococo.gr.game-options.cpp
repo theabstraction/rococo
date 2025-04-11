@@ -93,7 +93,7 @@ namespace GRANON
 				int domainHeight = lastChild->ParentOffset().y + lastChild->Span().y + panel.ChildPadding();
 
 				GRWidgetEvent updatedDomainHeight;
-				updatedDomainHeight.eventType = EGRWidgetEventType::UPDATED_HEIGHT;
+				updatedDomainHeight.eventType = EGRWidgetEventType::UPDATED_CLIENTAREA_HEIGHT;
 				updatedDomainHeight.clickPosition = Centre(panel.AbsRect());
 				updatedDomainHeight.iMetaData = domainHeight;
 				updatedDomainHeight.isCppOnly = true;

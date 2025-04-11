@@ -266,7 +266,7 @@ namespace ANON
 		{
 			switch (ev.eventType)
 			{
-			case EGRWidgetEventType::UPDATED_HEIGHT:
+			case EGRWidgetEventType::UPDATED_CLIENTAREA_HEIGHT:
 				nextDomain = (int) ev.iMetaData;
 				return EGREventRouting::Terminate;
 			}

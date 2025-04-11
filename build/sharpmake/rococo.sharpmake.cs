@@ -854,7 +854,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoGRGDIProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<RococoGuiRetainedProject>(target);
+            conf.AddPublicDependency<RococoGreatSexProject>(target);
         }
     }
 

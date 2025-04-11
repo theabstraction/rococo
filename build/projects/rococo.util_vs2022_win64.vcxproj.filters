@@ -11,13 +11,13 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.package.zip.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.parsering.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.reflection.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.sequences.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.strings.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.tables.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.throw.cr_sex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.windows.ide.stdout.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\sha256.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.reflection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />

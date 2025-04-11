@@ -3,9 +3,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\dllmain.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.button.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.carousel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.collapser.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.division.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.editbox.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.bool.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.choice.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.scalar.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.layout.fullscreen.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.mainframe.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.memory.cpp" />
@@ -13,6 +18,8 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.panel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.property-editor-tree.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.scheme.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.scrollable-menu.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.slider.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.splitter.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.system.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.table.cpp" />
@@ -22,13 +29,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.with.buttons.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.viewport.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.bool.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.choice.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.scalar.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.slider.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.carousel.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.scrollable-menu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\source\rococo\rococo.gui.retained\gr.natvis" />

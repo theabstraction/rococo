@@ -52,6 +52,9 @@ void RunMessageLoop(IGRClientWindow& client)
 	}
 }
 
+void TestGreatSex(IGRClientWindow& client);
+void TestPropertyEditor(IGRClientWindow& client);
+
 int MainProtected()
 {
 	GR::Win32::GRMainFrameConfig config;
@@ -60,7 +63,9 @@ int MainProtected()
 
 	client.LinkScene(TestScene());
 
-	TestWidgets(client);
+	TestGreatSex(client);
+	// TestPropertyEditor(client);
+	// TestWidgets(client);
 
 	return 0;
 }
