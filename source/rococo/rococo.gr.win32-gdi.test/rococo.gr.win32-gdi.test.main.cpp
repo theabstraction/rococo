@@ -52,7 +52,7 @@ void RunMessageLoop(IGRClientWindow& client)
 	}
 }
 
-void TestGreatSex(IGRClientWindow& client);
+void TestGreatSex(IGRClientWindow& client, IO::IInstallation& installation);
 void TestPropertyEditor(IGRClientWindow& client);
 
 int MainProtected()
@@ -63,7 +63,11 @@ int MainProtected()
 
 	client.LinkScene(TestScene());
 
-	TestGreatSex(client);
+	auto& gdiClient = static_cast<GR::Win32::IGRGDIClientWindow&>(client);
+
+	IO::IInstallation& installation = gdiClient.Installation();
+
+	TestGreatSex(client, installation);
 	// TestPropertyEditor(client);
 	// TestWidgets(client);
 

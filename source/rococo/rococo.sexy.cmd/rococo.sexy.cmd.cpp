@@ -741,7 +741,7 @@ int mainProtected(int argc, char* argv[])
 	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
 	AutoFree<IO::IInstallationSupervisor> installation = new CmdInstallation(installationPath);
 	
-	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16384, 0, "sexy-cmd");
+	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(16384 /* 16 meg */, 0, "sexy-cmd");
 	AutoFree<ISourceCache> sourceCache(CreateSourceCache(*installation, *allocator, true));
 
 	ScriptContext sc(*installation, *sourceCache, argc, argv);

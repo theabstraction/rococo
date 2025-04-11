@@ -27,6 +27,8 @@
 #include <gdiplus.h>
 #pragma comment (lib,"Gdiplus.lib")
 
+#include <Richedit.h>
+
 using namespace Rococo;
 using namespace Rococo::GR;
 using namespace Rococo::GR::Win32;
@@ -816,10 +818,7 @@ namespace GRANON
 			format += DT_NOCLIP;
 
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
-
-			RECT calcRect = *reinterpret_cast<RECT*>(&rect);
-			DrawTextA(paintDC, text, text.length, &calcRect, format | DT_CALCRECT);
-			int height = DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
+			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
 			SetTextColor(paintDC, oldColour);
 		}
 
@@ -1279,6 +1278,11 @@ namespace GRANON
 			return *this;
 		}
 
+		IO::IInstallation& Installation() override
+		{
+			return *installation;
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -1471,6 +1475,9 @@ namespace GRANON
 		HBITMAP hBackBuffer = 0;
 		Vec2i lastSpan{ 0,0 };
 
+		HWND hErrorWnd = 0;
+		HWND hMessageWnd = 0;
+
 		static void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 		{
 			classDef = { 0 };
@@ -1505,6 +1512,11 @@ namespace GRANON
 		void OnPaint()
 		{
 			UsePaint paint(hWnd);
+
+			if (hErrorWnd)
+			{
+				return;
+			}
 
 			if (!hMemDC)
 			{
@@ -1604,7 +1616,7 @@ namespace GRANON
 			RAWINPUT& raw = *((RAWINPUT*)buffer);
 			RAWINPUT* pRaw = &raw;
 
-			if (hasFocus)
+			if (hasFocus && hErrorWnd == 0)
 			{
 				if (raw.header.dwType == RIM_TYPEMOUSE)
 				{
@@ -1670,6 +1682,17 @@ namespace GRANON
 			hasFocus = false;
 		}
 
+		void OnSize(WPARAM, LPARAM)
+		{
+			RECT clientRect;
+			if (hErrorWnd && GetClientRect(hWnd, &clientRect))
+			{
+				int messageHeight = 100;
+				MoveWindow(hMessageWnd, 0, 0, clientRect.right, messageHeight, TRUE);
+				MoveWindow(hErrorWnd, 0, messageHeight, clientRect.right, clientRect.bottom - messageHeight, TRUE);
+			}
+		}
+
 		static LRESULT GDIProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			auto* This = reinterpret_cast<GRClientWindow*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
@@ -1692,8 +1715,11 @@ namespace GRANON
 				case WM_INPUT:
 					This->OnRawInput(wParam, lParam);
 					break;
+				case WM_SIZE:
+					This->OnSize(wParam, lParam);
+					return 0L;
 				case WM_TIMER:
-					InvalidateRect(hWnd, NULL, FALSE);
+					if (!This->hErrorWnd) InvalidateRect(hWnd, NULL, FALSE);
 					break;
 				}
 			}
@@ -1718,6 +1744,16 @@ namespace GRANON
 
 		virtual ~GRClientWindow()
 		{
+			if (hErrorWnd)
+			{
+				DestroyWindow(hErrorWnd);
+			}
+
+			if (hErrFont)
+			{
+				DeleteObject(hErrFont);
+			}
+
 			if (hBackBuffer)
 			{
 				DeleteObject(hBackBuffer);
@@ -1815,9 +1851,171 @@ namespace GRANON
 			return hWnd;
 		}
 
+		IO::IInstallation& Installation() override
+		{
+			return gdiCustodian->Installation();
+		}
+
 		void Free() override
 		{
 			delete this;
+		}
+
+		struct Err
+		{
+			Vec2i origin;
+			Vec2i start;
+			Vec2i end;
+			Strings::HString sourceBuffer;
+			Strings::HString message;
+		} err;
+
+		HFONT hErrFont = NULL;
+
+		void Hilight(const Vec2i& start, const Vec2i& end, COLORREF backColour, COLORREF foreColour)
+		{
+			int startIndex = (int)SendMessage(hErrorWnd, EM_LINEINDEX, start.y, 0) + start.x;
+			int endIndex = (int)SendMessage(hErrorWnd, EM_LINEINDEX, end.y, 0) + end.x;
+
+			SendMessage(hErrorWnd, EM_SETSEL, startIndex, endIndex);
+
+			CHARFORMAT2W format;
+			ZeroMemory(&format, sizeof(format));
+			format.cbSize = sizeof(format);
+			format.dwMask = CFM_BOLD | CFM_COLOR | CFM_BACKCOLOR;
+			format.dwEffects = CFE_BOLD;
+			format.crTextColor = foreColour;
+			format.crBackColor = backColour;
+
+			SendMessage(hErrorWnd, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&format);
+
+			SendMessage(hErrorWnd, EM_SETSEL, endIndex, endIndex);
+			SendMessage(hErrorWnd, EM_SCROLLCARET, 0, 0);
+		}
+
+		void ShowError(Vec2i start, Vec2i end, cstr nameRef, cstr sourceBuffer, cstr message) override
+		{
+			err.start = start;
+			err.end = end;
+			err.sourceBuffer = sourceBuffer;
+			err.message = message;
+
+			if (hErrorWnd == nullptr)
+			{
+				cstr dllName = "Riched20.dll";
+				if (!LoadLibraryA(dllName))
+				{
+					Throw(GetLastError(), "Unable to load %s", dllName);
+				}
+
+				auto hInstance = GetModuleHandleA(NULL);
+
+				RECT clientRect;
+				GetClientRect(hWnd, &clientRect);
+
+				int messageHeight = 100;
+
+				DWORD style = ES_MULTILINE | ES_READONLY;
+				DWORD exstyle = WS_EX_CLIENTEDGE;
+				hErrorWnd = CreateWindowExW(exstyle, L"RichEdit20W", L"", style | WS_VISIBLE | WS_CHILD, 0, messageHeight, clientRect.right, clientRect.bottom - messageHeight, hWnd, NULL, hInstance, 0);
+
+				if (hErrorWnd == nullptr)
+				{
+					Throw(GetLastError(), "Unable to create rich edit window");
+				}
+
+				if (hErrFont == NULL)
+				{
+					hErrFont = CreateFontA(-12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Consolas");
+				}
+
+				SendMessage(hErrorWnd, WM_SETFONT, (WPARAM)hErrFont, TRUE);
+				SendMessage(hErrorWnd, EM_SHOWSCROLLBAR, SB_VERT, TRUE);
+
+				AppendText(hErrorWnd, RGB(0, 0, 0), RGB(255, 255, 255), err.sourceBuffer, strlen(err.sourceBuffer));
+
+				Hilight(start, end, RGB(224, 224, 224), RGB(128, 0, 0));
+
+				hMessageWnd = CreateWindowExW(exstyle, L"RichEdit20W", L"", style | WS_VISIBLE | WS_CHILD, 0, 0, clientRect.right, messageHeight, hWnd, NULL, hInstance, 0);
+
+				if (hMessageWnd == nullptr)
+				{
+					Throw(GetLastError(), "Unable to create rich edit window");
+				}
+
+				SendMessage(hMessageWnd, WM_SETFONT, (WPARAM)hErrFont, TRUE);
+				SendMessage(hMessageWnd, EM_SHOWSCROLLBAR, SB_VERT, TRUE);
+				SendMessage(hMessageWnd, EM_SETBKGNDCOLOR, 0, RGB(255, 255, 0));
+
+				char prompt[256];
+				Strings::SafeFormat(prompt, "Error in: %s\n line %d pos %d to line %d pos %d:\n", nameRef, start.y, start.x, end.y, end.x);
+				AppendText(hMessageWnd, RGB(0, 0, 64), RGB(255, 255, 0), prompt, strlen(prompt));
+				AppendText(hMessageWnd, RGB(0, 0, 0), RGB(255, 255, 0), err.message, strlen(err.message));
+
+				int32 y = (int32)SendMessage(hErrorWnd, EM_GETFIRSTVISIBLELINE, 0, 0);
+				SendMessage(hErrorWnd, EM_LINESCROLL, 0, -y);
+				SendMessage(hErrorWnd, EM_LINESCROLL, 0, start.y > 2 ? start.y -1 : 0 );
+			}
+		}
+
+		void ResetContent()
+		{
+			DestroyWindow(hErrorWnd);
+			hErrorWnd = nullptr;
+		}
+
+		void AppendText(HWND hErrorWnd, COLORREF foreground, COLORREF background, cstr text, size_t nChars)
+		{
+			CHARFORMAT2 c;
+			memset(&c, 0, sizeof(c));
+			c.cbSize = sizeof(c);
+			c.dwMask = CFM_COLOR | CFM_BACKCOLOR;
+			c.crBackColor = background;
+			c.crTextColor = foreground;
+
+			CHARRANGE cr;
+			cr.cpMin = -1;
+			cr.cpMax = -1;
+
+			size_t len = min(strlen(text), nChars);
+
+			const char* source = text;
+
+			while (len > 0)
+			{
+				enum { SEGMENT_CAPACITY = 4096 };
+				char segmentBuffer[SEGMENT_CAPACITY];
+
+				size_t delta = (len >= SEGMENT_CAPACITY) ? SEGMENT_CAPACITY - 1 : len;
+
+				memcpy(segmentBuffer, source, delta);
+				segmentBuffer[delta] = 0;
+				source += delta;
+				len -= delta;
+
+				SendMessage(hErrorWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+
+				CHARRANGE rangeBeforeAppend;
+				rangeBeforeAppend.cpMin = -1; // This will give the starting character for the range of added characters
+				rangeBeforeAppend.cpMax = -1;
+				SendMessage(hErrorWnd, EM_GETSEL, (WPARAM)&rangeBeforeAppend.cpMin, (LPARAM)&rangeBeforeAppend.cpMax);
+
+				SendMessage(hErrorWnd, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
+
+				CHARRANGE rangeAfterAppend;
+				rangeAfterAppend.cpMin = -1;
+				rangeAfterAppend.cpMax = -1; // This will give the end character positiion for the range of added characters
+				SendMessage(hErrorWnd, EM_GETSEL, (WPARAM)&rangeAfterAppend.cpMin, (LPARAM)&rangeAfterAppend.cpMax);
+
+				// Select everything we just added
+				CHARRANGE cr4;
+				cr4.cpMin = rangeBeforeAppend.cpMin;
+				cr4.cpMax = rangeAfterAppend.cpMax;
+				SendMessage(hErrorWnd, EM_EXSETSEL, 0, (LPARAM)&cr4);
+
+				// Then assign the colours
+				SendMessage(hErrorWnd, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
+			}
 		}
 	};
 

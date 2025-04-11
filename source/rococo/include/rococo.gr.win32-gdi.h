@@ -33,6 +33,7 @@ namespace Rococo::GR::Win32
 	ROCOCO_INTERFACE IWin32GDICustodianSupervisor
 	{
 		virtual Gui::IGRCustodian& Custodian() = 0;
+		virtual IO::IInstallation& Installation() = 0;
 		virtual void OnPaint(IGR2DScene& scene, HWND hWnd, HDC paintDC) = 0;
 		virtual void RenderGui(Gui::IGRSystem& gr, HWND hWnd, HDC paintDC) = 0;
 		virtual void RouteKeyboardEvent(const KeyboardEvent& key, Gui::IGRSystem& gr) = 0;
@@ -53,6 +54,7 @@ namespace Rococo::GR::Win32
 	ROCOCO_INTERFACE IGRGDIClientWindow: Gui::IGRClientWindow
 	{
 		virtual operator HWND () = 0;
+		virtual IO::IInstallation& Installation() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRGDIClientWindowSupervisor : IGRGDIClientWindow

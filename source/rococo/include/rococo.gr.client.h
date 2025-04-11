@@ -31,6 +31,8 @@ namespace Rococo
 			// Triggers WM_PAINT as soon as the message queue is free
 			virtual void QueuePaint() = 0;
 
+			virtual void ShowError(Vec2i start, Vec2i end, cstr nameRef, cstr sourceBuffer, cstr message) = 0;
+
 			virtual IGRSystem& GRSystem() = 0;
 		};
 	}
