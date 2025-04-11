@@ -19,7 +19,8 @@
 #include <rococo.time.h>
 #include <sexy.types.h>
 #include <rococo.time.h>
-
+#include <rococo.great.sex.h>
+#include <Sexy.S-Parser.h>
 #include <vector>
 
 #pragma comment(lib, "Msimg32.lib")
@@ -33,6 +34,8 @@ using namespace Rococo;
 using namespace Rococo::GR;
 using namespace Rococo::GR::Win32;
 using namespace Rococo::Gui;
+using namespace Rococo::GreatSex;
+using namespace Rococo::Sex;
 using namespace Gdiplus;
 
 namespace GRANON
@@ -1831,6 +1834,33 @@ namespace GRANON
 			}
 		}
 
+		void LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) override
+		{
+			AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(64, 0, "GreatSexAllocator");
+			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(*allocator);
+
+			Auto<ISParser> sParser = Sex::CreateSexParser_2_0(*allocator);
+			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_kilobytes);
+
+			cstr name = "!tests/greatsex.test.sexml";
+			Installation().LoadResource(name, *buffer, 16_megabytes);
+
+			Auto<ISourceCode> src = sParser->ProxySourceBuffer((cstr)buffer->GetData(), (int)buffer->Length(), { 0,0 }, name, nullptr);
+
+			try
+			{
+				Auto<ISParserTree> tree = sParser->CreateTree(*src);
+				cr_sex s = tree->Root();
+
+				greatSex->AppendWidgetTreeFromSexML(s, parentWidget);
+			}
+			catch (ParseException& pex)
+			{
+				ShowError(pex.Start(), pex.End(), pex.Name(), (cstr)buffer->GetData(), pex.Message());
+			}
+
+		}
+
 		void QueuePaint() override
 		{
 			InvalidateRect(hWnd, NULL, TRUE);
@@ -1863,9 +1893,9 @@ namespace GRANON
 
 		struct Err
 		{
-			Vec2i origin;
-			Vec2i start;
-			Vec2i end;
+			Vec2i origin{ 0,0 };
+			Vec2i start{ 0,0 };
+			Vec2i end{ 0,0 };
 			Strings::HString sourceBuffer;
 			Strings::HString message;
 		} err;

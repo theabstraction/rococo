@@ -835,6 +835,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
+            conf.AddPublicDependency<RococoGreatSexProject>(target);
         }
     }
 
@@ -854,7 +855,6 @@ namespace Rococo
             conf.AddPublicDependency<RococoGRGDIProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<RococoGreatSexProject>(target);
         }
     }
 

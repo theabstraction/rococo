@@ -4,6 +4,7 @@
 namespace Rococo::Gui
 {
 	DECLARE_ROCOCO_INTERFACE IGRRenderContext;
+	DECLARE_ROCOCO_INTERFACE IGRWidget;
 }
 
 namespace Rococo
@@ -34,6 +35,8 @@ namespace Rococo
 			virtual void ShowError(Vec2i start, Vec2i end, cstr nameRef, cstr sourceBuffer, cstr message) = 0;
 
 			virtual IGRSystem& GRSystem() = 0;
+
+			virtual void LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) = 0;
 		};
 	}
 }
