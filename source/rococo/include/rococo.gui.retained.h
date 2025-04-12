@@ -435,6 +435,8 @@ namespace Rococo::Gui
 
 		// the Gui Retained object that houses the root
 		virtual IGRSystem& GR() = 0;
+
+		virtual Vec2i ScreenDimensions() const = 0;
 	};
 
 	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom

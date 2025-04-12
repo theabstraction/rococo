@@ -164,6 +164,11 @@ namespace ANON
 			return *scheme;
 		}
 
+		Vec2i ScreenDimensions() const override
+		{
+			return Span(screenDimensions);
+		}
+
 		IGRWidgetMainFrame* FindFrame(GRIdWidget id) override
 		{
 			for (auto& d : frameDescriptors)
@@ -216,6 +221,8 @@ namespace ANON
 			deferredRenderQueue.push_back(&panel);
 		}
 
+		GuiRect screenDimensions{ 0,0,0,0 };
+
 		void RenderAllFrames(IGRRenderContext& g) override
 		{
 			lastRenderedCursorPosition = g.CursorHoverPoint();
@@ -228,7 +235,7 @@ namespace ANON
 
 			RecursionGuard guard(*this);
 
-			auto screenDimensions = g.ScreenDimensions();
+			screenDimensions = g.ScreenDimensions();
 
 			for (auto& d : frameDescriptors)
 			{

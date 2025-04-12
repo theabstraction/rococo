@@ -174,6 +174,16 @@ namespace GRANON
 
 			if (!dropDown->Panel().IsCollapsed())
 			{
+				int dropDownHeight = 120;
+
+				bool isRenderedUnderneathEdge = true;
+
+				Vec2i screen = panel.Root().ScreenDimensions();
+				if (Centre(panel.AbsRect()).y + dropDownHeight > screen.y)
+				{
+					isRenderedUnderneathEdge = false;
+				}
+
 				if (isCarouselDisabledWhenDropDownVisible)
 				{
 					leftButton->Panel().SetCollapsed(true);
@@ -181,8 +191,8 @@ namespace GRANON
 				}
 
 				dropDown->Panel().SetConstantWidth(edgeSpan.x);
-				dropDown->Panel().SetConstantHeight(120);
-				dropDown->Panel().SetParentOffset({ centre.x - (edgeSpan.x / 2), edge.bottom - rect.top  });
+				dropDown->Panel().SetConstantHeight(dropDownHeight);
+				dropDown->Panel().SetParentOffset({ centre.x - (edgeSpan.x / 2), isRenderedUnderneathEdge ? edge.bottom - rect.top : edge.top - rect.top - dropDownHeight });
 			}
 			else
 			{
