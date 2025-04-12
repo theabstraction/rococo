@@ -317,6 +317,7 @@ namespace ANON
 		{
 			if (lastKnownDomainHeight != heightInPixels)
 			{
+				nextDomain = heightInPixels;
 				lastKnownDomainHeight = heightInPixels;
 				clientOffsetArea->Panel().SetConstantHeight(max(1, heightInPixels));
 			}

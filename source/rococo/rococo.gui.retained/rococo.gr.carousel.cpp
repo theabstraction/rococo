@@ -217,7 +217,7 @@ namespace GRANON
 			{
 				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
 				{
-					optionIndex++;
+					optionIndex--;
 				}
 
 				return EGREventRouting::Terminate;
@@ -227,7 +227,7 @@ namespace GRANON
 			{
 				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
 				{
-					optionIndex--;
+					optionIndex++;
 				}
 
 				return EGREventRouting::Terminate;
