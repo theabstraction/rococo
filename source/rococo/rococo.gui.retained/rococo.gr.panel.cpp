@@ -367,6 +367,7 @@ namespace GRANON
 					child->parentOffset.y = 0;
 					child->SetAbsRectRecursive();
 					dx += child->span.x;
+					dx += childPadding;
 				}
 				break;
 			case ELayoutDirection::RightToLeft:
@@ -381,6 +382,7 @@ namespace GRANON
 					}
 
 					dx -= child->span.x;
+					dx -= childPadding;
 					child->parentOffset.x = dx;
 					child->parentOffset.y = 0;
 					child->SetAbsRectRecursive();
@@ -422,12 +424,16 @@ namespace GRANON
 				int nExpandingChildren = 0;
 				int totalXSpanOfFixedWidthChildren = 0;
 
+				int totalChildPadding = -childPadding;
+
 				for (auto* child : children)
 				{
 					if (child->isCollapsed)
 					{
 						continue;
 					}
+
+					totalChildPadding += childPadding;
 
 					if (child->widthSizing == ESizingRule::ExpandToParent)
 					{
@@ -439,7 +445,7 @@ namespace GRANON
 					}
 				}
 
-				int freeSpace = span.x - totalXSpanOfFixedWidthChildren - padding.left - padding.right;
+				int freeSpace = span.x - totalXSpanOfFixedWidthChildren - padding.left - padding.right - totalChildPadding;
 				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
 					for (auto* child : children)
@@ -503,7 +509,7 @@ namespace GRANON
 				int nExpandingChildren = 0;
 				int totalYSpanOfFixedWidthChildren = 0;
 
-				int totalChildPadding = 0;
+				int totalChildPadding = -childPadding;
 
 				for (auto* child : children)
 				{
@@ -511,6 +517,8 @@ namespace GRANON
 					{
 						continue;
 					}
+
+					totalChildPadding += childPadding;
 
 					if (child->heightSizing == ESizingRule::ExpandToParent)
 					{
@@ -521,8 +529,6 @@ namespace GRANON
 						totalYSpanOfFixedWidthChildren += child->span.y;
 					}
 				}
-
-				totalChildPadding = (int) (children.size() - 1) * childPadding;
 
 				int freeSpace = span.y - totalYSpanOfFixedWidthChildren - padding.top - padding.bottom - totalChildPadding;
 				if (freeSpace <= 0 || nExpandingChildren == 0)

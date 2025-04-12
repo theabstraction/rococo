@@ -13,8 +13,9 @@
 (Div 
 	(Panel.Description "OutermostDiv")
 	(Panel.Layout TopToBottom)
+	(Panel.ChildPadding 4)
 	([] Panel.Expand H V)
-	(#Recti Panel.Padding 10 10 10 10)
+	(#Recti Panel.Padding 0 0 0 0)
 	:
 	
 	(Label
@@ -29,7 +30,8 @@
 		(Panel.Layout LeftToRight)
 		([] Panel.Expand H)
 		(Panel.FixedHeight 30)
-		(#Recti Panel.Padding 0 0 0 0)
+		(Panel.ChildPadding 4)
+		(#Recti Panel.Padding 4 0 0 0)
 		:
 		
 		(Button

@@ -397,6 +397,12 @@ namespace Rococo::GreatSex
 				panel.Set(GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom });
 			}
 
+			void OnAttribute_ChildPadding(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				int padding = AsAtomicInt32(value);
+				panel.SetChildPadding(padding);
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -505,6 +511,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.Padding"] = &GreatSexGenerator::OnAttribute_Padding;
 					attributeHandlers["Panel.Layout"] = &GreatSexGenerator::OnAttribute_Layout;
 					attributeHandlers["Panel.Expand"] = &GreatSexGenerator::OnAttribute_Expand;
+					attributeHandlers["Panel.ChildPadding"] = &GreatSexGenerator::OnAttribute_ChildPadding;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)
