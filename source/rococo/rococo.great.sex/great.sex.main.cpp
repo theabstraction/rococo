@@ -44,6 +44,7 @@ namespace Rococo::GreatSex
 			FrameClientAreaFactory onFrameClientArea;
 			InsertFactory onInsert;
 			GameOptionsFactory onGameOptions;
+			ViewportFactory onViewport;
 
 			Auto<ISParser> insertParser;
 
@@ -82,6 +83,7 @@ namespace Rococo::GreatSex
 				AddHandler("Label", onTextLabel);
 				AddHandler("Toolbar", onToolbar);
 				AddHandler("Insert", onInsert);
+				AddHandler("Viewport", onViewport);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);

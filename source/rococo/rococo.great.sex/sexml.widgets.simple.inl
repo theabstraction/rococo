@@ -127,6 +127,17 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct ViewportFactory : SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& divDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto& viewport = Rococo::Gui::CreateViewportWidget(parent);
+			viewport.Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
+			generator.SetPanelAttributes(viewport.ClientArea().Widget(), divDirective);
+			generator.GenerateChildren(divDirective, viewport.ClientArea().Widget());
+		}
+	};
+
 	struct FrameClientAreaFactory : ISEXMLWidgetFactory
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& clientAreaDirective, Rococo::Gui::IGRWidget& parent) override

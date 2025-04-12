@@ -59,8 +59,12 @@
 		([] Panel.Expand H V)
 		(Colour.Container.Background DarkBlue)
 		:
-		(GameOptions 
-			(Generate "GraphicsOptions")
+		
+		(Viewport
+		:
+			(GameOptions 
+				(Generate "GraphicsOptions")
+			)
 		)
 	)
 )
