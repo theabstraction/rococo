@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRButton : IGRWidgetButton, IGRWidgetSupervisor
+	struct GRButton : IGRWidgetButton, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		EGRClickCriterion clickCriterion = EGRClickCriterion::OnDown;
@@ -32,6 +32,21 @@ namespace GRANON
 		}
 
 		virtual ~GRButton()
+		{
+
+		}
+
+		void LayoutBeforeFit() override
+		{
+			SyncMinimalSpan();
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
 		{
 
 		}
@@ -232,7 +247,7 @@ namespace GRANON
 			if (!imageRendered)
 			{
 				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : EGRSchemeColourSurface::BUTTON_TEXT, rs);
-				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, g);
+				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, fontId, g);
 			}
 		}
 
@@ -312,13 +327,32 @@ namespace GRANON
 		}
 
 		Strings::HString title;
+		GRFontId fontId = GRFontId::MENU_FONT;
 
 		IGRWidgetButton& SetTitle(cstr title) override
 		{
+			isDirty = true;
 			this->title = title == nullptr ? "" : title;
 			panel.SetDesc(title);
 			SyncMinimalSpan();
 			return *this;
+		}
+
+		IGRWidgetButton& SetFontId(GRFontId id) override
+		{
+			isDirty = true;
+			fontId = id;
+			return *this;
+		}
+
+		bool expandToFitText = false;
+		bool isDirty = true;
+
+		void ExpandToFitText() override
+		{
+			expandToFitText = true;
+			isDirty = true;
+			SyncMinimalSpan();
 		}
 
 		size_t GetTitle(char* titleBuffer, size_t nBytes) const override
@@ -334,24 +368,34 @@ namespace GRANON
 
 		Vec2i EvaluateMinimalSpan() const
 		{
+			Vec2i extraSpan;
+			extraSpan.x = panel.Padding().left + panel.Padding().right;
+			extraSpan.y = panel.Padding().top + panel.Padding().bottom;
+
 			const IGRImage* image = isRaised ? raisedImage : pressedImage;
 			if (image)
 			{
-				return image->Span() + Vec2i{2,2};
+				return image->Span() + extraSpan;
 			}
 
 			if (title.length() == 0)
 			{
-				return Vec2i { 8, 8 } ;
+				return Vec2i { 8, 8 } + extraSpan;
 			}
 
-			return panel.Root().Custodian().EvaluateMinimalSpan(GRFontId::MENU_FONT, fstring{ title.c_str(), (int32) title.length() }) + Vec2i { 2, 2 };
+			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ title.c_str(), (int32) title.length() }) + extraSpan;
 		}
 
 		void SyncMinimalSpan()
 		{
 			Vec2i minimalSpan = EvaluateMinimalSpan();
 			panel.SetMinimalSpan(minimalSpan);
+
+			if (expandToFitText)
+			{
+				panel.SetConstantWidth(max(minimalSpan.x, panel.Span().x));
+				panel.SetConstantHeight(max(minimalSpan.y, panel.Span().y));
+			}
 		}
 
 		bool isToggler = false;
@@ -364,6 +408,7 @@ namespace GRANON
 		void SetStretchImage(bool isStretched) override
 		{
 			this->isStretched = isStretched;
+			isDirty = true;
 		}
 
 		void Toggle() override
@@ -380,14 +425,13 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetButton"))
+			auto result = QueryForParticularInterface<IGRWidgetButton, GRButton>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
 			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetButton*>(this);
 				return EGRQueryInterfaceResult::SUCCESS;
 			}
 
-			return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
+			return QueryForParticularInterface<IGRWidgetLayout, GRButton>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget()
@@ -466,7 +510,7 @@ namespace Rococo::Gui
 		g.DrawRectEdge(rect, colour1, colour2);
 	}
 
-	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, IGRRenderContext& g)
+	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, GRFontId fontId, IGRRenderContext& g)
 	{
 		if (text.length == 0) return;
 
@@ -482,6 +526,6 @@ namespace Rococo::Gui
 			swap_args(targetRect.top, targetRect.bottom);
 		}
 
-		g.DrawText(GRFontId::MENU_FONT, targetRect, alignment, spacing, text, colour);
+		g.DrawText(fontId, targetRect, alignment, spacing, text, colour);
 	}
 }

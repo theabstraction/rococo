@@ -87,7 +87,6 @@ namespace ANON
 
 		void LayoutBeforeFit() override
 		{
-
 		}
 
 		void LayoutBeforeExpand() override

@@ -7,7 +7,7 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRText : IGRWidgetText, IGRWidgetSupervisor
+	struct GRText : IGRWidgetText, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		std::string text;
@@ -29,9 +29,55 @@ namespace GRANON
 			delete this;
 		}
 
+		bool expandToFitTextH = false;
+		bool expandToFitTextV = false;
+
+		void FitTextH() override
+		{
+			expandToFitTextH = true;
+		}
+
+		void FitTextV() override
+		{
+			expandToFitTextV = true;
+		}
+
+		void LayoutBeforeFit() override
+		{
+			Vec2i fit = ComputeFit();
+			fit.x += panel.Padding().left + panel.Padding().right;
+			fit.y += panel.Padding().top + panel.Padding().bottom;
+			
+			if (expandToFitTextV)
+			{
+				panel.SetConstantHeight(fit.y);
+			}
+
+			if (expandToFitTextH)
+			{
+				panel.SetConstantHeight(fit.x);
+			}
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+
+		}
+
+		Vec2i ComputeFit() const
+		{
+			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ text.c_str(), (int32)text.length() });
+		}
+
+
 		int TextWidth() const override
 		{
-			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring { text.c_str(), (int32) text.length() }).x;
+			return ComputeFit().x;
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -128,6 +174,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			if (Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId) == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return  EGRQueryInterfaceResult::SUCCESS;
+			}
+			
 			return Gui::QueryForParticularInterface<IGRWidgetText>(this, ppOutputArg, interfaceId);
 		}
 

@@ -30,9 +30,20 @@ namespace Rococo::Game::Options
 // (G)ui(Re)t(a)ined(T)emplate via SexML
 namespace Rococo::GreatSex
 {
+	struct FontQuery
+	{
+		cstr id;
+		cstr familyName;
+		int height;
+		bool isBold;
+		bool isItalic;
+	};
+
 	ROCOCO_INTERFACE IGreatSexGenerator
 	{
+		virtual void AddFont(cstr id, cstr family, int height, bool isBold, bool isItalic) = 0;
 		virtual void AddOptions(Game::Options::IGameOptions & options, cstr key) = 0;
+		virtual FontQuery GetFont(cstr id, const Sex::ISExpression& s) const = 0;
 		virtual void AppendWidgetTreeFromSexML(const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& branch) = 0;
 		virtual void AppendWidgetTreeFromSexML(const Sex::ISExpression& s, Rococo::Gui::IGRWidget& branch) = 0;
 		virtual void GenerateChildren(const Rococo::Sex::SEXML::ISEXMLDirective& widgetDirective, Rococo::Gui::IGRWidget& widget) = 0;

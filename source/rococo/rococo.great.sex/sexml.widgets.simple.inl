@@ -7,10 +7,12 @@
 #include <rococo.hashtable.h>
 #include <rococo.functional.h>
 #include <rococo.strings.h>
+#include <rococo.gui.retained.ex.h>
 
 using namespace Rococo::Gui;
 using namespace Rococo::Sex;
 using namespace Rococo::Sex::SEXML;
+using namespace Rococo::Strings;
 
 namespace Rococo::GreatSex
 {
@@ -52,10 +54,10 @@ namespace Rococo::GreatSex
 				Throw(directive.S(), "GameOptions must not be defined at the root level");
 			}
 
-			auto& aGen = directive.GetAttributeByName("Generate");
-			cstr key = AsString(aGen.Value()).c_str();
+			auto& vKey = directive["Generate"];
+			cstr key = AsString(vKey).c_str();
 
-			auto& opt = options.GetOptions(key, aGen.S());
+			auto& opt = options.GetOptions(key, vKey.S());
 
 			auto& optionWidget = CreateGameOptionsList(owner, opt);
 			generator.SetPanelAttributes(optionWidget.Widget(), directive);
@@ -87,9 +89,9 @@ namespace Rococo::GreatSex
 				Throw(insertDirective.S(), "(Insert <filename>) elements must be top-level only");
 			}
 
-			auto& path = insertDirective.GetAttributeByName("Path");
+			auto& path = insertDirective["Path"];
 
-			inserter.Insert(AsString(path.Value()).c_str(), insertDirective.S(), owner);
+			inserter.Insert(AsString(path).c_str(), insertDirective.S(), owner);
 		}
 
 		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& insertDirective) const override
@@ -124,6 +126,55 @@ namespace Rococo::GreatSex
 			auto& div = Rococo::Gui::CreateDivision(parent);
 			generator.SetPanelAttributes(div.Widget(), divDirective);
 			generator.GenerateChildren(divDirective, div.Widget());
+		}
+	};
+
+	struct FontFactory : ISEXMLWidgetFactory
+	{
+		FontFactory()
+		{
+
+		}
+
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget&) override
+		{
+			if (!IsValidFrom(directive))
+			{
+				Throw(directive.S(), "(Font ...) elements must appear at the top level and may not be nested in other directives");
+			}
+
+			auto& aId = directive["Id"];
+			auto& aFamily = directive["Family"];
+			auto& aHeight = directive["Height"];
+			auto* mods = directive.FindAttributeByName("Mods");
+
+			bool isBold = false;
+			bool isItalic = false;
+
+			if (mods)
+			{
+				auto& vMods = AsStringList(mods->Value());
+				for (size_t i = 0; i < vMods.NumberOfElements(); i++)
+				{
+					cstr mod = vMods[i];
+					if (Eq(mod, "B") || Eq(mod, "Bold"))
+					{
+						isBold = true;
+					}
+
+					if (Eq(mod, "I") || Eq(mod, "Italic"))
+					{
+						isItalic = true;
+					}
+				}
+			}
+
+			generator.AddFont(AsString(aId).c_str(), AsString(aFamily).c_str(), AsAtomicInt32(aHeight), isBold, isItalic);
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& directive) const override
+		{
+			return directive.Parent() == nullptr;
 		}
 	};
 
@@ -171,7 +222,31 @@ namespace Rococo::GreatSex
 			const fstring text = GetOptionalAttribute(textDirective, "Text", ""_fstring);
 			label.SetText(text);
 
-			//!!! Todo - implement label.SetAlignment
+			auto* aFont = textDirective.FindAttributeByName("Font");
+			if (aFont)
+			{
+				cstr fontId = AsString(aFont->Value()).c_str();
+				auto font = generator.GetFont(fontId, textDirective.S());
+				Gui::FontSpec spec;
+				spec.CharHeight = font.height;
+				spec.FontName = font.familyName;
+				spec.Bold = font.isBold;
+				spec.Italic = font.isItalic;
+				auto grId = GetCustodian(parent.Panel()).Fonts().BindFontId(spec);
+				label.SetFont(grId);
+			}
+
+			auto* aExpand = textDirective.FindAttributeByName("FitH");
+			if (aExpand && Eq(AsString(aExpand->Value()).c_str(), "true"))
+			{
+				label.FitTextH();
+			}
+
+			aExpand = textDirective.FindAttributeByName("FitV");
+			if (aExpand && Eq(AsString(aExpand->Value()).c_str(), "true"))
+			{
+				label.FitTextV();
+			}
 
 			generator.SetPanelAttributes(label.Widget(), textDirective);
 			generator.GenerateChildren(textDirective, label.Widget());
@@ -186,6 +261,26 @@ namespace Rococo::GreatSex
 			
 			const fstring text = GetOptionalAttribute(buttonDirective, "Text", ""_fstring);
 			button.SetTitle(text);
+
+			auto* aFont = buttonDirective.FindAttributeByName("Font");
+			if (aFont)
+			{
+				cstr fontId = AsString(aFont->Value()).c_str();
+				auto font = generator.GetFont(fontId, buttonDirective.S());
+				Gui::FontSpec spec;
+				spec.CharHeight = font.height;
+				spec.FontName = font.familyName;		
+				spec.Bold = font.isBold;
+				spec.Italic = font.isItalic;
+				auto grId = GetCustodian(parent.Panel()).Fonts().BindFontId(spec);
+				button.SetFontId(grId);
+			}
+
+			auto* aExpand = buttonDirective.FindAttributeByName("ExpandToFitText");
+			if (aExpand && Eq(AsString(aExpand->Value()).c_str(), "true"))
+			{
+				button.ExpandToFitText();
+			}
 
 			generator.SetPanelAttributes(button.Widget(), buttonDirective);
 			generator.GenerateChildren(buttonDirective, button.Widget());

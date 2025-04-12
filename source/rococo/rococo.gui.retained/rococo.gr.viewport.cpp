@@ -57,7 +57,19 @@ namespace ANON
 		{
 			auto span = panel.Span();
 
-			Vec2i clipSpan{ span.x - scrollbarWidth, span.y };
+			int trueScrollBarWidth = scrollbarWidth;
+
+			if (nextDomain <= panel.Span().y)
+			{
+				vscroller->Panel().SetCollapsed(true);
+				trueScrollBarWidth = 0;
+			}
+			else
+			{
+				vscroller->Panel().SetCollapsed(false);
+			}
+
+			Vec2i clipSpan{ span.x - trueScrollBarWidth, span.y };
 			auto& panel = clipArea->Panel();
 			panel.SetConstantWidth(clipSpan.x);
 			panel.SetConstantHeight(clipSpan.y);
@@ -71,9 +83,9 @@ namespace ANON
 			coaPanel.SetParentOffset({ 0, -clientOffsetAreaParentOffset });
 			
 			auto& vswp = vscroller->Widget().Panel();
-			vswp.SetConstantWidth(scrollbarWidth);
+			vswp.SetConstantWidth(trueScrollBarWidth);
 			vswp.SetConstantHeight(span.y);
-			vswp.SetParentOffset({ span.x - scrollbarWidth, 1 });
+			vswp.SetParentOffset({ span.x - trueScrollBarWidth, 1 });
 		}
 
 		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller&) override

@@ -741,6 +741,8 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetText : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual void FitTextH() = 0;
+		virtual void FitTextV() = 0;
 		virtual [[nodiscard]] int TextWidth() const = 0;
 		virtual IGRWidgetText& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) = 0;
 		virtual IGRWidgetText& SetBackColourSurface(EGRSchemeColourSurface surface) = 0;
@@ -780,6 +782,10 @@ namespace Rococo::Gui
 
 		// Sets the display text for the button
 		virtual IGRWidgetButton& SetTitle(cstr text) = 0;
+
+		virtual IGRWidgetButton& SetFontId(GRFontId id) = 0;
+
+		virtual void ExpandToFitText() = 0;
 
 		// Gets the display text and returns its length. If the buffer is insufficient, the result is truncated
 		virtual size_t GetTitle(char* titleBuffer, size_t nBytes) const = 0;

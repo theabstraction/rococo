@@ -10,6 +10,20 @@
 	(Colour.Container.Background DarkRed)
 )
 
+(Font 
+	(Id TitleFont)
+	(Family Arial)
+	(Height 72)
+	([] Mods Bold)
+)
+
+(Font 
+	(Id OptionButtonFont)
+	(Family Arial)
+	(Height 48)
+	([] Mods Bold)
+)
+
 (Div 
 	(Panel.Description "OutermostDiv")
 	(Panel.Layout TopToBottom)
@@ -19,9 +33,10 @@
 	:
 	
 	(Label
+		(Font TitleFont)
 		(Text "Options")
-		(#Recti Panel.Padding 0 0 0 0)
-		(Panel.FixedHeight 30)
+		(#Recti Panel.Padding 0 0 4 4)
+		(FitV true)
 		([] Panel.Expand H)
 	)
 	
@@ -29,28 +44,32 @@
 		(Panel.Description "OptionsTabs")
 		(Panel.Layout LeftToRight)
 		([] Panel.Expand H)
-		(Panel.FixedHeight 30)
+		([] Panel.Fit V)
 		(Panel.ChildPadding 4)
 		(#Recti Panel.Padding 4 0 0 0)
 		:
 		
 		(Button
-			(Panel.Description "Cancel-Button")
 			(#Vec2i Panel.Span 60 30)
-			(#Recti Panel.Padding 236 0 0 4)
+			(#Recti Panel.Padding 8 0 0 8)
+			(ExpandToFitText true)
+			(Font OptionButtonFont)
 			(Text Gameplay)	
 		)
 		
 		(Button
 			(#Vec2i Panel.Span 60 30)
-			(#Recti Panel.Padding 4 0 0 4)
+			(#Recti Panel.Padding 8 0 0 8)
+			(ExpandToFitText true)
+			(Font OptionButtonFont)
 			(Text Graphics)
 		)
 		
 		(Button
-			(Panel.Description "Cancel-Button")
 			(#Vec2i Panel.Span 60 30)
-			(#Recti Panel.Padding 236 0 0 4)
+			(#Recti Panel.Padding 8 0 0 8)
+			(ExpandToFitText true)
+			(Font OptionButtonFont)
 			(Text Sound)	
 		)
 	)
@@ -61,11 +80,43 @@
 		([] Panel.Expand H V)
 		(Colour.Container.Background DarkBlue)
 		:
-		
+			
 		(Viewport
 		:
 			(GameOptions 
 				(Generate "GraphicsOptions")
+			)
+		)
+		
+		(Div
+			(#Vec2i Panel.Span 200 0)
+			([] Panel.Expand V)
+			(Panel.Layout TopToBottom)
+			
+			:
+			
+			(Button
+				(#Vec2i Panel.Span 60 30)
+				(#Recti Panel.Padding 8 0 0 8)
+				(ExpandToFitText true)
+				(Font OptionButtonFont)
+				(Text Accept)	
+			)
+			
+			(Button
+				(#Vec2i Panel.Span 60 30)
+				(#Recti Panel.Padding 8 0 0 8)
+				(ExpandToFitText true)
+				(Font OptionButtonFont)
+				(Text Revert)
+			)
+			
+			(Button
+				(#Vec2i Panel.Span 60 30)
+				(#Recti Panel.Padding 8 0 0 8)
+				(ExpandToFitText true)
+				(Font OptionButtonFont)
+				(Text Back)	
 			)
 		)
 	)

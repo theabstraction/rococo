@@ -45,6 +45,7 @@ namespace Rococo::GreatSex
 			InsertFactory onInsert;
 			GameOptionsFactory onGameOptions;
 			ViewportFactory onViewport;
+			FontFactory onFont;
 
 			Auto<ISParser> insertParser;
 
@@ -84,6 +85,7 @@ namespace Rococo::GreatSex
 				AddHandler("Toolbar", onToolbar);
 				AddHandler("Insert", onInsert);
 				AddHandler("Viewport", onViewport);
+				AddHandler("Font", onFont);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
@@ -247,6 +249,61 @@ namespace Rococo::GreatSex
 				Throw(src, "Could not find option '%s'. Known options: %s", key, knownOptions);
 			}
 
+			struct FontDef
+			{
+				HString id;
+				HString family;
+				int height;
+				bool isBold;
+				bool isItalic;
+			};
+
+			stringmap<FontDef> fonts;
+
+			void AddFont(cstr id, cstr family, int height, bool isBold, bool isItalic) override
+			{
+				FontDef def;
+				def.id = id;
+				def.family = family;
+				def.height = height;
+				def.isBold = isBold;
+				def.isItalic = isItalic;
+				fonts[id] = def;
+			}
+
+			FontQuery GetFont(cstr id, const Sex::ISExpression& s) const override
+			{
+				auto i = fonts.find(id);
+				if (i == fonts.end())
+				{
+					char err[4096];
+					StackStringBuilder sb(err, sizeof err);
+					sb << "Unknown Font " << id << ". Known fonts :";
+
+					int count = 0;
+					for (auto h : fonts)
+					{
+						if (count > 0)
+						{
+							sb << ", ";
+						}
+
+						sb << (cstr)h.first;
+						count++;
+					}
+
+					Throw(s, "%s", err);
+				}
+
+				FontQuery q;
+				q.id = i->first;
+				q.height = i->second.height;
+				q.familyName = i->second.family;
+				q.isBold = i->second.isBold;
+				q.isItalic = i->second.isItalic;
+				return q;
+			}
+
 			void AddHandler(cstr fqName, ISEXMLWidgetFactory& f) override
 			{
 				auto i = widgetHandlers.find(fqName);
@@ -403,6 +460,23 @@ namespace Rococo::GreatSex
 				panel.SetChildPadding(padding);
 			}
 
+			void OnAttribute_Fit(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				auto& fit = AsStringList(value);
+				for (size_t i = 0; i < fit.NumberOfElements(); ++i)
+				{
+					cstr f = fit[i];
+					if (Eq(f, "Horizontal") || Eq(f, "H"))
+					{
+						panel.SetFitChildrenHorizontally();
+					}
+					else if (Eq(f, "Vertical") || Eq(f, "V"))
+					{
+						panel.SetFitChildrenVertically();
+					}
+				}
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -512,6 +586,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.Layout"] = &GreatSexGenerator::OnAttribute_Layout;
 					attributeHandlers["Panel.Expand"] = &GreatSexGenerator::OnAttribute_Expand;
 					attributeHandlers["Panel.ChildPadding"] = &GreatSexGenerator::OnAttribute_ChildPadding;
+					attributeHandlers["Panel.Fit"] = &GreatSexGenerator::OnAttribute_Fit;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)
