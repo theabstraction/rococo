@@ -1,66 +1,13 @@
-(Scheme :
-	// This reads as Apply the colour defs to the states specified by their bit combinations. (None of which contained the hovered bit)
-	// Since we have not specified the hovered bit, then this colour scheme applies to all situations that are *not* hovered
-	(ApplyTo ([] RenderStates pressed focused))
-	(ApplyTo ([] RenderStates pressed))
-	(ApplyTo ([] RenderStates focused))
-	(ApplyTo ([] RenderStates default))
-	(Colour.Container.Background (Red 0)(Green 0)(Blue 0)(Alpha 255))
-	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
-)
-(Scheme :
-	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
-	// Since we have specified the hovered bit in all permutations, then this colour scheme applies to all situations that *are* hovered
-	(ApplyTo ([] RenderStates hovered pressed))
-	(ApplyTo ([] RenderStates hovered pressed focused))
-	(ApplyTo ([] RenderStates hovered focused))
-	(ApplyTo ([] RenderStates hovered))
-	(Colour.Container.Background (Red 16)(Green 16)(Blue 16)(Alpha 255))
-	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
+(Insert
+	(Path "!tests/greatsex.scheme.sexml")
 )
 
-(Colour 
-	(Id Transparent)
-	:
-	(Spec 
-		([] For pressed)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
-	
-	(Spec 
-		([] For focused)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
-	
-	(Spec 
-		([] For default)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
-	
-	(Spec 
-		([] For pressed focused)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
-	
-	(Spec 
-		([] For hovered pressed)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
-	
-	(Spec 
-		([] For hovered focused)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
-	
-	(Spec 
-		([] For hovered pressed focused)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
-	
-	(Spec 
-		([] For hovered)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
-	)
+(Frame
+	(Colour.Container.Background Transparent)
+)
+
+(Frame.ClientArea
+	(Colour.Container.Background DarkRed)
 )
 
 (Div 
@@ -80,7 +27,6 @@
 	(Div 
 		(Panel.Description "OptionsTabs")
 		(Panel.Layout LeftToRight)
-		(Colour.Container.Background Transparent)
 		([] Panel.Expand H)
 		(Panel.FixedHeight 30)
 		(#Recti Panel.Padding 0 0 0 0)
@@ -105,5 +51,12 @@
 			(#Recti Panel.Padding 236 0 0 4)
 			(Text Sound)	
 		)
+	)
+	
+	(Div
+		(Panel.Description "OptionsTabScreen")
+		(Panel.Layout LeftToRight)
+		([] Panel.Expand H V)
+		(Colour.Container.Background DarkBlue)
 	)
 )

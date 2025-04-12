@@ -6,8 +6,9 @@
 #include <rococo.hashtable.h>
 #include <rococo.functional.h>
 #include <rococo.strings.h>
+#include <rococo.io.h>
 
-#define MATCH(text, value, numericEquilvalent) if (Strings::EqI(text,value)) return numericEquilvalent;
+#define MATCH(text, value, numericEquivalent) if (Strings::EqI(text,value)) return numericEquivalent;
 
 #include "sexml.widgets.simple.inl"
 
@@ -28,7 +29,7 @@ namespace Rococo::GreatSex
 			RGBAb colour;
 		};
 
-		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder
+		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder, ISEXMLInserter
 		{
 			// Widget Handlers, defined first
 			DivisionFactory onDivision;
@@ -38,9 +39,14 @@ namespace Rococo::GreatSex
 			TextLabelFactory onTextLabel;
 			ButtonFactory onButton;
 			ToolbarFactory onToolbar;
+			FrameFactory onFrame;
+			FrameClientAreaFactory onFrameClientArea;
+			InsertFactory onInsert;
+
+			Auto<ISParser> insertParser;
 
 			IAllocator& sexmlAllocator;
-			AutoFree<ISEXMLRootSupervisor> sexmlParser;
+			
 			stringmap<ISEXMLWidgetFactory*> widgetHandlers;
 
 			typedef void(GreatSexGenerator::* MethodForAttribute)(IGRPanel& panel, const ISEXMLAttributeValue& value);
@@ -51,11 +57,19 @@ namespace Rococo::GreatSex
 
 			stringmap<EGRSchemeColourSurface> nameToColourSurface;
 
-			GreatSexGenerator(IAllocator& _sexmlAllocator) :
+			IGreatSexResourceLoader& loader;
+
+			GreatSexGenerator(IAllocator& _sexmlAllocator, IGreatSexResourceLoader& _loader) :
 				onScheme(CreateSchemeHandler()),
 				onColour(CreateColourHandler(*this)),
-				sexmlAllocator(_sexmlAllocator)
+				sexmlAllocator(_sexmlAllocator),
+				onInsert(*this),
+				loader(_loader)
 			{
+				insertParser = CreateSexParser_2_0(sexmlAllocator);
+
+				AddHandler("Frame", onFrame);
+				AddHandler("Frame.ClientArea", onFrameClientArea);
 				AddHandler("Colour", *onColour);
 				AddHandler("Button", onButton);
 				AddHandler("Div", onDivision);
@@ -63,6 +77,7 @@ namespace Rococo::GreatSex
 				AddHandler("VerticalList", onVerticalList);
 				AddHandler("Label", onTextLabel);
 				AddHandler("Toolbar", onToolbar);
+				AddHandler("Insert", onInsert);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
@@ -76,6 +91,107 @@ namespace Rococo::GreatSex
 			virtual ~GreatSexGenerator()
 			{
 
+			}
+
+			struct GRSexInsertCache
+			{
+				std::vector<char> buffer;
+				Auto<ISourceCode> proxy;
+			};
+
+			stringmap<GRSexInsertCache> inserts;
+
+			void OnInsertLoaded(cr_sex src, GRSexInsertCache& cache, IGRWidget& owner)
+			{
+				Auto<ISParserTree> tree;
+
+				try
+				{
+					tree = insertParser->CreateTree(*cache.proxy);
+				}
+				catch (ParseException& ex)
+				{
+					char message[1024];
+					SafeFormat(message, "Error loading sexml from directive at line %d in %s: %s", src.Start().y, src.Tree().Source().Name(), ex.Message());
+					ParseException deepEx(ex.Start(), ex.End(), ex.Name(), message, ex.Specimen(), ex.Source());
+					throw deepEx;
+				}
+				catch (IException& ex)
+				{
+					char message[1024];
+					SafeFormat(message, "Error loading sexml from directive at line %d in %s: %s", src.Start().y, src.Tree().Source().Name(), ex.Message());
+					ParseException deepEx(src.Start(), src.End(), src.Tree().Source().Name(), message, "", &src);
+					throw deepEx;
+				}
+
+				try
+				{
+					AppendWidgetTreeFromSexML(tree->Root(), owner);
+				}
+				catch (ParseException& ex)
+				{
+					char message[1024];
+					SafeFormat(message, "Error loading sexml from directive at line %d in %s: %s", src.Start().y, src.Tree().Source().Name(), ex.Message());
+					ParseException deepEx(ex.Start(), ex.End(), ex.Name(), message, ex.Specimen(), ex.Source());
+					throw deepEx;
+				}
+				catch (IException& ex)
+				{
+					char message[1024];
+					SafeFormat(message, "Error loading sexml from directive at line %d in %s: %s", src.Start().y, src.Tree().Source().Name(), ex.Message());
+					ParseException deepEx(tree->Root().Start(), tree->Root().End(), cache.proxy->Name(), message, "", &src);
+					throw deepEx;
+				}
+			}
+
+			void Insert(cstr filePath, cr_sex src, IGRWidget& owner) override
+			{
+				if (inserts.find(filePath) != inserts.end())
+				{
+					Throw(src, "Duplicate insert of %s", filePath);
+				}
+
+				struct : Rococo::IO::ILoadEventsCallback
+				{
+					cstr filePath = nullptr;
+					GreatSexGenerator* This = nullptr;
+					GRSexInsertCache* cache = nullptr;
+	
+					void OnFileOpen(int64 fileLength) override
+					{
+						if (fileLength == 0)
+						{
+							Throw(0, "%s: file empty", filePath);
+						}
+
+						if (fileLength > (int64) 1_megabytes)
+						{
+							Throw(0, "%s: max length > 1 MB", filePath);
+						}
+
+						auto i = This->inserts.insert(filePath, GRSexInsertCache()).first;
+						cache = &i->second;
+						cache->buffer.resize(fileLength + 1);
+					}
+
+					void OnDataAvailable(IO::ILoadEventReader& reader) override
+					{
+						uint32 bytesRead;
+						uint32 nBytesToRead = (uint32)(cache->buffer.size() - 1);
+						reader.ReadData(&cache->buffer[0], nBytesToRead, OUT bytesRead);
+						cache->buffer[cache->buffer.size()-1] = 0;
+					}
+				} onLoad;
+
+				onLoad.filePath = filePath;
+				onLoad.This = this;
+
+				loader.LoadGreatSexResource(filePath, onLoad);
+
+				cstr buffer = onLoad.cache->buffer.data();
+				onLoad.cache->proxy = insertParser->ProxySourceBuffer(buffer, (int) strlen(buffer), { 0,0 }, filePath, nullptr);
+
+				OnInsertLoaded(src, *onLoad.cache, owner);
 			}
 
 			void AddHandler(cstr fqName, ISEXMLWidgetFactory& f) override
@@ -110,6 +226,11 @@ namespace Rococo::GreatSex
 					bool first = true;
 					for (auto h : widgetHandlers)
 					{
+						if (!h.second->IsValidFrom(directive))
+						{
+							continue;
+						}
+
 						if (!first)
 						{
 							sb << ", ";
@@ -122,19 +243,18 @@ namespace Rococo::GreatSex
 						sb << (cstr)h.first;
 					}
 
-					auto knownDirectives = *sb;
+					cstr knownDirectives = *sb;
 
-					Throw(directive.S(), "Unhandled widget directive: %s.\n%s", fqName, (cstr)knownDirectives);
+					Throw(directive.S(), "Unhandled widget directive: %s.\n%s", fqName, knownDirectives);
 				}
 
 				auto factory = i->second;
-
 				factory->Generate(*this, directive, branch);
 			}
 
 			void AppendWidgetTreeFromSexML(cr_sex s, IGRWidget& branch) override
 			{
-				sexmlParser = CreateSEXMLParser(sexmlAllocator, s);
+				AutoFree<ISEXMLRootSupervisor> sexmlParser = CreateSEXMLParser(sexmlAllocator, s);
 				auto& sp = *sexmlParser;
 
 				/* Our Sexml is a list of directives that looks like this:
@@ -300,7 +420,14 @@ namespace Rococo::GreatSex
 					Throw(value.S(), "No such colour surface: %s", name);
 				}
 
-				auto spec = colourSpecs.find(value.c_str());
+				cstr key = value.c_str();
+
+				auto spec = colourSpecs.find(key);
+				if (spec == colourSpecs.end())
+				{
+					Throw(value.S(), "Could not find colour '%s'. Ensure a (Colour (Id %s)...) definition is in the root directives", key, key);
+				}
+
 				for (auto& colourSpec : spec->second)
 				{
 					panel.Set(i->second, colourSpec.colour, colourSpec.rs);
@@ -384,9 +511,9 @@ namespace Rococo::GreatSex
 		};
 	}
 
-	ROCOCO_GREAT_SEX_API IGreatSexGeneratorSupervisor* CreateGreatSexGenerator(IAllocator& sexmlAllocator)
+	ROCOCO_GREAT_SEX_API IGreatSexGeneratorSupervisor* CreateGreatSexGenerator(IAllocator& sexmlAllocator, IGreatSexResourceLoader& loader)
 	{
 		void* pData = sexmlAllocator.Allocate(sizeof Implementation::GreatSexGenerator);
-		return new (pData) Implementation::GreatSexGenerator(sexmlAllocator);
+		return new (pData) Implementation::GreatSexGenerator(sexmlAllocator, loader);
 	}
 }

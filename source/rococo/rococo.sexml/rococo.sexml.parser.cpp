@@ -584,8 +584,9 @@ namespace Rococo::Sex::SEXML
 			ISEXMLRootSupervisor& root;
 			cr_sex sDirective;
 			TVector<Directive*> children;
+			Directive* parent;
 
-			Directive(ISEXMLRootSupervisor& _root, cr_sex s) : root(_root), sDirective(s)
+			Directive(ISEXMLRootSupervisor& _root, cr_sex s, Directive* _parent) : root(_root), sDirective(s), parent(_parent)
 			{
 				// The caller guarantees that the expression is compound and not empty
 				cr_sex sName = s[0];
@@ -671,7 +672,7 @@ namespace Rococo::Sex::SEXML
 
 					try
 					{
-						Directive* d = new (pMemory) Impl::Directive(root, sSubdirective);
+						Directive* d = new (pMemory) Impl::Directive(root, sSubdirective, this);
 						children.push_back(d);
 					}
 					catch (...)
@@ -680,6 +681,11 @@ namespace Rococo::Sex::SEXML
 						throw;
 					}
 				}
+			}
+
+			const ISEXMLDirective* Parent() const override
+			{
+				return parent;
 			}
 
 			size_t NumberOfDirectives() const override
@@ -844,7 +850,7 @@ namespace Rococo::Sex::SEXML
 
 					try
 					{
-						Directive* d = new (pMemory) Impl::Directive(*this, sDirective);
+						Directive* d = new (pMemory) Impl::Directive(*this, sDirective, nullptr);
 						topLevelDirectives.push_back(d);
 					}
 					catch (...)

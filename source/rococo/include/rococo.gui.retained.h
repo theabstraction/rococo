@@ -330,6 +330,18 @@ namespace Rococo::Gui
 			value.bitValues.hovered = hovered;
 			value.bitValues.pressed = pressed;
 		}
+
+		template<class T> static void ForEachPermutation(T t)
+		{
+			t(GRRenderState(false, false, false));
+			t(GRRenderState(true, false, false));
+			t(GRRenderState(false, true, false));
+			t(GRRenderState(true, true, false));
+			t(GRRenderState(false, false, true));
+			t(GRRenderState(true, false, true));
+			t(GRRenderState(false, true, true));
+			t(GRRenderState(true, true, true));
+		}
 	};
 
 	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRRenderState rs);

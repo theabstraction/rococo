@@ -16,25 +16,24 @@ void BuildMenus(IGRWidgetMainFrame& frame);
 void BuildUpperRightToolbar(IGRWidgetMainFrame& frame);
 void UseTestColourScheme(IGRWidgetMainFrame& frame);
 
-void TestGreatSex(IGRClientWindow& client, IGRSystem& gr, IO::IInstallation& installation)
+void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 {
 	GRIdWidget mainFrame{ "Main-Frame" };
 	auto& frame = gr.BindFrame(mainFrame);
 	//frame.SetTitleBarHeight(30);
 
-	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 0), GRGenerateIntensities());
 	frame.MenuBar().Panel().Parent()->SetCollapsed(true);
 
 	auto& scheme = gr.Root().Scheme();
 	SetSchemeColours_ThemeGrey(scheme);
 	UseTestColourScheme(frame);
 
-	client.LoadFrame("!tests/greatsex.test.sexml", frame.ClientArea().Widget());
+	client.LoadFrame("!tests/greatsex.test.sexml", frame.Widget());
 
 	RunMessageLoop(client);
 }
 
-void TestGreatSex(IGRClientWindow& client, IO::IInstallation& installation)
+void TestGreatSex(IGRClientWindow& client)
 {
-	TestGreatSex(client, client.GRSystem(), installation);
+	TestGreatSex(client, client.GRSystem());
 }

@@ -1072,14 +1072,12 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void CopyAllColours(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface)
 	{
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, false, false));
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, false, true));
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, true, false));
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(false, true, true));
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, false, false));
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, false, true));
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, true, false));
-		CopyColour(src, target, srcSurface, trgSurface, GRRenderState(true, true, true));
+		GRRenderState::ForEachPermutation(
+			[&src, &target, srcSurface, trgSurface](GRRenderState rs)
+			{
+				CopyColour(src, target, srcSurface, trgSurface, rs);
+			}
+		);
 	}
 
 	void Throw(IGRPanel& panel, EGRErrorCode code, cstr function, cstr format, ...)

@@ -1464,7 +1464,7 @@ namespace GRANON
 	};
 
 
-	struct GRClientWindow: IGRGDIClientWindowSupervisor
+	struct GRClientWindow: IGRGDIClientWindowSupervisor, IGreatSexResourceLoader
 	{
 		HWND hWnd = 0;
 		AutoFree<Rococo::Gui::IGRSystemSupervisor> grSystem;
@@ -1837,7 +1837,7 @@ namespace GRANON
 		bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) override
 		{
 			AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(64, 0, "GreatSexAllocator");
-			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(*allocator);
+			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(*allocator, *this);
 
 			Auto<ISParser> sParser = Sex::CreateSexParser_2_0(*allocator);
 			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_kilobytes);
@@ -1860,6 +1860,11 @@ namespace GRANON
 				ShowError(pex.Start(), pex.End(), pex.Name(), (cstr)buffer->GetData(), pex.Message());
 				return false;
 			}
+		}
+
+		void LoadGreatSexResource(cstr resourcePath, Rococo::IO::ILoadEventsCallback& onLoad) override
+		{
+			Installation().LoadResource(resourcePath, onLoad);
 		}
 
 		void QueuePaint() override

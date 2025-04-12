@@ -204,7 +204,8 @@ namespace MHost
 		public IGuiOverlaySupervisor,
 		public Strings::IStringPopulator,
 		public Rococo::MPEditor::IMPEditorEventHandler,
-		IO::IShaderMonitorEventHook
+		IO::IShaderMonitorEventHook,
+		public GreatSex::IGreatSexResourceLoader
 	{
 		Platform& platform;
 		IDirectAppControl& control;
@@ -350,7 +351,7 @@ namespace MHost
 		App(Platform& _platform, IDirectAppControl& _control, const AppArgs& args) :
 			platform(_platform), control(_control), sceneManager(_platform)
 		{
-			greatSex = GreatSex::CreateGreatSexGenerator(Rococo::Memory::CheckedAllocator());
+			greatSex = GreatSex::CreateGreatSexGenerator(Rococo::Memory::CheckedAllocator(), *this);
 			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy", nullptr, Rococo::NoImplicitIncludes());
 
 			platform.plumbing.publisher.Subscribe(this, Rococo::Events::evBusy);
@@ -375,6 +376,11 @@ namespace MHost
 		void Free() override
 		{
 			delete this;
+		}
+
+		void LoadGreatSexResource(cstr resourcePath, Rococo::IO::ILoadEventsCallback& onLoad) override
+		{
+			platform.os.installation.LoadResource(resourcePath, onLoad);
 		}
 
 		void Populate(cstr) override

@@ -203,21 +203,9 @@ namespace Rococo::Gui
 		SetUniformColourForAllRenderStates(panel, surface, RGBAb(255, 255, 0, 0));
 	}
 
-	template<class T> void ForEachRenderState(T t)
-	{
-		t(GRRenderState(0, 0, 0));
-		t(GRRenderState(0, 0, 1));
-		t(GRRenderState(0, 1, 0));
-		t(GRRenderState(0, 1, 1));
-		t(GRRenderState(1, 0, 0));
-		t(GRRenderState(1, 0, 1));
-		t(GRRenderState(1, 1, 0));
-		t(GRRenderState(1, 1, 1));
-	}
-
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour)
 	{
-		ForEachRenderState([&scheme, surface, colour](GRRenderState rs)
+		GRRenderState::ForEachPermutation([&scheme, surface, colour](GRRenderState rs)
 			{
 				scheme.SetColour(surface, colour, rs);
 			}
@@ -226,7 +214,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, EGRSchemeColourSurface surface, RGBAb colour)
 	{
-		ForEachRenderState([&panel, surface, colour](GRRenderState rs)
+		GRRenderState::ForEachPermutation([&panel, surface, colour](GRRenderState rs)
 			{
 				panel.Set(surface, colour, rs);
 			}

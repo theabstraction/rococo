@@ -168,6 +168,8 @@ namespace Rococo::Sex::SEXML
 		}
 
 		virtual [[nodiscard]] const ISEXMLDirectiveList& Children() const = 0;
+
+		virtual [[nodiscard]] const ISEXMLDirective* Parent() const = 0;
 	};
 
 	ROCOCO_SEXML_API [[nodiscard]] Vec2i GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, Vec2i defaultValues);

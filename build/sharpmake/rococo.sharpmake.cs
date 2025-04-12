@@ -1187,6 +1187,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_GREAT_SEX_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
         }
     }
 

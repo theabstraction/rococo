@@ -14,7 +14,74 @@ using namespace Rococo::Sex::SEXML;
 
 namespace Rococo::GreatSex
 {
-	struct DivisionFactory : ISEXMLWidgetFactory
+	struct SEXMLWidgetFactory_AlwaysValid : ISEXMLWidgetFactory
+	{
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective&) const override
+		{
+			return true;
+		}
+	};
+
+	IGRWidgetMainFrame& GetFrame(IGRWidget& startingPoint, cr_sex src)
+	{
+		for (auto* panel = &startingPoint.Panel(); panel != nullptr; panel = panel->Parent())
+		{
+			auto* frame = Cast<IGRWidgetMainFrame>(panel->Widget());
+			if (frame != nullptr)
+			{
+				return *frame;
+			}
+		}
+
+		Throw(src, "Could not find an IGRWidgetMainFrame in the widget hierarchy");
+	}
+
+	struct InsertFactory : ISEXMLWidgetFactory
+	{
+		ISEXMLInserter& inserter;
+		InsertFactory(ISEXMLInserter& _inserter): inserter(_inserter)
+		{
+
+		}
+
+		void Generate(IGreatSexGenerator&, const Rococo::Sex::SEXML::ISEXMLDirective& insertDirective, Rococo::Gui::IGRWidget& owner) override
+		{
+			if (insertDirective.Parent() != nullptr)
+			{
+				Throw(insertDirective.S(), "(Insert <filename>) elements must be top-level only");
+			}
+
+			auto& path = insertDirective.GetAttributeByName("Path");
+
+			inserter.Insert(AsString(path.Value()).c_str(), insertDirective.S(), owner);
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& insertDirective) const override
+		{
+			return insertDirective.Parent() == nullptr;
+		}
+	};
+
+	struct FrameFactory : ISEXMLWidgetFactory
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& frameDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			if (frameDirective.Parent() != nullptr)
+			{
+				Throw(frameDirective.S(), "(Frame ..) elements must be top-level only");
+			}
+
+			IGRWidgetMainFrame& frame = GetFrame(parent, frameDirective.S());
+			generator.SetPanelAttributes(frame.Widget(), frameDirective);
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& frameDirective) const override
+		{
+			return frameDirective.Parent() == nullptr;
+		}
+	};
+
+	struct DivisionFactory : SEXMLWidgetFactory_AlwaysValid
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& divDirective, Rococo::Gui::IGRWidget& parent) override
 		{
@@ -24,7 +91,21 @@ namespace Rococo::GreatSex
 		}
 	};
 
-	struct VerticalListFactory : ISEXMLWidgetFactory
+	struct FrameClientAreaFactory : ISEXMLWidgetFactory
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& clientAreaDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			IGRWidgetMainFrame& frame = GetFrame(parent, clientAreaDirective.S());
+			generator.SetPanelAttributes(frame.ClientArea().Widget(), clientAreaDirective);
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& frameDirective) const override
+		{
+			return frameDirective.Parent() != nullptr;
+		}
+	};
+
+	struct VerticalListFactory : SEXMLWidgetFactory_AlwaysValid
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& verticalListDirective, Rococo::Gui::IGRWidget& parent) override
 		{
@@ -34,7 +115,7 @@ namespace Rococo::GreatSex
 		}
 	};
 
-	struct TextLabelFactory : ISEXMLWidgetFactory
+	struct TextLabelFactory : SEXMLWidgetFactory_AlwaysValid
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& textDirective, Rococo::Gui::IGRWidget& parent) override
 		{
@@ -50,7 +131,7 @@ namespace Rococo::GreatSex
 		}
 	};
 
-	struct ButtonFactory : ISEXMLWidgetFactory
+	struct ButtonFactory : SEXMLWidgetFactory_AlwaysValid
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& buttonDirective, Rococo::Gui::IGRWidget& parent) override
 		{
@@ -86,7 +167,7 @@ namespace Rococo::GreatSex
 		return static_cast<EGRAlignment>(AsFlags(a->Value(), ParseAlignment));
 	}
 
-	struct ToolbarFactory : ISEXMLWidgetFactory
+	struct ToolbarFactory : SEXMLWidgetFactory_AlwaysValid
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& toolbarDirective, Rococo::Gui::IGRWidget& parent) override
 		{

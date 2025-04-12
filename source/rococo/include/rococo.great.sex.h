@@ -7,6 +7,11 @@
 # define ROCOCO_GREAT_SEX_API ROCOCO_API_IMPORT
 #endif
 
+namespace Rococo::IO
+{
+	DECLARE_ROCOCO_INTERFACE ILoadEventsCallback;
+}
+
 namespace Rococo::Sex
 {
 	DECLARE_ROCOCO_INTERFACE ISExpression;
@@ -28,9 +33,15 @@ namespace Rococo::GreatSex
 		virtual void SetPanelAttributes(Rococo::Gui::IGRWidget& widget, const Rococo::Sex::SEXML::ISEXMLDirective& widgetDirective) = 0;
 	};
 
+	ROCOCO_INTERFACE ISEXMLInserter
+	{
+		virtual void Insert(cstr filePath, const Sex::ISExpression& s, Gui::IGRWidget& owner) = 0;
+	};
+
 	ROCOCO_INTERFACE ISEXMLWidgetFactory
 	{
 		virtual void Generate(IGreatSexGenerator & generator, const Rococo::Sex::SEXML::ISEXMLDirective & widgetDefinition, Rococo::Gui::IGRWidget & parent) = 0;
+		virtual bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& widgetDefinition) const = 0;
 	};
 
 	ROCOCO_INTERFACE ISEXMLWidgetFactorySupervisor : ISEXMLWidgetFactory
@@ -52,6 +63,11 @@ namespace Rococo::GreatSex
 	ROCOCO_GREAT_SEX_API ISEXMLWidgetFactorySupervisor* CreateSchemeHandler();
 	ROCOCO_GREAT_SEX_API ISEXMLWidgetFactorySupervisor* CreateColourHandler(ISEXMLColourSchemeBuilder& builder);
 
+	ROCOCO_INTERFACE IGreatSexResourceLoader
+	{
+		virtual void LoadGreatSexResource(cstr resourcePath, Rococo::IO::ILoadEventsCallback& onLoad) = 0;
+	};
+
 	ROCOCO_INTERFACE IGreatSexGeneratorSupervisor : IGreatSexGenerator
 	{
 		// Factory lifetimes are expected to encompass the lifetime of the GreatSexGenerator, so the reference must be valid until after the generator is destructed.
@@ -59,5 +75,5 @@ namespace Rococo::GreatSex
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_GREAT_SEX_API IGreatSexGeneratorSupervisor* CreateGreatSexGenerator(IAllocator& sexmlAllocator);
+	ROCOCO_GREAT_SEX_API IGreatSexGeneratorSupervisor* CreateGreatSexGenerator(IAllocator& sexmlAllocator, IGreatSexResourceLoader& resourceLoader);
 }

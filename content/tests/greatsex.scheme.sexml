@@ -1,0 +1,70 @@
+(Scheme :
+	// This reads as Apply the colour defs to the states specified by their bit combinations. (None of which contained the hovered bit)
+	// Since we have not specified the hovered bit, then this colour scheme applies to all situations that are *not* hovered
+	(ApplyTo ([] RenderStates pressed focused))
+	(ApplyTo ([] RenderStates pressed))
+	(ApplyTo ([] RenderStates focused))
+	(ApplyTo ([] RenderStates default))
+	(Colour.Container.Background (Red 0)(Green 0)(Blue 0)(Alpha 255))
+	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
+)
+(Scheme :
+	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
+	// Since we have specified the hovered bit in all permutations, then this colour scheme applies to all situations that *are* hovered
+	(ApplyTo ([] RenderStates hovered pressed))
+	(ApplyTo ([] RenderStates hovered pressed focused))
+	(ApplyTo ([] RenderStates hovered focused))
+	(ApplyTo ([] RenderStates hovered))
+	(Colour.Container.Background (Red 16)(Green 16)(Blue 16)(Alpha 255))
+	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
+)
+
+
+// An example here of micromanaging colours according to hovered, pressed and focused states
+(Colour 
+	(Id Transparent2)
+	:
+	(Spec 
+		([] For pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For default)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+)
+
+(Colour (Id Transparent)([] Uniform.RGBAb 0	  0   0   0))
+(Colour (Id DarkBlue)	([] Uniform.RGBAb 0   0  64	255))
+(Colour (Id DarkRed)	([] Uniform.RGBAb 64  0   0	255))

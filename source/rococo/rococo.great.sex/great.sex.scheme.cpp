@@ -110,9 +110,19 @@ namespace Rococo::GreatSex
 			delete this;
 		}
 
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& widgetDefinition) const override
+		{
+			return widgetDefinition.Parent() == nullptr;
+		}
+
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Rococo::Gui::IGRWidget& widget) override
 		{
 			UNUSED(generator);
+
+			if (schemeDirective.Parent() != nullptr)
+			{
+				Throw(schemeDirective.S(), "Scheme directives must be top-level directives, not children of other directives");
+			}
 
 			for (int j = 0; j < schemeDirective.NumberOfChildren(); j++)
 			{
