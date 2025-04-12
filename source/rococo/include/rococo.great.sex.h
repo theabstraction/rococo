@@ -22,11 +22,17 @@ namespace Rococo::Sex
 	}
 }
 
+namespace Rococo::Game::Options
+{
+	DECLARE_ROCOCO_INTERFACE IGameOptions;
+}
+
 // (G)ui(Re)t(a)ined(T)emplate via SexML
 namespace Rococo::GreatSex
 {
 	ROCOCO_INTERFACE IGreatSexGenerator
 	{
+		virtual void AddOptions(Game::Options::IGameOptions & options, cstr key) = 0;
 		virtual void AppendWidgetTreeFromSexML(const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& branch) = 0;
 		virtual void AppendWidgetTreeFromSexML(const Sex::ISExpression& s, Rococo::Gui::IGRWidget& branch) = 0;
 		virtual void GenerateChildren(const Rococo::Sex::SEXML::ISEXMLDirective& widgetDirective, Rococo::Gui::IGRWidget& widget) = 0;
@@ -36,6 +42,11 @@ namespace Rococo::GreatSex
 	ROCOCO_INTERFACE ISEXMLInserter
 	{
 		virtual void Insert(cstr filePath, const Sex::ISExpression& s, Gui::IGRWidget& owner) = 0;
+	};
+
+	ROCOCO_INTERFACE ISEXMLGameOptionsList
+	{
+		virtual Game::Options::IGameOptions& GetOptions(cstr key, const Sex::ISExpression& src) = 0;
 	};
 
 	ROCOCO_INTERFACE ISEXMLWidgetFactory

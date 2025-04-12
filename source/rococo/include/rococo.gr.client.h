@@ -1,6 +1,11 @@
 #pragma once
 #include <rococo.types.h>
 
+namespace Rococo::GreatSex
+{
+	DECLARE_ROCOCO_INTERFACE IGreatSexGenerator;
+}
+
 namespace Rococo::Gui
 {
 	DECLARE_ROCOCO_INTERFACE IGRRenderContext;
@@ -38,7 +43,7 @@ namespace Rococo
 
 			// Tries to load a frame specified by the great sex sexml File into the parent widget.
 			// If it fails the client window displays the error and returns false, else it returns true
-			virtual bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) = 0;
+			virtual bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget, IEventCallback<GreatSex::IGreatSexGenerator>& onGenerate) = 0;
 		};
 	}
 }

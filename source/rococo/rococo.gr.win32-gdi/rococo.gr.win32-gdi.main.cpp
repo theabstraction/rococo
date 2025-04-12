@@ -1834,10 +1834,12 @@ namespace GRANON
 			}
 		}
 
-		bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget) override
+		bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget, IEventCallback<IGreatSexGenerator>& onGenerate) override
 		{
 			AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(64, 0, "GreatSexAllocator");
 			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(*allocator, *this);
+
+			onGenerate.OnEvent(*greatSex);
 
 			Auto<ISParser> sParser = Sex::CreateSexParser_2_0(*allocator);
 			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_kilobytes);

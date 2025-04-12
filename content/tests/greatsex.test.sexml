@@ -58,5 +58,9 @@
 		(Panel.Layout LeftToRight)
 		([] Panel.Expand H V)
 		(Colour.Container.Background DarkBlue)
+		:
+		(GameOptions 
+			(Generate "GraphicsOptions")
+		)
 	)
 )

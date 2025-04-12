@@ -150,10 +150,16 @@ struct GraphicsOptions: IGameOptions
 	}
 };
 
+GraphicsOptions s_GraphicsOptions;
+
+IGameOptions& GetGraphicsOptions()
+{
+	return s_GraphicsOptions;
+}
+
 void TestGameOptions(IGRClientWindow& client)
 {
-	GraphicsOptions options;
-	TestOptions(client, client.GRSystem(), options);
+	TestOptions(client, client.GRSystem(), s_GraphicsOptions);
 }
 
 void TestWidgets(IGRClientWindow& client)

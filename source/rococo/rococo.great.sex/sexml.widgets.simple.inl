@@ -36,6 +36,42 @@ namespace Rococo::GreatSex
 		Throw(src, "Could not find an IGRWidgetMainFrame in the widget hierarchy");
 	}
 
+	struct GameOptionsFactory : ISEXMLWidgetFactory
+	{
+		ISEXMLGameOptionsList& options;
+
+		GameOptionsFactory(ISEXMLGameOptionsList& _options) : options(_options)
+		{
+
+		}
+
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& owner) override
+		{
+			if (directive.Parent() == nullptr)
+			{
+				Throw(directive.S(), "GameOptions must not be defined at the root level");
+			}
+
+			auto& aGen = directive.GetAttributeByName("Generate");
+			cstr key = AsString(aGen.Value()).c_str();
+
+			auto& opt = options.GetOptions(key, aGen.S());
+
+			auto& optionWidget = CreateGameOptionsList(owner, opt);
+			generator.SetPanelAttributes(optionWidget.Widget(), directive);
+
+			if (directive.Children().NumberOfDirectives() != 0)
+			{
+				Throw(directive.S(), "(GameOptions ...) directives do not support child directives");
+			}
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& directive) const override
+		{
+			return directive.Parent() != nullptr;
+		}
+	};
+
 	struct InsertFactory : ISEXMLWidgetFactory
 	{
 		ISEXMLInserter& inserter;

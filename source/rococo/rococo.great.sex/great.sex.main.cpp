@@ -12,6 +12,7 @@
 
 #include "sexml.widgets.simple.inl"
 
+using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Sex;
 using namespace Rococo::Sex::SEXML;
@@ -29,7 +30,7 @@ namespace Rococo::GreatSex
 			RGBAb colour;
 		};
 
-		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder, ISEXMLInserter
+		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder, ISEXMLInserter, ISEXMLGameOptionsList
 		{
 			// Widget Handlers, defined first
 			DivisionFactory onDivision;
@@ -42,6 +43,7 @@ namespace Rococo::GreatSex
 			FrameFactory onFrame;
 			FrameClientAreaFactory onFrameClientArea;
 			InsertFactory onInsert;
+			GameOptionsFactory onGameOptions;
 
 			Auto<ISParser> insertParser;
 
@@ -64,12 +66,14 @@ namespace Rococo::GreatSex
 				onColour(CreateColourHandler(*this)),
 				sexmlAllocator(_sexmlAllocator),
 				onInsert(*this),
-				loader(_loader)
+				loader(_loader),
+				onGameOptions(*this)
 			{
 				insertParser = CreateSexParser_2_0(sexmlAllocator);
 
 				AddHandler("Frame", onFrame);
 				AddHandler("Frame.ClientArea", onFrameClientArea);
+				AddHandler("GameOptions", onGameOptions);
 				AddHandler("Colour", *onColour);
 				AddHandler("Button", onButton);
 				AddHandler("Div", onDivision);
@@ -192,6 +196,53 @@ namespace Rococo::GreatSex
 				onLoad.cache->proxy = insertParser->ProxySourceBuffer(buffer, (int) strlen(buffer), { 0,0 }, filePath, nullptr);
 
 				OnInsertLoaded(src, *onLoad.cache, owner);
+			}
+
+			stringmap<Game::Options::IGameOptions*> mapNameToOptions;
+
+			void AddOptions(Game::Options::IGameOptions& options, cstr key) override
+			{
+				auto i = mapNameToOptions.insert(key, &options);
+				if (!i.second)
+				{
+					Throw(0, "Duplicate key '%s': %s", key, __FUNCTION__);
+				}
+			}
+
+			Game::Options::IGameOptions& GetOptions(cstr key, cr_sex src) override
+			{
+				auto i = mapNameToOptions.find(key);
+				if (i != mapNameToOptions.end())
+				{
+					return *i->second;
+				}
+
+				if (mapNameToOptions.empty())
+				{
+					Throw(src, "Could not find option '%s'. No known options. C++ developer should use IGreatSexGenerator::AddOptions(...)", key);
+				}
+
+				AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(256);
+				auto& sb = dsb->Builder();
+
+				bool first = true;
+				for (auto h : mapNameToOptions)
+				{
+					if (!first)
+					{
+						sb << ", ";
+					}
+					else
+					{
+						first = false;
+					}
+
+					sb << (cstr)h.first;
+				}
+
+				cstr knownOptions = *sb;
+
+				Throw(src, "Could not find option '%s'. Known options: %s", key, knownOptions);
 			}
 
 			void AddHandler(cstr fqName, ISEXMLWidgetFactory& f) override
