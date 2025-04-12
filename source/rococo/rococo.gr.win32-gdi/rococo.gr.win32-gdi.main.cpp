@@ -475,7 +475,7 @@ namespace GRANON
 			SetPolyFillMode(paintDC, oldMode);
 		}
 
-		void DrawImageStretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect)
+		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
 		{
 			HBITMAP hImage = (HBITMAP) static_cast<GDIImage&>(image).hImage;
 
@@ -484,7 +484,7 @@ namespace GRANON
 				bitmapDC = CreateCompatibleDC(paintDC);
 			}
 
-			UseClipRect useClip(paintDC, clipRect);
+			UseClipRect useClip(paintDC, lastScissorRect);
 
 			HBITMAP hOldBitmap = (HBITMAP)SelectObject(bitmapDC, hImage);
 
@@ -501,7 +501,7 @@ namespace GRANON
 			SelectObject(bitmapDC, hOldBitmap);
 		}
 
-		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect, GRAlignmentFlags alignment) override
+		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment) override
 		{
 			HBITMAP hImage = (HBITMAP) static_cast<GDIImage&>(image).hImage;
 
@@ -510,7 +510,7 @@ namespace GRANON
 				bitmapDC = CreateCompatibleDC(paintDC);
 			}
 
-			UseClipRect useClip(paintDC, clipRect);
+			UseClipRect useClip(paintDC, lastScissorRect);
 
 			HBITMAP hOldBitmap = (HBITMAP) SelectObject(bitmapDC, hImage);
 
@@ -591,9 +591,10 @@ namespace GRANON
 
 				if (topLeftColour.alpha < 255)
 				{
-					UseClipRect useClip(paintDC, lastScissorRect);
 					Gdiplus::Pen topLeftPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue));
-					g.DrawLines(&topLeftPen, topLeftPoints, 3);
+					Gdiplus::Rect clipRect(lastScissorRect.left, lastScissorRect.top, Width(lastScissorRect), Height(lastScissorRect));
+					g.SetClip(clipRect);
+					g.DrawLines(&topLeftPen, topLeftPoints, 3);					
 				}
 				else
 				{
@@ -613,6 +614,8 @@ namespace GRANON
 
 				if (bottomRightColour.alpha < 255)
 				{
+					Gdiplus::Rect clipRect(lastScissorRect.left, lastScissorRect.top, Width(lastScissorRect), Height(lastScissorRect));
+					g.SetClip(clipRect);
 					g.DrawLines(&bottomRightPen, bottomRightPoints, 3);
 				}
 				else
@@ -950,11 +953,11 @@ namespace GRANON
 
 		if (isStretched)
 		{
-			g.DrawImageStretched(*this, rect, panel.AbsRect());
+			g.DrawImageStretched(*this, rect);
 		}
 		else
 		{
-			g.DrawImageUnstretched(*this, rect, panel.AbsRect(), alignment);
+			g.DrawImageUnstretched(*this, rect, alignment);
 		}
 		return true;
 	}

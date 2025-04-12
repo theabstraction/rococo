@@ -285,7 +285,7 @@ namespace GRANON
 				targetRect.top = y - 200;
 				targetRect.bottom = y + 200;
 				targetRect.right = x + imageSpan.x;
-				g.DrawImageUnstretched(*image, targetRect, panel.AbsRect(), centred);
+				g.DrawImageUnstretched(*image, targetRect, centred);
 			}
 
 			if (guageFont != GRFontId::NONE)

@@ -857,8 +857,7 @@ namespace GRANON
 
 			if (span.x > 0 && span.y > 0)
 			{
-				GuiRect laxClipRect = false && clipRect.IsNormalized() ? Expand(clipRect, 1) : clipRect;
-				g.EnableScissors(laxClipRect);
+				g.EnableScissors(clipRect);
 
 				if (extraRenderer)
 				{
@@ -876,7 +875,10 @@ namespace GRANON
 			for (auto* child : children)
 			{
 				GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
-				child->RenderRecursive(g, childClipRect, isRenderingFirstLayer);
+				if (childClipRect.IsNormalized())
+				{
+					child->RenderRecursive(g, childClipRect, isRenderingFirstLayer);
+				}
 			}
 		}
 

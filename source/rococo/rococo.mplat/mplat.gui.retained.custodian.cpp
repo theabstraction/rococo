@@ -126,19 +126,17 @@ namespace ANON
 			}
 		}
 
-		void DrawImageStretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect)
+		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
 		{
 			UNUSED(image);
 			UNUSED(absRect);
-			UNUSED(clipRect);
 			Throw(0, __FUNCTION__ ": not implemented");
 		}
 
-		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, const GuiRect& clipRect, GRAlignmentFlags alignment)  override
+		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
 		{
 			UNUSED(image);
 			UNUSED(absRect);
-			UNUSED(clipRect);
 			UNUSED(alignment);
 			Throw(0, __FUNCTION__ ": not implemented");
 		}

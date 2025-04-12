@@ -120,10 +120,9 @@ IGR2DScene* TestDrawRect()
 			image1Flags.Add(EGRAlignment::Top);
 
 			GuiRect image1Rect{ 20, 260, 400, 300 };
-			GuiRect noClipping{ 0,0,0,0 };
 
 			RenderButton(rc, image1Rect);
-			rc.DrawImageUnstretched(*img1, image1Rect, noClipping, image1Flags);
+			rc.DrawImageUnstretched(*img1, image1Rect, image1Flags);
 
 			GRAlignmentFlags image2Flags;
 			image2Flags.Add(EGRAlignment::HCentre);
@@ -132,7 +131,7 @@ IGR2DScene* TestDrawRect()
 			GuiRect image2Rect{ 440, 260, 840, 300 };
 
 			RenderButton(rc, image2Rect);
-			rc.DrawImageUnstretched(*img1, image2Rect, noClipping, image2Flags);
+			rc.DrawImageUnstretched(*img1, image2Rect, image2Flags);
 
 			GRAlignmentFlags image3Flags;
 			image3Flags.Add(EGRAlignment::Right);
@@ -141,12 +140,12 @@ IGR2DScene* TestDrawRect()
 			GuiRect image3Rect{ 880, 260, 1280, 300 };
 
 			RenderButton(rc, image3Rect);
-			rc.DrawImageUnstretched(*img1, image3Rect, noClipping, image3Flags);
+			rc.DrawImageUnstretched(*img1, image3Rect, image3Flags);
 
 			GuiRect image4Rect{ 20, 340, 400, 380 };
 
 			RenderButton(rc, image4Rect);
-			rc.DrawImageStretched(*img1, image4Rect, noClipping);
+			rc.DrawImageStretched(*img1, image4Rect);
 		}
 	};
 

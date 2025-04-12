@@ -272,7 +272,7 @@ namespace ANON
 			GRFontId debugFontId = GRFontId::MENU_FONT;
 
 			GRAlignmentFlags alignment;
-			alignment.Add(EGRAlignment::Bottom).Add(EGRAlignment::Right);
+			alignment.Add(EGRAlignment::Top).Add(EGRAlignment::Right);
 
 			char cursorLine[32];
 			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
