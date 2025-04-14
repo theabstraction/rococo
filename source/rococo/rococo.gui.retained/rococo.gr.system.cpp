@@ -751,4 +751,72 @@ namespace Rococo::Gui
 	{
 		return _stricmp(a, b) == 0;
 	}
+
+	static bool Is(cstr a, cstr b)
+	{
+		return _stricmp(a, b) == 0;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAlignmentFlags::GRAlignmentFlags(cstr textRepresentation)
+	{
+		if (textRepresentation == nullptr)
+		{
+			Throw(0, __FUNCTION__ "(nullptr)");
+		}
+
+		if (Is(textRepresentation, "left"))
+		{
+			Add(EGRAlignment::Left);
+			return;
+		}
+
+		if (Is(textRepresentation, "right"))
+		{
+			Add(EGRAlignment::Right);
+			return;
+		}
+
+		if (Is(textRepresentation, "top"))
+		{
+			Add(EGRAlignment::Top);
+			return;
+		}
+
+		if (Is(textRepresentation, "bottom"))
+		{
+			Add(EGRAlignment::Bottom);
+			return;
+		}
+
+		if (Is(textRepresentation, "topleft"))
+		{
+			Add(EGRAlignment::Left).Add(EGRAlignment::Top);
+			return;
+		}
+
+		if (Is(textRepresentation, "topright"))
+		{
+			Add(EGRAlignment::Right).Add(EGRAlignment::Top);;
+			return;
+		}
+
+		if (Is(textRepresentation, "bottomleft"))
+		{
+			Add(EGRAlignment::Left).Add(EGRAlignment::Top);
+			return;
+		}
+
+		if (Is(textRepresentation, "bottomright"))
+		{
+			Add(EGRAlignment::Right).Add(EGRAlignment::Top);;
+			return;
+		}
+
+		if (Is(textRepresentation, "centre"))
+		{
+			return;
+		}
+
+		Throw(0, "Expecting one of [Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight, Centre]");
+	}
 }

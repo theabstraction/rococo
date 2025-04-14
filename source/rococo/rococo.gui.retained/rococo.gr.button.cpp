@@ -251,7 +251,7 @@ namespace GRANON
 			}
 		}
 
-		GRAlignmentFlags alignment { 0 };
+		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
 
 		IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) override

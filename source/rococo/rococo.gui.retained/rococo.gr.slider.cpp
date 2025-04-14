@@ -311,7 +311,7 @@ namespace GRANON
 			}
 		}
 
-		GRAlignmentFlags alignment { 0 };
+		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

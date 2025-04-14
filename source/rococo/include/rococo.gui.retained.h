@@ -142,6 +142,10 @@ namespace Rococo::Gui
 	{
 		int32 alignmentFlags = 0;
 
+		GRAlignmentFlags() {}
+
+		ROCOCO_GUI_RETAINED_API GRAlignmentFlags(cstr textRepresentation);
+
 		GRAlignmentFlags& Add(EGRAlignment alignment)
 		{
 			alignmentFlags |= (int32)alignment;

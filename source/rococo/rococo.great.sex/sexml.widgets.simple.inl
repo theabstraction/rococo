@@ -288,6 +288,24 @@ namespace Rococo::GreatSex
 				button.FitTextVertically();
 			}
 
+			Vec2i alignmentSpacing{ 0,0 };
+
+			auto* aTextAlignment = buttonDirective.FindAttributeByName("Text.Alignment");
+			if (aTextAlignment)
+			{
+				cstr sAlign = AsString(aTextAlignment->Value()).c_str();
+
+				try
+				{
+					GRAlignmentFlags align(sAlign);
+					button.SetAlignment(align, alignmentSpacing);
+				}
+				catch (IException& ex)
+				{
+					Throw(aTextAlignment->S(), ex.Message());
+				}
+			}
+
 			generator.SetPanelAttributes(button.Widget(), buttonDirective);
 			generator.GenerateChildren(buttonDirective, button.Widget());
 		}
