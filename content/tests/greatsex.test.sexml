@@ -17,7 +17,7 @@
 (Font 
 	(Id TitleFont)
 	(Family Arial)
-	(Height 72)
+	(Height 32)
 	([] Mods Bold)
 )
 
@@ -159,6 +159,8 @@
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
+					(Style TitlesOnLeft)
+				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate GraphicsOptions)
 				)

@@ -33,9 +33,14 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct(GRFontId titleFont)
+		void PostConstruct(GRFontId titleFont, const GameOptionConfig& config)
 		{
 			title = &AddGameOptionTitleWidget(*this, titleFont);
+
+			if (config.TitlesOnLeft)
+			{
+				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
+			}
 
 			button = &Gui::CreateButton(*this);
 			button->Widget().Panel().SetExpandToParentHorizontally();
@@ -180,13 +185,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsBool";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, GRFontId titleFont)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, GRFontId titleFont, const GameOptionConfig& config)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsBoolFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionsBoolWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct(titleFont);
+		l.PostConstruct(titleFont, config);
 		return l;
 	}
 }

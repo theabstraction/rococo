@@ -54,12 +54,24 @@ namespace Rococo::GreatSex
 				Throw(directive.S(), "GameOptions must not be defined at the root level");
 			}
 
+			GameOptionConfig config;
+
+			auto* aStyle = directive.FindAttributeByName("Style");
+			if (aStyle)
+			{
+				cstr style = AsString(aStyle->Value()).c_str();
+				if (Eq(style, "TitlesOnLeft"))
+				{
+					config.TitlesOnLeft = true;
+				}
+			}		
+
 			auto& vKey = directive["Generate"];
 			cstr key = AsString(vKey).c_str();
 
 			auto& opt = options.GetOptions(key, vKey.S());
 
-			auto& optionWidget = CreateGameOptionsList(owner, opt);
+			auto& optionWidget = CreateGameOptionsList(owner, opt, config);
 			generator.SetPanelAttributes(optionWidget.Widget(), directive);
 
 			if (directive.Children().NumberOfDirectives() != 0)

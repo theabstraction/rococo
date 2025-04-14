@@ -33,8 +33,13 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct(GRFontId titleFont)
+		void PostConstruct(GRFontId titleFont, const GameOptionConfig& config)
 		{
+			if (config.TitlesOnLeft)
+			{
+				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
+			}
+
 			title = &AddGameOptionTitleWidget(*this, titleFont);
 
 			carousel = &Gui::CreateCarousel(*this);
@@ -206,13 +211,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsChoice";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, GRFontId titleFont)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, GRFontId titleFont, const GameOptionConfig& config)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsChoiceFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionChoiceWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct(titleFont);
+		l.PostConstruct(titleFont, config);
 		return l;
 	}
 

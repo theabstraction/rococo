@@ -34,7 +34,8 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 	auto& viewport = CreateViewportWidget(frame.ClientArea().Widget());
 	viewport.Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
 
-	auto& optionsList = CreateGameOptionsList(viewport.ClientArea().Widget(), options);
+	GameOptionConfig config;
+	auto& optionsList = CreateGameOptionsList(viewport.ClientArea().Widget(), options, config);
 	optionsList.Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 255, 255), GRGenerateIntensities());
 
 	RunMessageLoop(client);

@@ -18,7 +18,9 @@ namespace GRANON
 		stringmap<IGRWidgetGameOptionsScalar*> mapNameToScalarControl;
 		GRFontId titleFont = GRFontId::NONE;
 
-		GRGameOptionsList(IGRPanel& _panel, IGameOptions& _options) : panel(_panel), options(_options)
+		GameOptionConfig config;
+
+		GRGameOptionsList(IGRPanel& _panel, IGameOptions& _options, const GameOptionConfig& _config) : panel(_panel), options(_options), config(_config)
 		{
 			panel.SetMinimalSpan({ 100, 24 });
 			panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
@@ -32,11 +34,11 @@ namespace GRANON
 			}
 
 			panel.Set(GRAnchorPadding{ 4,4,4,4 });
-			panel.SetChildPadding(16);
+			panel.SetChildPadding(1);
 
 			FontSpec font;
-			font.FontName = "Tahoma";
-			font.CharHeight = 48;
+			font.FontName = "Arial";
+			font.CharHeight = 24;
 			titleFont = GetCustodian(panel).Fonts().BindFontId(font);
 		}
 
@@ -242,7 +244,7 @@ namespace GRANON
 		IChoiceInquiry& AddChoice(cstr name) override
 		{
 			GuaranteeUnique(mapNameToChoiceControl, name);
-			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, titleFont);
+			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, titleFont, config);
 			mapNameToChoiceControl.insert(name, &choiceWidget);
 			return choiceWidget.Inquiry();
 		}
@@ -250,7 +252,7 @@ namespace GRANON
 		IBoolInquiry& AddBool(cstr name) override
 		{
 			GuaranteeUnique(mapNameToBoolControl, name);
-			IGRWidgetGameOptionsBool& boolWidget = CreateGameOptionsBool(*this, titleFont);
+			IGRWidgetGameOptionsBool& boolWidget = CreateGameOptionsBool(*this, titleFont, config);
 			mapNameToBoolControl.insert(name, &boolWidget);
 			return boolWidget.Inquiry();
 		}
@@ -258,7 +260,7 @@ namespace GRANON
 		IScalarInquiry& AddScalar(cstr name) override
 		{
 			GuaranteeUnique(mapNameToScalarControl, name);
-			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, titleFont);
+			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, titleFont, config);
 			mapNameToScalarControl.insert(name, &scalarWidget);
 			return scalarWidget.Inquiry();
 		}
@@ -267,15 +269,16 @@ namespace GRANON
 	struct GRGameOptionsFactory : IGRWidgetFactory
 	{
 		IGameOptions& options;
+		const GameOptionConfig& config;
 
-		GRGameOptionsFactory(IGameOptions& _options): options(_options)
+		GRGameOptionsFactory(IGameOptions& _options, const GameOptionConfig& _config): options(_options), config(_config)
 		{
 
 		}
 
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRGameOptionsList(panel, options);
+			return *new GRGameOptionsList(panel, options, config);
 		}
 	};
 }
@@ -287,11 +290,11 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptions";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptions& CreateGameOptionsList(IGRWidget& parent, IGameOptions& options)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptions& CreateGameOptionsList(IGRWidget& parent, IGameOptions& options, const GameOptionConfig& config)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
-		GRANON::GRGameOptionsFactory factory(options);
+		GRANON::GRGameOptionsFactory factory(options, config);
 		auto& l = static_cast<GRANON::GRGameOptionsList&>(gr.AddWidget(parent.Panel(), factory));
 		l.PostConstruct();
 		return l;
