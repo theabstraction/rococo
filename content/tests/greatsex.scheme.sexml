@@ -72,3 +72,4 @@
 (Colour (Id Transparent)([] Uniform.RGBAb 0	  0   0   0))
 (Colour (Id DarkBlue)	([] Uniform.RGBAb 0   0  64	255))
 (Colour (Id DarkRed)	([] Uniform.RGBAb 64  0   0	255))
+(Colour (Id Black)		([] Uniform.RGBAb 0   0   0	255))

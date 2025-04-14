@@ -89,7 +89,9 @@ namespace Rococo::GreatSex
 		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE },
 
 		{"Colour.Carousel.Text", EGRSchemeColourSurface::CAROUSEL_TEXT },
-		{"Colour.Carousel.Background", EGRSchemeColourSurface::CAROUSEL_BACKGROUND }
+		{"Colour.Carousel.Background", EGRSchemeColourSurface::CAROUSEL_BACKGROUND },
+
+		{"Colour.GameOption.Background", EGRSchemeColourSurface::GAME_OPTION_BACKGROUND }
 	};
 
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)

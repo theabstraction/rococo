@@ -406,6 +406,12 @@ namespace Rococo::GreatSex
 
 			Vec2i alignmentSpacing{ 0,0 };
 
+			auto* aTextSpacing = buttonDirective.FindAttributeByName("Text.Spacing");
+			if (aTextSpacing)
+			{
+				alignmentSpacing = AsVec2i(aTextSpacing->Value());
+			}
+
 			auto* aTextAlignment = buttonDirective.FindAttributeByName("Text.Alignment");
 			if (aTextAlignment)
 			{

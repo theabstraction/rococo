@@ -76,7 +76,6 @@ namespace GRANON
 		void Render(IGRRenderContext& rc) override
 		{
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::GAME_OPTION_TEXT, EGRSchemeColourSurface::TEXT);
-			SetUniformColourForAllRenderStates(panel, EGRSchemeColourSurface::LABEL_BACKGROUND, RGBAb(32, 32, 32, 255));
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, EGRSchemeColourSurface::BACKGROUND);
 
 			DrawPanelBackground(panel, rc);

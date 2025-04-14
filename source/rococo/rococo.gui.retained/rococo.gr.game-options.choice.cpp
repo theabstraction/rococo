@@ -236,6 +236,7 @@ namespace Rococo::Gui
 		spacing.x = (int) (fontHeight * config.TitleXSpacingMultiplier);
 
 		title->SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_TEXT);
+		title->SetBackColourSurface(EGRSchemeColourSurface::LABEL_BACKGROUND);
 		title->SetAlignment(config.TitleAlignment, spacing);
 
 		MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);

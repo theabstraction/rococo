@@ -24,7 +24,7 @@
 (Font 
 	(Id OptionButtonFont)
 	(Family Arial)
-	(Height 32)
+	(Height 24)
 	([] Mods Bold)
 )
 
@@ -109,6 +109,7 @@
 			(Panel.Layout TopToBottom)
 			(Panel.FixedWidth 280)
 			(Panel.ExpandV)
+			(Colour.Button Transparent)
 			(Panel.ChildPadding 4)
 			(#Recti Panel.Padding 4 0 0 0)
 			:
@@ -118,6 +119,7 @@
 				(Panel.ExpandH)
 				(FitTextV)
 				(Font OptionButtonFont)
+				(#Vec2i Text.Spacing 8 0)
 				(Text.Alignment Left)
 				(Text Graphics)
 			)
@@ -127,6 +129,7 @@
 				(Panel.ExpandH)
 				(FitTextV)
 				(Font OptionButtonFont)
+				(#Vec2i Text.Spacing 8 0)
 				(Text.Alignment Left)
 				(Text UI)	
 			)
@@ -136,6 +139,7 @@
 				(Panel.ExpandH)
 				(FitTextV)
 				(Font OptionButtonFont)
+				(#Vec2i Text.Spacing 8 0)
 				(Text.Alignment Left)
 				(Text Audio)	
 			)
@@ -145,6 +149,7 @@
 				(Panel.ExpandH)
 				(FitTextV)
 				(Font OptionButtonFont)
+				(#Vec2i Text.Spacing 8 0)
 				(Text.Alignment Left)
 				(Text Gameplay)	
 			)
@@ -154,6 +159,7 @@
 				(Panel.ExpandH)
 				(FitTextV)
 				(Font OptionButtonFont)
+				(#Vec2i Text.Spacing 8 0)
 				(Text.Alignment Left)
 				(Text Multiplayer)	
 			)
@@ -164,14 +170,17 @@
 			(Panel.Layout LeftToRight)
 			(Panel.ExpandH)
 			(Panel.ExpandV)
-			(Colour.Container.Background DarkBlue)
+			(Colour.Container.Background Transparent)
 			:
 			
 			// A veiwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 			(Viewport
+				(Colour.Background Transparent) 
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
+					(Colour.GameOption.Background Transparent)
+					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
@@ -200,38 +209,41 @@
 					(Generate GraphicsOptions)
 				)
 			)
-			
-			(Div
-				(#Vec2i Panel.Span 200 0)
-				(Panel.ExpandV)
-				(Panel.Layout TopToBottom)
-				
-				:
-				
-				(Button
-					(#Recti Panel.Padding 8 0 0 8)
-					(FitTextV)
-					(Panel.ExpandH)
-					(Font OptionButtonFont)
-					(Text Accept)	
-				)
-				
-				(Button
-					(#Recti Panel.Padding 8 0 0 8)
-					(FitTextV)
-					(Panel.ExpandH)
-					(Font OptionButtonFont)
-					(Text Revert)
-				)
-				
-				(Button
-					(#Recti Panel.Padding 8 0 0 8)
-					(FitTextV)
-					(Panel.ExpandH)
-					(Font OptionButtonFont)
-					(Text Back)	
-				)
-			)
+		)
+	)
+	
+	(Div
+		(Panel.FixedHeight 60)
+		(Panel.ExpandH)
+		(Panel.Layout LeftToRight)
+		(Panel.ChildPadding 20)
+		:
+		
+		(Button
+			(#Recti Panel.Padding 5 3 5 3)
+			(FitTextV)
+			(FitTextH)
+			(Colour.Button Black)
+			(Font SubOptionTitleFont)
+			(Text Accept)	
+		)
+		
+		(Button
+			(#Recti Panel.Padding 5 3 5 3)
+			(FitTextV)
+			(FitTextH)
+			(Colour.Button Black)
+			(Font SubOptionTitleFont)
+			(Text Revert)
+		)
+		
+		(Button
+			(#Recti Panel.Padding 5 3 5 3)
+			(FitTextV)
+			(FitTextH)
+			(Colour.Button Black)
+			(Font SubOptionTitleFont)
+			(Text Back)	
 		)
 	)
 )
