@@ -25,7 +25,7 @@
 (Font 
 	(Id OptionButtonFont)
 	(Family Arial)
-	(Height 48)
+	(Height 32)
 	([] Mods Bold)
 )
 
@@ -43,8 +43,7 @@
 	(Panel.ExpandH)
 	(Panel.ExpandV)
 	
-	// We dont need any padding here, so set all to zero
-	(#Recti Panel.Padding 0 0 0 0)
+	(#Recti Panel.Padding 80 80 80 80)
 	:
 	
 	(Label
@@ -62,6 +61,15 @@
 		
 		// Expand the label horizontally to the full span of its parent
 		(Panel.ExpandH)
+	)
+	
+	(Div
+		(Panel.Description TitleVSpacer)
+		(Panel.FixedWidth 40)
+		(Panel.FixedHeight 40)
+		
+		(Colour.Container.TopLeft Transparent)
+		(Colour.Container.BottomRight Transparent)
 	)
 	
 	// Divs are divisions with minimal implementation. They are used to layout controls horizontally or vertically and render a background and edge. They do little else

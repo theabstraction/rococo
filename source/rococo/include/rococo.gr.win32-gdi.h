@@ -22,6 +22,7 @@ namespace Rococo::Gui
 	DECLARE_ROCOCO_INTERFACE IGRCustodian;
 	DECLARE_ROCOCO_INTERFACE IGREventHandler;
 	DECLARE_ROCOCO_INTERFACE IGRSystem;
+	enum class EGREventRouting;
 }
 
 #ifndef ROCOCO_GR_GDI_API

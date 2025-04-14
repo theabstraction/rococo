@@ -10,6 +10,8 @@ namespace Rococo::Gui
 {
 	DECLARE_ROCOCO_INTERFACE IGRRenderContext;
 	DECLARE_ROCOCO_INTERFACE IGRWidget;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetMainFrame;
+	enum class EGREventRouting;
 }
 
 namespace Rococo
@@ -24,11 +26,19 @@ namespace Rococo
 		DECLARE_ROCOCO_INTERFACE IGREventHandler;
 		DECLARE_ROCOCO_INTERFACE IGRSystem;
 
+		ROCOCO_INTERFACE IGRAppControl
+		{
+			virtual Gui::EGREventRouting OnRawVKey(uint16 vKeyCode) = 0;
+		};
+
 		ROCOCO_INTERFACE IGRClientWindow
 		{
 			// Attach an event handler to the GRSystem, which is triggered by IGRSystem::DispatchMessages
 			// It must remain valid for the life time of the client window
-			virtual IGREventHandler * SetEventHandler(Gui::IGREventHandler * eventHandler) = 0;
+			virtual IGREventHandler* SetEventHandler(Gui::IGREventHandler * eventHandler) = 0;
+
+			// Allows the supplied sink to intercept virtual key presses, potentially stopping them from being handled by the GR system
+			virtual void InterceptVKeys(IGRAppControl& sink) = 0;
 
 			// Presents the given scene as background in the window. (The GUI is foreground).
 			// The scene object must be valid for the lifetime of the client window, or until LinkScene is invoked again
@@ -39,11 +49,11 @@ namespace Rococo
 
 			virtual void ShowError(Vec2i start, Vec2i end, cstr nameRef, cstr sourceBuffer, cstr message) = 0;
 
-			virtual IGRSystem& GRSystem() = 0;
+			virtual [[nodiscard]] IGRSystem& GRSystem() = 0;
 
 			// Tries to load a frame specified by the great sex sexml File into the parent widget.
 			// If it fails the client window displays the error and returns false, else it returns true
-			virtual bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget, IEventCallback<GreatSex::IGreatSexGenerator>& onGenerate) = 0;
+			virtual bool LoadFrame(cstr sexmlFile, IGRWidgetMainFrame& frame, IEventCallback<GreatSex::IGreatSexGenerator>& onGenerate) = 0;
 		};
 	}
 }

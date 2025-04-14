@@ -64,6 +64,14 @@ namespace Rococo::Game::Options
 
 		void AddOption(cstr name, typename InquiryFunctionDescriptor<T>::FN_BoolInquireFunction inquiry, typename OptionSelectedFunctionDescriptor<T>::FN_OnBoolOptionSelected onSelect)
 		{
+			for (auto& i : inquiryFunctions)
+			{
+				if (strcmp(i.name, name) == 0)
+				{
+					// Duplicate
+					return;
+				}
+			}
 			InquiryFunctionDescriptor<T> q;
 			q.functions.BoolInquiryFunction = inquiry;
 			q.name = name;
@@ -83,6 +91,15 @@ namespace Rococo::Game::Options
 
 		void AddOption(cstr name, typename InquiryFunctionDescriptor<T>::FN_ChoiceInquireFunction inquiry, typename OptionSelectedFunctionDescriptor<T>::FN_OnChoiceSelected onSelect)
 		{
+			for (auto& i : optionSelectedFunctions)
+			{
+				if (strcmp(i.name, name) == 0)
+				{
+					// Duplicate
+					return;
+				}
+			}
+
 			InquiryFunctionDescriptor<T> q;
 			q.functions.ChoiceInquiryFunction = inquiry;
 			q.name = name;
@@ -102,6 +119,15 @@ namespace Rococo::Game::Options
 
 		void AddOption(cstr name, typename InquiryFunctionDescriptor<T>::FN_ScalarInquireFunction option, typename OptionSelectedFunctionDescriptor<T>::FN_OnScalarOptionSelected onSelect)
 		{
+			for (auto& i : optionSelectedFunctions)
+			{
+				if (strcmp(i.name, name) == 0)
+				{
+					// Duplicate
+					return;
+				}
+			}
+
 			InquiryFunctionDescriptor<T> q;
 			q.functions.ScalarInquiryFunction = option;
 			q.name = name;

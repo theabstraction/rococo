@@ -6,6 +6,7 @@
 #include <rococo.allocators.h>
 #include <rococo.io.h>
 #include <rococo.great.sex.h>
+#include <rococo.vkeys.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -18,6 +19,8 @@ void BuildUpperRightToolbar(IGRWidgetMainFrame& frame);
 void UseTestColourScheme(IGRWidgetMainFrame& frame);
 
 IGameOptions& GetGraphicsOptions();
+
+cstr textSexml = "!tests/greatsex.test.sexml";
 
 void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 {
@@ -39,7 +42,33 @@ void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 		}
 	} onConstruct;
 
-	client.LoadFrame("!tests/greatsex.test.sexml", frame.Widget(), onConstruct);
+	client.LoadFrame(textSexml, frame, onConstruct);
+
+	struct Reloader: IGRAppControl
+	{
+		IGRClientWindow* client = nullptr;
+		IGRWidgetMainFrame* frame = nullptr;
+		IEventCallback<GreatSex::IGreatSexGenerator>* onConstruct = nullptr;
+
+		EGREventRouting OnRawVKey(uint16 vkeyCode) override
+		{
+			if (vkeyCode == IO::VirtualKeys::VKCode_F12)
+			{
+				auto& superPanel = static_cast<IGRPanelSupervisor&>(frame->ClientArea().Panel());
+				superPanel.ClearChildren();
+				client->LoadFrame(textSexml, *frame, *onConstruct);
+				return EGREventRouting::Terminate;
+			}
+
+			return EGREventRouting::NextHandler;
+		}
+	} reloader;
+
+	reloader.client = &client;
+	reloader.frame = &frame;
+	reloader.onConstruct = &onConstruct;	
+
+	client.InterceptVKeys(reloader);
 
 	RunMessageLoop(client);
 }

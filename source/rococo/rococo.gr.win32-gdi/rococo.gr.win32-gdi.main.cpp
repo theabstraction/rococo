@@ -1598,6 +1598,13 @@ namespace GRANON
 
 		HKL hKeyboardLayout = 0;
 
+		IGRAppControl* sink = nullptr;
+
+		void InterceptVKeys(IGRAppControl& sink) override
+		{
+			this->sink = &sink;
+		}
+
 		LRESULT OnRawInput(WPARAM wParam, LPARAM lParam)
 		{
 			POINT p;
@@ -1639,6 +1646,15 @@ namespace GRANON
 				{
 					KeyboardEvent key;
 					((RAWKEYBOARD&)key) = raw.data.keyboard;
+
+					if (sink)
+					{
+						if (EGREventRouting::Terminate == sink->OnRawVKey(key.VKey))
+						{
+							return 0;
+						}
+					}
+
 					key.unicode = VcodeToUnicode(key.VKey, key.scanCode, hKeyboardLayout);
 					gdiCustodian->RouteKeyboardEvent(key, *grSystem);
 					QueuePaint();
@@ -1837,7 +1853,7 @@ namespace GRANON
 			}
 		}
 
-		bool LoadFrame(cstr sexmlFile, IGRWidget& parentWidget, IEventCallback<IGreatSexGenerator>& onGenerate) override
+		bool LoadFrame(cstr sexmlFile, IGRWidgetMainFrame& frameWidget, IEventCallback<IGreatSexGenerator>& onGenerate) override
 		{
 			AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(64, 0, "GreatSexAllocator");
 			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(*allocator, *this);
@@ -1856,7 +1872,7 @@ namespace GRANON
 				Auto<ISParserTree> tree = sParser->CreateTree(*src);
 				cr_sex s = tree->Root();
 
-				greatSex->AppendWidgetTreeFromSexML(s, parentWidget);
+				greatSex->AppendWidgetTreeFromSexML(s, frameWidget.ClientArea().Widget());
 
 				return true;
 			}
