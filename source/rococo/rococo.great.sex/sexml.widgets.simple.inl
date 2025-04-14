@@ -276,22 +276,16 @@ namespace Rococo::GreatSex
 				button.SetFontId(grId);
 			}
 
-			auto* aFitText = buttonDirective.FindAttributeByName("FitText");
+			auto* aFitText = buttonDirective.FindAttributeByName("FitTextH");
 			if (aFitText)
 			{
-				auto& items = AsStringList(aFitText->Value());
-				for (int i = 0; i < items.NumberOfElements(); i++)
-				{
-					cstr item = items[i];
-					if (Eq(item, "H") || Eq(item, "Horizontal"))
-					{
-						button.FitTextHorizontally();
-					}
-					else if (Eq(item, "V") || Eq(item, "Vertical"))
-					{
-						button.FitTextVertically();
-					}
-				}
+				button.FitTextHorizontally();
+			}
+
+			aFitText = buttonDirective.FindAttributeByName("FitTextV");
+			if (aFitText)
+			{
+				button.FitTextVertically();
 			}
 
 			generator.SetPanelAttributes(button.Widget(), buttonDirective);
