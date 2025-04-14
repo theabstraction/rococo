@@ -88,7 +88,7 @@ namespace GRANON
 
 		virtual ~GRPanel()
 		{
-			widget->Free();
+			if (widget) widget->Free();
 			static_cast<IGRSystemSupervisor&>(root.GR()).NotifyPanelDeleted(uniqueId);
 			ClearChildren();
 		}

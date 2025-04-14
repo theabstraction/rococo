@@ -16,7 +16,6 @@ namespace GRANON
 		stringmap<IGRWidgetGameOptionsChoice*> mapNameToChoiceControl;
 		stringmap<IGRWidgetGameOptionsBool*> mapNameToBoolControl;
 		stringmap<IGRWidgetGameOptionsScalar*> mapNameToScalarControl;
-		GRFontId titleFont = GRFontId::NONE;
 
 		GameOptionConfig config;
 
@@ -35,11 +34,6 @@ namespace GRANON
 
 			panel.Set(GRAnchorPadding{ 4,4,4,4 });
 			panel.SetChildPadding(1);
-
-			FontSpec font;
-			font.FontName = "Arial";
-			font.CharHeight = 24;
-			titleFont = GetCustodian(panel).Fonts().BindFontId(font);
 		}
 
 		void PostConstruct()
@@ -244,7 +238,7 @@ namespace GRANON
 		IChoiceInquiry& AddChoice(cstr name) override
 		{
 			GuaranteeUnique(mapNameToChoiceControl, name);
-			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, titleFont, config);
+			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, config);
 			mapNameToChoiceControl.insert(name, &choiceWidget);
 			return choiceWidget.Inquiry();
 		}
@@ -252,7 +246,7 @@ namespace GRANON
 		IBoolInquiry& AddBool(cstr name) override
 		{
 			GuaranteeUnique(mapNameToBoolControl, name);
-			IGRWidgetGameOptionsBool& boolWidget = CreateGameOptionsBool(*this, titleFont, config);
+			IGRWidgetGameOptionsBool& boolWidget = CreateGameOptionsBool(*this, config);
 			mapNameToBoolControl.insert(name, &boolWidget);
 			return boolWidget.Inquiry();
 		}
@@ -260,7 +254,7 @@ namespace GRANON
 		IScalarInquiry& AddScalar(cstr name) override
 		{
 			GuaranteeUnique(mapNameToScalarControl, name);
-			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, titleFont, config);
+			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, config);
 			mapNameToScalarControl.insert(name, &scalarWidget);
 			return scalarWidget.Inquiry();
 		}

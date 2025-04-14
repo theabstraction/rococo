@@ -47,6 +47,11 @@ namespace GRANON
 			return Vec2i{ 8, 8 };
 		}
 
+		void SetSlotPadding(GRAnchorPadding padding) override
+		{
+			slotPadding = padding;
+		}
+
 		void SyncMinimalSpan()
 		{
 			Vec2i minimalSpan = EvaluateMinimalSpan();
@@ -126,9 +131,11 @@ namespace GRANON
 				return;
 			}
 
-			sliderPos = clamp(cursorPos.x, slotPadding.left, Width(panel.AbsRect()) - slotPadding.right);
+			int absLeft = panel.AbsRect().left + slotPadding.left;
 
-			double quotient = (sliderPos - slotPadding.left) / (double)pixelRange;
+			sliderPos = clamp(cursorPos.x, absLeft, panel.AbsRect().right - slotPadding.right);
+
+			double quotient = (sliderPos - absLeft) / (double)pixelRange;
 
 			position = minValue + quotient * (maxValue - minValue);
 
@@ -208,11 +215,10 @@ namespace GRANON
 		int guageVerticalOffset = 4;
 		EGRSchemeColourSurface guageTextSurface = EGRSchemeColourSurface::GAME_OPTION_TEXT;
 
-		void SetGuage(GRFontId fontId, int decimalPlaces, int verticalOffset, EGRSchemeColourSurface surface)
+		void SetGuage(GRFontId fontId, int decimalPlaces, EGRSchemeColourSurface surface) override
 		{
 			guageFont = fontId;
 			guageDecimalPlaces = decimalPlaces;
-			guageVerticalOffset = verticalOffset;
 			guageTextSurface = surface;
 		}
 
@@ -236,6 +242,15 @@ namespace GRANON
 			SetSliderPosFromValuePos();
 		}
 
+		GRAlignmentFlags guageAlignment;
+		Vec2i guageSpacing{ 0,0 };
+
+		void SetGuageAlignment(GRAlignmentFlags alignment, Vec2i spacing) override
+		{
+			guageAlignment = alignment;
+			guageSpacing = spacing;
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;
@@ -249,9 +264,10 @@ namespace GRANON
 			sliderSlot.left += slotPadding.left;
 			sliderSlot.right -= slotPadding.right;
 			
+			sliderSlot.top += slotPadding.top;
+			sliderSlot.bottom -= slotPadding.bottom;
+
 			int y = Centre(sliderSlot).y;
-			sliderSlot.top = y - slotPadding.top;
-			sliderSlot.bottom = y + slotPadding.bottom;
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, GRRenderState(false, isHovered, false), RGBAb(255,255,0,255));
 			g.DrawRect(panel.AbsRect(), backColour);
@@ -276,7 +292,7 @@ namespace GRANON
 
 				Vec2i imageSpan = image->Span();
 
-				int renderedSliderPos = clamp(sliderPos, slotPadding.left, Width(panel.AbsRect()) - slotPadding.right);
+				int renderedSliderPos = clamp(sliderPos, panel.AbsRect().left + slotPadding.left, panel.AbsRect().right - slotPadding.right);
 
 				int x = renderedSliderPos - (imageSpan.x / 2);
 
@@ -297,11 +313,8 @@ namespace GRANON
 
 				Strings::SafeFormat(guageText, format, position);
 
-				GRAlignmentFlags textAlignment;
-				textAlignment.Add(EGRAlignment::Top).Add(EGRAlignment::HCentre);
-
 				RGBAb colour = panel.GetColour(guageTextSurface, rs);
-				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), textAlignment, { 0, guageVerticalOffset }, to_fstring(guageText), colour);
+				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), guageAlignment, guageSpacing, to_fstring(guageText), colour);
 			}
 
 			bool isObscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);

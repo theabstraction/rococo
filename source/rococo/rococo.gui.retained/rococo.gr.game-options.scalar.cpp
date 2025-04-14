@@ -33,14 +33,14 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct(GRFontId titleFont, const GameOptionConfig& config)
+		void PostConstruct(const GameOptionConfig& config)
 		{
 			if (config.TitlesOnLeft)
 			{
 				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
 
-			title = &AddGameOptionTitleWidget(*this, titleFont);
+			title = &AddGameOptionTitleWidget(*this, config);
 
 			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 			MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
@@ -49,13 +49,16 @@ namespace GRANON
 			slider->Widget().Panel().SetExpandToParentHorizontally();
 			slider->Widget().Panel().SetExpandToParentVertically();
 
-			slider->SetRaisedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/up.tiff");
-			slider->SetPressedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/update.tiff");
+			slider->SetRaisedImagePath(config.ScalarKnobRaised);
+			slider->SetPressedImagePath(config.ScalarKnobPressed);
+
+			slider->SetGuageAlignment(config.ScalarGuageAlignment, config.ScalarGuageSpacing);
+			slider->SetSlotPadding(config.ScalarSlotPadding);
 
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
 
-			int height = (int)(1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont));
-			panel.SetConstantHeight(2 * height);
+			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
+			panel.SetConstantHeight(height);
 		}
 
 		void Free() override
@@ -236,13 +239,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsScalar";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, GRFontId titleFont, const GameOptionConfig& config)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, const GameOptionConfig& config)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsScalarFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionScalarWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct(titleFont, config);
+		l.PostConstruct(config);
 		return l;
 	}
 }

@@ -56,7 +56,7 @@ namespace Rococo::GreatSex
 
 			GameOptionConfig config;
 
-			auto* aStyle = directive.FindAttributeByName("Style");
+			auto* aStyle = directive.FindAttributeByName("Title.Style");
 			if (aStyle)
 			{
 				cstr style = AsString(aStyle->Value()).c_str();
@@ -65,6 +65,110 @@ namespace Rococo::GreatSex
 					config.TitlesOnLeft = true;
 				}
 			}		
+
+			auto* aFont = directive.FindAttributeByName("Title.Font");
+			if (aFont)
+			{
+				cstr fontName = AsString(aFont->Value()).c_str();
+				FontQuery fq = generator.GetFont(fontName, aFont->S());
+
+				Gui::FontSpec spec;
+				spec.CharHeight = fq.height;
+				spec.FontName = fq.familyName;
+				spec.Bold = fq.isBold;
+				spec.Italic = fq.isItalic;
+				config.TitleFontId = GetCustodian(owner.Panel()).Fonts().BindFontId(spec);
+			}
+
+			auto* aCarouselFont = directive.FindAttributeByName("Carousel.Font");
+			if (aCarouselFont)
+			{
+				cstr fontName = AsString(aCarouselFont->Value()).c_str();
+				FontQuery fq = generator.GetFont(fontName, aFont->S());
+
+				Gui::FontSpec spec;
+				spec.CharHeight = fq.height;
+				spec.FontName = fq.familyName;
+				spec.Bold = fq.isBold;
+				spec.Italic = fq.isItalic;
+				config.CarouselFontId = GetCustodian(owner.Panel()).Fonts().BindFontId(spec);
+			}
+
+			auto* aAlignment = directive.FindAttributeByName("Title.Alignment");
+			if (aAlignment)
+			{
+				cstr sAlign = AsString(aAlignment->Value()).c_str();
+				try
+				{
+					GRAlignmentFlags align(sAlign);
+					config.TitleAlignment = align;
+				}
+				catch (IException& ex)
+				{
+					Throw(aAlignment->S(), ex.Message());
+				}
+			}
+
+			auto* aScalarGuageAlignment = directive.FindAttributeByName("Scalar.Guage.Alignment");
+			if (aScalarGuageAlignment)
+			{
+				cstr sAlign = AsString(aScalarGuageAlignment->Value()).c_str();
+				try
+				{
+					GRAlignmentFlags align(sAlign);
+					config.ScalarGuageAlignment = align;
+				}
+				catch (IException& ex)
+				{
+					Throw(aScalarGuageAlignment->S(), ex.Message());
+				}
+			}
+
+			auto* aScalarGuageSpacing = directive.FindAttributeByName("Scalar.Guage.Spacing");
+			if (aScalarGuageSpacing)
+			{
+				Vec2i spacing = AsVec2i(aScalarGuageSpacing->Value());
+				config.ScalarGuageSpacing = spacing;
+			}
+
+
+			auto* aScalarSlotPadding = directive.FindAttributeByName("Scalar.Slot.Padding");
+			if (aScalarSlotPadding)
+			{
+				GuiRect padding = AsGuiRect(aScalarSlotPadding->Value());
+				config.ScalarSlotPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
+			}
+
+			auto* aHeight = directive.FindAttributeByName("Title.HeightMultiplier");
+			if (aHeight)
+			{
+				double multiplier = AsAtomicDouble(aHeight->Value());
+				if (multiplier < 1.0 || multiplier > 10.0)
+				{
+					Throw(directive.S(), "Valid range 1.0 to 10.0 inclusive");
+				}
+
+				config.FontHeightToOptionHeightMultiplier = multiplier;
+			}
+
+			auto* aXSpacingMultiplier = directive.FindAttributeByName("Title.XSpacingMultiplier");
+			if (aXSpacingMultiplier)
+			{
+				double multiplier = AsAtomicDouble(aXSpacingMultiplier->Value());
+				if (multiplier < 0.0 || multiplier > 10.0)
+				{
+					Throw(directive.S(), "Valid range 0.0 to 10.0 inclusive");
+				}
+
+				config.TitleXSpacingMultiplier = multiplier;
+			}
+
+			auto* aCarouselPadding = directive.FindAttributeByName("Carousel.Padding");
+			if (aCarouselPadding)
+			{
+				GuiRect padding = AsGuiRect(aCarouselPadding->Value());
+				config.CarouselPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
+			}
 
 			auto& vKey = directive["Generate"];
 			cstr key = AsString(vKey).c_str();

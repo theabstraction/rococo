@@ -21,11 +21,24 @@
 	([] Mods Bold)
 )
 
-// Options buttons are also quite large.
 (Font 
 	(Id OptionButtonFont)
 	(Family Arial)
 	(Height 32)
+	([] Mods Bold)
+)
+
+(Font 
+	(Id SubOptionTitleFont)
+	(Family Arial)
+	(Height 18)
+	([] Mods Bold)
+)
+
+(Font 
+	(Id CarouselFont)
+	(Family Arial)
+	(Height 16)
 	([] Mods Bold)
 )
 
@@ -159,7 +172,29 @@
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
-					(Style TitlesOnLeft)
+					(Title.Style TitlesOnLeft)
+					(Title.Alignment Left)
+					(Title.Font SubOptionTitleFont)
+					
+					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
+					(Title.HeightMultiplier 1.5)
+					
+					// Multiplies the title font height to yield the title x spacing.
+					(Title.XSpacingMultiplier 0.25)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Padding 40 2 40 2)
+					
+					// Determine which side of the control the numeric feedback is rendered at
+					(Scalar.Guage.Alignment Left)
+					
+					// Offset from alignment edge to guage
+					(#Vec2i Scalar.Guage.Spacing 4 4)
+					
+					// Gives the padding of the slider control slot to the slider control edges
+					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					
+					(Carousel.Font CarouselFont)
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate GraphicsOptions)

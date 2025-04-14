@@ -33,10 +33,10 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct(GRFontId titleFont, const GameOptionConfig& config)
+		void PostConstruct(const GameOptionConfig& config)
 		{
-			title = &AddGameOptionTitleWidget(*this, titleFont);
-
+			title = &AddGameOptionTitleWidget(*this, config);
+			
 			if (config.TitlesOnLeft)
 			{
 				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
@@ -48,14 +48,14 @@ namespace GRANON
 			button->MakeToggleButton();
 			button->SetPressedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/yes.tiff");
 			button->SetRaisedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/no.tiff");
-
+			
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON);
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
 
-			int height = (int) (1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont));
-			panel.SetConstantHeight(2 * height);
+			int height = (int) (config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
+			panel.SetConstantHeight(height);
 		}
 
 		void Free() override
@@ -185,13 +185,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsBool";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, GRFontId titleFont, const GameOptionConfig& config)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, const GameOptionConfig& config)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsBoolFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionsBoolWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct(titleFont, config);
+		l.PostConstruct(config);
 		return l;
 	}
 }

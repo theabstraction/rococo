@@ -292,6 +292,8 @@ namespace Rococo::Gui
 		READ_ONLY_TEXT,
 		TEXT,
 		GAME_OPTION_BACKGROUND, // Gives the background colour in a game option title
+		CAROUSEL_BACKGROUND, // Gives the background colour of a carousel inner rect
+		CAROUSEL_TEXT, // Gives the text colour of a carousel
 		GAME_OPTION_TEXT, // Gives the text colour in a game option title
 		GAME_OPTION_DISABLED_BACKGROUND, // // Gives the background colour in a disabled game option
 		GAME_OPTION_DISABLED_TEXT, // Gives the text colour in a game option title when the option is not currently selectable
@@ -824,6 +826,8 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual void SetDisableCarouselWhenDropDownVisible(bool isDisabledAccordingly) = 0;
+		virtual void SetFont(GRFontId fontId) = 0;
+		virtual void SetOptionPadding(GRAnchorPadding padding) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetScrollableMenu : IGRBase
@@ -854,7 +858,7 @@ namespace Rococo::Gui
 		virtual void SetQuantum(double quantum) = 0;
 
 		// Sets the text output. Note that with GRFontId::NONE no guage is rendered
-		virtual void SetGuage(GRFontId fontId, int decimalPlaces, int verticalOffset, EGRSchemeColourSurface surface) = 0;
+		virtual void SetGuage(GRFontId fontId, int decimalPlaces, EGRSchemeColourSurface surface) = 0;
 
 		// Note that the true value is clamp of the supplied value using the range values
 		virtual void SetPosition(double value) = 0;
@@ -864,6 +868,8 @@ namespace Rococo::Gui
 		virtual IGRWidgetSlider& SetImagePath(cstr imagePath) = 0;
 		virtual IGRWidgetSlider& SetPressedImagePath(cstr imagePath) = 0;
 		virtual IGRWidgetSlider& SetRaisedImagePath(cstr imagePath) = 0;
+		virtual void SetGuageAlignment(GRAlignmentFlags alignment, Vec2i scalarGuageSpacing) = 0;
+		virtual void SetSlotPadding(GRAnchorPadding padding) = 0;
 	};
 
 	struct GRMenuButtonItem
@@ -1361,15 +1367,30 @@ namespace Rococo::Gui
 
 	struct GameOptionConfig
 	{
-		bool TitlesOnLeft = false;
+		bool TitlesOnLeft = false; // If false, titles appear above controls, otherwise they appear to the left.
+		double FontHeightToOptionHeightMultiplier = 1.0; // Multiplies the font height of a title to create the height of the option control. 1.0 < multiplier < 2.0 is good
+		double TitleXSpacingMultiplier = 0.5;
+		GRAlignmentFlags TitleAlignment;
+		GRAlignmentFlags ScalarGuageAlignment;
+		Vec2i ScalarGuageSpacing{ 0,0 };
+		GRFontId TitleFontId = GRFontId::MENU_FONT;
+		GRAnchorPadding CarouselPadding { 0,0,0,0 };
+		GRAnchorPadding ScalarSlotPadding { 0,0,0,0 };
+		cstr LeftImageRaised = "!textures/toolbars/MAT/previous.tif";
+		cstr RightImageRaised = "!textures/toolbars/MAT/next.tif";
+		cstr LeftImagePressed = "!textures/toolbars/MAT/previousHi.tif";
+		cstr RightImagePressed = "!textures/toolbars/MAT/nextHi.tif";
+		cstr ScalarKnobRaised = "!textures/toolbars/MAT/slider-knob.tif";
+		cstr ScalarKnobPressed = "!textures/toolbars/MAT/slider-knobHi.tif";
+		GRFontId CarouselFontId = GRFontId::MENU_FONT;
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
 	ROCOCO_GUI_RETAINED_API IGRWidgetPropertyEditorTree& CreatePropertyEditorTree(IGRWidget& parent, IGRPropertyEditorPopulationEvents& events, const PropertyEditorSpec& spec);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptions& CreateGameOptionsList(IGRWidget& parent, Game::Options::IGameOptions& options, const GameOptionConfig& config);
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, GRFontId fontId, const GameOptionConfig& config);
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, GRFontId fontId, const GameOptionConfig& config);
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, GRFontId fontId, const GameOptionConfig& config);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, const GameOptionConfig& config);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, const GameOptionConfig& config);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, const GameOptionConfig& config);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 
@@ -1380,7 +1401,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalList& CreateVerticalList(IGRWidget& parent, bool enforcePositiveChildHeights = true);
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
-	ROCOCO_GUI_RETAINED_API IGRWidgetCarousel& CreateCarousel(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetCarousel& CreateCarousel(IGRWidget& parent, cstr leftImageRaised, cstr rightImageRaised, cstr leftImagePressed, cstr rightImagePressed);
 	ROCOCO_GUI_RETAINED_API IGRWidgetScrollableMenu& CreateScrollableMenu(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSlider& CreateSlider(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
@@ -1437,5 +1458,5 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void DrawEdge(EGRSchemeColourSurface topLeft, EGRSchemeColourSurface bottomRight, IGRPanel& panel, IGRRenderContext& rc);
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetText& AddGameOptionTitleWidget(IGRWidget& parentWidget, GRFontId titleFont);
+	ROCOCO_GUI_RETAINED_API IGRWidgetText& AddGameOptionTitleWidget(IGRWidget& parentWidget, const GameOptionConfig& config);
 }

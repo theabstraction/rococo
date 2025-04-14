@@ -24,13 +24,13 @@ namespace GRANON
 
 		int optionIndex = 1;
 
-		int optionSpan = 200;
-
 		GRAnchorPadding optionPadding{ 4, 4, 16, 16 };
 
 		IGRWidgetButton* leftButton = nullptr;
 		IGRWidgetButton* rightButton = nullptr;
 		IGRWidgetScrollableMenu* dropDown = nullptr;
+
+		GRFontId fontId = GRFontId::MENU_FONT;
 		
 		GRCarousel(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -47,13 +47,25 @@ namespace GRANON
 			delete this;
 		}
 
-		void PostConstruct()
+		void SetFont(GRFontId fontId) override
+		{
+			this->fontId = fontId;
+		}
+
+		void SetOptionPadding(GRAnchorPadding padding) override
+		{
+			this->optionPadding = padding;
+		}
+
+		void PostConstruct(cstr leftImagePathRaised, cstr rightImagePathRaised, cstr leftImagePathPressed, cstr rightImagePathPressed)
 		{
 			leftButton = &CreateButton(*this);
 			rightButton = &CreateButton(*this);
 
-			leftButton->SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Previous.tiff");
-			rightButton->SetImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Next.tiff");
+			leftButton->SetRaisedImagePath(leftImagePathRaised);
+			rightButton->SetRaisedImagePath(rightImagePathRaised);
+			leftButton->SetPressedImagePath(leftImagePathPressed);
+			rightButton->SetPressedImagePath(rightImagePathPressed);
 
 			GRAlignmentFlags alignment;
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::Top);
@@ -62,6 +74,16 @@ namespace GRANON
 
 			leftButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			rightButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+
+			MakeTransparent(leftButton->Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
+			MakeTransparent(leftButton->Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
+			MakeTransparent(leftButton->Panel(), EGRSchemeColourSurface::BUTTON);
+			MakeTransparent(leftButton->Panel(), EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
+
+			MakeTransparent(rightButton->Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
+			MakeTransparent(rightButton->Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
+			MakeTransparent(rightButton->Panel(), EGRSchemeColourSurface::BUTTON);
+			MakeTransparent(rightButton->Panel(), EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
 
 			dropDown = &CreateScrollableMenu(*this);
 			dropDown->Panel().SetCollapsed(true);
@@ -160,14 +182,14 @@ namespace GRANON
 			padding.y = (Height(rect) - buttonSpan.y) / 2;
 
 			GuiRect edge = ComputeEdgeRect();
-			Vec2i centre = Span(panel.AbsRect());
+			Vec2i centre = Span(rect);
 			centre.x /= 2;
 			centre.y /= 2;
 
 			Vec2i edgeSpan = Span(edge);
 
-			Vec2i leftOffset{  centre.x - (edgeSpan.x / 2) - buttonSpan.x - padding.x, padding.y };
-			Vec2i rightOffset{ centre.x + (edgeSpan.x / 2) + padding.x, padding.y };
+			Vec2i leftOffset{  optionPadding.left - buttonSpan.x - 2, padding.y + 1 };
+			Vec2i rightOffset{ Width(rect) - optionPadding.right + 2, padding.y + 1 };
 
 			leftButton->Panel().SetParentOffset(leftOffset).SetConstantSpan(buttonSpan);
 			rightButton->Panel().SetParentOffset(rightOffset).SetConstantSpan(buttonSpan);
@@ -287,8 +309,8 @@ namespace GRANON
 		GuiRect ComputeEdgeRect() const
 		{
 			GuiRect optionRect = panel.AbsRect();
-			optionRect.left = Centre(panel.AbsRect()).x - (optionSpan / 2);
-			optionRect.right = optionRect.left + optionSpan;
+			optionRect.left += optionPadding.left;
+			optionRect.right -= optionPadding.right;
 			optionRect.top += optionPadding.top;
 			optionRect.bottom -= optionPadding.bottom;
 			return optionRect;
@@ -301,8 +323,8 @@ namespace GRANON
 				GRAlignmentFlags optionTextAlignment;
 				optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 
-				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, GRRenderState(0, 0, 0));
-				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), optionTextAlignment, { 0,0 }, "<no options>"_fstring, colour);
+				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TEXT, GRRenderState(0, 0, 0));
+				g.DrawText(fontId, panel.AbsRect(), optionTextAlignment, { 0,0 }, "<no options>"_fstring, colour);
 				return;
 			}
 
@@ -318,8 +340,12 @@ namespace GRANON
 			bool isDisabled = isCarouselDisabledWhenDropDownVisible && !dropDown->Panel().IsCollapsed();
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;
 			GRRenderState rs(false, isHovered, false);
-			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, rs);
-			g.DrawText(GRFontId::MENU_FONT, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
+
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_BACKGROUND, rs);
+			g.DrawRect(edge, backColour);
+
+			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TEXT, rs);
+			g.DrawText(fontId, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
 
 			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, rs);
 			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, rs);
@@ -350,13 +376,17 @@ namespace GRANON
 
 	struct GRCarouselFactory : IGRWidgetFactory
 	{
+		cstr leftImageRaised = nullptr;
+		cstr rightImageRaised = nullptr;
+		cstr leftImagePressed = nullptr;
+		cstr rightImagePressed = nullptr;
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
 			AutoFree<GRCarousel> newCarousel = new GRCarousel(panel);
-			newCarousel->PostConstruct();
+			newCarousel->PostConstruct(leftImageRaised, rightImageRaised, leftImagePressed, rightImagePressed);
 			return *newCarousel.Detach();
 		}
-	} s_CarouselFactory;
+	};
 }
 
 namespace Rococo::Gui
@@ -366,10 +396,15 @@ namespace Rococo::Gui
 		return "IGRWidgetCarousel";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetCarousel& CreateCarousel(IGRWidget& parent)
+	ROCOCO_GUI_RETAINED_API IGRWidgetCarousel& CreateCarousel(IGRWidget& parent, cstr leftImageRaised, cstr rightImageRaised, cstr leftImagePressed, cstr rightImagePressed)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& widget = gr.AddWidget(parent.Panel(), GRANON::s_CarouselFactory);
+		GRANON::GRCarouselFactory factory;
+		factory.leftImageRaised = leftImageRaised;
+		factory.rightImageRaised = rightImageRaised;
+		factory.leftImagePressed = leftImagePressed;
+		factory.rightImagePressed = rightImagePressed;
+		auto& widget = gr.AddWidget(parent.Panel(), factory);
 		auto* carousel = Cast<IGRWidgetCarousel>(widget);
 		return *carousel;
 	}

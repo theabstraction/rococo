@@ -86,7 +86,10 @@ namespace Rococo::GreatSex
 		{"Colour.Label", EGRSchemeColourSurface::LABEL_BACKGROUND },
 
 		{"Colour.Splitter.Background", EGRSchemeColourSurface::SPLITTER_BACKGROUND },
-		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE }
+		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE },
+
+		{"Colour.Carousel.Text", EGRSchemeColourSurface::CAROUSEL_TEXT },
+		{"Colour.Carousel.Background", EGRSchemeColourSurface::CAROUSEL_BACKGROUND }
 	};
 
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)

@@ -33,22 +33,24 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct(GRFontId titleFont, const GameOptionConfig& config)
+		void PostConstruct(const GameOptionConfig& config)
 		{
 			if (config.TitlesOnLeft)
 			{
 				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
 
-			title = &AddGameOptionTitleWidget(*this, titleFont);
+			title = &AddGameOptionTitleWidget(*this, config);
 
-			carousel = &Gui::CreateCarousel(*this);
+			carousel = &Gui::CreateCarousel(*this, config.LeftImageRaised, config.RightImageRaised, config.LeftImagePressed, config.RightImagePressed);
 			carousel->Widget().Panel().SetExpandToParentHorizontally();
 			carousel->Widget().Panel().SetExpandToParentVertically();
 			carousel->SetDisableCarouselWhenDropDownVisible(true);
+			carousel->SetOptionPadding(config.CarouselPadding);
+			carousel->SetFont(config.CarouselFontId);
 
-			int height = (int) (1.25 * GetCustodian(panel).Fonts().GetFontHeight(titleFont));
-			panel.SetConstantHeight(2 * height);
+			int height = (int) (config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
+			panel.SetConstantHeight(height);
 		}
 
 		void Free() override
@@ -211,23 +213,30 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsChoice";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, GRFontId titleFont, const GameOptionConfig& config)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, const GameOptionConfig& config)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsChoiceFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionChoiceWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct(titleFont, config);
+		l.PostConstruct(config);
 		return l;
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetText& AddGameOptionTitleWidget(IGRWidget& parentWidget, GRFontId titleFont)
+	ROCOCO_GUI_RETAINED_API IGRWidgetText& AddGameOptionTitleWidget(IGRWidget& parentWidget, const GameOptionConfig& config)
 	{
 		auto* title = &Gui::CreateText(parentWidget);
 		title->Widget().Panel().SetExpandToParentHorizontally();
 		title->Widget().Panel().SetExpandToParentVertically();
-		title->SetFont(titleFont);
+		title->SetFont(config.TitleFontId);
+
+		int fontHeight = GetCustodian(parentWidget).Fonts().GetFontHeight(config.TitleFontId);
+
+		Vec2i spacing{ 0,0 };
+		spacing.x = (int) (fontHeight * config.TitleXSpacingMultiplier);
+
 		title->SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_TEXT);
+		title->SetAlignment(config.TitleAlignment, spacing);
 
 		MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 		MakeTransparent(title->Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
