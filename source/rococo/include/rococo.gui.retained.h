@@ -785,7 +785,8 @@ namespace Rococo::Gui
 
 		virtual IGRWidgetButton& SetFontId(GRFontId id) = 0;
 
-		virtual void ExpandToFitText() = 0;
+		virtual void FitTextHorizontally() = 0;
+		virtual void FitTextVertically() = 0;
 
 		// Gets the display text and returns its length. If the buffer is insufficient, the result is truncated
 		virtual size_t GetTitle(char* titleBuffer, size_t nBytes) const = 0;

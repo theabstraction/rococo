@@ -345,12 +345,20 @@ namespace GRANON
 			return *this;
 		}
 
-		bool expandToFitText = false;
+		bool expandToFitTextX = false;
+		bool expandToFitTextY = false;
 		bool isDirty = true;
 
-		void ExpandToFitText() override
+		void FitTextHorizontally() override
 		{
-			expandToFitText = true;
+			expandToFitTextX = true;
+			isDirty = true;
+			SyncMinimalSpan();
+		}
+
+		void FitTextVertically() override
+		{
+			expandToFitTextY = true;
 			isDirty = true;
 			SyncMinimalSpan();
 		}
@@ -391,10 +399,14 @@ namespace GRANON
 			Vec2i minimalSpan = EvaluateMinimalSpan();
 			panel.SetMinimalSpan(minimalSpan);
 
-			if (expandToFitText)
+			if (expandToFitTextX)
 			{
-				panel.SetConstantWidth(max(minimalSpan.x, panel.Span().x));
-				panel.SetConstantHeight(max(minimalSpan.y, panel.Span().y));
+				panel.SetConstantWidth(minimalSpan.x);
+			}
+
+			if (expandToFitTextY)
+			{
+				panel.SetConstantHeight(minimalSpan.y);
 			}
 		}
 

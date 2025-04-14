@@ -493,22 +493,14 @@ namespace Rococo::GreatSex
 				}
 			}
 
-			void OnAttribute_Expand(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			void OnAttribute_ExpandH(IGRPanel& panel, const ISEXMLAttributeValue&)
 			{
-				if (value.S().NumberOfElements() == 2)
-				{
-					ParseExpansion(panel, AsString(value).c_str(), value.S());
-				}
-				else
-				{
-					auto& list = AsStringList(value);
-					size_t nElements = list.NumberOfElements();
-					for (size_t i = 0; i < nElements; i++)
-					{
-						cstr item = list[i];
-						ParseExpansion(panel, item, list.S()[(int) i + 2]);
-					}
-				}
+				panel.SetExpandToParentHorizontally();
+			}
+
+			void OnAttribute_ExpandV(IGRPanel& panel, const ISEXMLAttributeValue&)
+			{
+				panel.SetExpandToParentVertically();
 			}
 
 			void OnAttribute_Layout(IGRPanel& panel, const ISEXMLAttributeValue& value)
@@ -584,7 +576,8 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.TabsCycle"] = &GreatSexGenerator::OnAttribute_TabsCycle;
 					attributeHandlers["Panel.Padding"] = &GreatSexGenerator::OnAttribute_Padding;
 					attributeHandlers["Panel.Layout"] = &GreatSexGenerator::OnAttribute_Layout;
-					attributeHandlers["Panel.Expand"] = &GreatSexGenerator::OnAttribute_Expand;
+					attributeHandlers["Panel.ExpandH"] = &GreatSexGenerator::OnAttribute_ExpandH;
+					attributeHandlers["Panel.ExpandV"] = &GreatSexGenerator::OnAttribute_ExpandV;
 					attributeHandlers["Panel.ChildPadding"] = &GreatSexGenerator::OnAttribute_ChildPadding;
 					attributeHandlers["Panel.Fit"] = &GreatSexGenerator::OnAttribute_Fit;
 				}

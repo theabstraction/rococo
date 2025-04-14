@@ -20,6 +20,7 @@ namespace Rococo::Sex::SEXML
 {
 	enum class SEXMLValueType
 	{
+		Null,
 		Atomic,					// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISEXMLAttributeValue&
 		StringLiteral,			// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISEXMLAttributeValue&
 		AtomicList,				// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISEXMLAttributeValue&. Every value element is guaranteed to be an atomic expression

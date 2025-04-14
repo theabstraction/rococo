@@ -55,7 +55,7 @@ namespace GRANON
 
 			if (expandToFitTextH)
 			{
-				panel.SetConstantHeight(fit.x);
+				panel.SetConstantWidth(fit.x);
 			}
 		}
 

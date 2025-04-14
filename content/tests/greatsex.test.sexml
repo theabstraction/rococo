@@ -1,15 +1,19 @@
+// The schemes are quite large, so we move them into their sexml file, which we insert into the GreatSex def here
 (Insert
 	(Path "!tests/greatsex.scheme.sexml")
 )
 
+// The frame element navigates up the owner branch until the frame is found and then sets the attributes specified in the sexml
 (Frame
 	(Colour.Container.Background Transparent)
 )
 
+// The frame element navigates up the owner branch until the frame is found and then sets the attributes of the ClientArea specified in the sexml
 (Frame.ClientArea
 	(Colour.Container.Background DarkRed)
 )
 
+// Define a nice large font, keyed by the id.
 (Font 
 	(Id TitleFont)
 	(Family Arial)
@@ -17,6 +21,7 @@
 	([] Mods Bold)
 )
 
+// Options buttons are also quite large.
 (Font 
 	(Id OptionButtonFont)
 	(Family Arial)
@@ -24,99 +29,158 @@
 	([] Mods Bold)
 )
 
-(Div 
-	(Panel.Description "OutermostDiv")
+(Div
+// Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
+	(Panel.Description OutermostDiv)
+	
+	// TopToBottom layout layouts out children vertically with the first child starting at the top line
 	(Panel.Layout TopToBottom)
+	
+	// Child padding specifies the number of pixels betwen children
 	(Panel.ChildPadding 4)
-	([] Panel.Expand H V)
+	
+	// Expand the panel horizontally and vertically to match the parent.
+	(Panel.ExpandH)
+	(Panel.ExpandV)
+	
+	// We dont need any padding here, so set all to zero
 	(#Recti Panel.Padding 0 0 0 0)
 	:
 	
 	(Label
+		// Search for the (Font... def) at the top of the file with the given Id
 		(Font TitleFont)
+		
+		// Specifies the text string displayed in the label
 		(Text "Options")
+		
+		// Add top and bottom padding, so that when we fit vertically the text does not appear flush with the edges
 		(#Recti Panel.Padding 0 0 4 4)
+		
+		// Fit vertically, changes the size of the label to match the text
 		(FitV true)
-		([] Panel.Expand H)
+		
+		// Expand the label horizontally to the full span of its parent
+		(Panel.ExpandH)
 	)
 	
+	// Divs are divisions with minimal implementation. They are used to layout controls horizontally or vertically and render a background and edge. They do little else
 	(Div 
-		(Panel.Description "OptionsTabs")
+		// Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
+		(Panel.Description CentreFrame)
+		
+		// TopToBottom layout layouts out children vertically with the first child starting at the top line
 		(Panel.Layout LeftToRight)
-		([] Panel.Expand H)
-		([] Panel.Fit V)
+		
+		// Child padding specifies the number of pixels betwen children
 		(Panel.ChildPadding 4)
-		(#Recti Panel.Padding 4 0 0 0)
+		
+		// Expand the panel horizontally and vertically to match the parent.
+		(Panel.ExpandH)
+		(Panel.ExpandV)
+		
+		// We dont need any padding here, so set all to zero
+		(#Recti Panel.Padding 0 0 0 0)
 		:
 		
-		(Button
-			(#Vec2i Panel.Span 60 30)
-			(#Recti Panel.Padding 8 0 0 8)
-			(ExpandToFitText true)
-			(Font OptionButtonFont)
-			(Text Gameplay)	
-		)
-		
-		(Button
-			(#Vec2i Panel.Span 60 30)
-			(#Recti Panel.Padding 8 0 0 8)
-			(ExpandToFitText true)
-			(Font OptionButtonFont)
-			(Text Graphics)
-		)
-		
-		(Button
-			(#Vec2i Panel.Span 60 30)
-			(#Recti Panel.Padding 8 0 0 8)
-			(ExpandToFitText true)
-			(Font OptionButtonFont)
-			(Text Sound)	
-		)
-	)
-	
-	(Div
-		(Panel.Description "OptionsTabScreen")
-		(Panel.Layout LeftToRight)
-		([] Panel.Expand H V)
-		(Colour.Container.Background DarkBlue)
-		:
+		(Div 
+			(Panel.Description OptionsTabs)
+			(Panel.Layout TopToBottom)
+			(Panel.FixedWidth 280)
+			(Panel.ExpandV)
+			(Panel.ChildPadding 4)
+			(#Recti Panel.Padding 4 0 0 0)
+			:
+				
+			(Button
+				(#Recti Panel.Padding 8 0 0 8)
+				(Panel.ExpandH)
+				([] FitText V)
+				(Font OptionButtonFont)
+				(Text Graphics)
+			)
 			
-		(Viewport
-		:
-			(GameOptions 
-				(Generate "GraphicsOptions")
+			(Button
+				(#Recti Panel.Padding 8 0 0 8)
+				(Panel.ExpandH)
+				([] FitText V)
+				(Font OptionButtonFont)
+				(Text UI)	
+			)
+			
+			(Button
+				(#Recti Panel.Padding 8 0 0 8)
+				(Panel.ExpandH)
+				([] FitText V)
+				(Font OptionButtonFont)
+				(Text Audio)	
+			)
+			
+			(Button
+				(#Recti Panel.Padding 8 0 0 8)
+				(Panel.ExpandH)
+				([] FitText V)
+				(Font OptionButtonFont)
+				(Text Gameplay)	
+			)
+			
+			(Button
+				(#Recti Panel.Padding 8 0 0 8)
+				(Panel.ExpandH)
+				([] FitText V)
+				(Font OptionButtonFont)
+				(Text Multiplayer)	
 			)
 		)
 		
 		(Div
-			(#Vec2i Panel.Span 200 0)
-			([] Panel.Expand V)
-			(Panel.Layout TopToBottom)
-			
+			(Panel.Description "OptionsTabScreen")
+			(Panel.Layout LeftToRight)
+			(Panel.ExpandH)
+			(Panel.ExpandV)
+			(Colour.Container.Background DarkBlue)
 			:
 			
-			(Button
-				(#Vec2i Panel.Span 60 30)
-				(#Recti Panel.Padding 8 0 0 8)
-				(ExpandToFitText true)
-				(Font OptionButtonFont)
-				(Text Accept)	
+			// A veiwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
+			(Viewport
+			:
+				// GameOptions is a procedurally generated list of controls for changing game options
+				(GameOptions 
+					// The Generate attribute determines which options are used to generate the children
+					(Generate GraphicsOptions)
+				)
 			)
 			
-			(Button
-				(#Vec2i Panel.Span 60 30)
-				(#Recti Panel.Padding 8 0 0 8)
-				(ExpandToFitText true)
-				(Font OptionButtonFont)
-				(Text Revert)
-			)
-			
-			(Button
-				(#Vec2i Panel.Span 60 30)
-				(#Recti Panel.Padding 8 0 0 8)
-				(ExpandToFitText true)
-				(Font OptionButtonFont)
-				(Text Back)	
+			(Div
+				(#Vec2i Panel.Span 200 0)
+				(Panel.ExpandV)
+				(Panel.Layout TopToBottom)
+				
+				:
+				
+				(Button
+					(#Recti Panel.Padding 8 0 0 8)
+					([] FitText V)
+					(Panel.ExpandH)
+					(Font OptionButtonFont)
+					(Text Accept)	
+				)
+				
+				(Button
+					(#Recti Panel.Padding 8 0 0 8)
+					([] FitText V)
+					(Panel.ExpandH)
+					(Font OptionButtonFont)
+					(Text Revert)
+				)
+				
+				(Button
+					(#Recti Panel.Padding 8 0 0 8)
+					([] FitText V)
+					(Panel.ExpandH)
+					(Font OptionButtonFont)
+					(Text Back)	
+				)
 			)
 		)
 	)

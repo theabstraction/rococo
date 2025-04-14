@@ -63,6 +63,31 @@ namespace Rococo::Sex::SEXML
 		}
 	};
 
+	struct NullValue : ISEXMLAttributeValue
+	{
+		const ISEXMLAttribute& a;
+
+		NullValue(const ISEXMLAttribute& _a): a(_a)
+		{
+
+		}
+
+		const ISEXMLAttribute& Attribute() const override
+		{
+			return a;
+		}
+
+		SEXMLValueType Type() const override
+		{
+			return SEXMLValueType::Null;
+		}
+
+		cr_sex S() const override
+		{
+			return a.S();
+		}
+	};
+
 	struct StringValue : ISEXMLAttributeStringValue
 	{
 #ifdef _DEBUG
@@ -529,26 +554,34 @@ namespace Rococo::Sex::SEXML
 						Throw(attributeFunction, "Expecting either the quote character (') ,[], a #<type> or a name that begins with a capital or lower case letter [A-Z] | [a-z]");
 					}
 
-					if (s.NumberOfElements() != 2)
+					if (s.NumberOfElements() == 1)
 					{
-						Throw(attributeFunction, "Expecting two elements (name value), but saw %d", s.NumberOfElements());
+						auto* pMemory = root.Allocator().Allocate(sizeof NullValue);
+						a = new (pMemory) NullValue(*this);
 					}
-
-					cr_sex sValue = sAttribute[1];
-					switch (sValue.Type())
+					else
 					{
-					case EXPRESSION_TYPE_ATOMIC:
-						type = SEXMLValueType::Atomic;
-						break;
-					case EXPRESSION_TYPE_STRING_LITERAL:
-						type = SEXMLValueType::StringLiteral;
-						break;
-					default:
-						Throw(attributeFunction, "Expecting either an atomic or string literal for the value of the attribute. Perhaps you are missing a colon ':' that specifies the sub-directives from the attributes.");
-					}
+						if (s.NumberOfElements() != 2)
+						{
+							Throw(attributeFunction, "Expecting two elements (name value), but saw %d", s.NumberOfElements());
+						}
 
-					auto* pMemory = root.Allocator().Allocate(sizeof StringValue);
-					a = new (pMemory) StringValue(*this, sValue);
+						cr_sex sValue = sAttribute[1];
+						switch (sValue.Type())
+						{
+						case EXPRESSION_TYPE_ATOMIC:
+							type = SEXMLValueType::Atomic;
+							break;
+						case EXPRESSION_TYPE_STRING_LITERAL:
+							type = SEXMLValueType::StringLiteral;
+							break;
+						default:
+							Throw(attributeFunction, "Expecting either an atomic or string literal for the value of the attribute. Perhaps you are missing a colon ':' that specifies the sub-directives from the attributes.");
+						}
+
+						auto* pMemory = root.Allocator().Allocate(sizeof StringValue);
+						a = new (pMemory) StringValue(*this, sValue);
+					}
 				}
 
 				attributeName = ValidateAttributeNameAndGet(sAttribute, namePos);
