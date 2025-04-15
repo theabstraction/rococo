@@ -152,6 +152,11 @@ namespace ANON
 			Rococo::Graphics::DrawRectangle(*rc, visibleRect, colour, colour);
 		}
 
+		void DrawLine(Vec2i start, Vec2i end, RGBAb colour)
+		{
+			Rococo::Graphics::DrawLine(*rc, 1, start, end, colour);
+		}
+
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
 			if (!lastScissorRect.IsNormalized())

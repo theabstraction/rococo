@@ -161,6 +161,7 @@ namespace Rococo::Gui
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_SHADOW, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRGenerateIntensities());
 
 		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());

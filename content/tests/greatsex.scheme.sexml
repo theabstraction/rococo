@@ -69,7 +69,98 @@
 	)
 )
 
-(Colour (Id Transparent)([] Uniform.RGBAb 0	  0   0   0))
-(Colour (Id DarkBlue)	([] Uniform.RGBAb 0   0  64	255))
-(Colour (Id DarkRed)	([] Uniform.RGBAb 64  0   0	255))
-(Colour (Id Black)		([] Uniform.RGBAb 0   0   0	255))
+// An example here of micromanaging colours according to hovered, pressed and focused states
+(Colour 
+	(Id TabButtonTopLeftHilight)
+	:
+	(Spec 
+		([] For pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For default)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered pressed)
+		(Red 160)(Green 160)(Blue 160)(Alpha 255)
+	)
+	
+	(Spec 
+		([] For hovered focused)
+		(Red 160)(Green 160)(Blue 160)(Alpha 255)
+	)
+	
+	(Spec 
+		([] For hovered pressed focused)
+		(Red 160)(Green 160)(Blue 160)(Alpha 255)
+	)
+	
+	(Spec 
+		([] For hovered)
+		(Red 160)(Green 160)(Blue 160)(Alpha 255)
+	)
+)
+
+(Colour 
+	(Id TabButtonBottomRightHilight)
+	:
+	(Spec 
+		([] For pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For default)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered pressed)
+		(Red 128)(Green 128)(Blue 128)(Alpha 255)
+	)
+	
+	(Spec 
+		([] For hovered focused)
+		(Red 128)(Green 128)(Blue 128)(Alpha 255)
+	)
+	
+	(Spec 
+		([] For hovered pressed focused)
+		(Red 128)(Green 128)(Blue 128)(Alpha 255)
+	)
+	
+	(Spec 
+		([] For hovered)
+		(Red 128)(Green 128)(Blue 128)(Alpha 255)
+	)
+)
+
+(Colour (Id Transparent)([] Uniform.RGBAb   0	0   0     0))
+(Colour (Id DarkBlue)	([] Uniform.RGBAb   0   0  64	255))
+(Colour (Id DarkRed)	([] Uniform.RGBAb   64  0   0	255))
+(Colour (Id Black)		([] Uniform.RGBAb   0   0   0	255))
+(Colour (Id Translucent)([] Uniform.RGBAb   0   0   0	192))
+(Colour (Id LightGrey)  ([] Uniform.RGBAb   64 64  64   255))

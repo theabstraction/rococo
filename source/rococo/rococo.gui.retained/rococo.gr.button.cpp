@@ -246,8 +246,9 @@ namespace GRANON
 
 			if (!imageRendered)
 			{
+				RGBAb shadowColour = isMenu ? RGBAb(0,0,0,0) : panel.GetColour(EGRSchemeColourSurface::BUTTON_SHADOW, rs);
 				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : EGRSchemeColourSurface::BUTTON_TEXT, rs);
-				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, fontId, g);
+				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, shadowColour, fontId, g);
 			}
 		}
 
@@ -522,12 +523,12 @@ namespace Rococo::Gui
 		g.DrawRectEdge(rect, colour1, colour2);
 	}
 
-	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, GRFontId fontId, IGRRenderContext& g)
+	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, RGBAb shadowColour, GRFontId fontId, IGRRenderContext& g, Vec2i shadowOffset)
 	{
 		if (text.length == 0) return;
 
 		GuiRect targetRect = panel.AbsRect();
-		
+
 		if (targetRect.left > targetRect.right)
 		{
 			swap_args(targetRect.left, targetRect.right);
@@ -536,6 +537,16 @@ namespace Rococo::Gui
 		if (targetRect.bottom < targetRect.top)
 		{
 			swap_args(targetRect.top, targetRect.bottom);
+		}
+
+		if (shadowColour.alpha)
+		{
+			GuiRect shadowRect = targetRect;
+			shadowRect.left += shadowOffset.x;
+			shadowRect.right += shadowOffset.x;
+			shadowRect.top += shadowOffset.y;
+			shadowRect.bottom += shadowOffset.y;
+			g.DrawText(fontId, shadowRect, alignment, spacing, text, shadowColour);
 		}
 
 		g.DrawText(fontId, targetRect, alignment, spacing, text, colour);

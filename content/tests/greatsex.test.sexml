@@ -42,7 +42,7 @@
 	([] Mods Bold)
 )
 
-(Div
+(Portrait
 // Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
 	(Panel.Description OutermostDiv)
 	
@@ -56,12 +56,19 @@
 	(Panel.ExpandH)
 	(Panel.ExpandV)
 	
+	(Colour.Container.TopLeft Transparent)
+	(Colour.Container.BottomRight Transparent)
+	
+	(Image "!textures/test/AI-castle.jpg")
+	
 	(#Recti Panel.Padding 80 80 80 80)
 	:
 	
 	(Label
 		// Search for the (Font... def) at the top of the file with the given Id
 		(Font TitleFont)
+		
+		(Colour.Label Transparent)
 		
 		// Specifies the text string displayed in the label
 		(Text "Options")
@@ -81,8 +88,8 @@
 		(Panel.FixedWidth 40)
 		(Panel.FixedHeight 40)
 		
-		(Colour.Container.TopLeft Transparent)
-		(Colour.Container.BottomRight Transparent)
+		(Colour.Background Transparent)
+		(Colour.Container.Background Transparent)
 	)
 	
 	// Divs are divisions with minimal implementation. They are used to layout controls horizontally or vertically and render a background and edge. They do little else
@@ -93,6 +100,9 @@
 		// TopToBottom layout layouts out children vertically with the first child starting at the top line
 		(Panel.Layout LeftToRight)
 		
+		(Colour.Container.Background Transparent)
+		(Colour.Container.TopLeft Transparent)
+		(Colour.Container.BottomRight Transparent)
 		// Child padding specifies the number of pixels betwen children
 		(Panel.ChildPadding 4)
 		
@@ -109,7 +119,11 @@
 			(Panel.Layout TopToBottom)
 			(Panel.FixedWidth 280)
 			(Panel.ExpandV)
+			(Colour.Container.Background Transparent)
+			(Colour.Button.Shadow Black)
 			(Colour.Button Transparent)
+			(Colour.Button.Edge.Top.Left TabButtonTopLeftHilight)
+			(Colour.Button.Edge.Bottom.Right TabButtonBottomRightHilight)
 			(Panel.ChildPadding 4)
 			(#Recti Panel.Padding 4 0 0 0)
 			:
@@ -175,24 +189,28 @@
 			
 			// A veiwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 			(Viewport
+				(Colour.Container.Background Translucent)
 				(Colour.Background Transparent) 
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
+					(Colour.GameOption.TopLeft Transparent)
+					(Colour.GameOption.BottomRight Transparent)
 					(Colour.GameOption.Background Transparent)
+					(Colour.GameOption.ChildSpacer LightGrey)
 					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
-					(Title.HeightMultiplier 1.5)
+					(Title.HeightMultiplier 1.75)
 					
 					// Multiplies the title font height to yield the title x spacing.
 					(Title.XSpacingMultiplier 0.25)
 					
 					// Gives the padding of the carousel controls to their interior rectangle
-					(#Recti Carousel.Padding 40 2 40 2)
+					(#Recti Carousel.Padding 40 2 40 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
 					(Scalar.Guage.Alignment Left)
@@ -209,6 +227,12 @@
 					(Generate GraphicsOptions)
 				)
 			)
+			
+			(Div 
+				(Panel.Description "HSpacer")
+				(Panel.FixedWidth 300)
+				(Panel.ExpandV)
+			)
 		)
 	)
 	
@@ -217,13 +241,14 @@
 		(Panel.ExpandH)
 		(Panel.Layout LeftToRight)
 		(Panel.ChildPadding 20)
+		(Colour.Button Translucent)
+		(Colour.Container.Background Transparent)
 		:
 		
 		(Button
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
-			(Colour.Button Black)
 			(Font SubOptionTitleFont)
 			(Text Accept)	
 		)
@@ -232,7 +257,6 @@
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
-			(Colour.Button Black)
 			(Font SubOptionTitleFont)
 			(Text Revert)
 		)
@@ -241,7 +265,6 @@
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
-			(Colour.Button Black)
 			(Font SubOptionTitleFont)
 			(Text Back)	
 		)

@@ -340,9 +340,15 @@ namespace GRANON
 				installation.LoadResource(imagePath, *buffer, 32_megabytes);
 				Rococo::Imaging::DecompressTiff(parser, buffer->GetData(), buffer->Length());
 			}
+			else if (Strings::EndsWithI(imagePath, ".jpeg") || (Strings::EndsWithI(imagePath, ".jpg")))
+			{
+				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
+				installation.LoadResource(imagePath, *buffer, 32_megabytes);
+				Rococo::Imaging::DecompressJPeg(parser, buffer->GetData(), buffer->Length());
+			}
 			else
 			{
-				Throw(0, "Could not load image: %s. Only tiff files are recognized", imagePath);
+				Throw(0, "Could not load image: %s. Only jpg and tiff files are recognized", imagePath);
 			}
 
 			if (parser.err.length() > 0)
@@ -551,6 +557,7 @@ namespace GRANON
 
 			if (colour.alpha < 255)
 			{
+				g.ResetClip();
 				SolidBrush solidBrush(Color(colour.alpha, colour.red, colour.green, colour.blue));
 				g.FillRectangle(&solidBrush, visibleRect.left, visibleRect.top, Width(visibleRect), Height(visibleRect));
 			}
@@ -575,6 +582,27 @@ namespace GRANON
 			for (int i = 1; i < nVertices; i++)
 			{
 				LineTo(paintDC, points[i].X, points[i].Y);
+			}
+		}
+
+		void DrawLine(Vec2i start, Vec2i end, RGBAb colour) override
+		{
+			Gdiplus::Point p[2];
+			p[0].X = start.x;
+			p[0].Y = start.y;
+			p[1].X = end.x;
+			p[1].Y = end.y;
+
+			if (colour.alpha < 255)
+			{
+				Gdiplus::Pen topLeftPen(Gdiplus::Color(colour.alpha, colour.red, colour.green, colour.blue));
+				Gdiplus::Rect clipRect(lastScissorRect.left, lastScissorRect.top, Width(lastScissorRect), Height(lastScissorRect));
+				g.SetClip(clipRect);
+				g.DrawLines(&topLeftPen, p, 2);
+			}
+			else
+			{
+				DrawGDILines(p, 2, colour);
 			}
 		}
 
@@ -781,6 +809,11 @@ namespace GRANON
 		}
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
+			if (colour.alpha == 0)
+			{
+				return;
+			}
+
 			UseClipRect useClip(paintDC, lastScissorRect);
 
 			SelectFont(custodian, fontId, paintDC);

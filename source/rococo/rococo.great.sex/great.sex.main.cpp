@@ -18,6 +18,31 @@ using namespace Rococo::Sex;
 using namespace Rococo::Sex::SEXML;
 using namespace Rococo::Strings;
 
+namespace Rococo
+{
+	template<class T>
+	cstr AppendKeys(const stringmap<T>& map, StringBuilder& sb, cstr separator = ",")
+	{
+		bool first = true;
+
+		for (auto& i : map)
+		{
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				sb << separator;
+			}
+
+			sb << (cstr)i.first;
+		}
+
+		return (*sb).buffer;
+	}
+}
+
 namespace Rococo::GreatSex
 {
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements);
@@ -46,6 +71,7 @@ namespace Rococo::GreatSex
 			GameOptionsFactory onGameOptions;
 			ViewportFactory onViewport;
 			FontFactory onFont;
+			PortraitFactory onPortrait;
 
 			Auto<ISParser> insertParser;
 
@@ -86,6 +112,7 @@ namespace Rococo::GreatSex
 				AddHandler("Insert", onInsert);
 				AddHandler("Viewport", onViewport);
 				AddHandler("Font", onFont);
+				AddHandler("Portrait", onPortrait);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
@@ -227,35 +254,16 @@ namespace Rococo::GreatSex
 				}
 
 				AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(256);
-				auto& sb = dsb->Builder();
-
-				bool first = true;
-				for (auto h : mapNameToOptions)
-				{
-					if (!first)
-					{
-						sb << ", ";
-					}
-					else
-					{
-						first = false;
-					}
-
-					sb << (cstr)h.first;
-				}
-
-				cstr knownOptions = *sb;
-
-				Throw(src, "Could not find option '%s'. Known options: %s", key, knownOptions);
+				Throw(src, "Could not find option '%s'. Known options: %s", key, AppendKeys(mapNameToOptions, dsb->Builder()));
 			}
 
 			struct FontDef
 			{
 				HString id;
 				HString family;
-				int height;
-				bool isBold;
-				bool isItalic;
+				int height = 11;
+				bool isBold = false;
+				bool isItalic = false;
 			};
 
 			stringmap<FontDef> fonts;
@@ -542,7 +550,8 @@ namespace Rococo::GreatSex
 				auto i = nameToColourSurface.find(name);
 				if (i == nameToColourSurface.end())
 				{
-					Throw(value.S(), "No such colour surface: %s", name);
+					AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(256);
+					Throw(value.S(), "No such colour surface: %s. Known:\t\n%s", name, AppendKeys(nameToColourSurface, dsb->Builder(), "\t\n"));
 				}
 
 				cstr key = value.c_str();

@@ -55,7 +55,7 @@ namespace Rococo::GreatSex
 		{"Colour.Button.Edge.Top.Left", EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT },
 		{"Colour.Button.Edge.Bottom.Right", EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT },
 		{"Colour.Button.Image.Fog", EGRSchemeColourSurface::BUTTON_IMAGE_FOG },
-
+		{"Colour.Button.Shadow", EGRSchemeColourSurface::BUTTON_SHADOW },
 		{"Colour.Button.Text", EGRSchemeColourSurface::BUTTON_TEXT },
 
 		{"Colour.Menu.Button", EGRSchemeColourSurface::MENU_BUTTON },
@@ -91,7 +91,11 @@ namespace Rococo::GreatSex
 		{"Colour.Carousel.Text", EGRSchemeColourSurface::CAROUSEL_TEXT },
 		{"Colour.Carousel.Background", EGRSchemeColourSurface::CAROUSEL_BACKGROUND },
 
-		{"Colour.GameOption.Background", EGRSchemeColourSurface::GAME_OPTION_BACKGROUND }
+		{"Colour.GameOption.Background", EGRSchemeColourSurface::GAME_OPTION_BACKGROUND },
+
+		{"Colour.GameOption.TopLeft", EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT },
+		{"Colour.GameOption.BottomRight", EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT },
+		{"Colour.GameOption.ChildSpacer", EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER }
 	};
 
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)

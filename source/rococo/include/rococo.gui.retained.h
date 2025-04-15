@@ -237,6 +237,8 @@ namespace Rococo::Gui
 		/* heading: 0 = N, E = 90 etc */
 		virtual void DrawDirectionArrow(const GuiRect& absRect, RGBAb colour, Degrees heading) = 0;
 
+		virtual void DrawLine(Vec2i start, Vec2i end, RGBAb colour) = 0;
+
 		virtual void DrawImageStretched(IGRImage& image, const GuiRect& absRect) = 0;
 		virtual void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment) = 0;
 
@@ -267,6 +269,7 @@ namespace Rococo::Gui
 		BUTTON_EDGE_TOP_LEFT,
 		BUTTON_EDGE_BOTTOM_RIGHT,
 		BUTTON_IMAGE_FOG, // Colour, typically with mid alpha values that fogs out an image when it is not activated
+		BUTTON_SHADOW,
 		BUTTON_TEXT,
 		MENU_BUTTON,
 		MENU_BUTTON_EDGE_TOP_LEFT,
@@ -310,6 +313,7 @@ namespace Rococo::Gui
 		COLLAPSER_TITLE_TEXT, // If supported by the collapser tree, colours collapser text
 		GAME_OPTION_TOP_LEFT,
 		GAME_OPTION_BOTTOM_RIGHT,
+		GAME_OPTION_CHILD_SPACER, // Gives the colour of a spacer between game options
 		USER_DEFINED_START_INDEX = 7000 // Make this the last index, then users can cast a surface to this enum + delta of their choice
 	};
 
@@ -1423,7 +1427,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition, bool updateWithMouseMove);
 	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent);
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetPortrait& CreatePortrait(IGRWidget& parent) = 0;
+	ROCOCO_GUI_RETAINED_API IGRWidgetPortrait& CreatePortrait(IGRWidget& parent);
 
 	// Implemented by various editor filters
 	ROCOCO_INTERFACE IGREditFilter

@@ -267,9 +267,8 @@ namespace ANON
 			return *vscroller;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void Render(IGRRenderContext&) override
 		{
-			DrawPanelBackground(panel, g);
 		}
 
 		int nextDomain = 0;

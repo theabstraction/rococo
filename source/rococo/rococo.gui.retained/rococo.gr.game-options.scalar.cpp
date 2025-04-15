@@ -109,16 +109,7 @@ namespace GRANON
 
 		void Render(IGRRenderContext& rc) override
 		{
-			DrawEdge(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, panel, rc);
-
-			if (panel.HasFlag(EGRPanelFlags::HintObscure))
-			{
-				title->SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT).SetBackColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND);
-			}
-			else
-			{
-				title->SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_TEXT).SetBackColourSurface(EGRSchemeColourSurface::LABEL_BACKGROUND);
-			}
+			DrawGameOptionBackground(*title, panel, rc);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
@@ -247,5 +238,28 @@ namespace Rococo::Gui
 		auto& l = static_cast<GRANON::GRGameOptionScalarWidget&>(gr.AddWidget(parent.Panel(), factory));
 		l.PostConstruct(config);
 		return l;
+	}
+
+	ROCOCO_GUI_RETAINED_API void DrawGameOptionBackground(IGRWidgetText& title, IGRPanel& panel, IGRRenderContext& rc)
+	{
+		DrawEdge(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, panel, rc);
+
+		if (panel.HasFlag(EGRPanelFlags::HintObscure))
+		{
+			title.SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT).SetBackColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND);
+		}
+		else
+		{
+			title.SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_TEXT).SetBackColourSurface(EGRSchemeColourSurface::LABEL_BACKGROUND);
+		}
+
+		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER, GRRenderState{ false, false, false });
+
+		Vec2i bottomLeft = BottomLeft(panel.AbsRect());
+		bottomLeft.y -= 1;
+
+		Vec2i bottomRight = BottomRight(panel.AbsRect());
+		bottomRight.y -= 1;
+		rc.DrawLine(bottomLeft, bottomRight, colour);
 	}
 }

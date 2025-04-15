@@ -29,7 +29,7 @@ namespace GRANON
 			delete this;
 		}
 
-		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
+		EGREventRouting OnCursorClick(GRCursorEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}
@@ -43,7 +43,7 @@ namespace GRANON
 		{
 		}
 
-		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
+		EGREventRouting OnCursorMove(GRCursorEvent&) override
 		{
 			return EGREventRouting::NextHandler;
 		}
@@ -71,7 +71,7 @@ namespace GRANON
 		IGRWidgetPortrait& SetImagePath(cstr imagePath) override
 		{
 			this->imagePath = imagePath ? imagePath : "";
-			image = panel.Root().Custodian().CreateImageFromPath("portrait", imagePath);
+			image = this->imagePath.length() == 0 ? nullptr : panel.Root().Custodian().CreateImageFromPath("portrait", imagePath);
 			return *this;
 		}
 
@@ -90,20 +90,12 @@ namespace GRANON
 			Vec2i extraSpan;
 			extraSpan.x = panel.Padding().left + panel.Padding().right;
 			extraSpan.y = panel.Padding().top + panel.Padding().bottom;
-
-			if (image)
-			{
-				return image->Span() + extraSpan;
-			}
+			return image ? image->Span() + extraSpan : extraSpan;
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			auto result = QueryForParticularInterface<IGRWidgetButton, GRPortrait>(this, ppOutputArg, interfaceId);
-			if (result == EGRQueryInterfaceResult::SUCCESS)
-			{
-				return EGRQueryInterfaceResult::SUCCESS;
-			}
+			return QueryForParticularInterface<IGRWidgetPortrait, GRPortrait>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget()

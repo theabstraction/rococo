@@ -294,6 +294,24 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct PortraitFactory : SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto& portrait = Rococo::Gui::CreatePortrait(parent);
+
+			auto* aImage = directive.FindAttributeByName("Image");
+			if (aImage)
+			{
+				cstr imagePath = AsString(aImage->Value()).c_str();
+				portrait.SetImagePath(imagePath);
+			}
+
+			generator.SetPanelAttributes(portrait.Widget(), directive);
+			generator.GenerateChildren(directive, portrait.Widget());
+		}
+	};
+
 	struct ViewportFactory : SEXMLWidgetFactory_AlwaysValid
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& divDirective, Rococo::Gui::IGRWidget& parent) override
