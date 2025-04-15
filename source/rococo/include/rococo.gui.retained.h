@@ -222,6 +222,19 @@ namespace Rococo::Gui
 		int LineThickness = 1;
 	};
 
+	struct GRVertex
+	{
+		Vec2i position;
+		RGBAb colour;
+	};
+
+	struct GRTriangle
+	{
+		GRVertex a;
+		GRVertex b;
+		GRVertex c;
+	};
+
 	// The interface to the platform dependent rendering of the retained GUI
 	ROCOCO_INTERFACE IGRRenderContext
 	{
@@ -250,6 +263,8 @@ namespace Rococo::Gui
 
 		virtual void DrawEditableText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) = 0;
 		virtual void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
+
+		virtual void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) = 0;
 
 		// Causes all render operations to complete
 		virtual void Flush() = 0;
@@ -351,6 +366,16 @@ namespace Rococo::Gui
 			t(GRRenderState(true, false, true));
 			t(GRRenderState(false, true, true));
 			t(GRRenderState(true, true, true));
+		}
+
+		bool operator == (GRRenderState other) const
+		{
+			return other.value.intValue == value.intValue;
+		}
+
+		bool operator != (GRRenderState other) const
+		{
+			return !(other == *this);
 		}
 	};
 
@@ -1306,6 +1331,18 @@ namespace Rococo::Gui
 		virtual Vec2i ImageSpan() const = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetGradientFill : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRPanel& Panel() = 0;
+		virtual IGRWidget& Widget() = 0;
+
+		virtual void SetBottomLeft(RGBAb c) = 0;
+		virtual void SetBottomRight(RGBAb c) = 0;
+		virtual void SetTopLeft(RGBAb c) = 0;
+		virtual void SetTopRight(RGBAb c) = 0;
+	};
+
 	struct IGREditorMicromanager;
 
 	struct GRWidgetEvent_EditorUpdated : GRWidgetEvent
@@ -1407,6 +1444,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, const GameOptionConfig& config);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGradientFill& CreateGradientFill(IGRWidget& parent);
 
 	// Creates a viewport into a larger UI domain, providing horizontal and vertical scrollbars to navigate the domain
 	ROCOCO_GUI_RETAINED_API IGRWidgetViewport& CreateViewportWidget(IGRWidget& parent);

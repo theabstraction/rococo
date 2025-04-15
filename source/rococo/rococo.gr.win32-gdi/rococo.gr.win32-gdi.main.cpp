@@ -387,9 +387,13 @@ namespace GRANON
 		HWND hWnd;
 		HDC paintDC = 0;
 		HDC bitmapDC = 0;
+		HDC alphaBuilderDC = 0;
+
+		HBITMAP alphaBuilderBitmap = 0;
 
 		GDICustodian& custodian;
 		Gdiplus::Graphics g;
+		Gdiplus::Graphics* alphaGraphics = nullptr;
 
 		Vec2i cursor{ 0,0 };
 
@@ -408,6 +412,21 @@ namespace GRANON
 			if (bitmapDC)
 			{
 				DeleteDC(bitmapDC);
+			}
+
+			if (alphaBuilderDC)
+			{
+				DeleteDC(alphaBuilderDC);
+			}
+
+			if (alphaBuilderBitmap)
+			{
+				DeleteObject(alphaBuilderBitmap);
+			}
+
+			if (alphaGraphics)
+			{
+				delete alphaGraphics;
 			}
 		}
 
@@ -661,6 +680,129 @@ namespace GRANON
 		};
 
 		std::vector<HilightRect> hilightRects;
+
+		static inline void CopyColour(TRIVERTEX& t, const GRVertex& v)
+		{
+			t.Alpha = v.colour.alpha << 8;
+			t.Blue = v.colour.blue << 8;
+			t.Green = v.colour.green << 8;
+			t.Red = v.colour.red << 8;
+		}
+
+		static GuiRect GetEnclosingRect(const GRTriangle* triangles, size_t nTriangles)
+		{
+			GuiRect r;
+			r.left = INT_MAX;
+			r.right = INT_MIN;
+			r.top = INT_MAX;
+			r.bottom = INT_MIN;
+
+			for (size_t i = 0; i < nTriangles; i++)
+			{
+				const auto& t = triangles[i];
+				ExpandZoneToContain(r, t.a.position);
+				ExpandZoneToContain(r, t.b.position);
+				ExpandZoneToContain(r, t.c.position);
+			}
+
+			return r;
+		}
+
+		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
+		{
+		start:
+			auto ds = Span(ScreenDimensions());
+			if (!alphaBuilderDC)
+			{
+				alphaBuilderDC = CreateCompatibleDC(paintDC);
+				if (alphaBuilderDC == NULL)
+				{
+					Throw(GetLastError(), "CreateCompatibleDC failed");
+				}
+
+				BITMAPINFO info = { 0 };
+				info.bmiHeader.biSize = sizeof(info);
+				info.bmiHeader.biWidth = ds.x;
+				info.bmiHeader.biHeight = -ds.y;
+				info.bmiHeader.biPlanes = 1;
+				info.bmiHeader.biBitCount = 32;
+				info.bmiHeader.biCompression = BI_RGB;
+				info.bmiHeader.biSizeImage = ds.x * ds.y * 4;
+				alphaBuilderBitmap = CreateDIBSection(alphaBuilderDC, &info, DIB_RGB_COLORS, NULL, NULL, 0x0);
+				if (alphaBuilderBitmap == NULL)
+				{
+					Throw(GetLastError(), "CreateDIBSection RGBA failed");
+				}
+
+				SetBitmapDimensionEx(alphaBuilderBitmap, ds.x, ds.y, NULL);
+			}
+
+			SIZE dimensions;
+			GetBitmapDimensionEx(alphaBuilderBitmap, &dimensions);
+			if (dimensions.cx != ds.x || dimensions.cy != ds.y)
+			{
+				delete alphaGraphics;
+				DeleteObject(alphaBuilderBitmap);
+				DeleteDC(alphaBuilderDC);
+				alphaBuilderBitmap = 0;
+				alphaBuilderDC = 0;
+				alphaGraphics = nullptr;
+				goto start;
+			}
+
+			HGDIOBJ oldBitmap = SelectObject(alphaBuilderDC, alphaBuilderBitmap);
+
+			if (alphaGraphics == nullptr)
+			{
+				alphaGraphics = new Gdiplus::Graphics(alphaBuilderDC);
+			}
+
+			GuiRect r = GetEnclosingRect(triangles, nTriangles);
+
+			// We need to clear alpha buffer to 0 for full transparency, though we restrict this to the rect from which we will copy
+
+			Gdiplus::SolidBrush brush(Gdiplus::Color(255, 0, 0, 255));
+			alphaGraphics->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
+
+			for (size_t i = 0; i < nTriangles; i++)
+			{
+				const auto& t = triangles[i];
+
+				TRIVERTEX v[3];
+				v[0].x = t.a.position.x;
+				v[0].y = t.a.position.y;
+				CopyColour(v[0], t.a);
+
+				v[1].x = t.b.position.x;
+				v[1].y = t.b.position.y;
+				CopyColour(v[1], t.b);
+
+				v[2].x = t.c.position.x;
+				v[2].y = t.c.position.y;
+				CopyColour(v[2], t.c);
+
+				GRADIENT_TRIANGLE indices;
+				indices.Vertex1 = 0;
+				indices.Vertex2 = 1;
+				indices.Vertex3 = 2;
+		
+				GradientFill(alphaBuilderDC, v, 3, &indices, 1, GRADIENT_FILL_TRIANGLE);
+			}
+
+			BLENDFUNCTION blendFunction;
+			blendFunction.AlphaFormat = AC_SRC_ALPHA;
+			blendFunction.BlendFlags = 0;
+			blendFunction.BlendOp = AC_SRC_OVER;
+			blendFunction.SourceConstantAlpha = 255;
+			if (!AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilderDC, r.left, r.top, Width(r), Height(r), blendFunction))
+			{
+				Throw(GetLastError(), "Error!");
+			}
+
+		//	BitBlt(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilderDC, r.left, r.top, SRCCOPY);
+
+			SelectObject(alphaBuilderDC, oldBitmap);
+		}
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override

@@ -274,6 +274,36 @@ namespace ANON
 			rc->ClearScissorRect();
 		}
 
+		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
+		{
+			SpriteVertexData useColour{ 1, 0,0,0 };
+			BaseVertexData noTextures{ {0,0}, 0 };
+
+			for (size_t i = 0; i < nTriangles; i++)
+			{
+				auto& t = triangles[i];
+
+				GuiVertex v[3];
+				v[0].pos = Vec2{ (float)t.a.position.x, (float)t.a.position.y };
+				v[1].pos = Vec2{ (float)t.b.position.x, (float)t.b.position.y };
+				v[2].pos = Vec2{ (float)t.c.position.x, (float)t.c.position.y };
+
+				v[0].colour = t.a.colour;
+				v[1].colour = t.b.colour;
+				v[2].colour = t.c.colour;
+
+				v[0].sd = useColour;
+				v[1].sd = useColour;
+				v[2].sd = useColour;
+
+				v[0].vd = noTextures;
+				v[1].vd = noTextures;
+				v[2].vd = noTextures;
+
+				rc->AddTriangle(v);
+			}
+		}
+
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
 			UNUSED(targetRect);

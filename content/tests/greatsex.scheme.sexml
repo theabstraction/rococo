@@ -164,3 +164,8 @@
 (Colour (Id Black)		([] Uniform.RGBAb   0   0   0	255))
 (Colour (Id Translucent)([] Uniform.RGBAb   0   0   0	192))
 (Colour (Id LightGrey)  ([] Uniform.RGBAb   64 64  64   255))
+
+(Colour (Id gfTopLeft)     ([] Uniform.RGBAb   0 0  0    0))
+(Colour (Id gfTopRight)    ([] Uniform.RGBAb   0 0  0   255))
+(Colour (Id gfBottomLeft)  ([] Uniform.RGBAb   0 0  0   0))
+(Colour (Id gfBottomRight) ([] Uniform.RGBAb   0 0  0   255))

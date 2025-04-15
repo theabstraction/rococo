@@ -72,6 +72,7 @@ namespace Rococo::GreatSex
 			ViewportFactory onViewport;
 			FontFactory onFont;
 			PortraitFactory onPortrait;
+			GradientFillFactory onGradientFill;
 
 			Auto<ISParser> insertParser;
 
@@ -113,6 +114,7 @@ namespace Rococo::GreatSex
 				AddHandler("Viewport", onViewport);
 				AddHandler("Font", onFont);
 				AddHandler("Portrait", onPortrait);
+				AddHandler("GradientFill", onGradientFill);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
@@ -565,6 +567,25 @@ namespace Rococo::GreatSex
 				}
 
 				panel.SetLayoutDirection(layout);
+			}
+
+			RGBAb GetColour(cstr key, GRRenderState rs, cr_sex s) override
+			{
+				auto spec = colourSpecs.find(key);
+				if (spec == colourSpecs.end())
+				{
+					Throw(s, "Could not find colour '%s'. Ensure a (Colour (Id %s)...) definition is in the root directives", key, key);
+				}
+
+				for (auto& colourSpec : spec->second)
+				{
+					if (colourSpec.rs == rs)
+					{
+						return colourSpec.colour;
+					}
+				}
+
+				return RGBAb(255, 0, 0, 255);
 			}
 
 			void OnAttributePrefix_Colour(IGRPanel& panel, cstr name, const ISEXMLAttributeStringValue& value)

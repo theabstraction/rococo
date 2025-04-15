@@ -64,23 +64,32 @@
 	(#Recti Panel.Padding 80 80 80 80)
 	:
 	
-	(Label
-		// Search for the (Font... def) at the top of the file with the given Id
-		(Font TitleFont)
-		
-		(Colour.Label Transparent)
-		
-		// Specifies the text string displayed in the label
-		(Text "Options")
-		
-		// Add top and bottom padding, so that when we fit vertically the text does not appear flush with the edges
-		(#Recti Panel.Padding 0 0 4 4)
-		
-		// Fit vertically, changes the size of the label to match the text
-		(FitV true)
-		
-		// Expand the label horizontally to the full span of its parent
+	(GradientFill
 		(Panel.ExpandH)
+		(Panel.FixedHeight 40)
+		(TopLeft gfTopLeft)
+		(TopRight gfTopRight)
+		(BottomLeft gfBottomLeft)
+		(BottomRight gfBottomRight)
+		:
+		(Label
+			// Search for the (Font... def) at the top of the file with the given Id
+			(Font TitleFont)
+			
+			(Colour.Label Transparent)
+			
+			// Specifies the text string displayed in the label
+			(Text "Options")
+			
+			// Add top and bottom padding, so that when we fit vertically the text does not appear flush with the edges
+			(#Recti Panel.Padding 0 0 4 4)
+			
+			// Fit vertically, changes the size of the label to match the text
+			(FitV true)
+			
+			// Expand the label horizontally to the full span of its parent
+			(Panel.ExpandH)
+		)
 	)
 	
 	(Div
@@ -122,8 +131,8 @@
 			(Colour.Container.Background Transparent)
 			(Colour.Button.Shadow Black)
 			(Colour.Button Transparent)
-		//	(Colour.Button.Edge.Top.Left TabButtonTopLeftHilight)
-		//	(Colour.Button.Edge.Bottom.Right TabButtonBottomRightHilight)
+			(Colour.Button.Edge.Top.Left TabButtonTopLeftHilight)
+			(Colour.Button.Edge.Bottom.Right TabButtonBottomRightHilight)
 			(Panel.ChildPadding 4)
 			(#Recti Panel.Padding 4 0 0 0)
 			:

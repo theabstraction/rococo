@@ -294,6 +294,52 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	RGBAb AsColour(IGreatSexGenerator& generator, const ISEXMLAttribute& a)
+	{
+		cstr name = AsString(a.Value()).c_str();
+		RGBAb colour = generator.GetColour(name, GRRenderState(false, false, false), a.S());
+		return colour;
+	}
+
+	struct GradientFillFactory : SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto& g = Rococo::Gui::CreateGradientFill(parent);
+
+			auto* aColour = directive.FindAttributeByName("TopLeft");
+			if (aColour)
+			{
+				RGBAb colour = AsColour(generator, *aColour);
+				g.SetTopLeft(colour);
+			}
+
+			aColour = directive.FindAttributeByName("TopRight");
+			if (aColour)
+			{
+				RGBAb colour = AsColour(generator, *aColour);
+				g.SetTopRight(colour);
+			}
+
+			aColour = directive.FindAttributeByName("BottomLeft");
+			if (aColour)
+			{
+				RGBAb colour = AsColour(generator, *aColour);
+				g.SetBottomLeft(colour);
+			}
+
+			aColour = directive.FindAttributeByName("BottomRight");
+			if (aColour)
+			{
+				RGBAb colour = AsColour(generator, *aColour);
+				g.SetBottomRight(colour);
+			}
+
+			generator.SetPanelAttributes(g.Widget(), directive);
+			generator.GenerateChildren(directive, g.Widget());
+		}
+	};
+
 	struct PortraitFactory : SEXMLWidgetFactory_AlwaysValid
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& parent) override
