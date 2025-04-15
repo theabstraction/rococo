@@ -143,7 +143,8 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.gui.retained.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.gui.retained.lib</ImportLibrary>
@@ -256,6 +258,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.memory.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.menubar.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.panel.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.portrait.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.property-editor-tree.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.scheme.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.scrollable-menu.cpp" />

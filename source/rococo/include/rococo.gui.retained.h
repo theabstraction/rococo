@@ -1292,6 +1292,16 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] bool IsEditing() const = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetPortrait : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRPanel& Panel() = 0;
+		virtual IGRWidget& Widget() = 0;
+
+		virtual IGRWidgetPortrait& SetImagePath(cstr imagePath) = 0;
+		virtual Vec2i ImageSpan() const = 0;
+	};
+
 	struct IGREditorMicromanager;
 
 	struct GRWidgetEvent_EditorUpdated : GRWidgetEvent
@@ -1412,6 +1422,8 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetCollapser& CreateCollapser(IGRWidget& parent, IGRWidgetCollapserEvents& eventHandler);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSplitter& CreateLeftToRightSplitter(IGRWidget& parent, int32 splitStartPosition, bool updateWithMouseMove);
 	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent);
+
+	ROCOCO_GUI_RETAINED_API IGRWidgetPortrait& CreatePortrait(IGRWidget& parent) = 0;
 
 	// Implemented by various editor filters
 	ROCOCO_INTERFACE IGREditFilter
