@@ -62,9 +62,56 @@ namespace GRANON
 		{
 			GRAlignmentFlags alignment;
 
-			if (image)
+			if (!image)
 			{
-				image->Render(panel, alignment, {0,0}, true, g);	
+				return;
+			}
+
+			Vec2i span = image->Span();
+			if (span.x == 0 || span.y == 0)
+			{
+				return;
+			}
+
+			double aspectRatio = span.x / (double) span.y;
+
+			GuiRect targetRect = panel.AbsRect();
+			Vec2i targetSpan = Span(targetRect);
+
+			if (targetSpan.x == 0 || targetSpan.y == 0)
+			{
+				return;
+			}
+
+			double targetAspectRatio = targetSpan.x / (double)targetSpan.y;
+
+			if (aspectRatio == targetAspectRatio)
+			{
+				g.DrawImageStretched(*image, targetRect);
+				return;
+			}
+
+			Vec2i centre = Centre(targetRect);
+
+			if (aspectRatio > targetAspectRatio)
+			{
+				int32 correctedHeight = (int) (targetSpan.x / aspectRatio);
+
+				targetRect.top = centre.y - correctedHeight / 2;
+				targetRect.bottom = centre.y + correctedHeight / 2;
+
+				g.DrawImageStretched(*image, targetRect);
+				return;
+			}
+			else
+			{
+				int32 correctedWidth = (int) (aspectRatio * targetSpan.y);
+
+				targetRect.left = centre.x - correctedWidth / 2;
+				targetRect.right = centre.x + correctedWidth / 2;
+
+				g.DrawImageStretched(*image, targetRect);
+				return;
 			}
 		}
 

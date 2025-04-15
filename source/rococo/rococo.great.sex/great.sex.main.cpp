@@ -416,14 +416,36 @@ namespace Rococo::GreatSex
 
 			void OnAttribute_FixedHeight(IGRPanel& panel, const ISEXMLAttributeValue& value)
 			{
-				int height = SEXML::AsAtomicInt32(value);
-				panel.SetConstantHeight(height);
+				cstr raw = AsString(value).c_str();
+				if (EndsWith(raw, "%"))
+				{
+					char intBuffer[16];
+					SafeFormat(intBuffer, "%s", raw);
+					int height = atoi(intBuffer);
+					panel.SetConstantHeight(height, true);
+				}
+				else
+				{
+					int height = SEXML::AsAtomicInt32(value);
+					panel.SetConstantHeight(height);
+				}
 			}
 
 			void OnAttribute_FixedWidth(IGRPanel& panel, const ISEXMLAttributeValue& value)
 			{
-				int width = SEXML::AsAtomicInt32(value);
-				panel.SetConstantWidth(width);
+				cstr raw = AsString(value).c_str();
+				if (EndsWith(raw, "%"))
+				{
+					char intBuffer[16];
+					SafeFormat(intBuffer, "%s", raw);
+					int width = atoi(intBuffer);
+					panel.SetConstantWidth(width, true);
+				}
+				else
+				{
+					int width = SEXML::AsAtomicInt32(value);
+					panel.SetConstantWidth(width);
+				}
 			}
 
 			void OnAttribute_SpanMin(IGRPanel& panel, const ISEXMLAttributeValue& value)

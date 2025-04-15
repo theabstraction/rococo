@@ -10,7 +10,7 @@
 
 // The frame element navigates up the owner branch until the frame is found and then sets the attributes of the ClientArea specified in the sexml
 (Frame.ClientArea
-	(Colour.Container.Background DarkRed)
+	(Colour.Background Transparent)
 )
 
 // Define a nice large font, keyed by the id.
@@ -117,13 +117,13 @@
 		(Div 
 			(Panel.Description OptionsTabs)
 			(Panel.Layout TopToBottom)
-			(Panel.FixedWidth 280)
+			(Panel.FixedWidth 20%)
 			(Panel.ExpandV)
 			(Colour.Container.Background Transparent)
 			(Colour.Button.Shadow Black)
 			(Colour.Button Transparent)
-			(Colour.Button.Edge.Top.Left TabButtonTopLeftHilight)
-			(Colour.Button.Edge.Bottom.Right TabButtonBottomRightHilight)
+		//	(Colour.Button.Edge.Top.Left TabButtonTopLeftHilight)
+		//	(Colour.Button.Edge.Bottom.Right TabButtonBottomRightHilight)
 			(Panel.ChildPadding 4)
 			(#Recti Panel.Padding 4 0 0 0)
 			:
@@ -230,8 +230,8 @@
 			
 			(Div 
 				(Panel.Description "HSpacer")
-				(Panel.FixedWidth 300)
-				(Panel.ExpandV)
+				(Panel.FixedWidth 20%)
+				(Panel.FixedHeight 20%)
 			)
 		)
 	)

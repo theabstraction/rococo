@@ -209,6 +209,7 @@ namespace GRANON
 		enum class ESizingRule
 		{
 			Constant,
+			ConstantPercentage,
 			ExpandToParent,
 			FitChildren
 		};
@@ -342,8 +343,8 @@ namespace GRANON
 
 			absRect.top = parent ? parent->absRect.top : 0;
 			absRect.top += parentOffset.y + (parent ? parent->padding.top : 0);
-			absRect.right = absRect.left + span.x;
-			absRect.bottom = absRect.top + span.y;
+			absRect.right = absRect.left + Span().x;
+			absRect.bottom = absRect.top + Span().y;
 
 			if (watcher)
 			{
@@ -366,7 +367,7 @@ namespace GRANON
 					child->parentOffset.x = dx;
 					child->parentOffset.y = 0;
 					child->SetAbsRectRecursive();
-					dx += child->span.x;
+					dx += child->Span().x;
 					dx += childPadding;
 				}
 				break;
@@ -381,7 +382,7 @@ namespace GRANON
 						continue;
 					}
 
-					dx -= child->span.x;
+					dx -= child->Span().x;
 					dx -= childPadding;
 					child->parentOffset.x = dx;
 					child->parentOffset.y = 0;
@@ -399,7 +400,7 @@ namespace GRANON
 					child->parentOffset.x = 0;
 					child->parentOffset.y = dy;
 					child->SetAbsRectRecursive();
-					dy += child->span.y;
+					dy += child->Span().y;
 					dy += childPadding;
 				}
 				break;
@@ -439,13 +440,17 @@ namespace GRANON
 					{
 						nExpandingChildren++;
 					}
+					else if (child->widthSizing == ESizingRule::ConstantPercentage)
+					{
+						totalXSpanOfFixedWidthChildren += ((child->span.x * Span().x) / 100);
+					}
 					else
 					{
 						totalXSpanOfFixedWidthChildren += child->span.x;
 					}
 				}
 
-				int freeSpace = span.x - totalXSpanOfFixedWidthChildren - padding.left - padding.right - totalChildPadding;
+				int freeSpace = Span().x - totalXSpanOfFixedWidthChildren - padding.left - padding.right - totalChildPadding;
 				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
 					for (auto* child : children)
@@ -491,7 +496,7 @@ namespace GRANON
 
 					if (child->widthSizing == ESizingRule::ExpandToParent)
 					{
-						child->span.x = span.x - padding.left - padding.right;
+						child->span.x = Span().x - padding.left - padding.right;
 					}
 				}
 			}
@@ -526,11 +531,11 @@ namespace GRANON
 					}
 					else
 					{
-						totalYSpanOfFixedWidthChildren += child->span.y;
+						totalYSpanOfFixedWidthChildren += child->Span().y;
 					}
 				}
 
-				int freeSpace = span.y - totalYSpanOfFixedWidthChildren - padding.top - padding.bottom - totalChildPadding;
+				int freeSpace = Span().y - totalYSpanOfFixedWidthChildren - padding.top - padding.bottom - totalChildPadding;
 				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
 					for (auto* child : children)
@@ -576,7 +581,7 @@ namespace GRANON
 
 					if (child->heightSizing == ESizingRule::ExpandToParent)
 					{
-						child->span.y = span.y - padding.top - padding.bottom;
+						child->span.y = Span().y - padding.top - padding.bottom;
 					}
 				}
 			}
@@ -669,34 +674,34 @@ namespace GRANON
 			return *this;
 		}
 
-		IGRPanel& SetConstantWidth(int width) override
+		IGRPanel& SetConstantWidth(int width, bool isPercentage) override
 		{
 			if (watcher)
 			{
 				watcher->OnSetConstantWidth(*this, width);
 			}
 
-			widthSizing = ESizingRule::Constant;
+			widthSizing = isPercentage ? ESizingRule::ConstantPercentage : ESizingRule::Constant;
 			span.x = width;
 			return *this;
 		}
 
-		IGRPanel& SetConstantHeight(int height) override
+		IGRPanel& SetConstantHeight(int height, bool isPercentage) override
 		{
 			if (watcher)
 			{
 				watcher->OnSetConstantHeight(*this, height);
 			}
 
-			heightSizing = ESizingRule::Constant;
+			heightSizing = isPercentage ? ESizingRule::ConstantPercentage : ESizingRule::Constant;
 			span.y = height;
 			return *this;
 		}
 
 		IGRPanel& SetConstantSpan(Vec2i ds) override
 		{
-			SetConstantWidth(ds.x);
-			SetConstantHeight(ds.y);	
+			SetConstantWidth(ds.x, false);
+			SetConstantHeight(ds.y, false);	
 			return *this;
 		}
 
@@ -861,7 +866,7 @@ namespace GRANON
 				return;
 			}
 
-			if (span.x > 0 && span.y > 0)
+			if (Span().x > 0 && Span().y > 0)
 			{
 				g.EnableScissors(clipRect);
 
@@ -981,7 +986,21 @@ namespace GRANON
 			{
 				return { 0,0 };
 			}
-			return span;
+
+			int dx = span.x;
+			int dy = span.y;
+
+			if (widthSizing == ESizingRule::ConstantPercentage && parent)
+			{
+				dx = span.x * parent->Span().x / 100;
+			}
+
+			if (heightSizing == ESizingRule::ConstantPercentage && parent)
+			{
+				dy = span.y * parent->Span().y / 100;
+			}
+
+			return { dx, dy };
 		}
 
 		void SetWidget(IGRWidgetSupervisor& widget) override

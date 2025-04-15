@@ -254,12 +254,14 @@ namespace Rococo::Gui
 		}
 
 		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER, GRRenderState{ false, false, false });
+		if (colour.alpha > 0)
+		{
+			Vec2i bottomLeft = BottomLeft(panel.AbsRect());
+			bottomLeft.y -= 1;
 
-		Vec2i bottomLeft = BottomLeft(panel.AbsRect());
-		bottomLeft.y -= 1;
-
-		Vec2i bottomRight = BottomRight(panel.AbsRect());
-		bottomRight.y -= 1;
-		rc.DrawLine(bottomLeft, bottomRight, colour);
+			Vec2i bottomRight = BottomRight(panel.AbsRect());
+			bottomRight.y -= 1;
+			rc.DrawLine(bottomLeft, bottomRight, colour);
+		}
 	}
 }

@@ -599,9 +599,9 @@ namespace Rococo::Gui
 
 		virtual IGRPanel& SetFitChildrenVertically() = 0;
 
-		virtual IGRPanel& SetConstantWidth(int width) = 0;
+		virtual IGRPanel& SetConstantWidth(int width, bool isPercentage = false) = 0;
 
-		virtual IGRPanel& SetConstantHeight(int height) = 0;
+		virtual IGRPanel& SetConstantHeight(int height, bool isPercentage = false) = 0;
 
 		virtual IGRPanel& SetConstantSpan(Vec2i span) = 0;
 
