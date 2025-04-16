@@ -238,7 +238,8 @@ namespace Rococo::Gui
 	enum class EGRRectStyle
 	{
 		SHARP = 0,
-		ROUNDED
+		ROUNDED,
+		ROUNDED_WITH_BLUR
 	};
 
 	// The interface to the platform dependent rendering of the retained GUI

@@ -201,7 +201,7 @@
 			(Viewport
 				(Colour.Container.Background Translucent)
 				(Colour.Background Transparent)
-				(Panel.RectStyle Rounded)
+				(Panel.RectStyle Blur)
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 

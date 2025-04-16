@@ -521,9 +521,13 @@ namespace Rococo::GreatSex
 				{
 					panel.SetRectStyle(EGRRectStyle::ROUNDED);
 				}
+				else if (EqI(style, "BLUR"))
+				{
+					panel.SetRectStyle(EGRRectStyle::ROUNDED_WITH_BLUR);
+				}
 				else
 				{
-					Throw(value.S(), "Expecting either SHARP or ROUNDED");
+					Throw(value.S(), "Expecting either SHARP, BLUR or ROUNDED");
 				}
 			}
 

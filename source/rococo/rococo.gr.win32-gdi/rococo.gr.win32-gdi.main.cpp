@@ -594,6 +594,12 @@ namespace GRANON
 			return Gdiplus::Rect(rect.left, rect.top, Width(rect), Height(rect));
 		}
 
+		void DrawBlurRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
+		{
+			GuiRect innerRect = Expand(absRect, -4);
+			DrawRoundedRect(innerRect, visibleRect, cornerRadius, colour);
+		}
+
 		void DrawRoundedRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
 		{
 			if (colour.alpha == 255)
@@ -620,7 +626,6 @@ namespace GRANON
 				|                    |
 				----------------------
                    ---bottomRect----
-				
 				*/
 
 
@@ -660,6 +665,9 @@ namespace GRANON
 				break;
 			case EGRRectStyle::ROUNDED:
 				DrawRoundedRect(absRect, visibleRect, cornerRadius, colour);
+				break;
+			case EGRRectStyle::ROUNDED_WITH_BLUR:
+				DrawBlurRect(absRect, visibleRect, cornerRadius, colour);
 				break;
 			}
 		}
@@ -764,7 +772,7 @@ namespace GRANON
 			t.Red = v.colour.red << 8;
 		}
 
-		static GuiRect GetEnclosingRect(const GRTriangle* triangles, size_t nTriangles)
+		static GuiRect GetEnclosingRect(const std::vector<TRIVERTEX>& vertices)
 		{
 			GuiRect r;
 			r.left = INT_MAX;
@@ -772,12 +780,9 @@ namespace GRANON
 			r.top = INT_MAX;
 			r.bottom = INT_MIN;
 
-			for (size_t i = 0; i < nTriangles; i++)
+			for (auto& v: vertices)
 			{
-				const auto& t = triangles[i];
-				ExpandZoneToContain(r, t.a.position);
-				ExpandZoneToContain(r, t.b.position);
-				ExpandZoneToContain(r, t.c.position);
+				ExpandZoneToContain(r, Vec2i{ v.x, v.y });
 			}
 
 			return r;
@@ -861,54 +866,69 @@ namespace GRANON
 		std::vector<TRIVERTEX> trivertexCache;
 		std::vector<GRADIENT_TRIANGLE> triIndexCache;
 
-		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
+		void PushTriangle(const GRTriangle& t)
 		{
+			TRIVERTEX& v = trivertexCache.emplace_back();
+			v.x = t.a.position.x;
+			v.y = t.a.position.y;
+			CopyColour(v, t.a);
+
+			TRIVERTEX& v1 = trivertexCache.emplace_back();
+			v1.x = t.b.position.x;
+			v1.y = t.b.position.y;
+			CopyColour(v1, t.b);
+
+			TRIVERTEX& v2 = trivertexCache.emplace_back();
+			v2.x = t.c.position.x;
+			v2.y = t.c.position.y;
+			CopyColour(v2, t.c);
+
+			ULONG index = (ULONG) (3 * triIndexCache.size());
+			GRADIENT_TRIANGLE& indices = triIndexCache.emplace_back();
+			indices.Vertex1 = index ++;
+			indices.Vertex2 = index ++;
+			indices.Vertex3 = index;
+		}
+
+		void CommitTriangles()
+		{
+			if (trivertexCache.empty())
+			{
+				return;
+			}
+
+			const GuiRect& r = GetEnclosingRect(trivertexCache);
+
 			AutoReleaseBitmap arb(CacheAlphaBuilder(), alphaBuilder.DC);
-
-			GuiRect r = GetEnclosingRect(triangles, nTriangles);
-
-			// We need to clear alpha buffer to 0 for full transparency, though we restrict this to the rect from which we will copy
 
 			Gdiplus::SolidBrush brush(Gdiplus::Color(255, 0, 0, 255));
 			alphaBuilder.g->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
 
-			trivertexCache.resize(nTriangles * 3);
-			triIndexCache.resize(nTriangles);
-
-			for (size_t i = 0; i < nTriangles; i++)
-			{
-				const auto& t = triangles[i];
-
-				TRIVERTEX* v = &trivertexCache[3 * i];
-				v[0].x = t.a.position.x;
-				v[0].y = t.a.position.y;
-				CopyColour(v[0], t.a);
-
-				v[1].x = t.b.position.x;
-				v[1].y = t.b.position.y;
-				CopyColour(v[1], t.b);
-
-				v[2].x = t.c.position.x;
-				v[2].y = t.c.position.y;
-				CopyColour(v[2], t.c);
-
-				GRADIENT_TRIANGLE& indices = triIndexCache[i];
-				indices.Vertex1 = (ULONG) (3 * i);
-				indices.Vertex2 = (ULONG) (3 * i + 1);
-				indices.Vertex3 = (ULONG) (3 * i + 2);
-			}
-		
-			if (!GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG)(3 * nTriangles), triIndexCache.data(), (ULONG)nTriangles, GRADIENT_FILL_TRIANGLE))
+			if (!GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG) trivertexCache.size(), triIndexCache.data(), (ULONG)triIndexCache.size(), GRADIENT_FILL_TRIANGLE))
 			{
 				return;
 			}
-			
+
 			BLENDFUNCTION blendFunction;
 			blendFunction.AlphaFormat = AC_SRC_ALPHA;
 			blendFunction.BlendFlags = 0;
 			blendFunction.BlendOp = AC_SRC_OVER;
 			blendFunction.SourceConstantAlpha = 255;
 			AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilder.DC, r.left, r.top, Width(r), Height(r), blendFunction);
+		}
+
+		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
+		{
+			trivertexCache.clear();
+			triIndexCache.clear();
+
+			for (size_t i = 0; i < nTriangles; i++)
+			{
+				const auto& t = triangles[i];
+				PushTriangle(t);
+			}
+		
+			CommitTriangles();
 		}
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
