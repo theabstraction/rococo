@@ -132,11 +132,13 @@ namespace Rococo::Gui
 		EGRSchemeColourSurface back, 
 		EGRSchemeColourSurface leftEdge,
 		EGRSchemeColourSurface rightEdge, 
-		float alphaScale)
+		float alphaScale,
+		bool isRaised,
+		bool isFocused)
 	{
 		auto rect = panel.AbsRect();
 
-		GRRenderState rs(false, g.IsHovered(panel), false);
+		GRRenderState rs(!isRaised, g.IsHovered(panel), isFocused);
 
 		RGBAb backColour = panel.GetColour(back, rs);
 		g.DrawRect(rect, Modulate(backColour, alphaScale), panel.RectStyle(), panel.CornerRadius());

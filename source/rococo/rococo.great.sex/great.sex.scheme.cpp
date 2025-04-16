@@ -64,8 +64,8 @@ namespace Rococo::GreatSex
 		{"Colour.Menu.Button.Edge.Bottom.Right", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
 
 		{"Colour.Container.Background", EGRSchemeColourSurface::CONTAINER_BACKGROUND },
-		{"Colour.Container.TopLeft", EGRSchemeColourSurface::CONTAINER_TOP_LEFT },
-		{"Colour.Container.BottomRight", EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT },
+		{"Colour.Container.Top.Left", EGRSchemeColourSurface::CONTAINER_TOP_LEFT },
+		{"Colour.Container.Bottom.Right", EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT },
 
 		{"Colour.Scroller.Button.Background", EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND },
 		{"Colour.Scroller.Button.Top.Left", EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT },
@@ -90,11 +90,13 @@ namespace Rococo::GreatSex
 
 		{"Colour.Carousel.Text", EGRSchemeColourSurface::CAROUSEL_TEXT },
 		{"Colour.Carousel.Background", EGRSchemeColourSurface::CAROUSEL_BACKGROUND },
+		{"Colour.Carousel.Top.Left", EGRSchemeColourSurface::CAROUSEL_TOP_LEFT },
+		{"Colour.Carousel.Bottom.Right", EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT },
 
 		{"Colour.GameOption.Background", EGRSchemeColourSurface::GAME_OPTION_BACKGROUND },
 
-		{"Colour.GameOption.TopLeft", EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT },
-		{"Colour.GameOption.BottomRight", EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT },
+		{"Colour.GameOption.Top.Left", EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT },
+		{"Colour.GameOption.Bottom.Right", EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT },
 		{"Colour.GameOption.ChildSpacer", EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER }
 	};
 

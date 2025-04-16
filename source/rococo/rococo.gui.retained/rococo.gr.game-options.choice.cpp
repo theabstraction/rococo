@@ -87,6 +87,11 @@ namespace GRANON
 
 		void Render(IGRRenderContext& rc) override
 		{
+			auto& parentPanel = *panel.Parent();
+
+			carousel->Panel().SetCornerRadius(parentPanel.CornerRadius());
+			carousel->Panel().SetRectStyle(parentPanel.RectStyle());
+
 			DrawGameOptionBackground(*title, panel, rc);
 		}
 

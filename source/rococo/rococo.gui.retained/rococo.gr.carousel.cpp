@@ -342,14 +342,14 @@ namespace GRANON
 			GRRenderState rs(false, isHovered, false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_BACKGROUND, rs);
-			g.DrawRect(edge, backColour);
+			g.DrawRect(edge, backColour, panel.RectStyle(), panel.CornerRadius());
 
 			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TEXT, rs);
 			g.DrawText(fontId, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
 
-			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, rs);
-			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, rs);
-			g.DrawRectEdge(edge, topLeftColour, bottomRightColour);
+			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TOP_LEFT, rs);
+			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, rs);
+			g.DrawRectEdge(edge, topLeftColour, bottomRightColour, panel.RectStyle(), panel.CornerRadius());
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

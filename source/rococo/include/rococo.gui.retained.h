@@ -319,6 +319,8 @@ namespace Rococo::Gui
 		GAME_OPTION_BACKGROUND, // Gives the background colour in a game option title
 		CAROUSEL_BACKGROUND, // Gives the background colour of a carousel inner rect
 		CAROUSEL_TEXT, // Gives the text colour of a carousel
+		CAROUSEL_TOP_LEFT,
+		CAROUSEL_BOTTOM_RIGHT,
 		GAME_OPTION_TEXT, // Gives the text colour in a game option title
 		GAME_OPTION_DISABLED_BACKGROUND, // // Gives the background colour in a disabled game option
 		GAME_OPTION_DISABLED_TEXT, // Gives the text colour in a game option title when the option is not currently selectable

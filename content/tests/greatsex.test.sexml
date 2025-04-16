@@ -56,8 +56,8 @@
 	(Panel.ExpandH)
 	(Panel.ExpandV)
 	
-	(Colour.Container.TopLeft Transparent)
-	(Colour.Container.BottomRight Transparent)
+	(Colour.Container.Top.Left Transparent)
+	(Colour.Container.Bottom.Right Transparent)
 	
 	(Image "!textures/test/AI-castle.jpg")
 	
@@ -111,8 +111,8 @@
 		(Panel.Layout LeftToRight)
 		
 		(Colour.Container.Background Transparent)
-		(Colour.Container.TopLeft Transparent)
-		(Colour.Container.BottomRight Transparent)
+		(Colour.Container.Top.Left Transparent)
+		(Colour.Container.Bottom.Right Transparent)
 		// Child padding specifies the number of pixels betwen children
 		(Panel.ChildPadding 4)
 		
@@ -200,22 +200,26 @@
 			// A veiwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 			(Viewport
 				(Colour.Container.Background Translucent)
-				(Colour.Container.TopLeft White)
-				(Colour.Container.BottomRight LightGrey)
+				(Colour.Container.Top.Left White)
+				(Colour.Container.Bottom.Right LightGrey)
 				(Colour.Background Transparent)
 				(Panel.RectStyle Rounded)
 				(Panel.CornerRadius 16)
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
-					(Colour.GameOption.TopLeft Transparent)
-					(Colour.GameOption.BottomRight Transparent)
+					(Colour.Carousel.Top.Left LightGrey)
+					(Colour.Carousel.Bottom.Right LightGrey)
+					(Colour.GameOption.Top.Left Transparent)
+					(Colour.GameOption.Bottom.Right Transparent)
 					(Colour.GameOption.Background Transparent)
 					(Colour.GameOption.ChildSpacer LightGrey)
 					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
+					(Panel.RectStyle Rounded)
+					(Panel.CornerRadius 8)
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -260,6 +264,8 @@
 		:
 		
 		(Button
+			(Panel.RectStyle Rounded)
+			(Panel.CornerRadius 4)
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
@@ -268,6 +274,8 @@
 		)
 		
 		(Button
+			(Panel.RectStyle Rounded)
+			(Panel.CornerRadius 4)
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
@@ -276,6 +284,8 @@
 		)
 		
 		(Button
+			(Panel.RectStyle Rounded)
+			(Panel.CornerRadius 4)
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)

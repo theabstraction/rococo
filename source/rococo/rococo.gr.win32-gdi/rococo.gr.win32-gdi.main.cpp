@@ -791,7 +791,7 @@ namespace GRANON
 
 			g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 			g.DrawArc(&tlPen, absRect.left, absRect.top, R, R, 180.0f, 90.0f);
-			g.DrawArc(&tlPen, absRect.right - R, absRect.top, R, R, 270, 90.0f);
+			g.DrawArc(&tlPen, absRect.right - R - 1, absRect.top, R, R, 270, 90.0f);
 			g.DrawLine(&tlPen, absRect.left + thickness - 1, absRect.top + cornerRadius, absRect.left + thickness - 1, absRect.bottom - cornerRadius);
 			g.DrawLine(&tlPen, absRect.left + cornerRadius, absRect.top, absRect.right - cornerRadius, absRect.top);
 			

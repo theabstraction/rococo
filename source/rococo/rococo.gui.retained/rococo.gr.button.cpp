@@ -493,19 +493,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
 	{
-		UNUSED(focused);
-
-		bool hovered = g.IsHovered(panel);
-
-		GRRenderState rs(!raised, hovered, false);
-
-		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON, rs);
-		g.DrawRect(panel.AbsRect(), colour);
-
-		RGBAb colour1 = panel.GetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, rs);
-		RGBAb colour2 = panel.GetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, rs);
-
-		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
+		DrawPanelBackgroundEx(panel, g, EGRSchemeColourSurface::BUTTON, EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, 1.0f, raised, focused);
 	}
 
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, const GuiRect& rect, bool focused, bool raised, IGRRenderContext& g)
