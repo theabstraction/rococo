@@ -77,7 +77,7 @@ namespace GRANON
 			GRRenderState rs(false, g.IsHovered(panel), false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
-			g.DrawRect(rect, Modulate(backColour), panel.RectStyle(), 8);
+			g.DrawRect(rect, Modulate(backColour), panel.RectStyle(), panel.CornerRadius());
 
 			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
 			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);

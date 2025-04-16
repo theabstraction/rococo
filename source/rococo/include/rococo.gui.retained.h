@@ -580,6 +580,9 @@ namespace Rococo::Gui
 		virtual IGRPanel& SetRectStyle(EGRRectStyle style) = 0;
 		virtual EGRRectStyle RectStyle() const = 0;
 
+		virtual IGRPanel& SetCornerRadius(int radius) = 0;
+		virtual int CornerRadius() const = 0;
+
 		// The (dx, dy) offset delta from the top left of the parent to the top left of the child
 		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;
 		// Returns the child with the given index. If the index does not map to a child it returns nullptr

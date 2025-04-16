@@ -531,6 +531,12 @@ namespace Rococo::GreatSex
 				}
 			}
 
+			void OnAttribute_CornerRadius(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				int radius = AsAtomicInt32(value);
+				panel.SetCornerRadius(radius);
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -655,6 +661,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.ChildPadding"] = &GreatSexGenerator::OnAttribute_ChildPadding;
 					attributeHandlers["Panel.Fit"] = &GreatSexGenerator::OnAttribute_Fit;
 					attributeHandlers["Panel.RectStyle"] = &GreatSexGenerator::OnAttribute_RectStyle;
+					attributeHandlers["Panel.CornerRadius"] = &GreatSexGenerator::OnAttribute_CornerRadius;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)

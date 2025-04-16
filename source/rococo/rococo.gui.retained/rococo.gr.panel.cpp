@@ -38,6 +38,7 @@ namespace GRANON
 		HString desc;
 		const Sex::ISExpression* associatedSExpression = nullptr;
 		IGRPanelSupervisor* clippingPanel;
+		int32 cornerRadius = 4;
 
 		// Currently only used by GradientFill widgets, but we have plans to change fill style more generally across widgets, so is defined here.
 		EGRFillStyle fillStyle = EGRFillStyle::SOLID;
@@ -52,6 +53,17 @@ namespace GRANON
 		void SetClippingPanel(IGRPanel* panel) override
 		{
 			this->clippingPanel = static_cast<IGRPanelSupervisor*>(panel);
+		}
+
+		IGRPanel& SetCornerRadius(int radius) override
+		{
+			cornerRadius = radius;
+			return *this;
+		}
+
+		int CornerRadius() const override
+		{
+			return cornerRadius;
 		}
 
 		IGRPanel& SetFillStyle(EGRFillStyle style) override

@@ -596,8 +596,68 @@ namespace GRANON
 
 		void DrawBlurRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
 		{
-			GuiRect innerRect = Expand(absRect, -4);
-			DrawRoundedRect(innerRect, visibleRect, cornerRadius, colour);
+			const int delta = cornerRadius;
+
+			GuiRect innerRect = Expand(absRect, -delta);
+		
+			GuiRect innerVisibleRect = MergeWithScissorRect(innerRect);
+			DrawSharpRect(innerVisibleRect, colour);
+
+			RGBAb transparent(0, 0, 0, 0);
+
+			GuiRect leftRect{ absRect.left, absRect.top + delta, absRect.left + delta, absRect.bottom - delta};
+			PushRect(leftRect, transparent, colour, transparent, colour);
+			CommitTriangles();
+
+			GuiRect rightRect{ absRect.right - delta, absRect.top + delta, absRect.right, absRect.bottom - delta };
+			PushRect(rightRect, colour, transparent, colour, transparent);
+			CommitTriangles();
+
+			GuiRect topRect{ absRect.left + delta, absRect.top, absRect.right - delta, absRect.top + delta };
+			PushRect(topRect, transparent, transparent, colour, colour);
+
+			GRTriangle topLeft;
+			topLeft.a.position = { absRect.left + delta, absRect.top + delta};
+			topLeft.a.colour = colour;
+			topLeft.b.position = { absRect.left + delta, absRect.top };
+			topLeft.b.colour = transparent;
+			topLeft.c.position = { absRect.left, absRect.top + delta };
+			topLeft.c.colour = transparent;
+			PushTriangle(topLeft);
+
+			GRTriangle topRight;
+			topRight.a.position = { absRect.right - delta, absRect.top + delta };
+			topRight.a.colour = colour;
+			topRight.b.position = { absRect.right - delta, absRect.top };
+			topRight.b.colour = transparent;
+			topRight.c.position = { absRect.right, absRect.top + delta };
+			topRight.c.colour = transparent;
+			PushTriangle(topRight);
+
+			CommitTriangles();
+
+			GuiRect bottomRect{ absRect.left + delta, absRect.bottom - delta, absRect.right - delta, absRect.bottom };
+			PushRect(bottomRect, colour, colour, transparent, transparent);
+
+			GRTriangle bottomLeft;
+			bottomLeft.a.position = { absRect.left + delta, absRect.bottom - delta };
+			bottomLeft.a.colour = colour;
+			bottomLeft.b.position = { absRect.left + delta, absRect.bottom };
+			bottomLeft.b.colour = transparent;
+			bottomLeft.c.position = { absRect.left, absRect.bottom - delta };
+			bottomLeft.c.colour = transparent;
+			PushTriangle(bottomLeft);
+
+			GRTriangle bottomRight;
+			bottomRight.a.position = { absRect.right - delta, absRect.bottom - delta };
+			bottomRight.a.colour = colour;
+			bottomRight.b.position = { absRect.right - delta, absRect.bottom };
+			bottomRight.b.colour = transparent;
+			bottomRight.c.position = { absRect.right, absRect.bottom - delta };
+			bottomRight.c.colour = transparent;
+			PushTriangle(bottomRight);
+
+			CommitTriangles();
 		}
 
 		void DrawRoundedRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
@@ -890,6 +950,29 @@ namespace GRANON
 			indices.Vertex3 = index;
 		}
 
+		void PushRect(const GuiRect& rect, RGBAb tl, RGBAb tr, RGBAb bl, RGBAb br)
+		{
+			GRTriangle upper;
+			upper.a.colour = tl;
+			upper.a.position = TopLeft(rect);
+			upper.b.colour = tr;
+			upper.b.position = TopRight(rect);
+			upper.c.colour = br;
+			upper.c.position = BottomRight(rect);
+
+			PushTriangle(upper);
+
+			GRTriangle lower;
+			lower.a.colour = br;
+			lower.a.position = BottomRight(rect);
+			lower.b.colour = bl;
+			lower.b.position = BottomLeft(rect);
+			lower.c.colour = tl;
+			lower.c.position = TopLeft(rect);
+
+			PushTriangle(lower);
+		}
+
 		void CommitTriangles()
 		{
 			if (trivertexCache.empty())
@@ -897,11 +980,11 @@ namespace GRANON
 				return;
 			}
 
-			const GuiRect& r = GetEnclosingRect(trivertexCache);
+			GuiRect r = GetEnclosingRect(trivertexCache);
 
 			AutoReleaseBitmap arb(CacheAlphaBuilder(), alphaBuilder.DC);
 
-			Gdiplus::SolidBrush brush(Gdiplus::Color(255, 0, 0, 255));
+			Gdiplus::SolidBrush brush(Gdiplus::Color(0, 0, 0, 0));
 			alphaBuilder.g->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
 
 			if (!GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG) trivertexCache.size(), triIndexCache.data(), (ULONG)triIndexCache.size(), GRADIENT_FILL_TRIANGLE))
@@ -915,13 +998,13 @@ namespace GRANON
 			blendFunction.BlendOp = AC_SRC_OVER;
 			blendFunction.SourceConstantAlpha = 255;
 			AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilder.DC, r.left, r.top, Width(r), Height(r), blendFunction);
+
+			trivertexCache.clear();
+			triIndexCache.clear();
 		}
 
 		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
 		{
-			trivertexCache.clear();
-			triIndexCache.clear();
-
 			for (size_t i = 0; i < nTriangles; i++)
 			{
 				const auto& t = triangles[i];
