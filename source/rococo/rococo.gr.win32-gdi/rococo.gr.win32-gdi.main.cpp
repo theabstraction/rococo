@@ -631,7 +631,7 @@ namespace GRANON
 				rects[1] = Gdiplus::Rect(absRect.left, absRect.top + cornerRadius, Width(absRect), Height(absRect) - 2 * cornerRadius); // centre
 				rects[2] = Gdiplus::Rect(absRect.left + cornerRadius, absRect.bottom - cornerRadius, Width(absRect) - 2 * cornerRadius, cornerRadius); // bottom
 
-				//g.SetClip(ToGdiRect(lastScissorRect));
+				g.SetClip(ToGdiRect(visibleRect));
 				g.FillRectangles(&brush, rects, 3);
 
 				float R = 2.0f * (float)cornerRadius;
