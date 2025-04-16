@@ -587,17 +587,61 @@ namespace GRANON
 			}
 		}
 
+		std::vector<Gdiplus::Point> pointsCache;
+
+		static inline Gdiplus::Rect ToGdiRect(const GuiRect& rect)
+		{
+			return Gdiplus::Rect(rect.left, rect.top, Width(rect), Height(rect));
+		}
+
 		void DrawRoundedRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
 		{
-			GDIPen pen(colour);
-			UsePen usePen(paintDC, pen);
+			if (colour.alpha == 255)
+			{
+				GDIPen pen(colour);
+				UsePen usePen(paintDC, pen);
 
-			GDISolidBrush brush(colour);
-			UseBrush useBrush(paintDC, brush);
+				GDISolidBrush brush(colour);
+				UseBrush useBrush(paintDC, brush);
 
-			UseClipRect useClip(paintDC, visibleRect);
+				UseClipRect useClip(paintDC, visibleRect);
 
-			RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, cornerRadius, cornerRadius);
+				RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, cornerRadius, cornerRadius);
+			}
+			else
+			{
+				/*
+				   ----topRect-----
+				----------------------
+				|                    |
+				|                    |
+				|     centreRect     |
+				|                    |
+				|                    |
+				----------------------
+                   ---bottomRect----
+				
+				*/
+
+
+				Gdiplus::SolidBrush brush(Color(colour.alpha, colour.red, colour.green, colour.blue));
+
+				Gdiplus::Rect rects[3];
+				rects[0] = Gdiplus::Rect(absRect.left + cornerRadius, absRect.top, Width(absRect) - 2 * cornerRadius, cornerRadius); // top
+				rects[1] = Gdiplus::Rect(absRect.left, absRect.top + cornerRadius, Width(absRect), Height(absRect) - 2 * cornerRadius); // centre
+				rects[2] = Gdiplus::Rect(absRect.left + cornerRadius, absRect.bottom - cornerRadius, Width(absRect) - 2 * cornerRadius, cornerRadius); // bottom
+
+				//g.SetClip(ToGdiRect(lastScissorRect));
+				g.FillRectangles(&brush, rects, 3);
+
+				float R = 2.0f * (float)cornerRadius;
+
+				// corners
+				g.FillPie(&brush, (float)absRect.left, (float)absRect.top, R, R, 180.0f, 90.0f);
+				g.FillPie(&brush, (float)absRect.right - R, (float)absRect.top, R, R, 270.0f, 90.0f);
+				g.FillPie(&brush, (float)absRect.left, (float)absRect.bottom - R, R, R, 90.0f, 90.0f);
+				g.FillPie(&brush, (float)absRect.right - R, (float)absRect.bottom - R, R, R, 0, 90.0f);
+			}
 		}
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
