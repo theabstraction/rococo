@@ -788,6 +788,9 @@ namespace GRANON
 			}
 		};
 
+		std::vector<TRIVERTEX> trivertexCache;
+		std::vector<GRADIENT_TRIANGLE> triIndexCache;
+
 		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
 		{
 			AutoReleaseBitmap arb(CacheAlphaBuilder(), alphaBuilder.DC);
@@ -799,11 +802,14 @@ namespace GRANON
 			Gdiplus::SolidBrush brush(Gdiplus::Color(255, 0, 0, 255));
 			alphaBuilder.g->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
 
+			trivertexCache.resize(nTriangles * 3);
+			triIndexCache.resize(nTriangles);
+
 			for (size_t i = 0; i < nTriangles; i++)
 			{
 				const auto& t = triangles[i];
 
-				TRIVERTEX v[3];
+				TRIVERTEX* v = &trivertexCache[3 * i];
 				v[0].x = t.a.position.x;
 				v[0].y = t.a.position.y;
 				CopyColour(v[0], t.a);
@@ -816,14 +822,14 @@ namespace GRANON
 				v[2].y = t.c.position.y;
 				CopyColour(v[2], t.c);
 
-				GRADIENT_TRIANGLE indices;
-				indices.Vertex1 = 0;
-				indices.Vertex2 = 1;
-				indices.Vertex3 = 2;
-		
-				GradientFill(alphaBuilder.DC, v, 3, &indices, 1, GRADIENT_FILL_TRIANGLE);
+				GRADIENT_TRIANGLE& indices = triIndexCache[i];
+				indices.Vertex1 = (ULONG) (3 * i);
+				indices.Vertex2 = (ULONG) (3 * i + 1);
+				indices.Vertex3 = (ULONG) (3 * i + 2);
 			}
-
+		
+			GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG) (3 * nTriangles), triIndexCache.data(), (ULONG) nTriangles, GRADIENT_FILL_TRIANGLE);
+			
 			BLENDFUNCTION blendFunction;
 			blendFunction.AlphaFormat = AC_SRC_ALPHA;
 			blendFunction.BlendFlags = 0;
