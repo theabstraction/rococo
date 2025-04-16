@@ -64,24 +64,16 @@ namespace GRANON
 
 		}
 
-		RGBAb Modulate(RGBAb colour)
-		{
-			float alpha = transparency * (float)colour.alpha;
-			return RGBAb(colour.red, colour.green, colour.blue, (uint8) alpha);
-		}
-
 		void Render(IGRRenderContext& g) override
 		{
-			auto rect = panel.AbsRect();
-
-			GRRenderState rs(false, g.IsHovered(panel), false);
-
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
-			g.DrawRect(rect, Modulate(backColour), panel.RectStyle(), panel.CornerRadius());
-
-			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
-			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
-			g.DrawRectEdge(rect, Modulate(edge1Colour), Modulate(edge2Colour));
+			DrawPanelBackgroundEx(
+				panel,
+				g, 
+				EGRSchemeColourSurface::CONTAINER_BACKGROUND,
+				EGRSchemeColourSurface::CONTAINER_TOP_LEFT,
+				EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT,
+				transparency
+			);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
@@ -126,5 +118,31 @@ namespace Rococo::Gui
 		auto& gr = parent.Panel().Root().GR();
 		auto& div = static_cast<GRANON::GRDivision&>(gr.AddWidget(parent.Panel(), GRANON::s_DivFactory));
 		return div;
+	}
+
+	RGBAb Modulate(RGBAb colour, float alphaScale)
+	{
+		float alpha = clamp(alphaScale * (float)colour.alpha, 0.0f, 255.0f);
+		return RGBAb(colour.red, colour.green, colour.blue, (uint8)alpha);
+	}
+
+	ROCOCO_GUI_RETAINED_API void DrawPanelBackgroundEx(
+		IGRPanel& panel, 
+		IGRRenderContext& g,
+		EGRSchemeColourSurface back, 
+		EGRSchemeColourSurface leftEdge,
+		EGRSchemeColourSurface rightEdge, 
+		float alphaScale)
+	{
+		auto rect = panel.AbsRect();
+
+		GRRenderState rs(false, g.IsHovered(panel), false);
+
+		RGBAb backColour = panel.GetColour(back, rs);
+		g.DrawRect(rect, Modulate(backColour, alphaScale), panel.RectStyle(), panel.CornerRadius());
+
+		RGBAb edge1Colour = panel.GetColour(leftEdge, rs);
+		RGBAb edge2Colour = panel.GetColour(rightEdge, rs);
+		g.DrawRectEdge(rect, Modulate(edge1Colour, alphaScale), Modulate(edge2Colour, alphaScale), panel.RectStyle(), panel.CornerRadius());
 	}
 }

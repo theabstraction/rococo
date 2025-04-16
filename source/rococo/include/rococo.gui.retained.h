@@ -263,7 +263,7 @@ namespace Rococo::Gui
 		virtual void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment) = 0;
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle = EGRRectStyle::SHARP, int cornerRadius = 4) = 0;
-		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;
+		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour, EGRRectStyle rectStyle = EGRRectStyle::SHARP, int cornerRadius = 4) = 0;
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
 		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;

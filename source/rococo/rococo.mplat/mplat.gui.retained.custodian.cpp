@@ -92,7 +92,7 @@ namespace ANON
 				switch (task.type)
 				{
 				case ERenderTaskType::Edge:
-					DrawRectEdge(task.target, task.colour1, task.colour2);
+					DrawRectEdge(task.target, task.colour1, task.colour2, EGRRectStyle::SHARP, 4);
 					break;
 				}
 			}
@@ -157,8 +157,11 @@ namespace ANON
 			Rococo::Graphics::DrawLine(*rc, 1, start, end, colour);
 		}
 
-		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
+		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
 		{
+			UNUSED(rectStyle);
+			UNUSED(cornerRadius);
+
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;

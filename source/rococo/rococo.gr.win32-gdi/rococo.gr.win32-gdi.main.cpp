@@ -692,9 +692,9 @@ namespace GRANON
 				Gdiplus::SolidBrush brush(Color(colour.alpha, colour.red, colour.green, colour.blue));
 
 				Gdiplus::Rect rects[3];
-				rects[0] = Gdiplus::Rect(absRect.left + cornerRadius, absRect.top, Width(absRect) - 2 * cornerRadius, cornerRadius); // top
-				rects[1] = Gdiplus::Rect(absRect.left, absRect.top + cornerRadius, Width(absRect), Height(absRect) - 2 * cornerRadius); // centre
-				rects[2] = Gdiplus::Rect(absRect.left + cornerRadius, absRect.bottom - cornerRadius, Width(absRect) - 2 * cornerRadius, cornerRadius); // bottom
+				rects[0] = Gdiplus::Rect(absRect.left + cornerRadius, absRect.top, Width(absRect) - 2 * cornerRadius - 1, cornerRadius); // top
+				rects[1] = Gdiplus::Rect(absRect.left, absRect.top + cornerRadius, Width(absRect), Height(absRect) - 2 * cornerRadius - 1); // centre
+				rects[2] = Gdiplus::Rect(absRect.left + cornerRadius, absRect.bottom - cornerRadius - 1, Width(absRect) - 2 * cornerRadius -1, cornerRadius); // bottom
 
 				g.SetClip(ToGdiRect(visibleRect));
 				g.FillRectangles(&brush, rects, 3);
@@ -703,9 +703,9 @@ namespace GRANON
 
 				// corners
 				g.FillPie(&brush, (float)absRect.left, (float)absRect.top, R, R, 180.0f, 90.0f);
-				g.FillPie(&brush, (float)absRect.right - R, (float)absRect.top, R, R, 270.0f, 90.0f);
-				g.FillPie(&brush, (float)absRect.left, (float)absRect.bottom - R, R, R, 90.0f, 90.0f);
-				g.FillPie(&brush, (float)absRect.right - R, (float)absRect.bottom - R, R, R, 0, 90.0f);
+				g.FillPie(&brush, (float)absRect.right - R - 1, (float)absRect.top, R, R, 270.0f, 90.0f);
+				g.FillPie(&brush, (float)absRect.left, (float)absRect.bottom - R - 1, R, R, 90.0f, 90.0f);
+				g.FillPie(&brush, (float)absRect.right - R - 1, (float)absRect.bottom - R - 1, R, R, 0, 90.0f);
 			}
 		}
 
@@ -768,7 +768,42 @@ namespace GRANON
 			}
 		}
 
-		void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) override
+		void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour, EGRRectStyle rectStyle, int cornerRadius) override
+		{
+			switch (rectStyle)
+			{
+			case EGRRectStyle::SHARP:
+			case EGRRectStyle::ROUNDED_WITH_BLUR:
+				DrawSharpRectEdge(absRect, topLeftColour, bottomRightColour);
+				break;
+			case EGRRectStyle::ROUNDED:
+				DrawRoundedEdge(absRect, topLeftColour, bottomRightColour, cornerRadius);
+				break;
+			}
+		}
+
+		void DrawRoundedEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour, int cornerRadius)
+		{
+			int R = 2 * cornerRadius;
+
+			int thickness = 1;
+			Gdiplus::Pen tlPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue), (float) thickness);
+
+			g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+			g.DrawArc(&tlPen, absRect.left, absRect.top, R, R, 180.0f, 90.0f);
+			g.DrawArc(&tlPen, absRect.right - R, absRect.top, R, R, 270, 90.0f);
+			g.DrawLine(&tlPen, absRect.left + thickness - 1, absRect.top + cornerRadius, absRect.left + thickness - 1, absRect.bottom - cornerRadius);
+			g.DrawLine(&tlPen, absRect.left + cornerRadius, absRect.top, absRect.right - cornerRadius, absRect.top);
+			
+			Gdiplus::Pen brPen(Gdiplus::Color(bottomRightColour.alpha, bottomRightColour.red, bottomRightColour.green, bottomRightColour.blue), (float)thickness);
+			g.DrawLine(&brPen, absRect.left + cornerRadius, absRect.bottom-1, absRect.right - cornerRadius, absRect.bottom-1);
+			g.DrawLine(&brPen, absRect.right -1, absRect.top + cornerRadius, absRect.right - 1, absRect.bottom - cornerRadius);
+			g.DrawArc(&brPen, absRect.right - R - 1, absRect.bottom - R - 1, R, R, 0, 90.0f);
+			g.DrawArc(&brPen, absRect.left + thickness - 1, absRect.bottom - R - 1, R, R, 90.0f, 90.0f);
+			g.SetSmoothingMode(Gdiplus::SmoothingModeDefault);
+		}
+
+		void DrawSharpRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour)
 		{
 			if (topLeftColour.alpha > 0)
 			{
@@ -1156,7 +1191,7 @@ namespace GRANON
 				caretRect.top = caretY - tm.tmHeight;
 				caretRect.right = rect.left + caretRightColumn;
 				caretRect.bottom = caretY;
-				DrawRectEdge(caretRect, caretColour, caretColour);
+				DrawRectEdge(caretRect, caretColour, caretColour, EGRRectStyle::SHARP, 0);
 			}
 		}
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
