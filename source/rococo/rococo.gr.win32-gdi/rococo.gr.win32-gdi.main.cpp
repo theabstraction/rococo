@@ -713,10 +713,11 @@ namespace GRANON
 			return r;
 		}
 
-		// After calling this function you must pass the oldBitmap return value to SelectObject(alphaBuilderDC, oldBitmap);
-		HGDIOBJ /* oldBitmap */ CacheAlphaBuilder()
+		// Head any code sections that use the alpha builder with this function.
+		// After the blend is completed you must pass the [oldBitmap] return value to SelectObject(alphaBuilderDC, oldBitmap);
+		HBITMAP /* [oldBitmap] */ CacheAlphaBuilder()
 		{
-		start:
+		cacheAlphaBuilder:
 			auto ds = Span(ScreenDimensions());
 			if (!alphaBuilder.DC)
 			{
@@ -726,6 +727,9 @@ namespace GRANON
 					Throw(GetLastError(), "CreateCompatibleDC failed");
 				}
 
+				// CreateCompatibleDC will not work, as the screen is not of RGBA format.
+				// So we have to explicitly create a bitmap with a 32-bit RGBA specification
+
 				BITMAPINFO info = { 0 };
 				info.bmiHeader.biSize = sizeof(info);
 				info.bmiHeader.biWidth = ds.x;
@@ -734,7 +738,8 @@ namespace GRANON
 				info.bmiHeader.biBitCount = 32;
 				info.bmiHeader.biCompression = BI_RGB;
 				info.bmiHeader.biSizeImage = ds.x * ds.y * 4;
-				alphaBuilder.hBitmap = CreateDIBSection(alphaBuilder.DC, &info, DIB_RGB_COLORS, NULL, NULL, 0x0);
+				LPVOID bits = NULL;
+				alphaBuilder.hBitmap = CreateDIBSection(alphaBuilder.DC, &info, DIB_RGB_COLORS, &bits, NULL, 0x0);
 				if (alphaBuilder.hBitmap == NULL)
 				{
 					Throw(GetLastError(), "CreateDIBSection RGBA failed");
@@ -747,16 +752,17 @@ namespace GRANON
 			GetBitmapDimensionEx(alphaBuilder.hBitmap, &dimensions);
 			if (dimensions.cx != ds.x || dimensions.cy != ds.y)
 			{
+				// Screen dimensions no longer match the bitmap, so scratch the bitmap and cache again
 				delete alphaBuilder.g;
 				DeleteObject(alphaBuilder.hBitmap);
 				DeleteDC(alphaBuilder.DC);
 				alphaBuilder.hBitmap = 0;
 				alphaBuilder.DC = 0;
 				alphaBuilder.g = nullptr;
-				goto start;
+				goto cacheAlphaBuilder;
 			}
 
-			HGDIOBJ oldBitmap = SelectObject(alphaBuilder.DC, alphaBuilder.hBitmap);
+			HBITMAP oldBitmap = (HBITMAP) SelectObject(alphaBuilder.DC, alphaBuilder.hBitmap);
 
 			if (alphaBuilder.g == nullptr)
 			{
@@ -766,9 +772,25 @@ namespace GRANON
 			return oldBitmap;
 		}
 
+		struct AutoReleaseBitmap
+		{
+			HBITMAP oldBitmap;
+			HDC dc;
+
+			AutoReleaseBitmap(HBITMAP _oldBitmap, HDC _dc): oldBitmap(_oldBitmap), dc(_dc)
+			{
+
+			}
+
+			~AutoReleaseBitmap()
+			{
+				SelectObject(dc, oldBitmap);
+			}
+		};
+
 		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
 		{
-			HGDIOBJ oldBitmap = CacheAlphaBuilder();
+			AutoReleaseBitmap arb(CacheAlphaBuilder(), alphaBuilder.DC);
 
 			GuiRect r = GetEnclosingRect(triangles, nTriangles);
 
@@ -811,10 +833,6 @@ namespace GRANON
 			{
 				Throw(GetLastError(), "Error!");
 			}
-
-		//	BitBlt(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilderDC, r.left, r.top, SRCCOPY);
-
-			SelectObject(alphaBuilder.DC, oldBitmap);
 		}
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
