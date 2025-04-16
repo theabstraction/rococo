@@ -235,6 +235,12 @@ namespace Rococo::Gui
 		GRVertex c;
 	};
 
+	enum class EGRRectStyle
+	{
+		SHARP = 0,
+		ROUNDED
+	};
+
 	// The interface to the platform dependent rendering of the retained GUI
 	ROCOCO_INTERFACE IGRRenderContext
 	{
@@ -255,7 +261,7 @@ namespace Rococo::Gui
 		virtual void DrawImageStretched(IGRImage& image, const GuiRect& absRect) = 0;
 		virtual void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment) = 0;
 
-		virtual void DrawRect(const GuiRect& absRect, RGBAb colour) = 0;
+		virtual void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle = EGRRectStyle::SHARP, int cornerRadius = 4) = 0;
 		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
@@ -539,7 +545,6 @@ namespace Rococo::Gui
 		BANNER
 	};
 
-
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
@@ -570,6 +575,9 @@ namespace Rococo::Gui
 
 		virtual IGRPanel& SetFillStyle(EGRFillStyle style) = 0;
 		virtual EGRFillStyle FillStyle() const = 0;
+
+		virtual IGRPanel& SetRectStyle(EGRRectStyle style) = 0;
+		virtual EGRRectStyle RectStyle() const = 0;
 
 		// The (dx, dy) offset delta from the top left of the parent to the top left of the child
 		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;

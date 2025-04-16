@@ -509,6 +509,24 @@ namespace Rococo::GreatSex
 				}
 			}
 
+			void OnAttribute_RectStyle(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				cstr style = AsString(value).c_str();
+
+				if (EqI(style, "SHARP"))
+				{
+					panel.SetRectStyle(EGRRectStyle::SHARP);
+				}
+				else if (EqI(style, "ROUNDED"))
+				{
+					panel.SetRectStyle(EGRRectStyle::ROUNDED);
+				}
+				else
+				{
+					Throw(value.S(), "Expecting either SHARP or ROUNDED");
+				}
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -632,6 +650,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.ExpandV"] = &GreatSexGenerator::OnAttribute_ExpandV;
 					attributeHandlers["Panel.ChildPadding"] = &GreatSexGenerator::OnAttribute_ChildPadding;
 					attributeHandlers["Panel.Fit"] = &GreatSexGenerator::OnAttribute_Fit;
+					attributeHandlers["Panel.RectStyle"] = &GreatSexGenerator::OnAttribute_RectStyle;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)

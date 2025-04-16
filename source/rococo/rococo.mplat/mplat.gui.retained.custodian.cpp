@@ -141,7 +141,7 @@ namespace ANON
 			Throw(0, __FUNCTION__ ": not implemented");
 		}
 
-		void DrawRect(const GuiRect& absRect, RGBAb colour) override
+		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle /* rectStyle */, int /* corner Radius */) override
 		{
 			if (!lastScissorRect.IsNormalized())
 			{

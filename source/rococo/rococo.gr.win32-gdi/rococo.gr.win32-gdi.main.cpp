@@ -570,15 +570,8 @@ namespace GRANON
 			return targetRect;
 		}
 
-		void DrawRect(const GuiRect& absRect, RGBAb colour) override
+		void DrawSharpRect(const GuiRect& visibleRect, RGBAb colour)
 		{
-			if (colour.alpha == 0)
-			{
-				return;
-			}
-
-			GuiRect visibleRect = MergeWithScissorRect(absRect);
-
 			if (colour.alpha < 255)
 			{
 				g.ResetClip();
@@ -591,6 +584,39 @@ namespace GRANON
 
 				GDISolidBrush brush(colour);
 				FillRect(paintDC, &rect, brush);
+			}
+		}
+
+		void DrawRoundedRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
+		{
+			GDIPen pen(colour);
+			UsePen usePen(paintDC, pen);
+
+			GDISolidBrush brush(colour);
+			UseBrush useBrush(paintDC, brush);
+
+			UseClipRect useClip(paintDC, visibleRect);
+
+			RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, cornerRadius, cornerRadius);
+		}
+
+		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
+		{
+			if (colour.alpha == 0)
+			{
+				return;
+			}
+
+			GuiRect visibleRect = MergeWithScissorRect(absRect);
+
+			switch (rectStyle)
+			{
+			case EGRRectStyle::SHARP:
+				DrawSharpRect(visibleRect, colour);
+				break;
+			case EGRRectStyle::ROUNDED:
+				DrawRoundedRect(absRect, visibleRect, cornerRadius, colour);
+				break;
 			}
 		}
 

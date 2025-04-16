@@ -200,7 +200,8 @@
 			// A veiwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 			(Viewport
 				(Colour.Container.Background Translucent)
-				(Colour.Background Transparent) 
+				(Colour.Background Transparent)
+				(Panel.RectStyle Rounded)
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 

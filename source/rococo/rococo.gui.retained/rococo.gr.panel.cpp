@@ -42,6 +42,8 @@ namespace GRANON
 		// Currently only used by GradientFill widgets, but we have plans to change fill style more generally across widgets, so is defined here.
 		EGRFillStyle fillStyle = EGRFillStyle::SOLID;
 
+		EGRRectStyle rectStyle = EGRRectStyle::SHARP;
+
 		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++), clippingPanel(this)
 		{
 			refCount = 1;
@@ -61,6 +63,17 @@ namespace GRANON
 		EGRFillStyle FillStyle() const override
 		{
 			return fillStyle;
+		}
+
+		IGRPanel& SetRectStyle(EGRRectStyle style) override
+		{
+			rectStyle = style;
+			return *this;
+		}
+
+		EGRRectStyle RectStyle() const override
+		{
+			return rectStyle;
 		}
 
 		const Sex::ISExpression* GetAssociatedSExpression() const override
