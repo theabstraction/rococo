@@ -341,15 +341,20 @@ namespace GRANON
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;
 			GRRenderState rs(false, isHovered, false);
 
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_BACKGROUND, rs);
+			bool obscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
+
+			RGBAb backColour = panel.GetColour(obscured ? EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND : EGRSchemeColourSurface::CAROUSEL_BACKGROUND, rs);
 			g.DrawRect(edge, backColour, panel.RectStyle(), panel.CornerRadius());
 
-			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TEXT, rs);
+			RGBAb colour = panel.GetColour(obscured ? EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT : EGRSchemeColourSurface::CAROUSEL_TEXT, rs);
 			g.DrawText(fontId, edge, optionTextAlignment, { 0,0 }, to_fstring(option.value), colour);
 
-			RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TOP_LEFT, rs);
-			RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, rs);
-			g.DrawRectEdge(edge, topLeftColour, bottomRightColour, panel.RectStyle(), panel.CornerRadius());
+			if (!obscured)
+			{
+				RGBAb topLeftColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TOP_LEFT, rs);
+				RGBAb bottomRightColour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, rs);
+				g.DrawRectEdge(edge, topLeftColour, bottomRightColour, panel.RectStyle(), panel.CornerRadius());
+			}
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
