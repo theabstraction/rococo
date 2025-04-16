@@ -387,13 +387,18 @@ namespace GRANON
 		HWND hWnd;
 		HDC paintDC = 0;
 		HDC bitmapDC = 0;
-		HDC alphaBuilderDC = 0;
 
-		HBITMAP alphaBuilderBitmap = 0;
+		// DC and bitmap for hacking alpha blending into GDI for functions such as GradientFill
+		struct AlphaBuilder
+		{
+			HDC DC = 0;
+			HBITMAP hBitmap = 0;
+			Gdiplus::Graphics* g = nullptr;
+		} alphaBuilder;
 
 		GDICustodian& custodian;
 		Gdiplus::Graphics g;
-		Gdiplus::Graphics* alphaGraphics = nullptr;
+	
 
 		Vec2i cursor{ 0,0 };
 
@@ -414,19 +419,19 @@ namespace GRANON
 				DeleteDC(bitmapDC);
 			}
 
-			if (alphaBuilderDC)
+			if (alphaBuilder.DC)
 			{
-				DeleteDC(alphaBuilderDC);
+				DeleteDC(alphaBuilder.DC);
 			}
 
-			if (alphaBuilderBitmap)
+			if (alphaBuilder.hBitmap)
 			{
-				DeleteObject(alphaBuilderBitmap);
+				DeleteObject(alphaBuilder.hBitmap);
 			}
 
-			if (alphaGraphics)
+			if (alphaBuilder.g)
 			{
-				delete alphaGraphics;
+				delete alphaBuilder.g;
 			}
 		}
 
@@ -708,14 +713,15 @@ namespace GRANON
 			return r;
 		}
 
-		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
+		// After calling this function you must pass the oldBitmap return value to SelectObject(alphaBuilderDC, oldBitmap);
+		HGDIOBJ /* oldBitmap */ CacheAlphaBuilder()
 		{
 		start:
 			auto ds = Span(ScreenDimensions());
-			if (!alphaBuilderDC)
+			if (!alphaBuilder.DC)
 			{
-				alphaBuilderDC = CreateCompatibleDC(paintDC);
-				if (alphaBuilderDC == NULL)
+				alphaBuilder.DC = CreateCompatibleDC(paintDC);
+				if (alphaBuilder.DC == NULL)
 				{
 					Throw(GetLastError(), "CreateCompatibleDC failed");
 				}
@@ -728,41 +734,48 @@ namespace GRANON
 				info.bmiHeader.biBitCount = 32;
 				info.bmiHeader.biCompression = BI_RGB;
 				info.bmiHeader.biSizeImage = ds.x * ds.y * 4;
-				alphaBuilderBitmap = CreateDIBSection(alphaBuilderDC, &info, DIB_RGB_COLORS, NULL, NULL, 0x0);
-				if (alphaBuilderBitmap == NULL)
+				alphaBuilder.hBitmap = CreateDIBSection(alphaBuilder.DC, &info, DIB_RGB_COLORS, NULL, NULL, 0x0);
+				if (alphaBuilder.hBitmap == NULL)
 				{
 					Throw(GetLastError(), "CreateDIBSection RGBA failed");
 				}
 
-				SetBitmapDimensionEx(alphaBuilderBitmap, ds.x, ds.y, NULL);
+				SetBitmapDimensionEx(alphaBuilder.hBitmap, ds.x, ds.y, NULL);
 			}
 
 			SIZE dimensions;
-			GetBitmapDimensionEx(alphaBuilderBitmap, &dimensions);
+			GetBitmapDimensionEx(alphaBuilder.hBitmap, &dimensions);
 			if (dimensions.cx != ds.x || dimensions.cy != ds.y)
 			{
-				delete alphaGraphics;
-				DeleteObject(alphaBuilderBitmap);
-				DeleteDC(alphaBuilderDC);
-				alphaBuilderBitmap = 0;
-				alphaBuilderDC = 0;
-				alphaGraphics = nullptr;
+				delete alphaBuilder.g;
+				DeleteObject(alphaBuilder.hBitmap);
+				DeleteDC(alphaBuilder.DC);
+				alphaBuilder.hBitmap = 0;
+				alphaBuilder.DC = 0;
+				alphaBuilder.g = nullptr;
 				goto start;
 			}
 
-			HGDIOBJ oldBitmap = SelectObject(alphaBuilderDC, alphaBuilderBitmap);
+			HGDIOBJ oldBitmap = SelectObject(alphaBuilder.DC, alphaBuilder.hBitmap);
 
-			if (alphaGraphics == nullptr)
+			if (alphaBuilder.g == nullptr)
 			{
-				alphaGraphics = new Gdiplus::Graphics(alphaBuilderDC);
+				alphaBuilder.g = new Gdiplus::Graphics(alphaBuilder.DC);
 			}
+
+			return oldBitmap;
+		}
+
+		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
+		{
+			HGDIOBJ oldBitmap = CacheAlphaBuilder();
 
 			GuiRect r = GetEnclosingRect(triangles, nTriangles);
 
 			// We need to clear alpha buffer to 0 for full transparency, though we restrict this to the rect from which we will copy
 
 			Gdiplus::SolidBrush brush(Gdiplus::Color(255, 0, 0, 255));
-			alphaGraphics->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
+			alphaBuilder.g->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
 
 			for (size_t i = 0; i < nTriangles; i++)
 			{
@@ -786,7 +799,7 @@ namespace GRANON
 				indices.Vertex2 = 1;
 				indices.Vertex3 = 2;
 		
-				GradientFill(alphaBuilderDC, v, 3, &indices, 1, GRADIENT_FILL_TRIANGLE);
+				GradientFill(alphaBuilder.DC, v, 3, &indices, 1, GRADIENT_FILL_TRIANGLE);
 			}
 
 			BLENDFUNCTION blendFunction;
@@ -794,14 +807,14 @@ namespace GRANON
 			blendFunction.BlendFlags = 0;
 			blendFunction.BlendOp = AC_SRC_OVER;
 			blendFunction.SourceConstantAlpha = 255;
-			if (!AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilderDC, r.left, r.top, Width(r), Height(r), blendFunction))
+			if (!AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilder.DC, r.left, r.top, Width(r), Height(r), blendFunction))
 			{
 				Throw(GetLastError(), "Error!");
 			}
 
 		//	BitBlt(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilderDC, r.left, r.top, SRCCOPY);
 
-			SelectObject(alphaBuilderDC, oldBitmap);
+			SelectObject(alphaBuilder.DC, oldBitmap);
 		}
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
