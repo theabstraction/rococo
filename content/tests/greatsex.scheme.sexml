@@ -10,6 +10,7 @@
 	(Colour.Carousel.Background (Red 0)(Green 0)(Blue 0)(Alpha 255))
 	(Colour.Carousel.Text (Red 224)(Green 224)(Blue 0)(Alpha 255))
 	(Colour.Carousel.DropDown.Text (Red 128)(Green 128)(Blue 48)(Alpha 255))
+	(Colour.Portrait.Band (Red 224)(Green 224)(Blue 255)(Alpha 255))
 )
 (Scheme :
 	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
@@ -18,11 +19,12 @@
 	(ApplyTo ([] RenderStates hovered pressed focused))
 	(ApplyTo ([] RenderStates hovered focused))
 	(ApplyTo ([] RenderStates hovered))
-	(Colour.Container.Background (Red 16)(Green 16)(Blue 16)(Alpha 255))
+	(Colour.Container.Background (Red 0)(Green 0)(Blue 0)(Alpha 255))
 	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
 	(Colour.Carousel.Background (Red 32)(Green 32)(Blue 32)(Alpha 255))
 	(Colour.Carousel.Text (Red 255)(Green 255)(Blue 0)(Alpha 255))
 	(Colour.Carousel.DropDown.Text (Red 255)(Green 255)(Blue 255)(Alpha 255))
+	(Colour.Portrait.Band (Red 224)(Green 224)(Blue 255)(Alpha 255))
 )
 
 

@@ -11,6 +11,7 @@
 // The frame element navigates up the owner branch until the frame is found and then sets the attributes of the ClientArea specified in the sexml
 (Frame.ClientArea
 	(Colour.Background Transparent)
+	(Colour.Container.Background Transparent)
 )
 
 // Define a nice large font, keyed by the id.
@@ -61,7 +62,7 @@
 	
 	(Image "!textures/test/AI-castle.jpg")
 	
-	(#Recti Panel.Padding 80 80 80 80)
+	(#Recti Panel.Padding 10% 10% 5% 5%)
 	:
 	
 	(GradientFill
@@ -96,7 +97,7 @@
 	(Div
 		(Panel.Description TitleVSpacer)
 		(Panel.FixedWidth 40)
-		(Panel.FixedHeight 40)
+		(Panel.FixedHeight 5%)
 		
 		(Colour.Background Transparent)
 		(Colour.Container.Background Transparent)

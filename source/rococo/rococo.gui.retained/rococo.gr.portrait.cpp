@@ -93,6 +93,8 @@ namespace GRANON
 
 			Vec2i centre = Centre(targetRect);
 
+			RGBAb bandColour = panel.GetColour(EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR, GRRenderState(false, false, false));
+
 			if (aspectRatio > targetAspectRatio)
 			{
 				int32 correctedHeight = (int) (targetSpan.x / aspectRatio);
@@ -101,7 +103,12 @@ namespace GRANON
 				targetRect.bottom = centre.y + correctedHeight / 2;
 
 				g.DrawImageStretched(*image, targetRect);
-				return;
+
+				GuiRect topBand{ targetRect.left, panel.AbsRect().top, targetRect.right, targetRect.top };
+				g.DrawRect(topBand, bandColour);
+
+				GuiRect bottomBand{ targetRect.left, targetRect.bottom, targetRect.right, panel.AbsRect().bottom };
+				g.DrawRect(bottomBand, bandColour);
 			}
 			else
 			{
@@ -111,7 +118,12 @@ namespace GRANON
 				targetRect.right = centre.x + correctedWidth / 2;
 
 				g.DrawImageStretched(*image, targetRect);
-				return;
+
+				GuiRect leftBand{ panel.AbsRect().left, targetRect.top, targetRect.left, targetRect.bottom};
+				g.DrawRect(leftBand, bandColour);
+
+				GuiRect rightBand{ targetRect.right, targetRect.top, panel.AbsRect().right, targetRect.bottom };
+				g.DrawRect(rightBand, bandColour);
 			}
 		}
 

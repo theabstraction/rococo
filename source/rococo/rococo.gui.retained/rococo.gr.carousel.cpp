@@ -335,7 +335,7 @@ namespace GRANON
 			auto& option = options[optionIndex];
 
 			GRAlignmentFlags optionTextAlignment;
-			optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+			optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre).Add(EGRAlignment::AutoFonts);
 
 			bool isDisabled = isCarouselDisabledWhenDropDownVisible && !dropDown->Panel().IsCollapsed();
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;

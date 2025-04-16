@@ -279,12 +279,18 @@ namespace ANON
 			GRFontId debugFontId = GRFontId::MENU_FONT;
 
 			GRAlignmentFlags alignment;
-			alignment.Add(EGRAlignment::Top).Add(EGRAlignment::Right);
+			alignment.Add(EGRAlignment::Right);
 
 			char cursorLine[32];
 			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
 
-			g.DrawText(debugFontId, g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
+			GuiRect debugRect;
+			debugRect.left = screenDimensions.right - 70;
+			debugRect.right = debugRect.left + 60;
+			debugRect.top = screenDimensions.top + 10;
+			debugRect.bottom = debugRect.top + 30;
+			g.DrawRect(debugRect, RGBAb(0, 0, 0, 128));
+			g.DrawText(debugFontId, debugRect, alignment, { 10, 0 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
 		}
 
 		void MakeFirstToRender(GRIdWidget id) override

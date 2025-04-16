@@ -99,7 +99,8 @@ namespace Rococo::GreatSex
 		{"Colour.GameOption.Bottom.Right", EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT },
 		{"Colour.GameOption.ChildSpacer", EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER},
 		{"Colour.Carousel.DropDown", EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_BACKGROUND},
-		{"Colour.Carousel.DropDown.Text", EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_TEXT}
+		{"Colour.Carousel.DropDown.Text", EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_TEXT},
+		{"Colour.Portrait.Band", EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR }
 	};
 
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)

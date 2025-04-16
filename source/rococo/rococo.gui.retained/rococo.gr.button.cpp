@@ -246,6 +246,15 @@ namespace GRANON
 
 			if (!imageRendered)
 			{
+				if (substituteBetterFontAccordingly)
+				{
+					alignment.Add(EGRAlignment::AutoFonts);
+				}
+				else
+				{
+					alignment.Remove(EGRAlignment::AutoFonts);
+				}
+
 				RGBAb shadowColour = isMenu ? RGBAb(0,0,0,0) : panel.GetColour(EGRSchemeColourSurface::BUTTON_SHADOW, rs);
 				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : textSurface, rs);
 				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, shadowColour, fontId, g);
@@ -355,10 +364,13 @@ namespace GRANON
 			return *this;
 		}
 
-		IGRWidgetButton& SetFontId(GRFontId id) override
+		bool substituteBetterFontAccordingly = false;
+
+		IGRWidgetButton& SetFontId(GRFontId id, bool substituteBetterFontAccordingly) override
 		{
 			isDirty = true;
 			fontId = id;
+			this->substituteBetterFontAccordingly = substituteBetterFontAccordingly;
 			return *this;
 		}
 

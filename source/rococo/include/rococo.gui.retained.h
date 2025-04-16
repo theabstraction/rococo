@@ -129,7 +129,8 @@ namespace Rococo::Gui
 		Top = 4,
 		Bottom = 8,
 		HCentre = 3,
-		VCentre = 12
+		VCentre = 12,
+		AutoFonts = 16 // Flag that indicates something in the render chain will try to select the best font for rendering (situation dependent)
 	};
 
 	enum class GRFontId: size_t
@@ -340,6 +341,7 @@ namespace Rococo::Gui
 		GAME_OPTION_TOP_LEFT,
 		GAME_OPTION_BOTTOM_RIGHT,
 		GAME_OPTION_CHILD_SPACER, // Gives the colour of a spacer between game options
+		PORTRAIT_BAND_COLOUR, // Gives the colour of the bands that appear to the sides of the portrait when the aspect ratio of the panel does not match the image
 		USER_DEFINED_START_INDEX = 7000 // Make this the last index, then users can cast a surface to this enum + delta of their choice
 	};
 
@@ -567,6 +569,8 @@ namespace Rococo::Gui
 
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
 		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+
+		virtual IGRPanel& SetPaddingAsPercentage(bool left, bool right, bool top, bool bottom) = 0;
 
 		virtual int32 ChildPadding() const = 0;
 		virtual IGRPanel& SetChildPadding(int32 delta) = 0;
@@ -849,7 +853,7 @@ namespace Rococo::Gui
 		// Sets the display text for the button
 		virtual IGRWidgetButton& SetTitle(cstr text) = 0;
 
-		virtual IGRWidgetButton& SetFontId(GRFontId id) = 0;
+		virtual IGRWidgetButton& SetFontId(GRFontId id, bool substituteBetterFontAccordingly = true) = 0;
 
 		virtual void FitTextHorizontally() = 0;
 		virtual void FitTextVertically() = 0;

@@ -15,6 +15,14 @@ namespace GRANON
 
 	static int64 nextId = 1;
 
+	struct PaddingBools
+	{
+		int isLeft : 1;
+		int isRight: 1;
+		int isTop  : 1;
+		int isBottom : 1;
+	};
+
 	struct GRPanel: IGRPanelSupervisor
 	{
 		GRPanel* parent;
@@ -176,7 +184,12 @@ namespace GRANON
 
 		GRAnchorPadding Padding() override
 		{
-			return padding;
+			GRAnchorPadding modulatedPadding;
+			modulatedPadding.left = paddingsArePercentages.isLeft ? padding.left * Span().x / 100  : padding.left;
+			modulatedPadding.right = paddingsArePercentages.isRight ? padding.right * Span().x / 100 : padding.right;
+			modulatedPadding.top = paddingsArePercentages.isTop ? padding.top * Span().y / 100 : padding.top;
+			modulatedPadding.bottom = paddingsArePercentages.isBottom ? padding.bottom * Span().y / 100 : padding.bottom;			
+			return modulatedPadding;
 		}
 
 		IGRPanel& Set(GRAnchorPadding padding) override
@@ -378,10 +391,10 @@ namespace GRANON
 		void SetAbsRectRecursive()
 		{
 			absRect.left = parent ? parent->absRect.left : 0;
-			absRect.left += parentOffset.x + (parent ? parent->padding.left : 0);
+			absRect.left += parentOffset.x + (parent ? parent->Padding().left : 0);
 
 			absRect.top = parent ? parent->absRect.top : 0;
-			absRect.top += parentOffset.y + (parent ? parent->padding.top : 0);
+			absRect.top += parentOffset.y + (parent ? parent->Padding().top : 0);
 			absRect.right = absRect.left + Span().x;
 			absRect.bottom = absRect.top + Span().y;
 
@@ -411,7 +424,7 @@ namespace GRANON
 				}
 				break;
 			case ELayoutDirection::RightToLeft:
-				dx = Width(absRect) - padding.right;
+				dx = Width(absRect) - Padding().right;
 				for (auto i = children.rbegin(); i != children.rend(); ++i)
 				{
 					auto* child = *i;
@@ -489,7 +502,7 @@ namespace GRANON
 					}
 				}
 
-				int freeSpace = Span().x - totalXSpanOfFixedWidthChildren - padding.left - padding.right - totalChildPadding;
+				int freeSpace = Span().x - totalXSpanOfFixedWidthChildren - Padding().left - Padding().right - totalChildPadding;
 				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
 					for (auto* child : children)
@@ -535,7 +548,7 @@ namespace GRANON
 
 					if (child->widthSizing == ESizingRule::ExpandToParent)
 					{
-						child->span.x = Span().x - padding.left - padding.right;
+						child->span.x = Span().x - Padding().left - Padding().right;
 					}
 				}
 			}
@@ -574,7 +587,7 @@ namespace GRANON
 					}
 				}
 
-				int freeSpace = Span().y - totalYSpanOfFixedWidthChildren - padding.top - padding.bottom - totalChildPadding;
+				int freeSpace = Span().y - totalYSpanOfFixedWidthChildren - Padding().top - Padding().bottom - totalChildPadding;
 				if (freeSpace <= 0 || nExpandingChildren == 0)
 				{
 					for (auto* child : children)
@@ -620,7 +633,7 @@ namespace GRANON
 
 					if (child->heightSizing == ESizingRule::ExpandToParent)
 					{
-						child->span.y = Span().y - padding.top - padding.bottom;
+						child->span.y = Span().y - Padding().top - Padding().bottom;
 					}
 				}
 			}
@@ -674,12 +687,12 @@ namespace GRANON
 
 			if (widthSizing == ESizingRule::FitChildren)
 			{
-				span.x = width + padding.left + padding.right;
+				span.x = width + Padding().left + Padding().right;
 			}
 
 			if (heightSizing == ESizingRule::FitChildren)
 			{
-				span.y = height + padding.top + padding.bottom;
+				span.y = height + Padding().top + Padding().bottom;
 			}
 		}
 
@@ -845,6 +858,14 @@ namespace GRANON
 		int32 ChildPadding() const override
 		{
 			return childPadding;
+		}
+
+		PaddingBools paddingsArePercentages{ 0,0,0,0 };
+
+		IGRPanel& SetPaddingAsPercentage(bool left, bool right, bool top, bool bottom)
+		{
+			paddingsArePercentages = { left, right, top, bottom };
+			return *this;
 		}
 
 		IGRPanel& SetChildPadding(int32 delta) override

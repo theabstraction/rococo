@@ -133,9 +133,9 @@ namespace GRANON
 
 			int absLeft = panel.AbsRect().left + slotPadding.left;
 
-			sliderPos = clamp(cursorPos.x, absLeft, panel.AbsRect().right - slotPadding.right);
+			sliderPos = clamp(cursorPos.x, absLeft, panel.AbsRect().right - slotPadding.right) - absLeft;
 
-			double quotient = (sliderPos - absLeft) / (double)pixelRange;
+			double quotient = sliderPos / (double)pixelRange;
 
 			position = minValue + quotient * (maxValue - minValue);
 
@@ -173,7 +173,7 @@ namespace GRANON
 
 			double posRatio = (position - minValue) / (maxValue - minValue);
 
-			double pixelPos = pixelRange * posRatio + slotPadding.left;
+			double pixelPos = pixelRange * posRatio;
 			sliderPos = (int)pixelPos;
 		}
 
@@ -292,7 +292,7 @@ namespace GRANON
 
 				Vec2i imageSpan = image->Span();
 
-				int renderedSliderPos = clamp(sliderPos, panel.AbsRect().left + slotPadding.left, panel.AbsRect().right - slotPadding.right);
+				int renderedSliderPos = panel.AbsRect().left + slotPadding.left + clamp(sliderPos, 0, Width(panel.AbsRect()) - slotPadding.right - slotPadding.left);
 
 				int x = renderedSliderPos - (imageSpan.x / 2);
 

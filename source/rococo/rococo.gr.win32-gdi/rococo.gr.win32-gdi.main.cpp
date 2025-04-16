@@ -1252,13 +1252,33 @@ namespace GRANON
 
 			UINT format = FormatWin32DrawTextAlignment(alignment);
 
-			format += DT_END_ELLIPSIS;
+			if (!alignment.HasSomeFlags(EGRAlignment::AutoFonts))
+			{
+				format += DT_END_ELLIPSIS;
+			}
+
 			format += DT_SINGLELINE;
 			format += DT_NOPREFIX;
 			format += DT_NOCLIP;
 
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
+
+			if (alignment.HasSomeFlags(EGRAlignment::AutoFonts) && fontId > GRFontId::MENU_FONT)
+			{
+				RECT calculatedRect = rect;
+				DrawTextA(paintDC, text, text.length, &calculatedRect, format | DT_CALCRECT);
+
+				if (calculatedRect.right >= rect.right)
+				{
+					SelectFont(custodian, GRFontId::MENU_FONT, paintDC);
+					DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format | DT_END_ELLIPSIS);
+					goto end;
+				}
+			}
+
 			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
+
+		end:
 			SetTextColor(paintDC, oldColour);
 		}
 
@@ -2561,7 +2581,7 @@ namespace GRANON
 			case WM_GETMINMAXINFO:
 			{
 				auto* m = (MINMAXINFO*)lParam;
-				m->ptMinTrackSize = POINT{ 640, 480 };
+				m->ptMinTrackSize = POINT{ 800, 600 };
 			}
 			return 0L;
 			case WM_CLOSE:

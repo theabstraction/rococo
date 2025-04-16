@@ -484,6 +484,14 @@ namespace Rococo::GreatSex
 			{
 				GuiRect padding = AsGuiRect(value);
 				panel.Set(GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom });
+
+				// (Recti Panel.Padding <left> <right> <top> <bottom>)
+				cstr left = value.S()[2].c_str();
+				cstr right = value.S()[3].c_str();
+				cstr top = value.S()[4].c_str();
+				cstr bottom = value.S()[5].c_str();
+
+				panel.SetPaddingAsPercentage(EndsWith(left, "%"), EndsWith(right, "%"), EndsWith(top, "%"), EndsWith(bottom, "%"));
 			}
 
 			void OnAttribute_ChildPadding(IGRPanel& panel, const ISEXMLAttributeValue& value)
