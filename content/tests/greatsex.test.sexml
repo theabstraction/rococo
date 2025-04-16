@@ -210,6 +210,7 @@
 				(GameOptions 
 					(Colour.Carousel.Top.Left LightGrey)
 					(Colour.Carousel.Bottom.Right LightGrey)
+					(Colour.Carousel.DropDown Black)
 					(Colour.GameOption.Top.Left Transparent)
 					(Colour.GameOption.Bottom.Right Transparent)
 					(Colour.GameOption.Background Transparent)
@@ -230,6 +231,9 @@
 					// Gives the padding of the carousel controls to their interior rectangle
 					(#Recti Carousel.Padding 40 2 40 4)
 					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Button.Padding 12 12 12 12)
+					
 					// Determine which side of the control the numeric feedback is rendered at
 					(Scalar.Guage.Alignment Left)
 					
@@ -240,6 +244,7 @@
 					(#Recti Scalar.Slot.Padding 40 10 40 10)
 					
 					(Carousel.Font CarouselFont)
+					(Carousel.Button.Font CarouselFont)
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate GraphicsOptions)

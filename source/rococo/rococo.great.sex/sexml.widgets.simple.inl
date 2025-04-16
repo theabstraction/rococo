@@ -66,6 +66,13 @@ namespace Rococo::GreatSex
 				}
 			}		
 
+			auto* aCarouselButtonPadding = directive.FindAttributeByName("Carousel.Button.Padding");
+			if (aCarouselButtonPadding)
+			{
+				GuiRect padding = AsGuiRect(aCarouselButtonPadding->Value());
+				config.CarouselButtonPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
+			}
+
 			auto* aFont = directive.FindAttributeByName("Title.Font");
 			if (aFont)
 			{
@@ -84,7 +91,7 @@ namespace Rococo::GreatSex
 			if (aCarouselFont)
 			{
 				cstr fontName = AsString(aCarouselFont->Value()).c_str();
-				FontQuery fq = generator.GetFont(fontName, aFont->S());
+				FontQuery fq = generator.GetFont(fontName, aCarouselFont->S());
 
 				Gui::FontSpec spec;
 				spec.CharHeight = fq.height;
@@ -92,6 +99,20 @@ namespace Rococo::GreatSex
 				spec.Bold = fq.isBold;
 				spec.Italic = fq.isItalic;
 				config.CarouselFontId = GetCustodian(owner.Panel()).Fonts().BindFontId(spec);
+			}
+
+			auto* aCarouselButtonFont = directive.FindAttributeByName("Carousel.Font");
+			if (aCarouselButtonFont)
+			{
+				cstr fontName = AsString(aCarouselButtonFont->Value()).c_str();
+				FontQuery fq = generator.GetFont(fontName, aCarouselButtonFont->S());
+
+				Gui::FontSpec spec;
+				spec.CharHeight = fq.height;
+				spec.FontName = fq.familyName;
+				spec.Bold = fq.isBold;
+				spec.Italic = fq.isItalic;
+				config.CarouselButtonFontId = GetCustodian(owner.Panel()).Fonts().BindFontId(spec);
 			}
 
 			auto* aAlignment = directive.FindAttributeByName("Title.Alignment");

@@ -48,7 +48,9 @@ namespace GRANON
 			carousel->SetDisableCarouselWhenDropDownVisible(true);
 			carousel->SetOptionPadding(config.CarouselPadding);
 			carousel->SetFont(config.CarouselFontId);
-
+			carousel->DropDown().SetOptionFont(config.CarouselButtonFontId);
+			carousel->DropDown().SetOptionPadding(config.CarouselButtonPadding);
+	
 			int height = (int) (config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
 			panel.SetConstantHeight(height);
 		}

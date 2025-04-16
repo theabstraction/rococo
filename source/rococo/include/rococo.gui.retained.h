@@ -318,6 +318,8 @@ namespace Rococo::Gui
 		TEXT,
 		GAME_OPTION_BACKGROUND, // Gives the background colour in a game option title
 		CAROUSEL_BACKGROUND, // Gives the background colour of a carousel inner rect
+		CAROUSEL_DROP_DOWN_BACKGROUND, // Gives the background colour of a carousel's drop down items.
+		CAROUSEL_DROP_DOWN_TEXT, // Gives the text colour of a carousel's drop down items.
 		CAROUSEL_TEXT, // Gives the text colour of a carousel
 		CAROUSEL_TOP_LEFT,
 		CAROUSEL_BOTTOM_RIGHT,
@@ -819,6 +821,10 @@ namespace Rococo::Gui
 
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 
+		virtual IGRWidgetButton& SetBackSurface(EGRSchemeColourSurface backSurface) = 0;
+
+		virtual IGRWidgetButton& SetTextSurface(EGRSchemeColourSurface textSurface) = 0;
+
 		// Sets the rule by which events are fired
 		virtual IGRWidgetButton& SetClickCriterion(EGRClickCriterion criterion) = 0;
 
@@ -889,6 +895,8 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual void AddOption(cstr name, cstr caption) = 0;
+		virtual void SetOptionFont(GRFontId fontId) = 0;
+		virtual void SetOptionPadding(const GRAnchorPadding& padding) = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 	};
@@ -1452,6 +1460,7 @@ namespace Rococo::Gui
 		GRFontId TitleFontId = GRFontId::MENU_FONT;
 		GRAnchorPadding CarouselPadding { 0,0,0,0 };
 		GRAnchorPadding ScalarSlotPadding { 0,0,0,0 };
+		GRAnchorPadding CarouselButtonPadding{ 0,0,0,0 };
 		cstr LeftImageRaised = "!textures/toolbars/MAT/previous.tif";
 		cstr RightImageRaised = "!textures/toolbars/MAT/next.tif";
 		cstr LeftImagePressed = "!textures/toolbars/MAT/previousHi.tif";
@@ -1459,6 +1468,7 @@ namespace Rococo::Gui
 		cstr ScalarKnobRaised = "!textures/toolbars/MAT/slider-knob.tif";
 		cstr ScalarKnobPressed = "!textures/toolbars/MAT/slider-knobHi.tif";
 		GRFontId CarouselFontId = GRFontId::MENU_FONT;
+		GRFontId CarouselButtonFontId = GRFontId::MENU_FONT;
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled

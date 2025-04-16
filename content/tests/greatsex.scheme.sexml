@@ -9,6 +9,7 @@
 	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
 	(Colour.Carousel.Background (Red 0)(Green 0)(Blue 0)(Alpha 255))
 	(Colour.Carousel.Text (Red 224)(Green 224)(Blue 0)(Alpha 255))
+	(Colour.Carousel.DropDown.Text (Red 128)(Green 128)(Blue 48)(Alpha 255))
 )
 (Scheme :
 	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
@@ -21,6 +22,7 @@
 	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
 	(Colour.Carousel.Background (Red 32)(Green 32)(Blue 32)(Alpha 255))
 	(Colour.Carousel.Text (Red 255)(Green 255)(Blue 0)(Alpha 255))
+	(Colour.Carousel.DropDown.Text (Red 255)(Green 255)(Blue 255)(Alpha 255))
 )
 
 

@@ -27,7 +27,7 @@ namespace GRANON
 
 		int optionSpan = 200;
 
-		GRAnchorPadding optionPadding{ 4, 4, 16, 16 };
+		GRAnchorPadding buttonPadding{ 0,0,0,0 };
 
 		IGRWidgetViewport* viewport = nullptr;
 		
@@ -57,9 +57,13 @@ namespace GRANON
 		{
 			auto* button = &CreateButton(viewport->ClientArea().Widget());
 			button->Panel().SetExpandToParentHorizontally();
-			button->Panel().SetConstantHeight(48);
+			button->Panel().Set(buttonPadding);
+			button->FitTextVertically();
 			button->SetTitle(caption);
 			button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+			button->SetBackSurface(EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_BACKGROUND);
+			button->SetTextSurface(EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_TEXT);
+			button->SetFontId(buttonFontId);
 
 			GRControlMetaData metaData;
 			metaData.stringData = name;
@@ -70,6 +74,18 @@ namespace GRANON
 			size_t domainHeight = options.size() * 48;
 
 			viewport->SetDomainHeight((int) domainHeight);
+		}
+
+		GRFontId buttonFontId = GRFontId::MENU_FONT;
+
+		void SetOptionFont(GRFontId fontId) override
+		{
+			buttonFontId = fontId;
+		}
+
+		void SetOptionPadding(const GRAnchorPadding& padding) override
+		{
+			buttonPadding = padding;
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override

@@ -221,7 +221,7 @@ namespace GRANON
 			}
 			else
 			{
-				DrawButton(panel, false, isRaised, g);
+				DrawButton(panel, false, isRaised, g, backSurface);
 			}
 
 			bool isHovered = g.IsHovered(panel);
@@ -247,7 +247,7 @@ namespace GRANON
 			if (!imageRendered)
 			{
 				RGBAb shadowColour = isMenu ? RGBAb(0,0,0,0) : panel.GetColour(EGRSchemeColourSurface::BUTTON_SHADOW, rs);
-				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : EGRSchemeColourSurface::BUTTON_TEXT, rs);
+				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : textSurface, rs);
 				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, shadowColour, fontId, g);
 			}
 		}
@@ -292,6 +292,22 @@ namespace GRANON
 		{
 			auto* image = pressedImage ? pressedImage : raisedImage;
 			return image ? image->Span() : Vec2i{ 0,0 };
+		}
+
+		EGRSchemeColourSurface backSurface = EGRSchemeColourSurface::BUTTON;
+
+		IGRWidgetButton& SetBackSurface(EGRSchemeColourSurface backSurface) override
+		{
+			this->backSurface = backSurface;
+			return *this;
+		}
+
+		EGRSchemeColourSurface textSurface = EGRSchemeColourSurface::BUTTON_TEXT;
+
+		IGRWidgetButton& SetTextSurface(EGRSchemeColourSurface textSurface) override
+		{
+			this->textSurface = textSurface;
+			return *this;
 		}
 
 		IGRWidgetButton& SetClickCriterion(EGRClickCriterion criterion) override
@@ -491,9 +507,9 @@ namespace Rococo::Gui
 		return button;
 	}
 
-	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
+	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g, EGRSchemeColourSurface backSurface)
 	{
-		DrawPanelBackgroundEx(panel, g, EGRSchemeColourSurface::BUTTON, EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, 1.0f, raised, focused);
+		DrawPanelBackgroundEx(panel, g, backSurface, EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, 1.0f, raised, focused);
 	}
 
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, const GuiRect& rect, bool focused, bool raised, IGRRenderContext& g)

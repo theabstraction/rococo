@@ -444,9 +444,23 @@ namespace GRANON
 		// It is up to the renderer to decide if a panel is hovered.
 		bool IsHovered(IGRPanel& panel) const override
 		{
-			if (captureId > 0 && captureId != panel.Id())
+			if (captureId > 0)
 			{
-				return false;
+				bool isCaptured = false;
+
+				for (auto* p = &panel; p != nullptr; p = p->Parent())
+				{
+					if (p->Id() == captureId)
+					{
+						isCaptured = true;
+						break;
+					}
+				}
+
+				if (!isCaptured)
+				{
+					return false;
+				}
 			}
 			
 			return IsPointInRect(cursor, panel.AbsRect());
