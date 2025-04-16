@@ -828,17 +828,17 @@ namespace GRANON
 				indices.Vertex3 = (ULONG) (3 * i + 2);
 			}
 		
-			GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG) (3 * nTriangles), triIndexCache.data(), (ULONG) nTriangles, GRADIENT_FILL_TRIANGLE);
+			if (!GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG)(3 * nTriangles), triIndexCache.data(), (ULONG)nTriangles, GRADIENT_FILL_TRIANGLE))
+			{
+				return;
+			}
 			
 			BLENDFUNCTION blendFunction;
 			blendFunction.AlphaFormat = AC_SRC_ALPHA;
 			blendFunction.BlendFlags = 0;
 			blendFunction.BlendOp = AC_SRC_OVER;
 			blendFunction.SourceConstantAlpha = 255;
-			if (!AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilder.DC, r.left, r.top, Width(r), Height(r), blendFunction))
-			{
-				Throw(GetLastError(), "Error!");
-			}
+			AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilder.DC, r.left, r.top, Width(r), Height(r), blendFunction);
 		}
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting

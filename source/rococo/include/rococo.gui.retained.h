@@ -532,6 +532,14 @@ namespace Rococo::Gui
 		BottomToTop
 	};
 
+	enum class EGRFillStyle
+	{
+		SOLID = 0,
+		SMOOTH,
+		BANNER
+	};
+
+
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
@@ -559,6 +567,9 @@ namespace Rococo::Gui
 		virtual EGREventRouting NotifyAncestors(GRWidgetEvent& widgetEvent, IGRWidget& widget) = 0;
 		virtual IGRWidget& Widget() = 0;
 		virtual IGRPanel& Resize(Vec2i span) = 0;
+
+		virtual IGRPanel& SetFillStyle(EGRFillStyle style) = 0;
+		virtual EGRFillStyle FillStyle() const = 0;
 
 		// The (dx, dy) offset delta from the top left of the parent to the top left of the child
 		virtual IGRPanel& SetParentOffset(Vec2i offset) = 0;

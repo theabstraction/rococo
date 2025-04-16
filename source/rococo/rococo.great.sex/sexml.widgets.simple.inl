@@ -294,10 +294,10 @@ namespace Rococo::GreatSex
 		}
 	};
 
-	RGBAb AsColour(IGreatSexGenerator& generator, const ISEXMLAttribute& a)
+	RGBAb AsColour(IGreatSexGenerator& generator, const ISEXMLAttributeValue& v)
 	{
-		cstr name = AsString(a.Value()).c_str();
-		RGBAb colour = generator.GetColour(name, GRRenderState(false, false, false), a.S());
+		cstr name = AsString(v).c_str();
+		RGBAb colour = generator.GetColour(name, GRRenderState(false, false, false), v.S());
 		return colour;
 	}
 
@@ -307,32 +307,27 @@ namespace Rococo::GreatSex
 		{
 			auto& g = Rococo::Gui::CreateGradientFill(parent);
 
-			auto* aColour = directive.FindAttributeByName("TopLeft");
-			if (aColour)
-			{
-				RGBAb colour = AsColour(generator, *aColour);
-				g.SetTopLeft(colour);
-			}
+			g.SetTopLeft(AsColour(generator, directive["TopLeft"]));
+			g.SetBottomLeft(AsColour(generator, directive["BottomLeft"]));
+			g.SetTopRight(AsColour(generator, directive["TopRight"]));
+			g.SetBottomRight(AsColour(generator, directive["BottomRight"]));
 
-			aColour = directive.FindAttributeByName("TopRight");
-			if (aColour)
+			cstr fill = AsString(directive["Fill"]).c_str();
+			if (EqI(fill, "BANNER"))
 			{
-				RGBAb colour = AsColour(generator, *aColour);
-				g.SetTopRight(colour);
+				g.Panel().SetFillStyle(EGRFillStyle::BANNER);
 			}
-
-			aColour = directive.FindAttributeByName("BottomLeft");
-			if (aColour)
+			else if (EqI(fill, "SMOOTH"))
 			{
-				RGBAb colour = AsColour(generator, *aColour);
-				g.SetBottomLeft(colour);
+				g.Panel().SetFillStyle(EGRFillStyle::SMOOTH);
 			}
-
-			aColour = directive.FindAttributeByName("BottomRight");
-			if (aColour)
+			else if (EqI(fill, "SOLID") || EqI(fill, "DEFAULT"))
 			{
-				RGBAb colour = AsColour(generator, *aColour);
-				g.SetBottomRight(colour);
+				g.Panel().SetFillStyle(EGRFillStyle::SOLID);
+			}
+			else
+			{
+				Throw(directive.S(), "Unknown fill style. Expecting one of BANNER, SMOOTH, SOLID");
 			}
 
 			generator.SetPanelAttributes(g.Widget(), directive);

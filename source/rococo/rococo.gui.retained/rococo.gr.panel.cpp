@@ -39,6 +39,9 @@ namespace GRANON
 		const Sex::ISExpression* associatedSExpression = nullptr;
 		IGRPanelSupervisor* clippingPanel;
 
+		// Currently only used by GradientFill widgets, but we have plans to change fill style more generally across widgets, so is defined here.
+		EGRFillStyle fillStyle = EGRFillStyle::SOLID;
+
 		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++), clippingPanel(this)
 		{
 			refCount = 1;
@@ -47,6 +50,17 @@ namespace GRANON
 		void SetClippingPanel(IGRPanel* panel) override
 		{
 			this->clippingPanel = static_cast<IGRPanelSupervisor*>(panel);
+		}
+
+		IGRPanel& SetFillStyle(EGRFillStyle style) override
+		{
+			fillStyle = style;
+			return *this;
+		}
+
+		EGRFillStyle FillStyle() const override
+		{
+			return fillStyle;
 		}
 
 		const Sex::ISExpression* GetAssociatedSExpression() const override

@@ -71,6 +71,7 @@
 		(TopRight gfTopRight)
 		(BottomLeft gfBottomLeft)
 		(BottomRight gfBottomRight)
+		(Fill Banner)
 		:
 		(Label
 			// Search for the (Font... def) at the top of the file with the given Id

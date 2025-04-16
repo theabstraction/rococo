@@ -19,10 +19,13 @@ namespace GRANON
 		{
 		}
 
-		RGBAb topLeft = { 0,0,0,0 };
-		RGBAb topRight = { 0,0,0,0 };
-		RGBAb bottomLeft = { 0,0,0,0 };
-		RGBAb bottomRight = { 0,0,0,0 };
+		struct RGBAbQuad
+		{
+			RGBAb topLeft = {0,0,0,0};;
+			RGBAb topRight = { 0,0,0,0 };;
+			RGBAb bottomLeft = { 0,0,0,0 };;
+			RGBAb bottomRight = { 0,0,0,0 };;
+		} mainQuad;
 
 		virtual ~GRGradientFill()
 		{
@@ -36,22 +39,22 @@ namespace GRANON
 
 		void SetBottomLeft(RGBAb c) override
 		{
-			bottomLeft = c;
+			mainQuad.bottomLeft = c;
 		}
 
 		void SetBottomRight(RGBAb c) override
 		{
-			bottomRight = c;
+			mainQuad.bottomRight = c;
 		}
 
 		void SetTopLeft(RGBAb c) override
 		{
-			topLeft = c;
+			mainQuad.topLeft = c;
 		}
 
 		void SetTopRight(RGBAb c) override
 		{
-			topRight = c;
+			mainQuad.topRight = c;
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent&) override
@@ -83,19 +86,50 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void BannerShade(const GuiRect& rect, IGRRenderContext& g)
 		{
-			const auto& rect = panel.AbsRect();
+			Vec2i centre = Centre(rect);
+			GuiRect leftRect(rect.left, rect.top, centre.x, rect.bottom);
+			GuiRect rightRect(centre.x, rect.top, rect.right, rect.bottom);
 
+			const RGBAbQuad& leftQuad = mainQuad;
+			RGBAbQuad rightQuad { mainQuad.topRight, mainQuad.topLeft, mainQuad.bottomRight, mainQuad.bottomLeft };
+
+			SmoothShade(leftRect, leftQuad, g);
+			SmoothShade(rightRect, rightQuad, g);
+		}
+
+		void SmoothShade(const GuiRect& rect, const RGBAbQuad& quad, IGRRenderContext& g)
+		{
 			GRTriangle t[2];
-			t[0].a = { TopLeft(rect), topLeft };
-			t[0].b = { TopRight(rect), topRight };
-			t[0].c = { BottomRight(rect), bottomRight };
-			t[1].a = { BottomRight(rect), bottomRight };
-			t[1].b = { BottomLeft(rect), bottomLeft };
-			t[1].c = { TopLeft(rect), topLeft };
+			t[0].a = { TopLeft(rect), quad.topLeft };
+			t[0].b = { TopRight(rect), quad.topRight };
+			t[0].c = { BottomRight(rect), quad.bottomRight };
+			t[1].a = { BottomRight(rect), quad.bottomRight };
+			t[1].b = { BottomLeft(rect), quad.bottomLeft };
+			t[1].c = { TopLeft(rect), quad.topLeft };
 
 			g.DrawTriangles(t, 2);
+		}
+
+		void Render(IGRRenderContext& g) override
+		{
+			auto fillStyle = panel.FillStyle();
+			const auto& rect = panel.AbsRect();
+
+			switch (fillStyle)
+			{
+			case EGRFillStyle::SMOOTH:
+				SmoothShade(rect, mainQuad, g);
+				break;
+			case EGRFillStyle::BANNER:
+				BannerShade(rect, g);
+				break;
+			case EGRFillStyle::SOLID:
+			default:
+				g.DrawRect(panel.AbsRect(), mainQuad.topLeft);
+				break;
+			}
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
