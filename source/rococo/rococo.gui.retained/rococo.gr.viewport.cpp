@@ -247,6 +247,11 @@ namespace ANON
 
 			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
 			{
+				auto* dropDown = Cast<IGRWidgetScrollableMenu>(*w);
+				if (dropDown)
+				{
+					w = &dropDown->Panel().Parent()->Widget();
+				}
 				auto rect = w->Panel().AbsRect();
 				ScrollIntoView(rect);
 			}

@@ -126,7 +126,7 @@ namespace GRANON
 		{
 			switch (widgetEvent.eventType)
 			{
-			case EGRWidgetEventType::BUTTON_CLICK:
+			case EGRWidgetEventType::BUTTON_CLICK:				
 				return OnButtonClick(sourceWidget, widgetEvent.clickPosition);
 			}
 

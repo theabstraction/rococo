@@ -60,6 +60,7 @@ namespace GRANON
 			button->Panel().Set(buttonPadding);
 			button->FitTextVertically();
 			button->SetTitle(caption);
+			button->SetClickCriterion(EGRClickCriterion::OnDownThenUp);
 			button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			button->SetBackSurface(EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_BACKGROUND);
 			button->SetTextSurface(EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_TEXT);
@@ -156,7 +157,12 @@ namespace GRANON
 			return Gui::QueryForParticularInterface<IGRWidgetScrollableMenu, GRScrollableMenu>(this, ppOutputArg, interfaceId);
 		}
 
-		IGRWidget& Widget()
+		IGRWidgetViewport& Viewport() override
+		{
+			return *viewport;
+		}
+
+		IGRWidget& Widget() override
 		{
 			return *this;
 		}

@@ -209,14 +209,14 @@ namespace GRANON
 					{
 						isRenderedUnderneathEdge = false;
 
-						if (domainHeight - rect.top < 0)
+						if (rect.top - domainHeight < 0)
 						{
 							dropDownHeight = rect.top;
 						}
 					}
 					else
 					{
-						dropDownHeight = screenSpan.y - panelCentre.y;
+						dropDownHeight = screenSpan.y - rect.bottom;
 					}
 				}
 
@@ -228,6 +228,7 @@ namespace GRANON
 
 				dropDown->Panel().SetConstantWidth(edgeSpan.x);
 				dropDown->Panel().SetConstantHeight(dropDownHeight);
+				dropDown->Viewport().SetDomainHeight(domainHeight);
 				dropDown->Panel().SetParentOffset({ centre.x - (edgeSpan.x / 2), isRenderedUnderneathEdge ? edge.bottom - rect.top : edge.top - rect.top - dropDownHeight });
 			}
 			else

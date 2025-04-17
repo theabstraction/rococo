@@ -904,6 +904,7 @@ namespace Rococo::Gui
 		virtual void SetOptionPadding(const GRAnchorPadding& padding) = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;		
+		virtual [[nodiscard]] IGRWidgetViewport& Viewport() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetSlider : IGRBase
