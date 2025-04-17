@@ -1,5 +1,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 namespace GRANON
 {
@@ -93,8 +95,24 @@ namespace GRANON
 
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		void OnTab()
 		{
+			SetFocusElseRotateFocusToNextSibling(panel);
+		}
+
+		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
+		{
+			if (!ke.osKeyEvent.IsUp())
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			switch (ke.osKeyEvent.VKey)
+			{
+			case Rococo::IO::VirtualKeys::VKCode_TAB:
+				OnTab();
+				return EGREventRouting::Terminate;
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -197,5 +215,75 @@ namespace Rococo::Gui
 		GRRenderState rs(false, false, false);
 		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BACKGROUND, rs);
 		g.DrawRect(panel.AbsRect(), colour);
+	}
+
+	ROCOCO_GUI_RETAINED_API void RotateFocusToNextSibling(IGRWidget& focusWidget)
+	{
+		auto* parent = focusWidget.Panel().Parent();
+		if (!parent)
+		{
+			return;
+		}
+
+		int nChildren = parent->EnumerateChildren(nullptr);
+
+		for (int i = 0; i < nChildren; i++)
+		{
+			auto* child = parent->GetChild(i);
+			if (child->Widget() == focusWidget)
+			{
+				for (int j = i + 1; j < nChildren; j++)
+				{
+					auto* sibling = parent->GetChild(j);
+					if (TrySetDeepFocus(*sibling))
+					{
+						return;
+					}
+				}
+
+				// Nothing following the child was focusable, so try to roll back to the beginning
+
+				if (i > 0)
+				{
+					for (int k = 0; k < i; k++)
+					{
+						auto* sibling = parent->GetChild(k);
+						if (TrySetDeepFocus(*sibling))
+						{
+							return;
+						}
+					}
+				}
+
+				// No sibling could take focus, so roll back to container;
+				RotateFocusToNextSibling(parent->Widget());
+				return;
+			}
+		}
+	}
+
+	ROCOCO_GUI_RETAINED_API void SetFocusElseRotateFocusToNextSibling(IGRPanel& panel)
+	{
+		int64 focusId = panel.Root().GR().GetFocusId();
+		if (focusId == -1)
+		{
+			TrySetDeepFocus(panel);
+			return;
+		}
+
+		auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+		if (focusWidget == nullptr)
+		{
+			IGRPanel* focusPanel = TrySetDeepFocus(panel);
+			if (!focusPanel)
+			{
+				panel.Root().GR().SetFocus(-1);
+				return;
+			}
+
+			focusWidget = &focusPanel->Widget();
+		}
+
+		RotateFocusToNextSibling(*focusWidget);
 	}
 }

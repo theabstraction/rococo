@@ -545,6 +545,16 @@ namespace Rococo::GreatSex
 				panel.SetCornerRadius(radius);
 			}
 
+			void OnAttribute_AcceptsFocus(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				if (value.S().NumberOfElements() != 1)
+				{
+					Throw(value.S(), "Panel.AcceptsFocus expected to take no arguments");
+				}
+
+				panel.Add(EGRPanelFlags::AcceptsFocus);
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -670,6 +680,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.Fit"] = &GreatSexGenerator::OnAttribute_Fit;
 					attributeHandlers["Panel.RectStyle"] = &GreatSexGenerator::OnAttribute_RectStyle;
 					attributeHandlers["Panel.CornerRadius"] = &GreatSexGenerator::OnAttribute_CornerRadius;
+					attributeHandlers["Panel.AcceptsFocus"] = &GreatSexGenerator::OnAttribute_AcceptsFocus;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)

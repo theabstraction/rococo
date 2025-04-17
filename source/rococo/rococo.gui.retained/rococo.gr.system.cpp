@@ -604,14 +604,25 @@ namespace ANON
 				return RouteKeyEventToWindowsUnderCursor(keyEvent);
 			}
 
-			auto* widget = FindWidget(focusId);
-			if (!widget)
+			auto* focusWidget = FindWidget(focusId);
+			if (!focusWidget)
 			{
 				return EGREventRouting::Terminate;
 			}
 
-			auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
-			return widgetManager.OnKeyEvent(keyEvent);
+			auto& widgetManager = static_cast<IGRWidgetManager&>(*focusWidget);
+			EGREventRouting routing = widgetManager.OnKeyEvent(keyEvent);
+			if (routing == EGREventRouting::NextHandler)
+			{
+				auto* frame = FindOwner(*focusWidget);
+				if (frame && *focusWidget != frame->Widget())
+				{
+					auto& frameManager = static_cast<IGRWidgetManager&>(frame->Widget());
+					return frameManager.OnKeyEvent(keyEvent);
+				}
+			}
+
+			return routing;
 		}
 
 		IGRCustodian& Custodian() override
@@ -824,5 +835,20 @@ namespace Rococo::Gui
 		}
 
 		Throw(0, "Expecting one of [Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight, Centre]");
+	}
+
+	ROCOCO_GUI_RETAINED_API IGRWidgetMainFrame* FindOwner(IGRWidget& widget)
+	{
+		IGRPanel* p = &widget.Panel(); 
+
+		for (;;)
+		{
+			if (p->Parent() == nullptr)
+			{
+				return Cast<IGRWidgetMainFrame>(p->Widget());
+			}
+
+			p = p->Parent();
+		}
 	}
 }

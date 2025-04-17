@@ -128,6 +128,7 @@
 		(Div 
 			(Panel.Description OptionsTabs)
 			(Panel.Layout TopToBottom)
+			(Panel.AcceptsFocus)
 			(Panel.FixedWidth 20%)
 			(Panel.ExpandV)
 			(Colour.Container.Background Transparent)
@@ -206,6 +207,7 @@
 				(Colour.Background Transparent)
 				(Panel.RectStyle Rounded)
 				(Panel.CornerRadius 16)
+				(Panel.AcceptsFocus)
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
