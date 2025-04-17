@@ -120,6 +120,7 @@
 		// Expand the panel horizontally and vertically to match the parent.
 		(Panel.ExpandH)
 		(Panel.ExpandV)
+		(Panel.AcceptsFocus)
 		
 		// We dont need any padding here, so set all to zero
 		(#Recti Panel.Padding 0 0 0 0)
@@ -265,6 +266,7 @@
 	(Div
 		(Panel.FixedHeight 60)
 		(Panel.ExpandH)
+		(Panel.AcceptsFocus)
 		(Panel.Layout LeftToRight)
 		(Panel.ChildPadding 20)
 		(Colour.Button Translucent)

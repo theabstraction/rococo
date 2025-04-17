@@ -48,6 +48,9 @@ namespace Rococo::Gui
 	// The platform dependent implementation of the custodian handles events and routes to the UI appropriately
 	ROCOCO_INTERFACE IGRCustodian
 	{
+		// No control handled the key press
+		virtual void AlertNoActionForKey() = 0;
+
 		virtual IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr imagePath) = 0;
 
 		// Takes a platform interpreted key event and translates to an editor delta event

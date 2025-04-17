@@ -28,6 +28,7 @@ namespace GRANON
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+			panel.Add(EGRPanelFlags::AcceptsFocus);
 			SyncMinimalSpan();
 		}
 

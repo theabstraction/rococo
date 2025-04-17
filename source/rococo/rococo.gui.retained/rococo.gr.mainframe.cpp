@@ -95,9 +95,68 @@ namespace GRANON
 
 		}
 
+		EGREventRouting OnEsc()
+		{
+			int64 focusId = panel.Root().GR().GetFocusId();
+			if (focusId == -1)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			if (!focusWidget)
+			{
+				panel.Root().GR().SetFocus(-1);
+				return EGREventRouting::NextHandler;
+			}
+
+			for (auto* ancestor = focusWidget->Panel().Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+			{
+				if (ancestor->HasFlag(EGRPanelFlags::AcceptsFocus))
+				{
+					ancestor->Focus();
+					return EGREventRouting::Terminate;
+				}
+			}
+
+			panel.Root().GR().SetFocus(-1);
+			return EGREventRouting::Terminate;
+		}
+
 		void OnTab()
 		{
 			SetFocusElseRotateFocusToNextSibling(panel);
+		}
+
+		void OnReturn()
+		{
+			int64 focusId = panel.Root().GR().GetFocusId();
+			if (focusId == -1)
+			{
+				return;
+			}
+
+			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			if (!focusWidget)
+			{
+				panel.Root().GR().SetFocus(-1);
+				return;
+			}			
+
+			IGRPanel* newChildFocus = nullptr;
+
+			int nChildren = focusWidget->Panel().EnumerateChildren(nullptr);
+			for (int i = 0; i < nChildren; i++)
+			{
+				auto* child = focusWidget->Panel().GetChild(i);
+				newChildFocus = TrySetDeepFocus(*child);
+				if (newChildFocus)
+				{
+					return;
+				}
+			}
+
+			GetCustodian(panel).AlertNoActionForKey();
 		}
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
@@ -112,6 +171,11 @@ namespace GRANON
 			case Rococo::IO::VirtualKeys::VKCode_TAB:
 				OnTab();
 				return EGREventRouting::Terminate;
+			case Rococo::IO::VirtualKeys::VKCode_ENTER:
+				OnReturn();
+				return EGREventRouting::Terminate;
+			case Rococo::IO::VirtualKeys::VKCode_ESCAPE:
+				return OnEsc();
 			}
 			return EGREventRouting::NextHandler;
 		}

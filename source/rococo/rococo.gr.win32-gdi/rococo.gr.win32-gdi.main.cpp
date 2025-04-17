@@ -1475,6 +1475,11 @@ namespace GRANON
 			return *this;
 		}
 
+		void AlertNoActionForKey() override
+		{
+			MessageBeep(0xFFFFFFFF);
+		}
+
 		bool IsCtrlPressed() const override
 		{
 			return GetAsyncKeyState(VK_CONTROL) != 0;

@@ -516,6 +516,11 @@ namespace ANON
 
 		}
 
+		void AlertNoActionForKey() override
+		{
+
+		}
+
 		IGRFonts& Fonts() override
 		{
 			return *this;
