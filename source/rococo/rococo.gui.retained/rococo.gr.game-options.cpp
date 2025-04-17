@@ -104,7 +104,10 @@ namespace GRANON
 			if (carousel)
 			{
 				auto& dropDown = carousel->DropDown();
-				dropDown.Panel().Root().GR().SetFocus(-1);
+				if (panel.Root().GR().GetFocusId() >= 0)
+				{
+					carousel->Panel().Parent()->Focus();
+				}
 				dropDown.Panel().Root().ReleaseCursor();
 				dropDown.Panel().SetRenderLast(false);
 
@@ -127,7 +130,6 @@ namespace GRANON
 			if (carousel)
 			{
 				auto& dropDown = carousel->DropDown();
-				dropDown.Panel().Focus();
 				dropDown.Panel().CaptureCursor();
 				dropDown.Panel().SetRenderLast(true);
 

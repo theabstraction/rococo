@@ -97,66 +97,18 @@ namespace GRANON
 
 		EGREventRouting OnEsc()
 		{
-			int64 focusId = panel.Root().GR().GetFocusId();
-			if (focusId == -1)
-			{
-				return EGREventRouting::NextHandler;
-			}
-
-			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
-			if (!focusWidget)
-			{
-				panel.Root().GR().SetFocus(-1);
-				return EGREventRouting::NextHandler;
-			}
-
-			for (auto* ancestor = focusWidget->Panel().Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
-			{
-				if (ancestor->HasFlag(EGRPanelFlags::AcceptsFocus))
-				{
-					ancestor->Focus();
-					return EGREventRouting::Terminate;
-				}
-			}
-
-			panel.Root().GR().SetFocus(-1);
-			return EGREventRouting::Terminate;
+			return MoveFocusToAncestor(panel);
 		}
 
 		void OnTab()
 		{
-			SetFocusElseRotateFocusToNextSibling(panel);
+			bool nextRatherThanPrevious = !GetCustodian(panel).Keys().IsCtrlPressed();
+			SetFocusElseRotateFocusToNextSibling(panel, nextRatherThanPrevious);
 		}
 
 		void OnReturn()
 		{
-			int64 focusId = panel.Root().GR().GetFocusId();
-			if (focusId == -1)
-			{
-				return;
-			}
-
-			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
-			if (!focusWidget)
-			{
-				panel.Root().GR().SetFocus(-1);
-				return;
-			}			
-
-			IGRPanel* newChildFocus = nullptr;
-
-			int nChildren = focusWidget->Panel().EnumerateChildren(nullptr);
-			for (int i = 0; i < nChildren; i++)
-			{
-				auto* child = focusWidget->Panel().GetChild(i);
-				newChildFocus = TrySetDeepFocus(*child);
-				if (newChildFocus)
-				{
-					return;
-				}
-			}
-
-			GetCustodian(panel).AlertNoActionForKey();
+			MoveFocusIntoChildren(panel);
 		}
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
@@ -281,7 +233,7 @@ namespace Rococo::Gui
 		g.DrawRect(panel.AbsRect(), colour);
 	}
 
-	ROCOCO_GUI_RETAINED_API void RotateFocusToNextSibling(IGRWidget& focusWidget)
+	ROCOCO_GUI_RETAINED_API void RotateFocusToNextSibling(IGRWidget& focusWidget, bool nextRatherThanPrevious)
 	{
 		auto* parent = focusWidget.Panel().Parent();
 		if (!parent)
@@ -296,20 +248,43 @@ namespace Rococo::Gui
 			auto* child = parent->GetChild(i);
 			if (child->Widget() == focusWidget)
 			{
-				for (int j = i + 1; j < nChildren; j++)
+				if (nextRatherThanPrevious)
 				{
-					auto* sibling = parent->GetChild(j);
-					if (TrySetDeepFocus(*sibling))
+					for (int j = i + 1; j < nChildren; j++)
 					{
-						return;
+						auto* sibling = parent->GetChild(j);
+						if (TrySetDeepFocus(*sibling))
+						{
+							return;
+						}
+					}
+
+					// Nothing following the child was focusable, so try to roll back to the beginning
+
+					if (i > 0)
+					{
+						for (int k = 0; k < i; k++)
+						{
+							auto* sibling = parent->GetChild(k);
+							if (TrySetDeepFocus(*sibling))
+							{
+								return;
+							}
+						}
 					}
 				}
-
-				// Nothing following the child was focusable, so try to roll back to the beginning
-
-				if (i > 0)
+				else
 				{
-					for (int k = 0; k < i; k++)
+					for (int j = i - 1; j >= 0; j--)
+					{
+						auto* sibling = parent->GetChild(j);
+						if (TrySetDeepFocus(*sibling))
+						{
+							return;
+						}
+					}
+
+					for (int k = nChildren - 1; k > i; k--)
 					{
 						auto* sibling = parent->GetChild(k);
 						if (TrySetDeepFocus(*sibling))
@@ -320,13 +295,13 @@ namespace Rococo::Gui
 				}
 
 				// No sibling could take focus, so roll back to container;
-				RotateFocusToNextSibling(parent->Widget());
+				RotateFocusToNextSibling(parent->Widget(), nextRatherThanPrevious);
 				return;
 			}
 		}
 	}
 
-	ROCOCO_GUI_RETAINED_API void SetFocusElseRotateFocusToNextSibling(IGRPanel& panel)
+	ROCOCO_GUI_RETAINED_API void SetFocusElseRotateFocusToNextSibling(IGRPanel& panel, bool nextRatherThanPrevious)
 	{
 		int64 focusId = panel.Root().GR().GetFocusId();
 		if (focusId == -1)
@@ -348,6 +323,65 @@ namespace Rococo::Gui
 			focusWidget = &focusPanel->Widget();
 		}
 
-		RotateFocusToNextSibling(*focusWidget);
+		RotateFocusToNextSibling(*focusWidget, nextRatherThanPrevious);
+	}
+
+	ROCOCO_GUI_RETAINED_API void MoveFocusIntoChildren(IGRPanel& panel)
+	{
+		int64 focusId = panel.Root().GR().GetFocusId();
+		if (focusId == -1)
+		{
+			return;
+		}
+
+		auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+		if (!focusWidget)
+		{
+			panel.Root().GR().SetFocus(-1);
+			return;
+		}
+
+		IGRPanel* newChildFocus = nullptr;
+
+		int nChildren = focusWidget->Panel().EnumerateChildren(nullptr);
+		for (int i = 0; i < nChildren; i++)
+		{
+			auto* child = focusWidget->Panel().GetChild(i);
+			newChildFocus = TrySetDeepFocus(*child);
+			if (newChildFocus)
+			{
+				return;
+			}
+		}
+
+		GetCustodian(panel).AlertNoActionForKey();
+	}
+
+	ROCOCO_GUI_RETAINED_API EGREventRouting MoveFocusToAncestor(IGRPanel& panel)
+	{
+		int64 focusId = panel.Root().GR().GetFocusId();
+		if (focusId == -1)
+		{
+			return EGREventRouting::NextHandler;
+		}
+
+		auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+		if (!focusWidget)
+		{
+			panel.Root().GR().SetFocus(-1);
+			return EGREventRouting::NextHandler;
+		}
+
+		for (auto* ancestor = focusWidget->Panel().Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+		{
+			if (ancestor->HasFlag(EGRPanelFlags::AcceptsFocus))
+			{
+				ancestor->Focus();
+				return EGREventRouting::Terminate;
+			}
+		}
+
+		panel.Root().GR().SetFocus(-1);
+		return EGREventRouting::Terminate;
 	}
 }

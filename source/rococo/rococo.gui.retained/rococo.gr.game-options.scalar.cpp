@@ -22,6 +22,7 @@ namespace GRANON
 		{
 			_panel.SetMinimalSpan({ 100, 24 });
 			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+			_panel.Add(EGRPanelFlags::AcceptsFocus);
 			if (_panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
@@ -153,6 +154,18 @@ namespace GRANON
 				break;
 			case IO::VirtualKeys::VKCode_END:
 				slider->SetPosition(slider->Max());
+				break;
+			case IO::VirtualKeys::VKCode_UP:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), false);
+				}
+				break;
+			case IO::VirtualKeys::VKCode_DOWN:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), true);
+				}
 				break;
 			case IO::VirtualKeys::VKCode_SPACEBAR:
 			{

@@ -154,7 +154,11 @@ namespace GRANON
 				auto* focusNotifier = Cast<IGRFocusNotifier>(target->Widget());
 				if (focusNotifier)
 				{
-					focusNotifier->OnDeepChildFocusSet(Id());
+					auto routing = focusNotifier->OnDeepChildFocusSet(Id());
+					if (routing == EGREventRouting::Terminate)
+					{
+						break;
+					}
 				}
 			}
 

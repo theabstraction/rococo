@@ -3,6 +3,8 @@
 #include <rococo.strings.h>
 #include <math.h>
 #include <vector>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -74,6 +76,8 @@ namespace GRANON
 
 			leftButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			rightButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+			leftButton->Panel().Remove(EGRPanelFlags::AcceptsFocus);
+			rightButton->Panel().Remove(EGRPanelFlags::AcceptsFocus);
 
 			MakeTransparent(leftButton->Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
 			MakeTransparent(leftButton->Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
@@ -99,6 +103,18 @@ namespace GRANON
 		void Advance(int delta)
 		{
 			optionIndex += delta;
+		}
+
+		void FlipDropDown() override
+		{
+			if (dropDown->Panel().IsCollapsed())
+			{
+				ExpandDropDownAndNotify(Centre(panel.AbsRect()));
+			}
+			else
+			{
+				CollapseDropDownAndNotify(Centre(panel.AbsRect()));
+			}
 		}
 
 		void SetActiveChoice(cstr name) override
@@ -132,6 +148,7 @@ namespace GRANON
 		void ExpandDropDownAndNotify(Vec2i clickPosition)
 		{
 			dropDown->Panel().SetCollapsed(false);
+			TrySetDeepFocus(dropDown->Panel());
 
 			GRWidgetEvent we;
 			we.clickPosition = clickPosition;
@@ -276,6 +293,20 @@ namespace GRANON
 				{
 					CollapseDropDownAndNotify(we.clickPosition);
 					return EGREventRouting::Terminate;
+				}
+			}
+
+			if (we.eventType == EGRWidgetEventType::BUTTON_KEYPRESS_UP)
+			{
+				if (source.Panel().HasFocus())
+				{
+					switch (static_cast<IO::VirtualKeys::VKCode>(we.iMetaData))
+					{
+					case IO::VirtualKeys::VKCode_ESCAPE:
+						CollapseDropDownAndNotify(Centre(panel.AbsRect()));
+						panel.Parent()->Focus();
+						return EGREventRouting::Terminate;
+					}
 				}
 			}
 

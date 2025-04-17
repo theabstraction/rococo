@@ -3,6 +3,8 @@
 #include <rococo.strings.h>
 #include <math.h>
 #include <vector>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -127,8 +129,24 @@ namespace GRANON
 		{
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
+		EGREventRouting OnChildEvent(GRWidgetEvent& we, IGRWidget& button) override
 		{
+			switch (we.eventType)
+			{
+			case EGRWidgetEventType::BUTTON_KEYPRESS_UP:
+				if (button.Panel().HasFocus())
+				{
+					switch (static_cast<IO::VirtualKeys::VKCode>(we.iMetaData))
+					{
+					case IO::VirtualKeys::VKCode_UP:
+						RotateFocusToNextSibling(button, false);
+						return EGREventRouting::Terminate;
+					case IO::VirtualKeys::VKCode_DOWN:
+						RotateFocusToNextSibling(button, true);
+						return EGREventRouting::Terminate;
+					}
+				}
+			}
 			return EGREventRouting::NextHandler;
 		}
 

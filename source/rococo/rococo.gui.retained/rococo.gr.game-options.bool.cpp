@@ -22,6 +22,7 @@ namespace GRANON
 		{
 			_panel.SetMinimalSpan({ 100, 24 });
 			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+			_panel.Add(EGRPanelFlags::AcceptsFocus);
 			if (_panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
@@ -48,6 +49,7 @@ namespace GRANON
 			button->MakeToggleButton();
 			button->SetPressedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/yes.tiff");
 			button->SetRaisedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/no.tiff");
+			button->Panel().Remove(EGRPanelFlags::AcceptsFocus);
 			
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON);
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
@@ -116,8 +118,21 @@ namespace GRANON
 			case IO::VirtualKeys::VKCode_HOME:
 			case IO::VirtualKeys::VKCode_END:
 			case IO::VirtualKeys::VKCode_SPACEBAR:
+			case IO::VirtualKeys::VKCode_ENTER:
 				button->Toggle();
 			break;
+			case IO::VirtualKeys::VKCode_UP:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), false);
+				}
+				break;
+			case IO::VirtualKeys::VKCode_DOWN:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), true);
+				}
+				break;
 			default:
 				return EGREventRouting::NextHandler;
 			}

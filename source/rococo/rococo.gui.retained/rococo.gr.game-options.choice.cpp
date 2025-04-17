@@ -22,6 +22,7 @@ namespace GRANON
 		{
 			_panel.SetMinimalSpan({ 100, 24 });
 			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+			_panel.Add(EGRPanelFlags::AcceptsFocus);
 			if (_panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
@@ -147,6 +148,23 @@ namespace GRANON
 				break;
 			case IO::VirtualKeys::VKCode_RIGHT:
 				carousel->Advance(1);
+				break;
+			case IO::VirtualKeys::VKCode_UP:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), false);
+				}
+				break;
+			case IO::VirtualKeys::VKCode_DOWN:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), true);
+				}
+				break;
+			case IO::VirtualKeys::VKCode_ENTER:
+				carousel->FlipDropDown();
+				panel.Focus();
+				MoveFocusIntoChildren(panel);
 				break;
 			default:
 				return EGREventRouting::NextHandler;

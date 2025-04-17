@@ -1,6 +1,8 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <rococo.strings.h>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -200,8 +202,37 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& key) override
 		{
+			if (key.osKeyEvent.IsUp())
+			{
+				switch (key.osKeyEvent.VKey)
+				{
+				case IO::VirtualKeys::VKCode_ENTER:
+					SyncMinimalSpan();
+
+					if (panel.Root().CapturedPanelId() == panel.Id())
+					{
+						panel.Root().ReleaseCursor();
+					}
+
+					FireEvent(Centre(panel.AbsRect()));
+					return EGREventRouting::Terminate;
+				}
+
+				if (panel.HasFocus())
+				{
+					GRWidgetEvent keyEvent;
+					keyEvent.clickPosition = Centre(panel.AbsRect());
+					keyEvent.eventType = EGRWidgetEventType::BUTTON_KEYPRESS_UP;
+					keyEvent.iMetaData = key.osKeyEvent.VKey;
+					keyEvent.isCppOnly = true;
+					keyEvent.panelId = panel.Id();
+					keyEvent.sMetaData = GetImplementationTypeName();
+					return panel.NotifyAncestors(keyEvent, *this);
+				}
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 

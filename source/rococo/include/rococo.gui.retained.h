@@ -421,6 +421,7 @@ namespace Rococo::Gui
 	enum class EGRWidgetEventType
 	{
 		BUTTON_CLICK,
+		BUTTON_KEYPRESS_UP, // A button was pressed that had focus, and the meta data contains the vkey code
 		CHOICE_MADE, // A choice was selected, the meta data contains the key
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		DROP_DOWN_COLLAPSED, // The drop down control collapsed
@@ -524,7 +525,9 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRFocusNotifier: IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual void OnDeepChildFocusSet(int64 panelId) = 0;
+
+		// return EGREventRouting::Terminate if the notifier handled the focus and no more ancestors should be notified, otherwise return NextHandler
+		virtual EGREventRouting OnDeepChildFocusSet(int64 panelId) = 0;
 	};
 
 	enum class ELayoutDirection
@@ -885,6 +888,7 @@ namespace Rococo::Gui
 
 		virtual void AddOption(cstr name, cstr caption) = 0;
 		virtual void Advance(int delta) = 0;
+		virtual void FlipDropDown() = 0;
 		virtual void SetActiveChoice(cstr name) = 0;
 		virtual [[nodiscard]] IGRWidgetScrollableMenu& DropDown() = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
@@ -1557,5 +1561,15 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetMainFrame* FindOwner(IGRWidget& widget);
 
-	ROCOCO_GUI_RETAINED_API void SetFocusElseRotateFocusToNextSibling(IGRPanel& panel);
+	ROCOCO_GUI_RETAINED_API void RotateFocusToNextSibling(IGRWidget& focusWidget, bool nextRatherThanPrevious = true);
+	ROCOCO_GUI_RETAINED_API void SetFocusElseRotateFocusToNextSibling(IGRPanel& panel, bool nextRatherThanPrevious = true);
+
+	ROCOCO_GUI_RETAINED_API void MoveFocusIntoChildren(IGRPanel& panel);
+
+	/*
+	*  Take focus from the current focus target to one of its ancestors with the AcceptsFocus flag
+	*  If there is a focus the function returns with a Terminate routing value.
+	*  Otherwise returns NextHandler
+	*/
+	ROCOCO_GUI_RETAINED_API EGREventRouting MoveFocusToAncestor(IGRPanel& panel);
 }

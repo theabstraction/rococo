@@ -237,23 +237,23 @@ namespace ANON
 			}
 		}
 
-		void OnDeepChildFocusSet(int64 panelId) override
+		EGREventRouting OnDeepChildFocusSet(int64 panelId) override
 		{
 			auto* w = panel.Root().GR().FindWidget(panelId);
 			if (!w)
 			{
-				return;
+				return EGREventRouting::Terminate;
 			}
 
 			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
 			{
-				auto* dropDown = Cast<IGRWidgetScrollableMenu>(*w);
-				if (dropDown)
-				{
-					w = &dropDown->Panel().Parent()->Widget();
-				}
 				auto rect = w->Panel().AbsRect();
 				ScrollIntoView(rect);
+				return EGREventRouting::Terminate;
+			}
+			else
+			{
+				return EGREventRouting::NextHandler;
 			}
 		}
 
