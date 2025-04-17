@@ -196,14 +196,28 @@ namespace GRANON
 
 			if (!dropDown->Panel().IsCollapsed())
 			{
-				int dropDownHeight = 120;
+				int domainHeight = max(dropDown->ComputeDomainHeight(), 20);
+				int dropDownHeight = domainHeight;
 
 				bool isRenderedUnderneathEdge = true;
 
-				Vec2i screen = panel.Root().ScreenDimensions();
-				if (Centre(panel.AbsRect()).y + dropDownHeight > screen.y)
+				Vec2i screenSpan = panel.Root().ScreenDimensions();
+				Vec2i panelCentre = Centre(rect);
+				if (panelCentre.y + domainHeight > screenSpan.y)
 				{
-					isRenderedUnderneathEdge = false;
+					if (panelCentre.y > screenSpan.y / 2)
+					{
+						isRenderedUnderneathEdge = false;
+
+						if (domainHeight - rect.top < 0)
+						{
+							dropDownHeight = rect.top;
+						}
+					}
+					else
+					{
+						dropDownHeight = screenSpan.y - panelCentre.y;
+					}
 				}
 
 				if (isCarouselDisabledWhenDropDownVisible)

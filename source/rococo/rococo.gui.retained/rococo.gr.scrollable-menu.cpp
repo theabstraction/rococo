@@ -71,9 +71,21 @@ namespace GRANON
 
 			options.push_back({ name, caption, button });
 
-			size_t domainHeight = options.size() * 48;
+			size_t domainHeight = ComputeDomainHeight();
 
 			viewport->SetDomainHeight((int) domainHeight);
+		}
+
+		int ComputeDomainHeight() const override
+		{
+			if (options.size() == 0)
+			{
+				return 0;
+			}
+
+			auto& firstButton = options[0].button;
+			int buttonHeight = GetCustodian(panel).Fonts().GetFontHeight(buttonFontId) + firstButton->Panel().Padding().bottom + firstButton->Panel().Padding().top;
+			return (int) (buttonHeight * options.size());
 		}
 
 		GRFontId buttonFontId = GRFontId::MENU_FONT;

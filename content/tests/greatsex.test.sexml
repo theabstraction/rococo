@@ -233,7 +233,7 @@
 					(#Recti Carousel.Padding 40 2 40 4)
 					
 					// Gives the padding of the carousel controls to their interior rectangle
-					(#Recti Carousel.Button.Padding 12 12 12 12)
+					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
 					(Scalar.Guage.Alignment Left)
