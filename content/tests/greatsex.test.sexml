@@ -215,7 +215,7 @@
 					(Colour.GameOption.Top.Left Transparent)
 					(Colour.GameOption.Bottom.Right Transparent)
 					(Colour.GameOption.Background Transparent)
-					(Colour.GameOption.ChildSpacer LightGrey)
+					(Colour.GameOption.ChildSpacer DarkGrey)
 					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
