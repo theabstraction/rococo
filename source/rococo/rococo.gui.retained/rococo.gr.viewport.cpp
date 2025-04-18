@@ -93,7 +93,7 @@ namespace ANON
 			double sliderSpanToScrollerSpan = scrollerSpan / (double)lastKnownDomainHeight;
 
 			GRSliderSpec spec;
-			spec.sliderSpanInPixels = (int) (sliderSpanToScrollerSpan * scrollerSpan);
+			spec.sliderSpanInPixels = (int) (clipArea->Panel().Span().y * sliderSpanToScrollerSpan);
 			return spec;
 		}
 
@@ -232,7 +232,7 @@ namespace ANON
 			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
-				double sliderPixelOffset = -(double) (m.PixelRange * clientOffsetAreaParentOffset) / (double) (lastKnownDomainHeight - m.SliderZoneSpan);
+				double sliderPixelOffset = (double) (m.PixelRange * clientOffsetAreaParentOffset) / (double) (lastKnownDomainHeight - Span(clipArea->Panel().AbsRect()).y - 2);
 				vscroller->Scroller().SetSliderPosition(clamp((int32)sliderPixelOffset, 0, m.PixelRange));
 			}
 		}
