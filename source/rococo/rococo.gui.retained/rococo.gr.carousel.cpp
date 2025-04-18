@@ -237,6 +237,25 @@ namespace GRANON
 					}
 				}
 
+
+				// Hack in cosmetic height range (So that cells can be rendered fully and not partially more frequently)
+				if (dropDownHeight > 20)
+				{
+					int cellHeight = dropDown->LastComputedButtonSpan().y;
+
+					// Some arbitrary sanitization range
+					if (cellHeight >= 10 && cellHeight < 200)
+					{
+						int newDropDownHeight = (dropDownHeight / cellHeight) * cellHeight;
+						if (newDropDownHeight < cellHeight)
+						{
+							newDropDownHeight = cellHeight;
+						}
+
+						dropDownHeight = newDropDownHeight;
+					}
+				}
+
 				if (isCarouselDisabledWhenDropDownVisible)
 				{
 					leftButton->Panel().SetCollapsed(true);

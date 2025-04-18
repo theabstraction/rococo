@@ -12,6 +12,26 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
+	struct ButtonWatcher : IGRPanelWatcher
+	{
+		void OnSetConstantHeight(IGRPanel& panel, int height) override
+		{
+
+		}
+
+		void OnSetConstantWidth(IGRPanel& panel, int width) override
+		{
+
+		}
+
+		Vec2i lastButtonSpan{ 0,0 };
+
+		void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) override
+		{
+			lastButtonSpan = Span(absRect);
+		}
+	};
+
 	struct GRScrollableMenu : IGRWidgetScrollableMenu, IGRWidgetSupervisor
 	{
 		struct Option
@@ -32,6 +52,8 @@ namespace GRANON
 		GRAnchorPadding buttonPadding{ 0,0,0,0 };
 
 		IGRWidgetViewport* viewport = nullptr;
+
+		ButtonWatcher watcher;
 		
 		GRScrollableMenu(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -67,6 +89,7 @@ namespace GRANON
 			button->SetBackSurface(EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_BACKGROUND);
 			button->SetTextSurface(EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_TEXT);
 			button->SetFontId(buttonFontId);
+			button->Panel().SetPanelWatcher(&watcher);
 
 			GRControlMetaData metaData;
 			metaData.stringData = name;
@@ -86,12 +109,16 @@ namespace GRANON
 				return 0;
 			}
 
-			auto& firstButton = options[0].button;
-			int buttonHeight = GetCustodian(panel).Fonts().GetFontHeight(buttonFontId) + firstButton->Panel().Padding().bottom + firstButton->Panel().Padding().top;
+			int buttonHeight = watcher.lastButtonSpan.y;
 			return (int) (buttonHeight * options.size());
 		}
 
 		GRFontId buttonFontId = GRFontId::MENU_FONT;
+
+		Vec2i LastComputedButtonSpan() const override
+		{
+			return watcher.lastButtonSpan;
+		}
 
 		void SetOptionFont(GRFontId fontId) override
 		{

@@ -906,6 +906,7 @@ namespace Rococo::Gui
 		virtual int ComputeDomainHeight() const = 0;
 		virtual void SetOptionFont(GRFontId fontId) = 0;
 		virtual void SetOptionPadding(const GRAnchorPadding& padding) = 0;
+		virtual Vec2i LastComputedButtonSpan() const = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;		
 		virtual [[nodiscard]] IGRWidgetViewport& Viewport() = 0;

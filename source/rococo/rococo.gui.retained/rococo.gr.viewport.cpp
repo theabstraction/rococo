@@ -207,19 +207,19 @@ namespace ANON
 			auto clipRect = clipArea->Panel().AbsRect();
 
 			int32 dOffset = 0;
-			if (rect.bottom < clipArea->Panel().AbsRect().top)
+			if (rect.top < clipArea->Panel().AbsRect().top)
 			{
-				dOffset = rect.bottom - clipArea->Panel().AbsRect().top;
+				dOffset = rect.top - clipArea->Panel().AbsRect().top;
 			}
-			else if (rect.top > clipArea->Panel().AbsRect().bottom)
+			else if (rect.top >= clipArea->Panel().AbsRect().bottom)
 			{
 				if (Height(rect) < Height(clipRect))
 				{
-					dOffset = clipArea->Panel().AbsRect().top - rect.top;
+					dOffset = rect.bottom - clipArea->Panel().AbsRect().bottom;
 				}
 				else
 				{
-					dOffset = clipArea->Panel().AbsRect().bottom - rect.top - 30;
+					dOffset = rect.top - clipArea->Panel().AbsRect().bottom;
 				}
 			}
 			else
@@ -227,7 +227,7 @@ namespace ANON
 				return;
 			}
 
-			clientOffsetAreaParentOffset = clientOffsetArea->Panel().ParentOffset().y + dOffset;
+			clientOffsetAreaParentOffset = - clientOffsetArea->Panel().ParentOffset().y + dOffset;
 
 			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)

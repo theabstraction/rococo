@@ -19,7 +19,7 @@
 		<DisplayString>{x},{y},{z},{w}</DisplayString>
 	</Type>
 	<Type Name="Rococo::GuiRect">
-		<DisplayString>{left},{top},{right},{bottom}</DisplayString>
+		<DisplayString>{left},{top} to {right},{bottom}. DX {right-left}. DY {bottom-top}</DisplayString>
 	</Type>
 	<Type Name="Rococo::GuiRectf">
 		<DisplayString>{left},{top},{right},{bottom}</DisplayString>

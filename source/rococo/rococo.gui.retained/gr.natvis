@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<Type Name="GRANON::GRPanel">
-		<DisplayString>{{{ desc } #{uniqueId}. {absRect}}</DisplayString>
+		<DisplayString>{{{ desc } #{uniqueId}. {absRect}. Flags: {flags}. Parent {parent->desc}. Grandparent { parent->parent->desc}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRCollapser">
 		<DisplayString>{{Collapser: #{uniqueId}. {absRect}. Desc: { desc }. Button {collapseButton}}</DisplayString>

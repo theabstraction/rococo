@@ -22,4 +22,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\rococo.natvis" />
+  </ItemGroup>
 </Project>
