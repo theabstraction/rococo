@@ -75,6 +75,7 @@ namespace GRANON
 			viewport = &CreateViewportWidget(*this);
 			viewport->Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
 			viewport->ClientArea().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom).SetClipChildren(true);
+			viewport->SetMovePageScale(0.5);
 		}
 
 		void AddOption(cstr name, cstr caption) override
@@ -156,6 +157,50 @@ namespace GRANON
 		{
 		}
 
+		void SetFocusWithoutCallback(IGRWidgetButton& button)
+		{
+			panel.Root().GR().SetFocus(button.Panel().Id());
+		}
+
+		void SetFocusToTopmostVisibleButton(int deltaOffset)
+		{
+			if (options.size() == 0)
+			{
+				return;
+			}
+
+			int y = panel.AbsRect().top + deltaOffset;
+
+			if (y < options[0].button->Panel().AbsRect().top)
+			{
+				SetFocusWithoutCallback(*options[0].button);
+				return;
+			}
+
+			for (auto& opt : options)
+			{
+				GuiRect rect = opt.button->Panel().AbsRect();
+				if (y <= rect.top && y < rect.bottom)
+				{
+					SetFocusWithoutCallback(*opt.button);
+					return;
+				}
+			}
+
+			SetFocusWithoutCallback(*options.back().button);
+		}
+
+		void OnFocusPageChange(int delta)
+		{
+			int beforeMove = viewport->GetOffset();
+			viewport->VScroller().Scroller().MovePage(delta);
+			int afterMove = viewport->GetOffset();
+
+			int deltaOffset = afterMove - beforeMove;
+
+			SetFocusToTopmostVisibleButton(deltaOffset);
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& we, IGRWidget& button) override
 		{
 			switch (we.eventType)
@@ -163,6 +208,7 @@ namespace GRANON
 			case EGRWidgetEventType::BUTTON_KEYPRESS_UP:
 				if (button.Panel().HasFocus())
 				{
+			
 					switch (static_cast<IO::VirtualKeys::VKCode>(we.iMetaData))
 					{
 					case IO::VirtualKeys::VKCode_UP:
@@ -170,6 +216,12 @@ namespace GRANON
 						return EGREventRouting::Terminate;
 					case IO::VirtualKeys::VKCode_DOWN:
 						RotateFocusToNextSibling(button, true);
+						return EGREventRouting::Terminate;
+					case IO::VirtualKeys::VKCode_PGUP:		
+						OnFocusPageChange(-1);
+						return EGREventRouting::Terminate;
+					case IO::VirtualKeys::VKCode_PGDOWN:
+						OnFocusPageChange(1);
 						return EGREventRouting::Terminate;
 					}
 				}
@@ -195,6 +247,7 @@ namespace GRANON
 		void Render(IGRRenderContext&) override
 		{
 			// Viewport expands to the widget area and covers up everything we would render, so our method is empty
+			viewport->SetLineDeltaPixels(LastComputedButtonSpan().y);
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

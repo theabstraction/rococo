@@ -108,6 +108,11 @@ namespace ANON
 			this->lineDeltaPixels = clamp(lineDeltaPixels, 1, 1000'000);
 		}
 
+		int GetOffset() const override
+		{
+			return clientOffsetAreaParentOffset;
+		}
+
 		void SetMovePageScale(double scaleFactor) override
 		{
 			pageDeltaScale = clamp(scaleFactor, 0.0, 2.0);
@@ -116,6 +121,8 @@ namespace ANON
 		void OnScrollLines(int delta, IGRWidgetScroller& scroller)
 		{
 			if (lineDeltaPixels == 0) return;
+
+			panel.Root().GR().SetFocus(-1);
 
 			GRScrollerMetrics m = scroller.GetMetrics();
 			if (m.PixelRange == 0)
@@ -139,39 +146,58 @@ namespace ANON
 
 				OnScrollerNewPositionCalculated(newPosition, scroller);
 
-				scroller.SetSliderPosition(clamp(newPosition + m.PixelPosition, 0, m.PixelRange));
+				scroller.SetSliderPosition(clamp(newPosition + m.SliderTopPosition, 0, m.PixelRange));
 			}
 		}
 
 		void OnScrollPages(int delta, IGRWidgetScroller& scroller) override
 		{
+			panel.Root().GR().SetFocus(-1);
+
+			int clipAreaHeight = clipArea->Panel().Span().y;
+
 			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			if (m.PixelRange > 0 && lastKnownDomainHeight > clipAreaHeight)
 			{
-				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
+				double scale = m.PixelRange / (double)(lastKnownDomainHeight - clipAreaHeight);
 
-				int32 deltaPixels = delta * clipArea->Panel().Span().y;
+				int deltaPixels = (int) (pageDeltaScale * delta * clipAreaHeight);
 
-				int newPosition = (int)(pageDeltaScale * deltaPixels / scale);
+				int32 newOffset = deltaPixels + clientOffsetAreaParentOffset;
 
-				OnScrollerNewPositionCalculated(newPosition, scroller);
+				if (lineDeltaPixels > 0 && lineDeltaPixels < deltaPixels)
+				{
+					newOffset = (newOffset / lineDeltaPixels) * lineDeltaPixels;
+				}
 
-				scroller.SetSliderPosition(clamp(newPosition + m.PixelPosition, 0, m.PixelRange));
+				clientOffsetAreaParentOffset = clamp(0, newOffset, lastKnownDomainHeight - clipAreaHeight);
+
+				int newPosition = (int)(newOffset * scale);
+				newPosition = clamp(newPosition, 0, m.PixelRange);
+
+				scroller.SetSliderPosition(newPosition);
+			}
+		}
+
+		void AdjustClientOffsetAreaAccordingToNewPosition(int newPosition, const GRScrollerMetrics m)
+		{
+			int clipAreaHeight = clipArea->Panel().Span().y;
+
+			if (m.PixelRange == 0)
+			{
+				clientOffsetAreaParentOffset = 0;
+			}
+			else if (m.PixelRange > 0 && lastKnownDomainHeight > clipAreaHeight)
+			{
+				double cursor = clamp(newPosition / (double)(m.PixelRange), 0.0, 1.0);
+				clientOffsetAreaParentOffset = (int)(cursor * (lastKnownDomainHeight - clipAreaHeight));
 			}
 		}
 
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
 		{
 			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange == 0)
-			{
-				clientOffsetAreaParentOffset = 0;
-			}
-			else if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
-			{
-				double cursor = clamp((double)(m.PixelPosition + newPosition) / (double)m.PixelRange, 0.0, 1.0);
-				clientOffsetAreaParentOffset = (int)(cursor * (lastKnownDomainHeight - panel.Span().y));
-			}
+			AdjustClientOffsetAreaAccordingToNewPosition(newPosition, m);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -232,7 +258,7 @@ namespace ANON
 			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
-				double sliderPixelOffset = (double) (m.PixelRange * clientOffsetAreaParentOffset) / (double) (lastKnownDomainHeight - Span(clipArea->Panel().AbsRect()).y - 2);
+				double sliderPixelOffset = (double) (m.PixelRange * clientOffsetAreaParentOffset) / (double) (lastKnownDomainHeight - Span(clipArea->Panel().AbsRect()).y);
 				vscroller->Scroller().SetSliderPosition(clamp((int32)sliderPixelOffset, 0, m.PixelRange));
 			}
 		}

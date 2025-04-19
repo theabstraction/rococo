@@ -47,7 +47,7 @@ namespace ANON
 
 		void LayoutAfterExpand() override
 		{
-			auto spec = events.OnCalculateSliderRect(panel.Span().y - 2, *this);
+			auto spec = events.OnCalculateSliderRect(panel.Span().y, *this);
 			sliderHeight = spec.sliderSpanInPixels;
 		}
 
@@ -76,7 +76,7 @@ namespace ANON
 			}
 		}
 
-		void MovePage(int delta)
+		void MovePage(int delta) override
 		{
 			events.OnScrollPages(delta, *this);
 		}
@@ -116,6 +116,7 @@ namespace ANON
 
 			if (ce.click.LeftButtonDown)
 			{
+				panel.Root().GR().SetFocus(-1);
 				clickTarget = ClassifyTarget(ce.position);
 				if (clickTarget == EClick::Slider)
 				{
@@ -251,7 +252,6 @@ namespace ANON
 			sliderZone.top = rect.top + 1;
 			sliderZone.bottom = rect.bottom - 1;
 
-
 			if (rs.value.intValue != 0)
 			{
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
@@ -308,7 +308,7 @@ namespace ANON
 		GRScrollerMetrics GetMetrics() const override
 		{
 			GRScrollerMetrics m;
-			m.PixelPosition = sliderPosition;
+			m.SliderTopPosition = sliderPosition;
 			m.SliderZoneSpan = Height(sliderZone);
 			m.PixelRange = clamp(m.SliderZoneSpan - sliderHeight, 0, (int32) MAX_SCROLL_INT);
 			return m;

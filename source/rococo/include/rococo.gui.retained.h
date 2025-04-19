@@ -1260,7 +1260,7 @@ namespace Rococo::Gui
 	struct GRScrollerMetrics
 	{
 		// PixelPosition = 0 -> scroller is in the start position, with >= 0 -> scroller has moved that many pixels towards the end position
-		int32 PixelPosition; 
+		int32 SliderTopPosition; 
 
 		// the maximum pixel position, i.e the slider zone span - the slider span. Example: if the slider zone is 1024 pixels and the slider span is 24 pixels, the pixel range would be 1000.
 		int32 PixelRange; 
@@ -1289,7 +1289,10 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual GRScrollerMetrics GetMetrics() const = 0;
+
+		// Updates the slider position, but does not invoke any callbacks
 		virtual void SetSliderPosition(int32 topPixelDelta) = 0;
+		virtual void MovePage(int delta) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetVerticalScroller : IGRWidgetScroller
@@ -1332,6 +1335,8 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual [[nodiscard]] IGRWidgetDivision& ClientArea() = 0;
 		virtual [[nodiscard]] IGRWidgetVerticalScrollerWithButtons& VScroller() = 0;
+
+		virtual [[nodiscard]] int GetOffset() const = 0;
 	};
 
 	// A vertical list that aligns its children vertically

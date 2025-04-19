@@ -237,19 +237,29 @@ namespace GRANON
 					}
 				}
 
+				int cellHeight = dropDown->LastComputedButtonSpan().y;
+
 
 				// Hack in cosmetic height range (So that cells can be rendered fully and not partially more frequently)
-				if (dropDownHeight > 20)
+				if (dropDownHeight > cellHeight)
 				{
-					int cellHeight = dropDown->LastComputedButtonSpan().y;
-
 					// Some arbitrary sanitization range
 					if (cellHeight >= 10 && cellHeight < 200)
 					{
+						int nCells = dropDownHeight / cellHeight;
 						int newDropDownHeight = (dropDownHeight / cellHeight) * cellHeight;
 						if (newDropDownHeight < cellHeight)
 						{
 							newDropDownHeight = cellHeight;
+						}
+
+						if (newDropDownHeight > 5 * cellHeight)
+						{
+							// Odd number of cells. We need to make even so that we can have a page size that does not break cell bounds
+							if ((nCells & 1) != 0)
+							{
+								newDropDownHeight -= cellHeight;
+							}
 						}
 
 						dropDownHeight = newDropDownHeight;
