@@ -1290,7 +1290,7 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual GRScrollerMetrics GetMetrics() const = 0;
 
-		// Updates the slider position, but does not invoke any callbacks
+		// Updates the slider position, but does not invoke any callbacks. < 0 => move slider to maximum position
 		virtual void SetSliderPosition(int32 topPixelDelta) = 0;
 		virtual void MovePage(int delta) = 0;
 	};
@@ -1337,6 +1337,10 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRWidgetVerticalScrollerWithButtons& VScroller() = 0;
 
 		virtual [[nodiscard]] int GetOffset() const = 0;
+
+		// Sets the vertical offset without triggering callbacks. The scroller must be independently updated if required
+		// < 0 => moves offset to maximum
+		virtual void SetOffset(int offset, bool fromStart) = 0;
 	};
 
 	// A vertical list that aligns its children vertically

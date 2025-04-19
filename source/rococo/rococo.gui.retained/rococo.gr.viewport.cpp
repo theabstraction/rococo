@@ -113,6 +113,34 @@ namespace ANON
 			return clientOffsetAreaParentOffset;
 		}
 
+		void SetOffset(int offset, bool fromStart) override
+		{
+			int span = lastKnownDomainHeight - Height(clipArea->Panel().AbsRect());
+
+			if (span < 0)
+			{
+				clientOffsetAreaParentOffset = 0;
+				return;
+			}
+
+			if (offset < 0)
+			{
+				clientOffsetAreaParentOffset = max(0, span);
+				return;
+			}
+
+			if (fromStart)
+			{
+				clientOffsetAreaParentOffset = offset;
+			}
+			else
+			{
+				clientOffsetAreaParentOffset = span - offset;
+			}
+
+			clientOffsetAreaParentOffset = clamp(clientOffsetAreaParentOffset, 0, span);
+		}
+
 		void SetMovePageScale(double scaleFactor) override
 		{
 			pageDeltaScale = clamp(scaleFactor, 0.0, 2.0);

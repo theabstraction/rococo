@@ -198,6 +198,14 @@ namespace GRANON
 
 			int deltaOffset = afterMove - beforeMove;
 
+			if (deltaOffset == 0)
+			{
+				// We scrolled to the last bit of the scrollable menu, so pick the extreme end button
+				if (delta > 0) SetFocusWithoutCallback(*options.back().button);
+				else		   SetFocusWithoutCallback(*options.front().button);
+				return;
+			}
+
 			SetFocusToTopmostVisibleButton(deltaOffset);
 		}
 
@@ -222,6 +230,16 @@ namespace GRANON
 						return EGREventRouting::Terminate;
 					case IO::VirtualKeys::VKCode_PGDOWN:
 						OnFocusPageChange(1);
+						return EGREventRouting::Terminate;
+					case IO::VirtualKeys::VKCode_HOME:
+						viewport->VScroller().Scroller().SetSliderPosition(0);
+						viewport->SetOffset(0, true);
+						SetFocusWithoutCallback(*options.front().button);
+						return EGREventRouting::Terminate;
+					case IO::VirtualKeys::VKCode_END:
+						viewport->VScroller().Scroller().SetSliderPosition(-1);
+						viewport->SetOffset(-1, true);
+						SetFocusWithoutCallback(*options.back().button);
 						return EGREventRouting::Terminate;
 					}
 				}
