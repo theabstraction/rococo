@@ -31,7 +31,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.gui.retained.custodian.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.guistack.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.hqfonts.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.joysticks.xbox360.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.keyboard.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.main.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.maths.visitor.cpp" />

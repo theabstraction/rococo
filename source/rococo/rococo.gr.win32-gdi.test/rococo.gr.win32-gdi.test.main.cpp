@@ -60,7 +60,7 @@ int MainProtected()
 	GR::Win32::GRMainFrameConfig config;
 	AutoFree<GR::Win32::IGRMainFrameWindowSupervisor> mainFrame = GR::Win32::CreateGRMainFrameWindow(NULL, config);
 	auto& client = mainFrame->Client();
-
+	client.BindStandardXBOXControlsToVKeys();
 	client.LinkScene(TestScene());
 	TestGreatSex(client);
 	// TestPropertyEditor(client);

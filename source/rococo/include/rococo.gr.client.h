@@ -37,8 +37,16 @@ namespace Rococo
 			// It must remain valid for the life time of the client window
 			virtual IGREventHandler* SetEventHandler(Gui::IGREventHandler * eventHandler) = 0;
 
+			// Simulate a keypress by sending a virtual keycode to the GR API
+			// User internally together with MapJoystickVirtualKeyToVirtualKeyboardKey for joystick support
+			// But it can be used externally to support 3rd party control systems
+			virtual void InsertKeyboardEvent(uint16 vCode, bool isUp, uint16 unicode) = 0;
+
 			// Allows the supplied sink to intercept virtual key presses, potentially stopping them from being handled by the GR system
 			virtual void InterceptVKeys(IGRAppControl& sink) = 0;
+
+			// Tells the window that a joystick generated virtual key code should be presented to the API as an equivalent keyboard key
+			virtual void MapJoystickVirtualKeyToVirtualKeyboardKey(uint16 joystickVirtualKeyCode, uint16 keyboardVirtualKeyCode) = 0;
 
 			// Presents the given scene as background in the window. (The GUI is foreground).
 			// The scene object must be valid for the lifetime of the client window, or until LinkScene is invoked again

@@ -30,11 +30,14 @@
 
 #include <Richedit.h>
 
+#include <rococo.ui.joystick.h>
+
 using namespace Rococo;
 using namespace Rococo::GR;
 using namespace Rococo::GR::Win32;
 using namespace Rococo::Gui;
 using namespace Rococo::GreatSex;
+using namespace Rococo::Joysticks;
 using namespace Rococo::Sex;
 using namespace Gdiplus;
 
@@ -617,6 +620,9 @@ namespace GRANON
 			GuiRect innerVisibleRect = MergeWithScissorRect(innerRect);
 			DrawSharpRect(innerVisibleRect, colour);
 
+			Gdiplus::Rect clipRect(visibleRect.left, visibleRect.top, Width(visibleRect), Height(visibleRect));
+			g.SetClip(clipRect);
+
 			RGBAb transparent(0, 0, 0, 0);
 
 			GuiRect leftRect{ absRect.left, absRect.top + delta, absRect.left + delta, absRect.bottom - delta};
@@ -672,6 +678,8 @@ namespace GRANON
 			PushTriangle(bottomRight);
 
 			CommitTriangles();
+
+			g.ResetClip();
 		}
 
 		void DrawRoundedRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
@@ -1926,7 +1934,7 @@ namespace GRANON
 	};
 
 
-	struct GRClientWindow: IGRGDIClientWindowSupervisor, IGreatSexResourceLoader
+	struct GRClientWindow: IGRGDIClientWindowSupervisor, IGreatSexResourceLoader, IEventCallback<const Joysticks::JoystickButtonEvent>
 	{
 		HWND hWnd = 0;
 		AutoFree<Rococo::Gui::IGRSystemSupervisor> grSystem;
@@ -1942,6 +1950,8 @@ namespace GRANON
 
 		HWND hErrorWnd = 0;
 		HWND hMessageWnd = 0;
+
+		AutoFree<IJoystick_XBOX360_Supervisor> xbox360Controller;
 
 		static void PopulateClientClass(HINSTANCE hInstance, WNDCLASSEXA& classDef)
 		{
@@ -2174,6 +2184,42 @@ namespace GRANON
 			}
 		}
 
+		void InsertKeyboardEvent(uint16 vCode, bool isUp, uint16 unicode) override
+		{
+			KeyboardEvent kbe;
+			kbe.VKey = vCode;
+			kbe.Flags = isUp ? RI_KEY_BREAK : RI_KEY_MAKE;
+			kbe.Message = 0;
+			kbe.Reserved = 0;
+			kbe.scanCode = 0;
+			kbe.unicode = unicode;
+			kbe.extraInfo = 0;				
+			gdiCustodian->RouteKeyboardEvent(kbe, *grSystem);
+		}
+
+		void OnEvent(const Joysticks::JoystickButtonEvent& jbe) override
+		{
+			auto i = mapJStickToKeyboard.find(jbe.vkCode);
+			if (i != mapJStickToKeyboard.end())
+			{
+				if (jbe.IsKeyUp() && !jbe.IsRepeat())
+				{
+					InsertKeyboardEvent(i->second, true, jbe.unicodeValue);
+				}
+				else if (!jbe.IsKeyUp() && (jbe.IsKeyDown() || jbe.IsRepeat()))
+				{
+					InsertKeyboardEvent(i->second, false, jbe.unicodeValue);
+				}
+			}
+		}
+
+		void OnTick()
+		{
+			if (!hErrorWnd) InvalidateRect(hWnd, NULL, FALSE);
+
+			xbox360Controller->Poll(*this);
+		}
+
 		static LRESULT GDIProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			auto* This = reinterpret_cast<GRClientWindow*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
@@ -2200,7 +2246,7 @@ namespace GRANON
 					This->OnSize(wParam, lParam);
 					return 0L;
 				case WM_TIMER:
-					if (!This->hErrorWnd) InvalidateRect(hWnd, NULL, FALSE);
+					This->OnTick();					
 					break;
 				}
 			}
@@ -2221,6 +2267,7 @@ namespace GRANON
 			gdiCustodian = GR::Win32::CreateGDICustodian();
 			grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
 			scene = &emptyScene;
+			xbox360Controller = CreateJoystick_XBox360Proxy();
 		}
 
 		virtual ~GRClientWindow()
@@ -2347,6 +2394,39 @@ namespace GRANON
 			Installation().LoadResource(resourcePath, onLoad);
 		}
 
+		void MapXCCode(cstr jkeyName, uint16 keyboardCode)
+		{
+			auto jcode = xbox360Controller->GetVKeyCode(jkeyName);
+			if (jcode == 0)
+			{
+				Throw(0, "%s: Error mapping %s", __FUNCTION__, jkeyName);
+			}
+
+			mapJStickToKeyboard[jcode] = keyboardCode;
+		}
+
+		void BindStandardXBOXControlsToVKeys() override
+		{
+			MapXCCode("Back", VK_ESCAPE);
+			MapXCCode("A", VK_RETURN);
+			MapXCCode("Shoulder.R", VK_TAB);
+			MapXCCode("Shoulder.L", (uint16) Gui::ESpecialVirtualKeys::REVERSE_TAB);
+			MapXCCode("B", VK_SPACE);
+			MapXCCode("DPAD.U", VK_UP);
+			MapXCCode("DPAD.D", VK_DOWN);
+			MapXCCode("DPAD.L", VK_LEFT);
+			MapXCCode("DPAD.R", VK_RIGHT);
+			MapXCCode("X", VK_NEXT);
+			MapXCCode("Y", VK_PRIOR);
+		}
+
+		std::unordered_map<uint16, uint16> mapJStickToKeyboard;
+
+		void MapJoystickVirtualKeyToVirtualKeyboardKey(uint16 joystickVirtualKeyCode, uint16 keyboardVirtualKeyCode) override
+		{
+			mapJStickToKeyboard[joystickVirtualKeyCode] = keyboardVirtualKeyCode;
+		}
+
 		void QueuePaint() override
 		{
 			InvalidateRect(hWnd, NULL, TRUE);
@@ -2370,6 +2450,11 @@ namespace GRANON
 		IO::IInstallation& Installation() override
 		{
 			return gdiCustodian->Installation();
+		}
+
+		Joysticks::IJoysticks& GetXBoxControllers() override
+		{
+			return *xbox360Controller;
 		}
 
 		void Free() override
@@ -2661,7 +2746,7 @@ namespace GRANON
 			delete this;
 		}
 
-		IGRClientWindow& Client() override
+		IGRGDIClientWindow& Client() override
 		{
 			return *grClientWindow;
 		}

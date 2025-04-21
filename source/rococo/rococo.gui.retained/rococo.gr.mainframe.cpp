@@ -100,6 +100,11 @@ namespace GRANON
 			return MoveFocusToAncestor(panel);
 		}
 
+		void OnReverseTab()
+		{
+			SetFocusElseRotateFocusToNextSibling(panel, false);
+		}
+
 		void OnTab()
 		{
 			bool nextRatherThanPrevious = !GetCustodian(panel).Keys().IsCtrlPressed();
@@ -122,6 +127,9 @@ namespace GRANON
 			{
 			case Rococo::IO::VirtualKeys::VKCode_TAB:
 				OnTab();
+				return EGREventRouting::Terminate;
+			case (uint16) Rococo::Gui::ESpecialVirtualKeys::REVERSE_TAB:
+				OnReverseTab();
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_ENTER:
 				OnReturn();

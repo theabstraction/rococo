@@ -16,18 +16,21 @@ namespace GRANON
 	{
 		void OnSetConstantHeight(IGRPanel& panel, int height) override
 		{
-
+			UNUSED(panel);
+			UNUSED(height);
 		}
 
 		void OnSetConstantWidth(IGRPanel& panel, int width) override
 		{
-
+			UNUSED(panel);
+			UNUSED(width);
 		}
 
 		Vec2i lastButtonSpan{ 0,0 };
 
 		void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) override
 		{
+			UNUSED(panel);
 			lastButtonSpan = Span(absRect);
 		}
 	};

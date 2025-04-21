@@ -15,6 +15,11 @@ namespace Rococo
 {
 	struct KeyboardEvent;
 	struct MouseEvent;
+
+	namespace Joysticks
+	{
+		struct IJoysticks;
+	}
 }
 
 namespace Rococo::Gui
@@ -52,10 +57,12 @@ namespace Rococo::GR::Win32
 	// This should be called in any Win32 App that uses this library, it manages GDI startup and shutdown
 	ROCOCO_GR_GDI_API IWin32GDIApp* CreateWin32GDIApp();
 
-	ROCOCO_INTERFACE IGRGDIClientWindow: Gui::IGRClientWindow
+	ROCOCO_INTERFACE IGRGDIClientWindow : Gui::IGRClientWindow
 	{
 		virtual operator HWND () = 0;
 		virtual IO::IInstallation& Installation() = 0;
+		virtual Joysticks::IJoysticks& GetXBoxControllers() = 0;
+		virtual void BindStandardXBOXControlsToVKeys() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRGDIClientWindowSupervisor : IGRGDIClientWindow
@@ -69,7 +76,7 @@ namespace Rococo::GR::Win32
 
 	ROCOCO_INTERFACE IGRMainFrameWindow
 	{
-		virtual Gui::IGRClientWindow& Client() = 0;
+		virtual IGRGDIClientWindow& Client() = 0;
 		virtual operator HWND() = 0;
 	};
 

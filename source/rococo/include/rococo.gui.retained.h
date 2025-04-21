@@ -185,6 +185,11 @@ namespace Rococo::Gui
 		ANSI = 0
 	};
 
+	enum class ESpecialVirtualKeys
+	{
+		REVERSE_TAB = 0xFFA0
+	};
+
 	struct FontSpec
 	{
 		ECharSet CharSet = ECharSet::ANSI;
@@ -225,7 +230,7 @@ namespace Rococo::Gui
 
 	struct GRVertex
 	{
-		Vec2i position;
+		Vec2i position{ 0,0 };
 		RGBAb colour;
 	};
 

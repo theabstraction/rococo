@@ -239,6 +239,7 @@
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.util\joysticks.xbox360.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.base.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.heap.string.cpp" />
