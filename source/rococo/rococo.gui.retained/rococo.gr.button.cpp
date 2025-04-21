@@ -27,6 +27,8 @@ namespace GRANON
 
 		bool isStretched = false;
 
+		bool triggersOnKeyUp = true;
+
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
@@ -37,6 +39,11 @@ namespace GRANON
 		virtual ~GRButton()
 		{
 
+		}
+
+		void TriggerOnKeyDown() override
+		{
+			triggersOnKeyUp = false;
 		}
 
 		void LayoutBeforeFit() override
@@ -204,7 +211,7 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& key) override
 		{
-			if (key.osKeyEvent.IsUp())
+			if (triggersOnKeyUp == key.osKeyEvent.IsUp())
 			{
 				switch (key.osKeyEvent.VKey)
 				{

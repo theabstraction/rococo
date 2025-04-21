@@ -280,22 +280,22 @@ namespace ANON
 			switch (keyEvent.osKeyEvent.VKey)
 			{
 			case IO::VirtualKeys::VKCode_PGUP:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_PGDOWN:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_UP:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(-1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(-1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_DOWN:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_HOME:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-100, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-100, *this);
 				break;
 			case IO::VirtualKeys::VKCode_END:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(100, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(100, *this);
 				break;
 			default:
 				return EGREventRouting::NextHandler;

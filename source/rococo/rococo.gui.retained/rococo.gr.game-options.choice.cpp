@@ -136,7 +136,7 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
-			if (!ke.osKeyEvent.IsUp())
+			if (ke.osKeyEvent.IsUp())
 			{
 				return EGREventRouting::NextHandler;
 			}

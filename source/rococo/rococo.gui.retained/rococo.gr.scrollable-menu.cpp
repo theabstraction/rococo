@@ -94,6 +94,7 @@ namespace GRANON
 			button->SetTextSurface(EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_TEXT);
 			button->SetFontId(buttonFontId);
 			button->Panel().SetPanelWatcher(&watcher);
+			button->TriggerOnKeyDown();
 
 			GRControlMetaData metaData;
 			metaData.stringData = name;

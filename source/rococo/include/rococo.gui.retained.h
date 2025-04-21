@@ -880,6 +880,9 @@ namespace Rococo::Gui
 
 		virtual void SetStretchImage(bool isStretched) = 0;
 
+		// By default buttons are triggered when the ENTER key is raised. Calling this method ensures that a trigger is is made only when the key is pressed
+		virtual void TriggerOnKeyDown() = 0;
+
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 
 		virtual [[nodiscard]] Vec2i ImageSpan() const = 0;
