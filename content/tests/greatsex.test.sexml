@@ -57,6 +57,8 @@
 	(Panel.ExpandH)
 	(Panel.ExpandV)
 	
+	([] Panel.Navigate OptionCategories GameOptionsInnerDiv GameOptionsFinalization)
+	
 	(Colour.Container.Top.Left Transparent)
 	(Colour.Container.Bottom.Right Transparent)
 	
@@ -127,7 +129,7 @@
 		:
 		
 		(Div 
-			(Panel.Description OptionsTabs)
+			(Panel.Description OptionCategories)
 			(Panel.Layout TopToBottom)
 			(Panel.AcceptsFocus)
 			(Panel.FixedWidth 20%)
@@ -193,15 +195,16 @@
 		)
 		
 		(Div
-			(Panel.Description "OptionsTabScreen")
+			(Panel.Description GameOptionsOuterDiv)
 			(Panel.Layout LeftToRight)
 			(Panel.ExpandH)
 			(Panel.ExpandV)
 			(Colour.Container.Background Transparent)
 			:
 			
-			// A veiwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
+			// A viewwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 			(Div
+				(Panel.Description GameOptionsInnerDiv)
 				(Colour.Container.Background Translucent)
 				(Colour.Container.Top.Left White)
 				(Colour.Container.Bottom.Right LightGrey)
@@ -266,6 +269,7 @@
 	)
 	
 	(Div
+		(Panel.Description GameOptionsFinalization)
 		(Panel.FixedHeight 60)
 		(Panel.ExpandH)
 		(Panel.AcceptsFocus)

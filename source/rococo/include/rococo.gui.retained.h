@@ -563,6 +563,12 @@ namespace Rococo::Gui
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
+		// Add a descendant panel.desc to the list of navigation targets. The first matching description is taken to be the target
+		virtual void AddNavigationTarget(cstr target) = 0;
+
+		// Reserve enough space for [nTargets]
+		virtual void ReserveNavigationTargets(int nTargets) = 0;
+
 		// Append a useful debugging string to the builder
 		virtual void AppendDesc(Strings::StringBuilder& sb) = 0;
 
@@ -678,6 +684,9 @@ namespace Rococo::Gui
 		virtual IGRPanelWatcher* SetPanelWatcher(IGRPanelWatcher* newWatcher) = 0;
 
 		virtual EGREventRouting RouteToParent(GRWidgetEvent& ev) = 0;
+
+		virtual cstr GetNextNavigationTarget(cstr panelDesc) = 0;
+		virtual cstr GetPreviousNavigationTarget(cstr panelDesc) = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)

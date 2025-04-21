@@ -58,6 +58,68 @@ namespace GRANON
 			refCount = 1;
 		}
 
+		std::vector<HString> navigationTargets;
+
+		void AddNavigationTarget(cstr target) override
+		{
+			navigationTargets.push_back(target);
+		}
+
+		void ReserveNavigationTargets(int nTargets) override
+		{
+			if (nTargets > 0) navigationTargets.reserve((size_t) nTargets);
+		}
+
+		int GetNavigationIndex(cstr panelDesc) const
+		{
+			int index = -1;
+
+			for (int i = 0; i < (int)navigationTargets.size(); i++)
+			{
+				if (Eq(navigationTargets[i], panelDesc))
+				{
+					index = i;
+				}
+			}
+
+			return index;
+		}
+
+		cstr GetNextNavigationTarget(cstr panelDesc) override
+		{
+			if (navigationTargets.empty())
+			{
+				return nullptr;
+			}
+
+			int index = GetNavigationIndex(panelDesc);
+			if (index == -1)
+			{
+				index = 0;
+			}
+			else
+			{
+				index = (index + 1) % (int)navigationTargets.size();
+			}
+
+			return navigationTargets[index];
+		}
+
+		cstr GetPreviousNavigationTarget(cstr panelDesc) override
+		{
+			int index = GetNavigationIndex(panelDesc);
+			if (index <= 0)
+			{
+				index = (int)navigationTargets.size() - 1;
+			}
+			else
+			{
+				index = (index - 1) % (int)navigationTargets.size();
+			}
+
+			return navigationTargets[index];
+		}
+
 		void SetClippingPanel(IGRPanel* panel) override
 		{
 			this->clippingPanel = static_cast<IGRPanelSupervisor*>(panel);

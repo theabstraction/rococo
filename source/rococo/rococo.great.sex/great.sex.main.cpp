@@ -555,6 +555,19 @@ namespace Rococo::GreatSex
 				panel.Add(EGRPanelFlags::AcceptsFocus);
 			}
 
+			void OnAttribute_Navigate(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				auto& items = AsStringList(value);
+
+				panel.ReserveNavigationTargets(items.NumberOfElements());
+
+				for (int i = 0; i < items.NumberOfElements(); ++i)
+				{
+					cstr item = items[i];
+					panel.AddNavigationTarget(item);
+				}
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -681,6 +694,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.RectStyle"] = &GreatSexGenerator::OnAttribute_RectStyle;
 					attributeHandlers["Panel.CornerRadius"] = &GreatSexGenerator::OnAttribute_CornerRadius;
 					attributeHandlers["Panel.AcceptsFocus"] = &GreatSexGenerator::OnAttribute_AcceptsFocus;
+					attributeHandlers["Panel.Navigate"] = &GreatSexGenerator::OnAttribute_Navigate;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)
