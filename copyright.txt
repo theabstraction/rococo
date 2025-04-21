@@ -21,3 +21,4 @@ of deprecated builds.
 
 A release of a scripting language host for Unreal Engine is planned for the near future. I will announce licensing terms closer to the time.
 
+If any of the terms in this copyright is unclear or unspecified, then contact me for written clarification.
