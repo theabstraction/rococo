@@ -9,7 +9,7 @@ Hyperverse is a private commercial development. The software is neither free nor
 
 
 Gui Retained - GR- is open source and free for use outside of commercial game engines as long as the projects it is used in take no revenue, including, but not limited to,
-revenues from advertising and microtransactions. It is free for use when MHOST or MPLAT are the principle game engine / library platforms. Branching is forbidden.
+revenues from advertising and microtransactions. It is free for use when MHOST or MPLAT are the principle game engine / library platforms. Branching is forbidden in any case.
 
 A release for Unreal Engine is imminent, at which time I will announce licensing terms for applications to use GR on that platform.
 
