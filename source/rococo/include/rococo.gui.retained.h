@@ -555,6 +555,12 @@ namespace Rococo::Gui
 		BANNER
 	};
 
+	struct DescAndIndex
+	{
+		cstr desc;
+		int index;
+	};
+
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
@@ -682,8 +688,8 @@ namespace Rococo::Gui
 
 		virtual EGREventRouting RouteToParent(GRWidgetEvent& ev) = 0;
 
-		virtual cstr GetNextNavigationTarget(cstr panelDesc) = 0;
-		virtual cstr GetPreviousNavigationTarget(cstr panelDesc) = 0;
+		virtual DescAndIndex GetNextNavigationTarget(cstr panelDesc) = 0;
+		virtual DescAndIndex GetPreviousNavigationTarget(cstr panelDesc) = 0;
 
 		// Returns the text description for the panel. Used for debugging and navigation. The pointer may be invalidated by use of other methods in the API
 		virtual cstr Desc() const = 0;

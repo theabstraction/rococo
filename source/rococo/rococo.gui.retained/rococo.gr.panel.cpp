@@ -88,39 +88,43 @@ namespace GRANON
 			return index;
 		}
 
-		cstr GetNextNavigationTarget(cstr panelDesc) override
+		DescAndIndex GetNextNavigationTarget(cstr panelDesc) override
 		{
 			if (navigationTargets.empty())
 			{
-				return nullptr;
+				return { nullptr , -1 };
 			}
 
-			int index = GetNavigationIndex(panelDesc);
-			if (index == -1)
+			int index;
+
+			int foundIndex = GetNavigationIndex(panelDesc);
+			if (foundIndex == -1)
 			{
 				index = 0;
 			}
 			else
 			{
-				index = (index + 1) % (int)navigationTargets.size();
+				index = (foundIndex + 1) % (int)navigationTargets.size();
 			}
 
-			return navigationTargets[index];
+			return { navigationTargets[index], foundIndex };
 		}
 
-		cstr GetPreviousNavigationTarget(cstr panelDesc) override
+		DescAndIndex GetPreviousNavigationTarget(cstr panelDesc) override
 		{
-			int index = GetNavigationIndex(panelDesc);
-			if (index <= 0)
+			int index;
+
+			int foundIndex = GetNavigationIndex(panelDesc);
+			if (foundIndex <= 0)
 			{
 				index = (int)navigationTargets.size() - 1;
 			}
 			else
 			{
-				index = (index - 1) % (int)navigationTargets.size();
+				index = (foundIndex - 1) % (int)navigationTargets.size();
 			}
 
-			return navigationTargets[index];
+			return { navigationTargets[index], foundIndex };
 		}
 
 		IGRPanel* FindDescendantByDesc(cstr desc)
@@ -1315,8 +1319,8 @@ namespace Rococo::Gui
 			return &panel;
 		}
 
-		cstr nextTarget = panel.GetNextNavigationTarget(nullptr);
-		auto* targetPanel = panel.FindDescendantByDesc(nextTarget);
+		DescAndIndex nextTarget = panel.GetNextNavigationTarget(nullptr);
+		auto* targetPanel = panel.FindDescendantByDesc(nextTarget.desc);
 		if (targetPanel != nullptr)
 		{
 			targetPanel->Focus();

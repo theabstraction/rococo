@@ -309,35 +309,52 @@ namespace Rococo::Gui
 		}
 	}
 
+	static void SetNewFocus(IGRPanel& panel, bool nextRatherThanPrevious)
+	{
+		DescAndIndex target = nextRatherThanPrevious ? panel.GetNextNavigationTarget(nullptr) : panel.GetPreviousNavigationTarget(nullptr);
+		if (target.desc)
+		{
+			auto* targetPanel = panel.FindDescendantByDesc(target.desc);
+			if (targetPanel)
+			{
+				TrySetDeepFocus(*targetPanel);
+				return;
+			}
+
+			RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__ "Unknown navigation target: %s. Source (%s)", target.desc, panel.Desc());
+		}
+
+		TrySetDeepFocus(panel);
+	}
+
 	ROCOCO_GUI_RETAINED_API void SetFocusElseRotateFocusToNextSibling(IGRPanel& panel, bool nextRatherThanPrevious)
 	{
 		int64 focusId = panel.Root().GR().GetFocusId();
 		if (focusId == -1)
 		{
-			TrySetDeepFocus(panel);
+			SetNewFocus(panel, nextRatherThanPrevious);
 			return;
 		}
 
 		auto* focusWidget = panel.Root().GR().FindWidget(focusId);
 		if (focusWidget == nullptr)
 		{
-			IGRPanel* focusPanel = TrySetDeepFocus(panel);
-			if (!focusPanel)
-			{
-				panel.Root().GR().SetFocus(-1);
-				return;
-			}
-
-			focusWidget = &focusPanel->Widget();
+			SetNewFocus(panel, nextRatherThanPrevious);
+			return;
 		}
 
 		cstr desc = focusWidget->Panel().Desc();
-		cstr nextTarget = nextRatherThanPrevious ? panel.GetNextNavigationTarget(desc) : panel.GetPreviousNavigationTarget(desc);
-		auto* nextPanel = panel.FindDescendantByDesc(nextTarget);
-		if (nextPanel)
+		DescAndIndex nextTarget = nextRatherThanPrevious ? panel.GetNextNavigationTarget(desc) : panel.GetPreviousNavigationTarget(desc);
+		if (nextTarget.index >= 0)
 		{
-			TrySetDeepFocus(*nextPanel);
-			return;
+			auto* nextPanel = panel.FindDescendantByDesc(nextTarget.desc);
+			if (nextPanel)
+			{
+				TrySetDeepFocus(*nextPanel);
+				return;
+			}
+
+			RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__ "Unknown navigation target: %s. Source (%s)", nextTarget.desc, panel.Desc());
 		}
 
 		RotateFocusToNextSibling(*focusWidget, nextRatherThanPrevious);
