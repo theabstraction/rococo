@@ -1018,7 +1018,7 @@ namespace GRANON
 			return parentOffset;
 		}
 
-		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer) override
+		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer, int64 focusId) override
 		{
 			if (!widget || isCollapsed)
 			{
@@ -1046,6 +1046,11 @@ namespace GRANON
 				{
 					extraRenderer->PostRender(*this, clipRect, g);
 				}
+
+				if (focusId == this->uniqueId)
+				{
+					root.GR().RenderFocus(*this, g, clipRect);
+				}
 			}
 
 			for (auto* child : children)
@@ -1053,7 +1058,7 @@ namespace GRANON
 				GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
 				if (childClipRect.IsNormalized())
 				{
-					child->RenderRecursive(g, childClipRect, isRenderingFirstLayer);
+					child->RenderRecursive(g, childClipRect, isRenderingFirstLayer, focusId);
 				}
 			}
 		}

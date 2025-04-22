@@ -55,12 +55,23 @@ void RunMessageLoop(IGRClientWindow& client)
 void TestGreatSex(IGRClientWindow& client);
 void TestPropertyEditor(IGRClientWindow& client);
 
+struct FocusRenderer : Gui::IGRSystemSubRenderer
+{
+	void Render(IGRPanel& panel, IGRRenderContext& g, const GuiRect& clipRect) override
+	{
+		g.EnableScissors(clipRect);
+		g.DrawRect(panel.AbsRect(), RGBAb(255,255,0, 32), panel.RectStyle(), panel.CornerRadius());
+		g.DisableScissors();
+	}
+} s_FocusRenderer;
+
 int MainProtected()
 {
 	GR::Win32::GRMainFrameConfig config;
 	AutoFree<GR::Win32::IGRMainFrameWindowSupervisor> mainFrame = GR::Win32::CreateGRMainFrameWindow(NULL, config);
 	auto& client = mainFrame->Client();
 	client.BindStandardXBOXControlsToVKeys();
+	client.GRSystem().SetFocusOverlayRenderer(&s_FocusRenderer);
 	client.LinkScene(TestScene());
 	TestGreatSex(client);
 	// TestPropertyEditor(client);

@@ -702,7 +702,7 @@ namespace Rococo::Gui
 		virtual void ClearChildren() = 0;
 		virtual void GarbageCollectRecursive() = 0;
 		virtual void Layout() = 0;
-		virtual void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer) = 0;
+		virtual void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer, int64 focusId) = 0;
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& ce, bool filterChildrenByParentRect) = 0;
 		virtual void BuildWidgetCallstackRecursiveUnderPoint(Vec2i point, IGRPanelEventBuilder& wb) = 0;
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
@@ -1201,6 +1201,11 @@ namespace Rococo::Gui
 		virtual EGREventRouting OnNavigate(EGRNavigationDirective directive) = 0;
 	};
 
+	ROCOCO_INTERFACE IGRSystemSubRenderer
+	{
+		virtual void Render(IGRPanel & panel, IGRRenderContext & g, const GuiRect& clipRect) = 0;
+	};
+
 	// Highest level of the retained GUI manages frames, frame render order, event routing, visibility, building and rendering
 	ROCOCO_INTERFACE IGRSystem
 	{
@@ -1233,9 +1238,13 @@ namespace Rococo::Gui
 
 		// Route posted messages to the event handler. This should be called periodically outside of any GR locked sections, such as GR event handlers or rendering routines
 		virtual void DispatchMessages() = 0;
-		
+
 		// Renders the list of frames
 		virtual void RenderAllFrames(IGRRenderContext& g) = 0;
+
+		virtual void RenderFocus(IGRPanel& panel, IGRRenderContext& g, const GuiRect& clipRect) = 0;
+
+		virtual void SetFocusOverlayRenderer(IGRSystemSubRenderer* subRenderer) = 0;
 
 		virtual [[nodiscard]] IGRPanelRoot& Root() = 0;
 

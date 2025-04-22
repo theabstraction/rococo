@@ -246,13 +246,13 @@ namespace ANON
 
 			for (auto& d : frameDescriptors)
 			{
-				d.panel->RenderRecursive(g, screenDimensions, true);
+				d.panel->RenderRecursive(g, screenDimensions, true, focusId);
 				g.DisableScissors();
 			}
 
 			for (auto* panel : deferredRenderQueue)
 			{
-				panel->RenderRecursive(g, screenDimensions, false);
+				panel->RenderRecursive(g, screenDimensions, false, focusId);
 				g.DisableScissors();
 			}
 
@@ -270,6 +270,21 @@ namespace ANON
 			deferredRenderQueue.clear();
 
 			RenderDebugInfo(g);
+		}
+
+		IGRSystemSubRenderer* focusOverlayRenderer = nullptr;
+
+		void RenderFocus(IGRPanel& panel, IGRRenderContext& g, const GuiRect& clipRect) override
+		{
+			if (focusOverlayRenderer)
+			{
+				focusOverlayRenderer->Render(panel, g, clipRect);
+			}
+		}
+
+		void SetFocusOverlayRenderer(IGRSystemSubRenderer* subRenderer)
+		{
+			focusOverlayRenderer = subRenderer;
 		}
 
 		void RenderDebugInfo(IGRRenderContext& g)
@@ -574,22 +589,26 @@ namespace ANON
 			return result;
 		}
 
+		IGRWidgetSupervisor* TopMostFrame()
+		{
+			if (frameDescriptors.empty())
+			{
+				return nullptr;
+			}
+
+			auto& topMost = frameDescriptors.back();
+			auto& frame = static_cast<IGRWidgetSupervisor&>(topMost.frame->Widget());
+			return &frame;
+		}
+
 		EGREventRouting RouteKeyEventToWindowsUnderCursor(GRKeyEvent& keyEvent)
 		{
 			keypressCallstack.clear();
 
 			if (!TryAppendWidgetsUnderCursorCallstack(keypressCallstack) || keypressCallstack.empty())
 			{
-				if (!frameDescriptors.empty())
-				{
-					auto& topMost = frameDescriptors.back();
-					auto& frameManager = static_cast<IGRWidgetManager&>(topMost.frame->Widget());
-					if (frameManager.OnKeyEvent(keyEvent) == EGREventRouting::Terminate)
-					{
-						return EGREventRouting::Terminate;
-					}
-				}
-				return EGREventRouting::NextHandler;
+				IGRWidgetManager* frame = TopMostFrame();
+				return frame ? frame->OnKeyEvent(keyEvent) : EGREventRouting::NextHandler;
 			}
 
 			for (auto i = keypressCallstack.rbegin(); i != keypressCallstack.rend(); ++i)
