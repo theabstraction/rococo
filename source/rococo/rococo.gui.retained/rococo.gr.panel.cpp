@@ -74,11 +74,14 @@ namespace GRANON
 		{
 			int index = -1;
 
-			for (int i = 0; i < (int)navigationTargets.size(); i++)
+			if (panelDesc != nullptr)
 			{
-				if (Eq(navigationTargets[i], panelDesc))
+				for (int i = 0; i < (int)navigationTargets.size(); i++)
 				{
-					index = i;
+					if (Eq(navigationTargets[i], panelDesc))
+					{
+						index = i;
+					}
 				}
 			}
 
@@ -118,6 +121,33 @@ namespace GRANON
 			}
 
 			return navigationTargets[index];
+		}
+
+		IGRPanel* FindDescendantByDesc(cstr desc)
+		{
+			if (desc == nullptr)
+			{
+				return nullptr;
+			}
+
+			for (auto child : children)
+			{
+				if (Eq(child->desc, desc))
+				{
+					return child;
+				}
+			}
+
+			for (auto child : children)
+			{
+				IGRPanel* candidate = child->FindDescendantByDesc(desc);
+				if (candidate)
+				{
+					return candidate;
+				}
+			}
+
+			return nullptr;
 		}
 
 		void SetClippingPanel(IGRPanel* panel) override
@@ -177,6 +207,11 @@ namespace GRANON
 		void AppendDesc(Strings::StringBuilder& sb) override
 		{
 			sb.AppendFormat("%s (id %lld)", desc.c_str(), Id());
+		}
+
+		cstr Desc() const override
+		{
+			return desc;
 		}
 
 		void SetDesc(cstr text) override
@@ -1237,15 +1272,14 @@ namespace Rococo::Gui
 	{
 		va_list args;
 		va_start(args, format);
-		char desc[256];
-		Strings::StackStringBuilder sb(desc, sizeof desc);
-		panel.AppendDesc(sb);
 
 		char message[1024];
-		strcpy_s(message, desc);
-		Strings::SafeVFormat(message + strlen(desc), sizeof message - strlen(desc), format, args);
+		Strings::SafeVFormat(message, sizeof message, format, args);
 
-		RaiseError(panel, code, function, message);
+		char completeMessage[1280];
+		Strings::SafeFormat(completeMessage, "Panel(%s): %s", panel.Desc(), message);
+
+		RaiseError(panel, code, function, completeMessage);
 		va_end(args);
 	}
 
@@ -1279,6 +1313,14 @@ namespace Rococo::Gui
 		{
 			panel.Focus();
 			return &panel;
+		}
+
+		cstr nextTarget = panel.GetNextNavigationTarget(nullptr);
+		auto* targetPanel = panel.FindDescendantByDesc(nextTarget);
+		if (targetPanel != nullptr)
+		{
+			targetPanel->Focus();
+			return targetPanel;
 		}
 
 		int32 index = 0;

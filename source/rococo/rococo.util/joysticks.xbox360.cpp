@@ -120,7 +120,6 @@ namespace
 				mapKeyNameToVkCode["B"] = VK_PAD_B;
 				mapKeyNameToVkCode["X"] = VK_PAD_X;
 				mapKeyNameToVkCode["Y"] = VK_PAD_Y;
-				mapKeyNameToVkCode["Y"] = VK_PAD_Y;
 				mapKeyNameToVkCode["Shoulder.R"] = VK_PAD_RSHOULDER;
 				mapKeyNameToVkCode["Shoulder.L"] = VK_PAD_LSHOULDER;
 				mapKeyNameToVkCode["Trigger.R"] = VK_PAD_RTRIGGER;
@@ -163,9 +162,11 @@ namespace
 					return GetVKeyCode(keyName);
 				}
 
+				SetLastError(E_INVALIDARG);
 				return 0;
 			}
 
+			SetLastError(NO_ERROR);
 			return i->second;
 		}
 

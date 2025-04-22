@@ -1,3 +1,5 @@
+// For copyright, see copyright.txt in the Rococo root folder. All files in the Rococo repo that include this header are covered by it.
+
 #ifndef Rococo_TYPES_H
 #define Rococo_TYPES_H
 

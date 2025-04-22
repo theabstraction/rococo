@@ -128,7 +128,7 @@ namespace GRANON
 			case Rococo::IO::VirtualKeys::VKCode_TAB:
 				OnTab();
 				return EGREventRouting::Terminate;
-			case (uint16) Rococo::Gui::ESpecialVirtualKeys::REVERSE_TAB:
+			case Rococo::IO::VirtualKeys::VKCode_ANTITAB:
 				OnReverseTab();
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_ENTER:
@@ -329,6 +329,15 @@ namespace Rococo::Gui
 			}
 
 			focusWidget = &focusPanel->Widget();
+		}
+
+		cstr desc = focusWidget->Panel().Desc();
+		cstr nextTarget = nextRatherThanPrevious ? panel.GetNextNavigationTarget(desc) : panel.GetPreviousNavigationTarget(desc);
+		auto* nextPanel = panel.FindDescendantByDesc(nextTarget);
+		if (nextPanel)
+		{
+			TrySetDeepFocus(*nextPanel);
+			return;
 		}
 
 		RotateFocusToNextSibling(*focusWidget, nextRatherThanPrevious);

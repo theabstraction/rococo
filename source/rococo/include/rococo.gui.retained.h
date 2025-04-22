@@ -185,11 +185,6 @@ namespace Rococo::Gui
 		ANSI = 0
 	};
 
-	enum class ESpecialVirtualKeys
-	{
-		REVERSE_TAB = 0xFFA0
-	};
-
 	struct FontSpec
 	{
 		ECharSet CharSet = ECharSet::ANSI;
@@ -569,6 +564,8 @@ namespace Rococo::Gui
 		// Reserve enough space for [nTargets]
 		virtual void ReserveNavigationTargets(int nTargets) = 0;
 
+		virtual IGRPanel* FindDescendantByDesc(cstr desc) = 0;
+
 		// Append a useful debugging string to the builder
 		virtual void AppendDesc(Strings::StringBuilder& sb) = 0;
 
@@ -687,6 +684,9 @@ namespace Rococo::Gui
 
 		virtual cstr GetNextNavigationTarget(cstr panelDesc) = 0;
 		virtual cstr GetPreviousNavigationTarget(cstr panelDesc) = 0;
+
+		// Returns the text description for the panel. Used for debugging and navigation. The pointer may be invalidated by use of other methods in the API
+		virtual cstr Desc() const = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)

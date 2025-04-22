@@ -6,6 +6,7 @@
 // The frame element navigates up the owner branch until the frame is found and then sets the attributes specified in the sexml
 (Frame
 	(Colour.Container.Background Transparent)
+	([] Panel.Navigate OptionCategories GameOptionsInnerDiv GameOptionsFinalization)	
 )
 
 // The frame element navigates up the owner branch until the frame is found and then sets the attributes of the ClientArea specified in the sexml
@@ -56,8 +57,6 @@
 	// Expand the panel horizontally and vertically to match the parent.
 	(Panel.ExpandH)
 	(Panel.ExpandV)
-	
-	([] Panel.Navigate OptionCategories GameOptionsInnerDiv GameOptionsFinalization)
 	
 	(Colour.Container.Top.Left Transparent)
 	(Colour.Container.Bottom.Right Transparent)

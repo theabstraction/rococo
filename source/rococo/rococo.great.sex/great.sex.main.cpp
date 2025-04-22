@@ -559,7 +559,7 @@ namespace Rococo::GreatSex
 			{
 				auto& items = AsStringList(value);
 
-				panel.ReserveNavigationTargets(items.NumberOfElements());
+				panel.ReserveNavigationTargets((int) items.NumberOfElements());
 
 				for (int i = 0; i < items.NumberOfElements(); ++i)
 				{

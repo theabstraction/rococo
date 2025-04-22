@@ -22,6 +22,7 @@
 #include <rococo.great.sex.h>
 #include <Sexy.S-Parser.h>
 #include <vector>
+#include <rococo.vkeys.h>
 
 #pragma comment(lib, "Msimg32.lib")
 
@@ -2410,7 +2411,7 @@ namespace GRANON
 			MapXCCode("Back", VK_ESCAPE);
 			MapXCCode("A", VK_RETURN);
 			MapXCCode("Shoulder.R", VK_TAB);
-			MapXCCode("Shoulder.L", (uint16) Gui::ESpecialVirtualKeys::REVERSE_TAB);
+			MapXCCode("Shoulder.L", Rococo::IO::VirtualKeys::VKCode_ANTITAB);
 			MapXCCode("B", VK_SPACE);
 			MapXCCode("DPAD.U", VK_UP);
 			MapXCCode("DPAD.D", VK_DOWN);
