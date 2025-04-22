@@ -220,6 +220,11 @@ namespace GRANON
 		{
 			slider->SetPosition(scalarValue);
 		}
+
+		void SetHint(cstr text) override
+		{
+			panel.SetHint(text);
+		}
 	};
 
 	struct GRGameOptionsScalarFactory : IGRWidgetFactory

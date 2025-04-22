@@ -1217,7 +1217,65 @@ namespace GRANON
 				DrawRectEdge(caretRect, caretColour, caretColour, EGRRectStyle::SHARP, 0);
 			}
 		}
-		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+
+		void DrawParagraph(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		{
+			if (colour.alpha == 0)
+			{
+				return;
+			}
+
+			UseClipRect useClip(paintDC, lastScissorRect);
+
+			SelectFont(custodian, fontId, paintDC);
+
+			TEXTMETRICA tm;
+			GetTextMetricsA(paintDC, &tm);
+
+			RECT rect{ targetRect.left, targetRect.top, targetRect.right, targetRect.bottom };
+
+			if (alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom))
+			{
+				rect.top -= tm.tmInternalLeading;
+				rect.top += spacing.y;
+			}
+
+			if (!alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom))
+			{
+				rect.bottom -= spacing.y;
+			}
+
+			if (alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right))
+			{
+				rect.left += spacing.x;
+			}
+
+			if (alignment.HasSomeFlags(EGRAlignment::Right) && !alignment.HasSomeFlags(EGRAlignment::Left))
+			{
+				rect.right -= spacing.x;
+			}
+
+			if (alignment.HasAllFlags(EGRAlignment::VCentre))
+			{
+				rect.top -= (tm.tmInternalLeading >> 1);
+			}
+
+			UINT format = FormatWin32DrawTextAlignment(alignment);
+
+			if (!alignment.HasSomeFlags(EGRAlignment::AutoFonts))
+			{
+				format += DT_END_ELLIPSIS;
+			}
+
+			format += DT_NOPREFIX;
+			format += DT_NOCLIP;
+
+			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
+			DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format);
+			SetTextColor(paintDC, oldColour);
+		}
+
+		void DrawText(GRFontId fontId, const GuiRect & targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring & text, RGBAb colour)
 		{
 			if (colour.alpha == 0)
 			{

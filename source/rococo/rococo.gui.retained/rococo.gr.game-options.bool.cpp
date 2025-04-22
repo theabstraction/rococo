@@ -168,6 +168,11 @@ namespace GRANON
 		{
 			UNUSED(boolValue);
 		}
+
+		void SetHint(cstr text) override
+		{
+			panel.SetHint(text);
+		}
 	};
 
 	struct GRGameOptionsBoolFactory : IGRWidgetFactory

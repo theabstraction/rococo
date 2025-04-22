@@ -73,6 +73,7 @@ namespace Rococo::GreatSex
 			FontFactory onFont;
 			PortraitFactory onPortrait;
 			GradientFillFactory onGradientFill;
+			HintBoxFactory onHintBox;
 
 			Auto<ISParser> insertParser;
 
@@ -115,6 +116,7 @@ namespace Rococo::GreatSex
 				AddHandler("Font", onFont);
 				AddHandler("Portrait", onPortrait);
 				AddHandler("GradientFill", onGradientFill);
+				AddHandler("HintBox", onHintBox);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
@@ -568,6 +570,12 @@ namespace Rococo::GreatSex
 				}
 			}
 
+			void OnAttribute_Hint(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				auto& hint = AsString(value);
+				panel.SetHint(hint.c_str());
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -695,6 +703,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.CornerRadius"] = &GreatSexGenerator::OnAttribute_CornerRadius;
 					attributeHandlers["Panel.AcceptsFocus"] = &GreatSexGenerator::OnAttribute_AcceptsFocus;
 					attributeHandlers["Panel.Navigate"] = &GreatSexGenerator::OnAttribute_Navigate;
+					attributeHandlers["Panel.Hint"] = &GreatSexGenerator::OnAttribute_Hint;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)

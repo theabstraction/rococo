@@ -44,6 +44,13 @@
 	([] Mods Bold)
 )
 
+(Font 
+	(Id HintFont)
+	(Family Arial)
+	(Height 20)
+	([] Mods Bold)
+)
+
 (Portrait
 // Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
 	(Panel.Description OutermostDiv)
@@ -281,6 +288,7 @@
 		(Button
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
+			(Panel.Hint "Click to commit the option changes.")
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
@@ -291,6 +299,7 @@
 		(Button
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
+			(Panel.Hint "Click to revert the recently changed option changes.")
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
@@ -301,11 +310,20 @@
 		(Button
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
+			(Panel.Hint "Return to the game screen")
 			(#Recti Panel.Padding 5 3 5 3)
 			(FitTextV)
 			(FitTextH)
 			(Font SubOptionTitleFont)
 			(Text Back)	
+		)
+		
+		(HintBox
+			(Panel.ExpandH)
+			(Panel.ExpandV)
+			(#Vec2i Text.Spacing 8 0)
+			(Text.Alignment Left)
+			(Text.Font HintFont)
 		)
 	)
 )

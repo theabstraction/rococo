@@ -223,6 +223,18 @@ namespace GRANON
 			desc = text;
 		}
 
+		HString hint;
+
+		void SetHint(cstr text) override
+		{
+			hint = text;
+		}
+
+		cstr Hint() const override
+		{
+			return hint;
+		}
+
 		bool HasFlag(EGRPanelFlags flag) const override
 		{
 			return (flags & (int64)flag) != 0;

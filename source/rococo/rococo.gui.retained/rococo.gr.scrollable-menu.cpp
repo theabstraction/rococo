@@ -81,7 +81,7 @@ namespace GRANON
 			viewport->SetMovePageScale(0.5);
 		}
 
-		void AddOption(cstr name, cstr caption) override
+		void AddOption(cstr name, cstr caption, cstr hint) override
 		{
 			auto* button = &CreateButton(viewport->ClientArea().Widget());
 			button->Panel().SetExpandToParentHorizontally();
@@ -95,6 +95,7 @@ namespace GRANON
 			button->SetFontId(buttonFontId);
 			button->Panel().SetPanelWatcher(&watcher);
 			button->TriggerOnKeyDown();
+			button->Panel().SetHint(hint);
 
 			GRControlMetaData metaData;
 			metaData.stringData = name;
@@ -123,6 +124,36 @@ namespace GRANON
 		Vec2i LastComputedButtonSpan() const override
 		{
 			return watcher.lastButtonSpan;
+		}
+
+		cstr GetAncestorsHint()
+		{
+			for (auto* parent = panel.Parent(); parent != nullptr; parent = parent->Parent())
+			{
+				cstr hint = parent->Hint();
+				if (hint && *hint != 0)
+				{
+					return hint;
+				}
+			}
+
+			return nullptr;
+		}
+
+		void OnVisible() override
+		{
+			cstr rootHint = GetAncestorsHint();
+
+			for (auto& opt : options)
+			{
+				auto* hint = opt.button->Panel().Hint();
+				if (hint && StartsWith(hint, "$*$"))
+				{
+					char fullHint[1024];
+					SafeFormat(fullHint, "%s%s%s", rootHint, hint + 3, opt.value.c_str());
+					opt.button->Panel().SetHint(fullHint);
+				}
+			}
 		}
 
 		void SetOptionFont(GRFontId fontId) override

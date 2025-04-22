@@ -41,6 +41,8 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 	RunMessageLoop(client);
 }
 
+cstr GEN_HINT_FROM_PARENT_AND_CHOICE = "$*$: ";
+
 struct AudioOptions : IGameOptions
 {
 	OptionDatabase<AudioOptions> db;
@@ -65,6 +67,7 @@ struct AudioOptions : IGameOptions
 		inquiry.SetTitle("Music Volume");
 		inquiry.SetRange(0, 100.0);
 		inquiry.SetActiveValue(musicVolume);
+		inquiry.SetHint("Set music volume. 0 is off, 100.0 is maximum");
 	}
 
 	void SetMusicVolume(double value)
@@ -77,6 +80,7 @@ struct AudioOptions : IGameOptions
 		inquiry.SetTitle("FX Volume");
 		inquiry.SetRange(0, 100.0);
 		inquiry.SetActiveValue(fxVolume);
+		inquiry.SetHint("Set Special FX volume. 0 is off, 100.0 is maximum");
 	}
 
 	void SetFXVolume(double value)
@@ -89,6 +93,7 @@ struct AudioOptions : IGameOptions
 		inquiry.SetTitle("Narration Volume");
 		inquiry.SetRange(0, 100.0);
 		inquiry.SetActiveValue(narrationVolume);
+		inquiry.SetHint("Set narrator's voice volume. 0 is off, 100.0 is maximum");
 	}
 
 	void SetNarrationVolume(double value)
@@ -99,12 +104,13 @@ struct AudioOptions : IGameOptions
 	void GetSpeakerConfiguration(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Speaker Configuration");
-		inquiry.AddChoice("2", "2 (Stereo speakers)");
-		inquiry.AddChoice("2_1", "2.1 (Stereo + Subwoofer)");
-		inquiry.AddChoice("5_1", "5.1 Dolby Surround");
-		inquiry.AddChoice("7_1", "7.1 Dolby Surround");
-		inquiry.AddChoice("2H", "Stereo Headphones");
+		inquiry.AddChoice("2", "2 (Stereo speakers)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2_1", "2.1 (Stereo + Subwoofer)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("5_1", "5.1 Dolby Surround", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("7_1", "7.1 Dolby Surround", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2H", "Stereo Headphones", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(speakerConfig);
+		inquiry.SetHint("Set sound set-up.");
 	}
 
 	void SetSpeakerConfiguration(cstr choice)
@@ -149,10 +155,11 @@ struct GraphicsOptions: IGameOptions
 	void GetScreenMode(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Screen Mode");
-		inquiry.AddChoice("Fullscreen", "Fullscreen");
-		inquiry.AddChoice("Windowed", "Windowed");
-		inquiry.AddChoice("Fullscreen Windowed", "Fullscreen Windowed");
+		inquiry.AddChoice("Fullscreen", "Fullscreen", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("Windowed", "Windowed", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("Fullscreen Windowed", "Fullscreen Windowed", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(activeScreenMode);
+		inquiry.SetHint("Set screen mode");
 	}
 
 	void SetScreenMode(cstr choice)
@@ -164,6 +171,7 @@ struct GraphicsOptions: IGameOptions
 	{
 		inquiry.SetTitle("Fullscreen Anti-Aliasing");
 		inquiry.SetActiveValue(isFSAAEnabled);
+		inquiry.SetHint("Enable or disable full screen anti-aliasing");
 	}
 
 	void SetFSAA(bool value)
@@ -174,12 +182,13 @@ struct GraphicsOptions: IGameOptions
 	void GetShadowQuality(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Shadow Quality");
-		inquiry.AddChoice("1", "512 x 512 1pt (low)");
-		inquiry.AddChoice("2", "1024 x 1024 4pt (medium)");
-		inquiry.AddChoice("3", "1024 x 1024 16pt (high)");
-		inquiry.AddChoice("4", "2048 x 2048 4pt (very high)");
-		inquiry.AddChoice("5", "2048 x 2048 16pt (ultra)");
+		inquiry.AddChoice("1", "512 x 512 1pt (low)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2", "1024 x 1024 4pt (medium)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("3", "1024 x 1024 16pt (high)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("4", "2048 x 2048 4pt (very high)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("5", "2048 x 2048 16pt (ultra)" "*:");
 		inquiry.SetActiveChoice(shadowQuality);
+		inquiry.SetHint("Set the quality of shadows. Higher settings may reduce frame-rate");
 	}
 
 	void SetShadowQuality(cstr value)
@@ -190,12 +199,13 @@ struct GraphicsOptions: IGameOptions
 	void GetLandscapeQuality(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Landscape Quality");
-		inquiry.AddChoice("1", "Low");
-		inquiry.AddChoice("2", "Medium");
-		inquiry.AddChoice("3", "High");
-		inquiry.AddChoice("4", "Ultra");
-		inquiry.AddChoice("5", "Ultra (Experimental)");
+		inquiry.AddChoice("1", "Low", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2", "Medium", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("3", "High", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("4", "Ultra", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("5", "Ultra (Experimental)", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(landscapeQuality);
+		inquiry.SetHint("Set the quality of landscape rendering. Higher settings may reduce frame-rate");
 	}
 
 	void SetLandscapeQuality(cstr value)
@@ -206,12 +216,13 @@ struct GraphicsOptions: IGameOptions
 	void GetReflectionAlgorithm(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Reflection Algorithm");
-		inquiry.AddChoice("1", "Gloss (Minimal)");
-		inquiry.AddChoice("2", "Global Environmental Mapping (Low)");
-		inquiry.AddChoice("3", "Local Environmental Mapping (Medium)");
-		inquiry.AddChoice("4", "Dynamic Environmental Mapping (High)");
-		inquiry.AddChoice("5", "Raytracing (Ultra)");
+		inquiry.AddChoice("1", "Gloss (Minimal)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2", "Global Environmental Mapping (Low)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("3", "Local Environmental Mapping (Medium)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("4", "Dynamic Environmental Mapping (High)", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("5", "Raytracing (Ultra)", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(reflectionAlgorithm);
+		inquiry.SetHint("Set the quality of reflections. Higher settings may reduce frame-rate");
 	}
 
 	void SetReflectionAlgorithm(cstr value)
@@ -222,9 +233,10 @@ struct GraphicsOptions: IGameOptions
 	void GetActiveMonitor(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Active Monitor");
-		inquiry.AddChoice("1", "1 - 1920x1080");
-		inquiry.AddChoice("2", "2 - 3840x2160");
+		inquiry.AddChoice("1", "1 - 1920x1080", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2", "2 - 3840x2160", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(monitor);
+		inquiry.SetHint("Set which monitor to present the game in fullscreen");
 	}
 
 	void SetActiveMonitor(cstr value)
@@ -235,34 +247,35 @@ struct GraphicsOptions: IGameOptions
 	void GetFullscreenResolution(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Fullscreen Resolution");
-		inquiry.AddChoice("1.1920x1080", "1920 x 1080 60Hz");
-		inquiry.AddChoice("2.1920x1200", "1920 x 1200 60Hz");
-		inquiry.AddChoice("3.2560x1536", "2560 x 1536 60Hz");
-		inquiry.AddChoice("4.3840x2160", "3840 x 2160 60Hz");
-		inquiry.AddChoice("5.1366x768", "1366 x 768 60Hz");
-		inquiry.AddChoice("6.1280x1024", "1280 x 1024 60Hz");
-		inquiry.AddChoice("7.1024x768", "1024 x 768 60Hz");
-		inquiry.AddChoice("8.800x600", "800 x 600 60Hz");
-		inquiry.AddChoice("9.640x480", "640 x 480 60Hz");
-		inquiry.AddChoice("10.1920x1080", "1920 x 1080 144Hz");
-		inquiry.AddChoice("11.1920x1200", "1920 x 1200 144Hz");
-		inquiry.AddChoice("12.2560x1536", "2560 x 1536 144Hz");
-		inquiry.AddChoice("13.3840x2160", "3840 x 2160 144Hz");
-		inquiry.AddChoice("14.1366x768", "1366 x 768 144Hz");
-		inquiry.AddChoice("15.1280x1024", "1280 x 1024 144Hz");
-		inquiry.AddChoice("16.1024x768", "1024 x 768 144Hz");
-		inquiry.AddChoice("17.800x600", "800 x 600 144Hz");
-		inquiry.AddChoice("18.640x480", "640 x 480 144Hz");
-		inquiry.AddChoice("19.1920x1080", "1920 x 1080 200Hz");
-		inquiry.AddChoice("20.1920x1200", "1920 x 1200 200Hz");
-		inquiry.AddChoice("21.2560x1536", "2560 x 1536 200Hz");
-		inquiry.AddChoice("22.3840x2160", "3840 x 2160 200Hz");
-		inquiry.AddChoice("23.1366x768", "1366 x 768 200Hz");
-		inquiry.AddChoice("24.1280x1024", "1280 x 1024 200Hz");
-		inquiry.AddChoice("25.1024x768", "1024 x 768 200Hz");
-		inquiry.AddChoice("26.800x600", "800 x 600 200Hz");
-		inquiry.AddChoice("27.640x480", "640 x 480 200Hz");
+		inquiry.AddChoice("1.1920x1080", "1920 x 1080 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2.1920x1200", "1920 x 1200 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("3.2560x1536", "2560 x 1536 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("4.3840x2160", "3840 x 2160 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("5.1366x768", "1366 x 768 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("6.1280x1024", "1280 x 1024 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("7.1024x768", "1024 x 768 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("8.800x600", "800 x 600 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("9.640x480", "640 x 480 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("10.1920x1080", "1920 x 1080 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("11.1920x1200", "1920 x 1200 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("12.2560x1536", "2560 x 1536 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("13.3840x2160", "3840 x 2160 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("14.1366x768", "1366 x 768 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("15.1280x1024", "1280 x 1024 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("16.1024x768", "1024 x 768 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("17.800x600", "800 x 600 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("18.640x480", "640 x 480 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("19.1920x1080", "1920 x 1080 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("20.1920x1200", "1920 x 1200 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("21.2560x1536", "2560 x 1536 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("22.3840x2160", "3840 x 2160 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("23.1366x768", "1366 x 768 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("24.1280x1024", "1280 x 1024 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("25.1024x768", "1024 x 768 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("26.800x600", "800 x 600 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("27.640x480", "640 x 480 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(resolution);
+		inquiry.SetHint("Set full screen resolution and frame rate");
 	}
 
 	void SetFullscreenResolution(cstr choice)
@@ -273,12 +286,13 @@ struct GraphicsOptions: IGameOptions
 	void GetTextureQuality(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Texture Quality");
-		inquiry.AddChoice("1", "Low 256x256");
-		inquiry.AddChoice("2", "Medium 512x512");
-		inquiry.AddChoice("3", "High 1024x1024 ");
-		inquiry.AddChoice("4", "Very High 2048x2048");
-		inquiry.AddChoice("5", "Ultra 4096x2096");
+		inquiry.AddChoice("1", "Low 256x256", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2", "Medium 512x512", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("3", "High 1024x1024 ", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("4", "Very High 2048x2048", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("5", "Ultra 4096x2096", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(textureQuality);
+		inquiry.SetHint("Set the texture sizes. Higher settings may slow frame rate");
 	}
 
 	void SetTextureQuality(cstr choice)
@@ -289,12 +303,13 @@ struct GraphicsOptions: IGameOptions
 	void GetWaterQuality(IChoiceInquiry& inquiry)
 	{
 		inquiry.SetTitle("Water Quality");
-		inquiry.AddChoice("1", "Low - flat");
-		inquiry.AddChoice("2", "Medium - ripples");
-		inquiry.AddChoice("3", "High - ripples & refraction");
-		inquiry.AddChoice("4", "Very High - full physics");
-		inquiry.AddChoice("5", "Ultra - physics and reflections");
+		inquiry.AddChoice("1", "Low - flat", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("2", "Medium - ripples", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("3", "High - ripples & refraction", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("4", "Very High - full physics", GEN_HINT_FROM_PARENT_AND_CHOICE);
+		inquiry.AddChoice("5", "Ultra - physics and reflections", GEN_HINT_FROM_PARENT_AND_CHOICE);
 		inquiry.SetActiveChoice(waterQuality);
+		inquiry.SetHint("Set the quality of water rendering. Higher settings may slow frame rate");
 	}
 
 	void SetWaterQuality(cstr choice)

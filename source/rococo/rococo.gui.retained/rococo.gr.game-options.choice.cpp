@@ -197,14 +197,19 @@ namespace GRANON
 			return *this;
 		}
 
-		void AddChoice(cstr choiceName, cstr choiceText) override
+		void AddChoice(cstr choiceName, cstr choiceText, cstr hint) override
 		{
-			carousel->AddOption(choiceName, choiceText);
+			carousel->AddOption(choiceName, choiceText, hint);
 		}
 
 		void SetActiveChoice(cstr choiceName) override
 		{
 			carousel->SetActiveChoice(choiceName);
+		}
+
+		void SetHint(cstr text) override
+		{
+			panel.SetHint(text);
 		}
 	};
 

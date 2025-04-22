@@ -270,6 +270,8 @@ namespace Rococo::Gui
 		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;
 
 		virtual void DrawEditableText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) = 0;
+
+		virtual void DrawParagraph(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 		virtual void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) = 0;
 
 		virtual void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) = 0;
@@ -577,6 +579,12 @@ namespace Rococo::Gui
 
 		// Assign a useful debugging string to the panel.
 		virtual void SetDesc(cstr text) = 0;
+
+		// Assign a hint string to the panel, used for pop-up hints and hint boxes
+		virtual void SetHint(cstr text) = 0;
+
+		// Retrieve the current hint. If empty, returns an empty string
+		virtual cstr Hint() const = 0;
 
 		// Enumerate the panel and its ancestors for a colour, if none found returns the second argument (which defaults to bright red).
 		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState state, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
@@ -909,7 +917,7 @@ namespace Rococo::Gui
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
-		virtual void AddOption(cstr name, cstr caption) = 0;
+		virtual void AddOption(cstr name, cstr caption, cstr hint) = 0;
 		virtual void Advance(int delta) = 0;
 		virtual void FlipDropDown() = 0;
 		virtual void SetActiveChoice(cstr name) = 0;
@@ -925,8 +933,11 @@ namespace Rococo::Gui
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
-		virtual void AddOption(cstr name, cstr caption) = 0;
+		virtual void AddOption(cstr name, cstr caption, cstr hint) = 0;
 		virtual int ComputeDomainHeight() const = 0;
+
+		// Sent by the container to indicate it is about to be rendered for the first time after a period of invisibility
+		virtual void OnVisible() = 0;
 		virtual void SetOptionFont(GRFontId fontId) = 0;
 		virtual void SetOptionPadding(const GRAnchorPadding& padding) = 0;
 		virtual Vec2i LastComputedButtonSpan() const = 0;
@@ -1025,6 +1036,13 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual void SetTransparency(float f = 1.0f) = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetDivisionWithText : IGRWidgetDivision
+	{
+		virtual void SetAlignment(GRAlignmentFlags flags) = 0;
+		virtual void SetFont(GRFontId fontId) = 0;
+		virtual void SetSpacing(Vec2i spacing) = 0;
 	};
 
 	struct GRColumnSpec
@@ -1454,6 +1472,7 @@ namespace Rococo::Gui
 	// Factory functions for creating widgets. All call IGuiRetained::AddWidget(...) to add themselves to the GUI
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetDivisionWithText& CreateHintBox(IGRWidget& parent);
 
 	struct PropertyEditorSpec
 	{

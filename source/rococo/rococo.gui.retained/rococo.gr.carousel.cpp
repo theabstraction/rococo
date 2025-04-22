@@ -94,10 +94,10 @@ namespace GRANON
 			dropDown->Panel().SetRenderLast(true);
 		}
 
-		void AddOption(cstr name, cstr caption) override
+		void AddOption(cstr name, cstr caption, cstr hint) override
 		{
 			options.push_back({ name, caption });
-			dropDown->AddOption(name, caption);
+			dropDown->AddOption(name, caption, hint);
 		}
 
 		void Advance(int delta)
@@ -148,6 +148,7 @@ namespace GRANON
 		void ExpandDropDownAndNotify(Vec2i clickPosition)
 		{
 			dropDown->Panel().SetCollapsed(false);
+			dropDown->OnVisible();
 			TrySetDeepFocus(dropDown->Panel());
 
 			GRWidgetEvent we;

@@ -6,12 +6,15 @@ namespace Rococo::Game::Options
 {
 	ROCOCO_INTERFACE IInqiury
 	{
+		virtual void SetHint(cstr text) = 0;
 		virtual void SetTitle(cstr title) = 0;
 	};
 
 	ROCOCO_INTERFACE IChoiceInquiry : IInqiury
 	{
-		virtual void AddChoice(cstr choiceName, cstr choiceText) = 0;
+		// If hints are not defined they default to the choiceText
+		// If they are defined at the first character is *, then they use the parent hint, append the characters trailing * and then finally append the choice text.
+		virtual void AddChoice(cstr choiceName, cstr choiceText, cstr hint = nullptr) = 0;
 		virtual void SetActiveChoice(cstr choiceName) = 0;
 	};
 

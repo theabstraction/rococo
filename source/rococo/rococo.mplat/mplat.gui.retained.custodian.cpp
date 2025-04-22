@@ -307,6 +307,11 @@ namespace ANON
 			}
 		}
 
+		void DrawParagraph(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		{
+			DrawText(fontId, targetRect, alignment, spacing, text, colour);
+		}
+
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
 			UNUSED(targetRect);

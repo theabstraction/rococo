@@ -266,6 +266,56 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct HintBoxFactory: SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& hintDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto& hintBox = Rococo::Gui::CreateHintBox(parent);
+
+			Vec2i alignmentSpacing{ 0,0 };
+
+			auto* aTextSpacing = hintDirective.FindAttributeByName("Text.Spacing");
+			if (aTextSpacing)
+			{
+				alignmentSpacing = AsVec2i(aTextSpacing->Value());
+			}
+
+			hintBox.SetSpacing(alignmentSpacing);
+
+			auto* aTextAlignment = hintDirective.FindAttributeByName("Text.Alignment");
+			if (aTextAlignment)
+			{
+				cstr sAlign = AsString(aTextAlignment->Value()).c_str();
+
+				try
+				{
+					GRAlignmentFlags align(sAlign);
+					hintBox.SetAlignment(align);
+				}
+				catch (IException& ex)
+				{
+					Throw(aTextAlignment->S(), ex.Message());
+				}
+			}
+
+			auto* aFont = hintDirective.FindAttributeByName("Text.Font");
+			if (aFont)
+			{
+				cstr fontId = AsString(aFont->Value()).c_str();
+				auto font = generator.GetFont(fontId, hintDirective.S());
+				Gui::FontSpec spec;
+				spec.CharHeight = font.height;
+				spec.FontName = font.familyName;
+				spec.Bold = font.isBold;
+				spec.Italic = font.isItalic;
+				auto grId = GetCustodian(parent.Panel()).Fonts().BindFontId(spec);
+				hintBox.SetFont(grId);
+			}
+
+			generator.SetPanelAttributes(hintBox.Widget(), hintDirective);			
+		}
+	};
+
 	struct FontFactory : ISEXMLWidgetFactory
 	{
 		FontFactory()

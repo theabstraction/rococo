@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.viewport.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.portrait.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.gradient-fill.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.hintbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\source\rococo\rococo.gui.retained\gr.natvis" />
