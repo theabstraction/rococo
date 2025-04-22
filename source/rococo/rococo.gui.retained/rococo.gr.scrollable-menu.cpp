@@ -219,15 +219,16 @@ namespace GRANON
 			{
 			case EGRWidgetEventType::BUTTON_KEYPRESS_UP:
 				if (button.Panel().HasFocus())
-				{
-			
+				{		
 					switch (static_cast<IO::VirtualKeys::VKCode>(we.iMetaData))
 					{
+					case IO::VirtualKeys::VKCode_ANTITAB:
 					case IO::VirtualKeys::VKCode_UP:
 						RotateFocusToNextSibling(button, false);
 						return EGREventRouting::Terminate;
+					case IO::VirtualKeys::VKCode_TAB:
 					case IO::VirtualKeys::VKCode_DOWN:
-						RotateFocusToNextSibling(button, true);
+						RotateFocusToNextSibling(button, !GetCustodian(panel).Keys().IsCtrlPressed());
 						return EGREventRouting::Terminate;
 					case IO::VirtualKeys::VKCode_PGUP:		
 						OnFocusPageChange(-1);
