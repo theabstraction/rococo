@@ -580,7 +580,16 @@ namespace ANON
 
 			if (!TryAppendWidgetsUnderCursorCallstack(keypressCallstack) || keypressCallstack.empty())
 			{
-				return EGREventRouting::Terminate;
+				if (!frameDescriptors.empty())
+				{
+					auto& topMost = frameDescriptors.back();
+					auto& frameManager = static_cast<IGRWidgetManager&>(topMost.frame->Widget());
+					if (frameManager.OnKeyEvent(keyEvent) == EGREventRouting::Terminate)
+					{
+						return EGREventRouting::Terminate;
+					}
+				}
+				return EGREventRouting::NextHandler;
 			}
 
 			for (auto i = keypressCallstack.rbegin(); i != keypressCallstack.rend(); ++i)
