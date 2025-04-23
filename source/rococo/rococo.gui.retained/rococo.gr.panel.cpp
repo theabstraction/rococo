@@ -1330,6 +1330,11 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRPanel* TrySetDeepFocus(IGRPanel& panel)
 	{
+		if (panel.IsCollapsed())
+		{
+			return nullptr;
+		}
+
 		if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
 		{
 			panel.Focus();
