@@ -344,6 +344,141 @@
 					// The Generate attribute determines which options are used to generate the children
 					(Generate AudioOptions)
 				)
+				
+				(GameOptions 
+					(Panel.Description GameOptions.UI)
+				//	(Panel.Collapsed)
+					(Colour.Carousel.Top.Left LightGrey)
+					(Colour.Carousel.Bottom.Right LightGrey)
+					(Colour.Carousel.DropDown Black)
+					(Colour.GameOption.Top.Left Transparent)
+					(Colour.GameOption.Bottom.Right Transparent)
+					(Colour.GameOption.Background Transparent)
+					(Colour.GameOption.ChildSpacer DarkGrey)
+					(Colour.Label Transparent)
+					(Title.Style TitlesOnLeft)
+					(Title.Alignment Left)
+					(Title.Font SubOptionTitleFont)
+					(Panel.RectStyle Rounded)
+					(Panel.CornerRadius 8)
+					
+					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
+					(Title.HeightMultiplier 1.75)
+					
+					// Multiplies the title font height to yield the title x spacing.
+					(Title.XSpacingMultiplier 0.25)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Padding 40 2 40 4)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Button.Padding 4 4 4 4)
+					
+					// Determine which side of the control the numeric feedback is rendered at
+					(Scalar.Guage.Alignment Left)
+					
+					// Offset from alignment edge to guage
+					(#Vec2i Scalar.Guage.Spacing 4 4)
+					
+					// Gives the padding of the slider control slot to the slider control edges
+					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					
+					(Carousel.Font CarouselFont)
+					(Carousel.Button.Font CarouselFont)
+				
+					// The Generate attribute determines which options are used to generate the children
+					(Generate UIOptions)
+				)
+				
+				(GameOptions 
+					(Panel.Description GameOptions.Gameplay)
+				//	(Panel.Collapsed)
+					(Colour.Carousel.Top.Left LightGrey)
+					(Colour.Carousel.Bottom.Right LightGrey)
+					(Colour.Carousel.DropDown Black)
+					(Colour.GameOption.Top.Left Transparent)
+					(Colour.GameOption.Bottom.Right Transparent)
+					(Colour.GameOption.Background Transparent)
+					(Colour.GameOption.ChildSpacer DarkGrey)
+					(Colour.Label Transparent)
+					(Title.Style TitlesOnLeft)
+					(Title.Alignment Left)
+					(Title.Font SubOptionTitleFont)
+					(Panel.RectStyle Rounded)
+					(Panel.CornerRadius 8)
+					
+					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
+					(Title.HeightMultiplier 1.75)
+					
+					// Multiplies the title font height to yield the title x spacing.
+					(Title.XSpacingMultiplier 0.25)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Padding 40 2 40 4)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Button.Padding 4 4 4 4)
+					
+					// Determine which side of the control the numeric feedback is rendered at
+					(Scalar.Guage.Alignment Left)
+					
+					// Offset from alignment edge to guage
+					(#Vec2i Scalar.Guage.Spacing 4 4)
+					
+					// Gives the padding of the slider control slot to the slider control edges
+					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					
+					(Carousel.Font CarouselFont)
+					(Carousel.Button.Font CarouselFont)
+				
+					// The Generate attribute determines which options are used to generate the children
+					(Generate GameplayOptions)
+				)
+				
+				(GameOptions 
+					(Panel.Description GameOptions.Multiplayer)
+				//	(Panel.Collapsed)
+					(Colour.Carousel.Top.Left LightGrey)
+					(Colour.Carousel.Bottom.Right LightGrey)
+					(Colour.Carousel.DropDown Black)
+					(Colour.GameOption.Top.Left Transparent)
+					(Colour.GameOption.Bottom.Right Transparent)
+					(Colour.GameOption.Background Transparent)
+					(Colour.GameOption.ChildSpacer DarkGrey)
+					(Colour.Label Transparent)
+					(Title.Style TitlesOnLeft)
+					(Title.Alignment Left)
+					(Title.Font SubOptionTitleFont)
+					(Panel.RectStyle Rounded)
+					(Panel.CornerRadius 8)
+					
+					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
+					(Title.HeightMultiplier 1.75)
+					
+					// Multiplies the title font height to yield the title x spacing.
+					(Title.XSpacingMultiplier 0.25)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Padding 40 2 40 4)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Button.Padding 4 4 4 4)
+					
+					// Determine which side of the control the numeric feedback is rendered at
+					(Scalar.Guage.Alignment Left)
+					
+					// Offset from alignment edge to guage
+					(#Vec2i Scalar.Guage.Spacing 4 4)
+					
+					// Gives the padding of the slider control slot to the slider control edges
+					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					
+					(Carousel.Font CarouselFont)
+					(Carousel.Button.Font CarouselFont)
+				
+					// The Generate attribute determines which options are used to generate the children
+					(Generate MultiplayerOptions)
+				)
 			)
 			
 			(Div 

@@ -332,8 +332,172 @@ struct GraphicsOptions: IGameOptions
 	}
 };
 
+struct UIOptions : IGameOptions
+{
+	OptionDatabase<UIOptions> db;
+
+	IOptionDatabase& DB() override
+	{
+		return db;
+	}
+
+	double cursorResponsiveness = 3.0;
+	bool isYAxisInverted = false;
+
+	UIOptions() : db(*this)
+	{
+
+	}
+
+	void GetCursorResponsiveness(IScalarInquiry& inquiry)
+	{
+		inquiry.SetTitle("Screen Mode");
+		inquiry.SetRange(1, 10);
+		inquiry.SetActiveValue(cursorResponsiveness);
+		inquiry.SetHint("Set scaling on to mouse movement to cursor movement");
+	}
+
+	void SetCursorResponsiveness(double value)
+	{
+		cursorResponsiveness = value;
+	}
+
+	void GetInvertYAxis(IBoolInquiry& inquiry)
+	{
+		inquiry.SetTitle("Invert Y-Axis");
+		inquiry.SetActiveValue(isYAxisInverted);
+		inquiry.SetHint("Reverse the response to player ascent to the joystick direction");
+	}
+
+	void SetInvertYAxis(bool value)
+	{
+		isYAxisInverted = value;
+	}
+
+	void AddOptions(IGameOptionsBuilder& builder) override
+	{
+		ADD_GAME_OPTIONS(db, UIOptions, CursorResponsiveness)
+		ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
+		db.Build(builder);
+	}
+};
+
+struct GameplayOptions : IGameOptions
+{
+	OptionDatabase<GameplayOptions> db;
+
+	IOptionDatabase& DB() override
+	{
+		return db;
+	}
+
+	HString startDifficulty = "Easy";
+	HString gameDifficulty = "Easy";
+
+	GameplayOptions() : db(*this)
+	{
+
+	}
+
+	void GetStartingDifficulty(IChoiceInquiry& inquiry)
+	{
+		inquiry.SetTitle("Starting Difficulty");
+		inquiry.AddChoice("Easy", "Easy", "Recruits cannot die during training");
+		inquiry.AddChoice("Medium", "Medium", "Recruits have three lives to complete training");
+		inquiry.AddChoice("Hard", "Realistic", "Recruits can die during training");
+		inquiry.AddChoice("Ironman", "Ironman", "No save game slots during training");
+
+		inquiry.SetActiveChoice(startDifficulty);
+		inquiry.SetHint("Set the difficulty of the training mission");
+	}
+
+	void SetStartingDifficulty(cstr value)
+	{
+		startDifficulty = value;
+	}
+
+	void GetGameDifficulty(IChoiceInquiry& inquiry)
+	{
+		inquiry.SetTitle("Game Difficulty");
+		inquiry.AddChoice("Easy", "Easy", "On death you respawn at the last checkpoint");
+		inquiry.AddChoice("Medium", "Medium", "You respawn on death, but lose 25% xp");
+		inquiry.AddChoice("Hard", "Realistic", "No respawns on death");
+		inquiry.AddChoice("Ironman", "Ironman", "Save game deleted on death... and no respawn on death");
+
+		inquiry.SetActiveChoice(gameDifficulty);
+		inquiry.SetHint("Set the difficulty of the main game");
+	}
+
+	void SetGameDifficulty(cstr value)
+	{
+		gameDifficulty = value;
+	}
+
+	void AddOptions(IGameOptionsBuilder& builder) override
+	{
+		ADD_GAME_OPTIONS(db, GameplayOptions, StartingDifficulty)
+		ADD_GAME_OPTIONS(db, GameplayOptions, GameDifficulty)
+		db.Build(builder);
+	}
+};
+
+struct MultiplayerOptions : IGameOptions
+{
+	OptionDatabase<MultiplayerOptions> db;
+
+	IOptionDatabase& DB() override
+	{
+		return db;
+	}
+
+	bool hostGame = false;
+	bool useUDP = true;
+
+	MultiplayerOptions() : db(*this)
+	{
+
+	}
+
+	void GetHostGame(IBoolInquiry& inquiry)
+	{
+		inquiry.SetTitle("Host Game");
+		inquiry.SetActiveValue(hostGame);
+	}
+
+	void SetHostGame(bool value)
+	{
+		hostGame = value;
+	}
+
+	void GetUseUDP(IBoolInquiry& inquiry)
+	{
+		inquiry.SetTitle("UDP");
+		inquiry.SetActiveValue(useUDP);
+	}
+
+	void SetUseUDP(bool value)
+	{
+		useUDP = value;
+	}
+
+	void AddOptions(IGameOptionsBuilder& builder) override
+	{
+		ADD_GAME_OPTIONS(db, MultiplayerOptions, HostGame)
+		ADD_GAME_OPTIONS(db, MultiplayerOptions, UseUDP)
+		db.Build(builder);
+	}
+};
+
 GraphicsOptions s_GraphicsOptions;
 AudioOptions s_AudioOptions;
+UIOptions s_UIOptions;
+GameplayOptions s_gameplayOptions;
+MultiplayerOptions s_MultiplayerOptions;
+
+IGameOptions& GetUIOptions()
+{
+	return s_UIOptions;
+}
 
 IGameOptions& GetGraphicsOptions()
 {
@@ -343,6 +507,16 @@ IGameOptions& GetGraphicsOptions()
 IGameOptions& GetAudioOptions()
 {
 	return s_AudioOptions;
+}
+
+IGameOptions& GetGameplayOptions()
+{
+	return s_gameplayOptions;
+}
+
+IGameOptions& GetMultiplayerOptions()
+{
+	return s_MultiplayerOptions;
 }
 
 void TestGameOptions(IGRClientWindow& client)
