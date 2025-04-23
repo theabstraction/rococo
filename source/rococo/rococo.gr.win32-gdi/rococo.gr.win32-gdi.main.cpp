@@ -2439,6 +2439,7 @@ namespace GRANON
 
 				greatSex->AppendWidgetTreeFromSexML(s, frameWidget.ClientArea().Widget());
 
+				frameWidget.Panel().ClearAssociatedExpressions();
 				return true;
 			}
 			catch (ParseException& pex)

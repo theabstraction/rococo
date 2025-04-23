@@ -335,6 +335,7 @@ namespace Rococo::GreatSex
 			radio.SetDefaultButton(defaultButton.c_str());
 
 			generator.SetPanelAttributes(radio.Widget(), rbDirective);
+			generator.GenerateChildren(rbDirective, radio.Widget());
 		}
 	};
 
@@ -542,6 +543,17 @@ namespace Rococo::GreatSex
 				spec.Italic = font.isItalic;
 				auto grId = GetCustodian(parent.Panel()).Fonts().BindFontId(spec);
 				button.SetFontId(grId);
+			}
+
+			auto* aMeta = buttonDirective.FindAttributeByName("Meta");
+			if (aMeta)
+			{
+				cstr metaString = AsString(aMeta->Value()).c_str();
+
+				GRControlMetaData meta;
+				meta.intData = 0;
+				meta.stringData = metaString;
+				button.SetMetaData(meta, true);
 			}
 
 			auto* aFitText = buttonDirective.FindAttributeByName("FitTextH");

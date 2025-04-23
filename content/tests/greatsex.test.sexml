@@ -110,14 +110,7 @@
 		(Colour.Background Transparent)
 		(Colour.Container.Background Transparent)
 	)
-	
-	(RadioButtons
-		([] Group Button.UI Buttion.Graphics Buttion.Audio Button.Gameplay)
-		(Default Button.Graphics)
-		(Panel.FixedHeight 40)
-		(Panel.ExpandH)
-	)
-	
+		
 	// Divs are divisions with minimal implementation. They are used to layout controls horizontally or vertically and render a background and edge. They do little else
 	(Div 
 		// Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
@@ -141,7 +134,10 @@
 		(#Recti Panel.Padding 0 0 0 0)
 		:
 		
-		(Div 
+		(RadioButtons 
+			([] Group Button.UI Button.Graphics Button.Audio Button.Gameplay Button.Multiplayer)
+			(Default Button.Graphics)
+			
 			(Panel.Description OptionCategories)
 			(Panel.Layout TopToBottom)
 			(Panel.AcceptsFocus)
@@ -149,7 +145,7 @@
 			(Panel.ExpandV)
 			(Colour.Container.Background Transparent)
 			(Colour.Button.Shadow Black)
-			(Colour.Button Transparent)
+			(Colour.Button TabButtonBackground )
 			(Colour.Button.Edge.Top.Left TabButtonTopLeftHilight)
 			(Colour.Button.Edge.Bottom.Right TabButtonBottomRightHilight)
 			(Panel.ChildPadding 4)
@@ -157,7 +153,7 @@
 			:
 				
 			(Button
-				(Panel.Description Button.Graphics)
+				(Meta Button.Graphics)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -168,7 +164,7 @@
 			)
 			
 			(Button
-				(Panel.Description Button.UI)
+				(Meta Button.UI)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -179,7 +175,7 @@
 			)
 			
 			(Button
-				(Panel.Description Button.Audio)
+				(Meta Button.Audio)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -190,7 +186,7 @@
 			)
 			
 			(Button
-				(Panel.Description Button.Gameplay)
+				(Meta Button.Gameplay)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -201,7 +197,7 @@
 			)
 			
 			(Button
-				(Panel.Description Button.Multiplayer)
+				(Meta Button.Multiplayer)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)

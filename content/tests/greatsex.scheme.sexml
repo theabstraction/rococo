@@ -79,7 +79,7 @@
 	:
 	(Spec 
 		([] For pressed)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+		(Red 0)(Green 0)(Blue 0)(Alpha 255)
 	)
 	
 	(Spec 
@@ -94,7 +94,7 @@
 	
 	(Spec 
 		([] For pressed focused)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+		(Red 0)(Green 0)(Blue 0)(Alpha 255)
 	)
 	
 	(Spec 
@@ -123,7 +123,7 @@
 	:
 	(Spec 
 		([] For pressed)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+		(Red 0)(Green 0)(Blue 0)(Alpha 255)
 	)
 	
 	(Spec 
@@ -138,7 +138,7 @@
 	
 	(Spec 
 		([] For pressed focused)
-		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+		(Red 0)(Green 0)(Blue 0)(Alpha 255)
 	)
 	
 	(Spec 
@@ -159,6 +159,50 @@
 	(Spec 
 		([] For hovered)
 		(Red 128)(Green 128)(Blue 128)(Alpha 255)
+	)
+)
+
+(Colour 
+	(Id TabButtonBackground)
+	:
+	(Spec 
+		([] For pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 64)
+	)
+	
+	(Spec 
+		([] For focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For default)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 64)
+	)
+	
+	(Spec 
+		([] For hovered pressed)
+		(Red 0)(Green 0)(Blue 0)(Alpha 64)
+	)
+	
+	(Spec 
+		([] For hovered focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
+	)
+	
+	(Spec 
+		([] For hovered pressed focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 64)
+	)
+	
+	(Spec 
+		([] For hovered)
+		(Red 0)(Green 0)(Blue 0)(Alpha 0)
 	)
 )
 

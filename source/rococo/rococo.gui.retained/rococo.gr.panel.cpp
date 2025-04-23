@@ -192,6 +192,15 @@ namespace GRANON
 			return rectStyle;
 		}
 
+		void ClearAssociatedExpressions() override
+		{
+			associatedSExpression = nullptr;
+			for (auto* child : children)
+			{
+				child->ClearAssociatedExpressions();
+			}
+		}
+
 		const Sex::ISExpression* GetAssociatedSExpression() const override
 		{
 			return associatedSExpression;

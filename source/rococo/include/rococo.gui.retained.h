@@ -663,8 +663,13 @@ namespace Rococo::Gui
 		// Assign minimal span
 		virtual void SetMinimalSpan(Vec2i span) = 0;
 
+		// Called when associated expressions are no longer valid references
+		virtual void ClearAssociatedExpressions() = 0;
+
+		// Return the expression associated with the panel, or nullptr if none exist
 		virtual const Sex::ISExpression* GetAssociatedSExpression() const = 0;
 
+		// Set an expression to associate with this panel
 		virtual void SetAssociatedSExpression(Sex::cr_sex s) = 0;
 
 		// For some control clipping is done by a panel other than itself. This method allows the clipping panel to be selected
@@ -883,6 +888,8 @@ namespace Rococo::Gui
 
 		// Sets user meta data for the button
 		virtual IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData, bool isEventHandlerCPPOnly) = 0;
+
+		virtual IGRWidgetButton& SetPressedNoCallback(bool pressed) = 0;
 
 		// Sets the display text for the button
 		virtual IGRWidgetButton& SetTitle(cstr text) = 0;

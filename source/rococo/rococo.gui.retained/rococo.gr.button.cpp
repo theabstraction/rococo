@@ -405,6 +405,12 @@ namespace GRANON
 
 		bool substituteBetterFontAccordingly = false;
 
+		IGRWidgetButton& SetPressedNoCallback(bool pressed) override
+		{
+			isRaised = !pressed;
+			return *this;
+		}
+
 		IGRWidgetButton& SetFontId(GRFontId id, bool substituteBetterFontAccordingly) override
 		{
 			isDirty = true;

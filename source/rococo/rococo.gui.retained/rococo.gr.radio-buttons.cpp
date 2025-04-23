@@ -9,11 +9,14 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRRadioButtons : IGRWidgetRadioButtons, IGRWidgetSupervisor
+	struct GRRadioButtons : IGRWidgetRadioButtons, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 
 		float transparency = 1.0f;
+
+		HString defaultButtonString;
+		std::vector<HString> group;
 
 		GRRadioButtons(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -38,6 +41,88 @@ namespace GRANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		static IGRWidgetButton* FindButtonWithMeta(IGRPanel& panel, cstr metaString)
+		{
+			auto* button = Cast<IGRWidgetButton>(panel.Widget());
+			if (button)
+			{
+				if (Eq(button->MetaData().stringData, metaString))
+				{
+					return button;
+				}
+				else
+				{
+					return nullptr;
+				}
+			}
+
+			int nChildren = panel.EnumerateChildren(nullptr);
+			for (int i = 0; i < nChildren; i++)
+			{
+				auto* child = panel.GetChild(i);
+				button = FindButtonWithMeta(*child, metaString);
+				if (button)
+				{
+					return button;
+				}
+			}
+
+			return nullptr;
+		}
+
+		void MakeGroupExclusive(cstr defaultButton)
+		{
+			int nButtonsPressed = 0;
+
+			for (auto& member : group)
+			{
+				cstr meta = member.c_str();
+
+				IGRWidgetButton* button = FindButtonWithMeta(panel, meta);
+				if (!button)
+				{
+					RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find child with meta string: %s", meta);
+					return;
+				}
+
+				nButtonsPressed += button->ButtonFlags().isRaised ? 0 : 1;
+			}
+
+			if (nButtonsPressed != 1)
+			{
+				for (auto& member : group)
+				{
+					cstr meta = member.c_str();
+
+					IGRWidgetButton* button = FindButtonWithMeta(panel, meta);
+					if (!button)
+					{
+						RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find child with meta string: %s", meta);
+						return;
+					}
+
+					button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+					button->MakeToggleButton();
+					button->SetPressedNoCallback(Eq(defaultButton, meta));
+				}
+			}
+		}
+
+		void LayoutBeforeFit() override
+		{
+			MakeGroupExclusive(defaultButtonString);
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -74,8 +159,25 @@ namespace GRANON
 			);
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
+		EGREventRouting OnChildEvent(GRWidgetEvent& we, IGRWidget& src)
 		{
+			if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
+			{
+				auto* button = Cast<IGRWidgetButton>(src);
+				if (button)
+				{
+					cstr meta = button->MetaData().stringData;
+					for (auto& member : group)
+					{
+						if (Eq(meta, member))
+						{
+							MakeGroupExclusive(meta);
+							return EGREventRouting::Terminate;
+						}
+					}
+				}
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -86,6 +188,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return QueryForParticularInterface<IGRWidgetRadioButtons>(this, ppOutputArg, interfaceId);
 		}
 
@@ -93,9 +200,6 @@ namespace GRANON
 		{
 			return "GRRadioButtons";
 		}
-
-		HString defaultButton;
-		std::vector<HString> group;
 
 		void AddButtonToGroup(cstr description) override
 		{
@@ -107,14 +211,14 @@ namespace GRANON
 			group.push_back(description);
 		}
 
-		void SetDefaultButton(cstr description) override
+		void SetDefaultButton(cstr defaultButton) override
 		{
-			if (description == nullptr || *description == 0)
+			if (defaultButton == nullptr || *defaultButton == 0)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Blank [description]");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Blank [defaultButton]");
 			}
 
-			defaultButton = description;
+			defaultButtonString = defaultButton;
 		}
 	};
 
