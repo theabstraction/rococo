@@ -333,10 +333,16 @@ struct GraphicsOptions: IGameOptions
 };
 
 GraphicsOptions s_GraphicsOptions;
+AudioOptions s_AudioOptions;
 
 IGameOptions& GetGraphicsOptions()
 {
 	return s_GraphicsOptions;
+}
+
+IGameOptions& GetAudioOptions()
+{
+	return s_AudioOptions;
 }
 
 void TestGameOptions(IGRClientWindow& client)

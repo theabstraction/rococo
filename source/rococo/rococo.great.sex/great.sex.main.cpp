@@ -74,6 +74,7 @@ namespace Rococo::GreatSex
 			PortraitFactory onPortrait;
 			GradientFillFactory onGradientFill;
 			HintBoxFactory onHintBox;
+			RadioButtonsFactory onRadioButtons;
 
 			Auto<ISParser> insertParser;
 
@@ -117,6 +118,7 @@ namespace Rococo::GreatSex
 				AddHandler("Portrait", onPortrait);
 				AddHandler("GradientFill", onGradientFill);
 				AddHandler("HintBox", onHintBox);
+				AddHandler("RadioButtons", onRadioButtons);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
@@ -576,6 +578,16 @@ namespace Rococo::GreatSex
 				panel.SetHint(hint.c_str());
 			}
 
+			void OnAttribute_Collapsed(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				if (value.Type() != SEXMLValueType::Null)
+				{
+					Throw(value.S(), "No values permitted on a Collapsed attribute");
+				}
+				
+				panel.SetCollapsed(true);
+			}
+
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
 			{
 				if (Eq(item, "Horizontal") || Eq(item, "H"))
@@ -704,6 +716,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.AcceptsFocus"] = &GreatSexGenerator::OnAttribute_AcceptsFocus;
 					attributeHandlers["Panel.Navigate"] = &GreatSexGenerator::OnAttribute_Navigate;
 					attributeHandlers["Panel.Hint"] = &GreatSexGenerator::OnAttribute_Hint;
+					attributeHandlers["Panel.Collapsed"] = &GreatSexGenerator::OnAttribute_Collapsed;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)

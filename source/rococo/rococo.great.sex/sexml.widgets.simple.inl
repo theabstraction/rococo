@@ -316,6 +316,28 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct RadioButtonsFactory : SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& rbDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto& radio = Rococo::Gui::CreateRadioButtonsManager(parent);
+
+			Vec2i alignmentSpacing{ 0,0 };
+
+			auto& items = AsStringList(rbDirective["Group"]);	
+			for (int i = 0; i < items.NumberOfElements(); i++)
+			{
+				cstr item = items[i];
+				radio.AddButtonToGroup(item);
+			}
+
+			auto& defaultButton = AsString(rbDirective["Default"]);		
+			radio.SetDefaultButton(defaultButton.c_str());
+
+			generator.SetPanelAttributes(radio.Widget(), rbDirective);
+		}
+	};
+
 	struct FontFactory : ISEXMLWidgetFactory
 	{
 		FontFactory()

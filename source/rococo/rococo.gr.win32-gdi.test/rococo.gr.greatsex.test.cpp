@@ -19,6 +19,7 @@ void BuildUpperRightToolbar(IGRWidgetMainFrame& frame);
 void UseTestColourScheme(IGRWidgetMainFrame& frame);
 
 IGameOptions& GetGraphicsOptions();
+IGameOptions& GetAudioOptions();
 
 cstr textSexml = "!tests/greatsex.test.sexml";
 
@@ -39,6 +40,7 @@ void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 		void OnEvent(GreatSex::IGreatSexGenerator& generator) override
 		{
 			generator.AddOptions(GetGraphicsOptions(), "GraphicsOptions");
+			generator.AddOptions(GetAudioOptions(), "AudioOptions");
 		}
 	} onConstruct;
 

@@ -111,6 +111,13 @@
 		(Colour.Container.Background Transparent)
 	)
 	
+	(RadioButtons
+		([] Group Button.UI Buttion.Graphics Buttion.Audio Button.Gameplay)
+		(Default Button.Graphics)
+		(Panel.FixedHeight 40)
+		(Panel.ExpandH)
+	)
+	
 	// Divs are divisions with minimal implementation. They are used to layout controls horizontally or vertically and render a background and edge. They do little else
 	(Div 
 		// Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
@@ -150,6 +157,7 @@
 			:
 				
 			(Button
+				(Panel.Description Button.Graphics)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -160,6 +168,7 @@
 			)
 			
 			(Button
+				(Panel.Description Button.UI)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -170,6 +179,7 @@
 			)
 			
 			(Button
+				(Panel.Description Button.Audio)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -180,6 +190,7 @@
 			)
 			
 			(Button
+				(Panel.Description Button.Gameplay)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -190,6 +201,7 @@
 			)
 			
 			(Button
+				(Panel.Description Button.Multiplayer)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
 				(FitTextV)
@@ -223,6 +235,8 @@
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
+					(Panel.Collapsed)
+					(Panel.Description GameOptions.Graphics)
 					(Colour.Carousel.Top.Left LightGrey)
 					(Colour.Carousel.Bottom.Right LightGrey)
 					(Colour.Carousel.DropDown Black)
@@ -263,6 +277,51 @@
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate GraphicsOptions)
+				)
+				
+				(GameOptions 
+					(Panel.Description GameOptions.Audio)
+				//	(Panel.Collapsed)
+					(Colour.Carousel.Top.Left LightGrey)
+					(Colour.Carousel.Bottom.Right LightGrey)
+					(Colour.Carousel.DropDown Black)
+					(Colour.GameOption.Top.Left Transparent)
+					(Colour.GameOption.Bottom.Right Transparent)
+					(Colour.GameOption.Background Transparent)
+					(Colour.GameOption.ChildSpacer DarkGrey)
+					(Colour.Label Transparent)
+					(Title.Style TitlesOnLeft)
+					(Title.Alignment Left)
+					(Title.Font SubOptionTitleFont)
+					(Panel.RectStyle Rounded)
+					(Panel.CornerRadius 8)
+					
+					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
+					(Title.HeightMultiplier 1.75)
+					
+					// Multiplies the title font height to yield the title x spacing.
+					(Title.XSpacingMultiplier 0.25)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Padding 40 2 40 4)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Button.Padding 4 4 4 4)
+					
+					// Determine which side of the control the numeric feedback is rendered at
+					(Scalar.Guage.Alignment Left)
+					
+					// Offset from alignment edge to guage
+					(#Vec2i Scalar.Guage.Spacing 4 4)
+					
+					// Gives the padding of the slider control slot to the slider control edges
+					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					
+					(Carousel.Font CarouselFont)
+					(Carousel.Button.Font CarouselFont)
+				
+					// The Generate attribute determines which options are used to generate the children
+					(Generate AudioOptions)
 				)
 			)
 			

@@ -1,9 +1,10 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
-#include <string>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
+using namespace Rococo::Strings;
 
 namespace GRANON
 {

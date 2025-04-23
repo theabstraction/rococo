@@ -1394,4 +1394,9 @@ namespace Rococo::Gui
 		RGBAb bottomRightColour = panel.GetColour(bottomRight, edgeState);
 		rc.DrawRectEdge(panel.AbsRect(), topLeftColour, bottomRightColour);
 	}
+
+	ROCOCO_GUI_RETAINED_API cstr IGRWidget::InterfaceId()
+	{
+		return "IGRWidget";
+	}
 }

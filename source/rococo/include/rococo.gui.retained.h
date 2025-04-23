@@ -727,6 +727,7 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRWidget : IGRBase
 	{
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] cstr InterfaceId();
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 
@@ -748,11 +749,13 @@ namespace Rococo::Gui
 		virtual void OnSetConstantHeight(IGRPanel& panel, int height) = 0;
 		virtual void OnSetConstantWidth(IGRPanel& panel, int width) = 0;
 		virtual void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) = 0;
-		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] cstr InterfaceId();
 	};
 
 	ROCOCO_INTERFACE IGRWidgetManager : IGRWidget
 	{
+		ROCOCO_GUI_RETAINED_API static [[nodiscard]] cstr InterfaceId();
+
 		virtual EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
 		virtual EGREventRouting OnCursorClick(GRCursorEvent& ce) = 0;
 		virtual void OnCursorEnter() = 0;
@@ -927,6 +930,16 @@ namespace Rococo::Gui
 		virtual void SetDisableCarouselWhenDropDownVisible(bool isDisabledAccordingly) = 0;
 		virtual void SetFont(GRFontId fontId) = 0;
 		virtual void SetOptionPadding(GRAnchorPadding padding) = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetRadioButtons : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		virtual void AddButtonToGroup(cstr description) = 0;
+		virtual void SetDefaultButton(cstr description) = 0;
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetScrollableMenu : IGRBase
@@ -1560,6 +1573,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetMenuBar& CreateMenuBar(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateMenuButton(IGRWidget& parent, bool forSubmenu = false);
 	ROCOCO_GUI_RETAINED_API IGRWidgetCarousel& CreateCarousel(IGRWidget& parent, cstr leftImageRaised, cstr rightImageRaised, cstr leftImagePressed, cstr rightImagePressed);
+	ROCOCO_GUI_RETAINED_API IGRWidgetRadioButtons& CreateRadioButtonsManager(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetScrollableMenu& CreateScrollableMenu(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetSlider& CreateSlider(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetToolbar& CreateToolbar(IGRWidget& parent);
