@@ -339,6 +339,34 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct TabFactory : ISEXMLWidgetFactory
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& tabDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			cstr forMeta = AsString(tabDirective["For"]).c_str();
+			cstr toggles = AsString(tabDirective["Toggles"]).c_str();
+
+			auto* radio = Cast<IGRWidgetRadioButtons>(parent);
+			if (!radio)
+			{
+				Throw(tabDirective.S(), "Expecting parent of tab to be of type IGRWidgetRadioButtons");
+			}
+
+			radio->AddTab(forMeta, toggles);
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& directive) const override
+		{
+			auto* parent = directive.Parent();
+			if (parent == nullptr)
+			{
+				return false;
+			}
+
+			return Eq(parent->FQName(), "RadioButtons");
+		}
+	};
+
 	struct FontFactory : ISEXMLWidgetFactory
 	{
 		FontFactory()

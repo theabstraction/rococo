@@ -151,6 +151,11 @@
 			(Panel.ChildPadding 4)
 			(#Recti Panel.Padding 4 0 0 0)
 			:
+			
+			(Tab 
+				(For Button.Graphics)
+				(Toggles GameOptions.Graphics)
+			)
 				
 			(Button
 				(Meta Button.Graphics)
@@ -161,6 +166,11 @@
 				(#Vec2i Text.Spacing 8 0)
 				(Text.Alignment Left)
 				(Text Graphics)
+			)
+			
+			(Tab 
+				(For Button.UI)
+				(Toggles GameOptions.UI)
 			)
 			
 			(Button
@@ -174,6 +184,11 @@
 				(Text UI)	
 			)
 			
+			(Tab 
+				(For Button.Audio)
+				(Toggles GameOptions.Audio)
+			)
+			
 			(Button
 				(Meta Button.Audio)
 				(#Recti Panel.Padding 8 0 0 8)
@@ -185,6 +200,11 @@
 				(Text Audio)	
 			)
 			
+			(Tab 
+				(For Button.Gameplay)
+				(Toggles GameOptions.Gameplay)
+			)
+			
 			(Button
 				(Meta Button.Gameplay)
 				(#Recti Panel.Padding 8 0 0 8)
@@ -194,6 +214,11 @@
 				(#Vec2i Text.Spacing 8 0)
 				(Text.Alignment Left)
 				(Text Gameplay)	
+			)
+			
+			(Tab 
+				(For Button.Multiplayer)
+				(Toggles GameOptions.Multiplayer)
 			)
 			
 			(Button

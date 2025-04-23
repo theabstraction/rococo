@@ -75,6 +75,7 @@ namespace Rococo::GreatSex
 			GradientFillFactory onGradientFill;
 			HintBoxFactory onHintBox;
 			RadioButtonsFactory onRadioButtons;
+			TabFactory onTab;
 
 			Auto<ISParser> insertParser;
 
@@ -119,6 +120,7 @@ namespace Rococo::GreatSex
 				AddHandler("GradientFill", onGradientFill);
 				AddHandler("HintBox", onHintBox);
 				AddHandler("RadioButtons", onRadioButtons);
+				AddHandler("Tab", onTab);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);

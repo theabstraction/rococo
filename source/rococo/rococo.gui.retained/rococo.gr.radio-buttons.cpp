@@ -1,6 +1,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <rococo.strings.h>
+#include <rococo.hashtable.h>
 #include <vector>
 
 using namespace Rococo;
@@ -17,6 +18,7 @@ namespace GRANON
 
 		HString defaultButtonString;
 		std::vector<HString> group;
+		stringmap<HString> mapMetaToToggler;
 
 		GRRadioButtons(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -41,6 +43,39 @@ namespace GRANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		static IGRPanel* FindPanelWithDescription(IGRPanel& panel, cstr description)
+		{
+			if (Eq(panel.Desc(), description))
+			{
+				return &panel;
+			}
+
+			int nChildren = panel.EnumerateChildren(nullptr);
+			for (int i = 0; i < nChildren; i++)
+			{
+				auto* child = panel.GetChild(i);
+				IGRPanel* result = FindPanelWithDescription(*child, description);
+				if (result)
+				{
+					return result;
+				}
+			}
+
+			return nullptr;
+		}
+
+		IGRPanel* FindPanelWithDescription(cstr description)
+		{
+			auto* owner = Gui::FindOwner(Widget());
+			if (!owner)
+			{
+				return nullptr;
+			}
+
+			auto& framePanel = owner->Panel();
+			return FindPanelWithDescription(framePanel, description);
 		}
 
 		static IGRWidgetButton* FindButtonWithMeta(IGRPanel& panel, cstr metaString)
@@ -105,7 +140,20 @@ namespace GRANON
 
 					button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 					button->MakeToggleButton();
-					button->SetPressedNoCallback(Eq(defaultButton, meta));
+
+					bool isPressed = Eq(defaultButton, meta);
+					button->SetPressedNoCallback(isPressed);
+
+					auto i = mapMetaToToggler.find(meta);
+					if (i != mapMetaToToggler.end())
+					{
+						cstr toggleDescription = i->second.c_str();
+						auto* panel = FindPanelWithDescription(toggleDescription);
+						if (panel)
+						{
+							panel->SetCollapsed(!isPressed);
+						}
+					}
 				}
 			}
 		}
@@ -209,6 +257,25 @@ namespace GRANON
 			}
 
 			group.push_back(description);
+		}
+
+		void AddTab(cstr meta, cstr toggleTarget) override
+		{
+			if (meta == nullptr || toggleTarget == nullptr)
+			{
+				RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Null argument");
+			}
+
+			for (auto& member : group)
+			{
+				if (Eq(member, meta))
+				{
+					mapMetaToToggler[meta] = toggleTarget;
+					return;
+				}
+			}
+
+			RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Could not find tab for %s toggling %s in the radio button group list", meta, toggleTarget);
 		}
 
 		void SetDefaultButton(cstr defaultButton) override

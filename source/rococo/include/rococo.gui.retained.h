@@ -944,6 +944,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual void AddButtonToGroup(cstr description) = 0;
+		virtual void AddTab(cstr meta, cstr toggleTarget) = 0;
 		virtual void SetDefaultButton(cstr description) = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
