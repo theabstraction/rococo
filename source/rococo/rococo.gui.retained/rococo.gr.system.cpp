@@ -601,6 +601,26 @@ namespace ANON
 			return &frame;
 		}
 
+		EGREventRouting RouteKeyEventToPanelThenAncestors(IGRPanel& panel, GRKeyEvent& keyEvent)
+		{
+			auto result = static_cast<IGRWidgetManager&>(panel.Widget()).OnKeyEvent(keyEvent);
+			if (result == EGREventRouting::Terminate)
+			{
+				return result;
+			}
+
+			for (auto* ancestor = panel.Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+			{
+				result = RouteKeyEventToPanelThenAncestors(*ancestor, keyEvent);
+				if (result == EGREventRouting::Terminate)
+				{
+					return result;
+				}
+			}
+
+			return EGREventRouting::NextHandler;
+		}
+
 		EGREventRouting RouteKeyEventToWindowsUnderCursor(GRKeyEvent& keyEvent)
 		{
 			keypressCallstack.clear();
@@ -611,16 +631,12 @@ namespace ANON
 				return frame ? frame->OnKeyEvent(keyEvent) : EGREventRouting::NextHandler;
 			}
 
-			for (auto i = keypressCallstack.rbegin(); i != keypressCallstack.rend(); ++i)
+			if (keypressCallstack.empty())
 			{
-				auto& widgetManager = static_cast<IGRWidgetManager&>(i->panel->Widget());
-				if (widgetManager.OnKeyEvent(keyEvent) == EGREventRouting::Terminate)
-				{
-					return EGREventRouting::Terminate;
-				}
+				return EGREventRouting::NextHandler;
 			}
 
-			return EGREventRouting::NextHandler;
+			return RouteKeyEventToPanelThenAncestors(*keypressCallstack.back().panel, keyEvent);
 		}
 
 		EGREventRouting RouteKeyEvent(GRKeyEvent& keyEvent) override
@@ -638,19 +654,7 @@ namespace ANON
 				return EGREventRouting::Terminate;
 			}
 
-			auto& widgetManager = static_cast<IGRWidgetManager&>(*focusWidget);
-			EGREventRouting routing = widgetManager.OnKeyEvent(keyEvent);
-			if (routing == EGREventRouting::NextHandler)
-			{
-				auto* frame = FindOwner(*focusWidget);
-				if (frame && *focusWidget != frame->Widget())
-				{
-					auto& frameManager = static_cast<IGRWidgetManager&>(frame->Widget());
-					return frameManager.OnKeyEvent(keyEvent);
-				}
-			}
-
-			return routing;
+			return RouteKeyEventToPanelThenAncestors(focusWidget->Panel(), keyEvent);
 		}
 
 		IGRCustodian& Custodian() override

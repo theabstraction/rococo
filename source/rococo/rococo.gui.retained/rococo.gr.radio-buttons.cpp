@@ -2,6 +2,8 @@
 #include <rococo.maths.i32.h>
 #include <rococo.strings.h>
 #include <rococo.hashtable.h>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 #include <vector>
 
 using namespace Rococo;
@@ -109,7 +111,7 @@ namespace GRANON
 
 		void MakeGroupExclusive(cstr defaultButton)
 		{
-			int nButtonsPressed = 0;
+			defaultButtonString = defaultButton;
 
 			for (auto& member : group)
 			{
@@ -122,37 +124,20 @@ namespace GRANON
 					return;
 				}
 
-				nButtonsPressed += button->ButtonFlags().isRaised ? 0 : 1;
-			}
+				button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
+				button->MakeToggleButton();
 
-			if (nButtonsPressed != 1)
-			{
-				for (auto& member : group)
+				bool isPressed = Eq(defaultButton, meta);
+				button->SetPressedNoCallback(isPressed);
+
+				auto i = mapMetaToToggler.find(meta);
+				if (i != mapMetaToToggler.end())
 				{
-					cstr meta = member.c_str();
-
-					IGRWidgetButton* button = FindButtonWithMeta(panel, meta);
-					if (!button)
+					cstr toggleDescription = i->second.c_str();
+					auto* panel = FindPanelWithDescription(toggleDescription);
+					if (panel)
 					{
-						RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find child with meta string: %s", meta);
-						return;
-					}
-
-					button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
-					button->MakeToggleButton();
-
-					bool isPressed = Eq(defaultButton, meta);
-					button->SetPressedNoCallback(isPressed);
-
-					auto i = mapMetaToToggler.find(meta);
-					if (i != mapMetaToToggler.end())
-					{
-						cstr toggleDescription = i->second.c_str();
-						auto* panel = FindPanelWithDescription(toggleDescription);
-						if (panel)
-						{
-							panel->SetCollapsed(!isPressed);
-						}
+						panel->SetCollapsed(!isPressed);
 					}
 				}
 			}
@@ -229,8 +214,40 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
+			if (ke.osKeyEvent.IsUp())
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			auto focusId = panel.Root().GR().GetFocusId();
+			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			if (!focusWidget)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			auto* buttonFocus = Cast<IGRWidgetButton>(*focusWidget);
+			if (!buttonFocus)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			switch (ke.osKeyEvent.VKey)
+			{
+			case Rococo::IO::VirtualKeys::VKCode_UP:
+			case Rococo::IO::VirtualKeys::VKCode_LEFT:
+			case Rococo::IO::VirtualKeys::VKCode_PGUP:
+				Gui::RotateFocusToNextSibling(*focusWidget, false);
+				return EGREventRouting::Terminate;
+			case Rococo::IO::VirtualKeys::VKCode_DOWN:
+			case Rococo::IO::VirtualKeys::VKCode_RIGHT:
+			case Rococo::IO::VirtualKeys::VKCode_PGDOWN:
+				Gui::RotateFocusToNextSibling(*focusWidget, true);
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 

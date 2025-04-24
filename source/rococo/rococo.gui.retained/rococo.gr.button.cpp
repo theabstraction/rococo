@@ -97,6 +97,8 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			panel.Focus();
+
 			if (ce.click.LeftButtonDown)
 			{
 				if (clickCriterion == EGRClickCriterion::OnDown)
@@ -209,9 +211,49 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
+		bool keyboardPrepped = false;
+
 		EGREventRouting OnKeyEvent(GRKeyEvent& key) override
 		{
-			if (triggersOnKeyUp == key.osKeyEvent.IsUp())
+			if (!triggersOnKeyUp)
+			{
+				keyboardPrepped = true;
+			}
+
+			if (triggersOnKeyUp)
+			{
+				if (!key.osKeyEvent.IsUp())
+				{
+					switch (key.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_ENTER:
+						keyboardPrepped = true;
+						return EGREventRouting::Terminate;
+					}
+				}
+				else
+				{
+					switch (key.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_ENTER:
+						if (keyboardPrepped)
+						{
+							keyboardPrepped = false;
+
+							SyncMinimalSpan();
+
+							if (panel.Root().CapturedPanelId() == panel.Id())
+							{
+								panel.Root().ReleaseCursor();
+							}
+
+							FireEvent(Centre(panel.AbsRect()));
+						}
+						return EGREventRouting::Terminate;
+					}
+				}
+			}
+			else if (!key.osKeyEvent.IsUp())
 			{
 				switch (key.osKeyEvent.VKey)
 				{
@@ -226,18 +268,18 @@ namespace GRANON
 					FireEvent(Centre(panel.AbsRect()));
 					return EGREventRouting::Terminate;
 				}
+			}
 
-				if (panel.HasFocus())
-				{
-					GRWidgetEvent keyEvent;
-					keyEvent.clickPosition = Centre(panel.AbsRect());
-					keyEvent.eventType = EGRWidgetEventType::BUTTON_KEYPRESS_UP;
-					keyEvent.iMetaData = key.osKeyEvent.VKey;
-					keyEvent.isCppOnly = true;
-					keyEvent.panelId = panel.Id();
-					keyEvent.sMetaData = GetImplementationTypeName();
-					return panel.NotifyAncestors(keyEvent, *this);
-				}
+			if (key.osKeyEvent.IsUp() && panel.HasFocus())
+			{
+				GRWidgetEvent keyEvent;
+				keyEvent.clickPosition = Centre(panel.AbsRect());
+				keyEvent.eventType = EGRWidgetEventType::BUTTON_KEYPRESS_UP;
+				keyEvent.iMetaData = key.osKeyEvent.VKey;
+				keyEvent.isCppOnly = true;
+				keyEvent.panelId = panel.Id();
+				keyEvent.sMetaData = GetImplementationTypeName();
+				return panel.NotifyAncestors(keyEvent, *this);
 			}
 
 			return EGREventRouting::NextHandler;
