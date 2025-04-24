@@ -2471,7 +2471,7 @@ namespace GRANON
 			MapXCCode("A", VK_RETURN);
 			MapXCCode("Shoulder.R", VK_TAB);
 			MapXCCode("Shoulder.L", Rococo::IO::VirtualKeys::VKCode_ANTITAB);
-			MapXCCode("B", VK_SPACE);
+			MapXCCode("B", VK_ESCAPE);
 			MapXCCode("DPAD.U", VK_UP);
 			MapXCCode("DPAD.D", VK_DOWN);
 			MapXCCode("DPAD.L", VK_LEFT);
