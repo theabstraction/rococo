@@ -76,6 +76,7 @@ namespace Rococo::GreatSex
 			HintBoxFactory onHintBox;
 			RadioButtonsFactory onRadioButtons;
 			TabFactory onTab;
+			IconFactory onIcon;
 
 			Auto<ISParser> insertParser;
 
@@ -121,6 +122,7 @@ namespace Rococo::GreatSex
 				AddHandler("HintBox", onHintBox);
 				AddHandler("RadioButtons", onRadioButtons);
 				AddHandler("Tab", onTab);
+				AddHandler("Icon", onIcon);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);

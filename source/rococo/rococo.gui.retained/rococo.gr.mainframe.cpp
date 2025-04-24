@@ -139,6 +139,11 @@ namespace GRANON
 		{
 			if (ke.osKeyEvent.IsUp())
 			{
+				switch (ke.osKeyEvent.VKey)
+				{
+				case Rococo::IO::VirtualKeys::VKCode_ESCAPE:
+					return OnEsc();
+				}
 				return EGREventRouting::NextHandler;
 			}
 
@@ -153,8 +158,6 @@ namespace GRANON
 			case Rococo::IO::VirtualKeys::VKCode_ENTER:
 				OnReturn();
 				return EGREventRouting::Terminate;
-			case Rococo::IO::VirtualKeys::VKCode_ESCAPE:
-				return OnEsc();
 			case Rococo::IO::VirtualKeys::VKCode_LEFT:
 				return Nav(EGRNavigationDirection::Left);
 			case Rococo::IO::VirtualKeys::VKCode_RIGHT:

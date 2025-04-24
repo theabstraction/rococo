@@ -84,6 +84,7 @@ namespace Rococo::GreatSex
 		{"Colour.Focus", EGRSchemeColourSurface::FOCUS_RECTANGLE },
 		{"Colour.EditText", EGRSchemeColourSurface::EDIT_TEXT },
 		{"Colour.Label", EGRSchemeColourSurface::LABEL_BACKGROUND },
+		{"Colour.Label.Shadow", EGRSchemeColourSurface::LABEL_SHADOW },
 
 		{"Colour.Splitter.Background", EGRSchemeColourSurface::SPLITTER_BACKGROUND },
 		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE },

@@ -348,8 +348,18 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
+			switch (ke.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_ESCAPE:
+				if (ke.osKeyEvent.IsUp())
+				{
+					CollapseDropDownAndNotify({ 0,0 });
+				}
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 

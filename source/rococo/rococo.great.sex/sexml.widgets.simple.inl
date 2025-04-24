@@ -357,6 +357,35 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct IconFactory : SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& iconDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto& icon = Rococo::Gui::CreateIcon(parent);
+
+			auto& imagePath = AsString(iconDirective["Image"]);
+			icon.SetImagePath(imagePath.c_str());
+
+			auto* presentation = iconDirective.FindAttributeByName("ScaleAgainstFixedHeight");
+			if (presentation)
+			{
+				icon.SetPresentation(EGRIconPresentation::ScaleAgainstFixedHeight);
+			}
+
+			auto* imagePadding = iconDirective.FindAttributeByName("Image.Padding");
+			if (imagePadding)
+			{
+				auto& rect = AsGuiRect(imagePadding->Value());
+
+				GRAnchorPadding padding{ rect.left, rect.right, rect.top, rect.bottom };
+				icon.SetImagePadding(padding);
+			}
+
+			generator.SetPanelAttributes(icon.Widget(), iconDirective);
+			generator.GenerateChildren(iconDirective, icon.Widget());
+		}
+	};
+
 	struct TabFactory : ISEXMLWidgetFactory
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& tabDirective, Rococo::Gui::IGRWidget& parent) override
@@ -564,6 +593,11 @@ namespace Rococo::GreatSex
 			{
 				label.FitTextV();
 			}
+
+			GRAlignmentFlags alignment;
+			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+
+			label.SetAlignment(alignment, { 0,0 });
 
 			generator.SetPanelAttributes(label.Widget(), textDirective);
 			generator.GenerateChildren(textDirective, label.Widget());

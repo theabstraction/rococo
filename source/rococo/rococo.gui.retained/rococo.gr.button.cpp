@@ -215,6 +215,11 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& key) override
 		{
+			if (key.osKeyEvent.VKey == IO::VirtualKeys::VKCode_ESCAPE)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
 			if (!triggersOnKeyUp)
 			{
 				keyboardPrepped = true;

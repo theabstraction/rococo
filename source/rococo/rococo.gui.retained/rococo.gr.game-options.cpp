@@ -145,6 +145,12 @@ namespace GRANON
 					}
 				}
 
+				auto* choice = Cast<IGRWidgetGameOptionsChoice>(carousel->Panel().Parent()->Widget());
+				if (choice)
+				{
+					choice->Panel().Focus();
+				}
+
 				return EGREventRouting::Terminate;
 			}
 

@@ -113,6 +113,8 @@ namespace GRANON
 
 			switch (ke.osKeyEvent.VKey)
 			{
+			case IO::VirtualKeys::VKCode_LEFT:
+			case IO::VirtualKeys::VKCode_RIGHT:
 			case IO::VirtualKeys::VKCode_PGUP:
 			case IO::VirtualKeys::VKCode_PGDOWN:
 			case IO::VirtualKeys::VKCode_HOME:

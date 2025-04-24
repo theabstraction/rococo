@@ -303,6 +303,7 @@ namespace Rococo::Gui
 		CONTAINER_BACKGROUND,
 		CONTAINER_TOP_LEFT,
 		LABEL_BACKGROUND,
+		LABEL_SHADOW,
 		CONTAINER_BOTTOM_RIGHT,
 		SCROLLER_BUTTON_BACKGROUND,
 		SCROLLER_BUTTON_TOP_LEFT,
@@ -1478,6 +1479,24 @@ namespace Rococo::Gui
 		virtual Vec2i ImageSpan() const = 0;
 	};
 
+	enum class EGRIconPresentation
+	{
+		// Expand the width to match the height multiplied by the aspect ratio of the embedded image
+		ScaleAgainstFixedHeight
+	};
+
+	ROCOCO_INTERFACE IGRWidgetIcon : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual IGRPanel& Panel() = 0;
+		virtual IGRWidget& Widget() = 0;
+
+		virtual IGRWidgetIcon& SetImagePath(cstr imagePath) = 0;
+		virtual Vec2i ImageSpan() const = 0;
+		virtual void SetImagePadding(const GRAnchorPadding& padding) = 0;
+		virtual void SetPresentation(EGRIconPresentation presentation) = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetGradientFill : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -1497,6 +1516,13 @@ namespace Rococo::Gui
 		// Indicates a widget tree has been built and the widgets should prep themselves. Here is a good time to throw exceptions.
 		// If the widget needs the invocation to function correctly then the widget implementor needs the tree builder to invoke PrepPanelAndDescendants
 		virtual void Prep() = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetFocusHandler : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual void OnFocusGained() = 0;
+		virtual void OnFocusLost() = 0;
 	};
 
 	struct IGREditorMicromanager;
@@ -1626,6 +1652,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetTable& CreateTable(IGRWidget& parent);
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetPortrait& CreatePortrait(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetIcon& CreateIcon(IGRWidget& parent);
 
 	// Implemented by various editor filters
 	ROCOCO_INTERFACE IGREditFilter

@@ -51,6 +51,14 @@
 	([] Mods Bold)
 )
 
+(Font 
+	(Id PromptFont)
+	(Family Arial)
+	(Height 20)
+	([] Mods Bold)
+)
+
+
 (Portrait
 // Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
 	(Panel.Description OutermostDiv)
@@ -67,6 +75,7 @@
 	
 	(Colour.Container.Top.Left Transparent)
 	(Colour.Container.Bottom.Right Transparent)
+	(Colour.Label.Shadow Transparent)
 	
 	(Image "!textures/test/AI-castle.jpg")
 	
@@ -559,6 +568,88 @@
 			(#Vec2i Text.Spacing 8 0)
 			(Text.Alignment Left)
 			(Text.Font HintFont)
+		)
+	)
+	
+	(Div
+		(Panel.Description ControlPrompt)
+		(Panel.FixedHeight 40)
+		(Panel.FixedWidth 80%)
+		(Colour.Container.Background Transparent)
+		(Colour.Label.Shadow Black)
+		:
+		(Icon 
+			(Panel.ExpandV)
+			(Image "!textures/xbox/dpad.NSEW.tiff")
+			(ScaleAgainstFixedHeight)
+		)
+		
+		(Label
+			// Search for the (Font... def) at the top of the file with the given Id
+			(Font PromptFont)
+			
+			(Colour.Label Transparent)
+			
+			// Specifies the text string displayed in the label
+			(Text "- navigate between panels, ")
+			
+			// Add top and bottom padding, so that when we fit vertically the text does not appear flush with the edges
+			(#Recti Panel.Padding 0 0 4 4)
+			
+			(Panel.ExpandV)
+			
+			// Expand the label horizontally to the full span of its parent
+			(Panel.FixedWidth 220)
+		)
+		
+		(Icon 
+			(Panel.ExpandV)
+			(#Recti Image.Padding 8 8 8 8)
+			(Image "!textures/xbox/button.A.tiff")
+			(ScaleAgainstFixedHeight)
+		)
+		
+		(Label
+			// Search for the (Font... def) at the top of the file with the given Id
+			(Font PromptFont)
+			
+			(Colour.Label Transparent)
+			
+			// Specifies the text string displayed in the label
+			(Text "- select panel, ")
+			
+			// Add top and bottom padding, so that when we fit vertically the text does not appear flush with the edges
+			(#Recti Panel.Padding 0 0 4 4)
+			
+			(Panel.ExpandV)
+			
+			// Expand the label horizontally to the full span of its parent
+			(Panel.FixedWidth 114)
+		)
+		
+		(Icon 
+			(Panel.ExpandV)
+			(#Recti Image.Padding 8 8 8 8)
+			(Image "!textures/xbox/button.B.tiff")
+			(ScaleAgainstFixedHeight)
+		)
+		
+		(Label
+			// Search for the (Font... def) at the top of the file with the given Id
+			(Font PromptFont)
+			
+			(Colour.Label Transparent)
+			
+			// Specifies the text string displayed in the label
+			(Text "- go back. ")
+			
+			// Add top and bottom padding, so that when we fit vertically the text does not appear flush with the edges
+			(#Recti Panel.Padding 0 0 4 4)
+			
+			(Panel.ExpandV)
+			
+			// Expand the label horizontally to the full span of its parent
+			(Panel.FixedWidth 84)
 		)
 	)
 )
