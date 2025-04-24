@@ -264,6 +264,57 @@ namespace GRANON
 			sb.AppendFormat("%s (id %lld)", desc.c_str(), Id());
 		}
 
+		void PrepPanelAndDescendantsRecursive(IGRPanel& owningPanel)
+		{
+			for (auto& target : navigationTargets)
+			{
+				auto* targetPanel = owningPanel.FindDescendantByDesc(target);
+				if (!targetPanel)
+				{
+					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find navigation target \"%s\"", target.c_str());
+					return;
+				}
+			}
+
+			for (auto& direction : directions)
+			{
+				if (direction.length() == 0)
+				{
+					continue;
+				}
+
+				auto* targetPanel = owningPanel.FindDescendantByDesc(direction);
+				if (!targetPanel)
+				{
+					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find direction target \"%s\"", direction.c_str());
+					return;
+				}
+			}
+
+			auto* initializer = Cast<IGRWidgetInitializer>(*widget);
+			if (initializer)
+			{
+				initializer->Prep();
+			}
+
+			for (auto* child : children)
+			{
+				child->PrepPanelAndDescendantsRecursive(owningPanel);
+			}
+		}
+
+		void PrepPanelAndDescendants() override
+		{
+			auto* owner = FindOwner(*widget);
+			if (!owner)
+			{
+				RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "No owner!");
+				return;
+			}
+
+			PrepPanelAndDescendantsRecursive(owner->Panel());
+		}
+
 		cstr Desc() const override
 		{
 			return desc;

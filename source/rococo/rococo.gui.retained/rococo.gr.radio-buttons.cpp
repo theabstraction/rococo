@@ -12,7 +12,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRRadioButtons : IGRWidgetRadioButtons, IGRWidgetSupervisor, IGRWidgetLayout
+	struct GRRadioButtons : IGRWidgetRadioButtons, IGRWidgetSupervisor, IGRWidgetLayout, IGRWidgetInitializer
 	{
 		IGRPanel& panel;
 
@@ -47,6 +47,29 @@ namespace GRANON
 			delete this;
 		}
 
+		void Prep() override
+		{
+			for (auto& i : mapMetaToToggler)
+			{
+				cstr meta = i.first;
+				cstr toggler = i.second.c_str();
+
+				IGRWidgetButton* button = FindButtonWithMeta(panel, meta);
+				if (!button)
+				{
+					RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find child with meta string: %s", meta);
+					return;
+				}
+
+				auto* togglePanel = FindPanelWithDescription(toggler);
+				if (!togglePanel)
+				{
+					RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find Panel.Description '%s' for meta: '%s'", toggler, meta);
+					return;
+				}
+			}
+		}
+
 		static IGRPanel* FindPanelWithDescription(IGRPanel& panel, cstr description)
 		{
 			if (Eq(panel.Desc(), description))
@@ -54,18 +77,7 @@ namespace GRANON
 				return &panel;
 			}
 
-			int nChildren = panel.EnumerateChildren(nullptr);
-			for (int i = 0; i < nChildren; i++)
-			{
-				auto* child = panel.GetChild(i);
-				IGRPanel* result = FindPanelWithDescription(*child, description);
-				if (result)
-				{
-					return result;
-				}
-			}
-
-			return nullptr;
+			return panel.FindDescendantByDesc(description);
 		}
 
 		IGRPanel* FindPanelWithDescription(cstr description)
@@ -271,7 +283,12 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			auto result = QueryForParticularInterface<IGRWidgetInitializer>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+			result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
 			if (result == EGRQueryInterfaceResult::SUCCESS)
 			{
 				return result;
@@ -342,6 +359,11 @@ namespace GRANON
 
 namespace Rococo::Gui
 {
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetInitializer::InterfaceId()
+	{
+		return "IGRWidgetInitializer";
+	}
+
 	ROCOCO_GUI_RETAINED_API cstr IGRWidgetRadioButtons::InterfaceId()
 	{
 		return "IGRWidgetRadioButtons";

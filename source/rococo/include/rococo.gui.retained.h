@@ -718,6 +718,9 @@ namespace Rococo::Gui
 
 		// Returns the text description for the panel. Used for debugging and navigation. The pointer may be invalidated by use of other methods in the API
 		virtual cstr Desc() const = 0;
+
+		// Prepare panel and its widget for use in the widget tree. An exception is thrown if a panel's internal state is inconsistent with the tree
+		virtual void PrepPanelAndDescendants() = 0;
 	};
 
 	// Interface used internally by the GUI retained implementation. Clients of the API only see IGRPanel(s)
@@ -1485,6 +1488,15 @@ namespace Rococo::Gui
 		virtual void SetBottomRight(RGBAb c) = 0;
 		virtual void SetTopLeft(RGBAb c) = 0;
 		virtual void SetTopRight(RGBAb c) = 0;
+	};
+
+	ROCOCO_INTERFACE IGRWidgetInitializer : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+
+		// Indicates a widget tree has been built and the widgets should prep themselves. Here is a good time to throw exceptions.
+		// Note that this only assists with initialization. If the widget needs the invocation then the widget implementor needs the tree builder to invoke PrepPanelAndDescendants
+		virtual void Prep() = 0;
 	};
 
 	struct IGREditorMicromanager;
