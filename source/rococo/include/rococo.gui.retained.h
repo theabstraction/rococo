@@ -1495,7 +1495,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		// Indicates a widget tree has been built and the widgets should prep themselves. Here is a good time to throw exceptions.
-		// Note that this only assists with initialization. If the widget needs the invocation then the widget implementor needs the tree builder to invoke PrepPanelAndDescendants
+		// If the widget needs the invocation to function correctly then the widget implementor needs the tree builder to invoke PrepPanelAndDescendants
 		virtual void Prep() = 0;
 	};
 
