@@ -128,7 +128,6 @@
 		// Expand the panel horizontally and vertically to match the parent.
 		(Panel.ExpandH)
 		(Panel.ExpandV)
-		(Panel.AcceptsFocus)
 		
 		// We dont need any padding here, so set all to zero
 		(#Recti Panel.Padding 0 0 0 0)
@@ -138,7 +137,8 @@
 			([] Group Button.UI Button.Graphics Button.Audio Button.Gameplay Button.Multiplayer)
 			(Navigate Vertical)
 			(Default Button.Graphics)
-			
+			(Panel.NavRight GameOptionsInnerDiv)
+			(Panel.NavDown GameOptionsFinalization)
 			(Panel.Description OptionCategories)
 			(Panel.Layout TopToBottom)
 			(Panel.AcceptsFocus)
@@ -159,6 +159,7 @@
 			)
 				
 			(Button
+				(Panel.NavRight GameOptionsInnerDiv)
 				(Meta Button.Graphics)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
@@ -175,6 +176,7 @@
 			)
 			
 			(Button
+				(Panel.NavRight GameOptionsInnerDiv)
 				(Meta Button.UI)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
@@ -191,6 +193,7 @@
 			)
 			
 			(Button
+				(Panel.NavRight GameOptionsInnerDiv)
 				(Meta Button.Audio)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
@@ -207,6 +210,7 @@
 			)
 			
 			(Button
+				(Panel.NavRight GameOptionsInnerDiv)
 				(Meta Button.Gameplay)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
@@ -223,6 +227,7 @@
 			)
 			
 			(Button
+				(Panel.NavRight GameOptionsInnerDiv)
 				(Meta Button.Multiplayer)
 				(#Recti Panel.Padding 8 0 0 8)
 				(Panel.ExpandH)
@@ -242,7 +247,7 @@
 			(Colour.Container.Background Transparent)
 			:
 			
-			// A viewwport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
+			// A viewport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 			(Div
 				(Panel.Description GameOptionsInnerDiv)
 				(Colour.Container.Background Translucent)
@@ -254,6 +259,8 @@
 				(Panel.AcceptsFocus)
 				(Panel.ExpandH)
 				(Panel.ExpandV)
+				(Panel.NavDown GameOptionsFinalization)
+				(Panel.NavLeft OptionCategories)
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
@@ -492,6 +499,8 @@
 	
 	(Div
 		(Panel.Description GameOptionsFinalization)
+		(Panel.NavUp OptionCategories)
+		(Panel.NavDown ButtonAccept)
 		(Panel.FixedHeight 60)
 		(Panel.ExpandH)
 		(Panel.AcceptsFocus)
@@ -502,6 +511,9 @@
 		:
 		
 		(Button
+			(Panel.NavUp GameOptionsFinalization)
+			(Panel.Description ButtonAccept)
+			(Panel.NavRight ButtonRevert)
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
 			(Panel.Hint "Click to commit the option changes.")
@@ -513,6 +525,10 @@
 		)
 		
 		(Button
+			(Panel.NavUp GameOptionsFinalization)
+			(Panel.NavLeft ButtonAccept)
+			(Panel.NavRight ButtonBack)
+			(Panel.Description ButtonRevert)
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
 			(Panel.Hint "Click to revert the recently changed option changes.")
@@ -524,6 +540,9 @@
 		)
 		
 		(Button
+			(Panel.NavUp GameOptionsFinalization)
+			(Panel.NavLeft ButtonRevert)
+			(Panel.Description ButtonBack)
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
 			(Panel.Hint "Return to the game screen")

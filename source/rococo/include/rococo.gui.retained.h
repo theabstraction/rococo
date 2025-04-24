@@ -563,14 +563,26 @@ namespace Rococo::Gui
 		int index;
 	};
 
+	enum class EGRNavigationDirection
+	{
+		None = 0, // This must come first
+		Left,
+		Right,
+		Up,
+		Down,
+		Count // This must come last
+	};
+
 	// Represents the underlying widget slot. This is a better mechanism than having a base widget, which imposes class derivation issues
 	ROCOCO_INTERFACE IGRPanel
 	{
 		// Add a descendant panel.desc to the list of navigation targets. The first matching description is taken to be the target
 		virtual void AddNavigationTarget(cstr target) = 0;
 
-		// Reserve enough space for [nTargets]
-		virtual void ReserveNavigationTargets(int nTargets) = 0;
+		// Set which panel description to search for when a direction change is made to the nagiagtion system
+		virtual IGRPanel& Set(EGRNavigationDirection direction, cstr desc) = 0;
+
+		virtual IGRPanel* Navigate(EGRNavigationDirection direction) = 0;
 
 		virtual IGRPanel* FindDescendantByDesc(cstr desc) = 0;
 

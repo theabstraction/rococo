@@ -62,12 +62,12 @@ namespace GRANON
 
 		void AddNavigationTarget(cstr target) override
 		{
+			if (navigationTargets.empty())
+			{
+				enum { INIT_NAVTARGET_SIZE = 8 };
+				navigationTargets.reserve(INIT_NAVTARGET_SIZE);
+			}
 			navigationTargets.push_back(target);
-		}
-
-		void ReserveNavigationTargets(int nTargets) override
-		{
-			if (nTargets > 0) navigationTargets.reserve((size_t) nTargets);
 		}
 
 		int GetNavigationIndex(cstr panelDesc) const
@@ -125,6 +125,48 @@ namespace GRANON
 			}
 
 			return { navigationTargets[index], foundIndex };
+		}
+
+		HString directions[static_cast<int>(EGRNavigationDirection::Count)-1];
+
+		IGRPanel& Set(EGRNavigationDirection direction, cstr targetDescription) override
+		{
+			int index = static_cast<int>(direction);
+
+			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
+			{
+				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+			}
+			else
+			{
+				directions[index - 1] = targetDescription == nullptr ? HString() : targetDescription;
+			}
+			return *this;
+		}
+
+		IGRPanel* Navigate(EGRNavigationDirection direction) override
+		{
+			int index = static_cast<int>(direction);
+
+			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
+			{
+				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+				return nullptr;
+			}
+
+			cstr description = directions[index - 1].c_str();
+			if (*description == 0)
+			{
+				return nullptr;
+			}
+
+			auto* owner = FindOwner(*widget);
+			if (!owner)
+			{
+				return nullptr;
+			}
+
+			return owner->Panel().FindDescendantByDesc(description);
 		}
 
 		IGRPanel* FindDescendantByDesc(cstr desc)

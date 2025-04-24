@@ -565,8 +565,6 @@ namespace Rococo::GreatSex
 			{
 				auto& items = AsStringList(value);
 
-				panel.ReserveNavigationTargets((int) items.NumberOfElements());
-
 				for (int i = 0; i < items.NumberOfElements(); ++i)
 				{
 					cstr item = items[i];
@@ -588,6 +586,30 @@ namespace Rococo::GreatSex
 				}
 				
 				panel.SetCollapsed(true);
+			}
+
+			void OnAttribute_NavLeft(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				cstr desc = AsString(value).c_str();
+				panel.Set(EGRNavigationDirection::Left, desc);
+			}
+
+			void OnAttribute_NavRight(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				cstr desc = AsString(value).c_str();
+				panel.Set(EGRNavigationDirection::Right, desc);
+			}
+
+			void OnAttribute_NavUp(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				cstr desc = AsString(value).c_str();
+				panel.Set(EGRNavigationDirection::Up, desc);
+			}
+
+			void OnAttribute_NavDown(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				cstr desc = AsString(value).c_str();
+				panel.Set(EGRNavigationDirection::Down, desc);
 			}
 
 			void ParseExpansion(IGRPanel& panel, cstr item, cr_sex source)
@@ -719,6 +741,10 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.Navigate"] = &GreatSexGenerator::OnAttribute_Navigate;
 					attributeHandlers["Panel.Hint"] = &GreatSexGenerator::OnAttribute_Hint;
 					attributeHandlers["Panel.Collapsed"] = &GreatSexGenerator::OnAttribute_Collapsed;
+					attributeHandlers["Panel.NavLeft"] = &GreatSexGenerator::OnAttribute_NavLeft;
+					attributeHandlers["Panel.NavRight"] = &GreatSexGenerator::OnAttribute_NavRight;
+					attributeHandlers["Panel.NavUp"] = &GreatSexGenerator::OnAttribute_NavUp;
+					attributeHandlers["Panel.NavDown"] = &GreatSexGenerator::OnAttribute_NavDown;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)

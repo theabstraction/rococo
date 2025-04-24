@@ -116,6 +116,25 @@ namespace GRANON
 			MoveFocusIntoChildren(panel);
 		}
 
+		EGREventRouting Nav(EGRNavigationDirection direction)
+		{
+			auto focusId = panel.Root().GR().GetFocusId();
+			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			if (!focusWidget)
+			{
+				TrySetDeepFocus(ClientArea().Panel());
+				return EGREventRouting::Terminate;
+			}
+
+			auto* targetFocus = focusWidget->Panel().Navigate(direction);
+			if (targetFocus)
+			{
+				TrySetDeepFocus(*targetFocus);				
+			}
+
+			return EGREventRouting::Terminate;
+		}
+
 		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
 			if (ke.osKeyEvent.IsUp())
@@ -136,6 +155,14 @@ namespace GRANON
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_ESCAPE:
 				return OnEsc();
+			case Rococo::IO::VirtualKeys::VKCode_LEFT:
+				return Nav(EGRNavigationDirection::Left);
+			case Rococo::IO::VirtualKeys::VKCode_RIGHT:
+				return Nav(EGRNavigationDirection::Right);
+			case Rococo::IO::VirtualKeys::VKCode_UP:
+				return Nav(EGRNavigationDirection::Up);
+			case Rococo::IO::VirtualKeys::VKCode_DOWN:
+				return Nav(EGRNavigationDirection::Down);
 			}
 			return EGREventRouting::NextHandler;
 		}

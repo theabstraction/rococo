@@ -361,6 +361,8 @@ namespace Rococo::GreatSex
 	{
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& tabDirective, Rococo::Gui::IGRWidget& parent) override
 		{
+			UNUSED(generator);
+
 			cstr forMeta = AsString(tabDirective["For"]).c_str();
 			cstr toggles = AsString(tabDirective["Toggles"]).c_str();
 
