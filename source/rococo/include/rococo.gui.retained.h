@@ -939,6 +939,13 @@ namespace Rococo::Gui
 		virtual void SetOptionPadding(GRAnchorPadding padding) = 0;
 	};
 
+	enum class EGRRadioNavigation
+	{
+		None,
+		Horizontal,
+		Vertical
+	};
+
 	ROCOCO_INTERFACE IGRWidgetRadioButtons : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -946,6 +953,7 @@ namespace Rococo::Gui
 		virtual void AddButtonToGroup(cstr description) = 0;
 		virtual void AddTab(cstr meta, cstr toggleTarget) = 0;
 		virtual void SetDefaultButton(cstr description) = 0;
+		virtual void SetNavigation(EGRRadioNavigation navigation) = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 	};

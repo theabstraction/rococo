@@ -331,6 +331,24 @@ namespace Rococo::GreatSex
 				radio.AddButtonToGroup(item);
 			}
 
+			cstr navigate = AsString(rbDirective["Navigate"]).c_str();
+			if (Eq(navigate, "None"))
+			{
+				radio.SetNavigation(EGRRadioNavigation::None);
+			}
+			else if (Eq(navigate, "H") || Eq(navigate, "Horizontal"))
+			{
+				radio.SetNavigation(EGRRadioNavigation::Horizontal);
+			}
+			else if (Eq(navigate, "V") || Eq(navigate, "Vertical"))
+			{
+				radio.SetNavigation(EGRRadioNavigation::Vertical);
+			}
+			else
+			{
+				Throw(rbDirective.S(), "Expecting one of None, H, Horizontal, V or Vertical");
+			}
+
 			auto& defaultButton = AsString(rbDirective["Default"]);		
 			radio.SetDefaultButton(defaultButton.c_str());
 

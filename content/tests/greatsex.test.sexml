@@ -136,7 +136,7 @@
 		
 		(RadioButtons 
 			([] Group Button.UI Button.Graphics Button.Audio Button.Gameplay Button.Multiplayer)
-			(Navigation Vertical)
+			(Navigate Vertical)
 			(Default Button.Graphics)
 			
 			(Panel.Description OptionCategories)

@@ -237,15 +237,33 @@ namespace GRANON
 			switch (ke.osKeyEvent.VKey)
 			{
 			case Rococo::IO::VirtualKeys::VKCode_UP:
+				if (navigation == EGRRadioNavigation::Vertical)
+				{
+					Gui::RotateFocusToNextSibling(*focusWidget, false);
+					return EGREventRouting::Terminate;
+				}				
+				break;
 			case Rococo::IO::VirtualKeys::VKCode_LEFT:
-			case Rococo::IO::VirtualKeys::VKCode_PGUP:
-				Gui::RotateFocusToNextSibling(*focusWidget, false);
-				return EGREventRouting::Terminate;
+				if (navigation == EGRRadioNavigation::Horizontal)
+				{
+					Gui::RotateFocusToNextSibling(*focusWidget, false);
+					return EGREventRouting::Terminate;
+				}
+				break;
 			case Rococo::IO::VirtualKeys::VKCode_DOWN:
+				if (navigation == EGRRadioNavigation::Vertical)
+				{
+					Gui::RotateFocusToNextSibling(*focusWidget, true);
+					return EGREventRouting::Terminate;
+				}
+				break;
 			case Rococo::IO::VirtualKeys::VKCode_RIGHT:
-			case Rococo::IO::VirtualKeys::VKCode_PGDOWN:
-				Gui::RotateFocusToNextSibling(*focusWidget, true);
-				return EGREventRouting::Terminate;
+				if (navigation == EGRRadioNavigation::Horizontal)
+				{
+					Gui::RotateFocusToNextSibling(*focusWidget, true);
+					return EGREventRouting::Terminate;
+				}
+				break;
 			}
 
 			return EGREventRouting::NextHandler;
@@ -274,6 +292,13 @@ namespace GRANON
 			}
 
 			group.push_back(description);
+		}
+
+		EGRRadioNavigation navigation = EGRRadioNavigation::None;
+
+		void SetNavigation(EGRRadioNavigation navigation) override
+		{
+			this->navigation = navigation;
 		}
 
 		void AddTab(cstr meta, cstr toggleTarget) override
