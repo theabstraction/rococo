@@ -631,31 +631,14 @@ namespace ANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting RouteKeyEventToWindowsUnderCursor(GRKeyEvent& keyEvent)
-		{
-			keypressCallstack.clear();
-
-			if (!TryAppendWidgetsUnderCursorCallstack(keypressCallstack) || keypressCallstack.empty())
-			{
-				IGRWidgetManager* frame = TopMostFrame();
-				return frame ? frame->OnKeyEvent(keyEvent) : EGREventRouting::NextHandler;
-			}
-
-			if (keypressCallstack.empty())
-			{
-				return EGREventRouting::NextHandler;
-			}
-
-			return RouteKeyEventToPanelThenAncestors(*keypressCallstack.back().panel, keyEvent);
-		}
-
 		EGREventRouting RouteKeyEvent(GRKeyEvent& keyEvent) override
 		{
 			RecursionGuard guard(*this);
 
 			if (focusId < 0)
 			{
-				return RouteKeyEventToWindowsUnderCursor(keyEvent);
+				IGRWidgetManager* frame = TopMostFrame();
+				return frame ? frame->OnKeyEvent(keyEvent) : EGREventRouting::NextHandler;
 			}
 
 			auto* focusWidget = FindWidget(focusId);
