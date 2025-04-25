@@ -53,6 +53,8 @@ namespace Rococo::Gui
 
 		virtual IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr imagePath) = 0;
 
+		virtual cstr GetLastKnownControlType() const = 0;
+
 		// Takes a platform interpreted key event and translates to an editor delta event
 		virtual void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
 

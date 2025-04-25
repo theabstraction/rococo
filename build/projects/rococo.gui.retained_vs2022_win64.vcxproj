@@ -247,6 +247,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.button.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.carousel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.collapser.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.control-prompt.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.division.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.editbox.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.bool.cpp" />

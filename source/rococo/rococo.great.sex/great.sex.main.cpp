@@ -77,6 +77,9 @@ namespace Rococo::GreatSex
 			RadioButtonsFactory onRadioButtons;
 			TabFactory onTab;
 			IconFactory onIcon;
+			ControlPromptFactory onControlPrompt;
+			PromptFactory onPrompt;
+			DefIconFactory onDefIcon;
 
 			Auto<ISParser> insertParser;
 
@@ -123,6 +126,9 @@ namespace Rococo::GreatSex
 				AddHandler("RadioButtons", onRadioButtons);
 				AddHandler("Tab", onTab);
 				AddHandler("Icon", onIcon);
+				AddHandler("ControlPrompt", onControlPrompt);
+				AddHandler("Prompt", onPrompt);
+				AddHandler("DefIcon", onDefIcon);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);

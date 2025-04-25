@@ -531,6 +531,11 @@ namespace ANON
 			return *this;
 		}
 
+		cstr GetLastKnownControlType() const override
+		{
+			return "XBOX";
+		}
+
 		IGRKeyState& Keys() override
 		{
 			return *this;

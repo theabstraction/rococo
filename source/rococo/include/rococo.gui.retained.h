@@ -198,6 +198,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRFonts
 	{
 		virtual GRFontId BindFontId(const FontSpec & desc) = 0;
+		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
 		virtual int GetFontHeight(GRFontId id) const = 0;
 	};
 
@@ -1090,6 +1091,14 @@ namespace Rococo::Gui
 		virtual void SetSpacing(Vec2i spacing) = 0;
 	};
 
+	// A widget with a rectangular background for holding child widgets
+	ROCOCO_INTERFACE IGRWidgetControlPrompt : IGRWidgetDivision
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual void AddIcon(cstr iconId, cstr controlType, cstr imagePath) = 0;
+		virtual void AddPrompt(cstr iconId, cstr text) = 0;
+	};
+
 	struct GRColumnSpec
 	{
 		cstr name = nullptr;
@@ -1550,6 +1559,7 @@ namespace Rococo::Gui
 
 	// Factory functions for creating widgets. All call IGuiRetained::AddWidget(...) to add themselves to the GUI
 	ROCOCO_GUI_RETAINED_API IGRWidgetButton& CreateButton(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API IGRWidgetControlPrompt& CreateControlPrompt(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivisionWithText& CreateHintBox(IGRWidget& parent);
 

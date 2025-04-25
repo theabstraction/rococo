@@ -375,7 +375,7 @@ namespace Rococo::GreatSex
 			auto* imagePadding = iconDirective.FindAttributeByName("Image.Padding");
 			if (imagePadding)
 			{
-				auto& rect = AsGuiRect(imagePadding->Value());
+				auto rect = AsGuiRect(imagePadding->Value());
 
 				GRAnchorPadding padding{ rect.left, rect.right, rect.top, rect.bottom };
 				icon.SetImagePadding(padding);
@@ -383,6 +383,77 @@ namespace Rococo::GreatSex
 
 			generator.SetPanelAttributes(icon.Widget(), iconDirective);
 			generator.GenerateChildren(iconDirective, icon.Widget());
+		}
+	};
+
+	struct ControlPromptFactory : SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& cpDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto& cp = Rococo::Gui::CreateControlPrompt(parent);
+			generator.SetPanelAttributes(cp.Widget(), cpDirective);
+			generator.GenerateChildren(cpDirective, cp.Widget());
+		}
+	};
+
+	struct PromptFactory : ISEXMLWidgetFactory
+	{
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& tabDirective, Rococo::Gui::IGRWidget& parent) override
+		{
+			UNUSED(generator);
+
+			cstr iconId = AsString(tabDirective["Icon"]).c_str();
+			cstr text = AsString(tabDirective["Text"]).c_str();
+
+			auto* cp = Cast<IGRWidgetControlPrompt>(parent);
+			if (!cp)
+			{
+				Throw(tabDirective.S(), "Expecting parent of Prompt to be of type IGRWidgetControlPrompt");
+			}
+
+			cp->AddPrompt(iconId, text);
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& directive) const override
+		{
+			auto* parent = directive.Parent();
+			if (parent == nullptr)
+			{
+				return false;
+			}
+
+			return Eq(parent->FQName(), "ControlPrompt");
+		}
+	};
+
+	struct DefIconFactory: ISEXMLWidgetFactory
+	{
+		void Generate(IGreatSexGenerator & generator, const Rococo::Sex::SEXML::ISEXMLDirective & tabDirective, Rococo::Gui::IGRWidget & parent) override
+		{
+			UNUSED(generator);
+
+			cstr iconId = AsString(tabDirective["Icon"]).c_str();
+			cstr controlType = AsString(tabDirective["For"]).c_str();
+			cstr path = AsString(tabDirective["Path"]).c_str();
+
+			auto* cp = Cast<IGRWidgetControlPrompt>(parent);
+			if (!cp)
+			{
+				Throw(tabDirective.S(), "Expecting parent of DefIcon to be of type IGRWidgetControlPrompt");
+			}
+
+			cp->AddIcon(iconId, controlType, path);
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective & directive) const override
+		{
+			auto* parent = directive.Parent();
+			if (parent == nullptr)
+			{
+				return false;
+			}
+
+			return Eq(parent->FQName(), "ControlPrompt");
 		}
 	};
 
@@ -398,7 +469,7 @@ namespace Rococo::GreatSex
 			auto* radio = Cast<IGRWidgetRadioButtons>(parent);
 			if (!radio)
 			{
-				Throw(tabDirective.S(), "Expecting parent of tab to be of type IGRWidgetRadioButtons");
+				Throw(tabDirective.S(), "Expecting parent of Tab to be of type IGRWidgetRadioButtons");
 			}
 
 			radio->AddTab(forMeta, toggles);
