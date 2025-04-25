@@ -1095,8 +1095,10 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetControlPrompt : IGRWidgetDivision
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual void AddIcon(cstr iconId, cstr controlType, cstr imagePath) = 0;
+		virtual void AddIcon(cstr iconId, cstr controlType, int vpadding, cstr imagePath) = 0;
 		virtual void AddPrompt(cstr iconId, cstr text) = 0;
+		virtual void SetAlignment(GRAlignmentFlags alignment) = 0;
+		virtual void SetFont(GRFontId fontId) = 0;
 	};
 
 	struct GRColumnSpec

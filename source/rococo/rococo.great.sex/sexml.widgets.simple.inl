@@ -391,6 +391,28 @@ namespace Rococo::GreatSex
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& cpDirective, Rococo::Gui::IGRWidget& parent) override
 		{
 			auto& cp = Rococo::Gui::CreateControlPrompt(parent);
+
+			auto* aFont = cpDirective.FindAttributeByName("Font");
+			if (aFont)
+			{
+				cstr fontId = AsString(aFont->Value()).c_str();
+				auto font = generator.GetFont(fontId, cpDirective.S());
+				Gui::FontSpec spec;
+				spec.CharHeight = font.height;
+				spec.FontName = font.familyName;
+				spec.Bold = font.isBold;
+				spec.Italic = font.isItalic;
+				auto grId = GetCustodian(parent.Panel()).Fonts().BindFontId(spec);
+				cp.SetFont(grId);
+			}
+
+			if (cpDirective.FindAttributeByName("AlignRight"))
+			{
+				GRAlignmentFlags alignment;
+				alignment.Add(EGRAlignment::Right);
+				cp.SetAlignment(alignment);
+			}
+
 			generator.SetPanelAttributes(cp.Widget(), cpDirective);
 			generator.GenerateChildren(cpDirective, cp.Widget());
 		}
@@ -435,6 +457,13 @@ namespace Rococo::GreatSex
 			cstr iconId = AsString(tabDirective["Icon"]).c_str();
 			cstr controlType = AsString(tabDirective["For"]).c_str();
 			cstr path = AsString(tabDirective["Path"]).c_str();
+			
+			int vpadding = 0;
+			auto* aVPadding = tabDirective.FindAttributeByName("VPadding");
+			if (aVPadding)
+			{
+				vpadding = AsAtomicInt32(aVPadding->Value());
+			}
 
 			auto* cp = Cast<IGRWidgetControlPrompt>(parent);
 			if (!cp)
@@ -442,7 +471,7 @@ namespace Rococo::GreatSex
 				Throw(tabDirective.S(), "Expecting parent of DefIcon to be of type IGRWidgetControlPrompt");
 			}
 
-			cp->AddIcon(iconId, controlType, path);
+			cp->AddIcon(iconId, controlType, vpadding, path);
 		}
 
 		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective & directive) const override

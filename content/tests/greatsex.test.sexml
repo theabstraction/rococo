@@ -577,6 +577,8 @@
 		(Panel.FixedWidth 80%)
 		(Colour.Container.Background Transparent)
 		(Colour.Label.Shadow Black)
+		(Font SubOptionTitleFont)
+		(AlignRight)
 		:
 		// Define the icons for the XBOX controller. Legal types are XBOX and Keyboard
 		(DefIcon
@@ -588,13 +590,38 @@
 		(DefIcon
 			(Icon activate)
 			(For XBOX)
+			(VPadding 8)
 			(Path  !textures/prompts/xbox/button.A.tiff)
 		)
 		
 		(DefIcon
 			(Icon back)
 			(For XBOX)
+			(VPadding 8)
 			(Path  !textures/prompts/xbox/button.B.tiff)
+		)
+		
+		// <a href="https://www.flaticon.com/free-icons/gaming" title="gaming icons">Gaming icons created by meaicon - Flaticon</a>
+		// <a href="https://www.flaticon.com/free-icons/keyboard-key" title="keyboard key icons">Keyboard key icons created by littleicon - Flaticon</a>
+		
+		(DefIcon
+			(Icon dpad)
+			(For Keyboard)
+			(Path  !textures/prompts/keyboard/cursor-pad.tiff)
+		)
+		
+		(DefIcon
+			(Icon activate)
+			(For Keyboard)
+			(VPadding 6)
+			(Path  !textures/prompts/keyboard/return.tiff)
+		)
+		
+		(DefIcon
+			(Icon back)
+			(For Keyboard)
+			(VPadding 6)
+			(Path  !textures/prompts/keyboard/escape.tiff)
 		)
 		
 		// List the prompts that appear, with icons and descriptions for each

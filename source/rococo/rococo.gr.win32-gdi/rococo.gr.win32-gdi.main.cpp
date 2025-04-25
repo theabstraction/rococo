@@ -1537,9 +1537,16 @@ namespace GRANON
 			return *this;
 		}
 
+		Strings::HString lastKnownControlType;
+
 		cstr GetLastKnownControlType() const override
 		{
-			return "XBOX";
+			return lastKnownControlType;
+		}
+
+		void SetControlType(cstr lastKnownControlType) override
+		{
+			this->lastKnownControlType = lastKnownControlType;
 		}
 
 		IGRKeyState& Keys() override
@@ -2190,6 +2197,7 @@ namespace GRANON
 
 					key.unicode = VcodeToUnicode(key.VKey, key.scanCode, hKeyboardLayout);
 					gdiCustodian->RouteKeyboardEvent(key, *grSystem);
+					gdiCustodian->SetControlType("Keyboard");
 					QueuePaint();
 				}
 
@@ -2274,6 +2282,8 @@ namespace GRANON
 				{
 					InsertKeyboardEvent(i->second, false, jbe.unicodeValue);
 				}
+
+				gdiCustodian->SetControlType("XBOX");
 			}
 		}
 
