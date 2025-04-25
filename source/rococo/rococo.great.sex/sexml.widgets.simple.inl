@@ -619,8 +619,8 @@ namespace Rococo::GreatSex
 				portrait.SetImagePath(imagePath);
 			}
 
-			generator.SetPanelAttributes(portrait.Widget(), directive);
-			generator.GenerateChildren(directive, portrait.Widget());
+			generator.SetPanelAttributes(portrait.ClientArea().Widget(), directive);
+			generator.GenerateChildren(directive, portrait.ClientArea().Widget());
 		}
 	};
 

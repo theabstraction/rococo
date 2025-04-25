@@ -1488,6 +1488,7 @@ namespace Rococo::Gui
 
 		virtual IGRWidgetPortrait& SetImagePath(cstr imagePath) = 0;
 		virtual Vec2i ImageSpan() const = 0;
+		virtual IGRWidgetDivision& ClientArea() = 0;
 	};
 
 	enum class EGRIconPresentation

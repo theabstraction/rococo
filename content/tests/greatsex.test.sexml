@@ -79,7 +79,7 @@
 	
 	(Image "!textures/test/AI-castle.jpg")
 	
-	(#Recti Panel.Padding 10% 10% 5% 5%)
+	(#Recti Panel.Padding 5% 5% 2% 2%)
 	:
 	
 	(GradientFill

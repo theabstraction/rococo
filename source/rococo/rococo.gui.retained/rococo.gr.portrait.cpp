@@ -8,12 +8,14 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRPortrait : IGRWidgetPortrait, IGRWidgetSupervisor
+	struct GRPortrait : IGRWidgetPortrait, IGRWidgetLayout, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
-		
+
 		IGRImage* image = nullptr;
 		HString imagePath;
+
+		IGRWidgetDivision* clientArea;
 
 		GRPortrait(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -27,6 +29,98 @@ namespace GRANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void PostConstruct()
+		{
+			clientArea = &CreateDivision(*this);
+			panel.SetExpandToParentHorizontally();
+			panel.SetExpandToParentVertically();
+		}
+
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		GuiRect imageRect{ 0, 0, 0, 0 };
+		GuiRect band1Rect{ 0, 0, 0, 0 };
+		GuiRect band2Rect{ 0, 0, 0, 0 };
+
+		void ComputeRects()
+		{
+			GRAlignmentFlags alignment;
+
+			imageRect = GuiRect{ 0, 0, 0, 0 };
+			band1Rect = GuiRect{ 0, 0, 0, 0 };
+			band2Rect = GuiRect{ 0, 0, 0, 0 };
+
+			if (!image)
+			{
+				return;
+			}
+
+			Vec2i span = image->Span();
+			if (span.x == 0 || span.y == 0)
+			{
+				return;
+			}
+
+			double aspectRatio = span.x / (double)span.y;
+
+			GuiRect targetRect = panel.AbsRect();
+			Vec2i targetSpan = Span(targetRect);
+
+			if (targetSpan.x == 0 || targetSpan.y == 0)
+			{
+				return;
+			}
+
+			double targetAspectRatio = targetSpan.x / (double)targetSpan.y;
+
+			if (aspectRatio == targetAspectRatio)
+			{
+				imageRect = targetRect;
+				return;
+			}
+
+			Vec2i centre = Centre(targetRect);
+
+			if (aspectRatio > targetAspectRatio)
+			{
+				int32 correctedHeight = (int)(targetSpan.x / aspectRatio);
+				targetRect.top = centre.y - correctedHeight / 2;
+				targetRect.bottom = centre.y + correctedHeight / 2;
+				imageRect = targetRect;
+				band1Rect = GuiRect{ targetRect.left, panel.AbsRect().top, targetRect.right, targetRect.top };
+				band2Rect = GuiRect{ targetRect.left, targetRect.bottom, targetRect.right, panel.AbsRect().bottom };
+			}
+			else
+			{
+				int32 correctedWidth = (int)(aspectRatio * targetSpan.y);
+				targetRect.left = centre.x - correctedWidth / 2;
+				targetRect.right = centre.x + correctedWidth / 2;
+				imageRect = targetRect;
+				band1Rect = GuiRect{ panel.AbsRect().left, targetRect.top, targetRect.left, targetRect.bottom };
+				band2Rect = GuiRect{ targetRect.right, targetRect.top, panel.AbsRect().right, targetRect.bottom };
+			}
+		}
+
+		void LayoutBeforeExpand() override
+		{
+			ComputeRects();
+			clientArea->Panel().SetConstantSpan(Span(imageRect));
+
+			GRAnchorPadding padding;
+			padding.left = imageRect.left - panel.AbsRect().left;
+			padding.top = imageRect.top - panel.AbsRect().top;
+			padding.right = 0;
+			padding.bottom = 0;
+			panel.Set(padding);
+		}
+
+		void LayoutAfterExpand() override
+		{
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent&) override
@@ -58,73 +152,21 @@ namespace GRANON
 			return panel;
 		}
 
+		IGRWidgetDivision& ClientArea() override
+		{
+			return *clientArea;
+		}
+
 		void Render(IGRRenderContext& g) override
 		{
-			GRAlignmentFlags alignment;
-
-			if (!image)
+			if (image)
 			{
-				return;
+				g.DrawImageStretched(*image, imageRect);
 			}
 
-			Vec2i span = image->Span();
-			if (span.x == 0 || span.y == 0)
-			{
-				return;
-			}
-
-			double aspectRatio = span.x / (double) span.y;
-
-			GuiRect targetRect = panel.AbsRect();
-			Vec2i targetSpan = Span(targetRect);
-
-			if (targetSpan.x == 0 || targetSpan.y == 0)
-			{
-				return;
-			}
-
-			double targetAspectRatio = targetSpan.x / (double)targetSpan.y;
-
-			if (aspectRatio == targetAspectRatio)
-			{
-				g.DrawImageStretched(*image, targetRect);
-				return;
-			}
-
-			Vec2i centre = Centre(targetRect);
-
-			RGBAb bandColour = panel.GetColour(EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR, GRRenderState(false, false, false));
-
-			if (aspectRatio > targetAspectRatio)
-			{
-				int32 correctedHeight = (int) (targetSpan.x / aspectRatio);
-
-				targetRect.top = centre.y - correctedHeight / 2;
-				targetRect.bottom = centre.y + correctedHeight / 2;
-
-				g.DrawImageStretched(*image, targetRect);
-
-				GuiRect topBand{ targetRect.left, panel.AbsRect().top, targetRect.right, targetRect.top };
-				g.DrawRect(topBand, bandColour);
-
-				GuiRect bottomBand{ targetRect.left, targetRect.bottom, targetRect.right, panel.AbsRect().bottom };
-				g.DrawRect(bottomBand, bandColour);
-			}
-			else
-			{
-				int32 correctedWidth = (int) (aspectRatio * targetSpan.y);
-
-				targetRect.left = centre.x - correctedWidth / 2;
-				targetRect.right = centre.x + correctedWidth / 2;
-
-				g.DrawImageStretched(*image, targetRect);
-
-				GuiRect leftBand{ panel.AbsRect().left, targetRect.top, targetRect.left, targetRect.bottom};
-				g.DrawRect(leftBand, bandColour);
-
-				GuiRect rightBand{ targetRect.right, targetRect.top, panel.AbsRect().right, targetRect.bottom };
-				g.DrawRect(rightBand, bandColour);
-			}
+			RGBAb bandColour = clientArea->Panel().GetColour(EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR, GRRenderState(false, false, false));
+			g.DrawRect(band1Rect, bandColour);
+			g.DrawRect(band2Rect, bandColour);
 		}
 
 		IGRWidgetPortrait& SetImagePath(cstr imagePath) override
@@ -154,6 +196,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = QueryForParticularInterface<IGRWidgetLayout, GRPortrait>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return QueryForParticularInterface<IGRWidgetPortrait, GRPortrait>(this, ppOutputArg, interfaceId);
 		}
 
@@ -172,7 +219,9 @@ namespace GRANON
 	{
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRPortrait(panel);
+			auto* portrait = new GRPortrait(panel);
+			portrait->PostConstruct();
+			return *portrait;
 		}
 	};
 }
