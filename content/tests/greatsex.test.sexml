@@ -79,7 +79,7 @@
 	
 	(Image "!textures/test/AI-castle.jpg")
 	
-	(#Recti Panel.Padding 5% 5% 2% 2%)
+	(#Recti Panel.Padding 15% 10% 5% 5%)
 	:
 	
 	(GradientFill
@@ -499,11 +499,16 @@
 			)
 			
 			(Div 
-				(Panel.Description "HSpacer")
-				(Panel.FixedWidth 20%)
-				(Panel.FixedHeight 20%)
+				(Panel.Description "CentreRightSpacer")
+				(Panel.FixedWidth 25%)
+				(Panel.FixedHeight 40%)
 			)
 		)
+	)
+	
+	(Div
+		(Panel.Description SpaceBelowCentre)
+		(Panel.FixedHeight 10%)
 	)
 	
 	(Div
@@ -560,6 +565,11 @@
 			(FitTextH)
 			(Font SubOptionTitleFont)
 			(Text Back)	
+		)
+		
+		(Div
+			(Panel.Description SpaceFromBackToHint)
+			(FixedWidth 25%)
 		)
 		
 		(HintBox

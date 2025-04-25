@@ -425,7 +425,8 @@ namespace Rococo::Gui
 	enum class EGRWidgetEventType
 	{
 		BUTTON_CLICK,
-		BUTTON_KEYPRESS_UP, // A button was pressed that had focus, and the meta data contains the vkey code
+		BUTTON_KEYPRESS_DOWN, // // A key was pressed while the button had focus, and the meta data contains the vkey code
+		BUTTON_KEYPRESS_UP, // A key was released while the button had focus, and the meta data contains the vkey code
 		CHOICE_MADE, // A choice was selected, the meta data contains the key
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		DROP_DOWN_COLLAPSED, // The drop down control collapsed
@@ -656,6 +657,9 @@ namespace Rococo::Gui
 
 		// Returns the boolean collapsed state
 		virtual bool IsCollapsed() const = 0;
+
+		// Returns true if any only it is either collapsed or it has a collapsed ancestor
+		virtual bool IsCollapsedOrAncestorCollasped() const = 0;
 
 		// Retrieve minimal span
 		virtual Vec2i MinimalSpan() const = 0;

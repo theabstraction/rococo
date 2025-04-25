@@ -215,11 +215,6 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& key) override
 		{
-			if (key.osKeyEvent.VKey == IO::VirtualKeys::VKCode_ESCAPE)
-			{
-				return EGREventRouting::NextHandler;
-			}
-
 			if (!triggersOnKeyUp)
 			{
 				keyboardPrepped = true;
@@ -273,18 +268,6 @@ namespace GRANON
 					FireEvent(Centre(panel.AbsRect()));
 					return EGREventRouting::Terminate;
 				}
-			}
-
-			if (key.osKeyEvent.IsUp() && panel.HasFocus())
-			{
-				GRWidgetEvent keyEvent;
-				keyEvent.clickPosition = Centre(panel.AbsRect());
-				keyEvent.eventType = EGRWidgetEventType::BUTTON_KEYPRESS_UP;
-				keyEvent.iMetaData = key.osKeyEvent.VKey;
-				keyEvent.isCppOnly = true;
-				keyEvent.panelId = panel.Id();
-				keyEvent.sMetaData = GetImplementationTypeName();
-				return panel.NotifyAncestors(keyEvent, *this);
 			}
 
 			return EGREventRouting::NextHandler;

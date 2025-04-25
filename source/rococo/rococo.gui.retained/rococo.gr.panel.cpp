@@ -385,6 +385,23 @@ namespace GRANON
 			return isCollapsed;
 		}
 
+		bool IsCollapsedOrAncestorCollasped() const override
+		{
+			if (isCollapsed)
+			{
+				return true;
+			}
+
+			if (parent)
+			{
+				return parent->IsCollapsedOrAncestorCollasped();
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		void MarkForDelete() override
 		{
 			isMarkedForDeletion = true;

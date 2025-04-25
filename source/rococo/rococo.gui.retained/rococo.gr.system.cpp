@@ -259,11 +259,21 @@ namespace ANON
 			if (focusId >= 0)
 			{
 				auto* widget = FindWidget(focusId);
-				GuiRect rect = widget->Panel().AbsRect();
-				if (rect.right > rect.left && rect.bottom > rect.top)
+				if (widget)
 				{
-					RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
-					g.DrawRectEdge(rect, colour, colour);
+					if (widget->Panel().IsCollapsedOrAncestorCollasped())
+					{
+						focusId = -1;
+					}
+					else
+					{
+						GuiRect rect = widget->Panel().AbsRect();
+						if (rect.right > rect.left && rect.bottom > rect.top)
+						{
+							RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
+							g.DrawRectEdge(rect, colour, colour);
+						}
+					}
 				}
 			}
 

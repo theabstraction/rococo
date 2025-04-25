@@ -244,42 +244,8 @@ namespace GRANON
 			SetFocusToTopmostVisibleButton(deltaOffset);
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& we, IGRWidget& button) override
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
 		{
-			switch (we.eventType)
-			{
-			case EGRWidgetEventType::BUTTON_KEYPRESS_UP:
-				if (button.Panel().HasFocus())
-				{		
-					switch (static_cast<IO::VirtualKeys::VKCode>(we.iMetaData))
-					{
-					case IO::VirtualKeys::VKCode_ANTITAB:
-					case IO::VirtualKeys::VKCode_UP:
-						RotateFocusToNextSibling(button, false);
-						return EGREventRouting::Terminate;
-					case IO::VirtualKeys::VKCode_TAB:
-					case IO::VirtualKeys::VKCode_DOWN:
-						RotateFocusToNextSibling(button, !GetCustodian(panel).Keys().IsCtrlPressed());
-						return EGREventRouting::Terminate;
-					case IO::VirtualKeys::VKCode_PGUP:		
-						OnFocusPageChange(-1);
-						return EGREventRouting::Terminate;
-					case IO::VirtualKeys::VKCode_PGDOWN:
-						OnFocusPageChange(1);
-						return EGREventRouting::Terminate;
-					case IO::VirtualKeys::VKCode_HOME:
-						viewport->VScroller().Scroller().SetSliderPosition(0);
-						viewport->SetOffset(0, true);
-						SetFocusWithoutCallback(*options.front().button);
-						return EGREventRouting::Terminate;
-					case IO::VirtualKeys::VKCode_END:
-						viewport->VScroller().Scroller().SetSliderPosition(-1);
-						viewport->SetOffset(-1, true);
-						SetFocusWithoutCallback(*options.back().button);
-						return EGREventRouting::Terminate;
-					}
-				}
-			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -288,8 +254,57 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
+			if (ke.osKeyEvent.IsUp())
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			int64 focusId = panel.Root().GR().GetFocusId();
+			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+
+			if (!focusWidget)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			auto* pButton = Cast<IGRWidgetButton>(*focusWidget);
+			if (!pButton)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			auto& button = pButton->Widget();
+
+			switch (ke.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_ANTITAB:
+			case IO::VirtualKeys::VKCode_UP:
+				RotateFocusToNextSibling(button, false);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_TAB:
+			case IO::VirtualKeys::VKCode_DOWN:
+				RotateFocusToNextSibling(button, !GetCustodian(panel).Keys().IsCtrlPressed());
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_PGUP:
+				OnFocusPageChange(-1);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_PGDOWN:
+				OnFocusPageChange(1);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_HOME:
+				viewport->VScroller().Scroller().SetSliderPosition(0);
+				viewport->SetOffset(0, true);
+				SetFocusWithoutCallback(*options.front().button);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_END:
+				viewport->VScroller().Scroller().SetSliderPosition(-1);
+				viewport->SetOffset(-1, true);
+				SetFocusWithoutCallback(*options.back().button);
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
