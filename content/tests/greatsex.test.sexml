@@ -258,37 +258,38 @@
 			:
 			
 			// A viewport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
-			(Div
+			(Viewport
 				(Panel.Description GameOptionsInnerDiv)
 				(Colour.Container.Background Translucent)
 				(Colour.Container.Top.Left White)
 				(Colour.Container.Bottom.Right LightGrey)
-				(Colour.Background Transparent)
-				(Panel.RectStyle Rounded)
+				// Define the client area rect style when a vertical scroller is visible
+				(Viewport.RectStyle.Scrollable Sharp)
+				
+				// Define the client area rect style when the vertical scroller is invisible (scrolling not required)
+				(Viewport.Rectstyle.NotScrollable Rounded)
 				(Panel.CornerRadius 16)
 				(Panel.AcceptsFocus)
 				(Panel.ExpandH)
 				(Panel.ExpandV)
 				(Panel.NavDown GameOptionsFinalization)
 				(Panel.NavLeft OptionCategories)
+				(Colour.Carousel.Top.Left LightGrey)
+				(Colour.Carousel.Bottom.Right LightGrey)
+				(Colour.Carousel.DropDown Black)
+				(Colour.GameOption.Top.Left Transparent)
+				(Colour.GameOption.Bottom.Right Transparent)
+				(Colour.GameOption.Background Transparent)
+				(Colour.GameOption.ChildSpacer DarkGrey)
+				(Colour.Label Transparent)
 			:
 				// GameOptions is a procedurally generated list of controls for changing game options
 				(GameOptions 
 					(Panel.Collapsed)
 					(Panel.Description GameOptions.Graphics)
-					(Colour.Carousel.Top.Left LightGrey)
-					(Colour.Carousel.Bottom.Right LightGrey)
-					(Colour.Carousel.DropDown Black)
-					(Colour.GameOption.Top.Left Transparent)
-					(Colour.GameOption.Bottom.Right Transparent)
-					(Colour.GameOption.Background Transparent)
-					(Colour.GameOption.ChildSpacer DarkGrey)
-					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
-					(Panel.RectStyle Rounded)
-					(Panel.CornerRadius 8)
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -320,20 +321,9 @@
 				
 				(GameOptions 
 					(Panel.Description GameOptions.Audio)
-				//	(Panel.Collapsed)
-					(Colour.Carousel.Top.Left LightGrey)
-					(Colour.Carousel.Bottom.Right LightGrey)
-					(Colour.Carousel.DropDown Black)
-					(Colour.GameOption.Top.Left Transparent)
-					(Colour.GameOption.Bottom.Right Transparent)
-					(Colour.GameOption.Background Transparent)
-					(Colour.GameOption.ChildSpacer DarkGrey)
-					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
-					(Panel.RectStyle Rounded)
-					(Panel.CornerRadius 8)
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -365,20 +355,9 @@
 				
 				(GameOptions 
 					(Panel.Description GameOptions.UI)
-				//	(Panel.Collapsed)
-					(Colour.Carousel.Top.Left LightGrey)
-					(Colour.Carousel.Bottom.Right LightGrey)
-					(Colour.Carousel.DropDown Black)
-					(Colour.GameOption.Top.Left Transparent)
-					(Colour.GameOption.Bottom.Right Transparent)
-					(Colour.GameOption.Background Transparent)
-					(Colour.GameOption.ChildSpacer DarkGrey)
-					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
-					(Panel.RectStyle Rounded)
-					(Panel.CornerRadius 8)
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -410,20 +389,9 @@
 				
 				(GameOptions 
 					(Panel.Description GameOptions.Gameplay)
-				//	(Panel.Collapsed)
-					(Colour.Carousel.Top.Left LightGrey)
-					(Colour.Carousel.Bottom.Right LightGrey)
-					(Colour.Carousel.DropDown Black)
-					(Colour.GameOption.Top.Left Transparent)
-					(Colour.GameOption.Bottom.Right Transparent)
-					(Colour.GameOption.Background Transparent)
-					(Colour.GameOption.ChildSpacer DarkGrey)
-					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
-					(Panel.RectStyle Rounded)
-					(Panel.CornerRadius 8)
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -455,20 +423,9 @@
 				
 				(GameOptions 
 					(Panel.Description GameOptions.Multiplayer)
-				//	(Panel.Collapsed)
-					(Colour.Carousel.Top.Left LightGrey)
-					(Colour.Carousel.Bottom.Right LightGrey)
-					(Colour.Carousel.DropDown Black)
-					(Colour.GameOption.Top.Left Transparent)
-					(Colour.GameOption.Bottom.Right Transparent)
-					(Colour.GameOption.Background Transparent)
-					(Colour.GameOption.ChildSpacer DarkGrey)
-					(Colour.Label Transparent)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
-					(Panel.RectStyle Rounded)
-					(Panel.CornerRadius 8)
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)

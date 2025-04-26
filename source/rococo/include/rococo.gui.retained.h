@@ -1451,6 +1451,9 @@ namespace Rococo::Gui
 		// Sets the vertical offset without triggering callbacks. The scroller must be independently updated if required
 		// < 0 => moves offset to maximum
 		virtual void SetOffset(int offset, bool fromStart) = 0;
+
+		virtual void SetClientAreaRectStyleWhenNotScrollable(EGRRectStyle style) = 0;
+		virtual void SetClientAreaRectStyleWhenScrollable(EGRRectStyle style) = 0;
 	};
 
 	// A vertical list that aligns its children vertically

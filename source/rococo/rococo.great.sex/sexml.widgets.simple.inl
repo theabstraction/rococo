@@ -624,14 +624,51 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	EGRRectStyle AsRectStyle(const ISEXMLAttribute& aStyle)
+	{
+		cstr style = AsString(aStyle.Value()).c_str();
+
+		if (EqI(style, "SHARP"))
+		{
+			return EGRRectStyle::SHARP;
+		}
+		else if (EqI(style, "ROUNDED"))
+		{
+			return EGRRectStyle::ROUNDED;
+		}
+		else if (EqI(style, "BLUR"))
+		{
+			return EGRRectStyle::ROUNDED_WITH_BLUR;
+		}
+		else
+		{
+			Throw(aStyle.S(), "Expecting either SHARP, BLUR or ROUNDED");
+		}
+	}
+
 	struct ViewportFactory : SEXMLWidgetFactory_AlwaysValid
 	{
-		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& divDirective, Rococo::Gui::IGRWidget& parent) override
+		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& viewportDirective, Rococo::Gui::IGRWidget& parent) override
 		{
 			auto& viewport = Rococo::Gui::CreateViewportWidget(parent);
 			viewport.Panel().SetExpandToParentHorizontally().SetExpandToParentVertically();
-			generator.SetPanelAttributes(viewport.ClientArea().Widget(), divDirective);
-			generator.GenerateChildren(divDirective, viewport.ClientArea().Widget());
+
+			auto* aScrollableRectStyle = viewportDirective.FindAttributeByName("Viewport.RectStyle.Scrollable");
+			if (aScrollableRectStyle)
+			{
+				EGRRectStyle style = AsRectStyle(*aScrollableRectStyle);
+				viewport.SetClientAreaRectStyleWhenScrollable(style);
+			}
+			
+			auto* aNoScrollableRectStyle = viewportDirective.FindAttributeByName("Viewport.Rectstyle.NotScrollable");
+			if (aNoScrollableRectStyle)
+			{
+				EGRRectStyle style = AsRectStyle(*aNoScrollableRectStyle);
+				viewport.SetClientAreaRectStyleWhenNotScrollable(style);
+			}
+
+			generator.SetPanelAttributes(viewport.ClientArea().Widget(), viewportDirective);
+			generator.GenerateChildren(viewportDirective, viewport.ClientArea().Widget());
 		}
 	};
 

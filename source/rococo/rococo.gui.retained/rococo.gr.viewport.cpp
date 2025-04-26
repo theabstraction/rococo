@@ -63,10 +63,12 @@ namespace ANON
 			{
 				vscroller->Panel().SetCollapsed(true);
 				trueScrollBarWidth = 0;
+				ClientArea().Panel().SetRectStyle(notScrollableRectStyle);
 			}
 			else
 			{
 				vscroller->Panel().SetCollapsed(false);
+				ClientArea().Panel().SetRectStyle(scrollableRectStyle);
 			}
 
 			Vec2i clipSpan{ span.x - trueScrollBarWidth, span.y };
@@ -139,6 +141,20 @@ namespace ANON
 			}
 
 			clientOffsetAreaParentOffset = clamp(clientOffsetAreaParentOffset, 0, span);
+		}
+
+		EGRRectStyle notScrollableRectStyle = EGRRectStyle::SHARP;
+
+		void SetClientAreaRectStyleWhenNotScrollable(EGRRectStyle style) override
+		{
+			notScrollableRectStyle = style;
+		}
+
+		EGRRectStyle scrollableRectStyle = EGRRectStyle::SHARP;
+
+		void SetClientAreaRectStyleWhenScrollable(EGRRectStyle style) override
+		{
+			scrollableRectStyle = style;
 		}
 
 		void SetMovePageScale(double scaleFactor) override
