@@ -667,6 +667,12 @@ namespace Rococo::GreatSex
 				viewport.SetClientAreaRectStyleWhenNotScrollable(style);
 			}
 
+			auto* aSyncDomain = viewportDirective.FindAttributeByName("Viewport.SyncDomainToChildren");
+			if (aSyncDomain)
+			{
+				viewport.SyncDomainToChildren();
+			}
+
 			generator.SetPanelAttributes(viewport.ClientArea().Widget(), viewportDirective);
 			generator.GenerateChildren(viewportDirective, viewport.ClientArea().Widget());
 		}

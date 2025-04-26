@@ -1454,6 +1454,9 @@ namespace Rococo::Gui
 
 		virtual void SetClientAreaRectStyleWhenNotScrollable(EGRRectStyle style) = 0;
 		virtual void SetClientAreaRectStyleWhenScrollable(EGRRectStyle style) = 0;
+
+		// Each layout before fit calls SetDomainHeight with the sum of the fixed heights of the children of the client area
+		virtual void SyncDomainToChildren() = 0;
 	};
 
 	// A vertical list that aligns its children vertically

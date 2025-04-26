@@ -45,6 +45,28 @@ namespace ANON
 
 		void LayoutBeforeFit() override
 		{
+			if (syncDomainToChildren)
+			{
+				auto& clientPanel = ClientArea().Panel();
+
+				nextDomain = clientPanel.Padding().top;
+
+				int nChildren = clientPanel.EnumerateChildren(nullptr);
+
+				for (int i = 0; i < nChildren; i++)
+				{
+					auto* child = clientPanel.GetChild(i);
+					nextDomain += child->Span().y;
+				}
+
+				if (nChildren > 1)
+				{
+					nextDomain += (nChildren - 1) * clientPanel.ChildPadding();
+				}
+
+				nextDomain += clientPanel.Padding().bottom;
+			}
+
 			SetDomainHeight(nextDomain);
 		}
 
@@ -155,6 +177,13 @@ namespace ANON
 		void SetClientAreaRectStyleWhenScrollable(EGRRectStyle style) override
 		{
 			scrollableRectStyle = style;
+		}
+
+		bool syncDomainToChildren = false;
+
+		void SyncDomainToChildren()
+		{
+			syncDomainToChildren = true;
 		}
 
 		void SetMovePageScale(double scaleFactor) override
