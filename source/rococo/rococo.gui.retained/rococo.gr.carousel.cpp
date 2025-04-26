@@ -150,7 +150,7 @@ namespace GRANON
 			dropDown->Panel().SetCollapsed(false);
 			dropDown->OnVisible();
 			auto* focusWidget = TrySetDeepFocus(dropDown->Panel());
-
+			UNUSED(focusWidget);
 			GRWidgetEvent we;
 			we.clickPosition = clickPosition;
 			we.eventType = EGRWidgetEventType::DROP_DOWN_EXPANDED;

@@ -206,6 +206,50 @@
 	)
 )
 
+(Colour 
+	(Id TranslucentButton)
+	:
+	(Spec 
+		([] For pressed)
+		(Red 64)(Green 64)(Blue 64)(Alpha 192)
+	)
+	
+	(Spec 
+		([] For focused)
+		(Red 0)(Green 0)(Blue 0)(Alpha 192)
+	)
+	
+	(Spec 
+		([] For default)
+		(Red 0)(Green 0)(Blue 0)(Alpha 192)
+	)
+	
+	(Spec 
+		([] For pressed focused)
+		(Red 64)(Green 64)(Blue 64)(Alpha 192)
+	)
+	
+	(Spec 
+		([] For hovered pressed)
+		(Red 64)(Green 64)(Blue 64)(Alpha 192)
+	)
+	
+	(Spec 
+		([] For hovered focused)
+		(Red 255)(Green 0)(Blue 0)(Alpha 192)
+	)
+	
+	(Spec 
+		([] For hovered pressed focused)
+		(Red 255)(Green 64)(Blue 64)(Alpha 192)
+	)
+	
+	(Spec 
+		([] For hovered)
+		(Red 255)(Green 0)(Blue 0)(Alpha 192)
+	)
+)
+
 (Colour (Id Transparent)([] Uniform.RGBAb     0   0   0   0))
 (Colour (Id DarkBlue)	([] Uniform.RGBAb     0   0  64	255))
 (Colour (Id DarkRed)	([] Uniform.RGBAb     64  0   0	255))

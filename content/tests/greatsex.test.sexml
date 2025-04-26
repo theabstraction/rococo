@@ -76,6 +76,7 @@
 	(Colour.Container.Top.Left Transparent)
 	(Colour.Container.Bottom.Right Transparent)
 	(Colour.Label.Shadow Transparent)
+	(Colour.Carousel.Background DarkRed)
 	
 	(Image "!textures/test/AI-castle.jpg")
 	
@@ -520,13 +521,13 @@
 		(Panel.AcceptsFocus)
 		(Panel.Layout LeftToRight)
 		(Panel.ChildPadding 20)
-		(Colour.Button Translucent)
+		(Colour.Button TranslucentButton)
 		(Colour.Container.Background Transparent)
 		:
 		
 		(Button
-			(Panel.NavUp GameOptionsFinalization)
 			(Panel.Description ButtonAccept)
+			(Panel.NavUp GameOptionsFinalization)			
 			(Panel.NavRight ButtonRevert)
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
@@ -536,13 +537,14 @@
 			(FitTextH)
 			(Font SubOptionTitleFont)
 			(Text Accept)	
+			(ClickWhen DownThenUp)
 		)
 		
 		(Button
+			(Panel.Description ButtonRevert)
 			(Panel.NavUp GameOptionsFinalization)
 			(Panel.NavLeft ButtonAccept)
 			(Panel.NavRight ButtonBack)
-			(Panel.Description ButtonRevert)
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
 			(Panel.Hint "Click to revert the recently changed option changes.")
@@ -551,12 +553,13 @@
 			(FitTextH)
 			(Font SubOptionTitleFont)
 			(Text Revert)
+			(ClickWhen DownThenUp)
 		)
 		
 		(Button
+			(Panel.Description ButtonBack)
 			(Panel.NavUp GameOptionsFinalization)
 			(Panel.NavLeft ButtonRevert)
-			(Panel.Description ButtonBack)
 			(Panel.RectStyle Rounded)
 			(Panel.CornerRadius 4)
 			(Panel.Hint "Return to the game screen")
@@ -565,6 +568,7 @@
 			(FitTextH)
 			(Font SubOptionTitleFont)
 			(Text Back)	
+			(ClickWhen DownThenUp)
 		)
 		
 		(Div

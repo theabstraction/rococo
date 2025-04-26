@@ -614,6 +614,11 @@ namespace GRANON
 
 		void DrawBlurRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
 		{
+			if (colour.alpha == 0 || Height(visibleRect) == 0 || Width(visibleRect) == 0)
+			{
+				return;
+			}
+			
 			const int delta = cornerRadius;
 
 			GuiRect innerRect = Expand(absRect, -delta);
@@ -685,6 +690,11 @@ namespace GRANON
 
 		void DrawRoundedRect(const GuiRect& absRect, const GuiRect& visibleRect, int cornerRadius, RGBAb colour)
 		{
+			if (colour.alpha == 0 || Height(visibleRect) == 0 || Width(visibleRect) == 0)
+			{
+				return;
+			}
+
 			if (colour.alpha == 255)
 			{
 				GDIPen pen(colour);

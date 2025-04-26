@@ -774,6 +774,24 @@ namespace Rococo::GreatSex
 				}
 			}
 
+			auto* aClickCriterion = buttonDirective.FindAttributeByName("ClickWhen");
+			if (aClickCriterion)
+			{
+				cstr criterion = AsString(aClickCriterion->Value()).c_str();
+				if (EqI(criterion, "DownThenUp"))
+				{
+					button.SetClickCriterion(EGRClickCriterion::OnDownThenUp);
+				}
+				else if (EqI(criterion, "Down"))
+				{
+					button.SetClickCriterion(EGRClickCriterion::OnDown);
+				}
+				else if (EqI(criterion, "Up"))
+				{
+					button.SetClickCriterion(EGRClickCriterion::OnUp);
+				}
+			}
+
 			generator.SetPanelAttributes(button.Widget(), buttonDirective);
 			generator.GenerateChildren(buttonDirective, button.Widget());
 		}

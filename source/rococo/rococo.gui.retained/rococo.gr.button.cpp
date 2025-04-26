@@ -78,14 +78,16 @@ namespace GRANON
 
 		void FireEvent(Vec2i clickPosition)
 		{
-			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), clickPosition, isEventHandlerCPPOnly };
-
 			if (eventPolicy == EGREventPolicy::PublicEvent)
 			{		
-				RouteEventToHandler(panel, widgetEvent);
+				// We cannot copy the meta data string, because it may be invalidated by the time the consumer comes to read it
+				GRWidgetEvent asyncWidgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, "", clickPosition, isEventHandlerCPPOnly };
+				RouteEventToHandler(panel, asyncWidgetEvent);
 			}
 			else if (eventPolicy == EGREventPolicy::NotifyAncestors)
 			{
+				GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), clickPosition, isEventHandlerCPPOnly };
+
 				EGREventRouting routing = panel.NotifyAncestors(widgetEvent, *this);
 				if (routing != EGREventRouting::Terminate)
 				{
