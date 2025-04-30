@@ -11,19 +11,55 @@ namespace ANON
 	{
 		Degrees orientation;
 
-		void PreRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext&) override
+		void PreRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext& g) override
 		{
-			UNUSED(panel);
-			UNUSED(absRect);
+			auto* button = Cast<IGRWidgetButton>(panel.Widget());
+
+			GRRenderState rs{ !button->ButtonFlags().isRaised,  g.IsHovered(panel), panel.HasFocus()};
+
+			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON, rs);
+
+			if (orientation == 0)
+			{
+				// Up
+				GuiRect bottomHalf = absRect;
+				bottomHalf.top += Width(absRect) / 2;
+				g.DrawRect(bottomHalf, colour);
+			}
+			else
+			{
+				// Down
+				GuiRect topHalf = absRect;
+				topHalf.bottom -= Width(absRect) / 2;
+				g.DrawRect(topHalf, colour);
+			}
 		}
 
 		void PostRender(IGRPanel& panel, const GuiRect& absRect, IGRRenderContext& g) override
 		{
-			GuiRect triangleRect = { absRect.left + 3, absRect.top + 3, absRect.right - 3, absRect.bottom - 3 };
+			GuiRect triangleRect;
+
+			if (panel.RectStyle() == EGRRectStyle::SHARP)
+			{
+				triangleRect = { absRect.left + 3, absRect.top + 3, absRect.right - 3, absRect.bottom - 3 };
+			}
+			else
+			{
+				int R = panel.CornerRadius() / 2;
+
+				if (orientation == 0)
+				{
+					triangleRect = { absRect.left + R, absRect.top + R, absRect.right - R, absRect.bottom - R };
+				}
+				else
+				{
+					triangleRect = { absRect.left + R, absRect.top + R, absRect.right - R, absRect.bottom - R };
+				}
+			}
 
 			bool isHovered = g.IsHovered(panel);
 
-			GRRenderState rs(false, isHovered, false);
+			GRRenderState rs(false, isHovered, panel.HasFocus());
 
 			RGBAb triangleColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
 			g.DrawDirectionArrow(triangleRect, triangleColour, orientation);
@@ -95,12 +131,28 @@ namespace ANON
 
 		}
 
-		void LayoutAfterExpand() override
+		void InitButtonStyle(IGRWidgetButton& button)
 		{
 			int buttonSpan = panel.Span().x;
-			topButton->Widget().Panel().SetConstantSpan(Vec2i{ buttonSpan, buttonSpan });
-			scroller->Widget().Panel().SetConstantHeight(panel.Span().y - 2 * buttonSpan).SetParentOffset({ 0, buttonSpan });;
-			bottomButton->Widget().Panel().SetConstantSpan(Vec2i{ buttonSpan, buttonSpan }).SetParentOffset({ 0, panel.Span().y - buttonSpan });
+			button.Widget().Panel().
+				SetConstantSpan(Vec2i{ buttonSpan, buttonSpan }).
+				SetCornerRadius(panel.CornerRadius()).
+				SetRectStyle(panel.RectStyle()).
+				Set(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
+				Set(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+			button.Panel().Remove(EGRPanelFlags::AcceptsFocus);
+		}
+
+		void LayoutAfterExpand() override
+		{
+			InitButtonStyle(*topButton);
+			InitButtonStyle(*bottomButton);
+
+			int buttonSpan = panel.Span().x;
+
+			scroller->Widget().Panel().SetConstantHeight(panel.Span().y - 2 * buttonSpan).SetParentOffset({ 0, buttonSpan });
+
+			bottomButton->Widget().Panel().SetParentOffset({ 0, panel.Span().y - buttonSpan });
 
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, EGRSchemeColourSurface::BUTTON);
 			CopyAllColours(panel, panel, EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
@@ -124,7 +176,7 @@ namespace ANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext&) override
+		void Render(IGRRenderContext& g) override
 		{
 		}
 

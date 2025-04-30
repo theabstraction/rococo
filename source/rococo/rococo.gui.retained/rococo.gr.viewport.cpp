@@ -20,7 +20,7 @@ namespace ANON
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			owningPanel.SetMinimalSpan({ 10, 10 });
-			owningPanel.SetLayoutDirection(ELayoutDirection::LeftToRight);
+			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 		}
 
 		void PostConstruct()
@@ -95,23 +95,36 @@ namespace ANON
 				panel.SetRectStyle(scrollableRectStyle);
 			}
 
-			Vec2i clipSpan{ span.x - trueScrollBarWidth, span.y };
-			auto& panel = clipArea->Panel();
-			panel.SetConstantWidth(clipSpan.x);
-			panel.SetConstantHeight(clipSpan.y);
-			panel.SetParentOffset({ 0,0 });
+			Vec2i roundedOffset = { 0,0 };
+
+			if (panel.RectStyle() != EGRRectStyle::SHARP)
+			{
+				roundedOffset = { panel.CornerRadius(), 0 };
+				trueScrollBarWidth = 2 * roundedOffset.x;
+			}
+
+			Vec2i clipSpan{ span.x - 3 * roundedOffset.x, span.y };
+			auto& clipPanel = clipArea->Panel();
+			clipPanel.SetConstantWidth(clipSpan.x);
+			clipPanel.SetConstantHeight(clipSpan.y);
+			clipPanel.SetParentOffset({roundedOffset.x,0});
 			
 			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
 
 			auto& coaPanel = clientOffsetArea->Panel();
 			coaPanel.SetConstantWidth(clientOffsetSpan.x);
 			coaPanel.SetConstantHeight(clientOffsetSpan.y);
-			coaPanel.SetParentOffset({ 10, -clientOffsetAreaParentOffset });
+			coaPanel.SetParentOffset({0, -clientOffsetAreaParentOffset });
 			
 			auto& vswp = vscroller->Widget().Panel();
 			vswp.SetConstantWidth(trueScrollBarWidth);
-			vswp.SetConstantHeight(span.y);
-			vswp.SetParentOffset({ span.x - trueScrollBarWidth, 1 });
+			vswp.SetConstantHeight(clipSpan.y);
+
+			vswp.SetCornerRadius(panel.CornerRadius());
+			vswp.SetRectStyle(panel.RectStyle());
+
+			int scrollerX = panel.Span().x - trueScrollBarWidth;
+			vswp.SetParentOffset({ scrollerX, 1});
 		}
 
 		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller&) override
@@ -195,7 +208,7 @@ namespace ANON
 
 		void ScrollDeltaPixels(int deltaPixels, IGRWidgetScroller& scroller)
 		{
-			panel.Root().GR().SetFocus(-1);
+			// panel.Root().GR().SetFocus(-1);
 
 			int clipAreaHeight = clipArea->Panel().Span().y;
 
@@ -228,8 +241,6 @@ namespace ANON
 
 		void OnScrollPages(int delta, IGRWidgetScroller& scroller) override
 		{
-			panel.Root().GR().SetFocus(-1);
-
 			int clipAreaHeight = clipArea->Panel().Span().y;
 			int deltaPixels = (int)(pageDeltaScale * delta * clipAreaHeight);
 			ScrollDeltaPixels(deltaPixels, scroller);

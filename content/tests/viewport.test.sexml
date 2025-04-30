@@ -88,15 +88,15 @@
 		:
 		// A viewport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 		(Viewport
-			(Panel.Description GameOptionsInnerDiv)
-			(Colour.Background DarkRed)
-			(Colour.Container.Top.Left White)
-			(Colour.Container.Bottom.Right LightGrey)
+			(Panel.Description TestViewport)
+			(Colour.Background Transparent)
+			(Colour.Container.Top.Left Transparent)
+			(Colour.Container.Bottom.Right Transparent)
 			// Define the client area rect style when a vertical scroller is visible
 			(Viewport.RectStyle.Scrollable Rounded)	
 			// Define the client area rect style when the vertical scroller is invisible (scrolling not required)
 			(Viewport.Rectstyle.NotScrollable Rounded)
-			(Panel.CornerRadius 128)	
+			(Panel.CornerRadius 8)	
 			(Viewport.SyncDomainToChildren)
 			(Colour.Label Transparent)
 			:

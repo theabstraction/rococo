@@ -258,7 +258,10 @@ namespace ANON
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
 
-			RenderScrollerSlider(g, ComputeSliderRect());
+			GuiRect renderedSliderRect = ComputeSliderRect();
+			renderedSliderRect.bottom = min(rect.bottom - 2, renderedSliderRect.bottom);
+			
+			RenderScrollerSlider(g, renderedSliderRect);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override

@@ -619,9 +619,9 @@ namespace GRANON
 				return;
 			}
 			
-			const int delta = cornerRadius;
+			const int diameter = 2 * cornerRadius;
 
-			GuiRect innerRect = Expand(absRect, -delta);
+			GuiRect innerRect = Expand(absRect, -diameter);
 		
 			GuiRect innerVisibleRect = MergeWithScissorRect(innerRect);
 			DrawSharpRect(innerVisibleRect, colour);
@@ -631,55 +631,55 @@ namespace GRANON
 
 			RGBAb transparent(0, 0, 0, 0);
 
-			GuiRect leftRect{ absRect.left, absRect.top + delta, absRect.left + delta, absRect.bottom - delta};
+			GuiRect leftRect{ absRect.left, absRect.top + diameter, absRect.left + diameter, absRect.bottom - diameter};
 			PushRect(leftRect, transparent, colour, transparent, colour);
 			CommitTriangles();
 
-			GuiRect rightRect{ absRect.right - delta, absRect.top + delta, absRect.right, absRect.bottom - delta };
+			GuiRect rightRect{ absRect.right - diameter, absRect.top + diameter, absRect.right, absRect.bottom - diameter };
 			PushRect(rightRect, colour, transparent, colour, transparent);
 			CommitTriangles();
 
-			GuiRect topRect{ absRect.left + delta, absRect.top, absRect.right - delta, absRect.top + delta };
+			GuiRect topRect{ absRect.left + diameter, absRect.top, absRect.right - diameter, absRect.top + diameter };
 			PushRect(topRect, transparent, transparent, colour, colour);
 
 			GRTriangle topLeft;
-			topLeft.a.position = { absRect.left + delta, absRect.top + delta};
+			topLeft.a.position = { absRect.left + diameter, absRect.top + diameter};
 			topLeft.a.colour = colour;
-			topLeft.b.position = { absRect.left + delta, absRect.top };
+			topLeft.b.position = { absRect.left + diameter, absRect.top };
 			topLeft.b.colour = transparent;
-			topLeft.c.position = { absRect.left, absRect.top + delta };
+			topLeft.c.position = { absRect.left, absRect.top + diameter };
 			topLeft.c.colour = transparent;
 			PushTriangle(topLeft);
 
 			GRTriangle topRight;
-			topRight.a.position = { absRect.right - delta, absRect.top + delta };
+			topRight.a.position = { absRect.right - diameter, absRect.top + diameter };
 			topRight.a.colour = colour;
-			topRight.b.position = { absRect.right - delta, absRect.top };
+			topRight.b.position = { absRect.right - diameter, absRect.top };
 			topRight.b.colour = transparent;
-			topRight.c.position = { absRect.right, absRect.top + delta };
+			topRight.c.position = { absRect.right, absRect.top + diameter };
 			topRight.c.colour = transparent;
 			PushTriangle(topRight);
 
 			CommitTriangles();
 
-			GuiRect bottomRect{ absRect.left + delta, absRect.bottom - delta, absRect.right - delta, absRect.bottom };
+			GuiRect bottomRect{ absRect.left + diameter, absRect.bottom - diameter, absRect.right - diameter, absRect.bottom };
 			PushRect(bottomRect, colour, colour, transparent, transparent);
 
 			GRTriangle bottomLeft;
-			bottomLeft.a.position = { absRect.left + delta, absRect.bottom - delta };
+			bottomLeft.a.position = { absRect.left + diameter, absRect.bottom - diameter };
 			bottomLeft.a.colour = colour;
-			bottomLeft.b.position = { absRect.left + delta, absRect.bottom };
+			bottomLeft.b.position = { absRect.left + diameter, absRect.bottom };
 			bottomLeft.b.colour = transparent;
-			bottomLeft.c.position = { absRect.left, absRect.bottom - delta };
+			bottomLeft.c.position = { absRect.left, absRect.bottom - diameter };
 			bottomLeft.c.colour = transparent;
 			PushTriangle(bottomLeft);
 
 			GRTriangle bottomRight;
-			bottomRight.a.position = { absRect.right - delta, absRect.bottom - delta };
+			bottomRight.a.position = { absRect.right - diameter, absRect.bottom - diameter };
 			bottomRight.a.colour = colour;
-			bottomRight.b.position = { absRect.right - delta, absRect.bottom };
+			bottomRight.b.position = { absRect.right - diameter, absRect.bottom };
 			bottomRight.b.colour = transparent;
-			bottomRight.c.position = { absRect.right, absRect.bottom - delta };
+			bottomRight.c.position = { absRect.right, absRect.bottom - diameter };
 			bottomRight.c.colour = transparent;
 			PushTriangle(bottomRight);
 
@@ -705,7 +705,7 @@ namespace GRANON
 
 				UseClipRect useClip(paintDC, visibleRect);
 
-				RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, cornerRadius, cornerRadius);
+				RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, 2 * cornerRadius, 2 * cornerRadius);
 			}
 			else
 			{
@@ -810,19 +810,21 @@ namespace GRANON
 				DrawSharpRectEdge(absRect, topLeftColour, bottomRightColour);
 				break;
 			case EGRRectStyle::ROUNDED:
-				DrawRoundedEdge(absRect, topLeftColour, bottomRightColour, cornerRadius);
+				DrawRoundedEdge(absRect, topLeftColour, bottomRightColour, 2 * cornerRadius);
 				break;
 			}
 		}
 
-		void DrawRoundedEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour, int cornerRadius)
+		void DrawRoundedEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour, int diameter)
 		{
-			int R = cornerRadius;
+			int D = diameter;
 
 			if (topLeftColour.alpha == 255 && bottomRightColour.alpha == 255 && *(int*) &topLeftColour == *(int*) &bottomRightColour)
 			{
 				UseClipRect clipRect(paintDC, lastScissorRect);
-				RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, R, R);
+				GDIPen edgePen(topLeftColour);
+				UsePen usePen(paintDC, edgePen);
+				RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, D, D);
 				return;
 			}
 
@@ -832,16 +834,16 @@ namespace GRANON
 			g.SetClip(clipRect);
 
 			g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-			g.DrawArc(&tlPen, absRect.left, absRect.top, R, R, 180.0f, 90.0f);
-			g.DrawArc(&tlPen, absRect.right - R, absRect.top, R, R, 270, 90.0f);
-			g.DrawLine(&tlPen, absRect.left, absRect.top + R / 2, absRect.left, absRect.bottom - R/2);
-			g.DrawLine(&tlPen, absRect.left + R/2, absRect.top, absRect.right - R/2, absRect.top);
+			g.DrawArc(&tlPen, absRect.left, absRect.top, D, D, 180.0f, 90.0f);
+			g.DrawArc(&tlPen, absRect.right - D - 1, absRect.top, D, D, 270, 90.0f);
+			g.DrawLine(&tlPen, absRect.left, absRect.top + D / 2, absRect.left, absRect.bottom - D/2);
+			g.DrawLine(&tlPen, absRect.left + D/2, absRect.top, absRect.right - D/2, absRect.top);
 			
 			Gdiplus::Pen brPen(Gdiplus::Color(bottomRightColour.alpha, bottomRightColour.red, bottomRightColour.green, bottomRightColour.blue), 1.0f);
-			g.DrawLine(&brPen, absRect.left + R/2, absRect.bottom-1, absRect.right - R /2, absRect.bottom-1);
-			g.DrawLine(&brPen, absRect.right -1, absRect.top + R/2, absRect.right, absRect.bottom - R/2);
-			g.DrawArc(&brPen, absRect.right - R - 1, absRect.bottom - R - 1, R, R, 0, 90.0f);
-			g.DrawArc(&brPen, absRect.left, absRect.bottom - R - 1, R, R, 90.0f, 90.0f);
+			g.DrawLine(&brPen, absRect.left + D/2, absRect.bottom-1, absRect.right - D /2, absRect.bottom-1);
+			g.DrawLine(&brPen, absRect.right -1, absRect.top + D/2, absRect.right-1, absRect.bottom - D/2);
+			g.DrawArc(&brPen, absRect.right - D - 1, absRect.bottom - D - 1, D, D, 0, 90.0f);
+			g.DrawArc(&brPen, absRect.left, absRect.bottom - D - 1, D, D, 90.0f, 90.0f);
 			g.SetSmoothingMode(Gdiplus::SmoothingModeDefault);
 
 			g.ResetClip();

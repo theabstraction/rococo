@@ -99,7 +99,10 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			panel.Focus();
+			if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
+			{
+				panel.Focus();
+			}
 
 			if (ce.click.LeftButtonDown)
 			{
