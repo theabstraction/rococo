@@ -47,7 +47,8 @@ namespace ANON
 
 		void LayoutAfterExpand() override
 		{
-			auto spec = events.OnCalculateSliderRect(panel.Span().y, *this);
+			int vpadding = 1;
+			auto spec = events.OnCalculateSliderRect(panel.Span().y - (2 * vpadding), *this);
 			sliderHeight = spec.sliderSpanInPixels;
 		}
 
@@ -101,13 +102,20 @@ namespace ANON
 			}
 		}
 
+		bool isDragging = false;
 		int clickPosition = -1;
-		int clickDeltaPosition = 0;
+		int deltaClickPosition = 0;
 
-		void OnSliderSelected(GRCursorEvent& ce)
+		void BeginDrag(GRCursorEvent& ce)
 		{
+			isDragging = true;
 			clickPosition = ce.position.y;
 			panel.CaptureCursor();
+		}
+
+		int ComputeDraggedSliderPosition() const
+		{
+			return clamp(sliderPosition + deltaClickPosition, 0, Height(sliderZone) - sliderHeight);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -116,25 +124,25 @@ namespace ANON
 
 			if (ce.click.LeftButtonDown)
 			{
-				panel.Root().GR().SetFocus(-1);
+				panel.Focus();
 				clickTarget = ClassifyTarget(ce.position);
 				if (clickTarget == EClick::Slider)
 				{
-					OnSliderSelected(ce);
+					BeginDrag(ce);
 				}
 			}
 			else if (ce.click.LeftButtonUp)
 			{
-				clickPosition = -1;
+				isDragging = false;
 
 				panel.Root().ReleaseCursor();
 
-				if (clickDeltaPosition != 0)
+				if (deltaClickPosition != 0)
 				{
-					sliderPosition = clamp(sliderPosition + clickDeltaPosition, 0, Height(sliderZone) - sliderHeight);
+					sliderPosition = ComputeDraggedSliderPosition();
 				}
 
-				clickDeltaPosition = 0;
+				deltaClickPosition = 0;
 
 				if (clickTarget == ClassifyTarget(ce.position))
 				{
@@ -168,16 +176,14 @@ namespace ANON
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			if (clickPosition >= 0)
+			if (isDragging)
 			{
-				int32 oldPosition = clickDeltaPosition;
-				clickDeltaPosition = ce.position.y - clickPosition;
-				if (clickDeltaPosition != 0)
+				int32 oldPosition = deltaClickPosition;
+				deltaClickPosition = ce.position.y - clickPosition;
+				
+				if (oldPosition != deltaClickPosition)
 				{
-					if (oldPosition != clickDeltaPosition)
-					{
-						events.OnScrollerNewPositionCalculated(clickDeltaPosition, *this);
-					}
+					events.OnScrollerNewPositionCalculated(ComputeDraggedSliderPosition(), *this);
 				}
 			}
 			return EGREventRouting::Terminate;
@@ -190,9 +196,7 @@ namespace ANON
 
 		void RenderScrollerButton(IGRRenderContext& g, const GuiRect& rect, bool isUp)
 		{
-			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
-			UNUSED(isLit);
-			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
+			GRRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus() && IsPointInRect(g.CursorHoverPoint(), rect));
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -209,10 +213,7 @@ namespace ANON
 
 		void RenderScrollerSlider(IGRRenderContext& g, const GuiRect& rect)
 		{
-			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
-			UNUSED(isLit);
-
-			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
+			GRRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus());
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -229,7 +230,7 @@ namespace ANON
 				return { 0,0,0,0 };
 			}
 
-			int32 dy = clamp(sliderPosition + clickDeltaPosition, 0, Height(sliderZone) - sliderHeight);
+			int32 dy = clamp(sliderPosition + deltaClickPosition, 0, Height(sliderZone) - sliderHeight);
 			int32 y = sliderZone.top + 1 + dy;
 			return { sliderZone.left + 1, y, sliderZone.right - 1, y + sliderHeight };
 		}
@@ -273,6 +274,7 @@ namespace ANON
 		{
 			clickTarget = EClick::None;
 			clickPosition = -1;
+			isDragging = false;
 		}
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override

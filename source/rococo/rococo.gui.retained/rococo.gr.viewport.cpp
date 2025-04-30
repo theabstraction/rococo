@@ -191,39 +191,7 @@ namespace ANON
 			pageDeltaScale = clamp(scaleFactor, 0.0, 2.0);
 		}
 
-		void OnScrollLines(int delta, IGRWidgetScroller& scroller)
-		{
-			if (lineDeltaPixels == 0) return;
-
-			panel.Root().GR().SetFocus(-1);
-
-			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange == 0)
-			{
-				OnScrollerNewPositionCalculated(0, scroller);
-				scroller.SetSliderPosition(0);
-			}
-			else if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
-			{
-				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
-
-				int32 deltaPixels = delta * lineDeltaPixels;
-
-				int newPosition = (int)(deltaPixels / scale);
-
-				if (newPosition == 0)
-				{
-					// Don't let the scaling completely eliminate the change, we must always have some scrolling
-					newPosition = (delta > 0) ? 1 : -1;
-				}
-
-				OnScrollerNewPositionCalculated(newPosition, scroller);
-
-				scroller.SetSliderPosition(clamp(newPosition + m.SliderTopPosition, 0, m.PixelRange));
-			}
-		}
-
-		void OnScrollPages(int delta, IGRWidgetScroller& scroller) override
+		void ScrollDeltaPixels(int deltaPixels, IGRWidgetScroller& scroller)
 		{
 			panel.Root().GR().SetFocus(-1);
 
@@ -233,9 +201,6 @@ namespace ANON
 			if (m.PixelRange > 0 && lastKnownDomainHeight > clipAreaHeight)
 			{
 				double scale = m.PixelRange / (double)(lastKnownDomainHeight - clipAreaHeight);
-
-				int deltaPixels = (int) (pageDeltaScale * delta * clipAreaHeight);
-
 				int32 newOffset = deltaPixels + clientOffsetAreaParentOffset;
 
 				if (lineDeltaPixels > 0 && lineDeltaPixels < deltaPixels)
@@ -250,6 +215,22 @@ namespace ANON
 
 				scroller.SetSliderPosition(newPosition);
 			}
+		}
+
+		void OnScrollLines(int delta, IGRWidgetScroller& scroller)
+		{
+			if (lineDeltaPixels <= 0) return;
+			int32 deltaPixels = delta * lineDeltaPixels;
+			ScrollDeltaPixels(deltaPixels, scroller);
+		}
+
+		void OnScrollPages(int delta, IGRWidgetScroller& scroller) override
+		{
+			panel.Root().GR().SetFocus(-1);
+
+			int clipAreaHeight = clipArea->Panel().Span().y;
+			int deltaPixels = (int)(pageDeltaScale * delta * clipAreaHeight);
+			ScrollDeltaPixels(deltaPixels, scroller);
 		}
 
 		void AdjustClientOffsetAreaAccordingToNewPosition(int newPosition, const GRScrollerMetrics m)
