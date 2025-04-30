@@ -817,23 +817,34 @@ namespace GRANON
 
 		void DrawRoundedEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour, int cornerRadius)
 		{
-			int R = 2 * cornerRadius;
+			int R = cornerRadius;
 
-			int thickness = 1;
-			Gdiplus::Pen tlPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue), (float) thickness);
+			if (topLeftColour.alpha == 255 && bottomRightColour.alpha == 255 && *(int*) &topLeftColour == *(int*) &bottomRightColour)
+			{
+				UseClipRect clipRect(paintDC, lastScissorRect);
+				RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, R, R);
+				return;
+			}
+
+			Gdiplus::Pen tlPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue), 1.0f);
+
+			Gdiplus::Rect clipRect(lastScissorRect.left, lastScissorRect.top, Width(lastScissorRect), Height(lastScissorRect));
+			g.SetClip(clipRect);
 
 			g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 			g.DrawArc(&tlPen, absRect.left, absRect.top, R, R, 180.0f, 90.0f);
-			g.DrawArc(&tlPen, absRect.right - R - 1, absRect.top, R, R, 270, 90.0f);
-			g.DrawLine(&tlPen, absRect.left + thickness - 1, absRect.top + cornerRadius, absRect.left + thickness - 1, absRect.bottom - cornerRadius);
-			g.DrawLine(&tlPen, absRect.left + cornerRadius, absRect.top, absRect.right - cornerRadius, absRect.top);
+			g.DrawArc(&tlPen, absRect.right - R, absRect.top, R, R, 270, 90.0f);
+			g.DrawLine(&tlPen, absRect.left, absRect.top + R / 2, absRect.left, absRect.bottom - R/2);
+			g.DrawLine(&tlPen, absRect.left + R/2, absRect.top, absRect.right - R/2, absRect.top);
 			
-			Gdiplus::Pen brPen(Gdiplus::Color(bottomRightColour.alpha, bottomRightColour.red, bottomRightColour.green, bottomRightColour.blue), (float)thickness);
-			g.DrawLine(&brPen, absRect.left + cornerRadius, absRect.bottom-1, absRect.right - cornerRadius, absRect.bottom-1);
-			g.DrawLine(&brPen, absRect.right -1, absRect.top + cornerRadius, absRect.right - 1, absRect.bottom - cornerRadius);
+			Gdiplus::Pen brPen(Gdiplus::Color(bottomRightColour.alpha, bottomRightColour.red, bottomRightColour.green, bottomRightColour.blue), 1.0f);
+			g.DrawLine(&brPen, absRect.left + R/2, absRect.bottom-1, absRect.right - R /2, absRect.bottom-1);
+			g.DrawLine(&brPen, absRect.right -1, absRect.top + R/2, absRect.right, absRect.bottom - R/2);
 			g.DrawArc(&brPen, absRect.right - R - 1, absRect.bottom - R - 1, R, R, 0, 90.0f);
-			g.DrawArc(&brPen, absRect.left + thickness - 1, absRect.bottom - R - 1, R, R, 90.0f, 90.0f);
+			g.DrawArc(&brPen, absRect.left, absRect.bottom - R - 1, R, R, 90.0f, 90.0f);
 			g.SetSmoothingMode(Gdiplus::SmoothingModeDefault);
+
+			g.ResetClip();
 		}
 
 		void DrawSharpRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour)

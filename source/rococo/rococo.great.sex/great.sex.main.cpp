@@ -80,6 +80,8 @@ namespace Rococo::GreatSex
 			ControlPromptFactory onControlPrompt;
 			PromptFactory onPrompt;
 			DefIconFactory onDefIcon;
+			ViewportClientFactory onViewportClient;
+			ViewportOffsetFactory onViewportOffset;
 
 			Auto<ISParser> insertParser;
 
@@ -129,6 +131,8 @@ namespace Rococo::GreatSex
 				AddHandler("ControlPrompt", onControlPrompt);
 				AddHandler("Prompt", onPrompt);
 				AddHandler("DefIcon", onDefIcon);
+				AddHandler("Viewport.ClientArea", onViewportClient);
+				AddHandler("Viewport.Offset", onViewportOffset);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);
@@ -780,7 +784,7 @@ namespace Rococo::GreatSex
 					{
 						char err[4096];
 						StackStringBuilder sb(err, sizeof err);
-						sb << "Unknown Panel attribute " << name << ". Known attributes :";
+						sb << "Unknown Panel attribute " << name << ". Known attributes: ";
 
 						int count = 0;
 						for (auto h : attributeHandlers)

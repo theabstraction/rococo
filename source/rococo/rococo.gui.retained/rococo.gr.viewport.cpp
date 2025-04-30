@@ -86,11 +86,13 @@ namespace ANON
 				vscroller->Panel().SetCollapsed(true);
 				trueScrollBarWidth = 0;
 				ClientArea().Panel().SetRectStyle(notScrollableRectStyle);
+				panel.SetRectStyle(notScrollableRectStyle);
 			}
 			else
 			{
 				vscroller->Panel().SetCollapsed(false);
 				ClientArea().Panel().SetRectStyle(scrollableRectStyle);
+				panel.SetRectStyle(scrollableRectStyle);
 			}
 
 			Vec2i clipSpan{ span.x - trueScrollBarWidth, span.y };
@@ -104,7 +106,7 @@ namespace ANON
 			auto& coaPanel = clientOffsetArea->Panel();
 			coaPanel.SetConstantWidth(clientOffsetSpan.x);
 			coaPanel.SetConstantHeight(clientOffsetSpan.y);
-			coaPanel.SetParentOffset({ 0, -clientOffsetAreaParentOffset });
+			coaPanel.SetParentOffset({ 10, -clientOffsetAreaParentOffset });
 			
 			auto& vswp = vscroller->Widget().Panel();
 			vswp.SetConstantWidth(trueScrollBarWidth);
@@ -352,8 +354,9 @@ namespace ANON
 			return *vscroller;
 		}
 
-		void Render(IGRRenderContext&) override
+		void Render(IGRRenderContext& g) override
 		{
+			DrawPanelBackgroundEx(panel, g, EGRSchemeColourSurface::BACKGROUND, EGRSchemeColourSurface::CONTAINER_TOP_LEFT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 		}
 
 		int nextDomain = 0;

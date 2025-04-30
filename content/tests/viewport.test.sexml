@@ -89,29 +89,30 @@
 		// A viewport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
 		(Viewport
 			(Panel.Description GameOptionsInnerDiv)
-			(Colour.Container.Background Translucent)
+			(Colour.Background DarkRed)
 			(Colour.Container.Top.Left White)
 			(Colour.Container.Bottom.Right LightGrey)
 			// Define the client area rect style when a vertical scroller is visible
-			(Viewport.RectStyle.Scrollable Sharp)
-			
+			(Viewport.RectStyle.Scrollable Rounded)	
 			// Define the client area rect style when the vertical scroller is invisible (scrolling not required)
-			(Viewport.Rectstyle.NotScrollable Sharp)
-			(Panel.CornerRadius 16)
-			(Panel.AcceptsFocus)
-			(Panel.ExpandH)
-			(Panel.ExpandV)
-			(Panel.Layout TopToBottom)
+			(Viewport.Rectstyle.NotScrollable Rounded)
+			(Panel.CornerRadius 128)	
 			(Viewport.SyncDomainToChildren)
-			(Colour.Carousel.Top.Left LightGrey)
-			(Colour.Carousel.Bottom.Right LightGrey)
-			(Colour.Carousel.DropDown Black)
-			(Colour.GameOption.Top.Left Transparent)
-			(Colour.GameOption.Bottom.Right Transparent)
-			(Colour.GameOption.Background Transparent)
-			(Colour.GameOption.ChildSpacer DarkGrey)
 			(Colour.Label Transparent)
 			:
+			
+			(Viewport.ClientArea
+				(Panel.Layout TopToBottom)
+				(Colour.Background Transparent)
+				(Colour.Container.Background Transparent)
+			)
+			
+			(Viewport.Offset
+				(Colour.Background Transparent)
+				(Colour.Container.Background Transparent)
+				(Colour.Container.Top.Left Transparent)
+				(Colour.Container.Bottom.Right Transparent)
+			)
 			
 			(GradientFill
 				(Panel.ExpandH)

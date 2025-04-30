@@ -448,6 +448,38 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct ViewportClientFactory : ISEXMLWidgetFactory
+	{
+		void Generate(IGreatSexGenerator&, const Rococo::Sex::SEXML::ISEXMLDirective& d, Rococo::Gui::IGRWidget&) override
+		{
+			if (IsValidFrom(d))
+			{
+				Throw(d.S(), "Viewport.ClientArea may only occur in a Viewport directive");
+			}
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& dir) const override
+		{
+			return Eq(dir.FQName(), "Viewport");
+		}
+	};
+
+	struct ViewportOffsetFactory : ISEXMLWidgetFactory
+	{
+		void Generate(IGreatSexGenerator&, const Rococo::Sex::SEXML::ISEXMLDirective& d, Rococo::Gui::IGRWidget&) override
+		{
+			if (IsValidFrom(d))
+			{
+				Throw(d.S(), "Viewport.Offset may only occur in a Viewport directive");
+			}
+		}
+
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& dir) const override
+		{
+			return Eq(dir.FQName(), "Viewport");
+		}
+	};
+
 	struct DefIconFactory: ISEXMLWidgetFactory
 	{
 		void Generate(IGreatSexGenerator & generator, const Rococo::Sex::SEXML::ISEXMLDirective & tabDirective, Rococo::Gui::IGRWidget & parent) override
@@ -673,7 +705,21 @@ namespace Rococo::GreatSex
 				viewport.SyncDomainToChildren();
 			}
 
-			generator.SetPanelAttributes(viewport.ClientArea().Widget(), viewportDirective);
+			size_t startIndex = 0;
+			auto* dClip = SEXML::FindDirective(viewportDirective.Children(), "Viewport.ClientArea", IN OUT startIndex);
+			if (dClip)
+			{
+				generator.SetPanelAttributes(viewport.ClientArea().Widget(), *dClip);
+			}
+
+			startIndex = 0;
+			auto* dOffset = SEXML::FindDirective(viewportDirective.Children(), "Viewport.Offset", IN OUT startIndex);
+			if (dOffset)
+			{
+				generator.SetPanelAttributes(viewport.ClientArea().Panel().Parent()->Widget(), *dOffset);
+			}
+
+			generator.SetPanelAttributes(viewport.Widget(), viewportDirective);
 			generator.GenerateChildren(viewportDirective, viewport.ClientArea().Widget());
 		}
 	};
