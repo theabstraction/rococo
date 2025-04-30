@@ -819,15 +819,6 @@ namespace GRANON
 		{
 			int D = diameter;
 
-			if (topLeftColour.alpha == 255 && bottomRightColour.alpha == 255 && *(int*) &topLeftColour == *(int*) &bottomRightColour)
-			{
-				UseClipRect clipRect(paintDC, lastScissorRect);
-				GDIPen edgePen(topLeftColour);
-				UsePen usePen(paintDC, edgePen);
-				RoundRect(paintDC, absRect.left, absRect.top, absRect.right, absRect.bottom, D, D);
-				return;
-			}
-
 			Gdiplus::Pen tlPen(Gdiplus::Color(topLeftColour.alpha, topLeftColour.red, topLeftColour.green, topLeftColour.blue), 1.0f);
 
 			Gdiplus::Rect clipRect(lastScissorRect.left, lastScissorRect.top, Width(lastScissorRect), Height(lastScissorRect));
@@ -1098,7 +1089,7 @@ namespace GRANON
 				HRESULT nErr = GetLastError();
 				if (nErr)
 				{
-					Throw(nErr, "AlphaBlend failed");
+			//		Throw(nErr, "AlphaBlend failed");
 				}
 				return;
 			}

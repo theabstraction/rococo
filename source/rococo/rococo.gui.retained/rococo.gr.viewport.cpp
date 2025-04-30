@@ -97,13 +97,16 @@ namespace ANON
 
 			Vec2i roundedOffset = { 0,0 };
 
+			Vec2i clipSpan{ span.x - trueScrollBarWidth, span.y };
+
 			if (panel.RectStyle() != EGRRectStyle::SHARP)
 			{
 				roundedOffset = { panel.CornerRadius(), 0 };
 				trueScrollBarWidth = 2 * roundedOffset.x;
+
+				clipSpan.x -= trueScrollBarWidth;
 			}
 
-			Vec2i clipSpan{ span.x - 3 * roundedOffset.x, span.y };
 			auto& clipPanel = clipArea->Panel();
 			clipPanel.SetConstantWidth(clipSpan.x);
 			clipPanel.SetConstantHeight(clipSpan.y);

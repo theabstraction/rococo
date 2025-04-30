@@ -24,8 +24,8 @@ IGameOptions& GetAudioOptions();
 IGameOptions& GetUIOptions();
 IGameOptions& GetMultiplayerOptions();
 
-// cstr textSexml = "!tests/greatsex.test.sexml";
-cstr textSexml = "!tests/viewport.test.sexml";
+cstr textSexml = "!tests/greatsex.test.sexml";
+//cstr textSexml = "!tests/viewport.test.sexml";
 
 void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 {
