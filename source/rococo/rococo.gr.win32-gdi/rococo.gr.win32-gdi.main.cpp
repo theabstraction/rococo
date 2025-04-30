@@ -1053,9 +1053,19 @@ namespace GRANON
 			AutoReleaseBitmap arb(CacheAlphaBuilder(), alphaBuilder.DC);
 
 			Gdiplus::SolidBrush brush(Gdiplus::Color(0, 0, 0, 0));
-			alphaBuilder.g->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
+			Gdiplus::Status status = alphaBuilder.g->FillRectangle(&brush, r.left, r.top, Width(r), Height(r));
 
-			if (!GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG) trivertexCache.size(), triIndexCache.data(), (ULONG)triIndexCache.size(), GRADIENT_FILL_TRIANGLE))
+			BOOL isOK = FALSE;
+
+			if (status == Gdiplus::Status::Ok)
+			{
+				isOK = GradientFill(alphaBuilder.DC, trivertexCache.data(), (ULONG)trivertexCache.size(), triIndexCache.data(), (ULONG)triIndexCache.size(), GRADIENT_FILL_TRIANGLE);
+			}
+			
+			trivertexCache.clear();
+			triIndexCache.clear();
+
+			if (!isOK)
 			{
 				return;
 			}
@@ -1065,10 +1075,20 @@ namespace GRANON
 			blendFunction.BlendFlags = 0;
 			blendFunction.BlendOp = AC_SRC_OVER;
 			blendFunction.SourceConstantAlpha = 255;
-			AlphaBlend(paintDC, r.left, r.top, Width(r), Height(r), alphaBuilder.DC, r.left, r.top, Width(r), Height(r), blendFunction);
 
-			trivertexCache.clear();
-			triIndexCache.clear();
+			UseClipRect clipRect(paintDC, lastScissorRect);
+
+			GuiRect targetRect = IntersectNormalizedRects(lastScissorRect, r);
+
+			if (!AlphaBlend(paintDC, targetRect.left, targetRect.top, Width(r), Height(r), alphaBuilder.DC, targetRect.left, targetRect.top, Width(r), Height(r), blendFunction))
+			{
+				HRESULT nErr = GetLastError();
+				if (nErr)
+				{
+					Throw(nErr, "AlphaBlend failed");
+				}
+				return;
+			}
 		}
 
 		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
