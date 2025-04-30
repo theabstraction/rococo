@@ -433,6 +433,7 @@ namespace Rococo::Gui
 		DROP_DOWN_EXPANDED, // The drop down control expanded
 		BUTTON_CLICK_OUTSIDE, // A control captured a mouse click outside of its panel's AbsRect
 		SCROLLER_RELEASED, // A scroll button was released by letting go of the mouse button 
+		SLIDER_HELD, // A slider was clicked down with the cursor
 		UPDATED_CLIENTAREA_HEIGHT, // A viewport client-area control calculated its new height (passed to iMetaData). The viewport caches this and applies it during the next layout
 		USER_DEFINED = 1025
 	};

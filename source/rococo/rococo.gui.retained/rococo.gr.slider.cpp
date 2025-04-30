@@ -91,6 +91,14 @@ namespace GRANON
 				isRaised = false;
 				panel.CaptureCursor();
 				if (!isRaised) UpdateSliderPos(ce.position);
+
+				GRWidgetEvent mouseUp;
+				mouseUp.eventType = EGRWidgetEventType::SLIDER_HELD;
+				mouseUp.isCppOnly = true;
+				mouseUp.iMetaData = 0;
+				mouseUp.sMetaData = GetImplementationTypeName();
+				panel.NotifyAncestors(mouseUp, *this);
+
 				return EGREventRouting::Terminate;
 			}
 			else if (ce.click.LeftButtonUp)

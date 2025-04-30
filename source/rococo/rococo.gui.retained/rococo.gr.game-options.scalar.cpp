@@ -121,6 +121,9 @@ namespace GRANON
 				{
 				case EGRWidgetEventType::SCROLLER_RELEASED:
 					return EGREventRouting::Terminate;
+				case EGRWidgetEventType::SLIDER_HELD:
+					panel.Focus();
+					return EGREventRouting::Terminate;
 				}
 			}
 
@@ -128,26 +131,31 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
+		int speed = 0;
+
 		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
 			if (ke.osKeyEvent.IsUp())
 			{
+				speed = 0;
 				return EGREventRouting::NextHandler;
 			}
+
+			speed += 1;
 
 			switch (ke.osKeyEvent.VKey)
 			{
 			case IO::VirtualKeys::VKCode_PGUP:
-				slider->Advance(-10);
+				slider->Advance(-10 * speed);
 				break;
 			case IO::VirtualKeys::VKCode_PGDOWN:
-				slider->Advance(10);
+				slider->Advance(10 * speed);
 				break;
 			case IO::VirtualKeys::VKCode_LEFT:
-				slider->Advance(-1);
+				slider->Advance(-1 * speed);
 				break;
 			case IO::VirtualKeys::VKCode_RIGHT:
-				slider->Advance(1);
+				slider->Advance(1 * speed);
 				break;
 			case IO::VirtualKeys::VKCode_HOME:
 				slider->SetPosition(slider->Min());
