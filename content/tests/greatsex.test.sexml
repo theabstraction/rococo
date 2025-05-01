@@ -296,13 +296,14 @@
 					(Colour.Container.Bottom.Right Transparent)
 				)
 			
-				// GameOptions is a procedurally generated list of controls for changing game options
+				// GameOptions contains a procedurally generated list of controls for changing game options
 				(GameOptions 
 					(Panel.Collapsed)
 					(Panel.Description GameOptions.Graphics)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
+					(SubscribeToCommitButtons) 
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -337,6 +338,7 @@
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
+					(SubscribeToCommitButtons) 
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -371,6 +373,7 @@
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
+					(SubscribeToCommitButtons) 
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -405,6 +408,7 @@
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
+					(SubscribeToCommitButtons) 
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)
@@ -439,6 +443,7 @@
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)
 					(Title.Font SubOptionTitleFont)
+					(SubscribeToCommitButtons) 
 					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
 					(Title.HeightMultiplier 1.75)

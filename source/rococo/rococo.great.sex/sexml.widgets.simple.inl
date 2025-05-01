@@ -199,6 +199,12 @@ namespace Rococo::GreatSex
 			auto& optionWidget = CreateGameOptionsList(owner, opt, config);
 			generator.SetPanelAttributes(optionWidget.Widget(), directive);
 
+			auto* aSubscribeToCommitButtons = directive.FindAttributeByName("SubscribeToCommitButtons");
+			if (aSubscribeToCommitButtons)
+			{
+				optionWidget.SubscribeToCommitButtons();
+			}
+
 			if (directive.Children().NumberOfDirectives() != 0)
 			{
 				Throw(directive.S(), "(GameOptions ...) directives do not support child directives");

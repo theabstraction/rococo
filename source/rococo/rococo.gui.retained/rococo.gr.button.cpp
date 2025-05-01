@@ -3,6 +3,7 @@
 #include <rococo.strings.h>
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
+#include <unordered_set>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -38,7 +39,6 @@ namespace GRANON
 
 		virtual ~GRButton()
 		{
-
 		}
 
 		void TriggerOnKeyDown() override
@@ -78,6 +78,23 @@ namespace GRANON
 
 		void FireEvent(Vec2i clickPosition)
 		{
+			int nTerminations = 0;
+
+			for (auto* s : subscribers)
+			{
+				ButtonEvent ev{ EGRButtonEventType::ButtonClicked, *this, EGREventRouting::NextHandler };
+				s->OnEvent(ev);
+				if (ev.routing == EGREventRouting::Terminate)
+				{
+					nTerminations++;
+				}
+			}
+
+			if (nTerminations > 0)
+			{
+				return;
+			}
+
 			if (eventPolicy == EGREventPolicy::PublicEvent)
 			{		
 				// We cannot copy the meta data string, because it may be invalidated by the time the consumer comes to read it
@@ -563,6 +580,18 @@ namespace GRANON
 		cstr GetImplementationTypeName() const override
 		{
 			return "GRButton";
+		}
+
+		std::unordered_set<IEventCallback<ButtonEvent>*> subscribers;
+
+		void Subscribe(IEventCallback<ButtonEvent>& eventHandler) override
+		{
+			subscribers.insert(&eventHandler);
+		}
+
+		void Unsubscribe(IEventCallback<ButtonEvent>& eventHandler) override
+		{
+			subscribers.erase(&eventHandler);
 		}
 	};
 

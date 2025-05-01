@@ -27,6 +27,8 @@ namespace Rococo::Sex
 
 namespace Rococo::Gui
 {
+	struct GameOptionConfig;
+
 	DECLARE_ROCOCO_INTERFACE IGRImage;
 	DECLARE_ROCOCO_INTERFACE IGRImageSupervisor;
 	DECLARE_ROCOCO_INTERFACE IGRPanel;
@@ -38,6 +40,7 @@ namespace Rococo::Gui
 	DECLARE_ROCOCO_INTERFACE IGRWidgetViewport;
 	DECLARE_ROCOCO_INTERFACE IGRPanelWatcher;
 	DECLARE_ROCOCO_INTERFACE IGRWidgetScrollableMenu;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetButton;
 
 #pragma pack(push, 1)
 	struct GRCursorClick
@@ -880,6 +883,22 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 	};
 
+	enum class EGRButtonEventType
+	{
+		None,
+		ButtonClicked
+	};
+
+	struct ButtonEvent
+	{
+		EGRButtonEventType type;
+		IGRWidgetButton& button;
+
+		// Initially set to NextHandler. if at least one button event handler sets routing to Terminate, then routing terminates AFTER all handlers have been notified
+		// If not event handler sets Terminate, events are passed on to the normal button handler mechanism
+		EGREventRouting routing;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetButton : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -943,6 +962,9 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] Vec2i ImageSpan() const = 0;
 
 		virtual void Toggle() = 0;
+
+		virtual void Subscribe(IEventCallback<ButtonEvent>& eventHandler) = 0;
+		virtual void Unsubscribe(IEventCallback<ButtonEvent>& eventHandler) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetCarousel : IGRBase
@@ -1161,6 +1183,11 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
+		virtual [[nodiscard]] Game::Options::IGameOptions& Options() = 0;
+		virtual [[nodiscard]] const Gui::GameOptionConfig& Config() const = 0;
+
+		// Search the widget tree for accept & revert buttons, subscribe to them. This occurs at Prep() time.
+		virtual void SubscribeToCommitButtons() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsBool : IGRBase
@@ -1536,7 +1563,7 @@ namespace Rococo::Gui
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
-		// Indicates a widget tree has been built and the widgets should prep themselves. Here is a good time to throw exceptions.
+		// A widget tree has been built and the widgets should prep themselves. Here is a good time to throw exceptions.
 		// If the widget needs the invocation to function correctly then the widget implementor needs the tree builder to invoke PrepPanelAndDescendants
 		virtual void Prep() = 0;
 	};

@@ -52,14 +52,29 @@ struct AudioOptions : IGameOptions
 	double narrationVolume = 0.4;
 	HString speakerConfig = "2";
 
+	AudioOptions() : db(*this)
+	{
+
+	}
+
 	IOptionDatabase& DB() override
 	{
 		return db;
 	}
 
-	AudioOptions() : db(*this)
+	void Accept() override
 	{
 
+	}
+
+	void Revert() override
+	{
+
+	}
+
+	bool IsModified() const override
+	{
+		return true;
 	}
 
 	void GetMusicVolume(IScalarInquiry& inquiry)
@@ -135,6 +150,21 @@ struct GraphicsOptions: IGameOptions
 	IOptionDatabase& DB() override
 	{
 		return db;
+	}
+
+	void Accept() override
+	{
+
+	}
+
+	void Revert() override
+	{
+
+	}
+
+	bool IsModified() const override
+	{
+		return true;
 	}
 
 	HString activeScreenMode = "Fullscreen";
@@ -336,17 +366,32 @@ struct UIOptions : IGameOptions
 {
 	OptionDatabase<UIOptions> db;
 
-	IOptionDatabase& DB() override
-	{
-		return db;
-	}
-
 	double cursorResponsiveness = 3.0;
 	bool isYAxisInverted = false;
 
 	UIOptions() : db(*this)
 	{
 
+	}
+
+	IOptionDatabase& DB() override
+	{
+		return db;
+	}
+
+	void Accept() override
+	{
+
+	}
+
+	void Revert() override
+	{
+
+	}
+
+	bool IsModified() const override
+	{
+		return true;
 	}
 
 	void GetCursorResponsiveness(IScalarInquiry& inquiry)
@@ -386,17 +431,32 @@ struct GameplayOptions : IGameOptions
 {
 	OptionDatabase<GameplayOptions> db;
 
-	IOptionDatabase& DB() override
-	{
-		return db;
-	}
-
 	HString startDifficulty = "Easy";
 	HString gameDifficulty = "Easy";
 
 	GameplayOptions() : db(*this)
 	{
 
+	}
+
+	IOptionDatabase& DB() override
+	{
+		return db;
+	}
+
+	void Accept() override
+	{
+
+	}
+
+	void Revert() override
+	{
+
+	}
+
+	bool IsModified() const override
+	{
+		return true;
 	}
 
 	void GetStartingDifficulty(IChoiceInquiry& inquiry)
@@ -445,17 +505,32 @@ struct MultiplayerOptions : IGameOptions
 {
 	OptionDatabase<MultiplayerOptions> db;
 
-	IOptionDatabase& DB() override
-	{
-		return db;
-	}
-
 	bool hostGame = false;
 	bool useUDP = true;
 
 	MultiplayerOptions() : db(*this)
 	{
 
+	}
+
+	IOptionDatabase& DB() override
+	{
+		return db;
+	}
+
+	void Accept() override
+	{
+
+	}
+
+	void Revert() override
+	{
+
+	}
+
+	bool IsModified() const override
+	{
+		return true;
 	}
 
 	void GetHostGame(IBoolInquiry& inquiry)

@@ -2,14 +2,16 @@
 #include <rococo.maths.i32.h>
 #include <rococo.game.options.h>
 #include <rococo.hashtable.h>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Game::Options;
+using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder
+	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder, IGRWidgetInitializer, IEventCallback<ButtonEvent>
 	{
 		IGRPanel& panel;
 		IGameOptions& options;
@@ -34,6 +36,20 @@ namespace GRANON
 
 			panel.Set(GRAnchorPadding{ 4,4,4,4 });
 			panel.SetChildPadding(1);
+		}
+
+		virtual ~GRGameOptionsList()
+		{
+		}
+
+		IGameOptions& Options() override
+		{
+			return options;
+		}
+
+		const GameOptionConfig& Config() const override
+		{
+			return config;
 		}
 
 		void PostConstruct()
@@ -213,7 +229,13 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			return Gui::QueryForParticularInterface<IGRWidgetGameOptions>(this, ppOutputArg, interfaceId);
+			auto result = QueryForParticularInterface<IGRWidgetInitializer>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
+			return QueryForParticularInterface<IGRWidgetGameOptions>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget()
@@ -258,6 +280,60 @@ namespace GRANON
 			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, config);
 			mapNameToScalarControl.insert(name, &scalarWidget);
 			return scalarWidget.Inquiry();
+		}
+
+		void OnEvent(ButtonEvent& ev) override
+		{
+			cstr desc = ev.button.Panel().Desc();
+			if (Eq("ButtonAccept", desc))
+			{
+				options.Accept();
+			}
+			else if (Eq("ButtonRevert", desc))
+			{
+				options.Revert();
+			}
+		}
+
+		bool subscribeToCommitButtons = false;
+
+		void SubscribeToCommitButtons() override
+		{
+			subscribeToCommitButtons = true;
+		}
+
+		void SubscribeToButtonRecursive(IGRWidget& widget)
+		{
+			auto* button = Cast<IGRWidgetButton>(widget);
+			if (button)
+			{
+				if (Eq("ButtonAccept", button->Panel().Desc()))
+				{
+					button->Subscribe(*this);
+				}
+				else if (Eq("ButtonRevert", button->Panel().Desc()))
+				{
+					button->Subscribe(*this);
+				}
+				
+				return;
+			}
+
+			int nChildren = widget.Panel().EnumerateChildren(nullptr);
+			for (int i = 0; i < nChildren; i++)
+			{
+				auto* child = widget.Panel().GetChild(i);
+				SubscribeToButtonRecursive(child->Widget());
+			}
+		}
+
+		void Prep() override
+		{
+			if (subscribeToCommitButtons)
+			{
+				auto* frame = FindOwner(*this);
+				SubscribeToButtonRecursive(frame->Widget());
+			}
 		}
 	};
 

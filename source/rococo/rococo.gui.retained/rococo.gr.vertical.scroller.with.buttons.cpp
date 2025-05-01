@@ -176,7 +176,7 @@ namespace ANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext& g) override
+		void Render(IGRRenderContext&) override
 		{
 		}
 
