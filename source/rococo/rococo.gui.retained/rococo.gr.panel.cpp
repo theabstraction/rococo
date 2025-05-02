@@ -451,12 +451,14 @@ namespace GRANON
 
 		void ClearChildren() override
 		{
-			for (auto* child : children)
+			// We want to preserve the integrity of the children field during destruction, in case a widget destructor enumerates children
+			// So we destruct it one member at a time, removing the member first
+			while (!children.empty())
 			{
+				auto* child = children.back();
+				children.pop_back();
 				child->ReleasePanel();
 			}
-
-			children.clear();
 		}
 
 		int32 EnumerateChildren(IEventCallback<IGRPanel>* callback) override
