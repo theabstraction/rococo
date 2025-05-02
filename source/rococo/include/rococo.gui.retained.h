@@ -345,6 +345,7 @@ namespace Rococo::Gui
 		COLLAPSER_TITLE_DEPTH_EVEN, // If supported by the collapser tree, colours collapser title backgrounds with even depth
 		COLLAPSER_TITLE_DEPTH_ODD, // If supported by the collapser tree, colours collapser title backgrounds with odd depth
 		COLLAPSER_TITLE_TEXT, // If supported by the collapser tree, colours collapser text
+		COLLAPSER_TITLE_SHADOW, // The shadow coloour of the title text
 		GAME_OPTION_TOP_LEFT,
 		GAME_OPTION_BOTTOM_RIGHT,
 		GAME_OPTION_CHILD_SPACER, // Gives the colour of a spacer between game options
@@ -879,6 +880,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetText& SetFont(GRFontId fontId) = 0;
 		virtual IGRWidgetText& SetText(cstr text) = 0;
 		virtual IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface) = 0;
+		virtual IGRWidgetText& SetTextColourShadowSurface(EGRSchemeColourSurface surface) = 0;
 		virtual [[nodiscard]] IGRWidget& Widget() = 0;
 		virtual [[nodiscard]] IGRPanel& Panel() = 0;
 	};

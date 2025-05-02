@@ -1014,7 +1014,8 @@ namespace GRANON
 			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 
-			CopyAllColours(titleDescription.Widget().Panel(), titleDescription.Widget().Panel(), EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT, EGRSchemeColourSurface::TEXT);
+			titleDescription.SetTextColourSurface(EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT);
+			titleDescription.SetTextColourShadowSurface(EGRSchemeColourSurface::COLLAPSER_TITLE_SHADOW);
 			
 			auto& list = CreateVerticalList(collapser.ClientArea().Widget());
 			list.Widget().Panel().SetExpandToParentHorizontally();

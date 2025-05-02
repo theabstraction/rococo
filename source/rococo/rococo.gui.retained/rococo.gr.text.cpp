@@ -128,7 +128,7 @@ namespace GRANON
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
 			GuiRect shadowRect{ rect.left + 1, rect.top + 1, rect.right + 1, rect.bottom + 1 };
-			g.DrawText(fontId, shadowRect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(EGRSchemeColourSurface::LABEL_SHADOW, rs));
+			g.DrawText(fontId, shadowRect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(shadowSurface, rs));
 			g.DrawText(fontId, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(labelSurface, rs));
 		}
 
@@ -166,6 +166,12 @@ namespace GRANON
 		IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface) override
 		{
 			labelSurface = surface;
+			return *this;
+		}
+
+		IGRWidgetText& SetTextColourShadowSurface(EGRSchemeColourSurface surface) override
+		{
+			shadowSurface = surface;
 			return *this;
 		}
 

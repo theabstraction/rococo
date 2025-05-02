@@ -153,13 +153,15 @@ void UseTestColourScheme(IGRWidgetMainFrame& frame)
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::ROW_COLOUR_ODD, RGBAb(255, 255, 255));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::NAME_TEXT, RGBAb(0, 0, 0, 255));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::LABEL_BACKGROUND, RGBAb(255, 255, 255, 0));
+	MakeTransparent(framePanel, EGRSchemeColourSurface::LABEL_SHADOW);
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::EDITOR, RGBAb(192, 192, 192));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(255, 240, 240));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(240, 255, 240));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT, RGBAb(0, 0, 0, 255));
+	MakeTransparent(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_SHADOW);
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::VALUE_TEXT, RGBAb(0, 0, 0, 255));
-	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
+	MakeTransparent(framePanel, EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
 	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
 	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
 	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
@@ -427,7 +429,7 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 	editor.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId) + 4);
 
 	editor.View(target.Visitation());
-	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 0), GRGenerateIntensities());
+	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
 
 	RunMessageLoop(client);
 }
