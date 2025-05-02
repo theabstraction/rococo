@@ -158,6 +158,14 @@ void UseTestColourScheme(IGRWidgetMainFrame& frame)
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(255, 240, 240));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(240, 255, 240));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(true, false, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(true, true, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(true, false, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(true, true, true));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT, RGBAb(0, 0, 0, 255));
 	MakeTransparent(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_SHADOW);
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::VALUE_TEXT, RGBAb(0, 0, 0, 255));

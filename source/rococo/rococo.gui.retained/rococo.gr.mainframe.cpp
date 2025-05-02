@@ -143,6 +143,8 @@ namespace GRANON
 				{
 				case Rococo::IO::VirtualKeys::VKCode_ESCAPE:
 					return OnEsc();
+				case Rococo::IO::VirtualKeys::VKCode_TAB:
+					return EGREventRouting::Terminate;
 				}
 				return EGREventRouting::NextHandler;
 			}

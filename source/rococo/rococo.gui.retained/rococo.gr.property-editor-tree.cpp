@@ -6,6 +6,8 @@
 #include <rococo.formatting.h>
 #include <vector>
 #include <unordered_map>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -687,12 +689,42 @@ namespace GRANON
 			return panel;
 		}
 
+		void HilightFocusedCollapserRecursive(IGRPanel& p)
+		{
+			auto* collapser = Cast<IGRWidgetCollapser>(p.Widget());
+			if (collapser)
+			{
+				auto* textPanel = collapser->TitleBar().Panel().GetChild(2);
+				if (textPanel)
+				{
+					auto* text = Cast<IGRWidgetText>(textPanel->Widget());
+					if (p.HasFocus())
+					{
+						text->SetBackColourSurface(EGRSchemeColourSurface::FOCUS_RECTANGLE);
+					}
+					else
+					{
+						text->SetBackColourSurface(EGRSchemeColourSurface::CONTAINER_BACKGROUND);
+					}
+				}
+			}
+
+			int nChildren = p.EnumerateChildren(nullptr);
+			for (int i = 0; i < nChildren; i++)
+			{
+				auto* child = p.GetChild(i);
+				HilightFocusedCollapserRecursive(*child);
+			}
+		}
+
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
 			bool isHovered = g.IsHovered(panel);
 			RGBAb colour = panel.GetColour(Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, GRRenderState(false, isHovered, false));
 			g.DrawRect(rect, colour);
+
+			HilightFocusedCollapserRecursive(panel);
 		}
 
 		void UpdateValueFrom(IGRWidgetEditBox& editor)
@@ -735,8 +767,49 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		EGREventRouting MoveToSiblingCollapserIfFocused()
 		{
+			int64 focusId = panel.Root().GR().GetFocusId();
+			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			if (!focusWidget)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			auto* collapser = Cast<IGRWidgetCollapser>(*focusWidget);
+			if (!collapser)
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			if (collapser->Panel().Parent()->EnumerateChildren(nullptr) == 1)
+			{
+				// Collapser has no siblings, so we prevent focus moving
+				return EGREventRouting::Terminate;
+			}
+
+			return EGREventRouting::NextHandler;
+		}
+
+		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
+		{
+			if (ke.osKeyEvent.IsUp())
+			{
+				switch (ke.osKeyEvent.VKey)
+				{
+				case IO::VirtualKeys::VKCode_TAB:
+					return EGREventRouting::Terminate;
+				}
+				return EGREventRouting::NextHandler;
+			}
+
+			// Key down or repeat
+			switch (ke.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_TAB:
+				return MoveToSiblingCollapserIfFocused();
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -952,7 +1025,7 @@ namespace GRANON
 			}
 
 			auto& collapser = CreateCollapser(parentContainer, *this);
-			collapser.Widget().Panel().Set(spec.CollapserPadding);
+			collapser.Widget().Panel().Set(spec.CollapserPadding).Add(EGRPanelFlags::AcceptsFocus);
 			collapser.Widget().Panel().SetExpandToParentHorizontally();
 			collapser.Widget().Panel().SetExpandToParentVertically();
 			collapser.LeftSpacer().Panel().SetConstantWidth(depth * 24);
