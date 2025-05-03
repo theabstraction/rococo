@@ -486,9 +486,7 @@ namespace GRANON
 				return EGREventRouting::NextHandler;
 			}
 
-			auto& parentWidget = static_cast<IGRWidgetManager&>(parent->Widget());
-
-			if (parentWidget.OnChildEvent(event, sourceWidget) == EGREventRouting::Terminate)
+			if (parent->Widget().Manager().OnChildEvent(event, sourceWidget) == EGREventRouting::Terminate)
 			{
 				return EGREventRouting::Terminate;
 			}

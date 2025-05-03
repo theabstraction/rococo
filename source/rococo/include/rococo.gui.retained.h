@@ -41,6 +41,8 @@ namespace Rococo::Gui
 	DECLARE_ROCOCO_INTERFACE IGRPanelWatcher;
 	DECLARE_ROCOCO_INTERFACE IGRWidgetScrollableMenu;
 	DECLARE_ROCOCO_INTERFACE IGRWidgetButton;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetManager;
+	DECLARE_ROCOCO_INTERFACE IGRWidgetSupervisor;
 
 #pragma pack(push, 1)
 	struct GRCursorClick
@@ -763,6 +765,8 @@ namespace Rococo::Gui
 		virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 
 		virtual cstr GetImplementationTypeName() const = 0;
+		ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetManager& Manager();
+		ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetSupervisor& Supervisor();
 	};
 
 	inline bool operator == (IGRWidget& src, IGRWidget& target)

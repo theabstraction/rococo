@@ -4,6 +4,9 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
+
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Strings;
@@ -152,18 +155,23 @@ namespace GRANON
 		{
 		}
 
+		void SyncCollapseStateToButton()
+		{
+			if (IsCollapsed())
+			{
+				eventHandler.OnCollapserInlined(*this);
+			}
+			else
+			{
+				eventHandler.OnCollapserExpanded(*this);
+			}
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget& sourceWidget)
 		{
 			if (sourceWidget.Panel().Id() == collapseButton->Widget().Panel().Id())
 			{
-				if (IsCollapsed())
-				{
-					eventHandler.OnCollapserInlined(*this);
-				}
-				else
-				{
-					eventHandler.OnCollapserExpanded(*this);
-				}
+				SyncCollapseStateToButton();
 				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;
@@ -171,8 +179,30 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			auto& widgetManager = static_cast<IGRWidgetManager&>(collapseButton->Widget());
-			return widgetManager.OnKeyEvent(keyEvent);
+			switch (keyEvent.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_ENTER:
+				if (keyEvent.osKeyEvent.IsUp())
+				{
+					if (panel.HasFocus())
+					{
+						auto* child = clientArea->Panel().GetChild(0);
+						TrySetDeepFocus(*child);
+					}
+				}
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_SPACEBAR:
+				if (keyEvent.osKeyEvent.IsUp())
+				{
+					if (panel.HasFocus())
+					{
+						collapseButton->Toggle();
+						SyncCollapseStateToButton();
+					}
+				}				
+				return EGREventRouting::Terminate;				
+			}
+			return collapseButton->Widget().Manager().OnKeyEvent(keyEvent);
 		}
 
 		IGRWidget& Widget()

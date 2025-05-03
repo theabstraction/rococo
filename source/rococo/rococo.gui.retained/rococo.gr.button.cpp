@@ -269,6 +269,15 @@ namespace GRANON
 								panel.Root().ReleaseCursor();
 							}
 
+							if (isToggler)
+							{
+								isRaised = !isRaised;
+							}
+							else
+							{
+								isRaised = false;
+							}
+
 							FireEvent(Centre(panel.AbsRect()));
 						}
 						return EGREventRouting::Terminate;

@@ -359,7 +359,7 @@ namespace ANON
 			auto& panel = parent.AddChild();
 			auto& widget = factory.CreateWidget(panel);
 			auto& superPanel = static_cast<IGRPanelSupervisor&>(panel);
-			superPanel.SetWidget(static_cast<IGRWidgetSupervisor&>(widget));
+			superPanel.SetWidget(widget.Supervisor());
 			mapIdToPanel.try_emplace(panel.Id(), &panel);
 			return widget;
 		}
@@ -393,8 +393,7 @@ namespace ANON
 					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
 					if (panelSupervisor.RouteCursorClickEvent(ev, false) == EGREventRouting::NextHandler)
 					{
-						auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
-						return widgetManager.OnCursorClick(ev);
+						return widget->Manager().OnCursorClick(ev);
 					}
 					else
 					{
@@ -469,8 +468,7 @@ namespace ANON
 						IGRWidget* widget = FindWidget(previousMovementCallstack[j].panelId);
 						if (widget)
 						{
-							auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
-							widgetManager.OnCursorLeave();
+							widget->Manager().OnCursorLeave();
 						}
 					}
 
@@ -492,8 +490,7 @@ namespace ANON
 						IGRWidget* widget = FindWidget(movementCallstack[j].panelId);
 						if (widget)
 						{
-							auto& widgetManager = static_cast<IGRWidgetManager&>(*widget);
-							widgetManager.OnCursorEnter();
+							widget->Manager().OnCursorEnter();
 						}
 					}
 
@@ -581,8 +578,7 @@ namespace ANON
 
 			for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
 			{
-				auto& widgetManager = static_cast<IGRWidgetManager&>(i->panel->Widget());
-				if (widgetManager.OnCursorMove(ev) == EGREventRouting::Terminate)
+				if (i->panel->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
 				{
 					result = EGREventRouting::Terminate;
 				}
@@ -606,14 +602,12 @@ namespace ANON
 				return nullptr;
 			}
 
-			auto& topMost = frameDescriptors.back();
-			auto& frame = static_cast<IGRWidgetSupervisor&>(topMost.frame->Widget());
-			return &frame;
+			return &frameDescriptors.back().frame->Widget().Supervisor();
 		}
 
 		EGREventRouting RouteKeyEventToPanelThenAncestors(IGRPanel& panel, GRKeyEvent& keyEvent)
 		{
-			auto result = static_cast<IGRWidgetManager&>(panel.Widget()).OnKeyEvent(keyEvent);
+			auto result = panel.Widget().Manager().OnKeyEvent(keyEvent);
 			if (result == EGREventRouting::Terminate)
 			{
 				return result;
@@ -875,5 +869,15 @@ namespace Rococo::Gui
 
 			p = p->Parent();
 		}
+	}
+
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetManager& IGRWidget::Manager()
+	{
+		return static_cast<IGRWidgetManager&>(*this);
+	}
+
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetSupervisor& IGRWidget::Supervisor()
+	{
+		return static_cast<IGRWidgetSupervisor&>(*this);
 	}
 }

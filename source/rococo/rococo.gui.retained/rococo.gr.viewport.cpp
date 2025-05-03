@@ -274,8 +274,7 @@ namespace ANON
 		{
 			if (ce.wheelDelta != 0)
 			{
-				auto& vscrollerSuper = static_cast<IGRWidgetSupervisor&>(vscroller->Scroller().Widget());
-				vscrollerSuper.OnCursorClick(ce);
+				vscroller->Scroller().Widget().Supervisor().OnCursorClick(ce);
 				return EGREventRouting::Terminate;
 			}
 

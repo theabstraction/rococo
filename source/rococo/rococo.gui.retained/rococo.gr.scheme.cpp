@@ -199,6 +199,7 @@ namespace Rococo::Gui
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND, RGBAb(48, 48, 48, 255));
 
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::LABEL_SHADOW, RGBAb(0, 0, 0, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::FOCUS_RECTANGLE, RGBAb(255, 64, 64, 255));
 	}
 
 	ROCOCO_GUI_RETAINED_API void MakeTransparent(IGRPanel& panel, EGRSchemeColourSurface surface)
