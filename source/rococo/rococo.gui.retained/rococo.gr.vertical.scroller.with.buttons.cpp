@@ -134,7 +134,7 @@ namespace ANON
 		void InitButtonStyle(IGRWidgetButton& button)
 		{
 			int buttonSpan = panel.Span().x;
-			button.Widget().Panel().
+			button.Panel().
 				SetConstantSpan(Vec2i{ buttonSpan, buttonSpan }).
 				SetCornerRadius(panel.CornerRadius()).
 				SetRectStyle(panel.RectStyle()).

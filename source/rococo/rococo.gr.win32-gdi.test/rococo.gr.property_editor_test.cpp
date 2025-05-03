@@ -11,7 +11,7 @@ void RunMessageLoop(IGRClientWindow& client);
 void BuildMenus(IGRWidgetMainFrame& frame)
 {
 	auto& menu = frame.MenuBar();
-	menu.Widget().Panel().
+	menu.Panel().
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false)).
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, false, false)).
 		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(false, true, false)).
@@ -91,7 +91,7 @@ void BuildMenus(IGRWidgetMainFrame& frame)
 	menu.AddButton(helpMenu, { "Version", { 0, nullptr } });
 	menu.AddButton(helpMenu, { "Purchase License", { 0, nullptr } });
 
-	auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
+	auto& titleBar = *frame.MenuBar().Panel().Parent();
 	titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(32, 32, 32, 255), GRGenerateIntensities());
 	titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 }
@@ -111,25 +111,25 @@ void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
 	restorer.SetMetaData({ (int64)ToolbarMetaId::RESTORE, "OnRestore" }, true);
 	closer.SetMetaData({ (int64)ToolbarMetaId::EXIT, "OnExit" }, true);
 
-	minimizer.Widget().Panel().SetExpandToParentVertically();
-	restorer.Widget().Panel().SetExpandToParentVertically();
-	closer.Widget().Panel().SetExpandToParentVertically();
+	minimizer.Panel().SetExpandToParentVertically();
+	restorer.Panel().SetExpandToParentVertically();
+	closer.Panel().SetExpandToParentVertically();
 
-	minimizer.Widget().Panel().SetConstantWidth(32);
-	restorer.Widget().Panel().SetConstantWidth(32);
-	closer.Widget().Panel().SetConstantWidth(32);
+	minimizer.Panel().SetConstantWidth(32);
+	restorer.Panel().SetConstantWidth(32);
+	closer.Panel().SetConstantWidth(32);
 
-	tools.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 32, 32, 0), GRGenerateIntensities());
-	tools.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(255, 32, 32, 0), GRGenerateIntensities());
-	tools.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(255, 32, 32, 0), GRGenerateIntensities());
-	tools.Widget().Panel().SetLayoutDirection(ELayoutDirection::RightToLeft);
-	tools.Widget().Panel().SetExpandToParentVertically();
-	tools.Widget().Panel().SetConstantWidth(256);
+	tools.Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(255, 32, 32, 0), GRGenerateIntensities());
+	tools.Panel().Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(255, 32, 32, 0), GRGenerateIntensities());
+	tools.Panel().Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(255, 32, 32, 0), GRGenerateIntensities());
+	tools.Panel().SetLayoutDirection(ELayoutDirection::RightToLeft);
+	tools.Panel().SetExpandToParentVertically();
+	tools.Panel().SetConstantWidth(256);
 }
 
 void UseTestColourScheme(IGRWidgetMainFrame& frame)
 {
-	auto& framePanel = frame.Widget().Panel();
+	auto& framePanel = frame.Panel();
 
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false));
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, false, true));
@@ -174,7 +174,7 @@ void UseTestColourScheme(IGRWidgetMainFrame& frame)
 	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
 	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
 
-	frame.Widget().Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), GRGenerateIntensities());
+	frame.Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), GRGenerateIntensities());
 }
 
 void TestFrame(IGRClientWindow& client, IGRSystem& gr)
@@ -437,7 +437,7 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 	editor.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId) + 4);
 
 	editor.View(target.Visitation());
-	editor.Widget().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
+	editor.Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
 
 	RunMessageLoop(client);
 }

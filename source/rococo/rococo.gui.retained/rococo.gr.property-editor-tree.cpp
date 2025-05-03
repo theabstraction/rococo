@@ -766,7 +766,7 @@ namespace GRANON
 			auto result = i->second->TryParseAndWriteBackToOrigin(text, editor);
 			if (result != EParseAndWriteBackResult::Success)
 			{
-				RaiseError(editor.Widget().Panel(), EGRErrorCode::Generic, __FUNCTION__, "TryParseAndWriteBackToOrigin failed with code %d", result);
+				RaiseError(editor.Panel(), EGRErrorCode::Generic, __FUNCTION__, "TryParseAndWriteBackToOrigin failed with code %d", result);
 			}
 		}
 
@@ -877,11 +877,11 @@ namespace GRANON
 			Strings::SafeFormat(label, "%s:", field.fieldName.c_str());
 			auto& nameText = CreateText(nameCell->Widget()).SetText(label).SetAlignment(nameAlignment, spec.NameTextSpacing);
 			nameText.SetFont(spec.NameplateFontId);
-			nameText.Widget().Panel().SetExpandToParentHorizontally();
-			nameText.Widget().Panel().SetExpandToParentVertically();
-			nameText.Widget().Panel().Set(spec.NameCellPadding);
+			nameText.Panel().SetExpandToParentHorizontally();
+			nameText.Panel().SetExpandToParentVertically();
+			nameText.Panel().Set(spec.NameCellPadding);
 
-			auto& namePanel = nameText.Widget().Panel();
+			auto& namePanel = nameText.Panel();
 			CopyAllColours(namePanel, namePanel, EGRSchemeColourSurface::NAME_TEXT, EGRSchemeColourSurface::TEXT);
 
 			IGREditFilter* filter = nullptr;
@@ -909,7 +909,7 @@ namespace GRANON
 			case PrimitiveType::CSTR:
 				if (field.value.stringValue.capacity > 0x7FFF'FFFFUL)
 				{
-					RaiseError(table.Widget().Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
+					RaiseError(table.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
 				}
 				capacity = (int32)field.value.stringValue.capacity;
 				break;
@@ -932,9 +932,9 @@ namespace GRANON
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
 			auto& valueText = CreateEditBox(valueCell->Widget(), filter, capacity, spec.ValueFontId).SetAlignment(valueAlignment, spec.EditorCellPadding);
-			valueText.Widget().Panel().Set(spec.ValueCellPadding);
-			valueText.Widget().Panel().SetExpandToParentHorizontally();
-			valueText.Widget().Panel().SetExpandToParentVertically();
+			valueText.Panel().Set(spec.ValueCellPadding);
+			valueText.Panel().SetExpandToParentHorizontally();
+			valueText.Panel().SetExpandToParentVertically();
 
 			if (field.meta.isReadOnly)
 			{
@@ -976,9 +976,9 @@ namespace GRANON
 		void AddFieldTable(PreviewData& data, int32 firstValidIndex, int32 lastValidIndex, IGRWidget& parent, int depth)
 		{
 			auto& table = CreateTable(parent);
-			table.Widget().Panel().SetExpandToParentHorizontally();
-			table.Widget().Panel().SetExpandToParentVertically();
-			table.Widget().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
+			table.Panel().SetExpandToParentHorizontally();
+			table.Panel().SetExpandToParentVertically();
+			table.Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
 
 			GRColumnSpec nameSpec;
 			nameSpec.name = "Name";
@@ -994,7 +994,7 @@ namespace GRANON
 			valueSpec.defaultWidth = spec.ValueColumnDefaultWidth;
 			table.AddColumn(valueSpec);
 
-			SetUniformColourForAllRenderStates(table.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
+			SetUniformColourForAllRenderStates(table.Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
 
 			int nameColumnWidth = nameSpec.defaultWidth;
 
@@ -1003,7 +1003,7 @@ namespace GRANON
 				NameValueControls controls = AddFieldToTable(table, *data.fields[j], rowHeight, depth);
 
 				int nameWidth = controls.name.TextWidth();
-				auto* spacer = controls.name.Widget().Panel().Parent()->GetChild(0);
+				auto* spacer = controls.name.Panel().Parent()->GetChild(0);
 				const int padding = spacer->Span().x + spec.NamePlateSafeZone;
 				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
 
@@ -1049,16 +1049,16 @@ namespace GRANON
 			}
 
 			auto& collapser = CreateCollapser(parentContainer, *this);
-			collapser.Widget().Panel().Set(spec.CollapserPadding).Add(EGRPanelFlags::AcceptsFocus);
-			collapser.Widget().Panel().SetExpandToParentHorizontally();
-			collapser.Widget().Panel().SetExpandToParentVertically();
+			collapser.Panel().Set(spec.CollapserPadding).Add(EGRPanelFlags::AcceptsFocus);
+			collapser.Panel().SetExpandToParentHorizontally();
+			collapser.Panel().SetExpandToParentVertically();
 			collapser.LeftSpacer().Panel().SetConstantWidth(depth * 24);
 			collapser.LeftSpacer().SetTransparency(0.0f);
 
-			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND);
-			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON);
-			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
-			MakeTransparent(collapser.Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
+			MakeTransparent(collapser.Panel(), EGRSchemeColourSurface::CONTAINER_BACKGROUND);
+			MakeTransparent(collapser.Panel(), EGRSchemeColourSurface::BUTTON);
+			MakeTransparent(collapser.Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
+			MakeTransparent(collapser.Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
 
 			MakeTransparent(collapser.TitleBar().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 			MakeTransparent(collapser.TitleBar().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
@@ -1097,9 +1097,9 @@ namespace GRANON
 			}
 
 			auto& titleDescription = Rococo::Gui::CreateText(titleDiv.Widget()).SetText(title);
-			titleDescription.Widget().Panel().SetExpandToParentVertically();
-			titleDescription.Widget().Panel().SetExpandToParentHorizontally();
-			titleDescription.Widget().Panel().Set(spec.TitleDescPadding);
+			titleDescription.Panel().SetExpandToParentVertically();
+			titleDescription.Panel().SetExpandToParentHorizontally();
+			titleDescription.Panel().Set(spec.TitleDescPadding);
 			titleDescription.SetFont(spec.HeadingFontId);
 
 			GRAlignmentFlags rightCentered;
@@ -1107,17 +1107,17 @@ namespace GRANON
 
 			titleDescription.SetAlignment(rightCentered, { 4,0 });
 
-			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::LABEL_BACKGROUND);
-			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
-			MakeTransparent(titleDescription.Widget().Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+			MakeTransparent(titleDescription.Panel(), EGRSchemeColourSurface::LABEL_BACKGROUND);
+			MakeTransparent(titleDescription.Panel(), EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+			MakeTransparent(titleDescription.Panel(), EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 
 			titleDescription.SetTextColourSurface(EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT);
 			titleDescription.SetTextColourShadowSurface(EGRSchemeColourSurface::COLLAPSER_TITLE_SHADOW);
 			
 			auto& list = CreateVerticalList(collapser.ClientArea().Widget());
-			list.Widget().Panel().SetExpandToParentHorizontally();
-			list.Widget().Panel().SetExpandToParentVertically();
-			list.Widget().Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
+			list.Panel().SetExpandToParentHorizontally();
+			list.Panel().SetExpandToParentVertically();
+			list.Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
 
 			int32 firstSimpleFieldIndex = -1;
 			int32 nextSimpleFieldIndex = -1;
@@ -1258,7 +1258,7 @@ namespace GRANON
 				}
 			}
 
-			auto& cp = collapserParent.Widget().Panel();
+			auto& cp = collapserParent.Panel();
 			cp.SetConstantHeight(heightOfDescendants);
 			return heightOfDescendants;
 		}

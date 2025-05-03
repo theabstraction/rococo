@@ -1124,6 +1124,9 @@ namespace GRANON
 			int caretLeftColumn = 0;
 			int caretRightColumn = 0;
 
+			SIZE textSpan;
+			GetTextExtentPoint32A(paintDC, text, (int) strlen(text), &textSpan);
+
 			if (caret.CaretPos == 0)
 			{
 				// Caret is at the start
@@ -1132,39 +1135,37 @@ namespace GRANON
 				if (text.length > 0)
 				{
 					// Caret right side is the width of the first glyph
-					SIZE ds;
-					if (GetTextExtentPoint32A(paintDC, text, 1, &ds))
-					{
-						caretRightColumn = ds.cx;
-					}
+					caretRightColumn = textSpan.cx;
+				}
+				else
+				{
+					caretLeftColumn = 0;
+					caretRightColumn = textSpan.cx;
 				}
 			}
 			else if (caret.CaretPos < 0 || caret.CaretPos >= text.length)
 			{
 				// Caret is at the end
-				SIZE ds;
-				if (GetTextExtentPoint32A(paintDC, text, text.length, &ds))
-				{
-					caretLeftColumn = ds.cx;
-				}
+				caretLeftColumn = textSpan.cx;
 
+				SIZE textSpanA;
 				// Caret is the span of the glyph 'A'
-				if (GetTextExtentPoint32A(paintDC, "A", 1, &ds))
+				if (GetTextExtentPoint32A(paintDC, "A", 1, &textSpanA))
 				{
-					caretRightColumn = caretLeftColumn + ds.cx;
+					caretRightColumn = caretLeftColumn + textSpanA.cx;
 				}
 			}
 			else
 			{
-				SIZE ds;
-				if (GetTextExtentPoint32A(paintDC, text, caret.CaretPos, &ds))
-				{
-					caretLeftColumn = ds.cx;
-				}
+				SIZE textSpanAtCaret;
+				if (GetTextExtentPoint32A(paintDC, text, caret.CaretPos, &textSpanAtCaret))
 
-				if (GetTextExtentPoint32A(paintDC, text, caret.CaretPos + 1, &ds))
+				caretLeftColumn = textSpanAtCaret.cx;
+				
+				SIZE textSpanAfterCaret;
+				if (GetTextExtentPoint32A(paintDC, text, caret.CaretPos + 1, &textSpanAfterCaret))
 				{
-					caretRightColumn = ds.cx;
+					caretRightColumn = textSpanAfterCaret.cx;
 				}
 			}
 
@@ -1190,27 +1191,30 @@ namespace GRANON
 
 				caretY = rect.top + tm.tmHeight;
 			}
-
-			if (!alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom))
+			else if (!alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom))
 			{
 				rect.bottom -= spacing.y;
 				caretY = rect.bottom - tm.tmInternalLeading;
+			}
+			else
+			{
+				rect.top -= (tm.tmInternalLeading >> 1);
+				caretY = ((rect.top + rect.bottom + tm.tmHeight) / 2);
 			}
 
 			if (alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right))
 			{
 				rect.left += spacing.x;
 			}
-
-			if (alignment.HasSomeFlags(EGRAlignment::Right) && !alignment.HasSomeFlags(EGRAlignment::Left))
+			else if (alignment.HasSomeFlags(EGRAlignment::Right) && !alignment.HasSomeFlags(EGRAlignment::Left))
 			{
 				rect.right -= spacing.x;
 			}
-
-			if (alignment.HasAllFlags(EGRAlignment::VCentre))
+			else
 			{
-				rect.top -= (tm.tmInternalLeading >> 1);
-				caretY = ((rect.top + rect.bottom + tm.tmHeight) / 2);
+				int halfWidth = (rect.right - rect.left) / 2;
+				caretLeftColumn += halfWidth - textSpan.cx / 2;
+				caretRightColumn += halfWidth - textSpan.cx / 2;
 			}
 
 			DrawTextA(paintDC, text, text.length, &rect, format);

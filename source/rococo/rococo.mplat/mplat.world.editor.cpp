@@ -19,7 +19,7 @@ namespace ANON
 	void BuildMenus(IGRWidgetMainFrame& frame)
 	{
 		auto& menu = frame.MenuBar();
-		menu.Widget().Panel().
+		menu.Panel().
 			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
 			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
 
@@ -72,7 +72,7 @@ namespace ANON
 
 		*/
 
-		auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
+		auto& titleBar = *frame.MenuBar().Panel().Parent();
 		titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 		titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
 		titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
@@ -256,7 +256,7 @@ namespace ANON
 			BuildMenus(frame);
 			BuildUpperRightToolbar(frame);
 
-			auto& framePanel = frame.Widget().Panel();
+			auto& framePanel = frame.Panel();
 
 			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
 			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
@@ -298,8 +298,8 @@ namespace ANON
 				{
 					row++;
 
-					SetUniformColourForAllRenderStates(nameWidget.Widget().Panel(), Gui::EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255));
-					auto* nameContainer = nameWidget.Widget().Panel().Parent();
+					SetUniformColourForAllRenderStates(nameWidget.Panel(), Gui::EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255));
+					auto* nameContainer = nameWidget.Panel().Parent();
 					if (nameContainer)
 					{
 						SetUniformColourForAllRenderStates(*nameContainer, Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, ((row & 1) == 1) ? RGBAb(48, 48, 48, 255) : RGBAb(40, 40, 40, 255));
