@@ -12,11 +12,13 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionStringWidget : IGRWidgetGameOptionsString, IGRWidgetSupervisor, IStringInquiry, IGREditFilter
+	struct GRGameOptionStringWidget : IGRWidgetGameOptionsString, IGRWidgetSupervisor, IStringInquiry, IGREditFilter, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
 		IGRWidgetEditBox* editor = nullptr;
+
+		GameOptionConfig config;
 
 		GRGameOptionStringWidget(IGRPanel& _panel) : panel(_panel)
 		{
@@ -34,11 +36,13 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
-		void PostConstruct(const GameOptionConfig& config)
+		void PostConstruct(const GameOptionConfig& config, int maxCharacters)
 		{
+			this->config = config;
+
 			if (config.TitlesOnLeft)
 			{
-				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
+				panel.SetLayoutDirection(ELayoutDirection::None);
 			}
 
 			title = &AddGameOptionTitleWidget(*this, config);
@@ -49,10 +53,45 @@ namespace GRANON
 			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
 			panel.SetConstantHeight(height);
 
-			editor = &CreateEditBox(*this, this);
+			editor = &CreateEditBox(*this, this, maxCharacters, config.CarouselButtonFontId);
 
 			editor->Panel().SetExpandToParentHorizontally();
 			editor->Panel().SetExpandToParentVertically();
+
+			GRAlignmentFlags alignment;
+			alignment.Add(EGRAlignment::HCentre);
+			editor->SetAlignment(alignment, {0,0});
+
+			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TOP_LEFT, EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
+			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
+			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TEXT, EGRSchemeColourSurface::TEXT);
+			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TEXT, EGRSchemeColourSurface::EDIT_TEXT);
+		}
+
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+			if (config.TitlesOnLeft)
+			{
+				int height = panel.Span().y;
+				int width = panel.Span().x;
+				title->Panel().SetConstantHeight(height);
+				title->Panel().SetConstantWidth(width / 2);
+				title->Panel().SetParentOffset({ 0,0 });
+
+				editor->Panel().SetConstantWidth((width / 2) - config.StringSlotPadding.left - config.StringSlotPadding.right);
+				editor->Panel().SetConstantHeight(height - config.StringSlotPadding.bottom - config.StringSlotPadding.top);
+				editor->Panel().SetParentOffset({ (width / 2) + config.StringSlotPadding.left, config.StringSlotPadding.top });
+			}
 		}
 
 		void OnUpdate(IGRWidgetEditBox& editor, IGREditorMicromanager& manager) override
@@ -117,7 +156,13 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			return Gui::QueryForParticularInterface<IGRWidgetGameOptionsString>(this, ppOutputArg, interfaceId);
+			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
+			return QueryForParticularInterface<IGRWidgetGameOptionsString>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget()
@@ -179,13 +224,13 @@ namespace Rococo::Gui
 		return "IGRWidgetGameOptionsString";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsString& CreateGameOptionsString(IGRWidget& parent, const GameOptionConfig& config)
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsString& CreateGameOptionsString(IGRWidget& parent, const GameOptionConfig& config, int maxCharacters)
 	{
 		auto& gr = parent.Panel().Root().GR();
 
 		GRANON::GRGameOptionsStringFactory factory;
 		auto& l = static_cast<GRANON::GRGameOptionStringWidget&>(gr.AddWidget(parent.Panel(), factory));
-		l.PostConstruct(config);
+		l.PostConstruct(config, maxCharacters);
 		return l;
 	}
 }

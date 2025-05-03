@@ -213,22 +213,16 @@ namespace GRANON
 
 			GRRenderState rs(false, g.IsHovered(panel), panel.Id() == panel.Root().GR().GetFocusId());
 
-			RGBAb editorColour = panel.GetColour(EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225));
+			RGBAb editorColour = panel.GetColour(isReadOnly ? EGRSchemeColourSurface::LABEL_BACKGROUND : EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225));
 
-			if (rs.value.bitValues.focused)
-			{
-				GuiRect innerRect = rect;
-				innerRect.left += 1;
-				innerRect.top += 1;
-				innerRect.right -= 1;
-				innerRect.bottom -= 1;
+			GuiRect innerRect = rect;
+			innerRect.left += 1;
+			innerRect.top += 1;
+			innerRect.right -= 1;
+			innerRect.bottom -= 1;
 
-				if (!isReadOnly)
-				{
-					g.DrawRect(innerRect, editorColour);
-				}
-				g.DrawRectEdge(innerRect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
-			}
+			g.DrawRect(innerRect, editorColour);
+			g.DrawRectEdge(innerRect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
 
 			if (!rs.value.bitValues.focused || isReadOnly)
 			{

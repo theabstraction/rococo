@@ -516,7 +516,7 @@ struct GameplayOptions : IGameOptions
 	{
 		ADD_GAME_OPTIONS(db, GameplayOptions, StartingDifficulty)
 		ADD_GAME_OPTIONS(db, GameplayOptions, GameDifficulty)
-		ADD_GAME_OPTIONS(db, GameplayOptions, PlayerName)
+		ADD_GAME_OPTIONS_STRING(db, GameplayOptions, PlayerName, 32)
 
 		db.Build(builder);
 	}

@@ -283,10 +283,14 @@ namespace GRANON
 			return scalarWidget.Inquiry();
 		}
 
-		IStringInquiry& AddString(cstr name) override
+		IStringInquiry& AddString(cstr name, int maxCharacters) override
 		{
+			if (maxCharacters <= 0 || maxCharacters > 4096)
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "maxCharacters needs to be positive and not more than 4096");
+			}
 			GuaranteeUnique(mapNameToStringControl, name);
-			IGRWidgetGameOptionsString& stringWidget = CreateGameOptionsString(*this, config);
+			IGRWidgetGameOptionsString& stringWidget = CreateGameOptionsString(*this, config, maxCharacters);
 			mapNameToStringControl.insert(name, &stringWidget);
 			return stringWidget.Inquiry();
 		}

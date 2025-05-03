@@ -1677,6 +1677,7 @@ namespace Rococo::Gui
 		GRAnchorPadding CarouselPadding { 0,0,0,0 };
 		GRAnchorPadding ScalarSlotPadding { 0,0,0,0 };
 		GRAnchorPadding CarouselButtonPadding{ 0,0,0,0 };
+		GRAnchorPadding StringSlotPadding{ 0,0,0,0 };
 		cstr LeftImageRaised = "!textures/toolbars/MAT/previous.tif";
 		cstr RightImageRaised = "!textures/toolbars/MAT/next.tif";
 		cstr LeftImagePressed = "!textures/toolbars/MAT/previousHi.tif";
@@ -1693,7 +1694,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, const GameOptionConfig& config);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, const GameOptionConfig& config);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, const GameOptionConfig& config);
-	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsString& CreateGameOptionsString(IGRWidget& parent, const GameOptionConfig& config);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsString& CreateGameOptionsString(IGRWidget& parent, const GameOptionConfig& config, int maxCharacters);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGradientFill& CreateGradientFill(IGRWidget& parent);

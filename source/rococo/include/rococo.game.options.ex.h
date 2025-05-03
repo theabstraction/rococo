@@ -32,6 +32,7 @@ namespace Rococo::Game::Options
 		cstr name = nullptr;
 		EInquiryType type = EInquiryType::Boolean;
 		bool isReadOnly = false;
+		int stringCapacity = 260;
 	};
 
 	template<class T>
@@ -150,7 +151,7 @@ namespace Rococo::Game::Options
 			}
 		}
 
-		void AddOption(cstr name, typename InquiryFunctionDescriptor<T>::FN_StringInquireFunction option, typename OptionSelectedFunctionDescriptor<T>::FN_OnStringSelected onSelect)
+		void AddOption(cstr name, int capacity, typename InquiryFunctionDescriptor<T>::FN_StringInquireFunction option, typename OptionSelectedFunctionDescriptor<T>::FN_OnStringSelected onSelect)
 		{
 			for (auto& i : optionSelectedFunctions)
 			{
@@ -166,6 +167,7 @@ namespace Rococo::Game::Options
 			q.name = name;
 			q.type = EInquiryType::String;
 			q.isReadOnly = onSelect == nullptr;
+			q.stringCapacity = capacity;
 			inquiryFunctions.push_back(q);
 
 			if (onSelect != nullptr)
@@ -204,7 +206,7 @@ namespace Rococo::Game::Options
 				}
 				case EInquiryType::String:
 				{
-					auto& Q = builder.AddString(q.name);
+					auto& Q = builder.AddString(q.name, q.stringCapacity);
 					(owner.*q.functions.StringInquiryFunction)(Q);
 					break;
 				}
@@ -259,3 +261,4 @@ namespace Rococo::Game::Options
 }
 
 #define ADD_GAME_OPTIONS(DATABASE, IMPLEMENTOR, FUNCTION_SUFFIX) DATABASE.AddOption(#FUNCTION_SUFFIX, &IMPLEMENTOR::Get##FUNCTION_SUFFIX, &IMPLEMENTOR::Set##FUNCTION_SUFFIX);
+#define ADD_GAME_OPTIONS_STRING(DATABASE, IMPLEMENTOR, FUNCTION_SUFFIX, CAPACITY) DATABASE.AddOption(#FUNCTION_SUFFIX, CAPACITY, &IMPLEMENTOR::Get##FUNCTION_SUFFIX, &IMPLEMENTOR::Set##FUNCTION_SUFFIX);

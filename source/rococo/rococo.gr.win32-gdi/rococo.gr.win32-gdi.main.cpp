@@ -1129,19 +1129,11 @@ namespace GRANON
 
 			if (caret.CaretPos == 0)
 			{
-				// Caret is at the start
-				// Zero.
+				caretLeftColumn = 0;
 
-				if (text.length > 0)
-				{
-					// Caret right side is the width of the first glyph
-					caretRightColumn = textSpan.cx;
-				}
-				else
-				{
-					caretLeftColumn = 0;
-					caretRightColumn = textSpan.cx;
-				}
+				SIZE textSpanFirstChar;
+				GetTextExtentPoint32A(paintDC, text, 1, &textSpanFirstChar);
+				caretRightColumn = textSpanFirstChar.cx;
 			}
 			else if (caret.CaretPos < 0 || caret.CaretPos >= text.length)
 			{
@@ -1209,6 +1201,10 @@ namespace GRANON
 			else if (alignment.HasSomeFlags(EGRAlignment::Right) && !alignment.HasSomeFlags(EGRAlignment::Left))
 			{
 				rect.right -= spacing.x;
+
+				int offset = (rect.right - rect.left) - textSpan.cx;
+				caretLeftColumn += offset;
+				caretRightColumn += offset;
 			}
 			else
 			{

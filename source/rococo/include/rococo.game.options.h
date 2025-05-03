@@ -48,7 +48,9 @@ namespace Rococo::Game::Options
 		virtual IChoiceInquiry & AddChoice(cstr name) = 0;
 		virtual IBoolInquiry& AddBool(cstr name) = 0;
 		virtual IScalarInquiry& AddScalar(cstr name) = 0;
-		virtual IStringInquiry& AddString(cstr name) = 0;
+		// Add a string editor, maxCharacters should be something sane. GR editors put a limit on 4096 characters.
+		// If the requested size is not positive or exceeds capacity an exception is thrown
+		virtual IStringInquiry& AddString(cstr name, int maxCharacters) = 0;
 	};
 
 	ROCOCO_INTERFACE IOptionDatabase

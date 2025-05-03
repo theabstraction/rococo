@@ -160,6 +160,13 @@ namespace Rococo::GreatSex
 				config.ScalarSlotPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
 			}
 
+			auto* aStringSlotPadding = directive.FindAttributeByName("String.Slot.Padding");
+			if (aStringSlotPadding)
+			{
+				GuiRect padding = AsGuiRect(aStringSlotPadding->Value());
+				config.StringSlotPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
+			}
+
 			auto* aHeight = directive.FindAttributeByName("Title.HeightMultiplier");
 			if (aHeight)
 			{

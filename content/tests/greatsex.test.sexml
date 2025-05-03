@@ -282,6 +282,7 @@
 				(Colour.GameOption.Background Transparent)
 				(Colour.GameOption.ChildSpacer DarkGrey)
 				(Colour.Label Transparent)
+				(Colour.Editor DarkRed)
 			:
 				(Viewport.ClientArea
 					(Panel.Layout TopToBottom)
@@ -430,6 +431,10 @@
 					
 					// Gives the padding of the slider control slot to the slider control edges
 					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					
+					// Gives the padding of the string control slot to the string control edges
+					(#Recti String.Slot.Padding 40 2 40 2)
+					
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
