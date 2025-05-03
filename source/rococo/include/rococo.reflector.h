@@ -55,32 +55,36 @@ namespace Rococo::Reflection
 			return *this;
 		}
 
-		ReflectionMetaData& Range(int32 minValue, int32 maxValue)
+		ReflectionMetaData& Range(int32 dummy, int32 minValue, int32 maxValue)
 		{
+			UNUSED(dummy);
 			min.i32Value = minValue;
 			max.i32Value = maxValue;
 			hasMinmax = true;
 			return *this;
 		}
 
-		ReflectionMetaData& Range(int64 minValue, int64 maxValue)
+		ReflectionMetaData& Range(int64 dummy, int64 minValue, int64 maxValue)
 		{
+			UNUSED(dummy);
 			min.i64Value = minValue;
 			max.i64Value = maxValue;
 			hasMinmax = true;
 			return *this;
 		}
 
-		ReflectionMetaData& Range(float minValue, float maxValue)
+		ReflectionMetaData& Range(float dummy, float minValue, float maxValue)
 		{
+			UNUSED(dummy);
 			min.f32Value = minValue;
 			max.f32Value = maxValue;
 			hasMinmax = true;
 			return *this;
 		}
 
-		ReflectionMetaData& Range(double minValue, double maxValue)
+		ReflectionMetaData& Range(double dummy, double minValue, double maxValue)
 		{
+			UNUSED(dummy);
 			min.f64Value = minValue;
 			max.f64Value = maxValue;
 			hasMinmax = true;

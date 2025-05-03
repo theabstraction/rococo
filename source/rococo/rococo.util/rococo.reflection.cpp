@@ -27,7 +27,7 @@ namespace Rococo::Reflection
 	{
 		UNUSED(unused);
 		min.f32Value = std::numeric_limits<float>().min();
-		max.f32Value = std::numeric_limits<float>().min();
+		max.f32Value = std::numeric_limits<float>().max();
 		hasMinmax = true;
 		return *this;
 	}
@@ -36,7 +36,7 @@ namespace Rococo::Reflection
 	{
 		UNUSED(unused);
 		min.f64Value = std::numeric_limits<double>().min();
-		max.f64Value = std::numeric_limits<double>().min();
+		max.f64Value = std::numeric_limits<double>().max();
 		hasMinmax = true;
 		return *this;
 	}

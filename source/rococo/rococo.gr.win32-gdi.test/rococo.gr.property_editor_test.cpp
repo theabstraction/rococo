@@ -225,7 +225,7 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 
 		void Visit(Reflection::IReflectionVisitor& v)
 		{
-			auto& statMeta = Reflection::Mutable().Range(1, 24);
+			auto& statMeta = Reflection::Mutable().Range(Toughness, 1, 24);
 
 			Reflection::Section target(v, "Stats");
 			ROCOCO_REFLECT_EX(v, Toughness, statMeta);
@@ -247,9 +247,9 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 		{
 			Reflection::Section target(v, Name);
 			ROCOCO_REFLECT_EX(v, MeaningOfLife, Reflection::Mutable().AddThousandMarks());
-			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
-			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f).Precision(2));
-			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f).Precision(1));
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(Age, 0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(Height, 0.0, 330.0).Precision(2));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(Weight, 0.0, 400.0).Precision(1));
 			stats.Visit(v);
 		}
 
@@ -273,9 +273,9 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 		{
 			Reflection::Section target(v, Name);
 			ROCOCO_REFLECT_EX(v, Earnings, Reflection::Mutable().AddThousandMarks());
-			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
-			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f).Precision(2));
-			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f).Precision(1));
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(Age, 0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(Height, 0.0, 330.0).Precision(2));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(Weight, 0.0, 400.0).Precision(1));
 			stats.Visit(v);
 		}
 
@@ -301,9 +301,9 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 			ROCOCO_REFLECT(v, BestConcerto);
 			ROCOCO_REFLECT(v, BestOpera);
 			ROCOCO_REFLECT(v, Earnings);
-			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
-			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f).Precision(2));
-			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f).Precision(1));
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(Age, 0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(Height, 0.0, 330.0).Precision(2));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(Weight, 0.0, 400.0).Precision(1));
 
 			stats.Visit(v);
 		}
@@ -332,9 +332,9 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 			ROCOCO_REFLECT(v, FunniestJoke);
 			ROCOCO_REFLECT(v, FavouriteDrink);
 			ROCOCO_REFLECT(v, Earnings);
-			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f));
-			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f).Precision(2));
-			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f).Precision(1));
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(Age, 0.0f, 140.0f));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(Height, 10.0, 330.0).Precision(2));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(Weight, 20.0, 400.0).Precision(1));
 			stats.Visit(v);
 		}
 
@@ -362,9 +362,9 @@ void TestFrame(IGRClientWindow& client, IGRSystem& gr)
 			ROCOCO_REFLECT(v, BestFriend);
 			ROCOCO_REFLECT(v, Lyrics);
 			ROCOCO_REFLECT_EX(v, Earnings, Reflection::ReadOnly().AddThousandMarks());
-			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(0.0f, 140.0f).Precision(2));
-			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(0.0f, 330.0f).Precision(2));
-			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(0.0f, 400.0f).Precision(1));
+			ROCOCO_REFLECT_EX(v, Age, Reflection::Mutable().Range(Age, 0.0f, 140.0f).Precision(2));
+			ROCOCO_REFLECT_EX(v, Height, Reflection::Mutable().Range(Height, 0.0, 330.0).Precision(2));
+			ROCOCO_REFLECT_EX(v, Weight, Reflection::Mutable().Range(Weight, 0.0, 400.0).Precision(1));
 			stats.Visit(v);
 		}
 

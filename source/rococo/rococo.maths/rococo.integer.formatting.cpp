@@ -156,7 +156,7 @@ namespace Rococo::Format
 
 				int unit = c - '0';
 
-				if (power >= 9)
+				if (power >= 10)
 				{
 					if (unit >= 3)
 					{

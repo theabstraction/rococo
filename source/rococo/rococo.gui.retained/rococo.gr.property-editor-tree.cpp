@@ -158,6 +158,29 @@ namespace GRANON
 		UnknownPrimitiveType
 	};
 
+	void RemoveRedundantZeros(char* buffer)
+	{
+		size_t len = strlen(buffer);
+
+		char* end = buffer + len - 1;
+
+		const char* decimalPos = FindChar(buffer, '.');
+		if (decimalPos)
+		{
+			for (char* zeros = end; zeros > decimalPos + 1; zeros--)
+			{
+				if (*zeros == '0')
+				{
+					*zeros = 0;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+	}
+
 	struct PreviewField
 	{
 		HString fieldName;
@@ -218,6 +241,7 @@ namespace GRANON
 					*origin = f1;
 					char buffer[32];
 					sprintf_s(buffer, "%f", *origin);
+					RemoveRedundantZeros(buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
@@ -243,6 +267,7 @@ namespace GRANON
 					*origin = d1;
 					char buffer[32];
 					sprintf_s(buffer, "%f", *origin);
+					RemoveRedundantZeros(buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
@@ -745,8 +770,9 @@ namespace GRANON
 			}
 		}
 
-		EGREventRouting OnEditorUpdated(GRWidgetEvent_EditorUpdated& update)
+		EGREventRouting OnEditorUpdated(GRWidgetEvent_EditorUpdated& update, IGRWidget& sender)
 		{
+			UNUSED(sender);
 			IGRWidgetEditBox& editor = *update.editor;
 			if (update.editorEventType == EGREditorEventType::LostFocus)
 			{
@@ -757,11 +783,10 @@ namespace GRANON
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& ev, IGRWidget& sender)
 		{
-			UNUSED(sender);
 			if (ev.eventType == EGRWidgetEventType::EDITOR_UPDATED)
 			{
 				auto& editorEv = static_cast<GRWidgetEvent_EditorUpdated&>(ev);
-				return OnEditorUpdated(editorEv);
+				return OnEditorUpdated(editorEv, sender);
 			}
 			return EGREventRouting::NextHandler;
 		}

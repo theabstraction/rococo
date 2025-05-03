@@ -3,6 +3,9 @@
 #include <vector>
 #include <string>
 
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
+
 using namespace Rococo;
 using namespace Rococo::Gui;
 
@@ -197,14 +200,11 @@ namespace GRANON
 			}
 		}
 
+		bool prepReturn = false;
+
 		void Return() override
 		{
-			panel.Root().GR().SetFocus(-1);
-
-			if (!isReadOnly)
-			{
-				OnUpdate(EGREditorEventType::LostFocus);
-			}
+			prepReturn = true;
 		}
 
 		void Render(IGRRenderContext& g) override
@@ -264,8 +264,72 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		bool MoveFocusToNextSiblingOrNextAncestorSibling(IGRWidget& focusWidget)
 		{
+			auto* parent = focusWidget.Panel().Parent();
+			if (!parent)
+			{
+				// No siblings
+				return false;
+			}
+
+			int i = 0;
+			for (;;)
+			{
+				auto* sibling = parent->GetChild(i);
+				if (!sibling)
+				{
+					// Unexpected - we expect the parent to have at least 1 child - this widget
+					break;
+				}
+
+				if (sibling == &focusWidget.Panel())
+				{
+					auto* nextSibling = parent->GetChild(i + 1);
+					if (nextSibling)
+					{
+						if (TrySetDeepFocus(*nextSibling))
+						{
+							return true;
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+				i++;
+			}
+
+			return MoveFocusToNextSiblingOrNextAncestorSibling(parent->Widget());			
+		}
+
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override		
+		{
+			if (panel.HasFocus())
+			{
+				if (keyEvent.osKeyEvent.IsUp())
+				{
+					switch (keyEvent.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_ENTER:
+						if (prepReturn)
+						{
+							prepReturn = false;
+
+							MoveFocusToNextSiblingOrNextAncestorSibling(*this);
+
+							if (!panel.HasFocus())
+							{
+								OnUpdate(EGREditorEventType::LostFocus);
+							}
+
+							return EGREventRouting::Terminate;
+						}
+					}
+				}
+			}
+
 			if (!isReadOnly)
 			{
 				panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
