@@ -433,6 +433,7 @@ struct GameplayOptions : IGameOptions
 
 	HString startDifficulty = "Easy";
 	HString gameDifficulty = "Easy";
+	HString playerName = "Geoff";
 
 	GameplayOptions() : db(*this)
 	{
@@ -493,10 +494,30 @@ struct GameplayOptions : IGameOptions
 		gameDifficulty = value;
 	}
 
+	void SetPlayerName(cstr value)
+	{
+		if (*value == 0)
+		{
+			playerName = "Geoff";
+			return;
+		}
+
+		playerName = value;
+	}
+
+	void GetPlayerName(IStringInquiry& inquiry)
+	{
+		inquiry.SetTitle("Player Name");
+		inquiry.SetActiveValue(playerName);
+		inquiry.SetHint("Set the name of your player's avatar");
+	}
+
 	void AddOptions(IGameOptionsBuilder& builder) override
 	{
 		ADD_GAME_OPTIONS(db, GameplayOptions, StartingDifficulty)
 		ADD_GAME_OPTIONS(db, GameplayOptions, GameDifficulty)
+		ADD_GAME_OPTIONS(db, GameplayOptions, PlayerName)
+
 		db.Build(builder);
 	}
 };

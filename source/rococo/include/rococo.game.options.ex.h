@@ -9,7 +9,8 @@ namespace Rococo::Game::Options
 	{
 		Choice,
 		Boolean,
-		Scalar
+		Scalar,
+		String
 	};
 
 	template<class T>
@@ -18,12 +19,14 @@ namespace Rococo::Game::Options
 		typedef void (T::* FN_ChoiceInquireFunction)(IChoiceInquiry&);
 		typedef void (T::* FN_BoolInquireFunction)(IBoolInquiry&);
 		typedef void (T::* FN_ScalarInquireFunction)(IScalarInquiry&);
+		typedef void (T::* FN_StringInquireFunction)(IStringInquiry&);
 
 		union
 		{
 			FN_BoolInquireFunction BoolInquiryFunction = nullptr;
 			FN_ChoiceInquireFunction ChoiceInquiryFunction;
 			FN_ScalarInquireFunction ScalarInquiryFunction;
+			FN_StringInquireFunction StringInquiryFunction;
 		} functions;
 
 		cstr name = nullptr;
@@ -37,12 +40,14 @@ namespace Rococo::Game::Options
 		typedef void (T::* FN_OnBoolOptionSelected)(bool value);
 		typedef void (T::* FN_OnScalarOptionSelected)(double value);
 		typedef void (T::* FN_OnChoiceSelected)(cstr value);
+		typedef void (T::* FN_OnStringSelected)(cstr value);
 
 		union
 		{
 			FN_OnBoolOptionSelected BoolSelectedFunction = nullptr;
 			FN_OnScalarOptionSelected ScalarSelectedFunction;
 			FN_OnChoiceSelected ChoiceSelectedFunction;
+			FN_OnStringSelected StringSelectedFunction;
 		} functions;
 
 		cstr name = nullptr;
@@ -145,6 +150,34 @@ namespace Rococo::Game::Options
 			}
 		}
 
+		void AddOption(cstr name, typename InquiryFunctionDescriptor<T>::FN_StringInquireFunction option, typename OptionSelectedFunctionDescriptor<T>::FN_OnStringSelected onSelect)
+		{
+			for (auto& i : optionSelectedFunctions)
+			{
+				if (strcmp(i.name, name) == 0)
+				{
+					// Duplicate
+					return;
+				}
+			}
+
+			InquiryFunctionDescriptor<T> q;
+			q.functions.StringInquiryFunction = option;
+			q.name = name;
+			q.type = EInquiryType::String;
+			q.isReadOnly = onSelect == nullptr;
+			inquiryFunctions.push_back(q);
+
+			if (onSelect != nullptr)
+			{
+				OptionSelectedFunctionDescriptor<T> r;
+				r.functions.StringSelectedFunction = onSelect;
+				r.name = name;
+				r.type = q.type;
+				optionSelectedFunctions.push_back(r);
+			}
+		}
+
 		void Build(IGameOptionsBuilder& builder)
 		{
 			for (auto& q : inquiryFunctions)
@@ -169,6 +202,12 @@ namespace Rococo::Game::Options
 					(owner.*q.functions.ScalarInquiryFunction)(Q);
 					break;
 				}
+				case EInquiryType::String:
+				{
+					auto& Q = builder.AddString(q.name);
+					(owner.*q.functions.StringInquiryFunction)(Q);
+					break;
+				}
 				default:
 					break;
 				}
@@ -182,6 +221,12 @@ namespace Rococo::Game::Options
 				if (Eq(r.name, name) && r.type == EInquiryType::Choice)
 				{
 					(owner.*r.functions.ChoiceSelectedFunction)(choice);
+					break;
+				}
+
+				if (Eq(r.name, name) && r.type == EInquiryType::String)
+				{
+					(owner.*r.functions.StringSelectedFunction)(choice);
 					break;
 				}
 			}

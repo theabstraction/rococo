@@ -16,6 +16,7 @@ namespace Rococo::Game::Options
 	DECLARE_ROCOCO_INTERFACE IBoolInquiry;
 	DECLARE_ROCOCO_INTERFACE IChoiceInquiry;
 	DECLARE_ROCOCO_INTERFACE IScalarInquiry;
+	DECLARE_ROCOCO_INTERFACE IStringInquiry;
 	DECLARE_ROCOCO_INTERFACE IGameOptions;
 }
 
@@ -1220,6 +1221,14 @@ namespace Rococo::Gui
 		virtual Game::Options::IScalarInquiry& Inquiry() = 0;
 	};
 
+	ROCOCO_INTERFACE IGRWidgetGameOptionsString : IGRBase
+	{
+		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		virtual [[nodiscard]] IGRPanel& Panel() = 0;
+		virtual [[nodiscard]] IGRWidget& Widget() = 0;
+		virtual Game::Options::IStringInquiry& Inquiry() = 0;
+	};
+
 	ROCOCO_INTERFACE IGRWidgetSplitter : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -1684,6 +1693,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsBool& CreateGameOptionsBool(IGRWidget& parent, const GameOptionConfig& config);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsChoice& CreateGameOptionsChoice(IGRWidget& parent, const GameOptionConfig& config);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsScalar& CreateGameOptionsScalar(IGRWidget& parent, const GameOptionConfig& config);
+	ROCOCO_GUI_RETAINED_API IGRWidgetGameOptionsString& CreateGameOptionsString(IGRWidget& parent, const GameOptionConfig& config);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScroller& CreateVerticalScroller(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetVerticalScrollerWithButtons& CreateVerticalScrollerWithButtons(IGRWidget& parent, IGRScrollerEvents& events);
 	ROCOCO_GUI_RETAINED_API IGRWidgetGradientFill& CreateGradientFill(IGRWidget& parent);

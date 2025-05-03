@@ -35,6 +35,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.radio-buttons.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.icon.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.control-prompt.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.game-options.string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\source\rococo\rococo.gui.retained\gr.natvis" />

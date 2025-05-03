@@ -18,6 +18,7 @@ namespace GRANON
 		stringmap<IGRWidgetGameOptionsChoice*> mapNameToChoiceControl;
 		stringmap<IGRWidgetGameOptionsBool*> mapNameToBoolControl;
 		stringmap<IGRWidgetGameOptionsScalar*> mapNameToScalarControl;
+		stringmap<IGRWidgetGameOptionsString*> mapNameToStringControl;
 
 		GameOptionConfig config;
 
@@ -280,6 +281,14 @@ namespace GRANON
 			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, config);
 			mapNameToScalarControl.insert(name, &scalarWidget);
 			return scalarWidget.Inquiry();
+		}
+
+		IStringInquiry& AddString(cstr name) override
+		{
+			GuaranteeUnique(mapNameToStringControl, name);
+			IGRWidgetGameOptionsString& stringWidget = CreateGameOptionsString(*this, config);
+			mapNameToStringControl.insert(name, &stringWidget);
+			return stringWidget.Inquiry();
 		}
 
 		void OnEvent(ButtonEvent& ev) override
