@@ -73,8 +73,8 @@ int MainProtected()
 	client.BindStandardXBOXControlsToVKeys();
 	client.GRSystem().SetFocusOverlayRenderer(&s_FocusRenderer);
 	client.LinkScene(TestScene());
-	// TestGreatSex(client);
-	TestPropertyEditor(client);
+	TestGreatSex(client);
+	//TestPropertyEditor(client);
 	// TestWidgets(client);
 
 	return 0;
