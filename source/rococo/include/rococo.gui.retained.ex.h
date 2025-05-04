@@ -3,6 +3,11 @@
 
 // This header does everything rococo.gui.retained.h does, but adds in some templates and other items only of use for gui engine developers rather than the gui consumers
 
+namespace Rococo::Strings
+{
+	DECLARE_ROCOCO_INTERFACE ICharBuilder;
+}
+
 namespace Rococo::Gui
 {
 	ROCOCO_INTERFACE IGREventHandler
@@ -56,7 +61,7 @@ namespace Rococo::Gui
 		virtual cstr GetLastKnownControlType() const = 0;
 
 		// Takes a platform interpreted key event and translates to an editor delta event
-		virtual void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
+		virtual EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
 
 		// Given a font id and text string, uses the platform font definition to determine the minimam span containing it.
 		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
@@ -84,6 +89,8 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void DrawGameOptionBackground(IGRWidgetText& title, IGRPanel& panel, IGRRenderContext& rc);
 	// Dynamic casting methods
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b);
+
+	ROCOCO_GUI_RETAINED_API EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, Strings::ICharBuilder& builder);
 
 	// Query to see if the particular interface is part of the supplied instance. Will only compile if there is an elementary derivation of GR_TARGET_INTERFACE from GRBASED_CLASS.
 	template<typename GR_TARGET_INTERFACE, class GRBASED_CLASS> inline EGRQueryInterfaceResult QueryForParticularInterface(GRBASED_CLASS* instance, IGRBase** ppOutputArg, cstr interfaceId)

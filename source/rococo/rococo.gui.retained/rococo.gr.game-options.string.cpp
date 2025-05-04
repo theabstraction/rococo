@@ -12,11 +12,12 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionStringWidget : IGRWidgetGameOptionsString, IGRWidgetSupervisor, IStringInquiry, IGREditFilter, IGRWidgetLayout
+	struct GRGameOptionStringWidget : IGRWidgetGameOptionsString, IGRWidgetSupervisor, IStringInquiry, IGREditFilter
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
 		IGRWidgetEditBox* editor = nullptr;
+		IGRWidgetDivision* editorDiv = nullptr;
 
 		GameOptionConfig config;
 
@@ -42,7 +43,7 @@ namespace GRANON
 
 			if (config.TitlesOnLeft)
 			{
-				panel.SetLayoutDirection(ELayoutDirection::None);
+				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
 
 			title = &AddGameOptionTitleWidget(*this, config);
@@ -53,10 +54,17 @@ namespace GRANON
 			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
 			panel.SetConstantHeight(height);
 
-			editor = &CreateEditBox(*this, this, maxCharacters, config.CarouselButtonFontId);
+			editorDiv = &CreateDivision(*this);
+			editorDiv->Panel().
+				SetExpandToParentHorizontally().
+				SetExpandToParentVertically().
+				Set(config.StringSlotPadding);
 
-			editor->Panel().SetExpandToParentHorizontally();
-			editor->Panel().SetExpandToParentVertically();
+			editor = &CreateEditBox(editorDiv->Widget(), this, maxCharacters, config.CarouselButtonFontId);
+
+			editor->Panel().
+				SetExpandToParentHorizontally().
+				SetExpandToParentVertically();
 
 			GRAlignmentFlags alignment;
 			alignment.Add(EGRAlignment::HCentre);
@@ -66,32 +74,6 @@ namespace GRANON
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TEXT, EGRSchemeColourSurface::TEXT);
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TEXT, EGRSchemeColourSurface::EDIT_TEXT);
-		}
-
-		void LayoutBeforeFit() override
-		{
-
-		}
-
-		void LayoutBeforeExpand() override
-		{
-
-		}
-
-		void LayoutAfterExpand() override
-		{
-			if (config.TitlesOnLeft)
-			{
-				int height = panel.Span().y;
-				int width = panel.Span().x;
-				title->Panel().SetConstantHeight(height);
-				title->Panel().SetConstantWidth(width / 2);
-				title->Panel().SetParentOffset({ 0,0 });
-
-				editor->Panel().SetConstantWidth((width / 2) - config.StringSlotPadding.left - config.StringSlotPadding.right);
-				editor->Panel().SetConstantHeight(height - config.StringSlotPadding.bottom - config.StringSlotPadding.top);
-				editor->Panel().SetParentOffset({ (width / 2) + config.StringSlotPadding.left, config.StringSlotPadding.top });
-			}
 		}
 
 		void OnUpdate(IGRWidgetEditBox& editor, IGREditorMicromanager& manager) override
@@ -150,18 +132,33 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
 		{
-			UNUSED(ke);
-			return EGREventRouting::NextHandler;
+			if (ke.osKeyEvent.IsUp())
+			{
+				return EGREventRouting::NextHandler;
+			}
+
+			switch (ke.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_UP:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), false);
+				}
+				break;
+			case IO::VirtualKeys::VKCode_DOWN:
+				if (panel.HasFocus())
+				{
+					RotateFocusToNextSibling(Widget(), true);
+				}
+				break;
+			default:
+				return EGREventRouting::NextHandler;
+			}
+			return EGREventRouting::Terminate;
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
-			if (result == EGRQueryInterfaceResult::SUCCESS)
-			{
-				return result;
-			}
-
 			return QueryForParticularInterface<IGRWidgetGameOptionsString>(this, ppOutputArg, interfaceId);
 		}
 

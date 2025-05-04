@@ -5,7 +5,7 @@
 #include <rococo.gr.win32-gdi.h>
 
 #define ROCOCO_USE_SAFE_V_FORMAT
-#include <rococo.strings.h>
+#include <rococo.vector.ex.h>
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.h>
 #include <rococo.maths.i32.h>
@@ -21,7 +21,6 @@
 #include <rococo.time.h>
 #include <rococo.great.sex.h>
 #include <Sexy.S-Parser.h>
-#include <vector>
 #include <rococo.vkeys.h>
 
 #pragma comment(lib, "Msimg32.lib")
@@ -313,6 +312,7 @@ namespace GRANON
 						RGBAb& col = pMutableData[i];
 						std::swap(col.blue, col.red);
 						// This swizzles us into BGRA format, which is what Windows wants
+						// Consider replacing with PSHUFB
 					}
 					
 					BITMAPINFO info = { 0 };
@@ -1886,80 +1886,10 @@ namespace GRANON
 
 		std::vector<char> copyAndPasteBuffer;
 
-		void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
+		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
-			if (!keyEvent.osKeyEvent.IsUp())
-			{
-				switch (keyEvent.osKeyEvent.VKey)
-				{
-				case IO::VirtualKeys::VKCode_BACKSPACE:
-					manager.BackspaceAtCaret();
-					return;
-				case IO::VirtualKeys::VKCode_DELETE:
-					manager.DeleteAtCaret();
-					return;
-				case IO::VirtualKeys::VKCode_ENTER:
-					manager.Return();
-					return;
-				case IO::VirtualKeys::VKCode_LEFT:
-					manager.AddToCaretPos(-1);
-					return;
-				case IO::VirtualKeys::VKCode_RIGHT:
-					manager.AddToCaretPos(1);
-					return;
-				case IO::VirtualKeys::VKCode_HOME:
-					manager.AddToCaretPos(-100'000'000);
-					return;
-				case IO::VirtualKeys::VKCode_END:
-					manager.AddToCaretPos(100'000'000);
-					return;
-				case IO::VirtualKeys::VKCode_C:
-					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
-					{
-						// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
-						copyAndPasteBuffer.resize(manager.GetTextAndLength(nullptr, 0));
-						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
-						//Rococo::OS::CopyStringToClipboard(copyAndPasteBuffer.data());
-						copyAndPasteBuffer.clear();
-						return;
-					}
-					else
-					{
-						break;
-					}
-				case IO::VirtualKeys::VKCode_V:
-					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
-					{
-						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
-
-						/*
-						struct : IStringPopulator
-						{
-							IGREditorMicromanager* manager = nullptr;
-							void Populate(cstr text) override
-							{
-								for (cstr p = text; *p != 0; p++)
-								{
-									manager->AppendCharAtCaret(*p);
-								}
-							}
-						} cb;
-						cb.manager = &manager;
-						Rococo::OS::PasteStringFromClipboard(cb);
-						*/
-						return;
-					}
-					else
-					{
-						break;
-					}
-				}
-
-				if (keyEvent.osKeyEvent.unicode >= 32 && keyEvent.osKeyEvent.unicode <= 127)
-				{
-					manager.AppendCharAtCaret((char)keyEvent.osKeyEvent.unicode);
-				}
-			}
+			Strings::CharBuilder builder(copyAndPasteBuffer);
+			return Gui::TranslateToEditor(keyEvent, manager, builder);
 		}
 	};
 

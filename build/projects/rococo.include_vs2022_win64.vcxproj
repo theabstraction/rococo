@@ -296,6 +296,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.ui.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.validators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.variable.editor.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.vector.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />

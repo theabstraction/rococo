@@ -1,13 +1,20 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <vector>
-#include <string>
+#include <rococo.strings.h>
 
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
 
+namespace Rococo::OS
+{
+	ROCOCO_API_IMPORT void CopyStringToClipboard(cstr s);
+	ROCOCO_API_IMPORT void PasteStringFromClipboard(Strings::IStringPopulator& populator);
+}
+
 using namespace Rococo;
 using namespace Rococo::Gui;
+using namespace Rococo::Strings;
 
 namespace GRANON
 {
@@ -21,6 +28,7 @@ namespace GRANON
 		int32 caretPos = 0;
 		int32 updateLock = 0;
 		IGREditFilter* filter;
+		bool skipTab = false;
 
 		struct UpdateLock
 		{
@@ -258,7 +266,7 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		bool MoveFocusToNextSiblingOrNextAncestorSibling(IGRWidget& focusWidget)
+		bool MoveFocusToNextSiblingOrAncestorThatAcceptsFocus(IGRWidget& focusWidget)
 		{
 			auto* parent = focusWidget.Panel().Parent();
 			if (!parent)
@@ -295,7 +303,21 @@ namespace GRANON
 				i++;
 			}
 
-			return MoveFocusToNextSiblingOrNextAncestorSibling(parent->Widget());			
+			for (auto* candidate = parent; candidate != nullptr; candidate = candidate->Parent())
+			{
+				if (candidate->HasFlag(EGRPanelFlags::AcceptsFocus))
+				{
+					candidate->Focus();
+					return true;
+				}
+			}
+
+			auto* frame = FindOwner(parent->Widget());
+
+			// Last ditch attempt to preserve a focus
+			auto* newFocus = TrySetDeepFocus(frame->Panel());
+
+			return newFocus != nullptr;
 		}
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override		
@@ -311,7 +333,7 @@ namespace GRANON
 						{
 							prepReturn = false;
 
-							MoveFocusToNextSiblingOrNextAncestorSibling(*this);
+							MoveFocusToNextSiblingOrAncestorThatAcceptsFocus(*this);
 
 							if (!panel.HasFocus())
 							{
@@ -322,11 +344,22 @@ namespace GRANON
 						}
 					}
 				}
+				else
+				{
+					switch (keyEvent.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_TAB:
+						if (skipTab)
+						{
+							return EGREventRouting::NextHandler;
+						}
+					}
+				}
 			}
 
 			if (!isReadOnly)
 			{
-				panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
+				return panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
 			}
 			return EGREventRouting::NextHandler;
 		}
@@ -345,7 +378,7 @@ namespace GRANON
 		}
 
 		int64 iMetaData = 0;
-		std::string sMetaData;
+		HString sMetaData;
 
 		IGRWidgetEditBox& SetMetaData(const GRControlMetaData& metaData)
 		{
@@ -356,7 +389,7 @@ namespace GRANON
 			}
 
 			iMetaData = metaData.intData;
-			sMetaData = metaData.stringData ? metaData.stringData : std::string();
+			sMetaData = metaData.stringData ? metaData.stringData : HString();
 			return *this;
 		}
 
@@ -905,5 +938,82 @@ namespace Rococo::Gui
 
 		static UnsignedFilter s_UnsignedFilter;
 		return s_UnsignedFilter;
+	}
+
+	ROCOCO_API_EXPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
+	{
+		if (!keyEvent.osKeyEvent.IsUp())
+		{
+			switch (keyEvent.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_BACKSPACE:
+				manager.BackspaceAtCaret();
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_DELETE:
+				manager.DeleteAtCaret();
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_ENTER:
+				manager.Return();
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_LEFT:
+				manager.AddToCaretPos(-1);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_RIGHT:
+				manager.AddToCaretPos(1);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_HOME:
+				manager.AddToCaretPos(-100'000'000);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_END:
+				manager.AddToCaretPos(100'000'000);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_C:
+				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				{
+					// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
+					builder.Resize(manager.GetTextAndLength(nullptr, 0));
+					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
+					Rococo::OS::CopyStringToClipboard(builder.c_str());
+					builder.Clear();
+					return EGREventRouting::Terminate;
+				}
+				else
+				{
+					break;
+				}
+			case IO::VirtualKeys::VKCode_V:
+				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				{
+					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
+
+					struct : Strings::IStringPopulator
+					{
+						IGREditorMicromanager* manager = nullptr;
+						void Populate(cstr text) override
+						{
+							for (cstr p = text; *p != 0; p++)
+							{
+								manager->AppendCharAtCaret(*p);
+							}
+						}
+					} cb;
+					cb.manager = &manager;
+					Rococo::OS::PasteStringFromClipboard(cb);
+					return EGREventRouting::Terminate;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			if (keyEvent.osKeyEvent.unicode >= 32 && keyEvent.osKeyEvent.unicode <= 127)
+			{
+				manager.AppendCharAtCaret((char)keyEvent.osKeyEvent.unicode);
+				return EGREventRouting::Terminate;
+			}
+		}
+
+		return EGREventRouting::NextHandler;
 	}
 }
