@@ -853,6 +853,8 @@ namespace GRANON
 			IGRWidgetEditBox& editor;
 		};
 
+		IGRWidgetEditBox* lastCreatedEditBox = nullptr;
+
 		NameValueControls AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int rowHeight, int depth)
 		{
 			UNUSED(depth);
@@ -929,9 +931,23 @@ namespace GRANON
 			CopyAllColours(valuePanel, valuePanel, rowSurface, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			CopyAllColours(valuePanel, valuePanel, EGRSchemeColourSurface::VALUE_TEXT, EGRSchemeColourSurface::TEXT);
 
+			char description[64];
+
 			GRAlignmentFlags valueAlignment;
 			valueAlignment.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
 			auto& valueText = CreateEditBox(valueCell->Widget(), filter, capacity, spec.ValueFontId).SetAlignment(valueAlignment, spec.EditorCellPadding);
+
+			SafeFormat(description, "editor %llx", valueText.Panel().Id());
+			valueText.Panel().SetDesc(description);
+
+			if (lastCreatedEditBox)
+			{
+				lastCreatedEditBox->Panel().Set(EGRNavigationDirection::Down, description);
+				valueText.Panel().Set(EGRNavigationDirection::Up, lastCreatedEditBox->Panel().Desc());
+			}
+
+			lastCreatedEditBox = &valueText;
+
 			valueText.Panel().Set(spec.ValueCellPadding);
 			valueText.Panel().SetExpandToParentHorizontally();
 			valueText.Panel().SetExpandToParentVertically();

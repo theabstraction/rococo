@@ -266,8 +266,14 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		bool MoveFocusToNextSiblingOrAncestorThatAcceptsFocus(IGRWidget& focusWidget)
+		bool MoveFocusToNextTargetOrNextSiblingOrAncestorThatAcceptsFocus(IGRWidget& focusWidget)
 		{
+			auto* targetPanel = panel.Navigate(EGRNavigationDirection::Down);
+			if (targetPanel && TrySetDeepFocus(*targetPanel))
+			{
+				return true;
+			}
+
 			auto* parent = focusWidget.Panel().Parent();
 			if (!parent)
 			{
@@ -333,7 +339,7 @@ namespace GRANON
 						{
 							prepReturn = false;
 
-							MoveFocusToNextSiblingOrAncestorThatAcceptsFocus(*this);
+							MoveFocusToNextTargetOrNextSiblingOrAncestorThatAcceptsFocus(*this);
 
 							if (!panel.HasFocus())
 							{
@@ -360,6 +366,14 @@ namespace GRANON
 			if (!isReadOnly)
 			{
 				return panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
+			}
+			else
+			{
+				if (keyEvent.osKeyEvent.VKey == IO::VirtualKeys::VKCode_ENTER && !keyEvent.osKeyEvent.IsUp())
+				{
+					Return();
+					return EGREventRouting::NextHandler;
+				}
 			}
 			return EGREventRouting::NextHandler;
 		}
