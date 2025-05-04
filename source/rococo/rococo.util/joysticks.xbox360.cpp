@@ -162,7 +162,7 @@ namespace
 					return GetVKeyCode(keyName);
 				}
 
-				SetLastError(E_INVALIDARG);
+				SetLastError((DWORD) E_INVALIDARG);
 				return 0;
 			}
 

@@ -501,9 +501,9 @@ namespace ANON
 	const stringmap<cstr> macroToPingPath =
 	{
 		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
-		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/MAT/collapse.tif" },
+		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/MAT/collapsed.tif" },
 		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
-		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapse.tif" },
+		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
 	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
@@ -553,8 +553,11 @@ namespace ANON
 
 		GRFontId BindFontId(const FontSpec& spec) override
 		{
-			UNUSED(spec);
-			Throw(0, __FUNCTION__ ": Not implemented");
+			HQFontDef def;
+			def.fontSize = spec.CharHeight;
+			def.isBold = spec.Bold;
+			def.isItalic = spec.Italic;
+			return (GRFontId) renderer.utils.GetHQFonts().BindFont(def, to_fstring(spec.FontName)).value;
 		}
 
 		int GetFontHeight(GRFontId id) const override

@@ -3,6 +3,7 @@
 #include <array>
 #include <rococo.strings.h>
 #include <rococo.fonts.hq.h>
+#include <unordered_map>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
@@ -16,6 +17,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 
 	IHQFontResource& hq;
 	HQFonts(IHQFontResource& _hq) : hq(_hq) {}
+	virtual ~HQFonts() {}
 	void Free() override { delete this; }
 
 	HQFont hqFontType = HQFont::TitleFont;
@@ -38,10 +40,34 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		ID_FONT::Invalid()
 	};
 
+	// This was added to facilitate Gui-Retained fonts, so is a little out-of-place
+	ID_FONT BindFont(const HQFontDef& fontDef, const fstring& fontFamily) override
+	{
+		Fonts::FontSpec spec;
+		spec.fontName = fontFamily;
+		spec.height = fontDef.fontSize;
+		spec.italic = fontDef.isItalic;
+		spec.weight = bold ? 700 : 400;
+
+		struct : Fonts::IArrayFontSet
+		{
+			void Populate(Fonts::IFontGlyphBuilder& builder) override
+			{
+				for(wchar_t c = 32; c <= 127; c++)
+				{
+					builder.AddGlyph(c);
+				}
+			}
+		} asciiGlyphs;
+
+		ID_FONT idFont = hq.CreateOSFont(asciiGlyphs, spec);
+		return idFont;
+	}
+
 	void Build(Rococo::Graphics::HQFont hqFont) override
 	{
 		int font = (int)hqFont;
-		if (font < 0 || font >= sysFonts.size())
+		if (font < 0 || font >= (int) sysFonts.size())
 		{
 			Throw(0, "%s: Bad font enum", __FUNCTION__);
 		}

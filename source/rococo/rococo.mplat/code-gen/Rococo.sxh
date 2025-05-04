@@ -619,6 +619,7 @@
 	(as.cpp Rococo.Graphics.IHQFonts)
 	(context factory Rococo.Platform)
 	(methods
+		(BindFont (HQFontDef fontDef)(const IString fontFamily)->(IdFont fontId))
 		(Build (EHQFont font))
 		(Clear)
 		(SetFaceName (IString name))

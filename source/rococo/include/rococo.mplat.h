@@ -1,6 +1,10 @@
 #pragma once
 
 #include <rococo.api.h>
+#include <components/rococo.ecs.roid.h>
+#include <rococo.meshes.h>
+#include <rococo.maths.h>
+#include <../rococo.mplat/code-gen/rococo.script.types.h>
 #include <rococo.graphics.types.h>
 #include <rococo.renderer.h>
 #include <rococo.visitors.h>

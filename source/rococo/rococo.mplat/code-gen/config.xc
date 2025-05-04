@@ -90,3 +90,9 @@
 	(IdSysMesh idMesh)
 	(Triangle t)
 )
+
+(defstruct HQFontDef Rococo.HQFontDef Rococo.HQFontDef
+	(Int32 fontSize)
+	(Bool isItalic)
+	(Bool isBold)
+)

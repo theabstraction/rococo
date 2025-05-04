@@ -5,3 +5,10 @@
 )
 (alias TriangleScan Rococo.TriangleScan)
 
+(struct HQFontDef
+	(Int32 fontSize)
+	(Bool isItalic)
+	(Bool isBold)
+)
+(alias HQFontDef Rococo.HQFontDef)
+
