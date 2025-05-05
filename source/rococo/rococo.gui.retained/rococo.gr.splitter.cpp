@@ -26,6 +26,9 @@ namespace GRANON
 		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) : panel(_panel), draggerStartPos(_draggerStartPos), updateWithMouseMove(_updateWithMouseMove)
 		{
 			_panel.SetMinimalSpan({ 320, 200 });
+			_panel.SetExpandToParentHorizontally();
+			_panel.SetExpandToParentVertically();
+			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
 			realDraggerStartPos = _draggerStartPos;
 		}
 

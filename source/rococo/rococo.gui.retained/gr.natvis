@@ -4,22 +4,22 @@
 		<DisplayString>{{{ desc } #{uniqueId}. {absRect}. Flags: {flags}. Parent {parent->desc}. Grandparent { parent->parent->desc}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRCollapser">
-		<DisplayString>{{Collapser: #{uniqueId}. {absRect}. Desc: { desc }. Button {collapseButton}}</DisplayString>
+		<DisplayString>{{Collapser}: { panel.desc }. Button {collapseButton}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRDivision">
-		<DisplayString>{{Division: #{uniqueId}. {absRect}. Desc: { desc }}}</DisplayString>
+		<DisplayString>{{Division}: { panel.desc }}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRVerticalList">
-		<DisplayString>{{VerticalList:#{uniqueId}. {absRect}. Desc: { desc }}}</DisplayString>
+		<DisplayString>{{VerticalList: { panel.desc }}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMainFrame">
-		<DisplayString>{{"GRMainFrame"}}</DisplayString>
+		<DisplayString>{{"GRMainFrame": {panel.desc }}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRToolbar">
-		<DisplayString>{{Toolbar: #{uniqueId}. {absRect}. Desc: { desc }}}</DisplayString>
+		<DisplayString>{{Toolbar: { panel.desc }}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRTable">
-		<DisplayString>{{Table: #{uniqueId}. {absRect}. Desc: { desc }, cols {columnHeaders}, rows {rows}}}</DisplayString>
+		<DisplayString>{{Table: { panel.desc }, cols {columnHeaders}, rows {rows}}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRButton">
 		<DisplayString>{{Btn: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
@@ -28,10 +28,10 @@
 		<DisplayString>{{Slider}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMenuBar">
-		<DisplayString>{{Menu. #{uniqueId}. {absRect}. Desc: { desc }}</DisplayString>
+		<DisplayString>{{Menu. { panel.desc }}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRSplitter">
-		<DisplayString>{{Splitter. #{uniqueId}. {absRect}. Desc: { desc } L {first}, R {second}</DisplayString>
+		<DisplayString>{{Splitter. { panel.desc } L {first}, R {second}</DisplayString>
 	</Type>
 	<Type Name="Rococo::Gui::CursorEvent">
 		<DisplayString>{{Pos {position}. Click {click}. Id #{eventId}}}</DisplayString>
