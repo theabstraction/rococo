@@ -71,6 +71,12 @@ namespace ANON
 
 	struct MPlatCustodian;
 
+	ROCOCO_INTERFACE IMPlatImageSupervisor : IGRImageSupervisor
+	{
+		virtual const BitmapLocation & Sprite() const = 0;
+	};
+
+
 	struct MPlatGR_Renderer : IGRRenderContext
 	{
 		IUtilities& utils;
@@ -133,9 +139,8 @@ namespace ANON
 
 		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
 		{
-			UNUSED(image);
-			UNUSED(absRect);
-			Throw(0, __FUNCTION__ ": not implemented");
+			auto sprite = static_cast<IMPlatImageSupervisor&>(image).Sprite();
+			Graphics::StretchBitmap(*rc, sprite, absRect);
 		}
 
 		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
@@ -467,7 +472,7 @@ namespace ANON
 		}
 	};
 
-	struct MPlatImage : IGRImageSupervisor
+	struct MPlatImage : IMPlatImageSupervisor
 	{
 		Vec2i span{ 8, 8 };
 		BitmapLocation sprite = BitmapLocation::None();
@@ -495,6 +500,11 @@ namespace ANON
 		Vec2i Span() const override
 		{
 			return Quantize(sprite.pixelSpan);
+		}
+
+		const BitmapLocation& Sprite() const override
+		{
+			return sprite;
 		}
 	};
 

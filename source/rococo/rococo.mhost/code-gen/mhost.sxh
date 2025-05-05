@@ -86,6 +86,7 @@
 		(GetNextKeyboardEvent(out KeyboardEvent ke)->(Bool wasPopped))
 		(Render (GuiPopulator populator))
 		(AddSexmlSheet (IExpression sexml))
+		(SetGreatSexOverlay (const IString pingPathToSexml))
 		
 		(const IsAppModal -> (Bool isModal))
 		(const IsRunning -> (Bool isRunning))

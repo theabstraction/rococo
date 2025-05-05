@@ -10,6 +10,7 @@
 namespace Rococo::IO
 {
 	DECLARE_ROCOCO_INTERFACE ILoadEventsCallback;
+	DECLARE_ROCOCO_INTERFACE IInstallation;
 }
 
 namespace Rococo::Sex
@@ -99,4 +100,23 @@ namespace Rococo::GreatSex
 	};
 
 	ROCOCO_GREAT_SEX_API IGreatSexGeneratorSupervisor* CreateGreatSexGenerator(IAllocator& sexmlAllocator, IGreatSexResourceLoader& resourceLoader);
+	ROCOCO_GREAT_SEX_API void AddTestOptions(IGreatSexGenerator& generator);
+
+	struct LoadFrameException
+	{
+		Vec2i startPos;
+		Vec2i endPos;
+		cstr filename;
+		cstr fileData;
+		cstr message;
+		int errorCode;
+	};
+
+	ROCOCO_GREAT_SEX_API bool LoadFrame(
+		IO::IInstallation& installation,
+		IAllocator& allocator,
+		cstr sexmlPath,
+		Gui::IGRWidgetMainFrame& frame,
+		IEventCallback<IGreatSexGenerator>& onConstruct,
+		IEventCallback<LoadFrameException>& onException);
 }

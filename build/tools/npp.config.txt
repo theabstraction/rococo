@@ -1,1 +1,1 @@
-DebugBinPath=\work\rococo\SexyStudioBin\sexystudio.dll
+DebugBinPath=D:\work\rococo\SexyStudioBin\sexystudio.dll 

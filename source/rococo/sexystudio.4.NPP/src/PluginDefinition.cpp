@@ -209,7 +209,7 @@ void pluginInit(HANDLE hModule)
         DWORD dflags = GetFileAttributesW(binDirectory);
         if (dflags == INVALID_FILE_ATTRIBUTES)
         {
-            NppThrow(GetLastError(), "Could not load library: %ls. Path %ls does not exist", pathToDLL.buf, binDirectory.buf);
+            NppThrow(GetLastError(), "Could not load library: %ls!\r\nPath %ls does not exist.\r\nFix is to set correct path in npp.config.txt", pathToDLL.buf, binDirectory.buf);
         }
 
         WideFilePath oldDirectory;

@@ -1969,7 +1969,10 @@ namespace GRANON
 	};
 
 
-	struct GRClientWindow: IGRGDIClientWindowSupervisor, IGreatSexResourceLoader, IEventCallback<const Joysticks::JoystickButtonEvent>
+	struct GRClientWindow: 
+		IGRGDIClientWindowSupervisor,
+		IEventCallback<const Joysticks::JoystickButtonEvent>,
+		IEventCallback<GreatSex::LoadFrameException>
 	{
 		HWND hWnd = 0;
 		AutoFree<Rococo::Gui::IGRSystemSupervisor> grSystem;
@@ -2397,42 +2400,6 @@ namespace GRANON
 			}
 		}
 
-		bool LoadFrame(cstr sexmlFile, IGRWidgetMainFrame& frameWidget, IEventCallback<IGreatSexGenerator>& onGenerate) override
-		{
-			AutoFree<IAllocatorSupervisor> allocator = Memory::CreateBlockAllocator(64, 0, "GreatSexAllocator");
-			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(*allocator, *this);
-
-			onGenerate.OnEvent(*greatSex);
-
-			Auto<ISParser> sParser = Sex::CreateSexParser_2_0(*allocator);
-			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_kilobytes);
-
-			Installation().LoadResource(sexmlFile, *buffer, 16_megabytes);
-
-			Auto<ISourceCode> src = sParser->ProxySourceBuffer((cstr)buffer->GetData(), (int)buffer->Length(), { 0,0 }, sexmlFile, nullptr);
-
-			try
-			{
-				Auto<ISParserTree> tree = sParser->CreateTree(*src);
-				cr_sex s = tree->Root();
-
-				greatSex->AppendWidgetTreeFromSexML(s, frameWidget.ClientArea().Widget());
-				frameWidget.Panel().PrepPanelAndDescendants();
-				frameWidget.Panel().ClearAssociatedExpressions();
-				return true;
-			}
-			catch (ParseException& pex)
-			{
-				ShowError(pex.Start(), pex.End(), pex.Name(), (cstr)buffer->GetData(), pex.Message());
-				return false;
-			}
-		}
-
-		void LoadGreatSexResource(cstr resourcePath, Rococo::IO::ILoadEventsCallback& onLoad) override
-		{
-			Installation().LoadResource(resourcePath, onLoad);
-		}
-
 		void MapXCCode(cstr jkeyName, uint16 keyboardCode)
 		{
 			auto jcode = xbox360Controller->GetVKeyCode(jkeyName);
@@ -2533,12 +2500,17 @@ namespace GRANON
 			SendMessage(hErrorWnd, EM_SCROLLCARET, 0, 0);
 		}
 
-		void ShowError(Vec2i start, Vec2i end, cstr nameRef, cstr sourceBuffer, cstr message) override
+		bool LoadFrame(cstr sexmlFile, IGRWidgetMainFrame& frame, IEventCallback<GreatSex::IGreatSexGenerator>& onGenerate)
 		{
-			err.start = start;
-			err.end = end;
-			err.sourceBuffer = sourceBuffer;
-			err.message = message;
+			return GreatSex::LoadFrame(Installation(), Memory::CheckedAllocator(), sexmlFile, frame, onGenerate, *this);
+		}
+
+		void OnEvent(LoadFrameException& ex)
+		{
+			err.start = ex.startPos;
+			err.end = ex.endPos;
+			err.sourceBuffer = ex.fileData;
+			err.message = ex.message;
 
 			if (hErrorWnd == nullptr)
 			{
@@ -2574,7 +2546,7 @@ namespace GRANON
 
 				AppendText(hErrorWnd, RGB(0, 0, 0), RGB(255, 255, 255), err.sourceBuffer, strlen(err.sourceBuffer));
 
-				Hilight(start, end, RGB(224, 224, 224), RGB(128, 0, 0));
+				Hilight(ex.startPos, ex.endPos, RGB(224, 224, 224), RGB(128, 0, 0));
 
 				hMessageWnd = CreateWindowExW(exstyle, L"RichEdit20W", L"", style | WS_VISIBLE | WS_CHILD, 0, 0, clientRect.right, messageHeight, hWnd, NULL, hInstance, 0);
 
@@ -2588,13 +2560,13 @@ namespace GRANON
 				SendMessage(hMessageWnd, EM_SETBKGNDCOLOR, 0, RGB(255, 255, 0));
 
 				char prompt[256];
-				Strings::SafeFormat(prompt, "Error in: %s\n line %d pos %d to line %d pos %d:\n", nameRef, start.y, start.x, end.y, end.x);
+				Strings::SafeFormat(prompt, "Error in: %s\n line %d pos %d to line %d pos %d:\n", ex.filename, ex.startPos.y, ex.startPos.x, ex.endPos.y, ex.endPos.x);
 				AppendText(hMessageWnd, RGB(0, 0, 64), RGB(255, 255, 0), prompt, strlen(prompt));
 				AppendText(hMessageWnd, RGB(0, 0, 0), RGB(255, 255, 0), err.message, strlen(err.message));
 
 				int32 y = (int32)SendMessage(hErrorWnd, EM_GETFIRSTVISIBLELINE, 0, 0);
 				SendMessage(hErrorWnd, EM_LINESCROLL, 0, -y);
-				SendMessage(hErrorWnd, EM_LINESCROLL, 0, start.y > 2 ? start.y -1 : 0 );
+				SendMessage(hErrorWnd, EM_LINESCROLL, 0, ex.startPos.y > 2 ? ex.startPos.y -1 : 0 );
 			}
 		}
 

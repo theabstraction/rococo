@@ -821,4 +821,71 @@ namespace Rococo::GreatSex
 		void* pData = sexmlAllocator.Allocate(sizeof Implementation::GreatSexGenerator);
 		return new (pData) Implementation::GreatSexGenerator(sexmlAllocator, loader);
 	}
+
+	ROCOCO_GREAT_SEX_API bool LoadFrame(
+		IO::IInstallation& installation, 
+		IAllocator& allocator, 
+		cstr sexmlPath, 
+		Gui::IGRWidgetMainFrame& frame, 
+		IEventCallback<IGreatSexGenerator>& onConstruct,
+		IEventCallback<LoadFrameException>& onException)
+	{
+		struct RococoDefaultResourceLoader : IGreatSexResourceLoader
+		{
+			IO::IInstallation* installation = nullptr;
+			void LoadGreatSexResource(cstr resourcePath, Rococo::IO::ILoadEventsCallback& onLoad) override
+			{
+				installation->LoadResource(resourcePath, onLoad);
+			}
+		} resourceLoader;
+		resourceLoader.installation = &installation;
+
+		try
+		{
+			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(allocator, resourceLoader);
+			onConstruct.OnEvent(*greatSex);
+
+			Auto<ISParser> sParser = Sex::CreateSexParser_2_0(allocator);
+			AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_kilobytes);
+
+			installation.LoadResource(sexmlPath, *buffer, 16_megabytes);
+
+			Auto<ISourceCode> src = sParser->ProxySourceBuffer((cstr)buffer->GetData(), (int)buffer->Length(), { 0,0 }, sexmlPath, nullptr);
+
+			try
+			{
+				Auto<ISParserTree> tree = sParser->CreateTree(*src);
+				cr_sex s = tree->Root();
+
+				greatSex->AppendWidgetTreeFromSexML(s, frame.ClientArea().Widget());
+				frame.Panel().PrepPanelAndDescendants();
+				frame.Panel().ClearAssociatedExpressions();
+				return true;
+			}
+			catch (ParseException& pex)
+			{
+				LoadFrameException lfe;
+				lfe.startPos = pex.Start();
+				lfe.endPos = pex.End();
+				lfe.errorCode = pex.ErrorCode();
+				lfe.message = pex.Message();
+				lfe.fileData = buffer->Length() > 0 ? (cstr)buffer->GetData() : nullptr;
+				lfe.filename = sexmlPath;
+				onException.OnEvent(lfe);
+				return false;
+			}
+		}
+		catch (IException& ex)
+		{
+			LoadFrameException lfe;
+			lfe.startPos = { 0,0 };
+			lfe.endPos = { 0, 0 };
+			lfe.errorCode = ex.ErrorCode();
+			lfe.message = ex.Message();
+			lfe.fileData = "<none>";
+			lfe.filename = sexmlPath;
+			onException.OnEvent(lfe);
+			return false;
+		}
+	}
 }

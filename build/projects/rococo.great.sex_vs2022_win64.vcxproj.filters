@@ -4,6 +4,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.colour.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.main.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.scheme.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.test-data.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.great.sex\sexml.widgets.simple.inl" />
