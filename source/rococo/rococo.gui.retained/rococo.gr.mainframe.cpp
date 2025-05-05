@@ -129,10 +129,13 @@ namespace GRANON
 			auto* targetFocus = focusWidget->Panel().Navigate(direction);
 			if (targetFocus)
 			{
-				TrySetDeepFocus(*targetFocus);				
+				if (TrySetDeepFocus(*targetFocus) != nullptr)
+				{
+					return EGREventRouting::Terminate;
+				}
 			}
 
-			return EGREventRouting::Terminate;
+			return EGREventRouting::NextHandler;
 		}
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& ke) override
@@ -161,13 +164,29 @@ namespace GRANON
 				OnReturn();
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_LEFT:
-				return Nav(EGRNavigationDirection::Left);
+				if (Nav(EGRNavigationDirection::Left) == EGREventRouting::NextHandler)
+				{
+					OnReverseTab();					
+				}
+				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_RIGHT:
-				return Nav(EGRNavigationDirection::Right);
+				if (Nav(EGRNavigationDirection::Right) == EGREventRouting::NextHandler)
+				{
+					OnTab();
+				}
+				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_UP:
-				return Nav(EGRNavigationDirection::Up);
+				if (Nav(EGRNavigationDirection::Up) == EGREventRouting::NextHandler)
+				{
+					OnReverseTab();
+				}
+				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_DOWN:
-				return Nav(EGRNavigationDirection::Down);
+				if (Nav(EGRNavigationDirection::Down) == EGREventRouting::NextHandler)
+				{
+					OnTab();
+				}
+				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;
 		}

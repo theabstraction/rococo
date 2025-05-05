@@ -115,7 +115,11 @@ namespace GRANON
 			int index;
 
 			int foundIndex = GetNavigationIndex(panelDesc);
-			if (foundIndex <= 0)
+			if (foundIndex == -1)
+			{
+				return { HString(), -1 };
+			}
+			else if (foundIndex == 0)
 			{
 				index = (int)navigationTargets.size() - 1;
 			}

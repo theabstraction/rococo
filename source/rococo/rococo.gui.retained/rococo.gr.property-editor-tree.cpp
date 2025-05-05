@@ -821,11 +821,14 @@ namespace GRANON
 			{
 				switch (ke.osKeyEvent.VKey)
 				{
+				case IO::VirtualKeys::VKCode_ANTITAB:
+				case IO::VirtualKeys::VKCode_UP:
+				case IO::VirtualKeys::VKCode_DOWN:
 				case IO::VirtualKeys::VKCode_TAB:
 					return EGREventRouting::Terminate;
 				}
 				return EGREventRouting::NextHandler;
-			}
+			}			
 
 			// Key down or repeat
 			switch (ke.osKeyEvent.VKey)
@@ -853,6 +856,7 @@ namespace GRANON
 			IGRWidgetEditBox& editor;
 		};
 
+		IGRWidgetEditBox* firstCreatedEditBox = nullptr;
 		IGRWidgetEditBox* lastCreatedEditBox = nullptr;
 
 		NameValueControls AddFieldToTable(IGRWidgetTable& table, PreviewField& field, int rowHeight, int depth)
@@ -873,7 +877,7 @@ namespace GRANON
 			nameAlignment.Add(EGRAlignment::VCentre).Add(spec.LeftAlignNameplates ? EGRAlignment::Left : EGRAlignment::Right);
 			auto& leftSpacer = CreateDivision(nameCell->Widget());
 			leftSpacer.SetTransparency(0);
-			leftSpacer.Panel().SetConstantWidth(spec.LeftHandMargin + spec.LeftHandShiftPerDepth * depth);
+			leftSpacer.Panel().SetConstantWidth(spec.LeftHandMargin + spec.LeftHandShiftPerDepth * depth).SetDesc("NameCell-LeftSpacer");
 
 			char label[256];
 			Strings::SafeFormat(label, "%s:", field.fieldName.c_str());
@@ -882,6 +886,10 @@ namespace GRANON
 			nameText.Panel().SetExpandToParentHorizontally();
 			nameText.Panel().SetExpandToParentVertically();
 			nameText.Panel().Set(spec.NameCellPadding);
+
+			Strings::SafeFormat(label, "NameCell: %s", field.fieldName.c_str());
+
+			nameCell->Panel().SetDesc(label);;
 
 			auto& namePanel = nameText.Panel();
 			CopyAllColours(namePanel, namePanel, EGRSchemeColourSurface::NAME_TEXT, EGRSchemeColourSurface::TEXT);
@@ -947,6 +955,10 @@ namespace GRANON
 			}
 
 			lastCreatedEditBox = &valueText;
+			if (firstCreatedEditBox == nullptr)
+			{
+				firstCreatedEditBox = lastCreatedEditBox;
+			}
 
 			valueText.Panel().Set(spec.ValueCellPadding);
 			valueText.Panel().SetExpandToParentHorizontally();
@@ -1135,6 +1147,7 @@ namespace GRANON
 			list.Panel().SetExpandToParentVertically();
 			list.Panel().SetLayoutDirection(ELayoutDirection::TopToBottom);
 
+
 			int32 firstSimpleFieldIndex = -1;
 			int32 nextSimpleFieldIndex = -1;
 
@@ -1185,6 +1198,7 @@ namespace GRANON
 				auto& vp = viewport->Widget().Panel();
 				vp.SetExpandToParentHorizontally();
 				vp.SetExpandToParentVertically();
+				vp.SetDesc("PropEditor-Viewport");
 			}
 
 			return *viewport;
@@ -1222,6 +1236,12 @@ namespace GRANON
 			auto* node = previewer.root;
 
 			if (node) SyncUIToPreviewerRecursive(*node, viewport.ClientArea().Widget(), 0);
+
+			if (firstCreatedEditBox != lastCreatedEditBox)
+			{
+				firstCreatedEditBox->Panel().Set(EGRNavigationDirection::Up, lastCreatedEditBox->Panel().Desc());
+				lastCreatedEditBox->Panel().Set(EGRNavigationDirection::Down, firstCreatedEditBox->Panel().Desc());
+			}
 
 			for (size_t depth = 0; depth < tableByDepth.size(); depth++)
 			{

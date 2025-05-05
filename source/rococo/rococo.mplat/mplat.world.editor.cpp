@@ -282,7 +282,9 @@ namespace ANON
 
 			ClearFrame(*frame);
 			
-			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().Widget(), 240, true).SetDraggerMinMax(240, 8192);
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().Widget(), 640, true).SetDraggerMinMax(240, 8192);
+
+			SetPropertyEditorColours_PastelScheme(frameSplitter.Panel());
 
 			frameSplitter.EvOnSplitSizeChanged().Add(
 				[this](int32 newSplitterWidth)
@@ -293,24 +295,40 @@ namespace ANON
 
 			struct PropEditorPopulatorHandler : IGRPropertyEditorPopulationEvents
 			{
-				int row = 0;
-				void OnAddNameValue(IGRWidgetText& nameWidget, IGRWidgetEditBox& /* editorWidget */ ) override
+				void OnAddNameValue(IGRWidgetText& /* nameWidget */, IGRWidgetEditBox& /* editorWidget */) override
 				{
-					row++;
-
-					SetUniformColourForAllRenderStates(nameWidget.Panel(), Gui::EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255));
-					auto* nameContainer = nameWidget.Panel().Parent();
-					if (nameContainer)
-					{
-						SetUniformColourForAllRenderStates(*nameContainer, Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, ((row & 1) == 1) ? RGBAb(48, 48, 48, 255) : RGBAb(40, 40, 40, 255));
-					}
+					
 				}
 			} popHandler;
 
 			PropertyEditorSpec spec;
+
+			FontSpec boldFont;
+			boldFont.Bold = true;
+			boldFont.CharHeight = 16;
+			boldFont.CharSet = ECharSet::ANSI;
+			boldFont.FontName = "Consolas";
+			spec.NameplateFontId = gr.Fonts().BindFontId(boldFont);
+
+			FontSpec headingFontSpec;
+			headingFontSpec.Bold = true;
+			headingFontSpec.CharHeight = 20;
+			headingFontSpec.CharSet = ECharSet::ANSI;
+			headingFontSpec.FontName = "Consolas";
+			spec.HeadingFontId = gr.Fonts().BindFontId(headingFontSpec);
+
+			FontSpec valueFontSpec;
+			valueFontSpec.Bold = false;
+			valueFontSpec.CharHeight = 16;
+			valueFontSpec.CharSet = ECharSet::ANSI;
+			valueFontSpec.FontName = "Consolas";
+			spec.ValueFontId = gr.Fonts().BindFontId(valueFontSpec);
+
+			spec.LeftAlignNameplates = true;
+
 			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().Widget(), popHandler, spec);
+			editorTree.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId) + 4);
 			editorTree.View(visitation);
-			UNUSED(editorTree);
 		}
 
 		IReflectionVisitation* Visitation() override
