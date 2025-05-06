@@ -180,7 +180,7 @@ namespace ANON
 			Rococo::Graphics::DrawSprite(topLeftPos, sprite, *rc);
 		}
 
-		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle /* rectStyle */, int /* corner Radius */) override
+		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
 		{
 			if (!lastScissorRect.IsNormalized())
 			{
@@ -188,7 +188,16 @@ namespace ANON
 			}
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-			Rococo::Graphics::DrawRectangle(*rc, visibleRect, colour, colour);
+			rc->SetScissorRect(visibleRect);
+			switch (rectStyle)
+			{
+			case EGRRectStyle::SHARP:
+				Rococo::Graphics::DrawRectangle(*rc, absRect, colour, colour);
+				break;
+			case EGRRectStyle::ROUNDED_WITH_BLUR:
+			case EGRRectStyle::ROUNDED:
+				Rococo::Graphics::DrawRoundedRectangle(*rc, absRect, colour, cornerRadius);
+			}
 		}
 
 		void DrawLine(Vec2i start, Vec2i end, RGBAb colour)
@@ -207,7 +216,22 @@ namespace ANON
 			}
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-			Rococo::Graphics::DrawBorderAround(*rc, visibleRect, Vec2i{ 1,1 }, colour1, colour2);
+			rc->SetScissorRect(visibleRect);
+
+			switch (rectStyle)
+			{
+			case EGRRectStyle::SHARP:
+			{
+				Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+				break;
+			}
+			case EGRRectStyle::ROUNDED:
+			case EGRRectStyle::ROUNDED_WITH_BLUR:
+				Rococo::Graphics::DrawRoundedEdge(*rc, absRect, colour1, cornerRadius);
+				break;
+			}
+
+			rc->ClearScissorRect();
 		}
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override

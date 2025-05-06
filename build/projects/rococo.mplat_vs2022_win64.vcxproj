@@ -123,13 +123,12 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem />
+      <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc
-</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -190,13 +189,12 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
-      <SubSystem />
+      <SubSystem/>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc
-</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -252,13 +250,13 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\rococo.script.types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.archive.cpp" />

@@ -145,14 +145,12 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.great.sex.lib;rococo.gui.retained.lib;rococo.maths.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc
-</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -235,20 +233,19 @@
       <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.great.sex.lib;rococo.gui.retained.lib;rococo.maths.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc
-</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />

@@ -725,6 +725,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);

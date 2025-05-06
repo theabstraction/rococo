@@ -494,6 +494,8 @@ namespace Rococo::Graphics
 	ROCOCO_GRAPHICS_API Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect);
 	ROCOCO_GRAPHICS_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, Vec2& pixelSpan);
 	ROCOCO_GRAPHICS_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
+	ROCOCO_GRAPHICS_API void DrawRoundedRectangle(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius);
+	ROCOCO_GRAPHICS_API void DrawRoundedEdge(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius);
 	ROCOCO_GRAPHICS_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
 	ROCOCO_GRAPHICS_API void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 	ROCOCO_GRAPHICS_API void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);

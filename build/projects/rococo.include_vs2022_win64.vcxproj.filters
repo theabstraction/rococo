@@ -189,8 +189,10 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.types.inference.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ui.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ui.joystick.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.validators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.variable.editor.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.vector.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />
@@ -204,7 +206,6 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.vector.ex.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">
