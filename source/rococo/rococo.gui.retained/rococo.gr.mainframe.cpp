@@ -469,4 +469,20 @@ namespace Rococo::Gui
 		panel.Root().GR().SetFocus(-1);
 		return EGREventRouting::Terminate;
 	}
+
+	ROCOCO_GUI_RETAINED_API IGRSystemSubRenderer& GetDefaultFocusRenderer()
+	{
+		struct FocusRenderer : Gui::IGRSystemSubRenderer
+		{
+			void Render(IGRPanel& panel, IGRRenderContext& g, const GuiRect& clipRect) override
+			{
+				g.EnableScissors(clipRect);
+				g.DrawRect(panel.AbsRect(), RGBAb(255, 255, 0, 32), panel.RectStyle(), panel.CornerRadius());
+				g.DisableScissors();
+			}
+		}
+		
+		static s_FocusRenderer;
+		return s_FocusRenderer;
+	}
 }

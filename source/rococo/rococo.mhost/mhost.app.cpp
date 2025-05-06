@@ -1016,6 +1016,7 @@ namespace MHost
 		void PostCreate()
 		{
 			platform.graphics.shaderMonitorEventsProxy.AddHook(this);
+			platform.graphics.GR.SetFocusOverlayRenderer(&Gui::GetDefaultFocusRenderer());
 		}
 
 		void AddSexmlSheet(Rococo::Script::ISxyExpressionRef sexml) override
@@ -1024,7 +1025,7 @@ namespace MHost
 
 			SetEditorVisibility(true);
 
-			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			auto* frame = platform.graphics.GR.FindFrame(ID_EDITOR_FRAME);
 			if (!frame)
 			{
 				Throw(0, "Could not find %s inside the platform.graphics.GR object", ID_EDITOR_FRAME);

@@ -184,6 +184,26 @@ namespace Rococo::Gui
 		{
 			return HasAllFlags(EGRAlignment::VCentre) || !HasSomeFlags(EGRAlignment::VCentre);
 		}
+
+		bool IsLeft() const
+		{
+			return HasAllFlags(EGRAlignment::Left) && !HasSomeFlags(EGRAlignment::Right);
+		}
+
+		bool IsRight() const
+		{
+			return HasAllFlags(EGRAlignment::Right) && !HasSomeFlags(EGRAlignment::Left);
+		}
+
+		bool IsTop() const
+		{
+			return HasAllFlags(EGRAlignment::Top) && !HasSomeFlags(EGRAlignment::Bottom);
+		}
+
+		bool IsBottom() const
+		{
+			return HasAllFlags(EGRAlignment::Bottom) && !HasSomeFlags(EGRAlignment::Top);
+		}
 	};
 
 	enum class ECharSet
@@ -1326,6 +1346,8 @@ namespace Rococo::Gui
 	{
 		virtual void Render(IGRPanel & panel, IGRRenderContext & g, const GuiRect& clipRect) = 0;
 	};
+
+	ROCOCO_GUI_RETAINED_API IGRSystemSubRenderer& GetDefaultFocusRenderer();
 
 	// Highest level of the retained GUI manages frames, frame render order, event routing, visibility, building and rendering
 	ROCOCO_INTERFACE IGRSystem

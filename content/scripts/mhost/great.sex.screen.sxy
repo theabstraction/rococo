@@ -32,17 +32,17 @@
 
 (method GuiInputThread.Run -> :
 	(IKeyboard keyboard (Keyboard))
-/*	
-	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
-	(Int32 rightKey = (keyboard.GetVKeyFromName "D"))
-	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
-	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
-	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
-*/
 	
-	(while this.engine.IsRunning
-		(KeyState keys)
-		(this.engine.PollKeyState keys)
+	(IUIEventHandler none)
+	
+	(while this.engine.IsRunning	
+		(MouseEvent mouseEvent)
+		(while (this.engine.GetNextMouseEvent mouseEvent)
+		)
+
+		(KeyboardEvent keyEvent)			
+		(while (this.engine.GetNextKeyboardEvent keyEvent)
+		)
 		
 		(yield 10000)
 	)
@@ -95,8 +95,6 @@
 	
 	(cast world -> ICoroutine worldThread)
 	(coroutines.Add worldThread)
-	
-	(IKeyboard keyboard (Keyboard))
 			
 	(engine.SetGreatSexOverlay "!tests/greatsex.test.sexml")
 	

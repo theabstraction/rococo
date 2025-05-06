@@ -145,10 +145,39 @@ namespace ANON
 
 		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
 		{
-			UNUSED(image);
-			UNUSED(absRect);
-			UNUSED(alignment);
-			Throw(0, __FUNCTION__ ": not implemented");
+			Vec2i span = image.Span();
+
+			Vec2i topLeftPos;
+
+			if (alignment.IsLeft())
+			{
+				topLeftPos.x = absRect.left;
+			}
+			else if (alignment.IsRight())
+			{
+				topLeftPos.x = absRect.right - span.x;
+			}
+			else
+			{
+				topLeftPos.x = Centre(absRect).x - (span.x / 2);
+			}
+
+			if (alignment.IsTop())
+			{
+				topLeftPos.y = absRect.top;
+			}
+			else if (alignment.IsBottom())
+			{
+				topLeftPos.y = absRect.bottom - span.y;
+			}
+			else
+			{
+				topLeftPos.x = Centre(absRect).y - (span.y / 2);
+			}
+
+			auto& sprite = static_cast<IMPlatImageSupervisor&>(image).Sprite();
+
+			Rococo::Graphics::DrawSprite(topLeftPos, sprite, *rc);
 		}
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle /* rectStyle */, int /* corner Radius */) override

@@ -42,6 +42,7 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 
 void TestGameOptions(IGRClientWindow& client)
 {
+	UNUSED(client);
 	//TestOptions(client, client.GRSystem(), s_GraphicsOptions);
 }
 
