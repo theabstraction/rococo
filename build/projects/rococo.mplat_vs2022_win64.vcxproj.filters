@@ -214,9 +214,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.inl">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo_declarations.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>

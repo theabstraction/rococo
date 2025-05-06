@@ -252,7 +252,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />

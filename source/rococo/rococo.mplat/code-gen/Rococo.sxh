@@ -622,6 +622,7 @@
 		(BindFont (HQFontDef fontDef)(const IString fontFamily)->(IdFont fontId))
 		(Build (EHQFont font))
 		(Clear)
+		(GetHeight (IdFont font)->(Int32 pixelHeight))
 		(SetFaceName (IString name))
 		(SetHeight (Int32 dyPixels))
 		(MakeItalics)

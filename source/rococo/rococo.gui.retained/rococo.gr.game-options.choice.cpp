@@ -53,6 +53,10 @@ namespace GRANON
 			carousel->DropDown().SetOptionPadding(config.CarouselButtonPadding);
 	
 			int height = (int) (config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
+			if (height <= 0)
+			{
+				RaiseError(panel, EGRErrorCode::BadSpanHeight, __FUNCTION__, "Height(config.TitleFontId) * config.FontHeightToOptionHeightMultiplier was not positive");
+			}
 			panel.SetConstantHeight(height);
 		}
 

@@ -572,8 +572,7 @@ namespace ANON
 
 		int GetFontHeight(GRFontId id) const override
 		{
-			UNUSED(id);
-			return -1;
+			return renderer.utils.GetHQFonts().GetHeight((ID_FONT)((int)id));
 		}
 
 		IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override

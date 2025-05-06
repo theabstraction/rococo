@@ -64,6 +64,12 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		return idFont;
 	}
 
+	int32 GetHeight(ID_FONT fontId) override
+	{
+		const auto& metrics = hq.GetFontMetrics(fontId);
+		return metrics.height;
+	}
+
 	void Build(Rococo::Graphics::HQFont hqFont) override
 	{
 		int font = (int)hqFont;
