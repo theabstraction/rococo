@@ -301,7 +301,7 @@ namespace ANON
 		{
 			Vec2i pos = g.CursorHoverPoint();
 
-			GRFontId debugFontId = GRFontId::MENU_FONT;
+			GRFontId debugFontId = GRFontId::NONE;
 
 			GRAlignmentFlags alignment;
 			alignment.Add(EGRAlignment::Right);

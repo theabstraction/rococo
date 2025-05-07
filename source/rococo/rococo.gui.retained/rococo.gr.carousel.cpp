@@ -32,7 +32,7 @@ namespace GRANON
 		IGRWidgetButton* rightButton = nullptr;
 		IGRWidgetScrollableMenu* dropDown = nullptr;
 
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId = GRFontId::NONE;
 		
 		GRCarousel(IGRPanel& owningPanel) : panel(owningPanel)
 		{

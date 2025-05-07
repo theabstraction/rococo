@@ -206,7 +206,8 @@ namespace Rococo::DX11
 		{
 			if (id.value < 0)
 			{
-				Throw(0, "Negative font id %d", id.value);
+				auto defautlSysId = sysFonts[0];
+				return defautlSysId;
 			}
 
 			if (id.value >= 0 && id.value <= (int)sysFonts.size())

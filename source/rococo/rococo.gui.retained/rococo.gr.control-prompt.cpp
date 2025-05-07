@@ -68,7 +68,7 @@ namespace GRANON
 
 		}
 
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId = GRFontId::NONE;
 		GRAnchorPadding padding{ 2,2,2,2 };
 		int cellPadding = 2;
 

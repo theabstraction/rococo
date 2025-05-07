@@ -453,7 +453,7 @@ namespace GRANON
 		}
 
 		Strings::HString title;
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId = GRFontId::NONE;
 
 		IGRWidgetButton& SetTitle(cstr title) override
 		{

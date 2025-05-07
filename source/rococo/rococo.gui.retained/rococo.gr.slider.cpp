@@ -218,7 +218,7 @@ namespace GRANON
 
 		double quantum = 0.25;
 
-		GRFontId guageFont = GRFontId::MENU_FONT;
+		GRFontId guageFont = GRFontId::NONE;
 		int guageDecimalPlaces = 2;
 		int guageVerticalOffset = 4;
 		EGRSchemeColourSurface guageTextSurface = EGRSchemeColourSurface::GAME_OPTION_TEXT;
@@ -322,7 +322,7 @@ namespace GRANON
 				Strings::SafeFormat(guageText, format, position);
 
 				RGBAb colour = panel.GetColour(guageTextSurface, rs);
-				g.DrawText(GRFontId::MENU_FONT, panel.AbsRect(), guageAlignment, guageSpacing, to_fstring(guageText), colour);
+				g.DrawText(guageFont, panel.AbsRect(), guageAlignment, guageSpacing, to_fstring(guageText), colour);
 			}
 
 			bool isObscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
@@ -361,7 +361,8 @@ namespace GRANON
 	{
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GRSlider(panel);
+			auto* slider = new GRSlider(panel);
+			return *slider;
 		}
 	} s_SliderFactory;
 }
@@ -377,7 +378,7 @@ namespace Rococo::Gui
 	{
 		auto& gr = parent.Panel().Root().GR();
 		auto& widget = gr.AddWidget(parent.Panel(), GRANON::s_SliderFactory);
-		IGRWidgetSlider* slider = Cast<IGRWidgetSlider>(widget);
+		auto* slider = static_cast<GRANON::GRSlider*>(Cast<IGRWidgetSlider>(widget));
 		return *slider;
 	}
 }

@@ -1364,14 +1364,14 @@ namespace GRANON
 
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
 
-			if (alignment.HasSomeFlags(EGRAlignment::AutoFonts) && fontId > GRFontId::MENU_FONT)
+			if (alignment.HasSomeFlags(EGRAlignment::AutoFonts) && fontId > GRFontId::NONE)
 			{
 				RECT calculatedRect = rect;
 				DrawTextA(paintDC, text, text.length, &calculatedRect, format | DT_CALCRECT);
 
 				if (calculatedRect.right >= rect.right)
 				{
-					SelectFont(custodian, GRFontId::MENU_FONT, paintDC);
+					SelectFont(custodian, GRFontId::NONE, paintDC);
 					DrawTextA(paintDC, text, text.length, reinterpret_cast<RECT*>(&rect), format | DT_END_ELLIPSIS);
 					goto end;
 				}
@@ -1640,21 +1640,11 @@ namespace GRANON
 
 		const KnownFont* GetFont(GRFontId id) const
 		{
-			size_t arrayIndex = 0;
-
-			switch (id)
-			{
-			case GRFontId::NONE:
-			case GRFontId::MENU_FONT:
-				arrayIndex = 0;
-				break;
-			default:
-				arrayIndex = static_cast<size_t>(id) - 2;
-			}
+			size_t arrayIndex = static_cast<size_t>(id);
 
 			if (arrayIndex >= knownFonts.size())
 			{
-				return nullptr;
+				arrayIndex = 0;
 			}
 
 			return &knownFonts[arrayIndex];

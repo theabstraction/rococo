@@ -56,6 +56,8 @@ namespace GRANON
 			slider->SetGuageAlignment(config.ScalarGuageAlignment, config.ScalarGuageSpacing);
 			slider->SetSlotPadding(config.ScalarSlotPadding);
 
+			slider->SetGuage(config.SliderFontId, 2, EGRSchemeColourSurface::SLIDER_GUAGE);
+
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
 
 			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));

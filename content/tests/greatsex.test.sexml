@@ -58,6 +58,11 @@
 	([] Mods Bold)
 )
 
+(Font 
+	(Id SliderFont)
+	(Family Consolas)
+	(Height 11)
+)
 
 (Portrait
 // Panel descriptions serve as comments and also provide debugging information by marking a panel with a text string
@@ -283,6 +288,7 @@
 				(Colour.GameOption.ChildSpacer DarkGrey)
 				(Colour.Label Transparent)
 				(Colour.Editor DarkRed)
+				(Colour.Slider.Guage LightGrey)
 			:
 				(Viewport.ClientArea
 					(Panel.Layout TopToBottom)
@@ -329,6 +335,7 @@
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
+					(Slider.Font SliderFont)
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate GraphicsOptions)
@@ -364,6 +371,7 @@
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
+					(Slider.Font SliderFont)
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate AudioOptions)
@@ -399,6 +407,7 @@
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
+					(Slider.Font SliderFont)
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate UIOptions)
@@ -438,6 +447,7 @@
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
+					(Slider.Font SliderFont)
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate GameplayOptions)
@@ -473,6 +483,7 @@
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
+					(Slider.Font SliderFont)
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate MultiplayerOptions)

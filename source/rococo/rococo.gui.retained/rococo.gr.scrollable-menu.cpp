@@ -119,7 +119,7 @@ namespace GRANON
 			return (int) (buttonHeight * options.size());
 		}
 
-		GRFontId buttonFontId = GRFontId::MENU_FONT;
+		GRFontId buttonFontId = GRFontId::NONE;
 
 		Vec2i LastComputedButtonSpan() const override
 		{

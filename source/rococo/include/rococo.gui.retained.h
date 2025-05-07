@@ -141,8 +141,7 @@ namespace Rococo::Gui
 
 	enum class GRFontId: size_t
 	{
-		NONE = 0,
-		MENU_FONT = 1, // THE DEFAULT FONT, used for menus and tabs
+		NONE = -1,
 	};
 
 	struct GRAlignmentFlags
@@ -344,6 +343,7 @@ namespace Rococo::Gui
 		SCROLLER_TRIANGLE_NORMAL,
 		SLIDER_BACKGROUND,
 		SLIDER_SLOT_BACKGROUND,
+		SLIDER_GUAGE,
 		EDITOR,
 		READ_ONLY_TEXT,
 		TEXT,
@@ -1695,7 +1695,7 @@ namespace Rococo::Gui
 		GRAlignmentFlags TitleAlignment;
 		GRAlignmentFlags ScalarGuageAlignment;
 		Vec2i ScalarGuageSpacing{ 0,0 };
-		GRFontId TitleFontId = GRFontId::MENU_FONT;
+		GRFontId TitleFontId = GRFontId::NONE;
 		GRAnchorPadding CarouselPadding { 0,0,0,0 };
 		GRAnchorPadding ScalarSlotPadding { 0,0,0,0 };
 		GRAnchorPadding CarouselButtonPadding{ 0,0,0,0 };
@@ -1706,8 +1706,9 @@ namespace Rococo::Gui
 		cstr RightImagePressed = "!textures/toolbars/MAT/nextHi.tif";
 		cstr ScalarKnobRaised = "!textures/toolbars/MAT/slider-knob.tif";
 		cstr ScalarKnobPressed = "!textures/toolbars/MAT/slider-knobHi.tif";
-		GRFontId CarouselFontId = GRFontId::MENU_FONT;
-		GRFontId CarouselButtonFontId = GRFontId::MENU_FONT;
+		GRFontId CarouselFontId = GRFontId::NONE;
+		GRFontId CarouselButtonFontId = GRFontId::NONE;
+		GRFontId SliderFontId = GRFontId::NONE;
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled

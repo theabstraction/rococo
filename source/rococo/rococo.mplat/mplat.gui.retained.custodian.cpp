@@ -377,7 +377,7 @@ namespace ANON
 				return;
 			}
 
-			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, targetRect))
+			if (lastScissorRect.IsNormalized())
 			{
 				if (!AreRectsOverlapped(lastScissorRect, targetRect))
 				{
@@ -386,15 +386,12 @@ namespace ANON
 
 				rc->FlushLayer();
 				rc->SetScissorRect(lastScissorRect);
-			}
 
-			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
-			Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
+				int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
+				Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
 
-			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, targetRect))
-			{
 				rc->FlushLayer();
-				rc->ClearScissorRect();
+				rc->ClearScissorRect();				
 			}
 		}
 

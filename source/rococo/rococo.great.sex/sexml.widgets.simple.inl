@@ -101,7 +101,7 @@ namespace Rococo::GreatSex
 				config.CarouselFontId = GetCustodian(owner.Panel()).Fonts().BindFontId(spec);
 			}
 
-			auto* aCarouselButtonFont = directive.FindAttributeByName("Carousel.Font");
+			auto* aCarouselButtonFont = directive.FindAttributeByName("Carousel.Button.Font");
 			if (aCarouselButtonFont)
 			{
 				cstr fontName = AsString(aCarouselButtonFont->Value()).c_str();
@@ -113,6 +113,20 @@ namespace Rococo::GreatSex
 				spec.Bold = fq.isBold;
 				spec.Italic = fq.isItalic;
 				config.CarouselButtonFontId = GetCustodian(owner.Panel()).Fonts().BindFontId(spec);
+			}
+
+			auto* aSliderFont = directive.FindAttributeByName("Slider.Font");
+			if (aSliderFont)
+			{
+				cstr fontName = AsString(aSliderFont->Value()).c_str();
+				FontQuery fq = generator.GetFont(fontName, aSliderFont->S());
+
+				Gui::FontSpec spec;
+				spec.CharHeight = fq.height;
+				spec.FontName = fq.familyName;
+				spec.Bold = fq.isBold;
+				spec.Italic = fq.isItalic;
+				config.SliderFontId = GetCustodian(owner.Panel()).Fonts().BindFontId(spec);
 			}
 
 			auto* aAlignment = directive.FindAttributeByName("Title.Alignment");

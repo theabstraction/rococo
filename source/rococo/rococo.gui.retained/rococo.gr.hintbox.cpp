@@ -100,7 +100,7 @@ namespace GRANON
 			}
 		}
 
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId = GRFontId::NONE;
 		Vec2i spacing{ 0,0 };
 
 		void SetAlignment(GRAlignmentFlags flags) override

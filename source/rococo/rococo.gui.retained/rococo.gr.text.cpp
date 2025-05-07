@@ -11,7 +11,7 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 		std::string text;
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId = GRFontId::NONE;
 		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
 		EGRSchemeColourSurface labelSurface = EGRSchemeColourSurface::TEXT;

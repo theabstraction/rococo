@@ -23,7 +23,10 @@ namespace GRANON
 		int32 splitterMin = 0;
 		int32 splitterMax = 8192;
 
-		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) : panel(_panel), draggerStartPos(_draggerStartPos), updateWithMouseMove(_updateWithMouseMove)
+		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) :
+			panel(_panel), 
+			draggerStartPos(_draggerStartPos),
+			updateWithMouseMove(_updateWithMouseMove)
 		{
 			_panel.SetMinimalSpan({ 320, 200 });
 			_panel.SetExpandToParentHorizontally();
