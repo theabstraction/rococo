@@ -1730,7 +1730,7 @@ namespace GRANON
 			{
 				if (Match(f, knownFonts[i].creator))
 				{
-					return static_cast<GRFontId>(i + 2);
+					return static_cast<GRFontId>(i);
 				}
 			}
 
@@ -1761,7 +1761,7 @@ namespace GRANON
 			}
 
 			knownFonts.push_back({ f, hFont, tm });
-			return static_cast<GRFontId>(knownFonts.size() + 1);
+			return static_cast<GRFontId>(knownFonts.size()-1);
 		}
 
 		void SelectFont(GRFontId fontId, HDC dc)
