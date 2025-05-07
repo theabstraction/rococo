@@ -68,12 +68,9 @@ namespace ANON
 			if (Rprimed.left < clipRect.left)
 			{
 				Rprimed.left = clipRect.left;
-			}
-			else
-			{
 				tPrimed.left = (Rprimed.left - R.left) / Width(R);
 			}
-
+			
 			if (Rprimed.top < clipRect.top)
 			{
 				Rprimed.top = clipRect.top;
@@ -86,12 +83,9 @@ namespace ANON
 			if (Rprimed.right > clipRect.right)
 			{
 				Rprimed.right = clipRect.right;
-			}
-			else
-			{
 				tPrimed.right = (Rprimed.right - R.left) / Width(R);
 			}
-
+			
 			if (Rprimed.bottom > clipRect.bottom)
 			{
 				Rprimed.bottom = clipRect.bottom;
@@ -110,7 +104,6 @@ namespace ANON
 
 			auto& R = nextRect;
 
-			R.left += g.A;
 			R.right = R.left + span.x;
 
 			bool isFullyClipped = R.right <= clipRect.left || R.left >= clipRect.right || R.top >= clipRect.bottom || R.bottom <= clipRect.top;
@@ -149,10 +142,11 @@ namespace ANON
 
 			if (outputBounds != nullptr)
 			{
+				R.right = R.left + g.B + g.C;
 				*outputBounds = R;
 			}
 
-			R.left += g.B + g.C;
+			R.left += g.A + g.B + g.C;
 		}
 	}; // struct HQBuilder
 }// ANON

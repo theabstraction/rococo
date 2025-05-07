@@ -377,22 +377,19 @@ namespace ANON
 				return;
 			}
 
-			if (lastScissorRect.IsNormalized())
+			if (!AreRectsOverlapped(lastScissorRect, targetRect))
 			{
-				if (!AreRectsOverlapped(lastScissorRect, targetRect))
-				{
-					return;
-				}
-
-				rc->FlushLayer();
-				rc->SetScissorRect(lastScissorRect);
-
-				int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
-				Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
-
-				rc->FlushLayer();
-				rc->ClearScissorRect();				
+				return;
 			}
+
+			rc->FlushLayer();
+			rc->SetScissorRect(lastScissorRect);
+
+			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
+			Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
+
+			rc->FlushLayer();
+			rc->ClearScissorRect();				
 		}
 
 		bool TryFindFontJustSmallerThanHeight(Rococo::Gui::FontSpec&, int) const

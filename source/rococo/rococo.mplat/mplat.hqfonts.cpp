@@ -33,7 +33,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		spec.fontName = fontFamily;
 		spec.height = fontDef.fontSize;
 		spec.italic = fontDef.isItalic;
-		spec.weight = bold ? 700 : 400;
+		spec.weight = fontDef.isBold ? 700 : 400;
 
 		struct : Fonts::IArrayFontSet
 		{
