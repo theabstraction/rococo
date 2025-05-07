@@ -1364,7 +1364,7 @@ namespace GRANON
 
 			COLORREF oldColour = SetTextColor(paintDC, RGB(colour.red, colour.green, colour.blue));
 
-			if (alignment.HasSomeFlags(EGRAlignment::AutoFonts) && fontId > GRFontId::NONE)
+			if (alignment.HasSomeFlags(EGRAlignment::AutoFonts) && fontId != GRFontId::NONE)
 			{
 				RECT calculatedRect = rect;
 				DrawTextA(paintDC, text, text.length, &calculatedRect, format | DT_CALCRECT);

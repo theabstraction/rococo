@@ -184,7 +184,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.AddChoice("2", "1024 x 1024 4pt (medium)", GEN_HINT_FROM_PARENT_AND_CHOICE);
 			inquiry.AddChoice("3", "1024 x 1024 16pt (high)", GEN_HINT_FROM_PARENT_AND_CHOICE);
 			inquiry.AddChoice("4", "2048 x 2048 4pt (very high)", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("5", "2048 x 2048 16pt (ultra)" "*:");
+			inquiry.AddChoice("5", "2048 x 2048 16pt (ultra)", GEN_HINT_FROM_PARENT_AND_CHOICE);
 			inquiry.SetActiveChoice(shadowQuality);
 			inquiry.SetHint("Set the quality of shadows. Higher settings may reduce frame-rate");
 		}
