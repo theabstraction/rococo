@@ -177,7 +177,7 @@ namespace ANON
 			}
 			else
 			{
-				topLeftPos.x = Centre(absRect).y - (span.y / 2);
+				topLeftPos.y = Centre(absRect).y - (span.y / 2);
 			}
 
 			auto& sprite = static_cast<IMPlatImageSupervisor&>(image).Sprite();
