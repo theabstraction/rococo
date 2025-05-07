@@ -1053,14 +1053,89 @@ namespace Rococo::Graphics
 		DrawArc(grc, colour, rightBottom, cornerRadius, 270_degrees, 90_degrees);
 	}
 
-	void DrawRoundedEdge(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius)
+	void DrawArcEdge(IGuiRenderContext& grc, RGBAb colour, Vec2i origin, int radius, Degrees startAngle, Degrees sweepAngle)
 	{
 		if (colour.alpha == 0)
 		{
 			return;
 		}
 
-		Throw(0, "Not implemented");
+		/*
+		|      / P
+		|     /
+		|    /
+		|   /
+		|  /
+		| /
+		|/
+		O-------------------------
+		*/
+
+		Vec2 fOrigin{ (float)origin.x, (float)origin.y };
+
+		float arcLength = radius * (sweepAngle.degrees / 360.0f) * 2.0f * PI();
+
+		float pixelsPerSegment = 2.0;
+		int nDivisions = clamp((int)(arcLength / pixelsPerSegment), 1, 4096);
+
+		Vec2 ri{ (float)radius, 0 }; // The vector i scaled by r, the radius
+
+		BaseVertexData noFont{ {0, 0}, 0 };
+		SpriteVertexData solid{ 1.0f, 0, 0, 0 };
+
+		Degrees theta0 = startAngle;
+		Degrees dTheta = Degrees{ sweepAngle / nDivisions };
+
+		for (int d = 0; d < nDivisions; d++)
+		{
+			const Matrix2x2 rotStart = Matrix2x2::RotateAnticlockwise(theta0);
+
+			Degrees endAngle = Degrees{ theta0.degrees + dTheta.degrees };
+
+			const Matrix2x2 rotEnd = Matrix2x2::RotateAnticlockwise(endAngle);
+
+			Vec2 start = FlipY(rotStart * ri) + fOrigin;
+			Vec2 end = FlipY(rotEnd * ri) + fOrigin;
+
+			DrawLine(grc, 1, Quantize(start), Quantize(end), colour);
+
+			theta0.degrees += dTheta.degrees;
+		}
+	}
+
+	void DrawRoundedEdge(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius)
+	{
+		{
+			Vec2i leftTop{ rect.left + cornerRadius, rect.top };
+			Vec2i rightTop{ rect.right - cornerRadius, rect.top };
+			Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom };
+			Vec2i rightBottom{ rect.right - cornerRadius, rect.bottom };
+			DrawLine(grc, 1, leftTop, rightTop, colour);
+			DrawLine(grc, 1, leftBottom, rightBottom, colour);
+		}
+
+
+		{
+			Vec2i leftTop{ rect.left, rect.top + cornerRadius};
+			Vec2i rightTop{ rect.right, rect.top + cornerRadius };
+			Vec2i leftBottom{ rect.left, rect.bottom - cornerRadius };
+			Vec2i rightBottom{ rect.right, rect.bottom - cornerRadius };
+			DrawLine(grc, 1, rightTop, rightBottom, colour);
+			DrawLine(grc, 1, leftTop, leftBottom, colour);
+		}
+
+
+		Vec2i leftTop{ rect.left + cornerRadius, rect.top + cornerRadius };
+		DrawArcEdge(grc, colour, leftTop, cornerRadius, 90_degrees, 90_degrees);
+
+		Vec2i rightTop{ rect.right - cornerRadius, rect.top + cornerRadius };
+		DrawArcEdge(grc, colour, rightTop, cornerRadius, 0_degrees, 90_degrees);
+
+		Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom - cornerRadius };
+		DrawArcEdge(grc, colour, leftBottom, cornerRadius, 180_degrees, 90_degrees);
+
+		Vec2i rightBottom{ rect.right - cornerRadius, rect.bottom - cornerRadius };
+		DrawArcEdge(grc, colour, rightBottom, cornerRadius, 270_degrees, 90_degrees);
 	}
 
 	ROCOCO_GRAPHICS_API GuiRect RenderHQText(const GuiRect& clipRect, int32 alignment, IGuiRenderContext& grc, ID_FONT fontId, cstr text, RGBAb colour, Vec2i spacing, IEventCallback<GlyphContext>* glyphCallback, int dxShift)
