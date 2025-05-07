@@ -2,6 +2,7 @@
 #include <rococo.fonts.hq.h>
 #include <rococo.imaging.h>
 #include <vector>
+#include <array>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -181,14 +182,70 @@ namespace Rococo::DX11
 		IDX11FontRenderer& renderer;
 		ID3D11DeviceContext* activeDC = nullptr;
 
+		std::array<ID_FONT, 10> sysFonts =
+		{
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid(),
+			ID_FONT::Invalid()
+		};
+
 		enum { ID_FONT_OSFONT_OFFSET = 400 };
 
 		DX11HQFontFonts(IDX11FontRenderer& _renderer, ID3D11Device& _device, ID3D11DeviceContext& dc) : renderer(_renderer), device(_device), activeDC(&dc)
 		{
 		}
 
+		ID_FONT NormalizeFontId(ID_FONT id) const
+		{
+			if (id.value < 0)
+			{
+				Throw(0, "Negative font id %d", id.value);
+			}
+
+			if (id.value >= 0 && id.value <= (int)sysFonts.size())
+			{
+				return sysFonts[id.value];
+			}
+			else
+			{
+				return id;
+			}
+		}
+
+		ID_FONT CreateSysFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec& spec)
+		{
+			if (spec.sysFontId < 0 || spec.sysFontId >= (int)sysFonts.size())
+			{
+				Throw(0, "Cannot create system font. sysFontId >= %llu", sysFonts.size());
+			}
+
+			if (sysFonts[spec.sysFontId])
+			{
+				Throw(0, "SysFont #d already defined", spec.sysFontId);
+			}
+
+			FontSpec osSpec = spec;
+			osSpec.sysFontId = -1;
+
+			auto id = sysFonts[spec.sysFontId] = CreateOSFont(glyphs, osSpec);
+
+			return id;
+		}
+
 		ID_FONT CreateOSFont(Fonts::IArrayFontSet& glyphs, const Fonts::FontSpec& spec) override
 		{
+			if (spec.sysFontId >= 0)
+			{
+				return CreateSysFont(glyphs, spec);
+			}
+
 			int i = 0;
 			for (auto& osFont : osFonts)
 			{
@@ -236,8 +293,9 @@ namespace Rococo::DX11
 			return ID_FONT{ i + ID_FONT_OSFONT_OFFSET };
 		}
 
-		Vec2i EvalSpan(ID_FONT id, const fstring& text) const override
+		Vec2i EvalSpan(ID_FONT rawId, const fstring& text) const override
 		{
+			ID_FONT id = NormalizeFontId(rawId);
 			int32 index = id.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())
 			{
@@ -297,8 +355,10 @@ namespace Rococo::DX11
 			delete this;
 		}
 
-		const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
+		const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT rawId) override
 		{
+			ID_FONT idFont = NormalizeFontId(rawId);
+
 			int32 index = idFont.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())
 			{
@@ -308,8 +368,10 @@ namespace Rococo::DX11
 			return osFonts[index].arrayFont->Metrics();
 		}
 
-		void RenderHQText(ID_FONT id, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, const GuiRect& clipRect) override
+		void RenderHQText(ID_FONT rawId, IHQTextJob& job, IGuiRenderContext::EMode mode, ID3D11DeviceContext& dc, const GuiRect& clipRect) override
 		{
+			ID_FONT id = NormalizeFontId(rawId);
+
 			int32 index = id.value - ID_FONT_OSFONT_OFFSET;
 			if (index < 0 || index >= (int32)osFonts.size())
 			{

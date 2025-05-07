@@ -26,6 +26,11 @@ using namespace Rococo::Strings;
 namespace Rococo::Gui
 {
 	ROCOCO_API_IMPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder);
+
+	inline ID_FONT To_ID_FONT(GRFontId id)
+	{
+		return ID_FONT{ static_cast<int>(id) };
+	}
 }
 
 namespace ANON
@@ -261,18 +266,8 @@ namespace ANON
 
 			alignment.Remove(EGRAlignment::Right).Add(EGRAlignment::Left);
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
-
-			ID_FONT hqFontId;
-
-			switch (fontId)
-			{
-			case GRFontId::MENU_FONT:
-			default:
-				hqFontId = utils.GetHQFonts().GetSysFont(HQFont::MenuFont);
-				break;
-			}
-
-			auto& metrics = rc->Resources().HQFontsResources().GetFontMetrics(hqFontId);
+				
+			auto& metrics = rc->Resources().HQFontsResources().GetFontMetrics(To_ID_FONT(fontId));
 			
 			struct : IEventCallback<GlyphContext>
 			{
@@ -302,7 +297,7 @@ namespace ANON
 
 			RGBAb transparent(0, 0, 0, 0);
 
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, transparent, spacing, &glyphCallback);
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, To_ID_FONT(fontId), editText, transparent, spacing, &glyphCallback);
 
 			int32 dxShift = 0;
 
@@ -320,7 +315,7 @@ namespace ANON
 			glyphCallback.charPos = 0;
 			glyphCallback.caretStart = glyphCallback.caretEnd = { 0,0 };
 
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, colour, spacing, &glyphCallback, dxShift);
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, To_ID_FONT(fontId), editText, colour, spacing, &glyphCallback, dxShift);
 
 			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
 			{
@@ -377,8 +372,6 @@ namespace ANON
 
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
-			UNUSED(targetRect);
-
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
@@ -396,18 +389,7 @@ namespace ANON
 			}
 
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
-
-			ID_FONT hqFontId;
-
-			switch (fontId)
-			{
-			case GRFontId::MENU_FONT:
-			default:
-				hqFontId = utils.GetHQFonts().GetSysFont(HQFont::MenuFont);
-				break;
-			}
-	
-			Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, hqFontId, text, colour, spacing);
+			Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
 
 			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, targetRect))
 			{
@@ -637,17 +619,7 @@ namespace ANON
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
 		{
-			ID_FONT idSysFont;
-
-			switch (fontId)
-			{
-			case GRFontId::MENU_FONT:
-			default:
-				idSysFont = renderer.utils.GetHQFonts().GetSysFont(HQFont::MenuFont);
-				break;
-			}
-
-			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(idSysFont, text);
+			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text);
 		}
 
 		void RecordWidget(IGRWidget& widget) override

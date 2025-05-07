@@ -461,11 +461,7 @@ namespace
 	   {
 		   if (!idDebuggerFont)
 		   {
-			   idDebuggerFont = utilities.GetHQFonts().GetSysFont(Graphics::HQFont::DebuggerFont);
-			   if (!idDebuggerFont)
-			   {
-				   Throw(0, "Undefined HQFont_DebuggerFont");
-			   }
+			   idDebuggerFont = ID_FONT{ static_cast<int>(Graphics::HQFont::DebuggerFont) };
 		   }
 
 		   scrollRect = GuiRect{ absRect.right - 24, absRect.top, absRect.right, absRect.bottom };

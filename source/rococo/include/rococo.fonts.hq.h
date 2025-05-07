@@ -82,6 +82,7 @@ namespace Rococo::Graphics::Fonts
 		int32 height;
 		int32 weight;
 		boolean32 italic;
+		int sysFontId = -1;
 	};
 
 	/*

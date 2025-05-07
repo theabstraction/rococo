@@ -26,20 +26,6 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 	boolean32 italics = false;
 	boolean32 bold = false;
 
-	std::array<ID_FONT, 10> sysFonts = 
-	{
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(), 
-		ID_FONT::Invalid(), 
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid()
-	};
-
 	// This was added to facilitate Gui-Retained fonts, so is a little out-of-place
 	ID_FONT BindFont(const HQFontDef& fontDef, const fstring& fontFamily) override
 	{
@@ -72,12 +58,6 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 
 	void Build(Rococo::Graphics::HQFont hqFont) override
 	{
-		int font = (int)hqFont;
-		if (font < 0 || font >= (int) sysFonts.size())
-		{
-			Throw(0, "%s: Bad font enum", __FUNCTION__);
-		}
-
 		hqFontType = hqFont;
 		Clear();
 	}
@@ -152,36 +132,18 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		spec.height = heightInPixels;
 		spec.italic = italics;
 		spec.weight = bold ? 700 : 400;
+		spec.sysFontId = static_cast<int>(hqFontType);
 
 		if (glyphs.empty())
 		{
 			Throw(0, "%s: no glyphs have been added", __FUNCTION__);
 		}
 
-		if (sysFonts[(int)hqFontType])
-		{
-			Throw(0, "%s: Sys font %s already defined", __FUNCTION__, ToShortString(hqFontType).buffer);
-		}
-
 		ID_FONT idFont = hq.CreateOSFont(*this, spec);
-		sysFonts[(int)hqFontType] = idFont;
 
 		Clear();
 
 		return idFont;
-	}
-
-	ID_FONT GetSysFont(Rococo::Graphics::HQFont hqFont)
-	{
-		int font = (int)hqFont;
-
-		if (font < 0 || font >= sysFonts.size())
-		{
-			Throw(0, "%s: Bad font enum %d", __FUNCTION__, font);
-		}
-
-		auto id = sysFonts[font];
-		return id;
 	}
 
 	void Populate(Fonts::IFontGlyphBuilder& builder) override
