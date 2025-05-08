@@ -48,7 +48,6 @@ namespace GRANON
 		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), filter(_filter), fontId(_fontId)
 		{
 			text.reserve(capacity);
-			owningPanel.SetMinimalSpan({ 10, 10 });
 			owningPanel.Add(EGRPanelFlags::AcceptsFocus);
 		}
 

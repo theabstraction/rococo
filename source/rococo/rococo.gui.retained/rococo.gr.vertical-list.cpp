@@ -17,7 +17,6 @@ namespace GRANON
 			panel(owningPanel), 
 			enforcePositiveChildHeights(_enforcePositiveChildHeights)
 		{
-			owningPanel.SetMinimalSpan({ 10, 10 });
 			owningPanel.SetLayoutDirection(ELayoutDirection::TopToBottom);
 		}
 

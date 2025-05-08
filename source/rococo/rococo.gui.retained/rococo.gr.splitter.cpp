@@ -28,7 +28,6 @@ namespace GRANON
 			draggerStartPos(_draggerStartPos),
 			updateWithMouseMove(_updateWithMouseMove)
 		{
-			_panel.SetMinimalSpan({ 320, 200 });
 			_panel.SetExpandToParentHorizontally();
 			_panel.SetExpandToParentVertically();
 			_panel.SetLayoutDirection(ELayoutDirection::LeftToRight);

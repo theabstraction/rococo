@@ -22,7 +22,6 @@ namespace GRANON
 
 		GRText(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			owningPanel.SetMinimalSpan({ 10,10 });
 		}
 
 		void Free() override

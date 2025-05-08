@@ -158,7 +158,6 @@ namespace GRANON
 
 		GRMenuBar(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			owningPanel.SetMinimalSpan({ 100, 24 });
 			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 			if (owningPanel.Parent() == nullptr)
 			{
@@ -234,7 +233,7 @@ namespace GRANON
 
 		Vec2i ShrinkPanelToFitText(IGRWidgetButton& button, Vec2i& lastPos)
 		{
-			Vec2i minimalSpan = button.Panel().MinimalSpan();
+			Vec2i minimalSpan = button.Panel().Span();
 			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  minimalSpan.y };
 			button.Panel().SetParentOffset({ lastPos.x, -lastPos.y });
 			button.Panel().SetConstantWidth(newSpan.x);
@@ -293,7 +292,7 @@ namespace GRANON
 				largestMinimalSpan.y = max(minimalSpan.y, largestMinimalSpan.y);
 			}			
 
-			largestMinimalSpan.y = max(max(largestMinimalSpan.y, origin.MinimalSpan().y), barSpan.y);
+			largestMinimalSpan.y = 0;
 
 			if (depth > 0)
 			{

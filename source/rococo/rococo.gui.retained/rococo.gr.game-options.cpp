@@ -24,7 +24,6 @@ namespace GRANON
 
 		GRGameOptionsList(IGRPanel& _panel, IGameOptions& _options, const GameOptionConfig& _config) : panel(_panel), options(_options), config(_config)
 		{
-			panel.SetMinimalSpan({ 100, 24 });
 			panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
 			panel.SetExpandToParentHorizontally();
 			panel.SetExpandToParentVertically();

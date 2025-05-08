@@ -23,7 +23,6 @@ namespace GRANON
 
 		GRGameOptionStringWidget(IGRPanel& _panel) : panel(_panel)
 		{
-			_panel.SetMinimalSpan({ 100, 24 });
 			_panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
 			_panel.Add(EGRPanelFlags::AcceptsFocus);
 			if (_panel.Parent() == nullptr)

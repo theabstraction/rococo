@@ -468,12 +468,6 @@ namespace Rococo::GreatSex
 				}
 			}
 
-			void OnAttribute_SpanMin(IGRPanel& panel, const ISEXMLAttributeValue& value)
-			{
-				Vec2i minimalSpan = SEXML::AsVec2i(value);
-				panel.SetMinimalSpan(minimalSpan);
-			}
-
 			void OnAttribute_Description(IGRPanel& panel, const ISEXMLAttributeValue& value)
 			{
 				fstring desc = AsString(value).ToFString();
@@ -737,7 +731,6 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.Span"] = &GreatSexGenerator::OnAttribute_Span;
 					attributeHandlers["Panel.FixedWidth"] = &GreatSexGenerator::OnAttribute_FixedWidth;
 					attributeHandlers["Panel.FixedHeight"] = &GreatSexGenerator::OnAttribute_FixedHeight;
-					attributeHandlers["Panel.Span.Min"] = &GreatSexGenerator::OnAttribute_SpanMin;
 					attributeHandlers["Panel.Description"] = &GreatSexGenerator::OnAttribute_Description;
 					attributeHandlers["Panel.CanFocus"] = &GreatSexGenerator::OnAttribute_CanFocus;
 					attributeHandlers["Panel.TabsCycle"] = &GreatSexGenerator::OnAttribute_TabsCycle;

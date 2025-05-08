@@ -19,7 +19,6 @@ namespace GRANON
 
 		GRMainFrame(cstr _name, IGRPanel& _panel) : name(_name), panel(_panel)
 		{
-			_panel.SetMinimalSpan({ 320, 200 });
 			_panel.SetLayoutDirection(ELayoutDirection::None);
 		}
 

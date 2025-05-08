@@ -36,26 +36,9 @@ namespace GRANON
 			delete this;
 		}
 
-		Vec2i EvaluateMinimalSpan() const
-		{
-			const IGRImage* image = isRaised ? raisedImage : pressedImage;
-			if (image)
-			{
-				return image->Span() + Vec2i{ 2,2 };
-			}
-
-			return Vec2i{ 8, 8 };
-		}
-
 		void SetSlotPadding(GRAnchorPadding padding) override
 		{
 			slotPadding = padding;
-		}
-
-		void SyncMinimalSpan()
-		{
-			Vec2i minimalSpan = EvaluateMinimalSpan();
-			panel.SetMinimalSpan(minimalSpan);
 		}
 
 		IGRWidgetSlider& SetImagePath(cstr imagePath) override
@@ -64,7 +47,6 @@ namespace GRANON
 			this->pressedImagePath = imagePath ? imagePath : "";
 			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
 			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
-			SyncMinimalSpan();
 			return *this;
 		}
 
@@ -72,7 +54,6 @@ namespace GRANON
 		{
 			this->pressedImagePath = imagePath ? imagePath : "";
 			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
-			SyncMinimalSpan();
 			return *this;
 		}
 
@@ -80,7 +61,6 @@ namespace GRANON
 		{
 			this->raisedImagePath = imagePath ? imagePath : "";
 			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
-			SyncMinimalSpan();
 			return *this;
 		}
 

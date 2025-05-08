@@ -699,9 +699,6 @@ namespace Rococo::Gui
 		// Returns true if any only it is either collapsed or it has a collapsed ancestor
 		virtual bool IsCollapsedOrAncestorCollasped() const = 0;
 
-		// Retrieve minimal span
-		virtual Vec2i MinimalSpan() const = 0;
-
 		virtual IGRPanel& Focus() = 0;
 		virtual bool HasFocus() const = 0;
 
@@ -715,9 +712,6 @@ namespace Rococo::Gui
 		virtual void SetCollapsed(bool isCollapsed) = 0;
 
 		virtual void SetRenderLast(bool isRenderingLast) = 0;
-
-		// Assign minimal span
-		virtual void SetMinimalSpan(Vec2i span) = 0;
 
 		// Called when associated expressions are no longer valid references
 		virtual void ClearAssociatedExpressions() = 0;

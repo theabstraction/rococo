@@ -532,7 +532,6 @@ namespace GRANON
 		void SyncMinimalSpan()
 		{
 			Vec2i minimalSpan = EvaluateMinimalSpan();
-			panel.SetMinimalSpan(minimalSpan);
 
 			if (expandToFitTextX)
 			{

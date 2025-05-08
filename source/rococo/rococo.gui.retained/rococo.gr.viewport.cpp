@@ -19,7 +19,6 @@ namespace ANON
 
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			owningPanel.SetMinimalSpan({ 10, 10 });
 			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 		}
 
