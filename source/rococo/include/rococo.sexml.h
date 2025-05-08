@@ -326,6 +326,9 @@ namespace Rococo::OS
 	ROCOCO_SEXML_API void SetDefaultOrganization(cstr defaultOrganization);
 
 	ROCOCO_SEXML_API void LoadSXMLBySysPath(const wchar_t* filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
+
+	// Attempts to interpret a string s as a SEXML document. <name> is used in exceptions to identify the source of errors
+	ROCOCO_SEXML_API void ParseSXMLFromString(cstr name, cstr s, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 	
 	ROCOCO_SEXML_API void LoadSXMLBySysPath(cstr filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 

@@ -18,14 +18,12 @@ void BuildMenus(IGRWidgetMainFrame& frame);
 void BuildUpperRightToolbar(IGRWidgetMainFrame& frame);
 void UseTestColourScheme(IGRWidgetMainFrame& frame);
 
-cstr textSexml = "!tests/greatsex.test.sexml";
-//cstr textSexml = "!tests/viewport.test.sexml";
+// cstr textSexml = "!tests/greatsex.test.sexml";
 
-void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
+void TestGreatSex(IGRClientWindow& client, IGRSystem& gr, cstr sexmlFilePath)
 {
 	GRIdWidget mainFrame{ "Main-Frame" };
 	auto& frame = gr.BindFrame(mainFrame);
-	//frame.SetTitleBarHeight(30);
 
 	frame.MenuBar().Panel().Parent()->SetCollapsed(true);
 
@@ -41,10 +39,11 @@ void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 		}
 	} onConstruct;
 
-	client.LoadFrame(textSexml, frame, onConstruct);
+	client.LoadFrame(sexmlFilePath, frame, onConstruct);
 
 	struct Reloader: IGRAppControl
 	{
+		cstr sexmlFilePath = nullptr;
 		IGRClientWindow* client = nullptr;
 		IGRWidgetMainFrame* frame = nullptr;
 		IEventCallback<GreatSex::IGreatSexGenerator>* onConstruct = nullptr;
@@ -55,7 +54,7 @@ void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 			{
 				auto& superPanel = static_cast<IGRPanelSupervisor&>(frame->ClientArea().Panel());
 				superPanel.ClearChildren();
-				client->LoadFrame(textSexml, *frame, *onConstruct);
+				client->LoadFrame(sexmlFilePath, *frame, *onConstruct);
 				return EGREventRouting::Terminate;
 			}
 
@@ -63,6 +62,7 @@ void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 		}
 	} reloader;
 
+	reloader.sexmlFilePath = sexmlFilePath;
 	reloader.client = &client;
 	reloader.frame = &frame;
 	reloader.onConstruct = &onConstruct;	
@@ -72,7 +72,7 @@ void TestGreatSex(IGRClientWindow& client, IGRSystem& gr)
 	RunMessageLoop(client);
 }
 
-void TestGreatSex(IGRClientWindow& client)
+void TestGreatSex(IGRClientWindow& client, cstr sexmlFilePath)
 {
-	TestGreatSex(client, client.GRSystem());
+	TestGreatSex(client, client.GRSystem(), sexmlFilePath);
 }
