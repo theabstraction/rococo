@@ -379,7 +379,10 @@ namespace Rococo::Gui
 	enum class EGRColourSpec
 	{
 		None,
-		ForAllRenderStates
+		ForAllRenderStates,
+		ForAllPressedStates,
+		ForAllFocusedStates,
+		ForAllHoveredStates
 	};
 
 	// GRRenderState -> int32 combination of state bits. Pass by value rather than constant reference

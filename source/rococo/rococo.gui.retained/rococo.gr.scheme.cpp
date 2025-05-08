@@ -46,37 +46,31 @@ namespace ANON
 			return rs.value.bitValues.focused ? f.focusedColour : f.notFocusedColour;
 		}
 
-		static uint8 Intensify(uint8 component, float componentScale)
-		{
-			float fNewComponent = clamp(componentScale * (float)component, 0.0f, 255.0f);
-			return (uint8)fNewComponent;
-		}
-
-		static void Intensify(RGBAb& colour, float componentScale)
-		{
-			if (colour.alpha <= 128)
-			{
-				// We can just intensify the alpha for the desired highlight
-				colour.alpha = Intensify(colour.alpha, componentScale);
-			}
-			else if (colour.red <= 128 && colour.green <= 128 && colour.blue <= 128)
-			{
-				// Intensify the colour components instead
-				colour.red = Intensify(colour.red, componentScale);
-				colour.green = Intensify(colour.green, componentScale);
-				colour.blue = Intensify(colour.blue, componentScale);
-			}
-			else
-			{
-				// We don't know how to scale colours and alpha for the general case, it is up to the application developer to assign the intensified colours
-			}
-		}
-
 		void SetColour(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) override
 		{
-			if (spec == EGRColourSpec::ForAllRenderStates)
+			switch(spec)
 			{
+			case EGRColourSpec::ForAllRenderStates:
 				SetUniformColourForAllRenderStates(*this, surface, colour);
+				break;
+			case EGRColourSpec::ForAllPressedStates:
+				SetColour(surface, colour, GRRenderState(true, false, false));
+				SetColour(surface, colour, GRRenderState(true, false, true));
+				SetColour(surface, colour, GRRenderState(true, true, false));
+				SetColour(surface, colour, GRRenderState(true, true, true));
+				break;
+			case EGRColourSpec::ForAllFocusedStates:
+				SetColour(surface, colour, GRRenderState(false, false, true));
+				SetColour(surface, colour, GRRenderState(false, true, true));
+				SetColour(surface, colour, GRRenderState(true, false, true));
+				SetColour(surface, colour, GRRenderState(true, true, true));
+				break;
+			case EGRColourSpec::ForAllHoveredStates:
+				SetColour(surface, colour, GRRenderState(false, true, false));
+				SetColour(surface, colour, GRRenderState(false, true, true));
+				SetColour(surface, colour, GRRenderState(true, true, false));
+				SetColour(surface, colour, GRRenderState(true, true, true));
+				break;
 			}
 		}
 
@@ -104,23 +98,6 @@ namespace ANON
 
 				newScheme.pressed = hf;
 				newScheme.notPressed = hf;
-
-				if (rs.value.intValue == 0)
-				{
-					// By default if a new colour for render state 0 is defined we generate some default intensity for other render states
-
-					float pressedScale = 1.25f;
-					float focusedScale = 1.35f;
-					float hoveredScale = 1.15f;
-
-					Intensify(newScheme.pressed.hovered.focusedColour, pressedScale * focusedScale * hoveredScale);
-					Intensify(newScheme.pressed.hovered.notFocusedColour , pressedScale * hoveredScale);
-					Intensify(newScheme.pressed.notHovered.focusedColour, pressedScale * focusedScale);
-					Intensify(newScheme.pressed.notHovered.notFocusedColour, pressedScale);
-					Intensify(newScheme.notPressed.hovered.focusedColour, focusedScale * hoveredScale);
-					Intensify(newScheme.notPressed.hovered.notFocusedColour, hoveredScale);
-					Intensify(newScheme.notPressed.notHovered.focusedColour, focusedScale);
-				}
 
 				mapSurfaceToColour.emplace(surface, newScheme);
 			}
@@ -160,47 +137,43 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme)
 	{
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(64, 64, 64, 192));
-		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(64, 64, 64, 192), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 192), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_SHADOW, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(64, 64, 64, 192));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::MENU_BUTTON, RGBAb(96, 96, 96, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BUTTON, RGBAb(96, 96, 96, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BUTTON_SHADOW, RGBAb(0, 0, 0, 0));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255));
 
-		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255));
 
-		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
-		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255));
+		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), EGRColourSpec::ForAllHoveredStates);
 
-		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255));
+		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), EGRColourSpec::ForAllHoveredStates);
 
-		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
-		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
-
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
 
-		scheme.SetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
-		scheme.SetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, RGBAb(128, 128, 128, 255));
 
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(128, 128, 128, 255));
 		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(255, 255, 255, 255));
 
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255));
 		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255));
 
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, RGBAb(192, 192, 192, 255), EGRColourSpec::ForAllRenderStates);
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TEXT, RGBAb(192, 192, 192, 255));
 		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TEXT, RGBAb(255, 255, 255, 255));
 
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT, RGBAb(96, 96, 96, 255));
