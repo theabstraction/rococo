@@ -20,8 +20,8 @@ namespace ANON
 	{
 		auto& menu = frame.MenuBar();
 		menu.Panel().
-			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
-			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates).
+			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 
@@ -73,9 +73,9 @@ namespace ANON
 		*/
 
 		auto& titleBar = *frame.MenuBar().Panel().Parent();
-		titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-		titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-		titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), EGRColourSpec::ForAllRenderStates);
+		titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), EGRColourSpec::ForAllRenderStates);
+		titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), EGRColourSpec::ForAllRenderStates);
 	}
 
 	void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
@@ -258,16 +258,16 @@ namespace ANON
 
 			auto& framePanel = frame.Panel();
 
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
 		}
 
 		void Preview(IGRSystem& gr, IReflectionVisitation* visitation) override

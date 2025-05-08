@@ -19,7 +19,7 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 	auto& frame = gr.BindFrame(mainFrame);
 	//frame.SetTitleBarHeight(30);
 
-	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 0), GRGenerateIntensities());
+	frame.ClientArea().Panel().Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 255, 0, 0), EGRColourSpec::ForAllRenderStates);
 	frame.MenuBar().Panel().Parent()->SetCollapsed(true);
 
 	auto& scheme = gr.Root().Scheme();
@@ -35,7 +35,7 @@ void TestOptions(IGRClientWindow& client, IGRSystem& gr, IGameOptions& options)
 
 	GameOptionConfig config;
 	auto& optionsList = CreateGameOptionsList(viewport.ClientArea().Widget(), options, config);
-	optionsList.Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 255, 255), GRGenerateIntensities());
+	optionsList.Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 255, 255), EGRColourSpec::ForAllRenderStates);
 
 	RunMessageLoop(client);
 }

@@ -72,6 +72,14 @@ namespace ANON
 			}
 		}
 
+		void SetColour(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) override
+		{
+			if (spec == EGRColourSpec::ForAllRenderStates)
+			{
+				SetUniformColourForAllRenderStates(*this, surface, colour);
+			}
+		}
+
 		void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
 		{
 			auto i = mapSurfaceToColour.find(surface);
@@ -152,47 +160,47 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme)
 	{
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(64, 64, 64, 192));
-		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_SHADOW, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(64, 64, 64, 192), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(64, 64, 64, 192), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::BACKGROUND, RGBAb(64, 64, 64, 192), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_SHADOW, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_TEXT, RGBAb(255, 255, 255, 255), EGRColourSpec::ForAllRenderStates);
 
-		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), EGRColourSpec::ForAllRenderStates);
 
-		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(224, 224, 224, 255), EGRColourSpec::ForAllRenderStates);
 		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
 		scheme.SetColour(EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
 
-		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(224, 224, 224, 255), EGRColourSpec::ForAllRenderStates);
 
 		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 0));
 		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(0, 1, 1));
 
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
 		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
 
-		scheme.SetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		scheme.SetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		scheme.SetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
 
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
 		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(255, 255, 255, 255));
 
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
 		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, RGBAb(128, 128, 128, 255));
 
-		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, RGBAb(192, 192, 192, 255), GRGenerateIntensities());
+		scheme.SetColour(EGRSchemeColourSurface::GAME_OPTION_TEXT, RGBAb(192, 192, 192, 255), EGRColourSpec::ForAllRenderStates);
 		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TEXT, RGBAb(255, 255, 255, 255));
 
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT, RGBAb(96, 96, 96, 255));
@@ -212,16 +220,16 @@ namespace Rococo::Gui
 		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, false, true));
 		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, false));
 		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, true));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(225, 225, 225, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(224, 224, 224, 255), GRGenerateIntensities());
-		framePanel.Set(EGRSchemeColourSurface::READ_ONLY_TEXT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(225, 225, 225, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(224, 224, 224, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::READ_ONLY_TEXT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::ROW_COLOUR_EVEN, RGBAb(240, 240, 240));
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::ROW_COLOUR_ODD, RGBAb(255, 255, 255));
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::NAME_TEXT, RGBAb(0, 0, 0, 255));
@@ -246,7 +254,7 @@ namespace Rococo::Gui
 		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
 		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
 		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
-		framePanel.Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), GRGenerateIntensities());
+		framePanel.Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 	}
 
 	ROCOCO_GUI_RETAINED_API void MakeTransparent(IGRPanel& panel, EGRSchemeColourSurface surface)

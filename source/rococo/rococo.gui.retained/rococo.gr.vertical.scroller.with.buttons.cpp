@@ -138,8 +138,8 @@ namespace ANON
 				SetConstantSpan(Vec2i{ buttonSpan, buttonSpan }).
 				SetCornerRadius(panel.CornerRadius()).
 				SetRectStyle(panel.RectStyle()).
-				Set(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
-				Set(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+				Set(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates).
+				Set(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 			button.Panel().Remove(EGRPanelFlags::AcceptsFocus);
 		}
 

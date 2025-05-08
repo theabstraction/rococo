@@ -1095,6 +1095,25 @@ namespace GRANON
 			return *this;
 		}
 
+		IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) override
+		{
+			if (!scheme)
+			{
+				scheme = CreateGRScheme();
+			}
+
+			switch (spec)
+			{
+			case EGRColourSpec::None:
+				break;
+			case EGRColourSpec::ForAllRenderStates:
+				SetUniformColourForAllRenderStates(*scheme, surface, colour);
+				break;
+			}
+
+			return *this;
+		}
+
 		int32 ChildPadding() const override
 		{
 			return childPadding;

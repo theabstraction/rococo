@@ -376,6 +376,12 @@ namespace Rococo::Gui
 		USER_DEFINED_START_INDEX = 7000 // Make this the last index, then users can cast a surface to this enum + delta of their choice
 	};
 
+	enum class EGRColourSpec
+	{
+		None,
+		ForAllRenderStates
+	};
+
 	// GRRenderState -> int32 combination of state bits. Pass by value rather than constant reference
 	struct GRRenderState
 	{
@@ -429,13 +435,11 @@ namespace Rococo::Gui
 
 	inline GRRenderState GRRenderState_HoveredOnly() { return GRRenderState(false, true, false); }
 
-	// Passed to SetColour(...) methods to indicate that the scheme should automatically generate colour intensities for the various state combinations by varying some colour parameter supplied to the API call
-	inline GRRenderState GRGenerateIntensities() { return GRRenderState(false, false, false); }
-
 	ROCOCO_INTERFACE IGRScheme
 	{
 		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState state) const = 0;
 		virtual void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+		virtual void SetColour(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) = 0;
 		virtual bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
 	};
 
@@ -637,6 +641,9 @@ namespace Rococo::Gui
 
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
 		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+
+		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
+		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) = 0;
 
 		virtual IGRPanel& SetPaddingAsPercentage(bool left, bool right, bool top, bool bottom) = 0;
 
