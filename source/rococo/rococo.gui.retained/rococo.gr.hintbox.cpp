@@ -88,8 +88,7 @@ namespace GRANON
 				transparency
 			);
 
-			int64 focusId = panel.Root().GR().GetFocusId();
-			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			auto* focusWidget = panel.Root().GR().FindFocusWidget();
 			if (focusWidget)
 			{
 				cstr hint = focusWidget->Panel().Hint();

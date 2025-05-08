@@ -793,8 +793,7 @@ namespace GRANON
 
 		EGREventRouting MoveToSiblingCollapserIfFocused()
 		{
-			int64 focusId = panel.Root().GR().GetFocusId();
-			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			auto* focusWidget = panel.Root().GR().FindFocusWidget();
 			if (!focusWidget)
 			{
 				return EGREventRouting::NextHandler;

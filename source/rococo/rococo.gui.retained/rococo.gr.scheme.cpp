@@ -128,10 +128,7 @@ namespace Rococo::Gui
 
 	void SetAllHoverStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour)
 	{
-		scheme.SetColour(surface, colour, GRRenderState(false, true, false));
-		scheme.SetColour(surface, colour, GRRenderState(false, true, true));
-		scheme.SetColour(surface, colour, GRRenderState(true, true, true));
-		scheme.SetColour(surface, colour, GRRenderState(true, true, false));
+		scheme.SetColour(surface, colour, EGRColourSpec::ForAllHoveredStates);
 	}
 
 	ROCOCO_GUI_RETAINED_API void SetSchemeColours_ThemeGrey(IGRScheme& scheme)

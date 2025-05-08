@@ -1407,6 +1407,12 @@ namespace Rococo::Gui
 		// Constant time lookup of a widget with a given panel Id.
 		virtual [[nodiscard]] IGRWidget* FindWidget(int64 panelId) = 0;
 
+		// Shorthand for FindWidget(GetFocusId());
+		[[nodiscard]] IGRWidget* FindFocusWidget()
+		{
+			return FindWidget(GetFocusId());
+		}
+
 		// Set the visibility status. If invisible, it will ignore all input and not be rendered
 		virtual void SetVisible(bool isVisible) = 0;
 

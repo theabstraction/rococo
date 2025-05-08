@@ -86,8 +86,7 @@ namespace GRANON
 
 		EGREventRouting OnTab()
 		{
-			auto focusId = panel.Root().GR().GetFocusId();
-			auto* focus = panel.Root().GR().FindWidget(focusId);
+			auto* focus = panel.Root().GR().FindFocusWidget();
 			if (!focus)
 			{
 				return EGREventRouting::Terminate;

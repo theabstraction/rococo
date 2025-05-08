@@ -258,7 +258,7 @@ namespace ANON
 
 			if (focusId >= 0)
 			{
-				auto* widget = FindWidget(focusId);
+				auto* widget = FindFocusWidget();
 				if (widget)
 				{
 					if (widget->Panel().IsCollapsedOrAncestorCollasped())

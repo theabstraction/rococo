@@ -284,8 +284,7 @@ namespace GRANON
 
 		EGREventRouting OnNavigate(EGRNavigationDirective directive) override
 		{
-			auto focusId = panel.Root().GR().GetFocusId();
-			auto* child = panel.Root().GR().FindWidget(focusId);
+			auto* child = panel.Root().GR().FindFocusWidget();
 			if (!child)
 			{
 				return EGREventRouting::Terminate;

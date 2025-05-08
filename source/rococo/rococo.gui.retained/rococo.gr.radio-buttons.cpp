@@ -233,8 +233,7 @@ namespace GRANON
 				return EGREventRouting::NextHandler;
 			}
 
-			auto focusId = panel.Root().GR().GetFocusId();
-			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			auto* focusWidget = panel.Root().GR().FindFocusWidget();
 			if (!focusWidget)
 			{
 				return EGREventRouting::NextHandler;

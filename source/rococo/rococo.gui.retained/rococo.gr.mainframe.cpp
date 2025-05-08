@@ -118,8 +118,7 @@ namespace GRANON
 
 		EGREventRouting Nav(EGRNavigationDirection direction)
 		{
-			auto focusId = panel.Root().GR().GetFocusId();
-			auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+			auto* focusWidget = panel.Root().GR().FindFocusWidget();
 			if (!focusWidget)
 			{
 				TrySetDeepFocus(ClientArea().Panel());
@@ -380,14 +379,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void SetFocusElseRotateFocusToNextSibling(IGRPanel& panel, bool nextRatherThanPrevious)
 	{
-		int64 focusId = panel.Root().GR().GetFocusId();
-		if (focusId == -1)
-		{
-			SetNewFocus(panel, nextRatherThanPrevious);
-			return;
-		}
-
-		auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+		auto* focusWidget = panel.Root().GR().FindFocusWidget();
 		if (focusWidget == nullptr)
 		{
 			SetNewFocus(panel, nextRatherThanPrevious);
@@ -413,13 +405,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void MoveFocusIntoChildren(IGRPanel& panel)
 	{
-		int64 focusId = panel.Root().GR().GetFocusId();
-		if (focusId == -1)
-		{
-			return;
-		}
-
-		auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+		auto* focusWidget = panel.Root().GR().FindFocusWidget();
 		if (!focusWidget)
 		{
 			panel.Root().GR().SetFocus(-1);
@@ -444,13 +430,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API EGREventRouting MoveFocusToAncestor(IGRPanel& panel)
 	{
-		int64 focusId = panel.Root().GR().GetFocusId();
-		if (focusId == -1)
-		{
-			return EGREventRouting::NextHandler;
-		}
-
-		auto* focusWidget = panel.Root().GR().FindWidget(focusId);
+		auto* focusWidget = panel.Root().GR().FindFocusWidget();
 		if (!focusWidget)
 		{
 			panel.Root().GR().SetFocus(-1);
