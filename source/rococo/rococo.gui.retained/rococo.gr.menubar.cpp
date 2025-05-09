@@ -233,7 +233,7 @@ namespace GRANON
 
 		Vec2i ShrinkPanelToFitText(IGRWidgetButton& button, Vec2i& lastPos)
 		{
-			Vec2i minimalSpan = button.Panel().Span();
+			Vec2i minimalSpan = button.MinimalSpan();
 			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  minimalSpan.y };
 			button.Panel().SetParentOffset({ lastPos.x, -lastPos.y });
 			button.Panel().SetConstantWidth(newSpan.x);

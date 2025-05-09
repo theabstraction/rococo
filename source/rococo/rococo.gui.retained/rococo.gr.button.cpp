@@ -403,6 +403,16 @@ namespace GRANON
 			return image ? image->Span() : Vec2i{ 0,0 };
 		}
 
+		Vec2i MinimalSpan() const override
+		{
+			Vec2i textSpan = panel.Root().GR().Fonts().EvaluateMinimalSpan(fontId, title);
+			Vec2i imageSpan = ImageSpan();
+
+			int dx = max(max(textSpan.x, imageSpan.x), 4);
+			int dy = max(max(textSpan.y, imageSpan.x), 4);
+			return { dx, dy };
+		}
+
 		EGRSchemeColourSurface backSurface = EGRSchemeColourSurface::BUTTON;
 
 		IGRWidgetButton& SetBackSurface(EGRSchemeColourSurface backSurface) override

@@ -1015,6 +1015,9 @@ namespace Rococo::Gui
 
 		virtual [[nodiscard]] Vec2i ImageSpan() const = 0;
 
+		// Compute the least required span to contain the image and/or the title
+		virtual [[nodiscard]] Vec2i MinimalSpan() const = 0;
+
 		virtual void Toggle() = 0;
 
 		virtual void Subscribe(IEventCallback<ButtonEvent>& eventHandler) = 0;
