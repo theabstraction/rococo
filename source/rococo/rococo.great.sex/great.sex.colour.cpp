@@ -60,7 +60,7 @@ namespace Rococo::GreatSex
 			}
 
 			RGBAb colour;
-			GRRenderState rs(false, false, false);
+			GRWidgetRenderState rs(false, false, false);
 
 			auto& renderStateValue = AsStringList(aFor->Value());
 			for (size_t i = 0; i < renderStateValue.NumberOfElements(); i++)
@@ -114,7 +114,7 @@ namespace Rococo::GreatSex
 				colour.alpha = GetColourUByteValue(rgbaList[3], uniformSpec.S()[5]);
 			}
 
-			GRRenderState::ForEachPermutation([this, id, colour](GRRenderState rs)
+			GRWidgetRenderState::ForEachPermutation([this, id, colour](GRWidgetRenderState rs)
 				{
 					builder.AddColour(id, colour, rs);
 				}

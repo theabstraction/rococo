@@ -164,7 +164,7 @@ namespace GRANON
 				g.DrawImageStretched(*image, imageRect);
 			}
 
-			RGBAb bandColour = clientArea->Panel().GetColour(EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR, GRRenderState(false, false, false));
+			RGBAb bandColour = clientArea->Panel().GetColour(EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR, GRWRS());
 			g.DrawRect(band1Rect, bandColour);
 			g.DrawRect(band2Rect, bandColour);
 		}

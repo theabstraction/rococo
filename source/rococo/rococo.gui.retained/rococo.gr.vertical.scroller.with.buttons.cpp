@@ -15,7 +15,7 @@ namespace ANON
 		{
 			auto* button = Cast<IGRWidgetButton>(panel.Widget());
 
-			GRRenderState rs{ !button->ButtonFlags().isRaised,  g.IsHovered(panel), panel.HasFocus()};
+			GRWidgetRenderState rs{ !button->ButtonFlags().isRaised,  g.IsHovered(panel), panel.HasFocus()};
 
 			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON, rs);
 
@@ -59,7 +59,7 @@ namespace ANON
 
 			bool isHovered = g.IsHovered(panel);
 
-			GRRenderState rs(false, isHovered, panel.HasFocus());
+			GRWidgetRenderState rs(false, isHovered, panel.HasFocus());
 
 			RGBAb triangleColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, rs);
 			g.DrawDirectionArrow(triangleRect, triangleColour, orientation);

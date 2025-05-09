@@ -257,15 +257,15 @@ namespace GRANON
 
 			int y = Centre(sliderSlot).y;
 
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, GRRenderState(false, isHovered, false), RGBAb(255,255,0,255));
+			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255,255,0,255));
 			g.DrawRect(panel.AbsRect(), backColour);
 
-			RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
+			RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
 			g.DrawRect(sliderSlot, sliderSlotColour);
 
 			IGRImage* image = isRaised ? raisedImage : pressedImage;
 
-			GRRenderState rs(!isRaised, isHovered, false);
+			GRWidgetRenderState rs(!isRaised, isHovered, false);
 
 			if (lastSliderSpan != Width(panel.AbsRect()))
 			{

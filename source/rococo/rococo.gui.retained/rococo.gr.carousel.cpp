@@ -409,7 +409,7 @@ namespace GRANON
 				GRAlignmentFlags optionTextAlignment;
 				optionTextAlignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 
-				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TEXT, GRRenderState(0, 0, 0));
+				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::CAROUSEL_TEXT, GRWidgetRenderState(0, 0, 0));
 				g.DrawText(fontId, panel.AbsRect(), optionTextAlignment, { 0,0 }, "<no options>"_fstring, colour);
 				return;
 			}
@@ -425,7 +425,7 @@ namespace GRANON
 
 			bool isDisabled = isCarouselDisabledWhenDropDownVisible && !dropDown->Panel().IsCollapsed();
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;
-			GRRenderState rs(false, isHovered, false);
+			GRWidgetRenderState rs(false, isHovered, false);
 
 			bool obscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
 

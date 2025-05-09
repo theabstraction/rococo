@@ -218,7 +218,7 @@ namespace GRANON
 		{
 			auto rect = panel.AbsRect();
 
-			GRRenderState rs(false, g.IsHovered(panel), panel.Id() == panel.Root().GR().GetFocusId());
+			GRWidgetRenderState rs(false, g.IsHovered(panel), panel.Id() == panel.Root().GR().GetFocusId());
 
 			RGBAb editorColour = panel.GetColour(isReadOnly ? EGRSchemeColourSurface::LABEL_BACKGROUND : EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225));
 

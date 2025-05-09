@@ -1036,7 +1036,7 @@ namespace GRANON
 			return* child;
 		}
 
-		RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState rs, RGBAb defaultColour) const override
+		RGBAb GetColour(EGRSchemeColourSurface surface, GRWidgetRenderState rs, RGBAb defaultColour) const override
 		{
 			RGBAb result;
 			if (!TryGetColour(surface, result, rs))
@@ -1056,7 +1056,7 @@ namespace GRANON
 			this->isRenderingLast = isRenderingLast;
 		}
 
-		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
+		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRWidgetRenderState rs) const override
 		{
 			if (scheme && scheme->TryGetColour(surface, colour, rs))
 			{
@@ -1073,7 +1073,7 @@ namespace GRANON
 			}
 		}
 
-		IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
+		IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRWidgetRenderState rs) override
 		{
 			if (!scheme)
 			{
@@ -1404,7 +1404,7 @@ namespace Rococo::Gui
 		return new GRANON::GRPanel(root, parent);
 	}
 
-	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRRenderState rs)
+	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRWidgetRenderState rs)
 	{
 		RGBAb c = src.GetColour(srcSurface, rs);
 		target.Set(trgSurface, c, rs);
@@ -1412,8 +1412,8 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void CopyAllColours(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface)
 	{
-		GRRenderState::ForEachPermutation(
-			[&src, &target, srcSurface, trgSurface](GRRenderState rs)
+		GRWidgetRenderState::ForEachPermutation(
+			[&src, &target, srcSurface, trgSurface](GRWidgetRenderState rs)
 			{
 				CopyColour(src, target, srcSurface, trgSurface, rs);
 			}
@@ -1525,7 +1525,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void DrawEdge(EGRSchemeColourSurface topLeft, EGRSchemeColourSurface bottomRight, IGRPanel& panel, IGRRenderContext& rc)
 	{
-		GRRenderState edgeState(false, rc.IsHovered(panel), false);
+		GRWidgetRenderState edgeState(false, rc.IsHovered(panel), false);
 		RGBAb topLeftColour = panel.GetColour(topLeft, edgeState);
 		RGBAb bottomRightColour = panel.GetColour(bottomRight, edgeState);
 		rc.DrawRectEdge(panel.AbsRect(), topLeftColour, bottomRightColour);

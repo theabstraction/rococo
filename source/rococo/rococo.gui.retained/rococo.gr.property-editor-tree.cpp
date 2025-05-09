@@ -745,7 +745,7 @@ namespace GRANON
 		{
 			auto rect = panel.AbsRect();
 			bool isHovered = g.IsHovered(panel);
-			RGBAb colour = panel.GetColour(Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, GRRenderState(false, isHovered, false));
+			RGBAb colour = panel.GetColour(Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, GRWidgetRenderState(false, isHovered, false));
 			g.DrawRect(rect, colour);
 
 			HilightFocusedCollapserRecursive(panel);

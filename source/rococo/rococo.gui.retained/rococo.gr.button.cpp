@@ -314,7 +314,7 @@ namespace GRANON
 			if (isMenu)
 			{
 				GuiRect buttonRect = Expand(panel.AbsRect(), -2);
-				GRRenderState rs(false, false, false);
+				GRWidgetRenderState rs(false, false, false);
 				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON, rs);
 				g.DrawRect(panel.AbsRect(), colour);
 				DrawMenuButton(panel, buttonRect, false, isRaised, g);
@@ -330,7 +330,7 @@ namespace GRANON
 
 			IGRImage* image = isRaised ? raisedImage : pressedImage;
 
-			GRRenderState rs(!isRaised, isHovered, false);
+			GRWidgetRenderState rs(!isRaised, isHovered, false);
 
 			if (image)
 			{
@@ -647,7 +647,7 @@ namespace Rococo::Gui
 
 		bool hovered = g.IsHovered(panel);
 		
-		GRRenderState rs(!raised, hovered, false);
+		GRWidgetRenderState rs(!raised, hovered, false);
 		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON, rs);
 		g.DrawRect(rect, colour);
 

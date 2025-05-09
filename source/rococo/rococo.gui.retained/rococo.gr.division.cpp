@@ -139,7 +139,7 @@ namespace Rococo::Gui
 	{
 		auto rect = panel.AbsRect();
 
-		GRRenderState rs(!isRaised, g.IsHovered(panel), isFocused);
+		GRWidgetRenderState rs(!isRaised, g.IsHovered(panel), isFocused);
 
 		RGBAb backColour = panel.GetColour(back, rs);
 		g.DrawRect(rect, Modulate(backColour, alphaScale), panel.RectStyle(), panel.CornerRadius());

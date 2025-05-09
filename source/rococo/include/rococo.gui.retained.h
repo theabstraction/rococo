@@ -385,8 +385,8 @@ namespace Rococo::Gui
 		ForAllHoveredStates
 	};
 
-	// GRRenderState -> int32 combination of state bits. Pass by value rather than constant reference
-	struct GRRenderState
+	// GRWidgetRenderState -> int32 combination of state bits. Pass by value rather than constant reference
+	struct GRWidgetRenderState
 	{
 		struct Bits
 		{
@@ -401,7 +401,7 @@ namespace Rococo::Gui
 			uint32 intValue;
 		} value;
 
-		GRRenderState(bool pressed, bool hovered, bool focused)
+		GRWidgetRenderState(bool pressed, bool hovered, bool focused)
 		{
 			value.intValue = 0;
 			value.bitValues.focused = focused;
@@ -409,41 +409,64 @@ namespace Rococo::Gui
 			value.bitValues.pressed = pressed;
 		}
 
-		template<class T> static void ForEachPermutation(T t)
+		GRWidgetRenderState& Pressed()
 		{
-			t(GRRenderState(false, false, false));
-			t(GRRenderState(true, false, false));
-			t(GRRenderState(false, true, false));
-			t(GRRenderState(true, true, false));
-			t(GRRenderState(false, false, true));
-			t(GRRenderState(true, false, true));
-			t(GRRenderState(false, true, true));
-			t(GRRenderState(true, true, true));
+			value.bitValues.pressed = 1;
+			return *this;
 		}
 
-		bool operator == (GRRenderState other) const
+		GRWidgetRenderState& Focused()
+		{
+			value.bitValues.focused = 1;
+			return *this;
+		}
+
+		GRWidgetRenderState& Hovered()
+		{
+			value.bitValues.hovered = 1;
+			return *this;
+		}
+
+		template<class T> static void ForEachPermutation(T t)
+		{
+			t(GRWRS());
+			t(GRWidgetRenderState(true, false, false));
+			t(GRWidgetRenderState(false, true, false));
+			t(GRWidgetRenderState(true, true, false));
+			t(GRWidgetRenderState(false, false, true));
+			t(GRWidgetRenderState(true, false, true));
+			t(GRWidgetRenderState(false, true, true));
+			t(GRWidgetRenderState(true, true, true));
+		}
+
+		bool operator == (GRWidgetRenderState other) const
 		{
 			return other.value.intValue == value.intValue;
 		}
 
-		bool operator != (GRRenderState other) const
+		bool operator != (GRWidgetRenderState other) const
 		{
 			return !(other == *this);
 		}
 	};
 
-	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRRenderState rs);
+	inline GRWidgetRenderState GRWRS()
+	{
+		return GRWidgetRenderState(false, false, false);
+	}
+
+	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRWidgetRenderState rs);
 	ROCOCO_GUI_RETAINED_API void CopyAllColours(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface);
 
 
-	inline GRRenderState GRRenderState_HoveredOnly() { return GRRenderState(false, true, false); }
+	inline GRWidgetRenderState GRWidgetRenderState_HoveredOnly() { return GRWidgetRenderState(false, true, false); }
 
 	ROCOCO_INTERFACE IGRScheme
 	{
-		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState state) const = 0;
-		virtual void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRWidgetRenderState state) const = 0;
+		virtual void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRWidgetRenderState state) = 0;
 		virtual void SetColour(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) = 0;
-		virtual bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
+		virtual bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRWidgetRenderState state) const = 0;
 	};
 
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour);
@@ -637,13 +660,13 @@ namespace Rococo::Gui
 		virtual cstr Hint() const = 0;
 
 		// Enumerate the panel and its ancestors for a colour, if none found returns the second argument (which defaults to bright red).
-		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState state, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
+		virtual RGBAb GetColour(EGRSchemeColourSurface surface, GRWidgetRenderState state, RGBAb defaultColour = RGBAb(255,0,0,255)) const = 0;
 
 		// Enumerate the panel and its ancestors for a colour
-		virtual bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState state) const = 0;
+		virtual bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRWidgetRenderState state) const = 0;
 
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
-		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState state) = 0;
+		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRWidgetRenderState state) = 0;
 
 		// Creates a local visual scheme if one does not exist, then maps a colour to the local scheme.
 		virtual IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) = 0;

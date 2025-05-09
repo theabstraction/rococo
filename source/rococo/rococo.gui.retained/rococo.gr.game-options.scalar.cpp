@@ -280,7 +280,7 @@ namespace Rococo::Gui
 			title.SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_TEXT).SetBackColourSurface(EGRSchemeColourSurface::LABEL_BACKGROUND);
 		}
 
-		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER, GRRenderState{ false, false, false });
+		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER, GRWidgetRenderState{ false, false, false });
 		if (colour.alpha > 0)
 		{
 			Vec2i bottomLeft = BottomLeft(panel.AbsRect());

@@ -196,7 +196,7 @@ namespace ANON
 
 		void RenderScrollerButton(IGRRenderContext& g, const GuiRect& rect, bool isUp)
 		{
-			GRRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus() && IsPointInRect(g.CursorHoverPoint(), rect));
+			GRWidgetRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus() && IsPointInRect(g.CursorHoverPoint(), rect));
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -213,7 +213,7 @@ namespace ANON
 
 		void RenderScrollerSlider(IGRRenderContext& g, const GuiRect& rect)
 		{
-			GRRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus());
+			GRWidgetRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus());
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -239,7 +239,7 @@ namespace ANON
 		{
 			auto rect = panel.AbsRect();
 
-			GRRenderState rs(false, g.IsHovered(panel), false);
+			GRWidgetRenderState rs(false, g.IsHovered(panel), false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);

@@ -51,7 +51,7 @@ namespace Rococo::GreatSex
 	{
 		struct ColourBinding
 		{
-			GRRenderState rs;
+			GRWidgetRenderState rs;
 			RGBAb colour;
 		};
 
@@ -678,7 +678,7 @@ namespace Rococo::GreatSex
 				panel.SetLayoutDirection(layout);
 			}
 
-			RGBAb GetColour(cstr key, GRRenderState rs, cr_sex s) override
+			RGBAb GetColour(cstr key, GRWidgetRenderState rs, cr_sex s) override
 			{
 				auto spec = colourSpecs.find(key);
 				if (spec == colourSpecs.end())
@@ -796,7 +796,7 @@ namespace Rococo::GreatSex
 				}
 			}
 
-			void AddColour(cstr id, RGBAb colour, GRRenderState rs) override
+			void AddColour(cstr id, RGBAb colour, GRWidgetRenderState rs) override
 			{
 				auto i = colourSpecs.find(id);
 				if (i == colourSpecs.end())

@@ -627,7 +627,7 @@ namespace Rococo::GreatSex
 	RGBAb AsColour(IGreatSexGenerator& generator, const ISEXMLAttributeValue& v)
 	{
 		cstr name = AsString(v).c_str();
-		RGBAb colour = generator.GetColour(name, GRRenderState(false, false, false), v.S());
+		RGBAb colour = generator.GetColour(name, GRWRS(), v.S());
 		return colour;
 	}
 

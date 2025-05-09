@@ -270,7 +270,7 @@ namespace ANON
 						GuiRect rect = widget->Panel().AbsRect();
 						if (rect.right > rect.left && rect.bottom > rect.top)
 						{
-							RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
+							RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRWidgetRenderState(false, false, true), RGBAb(255, 255, 255, 255));
 							g.DrawRectEdge(rect, colour, colour);
 						}
 					}

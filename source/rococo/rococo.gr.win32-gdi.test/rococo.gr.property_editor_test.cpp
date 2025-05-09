@@ -12,38 +12,14 @@ void BuildMenus(IGRWidgetMainFrame& frame)
 {
 	auto& menu = frame.MenuBar();
 	menu.Panel().
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(false, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(false, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(false, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), GRRenderState(true, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), GRRenderState(false, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(false, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(false, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(false, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRRenderState(true, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(32, 32, 32, 255), GRRenderState(false, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(false, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(false, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(false, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), GRRenderState(true, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(32, 32, 32, 255), GRRenderState(false, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(true, false, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(false, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(80, 80, 80, 255), GRRenderState(true, true, false)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(80, 80, 80, 255), GRRenderState(true, false, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true)).
-		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(80, 80, 80, 255), GRRenderState(true, true, true));
+		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(255, 255, 255, 255), EGRColourSpec::ForAllRenderStates).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_TEXT, RGBAb(192, 192, 192, 255), GRWRS()).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), GRWRS()).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(192, 192, 192, 255), EGRColourSpec::ForAllRenderStates).
+		Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(32, 32, 32, 255), GRWRS()).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates).
+		Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(32, 32, 32, 255), GRWRS());
 
 	auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 
@@ -131,14 +107,8 @@ void UseTestColourScheme(IGRWidgetMainFrame& frame)
 {
 	auto& framePanel = frame.Panel();
 
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false));
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, false, true));
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, true, false));
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, true, true));
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, false, false));
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, false, true));
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, false));
-	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, true));
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(192, 192, 192, 255), EGRColourSpec::ForAllRenderStates);
+	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRWRS());
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), EGRColourSpec::ForAllRenderStates);
 	framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(225, 225, 225, 255), EGRColourSpec::ForAllRenderStates);
@@ -158,21 +128,15 @@ void UseTestColourScheme(IGRWidgetMainFrame& frame)
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(255, 240, 240));
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(240, 255, 240));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(true, false, true));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(true, true, true));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(true, false, true));
-	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(true, true, true));
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllFocusedStates);
+	framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllFocusedStates);
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT, RGBAb(0, 0, 0, 255));
 	MakeTransparent(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_SHADOW);
 	SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::VALUE_TEXT, RGBAb(0, 0, 0, 255));
 	MakeTransparent(framePanel, EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
-	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
-	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
-	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
+	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRWidgetRenderState(0, 1, 0));
+	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRWidgetRenderState(0, 0, 1));
+	framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRWidgetRenderState(0, 1, 1));
 
 	frame.Panel().Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 }

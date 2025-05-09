@@ -74,7 +74,7 @@ namespace GRANON
 
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), draggerRect);
 
-			GRRenderState rs(false, isHovered, false);
+			GRWidgetRenderState rs(false, isHovered, false);
 
 			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::SPLITTER_BACKGROUND, rs, RGBAb(64, 64, 64, 255));
 			g.DrawRect(draggerRect, colour);
@@ -91,7 +91,7 @@ namespace GRANON
 				virtualRect.left += virtualDraggerPos + 1;
 				virtualRect.right = virtualRect.left + draggerThickness - 2;
 
-				GRRenderState litEdgeState(true, isHovered, false);
+				GRWidgetRenderState litEdgeState(true, isHovered, false);
 				RGBAb litEdge = panel.GetColour(EGRSchemeColourSurface::SPLITTER_EDGE, litEdgeState, RGBAb(255, 255, 255, 255));
 				g.DrawRectEdgeLast(virtualRect, litEdge, litEdge);
 			}

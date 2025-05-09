@@ -44,7 +44,7 @@ namespace Rococo::GreatSex
 	{
 		virtual void AddFont(cstr id, cstr family, int height, bool isBold, bool isItalic) = 0;
 		virtual void AddOptions(Game::Options::IGameOptions & options, cstr key) = 0;
-		virtual RGBAb GetColour(cstr key, Gui::GRRenderState rs, const Sex::ISExpression& s) = 0;
+		virtual RGBAb GetColour(cstr key, Gui::GRWidgetRenderState rs, const Sex::ISExpression& s) = 0;
 		virtual FontQuery GetFont(cstr id, const Sex::ISExpression& s) const = 0;
 		virtual void AppendWidgetTreeFromSexML(const Rococo::Sex::SEXML::ISEXMLDirective& directive, Rococo::Gui::IGRWidget& branch) = 0;
 		virtual void AppendWidgetTreeFromSexML(const Sex::ISExpression& s, Rococo::Gui::IGRWidget& branch) = 0;
@@ -81,7 +81,7 @@ namespace Rococo::GreatSex
 
 	ROCOCO_INTERFACE ISEXMLColourSchemeBuilder
 	{
-		virtual void AddColour(cstr id, RGBAb colour, Rococo::Gui::GRRenderState rs) = 0;
+		virtual void AddColour(cstr id, RGBAb colour, Rococo::Gui::GRWidgetRenderState rs) = 0;
 	};
 
 	ROCOCO_GREAT_SEX_API ISEXMLWidgetFactorySupervisor* CreateSchemeHandler();

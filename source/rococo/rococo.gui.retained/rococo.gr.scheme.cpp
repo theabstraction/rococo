@@ -6,7 +6,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRRenderStateMiniScheme
+	struct GRWidgetRenderStateMiniScheme
 	{
 		struct MiniFocusScheme
 		{
@@ -26,14 +26,14 @@ namespace ANON
 
 	struct Scheme : IGRSchemeSupervisor
 	{
-		std::unordered_map<EGRSchemeColourSurface, GRRenderStateMiniScheme> mapSurfaceToColour;
+		std::unordered_map<EGRSchemeColourSurface, GRWidgetRenderStateMiniScheme> mapSurfaceToColour;
 
 		void Free() override
 		{
 			delete this;
 		}
 
-		RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState rs) const override
+		RGBAb GetColour(EGRSchemeColourSurface surface, GRWidgetRenderState rs) const override
 		{
 			auto i = mapSurfaceToColour.find(surface);
 			if (i == mapSurfaceToColour.end())
@@ -41,8 +41,8 @@ namespace ANON
 				return RGBAb(255, 255, 0, 64); // Semi transparent magenta is the colour that indicates undefined scheme entry
 			}
 
-			const GRRenderStateMiniScheme::HoverAndFocus& hf = rs.value.bitValues.pressed ? i->second.pressed : i->second.notPressed;
-			const GRRenderStateMiniScheme::MiniFocusScheme f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
+			const GRWidgetRenderStateMiniScheme::HoverAndFocus& hf = rs.value.bitValues.pressed ? i->second.pressed : i->second.notPressed;
+			const GRWidgetRenderStateMiniScheme::MiniFocusScheme f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
 			return rs.value.bitValues.focused ? f.focusedColour : f.notFocusedColour;
 		}
 
@@ -54,45 +54,45 @@ namespace ANON
 				SetUniformColourForAllRenderStates(*this, surface, colour);
 				break;
 			case EGRColourSpec::ForAllPressedStates:
-				SetColour(surface, colour, GRRenderState(true, false, false));
-				SetColour(surface, colour, GRRenderState(true, false, true));
-				SetColour(surface, colour, GRRenderState(true, true, false));
-				SetColour(surface, colour, GRRenderState(true, true, true));
+				SetColour(surface, colour, GRWidgetRenderState(true, false, false));
+				SetColour(surface, colour, GRWidgetRenderState(true, false, true));
+				SetColour(surface, colour, GRWidgetRenderState(true, true, false));
+				SetColour(surface, colour, GRWidgetRenderState(true, true, true));
 				break;
 			case EGRColourSpec::ForAllFocusedStates:
-				SetColour(surface, colour, GRRenderState(false, false, true));
-				SetColour(surface, colour, GRRenderState(false, true, true));
-				SetColour(surface, colour, GRRenderState(true, false, true));
-				SetColour(surface, colour, GRRenderState(true, true, true));
+				SetColour(surface, colour, GRWidgetRenderState(false, false, true));
+				SetColour(surface, colour, GRWidgetRenderState(false, true, true));
+				SetColour(surface, colour, GRWidgetRenderState(true, false, true));
+				SetColour(surface, colour, GRWidgetRenderState(true, true, true));
 				break;
 			case EGRColourSpec::ForAllHoveredStates:
-				SetColour(surface, colour, GRRenderState(false, true, false));
-				SetColour(surface, colour, GRRenderState(false, true, true));
-				SetColour(surface, colour, GRRenderState(true, true, false));
-				SetColour(surface, colour, GRRenderState(true, true, true));
+				SetColour(surface, colour, GRWidgetRenderState(false, true, false));
+				SetColour(surface, colour, GRWidgetRenderState(false, true, true));
+				SetColour(surface, colour, GRWidgetRenderState(true, true, false));
+				SetColour(surface, colour, GRWidgetRenderState(true, true, true));
 				break;
 			}
 		}
 
-		void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
+		void SetColour(EGRSchemeColourSurface surface, RGBAb colour, GRWidgetRenderState rs) override
 		{
 			auto i = mapSurfaceToColour.find(surface);
 			if (i != mapSurfaceToColour.end())
 			{
-				GRRenderStateMiniScheme::HoverAndFocus& hf = rs.value.bitValues.pressed ? i->second.pressed : i->second.notPressed;
-				GRRenderStateMiniScheme::MiniFocusScheme& f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
+				GRWidgetRenderStateMiniScheme::HoverAndFocus& hf = rs.value.bitValues.pressed ? i->second.pressed : i->second.notPressed;
+				GRWidgetRenderStateMiniScheme::MiniFocusScheme& f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
 				RGBAb& target = rs.value.bitValues.focused ? f.focusedColour : f.notFocusedColour;
 				target = colour;
 			}
 			else
 			{						
-				GRRenderStateMiniScheme newScheme;
+				GRWidgetRenderStateMiniScheme newScheme;
 
-				GRRenderStateMiniScheme::MiniFocusScheme mfs;
+				GRWidgetRenderStateMiniScheme::MiniFocusScheme mfs;
 				mfs.focusedColour = colour;
 				mfs.notFocusedColour = colour;
 
-				GRRenderStateMiniScheme::HoverAndFocus hf;
+				GRWidgetRenderStateMiniScheme::HoverAndFocus hf;
 				hf.hovered = mfs;
 				hf.notHovered = mfs;
 
@@ -103,7 +103,7 @@ namespace ANON
 			}
 		}
 
-		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
+		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRWidgetRenderState rs) const override
 		{
 			auto i = mapSurfaceToColour.find(surface);
 			if (i == mapSurfaceToColour.end())
@@ -111,8 +111,8 @@ namespace ANON
 				return false;
 			}
 
-			const GRRenderStateMiniScheme::HoverAndFocus& hf = rs.value.bitValues.pressed ? i->second.pressed : i->second.notPressed;
-			const GRRenderStateMiniScheme::MiniFocusScheme f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
+			const GRWidgetRenderStateMiniScheme::HoverAndFocus& hf = rs.value.bitValues.pressed ? i->second.pressed : i->second.notPressed;
+			const GRWidgetRenderStateMiniScheme::MiniFocusScheme f = rs.value.bitValues.hovered ? hf.hovered : hf.notHovered;
 			colour = rs.value.bitValues.focused ? f.focusedColour : f.notFocusedColour;
 			return true;
 		}
@@ -154,11 +154,11 @@ namespace Rococo::Gui
 		scheme.SetColour(EGRSchemeColourSurface::EDIT_TEXT, RGBAb(255, 255, 255, 255), EGRColourSpec::ForAllHoveredStates);
 
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0, 0));
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,   128), GRRenderState(0, 0, 0));
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRRenderState(0, 1, 0));
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRRenderState(0, 1, 1));
-		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRRenderState(0, 0, 1));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,   128), GRWidgetRenderState(0, 0, 0));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRWidgetRenderState(0, 0, 1));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(0, 0, 0,    64), GRWidgetRenderState(0, 1, 0));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 32), GRWidgetRenderState(0, 1, 1));
+		scheme.SetColour(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(64, 64, 64, 64), GRWidgetRenderState(0, 0, 1));
 
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255));
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255));
@@ -182,14 +182,8 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void SetPropertyEditorColours_PastelScheme(IGRPanel& framePanel)
 	{
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(192, 192, 192, 255), GRRenderState(false, false, false));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, false, true));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, true, false));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), GRRenderState(false, true, true));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, false, false));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, false, true));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, false));
-		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(120, 120, 120, 255), GRRenderState(true, true, true));
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(160, 160, 160, 255), EGRColourSpec::ForAllRenderStates);
+		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(192, 192, 192, 255), GRWRS());
 		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
 		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(32, 32, 32, 255), EGRColourSpec::ForAllRenderStates);
 		framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(225, 225, 225, 255), EGRColourSpec::ForAllRenderStates);
@@ -209,21 +203,15 @@ namespace Rococo::Gui
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::EDIT_TEXT, RGBAb(0, 0, 0));
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(255, 240, 240));
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(240, 255, 240));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(true, false, true));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), GRRenderState(true, true, true));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(false, false, true));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(false, true, true));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(true, false, true));
-		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), GRRenderState(true, true, true));
+		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_EVEN, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllFocusedStates);
+		framePanel.Set(EGRSchemeColourSurface::COLLAPSER_TITLE_DEPTH_ODD, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllFocusedStates);
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_TEXT, RGBAb(0, 0, 0, 255));
 		MakeTransparent(framePanel, EGRSchemeColourSurface::COLLAPSER_TITLE_SHADOW);
 		SetUniformColourForAllRenderStates(framePanel, EGRSchemeColourSurface::VALUE_TEXT, RGBAb(0, 0, 0, 255));
 		MakeTransparent(framePanel, EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
-		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRRenderState(0, 1, 0));
-		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRRenderState(0, 0, 1));
-		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRRenderState(0, 1, 1));
+		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 32), GRWidgetRenderState(0, 1, 0));
+		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 48), GRWidgetRenderState(0, 0, 1));
+		framePanel.Set(EGRSchemeColourSurface::BUTTON_IMAGE_FOG, RGBAb(192, 192, 192, 64), GRWidgetRenderState(0, 1, 1));
 		framePanel.Set(EGRSchemeColourSurface::BACKGROUND, RGBAb(255, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 	}
 
@@ -234,7 +222,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour)
 	{
-		GRRenderState::ForEachPermutation([&scheme, surface, colour](GRRenderState rs)
+		GRWidgetRenderState::ForEachPermutation([&scheme, surface, colour](GRWidgetRenderState rs)
 			{
 				scheme.SetColour(surface, colour, rs);
 			}
@@ -243,7 +231,7 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, EGRSchemeColourSurface surface, RGBAb colour)
 	{
-		GRRenderState::ForEachPermutation([&panel, surface, colour](GRRenderState rs)
+		GRWidgetRenderState::ForEachPermutation([&panel, surface, colour](GRWidgetRenderState rs)
 			{
 				panel.Set(surface, colour, rs);
 			}

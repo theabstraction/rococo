@@ -101,7 +101,7 @@ namespace GRANON
 			auto rect = panel.AbsRect();
 
 			bool isHovered = g.IsHovered(panel);
-			GRRenderState rs(false, isHovered, false);
+			GRWidgetRenderState rs(false, isHovered, false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
