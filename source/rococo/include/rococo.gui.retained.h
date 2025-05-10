@@ -1346,6 +1346,10 @@ namespace Rococo::Gui
 
 		// The part of the main frame that is below the title bar. If there is no title bar the client area covers the entire area
 		virtual [[nodiscard]] IGRWidgetDivision& ClientArea() = 0;
+
+		virtual void SetNumberOfZoomIndices(size_t nIndices) = 0;
+
+		virtual void SetZoomLevel(size_t index, float value) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetMainFrameSupervisor: IGRWidgetMainFrame

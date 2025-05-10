@@ -565,6 +565,18 @@ namespace ANON
 
 		}
 
+		float zoomLevel = 1.0f;
+
+		void SetUIZoom(float zoomLevel) override
+		{
+			this->zoomLevel = zoomLevel;
+		}
+
+		float ZoomLevel() const override
+		{
+			return this->zoomLevel;
+		}
+
 		void AlertNoActionForKey() override
 		{
 
@@ -585,9 +597,9 @@ namespace ANON
 			return *this;
 		}
 
-		bool IsCtrlPressed() const override
+		bool IsKeyPressed(Rococo::IO::VirtualKeys::VKCode keyCode) const override
 		{
-			return IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL);
+			return IO::IsKeyPressed(keyCode);
 		}
 
 		GRFontId BindFontId(const FontSpec& spec) override

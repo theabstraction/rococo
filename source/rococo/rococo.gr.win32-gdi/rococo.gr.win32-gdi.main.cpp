@@ -1562,6 +1562,18 @@ namespace GRANON
 			defaultFont = knownFonts[0].handle;
 		}
 
+		float zoomLevel = 1.0f;
+
+		void SetUIZoom(float zoomLevel) override
+		{
+			this->zoomLevel = zoomLevel;
+		}
+
+		float ZoomLevel() const override
+		{
+			return this->zoomLevel;
+		}
+
 		IGRFonts& Fonts() override
 		{
 			if (screenDC == nullptr)
@@ -1593,9 +1605,9 @@ namespace GRANON
 			MessageBeep(0xFFFFFFFF);
 		}
 
-		bool IsCtrlPressed() const override
+		bool IsKeyPressed(IO::VirtualKeys::VKCode vkCode) const override
 		{
-			return GetAsyncKeyState(VK_CONTROL) != 0;
+			return GetAsyncKeyState(static_cast<int>(vkCode)) != 0;
 		}
 
 		struct KnownFont

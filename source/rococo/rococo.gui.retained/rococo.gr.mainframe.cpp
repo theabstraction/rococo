@@ -3,6 +3,8 @@
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
 
+#include <vector>
+
 namespace GRANON
 {
 	using namespace Rococo;
@@ -67,9 +69,58 @@ namespace GRANON
 			delete this;
 		}
 
+		std::vector<float> zoomLevels = { 1.0f, 1.2f, 1.3, 1.4f, 1.5f, 1.8f, 2.0f, 2.25f, 2.5f, 2.75f, 3.0f, 3.5f, 4.0f, 5.0f };
+
+		void SetNumberOfZoomIndices(size_t nIndices) override
+		{
+			zoomLevels.resize(nIndices);
+		}
+
+		void SetZoomLevel(size_t index, float value) override
+		{
+			if (index >= zoomLevels.size())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "[index #%llu] exceeded zoom levels %llu", index, zoomLevels.size());
+			}
+
+			zoomLevels[index] = value;
+		}
+
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			UNUSED(ce);
+			if (ce.click.MouseVWheel && panel.Root().Custodian().Keys().IsKeyPressed(IO::VirtualKeys::VKCode_SHIFT))
+			{
+				if (zoomLevels.size() > 1)
+				{
+					float zoomLevel = panel.Root().Custodian().ZoomLevel();
+
+					if (ce.wheelDelta > 0)
+					{
+						for (size_t i = 0; i < zoomLevels.size() - 1; i++)
+						{
+							if (zoomLevel <= zoomLevels[i])
+							{
+								zoomLevel = zoomLevels[i + 1];
+								break;
+							}
+						}
+					}
+					else if (ce.wheelDelta < 0)
+					{
+						for (size_t i = zoomLevels.size() - 1; i > 0; i++)
+						{
+							if (zoomLevel >= zoomLevels[i])
+							{
+								zoomLevel = zoomLevels[i - 1];
+								break;
+							}
+						}
+					}
+
+					panel.Root().Custodian().SetUIZoom(zoomLevel);
+					return EGREventRouting::Terminate;
+				}
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -106,7 +157,7 @@ namespace GRANON
 
 		void OnTab()
 		{
-			bool nextRatherThanPrevious = !GetCustodian(panel).Keys().IsCtrlPressed();
+			bool nextRatherThanPrevious = !GetCustodian(panel).Keys().IsKeyPressed(IO::VirtualKeys::VKCode_CTRL);
 			SetFocusElseRotateFocusToNextSibling(panel, nextRatherThanPrevious);
 		}
 

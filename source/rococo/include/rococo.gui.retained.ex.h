@@ -47,7 +47,7 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRKeyState
 	{
-		virtual bool IsCtrlPressed() const = 0;
+		virtual bool IsKeyPressed(Rococo::IO::VirtualKeys::VKCode keyCode) const = 0;
 	};
 
 	// The platform dependent implementation of the custodian handles events and routes to the UI appropriately
@@ -73,6 +73,9 @@ namespace Rococo::Gui
 		virtual IGRFonts& Fonts() = 0;
 
 		virtual IGRKeyState& Keys() = 0;
+
+		virtual void SetUIZoom(float zoomLevel) = 0;
+		virtual float ZoomLevel() const = 0;
 	};
 
 	ROCOCO_INTERFACE IGRCustodianSupervisor : IGRCustodian

@@ -284,7 +284,7 @@ namespace GRANON
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_TAB:
 			case IO::VirtualKeys::VKCode_DOWN:
-				RotateFocusToNextSibling(button, !GetCustodian(panel).Keys().IsCtrlPressed());
+				RotateFocusToNextSibling(button, !GetCustodian(panel).Keys().IsKeyPressed(IO::VirtualKeys::VKCode_CTRL));
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_PGUP:
 				OnFocusPageChange(-1);

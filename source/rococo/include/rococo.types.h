@@ -203,6 +203,14 @@ namespace Rococo
 		ROCOCO_API void TripDebugger();
 	}
 
+	namespace IO
+	{
+		namespace VirtualKeys
+		{
+			enum VKCode;
+		}
+	}
+
 	namespace Script
 	{
 		DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;
