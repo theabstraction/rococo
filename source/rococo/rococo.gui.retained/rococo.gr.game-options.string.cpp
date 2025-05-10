@@ -12,7 +12,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionStringWidget : IGRWidgetGameOptionsString, IGRWidgetSupervisor, IStringInquiry, IGREditFilter
+	struct GRGameOptionStringWidget : IGRWidgetGameOptionsString, IGRWidgetSupervisor, IStringInquiry, IGREditFilter, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
@@ -73,6 +73,22 @@ namespace GRANON
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TEXT, EGRSchemeColourSurface::TEXT);
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TEXT, EGRSchemeColourSurface::EDIT_TEXT);
+		}
+
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
+			panel.SetConstantHeight(height);
+		}
+
+		void LayoutAfterExpand() override
+		{
+
 		}
 
 		void OnUpdate(IGRWidgetEditBox& editor, IGREditorMicromanager& manager) override
@@ -158,6 +174,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return QueryForParticularInterface<IGRWidgetGameOptionsString>(this, ppOutputArg, interfaceId);
 		}
 

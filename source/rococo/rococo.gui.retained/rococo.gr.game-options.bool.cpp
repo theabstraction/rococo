@@ -12,11 +12,13 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionsBoolWidget : IGRWidgetGameOptionsBool, IGRWidgetSupervisor, IBoolInquiry
+	struct GRGameOptionsBoolWidget : IGRWidgetGameOptionsBool, IGRWidgetSupervisor, IBoolInquiry, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
 		IGRWidgetButton* button = nullptr;
+
+		GameOptionConfig config;
 
 		GRGameOptionsBoolWidget(IGRPanel& _panel) : panel(_panel)
 		{
@@ -35,6 +37,8 @@ namespace GRANON
 
 		void PostConstruct(const GameOptionConfig& config)
 		{
+			this->config = config;
+
 			title = &AddGameOptionTitleWidget(*this, config);
 			
 			if (config.TitlesOnLeft)
@@ -54,9 +58,22 @@ namespace GRANON
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_IMAGE_FOG);
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT);
 			MakeTransparent(button->Widget().Panel(), EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT);
+		}
 
-			int height = (int) (config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
 			panel.SetConstantHeight(height);
+		}
+
+		void LayoutAfterExpand() override
+		{
+
 		}
 
 		void Free() override
@@ -142,6 +159,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return Gui::QueryForParticularInterface<IGRWidgetGameOptionsBool>(this, ppOutputArg, interfaceId);
 		}
 

@@ -12,11 +12,12 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionScalarWidget : IGRWidgetGameOptionsScalar, IGRWidgetSupervisor, IScalarInquiry
+	struct GRGameOptionScalarWidget : IGRWidgetGameOptionsScalar, IGRWidgetSupervisor, IScalarInquiry, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
 		IGRWidgetSlider* slider = nullptr;
+		GameOptionConfig config;
 
 		GRGameOptionScalarWidget(IGRPanel& _panel) : panel(_panel)
 		{
@@ -35,6 +36,8 @@ namespace GRANON
 
 		void PostConstruct(const GameOptionConfig& config)
 		{
+			this->config = config;
+
 			if (config.TitlesOnLeft)
 			{
 				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
@@ -58,9 +61,22 @@ namespace GRANON
 			slider->SetGuage(config.SliderFontId, 2, EGRSchemeColourSurface::SLIDER_GUAGE);
 
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
+		}
 
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
 			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
 			panel.SetConstantHeight(height);
+		}
+
+		void LayoutAfterExpand() override
+		{
+
 		}
 
 		void Free() override
@@ -197,6 +213,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return Gui::QueryForParticularInterface<IGRWidgetGameOptionsScalar>(this, ppOutputArg, interfaceId);
 		}
 

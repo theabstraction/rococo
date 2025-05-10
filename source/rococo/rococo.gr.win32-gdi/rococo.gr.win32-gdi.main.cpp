@@ -1672,10 +1672,12 @@ namespace GRANON
 				DeleteObject(f.handle);
 				f.handle = newHandle;
 
+				HGDIOBJ oldFont = SelectObject(screenDC, newHandle);
 				if (!GetTextMetricsA(screenDC, &f.metrics))
 				{
 					Throw(GetLastError(), "Could not get font metrics for %s height %d", clone.lfFaceName, clone.lfHeight);
 				}
+				SelectObject(screenDC, oldFont);
 			}
 		}
 

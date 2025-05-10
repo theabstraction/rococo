@@ -12,11 +12,12 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionChoiceWidget : IGRWidgetGameOptionsChoice, IGRWidgetSupervisor, IChoiceInquiry
+	struct GRGameOptionChoiceWidget : IGRWidgetGameOptionsChoice, IGRWidgetSupervisor, IChoiceInquiry, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetText* title = nullptr;
 		IGRWidgetCarousel* carousel = nullptr;
+		GameOptionConfig config;
 
 		GRGameOptionChoiceWidget(IGRPanel& _panel) : panel(_panel)
 		{
@@ -35,6 +36,8 @@ namespace GRANON
 
 		void PostConstruct(const GameOptionConfig& config)
 		{
+			this->config = config;
+
 			if (config.TitlesOnLeft)
 			{
 				panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
@@ -50,13 +53,22 @@ namespace GRANON
 			carousel->SetFont(config.CarouselFontId);
 			carousel->DropDown().SetOptionFont(config.CarouselButtonFontId);
 			carousel->DropDown().SetOptionPadding(config.CarouselButtonPadding);
-	
-			int height = (int) (config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
-			if (height <= 0)
-			{
-				RaiseError(panel, EGRErrorCode::BadSpanHeight, __FUNCTION__, "Height(config.TitleFontId) * config.FontHeightToOptionHeightMultiplier was not positive");
-			}
+		}
+
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+			int height = (int)(config.FontHeightToOptionHeightMultiplier * GetCustodian(panel).Fonts().GetFontHeight(config.TitleFontId));
 			panel.SetConstantHeight(height);
+		}
+
+		void LayoutAfterExpand() override
+		{
+
 		}
 
 		void Free() override
@@ -177,6 +189,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return Gui::QueryForParticularInterface<IGRWidgetGameOptionsChoice>(this, ppOutputArg, interfaceId);
 		}
 
