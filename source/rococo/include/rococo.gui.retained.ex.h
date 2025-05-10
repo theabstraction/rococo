@@ -74,6 +74,7 @@ namespace Rococo::Gui
 
 		virtual IGRKeyState& Keys() = 0;
 
+		// Set the zoom level for the user-interface. The value is clamped between 1 and 100
 		virtual void SetUIZoom(float zoomLevel) = 0;
 		virtual float ZoomLevel() const = 0;
 	};

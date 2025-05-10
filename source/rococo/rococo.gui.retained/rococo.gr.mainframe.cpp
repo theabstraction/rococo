@@ -107,7 +107,7 @@ namespace GRANON
 					}
 					else if (ce.wheelDelta < 0)
 					{
-						for (size_t i = zoomLevels.size() - 1; i > 0; i++)
+						for (size_t i = zoomLevels.size() - 1; i > 0; i--)
 						{
 							if (zoomLevel >= zoomLevels[i])
 							{

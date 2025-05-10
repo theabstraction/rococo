@@ -8,7 +8,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGradientFill : IGRWidgetGradientFill, IGRWidgetSupervisor
+	struct GRGradientFill : IGRWidgetGradientFill, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		
@@ -37,6 +37,31 @@ namespace GRANON
 			delete this;
 		}
 
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+			if (fitRule == EGRFitRule::FirstChild)
+			{
+				auto* child0 = panel.GetChild(0);
+				if (!child0)
+				{				
+					panel.SetConstantHeight(2);
+					return;
+				}
+
+				panel.SetConstantHeight(child0->Span().y);
+			}
+		}
+
+		void LayoutAfterExpand() override
+		{
+
+		}
+
 		void SetBottomLeft(RGBAb c) override
 		{
 			mainQuad.bottomLeft = c;
@@ -55,6 +80,13 @@ namespace GRANON
 		void SetTopRight(RGBAb c) override
 		{
 			mainQuad.topRight = c;
+		}
+
+		EGRFitRule fitRule = EGRFitRule::None;
+
+		void SetFitVertical(EGRFitRule fitRule) override
+		{
+			this->fitRule = fitRule;
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent&) override
@@ -147,6 +179,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return QueryForParticularInterface<IGRWidgetGradientFill, GRGradientFill>(this, ppOutputArg, interfaceId);
 		}
 

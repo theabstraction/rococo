@@ -90,7 +90,7 @@
 	
 	(GradientFill
 		(Panel.ExpandH)
-		(Panel.FixedHeight 40)
+		(FitV FirstChild) // Fits the height of the banner to the height of the first child
 		(TopLeft gfTopLeft)
 		(TopRight gfTopRight)
 		(BottomLeft gfBottomLeft)

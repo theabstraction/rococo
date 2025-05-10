@@ -1624,6 +1624,12 @@ namespace Rococo::Gui
 		virtual void SetPresentation(EGRIconPresentation presentation) = 0;
 	};
 
+	enum class EGRFitRule
+	{
+		None,
+		FirstChild
+	};
+
 	ROCOCO_INTERFACE IGRWidgetGradientFill : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -1634,6 +1640,8 @@ namespace Rococo::Gui
 		virtual void SetBottomRight(RGBAb c) = 0;
 		virtual void SetTopLeft(RGBAb c) = 0;
 		virtual void SetTopRight(RGBAb c) = 0;
+
+		virtual void SetFitVertical(EGRFitRule fitRule) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetInitializer : IGRBase

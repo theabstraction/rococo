@@ -1566,7 +1566,13 @@ namespace GRANON
 
 		void SetUIZoom(float zoomLevel) override
 		{
-			this->zoomLevel = zoomLevel;
+			zoomLevel = clamp(zoomLevel, 1.0f, 100.0f);
+
+			if (this->zoomLevel != zoomLevel)
+			{
+				this->zoomLevel = zoomLevel;
+				RegenerateFonts();
+			}
 		}
 
 		float ZoomLevel() const override
@@ -1648,6 +1654,37 @@ namespace GRANON
 		HFONT DefaultFont() const
 		{
 			return defaultFont;
+		}
+
+		void RegenerateFont(KnownFont& f)
+		{
+			if (f.handle && screenDC)
+			{
+				LOGFONTA clone = f.creator;
+				clone.lfHeight = (LONG)(zoomLevel * f.creator.lfHeight);
+
+				auto newHandle = CreateFontIndirectA(&clone);
+				if (newHandle == NULL)
+				{
+					Throw(GetLastError(), "Could not create font %s height %d", clone.lfFaceName, clone.lfHeight);
+				}
+
+				DeleteObject(f.handle);
+				f.handle = newHandle;
+
+				if (!GetTextMetricsA(screenDC, &f.metrics))
+				{
+					Throw(GetLastError(), "Could not get font metrics for %s height %d", clone.lfFaceName, clone.lfHeight);
+				}
+			}
+		}
+
+		void RegenerateFonts()
+		{
+			for (auto& f : knownFonts)
+			{
+				RegenerateFont(f);
+			}
 		}
 
 		const KnownFont* GetFont(GRFontId id) const
@@ -1745,6 +1782,9 @@ namespace GRANON
 					return static_cast<GRFontId>(i);
 				}
 			}
+
+			LOGFONTA clone = f;
+			clone.lfHeight = (int)(f.lfHeight * zoomLevel);
 
 			HFONT hFont = CreateFontIndirectA(&f);
 			if (!hFont)

@@ -660,6 +660,21 @@ namespace Rococo::GreatSex
 				Throw(directive.S(), "Unknown fill style. Expecting one of BANNER, SMOOTH, SOLID");
 			}
 
+			auto* aFit = directive.FindAttributeByName("FitV");
+			if (aFit)
+			{
+				cstr type = AsString(aFit->Value()).c_str();
+
+				if (EqI(type, "FirstChild"))
+				{
+					g.SetFitVertical(EGRFitRule::FirstChild);
+				}
+				else
+				{
+					Throw(aFit->S(), "Unknown fit rule type. Expecting FirstChild");
+				}
+			}
+
 			generator.SetPanelAttributes(g.Widget(), directive);
 			generator.GenerateChildren(directive, g.Widget());
 		}
