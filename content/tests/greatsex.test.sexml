@@ -21,7 +21,7 @@
 	(MinWidth 1600)
 	(MinHeight 800)
 	
-	([] Levels 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0)
+	([] Levels 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8)
 )
 
 
@@ -34,6 +34,7 @@
 
 // The frame element navigates up the owner branch until the frame is found and then sets the attributes specified in the sexml
 (Frame
+	(Colour.Focus Transparent)
 	(Colour.Container.Background Transparent)
 	([] Panel.Navigate OptionCategories GameOptionsInnerDiv GameOptionsFinalization)	
 )

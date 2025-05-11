@@ -101,8 +101,6 @@ namespace ANON
 		IGRFonts& Fonts() override;
 		IGRImages& Images() override;
 
-		ID_FONT FindBestFontToFit(ID_FONT autoFontTemplateId, int maxSpan, Vec2i spacing, const fstring& text);
-
 		void DrawLastItems()
 		{
 			for (auto& task : lastTasks)
@@ -395,9 +393,8 @@ namespace ANON
 
 				for (;;)
 				{
-					Vec2 pixelSpan;
-					Rococo::Graphics::EvalTextSpan(*rc, text, To_ID_FONT(fontId), OUT pixelSpan);
-
+					Vec2i pixelSpan =  rc->Resources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text);;
+					
 					if (pixelSpan.x == 0 || pixelSpan.y == 0)
 					{
 						break;
@@ -772,31 +769,6 @@ namespace ANON
 			return Gui::TranslateToEditor(keyEvent, manager, builder);
 		}
 	};
-
-	ID_FONT MPlatGR_Renderer::FindBestFontToFit(ID_FONT autoFontTemplateId, int maxSpan, Vec2i spacing, const fstring& text)
-	{
-		ID_FONT fontId = autoFontTemplateId;
-
-		for (;;)
-		{
-			Vec2i pixelSpan = custodian.EvaluateMinimalSpan((GRFontId)fontId.value, text);
-
-			if (maxSpan > pixelSpan.x)
-			{
-				return fontId;
-			}
-			else
-			{
-				ID_FONT smallerFont = rc->Resources().HQFontsResources().FindBestSmallerFont(fontId);
-				if (!smallerFont)
-				{
-					return rc->Resources().HQFontsResources().FindSmallestFont();
-				}
-
-				fontId = smallerFont;
-			}
-		}
-	}
 
 	IGRFonts& MPlatGR_Renderer::Fonts()
 	{
