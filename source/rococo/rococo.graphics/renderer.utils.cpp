@@ -442,7 +442,9 @@ namespace Rococo::Graphics
 {
 	ROCOCO_GRAPHICS_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, Vec2& pixelSpan)
 	{
-		BasicTextJob job(fontIndex, text, 0xFFFFFFFF, (int)pixelSpan.y);
+		auto& metrics = g.Resources().GetFontMetrics(ID_FONT{ fontIndex });
+
+		BasicTextJob job(fontIndex, text, 0xFFFFFFFF, metrics.height);
 		auto iSpan = g.EvalSpan({ 0,0 }, job);
 		pixelSpan.x = (float)iSpan.x;
 		pixelSpan.y = (float)iSpan.y;

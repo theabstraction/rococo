@@ -157,6 +157,7 @@ namespace Rococo::DX11
 	{
 		Fonts::IArrayFontSupervisor* arrayFont;
 		Fonts::FontSpec spec;
+		HString fontFamily;
 		IDX11BitmapArray* array;
 	};
 
@@ -199,7 +200,7 @@ namespace Rococo::DX11
 		AutoFree<IArrayFontSupervisor> newFont = CreateOSFont(glyphBuilder, newSpec);
 
 		AutoFree<IDX11BitmapArray> new_array2D = CreateDX11BitmapArray(device, activeDC);
-		OSFont osFont{ newFont, font.spec, new_array2D };
+		OSFont osFont{ newFont, font.spec, font.spec.fontName, new_array2D };
 		
 		struct : IEventCallback<const Fonts::GlyphDesc>
 		{
@@ -228,7 +229,7 @@ namespace Rococo::DX11
 		new_array2D->Resize(newFont->NumberOfGlyphs());
 		newFont->ForEachGlyph(addGlyphToTextureArray);
 
-		return DX11::OSFont{ newFont.Detach(), font.spec, new_array2D.Detach() };
+		return DX11::OSFont{ newFont.Detach(), font.spec, font.spec.fontName, new_array2D.Detach() };
 	}
 
 	struct DX11HQFontFonts: IDX11HQFontResource
@@ -316,7 +317,8 @@ namespace Rococo::DX11
 
 			Fonts::IArrayFontSupervisor* new_Font = Fonts::CreateOSFont(glyphs, spec);
 			IDX11BitmapArray* new_array2D = CreateDX11BitmapArray(device, *activeDC);
-			OSFont osFont{ new_Font, spec , new_array2D };
+			OSFont osFont{ new_Font, spec, spec.fontName, new_array2D };
+			osFont.spec.fontName = osFont.fontFamily;
 			osFonts.push_back(osFont); // osFonts manages lifetime, so we can release our references
 
 			struct : IEventCallback<const Fonts::GlyphDesc>
@@ -412,7 +414,7 @@ namespace Rococo::DX11
 			delete this;
 		}
 
-		const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT rawId) override
+		const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT rawId) const override
 		{
 			ID_FONT idFont = NormalizeFontId(rawId);
 
@@ -477,6 +479,66 @@ namespace Rococo::DX11
 					font.arrayFont = replacement.arrayFont;
 				}
 			}
+		}
+
+		ID_FONT FindBestSmallerFont(ID_FONT idRawFont) const override
+		{
+			if (osFonts.empty())
+			{
+				return ID_FONT::Invalid();
+			}
+
+			ID_FONT idFont = NormalizeFontId(idRawFont);
+
+			int32 index = idFont.value - ID_FONT_OSFONT_OFFSET;
+			if (index < 0 || index >= (int32)osFonts.size())
+			{
+				return ID_FONT::Invalid();
+			}
+
+			auto srcFontMetrics = osFonts[index].arrayFont->Metrics();
+			int32 fontHeight = srcFontMetrics.height;
+
+			int bestIndex = -1;
+			int bestHeight = 0;
+
+			// Search for the next smaller font with the same family
+			for (size_t i = 0; i < osFonts.size(); i++)
+			{
+				auto& metrics = osFonts[i].arrayFont->Metrics();
+				if (i != index && EqI(osFonts[i].spec.fontName, osFonts[index].spec.fontName))
+				{
+					if (metrics.height < fontHeight && metrics.height > bestHeight)
+					{
+						bestHeight = metrics.height;
+						bestIndex = (int) i;
+					}
+				}
+			}
+
+			return bestIndex == -1 ? ID_FONT::Invalid() : ID_FONT{ (int) (ID_FONT_OSFONT_OFFSET + bestIndex) };
+		}
+
+		ID_FONT FindSmallestFont() const override
+		{
+			if (osFonts.empty())
+			{
+				return ID_FONT::Invalid();
+			}
+
+			size_t bestIndex = 0;
+			size_t smallestHeight = osFonts[0].spec.height;
+
+			for (size_t i = 1; i < osFonts.size(); i++)
+			{
+				if (osFonts[i].spec.height < smallestHeight)
+				{
+					smallestHeight = osFonts[i].spec.height;
+					bestIndex = i;
+				}
+			}
+
+			return ID_FONT((int) (ID_FONT_OSFONT_OFFSET + bestIndex));
 		}
 	};
 

@@ -101,6 +101,8 @@ namespace ANON
 		IGRFonts& Fonts() override;
 		IGRImages& Images() override;
 
+		ID_FONT FindBestFontToFit(ID_FONT autoFontTemplateId, int maxSpan, Vec2i spacing, const fstring& text);
+
 		void DrawLastItems()
 		{
 			for (auto& task : lastTasks)
@@ -386,7 +388,44 @@ namespace ANON
 			rc->SetScissorRect(lastScissorRect);
 
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
-			Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
+
+			if (alignment.HasSomeFlags(EGRAlignment::AutoFonts))
+			{
+				ID_FONT autoFontId = To_ID_FONT(fontId);
+
+				for (;;)
+				{
+					Vec2 pixelSpan;
+					Rococo::Graphics::EvalTextSpan(*rc, text, To_ID_FONT(fontId), OUT pixelSpan);
+
+					if (pixelSpan.x == 0 || pixelSpan.y == 0)
+					{
+						break;
+					}
+
+					if (Width(targetRect) > pixelSpan.x)
+					{
+						Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
+						break;
+					}
+					else
+					{
+						ID_FONT smallerFont = rc->Resources().HQFontsResources().FindBestSmallerFont(autoFontId);
+						if (!smallerFont)
+						{
+							ID_FONT smallestFont = rc->Resources().HQFontsResources().FindSmallestFont();
+							Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, smallestFont, text, colour, spacing);
+							break;
+						}
+
+						autoFontId = smallerFont;
+					}
+				}
+			}
+			else
+			{
+				Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
+			}
 
 			rc->FlushLayer();
 			rc->ClearScissorRect();				
@@ -733,6 +772,31 @@ namespace ANON
 			return Gui::TranslateToEditor(keyEvent, manager, builder);
 		}
 	};
+
+	ID_FONT MPlatGR_Renderer::FindBestFontToFit(ID_FONT autoFontTemplateId, int maxSpan, Vec2i spacing, const fstring& text)
+	{
+		ID_FONT fontId = autoFontTemplateId;
+
+		for (;;)
+		{
+			Vec2i pixelSpan = custodian.EvaluateMinimalSpan((GRFontId)fontId.value, text);
+
+			if (maxSpan > pixelSpan.x)
+			{
+				return fontId;
+			}
+			else
+			{
+				ID_FONT smallerFont = rc->Resources().HQFontsResources().FindBestSmallerFont(fontId);
+				if (!smallerFont)
+				{
+					return rc->Resources().HQFontsResources().FindSmallestFont();
+				}
+
+				fontId = smallerFont;
+			}
+		}
+	}
 
 	IGRFonts& MPlatGR_Renderer::Fonts()
 	{

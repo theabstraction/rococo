@@ -405,7 +405,7 @@ namespace GRANON
 
 		Vec2i MinimalSpan() const override
 		{
-			Vec2i textSpan = panel.Root().GR().Fonts().EvaluateMinimalSpan(fontId, title);
+			Vec2i textSpan = panel.Root().GR().Fonts().EvaluateMinimalSpan(fontId, title) + Vec2i{ 4,4 };
 			Vec2i imageSpan = ImageSpan();
 
 			int dx = max(max(textSpan.x, imageSpan.x), 4);
@@ -522,6 +522,7 @@ namespace GRANON
 		Vec2i EvaluateMinimalSpan() const
 		{
 			Vec2i extraSpan;
+
 			extraSpan.x = panel.Padding().left + panel.Padding().right;
 			extraSpan.y = panel.Padding().top + panel.Padding().bottom;
 

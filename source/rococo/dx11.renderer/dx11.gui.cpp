@@ -932,7 +932,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         dc.RSSetScissorRects(1, &rect);
     }
 
-    const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
+    const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) const override
     {
         return hqFonts->GetFontMetrics(idFont);
     }
