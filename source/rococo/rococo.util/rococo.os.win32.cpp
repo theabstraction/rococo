@@ -4073,6 +4073,11 @@ namespace Rococo::Time
 		return TickCount() - start;
 	}
 
+	ROCOCO_API void Timer::FormatMillisecondsWithName(char buffer[Timer::FORMAT_CAPACITY])
+	{
+		SafeFormat(buffer, 256, "%.128s: %.3f", name, Time::ToMilliseconds(end - start));
+	}
+
 } // Rococo::Time
 
 namespace Rococo::Debugging

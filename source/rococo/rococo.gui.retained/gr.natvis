@@ -1,34 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<Type Name="GRANON::GRPanel">
-		<DisplayString>{{Id: {uniqueId}. Rect: {absRect}. Span: {span}. ParentOffset: {parentOffset}}</DisplayString>
+		<DisplayString>{{{ desc } #{uniqueId}. {absRect}. Flags: {flags}. Parent {parent->desc}. Grandparent { parent->parent->desc}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRCollapser">
-		<DisplayString>{{Collapser: {panel}. Button {collapseButton}}</DisplayString>
+		<DisplayString>{{Collapser}: Button {collapseButton}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRDivision">
-		<DisplayString>{{Division: {panel}}}</DisplayString>
+		<DisplayString>{{Division}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRVerticalList">
-		<DisplayString>{{VerticalList: {panel}}}</DisplayString>
+		<DisplayString>{{VerticalList}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMainFrame">
-		<DisplayString>{{Frame:'{name}'. {panel}}}</DisplayString>
+		<DisplayString>{{"GRMainFrame"}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRToolbar">
-		<DisplayString>{{Toolbar: {panel}}}</DisplayString>
+		<DisplayString>{{Toolbar}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRTable">
-		<DisplayString>{{Table: {panel}, cols {columnHeaders}, rows {rows}}}</DisplayString>
+		<DisplayString>{{Table, cols {columnHeaders}, rows {rows}}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRButton">
-		<DisplayString>{{Button: Title:{title}, Image: {imagePath}, iMeta{iMetaData}, sMeta{sMetaData}}</DisplayString>
+		<DisplayString>{{Btn: Title:{title}, Image: {raisedImagePath}, {pressedImagePath}, iMeta{iMetadata}, sMeta{sMetaData}}</DisplayString>
+	</Type>
+	<Type Name="GRANON::GRSlider">
+		<DisplayString>{{Slider}}</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRMenuBar">
-		<DisplayString>{{Menu. {panel}}</DisplayString>
+		<DisplayString>{{Menu. }</DisplayString>
 	</Type>
 	<Type Name="GRANON::GRSplitter">
-		<DisplayString>{{Splitter. {panel} L {first}, R {second}</DisplayString>
+		<DisplayString>{{Splitter. L {first}, R {second}</DisplayString>
 	</Type>
 	<Type Name="Rococo::Gui::CursorEvent">
 		<DisplayString>{{Pos {position}. Click {click}. Id #{eventId}}}</DisplayString>

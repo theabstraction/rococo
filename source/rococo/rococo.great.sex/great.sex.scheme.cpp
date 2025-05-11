@@ -34,7 +34,7 @@ namespace Rococo::GreatSex
 	}
 
 
-	bool ApplyColourFromDirective(cstr colourName, EGRSchemeColourSurface surface, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective)
+	bool ApplyColourFromDirective(cstr colourName, EGRSchemeColourSurface surface, Gui::GRWidgetRenderState state, Rococo::Gui::IGRWidget& widget, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective)
 	{
 		size_t startIndex = 0;
 		auto* colourDirective = schemeDirective.FindFirstChild(REF startIndex, colourName);
@@ -48,18 +48,14 @@ namespace Rococo::GreatSex
 		return false;
 	}
 
-	struct ColourDirectiveBind
-	{
-		cstr name;
-		EGRSchemeColourSurface surface;
-	} colourDirectiveBindings[] =
+	const ColourDirectiveBind colourDirectiveBindings[] =
 	{
 		{"Colour.Background", EGRSchemeColourSurface::BACKGROUND },
 		{"Colour.Button", EGRSchemeColourSurface::BUTTON },
 		{"Colour.Button.Edge.Top.Left", EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT },
 		{"Colour.Button.Edge.Bottom.Right", EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT },
 		{"Colour.Button.Image.Fog", EGRSchemeColourSurface::BUTTON_IMAGE_FOG },
-
+		{"Colour.Button.Shadow", EGRSchemeColourSurface::BUTTON_SHADOW },
 		{"Colour.Button.Text", EGRSchemeColourSurface::BUTTON_TEXT },
 
 		{"Colour.Menu.Button", EGRSchemeColourSurface::MENU_BUTTON },
@@ -68,8 +64,8 @@ namespace Rococo::GreatSex
 		{"Colour.Menu.Button.Edge.Bottom.Right", EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT },
 
 		{"Colour.Container.Background", EGRSchemeColourSurface::CONTAINER_BACKGROUND },
-		{"Colour.Container.TopLeft", EGRSchemeColourSurface::CONTAINER_TOP_LEFT },
-		{"Colour.Container.BottomRight", EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT },
+		{"Colour.Container.Top.Left", EGRSchemeColourSurface::CONTAINER_TOP_LEFT },
+		{"Colour.Container.Bottom.Right", EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT },
 
 		{"Colour.Scroller.Button.Background", EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND },
 		{"Colour.Scroller.Button.Top.Left", EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT },
@@ -88,12 +84,37 @@ namespace Rococo::GreatSex
 		{"Colour.Focus", EGRSchemeColourSurface::FOCUS_RECTANGLE },
 		{"Colour.EditText", EGRSchemeColourSurface::EDIT_TEXT },
 		{"Colour.Label", EGRSchemeColourSurface::LABEL_BACKGROUND },
+		{"Colour.Label.Shadow", EGRSchemeColourSurface::LABEL_SHADOW },
 
 		{"Colour.Splitter.Background", EGRSchemeColourSurface::SPLITTER_BACKGROUND },
-		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE }
+		{"Colour.Splitter.Edge", EGRSchemeColourSurface::SPLITTER_EDGE },
+
+		{"Colour.Carousel.Text", EGRSchemeColourSurface::CAROUSEL_TEXT },
+		{"Colour.Carousel.Background", EGRSchemeColourSurface::CAROUSEL_BACKGROUND },
+		{"Colour.Carousel.Top.Left", EGRSchemeColourSurface::CAROUSEL_TOP_LEFT },
+		{"Colour.Carousel.Bottom.Right", EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT },
+
+		{"Colour.GameOption.Background", EGRSchemeColourSurface::GAME_OPTION_BACKGROUND },
+
+		{"Colour.GameOption.Top.Left", EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT },
+		{"Colour.GameOption.Bottom.Right", EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT },
+		{"Colour.GameOption.ChildSpacer", EGRSchemeColourSurface::GAME_OPTION_CHILD_SPACER},
+		{"Colour.Carousel.DropDown", EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_BACKGROUND},
+		{"Colour.Carousel.DropDown.Text", EGRSchemeColourSurface::CAROUSEL_DROP_DOWN_TEXT},
+		{"Colour.Portrait.Band", EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR },
+
+		{"Colour.Slider.Guage", EGRSchemeColourSurface::SLIDER_GUAGE },
+		{"Colour.Slider",		EGRSchemeColourSurface::SLIDER_BACKGROUND },
+		{"Colour.Slider.Slot",	EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND },
 	};
 
-	void ApplyToRenderState(const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Gui::GRRenderState state, Rococo::Gui::IGRWidget& widget)
+	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)
+	{
+		nElements = sizeof(colourDirectiveBindings) / sizeof ColourDirectiveBind;
+		return colourDirectiveBindings;
+	}
+
+	void ApplyToRenderState(const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Gui::GRWidgetRenderState state, Rococo::Gui::IGRWidget& widget)
 	{
 		for (auto& binding : colourDirectiveBindings)
 		{
@@ -108,16 +129,26 @@ namespace Rococo::GreatSex
 			delete this;
 		}
 
+		bool IsValidFrom(const Rococo::Sex::SEXML::ISEXMLDirective& widgetDefinition) const override
+		{
+			return widgetDefinition.Parent() == nullptr;
+		}
+
 		void Generate(IGreatSexGenerator& generator, const Rococo::Sex::SEXML::ISEXMLDirective& schemeDirective, Rococo::Gui::IGRWidget& widget) override
 		{
 			UNUSED(generator);
+
+			if (schemeDirective.Parent() != nullptr)
+			{
+				Throw(schemeDirective.S(), "Scheme directives must be top-level directives, not children of other directives");
+			}
 
 			for (int j = 0; j < schemeDirective.NumberOfChildren(); j++)
 			{
 				auto& directive = schemeDirective[j];
 				if (Eq(directive.FQName(), "ApplyTo"))
 				{
-					Gui::GRRenderState state(0, 0, 0);
+					Gui::GRWidgetRenderState state(0, 0, 0);
 					auto& states = SEXML::AsStringList(directive.GetAttributeByName("RenderStates").Value());
 					for (int i = 0; i < states.NumberOfElements(); ++i)
 					{

@@ -8,7 +8,7 @@ namespace GRANON
 	using namespace Rococo;
 	using namespace Rococo::Gui;
 
-	struct GRSplitter : IGRWidgetSplitter, IGRWidgetSupervisor
+	struct GRSplitter : IGRWidgetSplitter, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* first = nullptr;
@@ -23,9 +23,14 @@ namespace GRANON
 		int32 splitterMin = 0;
 		int32 splitterMax = 8192;
 
-		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) : panel(_panel), draggerStartPos(_draggerStartPos), updateWithMouseMove(_updateWithMouseMove)
+		GRSplitter(IGRPanel& _panel, int32 _draggerStartPos, bool _updateWithMouseMove) :
+			panel(_panel), 
+			draggerStartPos(_draggerStartPos),
+			updateWithMouseMove(_updateWithMouseMove)
 		{
-			_panel.SetMinimalSpan({ 320, 200 });
+			_panel.SetExpandToParentHorizontally();
+			_panel.SetExpandToParentVertically();
+			_panel.SetLayoutDirection(ELayoutDirection::LeftToRight);
 			realDraggerStartPos = _draggerStartPos;
 		}
 
@@ -38,7 +43,30 @@ namespace GRANON
 			}
 		}
 
-		void Render(IGRRenderContext& g)
+		void LayoutBeforeFit() override
+		{
+
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+			first->Panel().
+				SetExpandToParentVertically().SetConstantWidth(realDraggerStartPos).
+				SetLayoutDirection(ELayoutDirection::TopToBottom);
+
+			int offset = realDraggerStartPos + draggerThickness - 1;
+			second->Panel().
+				SetExpandToParentVertically().
+				SetConstantWidth(panel.Parent()->Span().x - offset).
+				SetParentOffset({ offset,0 }).SetLayoutDirection(ELayoutDirection::TopToBottom);
+		}
+
+		void Render(IGRRenderContext& g) override
 		{
 			draggerRect = panel.AbsRect();
 			draggerRect.left += realDraggerStartPos + 1;
@@ -46,7 +74,7 @@ namespace GRANON
 
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), draggerRect);
 
-			GRRenderState rs(false, isHovered, false);
+			GRWidgetRenderState rs(false, isHovered, false);
 
 			RGBAb colour = panel.GetColour(EGRSchemeColourSurface::SPLITTER_BACKGROUND, rs, RGBAb(64, 64, 64, 255));
 			g.DrawRect(draggerRect, colour);
@@ -63,7 +91,7 @@ namespace GRANON
 				virtualRect.left += virtualDraggerPos + 1;
 				virtualRect.right = virtualRect.left + draggerThickness - 2;
 
-				GRRenderState litEdgeState(true, isHovered, false);
+				GRWidgetRenderState litEdgeState(true, isHovered, false);
 				RGBAb litEdge = panel.GetColour(EGRSchemeColourSurface::SPLITTER_EDGE, litEdgeState, RGBAb(255, 255, 255, 255));
 				g.DrawRectEdgeLast(virtualRect, litEdge, litEdge);
 			}
@@ -81,11 +109,6 @@ namespace GRANON
 			second->Panel().SetParentOffset({ realDraggerStartPos + draggerThickness,0 }).Resize({ Width(panelDimensions) - (realDraggerStartPos + draggerThickness), Height(panelDimensions)});
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			LayoutHorizontal(panelDimensions);
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonUp)
@@ -100,7 +123,6 @@ namespace GRANON
 					int delta = ce.position.x - virtualDraggerStartPos;
 					virtualDraggerStartPos = -1;
 					realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
-					panel.InvalidateLayout(true);
 					draggerStartPos = realDraggerStartPos;
 
 					evOnSplitterChanged.Invoke(realDraggerStartPos);
@@ -153,8 +175,7 @@ namespace GRANON
 			if (updateWithMouseMove && virtualDraggerStartPos >= 0)
 			{
 				int delta = ce.position.x - virtualDraggerStartPos;
-				realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);
-				panel.InvalidateLayout(true);
+				realDraggerStartPos = clamp(clamp(draggerStartPos + delta, 0, panel.Span().x - draggerThickness - 2), splitterMin, splitterMax);;
 			}
 
 			return EGREventRouting::NextHandler;
@@ -192,6 +213,11 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 			return Gui::QueryForParticularInterface<IGRWidgetSplitter>(this, ppOutputArg, interfaceId);
 		}
 

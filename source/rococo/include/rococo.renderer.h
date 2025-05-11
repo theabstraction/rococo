@@ -180,12 +180,15 @@ namespace Rococo::Graphics
 	{
 		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet & glyphs, const Fonts::FontSpec & spec) = 0;
 		virtual Vec2i EvalSpan(ID_FONT id, const fstring& text) const = 0;
-		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
+		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) const = 0;
+		virtual ID_FONT FindBestSmallerFont(ID_FONT idFont) const = 0;
+		virtual ID_FONT FindSmallestFont() const = 0;
+		virtual void SetZoomLevel(float zoomLevel) = 0;
 	};
 
 	ROCOCO_INTERFACE IGuiResources
 	{
-		virtual const Fonts::ArrayFontMetrics & GetFontMetrics(ID_FONT idFont) = 0;
+		virtual const Fonts::ArrayFontMetrics & GetFontMetrics(ID_FONT idFont) const = 0;
 		virtual Textures::IBitmapArrayBuilder& SpriteBuilder() = 0;
 		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual IHQFontResource& HQFontsResources() = 0;
@@ -494,6 +497,8 @@ namespace Rococo::Graphics
 	ROCOCO_GRAPHICS_API Vec2i RenderRightAlignedText(IGuiRenderContext& grc, cstr text, RGBAb colour, int fontSize, const GuiRect& rect);
 	ROCOCO_GRAPHICS_API void EvalTextSpan(IGuiRenderContext& g, const fstring& text, int32 fontIndex, Vec2& pixelSpan);
 	ROCOCO_GRAPHICS_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
+	ROCOCO_GRAPHICS_API void DrawRoundedRectangle(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius);
+	ROCOCO_GRAPHICS_API void DrawRoundedEdge(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius);
 	ROCOCO_GRAPHICS_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
 	ROCOCO_GRAPHICS_API void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 	ROCOCO_GRAPHICS_API void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);

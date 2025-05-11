@@ -7,8 +7,6 @@
 #include <rococo.os.win32.h>
 #include <rococo.mplat.h>
 
-#pragma comment(lib, "xinput.lib")
-
 namespace Rococo
 {
    void UniqueMPlatFunction() {} // If this causes you grief, you included the header twice in the same app. Naughty!

@@ -1,11 +1,24 @@
 The Rococo libraries are copyright(c) All rights reserved 2022. by me, Mark Anthony Taylor.
 My email is mark.anthony.taylor@gmail.com. 
 
-Most of the libraries and modules are free and open source. You are not allowed to branch the files sin the core language folders in the sexy folder though
-(SS/STC/SVM) as this would destroy the value of the language by creating competing standards. Look at what happened to LISP, LUA and Java. Not fun.
-Don't go there.
+Most of the libraries and modules are free and open source. You are not allowed to branch the files in the core language folders in the sexy folder
+(SS/STC/SVM) as this would destroy the value of the language by creating competing language standards. Look at what happened to LISP, LUA and Java.
+Not fun - don't go there.
 
-Hyperverse is a private commercial development. The software is neither free nor open source.
+Hyperverse is a private commercial development. The software is neither free nor open source. It has been taken off the repo for now.
 
 
+Gui Retained - GR- is open source and free for use outside of commercial game engines as long as the projects it is used in take no revenue, including, but not limited to,
+revenues from advertising and microtransactions. It is free for use when MHOST or MPLAT are the principle game engine / library platforms. Branching is forbidden in any case.
 
+A release for Unreal Engine is imminent, at which time I will announce licensing terms for applications to use GR on that platform.
+
+Using GR on Unreal Engine outside of the official Rococo plugin (TBA) is strictly prohibited.
+
+From April 2025 and onwards the scripting language is not free for use with commercial game engines. Since branching was forbidden from the inception of the language
+then if you use older versions of the language in a commercial game engine you will not have the right to update the code and will be stuck with the bugs and feature limits
+of deprecated builds.
+
+A release of a scripting language host for Unreal Engine is planned for the near future. I will announce licensing terms closer to the time.
+
+If any of the terms in this copyright is unclear or unspecified, then contact me for written clarification.

@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.util\joysticks.xbox360.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.base.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.heap.string.cpp" />
@@ -11,6 +12,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.package.zip.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.parsering.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.reflection.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.sequences.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.strings.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.tables.cpp" />
@@ -20,5 +22,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\source\rococo\rococo.util\rococo.natvis" />
   </ItemGroup>
 </Project>

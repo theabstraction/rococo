@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.gui.retained.lib;rococo.sexml.lib;rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.gui.retained.lib;rococo.maths.lib;rococo.sexml.lib;rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -226,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.gui.retained.lib;rococo.sexml.lib;rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.gui.retained.lib;rococo.maths.lib;rococo.sexml.lib;rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -239,8 +239,10 @@
     <ClInclude Include="..\..\source\rococo\rococo.great.sex\sexml.widgets.simple.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.colour.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.main.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.scheme.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.great.sex\great.sex.test-data.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -258,6 +260,11 @@
     </ProjectReference>
     <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
       <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.maths_vs2022_win64.vcxproj">
+      <Project>{83F901CE-6EC8-579F-89CA-76C364A01566}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

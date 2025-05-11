@@ -15,7 +15,7 @@ using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidgetSupervisor
+	struct GRVerticalScroller : IGRWidgetVerticalScroller, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRScrollerEvents& events;
@@ -34,19 +34,21 @@ namespace ANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
+		void LayoutBeforeFit() override
 		{
-			if (panel.EnumerateChildren(nullptr) != 0)
-			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::Generic, __FUNCTION__, "Vertical scrollbars should not have children");
-			}
 
-			sliderZone.left = panelDimensions.left + 1;
-			sliderZone.right = panelDimensions.right - 1;
-			sliderZone.top = panelDimensions.top + 1;
-			sliderZone.bottom = panelDimensions.bottom - 1;
+		}
 
-			auto spec = events.OnCalculateSliderRect(Height(sliderZone), *this);
+		void LayoutBeforeExpand() override
+		{
+
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+			int vpadding = 1;
+			auto spec = events.OnCalculateSliderRect(panel.Span().y - (2 * vpadding), *this);
 			sliderHeight = spec.sliderSpanInPixels;
 		}
 
@@ -75,7 +77,7 @@ namespace ANON
 			}
 		}
 
-		void MovePage(int delta)
+		void MovePage(int delta) override
 		{
 			events.OnScrollPages(delta, *this);
 		}
@@ -100,13 +102,20 @@ namespace ANON
 			}
 		}
 
+		bool isDragging = false;
 		int clickPosition = -1;
-		int clickDeltaPosition = 0;
+		int deltaClickPosition = 0;
 
-		void OnSliderSelected(GRCursorEvent& ce)
+		void BeginDrag(GRCursorEvent& ce)
 		{
+			isDragging = true;
 			clickPosition = ce.position.y;
 			panel.CaptureCursor();
+		}
+
+		int ComputeDraggedSliderPosition() const
+		{
+			return clamp(sliderPosition + deltaClickPosition, 0, Height(sliderZone) - sliderHeight);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -115,30 +124,38 @@ namespace ANON
 
 			if (ce.click.LeftButtonDown)
 			{
+				panel.Focus();
 				clickTarget = ClassifyTarget(ce.position);
 				if (clickTarget == EClick::Slider)
 				{
-					OnSliderSelected(ce);
+					BeginDrag(ce);
 				}
 			}
 			else if (ce.click.LeftButtonUp)
 			{
-				clickPosition = -1;
+				isDragging = false;
 
 				panel.Root().ReleaseCursor();
 
-				if (clickDeltaPosition != 0)
+				if (deltaClickPosition != 0)
 				{
-					sliderPosition = clamp(sliderPosition + clickDeltaPosition, 0, Height(sliderZone) - sliderHeight);
+					sliderPosition = ComputeDraggedSliderPosition();
 				}
 
-				clickDeltaPosition = 0;
+				deltaClickPosition = 0;
 
 				if (clickTarget == ClassifyTarget(ce.position))
 				{
 					ActivateTarget(ce.position.y);
 				}
 				clickTarget = EClick::None;
+
+				GRWidgetEvent sliderReleased;
+				sliderReleased.eventType = EGRWidgetEventType::SCROLLER_RELEASED;
+				sliderReleased.isCppOnly = true;
+				sliderReleased.iMetaData = sliderPosition;
+				sliderReleased.sMetaData = nullptr;
+				panel.NotifyAncestors(sliderReleased, *this);
 			}
 			else if (ce.click.MouseVWheel)
 			{
@@ -159,16 +176,14 @@ namespace ANON
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			if (clickPosition >= 0)
+			if (isDragging)
 			{
-				int32 oldPosition = clickDeltaPosition;
-				clickDeltaPosition = ce.position.y - clickPosition;
-				if (clickDeltaPosition != 0)
+				int32 oldPosition = deltaClickPosition;
+				deltaClickPosition = ce.position.y - clickPosition;
+				
+				if (oldPosition != deltaClickPosition)
 				{
-					if (oldPosition != clickDeltaPosition)
-					{
-						events.OnScrollerNewPositionCalculated(clickDeltaPosition, *this);
-					}
+					events.OnScrollerNewPositionCalculated(ComputeDraggedSliderPosition(), *this);
 				}
 			}
 			return EGREventRouting::Terminate;
@@ -181,9 +196,7 @@ namespace ANON
 
 		void RenderScrollerButton(IGRRenderContext& g, const GuiRect& rect, bool isUp)
 		{
-			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
-			UNUSED(isLit);
-			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
+			GRWidgetRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus() && IsPointInRect(g.CursorHoverPoint(), rect));
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -200,10 +213,7 @@ namespace ANON
 
 		void RenderScrollerSlider(IGRRenderContext& g, const GuiRect& rect)
 		{
-			bool isLit = IsPointInRect(g.CursorHoverPoint(), rect) || clickPosition >= 0;
-			UNUSED(isLit);
-
-			GRRenderState rs(clickPosition >= 0, IsPointInRect(g.CursorHoverPoint(), rect), false);
+			GRWidgetRenderState rs(g.IsHovered(panel), IsPointInRect(g.CursorHoverPoint(), rect), panel.HasFocus());
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -220,7 +230,7 @@ namespace ANON
 				return { 0,0,0,0 };
 			}
 
-			int32 dy = clamp(sliderPosition + clickDeltaPosition, 0, Height(sliderZone) - sliderHeight);
+			int32 dy = clamp(sliderPosition + deltaClickPosition, 0, Height(sliderZone) - sliderHeight);
 			int32 y = sliderZone.top + 1 + dy;
 			return { sliderZone.left + 1, y, sliderZone.right - 1, y + sliderHeight };
 		}
@@ -229,7 +239,7 @@ namespace ANON
 		{
 			auto rect = panel.AbsRect();
 
-			GRRenderState rs(false, g.IsHovered(panel), false);
+			GRWidgetRenderState rs(false, g.IsHovered(panel), false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -238,12 +248,20 @@ namespace ANON
 			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
+			sliderZone.left = rect.left + 1;
+			sliderZone.right = rect.right - 1;
+			sliderZone.top = rect.top + 1;
+			sliderZone.bottom = rect.bottom - 1;
+
 			if (rs.value.intValue != 0)
 			{
 				g.DrawRectEdge(sliderZone, edge1Colour, edge2Colour);
 			}
 
-			RenderScrollerSlider(g, ComputeSliderRect());
+			GuiRect renderedSliderRect = ComputeSliderRect();
+			renderedSliderRect.bottom = min(rect.bottom - 2, renderedSliderRect.bottom);
+			
+			RenderScrollerSlider(g, renderedSliderRect);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
@@ -259,6 +277,7 @@ namespace ANON
 		{
 			clickTarget = EClick::None;
 			clickPosition = -1;
+			isDragging = false;
 		}
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
@@ -266,22 +285,22 @@ namespace ANON
 			switch (keyEvent.osKeyEvent.VKey)
 			{
 			case IO::VirtualKeys::VKCode_PGUP:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_PGDOWN:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_UP:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(-1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(-1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_DOWN:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(1, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollLines(1, *this);
 				break;
 			case IO::VirtualKeys::VKCode_HOME:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-100, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(-100, *this);
 				break;
 			case IO::VirtualKeys::VKCode_END:
-				if (keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(100, *this);
+				if (!keyEvent.osKeyEvent.IsUp()) events.OnScrollPages(100, *this);
 				break;
 			default:
 				return EGREventRouting::NextHandler;
@@ -294,7 +313,7 @@ namespace ANON
 		GRScrollerMetrics GetMetrics() const override
 		{
 			GRScrollerMetrics m;
-			m.PixelPosition = sliderPosition;
+			m.SliderTopPosition = sliderPosition;
 			m.SliderZoneSpan = Height(sliderZone);
 			m.PixelRange = clamp(m.SliderZoneSpan - sliderHeight, 0, (int32) MAX_SCROLL_INT);
 			return m;
@@ -302,9 +321,15 @@ namespace ANON
 
 		void SetSliderPosition(int position) override
 		{
-			if (position < 0 || position > MAX_SCROLL_INT)
+			if (position < 0)
 			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
+				auto m = GetMetrics();
+				this->sliderPosition = m.PixelRange;
+			}
+
+			if (position > MAX_SCROLL_INT)
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
 				return;
 			}
 			this->sliderPosition = position;
@@ -312,6 +337,12 @@ namespace ANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
 			return Gui::QueryForParticularInterface<IGRWidgetVerticalScroller>(this, ppOutputArg, interfaceId);
 		}
 

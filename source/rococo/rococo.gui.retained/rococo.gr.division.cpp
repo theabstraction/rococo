@@ -1,28 +1,46 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
-#include <string>
+#include <rococo.strings.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
+using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRDivision : IGRWidgetDivision
+	struct GRDivision : IGRWidgetDivision, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
+
+		float transparency = 1.0f;
 
 		GRDivision(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 		}
 
+		virtual ~GRDivision()
+		{
+
+		}
+
+		IGRWidget& Widget() override
+		{
+			return *this;
+		}
+
+		void SetTransparency(float f) override
+		{
+			transparency = clamp(f, 0.0f, 1.0f);
+		}
+
+		IGRPanel& Panel() override
+		{
+			return panel;
+		}
+
 		void Free() override
 		{
 			delete this;
-		}
-
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			LayoutChildrenByAnchors(panel, panelDimensions);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -47,23 +65,16 @@ namespace GRANON
 
 		}
 
-		IGRPanel& Panel() override
-		{
-			return panel;
-		}
-
 		void Render(IGRRenderContext& g) override
 		{
-			auto rect = panel.AbsRect();
-
-			GRRenderState rs(false, g.IsHovered(panel), false);
-
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
-			g.DrawRect(rect, backColour);
-
-			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
-			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
-			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
+			DrawPanelBackgroundEx(
+				panel,
+				g, 
+				EGRSchemeColourSurface::CONTAINER_BACKGROUND,
+				EGRSchemeColourSurface::CONTAINER_TOP_LEFT,
+				EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT,
+				transparency
+			);
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
@@ -106,7 +117,35 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent)
 	{
 		auto& gr = parent.Panel().Root().GR();
-		auto& div = static_cast<IGRWidgetDivision&>(gr.AddWidget(parent.Panel(), GRANON::s_DivFactory));
+		auto& div = static_cast<GRANON::GRDivision&>(gr.AddWidget(parent.Panel(), GRANON::s_DivFactory));
 		return div;
+	}
+
+	RGBAb Modulate(RGBAb colour, float alphaScale)
+	{
+		float alpha = clamp(alphaScale * (float)colour.alpha, 0.0f, 255.0f);
+		return RGBAb(colour.red, colour.green, colour.blue, (uint8)alpha);
+	}
+
+	ROCOCO_GUI_RETAINED_API void DrawPanelBackgroundEx(
+		IGRPanel& panel, 
+		IGRRenderContext& g,
+		EGRSchemeColourSurface back, 
+		EGRSchemeColourSurface leftEdge,
+		EGRSchemeColourSurface rightEdge, 
+		float alphaScale,
+		bool isRaised,
+		bool isFocused)
+	{
+		auto rect = panel.AbsRect();
+
+		GRWidgetRenderState rs(!isRaised, g.IsHovered(panel), isFocused);
+
+		RGBAb backColour = panel.GetColour(back, rs);
+		g.DrawRect(rect, Modulate(backColour, alphaScale), panel.RectStyle(), panel.CornerRadius());
+
+		RGBAb edge1Colour = panel.GetColour(leftEdge, rs);
+		RGBAb edge2Colour = panel.GetColour(rightEdge, rs);
+		g.DrawRectEdge(rect, Modulate(edge1Colour, alphaScale), Modulate(edge2Colour, alphaScale), panel.RectStyle(), panel.CornerRadius());
 	}
 }

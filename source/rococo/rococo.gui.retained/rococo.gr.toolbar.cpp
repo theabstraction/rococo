@@ -59,13 +59,6 @@ namespace GRANON
 
 		void Layout(const GuiRect& panelDimensions)
 		{
-			int32 index = 0;
-			while (auto* child = panel.GetChild(index++))
-			{
-				child->Resize(child->MinimalSpan());
-				child->InvalidateLayout(false);
-			}
-
 			if (childAlignment == EGRAlignment::Left)
 			{
 				LayoutWithLeftAlignment(panelDimensions);
@@ -108,7 +101,7 @@ namespace GRANON
 			auto rect = panel.AbsRect();
 
 			bool isHovered = g.IsHovered(panel);
-			GRRenderState rs(false, isHovered, false);
+			GRWidgetRenderState rs(false, isHovered, false);
 
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
@@ -120,18 +113,7 @@ namespace GRANON
 
 		Vec2i ResizeToFitChildren() override
 		{
-			int32 dx = 0;
-
-			int32 index = 0;
-			while (auto* child = panel.GetChild(index++))
-			{
-				auto newSpan = child->MinimalSpan();
-				child->Resize(newSpan);
-				dx += newSpan.x + interChildPadding;
-			}
-
-			panel.Resize({dx - interChildPadding, panel.Span().y});
-			return panel.Span();
+			return { 0,0 };
 		}
 
 		void SetChildAlignment(EGRAlignment alignment, int32 interChildPadding, int32 borderPadding) override

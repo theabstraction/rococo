@@ -109,9 +109,11 @@
 			
 	(while this.engine.IsRunning
 	//	(this.engine.PollKeyState keys)
+	
+		(IUIEventHandler ignoreMouseEvents)
 		
 		(while (this.engine.GetNextMouseEvent mouseEvent)
-			(TranslateMouseEvent mouseEvent this.activeScreen this.modalSink)
+			(TranslateMouseEvent mouseEvent ignoreMouseEvents ignoreMouseEvents)
 		)
 			
 		(while (this.engine.GetNextKeyboardEvent keyEvent)

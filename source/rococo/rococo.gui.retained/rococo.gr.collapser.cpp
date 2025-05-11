@@ -4,6 +4,9 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
+
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Strings;
@@ -13,6 +16,8 @@ namespace GRANON
 	static const char* const defaultExpandPath = "$(COLLAPSER_EXPAND)";
 	static const char* const defaultInlinePath = "$(COLLAPSER_COLLAPSE)";
 
+	enum { TITLE_BAR_HEIGHT = 30 };
+
 	struct GRCollapser : IGRWidgetCollapser, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
@@ -20,6 +25,7 @@ namespace GRANON
 		IGRWidgetButton* collapseButton = nullptr;
 		IGRWidgetDivision* titleBar = nullptr;
 		IGRWidgetDivision* clientArea = nullptr;
+		IGRWidgetDivision* leftSpacer = nullptr;
 		HString collapserExpandPath = defaultExpandPath;
 		HString collapserInlinePath = defaultInlinePath;
 
@@ -30,7 +36,7 @@ namespace GRANON
 
 		bool IsCollapsed() const override
 		{
-			return collapseButton ? !collapseButton->GetButtonFlags().isRaised : false;
+			return collapseButton ? !collapseButton->ButtonFlags().isRaised : false;
 		}
 
 		void SetExpandClientAreaImagePath(cstr path) override
@@ -71,16 +77,42 @@ namespace GRANON
 			return *titleBar;
 		}
 
+		IGRWidgetDivision& LeftSpacer() override
+		{
+			return *leftSpacer;
+		}
+
+		IGRWidgetButton& CollapseButton() override
+		{
+			return *collapseButton;
+		}
+
 		void PostConstruct()
 		{
-			clientArea = &CreateDivision(*this);
+			panel.SetLayoutDirection(ELayoutDirection::TopToBottom);
+
 			titleBar = &CreateDivision(*this);
-			collapseButton = &CreateButton(*titleBar);
-			collapseButton->Widget().Panel().Resize({ 26,26 }).SetParentOffset({0,2});
+			titleBar->Panel().SetExpandToParentHorizontally();
+			titleBar->Panel().SetConstantHeight(TITLE_BAR_HEIGHT);
+			titleBar->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
+			titleBar->Panel().Set(GRAnchorPadding{ 0, 1, 0, 1 });
+
+			clientArea = &CreateDivision(*this);
+			clientArea->Panel().SetExpandToParentHorizontally();
+			clientArea->Panel().SetExpandToParentVertically();
+
+			leftSpacer = &CreateDivision(titleBar->Widget());
+			leftSpacer->Panel().SetConstantWidth(0);
+			leftSpacer->Panel().SetExpandToParentVertically();
+
+			collapseButton = &CreateButton(titleBar->Widget());
+			collapseButton->Widget().Panel().SetExpandToParentVertically();
+			collapseButton->Widget().Panel().SetConstantWidth(TITLE_BAR_HEIGHT - 4);
 			collapseButton->SetRaisedImagePath(collapserExpandPath);
 			collapseButton->SetPressedImagePath(collapserInlinePath);
 			collapseButton->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			collapseButton->MakeToggleButton();
+			collapseButton->SetStretchImage(true);
 		}
 
 		void Free() override
@@ -88,35 +120,13 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			enum { TITLE_BAR_HEIGHT = 30 };
-			titleBar->Panel().Resize({Width(panelDimensions), TITLE_BAR_HEIGHT });
-
-			Vec2i newClientSpan;
-
-			if (IsCollapsed())
-			{
-				newClientSpan = { Width(panelDimensions), 0 };
-				clientArea->Panel().SetCollapsed(true);
-			}
-			else
-			{
-				newClientSpan = { Width(panelDimensions), Height(panelDimensions) - TITLE_BAR_HEIGHT };
-				if (newClientSpan.y < 0)
-				{
-					newClientSpan.y = TITLE_BAR_HEIGHT;
-				}
-				clientArea->Panel().SetCollapsed(false);
-			}
-
-			clientArea->Panel().Resize(newClientSpan);
-			clientArea->Panel().SetParentOffset({ 0, TITLE_BAR_HEIGHT });
-		}
-
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			UNUSED(ce);
+			if (ce.click.LeftButtonUp)
+			{
+				panel.Focus();
+				return EGREventRouting::Terminate;
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -145,20 +155,23 @@ namespace GRANON
 		{
 		}
 
+		void SyncCollapseStateToButton()
+		{
+			if (IsCollapsed())
+			{
+				eventHandler.OnCollapserInlined(*this);
+			}
+			else
+			{
+				eventHandler.OnCollapserExpanded(*this);
+			}
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget& sourceWidget)
 		{
 			if (sourceWidget.Panel().Id() == collapseButton->Widget().Panel().Id())
 			{
-				panel.InvalidateLayout(true);
-				
-				if (IsCollapsed())
-				{
-					eventHandler.OnCollapserInlined(*this);
-				}
-				else
-				{
-					eventHandler.OnCollapserExpanded(*this);
-				}
+				SyncCollapseStateToButton();
 				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;
@@ -166,7 +179,30 @@ namespace GRANON
 
 		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
 		{
-			return collapseButton->Widget().OnKeyEvent(keyEvent);
+			switch (keyEvent.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_ENTER:
+				if (keyEvent.osKeyEvent.IsUp())
+				{
+					if (panel.HasFocus())
+					{
+						auto* child = clientArea->Panel().GetChild(0);
+						TrySetDeepFocus(*child);
+					}
+				}
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_SPACEBAR:
+				if (keyEvent.osKeyEvent.IsUp())
+				{
+					if (panel.HasFocus())
+					{
+						collapseButton->Toggle();
+						SyncCollapseStateToButton();
+					}
+				}				
+				return EGREventRouting::Terminate;				
+			}
+			return collapseButton->Widget().Manager().OnKeyEvent(keyEvent);
 		}
 
 		IGRWidget& Widget()

@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.greatsex.test.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.options.test.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.property_editor_test.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.render_tests.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gr.win32-gdi.test\rococo.gr.win32-gdi.test.main.cpp" />
+  </ItemGroup>
+</Project>

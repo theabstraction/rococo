@@ -149,7 +149,7 @@ namespace GRANON
 		root = new MenuBranch(*this, rootId, nullptr);
 	}
 
-	struct GRMenuBar : IGRWidgetMenuBar, IGRWidgetSupervisor
+	struct GRMenuBar : IGRWidgetMenuBar, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		GRMenuTree tree;
@@ -158,11 +158,11 @@ namespace GRANON
 
 		GRMenuBar(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			owningPanel.SetMinimalSpan({ 100, 24 });
+			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 			if (owningPanel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				owningPanel.Root().Custodian().RaiseError(owningPanel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				RaiseError(owningPanel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
 				return;
 			}
 			auto rootId = 0;
@@ -174,7 +174,7 @@ namespace GRANON
 			auto* branch = tree.FindBranch(parentMenu);
 			if (!branch)
 			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
 				return false;
 			}
 
@@ -198,7 +198,7 @@ namespace GRANON
 			auto* parent = tree.FindBranch(parentMenu);
 			if (!parent)
 			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
 				return GRMenuItemId{ -1 };
 			}
 
@@ -227,17 +227,17 @@ namespace GRANON
 		{
 			tree.Clear();
 			isDirty = true;
-			panel.InvalidateLayout(false);
 		}
 
 		enum { BUTTON_X_PADDING = 10 };
 
 		Vec2i ShrinkPanelToFitText(IGRWidgetButton& button, Vec2i& lastPos)
 		{
-			Vec2i minimalSpan = button.Widget().Panel().MinimalSpan();
-			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  panel.Span().y };
-			button.Widget().Panel().Resize(newSpan);
-			button.Widget().Panel().SetParentOffset(lastPos);
+			Vec2i minimalSpan = button.MinimalSpan();
+			Vec2i newSpan = { minimalSpan.x + 2 * BUTTON_X_PADDING,  minimalSpan.y };
+			button.Panel().SetParentOffset({ lastPos.x, -lastPos.y });
+			button.Panel().SetConstantWidth(newSpan.x);
+			button.Panel().SetExpandToParentVertically();
 			lastPos.x += newSpan.x + 1;
 			return minimalSpan;
 		}
@@ -275,7 +275,7 @@ namespace GRANON
 
 		int32 maxDepth = 0;
 
-		void ConstructWidgetsFromBranchRecursive(IGRPanel& origin, MenuBranch& branch, int depth, Vec2i startPos)
+		void ConstructWidgetsFromBranchRecursive(IGRPanel& origin, MenuBranch& branch, int depth, Vec2i startPos, Vec2i barSpan)
 		{
 			UNUSED(origin);
 
@@ -292,6 +292,8 @@ namespace GRANON
 				largestMinimalSpan.y = max(minimalSpan.y, largestMinimalSpan.y);
 			}			
 
+			largestMinimalSpan.y = 0;
+
 			if (depth > 0)
 			{
 				if (depth > 1)
@@ -307,9 +309,11 @@ namespace GRANON
 					IGRPanel* newChildPanel = panel.GetChild(i);
 					if (newChildPanel)
 					{
-						newChildPanel->Resize({ largestMinimalSpan.x + 2 * BUTTON_X_PADDING, 24 });
+						newChildPanel->SetConstantHeight(largestMinimalSpan.y);
+						newChildPanel->SetConstantWidth(largestMinimalSpan.x + 2 * BUTTON_X_PADDING);
+						newChildPanel->Resize({ largestMinimalSpan.x + 2 * BUTTON_X_PADDING, largestMinimalSpan.y });
 						newChildPanel->SetParentOffset(vertPos);
-						vertPos.y += 24;
+						vertPos.y += largestMinimalSpan.y;
 					}
 				}
 			}
@@ -323,13 +327,15 @@ namespace GRANON
 					Vec2i branchPos;
 					if (depth == 0)
 					{
-						branchPos = activeBranchChild->ParentOffset() + Vec2i{ 0, panel.Span().y };
+						// Our menu line appears vertically under the parent menu button
+						branchPos = activeBranchChild->ParentOffset() + Vec2i{ 0, panel.Span().y - (panel.Padding().top + panel.Padding().bottom )};
 					}
 					else
 					{
+						// Our menu line appears to the right of the parent menu button
 						branchPos = activeBranchChild->ParentOffset() + Vec2i{ activeBranchChild->Span().x, 0 };
 					}
-					ConstructWidgetsFromBranchRecursive(*activeBranchChild, *branch.children[activeBranchIndex].branch, depth + 1, branchPos);
+					ConstructWidgetsFromBranchRecursive(*activeBranchChild, *branch.children[activeBranchIndex].branch, depth + 1, branchPos, barSpan);
 				}
 			}
 		}
@@ -338,7 +344,8 @@ namespace GRANON
 		{
 			// It should be safe to clear children here, because they are not yet within our callstack
 			static_cast<IGRPanelSupervisor&>(panel).ClearChildren();
-			ConstructWidgetsFromBranchRecursive(panel, *tree.root, 0, { 0,0 });
+			Vec2i iconSpan = panel.Span();
+			ConstructWidgetsFromBranchRecursive(panel, *tree.root, 0, { 0, 0 }, iconSpan);
 		}
 
 		void LayoutItems()
@@ -359,8 +366,6 @@ namespace GRANON
 			}
 
 			panel.Resize({ spanX, panel.Span().y });
-
-			LayoutChildByAnchors(panel, panel.Parent()->AbsRect());
 		}
 
 		void Free() override
@@ -368,18 +373,22 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
+		void LayoutBeforeFit() override
 		{
-			UNUSED(panelDimensions);
 
+		}
+
+		void LayoutBeforeExpand() override
+		{
 			if (isDirty)
 			{
 				ConstructWidgetsFromMenuTree();
+				isDirty = false;
 			}
+		}
 
-			LayoutItems();
-
-			isDirty = false;
+		void LayoutAfterExpand() override
+		{
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -388,7 +397,6 @@ namespace GRANON
 			if (tree.IsActive())
 			{
 				tree.Deactivate();
-				panel.InvalidateLayout(true);
 				isDirty = true;
 				panel.Root().ReleaseCursor();
 				return EGREventRouting::Terminate;
@@ -410,10 +418,10 @@ namespace GRANON
 					if (IsPointInRect(ce.position, buttonPanel->AbsRect()))
 					{
 						IGRWidgetButton* button = Cast<IGRWidgetButton>(buttonPanel->Widget());
-						if (button && button->GetButtonFlags().forSubMenu)
+						if (button && button->ButtonFlags().forSubMenu)
 						{
 							// In a submenu the meta data is synonymous with the branch id and was not provided by the consumer of the API
-							int64 branchId = button->GetMetaData().intData; 
+							int64 branchId = button->MetaData().intData; 
 							auto* branch = tree.FindBranch(GRMenuItemId{ branchId });
 							if (branch)
 							{
@@ -421,7 +429,6 @@ namespace GRANON
 								{
 									branch->ToggleActive();
 									isDirty = true;
-									panel.InvalidateLayout(true);
 								}
 							}
 						}
@@ -459,16 +466,15 @@ namespace GRANON
 				IGRWidgetButton* button = Cast<IGRWidgetButton>(sourceWidget);
 				if (!button) return EGREventRouting::NextHandler;
 
-				auto flags = button->GetButtonFlags();
+				auto flags = button->ButtonFlags();
 				if (flags.forSubMenu)
 				{
-					int64 branchId = button->GetMetaData().intData;
+					int64 branchId = button->MetaData().intData;
 					// In a submenu the meta data is synonymous with the branch id and was not provided by the consumer of the API
 					auto* branch = tree.FindBranch(GRMenuItemId{ branchId });// WTF
 					if (branch)
 					{
 						branch->ToggleActive();
-						panel.InvalidateLayout(true);
 						isDirty = true;
 						if (tree.IsActive()) panel.CaptureCursor();
 					}
@@ -477,7 +483,6 @@ namespace GRANON
 				else
 				{
 					tree.Deactivate();
-					panel.InvalidateLayout(true);
 					isDirty = true;
 				}
 
@@ -494,6 +499,14 @@ namespace GRANON
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			if (DoInterfaceNamesMatch(interfaceId, IGRWidgetLayout::InterfaceId()))
+			{
+				if (ppOutputArg)
+				{
+					*ppOutputArg = (IGRWidgetLayout*)this;
+				}
+				return EGRQueryInterfaceResult::SUCCESS;
+			}
 			return Gui::QueryForParticularInterface<IGRWidgetMenuBar>(this, ppOutputArg, interfaceId);
 		}
 

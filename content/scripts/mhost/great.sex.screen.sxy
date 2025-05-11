@@ -32,17 +32,17 @@
 
 (method GuiInputThread.Run -> :
 	(IKeyboard keyboard (Keyboard))
-/*	
-	(Int32 leftKey = (keyboard.GetVKeyFromName "A"))
-	(Int32 rightKey = (keyboard.GetVKeyFromName "D"))
-	(Int32 fireKey = (keyboard.GetVKeyFromName "SPACEBAR"))
-	(Int32 upKey = (keyboard.GetVKeyFromName "W"))
-	(Int32 downKey = (keyboard.GetVKeyFromName "S")) 
-*/
 	
-	(while this.engine.IsRunning
-		(KeyState keys)
-		(this.engine.PollKeyState keys)
+	(IUIEventHandler none)
+	
+	(while this.engine.IsRunning	
+		(MouseEvent mouseEvent)
+		(while (this.engine.GetNextMouseEvent mouseEvent)
+		)
+
+		(KeyboardEvent keyEvent)			
+		(while (this.engine.GetNextKeyboardEvent keyEvent)
+		)
 		
 		(yield 10000)
 	)
@@ -83,91 +83,6 @@
 	)
 )
 
-(function GetSexmlForGui -> (Sys.Reflection.IExpression sexml):
-	(Sys.Reflection.IExpression s = '	(
-	
-// Taking liberties with indentation standards here - we want to demonstrate embedding a SEXML document within a SexyScript. Normally in a standalone SEXML file the SEXML tree is at the root, so we would have no containing parenthesis	
-// and the root directives would be aligned to the left of the page without blankspace
-	
-	
-// Start of SEXML
-(Scheme :
-	// This reads as Apply the colour defs to the states specified by their bit combinations. (None of which contained the hovered bit)
-	// Since we have not specified the hovered bit, then this colour scheme applies to all situations that are *not* hovered
-	(ApplyTo ([] RenderStates pressed focused))
-	(ApplyTo ([] RenderStates pressed))
-	(ApplyTo ([] RenderStates focused))
-	(ApplyTo ([] RenderStates default))
-	(Colour.Container.Background (Red 0)(Green 0)(Blue 0)(Alpha 255))
-	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
-)
-(Scheme :
-	// This reads as Apply the colour defs to the states specified by their bit combinations. (All of which contain the hovered bit)
-	// Since we have specified the hovered bit in all permutations, then this colour scheme applies to all situations that *are* hovered
-	(ApplyTo ([] RenderStates hovered pressed))
-	(ApplyTo ([] RenderStates hovered pressed focused))
-	(ApplyTo ([] RenderStates hovered focused))
-	(ApplyTo ([] RenderStates hovered))
-	(Colour.Container.Background (Red 16)(Green 16)(Blue 16)(Alpha 255))
-	(Colour.Label (Red 0)(Green 0)(Blue 0)(Alpha 255))
-)
-(Div 
-	(Panel.Description "OutermostDiv")
-	([] Panel.Anchors left right hexpand top bottom vexpand) 
-	(#Recti Panel.Padding 10 10 10 10)
-	:
-	(Label
-		(Text "Solution")
-		(Panel.Description "SelectionTreeHeader")
-		([] Panel.Anchors left top vexpand) 
-		(#Recti Panel.Padding 0 0 0 40)
-		(#Vec2i Panel.Span 300 30)
-	)
-	
-	(VerticalList
-		(Panel.Description "SelectionTreeVList")
-		([] Panel.Anchors left top bottom vexpand) 
-		(#Recti Panel.Padding 0 32 0 0)
-		(#Vec2i Panel.Span 300 0)
-	)
-	
-	(Div 
-		(Panel.Description "MainSlate")
-		([] Panel.Anchors left right hexpand top bottom vexpand) 
-		(#Recti Panel.Padding 302 0 0 0)
-		:
-		(Toolbar 
-			([] Panel.Anchors left right hexpand top) 
-			(#Recti Panel.Padding 2 2 0 2)
-			(#Vec2i Panel.Span 0 60)
-		)
-	)
-	
-	(Button
-		(Panel.Description "OK-Button")
-		([] Panel.Anchors left bottom) 
-		(#Vec2i Panel.Span 60 30)
-		(#Recti Panel.Padding 4 0 0 4)
-		(Text OK)
-	)
-	
-	(Button
-		(Panel.Description "Cancel-Button")
-		([] Panel.Anchors left bottom) 
-		(#Vec2i Panel.Span 60 30)
-		(#Recti Panel.Padding 236 0 0 4)
-		(Text Cancel)	
-	)
-)
-// End of SEXML
-
-
-
-										)
-	)	
-	(sexml = s)
-)
-
 (function Main (Int32 id) -> (Int32 exitCode):
 	(IEngine engine (Engine))
 	
@@ -180,10 +95,8 @@
 	
 	(cast world -> ICoroutine worldThread)
 	(coroutines.Add worldThread)
-	
-	(IKeyboard keyboard (Keyboard))
 			
-	(engine.AddSexmlSheet GetSexmlForGui)
+	(engine.SetGreatSexOverlay "!tests/greatsex.test.sexml")
 	
 	(while engine.IsRunning
 		(while (coroutines.Continue > 0))

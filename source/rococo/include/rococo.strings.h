@@ -124,6 +124,7 @@ namespace Rococo::Strings
 	ROCOCO_API const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c);
 	ROCOCO_API const wchar_t* GetFileExtension(const wchar_t* s);
 
+	// TODO - replace Eq as a function call with Eq as a compiler intrinsic / instruction PcmpIStr
 	ROCOCO_API bool Eq(const wchar_t* a, const wchar_t* b);
 	ROCOCO_API bool Eq(cstr a, cstr b);
 	ROCOCO_API bool Eq(cr_substring a, cstr b);
@@ -414,6 +415,15 @@ namespace Rococo::Strings
 		// Example, if prefix = '-title:' and a command line contains a substring -title:MHOST or -title:"MHOST" then string 'MHOST' will be copied to the buffer, otherwise the [defaultString] is used. Do not supply null for any argument
 		ROCOCO_API void GetCommandLineArgument(const fstring& prefix, cstr commandLine, char* buffer, size_t capacity, cstr defaultString);
 	}
+
+	ROCOCO_INTERFACE ICharBuilder
+	{
+		virtual void Clear() = 0;
+		virtual void Resize(size_t nChars) = 0;
+		virtual size_t Size() const = 0;
+		virtual char* WriteBuffer() = 0;
+		virtual cstr c_str() const = 0;
+	};
 } // Rococo::Strings
 
 

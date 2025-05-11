@@ -1,3 +1,5 @@
+// For copyright, see copyright.txt in the Rococo root folder. All files in the Rococo repo that include this header are covered by it.
+
 #ifndef Rococo_TYPES_H
 #define Rococo_TYPES_H
 
@@ -201,6 +203,14 @@ namespace Rococo
 		ROCOCO_API void TripDebugger();
 	}
 
+	namespace IO
+	{
+		namespace VirtualKeys
+		{
+			enum VKCode;
+		}
+	}
+
 	namespace Script
 	{
 		DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;
@@ -341,6 +351,7 @@ namespace Rococo
 	{
 		DECLARE_ROCOCO_INTERFACE IReflectionTarget;
 		DECLARE_ROCOCO_INTERFACE IReflectionVisitor;
+		DECLARE_ROCOCO_INTERFACE IReflectionVisitation;
 	}
 
 	struct ISubsystemMonitor;
@@ -498,6 +509,13 @@ namespace Rococo
 		virtual void Enumerate(IEnumerator<T>& cb) = 0;
 	};
 
+	template<class T> ROCOCO_INTERFACE IValueTypeVectorReader
+	{
+		[[nodiscard]] virtual T operator[](size_t index) const = 0;
+		[[nodiscard]] virtual size_t Count() const = 0;
+	};
+
+
 	template<> ROCOCO_INTERFACE IEnumerable<const char*>
 	{
 		[[nodiscard]] virtual const char* operator[](size_t index) = 0;
@@ -586,6 +604,13 @@ namespace Rococo
 	template<class T> [[nodiscard]] FORCE_INLINE T Sq(T a)
 	{
 		return a * a;
+	}
+
+	template<class T> FORCE_INLINE void swap_args(T& a, T& b)
+	{
+		T c = a;
+		a = b;
+		b = c;
 	}
 
 	struct GuiRect

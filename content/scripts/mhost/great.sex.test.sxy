@@ -52,8 +52,12 @@
 	(fonts.Commit)
 	
 	(ISpriteBuilder sprites (SpriteBuilder))
-	(sprites.AddEachSpriteInDirectory "!textures\toolbars")
-	(sprites.AddEachSpriteInDirectory "!textures\toolbars\3rd-party\www.aha-soft.com")
+	(sprites.AddSprite "!textures/test/AI-castle.jpg")
+	(sprites.AddEachSpriteInDirectory "!textures/toolbars")
+	(sprites.AddEachSpriteInDirectory "!textures/prompts/xbox")
+	(sprites.AddEachSpriteInDirectory "!textures/prompts/keyboard")
+	(sprites.AddEachSpriteInDirectory "!textures/toolbars")
+	(sprites.AddEachSpriteInDirectory "!textures/toolbars/3rd-party/www.aha-soft.com")
 	(sprites.LoadAllSprites)
 			
 	(IEngine engine (Engine))

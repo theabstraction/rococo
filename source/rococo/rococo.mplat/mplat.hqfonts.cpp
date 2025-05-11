@@ -3,6 +3,7 @@
 #include <array>
 #include <rococo.strings.h>
 #include <rococo.fonts.hq.h>
+#include <unordered_map>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
@@ -16,6 +17,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 
 	IHQFontResource& hq;
 	HQFonts(IHQFontResource& _hq) : hq(_hq) {}
+	virtual ~HQFonts() {}
 	void Free() override { delete this; }
 
 	HQFont hqFontType = HQFont::TitleFont;
@@ -24,30 +26,45 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 	boolean32 italics = false;
 	boolean32 bold = false;
 
-	std::array<ID_FONT, 10> sysFonts = 
+	// This was added to facilitate Gui-Retained fonts, so is a little out-of-place
+	ID_FONT BindFont(const HQFontDef& fontDef, const fstring& fontFamily) override
 	{
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(), 
-		ID_FONT::Invalid(), 
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid(),
-		ID_FONT::Invalid()
-	};
+		Fonts::FontSpec spec;
+		spec.fontName = fontFamily;
+		spec.height = fontDef.fontSize;
+		spec.italic = fontDef.isItalic;
+		spec.weight = fontDef.isBold ? 700 : 400;
+
+		struct : Fonts::IArrayFontSet
+		{
+			void Populate(Fonts::IFontGlyphBuilder& builder) override
+			{
+				for(wchar_t c = 32; c <= 127; c++)
+				{
+					builder.AddGlyph(c);
+				}
+			}
+		} asciiGlyphs;
+
+		ID_FONT idFont = hq.CreateOSFont(asciiGlyphs, spec);
+		return idFont;
+	}
+
+	int32 GetHeight(ID_FONT fontId) override
+	{
+		const auto& metrics = hq.GetFontMetrics(fontId);
+		return metrics.height;
+	}
 
 	void Build(Rococo::Graphics::HQFont hqFont) override
 	{
-		int font = (int)hqFont;
-		if (font < 0 || font >= sysFonts.size())
-		{
-			Throw(0, "%s: Bad font enum", __FUNCTION__);
-		}
-
 		hqFontType = hqFont;
 		Clear();
+	}
+
+	void SetZoomLevel(float zoomLevel) override
+	{
+		hq.SetZoomLevel(zoomLevel);
 	}
 
 	void Clear() override
@@ -120,36 +137,18 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		spec.height = heightInPixels;
 		spec.italic = italics;
 		spec.weight = bold ? 700 : 400;
+		spec.sysFontId = static_cast<int>(hqFontType);
 
 		if (glyphs.empty())
 		{
 			Throw(0, "%s: no glyphs have been added", __FUNCTION__);
 		}
 
-		if (sysFonts[(int)hqFontType])
-		{
-			Throw(0, "%s: Sys font %s already defined", __FUNCTION__, ToShortString(hqFontType).buffer);
-		}
-
 		ID_FONT idFont = hq.CreateOSFont(*this, spec);
-		sysFonts[(int)hqFontType] = idFont;
 
 		Clear();
 
 		return idFont;
-	}
-
-	ID_FONT GetSysFont(Rococo::Graphics::HQFont hqFont)
-	{
-		int font = (int)hqFont;
-
-		if (font < 0 || font >= sysFonts.size())
-		{
-			Throw(0, "%s: Bad font enum %d", __FUNCTION__, font);
-		}
-
-		auto id = sysFonts[font];
-		return id;
 	}
 
 	void Populate(Fonts::IFontGlyphBuilder& builder) override

@@ -7,7 +7,7 @@ using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::Reflection;
 
-struct TestDog : IReflectionTarget
+struct TestDog : VisitationTarget
 {
 	HString name;
 	HString breed;
@@ -15,14 +15,14 @@ struct TestDog : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		Section("Dog", v);
+		Section(v, "Dog");
 		ROCOCO_REFLECT(v, name);
 		ROCOCO_REFLECT(v, breed);
 		ROCOCO_REFLECT(v, isHappy);
 	}
 };
 
-struct TestKennel : IReflectionTarget
+struct TestKennel : VisitationTarget
 {
 	int32 taxCode = 0x1891A;
 	float32 cost = 2000.0f;
@@ -38,14 +38,14 @@ struct TestKennel : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		Section("Kennel", v);
+		Section(v, "Kennel");
 		ROCOCO_REFLECT(v, taxCode);
 		ROCOCO_REFLECT(v, cost);
 		ROCOCO_REFLECT(v, dog)
 	}
 };
 
-struct TestPuppy : IReflectionTarget
+struct TestPuppy : VisitationTarget
 {
 	HString name;
 	int id;
@@ -62,7 +62,7 @@ struct TestPuppy : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		Section("Puppy", v);
+		Section s(v, "Puppy");
 		ROCOCO_REFLECT(v, name);
 		ROCOCO_REFLECT(v, id);
 	}
@@ -77,7 +77,7 @@ void Visit(IReflectionVisitor& v, T& t)
 template<class T>
 void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 {
-	Container container(name, v);
+	Container container(v, name);
 
 	int i = 0;
 	for (auto& element : elements)
@@ -85,12 +85,12 @@ void Reflect(IReflectionVisitor& v, T& elements, const char* name)
 		char index[16];
 		SafeFormat(index, "%d", i++);
 
-		Element elementSection(index, v);
+		Element elementSection(v, index);
 		Visit(v, element);
 	}
 }
 
-struct TestHouse : IReflectionTarget
+struct TestHouse : VisitationTarget
 {
 	HString houseName = "BigBen";
 	int houseNumber = 631;
@@ -109,7 +109,7 @@ struct TestHouse : IReflectionTarget
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		Section("House", v);
+		Section s(v, "House");
 		ROCOCO_REFLECT(v, houseName);
 		ROCOCO_REFLECT(v, houseNumber);
 		ROCOCO_REFLECT(v, streetAddress);

@@ -55,7 +55,7 @@ class DX11AppRenderer :
 	public IRAL,
 	public IDX11SpecialResources,
 	public ISubsystem,
-	public IReflectionTarget
+	public VisitationTarget
 {
 private:
 	IO::IInstallation& installation;
@@ -398,7 +398,7 @@ public:
 		lastTick = Time::TickCount();
 	}
 
-	~DX11AppRenderer()
+	virtual ~DX11AppRenderer()
 	{
 		DetachContext();
 	}
@@ -746,10 +746,10 @@ public:
 
 	void Visit(IReflectionVisitor& v) override
 	{
-		Section renderer("DX11AppRenderer", v);
+		Section renderer(v, "DX11AppRenderer");
 
 		{
-			Container container("adapters", v);
+			Container container(v, "adapters");
 
 			for (UINT i = 0; i < 10; i++)
 			{

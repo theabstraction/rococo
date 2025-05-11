@@ -9,6 +9,7 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.os.h>
 #include <rococo.great.sex.h>
+#include <rococo.reflector.h>
 
 #include "..\rococo.mplat\mplat.editor.h"
 
@@ -28,6 +29,7 @@ using namespace Rococo::Graphics::Textures;
 using namespace Rococo::Script;
 using namespace MHost::OS;
 using namespace Rococo::Sex;
+using namespace Rococo::GreatSex;
 
 struct AppArgs
 {
@@ -203,7 +205,8 @@ namespace MHost
 		public IGuiOverlaySupervisor,
 		public Strings::IStringPopulator,
 		public Rococo::MPEditor::IMPEditorEventHandler,
-		IO::IShaderMonitorEventHook
+		IO::IShaderMonitorEventHook,
+		public IGreatSexResourceLoader
 	{
 		Platform& platform;
 		IDirectAppControl& control;
@@ -221,7 +224,6 @@ namespace MHost
 		int32 guiToggleKey = 0;
 
 		AutoFree<IPackageSupervisor> packageMHost;
-		AutoFree<GreatSex::IGreatSexGeneratorSupervisor> greatSex;
 
 		// IO::IShaderMonitorEventHook
 		void OnLog(IO::IShaderMonitor& monitor, IO::EShaderLogPriority priority, cstr file, cstr message) override
@@ -349,7 +351,6 @@ namespace MHost
 		App(Platform& _platform, IDirectAppControl& _control, const AppArgs& args) :
 			platform(_platform), control(_control), sceneManager(_platform)
 		{
-			greatSex = GreatSex::CreateGreatSexGenerator(Rococo::Memory::CheckedAllocator());
 			busyPanel = platform.graphics.gui.BindPanelToScript("!scripts/panel.opening.sxy", nullptr, Rococo::NoImplicitIncludes());
 
 			platform.plumbing.publisher.Subscribe(this, Rococo::Events::evBusy);
@@ -376,9 +377,55 @@ namespace MHost
 			delete this;
 		}
 
+		void LoadGreatSexResource(cstr resourcePath, Rococo::IO::ILoadEventsCallback& onLoad) override
+		{
+			platform.os.installation.LoadResource(resourcePath, onLoad);
+		}
+
 		void Populate(cstr) override
 		{
 			platform.os.ios.EnumerateModifiedFiles(*this);
+		}
+
+		void LoadFrame(cstr sexmlPath, Gui::IGRWidgetMainFrame& frame, IEventCallback<IGreatSexGenerator>& onConstruct)
+		{
+			struct ErrorHandler : IEventCallback<LoadFrameException>
+			{
+				void OnEvent(LoadFrameException& ex) override
+				{
+					Windows::ShowErrorBox(p->os.mainWindow, ex.errorCode, ex.message, ex.filename);
+				}
+
+				Platform* p = nullptr;
+			} onError;
+
+			onError.p = &platform;
+
+			GreatSex::LoadFrame(platform.os.installation, Memory::CheckedAllocator(), sexmlPath, frame, onConstruct, onError);
+		}
+
+		void SetGreatSexOverlay(const fstring& pingPath) override
+		{
+			SetEditorVisibility(true);
+			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			if (frame)
+			{
+				frame->MenuBar().Panel().Parent()->SetCollapsed(true);
+
+				auto& scheme = frame->Widget().Panel().Root().Scheme();
+				Gui::SetSchemeColours_ThemeGrey(scheme);
+				Gui::SetPropertyEditorColours_PastelScheme(frame->Panel());
+
+				struct : IEventCallback<GreatSex::IGreatSexGenerator>
+				{
+					void OnEvent(GreatSex::IGreatSexGenerator& generator) override
+					{
+						GreatSex::AddTestOptions(generator);
+					}
+				} onConstruct;
+
+				LoadFrame(pingPath, *frame, onConstruct);
+			}
 		}
 
 		std::vector<HString> messages;
@@ -596,7 +643,21 @@ namespace MHost
 						AppendToMenuRecursive(*frame, idProfileMenu, subsystem, id);
 					}
 				);
+
+				LoadTestPage(*frame);
 			}
+		}
+
+		void LoadTestPage(Gui::IGRWidgetMainFrame& frame)
+		{
+			struct : IEventCallback<IGreatSexGenerator>
+			{
+				void OnEvent(IGreatSexGenerator& generator)
+				{
+					GreatSex::AddTestOptions(generator);
+				}
+			} onConstruct;
+			LoadFrame("!tests/greatsex.test.sexml", frame, onConstruct);
 		}
 
 		void ClearMenus() override
@@ -840,7 +901,7 @@ namespace MHost
 						Gui::SetUniformColourForAllRenderStates(frame->Widget().Panel(), Gui::EGRSchemeColourSurface::BACKGROUND, RGBAb(0, 0, 0, 192));
 						Gui::SetUniformColourForAllRenderStates(frame->ClientArea().Panel(), Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 0));
 
-						platform.creator.editor.Preview(platform.graphics.GR, *target);
+						platform.creator.editor.Preview(platform.graphics.GR, target->Visitation());
 					}
 				}
 			}
@@ -955,6 +1016,7 @@ namespace MHost
 		void PostCreate()
 		{
 			platform.graphics.shaderMonitorEventsProxy.AddHook(this);
+			platform.graphics.GR.SetFocusOverlayRenderer(&Gui::GetDefaultFocusRenderer());
 		}
 
 		void AddSexmlSheet(Rococo::Script::ISxyExpressionRef sexml) override
@@ -963,7 +1025,7 @@ namespace MHost
 
 			SetEditorVisibility(true);
 
-			auto* frame = platform.graphics.GR.Root().GR().FindFrame(ID_EDITOR_FRAME);
+			auto* frame = platform.graphics.GR.FindFrame(ID_EDITOR_FRAME);
 			if (!frame)
 			{
 				Throw(0, "Could not find %s inside the platform.graphics.GR object", ID_EDITOR_FRAME);
@@ -981,7 +1043,8 @@ namespace MHost
 
 			platform.graphics.GR.GarbageCollect();
 
-			greatSex->AppendWidgetTreeFromSexML(s, frame->ClientArea());
+			AutoFree<IGreatSexGeneratorSupervisor> greatSex = CreateGreatSexGenerator(Memory::CheckedAllocator(), *this);
+			greatSex->AppendWidgetTreeFromSexML(s, frame->ClientArea().Widget());
 		}
 	};
 }

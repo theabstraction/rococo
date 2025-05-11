@@ -38,7 +38,6 @@ namespace GRANON
 
 		GRTable(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			panel.PreventInvalidationFromChildren();
 		}
 
 		int32 AddColumn(const GRColumnSpec& spec) override
@@ -50,8 +49,6 @@ namespace GRANON
 				row.cellsInThisRow.push_back(GRCell{ &CreateDivision(*this) });
 			}
 
-			panel.InvalidateLayout(true);
-
 			return (int32) columnHeaders.size() - 1;
 		}
 
@@ -59,14 +56,19 @@ namespace GRANON
 		{
 			if (columnIndex < 0 || columnIndex > (int) columnHeaders.size())
 			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "column index %d out of bounds. Array size is %llu", columnIndex, columnHeaders.size());
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "column index %d out of bounds. Array size is %llu", columnIndex, columnHeaders.size());
 			}
 
 			int oldWidth = columnHeaders[columnIndex].width;
 			if (oldWidth != pixelWidth)
 			{
 				columnHeaders[columnIndex].width = pixelWidth;
-				panel.InvalidateLayout(true);
+			}
+
+			for (auto& row : rows)
+			{
+				auto& cell = row.cellsInThisRow[columnIndex];
+				cell.div->Panel().SetConstantWidth(pixelWidth);
 			}
 		}
 
@@ -89,12 +91,18 @@ namespace GRANON
 			rows.back().cellsInThisRow.resize(columnHeaders.size());
 			rows.back().rowHeight = spec.rowHeight;
 
+			auto& row = CreateDivision(*this);
+			row.Panel().SetConstantHeight(spec.rowHeight);
+			row.Panel().SetExpandToParentHorizontally();
+			row.Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
+
 			for (auto& cell : rows.back().cellsInThisRow)
 			{
-				cell.div = &CreateDivision(*this);
+				cell.div = &CreateDivision(row.Widget());
+				cell.div->Panel().SetExpandToParentHorizontally();
+				cell.div->Panel().SetConstantHeight(spec.rowHeight);
+				cell.div->Panel().SetLayoutDirection(ELayoutDirection::LeftToRight);
 			}
-
-			panel.InvalidateLayout(true);
 
 			ExpandToFit();
 
@@ -118,37 +126,21 @@ namespace GRANON
 			return cell.div;
 		}
 
+		int EstimateHeight() const override
+		{
+			int totalHeight = 0;
+
+			for (auto& row : rows)
+			{
+				totalHeight += row.rowHeight;
+			}
+
+			return totalHeight;
+		}
+
 		void Free() override
 		{
 			delete this;
-		}
-
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			int x = 0;
-
-			for (size_t colIndex = 0; colIndex < columnHeaders.size(); ++colIndex)
-			{
-				const GRColumn& columnSpec = columnHeaders[colIndex];
-
-				int columnWidth = colIndex < columnHeaders.size() - 1 ? columnSpec.width : max(columnSpec.width, Width(panelDimensions) - x);
-
-				int y = 0;
-
-				for (auto& row : rows)
-				{
-					auto& cell = row.cellsInThisRow[colIndex];
-
-					cell.div->Panel().SetParentOffset({ x, y }).Resize({ columnWidth, row.rowHeight });
-					cell.div->Panel().InvalidateLayout(false);
-
-					y += row.rowHeight;
-				}
-
-				x += columnWidth;
-			}
-
-			x = 0;
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -292,8 +284,7 @@ namespace GRANON
 
 		EGREventRouting OnNavigate(EGRNavigationDirective directive) override
 		{
-			auto focusId = panel.Root().GR().GetFocusId();
-			auto* child = panel.Root().GR().FindWidget(focusId);
+			auto* child = panel.Root().GR().FindFocusWidget();
 			if (!child)
 			{
 				return EGREventRouting::Terminate;

@@ -119,7 +119,12 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.file.browser.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.fonts.hq.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.formatting.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.functional.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.game.options.ex.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.game.options.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.gr.client.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.gr.win32-gdi.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.graphics.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.great.sex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.guards.h" />
@@ -184,8 +189,10 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.types.inference.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ui.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.ui.joystick.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.validators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.variable.editor.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.vector.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />

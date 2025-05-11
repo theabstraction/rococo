@@ -725,6 +725,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<LibTiffProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
             conf.AddPublicDependency<RococoECSProject>(target);
@@ -816,6 +817,45 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoAssetsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoGRGDIProject : RococoProject
+    {
+        public RococoGRGDIProject() : base("rococo.gr.win32-gdi")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<LibTiffProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.AddPublicDependency<RococoGuiRetainedProject>(target);
+            conf.AddPublicDependency<RococoGreatSexProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class RococoGRGDITestProject : RococoProject
+    {
+        public RococoGRGDITestProject() : base("rococo.gr.win32-gdi.test")
+        {
+            
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoGRGDIProject>(target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoWindowsProject>(target);
         }
     }
 
@@ -1130,6 +1170,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
         }
     }
 
@@ -1147,6 +1188,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_GREAT_SEX_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
+            conf.AddPublicDependency<RococoMathsProject>(target);
         }
     }
 
@@ -2010,6 +2052,8 @@ namespace Rococo
             conf.AddProject<SexyIncludeProject>(target);
             conf.AddProject<RococoAssetsProject>(target);
             conf.AddProject<RococoAssetsTestProject>(target);
+            conf.AddProject<RococoGRGDIProject>(target);
+            conf.AddProject<RococoGRGDITestProject>(target);
             conf.AddProject<RococoTextureToolProject>(target);
             conf.AddProject<RococoVersioningProject>(target);
             conf.AddProject<RococoGraphicsProject>(target);
@@ -2245,6 +2289,9 @@ namespace Rococo
             arguments.Generate<RococoIncludeProject>();
             arguments.Generate<RococoAssetsProject>();
             arguments.Generate<RococoAssetsTestProject>();
+
+            arguments.Generate<RococoGRGDIProject>();
+            arguments.Generate<RococoGRGDITestProject>();
 
             arguments.Generate<SexyIncludeProject>();
             arguments.Generate<OggProject>();

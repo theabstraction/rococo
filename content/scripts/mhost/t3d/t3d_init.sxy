@@ -28,8 +28,9 @@
 	// We load textures, sprites and other resources here.
 	// This way if we modify the t3d.sxy file we do not have to wait for resource reloading
 	(ISpriteBuilder sprites (SpriteBuilder))
-	(sprites.AddEachSpriteInDirectory "!textures\toolbars")
-	(sprites.AddEachSpriteInDirectory "!textures\toolbars\3rd-party\www.aha-soft.com")
+	(sprites.AddEachSpriteInDirectory "!textures/toolbars")
+	(sprites.AddEachSpriteInDirectory "!textures/toolbars/MAT")
+	(sprites.AddEachSpriteInDirectory "!textures/toolbars/3rd-party/www.aha-soft.com")
 	(sprites.LoadAllSprites)
 	
 //	(IMaterialBuilder mb (MaterialBuilder))

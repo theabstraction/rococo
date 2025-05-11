@@ -19,9 +19,9 @@ namespace ANON
 	void BuildMenus(IGRWidgetMainFrame& frame)
 	{
 		auto& menu = frame.MenuBar();
-		menu.Widget().Panel().
-			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), GRGenerateIntensities()).
-			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), GRGenerateIntensities());
+		menu.Panel().
+			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates).
+			Set(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 
 		auto fileMenu = menu.AddSubMenu(GRMenuItemId::Root(), GRMenuSubMenu("File"));
 
@@ -72,10 +72,10 @@ namespace ANON
 
 		*/
 
-		auto& titleBar = *frame.MenuBar().Widget().Panel().Parent();
-		titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-		titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
-		titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), GRGenerateIntensities());
+		auto& titleBar = *frame.MenuBar().Panel().Parent();
+		titleBar.Set(EGRSchemeColourSurface::CONTAINER_BACKGROUND, RGBAb(0, 0, 0, 255), EGRColourSpec::ForAllRenderStates);
+		titleBar.Set(EGRSchemeColourSurface::MENU_BUTTON, RGBAb(0, 0, 0, 255), EGRColourSpec::ForAllRenderStates);
+		titleBar.Set(EGRSchemeColourSurface::BUTTON, RGBAb(0, 0, 0, 255), EGRColourSpec::ForAllRenderStates);
 	}
 
 	void BuildUpperRightToolbar(IGRWidgetMainFrame& frame)
@@ -100,8 +100,9 @@ namespace ANON
 		Platform* platform = nullptr;
 		bool isVisible = false;
 		std::unordered_set<IMPEditorEventHandler*> hooks;
+		Reflection::Visitation visitation;
 
-		MPlatEditor(IGRSystem& _gr): gr(_gr)
+		MPlatEditor(IGRSystem& _gr): gr(_gr), visitation(*this)
 		{
 			static_cast<IGRSystemSupervisor&>(gr).SetEventHandler(this);
 		}
@@ -232,7 +233,6 @@ namespace ANON
 			} cb;
 			frame.ClientArea().Panel().EnumerateChildren(&cb);
 			frame.ClientArea().Panel().Root().GR().GarbageCollect();
-			frame.Widget().Panel().InvalidateLayout(false);
 		}
 
 		GRIdWidget ID_EDITOR_FRAME = { "MPlat-MainFrame" };
@@ -256,29 +256,35 @@ namespace ANON
 			BuildMenus(frame);
 			BuildUpperRightToolbar(frame);
 
-			auto& framePanel = frame.Widget().Panel();
+			auto& framePanel = frame.Panel();
 
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), GRGenerateIntensities());
-			framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), GRGenerateIntensities());
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BACKGROUND, RGBAb(48, 48, 48, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_TOP_LEFT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BUTTON_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BACKGROUND, RGBAb(48, 48, 48, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_TOP_LEFT, RGBAb(120, 120, 120, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_BAR_BOTTOM_RIGHT, RGBAb(104, 104, 104, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_TOP_LEFT, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_SLIDER_BOTTOM_RIGHT, RGBAb(96, 96, 96, 255), EGRColourSpec::ForAllRenderStates);
+			framePanel.Set(EGRSchemeColourSurface::SCROLLER_TRIANGLE_NORMAL, RGBAb(128, 128, 128, 255), EGRColourSpec::ForAllRenderStates);
 		}
 
-		void Preview(IGRSystem& gr, IReflectionTarget& target) override
+		void Preview(IGRSystem& gr, IReflectionVisitation* visitation) override
 		{
+			if (!visitation)
+			{
+				Throw(0, __FUNCTION__ ": visitation was null");
+			}
+
 			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);
 			if (!frame) Throw(0, "%s: Unexpected missing frame. gr.FindFrame(ID_EDITOR_FRAME) returned null", __FUNCTION__);
 
 			ClearFrame(*frame);
 			
-			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea(), 240, true).SetDraggerMinMax(240, 8192);
-			frameSplitter.Widget().Panel().Add(GRAnchors::ExpandAll());
+			auto& frameSplitter = CreateLeftToRightSplitter(frame->ClientArea().Widget(), 640, true).SetDraggerMinMax(240, 8192);
+
+			SetPropertyEditorColours_PastelScheme(frameSplitter.Panel());
 
 			frameSplitter.EvOnSplitSizeChanged().Add(
 				[this](int32 newSplitterWidth)
@@ -289,22 +295,45 @@ namespace ANON
 
 			struct PropEditorPopulatorHandler : IGRPropertyEditorPopulationEvents
 			{
-				int row = 0;
-				void OnAddNameValue(IGRWidgetText& nameWidget, IGRWidgetEditBox& /* editorWidget */ ) override
+				void OnAddNameValue(IGRWidgetText& /* nameWidget */, IGRWidgetEditBox& /* editorWidget */) override
 				{
-					row++;
-
-					SetUniformColourForAllRenderStates(nameWidget.Widget().Panel(), Gui::EGRSchemeColourSurface::TEXT, RGBAb(255, 255, 255, 255));
-					auto* nameContainer = nameWidget.Widget().Panel().Parent();
-					if (nameContainer)
-					{
-						SetUniformColourForAllRenderStates(*nameContainer, Gui::EGRSchemeColourSurface::CONTAINER_BACKGROUND, ((row & 1) == 1) ? RGBAb(48, 48, 48, 255) : RGBAb(40, 40, 40, 255));
-					}
+					
 				}
 			} popHandler;
 
-			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First(), target, popHandler);
-			editorTree.Widget().Panel().Add(GRAnchors::ExpandAll());
+			PropertyEditorSpec spec;
+
+			FontSpec boldFont;
+			boldFont.Bold = true;
+			boldFont.CharHeight = 16;
+			boldFont.CharSet = ECharSet::ANSI;
+			boldFont.FontName = "Consolas";
+			spec.NameplateFontId = gr.Fonts().BindFontId(boldFont);
+
+			FontSpec headingFontSpec;
+			headingFontSpec.Bold = true;
+			headingFontSpec.CharHeight = 20;
+			headingFontSpec.CharSet = ECharSet::ANSI;
+			headingFontSpec.FontName = "Consolas";
+			spec.HeadingFontId = gr.Fonts().BindFontId(headingFontSpec);
+
+			FontSpec valueFontSpec;
+			valueFontSpec.Bold = false;
+			valueFontSpec.CharHeight = 16;
+			valueFontSpec.CharSet = ECharSet::ANSI;
+			valueFontSpec.FontName = "Consolas";
+			spec.ValueFontId = gr.Fonts().BindFontId(valueFontSpec);
+
+			spec.LeftAlignNameplates = true;
+
+			IGRWidgetPropertyEditorTree& editorTree = CreatePropertyEditorTree(frameSplitter.First().Widget(), popHandler, spec);
+			editorTree.SetRowHeight(gr.Fonts().GetFontHeight(spec.NameplateFontId) + 4);
+			editorTree.View(visitation);
+		}
+
+		IReflectionVisitation* Visitation() override
+		{
+			return &visitation;
 		}
 
 		Reflection::IReflectionTarget& ReflectionTarget() override

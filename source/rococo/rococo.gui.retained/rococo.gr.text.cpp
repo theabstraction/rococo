@@ -7,19 +7,21 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRText : IGRWidgetText, IGRWidgetSupervisor
+	struct GRText : IGRWidgetText, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		std::string text;
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId = GRFontId::NONE;
 		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
+		EGRSchemeColourSurface labelSurface = EGRSchemeColourSurface::TEXT;
+		EGRSchemeColourSurface backSurface = EGRSchemeColourSurface::LABEL_BACKGROUND;
+		EGRSchemeColourSurface shadowSurface = EGRSchemeColourSurface::LABEL_SHADOW;
 
 		enum { MAX_LENGTH = 128 };
 
 		GRText(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			owningPanel.SetMinimalSpan({ 10,10 });
 		}
 
 		void Free() override
@@ -27,14 +29,55 @@ namespace GRANON
 			delete this;
 		}
 
-		int GetTextWidth() const override
+		bool expandToFitTextH = false;
+		bool expandToFitTextV = false;
+
+		void FitTextH() override
 		{
-			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring { text.c_str(), (int32) text.length() }).x;
+			expandToFitTextH = true;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
+		void FitTextV() override
 		{
-			UNUSED(panelDimensions);
+			expandToFitTextV = true;
+		}
+
+		void LayoutBeforeFit() override
+		{
+			Vec2i fit = ComputeFit();
+			fit.x += panel.Padding().left + panel.Padding().right;
+			fit.y += panel.Padding().top + panel.Padding().bottom;
+			
+			if (expandToFitTextV)
+			{
+				panel.SetConstantHeight(fit.y);
+			}
+
+			if (expandToFitTextH)
+			{
+				panel.SetConstantWidth(fit.x);
+			}
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+
+		}
+
+		Vec2i ComputeFit() const
+		{
+			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ text.c_str(), (int32)text.length() });
+		}
+
+
+		int TextWidth() const override
+		{
+			return ComputeFit().x;
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -74,16 +117,18 @@ namespace GRANON
 			auto rect = panel.AbsRect();
 			bool isHovered = g.IsHovered(panel);
 
-			GRRenderState rs(false, isHovered, false);
+			GRWidgetRenderState rs(false, isHovered, false);
 
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::LABEL_BACKGROUND, rs);
+			RGBAb backColour = panel.GetColour(backSurface, rs);
 			g.DrawRect(rect, backColour);
 
 			RGBAb edge1Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs);
 			RGBAb edge2Colour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs);
 			g.DrawRectEdge(rect, edge1Colour, edge2Colour);
 
-			g.DrawText(fontId, rect, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(EGRSchemeColourSurface::TEXT, rs));
+			GuiRect shadowRect{ rect.left + 1, rect.top + 1, rect.right + 1, rect.bottom + 1 };
+			g.DrawText(fontId, shadowRect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(shadowSurface, rs));
+			g.DrawText(fontId, rect, alignment, spacing, { text.c_str(), (int32)text.length() }, panel.GetColour(labelSurface, rs));
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
@@ -117,8 +162,31 @@ namespace GRANON
 			return *this;
 		}
 
+		IGRWidgetText& SetTextColourSurface(EGRSchemeColourSurface surface) override
+		{
+			labelSurface = surface;
+			return *this;
+		}
+
+		IGRWidgetText& SetTextColourShadowSurface(EGRSchemeColourSurface surface) override
+		{
+			shadowSurface = surface;
+			return *this;
+		}
+
+		IGRWidgetText& SetBackColourSurface(EGRSchemeColourSurface surface) override
+		{
+			backSurface = surface;
+			return *this;
+		}
+
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
+			if (Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId) == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return  EGRQueryInterfaceResult::SUCCESS;
+			}
+			
 			return Gui::QueryForParticularInterface<IGRWidgetText>(this, ppOutputArg, interfaceId);
 		}
 

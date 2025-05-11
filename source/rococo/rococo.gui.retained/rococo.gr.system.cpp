@@ -19,7 +19,7 @@ namespace Rococo::Gui
 {
 	IGRLayoutSupervisor* CreateFullScreenLayout();
 	IGRWidgetMainFrameSupervisor* CreateGRMainFrame(cstr name, IGRPanel& panel);
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent);
+	IGRPanelSupervisor* CreatePanel(IGRPanelRootSupervisor& root, IGRPanelSupervisor* parent);
 
 	bool operator == (const GuiRect& a, const GuiRect& b)
 	{
@@ -29,7 +29,7 @@ namespace Rococo::Gui
 
 namespace ANON
 {
-	struct GRSystem: IGRSystemSupervisor, IGRPanelRoot
+	struct GRSystem: IGRSystemSupervisor, IGRPanelRootSupervisor
 	{
 		IGRCustodian& custodian;
 		GRConfig config;
@@ -37,8 +37,6 @@ namespace ANON
 		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
 		int queryDepth = 0;
 		bool queueGarbageCollect = false;
-
-		int badSpanCountThisFrame = 0;
 
 		int grDebugFlags = 0;
 
@@ -50,21 +48,6 @@ namespace ANON
 		void SetDebugFlags(int grDebugFlags) override
 		{
 			this->grDebugFlags |= (int)grDebugFlags;
-		}
-
-		int BadSpanCount() const override
-		{
-			if (Rococo::OS::IsDebugging())
-			{
-				Rococo::OS::TripDebugger();
-			}
-			return badSpanCountThisFrame;
-		}
-
-		void IncBadSpanCountThisFrame(IGRPanel& origin) override
-		{
-			UNUSED(origin);
-			badSpanCountThisFrame++;
 		}
 
 		struct FrameDesc
@@ -181,6 +164,11 @@ namespace ANON
 			return *scheme;
 		}
 
+		Vec2i ScreenDimensions() const override
+		{
+			return Span(screenDimensions);
+		}
+
 		IGRWidgetMainFrame* FindFrame(GRIdWidget id) override
 		{
 			for (auto& d : frameDescriptors)
@@ -193,8 +181,6 @@ namespace ANON
 
 			return nullptr;
 		}
-
-		GuiRect lastLayedOutScreenDimensions { 0,0,0,0 };
 
 		// Added to a method to prevent the API consumer from modifying the widget tree while the implementation expects the tree hierarchy to be immutable
 		struct RecursionGuard
@@ -211,16 +197,6 @@ namespace ANON
 			}
 		};
 
-		void LayoutFrames()
-		{
-			RecursionGuard guard(*this);
-			for (auto& d : frameDescriptors)
-			{
-				d.panel->Resize(Span(lastLayedOutScreenDimensions));
-				d.panel->LayoutRecursive({ 0,0 });
-			}
-		}
-
 		void GarbageCollect() override
 		{
 			if (queryDepth > 0)
@@ -236,77 +212,110 @@ namespace ANON
 			}
 		}
 
-		int invalidatedPanelCount = 0;
-
-		void UpdateNextFrame(IGRPanel& panel)
-		{
-			UNUSED(panel);
-			invalidatedPanelCount++;
-		}
-
 		Vec2i lastRenderedCursorPosition{ -10000000, -10000000 };
 
-		void RenderGui(IGRRenderContext& g) override
+		std::vector<IGRPanelSupervisor*> deferredRenderQueue;
+
+		void DeferRendering(IGRPanelSupervisor& panel) override
 		{
+			deferredRenderQueue.push_back(&panel);
+		}
+
+		GuiRect screenDimensions{ 0,0,0,0 };
+
+		void RenderAllFrames(IGRRenderContext& g) override
+		{
+			lastRenderedCursorPosition = g.CursorHoverPoint();
+
 			if (queueGarbageCollect)
 			{
 				GarbageCollect();
 				queueGarbageCollect = false;
 			}
 
-			lastRenderedCursorPosition = g.CursorHoverPoint();
-
-			badSpanCountThisFrame = 0;
-
-			auto screenDimensions = g.ScreenDimensions();
-			Vec2i topLeft = { screenDimensions.left, screenDimensions.top };
-
-			if (lastLayedOutScreenDimensions != screenDimensions || invalidatedPanelCount > 0)
-			{
-				lastLayedOutScreenDimensions = screenDimensions;
-				for (auto& d : frameDescriptors)
-				{
-					d.panel->InvalidateLayout(true);
-				}
-				LayoutFrames();
-				invalidatedPanelCount = 0;
-			}
-
 			RecursionGuard guard(*this);
+
+			screenDimensions = g.ScreenDimensions();
 
 			for (auto& d : frameDescriptors)
 			{
-				d.panel->RenderRecursive(g, screenDimensions);
+				d.panel->SetConstantWidth(Width(screenDimensions));
+				d.panel->SetConstantHeight(Height(screenDimensions));
+				d.panel->Layout();
+			}
+
+			for (auto& d : frameDescriptors)
+			{
+				d.panel->RenderRecursive(g, screenDimensions, true, focusId);
+				g.DisableScissors();
+			}
+
+			for (auto* panel : deferredRenderQueue)
+			{
+				panel->RenderRecursive(g, screenDimensions, false, focusId);
 				g.DisableScissors();
 			}
 
 			if (focusId >= 0)
 			{
-				auto* widget = FindWidget(focusId);
-				GuiRect rect = widget->Panel().AbsRect();
-				if (rect.right > rect.left && rect.bottom > rect.top)
+				auto* widget = FindFocusWidget();
+				if (widget)
 				{
-					RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRRenderState(false, false, true), RGBAb(255, 255, 255, 255));
-					g.DrawRectEdge(rect, colour, colour);
+					if (widget->Panel().IsCollapsedOrAncestorCollasped())
+					{
+						focusId = -1;
+					}
+					else
+					{
+						GuiRect rect = widget->Panel().AbsRect();
+						if (rect.right > rect.left && rect.bottom > rect.top)
+						{
+							RGBAb colour = widget->Panel().GetColour(EGRSchemeColourSurface::FOCUS_RECTANGLE, GRWidgetRenderState(false, false, true), RGBAb(255, 255, 255, 255));
+							g.DrawRectEdge(rect, colour, colour);
+						}
+					}
 				}
 			}
 
+			deferredRenderQueue.clear();
+
 			RenderDebugInfo(g);
+		}
+
+		IGRSystemSubRenderer* focusOverlayRenderer = nullptr;
+
+		void RenderFocus(IGRPanel& panel, IGRRenderContext& g, const GuiRect& clipRect) override
+		{
+			if (focusOverlayRenderer)
+			{
+				focusOverlayRenderer->Render(panel, g, clipRect);
+			}
+		}
+
+		void SetFocusOverlayRenderer(IGRSystemSubRenderer* subRenderer)
+		{
+			focusOverlayRenderer = subRenderer;
 		}
 
 		void RenderDebugInfo(IGRRenderContext& g)
 		{
 			Vec2i pos = g.CursorHoverPoint();
 
-			GRFontId debugFontId = GRFontId::MENU_FONT;
+			GRFontId debugFontId = GRFontId::NONE;
 
 			GRAlignmentFlags alignment;
-			alignment.Add(EGRAlignment::Bottom).Add(EGRAlignment::Right);
+			alignment.Add(EGRAlignment::Right);
 
 			char cursorLine[32];
 			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
 
-			g.DrawText(debugFontId, g.ScreenDimensions(), g.ScreenDimensions(), alignment, { 10, 10 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
+			GuiRect debugRect;
+			debugRect.left = screenDimensions.right - 70;
+			debugRect.right = debugRect.left + 60;
+			debugRect.top = screenDimensions.top + 10;
+			debugRect.bottom = debugRect.top + 30;
+			g.DrawRect(debugRect, RGBAb(0, 0, 0, 128));
+			g.DrawText(debugFontId, debugRect, alignment, { 10, 0 }, to_fstring(cursorLine), RGBAb(255, 255, 255));
 		}
 
 		void MakeFirstToRender(GRIdWidget id) override
@@ -348,10 +357,9 @@ namespace ANON
 		IGRWidget& AddWidget(IGRPanel& parent, IGRWidgetFactory& factory)
 		{
 			auto& panel = parent.AddChild();
-			parent.InvalidateLayout(false);
 			auto& widget = factory.CreateWidget(panel);
 			auto& superPanel = static_cast<IGRPanelSupervisor&>(panel);
-			superPanel.SetWidget(static_cast<IGRWidgetSupervisor&>(widget));
+			superPanel.SetWidget(widget.Supervisor());
 			mapIdToPanel.try_emplace(panel.Id(), &panel);
 			return widget;
 		}
@@ -385,7 +393,7 @@ namespace ANON
 					auto& panelSupervisor = static_cast<IGRPanelSupervisor&>(widget->Panel());
 					if (panelSupervisor.RouteCursorClickEvent(ev, false) == EGREventRouting::NextHandler)
 					{
-						return widget->OnCursorClick(ev);
+						return widget->Manager().OnCursorClick(ev);
 					}
 					else
 					{
@@ -460,7 +468,7 @@ namespace ANON
 						IGRWidget* widget = FindWidget(previousMovementCallstack[j].panelId);
 						if (widget)
 						{
-							widget->OnCursorLeave();
+							widget->Manager().OnCursorLeave();
 						}
 					}
 
@@ -482,7 +490,7 @@ namespace ANON
 						IGRWidget* widget = FindWidget(movementCallstack[j].panelId);
 						if (widget)
 						{
-							widget->OnCursorEnter();
+							widget->Manager().OnCursorEnter();
 						}
 					}
 
@@ -570,7 +578,7 @@ namespace ANON
 
 			for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
 			{
-				if (i->panel->Widget().OnCursorMove(ev) == EGREventRouting::Terminate)
+				if (i->panel->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
 				{
 					result = EGREventRouting::Terminate;
 				}
@@ -587,20 +595,30 @@ namespace ANON
 			return result;
 		}
 
-		EGREventRouting RouteKeyEventToWindowsUnderCursor(GRKeyEvent& keyEvent)
+		IGRWidgetSupervisor* TopMostFrame()
 		{
-			keypressCallstack.clear();
-
-			if (!TryAppendWidgetsUnderCursorCallstack(keypressCallstack) || keypressCallstack.empty())
+			if (frameDescriptors.empty())
 			{
-				return EGREventRouting::Terminate;
+				return nullptr;
 			}
 
-			for (auto i = keypressCallstack.rbegin(); i != keypressCallstack.rend(); ++i)
+			return &frameDescriptors.back().frame->Widget().Supervisor();
+		}
+
+		EGREventRouting RouteKeyEventToPanelThenAncestors(IGRPanel& panel, GRKeyEvent& keyEvent)
+		{
+			auto result = panel.Widget().Manager().OnKeyEvent(keyEvent);
+			if (result == EGREventRouting::Terminate)
 			{
-				if (i->panel->Widget().OnKeyEvent(keyEvent) == EGREventRouting::Terminate)
+				return result;
+			}
+
+			for (auto* ancestor = panel.Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+			{
+				result = RouteKeyEventToPanelThenAncestors(*ancestor, keyEvent);
+				if (result == EGREventRouting::Terminate)
 				{
-					return EGREventRouting::Terminate;
+					return result;
 				}
 			}
 
@@ -613,16 +631,17 @@ namespace ANON
 
 			if (focusId < 0)
 			{
-				return RouteKeyEventToWindowsUnderCursor(keyEvent);
+				IGRWidgetManager* frame = TopMostFrame();
+				return frame ? frame->OnKeyEvent(keyEvent) : EGREventRouting::NextHandler;
 			}
 
-			auto* widget = FindWidget(focusId);
-			if (!widget)
+			auto* focusWidget = FindWidget(focusId);
+			if (!focusWidget)
 			{
 				return EGREventRouting::Terminate;
 			}
 
-			return widget->OnKeyEvent(keyEvent);
+			return RouteKeyEventToPanelThenAncestors(focusWidget->Panel(), keyEvent);
 		}
 
 		IGRCustodian& Custodian() override
@@ -698,6 +717,11 @@ namespace ANON
 			return realtimeConfig;
 		}
 
+		[[nodiscard]] IGRFonts& Fonts() override
+		{
+			return custodian.Fonts();
+		}
+
 		void OnNavigate(EGRNavigationDirective directive)
 		{
 			auto* focusedWidget = FindWidget(focusId);
@@ -759,83 +783,101 @@ namespace Rococo::Gui
 		return supervisor.OnGREvent(ev);
 	}
 
-	ROCOCO_GUI_RETAINED_API GRAnchors::GRAnchors()
-	{
-		left = top = right = bottom = expandsHorizontally = expandsVertically = 0;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Left()
-	{
-		GRAnchors a;
-		a.left = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::LeftAndRight()
-	{
-		GRAnchors a;
-		a.left = true;
-		a.right = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::ExpandAll()
-	{
-		GRAnchors a;
-		a.left = true;
-		a.right = true;
-		a.top = true;
-		a.bottom = true;
-		a.expandsVertically = true;
-		a.expandsHorizontally = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Right()
-	{
-		GRAnchors a;
-		a.right = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Top()
-	{
-		GRAnchors a;
-		a.top = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::Bottom()
-	{
-		GRAnchors a;
-		a.bottom = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::TopAndBottom()
-	{
-		GRAnchors a;
-		a.top = true;
-		a.bottom = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::ExpandVertically()
-	{
-		GRAnchors a;
-		a.expandsVertically = true;
-		return a;
-	}
-
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] GRAnchors GRAnchors::ExpandHorizontally()
-	{
-		GRAnchors a;
-		a.expandsHorizontally = true;
-		return a;
-	}
-
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b)
 	{
 		return _stricmp(a, b) == 0;
+	}
+
+	static bool Is(cstr a, cstr b)
+	{
+		return _stricmp(a, b) == 0;
+	}
+
+	ROCOCO_GUI_RETAINED_API GRAlignmentFlags::GRAlignmentFlags(cstr textRepresentation)
+	{
+		if (textRepresentation == nullptr)
+		{
+			Throw(0, __FUNCTION__ "(nullptr)");
+		}
+
+		if (Is(textRepresentation, "left"))
+		{
+			Add(EGRAlignment::Left);
+			return;
+		}
+
+		if (Is(textRepresentation, "right"))
+		{
+			Add(EGRAlignment::Right);
+			return;
+		}
+
+		if (Is(textRepresentation, "top"))
+		{
+			Add(EGRAlignment::Top);
+			return;
+		}
+
+		if (Is(textRepresentation, "bottom"))
+		{
+			Add(EGRAlignment::Bottom);
+			return;
+		}
+
+		if (Is(textRepresentation, "topleft"))
+		{
+			Add(EGRAlignment::Left).Add(EGRAlignment::Top);
+			return;
+		}
+
+		if (Is(textRepresentation, "topright"))
+		{
+			Add(EGRAlignment::Right).Add(EGRAlignment::Top);;
+			return;
+		}
+
+		if (Is(textRepresentation, "bottomleft"))
+		{
+			Add(EGRAlignment::Left).Add(EGRAlignment::Top);
+			return;
+		}
+
+		if (Is(textRepresentation, "bottomright"))
+		{
+			Add(EGRAlignment::Right).Add(EGRAlignment::Top);;
+			return;
+		}
+
+		if (Is(textRepresentation, "centre"))
+		{
+			return;
+		}
+
+		Throw(0, "Expecting one of [Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight, Centre]");
+	}
+
+	ROCOCO_GUI_RETAINED_API IGRWidgetMainFrame* FindOwner(IGRWidget& widget)
+	{
+		IGRPanel* p = &widget.Panel(); 
+
+		for (;;)
+		{
+			if (p->Parent() == nullptr)
+			{
+				return Cast<IGRWidgetMainFrame>(p->Widget());
+			}
+
+			p = p->Parent();
+		}
+	}
+
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetManager& IGRWidget::Manager()
+	{
+		return static_cast<IGRWidgetManager&>(*this);
+	}
+
+	ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetSupervisor& IGRWidget::Supervisor()
+	{
+		return static_cast<IGRWidgetSupervisor&>(*this);
 	}
 }

@@ -1,5 +1,6 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.strings.ex.h>
+#include <rococo.vector.ex.h>
 #include <rococo.mplat.h>
 #include <rococo.renderer.h>
 #include <rococo.maths.h>
@@ -8,7 +9,6 @@
 #include <rococo.fonts.hq.h>
 #include <rococo.textures.h>
 #include <rococo.os.h>
-#include <vector>
 #include <rococo.vkeys.h>
 #include <rococo.os.h>
 #include <rococo.hashtable.h>
@@ -22,6 +22,16 @@ using namespace Rococo::Gui;
 using namespace Rococo::Graphics;
 using namespace Rococo::Graphics::Textures;
 using namespace Rococo::Strings;
+
+namespace Rococo::Gui
+{
+	ROCOCO_API_IMPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder);
+
+	inline ID_FONT To_ID_FONT(GRFontId id)
+	{
+		return ID_FONT{ static_cast<int>(id) };
+	}
+}
 
 namespace ANON
 {
@@ -64,6 +74,14 @@ namespace ANON
 		RGBAb colour2;
 	};
 
+	struct MPlatCustodian;
+
+	ROCOCO_INTERFACE IMPlatImageSupervisor : IGRImageSupervisor
+	{
+		virtual const BitmapLocation & Sprite() const = 0;
+	};
+
+
 	struct MPlatGR_Renderer : IGRRenderContext
 	{
 		IUtilities& utils;
@@ -73,10 +91,15 @@ namespace ANON
 
 		std::vector<RenderTask> lastTasks;
 
-		MPlatGR_Renderer(IUtilities& _utils) : utils(_utils)
+		MPlatCustodian& custodian;
+
+		MPlatGR_Renderer(MPlatCustodian& _custodian, IUtilities& _utils) : custodian(_custodian), utils(_utils)
 		{
 
 		}
+
+		IGRFonts& Fonts() override;
+		IGRImages& Images() override;
 
 		void DrawLastItems()
 		{
@@ -85,7 +108,7 @@ namespace ANON
 				switch (task.type)
 				{
 				case ERenderTaskType::Edge:
-					DrawRectEdge(task.target, task.colour1, task.colour2);
+					DrawRectEdge(task.target, task.colour1, task.colour2, EGRRectStyle::SHARP, 4);
 					break;
 				}
 			}
@@ -119,18 +142,50 @@ namespace ANON
 			}
 		}
 
-		void DrawRect(const GuiRect& absRect, RGBAb colour) override
+		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
 		{
-			if (!lastScissorRect.IsNormalized())
-			{
-				return;
-			}
-
-			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-			Rococo::Graphics::DrawRectangle(*rc, visibleRect, colour, colour);
+			auto sprite = static_cast<IMPlatImageSupervisor&>(image).Sprite();
+			Graphics::StretchBitmap(*rc, sprite, absRect);
 		}
 
-		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
+		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
+		{
+			Vec2i span = image.Span();
+
+			Vec2i topLeftPos;
+
+			if (alignment.IsLeft())
+			{
+				topLeftPos.x = absRect.left;
+			}
+			else if (alignment.IsRight())
+			{
+				topLeftPos.x = absRect.right - span.x;
+			}
+			else
+			{
+				topLeftPos.x = Centre(absRect).x - (span.x / 2);
+			}
+
+			if (alignment.IsTop())
+			{
+				topLeftPos.y = absRect.top;
+			}
+			else if (alignment.IsBottom())
+			{
+				topLeftPos.y = absRect.bottom - span.y;
+			}
+			else
+			{
+				topLeftPos.y = Centre(absRect).y - (span.y / 2);
+			}
+
+			auto& sprite = static_cast<IMPlatImageSupervisor&>(image).Sprite();
+
+			Rococo::Graphics::DrawSprite(topLeftPos, sprite, *rc);
+		}
+
+		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
 		{
 			if (!lastScissorRect.IsNormalized())
 			{
@@ -138,7 +193,50 @@ namespace ANON
 			}
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-			Rococo::Graphics::DrawBorderAround(*rc, visibleRect, Vec2i{ 1,1 }, colour1, colour2);
+			rc->SetScissorRect(visibleRect);
+			switch (rectStyle)
+			{
+			case EGRRectStyle::SHARP:
+				Rococo::Graphics::DrawRectangle(*rc, absRect, colour, colour);
+				break;
+			case EGRRectStyle::ROUNDED_WITH_BLUR:
+			case EGRRectStyle::ROUNDED:
+				Rococo::Graphics::DrawRoundedRectangle(*rc, absRect, colour, cornerRadius);
+			}
+		}
+
+		void DrawLine(Vec2i start, Vec2i end, RGBAb colour)
+		{
+			Rococo::Graphics::DrawLine(*rc, 1, start, end, colour);
+		}
+
+		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
+		{
+			UNUSED(rectStyle);
+			UNUSED(cornerRadius);
+
+			if (!lastScissorRect.IsNormalized())
+			{
+				return;
+			}
+
+			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
+			rc->SetScissorRect(visibleRect);
+
+			switch (rectStyle)
+			{
+			case EGRRectStyle::SHARP:
+			{
+				Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+				break;
+			}
+			case EGRRectStyle::ROUNDED:
+			case EGRRectStyle::ROUNDED_WITH_BLUR:
+				Rococo::Graphics::DrawRoundedEdge(*rc, absRect, colour1, cornerRadius);
+				break;
+			}
+
+			rc->ClearScissorRect();
 		}
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
@@ -153,7 +251,7 @@ namespace ANON
 			lastTasks.push_back(task);
 		}
 
-		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, int32 caretPos, RGBAb colour) override
+		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
 		{
 			if (!lastScissorRect.IsNormalized())
 			{
@@ -168,18 +266,8 @@ namespace ANON
 
 			alignment.Remove(EGRAlignment::Right).Add(EGRAlignment::Left);
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
-
-			ID_FONT hqFontId;
-
-			switch (fontId)
-			{
-			case GRFontId::MENU_FONT:
-			default:
-				hqFontId = utils.GetHQFonts().GetSysFont(HQFont::MenuFont);
-				break;
-			}
-
-			auto& metrics = rc->Resources().HQFontsResources().GetFontMetrics(hqFontId);
+				
+			auto& metrics = rc->Resources().HQFontsResources().GetFontMetrics(To_ID_FONT(fontId));
 			
 			struct : IEventCallback<GlyphContext>
 			{
@@ -204,12 +292,12 @@ namespace ANON
 				}
 			} glyphCallback;
 
-			glyphCallback.caretPos = caretPos;
+			glyphCallback.caretPos = caret.CaretPos;
 			glyphCallback.caretWidth = metrics.imgWidth;
 
 			RGBAb transparent(0, 0, 0, 0);
 
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, transparent, spacing, &glyphCallback);
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, To_ID_FONT(fontId), editText, transparent, spacing, &glyphCallback);
 
 			int32 dxShift = 0;
 
@@ -227,7 +315,7 @@ namespace ANON
 			glyphCallback.charPos = 0;
 			glyphCallback.caretStart = glyphCallback.caretEnd = { 0,0 };
 
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, editText, colour, spacing, &glyphCallback, dxShift);
+			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, To_ID_FONT(fontId), editText, colour, spacing, &glyphCallback, dxShift);
 
 			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
 			{
@@ -240,56 +328,109 @@ namespace ANON
 
 			float dt = dticks / (float)Rococo::Time::TickHz();
 
-			RGBAb blinkColour = colour;
-			if (dt > 0.5f)
-			{
-				blinkColour.alpha = colour.alpha / 2;
-			}
+			RGBAb blinkColour = dt > 0.5f ? caret.CaretColour1 : caret.CaretColour2;
 			Rococo::Graphics::DrawLine(*rc, 1, glyphCallback.caretStart, glyphCallback.caretEnd, blinkColour);
 
 			rc->FlushLayer();
 			rc->ClearScissorRect();
 		}
 
-		void DrawText(GRFontId fontId, const GuiRect& targetRect, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
 		{
-			UNUSED(targetRect);
+			SpriteVertexData useColour{ 1, 0,0,0 };
+			BaseVertexData noTextures{ {0,0}, 0 };
 
+			for (size_t i = 0; i < nTriangles; i++)
+			{
+				auto& t = triangles[i];
+
+				GuiVertex v[3];
+				v[0].pos = Vec2{ (float)t.a.position.x, (float)t.a.position.y };
+				v[1].pos = Vec2{ (float)t.b.position.x, (float)t.b.position.y };
+				v[2].pos = Vec2{ (float)t.c.position.x, (float)t.c.position.y };
+
+				v[0].colour = t.a.colour;
+				v[1].colour = t.b.colour;
+				v[2].colour = t.c.colour;
+
+				v[0].sd = useColour;
+				v[1].sd = useColour;
+				v[2].sd = useColour;
+
+				v[0].vd = noTextures;
+				v[1].vd = noTextures;
+				v[2].vd = noTextures;
+
+				rc->AddTriangle(v);
+			}
+		}
+
+		void DrawParagraph(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		{
+			DrawText(fontId, targetRect, alignment, spacing, text, colour);
+		}
+
+		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
+		{
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
 			}
 
-			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
+			if (!AreRectsOverlapped(lastScissorRect, targetRect))
 			{
-				if (!AreRectsOverlapped(lastScissorRect, clipRect))
-				{
-					return;
-				}
-
-				rc->FlushLayer();
-				rc->SetScissorRect(lastScissorRect);
+				return;
 			}
+
+			rc->FlushLayer();
+			rc->SetScissorRect(lastScissorRect);
 
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
 
-			ID_FONT hqFontId;
-
-			switch (fontId)
+			if (alignment.HasSomeFlags(EGRAlignment::AutoFonts))
 			{
-			case GRFontId::MENU_FONT:
-			default:
-				hqFontId = utils.GetHQFonts().GetSysFont(HQFont::MenuFont);
-				break;
-			}
-	
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, hqFontId, text, colour, spacing);
+				ID_FONT autoFontId = To_ID_FONT(fontId);
 
-			if (lastScissorRect.IsNormalized() && IsRectClipped(lastScissorRect, clipRect))
-			{
-				rc->FlushLayer();
-				rc->ClearScissorRect();
+				for (;;)
+				{
+					Vec2i pixelSpan =  rc->Resources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text);;
+					
+					if (pixelSpan.x == 0 || pixelSpan.y == 0)
+					{
+						break;
+					}
+
+					if (Width(targetRect) > pixelSpan.x)
+					{
+						Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
+						break;
+					}
+					else
+					{
+						ID_FONT smallerFont = rc->Resources().HQFontsResources().FindBestSmallerFont(autoFontId);
+						if (!smallerFont)
+						{
+							ID_FONT smallestFont = rc->Resources().HQFontsResources().FindSmallestFont();
+							Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, smallestFont, text, colour, spacing);
+							break;
+						}
+
+						autoFontId = smallerFont;
+					}
+				}
 			}
+			else
+			{
+				Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
+			}
+
+			rc->FlushLayer();
+			rc->ClearScissorRect();				
+		}
+
+		bool TryFindFontJustSmallerThanHeight(Rococo::Gui::FontSpec&, int) const
+		{
+			return false;
 		}
 
 		void Flush() override
@@ -342,8 +483,10 @@ namespace ANON
 			return lastScissorRect.IsNormalized();
 		}
 
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const BitmapLocation& sprite)
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, const BitmapLocation& sprite)
 		{
+			UNUSED(isStretched);
+
 			if (!rc || sprite.pixelSpan.x <= 0 || sprite.pixelSpan.y <= 0 || sprite.textureIndex < 0) 
 			{
 				return false;
@@ -394,14 +537,14 @@ namespace ANON
 		}
 	};
 
-	struct MPlatImageMemento : IGRImageMemento
+	struct MPlatImage : IMPlatImageSupervisor
 	{
 		Vec2i span{ 8, 8 };
 		BitmapLocation sprite = BitmapLocation::None();
 
 		IBitmapArrayBuilder& sprites;
 
-		MPlatImageMemento(cstr hint, cstr imagePath, IBitmapArrayBuilder& _sprites): sprites(_sprites)
+		MPlatImage(cstr hint, cstr imagePath, IBitmapArrayBuilder& _sprites): sprites(_sprites)
 		{
 			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
 			{
@@ -409,9 +552,9 @@ namespace ANON
 			}
 		}
 
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, IGRRenderContext& g) override
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override
 		{
-			return static_cast<MPlatGR_Renderer&>(g).Render(panel, alignment, spacing, sprite);
+			return static_cast<MPlatGR_Renderer&>(g).Render(panel, alignment, spacing, isStretched, sprite);
 		}
 
 		void Free() override
@@ -423,17 +566,22 @@ namespace ANON
 		{
 			return Quantize(sprite.pixelSpan);
 		}
+
+		const BitmapLocation& Sprite() const override
+		{
+			return sprite;
+		}
 	};
 
 	const stringmap<cstr> macroToPingPath =
 	{
-		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/3rd-party/www.aha-soft.com/Down.tiff" },
-		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/3rd-party/www.aha-soft.com/Forward.tiff" },
-		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/expanded_state.tiff" },
-		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/inline_state.tiff" },
+		{ "$(COLLAPSER_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
+		{ "$(COLLAPSER_COLLAPSE)", "!textures/toolbars/MAT/collapsed.tif" },
+		{ "$(COLLAPSER_ELEMENT_EXPAND)", "!textures/toolbars/MAT/expanded.tif" },
+		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory
+	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
 	{
 		MPlatGR_Renderer renderer;
 		IRenderer& sysRenderer;
@@ -443,31 +591,82 @@ namespace ANON
 		EGREventRouting lastRoutingStatus = EGREventRouting::Terminate;
 		int64 eventCount = 0;
 
-		MPlatCustodian(IUtilities& utils, IRenderer& _sysRenderer): renderer(utils), sysRenderer(_sysRenderer)
+		MPlatCustodian(IUtilities& utils, IRenderer& _sysRenderer): renderer(*this, utils), sysRenderer(_sysRenderer)
 		{
 			
 		}
 
-		IGRImageMemento* CreateImageMemento(cstr debugHint, cstr codedImagePath) override
+		virtual ~MPlatCustodian()
+		{
+
+		}
+
+		float zoomLevel = 1.0f;
+
+		void SetUIZoom(float zoomLevel) override
+		{
+			float newZoomLevel = clamp(1.0f, zoomLevel, 100.0f);
+			if (newZoomLevel != this->zoomLevel)
+			{
+				this->zoomLevel = newZoomLevel;
+				renderer.utils.GetHQFonts().SetZoomLevel(newZoomLevel);
+			}
+		}
+
+		float ZoomLevel() const override
+		{
+			return this->zoomLevel;
+		}
+
+		void AlertNoActionForKey() override
+		{
+
+		}
+
+		IGRFonts& Fonts() override
+		{
+			return *this;
+		}
+
+		cstr GetLastKnownControlType() const override
+		{
+			return "XBOX";
+		}
+
+		IGRKeyState& Keys() override
+		{
+			return *this;
+		}
+
+		bool IsKeyPressed(Rococo::IO::VirtualKeys::VKCode keyCode) const override
+		{
+			return IO::IsKeyPressed(keyCode);
+		}
+
+		GRFontId BindFontId(const FontSpec& spec) override
+		{
+			HQFontDef def;
+			def.fontSize = spec.CharHeight;
+			def.isBold = spec.Bold;
+			def.isItalic = spec.Italic;
+			return (GRFontId) renderer.utils.GetHQFonts().BindFont(def, to_fstring(spec.FontName)).value;
+		}
+
+		int GetFontHeight(GRFontId id) const override
+		{
+			return renderer.utils.GetHQFonts().GetHeight((ID_FONT)((int)id));
+		}
+
+		IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
 		{
 			auto i = macroToPingPath.find(codedImagePath);
 			cstr imagePath = i != macroToPingPath.end() ? imagePath = i->second : codedImagePath;
-			return new MPlatImageMemento(debugHint, imagePath, sysRenderer.GuiResources().SpriteBuilder());
+			return new MPlatImage(debugHint, imagePath, sysRenderer.GuiResources().SpriteBuilder());
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
 		{
-			ID_FONT idSysFont;
-
-			switch (fontId)
-			{
-			case GRFontId::MENU_FONT:
-			default:
-				idSysFont = renderer.utils.GetHQFonts().GetSysFont(HQFont::MenuFont);
-				break;
-			}
-
-			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(idSysFont, text);
+			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text);
 		}
 
 		void RecordWidget(IGRWidget& widget) override
@@ -554,7 +753,7 @@ namespace ANON
 			
 			if (renderer.lastScreenDimensions.right > 0 && renderer.lastScreenDimensions.bottom > 0)
 			{
-				gr.RenderGui(renderer);
+				gr.RenderAllFrames(renderer);
 			}
 
 			renderer.DrawLastItems();
@@ -564,80 +763,22 @@ namespace ANON
 
 		std::vector<char> copyAndPasteBuffer;
 
-		void TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
+		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
-			if (!keyEvent.osKeyEvent.IsUp())
-			{
-				switch (keyEvent.osKeyEvent.VKey)
-				{
-				case IO::VirtualKeys::VKCode_BACKSPACE:
-					manager.BackspaceAtCaret();
-					return;
-				case IO::VirtualKeys::VKCode_DELETE:
-					manager.DeleteAtCaret();
-					return;
-				case IO::VirtualKeys::VKCode_ENTER:
-					manager.Return();
-					return;
-				case IO::VirtualKeys::VKCode_LEFT:
-					manager.AddToCaretPos(-1);
-					return;
-				case IO::VirtualKeys::VKCode_RIGHT:
-					manager.AddToCaretPos(1);
-					return;
-				case IO::VirtualKeys::VKCode_HOME:
-					manager.AddToCaretPos(-100'000'000);
-					return;
-				case IO::VirtualKeys::VKCode_END:
-					manager.AddToCaretPos(100'000'000);
-					return;
-				case IO::VirtualKeys::VKCode_C:
-					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
-					{
-						// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
-						copyAndPasteBuffer.resize(manager.GetTextAndLength(nullptr, 0));
-						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32) copyAndPasteBuffer.size());
-						Rococo::OS::CopyStringToClipboard(copyAndPasteBuffer.data());
-						copyAndPasteBuffer.clear();
-						return;
-					}
-					else
-					{
-						break;
-					}
-				case IO::VirtualKeys::VKCode_V:
-					if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
-					{
-						manager.GetTextAndLength(copyAndPasteBuffer.data(), (int32)copyAndPasteBuffer.size());
-
-						struct : IStringPopulator
-						{
-							IGREditorMicromanager* manager = nullptr;
-							void Populate(cstr text) override
-							{
-								for (cstr p = text; *p != 0; p++)
-								{
-									manager->AppendCharAtCaret(*p);
-								}
-							}
-						} cb;
-						cb.manager = &manager;
-						Rococo::OS::PasteStringFromClipboard(cb);
-						return;
-					}
-					else
-					{
-						break;
-					}
-				}
-
-				if (keyEvent.osKeyEvent.unicode >= 32 && keyEvent.osKeyEvent.unicode <= 127)
-				{
-					manager.AppendCharAtCaret((char)keyEvent.osKeyEvent.unicode);
-				}
-			}
+			CharBuilder builder(copyAndPasteBuffer);
+			return Gui::TranslateToEditor(keyEvent, manager, builder);
 		}
 	};
+
+	IGRFonts& MPlatGR_Renderer::Fonts()
+	{
+		return custodian;
+	}
+
+	IGRImages& MPlatGR_Renderer::Images()
+	{
+		return custodian;
+	}
 }
 
 namespace Rococo::Gui

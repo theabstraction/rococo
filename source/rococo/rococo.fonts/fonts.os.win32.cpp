@@ -67,7 +67,7 @@ struct FontGlyphs : IFontGlyphBuilder
 
 	void ForEachGlyph(IEventCallback<const GlyphDesc>& cb)
 	{
-		for (auto i : codes)
+		for (auto& i : codes)
 		{
 			cb.OnEvent(GlyphDesc(i.second, i.first));
 		}

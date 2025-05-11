@@ -1,29 +1,40 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
+#include <stdio.h>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
 
 namespace ANON
 {
-	struct GRViewportWidget : IGRWidgetViewport, IGRWidgetSupervisor, IGRScrollerEvents, IGRFocusNotifier
+	enum { scrollbarWidth = 16 };
+
+	struct GRViewportWidget : IGRWidgetViewport, IGRWidgetSupervisor, IGRScrollerEvents, IGRFocusNotifier, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		IGRWidgetDivision* clipArea = nullptr; // Represents the rectangle to the left of the scroller
 		IGRWidgetDivision* clientOffsetArea = nullptr; // Represents the scrolled data inside the clipArea
 		IGRWidgetVerticalScrollerWithButtons* vscroller = nullptr;
+		int clientOffsetAreaParentOffset = 0;
 
 		GRViewportWidget(IGRPanel& owningPanel) : panel(owningPanel)
 		{
-			owningPanel.SetMinimalSpan({ 10, 10 });
+			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 		}
 
 		void PostConstruct()
 		{
 			clipArea = &CreateDivision(*this);
-			clientOffsetArea = &CreateDivision(*clipArea);
-			clientOffsetArea->Panel().PreventInvalidationFromChildren();
+			clipArea->Panel().SetExpandToParentVertically();
+			clipArea->Panel().SetExpandToParentHorizontally();
+			clipArea->Panel().SetLayoutDirection(ELayoutDirection::None);
+			clientOffsetArea = &CreateDivision(clipArea->Widget());
+			clientOffsetArea->Panel().SetExpandToParentVertically();
+			clientOffsetArea->Panel().SetExpandToParentHorizontally();
+			clientOffsetArea->Panel().SetClippingPanel(&clipArea->Panel());
 			vscroller = &CreateVerticalScrollerWithButtons(*this, *this);
+			vscroller->Widget().Panel().SetExpandToParentVertically();
+			vscroller->Widget().Panel().SetConstantWidth(scrollbarWidth);
 		}
 
 		void Free() override
@@ -31,34 +42,91 @@ namespace ANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
+		void LayoutBeforeFit() override
 		{
-			enum { scrollbarWidth = 16 };
-
-			Vec2i clipSpan { Width(panelDimensions) - scrollbarWidth, Height(panelDimensions) };
-			clipArea->Panel().Resize(clipSpan);
-			clipArea->Panel().SetParentOffset({ 0,0 });
-			clipArea->Panel().InvalidateLayout(false);
-
-			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
-
-			int parentOffset = 0;
-
-			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
-			if (m.PixelRange > 0)
+			if (syncDomainToChildren)
 			{
-				double cursor = clamp((double)m.PixelPosition / (double)m.PixelRange, 0.0, 1.0);
-				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
+				auto& clientPanel = ClientArea().Panel();
+
+				nextDomain = clientPanel.Padding().top;
+
+				int nChildren = clientPanel.EnumerateChildren(nullptr);
+
+				for (int i = 0; i < nChildren; i++)
+				{
+					auto* child = clientPanel.GetChild(i);
+					nextDomain += child->Span().y;
+				}
+
+				if (nChildren > 1)
+				{
+					nextDomain += (nChildren - 1) * clientPanel.ChildPadding();
+				}
+
+				nextDomain += clientPanel.Padding().bottom;
 			}
 
-			clientOffsetArea->Panel().Resize(clientOffsetSpan);
-			clientOffsetArea->Panel().SetParentOffset({ 0, -parentOffset });
-			clientOffsetArea->Panel().InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
+			SetDomainHeight(nextDomain);
+		}
 
-			vscroller->Widget().Panel().Resize({ scrollbarWidth, Height(panelDimensions) - 2 });
-			vscroller->Widget().Panel().SetParentOffset({ Width(panelDimensions) - scrollbarWidth, 1 });
-			vscroller->Widget().Panel().InvalidateLayout(false);
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+			auto span = panel.Span();
+
+			int trueScrollBarWidth = scrollbarWidth;
+
+			if (nextDomain <= panel.Span().y)
+			{
+				vscroller->Panel().SetCollapsed(true);
+				trueScrollBarWidth = 0;
+				ClientArea().Panel().SetRectStyle(notScrollableRectStyle);
+				panel.SetRectStyle(notScrollableRectStyle);
+			}
+			else
+			{
+				vscroller->Panel().SetCollapsed(false);
+				ClientArea().Panel().SetRectStyle(scrollableRectStyle);
+				panel.SetRectStyle(scrollableRectStyle);
+			}
+
+			Vec2i roundedOffset = { 0,0 };
+
+			Vec2i clipSpan{ span.x - trueScrollBarWidth, span.y };
+
+			if (panel.RectStyle() != EGRRectStyle::SHARP)
+			{
+				roundedOffset = { panel.CornerRadius(), 0 };
+				trueScrollBarWidth = 2 * roundedOffset.x;
+
+				clipSpan.x -= trueScrollBarWidth;
+			}
+
+			auto& clipPanel = clipArea->Panel();
+			clipPanel.SetConstantWidth(clipSpan.x);
+			clipPanel.SetConstantHeight(clipSpan.y);
+			clipPanel.SetParentOffset({roundedOffset.x,0});
+			
+			Vec2i clientOffsetSpan{ clipSpan.x, max(lastKnownDomainHeight, clipSpan.y) };
+
+			auto& coaPanel = clientOffsetArea->Panel();
+			coaPanel.SetConstantWidth(clientOffsetSpan.x);
+			coaPanel.SetConstantHeight(clientOffsetSpan.y);
+			coaPanel.SetParentOffset({0, -clientOffsetAreaParentOffset });
+			
+			auto& vswp = vscroller->Widget().Panel();
+			vswp.SetConstantWidth(trueScrollBarWidth);
+			vswp.SetConstantHeight(clipSpan.y);
+
+			vswp.SetCornerRadius(panel.CornerRadius());
+			vswp.SetRectStyle(panel.RectStyle());
+
+			int scrollerX = panel.Span().x - trueScrollBarWidth;
+			vswp.SetParentOffset({ scrollerX, 1});
 		}
 
 		GRSliderSpec OnCalculateSliderRect(int32 scrollerSpan, IGRWidgetScroller&) override
@@ -66,7 +134,7 @@ namespace ANON
 			double sliderSpanToScrollerSpan = scrollerSpan / (double)lastKnownDomainHeight;
 
 			GRSliderSpec spec;
-			spec.sliderSpanInPixels = (int) (sliderSpanToScrollerSpan * scrollerSpan);
+			spec.sliderSpanInPixels = (int) (clipArea->Panel().Span().y * sliderSpanToScrollerSpan);
 			return spec;
 		}
 
@@ -81,73 +149,134 @@ namespace ANON
 			this->lineDeltaPixels = clamp(lineDeltaPixels, 1, 1000'000);
 		}
 
+		int GetOffset() const override
+		{
+			return clientOffsetAreaParentOffset;
+		}
+
+		void SetOffset(int offset, bool fromStart) override
+		{
+			int span = lastKnownDomainHeight - Height(clipArea->Panel().AbsRect());
+
+			if (span < 0)
+			{
+				clientOffsetAreaParentOffset = 0;
+				return;
+			}
+
+			if (offset < 0)
+			{
+				clientOffsetAreaParentOffset = max(0, span);
+				return;
+			}
+
+			if (fromStart)
+			{
+				clientOffsetAreaParentOffset = offset;
+			}
+			else
+			{
+				clientOffsetAreaParentOffset = span - offset;
+			}
+
+			clientOffsetAreaParentOffset = clamp(clientOffsetAreaParentOffset, 0, span);
+		}
+
+		EGRRectStyle notScrollableRectStyle = EGRRectStyle::SHARP;
+
+		void SetClientAreaRectStyleWhenNotScrollable(EGRRectStyle style) override
+		{
+			notScrollableRectStyle = style;
+		}
+
+		EGRRectStyle scrollableRectStyle = EGRRectStyle::SHARP;
+
+		void SetClientAreaRectStyleWhenScrollable(EGRRectStyle style) override
+		{
+			scrollableRectStyle = style;
+		}
+
+		bool syncDomainToChildren = false;
+
+		void SyncDomainToChildren()
+		{
+			syncDomainToChildren = true;
+		}
+
 		void SetMovePageScale(double scaleFactor) override
 		{
 			pageDeltaScale = clamp(scaleFactor, 0.0, 2.0);
 		}
 
-		void OnScrollLines(int delta, IGRWidgetScroller& scroller)
+		void ScrollDeltaPixels(int deltaPixels, IGRWidgetScroller& scroller)
 		{
-			if (lineDeltaPixels == 0) return;
+			// panel.Root().GR().SetFocus(-1);
+
+			int clipAreaHeight = clipArea->Panel().Span().y;
 
 			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			if (m.PixelRange > 0 && lastKnownDomainHeight > clipAreaHeight)
 			{
-				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
+				double scale = m.PixelRange / (double)(lastKnownDomainHeight - clipAreaHeight);
+				int32 newOffset = deltaPixels + clientOffsetAreaParentOffset;
 
-				int32 deltaPixels = delta * lineDeltaPixels;
-
-				int newPosition = (int)(deltaPixels / scale);
-
-				if (newPosition == 0)
+				if (lineDeltaPixels > 0 && lineDeltaPixels < deltaPixels)
 				{
-					// Don't let the scaling completely eliminate the change, we must always have some scrolling
-					newPosition = (delta > 0) ? 1 : -1;
+					newOffset = (newOffset / lineDeltaPixels) * lineDeltaPixels;
 				}
 
-				OnScrollerNewPositionCalculated(newPosition, scroller);
+				clientOffsetAreaParentOffset = clamp(0, newOffset, lastKnownDomainHeight - clipAreaHeight);
 
-				scroller.SetSliderPosition(clamp(newPosition + m.PixelPosition, 0, m.PixelRange));
+				int newPosition = (int)(newOffset * scale);
+				newPosition = clamp(newPosition, 0, m.PixelRange);
+
+				scroller.SetSliderPosition(newPosition);
 			}
+		}
+
+		void OnScrollLines(int delta, IGRWidgetScroller& scroller)
+		{
+			if (lineDeltaPixels <= 0) return;
+			int32 deltaPixels = delta * lineDeltaPixels;
+			ScrollDeltaPixels(deltaPixels, scroller);
 		}
 
 		void OnScrollPages(int delta, IGRWidgetScroller& scroller) override
 		{
-			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
+			int clipAreaHeight = clipArea->Panel().Span().y;
+			int deltaPixels = (int)(pageDeltaScale * delta * clipAreaHeight);
+			ScrollDeltaPixels(deltaPixels, scroller);
+		}
+
+		void AdjustClientOffsetAreaAccordingToNewPosition(int newPosition, const GRScrollerMetrics m)
+		{
+			int clipAreaHeight = clipArea->Panel().Span().y;
+
+			if (m.PixelRange == 0)
 			{
-				double scale = (lastKnownDomainHeight - m.SliderZoneSpan) / (double)m.PixelRange;
-
-				int32 deltaPixels = delta * clipArea->Panel().Span().y;
-
-				int newPosition = (int)(pageDeltaScale * deltaPixels / scale);
-
-				OnScrollerNewPositionCalculated(newPosition, scroller);
-
-				scroller.SetSliderPosition(clamp(newPosition + m.PixelPosition, 0, m.PixelRange));
+				clientOffsetAreaParentOffset = 0;
+			}
+			else if (m.PixelRange > 0 && lastKnownDomainHeight > clipAreaHeight)
+			{
+				double cursor = clamp(newPosition / (double)(m.PixelRange), 0.0, 1.0);
+				clientOffsetAreaParentOffset = (int)(cursor * (lastKnownDomainHeight - clipAreaHeight));
 			}
 		}
 
 		void OnScrollerNewPositionCalculated(int32 newPosition, IGRWidgetScroller& scroller) override
 		{
-			int parentOffset = 0;
-
 			GRScrollerMetrics m = scroller.GetMetrics();
-			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
-			{
-				double cursor = clamp((double)(m.PixelPosition + newPosition) / (double)m.PixelRange, 0.0, 1.0);
-				parentOffset = (int)(cursor * (lastKnownDomainHeight - m.SliderZoneSpan));
-			}
-
-			clipArea->Panel().InvalidateLayout(false);
-			clientOffsetArea->Panel().SetParentOffset({ 0, -parentOffset });
-			clientOffsetArea->Panel().InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
+			AdjustClientOffsetAreaAccordingToNewPosition(newPosition, m);
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			UNUSED(ce);
+			if (ce.wheelDelta != 0)
+			{
+				vscroller->Scroller().Widget().Supervisor().OnCursorClick(ce);
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -172,19 +301,19 @@ namespace ANON
 			auto clipRect = clipArea->Panel().AbsRect();
 
 			int32 dOffset = 0;
-			if (rect.bottom < clipArea->Panel().AbsRect().top)
+			if (rect.top < clipArea->Panel().AbsRect().top)
 			{
-				dOffset = rect.bottom - clipArea->Panel().AbsRect().top;
+				dOffset = rect.top - clipArea->Panel().AbsRect().top;
 			}
-			else if (rect.top > clipArea->Panel().AbsRect().bottom)
+			else if (rect.top >= clipArea->Panel().AbsRect().bottom)
 			{
 				if (Height(rect) < Height(clipRect))
 				{
-					dOffset = clipArea->Panel().AbsRect().top - rect.top;
+					dOffset = rect.bottom - clipArea->Panel().AbsRect().bottom;
 				}
 				else
 				{
-					dOffset = clipArea->Panel().AbsRect().bottom - rect.top - 30;
+					dOffset = rect.top - clipArea->Panel().AbsRect().bottom;
 				}
 			}
 			else
@@ -192,33 +321,33 @@ namespace ANON
 				return;
 			}
 
-			int32 parentOffset = clientOffsetArea->Panel().ParentOffset().y + dOffset;
+			clientOffsetAreaParentOffset = - clientOffsetArea->Panel().ParentOffset().y + dOffset;
 
 			GRScrollerMetrics m = vscroller->Scroller().GetMetrics();
 			if (m.PixelRange > 0 && lastKnownDomainHeight > m.SliderZoneSpan)
 			{
-				double sliderPixelOffset = -(double) (m.PixelRange * parentOffset) / (double) (lastKnownDomainHeight - m.SliderZoneSpan);
+				double sliderPixelOffset = (double) (m.PixelRange * clientOffsetAreaParentOffset) / (double) (lastKnownDomainHeight - Span(clipArea->Panel().AbsRect()).y);
 				vscroller->Scroller().SetSliderPosition(clamp((int32)sliderPixelOffset, 0, m.PixelRange));
 			}
-
-			clipArea->Panel().InvalidateLayout(false);
-			clientOffsetArea->Panel().SetParentOffset({ 0, parentOffset });
-			clientOffsetArea->Panel().InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(clientOffsetArea->Panel());
 		}
 
-		void OnDeepChildFocusSet(int64 panelId) override
+		EGREventRouting OnDeepChildFocusSet(int64 panelId) override
 		{
 			auto* w = panel.Root().GR().FindWidget(panelId);
 			if (!w)
 			{
-				return;
+				return EGREventRouting::Terminate;
 			}
 
 			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
 			{
 				auto rect = w->Panel().AbsRect();
 				ScrollIntoView(rect);
+				return EGREventRouting::Terminate;
+			}
+			else
+			{
+				return EGREventRouting::NextHandler;
 			}
 		}
 
@@ -239,11 +368,19 @@ namespace ANON
 
 		void Render(IGRRenderContext& g) override
 		{
-			DrawPanelBackground(panel, g);
+			DrawPanelBackgroundEx(panel, g, EGRSchemeColourSurface::BACKGROUND, EGRSchemeColourSurface::CONTAINER_TOP_LEFT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
+		int nextDomain = 0;
+
+		EGREventRouting OnChildEvent(GRWidgetEvent& ev, IGRWidget&) override
 		{
+			switch (ev.eventType)
+			{
+			case EGRWidgetEventType::UPDATED_CLIENTAREA_HEIGHT:
+				nextDomain = (int) ev.iMetaData;
+				return EGREventRouting::Terminate;
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -256,6 +393,12 @@ namespace ANON
 		{
 			if (ppOutputArg) *ppOutputArg = nullptr;
 			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
+
+			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
 
 			if (DoInterfaceNamesMatch(interfaceId, IGRWidgetViewport::InterfaceId()))
 			{
@@ -285,8 +428,9 @@ namespace ANON
 		{
 			if (lastKnownDomainHeight != heightInPixels)
 			{
+				nextDomain = heightInPixels;
 				lastKnownDomainHeight = heightInPixels;
-				clientOffsetArea->Panel().Resize({ ClientArea().Panel().Span().x, max(1, heightInPixels) });
+				clientOffsetArea->Panel().SetConstantHeight(max(1, heightInPixels));
 			}
 		}
 

@@ -193,6 +193,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.maths\rococo.collisions.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.maths\rococo.integer.formatting.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.maths\rococo.maths.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.maths\rococo.quad.tree.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.maths\rococo.random.cpp" />

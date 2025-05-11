@@ -6,6 +6,8 @@ using namespace Rococo::Gui;
 
 namespace GRANON
 {
+	// Note - this is not that much different from a division widget, and was used for vertical layout before
+	// the panels had such layouts embedded in them.
 	struct GRVerticalList : IGRWidgetVerticalList, IGRNavigator, IGRWidgetSupervisor
 	{
 		IGRPanel& panel;
@@ -15,7 +17,7 @@ namespace GRANON
 			panel(owningPanel), 
 			enforcePositiveChildHeights(_enforcePositiveChildHeights)
 		{
-			owningPanel.SetMinimalSpan({ 10, 10 });
+			owningPanel.SetLayoutDirection(ELayoutDirection::TopToBottom);
 		}
 
 		void Free() override
@@ -26,31 +28,6 @@ namespace GRANON
 		IGRWidget& Widget() override
 		{
 			return *this;
-		}
-
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			int index = 0;
-			int top = 0;
-
-			while (auto* child = panel.GetChild(index++))
-			{
-				auto padding = child->Padding();
-				child->SetParentOffset({ padding.left, top + padding.top });
-				int dy = child->Span().y;
-				if (dy <= 0 && enforcePositiveChildHeights)
-				{
-					panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::Generic, __FUNCTION__, "Child #%lld of vertical list %lld had zero height", child->Id(), panel.Id());
-				}
-				child->Resize({Width(panelDimensions) - padding.left - padding.right, dy});
-				top += dy + padding.top + padding.bottom;
-			}
-
-			int overhang = top - Height(panelDimensions);
-			if (overhang > 0)
-			{
-				// We need vertical scrolling
-			}
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
@@ -90,7 +67,7 @@ namespace GRANON
 			auto rect = panel.AbsRect();
 
 			bool isHovered = g.IsHovered(panel);
-			GRRenderState rs(false, isHovered, false);
+			GRWidgetRenderState rs(false, isHovered, false);
 			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::CONTAINER_BACKGROUND, rs);
 			g.DrawRect(rect, backColour);
 
@@ -108,8 +85,7 @@ namespace GRANON
 
 		EGREventRouting OnTab()
 		{
-			auto focusId = panel.Root().GR().GetFocusId();
-			auto* focus = panel.Root().GR().FindWidget(focusId);
+			auto* focus = panel.Root().GR().FindFocusWidget();
 			if (!focus)
 			{
 				return EGREventRouting::Terminate;

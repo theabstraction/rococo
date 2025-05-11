@@ -1,6 +1,7 @@
 #include <rococo.sexml.h>
 #include <rococo.reflector.h>
 #include <rococo.functional.h>
+#include <rococo.strings.h>
 
 using namespace Rococo::Reflection;
 
@@ -13,6 +14,12 @@ namespace Rococo::SEXML::Impl
 		SXMLBuilderVisitor(Rococo::Sex::SEXML::ISEXMLBuilder& _builder) : builder(_builder)
 		{
 			builder.AddDirective("Root");
+		}
+
+		void CancelVisit(IReflectionVisitation& visitation) override
+		{
+			// Unexpected -> SXMLBuilderVisitor visitors do not use visitations 
+			UNUSED(visitation);
 		}
 
 		// We cannot stick this in the destructor as it throws on failure, which destructors cannot handle.
@@ -127,10 +134,17 @@ namespace Rococo::SEXML::Impl
 			builder.AddAtomicAttribute(name, value);
 		}
 
-		void Reflect(cstr name, IReflectedString& stringValue, ReflectionMetaData& metaData) override
+		void Reflect(cstr name, char* stringBuffer, size_t capacity, ReflectionMetaData& metaData) override
+		{
+			UNUSED(capacity);
+			UNUSED(metaData);
+			builder.AddStringLiteral(name, stringBuffer);
+		}
+
+		void Reflect(cstr name, Strings::HString& stringRef, ReflectionMetaData& metaData) override
 		{
 			UNUSED(metaData);
-			builder.AddStringLiteral(name, stringValue.ReadString());
+			builder.AddStringLiteral(name, stringRef);
 		}
 
 		int sectionCount = 0;

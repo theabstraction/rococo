@@ -1,10 +1,20 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <vector>
-#include <string>
+#include <rococo.strings.h>
+
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
+
+namespace Rococo::OS
+{
+	ROCOCO_API_IMPORT void CopyStringToClipboard(cstr s);
+	ROCOCO_API_IMPORT void PasteStringFromClipboard(Strings::IStringPopulator& populator);
+}
 
 using namespace Rococo;
 using namespace Rococo::Gui;
+using namespace Rococo::Strings;
 
 namespace GRANON
 {
@@ -12,12 +22,13 @@ namespace GRANON
 	{
 		IGRPanel& panel;
 		std::vector<char> text;
-		GRFontId fontId = GRFontId::MENU_FONT;
+		GRFontId fontId;
 		GRAlignmentFlags alignment;
 		Vec2i spacing{ 0,0 };
 		int32 caretPos = 0;
 		int32 updateLock = 0;
 		IGREditFilter* filter;
+		bool skipTab = false;
 
 		struct UpdateLock
 		{
@@ -34,10 +45,9 @@ namespace GRANON
 			}
 		};
 
-		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity) : panel(owningPanel), filter(_filter)
+		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), filter(_filter), fontId(_fontId)
 		{
 			text.reserve(capacity);
-			owningPanel.SetMinimalSpan({ 10, 10 });
 			owningPanel.Add(EGRPanelFlags::AcceptsFocus);
 		}
 
@@ -51,7 +61,7 @@ namespace GRANON
 			return caretPos;
 		}
 
-		void OnUpdate()
+		void OnUpdate(EGREditorEventType editorEventType)
 		{
 			if (updateLock > 0)
 			{
@@ -71,14 +81,10 @@ namespace GRANON
 			we.editor = this;
 			we.manager = this;
 			we.caretPos = caretPos;
+			we.editorEventType = editorEventType;
 			we.clickPosition = { 0,0 };
 
-			RouteEventToHandler(panel, we);
-		}
-
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			UNUSED(panelDimensions);
+			panel.RouteToParent(we);
 		}
 
 		bool preppingSelect = false;
@@ -95,10 +101,16 @@ namespace GRANON
 				if (panel.Root().GR().GetFocusId() == panel.Id())
 				{
 					panel.Root().GR().SetFocus(-1);
+					OnUpdate(EGREditorEventType::LostFocus);
 				}
 				else
 				{
 					panel.Focus();
+
+					if (!isReadOnly)
+					{
+						OnUpdate(EGREditorEventType::ClickFocused);
+					}
 				}
 				return EGREventRouting::Terminate;
 			}
@@ -150,7 +162,7 @@ namespace GRANON
 
 				caretPos++;
 
-				OnUpdate();
+				OnUpdate(EGREditorEventType::CharAppended);
 			}
 		}
 
@@ -172,7 +184,7 @@ namespace GRANON
 
 				caretPos--;		
 
-				OnUpdate();
+				OnUpdate(EGREditorEventType::CharBackspaced);
 			}
 		}
 
@@ -190,43 +202,61 @@ namespace GRANON
 					std::advance(i, caretPos);
 					text.erase(i);
 
-					OnUpdate();
+					OnUpdate(EGREditorEventType::CharDeleted);
 				}
 			}
 		}
 
+		bool prepReturn = false;
+
 		void Return() override
 		{
-			panel.Root().GR().SetFocus(-1);
+			prepReturn = true;
 		}
 
 		void Render(IGRRenderContext& g) override
 		{
 			auto rect = panel.AbsRect();
 
-			GRRenderState rs(false, g.IsHovered(panel), panel.Id() == panel.Root().GR().GetFocusId());
+			GRWidgetRenderState rs(false, g.IsHovered(panel), panel.Id() == panel.Root().GR().GetFocusId());
 
-			if (rs.value.bitValues.focused)
-			{
-				GuiRect innerRect = rect;
-				innerRect.left += 1;
-				innerRect.top += 1;
-				innerRect.right -= 1;
-				innerRect.bottom -= 1;
-				g.DrawRect(innerRect, panel.GetColour(EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225)));
-			}
+			RGBAb editorColour = panel.GetColour(isReadOnly ? EGRSchemeColourSurface::LABEL_BACKGROUND : EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225));
 
-			if (!rs.value.bitValues.focused)
+			GuiRect innerRect = rect;
+			innerRect.left += 1;
+			innerRect.top += 1;
+			innerRect.right -= 1;
+			innerRect.bottom -= 1;
+
+			g.DrawRect(innerRect, editorColour);
+			g.DrawRectEdge(innerRect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
+
+			if (!rs.value.bitValues.focused || isReadOnly)
 			{
 				if (text.size() > 0)
 				{
-					g.DrawText(fontId, rect, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(EGRSchemeColourSurface::TEXT, rs));
+					EGRSchemeColourSurface surface = isReadOnly ? EGRSchemeColourSurface::READ_ONLY_TEXT : EGRSchemeColourSurface::TEXT;
+					g.DrawText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(surface, rs));
 				}
 			}
 			else
 			{
 				RGBAb textColour = panel.GetColour(EGRSchemeColourSurface::EDIT_TEXT, rs);
-				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, caretPos, textColour);
+
+				CaretSpec caret;
+				caret.IsInserting = true;
+				caret.CaretPos = caretPos;
+				caret.BlinksPerSecond = 2;
+				caret.CaretColour1 = textColour;
+				caret.CaretColour2 = editorColour;
+
+				int height = panel.Root().GR().Fonts().GetFontHeight(fontId);
+				if (height > 20)
+				{
+					caret.LineThickness = 3;
+				}
+
+				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, textColour, caret);
 			}
 		}
 
@@ -235,9 +265,115 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override
+		bool MoveFocusToNextTargetOrNextSiblingOrAncestorThatAcceptsFocus(IGRWidget& focusWidget)
 		{
-			panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
+			auto* targetPanel = panel.Navigate(EGRNavigationDirection::Down);
+			if (targetPanel && TrySetDeepFocus(*targetPanel))
+			{
+				return true;
+			}
+
+			auto* parent = focusWidget.Panel().Parent();
+			if (!parent)
+			{
+				// No siblings
+				return false;
+			}
+
+			int i = 0;
+			for (;;)
+			{
+				auto* sibling = parent->GetChild(i);
+				if (!sibling)
+				{
+					// Unexpected - we expect the parent to have at least 1 child - this widget
+					break;
+				}
+
+				if (sibling == &focusWidget.Panel())
+				{
+					auto* nextSibling = parent->GetChild(i + 1);
+					if (nextSibling)
+					{
+						if (TrySetDeepFocus(*nextSibling))
+						{
+							return true;
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+				i++;
+			}
+
+			for (auto* candidate = parent; candidate != nullptr; candidate = candidate->Parent())
+			{
+				if (candidate->HasFlag(EGRPanelFlags::AcceptsFocus))
+				{
+					candidate->Focus();
+					return true;
+				}
+			}
+
+			auto* frame = FindOwner(parent->Widget());
+
+			// Last ditch attempt to preserve a focus
+			auto* newFocus = TrySetDeepFocus(frame->Panel());
+
+			return newFocus != nullptr;
+		}
+
+		EGREventRouting OnKeyEvent(GRKeyEvent& keyEvent) override		
+		{
+			if (panel.HasFocus())
+			{
+				if (keyEvent.osKeyEvent.IsUp())
+				{
+					switch (keyEvent.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_ENTER:
+						if (prepReturn)
+						{
+							prepReturn = false;
+
+							MoveFocusToNextTargetOrNextSiblingOrAncestorThatAcceptsFocus(*this);
+
+							if (!panel.HasFocus())
+							{
+								OnUpdate(EGREditorEventType::LostFocus);
+							}
+
+							return EGREventRouting::Terminate;
+						}
+					}
+				}
+				else
+				{
+					switch (keyEvent.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_TAB:
+						if (skipTab)
+						{
+							return EGREventRouting::NextHandler;
+						}
+					}
+				}
+			}
+
+			if (!isReadOnly)
+			{
+				return panel.Root().Custodian().TranslateToEditor(keyEvent, *this);
+			}
+			else
+			{
+				if (keyEvent.osKeyEvent.VKey == IO::VirtualKeys::VKCode_ENTER && !keyEvent.osKeyEvent.IsUp())
+				{
+					Return();
+					return EGREventRouting::NextHandler;
+				}
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -255,18 +391,18 @@ namespace GRANON
 		}
 
 		int64 iMetaData = 0;
-		std::string sMetaData;
+		HString sMetaData;
 
 		IGRWidgetEditBox& SetMetaData(const GRControlMetaData& metaData)
 		{
 			if (updateLock > 0)
 			{
-				panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), EGRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
+				RaiseError(panel, EGRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
 				return *this;
 			}
 
 			iMetaData = metaData.intData;
-			sMetaData = metaData.stringData ? metaData.stringData : std::string();
+			sMetaData = metaData.stringData ? metaData.stringData : HString();
 			return *this;
 		}
 
@@ -286,10 +422,10 @@ namespace GRANON
 
 			caretPos = (int32) len;
 
-			OnUpdate();
+			OnUpdate(EGREditorEventType::SetText);
 		}
 
-		size_t GetCapacity() const override
+		size_t Capacity() const override
 		{
 			return (int32) text.capacity();
 		}
@@ -304,6 +440,11 @@ namespace GRANON
 			}
 
 			return (int32) text.size();
+		}
+
+		bool IsEditing() const
+		{
+			return panel.HasFocus() && !isReadOnly;
 		}
 
 		IGRWidgetEditBox& SetReadOnly(bool isReadOnly) override
@@ -332,15 +473,16 @@ namespace GRANON
 	{
 		IGREditFilter* filter;
 		int32 capacity;
+		GRFontId fontId;
 
-		GREditBoxFactory(IGREditFilter* _filter, int32 _capacity): filter(_filter), capacity(_capacity)
+		GREditBoxFactory(IGREditFilter* _filter, int32 _capacity, GRFontId _fontId): filter(_filter), capacity(_capacity), fontId(_fontId)
 		{
 
 		}
 
 		IGRWidget& CreateWidget(IGRPanel& panel)
 		{
-			return *new GREditBox(panel, filter, capacity);
+			return *new GREditBox(panel, filter, capacity, fontId);
 		}
 	};
 }
@@ -352,11 +494,11 @@ namespace Rococo::Gui
 		return "IGRWidgetEditBox";
 	}
 
-	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity)
+	ROCOCO_GUI_RETAINED_API IGRWidgetEditBox& CreateEditBox(IGRWidget& parent, IGREditFilter* filter, int32 capacity, GRFontId fontId)
 	{
 		if (capacity <= 2)
 		{
-			parent.Panel().Root().Custodian().RaiseError(parent.Panel().GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
 		}
 		else
 		{
@@ -365,11 +507,11 @@ namespace Rococo::Gui
 
 		if (capacity > 1024_megabytes)
 		{
-			parent.Panel().Root().Custodian().RaiseError(parent.Panel().GetAssociatedSExpression(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
 			capacity = (int32) 1024_megabytes;
 		}
 
-		GRANON::GREditBoxFactory factory(filter, capacity);
+		GRANON::GREditBoxFactory factory(filter, capacity, fontId);
 
 		auto& gr = parent.Panel().Root().GR();
 		auto* editor = Cast<IGRWidgetEditBox>(gr.AddWidget(parent.Panel(), factory));
@@ -590,15 +732,15 @@ namespace Rococo::Gui
 			{
 				scratchBuffer.clear();
 
-				char buffer[12];
+				char buffer[16];
 				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
 
 				int32 originalLength = len;
 
-				if (len >= 12)
+				if (len >= 15)
 				{
-					len = 11;
-					buffer[11] = 0;
+					len = 14;
+					buffer[14] = 0;
 				}
 
 				if (len > 0)
@@ -625,7 +767,11 @@ namespace Rococo::Gui
 				for (int32 i = 1; i < len; ++i)
 				{
 					char c = buffer[i];
-					if (c >= '0' && c <= '9')
+					if (c == ',' && !editor.IsEditing())
+					{ 
+						scratchBuffer.push_back(',');
+					}
+					else if (c >= '0' && c <= '9')
 					{
 						scratchBuffer.push_back(buffer[i]);
 					}
@@ -805,5 +951,82 @@ namespace Rococo::Gui
 
 		static UnsignedFilter s_UnsignedFilter;
 		return s_UnsignedFilter;
+	}
+
+	ROCOCO_API_EXPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
+	{
+		if (!keyEvent.osKeyEvent.IsUp())
+		{
+			switch (keyEvent.osKeyEvent.VKey)
+			{
+			case IO::VirtualKeys::VKCode_BACKSPACE:
+				manager.BackspaceAtCaret();
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_DELETE:
+				manager.DeleteAtCaret();
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_ENTER:
+				manager.Return();
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_LEFT:
+				manager.AddToCaretPos(-1);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_RIGHT:
+				manager.AddToCaretPos(1);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_HOME:
+				manager.AddToCaretPos(-100'000'000);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_END:
+				manager.AddToCaretPos(100'000'000);
+				return EGREventRouting::Terminate;
+			case IO::VirtualKeys::VKCode_C:
+				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				{
+					// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
+					builder.Resize(manager.GetTextAndLength(nullptr, 0));
+					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
+					Rococo::OS::CopyStringToClipboard(builder.c_str());
+					builder.Clear();
+					return EGREventRouting::Terminate;
+				}
+				else
+				{
+					break;
+				}
+			case IO::VirtualKeys::VKCode_V:
+				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				{
+					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
+
+					struct : Strings::IStringPopulator
+					{
+						IGREditorMicromanager* manager = nullptr;
+						void Populate(cstr text) override
+						{
+							for (cstr p = text; *p != 0; p++)
+							{
+								manager->AppendCharAtCaret(*p);
+							}
+						}
+					} cb;
+					cb.manager = &manager;
+					Rococo::OS::PasteStringFromClipboard(cb);
+					return EGREventRouting::Terminate;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			if (keyEvent.osKeyEvent.unicode >= 32 && keyEvent.osKeyEvent.unicode <= 127)
+			{
+				manager.AppendCharAtCaret((char)keyEvent.osKeyEvent.unicode);
+				return EGREventRouting::Terminate;
+			}
+		}
+
+		return EGREventRouting::NextHandler;
 	}
 }

@@ -15,31 +15,235 @@ namespace GRANON
 
 	static int64 nextId = 1;
 
+	struct PaddingBools
+	{
+		int isLeft : 1;
+		int isRight: 1;
+		int isTop  : 1;
+		int isBottom : 1;
+	};
+
 	struct GRPanel: IGRPanelSupervisor
 	{
 		GRPanel* parent;
-		IGRPanelRoot& root;
+		IGRPanelRootSupervisor& root;
 		IGRWidgetSupervisor* widget = nullptr; // Should always be set immediately after construction
 		Vec2i parentOffset{ 0,0 };
 		Vec2i span { 0, 0};
-		Vec2i minimalSpan{ 0,0 };
-		std::vector<IGRPanelSupervisor*> children;
+		std::vector<GRPanel*> children;
 		int64 uniqueId;
 		GuiRect absRect{ 0,0,0,0 };
-		GRAnchors anchors;
 		GRAnchorPadding padding = { 0 };
 		bool isMarkedForDeletion = false;
 		AutoFree<IGRSchemeSupervisor> scheme;
 		bool preventInvalidationFromChildren = false;
 		bool isCollapsed = false;
+		bool isRenderingLast = false;
 		int64 refCount = 0;
 		int64 flags = 0;
+		int32 childPadding = 0;
 		HString desc;
 		const Sex::ISExpression* associatedSExpression = nullptr;
+		IGRPanelSupervisor* clippingPanel;
+		int32 cornerRadius = 4;
 
-		GRPanel(IGRPanelRoot& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++)
+		// Currently only used by GradientFill widgets, but we have plans to change fill style more generally across widgets, so is defined here.
+		EGRFillStyle fillStyle = EGRFillStyle::SOLID;
+
+		EGRRectStyle rectStyle = EGRRectStyle::SHARP;
+
+		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++), clippingPanel(this)
 		{
 			refCount = 1;
+		}
+
+		std::vector<HString> navigationTargets;
+
+		void AddNavigationTarget(cstr target) override
+		{
+			if (navigationTargets.empty())
+			{
+				enum { INIT_NAVTARGET_SIZE = 8 };
+				navigationTargets.reserve(INIT_NAVTARGET_SIZE);
+			}
+			navigationTargets.push_back(target);
+		}
+
+		int GetNavigationIndex(cstr panelDesc) const
+		{
+			int index = -1;
+
+			if (panelDesc != nullptr)
+			{
+				for (int i = 0; i < (int)navigationTargets.size(); i++)
+				{
+					if (Eq(navigationTargets[i], panelDesc))
+					{
+						index = i;
+					}
+				}
+			}
+
+			return index;
+		}
+
+		DescAndIndex GetNextNavigationTarget(cstr panelDesc) override
+		{
+			if (navigationTargets.empty())
+			{
+				return { nullptr , -1 };
+			}
+
+			int index;
+
+			int foundIndex = GetNavigationIndex(panelDesc);
+			if (foundIndex == -1)
+			{
+				index = 0;
+			}
+			else
+			{
+				index = (foundIndex + 1) % (int)navigationTargets.size();
+			}
+
+			return { navigationTargets[index], foundIndex };
+		}
+
+		DescAndIndex GetPreviousNavigationTarget(cstr panelDesc) override
+		{
+			int index;
+
+			int foundIndex = GetNavigationIndex(panelDesc);
+			if (foundIndex == -1)
+			{
+				return { HString(), -1 };
+			}
+			else if (foundIndex == 0)
+			{
+				index = (int)navigationTargets.size() - 1;
+			}
+			else
+			{
+				index = (foundIndex - 1) % (int)navigationTargets.size();
+			}
+
+			return { navigationTargets[index], foundIndex };
+		}
+
+		HString directions[static_cast<int>(EGRNavigationDirection::Count)-1];
+
+		IGRPanel& Set(EGRNavigationDirection direction, cstr targetDescription) override
+		{
+			int index = static_cast<int>(direction);
+
+			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
+			{
+				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+			}
+			else
+			{
+				directions[index - 1] = targetDescription == nullptr ? HString() : targetDescription;
+			}
+			return *this;
+		}
+
+		IGRPanel* Navigate(EGRNavigationDirection direction) override
+		{
+			int index = static_cast<int>(direction);
+
+			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
+			{
+				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+				return nullptr;
+			}
+
+			cstr description = directions[index - 1].c_str();
+			if (*description == 0)
+			{
+				return nullptr;
+			}
+
+			auto* owner = FindOwner(*widget);
+			if (!owner)
+			{
+				return nullptr;
+			}
+
+			return owner->Panel().FindDescendantByDesc(description);
+		}
+
+		IGRPanel* FindDescendantByDesc(cstr desc)
+		{
+			if (desc == nullptr)
+			{
+				return nullptr;
+			}
+
+			for (auto child : children)
+			{
+				if (Eq(child->desc, desc))
+				{
+					return child;
+				}
+			}
+
+			for (auto child : children)
+			{
+				IGRPanel* candidate = child->FindDescendantByDesc(desc);
+				if (candidate)
+				{
+					return candidate;
+				}
+			}
+
+			return nullptr;
+		}
+
+		void SetClippingPanel(IGRPanel* panel) override
+		{
+			this->clippingPanel = static_cast<IGRPanelSupervisor*>(panel);
+		}
+
+		IGRPanel& SetCornerRadius(int radius) override
+		{
+			cornerRadius = radius;
+			return *this;
+		}
+
+		int CornerRadius() const override
+		{
+			return cornerRadius;
+		}
+
+		IGRPanel& SetFillStyle(EGRFillStyle style) override
+		{
+			fillStyle = style;
+			return *this;
+		}
+
+		EGRFillStyle FillStyle() const override
+		{
+			return fillStyle;
+		}
+
+		IGRPanel& SetRectStyle(EGRRectStyle style) override
+		{
+			rectStyle = style;
+			return *this;
+		}
+
+		EGRRectStyle RectStyle() const override
+		{
+			return rectStyle;
+		}
+
+		void ClearAssociatedExpressions() override
+		{
+			associatedSExpression = nullptr;
+			for (auto* child : children)
+			{
+				child->ClearAssociatedExpressions();
+			}
 		}
 
 		const Sex::ISExpression* GetAssociatedSExpression() const override
@@ -63,9 +267,77 @@ namespace GRANON
 			sb.AppendFormat("%s (id %lld)", desc.c_str(), Id());
 		}
 
+		void PrepPanelAndDescendantsRecursive(IGRPanel& owningPanel)
+		{
+			for (auto& target : navigationTargets)
+			{
+				auto* targetPanel = owningPanel.FindDescendantByDesc(target);
+				if (!targetPanel)
+				{
+					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find navigation target \"%s\"", target.c_str());
+					return;
+				}
+			}
+
+			for (auto& direction : directions)
+			{
+				if (direction.length() == 0)
+				{
+					continue;
+				}
+
+				auto* targetPanel = owningPanel.FindDescendantByDesc(direction);
+				if (!targetPanel)
+				{
+					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find direction target \"%s\"", direction.c_str());
+					return;
+				}
+			}
+
+			auto* initializer = Cast<IGRWidgetInitializer>(*widget);
+			if (initializer)
+			{
+				initializer->Prep();
+			}
+
+			for (auto* child : children)
+			{
+				child->PrepPanelAndDescendantsRecursive(owningPanel);
+			}
+		}
+
+		void PrepPanelAndDescendants() override
+		{
+			auto* owner = FindOwner(*widget);
+			if (!owner)
+			{
+				RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "No owner!");
+				return;
+			}
+
+			PrepPanelAndDescendantsRecursive(owner->Panel());
+		}
+
+		cstr Desc() const override
+		{
+			return desc;
+		}
+
 		void SetDesc(cstr text) override
 		{
 			desc = text;
+		}
+
+		HString hint;
+
+		void SetHint(cstr text) override
+		{
+			hint = text;
+		}
+
+		cstr Hint() const override
+		{
+			return hint;
 		}
 
 		bool HasFlag(EGRPanelFlags flag) const override
@@ -81,7 +353,7 @@ namespace GRANON
 
 		virtual ~GRPanel()
 		{
-			widget->Free();
+			if (widget) widget->Free();
 			static_cast<IGRSystemSupervisor&>(root.GR()).NotifyPanelDeleted(uniqueId);
 			ClearChildren();
 		}
@@ -91,7 +363,7 @@ namespace GRANON
 			return Root().GR().GetFocusId() == Id();
 		}
 
-		void Focus() override
+		IGRPanel& Focus() override
 		{
 			Root().GR().SetFocus(Id());
 
@@ -100,14 +372,37 @@ namespace GRANON
 				auto* focusNotifier = Cast<IGRFocusNotifier>(target->Widget());
 				if (focusNotifier)
 				{
-					focusNotifier->OnDeepChildFocusSet(Id());
+					auto routing = focusNotifier->OnDeepChildFocusSet(Id());
+					if (routing == EGREventRouting::Terminate)
+					{
+						break;
+					}
 				}
 			}
+
+			return *this;
 		}
 
 		bool IsCollapsed() const override
 		{
 			return isCollapsed;
+		}
+
+		bool IsCollapsedOrAncestorCollasped() const override
+		{
+			if (isCollapsed)
+			{
+				return true;
+			}
+
+			if (parent)
+			{
+				return parent->IsCollapsedOrAncestorCollasped();
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		void MarkForDelete() override
@@ -116,50 +411,25 @@ namespace GRANON
 			root.QueueGarbageCollect();
 		}
 
-		Vec2i MinimalSpan() const override
-		{
-			return minimalSpan;
-		}
-
 		bool IsMarkedForDeletion() const override
 		{
 			return isMarkedForDeletion;
 		}
 
-		GRAnchors Anchors() override
-		{
-			return anchors;
-		}
-
-		IGRPanel& Add(GRAnchors anchors) override
-		{
-			static_assert(sizeof GRAnchors == sizeof uint32);
-			uint32& uThisAnchor = reinterpret_cast<uint32&>(this->anchors);
-			uint32& uArgAnchor = reinterpret_cast<uint32&>(anchors);
-			uThisAnchor = uThisAnchor | uArgAnchor;
-			return *this;
-		}
-
-		IGRPanel& Set(GRAnchors anchors) override
-		{
-			this->anchors = anchors;
-			return *this;
-		}
-
 		GRAnchorPadding Padding() override
 		{
-			return padding;
+			GRAnchorPadding modulatedPadding;
+			modulatedPadding.left = paddingsArePercentages.isLeft ? padding.left * Span().x / 100  : padding.left;
+			modulatedPadding.right = paddingsArePercentages.isRight ? padding.right * Span().x / 100 : padding.right;
+			modulatedPadding.top = paddingsArePercentages.isTop ? padding.top * Span().y / 100 : padding.top;
+			modulatedPadding.bottom = paddingsArePercentages.isBottom ? padding.bottom * Span().y / 100 : padding.bottom;			
+			return modulatedPadding;
 		}
 
 		IGRPanel& Set(GRAnchorPadding padding) override
 		{
 			this->padding = padding;
 			return *this;
-		}
-
-		void SetMinimalSpan(Vec2i span) override
-		{
-			this->minimalSpan = span;
 		}
 
 		IGRPanel* GetChild(int32 index) override
@@ -174,12 +444,14 @@ namespace GRANON
 
 		void ClearChildren() override
 		{
-			for (auto* child : children)
+			// We want to preserve the integrity of the children field during destruction, in case a widget destructor enumerates children
+			// So we destruct it one member at a time, removing the member first
+			while (!children.empty())
 			{
+				auto* child = children.back();
+				children.pop_back();
 				child->ReleasePanel();
 			}
-
-			children.clear();
 		}
 
 		int32 EnumerateChildren(IEventCallback<IGRPanel>* callback) override
@@ -200,38 +472,6 @@ namespace GRANON
 			return uniqueId;
 		}
 
-		bool isLayoutValid = false;
-
-		void ConfirmLayout() override
-		{
-			isLayoutValid = true;
-		}
-
-		void InvalidateLayout(bool invalidateAncestors) override
-		{
-			isLayoutValid = false;
-
-			if (!preventInvalidationFromChildren && invalidateAncestors && parent)
-			{
-				parent->InvalidateLayout(invalidateAncestors);
-			}
-			else
-			{
-				// We have an orphaned the invalidation
-				root.GR().UpdateNextFrame(*this);
-			}
-		}
-
-		void PreventInvalidationFromChildren() override
-		{
-			preventInvalidationFromChildren = true;
-		}
-
-		bool RequiresLayout() const override
-		{
-			return !isLayoutValid;
-		}
-
 		EGREventRouting NotifyAncestors(GRWidgetEvent& event, IGRWidget& sourceWidget) override
 		{
 			if (parent == nullptr)
@@ -239,14 +479,511 @@ namespace GRANON
 				return EGREventRouting::NextHandler;
 			}
 
-			auto& parentWidget = parent->Widget();
-
-			if (parentWidget.OnChildEvent(event, sourceWidget) == EGREventRouting::Terminate)
+			if (parent->Widget().Manager().OnChildEvent(event, sourceWidget) == EGREventRouting::Terminate)
 			{
 				return EGREventRouting::Terminate;
 			}
 
 			return parent->NotifyAncestors(event, sourceWidget);
+		}
+
+		enum class ESizingRule
+		{
+			Constant,
+			ConstantPercentage,
+			ExpandToParent,
+			FitChildren
+		};
+		
+		ESizingRule widthSizing = ESizingRule::Constant;
+		ESizingRule heightSizing = ESizingRule::Constant;
+
+		ELayoutDirection layoutDirection = ELayoutDirection::LeftToRight;
+
+		int SumChildWidth()
+		{
+			int sum = 0;
+
+			for (auto* child : children)
+			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
+				sum += child->Span().x;
+			}
+
+			return sum;
+		}
+
+		int MaxChildWidth()
+		{
+			int m = 0;
+
+			for (auto* child : children)
+			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
+				m = max(child->Span().x, m);
+			}
+
+			return m;
+		}
+
+		int SumChildHeight()
+		{
+			int sum = 0;
+
+			for (auto* child : children)
+			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
+				sum += child->Span().y;
+			}
+
+			return sum;
+		}
+
+		int MaxChildHeight()
+		{
+			int m = 0;
+
+			for (auto* child : children)
+			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
+				m = max(child->Span().y, m);
+			}
+
+			return m;
+		}
+
+		void Layout() override
+		{
+			SetPanelLayoutRecursive(ELayoutPhase::BeforeFit);			
+			ShrinkToFitRecursive();
+
+			SetPanelLayoutRecursive(ELayoutPhase::BeforeExpand);
+			ExpandToParentRecursive();
+
+			SetPanelLayoutRecursive(ELayoutPhase::AfterExpand);
+			SetAbsRectRecursive();
+		}
+
+		enum class ELayoutPhase
+		{
+			BeforeFit,
+			BeforeExpand,
+			AfterExpand
+		};
+
+		void SetPanelLayoutRecursive(ELayoutPhase phase)
+		{
+			auto* layout = Cast<IGRWidgetLayout>(Widget());
+			if (layout)
+			{
+				switch (phase)
+				{
+				case ELayoutPhase::BeforeFit:
+					layout->LayoutBeforeFit();
+					break;
+				case ELayoutPhase::BeforeExpand:
+					layout->LayoutBeforeExpand();
+					break;
+				default:
+					layout->LayoutAfterExpand();
+					break;
+				}
+			}
+
+			for (auto* child : children)
+			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
+				child->SetPanelLayoutRecursive(phase);
+			}
+		}
+
+		void SetAbsRectRecursive()
+		{
+			absRect.left = parent ? parent->absRect.left : 0;
+			absRect.left += parentOffset.x + (parent ? parent->Padding().left : 0);
+
+			absRect.top = parent ? parent->absRect.top : 0;
+			absRect.top += parentOffset.y + (parent ? parent->Padding().top : 0);
+			absRect.right = absRect.left + Span().x;
+			absRect.bottom = absRect.top + Span().y;
+
+			if (watcher)
+			{
+				watcher->OnSetAbsRect(*this, absRect);
+			}
+
+			int dx = 0;
+			int dy = 0;
+
+			switch (layoutDirection)
+			{
+			case ELayoutDirection::LeftToRight:
+				for (auto* child : children)
+				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
+					child->parentOffset.x = dx;
+					child->parentOffset.y = 0;
+					child->SetAbsRectRecursive();
+					dx += child->Span().x;
+					dx += childPadding;
+				}
+				break;
+			case ELayoutDirection::RightToLeft:
+				dx = Width(absRect) - Padding().right;
+				for (auto i = children.rbegin(); i != children.rend(); ++i)
+				{
+					auto* child = *i;
+
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
+					dx -= child->Span().x;
+					dx -= childPadding;
+					child->parentOffset.x = dx;
+					child->parentOffset.y = 0;
+					child->SetAbsRectRecursive();
+				}
+				break;
+			case ELayoutDirection::TopToBottom:
+				for (auto* child : children)
+				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
+					child->parentOffset.x = 0;
+					child->parentOffset.y = dy;
+					child->SetAbsRectRecursive();
+					dy += child->Span().y;
+					dy += childPadding;
+				}
+				break;
+			case ELayoutDirection::BottomToTop:
+				
+				break;
+			default:
+				for (auto* child : children)
+				{
+					child->SetAbsRectRecursive();
+				}
+			}
+		}
+
+		void ExpandHorizontalSpansForChildren()
+		{
+			switch (layoutDirection)
+			{
+			case ELayoutDirection::LeftToRight:
+			case ELayoutDirection::RightToLeft:
+			{
+				int nExpandingChildren = 0;
+				int totalXSpanOfFixedWidthChildren = 0;
+
+				int totalChildPadding = -childPadding;
+
+				for (auto* child : children)
+				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
+					totalChildPadding += childPadding;
+
+					if (child->widthSizing == ESizingRule::ExpandToParent)
+					{
+						nExpandingChildren++;
+					}
+					else if (child->widthSizing == ESizingRule::ConstantPercentage)
+					{
+						totalXSpanOfFixedWidthChildren += ((child->span.x * Span().x) / 100);
+					}
+					else
+					{
+						totalXSpanOfFixedWidthChildren += child->span.x;
+					}
+				}
+
+				int freeSpace = Span().x - totalXSpanOfFixedWidthChildren - Padding().left - Padding().right - totalChildPadding;
+				if (freeSpace <= 0 || nExpandingChildren == 0)
+				{
+					for (auto* child : children)
+					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
+						if (child->widthSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.x = 0;
+						}
+					}
+				}
+				else
+				{
+					int averageSpan = freeSpace / nExpandingChildren;
+
+					for (auto* child : children)
+					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
+						if (child->widthSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.x = averageSpan;
+						}
+					}
+				}
+			}
+			break;
+			default:
+			{
+				for (auto* child : children)
+				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
+					if (child->widthSizing == ESizingRule::ExpandToParent)
+					{
+						child->span.x = Span().x - Padding().left - Padding().right;
+					}
+				}
+			}
+			break;
+			}
+		}
+
+		void ExpandVerticalSpansForChildren()
+		{
+			switch (layoutDirection)
+			{
+			case ELayoutDirection::BottomToTop:
+			case ELayoutDirection::TopToBottom:
+			{
+				int nExpandingChildren = 0;
+				int totalYSpanOfFixedWidthChildren = 0;
+
+				int totalChildPadding = -childPadding;
+
+				for (auto* child : children)
+				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
+					totalChildPadding += childPadding;
+
+					if (child->heightSizing == ESizingRule::ExpandToParent)
+					{
+						nExpandingChildren++;
+					}
+					else
+					{
+						totalYSpanOfFixedWidthChildren += child->Span().y;
+					}
+				}
+
+				int freeSpace = Span().y - totalYSpanOfFixedWidthChildren - Padding().top - Padding().bottom - totalChildPadding;
+				if (freeSpace <= 0 || nExpandingChildren == 0)
+				{
+					for (auto* child : children)
+					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
+						if (child->heightSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.y = 0;
+						}
+					}
+				}
+				else
+				{
+					int averageSpan = freeSpace / nExpandingChildren;
+
+					for (auto* child : children)
+					{
+						if (child->isCollapsed)
+						{
+							continue;
+						}
+
+						if (child->heightSizing == ESizingRule::ExpandToParent)
+						{
+							child->span.y = averageSpan;
+						}
+					}
+				}
+			}
+			break;
+			default:
+			{
+				for (auto* child : children)
+				{
+					if (child->isCollapsed)
+					{
+						continue;
+					}
+
+					if (child->heightSizing == ESizingRule::ExpandToParent)
+					{
+						child->span.y = Span().y - Padding().top - Padding().bottom;
+					}
+				}
+			}
+			break;
+			}
+		}
+		void ExpandToParentRecursive()
+		{
+			ExpandHorizontalSpansForChildren();
+			ExpandVerticalSpansForChildren();
+
+			for (auto* child : children)
+			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
+				child->ExpandToParentRecursive();
+			}
+		}
+
+		void ShrinkToFitRecursive()
+		{
+			for (auto* child : children)
+			{
+				if (child->isCollapsed)
+				{
+					continue;
+				}
+
+				child->ShrinkToFitRecursive();
+			}
+
+			int width = 0;
+			int height = 0;
+
+			switch (layoutDirection)
+			{
+			case ELayoutDirection::LeftToRight:
+			case ELayoutDirection::RightToLeft:
+				width = SumChildWidth();
+				height = MaxChildHeight();
+				break;
+			case ELayoutDirection::TopToBottom:
+			case ELayoutDirection::BottomToTop:
+				width = MaxChildWidth();
+				height = SumChildHeight();
+				break;
+			}
+
+			if (widthSizing == ESizingRule::FitChildren)
+			{
+				span.x = width + Padding().left + Padding().right;
+			}
+
+			if (heightSizing == ESizingRule::FitChildren)
+			{
+				span.y = height + Padding().top + Padding().bottom;
+			}
+		}
+
+		IGRPanel& SetLayoutDirection(ELayoutDirection direction) override
+		{
+			this->layoutDirection = direction;
+			return *this;
+		}
+
+		IGRPanel& SetFitChildrenHorizontally() override
+		{
+			widthSizing = ESizingRule::FitChildren;
+			return *this;
+		}
+
+		IGRPanel& SetFitChildrenVertically() override
+		{
+			heightSizing = ESizingRule::FitChildren;
+			return *this;
+		}
+
+		IGRPanel& SetExpandToParentHorizontally() override
+		{
+			widthSizing = ESizingRule::ExpandToParent;
+			return *this;
+		}
+
+		IGRPanel& SetExpandToParentVertically() override
+		{
+			heightSizing = ESizingRule::ExpandToParent;
+			return *this;
+		}
+
+		IGRPanel& SetConstantWidth(int width, bool isPercentage) override
+		{
+			if (watcher)
+			{
+				watcher->OnSetConstantWidth(*this, width);
+			}
+
+			widthSizing = isPercentage ? ESizingRule::ConstantPercentage : ESizingRule::Constant;
+			span.x = width;
+			return *this;
+		}
+
+		IGRPanel& SetConstantHeight(int height, bool isPercentage) override
+		{
+			if (watcher)
+			{
+				watcher->OnSetConstantHeight(*this, height);
+			}
+
+			heightSizing = isPercentage ? ESizingRule::ConstantPercentage : ESizingRule::Constant;
+			span.y = height;
+			return *this;
+		}
+
+		IGRPanel& SetConstantSpan(Vec2i ds) override
+		{
+			SetConstantWidth(ds.x, false);
+			SetConstantHeight(ds.y, false);	
+			return *this;
 		}
 
 		void GarbageCollectRecursive() override
@@ -274,7 +1011,7 @@ namespace GRANON
 
 			if (removeMarkedChildren)
 			{
-				std::vector<IGRPanelSupervisor*> newChildren;
+				std::vector<GRPanel*> newChildren;
 				for (auto* child : children)
 				{
 					if (child->IsMarkedForDeletion())
@@ -299,7 +1036,7 @@ namespace GRANON
 			return* child;
 		}
 
-		RGBAb GetColour(EGRSchemeColourSurface surface, GRRenderState rs, RGBAb defaultColour) const override
+		RGBAb GetColour(EGRSchemeColourSurface surface, GRWidgetRenderState rs, RGBAb defaultColour) const override
 		{
 			RGBAb result;
 			if (!TryGetColour(surface, result, rs))
@@ -314,7 +1051,12 @@ namespace GRANON
 			this->isCollapsed = isCollapsed;
 		}
 
-		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRRenderState rs) const override
+		void SetRenderLast(bool isRenderingLast) override
+		{
+			this->isRenderingLast = isRenderingLast;
+		}
+
+		bool TryGetColour(EGRSchemeColourSurface surface, RGBAb& colour, GRWidgetRenderState rs) const override
 		{
 			if (scheme && scheme->TryGetColour(surface, colour, rs))
 			{
@@ -331,7 +1073,7 @@ namespace GRANON
 			}
 		}
 
-		IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRRenderState rs) override
+		IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, GRWidgetRenderState rs) override
 		{
 			if (!scheme)
 			{
@@ -339,6 +1081,44 @@ namespace GRANON
 			}
 
 			scheme->SetColour(surface, colour, rs);
+			return *this;
+		}
+
+		IGRPanel& Set(EGRSchemeColourSurface surface, RGBAb colour, EGRColourSpec spec) override
+		{
+			if (!scheme)
+			{
+				scheme = CreateGRScheme();
+			}
+
+			switch (spec)
+			{
+			case EGRColourSpec::None:
+				break;
+			case EGRColourSpec::ForAllRenderStates:
+				SetUniformColourForAllRenderStates(*scheme, surface, colour);
+				break;
+			}
+
+			return *this;
+		}
+
+		int32 ChildPadding() const override
+		{
+			return childPadding;
+		}
+
+		PaddingBools paddingsArePercentages{ 0,0,0,0 };
+
+		IGRPanel& SetPaddingAsPercentage(bool left, bool right, bool top, bool bottom)
+		{
+			paddingsArePercentages = { left, right, top, bottom };
+			return *this;
+		}
+
+		IGRPanel& SetChildPadding(int32 delta) override
+		{
+			childPadding = delta;
 			return *this;
 		}
 
@@ -352,9 +1132,10 @@ namespace GRANON
 			return absRect;
 		}
 
-		void CaptureCursor() override
+		IGRPanel& CaptureCursor() override
 		{
 			root.CaptureCursor(*this);
+			return *this;
 		}
 
 		void ReleasePanel() override
@@ -371,7 +1152,6 @@ namespace GRANON
 			if (this->span != span)
 			{
 				this->span = span;
-				InvalidateLayout(true);
 			}
 			return *this;
 		}
@@ -381,46 +1161,22 @@ namespace GRANON
 			return parentOffset;
 		}
 
-		void LayoutRecursive(Vec2i absoluteOrigin) override
-		{
-			Vec2i parentOrigin = parentOffset + absoluteOrigin;
-
-			if (!isLayoutValid)
-			{
-				absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
-			}
-
-			if (!isCollapsed)
-			{
-				if (widget && !isLayoutValid)
-				{
-					widget->Layout(absRect);
-
-					// Layout may invalidate the parent origin or span, in the case that a control adjusts its own size and location
-					parentOrigin = parentOffset + absoluteOrigin;
-					absRect = { parentOrigin.x, parentOrigin.y, parentOrigin.x + span.x, parentOrigin.y + span.y };
-				}
-
-				for (auto* child : children)
-				{
-					child->LayoutRecursive(parentOrigin);
-				}
-			}
-
-			ConfirmLayout();
-		}
-
-		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect) override
+		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer, int64 focusId) override
 		{
 			if (!widget || isCollapsed)
 			{
 				return;
 			}
 
-			if (span.x > 0 && span.y > 0)
+			if (isRenderingFirstLayer && isRenderingLast)
 			{
-				GuiRect laxClipRect = clipRect.IsNormalized() ? Expand(clipRect, 1) : clipRect;
-				g.EnableScissors(laxClipRect);
+				root.DeferRendering(*this);
+				return;
+			}
+
+			if (Span().x > 0 && Span().y > 0)
+			{
+				g.EnableScissors(clipRect);
 
 				if (extraRenderer)
 				{
@@ -434,15 +1190,19 @@ namespace GRANON
 					extraRenderer->PostRender(*this, clipRect, g);
 				}
 
-				for (auto* child : children)
+				if (focusId == this->uniqueId)
 				{
-					GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
-					child->RenderRecursive(g, childClipRect);
+					root.GR().RenderFocus(*this, g, clipRect);
 				}
 			}
-			else
+
+			for (auto* child : children)
 			{
-				root.IncBadSpanCountThisFrame(*this);
+				GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
+				if (childClipRect.IsNormalized())
+				{
+					child->RenderRecursive(g, childClipRect, isRenderingFirstLayer, focusId);
+				}
 			}
 		}
 
@@ -471,6 +1231,18 @@ namespace GRANON
 				if (routing == EGREventRouting::Terminate)
 				{
 					return EGREventRouting::Terminate;
+				}
+			}
+
+			if (parent)
+			{
+				auto* parentClippingPanel = parent->clippingPanel;
+				if (parentClippingPanel && parentClippingPanel->DoesClipChildren())
+				{
+					if (!IsPointInRect(ce.position, parentClippingPanel->AbsRect()))
+					{
+						return EGREventRouting::NextHandler;
+					}
 				}
 			}
 
@@ -517,14 +1289,31 @@ namespace GRANON
 			if (this->parentOffset != offset)
 			{
 				this->parentOffset = offset;
-				InvalidateLayout(true);
 			}
 			return *this;
 		}
 
 		Vec2i Span() const override
 		{
-			return span;
+			if (isCollapsed)
+			{
+				return { 0,0 };
+			}
+
+			int dx = span.x;
+			int dy = span.y;
+
+			if (widthSizing == ESizingRule::ConstantPercentage && parent)
+			{
+				dx = span.x * parent->Span().x / 100;
+			}
+
+			if (heightSizing == ESizingRule::ConstantPercentage && parent)
+			{
+				dy = span.y * parent->Span().y / 100;
+			}
+
+			return { dx, dy };
 		}
 
 		void SetWidget(IGRWidgetSupervisor& widget) override
@@ -560,186 +1349,95 @@ namespace GRANON
 		}
 
 		// Add extra rendering before and after widget rendering for the panel
-		void SetPanelRenderer(IGRPanelRenderer* renderer) override
+		IGRPanel& SetPanelRenderer(IGRPanelRenderer* renderer) override
 		{
 			extraRenderer = renderer;
+			return *this;
+		}
+
+		IGRPanelWatcher* watcher = nullptr;
+
+		IGRPanelWatcher* SetPanelWatcher(IGRPanelWatcher* newWatcher) override
+		{
+			auto* old = watcher;
+			watcher = newWatcher;
+			return old;
+		}
+
+		EGREventRouting RouteToParentRecursive(GRWidgetEvent& ev, IGRWidget& sender)
+		{
+			if (parent)
+			{
+				auto followup = parent->widget->OnChildEvent(ev, sender);
+				if (followup == EGREventRouting::NextHandler)
+				{
+					return parent->RouteToParentRecursive(ev, sender);
+				}
+				else
+				{
+					return EGREventRouting::Terminate;
+				}
+			}
+			else
+			{
+				return EGREventRouting::NextHandler;
+			}
+		}
+
+		EGREventRouting RouteToParent(GRWidgetEvent& ev) override
+		{
+			auto followup = RouteToParentRecursive(ev, *widget);
+			if (followup == EGREventRouting::NextHandler)
+			{
+				return RouteEventToHandler(*this, ev);
+			}
+
+			return EGREventRouting::Terminate;
 		}
 	};
 }
 
 namespace Rococo::Gui
 {
-	IGRPanelSupervisor* CreatePanel(IGRPanelRoot& root, IGRPanelSupervisor* parent)
+	IGRPanelSupervisor* CreatePanel(IGRPanelRootSupervisor& root, IGRPanelSupervisor* parent)
 	{
 		return new GRANON::GRPanel(root, parent);
+	}
+
+	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRWidgetRenderState rs)
+	{
+		RGBAb c = src.GetColour(srcSurface, rs);
+		target.Set(trgSurface, c, rs);
+	}
+
+	ROCOCO_GUI_RETAINED_API void CopyAllColours(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface)
+	{
+		GRWidgetRenderState::ForEachPermutation(
+			[&src, &target, srcSurface, trgSurface](GRWidgetRenderState rs)
+			{
+				CopyColour(src, target, srcSurface, trgSurface, rs);
+			}
+		);
 	}
 
 	void Throw(IGRPanel& panel, EGRErrorCode code, cstr function, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
-		char desc[256];
-		Strings::StackStringBuilder sb(desc, sizeof desc);
-		panel.AppendDesc(sb);
 
 		char message[1024];
-		strcpy_s(message, desc);
-		Strings::SafeVFormat(message + strlen(desc), sizeof message - strlen(desc), format, args);
+		Strings::SafeVFormat(message, sizeof message, format, args);
 
-		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), code, function, message);
+		char completeMessage[1280];
+		Strings::SafeFormat(completeMessage, "Panel(%s): %s", panel.Desc(), message);
+
+		RaiseError(panel, code, function, completeMessage);
 		va_end(args);
 	}
 
-	ROCOCO_GUI_RETAINED_API void LayoutChildByAnchors(IGRPanel& child, const GuiRect& parentDimensions)
+	ROCOCO_GUI_RETAINED_API cstr IGRPanelWatcher::InterfaceId()
 	{
-		auto anchors = child.Anchors();
-		auto padding = child.Padding();
-
-		Vec2i newPos = child.ParentOffset();
-		Vec2i newSpan = child.Span();
-
-		if (newSpan.x == 0 && !anchors.expandsHorizontally  && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadSpanWidth, __FUNCTION__, "Panel was not set to expand horizontally and its current width is zero, hence will remain zero width");
-		}
-
-		if (newSpan.y == 0 && !anchors.expandsVertically && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadSpanHeight, __FUNCTION__, "Panel was not set to expand vertically and its current height is zero, hence will remain zero height");
-		}
-
-		if (anchors.left == 0 && anchors.right == 0 && newSpan.x == 0)
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel was neither anchored to the left or to the right and had zero horizontal span");
-		}
-
-		if (anchors.top == 0 && anchors.bottom == 0 && newSpan.y == 0)
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel was neither anchored to the top or to the bottom and had zero vertical span");
-		}
-
-		if (anchors.left)
-		{
-			newPos.x = padding.left;
-
-			if (anchors.right)
-			{
-				if (anchors.expandsHorizontally)
-				{
-					newSpan.x = Width(parentDimensions) - padding.left - padding.right;
-				}
-				else
-				{
-					newPos.x = Centre(parentDimensions).x - (child.Span().x >> 1) - padding.right;
-				}
-			}
-			else if (anchors.expandsHorizontally)
-			{
-				newSpan.x += child.ParentOffset().x - newPos.x;
-			}
-		}
-
-		if (anchors.right)
-		{
-			if (!anchors.left)
-			{
-				if (anchors.expandsHorizontally)
-				{
-					newSpan.x = Width(parentDimensions) - child.ParentOffset().x - padding.right;
-				}
-				else
-				{
-					newPos.x = Width(parentDimensions) - child.Span().x - padding.right;
-				}
-			}
-		}
-
-		newPos.x = max(0, newPos.x);
-		newPos.x = min(Width(parentDimensions), newPos.x);
-		newSpan.x = max(0, newSpan.x);
-
-		if (anchors.top)
-		{
-			newPos.y = padding.top;
-
-			if (anchors.bottom)
-			{
-				if (anchors.expandsVertically)
-				{
-					newSpan.y = Height(parentDimensions) - padding.top - padding.bottom;
-				}
-				else
-				{
-					newPos.y = (Height(parentDimensions) / 2) - child.Span().y - padding.bottom;
-				}
-			}
-			else if (anchors.expandsVertically)
-			{
-				newSpan.y += child.ParentOffset().y - newPos.y;
-			}
-		}
-
-		if (anchors.bottom)
-		{
-			if (!anchors.top)
-			{
-				if (anchors.expandsVertically)
-				{
-					newSpan.y += Height(parentDimensions) - child.ParentOffset().y;
-				}
-				else
-				{
-					newPos.y = Height(parentDimensions) - child.Span().y - padding.bottom;
-				}
-			}
-		}
-
-		child.SetParentOffset(newPos);
-
-		if (newSpan.x == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel width was computed to be zero");
-		}
-
-		if (newSpan.y == 0 && child.Root().GR().HasDebugFlag(EGRDebugFlags::ThrowWhenPanelIsZeroArea))
-		{
-			Throw(child, EGRErrorCode::BadAnchors, __FUNCTION__, "Panel height was computed to be zero");
-		}
-
-		child.Resize(newSpan);
-	}
-
-	ROCOCO_GUI_RETAINED_API void LayoutChildrenByAnchors(IGRPanel& parent, const GuiRect& parentDimensions)
-	{
-		if (parent.IsCollapsed())
-		{
-			return;
-		}
-
-		int index = 0;
-		while (auto* child = parent.GetChild(index++))
-		{
-			LayoutChildByAnchors(*child, parentDimensions);
-		}
-	}
-
-	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllChildren(IGRPanel& panel)
-	{
-		int32 index = 0;
-		while (auto* child = panel.GetChild(index++))
-		{
-			child->InvalidateLayout(false);
-		}
-	}
-
-	ROCOCO_GUI_RETAINED_API void InvalidateLayoutForAllDescendants(IGRPanel& panel)
-	{
-		int32 index = 0;
-		while (auto* child = panel.GetChild(index++))
-		{
-			child->InvalidateLayout(false);
-			InvalidateLayoutForAllDescendants(*child);
-		}
+		return "IGRPanelWatcher";
 	}
 
 	ROCOCO_GUI_RETAINED_API cstr IGRNavigator::InterfaceId()
@@ -763,10 +1461,23 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRPanel* TrySetDeepFocus(IGRPanel& panel)
 	{
+		if (panel.IsCollapsed())
+		{
+			return nullptr;
+		}
+
 		if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
 		{
 			panel.Focus();
 			return &panel;
+		}
+
+		DescAndIndex nextTarget = panel.GetNextNavigationTarget(nullptr);
+		auto* targetPanel = panel.FindDescendantByDesc(nextTarget.desc);
+		if (targetPanel != nullptr)
+		{
+			targetPanel->Focus();
+			return targetPanel;
 		}
 
 		int32 index = 0;
@@ -785,5 +1496,43 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API cstr IGRFocusNotifier::InterfaceId()
 	{
 		return "IGRFocusNotifier";
+	}
+
+	ROCOCO_GUI_RETAINED_API cstr IGRWidgetLayout::InterfaceId()
+	{
+		return "IGRWidgetLayout";
+	}
+
+	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRPanel& panel)
+	{
+		return panel.Root().Custodian();
+	}
+
+	ROCOCO_GUI_RETAINED_API IGRCustodian& GetCustodian(IGRWidget& widget)
+	{
+		return GetCustodian(widget.Panel());
+	}
+
+	ROCOCO_GUI_RETAINED_API void RaiseError(IGRPanel& panel, EGRErrorCode errCode, cstr function, const char* format, ...)
+	{
+		char buf[1024];
+		va_list args;
+		va_start(args, format);
+		vsnprintf_s(buf, _TRUNCATE, format, args);
+		va_end(args);
+		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), errCode, function, "%s", buf);
+	}
+
+	ROCOCO_GUI_RETAINED_API void DrawEdge(EGRSchemeColourSurface topLeft, EGRSchemeColourSurface bottomRight, IGRPanel& panel, IGRRenderContext& rc)
+	{
+		GRWidgetRenderState edgeState(false, rc.IsHovered(panel), false);
+		RGBAb topLeftColour = panel.GetColour(topLeft, edgeState);
+		RGBAb bottomRightColour = panel.GetColour(bottomRight, edgeState);
+		rc.DrawRectEdge(panel.AbsRect(), topLeftColour, bottomRightColour);
+	}
+
+	ROCOCO_GUI_RETAINED_API cstr IGRWidget::InterfaceId()
+	{
+		return "IGRWidget";
 	}
 }

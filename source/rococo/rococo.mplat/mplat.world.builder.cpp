@@ -2,7 +2,6 @@
 #include <rococo.quadtree.h>
 #include <rococo.maths.h>
 #include <vector>
-#include "rococo.script.types.h"
 #include "mplat.components.h"
 
 using namespace Rococo;

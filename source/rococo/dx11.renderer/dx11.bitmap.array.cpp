@@ -182,7 +182,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
 
     int32 MaxWidth() const override
     {
-        return 2048;
+        return 4096;
     }
 
     size_t TextureCount() const override

@@ -1,13 +1,16 @@
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
-#include <string>
+#include <rococo.strings.h>
+#include <rococo.ui.h>
+#include <rococo.vkeys.h>
+#include <unordered_set>
 
 using namespace Rococo;
 using namespace Rococo::Gui;
 
 namespace GRANON
 {
-	struct GRButton : IGRWidgetButton, IGRWidgetSupervisor
+	struct GRButton : IGRWidgetButton, IGRWidgetSupervisor, IGRWidgetLayout
 	{
 		IGRPanel& panel;
 		EGRClickCriterion clickCriterion = EGRClickCriterion::OnDown;
@@ -18,15 +21,44 @@ namespace GRANON
 		bool forSubmenu = false;
 		bool isEventHandlerCPPOnly = false;
 
-		std::string raisedImagePath;
-		std::string pressedImagePath;
-		AutoFree<IGRImageMemento> raisedImage;
-		AutoFree<IGRImageMemento> pressedImage;
+		Strings::HString raisedImagePath;
+		Strings::HString pressedImagePath;
+		IGRImage* raisedImage = nullptr;
+		IGRImage* pressedImage = nullptr;
+
+		bool isStretched = false;
+
+		bool triggersOnKeyUp = true;
 
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+			panel.Add(EGRPanelFlags::AcceptsFocus);
 			SyncMinimalSpan();
+		}
+
+		virtual ~GRButton()
+		{
+		}
+
+		void TriggerOnKeyDown() override
+		{
+			triggersOnKeyUp = false;
+		}
+
+		void LayoutBeforeFit() override
+		{
+			SyncMinimalSpan();
+		}
+
+		void LayoutBeforeExpand() override
+		{
+
+		}
+
+		void LayoutAfterExpand() override
+		{
+
 		}
 
 		void Free() override
@@ -34,12 +66,7 @@ namespace GRANON
 			delete this;
 		}
 
-		void Layout(const GuiRect& panelDimensions) override
-		{
-			UNUSED(panelDimensions);
-		}
-
-		GRButtonFlags GetButtonFlags() const override
+		GRButtonFlags ButtonFlags() const override
 		{
 			GRButtonFlags flags;
 			flags.forSubMenu = forSubmenu;
@@ -49,16 +76,35 @@ namespace GRANON
 			return flags;
 		}
 
-		void FireEvent(GRCursorEvent& ce)
+		void FireEvent(Vec2i clickPosition)
 		{
-			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), ce.position, isEventHandlerCPPOnly };
+			int nTerminations = 0;
+
+			for (auto* s : subscribers)
+			{
+				ButtonEvent ev{ EGRButtonEventType::ButtonClicked, *this, EGREventRouting::NextHandler };
+				s->OnEvent(ev);
+				if (ev.routing == EGREventRouting::Terminate)
+				{
+					nTerminations++;
+				}
+			}
+
+			if (nTerminations > 0)
+			{
+				return;
+			}
 
 			if (eventPolicy == EGREventPolicy::PublicEvent)
 			{		
-				RouteEventToHandler(panel, widgetEvent);
+				// We cannot copy the meta data string, because it may be invalidated by the time the consumer comes to read it
+				GRWidgetEvent asyncWidgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, "", clickPosition, isEventHandlerCPPOnly };
+				RouteEventToHandler(panel, asyncWidgetEvent);
 			}
 			else if (eventPolicy == EGREventPolicy::NotifyAncestors)
 			{
+				GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, sMetaData.c_str(), clickPosition, isEventHandlerCPPOnly };
+
 				EGREventRouting routing = panel.NotifyAncestors(widgetEvent, *this);
 				if (routing != EGREventRouting::Terminate)
 				{
@@ -70,6 +116,11 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
+			if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
+			{
+				panel.Focus();
+			}
+
 			if (ce.click.LeftButtonDown)
 			{
 				if (clickCriterion == EGRClickCriterion::OnDown)
@@ -84,7 +135,7 @@ namespace GRANON
 					}
 
 					SyncMinimalSpan();
-					FireEvent(ce);
+					FireEvent(ce.position);
 				}
 				else if (clickCriterion == EGRClickCriterion::OnDownThenUp)
 				{
@@ -110,7 +161,7 @@ namespace GRANON
 						isRaised = true;
 					}
 					SyncMinimalSpan();
-					FireEvent(ce);
+					FireEvent(ce.position);
 				}
 				else if (clickCriterion == EGRClickCriterion::OnDownThenUp)
 				{
@@ -132,7 +183,7 @@ namespace GRANON
 					if (flipped)
 					{
 						SyncMinimalSpan();
-						FireEvent(ce);
+						FireEvent(ce.position);
 					}
 
 					if (panel.Root().CapturedPanelId() == panel.Id())
@@ -149,7 +200,7 @@ namespace GRANON
 					}
 					else
 					{
-						FireEvent(ce);
+						FireEvent(ce.position);
 					}
 				}
 
@@ -182,8 +233,74 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnKeyEvent(GRKeyEvent&) override
+		bool keyboardPrepped = false;
+
+		EGREventRouting OnKeyEvent(GRKeyEvent& key) override
 		{
+			if (!triggersOnKeyUp)
+			{
+				keyboardPrepped = true;
+			}
+
+			if (triggersOnKeyUp)
+			{
+				if (!key.osKeyEvent.IsUp())
+				{
+					switch (key.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_ENTER:
+						keyboardPrepped = true;
+						return EGREventRouting::Terminate;
+					}
+				}
+				else
+				{
+					switch (key.osKeyEvent.VKey)
+					{
+					case IO::VirtualKeys::VKCode_ENTER:
+						if (keyboardPrepped)
+						{
+							keyboardPrepped = false;
+
+							SyncMinimalSpan();
+
+							if (panel.Root().CapturedPanelId() == panel.Id())
+							{
+								panel.Root().ReleaseCursor();
+							}
+
+							if (isToggler)
+							{
+								isRaised = !isRaised;
+							}
+							else
+							{
+								isRaised = false;
+							}
+
+							FireEvent(Centre(panel.AbsRect()));
+						}
+						return EGREventRouting::Terminate;
+					}
+				}
+			}
+			else if (!key.osKeyEvent.IsUp())
+			{
+				switch (key.osKeyEvent.VKey)
+				{
+				case IO::VirtualKeys::VKCode_ENTER:
+					SyncMinimalSpan();
+
+					if (panel.Root().CapturedPanelId() == panel.Id())
+					{
+						panel.Root().ReleaseCursor();
+					}
+
+					FireEvent(Centre(panel.AbsRect()));
+					return EGREventRouting::Terminate;
+				}
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -196,24 +313,28 @@ namespace GRANON
 		{
 			if (isMenu)
 			{
-				DrawMenuButton(panel, false, isRaised, g);
+				GuiRect buttonRect = Expand(panel.AbsRect(), -2);
+				GRWidgetRenderState rs(false, false, false);
+				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON, rs);
+				g.DrawRect(panel.AbsRect(), colour);
+				DrawMenuButton(panel, buttonRect, false, isRaised, g);
 			}
 			else
 			{
-				DrawButton(panel, false, isRaised, g);
+				DrawButton(panel, false, isRaised, g, backSurface);
 			}
 
 			bool isHovered = g.IsHovered(panel);
 
 			bool imageRendered = false;
 
-			IGRImageMemento* image = isRaised ? raisedImage : pressedImage;
+			IGRImage* image = isRaised ? raisedImage : pressedImage;
 
-			GRRenderState rs(!isRaised, isHovered, false);
+			GRWidgetRenderState rs(!isRaised, isHovered, false);
 
 			if (image)
 			{
-				imageRendered = image->Render(panel, alignment, spacing, g);
+				imageRendered = image->Render(panel, alignment, spacing, isStretched, g);
 
 				GuiRect fogRect = panel.AbsRect();
 				fogRect.left += 1;
@@ -225,13 +346,22 @@ namespace GRANON
 
 			if (!imageRendered)
 			{
-				RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON_TEXT, rs);
-				colour.alpha = isHovered ? colour.alpha : 3 * (colour.alpha / 4);
-				DrawButtonText(panel, alignment, spacing, { title.c_str(), (int32)title.size() }, colour, g);
+				if (substituteBetterFontAccordingly)
+				{
+					alignment.Add(EGRAlignment::AutoFonts);
+				}
+				else
+				{
+					alignment.Remove(EGRAlignment::AutoFonts);
+				}
+
+				RGBAb shadowColour = isMenu ? RGBAb(0,0,0,0) : panel.GetColour(EGRSchemeColourSurface::BUTTON_SHADOW, rs);
+				RGBAb colour = panel.GetColour(isMenu ? EGRSchemeColourSurface::MENU_BUTTON_TEXT : textSurface, rs);
+				DrawButtonText(panel, alignment, spacing, title.to_fstring(), colour, shadowColour, fontId, g);
 			}
 		}
 
-		GRAlignmentFlags alignment { 0 };
+		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
 
 		IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) override
@@ -243,27 +373,59 @@ namespace GRANON
 
 		IGRWidgetButton& SetImagePath(cstr imagePath) override
 		{
-			this->raisedImagePath = imagePath ? imagePath : std::string();
-			this->pressedImagePath = imagePath ? imagePath : std::string();
-			raisedImage = panel.Root().Custodian().CreateImageMemento("raised button", this->raisedImagePath.c_str());
-			pressedImage = panel.Root().Custodian().CreateImageMemento("pressed button", this->pressedImagePath.c_str());
+			this->raisedImagePath = imagePath ? imagePath : "";
+			this->pressedImagePath = imagePath ? imagePath : "";
+			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
+			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
 			SyncMinimalSpan();
 			return *this;
 		}
 
 		IGRWidgetButton& SetPressedImagePath(cstr imagePath) override
 		{
-			this->pressedImagePath = imagePath ? imagePath : std::string();
-			pressedImage = panel.Root().Custodian().CreateImageMemento("pressed button", this->pressedImagePath.c_str());
+			this->pressedImagePath = imagePath ? imagePath : "";
+			pressedImage = panel.Root().Custodian().CreateImageFromPath("pressed button", this->pressedImagePath.c_str());
 			SyncMinimalSpan();
 			return *this;
 		}
 
 		IGRWidgetButton& SetRaisedImagePath(cstr imagePath) override
 		{
-			this->raisedImagePath = imagePath ? imagePath : std::string();
-			raisedImage = panel.Root().Custodian().CreateImageMemento("raised button", this->raisedImagePath.c_str());
+			this->raisedImagePath = imagePath ? imagePath : "";
+			raisedImage = panel.Root().Custodian().CreateImageFromPath("raised button", this->raisedImagePath.c_str());
 			SyncMinimalSpan();
+			return *this;
+		}
+
+		Vec2i ImageSpan() const override
+		{
+			auto* image = pressedImage ? pressedImage : raisedImage;
+			return image ? image->Span() : Vec2i{ 0,0 };
+		}
+
+		Vec2i MinimalSpan() const override
+		{
+			Vec2i textSpan = panel.Root().GR().Fonts().EvaluateMinimalSpan(fontId, title) + Vec2i{ 4,4 };
+			Vec2i imageSpan = ImageSpan();
+
+			int dx = max(max(textSpan.x, imageSpan.x), 4);
+			int dy = max(max(textSpan.y, imageSpan.x), 4);
+			return { dx, dy };
+		}
+
+		EGRSchemeColourSurface backSurface = EGRSchemeColourSurface::BUTTON;
+
+		IGRWidgetButton& SetBackSurface(EGRSchemeColourSurface backSurface) override
+		{
+			this->backSurface = backSurface;
+			return *this;
+		}
+
+		EGRSchemeColourSurface textSurface = EGRSchemeColourSurface::BUTTON_TEXT;
+
+		IGRWidgetButton& SetTextSurface(EGRSchemeColourSurface textSurface) override
+		{
+			this->textSurface = textSurface;
 			return *this;
 		}
 
@@ -280,66 +442,117 @@ namespace GRANON
 		}
 
 		int64 iMetadata = 0;
-		std::string sMetaData;
+		Strings::HString sMetaData;
 
 		IGRWidgetButton& SetMetaData(const GRControlMetaData& metaData, bool isCppOnly) override
 		{
 			iMetadata = metaData.intData;
-			sMetaData = metaData.stringData ? metaData.stringData : std::string();
+			sMetaData = metaData.stringData ? metaData.stringData : "";
 			isEventHandlerCPPOnly = isCppOnly;
 			return *this;
 		}
 
-		GRControlMetaData GetMetaData() override
+		GRControlMetaData MetaData() override
 		{
 			return GRControlMetaData { iMetadata, sMetaData.c_str() };
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&)
+		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
 		{
 			return EGREventRouting::NextHandler;
 		}
 
-		std::string title;
+		Strings::HString title;
+		GRFontId fontId = GRFontId::NONE;
 
 		IGRWidgetButton& SetTitle(cstr title) override
 		{
-			this->title = title == nullptr ? std::string() : title;
+			isDirty = true;
+			this->title = title == nullptr ? "" : title;
+			panel.SetDesc(title);
 			SyncMinimalSpan();
 			return *this;
+		}
+
+		bool substituteBetterFontAccordingly = false;
+
+		IGRWidgetButton& SetPressedNoCallback(bool pressed) override
+		{
+			isRaised = !pressed;
+			return *this;
+		}
+
+		IGRWidgetButton& SetFontId(GRFontId id, bool substituteBetterFontAccordingly) override
+		{
+			isDirty = true;
+			fontId = id;
+			this->substituteBetterFontAccordingly = substituteBetterFontAccordingly;
+			return *this;
+		}
+
+		bool expandToFitTextX = false;
+		bool expandToFitTextY = false;
+		bool isDirty = true;
+
+		void FitTextHorizontally() override
+		{
+			expandToFitTextX = true;
+			isDirty = true;
+			SyncMinimalSpan();
+		}
+
+		void FitTextVertically() override
+		{
+			expandToFitTextY = true;
+			isDirty = true;
+			SyncMinimalSpan();
 		}
 
 		size_t GetTitle(char* titleBuffer, size_t nBytes) const override
 		{
 			if (titleBuffer == nullptr || nBytes == 0)
 			{
-				return title.size();
+				return title.length();
 			}
 
-			strncpy_s(titleBuffer, nBytes, title.c_str(), _TRUNCATE);
-			return title.size();
+			Strings::CopyString(titleBuffer, nBytes, title, title.length());
+			return title.length();
 		}
 
 		Vec2i EvaluateMinimalSpan() const
 		{
-			const IGRImageMemento* image = isRaised ? raisedImage : pressedImage;
+			Vec2i extraSpan;
+
+			extraSpan.x = panel.Padding().left + panel.Padding().right;
+			extraSpan.y = panel.Padding().top + panel.Padding().bottom;
+
+			const IGRImage* image = isRaised ? raisedImage : pressedImage;
 			if (image)
 			{
-				return image->Span() + Vec2i{2,2};
+				return image->Span() + extraSpan;
 			}
 
-			if (title.empty())
+			if (title.length() == 0)
 			{
-				return Vec2i { 8, 8 } ;
+				return Vec2i { 8, 8 } + extraSpan;
 			}
 
-			return panel.Root().Custodian().EvaluateMinimalSpan(GRFontId::MENU_FONT, fstring{ title.c_str(), (int32) title.length() }) + Vec2i { 2, 2 };
+			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ title.c_str(), (int32) title.length() }) + extraSpan;
 		}
 
 		void SyncMinimalSpan()
 		{
 			Vec2i minimalSpan = EvaluateMinimalSpan();
-			panel.SetMinimalSpan(minimalSpan);
+
+			if (expandToFitTextX)
+			{
+				panel.SetConstantWidth(minimalSpan.x);
+			}
+
+			if (expandToFitTextY)
+			{
+				panel.SetConstantHeight(minimalSpan.y);
+			}
 		}
 
 		bool isToggler = false;
@@ -349,16 +562,33 @@ namespace GRANON
 			isToggler = true;
 		}
 
+		void SetStretchImage(bool isStretched) override
+		{
+			this->isStretched = isStretched;
+			isDirty = true;
+		}
+
+		void Toggle() override
+		{
+			if (!isToggler)
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "The button is not a toggler");
+			}
+
+			isRaised = !isRaised;
+
+			FireEvent(Centre(panel.AbsRect()));
+		}
+
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
-			if (!interfaceId || *interfaceId == 0) return EGRQueryInterfaceResult::INVALID_ID;
-			if (DoInterfaceNamesMatch(interfaceId, "IGRWidgetButton"))
+			auto result = QueryForParticularInterface<IGRWidgetButton, GRButton>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
 			{
-				if (ppOutputArg) *ppOutputArg = static_cast<IGRWidgetButton*>(this);
 				return EGRQueryInterfaceResult::SUCCESS;
 			}
 
-			return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
+			return QueryForParticularInterface<IGRWidgetLayout, GRButton>(this, ppOutputArg, interfaceId);
 		}
 
 		IGRWidget& Widget()
@@ -369,6 +599,18 @@ namespace GRANON
 		cstr GetImplementationTypeName() const override
 		{
 			return "GRButton";
+		}
+
+		std::unordered_set<IEventCallback<ButtonEvent>*> subscribers;
+
+		void Subscribe(IEventCallback<ButtonEvent>& eventHandler) override
+		{
+			subscribers.insert(&eventHandler);
+		}
+
+		void Unsubscribe(IEventCallback<ButtonEvent>& eventHandler) override
+		{
+			subscribers.erase(&eventHandler);
 		}
 	};
 
@@ -405,58 +647,52 @@ namespace Rococo::Gui
 		return button;
 	}
 
-	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
+	ROCOCO_GUI_RETAINED_API void DrawButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g, EGRSchemeColourSurface backSurface)
 	{
-		UNUSED(focused);
-
-		bool hovered = g.IsHovered(panel);
-
-		GRRenderState rs(!raised, hovered, false);
-
-		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::BUTTON, rs);
-		g.DrawRect(panel.AbsRect(), colour);
-
-		RGBAb colour1 = panel.GetColour(EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, rs);
-		RGBAb colour2 = panel.GetColour(EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, rs);
-
-		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
+		DrawPanelBackgroundEx(panel, g, backSurface, EGRSchemeColourSurface::BUTTON_EDGE_TOP_LEFT, EGRSchemeColourSurface::BUTTON_EDGE_BOTTOM_RIGHT, 1.0f, raised, focused);
 	}
 
-	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, bool focused, bool raised, IGRRenderContext& g)
+	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, const GuiRect& rect, bool focused, bool raised, IGRRenderContext& g)
 	{
 		UNUSED(focused);
 
 		bool hovered = g.IsHovered(panel);
-
-		GRRenderState rs(!raised, hovered, false);
+		
+		GRWidgetRenderState rs(!raised, hovered, false);
 		RGBAb colour = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON, rs);
-		g.DrawRect(panel.AbsRect(), colour);
+		g.DrawRect(rect, colour);
 
 		RGBAb colour1 = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_TOP_LEFT, rs);
 		RGBAb colour2 = panel.GetColour(EGRSchemeColourSurface::MENU_BUTTON_EDGE_BOTTOM_RIGHT, rs);
-		g.DrawRectEdge(panel.AbsRect(), colour1, colour2);
+		g.DrawRectEdge(rect, colour1, colour2);
 	}
 
-	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, IGRRenderContext& g)
+	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, RGBAb shadowColour, GRFontId fontId, IGRRenderContext& g, Vec2i shadowOffset)
 	{
 		if (text.length == 0) return;
 
 		GuiRect targetRect = panel.AbsRect();
-		targetRect.left += spacing.x;
-		targetRect.right -= spacing.x;
-		targetRect.top += spacing.y;
-		targetRect.bottom -= spacing.y;
 
 		if (targetRect.left > targetRect.right)
 		{
-			std::swap(targetRect.left, targetRect.right);
+			swap_args(targetRect.left, targetRect.right);
 		}
 
 		if (targetRect.bottom < targetRect.top)
 		{
-			std::swap(targetRect.top, targetRect.bottom);
+			swap_args(targetRect.top, targetRect.bottom);
 		}
 
-		g.DrawText(GRFontId::MENU_FONT, targetRect, panel.AbsRect(), alignment, spacing, text, colour);
+		if (shadowColour.alpha)
+		{
+			GuiRect shadowRect = targetRect;
+			shadowRect.left += shadowOffset.x;
+			shadowRect.right += shadowOffset.x;
+			shadowRect.top += shadowOffset.y;
+			shadowRect.bottom += shadowOffset.y;
+			g.DrawText(fontId, shadowRect, alignment, spacing, text, shadowColour);
+		}
+
+		g.DrawText(fontId, targetRect, alignment, spacing, text, colour);
 	}
 }

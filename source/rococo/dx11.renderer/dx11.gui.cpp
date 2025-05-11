@@ -109,7 +109,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11DepthStencilState& state)
     {
-        Section depthStencilStuff(section, v);
+        Section depthStencilStuff(v, section);
 
         D3D11_DEPTH_STENCIL_DESC desc;
         state.GetDesc(&desc);
@@ -299,7 +299,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11Texture2D& texture)
     {
-        Section texturing(section, v);
+        Section texturing(v, section);
 
         D3D11_TEXTURE2D_DESC desc;
         texture.GetDesc(&desc);
@@ -417,7 +417,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11BlendState& state)
     {
-        Section blending(section, v);
+        Section blending(v, section);
 
         D3D11_BLEND_DESC desc;
         state.GetDesc(&desc);
@@ -440,7 +440,7 @@ namespace Rococo::DX11
 
     void Reflect(IReflectionVisitor& v, cstr section, ID3D11RasterizerState& state)
     {
-        Section rasterizer(section, v);
+        Section rasterizer(v, section);
 
         D3D11_RASTERIZER_DESC desc;
         state.GetDesc(&desc);
@@ -458,7 +458,7 @@ namespace Rococo::DX11
     }
 }
 
-struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResources, ISubsystem, IReflectionTarget
+struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResources, ISubsystem, VisitationTarget
 {
     ID3D11Device& device;
     ID3D11DeviceContext& dc;
@@ -932,7 +932,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         dc.RSSetScissorRects(1, &rect);
     }
 
-    const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) override
+    const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) const override
     {
         return hqFonts->GetFontMetrics(idFont);
     }

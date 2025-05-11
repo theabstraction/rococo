@@ -143,7 +143,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.sexml.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.sexml.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.sexml.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.sexml.lib</ImportLibrary>
@@ -239,7 +241,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.builder.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.memory.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.parser.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.sexml\rococo.sexml.user.cpp" />
   </ItemGroup>

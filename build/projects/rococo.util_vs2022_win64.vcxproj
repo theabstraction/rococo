@@ -142,7 +142,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.util.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.util.lib</ImportLibrary>
@@ -237,6 +239,7 @@
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.util\joysticks.xbox360.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.base.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.heap.string.cpp" />
@@ -250,12 +253,16 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.package.zip.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.parsering.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.reflection.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.sequences.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.strings.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.tables.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.throw.cr_sex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.windows.ide.stdout.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\sha256.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\source\rococo\rococo.util\rococo.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

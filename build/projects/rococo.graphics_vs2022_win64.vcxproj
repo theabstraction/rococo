@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -226,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -264,6 +264,11 @@
     </ProjectReference>
     <ProjectReference Include="rococo.component.body_vs2022_win64.vcxproj">
       <Project>{7D425A96-016D-D428-78AE-957D6214E327}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.maths_vs2022_win64.vcxproj">
+      <Project>{83F901CE-6EC8-579F-89CA-76C364A01566}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

@@ -20,6 +20,7 @@ namespace Rococo::Sex::SEXML
 {
 	enum class SEXMLValueType
 	{
+		Null,
 		Atomic,					// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISEXMLAttributeValue&
 		StringLiteral,			// Allows us to static_cast<ISexyXMLAttributeStringValue&>(base) where base is a ISEXMLAttributeValue&
 		AtomicList,				// Allows us to static_cast<ISexyXMLAttributeStringListValue&>(base) where base is a ISEXMLAttributeValue&. Every value element is guaranteed to be an atomic expression
@@ -168,6 +169,8 @@ namespace Rococo::Sex::SEXML
 		}
 
 		virtual [[nodiscard]] const ISEXMLDirectiveList& Children() const = 0;
+
+		virtual [[nodiscard]] const ISEXMLDirective* Parent() const = 0;
 	};
 
 	ROCOCO_SEXML_API [[nodiscard]] Vec2i GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, Vec2i defaultValues);
@@ -323,6 +326,9 @@ namespace Rococo::OS
 	ROCOCO_SEXML_API void SetDefaultOrganization(cstr defaultOrganization);
 
 	ROCOCO_SEXML_API void LoadSXMLBySysPath(const wchar_t* filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
+
+	// Attempts to interpret a string s as a SEXML document. <name> is used in exceptions to identify the source of errors
+	ROCOCO_SEXML_API void ParseSXMLFromString(cstr name, cstr s, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 	
 	ROCOCO_SEXML_API void LoadSXMLBySysPath(cstr filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 
