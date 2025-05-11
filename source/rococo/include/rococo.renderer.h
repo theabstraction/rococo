@@ -181,6 +181,7 @@ namespace Rococo::Graphics
 		virtual ID_FONT CreateOSFont(Fonts::IArrayFontSet & glyphs, const Fonts::FontSpec & spec) = 0;
 		virtual Vec2i EvalSpan(ID_FONT id, const fstring& text) const = 0;
 		virtual const Fonts::ArrayFontMetrics& GetFontMetrics(ID_FONT idFont) = 0;
+		virtual void SetZoomLevel(float zoomLevel) = 0;
 	};
 
 	ROCOCO_INTERFACE IGuiResources

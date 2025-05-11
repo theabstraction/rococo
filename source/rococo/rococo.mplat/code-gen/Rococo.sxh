@@ -631,6 +631,7 @@
 		(AddCharacters (IString s))
 		(AddRange (Int32 unicodeStarChar)(Int32 unicodeEndChar))
 		(Commit -> (IdFont sysFontId))
+		(SetZoomLevel (Float32 zoomLevel))
 	)
 	(factory Rococo.Graphics.HQFonts)
 )

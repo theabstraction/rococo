@@ -569,7 +569,12 @@ namespace ANON
 
 		void SetUIZoom(float zoomLevel) override
 		{
-			this->zoomLevel = zoomLevel;
+			float newZoomLevel = clamp(1.0f, zoomLevel, 100.0f);
+			if (newZoomLevel != this->zoomLevel)
+			{
+				this->zoomLevel = newZoomLevel;
+				renderer.utils.GetHQFonts().SetZoomLevel(newZoomLevel);
+			}
 		}
 
 		float ZoomLevel() const override

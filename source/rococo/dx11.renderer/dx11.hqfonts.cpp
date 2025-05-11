@@ -169,6 +169,68 @@ namespace Rococo::DX11
 			a.weight == b.weight;
 	}
 
+	DX11::OSFont DuplicateScaled(DX11::OSFont& font, float zoomLevel, ID3D11Device& device, ID3D11DeviceContext& activeDC)
+	{
+		struct ANON : IEventCallback<const GlyphDesc>, IArrayFontSet
+		{
+			std::vector<GlyphDesc> newGlyphs;
+
+			void OnEvent(const GlyphDesc& src) override
+			{
+				newGlyphs.push_back(src);
+			}
+
+			void Populate(IFontGlyphBuilder& builder)
+			{
+				for (auto& g : newGlyphs)
+				{
+					if (g.charCode >= 32 && g.charCode < 128)
+					{
+						builder.AddGlyph((unsigned char) g.charCode);
+					}
+				}
+			}
+		} glyphBuilder;
+
+		font.arrayFont->ForEachGlyph(glyphBuilder);
+
+		FontSpec newSpec = font.spec;
+		newSpec.height = (int)(font.spec.height * zoomLevel);
+		AutoFree<IArrayFontSupervisor> newFont = CreateOSFont(glyphBuilder, newSpec);
+
+		AutoFree<IDX11BitmapArray> new_array2D = CreateDX11BitmapArray(device, activeDC);
+		OSFont osFont{ newFont, font.spec, new_array2D };
+		
+		struct : IEventCallback<const Fonts::GlyphDesc>
+		{
+			OSFont* font;
+			size_t index = 0;
+			void OnEvent(const Fonts::GlyphDesc& gd) override
+			{
+				struct : Imaging::IImagePopulator<GRAYSCALE>
+				{
+					size_t index;
+					OSFont* font;
+					void OnImage(const GRAYSCALE* pixels, int32 width, int32 height) override
+					{
+						font->array->WriteSubImage(index, pixels, { width, height });
+					}
+				} addImageToTextureArray;
+				addImageToTextureArray.font = font;
+				addImageToTextureArray.index = index++;
+				font->arrayFont->GenerateImage(gd.charCode, addImageToTextureArray);
+			}
+		} addGlyphToTextureArray;
+
+		addGlyphToTextureArray.font = &osFont;
+
+		new_array2D->ResetWidth(newFont->Metrics().imgWidth, newFont->Metrics().imgHeight);
+		new_array2D->Resize(newFont->NumberOfGlyphs());
+		newFont->ForEachGlyph(addGlyphToTextureArray);
+
+		return DX11::OSFont{ newFont.Detach(), font.spec, new_array2D.Detach() };
+	}
+
 	struct DX11HQFontFonts: IDX11HQFontResource
 	{
 		ID3D11Device& device;
@@ -398,6 +460,24 @@ namespace Rococo::DX11
 			}
 		}
 
+		float zoomLevel = 1.0f;
+
+		void SetZoomLevel(float zoomLevel) override
+		{
+			if (this->zoomLevel != zoomLevel && activeDC)
+			{
+				this->zoomLevel = zoomLevel;
+
+				for (auto& font : osFonts)
+				{
+					DX11::OSFont replacement = DuplicateScaled(font, zoomLevel, device, *activeDC);
+					font.array->Free();
+					font.arrayFont->Free();
+					font.array = replacement.array;
+					font.arrayFont = replacement.arrayFont;
+				}
+			}
+		}
 	};
 
 	IDX11HQFontResource* CreateDX11HQFonts(IDX11FontRenderer& renderer, ID3D11Device& device, ID3D11DeviceContext& dc)

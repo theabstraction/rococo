@@ -62,6 +62,11 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 		Clear();
 	}
 
+	void SetZoomLevel(float zoomLevel) override
+	{
+		hq.SetZoomLevel(zoomLevel);
+	}
+
 	void Clear() override
 	{
 		glyphs.clear();
