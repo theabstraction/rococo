@@ -4,6 +4,7 @@
 #include <rococo.vkeys.h>
 
 #include <vector>
+#include <algorithm>
 
 namespace GRANON
 {
@@ -39,9 +40,18 @@ namespace GRANON
 
 		}
 
+		Vec2i lastComputedSpan{ 0,0 };
+
 		void LayoutAfterExpand() override
 		{
-
+			if (panel.Span().x > 0 && panel.Span().y > 0)
+			{
+				if (lastComputedSpan != panel.Span())
+				{
+					lastComputedSpan = panel.Span();
+					SyncToBestZoomLevel();
+				}
+			}
 		}
 
 		void PostConstruct()
@@ -69,29 +79,152 @@ namespace GRANON
 			delete this;
 		}
 
-		std::vector<float> zoomLevels = { 1.0f, 1.2f, 1.3, 1.4f, 1.5f, 1.8f, 2.0f, 2.25f, 2.5f, 2.75f, 3.0f, 3.5f, 4.0f, 5.0f };
-
-		void SetNumberOfZoomIndices(size_t nIndices) override
+		struct ZoomScenario
 		{
-			zoomLevels.resize(nIndices);
-		}
+			int minScreenWidth;
+			int minScreenHeight;
 
-		void SetZoomLevel(size_t index, float value) override
+			std::vector<float> zoomLevels;
+		};
+
+		std::vector<ZoomScenario> zoomScenarios;
+
+		void AddZoomScenario(int minScreenWidth, int minScreenHeight, const IValueTypeVectorReader<float>& levels) override
 		{
-			if (index >= zoomLevels.size())
+			for (auto& target : zoomScenarios)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "[index #%llu] exceeded zoom levels %llu", index, zoomLevels.size());
+				if (target.minScreenHeight == minScreenHeight && target.minScreenWidth == minScreenWidth)
+				{
+					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Duplicate zoom target span (%d, %d)", minScreenWidth, minScreenHeight);
+				}
+
+				if ((target.minScreenWidth > minScreenWidth && target.minScreenHeight < minScreenHeight)
+					|| (target.minScreenHeight > minScreenHeight && target.minScreenWidth < minScreenWidth)
+					)
+				{
+					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Conflicting zoom target span (%d, %d) vs (%d,%d). Width and Height must be both >= or <= other zoom targets", target.minScreenWidth, target.minScreenHeight, minScreenWidth, minScreenHeight);
+				}
 			}
 
-			zoomLevels[index] = value;
+			size_t nElements = levels.Count();
+			if (nElements < 1)
+			{
+				Throw(0, "No levels specified for ZoomScenario(%d, %d)", minScreenWidth, minScreenHeight);
+			}
+
+			ZoomScenario newScenario;
+			newScenario.minScreenWidth = minScreenWidth;
+			newScenario.minScreenHeight = minScreenHeight;
+			newScenario.zoomLevels.resize(nElements);
+
+			for (size_t i = 0; i < nElements; i++)
+			{
+				newScenario.zoomLevels[i] = levels[i];
+			}
+
+			float level0 = newScenario.zoomLevels[0];
+
+			if (level0 < 1.0 || level0 > 100.0f)
+			{
+				Throw(0, "Level 0 must lie between 1.0 and 100.0");
+			}
+
+			float levelIMinus1 = level0;
+
+			for (size_t i = 1; i < nElements; i++)
+			{
+				float levelI = newScenario.zoomLevels[i];
+
+				if (levelI <= levelIMinus1)
+				{
+					Throw(0, "Level #d (= %f) must be >= %f, the predecessor", i, levelI, levelIMinus1);
+				}
+
+				if (levelI > 100.0)
+				{
+					Throw(0, "Level #d (= %f) must be <= 100.0", i, levelI);
+				}
+
+				levelI = levelIMinus1;
+			}
+
+			zoomScenarios.push_back(newScenario);
+
+			// Sort by largest screen ascending
+			std::sort(zoomScenarios.begin(), zoomScenarios.end(),
+				[](const ZoomScenario& a, const ZoomScenario& b)
+				{
+					if (a.minScreenWidth < b.minScreenWidth)
+					{
+						return true;
+					}
+
+					if (a.minScreenWidth > b.minScreenWidth)
+					{
+						return false;
+					}
+
+					return a.minScreenHeight < b.minScreenHeight;
+				}
+			);
+		}
+
+		const ZoomScenario* GetBestZoomScenario() const
+		{
+			Vec2i frameSpan = panel.Span();
+
+			if (zoomScenarios.empty())
+			{
+				return nullptr;
+			}
+
+			auto& z0 = zoomScenarios[0];
+			if (frameSpan.x < z0.minScreenWidth || frameSpan.y < z0.minScreenHeight)
+			{
+				return nullptr;
+			}
+
+			for (size_t i = 1; i < zoomScenarios.size(); i++)
+			{
+				auto& z = zoomScenarios[i];
+				if (frameSpan.x < z.minScreenWidth || frameSpan.y < z.minScreenHeight)
+				{
+					return &zoomScenarios[i-1];
+				}
+			}
+
+			return &zoomScenarios[zoomScenarios.size() - 1];
+		}
+
+		void SyncToBestZoomLevel()
+		{
+			const ZoomScenario* bestScenario = GetBestZoomScenario();
+			if (!bestScenario || bestScenario->zoomLevels.empty())
+			{
+				panel.Root().Custodian().SetUIZoom(1.0f);
+				return;
+			}
+
+			float zoomLevel = panel.Root().Custodian().ZoomLevel();
+
+			float maxSupportedZoomLevel = bestScenario->zoomLevels.back();
+
+			if (zoomLevel > maxSupportedZoomLevel)
+			{
+				panel.Root().Custodian().SetUIZoom(zoomLevel);
+			}
 		}
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.MouseVWheel && panel.Root().Custodian().Keys().IsKeyPressed(IO::VirtualKeys::VKCode_SHIFT))
 			{
-				if (zoomLevels.size() > 1)
+				const ZoomScenario* bestScenario = GetBestZoomScenario();
+
+				if (bestScenario)
 				{
+					auto& zoomLevels = bestScenario->zoomLevels;
+
 					float zoomLevel = panel.Root().Custodian().ZoomLevel();
 
 					if (ce.wheelDelta > 0)

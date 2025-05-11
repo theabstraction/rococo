@@ -82,6 +82,7 @@ namespace Rococo::GreatSex
 			DefIconFactory onDefIcon;
 			ViewportClientFactory onViewportClient;
 			ViewportOffsetFactory onViewportOffset;
+			ZoomFactory onZoom;
 
 			Auto<ISParser> insertParser;
 
@@ -133,6 +134,7 @@ namespace Rococo::GreatSex
 				AddHandler("DefIcon", onDefIcon);
 				AddHandler("Viewport.ClientArea", onViewportClient);
 				AddHandler("Viewport.Offset", onViewportOffset);
+				AddHandler("Zoom", onZoom);
 
 				size_t nElements;
 				const ColourDirectiveBind* bindings = GetColourBindings(OUT nElements);

@@ -509,6 +509,13 @@ namespace Rococo
 		virtual void Enumerate(IEnumerator<T>& cb) = 0;
 	};
 
+	template<class T> ROCOCO_INTERFACE IValueTypeVectorReader
+	{
+		[[nodiscard]] virtual T operator[](size_t index) const = 0;
+		[[nodiscard]] virtual size_t Count() const = 0;
+	};
+
+
 	template<> ROCOCO_INTERFACE IEnumerable<const char*>
 	{
 		[[nodiscard]] virtual const char* operator[](size_t index) = 0;

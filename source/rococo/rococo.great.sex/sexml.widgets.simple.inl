@@ -507,6 +507,45 @@ namespace Rococo::GreatSex
 		}
 	};
 
+	struct ZoomFactory : SEXMLWidgetFactory_AlwaysValid
+	{
+		void Generate(IGreatSexGenerator&, const Rococo::Sex::SEXML::ISEXMLDirective& d, Rococo::Gui::IGRWidget& parent) override
+		{
+			auto* frame = FindOwner(parent);
+			if (!frame)
+			{
+				return;
+			}
+
+			int minScreenWidth = AsAtomicInt32(d["MinWidth"]);
+			int minScreenHeight = AsAtomicInt32(d["MinHeight"]);
+
+			auto& levels = AsStringList(d["Levels"]);
+
+			struct LevelsAsFloatList : IValueTypeVectorReader<float>
+			{
+				const Sex::SEXML::ISEXMLAttributeStringListValue& items;
+
+				LevelsAsFloatList(const Sex::SEXML::ISEXMLAttributeStringListValue& _items) : items(_items)
+				{
+
+				}
+
+				float operator[](size_t index) const override
+				{
+					return (float) atof(items[index]);
+				}
+
+				size_t Count() const override
+				{
+					return items.NumberOfElements();
+				}
+			} levelsAsFloatList(levels);
+
+			frame->AddZoomScenario(minScreenWidth, minScreenHeight, levelsAsFloatList);
+		}
+	};
+
 	struct DefIconFactory: ISEXMLWidgetFactory
 	{
 		void Generate(IGreatSexGenerator & generator, const Rococo::Sex::SEXML::ISEXMLDirective & tabDirective, Rococo::Gui::IGRWidget & parent) override

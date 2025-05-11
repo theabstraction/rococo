@@ -3,6 +3,35 @@
 	(Path "!tests/greatsex.scheme.sexml")
 )
 
+(Zoom // This should cover 4k screens with ~90% windowed coverage or better
+	(MinWidth 3600)		
+	(MinHeight 2000)
+	
+	([] Levels 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 4.0)
+)
+
+(Zoom // This covers extra wide HD modes
+	(MinWidth 2536)
+	(MinHeight 1280)
+	
+	([] Levels 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5)
+)
+
+(Zoom // Should suffice for ~FullHD
+	(MinWidth 1600)
+	(MinHeight 800)
+	
+	([] Levels 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0)
+)
+
+
+(Zoom // Support for zooming on legacy screens. Below this resolution users cannot zoom the window
+	(MinWidth 1024)
+	(MinHeight 650)
+	
+	([] Levels 1.0 1.1 1.2 1.3 1.4)
+)
+
 // The frame element navigates up the owner branch until the frame is found and then sets the attributes specified in the sexml
 (Frame
 	(Colour.Container.Background Transparent)
@@ -152,20 +181,20 @@
 			([] Group Button.UI Button.Graphics Button.Audio Button.Gameplay Button.Multiplayer)
 			(Navigate Vertical)
 			(Default Button.Graphics)
+			(Panel.Description OptionCategories)
 			(Panel.NavRight GameOptionsInnerDiv)
 			(Panel.NavDown GameOptionsFinalization)
-			(Panel.Description OptionCategories)
 			(Panel.Layout TopToBottom)
 			(Panel.AcceptsFocus)
 			(Panel.FixedWidth 20%)
 			(Panel.ExpandV)
+			(Panel.ChildPadding 4)
+			(#Recti Panel.Padding 4 0 0 0)
 			(Colour.Container.Background Transparent)
 			(Colour.Button.Shadow Black)
 			(Colour.Button TabButtonBackground )
 			(Colour.Button.Edge.Top.Left TabButtonTopLeftHilight)
 			(Colour.Button.Edge.Bottom.Right TabButtonBottomRightHilight)
-			(Panel.ChildPadding 4)
-			(#Recti Panel.Padding 4 0 0 0)
 			:
 			
 			(Tab 
@@ -305,7 +334,6 @@
 			
 				// GameOptions contains a procedurally generated list of controls for changing game options
 				(GameOptions 
-					(Panel.Collapsed)
 					(Panel.Description GameOptions.Graphics)
 					(Title.Style TitlesOnLeft)
 					(Title.Alignment Left)

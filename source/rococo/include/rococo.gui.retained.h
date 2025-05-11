@@ -1347,9 +1347,22 @@ namespace Rococo::Gui
 		// The part of the main frame that is below the title bar. If there is no title bar the client area covers the entire area
 		virtual [[nodiscard]] IGRWidgetDivision& ClientArea() = 0;
 
-		virtual void SetNumberOfZoomIndices(size_t nIndices) = 0;
+		// Adds a zoom scenario, which is a sequence of distinct zoom levels for a given screen width and height.
+		// Multiple scenarios are permitted providing that given x and y are spans(min_width, min_height)
+		// min_width(x) >= min_width(y) <==> min_height(x) >= min_height(y) and x != y
+		// For example, we could specify a scenario with span x = (1024,1024) and another span y = (1280,1024) but not y = (1280, 768)
+		// This allows picking of the zoom levels appropriate to the screen resolution. Generally higher resolutions support greater focus values
+		virtual void AddZoomScenario(int minScreenWidth, int minScreenHeight, const IValueTypeVectorReader<float>& levels) = 0;
 
-		virtual void SetZoomLevel(size_t index, float value) = 0;
+		inline void Add_4K_ZoomScenario(const IValueTypeVectorReader<float>& levels)
+		{
+			AddZoomScenario(3840, 2160, levels);
+		}
+
+		inline void Add_FullHD_ZoomScenario(const IValueTypeVectorReader<float>& levels)
+		{
+			AddZoomScenario(1920, 1080, levels);
+		}
 	};
 
 	ROCOCO_INTERFACE IGRWidgetMainFrameSupervisor: IGRWidgetMainFrame
