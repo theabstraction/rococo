@@ -46,7 +46,7 @@ typedef __int64 ptrdiff_t;
 #endif
 
 #ifdef _WIN32
-# if USE_VSTUDIO_SAL
+# ifdef USE_VSTUDIO_SAL
 #  include <sal.h>
 # endif
 #endif
@@ -390,7 +390,7 @@ namespace Rococo
 		virtual Debugging::IStackFrameEnumerator* StackFrames() = 0;
 	};
 
-#if USE_VSTUDIO_SAL
+#ifdef USE_VSTUDIO_SAL
 	[[ noreturn ]]
 	ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ const char* format, ...);
 #else
