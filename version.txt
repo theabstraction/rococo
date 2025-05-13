@@ -1,0 +1,3 @@
+1.0
+
+ First release of Rococo with GUI RETAINED library. This version has copyright changes compared to the previous versions. AFAIK there were no consumers of the API, so nobody should be complaining! Due to the financial constraints in this 'Cost of Living Crisis', some degree of commercialization of the libraries are essential.
