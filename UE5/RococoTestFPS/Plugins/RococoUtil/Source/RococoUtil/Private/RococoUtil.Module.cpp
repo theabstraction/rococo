@@ -1,12 +1,14 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "RococoUtil.h"
+#include "RococoUtil.Module.h"
 
 #define LOCTEXT_NAMESPACE "FRococoUtilModule"
 
+void RunRococoOSTests();
+
 void FRococoUtilModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	RunRococoOSTests();
 }
 
 void FRococoUtilModule::ShutdownModule()

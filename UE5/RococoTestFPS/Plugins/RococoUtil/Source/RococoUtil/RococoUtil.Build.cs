@@ -1,17 +1,44 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+using System.IO;
 using UnrealBuildTool;
 
 public class RococoUtil : ModuleRules
 {
+	public string RococoIncludeDirectory
+	{
+		get
+		{
+			string dir = PluginDirectory;
+			string fullPath = dir;
+			string lastFullPath;
+
+			do
+			{
+                lastFullPath = fullPath;
+
+                fullPath = Path.GetFullPath(Path.Combine(fullPath, ".."));
+
+				string includeDirectory = Path.Combine(fullPath, "source/rococo/include/");
+				if (Directory.Exists(includeDirectory))
+				{
+					return includeDirectory;
+				}
+
+            } while(lastFullPath != fullPath);
+
+			throw new System.Exception("Could not find rococo directory by enumerating ancestors of " + dir);
+		}
+	}
+
 	public RococoUtil(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+
 		PublicIncludePaths.AddRange(
 			new string[] {
-				// ... add public include paths required here ...
-			}
+                RococoIncludeDirectory
+            }
 			);
 				
 		

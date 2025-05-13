@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "RococoUtil",
-	"Description": "rococo.util library using the Unreal Engine Platform OS Abstraction Layer",
+	"Description": "Rococo Util Library",
 	"Category": "Other",
 	"CreatedBy": "Mark Anthony Taylor",
 	"CreatedByURL": "",

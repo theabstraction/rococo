@@ -207,7 +207,7 @@ namespace Rococo
 	{
 		namespace VirtualKeys
 		{
-			enum VKCode;
+			enum VKCode : int;
 		}
 	}
 
