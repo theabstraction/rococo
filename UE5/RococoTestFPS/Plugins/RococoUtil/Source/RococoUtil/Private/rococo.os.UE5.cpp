@@ -4,6 +4,7 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 #include <time.h>
+#include <stdio.h>
 
 #include <Misc/Paths.h>
 #include <GenericPlatform/GenericPlatformMisc.h>
@@ -17,80 +18,186 @@ namespace Rococo
 		ctime_s(str, 26, &t);
 	}
 
-	namespace IO
+	typedef FilePath<TCHAR> UnrealFilePath;
+
+	void Throw(const FString& msg)
 	{
-		ROCOCO_API void ToSysPath(char* path)
-		{
-			char directorySeparator = DirectorySeparatorChar();
+		auto* pMsg = *msg;
 
-			for (char* s = path; *s != 0; ++s)
+		char asciiError[1024];
+		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(pMsg, msg.Len());
+
+		TArray<uint8> buffer;
+		buffer.SetNumUninitialized(nElements);
+
+		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), pMsg, nElements);
+
+		Throw(0, "%s", buffer.GetData());
+	}
+}
+
+namespace Rococo::IO
+{
+	ROCOCO_API void ToSysPath(char* path)
+	{
+		char directorySeparator = DirectorySeparatorChar();
+
+		for (char* s = path; *s != 0; ++s)
+		{
+			if (*s == L'/') *s = directorySeparator;
+		}
+	}
+
+	ROCOCO_API void ToUnixPath(char* path)
+	{
+		for (char* s = path; *s != 0; ++s)
+		{
+			if (*s == '\\') *s = '/';
+		}
+	}
+
+	ROCOCO_API bool IsFileExistant(const char* filename)
+	{
+		FString filePath(filename);
+
+		return FPaths::FileExists(filePath);
+	}
+
+	ROCOCO_API bool StripLastSubpath(char* fullpath)
+	{
+		char directorySeparator = DirectorySeparatorChar();
+
+		int32 len = (int32)strlen(fullpath);
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (fullpath[i] == directorySeparator)
 			{
-				if (*s == L'/') *s = directorySeparator;
+				fullpath[i + 1] = 0;
+				return true;
 			}
 		}
 
-		ROCOCO_API void ToUnixPath(char* path)
+		return false;
+	}
+
+	ROCOCO_API void SanitizePath(char* path)
+	{
+		char directorySeparator = DirectorySeparatorChar();
+
+		for (char* s = path; *s != 0; ++s)
 		{
-			for (char* s = path; *s != 0; ++s)
+			if (*s == '/' || *s == '\\') *s = directorySeparator;
+		}
+	}
+
+	ROCOCO_API bool MakeContainerDirectory(char* filename)
+	{
+		int len = (int)strlen(filename);
+
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (filename[i] == '\\' || filename[i] == '/')
 			{
-				if (*s == '\\') *s = '/';
+				filename[i + 1] = 0;
+				return true;
 			}
 		}
 
-		ROCOCO_API bool IsFileExistant(const char* filename)
+		return false;
+	}
+
+	ROCOCO_API char DirectorySeparatorChar()
+	{
+		return *FGenericPlatformMisc::GetDefaultPathSeparator();
+	}
+
+	ROCOCO_API void CreateDirectoryFolder(const TCHAR* path)
+	{
+		IPlatformFile& platformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+		// Directory Exists?
+		if (!platformFile.DirectoryExists(path))
 		{
-			FString filePath(filename);
-
-			return FPaths::FileExists(filePath);
-		}
-
-		ROCOCO_API bool StripLastSubpath(char* fullpath)
-		{
-			char directorySeparator = DirectorySeparatorChar();
-
-			int32 len = (int32)strlen(fullpath);
-			for (int i = len - 2; i > 0; --i)
+			if (!platformFile.CreateDirectory(path))
 			{
-				if (fullpath[i] == directorySeparator)
+				Throw(FString::Printf(TEXT("Cannot create directory %s"), path));
+			}
+		}
+	}
+
+	ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const TCHAR* sysPath)
+	{
+		struct BinArchive : IBinaryArchive
+		{		
+			IFileHandle* file = nullptr;
+			FString filename;
+
+			BinArchive(const TCHAR* sysPath): filename(sysPath)
+			{
+				if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
+
+				file = IPlatformFile::GetPlatformPhysical().OpenWrite(sysPath);
+				if (file == nullptr)
 				{
-					fullpath[i + 1] = 0;
-					return true;
+					Throw(FString::Printf(TEXT("Error creating file: {0}"), sysPath));
 				}
 			}
 
-			return false;
-		}
-
-		ROCOCO_API void SanitizePath(char* path)
-		{
-			char directorySeparator = DirectorySeparatorChar();
-
-			for (char* s = path; *s != 0; ++s)
+			~BinArchive()
 			{
-				if (*s == '/' || *s == '\\') *s = directorySeparator;
+				delete file;
 			}
-		}
 
-		ROCOCO_API bool MakeContainerDirectory(char* filename)
-		{
-			int len = (int)strlen(filename);
-
-			for (int i = len - 2; i > 0; --i)
+			uint64 Position() const override
 			{
-				if (filename[i] == '\\' || filename[i] == '/')
+				return (uint64) file->Tell();
+			}
+
+			void Reserve(uint64 nBytes)
+			{
+				file->Truncate((int64) nBytes);
+				SeekAbsolute(0);
+			}
+
+			void SeekAbsolute(uint64 position)
+			{
+				if (!file->Seek((int64)position))
 				{
-					filename[i + 1] = 0;
-					return true;
+					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Seek failed"), *filename));
 				}
 			}
 
-			return false;
-		}
+			void Truncate()
+			{
+				int64 pos = file->Tell();
+				if (pos > 0)
+				{
+					file->Truncate(pos);
+				}
+			}
 
-		ROCOCO_API char DirectorySeparatorChar()
-		{
-			return *FGenericPlatformMisc::GetDefaultPathSeparator();
-		}
+			void Write(size_t sizeOfElement, size_t nElements, const void* pElements)
+			{
+				size_t nTotalBytes = nElements * sizeOfElement;
+
+				if (nTotalBytes >= 4096_megabytes)
+				{
+					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Could not write data. It was greater than 4GB in length"), *filename));
+				}
+
+				if (!file->Write((const uint8*)pElements, (int64) nTotalBytes))
+				{
+					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Could not write data. Disk full?"), *filename));
+				}
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+		};
+
+		return new BinArchive(sysPath);
 	}
 }
 
