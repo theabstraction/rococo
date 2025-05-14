@@ -410,6 +410,11 @@ namespace Rococo
 					}
 				}
 
+				~Win32BinFile()
+				{
+					CloseHandle(hFile);
+				}
+
 				uint32 Read(uint32 capacity, void* pElements) override
 				{
 					DWORD bytesRead = 0;
