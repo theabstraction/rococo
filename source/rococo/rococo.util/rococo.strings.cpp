@@ -27,6 +27,35 @@ using namespace Rococo::Strings;
 
 #define ROCOCO_UTIL_API __declspec(dllexport)
 
+namespace Rococo
+{
+	ROCOCO_API bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
+	{
+		cstr p = modifiedFilename;
+		cstr q = resourceName + 1;
+
+		while (*p != 0)
+		{
+			if (*p != *q)
+			{
+				if (*p == '\\' && *q == '/')
+				{
+					// ok
+				}
+				else
+				{
+					return false;
+				}
+			}
+
+			p++;
+			q++;
+		}
+
+		return *q == 0;
+	}
+}
+
 namespace StringsAnon
 {
 	class ExpandingBuffer : public IExpandingBuffer

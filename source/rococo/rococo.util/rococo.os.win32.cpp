@@ -1247,17 +1247,17 @@ namespace Rococo::OS
 
 	ROCOCO_API void* AllocBoundedMemory(size_t nBytes)
 	{
-		auto* pMem = VirtualAlloc(NULL, nBytes, MEM_COMMIT, PAGE_READWRITE);
+		auto* pMem = malloc(nBytes);
 		if (pMem == nullptr)
 		{
-			Throw(GetLastError(), "Could not allocate %ull bytes virtual memory", nBytes);
+			Throw(0, "Could not allocate %ull bytes of memory", nBytes);
 		}
 		return pMem;
 	}
 
 	ROCOCO_API void FreeBoundedMemory(void* pMemory)
 	{
-		VirtualFree(pMemory, 0, MEM_RELEASE);
+		free(pMemory);
 	}
 } // Rococo::OS
 
@@ -1269,32 +1269,6 @@ namespace Rococo
 		counters.cb = sizeof(counters);
 		GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters));
 		return{ counters.PagefileUsage, counters.PeakPagefileUsage };
-	}
-
-	ROCOCO_API bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName)
-	{
-		cstr p = modifiedFilename;
-		cstr q = resourceName + 1;
-
-		while (*p != 0)
-		{
-			if (*p != *q)
-			{
-				if (*p == '\\' && *q == '/')
-				{
-					// ok
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			p++;
-			q++;
-		}
-
-		return *q == 0;
 	}
 }
 
