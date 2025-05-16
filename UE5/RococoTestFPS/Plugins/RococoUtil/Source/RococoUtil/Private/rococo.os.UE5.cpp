@@ -1481,20 +1481,31 @@ namespace UE5_ANON
 
 				struct Reader : ILoadEventReader
 				{
-					IFileHandle* file;
+					IFileHandle* hFile;
 					const wchar_t* absPath;
 
-					Reader(IFileHandle* _hFile, const wchar_t* _absPath) : file(_hFile), absPath(_absPath) {}
+					Reader(IFileHandle* _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 					void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 					{
-						if (!file->Read(static_cast<uint8*>(buffer), (int64)capacity))
-						{
-							
+						int64 prePos = hFile->Tell();
 
-						bytesRead = bytesReadAPI;
+						if (!hFile->Read((uint8*)buffer, (int64)bytesRead))
+						{
+							Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - read failed"), absPath));
+						}
+
+						int64 postPos = hFile->Tell();
+
+						int64 delta = postPos - prePos;
+						if (delta < 0 || delta > 0x00000000FFFFFFFF)
+						{
+							Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - unexpected file position"), absPath));
+						}
+
+						bytesRead = (uint32)delta;
 					}
-				} reader(hFile, absPath);
+				} reader(file.file, absPath);
 
 				cb.OnDataAvailable(reader);
 
@@ -1509,32 +1520,40 @@ namespace UE5_ANON
 
 		void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const override
 		{
-			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-			if (hFile == INVALID_HANDLE_VALUE) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
+			AutoFile hFile = IPlatformFile::GetPlatformPhysical().OpenRead(absPath);
+			if (hFile.file == nullptr) Throw(FString::Printf(TEXT("LoadAbsolute(%ls) failed: Error opening file"), absPath));
 
-			LARGE_INTEGER len;
-			GetFileSizeEx(hFile, &len);
+			int64 fileLength = hFile->Size();
 
-			cb.OnFileOpen(len.QuadPart);
+			cb.OnFileOpen(fileLength);
 
 			struct Reader : ILoadEventReader
 			{
-				HANDLE hFile;
+				IFileHandle* hFile;
 				const wchar_t* absPath;
 
-				Reader(HANDLE _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
+				Reader(IFileHandle* _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 				void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 				{
-					DWORD bytesReadAPI;
-					if (!ReadFile(hFile, buffer, capacity, &bytesReadAPI, nullptr))
+					int64 prePos = hFile->Tell();
+
+					if (!hFile->Read((uint8*)buffer, (int64)bytesRead))
 					{
-						Throw(HRESULT_FROM_WIN32(GetLastError()), "Error reading file <%s>", absPath);
+						Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - read failed"), absPath));
 					}
 
-					bytesRead = bytesReadAPI;
+					int64 postPos = hFile->Tell();
+
+					int64 delta = postPos - prePos;
+					if (delta < 0 || delta > 0x00000000FFFFFFFF)
+					{
+						Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - unexpected file position"), absPath));
+					}
+
+					bytesRead = (uint32)delta;
 				}
-			} reader(hFile, absPath);
+			} reader(hFile.file, absPath);
 
 			cb.OnDataAvailable(reader);
 		}
