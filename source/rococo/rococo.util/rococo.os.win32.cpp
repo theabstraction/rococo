@@ -2569,7 +2569,7 @@ namespace Rococo::IO
 
 		try
 		{
-			LoadAsciiTextFile(onLoad, filename);
+			LoadAsciiTextFile(onLoad, fullPath.data());
 		}
 		catch (...)
 		{
@@ -2578,7 +2578,7 @@ namespace Rococo::IO
 
 		if (!onLoad.match)
 		{
-			SaveAsciiTextFile(target, filename, text);
+			SaveAsciiTextFile(target, fullPath.data(), text);
 		}
 	}
 

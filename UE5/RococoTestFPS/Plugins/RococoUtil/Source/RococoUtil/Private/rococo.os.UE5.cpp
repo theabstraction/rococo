@@ -3,11 +3,16 @@
 #include <CoreMinimal.h>
 #include <rococo.os.h>
 #include <rococo.io.h>
+#include <rococo.task.queue.h>
+#include <rococo.debugging.h>
 #include <time.h>
 #include <Misc/Paths.h>
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 #include <GenericPlatform/GenericPlatformMisc.h>
 #include <GenericPlatform/GenericPlatformApplicationMisc.h>
+#include <Logging/LogMacros.h>
+#include <Misc/CommandLine.h>
 
 using namespace Rococo::Strings;
 
@@ -56,6 +61,8 @@ namespace Rococo
 			Strings::CopyString(path.buf, path.CAPACITY, (const char*) *src);
 		}
 	}
+
+
 
 	void Throw(const FString& msg)
 	{	
@@ -1567,7 +1574,353 @@ namespace UE5_ANON
 		{
 			return _MAX_PATH;
 		}
+
+		void Monitor(const wchar_t* /* absPath */) override
+		{
+			Throw(0, "Not implemented");
+		}
 	};
+}
+
+namespace Rococo::IO
+{
+	ROCOCO_API IOSSupervisor* GetIOS()
+	{
+		return new UE5_ANON::UE5OS();
+	}
+
+	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
+	{
+		return new UE5_ANON::Installation(contentIndicatorName, os);
+	}
+
+	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
+	{
+		wchar_t slash[2] = { 0 };
+		slash[0] = Rococo::IO::GetFileSeparator();
+
+		if (!Rococo::Strings::EndsWith(contentDirectory, slash))
+		{
+			Throw(0, "Content %ls did not end with %ls", contentDirectory, slash);
+		}
+
+		bool assumeAbsolute = false;
+
+		size_t len = wcslen(contentDirectory);
+		if (len > 2)
+		{
+			if (contentDirectory[1] == L':' && IsCapital((char)contentDirectory[0]))
+			{
+				assumeAbsolute = true;
+			}
+		}
+
+		if (contentDirectory[0] == IO::GetFileSeparator())
+		{
+			assumeAbsolute = true;
+		}
+
+		if (!assumeAbsolute)
+		{
+			U8FilePath currentDir;
+			IO::GetCurrentDirectoryPath(currentDir);
+
+			WideFilePath absPath;
+			Format(absPath, L"%hs\\%ls", currentDir.buf, contentDirectory);
+
+			IO::NormalizePath(absPath);
+			return new UE5_ANON::Installation(os, absPath);
+		}
+		else
+		{
+			return new UE5_ANON::Installation(os, contentDirectory);
+		}
+	}
+}
+
+namespace Rococo::OS
+{
+	ROCOCO_API IAppControlSupervisor* CreateAppControl()
+	{
+		struct AppControl : public IAppControlSupervisor, public Rococo::Tasks::ITaskQueue
+		{
+			void ShutdownApp() override
+			{
+				isRunning = false;
+				FGenericPlatformMisc::RequestExit(false, TEXT(__FUNCTION__));
+			}
+
+			bool IsRunning() const
+			{
+				return isRunning;
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+
+			std::list<Rococo::Function<void()>> tasks;
+
+			Rococo::Tasks::ITaskQueue& MainThreadQueue() override
+			{
+				return *this;
+			}
+
+			void AddTask(Rococo::Function<void()> lambda) override
+			{
+				tasks.push_back(lambda);
+			}
+
+			bool ExecuteNext() override
+			{
+				if (tasks.empty())
+				{
+					AdvanceSysMonitors();
+					return false;
+				}
+
+				tasks.front().Invoke();
+				tasks.pop_front();
+				return true;
+			}
+
+			void AdvanceSysMonitors() override
+			{
+				for (auto* s : sysMonitors)
+				{
+					s->DoHousekeeping();
+				}
+			}
+
+			bool isRunning = true;
+
+			std::vector<ISysMonitor*> sysMonitors;
+
+			void AddSysMonitor(IO::ISysMonitor& monitor) override
+			{
+				auto i = std::find(sysMonitors.begin(), sysMonitors.end(), &monitor);
+				if (i == sysMonitors.end())
+				{
+					sysMonitors.push_back(&monitor);
+				}
+			}
+		};
+
+		return new AppControl();
+	}
+
+	ROCOCO_API void BeepWarning()
+	{
+		
+	}
+
+	FLogCategoryName RococoLog = "RococoLog";
+
+	ROCOCO_API void PrintDebug(const char* format, ...)
+	{
+		va_list arglist;
+		va_start(arglist, format);
+
+		char buffer[1024];
+		Strings::SafeVFormat(buffer, sizeof buffer, format, arglist);
+
+		FString tcharBuffer(buffer);
+
+		FMsg::Logf(__FILE__, __LINE__, RococoLog, ELogVerbosity::Type::Log, TEXT("%s"), *tcharBuffer);
+	}
+
+	ROCOCO_API cstr GetCommandLineText()
+	{
+		static TArray<uint8> utf8buffer;
+		if (utf8buffer.Num() == 0)
+		{
+			FString cmdLine = FCommandLine::Get();
+			ConvertFStringToUint8Buffer(OUT utf8buffer, cmdLine);
+		}
+
+		return (cstr)utf8buffer.GetData();
+	}
+
+	ROCOCO_API void GetCurrentUserName(Strings::IStringPopulator& populator)
+	{
+		FString user = FPlatformProcess::UserName();
+		if (user.Len() == 0)
+		{
+			user = FString(TEXT("<Unknown user>"));
+		}
+
+		TArray<uint8> utf8buffer;
+		ConvertFStringToUint8Buffer(OUT utf8buffer, user);
+
+		populator.Populate((cstr) utf8buffer.GetData());
+	}
+
+	ROCOCO_API void CopyStringToClipboard(cstr text)
+	{
+		CopyToClipboard(text);
+	}
+
+	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
+	{
+		StackStringBuilder sb(buffer, capacity);
+
+		if (ex.ErrorCode() != 0)
+		{
+			sb.AppendFormat(" Error code: %d (0x%8.8X)\n", ex.ErrorCode(), ex.ErrorCode());
+		}
+
+		sb << ex.Message() << "\n";
+
+		auto stackFrames = ex.StackFrames();
+		if (appendStack && stackFrames)
+		{
+			sb << "Stack Frames\n";
+			struct ANON : Debugging::IStackFrameFormatter
+			{
+				StringBuilder* sb;
+
+				void Format(const Debugging::StackFrame& sf) override
+				{
+					auto& s = *sb;
+					s.AppendFormat("#%-2u %-48.48s ", sf.depth, sf.functionName);
+					if (*sf.sourceFile)
+					{
+						s.AppendFormat("Line #%4u of %-64s ", sf.lineNumber, sf.sourceFile);
+					}
+					else
+					{
+						s.AppendFormat("%-79.79s", "");
+					}
+					s.AppendFormat("%-64s ", sf.moduleName);
+					s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
+					s << "\n";
+				}
+			} formatter;
+			formatter.sb = &sb;
+
+			stackFrames->FormatEachStackFrame(formatter);
+		}
+	}
+
+	ROCOCO_API void CopyExceptionToClipboard(IException& ex)
+	{
+		TArray<char> buffer;
+		buffer.SetNum(128_kilobytes);
+		BuildExceptionString(buffer.GetData(), buffer.Num(), ex, true);
+		CopyStringToClipboard(buffer.GetData());
+	}
+}
+
+namespace Rococo::IO
+{
+	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory)
+	{
+		if (subdirectory == nullptr || *subdirectory == 0)
+		{
+			Throw(0, "%s: subdirectory argument was blank", __FUNCTION__);
+		}
+
+		FString sSubDirectory(subdirectory);
+
+		if (sSubDirectory.Find(TEXT(".")) > 0)
+		{
+			Throw(0, "%s: subdirectory %ls contained an illegal character '.'", __FUNCTION__, subdirectory);
+		}
+
+		if (sSubDirectory.Find(TEXT("%")) > 0)
+		{
+			Throw(0, "%s: subdirectory %ls contained an illegal character '%'", __FUNCTION__, subdirectory);
+		}
+
+		if (sSubDirectory.Find(TEXT("$")) > 0)
+		{
+			Throw(0, "%s: subdirectory %ls contained an illegal character '$'", __FUNCTION__, subdirectory);
+		}
+
+		if (subdirectory[0] == '\\' || subdirectory[0] == '/')
+		{
+			Throw(0, "%s: subdirectory %ls must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
+		}
+		
+		FString userDocs = FPlatformProcess::UserDir();
+
+		FString fullPath = FPaths::Combine(userDocs, subdirectory);
+
+		if (fullPath.Len() > _MAX_PATH)
+		{
+			Throw(FString::Printf(TEXT("Path too long: %s"), *fullPath));
+		}
+
+		IO::CreateDirectoryFolder(*fullPath);
+	}
+
+	FString GetFullPathFromTarget(TargetDirectory target, const wchar_t* relativePath)
+	{
+		switch (target)
+		{
+		case TargetDirectory_UserDocuments:
+		{
+			FString userDocs = FPlatformProcess::UserDir();	
+			return FPaths::Combine(userDocs, relativePath);
+		}
+		break;
+		case TargetDirectory_Root:
+			return relativePath;
+		default:
+			Throw(0, "Rococo::IO::GetFullPathFromTarget(... %ls): Unrecognized target directory", relativePath);
+			break;
+		}
+	}
+
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	{
+		FString fullPath = GetFullPathFromTarget(target, filename);
+
+		struct Populator : IStringPopulator
+		{
+			fstring specimen;
+			bool match = false;
+
+			Populator(const fstring& _specimen) : specimen(_specimen)
+			{
+
+			}
+
+			void Populate(const char* text) override
+			{
+				size_t len = strlen(text);
+				if (len >= 2_gigabytes)
+				{
+					return;
+				}
+
+				if (len != (size_t)specimen.length)
+				{
+					return;
+				}
+
+				if (strcmp(text, specimen) == 0)
+				{
+					match = true;
+				}
+			}
+		} onLoad(text);
+
+		try
+		{
+			LoadAsciiTextFile(onLoad, *fullPath);
+		}
+		catch (...)
+		{
+			onLoad.match = false;
+		}
+
+		if (!onLoad.match)
+		{
+			SaveAsciiTextFile(target, *fullPath, text);
+		}
+	}
 }
 
 using namespace Rococo;
