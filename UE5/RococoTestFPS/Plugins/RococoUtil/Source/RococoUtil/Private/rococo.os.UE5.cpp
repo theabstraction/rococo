@@ -5,6 +5,7 @@
 #include <rococo.io.h>
 #include <rococo.task.queue.h>
 #include <rococo.debugging.h>
+#include <rococo.time.h>
 #include <time.h>
 #include <Misc/Paths.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
@@ -33,6 +34,24 @@ namespace Rococo
 		buffer.SetNumUninitialized(nElements);
 
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
+	}
+
+	void SecureCopyStringToBuffer(wchar_t* destination, size_t capacity, const FString& s)
+	{
+		if (s.Len() >= capacity)
+		{
+			Throw(FString::Printf(TEXT("SecureCopyStringToBuffer(%s) failed. Insufficient capacity"), *s));
+		}
+
+		if constexpr (sizeof(TCHAR) == sizeof(wchar_t))
+		{
+			for (size_t i = 0; i < s.Len(); ++i)
+			{
+				destination[i] = s[i];
+			}
+
+			destination[s.Len()] = 0;
+		}
 	}
 
 	void Populate(WideFilePath& path, const FString& src)
@@ -1921,7 +1940,476 @@ namespace Rococo::IO
 			SaveAsciiTextFile(target, *fullPath, text);
 		}
 	}
+
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const char* filename, const fstring& text)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		SaveAsciiTextFileIfDifferent(target, wPath, text);
+	}
+
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	{
+		if (text.length > 1024_megabytes)
+		{
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
+		}
+
+		FString fullPath = GetFullPathFromTarget(target, filename);
+
+		AutoFile file(IPlatformFile::GetPlatformPhysical().OpenWrite(*fullPath));
+		if (!file.file)
+		{
+			Throw(FString::Printf(TEXT("Cannot create file %ls"), filename));
+		}
+		
+		if (!file->Write((const uint8*)text.buffer, (int64)text.length))
+		{
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): write failed", filename);
+		}
+	}
+
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		SaveAsciiTextFile(target, wPath, text);
+	}
+
+	ROCOCO_API void GetUserPath(wchar_t* result, size_t capacity, cstr shortname)
+	{
+		FString path =  FPlatformProcess::UserDir();		
+		FString fullPath = FPaths::Combine(path, shortname);
+		SecureCopyStringToBuffer(result, capacity, fullPath);
+	}
+
+	ROCOCO_API void DeleteUserFile(cstr filename)
+	{
+		FString userDocs = FPlatformProcess::UserDir();
+		FString fullPath = FPaths::Combine(userDocs, filename);
+		IPlatformFile::GetPlatformPhysical().DeleteFile(*fullPath);
+	}
+
+	ROCOCO_API void SaveUserFile(cstr filename, cstr s)
+	{
+		FString userDocs = FPlatformProcess::UserDir();
+		FString fullPath = FPaths::Combine(userDocs, filename);
+
+		AutoFile file(IPlatformFile::GetPlatformPhysical().OpenWrite(*fullPath));
+		if (!file.file)
+		{
+			Throw(FString::Printf(TEXT("Cannot write to %s"), *fullPath));
+		}
+
+		file->Write((const uint8*)s, strlen(s));
+	}
+
+	ROCOCO_API bool IsDirectory(const wchar_t* filename)
+	{
+		FString sFilename(filename);
+		IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
+	}
+
+	ROCOCO_API bool IsDirectory(cstr filename)
+	{
+		FString sFilename(filename);
+		IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
+	}
+
+	bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtension)
+	{
+		using namespace Strings;
+
+		cstr ext = GetFileExtension(path);
+
+		char* mext = (char*)ext;
+
+		if (expectedExtension == nullptr && ext == nullptr)
+		{
+			// Celebrating the 42nd anniversay of BBC Basic
+			goto stripExtensionAndCatNew;
+		}
+		else if (expectedExtension == nullptr && ext != nullptr)
+		{
+			// Any extension should be stripped
+			*mext = 0;
+			goto stripExtensionAndCatNew;
+		}
+		else if (expectedExtension && ext)
+		{
+			if (!EqI(expectedExtension, ext))
+			{
+				return false;
+			}
+
+			*mext = 0;
+			goto stripExtensionAndCatNew;
+		}
+		else // expectedExtension && !ext
+		{
+			return false;
+		}
+
+	stripExtensionAndCatNew:
+		if (newExtension) StringCat(path.buf, newExtension, U8FilePath::CAPACITY);
+		return true;
+	}
+
+	ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity)
+	{
+		cstr finalChar = GetFinalNull(pathname);
+
+		if (pathname == nullptr || pathname == finalChar)
+		{
+			Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+		}
+
+		bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
+		if (!isSlashed)
+		{
+			if (finalChar >= (pathname + capacity - 1))
+			{
+				Throw(0, "Insufficient room in directory buffer to trail with slash");
+			}
+
+			char* mutablePath = const_cast<char*>(finalChar);
+			mutablePath[0] = L'/';
+			mutablePath[1] = 0;
+		}
+	}
+
+	ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
+	{
+		const wchar_t* finalChar = GetFinalNull(pathname);
+
+		if (pathname == nullptr || pathname == finalChar)
+		{
+			Throw(0, "Invalid pathname in call to EndDirectoryWithSlash");
+		}
+
+		bool isSlashed = finalChar[-1] == L'\\' || finalChar[-1] == L'/';
+		if (!isSlashed)
+		{
+			if (finalChar >= (pathname + capacity - 1))
+			{
+				Throw(0, "Insufficient room in directory buffer to trail with slash");
+			}
+
+			wchar_t* mutablePath = const_cast<wchar_t*>(finalChar);
+			mutablePath[0] = L'/';
+			mutablePath[1] = 0;
+		}
+	}
+
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const char* filename, uint64 maxLength)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+		LoadBinaryFile(loader, wPath, maxLength);
+	}
+
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength)
+	{
+		if (maxLength > 2_gigabytes)
+		{
+			Throw(0, "Max file length is 2 gigabytes");
+		}
+
+
+		{ // File is locked in this codesection
+			AutoFile f( IPlatformFile::GetPlatformPhysical().OpenRead(filename));
+			if (f.file == nullptr)
+			{
+				Throw(FString::Printf(TEXT("LoadBinaryFile: Cannot open file %ls"), filename));
+			}
+
+			int64 fileLength = f->Size();
+
+			if (maxLength != 0 && fileLength >= (LONGLONG)maxLength)
+			{
+				Throw(FString::Printf(TEXT("LoadBinaryFile: Cannot open file %ls. File length was %lld bytes. Max length is %llu bytes"), filename, fileLength, maxLength));
+			}
+
+			uint8* startOfBuffer = loader.LockWriter(fileLength);
+
+			try
+			{
+				f->Read(startOfBuffer, fileLength);
+				loader.Unlock();
+			}
+			catch (IException& ex)
+			{
+				loader.Unlock();
+				Throw(FString::Printf(TEXT("LoadBinaryFile %s.\n%ls"), ex.Message(), filename));
+			}
+
+		} // File is no longer locked
+	}
+
+	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const wchar_t* filename)
+	{
+		TArray<char> asciiData;
+
+		{ // File is locked in this codesection
+			AutoFile f(IPlatformFile::GetPlatformPhysical().OpenRead(filename));
+			if (f.file == nullptr)
+			{
+				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot open file %ls"), filename));
+			}
+
+			int64 fileLength = f->Size();
+
+			if (fileLength >= (int64)2048_megabytes)
+			{
+				Throw(FString::Printf(TEXT("LoadAsciiTextFile(%ls): Cannot open file length must be less than 2GB.\n"), filename));
+			}
+
+			asciiData.SetNum(fileLength + 1);
+
+			if (!f->Read((uint8*)asciiData.GetData(), fileLength))
+			{
+				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot read file %ls"), filename));
+			}
+
+		} // File is no longer locked
+
+		onLoad.Populate(asciiData.GetData());
+	}
+
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
+	{
+		if (capacity >= 2048_megabytes)
+		{
+			Throw(FString::Printf(TEXT("LoadAsciiTextFile: capacity must be less than 2GB.\n%ls"), filename));
+		}
+
+		{ // File is locked in this codesection
+			AutoFile f(IPlatformFile::GetPlatformPhysical().OpenRead(filename));
+			if (f.file == nullptr)
+			{
+				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot open file %ls"), filename));
+			}
+
+			int64 fileLength = f->Size();
+
+			if (fileLength >= capacity)
+			{
+				Throw(FString::Printf(TEXT("LoadAsciiTextFile(%ls): Cannot open file length must be less than %llu bytes.\n"), filename, capacity));
+			}
+
+			if (!f->Read((uint8*)data, fileLength))
+			{
+				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot read file %ls"), filename));
+			}
+
+			data[fileLength] = 0;
+
+		} // File is no longer locked
+	}
+
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename)
+	{
+		WideFilePath wPath;
+		Assign(wPath, filename);
+
+		return LoadAsciiTextFile(data, capacity, wPath);
+	}
+
+	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
+	{
+		if (nBytes > 2_gigabytes)
+		{
+			Throw(0, "Cannot open %ls for writing. Buffer length > 2GB", targetPath);
+		}
+
+		AutoFile f(IPlatformFile::GetPlatformPhysical().OpenWrite(targetPath));
+		if (f.file == nullptr)
+		{
+			Throw(FString::Printf(TEXT("SaveBinaryFile: Cannot create file %ls"), targetPath));
+		}
+
+		if (!f->Write(buffer, nBytes))
+		{
+			Throw(0, "Cannot write to file %ls", targetPath);
+		}
+	}
+
+	ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes)
+	{
+		WideFilePath wPath;
+		Assign(wPath, targetPath);
+		SaveBinaryFile(wPath, buffer, nBytes);
+	}
+} // Rococo::IO
+
+namespace Rococo::Debugging
+{
+	void FormatStackFrames_WithDepthTarget(IStackFrameFormatter& formatter, int depthTarget = -1)
+	{	
+	}
+
+	ROCOCO_API void FormatStackFrames(IStackFrameFormatter& formatter)
+	{
+		
+	}
+
+	ROCOCO_API void FormatStackFrame(char* buffer, size_t capacity, StackFrame::Address address)
+	{
+		if (capacity && buffer) *buffer = 0;	return;
+
+	}
+
+	ROCOCO_API StackFrame::Address FormatStackFrame(char* buffer, size_t capacity, int depth)
+	{
+		if (buffer && capacity) *buffer = 0;
+		return { 0,0 };
+	}
+} // Rococo::Debugging
+
+namespace Rococo::Strings::CLI
+{
+	ROCOCO_API int GetClampedCommandLineOption(const CommandLineOptionInt32& option)
+	{
+		const auto cmd = OS::GetCommandLineText();
+		const auto fullArg = strstr(cmd, option.spec.prefix);
+
+		int value = option.defaultValue;
+
+		if (fullArg)
+		{
+			const auto rhs = fullArg + option.spec.prefix.length;
+			value = atoi(rhs);
+		}
+
+		return clamp(value, option.minValue, option.maxValue);
+	}
+
+	bool HasSwitch(const CommandLineOption& option)
+	{
+		const auto cmd = OS::GetCommandLineText();
+		const auto fullArg = strstr(cmd, option.prefix);
+
+		if (!fullArg)
+		{
+			return false;
+		}
+
+		const char lastChar = fullArg[option.prefix.length];
+		switch (lastChar)
+		{
+		case 0:
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
+			return true;
+		default:
+			return false;
+		}
+	}
+} // Rococo::Strings::CLI
+
+namespace Rococo::Time
+{
+	ROCOCO_API ticks TickCount()
+	{
+		return (ticks) FPlatformTime::Cycles64();
+	}
+
+	ROCOCO_API double ToMilliseconds(ticks dt)
+	{
+		return FPlatformTime::GetSecondsPerCycle64() * dt * 1000.0;
+	}
+
+	ROCOCO_API ticks TickHz()
+	{
+		double f = FPlatformTime::GetSecondsPerCycle64();
+		return f <= 0.0 ? 1000000.0 : 1.0 / f;
+	}
+
+	ROCOCO_API ticks UTCTime()
+	{
+		return FDateTime::UtcNow().GetTicks();
+	}
+
+	ROCOCO_API void FormatTime(ticks utcTime, char* buffer, size_t nBytes)
+	{
+		FDateTime t(utcTime);
+		FString s = t.ToString();
+
+		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*s, s.Len());
+
+		if (nElements >= nBytes)
+		{
+			Throw(0, "Insufficient buffer. Requires %d bytes. Capacity is %llu bytes", nElements, nBytes);
+		}
+
+		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer), nBytes, *s, nElements);
+	}
+
+	ROCOCO_API Timer::Timer(const char* const _name) :
+		name(_name), start(0), end(0)
+	{
+
+	}
+
+	ROCOCO_API void Timer::Start()
+	{
+		end = 0;
+		start = TickCount();
+	}
+
+	ROCOCO_API void Timer::End()
+	{
+		end = TickCount();
+	}
+
+	ROCOCO_API Time::ticks Timer::ExpiredTime()
+	{
+		return TickCount() - start;
+	}
+
+	ROCOCO_API void Timer::FormatMillisecondsWithName(char buffer[Timer::FORMAT_CAPACITY])
+	{
+		SafeFormat(buffer, 256, "%.128s: %.3f", name, Time::ToMilliseconds(end - start));
+	}
+
+} // Rococo::Time
+
+
+namespace Rococo::Debugging
+{
+	ROCOCO_API int Log(cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		char message[1024];
+		int len = Strings::SafeVFormat(message, sizeof message, format, args);
+		
+		FString tcharBuffer(message);
+		FMsg::Logf(__FILE__, __LINE__, OS::RococoLog, ELogVerbosity::Type::Log, TEXT("%s"), *tcharBuffer);
+		return len;
+	}
 }
+
+#ifdef _DEBUG
+namespace Rococo::Strings
+{
+	ROCOCO_API int PrintD(const char* format, ...)
+	{
+		char message[2048];
+
+		va_list args;
+		va_start(args, format);
+		int len = SafeVFormat(message, sizeof message, format, args);
+
+		FString tcharBuffer(message);
+		FMsg::Logf(__FILE__, __LINE__, OS::RococoLog, ELogVerbosity::Type::Log, TEXT("%s"), *tcharBuffer);
+		return len;
+	}
+}
+#endif
 
 using namespace Rococo;
 

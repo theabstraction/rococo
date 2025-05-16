@@ -3460,15 +3460,15 @@ namespace Rococo::IO
 
 	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
 	{
+		if (nBytes > 2_gigabytes)
+		{
+			Throw(0, "Cannot open %ls for writing. Buffer length > 2 gigs", targetPath);
+		}
+
 		AutoFile hFile(CreateFileW(targetPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
 		if (hFile == INVALID_HANDLE_VALUE)
 		{
 			Throw(GetLastError(), "Cannot open %ls for writing", targetPath);
-		}
-
-		if (nBytes > 2_gigabytes)
-		{
-			Throw(0, "Cannot open %ls for writing. Buffer length > 2 gigs", targetPath);
 		}
 
 		DWORD bytesWritten;
