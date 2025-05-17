@@ -48,7 +48,7 @@ namespace Rococo::GR::Win32
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_GR_GDI_API IWin32GDICustodianSupervisor* CreateGDICustodian();
+	ROCOCO_GR_GDI_API IWin32GDICustodianSupervisor* CreateGDICustodian(HWND hOwnerWindow);
 
 	ROCOCO_INTERFACE IWin32GDIApp
 	{

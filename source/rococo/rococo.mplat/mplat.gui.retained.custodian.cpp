@@ -25,7 +25,7 @@ using namespace Rococo::Strings;
 
 namespace Rococo::Gui
 {
-	ROCOCO_API_IMPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder);
+	ROCOCO_API_IMPORT EGREventRouting TranslateToEditor(Windows::IWindow& ownerWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder);
 
 	inline ID_FONT To_ID_FONT(GRFontId id)
 	{
@@ -601,6 +601,11 @@ namespace ANON
 
 		}
 
+		Windows::IWindow& Owner()
+		{
+			return sysRenderer.CurrentWindow();
+		}
+
 		float zoomLevel = 1.0f;
 
 		void SetUIZoom(float zoomLevel) override
@@ -766,7 +771,7 @@ namespace ANON
 		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
 			CharBuilder builder(copyAndPasteBuffer);
-			return Gui::TranslateToEditor(keyEvent, manager, builder);
+			return Gui::TranslateToEditor(sysRenderer.CurrentWindow(), keyEvent, manager, builder);
 		}
 	};
 

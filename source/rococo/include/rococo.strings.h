@@ -60,7 +60,7 @@ namespace Rococo::Strings
 # endif
 #endif
 
-#if USE_VSTUDIO_SAL
+#ifdef USE_VSTUDIO_SAL
 	template<size_t CAPACITY, typename... Args>
 	inline int SafeFormat(_Out_writes_(CAPACITY) _Null_terminated_ char(&buffer)[CAPACITY], _Printf_format_string_ cstr format, Args... args)
 	{
@@ -212,7 +212,7 @@ namespace Rococo::Strings
 
 	ROCOCO_INTERFACE StringBuilder
 	{
-#if	USE_VSTUDIO_SAL
+#ifdef	USE_VSTUDIO_SAL
 		virtual StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) = 0;
 #else
 		virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
@@ -272,7 +272,7 @@ namespace Rococo::Strings
 		ROCOCO_API StackStringBuilder(char* _buffer, size_t _capacity);
 		ROCOCO_API StackStringBuilder(char* _buffer, size_t _capacity, CursorState type);
 		fstring operator * () const override { return fstring{ buffer, length }; }
-#if	USE_VSTUDIO_SAL
+#ifdef USE_VSTUDIO_SAL
 		ROCOCO_API StringBuilder& AppendFormat(_Printf_format_string_ const char* format, ...) override;
 #else
 		ROCOCO_API StringBuilder& AppendFormat(const char* format, ...) override;
@@ -341,7 +341,7 @@ namespace Rococo::Strings
 
 	ROCOCO_API void ReplaceChar(char* buffer, size_t capacity, char target, char replacement);
 	
-#if USE_VSTUDIO_SAL
+#ifdef USE_VSTUDIO_SAL
 	ROCOCO_API int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
 	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
 #else

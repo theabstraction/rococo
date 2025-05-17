@@ -223,7 +223,7 @@ namespace Rococo
 	   virtual void Free() = 0;
 	};
 
-	IKeyboardSupervisor* CreateKeyboardSupervisor();
+	IKeyboardSupervisor* CreateKeyboardSupervisor(Windows::IWindow& window);
 
 	namespace Graphics
 	{

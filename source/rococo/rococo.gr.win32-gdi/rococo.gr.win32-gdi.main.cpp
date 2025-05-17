@@ -1538,7 +1538,7 @@ namespace GRANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
+	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState, Windows::IWindow
 	{
 		// Debugging materials:
 		std::vector<IGRWidget*> history;
@@ -1552,7 +1552,9 @@ namespace GRANON
 
 		stringmap<GDIImage*> images;
 
-		GDICustodian()
+		HWND hOwnerWindow;
+
+		GDICustodian(HWND _hOwnerWindow): hOwnerWindow(_hOwnerWindow)
 		{
 			os = IO::GetIOS();
 			installation = IO::CreateInstallation(L"content.indicator.txt", *os);
@@ -1560,6 +1562,16 @@ namespace GRANON
 			defaultSpec.FontName = "Tahoma";
 			BindFontId(defaultSpec);
 			defaultFont = knownFonts[0].handle;
+		}
+
+		operator HWND() const override
+		{
+			return hOwnerWindow;
+		}
+
+		Windows::IWindow& Owner() override
+		{
+			return *this;
 		}
 
 		float zoomLevel = 1.0f;
@@ -1933,7 +1945,7 @@ namespace GRANON
 		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
 			Strings::CharBuilder builder(copyAndPasteBuffer);
-			return Gui::TranslateToEditor(keyEvent, manager, builder);
+			return Gui::TranslateToEditor(*this, keyEvent, manager, builder);
 		}
 	};
 
@@ -2349,8 +2361,6 @@ namespace GRANON
 
 		GRClientWindow()
 		{
-			gdiCustodian = GR::Win32::CreateGDICustodian();
-			grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
 			scene = &emptyScene;
 			xbox360Controller = CreateJoystick_XBox360Proxy();
 		}
@@ -2391,6 +2401,9 @@ namespace GRANON
 			{
 				Throw(GetLastError(), "%s: parent was NULL", __FUNCTION__);
 			}
+
+			gdiCustodian = GR::Win32::CreateGDICustodian(hParentWnd);
+			grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
 
 			auto hInstance = GetModuleHandleA(NULL);
 
@@ -2815,9 +2828,9 @@ namespace GRANON
 
 namespace Rococo::GR::Win32
 {
-	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian()
+	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian(HWND hOwnerWindow)
 	{
-		return new GRANON::GDICustodian();
+		return new GRANON::GDICustodian(hOwnerWindow);
 	}
 
 	ROCOCO_API_EXPORT IWin32GDIApp* CreateWin32GDIApp()

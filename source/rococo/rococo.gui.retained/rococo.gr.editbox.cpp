@@ -3,14 +3,10 @@
 #include <vector>
 #include <rococo.strings.h>
 
+#include <rococo.os.h> // For clipboard functions
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
 
-namespace Rococo::OS
-{
-	ROCOCO_API_IMPORT void CopyStringToClipboard(cstr s);
-	ROCOCO_API_IMPORT void PasteStringFromClipboard(Strings::IStringPopulator& populator);
-}
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -953,7 +949,7 @@ namespace Rococo::Gui
 		return s_UnsignedFilter;
 	}
 
-	ROCOCO_API_EXPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
+	ROCOCO_API_EXPORT EGREventRouting TranslateToEditor(Windows::IWindow& ownerWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
 	{
 		if (!keyEvent.osKeyEvent.IsUp())
 		{
@@ -986,7 +982,7 @@ namespace Rococo::Gui
 					// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
 					builder.Resize(manager.GetTextAndLength(nullptr, 0));
 					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
-					Rococo::OS::CopyStringToClipboard(builder.c_str());
+					Rococo::OS::SaveClipBoardText(builder.c_str(), ownerWindow);
 					builder.Clear();
 					return EGREventRouting::Terminate;
 				}

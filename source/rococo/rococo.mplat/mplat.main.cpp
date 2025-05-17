@@ -617,7 +617,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*ecs);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*ecs, *camera, *rigs);
-	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
+	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor(mainWindow->Window());
 	AutoFree<Graphics::ISpriteBuilderSupervisor> spriteBuilder = Graphics::CreateSpriteBuilderSupervisor(mainWindow->Renderer());
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
 	AutoFree<Graphics::IRodTesselatorSupervisor> rodTesselator = Graphics::CreateRodTesselator(*meshes);

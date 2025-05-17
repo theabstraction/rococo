@@ -165,7 +165,8 @@ namespace ANON
 						}
 						else if (id == IDOK)
 						{
-							Rococo::OS::CopyExceptionToClipboard(*context.ex);
+							THIS_WINDOW This(hDlg);
+							Rococo::OS::CopyExceptionToClipboard(*context.ex, This);
 						}
 						return TRUE;
 					}

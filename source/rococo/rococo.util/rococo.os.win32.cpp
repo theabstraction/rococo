@@ -589,32 +589,6 @@ namespace Rococo
 			return (value & 0x8000) != 0;
 		}
 
-		ROCOCO_API void CopyToClipboard(cstr asciiText)
-		{
-			if (!OpenClipboard(nullptr))
-			{
-				OS::BeepWarning();
-			}
-			else
-			{
-				EmptyClipboard();
-
-				size_t nBytes = sizeof(char) * (strlen(asciiText) + 1);
-				HGLOBAL hItem = GlobalAlloc(GMEM_MOVEABLE, nBytes);
-				if (hItem)
-				{
-					void* pData = GlobalLock(hItem);
-					if (pData)
-					{
-						memcpy(pData, asciiText, nBytes);
-						GlobalUnlock(hItem);
-						SetClipboardData(CF_TEXT, hItem);
-					}
-				}
-				CloseClipboard();
-			}
-		}
-
 		ROCOCO_API void PasteFromClipboard(char* asciiBuffer, size_t capacity)
 		{
 			if (!OpenClipboard(nullptr))
@@ -2337,43 +2311,6 @@ namespace Rococo::OS
 		memset(username, 0, UNLEN + 1);
 	}
 
-	ROCOCO_API void CopyStringToClipboard(cstr text)
-	{
-		size_t len = strlen(text);
-
-		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
-		if (!hMem)
-		{
-			return;
-		}
-
-		void* pBuffer = GlobalLock(hMem);
-
-		if (!pBuffer)
-		{
-			GlobalFree(hMem);
-			return;
-		}
-
-		memcpy(pBuffer, text, len + 1);
-		GlobalUnlock(hMem);
-
-		HANDLE hData = nullptr;
-
-		if (OpenClipboard(0))
-		{
-			if (EmptyClipboard())
-			{
-				hData = SetClipboardData(CF_TEXT, hMem);
-			}
-			CloseClipboard();
-		}
-		else
-		{
-			GlobalFree(hMem);
-		}
-	}
-
 	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
 	{
 		StackStringBuilder sb(buffer, capacity);
@@ -2429,12 +2366,12 @@ namespace Rococo::OS
 		}
 	}
 
-	ROCOCO_API void CopyExceptionToClipboard(IException& ex)
+	ROCOCO_API void CopyExceptionToClipboard(IException& ex, Windows::IWindow& clipboardOwner)
 	{
 		std::vector<char> buffer;
 		buffer.resize(128_kilobytes);
 		BuildExceptionString(buffer.data(), buffer.size(), ex, true);
-		CopyStringToClipboard(buffer.data());
+		SaveClipBoardText(buffer.data(), clipboardOwner);
 	}
 }
 

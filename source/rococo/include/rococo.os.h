@@ -63,14 +63,14 @@ namespace Rococo::OS
 		int64 implementation[8];
 	public:
 		ROCOCO_API ThreadLock();
-		ROCOCO_API ~ThreadLock();
+		ROCOCO_API virtual ~ThreadLock();
 
 		ROCOCO_API void Lock();
 		ROCOCO_API void Unlock();
 	};
 
 	ROCOCO_API void PasteStringFromClipboard(Strings::IStringPopulator& populator);
-	ROCOCO_API void CopyStringToClipboard(cstr text);
+	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window);
 
 	// Gets a null terminated OS config string with lenBytes capacity. If not found, fills with the defaultValue. If organization is null the library default name is chosen 
 	ROCOCO_API void GetConfigVariable(char* textBuffer, size_t lenBytes, cstr defaultValue, ConfigSection section, ConfigRootName rootName, cstr organization = nullptr, bool throwOnError = false);
@@ -102,7 +102,7 @@ namespace Rococo::OS
 	ROCOCO_API IAppControlSupervisor* CreateAppControl();
 
 	ROCOCO_API void BeepWarning();
-	ROCOCO_API void CopyExceptionToClipboard(IException& ex);
+	ROCOCO_API void CopyExceptionToClipboard(IException& ex, Rococo::Windows::IWindow& window);
 	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath);
 
 	struct IThreadControl;
@@ -167,7 +167,6 @@ namespace Rococo::OS
 	ROCOCO_API void FreeBoundedMemory(void* pMemory);
 
 	ROCOCO_API void UILoop(uint32 milliseconds);
-	ROCOCO_API void SaveClipBoardText(cstr text, Windows::IWindow& window);
 	ROCOCO_API bool TryGetColourFromDialog(RGBAb& colour, Windows::IWindow& window);
 	ROCOCO_API cstr GetAsciiCommandLine();
 
