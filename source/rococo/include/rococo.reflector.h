@@ -249,7 +249,7 @@ namespace Rococo::Reflection
 		VisitationImpl* impl;
 	public:
 		ROCOCO_API Visitation(IReflectionTarget& _target);
-		ROCOCO_API ~Visitation();
+		ROCOCO_API virtual ~Visitation();
 
 		ROCOCO_API bool AcceptVisitor(IReflectionVisitor& visitor) override;
 		ROCOCO_API void OnVisitorGone(IReflectionVisitor& visitor) override;
@@ -264,6 +264,11 @@ namespace Rococo::Reflection
 
 	public:
 		VisitationTarget() : visitation(*this)
+		{
+
+		}
+
+		virtual ~VisitationTarget()
 		{
 
 		}

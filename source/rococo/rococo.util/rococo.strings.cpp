@@ -1,4 +1,7 @@
-#define ROCOCO_API __declspec(dllexport)
+#ifndef ROCOCO_API
+# define ROCOCO_API __declspec(dllexport)
+#endif
+
 #include <rococo.types.h>
 #include <stdarg.h>
 #include <rococo.functional.h>
@@ -25,7 +28,9 @@
 using namespace Rococo;
 using namespace Rococo::Strings;
 
-#define ROCOCO_UTIL_API __declspec(dllexport)
+#ifndef ROCOCO_UTIL_API
+# define ROCOCO_UTIL_API __declspec(dllexport)
+#endif
 
 namespace Rococo
 {
@@ -66,6 +71,11 @@ namespace StringsAnon
 		{
 		}
 
+		virtual ~ExpandingBuffer()
+		{
+
+		}
+
 		const uint8* GetData() const override
 		{
 			if (internalBuffer.capacity() == 0) return nullptr;
@@ -102,6 +112,11 @@ namespace StringsAnon
 		{
 			internalBuffer.resize(initCapacity);
 			Clear();
+		}
+
+		virtual ~DynamicStringBuilder()
+		{
+
 		}
 
 		StringBuilder& Builder() override

@@ -1,4 +1,4 @@
-#define ROCOCO_API 
+#include "rococo.util.header.inl"
 
 #include <CoreMinimal.h>
 #include <rococo.os.h>
