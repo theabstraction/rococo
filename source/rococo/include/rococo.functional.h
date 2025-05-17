@@ -25,7 +25,7 @@ namespace Rococo
 	using TRemoveReference = typename RemoveReference<_Ty>::Type;
 
 	template <class _Ty>
-	FORCE_INLINE  [[nodiscard]] constexpr _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
+	FORCE_INLINE  constexpr [[nodiscard]] _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
 	{
 		// forward an lvalue as either an lvalue or an rvalue
 		return static_cast<_Ty&&>(_Arg);

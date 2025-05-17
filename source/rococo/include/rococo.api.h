@@ -89,7 +89,10 @@ namespace Rococo
 	struct KeyboardEvent;
 	struct MouseEvent;
 
-	ROCOCO_API void GetTimestamp(char str[26]);
+	namespace Time
+	{
+		ROCOCO_API void GetTimestamp(char str[26]);
+	}
 
 	namespace Post
 	{

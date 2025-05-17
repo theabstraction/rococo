@@ -19,18 +19,25 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
-	ROCOCO_API void GetTimestamp(char str[26])
-	{
-		time_t t;
-		time(&t);
-		ctime_s(str, 26, &t);
-	}
-
-	void ConvertFStringToUint8Buffer(TArray<uint8>& buffer, const FString& src)
+	void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 	{
 		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
 		buffer.SetNumUninitialized(nElements);
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
+	}
+
+	void Throw(const FString& msg)
+	{
+		if constexpr ((sizeof TCHAR) > 1)
+		{
+			TArray<uint8> buffer;
+			ConvertFStringToUTF8Buffer(buffer, msg);
+			Throw(0, "%s", buffer.GetData());
+		}
+		else
+		{
+			Throw(0, "%s", *msg);
+		}
 	}
 
 	void SecureCopyStringToBuffer(wchar_t* destination, size_t capacity, const FString& s)
@@ -40,15 +47,14 @@ namespace Rococo
 			Throw(FString::Printf(TEXT("SecureCopyStringToBuffer(%s) failed. Insufficient capacity"), *s));
 		}
 
-		if constexpr (sizeof(TCHAR) == sizeof(wchar_t))
+		static_assert((sizeof(TCHAR) == sizeof(wchar_t)));
+		
+		for (size_t i = 0; i < s.Len(); ++i)
 		{
-			for (size_t i = 0; i < s.Len(); ++i)
-			{
-				destination[i] = s[i];
-			}
-
-			destination[s.Len()] = 0;
+			destination[i] = s[i];
 		}
+
+		destination[s.Len()] = 0;
 	}
 
 	void Populate(WideFilePath& path, const FString& src)
@@ -75,22 +81,6 @@ namespace Rococo
 		else
 		{
 			Strings::CopyString(path.buf, path.CAPACITY, (const char*) *src);
-		}
-	}
-
-
-
-	void Throw(const FString& msg)
-	{	
-		if constexpr ((sizeof TCHAR) > 1)
-		{
-			TArray<uint8> buffer;
-			ConvertFStringToUint8Buffer(buffer, msg);
-			Throw(0, "%s", buffer.GetData());
-		}
-		else
-		{
-			Throw(0, "%s", *msg);
 		}
 	}
 }
@@ -202,7 +192,7 @@ namespace Rococo::IO
 				}
 			}
 
-			~BinArchive()
+			virtual ~BinArchive()
 			{
 				delete file;
 			}
@@ -277,7 +267,7 @@ namespace Rococo::IO
 				}
 			}
 
-			~BinFile()
+			virtual ~BinFile()
 			{
 				delete file;
 			}
@@ -343,12 +333,12 @@ namespace Rococo::IO
 			
 				int64 len = file->Size();
 
-				if (len > 4_gigabytes)
+				if (len > (int64) 4_gigabytes)
 				{
 					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": Error opening file for read %s. File > 4GB"), sysPath));
 				}
 
-				dataMap.SetNum(len, true);
+				dataMap.SetNum(len, EAllowShrinking::Yes);
 
 				if (!file->Read(dataMap.GetData(), len))
 				{
@@ -356,7 +346,7 @@ namespace Rococo::IO
 				}
 			}
 
-			~BinMapping()
+			virtual ~BinMapping()
 			{
 			}
 
@@ -408,7 +398,7 @@ namespace Rococo::IO
 		FString exeName(FGenericPlatformProcess::ExecutablePath());
 
 		TArray<uint8> buffer;
-		ConvertFStringToUint8Buffer(buffer, exeName);
+		ConvertFStringToUTF8Buffer(buffer, exeName);
 
 		if (buffer.Num() >= path.CAPACITY)
 		{
@@ -448,10 +438,10 @@ namespace Rococo::IO
 
 		while (len > 0)
 		{
-			FString indicator = FString::Printf(TEXT("%s%s"), path, contentIndicatorName);
+			FString indicator = FString::Printf(TEXT("%s%s"), path.buf, contentIndicatorName);
 			if (os.IsFileExistant(*indicator))
 			{
-				indicator = FString::Printf(TEXT("%scontent\\"), path);
+				indicator = FString::Printf(TEXT("%scontent\\"), path.buf);
 				Populate(path, indicator);
 				return;
 			}
@@ -615,7 +605,7 @@ namespace Rococo::OS
 		if constexpr (sizeof TCHAR > 1)
 		{
 			TArray<uint8> buffer;
-			ConvertFStringToUint8Buffer(OUT buffer, pastedText);
+			ConvertFStringToUTF8Buffer(OUT buffer, pastedText);
 			populator.Populate((cstr) buffer.GetData());
 		}
 		else
@@ -895,7 +885,7 @@ namespace Rococo::OS
 
 	ROCOCO_API void TripDebugger()
 	{
-		FGenericPlatformMisc::DebugBreak();
+		UE_DEBUG_BREAK();
 	}
 
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
@@ -941,13 +931,11 @@ namespace UE5_ANON
 	{
 		IOS& os;
 		WideFilePath contentDirectory;
-		int32 len;
 		std::unordered_map<std::string, std::string> macroToSubdir;
 	public:
 		Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
-			len = (int32)Strings::StringLength(contentDirectory);
 
 			if (!IO::IsDirectory(contentDirectory))
 			{
@@ -962,7 +950,12 @@ namespace UE5_ANON
 				Throw(FString::Printf(TEXT("No such content directory: %s"), contentPath));
 			}
 
-			len = Format(contentDirectory, TEXT("%s"), contentPath);
+			Format(contentDirectory, TEXT("%s"), contentPath);
+		}
+
+		virtual ~Installation()
+		{
+
 		}
 
 		void Free()  override
@@ -1078,8 +1071,8 @@ namespace UE5_ANON
 
 			sysPath = contentDirectory;
 			Rococo::IO::StripLastSubpath(sysPath.buf);
-			size_t len = StringLength(sysPath);
-			SecureFormat(sysPath.buf + len, sysPath.CAPACITY - len, L"packages/%hs/%hs", packName, dir);
+			size_t sysPathLength = StringLength(sysPath);
+			SecureFormat(sysPath.buf + sysPathLength, sysPath.CAPACITY - sysPathLength, L"packages/%hs/%hs", packName, dir);
 			IO::ToSysPath(sysPath.buf);
 		}
 
@@ -1345,7 +1338,7 @@ namespace UE5_ANON
 			IO::GetExePath(OUT binDirectory);
 		}
 
-		~UE5OS()
+		virtual ~UE5OS()
 		{
 		}
 
@@ -1660,6 +1653,11 @@ namespace Rococo::OS
 	{
 		struct AppControl : public IAppControlSupervisor, public Rococo::Tasks::ITaskQueue
 		{
+			virtual ~AppControl()
+			{
+
+			}
+
 			void ShutdownApp() override
 			{
 				isRunning = false;
@@ -1752,7 +1750,7 @@ namespace Rococo::OS
 		if (utf8buffer.Num() == 0)
 		{
 			FString cmdLine = FCommandLine::Get();
-			ConvertFStringToUint8Buffer(OUT utf8buffer, cmdLine);
+			ConvertFStringToUTF8Buffer(OUT utf8buffer, cmdLine);
 		}
 
 		return (cstr)utf8buffer.GetData();
@@ -1767,7 +1765,7 @@ namespace Rococo::OS
 		}
 
 		TArray<uint8> utf8buffer;
-		ConvertFStringToUint8Buffer(OUT utf8buffer, user);
+		ConvertFStringToUTF8Buffer(OUT utf8buffer, user);
 
 		populator.Populate((cstr) utf8buffer.GetData());
 	}
@@ -2004,13 +2002,13 @@ namespace Rococo::IO
 	ROCOCO_API bool IsDirectory(const wchar_t* filename)
 	{
 		FString sFilename(filename);
-		IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
+		return IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
 	}
 
 	ROCOCO_API bool IsDirectory(cstr filename)
 	{
 		FString sFilename(filename);
-		IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
+		return IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
 	}
 
 	bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtension)
@@ -2189,7 +2187,7 @@ namespace Rococo::IO
 
 			int64 fileLength = f->Size();
 
-			if (fileLength >= capacity)
+			if (fileLength >= (int64) capacity)
 			{
 				Throw(FString::Printf(TEXT("LoadAsciiTextFile(%ls): Cannot open file length must be less than %llu bytes.\n"), filename, capacity));
 			}
@@ -2201,6 +2199,7 @@ namespace Rococo::IO
 
 			data[fileLength] = 0;
 
+			return (size_t) fileLength;
 		} // File is no longer locked
 	}
 
@@ -2345,7 +2344,7 @@ namespace Rococo::Time
 	}
 
 	ROCOCO_API Timer::Timer(const char* const _name) :
-		name(_name), start(0), end(0)
+		start(0), end(0), name(_name)
 	{
 
 	}
@@ -2371,7 +2370,14 @@ namespace Rococo::Time
 		SafeFormat(buffer, 256, "%.128s: %.3f", name, Time::ToMilliseconds(end - start));
 	}
 
+	ROCOCO_API void GetTimestamp(char str[26])
+	{
+		time_t t;
+		time(&t);
+		ctime_s(str, 26, &t);
+	}
 } // Rococo::Time
+
 
 
 namespace Rococo::Debugging
@@ -2413,7 +2419,7 @@ using namespace Rococo;
 void RunRococoOSTests()
 {
 	char timestamp[26];
-	GetTimestamp(timestamp);
+	Time::GetTimestamp(timestamp);
 
 	char myPath[16] = "/a/b/c";
 	IO::ToSysPath(myPath);

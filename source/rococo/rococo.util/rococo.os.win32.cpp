@@ -132,13 +132,6 @@ namespace Rococo
 
 	constexpr fstring packageprefix = "Package["_fstring;
 
-	ROCOCO_API void GetTimestamp(char str[26])
-	{
-		time_t t;
-		time(&t);
-		ctime_s(str, 26, &t);
-	}
-
 	namespace IO
 	{
 		ROCOCO_API void ToSysPath(wchar_t* path)
@@ -3965,6 +3958,13 @@ namespace Rococo::Time
 		GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, localDate, 255);
 		GetTimeFormatA(LOCALE_USER_DEFAULT, 0, &st, NULL, localTime, 255);
 		SafeFormat(buffer, nBytes, "%s %s", localTime, localDate);
+	}
+
+	ROCOCO_API void GetTimestamp(char str[26])
+	{
+		time_t t;
+		time(&t);
+		ctime_s(str, 26, &t);
 	}
 
 	ROCOCO_API Timer::Timer(const char * const _name):
