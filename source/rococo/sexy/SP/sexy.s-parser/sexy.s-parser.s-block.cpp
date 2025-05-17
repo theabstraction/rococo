@@ -40,7 +40,6 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 
-#include <stdio.h>
 #include <memory>
 
 #ifdef _WIN32
@@ -1845,60 +1844,45 @@ namespace Anon
 
 			try
 			{
-				if (!Rococo::IO::IsFileExistant(u16filename))
+				struct Loader : IO::IBinaryFileLoader
 				{
-					Rococo::Throw(0, "%s: file does not exist", __FUNCTION__);
-				}
+					IAllocator& allocator;
+					cstr filename;
+					char* block = nullptr;
+					char* fileBuffer = nullptr;
+					size_t fileLength = 0;
 
-				enum { MAX_FILELEN = 0x7FFFFFFELL }; // +1 byte for the nul char gives int32.max, which is our hard limit
-				
-#ifdef _WIN32
-				FILE* fp = _wfopen(u16filename, L"rb");
-#else
-				U8FilePath u8filename;
-				Format(u8filename, "%S", u16filename);
-				
-				FILE* fp = fopen(u8filename, "rb");
-#endif
-				if (fp == nullptr)
-				{
-					int err = errno;
-					Rococo::Throw(0, "Could not open file %ls - %s", u16filename, strerror(err));
-				}
-
-				struct FPANON
-				{
-					FILE* fp;
-
-					~FPANON()
+					uint8* LockWriter(size_t length) override
 					{
-						fclose(fp);
+						fileLength = length;
+						size_t blocksize = sizeof(SourceCode) + length + 1 + strlen(filename) + 1;
+						block = (char*)allocator.Allocate(blocksize);
+						fileBuffer = block + sizeof(SourceCode);
+						fileBuffer[length] = 0;
+						return (uint8*)fileBuffer;
 					}
-				} fpCloser{ fp };
 
-				fseek(fp, 0, SEEK_END);
+					void Unlock() override
+					{
 
-				long filelen = ftell(fp);
+					}
 
-				fseek(fp, 0, SEEK_SET);
+					Loader(IAllocator& _allocator, cstr _filename) : allocator(_allocator), filename(_filename)
+					{
 
-				size_t blockSize = sizeof(SourceCode) + filelen + 1 + strlen(filename) + 1;
-				char* block = (char*)allocator.Allocate(blockSize);
+					}
+				} loader(allocator, filename);
+
+				IO::LoadBinaryFile(loader, u16filename, 512_megabytes);
+
+				char* block = loader.block;
+
 				auto* src = new (block) SourceCode(allocator, nullptr);
+
 				src->allocator = allocator;
-				src->buffer = block + sizeof(SourceCode);
-
-				size_t lenRead = fread(src->buffer, 1, filelen, fp);
-				if (lenRead != filelen)
-				{
-					int err = errno;
-					allocator.FreeData(block);
-					Rococo::Throw(0, "Could not read all file data - %s", strerror(err));
-				}
-
-				src->buffer[filelen] = 0;
-				src->name = src->buffer + filelen + 1;
-				src->srcLength = (int32)filelen;
+				src->buffer = loader.fileBuffer;
+				src->name = src->buffer + loader.fileLength + 1;
+				src->srcLength = (int32)loader.fileLength;
 				src->origin = origin;
 				src->block = block;
 
