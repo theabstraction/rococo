@@ -9,6 +9,7 @@ using System;
 public class RococoUtil : ModuleRules
 {
     private string rococoIncludeDirectory;
+	private string rococoSexyIncludeDirectory;
 	private string rococoHomeDirectory;
     private string rococoSourceDirectory;
 	private string thisSourceDirectory;
@@ -34,6 +35,7 @@ public class RococoUtil : ModuleRules
                     rococoIncludeDirectory = candidateIncludeDirectory;
 					rococoSourceDirectory = Path.Combine(fullPath, "source");
 					thisSourceDirectory = Path.Combine(PluginDirectory, "Source/RococoUtil/Private");
+					rococoSexyIncludeDirectory = Path.Combine(fullPath, "source/rococo/sexy/Common");
 					if (!Directory.Exists(thisSourceDirectory))
 					{
 						throw new System.Exception("Expecting directory to exist: " + thisSourceDirectory);
@@ -63,12 +65,11 @@ public class RococoUtil : ModuleRules
         foreach (var sourceName in sourceNames)
 		{
 			string fullPath = Path.Combine(rococoSourceDirectory, sourceDirectory, sourceName);
-			if (!File.Exists(fullPath))
+            fullPath = fullPath.Replace("\\", "/");
+            if (!File.Exists(fullPath))
 			{
-				throw new System.Exception("Could not find bundle file" + fullPath);
+				throw new System.Exception("Could not find bundle file " + fullPath);
 			}
-
-			fullPath = fullPath.Replace("\\", "/");
 
 			sb.AppendFormat("#include <{0}>", fullPath);
 			sb.AppendLine();
@@ -88,25 +89,43 @@ public class RococoUtil : ModuleRules
 				File.WriteAllText(fullBundlePath, sb.ToString());
 			}
 		}
+		else
+		{
+            File.WriteAllText(fullBundlePath, sb.ToString());
+        }
     }
 
 
 	private void CreateBundles()
 	{
-		List<string> utilBundleFiles = new List<string>()
-		{
-			"rococo.strings.cpp",
-			"rococo.base.cpp",
-			"rococo.heap.string.cpp"
-		};
+        CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/rococo.util",
+			new List<string>() 
+			{
+				"rococo.strings.cpp",
+				"rococo.base.cpp",
+				"rococo.heap.string.cpp" 
+			}
+		);
 
-        CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/rococo.util", utilBundleFiles);
-	}
+		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/sexy/SP/sexy.s-parser",
+			new List<string>()
+			{
+				"sexy.s-parser.cpp",
+				"sexy.s-builder.cpp",
+				"sexy.s-parser.s-block.cpp"
+            }
+		);
+    }
 
     public string RococoIncludeDirectory
 	{
 		get { return rococoIncludeDirectory; }
 	}
+
+    public string SexyIncludeDirectory
+    {
+        get { return rococoSexyIncludeDirectory; }
+    }
 
     public string RococoHomeDirectory
     {
@@ -122,7 +141,8 @@ public class RococoUtil : ModuleRules
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-                RococoIncludeDirectory
+                RococoIncludeDirectory,
+                SexyIncludeDirectory
             }
 			);
 				

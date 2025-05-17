@@ -265,7 +265,7 @@ namespace Rococo
 			std::vector<const ISExpression*> children;
 
 			ExpressionProxy(cr_sex _inner, IAllocator& _allocator, int _numberOfElements) :
-				inner(_inner), allocator(_allocator), numberOfElements(_numberOfElements)
+				allocator(_allocator), inner(_inner), numberOfElements(_numberOfElements)
 			{
 				children.resize(numberOfElements);
 			}

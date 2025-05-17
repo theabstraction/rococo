@@ -234,9 +234,9 @@ namespace Anon
 
 		int depth = 0;
 
-		void AddTabs(int depth)
+		void AddTabs(int nTabs)
 		{
-			for (int i = 0; i < depth; ++i)
+			for (int i = 0; i < nTabs; ++i)
 			{
 				printf("\t");
 			}
@@ -265,19 +265,19 @@ namespace Anon
 			UNUSED(end);
 		}
 
-		ICompoundSExpression* AddCompound(cstr beginPoint, int depth, ICompoundSExpression* parent) override
+		ICompoundSExpression* AddCompound(cstr beginPoint, int _depth, ICompoundSExpression* parent) override
 		{
 			UNUSED(beginPoint);
 			UNUSED(parent);
-			this->depth = depth;
+			this->depth = _depth;
 			return nullptr;
 		}
 
-		void FinishCompound(cstr beginPoint, cstr endPoint, int depth, ICompoundSExpression* compound) override
+		void FinishCompound(cstr beginPoint, cstr endPoint, int _depth, ICompoundSExpression* compound) override
 		{
 			UNUSED(beginPoint);
 			UNUSED(endPoint);
-			UNUSED(depth);
+			UNUSED(_depth);
 			UNUSED(compound);
 		}
 
@@ -497,30 +497,30 @@ namespace Anon
 
 		cstr ParseBlankspace(cstr start)
 		{
-			auto* p = start;
-			while (p != end && IsBlank(*p))
+			auto* s = start;
+			while (s != end && IsBlank(*s))
 			{
-				++p;
+				++s;
 			}
 
-			return p;
+			return s;
 		}
 
 		cstr ParseLineComment(cstr start)
 		{
-			auto* p = start;
-			while (p != end)
+			auto* s = start;
+			while (s != end)
 			{
-				switch (*p)
+				switch (*s)
 				{
 				case '\r':
 				case '\n':
-					builder.AddComment(start, p);
-					return p + 1;
+					builder.AddComment(start, s);
+					return s + 1;
 				default:
 					break;
 				}
-				++p;
+				++s;
 			}
 
 			return p;
@@ -528,24 +528,24 @@ namespace Anon
 
 		cstr ParseBlockComment(cstr start)
 		{
-			auto* p = start;
-			while (p != end)
+			auto* s = start;
+			while (s != end)
 			{
-				switch (*p)
+				switch (*s)
 				{
 				case '*':
-					if (p[1] == '/')
+					if (s[1] == '/')
 					{
-						builder.AddComment(start, p);
-						return p + 2;
+						builder.AddComment(start, s);
+						return s + 2;
 					}
 				default:
 					break;
 				}
-				++p;
+				++s;
 			}
 
-			return p;
+			return s;
 		}
 	};
 
@@ -577,7 +577,7 @@ namespace Anon
 
 		}
 
-		~ExpressionTree()
+		virtual ~ExpressionTree()
 		{
 			delete transforms;
 			delete mapExpressionPtrToCommentBlock;
@@ -606,9 +606,9 @@ namespace Anon
 				Throw(s, "Transform for expression already exists");
 			}
 
-			IExpressionTransform* transform = CreateExpressionTransform(s);
+			IExpressionTransform* newTransform = CreateExpressionTransform(s);
 
-			auto binding = std::make_pair(&s, transform);
+			auto binding = std::make_pair(&s, newTransform);
 			i = transforms->insert(binding).first;
 			return i->second;
 		}
@@ -700,10 +700,10 @@ namespace Anon
 			return i->second.size();
 		}
 
-		void TransformRoot(IExpressionTransform& transform, const ICompoundSExpression& root) const
+		void TransformRoot(IExpressionTransform& _transform, const ICompoundSExpression& _root) const
 		{
-			UNUSED(root);
-			this->transform = &transform;
+			UNUSED(_root);
+			this->transform = &_transform;
 		}
 	};
 
@@ -1122,17 +1122,17 @@ namespace Anon
 				Throw(*this, __FUNCTION__ ": not supported - Root Expression had no tree");
 			}
 
-			auto& tree = static_cast<const ExpressionTree&>(Tree());
+			auto& t = static_cast<const ExpressionTree&>(Tree());
 
-			auto* transform = tree.Transform(*this);
+			auto* transform = t.Transform(*this);
 
 			try
 			{
-				tree.TransformRoot(*transform, *this);
+				t.TransformRoot(*transform, *this);
 			}
 			catch (...)
 			{
-				tree.ReleaseTransform(*this);
+				t.ReleaseTransform(*this);
 				throw;
 			}
 
@@ -1460,7 +1460,7 @@ namespace Anon
 		std::vector<char> commentBuffer;
 
 		SBlockAllocator(const SCostEvaluator& _ce, IAllocator& _allocator, cstr _sourceStart, bool addCommentMap) :
-			ce(_ce), allocator(_allocator), sourceStart(_sourceStart)
+			sourceStart(_sourceStart), ce(_ce), allocator(_allocator)
 		{
 			/* Block
 			   Concrete atomic + literal expressions
@@ -1549,7 +1549,7 @@ namespace Anon
 			return tree;
 		}
 
-		~SBlockAllocator()
+		virtual ~SBlockAllocator()
 		{
 			if (block)
 			{
@@ -1725,12 +1725,12 @@ namespace Anon
 		bool mapComments = false;
 
 		SParser_2_0(IAllocator& _allocator, size_t _maxStringLength) :
-			maxStringLength(_maxStringLength),
-			allocator(_allocator)
+			allocator(_allocator),
+			maxStringLength(_maxStringLength)
 		{
 		}
 
-		~SParser_2_0()
+		virtual ~SParser_2_0()
 		{
 		}
 
@@ -1930,9 +1930,9 @@ namespace Anon
 			refcount--;
 			if (refcount == 0)
 			{
-				auto& allocator = this->allocator;
+				auto& refAllocator = this->allocator;
 				this->~SParser_2_0();	
-				allocator.FreeData(this);
+				refAllocator.FreeData(this);
 				return 0;
 			}
 			else
