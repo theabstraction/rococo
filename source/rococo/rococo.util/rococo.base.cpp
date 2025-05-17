@@ -1,4 +1,7 @@
-#define ROCOCO_API __declspec(dllexport)
+#ifndef ROCOCO_API
+# define ROCOCO_API __declspec(dllexport)
+#endif
+
 #define ROCOCO_ID_API ROCOCO_API
 #include <rococo.debugging.h>
 
@@ -102,7 +105,10 @@ namespace Rococo
 
 		union GuidAndUniqueId
 		{
-			GuidAndUniqueId() : id(), guid() {}
+			GuidAndUniqueId()
+			{
+				memset(this, 0, sizeof(GuidAndUniqueId));
+			}
 			UniqueIdHolder id;
 			MehGuid guid;
 		};
@@ -324,6 +330,11 @@ namespace Rococo
 		char msg[2048];
 		int32 errorCode;
 
+		virtual ~RococoException()
+		{
+
+		}
+
 		std::list<StackFrame> stackFrames;
 
 		cstr Message() const override
@@ -459,7 +470,7 @@ namespace Rococo
 
 #include <string>
 #include <list>
-#include <allocators/rococo.allocator.template.h>
+#include <allocators/rococo.allocator.malloc.h>
 
 namespace Rococo::Debugging
 {

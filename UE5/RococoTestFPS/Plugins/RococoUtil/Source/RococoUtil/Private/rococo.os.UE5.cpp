@@ -19,6 +19,20 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
+	[[noreturn]] void Throw(const FString& msg);
+
+	void SecureCopyStringToBuffer(char* buffer, size_t capacity, const FString& s)
+	{
+		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*s, s.Len());
+
+		if (nElements >= capacity)
+		{
+			Throw(FString::Printf(TEXT("Insufficient buffer to convert string to UTF8. Requires %d bytes. Capacity is %llu bytes\r\nString: %s"), nElements, capacity, *s));
+		}
+
+		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer), capacity, *s, nElements);
+	}
+
 	void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 	{
 		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
@@ -26,7 +40,7 @@ namespace Rococo
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
 	}
 
-	void Throw(const FString& msg)
+	[[noreturn]] void Throw(const FString& msg)
 	{
 		if constexpr ((sizeof TCHAR) > 1)
 		{
@@ -69,34 +83,38 @@ namespace Rococo
 	
 	void Populate(U8FilePath& path, const FString& src)
 	{
-		if (src.Len() >= path.CAPACITY)
-		{
-			Throw(FString::Printf(TEXT("Cannot populate UnrealFilePath. Source name too long: %s"), *src));
-		}
-
-		if constexpr ((sizeof TCHAR) > 1)
-		{
-			FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(path.buf), path.CAPACITY, (const TCHAR*) *src, src.Len());
-		}
-		else
-		{
-			Strings::CopyString(path.buf, path.CAPACITY, (const char*) *src);
-		}
+		SecureCopyStringToBuffer(path.buf, U8FilePath::CAPACITY, src);
 	}
 }
 
 namespace Rococo::IO
 {
+	ROCOCO_API void GetCurrentDirectoryPath(U8FilePath& path)
+	{
+		FString launchDir = FPaths::LaunchDir();
+		Rococo::Populate(path, launchDir);
+	}
+
 	ROCOCO_API void ToSysPath(char* path)
 	{
 		char directorySeparator = DirectorySeparatorChar();
 
 		for (char* s = path; *s != 0; ++s)
 		{
-			if (*s == L'/') *s = directorySeparator;
+			if (*s == '/' || *s == '\\') *s = directorySeparator;
 		}
 	}
 
+	ROCOCO_API void ToSysPath(wchar_t* path)
+	{
+		wchar_t directorySeparator = DirectorySeparatorChar();
+
+		for (auto* s = path; *s != 0; ++s)
+		{
+			if (*s == '/' || *s == '\\') *s = directorySeparator;
+		}
+	}
+	
 	ROCOCO_API void ToUnixPath(char* path)
 	{
 		for (char* s = path; *s != 0; ++s)
@@ -108,18 +126,37 @@ namespace Rococo::IO
 	ROCOCO_API bool IsFileExistant(const char* filename)
 	{
 		FString filePath(filename);
-
 		return FPaths::FileExists(filePath);
 	}
 
+	ROCOCO_API bool IsFileExistant(const wchar_t* filename)
+	{
+		FString filePath(filename);
+		return FPaths::FileExists(filePath);
+	}
+
+
 	ROCOCO_API bool StripLastSubpath(char* fullpath)
 	{
-		char directorySeparator = DirectorySeparatorChar();
-
-		int32 len = (int32)strlen(fullpath);
+		int32 len = (int32)Strings::StringLength(fullpath);
 		for (int i = len - 2; i > 0; --i)
 		{
-			if (fullpath[i] == directorySeparator)
+			if (fullpath[i] == '/' || fullpath[i] =='\\')
+			{
+				fullpath[i + 1] = 0;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath)
+	{
+		int32 len = (int32)Strings::StringLength(fullpath);
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (fullpath[i] == '/' || fullpath[i] == '\\')
 			{
 				fullpath[i + 1] = 0;
 				return true;
@@ -142,6 +179,22 @@ namespace Rococo::IO
 	ROCOCO_API bool MakeContainerDirectory(char* filename)
 	{
 		int len = (int)strlen(filename);
+
+		for (int i = len - 2; i > 0; --i)
+		{
+			if (filename[i] == '\\' || filename[i] == '/')
+			{
+				filename[i + 1] = 0;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename)
+	{
+		int len = (int)Strings::StringLength(filename);
 
 		for (int i = len - 2; i > 0; --i)
 		{
@@ -627,6 +680,11 @@ namespace Rococo::OS
 		}
 	}
 
+	ROCOCO_API IdThread GetCurrentThreadIdentifier()
+	{
+		return (IdThread)FPlatformTLS::GetCurrentThreadId();
+	}
+
 	/*
 	ROCOCO_API void SetCursorVisibility(bool isVisible, Rococo::Windows::IWindow& captureWindow)
 	{
@@ -751,11 +809,6 @@ namespace Rococo::OS
 			}
 		};
 		thread.QueueAPC(ANON::WakeUp, nullptr);
-	}
-
-	ROCOCO_API IdThread GetCurrentThreadIdentifier()
-	{
-		return (IdThread) GetCurrentThreadId();
 	}
 
 	ROCOCO_API IThreadSupervisor* CreateRococoThread(IThreadJob* job, uint32 stacksize)

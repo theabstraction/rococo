@@ -10,7 +10,7 @@
 
 #include <unordered_map>
 
-#include <allocators/rococo.allocator.template.h>
+#include <allocators/rococo.allocator.malloc.h>
 
 namespace
 {

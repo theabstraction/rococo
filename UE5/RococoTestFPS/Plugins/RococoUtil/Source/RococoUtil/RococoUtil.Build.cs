@@ -71,6 +71,7 @@ public class RococoUtil : ModuleRules
 			fullPath = fullPath.Replace("\\", "/");
 
 			sb.AppendFormat("#include <{0}>", fullPath);
+			sb.AppendLine();
 		}
 
 		string fullBundlePath = Path.Combine(thisSourceDirectory, bundleName);
@@ -94,7 +95,9 @@ public class RococoUtil : ModuleRules
 	{
 		List<string> utilBundleFiles = new List<string>()
 		{
-			"rococo.strings.cpp"
+			"rococo.strings.cpp",
+			"rococo.base.cpp",
+			"rococo.heap.string.cpp"
 		};
 
         CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/rococo.util", utilBundleFiles);
