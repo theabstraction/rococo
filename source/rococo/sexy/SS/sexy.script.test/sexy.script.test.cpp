@@ -2914,7 +2914,7 @@ R"(
 		validate(decl != NULL);
 		validate(decl->NumberOfInputs() == 1);
 		validate(decl->NumberOfOutputs() == 1);
-		validate(&decl->GetArgument(0) == &decl->GetArgument(1) && decl->GetArgument(0).VarType() == VARTYPE_Float32);
+		validate(&decl->GetArgument(0) == &decl->GetArgument(1) && decl->GetArgument(0).VarType() == SexyVarType_Float32);
 	}
 
 	void TestNullArchetype(IPublicScriptSystem& ss)
@@ -3628,8 +3628,8 @@ R"((namespace EntryPoint)
 		validate(a2.NumberOfOutputs() == 0);
 		validate(AreEqual(a1.GetArgName(0),"value"));
 		validate(AreEqual(a2.GetArgName(0),"value"));
-		validate(a1.GetArgument(0).VarType() == VARTYPE_Int32);
-		validate(a2.GetArgument(0).VarType() == VARTYPE_Int32);
+		validate(a1.GetArgument(0).VarType() == SexyVarType_Int32);
+		validate(a2.GetArgument(0).VarType() == SexyVarType_Int32);
 	} 
 
 	void TestClassDefinition(IPublicScriptSystem& ss)

@@ -37,114 +37,114 @@ namespace Rococo
 {
    namespace Variants
    {
-      bool IsAGreaterThanB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      bool IsAGreaterThanB(const VariantValue& a, const VariantValue& b, SexyVarType type, cr_sex src)
       {
          switch (type)
          {
-         case VARTYPE_Derivative:
+         case SexyVarType_Derivative:
             Throw(src, ("Cannot compare two derivative types, No 'greater than' operator defined"));
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
             return a.int32Value > b.int32Value;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
             return a.int64Value > b.int64Value;
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
             return a.floatValue > b.floatValue;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
             return a.doubleValue > b.doubleValue;
          default:
             Throw(src, ("Cannot compare two values, they are of unknown type"));
          }
       }
 
-      bool IsALessThanB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      bool IsALessThanB(const VariantValue& a, const VariantValue& b, SexyVarType type, cr_sex src)
       {
          switch (type)
          {
-         case VARTYPE_Derivative:
+         case SexyVarType_Derivative:
             Throw(src, ("Cannot compare two derivative types, No 'less than' operator defined"));
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
             return a.int32Value < b.int32Value;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
             return a.int64Value < b.int64Value;
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
             return a.floatValue < b.floatValue;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
             return a.doubleValue < b.doubleValue;
          default:
             Throw(src, ("Cannot compare two values, they are of unknown type"));
          }
       }
 
-      bool IsAGreaterThanOrEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      bool IsAGreaterThanOrEqualToB(const VariantValue& a, const VariantValue& b, SexyVarType type, cr_sex src)
       {
          switch (type)
          {
-         case VARTYPE_Derivative:
+         case SexyVarType_Derivative:
             Throw(src, "Cannot compare two derivative types, No 'greater than or equal to' operator defined");
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
             return a.int32Value >= b.int32Value;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
             return a.int64Value >= b.int64Value;
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
             return a.floatValue >= b.floatValue;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
             return a.doubleValue >= b.doubleValue;
          default:
             Throw(src, "Cannot compare two values, they are of unknown type");
          }
       }
 
-      bool IsALessThanOrEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      bool IsALessThanOrEqualToB(const VariantValue& a, const VariantValue& b, SexyVarType type, cr_sex src)
       {
          switch (type)
          {
-         case VARTYPE_Derivative:
+         case SexyVarType_Derivative:
             Throw(src, "Cannot compare two derivative types, No 'less than or equal to' operator defined");
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
             return a.int32Value <= b.int32Value;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
             return a.int64Value <= b.int64Value;
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
             return a.floatValue <= b.floatValue;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
             return a.doubleValue <= b.doubleValue;
          default:
             Throw(src, "Cannot compare two values, they are of unknown type");
          }
       }
 
-      bool IsANotEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      bool IsANotEqualToB(const VariantValue& a, const VariantValue& b, SexyVarType type, cr_sex src)
       {
          switch (type)
          {
-         case VARTYPE_Derivative:
+         case SexyVarType_Derivative:
             Throw(src, "Cannot compare two derivative types, No 'not equal to' operator defined");
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
             return a.int32Value != b.int32Value;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
             return a.int64Value != b.int64Value;
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
             return a.floatValue != b.floatValue;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
             return a.doubleValue != b.doubleValue;
          default:
             Throw(src, "Cannot compare two values, they are of unknown type");
          }
       }
 
-      bool IsAEqualToB(const VariantValue& a, const VariantValue& b, VARTYPE type, cr_sex src)
+      bool IsAEqualToB(const VariantValue& a, const VariantValue& b, SexyVarType type, cr_sex src)
       {
          switch (type)
          {
-         case VARTYPE_Derivative:
+         case SexyVarType_Derivative:
             Throw(src, "Cannot compare two derivative types, No 'not equal to' operator defined");
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
             return a.int32Value == b.int32Value;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
             return a.int64Value == b.int64Value;
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
             return a.floatValue == b.floatValue;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
             return a.doubleValue == b.doubleValue;
          default:
             Throw(src, ("Cannot compare two values, they are of unknown type"));
@@ -159,7 +159,7 @@ namespace Rococo
    {
       using namespace Rococo::Variants;
 
-      bool Compare(const VariantValue& a, const VariantValue& b, VARTYPE type, CONDITION op, cr_sex src)
+      bool Compare(const VariantValue& a, const VariantValue& b, SexyVarType type, CONDITION op, cr_sex src)
       {
          switch (op)
          {
@@ -174,7 +174,7 @@ namespace Rococo
          }
       }
 
-      void CompileBinaryCompareLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, cstr leftString, VARTYPE lType, CONDITION op, cstr rightString, VARTYPE rType)
+      void CompileBinaryCompareLiteralVsLiteral(CCompileEnvironment& ce, cr_sex parent, cstr leftString, SexyVarType lType, CONDITION op, cstr rightString, SexyVarType rType)
       {
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
@@ -189,7 +189,7 @@ namespace Rococo
          }
 
          VariantValue newLValue, newRValue;
-         VARTYPE bestCastType = Variants::GetBestCastType(lType, rType);
+         SexyVarType bestCastType = Variants::GetBestCastType(lType, rType);
          if (Variants::TryRecast(newLValue, lValue, lType, bestCastType))
          {
             if (Variants::TryRecast(newRValue, rValue, rType, bestCastType))
@@ -233,9 +233,9 @@ namespace Rococo
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, val, BITCOUNT_32);
       }
 
-      VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex s, cstr id, int tempdepth)
+      SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex s, cstr id, int tempdepth)
       {
-         VARTYPE type = VARTYPE_Bad;
+         SexyVarType type = SexyVarType_Bad;
 
          if (IsCapital(id[0]))
          {
@@ -255,7 +255,7 @@ namespace Rococo
          }
          else if (Eq(id, "true") || Eq(id, "false"))
          {
-             return VARTYPE_Bool;
+             return SexyVarType_Bool;
          }
          else if (isdigit(id[0]))
          {
@@ -263,10 +263,10 @@ namespace Rococo
             if (Parse::PARSERESULT_GOOD == Parse::TryParseDecimal(value.int32Value, id))
             {
                ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, value, BITCOUNT_32);
-               return VARTYPE_Int32;
+               return SexyVarType_Int32;
             }
 
-            return VARTYPE_Bad;
+            return SexyVarType_Bad;
          }
          else
          {
@@ -319,7 +319,7 @@ namespace Rococo
          return type;
       }
 
-      bool IsZero(VariantValue value, VARTYPE type)
+      bool IsZero(VariantValue value, SexyVarType type)
       {
          bool isZero = false;
 
@@ -334,20 +334,20 @@ namespace Rococo
          }
       }
 
-      void AddBinaryComparison(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, CONDITION op, VARTYPE type)
+      void AddBinaryComparison(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, CONDITION op, SexyVarType type)
       {
          switch (type)
          {
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
             assembler.Append_FloatSubtract(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB, VM::FLOATSPEC_SINGLE);
             break;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
             assembler.Append_FloatSubtract(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB, VM::FLOATSPEC_DOUBLE);
             break;
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
             assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
             break;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
             assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_64, VM::REGISTER_D4 + sourceB);
             break;
          default:
@@ -358,7 +358,7 @@ namespace Rococo
       }
 
 
-      void CompileBinaryCompareVariableVsLiteral(CCompileEnvironment& ce, cr_sex parent, cstr leftVarName, CONDITION op, cstr rightString, VARTYPE rType, cr_sex leftVarExpr)
+      void CompileBinaryCompareVariableVsLiteral(CCompileEnvironment& ce, cr_sex parent, cstr leftVarName, CONDITION op, cstr rightString, SexyVarType rType, cr_sex leftVarExpr)
       {
          VariantValue rValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT rValue, rType, rightString))
@@ -370,10 +370,10 @@ namespace Rococo
 
          if (IsZero(rValue, rType))
          {
-            VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH);
+            SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH);
 
             VariantValue newRValue;
-            if (varLType != VARTYPE_Pointer && !Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
+            if (varLType != SexyVarType_Pointer && !Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
             {
                Throw(parent, ("Cannot cast RHS to the type of the LHS"));
             }
@@ -382,7 +382,7 @@ namespace Rococo
          }
          else
          {
-            VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
+            SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
 
             VariantValue newRValue;
             if (!Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
@@ -423,10 +423,10 @@ namespace Rococo
 
           cstr variableName = sVariableName.c_str();
 
-          VARTYPE varType = ce.Builder.GetVarType(variableName);
-          if (varType == VARTYPE_Bad)
+          SexyVarType varType = ce.Builder.GetVarType(variableName);
+          if (varType == SexyVarType_Bad)
           {
-              if (!TryCompileArithmeticExpression(ce, sVariableName, false, VARTYPE_Bool))
+              if (!TryCompileArithmeticExpression(ce, sVariableName, false, SexyVarType_Bool))
               {
                   Throw(sVariableName, "Could not parse %s as either as a literal, a variable or anything else", variableName);
               }
@@ -436,11 +436,11 @@ namespace Rococo
               AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH+1, Rococo::ROOT_TEMPDEPTH, op);
               return;
           }
-          else if (varType == VARTYPE_Derivative)
+          else if (varType == SexyVarType_Derivative)
           {
               Throw(parent, ("Cannot compare derived types"));
           }
-          else if (varType != VARTYPE_Bool)
+          else if (varType != SexyVarType_Bool)
           {
               Throw(parent, ("Cannot logically implicitly cast variable to a boolean"));
           }
@@ -450,7 +450,7 @@ namespace Rococo
           AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
-      void CompileBinaryCompareLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, cstr leftString, VARTYPE lType, CONDITION op, cstr rightVarName)
+      void CompileBinaryCompareLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, cstr leftString, SexyVarType lType, CONDITION op, cstr rightVarName)
       {
          VariantValue lValue;
          if (Parse::PARSERESULT_GOOD != Parse::TryParse(OUT lValue, lType, leftString))
@@ -458,12 +458,12 @@ namespace Rococo
             Throw(parent, "Cannot parse the left part of the expression: %s", leftString);
          }
 
-         VARTYPE varRType = ce.Builder.GetVarType(rightVarName);
-         if (varRType == VARTYPE_Bad)
+         SexyVarType varRType = ce.Builder.GetVarType(rightVarName);
+         if (varRType == SexyVarType_Bad)
          {
             Throw(parent, ("Cannot resolve right hand side as a literal or identifier"));
          }
-         else if (varRType == VARTYPE_Derivative)
+         else if (varRType == SexyVarType_Derivative)
          {
             Throw(parent, ("Cannot compare derived types"));
          }
@@ -517,7 +517,7 @@ namespace Rococo
 			  {
 				  if (!leftDef.ResolvedType || !rightDef.ResolvedType) return false;
 
-				  if (leftDef.ResolvedType->VarType() == VARTYPE_Derivative && rightDef.ResolvedType->VarType() == VARTYPE_Derivative)
+				  if (leftDef.ResolvedType->VarType() == SexyVarType_Derivative && rightDef.ResolvedType->VarType() == SexyVarType_Derivative)
 				  {
 					  if (leftDef.ResolvedType->InterfaceCount() != 0 || rightDef.ResolvedType->InterfaceCount() != 0)
 					  {
@@ -561,7 +561,7 @@ namespace Rococo
 						  Throw(parent, "Operator overload function %s must have 2 inputs and 1 output", compareFunction);
 					  }
 
-					  if (callee.GetArgument(0).VarType() != VARTYPE_Bool)
+					  if (callee.GetArgument(0).VarType() != SexyVarType_Bool)
 					  {
 						  Throw(parent, "Operator overload function %s must have Bool as output", compareFunction);
 					  }
@@ -594,7 +594,7 @@ namespace Rococo
 					  RepairStack(ce, parent, callee);
 
 					  int outputOffset = GetOutputSFOffset(ce, sizeof(size_t) * 2, outputStackAllocCount);
-					  ReturnOutput(ce, outputOffset, VARTYPE_Bool);
+					  ReturnOutput(ce, outputOffset, SexyVarType_Bool);
 
 					  return true;
 				  }
@@ -613,7 +613,7 @@ namespace Rococo
 
           if (IsAtomic(leftExpr) && TryCompileAsCompareStruct(ce, parent, leftExpr, leftExpr.c_str(), op, rightExpr)) return;
 
-          VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+          SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
           if (!TryCompileArithmeticExpression(ce, rightExpr, true, varLType))
           {
               Throw(rightExpr, "Failed to compile expression as a numeric value");
@@ -630,8 +630,8 @@ namespace Rococo
 
 		 if (TryCompileAsCompareStruct(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
 
-         VARTYPE varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
-         VARTYPE varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
+         SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
+         SexyVarType varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
 
          if (varLType != varRType)
          {
@@ -643,19 +643,19 @@ namespace Rococo
 
       void CompileBinaryBooleanVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex sLeftVarName, LOGICAL_OP op, cr_sex sRightVarName)
       {
-         VARTYPE varLType = ce.Builder.GetVarType(sLeftVarName.c_str());
-         VARTYPE varRType = ce.Builder.GetVarType(sRightVarName.c_str());
+         SexyVarType varLType = ce.Builder.GetVarType(sLeftVarName.c_str());
+         SexyVarType varRType = ce.Builder.GetVarType(sRightVarName.c_str());
 
-         if (varLType == VARTYPE_Bad)
+         if (varLType == SexyVarType_Bad)
          {
-             if (!TryCompileArithmeticExpression(ce, sLeftVarName, false, VARTYPE_Bool))
+             if (!TryCompileArithmeticExpression(ce, sLeftVarName, false, SexyVarType_Bool))
              {
                  Throw(sLeftVarName, "The LHS is neither a literal, identifier, nor recognized as a boolean valued expression");
              }
 
              // assembly placed the LHS boolean value in D7
 
-             if (varLType == VARTYPE_Bool)
+             if (varLType == SexyVarType_Bool)
              {
                  ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
                  AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
@@ -664,7 +664,7 @@ namespace Rococo
              else
              {
                  ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, BITCOUNT_32);
-                 if (!TryCompileArithmeticExpression(ce, sRightVarName, false, VARTYPE_Bool))
+                 if (!TryCompileArithmeticExpression(ce, sRightVarName, false, SexyVarType_Bool))
                  {
                      Throw(sRightVarName, "The LHS is neither a literal, identifier, nor recognized as a boolean valued expression");
                  }
@@ -675,18 +675,18 @@ namespace Rococo
                  return;
              }
          }
-         else if (varLType == VARTYPE_Derivative)
+         else if (varLType == SexyVarType_Derivative)
          {
             Throw(parent, "The LHS is a derived type, and cannot be used in boolean comparisons");
          }
-         else if (varLType != VARTYPE_Bool)
+         else if (varLType != SexyVarType_Bool)
          {
             Throw(parent, "The LHS is not a boolean type");
          }
 
-         if (varRType == VARTYPE_Bad)
+         if (varRType == SexyVarType_Bad)
          {
-             if (!TryCompileArithmeticExpression(ce, sRightVarName, false, VARTYPE_Bool))
+             if (!TryCompileArithmeticExpression(ce, sRightVarName, false, SexyVarType_Bool))
              {
                  Throw(sRightVarName, "The RHS is neither a literal, identifier, nor recognized as a boolean valued expression");
              }
@@ -696,11 +696,11 @@ namespace Rococo
              AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
              return;
          }
-         else if (varRType == VARTYPE_Derivative)
+         else if (varRType == SexyVarType_Derivative)
          {
             Throw(parent, "The RHS is a derived type, and cannot be used in boolean comparisons");
          }
-         else if (varRType != VARTYPE_Bool)
+         else if (varRType != SexyVarType_Bool)
          {
             Throw(parent, "The RHS is not a boolean type");
          }
@@ -716,12 +716,12 @@ namespace Rococo
          int B = leftToRight ? 2 : 1;
          cstr helper = leftToRight ? "LHS" : "RHS";
 
-         VARTYPE type = ce.Builder.GetVarType(varName);
-         if (type == VARTYPE_Derivative)
+         SexyVarType type = ce.Builder.GetVarType(varName);
+         if (type == SexyVarType_Derivative)
          {
             Throw(parent, "%s was of derived type and cannot be directly used in a comparison expression", helper);
          }
-         else if (type == VARTYPE_Bad)
+         else if (type == SexyVarType_Bad)
          {
             type = Parse::GetLiteralType(varName);
             if (!IsPrimitiveType(type) && leftToRight)
@@ -759,13 +759,13 @@ namespace Rococo
          if (IsAtomic(left))
          {
             cstr leftString = left.c_str();
-            VARTYPE lType = Parse::GetLiteralType(leftString);
+            SexyVarType lType = Parse::GetLiteralType(leftString);
             if (IsPrimitiveType(lType))
             {
                if (IsAtomic(right))
                {
                   cstr rightString = right.c_str();
-                  VARTYPE rType = Parse::GetLiteralType(rightString);
+                  SexyVarType rType = Parse::GetLiteralType(rightString);
 
                   if (IsPrimitiveType(rType))
                   {
@@ -786,7 +786,7 @@ namespace Rococo
                if (IsAtomic(right))
                {
                   cstr rightString = right.c_str();
-                  VARTYPE rType = Parse::GetLiteralType(rightString);
+                  SexyVarType rType = Parse::GetLiteralType(rightString);
 
                   if (IsPrimitiveType(rType))
                   {
@@ -819,7 +819,7 @@ namespace Rococo
             }
             else
             {
-               VARTYPE guessType = GuessType(parent, ce.Builder);
+               SexyVarType guessType = GuessType(parent, ce.Builder);
                if (IsPrimitiveType(guessType))
                {
                   BITCOUNT bits = GetBitCount(guessType);
@@ -928,8 +928,8 @@ namespace Rococo
 
       void CompileBinaryBooleanVariableVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, cstr leftString, LOGICAL_OP op, cr_sex right)
       {
-         VARTYPE type = ce.Builder.GetVarType(leftString);
-         if (type != VARTYPE_Bool)
+         SexyVarType type = ce.Builder.GetVarType(leftString);
+         if (type != SexyVarType_Bool)
          {
             Throw(parent, ("Expecting boolean variable on LHS"));
          }
@@ -976,12 +976,12 @@ namespace Rococo
 
       void CompileBinaryBooleanAtomicVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, cstr leftString, LOGICAL_OP op, cr_sex right)
       {
-         VARTYPE lType = ce.Builder.GetVarType(leftString);
-         if (lType == VARTYPE_Derivative)
+         SexyVarType lType = ce.Builder.GetVarType(leftString);
+         if (lType == SexyVarType_Derivative)
          {
             Throw(parent, ("LHS was of a derived type, and cannot be directly used in boolean expressions"));
          }
-         else if (lType == VARTYPE_Bad)
+         else if (lType == SexyVarType_Bad)
          {
             int32 value;
             if (Parse::TryParseBoolean(OUT value, leftString) != Parse::PARSERESULT_GOOD)
@@ -992,7 +992,7 @@ namespace Rococo
             CompileBinaryBooleanLiteralVsCompoundExpression(ce, parent, value, op, right);
             return;
          }
-         else if (lType != VARTYPE_Bool)
+         else if (lType != SexyVarType_Bool)
          {
             Throw(parent, ("Identifier in the LHS of the boolean expression was not of underlying type Int32"));
          }
@@ -1079,7 +1079,7 @@ namespace Rococo
 
       bool TryCompileBooleanValuedFunction(CCompileEnvironment& ce, cr_sex src, bool expected)
       {
-         return TryCompileFunctionCallAndReturnValue(ce, src, VARTYPE_Bool, NULL, NULL);
+         return TryCompileFunctionCallAndReturnValue(ce, src, SexyVarType_Bool, NULL, NULL);
       }
 
       CONDITION GetBinaryComparisonOp(cr_sex opExpr, bool negate)
@@ -1204,12 +1204,12 @@ namespace Rococo
               else
               {
                   auto varType = ce.Builder.GetVarType(token);
-                  if (VARTYPE_Bool == varType)
+                  if (SexyVarType_Bool == varType)
                   {
                       ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
                       return true;
                   }
-                  else if (varType == VARTYPE_Derivative)
+                  else if (varType == SexyVarType_Derivative)
                   {
                       MemberDef def;
                       if (!ce.Builder.TryGetVariableByName(def, token))

@@ -568,7 +568,7 @@ namespace Rococo {
 		SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth);
 		SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, Rococo::Debugger::ICallStackEnumerationCallback& cb);
 		SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callOffset);
-		SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData);
+		SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, SexyVarType type, const void* pVariableData);
 		SCRIPTEXPORT_API void SkipJIT(Rococo::Compiler::IPublicProgramObject& po);
 		SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const Rococo::Compiler::IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth);
 		SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType, const uint8* SF);
@@ -597,7 +597,7 @@ namespace Rococo {
 namespace Rococo {
    namespace Variants
    {
-	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
+	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, SexyVarType orignalType, SexyVarType endType);
 
       inline VariantValue FromValue(int32 value)
       {
@@ -610,14 +610,14 @@ namespace Rococo {
       inline VariantValue ValueTrue() { return FromValue(1); }
       inline VariantValue ValueFalse() { return FromValue(0); }
 
-      inline bool IsAssignableToBoolean(VARTYPE type)
+      inline bool IsAssignableToBoolean(SexyVarType type)
       {
-         return type == VARTYPE_Bool;
+         return type == SexyVarType_Bool;
       }
 
-	  SEXYUTIL_API VARTYPE GetBestCastType(VARTYPE a, VARTYPE b);
+	  SEXYUTIL_API SexyVarType GetBestCastType(SexyVarType a, SexyVarType b);
 
-	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType);
+	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, SexyVarType orignalType, SexyVarType endType);
    }
 }
 

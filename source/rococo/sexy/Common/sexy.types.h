@@ -382,24 +382,24 @@ namespace Rococo
 		ROCOCO_API void GetSpecimen(char specimen[64], const ISExpression& e);
 	} // Sex
 
-	enum VARTYPE
+	enum SexyVarType
 	{
-		VARTYPE_Bool,
-		VARTYPE_Float32,
-		VARTYPE_Float64,
-		VARTYPE_Int32,
-		VARTYPE_Int64,
-		VARTYPE_Pointer,
-		VARTYPE_Derivative,
-		VARTYPE_Bad,
-		VARTYPE_Closure,
-		VARTYPE_AnyNumeric, // Not really a type, passed to a function to indicate any numeric type is valid
-		VARTYPE_Array,
-		VARTYPE_List,
-		VARTYPE_Map,
-		VARTYPE_ListNode,
-		VARTYPE_MapNode,
-		VARTYPE_Lock
+		SexyVarType_Bool,
+		SexyVarType_Float32,
+		SexyVarType_Float64,
+		SexyVarType_Int32,
+		SexyVarType_Int64,
+		SexyVarType_Pointer,
+		SexyVarType_Derivative,
+		SexyVarType_Bad,
+		SexyVarType_Closure,
+		SexyVarType_AnyNumeric, // Not really a type, passed to a function to indicate any numeric type is valid
+		SexyVarType_Array,
+		SexyVarType_List,
+		SexyVarType_Map,
+		SexyVarType_ListNode,
+		SexyVarType_MapNode,
+		SexyVarType_Lock
 	};
 
 	namespace Sex

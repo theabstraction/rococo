@@ -54,7 +54,7 @@ namespace Rococo
 					const IStructure& argType = callee.GetArgument(argIndex);
 					const IArchetype* archetype;
 
-					if (argType.VarType() != VARTYPE_Closure)
+					if (argType.VarType() != SexyVarType_Closure)
 					{
 						archetype = NULL;
 					}
@@ -76,7 +76,7 @@ namespace Rococo
 					const IStructure& argType = callee.GetArgument(argIndex);
 					const IArchetype* archetype;
 
-					if (argType.VarType() != VARTYPE_Closure)
+					if (argType.VarType() != SexyVarType_Closure)
 					{
 						archetype = NULL;
 					}
@@ -116,7 +116,7 @@ namespace Rococo
 				const IStructure& argType = callee.GetArgument(argIndex);
 				const IArchetype* archetype;
 
-				if (argType.VarType() != VARTYPE_Closure)
+				if (argType.VarType() != SexyVarType_Closure)
 				{
 					archetype = NULL;
 				}
@@ -428,7 +428,7 @@ namespace Rococo
 
 		void CompileInputRefFromGetAccessor(CCompileEnvironment& ce, cr_sex inputExpression, const IStructure& argStruct)
 		{
-			if (!TryCompileFunctionCallAndReturnValue(ce, inputExpression, VARTYPE_Derivative, &argStruct, NULL))
+			if (!TryCompileFunctionCallAndReturnValue(ce, inputExpression, SexyVarType_Derivative, &argStruct, NULL))
 			{
 				cstr name = inputExpression.c_str();
 				Throw(inputExpression, "The input '%s' was not recognized. Expecting a reference to an object of type %s", name, GetFriendlyName(argStruct));
@@ -500,8 +500,8 @@ namespace Rococo
 			cstr varName = s.c_str();
 			const IStructure& varStruct = *def.ResolvedType;
 
-			VARTYPE vType = varStruct.VarType();
-			if (vType != VARTYPE_Derivative)
+			SexyVarType vType = varStruct.VarType();
+			if (vType != SexyVarType_Derivative)
 			{
 				Throw(s, "The variable is not a derived type. Expected: %s %s", GetFriendlyName(inputType), name);
 			}
@@ -568,7 +568,7 @@ namespace Rococo
 			}
 			else if (isupper(token[0]))
 			{
-				if (inputType.VarType() != VARTYPE_Closure)
+				if (inputType.VarType() != SexyVarType_Closure)
 				{
 					CompileInputRefFromGetAccessor(ce, s, inputType); // Possible function call
 				}
@@ -600,7 +600,7 @@ namespace Rococo
 				CompileGetStructRefFromAtomic(ce, s, inputType, name);
 				break;
 			case EXPRESSION_TYPE_COMPOUND:
-				if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
+				if (!TryCompileFunctionCallAndReturnValue(ce, s, SexyVarType_Derivative, &inputType, NULL))
 				{
 					Throw(s, "Expecting compound expression to return input for '%s %s'", GetFriendlyName(inputType), name);
 				}
@@ -621,7 +621,7 @@ namespace Rococo
 			case EXPRESSION_TYPE_ATOMIC:
 				break;
 			case EXPRESSION_TYPE_COMPOUND:
-				if (!TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Derivative, &inputType, NULL))
+				if (!TryCompileFunctionCallAndReturnValue(ce, s, SexyVarType_Derivative, &inputType, NULL))
 				{
 					if (s.NumberOfElements() == 1)
 					{
@@ -663,8 +663,8 @@ namespace Rococo
 				return true;
 			}
 
-			VARTYPE vType = def.ResolvedType->VarType();
-			if (vType != VARTYPE_Derivative && !IsContainerType(vType))
+			SexyVarType vType = def.ResolvedType->VarType();
+			if (vType != SexyVarType_Derivative && !IsContainerType(vType))
 			{
 				if (expectingStructRef)
 				{
@@ -735,7 +735,7 @@ namespace Rococo
 				Throw(inputExpression, ("Function input type has not been resolved"));
 			}
 
-			VARTYPE inputType = inputStruct.VarType();
+			SexyVarType inputType = inputStruct.VarType();
 			BITCOUNT bits = GetBitCount(inputType);
 
 			int stackAllocByteCount = 0;
@@ -803,7 +803,7 @@ namespace Rococo
 				}
 			}
 
-			if (inputType == VARTYPE_Bool)
+			if (inputType == SexyVarType_Bool)
 			{
 				bool negate = false;
 				if (!TryCompileBooleanExpression(ce, inputExpression, true, negate))
@@ -819,7 +819,7 @@ namespace Rococo
 					Throw(inputExpression, "Expected %s valued expression", GetTypeName(inputType));
 				}
 			}
-			else if (inputType == VARTYPE_Derivative || IsContainerType(inputType))
+			else if (inputType == SexyVarType_Derivative || IsContainerType(inputType))
 			{
 				ce.Builder.AddSymbol(inputName);
 				if (!TryCompilePushStructRef(ce, inputExpression, true, inputStruct, inputName, genericArg1))
@@ -828,7 +828,7 @@ namespace Rococo
 				}
 				return sizeof(size_t);
 			}
-			else if (inputType == VARTYPE_Closure)
+			else if (inputType == SexyVarType_Closure)
 			{
 				CompilePushClosure(ce, inputExpression, inputStruct, *archetype, inputName);
 				return inputStruct.SizeOfStruct();
@@ -888,7 +888,7 @@ namespace Rococo
 				Throw(outputExpr, ("The archetype of the output variable did not match that supplied to the function call"));
 			}
 
-			if (requiredOutputStruct.VarType() == VARTYPE_Derivative)
+			if (requiredOutputStruct.VarType() == SexyVarType_Derivative)
 			{
 				if (outputDef.MemberOffset != 0)
 				{
@@ -920,9 +920,9 @@ namespace Rococo
 				const IStructure& s = a.GetArgument(i);
 				switch (s.VarType())
 				{
-				case VARTYPE_Derivative:
-				case VARTYPE_Array:
-				case VARTYPE_Map:
+				case SexyVarType_Derivative:
+				case SexyVarType_Array:
+				case SexyVarType_Map:
 					total += sizeof size_t;
 					break;
 				default:
@@ -933,7 +933,7 @@ namespace Rococo
 			return total;
 		}
 
-		bool TryCompilePlainFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype)
+		bool TryCompilePlainFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, SexyVarType type, const IStructure* derivedType, const IArchetype* returnArchetype)
 		{
 			if (IsCompound(s))
 			{
@@ -968,7 +968,7 @@ namespace Rococo
 			return false;
 		}
 
-		void ValidateCorrectOutput(cr_sex s, const IStructure& outputStruct, VARTYPE returnType)
+		void ValidateCorrectOutput(cr_sex s, const IStructure& outputStruct, SexyVarType returnType)
 		{
 			if (!IsPointerValid(&outputStruct))
 			{
@@ -990,7 +990,7 @@ namespace Rococo
 				Throw(s, "Function has multiple outputs, and no specific return value");
 		}
 
-		void ValidateSingleOutputAndType(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, VARTYPE returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
+		void ValidateSingleOutputAndType(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, SexyVarType returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
 		{
 			ValidateSingleOutput(s, callee.NumberOfOutputs());
 
@@ -998,9 +998,9 @@ namespace Rococo
 
 			switch (returnType)
 			{
-			case VARTYPE_Array:
+			case SexyVarType_Array:
 				argStruct = callee.GetGenericArg1(0);
-				if (argStruct == nullptr || callee.GetArgument(0).VarType() != VARTYPE_Array)
+				if (argStruct == nullptr || callee.GetArgument(0).VarType() != SexyVarType_Array)
 				{
 					Throw(s, "Expecting output to be an array");
 				}
@@ -1019,9 +1019,9 @@ namespace Rococo
 			}
 		}
 
-		void ReturnOutput(CCompileEnvironment& ce, int outputOffset, VARTYPE returnType)
+		void ReturnOutput(CCompileEnvironment& ce, int outputOffset, SexyVarType returnType)
 		{
-			if (returnType == VARTYPE_Closure)
+			if (returnType == SexyVarType_Closure)
 			{
 				outputOffset -= 8;
 				ce.Builder.Assembler().Append_GetStackFrameValue(outputOffset, VM::REGISTER_D14, BITCOUNT_POINTER);
@@ -1199,7 +1199,7 @@ namespace Rococo
 			return outputOffset;
 		}
 
-		void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, IFunction& callee, VARTYPE returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
+		void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, IFunction& callee, SexyVarType returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
 		{
 			cstr calleeName = callee.Name();
 			cstr callerName = ce.Builder.Owner().Name();
@@ -1224,7 +1224,7 @@ namespace Rococo
 			ce.Builder.AssignClosureParentSFtoD6();
 		}
 
-		void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IInterface& interfaceRef)
+		void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IInterface& interfaceRef)
 		{
 			cstr calleeName = callee.Name();
 			cstr callerName = ce.Builder.Owner().Name();
@@ -1274,7 +1274,7 @@ namespace Rococo
 			return inputStackAllocByteCount;
 		}
 
-		void CompileClosureCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr name, VARTYPE returnType, const IArchetype* returnArchetype)
+		void CompileClosureCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr name, SexyVarType returnType, const IArchetype* returnArchetype)
 		{
 			const IStructure* varStruct = ce.Builder.GetVarStructure(name);
 			const IArchetype& archetype = *varStruct->Archetype();
@@ -1342,7 +1342,7 @@ namespace Rococo
 
 		bool IsIStringInlined(CScript& script);
 
-		void CompileAsInlinedItemDirectAndReturnValue(CCompileEnvironment& ce, cstr instance, cstr item, VARTYPE returnType, int interfaceToInstanceOffsetByRef)
+		void CompileAsInlinedItemDirectAndReturnValue(CCompileEnvironment& ce, cstr instance, cstr item, SexyVarType returnType, int interfaceToInstanceOffsetByRef)
 		{
 			MemberDef instanceDef;
 			ce.Builder.TryGetVariableByName(OUT instanceDef, instance);
@@ -1408,16 +1408,16 @@ namespace Rococo
 			}
 		}
 
-		void ValidateReturnType(cr_sex s, VARTYPE returnType, VARTYPE type)
+		void ValidateReturnType(cr_sex s, SexyVarType returnType, SexyVarType type)
 		{
-			if (returnType == VARTYPE_AnyNumeric && IsPrimitiveType(type)) return;
+			if (returnType == SexyVarType_AnyNumeric && IsPrimitiveType(type)) return;
 			if (returnType != type)
 			{
 				Throw(s, "The property returns type %s only", GetTypeName(returnType));
 			}
 		}
 
-		bool TryCompileAsInlineArrayAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
+		bool TryCompileAsInlineArrayAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const IStructure& instanceStruct)
 		{
 			if (instanceStruct == ce.StructArray())
 			{
@@ -1428,7 +1428,7 @@ namespace Rococo
 					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Length", instance);
 					AppendInvoke(ce, callbacks.ArrayReturnLength, s); // the length is now written to D7
-					ValidateReturnType(s, returnType, VARTYPE_Int32);
+					ValidateReturnType(s, returnType, SexyVarType_Int32);
 					return true;
 				}
 				else if (AreEqual("Capacity", methodName))
@@ -1436,13 +1436,13 @@ namespace Rococo
 					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Capacity", instance);
 					AppendInvoke(ce, callbacks.ArrayReturnCapacity, s); // the length is now written to D7
-					ValidateReturnType(s, returnType, VARTYPE_Int32);
+					ValidateReturnType(s, returnType, SexyVarType_Int32);
 					return true;
 				}
 				else if (AreEqual("PopOut", methodName))
 				{
 					CompileAsPopOutFromArray(ce, s, instance, returnType);
-					ValidateReturnType(s, returnType, VARTYPE_Int32);
+					ValidateReturnType(s, returnType, SexyVarType_Int32);
 					return true;
 				}
 				else
@@ -1454,7 +1454,7 @@ namespace Rococo
 			return false;
 		}
 
-		bool TryCompileAsInlineListAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct, VARTYPE& outType)
+		bool TryCompileAsInlineListAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const IStructure& instanceStruct, SexyVarType& outType)
 		{
 			if (instanceStruct == ce.StructList())
 			{
@@ -1462,11 +1462,11 @@ namespace Rococo
 
 				if (Eq("Length", methodName))
 				{
-					ValidateReturnType(s, returnType, VARTYPE_Int32);
+					ValidateReturnType(s, returnType, SexyVarType_Int32);
 					ce.Builder.AddSymbol(instance);
 					ce.Builder.AssignVariableToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // list ref goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListGetLength); // list length goes to D7
-					outType = VARTYPE_Int32;
+					outType = SexyVarType_Int32;
 					return true;
 				}
 				else
@@ -1494,13 +1494,13 @@ namespace Rococo
 
 					switch (st.VarType())
 					{
-					case VARTYPE_Bool:
-					case VARTYPE_Int32:
-					case VARTYPE_Float32:
-					case VARTYPE_Pointer:
-					case VARTYPE_Int64:
-					case VARTYPE_Float64:
-					case VARTYPE_Closure:
+					case SexyVarType_Bool:
+					case SexyVarType_Int32:
+					case SexyVarType_Float32:
+					case SexyVarType_Pointer:
+					case SexyVarType_Int64:
+					case SexyVarType_Float64:
+					case SexyVarType_Closure:
 						ce.Builder.Assembler().Append_Invoke(st.SizeOfStruct() == 4 ? GetListCallbacks(ce).NodeGet32 : GetListCallbacks(ce).NodeGet64); // value goes to D7
 						break;
 					default:
@@ -1512,7 +1512,7 @@ namespace Rococo
 				}
 				else if (Eq("HasNext", methodName))
 				{
-					ValidateReturnType(s, returnType, VARTYPE_Bool);
+					ValidateReturnType(s, returnType, SexyVarType_Bool);
 
 					ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasNext); // Boolean (n.Next != NULL) goes to D7
@@ -1521,7 +1521,7 @@ namespace Rococo
 				}
 				else if (Eq("HasPrevious", methodName))
 				{
-					ValidateReturnType(s, returnType, VARTYPE_Bool);
+					ValidateReturnType(s, returnType, SexyVarType_Bool);
 
 					ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasPrevious); // Boolean (n.Next != NULL) goes to D7
@@ -1551,7 +1551,7 @@ namespace Rococo
 			return false;
 		}
 
-		bool TryCompileAsInlineIStringAndReturnValue(CCompileEnvironment& ce, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct)
+		bool TryCompileAsInlineIStringAndReturnValue(CCompileEnvironment& ce, cstr instance, cstr methodName, SexyVarType returnType, const IStructure& instanceStruct)
 		{
 			if (IsIStringInlined(ce.Script))
 			{
@@ -1560,19 +1560,19 @@ namespace Rococo
 
 				int interfaceToInstanceOffsetByRef = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
 
-				if (returnType == VARTYPE_Int32 && AreEqual("Length", methodName))
+				if (returnType == SexyVarType_Int32 && AreEqual("Length", methodName))
 				{
 					if (Compiler::DoesClassImplementInterface(instanceStruct, ce.Object.Common().SysTypeIString()))
 					{
-						CompileAsInlinedItemDirectAndReturnValue(ce, instance, "length", VARTYPE_Int32, interfaceToInstanceOffsetByRef);
+						CompileAsInlinedItemDirectAndReturnValue(ce, instance, "length", SexyVarType_Int32, interfaceToInstanceOffsetByRef);
 						return true;
 					}
 				}
-				else if (returnType == VARTYPE_Pointer && AreEqual("Buffer", methodName))
+				else if (returnType == SexyVarType_Pointer && AreEqual("Buffer", methodName))
 				{
 					if (Compiler::DoesClassImplementInterface(instanceStruct, ce.Object.Common().SysTypeIString()))
 					{
-						CompileAsInlinedItemDirectAndReturnValue(ce, instance, "buffer", VARTYPE_Pointer, interfaceToInstanceOffsetByRef);
+						CompileAsInlinedItemDirectAndReturnValue(ce, instance, "buffer", SexyVarType_Pointer, interfaceToInstanceOffsetByRef);
 						return true;
 					}
 				}
@@ -1664,7 +1664,7 @@ namespace Rococo
 		}
 
 
-		bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
+		bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
 		{
 			cr_sex firstArg = IsCompound(s) ? s.GetElement(0) : s;
 			cstr fname = firstArg.c_str();
@@ -1682,7 +1682,7 @@ namespace Rococo
 					instanceStruct = ce.Builder.GetVarStructure(fname);
 					instance = fname;
 
-					if (IsAtomic(s[1]) && returnType == VARTYPE_Bool)
+					if (IsAtomic(s[1]) && returnType == SexyVarType_Bool)
 					{
 						cstr arg = s[1].c_str();
 						if (Eq(arg, "?") && instanceStruct)
@@ -1712,7 +1712,7 @@ namespace Rococo
 			else
 			{
 				// Could be index method
-				if (s.NumberOfElements() == 2 && IsAtomic(s[1]) && AreEqual(s[1].String(), "?") && returnType == VARTYPE_Bool)
+				if (s.NumberOfElements() == 2 && IsAtomic(s[1]) && AreEqual(s[1].String(), "?") && returnType == SexyVarType_Bool)
 				{
 					instanceStruct = ce.Builder.GetVarStructure(fname);
 					instance = fname;
@@ -1745,7 +1745,7 @@ namespace Rococo
 				return true;
 			}
 
-			VARTYPE outType;
+			SexyVarType outType;
 			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, outType))
 			{
 				return true;
@@ -1792,7 +1792,7 @@ namespace Rococo
 			}
 		}
 
-		bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
+		bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
 		{
 			const IStructure* instanceStruct = ce.Builder.GetVarStructure(instance);
 
@@ -1811,7 +1811,7 @@ namespace Rococo
 				return true;
 			}
 
-			VARTYPE outputType;
+			SexyVarType outputType;
 			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct, outputType))
 			{
 				return true;
@@ -1850,7 +1850,7 @@ namespace Rococo
 			return false;
 		}
 
-		VARTYPE CompileMethodCallWithoutInputAndReturnNumericValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName)
+		SexyVarType CompileMethodCallWithoutInputAndReturnNumericValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName)
 		{
 			const IStructure* instanceStruct = ce.Builder.GetVarStructure(instance);
 
@@ -1861,23 +1861,23 @@ namespace Rococo
 
 			if (!IsCapital(methodName[0]))
 			{
-				return VARTYPE_Bad;
+				return SexyVarType_Bad;
 			}
 
-			VARTYPE outputType;
-			if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, VARTYPE_AnyNumeric, *instanceStruct, outputType))
+			SexyVarType outputType;
+			if (TryCompileAsInlineMapAndReturnValue(ce, s, instance, methodName, SexyVarType_AnyNumeric, *instanceStruct, outputType))
 			{
 				return outputType;
 			}
 
-			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, VARTYPE_AnyNumeric, *instanceStruct, outputType))
+			if (TryCompileAsInlineListAndReturnValue(ce, s, instance, methodName, SexyVarType_AnyNumeric, *instanceStruct, outputType))
 			{
 				return outputType;
 			}
 
-			if (TryCompileAsInlineIStringAndReturnValue(ce, instance, methodName, VARTYPE_Int32, *instanceStruct))
+			if (TryCompileAsInlineIStringAndReturnValue(ce, instance, methodName, SexyVarType_Int32, *instanceStruct))
 			{
-				return VARTYPE_Int32;
+				return SexyVarType_Int32;
 			}
 
 			if (!instanceStruct->Prototype().IsClass)
@@ -1893,24 +1893,24 @@ namespace Rococo
 
 				if (!IsGetAccessor(method))
 				{
-					return VARTYPE_Bad;
+					return SexyVarType_Bad;
 				}
 
-				VARTYPE type = method.GetArgument(0).VarType();
+				SexyVarType type = method.GetArgument(0).VarType();
 
-				if (!IsNumericTypeOrBoolean(type)) return VARTYPE_Bad;
+				if (!IsNumericTypeOrBoolean(type)) return SexyVarType_Bad;
 
 				CompileVirtualCallAndReturnValue(ce, true, method, s, interfaceIndex, methodIndex, instance, type, NULL, NULL, interf);
 
 				return type;
 			}
 
-			return VARTYPE_Bad;
+			return SexyVarType_Bad;
 		}
 
 		int GetOutputArgSize(const IStructure& s)
 		{
-			if (s.VarType() == VARTYPE_Derivative)
+			if (s.VarType() == SexyVarType_Derivative)
 			{
 				return sizeof(size_t);
 			}
@@ -1931,7 +1931,7 @@ namespace Rococo
 				const IStructure& arg = callee.GetArgument(outputIndex);
 				outputOffset -= GetOutputArgSize(arg);
 
-				if (arg.VarType() == VARTYPE_Array)
+				if (arg.VarType() == SexyVarType_Array)
 				{
 					ValidateAssignment(invocation);
 				}
@@ -2151,9 +2151,9 @@ namespace Rococo
 			}
 		}
 
-		bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, VARTYPE type, const IStructure* derivedType, const IArchetype* returnArchetype)
+		bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, SexyVarType type, const IStructure* derivedType, const IArchetype* returnArchetype)
 		{
-			if (type == VARTYPE_Array)
+			if (type == SexyVarType_Array)
 			{
 				ValidateAssignment(s);
 			}
@@ -2460,7 +2460,7 @@ namespace Rococo
 				Throw(arg, "Cannot dispatch call. Method must not be Construct or Destruct");
 			}
 
-			if (argDef.ResolvedType->VarType() != VARTYPE_Derivative || argDef.ResolvedType->InterfaceCount() > 0)
+			if (argDef.ResolvedType->VarType() != SexyVarType_Derivative || argDef.ResolvedType->InterfaceCount() > 0)
 			{
 				Throw(arg, "Cannot dispatch call. Argument variable needs to be a structure");
 			}
@@ -2567,7 +2567,7 @@ namespace Rococo
 
 			switch (c.VarType())
 			{
-			case VARTYPE_Array:
+			case SexyVarType_Array:
 				if (!TryCompileAsArrayCall(ce, s, instanceName, methodName))
 				{
 					Throw(s, "%s is an array, but method name unknown. Check log above", instanceName);
@@ -2576,7 +2576,7 @@ namespace Rococo
 				{
 					return true;
 				}
-			case VARTYPE_List:
+			case SexyVarType_List:
 				if (!TryCompileAsListCall(ce, s, instanceName, methodName))
 				{
 					Throw(s, "%s is a list, but method name unknown. Check log above", instanceName);
@@ -2585,7 +2585,7 @@ namespace Rococo
 				{
 					return true;
 				}
-			case VARTYPE_Map:
+			case SexyVarType_Map:
 				if (!TryCompileAsMapCall(ce, s, instanceName, methodName))
 				{
 					Throw(s, "%s is a map, but method name unknown. Check log above", instanceName);
@@ -2594,7 +2594,7 @@ namespace Rococo
 				{
 					return true;
 				}
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				break;
 			default:
 				return false;

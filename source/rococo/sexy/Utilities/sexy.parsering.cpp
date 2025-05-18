@@ -135,21 +135,21 @@ namespace
 
 namespace Rococo { namespace Compiler
 {
-	SEXYUTIL_API BITCOUNT GetBitCount(VARTYPE type)
+	SEXYUTIL_API BITCOUNT GetBitCount(SexyVarType type)
 	{
 		switch(type)
 		{
-		case VARTYPE_Bool: return BITCOUNT_32;
-		case VARTYPE_Int32: return BITCOUNT_32;
-		case VARTYPE_Int64: return BITCOUNT_64;
-		case VARTYPE_Float32: return BITCOUNT_32;
-		case VARTYPE_Float64: return BITCOUNT_64;
-		case VARTYPE_Derivative: return BITCOUNT_POINTER;
-		case VARTYPE_Array: return BITCOUNT_POINTER;
-		case VARTYPE_List: return BITCOUNT_POINTER;
-		case VARTYPE_Map: return BITCOUNT_POINTER;
-		case VARTYPE_Pointer: return BITCOUNT_POINTER;
-		case VARTYPE_Closure: return BITCOUNT_128;
+		case SexyVarType_Bool: return BITCOUNT_32;
+		case SexyVarType_Int32: return BITCOUNT_32;
+		case SexyVarType_Int64: return BITCOUNT_64;
+		case SexyVarType_Float32: return BITCOUNT_32;
+		case SexyVarType_Float64: return BITCOUNT_64;
+		case SexyVarType_Derivative: return BITCOUNT_POINTER;
+		case SexyVarType_Array: return BITCOUNT_POINTER;
+		case SexyVarType_List: return BITCOUNT_POINTER;
+		case SexyVarType_Map: return BITCOUNT_POINTER;
+		case SexyVarType_Pointer: return BITCOUNT_POINTER;
+		case SexyVarType_Closure: return BITCOUNT_128;
 		default:
 			return BITCOUNT_BAD;
 		}
@@ -158,70 +158,70 @@ namespace Rococo { namespace Compiler
 
 namespace Rococo { namespace Parse
 {
-	SEXYUTIL_API VARTYPE GetLiteralType(cstr candidate)
+	SEXYUTIL_API SexyVarType GetLiteralType(cstr candidate)
 	{
 		int32 iValue;
 		if (TryParseDecimal(iValue, candidate) == PARSERESULT_GOOD)
 		{
-			return VARTYPE_Int32;
+			return SexyVarType_Int32;
 		}
 
 		if (AreEqual(candidate, ("true")))
 		{
-			return VARTYPE_Bool;
+			return SexyVarType_Bool;
 		}
 
 		if (AreEqual(candidate, ("false")))
 		{
-			return VARTYPE_Bool;
+			return SexyVarType_Bool;
 		}
 
 		int64 i64Value;
 		if (TryParseDecimal(i64Value, candidate) == PARSERESULT_GOOD)
 		{
-			return VARTYPE_Int64;
+			return SexyVarType_Int64;
 		}
 
 		float fvalue;
 		if (TryParseFloat(fvalue, candidate) == PARSERESULT_GOOD)
 		{
-			return VARTYPE_Float32;
+			return SexyVarType_Float32;
 		}
 
 		double dvalue;
 		PARSERESULT dresult = TryParseFloat(dvalue, candidate);
 		if (dresult == PARSERESULT_OVERFLOW || dresult == PARSERESULT_UNDERFLOW || dresult == PARSERESULT_GOOD)
 		{
-			return VARTYPE_Float64;
+			return SexyVarType_Float64;
 		}
 		
 		if (Strings::Compare(candidate, "0x", 2) == 0)
 		{
 			if (TryParseHex(iValue, candidate + 2) == PARSERESULT_GOOD)
 			{
-				return VARTYPE_Int32;
+				return SexyVarType_Int32;
 			}
 
 			if (TryParseHex(i64Value, candidate + 2) == PARSERESULT_GOOD)
 			{
-				return VARTYPE_Int64;
+				return SexyVarType_Int64;
 			}
 		}
 
-		return VARTYPE_Bad;
+		return SexyVarType_Bad;
 	}
 
-	SEXYUTIL_API cstr VarTypeName(VARTYPE type)
+	SEXYUTIL_API cstr VarTypeName(SexyVarType type)
 	{
 		switch (type)
 		{
-		case VARTYPE_Int32:	return ("Int32");
-		case VARTYPE_Int64: return ("Int64");
-		case VARTYPE_Float32: return ("Float32");
-		case VARTYPE_Float64: return ("Float64");
-		case VARTYPE_Bool: return ("Boolean32");
-		case VARTYPE_Derivative: return ("Derivative");
-		case VARTYPE_Pointer: return ("Pointer");
+		case SexyVarType_Int32:	return ("Int32");
+		case SexyVarType_Int64: return ("Int64");
+		case SexyVarType_Float32: return ("Float32");
+		case SexyVarType_Float64: return ("Float64");
+		case SexyVarType_Bool: return ("Boolean32");
+		case SexyVarType_Derivative: return ("Derivative");
+		case SexyVarType_Pointer: return ("Pointer");
 		default: return ("Unknown variable type");
 		}
 	}
@@ -254,19 +254,19 @@ namespace Rococo { namespace Parse
 	}
 #endif
 
-	SEXYUTIL_API PARSERESULT TryParse(OUT VariantValue& value, VARTYPE type, IN cstr valueLiteral)
+	SEXYUTIL_API PARSERESULT TryParse(OUT VariantValue& value, SexyVarType type, IN cstr valueLiteral)
 	{
 		if (Strings::Compare(valueLiteral, "0x", 2) == 0)
 		{
 			switch (type)
 			{
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				return TryParseHex(OUT value.int32Value, IN valueLiteral + 2);
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				return TryParseHex(OUT value.int64Value, IN valueLiteral + 2);
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				return PARSERESULT_HEX_FOR_FLOAT;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				return PARSERESULT_HEX_FOR_FLOAT;
 			default:
 				return PARSERESULT_UNHANDLED_TYPE;
@@ -275,15 +275,15 @@ namespace Rococo { namespace Parse
 
 		switch(type)
 		{
-		case VARTYPE_Bool:
+		case SexyVarType_Bool:
 			return TryParseBoolean(OUT value.int32Value, IN valueLiteral);
-		case VARTYPE_Int32:
+		case SexyVarType_Int32:
 			return TryParseDecimal(OUT value.int32Value, IN valueLiteral);
-		case VARTYPE_Int64:
+		case SexyVarType_Int64:
 			return TryParseDecimal(OUT value.int64Value, IN valueLiteral);
-		case VARTYPE_Float32:
+		case SexyVarType_Float32:
 			return TryParseFloat(OUT value.floatValue, IN valueLiteral);
-		case VARTYPE_Float64:
+		case SexyVarType_Float64:
 			return TryParseFloat(OUT value.doubleValue, IN valueLiteral);
 		default:
 			return PARSERESULT_UNHANDLED_TYPE;

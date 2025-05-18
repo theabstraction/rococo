@@ -81,8 +81,8 @@ namespace Rococo
 
 	namespace Parse
 	{
-		SEXYUTIL_API VARTYPE GetLiteralType(cstr candidate);
-		SEXYUTIL_API cstr VarTypeName(VARTYPE type);
-		SEXYUTIL_API PARSERESULT TryParse(VariantValue& value, VARTYPE type, cstr valueLiteral);
+		SEXYUTIL_API SexyVarType GetLiteralType(cstr candidate);
+		SEXYUTIL_API cstr VarTypeName(SexyVarType type);
+		SEXYUTIL_API PARSERESULT TryParse(VariantValue& value, SexyVarType type, cstr valueLiteral);
 	}
 }

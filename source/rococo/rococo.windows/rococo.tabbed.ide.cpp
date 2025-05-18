@@ -1074,7 +1074,7 @@ namespace
          }
 
          VariantValue value;
-         if (Rococo::Parse::PARSERESULT_GOOD != Rococo::Parse::TryParse(value, VARTYPE_Int32, s[index].c_str()))
+         if (Rococo::Parse::PARSERESULT_GOOD != Rococo::Parse::TryParse(value, SexyVarType_Int32, s[index].c_str()))
          {
             char msg[1024];
             SafeFormat(msg, sizeof(msg), "Expecting int32 argument in position %d: %s", index, helper);
@@ -1864,7 +1864,7 @@ namespace
       logFont = blank;
 
       VariantValue id;
-      Parse::TryParse(id, VARTYPE_Int32, GetAtomicArg(svid, 2).c_str());
+      Parse::TryParse(id, SexyVarType_Int32, GetAtomicArg(svid, 2).c_str());
       if (GetAtomicArg(svid, 0) != "Version" || id.int32Value != (int32) versionId)
       {
          ThrowSex(svid, "Expecting (Version int32 0x%x)", versionId);
@@ -1879,11 +1879,11 @@ namespace
       SecureFormat(logFont.lfFaceName, LF_FACESIZE, L"%hs", sfont[2].c_str());
 
       VariantValue height;
-      Parse::TryParse(height, VARTYPE_Int32, GetAtomicArg(sheight, 2).c_str());
+      Parse::TryParse(height, SexyVarType_Int32, GetAtomicArg(sheight, 2).c_str());
       logFont.lfHeight = height.int32Value;
 
       VariantValue vvDarkMode;
-      Parse::TryParse(vvDarkMode, VARTYPE_Int32, GetAtomicArg(sdarkmode, 2).c_str());
+      Parse::TryParse(vvDarkMode, SexyVarType_Int32, GetAtomicArg(sdarkmode, 2).c_str());
       isDarkMode = vvDarkMode.int32Value == 1;
    }
 

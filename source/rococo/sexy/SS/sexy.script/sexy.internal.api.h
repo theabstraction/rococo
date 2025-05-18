@@ -112,17 +112,17 @@ namespace Rococo::Script
 	bool IsGetAccessor(const Compiler::IArchetype& callee);
 	void ListRelease(ListImage* l, IScriptSystem& ss);
 	bool TryCompileStringLiteralInputToTemp(CCompileEnvironment& ce, Sex::cr_sex s, int tempDepth, const Compiler::IStructure& inputType);
-	void ValidateReturnType(Sex::cr_sex s, VARTYPE returnType, VARTYPE type);
-	bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const Compiler::IStructure* returnTypeStruct, const Compiler::IArchetype* returnArchetype);
+	void ValidateReturnType(Sex::cr_sex s, SexyVarType returnType, SexyVarType type);
+	bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const Compiler::IStructure* returnTypeStruct, const Compiler::IArchetype* returnArchetype);
 
 	class CCompileEnvironment;
 	int CompileInstancePointerArgFromTemp(CCompileEnvironment& ce, int tempDepth);
 
 	void CompileMacroFromExpression(Compiler::IMacroBuilder& macro, CScript& script, Sex::cr_sex macroDef);
 	void CompileGetStructRef(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& inputType, cstr name);
-	VARTYPE CompileMethodCallWithoutInputAndReturnNumericValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName);
+	SexyVarType CompileMethodCallWithoutInputAndReturnNumericValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName);
 
-	void ReturnOutput(CCompileEnvironment& ce, int outputOffset, VARTYPE returnType);
+	void ReturnOutput(CCompileEnvironment& ce, int outputOffset, SexyVarType returnType);
 	Compiler::IInterfaceBuilder* GetInterfaceFQN(Sex::cr_sex baseExpr, CScript& script);
 	void CompileClosureBody(Sex::cr_sex closureDef, Compiler::IFunctionBuilder& closure, CScript& script);
 

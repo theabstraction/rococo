@@ -27,7 +27,7 @@ ROCOCO_INTERFACE ICSVLineParser
 	virtual void OnLine(const ICSVLine& line) = 0;
 };
 
-static thread_local std::vector<VARTYPE> memberTypes;
+static thread_local std::vector<SexyVarType> memberTypes;
 
 struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 {
@@ -49,42 +49,42 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 	{
 		if (Eq(token, "f"))
 		{
-			memberTypes.push_back(VARTYPE_Float32);
+			memberTypes.push_back(SexyVarType_Float32);
 			builder.AddTypeF32(memberDepth, name);
 		}
 		else if (Eq(token, "d"))
 		{
-			memberTypes.push_back(VARTYPE_Float64);
+			memberTypes.push_back(SexyVarType_Float64);
 			builder.AddTypeF64(memberDepth, name);
 		}
 		else if (Eq(token, "i"))
 		{
-			memberTypes.push_back(VARTYPE_Int32);
+			memberTypes.push_back(SexyVarType_Int32);
 			builder.AddTypeI32(memberDepth, name);
 		}
 		else if (Eq(token, "l"))
 		{
-			memberTypes.push_back(VARTYPE_Int64);
+			memberTypes.push_back(SexyVarType_Int64);
 			builder.AddTypeI64(memberDepth, name);
 		}
 		else if (Eq(token, "?"))
 		{
-			memberTypes.push_back(VARTYPE_Bool);
+			memberTypes.push_back(SexyVarType_Bool);
 			builder.AddTypeBool(memberDepth, name);
 		}
 		else if (Eq(token, "[]"))
 		{
-			memberTypes.push_back(VARTYPE_Array);
+			memberTypes.push_back(SexyVarType_Array);
 			builder.AddTypeArrayRef(memberDepth, name);
 		}
 		else if (Eq(token, "->"))
 		{
-			memberTypes.push_back(VARTYPE_Map);
+			memberTypes.push_back(SexyVarType_Map);
 			builder.AddTypeMapRef(memberDepth, name);
 		}
 		else if (Eq(token, "..."))
 		{
-			memberTypes.push_back(VARTYPE_List);
+			memberTypes.push_back(SexyVarType_List);
 			builder.AddTypeListRef(memberDepth, name);
 		}
 		else
@@ -163,7 +163,7 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				Throw(0, "Could not parse '%s %s %s %s' as '<member-name> @ <interface-type> <interface-module>'", memberName, refChar, memberInterfaceType, memberInterfaceModule);
 			}
 
-			memberTypes.push_back(VARTYPE_Derivative);
+			memberTypes.push_back(SexyVarType_Derivative);
 			builder.AddTypeInterface(indent, memberInterfaceType, memberName, memberInterfaceModule);
 		}
 		else
@@ -235,34 +235,34 @@ struct CSV_Line_by_Line_SexyAssetParser: ICSVLineParser
 				Throw(0, "Bad active member index");
 			}
 
-			VARTYPE typeName = memberTypes[activeMemberIndex];
+			SexyVarType typeName = memberTypes[activeMemberIndex];
 			switch (typeName)
 			{
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				builder.AddF32ItemValue(activeMemberIndex, (float)atof(token));
 				break;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				builder.AddF64ItemValue(activeMemberIndex, atof(token));
 				break;
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				builder.AddI32ItemValue(activeMemberIndex, atoi(token));
 				break;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				builder.AddI64ItemValue(activeMemberIndex, atoll(token));
 				break;
-			case VARTYPE_Bool:
+			case SexyVarType_Bool:
 				builder.AddBoolItemValue(activeMemberIndex, Eq(token, "Y"));
 				break;
-			case VARTYPE_Array:
+			case SexyVarType_Array:
 				builder.AddArrayRefValue(activeMemberIndex, token);
 				break;
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				builder.AddObjectRefValue(activeMemberIndex, token);
 				break;
-			case VARTYPE_Map:
+			case SexyVarType_Map:
 				builder.AddMapRefValue(activeMemberIndex, token);
 				break;
-			case VARTYPE_List:
+			case SexyVarType_List:
 				builder.AddListRefValue(activeMemberIndex, token);
 				break;
 			default:

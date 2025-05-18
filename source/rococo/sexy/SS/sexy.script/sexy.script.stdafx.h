@@ -148,7 +148,7 @@ namespace Rococo
         void ValidateAssignment(Sex::cr_sex callDef);
         void InitClassMembers(CCompileEnvironment& ce, cstr id);
         void StreamSTCEX(Strings::StringBuilder& sb, const Compiler::STCException& ex);
-        bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, VARTYPE type, const Compiler::IStructure* derivedType, const Compiler::IArchetype* returnArchetype);
+        bool TryCompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, SexyVarType type, const Compiler::IStructure* derivedType, const Compiler::IArchetype* returnArchetype);
 
         class CScripts;
 
@@ -408,29 +408,29 @@ namespace Rococo
 
         typedef TSexyHashMap<void*, void*> TAllocationMap;
 
-        void GetAtomicValue(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, VARTYPE type);
+        void GetAtomicValue(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, SexyVarType type);
         void AppendDeconstructTailVariables(CCompileEnvironment& ce, Sex::cr_sex sequence, bool expire, int tailCount);
         void AppendDeconstruct(CCompileEnvironment& ce, Sex::cr_sex sequence, bool expireVariables);
         void AddInterfaceVariable(CCompileEnvironment& ce, const Compiler::NameString& ns, const Compiler::IStructure& ts);
         void AddVariableAndSymbol(CCompileEnvironment& ce, cstr type, cstr name);
         void ValidateUnusedVariable(Sex::cr_sex identifierExpr, Compiler::ICodeBuilder& builder);
         void AssertGetVariable(OUT Compiler::MemberDef& def, cstr name, CCompileEnvironment& ce, Sex::cr_sex exceptionSource);
-        void CompileAsPopOutFromArray(CCompileEnvironment& ce, Sex::cr_sex s, cstr instanceName, VARTYPE requiredType);
+        void CompileAsPopOutFromArray(CCompileEnvironment& ce, Sex::cr_sex s, cstr instanceName, SexyVarType requiredType);
         void CompileArraySet(CCompileEnvironment& ce, Sex::cr_sex s, cstr arrayName);
-        void CompileGetArrayElement(CCompileEnvironment& ce, Sex::cr_sex s, cstr instanceName, VARTYPE varType, const Compiler::IStructure* structType);
-        void CompileGetArraySubelement(CCompileEnvironment& ce, Sex::cr_sex indexExpr, Sex::cr_sex subItemName, cstr instanceName, VARTYPE type, const Compiler::IStructure* structType);
+        void CompileGetArrayElement(CCompileEnvironment& ce, Sex::cr_sex s, cstr instanceName, SexyVarType varType, const Compiler::IStructure* structType);
+        void CompileGetArraySubelement(CCompileEnvironment& ce, Sex::cr_sex indexExpr, Sex::cr_sex subItemName, cstr instanceName, SexyVarType type, const Compiler::IStructure* structType);
 
         bool TryCompileAsArrayCall(CCompileEnvironment& ce, Sex::cr_sex s, cstr instanceName, cstr methodName);
         bool TryCompileAsListCall(CCompileEnvironment& ce, Sex::cr_sex s, cstr instanceName, cstr methodName);
         bool TryCompileAsNodeCall(CCompileEnvironment& ce, Sex::cr_sex s, cstr instanceName, cstr methodName);
         bool TryCompileAsMapCall(CCompileEnvironment& ce, Sex::cr_sex s, cstr mapName, cstr methodName);
         bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, Sex::cr_sex s, cstr name, cstr methodName);
-        bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const Compiler::IStructure& instanceStruct, OUT VARTYPE& outputType);
+        bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const Compiler::IStructure& instanceStruct, OUT SexyVarType& outputType);
 
         void ConstructMemberByRef(CCompileEnvironment& ce, Sex::cr_sex args, int tempDepth, const Compiler::IStructure& type, int offset);
-        SCRIPTEXPORT_API cstr GetTypeName(VARTYPE type);
+        SCRIPTEXPORT_API cstr GetTypeName(SexyVarType type);
 
-        VARTYPE GetAtomicValueAnyNumeric(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, int tempdepth);
+        SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, int tempdepth);
         void AssignVariableToVariable(CCompileEnvironment& ce, Sex::cr_sex exceptionSource, cstr lhs, cstr rhs);
         CStringConstant* CreateStringConstant(CScript& script, int length, cstr s, const Sex::ISExpression* srcExpression);
         Compiler::IFunctionBuilder& DeclareFunction(Compiler::IModuleBuilder& module, Sex::cr_sex source, Compiler::FunctionPrototype& prototype);
@@ -464,9 +464,9 @@ namespace Rococo
         Compiler::IFunctionBuilder* MatchFunction(Sex::cr_sex nameExpr, Compiler::IModuleBuilder& module);
 
         bool TryCompileAssignArchetype(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& elementType, bool allowClosures);
-        bool TryCompileArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool expected, VARTYPE type);
+        bool TryCompileArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool expected, SexyVarType type);
 
-        void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, Compiler::IFunction& callee, VARTYPE returnType, const Compiler::IArchetype* returnArchetype, const Compiler::IStructure* returnTypeStruct);
+        void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, Compiler::IFunction& callee, SexyVarType returnType, const Compiler::IArchetype* returnArchetype, const Compiler::IStructure* returnTypeStruct);
         bool TryCompileMacroInvocation(CCompileEnvironment& ce, Sex::cr_sex s, sexstring token);
         Compiler::IProgramObject& GetProgramObject(CScript& script);
         void CompileJITStub(Compiler::IFunctionBuilder& f, Sex::cr_sex fdef, CScript& script, IScriptSystem& ss);

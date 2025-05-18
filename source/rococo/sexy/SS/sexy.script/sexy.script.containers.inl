@@ -48,7 +48,7 @@ namespace Rococo
 				InterfacePointer pInterface = *(InterfacePointer*)item;
 				ss.ProgramObject().DecrementRefCount(pInterface);
 			}
-			else if (type.VarType() == VARTYPE_Derivative)
+			else if (type.VarType() == SexyVarType_Derivative)
 			{
 				if (type == ss.ProgramObject().Common().TypeArray())
 				{
@@ -67,7 +67,7 @@ namespace Rococo
 					}
 				}
 			}
-			else if (type.VarType() == VARTYPE_Array)
+			else if (type.VarType() == SexyVarType_Array)
 			{
 				ArrayImage* a = *(ArrayImage**)(sf + offset);
 				DestroyElements(*a, ss);

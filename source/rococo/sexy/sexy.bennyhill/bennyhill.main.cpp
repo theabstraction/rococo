@@ -734,7 +734,7 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 				}
 
 				VariantValue value;
-				auto result = Rococo::Parse::TryParse(value, VARTYPE_Int64, sValue.c_str());
+				auto result = Rococo::Parse::TryParse(value, SexyVarType_Int64, sValue.c_str());
 				if (result != Rococo::Parse::PARSERESULT_GOOD)
 				{
 					Throw(sValue, "Expecting int64 numeric for value");

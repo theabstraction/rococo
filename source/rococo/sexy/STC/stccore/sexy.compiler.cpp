@@ -467,7 +467,7 @@ namespace Anon
 			return AddSymbol(symbols, text);
 		}
 
-		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) override
+		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) override
 		{
 			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, archetype, false);
 

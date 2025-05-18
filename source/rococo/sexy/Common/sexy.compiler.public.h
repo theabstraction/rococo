@@ -128,45 +128,45 @@ namespace Rococo {
 			cstr c_str() const { return s; }
 		};
 
-		inline bool IsContainerType(VARTYPE v)
+		inline bool IsContainerType(SexyVarType v)
 		{
 			switch (v)
 			{
-			case VARTYPE_Array:
+			case SexyVarType_Array:
 				return true;
-			case VARTYPE_List:
+			case SexyVarType_List:
 				return true;
-			case VARTYPE_Map:
+			case SexyVarType_Map:
 				return true;
 			}
 
 			return false;
 		}
 
-		inline bool IsPrimitiveType(VARTYPE v)
+		inline bool IsPrimitiveType(SexyVarType v)
 		{
 			switch (v)
 			{
-			case VARTYPE_Bad:
-			case VARTYPE_Derivative:
-			case VARTYPE_Closure:
-			case VARTYPE_Array:
-			case VARTYPE_List:
-			case VARTYPE_Map:
+			case SexyVarType_Bad:
+			case SexyVarType_Derivative:
+			case SexyVarType_Closure:
+			case SexyVarType_Array:
+			case SexyVarType_List:
+			case SexyVarType_Map:
 				return false;
 			default:
 				return true;
 			}
 		}
 
-		inline bool IsNumericType(VARTYPE v)
+		inline bool IsNumericType(SexyVarType v)
 		{
-			return v == VARTYPE_Int32 || v == VARTYPE_Int64 || v == VARTYPE_Float32 || v == VARTYPE_Float64;
+			return v == SexyVarType_Int32 || v == SexyVarType_Int64 || v == SexyVarType_Float32 || v == SexyVarType_Float64;
 		}
 
-		inline bool IsNumericTypeOrBoolean(VARTYPE v)
+		inline bool IsNumericTypeOrBoolean(SexyVarType v)
 		{
-			return IsNumericType(v) || v == VARTYPE_Bool;
+			return IsNumericType(v) || v == SexyVarType_Bool;
 		}
 
 		enum MEMBERALIGN
@@ -417,7 +417,7 @@ namespace Rococo {
 			virtual int MemberCount() const = 0;
 			virtual const IMember& GetMember(int index) const = 0;
 			virtual int SizeOfStruct() const = 0;
-			virtual const VARTYPE VarType() const = 0;
+			virtual const SexyVarType VarType() const = 0;
 			virtual const IArchetype* Archetype() const = 0;
 			virtual bool IsResolved() const = 0;
 			virtual int InterfaceCount() const = 0;
@@ -722,7 +722,7 @@ namespace Rococo {
 		SEXYUTIL_API bool GetMethodIndices(OUT int& interfaceIndex, OUT int& methodIndex, const IStructure& s, cstr methodName);
 		SEXYUTIL_API cstr GetFriendlyName(const IStructure& s);
 
-		SEXYUTIL_API BITCOUNT GetBitCount(VARTYPE type);
+		SEXYUTIL_API BITCOUNT GetBitCount(SexyVarType type);
 	}
 }
 

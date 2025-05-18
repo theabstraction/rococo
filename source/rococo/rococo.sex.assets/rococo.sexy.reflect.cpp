@@ -40,7 +40,7 @@ namespace
 			Throw(s, "Expecting type to be a SexyAssetFile");
 		}
 
-		if (type.VarType() != VARTYPE_Derivative)
+		if (type.VarType() != SexyVarType_Derivative)
 		{
 			Throw(s, "Expecting type SexyAssetFile to be a struct");
 		}
@@ -271,31 +271,31 @@ struct AssetBuilder
 	{
 		switch (type.VarType())
 		{
-		case VARTYPE_Int32:
+		case SexyVarType_Int32:
 			sb.AppendFormat("%d\n", *(const int32*)pVariable);
 			break;
-		case VARTYPE_Int64:
+		case SexyVarType_Int64:
 			sb.AppendFormat("%lld\n", *(const int64*)pVariable);
 			break;
-		case VARTYPE_Float32:
+		case SexyVarType_Float32:
 			sb.AppendFormat("%f\n", *(const float32*)pVariable);
 			break;
-		case VARTYPE_Float64:
+		case SexyVarType_Float64:
 			sb.AppendFormat("%lf\n", *(const float64*)pVariable);
 			break;
-		case VARTYPE_Bool:
+		case SexyVarType_Bool:
 			sb.AppendFormat("%s\n", (*(const boolean32*)pVariable) == 1 ? "Y" : "N");
 			break;
-		case VARTYPE_Array:
+		case SexyVarType_Array:
 			SaveArrayRef(s, name, type, *(ArrayImage**)pVariable);
 			break;
-		case VARTYPE_Map:
+		case SexyVarType_Map:
 			SaveMapRef(s, name, type, *(Rococo::Script::MapImage**)pVariable);
 			break;
-		case VARTYPE_List:
+		case SexyVarType_List:
 			SaveListRef(s, name, type, *(Rococo::Script::ListImage**)pVariable);
 			break;
-		case VARTYPE_Derivative:
+		case SexyVarType_Derivative:
 			if (IsNullType(type))
 			{
 				auto** ip = (InterfacePointer*) pVariable;
@@ -353,22 +353,22 @@ struct AssetBuilder
 
 			switch (memberType.VarType())
 			{
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				sb.AppendFormat("i\n");
 				break;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				sb.AppendFormat("l\n");
 				break;
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				sb.AppendFormat("f\n");
 				break;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				sb.AppendFormat("d\n");
 				break;
-			case VARTYPE_Bool:
+			case SexyVarType_Bool:
 				sb.AppendFormat("?\n");
 				break;
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				if (IsNullType(memberType))
 				{
 					sb.AppendFormat("@\t%s\t%s\n", memberType.GetInterface(0).Name(), memberType.Module().Name());
@@ -381,16 +381,16 @@ struct AssetBuilder
 				}
 				
 				break;
-			case VARTYPE_Pointer:
+			case SexyVarType_Pointer:
 				sb.AppendFormat("*\n");
 				break;
-			case VARTYPE_Array:
+			case SexyVarType_Array:
 				sb.AppendFormat("[]\n");
 				break;
-			case VARTYPE_List:
+			case SexyVarType_List:
 				sb.AppendFormat("...\n");
 				break;
-			case VARTYPE_Map:
+			case SexyVarType_Map:
 				sb.AppendFormat("->\n");
 				break;
 			default:
@@ -676,32 +676,32 @@ struct AssetBuilder
 
 			switch (keyType.VarType())
 			{
-			case VARTYPE_Bool:
+			case SexyVarType_Bool:
 				{		
 					auto* bValue = (const boolean32*)keyPtr;
 					sb.AppendFormat("[%s]\n", *bValue == 1 ? "Y" : "N");
 				}
 				break;
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				{
 					auto* iValue = (const int32*)keyPtr;
 					sb.AppendFormat("[%d]\n", *iValue);
 				}
 				break;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				{
 					auto* lValue = (const int64*)keyPtr;
 					sb.AppendFormat("[%ld]\n", *lValue);
 				}
 				break;
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				{
 					auto* fValue = (const float32*)keyPtr;
 					uint32 binValue = Rococo::Maths::IEEE475::FloatToBinary(*fValue);
 					sb.AppendFormat("[0x%X]\n", binValue);
 				}
 				break;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				{
 					auto* dValue = (const float64*)keyPtr;
 					uint64 binValue = Rococo::Maths::IEEE475::DoubleToBinary(*dValue);
@@ -709,7 +709,7 @@ struct AssetBuilder
 					break;
 				}
 				break;
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				if (Eq(keyType.Name(), "_Null_Sys_Type_IString") && Eq(keyType.Module().Name(), "Sys.Type.Strings.sxy"))
 				{
 					auto* s = (const InlineString*)keyPtr;

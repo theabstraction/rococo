@@ -97,28 +97,28 @@ namespace Rococo
 			ARITHMETIC_ORDER_RIGHT_TO_LEFT
 		};
 
-		VARTYPE GetBestGuessType(VARTYPE a, VARTYPE b)
+		SexyVarType GetBestGuessType(SexyVarType a, SexyVarType b)
 		{
-			if (a == VARTYPE_Derivative && b == VARTYPE_Derivative) return VARTYPE_Derivative;
-			if (a == VARTYPE_Float64 || b == VARTYPE_Float64) return VARTYPE_Float64;
-			if (a == VARTYPE_Float32 || b == VARTYPE_Float32) return VARTYPE_Float32;
-			if (a == VARTYPE_Int64 || b == VARTYPE_Int64) return VARTYPE_Int64;
-			if (a == VARTYPE_Int32 || b == VARTYPE_Int32) return VARTYPE_Int32;
-			return VARTYPE_Bad;
+			if (a == SexyVarType_Derivative && b == SexyVarType_Derivative) return SexyVarType_Derivative;
+			if (a == SexyVarType_Float64 || b == SexyVarType_Float64) return SexyVarType_Float64;
+			if (a == SexyVarType_Float32 || b == SexyVarType_Float32) return SexyVarType_Float32;
+			if (a == SexyVarType_Int64 || b == SexyVarType_Int64) return SexyVarType_Int64;
+			if (a == SexyVarType_Int32 || b == SexyVarType_Int32) return SexyVarType_Int32;
+			return SexyVarType_Bad;
 		}
 
-		VARTYPE GuessType(cr_sex s, ICodeBuilder& builder)
+		SexyVarType GuessType(cr_sex s, ICodeBuilder& builder)
 		{
 			if (IsAtomic(s))
 			{
 				cstr token = s.c_str();
-				VARTYPE type = builder.GetVarType(token);
-				if (type != VARTYPE_Bad) return type;
+				SexyVarType type = builder.GetVarType(token);
+				if (type != SexyVarType_Bad) return type;
 				return Parse::GetLiteralType(token);
 			}
 			else if (!IsCompound(s))
 			{
-				return VARTYPE_Bad;
+				return SexyVarType_Bad;
 			}
 			else
 			{
@@ -131,22 +131,22 @@ namespace Rococo
 				{
 					if (IsArithmeticOperator(s.GetElement(1)) || IsBinaryCompareOperator(s.GetElement(1)))
 					{
-						VARTYPE lType = GuessType(s.GetElement(0), builder);
-						VARTYPE rType = GuessType(s.GetElement(2), builder);
+						SexyVarType lType = GuessType(s.GetElement(0), builder);
+						SexyVarType rType = GuessType(s.GetElement(2), builder);
 						return GetBestGuessType(lType, rType);
 					}
 					else if (IsBinaryBooleanOperator(s.GetElement(1)))
 					{
-						return VARTYPE_Bool;
+						return SexyVarType_Bool;
 					}
 					else
 					{
-						return VARTYPE_Bad;
+						return SexyVarType_Bad;
 					}
 				}
 				else
 				{
-					return VARTYPE_Bad;
+					return SexyVarType_Bad;
 				}
 			}
 		}
@@ -169,11 +169,11 @@ namespace Rococo
 			Throw(s, ("Expecting arithmetic operator"));
 		}
 
-		void ComputeArithmeticLiteralVsLiteral(OUT VariantValue& result, cr_sex parent, const VariantValue& a, ARITHMETIC_OP op, const VariantValue& b, VARTYPE type)
+		void ComputeArithmeticLiteralVsLiteral(OUT VariantValue& result, cr_sex parent, const VariantValue& a, ARITHMETIC_OP op, const VariantValue& b, SexyVarType type)
 		{
 			switch (type)
 			{
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				switch (op)
 				{
 				case ARITHMETIC_OP_ADD:
@@ -194,7 +194,7 @@ namespace Rococo
 				default:
 					goto Error;
 				}
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				switch (op)
 				{
 				case ARITHMETIC_OP_ADD:
@@ -215,7 +215,7 @@ namespace Rococo
 				default:
 					goto Error;
 				}
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				switch (op)
 				{
 				case ARITHMETIC_OP_ADD:
@@ -233,7 +233,7 @@ namespace Rococo
 				default:
 					goto Error;
 				}
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				switch (op)
 				{
 				case ARITHMETIC_OP_ADD:
@@ -259,32 +259,32 @@ namespace Rococo
 			Throw(parent, ("Unsupported operator in literal arithmetic"));
 		}
 
-		SCRIPTEXPORT_API cstr GetTypeName(VARTYPE type)
+		SCRIPTEXPORT_API cstr GetTypeName(SexyVarType type)
 		{
 			switch (type)
 			{
-			case VARTYPE_Bad: return ("bad");
-			case VARTYPE_Derivative: return ("derived");
-			case VARTYPE_Int32: return ("Int32");
-			case VARTYPE_Int64: return ("Int64");
-			case VARTYPE_Float32: return ("Float32");
-			case VARTYPE_Float64: return ("Float64");
-			case VARTYPE_Bool: return ("Bool");
-			case VARTYPE_Pointer: return ("Pointer");
-			case VARTYPE_Closure: return ("Archetype");
-			case VARTYPE_Array: return "Array";
-			case VARTYPE_List: return "List";
-			case VARTYPE_Map: return "Map";
+			case SexyVarType_Bad: return ("bad");
+			case SexyVarType_Derivative: return ("derived");
+			case SexyVarType_Int32: return ("Int32");
+			case SexyVarType_Int64: return ("Int64");
+			case SexyVarType_Float32: return ("Float32");
+			case SexyVarType_Float64: return ("Float64");
+			case SexyVarType_Bool: return ("Bool");
+			case SexyVarType_Pointer: return ("Pointer");
+			case SexyVarType_Closure: return ("Archetype");
+			case SexyVarType_Array: return "Array";
+			case SexyVarType_List: return "List";
+			case SexyVarType_Map: return "Map";
 			default: return ("unknown-type");
 			}
 		}
 
-		void ValidateArithmeticVariable(cr_sex parent, cstr token, ICodeBuilder& builder, VARTYPE type, cstr helper)
+		void ValidateArithmeticVariable(cr_sex parent, cstr token, ICodeBuilder& builder, SexyVarType type, cstr helper)
 		{
-			VARTYPE rType = builder.GetVarType(token);
-			if (rType == VARTYPE_Bad)
+			SexyVarType rType = builder.GetVarType(token);
+			if (rType == SexyVarType_Bad)
 			{
-				VARTYPE literalType = Parse::GetLiteralType(token);
+				SexyVarType literalType = Parse::GetLiteralType(token);
 				if (IsPrimitiveType(literalType))
 				{
 					Throw(parent, "%s was %s. Expecting %s", token, GetTypeName(literalType), GetTypeName(type));
@@ -294,7 +294,7 @@ namespace Rococo
 					Throw(parent, "%s was not a literal type or a known identifier", token);
 				}
 			}
-			else if (rType == VARTYPE_Derivative)
+			else if (rType == SexyVarType_Derivative)
 			{
 				Throw(parent, "%s was a derived type, it cannot be used directly in arithmetic expressions", token);
 			}
@@ -305,15 +305,15 @@ namespace Rococo
 			}
 		}
 
-		void AppendArithmeticOp(VM::IAssembler& assembler, cr_sex src, ARITHMETIC_OP op, VARTYPE type, int tempDepth)
+		void AppendArithmeticOp(VM::IAssembler& assembler, cr_sex src, ARITHMETIC_OP op, SexyVarType type, int tempDepth)
 		{
 			VM::DINDEX reg = VM::REGISTER_D4 + tempDepth;
 			VM::FLOATSPEC spec = VM::FLOATSPEC_DOUBLE;
 
 			switch (type)
 			{
-			case VARTYPE_Int32:
-			case VARTYPE_Int64:
+			case SexyVarType_Int32:
+			case SexyVarType_Int64:
 				switch (op)
 				{
 				case ARITHMETIC_OP_ADD:
@@ -334,9 +334,9 @@ namespace Rococo
 				default:
 					goto Error;
 				}
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				spec = VM::FLOATSPEC_SINGLE;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				switch (op)
 				{
 				case ARITHMETIC_OP_ADD:
@@ -362,7 +362,7 @@ namespace Rococo
 			Throw(src, "Unhandled operator in arithmetic expression");
 		}
 
-		void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, VARTYPE type)
+		void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, SexyVarType type)
 		{
 			if (IsCapital(id[0]))
 			{
@@ -414,27 +414,27 @@ namespace Rococo
 
 					switch (ce.Builder.GetVarType(id + 1))
 					{
-					case VARTYPE_Int32:
+					case SexyVarType_Int32:
 						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
 						ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D7, BITCOUNT_32);
 						break;
-					case VARTYPE_Float32:
+					case SexyVarType_Float32:
 						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
 						ce.Builder.Assembler().Append_FloatNegate32(VM::REGISTER_D7);
 						break;
-					case VARTYPE_Int64:
+					case SexyVarType_Int64:
 						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
 						ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D7, BITCOUNT_64);
 						break;
-					case VARTYPE_Float64:
+					case SexyVarType_Float64:
 						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
 						ce.Builder.Assembler().Append_FloatNegate64(VM::REGISTER_D7);
 						break;
-					case VARTYPE_Bool:
+					case SexyVarType_Bool:
 						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
 						ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 						break;
-					case VARTYPE_Bad:
+					case SexyVarType_Bad:
 						Throw(parent, "Negation parsed, but the successive token characters did not parse as a known type");
 						break;
 					default:
@@ -448,7 +448,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileArithmeticLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, const VariantValue& value, ARITHMETIC_OP op, cstr varname, VARTYPE type, ARITHMETIC_ORDER order, cr_sex atomicExpr)
+		void CompileArithmeticLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, const VariantValue& value, ARITHMETIC_OP op, cstr varname, SexyVarType type, ARITHMETIC_ORDER order, cr_sex atomicExpr)
 		{
 			// ValidateArithmeticVariable(parent, varname, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("RHS") : ("LHS"));
 
@@ -462,7 +462,7 @@ namespace Rococo
 			AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
 		}
 
-		void CompileArithmeticAtomicVsAtomic(CCompileEnvironment& ce, cr_sex parent, cstr left, ARITHMETIC_OP op, cstr right, VARTYPE type, cr_sex leftExpr, cr_sex rightExpr)
+		void CompileArithmeticAtomicVsAtomic(CCompileEnvironment& ce, cr_sex parent, cstr left, ARITHMETIC_OP op, cstr right, SexyVarType type, cr_sex leftExpr, cr_sex rightExpr)
 		{
 			VariantValue A;
 			if (Parse::TryParse(OUT A, IN type, IN left) == Parse::PARSERESULT_GOOD)
@@ -501,7 +501,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileAtomicSide(CCompileEnvironment& ce, cr_sex parent, cstr token, int tempDepth, ARITHMETIC_ORDER order, VARTYPE type)
+		void CompileAtomicSide(CCompileEnvironment& ce, cr_sex parent, cstr token, int tempDepth, ARITHMETIC_ORDER order, SexyVarType type)
 		{
 			TokenBuffer symbol;
 			StringPrint(symbol, (" = %s"), token);
@@ -523,16 +523,16 @@ namespace Rococo
 
 					switch (type)
 					{
-					case VARTYPE_Int32:
+					case SexyVarType_Int32:
 						ce.Builder.Assembler().Append_IntNegate(dx, BITCOUNT_32);
 						break;
-					case VARTYPE_Int64:
+					case SexyVarType_Int64:
 						ce.Builder.Assembler().Append_IntNegate(dx, BITCOUNT_64);
 						break;
-					case VARTYPE_Float32:
+					case SexyVarType_Float32:
 						ce.Builder.Assembler().Append_FloatNegate32(dx);
 						break;
-					case VARTYPE_Float64:
+					case SexyVarType_Float64:
 						ce.Builder.Assembler().Append_FloatNegate64(dx);
 						break;
 					default:
@@ -547,7 +547,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileArithmeticAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr token, ARITHMETIC_OP op, cr_sex s, ARITHMETIC_ORDER order, VARTYPE type)
+		void CompileArithmeticAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr token, ARITHMETIC_OP op, cr_sex s, ARITHMETIC_ORDER order, SexyVarType type)
 		{
 			int A = order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? 1 : 2;
 			int B = order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? 2 : 1;
@@ -574,7 +574,7 @@ namespace Rococo
 			AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, Rococo::ROOT_TEMPDEPTH);
 		}
 
-		void CompileArithmeticCompoundVsCompound(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, VARTYPE type)
+		void CompileArithmeticCompoundVsCompound(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, SexyVarType type)
 		{
 			BITCOUNT bits = GetBitCount(type);
 
@@ -586,7 +586,7 @@ namespace Rococo
 			AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
 		}
 
-		void CompileBinaryArithmeticExpression(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, VARTYPE type)
+		void CompileBinaryArithmeticExpression(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, SexyVarType type)
 		{
 			if (IsAtomic(left))
 			{
@@ -651,7 +651,7 @@ namespace Rococo
 		{
 			const IArgument& input = GetInput(s, f, index);
 
-			if (input.ResolvedType()->VarType() != VARTYPE_Closure)
+			if (input.ResolvedType()->VarType() != SexyVarType_Closure)
 			{
 				return NULL;
 			}
@@ -744,7 +744,7 @@ namespace Rococo
 		{
 			if (IsCompound(s))
 			{
-				if (TryCompileFunctionCallAndReturnValue(ce, s, VARTYPE_Closure, &type, type.Archetype()))
+				if (TryCompileFunctionCallAndReturnValue(ce, s, SexyVarType_Closure, &type, type.Archetype()))
 				{
 					// Functions and methods cannot return closures, so no need to check allowClosures flag
 					return true;
@@ -843,7 +843,7 @@ namespace Rococo
 				Throw(sName, "Expecting IString");
 			}
 
-			if (!TryCompileArithmeticExpression(ce, s[1], true, VARTYPE_Int32))
+			if (!TryCompileArithmeticExpression(ce, s[1], true, SexyVarType_Int32))
 			{
 				Throw(s[1], "Expecting Int32 valued expression as index for string");
 			}
@@ -858,7 +858,7 @@ namespace Rococo
 			ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idStringIndexToChar);
 		}
 
-		void CompileTernaryExpression(CCompileEnvironment& ce, cr_sex s, VARTYPE type)
+		void CompileTernaryExpression(CCompileEnvironment& ce, cr_sex s, SexyVarType type)
 		{
 			// s0  s1        s2                s3
 			// (?? <boolean> <truth-expression><false-expression>)
@@ -896,7 +896,7 @@ namespace Rococo
 			ce.Builder.Assembler().SetWriteModeToAppend();
 		}
 
-		bool TryCompileCompoundArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, VARTYPE type)
+		bool TryCompileCompoundArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, SexyVarType type)
 		{
 			if (s.NumberOfElements() == 3 && IsArithmeticOperator(s[1]))
 			{
@@ -945,7 +945,7 @@ namespace Rococo
 
 				if (AreEqual(command, ("sizeof")))
 				{
-					if (type != VARTYPE_Int32)
+					if (type != SexyVarType_Int32)
 					{
 						Throw(s, "Type mismatch. The 'sizeof' operator evaluates to an Int32");
 					}
@@ -972,7 +972,7 @@ namespace Rococo
 
 					if (def.ResolvedType == &ce.Object.Common().SysTypeIString().NullObjectType())
 					{
-						if (type != VARTYPE_Int32)
+						if (type != SexyVarType_Int32)
 						{
 							Throw(s, "(<IString> <index>) returns an Int32, but return type was %s", GetTypeName(type));
 						}
@@ -1031,7 +1031,7 @@ namespace Rococo
 			return false;
 		}
 
-		bool TryCompileAtomicArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, VARTYPE type)
+		bool TryCompileAtomicArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, SexyVarType type)
 		{
 			cstr token = s.c_str();
 
@@ -1043,7 +1043,7 @@ namespace Rococo
 			}
 			else
 			{
-				VARTYPE tokenType = ce.Builder.GetVarType(token);
+				SexyVarType tokenType = ce.Builder.GetVarType(token);
 				if (type == tokenType)
 				{
 					ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
@@ -1051,7 +1051,7 @@ namespace Rococo
 				}
 				else
 				{
-					if (tokenType == VARTYPE_Bad)
+					if (tokenType == SexyVarType_Bad)
 					{
 						if (TryCompileFunctionCallAndReturnValue(ce, s, type, NULL, NULL))
 						{
@@ -1061,11 +1061,11 @@ namespace Rococo
 
 					if (expected)
 					{
-						if (type == VARTYPE_Derivative)
+						if (type == SexyVarType_Derivative)
 						{
 							Throw(s, "Expected arithmetic expression, but found a derived type not of the same type as the assignment");
 						}
-						else if (tokenType != VARTYPE_Bad)
+						else if (tokenType != SexyVarType_Bad)
 						{
 							Throw(s, "'%s' was a %s but expression requires %s", token, GetTypeName(tokenType), GetTypeName(type));
 						}
@@ -1080,9 +1080,9 @@ namespace Rococo
 			}
 		}
 
-		bool TryCompileArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, VARTYPE type)
+		bool TryCompileArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, SexyVarType type)
 		{
-			if (type == VARTYPE_Closure)
+			if (type == SexyVarType_Closure)
 			{
 				Throw(s, "Internal compiler error. TryAssignToArchetype was the correct call.");
 			}

@@ -223,7 +223,7 @@ namespace Rococo {
 
 			switch (member->UnderlyingType()->VarType())
 			{
-			case VARTYPE_Bool:
+			case SexyVarType_Bool:
 				if (!AreEqual(srcType, "B32")) Throw(sType, "Expecting B32 to match Bool %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					boolean32 bValue = AreEqual(srcValue->Buffer, "true") ? 1 : 0;
@@ -231,7 +231,7 @@ namespace Rococo {
 					*bTargetValue = bValue;
 				}
 				break;
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				if (!AreEqual(srcType, "I32")) Throw(sType, "Expecting I32 to match Int32 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					int32 value = atoi(srcValue->Buffer);
@@ -239,7 +239,7 @@ namespace Rococo {
 					*bTargetValue = value;
 				}
 				break;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				if (!AreEqual(srcType, "I64")) Throw(sType, "Expecting I64 to match Int64 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					int64 value = atoll(srcValue->Buffer);
@@ -247,7 +247,7 @@ namespace Rococo {
 					*bTargetValue = value;
 				}
 				break;
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				if (!AreEqual(srcType, "F32")) Throw(sType, "Expecting F32 to match Float32 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					float32 value = (float)atof(srcValue->Buffer);
@@ -255,7 +255,7 @@ namespace Rococo {
 					*fTargetValue = value;
 				}
 				break;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				if (!AreEqual(srcType, "F64")) Throw(sType, "Expecting F64 to match Float64 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					float64 value = atof(srcValue->Buffer);
@@ -263,7 +263,7 @@ namespace Rococo {
 					*fTargetValue = value;
 				}
 				break;
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				if (&member->UnderlyingType()->GetInterface(0) == &ss->ProgramObject().Common().SysTypeIString())
 				{
 					auto** ipString = (InterfacePointer*)(targetData + offset);
@@ -929,12 +929,12 @@ namespace Rococo::Script
 
 			scripts = NewCScripts(*progObjProxy, *this);
 
-			nativeInt32 = &progObjProxy->AddIntrinsicStruct("Int32", sizeof(int32), VARTYPE_Int32, NULL);
-			nativeInt64 = &progObjProxy->AddIntrinsicStruct("Int64", sizeof(int64), VARTYPE_Int64, NULL);
-			nativeFloat32 = &progObjProxy->AddIntrinsicStruct("Float32", sizeof(float32), VARTYPE_Float32, NULL);
-			nativeFloat64 = &progObjProxy->AddIntrinsicStruct("Float64", sizeof(float64), VARTYPE_Float64, NULL);
-			nativeBool = &progObjProxy->AddIntrinsicStruct("Bool", sizeof(int32), VARTYPE_Bool, NULL);
-			nativePtr = &progObjProxy->AddIntrinsicStruct("Pointer", sizeof(size_t), VARTYPE_Pointer, NULL);
+			nativeInt32 = &progObjProxy->AddIntrinsicStruct("Int32", sizeof(int32), SexyVarType_Int32, NULL);
+			nativeInt64 = &progObjProxy->AddIntrinsicStruct("Int64", sizeof(int64), SexyVarType_Int64, NULL);
+			nativeFloat32 = &progObjProxy->AddIntrinsicStruct("Float32", sizeof(float32), SexyVarType_Float32, NULL);
+			nativeFloat64 = &progObjProxy->AddIntrinsicStruct("Float64", sizeof(float64), SexyVarType_Float64, NULL);
+			nativeBool = &progObjProxy->AddIntrinsicStruct("Bool", sizeof(int32), SexyVarType_Bool, NULL);
+			nativePtr = &progObjProxy->AddIntrinsicStruct("Pointer", sizeof(size_t), SexyVarType_Pointer, NULL);
 
 			try
 			{
@@ -1889,30 +1889,30 @@ namespace Rococo::Script
 				{
 					auto type = s.VarType();
 
-					if (!IsNullType(s) && type != VARTYPE_Closure)
+					if (!IsNullType(s) && type != SexyVarType_Closure)
 					{
-						if (type != VARTYPE_Derivative)
+						if (type != SexyVarType_Derivative)
 						{
 							sb->AppendFormat("<li><span class=\"struct\">alias</span> %s.%s for ", ns->FullName()->Buffer, name);
 							
 							switch (type)
 							{
-							case VARTYPE_Bool:
+							case SexyVarType_Bool:
 								*sb << "Bool (32-bit boolean)";
 								break;
-							case VARTYPE_Float32:
+							case SexyVarType_Float32:
 								*sb << "Float32";
 								break;
-							case VARTYPE_Float64:
+							case SexyVarType_Float64:
 								*sb << "Float64";
 								break;
-							case VARTYPE_Int32:
+							case SexyVarType_Int32:
 								*sb << "Int32";
 								break;
-							case VARTYPE_Int64:
+							case SexyVarType_Int64:
 								*sb << "Int64";
 								break;
-							case VARTYPE_Pointer:
+							case SexyVarType_Pointer:
 								*sb << "Pointer";
 								break;
 							default:

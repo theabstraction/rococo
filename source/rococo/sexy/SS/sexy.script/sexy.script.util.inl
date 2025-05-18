@@ -143,20 +143,20 @@ namespace Rococo
 
 			switch (type.VarType())
 			{
-			case VARTYPE_Array:
+			case SexyVarType_Array:
 				{
 					ArrayImage* a = *(ArrayImage**)item;
 					DestroyElements(*a, ss);
 					ArrayDelete(a, ss);
 					return;
 				}
-			case VARTYPE_List:
+			case SexyVarType_List:
 				{
 					ListImage* l = *(ListImage**)item;
 					ListRelease(l, ss);
 					return;
 				}
-			case VARTYPE_Map:
+			case SexyVarType_Map:
 				{
 					MapImage* m = *(MapImage**)item;
 					MapClear(m, ss);

@@ -76,7 +76,7 @@ namespace Rococo::Domme
 		}
 
 		auto& arg = entryPoint->GetArgument(0);
-		if (arg.MemberCount() != 1 || arg.VarType() != VARTYPE_Derivative)
+		if (arg.MemberCount() != 1 || arg.VarType() != SexyVarType_Derivative)
 		{
 			Throw(s, "expecting CreateDommeObject to take an argument that is a struct with one element");
 		}

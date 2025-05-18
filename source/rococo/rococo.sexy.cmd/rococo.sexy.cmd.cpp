@@ -857,7 +857,7 @@ int Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 	}
 
 	auto& output = f->Arg(0);
-	if (output.ResolvedType()->VarType() != VARTYPE_Int32)
+	if (output.ResolvedType()->VarType() != SexyVarType_Int32)
 	{
 		Throw(0, "function EntryPoint.Main should have 1 output-> (Int32 exitCode)");
 	}
