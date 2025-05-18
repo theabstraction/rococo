@@ -63,7 +63,7 @@ namespace Rococo::Sex
 
 namespace Rococo
 {
-	void ThrowIllFormedSExpression(int32 displacement, cstr format, ...);
+	ROCOCO_API void ThrowIllFormedSExpression(int32 displacement, cstr format, ...);
 }
 
 namespace Anon

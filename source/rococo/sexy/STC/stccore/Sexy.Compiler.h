@@ -53,6 +53,10 @@ namespace Rococo::Script
 	struct NativeCallSecurity;
 }
 
+// justification: "No problem with an interface deriving from another and adding methods"
+#pragma warning(disable : 4263)
+#pragma warning(disable : 4264)
+
 namespace Rococo::Compiler
 {
 	struct ICodeBuilder;
@@ -456,6 +460,9 @@ namespace Rococo::Compiler
 	SEXYUTIL_API IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
 	SEXYUTIL_API INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
 } // Rococo::Compiler
+
+#pragma warning(default : 4263)
+#pragma warning(default : 4264)
 
 #ifdef _WIN32
 #  pragma pack(pop)

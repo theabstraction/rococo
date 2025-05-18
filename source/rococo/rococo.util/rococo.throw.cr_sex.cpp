@@ -31,7 +31,9 @@
 	principal credit screen and its principal readme file.
 */
 
-#define ROCOCO_API __declspec(dllexport)
+#ifndef ROCOCO_API
+# define ROCOCO_API __declspec(dllexport)
+#endif
 #include <sexy.types.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <sexy.strings.h>

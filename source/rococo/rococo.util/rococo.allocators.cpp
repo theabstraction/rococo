@@ -1,4 +1,6 @@
-#define ROCOCO_API __declspec(dllexport)
+#ifndef ROCOCO_API
+# define ROCOCO_API __declspec(dllexport)
+#endif
 
 #include <rococo.types.h>
 #include <rococo.allocators.h>
@@ -80,7 +82,7 @@ namespace Rococo::Memory::ANON
         std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
 
     public:
-        ~CheckedAllocator()
+        virtual ~CheckedAllocator()
         {
             for (auto fn : atReleaseQueue)
             {
@@ -150,7 +152,7 @@ namespace Rococo::Memory::ANON
             if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
         }
 
-        ~BlockAllocator()
+        virtual ~BlockAllocator()
         {
             for (auto fn : atReleaseQueue)
             {
@@ -252,7 +254,7 @@ namespace Rococo::Memory::ANON
         {
         }
 
-        ~TrackingAllocator()
+        virtual ~TrackingAllocator()
         {
             for (auto fn : atReleaseQueue)
             {

@@ -11,5 +11,5 @@ public class RococoTestFPSTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_5;
 		ExtraModuleNames.Add("RococoTestFPS");
-	}
+    }
 }

@@ -37,6 +37,10 @@
 # define SEXYUTIL_API __declspec(dllimport)
 #endif
 
+#ifndef ROCOCO_UTIL_API
+# define ROCOCO_UTIL_API __declspec(dllimport)
+#endif
+
 #include <sexy.types.h>
 #include <rococo.strings.h>
 #include <rococo.parse.h>
@@ -50,8 +54,8 @@ namespace Rococo
 
 	namespace Strings
 	{
-		const char* GetSubString(const char* s, const char* subString);
-		cstr GetSubString(cstr s, const char* subString);
+		ROCOCO_UTIL_API const char* GetSubString(const char* s, const char* subString);
+		ROCOCO_UTIL_API cstr GetSubString(cstr s, const char* subString);
 	}
 
 	inline bool AreEqual(sexstring a, sexstring b)

@@ -103,7 +103,9 @@ public class RococoUtil : ModuleRules
 			{
 				"rococo.strings.cpp",
 				"rococo.base.cpp",
-				"rococo.heap.string.cpp" 
+				"rococo.heap.string.cpp",
+				"rococo.allocators.cpp",
+				"rococo.throw.cr_sex.cpp"
 			}
 		);
 
@@ -115,6 +117,13 @@ public class RococoUtil : ModuleRules
 				"sexy.s-parser.s-block.cpp"
             }
 		);
+
+        CreateBundleDirect("rococo.s-utils.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/sexy/Utilities",
+            new List<string>()
+            {
+                "sexy.util.cpp"
+            }
+        );
     }
 
     public string RococoIncludeDirectory
