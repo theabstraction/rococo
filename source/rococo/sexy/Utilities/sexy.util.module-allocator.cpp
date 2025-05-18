@@ -31,129 +31,13 @@
 	principal credit screen and its principal readme file.
 */
 
-#include "sexy.types.h"
-#define ROCOCO_USE_SAFE_V_FORMAT
-#include "sexy.strings.h"
-#include "sexy.compiler.public.h"
-#include "..\STC\stccore\sexy.validators.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include <allocators/rococo.allocators.dll.inl>
 
-#include <float.h>
-#include <stdarg.h>
+DEFINE_DLL_IALLOCATOR(utilsAllocator)
+DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(utilsAllocator, 128, SexyUtils)
 
-#include "sexy.stdstrings.h"
+#include <allocators/rococo.allocators.inl>
 
-#include <unordered_map>
-#include <algorithm>
-
-#include <rococo.api.h>
-
-using namespace Rococo::Strings;
-
-namespace Rococo
-{
-	SEXYUTIL_API void LogError(ILog& log, cstr format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		char msg[1024];
-		SafeVFormat(msg, sizeof(msg), format, args);
-		log.Write(msg);
-	}
-}
-
-namespace Rococo
-{
-	namespace Script
-	{
-		ROCOCO_API_EXPORT void ThrowBadNativeArg(int index, cstr source, cstr message)
-		{
-			WriteToStandardOutput(("Error %d in %s: %s\r\n"), index, source, message);
-			Throw(0, "Bad native argument: %s - %s", source, message);
-		}
-	}
-}
-
-#include <windows.h>
-#include <debugapi.h>
-#include <dbghelp.h>
-
-#include <rococo.debugging.h>
-
-namespace Rococo::Memory
-{
-	struct SexyDefaultAllocator: IAllocator
-	{
-		std::vector<FN_AllocatorReleaseFunction> atReleaseQueue;
-
-		virtual ~SexyDefaultAllocator()
-		{
-			for (auto fn : atReleaseQueue)
-			{
-				fn();
-			}
-		}
-
-		[[nodiscard]] void* Allocate(size_t capacity) override
-		{
-			return malloc(capacity);
-		}
-
-		void FreeData(void* data) override
-		{
-			free(data);
-		}
-
-		void* Reallocate(void* ptr, size_t capacity) override
-		{
-			return realloc(ptr, capacity);
-		}
-
-		void AtRelease(FN_AllocatorReleaseFunction exitFunction)
-		{
-			auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), exitFunction);
-			if (i != atReleaseQueue.end())
-			{
-				atReleaseQueue.push_back(exitFunction);
-			}
-		}
-
-		size_t EvaluateHeapSize() override
-		{
-			return 0;
-		}
-	} defaultAllocator;
-
-	static IAllocator* globalSexyAllocator = &defaultAllocator;
-
-	void SetSexyAllocator(IAllocator* allocator)
-	{
-		globalSexyAllocator = allocator == nullptr ? &defaultAllocator : allocator;
-	}
-
-#ifdef USE_STD_ALLOCATOR_FOR_SEXY
-	// These are inlined in the headers, not defined here
-#else
-	SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes)
-	{
-		void *buffer = globalSexyAllocator->Allocate(nBytes);
-		return buffer;
-	}
-
-	SEXYUTIL_API void FreeSexyMemory(void* buffer, size_t /* nBytes */)
-	{
-		globalSexyAllocator->FreeData(buffer);
-	}
-
-	SEXYUTIL_API void FreeSexyUnknownMemory(void* buffer)
-	{
-		globalSexyAllocator->FreeData(buffer);
-	}
-#endif
-
-	SEXYUTIL_API IAllocator& GetSexyAllocator()
-	{
-		return *globalSexyAllocator;
-	}
-}
+DeclareAllocator(TrackingAllocator, SexyUtils, g_allocator)
+Rococo::Memory::AllocatorMonitor<SexyUtils> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
+OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)

@@ -8,5 +8,6 @@
     <ClCompile Include="..\..\source\rococo\sexy\Utilities\sexy.strings.2.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\Utilities\sexy.util.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy\Utilities\sexy.variants.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy\Utilities\sexy.util.module-allocator.cpp" />
   </ItemGroup>
 </Project>
