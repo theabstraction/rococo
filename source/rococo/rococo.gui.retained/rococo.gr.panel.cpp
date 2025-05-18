@@ -52,7 +52,7 @@ namespace GRANON
 
 		EGRRectStyle rectStyle = EGRRectStyle::SHARP;
 
-		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++), clippingPanel(this)
+		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): parent(static_cast<GRPanel*>(_parent)), root(_root), uniqueId(nextId++), clippingPanel(this)
 		{
 			refCount = 1;
 		}
@@ -142,7 +142,7 @@ namespace GRANON
 			}
 			else
 			{
-				directions[index - 1] = targetDescription == nullptr ? HString() : targetDescription;
+				directions[index - 1] = targetDescription == nullptr ? "" : targetDescription;
 			}
 			return *this;
 		}

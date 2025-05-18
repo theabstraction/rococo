@@ -41,7 +41,7 @@ namespace GRANON
 			}
 		};
 
-		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), filter(_filter), fontId(_fontId)
+		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), fontId(_fontId), filter(_filter)
 		{
 			text.reserve(capacity);
 			owningPanel.Add(EGRPanelFlags::AcceptsFocus);
@@ -398,7 +398,7 @@ namespace GRANON
 			}
 
 			iMetaData = metaData.intData;
-			sMetaData = metaData.stringData ? metaData.stringData : HString();
+			sMetaData = metaData.stringData ? metaData.stringData : "";
 			return *this;
 		}
 

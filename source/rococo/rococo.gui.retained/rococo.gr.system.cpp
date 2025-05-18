@@ -31,8 +31,8 @@ namespace ANON
 {
 	struct GRSystem: IGRSystemSupervisor, IGRPanelRootSupervisor
 	{
-		IGRCustodian& custodian;
 		GRConfig config;
+		IGRCustodian& custodian;
 		AutoFree<IGRSchemeSupervisor> scheme = CreateGRScheme();
 		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
 		int queryDepth = 0;
@@ -797,7 +797,7 @@ namespace Rococo::Gui
 	{
 		if (textRepresentation == nullptr)
 		{
-			Throw(0, __FUNCTION__ "(nullptr)");
+			Rococo::Throw(0, __FUNCTION__ "(nullptr)");
 		}
 
 		if (Is(textRepresentation, "left"))
@@ -853,7 +853,7 @@ namespace Rococo::Gui
 			return;
 		}
 
-		Throw(0, "Expecting one of [Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight, Centre]");
+		Rococo::Throw(0, "Expecting one of [Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight, Centre]");
 	}
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetMainFrame* FindOwner(IGRWidget& widget)

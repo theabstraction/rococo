@@ -49,7 +49,7 @@ public class RococoUtil : ModuleRules
         }
     }
 
-    private void CreateBundleDirect(string bundleName, string headerFile, string sourceDirectory, List<string> sourceNames)
+    private void CreateBundleDirect(string bundleName, string headerFile, string prelude, string postlude, string sourceDirectory, List<string> sourceNames)
     {
 		StringBuilder sb = new StringBuilder();
 
@@ -61,6 +61,11 @@ public class RococoUtil : ModuleRules
 		{
 			sb.AppendLine("#include \"" + headerFile + "\"");
         }
+
+		if (prelude != null)
+		{
+			sb.AppendLine(File.ReadAllText(Path.Combine(thisSourceDirectory, prelude)));
+		}
 
         foreach (var sourceName in sourceNames)
 		{
@@ -75,7 +80,12 @@ public class RococoUtil : ModuleRules
 			sb.AppendLine();
 		}
 
-		string fullBundlePath = Path.Combine(thisSourceDirectory, bundleName);
+        if (postlude != null)
+        {
+            sb.AppendLine(File.ReadAllText(Path.Combine(thisSourceDirectory, postlude)));
+        }
+
+        string fullBundlePath = Path.Combine(thisSourceDirectory, bundleName);
 		if (!fullBundlePath.EndsWith(".rococo-bundle.cpp"))
 		{
 			throw new System.Exception("Expecting bundle file to end with .rococo-bundle.cpp");
@@ -95,10 +105,33 @@ public class RococoUtil : ModuleRules
         }
     }
 
+    private void CreateBundleByMatch(string bundleName, string prelude, string postlude, string sourceDirectory, List<string> matchPatterns)
+    {
+		string fullSrcPath = Path.Combine(rococoSourceDirectory, sourceDirectory);
 
-	private void CreateBundles()
+		var files = new System.Collections.Generic.HashSet<string>();
+
+        foreach (var mp in matchPatterns)
+        {
+			foreach(var file in Directory.EnumerateFiles(fullSrcPath, mp))
+			{
+				files.Add(file);
+			}
+        }
+
+		List<string> fileList = new List<string>();
+
+		foreach(var file in files)
+		{
+            fileList.Add(file);
+		}
+
+		CreateBundleDirect(bundleName, null, prelude, postlude, sourceDirectory, fileList);
+    }
+
+    private void CreateBundles()
 	{
-        CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.UE5.h", "rococo/rococo.util",
+        CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/rococo.util",
 			new List<string>() 
 			{
 				"rococo.strings.cpp",
@@ -109,7 +142,7 @@ public class RococoUtil : ModuleRules
 			}
 		);
 
-		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.UE5.h", "rococo/sexy/SP/sexy.s-parser",
+		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/sexy/SP/sexy.s-parser",
 			new List<string>()
 			{
 				"sexy.s-parser.cpp",
@@ -118,21 +151,35 @@ public class RococoUtil : ModuleRules
             }
 		);
 
-        CreateBundleDirect("rococo.s-utils.rococo-bundle.cpp", "rococo.UE5.h", "rococo/sexy/Utilities",
+        CreateBundleDirect("rococo.s-utils.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/sexy/Utilities",
             new List<string>()
             {
                 "sexy.util.cpp"
             }
         );
 
-        CreateBundleDirect("rococo.sexml.rococo-bundle.cpp", "rococo.UE5.h", "rococo/rococo.sexml",
+        CreateBundleDirect("rococo.sexml.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/rococo.sexml",
           new List<string>()
           {
                 "rococo.sexml.builder.cpp",
                 "rococo.sexml.parser.cpp",
                 "rococo.sexml.user.cpp"
           }
-      );
+		);
+
+        CreateBundleByMatch("rococo.gui-retained.rococo-bundle.cpp", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/rococo.gui.retained",
+          new List<string>()
+          {
+                "rococo.gr.*.cpp"
+          }
+        );
+
+        CreateBundleDirect("rococo.maths.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/rococo.maths",
+          new List<string>()
+          {
+                "rococo.integer.formatting.cpp"
+          }
+        );
     }
 
     public string RococoIncludeDirectory

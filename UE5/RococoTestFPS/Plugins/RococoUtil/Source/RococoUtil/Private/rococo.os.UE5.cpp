@@ -454,7 +454,7 @@ namespace Rococo::IO
 		}
 		else
 		{
-			Format(path, "%s", slash + 1);
+			Rococo::Strings::Format(path, "%s", slash + 1);
 		}
 	}
 
@@ -527,20 +527,6 @@ namespace Rococo::IO
 		Throw(0, "IO::IsKeyPressed not supported by Rococo for Unreal Engine");
 	}
 	*/
-
-	ROCOCO_API void CopyToClipboard(cstr asciiText)
-	{
-		if constexpr (sizeof TCHAR > 1)
-		{
-			FString tcharText(asciiText);
-			FGenericPlatformApplicationMisc::ClipboardCopy(*tcharText);
-		}
-		else
-		{
-			FGenericPlatformApplicationMisc::ClipboardCopy((const TCHAR*) asciiText);
-		}
-		
-	}
 
 	ROCOCO_API void PasteFromClipboard(char* asciiBuffer, size_t capacity)
 	{
@@ -1015,7 +1001,7 @@ namespace UE5_ANON
 				Throw(FString::Printf(TEXT("No such content directory: %s"), contentPath));
 			}
 
-			Format(contentDirectory, TEXT("%s"), contentPath);
+			Rococo::Strings::Format(contentDirectory, TEXT("%s"), contentPath);
 		}
 
 		virtual ~Installation()
@@ -1081,12 +1067,12 @@ namespace UE5_ANON
 			{
 				if (StartsWith(pingPath, m.subpath.c_str()))
 				{
-					Format(compressedPath, "%s/%s", m.macro.c_str(), pingPath + m.subpath.size());
+					Rococo::Strings::Format(compressedPath, "%s/%s", m.macro.c_str(), pingPath + m.subpath.size());
 					return;
 				}
 			}
 
-			Format(compressedPath, "%s", pingPath);
+			Rococo::Strings::Format(compressedPath, "%s", pingPath);
 		}
 
 		cstr GetFirstSlash(cstr path) const
@@ -1168,7 +1154,7 @@ namespace UE5_ANON
 			{
 				subdir = pingPath + 1;
 
-				Format(sysPath, L"%ls%hs", contentDirectory, subdir);
+				Rococo::Strings::Format(sysPath, L"%ls%hs", contentDirectory, subdir);
 			}
 			else if (*pingPath == '#')
 			{
@@ -1192,7 +1178,7 @@ namespace UE5_ANON
 
 				macroDir = i->second.c_str();
 
-				Format(sysPath, L"%ls%hs%hs", contentDirectory, macroDir + 1, subdir);
+				Rococo::Strings::Format(sysPath, L"%ls%hs%hs", contentDirectory, macroDir + 1, subdir);
 			}
 			else
 			{
@@ -1224,7 +1210,7 @@ namespace UE5_ANON
 				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%ls\", \"%hs\") Path not prefixed by macro: %hs", sysPath, macro, expansion);
 			}
 
-			Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
+			Rococo::Strings::Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
 		}
 
 		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
@@ -1243,7 +1229,7 @@ namespace UE5_ANON
 				Throw(0, "ConvertSysPathToPingPath: '%ls' - Illegal sequence in ping path: '..'", sysPath);
 			}
 
-			Format(pingPath, "!%ls", sysPath + contentDirLength);
+			Rococo::Strings::Format(pingPath, "!%ls", sysPath + contentDirLength);
 
 			IO::ToUnixPath(pingPath.buf);
 		}
@@ -1278,7 +1264,7 @@ namespace UE5_ANON
 				return false;
 			}
 
-			Format(expandedPath, "%s%s", i->second.c_str(), subdir);
+			Rococo::Strings::Format(expandedPath, "%s%s", i->second.c_str(), subdir);
 			return true;
 		}
 
@@ -1374,7 +1360,7 @@ namespace UE5_ANON
 			}
 
 			U8FilePath pingRoot;
-			int len = Format(pingRoot, "%s", pingFolder);
+			int len = Rococo::Strings::Format(pingRoot, "%s", pingFolder);
 			IO::ToUnixPath(pingRoot.buf);
 			if (pingRoot[len - 1] != '/')
 			{
@@ -1641,7 +1627,7 @@ namespace UE5_ANON
 
 		void GetBinDirectoryAbsolute(WideFilePath& directory) const override
 		{
-			Format(directory, L"%s", binDirectory);
+			Rococo::Strings::Format(directory, L"%s", binDirectory);
 		}
 
 		size_t MaxPath() const override
@@ -1700,7 +1686,7 @@ namespace Rococo::IO
 			IO::GetCurrentDirectoryPath(currentDir);
 
 			WideFilePath absPath;
-			Format(absPath, L"%hs\\%ls", currentDir.buf, contentDirectory);
+			Rococo::Strings::Format(absPath, L"%hs\\%ls", currentDir.buf, contentDirectory);
 
 			IO::NormalizePath(absPath);
 			return new UE5_ANON::Installation(os, absPath);
@@ -1835,11 +1821,6 @@ namespace Rococo::OS
 		populator.Populate((cstr) utf8buffer.GetData());
 	}
 
-	ROCOCO_API void CopyStringToClipboard(cstr text)
-	{
-		CopyToClipboard(text);
-	}
-
 	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
 	{
 		StackStringBuilder sb(buffer, capacity);
@@ -1882,12 +1863,21 @@ namespace Rococo::OS
 		}
 	}
 
-	ROCOCO_API void CopyExceptionToClipboard(IException& ex)
+	ROCOCO_API void SaveClipBoardText(cstr text, Rococo::Windows::IWindow& window)
+	{
+		// The UE5 API uses a global window reference for clipboard Copy, so ignores the argument
+		UNUSED(window);
+
+		FString sText(text);
+		FGenericPlatformApplicationMisc::ClipboardCopy(*sText);
+	}
+
+	ROCOCO_API void CopyExceptionToClipboard(IException& ex, Rococo::Windows::IWindow& window)
 	{
 		TArray<char> buffer;
 		buffer.SetNum(128_kilobytes);
 		BuildExceptionString(buffer.GetData(), buffer.Num(), ex, true);
-		CopyStringToClipboard(buffer.GetData());
+		SaveClipBoardText(buffer.GetData(), window);
 	}
 }
 

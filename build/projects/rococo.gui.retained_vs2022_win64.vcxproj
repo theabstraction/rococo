@@ -143,7 +143,8 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.gui.retained.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.gui.retained.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.gui.retained.lib</ImportLibrary>
@@ -242,6 +244,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\dllmain.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\gr.module-allocator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.button.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.carousel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.collapser.cpp" />
@@ -258,7 +261,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.icon.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.layout.fullscreen.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.mainframe.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.memory.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.menubar.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.panel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.portrait.cpp" />

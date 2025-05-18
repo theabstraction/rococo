@@ -427,17 +427,7 @@ namespace Rococo::Gui
 			return *this;
 		}
 
-		template<class T> static void ForEachPermutation(T t)
-		{
-			t(GRWRS());
-			t(GRWidgetRenderState(true, false, false));
-			t(GRWidgetRenderState(false, true, false));
-			t(GRWidgetRenderState(true, true, false));
-			t(GRWidgetRenderState(false, false, true));
-			t(GRWidgetRenderState(true, false, true));
-			t(GRWidgetRenderState(false, true, true));
-			t(GRWidgetRenderState(true, true, true));
-		}
+		template<class T> static void ForEachPermutation(T t);
 
 		bool operator == (GRWidgetRenderState other) const
 		{
@@ -453,6 +443,18 @@ namespace Rococo::Gui
 	inline GRWidgetRenderState GRWRS()
 	{
 		return GRWidgetRenderState(false, false, false);
+	}
+
+	template<class T> static void GRWidgetRenderState::ForEachPermutation(T t)
+	{
+		t(GRWRS());
+		t(GRWidgetRenderState(true, false, false));
+		t(GRWidgetRenderState(false, true, false));
+		t(GRWidgetRenderState(true, true, false));
+		t(GRWidgetRenderState(false, false, true));
+		t(GRWidgetRenderState(true, false, true));
+		t(GRWidgetRenderState(false, true, true));
+		t(GRWidgetRenderState(true, true, true));
 	}
 
 	ROCOCO_GUI_RETAINED_API void CopyColour(IGRPanel& src, IGRPanel& target, EGRSchemeColourSurface srcSurface, EGRSchemeColourSurface trgSurface, GRWidgetRenderState rs);

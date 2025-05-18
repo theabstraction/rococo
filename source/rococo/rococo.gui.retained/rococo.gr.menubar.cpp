@@ -57,7 +57,7 @@ namespace GRANON
 		uint32 isEnabled : 1;
 		uint32 isActive : 1;
 
-		MenuBranch(GRMenuTree& _tree, int64 _id, MenuBranch* _parent) : tree(_tree), id({ _id }), parent(_parent), isEnabled(0), isActive(0)
+		MenuBranch(GRMenuTree& _tree, int64 _id, MenuBranch* _parent) : parent(_parent), tree(_tree), id({ _id }), isEnabled(0), isActive(0)
 		{
 			_tree.mapIdToBranch[_id] = this;
 		}

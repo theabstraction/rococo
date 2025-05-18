@@ -9,6 +9,10 @@
 
 #include <math.h>
 
+#ifdef PI
+# undef PI
+#endif
+
 namespace DirectX
 {
    struct XMFLOAT4;

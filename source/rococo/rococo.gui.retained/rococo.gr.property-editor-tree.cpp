@@ -14,8 +14,6 @@ using namespace Rococo::Gui;
 using namespace Rococo::Reflection;
 using namespace Rococo::Strings;
 
-#pragma optimize("", off)
-
 namespace GRANON
 {
 	struct PreviewData;
@@ -198,7 +196,7 @@ namespace GRANON
 			{
 				case PrimitiveType::I32:
 				{
-					auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
+					Format::TryParseResult<int32> result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
 					auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i32Value, meta.max.i32Value) : result.Value;
 
@@ -209,7 +207,7 @@ namespace GRANON
 				}
 				case PrimitiveType::I64:
 				{
-					auto result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
+					Format::TryParseResult<int64> result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
 					auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i64Value, meta.max.i64Value) : result.Value;
 
