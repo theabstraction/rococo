@@ -34,19 +34,9 @@
 #include "sexy.types.h"
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include "sexy.strings.h"
-#include "sexy.compiler.public.h"
-#include "..\STC\stccore\sexy.validators.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
-
-#include <float.h>
-#include <stdarg.h>
-
 #include "sexy.stdstrings.h"
 
 #include <unordered_map>
-#include <algorithm>
-
-#include <rococo.api.h>
 
 using namespace Rococo::Strings;
 
@@ -74,12 +64,6 @@ namespace Rococo
 		}
 	}
 }
-
-#include <windows.h>
-#include <debugapi.h>
-#include <dbghelp.h>
-
-#include <rococo.debugging.h>
 
 namespace Rococo::Memory
 {

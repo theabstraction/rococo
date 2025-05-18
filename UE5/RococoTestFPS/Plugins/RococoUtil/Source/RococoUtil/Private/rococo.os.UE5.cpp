@@ -2433,7 +2433,48 @@ namespace Rococo::Time
 	}
 } // Rococo::Time
 
+#ifdef _WIN32
+#include <windows.h>
+namespace Rococo::Windows
+{
+	ROCOCO_API int32 WheelDeltaToScrollLines(int32 wheelDelta, bool& scrollByPage)
+	{
+		unsigned long linesPerWheelDelta = 1;
+		SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &linesPerWheelDelta, 0);
+		if (linesPerWheelDelta == WHEEL_PAGESCROLL)
+		{
+			scrollByPage = true;
+		}
+		else
+		{
+			scrollByPage = false;
+		}
 
+		if (wheelDelta != 0 && (wheelDelta % 120) == 0)
+		{
+			// Assume a windows stanard wheel, in which deltas are in units of 120
+			wheelDelta = wheelDelta / 120;
+		}
+
+		return wheelDelta * (int32)linesPerWheelDelta;
+	}
+}
+#else
+namespace Rococo::Windows
+{
+	ROCOCO_API int32 WheelDeltaToScrollLines(int32 wheelDelta, bool& scrollByPage)
+	{
+		if (wheelDelta != 0 && (wheelDelta % 120) == 0)
+		{
+			// Assume a windows stanard wheel, in which deltas are in units of 120
+			wheelDelta = wheelDelta / 120;
+		}
+
+		int32 linesPerWheelDelta = 1;
+		return wheelDelta * linesPerWheelDelta;
+	}
+}
+#endif
 
 namespace Rococo::Debugging
 {
