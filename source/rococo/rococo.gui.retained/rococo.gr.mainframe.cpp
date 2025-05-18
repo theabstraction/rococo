@@ -217,7 +217,7 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			if (ce.click.MouseVWheel && panel.Root().Custodian().Keys().IsKeyPressed(IO::VirtualKeys::VKCode_SHIFT))
+			if (ce.click.MouseVWheel && ce.context.isShiftHeld)
 			{
 				const ZoomScenario* bestScenario = GetBestZoomScenario();
 
@@ -288,9 +288,9 @@ namespace GRANON
 			SetFocusElseRotateFocusToNextSibling(panel, false);
 		}
 
-		void OnTab()
+		void OnTab(bool ctrlHeld)
 		{
-			bool nextRatherThanPrevious = !GetCustodian(panel).Keys().IsKeyPressed(IO::VirtualKeys::VKCode_CTRL);
+			bool nextRatherThanPrevious = !ctrlHeld;
 			SetFocusElseRotateFocusToNextSibling(panel, nextRatherThanPrevious);
 		}
 
@@ -337,7 +337,7 @@ namespace GRANON
 			switch (ke.osKeyEvent.VKey)
 			{
 			case Rococo::IO::VirtualKeys::VKCode_TAB:
-				OnTab();
+				OnTab(ke.context.isCtrlHeld);
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_ANTITAB:
 				OnReverseTab();
@@ -354,7 +354,7 @@ namespace GRANON
 			case Rococo::IO::VirtualKeys::VKCode_RIGHT:
 				if (Nav(EGRNavigationDirection::Right) == EGREventRouting::NextHandler)
 				{
-					OnTab();
+					OnTab(ke.context.isCtrlHeld);
 				}
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_UP:
@@ -366,7 +366,7 @@ namespace GRANON
 			case Rococo::IO::VirtualKeys::VKCode_DOWN:
 				if (Nav(EGRNavigationDirection::Down) == EGREventRouting::NextHandler)
 				{
-					OnTab();
+					OnTab(ke.context.isCtrlHeld);
 				}
 				return EGREventRouting::Terminate;
 			}

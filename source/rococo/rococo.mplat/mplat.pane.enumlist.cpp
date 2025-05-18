@@ -170,7 +170,7 @@ public:
 		}
 	}
 
-	bool AppendEvent(const KeyboardEvent& ke, const Vec2i&, const Vec2i&) override
+	bool AppendEvent(const KeyboardEventEx& ke, const Vec2i&, const Vec2i&) override
 	{
 		ScrollEvent se;
 		if (vscroll->AppendEvent(ke, se))

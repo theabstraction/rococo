@@ -581,7 +581,7 @@ namespace ANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
+	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages
 	{
 		MPlatGR_Renderer renderer;
 		IRenderer& sysRenderer;
@@ -636,16 +636,6 @@ namespace ANON
 		cstr GetLastKnownControlType() const override
 		{
 			return "XBOX";
-		}
-
-		IGRKeyState& Keys() override
-		{
-			return *this;
-		}
-
-		bool IsKeyPressed(Rococo::IO::VirtualKeys::VKCode keyCode) const override
-		{
-			return IO::IsKeyPressed(keyCode);
 		}
 
 		GRFontId BindFontId(const FontSpec& spec) override

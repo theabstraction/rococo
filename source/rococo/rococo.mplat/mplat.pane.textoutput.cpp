@@ -45,7 +45,7 @@ public:
 		activateKey = key;
 	}
 
-	bool AppendEvent(const KeyboardEvent&, const Vec2i&, const Vec2i&) override
+	bool AppendEvent(const KeyboardEventEx&, const Vec2i&, const Vec2i&) override
 	{
 		return false;
 	}

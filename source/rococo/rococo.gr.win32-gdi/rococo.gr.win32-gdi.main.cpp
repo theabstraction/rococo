@@ -1538,7 +1538,7 @@ namespace GRANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState, Windows::IWindow
+	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, Windows::IWindow
 	{
 		// Debugging materials:
 		std::vector<IGRWidget*> history;
@@ -1613,19 +1613,9 @@ namespace GRANON
 			this->lastKnownControlType = lastKnownControlType;
 		}
 
-		IGRKeyState& Keys() override
-		{
-			return *this;
-		}
-
 		void AlertNoActionForKey() override
 		{
 			MessageBeep(0xFFFFFFFF);
-		}
-
-		bool IsKeyPressed(IO::VirtualKeys::VKCode vkCode) const override
-		{
-			return GetAsyncKeyState(static_cast<int>(vkCode)) != 0;
 		}
 
 		struct KnownFont
@@ -1859,7 +1849,7 @@ namespace GRANON
 			history.push_back(&widget);
 		}
 
-		void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) override
+		void RouteKeyboardEvent(const KeyboardEventEx& key, IGRSystem& gr) override
 		{
 			GRKeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
@@ -1871,19 +1861,19 @@ namespace GRANON
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
 
-		void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) override
+		void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context, IGRSystem& gr) override
 		{
 			static_assert(sizeof GRCursorClick == sizeof uint16);
 
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData, context };
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0 };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0, context };
 				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)
@@ -2168,6 +2158,11 @@ namespace GRANON
 			this->sink = &sink;
 		}
 
+		static inline bool IsDown(int vkCode)
+		{
+			return GetAsyncKeyState(vkCode) & 0x8000;
+		}
+
 		LRESULT OnRawInput(WPARAM wParam, LPARAM lParam)
 		{
 			POINT p;
@@ -2202,13 +2197,25 @@ namespace GRANON
 					ev.dy = raw.data.mouse.lLastY;
 					ev.flags = raw.data.mouse.usFlags;
 					ev.cursorPos = { p.x, p.y };
-					gdiCustodian->RouteMouseEvent(ev, *grSystem);
+
+					GRKeyContextFlags context;
+					context.isAltHeld = IsDown(VK_MENU);
+					context.isCtrlHeld = IsDown(VK_CONTROL);
+					context.isShiftHeld = IsDown(VK_SHIFT);
+
+					gdiCustodian->RouteMouseEvent(ev, context, *grSystem);
 					QueuePaint();
 				}
 				else if (raw.header.dwType == RIM_TYPEKEYBOARD)
 				{
-					KeyboardEvent key;
-					((RAWKEYBOARD&)key) = raw.data.keyboard;
+					KeyboardEventEx key;
+					key.isAltHeld = IsDown(VK_MENU);
+					key.isCtrlHeld = IsDown(VK_CONTROL);
+					key.isShfitHeld = IsDown(VK_SHIFT);
+
+					auto& innerKey = static_cast<KeyboardEvent&>(key);
+
+					((RAWKEYBOARD&) (innerKey)) = raw.data.keyboard;
 
 					if (sink)
 					{
@@ -2281,14 +2288,17 @@ namespace GRANON
 
 		void InsertKeyboardEvent(uint16 vCode, bool isUp, uint16 unicode) override
 		{
-			KeyboardEvent kbe;
+			KeyboardEventEx kbe;
 			kbe.VKey = vCode;
 			kbe.Flags = isUp ? RI_KEY_BREAK : RI_KEY_MAKE;
 			kbe.Message = 0;
 			kbe.Reserved = 0;
 			kbe.scanCode = 0;
 			kbe.unicode = unicode;
-			kbe.extraInfo = 0;				
+			kbe.extraInfo = 0;
+			kbe.isAltHeld = 0;
+			kbe.isCtrlHeld = 0;
+			kbe.isShfitHeld = 0;
 			gdiCustodian->RouteKeyboardEvent(kbe, *grSystem);
 		}
 

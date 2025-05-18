@@ -235,7 +235,7 @@ struct StatusBar : IUIElement
 
 	HString status;
 
-	bool OnKeyboardEvent(const KeyboardEvent&) override
+	bool OnKeyboardEvent(const KeyboardEventEx&) override
 	{
 		return false;
 	}
@@ -313,7 +313,7 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 		if (editing) gui.DetachKeyboardSink(this);
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	bool OnKeyboardEvent(const KeyboardEventEx& key) override
 	{
 		if (editing)
 		{
@@ -434,7 +434,7 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 	{
 	}
 
-	~MPlatFileBrowser()
+	virtual ~MPlatFileBrowser()
 	{
 		publisher.Unsubscribe(this);
 	}
@@ -511,7 +511,7 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 		delete this;
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent&) override
+	bool OnKeyboardEvent(const KeyboardEventEx&) override
 	{
 		return false;
 	}

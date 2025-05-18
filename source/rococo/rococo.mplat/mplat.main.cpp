@@ -165,7 +165,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		}
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent& key)  override
+	bool OnKeyboardEvent(const KeyboardEventEx& key)  override
 	{
 		return platform.misc.mathsVisitor.AppendKeyboardEvent(key);
 	}

@@ -143,7 +143,7 @@ void BasePane::AppendEventToChildren(IPublisher& publisher, const MouseEvent& me
 	}
 }
 
-bool BasePane::AppendEventToChildren(IPublisher& publisher, const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex)
+bool BasePane::AppendEventToChildren(IPublisher& publisher, const KeyboardEventEx& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex)
 {
 	for (auto i : children)
 	{
@@ -596,6 +596,11 @@ struct PaneContainer : public BasePane, virtual public GUI::IPaneContainer
 
 	}
 
+	virtual ~PaneContainer()
+	{
+
+	}
+
 	Rococo::GUI::IPaneContainer* AddContainer(const GuiRect& rect)
 	{
 		auto* container = new PaneContainer(platform);
@@ -668,7 +673,7 @@ struct PaneContainer : public BasePane, virtual public GUI::IPaneContainer
 		delete this;
 	}
 
-	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft)
+	bool AppendEvent(const KeyboardEventEx& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft)
 	{
 		return AppendEventToChildren(platform.plumbing.publisher, ke, focusPoint, absTopLeft, 0);
 	}
@@ -935,7 +940,7 @@ public:
 		}
 	}
 
-	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEventEx& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
 		return PaneContainer::AppendEvent(ke, focusPoint, absTopLeft);
 	}

@@ -159,10 +159,19 @@ namespace ANON
 			return (charsRead == 1) ? buffer[0] : 0;
 		}
 
+		static inline bool IsDown(int vkCode)
+		{
+			return GetAsyncKeyState(vkCode) & 0x8000;
+		}
+
 		void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardLayout)
 		{
-			KeyboardEvent key;
-			((RAWKEYBOARD&)key) = k;
+			KeyboardEventEx key;
+			key.isAltHeld = IsDown(VK_MENU);
+			key.isCtrlHeld = IsDown(VK_CONTROL);
+			key.isShfitHeld = IsDown(VK_SHIFT);
+			KeyboardEvent& innerKey = static_cast<KeyboardEvent&>(key);
+			((RAWKEYBOARD&)(innerKey)) = k;
 			key.unicode = VcodeToUnicode(k.VKey, key.scanCode, hKeyboardLayout);
 			app.OnKeyboardEvent(key);
 		}

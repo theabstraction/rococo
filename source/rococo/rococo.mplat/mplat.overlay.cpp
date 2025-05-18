@@ -35,7 +35,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		{
 		}
 
-		bool OnKeyboardEvent(const KeyboardEvent&) override
+		bool OnKeyboardEvent(const KeyboardEventEx&) override
 		{
 			return false;
 		}
@@ -186,7 +186,7 @@ struct OverlayPane : public IPaneBuilderSupervisor, PaneDelegate, public IUIElem
 		delete this;
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent&) override
+	bool OnKeyboardEvent(const KeyboardEventEx&) override
 	{
 		return false;
 	}

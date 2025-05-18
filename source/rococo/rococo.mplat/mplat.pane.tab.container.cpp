@@ -114,7 +114,7 @@ public:
 		tabs.push_back(tab);
 	}
 
-	bool AppendEvent(const KeyboardEvent& k, const Vec2i&, const Vec2i&) override
+	bool AppendEvent(const KeyboardEventEx& k, const Vec2i&, const Vec2i&) override
 	{
 		Key key = keyboard.GetKeyFromEvent(k);
 		if (key.isPressed)

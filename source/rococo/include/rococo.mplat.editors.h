@@ -6,7 +6,7 @@
 
 namespace Rococo
 {
-	struct KeyboardEvent;
+	struct KeyboardEventEx;
 	struct MouseEvent;
 	struct Platform;
 
@@ -19,7 +19,7 @@ namespace Rococo
 	ROCOCO_INTERFACE IUIElement
 	{
 		// Route a keyboard event to the element. Returns false to redirect event to the parent element
-		virtual bool OnKeyboardEvent(const KeyboardEvent & key) = 0;
+		virtual bool OnKeyboardEvent(const KeyboardEventEx & key) = 0;
 		virtual void OnRawMouseEvent(const MouseEvent& ev) = 0;
 		virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) = 0;
 		virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown) = 0;

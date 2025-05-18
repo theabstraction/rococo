@@ -88,6 +88,13 @@ namespace Rococo::Gui
 		LeftAndRightDragger
 	};
 
+	struct GRKeyContextFlags
+	{
+		int32 isCtrlHeld : 1;
+		int32 isShiftHeld : 1;
+		int32 isAltHeld : 1;
+	};
+
 	struct GRCursorEvent
 	{
 		IGREventHistory& history;
@@ -96,6 +103,7 @@ namespace Rococo::Gui
 		const GRCursorClick click;
 		EGRCursorIcon nextIcon;
 		int32 wheelDelta;
+		GRKeyContextFlags context;
 	};
 
 	struct GRKeyEvent
@@ -103,6 +111,7 @@ namespace Rococo::Gui
 		IGREventHistory& history;
 		const int64 eventId;
 		const KeyboardEvent& osKeyEvent;
+		GRKeyContextFlags context;
 	};
 #pragma pack(pop)
 

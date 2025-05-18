@@ -215,11 +215,13 @@ namespace Rococo
 		bool isPressed;
 	};
 
+	struct KeyboardEventEx;
+
 	ROCOCO_INTERFACE IKeyboardSupervisor : public IKeyboard
 	{
 	   virtual cstr GetAction(cstr keyName) = 0;
 	   virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
-	   virtual void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key) = 0;
+	   virtual void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEventEx& key) = 0;
 	   virtual void Free() = 0;
 	};
 
@@ -349,9 +351,11 @@ namespace Rococo
 		bool isUnderModal;
 	};
 
+	struct KeyboardEventEx;
+
 	struct IPaneSupervisor : virtual GUI::IPane
 	{
-		virtual bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
+		virtual bool AppendEvent(const KeyboardEventEx& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
 		virtual void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) = 0;
 
 		virtual const GuiRect& ClientRect() const = 0;
@@ -404,7 +408,7 @@ namespace Rococo
 	{
 		virtual void AppendEvent(const MouseEvent& me) = 0;
 		// Returns true if some UI control consumed the keyboard event
-		virtual bool AppendEvent(const KeyboardEvent& ke) = 0;
+		virtual bool AppendEvent(const KeyboardEventEx& ke) = 0;
 		virtual void AttachKeyboardSink(IKeyboardSink* ks) = 0;
 		virtual void DetachKeyboardSink(IKeyboardSink* ks) = 0;
 		virtual bool IsOverwriting() const = 0;

@@ -45,11 +45,6 @@ namespace Rococo::Gui
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
 	};
 
-	ROCOCO_INTERFACE IGRKeyState
-	{
-		virtual bool IsKeyPressed(Rococo::IO::VirtualKeys::VKCode keyCode) const = 0;
-	};
-
 	// The platform dependent implementation of the custodian handles events and routes to the UI appropriately
 	ROCOCO_INTERFACE IGRCustodian
 	{
@@ -73,8 +68,6 @@ namespace Rococo::Gui
 		virtual void RaiseError(const Rococo::Sex::ISExpression* associatedSExpression, EGRErrorCode code, cstr function, cstr format, ...) = 0;
 
 		virtual IGRFonts& Fonts() = 0;
-
-		virtual IGRKeyState& Keys() = 0;
 
 		// Set the zoom level for the user-interface. The value is clamped between 1 and 100
 		virtual void SetUIZoom(float zoomLevel) = 0;

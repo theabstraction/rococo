@@ -30,9 +30,16 @@ namespace Rococo
 		bool IsUp() const { return (Flags & 0x0001) != 0; }
 	};
 
+	struct KeyboardEventEx: KeyboardEvent
+	{
+		int32 isCtrlHeld : 1;
+		int32 isShfitHeld : 1;
+		int32 isAltHeld : 1;
+	};
+
 	ROCOCO_INTERFACE IKeyboardSink
 	{
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key) = 0;
+		virtual bool OnKeyboardEvent(const KeyboardEventEx& key) = 0;
 	};
 
 	struct MouseEvent
@@ -57,15 +64,13 @@ namespace Rococo
 
 		bool HasFlag(Flags flag) const { return (buttonFlags & flag) != 0; }
 		bool IsRelative() const { return (flags & 0x0001) == 0; }
-
 	};
 
 	struct SourceFileSet;
 
 	namespace IO
 	{
-		ROCOCO_API bool IsKeyPressed(int vkeyCode);
-
+		//	ROCOCO_API bool IsKeyPressed(int vkeyCode);
 		// Safe format of clipboard contents, Truncates to buffer capacity and null terminates the string.
 		ROCOCO_API void PasteFromClipboard(char* asciiBuffer, size_t capacity);
 	}

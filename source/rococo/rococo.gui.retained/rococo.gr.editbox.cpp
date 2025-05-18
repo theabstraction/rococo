@@ -977,7 +977,7 @@ namespace Rococo::Gui
 				manager.AddToCaretPos(100'000'000);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_C:
-				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				if (keyEvent.context.isCtrlHeld)
 				{
 					// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
 					builder.Resize(manager.GetTextAndLength(nullptr, 0));
@@ -991,7 +991,7 @@ namespace Rococo::Gui
 					break;
 				}
 			case IO::VirtualKeys::VKCode_V:
-				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				if (keyEvent.context.isCtrlHeld)
 				{
 					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
 

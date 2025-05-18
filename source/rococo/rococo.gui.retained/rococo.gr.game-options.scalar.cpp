@@ -88,7 +88,7 @@ namespace GRANON
 		{
 			if (panel.HasFocus() && we.wheelDelta != 0)
 			{
-				int acceleration = GetCustodian(panel).Keys().IsKeyPressed(IO::VirtualKeys::VKCode_CTRL) ? 10 : 1;
+				int acceleration = we.context.isCtrlHeld ? 10 : 1;
 
 				if (we.wheelDelta % 120 == 0)
 				{
