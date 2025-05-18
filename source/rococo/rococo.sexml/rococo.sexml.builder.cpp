@@ -1,5 +1,7 @@
 #include <rococo.compiler.options.h>
-#define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#ifndef ROCOCO_SEXML_API
+# define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#endif
 #include <rococo.types.h>
 #include <rococo.strings.h>
 #include <rococo.sexml.h>
@@ -28,6 +30,11 @@ namespace Rococo::Sex::SEXML
 			bool isCompact;
 
 			Builder(StringBuilder& _sb, bool _isCompact): sb(_sb), isCompact(_isCompact)
+			{
+
+			}
+
+			virtual ~Builder()
 			{
 
 			}
@@ -67,19 +74,19 @@ namespace Rococo::Sex::SEXML
 				catch (IException& ex)
 				{
 					char msg[1024];
-					StackStringBuilder sb(msg, sizeof msg);
-					sb.AppendFormat("Error validating directive name [%s]: %s\n", name, ex.Message());
+					StackStringBuilder exsb(msg, sizeof msg);
+					exsb.AppendFormat("Error validating directive name [%s]: %s\n", name, ex.Message());
 					if (depth == 0)
 					{
-						sb << "Directive was at the root";
+						exsb << "Directive was at the root";
 					}
 					else
 					{
-						sb << "Error adding new directive to: ";
+						exsb << "Error adding new directive to: ";
 						for (auto& d : stateNames)
 						{
-							sb << "/";
-							sb << d.c_str();
+							exsb << "/";
+							exsb << d.c_str();
 						}
 					}
 					Rococo::Throw(ex.ErrorCode(), "%s", msg);

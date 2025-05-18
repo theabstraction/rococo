@@ -49,7 +49,7 @@ public class RococoUtil : ModuleRules
         }
     }
 
-    private void CreateBundleDirect(string bundleName, string inlName, string sourceDirectory, List<string> sourceNames)
+    private void CreateBundleDirect(string bundleName, string headerFile, string sourceDirectory, List<string> sourceNames)
     {
 		StringBuilder sb = new StringBuilder();
 
@@ -57,9 +57,9 @@ public class RococoUtil : ModuleRules
 		sb.AppendLine("// Created: " + DateTime.UtcNow.ToString("d MMM yyyy HH:mm:ss") + " UTC");
 		sb.AppendLine();
 
-		if (inlName != null)
+		if (headerFile != null)
 		{
-			sb.AppendLine("#include \"" + inlName + "\"");
+			sb.AppendLine("#include \"" + headerFile + "\"");
         }
 
         foreach (var sourceName in sourceNames)
@@ -98,7 +98,7 @@ public class RococoUtil : ModuleRules
 
 	private void CreateBundles()
 	{
-        CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/rococo.util",
+        CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.UE5.h", "rococo/rococo.util",
 			new List<string>() 
 			{
 				"rococo.strings.cpp",
@@ -109,7 +109,7 @@ public class RococoUtil : ModuleRules
 			}
 		);
 
-		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/sexy/SP/sexy.s-parser",
+		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.UE5.h", "rococo/sexy/SP/sexy.s-parser",
 			new List<string>()
 			{
 				"sexy.s-parser.cpp",
@@ -118,12 +118,21 @@ public class RococoUtil : ModuleRules
             }
 		);
 
-        CreateBundleDirect("rococo.s-utils.rococo-bundle.cpp", "rococo.util.header.inl", "rococo/sexy/Utilities",
+        CreateBundleDirect("rococo.s-utils.rococo-bundle.cpp", "rococo.UE5.h", "rococo/sexy/Utilities",
             new List<string>()
             {
                 "sexy.util.cpp"
             }
         );
+
+        CreateBundleDirect("rococo.sexml.rococo-bundle.cpp", "rococo.UE5.h", "rococo/rococo.sexml",
+          new List<string>()
+          {
+                "rococo.sexml.builder.cpp",
+                "rococo.sexml.parser.cpp",
+                "rococo.sexml.user.cpp"
+          }
+      );
     }
 
     public string RococoIncludeDirectory

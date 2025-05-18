@@ -1,5 +1,7 @@
 #include <rococo.compiler.options.h>
-#define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#ifndef ROCOCO_SEXML_API
+# define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#endif
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
@@ -24,7 +26,7 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
@@ -46,7 +48,7 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
@@ -64,7 +66,7 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
@@ -79,6 +81,8 @@ namespace Rococo::OS
 
 		struct ANON: IStringPopulator
 		{
+			virtual ~ANON() {}
+
 			HString result;
 			void Populate(cstr text) override
 			{
@@ -122,7 +126,7 @@ namespace Rococo::OS
 			Throw(0, "%s: blank [section]", __FUNCTION__);
 		}
 		
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 
 		WideFilePath wOrganizationDir;
 		IO::GetUserPath(wOrganizationDir, organization);
@@ -183,6 +187,9 @@ namespace Rococo::OS
 	{
 		struct ANON : IStringPopulator
 		{
+			// Anal that VC++ compiler moans about missing virtual destructors even when instances are on the stack
+			virtual ~ANON() {}
+
 			HString result;
 			void Populate(cstr text) override
 			{

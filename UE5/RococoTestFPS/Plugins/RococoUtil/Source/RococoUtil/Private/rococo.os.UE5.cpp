@@ -1,4 +1,4 @@
-#include "rococo.util.header.inl"
+#include "rococo.UE5.h"
 
 #include <CoreMinimal.h>
 #include <rococo.os.h>
@@ -213,18 +213,30 @@ namespace Rococo::IO
 		return *FGenericPlatformMisc::GetDefaultPathSeparator();
 	}
 
-	ROCOCO_API void CreateDirectoryFolder(const TCHAR* path)
+	void CreateDirectoryFolder(const FString& path)
 	{
 		IPlatformFile& platformFile = FPlatformFileManager::Get().GetPlatformFile();
 
 		// Directory Exists?
-		if (!platformFile.DirectoryExists(path))
+		if (!platformFile.DirectoryExists(*path))
 		{
-			if (!platformFile.CreateDirectory(path))
+			if (!platformFile.CreateDirectory(*path))
 			{
-				Throw(FString::Printf(TEXT("Cannot create directory %s"), path));
+				Throw(FString::Printf(TEXT("Cannot create directory %s"), *path));
 			}
 		}
+	}
+
+	ROCOCO_API void CreateDirectoryFolder(const WideFilePath& path)
+	{
+		FString sPath(path.buf);
+		CreateDirectoryFolder(sPath);
+	}
+
+	ROCOCO_API void CreateDirectoryFolder(const U8FilePath& path)
+	{
+		FString sPath(path.buf);
+		CreateDirectoryFolder(sPath);
 	}
 
 	ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const TCHAR* sysPath)

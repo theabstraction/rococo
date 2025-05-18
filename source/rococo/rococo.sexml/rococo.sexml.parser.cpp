@@ -1,5 +1,7 @@
 #include <rococo.compiler.options.h>
-#define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#ifndef ROCOCO_SEXML_API
+# define ROCOCO_SEXML_API ROCOCO_API_EXPORT
+#endif
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.sexml.h>
