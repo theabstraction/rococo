@@ -196,23 +196,23 @@ namespace GRANON
 			{
 				case PrimitiveType::I32:
 				{
-					Format::TryParseResult<int32> result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
+					Formatting::TryParseResult<int32> result = Formatting::TryParseInt32FromDecimalStringSkippingCetera(text);
 					auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i32Value, meta.max.i32Value) : result.Value;
 
 					char buffer[16];
-					Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
 				case PrimitiveType::I64:
 				{
-					Format::TryParseResult<int64> result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
+					Formatting::TryParseResult<int64> result = Formatting::TryParseInt64FromDecimalStringSkippingCetera(text);
 					auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i64Value, meta.max.i64Value) : result.Value;
 
 					char buffer[32];
-					Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
@@ -310,7 +310,7 @@ namespace GRANON
 		switch (variant.type)
 		{
 		case PrimitiveType::I32:
-			return Format::ToAscii(variant.primitive.int32Value, radix, meta.addThousandMarks, ',', buffer, capacity);
+			return Formatting::ToAscii(variant.primitive.int32Value, radix, meta.addThousandMarks, ',', buffer, capacity);
 		case PrimitiveType::I64:
 			return _i64toa_s(variant.primitive.int64Value, buffer, capacity, radix) != 0;
 		case PrimitiveType::U64:

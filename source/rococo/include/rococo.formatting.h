@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Rococo::Format
+namespace Rococo::Formatting
 {
 	enum class ETryParseResultCode
 	{

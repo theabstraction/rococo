@@ -6,7 +6,7 @@
 
 #pragma warning (disable: 4996)
 
-namespace Rococo::Format
+namespace Rococo::Formatting
 {
 	bool AddThousandMarkers(cstr asciiRep, size_t nChars, char* buffer, size_t capacity, char thousandMarkerChar)
 	{

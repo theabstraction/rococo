@@ -19,8 +19,8 @@ namespace Rococo::GreatSex
 
 	uint8 GetColourUByteValue(cstr value, cr_sex S)
 	{
-		auto iValue = Format::TryParseInt32FromDecimalStringSkippingCetera(value);
-		if (iValue.code != Format::ETryParseResultCode::Success)
+		auto iValue = Formatting::TryParseInt32FromDecimalStringSkippingCetera(value);
+		if (iValue.code != Formatting::ETryParseResultCode::Success)
 		{
 			Throw(S, "RGBAb colour components are decimal integers 0 to 255 inclusive");
 		}
