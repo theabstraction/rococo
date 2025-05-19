@@ -149,7 +149,7 @@ namespace Rococo
 
 	namespace Script
 	{
-		ROCOCO_API void PopulateStringBuilder(InterfacePointerToStringBuilder sb, const fstring& text);
+		ROCOCO_API void PopulateStringBuilder(Script::InterfacePointerToStringBuilder sb, const fstring& text);
 	}
 
 	enum EXECUTERESULT : int32;

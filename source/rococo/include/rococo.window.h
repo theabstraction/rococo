@@ -278,6 +278,11 @@ namespace Rococo
 		public:
 			ROCOCO_WINDOWS_API ModalDialogHandler();
 
+			virtual ~ModalDialogHandler()
+			{
+
+			}
+
 			ROCOCO_WINDOWS_API IDialogSupervisor* CreateDialogWindow(const WindowConfig& config);
 
 			IModalControl& ModalControl() { return *this; }

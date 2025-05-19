@@ -2510,6 +2510,49 @@ namespace Rococo::Strings
 }
 #endif
 
+#ifdef _WIN32
+namespace Rococo::Windows
+{
+	ROCOCO_INTERFACE IWindow
+	{
+	   virtual operator HWND () const = 0;
+	};
+}
+
+namespace Rococo::OS
+{
+	struct ActiveWindow: Windows::IWindow
+	{
+		operator HWND () const override
+		{
+			return GetActiveWindow();
+		}
+	} s_ActiveWindow;
+
+	Windows::IWindow& WindowOwner()
+	{
+		return s_ActiveWindow;
+	}
+}
+
+#else
+
+namespace Rococo::OS
+{
+	struct NoWindow : Windows::IWindow
+	{
+
+	} s_noWindow;
+	
+	Windows::IWindow& WindowOwner()
+	{
+		return s_noWindow;
+	}
+}
+
+#endif
+
+
 using namespace Rococo;
 
 void RunRococoOSTests()

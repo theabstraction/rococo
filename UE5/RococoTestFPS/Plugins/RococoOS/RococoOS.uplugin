@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "RococoOS",
+	"Description": "Rococo OS implementation",
+	"Category": "Other",
+	"CreatedBy": "Mark Anthony Taylor",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "RococoOS",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

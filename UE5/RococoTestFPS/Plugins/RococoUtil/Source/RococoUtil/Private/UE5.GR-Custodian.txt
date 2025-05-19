@@ -5,7 +5,14 @@
 #include <rococo.maths.i32.h>
 #include <rococo.hashtable.h>
 #include <rococo.ui.h>
-#include <vector>
+#include <rococo.vector.ex.h>
+
+/*
+
+namespace Rococo::OS
+{
+	Windows::IWindow& WindowOwner();
+}
 
 namespace Rococo::Gui
 {
@@ -446,9 +453,9 @@ namespace Rococo::Gui::UE5::Implementation
 
 			return true;
 		}
+	*/
 	};
 
-	*/
 
 	struct UE5_GR_Image : IUE5_GR_ImageSupervisor
 	{
@@ -492,7 +499,7 @@ namespace Rococo::Gui::UE5::Implementation
 		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct UE5_GR_Custodian : IUE5_GR_CustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, Windows::IWindow
+	struct UE5_GR_Custodian : IUE5_GR_CustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages
 	{
 		UE5_GR_Renderer renderer;
 
@@ -513,7 +520,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		Windows::IWindow& Owner()
 		{
-			return sysRenderer.CurrentWindow();
+			return Rococo::OS::WindowOwner();
 		}
 
 		float zoomLevel = 1.0f;
@@ -646,25 +653,21 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
-		void Render(IGuiRenderContext& rc, IGRSystem& gr) override
+		void Render(IGRSystem& gr) override
 		{
-			renderer.SetContext(&rc);
-
 			if (renderer.lastScreenDimensions.right > 0 && renderer.lastScreenDimensions.bottom > 0)
 			{
 				gr.RenderAllFrames(renderer);
 			}
 
 			renderer.DrawLastItems();
-
-			renderer.SetContext(nullptr);
 		}
 
 		std::vector<char> copyAndPasteBuffer;
 
 		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
-			CharBuilder builder(copyAndPasteBuffer);
+			Strings::CharBuilder builder(copyAndPasteBuffer);
 			return Gui::TranslateToEditor(sysRenderer.CurrentWindow(), keyEvent, manager, builder);
 		}
 	};

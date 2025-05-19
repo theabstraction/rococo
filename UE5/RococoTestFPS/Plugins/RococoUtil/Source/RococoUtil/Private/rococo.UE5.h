@@ -7,3 +7,12 @@
 #define ROCOCO_GUI_RETAINED_API _declspec(dllexport)
 
 #define ROCOCO_USE_SAFE_V_FORMAT
+
+#ifndef _WIN32
+namespace Rococo::Windows
+{
+	ROCOCO_INTERFACE IWindow
+	{
+	};
+}
+#endif
