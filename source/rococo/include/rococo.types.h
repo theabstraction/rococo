@@ -369,6 +369,11 @@ namespace Rococo
 		DECLARE_ROCOCO_INTERFACE IScriptSystemFactory;
 	}
 
+	namespace Sex
+	{
+		DECLARE_ROCOCO_INTERFACE ISExpression;
+	}
+
 	namespace Strings
 	{
 		class HString;
@@ -391,11 +396,19 @@ namespace Rococo
 	};
 
 #ifdef USE_VSTUDIO_SAL
-	[[ noreturn ]]
-	ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ const char* format, ...);
+	[[noreturn]] ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ const char* format, ...);
+
+	namespace Sex
+	{
+		[[noreturn]] ROCOCO_API void Throw(const Sex::ISExpression& e, _Printf_format_string_ cstr format, ...);
+	}
 #else
-	[[ noreturn ]]
-	ROCOCO_API void Throw(int32 errorCode, const char* format, ...);
+	[[noreturn]] ROCOCO_API void Throw(int32 errorCode, const char* format, ...);
+
+	namespace Sex
+	{
+		[[noreturn]] ROCOCO_API void Throw(const Sex::ISExpression& e, const char* format, ...);
+	}
 #endif
 
 	template<class T> struct IEventCallback

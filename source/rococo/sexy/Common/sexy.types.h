@@ -411,7 +411,6 @@ namespace Rococo
 		SEXY_SPARSER_API void AssertNotTooManyElements(cr_sex e, int32 maxElements);
 		SEXY_SPARSER_API void AssertNotTooFewElements(cr_sex e, int32 minElements);
 		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex);
-		[[noreturn]] ROCOCO_API void Throw(cr_sex e, _Printf_format_string_ cstr format, ...);
 	}
 }// Sexy
 
