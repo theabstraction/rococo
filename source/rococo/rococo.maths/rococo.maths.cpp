@@ -189,7 +189,7 @@ namespace Rococo
    }
 
    AABB2d::AABB2d():
-	   left(1.0e37f), bottom(1.0e37f), top(-1.0e37f), right(-1.0e37f)
+	   left(1.0e37f), bottom(1.0e37f), right(-1.0e37f), top(-1.0e37f)
    {
    }
 

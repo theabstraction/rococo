@@ -2533,7 +2533,7 @@ namespace Rococo::OS
 		}
 	} s_ActiveWindow;
 
-	Windows::IWindow& WindowOwner()
+	ROCOCO_API Windows::IWindow& WindowOwner()
 	{
 		return s_ActiveWindow;
 	}
