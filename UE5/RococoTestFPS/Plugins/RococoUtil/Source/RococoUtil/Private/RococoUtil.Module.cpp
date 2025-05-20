@@ -4,11 +4,8 @@
 
 #define LOCTEXT_NAMESPACE "FRococoUtilModule"
 
-void RunRococoOSTests();
-
 void FRococoUtilModule::StartupModule()
 {
-	RunRococoOSTests();
 }
 
 void FRococoUtilModule::ShutdownModule()

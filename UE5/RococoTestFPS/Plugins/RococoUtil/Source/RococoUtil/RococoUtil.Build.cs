@@ -131,17 +131,6 @@ public class RococoUtil : ModuleRules
 
     private void CreateBundles()
 	{
-        CreateBundleDirect("rococo.util.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/rococo.util",
-			new List<string>() 
-			{
-				"rococo.strings.cpp",
-				"rococo.base.cpp",
-				"rococo.heap.string.cpp",
-				"rococo.allocators.cpp",
-				"rococo.throw.cr_sex.cpp"
-			}
-		);
-
 		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/sexy/SP/sexy.s-parser",
 			new List<string>()
 			{
@@ -235,7 +224,8 @@ public class RococoUtil : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"ApplicationCore"
+				"ApplicationCore",
+				"RococoOS"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

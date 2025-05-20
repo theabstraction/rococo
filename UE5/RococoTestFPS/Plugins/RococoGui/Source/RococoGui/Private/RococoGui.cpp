@@ -1,18 +1,15 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "RococoOS.h"
+#include "RococoGui.h"
 
-#define LOCTEXT_NAMESPACE "FRococoOSModule"
+#define LOCTEXT_NAMESPACE "FRococoGuiModule"
 
-void RunRococoOSTests();
-
-void FRococoOSModule::StartupModule()
+void FRococoGuiModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	RunRococoOSTests();
 }
 
-void FRococoOSModule::ShutdownModule()
+void FRococoGuiModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
@@ -20,4 +17,4 @@ void FRococoOSModule::ShutdownModule()
 
 #undef LOCTEXT_NAMESPACE
 	
-IMPLEMENT_MODULE(FRococoOSModule, RococoOS)
+IMPLEMENT_MODULE(FRococoGuiModule, RococoGui)

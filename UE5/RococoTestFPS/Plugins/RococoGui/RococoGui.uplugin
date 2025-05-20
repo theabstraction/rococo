@@ -2,8 +2,8 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "RococoUtil",
-	"Description": "Rococo Util Library",
+	"FriendlyName": "RococoGui",
+	"Description": "Rococo Gui Retained. RAD UI development for UE5",
 	"Category": "Other",
 	"CreatedBy": "Mark Anthony Taylor",
 	"CreatedByURL": "",
@@ -16,7 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RococoUtil",
+			"Name": "RococoGui",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
@@ -24,6 +24,10 @@
 	"Plugins": [
 		{
 			"Name": "RococoOS",
+			"Enabled": true
+		},
+		{
+			"Name": "RococoUtil",
 			"Enabled": true
 		}
 	]

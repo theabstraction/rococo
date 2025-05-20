@@ -1,4 +1,4 @@
-#include "rococo.UE5.h"
+#include "rococo.os.UE5.h"
 
 #include <CoreMinimal.h>
 #include <rococo.os.h>
@@ -2434,7 +2434,9 @@ namespace Rococo::Time
 } // Rococo::Time
 
 #ifdef _WIN32
-#include <windows.h>
+
+#include <rococo.os.win32.h>
+
 namespace Rococo::Windows
 {
 	ROCOCO_API int32 WheelDeltaToScrollLines(int32 wheelDelta, bool& scrollByPage)
@@ -2464,6 +2466,8 @@ namespace Rococo::Windows
 {
 	ROCOCO_API int32 WheelDeltaToScrollLines(int32 wheelDelta, bool& scrollByPage)
 	{
+		scrollByPage = false;
+
 		if (wheelDelta != 0 && (wheelDelta % 120) == 0)
 		{
 			// Assume a windows stanard wheel, in which deltas are in units of 120
