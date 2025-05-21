@@ -1,4 +1,5 @@
 #include "rococo.GR.UE5.h"
+#include "RococoGuiAPI.h"
 #include <rococo.gui.retained.ex.h>
 #include <rococo.strings.h>
 #include <rococo.maths.h>
@@ -6,6 +7,7 @@
 #include <rococo.hashtable.h>
 #include <rococo.ui.h>
 #include <rococo.vector.ex.h>
+#include "SlateRenderContext.h"
 
 namespace Rococo::OS
 {
@@ -56,9 +58,10 @@ namespace Rococo::Gui::UE5::Implementation
 		GuiRect lastScreenDimensions;
 		Vec2i cursorPos{ -1000,-1000 };
 		std::vector<RenderTask> lastTasks;
+		SlateRenderContext& rc;
 		UE5_GR_Custodian& custodian;
 
-		UE5_GR_Renderer(UE5_GR_Custodian& _custodian) : custodian(_custodian)
+		UE5_GR_Renderer(SlateRenderContext& _rc, UE5_GR_Custodian& _custodian) : rc(_rc), custodian(_custodian)
 		{
 
 		}
@@ -504,14 +507,12 @@ namespace Rococo::Gui::UE5::Implementation
 
 	struct UE5_GR_Custodian : IUE5_GRCustodianSupervisor, IGREventHistory, IGRFonts, IGRImages
 	{
-		UE5_GR_Renderer renderer;
-
 		// Debugging materials:
 		std::vector<IGRWidget*> history;
 		EGREventRouting lastRoutingStatus = EGREventRouting::Terminate;
 		int64 eventCount = 0;
 
-		UE5_GR_Custodian(): renderer(*this)
+		UE5_GR_Custodian()
 		{
 
 		}
@@ -651,13 +652,10 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
-		void Render(IGRSystem& gr) override
+		void Render(SlateRenderContext& rc, IGRSystem& gr) override
 		{
-			if (renderer.lastScreenDimensions.right > 0 && renderer.lastScreenDimensions.bottom > 0)
-			{
-				gr.RenderAllFrames(renderer);
-			}
-
+			UE5_GR_Renderer renderer(rc, *this);
+			gr.RenderAllFrames(renderer);
 			renderer.DrawLastItems();
 		}
 
@@ -683,7 +681,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian()
+	DLLEXPORT IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian()
 	{
 		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian();
 	}
