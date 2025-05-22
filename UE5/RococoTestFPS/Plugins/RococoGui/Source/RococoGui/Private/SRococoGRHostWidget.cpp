@@ -7,6 +7,7 @@ SRococoGRHostWidget::SRococoGRHostWidget()
 
 	Rococo::Gui::GRConfig config;
 	grSystem = Rococo::Gui::CreateGRSystem(config, *custodian);
+	custodian->Bind(*grSystem);
 }
 
 void SRococoGRHostWidget::Construct(const FArguments& InArgs)
@@ -29,7 +30,7 @@ int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 {
 	Rococo::SlateRenderContext rc{ args, allottedGeometry, cullingRect, drawElements, layerId, widgetStyle, bParentEnabled };
 
-	custodian->Render(rc, *grSystem);
+	custodian->Render(rc);
 
 	return 0;
 }

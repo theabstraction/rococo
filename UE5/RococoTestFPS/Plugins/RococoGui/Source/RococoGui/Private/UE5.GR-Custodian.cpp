@@ -512,6 +512,8 @@ namespace Rococo::Gui::UE5::Implementation
 		EGREventRouting lastRoutingStatus = EGREventRouting::Terminate;
 		int64 eventCount = 0;
 
+		IGRSystemSupervisor* grSystem = nullptr;
+
 		UE5_GR_Custodian()
 		{
 
@@ -520,6 +522,11 @@ namespace Rococo::Gui::UE5::Implementation
 		virtual ~UE5_GR_Custodian()
 		{
 
+		}
+
+		void Bind(IGRSystemSupervisor& _grSystem)
+		{
+			grSystem = &_grSystem;
 		}
 
 		Windows::IWindow& Owner()
@@ -584,32 +591,41 @@ namespace Rococo::Gui::UE5::Implementation
 			history.push_back(&widget);
 		}
 
-		void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) override
+		void RouteKeyboardEvent(const KeyboardEvent& key) override
 		{
+			if (!grSystem)
+			{
+				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking " __FUNCTION__);
+			}
 			GRKeyEvent keyEvent{ *this, eventCount, key };
-			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
+			lastRoutingStatus = grSystem->RouteKeyEvent(keyEvent);
 			if (lastRoutingStatus == EGREventRouting::NextHandler)
 			{
-				gr.ApplyKeyGlobally(keyEvent);
+				grSystem->ApplyKeyGlobally(keyEvent);
 			}
 		}
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
 
-		void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) override
+		void RouteMouseEvent(const MouseEvent& me) override
 		{
+			if (!grSystem)
+			{
+				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking " __FUNCTION__);
+			}
+
 			static_assert(sizeof GRCursorClick == sizeof uint16);
 
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
 				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData };
-				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
+				lastRoutingStatus = grSystem->RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
 				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0 };
-				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
+				lastRoutingStatus = grSystem->RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)
 				{
@@ -652,10 +668,15 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
-		void Render(SlateRenderContext& rc, IGRSystem& gr) override
+		void Render(SlateRenderContext& rc) override
 		{
+			if (!grSystem)
+			{
+				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking " __FUNCTION__);
+			}
+
 			UE5_GR_Renderer renderer(rc, *this);
-			gr.RenderAllFrames(renderer);
+			grSystem->RenderAllFrames(renderer);
 			renderer.DrawLastItems();
 		}
 
