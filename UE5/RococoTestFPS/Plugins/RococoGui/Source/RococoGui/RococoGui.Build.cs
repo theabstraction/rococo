@@ -122,12 +122,23 @@ public class RococoGui : ModuleRules
     private void CreateBundles()
     {
         CreateBundleDirect("rococo.maths.rococo-bundle.cpp", "rococo.GR.UE5.h", null, null, "rococo/rococo.maths",
-           new List<string>()
-           {
+            new List<string>()
+            {
                 "rococo.maths.cpp",
-                "rococo.collisions.cpp"
-           }
-       );
+                "rococo.collisions.cpp",
+                "rococo.integer.formatting.cpp"
+            }
+        );
+
+        CreateBundleDirect("rococo.greatsex.rococo-bundle.cpp", "rococo.GR.UE5.h", null, null, "rococo/rococo.great.sex",
+            new List<string>()
+            {
+                "great.sex.colour.cpp",
+                "great.sex.scheme.cpp",
+                "great.sex.main.cpp",
+                "great.sex.test-data.cpp"
+            }
+        );
     }
 
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)

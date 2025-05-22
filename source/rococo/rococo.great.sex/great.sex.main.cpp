@@ -57,7 +57,9 @@ namespace Rococo::GreatSex
 
 		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder, ISEXMLInserter, ISEXMLGameOptionsList
 		{
-			// Widget Handlers, defined first
+			IAllocator& sexmlAllocator;
+			IGreatSexResourceLoader& loader;
+
 			DivisionFactory onDivision;
 			AutoFree<ISEXMLWidgetFactorySupervisor> onScheme;
 			AutoFree<ISEXMLWidgetFactorySupervisor> onColour;
@@ -86,8 +88,6 @@ namespace Rococo::GreatSex
 
 			Auto<ISParser> insertParser;
 
-			IAllocator& sexmlAllocator;
-			
 			stringmap<ISEXMLWidgetFactory*> widgetHandlers;
 
 			typedef void(GreatSexGenerator::* MethodForAttribute)(IGRPanel& panel, const ISEXMLAttributeValue& value);
@@ -98,14 +98,12 @@ namespace Rococo::GreatSex
 
 			stringmap<EGRSchemeColourSurface> nameToColourSurface;
 
-			IGreatSexResourceLoader& loader;
-
 			GreatSexGenerator(IAllocator& _sexmlAllocator, IGreatSexResourceLoader& _loader) :
+				sexmlAllocator(_sexmlAllocator),
+				loader(_loader),
 				onScheme(CreateSchemeHandler()),
 				onColour(CreateColourHandler(*this)),
-				sexmlAllocator(_sexmlAllocator),
 				onInsert(*this),
-				loader(_loader),
 				onGameOptions(*this)
 			{
 				insertParser = CreateSexParser_2_0(sexmlAllocator);

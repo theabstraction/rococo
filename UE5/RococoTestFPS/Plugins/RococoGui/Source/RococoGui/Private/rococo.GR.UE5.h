@@ -11,4 +11,8 @@
 # define ROCOCO_GUI_RETAINED_API _declspec(dllimport)
 #endif
 
+#ifndef ROCOCO_GREAT_SEX_API
+# define  ROCOCO_GREAT_SEX_API _declspec(dllexport)
+#endif
+
 #define ROCOCO_USE_SAFE_V_FORMAT
