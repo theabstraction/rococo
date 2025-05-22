@@ -60,7 +60,7 @@ namespace Rococo::Gui::UE5::Implementation
 		GuiRect lastScreenDimensions;
 		Vec2i cursorPos{ -1000,-1000 };
 		std::vector<RenderTask> lastTasks;
-		SlateRenderContext& rc;
+		SlateRenderContext rc;
 		UE5_GR_Custodian& custodian;
 
 		UE5_GR_Renderer(SlateRenderContext& _rc, UE5_GR_Custodian& _custodian) : rc(_rc), custodian(_custodian)

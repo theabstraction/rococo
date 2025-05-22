@@ -8,14 +8,6 @@ using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::GreatSex;
 
-struct ResourceLoader: IGreatSexResourceLoader
-{
-	void LoadGreatSexResource(cstr resourcePath, Rococo::IO::ILoadEventsCallback& onLoad) override
-	{
-		Throw(0, __FUNCTION__ ": Not implemented");
-	}
-};
-
 static GRIdWidget s_HostFrame { "SRococoGRHostWidget.cpp-HostFrame" };
 
 SRococoGRHostWidget::SRococoGRHostWidget()
@@ -24,8 +16,6 @@ SRococoGRHostWidget::SRococoGRHostWidget()
 	Rococo::Gui::GRConfig config;
 	grSystem = CreateGRSystem(config, *custodian);
 	custodian->Bind(*grSystem);
-
-	grSystem->BindFrame(s_HostFrame);
 }
 
 void SRococoGRHostWidget::Construct(const FArguments& InArgs)
