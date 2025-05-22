@@ -9,11 +9,18 @@ namespace Rococo
 	struct SlateRenderContext;
 }
 
+namespace Rococo::GreatSex
+{
+	struct LoadFrameException;
+}
+
 namespace Rococo::Gui
 {
 	ROCOCO_INTERFACE IUE5_GRCustodianSupervisor : IGRCustodianSupervisor
 	{
+		virtual void AddLoadError(Rococo::GreatSex::LoadFrameException& err) = 0;
 		virtual void Bind(IGRSystemSupervisor& grSystem) = 0;
+		virtual IO::IInstallation& Installation() = 0;
 		virtual void Render(SlateRenderContext& rc) = 0;
 		virtual void RouteKeyboardEvent(const KeyboardEvent& key) = 0;
 		virtual void RouteMouseEvent(const MouseEvent& me) = 0;

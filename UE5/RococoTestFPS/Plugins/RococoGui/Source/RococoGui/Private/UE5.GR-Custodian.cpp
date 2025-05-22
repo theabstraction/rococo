@@ -6,8 +6,10 @@
 #include <rococo.maths.i32.h>
 #include <rococo.hashtable.h>
 #include <rococo.ui.h>
+#include <rococo.io.h>
 #include <rococo.vector.ex.h>
 #include "SlateRenderContext.h"
+#include <rococo.great.sex.h>
 
 namespace Rococo::OS
 {
@@ -514,9 +516,13 @@ namespace Rococo::Gui::UE5::Implementation
 
 		IGRSystemSupervisor* grSystem = nullptr;
 
+		AutoFree<Rococo::IO::IOSSupervisor> ue5os;
+		AutoFree<Rococo::IO::IInstallationSupervisor> installation;
+
 		UE5_GR_Custodian()
 		{
-
+			ue5os = IO::GetIOS();
+			installation = IO::CreateInstallation(TEXT("rococo.content.indicator.txt"), *ue5os);
 		}
 
 		virtual ~UE5_GR_Custodian()
@@ -524,9 +530,19 @@ namespace Rococo::Gui::UE5::Implementation
 
 		}
 
+		void AddLoadError(Rococo::GreatSex::LoadFrameException& err)
+		{
+			// TODO -> route this to the renderer to display error information
+		}
+
 		void Bind(IGRSystemSupervisor& _grSystem)
 		{
 			grSystem = &_grSystem;
+		}
+
+		IO::IInstallation& Installation() override
+		{
+			return *installation;
 		}
 
 		Windows::IWindow& Owner()

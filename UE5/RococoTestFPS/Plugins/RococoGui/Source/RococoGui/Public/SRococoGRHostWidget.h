@@ -3,6 +3,17 @@
 
 #include <RococoGuiAPI.h>
 
+namespace Rococo
+{
+	template<class T> struct IEventCallback;
+}
+
+namespace Rococo::GreatSex
+{
+	struct IGreatSexGenerator;
+}
+
+
 class FPaintArgs;
 class FSlateWindowElementList;
 
@@ -24,4 +35,6 @@ public:
 	void Construct(const FArguments& args);
 	FVector2D ComputeDesiredSize(float) const override;
 	int32 OnPaint(const FPaintArgs& args, const FGeometry& allottedGeometry, const FSlateRect& cullingRect, OUT FSlateWindowElementList& drawElements, int32 LayerId, const FWidgetStyle& widgetStyle, bool bParentEnabled) const override;
+
+	void LoadFrame(const char* pingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
 };

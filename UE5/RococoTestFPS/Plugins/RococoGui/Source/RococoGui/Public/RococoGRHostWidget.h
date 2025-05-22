@@ -18,6 +18,8 @@ public:
 	void ReleaseSlateResources(bool bReleaseChildren) override;
 	TSharedRef<SWidget> RebuildWidget() override;
 
+	void LoadFrame(const FString& sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
+	void LoadFrame(const char* pingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
 protected:
 	TSharedPtr<SRococoGRHostWidget> slateHostWidget;
 };
