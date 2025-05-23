@@ -183,7 +183,8 @@ public class RococoGui : ModuleRules
 				"Slate",
 				"SlateCore",
                 "RococoOS",
-                "RococoUtil"
+                "RococoUtil",
+                "EngineSettings"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -12,6 +12,7 @@ namespace Rococo
 namespace Rococo::GreatSex
 {
 	struct LoadFrameException;
+	DECLARE_ROCOCO_INTERFACE IGreatSexGenerator;
 }
 
 namespace Rococo::Gui
@@ -30,4 +31,8 @@ namespace Rococo::Gui
 namespace Rococo::Gui
 {
 	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian();
+
+	typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
+
+	ROCOCOGUI_API void SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator);
 }
