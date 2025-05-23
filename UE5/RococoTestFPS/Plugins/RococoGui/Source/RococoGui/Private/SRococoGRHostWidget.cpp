@@ -1,6 +1,7 @@
 #include "SRococoGRHostWidget.h"
 #include "SlateRenderContext.h"
 
+#include <rococo.os.h>
 #include <rococo.great.sex.h>
 #include <rococo.allocators.h>
 
@@ -12,10 +13,17 @@ static GRIdWidget s_HostFrame { "SRococoGRHostWidget.cpp-HostFrame" };
 
 SRococoGRHostWidget::SRococoGRHostWidget()
 {
-	custodian = Create_UE5_GRCustodian();
-	Rococo::Gui::GRConfig config;
-	grSystem = CreateGRSystem(config, *custodian);
-	custodian->Bind(*grSystem);
+	try
+	{
+		custodian = Create_UE5_GRCustodian();
+		Rococo::Gui::GRConfig config;
+		grSystem = CreateGRSystem(config, *custodian);
+		custodian->Bind(*grSystem);
+	}
+	catch (IException& ex)
+	{
+		LogExceptionAndQuit(ex, nullptr, nullptr);
+	}
 }
 
 void SRococoGRHostWidget::Construct(const FArguments& InArgs)

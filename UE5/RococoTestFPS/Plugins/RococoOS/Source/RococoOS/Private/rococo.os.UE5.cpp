@@ -10,15 +10,55 @@
 #include <Misc/Paths.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
-#include <GenericPlatform/GenericPlatformMisc.h>
-#include <GenericPlatform/GenericPlatformApplicationMisc.h>
+#include <HAL/PlatformMisc.h>
+#include <HAL/PlatformApplicationMisc.h>
 #include <Logging/LogMacros.h>
 #include <Misc/CommandLine.h>
+
+DECLARE_LOG_CATEGORY_EXTERN(RococoException, Error, All);
+DEFINE_LOG_CATEGORY(RococoException);
 
 using namespace Rococo::Strings;
 
 namespace Rococo
 {
+	void LogException(Rococo::IException& ex, cstr prelude, cstr postlude, bool isFatal)
+	{
+		TArray<char> err;
+		err.SetNum(8192);
+		StackStringBuilder sb(err.GetData(), err.Num(), StringBuilder::CursorState::BUILD_EXISTING);
+		if (prelude) sb << prelude;
+		if (ex.ErrorCode() != 0)
+		{
+			sb.AppendFormat("Error code: %d (0x%8.8X). ", ex.ErrorCode(), ex.ErrorCode());
+		}
+
+		sb << ex.Message();
+
+		if (postlude) sb << postlude;
+
+		FString msg(err.GetData());
+
+		if (isFatal)
+		{
+			UE_LOG(RococoException, Fatal, TEXT("%s"), *msg);
+		}
+		else
+		{
+			UE_LOG(RococoException, Error, TEXT("%s"), *msg);
+		}
+	}
+
+	ROCOCO_API void LogExceptionAndQuit(Rococo::IException& ex, cstr prelude, cstr postlude)
+	{
+		LogException(ex, prelude, postlude, true);
+	}
+
+	ROCOCO_API void LogExceptionAndContinue(Rococo::IException& ex, cstr prelude, cstr postlude)
+	{
+		LogException(ex, prelude, postlude, false);
+	}
+
 	[[noreturn]] void Throw(const FString& msg);
 
 	void SecureCopyStringToBuffer(char* buffer, size_t capacity, const FString& s)
@@ -210,7 +250,7 @@ namespace Rococo::IO
 
 	ROCOCO_API char DirectorySeparatorChar()
 	{
-		return *FGenericPlatformMisc::GetDefaultPathSeparator();
+		return *FPlatformMisc::GetDefaultPathSeparator();
 	}
 
 	void CreateDirectoryFolder(const FString& path)
@@ -460,7 +500,7 @@ namespace Rococo::IO
 
 	ROCOCO_API void GetExePath(U8FilePath& path)
 	{
-		FString exeName(FGenericPlatformProcess::ExecutablePath());
+		FString exeName(FPlatformProcess::ExecutablePath());
 
 		TArray<uint8> buffer;
 		ConvertFStringToUTF8Buffer(buffer, exeName);
@@ -475,16 +515,18 @@ namespace Rococo::IO
 
 	ROCOCO_API void GetExePath(WideFilePath& path)
 	{
-		FString exeName(FGenericPlatformProcess::ExecutablePath());
+		FString exeName(FPlatformProcess::ExecutablePath());
 		Strings::Format(OUT path, TEXT("%s"), *exeName);
 	}
 
 	void GetContentDirectory(const TCHAR* contentIndicatorName, WideFilePath& path, IOS& os)
 	{
-		WideFilePath binDirectory;
-		os.GetBinDirectoryAbsolute(binDirectory);
+		FString gameRelativeDir = FPaths::ProjectContentDir();
+		FString gameDir = FPaths::ConvertRelativePathToFull(gameRelativeDir);
 
-		path = binDirectory;
+		static_assert(sizeof TCHAR == sizeof(wchar_t));
+
+		Strings::SecureFormat(path.buf, TEXT("%s"), *gameDir);
 
 		FString contentIndicator(contentIndicatorName);
 
@@ -506,7 +548,7 @@ namespace Rococo::IO
 			FString indicator = FString::Printf(TEXT("%s%s"), path.buf, contentIndicatorName);
 			if (os.IsFileExistant(*indicator))
 			{
-				indicator = FString::Printf(TEXT("%scontent\\"), path.buf);
+				indicator = FString::Printf(TEXT("%sRococo.Content\\"), path.buf);
 				Populate(path, indicator);
 				return;
 			}
@@ -518,7 +560,7 @@ namespace Rococo::IO
 			len = newLen;
 		}
 
-		Throw(FString::Printf(TEXT("Could not find %s below the executable folder '%s'"), contentIndicatorName, binDirectory.buf));
+		Throw(FString::Printf(TEXT("Could not find %s at or below the game content folder '%s'"), contentIndicatorName, *gameDir));
 	}
 
 	/*
@@ -531,7 +573,7 @@ namespace Rococo::IO
 	ROCOCO_API void PasteFromClipboard(char* asciiBuffer, size_t capacity)
 	{
 		FString pastedText;
-		FGenericPlatformApplicationMisc::ClipboardPaste(OUT pastedText);
+		FPlatformApplicationMisc::ClipboardPaste(OUT pastedText);
 
 		if constexpr (sizeof TCHAR > 1)
 		{
@@ -651,7 +693,7 @@ namespace Rococo::OS
 	ROCOCO_API void PasteStringFromClipboard(Strings::IStringPopulator& populator)
 	{
 		FString pastedText;
-		FGenericPlatformApplicationMisc::ClipboardPaste(OUT pastedText);
+		FPlatformApplicationMisc::ClipboardPaste(OUT pastedText);
 
 		if constexpr (sizeof TCHAR > 1)
 		{
@@ -931,7 +973,7 @@ namespace Rococo::OS
 
 	ROCOCO_API bool IsDebugging()
 	{
-		return FGenericPlatformMisc::IsDebuggerPresent();
+		return FPlatformMisc::IsDebuggerPresent();
 	}
 
 	ROCOCO_API void TripDebugger()
@@ -956,8 +998,8 @@ namespace Rococo
 {
 	ROCOCO_API MemoryUsage ProcessMemory()
 	{
-		auto& constants = FGenericPlatformMemory::GetConstants();
-		auto stats = FGenericPlatformMemory::GetStats();
+		auto& constants = FPlatformMemory::GetConstants();
+		auto stats = FPlatformMemory::GetStats();
 
 		return{ stats.UsedPhysical, stats.PeakUsedPhysical };
 	}
@@ -1712,7 +1754,7 @@ namespace Rococo::OS
 			void ShutdownApp() override
 			{
 				isRunning = false;
-				FGenericPlatformMisc::RequestExit(false, TEXT(__FUNCTION__));
+				FPlatformMisc::RequestExit(false, TEXT(__FUNCTION__));
 			}
 
 			bool IsRunning() const
@@ -1869,7 +1911,7 @@ namespace Rococo::OS
 		UNUSED(window);
 
 		FString sText(text);
-		FGenericPlatformApplicationMisc::ClipboardCopy(*sText);
+		FPlatformApplicationMisc::ClipboardCopy(*sText);
 	}
 
 	ROCOCO_API void CopyExceptionToClipboard(IException& ex, Rococo::Windows::IWindow& window)

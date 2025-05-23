@@ -522,7 +522,7 @@ namespace Rococo::Gui::UE5::Implementation
 		UE5_GR_Custodian()
 		{
 			ue5os = IO::GetIOS();
-			installation = IO::CreateInstallation(TEXT("rococo.content.indicator.txt"), *ue5os);
+			installation = IO::CreateInstallation(TEXT("Rococo.Content.indicator.txt"), *ue5os);
 		}
 
 		virtual ~UE5_GR_Custodian()

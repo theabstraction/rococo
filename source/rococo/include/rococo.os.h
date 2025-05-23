@@ -18,6 +18,9 @@ namespace Rococo
 	ROCOCO_API void ThrowNoError();
 
 	ROCOCO_API void ThrowMissingResourceFile(ErrorCode code, cstr description, cstr filename);
+
+	ROCOCO_API void LogExceptionAndQuit(Rococo::IException& ex, cstr prelude, cstr postlude);
+	ROCOCO_API void LogExceptionAndContinue(Rococo::IException& ex, cstr prelude, cstr postlude);
 }
 
 namespace Rococo::IO
