@@ -548,8 +548,20 @@ namespace Rococo::IO
 			FString indicator = FString::Printf(TEXT("%s%s"), path.buf, contentIndicatorName);
 			if (os.IsFileExistant(*indicator))
 			{
-				indicator = FString::Printf(TEXT("%sRococo.Content\\"), path.buf);
-				Populate(path, indicator);
+				U8FilePath subDir;
+				IO::LoadAsciiTextFile(subDir.buf, subDir.CAPACITY, *indicator);
+
+				FString sSubDir(subDir);
+				FString rootDir(path.buf);
+
+				FString fullDir = FPaths::Combine(rootDir, sSubDir);
+
+				if (!FPaths::DirectoryExists(fullDir))
+				{
+					Throw(FString::Printf(TEXT("RococoOS: Could not find %s. File path was specified in %s"), *fullDir, *indicator));
+				}
+
+				Populate(path, fullDir);
 				return;
 			}
 
