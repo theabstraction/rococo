@@ -13,7 +13,7 @@ namespace Rococo
 	struct SlateRenderContext
 	{
 		const FPaintArgs& args;
-		const FGeometry& geometry;
+		const FPaintGeometry& geometry;
 		const FSlateRect& cullingRect;
 		FSlateWindowElementList& drawElements;
 		int32 layerId;

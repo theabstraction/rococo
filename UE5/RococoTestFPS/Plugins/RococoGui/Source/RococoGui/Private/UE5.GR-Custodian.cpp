@@ -36,10 +36,32 @@ namespace Rococo::Gui
 		const GRKeyEvent& keyEvent,
 		IGREditorMicromanager& manager,
 		Strings::ICharBuilder& builder);
+
+	constexpr FLinearColor NoTint()
+	{
+		return FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	}
 }
 
 namespace Rococo::Gui::UE5::Implementation
 {
+	float ToFloat(uint8 j)
+	{
+		return j / 255.0f;
+	}
+
+	FLinearColor ToLinearColor(RGBAb colour)
+	{
+		return FLinearColor(ToFloat(colour.red), ToFloat(colour.green), ToFloat(colour.blue), ToFloat(colour.alpha));
+	}
+
+	FPaintGeometry ToUE5Rect(const GuiRect& absRect, const FPaintGeometry& parentGeometry)
+	{
+		UE::Slate::FDeprecateVector2DParameter position(FIntPoint(absRect.left, absRect.top));
+		UE::Slate::FDeprecateVector2DParameter span(FIntPoint(Width(absRect), Height(absRect)));
+		return FPaintGeometry(position, span, 1.0f);
+	}
+
 	enum class ERenderTaskType
 	{
 		Edge
@@ -65,7 +87,11 @@ namespace Rococo::Gui::UE5::Implementation
 
 		UE5_GR_Renderer(SlateRenderContext& _rc, UE5_GR_Custodian& _custodian) : rc(_rc), custodian(_custodian)
 		{
-
+			auto localSize = _rc.geometry.GetLocalSize();
+			lastScreenDimensions.left = 0;
+			lastScreenDimensions.top = 0;
+			lastScreenDimensions.right = localSize.X;
+			lastScreenDimensions.bottom = localSize.Y;
 		}
 
 		virtual ~UE5_GR_Renderer()
@@ -98,6 +124,9 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
 		{
+			auto& i = static_cast<UE5_GR_Image&>(image);
+			FSlateImageBrush& brush = i.Brush();
+			FSlateDrawElement::MakeBox(rc.drawElements, rc.layerId, rc.geometry, &brush, ESlateDrawEffect::None, NoTint());
 		}
 
 		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
@@ -113,7 +142,21 @@ namespace Rococo::Gui::UE5::Implementation
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 
+			ESlateDrawEffect drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+
+			auto ue5Colour = ToLinearColor(colour);
+			FSlateColorBrush solidBrush(ue5Colour);
+
+			FSlateDrawElement::MakeBox(OUT rc.drawElements,
+				rc.layerId,
+				ToUE5Rect(absRect, rc.geometry),
+				&solidBrush,
+				drawEffects,
+				NoTint()
+			);
+
 			/*
+
 			rc->SetScissorRect(visibleRect);
 			switch (rectStyle)
 			{
@@ -124,12 +167,15 @@ namespace Rococo::Gui::UE5::Implementation
 			case EGRRectStyle::ROUNDED:
 				Rococo::Graphics::DrawRoundedRectangle(*rc, absRect, colour, cornerRadius);
 			}
+
 			*/
 		}
 
 		void DrawLine(Vec2i start, Vec2i end, RGBAb colour)
 		{
 		}
+
+		TArray<FVector2D> pointBuilder;
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
 		{
@@ -142,6 +188,20 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
+
+			FLinearColor topLeftColour = ToLinearColor(colour1);
+			pointBuilder.Empty();
+			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
+			pointBuilder.Add(FVector2D(absRect.left, absRect.top));
+			pointBuilder.Add(FVector2D(absRect.right, absRect.top));
+			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, topLeftColour);
+
+			FLinearColor bottomRightColour = ToLinearColor(colour2);
+			pointBuilder.Empty();
+			pointBuilder.Add(FVector2D(absRect.right, absRect.top));
+			pointBuilder.Add(FVector2D(absRect.right, absRect.bottom));
+			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
+			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, bottomRightColour);
 
 			/*
 			rc->SetScissorRect(visibleRect);
@@ -469,9 +529,16 @@ namespace Rococo::Gui::UE5::Implementation
 	{
 		Vec2i span{ 8, 8 };
 
+		FSlateImageBrush* brush = nullptr;
+
 		UE5_GR_Image(cstr hint, cstr imagePath)
 		{
 
+		}
+
+		virtual ~UE5_GR_Image()
+		{
+			delete brush;
 		}
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override

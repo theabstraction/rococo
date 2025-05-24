@@ -69,7 +69,7 @@ void DrawBackground(Rococo::SlateRenderContext& rc, const FWidgetStyle& style)
 
 	FSlateDrawElement::MakeBox(OUT rc.drawElements,
 		rc.layerId,
-		rc.geometry.ToPaintGeometry(),
+		rc.geometry,
 		&solidBrush,
 		drawEffects,
 		solidBrush.GetTint(style)
@@ -88,7 +88,7 @@ int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 
 	bool bEnabled = ShouldBeEnabled(bParentEnabled);
 	
-	Rococo::SlateRenderContext rc{ args, allottedGeometry, cullingRect, drawElements, layerId, widgetStyle, bEnabled };
+	Rococo::SlateRenderContext rc{ args, allottedGeometry.ToPaintGeometry(), cullingRect, drawElements, layerId, widgetStyle, bEnabled};
 
 	DrawBackground(rc, widgetStyle);
 
