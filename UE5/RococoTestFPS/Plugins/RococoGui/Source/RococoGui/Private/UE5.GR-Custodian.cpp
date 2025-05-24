@@ -77,6 +77,47 @@ namespace Rococo::Gui::UE5::Implementation
 
 	struct UE5_GR_Custodian;
 
+	struct UE5_GR_Image : IUE5_GR_ImageSupervisor
+	{
+		Vec2i span{ 8, 8 };
+
+		FSlateImageBrush* brush = nullptr;
+
+		UE5_GR_Image(cstr hint, cstr imagePath)
+		{
+
+		}
+
+		virtual ~UE5_GR_Image()
+		{
+			delete brush;
+		}
+
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override
+		{
+			return false;
+			// return static_cast<UE5_GR_Renderer&>(g).Render(panel, alignment, spacing, isStretched, sprite);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+
+		Vec2i Span() const override
+		{
+			return { 32, 32 };
+			// return Quantize(sprite.pixelSpan);
+		}
+
+		/*
+		const BitmapLocation& Sprite() const override
+		{
+			return sprite;
+		}
+		*/
+	};
+
 	struct UE5_GR_Renderer : IGRRenderContext
 	{
 		GuiRect lastScreenDimensions;
@@ -124,9 +165,11 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
 		{
-			auto& i = static_cast<UE5_GR_Image&>(image);
-			FSlateImageBrush& brush = i.Brush();
-			FSlateDrawElement::MakeBox(rc.drawElements, rc.layerId, rc.geometry, &brush, ESlateDrawEffect::None, NoTint());
+			auto* brush = static_cast<UE5_GR_Image&>(image).brush;
+			if (brush)
+			{
+				FSlateDrawElement::MakeBox(rc.drawElements, rc.layerId, ToUE5Rect(absRect, rc.geometry), brush, ESlateDrawEffect::None, NoTint());
+			}
 		}
 
 		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
@@ -522,48 +565,6 @@ namespace Rococo::Gui::UE5::Implementation
 			return true;
 		}
 	*/
-	};
-
-
-	struct UE5_GR_Image : IUE5_GR_ImageSupervisor
-	{
-		Vec2i span{ 8, 8 };
-
-		FSlateImageBrush* brush = nullptr;
-
-		UE5_GR_Image(cstr hint, cstr imagePath)
-		{
-
-		}
-
-		virtual ~UE5_GR_Image()
-		{
-			delete brush;
-		}
-
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override
-		{
-			return false;
-			// return static_cast<UE5_GR_Renderer&>(g).Render(panel, alignment, spacing, isStretched, sprite);
-		}
-
-		void Free() override
-		{
-			delete this;
-		}
-
-		Vec2i Span() const override
-		{
-			return { 32, 32 };
-			// return Quantize(sprite.pixelSpan);
-		}
-
-		/*
-		const BitmapLocation& Sprite() const override
-		{
-			return sprite;
-		}
-		*/
 	};
 
 	const stringmap<cstr> macroToPingPath =
