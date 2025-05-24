@@ -61,6 +61,21 @@ void SRococoGRHostWidget::LoadFrame(const char* sexmlPingPath, IEventCallback<IG
 	GreatSex::LoadFrame(custodian->Installation(), *allocator, sexmlPingPath, frame, onPrepForLoading, onError);
 }
 
+void DrawBackground(Rococo::SlateRenderContext& rc, const FWidgetStyle& style)
+{
+	ESlateDrawEffect drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+
+	FSlateColorBrush solidBrush(rc.bEnabled ? style.GetForegroundColor() : style.GetSubduedForegroundColor());
+
+	FSlateDrawElement::MakeBox(OUT rc.drawElements,
+		rc.layerId,
+		rc.geometry.ToPaintGeometry(),
+		&solidBrush,
+		drawEffects,
+		solidBrush.GetTint(style)
+	);
+}
+
 int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 	const FGeometry& allottedGeometry,
 	const FSlateRect& cullingRect,
@@ -69,9 +84,15 @@ int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 	const FWidgetStyle& widgetStyle,
 	bool bParentEnabled) const
 {
-	Rococo::SlateRenderContext rc{ args, allottedGeometry, cullingRect, drawElements, layerId, widgetStyle, bParentEnabled };
+	layerId++;
+
+	bool bEnabled = ShouldBeEnabled(bParentEnabled);
+	
+	Rococo::SlateRenderContext rc{ args, allottedGeometry, cullingRect, drawElements, layerId, widgetStyle, bEnabled };
+
+	DrawBackground(rc, widgetStyle);
 
 	custodian->Render(rc);
 
-	return 0;
+	return layerId;
 }

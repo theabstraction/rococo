@@ -20,8 +20,43 @@ DEFINE_LOG_CATEGORY(RococoException);
 
 using namespace Rococo::Strings;
 
+#ifdef _WIN32
+struct HWND__;
+#endif
+
 namespace Rococo
 {
+#ifdef _WIN32
+	typedef unsigned long WindowsDWORD;
+	typedef int WindowsBOOL;
+	typedef unsigned int WindowsUINT;
+	typedef HWND__* HWND;
+	extern "C" __declspec(dllimport) HWND GetActiveWindow();
+	extern "C" __declspec(dllimport) WindowsBOOL SystemParametersInfoW(WindowsUINT uiAction, WindowsUINT uiParam, void* param, WindowsUINT fWinIni);
+	extern "C" _declspec(dllimport) WindowsDWORD GetLastError();
+	extern "C" _declspec(dllimport) void SetLastError(WindowsDWORD err);
+	extern "C" _declspec(dllimport)  WindowsDWORD FormatMessageA(
+		WindowsDWORD flags,
+		const void* source,
+		WindowsDWORD messageId,
+		WindowsDWORD languageId,
+		char* buffer,
+		WindowsDWORD bufferCapacity,
+		va_list* Arguments
+	);
+
+#else
+	void SetLastError(int errorCode)
+	{
+		UNUSED(errorCode);
+	}
+
+	int GetLastError()
+	{
+		return 0;
+	}
+#endif
+
 	void LogException(Rococo::IException& ex, cstr prelude, cstr postlude, bool isFatal)
 	{
 		TArray<char> err;
@@ -80,18 +115,23 @@ namespace Rococo
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
 	}
 
-	[[noreturn]] void Throw(const FString& msg)
+	[[noreturn]] void Throw(int errorCode, const FString& msg)
 	{
 		if constexpr ((sizeof TCHAR) > 1)
 		{
 			TArray<uint8> buffer;
 			ConvertFStringToUTF8Buffer(buffer, msg);
-			Throw(0, "%s", buffer.GetData());
+			Throw(errorCode, "%s", buffer.GetData());
 		}
 		else
 		{
-			Throw(0, "%s", *msg);
+			Throw(errorCode, "%s", *msg);
 		}
+	}
+
+	[[noreturn]] void Throw(const FString& msg)
+	{
+		Throw(0, msg);
 	}
 
 	void SecureCopyStringToBuffer(wchar_t* destination, size_t capacity, const FString& s)
@@ -260,9 +300,10 @@ namespace Rococo::IO
 		// Directory Exists?
 		if (!platformFile.DirectoryExists(*path))
 		{
+			SetLastError(0);
 			if (!platformFile.CreateDirectory(*path))
 			{
-				Throw(FString::Printf(TEXT("Cannot create directory %s"), *path));
+				Throw(GetLastError(), FString::Printf(TEXT("Cannot create directory %s"), *path));
 			}
 		}
 	}
@@ -290,10 +331,11 @@ namespace Rococo::IO
 			{
 				if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
 
+				SetLastError(0);
 				file = IPlatformFile::GetPlatformPhysical().OpenWrite(sysPath);
 				if (file == nullptr)
 				{
-					Throw(FString::Printf(TEXT("Error creating file: %s"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT("Error creating file: %s"), sysPath));
 				}
 			}
 
@@ -315,9 +357,10 @@ namespace Rococo::IO
 
 			void SeekAbsolute(uint64 position)
 			{
+				SetLastError(0);
 				if (!file->Seek((int64)position))
 				{
-					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Seek failed"), *filename));
+					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Seek failed"), *filename));
 				}
 			}
 
@@ -339,9 +382,10 @@ namespace Rococo::IO
 					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Could not write data. It was greater than 4GB in length"), *filename));
 				}
 
+				SetLastError(0);
 				if (!file->Write((const uint8*)pElements, (int64) nTotalBytes))
 				{
-					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Could not write data. Disk full?"), *filename));
+					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Could not write data. Disk full?"), *filename));
 				}
 			}
 
@@ -365,10 +409,11 @@ namespace Rococo::IO
 			{
 				if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
 
+				SetLastError(0);
 				file = IPlatformFile::GetPlatformPhysical().OpenRead(sysPath);
 				if (file == nullptr)
 				{
-					Throw(FString::Printf(TEXT("Error opening file for read: %s"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT("Error opening file for read: %s"), sysPath));
 				}
 			}
 
@@ -381,9 +426,10 @@ namespace Rococo::IO
 			{
 				DWORD bytesRead = 0;
 
+				SetLastError(0);
 				if (!file->Read((uint8*)pElements, (int64)capacity))
 				{
-					Throw(FString::Printf(TEXT("Error reading file: %s"), *filename));
+					Throw(GetLastError(), FString::Printf(TEXT("Error reading file: %s"), *filename));
 				}
 				
 				return bytesRead;
@@ -430,24 +476,25 @@ namespace Rococo::IO
 
 			BinMapping(const wchar_t* sysPath)
 			{
+				SetLastError(0);
 				AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(sysPath));
 				if (file.file == nullptr)
 				{
-					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": Error opening file for read %s"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": Error opening file for read %s"), sysPath));
 				}
 			
 				int64 len = file->Size();
 
 				if (len > (int64) 4_gigabytes)
 				{
-					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": Error opening file for read %s. File > 4GB"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": Error opening file for read %s. File > 4GB"), sysPath));
 				}
 
 				dataMap.SetNum(len, EAllowShrinking::Yes);
 
 				if (!file->Read(dataMap.GetData(), len))
 				{
-					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": Error reading data from %s"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": Error reading data from %s"), sysPath));
 				}
 			}
 
@@ -993,6 +1040,22 @@ namespace Rococo::OS
 		UE_DEBUG_BREAK();
 	}
 
+#ifdef _WIN32
+	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
+	{
+		enum { EFORMAT_MESSAGE_FROM_SYSTEM = 0x00001000 };
+
+		DWORD code = FormatMessageA(EFORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, sizeofBuffer, nullptr);
+		if (code == 0)
+		{
+			snprintf(message, sizeofBuffer, "Error %d (0x%X)", errorCode, errorCode);
+		}
+		else
+		{
+			snprintf(message, sizeofBuffer, "No error code");
+		}
+	}
+#else
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
 	{
 		if (errorCode != 0)
@@ -1004,6 +1067,7 @@ namespace Rococo::OS
 			snprintf(message, sizeofBuffer, "No error code");
 		}
 	}
+#endif
 }
 
 namespace Rococo
@@ -1513,10 +1577,11 @@ namespace UE5_ANON
 
 		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
+			SetLastError(0);
 			AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(absPath));
 			if (file.file == nullptr)
 			{
-				Throw(FString::Printf(TEXT("LoadAbsolute failed: Error opening file %s"), absPath));
+				Throw(GetLastError(), FString::Printf(TEXT("LoadAbsolute failed: Error opening file %s"), absPath));
 			}
 			
 			int64 fileSize = file->Size();
@@ -1546,12 +1611,12 @@ namespace UE5_ANON
 				DWORD bytesRead = 0;
 				if (!file->Read(data + offset, chunk))
 				{
-					Throw(FString::Printf(TEXT("LoadAbsolute failed: Error reading file <%s>"), absPath));
+					Throw(GetLastError(), FString::Printf(TEXT("LoadAbsolute failed: Error reading file <%s>"), absPath));
 				}
 
 				if (bytesRead != chunk)
 				{
-					Throw(FString::Printf(TEXT("LoadAbsolute failed:  Error reading file <%s>. Failed to read chunk"), absPath));
+					Throw(GetLastError(), FString::Printf(TEXT("LoadAbsolute failed:  Error reading file <%s>. Failed to read chunk"), absPath));
 				}
 
 				offset += (ptrdiff_t)chunk;
@@ -1562,6 +1627,8 @@ namespace UE5_ANON
 		bool TryLoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
 		{
 			sysErrorCode = (ErrorCode)0;
+
+			SetLastError(0);
 
 			AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(absPath));
 			if (file.file == nullptr)
@@ -1613,7 +1680,7 @@ namespace UE5_ANON
 
 						if (!hFile->Read((uint8*)buffer, (int64)bytesRead))
 						{
-							Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - read failed"), absPath));
+							Throw(GetLastError(), FString::Printf(TEXT("TryLoadAbsolute(%s) - read failed"), absPath));
 						}
 
 						int64 postPos = hFile->Tell();
@@ -1621,7 +1688,7 @@ namespace UE5_ANON
 						int64 delta = postPos - prePos;
 						if (delta < 0 || delta > 0x00000000FFFFFFFF)
 						{
-							Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - unexpected file position"), absPath));
+							Throw(GetLastError(), FString::Printf(TEXT("TryLoadAbsolute(%s) - unexpected file position"), absPath));
 						}
 
 						bytesRead = (uint32)delta;
@@ -1641,8 +1708,9 @@ namespace UE5_ANON
 
 		void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const override
 		{
+			SetLastError(0);
 			AutoFile hFile = IPlatformFile::GetPlatformPhysical().OpenRead(absPath);
-			if (hFile.file == nullptr) Throw(FString::Printf(TEXT("LoadAbsolute(%ls) failed: Error opening file"), absPath));
+			if (hFile.file == nullptr) Throw(GetLastError(), FString::Printf(TEXT("LoadAbsolute(%ls) failed: Error opening file"), absPath));
 
 			int64 fileLength = hFile->Size();
 
@@ -1661,7 +1729,7 @@ namespace UE5_ANON
 
 					if (!hFile->Read((uint8*)buffer, (int64)bytesRead))
 					{
-						Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - read failed"), absPath));
+						Throw(GetLastError(), FString::Printf(TEXT("TryLoadAbsolute(%s) - read failed"), absPath));
 					}
 
 					int64 postPos = hFile->Tell();
@@ -1669,7 +1737,7 @@ namespace UE5_ANON
 					int64 delta = postPos - prePos;
 					if (delta < 0 || delta > 0x00000000FFFFFFFF)
 					{
-						Throw(FString::Printf(TEXT("TryLoadAbsolute(%s) - unexpected file position"), absPath));
+						Throw(GetLastError(), FString::Printf(TEXT("TryLoadAbsolute(%s) - unexpected file position"), absPath));
 					}
 
 					bytesRead = (uint32)delta;
@@ -1881,7 +1949,9 @@ namespace Rococo::OS
 
 		if (ex.ErrorCode() != 0)
 		{
-			sb.AppendFormat(" Error code: %d (0x%8.8X)\n", ex.ErrorCode(), ex.ErrorCode());
+			char errMsg[256];
+			FormatErrorMessage(errMsg, sizeof errMsg, ex.ErrorCode());
+			sb.AppendFormat("%s\n", errMsg);
 		}
 
 		sb << ex.Message() << "\n";
@@ -2061,15 +2131,17 @@ namespace Rococo::IO
 
 		FString fullPath = GetFullPathFromTarget(target, filename);
 
+		SetLastError(0);
+
 		AutoFile file(IPlatformFile::GetPlatformPhysical().OpenWrite(*fullPath));
 		if (!file.file)
 		{
-			Throw(FString::Printf(TEXT("Cannot create file %ls"), filename));
+			Throw(GetLastError(), FString::Printf(TEXT("Cannot create file %ls"), filename));
 		}
 		
 		if (!file->Write((const uint8*)text.buffer, (int64)text.length))
 		{
-			Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): write failed", filename);
+			Throw(GetLastError(), "Rococo::IO::SaveAsciiTextFile(%ls): write failed", filename);
 		}
 	}
 
@@ -2099,10 +2171,11 @@ namespace Rococo::IO
 		FString userDocs = FPlatformProcess::UserDir();
 		FString fullPath = FPaths::Combine(userDocs, filename);
 
+		SetLastError(0);
 		AutoFile file(IPlatformFile::GetPlatformPhysical().OpenWrite(*fullPath));
 		if (!file.file)
 		{
-			Throw(FString::Printf(TEXT("Cannot write to %s"), *fullPath));
+			Throw(GetLastError(), FString::Printf(TEXT("Cannot write to %s"), *fullPath));
 		}
 
 		file->Write((const uint8*)s, strlen(s));
@@ -2221,10 +2294,11 @@ namespace Rococo::IO
 
 
 		{ // File is locked in this codesection
+			SetLastError(0);
 			AutoFile f( IPlatformFile::GetPlatformPhysical().OpenRead(filename));
 			if (f.file == nullptr)
 			{
-				Throw(FString::Printf(TEXT("LoadBinaryFile: Cannot open file %ls"), filename));
+				Throw(GetLastError(), FString::Printf(TEXT("LoadBinaryFile: Cannot open file %ls"), filename));
 			}
 
 			int64 fileLength = f->Size();
@@ -2244,7 +2318,7 @@ namespace Rococo::IO
 			catch (IException& ex)
 			{
 				loader.Unlock();
-				Throw(FString::Printf(TEXT("LoadBinaryFile %s.\n%ls"), ex.Message(), filename));
+				Throw(ex.ErrorCode(), FString::Printf(TEXT("LoadBinaryFile %s.\n%ls"), ex.Message(), filename));
 			}
 
 		} // File is no longer locked
@@ -2255,10 +2329,11 @@ namespace Rococo::IO
 		TArray<char> asciiData;
 
 		{ // File is locked in this codesection
+			SetLastError(0);
 			AutoFile f(IPlatformFile::GetPlatformPhysical().OpenRead(filename));
 			if (f.file == nullptr)
 			{
-				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot open file %ls"), filename));
+				Throw(GetLastError(), FString::Printf(TEXT("LoadAsciiTextFile: Cannot open file %ls"), filename));
 			}
 
 			int64 fileLength = f->Size();
@@ -2272,7 +2347,7 @@ namespace Rococo::IO
 
 			if (!f->Read((uint8*)asciiData.GetData(), fileLength))
 			{
-				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot read file %ls"), filename));
+				Throw(GetLastError(), FString::Printf(TEXT("LoadAsciiTextFile: Cannot read file %ls"), filename));
 			}
 
 		} // File is no longer locked
@@ -2288,10 +2363,11 @@ namespace Rococo::IO
 		}
 
 		{ // File is locked in this codesection
+			SetLastError(0);
 			AutoFile f(IPlatformFile::GetPlatformPhysical().OpenRead(filename));
 			if (f.file == nullptr)
 			{
-				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot open file %ls"), filename));
+				Throw(GetLastError(), FString::Printf(TEXT("LoadAsciiTextFile: Cannot open file %ls"), filename));
 			}
 
 			int64 fileLength = f->Size();
@@ -2303,7 +2379,7 @@ namespace Rococo::IO
 
 			if (!f->Read((uint8*)data, fileLength))
 			{
-				Throw(FString::Printf(TEXT("LoadAsciiTextFile: Cannot read file %ls"), filename));
+				Throw(GetLastError(), FString::Printf(TEXT("LoadAsciiTextFile: Cannot read file %ls"), filename));
 			}
 
 			data[fileLength] = 0;
@@ -2327,15 +2403,16 @@ namespace Rococo::IO
 			Throw(0, "Cannot open %ls for writing. Buffer length > 2GB", targetPath);
 		}
 
+		SetLastError(0);
 		AutoFile f(IPlatformFile::GetPlatformPhysical().OpenWrite(targetPath));
 		if (f.file == nullptr)
 		{
-			Throw(FString::Printf(TEXT("SaveBinaryFile: Cannot create file %ls"), targetPath));
+			Throw(GetLastError(), FString::Printf(TEXT("SaveBinaryFile: Cannot create file %ls"), targetPath));
 		}
 
 		if (!f->Write(buffer, nBytes))
 		{
-			Throw(0, "Cannot write to file %ls", targetPath);
+			Throw(GetLastError(), "Cannot write to file %ls", targetPath);
 		}
 	}
 
@@ -2488,16 +2565,14 @@ namespace Rococo::Time
 } // Rococo::Time
 
 #ifdef _WIN32
-
-#include <rococo.os.win32.h>
-
 namespace Rococo::Windows
 {
 	ROCOCO_API int32 WheelDeltaToScrollLines(int32 wheelDelta, bool& scrollByPage)
 	{
+		enum { ESPI_GETWHEELSCROLLLINES = 0x0068, EWHEEL_PAGESCROLL = 0xFFFFFFFF };
 		unsigned long linesPerWheelDelta = 1;
-		SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &linesPerWheelDelta, 0);
-		if (linesPerWheelDelta == WHEEL_PAGESCROLL)
+		SystemParametersInfoW(ESPI_GETWHEELSCROLLLINES, 0, &linesPerWheelDelta, 0);
+		if (linesPerWheelDelta == EWHEEL_PAGESCROLL)
 		{
 			scrollByPage = true;
 		}

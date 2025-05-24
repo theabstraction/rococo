@@ -18,6 +18,6 @@ namespace Rococo
 		FSlateWindowElementList& drawElements;
 		int32 layerId;
 		const FWidgetStyle& widgetStyle;
-		bool bParentEnabled;
+		bool bEnabled;
 	};
 }

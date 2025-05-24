@@ -1,1 +1,0 @@
-Do not delete this file. It enables the UE5 plugins for Rococo to identify where the Rococo.Content folder is. It should be in the same directory as this file.
