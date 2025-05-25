@@ -761,15 +761,6 @@ namespace ANON
 	};
 }
 
-namespace Rococo
-{
-	// Copied from the maths lib. We want our DLL to depend on as few libraries as possible to make it easier to re-use in third party apps
-	bool IsPointInRect(Vec2i p, const GuiRect& rect)
-	{
-		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
-	}
-}
-
 namespace Rococo::Gui
 {
 	ROCOCO_GUI_RETAINED_API IGRSystemSupervisor* CreateGRSystem(GRConfig& config, IGRCustodian& custodian)

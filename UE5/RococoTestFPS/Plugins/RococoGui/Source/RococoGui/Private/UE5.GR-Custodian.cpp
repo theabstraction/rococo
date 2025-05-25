@@ -10,6 +10,7 @@
 #include <rococo.vector.ex.h>
 #include "SlateRenderContext.h"
 #include <rococo.great.sex.h>
+#include <Fonts/FontMeasure.h>
 
 namespace Rococo::OS
 {
@@ -18,6 +19,11 @@ namespace Rococo::OS
 
 namespace Rococo::Gui
 {
+	bool IsPointInRect(Vec2i p, const GuiRect& rect)
+	{
+		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
+	}
+
 	ROCOCO_INTERFACE IUE5_GR_ImageSupervisor : IGRImageSupervisor
 	{
 	};
@@ -168,7 +174,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto* brush = static_cast<UE5_GR_Image&>(image).brush;
 			if (brush)
 			{
-				FSlateDrawElement::MakeBox(rc.drawElements, rc.layerId, ToUE5Rect(absRect, rc.geometry), brush, ESlateDrawEffect::None, NoTint());
+			//	FSlateDrawElement::MakeBox(rc.drawElements, rc.layerId, ToUE5Rect(absRect, rc.geometry), brush, ESlateDrawEffect::None, NoTint());
 			}
 		}
 
@@ -178,6 +184,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
 		{
+			/*
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
@@ -198,6 +205,8 @@ namespace Rococo::Gui::UE5::Implementation
 				NoTint()
 			);
 
+			*/
+
 			/*
 
 			rc->SetScissorRect(visibleRect);
@@ -214,21 +223,29 @@ namespace Rococo::Gui::UE5::Implementation
 			*/
 		}
 
+		TArray<FVector2D> pointBuilder;
+
 		void DrawLine(Vec2i start, Vec2i end, RGBAb colour)
 		{
+			pointBuilder.Empty();
+			pointBuilder.Add(FVector2D(start.x, start.y));
+			pointBuilder.Add(FVector2D(end.x, end.y));
+			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
 		}
-
-		TArray<FVector2D> pointBuilder;
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
 		{
 			UNUSED(rectStyle);
 			UNUSED(cornerRadius);
 
+			/*
+
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
 			}
+
+			*/
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 
@@ -268,10 +285,12 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
+			/*
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
 			}
+			*/
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 			RenderTask task{ ERenderTaskType::Edge, visibleRect, colour1, colour2 };
@@ -285,6 +304,13 @@ namespace Rococo::Gui::UE5::Implementation
 				return;
 			}
 
+			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+
+			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry);
+
+			FString localizedText(text);
+			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+			FSlateDrawElement::MakeText(rc.drawElements, (uint32) rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 
 			/*
 			rc->FlushLayer();
@@ -406,6 +432,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
+			/*
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
@@ -414,6 +441,29 @@ namespace Rococo::Gui::UE5::Implementation
 			if (!AreRectsOverlapped(lastScissorRect, targetRect))
 			{
 				return;
+			}
+			*/
+
+			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+
+			FPaintGeometry ue5Rect = ToUE5Rect(targetRect, rc.geometry);
+
+			FString sText(text);
+			FText localizedText = FText::FromString(sText);
+			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+			if (fontInfo.HasValidFont())
+			{
+				auto backColour = ToLinearColor(RGBAb(255, 255, 0));
+				FSlateColorBrush backBrush(backColour);
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)rc.layerId, ue5Rect, &backBrush, drawEffects, FLinearColor::White);
+
+				FSlateDrawElement::MakeText(rc.drawElements, (uint32)rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
+			}
+			else
+			{
+				auto errColour = ToLinearColor(RGBAb(255,255,0));
+				FSlateColorBrush errorBrush(errColour);
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)rc.layerId, ue5Rect, &errorBrush, drawEffects, FLinearColor::White);
 			}
 
 			/*
@@ -485,7 +535,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		bool IsHovered(IGRPanel& panel) const override
 		{
-			return IsPointInRect(cursorPos, panel.AbsRect());
+			return Rococo::Gui::IsPointInRect(cursorPos, panel.AbsRect());
 		}
 
 		GuiRect ScreenDimensions() const override
@@ -587,7 +637,9 @@ namespace Rococo::Gui::UE5::Implementation
 		AutoFree<Rococo::IO::IOSSupervisor> ue5os;
 		AutoFree<Rococo::IO::IInstallationSupervisor> installation;
 
-		UE5_GR_Custodian()
+		const TSharedRef<FSlateFontMeasure> fontMeasureService;
+
+		UE5_GR_Custodian(): fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService())
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
@@ -667,7 +719,12 @@ namespace Rococo::Gui::UE5::Implementation
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
 		{
-			return { 32,32 };
+			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+
+			FString sText(text);
+			FText localizedText = FText::FromString(sText);
+			auto span = fontMeasureService->Measure(localizedText, fontInfo, 1.0f);
+			return Vec2i{ (int32) span.X, (int32) span.Y };
 		}
 
 		void RecordWidget(IGRWidget& widget) override

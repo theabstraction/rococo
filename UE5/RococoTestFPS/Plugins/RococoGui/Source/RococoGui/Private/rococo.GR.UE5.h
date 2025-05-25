@@ -12,7 +12,7 @@
 #endif
 
 #ifndef ROCOCO_GREAT_SEX_API
-# define  ROCOCO_GREAT_SEX_API _declspec(dllexport)
+# define  ROCOCO_GREAT_SEX_API _declspec(dllimport)
 #endif
 
 #define ROCOCO_USE_SAFE_V_FORMAT

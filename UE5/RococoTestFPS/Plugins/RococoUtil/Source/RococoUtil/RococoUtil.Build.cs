@@ -166,8 +166,20 @@ public class RococoUtil : ModuleRules
         CreateBundleDirect("rococo.maths.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/rococo.maths",
           new List<string>()
           {
-                "rococo.integer.formatting.cpp"
+                "rococo.integer.formatting.cpp",
+				"rococo.maths.cpp",
+                "rococo.collisions.cpp",
           }
+        );
+
+        CreateBundleDirect("rococo.greatsex.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/rococo.great.sex",
+            new List<string>()
+            {
+                "great.sex.colour.cpp",
+                "great.sex.scheme.cpp",
+                "great.sex.main.cpp",
+                "great.sex.test-data.cpp"
+            }
         );
     }
 

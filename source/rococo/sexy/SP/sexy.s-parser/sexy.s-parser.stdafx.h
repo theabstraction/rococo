@@ -35,12 +35,8 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#define IS_SPARSER_DLL 1
-
-#ifdef IS_SPARSER_DLL
+#ifndef SEXY_SPARSER_API
 # define SEXY_SPARSER_API __declspec(dllexport)
-#else
-# define SEXY_SPARSER_API
 #endif
 
 #include <sexy.types.h>
