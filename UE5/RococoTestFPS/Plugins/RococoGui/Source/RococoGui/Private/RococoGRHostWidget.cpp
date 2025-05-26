@@ -30,8 +30,9 @@ TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 {
 	int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
-	buffer.SetNumUninitialized(nElements);
+	buffer.SetNumUninitialized(nElements + 1);
 	FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
+	buffer[buffer.Num() - 1] = 0;
 }
 
 static bool IsAsciiPath(const FString& path)

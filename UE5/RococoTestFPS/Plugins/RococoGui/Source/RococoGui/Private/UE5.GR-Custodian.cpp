@@ -11,6 +11,7 @@
 #include "SlateRenderContext.h"
 #include <rococo.great.sex.h>
 #include <Fonts/FontMeasure.h>
+#include <rococo.os.h>
 
 namespace Rococo::OS
 {
@@ -19,6 +20,15 @@ namespace Rococo::OS
 
 namespace Rococo::Gui
 {
+	struct ErrorCapture
+	{
+		Rococo::Strings::HString filename;
+		Rococo::Strings::HString message;
+		int errorCode = 0;
+		Vec2i startPos = { 0,0 };
+		Vec2i endPos = { 0,0 };
+	};
+
 	bool IsPointInRect(Vec2i p, const GuiRect& rect)
 	{
 		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
@@ -46,6 +56,13 @@ namespace Rococo::Gui
 	constexpr FLinearColor NoTint()
 	{
 		return FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
+	using FSlateVec2D = UE::Slate::FDeprecateVector2DParameter;
+
+	FVector2f SlateSpan(const GuiRect& absRect)
+	{
+		return FVector2f((float)Width(absRect), (float)Height(absRect));
 	}
 }
 
@@ -126,19 +143,19 @@ namespace Rococo::Gui::UE5::Implementation
 
 	struct UE5_GR_Renderer : IGRRenderContext
 	{
-		GuiRect lastScreenDimensions;
+		GuiRect lastLocalSizeScreenDimensions;
 		Vec2i cursorPos{ -1000,-1000 };
 		std::vector<RenderTask> lastTasks;
-		SlateRenderContext rc;
+		SlateRenderContext& rc;
 		UE5_GR_Custodian& custodian;
 
 		UE5_GR_Renderer(SlateRenderContext& _rc, UE5_GR_Custodian& _custodian) : rc(_rc), custodian(_custodian)
 		{
 			auto localSize = _rc.geometry.GetLocalSize();
-			lastScreenDimensions.left = 0;
-			lastScreenDimensions.top = 0;
-			lastScreenDimensions.right = localSize.X;
-			lastScreenDimensions.bottom = localSize.Y;
+			lastLocalSizeScreenDimensions.left = 0;
+			lastLocalSizeScreenDimensions.top = 0;
+			lastLocalSizeScreenDimensions.right = localSize.X;
+			lastLocalSizeScreenDimensions.bottom = localSize.Y;
 		}
 
 		virtual ~UE5_GR_Renderer()
@@ -148,6 +165,93 @@ namespace Rococo::Gui::UE5::Implementation
 
 		IGRFonts& Fonts() override;
 		IGRImages& Images() override;
+
+		FText ToText(const Rococo::Strings::HString& s)
+		{
+			FString sText(s.c_str());
+			return FText::FromString(sText);
+		}
+
+		FSlateLayoutTransform LocalShift(const GuiRect& localRect)
+		{
+			float dxShift = (float)(localRect.left - lastLocalSizeScreenDimensions.left);
+			float dyShift = (float)(localRect.top - lastLocalSizeScreenDimensions.top);
+			return FSlateLayoutTransform(FVector2f(dxShift, dyShift));
+		}
+
+		FPaintGeometry AsGeometry(const GuiRect& localRect)
+		{
+			return rc.geometry.ToPaintGeometry(SlateSpan(localRect), LocalShift(localRect));
+		}
+
+		void DrawText(FSlateFontInfo& fontInfo, const GuiRect& absRect, RGBAb colour, cstr format, ...)
+		{
+			char buffer[1024];
+
+			va_list args;
+			va_start(args, format);
+			Strings::SafeVFormat(buffer, sizeof buffer, format, args);
+			va_end(args);
+
+			auto lcolor = ToLinearColor(colour);
+
+			FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, AsGeometry(absRect), ToText(buffer), fontInfo, ESlateDrawEffect::None, lcolor);
+		}
+
+		void DrawError(const ErrorCapture& errCapture)
+		{
+			auto drawEffects = ESlateDrawEffect::None;
+
+			FSlateFontInfo f = FCoreStyle::GetDefaultFontStyle("Regular", 14);
+
+			if (f.HasValidFont())
+			{
+				FSlateColorBrush backBrush(FLinearColor::Black);
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, rc.geometry.ToPaintGeometry(), &backBrush, drawEffects, FLinearColor::Black);
+
+				int lineHeight = 1.5 * f.Size;
+
+				GuiRect absRect = lastLocalSizeScreenDimensions;
+
+				if (Height(absRect) > 400)
+				{
+					// The top right in debug mode is overwritten with mouse control hint text, so we displace below this message to make the message legible.
+					absRect.top += 200;
+				}
+
+				absRect.left += lineHeight;
+				absRect.top += lineHeight;
+				DrawText(f, absRect, RGBAb(255, 255, 255), "%s", errCapture.message.c_str());
+
+				absRect.top += lineHeight;
+				DrawText(f, absRect, RGBAb(255, 255, 255), "Source File: %s", errCapture.filename.c_str());
+
+				Vec2i s = errCapture.startPos;
+				Vec2i e = errCapture.endPos;
+
+				if (s.x != 0 || s.y != 0 || e.x != 0 || e.y != 0)
+				{
+					absRect.top += lineHeight;
+					DrawText(f, absRect, RGBAb(255, 255, 255), "From line %d (pos %d) to line %d (pos %d)", s.y, s.x, e.x, e.y);
+				}
+
+				if (errCapture.errorCode != 0)
+				{
+					absRect.top += lineHeight;
+
+					char err[256];
+					Rococo::OS::FormatErrorMessage(err, sizeof err, errCapture.errorCode);
+
+					DrawText(f, absRect, RGBAb(255, 255, 255), "%s", err);
+				}
+			}
+			else
+			{
+				auto errColour = ToLinearColor(RGBAb(255, 255, 0));
+				FSlateColorBrush errorBrush(errColour);
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, rc.geometry.ToPaintGeometry(), &errorBrush, drawEffects, errColour);
+			}
+		}
 
 		void DrawLastItems()
 		{
@@ -199,7 +303,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto ue5Colour = ToLinearColor(colour);
 			FSlateColorBrush solidBrush(ue5Colour);
 
-			auto ue5Rect = ToUE5Rect(absRect, rc.geometry);
+			auto ue5Rect = ToUE5Rect(absRect, rc.geometry.ToPaintGeometry());
 
 			FSlateDrawElement::MakeBox(OUT rc.drawElements,
 				++rc.layerId,
@@ -232,7 +336,7 @@ namespace Rococo::Gui::UE5::Implementation
 			pointBuilder.Empty();
 			pointBuilder.Add(FVector2D(start.x, start.y));
 			pointBuilder.Add(FVector2D(end.x, end.y));
-			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
+			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
 		}
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
@@ -256,14 +360,14 @@ namespace Rococo::Gui::UE5::Implementation
 			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
 			pointBuilder.Add(FVector2D(absRect.left, absRect.top));
 			pointBuilder.Add(FVector2D(absRect.right, absRect.top));
-			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, topLeftColour);
+			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, topLeftColour);
 
 			FLinearColor bottomRightColour = ToLinearColor(colour2);
 			pointBuilder.Empty();
 			pointBuilder.Add(FVector2D(absRect.right, absRect.top));
 			pointBuilder.Add(FVector2D(absRect.right, absRect.bottom));
 			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
-			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, bottomRightColour);
+			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, bottomRightColour);
 
 			/*
 			rc->SetScissorRect(visibleRect);
@@ -308,7 +412,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry);
+			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry.ToPaintGeometry());
 
 			FString localizedText(text);
 			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
@@ -448,7 +552,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-			FPaintGeometry ue5Rect = ToUE5Rect(targetRect, rc.geometry);
+			FPaintGeometry ue5Rect = ToUE5Rect(targetRect, rc.geometry.ToPaintGeometry());
 
 			FString sText(text);
 			FText localizedText = FText::FromString(sText);
@@ -542,7 +646,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		GuiRect ScreenDimensions() const override
 		{
-			return lastScreenDimensions;
+			return lastLocalSizeScreenDimensions;
 		}
 
 		GuiRect lastScissorRect;
@@ -652,9 +756,16 @@ namespace Rococo::Gui::UE5::Implementation
 
 		}
 
+		ErrorCapture errCapture;
+
+
 		void AddLoadError(Rococo::GreatSex::LoadFrameException& err)
 		{
-			// TODO -> route this to the renderer to display error information
+			errCapture.startPos = err.startPos;
+			errCapture.endPos = err.endPos;
+			errCapture.filename = err.filename;
+			errCapture.message = err.message;
+			errCapture.errorCode = err.errorCode;
 		}
 
 		void Bind(IGRSystemSupervisor& _grSystem)
@@ -819,7 +930,15 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 
 			UE5_GR_Renderer renderer(rc, *this);
-			grSystem->RenderAllFrames(renderer);
+
+			if (errCapture.message.length() > 0)
+			{
+				renderer.DrawError(errCapture);
+			}
+			else
+			{
+				grSystem->RenderAllFrames(renderer);
+			}
 			renderer.DrawLastItems();
 		}
 

@@ -584,6 +584,8 @@ namespace Rococo::IO
 			{
 				Populate(path, contentIndicator);
 				IO::MakeContainerDirectory(path.buf);
+				IO::EndDirectoryWithSlash(path.buf, WideFilePath::CAPACITY);
+				IO::NormalizePath(path);
 				return;
 			}
 		}
@@ -609,6 +611,8 @@ namespace Rococo::IO
 				}
 
 				Populate(path, fullDir);
+				IO::EndDirectoryWithSlash(path.buf, WideFilePath::CAPACITY);
+				IO::NormalizePath(path);
 				return;
 			}
 
@@ -1045,14 +1049,15 @@ namespace Rococo::OS
 	{
 		enum { EFORMAT_MESSAGE_FROM_SYSTEM = 0x00001000 };
 
-		DWORD code = FormatMessageA(EFORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, sizeofBuffer, nullptr);
-		if (code == 0)
+		int nChars = snprintf(message, sizeofBuffer, "Error %d (0x%X): ", errorCode, errorCode);
+
+		if (nChars < sizeofBuffer)
 		{
-			snprintf(message, sizeofBuffer, "Error %d (0x%X)", errorCode, errorCode);
-		}
-		else
-		{
-			snprintf(message, sizeofBuffer, "No error code");
+			DWORD code = FormatMessageA(EFORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message + nChars, sizeofBuffer - nChars, nullptr);
+			if (code == 0)
+			{
+				snprintf(message, sizeofBuffer, "Error %d (0x%X)", errorCode, errorCode);
+			}
 		}
 	}
 #else
@@ -1596,31 +1601,15 @@ namespace UE5_ANON
 				Throw(FString::Printf(TEXT("LoadAbsolute failed: File <%s> was too large at over %lld bytes"), absPath, maxFileLength));
 			}
 
-			buffer.Resize(maxFileLength + 1); // This gives us space for a nul terminating character
-			buffer.Resize(maxFileLength);
-
-			int64 bytesLeft = maxFileLength;
-			ptrdiff_t offset = 0;
+			buffer.Resize(fileSize + 1); // This gives us space for a nul terminating character
+			buffer.Resize(fileSize);
 
 			uint8* data = (uint8*)buffer.GetData();
 			data[fileSize] = 0;
 
-			while (bytesLeft > 0)
+			if (!file->Read(data, fileSize))
 			{
-				DWORD chunk = (DWORD)(int32)min(bytesLeft, 65536LL);
-				DWORD bytesRead = 0;
-				if (!file->Read(data + offset, chunk))
-				{
-					Throw(GetLastError(), FString::Printf(TEXT("LoadAbsolute failed: Error reading file <%s>"), absPath));
-				}
-
-				if (bytesRead != chunk)
-				{
-					Throw(GetLastError(), FString::Printf(TEXT("LoadAbsolute failed:  Error reading file <%s>. Failed to read chunk"), absPath));
-				}
-
-				offset += (ptrdiff_t)chunk;
-				bytesLeft -= (int64)chunk;
+				Throw(GetLastError(), FString::Printf(TEXT("LoadAbsolute failed: Error attempting to read %lld bytes from file <%s>"), fileSize, absPath));
 			}
 		}
 
@@ -1727,7 +1716,7 @@ namespace UE5_ANON
 				{
 					int64 prePos = hFile->Tell();
 
-					if (!hFile->Read((uint8*)buffer, (int64)bytesRead))
+					if (!hFile->Read((uint8*)buffer, (int64)capacity))
 					{
 						Throw(GetLastError(), FString::Printf(TEXT("TryLoadAbsolute(%s) - read failed"), absPath));
 					}
