@@ -192,20 +192,22 @@ namespace Rococo::Gui::UE5::Implementation
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 
+			*/
+
 			ESlateDrawEffect drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
 			auto ue5Colour = ToLinearColor(colour);
 			FSlateColorBrush solidBrush(ue5Colour);
 
+			auto ue5Rect = ToUE5Rect(absRect, rc.geometry);
+
 			FSlateDrawElement::MakeBox(OUT rc.drawElements,
-				rc.layerId,
-				ToUE5Rect(absRect, rc.geometry),
+				++rc.layerId,
+				ue5Rect,
 				&solidBrush,
 				drawEffects,
-				NoTint()
+				ue5Colour
 			);
-
-			*/
 
 			/*
 
@@ -230,7 +232,7 @@ namespace Rococo::Gui::UE5::Implementation
 			pointBuilder.Empty();
 			pointBuilder.Add(FVector2D(start.x, start.y));
 			pointBuilder.Add(FVector2D(end.x, end.y));
-			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
+			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
 		}
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
@@ -254,7 +256,7 @@ namespace Rococo::Gui::UE5::Implementation
 			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
 			pointBuilder.Add(FVector2D(absRect.left, absRect.top));
 			pointBuilder.Add(FVector2D(absRect.right, absRect.top));
-			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, topLeftColour);
+			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry, pointBuilder, ESlateDrawEffect::None, topLeftColour);
 
 			FLinearColor bottomRightColour = ToLinearColor(colour2);
 			pointBuilder.Empty();
@@ -310,7 +312,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			FString localizedText(text);
 			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
-			FSlateDrawElement::MakeText(rc.drawElements, (uint32) rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
+			FSlateDrawElement::MakeText(rc.drawElements, (uint32) ++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 
 			/*
 			rc->FlushLayer();
@@ -455,7 +457,7 @@ namespace Rococo::Gui::UE5::Implementation
 			{
 				auto backColour = ToLinearColor(RGBAb(255, 255, 0));
 				FSlateColorBrush backBrush(backColour);
-				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)rc.layerId, ue5Rect, &backBrush, drawEffects, FLinearColor::White);
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, ue5Rect, &backBrush, drawEffects, FLinearColor::White);
 
 				FSlateDrawElement::MakeText(rc.drawElements, (uint32)rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
@@ -463,7 +465,7 @@ namespace Rococo::Gui::UE5::Implementation
 			{
 				auto errColour = ToLinearColor(RGBAb(255,255,0));
 				FSlateColorBrush errorBrush(errColour);
-				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)rc.layerId, ue5Rect, &errorBrush, drawEffects, FLinearColor::White);
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, ue5Rect, &errorBrush, drawEffects, FLinearColor::White);
 			}
 
 			/*

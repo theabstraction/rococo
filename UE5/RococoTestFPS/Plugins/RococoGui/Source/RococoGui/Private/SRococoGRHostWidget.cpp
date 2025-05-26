@@ -63,13 +63,15 @@ void DrawBackground(Rococo::SlateRenderContext& rc, const FWidgetStyle& style)
 
 	FSlateColorBrush solidBrush(rc.bEnabled ? style.GetForegroundColor() : style.GetSubduedForegroundColor());
 
+	/*
 	FSlateDrawElement::MakeBox(OUT rc.drawElements,
-		rc.layerId,
+		++rc.layerId,
 		rc.geometry,
 		&solidBrush,
 		drawEffects,
 		solidBrush.GetTint(style)
 	);
+	*/
 }
 
 int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
@@ -80,15 +82,13 @@ int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 	const FWidgetStyle& widgetStyle,
 	bool bParentEnabled) const
 {
-	layerId++;
-
 	bool bEnabled = ShouldBeEnabled(bParentEnabled);
 	
 	Rococo::SlateRenderContext rc{ args, allottedGeometry.ToPaintGeometry(), cullingRect, drawElements, layerId, widgetStyle, bEnabled};
 
-	// DrawBackground(rc, widgetStyle);
+	DrawBackground(rc, widgetStyle);
 
 	custodian->Render(rc);
 
-	return layerId;
+	return rc.layerId;
 }
