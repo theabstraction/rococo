@@ -57,6 +57,7 @@ namespace GRANON
 
 			if (!image)
 			{
+				imageRect = panel.Parent()->AbsRect();
 				return;
 			}
 

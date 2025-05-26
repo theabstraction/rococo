@@ -303,7 +303,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto ue5Colour = ToLinearColor(colour);
 			FSlateColorBrush solidBrush(ue5Colour);
 
-			auto ue5Rect = ToUE5Rect(absRect, rc.geometry.ToPaintGeometry());
+			auto ue5Rect = AsGeometry(absRect);
 
 			FSlateDrawElement::MakeBox(OUT rc.drawElements,
 				++rc.layerId,
