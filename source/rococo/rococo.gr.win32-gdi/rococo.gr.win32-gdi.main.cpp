@@ -23,6 +23,8 @@
 #include <Sexy.S-Parser.h>
 #include <rococo.vkeys.h>
 
+#include <../rococo.gui.retained/rococo.gr.image-loading.inl>
+
 #pragma comment(lib, "Msimg32.lib")
 
 #include <gdiplus.h>
@@ -272,17 +274,8 @@ namespace GRANON
 
 		GDIImage(cstr _hint, cstr imagePath, IO::IInstallation& installation): hint(_hint)
 		{
-			struct ImageParser : Imaging::IImageLoadEvents
-			{
-				HBITMAP hBitmap = 0;
-				Vec2i span{ 0,0 };
-
-				void OnError(const char* message) override
-				{
-					err = message;
-				}
-
-				void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+			Rococo::Gui::Implementation::Load32bitRGBAbImage(imagePath, installation,
+				[this](Vec2i span, const RGBAb* imageBuffer)
 				{
 					HDC screenDC = GetDC(NULL);
 					HDC bitmapDC = CreateCompatibleDC(screenDC);
@@ -294,7 +287,7 @@ namespace GRANON
 
 					SetMapMode(bitmapDC, MM_TEXT);
 
-					hBitmap = CreateCompatibleBitmap(screenDC, span.x, span.y);
+					HBITMAP hBitmap = CreateCompatibleBitmap(screenDC, span.x, span.y);
 					if (hBitmap == nullptr)
 					{
 						DeleteDC(bitmapDC);
@@ -304,9 +297,9 @@ namespace GRANON
 					// We have the const buffer, we don't change its size, only its content.
 					// This allows us to avoid duplicating the buffer to convert to BGRA format
 
-					auto* pMutableData = const_cast<RGBAb*>(data);
+					auto* pMutableData = const_cast<RGBAb*>(imageBuffer);
 					size_t nElements = span.x * span.y;
-					
+
 					for (size_t i = 0; i < nElements; i++)
 					{
 						RGBAb& col = pMutableData[i];
@@ -314,7 +307,7 @@ namespace GRANON
 						// This swizzles us into BGRA format, which is what Windows wants
 						// Consider replacing with PSHUFB
 					}
-					
+
 					BITMAPINFO info = { 0 };
 					info.bmiHeader.biSize = sizeof(info);
 					info.bmiHeader.biWidth = span.x;
@@ -322,46 +315,13 @@ namespace GRANON
 					info.bmiHeader.biPlanes = 1;
 					info.bmiHeader.biBitCount = 32;
 					info.bmiHeader.biCompression = BI_RGB;
-					SetDIBits(bitmapDC, hBitmap, 0, span.y, data, &info, DIB_RGB_COLORS);
+					SetDIBits(bitmapDC, hBitmap, 0, span.y, imageBuffer, &info, DIB_RGB_COLORS);
 					DeleteDC(bitmapDC);
 
+					this->hImage = hBitmap;
 					this->span = span;
 				}
-
-				void OnAlphaImage(const Vec2i& span, const uint8* data) override
-				{
-					UNUSED(span);
-					UNUSED(data);
-					err = "8bpp images not supported";
-				}
-
-				Strings::HString err;
-			} parser;
-
-			if (Strings::EndsWithI(imagePath, ".tiff") || (Strings::EndsWithI(imagePath, ".tif")))
-			{
-				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
-				installation.LoadResource(imagePath, *buffer, 32_megabytes);
-				Rococo::Imaging::DecompressTiff(parser, buffer->GetData(), buffer->Length());
-			}
-			else if (Strings::EndsWithI(imagePath, ".jpeg") || (Strings::EndsWithI(imagePath, ".jpg")))
-			{
-				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
-				installation.LoadResource(imagePath, *buffer, 32_megabytes);
-				Rococo::Imaging::DecompressJPeg(parser, buffer->GetData(), buffer->Length());
-			}
-			else
-			{
-				Throw(0, "Could not load image: %s. Only jpg and tiff files are recognized", imagePath);
-			}
-
-			if (parser.err.length() > 0)
-			{
-				Throw(0, "Could not parse image data for %s. Error: %s", imagePath, parser.err.c_str());
-			}
-
-			hImage = parser.hBitmap;
-			span = parser.span;
+			);
 		}
 
 		virtual ~GDIImage()
