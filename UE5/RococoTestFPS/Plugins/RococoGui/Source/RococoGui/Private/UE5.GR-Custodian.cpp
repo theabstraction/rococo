@@ -76,11 +76,11 @@ namespace Rococo::Gui::UE5::Implementation
 		return FLinearColor(ToFloat(colour.red), ToFloat(colour.green), ToFloat(colour.blue), ToFloat(colour.alpha));
 	}
 
-	FPaintGeometry ToUE5Rect(const GuiRect& absRect, const FPaintGeometry& parentGeometry)
+	FPaintGeometry ToUE5Rect(const GuiRect& absRect, const FGeometry& parentGeometry)
 	{
 		UE::Slate::FDeprecateVector2DParameter position(FIntPoint(absRect.left, absRect.top));
 		UE::Slate::FDeprecateVector2DParameter span(FIntPoint(Width(absRect), Height(absRect)));
-		return FPaintGeometry(position, span, 1.0f);
+		return parentGeometry.ToPaintGeometry(position, span, 1.0f);
 	}
 
 	enum class ERenderTaskType
@@ -121,6 +121,8 @@ namespace Rococo::Gui::UE5::Implementation
 					imageTexture = UTexture2D::CreateTransient(span.x, span.y, EPixelFormat::PF_R8G8B8A8, imageName, imageData);
 					FSlateColor noTint(FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));
 					imageStretchBrush = new FSlateImageBrush(imageTexture, UE::Slate::FDeprecateVector2DParameter((float)span.x, (float)span.y), noTint, ESlateBrushTileType::NoTile);
+					imageStretchBrush->Margin = FMargin(0, 0);
+					imageStretchBrush->DrawAs = ESlateBrushDrawType::Box;
 					imageNoStretchBrush = new FSlateImageBrush(imageTexture, UE::Slate::FDeprecateVector2DParameter((float)span.x, (float)span.y), noTint, ESlateBrushTileType::Both);
 					this->span = span;
 				}
@@ -289,8 +291,8 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			auto& image = static_cast<UE5_GR_Image&>(_image);
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
-			FPaintGeometry ue5Rect = ToUE5Rect(absRect, rc.geometry.ToPaintGeometry());
-			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));		
+			FPaintGeometry ue5Rect = ToUE5Rect(absRect, rc.geometry);
+			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 
 		void DrawImageUnstretched(IGRImage& _image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
@@ -299,7 +301,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 			Vec2i noSpacing{ 0,0 };
 			GuiRect innerRect = GetAlignedRect(alignment, absRect, noSpacing, image.span);
-			FPaintGeometry ue5Rect = ToUE5Rect(innerRect, rc.geometry.ToPaintGeometry());
+			FPaintGeometry ue5Rect = ToUE5Rect(innerRect, rc.geometry);
 			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageNoStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 
@@ -429,7 +431,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry.ToPaintGeometry());
+			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry);
 
 			FString localizedText(text);
 			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
@@ -569,7 +571,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-			FPaintGeometry ue5Rect = ToUE5Rect(targetRect, rc.geometry.ToPaintGeometry());
+			FPaintGeometry ue5Rect = ToUE5Rect(targetRect, rc.geometry);
 
 			FString sText(text);
 			FText localizedText = FText::FromString(sText);
@@ -729,7 +731,7 @@ namespace Rococo::Gui::UE5::Implementation
 		void RenderTexture(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, UE5_GR_Image& image, UE::Slate::FDeprecateVector2DParameter span, Vec2i iSpan)
 		{
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
-			FPaintGeometry ue5Rect = ToUE5Rect(isStretched ? panel.AbsRect() : GetAlignedRect(alignment, panel.AbsRect(), spacing, iSpan), rc.geometry.ToPaintGeometry());
+			FPaintGeometry ue5Rect = ToUE5Rect(isStretched ? panel.AbsRect() : GetAlignedRect(alignment, panel.AbsRect(), spacing, iSpan), rc.geometry);
 			FSlateImageBrush* imgBrush = isStretched ? image.imageStretchBrush : image.imageNoStretchBrush;
 			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, imgBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
