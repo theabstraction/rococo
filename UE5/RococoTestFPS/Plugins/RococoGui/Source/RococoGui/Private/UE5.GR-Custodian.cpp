@@ -290,7 +290,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto& image = static_cast<UE5_GR_Image&>(_image);
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 			FPaintGeometry ue5Rect = ToUE5Rect(absRect, rc.geometry.ToPaintGeometry());
-			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));		
+			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));		
 		}
 
 		void DrawImageUnstretched(IGRImage& _image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
@@ -300,7 +300,7 @@ namespace Rococo::Gui::UE5::Implementation
 			Vec2i noSpacing{ 0,0 };
 			GuiRect innerRect = GetAlignedRect(alignment, absRect, noSpacing, image.span);
 			FPaintGeometry ue5Rect = ToUE5Rect(innerRect, rc.geometry.ToPaintGeometry());
-			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageNoStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));
+			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageNoStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
@@ -731,7 +731,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 			FPaintGeometry ue5Rect = ToUE5Rect(isStretched ? panel.AbsRect() : GetAlignedRect(alignment, panel.AbsRect(), spacing, iSpan), rc.geometry.ToPaintGeometry());
 			FSlateImageBrush* imgBrush = isStretched ? image.imageStretchBrush : image.imageNoStretchBrush;
-			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, imgBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));
+			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, imgBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 	};
 
