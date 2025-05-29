@@ -578,10 +578,6 @@ namespace Rococo::Gui::UE5::Implementation
 			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 			if (fontInfo.HasValidFont())
 			{
-				auto backColour = ToLinearColor(RGBAb(255, 255, 0));
-				FSlateColorBrush backBrush(backColour);
-				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, ue5Rect, &backBrush, drawEffects, FLinearColor::White);
-
 				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
 			else
