@@ -24,6 +24,7 @@ void URococoGRHostWidget::ReleaseSlateResources(bool bReleaseChildren)
 TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 {
 	slateHostWidget = SNew(SRococoGRHostWidget);
+	slateHostWidget->SyncCustodian(mapPathToTexture);
 	return slateHostWidget.ToSharedRef();
 }
 

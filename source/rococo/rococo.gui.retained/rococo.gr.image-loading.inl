@@ -1,4 +1,5 @@
 #include <rococo.gui.retained.ex.h>
+
 #include <rococo.imaging.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
@@ -34,6 +35,11 @@ namespace Rococo::Gui::Implementation
 			}
 
 			ImageParser(LAMBDA _onLoad) : onLoad(_onLoad)
+			{
+
+			}
+
+			virtual ~ImageParser()
 			{
 
 			}

@@ -13,6 +13,8 @@
 #include <Fonts/FontMeasure.h>
 #include <rococo.os.h>
 
+#include <../rococo.gui.retained/rococo.gr.image-loading.inl>
+
 namespace Rococo::OS
 {
 	ROCOCO_API Windows::IWindow& WindowOwner();
@@ -33,10 +35,6 @@ namespace Rococo::Gui
 	{
 		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
 	}
-
-	ROCOCO_INTERFACE IUE5_GR_ImageSupervisor : IGRImageSupervisor
-	{
-	};
 
 	ROCOCO_INTERFACE IUE5_GR_CustodianSupervisor
 	{
@@ -100,27 +98,49 @@ namespace Rococo::Gui::UE5::Implementation
 
 	struct UE5_GR_Custodian;
 
-	struct UE5_GR_Image : IUE5_GR_ImageSupervisor
+	struct UE5_GR_Image : IGRImageSupervisor
 	{
 		Vec2i span{ 8, 8 };
 
-		FSlateImageBrush* brush = nullptr;
+		FString hint;
 
-		UE5_GR_Image(cstr hint, cstr imagePath)
+		UTexture2D* imageTexture = nullptr;
+		FSlateImageBrush* imageStretchBrush = nullptr;
+		FSlateImageBrush* imageNoStretchBrush = nullptr;
+
+		UE5_GR_Image(cstr _hint, cstr _imagePath, IO::IInstallation& installation): 
+			hint(_hint)
 		{
-
+			Rococo::Gui::Implementation::Load32bitRGBAbImage(_imagePath, installation,
+				[this, _imagePath]
+				(Vec2i span, const RGBAb* imageBuffer)
+				{
+					FName imageName(_imagePath);
+					// We load the UTexture with the image buffer, set the span and format to RGBAb 32-bit
+					TConstArrayView64<uint8> imageData((uint8*)(imageBuffer), span.x * span.y * sizeof(RGBAb));
+					imageTexture = UTexture2D::CreateTransient(span.x, span.y, EPixelFormat::PF_R8G8B8A8, imageName, imageData);
+					FSlateColor noTint(FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));
+					imageStretchBrush = new FSlateImageBrush(imageTexture, UE::Slate::FDeprecateVector2DParameter((float)span.x, (float)span.y), noTint, ESlateBrushTileType::NoTile);
+					imageNoStretchBrush = new FSlateImageBrush(imageTexture, UE::Slate::FDeprecateVector2DParameter((float)span.x, (float)span.y), noTint, ESlateBrushTileType::Both);
+					this->span = span;
+				}
+			);
 		}
+
+		UE5_GR_Image(cstr _hint, UTexture2D* _imageTexture) :
+			hint(_hint), imageTexture(_imageTexture)
+		{
+			span = Vec2i{ imageTexture->GetSizeX(), imageTexture->GetSizeY() };
+		}
+
 
 		virtual ~UE5_GR_Image()
 		{
-			delete brush;
+			delete imageStretchBrush;
+			delete imageNoStretchBrush;
 		}
 
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override
-		{
-			return false;
-			// return static_cast<UE5_GR_Renderer&>(g).Render(panel, alignment, spacing, isStretched, sprite);
-		}
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override;
 
 		void Free() override
 		{
@@ -129,16 +149,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 		Vec2i Span() const override
 		{
-			return { 32, 32 };
-			// return Quantize(sprite.pixelSpan);
+			return span;
 		}
-
-		/*
-		const BitmapLocation& Sprite() const override
-		{
-			return sprite;
-		}
-		*/
 	};
 
 	struct UE5_GR_Renderer : IGRRenderContext
@@ -273,17 +285,22 @@ namespace Rococo::Gui::UE5::Implementation
 			bool needsClipping = lastScissorRect.IsNormalized() && Span(absRect) != Span(IntersectNormalizedRects(absRect, lastScissorRect));
 		}
 
-		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
+		void DrawImageStretched(IGRImage& _image, const GuiRect& absRect) override
 		{
-			auto* brush = static_cast<UE5_GR_Image&>(image).brush;
-			if (brush)
-			{
-			//	FSlateDrawElement::MakeBox(rc.drawElements, rc.layerId, ToUE5Rect(absRect, rc.geometry), brush, ESlateDrawEffect::None, NoTint());
-			}
+			auto& image = static_cast<UE5_GR_Image&>(_image);
+			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+			FPaintGeometry ue5Rect = ToUE5Rect(absRect, rc.geometry.ToPaintGeometry());
+			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));		
 		}
 
-		void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
+		void DrawImageUnstretched(IGRImage& _image, const GuiRect& absRect, GRAlignmentFlags alignment)  override
 		{
+			auto& image = static_cast<UE5_GR_Image&>(_image);
+			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+			Vec2i noSpacing{ 0,0 };
+			GuiRect innerRect = GetAlignedRect(alignment, absRect, noSpacing, image.span);
+			FPaintGeometry ue5Rect = ToUE5Rect(innerRect, rc.geometry.ToPaintGeometry());
+			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageNoStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));
 		}
 
 		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
@@ -563,7 +580,7 @@ namespace Rococo::Gui::UE5::Implementation
 				FSlateColorBrush backBrush(backColour);
 				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, ue5Rect, &backBrush, drawEffects, FLinearColor::White);
 
-				FSlateDrawElement::MakeText(rc.drawElements, (uint32)rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
+				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
 			else
 			{
@@ -667,24 +684,14 @@ namespace Rococo::Gui::UE5::Implementation
 			return lastScissorRect.IsNormalized();
 		}
 
-		/*
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, const BitmapLocation& sprite)
+		GuiRect GetAlignedRect(GRAlignmentFlags alignment, const GuiRect& containerRect, Vec2i spacing, Vec2i innerRectSpan)
 		{
-			UNUSED(isStretched);
-
-			if (!rc || sprite.pixelSpan.x <= 0 || sprite.pixelSpan.y <= 0 || sprite.textureIndex < 0)
-			{
-				return false;
-			}
-
 			bool isLeftAligned = alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right);
 			bool isRightAligned = !alignment.HasSomeFlags(EGRAlignment::Left) && alignment.HasSomeFlags(EGRAlignment::Right);
 
 			int32 x = 0;
 
-			GuiRect rect = panel.AbsRect();
-
-			Vec2i ds = Quantize(sprite.pixelSpan);
+			const GuiRect& rect = containerRect;
 
 			if (isLeftAligned)
 			{
@@ -692,11 +699,11 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 			else if (isRightAligned)
 			{
-				x = rect.right - spacing.x - ds.x;
+				x = rect.right - spacing.x - innerRectSpan.x;
 			}
 			else
 			{
-				x = (rect.left + rect.right - ds.x) >> 1;
+				x = (rect.left + rect.right - innerRectSpan.x) >> 1;
 			}
 
 			int y = 0;
@@ -709,19 +716,37 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 			else if (isBottomAligned)
 			{
-				y = rect.bottom - spacing.x - ds.y;
+				y = rect.bottom - spacing.x - innerRectSpan.y;
 			}
 			else
 			{
-				y = (rect.top + rect.bottom - ds.y) >> 1;
+				y = (rect.top + rect.bottom - innerRectSpan.y) >> 1;
 			}
 
-			Graphics::DrawSprite({ x, y }, sprite, *rc);
+			return GuiRect{ x, y, x + innerRectSpan.x, y + innerRectSpan.y };
+		}
 
+		void RenderTexture(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, UE5_GR_Image& image, UE::Slate::FDeprecateVector2DParameter span, Vec2i iSpan)
+		{
+			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+			FPaintGeometry ue5Rect = ToUE5Rect(isStretched ? panel.AbsRect() : GetAlignedRect(alignment, panel.AbsRect(), spacing, iSpan), rc.geometry.ToPaintGeometry());
+			FSlateImageBrush* imgBrush = isStretched ? image.imageStretchBrush : image.imageNoStretchBrush;
+			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, imgBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 0.5f));
+		}
+	};
+
+	bool UE5_GR_Image::Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g)
+	{
+		if (span.x > 0 && span.y > 0)
+		{
+			static_cast<UE5_GR_Renderer&>(g).RenderTexture(panel, alignment, spacing, isStretched, *this, { (float)span.x, (float)span.y }, span);
 			return true;
 		}
-	*/
-	};
+		else
+		{
+			return false;
+		}
+	}
 
 	const stringmap<cstr> macroToPingPath =
 	{
@@ -745,7 +770,12 @@ namespace Rococo::Gui::UE5::Implementation
 
 		const TSharedRef<FSlateFontMeasure> fontMeasureService;
 
-		UE5_GR_Custodian(): fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService())
+		TMap<FString, IGRImageSupervisor*> mapPathToImage;
+		TMap<FString, UTexture2D*>& mapPathToImageTexture;
+
+		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture):
+			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
+			mapPathToImageTexture(_mapPathToImageTexture)
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
@@ -754,6 +784,11 @@ namespace Rococo::Gui::UE5::Implementation
 		virtual ~UE5_GR_Custodian()
 		{
 
+		}
+
+		void Free() override
+		{
+			delete this;
 		}
 
 		ErrorCapture errCapture;
@@ -827,7 +862,32 @@ namespace Rococo::Gui::UE5::Implementation
 
 		IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
 		{
-			return nullptr;
+			WideFilePath sysPath;
+			installation->ConvertPingPathToSysPath(codedImagePath, OUT sysPath);
+
+			FString sKey(sysPath.buf);
+
+			auto** ppImage = mapPathToImage.Find(sKey);
+			if (ppImage != nullptr)
+			{ 
+				return *ppImage;
+			}
+
+			UE5_GR_Image* image;
+
+			auto** ppTexture = mapPathToImageTexture.Find(sKey);
+			if (ppTexture != nullptr)
+			{
+				image = new UE5_GR_Image(debugHint, *ppTexture);
+			}
+			else
+			{
+				image = new UE5_GR_Image(debugHint, codedImagePath, *installation);
+				mapPathToImageTexture.Add(sKey, image->imageTexture);
+			}
+
+			mapPathToImage.Add(sKey, image);
+			return image;
 		}
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
@@ -899,11 +959,6 @@ namespace Rococo::Gui::UE5::Implementation
 			eventCount++;
 		}
 
-		void Free() override
-		{
-			delete this;
-		}
-
 		void RaiseError(const Sex::ISExpression* associatedSExpression, EGRErrorCode, cstr function, cstr format, ...) override
 		{
 			char message[1024];
@@ -964,8 +1019,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	DLLEXPORT IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian()
+	DLLEXPORT IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture)
 	{
-		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian();
+		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(mapPathToImageTexture);
 	}
 }

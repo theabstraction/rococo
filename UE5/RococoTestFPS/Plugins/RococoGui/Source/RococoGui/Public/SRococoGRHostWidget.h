@@ -16,6 +16,9 @@ namespace Rococo::GreatSex
 
 class FPaintArgs;
 class FSlateWindowElementList;
+class UTexture;
+
+using TMapPathToTexture = TMap<FString, UTexture2D*>;
 
 class SRococoGRHostWidget : public SLeafWidget
 {
@@ -26,11 +29,13 @@ private:
 
 public:
 	SLATE_BEGIN_ARGS(SRococoGRHostWidget)
-		{
-		}
+	{}
 	SLATE_END_ARGS()
 
 	SRococoGRHostWidget();
+
+	// Slate widgets are volatile, so store the mapPathToTexture elsewhere and sync our Custodian to it just after construction
+	void SyncCustodian(TMapPathToTexture& mapPathToTexture);
 
 	void Construct(const FArguments& args);
 	FVector2D ComputeDesiredSize(float) const override;

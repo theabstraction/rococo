@@ -27,6 +27,11 @@ public:
 	void LoadFrame(const char* sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
 protected:
 	TSharedPtr<SRococoGRHostWidget> slateHostWidget;
+
+	// This caches the Rococo::Gui textures. The slate widget is volatile, so perhaps is not appropriate
+	// We pass it to the slate widget by calling slateHostWidget->SyncCustodian(...) inside of RebuildWidget
+	UPROPERTY(Transient)
+	TMap<FString, UTexture2D*> mapPathToTexture;
 };
 
 typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);

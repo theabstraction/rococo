@@ -13,6 +13,7 @@
 #include <rococo.os.h>
 #include <rococo.hashtable.h>
 #include <rococo.time.h>
+#include <../rococo.gui.retained/rococo.gr.image-loading.inl>
 
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>

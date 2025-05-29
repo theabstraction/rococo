@@ -178,5 +178,12 @@ public class RococoGui : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
-	}
+
+
+        string libTiffWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-tiff.lib");
+        string libJpegWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-jpg.lib");
+
+        PublicAdditionalLibraries.Add(libTiffWin64);
+        PublicAdditionalLibraries.Add(libJpegWin64);
+    }
 }

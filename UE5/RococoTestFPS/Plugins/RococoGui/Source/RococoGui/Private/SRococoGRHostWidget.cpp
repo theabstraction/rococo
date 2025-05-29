@@ -9,22 +9,29 @@ static Rococo::Gui::GRIdWidget s_HostFrame { "SRococoGRHostWidget.cpp-HostFrame"
 
 SRococoGRHostWidget::SRococoGRHostWidget()
 {
-	try
-	{
-		custodian = Rococo::Gui::Create_UE5_GRCustodian();
-		Rococo::Gui::GRConfig config;
-		grSystem = CreateGRSystem(config, *custodian);
-		custodian->Bind(*grSystem);
-	}
-	catch (Rococo::IException& ex)
-	{
-		Rococo::LogExceptionAndQuit(ex, nullptr, nullptr);
-	}
 }
 
 void SRococoGRHostWidget::Construct(const FArguments& InArgs)
 {
 
+}
+
+void SRococoGRHostWidget::SyncCustodian(TMapPathToTexture& mapPathToTexture)
+{
+	try
+	{
+		if (!custodian)
+		{
+			custodian = Rococo::Gui::Create_UE5_GRCustodian(mapPathToTexture);
+			Rococo::Gui::GRConfig config;
+			grSystem = CreateGRSystem(config, *custodian);
+			custodian->Bind(*grSystem);
+		}
+	}
+	catch (Rococo::IException& ex)
+	{
+		Rococo::LogExceptionAndQuit(ex, nullptr, nullptr);
+	}
 }
 
 FVector2D SRococoGRHostWidget::ComputeDesiredSize(float) const
@@ -92,6 +99,11 @@ void ClearFrame(Rococo::Gui::IGRWidgetMainFrame& frame)
 
 void SRococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading)
 {
+	if (!custodian)
+	{
+		return;
+	}
+
 	Rococo::AutoFree<Rococo::IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(128, 0, "sexml-allocator");
 	
 	struct ErrorHandler : Rococo::IEventCallback<Rococo::GreatSex::LoadFrameException>
@@ -142,7 +154,10 @@ int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 
 	DrawBackground(rc, widgetStyle);
 
-	custodian->Render(rc);
+	if (custodian)
+	{
+		custodian->Render(rc);
+	}
 
 	return rc.layerId;
 }
