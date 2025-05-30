@@ -62,6 +62,18 @@ namespace Rococo::Gui
 	{
 		return FVector2f((float)Width(absRect), (float)Height(absRect));
 	}
+
+	inline bool operator == (const FontSpec& a, const FontSpec& b)
+	{
+		return
+			a.Bold == b.Bold &&
+			a.CharHeight == b.CharHeight &&
+			a.CharSet == b.CharSet &&
+			Strings::Eq(a.FontName, b.FontName) &&
+			a.Italic == b.Italic &&
+			a.Underlined == b.Underlined;
+	}
+
 }
 
 namespace Rococo::Gui::UE5::Implementation
@@ -808,9 +820,47 @@ namespace Rococo::Gui::UE5::Implementation
 			return "XBOX";
 		}
 
+		int64 nextFontId = 1;
+
+		struct PersistentFontSpec
+		{
+			Strings::HString name;
+			FontSpec spec;
+			GRFontId fontId;
+		};
+
+		TArray<PersistentFontSpec> fontSpecs;
+
+		FSlateFontInfo MatchFont(const FontSpec& spec)
+		{
+			char fullname[256];
+			Strings::StackStringBuilder sb(fullname, sizeof fullname);
+			sb << spec.FontName;
+
+			if (spec.Bold) sb << "Bold";
+			if (spec.Italic) sb << "Italic";
+			if (spec.Underlined)sb << "Underlined";
+
+			auto font = FCoreStyle::GetDefaultFontStyle(fullname, spec.CharHeight);
+			return font;
+		}
+
 		GRFontId BindFontId(const FontSpec& spec) override
 		{
-			return GRFontId::NONE;
+			for (const PersistentFontSpec& pspec : fontSpecs)
+			{
+				if (pspec.spec == spec)
+				{
+					return pspec.fontId;
+				}
+			}
+
+			PersistentFontSpec newPSpec{ spec.FontName, spec, (GRFontId)(++nextFontId) };
+
+			FSlateFontInfo newFont = MatchFont(spec);
+			fontMap.Add(newPSpec.fontId, newFont);
+			fontSpecs.Push(newPSpec);
+			return newPSpec.fontId;
 		}
 
 		TMap<GRFontId, FSlateFontInfo> fontMap;
