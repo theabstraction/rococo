@@ -164,6 +164,7 @@ namespace Rococo::Gui::UE5::Implementation
 		}
 	};
 
+	const FSlateFontInfo& GetFont(UE5_GR_Custodian& custodian, GRFontId fontId);
 	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FText& localizedText, Vec2i extraSpan);
 	const FText& MapAsciiToLocalizedText(UE5_GR_Custodian& custodian, cstr text);
 
@@ -252,7 +253,7 @@ namespace Rococo::Gui::UE5::Implementation
 			return rc.geometry.ToPaintGeometry(SlateSpan(localRect), LocalShift(localRect));
 		}
 
-		void DrawText(FSlateFontInfo& fontInfo, const GuiRect& absRect, RGBAb colour, cstr format, ...)
+		void DrawText(const FSlateFontInfo& fontInfo, const GuiRect& absRect, RGBAb colour, cstr format, ...)
 		{
 			char buffer[1024];
 
@@ -270,7 +271,7 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			auto drawEffects = ESlateDrawEffect::None;
 
-			FSlateFontInfo f = FCoreStyle::GetDefaultFontStyle("Regular", 14);
+			const FSlateFontInfo& f = GetFont(custodian, GRFontId::NONE);
 
 			if (f.HasValidFont())
 			{
@@ -488,7 +489,7 @@ namespace Rococo::Gui::UE5::Implementation
 			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry);
 
 			FString localizedText(text);
-			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
+			const FSlateFontInfo& fontInfo = GetFont(custodian, fontId);
 			FSlateDrawElement::MakeText(rc.drawElements, (uint32) ++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 
 			/*
@@ -625,7 +626,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
+			const FSlateFontInfo& fontInfo = GetFont(custodian, fontId);
 			if (fontInfo.HasValidFont())
 			{
 				const FText& localizedText = MapAsciiToLocalizedText(custodian, text);
@@ -733,6 +734,15 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
+
+			cstr defaultFontName = "Regular";
+			int defaultFontSize = 14;
+			defaultFont = FCoreStyle::GetDefaultFontStyle(defaultFontName, defaultFontSize, 14);
+
+			if (!defaultFont.HasValidFont())
+			{
+				Throw(0, __FUNCTION__ ": expecting font to exist (%s %d). Please update the source code or add the required asset", defaultFontName, defaultFontSize);
+			}
 		}
 
 		virtual ~UE5_GR_Custodian()
@@ -809,9 +819,23 @@ namespace Rococo::Gui::UE5::Implementation
 			return GRFontId::NONE;
 		}
 
+		TMap<GRFontId, FSlateFontInfo> fontMap;
+		mutable FSlateFontInfo defaultFont;
+
+		const FSlateFontInfo& GetFont(GRFontId id) const
+		{
+			auto* pFont = fontMap.Find(id);
+			if (pFont)
+			{
+				return *pFont;
+			}
+
+			return defaultFont;
+		}
+
 		int GetFontHeight(GRFontId id) const override
 		{
-			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
+			const FSlateFontInfo& fontInfo = GetFont(id);
 
 			if (currentContext != nullptr)
 			{
@@ -855,18 +879,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const FText& text, Vec2i extraSpan) const
 		{
-			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
-	
-			FVector2f span;
-		//	if (currentContext == nullptr)
-			{
-				span = fontMeasureService->Measure(text, fontInfo, 1.0f) + ToFVector2f(extraSpan);
-			}
-		//	else
-			{
-		//		span = fontMeasureService->Measure(text, fontInfo, currentContext->geometry.Scale) + currentContext->geometry.Scale * ToFVector2f(extraSpan);
-			}
-
+			auto& font = GetFont(fontId);	
+			FVector2f span = fontMeasureService->Measure(text, font, 1.0f) + ToFVector2f(extraSpan);
 			return ToVec2i(span) + Vec2i(1,1);			
 		}
 
@@ -1055,6 +1069,11 @@ namespace Rococo::Gui::UE5::Implementation
 	const FText& MapAsciiToLocalizedText(UE5_GR_Custodian& custodian, cstr text)
 	{
 		return custodian.MapAsciiToLocalizedText(text);
+	}
+
+	const FSlateFontInfo& GetFont(UE5_GR_Custodian& custodian, GRFontId fontId)
+	{
+		return custodian.GetFont(fontId);
 	}
 
 	IGRFonts& UE5_GR_Renderer::Fonts()
