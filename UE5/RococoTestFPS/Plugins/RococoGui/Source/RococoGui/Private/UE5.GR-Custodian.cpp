@@ -728,21 +728,15 @@ namespace Rococo::Gui::UE5::Implementation
 		TMap<FString, IGRImageSupervisor*> mapPathToImage;
 		TMap<FString, UTexture2D*>& mapPathToImageTexture;
 
+		cstr defaultFontName = "Regular";
+		int defaultFontSize = 14;
+
 		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture):
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture)
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
-
-			cstr defaultFontName = "Regular";
-			int defaultFontSize = 14;
-			defaultFont = FCoreStyle::GetDefaultFontStyle(defaultFontName, defaultFontSize, 14);
-
-			if (!defaultFont.HasValidFont())
-			{
-				Throw(0, __FUNCTION__ ": expecting font to exist (%s %d). Please update the source code or add the required asset", defaultFontName, defaultFontSize);
-			}
 		}
 
 		virtual ~UE5_GR_Custodian()
@@ -830,6 +824,10 @@ namespace Rococo::Gui::UE5::Implementation
 				return *pFont;
 			}
 
+			if (!defaultFont.HasValidFont())
+			{
+				defaultFont = FCoreStyle::GetDefaultFontStyle(defaultFontName, defaultFontSize);
+			}
 			return defaultFont;
 		}
 
