@@ -232,7 +232,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRFonts
 	{
 		virtual GRFontId BindFontId(const FontSpec & desc) = 0;
-		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
+		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const = 0;
 		virtual int GetFontHeight(GRFontId id) const = 0;
 	};
 

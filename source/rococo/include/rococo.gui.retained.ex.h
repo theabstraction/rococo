@@ -59,7 +59,7 @@ namespace Rococo::Gui
 		virtual EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
 
 		// Given a font id and text string, uses the platform font definition to determine the minimam span containing it.
-		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
+		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const = 0;
 
 		virtual Windows::IWindow& Owner() = 0;
 

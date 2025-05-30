@@ -97,7 +97,7 @@ namespace GRANON
 						imageRect.right = imageRect.left + (int)aspectRatio * Height(imageRect);
 						textRect.left = imageRect.right;
 
-						Vec2i textSpan = g.Fonts().EvaluateMinimalSpan(fontId, p.text.to_fstring());
+						Vec2i textSpan = g.Fonts().EvaluateMinimalSpan(fontId, p.text.to_fstring(), { 0,0 });
 						textRect.left += cellPadding;
 						textRect.right = textRect.left + textSpan.x;
 						textRect.left = textRect.right;
@@ -136,7 +136,7 @@ namespace GRANON
 						g.DrawImageStretched(*image, imageRect);
 						textRect.left = imageRect.right;
 
-						Vec2i textSpan = g.Fonts().EvaluateMinimalSpan(fontId, p.text.to_fstring());
+						Vec2i textSpan = g.Fonts().EvaluateMinimalSpan(fontId, p.text.to_fstring(), {0,0});
 						textRect.left += cellPadding;
 						textRect.right = textRect.left + textSpan.x;
 						

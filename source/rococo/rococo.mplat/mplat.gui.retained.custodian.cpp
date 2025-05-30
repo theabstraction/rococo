@@ -660,9 +660,9 @@ namespace ANON
 			return new MPlatImage(debugHint, imagePath, sysRenderer.GuiResources().SpriteBuilder());
 		}
 
-		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const override
 		{
-			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text);
+			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text) + extraSpan;
 		}
 
 		void RecordWidget(IGRWidget& widget) override

@@ -89,8 +89,7 @@ namespace Rococo::Gui::UE5::Implementation
 	FPaintGeometry ToUE5Rect(const GuiRect& absRect, const FGeometry& parentGeometry)
 	{
 		FVector2f localSize = ToFVector2f(Span(absRect));
-		FSlateLayoutTransform transform(1.0f, ToFVector2f(TopLeft(absRect)));
-		return parentGeometry.ToPaintGeometry(localSize, transform);
+		return parentGeometry.ToPaintGeometry(ToFVector2f(TopLeft(absRect)), localSize);
 	}
 
 	enum class ERenderTaskType
@@ -165,7 +164,7 @@ namespace Rococo::Gui::UE5::Implementation
 		}
 	};
 
-	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FText& localizedText);
+	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FText& localizedText, Vec2i extraSpan);
 	const FText& MapAsciiToLocalizedText(UE5_GR_Custodian& custodian, cstr text);
 
 	GuiRect GetAlignedRect(GRAlignmentFlags alignment, const GuiRect& containerRect, Vec2i spacing, Vec2i innerRectSpan)
@@ -200,7 +199,7 @@ namespace Rococo::Gui::UE5::Implementation
 		}
 		else if (isBottomAligned)
 		{
-			y = rect.bottom - spacing.x - innerRectSpan.y;
+			y = rect.bottom - spacing.y - innerRectSpan.y;
 		}
 		else
 		{
@@ -489,7 +488,7 @@ namespace Rococo::Gui::UE5::Implementation
 			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry);
 
 			FString localizedText(text);
-			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
 			FSlateDrawElement::MakeText(rc.drawElements, (uint32) ++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 
 			/*
@@ -626,13 +625,13 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
 			if (fontInfo.HasValidFont())
 			{
 				const FText& localizedText = MapAsciiToLocalizedText(custodian, text);
-				Vec2i textSpan = EvaluateMinimalSpan(custodian, fontId, localizedText);
+				Vec2i textSpan = EvaluateMinimalSpan(custodian, fontId, localizedText, Vec2i {0,0});
 				GuiRect textRect = GetAlignedRect(alignment, targetRect, spacing, textSpan);
-				FPaintGeometry ue5Rect = ToUE5Rect(targetRect, rc.geometry);
+				FPaintGeometry ue5Rect = ToUE5Rect(textRect, rc.geometry);
 				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
 			else
@@ -845,22 +844,21 @@ namespace Rococo::Gui::UE5::Implementation
 			return image;
 		}
 
-		Vec2i EvaluateMinimalSpan(GRFontId fontId, const FText& text) const
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const FText& text, Vec2i extraSpan) const
 		{
-			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 10);
-			auto span = fontMeasureService->Measure(text, fontInfo, 1.0f);
+			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
+	
+			FVector2f span;
+		//	if (currentContext == nullptr)
+			{
+				span = fontMeasureService->Measure(text, fontInfo, 1.0f) + ToFVector2f(extraSpan);
+			}
+		//	else
+			{
+		//		span = fontMeasureService->Measure(text, fontInfo, currentContext->geometry.Scale) + currentContext->geometry.Scale * ToFVector2f(extraSpan);
+			}
 
-			if (currentContext == nullptr)
-			{
-				return ToVec2i(span);
-			}
-			else
-			{
-				FVector2f origin = currentContext->geometry.AbsoluteToLocal(FVector2f(0.0f, 0.0f));
-				FVector2f originPlusSpan = currentContext->geometry.AbsoluteToLocal(span);
-				FVector2f localSpan = originPlusSpan - origin;
-				return ToVec2i(localSpan);
-			}
+			return ToVec2i(span) + Vec2i(1,1);			
 		}
 
 		mutable stringmap<FText> mapAsciiToLocalizedText;
@@ -878,10 +876,10 @@ namespace Rococo::Gui::UE5::Implementation
 			return i->second;
 		}
 
-		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const override
 		{
 			FText localizedText = MapAsciiToLocalizedText(text);
-			return EvaluateMinimalSpan(fontId, localizedText);
+			return EvaluateMinimalSpan(fontId, localizedText, extraSpan);
 		}
 
 		void RecordWidget(IGRWidget& widget) override
@@ -979,6 +977,29 @@ namespace Rococo::Gui::UE5::Implementation
 
 		SlateRenderContext* currentContext = nullptr;
 
+		void RenderTestText(UE5_GR_Renderer& renderer)
+		{
+			GRAlignmentFlags alignment;
+			alignment.Add(EGRAlignment::Top).Add(EGRAlignment::Left);
+			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment, Vec2i{ 0,0 }, "TopLeft - The quick brown fox jumps over the lazy dog"_fstring, RGBAb(255, 255, 255));
+
+			GRAlignmentFlags alignment2;
+			alignment2.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
+			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment2, Vec2i{ 0,0 }, "CentreLeft - She sells sea shells by the sea shore"_fstring, RGBAb(255, 255, 255));
+
+			GRAlignmentFlags alignment3;
+			alignment3.Add(EGRAlignment::Bottom).Add(EGRAlignment::Left);
+			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment3, Vec2i{ 0,0 }, "BottomLeft - The cost of sausages was lost on the hostages"_fstring, RGBAb(255, 255, 255));
+
+			GRAlignmentFlags alignment4;
+			alignment4.Add(EGRAlignment::VCentre).Add(EGRAlignment::Right);
+			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment4, Vec2i{ 0,0 }, "VCentreRight - Excalibur!"_fstring, RGBAb(255, 255, 255));
+
+			GRAlignmentFlags alignment5;
+			alignment5.Add(EGRAlignment::Bottom).Add(EGRAlignment::HCentre);
+			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment5, Vec2i{ 0,0 }, "Bottom-HCentre - Lord, what fools these mortals be!"_fstring, RGBAb(255, 255, 255));
+		}
+
 		void Render(SlateRenderContext& rc) override
 		{
 			AutoRenderContext syncRCToThis(*this, rc);
@@ -990,15 +1011,22 @@ namespace Rococo::Gui::UE5::Implementation
 
 			UE5_GR_Renderer renderer(rc, *this);
 
-			if (errCapture.message.length() > 0)
+			if (false)
 			{
-				renderer.DrawError(errCapture);
+				RenderTestText(renderer);
 			}
 			else
 			{
-				grSystem->RenderAllFrames(renderer);
+				if (errCapture.message.length() > 0)
+				{
+					renderer.DrawError(errCapture);
+				}
+				else
+				{
+					grSystem->RenderAllFrames(renderer);
+				}
+				renderer.DrawLastItems();
 			}
-			renderer.DrawLastItems();
 		}
 
 		std::vector<char> copyAndPasteBuffer;
@@ -1010,9 +1038,9 @@ namespace Rococo::Gui::UE5::Implementation
 		}
 	};
 
-	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FText& localizedText)
+	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FText& localizedText, Vec2i extraSpan)
 	{
-		return custodian.EvaluateMinimalSpan(fontId, localizedText);
+		return custodian.EvaluateMinimalSpan(fontId, localizedText, extraSpan);
 	}
 
 	const FText& MapAsciiToLocalizedText(UE5_GR_Custodian& custodian, cstr text)

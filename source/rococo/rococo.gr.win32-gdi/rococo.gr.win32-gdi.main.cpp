@@ -1669,7 +1669,7 @@ namespace GRANON
 			return f ? f->metrics.tmHeight : 0;
 		}
 
-		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const override
 		{
 			auto* f = GetFont(fontId);
 			if (!f)
@@ -1682,11 +1682,11 @@ namespace GRANON
 			SIZE span;
 			if (!GetTextExtentPoint32A(screenDC, text, text.length, OUT & span))
 			{
-				return { 0,0 };
+				return extraSpan;
 			}
 			else
 			{
-				return { span.cx, span.cy };
+				return extraSpan + Vec2i { span.cx, span.cy };
 			}
 		}
 

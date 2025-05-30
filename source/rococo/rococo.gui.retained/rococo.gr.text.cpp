@@ -71,7 +71,7 @@ namespace GRANON
 
 		Vec2i ComputeFit() const
 		{
-			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ text.c_str(), (int32)text.length() });
+			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ text.c_str(), (int32)text.length() }, {0,0});
 		}
 
 
