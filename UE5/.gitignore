@@ -1,4 +1,4 @@
 Binaries/
 Saved/
 .vsconfig
-.rococo-bundle.cpp
+*.rococo-bundle.cpp
