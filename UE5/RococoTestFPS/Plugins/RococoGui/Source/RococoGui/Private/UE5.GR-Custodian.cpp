@@ -811,7 +811,16 @@ namespace Rococo::Gui::UE5::Implementation
 
 		int GetFontHeight(GRFontId id) const override
 		{
-			return 11;
+			FSlateFontInfo fontInfo = FCoreStyle::GetDefaultFontStyle("Regular", 14);
+
+			if (currentContext != nullptr)
+			{
+				return 1 + (int)(fontInfo.Size * currentContext->geometry.Scale);
+			}
+			else
+			{
+				return fontInfo.Size;
+			}
 		}
 
 		IGRImageSupervisor* CreateImageFromPath(cstr debugHint, cstr codedImagePath) override
