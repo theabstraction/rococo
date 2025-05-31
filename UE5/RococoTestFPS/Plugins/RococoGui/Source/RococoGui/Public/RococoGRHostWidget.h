@@ -32,6 +32,10 @@ protected:
 	// We pass it to the slate widget by calling slateHostWidget->SyncCustodian(...) inside of RebuildWidget
 	UPROPERTY(Transient)
 	TMap<FString, UTexture2D*> mapPathToTexture;
+
+	// The location where fonts are expected.
+	UPROPERTY(BlueprintReadWrite)
+	FString _FontDirectory = TEXT("UI/Fonts/");
 };
 
 typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
