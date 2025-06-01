@@ -744,12 +744,12 @@ namespace Rococo::Gui::UE5::Implementation
 		cstr defaultFontName = "Regular";
 		int defaultFontSize = 14;
 
-		FString fontDirectory;
+		FSoftObjectPath fontAsset;
 
-		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FString& _fontDirectory):
+		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font) :
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture),
-			fontDirectory(_fontDirectory)
+			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/RococoFonts.RococoFonts") : font)
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
@@ -837,46 +837,16 @@ namespace Rococo::Gui::UE5::Implementation
 
 		FSlateFontInfo MatchFont(const FontSpec& spec)
 		{
-			char filename[256];
-			Strings::SafeFormat(filename, "Font_%s.uasset", spec.FontName);
-			
-			FString relativeToContent = FPaths::Combine(fontDirectory, filename);
-
-			if (relativeToContent.StartsWith("/"))
+			UObject* oFont = fontAsset.TryLoad();
+			if (!oFont)
 			{
-				relativeToContent = relativeToContent.RightChop(1);
+				Throw(0, "Could not load UObject from path: %ls. TryLoad returned null", *fontAsset.ToString());
 			}
 
-			FString fullPath = FPaths::Combine(FPaths::ProjectContentDir(), relativeToContent);
-
-			fullPath = FPaths::ConvertRelativePathToFull(fullPath);
-
-			if (!FPaths::FileExists(fullPath))
-			{
-				Throw(0, "Rococo requires a file to render its Gui : %ls", *fullPath);
-			}
-
-			if (!fontDirectory.StartsWith("/"))
-			{
-				fontDirectory = "/" + fontDirectory;
-			}
-
-			char packageAndAsset[256];
-			Strings::SafeFormat(packageAndAsset, "Font_%s.Font_%s", spec.FontName, spec.FontName);
-			
-			FString assetPath = "/Game" + FPaths::Combine(fontDirectory, packageAndAsset);
-
-			FSoftObjectPath soPath(assetPath);
-			auto* obj = soPath.TryLoad();
-			if (!obj)
-			{
-				Throw(0, "Could not turn path into a UFont: %ls. FSoftObjectPath(%ls).TryLoad returned null", *fullPath, *assetPath);
-			}
-
-			UFont* font = Cast<UFont>(obj);
+			auto* font = Cast<UFont>(oFont);
 			if (!font)
 			{
-				Throw(0, "Could not cast UObject to UFont: %ls (%ls)", *fullPath, *assetPath);
+				Throw(0, "Could not cast UFont from UObject: %ls. TryLoad returned null", *fontAsset.ToString());
 			}
 
 			char fontName[256];
@@ -892,10 +862,10 @@ namespace Rococo::Gui::UE5::Implementation
 			if (spec.Italic) sbName << "Italic";
 			if (spec.Underlined) sbName << "Underlined";
 
-			FSlateFontInfo fontInfo(static_cast<UObject*>(font), spec.CharHeight, FName(fontName));
+			FSlateFontInfo fontInfo(font, spec.CharHeight, FName(fontName));
 			if (!fontInfo.HasValidFont())
 			{
-				Throw(0, "Rococo requires a font asset to render its Gui : %ls", *fullPath);
+				Throw(0, "Rococo requires a font asset to render its Gui : %ls", *fontAsset.ToString());
 			}
 
 			return fontInfo;
@@ -1193,8 +1163,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	DLLEXPORT IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FString& fontDirectory)
+	DLLEXPORT IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font)
 	{
-		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(mapPathToImageTexture, fontDirectory);
+		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(mapPathToImageTexture, font);
 	}
 }

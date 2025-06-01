@@ -34,8 +34,8 @@ protected:
 	TMap<FString, UTexture2D*> mapPathToTexture;
 
 	// The location where fonts are expected.
-	UPROPERTY(BlueprintReadWrite)
-	FString _FontDirectory = TEXT("UI/Fonts/");
+	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "UFont"))
+	FSoftObjectPath _FontAsset;
 };
 
 typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
