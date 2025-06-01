@@ -149,6 +149,7 @@ public class RococoGui : ModuleRules
 			new string[]
 			{
 				"Core",
+                "Engine",
                 "UMG",
                 "Slate",
                 "SlateCore",

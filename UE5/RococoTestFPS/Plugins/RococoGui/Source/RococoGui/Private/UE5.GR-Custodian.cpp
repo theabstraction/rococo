@@ -13,6 +13,7 @@
 #include <Fonts/FontMeasure.h>
 #include <Engine/Font.h>
 #include <rococo.os.h>
+#include "../Public/RococoFontSet.h"
 
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
 
@@ -741,15 +742,12 @@ namespace Rococo::Gui::UE5::Implementation
 		TMap<FString, IGRImageSupervisor*> mapPathToImage;
 		TMap<FString, UTexture2D*>& mapPathToImageTexture;
 
-		cstr defaultFontName = "Regular";
-		int defaultFontSize = 14;
-
 		FSoftObjectPath fontAsset;
 
 		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font) :
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture),
-			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/RococoFonts.RococoFonts") : font)
+			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/RococoFontSet.RococoFontSet_C") : font)
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
@@ -837,16 +835,36 @@ namespace Rococo::Gui::UE5::Implementation
 
 		FSlateFontInfo MatchFont(const FontSpec& spec)
 		{
-			UObject* oFont = fontAsset.TryLoad();
+			fontAsset.TryLoad();
+
+			UObject* oFont = fontAsset.ResolveObject();
 			if (!oFont)
 			{
-				Throw(0, "Could not load UObject from path: %ls. TryLoad returned null", *fontAsset.ToString());
+				oFont = fontAsset.TryLoad();
 			}
 
-			auto* font = Cast<UFont>(oFont);
+			if (!oFont)
+			{
+				Throw(0, "Could not load UObject from path: %ls. ResolveObject & TryLoad returned null", *fontAsset.ToString());
+			}
+
+			auto* bpFontSetClass = Cast<UBlueprintGeneratedClass>(oFont);
+			if (!bpFontSetClass)
+			{
+				Throw(0, "Could not cast UBlueprintGeneratedClass from UObject: %ls. Object was class %ls", *fontAsset.ToString(), *oFont->GetClass()->GetName());
+			}
+
+			auto* oFontSetClassObject = bpFontSetClass->GetDefaultObject();
+			auto* bpFontSet = Cast<URococoFontSet>(oFontSetClassObject);
+			if (bpFontSet == nullptr)
+			{
+				Throw(0, "Could not get default URococoFontSet object from UObject: %ls", *fontAsset.ToString());
+			}
+
+			UFont* font = bpFontSet->GetFontAsset();
 			if (!font)
 			{
-				Throw(0, "Could not cast UFont from UObject: %ls. TryLoad returned null", *fontAsset.ToString());
+				Throw(0, "FontAsset of %ls was blank", *fontAsset.ToString());
 			}
 
 			char fontName[256];
@@ -862,13 +880,42 @@ namespace Rococo::Gui::UE5::Implementation
 			if (spec.Italic) sbName << "Italic";
 			if (spec.Underlined) sbName << "Underlined";
 
-			FSlateFontInfo fontInfo(font, spec.CharHeight, FName(fontName));
-			if (!fontInfo.HasValidFont())
+			FName nameFont = FName(fontName);
+
+			FName resultantName;
+
+			FName mappedName = bpFontSet->MapTypeface(nameFont);
+			if (mappedName == NAME_None)
 			{
-				Throw(0, "Rococo requires a font asset to render its Gui : %ls", *fontAsset.ToString());
+				resultantName = nameFont;
+			}
+			else
+			{
+				resultantName = mappedName;
 			}
 
-			return fontInfo;
+			const FCompositeFont* compositeFont = font->GetCompositeFont();
+			if (!compositeFont)
+			{
+				Throw(0, "Expecting composite font inside of %ls (asset assigned role in %ls)", *font->GetClass()->GetPathName(), *fontAsset.ToString());
+			}
+
+			for (auto& typeface : compositeFont->DefaultTypeface.Fonts)
+			{
+				if (typeface.Font.GetFontFaceAsset()->GetFName() == resultantName)
+				{
+					return FSlateFontInfo(font, spec.CharHeight, resultantName);
+				}
+			}
+
+			if (mappedName == NAME_None)
+			{
+				Throw(0, "Rococo requires a typeface %s in font set %ls. ", fontName, *fontAsset.ToString());
+			}
+			else
+			{
+				Throw(0, "Rococo mapped a typeface %s to target %ls in font set %ls, but the target was not found.", fontName, *mappedName.ToString(), *fontAsset.ToString());
+			}
 		}
 
 		GRFontId BindFontId(const FontSpec& spec) override
@@ -902,7 +949,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			if (!defaultFont.HasValidFont())
 			{
-				defaultFont = FCoreStyle::GetDefaultFontStyle(defaultFontName, defaultFontSize);
+				defaultFont = FCoreStyle::GetDefaultFontStyle("Regular", 14);
 			}
 			return defaultFont;
 		}

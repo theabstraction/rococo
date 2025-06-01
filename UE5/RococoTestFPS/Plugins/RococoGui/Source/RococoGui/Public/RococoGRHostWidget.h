@@ -34,7 +34,7 @@ protected:
 	TMap<FString, UTexture2D*> mapPathToTexture;
 
 	// The location where fonts are expected.
-	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "UFont"))
+	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "URococoFontSet"))
 	FSoftObjectPath _FontAsset;
 };
 
