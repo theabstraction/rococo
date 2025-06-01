@@ -16,6 +16,7 @@
 #include "../Public/RococoFontSet.h"
 
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
+#include "../../../../RococoUtil/Source/RococoUtil/Public/RococoTemplates.inl"
 
 namespace Rococo::OS
 {
@@ -744,6 +745,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 		FSoftObjectPath fontAsset;
 
+		TObjectPtr<URococoFontSet> fontSet;
+
 		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font) :
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture),
@@ -833,88 +836,84 @@ namespace Rococo::Gui::UE5::Implementation
 
 		TArray<PersistentFontSpec> fontSpecs;
 
-		FSlateFontInfo MatchFont(const FontSpec& spec)
+		FName FormatFontName(const FontSpec& spec)
 		{
-			fontAsset.TryLoad();
-
-			UObject* oFont = fontAsset.ResolveObject();
-			if (!oFont)
-			{
-				oFont = fontAsset.TryLoad();
-			}
-
-			if (!oFont)
-			{
-				Throw(0, "Could not load UObject from path: %ls. ResolveObject & TryLoad returned null", *fontAsset.ToString());
-			}
-
-			auto* bpFontSetClass = Cast<UBlueprintGeneratedClass>(oFont);
-			if (!bpFontSetClass)
-			{
-				Throw(0, "Could not cast UBlueprintGeneratedClass from UObject: %ls. Object was class %ls", *fontAsset.ToString(), *oFont->GetClass()->GetName());
-			}
-
-			auto* oFontSetClassObject = bpFontSetClass->GetDefaultObject();
-			auto* bpFontSet = Cast<URococoFontSet>(oFontSetClassObject);
-			if (bpFontSet == nullptr)
-			{
-				Throw(0, "Could not get default URococoFontSet object from UObject: %ls", *fontAsset.ToString());
-			}
-
-			UFont* font = bpFontSet->GetFontAsset();
-			if (!font)
-			{
-				Throw(0, "FontAsset of %ls was blank", *fontAsset.ToString());
-			}
-
 			char fontName[256];
-			Strings::StackStringBuilder sbName(fontName, sizeof fontName);
-			sbName << spec.FontName;
+			Strings::StackStringBuilder sb(fontName, sizeof fontName);
+			sb << spec.FontName;
 
 			if (spec.Bold || spec.Italic || spec.Underlined)
 			{
-				sbName << "_";
+				sb << "_";
 			}
 
-			if (spec.Bold) sbName << "Bold";
-			if (spec.Italic) sbName << "Italic";
-			if (spec.Underlined) sbName << "Underlined";
+			if (spec.Bold) sb << "Bold";
+			if (spec.Italic) sb << "Italic";
+			if (spec.Underlined) sb << "Underlined";
 
-			FName nameFont = FName(fontName);
+			return FName(fontName);
+		}
 
-			FName resultantName;
-
-			FName mappedName = bpFontSet->MapTypeface(nameFont);
-			if (mappedName == NAME_None)
-			{
-				resultantName = nameFont;
-			}
-			else
-			{
-				resultantName = mappedName;
-			}
-
-			const FCompositeFont* compositeFont = font->GetCompositeFont();
+		void ThrowIfTypefaceIsNotAMemberOfFont(FName originalName, FName typefaceName, const UFont& font)
+		{
+			const FCompositeFont* compositeFont = font.GetCompositeFont();
 			if (!compositeFont)
 			{
-				Throw(0, "Expecting composite font inside of %ls (asset assigned role in %ls)", *font->GetClass()->GetPathName(), *fontAsset.ToString());
+				Throw(0, "Expecting composite font inside of %ls", *font.GetClass()->GetPathName());
+			}
+
+			if (compositeFont->DefaultTypeface.Fonts.Num() == 0)
+			{
+				Throw(0, "No fonts specified in %ls", *font.GetClass()->GetPathName());
 			}
 
 			for (auto& typeface : compositeFont->DefaultTypeface.Fonts)
 			{
-				if (typeface.Font.GetFontFaceAsset()->GetFName() == resultantName)
+				if (typeface.Font.GetFontFaceAsset()->GetFName() == typefaceName)
 				{
-					return FSlateFontInfo(font, spec.CharHeight, resultantName);
+					return;
 				}
 			}
 
-			if (mappedName == NAME_None)
+			if (originalName != typefaceName)
 			{
-				Throw(0, "Rococo requires a typeface %s in font set %ls. ", fontName, *fontAsset.ToString());
+				Throw(0, "Rococo requires a typeface %ls", *originalName.ToString());
 			}
 			else
 			{
-				Throw(0, "Rococo mapped a typeface %s to target %ls in font set %ls, but the target was not found.", fontName, *mappedName.ToString(), *fontAsset.ToString());
+				Throw(0, "Rococo mapped a typeface %ls to target %ls, but the target was not found.", *typefaceName.ToString(), *originalName.ToString());
+			}
+		}
+
+		FSlateFontInfo MatchFont(const FontSpec& spec)
+		{
+			if (fontSet.IsNull())
+			{
+				URococoFontSet& loadedFontSet = LoadDefaultObjectElseThrow<URococoFontSet>(fontAsset);
+				fontSet = &loadedFontSet;
+			}
+
+			try
+			{
+				auto* bpFontSet = fontSet.Get();
+
+				UFont* font = bpFontSet->GetFontAsset();
+				if (!font)
+				{
+					Throw(0, "FontAsset inside of FontSet was blank");
+				}
+
+				FName fontName = FormatFontName(spec);
+				FName mappedName = bpFontSet->MapTypeface(fontName);
+				FName resultantName = (mappedName == NAME_None) ? fontName : mappedName;
+
+				ThrowIfTypefaceIsNotAMemberOfFont(fontName, resultantName, *font);
+
+				return FSlateFontInfo(font, spec.CharHeight, resultantName);
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "%s: (font asset: %ls)", ex.Message(), *fontAsset.ToString());
 			}
 		}
 
