@@ -1,6 +1,7 @@
 #include "RococoGRHostWidget.h"
 #include <rococo.great.sex.h>
 #include <rococo.gui.retained.h>
+#include <rococo.ui.h>
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoGUI, Error, All);
 DEFINE_LOG_CATEGORY(RococoGUI);
@@ -26,6 +27,16 @@ TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 	slateHostWidget = SNew(SRococoGRHostWidget);
 	slateHostWidget->SyncCustodian(mapPathToTexture, _FontAsset);
 	return slateHostWidget.ToSharedRef();
+}
+
+Rococo::Gui::IUE5_GRCustodianSupervisor* URococoGRHostWidget::GetCurrentCustodian()
+{
+	if (!slateHostWidget)
+	{
+		return nullptr;
+	}
+
+	return slateHostWidget->GetCustodian();
 }
 
 static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
@@ -118,4 +129,100 @@ void URococoGRHostWidgetBuilder::OnPrepForLoading(Rococo::GreatSex::IGreatSexGen
 	{
 		LoadGlobalOptions(_GlobalOptionsKey, generator);
 	}
+}
+
+#include <rococo.os.h>
+
+void CopySpatialInfo(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry)
+{
+	FVector2f delta = src.GetCursorDelta();
+	dest.dx = (int) delta.X;
+	dest.dy = (int) delta.Y;
+
+	FVector2f cursorPosScreenSpace = src.GetScreenSpacePosition();
+	FVector2f localPos = geometry.AbsoluteToLocal(cursorPosScreenSpace);
+
+	dest.cursorPos.x = (int) localPos.X;
+	dest.cursorPos.y = (int) localPos.Y;
+}
+
+FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonDown(FGeometry geometry, const FPointerEvent& ue5MouseEvent)
+{
+	using namespace Rococo;
+
+	try
+	{
+		auto* custodian = GetCurrentCustodian();
+
+		MouseEvent me;
+
+		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
+		if (mouseKey == EKeys::RightMouseButton)
+		{
+			me.buttonFlags = MouseEvent::Flags::RDown;
+		}
+		else if (mouseKey == EKeys::MiddleMouseButton)
+		{
+			me.buttonFlags = MouseEvent::Flags::MDown;
+		}
+		else if (mouseKey == EKeys::LeftMouseButton)
+		{
+			me.buttonFlags = MouseEvent::Flags::LDown;
+		}
+		else
+		{
+			return FEventReply(false);
+		}
+
+		CopySpatialInfo(me, ue5MouseEvent, geometry);
+
+		custodian->RouteMouseEvent(me);
+	}
+	catch (Rococo::IException& ex)
+	{
+		Rococo::LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
+	}
+
+	return FEventReply(true);
+}
+
+
+FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(FGeometry geometry, const FPointerEvent& ue5MouseEvent)
+{
+	using namespace Rococo;
+
+	try
+	{
+		auto* custodian = GetCurrentCustodian();
+
+		MouseEvent me;
+
+		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
+		if (mouseKey == EKeys::RightMouseButton)
+		{
+			me.buttonFlags = MouseEvent::Flags::RUp;
+		}
+		else if (mouseKey == EKeys::MiddleMouseButton)
+		{
+			me.buttonFlags = MouseEvent::Flags::MUp;
+		}
+		else if (mouseKey == EKeys::LeftMouseButton)
+		{
+			me.buttonFlags = MouseEvent::Flags::LUp;
+		}
+		else
+		{
+			return FEventReply(false);
+		}
+
+		CopySpatialInfo(me, ue5MouseEvent, geometry);
+
+		custodian->RouteMouseEvent(me);
+	}
+	catch (Rococo::IException& ex)
+	{
+		Rococo::LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
+	}
+
+	return FEventReply(true);
 }

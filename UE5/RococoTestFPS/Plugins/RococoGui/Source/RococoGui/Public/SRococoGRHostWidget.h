@@ -34,6 +34,13 @@ public:
 
 	SRococoGRHostWidget();
 
+	// Returns the custodian. Note that it may be null if SyncCustodian has not been invoked
+	// Custodian functions and anything linked to them may throw exceptions, so only call in a pluin with exceptions enabled and captured
+	Rococo::Gui::IUE5_GRCustodianSupervisor* GetCustodian()
+	{
+		return custodian;
+	}
+
 	// Slate widgets are volatile, so store the mapPathToTexture elsewhere and sync our Custodian to it just after construction
 	void SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font);
 
