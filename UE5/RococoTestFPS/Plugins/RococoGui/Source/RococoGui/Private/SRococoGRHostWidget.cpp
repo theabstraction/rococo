@@ -16,7 +16,7 @@ void SRococoGRHostWidget::Construct(const FArguments& InArgs)
 
 }
 
-void SRococoGRHostWidget::SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font)
+void SRococoGRHostWidget::SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct)
 {
 	try
 	{
@@ -26,6 +26,13 @@ void SRococoGRHostWidget::SyncCustodian(TMapPathToTexture& mapPathToTexture, con
 			Rococo::Gui::GRConfig config;
 			grSystem = CreateGRSystem(config, *custodian);
 			custodian->Bind(*grSystem);
+
+			if (useDefaultFocus)
+			{
+				grSystem->SetFocusOverlayRenderer(&Rococo::Gui::GetDefaultFocusRenderer());
+			}
+
+			onConstruct.OnGRSystemConstructed(*custodian, *grSystem);
 		}
 	}
 	catch (Rococo::IException& ex)

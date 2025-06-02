@@ -20,6 +20,11 @@ class UTexture;
 
 using TMapPathToTexture = TMap<FString, UTexture2D*>;
 
+ROCOCO_INTERFACE ISRococoGRHostWidgetEventHandler
+{
+	virtual void OnGRSystemConstructed(Rococo::Gui::IUE5_GRCustodianSupervisor & custodian, Rococo::Gui::IGRSystem & gr) = 0;
+};
+
 class SRococoGRHostWidget : public SLeafWidget
 {
 private:
@@ -42,7 +47,7 @@ public:
 	}
 
 	// Slate widgets are volatile, so store the mapPathToTexture elsewhere and sync our Custodian to it just after construction
-	void SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font);
+	void SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct);
 
 	void Construct(const FArguments& args);
 	FVector2D ComputeDesiredSize(float) const override;

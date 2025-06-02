@@ -27,8 +27,17 @@ public:
 	void LoadFrame(const char* sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
 
 	// Returns a reference to the currently constructed GR custodian from the slate widget. Invalidated on a widget rebuild or destruction. Do not cache!
-	// Custodian functions and anything linked to them may throw exceptions, so only call in a pluin with exceptions enabled and captured
+	// Custodian functions and anything linked to them may throw exceptions, so only call in a plugin with exceptions enabled and captured
+	// Potentially returns nullptr if custodian could not be constructed or was not constructed.
 	Rococo::Gui::IUE5_GRCustodianSupervisor* GetCurrentCustodian();
+
+	// C++ is needed to set the event handler. If required, pass the widget to a C++ method that invokes this function.
+	// The event handler must be valid for the lifetime of the widget. The event handler will be used following a RebuildWidget.
+	// Thus invoke the method before adding the widget to a viewport
+	void SetEventHandler(ISRococoGRHostWidgetEventHandler* slateEventHandler)
+	{
+		this->_SlateEventHandler = slateEventHandler;
+	}
 protected:
 	TSharedPtr<SRococoGRHostWidget> slateHostWidget;
 
@@ -38,8 +47,15 @@ protected:
 	TMap<FString, UTexture2D*> mapPathToTexture;
 
 	// The location where fonts are expected.
-	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "URococoFontSet"))
+	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "URococoFontSet"), Category = "RococoGui")
 	FSoftObjectPath _FontAsset;
+
+	// Defaults to true. If sets to true will use Rococo::Gui::GetDefaultFocusRenderer to hilight the focused widget
+	// To implement your own, set false and override OnGRSystemConstructed(...) to call Rococo::Gui::IGRSystem::SetFocusOverlayRenderer
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
+	bool _UseDefaultFocusRenderer = true;
+
+	ISRococoGRHostWidgetEventHandler* _SlateEventHandler = nullptr;
 };
 
 typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
@@ -55,8 +71,7 @@ public:
 	FString _SexmlPingPath = TEXT("!tests/greatsex.test.sexml");
 
 	// If set to true the builder will prep the GUI generator with a global function
-	// Your project must define a C++ function void GlobalPrepGenerator(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
-	// The reference returned by that method must remain valid for the lifetime of the widget
+	// Your project must call 'void Rococo::Gui::SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator)' 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	bool _UseGlobalOptions = true;
 
@@ -75,9 +90,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteMouseButtonUp(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
 
-	// Tells the RococoGUI widget tree to handle a mouse mouse down event
+	// Tells the RococoGUI widget tree to handle a mouse move event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteMouseMove(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
+
+	// Tells the RococoGUI widget tree to handle a key-press or key-repeat event
+	UFUNCTION(BlueprintCallable, Category = "RococoGui")
+	FEventReply RouteKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
+
+	// Tells the RococoGUI widget tree to handle a key-release
+	UFUNCTION(BlueprintCallable, Category = "RococoGui")
+	FEventReply RouteKeyUp(FGeometry MyGeometry, FKeyEvent InKeyEvent);
 private:
 	void OnPrepForLoading(Rococo::GreatSex::IGreatSexGenerator& generator);
 };

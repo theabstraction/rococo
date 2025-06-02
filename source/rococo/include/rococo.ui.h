@@ -33,7 +33,7 @@ namespace Rococo
 	struct KeyboardEventEx: KeyboardEvent
 	{
 		int32 isCtrlHeld : 1;
-		int32 isShfitHeld : 1;
+		int32 isShiftHeld : 1;
 		int32 isAltHeld : 1;
 	};
 

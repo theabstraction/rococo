@@ -377,6 +377,7 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 
 	void AddTask(Rococo::Function<void()> lambda) override
 	{
+		UNUSED(lambda);
 		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 

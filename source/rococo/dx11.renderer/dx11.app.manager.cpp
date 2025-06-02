@@ -151,7 +151,10 @@ namespace ANON
 		static int32 VcodeToUnicode(int32 virtualKeyCode, int32 scancode, HKL layout)
 		{
 			BYTE keystate[256];
-			GetKeyboardState(keystate);
+			if (!GetKeyboardState(keystate))
+			{
+				return 0;
+			}
 
 			WCHAR buffer[4] = { 0,0,0,0 };
 			UINT flags = 0;
@@ -169,7 +172,7 @@ namespace ANON
 			KeyboardEventEx key;
 			key.isAltHeld = IsDown(VK_MENU);
 			key.isCtrlHeld = IsDown(VK_CONTROL);
-			key.isShfitHeld = IsDown(VK_SHIFT);
+			key.isShiftHeld = IsDown(VK_SHIFT);
 			KeyboardEvent& innerKey = static_cast<KeyboardEvent&>(key);
 			((RAWKEYBOARD&)(innerKey)) = k;
 			key.unicode = VcodeToUnicode(k.VKey, key.scanCode, hKeyboardLayout);

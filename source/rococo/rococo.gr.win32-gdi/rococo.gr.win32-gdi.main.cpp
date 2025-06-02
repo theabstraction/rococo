@@ -2171,7 +2171,7 @@ namespace GRANON
 					KeyboardEventEx key;
 					key.isAltHeld = IsDown(VK_MENU);
 					key.isCtrlHeld = IsDown(VK_CONTROL);
-					key.isShfitHeld = IsDown(VK_SHIFT);
+					key.isShiftHeld = IsDown(VK_SHIFT);
 
 					auto& innerKey = static_cast<KeyboardEvent&>(key);
 
@@ -2258,7 +2258,7 @@ namespace GRANON
 			kbe.extraInfo = 0;
 			kbe.isAltHeld = 0;
 			kbe.isCtrlHeld = 0;
-			kbe.isShfitHeld = 0;
+			kbe.isShiftHeld = 0;
 			gdiCustodian->RouteKeyboardEvent(kbe, *grSystem);
 		}
 

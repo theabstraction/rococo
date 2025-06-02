@@ -22,10 +22,21 @@ void URococoGRHostWidget::ReleaseSlateResources(bool bReleaseChildren)
 	slateHostWidget.Reset();
 }
 
+struct NullHandler: ISRococoGRHostWidgetEventHandler
+{
+	// Overridden in a derived class to assign such things as a focus renderer to the GR system
+	void OnGRSystemConstructed(Rococo::Gui::IUE5_GRCustodianSupervisor& custodian, Rococo::Gui::IGRSystem& gr) override 
+	{
+	}
+};
+
 TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 {
 	slateHostWidget = SNew(SRococoGRHostWidget);
-	slateHostWidget->SyncCustodian(mapPathToTexture, _FontAsset);
+
+	NullHandler doNothing;
+	slateHostWidget->SyncCustodian(mapPathToTexture, _FontAsset, _UseDefaultFocusRenderer, _SlateEventHandler ? *_SlateEventHandler : doNothing);
+
 	return slateHostWidget.ToSharedRef();
 }
 
@@ -249,6 +260,68 @@ FEventReply URococoGRHostWidgetBuilder::RouteMouseMove(FGeometry geometry, const
 		MouseEvent me = { 0 };
 		CopySpatialInfo(me, ue5MouseEvent, geometry);
 		custodian->RouteMouseEvent(me);
+	}
+	catch (Rococo::IException& ex)
+	{
+		Rococo::LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
+	}
+
+	return FEventReply(true);
+}
+
+FEventReply URococoGRHostWidgetBuilder::RouteKeyDown(FGeometry geometry, FKeyEvent ue5KeyEvent)
+{
+	using namespace Rococo;
+
+	try
+	{
+		auto* custodian = GetCurrentCustodian();
+		if (!custodian)
+		{
+			return FEventReply(false);
+		}
+
+		KeyboardEventEx kex = { 0 };
+		kex.isAltHeld = ue5KeyEvent.IsAltDown();
+		kex.isCtrlHeld = ue5KeyEvent.IsControlDown();
+		kex.isShiftHeld = ue5KeyEvent.IsShiftDown();
+		kex.VKey = ue5KeyEvent.GetKeyCode();
+		FName name = ue5KeyEvent.GetKey().GetFName();
+		kex.scanCode = 0;
+		kex.Flags = 0;
+		kex.unicode = ue5KeyEvent.GetCharacter();
+		custodian->RouteKeyboardEvent(kex);
+	}
+	catch (Rococo::IException& ex)
+	{
+		Rococo::LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
+	}
+
+	return FEventReply(true);
+}
+
+FEventReply URococoGRHostWidgetBuilder::RouteKeyUp(FGeometry geometry, FKeyEvent ue5KeyEvent)
+{
+	using namespace Rococo;
+
+	try
+	{
+		auto* custodian = GetCurrentCustodian();
+		if (!custodian)
+		{
+			return FEventReply(false);
+		}
+
+		KeyboardEventEx kex = { 0 };
+		kex.isAltHeld = ue5KeyEvent.IsAltDown();
+		kex.isCtrlHeld = ue5KeyEvent.IsControlDown();
+		kex.isShiftHeld = ue5KeyEvent.IsShiftDown();
+		kex.VKey = ue5KeyEvent.GetKeyCode();
+		FName name = ue5KeyEvent.GetKey().GetFName();
+		kex.scanCode = 0;
+		kex.Flags = 1;
+		kex.unicode = ue5KeyEvent.GetCharacter();
+		custodian->RouteKeyboardEvent(kex);
 	}
 	catch (Rococo::IException& ex)
 	{
