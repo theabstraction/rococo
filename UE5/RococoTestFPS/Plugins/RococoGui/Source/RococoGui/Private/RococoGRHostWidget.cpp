@@ -153,8 +153,12 @@ FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonDown(FGeometry geometry,
 	try
 	{
 		auto* custodian = GetCurrentCustodian();
+		if (!custodian)
+		{
+			return FEventReply(false);
+		}
 
-		MouseEvent me;
+		MouseEvent me = { 0 };
 
 		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
 		if (mouseKey == EKeys::RightMouseButton)
@@ -186,7 +190,6 @@ FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonDown(FGeometry geometry,
 	return FEventReply(true);
 }
 
-
 FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(FGeometry geometry, const FPointerEvent& ue5MouseEvent)
 {
 	using namespace Rococo;
@@ -194,8 +197,12 @@ FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(FGeometry geometry, c
 	try
 	{
 		auto* custodian = GetCurrentCustodian();
+		if (!custodian)
+		{
+			return FEventReply(false);
+		}
 
-		MouseEvent me;
+		MouseEvent me = { 0 };
 
 		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
 		if (mouseKey == EKeys::RightMouseButton)
@@ -217,6 +224,30 @@ FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(FGeometry geometry, c
 
 		CopySpatialInfo(me, ue5MouseEvent, geometry);
 
+		custodian->RouteMouseEvent(me);
+	}
+	catch (Rococo::IException& ex)
+	{
+		Rococo::LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
+	}
+
+	return FEventReply(true);
+}
+
+FEventReply URococoGRHostWidgetBuilder::RouteMouseMove(FGeometry geometry, const FPointerEvent& ue5MouseEvent)
+{
+	using namespace Rococo;
+
+	try
+	{
+		auto* custodian = GetCurrentCustodian();
+		if (!custodian)
+		{
+			return FEventReply(false);
+		}
+
+		MouseEvent me = { 0 };
+		CopySpatialInfo(me, ue5MouseEvent, geometry);
 		custodian->RouteMouseEvent(me);
 	}
 	catch (Rococo::IException& ex)

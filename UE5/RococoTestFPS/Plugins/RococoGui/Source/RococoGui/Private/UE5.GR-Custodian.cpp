@@ -1046,6 +1046,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
 
+		Vec2i lastCursorPos = { -1000000, -1000000 };
+
 		void RouteMouseEvent(const MouseEvent& me) override
 		{
 			if (!grSystem)
@@ -1063,6 +1065,8 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 			else
 			{
+				lastCursorPos = me.cursorPos;
+
 				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0 };
 				lastRoutingStatus = grSystem->RouteCursorMoveEvent(cursorEvent);
 
@@ -1153,6 +1157,8 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 
 			UE5_GR_Renderer renderer(rc, *this);
+
+			renderer.cursorPos = lastCursorPos;
 
 			if (false)
 			{
