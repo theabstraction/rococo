@@ -67,11 +67,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	void ReloadFrame();
 
-	// Tells the RococoGUI to respond to a mouse down event
+	// Tells the RococoGUI widget tree to handle a mouse mouse down event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
 
-	// Tells the RococoGUI to respond to a mouse down event
+	// Tells the RococoGUI widget tree to handle a mouse up event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteMouseButtonUp(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
 private:

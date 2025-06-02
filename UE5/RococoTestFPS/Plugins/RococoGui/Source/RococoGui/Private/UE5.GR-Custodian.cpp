@@ -887,7 +887,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		FSlateFontInfo MatchFont(const FontSpec& spec)
 		{
-			if (fontSet.IsNull())
+			if (!fontSet)
 			{
 				URococoFontSet& loadedFontSet = LoadDefaultObjectElseThrow<URococoFontSet>(fontAsset);
 				fontSet = &loadedFontSet;
