@@ -18,6 +18,24 @@
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
 #include "../../../../RococoUtil/Source/RococoUtil/Public/RococoTemplates.inl"
 
+namespace Rococo
+{
+	inline FVector2f ToFVector2f(Vec2i v)
+	{
+		return FVector2f((float)v.x, (float)v.y);
+	}
+
+	inline Vec2i ToVec2i(FVector2f v)
+	{
+		return Vec2i((int)v.X, (int)v.Y);
+	}
+
+	FVector2f SlateRenderContext::ToSlatePosition(Rococo::Vec2i pos)
+	{
+		return geometry.LocalToAbsolute(ToFVector2f(pos));
+	}
+}
+
 namespace Rococo::OS
 {
 	ROCOCO_API Windows::IWindow& WindowOwner();
@@ -39,15 +57,6 @@ namespace Rococo::Gui
 		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
 	}
 
-	ROCOCO_INTERFACE IUE5_GR_CustodianSupervisor
-	{
-		virtual IGRCustodian& Custodian() = 0;
-		virtual void Render(IGRSystem& gr) = 0;
-		virtual void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) = 0;
-		virtual void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) = 0;
-		virtual void Free() = 0;
-	};
-
 	ROCOCO_GUI_RETAINED_API EGREventRouting TranslateToEditor(
 		Windows::IWindow& ownerWindow,
 		const GRKeyEvent& keyEvent,
@@ -58,8 +67,6 @@ namespace Rococo::Gui
 	{
 		return FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	}
-
-	using FSlateVec2D = UE::Slate::FDeprecateVector2DParameter;
 
 	FVector2f SlateSpan(const GuiRect& absRect)
 	{
@@ -84,16 +91,6 @@ namespace Rococo::Gui::UE5::Implementation
 	float ToFloat(uint8 j)
 	{
 		return j / 255.0f;
-	}
-
-	inline FVector2f ToFVector2f(Vec2i v)
-	{
-		return FVector2f((float)v.x, (float)v.y);
-	}
-
-	inline Vec2i ToVec2i(FVector2f v)
-	{
-		return Vec2i((int)v.X, (int)v.Y);
 	}
 
 	FLinearColor ToLinearColor(RGBAb colour)
@@ -185,18 +182,15 @@ namespace Rococo::Gui::UE5::Implementation
 
 	GuiRect GetAlignedRect(GRAlignmentFlags alignment, const GuiRect& containerRect, Vec2i spacing, Vec2i innerRectSpan)
 	{
-		bool isLeftAligned = alignment.HasSomeFlags(EGRAlignment::Left) && !alignment.HasSomeFlags(EGRAlignment::Right);
-		bool isRightAligned = !alignment.HasSomeFlags(EGRAlignment::Left) && alignment.HasSomeFlags(EGRAlignment::Right);
-
 		int32 x = 0;
 
 		const GuiRect& rect = containerRect;
 
-		if (isLeftAligned)
+		if (alignment.IsLeft())
 		{
 			x = rect.left + spacing.x;
 		}
-		else if (isRightAligned)
+		else if (alignment.IsRight())
 		{
 			x = rect.right - spacing.x - innerRectSpan.x;
 		}
@@ -206,14 +200,12 @@ namespace Rococo::Gui::UE5::Implementation
 		}
 
 		int y = 0;
-		bool isTopAligned = alignment.HasSomeFlags(EGRAlignment::Top) && !alignment.HasSomeFlags(EGRAlignment::Bottom);
-		bool isBottomAligned = !alignment.HasSomeFlags(EGRAlignment::Top) && alignment.HasSomeFlags(EGRAlignment::Bottom);
 
-		if (isTopAligned)
+		if (alignment.IsTop())
 		{
 			y = rect.top + spacing.y;
 		}
-		else if (isBottomAligned)
+		else if (alignment.IsBottom())
 		{
 			y = rect.bottom - spacing.y - innerRectSpan.y;
 		}
@@ -602,9 +594,7 @@ namespace Rococo::Gui::UE5::Implementation
 			v.PixelSize[1] = 0;
 			v.Color = FColor(src.colour.red, src.colour.green, src.colour.blue, src.colour.alpha);
 			v.SecondaryColor = FColor(0, 0, 0, 0);
-
-			FVector2f localPoint((float)src.position.x, (float)src.position.y);
-			v.Position = rc.geometry.LocalToAbsolute(localPoint);
+			v.Position = rc.ToSlatePosition(src.position);
 		}
 
 		FSlateColorBrush solidBrushForMeshing = FColor(255,255,255,255);
@@ -658,9 +648,28 @@ namespace Rococo::Gui::UE5::Implementation
 			DrawText(fontId, targetRect, alignment, spacing, text, colour);
 		}
 
+		struct ClipContext
+		{
+			FSlateClippingZone zone;
+			SlateRenderContext& rc;
+
+			ClipContext(SlateRenderContext& _rc, const GuiRect& rect): rc(_rc)
+			{
+				zone.BottomLeft = rc.ToSlatePosition(BottomLeft(rect));
+				zone.BottomRight = rc.ToSlatePosition(BottomRight(rect));
+				zone.TopLeft = rc.ToSlatePosition(TopLeft(rect));
+				zone.TopRight = rc.ToSlatePosition(TopRight(rect));
+				rc.drawElements.PushClip(zone);
+			}
+
+			~ClipContext()
+			{
+				rc.drawElements.PopClip();
+			}
+		};
+
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
-			/*
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
@@ -668,9 +677,12 @@ namespace Rococo::Gui::UE5::Implementation
 
 			if (!AreRectsOverlapped(lastScissorRect, targetRect))
 			{
-				return;
+				return;			
 			}
-			*/
+
+			GuiRect cliprect = IntersectNormalizedRects(lastScissorRect, targetRect);
+
+			ClipContext clip(rc, cliprect);
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
@@ -783,7 +795,7 @@ namespace Rococo::Gui::UE5::Implementation
 		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font) :
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture),
-			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/RococoFontSet.RococoFontSet_C") : font)
+			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/DA_RococoFonts") : font)
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
@@ -922,6 +934,18 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			if (!fontSet)
 			{
+				UObject* oFontSet = fontAsset.TryLoad();
+				if (!oFontSet)
+				{
+					Throw(0, "Font asset could not be loaded");
+				}
+
+				fontSet = Cast<URococoFontSet>(oFontSet);
+				if (!fontSet)
+				{
+					Throw(0, "Font asset was not URococoFontSet: %s", *oFontSet->GetClass()->GetFName().ToString());
+				}
+
 				URococoFontSet& loadedFontSet = LoadDefaultObjectElseThrow<URococoFontSet>(fontAsset);
 				fontSet = &loadedFontSet;
 			}
@@ -990,7 +1014,7 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			const FSlateFontInfo& fontInfo = GetFont(id);
 
-			if (currentContext != nullptr)
+			if (false && currentContext != nullptr)
 			{
 				return 1 + (int)(fontInfo.Size * currentContext->geometry.Scale);
 			}

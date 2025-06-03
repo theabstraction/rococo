@@ -17,8 +17,10 @@ namespace Rococo::GreatSex
 
 namespace Rococo::Gui
 {
+	// The custodian allows the Rococo Gui to render to UE5 slate widgets. It also routes UI events into the Rococo widget system.
 	ROCOCO_INTERFACE IUE5_GRCustodianSupervisor : IGRCustodianSupervisor
 	{
+		// If invoked this will make the custodian render the error than the widget system
 		virtual void AddLoadError(Rococo::GreatSex::LoadFrameException& err) = 0;
 		virtual void Bind(IGRSystemSupervisor& grSystem) = 0;
 		virtual IO::IInstallation& Installation() = 0;

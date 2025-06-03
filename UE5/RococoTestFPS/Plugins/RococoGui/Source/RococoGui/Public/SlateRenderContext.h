@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Runtime\Core\Public\HAL\Platform.h>
+#include <rococo.types.h>
 
 class FPaintArgs;
 struct FGeometry;
@@ -19,5 +20,7 @@ namespace Rococo
 		int32 layerId;
 		const FWidgetStyle& widgetStyle;
 		bool bEnabled;
+
+		FVector2f ToSlatePosition(Rococo::Vec2i pos);
 	};
 }

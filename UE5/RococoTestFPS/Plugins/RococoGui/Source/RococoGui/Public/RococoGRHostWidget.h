@@ -47,7 +47,7 @@ protected:
 	TMap<FString, UTexture2D*> mapPathToTexture;
 
 	// The location where fonts are expected.
-	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "URococoFontSet"), Category = "RococoGui")
+	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "RococoFontSet"), Category = "RococoGui")
 	FSoftObjectPath _FontAsset;
 
 	// Defaults to true. If sets to true will use Rococo::Gui::GetDefaultFocusRenderer to hilight the focused widget
