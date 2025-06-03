@@ -75,7 +75,13 @@ void URococoGRHostWidget::LoadFrame(const FString& sexmlPingPath, Rococo::IEvent
 {
 	if (!IsAsciiPath(sexmlPingPath))
 	{
-		UE_LOG(RococoGUI, Error, TEXT("Sexml ping path has to be an ascii sequence: <%s>"), *sexmlPingPath);
+		UE_LOG(RococoGUI, Error, TEXT("URococoGRHostWidget::Sexml ping path has to be a sequence of printable ascii characters. Legal Ascii values are (33-127): <%s>"), *sexmlPingPath);
+		return;
+	}
+
+	if (**sexmlPingPath != TEXT('!'))
+	{
+		UE_LOG(RococoGUI, Error, TEXT("URococoGRHostWidget::Sexml ping path has to start with a ping (!): <%s>"), *sexmlPingPath);
 		return;
 	}
 

@@ -67,6 +67,8 @@ class ROCOCOGUI_API URococoGRHostWidgetBuilder : public URococoGRHostWidget
 public:
 	GENERATED_BODY()
 
+	// Specifies the sexml to load when the slate widget within is rebuilt
+	// As with all ping paths the ping (!) represents the rococo content directory
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	FString _SexmlPingPath = TEXT("!tests/greatsex.test.sexml");
 

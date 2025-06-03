@@ -587,37 +587,70 @@ namespace Rococo::Gui::UE5::Implementation
 			*/
 		}
 
+		TArray<FSlateVertex> triangleVertices;
+		TArray<CodeSkipSizeType> triangleIndices;
+
+		void MakeSlateVertex(OUT FSlateVertex& v, IN const GRVertex& src)
+		{
+			v.TexCoords[0] = 0;
+			v.TexCoords[1] = 0;
+			v.TexCoords[2] = 0;
+			v.TexCoords[3] = 0;
+			v.MaterialTexCoords.X = 0;
+			v.MaterialTexCoords.Y = 0;
+			v.PixelSize[0] = 0;
+			v.PixelSize[1] = 0;
+			v.Color = FColor(src.colour.red, src.colour.green, src.colour.blue, src.colour.alpha);
+			v.SecondaryColor = FColor(0, 0, 0, 0);
+
+			FVector2f localPoint((float)src.position.x, (float)src.position.y);
+			v.Position = rc.geometry.LocalToAbsolute(localPoint);
+		}
+
+		FSlateColorBrush solidBrushForMeshing = FColor(255,255,255,255);
+
+		FSlateResourceHandle hBlendedBrushResource;
+
 		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
 		{
-			/*
-			SpriteVertexData useColour{ 1, 0,0,0 };
-			BaseVertexData noTextures{ {0,0}, 0 };
+			if (nTriangles == 0)
+			{
+				return;
+			}
+
+			triangleVertices.Empty();
+			triangleIndices.Empty();
+
+			FSlateVertex v;
+
+			uint32 index = 0;
 
 			for (size_t i = 0; i < nTriangles; i++)
 			{
 				auto& t = triangles[i];
 
-				GuiVertex v[3];
-				v[0].pos = Vec2{ (float)t.a.position.x, (float)t.a.position.y };
-				v[1].pos = Vec2{ (float)t.b.position.x, (float)t.b.position.y };
-				v[2].pos = Vec2{ (float)t.c.position.x, (float)t.c.position.y };
+				MakeSlateVertex(OUT v, IN t.a);
+				triangleVertices.Add(v);
 
-				v[0].colour = t.a.colour;
-				v[1].colour = t.b.colour;
-				v[2].colour = t.c.colour;
+				MakeSlateVertex(OUT v, IN t.b);
+				triangleVertices.Add(v);
 
-				v[0].sd = useColour;
-				v[1].sd = useColour;
-				v[2].sd = useColour;
+				MakeSlateVertex(OUT v, IN t.c);
+				triangleVertices.Add(v);
 
-				v[0].vd = noTextures;
-				v[1].vd = noTextures;
-				v[2].vd = noTextures;
-
-				rc->AddTriangle(v);
+				triangleIndices.Add(index++);
+				triangleIndices.Add(index++);
+				triangleIndices.Add(index++);
 			}
 
-			*/
+			if (!hBlendedBrushResource.IsValid())
+			{
+				FSlateColorBrush solidBrush(FColor(1.0f,1.0f,1.0f,1.0f));
+				hBlendedBrushResource = FSlateApplication::Get().GetRenderer()->GetResourceHandle(solidBrushForMeshing);
+			}
+
+			ISlateUpdatableInstanceBuffer* instanceBuffer = nullptr;
+			FSlateDrawElement::MakeCustomVerts(rc.drawElements, ++rc.layerId, hBlendedBrushResource, triangleVertices, triangleIndices, instanceBuffer, 0, 0);
 		}
 
 		void DrawParagraph(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override

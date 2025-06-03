@@ -37,7 +37,18 @@ void SRococoGRHostWidget::SyncCustodian(TMapPathToTexture& mapPathToTexture, con
 	}
 	catch (Rococo::IException& ex)
 	{
-		Rococo::LogExceptionAndQuit(ex, nullptr, nullptr);
+		if (false)
+		{
+			// The More severe option, which might annoy some as they have to restart UE5 to test the corrected configuration
+			Rococo::LogExceptionAndQuit(ex, nullptr, nullptr);
+		}
+		else
+		{
+			// Allow the user the fix the Rococo installation and try again (hopefully)
+			Rococo::LogExceptionAndContinue(ex, nullptr, nullptr);
+			grSystem = nullptr;
+			custodian = nullptr;
+		}
 	}
 }
 
@@ -130,23 +141,6 @@ void SRococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCal
 	Rococo::GreatSex::LoadFrame(custodian->Installation(), *allocator, sexmlPingPath, frame, onPrepForLoading, onError);
 }
 
-void DrawBackground(Rococo::SlateRenderContext& rc, const FWidgetStyle& style)
-{
-	ESlateDrawEffect drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
-
-	FSlateColorBrush solidBrush(rc.bEnabled ? style.GetForegroundColor() : style.GetSubduedForegroundColor());
-
-	/*
-	FSlateDrawElement::MakeBox(OUT rc.drawElements,
-		++rc.layerId,
-		rc.geometry,
-		&solidBrush,
-		drawEffects,
-		solidBrush.GetTint(style)
-	);
-	*/
-}
-
 int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 	const FGeometry& allottedGeometry,
 	const FSlateRect& cullingRect,
@@ -158,8 +152,6 @@ int32 SRococoGRHostWidget::OnPaint(const FPaintArgs& args,
 	bool bEnabled = ShouldBeEnabled(bParentEnabled);
 	
 	Rococo::SlateRenderContext rc{ args, allottedGeometry, cullingRect, drawElements, layerId, widgetStyle, bEnabled};
-
-	DrawBackground(rc, widgetStyle);
 
 	if (custodian)
 	{
