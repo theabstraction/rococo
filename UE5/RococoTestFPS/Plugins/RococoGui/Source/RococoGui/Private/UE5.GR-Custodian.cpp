@@ -689,10 +689,11 @@ namespace Rococo::Gui::UE5::Implementation
 			if (fontInfo.HasValidFont())
 			{
 				const FText& localizedText = MapAsciiToLocalizedText(custodian, text);
-				Vec2i textSpan = EvaluateMinimalSpan(custodian, fontId, localizedText, Vec2i {0,0});
-				GuiRect textRect = GetAlignedRect(alignment, targetRect, spacing, textSpan);
-				FPaintGeometry ue5Rect = ToUE5Rect(textRect, rc.geometry);
-				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
+				Vec2i textScreenSpan = EvaluateMinimalSpan(custodian, fontId, localizedText, Vec2i {0,0});
+				Vec2i textLocalSpan = Vec2i{ (int) (textScreenSpan.x / rc.geometry.Scale), (int) (textScreenSpan.y / rc.geometry.Scale) };
+				GuiRect textRect = GetAlignedRect(alignment, targetRect, spacing, textLocalSpan);
+				FPaintGeometry textGeometry(rc.ToSlatePosition(TopLeft(textRect)), ToFVector2f(textScreenSpan), 1.0f);
+				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, textGeometry, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
 			else
 			{
