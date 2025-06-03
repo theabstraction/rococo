@@ -16,7 +16,6 @@
 #include "../Public/RococoFontSet.h"
 
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
-#include "../../../../RococoUtil/Source/RococoUtil/Public/RococoTemplates.inl"
 
 namespace Rococo
 {
@@ -945,9 +944,6 @@ namespace Rococo::Gui::UE5::Implementation
 				{
 					Throw(0, "Font asset was not URococoFontSet: %s", *oFontSet->GetClass()->GetFName().ToString());
 				}
-
-				URococoFontSet& loadedFontSet = LoadDefaultObjectElseThrow<URococoFontSet>(fontAsset);
-				fontSet = &loadedFontSet;
 			}
 
 			try
