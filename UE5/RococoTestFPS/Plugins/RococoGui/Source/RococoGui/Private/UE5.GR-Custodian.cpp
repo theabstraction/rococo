@@ -689,11 +689,11 @@ namespace Rococo::Gui::UE5::Implementation
 			if (fontInfo.HasValidFont())
 			{
 				const FText& localizedText = MapAsciiToLocalizedText(custodian, text);
-				Vec2i textScreenSpan = EvaluateMinimalSpan(custodian, fontId, localizedText, Vec2i {0,0});
-				Vec2i textLocalSpan = Vec2i{ (int) (textScreenSpan.x / rc.geometry.Scale), (int) (textScreenSpan.y / rc.geometry.Scale) };
+				Vec2i textLocalSpan = EvaluateMinimalSpan(custodian, fontId, localizedText, Vec2i {0,0});
+				Vec2i textPixelSpan = Vec2i{ (int) (textLocalSpan.x * rc.geometry.Scale), (int) (textLocalSpan.y / rc.geometry.Scale) };
 				GuiRect textRect = GetAlignedRect(alignment, targetRect, spacing, textLocalSpan);
-				FPaintGeometry textGeometry(rc.ToSlatePosition(TopLeft(textRect)), ToFVector2f(textScreenSpan), 1.0f);
-				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, textGeometry, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
+				FPaintGeometry textGeometryInPixelSpace(rc.ToSlatePosition(TopLeft(textRect)), ToFVector2f(textPixelSpan), 1.0f);
+				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, textGeometryInPixelSpace, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
 			else
 			{
@@ -974,6 +974,7 @@ namespace Rococo::Gui::UE5::Implementation
 			FSlateFontInfo newFont = MatchFont(spec, zoomLevel);
 			fontMap.Add(newPSpec.fontId, newFont);
 			fontSpecs.Push(newPSpec);
+			fontSpecs.Last().spec.FontName = fontSpecs.Last().name;
 			return newPSpec.fontId;
 		}
 
@@ -1060,11 +1061,23 @@ namespace Rococo::Gui::UE5::Implementation
 			return image;
 		}
 
+		float PixelSpanToLocalSpaceSpanRatio() const
+		{
+			if (currentContext && currentContext->geometry.Scale != 0.0f)
+			{
+				return 1.0f / currentContext->geometry.Scale;
+			}
+
+			return 1.0f;
+		}
+
+		// Return local space span of the text string in the given font with extra pixelSpan specified in the final argument
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const FText& text, Vec2i extraSpan) const
 		{
 			auto& font = GetFont(fontId);	
-			FVector2f span = fontMeasureService->Measure(text, font, 1.0f) + ToFVector2f(extraSpan);
-			return ToVec2i(span) + Vec2i(1,1);			
+			FVector2f pixelSpan = fontMeasureService->Measure(text, font, 1.0f) + ToFVector2f(extraSpan);
+			FVector2f localSpaceSpan = pixelSpan * PixelSpanToLocalSpaceSpanRatio();
+			return ToVec2i(localSpaceSpan) + Vec2i(1,1);
 		}
 
 		mutable stringmap<FText> mapAsciiToLocalizedText;
