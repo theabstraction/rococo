@@ -35,6 +35,16 @@ namespace Rococo
 	}
 }
 
+namespace Rococo
+{
+	const Matrix2x2 Matrix2x2::RotateAnticlockwise(Radians phi)
+	{
+		float sina = sinf(phi);
+		float cosa = cosf(phi);
+		return Matrix2x2{ { cosa, -sina }, { sina, cosa } };
+	}
+}
+
 namespace Rococo::OS
 {
 	ROCOCO_API Windows::IWindow& WindowOwner();
@@ -366,18 +376,67 @@ namespace Rococo::Gui::UE5::Implementation
 			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageNoStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 
-		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
+		static inline Vec2 FlipY(Vec2 p)
 		{
-			/*
-			if (!lastScissorRect.IsNormalized())
+			return { p.x, -p.y };
+		}
+
+		void AddArc(RGBAb colour, Vec2i origin, int radius, Degrees startAngle, Degrees sweepAngle)
+		{
+			if (colour.alpha == 0)
 			{
 				return;
 			}
 
-			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-
+			/*
+			|      / P
+			|     /
+			|    /
+			|   /
+			|  /
+			| /
+			|/
+			O-------------------------
 			*/
 
+			Vec2 fOrigin{ (float)origin.x, (float)origin.y };
+
+			float arcLength = radius * (sweepAngle.degrees / 360.0f) * 2.0f * PI();
+
+			float pixelsPerSegment = 2.0;
+			int nDivisions = clamp((int)(arcLength / pixelsPerSegment), 1, 4096);
+
+			Vec2 ri{ (float)radius, 0 }; // The vector i scaled by r, the radius
+
+			Degrees theta0 = startAngle;
+			Degrees dTheta = Degrees{ sweepAngle / nDivisions };
+
+			for (int d = 0; d < nDivisions; d++)
+			{
+				const Matrix2x2 rotStart = Matrix2x2::RotateAnticlockwise(theta0);
+
+				Degrees endAngle = Degrees{ theta0.degrees + dTheta.degrees };
+
+				const Matrix2x2 rotEnd = Matrix2x2::RotateAnticlockwise(endAngle);
+
+				Vec2 start = FlipY(rotStart * ri) + fOrigin;
+				Vec2 end = FlipY(rotEnd * ri) + fOrigin;
+
+				GRTriangle t =
+				{
+					{ origin,  colour },
+					{ Quantize(start),    colour },
+					{ Quantize(end),      colour }
+				};
+
+				AddTriangle(t);
+
+				theta0.degrees += dTheta.degrees;
+			}
+		}
+
+		void DrawSharpRect_NoLayerInc(const GuiRect& absRect, RGBAb colour)
+		{
 			ESlateDrawEffect drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
 			auto ue5Colour = ToLinearColor(colour);
@@ -386,55 +445,117 @@ namespace Rococo::Gui::UE5::Implementation
 			auto ue5Rect = AsGeometry(absRect);
 
 			FSlateDrawElement::MakeBox(OUT rc.drawElements,
-				++rc.layerId,
+				rc.layerId,
 				ue5Rect,
 				&solidBrush,
 				drawEffects,
 				ue5Colour
 			);
+		}
 
-			/*
+		void DrawRoundedRect_NoLayerInc(const GuiRect& rect, RGBAb colour, int cornerRadius)
+		{
+			ClipContext clip(rc, lastScissorRect);
 
-			rc->SetScissorRect(visibleRect);
-			switch (rectStyle)
+			GuiRect centreRect;
+			centreRect.left = rect.left + cornerRadius;
+			centreRect.top = rect.top;
+			centreRect.right = rect.right - cornerRadius;
+			centreRect.bottom = rect.bottom;
+			if (centreRect.IsNormalized())
 			{
-			case EGRRectStyle::SHARP:
-				Rococo::Graphics::DrawRectangle(*rc, absRect, colour, colour);
-				break;
-			case EGRRectStyle::ROUNDED_WITH_BLUR:
-			case EGRRectStyle::ROUNDED:
-				Rococo::Graphics::DrawRoundedRectangle(*rc, absRect, colour, cornerRadius);
+				DrawSharpRect_NoLayerInc(centreRect, colour);
 			}
 
-			*/
+			GuiRect leftRect;
+			leftRect.left = rect.left;
+			leftRect.top = rect.top + cornerRadius;
+			leftRect.right = rect.left + cornerRadius;
+			leftRect.bottom = rect.bottom - cornerRadius;
+			if (leftRect.IsNormalized())
+			{
+				DrawSharpRect_NoLayerInc(leftRect, colour);
+			}
+
+			GuiRect rightRect;
+			rightRect.left = rect.right - cornerRadius;
+			rightRect.top = rect.top + cornerRadius;
+			rightRect.right = rect.right;
+			rightRect.bottom = rect.bottom - cornerRadius;
+			if (rightRect.IsNormalized())
+			{
+				DrawSharpRect_NoLayerInc(rightRect, colour);
+			}
+
+			Vec2i leftTop{ rect.left + cornerRadius, rect.top + cornerRadius };
+			AddArc(colour, leftTop, cornerRadius, 90_degrees, 90_degrees);
+
+			Vec2i rightTop{ rect.right - cornerRadius, rect.top + cornerRadius };
+			AddArc(colour, rightTop, cornerRadius, 0_degrees, 90_degrees);
+
+			Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom - cornerRadius };
+			AddArc(colour, leftBottom, cornerRadius, 180_degrees, 90_degrees);
+
+			Vec2i rightBottom{ rect.right - cornerRadius, rect.bottom - cornerRadius };
+			AddArc(colour, rightBottom, cornerRadius, 270_degrees, 90_degrees);
+
+			CommitTrianglesForRendering_NoLayerInc();
 		}
 
-		TArray<FVector2D> pointBuilder;
-
-		void DrawLine(Vec2i start, Vec2i end, RGBAb colour)
+		void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle, int cornerRadius) override
 		{
-			pointBuilder.Empty();
-			pointBuilder.Add(FVector2D(start.x, start.y));
-			pointBuilder.Add(FVector2D(end.x, end.y));
-			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
-		}
-
-		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
-		{
-			UNUSED(rectStyle);
-			UNUSED(cornerRadius);
-
-			/*
-
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
 			}
 
-			*/
+			if (colour.alpha == 0)
+			{
+				return;
+			}
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
+			if (!visibleRect.IsNormalized())
+			{
+				return;
+			}
 
+			++rc.layerId;
+
+			switch (rectStyle)
+			{
+				case EGRRectStyle::SHARP:
+					DrawSharpRect_NoLayerInc(visibleRect, colour);
+					break;
+				case EGRRectStyle::ROUNDED_WITH_BLUR:
+				case EGRRectStyle::ROUNDED:
+					DrawRoundedRect_NoLayerInc(absRect, colour, cornerRadius);
+					break;
+			}
+		}
+
+		TArray<FVector2D> pointBuilder;
+
+		void DrawLine(Vec2i start, Vec2i end, RGBAb colour) override
+		{
+			pointBuilder.Empty();
+			pointBuilder.Add(FVector2D(start.x, start.y));
+			pointBuilder.Add(FVector2D(end.x, end.y));
+			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
+			pointBuilder.Empty();
+		}
+
+		void DrawLine_NoLayerInc(Vec2i start, Vec2i end, RGBAb colour)
+		{
+			pointBuilder.Empty();
+			pointBuilder.Add(FVector2D(start.x, start.y));
+			pointBuilder.Add(FVector2D(end.x, end.y));
+			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
+			pointBuilder.Empty();
+		}
+
+		void DrawBorderAround(const GuiRect& absRect, Vec2i width, RGBAb colour1, RGBAb colour2)
+		{
 			FLinearColor topLeftColour = ToLinearColor(colour1);
 			pointBuilder.Empty();
 			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
@@ -448,25 +569,112 @@ namespace Rococo::Gui::UE5::Implementation
 			pointBuilder.Add(FVector2D(absRect.right, absRect.bottom));
 			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
 			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, bottomRightColour);
+		}
 
+		void DrawArcEdge_NoLayerInc(Vec2i origin, int radius, Degrees startAngle, Degrees sweepAngle, RGBAb colour)
+		{
 			/*
-			rc->SetScissorRect(visibleRect);
+			|      / P
+			|     /
+			|    /
+			|   /
+			|  /
+			| /
+			|/
+			O-------------------------
+			*/
+
+			Vec2 fOrigin{ (float)origin.x, (float)origin.y };
+
+			float arcLength = radius * (sweepAngle.degrees / 360.0f) * 2.0f * PI();
+
+			float pixelsPerSegment = 2.0;
+			int nDivisions = clamp((int)(arcLength / pixelsPerSegment), 1, 4096);
+
+			Vec2 ri{ (float)radius, 0 }; // The vector i scaled by r, the radius
+
+			Degrees theta0 = startAngle;
+			Degrees dTheta = Degrees{ sweepAngle / nDivisions };
+
+			for (int d = 0; d < nDivisions; d++)
+			{
+				const Matrix2x2 rotStart = Matrix2x2::RotateAnticlockwise(theta0);
+
+				Degrees endAngle = Degrees{ theta0.degrees + dTheta.degrees };
+
+				const Matrix2x2 rotEnd = Matrix2x2::RotateAnticlockwise(endAngle);
+
+				Vec2 start = FlipY(rotStart * ri) + fOrigin;
+				Vec2 end = FlipY(rotEnd * ri) + fOrigin;
+
+				DrawLine_NoLayerInc(Quantize(start), Quantize(end), colour);
+
+				theta0.degrees += dTheta.degrees;
+			}
+		}
+
+		void DrawRoundedEdge(const GuiRect& rect, RGBAb colour, int cornerRadius)
+		{
+			rc.layerId++;
+
+			{
+				Vec2i leftTop{ rect.left + cornerRadius, rect.top };
+				Vec2i rightTop{ rect.right - cornerRadius, rect.top };
+				Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom };
+				Vec2i rightBottom{ rect.right - cornerRadius, rect.bottom };
+				DrawLine_NoLayerInc(leftTop, rightTop, colour);
+				DrawLine_NoLayerInc(leftBottom, rightBottom, colour);
+			}
+
+
+			{
+				Vec2i leftTop{ rect.left, rect.top + cornerRadius };
+				Vec2i rightTop{ rect.right, rect.top + cornerRadius };
+				Vec2i leftBottom{ rect.left, rect.bottom - cornerRadius };
+				Vec2i rightBottom{ rect.right, rect.bottom - cornerRadius };
+				DrawLine_NoLayerInc(rightTop, rightBottom, colour);
+				DrawLine_NoLayerInc(leftTop, leftBottom, colour);
+			}
+
+
+			Vec2i leftTop{ rect.left + cornerRadius, rect.top + cornerRadius };
+			DrawArcEdge_NoLayerInc(leftTop, cornerRadius, 90_degrees, 90_degrees, colour);
+
+			Vec2i rightTop{ rect.right - cornerRadius, rect.top + cornerRadius };
+			DrawArcEdge_NoLayerInc(rightTop, cornerRadius, 0_degrees, 90_degrees, colour);
+
+			Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom - cornerRadius };
+			DrawArcEdge_NoLayerInc(leftBottom, cornerRadius, 180_degrees, 90_degrees, colour);
+
+			Vec2i rightBottom{ rect.right - cornerRadius, rect.bottom - cornerRadius };
+			DrawArcEdge_NoLayerInc(rightBottom, cornerRadius, 270_degrees, 90_degrees, colour);
+		}
+
+		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
+		{
+			UNUSED(rectStyle);
+			UNUSED(cornerRadius);
+
+			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
+			if (!visibleRect.IsNormalized())
+			{
+				return;
+			}
+
+			ClipContext clip(rc, visibleRect);
 
 			switch (rectStyle)
 			{
 			case EGRRectStyle::SHARP:
 			{
-				Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+				DrawBorderAround(absRect, Vec2i{ 1,1 }, colour1, colour2);
 				break;
 			}
 			case EGRRectStyle::ROUNDED:
 			case EGRRectStyle::ROUNDED_WITH_BLUR:
-				Rococo::Graphics::DrawRoundedEdge(*rc, absRect, colour1, cornerRadius);
+				DrawRoundedEdge(absRect, colour1, cornerRadius);
 				break;
 			}
-
-			rc->ClearScissorRect();
-			*/
 		}
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
@@ -600,6 +808,45 @@ namespace Rococo::Gui::UE5::Implementation
 
 		FSlateResourceHandle hBlendedBrushResource;
 
+		void AddTriangle(const GRTriangle& t)
+		{
+			FSlateVertex v;
+			MakeSlateVertex(OUT v, IN t.a);
+			triangleVertices.Add(v);
+
+			MakeSlateVertex(OUT v, IN t.b);
+			triangleVertices.Add(v);
+
+			MakeSlateVertex(OUT v, IN t.c);
+			triangleVertices.Add(v);
+
+			int index = triangleIndices.Num();
+
+			triangleIndices.Add(index++);
+			triangleIndices.Add(index++);
+			triangleIndices.Add(index++);
+		}
+
+		void CommitTrianglesForRendering_NoLayerInc()
+		{
+			if (triangleIndices.Num() == 0)
+			{
+				return;
+			}
+
+			if (!hBlendedBrushResource.IsValid())
+			{
+				FSlateColorBrush solidBrush(FColor(1.0f, 1.0f, 1.0f, 1.0f));
+				hBlendedBrushResource = FSlateApplication::Get().GetRenderer()->GetResourceHandle(solidBrushForMeshing);
+			}
+
+			ISlateUpdatableInstanceBuffer* instanceBuffer = nullptr;
+			FSlateDrawElement::MakeCustomVerts(rc.drawElements, rc.layerId, hBlendedBrushResource, triangleVertices, triangleIndices, instanceBuffer, 0, 0);
+
+			triangleIndices.Empty();
+			triangleVertices.Empty();
+		}
+
 		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
 		{
 			if (nTriangles == 0)
@@ -632,14 +879,8 @@ namespace Rococo::Gui::UE5::Implementation
 				triangleIndices.Add(index++);
 			}
 
-			if (!hBlendedBrushResource.IsValid())
-			{
-				FSlateColorBrush solidBrush(FColor(1.0f,1.0f,1.0f,1.0f));
-				hBlendedBrushResource = FSlateApplication::Get().GetRenderer()->GetResourceHandle(solidBrushForMeshing);
-			}
-
-			ISlateUpdatableInstanceBuffer* instanceBuffer = nullptr;
-			FSlateDrawElement::MakeCustomVerts(rc.drawElements, ++rc.layerId, hBlendedBrushResource, triangleVertices, triangleIndices, instanceBuffer, 0, 0);
+			++rc.layerId;
+			CommitTrianglesForRendering_NoLayerInc();
 		}
 
 		void DrawParagraph(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
