@@ -26,7 +26,7 @@ namespace Rococo::Gui
 		virtual IO::IInstallation& Installation() = 0;
 		virtual void Render(SlateRenderContext& rc) = 0;
 		virtual void RouteKeyboardEvent(const KeyboardEvent& key) = 0;
-		virtual void RouteMouseEvent(const MouseEvent& me) = 0;
+		virtual void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) = 0;
 	};
 }
 

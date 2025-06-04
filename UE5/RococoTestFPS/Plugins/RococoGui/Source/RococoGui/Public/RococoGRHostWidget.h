@@ -86,23 +86,26 @@ public:
 
 	// Tells the RococoGUI widget tree to handle a mouse mouse down event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
-	FEventReply RouteMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
+	FEventReply RouteMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// Tells the RococoGUI widget tree to handle a mouse up event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
-	FEventReply RouteMouseButtonUp(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
+	FEventReply RouteMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// Tells the RococoGUI widget tree to handle a mouse move event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
-	FEventReply RouteMouseMove(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
+	FEventReply RouteMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// Tells the RococoGUI widget tree to handle a key-press or key-repeat event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
-	FEventReply RouteKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
+	FEventReply RouteKeyDown(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
 
 	// Tells the RococoGUI widget tree to handle a key-release
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
-	FEventReply RouteKeyUp(FGeometry MyGeometry, FKeyEvent InKeyEvent);
+	FEventReply RouteKeyUp(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
+
+	UFUNCTION(BlueprintCallable, Category = "RococoGui")
+	FEventReply RouteMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 private:
 	void OnPrepForLoading(Rococo::GreatSex::IGreatSexGenerator& generator);
 };

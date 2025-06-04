@@ -838,18 +838,6 @@ namespace Rococo::Gui::UE5::Implementation
 			return Rococo::OS::WindowOwner();
 		}
 
-		float zoomLevel = 1.0f;
-
-		void SetUIZoom(float _zoomLevel) override
-		{
-			float newZoomLevel = clamp(1.0f, _zoomLevel, 100.0f);
-			if (newZoomLevel != this->zoomLevel)
-			{
-				this->zoomLevel = newZoomLevel;
-				//renderer.utils.GetHQFonts().SetZoomLevel(newZoomLevel);
-			}
-		}
-
 		float ZoomLevel() const override
 		{
 			return this->zoomLevel;
@@ -930,7 +918,7 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
-		FSlateFontInfo MatchFont(const FontSpec& spec)
+		FSlateFontInfo MatchFont(const FontSpec& spec, float scaleFactor)
 		{
 			if (!fontSet)
 			{
@@ -963,7 +951,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 				ThrowIfTypefaceIsNotAMemberOfFont(fontName, resultantName, *font);
 
-				return FSlateFontInfo(font, spec.CharHeight, resultantName);
+				return FSlateFontInfo(font, (int) (spec.CharHeight * scaleFactor), resultantName);
 			}
 			catch (IException& ex)
 			{
@@ -983,7 +971,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			PersistentFontSpec newPSpec{ spec.FontName, spec, (GRFontId)(++nextFontId) };
 
-			FSlateFontInfo newFont = MatchFont(spec);
+			FSlateFontInfo newFont = MatchFont(spec, zoomLevel);
 			fontMap.Add(newPSpec.fontId, newFont);
 			fontSpecs.Push(newPSpec);
 			return newPSpec.fontId;
@@ -1018,6 +1006,27 @@ namespace Rococo::Gui::UE5::Implementation
 			else
 			{
 				return fontInfo.Size;
+			}
+		}
+
+		void UpdateFontMap(float scalingFactor)
+		{
+			for (const auto& persistentSpec : fontSpecs)
+			{
+				FSlateFontInfo scaledFont = MatchFont(persistentSpec.spec, zoomLevel);
+				fontMap[persistentSpec.fontId] = scaledFont;
+			}
+		}
+
+		float zoomLevel = 1.0f;
+
+		void SetUIZoom(float _zoomLevel) override
+		{
+			float newZoomLevel = clamp(1.0f, _zoomLevel, 100.0f);
+			if (newZoomLevel != this->zoomLevel)
+			{
+				this->zoomLevel = newZoomLevel;
+				UpdateFontMap(newZoomLevel);
 			}
 		}
 
@@ -1102,7 +1111,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		Vec2i lastCursorPos = { -1000000, -1000000 };
 
-		void RouteMouseEvent(const MouseEvent& me) override
+		void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) override
 		{
 			if (!grSystem)
 			{
@@ -1114,14 +1123,14 @@ namespace Rococo::Gui::UE5::Implementation
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData, context };
 				lastRoutingStatus = grSystem->RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
 				lastCursorPos = me.cursorPos;
 
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0 };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0, context };
 				lastRoutingStatus = grSystem->RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)
