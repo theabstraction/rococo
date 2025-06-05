@@ -67,6 +67,16 @@ namespace
 			postedEvents.erase(delPoint, postedEvents.end());
 		}
 
+		void FlushStalePackets(const EventIdRef& ref)
+		{
+			auto delPoint = std::remove_if(postedEvents.begin(), postedEvents.end(), [ref](const EventBinding& b)->bool
+				{
+					return b.ref.hashCode == ref.hashCode && Eq(b.ref.name, ref.name);
+				}
+			);
+			postedEvents.erase(delPoint, postedEvents.end());
+		}
+
 		void RawPost(const EventArgs& ev, const EventIdRef& ref, PostQuality quality, cstr senderSignature) override
 		{
 			static_assert(sizeof(LargestPossibleEvent) == 256);
@@ -96,6 +106,11 @@ namespace
 				{
 					return;
 				}
+			}
+
+			if (quality == PostQuality::Overwrites)
+			{
+				FlushStalePackets(ref);
 			}
 
 			if (postedEvents.size() >= MAX_Q)

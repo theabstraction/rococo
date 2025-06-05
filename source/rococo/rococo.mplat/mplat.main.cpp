@@ -584,7 +584,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 			WindowResizeEvent ev;
 			ev.isFullscreen = isFullscreen;
 			ev.span = span;
-			publisher.Post(ev, "mainWindow.post_resize"_event);
+			publisher.Post(ev, "mainWindow.post_resize"_event, PostQuality::Overwrites);
 		}
 	} windowEventHandler(*publisher);
 

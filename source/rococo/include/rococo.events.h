@@ -54,6 +54,7 @@ namespace Rococo::Events
 
 	enum class PostQuality
 	{
+		Overwrites, // Removes previous entries to make space for new posts
 		Guaranteed,
 		Lossy
 	};
