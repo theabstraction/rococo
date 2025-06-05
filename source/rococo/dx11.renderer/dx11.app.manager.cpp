@@ -179,10 +179,11 @@ namespace ANON
 			app.OnKeyboardEvent(key);
 		}
 
-		void OnMouseEvent(const RAWMOUSE& m)
+		void OnMouseEvent(const RAWMOUSE& m, MouseContext context) override
 		{
 			MouseEvent me;
 			memcpy(&me, &m, sizeof(m));
+			me.contextFlags = context;
 
 			POINT p;
 			GetCursorPos(&p);
@@ -244,6 +245,11 @@ namespace ANON
 			app = _factory.CreateApp(platform, *this);
 		}
 
+		virtual ~DirectAppManager()
+		{
+
+		}
+
 		void OnEvent(SysUnstableArgs&) override
 		{
 			window.Renderer().SwitchToWindowMode();
@@ -273,10 +279,12 @@ namespace ANON
 			keyBuffer.WriteBack();
 		}
 
-		void OnMouseEvent(const RAWMOUSE& m)
+		void OnMouseEvent(const RAWMOUSE& m, MouseContext context) override
 		{
-			MouseEvent me;
-			memcpy(&me, &m, sizeof(m));
+			MouseEvent me = { 0 };
+			me.flags = m.usFlags;
+			me.buttons = m.ulButtons;
+			me.contextFlags = context;
 
 			POINT p;
 			GetCursorPos(&p);

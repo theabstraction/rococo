@@ -550,6 +550,7 @@ struct AppControl : public OS::IAppControlSupervisor, public Tasks::ITaskQueue
 
 	void AddTask(Rococo::Function<void()> lambda) override
 	{
+		UNUSED(lambda);
 		Throw(0, "%s: Not implemented", __FUNCTION__);
 	}
 

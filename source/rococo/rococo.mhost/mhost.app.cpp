@@ -864,7 +864,9 @@ namespace MHost
 			{
 				while (platform.graphics.GR.IsVisible() && control.TryGetNextMouseEvent(me))
 				{
-					platform.graphics.GR_Custodian.RouteMouseEvent(me, platform.graphics.GR);
+					static_assert(sizeof(Gui::GRKeyContextFlags) == sizeof(MouseContext));
+					auto& context = reinterpret_cast<Gui::GRKeyContextFlags&>(me.contextFlags);
+					platform.graphics.GR_Custodian.RouteMouseEvent(me, context, platform.graphics.GR);
 				}
 				return false;
 			}

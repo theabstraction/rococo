@@ -42,6 +42,17 @@ namespace Rococo
 		virtual bool OnKeyboardEvent(const KeyboardEventEx& key) = 0;
 	};
 
+#pragma pack(push,1)
+
+	struct MouseContext
+	{
+		uint32 isCtrlHeld : 1;
+		uint32 isShiftHeld : 1;
+		uint32 isAltHeld : 1;
+	};
+
+	static_assert((sizeof MouseContext) == sizeof(uint32));
+
 	struct MouseEvent
 	{
 		uint16 flags;
@@ -54,7 +65,7 @@ namespace Rococo
 			};
 		};
 
-		uint32 ulRawButtons;
+		uint32 ulRawButtons_Unused;
 		int32 dx;
 		int32 dy;
 
@@ -64,7 +75,11 @@ namespace Rococo
 
 		bool HasFlag(Flags flag) const { return (buttonFlags & flag) != 0; }
 		bool IsRelative() const { return (flags & 0x0001) == 0; }
+
+		MouseContext contextFlags;
 	};
+
+#pragma pack(pop)
 
 	struct SourceFileSet;
 

@@ -667,13 +667,14 @@ namespace Rococo
 	{
 		struct IGRSystem;
 		struct IGRCustodian;
+		struct GRKeyContextFlags;
 
 		struct IMPlatGuiCustodianSupervisor
 		{
 			virtual IGRCustodian& Custodian() = 0;
 			virtual void Render(Graphics::IGuiRenderContext& rc, IGRSystem& gr) = 0;
 			virtual void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) = 0;
-			virtual void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) = 0;
+			virtual void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context, IGRSystem& gr) = 0;
 			virtual void Free() = 0;
 		};
 	}
