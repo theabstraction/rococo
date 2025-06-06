@@ -359,9 +359,51 @@ namespace Rococo::Gui::UE5::Implementation
 			lastTasks.clear();
 		}
 
+		void DrawTriangleFacingUp(const GuiRect& container, RGBAb colour)
+		{
+			GRTriangle t;
+
+			t.a.colour = colour;
+			t.a.position = Vec2i { ((container.left + container.right) >> 1), container.top };
+			t.b.colour = colour;
+			t.b.position = BottomRight(container);
+			t.c.colour = colour;
+			t.c.position = BottomLeft(container);
+			
+			AddTriangle(t);
+		}
+
+		void DrawTriangleFacingDown(const GuiRect& container, RGBAb colour)
+		{
+			GRTriangle t;
+
+			t.a.colour = colour;
+			t.a.position = Vec2i{ ((container.left + container.right) >> 1), container.bottom };
+			t.b.colour = colour;
+			t.b.position = TopRight(container);
+			t.c.colour = colour;
+			t.c.position = TopLeft(container);
+
+			AddTriangle(t);
+		}
+
 		void DrawDirectionArrow(const GuiRect& absRect, RGBAb colour, Degrees heading) override
 		{
-			bool needsClipping = lastScissorRect.IsNormalized() && Span(absRect) != Span(IntersectNormalizedRects(absRect, lastScissorRect));
+			GuiRect clipRect = IntersectNormalizedRects(absRect, lastScissorRect);
+			ClipContext clip(rc, clipRect);
+
+			++rc.layerId;
+
+			if (heading.degrees == 0)
+			{
+				DrawTriangleFacingUp(absRect, colour);
+			}
+			else
+			{
+				DrawTriangleFacingDown(absRect, colour);
+			}
+
+			CommitTrianglesForRendering_NoLayerInc();
 		}
 
 		void DrawImageStretched(IGRImage& _image, const GuiRect& absRect) override
