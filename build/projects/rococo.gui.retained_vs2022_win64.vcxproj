@@ -273,7 +273,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.splitter.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.system.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.table.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.text.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.label-text.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.toolbar.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical-list.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.cpp" />

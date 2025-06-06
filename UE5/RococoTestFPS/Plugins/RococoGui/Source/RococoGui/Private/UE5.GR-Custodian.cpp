@@ -102,9 +102,15 @@ namespace Rococo::Gui::UE5::Implementation
 		return j / 255.0f;
 	}
 
+	float ToSFloat(uint8 j)
+	{
+		float v = j / 255.0f;
+		return powf(v, 2.21f);
+	}
+
 	FLinearColor ToLinearColor(RGBAb colour)
 	{
-		return FLinearColor(ToFloat(colour.red), ToFloat(colour.green), ToFloat(colour.blue), ToFloat(colour.alpha));
+		return FLinearColor(ToSFloat(colour.red), ToSFloat(colour.green), ToSFloat(colour.blue), ToFloat(colour.alpha));
 	}
 
 	FPaintGeometry ToUE5Rect(const GuiRect& absRect, const FGeometry& parentGeometry)
@@ -652,9 +658,6 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
 		{
-			UNUSED(rectStyle);
-			UNUSED(cornerRadius);
-
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
 			if (!visibleRect.IsNormalized())
 			{
@@ -679,16 +682,12 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
 		{
-			/*
-			if (!lastScissorRect.IsNormalized())
-			{
-				return;
-			}
-			*/
-
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-			RenderTask task{ ERenderTaskType::Edge, visibleRect, colour1, colour2 };
-			lastTasks.push_back(task);
+			if (visibleRect.IsNormalized())
+			{
+				RenderTask task{ ERenderTaskType::Edge, visibleRect, colour1, colour2 };
+				lastTasks.push_back(task);
+			}
 		}
 
 		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
