@@ -286,7 +286,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto lcolor = ToLinearColor(colour);
 
-			FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, AsGeometry(absRect), MapAsciiToLocalizedText(custodian, buffer), fontInfo, ESlateDrawEffect::None, lcolor);
+			FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, AsGeometry(absRect), MapAsciiToLocalizedText(custodian, buffer), fontInfo, ESlateDrawEffect::NoGamma, lcolor);
 		}
 
 		void DrawError(const ErrorCapture& errCapture)
@@ -739,7 +739,7 @@ namespace Rococo::Gui::UE5::Implementation
 				return;
 			}
 
-			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::NoGamma : ESlateDrawEffect::DisabledEffect;
 
 			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry);
 
@@ -965,7 +965,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			ClipContext clip(rc, cliprect);
 
-			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::NoGamma : ESlateDrawEffect::DisabledEffect;
 
 			const FSlateFontInfo& fontInfo = GetFont(custodian, fontId);
 			if (fontInfo.HasValidFont())

@@ -113,6 +113,8 @@ void ClearFrame(Rococo::Gui::IGRWidgetMainFrame& frame)
 	auto& scheme = frame.Panel().Root().Scheme();
 	SetSchemeColours_ThemeGrey(scheme);
 	UseTestColourScheme(frame);
+
+	frame.MenuBar().Panel().Parent()->SetCollapsed(true);
 }
 
 void SRococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading)
