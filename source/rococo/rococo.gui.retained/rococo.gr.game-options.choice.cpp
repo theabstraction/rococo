@@ -84,7 +84,22 @@ namespace GRANON
 
 		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
-			UNUSED(ce);
+			IGRWidgetButton* button = carousel->DropDown().GetButtonUnderPoint(ce.position);
+			if (button)
+			{
+				cstr hint = button->Panel().Hint();
+				if (hint)
+				{
+					GRWidgetEvent evRouteHoverHint;
+					evRouteHoverHint.clickPosition = ce.position;
+					evRouteHoverHint.eventType = EGRWidgetEventType::ON_HINT_HOVER;
+					evRouteHoverHint.iMetaData = button->Panel().Id();
+					evRouteHoverHint.isCppOnly = true;
+					evRouteHoverHint.panelId = panel.Id();
+					evRouteHoverHint.sMetaData = hint;
+					static_cast<IGRPanelSupervisor&>(panel).RouteToParent(evRouteHoverHint);
+				}
+			}
 			return EGREventRouting::NextHandler;
 		}
 

@@ -576,11 +576,26 @@ namespace ANON
 
 			RecursionGuard guard(*this);
 
-			for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
+			if (movementCallstack.size() == 1 && movementCallstack[0].panelId == captureId)
 			{
-				if (i->panel->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
+				auto* target = movementCallstack[0].panel;
+				while (target)
 				{
-					result = EGREventRouting::Terminate;
+					if (target->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
+					{
+						break;
+					}
+					target = target->Parent();
+				}
+			}
+			else
+			{
+				for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
+				{
+					if (i->panel->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
+					{
+						result = EGREventRouting::Terminate;
+					}
 				}
 			}
 

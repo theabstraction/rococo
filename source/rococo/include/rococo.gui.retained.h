@@ -501,6 +501,8 @@ namespace Rococo::Gui
 		DROP_DOWN_EXPANDED, // The drop down control expanded
 		BUTTON_CLICK_OUTSIDE, // A control captured a mouse click outside of its panel's AbsRect
 		SCROLLER_RELEASED, // A scroll button was released by letting go of the mouse button 
+		ON_HINT_HOVER, // A hint was hovered with a mouse move event
+		GET_HINT_HOVER, // Retrieve the last hint that was hovered over
 		SLIDER_HELD, // A slider was clicked down with the cursor
 		UPDATED_CLIENTAREA_HEIGHT, // A viewport client-area control calculated its new height (passed to iMetaData). The viewport caches this and applies it during the next layout
 		USER_DEFINED = 1025
@@ -599,9 +601,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRFocusNotifier: IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-
-		// return EGREventRouting::Terminate if the notifier handled the focus and no more ancestors should be notified, otherwise return NextHandler
-		virtual EGREventRouting OnDeepChildFocusSet(int64 panelId) = 0;
+		virtual void OnDeepChildFocusSet(int64 panelId) = 0;
 	};
 
 	enum class ELayoutDirection
@@ -1076,6 +1076,7 @@ namespace Rococo::Gui
 
 		virtual void AddOption(cstr name, cstr caption, cstr hint) = 0;
 		virtual int ComputeDomainHeight() const = 0;
+		virtual [[nodiscard]] IGRWidgetButton* GetButtonUnderPoint(Vec2i position) = 0;
 
 		// Sent by the container to indicate it is about to be rendered for the first time after a period of invisibility
 		virtual void OnVisible() = 0;

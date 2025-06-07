@@ -2,6 +2,7 @@
 #include <rococo.maths.i32.h>
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
+#include <rococo.strings.h>
 
 #include <vector>
 #include <algorithm>
@@ -10,8 +11,9 @@ namespace GRANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Gui;
+	using namespace Rococo::Strings;
 
-	struct GRMainFrame: IGRWidgetMainFrameSupervisor, IGRWidgetSupervisor, IGRWidgetLayout
+	struct GRMainFrame: IGRWidgetMainFrameSupervisor, IGRWidgetSupervisor, IGRWidgetLayout, IGRFocusNotifier
 	{
 		cstr name;
 		IGRPanel& panel;
@@ -81,8 +83,8 @@ namespace GRANON
 
 		struct ZoomScenario
 		{
-			int minScreenWidth;
-			int minScreenHeight;
+			int minScreenWidth = 0;
+			int minScreenHeight = 0;
 
 			std::vector<float> zoomLevels;
 		};
@@ -257,8 +259,31 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
+		HString hoverHint; // Assigned a value when a mouse move event from some descendant grabs a hint string
+
+		void OnHintHover(const GRWidgetEvent& hint)
 		{
+			hoverHint = hint.sMetaData;
+		}
+
+		void OnDeepChildFocusSet(int64 /* panelId */) override
+		{
+			// Changing focus zaps the hovered hint. This way focus takes priority when the mouse is not moving.
+			hoverHint = "";
+		}
+
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget&) override
+		{
+			switch (widgetEvent.eventType)
+			{
+			case EGRWidgetEventType::ON_HINT_HOVER:
+				OnHintHover(widgetEvent);
+				return EGREventRouting::Terminate;
+			case EGRWidgetEventType::GET_HINT_HOVER:
+				widgetEvent.sMetaData = hoverHint;
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -438,6 +463,12 @@ namespace GRANON
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
+			result = Gui::QueryForParticularInterface<IGRFocusNotifier>(this, ppOutputArg, interfaceId);
 			if (result == EGRQueryInterfaceResult::SUCCESS)
 			{
 				return result;

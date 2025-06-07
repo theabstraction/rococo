@@ -231,6 +231,7 @@ namespace GRANON
 				// The cursor has been moved outside the button, so capture should be lost
 				panel.Root().ReleaseCursor();
 			}
+
 			return EGREventRouting::NextHandler;
 		}
 

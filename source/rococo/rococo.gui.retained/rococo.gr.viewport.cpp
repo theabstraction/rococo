@@ -331,23 +331,18 @@ namespace ANON
 			}
 		}
 
-		EGREventRouting OnDeepChildFocusSet(int64 panelId) override
+		void OnDeepChildFocusSet(int64 panelId) override
 		{
 			auto* w = panel.Root().GR().FindWidget(panelId);
 			if (!w)
 			{
-				return EGREventRouting::Terminate;
+				return;
 			}
 
 			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
 			{
 				auto rect = w->Panel().AbsRect();
 				ScrollIntoView(rect);
-				return EGREventRouting::Terminate;
-			}
-			else
-			{
-				return EGREventRouting::NextHandler;
 			}
 		}
 
