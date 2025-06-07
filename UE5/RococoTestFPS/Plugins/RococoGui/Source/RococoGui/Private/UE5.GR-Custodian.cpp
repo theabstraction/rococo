@@ -116,7 +116,8 @@ namespace Rococo::Gui::UE5::Implementation
 	FPaintGeometry ToUE5Rect(const GuiRect& absRect, const FGeometry& parentGeometry)
 	{
 		FVector2f localSize = ToFVector2f(Span(absRect));
-		return parentGeometry.ToPaintGeometry(ToFVector2f(TopLeft(absRect)), localSize);
+		FSlateLayoutTransform offset = FSlateLayoutTransform(ToFVector2f(TopLeft(absRect)));
+		return parentGeometry.ToPaintGeometry(localSize, offset);
 	}
 
 	enum class ERenderTaskType
@@ -606,16 +607,16 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			FLinearColor topLeftColour = ToLinearColor(colour1);
 			pointBuilder.Empty();
-			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
-			pointBuilder.Add(FVector2D(absRect.left, absRect.top));
-			pointBuilder.Add(FVector2D(absRect.right, absRect.top));
+			pointBuilder.Add(FVector2D(absRect.left + 1.0, absRect.bottom));
+			pointBuilder.Add(FVector2D(absRect.left + 1.0, absRect.top + 1.0));
+			pointBuilder.Add(FVector2D(absRect.right, absRect.top + 1.0));
 			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, topLeftColour);
 
 			FLinearColor bottomRightColour = ToLinearColor(colour2);
 			pointBuilder.Empty();
-			pointBuilder.Add(FVector2D(absRect.right, absRect.top));
-			pointBuilder.Add(FVector2D(absRect.right, absRect.bottom));
-			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom));
+			pointBuilder.Add(FVector2D(absRect.right - 1.0, absRect.top + 1.0));
+			pointBuilder.Add(FVector2D(absRect.right - 1.0, absRect.bottom - 1.0));
+			pointBuilder.Add(FVector2D(absRect.left, absRect.bottom - 1.0));
 			FSlateDrawElement::MakeLines(rc.drawElements, rc.layerId, rc.geometry.ToPaintGeometry(), pointBuilder, ESlateDrawEffect::None, bottomRightColour);
 		}
 
@@ -667,9 +668,9 @@ namespace Rococo::Gui::UE5::Implementation
 
 			{
 				Vec2i leftTop{ rect.left + cornerRadius, rect.top };
-				Vec2i rightTop{ rect.right - cornerRadius, rect.top };
-				Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom };
-				Vec2i rightBottom{ rect.right - cornerRadius, rect.bottom };
+				Vec2i rightTop{ rect.right - cornerRadius - 1, rect.top };
+				Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom - 1 };
+				Vec2i rightBottom{ rect.right - cornerRadius - 1, rect.bottom - 1 };
 				DrawLine_NoLayerInc(leftTop, rightTop, colour);
 				DrawLine_NoLayerInc(leftBottom, rightBottom, colour);
 			}
@@ -677,9 +678,9 @@ namespace Rococo::Gui::UE5::Implementation
 
 			{
 				Vec2i leftTop{ rect.left, rect.top + cornerRadius };
-				Vec2i rightTop{ rect.right, rect.top + cornerRadius };
-				Vec2i leftBottom{ rect.left, rect.bottom - cornerRadius };
-				Vec2i rightBottom{ rect.right, rect.bottom - cornerRadius };
+				Vec2i rightTop{ rect.right - 1, rect.top + cornerRadius };
+				Vec2i leftBottom{ rect.left, rect.bottom - cornerRadius - 1 };
+				Vec2i rightBottom{ rect.right - 1, rect.bottom - cornerRadius - 1 };
 				DrawLine_NoLayerInc(rightTop, rightBottom, colour);
 				DrawLine_NoLayerInc(leftTop, leftBottom, colour);
 			}
@@ -688,13 +689,13 @@ namespace Rococo::Gui::UE5::Implementation
 			Vec2i leftTop{ rect.left + cornerRadius, rect.top + cornerRadius };
 			DrawArcEdge_NoLayerInc(leftTop, cornerRadius, 90_degrees, 90_degrees, colour);
 
-			Vec2i rightTop{ rect.right - cornerRadius, rect.top + cornerRadius };
+			Vec2i rightTop{ rect.right - cornerRadius - 1, rect.top + cornerRadius };
 			DrawArcEdge_NoLayerInc(rightTop, cornerRadius, 0_degrees, 90_degrees, colour);
 
-			Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom - cornerRadius };
+			Vec2i leftBottom{ rect.left + cornerRadius, rect.bottom - cornerRadius - 1 };
 			DrawArcEdge_NoLayerInc(leftBottom, cornerRadius, 180_degrees, 90_degrees, colour);
 
-			Vec2i rightBottom{ rect.right - cornerRadius, rect.bottom - cornerRadius };
+			Vec2i rightBottom{ rect.right - cornerRadius - 1, rect.bottom - cornerRadius - 1 };
 			DrawArcEdge_NoLayerInc(rightBottom, cornerRadius, 270_degrees, 90_degrees, colour);
 		}
 
@@ -706,7 +707,7 @@ namespace Rococo::Gui::UE5::Implementation
 				return;
 			}
 
-			ClipContext clip(rc, visibleRect);
+		//	ClipContext clip(rc, visibleRect);
 
 			switch (rectStyle)
 			{
