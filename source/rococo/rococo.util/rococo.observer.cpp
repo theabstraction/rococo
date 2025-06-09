@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.events.h>
 #include <rococo.hashtable.h>
 #include <vector>

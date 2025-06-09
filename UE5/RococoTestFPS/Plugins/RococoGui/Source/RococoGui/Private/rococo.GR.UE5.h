@@ -1,18 +1,29 @@
 #pragma once
 
-#pragma once
-#define ROCOCO_API __declspec(dllimport)
-#define ROCOCO_UTIL_API __declspec(dllimport)
-#define SEXYUTIL_API __declspec(dllimport)
-#define SCRIPTEXPORT_API __declspec(dllimport)
-#define ROCOCO_SEXML_API __declspec(dllimport)
+#ifndef ROCOCO_UE5_EXPORT
+# ifdef ROCOCO_BUILD_IS_MONOLITHIC
+#  define ROCOCO_UE5_EXPORT
+#  define ROCOCO_UE5_IMPORT
+# else
+#  define ROCOCO_UE5_EXPORT DLLEXPORT
+#  define ROCOCO_UE5_IMPORT DLLIMPORT
+# endif
+#endif
+
+#ifndef ROCOCO_API
+# define ROCOCO_API			ROCOCO_UE5_IMPORT
+#endif
+#define ROCOCO_UTIL_API		ROCOCO_UE5_IMPORT
+#define SEXYUTIL_API		ROCOCO_UE5_IMPORT
+#define SCRIPTEXPORT_API	ROCOCO_UE5_IMPORT
+#define ROCOCO_SEXML_API	ROCOCO_UE5_IMPORT
 
 #ifndef ROCOCO_GUI_RETAINED_API
-# define ROCOCO_GUI_RETAINED_API _declspec(dllimport)
+# define ROCOCO_GUI_RETAINED_API ROCOCO_UE5_IMPORT
 #endif
 
 #ifndef ROCOCO_GREAT_SEX_API
-# define  ROCOCO_GREAT_SEX_API _declspec(dllimport)
+# define  ROCOCO_GREAT_SEX_API ROCOCO_UE5_IMPORT
 #endif
 
 #define ROCOCO_USE_SAFE_V_FORMAT

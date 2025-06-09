@@ -1,4 +1,5 @@
 #include "RococoFontSet.h"
+#include "rococo.GR.UE5.h"
 
 FName URococoFontSet::MapTypeface(const FName& typefaceName)
 {

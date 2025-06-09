@@ -1,5 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
-
 #include <rococo.ui.joystick.h>
 #include <rococo.os.win32.h>
 #include <Xinput.h>

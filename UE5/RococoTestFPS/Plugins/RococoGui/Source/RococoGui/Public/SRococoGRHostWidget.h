@@ -1,6 +1,7 @@
 #pragma once
 #include <Widgets/SLeafWidget.h>
 
+#include "rococo.GR.UE5.h"
 #include <RococoGuiAPI.h>
 
 namespace Rococo

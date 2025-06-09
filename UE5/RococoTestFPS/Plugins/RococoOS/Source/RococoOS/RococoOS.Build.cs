@@ -150,8 +150,14 @@ public class RococoOS : ModuleRules
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
         bEnableExceptions = true;
-		
-		PublicIncludePaths.AddRange(
+
+        if (Target.LinkType == TargetLinkType.Monolithic)
+        {
+            PublicDefinitions.Add("ROCOCO_BUILD_IS_MONOLITHIC");
+        }
+
+
+        PublicIncludePaths.AddRange(
 			new string[] {
                 rococoIncludeDirectory,
                 rococoSexyCommonDirectory

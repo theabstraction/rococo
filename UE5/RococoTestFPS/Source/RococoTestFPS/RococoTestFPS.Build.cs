@@ -52,6 +52,11 @@ public class RococoTestFPS : ModuleRules
         System.Console.WriteLine("rococoIncludeDirectory: {0}", rococoIncludeDirectory);
         System.Console.WriteLine("rococoSexyCommonDirectory: {0}", rococoSexyCommonDirectory);
 
+        if (Target.LinkType == TargetLinkType.Monolithic)
+        {
+            PublicDefinitions.Add("ROCOCO_BUILD_IS_MONOLITHIC");
+        }
+
         PublicIncludePaths.AddRange(
             new string[] 
             {

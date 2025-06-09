@@ -1,6 +1,7 @@
 #include "SRococoGRHostWidget.h"
 #include "SlateRenderContext.h"
 
+#include "rococo.GR.UE5.h"
 #include <rococo.os.h>
 #include <rococo.great.sex.h>
 #include <rococo.allocators.h>

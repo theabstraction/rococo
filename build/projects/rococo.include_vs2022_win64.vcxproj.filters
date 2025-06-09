@@ -7,7 +7,10 @@
     <ClInclude Include="..\..\source\rococo\include\3D\rococo.mesh-builder.h">
       <Filter>3D</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.template.h">
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.malloc.h">
+      <Filter>allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.via.interface.h">
       <Filter>allocators</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.dll.inl">

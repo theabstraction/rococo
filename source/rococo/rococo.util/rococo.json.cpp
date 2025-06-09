@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 #include <rococo.json.h>
 #include <vector>

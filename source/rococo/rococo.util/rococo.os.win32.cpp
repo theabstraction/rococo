@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #define WIN32_LEAN_AND_MEAN 
 #define NOMINMAX
 

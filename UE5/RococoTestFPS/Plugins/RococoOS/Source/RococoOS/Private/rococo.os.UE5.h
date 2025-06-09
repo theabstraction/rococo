@@ -1,5 +1,16 @@
 #pragma once
-#define ROCOCO_API __declspec(dllexport)
-#define ROCOCO_UTIL_API __declspec(dllexport)
+
+#ifndef ROCOCO_UE5_EXPORT
+# ifdef ROCOCO_BUILD_IS_MONOLITHIC
+#  define ROCOCO_UE5_EXPORT
+#  define ROCOCO_UE5_IMPORT
+# else
+#  define ROCOCO_UE5_EXPORT DLLEXPORT
+#  define ROCOCO_UE5_IMPORT DLLIMPORT;
+# endif
+#endif
+
+#define ROCOCO_API ROCOCO_UE5_EXPORT
+#define ROCOCO_UTIL_API ROCOCO_UE5_EXPORT
 
 #define ROCOCO_USE_SAFE_V_FORMAT

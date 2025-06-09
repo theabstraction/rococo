@@ -47,6 +47,8 @@
 
 #include <rococo.allocators.h> // Provides _alliged_maloc
 
+#include <rococo.strings.h>
+
 using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::VM;

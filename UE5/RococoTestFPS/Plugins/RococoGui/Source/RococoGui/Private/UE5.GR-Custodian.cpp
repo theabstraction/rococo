@@ -7,6 +7,7 @@
 #include <rococo.hashtable.h>
 #include <rococo.ui.h>
 #include <rococo.io.h>
+#include "rococo.GR.UE5.h"
 #include <rococo.vector.ex.h>
 #include "SlateRenderContext.h"
 #include <rococo.great.sex.h>

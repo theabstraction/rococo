@@ -949,7 +949,7 @@ namespace Rococo::Gui
 		return s_UnsignedFilter;
 	}
 
-	ROCOCO_API_EXPORT EGREventRouting TranslateToEditor(Windows::IWindow& ownerWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
+	ROCOCO_GUI_RETAINED_API EGREventRouting TranslateToEditor(Windows::IWindow& ownerWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
 	{
 		if (!keyEvent.osKeyEvent.IsUp())
 		{

@@ -209,6 +209,12 @@ public class RococoUtil : ModuleRules
 
         bEnableExceptions = true;
 
+        if (Target.LinkType == TargetLinkType.Monolithic)
+        {
+            PublicDefinitions.Add("ROCOCO_BUILD_IS_MONOLITHIC");
+        }
+
+
         PublicIncludePaths.AddRange(
 			new string[] {
                 RococoIncludeDirectory,

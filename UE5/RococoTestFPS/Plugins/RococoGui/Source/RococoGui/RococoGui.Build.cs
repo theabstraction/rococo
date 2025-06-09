@@ -122,6 +122,29 @@ public class RococoGui : ModuleRules
     private void CreateBundles()
     {
     }
+    public string GetUProjectPath()
+    {
+        // see https://forums.unrealengine.com/t/how-to-modify-build-file-to-copy-dlls-to-binaries/353587
+        return Directory.GetParent(ModuleDirectory).Parent.Parent.Parent.ToString();
+    }
+
+    private void CopyToBinaries(string Filepath, ReadOnlyTargetRules Target)
+    {
+        string projectPath = GetUProjectPath();
+        string binariesDir = Path.Combine(projectPath, "Binaries", Target.Platform.ToString());
+        string filename = Path.GetFileName(Filepath);
+        string plugins = Path.Combine(projectPath, "Plugins");
+        if (!Directory.Exists(plugins))
+        {
+            throw new DirectoryNotFoundException("Expecting directory to exist: " + plugins);
+        }
+
+        if (!Directory.Exists(binariesDir))
+            Directory.CreateDirectory(binariesDir);
+
+        if (!File.Exists(Path.Combine(binariesDir, filename)))
+            File.Copy(Filepath, Path.Combine(binariesDir, filename), true);
+    }
 
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)
     {
@@ -131,6 +154,11 @@ public class RococoGui : ModuleRules
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
         bEnableExceptions = true;
+
+        if (Target.LinkType == TargetLinkType.Monolithic)
+        {
+            PublicDefinitions.Add("ROCOCO_BUILD_IS_MONOLITHIC");
+        }
 
         PublicIncludePaths.AddRange(
            new string[] {
@@ -189,5 +217,14 @@ public class RococoGui : ModuleRules
 
         PublicAdditionalLibraries.Add(libTiffWin64);
         PublicAdditionalLibraries.Add(libJpegWin64);
+
+        string libTiffWin64_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-tiff.dll");
+        string libJpegWin64_Dll = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-jpg.dll");
+
+        PublicRuntimeLibraryPaths.Add(libTiffWin64_DLL);
+        PublicRuntimeLibraryPaths.Add(libJpegWin64_Dll);
+
+        CopyToBinaries(libTiffWin64_DLL, Target);
+        CopyToBinaries(libJpegWin64_Dll, Target);
     }
 }

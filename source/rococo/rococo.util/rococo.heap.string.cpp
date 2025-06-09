@@ -1,6 +1,3 @@
-#ifndef ROCOCO_API
-# define ROCOCO_API __declspec(dllexport)
-#endif
 #include <rococo.types.h>
 
 #define USE_HSTRING_HASH

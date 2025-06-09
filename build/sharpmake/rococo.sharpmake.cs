@@ -202,7 +202,7 @@ namespace Rococo
     public class RococoProject : RococoBaseProject
     {
         // Note, default to CPP 17 rather than CPP 20, because on VC I had serious issues were internal compiler errors compiling sexy.script when C+ 20 is set
-        public void StandardInit(Configuration conf, Target target, Configuration.OutputType type, int CCPVersion = 17)
+        public void StandardInit(Configuration conf, Target target, Configuration.OutputType type, int CCPVersion = 17, bool importRococoAPI = true)
         {
             conf.Output = type;
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
@@ -222,6 +222,11 @@ namespace Rococo
             conf.Options.Add(Options.Vc.General.WindowsTargetPlatformVersion.Latest);
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
+
+            if (importRococoAPI)
+            {
+                conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
+            }
         }
 
         protected RococoProject(string name, string subdir, Platform platform = Platform.win64)
@@ -490,7 +495,8 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            StandardInit(conf, target, Configuration.OutputType.Dll);
+            StandardInit(conf, target, Configuration.OutputType.Dll, 17, false);
+            conf.Defines.Add("ROCOCO_API=__declspec(dllexport)");
         }
     }
 
@@ -1946,6 +1952,7 @@ namespace Rococo
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib\"));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
+            conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
             AddDefaultLibraries(conf);
         }
     }
@@ -1992,7 +1999,7 @@ namespace Rococo
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
-
+            conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996", "4100", "4324", "4146", "4244", "4267", "4127", "4702", "4611"));
         }
     }

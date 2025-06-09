@@ -3,8 +3,8 @@
 #ifndef Rococo_TYPES_H
 #define Rococo_TYPES_H
 
-#ifndef ROCOCO_API 
-# define ROCOCO_API __declspec(dllimport)
+#ifndef ROCOCO_API
+# error "define ROCOCO_API"
 #endif
 
 #ifndef ROCOCO_WINDOWS_API 

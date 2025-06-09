@@ -362,6 +362,8 @@ namespace Rococo::Strings
 
 	ROCOCO_API void SplitString(cstr text, size_t length, IStringPopulator& onSubString, cstr delimiter);
 
+	ROCOCO_API const char* GetSubString(const char* s, const char* subString);
+
 	struct SecureHashInfo
 	{
 		bool operator == (const SecureHashInfo& other) const
@@ -372,7 +374,7 @@ namespace Rococo::Strings
 		char hash[65];
 	};
 
-	ROCOCO_API_EXPORT void GetSecureHashInfo(SecureHashInfo& info, const char* buffer, size_t bufferLength);
+	ROCOCO_API void GetSecureHashInfo(SecureHashInfo& info, const char* buffer, size_t bufferLength);
 
 	template<uint32 capacity>
 	struct PopulationBuffer : IStringPopulator

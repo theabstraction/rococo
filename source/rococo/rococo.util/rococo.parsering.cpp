@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.parse.h>
 #include <rococo.strings.h>
 #include <rococo.validators.h>

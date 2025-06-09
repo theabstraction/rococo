@@ -298,7 +298,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		REQUIRE_NAMESPACE_STRING(childName, ("Namespace::AddNamespace"));
 
-		cstr dotPos = GetSubString(childName, ("."));
+		cstr dotPos = Rococo::Strings::GetSubString(childName, ("."));
 		if (dotPos == NULL)
 		{
 			auto i = nameToChildren.find(childName);

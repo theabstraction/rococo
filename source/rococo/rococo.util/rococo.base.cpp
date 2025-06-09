@@ -1,5 +1,5 @@
 #ifndef ROCOCO_API
-# define ROCOCO_API __declspec(dllexport)
+# error "Define ROCOCO_API"
 #endif
 
 #define ROCOCO_ID_API ROCOCO_API
@@ -478,7 +478,7 @@ namespace Rococo::Debugging
 
 	std::list<mstring, AllocatorWithMalloc<mstring>> rollingLog;
 
-	ROCOCO_API_EXPORT void AddCriticalLog(cstr message)
+	ROCOCO_API void AddCriticalLog(cstr message)
 	{
 		rollingLog.push_back(message);
 		if (rollingLog.size() > 10)
@@ -487,7 +487,7 @@ namespace Rococo::Debugging
 		}
 	}
 
-	ROCOCO_API_EXPORT void ForEachCriticalLog(Strings::IStringPopulator& onMessage)
+	ROCOCO_API void ForEachCriticalLog(Strings::IStringPopulator& onMessage)
 	{
 		for (auto& i : rollingLog)
 		{
@@ -495,7 +495,7 @@ namespace Rococo::Debugging
 		}
 	}
 
-	ROCOCO_API_EXPORT void ValidateCriticalLog()
+	ROCOCO_API void ValidateCriticalLog()
 	{
 		if (!rollingLog.empty())
 		{

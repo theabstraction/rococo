@@ -1,4 +1,5 @@
 #include "RococoGRHostWidget.h"
+#include "rococo.GR.UE5.h"
 #include <rococo.great.sex.h>
 #include <rococo.gui.retained.h>
 #include <rococo.ui.h>
