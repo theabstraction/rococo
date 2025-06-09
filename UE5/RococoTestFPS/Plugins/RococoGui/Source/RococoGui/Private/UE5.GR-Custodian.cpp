@@ -37,7 +37,7 @@ namespace Rococo
 
 namespace Rococo
 {
-	const Matrix2x2 Matrix2x2::RotateAnticlockwise(Radians phi)
+	const Matrix2x2 Matrix2x2_RotateAnticlockwise(Radians phi)
 	{
 		float sina = sinf(phi);
 		float cosa = cosf(phi);
@@ -462,11 +462,11 @@ namespace Rococo::Gui::UE5::Implementation
 
 			for (int d = 0; d < nDivisions; d++)
 			{
-				const Matrix2x2 rotStart = Matrix2x2::RotateAnticlockwise(theta0);
+				const Matrix2x2 rotStart = Matrix2x2_RotateAnticlockwise(theta0);
 
 				Degrees endAngle = Degrees{ theta0.degrees + dTheta.degrees };
 
-				const Matrix2x2 rotEnd = Matrix2x2::RotateAnticlockwise(endAngle);
+				const Matrix2x2 rotEnd = Matrix2x2_RotateAnticlockwise(endAngle);
 
 				Vec2 start = FlipY(rotStart * ri) + fOrigin;
 				Vec2 end = FlipY(rotEnd * ri) + fOrigin;
@@ -647,11 +647,11 @@ namespace Rococo::Gui::UE5::Implementation
 
 			for (int d = 0; d < nDivisions; d++)
 			{
-				const Matrix2x2 rotStart = Matrix2x2::RotateAnticlockwise(theta0);
+				const Matrix2x2 rotStart = Matrix2x2_RotateAnticlockwise(theta0);
 
 				Degrees endAngle = Degrees{ theta0.degrees + dTheta.degrees };
 
-				const Matrix2x2 rotEnd = Matrix2x2::RotateAnticlockwise(endAngle);
+				const Matrix2x2 rotEnd = Matrix2x2_RotateAnticlockwise(endAngle);
 
 				Vec2 start = FlipY(rotStart * ri) + fOrigin;
 				Vec2 end = FlipY(rotEnd * ri) + fOrigin;
@@ -1574,7 +1574,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	DLLEXPORT IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font)
+	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font)
 	{
 		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(mapPathToImageTexture, font);
 	}

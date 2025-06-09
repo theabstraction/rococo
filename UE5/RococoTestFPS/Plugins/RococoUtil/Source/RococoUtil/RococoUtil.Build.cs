@@ -207,7 +207,9 @@ public class RococoUtil : ModuleRules
 
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicIncludePaths.AddRange(
+        bEnableExceptions = true;
+
+        PublicIncludePaths.AddRange(
 			new string[] {
                 RococoIncludeDirectory,
                 SexyIncludeDirectory

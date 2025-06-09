@@ -130,6 +130,8 @@ public class RococoGui : ModuleRules
 
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        bEnableExceptions = true;
+
         PublicIncludePaths.AddRange(
            new string[] {
                 RococoIncludeDirectory,

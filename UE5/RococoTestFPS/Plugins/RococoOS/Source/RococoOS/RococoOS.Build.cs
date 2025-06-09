@@ -148,6 +148,8 @@ public class RococoOS : ModuleRules
         CreateBundles();
 
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+
+        bEnableExceptions = true;
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
