@@ -128,22 +128,12 @@ public class RococoGui : ModuleRules
         return Directory.GetParent(ModuleDirectory).Parent.Parent.Parent.ToString();
     }
 
-    private void CopyToBinaries(string Filepath, ReadOnlyTargetRules Target)
+    private void CopyIfDoesNotExist(string src, string destFileName)
     {
-        string projectPath = GetUProjectPath();
-        string binariesDir = Path.Combine(projectPath, "Binaries", Target.Platform.ToString());
-        string filename = Path.GetFileName(Filepath);
-        string plugins = Path.Combine(projectPath, "Plugins");
-        if (!Directory.Exists(plugins))
+        if (!File.Exists(destFileName))
         {
-            throw new DirectoryNotFoundException("Expecting directory to exist: " + plugins);
+            File.Copy(src, destFileName);
         }
-
-        if (!Directory.Exists(binariesDir))
-            Directory.CreateDirectory(binariesDir);
-
-        if (!File.Exists(Path.Combine(binariesDir, filename)))
-            File.Copy(Filepath, Path.Combine(binariesDir, filename), true);
     }
 
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)
@@ -219,12 +209,11 @@ public class RococoGui : ModuleRules
         PublicAdditionalLibraries.Add(libJpegWin64);
 
         string libTiffWin64_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-tiff.dll");
-        string libJpegWin64_Dll = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-jpg.dll");
+        string libJpegWin64_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-jpg.dll");
+        string libZip_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-zip.dll");
 
-        PublicRuntimeLibraryPaths.Add(libTiffWin64_DLL);
-        PublicRuntimeLibraryPaths.Add(libJpegWin64_Dll);
-
-        CopyToBinaries(libTiffWin64_DLL, Target);
-        CopyToBinaries(libJpegWin64_Dll, Target);
+        RuntimeDependencies.Add("$(TargetOutputDir)/lib-tiff.dll", libTiffWin64_DLL);
+        RuntimeDependencies.Add("$(TargetOutputDir)/lib-jpg.dll", libJpegWin64_DLL);
+        RuntimeDependencies.Add("$(TargetOutputDir)/lib-zip.dll", libZip_DLL);
     }
 }

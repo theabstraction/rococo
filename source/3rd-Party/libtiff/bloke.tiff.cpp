@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ROCOCO_API
 #include <rococo.api.h>
 #include <rococo.os.h>
 #include <rococo.imaging.h>
@@ -23,6 +24,113 @@
 #ifndef _WIN32
 # include <errno.h>
 #endif
+
+namespace Rococo
+{
+	struct ImageException : IException
+	{
+		char msg[1024] = { 0 };
+		int errorCode = 0;
+
+		cstr Message() const override
+		{
+			return msg;
+		}
+
+		int ErrorCode() const override
+		{
+			return errorCode;
+		}
+
+		Debugging::IStackFrameEnumerator* StackFrames() override
+		{
+			return nullptr;
+		}
+	};
+
+	ROCOCO_API void Throw(int32 errorCode, const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		ImageException ex;
+		_vsnprintf_s(ex.msg, sizeof ex.msg, _TRUNCATE, format, args);
+		ex.errorCode = errorCode;
+		throw ex;
+	}
+}
+
+#ifdef _WIN32
+# include <rococo.os.win32.h>
+#endif
+
+namespace Rococo::OS
+{
+#ifdef _WIN32
+	bool IsDebugging()
+	{
+		return IsDebuggerPresent() == TRUE;
+	}
+
+	void PrintDebug(const char* format, ...)
+	{
+#if _DEBUG
+		va_list arglist;
+		va_start(arglist, format);
+		char line[4096];
+		vsnprintf_s(line, sizeof(line), _TRUNCATE, format, arglist);
+		OutputDebugStringA(line);
+#else
+		UNUSED(format);
+#endif
+	}
+
+	void TripDebugger()
+	{
+		__debugbreak();
+	}
+#else
+	
+	void PrintDebug(const char* format, ...)
+	{
+# if _DEBUG
+		va_list arglist;
+		va_start(arglist, format);
+		char line[4096];
+		vsnprintf(line, sizeof line, format, arglist);
+		OutputDebugStringA(line);
+# else
+	UNUSED(format);
+# endif
+	}
+
+	void TripDebugger()
+	{
+
+	}
+#endif
+}
+
+namespace Rococo::Strings
+{
+	int SafeFormat(char* msg, size_t sizeofMsg, const char* format, ...)
+	{
+		va_list arglist;
+		va_start(arglist, format);
+		return vsnprintf_s(msg, sizeofMsg, _TRUNCATE, format, arglist);
+	}
+
+	int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
+	{
+		int count = vsnprintf(buffer, capacity, format, args);
+		if (count >= capacity)
+		{
+			return -1;
+		}
+
+		return count;
+	}
+}
 
 namespace
 {

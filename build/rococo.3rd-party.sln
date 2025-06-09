@@ -14,8 +14,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-vorbis-file", "projects
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib-zip", "projects\lib-zip_vs2022_win64.vcxproj", "{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.util", "projects\rococo.util_vs2022_win64.vcxproj", "{62184609-95D1-1E60-D8CD-3755550224A5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -46,10 +44,6 @@ Global
 		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}.Debug|x64.Build.0 = Debug|x64
 		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}.Release|x64.ActiveCfg = Release|x64
 		{DDABE08C-7D58-A2C1-7491-D2BA854BC0C7}.Release|x64.Build.0 = Release|x64
-		{62184609-95D1-1E60-D8CD-3755550224A5}.Debug|x64.ActiveCfg = Debug|x64
-		{62184609-95D1-1E60-D8CD-3755550224A5}.Debug|x64.Build.0 = Debug|x64
-		{62184609-95D1-1E60-D8CD-3755550224A5}.Release|x64.ActiveCfg = Release|x64
-		{62184609-95D1-1E60-D8CD-3755550224A5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

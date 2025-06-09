@@ -9,6 +9,7 @@ extern "C"
 	#include <jdatastream.h>
 }
 
+#define ROCOCO_API // we want to avoid linking in the Rococo.util lib, so will define functions in this source code
 #include <rococo.types.h>
 #include <rococo.imaging.h>
 

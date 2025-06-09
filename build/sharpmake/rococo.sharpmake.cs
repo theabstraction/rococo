@@ -1945,14 +1945,12 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<LibJPegProject>(target);
             conf.AddPublicDependency<LibZipProject>(target);
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib\"));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
-            conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
             AddDefaultLibraries(conf);
         }
     }
@@ -1997,9 +1995,7 @@ namespace Rococo
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
-            conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
-            conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996", "4100", "4324", "4146", "4244", "4267", "4127", "4702", "4611"));
         }
     }

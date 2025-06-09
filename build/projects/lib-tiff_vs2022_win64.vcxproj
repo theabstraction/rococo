@@ -68,8 +68,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -154,8 +154,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -226,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -300,11 +300,6 @@
   <ItemGroup>
     <ProjectReference Include="lib-jpg_vs2022_win64.vcxproj">
       <Project>{4C709D18-84F3-F3B7-569B-69F9522D35A2}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
-      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
