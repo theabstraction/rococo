@@ -15,14 +15,71 @@ public class RococoUtil : ModuleRules
 	private string rococoHomeDirectory;
     private string rococoSourceDirectory;
 	private string thisSourceDirectory;
+    private static string RococoConfigPath
+    {
+        get
+        {
+            string userLocalApps = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string rococoConfig = Path.Combine(userLocalApps, "19th-Century-Software", "Rococo.cfg");
+            return rococoConfig;
+        }
+    }
+
+    private static string ReadRococoHomeFromConfig()
+    {
+        if (File.Exists(RococoConfigPath))
+        {
+            string rococoPath = File.ReadAllText(RococoConfigPath);
+            rococoPath = rococoPath.Trim();
+            if (!Directory.Exists(rococoPath))
+            {
+                throw new Exception(RococoConfigPath + " exists, but the directory name within did not match a directory: " + rococoPath);
+            }
+
+            return rococoPath;
+        }
+
+        return null;
+    }
+
+    private void InitPathFromRococoHome(string _rococoHomeDirectory)
+    {
+        rococoHomeDirectory = _rococoHomeDirectory;
+        rococoIncludeDirectory = Path.Combine(rococoHomeDirectory, "source/rococo/include/").Replace('/', Path.DirectorySeparatorChar);
+        rococoSexyIncludeDirectory = Path.Combine(rococoHomeDirectory, "source/rococo/sexy/Common/").Replace('/', Path.DirectorySeparatorChar);
+        rococoSourceDirectory = Path.Combine(_rococoHomeDirectory, "source").Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    private string PrivateSourceRelPath
+    {
+        get 
+        {
+            return "Source/RococoUtil/Private".Replace('/', Path.DirectorySeparatorChar);
+        }
+    }
 
     private void PrepRococoDirectories()
-	{
+    {
         if (rococoIncludeDirectory == null)
         {
             string dir = PluginDirectory;
             string fullPath = dir;
             string lastFullPath;
+
+            thisSourceDirectory = Path.Combine(PluginDirectory, PrivateSourceRelPath);
+            if (!Directory.Exists(thisSourceDirectory))
+            {
+                throw new System.Exception("Expecting directory to exist: " + thisSourceDirectory);
+            }
+
+            string rococoHomeFromConfig = ReadRococoHomeFromConfig();
+
+            if (rococoHomeFromConfig != null)
+            {
+                InitPathFromRococoHome(rococoHomeFromConfig);
+                return;
+            }
+
 
             do
             {
@@ -30,24 +87,16 @@ public class RococoUtil : ModuleRules
 
                 fullPath = Path.GetFullPath(Path.Combine(fullPath, ".."));
 
-                string candidateIncludeDirectory = Path.Combine(fullPath, "source/rococo/include/");
+                string candidateIncludeDirectory = Path.Combine(fullPath, "source/rococo/include/").Replace('/', Path.DirectorySeparatorChar);
                 if (Directory.Exists(candidateIncludeDirectory))
                 {
-					rococoHomeDirectory = fullPath;
-                    rococoIncludeDirectory = candidateIncludeDirectory;
-					rococoSourceDirectory = Path.Combine(fullPath, "source");
-					thisSourceDirectory = Path.Combine(PluginDirectory, "Source/RococoUtil/Private");
-					rococoSexyIncludeDirectory = Path.Combine(fullPath, "source/rococo/sexy/Common");
-					if (!Directory.Exists(thisSourceDirectory))
-					{
-						throw new System.Exception("Expecting directory to exist: " + thisSourceDirectory);
-                    }
+                    InitPathFromRococoHome(fullPath);
                     return;
                 }
 
             } while (lastFullPath != fullPath);
 
-            throw new System.Exception("Could not find rococo directory by enumerating ancestors of " + dir);
+            throw new System.Exception("Could not find rococo directory from either " + RococoConfigPath + " or  enumerating ancestors of " + dir);
         }
     }
 
