@@ -25,7 +25,7 @@ namespace Rococo
 	using TRemoveReference = typename RemoveReference<_Ty>::Type;
 
 	template <class _Ty>
-	FORCE_INLINE  constexpr [[nodiscard]] _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
+	[[nodiscard]] FORCE_INLINE constexpr _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
 	{
 		// forward an lvalue as either an lvalue or an rvalue
 		return static_cast<_Ty&&>(_Arg);
@@ -102,7 +102,7 @@ namespace Rococo
 		template<typename FUNCTOR>
 		StackComissary(FUNCTOR f)
 		{
-			static_assert(CAPACITY >= sizeof FUNCTOR, "StackComissary requires more stackspace to handle the delegate passed to it");
+			static_assert(CAPACITY >= sizeof(FUNCTOR), "StackComissary requires more stackspace to handle the delegate passed to it");
 			new (stackspace) ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>(f);
 		}
 
@@ -173,7 +173,7 @@ namespace Rococo
 		template<typename FUNCTOR>
 		ArbitraryFunction(FUNCTOR f)
 		{
-			if constexpr (sizeof ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...> > sizeof stackspace)
+			if constexpr (sizeof(ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>) > sizeof (stackspace))
 			{
 				implementation = new ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>(f);
 			}

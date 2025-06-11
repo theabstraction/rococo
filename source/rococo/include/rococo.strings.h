@@ -4,10 +4,6 @@
 # define INCLUDED_ROCOCO_STRINGS
 #endif
 
-#ifdef SEXCHAR_IS_WIDE
-# error "Wide characters no longer supported."
-#endif
-
 #ifdef ROCOCO_USE_SAFE_V_FORMAT
 # include <stdarg.h>
 #endif
@@ -19,6 +15,8 @@
 namespace Rococo
 {
 	ROCOCO_API [[nodiscard]] fstring to_fstring(cstr const msg);
+	typedef __ROCOCO_WIDECHAR__ ROCOCO_WIDECHAR;
+	typedef const ROCOCO_WIDECHAR* crwstr;
 }
 
 namespace Rococo::Strings
@@ -30,9 +28,9 @@ namespace Rococo::Strings
 	ROCOCO_API cstr SkipNotBlankspace(cr_substring token);
 
 	ROCOCO_API int SecureFormat(char* buffer, size_t capacity, const char* format, ...);
-	ROCOCO_API int SecureFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...);
+	ROCOCO_API int SecureFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, ...);
 	ROCOCO_API int SafeFormat(char* buffer, size_t capacity, const char* format, ...);
-	ROCOCO_API int SafeFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...);
+	ROCOCO_API int SafeFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, ...);
 
 #ifdef _DEBUG
 	// Debug print - send to debug output
@@ -46,7 +44,7 @@ namespace Rococo::Strings
 
 #ifdef ROCOCO_USE_SAFE_V_FORMAT
 	ROCOCO_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
-	ROCOCO_API int SafeVFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, va_list args);
+	ROCOCO_API int SafeVFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, va_list args);
 	ROCOCO_INTERFACE IVarArgStringFormatter
 	{
 		virtual int PrintFV(const char* format, va_list args) = 0;
@@ -68,7 +66,7 @@ namespace Rococo::Strings
 	}
 
 	template<size_t CAPACITY, typename... Args>
-	inline int SafeFormat(_Out_writes_(CAPACITY) _Null_terminated_ wchar_t(&buffer)[CAPACITY], _Printf_format_string_ const wchar_t* format, Args... args)
+	inline int SafeFormat(_Out_writes_(CAPACITY) _Null_terminated_ ROCOCO_WIDECHAR(&buffer)[CAPACITY], _Printf_format_string_ crwstr format, Args... args)
 	{
 		return SafeFormat(buffer, CAPACITY, format, args...);
 	}
@@ -80,7 +78,7 @@ namespace Rococo::Strings
 	}
 
 	template<size_t CAPACITY, typename... Args>
-	inline int SecureFormat(_Out_writes_(CAPACITY) _Null_terminated_ wchar_t(&buffer)[CAPACITY], _Printf_format_string_ const wchar_t* format, Args... args)
+	inline int SecureFormat(_Out_writes_(CAPACITY) _Null_terminated_ ROCOCO_WIDECHAR(&buffer)[CAPACITY], _Printf_format_string_ crwstr format, Args... args)
 	{
 		return SecureFormat(buffer, CAPACITY, format, args...);
 	}
@@ -92,7 +90,7 @@ namespace Rococo::Strings
 	}
 
 	template<size_t CAPACITY, typename... Args>
-	inline int SafeFormat(wchar_t(&buffer)[CAPACITY], const wchar_t* format, Args... args)
+	inline int SafeFormat(ROCOCO_WIDECHAR(&buffer)[CAPACITY], crwstr format, Args... args)
 	{
 		return SafeFormat(buffer, CAPACITY, format, args...);
 	}
@@ -104,7 +102,7 @@ namespace Rococo::Strings
 	}
 
 	template<size_t CAPACITY, typename... Args>
-	inline int SecureFormat(wchar_t(&buffer)[CAPACITY], const wchar_t* format, Args... args)
+	inline int SecureFormat(ROCOCO_WIDECHAR(&buffer)[CAPACITY], crwstr format, Args... args)
 	{
 		return SecureFormat(buffer, CAPACITY, format, args...);
 	}
@@ -120,25 +118,25 @@ namespace Rococo::Strings
 	ROCOCO_API cstr GetRightSubstringAfter(cstr s, char c);
 	ROCOCO_API cstr GetFileExtension(cstr s);
 
-	ROCOCO_API const wchar_t* GetFinalNull(const wchar_t* s);
-	ROCOCO_API const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c);
-	ROCOCO_API const wchar_t* GetFileExtension(const wchar_t* s);
+	ROCOCO_API crwstr GetFinalNull(crwstr s);
+	ROCOCO_API crwstr GetRightSubstringAfter(crwstr s, ROCOCO_WIDECHAR c);
+	ROCOCO_API crwstr GetFileExtension(crwstr s);
 
 	// TODO - replace Eq as a function call with Eq as a compiler intrinsic / instruction PcmpIStr
-	ROCOCO_API bool Eq(const wchar_t* a, const wchar_t* b);
+	ROCOCO_API bool Eq(crwstr a, crwstr b);
 	ROCOCO_API bool Eq(cstr a, cstr b);
 	ROCOCO_API bool Eq(cr_substring a, cstr b);
 	inline bool Eq(cstr a, cr_substring b) { return Eq(b, a); }
 	ROCOCO_API bool EqI(cstr a, cstr b);
-	ROCOCO_API bool EqI(const wchar_t* a, const wchar_t* b);
+	ROCOCO_API bool EqI(crwstr a, crwstr b);
 	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix);
 	ROCOCO_API bool EndsWith(cstr bigString, cstr suffix);
 
 	// Case insensitive check
 	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix);
 
-	ROCOCO_API bool StartsWith(const wchar_t* bigString, const wchar_t* prefix);
-	ROCOCO_API bool EndsWith(const wchar_t* bigString, const wchar_t* suffix);
+	ROCOCO_API bool StartsWith(crwstr bigString, crwstr prefix);
+	ROCOCO_API bool EndsWith(crwstr bigString, crwstr suffix);
 
 	ROCOCO_API void SetStringAllocator(IAllocator* a);
 
@@ -314,12 +312,12 @@ namespace Rococo::Strings
 	ROCOCO_API int WriteToStandardOutput(cstr text, ...);
 
 	ROCOCO_API int32 StringLength(const char* s);
-	ROCOCO_API int32 StringLength(const wchar_t* s);
+	ROCOCO_API int32 StringLength(crwstr s);
 	ROCOCO_API void CopyString(char* dest, size_t capacity, const char* source);
 	ROCOCO_API void CopyString(char* dest, size_t capacity, const char* source, size_t nChars);
 
 	ROCOCO_API void StringCat(char* buf, cstr source, int maxChars);
-	ROCOCO_API void StringCat(wchar_t* buf, const wchar_t* source, int maxChars);
+	ROCOCO_API void StringCat(ROCOCO_WIDECHAR* buf, crwstr source, int maxChars);
 
 	ROCOCO_API size_t rlen(cstr s);
 	ROCOCO_API int StrCmpN(cstr a, cstr b, size_t len);
@@ -343,14 +341,14 @@ namespace Rococo::Strings
 	
 #ifdef USE_VSTUDIO_SAL
 	ROCOCO_API int32 Format(U8FilePath& path, _Printf_format_string_ cstr format, ...);
-	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ crwstr format, ...);
 #else
 	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
-	ROCOCO_API int32 Format(WideFilePath& path, const wchar_t* format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, crwstr format, ...);
 #endif
 
 	ROCOCO_API int32 MakePath(U8FilePath& combinedPath, cstr rootDirectory, cstr subdirectory);
-	ROCOCO_API void Assign(U8FilePath& dest, const wchar_t* wideSrc);
+	ROCOCO_API void Assign(U8FilePath& dest, crwstr wideSrc);
 	ROCOCO_API void Assign(U8FilePath& dest, const char* src);
 	ROCOCO_API void Assign(WideFilePath& dest, const char* src);
 	ROCOCO_API void Assign(U32FilePath& dest, const char32_t* wideSrc);

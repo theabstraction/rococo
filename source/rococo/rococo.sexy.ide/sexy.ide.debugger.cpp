@@ -331,7 +331,7 @@ namespace
 			variableEventHandler.This = this;
 
 			logFont = LOGFONTW{ 0 };
-			SecureFormat(logFont.lfFaceName, LF_FACESIZE, L"Courier New");
+			SecureFormat(logFont.lfFaceName, (size_t) LF_FACESIZE, L"Courier New");
 
 			logFont.lfHeight = -11;
 

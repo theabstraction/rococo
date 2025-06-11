@@ -51,13 +51,13 @@ namespace Rococo::Abedit
 
 	ROCOCO_INTERFACE IAbstractEditor
 	{
-		virtual [[nodiscard]] Windows::IWindow& Window() = 0;
-		virtual [[nodiscard]] bool IsVisible() const = 0;
-		virtual [[nodiscard]] IUIPalette& Palette() = 0;
-		virtual [[nodiscard]] Editors::IUIPropertiesEditor& Properties() = 0;
-		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
-		virtual [[nodiscard]] Windows::IWindow& ContainerWindow() = 0;
-		virtual [[nodiscard]] Windows::IMenuBuilder& Menu() = 0;
+		[[nodiscard]] virtual Windows::IWindow& Window() = 0;
+		[[nodiscard]] virtual bool IsVisible() const = 0;
+		[[nodiscard]] virtual IUIPalette& Palette() = 0;
+		[[nodiscard]] virtual Editors::IUIPropertiesEditor& Properties() = 0;
+		[[nodiscard]] virtual Visitors::IUITree& NavigationTree() = 0;
+		[[nodiscard]] virtual Windows::IWindow& ContainerWindow() = 0;
+		[[nodiscard]] virtual Windows::IMenuBuilder& Menu() = 0;
 		virtual void RefreshSlate() = 0;
 		virtual void SetNavigationHandler(Visitors::ITreeControlHandler* handler) = 0;
 	};
@@ -74,9 +74,9 @@ namespace Rococo::Abedit
 	{
 		virtual void Free() = 0;
 		virtual void Hide() = 0;
-		virtual [[nodiscard]] bool IsVisible() const = 0;
-		virtual [[nodiscard]] Visitors::IUITree& NavigationTree() = 0;
-		virtual [[nodiscard]] Windows::IMenuBuilder& MenuBuilder() = 0;
+		[[nodiscard]] virtual bool IsVisible() const = 0;
+		[[nodiscard]] virtual Visitors::IUITree& NavigationTree() = 0;
+		[[nodiscard]] virtual Windows::IMenuBuilder& MenuBuilder() = 0;
 		virtual void SetNavigationEventHandler(Visitors::ITreeControlHandler* handler) = 0;
 	};
 

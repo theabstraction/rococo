@@ -7,6 +7,7 @@
 #include <rococo.functional.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
+#include <vector>
 
 #define MATCH(text, value, numericEquivalent) if (Strings::EqI(text,value)) return numericEquivalent;
 

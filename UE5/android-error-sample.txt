@@ -1,0 +1,74 @@
+UATHelper: Packaging (Android (ASTC)): [1121/1231] Compile [arm64] Module.RococoGui.cpp
+UATHelper: Packaging (Android (ASTC)): In file included from D:/work/rococo/UE5/RococoTestFPS/Intermediate/Build/Android/a/RococoTestFPS/Development/RococoGui/Module.RococoGui.cpp:3:
+UATHelper: Packaging (Android (ASTC)): In file included from D:/work/rococo/UE5/RococoTestFPS/Intermediate/Build/Android/RococoTestFPS/Inc/RococoGui/UHT/RococoGRHostWidget.gen.cpp:8:
+UATHelper: Packaging (Android (ASTC)): In file included from D:/work/rococo/UE5/RococoTestFPS/Plugins/RococoGui/Source/RococoGui/Public/RococoGRHostWidget.h:7:
+UATHelper: Packaging (Android (ASTC)): In file included from D:/work/rococo/UE5/RococoTestFPS/Plugins/RococoGui/Source/RococoGui/Public/SRococoGRHostWidget.h:5:
+UATHelper: Packaging (Android (ASTC)): In file included from D:/work/rococo/UE5/RococoTestFPS/Plugins/RococoGui/Source/RococoGui/Public/RococoGuiAPI.h:5:
+UATHelper: Packaging (Android (ASTC)): In file included from D:/work/rococo/source/rococo/include/rococo.gui.retained.ex.h:2:
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(457,20): error: 'static' can only be specified inside the class definition
+UATHelper: Packaging (Android (ASTC)):         template<class T> static void GRWidgetRenderState::ForEachPermutation(T t)
+UATHelper: Packaging (Android (ASTC)):                           ^~~~~~~
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(822,36): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 ROCOCO_GUI_RETAINED_API static [[nodiscard]] cstr InterfaceId();
+UATHelper: Packaging (Android (ASTC)):                                                  ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(823,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRPanel& Panel() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(824,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(846,36): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 ROCOCO_GUI_RETAINED_API static [[nodiscard]] cstr InterfaceId();
+UATHelper: Packaging (Android (ASTC)):                                                  ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(851,36): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 ROCOCO_GUI_RETAINED_API static [[nodiscard]] cstr InterfaceId();
+UATHelper: Packaging (Android (ASTC)):                                                  ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(940,11): error: an attribute list cannot appear here
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] int TextWidth() const = 0;
+UATHelper: Packaging (Android (ASTC)):                         ^~~~~~~~~~~~~
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(947,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRWidget& Widget() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(948,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRPanel& Panel() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+PackagingResults: Error: 'static' can only be specified inside the class definition
+PackagingResults: Error: 'nodiscard' attribute cannot be applied to types
+PackagingResults: Error: 'nodiscard' attribute cannot be applied to types
+PackagingResults: Error: 'nodiscard' attribute cannot be applied to types
+PackagingResults: Error: 'nodiscard' attribute cannot be applied to types
+PackagingResults: Error: 'nodiscard' attribute cannot be applied to types
+PackagingResults: Error: an attribute list cannot appear here
+PackagingResults: Error: 'nodiscard' attribute cannot be applied to types
+PackagingResults: Error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(971,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRWidget& Widget() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1014,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] GRControlMetaData MetaData() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1016,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] GRButtonFlags ButtonFlags() const = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1025,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRPanel& Panel() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1027,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] Vec2i ImageSpan() const = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1030,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] Vec2i MinimalSpan() const = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1046,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRWidgetScrollableMenu& DropDown() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1047,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRPanel& Panel() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1048,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRWidget& Widget() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): D:/work/rococo/source/rococo/include/rococo.gui.retained.h(1069,13): error: 'nodiscard' attribute cannot be applied to types
+UATHelper: Packaging (Android (ASTC)):                 virtual [[nodiscard]] IGRPanel& Panel() = 0;
+UATHelper: Packaging (Android (ASTC)):                           ^
+UATHelper: Packaging (Android (ASTC)): fatal error: too many errors emitted, stopping now [-ferror-limit=]

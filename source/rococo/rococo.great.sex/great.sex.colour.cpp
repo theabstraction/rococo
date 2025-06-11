@@ -41,6 +41,11 @@ namespace Rococo::GreatSex
 
 		}
 
+		virtual ~ColourFactory()
+		{
+
+		}
+
 		void Free() override
 		{
 			delete this;

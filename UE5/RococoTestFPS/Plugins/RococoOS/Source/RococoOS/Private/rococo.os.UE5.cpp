@@ -118,7 +118,7 @@ namespace Rococo
 
 	[[noreturn]] void Throw(int errorCode, const FString& msg)
 	{
-		if constexpr ((sizeof TCHAR) > 1)
+		if constexpr ((sizeof (TCHAR)) > 1)
 		{
 			TArray<uint8> buffer;
 			ConvertFStringToUTF8Buffer(buffer, msg);
@@ -135,15 +135,13 @@ namespace Rococo
 		Throw(0, msg);
 	}
 
-	void SecureCopyStringToBuffer(wchar_t* destination, size_t capacity, const FString& s)
+	void SecureCopyStringToBuffer(WIDECHAR* destination, size_t capacity, const FString& s)
 	{
 		if (s.Len() >= capacity)
 		{
 			Throw(FString::Printf(TEXT("SecureCopyStringToBuffer(%s) failed. Insufficient capacity"), *s));
 		}
 
-		static_assert((sizeof(TCHAR) == sizeof(wchar_t)));
-		
 		for (size_t i = 0; i < s.Len(); ++i)
 		{
 			destination[i] = s[i];
@@ -186,9 +184,9 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API void ToSysPath(wchar_t* path)
+	ROCOCO_API void ToSysPath(WIDECHAR* path)
 	{
-		wchar_t directorySeparator = DirectorySeparatorChar();
+		WIDECHAR directorySeparator = DirectorySeparatorChar();
 
 		for (auto* s = path; *s != 0; ++s)
 		{
@@ -210,12 +208,11 @@ namespace Rococo::IO
 		return FPaths::FileExists(filePath);
 	}
 
-	ROCOCO_API bool IsFileExistant(const wchar_t* filename)
+	ROCOCO_API bool IsFileExistant(const WIDECHAR* filename)
 	{
 		FString filePath(filename);
 		return FPaths::FileExists(filePath);
 	}
-
 
 	ROCOCO_API bool StripLastSubpath(char* fullpath)
 	{
@@ -232,7 +229,7 @@ namespace Rococo::IO
 		return false;
 	}
 
-	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath)
+	ROCOCO_API bool StripLastSubpath(WIDECHAR* fullpath)
 	{
 		int32 len = (int32)Strings::StringLength(fullpath);
 		for (int i = len - 2; i > 0; --i)
@@ -273,7 +270,7 @@ namespace Rococo::IO
 		return false;
 	}
 
-	ROCOCO_API bool MakeContainerDirectory(wchar_t* filename)
+	ROCOCO_API bool MakeContainerDirectory(WIDECHAR* filename)
 	{
 		int len = (int)Strings::StringLength(filename);
 
@@ -468,14 +465,14 @@ namespace Rococo::IO
 		}
 	};
 
-	ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath)
+	ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const WIDECHAR* sysPath)
 	{
 		// On Unreal we don't do file mapping as not all platforms may support it, so just open the whole file into RAM
 		struct BinMapping : IReadOnlyBinaryMapping
 		{
 			TArray<uint8> dataMap;
 
-			BinMapping(const wchar_t* sysPath)
+			BinMapping(const WIDECHAR* sysPath)
 			{
 				SetLastError(0);
 				AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(sysPath));
@@ -572,7 +569,7 @@ namespace Rococo::IO
 		FString gameRelativeDir = FPaths::ProjectContentDir();
 		FString gameDir = FPaths::ConvertRelativePathToFull(gameRelativeDir);
 
-		static_assert(sizeof TCHAR == sizeof(wchar_t));
+		static_assert(sizeof TCHAR == sizeof(WIDECHAR));
 
 		Strings::SecureFormat(path.buf, TEXT("%s"), *gameDir);
 
@@ -683,7 +680,7 @@ namespace Rococo
 {
 	ROCOCO_API bool FileModifiedArgs::Matches(cstr resource) const
 	{
-		const wchar_t* a = this->sysPath;
+		const WIDECHAR* a = this->sysPath;
 		cstr b = resource;
 		if (*b == TEXT('!')) b++;
 
@@ -795,7 +792,7 @@ namespace Rococo::OS
 		Throw(0, "OS::SetCursorVisibility not supported by Rococo for Unreal Engine");
 	}
 
-	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath)
+	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const WIDECHAR* sysPath)
 	{
 		Throw(0, "OS::EditImageFile not supported by Rococo for Unreal Engine");
 	}
@@ -805,7 +802,7 @@ namespace Rococo::OS
 		Throw(0, "OS::SleepUntilAsync not supported by Rococo for Unreal Engine");
 	}
 
-	static const wchar_t* notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
+	static const WIDECHAR* notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
 
 	static std::vector<PROCESS_INFORMATION> processes;
 
@@ -820,9 +817,9 @@ namespace Rococo::OS
 
 
 	// Not thread safe
-	bool SpawnChildProcessAsync(const wchar_t* executable, const wchar_t* commandLineArgs)
+	bool SpawnChildProcessAsync(const WIDECHAR* executable, const WIDECHAR* commandLineArgs)
 	{
-		std::vector<wchar_t> commandLine;
+		std::vector<WIDECHAR> commandLine;
 		commandLine.resize(32786);
 
 		SafeFormat(commandLine.data(), commandLine.size(), L"%s", commandLineArgs);
@@ -845,7 +842,7 @@ namespace Rococo::OS
 	}
 
 	// Thread safe
-	void SpawnIndependentProcess(HWND hMsgSink, const wchar_t* executable, const wchar_t* commandLine)
+	void SpawnIndependentProcess(HWND hMsgSink, const WIDECHAR* executable, const WIDECHAR* commandLine)
 	{
 		auto result = (INT_PTR)ShellExecuteW(hMsgSink, L"open", executable, commandLine, NULL, SW_SHOW);
 		if (result < 32)
@@ -856,7 +853,7 @@ namespace Rococo::OS
 
 	bool OpenNotepadPP(HWND hWndMessageSink, cstr documentFilePath, int lineNumber)
 	{
-		wchar_t commandLine[1024];
+		WIDECHAR commandLine[1024];
 		SafeFormat(commandLine, L"-n%d -titleAdd=\" (via Sexy Studio)\" \"%hs\"", lineNumber, documentFilePath);
 
 		try
@@ -1108,7 +1105,7 @@ namespace UE5_ANON
 		WideFilePath contentDirectory;
 		stringmap<HString> macroToSubdir;
 	public:
-		Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
+		Installation(const WIDECHAR* contentIndicatorName, IOS& _os) : os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 
@@ -1317,7 +1314,7 @@ namespace UE5_ANON
 			IO::ToSysPath(sysPath.buf);
 		}
 
-		void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
+		void ConvertSysPathToMacroPath(const WIDECHAR* sysPath, U8FilePath& pingPath, cstr macro) const override
 		{
 			U8FilePath fullPingPath;
 			ConvertSysPathToPingPath(sysPath, fullPingPath);
@@ -1337,7 +1334,7 @@ namespace UE5_ANON
 			Rococo::Strings::Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.length());
 		}
 
-		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
+		void ConvertSysPathToPingPath(const WIDECHAR* sysPath, U8FilePath& pingPath) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
@@ -1537,7 +1534,7 @@ namespace UE5_ANON
 			onUnstable = cb;
 		}
 
-		void OnModified(const wchar_t* filename)
+		void OnModified(const WIDECHAR* filename)
 		{
 		}
 
@@ -1546,12 +1543,12 @@ namespace UE5_ANON
 			return IO::IsFileExistant(absPath);
 		}
 
-		bool IsFileExistant(const wchar_t* absPath) const override
+		bool IsFileExistant(const WIDECHAR* absPath) const override
 		{
 			return IO::IsFileExistant(absPath);
 		}
 
-		void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const override
+		void ConvertUnixPathToSysPath(const WIDECHAR* unixPath, WideFilePath& sysPath) const override
 		{
 			if (unixPath == nullptr) Throw(0, "Blank path in call to os.ConvertUnixPathToSysPath");
 			if (wcslen(unixPath) >= sysPath.CAPACITY)
@@ -1564,7 +1561,7 @@ namespace UE5_ANON
 			size_t i = 0;
 			for (; i < len; ++i)
 			{
-				wchar_t c = unixPath[i];
+				WIDECHAR c = unixPath[i];
 
 				if (c == '\\') Throw(0, "Illegal backslash '\\' in unixPath in call to os.ConvertUnixPathToSysPath");
 
@@ -1581,7 +1578,7 @@ namespace UE5_ANON
 			sysPath.buf[i] = 0;
 		}
 
-		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
+		void LoadAbsolute(const WIDECHAR* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
 			SetLastError(0);
 			AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(absPath));
@@ -1614,7 +1611,7 @@ namespace UE5_ANON
 			}
 		}
 
-		bool TryLoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
+		bool TryLoadAbsolute(const WIDECHAR* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
 		{
 			sysErrorCode = (ErrorCode)0;
 
@@ -1660,9 +1657,9 @@ namespace UE5_ANON
 				struct Reader : ILoadEventReader
 				{
 					IFileHandle* hFile;
-					const wchar_t* absPath;
+					const WIDECHAR* absPath;
 
-					Reader(IFileHandle* _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
+					Reader(IFileHandle* _hFile, const WIDECHAR* _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 					void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 					{
@@ -1696,7 +1693,7 @@ namespace UE5_ANON
 			}
 		}
 
-		void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const override
+		void LoadAbsolute(const WIDECHAR* absPath, ILoadEventsCallback& cb) const override
 		{
 			SetLastError(0);
 			AutoFile hFile = IPlatformFile::GetPlatformPhysical().OpenRead(absPath);
@@ -1709,9 +1706,9 @@ namespace UE5_ANON
 			struct Reader : ILoadEventReader
 			{
 				IFileHandle* hFile;
-				const wchar_t* absPath;
+				const WIDECHAR* absPath;
 
-				Reader(IFileHandle* _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
+				Reader(IFileHandle* _hFile, const WIDECHAR* _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 				void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 				{
@@ -1747,7 +1744,7 @@ namespace UE5_ANON
 			return _MAX_PATH;
 		}
 
-		void Monitor(const wchar_t* /* absPath */) override
+		void Monitor(const WIDECHAR* /* absPath */) override
 		{
 			Throw(0, "Not implemented");
 		}
@@ -1761,14 +1758,14 @@ namespace Rococo::IO
 		return new UE5_ANON::UE5OS();
 	}
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallation(const WIDECHAR* contentIndicatorName, IOS& os)
 	{
 		return new UE5_ANON::Installation(contentIndicatorName, os);
 	}
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const WIDECHAR* contentDirectory, IOS& os)
 	{
-		wchar_t slash[2] = { 0 };
+		WIDECHAR slash[2] = { 0 };
 		slash[0] = Rococo::IO::GetFileSeparator();
 
 		if (!Rococo::Strings::EndsWith(contentDirectory, slash))
@@ -1977,7 +1974,7 @@ namespace Rococo::OS
 
 namespace Rococo::IO
 {
-	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory)
+	ROCOCO_API void EnsureUserDocumentFolderExists(const WIDECHAR* subdirectory)
 	{
 		if (subdirectory == nullptr || *subdirectory == 0)
 		{
@@ -2018,7 +2015,7 @@ namespace Rococo::IO
 		IO::CreateDirectoryFolder(*fullPath);
 	}
 
-	FString GetFullPathFromTarget(TargetDirectory target, const wchar_t* relativePath)
+	FString GetFullPathFromTarget(TargetDirectory target, const WIDECHAR* relativePath)
 	{
 		switch (target)
 		{
@@ -2036,7 +2033,7 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const WIDECHAR* filename, const fstring& text)
 	{
 		FString fullPath = GetFullPathFromTarget(target, filename);
 
@@ -2092,7 +2089,7 @@ namespace Rococo::IO
 		SaveAsciiTextFileIfDifferent(target, wPath, text);
 	}
 
-	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const WIDECHAR* filename, const fstring& text)
 	{
 		if (text.length > 1024_megabytes)
 		{
@@ -2122,7 +2119,7 @@ namespace Rococo::IO
 		SaveAsciiTextFile(target, wPath, text);
 	}
 
-	ROCOCO_API void GetUserPath(wchar_t* result, size_t capacity, cstr shortname)
+	ROCOCO_API void GetUserPath(WIDECHAR* result, size_t capacity, cstr shortname)
 	{
 		FString path =  FPlatformProcess::UserDir();		
 		FString fullPath = FPaths::Combine(path, shortname);
@@ -2151,7 +2148,7 @@ namespace Rococo::IO
 		file->Write((const uint8*)s, strlen(s));
 	}
 
-	ROCOCO_API bool IsDirectory(const wchar_t* filename)
+	ROCOCO_API bool IsDirectory(const WIDECHAR* filename)
 	{
 		FString sFilename(filename);
 		return IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
@@ -2225,9 +2222,9 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
+	ROCOCO_API void EndDirectoryWithSlash(WIDECHAR* pathname, size_t capacity)
 	{
-		const wchar_t* finalChar = GetFinalNull(pathname);
+		const WIDECHAR* finalChar = GetFinalNull(pathname);
 
 		if (pathname == nullptr || pathname == finalChar)
 		{
@@ -2242,7 +2239,7 @@ namespace Rococo::IO
 				Throw(0, "Insufficient room in directory buffer to trail with slash");
 			}
 
-			wchar_t* mutablePath = const_cast<wchar_t*>(finalChar);
+			WIDECHAR* mutablePath = const_cast<WIDECHAR*>(finalChar);
 			mutablePath[0] = L'/';
 			mutablePath[1] = 0;
 		}
@@ -2255,7 +2252,7 @@ namespace Rococo::IO
 		LoadBinaryFile(loader, wPath, maxLength);
 	}
 
-	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength)
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const WIDECHAR* filename, uint64 maxLength)
 	{
 		if (maxLength > 2_gigabytes)
 		{
@@ -2294,7 +2291,7 @@ namespace Rococo::IO
 		} // File is no longer locked
 	}
 
-	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const wchar_t* filename)
+	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const WIDECHAR* filename)
 	{
 		TArray<char> asciiData;
 
@@ -2325,7 +2322,7 @@ namespace Rococo::IO
 		onLoad.Populate(asciiData.GetData());
 	}
 
-	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const WIDECHAR* filename)
 	{
 		if (capacity >= 2048_megabytes)
 		{
@@ -2366,7 +2363,7 @@ namespace Rococo::IO
 		return LoadAsciiTextFile(data, capacity, wPath);
 	}
 
-	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
+	ROCOCO_API void SaveBinaryFile(const WIDECHAR* targetPath, const uint8* buffer, size_t nBytes)
 	{
 		if (nBytes > 2_gigabytes)
 		{

@@ -65,7 +65,7 @@ struct DEFINED_ID_NAME																							\
 	FORCE_INLINE DEFINED_ID_NAME() : value(INVALID_VALUE) {}												    \
 	FORCE_INLINE explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}										\
 	TYPE value;																									\
-    FORCE_INLINE [[nodiscard]] static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }			\
+    [[nodiscard]] FORCE_INLINE static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }			\
 	FORCE_INLINE size_t operator() (const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }				\
     FORCE_INLINE operator bool () const noexcept { return value != INVALID_VALUE; }								\
 };																												\
@@ -73,14 +73,18 @@ inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { r
 inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }              \
 inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value < b.value; }
 
-#define UNUSED(x) (x);
-#define HIDE_COMPILER_WARNINGS(x) (x);
+#define UNUSED(x) (void)(x);
+#define HIDE_COMPILER_WARNINGS(x)  (void)(x);
 
 namespace DirectX
 {
 	struct XMFLOAT4;
 	struct XMFLOAT4X4;
 }
+
+#ifndef __ROCOCO_WIDECHAR__
+#error - define __ROCOCO_WIDECHAR__ in the compiler environment
+#endif
 
 namespace Rococo
 {
@@ -110,6 +114,9 @@ namespace Rococo
 	typedef unsigned long long int uint64;
 
 #endif
+
+	typedef __ROCOCO_WIDECHAR__ ROCOCO_WIDECHAR;
+	typedef const ROCOCO_WIDECHAR* crwstr;
 
 	enum class ErrorCode : int
 	{
@@ -664,7 +671,7 @@ namespace Rococo
 			return Vec3{ pos.x, pos.y, z };
 		}
 
-		FORCE_INLINE [[nodiscard]] const Vec2& Flatten() const
+		[[nodiscard]] FORCE_INLINE const Vec2& Flatten() const
 		{
 			return *reinterpret_cast<const Vec2*>(this);
 		}

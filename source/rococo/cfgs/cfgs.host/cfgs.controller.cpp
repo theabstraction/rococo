@@ -461,7 +461,8 @@ namespace ANON
 
 		void GridEvent_OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
-			gui->OnRightButtonUp(buttonFlags, cursorPosition);
+			auto handled = gui->OnRightButtonUp(buttonFlags, cursorPosition);
+			UNUSED(handled);
 		}
 
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override

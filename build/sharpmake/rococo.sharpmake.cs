@@ -222,7 +222,7 @@ namespace Rococo
             conf.Options.Add(Options.Vc.General.WindowsTargetPlatformVersion.Latest);
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
-
+            conf.Defines.Add("__ROCOCO_WIDECHAR__=wchar_t");
             if (importRococoAPI)
             {
                 conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
@@ -1951,6 +1951,7 @@ namespace Rococo
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib\"));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
+            conf.Defines.Add("__ROCOCO_WIDECHAR__=wchar_t");
             AddDefaultLibraries(conf);
         }
     }
@@ -1996,6 +1997,7 @@ namespace Rococo
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
+            conf.Defines.Add("__ROCOCO_WIDECHAR__=wchar_t");
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996", "4100", "4324", "4146", "4244", "4267", "4127", "4702", "4611"));
         }
     }

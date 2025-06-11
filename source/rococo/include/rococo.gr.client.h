@@ -55,7 +55,7 @@ namespace Rococo
 			// Triggers WM_PAINT as soon as the message queue is free
 			virtual void QueuePaint() = 0;
 
-			virtual [[nodiscard]] IGRSystem& GRSystem() = 0;
+			[[nodiscard]] virtual IGRSystem& GRSystem() = 0;
 
 			// Tries to load a frame specified by the great sex sexml File into the parent widget.
 			// If it fails the client window displays the error and returns false, else it returns true
