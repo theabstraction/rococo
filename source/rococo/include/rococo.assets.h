@@ -111,7 +111,7 @@ namespace Rococo
 		const IASSET& Get() const
 		{
 			if (asset) return *asset;
-			Throw(0, "%s: Asset was Invalid.", __FUNCTION__);
+			Throw(0, "%s: Asset was Invalid.", __ROCOCO_FUNCTION__);
 		}
 
 		IASSET& Get() 
@@ -154,7 +154,7 @@ namespace Rococo
 		const IAssetLife& Life() const
 		{
 			if (life) return *life;
-			Throw(0, "%s: Asset was Invalid.", __FUNCTION__);
+			Throw(0, "%s: Asset was Invalid.", __ROCOCO_FUNCTION__);
 		}
 	};
 

@@ -189,7 +189,7 @@ namespace Rococo::Animation
 
 			if (duration < minDuration)
 			{
-				Throw(0, "%s: minimum duration is %f seconds", __FUNCTION__, minDuration);
+				Throw(0, "%s: minimum duration is %f seconds", __ROCOCO_FUNCTION__, minDuration);
 			}
 
 			if (frameName.length == 0)

@@ -2121,7 +2121,7 @@ namespace Rococo
 				OS::TripDebugger();
 				cstr enigma = typeExpr.c_str();
 				Throw(decl, "%s: Could not match [%s] as either a structure, function nor an interface in module %s\n"
-							"Try specifying %s as a fully qualified type, or add the correct (using <namespace>) directive.", __FUNCTION__, enigma, source.Name(), enigma);
+							"Try specifying %s as a fully qualified type, or add the correct (using <namespace>) directive.", __ROCOCO_FUNCTION__, enigma, source.Name(), enigma);
 			}
 
 			ValidateLocalDeclarationVariable(*st, idExpr);

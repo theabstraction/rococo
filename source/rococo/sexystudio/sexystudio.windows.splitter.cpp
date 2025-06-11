@@ -119,7 +119,7 @@ namespace
 
 		void AddLayoutModifier(ILayout*) override
 		{
-			Throw(0, "%s: Not permitted", __FUNCTION__);
+			Throw(0, "%s: Not permitted", __ROCOCO_FUNCTION__);
 		}
 
 		operator HWND() const override

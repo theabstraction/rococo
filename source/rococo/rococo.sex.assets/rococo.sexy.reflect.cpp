@@ -263,7 +263,7 @@ struct AssetBuilder
 
 		if (finalOffset != type.SizeOfStruct())
 		{
-			Throw(0, "%s: Bad maths", __FUNCTION__);
+			Throw(0, "%s: Bad maths", __ROCOCO_FUNCTION__);
 		}
 	}
 

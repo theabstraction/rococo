@@ -90,7 +90,7 @@ namespace Rococo
 
 	enum { NAMESPACE_MAX_LENGTH = 128 };
 
-#define __SEXFUNCTION__ __FUNCTION__
+#define __SEXFUNCTION__ __ROCOCO_FUNCTION__
 
 
 #ifdef _WIN32

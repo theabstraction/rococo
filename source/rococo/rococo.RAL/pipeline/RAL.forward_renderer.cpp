@@ -17,7 +17,7 @@ static void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, Sh
 {
 	if (!TryNormalize(light.direction, shadowData.direction))
 	{
-		Throw(0, "%s: light direction normalization failed", __FUNCTION__);
+		Throw(0, "%s: light direction normalization failed", __ROCOCO_FUNCTION__);
 	}
 
 	shadowData.direction.w = 0;
@@ -141,7 +141,7 @@ struct RAL_3D_Object_Forward_Renderer : IRAL_3D_Object_RendererSupervisor
 			TextureDesc depthDesc;
 			if (!ral.RALTextures().TryGetTextureDesc(OUT depthDesc, targets.depthTarget))
 			{
-				Throw(0, "%s: TryGetTextureDesc(depthDesc, ...) failed", __FUNCTION__);
+				Throw(0, "%s: TryGetTextureDesc(depthDesc, ...) failed", __ROCOCO_FUNCTION__);
 			}
 
 			ral.ExpandViewportToEntireSpan({ (int) depthDesc.width, (int) depthDesc.height });

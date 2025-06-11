@@ -770,7 +770,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 		void VisitVenue(IPropertyVisitor& visitor) override
 		{
-			if (node == nullptr) Throw(0, "%s: node should have been assigned prior to the visitation", __FUNCTION__);
+			if (node == nullptr) Throw(0, "%s: node should have been assigned prior to the visitation", __ROCOCO_FUNCTION__);
 
 			auto& n = *node;
 

@@ -304,7 +304,7 @@ namespace AudioAnon
 			size_t length = encodedDataSingleThreadedPrivateHeap.size();
 			if (length == 0)
 			{
-				Throw(0, "%s: the file was of zero length", __FUNCTION__);
+				Throw(0, "%s: the file was of zero length", __ROCOCO_FUNCTION__);
 			}
 
 			OggVorbisFile f(utf8Path, encodedDataSingleThreadedPrivateHeap.data(), encodedDataSingleThreadedPrivateHeap.size());
@@ -351,7 +351,7 @@ namespace AudioAnon
 			
 			if (!audioBufferManager.Accept(AudioBufferDescriptor{ nChannels, 16 }))
 			{
-				Throw(0, "%s: The audio buffer manager rejected the request to transcode", __FUNCTION__);
+				Throw(0, "%s: The audio buffer manager rejected the request to transcode", __ROCOCO_FUNCTION__);
 			}
 			
 			uint32 cursor = 0;

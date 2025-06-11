@@ -75,7 +75,7 @@ namespace Rococo::SexyStudio::Widgets
 				auto parentSpan = Widgets::GetParentSpan(widget);
 				if (parentSpan.x <= 0)
 				{
-					Throw(0, "%s: Bad parent span { %d, %d }", __FUNCTION__, parentSpan.x, parentSpan.y);
+					Throw(0, "%s: Bad parent span { %d, %d }", __ROCOCO_FUNCTION__, parentSpan.x, parentSpan.y);
 				}
 				rect.right = parentSpan.x - pixelBorder;
 			}
@@ -124,7 +124,7 @@ namespace Rococo::SexyStudio::Widgets
 			{
 				if (rect.top < 0)
 				{
-					Throw(0, "%s: rec.top is %d (undefined)", __FUNCTION__, rect.top);
+					Throw(0, "%s: rec.top is %d (undefined)", __ROCOCO_FUNCTION__, rect.top);
 				}
 				rect.bottom = rect.top + pixelHeight;
 			}

@@ -57,14 +57,14 @@ namespace GRANON
 				IGRWidgetButton* button = FindButtonWithMeta(panel, meta);
 				if (!button)
 				{
-					RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find child with meta string: %s", meta);
+					RaiseError(panel, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Cannot find child with meta string: %s", meta);
 					return;
 				}
 
 				auto* togglePanel = FindPanelWithDescription(toggler);
 				if (!togglePanel)
 				{
-					RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find Panel.Description '%s' for meta: '%s'", toggler, meta);
+					RaiseError(panel, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Cannot find Panel.Description '%s' for meta: '%s'", toggler, meta);
 					return;
 				}
 			}
@@ -132,7 +132,7 @@ namespace GRANON
 				IGRWidgetButton* button = FindButtonWithMeta(panel, meta);
 				if (!button)
 				{
-					RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Cannot find child with meta string: %s", meta);
+					RaiseError(panel, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Cannot find child with meta string: %s", meta);
 					return;
 				}
 
@@ -304,7 +304,7 @@ namespace GRANON
 		{
 			if (description == nullptr || *description == 0)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Blank [description]");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Blank [description]");
 			}
 
 			group.push_back(description);
@@ -321,7 +321,7 @@ namespace GRANON
 		{
 			if (meta == nullptr || toggleTarget == nullptr)
 			{
-				RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Null argument");
+				RaiseError(panel, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Null argument");
 			}
 
 			for (auto& member : group)
@@ -333,14 +333,14 @@ namespace GRANON
 				}
 			}
 
-			RaiseError(panel, EGRErrorCode::Generic, __FUNCTION__, "Could not find tab for %s toggling %s in the radio button group list", meta, toggleTarget);
+			RaiseError(panel, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Could not find tab for %s toggling %s in the radio button group list", meta, toggleTarget);
 		}
 
 		void SetDefaultButton(cstr defaultButton) override
 		{
 			if (defaultButton == nullptr || *defaultButton == 0)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Blank [defaultButton]");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Blank [defaultButton]");
 			}
 
 			defaultButtonString = defaultButton;

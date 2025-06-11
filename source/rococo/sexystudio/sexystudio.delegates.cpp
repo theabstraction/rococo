@@ -44,7 +44,7 @@ namespace
 				char ancestors[1024];
 				StackStringBuilder sb(ancestors, sizeof ancestors);
 				AppendAncestorsToString(widget, sb);
-				Throw(0, "%s: rect not properly defined: { %d, %d, %d, %d }.\r\nWindow hierarchy:\r\n%s", __FUNCTION__, rect.left, rect.top, rect.right, rect.bottom, ancestors);
+				Throw(0, "%s: rect not properly defined: { %d, %d, %d, %d }.\r\nWindow hierarchy:\r\n%s", __ROCOCO_FUNCTION__, rect.left, rect.top, rect.right, rect.bottom, ancestors);
 			}
 
 			Widgets::SetWidgetPosition(widget, rect);

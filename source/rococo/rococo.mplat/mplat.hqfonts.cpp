@@ -101,7 +101,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 	{
 		if (unicodeValue < 0 || unicodeValue > 0x00007FFF)
 		{
-			Throw(0, "%s: Unicode character values must be between 0 and 0x7FFF", __FUNCTION__);
+			Throw(0, "%s: Unicode character values must be between 0 and 0x7FFF", __ROCOCO_FUNCTION__);
 		}
 
 		glyphs.insert((uint32)unicodeValue);
@@ -141,7 +141,7 @@ struct HQFonts : IHQFontsSupervisor, Fonts::IArrayFontSet
 
 		if (glyphs.empty())
 		{
-			Throw(0, "%s: no glyphs have been added", __FUNCTION__);
+			Throw(0, "%s: no glyphs have been added", __ROCOCO_FUNCTION__);
 		}
 
 		ID_FONT idFont = hq.CreateOSFont(*this, spec);

@@ -443,7 +443,7 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 			if (!grc.Resources().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
 			{
 				char message[1024];
-				SafeFormat(message, "%s: Cannot find image %s", __FUNCTION__, bkImageName.c_str());
+				SafeFormat(message, "%s: Cannot find image %s", __ROCOCO_FUNCTION__, bkImageName.c_str());
 
 				GuiRect textRect{ topLeft.x, topLeft.y, topLeft.x + rect.right - rect.left, topLeft.y + 18 };
 

@@ -125,7 +125,7 @@ namespace Rococo::SexyStudio
 		hFont = CreateFontIndirectA(&logFont);
 		if (hFont == nullptr)
 		{
-			Throw(GetLastError(), "%s: error creating font", __FUNCTION__);
+			Throw(GetLastError(), "%s: error creating font", __ROCOCO_FUNCTION__);
 		}
 
 	}
@@ -217,7 +217,7 @@ namespace Rococo::SexyStudio
 
 		if (hWnd == nullptr)
 		{
-			Throw(GetLastError(), "%s: could not create child window", __FUNCTION__);
+			Throw(GetLastError(), "%s: could not create child window", __ROCOCO_FUNCTION__);
 		}
 
 		struct ANON
@@ -282,7 +282,7 @@ namespace Rococo::SexyStudio
 
 		if (hWnd == nullptr)
 		{
-			Throw(GetLastError(), "%s: could not create child window", __FUNCTION__);
+			Throw(GetLastError(), "%s: could not create child window", __ROCOCO_FUNCTION__);
 		}
 
 		struct ANON

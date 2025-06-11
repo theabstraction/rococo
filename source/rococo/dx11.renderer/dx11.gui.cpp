@@ -602,7 +602,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
     {
         UNUSED(absRect);
 
-        if (nCount > GUI_BUFFER_VERTEX_CAPACITY) Throw(0, "%s - too many triangles. Max vertices: %d", __FUNCTION__, GUI_BUFFER_VERTEX_CAPACITY);
+        if (nCount > GUI_BUFFER_VERTEX_CAPACITY) Throw(0, "%s - too many triangles. Max vertices: %d", __ROCOCO_FUNCTION__, GUI_BUFFER_VERTEX_CAPACITY);
 
         FlushLayer();
 

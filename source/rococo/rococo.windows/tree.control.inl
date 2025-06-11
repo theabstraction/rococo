@@ -381,7 +381,7 @@ namespace Rococo::Windows
 
 		void SetText(TREE_NODE_ID nodeId, cstr text) override
 		{
-			if (!text) Throw(0, "%s: null text argument", __FUNCTION__);
+			if (!text) Throw(0, "%s: null text argument", __ROCOCO_FUNCTION__);
 
 			TVITEMEX y = { 0 };
 			y.mask = TVIF_TEXT | TVIF_HANDLE;
@@ -398,7 +398,7 @@ namespace Rococo::Windows
 
 		bool TryGetText(char* buffer, size_t sizeofBuffer, TREE_NODE_ID id) override
 		{
-			if (!buffer) Throw(0, "%s: null buffer argument", __FUNCTION__);
+			if (!buffer) Throw(0, "%s: null buffer argument", __ROCOCO_FUNCTION__);
 
 			TVITEMEX y = { 0 };
 			y.mask = TVIF_TEXT | TVIF_HANDLE;

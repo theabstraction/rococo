@@ -122,7 +122,7 @@ namespace Rococo
          CClassExpressionBuilder output;
          if (!ss.ConstructExpressionBuilder(output, outputRoot))
          {
-            Throw(s, "%s: ConstructExpressionBuilder error", __FUNCTION__);
+            Throw(s, "%s: ConstructExpressionBuilder error", __ROCOCO_FUNCTION__);
          }
 
          VM::CPU& cpu = vm.Cpu();

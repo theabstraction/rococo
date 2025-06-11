@@ -322,7 +322,7 @@ public:
 
 		if (name == nullptr)
 		{
-			Throw(0, "%s: <name> was null", __FUNCTION__);
+			Throw(0, "%s: <name> was null", __ROCOCO_FUNCTION__);
 		}
 
 		Rococo::MPlatImpl::RunEnvironmentScriptImpl(stats, *platform, implicitIncludes, _onScriptEvent, name, addPlatform, shutdownOnFail, trace, id, onScriptCrash, declarationBuilder);

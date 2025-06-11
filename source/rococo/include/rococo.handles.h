@@ -109,7 +109,7 @@ namespace Rococo
 			{
 				auto hItem = Handle{ i + 1 };
 				Handle* hSlot = freeHandles.GetBackSlot();
-				if (!hSlot) Throw(0, "%s: Error getting backslot for free handles.", __FUNCTION__);
+				if (!hSlot) Throw(0, "%s: Error getting backslot for free handles.", __ROCOCO_FUNCTION__);
 				*hSlot = hItem;
 				freeHandles.WriteBack();
 			} // The freeHandles now has 1 as the back most entry then 2.... all the way to handles.size()

@@ -597,7 +597,7 @@ namespace ANON
 
 		SXYField GetField(int) const override
 		{
-			Throw(0, "%s: Primitives never have fields.", __FUNCTION__);
+			Throw(0, "%s: Primitives never have fields.", __ROCOCO_FUNCTION__);
 		}
 
 		bool IsStrong(void) const override
@@ -873,7 +873,7 @@ namespace ANON
 			size_t sIndex = (size_t)index;
 			if (sIndex >= implicits.size())
 			{
-				Throw(0, "%s: Bad index", __FUNCTION__);
+				Throw(0, "%s: Bad index", __ROCOCO_FUNCTION__);
 			}
 
 			return *implicits[sIndex];
@@ -1990,7 +1990,7 @@ namespace ANON
 
 			if (!installation)
 			{
-				Throw(0, "%s: no installation. Call SetScriptPath first", __FUNCTION__);
+				Throw(0, "%s: no installation. Call SetScriptPath first", __ROCOCO_FUNCTION__);
 			}
 			
 			WideFilePath wideSysPath;
@@ -2005,7 +2005,7 @@ namespace ANON
 
 			if (!installation)
 			{
-				Throw(0, "%s: no installation. Call SetScriptPath first", __FUNCTION__);
+				Throw(0, "%s: no installation. Call SetScriptPath first", __ROCOCO_FUNCTION__);
 			}
 
 			WideFilePath wideSysPath;
@@ -3132,12 +3132,12 @@ namespace ANON
 		{
 			if (sourceFile == nullptr)
 			{
-				Throw(0, "%s: [sourceFile] nullptr", __FUNCTION__);
+				Throw(0, "%s: [sourceFile] nullptr", __ROCOCO_FUNCTION__);
 			}
 
 			if (localTypeName == nullptr)
 			{
-				Throw(0, "%s: [localTypeName] nullptr", __FUNCTION__);
+				Throw(0, "%s: [localTypeName] nullptr", __ROCOCO_FUNCTION__);
 			}
 
 			auto i = filenameToFile.find(sourceFile);

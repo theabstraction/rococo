@@ -254,7 +254,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				varName = "Int64";
 					break;
 			default:
-				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __FUNCTION__, name);
+				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __ROCOCO_FUNCTION__, name);
 			}
 
 			s->AddMember(NameString::From("Value"), TypeString::From(varName));
@@ -274,7 +274,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				m.SetSize(8);
 				break;
 			default:
-				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __FUNCTION__, name);
+				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __ROCOCO_FUNCTION__, name);
 			}
 
 			s->Seal();

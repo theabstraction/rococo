@@ -370,7 +370,7 @@ namespace Rococo
 
 			IExpressionTransform& TransformThis() const override
 			{
-				Throw(inner, __FUNCTION__ ": not supported");
+				Throw(inner, __ROCOCO_FUNCTION__ ": not supported");
 			}
 		};
 
@@ -378,7 +378,7 @@ namespace Rococo
 		{
 			if (numberOfElements < 1)
 			{
-				Throw(inner, "%s: can only create compound elements ", __FUNCTION__);
+				Throw(inner, "%s: can only create compound elements ", __ROCOCO_FUNCTION__);
 			}
 
 			void* buffer = nullptr;

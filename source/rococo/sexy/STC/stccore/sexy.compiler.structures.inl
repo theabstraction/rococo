@@ -77,7 +77,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		if (index < 0 || index >= attributes.size())
 		{
-			Rococo::Throw(0, "%s. Bad index", __FUNCTION__);
+			Rococo::Throw(0, "%s. Bad index", __ROCOCO_FUNCTION__);
 		}
 
 		auto& a = attributes[index];

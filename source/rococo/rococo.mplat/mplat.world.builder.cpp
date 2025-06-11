@@ -90,7 +90,7 @@ namespace
 
 		void GetTriangleAt(const Vec2& position, TriangleScan& t) override
 		{
-			if (!quadtree) Throw(0, "%s: No quadtree, world not defined.", __FUNCTION__);
+			if (!quadtree) Throw(0, "%s: No quadtree, world not defined.", __ROCOCO_FUNCTION__);
 
 			struct ANON : IEventCallback<QuadtreePocket>
 			{
@@ -156,25 +156,25 @@ namespace
 
 		void AddMeshToQuadtree(ID_ENTITY id) override
 		{
-			if (!quadtree) Throw(0, "%s: No quadtree, world not defined.", __FUNCTION__);
+			if (!quadtree) Throw(0, "%s: No quadtree, world not defined.", __ROCOCO_FUNCTION__);
 
 			auto body = API::ForIBodyComponent::Get(id);
 			if (!body)
 			{
-				Throw(0, "%s: no entity found with id 0x%llX", __FUNCTION__, id.Value());
+				Throw(0, "%s: no entity found with id 0x%llX", __ROCOCO_FUNCTION__, id.Value());
 			}
 				
 			auto meshId = body->Mesh();
 			if (!meshId)
 			{
-				Throw(0, "%s: Entity with id 0x%llX had no mesh", __FUNCTION__, id.Value());
+				Throw(0, "%s: Entity with id 0x%llX had no mesh", __ROCOCO_FUNCTION__, id.Value());
 			}
 
 			size_t nTriangles;
 			auto* triangles = meshes.GetTriangles(meshId, nTriangles);
 			if (nTriangles == 0)
 			{
-				Throw(0, "%s: Entity with id 0x%llX with mesh id 0x%llX has no accessible triangles", __FUNCTION__, id.Value(), meshId.value);
+				Throw(0, "%s: Entity with id 0x%llX with mesh id 0x%llX has no accessible triangles", __ROCOCO_FUNCTION__, id.Value(), meshId.value);
 			}
 
 			uint32 index = 0;
@@ -197,17 +197,17 @@ namespace
 			const float maxAcceptableSpan = 10000000.0f;
 			if (span < minAcceptableSpan || span > maxAcceptableSpan)
 			{
-				Throw(0, "%s: %f <= span <= %f", __FUNCTION__, minAcceptableSpan, maxAcceptableSpan);
+				Throw(0, "%s: %f <= span <= %f", __ROCOCO_FUNCTION__, minAcceptableSpan, maxAcceptableSpan);
 			}
 
 			if (quantum < minQuantum || quantum > maxQuantum)
 			{
-				Throw(0, "%s: %f <= quantum <= %f", __FUNCTION__, minQuantum, maxQuantum);
+				Throw(0, "%s: %f <= quantum <= %f", __ROCOCO_FUNCTION__, minQuantum, maxQuantum);
 			}
 
 			if (span < 2.0f * quantum)
 			{
-				Throw(0, "%s: span must exceeded twice the quantum", __FUNCTION__);
+				Throw(0, "%s: span must exceeded twice the quantum", __ROCOCO_FUNCTION__);
 			}
 
 			QuadtreeCreateContext occ;

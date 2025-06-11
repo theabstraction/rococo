@@ -257,7 +257,7 @@ namespace Rococo::GreatSex
 				auto i = mapNameToOptions.insert(key, &options);
 				if (!i.second)
 				{
-					Throw(0, "Duplicate key '%s': %s", key, __FUNCTION__);
+					Throw(0, "Duplicate key '%s': %s", key, __ROCOCO_FUNCTION__);
 				}
 			}
 
@@ -338,7 +338,7 @@ namespace Rococo::GreatSex
 				auto i = widgetHandlers.find(fqName);
 				if (i != widgetHandlers.end())
 				{
-					Throw(0, "%s: Duplicate fqName: %s", __FUNCTION__, fqName);
+					Throw(0, "%s: Duplicate fqName: %s", __ROCOCO_FUNCTION__, fqName);
 				}
 
 				widgetHandlers.insert(fqName, &f);

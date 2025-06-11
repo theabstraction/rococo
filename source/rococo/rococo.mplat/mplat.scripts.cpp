@@ -373,7 +373,7 @@ namespace Rococo
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIShaderOptionsConfig(args.ss, &platform.graphics.shaderConfig);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
-						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __FUNCTION__, __LINE__);
+						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __ROCOCO_FUNCTION__, __LINE__);
 					}
 				}
 

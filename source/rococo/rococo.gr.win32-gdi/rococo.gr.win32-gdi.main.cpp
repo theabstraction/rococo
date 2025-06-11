@@ -291,7 +291,7 @@ namespace GRANON
 					if (hBitmap == nullptr)
 					{
 						DeleteDC(bitmapDC);
-						Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __FUNCTION__);
+						Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __ROCOCO_FUNCTION__);
 					}
 
 					// We have the const buffer, we don't change its size, only its content.
@@ -1760,7 +1760,7 @@ namespace GRANON
 			HDC dc = GetDC(nullptr);
 			if (!dc)
 			{
-				RaiseError(nullptr, EGRErrorCode::Generic, __FUNCTION__, "Cannot bind to font. GetDC returned nullptr");
+				RaiseError(nullptr, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Cannot bind to font. GetDC returned nullptr");
 			}
 			else
 			{
@@ -1772,7 +1772,7 @@ namespace GRANON
 
 				if (!success)
 				{
-					RaiseError(nullptr, EGRErrorCode::Generic, __FUNCTION__, "Cannot bind to font. GetTextMetricsA returned false. Error code %d", GetLastError());
+					RaiseError(nullptr, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Cannot bind to font. GetTextMetricsA returned false. Error code %d", GetLastError());
 				}
 			}
 
@@ -2321,7 +2321,7 @@ namespace GRANON
 			{
 				Rococo::Windows::THIS_WINDOW parent(GetParent(hWnd));
 				SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) DefWindowProc);
-				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __FUNCTION__);
+				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __ROCOCO_FUNCTION__);
 				PostQuitMessage(0);
 				return 0L;
 			}
@@ -2369,7 +2369,7 @@ namespace GRANON
 		{
 			if (hParentWnd == nullptr)
 			{
-				Throw(GetLastError(), "%s: parent was NULL", __FUNCTION__);
+				Throw(GetLastError(), "%s: parent was NULL", __ROCOCO_FUNCTION__);
 			}
 
 			gdiCustodian = GR::Win32::CreateGDICustodian(hParentWnd);
@@ -2404,7 +2404,7 @@ namespace GRANON
 
 			if (hWnd == nullptr)
 			{
-				Throw(GetLastError(), "%s: could not create client window for %s", __FUNCTION__, clientInfo.lpszClassName);
+				Throw(GetLastError(), "%s: could not create client window for %s", __ROCOCO_FUNCTION__, clientInfo.lpszClassName);
 			}
 
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) this);
@@ -2432,7 +2432,7 @@ namespace GRANON
 			auto jcode = xbox360Controller->GetVKeyCode(jkeyName);
 			if (jcode == 0)
 			{
-				Throw(0, "%s: Error mapping %s", __FUNCTION__, jkeyName);
+				Throw(0, "%s: Error mapping %s", __ROCOCO_FUNCTION__, jkeyName);
 			}
 
 			mapJStickToKeyboard[jcode] = keyboardCode;
@@ -2766,7 +2766,7 @@ namespace GRANON
 
 			if (hWnd == nullptr)
 			{
-				Throw(GetLastError(), "%s: could not create overlapped window for %s", __FUNCTION__, info.lpszClassName);
+				Throw(GetLastError(), "%s: could not create overlapped window for %s", __ROCOCO_FUNCTION__, info.lpszClassName);
 			}
 
 			grClientWindow = GR::Win32::CreateGRClientWindow(hWnd);

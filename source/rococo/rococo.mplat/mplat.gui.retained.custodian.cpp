@@ -549,7 +549,7 @@ namespace ANON
 		{
 			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
 			{
-				Throw(0, "%s (%s): Could not find bitmap: %s\nNote that the MPLAT gui custodian requires sprites to be pre-loaded, typically using the game script", __FUNCTION__, hint, imagePath);
+				Throw(0, "%s (%s): Could not find bitmap: %s\nNote that the MPLAT gui custodian requires sprites to be pre-loaded, typically using the game script", __ROCOCO_FUNCTION__, hint, imagePath);
 			}
 		}
 

@@ -305,7 +305,7 @@ namespace Rococo::Strings
 				{
 					char errBuf[256];
 					strerror_s(errBuf, err);
-					Throw(0, "%s returned an error code %d. %s", __FUNCTION__, err, errBuf);
+					Throw(0, "%s returned an error code %d. %s", __ROCOCO_FUNCTION__, err, errBuf);
 				}
 				else // Truncated, so double the buffer size and try again
 				{
@@ -348,7 +348,7 @@ namespace Rococo::Strings
 		int count = SafeVFormat(path.buf, path.CAPACITY, format, args);
 		if (count == -1)
 		{
-			Throw(0, "%s failed. Buffer length exceeded. Format String: %s", __FUNCTION__, format);
+			Throw(0, "%s failed. Buffer length exceeded. Format String: %s", __ROCOCO_FUNCTION__, format);
 		}
 		return count;
 	}
@@ -360,7 +360,7 @@ namespace Rococo::Strings
 		int count = SafeVFormat(path.buf, path.CAPACITY, format, args);
 		if (count == -1)
 		{
-			Throw(0, "%s failed. Buffer length exceeded. Format String: %ls", __FUNCTION__, format);
+			Throw(0, "%s failed. Buffer length exceeded. Format String: %ls", __ROCOCO_FUNCTION__, format);
 		}
 		return count;
 	}

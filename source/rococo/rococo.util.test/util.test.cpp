@@ -56,7 +56,7 @@ void validateEq(bool a, bool b, cstr function, int line)
 	}
 }
 
-#define ValidateEq(a, b) validateEq(a, b, __FUNCTION__, __LINE__);
+#define ValidateEq(a, b) validateEq(a, b, __ROCOCO_FUNCTION__, __LINE__);
 
 #define TEST(f) { printf("%s...", #f); f(); printf("completed\n"); }
 

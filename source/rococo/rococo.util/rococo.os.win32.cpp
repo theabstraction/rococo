@@ -296,7 +296,7 @@ namespace Rococo
 
 				Win32BinArchive(const wchar_t* sysPath)
 				{
-					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
+					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __ROCOCO_FUNCTION__);
 					hFile = CreateFileW(sysPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 					if (hFile == INVALID_HANDLE_VALUE)
 					{
@@ -394,7 +394,7 @@ namespace Rococo
 
 				Win32BinFile(const wchar_t* sysPath)
 				{
-					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
+					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __ROCOCO_FUNCTION__);
 					hFile = CreateFileW(sysPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 					if (hFile == INVALID_HANDLE_VALUE)
 					{
@@ -828,7 +828,7 @@ namespace Rococo::OS
 		auto result = (INT_PTR)ShellExecuteW(hMsgSink, L"open", executable, commandLine, NULL, SW_SHOW);
 		if (result < 32)
 		{
-			Throw(GetLastError(), "Error spawning [%s: '%s']", __FUNCTION__, executable, commandLine);
+			Throw(GetLastError(), "Error spawning [%s: '%s']", __ROCOCO_FUNCTION__, executable, commandLine);
 		}
 	}
 
@@ -877,7 +877,7 @@ namespace Rococo::OS
 		auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
 		if (result < 32)
 		{
-			Throw(GetLastError(), "%s: '%s'", __FUNCTION__, documentFilePath);
+			Throw(GetLastError(), "%s: '%s'", __ROCOCO_FUNCTION__, documentFilePath);
 		}
 	}
 
@@ -1074,7 +1074,7 @@ namespace Rococo::OS
 	{
 		if (!library_initialized)
 		{
-			Throw(0, "API implementor must call Rococo::OS::InitRococoOS to use %s", __FUNCTION__);
+			Throw(0, "API implementor must call Rococo::OS::InitRococoOS to use %s", __ROCOCO_FUNCTION__);
 		}
 
 		ThreadErrorDesc desc;
@@ -1889,7 +1889,7 @@ namespace WIN32_ANON
 		{
 			if (!EndsWith(absPath, L"\\"))
 			{
-				Throw(0, "%s: [absPath] must end with '\\'", __FUNCTION__);
+				Throw(0, "%s: [absPath] must end with '\\'", __ROCOCO_FUNCTION__);
 			}
 
 			monitorDirectoryRoot = absPath;
@@ -2028,7 +2028,7 @@ namespace WIN32_ANON
 
 					cstr Message() const override
 					{
-						return __FUNCTION__;
+						return __ROCOCO_FUNCTION__;
 					}
 
 					int32 ErrorCode() const override
@@ -2373,27 +2373,27 @@ namespace Rococo::IO
 	{
 		if (subdirectory == nullptr || *subdirectory == 0)
 		{
-			Throw(0, "%s: subdirectory argument was blank", __FUNCTION__);
+			Throw(0, "%s: subdirectory argument was blank", __ROCOCO_FUNCTION__);
 		}
 
 		if (StrStrW(subdirectory, L".") != nullptr)
 		{
-			Throw(0, "%s: subdirectory %ls contained an illegal character '.'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '.'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 
 		if (StrStrW(subdirectory, L"%") != nullptr)
 		{
-			Throw(0, "%s: subdirectory %ls contained an illegal character '%'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '%'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 
 		if (StrStrW(subdirectory, L"$") != nullptr)
 		{
-			Throw(0, "%s: subdirectory %ls contained an illegal character '$'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '$'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 
 		if (subdirectory[0] == L'\\')
 		{
-			Throw(0, "%s: subdirectory %ls must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls must not begin with a slash character '\\'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 
 		PWSTR path;
@@ -2410,7 +2410,7 @@ namespace Rococo::IO
 		int len = wnsprintfW(fullPath.data(), MAX_PATH, L"%s\\%s", path, subdirectory);
 		if (len >= MAX_PATH)
 		{
-			Throw(hr, "%s: path too long: %ls", __FUNCTION__, fullPath.data());
+			Throw(hr, "%s: path too long: %ls", __ROCOCO_FUNCTION__, fullPath.data());
 		}
 
 		if (!CreateDirectoryW(fullPath.data(), nullptr))
@@ -2421,7 +2421,7 @@ namespace Rococo::IO
 				// We ensured the directory exists
 				return;
 			}
-			Throw(hr, "%s: could not create subdirectory %ls", __FUNCTION__, fullPath.data());
+			Throw(hr, "%s: could not create subdirectory %ls", __ROCOCO_FUNCTION__, fullPath.data());
 		}
 	}
 
@@ -2952,7 +2952,7 @@ namespace Rococo::IO
 		{
 			if (filter == nullptr || filter[0] == 0)
 			{
-				Throw(0, "%s: <filter> was blank.", __FUNCTION__);
+				Throw(0, "%s: <filter> was blank.", __ROCOCO_FUNCTION__);
 			}
 
 			auto finalChar = GetFinalNull(filter)[-1];
@@ -2979,7 +2979,7 @@ namespace Rococo::IO
 				HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
 				if (hr != ERROR_FILE_NOT_FOUND)
 				{
-					Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
+					Throw(hr, "%s: %ls\n", __ROCOCO_FUNCTION__, fullSearchFilter);
 				}
 				return;
 			}
@@ -3036,7 +3036,7 @@ namespace Rococo::IO
 		{
 			if (filter == nullptr || filter[0] == 0)
 			{
-				Throw(0, "%s: <filter> was blank.", __FUNCTION__);
+				Throw(0, "%s: <filter> was blank.", __ROCOCO_FUNCTION__);
 			}
 
 			auto finalChar = GetFinalNull(filter)[-1];
@@ -3063,7 +3063,7 @@ namespace Rococo::IO
 				HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
 				if (hr != ERROR_FILE_NOT_FOUND)
 				{
-					Throw(hr, "%s: %ls\n", __FUNCTION__, fullSearchFilter);
+					Throw(hr, "%s: %ls\n", __ROCOCO_FUNCTION__, fullSearchFilter);
 				}
 				return;
 			}
@@ -3708,7 +3708,7 @@ namespace Rococo::OS
 		auto status = RegOpenKeyA(HKEY_CURRENT_USER, "Software", &hKeySoftware);
 		if (status != ERROR_SUCCESS)
 		{
-			Throw(status, "%s: Cannot open registry Software section", __FUNCTION__);
+			Throw(status, "%s: Cannot open registry Software section", __ROCOCO_FUNCTION__);
 		}
 
 		if (!organization) organization = "Rococo - 19th Century Software";
@@ -3723,7 +3723,7 @@ namespace Rococo::OS
 
 		if (status != ERROR_SUCCESS)
 		{
-			Throw(status, "%s: Cannot open or create registry 'Software/%s' section", __FUNCTION__, organization);
+			Throw(status, "%s: Cannot open or create registry 'Software/%s' section", __ROCOCO_FUNCTION__, organization);
 		}
 
 		AutoHKEY hKeyRoot;
@@ -3737,7 +3737,7 @@ namespace Rococo::OS
 
 		if (status != ERROR_SUCCESS)
 		{
-			Throw(status, "%s: Cannot open or create registry 'Software/%s/%s' section", __FUNCTION__, organization, root.rootName);
+			Throw(status, "%s: Cannot open or create registry 'Software/%s/%s' section", __ROCOCO_FUNCTION__, organization, root.rootName);
 		}
 
 		t(hKeyRoot);
@@ -3786,12 +3786,12 @@ namespace Rococo::OS
 				LSTATUS status = RegSetKeyValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, value, (DWORD)len);
 				if (status != ERROR_SUCCESS)
 				{
-					Throw(status, "%s: RegSetValueA(..., %s, ...) returned an error code", __FUNCTION__, section.sectionName);
+					Throw(status, "%s: RegSetValueA(..., %s, ...) returned an error code", __ROCOCO_FUNCTION__, section.sectionName);
 				}
 			}
 			else
 			{
-				Throw(0, "%s: maximum string length is 1 megabytes", __FUNCTION__);
+				Throw(0, "%s: maximum string length is 1 megabytes", __ROCOCO_FUNCTION__);
 			}
 		};
 

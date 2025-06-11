@@ -57,7 +57,7 @@ namespace Rococo::Windows
 			item.fmt = LVCFMT_FIXED_WIDTH;
 			if (-1 == ListView_InsertColumn(hWndList, 10000, &item))
 			{
-				Throw(0, "%s: Error inserting item %s into a ListView header", __FUNCTION__, name);
+				Throw(0, "%s: Error inserting item %s into a ListView header", __ROCOCO_FUNCTION__, name);
 			}
 		}
 
@@ -74,7 +74,7 @@ namespace Rococo::Windows
 			item.fmt = LVCFMT_FIXED_WIDTH;
 			if (-1 == ListView_InsertColumn(hWndList, 10000, &item))
 			{
-				Throw(0, "%s: Error inserting item %s into a ListView header", __FUNCTION__, name);
+				Throw(0, "%s: Error inserting item %s into a ListView header", __ROCOCO_FUNCTION__, name);
 			}
 		}
 
@@ -399,12 +399,12 @@ namespace Rococo::Windows
 		{
 			if (keyName == nullptr || *keyName == 0)
 			{
-				Throw(0, "%s: blank key", __FUNCTION__);
+				Throw(0, "%s: blank key", __ROCOCO_FUNCTION__);
 			}
 
 			if (strlen(keyName) >= MAX_KEY_LEN)
 			{
-				Throw(0, "%s: bad key length. Max is %u characters", MAX_KEY_LEN - 1, __FUNCTION__);
+				Throw(0, "%s: bad key length. Max is %u characters", MAX_KEY_LEN - 1, __ROCOCO_FUNCTION__);
 			}
 			SetWindowText(hWndEditControl, keyName);
 			ListBuilder().Select(keyName);

@@ -15,7 +15,7 @@ namespace Rococo::CFGS
 	{
 		if (!Strings::Eq(editor.Implementation(), IMPLEMENTATION_TYPE_WIN32_HWND))
 		{
-			Throw(0, "%s: implementation needs to be %s", __FUNCTION__, IMPLEMENTATION_TYPE_WIN32_HWND);
+			Throw(0, "%s: implementation needs to be %s", __ROCOCO_FUNCTION__, IMPLEMENTATION_TYPE_WIN32_HWND);
 		}
 
 		auto& super = static_cast<Abedit::IWin32AbstractEditorSupervisor&>(editor);
@@ -34,7 +34,7 @@ namespace Rococo::CFGS
 		HMODULE hPopupModule = LoadLibraryA(dllname);
 		if (!hPopupModule)
 		{
-			Throw(GetLastError(), "%s: Could not load library: %s", __FUNCTION__, dllname);
+			Throw(GetLastError(), "%s: Could not load library: %s", __ROCOCO_FUNCTION__, dllname);
 		}
 
 		cstr procName = "Create_CFGS_Win32_IDE";
@@ -42,7 +42,7 @@ namespace Rococo::CFGS
 		FARPROC factoryProc = GetProcAddress(hPopupModule, procName);
 		if (!factoryProc)
 		{
-			Throw(GetLastError(), "%s: Could not load find '%s' in %s", __FUNCTION__, procName, dllname);
+			Throw(GetLastError(), "%s: Could not load find '%s' in %s", __ROCOCO_FUNCTION__, procName, dllname);
 		}
 
 		FN_Create_CFGS_Win32_IDE createIDE = (FN_Create_CFGS_Win32_IDE)factoryProc;

@@ -82,7 +82,7 @@ namespace
 
 			if (ref.name == nullptr)
 			{
-				Throw(0, "%s: event name was null", __FUNCTION__);
+				Throw(0, "%s: event name was null", __ROCOCO_FUNCTION__);
 			}
 
 			LazyInit(ref);
@@ -214,7 +214,7 @@ namespace
 		{
 			if (id.name == nullptr)
 			{
-				Throw(0, "%s: event name was null", __FUNCTION__);
+				Throw(0, "%s: event name was null", __ROCOCO_FUNCTION__);
 			}
 
 			LazyInit(id);

@@ -10,6 +10,8 @@
 # endif
 #endif
 
+#define __ROCOCO_WIDECHAR__ WIDECHAR
+
 #ifndef ROCOCO_API
 # define ROCOCO_API			ROCOCO_UE5_IMPORT
 #endif

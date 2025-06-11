@@ -59,5 +59,5 @@ namespace Rococo::Audio
 #define VALIDATE(errorCode, operation)\
 { \
 	if FAILED(operation) \
-		Throw(errorCode, "%s: %s", __FUNCTION__, #operation); \
+		Throw(errorCode, "%s: %s", __ROCOCO_FUNCTION__, #operation); \
 }

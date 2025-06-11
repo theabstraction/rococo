@@ -574,7 +574,7 @@ namespace GRANON
 		{
 			if (!isToggler)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "The button is not a toggler");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "The button is not a toggler");
 			}
 
 			isRaised = !isRaised;

@@ -37,7 +37,7 @@ namespace Rococo::SexyStudio
 			hReportView = CreateWindowExA(exStyle, WC_LISTVIEWA, "", win32Style, 0, 0, 100, 100, eventSinkWindow, NULL, NULL, NULL);
 			if (!hReportView)
 			{
-				Throw(GetLastError(), "%s: Could not create report view window", __FUNCTION__);
+				Throw(GetLastError(), "%s: Could not create report view window", __ROCOCO_FUNCTION__);
 			}
 
 			U8FilePath sysPath;
@@ -171,12 +171,12 @@ namespace Rococo::SexyStudio
 				insertStatus.first->second.index = ListView_InsertColumn(hReportView, 100000, &col);
 				if (insertStatus.first->second.index == -1)
 				{
-					Throw(0, "%s: ListView_InsertColumn returned -1", __FUNCTION__);
+					Throw(0, "%s: ListView_InsertColumn returned -1", __ROCOCO_FUNCTION__);
 				}
 			}
 			else
 			{
-				Throw(0, "%s: a column with id %s already exists", __FUNCTION__, uniqueId);
+				Throw(0, "%s: a column with id %s already exists", __ROCOCO_FUNCTION__, uniqueId);
 			}
 		}
 
@@ -185,7 +185,7 @@ namespace Rococo::SexyStudio
 			auto i = columns.find(columnId);
 			if (i == columns.end())
 			{
-				Throw(0, "%s: no column found with id %s ", __FUNCTION__, columnId);
+				Throw(0, "%s: no column found with id %s ", __ROCOCO_FUNCTION__, columnId);
 			}
 
 			int columnIndex = i->second.index;

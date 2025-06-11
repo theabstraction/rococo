@@ -144,7 +144,7 @@ namespace Rococo::CFGS::Internal
 		{
 			if (index < 0 || index >= cables.size())
 			{
-				Throw(0, "%s: index (%d) out of bounds. Size is %llu", __FUNCTION__, index, cables.size());
+				Throw(0, "%s: index (%d) out of bounds. Size is %llu", __ROCOCO_FUNCTION__, index, cables.size());
 			}
 
 			return cables[index];
@@ -398,7 +398,7 @@ namespace Rococo::CFGS::Internal
 		{
 			if (index < 0 || index >= (int32)sockets.size())
 			{
-				Throw(0, "%s: bad index %d. Socket count is %llu", __FUNCTION__, index, sockets.size());
+				Throw(0, "%s: bad index %d. Socket count is %llu", __ROCOCO_FUNCTION__, index, sockets.size());
 			}
 
 			return *sockets[index];
@@ -611,7 +611,7 @@ namespace Rococo::CFGS::Internal
 		{
 			if (index < 0 || index >= cables.size())
 			{
-				Throw(0, "%s: bad index %d. Size is %llu", __FUNCTION__, index, cables.size());
+				Throw(0, "%s: bad index %d. Size is %llu", __ROCOCO_FUNCTION__, index, cables.size());
 			}
 
 			return *cables[index];
@@ -856,7 +856,7 @@ namespace Rococo::CFGS::Internal
 
 			if (index < 0 || index >= count)
 			{
-				Throw(0, "%s: bad index %d. Node count is %llu", __FUNCTION__, index, nodes.size());
+				Throw(0, "%s: bad index %d. Node count is %llu", __ROCOCO_FUNCTION__, index, nodes.size());
 			}
 
 			return *zOrderDescending[count - index - 1];
@@ -866,7 +866,7 @@ namespace Rococo::CFGS::Internal
 		{
 			if (index < 0 || index >= (int32)nodes.size())
 			{
-				Throw(0, "%s: bad index %d. Node count is %llu", __FUNCTION__, index, nodes.size());
+				Throw(0, "%s: bad index %d. Node count is %llu", __ROCOCO_FUNCTION__, index, nodes.size());
 			}
 
 			return *zOrderDescending[index];
@@ -902,7 +902,7 @@ namespace Rococo::CFGS::Internal
 		{
 			if (index < 0 || index >= (int32)nodes.size())
 			{
-				Throw(0, "%s: bad index %d. Node count is %llu", __FUNCTION__, index, nodes.size());
+				Throw(0, "%s: bad index %d. Node count is %llu", __ROCOCO_FUNCTION__, index, nodes.size());
 			}
 
 			return *nodes[index];

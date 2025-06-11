@@ -678,7 +678,7 @@ namespace
 				Throw(0, "OSX::LoadResource failed: %hs - parent directory sequence '..' is forbidden", resourcePath);
 			}
 
-			Throw(0, "%s: Not implemented", __FUNCTION__);
+			Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 		}
 
 		void LoadResource(cstr resourcePath, IExpandingBuffer& buffer, int64 maxFileLength) override
@@ -1017,14 +1017,14 @@ namespace
 		{
 			UTF8 u8AbsPath(absPath);
 			FileHandle hFile = fopen(u8AbsPath, "r");
-			if (!hFile.IsValid()) Throw(errno, "%s failed: Error opening file %ls", __FUNCTION__, absPath);
+			if (!hFile.IsValid()) Throw(errno, "%s failed: Error opening file %ls", __ROCOCO_FUNCTION__, absPath);
 
 			fseek(hFile, 0, SEEK_END);
 			long length = ftell(hFile);
 
 			if ((int64)length > maxFileLength)
 			{
-				Throw(0, "%s failed: File <%ls> was too large at over %lld bytes", __FUNCTION__, absPath, maxFileLength);
+				Throw(0, "%s failed: File <%ls> was too large at over %lld bytes", __ROCOCO_FUNCTION__, absPath, maxFileLength);
 			}
 
 			fseek(hFile, 0, SEEK_SET);
@@ -1043,7 +1043,7 @@ namespace
 
 				if (nBytesRead != chunk)
 				{
-					Throw(0, "%s: Error reading file <%ls>. Failed to read chunk", __FUNCTION__, absPath);
+					Throw(0, "%s: Error reading file <%ls>. Failed to read chunk", __ROCOCO_FUNCTION__, absPath);
 				}
 
 				offset += (ptrdiff_t)chunk;

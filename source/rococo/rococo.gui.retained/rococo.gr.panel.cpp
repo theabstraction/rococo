@@ -138,7 +138,7 @@ namespace GRANON
 
 			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
 			{
-				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+				RaiseError(*this, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Bad [direction] %d", index);
 			}
 			else
 			{
@@ -153,7 +153,7 @@ namespace GRANON
 
 			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
 			{
-				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+				RaiseError(*this, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Bad [direction] %d", index);
 				return nullptr;
 			}
 
@@ -274,7 +274,7 @@ namespace GRANON
 				auto* targetPanel = owningPanel.FindDescendantByDesc(target);
 				if (!targetPanel)
 				{
-					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find navigation target \"%s\"", target.c_str());
+					RaiseError(*this, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Could not find navigation target \"%s\"", target.c_str());
 					return;
 				}
 			}
@@ -289,7 +289,7 @@ namespace GRANON
 				auto* targetPanel = owningPanel.FindDescendantByDesc(direction);
 				if (!targetPanel)
 				{
-					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find direction target \"%s\"", direction.c_str());
+					RaiseError(*this, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Could not find direction target \"%s\"", direction.c_str());
 					return;
 				}
 			}
@@ -311,7 +311,7 @@ namespace GRANON
 			auto* owner = FindOwner(*widget);
 			if (!owner)
 			{
-				RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "No owner!");
+				RaiseError(*this, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "No owner!");
 				return;
 			}
 

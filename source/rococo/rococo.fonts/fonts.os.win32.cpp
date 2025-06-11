@@ -205,7 +205,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		hBitmap = CreateCompatibleBitmap(hdcDesktop, width, metrics.height);
 		if (hBitmap == nullptr)
 		{
-			Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __FUNCTION__);
+			Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __ROCOCO_FUNCTION__);
 		}
 
 		pixels.resize(width* metrics.height);

@@ -46,7 +46,7 @@ namespace Rococo::Sex::SEXML
 
 		RawValue(const ISEXMLAttribute& _a, cr_sex _s) noexcept : s(_s), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 		}
 
 		const ISEXMLAttribute& Attribute() const override
@@ -103,7 +103,7 @@ namespace Rococo::Sex::SEXML
 #ifdef _DEBUG
 			value = s.c_str();
 #endif
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 		}
 
 		const ISEXMLAttribute& Attribute() const override
@@ -154,7 +154,7 @@ namespace Rococo::Sex::SEXML
 
 		SmallVectorI(const ISEXMLAttribute& _a, cr_sex s, const int* args) noexcept :sAttribute(s), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 
 			int count = NumberOfDimensions();
 
@@ -251,7 +251,7 @@ namespace Rococo::Sex::SEXML
 
 		SmallVector(const ISEXMLAttribute& _a, cr_sex s, const double* args) :sAttribute(s), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 
 			int count = NumberOfDimensions();
 
@@ -332,7 +332,7 @@ namespace Rococo::Sex::SEXML
 
 		ListValue(const ISEXMLAttribute& _a, cr_sex sAttribute, SEXMLValueType _type) noexcept : s(sAttribute), type(_type), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 		}
 
 		const ISEXMLAttribute& Attribute() const override
@@ -757,7 +757,7 @@ namespace Rococo::Sex::SEXML
 			{
 				if (expectedFqName == nullptr)
 				{
-					Throw(S(), "%s(nullptr)", __FUNCTION__);
+					Throw(S(), "%s(nullptr)", __ROCOCO_FUNCTION__);
 				}
 
 				if (Strings::Eq(expectedFqName, FQName()))
@@ -844,7 +844,7 @@ namespace Rococo::Sex::SEXML
 			{
 				if (name == nullptr || *name == 0)
 				{
-					Rococo::Sex::Throw(sDirective, "%s(name): [name] was blank", __FUNCTION__);
+					Rococo::Sex::Throw(sDirective, "%s(name): [name] was blank", __ROCOCO_FUNCTION__);
 				}
 				auto i = nameToAttribute.find(name);
 				return i != nameToAttribute.end() ? i->second : nullptr;

@@ -106,7 +106,7 @@ namespace Rococo::Components
 			{
 				if (this->tableIndex != tableIndex)
 				{
-					Throw(0, "%s: error, an attempt was made to change the table index", __FUNCTION__);
+					Throw(0, "%s: error, an attempt was made to change the table index", __ROCOCO_FUNCTION__);
 				}
 			}
 			else
@@ -210,7 +210,7 @@ namespace Rococo::Components
 
 						if (component == nullptr)
 						{
-							Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
+							Throw(0, "%s: factory.ConstructInPlace returned null", __ROCOCO_FUNCTION__);
 						}
 					}
 					catch (...)

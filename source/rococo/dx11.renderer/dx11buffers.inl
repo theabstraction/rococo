@@ -84,7 +84,7 @@ namespace Rococo::DX11
 
 		void CopyDataToBuffer(const void* data, size_t sizeofData) override
 		{
-			Throw(0, "%s(%p, %llu): Buffer is immutable", __FUNCTION__, data, sizeofData);
+			Throw(0, "%s(%p, %llu): Buffer is immutable", __ROCOCO_FUNCTION__, data, sizeofData);
 		}
 
 		void Free() override

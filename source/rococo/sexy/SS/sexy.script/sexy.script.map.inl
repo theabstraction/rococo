@@ -544,7 +544,7 @@ namespace Rococo::Script
 #ifdef _DEBUG
 		if (offset > type.SizeOfStruct())
 		{
-			Throw(0, "%s. Incorrect size estimation for %s. Offset was %llu. Size was %d", __FUNCTION__, GetFriendlyName(type), offset, type.SizeOfStruct());
+			Throw(0, "%s. Incorrect size estimation for %s. Offset was %llu. Size was %d", __ROCOCO_FUNCTION__, GetFriendlyName(type), offset, type.SizeOfStruct());
 		}
 #endif
 	}

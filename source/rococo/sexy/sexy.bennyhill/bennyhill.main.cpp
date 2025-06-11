@@ -1220,7 +1220,7 @@ void StripToFilenameSansExtension(cstr name, char target[_MAX_PATH], char nameSa
 	int len = StringLength(name);
 	if (len == 0)
 	{
-		Throw(0, "%s: Name was blank", __FUNCTION__);
+		Throw(0, "%s: Name was blank", __ROCOCO_FUNCTION__);
 	}
 
 	Substring sName = Rococo::Strings::Substring::ToSubstring(name);
@@ -1240,7 +1240,7 @@ void StripToFilenameSansExtension(cstr name, char target[_MAX_PATH], char nameSa
 	Substring sNameSansExtension{ name, lastDot };
 	if (!sNameSansExtension.TryCopyWithoutTruncate(nameSansExtension, _MAX_PATH))
 	{
-		Throw(0, "%s %s: TryCopyWithoutTruncate failed", __FUNCTION__, name);
+		Throw(0, "%s %s: TryCopyWithoutTruncate failed", __ROCOCO_FUNCTION__, name);
 	}
 }
 
@@ -1268,7 +1268,7 @@ void EndWithSlash(char* buffer, size_t capacity)
 	size_t len = StringLength(buffer);
 	if (len == 0 || len >= capacity)
 	{
-		Throw(0, "%s: bad string length", __FUNCTION__);
+		Throw(0, "%s: bad string length", __ROCOCO_FUNCTION__);
 	}
 
 	char lastChar = buffer[len - 1];
@@ -1279,7 +1279,7 @@ void EndWithSlash(char* buffer, size_t capacity)
 
 	if (len == capacity - 1)
 	{
-		Throw(0, "%s: string length too long", __FUNCTION__);
+		Throw(0, "%s: string length too long", __ROCOCO_FUNCTION__);
 	}
 
 	buffer[len] = '\\';

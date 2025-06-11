@@ -149,7 +149,7 @@ namespace Rococo::DX11
 				viewDescFormat = DXGI_FORMAT_R32_FLOAT;
 				break;
 			default:
-				Throw(0, "%s: unhandled texture format %u", __FUNCTION__, format);
+				Throw(0, "%s: unhandled texture format %u", __ROCOCO_FUNCTION__, format);
 			}
 
 			desc.Height = height;

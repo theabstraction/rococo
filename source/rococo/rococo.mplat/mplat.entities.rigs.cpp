@@ -61,7 +61,7 @@ void ValidateNameAccordingToBoneStyleRules(cstr name)
 
 	if (strlen(name) >= MAXLEN_BONENAME)
 	{
-		Throw(0, "%s: name was too long. Maximum length is %u characters", __FUNCTION__, MAXLEN_BONENAME - 1);
+		Throw(0, "%s: name was too long. Maximum length is %u characters", __ROCOCO_FUNCTION__, MAXLEN_BONENAME - 1);
 	}
 
 	if (!isalnum(*name))
@@ -256,7 +256,7 @@ struct BoneImpl : IBone
 		{
 			if (index == MAX_ANCESTORS)
 			{
-				Throw(0, "%s. Cannot enumerate ancestors. maximum depth reached", __FUNCTION__);
+				Throw(0, "%s. Cannot enumerate ancestors. maximum depth reached", __ROCOCO_FUNCTION__);
 			}
 			ancestors[index++] = ancestor;
 		}
@@ -270,7 +270,7 @@ struct BoneImpl : IBone
 
 			if (len + writeAt + 2 >= sizeof(BonePath))
 			{
-				Throw(0, "%s. Cannot enumerate ancestors. The full name was too long", __FUNCTION__);
+				Throw(0, "%s. Cannot enumerate ancestors. The full name was too long", __ROCOCO_FUNCTION__);
 			}
 
 			memcpy(path.text + writeAt, s, len);
@@ -324,14 +324,14 @@ struct BoneImpl : IBone
 	{
 		if (shortName == nullptr || *shortName == 0)
 		{
-			Throw(0, "%s: blank shortname", __FUNCTION__);
+			Throw(0, "%s: blank shortname", __ROCOCO_FUNCTION__);
 		}
 
 		for (auto c : children)
 		{
 			if (Eq(c->ShortName(), shortName))
 			{
-				Throw(0, "%s: a bone already exists in %s with the same name", __FUNCTION__, skeleton.Name());
+				Throw(0, "%s: a bone already exists in %s with the same name", __ROCOCO_FUNCTION__, skeleton.Name());
 			}
 		}
 
@@ -343,7 +343,7 @@ struct BoneImpl : IBone
 		}
 		catch (IException& ex)
 		{
-			Throw(0, "%s: error adding bone in %s. %s", __FUNCTION__, skeleton.Name(), ex.Message());
+			Throw(0, "%s: error adding bone in %s. %s", __ROCOCO_FUNCTION__, skeleton.Name(), ex.Message());
 		}
 	}
 
@@ -406,7 +406,7 @@ struct RigBuilder : public IRigBuilder
 		auto i = bones.find((cstr)name);
 		if (i != bones.end())
 		{
-			Throw(0, "%s: Duplicate name, %s already exists in the rig builder", __FUNCTION__, (cstr)name);
+			Throw(0, "%s: Duplicate name, %s already exists in the rig builder", __ROCOCO_FUNCTION__, (cstr)name);
 		}
 
 		i = bones.insert(name, ScriptedBone()).first;
@@ -522,12 +522,12 @@ struct RigBuilder : public IRigBuilder
 
 		if (AreAnglesUsed(b.angles))
 		{
-			Throw(0, "%s(%s...) Bone euler angles have already been specified", __FUNCTION__, name.buffer);
+			Throw(0, "%s(%s...) Bone euler angles have already been specified", __ROCOCO_FUNCTION__, name.buffer);
 		}
 
 		if (IsQuatUsed(b.quat))
 		{
-			Throw(0, "%s(%s...) The bone quaternion has already been specified", __FUNCTION__, name.buffer);
+			Throw(0, "%s(%s...) The bone quaternion has already been specified", __ROCOCO_FUNCTION__, name.buffer);
 		}
 
 		BoneAngles angles;
@@ -545,12 +545,12 @@ struct RigBuilder : public IRigBuilder
 
 		if (AreAnglesUsed(b.angles))
 		{
-			Throw(0, "%s(%s...) Bone euler angles have already been specified", __FUNCTION__, name.buffer);
+			Throw(0, "%s(%s...) Bone euler angles have already been specified", __ROCOCO_FUNCTION__, name.buffer);
 		}
 
 		if (IsQuatUsed(b.quat))
 		{
-			Throw(0, "%s(%s...) The bone quaternion has already been specified", __FUNCTION__, name.buffer);
+			Throw(0, "%s(%s...) The bone quaternion has already been specified", __ROCOCO_FUNCTION__, name.buffer);
 		}
 
 		float ds2 = Square(q.s) + Square(q.v.x) + Square(q.v.y) + Square(q.v.z);
@@ -569,7 +569,7 @@ struct RigBuilder : public IRigBuilder
 		auto i = target.nameToSkele.insert(name, Skeletons::SkeleBind());
 		if (!i.second)
 		{
-			Throw(0, "%s: Skeleton %s already exists", __FUNCTION__, (cstr)name);
+			Throw(0, "%s: Skeleton %s already exists", __ROCOCO_FUNCTION__, (cstr)name);
 		}
 
 		auto* s = new Skeleton();
@@ -602,7 +602,7 @@ struct RigBuilder : public IRigBuilder
 		{
 			if (!bones.empty())
 			{
-				Throw(0, "%s %s: %llu elements in the skeleton did not link to the root. Fix ancestors of '%s'", __FUNCTION__, (cstr)name, bones.size(), (cstr)bones.begin()->first);
+				Throw(0, "%s %s: %llu elements in the skeleton did not link to the root. Fix ancestors of '%s'", __ROCOCO_FUNCTION__, (cstr)name, bones.size(), (cstr)bones.begin()->first);
 			}
 
 			auto handle = target.handleToSkele.CreateNew();
@@ -630,7 +630,7 @@ struct RigBuilder : public IRigBuilder
 	{
 		if (name.length < 1 || name.length >= MAX_POSENAME_LEN)
 		{
-			Throw(0, "%s - invalid pose name '%s'. Length must be between 1 and %u characters", __FUNCTION__, name.buffer, MAX_POSENAME_LEN);
+			Throw(0, "%s - invalid pose name '%s'. Length must be between 1 and %u characters", __ROCOCO_FUNCTION__, name.buffer, MAX_POSENAME_LEN);
 		}
 
 		auto id = CommitTo(poses, name);

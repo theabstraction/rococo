@@ -35,7 +35,7 @@ namespace
 			hTreeWnd = CreateWindowExA(exStyle, WC_TREEVIEWA, "", win32Style, 0, 0, 100, 100, eventSinkWindow, NULL, NULL, NULL);
 			if (!hTreeWnd)
 			{
-				Throw(GetLastError(), "%s: Could not create tree window", __FUNCTION__);
+				Throw(GetLastError(), "%s: Could not create tree window", __ROCOCO_FUNCTION__);
 			}
 
 			Theme theme = GetTheme(widgets.Context().publisher);
@@ -183,7 +183,7 @@ namespace
 			HTREEITEM hItem = (HTREEITEM)SendMessageA(hTreeWnd, TVM_INSERTITEMA, 0, (LPARAM)&item);
 			if (hItem == 0)
 			{
-				Throw(GetLastError(), "%s: could not insert item in tree", __FUNCTION__);
+				Throw(GetLastError(), "%s: could not insert item in tree", __ROCOCO_FUNCTION__);
 			}
 
 			return (ID_TREE_ITEM)hItem;
@@ -217,7 +217,7 @@ namespace
 		{
 			if (ImageList_GetImageCount(hImages) != 0)
 			{
-				Throw(0, "%s: the image list has already been defined", __FUNCTION__);
+				Throw(0, "%s: the image list has already been defined", __ROCOCO_FUNCTION__);
 			}
 
 			HINSTANCE hInstance = GetMainInstance();
@@ -233,7 +233,7 @@ namespace
 				HBITMAP hBitmap = (HBITMAP) LoadImageA(hInstance, MAKEINTRESOURCE(id), IMAGE_BITMAP, 0, 0, 0);
 				if (hBitmap == nullptr)
 				{
-					Throw(GetLastError(), "%s: LoadBitmap failed", __FUNCTION__);
+					Throw(GetLastError(), "%s: LoadBitmap failed", __ROCOCO_FUNCTION__);
 				}
 				ImageList_AddMasked(hImages, hBitmap, RGB(255,255,255));
 				DeleteObject(hBitmap);
@@ -244,7 +244,7 @@ namespace
 			// Fail if not all of the images were added. 
 			if (ImageList_GetImageCount(hImages) != (int) nItems)
 			{
-				Throw(0, "%s: ImageList failed to add all bitmaps", __FUNCTION__);
+				Throw(0, "%s: ImageList failed to add all bitmaps", __ROCOCO_FUNCTION__);
 			}
 
 			// Associate the image list with the tree-view control. 

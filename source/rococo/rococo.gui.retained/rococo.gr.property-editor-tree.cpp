@@ -764,7 +764,7 @@ namespace GRANON
 			auto result = i->second->TryParseAndWriteBackToOrigin(text, editor);
 			if (result != EParseAndWriteBackResult::Success)
 			{
-				RaiseError(editor.Panel(), EGRErrorCode::Generic, __FUNCTION__, "TryParseAndWriteBackToOrigin failed with code %d", result);
+				RaiseError(editor.Panel(), EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "TryParseAndWriteBackToOrigin failed with code %d", result);
 			}
 		}
 
@@ -916,7 +916,7 @@ namespace GRANON
 			case PrimitiveType::CSTR:
 				if (field.value.stringValue.capacity > 0x7FFF'FFFFUL)
 				{
-					RaiseError(table.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
+					RaiseError(table.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "[capacity] > max int32 value");
 				}
 				capacity = (int32)field.value.stringValue.capacity;
 				break;
@@ -925,7 +925,7 @@ namespace GRANON
 				break;
 			default:
 				capacity = 1;
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad field value type: %d", field.value.type);
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Bad field value type: %d", field.value.type);
 			}
 
 			auto* valueCell = table.GetCell(1, newRowIndex);
@@ -971,7 +971,7 @@ namespace GRANON
 				char buf[16];
 				if (!ToAscii(field.value, buf, sizeof buf, field.meta))
 				{	
-					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Could not get an ascii representation of the field value");
+					RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Could not get an ascii representation of the field value");
 				}
 				valueText.SetText(buf);
 			}
@@ -1069,7 +1069,7 @@ namespace GRANON
 					pData = pData->parent;
 				}
 
-				RaiseError(parentContainer.Panel(), EGRErrorCode::BadSpanHeight, __FUNCTION__, "%s", message);
+				RaiseError(parentContainer.Panel(), EGRErrorCode::BadSpanHeight, __ROCOCO_FUNCTION__, "%s", message);
 				return;
 			}
 

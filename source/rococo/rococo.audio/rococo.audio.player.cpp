@@ -85,12 +85,12 @@ namespace AudioAnon
 		{
 			if (mp3pingPath.length == 0)
 			{
-				Throw(0, "%s blank filename", __FUNCTION__);
+				Throw(0, "%s blank filename", __ROCOCO_FUNCTION__);
 			}
 
 			if (!EndsWith(mp3pingPath, ".mp3"))
 			{
-				Throw(0, "%s: filename '%s' must end with .mp3", __FUNCTION__, mp3pingPath.buffer);
+				Throw(0, "%s: filename '%s' must end with .mp3", __ROCOCO_FUNCTION__, mp3pingPath.buffer);
 			}
 
 			int err;
@@ -99,7 +99,7 @@ namespace AudioAnon
 			{
 				char osErr[256];
 				osAPI.TranslateErrorCode(err, osErr, sizeof osErr);
-				Throw(err, "%s: Thread error: %s.\n%s", __FUNCTION__, msg, osErr);
+				Throw(err, "%s: Thread error: %s.\n%s", __ROCOCO_FUNCTION__, msg, osErr);
 			}
 
 			mp3musicStereoDecoder->StreamInputFile(mp3pingPath);

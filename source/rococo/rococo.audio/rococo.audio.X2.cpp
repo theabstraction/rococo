@@ -59,9 +59,9 @@ namespace AudioAnon
 
 		static X2AudioVoice* Create16bitVoice(IXAudio2& x2, uint32 sampleHz, uint32 channelCount, IXAudio2MasteringVoice& masterVoice, IOSAudioVoiceCompletionHandler& completionHandler, IAudioVoiceContext& context)
 		{
-			if (channelCount == 0) Throw(0, "%s(...[channelCount==0])", __FUNCTION__);
-			if (channelCount > 8) Throw(0, "%s: Sample count limit is 8", __FUNCTION__);
-			if (sampleHz != 44100) Throw(0, "%s: For now some of the Rococo::Audio API assumes a sample rate of 44.1 kHz at the lowest level", __FUNCTION__);
+			if (channelCount == 0) Throw(0, "%s(...[channelCount==0])", __ROCOCO_FUNCTION__);
+			if (channelCount > 8) Throw(0, "%s: Sample count limit is 8", __ROCOCO_FUNCTION__);
+			if (sampleHz != 44100) Throw(0, "%s: For now some of the Rococo::Audio API assumes a sample rate of 44.1 kHz at the lowest level", __ROCOCO_FUNCTION__);
 
 			PCMWAVEFORMAT srcFormat;
 			srcFormat.wBitsPerSample = 16;

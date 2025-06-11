@@ -116,7 +116,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
 				IGRWidgetMainFrame* frame = nullptr;
 				return *frame;
 			}
@@ -146,7 +146,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
 				return;
 			}
 
@@ -201,7 +201,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
 				return;
 			}
 
@@ -693,7 +693,7 @@ namespace ANON
 				back = eventQueue->GetBackSlot();
 				if (!back)
 				{
-					Throw(0, "%s: Expected back slot after front was popped", __FUNCTION__);
+					Throw(0, "%s: Expected back slot after front was popped", __ROCOCO_FUNCTION__);
 				}
 			}
 
@@ -708,7 +708,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				this->custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "Error, API consumer attempted to DispatchMessages from within a GR locked section.");
+				this->custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "Error, API consumer attempted to DispatchMessages from within a GR locked section.");
 			}
 
 			std::swap(dispatchQueue, eventQueue);
@@ -803,7 +803,7 @@ namespace Rococo::Gui
 	{
 		if (textRepresentation == nullptr)
 		{
-			Rococo::Throw(0, __FUNCTION__ "(nullptr)");
+			Rococo::Throw(0, __ROCOCO_FUNCTION__ "(nullptr)");
 		}
 
 		if (Is(textRepresentation, "left"))

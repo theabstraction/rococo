@@ -60,7 +60,7 @@ namespace Rococo::Bakes
 
 		if (onLoad.err.length() > 0)
 		{
-			Throw(0, "%s: Error loading %s [%s]", __FUNCTION__, tifPath, onLoad.err.c_str());
+			Throw(0, "%s: Error loading %s [%s]", __ROCOCO_FUNCTION__, tifPath, onLoad.err.c_str());
 		}
 
 		if (span <= RAW_MAX_SPAN)
@@ -87,7 +87,7 @@ namespace Rococo::Bakes
 
 		if (onLoad.err.length() > 0)
 		{
-			Throw(0, "%s: Error loading %s [%s]", __FUNCTION__, jpgPath, onLoad.err.c_str());
+			Throw(0, "%s: Error loading %s [%s]", __ROCOCO_FUNCTION__, jpgPath, onLoad.err.c_str());
 		}
 
 		if (span <= RAW_MAX_SPAN)
@@ -200,17 +200,17 @@ namespace Rococo::Bakes
 	{
 		if (mipMapDir == nullptr || *mipMapDir == 0)
 		{
-			Throw(0, "%s: The first argument, [mipMapDir], was blank.", __FUNCTION__);
+			Throw(0, "%s: The first argument, [mipMapDir], was blank.", __ROCOCO_FUNCTION__);
 		}
 
 		if (!Strings::EndsWith(mipMapDir, ".mipmaps"))
 		{
-			Throw(0, "%s: The first argument, [mipMapDir='%s'], did not end with extension .mipmaps. Also, there should be no trailing slash", __FUNCTION__, mipMapDir);
+			Throw(0, "%s: The first argument, [mipMapDir='%s'], did not end with extension .mipmaps. Also, there should be no trailing slash", __ROCOCO_FUNCTION__, mipMapDir);
 		}
 
 		if (!IO::IsDirectory(mipMapDir))
 		{
-			Throw(0, "%s: The first argument, [mipMapDir='%s'], does not appear to be a directory.", __FUNCTION__, mipMapDir);
+			Throw(0, "%s: The first argument, [mipMapDir='%s'], does not appear to be a directory.", __ROCOCO_FUNCTION__, mipMapDir);
 		}
 
 		U8FilePath targetPath;
@@ -223,7 +223,7 @@ namespace Rococo::Bakes
 			Assign(targetPath, mipMapDir);
 			if (!IO::TrySwapExtension(targetPath, ".mipmaps", ".23x")) // .23x was chosen because the year of writing is 2023, and I could not find a clash with the name on the Internet
 			{
-				Throw(0, "%s: Could not swap extension to %s", __FUNCTION__, mipMapDir);
+				Throw(0, "%s: Could not swap extension to %s", __ROCOCO_FUNCTION__, mipMapDir);
 			}
 		}
 
@@ -284,19 +284,19 @@ namespace Rococo::Bakes
 	{
 		if (length < sizeof SXY_MIPMAPS_HEADER)
 		{
-			Throw(0, "%s: Insufficient data in buffer.", __FUNCTION__);
+			Throw(0, "%s: Insufficient data in buffer.", __ROCOCO_FUNCTION__);
 		}
 
 		SXY_MIPMAPS_HEADER& header = *(SXY_MIPMAPS_HEADER*) headerAndContent;
 		
 		if (header.sexyMipMapCode != FourCC<'S', 'X', 'M', 'M'>().value)
 		{
-			Throw(0, "%s: unknown data block. Expecting FourCC(SXMM)", __FUNCTION__);
+			Throw(0, "%s: unknown data block. Expecting FourCC(SXMM)", __ROCOCO_FUNCTION__);
 		}
 
 		if (header.specification != SxyMipMapsSpec::SPEC_RGBAb)
 		{
-			Throw(0, "%s: unknown specification.", __FUNCTION__);
+			Throw(0, "%s: unknown specification.", __ROCOCO_FUNCTION__);
 		}
 
 		MapMapDesc desc = { 0 };
@@ -321,7 +321,7 @@ namespace Rococo::Bakes
 
 			if (longOffset < sizeof header || longOffset + desc.lengthInBytes >= length)
 			{
-				Throw(0, "%s: bad or corrupt bake file", __FUNCTION__);
+				Throw(0, "%s: bad or corrupt bake file", __ROCOCO_FUNCTION__);
 			}
 
 			return desc;
@@ -342,7 +342,7 @@ namespace Rococo::Bakes
 			{
 				if (longOffset < sizeof header || longOffset + sizeof SXY_MIPMAPS_COMPRESSED_HEADER >= length)
 				{
-					Throw(0, "%s: bad or corrupt bake file", __FUNCTION__);
+					Throw(0, "%s: bad or corrupt bake file", __ROCOCO_FUNCTION__);
 				}
 
 				const SXY_MIPMAPS_COMPRESSED_HEADER& cHeader = *(const SXY_MIPMAPS_COMPRESSED_HEADER*) (headerAndContent + longOffset);
@@ -351,7 +351,7 @@ namespace Rococo::Bakes
 				switch (cHeader.compressionType)
 				{
 				case CompressionType::RAW:
-					Throw(0, "%s: bad or corrupt compression section in bake file", __FUNCTION__);
+					Throw(0, "%s: bad or corrupt compression section in bake file", __ROCOCO_FUNCTION__);
 					break;
 				}
 
@@ -361,7 +361,7 @@ namespace Rococo::Bakes
 
 				if (longOffset + sizeof(SXY_MIPMAPS_COMPRESSED_HEADER) + cHeader.length > length)
 				{
-					Throw(0, "%s: bad or corrupt compression section in bake file", __FUNCTION__);
+					Throw(0, "%s: bad or corrupt compression section in bake file", __ROCOCO_FUNCTION__);
 				}
 
 				return desc;
@@ -376,7 +376,7 @@ namespace Rococo::Bakes
 
 				if (longOffset < sizeof header || longOffset + desc.lengthInBytes >= length)
 				{
-					Throw(0, "%s: bad or corrupt bake file", __FUNCTION__);
+					Throw(0, "%s: bad or corrupt bake file", __ROCOCO_FUNCTION__);
 				}
 
 				return desc;
@@ -384,7 +384,7 @@ namespace Rococo::Bakes
 		}
 		else
 		{
-			Throw(0, "%s: bad argument. Maximum mipMapLevel index is 15", __FUNCTION__);
+			Throw(0, "%s: bad argument. Maximum mipMapLevel index is 15", __ROCOCO_FUNCTION__);
 		}
 	}
 
@@ -426,7 +426,7 @@ namespace Rococo::Bakes
 
 	ROCOCO_MISC_UTILS_API void ExtractAsImageListFromBakedFile(cstr bakeFile23x)
 	{
-		if (bakeFile23x == nullptr || *bakeFile23x == 0) Throw(0, "%s: blank bakefile", __FUNCTION__);
+		if (bakeFile23x == nullptr || *bakeFile23x == 0) Throw(0, "%s: blank bakefile", __ROCOCO_FUNCTION__);
 
 		cstr ext = GetFileExtension(bakeFile23x);
 		if (!Eq(ext, ".23x"))

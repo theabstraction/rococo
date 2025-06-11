@@ -265,14 +265,14 @@ namespace Rococo::Audio
 			enum { HARD_LIMIT = 4095 };
 			if (nVoices > HARD_LIMIT)
 			{
-				Throw(0, "%s. There is a hard maximum of 4095 voices", __FUNCTION__);
+				Throw(0, "%s. There is a hard maximum of 4095 voices", __ROCOCO_FUNCTION__);
 			}
 
 			size_t maximumRepresentableIds = 1 << sizeof(IdInstrument) << 3;
 
 			if (nVoices > maximumRepresentableIds - 1)
 			{
-				Throw(0, "%s. There were more voices specified than can be represented with an IdInstrument", __FUNCTION__);
+				Throw(0, "%s. There were more voices specified than can be represented with an IdInstrument", __ROCOCO_FUNCTION__);
 			}
 
 			this->maxVoices = (int32) nVoices;
@@ -285,13 +285,13 @@ namespace Rococo::Audio
 			IdInstrumentIndexType index = goodId.Index() - 1;
 			if (index >= instruments.size())
 			{
-				Throw(0, "%s: Bad index. Not a good id!", __FUNCTION__);
+				Throw(0, "%s: Bad index. Not a good id!", __ROCOCO_FUNCTION__);
 			}
 			
 			auto& i = instruments[index];
 			if (i.salt != goodId.Salt())
 			{
-				Throw(0, "%s: salt mismatch. Not a good id!", __FUNCTION__);
+				Throw(0, "%s: salt mismatch. Not a good id!", __ROCOCO_FUNCTION__);
 			}
 
 			return i;
@@ -718,7 +718,7 @@ namespace Rococo::Audio
 	{
 		if (database.NumberOfChannels() != 1)
 		{
-			Throw(0, "%s: database channel count must be 1, i.e a mono sample database", __FUNCTION__);
+			Throw(0, "%s: database channel count must be 1, i.e a mono sample database", __ROCOCO_FUNCTION__);
 		}
 		return new Concert3D(database, osAPI, audio3D);
 	}

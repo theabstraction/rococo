@@ -260,13 +260,13 @@ namespace ANON
 			HMODULE hSexyStudio = LoadLibraryA("sexystudio.dll");
 			if (!hSexyStudio)
 			{
-				Throw(GetLastError(), "%s: failed to load sexystudio.dll", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to load sexystudio.dll", __ROCOCO_FUNCTION__);
 			}
 
 			auto CreateSexyStudioFactory = (FN_CreateSexyStudioFactory) GetProcAddress(hSexyStudio, "CreateSexyStudioFactory");
 			if (!CreateSexyStudioFactory)
 			{	
-				Throw(GetLastError(), "%s: failed to find proc CreateSexyStudioFactory in sexystudio.dll", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to find proc CreateSexyStudioFactory in sexystudio.dll", __ROCOCO_FUNCTION__);
 			}
 
 			cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";

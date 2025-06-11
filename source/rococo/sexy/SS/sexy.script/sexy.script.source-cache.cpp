@@ -419,29 +419,29 @@ namespace Rococo
 
 		if (sFluffleDirectives.NumberOfElements() < 1)
 		{
-			Throw(sFluffleDirectives, __FUNCTION__ ": No elements. Need at least one element");
+			Throw(sFluffleDirectives, __ROCOCO_FUNCTION__ ": No elements. Need at least one element");
 		}
 
 		cr_sex sType = sFluffleDirectives[0];
 
 		if (!IsCompound(sType) || sType.NumberOfElements() != 3)
 		{
-			Throw(sType, __FUNCTION__ "Expecting compound expression (File.Type Fluffle 1.0.0.0)");
+			Throw(sType, __ROCOCO_FUNCTION__ "Expecting compound expression (File.Type Fluffle 1.0.0.0)");
 		}
 
 		if (!Eq(GetAtomicArg(sType[0]), "File.Type"_fstring))
 		{
-			Throw(sType[0], __FUNCTION__ "Expecting 'File.Type'");
+			Throw(sType[0], __ROCOCO_FUNCTION__ "Expecting 'File.Type'");
 		}
 
 		if (!Eq(GetAtomicArg(sType[1]), "Fluffle"_fstring))
 		{
-			Throw(sType[1], __FUNCTION__ "Expecting 'Fluffle'");
+			Throw(sType[1], __ROCOCO_FUNCTION__ "Expecting 'Fluffle'");
 		}
 
 		if (!Eq(GetAtomicArg(sType[2]), "1.0.0.0"_fstring))
 		{
-			Throw(sType[2], __FUNCTION__ "Expecting '1.0.0.0'");
+			Throw(sType[2], __ROCOCO_FUNCTION__ "Expecting '1.0.0.0'");
 		}
 
 		for (int i = 1; i < sFluffleDirectives.NumberOfElements(); ++i)

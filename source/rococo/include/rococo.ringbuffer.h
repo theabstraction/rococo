@@ -15,7 +15,7 @@ namespace Rococo
 	public:
 	   OneReaderOneWriterCircleBuffer(size_t _elementCount) : elementCount((int32)_elementCount+1), readPos(0), writePos(0)
 	   {
-		   if (_elementCount >= 0x7FFFFFFELL) Throw(0, "%s: element count too high", __FUNCTION__);
+		   if (_elementCount >= 0x7FFFFFFELL) Throw(0, "%s: element count too high", __ROCOCO_FUNCTION__);
 		   elements = new ELEMENT_TYPE[_elementCount+1];
 	   }
 

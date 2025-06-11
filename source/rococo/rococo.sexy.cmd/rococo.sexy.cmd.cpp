@@ -378,17 +378,17 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 	void AddTask(Rococo::Function<void()> lambda) override
 	{
 		UNUSED(lambda);
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	bool ExecuteNext() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	void AdvanceSysMonitors() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, IScriptEnumerator& implicitIncludes)
@@ -540,23 +540,23 @@ struct AppControl : public OS::IAppControlSupervisor, public Tasks::ITaskQueue
 
 	void AddSysMonitor(IO::ISysMonitor&) override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	void AdvanceSysMonitors() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	void AddTask(Rococo::Function<void()> lambda) override
 	{
 		UNUSED(lambda);
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	bool ExecuteNext() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	bool isRunning = true;

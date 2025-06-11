@@ -1031,7 +1031,7 @@ namespace Rococo::Script
 			auto* pParent = sChild.Parent();
 			if (pParent == nullptr)
 			{
-				Throw(sChild, "%s: expression has no parent", __FUNCTION__);
+				Throw(sChild, "%s: expression has no parent", __ROCOCO_FUNCTION__);
 			}
 
 			cr_sex sParent = *pParent;
@@ -1114,7 +1114,7 @@ namespace Rococo::Script
 			int allocSize = compilersView.SizeOfStruct();
 			if (allocSize > sizeofObject)
 			{
-				Throw(0, "%s: the supplied size of %llu bytes was insufficient to allocate objects of type %s", __FUNCTION__, sizeofObject, GetFriendlyName(compilersView));
+				Throw(0, "%s: the supplied size of %llu bytes was insufficient to allocate objects of type %s", __ROCOCO_FUNCTION__, sizeofObject, GetFriendlyName(compilersView));
 			}
 
 			auto& allocator = progObjProxy->GetDefaultObjectAllocator();
@@ -1617,7 +1617,7 @@ namespace Rococo::Script
 		{
 			if (!stringPool)
 			{
-				Throw(0, "%s: No string pool", __FUNCTION__);
+				Throw(0, "%s: No string pool", __ROCOCO_FUNCTION__);
 			}
 
 			if (capacity < 1 || capacity > 1024_megabytes)
@@ -2196,7 +2196,7 @@ namespace Rococo::Script
 				const NativeSecurityHandler* originalRef = pair->second;
 				if (memcmp(&security, &originalRef->security, sizeof NativeCallSecurity) != 0)
 				{
-					Throw(0, "%s: the namespace %s is already secured by a NativeCallSecurity that differs by at least one bit from the argument supplied in the method.", __FUNCTION__, nativeNamespace.FullName()->Buffer);
+					Throw(0, "%s: the namespace %s is already secured by a NativeCallSecurity that differs by at least one bit from the argument supplied in the method.", __ROCOCO_FUNCTION__, nativeNamespace.FullName()->Buffer);
 				}
 			}
 			else
@@ -2234,7 +2234,7 @@ namespace Rococo::Script
 		{
 			if (permittedPingPath == nullptr || *permittedPingPath == 0)
 			{
-				Throw(0, "%s('%s', [permittedPingPath=blank]", __FUNCTION__, ns.FullName()->Buffer);
+				Throw(0, "%s('%s', [permittedPingPath=blank]", __ROCOCO_FUNCTION__, ns.FullName()->Buffer);
 			}
 
 			NativeCallSecurity security;
@@ -2342,7 +2342,7 @@ namespace Rococo::Script
 			auto i = rawReflectionBindings.find(functionId);
 			if (i != rawReflectionBindings.end())
 			{
-				Throw(0, "Duplicate function-id specified in %s(%s ...)", __FUNCTION__, functionId);
+				Throw(0, "Duplicate function-id specified in %s(%s ...)", __ROCOCO_FUNCTION__, functionId);
 			}
 
 			rawReflectionBindings.insert(functionId, new RawReflectionBinding { context, fnCall });
@@ -2435,7 +2435,7 @@ namespace Rococo::Script
 			if (currentSecuritySystem == nullptr)
 			{
 				ThrowFromNativeCodeF(0, "%s(%s): There is no security module set for the Sexy Script system, so the request to write to the path is rejected, sorry.\n"
-					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __FUNCTION__, pathname);
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __ROCOCO_FUNCTION__, pathname);
 				return;
 			}
 			else
@@ -2449,7 +2449,7 @@ namespace Rococo::Script
 			if (currentSecuritySystem == nullptr)
 			{
 				ThrowFromNativeCodeF(0, "%s(%s): There is no security module set for the Sexy Script system, so the request to read from the path is rejected, sorry.\n"
-					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __FUNCTION__, pathname);
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __ROCOCO_FUNCTION__, pathname);
 				return;
 			}
 			else

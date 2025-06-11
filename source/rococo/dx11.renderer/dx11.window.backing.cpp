@@ -31,7 +31,7 @@ struct DX11WindowBacking: IDX11WindowBacking, Windows::IWindow
 	DX11WindowBacking(IWindowEventHandler& _eventHandler, ID3D11Device& _device, ID3D11DeviceContext& _dc, HWND _hWnd, IDXGIFactory& _factory, IDX11TextureManager& _textures):
 		hWnd(_hWnd), device(_device), dc(_dc), factory(_factory), textures(_textures), eventHandler(_eventHandler)
 	{
-		if (!IsWindow(hWnd)) Throw(0, "%s: hWnd was not a window", __FUNCTION__);
+		if (!IsWindow(hWnd)) Throw(0, "%s: hWnd was not a window", __ROCOCO_FUNCTION__);
 
 		windowIndex = ++g_windowCount;
 	}

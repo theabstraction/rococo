@@ -191,7 +191,7 @@ void SaveMipMapTexturesToDirectories(HINSTANCE hInstance, IInstallation& install
 					Assign(dirPath, imagePath);
 					if (!IO::TrySwapExtension(dirPath, nullptr, ".mipmaps"))
 					{
-						Throw(0, "%s: Failed to swap extension on %s", __FUNCTION__, dirPath.buf);
+						Throw(0, "%s: Failed to swap extension on %s", __ROCOCO_FUNCTION__, dirPath.buf);
 					}
 
 					printf("Compiling %s -> %s\n", imagePath, dirPath.buf);

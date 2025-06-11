@@ -202,7 +202,7 @@ namespace ANON
 
 			if (levelIndex >= descriptors.size())
 			{
-				Throw(0, "%s: Invalid level index", __FUNCTION__);
+				Throw(0, "%s: Invalid level index", __ROCOCO_FUNCTION__);
 			}
 
 			return *descriptors[levelIndex];
@@ -276,7 +276,7 @@ namespace ANON
 				uint32 numberOfBytes = SizeInBytesOf(spec, SpanOf(levelIndex));
 				if (numberOfBytes == 0)
 				{
-					Throw(0, "%s: %s - spec undefined", container.Path(), __FUNCTION__);
+					Throw(0, "%s: %s - spec undefined", container.Path(), __ROCOCO_FUNCTION__);
 				}
 
 				level.resize(numberOfBytes);

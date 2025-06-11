@@ -264,7 +264,7 @@ namespace Anon
 		{
 			if (this->security != nullptr)
 			{
-				Throw(0, "%s: Security already established", __FUNCTION__);
+				Throw(0, "%s: Security already established", __ROCOCO_FUNCTION__);
 			}
 
 			this->security = &security;
@@ -299,7 +299,7 @@ namespace Anon
 		{
 			if (args.empty())
 			{
-				Throw(0, "%s: args were empty", __FUNCTION__);
+				Throw(0, "%s: args were empty", __ROCOCO_FUNCTION__);
 			}
 
 			Anon::FunctionArgument* arg = args.back();

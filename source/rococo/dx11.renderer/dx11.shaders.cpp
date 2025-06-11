@@ -287,7 +287,7 @@ struct DX11Shaders : IDX11Shaders
 		{
 			if (i == MAX_ELEMENTS)
 			{
-				Throw(0, "%s(%s, ...): vertexElements had more than the MAX_ELEMENTS %u", __FUNCTION__, pingPath, MAX_ELEMENTS);
+				Throw(0, "%s(%s, ...): vertexElements had more than the MAX_ELEMENTS %u", __ROCOCO_FUNCTION__, pingPath, MAX_ELEMENTS);
 			}
 
 			const auto& v = vertexElements[i];
@@ -313,7 +313,7 @@ struct DX11Shaders : IDX11Shaders
 				elements[i].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 				break;
 			default:
-				Throw(0, "%s(%s, ...): vertexElements[%d] had unhandled format %u", __FUNCTION__, pingPath, i, (uint32) v.format);
+				Throw(0, "%s(%s, ...): vertexElements[%d] had unhandled format %u", __ROCOCO_FUNCTION__, pingPath, i, (uint32) v.format);
 			}
 
 			elements[i].InputSlot = 0;
@@ -324,7 +324,7 @@ struct DX11Shaders : IDX11Shaders
 
 		if (i == 0)
 		{
-			Throw(0, "%s(%s, ...): vertexElements terminated early with a null semantic", __FUNCTION__, pingPath);
+			Throw(0, "%s(%s, ...): vertexElements terminated early with a null semantic", __ROCOCO_FUNCTION__, pingPath);
 		}
 
 		return CreateVertexShader(pingPath, elements, i);

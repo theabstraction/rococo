@@ -40,7 +40,7 @@ R"<CODE>(
 
 	Substring v = { lastV, lastV + 1 };
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -77,7 +77,7 @@ R"<CODE>(
 
 	database.EnumerateVariableAndFieldList(v, type.declarationType, fieldEnumerator);
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 void TestDeduceVec2Fields2(ISexyDatabase& database)
@@ -97,7 +97,7 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 
 	Substring v = { lastV, lastV + 2 };
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -140,10 +140,10 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 
 	database.EnumerateVariableAndFieldList(v, type.declarationType, fieldEnumerator);
 
-	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __FUNCTION__);
-	if (fieldEnumerator.fieldCount != 2) Throw(0, "Bad field count: %s", __FUNCTION__);
+	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
+	if (fieldEnumerator.fieldCount != 2) Throw(0, "Bad field count: %s", __ROCOCO_FUNCTION__);
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
@@ -163,7 +163,7 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 
 	Substring v = { lastV, lastV + 4 };
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -205,10 +205,10 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 
 	database.EnumerateVariableAndFieldList(v, type.declarationType, fieldEnumerator);
 
-	if (fieldEnumerator.fieldCount != 4) Throw(0, "Bad fieldCount: %s", __FUNCTION__);
-	if (fieldEnumerator.hintCount == 0) Throw(0, "Bad hint count: %s", __FUNCTION__);
+	if (fieldEnumerator.fieldCount != 4) Throw(0, "Bad fieldCount: %s", __ROCOCO_FUNCTION__);
+	if (fieldEnumerator.hintCount == 0) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 void TestHintVec2(ISexyDatabase& database)
@@ -228,7 +228,7 @@ void TestHintVec2(ISexyDatabase& database)
 
 	Substring v = { lastV, lastV + 10 };
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -272,7 +272,7 @@ void TestHintVec2(ISexyDatabase& database)
 		Throw(0, "Could not find Vec2 in Sys.Maths.");
 	}
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 void TestDeduceMethods(ISexyDatabase& database)
@@ -287,7 +287,7 @@ void TestDeduceMethods(ISexyDatabase& database)
 	)
 )<CODE>";
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -336,10 +336,10 @@ void TestDeduceMethods(ISexyDatabase& database)
 	database.EnumerateVariableAndFieldList(sb, type.declarationType, fieldEnumerator);
 
 	// We give a bit of range on this method in the case that IStringBuilder is modified in the future
-	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __FUNCTION__);
-	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __FUNCTION__);
+	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __ROCOCO_FUNCTION__);
+	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 void TestDeduceMethods2(ISexyDatabase& database)
@@ -354,7 +354,7 @@ void TestDeduceMethods2(ISexyDatabase& database)
 	)
 )<CODE>";
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -403,10 +403,10 @@ void TestDeduceMethods2(ISexyDatabase& database)
 	database.EnumerateVariableAndFieldList(sb, type.declarationType, fieldEnumerator);
 
 	// We give a bit of range on this method in the case that IStringBuilder is modified in the future
-	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __FUNCTION__);
-	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __FUNCTION__);
+	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __ROCOCO_FUNCTION__);
+	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 void TestLocalStruct(ISexyDatabase&)
@@ -433,7 +433,7 @@ void TestLocalStruct(ISexyDatabase&)
 	)
 )<CODE>";
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -497,7 +497,7 @@ void TestLocalStruct(ISexyDatabase&)
 		Throw(0, "Bad inference '%d' - expecting one field of Thing", fieldEnumerator.fieldCount);
 	}
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 void TestLocalStruct2(ISexyDatabase&)
@@ -524,7 +524,7 @@ void TestLocalStruct2(ISexyDatabase&)
 	)
 )<CODE>";
 
-	printf("*** Start of %s ***\n", __FUNCTION__);
+	printf("*** Start of %s ***\n", __ROCOCO_FUNCTION__);
 
 	printf("File: %s\n", file);
 
@@ -601,7 +601,7 @@ void TestLocalStruct2(ISexyDatabase&)
 		Throw(0, "Bad inference '%d' - expecting 1 type", fieldEnumerator.typeCount);
 	}
 
-	printf("*** End of %s ***\n", __FUNCTION__);
+	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
 
 
@@ -958,7 +958,7 @@ void Intro(cstr text)
 
 void TestFullEditor_SearchLocalStructForInterface()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((using Sys.Type)
@@ -992,7 +992,7 @@ void TestFullEditor_SearchLocalStructForInterface()
 
 void TestFullEditor_SearchLocalStructForInterfaceMethod()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((using Sys.Type)
@@ -1025,7 +1025,7 @@ void TestFullEditor_SearchLocalStructForInterfaceMethod()
 
 void TestFullEditor_SearchLocalStructForM4x4()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1051,7 +1051,7 @@ void TestFullEditor_SearchLocalStructForM4x4()
 
 void TestFullEditor_SearchLocalStructForIString()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1077,7 +1077,7 @@ void TestFullEditor_SearchLocalStructForIString()
 
 void TestFullEditor_SearchLocalStructForIStringAndDot()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1103,7 +1103,7 @@ void TestFullEditor_SearchLocalStructForIStringAndDot()
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStruct()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1132,7 +1132,7 @@ cstr file =
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1161,7 +1161,7 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1190,7 +1190,7 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue
 
 void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1211,7 +1211,7 @@ void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
 
 void TestFullEditor_SearchFQType()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1230,7 +1230,7 @@ void TestFullEditor_SearchFQType()
 
 void TestFullEditor_SearchForFactories()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1248,7 +1248,7 @@ void TestFullEditor_SearchForFactories()
 
 void TestFullEditor_SearchForFactories2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1267,7 +1267,7 @@ void TestFullEditor_SearchForFactories2()
 
 void TestFullEditor_GotoDefinitionFail()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1288,7 +1288,7 @@ void TestFullEditor_GotoDefinitionFail()
 
 void TestFullEditor_GotoDefinitionAtFunction()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1318,7 +1318,7 @@ void TestFullEditor_GotoDefinitionAtFunction()
 
 void TestFullEditor_GotoDefinitionFail2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1345,7 +1345,7 @@ void TestFullEditor_GotoDefinitionFail2()
 
 void TestFullEditor_GotoDefinitionOfInterface()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1372,7 +1372,7 @@ void TestFullEditor_GotoDefinitionOfInterface()
 
 void TestFullEditor_GotoDefinitionOfInterface2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1399,7 +1399,7 @@ void TestFullEditor_GotoDefinitionOfInterface2()
 
 void TestFullEditor_GotoDefinitionOfInterface3()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1428,7 +1428,7 @@ void TestFullEditor_GotoDefinitionOfInterface3()
 
 void TestFullEditor_GotoDefinitionOfStruct()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1457,7 +1457,7 @@ void TestFullEditor_GotoDefinitionOfStruct()
 
 void TestFullEditor_GotoDefinitionOfFunction()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1488,7 +1488,7 @@ void TestFullEditor_GotoDefinitionOfFunction()
 
 void TestFullEditor_GotoDefinitionOfFunction2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1517,7 +1517,7 @@ void TestFullEditor_GotoDefinitionOfFunction2()
 
 void TestFullEditor_GotoDefinitionOfFunction3()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1546,7 +1546,7 @@ void TestFullEditor_GotoDefinitionOfFunction3()
 
 void TestFullEditor_GotoDefinitionOfStruct2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1575,7 +1575,7 @@ void TestFullEditor_GotoDefinitionOfStruct2()
 
 void TestFullEditor_GotoDefinitionOfStruct3()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1604,7 +1604,7 @@ void TestFullEditor_GotoDefinitionOfStruct3()
 
 void TestFullEditor_SearchForMacro()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>((namespace EntryPoint)
@@ -1623,7 +1623,7 @@ void TestFullEditor_SearchForMacro()
 
 void TestComplexCase1()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -1655,7 +1655,7 @@ void TestComplexCase1()
 
 void TestSuggestAtDot()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -1673,7 +1673,7 @@ void TestSuggestAtDot()
 
 void TestSuggestBeyondDot()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -1691,7 +1691,7 @@ void TestSuggestBeyondDot()
 
 void TestThisArrayInference()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1718,7 +1718,7 @@ R"<CODE>(
 
 void TestLocalArrayInference()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1738,7 +1738,7 @@ void TestLocalArrayInference()
 
 void TestLocalArrayInference2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1758,7 +1758,7 @@ void TestLocalArrayInference2()
 
 void TestLocalListInference()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1778,7 +1778,7 @@ void TestLocalListInference()
 
 void TestLocalListInference2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1798,7 +1798,7 @@ void TestLocalListInference2()
 
 void TestLocalMapInference()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1818,7 +1818,7 @@ void TestLocalMapInference()
 
 void TestLocalMapInference2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1839,7 +1839,7 @@ void TestLocalMapInference2()
 
 void TestThisArrayInference2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1867,7 +1867,7 @@ R"<CODE>(
 
 void TestThisMapInference()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1894,7 +1894,7 @@ void TestThisMapInference()
 
 void TestThisMapInference2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1921,7 +1921,7 @@ void TestThisMapInference2()
 
 void TestThisListInference()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1948,7 +1948,7 @@ void TestThisListInference()
 
 void TestThisListInference2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 
@@ -1976,7 +1976,7 @@ void TestThisListInference2()
 
 void TestFullEditor_SearchFQType2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -1997,7 +1997,7 @@ void TestFullEditor_SearchFQType2()
 
 void TestDeepMemberInference()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2021,7 +2021,7 @@ void TestDeepMemberInference()
 
 void TestDeepMemberInference2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2045,7 +2045,7 @@ void TestDeepMemberInference2()
 
 void TestFQStruct()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 R"<CODE>(
@@ -2064,7 +2064,7 @@ R"<CODE>(
 
 void TestNamespaceAppendsStruct()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2081,7 +2081,7 @@ void TestNamespaceAppendsStruct()
 
 void TestPromptForMacro()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2098,7 +2098,7 @@ void TestPromptForMacro()
 
 void TestPromptForMacro2()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2115,7 +2115,7 @@ void TestPromptForMacro2()
 
 void TestPromptForMacro3()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2132,7 +2132,7 @@ void TestPromptForMacro3()
 
 void TestPromptForMacro4()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2149,7 +2149,7 @@ void TestPromptForMacro4()
 
 void TestPromptForMacro5()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(
@@ -2166,7 +2166,7 @@ void TestPromptForMacro5()
 
 void TestPromptForMacro6()
 {
-	Intro(__FUNCTION__);
+	Intro(__ROCOCO_FUNCTION__);
 
 	cstr file =
 		R"<CODE>(

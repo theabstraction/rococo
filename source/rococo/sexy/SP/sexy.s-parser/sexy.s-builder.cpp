@@ -122,12 +122,12 @@ namespace ANON
 
 		IExpressionTransform& TransformThis()
 		{
-			Throw(*this, __FUNCTION__ ": operation not supported on this class");
+			Throw(*this, __ROCOCO_FUNCTION__ ": operation not supported on this class");
 		}
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __FUNCTION__ ": not supported");
+			Throw(0, __ROCOCO_FUNCTION__ ": not supported");
 		}
 	};
 	
@@ -262,7 +262,7 @@ namespace ANON
 		{
 			if ((size_t)index >= children.size())
 			{
-				Throw(*this, "%s: bad index %d. Child count is %llu", __FUNCTION__, index, children.size());
+				Throw(*this, "%s: bad index %d. Child count is %llu", __ROCOCO_FUNCTION__, index, children.size());
 			}
 
 			auto i = children.begin();
@@ -309,7 +309,7 @@ namespace ANON
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __FUNCTION__ ": not supported");
+			Throw(0, __ROCOCO_FUNCTION__ ": not supported");
 		}
 	};
 
@@ -451,7 +451,7 @@ namespace ANON
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __FUNCTION__ ": not supported");
+			Throw(0, __ROCOCO_FUNCTION__ ": not supported");
 		}
 	};
 

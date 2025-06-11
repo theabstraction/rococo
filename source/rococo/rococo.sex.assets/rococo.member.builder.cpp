@@ -242,7 +242,7 @@ namespace Rococo::Sex::Assets::Impl
 				memberIndexStack.pop_back();
 				if (memberIndexStack.empty())
 				{
-					Rococo::Throw(0, "%s called too many times. Algorithmic error", __FUNCTION__);
+					Rococo::Throw(0, "%s called too many times. Algorithmic error", __ROCOCO_FUNCTION__);
 				}
 			}
 		} memberRefManager;
@@ -311,7 +311,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (itemIndex >= container.elements.size())
 			{
-				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 			}
 
 			auto* member = container.elements[itemIndex].member;
@@ -365,7 +365,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (itemIndex >= container.elements.size())
 			{
-				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 			}
 
 			auto* member = container.elements[itemIndex].member;
@@ -425,7 +425,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (memberIndex >= container.elements.size())
 			{
-				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, memberIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, memberIndex);
 			}
 
 			auto* member = container.elements[memberIndex].member;
@@ -550,14 +550,14 @@ namespace Rococo::Sex::Assets::Impl
 				auto& mtype = *member->UnderlyingType();
 				if (!IsNullType(mtype))
 				{
-					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __FUNCTION__, mtype.Name(), mtype.Module().Name());
+					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __ROCOCO_FUNCTION__, mtype.Name(), mtype.Module().Name());
 				}
 
 				auto& i = mtype.GetInterface(0);
 
 				if (!Eq(i.Name(), interfaceType))
 				{
-					Rococo::Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
+					Rococo::Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __ROCOCO_FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
 				}
 
 				container.elements.push_back(ElementMemberDesc{ member, writeCursor - writePosition });
@@ -581,7 +581,7 @@ namespace Rococo::Sex::Assets::Impl
 				auto& mtype = *member->UnderlyingType();
 				if (!Eq(mtype.Name(), type) || !Eq(mtype.Module().Name(), typeSource))
 				{
-					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
+					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __ROCOCO_FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
 				}
 			}
 
@@ -594,7 +594,7 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				if (itemIndex >= (int32)container.elements.size())
 				{
-					Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+					Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 				}
 
 				if (container.elements[itemIndex].member != nullptr)
@@ -645,7 +645,7 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				if (itemIndex >= (int32)container.elements.size())
 				{
-					Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+					Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 				}
 				rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
 			}
@@ -653,7 +653,7 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				if (elementType == nullptr)
 				{
-					Rococo::Throw(0, "%s failed. ElementType was nullptr", __FUNCTION__);
+					Rococo::Throw(0, "%s failed. ElementType was nullptr", __ROCOCO_FUNCTION__);
 				}
 				rawMemberData = writePosition;
 			}
@@ -830,11 +830,11 @@ namespace Rococo::Sex::Assets::Impl
 
 			if (assetType.VarType() != SexyVarType_Derivative)
 			{
-				Rococo::Throw(0, "%s: Error, the asset object was not of derivative type.", __FUNCTION__);
+				Rococo::Throw(0, "%s: Error, the asset object was not of derivative type.", __ROCOCO_FUNCTION__);
 			}
 			else if (IsNullType(assetType))
 			{
-				Rococo::Throw(0, "%s: Error, the asset object was an interface reference.", __FUNCTION__);
+				Rococo::Throw(0, "%s: Error, the asset object was an interface reference.", __ROCOCO_FUNCTION__);
 			}			
 
 			size_t offset = 0;
@@ -1219,7 +1219,7 @@ namespace Rococo::Sex::Assets::Impl
 					}
 					break;
 				default:
-					Rococo::Throw(0, "%s - Key type %s Not implemented", __FUNCTION__, GetFriendlyName(*mapKeyType));
+					Rococo::Throw(0, "%s - Key type %s Not implemented", __ROCOCO_FUNCTION__, GetFriendlyName(*mapKeyType));
 				}	
 			}
 
@@ -1280,7 +1280,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (index > arrayBuilder.image->NumberOfElements)
 			{
-				Rococo::Throw(0, "%s. Bad index", __FUNCTION__);
+				Rococo::Throw(0, "%s. Bad index", __ROCOCO_FUNCTION__);
 			}
 
 			auto* elementPtr = arrayBuilder.elementBuffer + index * arrayBuilder.image->ElementLength;

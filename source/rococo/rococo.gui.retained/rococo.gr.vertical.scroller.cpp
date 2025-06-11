@@ -329,7 +329,7 @@ namespace ANON
 
 			if (position > MAX_SCROLL_INT)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Position was out of bounds");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Position was out of bounds");
 				return;
 			}
 			this->sliderPosition = position;

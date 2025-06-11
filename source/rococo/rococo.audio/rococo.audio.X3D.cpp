@@ -93,7 +93,7 @@ namespace AudioAnon
 			HRESULT hr = master.GetChannelMask(&dwChannelMask);
 			if FAILED(hr)
 			{
-				Throw(hr, "%s: master.GetChannelMask(&dwChannelMask) failed. Cannot initialize audio engine", __FUNCTION__);
+				Throw(hr, "%s: master.GetChannelMask(&dwChannelMask) failed. Cannot initialize audio engine", __ROCOCO_FUNCTION__);
 			}
 
 			switch(dwChannelMask)
@@ -108,13 +108,13 @@ namespace AudioAnon
 				output = Output::Dolby71;
 				break;
 			default:
-				Throw(0, "%s: master.GetChannelMask(&dwChannelMask) failed. Cannot initialize 3D audio engine with channel mask 0x%X", __FUNCTION__, dwChannelMask);
+				Throw(0, "%s: master.GetChannelMask(&dwChannelMask) failed. Cannot initialize 3D audio engine with channel mask 0x%X", __ROCOCO_FUNCTION__, dwChannelMask);
 			}
 
 			hr = X3DAudioInitialize(dwChannelMask, speedOfSound, OUT hX3D);
 			if FAILED(hr)
 			{
-				Throw(hr, "%s: master.GetChannelMask(&dwChannelMask) failed. Cannot initialize audio engine", __FUNCTION__);
+				Throw(hr, "%s: master.GetChannelMask(&dwChannelMask) failed. Cannot initialize audio engine", __ROCOCO_FUNCTION__);
 			}
 		}
 
@@ -123,7 +123,7 @@ namespace AudioAnon
 		{
 			if (fabsf(Dot(frame.facingDirection, frame.upDirection)) >= 0.01f)
 			{
-				Throw(0, "%s: The facingVector and the upVector were not orthonormal", __FUNCTION__);
+				Throw(0, "%s: The facingVector and the upVector were not orthonormal", __ROCOCO_FUNCTION__);
 			}
 
 			listener.OrientFront = RHS_RightNorthUp_To_LHS_RightUpNorth(frame.facingDirection);

@@ -327,7 +327,7 @@ namespace Rococo::IO
 
 			BinArchive(const TCHAR* sysPath): filename(sysPath)
 			{
-				if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
+				if (sysPath == nullptr) Throw(0, "%s: null sysPath", __ROCOCO_FUNCTION__);
 
 				SetLastError(0);
 				file = IPlatformFile::GetPlatformPhysical().OpenWrite(sysPath);
@@ -358,7 +358,7 @@ namespace Rococo::IO
 				SetLastError(0);
 				if (!file->Seek((int64)position))
 				{
-					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Seek failed"), *filename));
+					Throw(GetLastError(), FString::Printf(TEXT("%hs: %s - Seek failed"), __ROCOCO_FUNCTION__, *filename));
 				}
 			}
 
@@ -377,13 +377,13 @@ namespace Rococo::IO
 
 				if (nTotalBytes >= 4096_megabytes)
 				{
-					Throw(FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Could not write data. It was greater than 4GB in length"), *filename));
+					Throw(FString::Printf(TEXT("%hs: %s - Could not write data. It was greater than 4GB in length"), __ROCOCO_FUNCTION__, *filename));
 				}
 
 				SetLastError(0);
 				if (!file->Write((const uint8*)pElements, (int64) nTotalBytes))
 				{
-					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": %s - Could not write data. Disk full?"), *filename));
+					Throw(GetLastError(), FString::Printf(TEXT("%hs: %s - Could not write data. Disk full?"), __ROCOCO_FUNCTION__, *filename));
 				}
 			}
 
@@ -405,7 +405,7 @@ namespace Rococo::IO
 
 			BinFile(const TCHAR* sysPath)
 			{
-				if (sysPath == nullptr) Throw(0, "%s: null sysPath", __FUNCTION__);
+				if (sysPath == nullptr) Throw(0, "%s: null sysPath", __ROCOCO_FUNCTION__);
 
 				SetLastError(0);
 				file = IPlatformFile::GetPlatformPhysical().OpenRead(sysPath);
@@ -420,17 +420,15 @@ namespace Rococo::IO
 				delete file;
 			}
 
-			uint32 Read(uint32 capacity, void* pElements) override
+			uint32 Read(uint32 bytesToRead, void* pElements) override
 			{
-				DWORD bytesRead = 0;
-
 				SetLastError(0);
-				if (!file->Read((uint8*)pElements, (int64)capacity))
+				if (!file->Read((uint8*)pElements, (int64)bytesToRead))
 				{
 					Throw(GetLastError(), FString::Printf(TEXT("Error reading file: %s"), *filename));
 				}
 				
-				return bytesRead;
+				return bytesToRead;
 			}
 
 			void Free() override
@@ -459,7 +457,7 @@ namespace Rococo::IO
 		{
 			if (!file)
 			{
-				Throw(0, __FUNCTION__ ": file handle nullptr");
+				Throw(0, "%hs: file handle nullptr", __ROCOCO_FUNCTION__);
 			}
 			return file;
 		}
@@ -478,21 +476,21 @@ namespace Rococo::IO
 				AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(sysPath));
 				if (file.file == nullptr)
 				{
-					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": Error opening file for read %s"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT("%hs: Error opening file for read %s"), __ROCOCO_FUNCTION__, sysPath));
 				}
 			
 				int64 len = file->Size();
 
 				if (len > (int64) 4_gigabytes)
 				{
-					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": Error opening file for read %s. File > 4GB"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT("%hs: Error opening file for read %s. File > 4GB"), __ROCOCO_FUNCTION__, sysPath));
 				}
 
 				dataMap.SetNum(len, EAllowShrinking::Yes);
 
 				if (!file->Read(dataMap.GetData(), len))
 				{
-					Throw(GetLastError(), FString::Printf(TEXT(__FUNCTION__) TEXT(": Error reading data from %s"), sysPath));
+					Throw(GetLastError(), FString::Printf(TEXT("%hs: Error reading data from %s"), __ROCOCO_FUNCTION__, sysPath));
 				}
 			}
 
@@ -569,7 +567,7 @@ namespace Rococo::IO
 		FString gameRelativeDir = FPaths::ProjectContentDir();
 		FString gameDir = FPaths::ConvertRelativePathToFull(gameRelativeDir);
 
-		static_assert(sizeof TCHAR == sizeof(WIDECHAR));
+		static_assert(sizeof(TCHAR) == sizeof(WIDECHAR));
 
 		Strings::SecureFormat(path.buf, TEXT("%s"), *gameDir);
 
@@ -847,7 +845,7 @@ namespace Rococo::OS
 		auto result = (INT_PTR)ShellExecuteW(hMsgSink, L"open", executable, commandLine, NULL, SW_SHOW);
 		if (result < 32)
 		{
-			Throw(GetLastError(), "Error spawning [%s: '%s']", __FUNCTION__, executable, commandLine);
+			Throw(GetLastError(), "Error spawning [%s: '%s']", __ROCOCO_FUNCTION__, executable, commandLine);
 		}
 	}
 
@@ -896,7 +894,7 @@ namespace Rococo::OS
 		auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
 		if (result < 32)
 		{
-			Throw(GetLastError(), "%s: '%s'", __FUNCTION__, documentFilePath);
+			Throw(GetLastError(), "%s: '%s'", __ROCOCO_FUNCTION__, documentFilePath);
 		}
 	}
 
@@ -1640,7 +1638,7 @@ namespace UE5_ANON
 
 					cstr Message() const override
 					{
-						return __FUNCTION__;
+						return __ROCOCO_FUNCTION__;
 					}
 
 					int32 ErrorCode() const override
@@ -1821,7 +1819,7 @@ namespace Rococo::OS
 			void ShutdownApp() override
 			{
 				isRunning = false;
-				FPlatformMisc::RequestExit(false, TEXT(__FUNCTION__));
+				FPlatformMisc::RequestExit(false, TEXT("AppControl::ShutdownApp"));
 			}
 
 			bool IsRunning() const
@@ -1978,29 +1976,29 @@ namespace Rococo::IO
 	{
 		if (subdirectory == nullptr || *subdirectory == 0)
 		{
-			Throw(0, "%s: subdirectory argument was blank", __FUNCTION__);
+			Throw(0, "%s: subdirectory argument was blank", __ROCOCO_FUNCTION__);
 		}
 
 		FString sSubDirectory(subdirectory);
 
 		if (sSubDirectory.Find(TEXT(".")) > 0)
 		{
-			Throw(0, "%s: subdirectory %ls contained an illegal character '.'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '.'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 
 		if (sSubDirectory.Find(TEXT("%")) > 0)
 		{
-			Throw(0, "%s: subdirectory %ls contained an illegal character '%'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '%'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 
 		if (sSubDirectory.Find(TEXT("$")) > 0)
 		{
-			Throw(0, "%s: subdirectory %ls contained an illegal character '$'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls contained an illegal character '$'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 
 		if (subdirectory[0] == '\\' || subdirectory[0] == '/')
 		{
-			Throw(0, "%s: subdirectory %ls must not begin with a slash character '\\'", __FUNCTION__, subdirectory);
+			Throw(0, "%s: subdirectory %ls must not begin with a slash character '\\'", __ROCOCO_FUNCTION__, subdirectory);
 		}
 		
 		FString userDocs = FPlatformProcess::UserDir();

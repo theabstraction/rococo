@@ -13,4 +13,4 @@ namespace
 	}
 }
 
-#define VALIDATEDX11(hr) ValidateDX11(hr, #hr, __FUNCTION__, __FILE__, __LINE__);
+#define VALIDATEDX11(hr) ValidateDX11(hr, #hr, __ROCOCO_FUNCTION__, __FILE__, __LINE__);

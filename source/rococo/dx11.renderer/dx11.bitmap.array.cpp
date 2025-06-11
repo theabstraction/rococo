@@ -87,7 +87,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
     {
         if (!activeDC)
         {
-            Throw(0, "%s: no active DC", __FUNCTION__);
+            Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
         }
 
         if (width > 0 && tb.texture == nullptr)
@@ -136,7 +136,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
     {
         if (!activeDC)
         {
-            Throw(0, "%s: no active DC", __FUNCTION__);
+            Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
         }
 
         if (width > 0 && tb.texture == nullptr)

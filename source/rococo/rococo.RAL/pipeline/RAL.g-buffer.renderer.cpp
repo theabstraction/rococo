@@ -18,7 +18,7 @@ static void PrepareShadowDepthDescFromLight(const LightConstantBuffer& light, Sh
 {
 	if (!TryNormalize(light.direction, shadowData.direction))
 	{
-		Throw(0, "%s: light direction normalization failed", __FUNCTION__);
+		Throw(0, "%s: light direction normalization failed", __ROCOCO_FUNCTION__);
 	}
 
 	shadowData.direction.w = 0;
@@ -65,7 +65,7 @@ struct GBuffers : IGBuffers
 		case 3:
 			return *PositionBuffer;
 		default:
-			Throw(0, __FUNCTION__": index %d out of bounds", index);
+			Throw(0, __ROCOCO_FUNCTION__": index %d out of bounds", index);
 		}
 	}
 

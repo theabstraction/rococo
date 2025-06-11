@@ -67,7 +67,7 @@ namespace ANON
 
 			if (fileMap->Length() >= (uint64)Limits::FSTRING_LENGTH_LIMIT)
 			{
-				Throw(0, "%s - %s:\n [asset length %llu] > %llu, which is the limit of fstrings\n", __FUNCTION__, (cstr)status.pingPath, fileMap->Length(), (uint64)Limits::FSTRING_LENGTH_LIMIT);
+				Throw(0, "%s - %s:\n [asset length %llu] > %llu, which is the limit of fstrings\n", __ROCOCO_FUNCTION__, (cstr)status.pingPath, fileMap->Length(), (uint64)Limits::FSTRING_LENGTH_LIMIT);
 			}
 
 			return fstring{ (cstr)fileMap->GetData(), (int32)fileMap->Length() };
@@ -259,7 +259,7 @@ namespace ANON
 		AssetRef<IFileAsset> CreateFileAsset(const char* pingPath, IAsset* uniqueLoaderKey, TAsyncOnLoadEvent onLoad) override
 		{
 			if (pingPath == nullptr || *pingPath == 0) Throw(0, "Blank ping path");
-			if (uniqueLoaderKey == nullptr) Throw(0, "%s: Null is prohibited as a uniqueLoaderKey", __FUNCTION__);
+			if (uniqueLoaderKey == nullptr) Throw(0, "%s: Null is prohibited as a uniqueLoaderKey", __ROCOCO_FUNCTION__);
 
 			OS::Lock lockedSection(sync);
 
@@ -437,11 +437,11 @@ namespace Rococo::Assets
 
 		if (addFilename)
 		{
-			Throw(statusCode, "%s%s%s:\n %s", addFunctioname ? __FUNCTION__ : "", addFunctioname ? " - " : "", pingPath, statusText.length() > 0 ? statusText.c_str() : "<unknown error>");
+			Throw(statusCode, "%s%s%s:\n %s", addFunctioname ? __ROCOCO_FUNCTION__ : "", addFunctioname ? " - " : "", pingPath, statusText.length() > 0 ? statusText.c_str() : "<unknown error>");
 		}
 		else
 		{
-			Throw(statusCode, "%s%s%s", addFunctioname ? __FUNCTION__ : "", addFunctioname ? ": " : "", statusText.length() > 0 ? statusText.c_str() : "<unknown error>");
+			Throw(statusCode, "%s%s%s", addFunctioname ? __ROCOCO_FUNCTION__ : "", addFunctioname ? ": " : "", statusText.length() > 0 ? statusText.c_str() : "<unknown error>");
 		}
 	}
 

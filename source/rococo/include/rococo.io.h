@@ -23,7 +23,7 @@ namespace Rococo
 	struct SysUnstableArgs {};
 	struct FileModifiedArgs
 	{
-		const wchar_t* sysPath;
+		crwstr sysPath;
 		ROCOCO_API bool Matches(cstr pingPath) const;
 	};
 
@@ -99,16 +99,16 @@ namespace Rococo::IO
 	struct IUnicode16Writer;
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity, cstr title);
-	ROCOCO_API bool IsDirectory(const wchar_t* filename);
+	ROCOCO_API bool IsDirectory(crwstr filename);
 	ROCOCO_API bool IsDirectory(cstr filename);
-	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory);
-	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text);
+	ROCOCO_API void EnsureUserDocumentFolderExists(crwstr subdirectory);
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text);
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const wchar_t* filename, const fstring& text);
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text);
 	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, cstr filename, const fstring& text);
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
 	ROCOCO_API bool IsFileExistant(const char* path);
-	ROCOCO_API bool IsFileExistant(const wchar_t* path);
+	ROCOCO_API bool IsFileExistant(crwstr path);
 	ROCOCO_API void ToSysPath(wchar_t* path);
 	ROCOCO_API void ToUnixPath(wchar_t* path);
 	ROCOCO_API void ToSysPath(char* path);
@@ -116,14 +116,14 @@ namespace Rococo::IO
 	ROCOCO_API void SanitizePath(char* path);
 	ROCOCO_API void SanitizePath(wchar_t* path);
 	ROCOCO_API void SaveBinaryFile(cstr targetPath, const uint8* buffer, size_t nBytes);
-	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes);
+	ROCOCO_API void SaveBinaryFile(crwstr targetPath, const uint8* buffer, size_t nBytes);
 	ROCOCO_API void GetExeName(U8FilePath & path);
 	ROCOCO_API void GetExePath(U8FilePath& path);
 
 	// Open a file and fit into buffer. In the case of a truncation an IException is thrown. The function returns the number of bytes copied to the buffer.
-	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename);
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, crwstr filename);
 	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, cstr filename);
-	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& callback, const wchar_t* filename);
+	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& callback, crwstr filename);
 
 	ROCOCO_INTERFACE IBinaryFileLoader
 	{
@@ -131,7 +131,7 @@ namespace Rococo::IO
 		virtual void Unlock() = 0;
 	};
 
-	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength);
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, crwstr filename, uint64 maxLength);
 	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const char* filename, uint64 maxLength);
 
 	ROCOCO_API bool MakeContainerDirectory(char* filename);
@@ -139,9 +139,9 @@ namespace Rococo::IO
 
 	struct FileItemData
 	{
-		const wchar_t* fullPath;
-		const wchar_t* containerRelRoot;
-		const wchar_t* itemRelContainer;
+		crwstr fullPath;
+		crwstr containerRelRoot;
+		crwstr itemRelContainer;
 		void* containerContext;
 		void* outContext;
 		bool isDirectory;
@@ -160,7 +160,7 @@ namespace Rococo::IO
 	// Gets the current director path sans end slashes
 	ROCOCO_API void GetCurrentDirectoryPath(U8FilePath& path);
 
-	ROCOCO_API void ForEachFileInDirectory(const wchar_t* directory, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext = nullptr);
+	ROCOCO_API void ForEachFileInDirectory(crwstr directory, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext = nullptr);
 
 	ROCOCO_API void ForEachFileInDirectory(const char* directory, IEventCallback<U8FileItemData>& onFile, bool recurse, void* containerContext = nullptr);
 
@@ -185,14 +185,14 @@ namespace Rococo::IO
 		char timestamp[24];
 	};
 
-	ROCOCO_API bool TryGetFileAttributes(const wchar_t* sysPath, FileAttributes& attr);
+	ROCOCO_API bool TryGetFileAttributes(crwstr sysPath, FileAttributes& attr);
 
 	void NormalizePath(WideFilePath& path);
 
 	ROCOCO_API void ToU8(const U32FilePath& src, U8FilePath& dest);
 	ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest);
 	ROCOCO_API void PathFromAscii(cstr ascii_string, U32FilePath& path);
-	ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path);
+	ROCOCO_API void PathFromWide(crwstr wide_string, U32FilePath& path);
 
 	// Creates a directory at the specified path. If it does not exist and the operation fails an exception is thrown
 	ROCOCO_API void CreateDirectoryFolder(const WideFilePath& path);
@@ -224,7 +224,7 @@ namespace Rococo::IO
 
 	ROCOCO_INTERFACE IUnicode16Writer
 	{
-		virtual void Append(const wchar_t* format, ...) = 0;
+		virtual void Append(crwstr format, ...) = 0;
 	};
 
 	ROCOCO_INTERFACE IUnicode16WriterSupervisor : public IUnicode16Writer
@@ -253,7 +253,7 @@ namespace Rococo::IO
 		}
 	};
 
-	ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath);
+	ROCOCO_API IBinaryArchive* CreateNewBinaryFile(crwstr sysPath);
 
 	ROCOCO_INTERFACE IBinarySource
 	{
@@ -261,7 +261,7 @@ namespace Rococo::IO
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_API IBinarySource* ReadBinarySource(const wchar_t* sysPath);
+	ROCOCO_API IBinarySource* ReadBinarySource(crwstr sysPath);
 
 	ROCOCO_INTERFACE IReadOnlyBinaryMapping
 	{
@@ -270,7 +270,7 @@ namespace Rococo::IO
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath);
+	ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(crwstr sysPath);
 
 	class FileImage
 	{
@@ -354,7 +354,7 @@ namespace Rococo::IO
 	// The (I)nput/(O)utput (S)ystem
 	ROCOCO_INTERFACE IOS
 	{
-		virtual void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath & sysPath) const = 0;
+		virtual void ConvertUnixPathToSysPath(crwstr unixPath, WideFilePath & sysPath) const = 0;
 		virtual void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) = 0;
 
 		// Call if the system has become unstable due to bad assets et al
@@ -365,26 +365,26 @@ namespace Rococo::IO
 		virtual void GetBinDirectoryAbsolute(WideFilePath& binDirectory) const = 0;
 
 		virtual bool IsFileExistant(cstr absPath) const = 0;
-		virtual bool IsFileExistant(const wchar_t* absPath) const = 0;
-		virtual void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
-		virtual void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const = 0;
+		virtual bool IsFileExistant(crwstr absPath) const = 0;
+		virtual void LoadAbsolute(crwstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const = 0;
+		virtual void LoadAbsolute(crwstr absPath, ILoadEventsCallback& cb) const = 0;
 		virtual size_t MaxPath() const = 0;
-		virtual void Monitor(const wchar_t* absPath) = 0;
-		virtual bool TryLoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const = 0;
+		virtual void Monitor(crwstr absPath) = 0;
+		virtual bool TryLoadAbsolute(crwstr absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const = 0;
 	};
 
 	ROCOCO_INTERFACE IInstallation
 	{
 		virtual bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath & expandedPath) = 0;
-		virtual const wchar_t* Content() const = 0;
+		virtual crwstr Content() const = 0;
 		virtual void LoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual void LoadResource(cstr resourcePath, ILoadEventsCallback& cb) = 0;
 		virtual bool TryLoadResource(cstr pingPath, IExpandingBuffer& buffer, int64 maxFileLength) = 0;
 		virtual bool TryLoadResource(cstr pingPath, ILoadEventsCallback& cb, OUT ErrorCode& errorCode) = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, WideFilePath& path) const = 0;
 		virtual void ConvertPingPathToSysPath(cstr pingPath, U8FilePath& path) const = 0;
-		virtual void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const = 0;
-		virtual void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const = 0;
+		virtual void ConvertSysPathToMacroPath(crwstr sysPath, U8FilePath& pingPath, cstr macro) const = 0;
+		virtual void ConvertSysPathToPingPath(crwstr sysPath, U8FilePath& pingPath) const = 0;
 		virtual void ConvertSysPathToPingPath(const char* sysPath, U8FilePath& pingPath) const = 0;
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
 		virtual void Macro(cstr name, cstr pingFolder) = 0;
@@ -404,8 +404,8 @@ namespace Rococo::IO
 
 	ROCOCO_API IOSSupervisor* GetIOS();
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& ios);
-	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& ios);
+	ROCOCO_API IInstallationSupervisor* CreateInstallation(crwstr contentIndicatorName, IOS& ios);
+	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(crwstr contentDirectory, IOS& ios);
 
 	ROCOCO_API bool DoesModifiedFilenameMatchResourceName(cstr modifiedFilename, cstr resourceName);
 
@@ -428,9 +428,9 @@ namespace Rococo::IO
 #endif
 	}
 	ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity);
-	ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity);
+	ROCOCO_API void EndDirectoryWithSlash(ROCOCO_WIDECHAR* pathname, size_t capacity);
 #ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path
-	ROCOCO_API void GetUserPath(wchar_t* fullpath, size_t capacity, cstr shortname);
+	ROCOCO_API void GetUserPath(ROCOCO_WIDECHAR* fullpath, size_t capacity, cstr shortname);
 	inline void GetUserPath(WideFilePath& fullpath, cstr shortname)
 	{
 		GetUserPath(fullpath.buf, WideFilePath::CAPACITY, shortname);

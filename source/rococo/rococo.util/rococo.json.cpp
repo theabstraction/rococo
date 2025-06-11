@@ -38,7 +38,7 @@ struct NameValueBranch : INameValueBranch, INameValueBranchBuilder
 	{
 		if (index < 0 || index >= (int32)attributes.size())
 		{
-			Throw(0, "%s: bad index %d vs vector length %llu", __FUNCTION__, index, children.size());
+			Throw(0, "%s: bad index %d vs vector length %llu", __ROCOCO_FUNCTION__, index, children.size());
 		}
 
 		auto& attr = attributes[index];
@@ -60,7 +60,7 @@ struct NameValueBranch : INameValueBranch, INameValueBranchBuilder
 	{
 		if (index < 0 || index >= (int32)children.size())
 		{
-			Throw(0, "%s: bad index %d vs vector length %llu", __FUNCTION__, index, children.size());
+			Throw(0, "%s: bad index %d vs vector length %llu", __ROCOCO_FUNCTION__, index, children.size());
 		}
 
 		return *children[index];

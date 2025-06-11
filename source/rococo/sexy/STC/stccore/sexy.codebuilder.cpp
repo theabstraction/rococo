@@ -1519,7 +1519,7 @@ namespace Anon
 
 		if (!mapLabelToPosition.insert(labelName, label).second)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "duplicate label: %s", labelName);
+			Throw(ERRORCODE_COMPILE_ERRORS, __ROCOCO_FUNCTION__, "duplicate label: %s", labelName);
 		}
 
 		for (auto i = outstandingLabels.begin(); i != outstandingLabels.end(); i++)
@@ -1532,7 +1532,7 @@ namespace Anon
 				}
 				else
 				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "Label %s was nested too deeply out of scope of the previous goto statement", labelName);
+					Throw(ERRORCODE_COMPILE_ERRORS, __ROCOCO_FUNCTION__, "Label %s was nested too deeply out of scope of the previous goto statement", labelName);
 				}
 			}
 		}
@@ -1554,7 +1554,7 @@ namespace Anon
 			auto& g = *j;
 			if (Eq(g.second, labelName))
 			{
-				int32 PCOffset = Diff(__FUNCTION__, label.pcOffset, g.first);
+				int32 PCOffset = Diff(__ROCOCO_FUNCTION__, label.pcOffset, g.first);
 				assembler->SetWriteModeToOverwrite(g.first);
 				assembler->Append_Branch(PCOffset);
 				

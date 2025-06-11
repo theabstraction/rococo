@@ -146,7 +146,7 @@ namespace ANON
 			size_t ptr;
 			if (1 != sscanf_s(at + 1, "%llX", &ptr))
 			{
-				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+				Throw(0, "%s: Bad option: %s", __ROCOCO_FUNCTION__, header.url.c_str());
 			}
 
 			ISXYFactory* sexyFactory = FindFirstFactoryIf(db.GetRootNamespace(),
@@ -208,7 +208,7 @@ namespace ANON
 			size_t ptr;
 			if (1 != sscanf_s(at + 1, "%llX", &ptr))
 			{
-				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+				Throw(0, "%s: Bad option: %s", __ROCOCO_FUNCTION__, header.url.c_str());
 			}
 	
 			ISXYPublicFunction* sexyFunction = FindFirstFunctionIf(db.GetRootNamespace(),
@@ -275,7 +275,7 @@ namespace ANON
 			size_t ptr;
 			if (1 != sscanf_s(at + 1, "%llX", &ptr))
 			{
-				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+				Throw(0, "%s: Bad option: %s", __ROCOCO_FUNCTION__, header.url.c_str());
 			}
 
 			ISXYInterface* sexyInterface = FindFirstInterfaceIf(db.GetRootNamespace(),

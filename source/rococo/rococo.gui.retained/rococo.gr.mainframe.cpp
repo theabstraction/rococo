@@ -97,14 +97,14 @@ namespace GRANON
 			{
 				if (target.minScreenHeight == minScreenHeight && target.minScreenWidth == minScreenWidth)
 				{
-					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Duplicate zoom target span (%d, %d)", minScreenWidth, minScreenHeight);
+					RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Duplicate zoom target span (%d, %d)", minScreenWidth, minScreenHeight);
 				}
 
 				if ((target.minScreenWidth > minScreenWidth && target.minScreenHeight < minScreenHeight)
 					|| (target.minScreenHeight > minScreenHeight && target.minScreenWidth < minScreenWidth)
 					)
 				{
-					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Conflicting zoom target span (%d, %d) vs (%d,%d). Width and Height must be both >= or <= other zoom targets", target.minScreenWidth, target.minScreenHeight, minScreenWidth, minScreenHeight);
+					RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Conflicting zoom target span (%d, %d) vs (%d,%d). Width and Height must be both >= or <= other zoom targets", target.minScreenWidth, target.minScreenHeight, minScreenWidth, minScreenHeight);
 				}
 			}
 
@@ -585,7 +585,7 @@ namespace Rococo::Gui
 				return;
 			}
 
-			RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__ "Unknown navigation target: %s. Source (%s)", target.desc, panel.Desc());
+			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__ "Unknown navigation target: %s. Source (%s)", target.desc, panel.Desc());
 		}
 
 		TrySetDeepFocus(panel);
@@ -611,7 +611,7 @@ namespace Rococo::Gui
 				return;
 			}
 
-			RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__ "Unknown navigation target: %s. Source (%s)", nextTarget.desc, panel.Desc());
+			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__ "Unknown navigation target: %s. Source (%s)", nextTarget.desc, panel.Desc());
 		}
 
 		RotateFocusToNextSibling(*focusWidget, nextRatherThanPrevious);

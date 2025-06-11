@@ -23,7 +23,7 @@ namespace Rococo::OS
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 
 		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
@@ -45,7 +45,7 @@ namespace Rococo::OS
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 
 		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
@@ -63,7 +63,7 @@ namespace Rococo::OS
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 
 		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
@@ -73,7 +73,7 @@ namespace Rococo::OS
 
 		if (!IO::IsDirectory(wDir))
 		{
-			Throw(0, "%s(%s, %s,...):\n\tNo such directory: %ls\n", __FUNCTION__, organization, section, wDir.buf);
+			Throw(0, "%s(%s, %s,...):\n\tNo such directory: %ls\n", __ROCOCO_FUNCTION__, organization, section, wDir.buf);
 		}
 
 		WideFilePath wFullName;
@@ -107,11 +107,11 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (...)
 		{
-			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, u8Path.buf);
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __ROCOCO_FUNCTION__, u8Path.buf);
 		}
 
 		AutoFree<ISEXMLRootSupervisor> root = CreateSEXMLParser(*allocator, tree->Root());
@@ -123,7 +123,7 @@ namespace Rococo::OS
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 		
 		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
@@ -149,7 +149,7 @@ namespace Rococo::OS
 		}
 		catch (IException& ex)
 		{
-			Throw(ex.ErrorCode(), "%s(%s, %s, ...): %s", __FUNCTION__, organization, section, ex.Message());
+			Throw(ex.ErrorCode(), "%s(%s, %s, ...): %s", __ROCOCO_FUNCTION__, organization, section, ex.Message());
 		}
 
 		IO::SaveAsciiTextFile(IO::TargetDirectory_UserDocuments, wDir, *dsb->Builder());
@@ -214,11 +214,11 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (...)
 		{
-			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, u8Path.buf);
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __ROCOCO_FUNCTION__, u8Path.buf);
 		}
 
 		AutoFree<ISEXMLRootSupervisor> root = CreateSEXMLParser(*allocator, tree->Root());
@@ -240,11 +240,11 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (...)
 		{
-			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, name);
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __ROCOCO_FUNCTION__, name);
 		}
 
 		AutoFree<ISEXMLRootSupervisor> root;
@@ -256,7 +256,7 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (IException& defaultEx)
 		{
@@ -283,7 +283,7 @@ namespace Rococo::OS
 		}
 		catch (IException& ex)
 		{
-			Throw(ex.ErrorCode(), "%s: %s", __FUNCTION__, ex.Message());
+			Throw(ex.ErrorCode(), "%s: %s", __ROCOCO_FUNCTION__, ex.Message());
 		}
 
 		IO::SaveAsciiTextFile(IO::TargetDirectory_Root, filename, *dsb->Builder());

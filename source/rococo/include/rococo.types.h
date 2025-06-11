@@ -118,6 +118,12 @@ namespace Rococo
 	typedef __ROCOCO_WIDECHAR__ ROCOCO_WIDECHAR;
 	typedef const ROCOCO_WIDECHAR* crwstr;
 
+#ifdef __FUNCTION__
+# define __ROCOCO_FUNCTION__ __FUNCTION__
+#else
+# define __ROCOCO_FUNCTION__ __func__
+#endif
+
 	enum class ErrorCode : int
 	{
 		None = 0
@@ -240,7 +246,7 @@ namespace Rococo
 	};
 
 	typedef FilePath<char32_t> U32FilePath;
-	typedef FilePath<wchar_t>  WideFilePath;
+	typedef FilePath<ROCOCO_WIDECHAR>  WideFilePath;
 	typedef FilePath<char>	   U8FilePath;
 
 	union WindowHandle

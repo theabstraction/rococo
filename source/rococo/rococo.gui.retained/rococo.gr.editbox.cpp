@@ -393,7 +393,7 @@ namespace GRANON
 		{
 			if (updateLock > 0)
 			{
-				RaiseError(panel, EGRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
+				RaiseError(panel, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
 				return *this;
 			}
 
@@ -494,7 +494,7 @@ namespace Rococo::Gui
 	{
 		if (capacity <= 2)
 		{
-			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Capacity should be >= 2");
 		}
 		else
 		{
@@ -503,7 +503,7 @@ namespace Rococo::Gui
 
 		if (capacity > 1024_megabytes)
 		{
-			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Capacity should be <= 1 gigabyte");
 			capacity = (int32) 1024_megabytes;
 		}
 
