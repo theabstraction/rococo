@@ -1,4 +1,5 @@
 Binaries/
+DerivedDataCache/
 Saved/
 .vsconfig
 *.rococo-bundle.cpp

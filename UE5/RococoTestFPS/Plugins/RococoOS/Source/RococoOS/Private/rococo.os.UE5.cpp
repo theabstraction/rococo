@@ -14,6 +14,7 @@
 #include <HAL/PlatformApplicationMisc.h>
 #include <Logging/LogMacros.h>
 #include <Misc/CommandLine.h>
+#include <rococo.hashtable.h>
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoException, Error, All);
 DEFINE_LOG_CATEGORY(RococoException);
@@ -1105,7 +1106,7 @@ namespace UE5_ANON
 	{
 		IOS& os;
 		WideFilePath contentDirectory;
-		std::unordered_map<std::string, std::string> macroToSubdir;
+		stringmap<HString> macroToSubdir;
 	public:
 		Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
 		{
@@ -1169,19 +1170,19 @@ namespace UE5_ANON
 		{
 			struct MacroToSubpath
 			{
-				std::string macro;
-				std::string subpath;
+				HString macro;
+				HString subpath;
 
 				bool operator < (const MacroToSubpath& other) const
 				{
-					return other.macro.size() - other.subpath.size() > macro.size() - subpath.size();
+					return other.macro.length() - other.subpath.length() > macro.length() - subpath.length();
 				}
 			};
 
 			std::vector<MacroToSubpath> macros;
 			for (auto& i : macroToSubdir)
 			{
-				macros.push_back({ i.first, i.second });
+				macros.push_back({ (cstr) i.first, i.second });
 			}
 
 			std::sort(macros.begin(), macros.end()); // macros is now sorted in order of macro length
@@ -1190,7 +1191,7 @@ namespace UE5_ANON
 			{
 				if (StartsWith(pingPath, m.subpath.c_str()))
 				{
-					Rococo::Strings::Format(compressedPath, "%s/%s", m.macro.c_str(), pingPath + m.subpath.size());
+					Rococo::Strings::Format(compressedPath, "%s/%s", m.macro.c_str(), pingPath + m.subpath.length());
 					return;
 				}
 			}
@@ -1333,7 +1334,7 @@ namespace UE5_ANON
 				Throw(0, "Installation::ConvertSysPathToMacroPath(...\"%ls\", \"%hs\") Path not prefixed by macro: %hs", sysPath, macro, expansion);
 			}
 
-			Rococo::Strings::Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
+			Rococo::Strings::Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.length());
 		}
 
 		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
@@ -1836,8 +1837,6 @@ namespace Rococo::OS
 				delete this;
 			}
 
-			std::list<Rococo::Function<void()>> tasks;
-
 			Rococo::Tasks::ITaskQueue& MainThreadQueue() override
 			{
 				return *this;
@@ -1845,41 +1844,23 @@ namespace Rococo::OS
 
 			void AddTask(Rococo::Function<void()> lambda) override
 			{
-				tasks.push_back(lambda);
+				Throw(0, "Not implemented for UE5");
 			}
 
 			bool ExecuteNext() override
 			{
-				if (tasks.empty())
-				{
-					AdvanceSysMonitors();
-					return false;
-				}
-
-				tasks.front().Invoke();
-				tasks.pop_front();
-				return true;
+				return false;
 			}
 
 			void AdvanceSysMonitors() override
 			{
-				for (auto* s : sysMonitors)
-				{
-					s->DoHousekeeping();
-				}
 			}
 
 			bool isRunning = true;
 
-			std::vector<ISysMonitor*> sysMonitors;
-
 			void AddSysMonitor(IO::ISysMonitor& monitor) override
 			{
-				auto i = std::find(sysMonitors.begin(), sysMonitors.end(), &monitor);
-				if (i == sysMonitors.end())
-				{
-					sysMonitors.push_back(&monitor);
-				}
+				Throw(0, "Not implemented for UE5");
 			}
 		};
 
@@ -2307,7 +2288,7 @@ namespace Rococo::IO
 			catch (IException& ex)
 			{
 				loader.Unlock();
-				Throw(ex.ErrorCode(), FString::Printf(TEXT("LoadBinaryFile %s.\n%ls"), ex.Message(), filename));
+				Throw(ex.ErrorCode(), FString::Printf(TEXT("LoadBinaryFile %hs.\n%ls"), ex.Message(), filename));
 			}
 
 		} // File is no longer locked
