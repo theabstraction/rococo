@@ -283,7 +283,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			va_list args;
 			va_start(args, format);
-			Strings::SafeVFormat(buffer, sizeof buffer, format, args);
+			Strings::SafeVFormat(buffer, sizeof(buffer), format, args);
 			va_end(args);
 
 			auto lcolor = ToLinearColor(colour);
@@ -333,7 +333,7 @@ namespace Rococo::Gui::UE5::Implementation
 					absRect.top += lineHeight;
 
 					char err[256];
-					Rococo::OS::FormatErrorMessage(err, sizeof err, errCapture.errorCode);
+					Rococo::OS::FormatErrorMessage(err, sizeof(err), errCapture.errorCode);
 
 					DrawText(f, absRect, RGBAb(255, 255, 255), "%s", err);
 				}
@@ -1156,7 +1156,7 @@ namespace Rococo::Gui::UE5::Implementation
 		FName FormatFontName(const FontSpec& spec)
 		{
 			char fontName[256];
-			Strings::StackStringBuilder sb(fontName, sizeof fontName);
+			Strings::StackStringBuilder sb(fontName, sizeof(fontName));
 			sb << spec.FontName;
 
 			if (spec.Bold || spec.Italic || spec.Underlined)
@@ -1415,7 +1415,7 @@ namespace Rococo::Gui::UE5::Implementation
 				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking " __FUNCTION__);
 			}
 
-			static_assert(sizeof GRCursorClick == sizeof uint16);
+			static_assert(sizeof(GRCursorClick) == sizeof(uint16));
 
 			history.clear();
 			if (me.buttonFlags != 0)
@@ -1453,7 +1453,7 @@ namespace Rococo::Gui::UE5::Implementation
 			char message[1024];
 			va_list args;
 			va_start(args, format);
-			Strings::SafeVFormat(message, sizeof message, format, args);
+			Strings::SafeVFormat(message, sizeof(message), format, args);
 			va_end(args);
 
 			if (associatedSExpression)

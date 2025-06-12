@@ -872,3 +872,9 @@ namespace Rococo::Validators
 }
 
 #endif
+
+#ifndef _WIN32
+int _i64toa_s(int64 value, char* buffer, size_t capacity, int radix);
+int _itoa_s(int value, char* buffer, size_t capacity, int radix);
+int _ui64toa_s(int64 value, char* buffer, size_t capacity, int radix);
+#endif

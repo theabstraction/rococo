@@ -791,12 +791,12 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b)
 	{
-		return _stricmp(a, b) == 0;
+		return Strings::EqI(a, b);
 	}
 
 	static bool Is(cstr a, cstr b)
 	{
-		return _stricmp(a, b) == 0;
+		return Strings::EqI(a, b);
 	}
 
 	ROCOCO_GUI_RETAINED_API GRAlignmentFlags::GRAlignmentFlags(cstr textRepresentation)

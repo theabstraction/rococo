@@ -293,7 +293,7 @@ namespace Rococo::Strings
 
 		for (;;)
 		{
-			int count = vsnprintf_s(buffer.data(), buffer.size(), format, args);
+			int count = vsnprintf(buffer.data(), buffer.size(), format, args);
 			if (count >= buffer.size() - 1)
 			{
 				// Truncated, so double the buffer size and try again
@@ -385,7 +385,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int32 Format(WideFilePath& path, const wchar_t* format, ...)
+	ROCOCO_UTIL_API int32 Format(WideFilePath& path, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);

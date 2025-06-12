@@ -131,7 +131,7 @@ namespace GRANON
 	{
 		v.primitive.float64Value = 0;
 		v.stringValue.text = stringRef.c_str();
-		v.stringValue.capacity = max(4096ULL, stringRef.length() + 1);
+		v.stringValue.capacity = Rococo::max(4096ULL, stringRef.length() + 1ULL);
 		v.type = PrimitiveType::HSTR;
 		if (retainOrigin)
 		{
@@ -238,7 +238,7 @@ namespace GRANON
 
 					*origin = f1;
 					char buffer[32];
-					sprintf_s(buffer, "%f", *origin);
+					SafeFormat(buffer, "%f", *origin);
 					RemoveRedundantZeros(buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
@@ -264,7 +264,7 @@ namespace GRANON
 
 					*origin = d1;
 					char buffer[32];
-					sprintf_s(buffer, "%f", *origin);
+					SafeFormat(buffer, "%f", *origin);
 					RemoveRedundantZeros(buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
@@ -1030,7 +1030,7 @@ namespace GRANON
 				int nameWidth = controls.name.TextWidth();
 				auto* spacer = controls.name.Panel().Parent()->GetChild(0);
 				const int padding = spacer->Span().x + spec.NamePlateSafeZone;
-				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
+				nameColumnWidth = Rococo::max(nameWidth + padding, nameColumnWidth);
 
 				populationEventHandler.OnAddNameValue(controls.name, controls.editor);
 			}
@@ -1042,7 +1042,7 @@ namespace GRANON
 			}
 
 			int& maxColumnWidthForDepth = maxColumnWidthByDepth.back();
-			maxColumnWidthForDepth = max(nameColumnWidth, maxColumnWidthForDepth);
+			maxColumnWidthForDepth = Rococo::max(nameColumnWidth, maxColumnWidthForDepth);
 			table.SetColumnWidth(0, maxColumnWidthForDepth);
 
 			auto& tableList = tableByDepth.back();
