@@ -338,7 +338,8 @@ FEventReply RouteKeyDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, con
 			return FEventReply(false);
 		}
 
-		KeyboardEventEx kex = { 0 };
+		KeyboardEventEx kex;
+		memset(&kex, 0, sizeof(kex));
 		kex.isAltHeld = ue5KeyEvent.IsAltDown();
 		kex.isCtrlHeld = ue5KeyEvent.IsControlDown();
 		kex.isShiftHeld = ue5KeyEvent.IsShiftDown();
@@ -373,7 +374,8 @@ FEventReply RouteKeyUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const
 			return FEventReply(false);
 		}
 
-		KeyboardEventEx kex = { 0 };
+		KeyboardEventEx kex;
+		memset(&kex, 0, sizeof(kex));
 		kex.isAltHeld = ue5KeyEvent.IsAltDown();
 		kex.isCtrlHeld = ue5KeyEvent.IsControlDown();
 		kex.isShiftHeld = ue5KeyEvent.IsShiftDown();

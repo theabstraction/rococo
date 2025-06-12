@@ -306,7 +306,7 @@ namespace Rococo::GreatSex
 				if (i == fonts.end())
 				{
 					char err[4096];
-					StackStringBuilder sb(err, sizeof err);
+					StackStringBuilder sb(err, sizeof(err));
 					sb << "Unknown Font " << id << ". Known fonts :";
 
 					int count = 0;
@@ -777,7 +777,7 @@ namespace Rococo::GreatSex
 					else
 					{
 						char err[4096];
-						StackStringBuilder sb(err, sizeof err);
+						StackStringBuilder sb(err, sizeof(err));
 						sb << "Unknown Panel attribute " << name << ". Known attributes: ";
 
 						int count = 0;
@@ -812,7 +812,7 @@ namespace Rococo::GreatSex
 
 	ROCOCO_GREAT_SEX_API IGreatSexGeneratorSupervisor* CreateGreatSexGenerator(IAllocator& sexmlAllocator, IGreatSexResourceLoader& loader)
 	{
-		void* pData = sexmlAllocator.Allocate(sizeof Implementation::GreatSexGenerator);
+		void* pData = sexmlAllocator.Allocate(sizeof(Implementation::GreatSexGenerator));
 		return new (pData) Implementation::GreatSexGenerator(sexmlAllocator, loader);
 	}
 

@@ -51,8 +51,6 @@ namespace Rococo
 		uint32 isAltHeld : 1;
 	};
 
-	static_assert((sizeof MouseContext) == sizeof(uint32));
-
 	struct MouseEvent
 	{
 		uint16 flags;

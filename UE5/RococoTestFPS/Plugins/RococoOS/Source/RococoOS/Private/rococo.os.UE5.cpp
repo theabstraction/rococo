@@ -15,6 +15,7 @@
 #include <Logging/LogMacros.h>
 #include <Misc/CommandLine.h>
 #include <rococo.hashtable.h>
+#include <vector>
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoException, Error, All);
 DEFINE_LOG_CATEGORY(RococoException);
@@ -208,7 +209,7 @@ namespace Rococo::IO
 		return FPaths::FileExists(filePath);
 	}
 
-	ROCOCO_API bool IsFileExistant(const WIDECHAR* filename)
+	ROCOCO_API bool IsFileExistant(crwstr filename)
 	{
 		FString filePath(filename);
 		return FPaths::FileExists(filePath);
@@ -463,14 +464,14 @@ namespace Rococo::IO
 		}
 	};
 
-	ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const WIDECHAR* sysPath)
+	ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(crwstr sysPath)
 	{
 		// On Unreal we don't do file mapping as not all platforms may support it, so just open the whole file into RAM
 		struct BinMapping : IReadOnlyBinaryMapping
 		{
 			TArray<uint8> dataMap;
 
-			BinMapping(const WIDECHAR* sysPath)
+			BinMapping(crwstr sysPath)
 			{
 				SetLastError(0);
 				AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(sysPath));
@@ -634,7 +635,7 @@ namespace Rococo::IO
 		FString pastedText;
 		FPlatformApplicationMisc::ClipboardPaste(OUT pastedText);
 
-		if constexpr (sizeof TCHAR > 1)
+		if constexpr (sizeof(TCHAR) > 1)
 		{
 			FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(asciiBuffer), capacity, *pastedText, pastedText.Len());
 		}
@@ -678,7 +679,7 @@ namespace Rococo
 {
 	ROCOCO_API bool FileModifiedArgs::Matches(cstr resource) const
 	{
-		const WIDECHAR* a = this->sysPath;
+		crwstr a = this->sysPath;
 		cstr b = resource;
 		if (*b == TEXT('!')) b++;
 
@@ -754,7 +755,7 @@ namespace Rococo::OS
 		FString pastedText;
 		FPlatformApplicationMisc::ClipboardPaste(OUT pastedText);
 
-		if constexpr (sizeof TCHAR > 1)
+		if constexpr (sizeof(TCHAR) > 1)
 		{
 			TArray<uint8> buffer;
 			ConvertFStringToUTF8Buffer(OUT buffer, pastedText);
@@ -774,7 +775,7 @@ namespace Rococo::OS
 		}
 		else
 		{
-			void* buffer = malloc(sizeof CriticalSection);
+			void* buffer = malloc(sizeof(CriticalSection));
 			return new (buffer) CriticalSection(src);
 		}
 	}
@@ -790,7 +791,7 @@ namespace Rococo::OS
 		Throw(0, "OS::SetCursorVisibility not supported by Rococo for Unreal Engine");
 	}
 
-	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const WIDECHAR* sysPath)
+	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, crwstr sysPath)
 	{
 		Throw(0, "OS::EditImageFile not supported by Rococo for Unreal Engine");
 	}
@@ -800,7 +801,7 @@ namespace Rococo::OS
 		Throw(0, "OS::SleepUntilAsync not supported by Rococo for Unreal Engine");
 	}
 
-	static const WIDECHAR* notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
+	static crwstr notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
 
 	static std::vector<PROCESS_INFORMATION> processes;
 
@@ -815,7 +816,7 @@ namespace Rococo::OS
 
 
 	// Not thread safe
-	bool SpawnChildProcessAsync(const WIDECHAR* executable, const WIDECHAR* commandLineArgs)
+	bool SpawnChildProcessAsync(crwstr executable, crwstr commandLineArgs)
 	{
 		std::vector<WIDECHAR> commandLine;
 		commandLine.resize(32786);
@@ -840,7 +841,7 @@ namespace Rococo::OS
 	}
 
 	// Thread safe
-	void SpawnIndependentProcess(HWND hMsgSink, const WIDECHAR* executable, const WIDECHAR* commandLine)
+	void SpawnIndependentProcess(HWND hMsgSink, crwstr executable, crwstr commandLine)
 	{
 		auto result = (INT_PTR)ShellExecuteW(hMsgSink, L"open", executable, commandLine, NULL, SW_SHOW);
 		if (result < 32)
@@ -1103,7 +1104,7 @@ namespace UE5_ANON
 		WideFilePath contentDirectory;
 		stringmap<HString> macroToSubdir;
 	public:
-		Installation(const WIDECHAR* contentIndicatorName, IOS& _os) : os(_os)
+		Installation(crwstr contentIndicatorName, IOS& _os) : os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 
@@ -1242,7 +1243,7 @@ namespace UE5_ANON
 			sysPath = contentDirectory;
 			Rococo::IO::StripLastSubpath(sysPath.buf);
 			size_t sysPathLength = StringLength(sysPath);
-			SecureFormat(sysPath.buf + sysPathLength, sysPath.CAPACITY - sysPathLength, L"packages/%hs/%hs", packName, dir);
+			SecureFormat(sysPath.buf + sysPathLength, sysPath.CAPACITY - sysPathLength, TEXT("packages/%hs/%hs"), packName, dir);
 			IO::ToSysPath(sysPath.buf);
 		}
 
@@ -1273,7 +1274,7 @@ namespace UE5_ANON
 			{
 				subdir = pingPath + 1;
 
-				Rococo::Strings::Format(sysPath, L"%ls%hs", contentDirectory, subdir);
+				Rococo::Strings::Format(sysPath, TEXT("%ls%hs"), contentDirectory, subdir);
 			}
 			else if (*pingPath == '#')
 			{
@@ -1297,7 +1298,7 @@ namespace UE5_ANON
 
 				macroDir = i->second.c_str();
 
-				Rococo::Strings::Format(sysPath, L"%ls%hs%hs", contentDirectory, macroDir + 1, subdir);
+				Rococo::Strings::Format(sysPath, TEXT("%ls%hs%hs"), contentDirectory, macroDir + 1, subdir);
 			}
 			else
 			{
@@ -1312,7 +1313,7 @@ namespace UE5_ANON
 			IO::ToSysPath(sysPath.buf);
 		}
 
-		void ConvertSysPathToMacroPath(const WIDECHAR* sysPath, U8FilePath& pingPath, cstr macro) const override
+		void ConvertSysPathToMacroPath(crwstr sysPath, U8FilePath& pingPath, cstr macro) const override
 		{
 			U8FilePath fullPingPath;
 			ConvertSysPathToPingPath(sysPath, fullPingPath);
@@ -1332,18 +1333,18 @@ namespace UE5_ANON
 			Rococo::Strings::Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.length());
 		}
 
-		void ConvertSysPathToPingPath(const WIDECHAR* sysPath, U8FilePath& pingPath) const override
+		void ConvertSysPathToPingPath(crwstr sysPath, U8FilePath& pingPath) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
-			size_t contentDirLength = wcslen(contentDirectory);
+			size_t contentDirLength = StringLength(contentDirectory);
 
-			if (0 != _wcsnicmp(sysPath, contentDirectory, wcslen(contentDirectory)))
+			if (!Strings::Compare(sysPath, contentDirectory.buf, contentDirLength))
 			{
 				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with the content folder %ls", sysPath, contentDirectory.buf);
 			}
 
-			if (wcsstr(sysPath, L"..") != nullptr)
+			if (FindSubstring(sysPath, TEXT("..")) != nullptr)
 			{
 				Throw(0, "ConvertSysPathToPingPath: '%ls' - Illegal sequence in ping path: '..'", sysPath);
 			}
@@ -1532,7 +1533,7 @@ namespace UE5_ANON
 			onUnstable = cb;
 		}
 
-		void OnModified(const WIDECHAR* filename)
+		void OnModified(crwstr filename)
 		{
 		}
 
@@ -1541,20 +1542,21 @@ namespace UE5_ANON
 			return IO::IsFileExistant(absPath);
 		}
 
-		bool IsFileExistant(const WIDECHAR* absPath) const override
+		bool IsFileExistant(crwstr absPath) const override
 		{
 			return IO::IsFileExistant(absPath);
 		}
 
-		void ConvertUnixPathToSysPath(const WIDECHAR* unixPath, WideFilePath& sysPath) const override
+		void ConvertUnixPathToSysPath(crwstr unixPath, WideFilePath& sysPath) const override
 		{
 			if (unixPath == nullptr) Throw(0, "Blank path in call to os.ConvertUnixPathToSysPath");
-			if (wcslen(unixPath) >= sysPath.CAPACITY)
+
+			size_t len = StringLength(unixPath);
+
+			if (len >= sysPath.CAPACITY)
 			{
 				Throw(0, "Path too long in call to os.ConvertUnixPathToSysPath");
 			}
-
-			size_t len = wcslen(unixPath);
 
 			size_t i = 0;
 			for (; i < len; ++i)
@@ -1576,7 +1578,7 @@ namespace UE5_ANON
 			sysPath.buf[i] = 0;
 		}
 
-		void LoadAbsolute(const WIDECHAR* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
+		void LoadAbsolute(crwstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
 			SetLastError(0);
 			AutoFile file(IPlatformFile::GetPlatformPhysical().OpenRead(absPath));
@@ -1609,7 +1611,7 @@ namespace UE5_ANON
 			}
 		}
 
-		bool TryLoadAbsolute(const WIDECHAR* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
+		bool TryLoadAbsolute(crwstr absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
 		{
 			sysErrorCode = (ErrorCode)0;
 
@@ -1655,9 +1657,9 @@ namespace UE5_ANON
 				struct Reader : ILoadEventReader
 				{
 					IFileHandle* hFile;
-					const WIDECHAR* absPath;
+					crwstr absPath;
 
-					Reader(IFileHandle* _hFile, const WIDECHAR* _absPath) : hFile(_hFile), absPath(_absPath) {}
+					Reader(IFileHandle* _hFile, crwstr _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 					void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 					{
@@ -1691,7 +1693,7 @@ namespace UE5_ANON
 			}
 		}
 
-		void LoadAbsolute(const WIDECHAR* absPath, ILoadEventsCallback& cb) const override
+		void LoadAbsolute(crwstr absPath, ILoadEventsCallback& cb) const override
 		{
 			SetLastError(0);
 			AutoFile hFile = IPlatformFile::GetPlatformPhysical().OpenRead(absPath);
@@ -1704,9 +1706,9 @@ namespace UE5_ANON
 			struct Reader : ILoadEventReader
 			{
 				IFileHandle* hFile;
-				const WIDECHAR* absPath;
+				crwstr absPath;
 
-				Reader(IFileHandle* _hFile, const WIDECHAR* _absPath) : hFile(_hFile), absPath(_absPath) {}
+				Reader(IFileHandle* _hFile, crwstr _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 				void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 				{
@@ -1734,7 +1736,7 @@ namespace UE5_ANON
 
 		void GetBinDirectoryAbsolute(WideFilePath& directory) const override
 		{
-			Rococo::Strings::Format(directory, L"%s", binDirectory);
+			Rococo::Strings::Format(directory, TEXT("%s"), binDirectory);
 		}
 
 		size_t MaxPath() const override
@@ -1742,7 +1744,7 @@ namespace UE5_ANON
 			return _MAX_PATH;
 		}
 
-		void Monitor(const WIDECHAR* /* absPath */) override
+		void Monitor(crwstr /* absPath */) override
 		{
 			Throw(0, "Not implemented");
 		}
@@ -1756,12 +1758,12 @@ namespace Rococo::IO
 		return new UE5_ANON::UE5OS();
 	}
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallation(const WIDECHAR* contentIndicatorName, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallation(crwstr contentIndicatorName, IOS& os)
 	{
 		return new UE5_ANON::Installation(contentIndicatorName, os);
 	}
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const WIDECHAR* contentDirectory, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(crwstr contentDirectory, IOS& os)
 	{
 		WIDECHAR slash[2] = { 0 };
 		slash[0] = Rococo::IO::GetFileSeparator();
@@ -1773,7 +1775,7 @@ namespace Rococo::IO
 
 		bool assumeAbsolute = false;
 
-		size_t len = wcslen(contentDirectory);
+		size_t len = StringLength(contentDirectory);
 		if (len > 2)
 		{
 			if (contentDirectory[1] == L':' && IsCapital((char)contentDirectory[0]))
@@ -1793,7 +1795,7 @@ namespace Rococo::IO
 			IO::GetCurrentDirectoryPath(currentDir);
 
 			WideFilePath absPath;
-			Rococo::Strings::Format(absPath, L"%hs\\%ls", currentDir.buf, contentDirectory);
+			Rococo::Strings::Format(absPath, TEXT("%hs\\%ls"), currentDir.buf, contentDirectory);
 
 			IO::NormalizePath(absPath);
 			return new UE5_ANON::Installation(os, absPath);
@@ -1972,7 +1974,7 @@ namespace Rococo::OS
 
 namespace Rococo::IO
 {
-	ROCOCO_API void EnsureUserDocumentFolderExists(const WIDECHAR* subdirectory)
+	ROCOCO_API void EnsureUserDocumentFolderExists(crwstr subdirectory)
 	{
 		if (subdirectory == nullptr || *subdirectory == 0)
 		{
@@ -2013,7 +2015,7 @@ namespace Rococo::IO
 		IO::CreateDirectoryFolder(*fullPath);
 	}
 
-	FString GetFullPathFromTarget(TargetDirectory target, const WIDECHAR* relativePath)
+	FString GetFullPathFromTarget(TargetDirectory target, crwstr relativePath)
 	{
 		switch (target)
 		{
@@ -2031,7 +2033,7 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const WIDECHAR* filename, const fstring& text)
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text)
 	{
 		FString fullPath = GetFullPathFromTarget(target, filename);
 
@@ -2087,7 +2089,7 @@ namespace Rococo::IO
 		SaveAsciiTextFileIfDifferent(target, wPath, text);
 	}
 
-	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const WIDECHAR* filename, const fstring& text)
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text)
 	{
 		if (text.length > 1024_megabytes)
 		{
@@ -2146,7 +2148,7 @@ namespace Rococo::IO
 		file->Write((const uint8*)s, strlen(s));
 	}
 
-	ROCOCO_API bool IsDirectory(const WIDECHAR* filename)
+	ROCOCO_API bool IsDirectory(crwstr filename)
 	{
 		FString sFilename(filename);
 		return IPlatformFile::GetPlatformPhysical().DirectoryExists(*sFilename);
@@ -2222,7 +2224,7 @@ namespace Rococo::IO
 
 	ROCOCO_API void EndDirectoryWithSlash(WIDECHAR* pathname, size_t capacity)
 	{
-		const WIDECHAR* finalChar = GetFinalNull(pathname);
+		crwstr finalChar = GetFinalNull(pathname);
 
 		if (pathname == nullptr || pathname == finalChar)
 		{
@@ -2250,7 +2252,7 @@ namespace Rococo::IO
 		LoadBinaryFile(loader, wPath, maxLength);
 	}
 
-	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const WIDECHAR* filename, uint64 maxLength)
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, crwstr filename, uint64 maxLength)
 	{
 		if (maxLength > 2_gigabytes)
 		{
@@ -2266,9 +2268,9 @@ namespace Rococo::IO
 				Throw(GetLastError(), FString::Printf(TEXT("LoadBinaryFile: Cannot open file %ls"), filename));
 			}
 
-			int64 fileLength = f->Size();
+			uint64 fileLength = (uint64) f->Size();
 
-			if (maxLength != 0 && fileLength >= (LONGLONG)maxLength)
+			if (maxLength != 0 && fileLength >= maxLength)
 			{
 				Throw(FString::Printf(TEXT("LoadBinaryFile: Cannot open file %ls. File length was %lld bytes. Max length is %llu bytes"), filename, fileLength, maxLength));
 			}
@@ -2289,7 +2291,7 @@ namespace Rococo::IO
 		} // File is no longer locked
 	}
 
-	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const WIDECHAR* filename)
+	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, crwstr filename)
 	{
 		TArray<char> asciiData;
 
@@ -2320,7 +2322,7 @@ namespace Rococo::IO
 		onLoad.Populate(asciiData.GetData());
 	}
 
-	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const WIDECHAR* filename)
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, crwstr filename)
 	{
 		if (capacity >= 2048_megabytes)
 		{
@@ -2361,7 +2363,7 @@ namespace Rococo::IO
 		return LoadAsciiTextFile(data, capacity, wPath);
 	}
 
-	ROCOCO_API void SaveBinaryFile(const WIDECHAR* targetPath, const uint8* buffer, size_t nBytes)
+	ROCOCO_API void SaveBinaryFile(crwstr targetPath, const uint8* buffer, size_t nBytes)
 	{
 		if (nBytes > 2_gigabytes)
 		{
@@ -2521,12 +2523,25 @@ namespace Rococo::Time
 		SafeFormat(buffer, 256, "%.128s: %.3f", name, Time::ToMilliseconds(end - start));
 	}
 
+#ifdef _WIN32
 	ROCOCO_API void GetTimestamp(char str[26])
 	{
 		time_t t;
 		time(&t);
 		ctime_s(str, 26, &t);
 	}
+
+#else
+	enum {TIMESTAMP_LEN = 26 };
+
+	ROCOCO_API void GetTimestamp(char str[TIMESTAMP_LEN])
+	{
+		time_t t;
+		time(&t);
+		char* timeBuffer = ctime(&t);
+		SafeFormat(str, TIMESTAMP_LEN, "%s", timeBuffer);
+	}
+#endif
 } // Rococo::Time
 
 #ifdef _WIN32
@@ -2635,11 +2650,22 @@ namespace Rococo::OS
 
 #else
 
+namespace Rococo::Windows
+{
+	ROCOCO_INTERFACE IWindow
+	{
+	   virtual void Nop() const = 0;
+	};
+}
+
 namespace Rococo::OS
 {
 	struct NoWindow : Windows::IWindow
 	{
+		void Nop() const override
+		{
 
+		}
 	} s_noWindow;
 	
 	Windows::IWindow& WindowOwner()

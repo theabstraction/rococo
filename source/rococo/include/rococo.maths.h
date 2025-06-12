@@ -56,7 +56,7 @@ namespace Rococo
 		[[nodiscard]] virtual size_t ElementCount() const = 0;
 		[[nodiscard]] virtual T operator[](size_t index) const = 0;
 		[[nodiscard]] virtual bool IsEmpty() const = 0;
-		[[nodiscard]] virtual void Erase(size_t index) = 0;
+		virtual void Erase(size_t index) = 0;
 		[[nodiscard]] virtual T* Array() = 0;
 	};
 
@@ -156,23 +156,23 @@ namespace Rococo
 		// The matrx rotates vectors by pre multiplying the vector: MP -> P'
 		[[nodiscard]] static Matrix4x4 RotateRHAnticlockwiseY(Radians theta);
 
-		[[nodiscard]] static void GetRollYawPitchMatrix(Radians roll, Radians yaw, Radians pitch,OUT Matrix4x4& rotationMatrix);
+		static void GetRollYawPitchMatrix(Radians roll, Radians yaw, Radians pitch,OUT Matrix4x4& rotationMatrix);
 
 		[[nodiscard]] Vec3 GetPosition() const
 		{
 			return Vec3{ row0.w, row1.w, row2.w };
 		}
 
-		[[nodiscard]] void SetPosition(cr_vec3 pos)
+		void SetPosition(cr_vec3 pos)
 		{
 			row0.w = pos.x;
 			row1.w = pos.y;
 			row2.w = pos.z;
 		}
 
-		[[nodiscard]] static void FromQuat(const Quat& quat, Matrix4x4& m);
-		[[nodiscard]] static void FromQuatAndThenTranspose(const Quat& quat, Matrix4x4& m);
-		[[nodiscard]] static void GetRotationQuat(const Matrix4x4& m, Quat& quat);
+		static void FromQuat(const Quat& quat, Matrix4x4& m);
+		static void FromQuatAndThenTranspose(const Quat& quat, Matrix4x4& m);
+		static void GetRotationQuat(const Matrix4x4& m, Quat& quat);
 
 		// if the matrix represents a transformation to a camera looking down the negative z axies 
 		// then this function gives the forward direction
@@ -347,7 +347,7 @@ namespace Rococo
 	   virtual void Append(const Triangle2d& t) = 0;
 	};
 
-	[[nodiscard]] void TesselateByEarClip(I2dMeshBuilder& tb, IRingManipulator<Vec2>& ring);
+	void TesselateByEarClip(I2dMeshBuilder& tb, IRingManipulator<Vec2>& ring);
 
 	[[nodiscard]] inline Vec4 operator-(const Vec4& v) { return Vec4{ -v.x, -v.y, -v.z, v.w }; }
 	[[nodiscard]] inline Vec2 operator - (const Vec2& a, const Vec2& b) { return Vec2{ a.x - b.x, a.y - b.y }; }
@@ -600,8 +600,8 @@ namespace Rococo
 		Quadrilateral bottomVertices;
 	};
 
-	[[nodiscard]] void ForEachEdge(const Quadrilateral& q, IEnumerator<Edge>& processEdges);
-	[[nodiscard]] void ForEachEdge(const BoundingCube& cube, IEnumerator<Edge>& processEdges);
+	void ForEachEdge(const Quadrilateral& q, IEnumerator<Edge>& processEdges);
+	void ForEachEdge(const BoundingCube& cube, IEnumerator<Edge>& processEdges);
 
 	enum ContactType
 	{

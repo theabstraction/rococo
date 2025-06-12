@@ -9,7 +9,7 @@
 #include <vector>
 
 #ifndef _WIN32
-
+/* TODOD - delete if Android compiles this
 # include <stdlib.h> // Posix mem functions in OSX
 
 namespace Rococo
@@ -29,6 +29,7 @@ namespace Rococo
       }
    }
 }
+*/
 #endif
 
 namespace Rococo::Memory

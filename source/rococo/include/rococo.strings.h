@@ -324,8 +324,16 @@ namespace Rococo::Strings
 
 	ROCOCO_API int32 Compare(cstr a, cstr b);
 	ROCOCO_API int32 CompareI(cstr a, cstr b);
-	ROCOCO_API int32 CompareI(cstr a, cstr b, int64 count);
-	ROCOCO_API int32 Compare(cstr a, cstr b, int64 count);
+	ROCOCO_API int32 CompareI(cstr a, cstr b, size_t count);
+	ROCOCO_API int32 Compare(cstr a, cstr b, size_t count);
+
+	ROCOCO_API int32 Compare(crwstr a, crwstr b);
+	ROCOCO_API int32 CompareI(crwstr a, crwstr b);
+	ROCOCO_API int32 CompareI(crwstr a, crwstr b, size_t count);
+	ROCOCO_API int32 Compare(crwstr a, crwstr b, size_t count);
+
+	ROCOCO_API crwstr FindSubstring(crwstr bigString, crwstr subString);
+	ROCOCO_API cstr FindSubstring(cstr bigString, cstr subString);
 
 	ROCOCO_API int LevenshteinDistance(cstr source, cstr target);
 
