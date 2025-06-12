@@ -277,17 +277,49 @@ namespace Rococo::Strings
 		}
 	}
 
+#ifndef _WIN32
+
+	void Format(OUT HString& target, cstr format, ...)
+	{
+		thread_local std::vector<char> buffer;
+
+		if (buffer.size() < 64)
+		{
+			buffer.resize(64);
+		}
+
+		va_list args;
+		va_start(args, format);
+
+		for (;;)
+		{
+			int count = vsnprintf_s(buffer.data(), buffer.size(), format, args);
+			if (count >= buffer.size() - 1)
+			{
+				// Truncated, so double the buffer size and try again
+				buffer.resize(buffer.size() * 2ULL);
+				continue;
+			}
+			else if (count < 0)
+			{
+				Throw(0, "vsnprintf_s failed");
+			}
+			else
+			{
+				// No truncation
+				target = buffer.data();
+				return;
+			}
+		}
+	}
+#else
 	void Format(OUT HString& target, cstr format, ...)
 	{
 		thread_local std::vector<char> buffer;
 
 		if (buffer.size() == 0)
 		{
-#ifdef _DEBUG
-			buffer.resize(1);
-#else
-			buffer.resize(256);
-#endif
+			buffer.resize(64);
 		}
 
 		va_list args;
@@ -296,7 +328,7 @@ namespace Rococo::Strings
 		for (;;)
 		{
 			_set_errno(0);
-			int count = _vsnprintf_s(buffer.data(), buffer.size(), _TRUNCATE, format, args);
+			int count = vsnprintf_s(buffer.data(), buffer.size(), _TRUNCATE, format, args);
 			if (count == -1)
 			{
 				int err;
@@ -320,7 +352,7 @@ namespace Rococo::Strings
 			}
 		}
 	}
-
+#endif
 	ROCOCO_UTIL_API int32 MakePath(U8FilePath& combinedPath, cstr rootPath, cstr subdirectory)
 	{
 		auto len = strlen(rootPath);
@@ -1316,8 +1348,15 @@ namespace Rococo::Strings
 
 	ROCOCO_UTIL_API int32 Compare(cstr a, cstr b) { return strcmp(a, b); }
 	ROCOCO_UTIL_API int32 CompareI(cstr a, cstr b) { return _stricmp(a, b); }
-	ROCOCO_UTIL_API int32 CompareI(cstr a, cstr b, int64 count) { return _strnicmp(a, b, count); }
-	ROCOCO_UTIL_API int32 Compare(cstr a, cstr b, int64 count) { return strncmp(a, b, count); }
+	ROCOCO_UTIL_API int32 CompareI(cstr a, cstr b, size_t count) { return _strnicmp(a, b, count); }
+	ROCOCO_UTIL_API int32 Compare(cstr a, cstr b, size_t count) { return strncmp(a, b, count); }
+
+#ifdef _WIN32
+	ROCOCO_UTIL_API int32 Compare(crwstr a, crwstr b) { return wcscmp(a, b); }
+	ROCOCO_UTIL_API int32 CompareI(crwstr a, crwstr b) { return _wcsicmp(a, b); }
+	ROCOCO_UTIL_API int32 CompareI(crwstr a, crwstr b, size_t count) { return _wcsnicmp(a, b, count); }
+	ROCOCO_UTIL_API int32 Compare(crwstr a, crwstr b, size_t count) { return wcsncmp(a, b, count); }
+#endif
 
 	ROCOCO_UTIL_API const char* GetSubString(const char* s, const char* subString) { return strstr(s, subString); }
 

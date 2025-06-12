@@ -7,7 +7,6 @@
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
 
-
 using namespace Rococo;
 using namespace Rococo::Gui;
 using namespace Rococo::Strings;
@@ -414,7 +413,7 @@ namespace GRANON
 			size_t newSize = min(len + 1, text.capacity());
 			text.resize(newSize);
 
-			strncpy_s(text.data(), text.capacity(), argText, _TRUNCATE);
+			SafeFormat(text.data(), text.capacity(), "%s", argText);
 
 			caretPos = (int32) len;
 
@@ -432,7 +431,7 @@ namespace GRANON
 		{
 			if (buffer != nullptr && capacity > 0)
 			{
-				strncpy_s(buffer, capacity, text.data(), _TRUNCATE);
+				SafeFormat(buffer, capacity, "%s", text.data());
 			}
 
 			return (int32) text.size();
