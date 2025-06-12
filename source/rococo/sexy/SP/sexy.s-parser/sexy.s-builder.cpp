@@ -105,10 +105,7 @@ namespace ANON
 			return -1;
 		}
 
-		const ISExpression* Parent() const override
-		{
-			return parent;
-		}
+		const ISExpression* Parent() const override;
 
 		const ISExpression* GetOriginal() const override
 		{
@@ -312,6 +309,12 @@ namespace ANON
 			Throw(0, "not supported");
 		}
 	};
+
+	template<EXPRESSION_TYPE type>
+	inline const ISExpression* LeafExpression<type>::Parent() const
+	{
+		return parent;
+	}
 
 	void Free(ExpressionBuilder* eb)
 	{

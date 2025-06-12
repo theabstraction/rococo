@@ -386,7 +386,7 @@ namespace Rococo
 
 			try
 			{
-				buffer = allocator.Allocate(sizeof ExpressionProxy);
+				buffer = allocator.Allocate(sizeof(ExpressionProxy));
 				result = new (buffer) ExpressionProxy(inner, allocator, numberOfElements);
 			}
 			catch (...)
