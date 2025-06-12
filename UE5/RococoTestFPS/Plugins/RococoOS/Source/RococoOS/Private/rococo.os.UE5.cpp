@@ -1877,7 +1877,7 @@ namespace Rococo::OS
 		va_start(arglist, format);
 
 		char buffer[1024];
-		Strings::SafeVFormat(buffer, sizeof buffer, format, arglist);
+		Strings::SafeVFormat(buffer, sizeof(buffer), format, arglist);
 
 		FString tcharBuffer(buffer);
 
@@ -1917,7 +1917,7 @@ namespace Rococo::OS
 		if (ex.ErrorCode() != 0)
 		{
 			char errMsg[256];
-			FormatErrorMessage(errMsg, sizeof errMsg, ex.ErrorCode());
+			FormatErrorMessage(errMsg, sizeof(errMsg), ex.ErrorCode());
 			sb.AppendFormat("%s\n", errMsg);
 		}
 
@@ -2597,7 +2597,7 @@ namespace Rococo::Debugging
 		va_start(args, format);
 
 		char message[1024];
-		int len = Strings::SafeVFormat(message, sizeof message, format, args);
+		int len = Strings::SafeVFormat(message, sizeof(message), format, args);
 		
 		FString tcharBuffer(message);
 		FMsg::Logf(__FILE__, __LINE__, OS::RococoLog, ELogVerbosity::Type::Log, TEXT("%s"), *tcharBuffer);
@@ -2614,7 +2614,7 @@ namespace Rococo::Strings
 
 		va_list args;
 		va_start(args, format);
-		int len = SafeVFormat(message, sizeof message, format, args);
+		int len = SafeVFormat(message, sizeof(message), format, args);
 
 		FString tcharBuffer(message);
 		FMsg::Logf(__FILE__, __LINE__, OS::RococoLog, ELogVerbosity::Type::Log, TEXT("%s"), *tcharBuffer);

@@ -198,6 +198,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.vector.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.win32.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.rendering.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.resources.h" />
@@ -209,6 +210,30 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathConvert.inl">
+      <Filter>third-party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathMatrix.inl">
+      <Filter>third-party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathMisc.inl">
+      <Filter>third-party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathVector.inl">
+      <Filter>third-party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXPackedVector.h">
+      <Filter>third-party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXPackedVector.inl">
+      <Filter>third-party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\third-party\rococo.DirectXMath.h">
+      <Filter>third-party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\third-party\rococo.sal.h">
+      <Filter>third-party</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">
@@ -234,6 +259,9 @@
     </Filter>
     <Filter Include="mplat">
       <UniqueIdentifier>{9d414bb1-4467-062b-5ea8-af7a7c977731}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third-party">
+      <UniqueIdentifier>{ccc69254-d182-4131-a851-7181d809afd6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

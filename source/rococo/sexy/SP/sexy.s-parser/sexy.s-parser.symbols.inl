@@ -165,8 +165,8 @@ namespace ANON
 		{
 			if (length + writePos + sizeof(int32) >= heapEnd)
 			{
-            Rococo::Throw(0, ("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
-				return NULL;
+				Rococo::Throw(0, ("sexy.s-parser.symbols.inl: private heap symbols exhausted. Increase CPrivateHeapSymbols::_maxAllocHint"));
+				return nullptr;
 			}
 
 			sexstring_header& header = *(sexstring_header*) writePos;
