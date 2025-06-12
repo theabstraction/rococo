@@ -585,7 +585,7 @@ namespace Rococo::Gui
 				return;
 			}
 
-			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__ "Unknown navigation target: %s. Source (%s)", target.desc, panel.Desc());
+			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Unknown navigation target: %s. Source (%s)", target.desc, panel.Desc());
 		}
 
 		TrySetDeepFocus(panel);
@@ -611,7 +611,7 @@ namespace Rococo::Gui
 				return;
 			}
 
-			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__ "Unknown navigation target: %s. Source (%s)", nextTarget.desc, panel.Desc());
+			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Unknown navigation target: %s. Source (%s)", nextTarget.desc, panel.Desc());
 		}
 
 		RotateFocusToNextSibling(*focusWidget, nextRatherThanPrevious);

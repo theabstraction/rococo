@@ -356,8 +356,8 @@ namespace Rococo
 	[[nodiscard]] inline Vec2 operator / (const Vec2& numerator, float denominator) { float q = 1.0f / denominator; return Vec2{ numerator.x * q, numerator.y * q }; }
 	[[nodiscard]] inline Vec2 operator * (const Vec2& q, float f) { return Vec2{ q.x * f, q.y * f }; }
 	[[nodiscard]] inline Vec2 operator * (float f, const Vec2& q) { return Vec2{ q.x * f, q.y * f }; }
-	[[nodiscard]] inline void operator += (Vec2& a, const Vec2& b) { a.x += b.x; a.y += b.y; }
-	[[nodiscard]] inline void operator -= (Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y; }
+	inline void operator += (Vec2& a, const Vec2& b) { a.x += b.x; a.y += b.y; }
+	inline void operator -= (Vec2& a, const Vec2& b) { a.x -= b.x; a.y -= b.y; }
 	[[nodiscard]] inline bool operator == (Vec2 a, Vec2 b) { return a.x == b.x && a.y == b.y; }
 	[[nodiscard]] inline bool operator != (Vec2 a, Vec2 b) { return !(a == b); }
 

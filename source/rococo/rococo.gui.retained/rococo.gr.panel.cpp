@@ -1514,7 +1514,7 @@ namespace Rococo::Gui
 		char buf[1024];
 		va_list args;
 		va_start(args, format);
-		vsnprintf_s(buf, _TRUNCATE, format, args);
+		SafeVFormat(buf, sizeof(buf),format, args);
 		va_end(args);
 		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), errCode, function, "%s", buf);
 	}

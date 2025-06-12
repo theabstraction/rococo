@@ -274,7 +274,7 @@ namespace ANON
 		{
 			if (!visitation)
 			{
-				Throw(0, __ROCOCO_FUNCTION__ ": visitation was null");
+				Throw(0, "visitation was null");
 			}
 
 			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);

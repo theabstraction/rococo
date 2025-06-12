@@ -738,7 +738,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 			views[i] = g.GetTarget(i).SysRenderTarget().GetView();
 			if (views[i] == nullptr)
 			{
-				Throw(0, __ROCOCO_FUNCTION__ ": no ID3D11RenderTargetView for GBuffer[%d] %s", i);
+				Throw(0, "no ID3D11RenderTargetView for GBuffer[%d] %s", i);
 			}
 		}
 

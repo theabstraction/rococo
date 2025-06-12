@@ -122,12 +122,12 @@ namespace ANON
 
 		IExpressionTransform& TransformThis()
 		{
-			Throw(*this, __ROCOCO_FUNCTION__ ": operation not supported on this class");
+			Throw(*this, "operation not supported on this class");
 		}
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __ROCOCO_FUNCTION__ ": not supported");
+			Throw(0, "not supported");
 		}
 	};
 	
@@ -309,7 +309,7 @@ namespace ANON
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __ROCOCO_FUNCTION__ ": not supported");
+			Throw(0, "not supported");
 		}
 	};
 
@@ -451,7 +451,7 @@ namespace ANON
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __ROCOCO_FUNCTION__ ": not supported");
+			Throw(0, "not supported");
 		}
 	};
 

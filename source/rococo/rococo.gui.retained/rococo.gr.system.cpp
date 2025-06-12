@@ -803,7 +803,7 @@ namespace Rococo::Gui
 	{
 		if (textRepresentation == nullptr)
 		{
-			Rococo::Throw(0, __ROCOCO_FUNCTION__ "(nullptr)");
+			Rococo::Throw(0, "%s: (nullptr)", __ROCOCO_FUNCTION__);
 		}
 
 		if (Is(textRepresentation, "left"))

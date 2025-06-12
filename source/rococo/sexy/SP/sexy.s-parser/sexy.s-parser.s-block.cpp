@@ -718,7 +718,7 @@ namespace Anon
 	{
 		if (!parent)
 		{
-			Throw(s, __ROCOCO_FUNCTION__ ": not supported - Compound Expression had no parent");
+			Throw(s, "not supported - Compound Expression had no parent");
 		}
 
 		auto* transform = tree.Transform(s);
@@ -842,7 +842,7 @@ namespace Anon
 		{
 			if (!parent)
 			{
-				Throw(*this, __ROCOCO_FUNCTION__ ": not supported - Compound Expression had no parent");
+				Throw(*this, "not supported - Compound Expression had no parent");
 			}
 
 			auto& tree = static_cast<const ExpressionTree&>(Tree());
@@ -1109,7 +1109,7 @@ namespace Anon
 		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
 		{
 			int index = GetIndexOf(sCompound);
-			if (index < 0)	Throw(*this, __ROCOCO_FUNCTION__ ": sCompound was not a child of the parent");
+			if (index < 0)	Throw(*this, "sCompound was not a child of the parent");
 
 			children.pArray[index] = &transform.Root();
 		}
@@ -1118,7 +1118,7 @@ namespace Anon
 		{
 			if (!tree)
 			{
-				Throw(*this, __ROCOCO_FUNCTION__ ": not supported - Root Expression had no tree");
+				Throw(*this, "not supported - Root Expression had no tree");
 			}
 
 			auto& t = static_cast<const ExpressionTree&>(Tree());
@@ -1293,7 +1293,7 @@ namespace Anon
 		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
 		{
 			int index = GetIndexOf(sCompound);
-			if (index < 0)	Throw(*this, __ROCOCO_FUNCTION__ ": sCompound was not a child of the parent");
+			if (index < 0)	Throw(*this, "sCompound was not a child of the parent");
 
 			children.pArray[index] = &transform.Root();
 		}

@@ -6557,10 +6557,10 @@ R"((namespace EntryPoint)
 		"	(result = (#square i))"
 		")";
 
-		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__ "_Macro");
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestMacro_Macro");
 		Auto<ISParserTree> tree1(ss.SParser().CreateTree(sc1()));
 
-		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(srcCode2, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__ "_Main");
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(srcCode2, -1, Vec2i{ 0,0 }, "TestMacro_Main");
 		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree1(), tree2());		
@@ -6598,10 +6598,10 @@ R"((namespace EntryPoint)
 			")"
 			;
 
-		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__ "_Macro");
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i{ 0,0 }, "TestMacroSiblings_Macro");
 		Auto<ISParserTree> tree1(ss.SParser().CreateTree(sc1()));
 
-		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__ "_Main");
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, "TestMacroSiblings_Main");
 		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree1(), tree2());
@@ -7773,10 +7773,10 @@ R"((namespace EntryPoint)
 			"	(#EntryPoint.double result)"
 			")";
 
-		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__ "_Macro");
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i{ 0,0 }, "TestSubstitution_Macro");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc1()));
 
-		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__ "_Main");
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, "TestSubstitution_Main");
 		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree(), tree2());		
@@ -15513,10 +15513,10 @@ R"((namespace EntryPoint)
 			"(alias Main EntryPoint.Main)"
 			;
 
-		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i {0,0}, __ROCOCO_FUNCTION__ "_Macro");
+		Auto<ISourceCode> sc1 = ss.SParser().ProxySourceBuffer(macroCode, -1, Vec2i {0,0}, "TestMacroAsArgument1_Macro");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc1()));
 
-		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__ "_Main");
+		Auto<ISourceCode> sc2 = ss.SParser().ProxySourceBuffer(mainCode, -1, Vec2i{ 0,0 }, "TestMacroAsArgument1_Main");
 		Auto<ISParserTree> tree2(ss.SParser().CreateTree(sc2()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree(), tree2());

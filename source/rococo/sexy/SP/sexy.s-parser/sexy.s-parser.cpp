@@ -370,7 +370,7 @@ namespace Rococo
 
 			IExpressionTransform& TransformThis() const override
 			{
-				Throw(inner, __ROCOCO_FUNCTION__ ": not supported");
+				Throw(inner, "not supported");
 			}
 		};
 
