@@ -63,7 +63,7 @@ namespace Rococo
 						char cipherCrud[256];
 						SafeFormat(cipherCrud, "%s_%lld_%lld", text, (int64)Rococo::OS::GetCurrentThreadIdentifier(), (int64)Rococo::Time::UTCTime());
 						hash = Strings::XXHash64Arg(cipherCrud, strlen(cipherCrud));
-						memset(cipherCrud, 0, sizeof cipherCrud);
+						memset(cipherCrud, 0, sizeof(cipherCrud));
 					}
 				} username;
 
@@ -113,8 +113,8 @@ namespace Rococo
 			MehGuid guid;
 		};
 
-		static_assert(sizeof MehGuid == sizeof UniqueIdHolder);
-		static_assert(sizeof GuidAndUniqueId == 16);
+		static_assert(sizeof(MehGuid) == sizeof(UniqueIdHolder));
+		static_assert(sizeof(GuidAndUniqueId) == 16);
 
 		ROCOCO_ID_API void ToGuidString(UniqueIdHolder id, OUT GuidString& guidString)
 		{

@@ -154,7 +154,7 @@ namespace ANON
 				auto& type = ns.GetType(i);
 
 				char fullName[256];
-				StackStringBuilder sb(fullName, sizeof fullName);
+				StackStringBuilder sb(fullName, sizeof(fullName));
 				ns.AppendFullNameToStringBuilder(sb);
 				sb << ".";
 				sb << type.PublicName();
@@ -190,7 +190,7 @@ namespace ANON
 
 			AutoFree<IVariableEditor> typeBox = CreateVariableEditor(span, labelWidth, caption, &evHandler);
 
-			SafeFormat(resultBuffer, sizeof resultBuffer, "%s", defaultType);
+			SafeFormat(resultBuffer, sizeof(resultBuffer), "%s", defaultType);
 
 			struct : ISelection
 			{

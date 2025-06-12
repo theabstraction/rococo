@@ -282,7 +282,7 @@ namespace MHost
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
 						{
-							CopyString(te.text, sizeof te.text, be.message);
+							CopyString(te.text, sizeof(te.text), be.message);
 						}
 					}
 					else if (ev == evPopulateBusyResourceId)
@@ -290,7 +290,7 @@ namespace MHost
 						auto& te = As<TextOutputEvent>(ev);
 						if (te.isGetting)
 						{
-							CopyString(te.text, sizeof te.text, be.pingPath.buf);
+							CopyString(te.text, sizeof(te.text), be.pingPath.buf);
 						}
 					}
 				}
@@ -560,7 +560,7 @@ namespace MHost
 					{
 						Substring subspace = { s.start, nextDot };
 						char subspaceBuffer[16];
-						if (!subspace.TryCopyWithoutTruncate(subspaceBuffer, sizeof subspaceBuffer))
+						if (!subspace.TryCopyWithoutTruncate(subspaceBuffer, sizeof(subspaceBuffer)))
 						{
 							Throw(0, "%s: Failed to convert subpsace to string for %s", __ROCOCO_FUNCTION__, (cstr)menuPath);
 						}

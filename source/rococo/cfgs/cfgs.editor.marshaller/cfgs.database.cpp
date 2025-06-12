@@ -1181,7 +1181,7 @@ namespace Rococo::CFGS::Internal
 			}
 
 			char arrayId[256];
-			CopyString(arrayId, sizeof arrayId, fullArrayId);
+			CopyString(arrayId, sizeof(arrayId), fullArrayId);
 
 			size_t len = strlen(arrayId);
 

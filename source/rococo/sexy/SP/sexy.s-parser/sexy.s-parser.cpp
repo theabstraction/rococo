@@ -201,7 +201,7 @@ namespace Rococo
 
 			*writePos = 0;
 
-			writer.Append(L"%hs", segment);
+			writer.Append(_RW_TEXT("%hs"), segment);
 		}
 
 		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex)

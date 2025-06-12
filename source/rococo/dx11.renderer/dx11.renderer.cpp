@@ -254,7 +254,7 @@ private:
 			Throw(0, "%s: error applying shaders.", __ROCOCO_FUNCTION__);
 		}
 
-		UINT stride = sizeof Vec2;
+		UINT stride = sizeof(Vec2);
 		UINT offsets = 0;
 
 		auto& tb = textureManager->GetTexture(renderTargetId);

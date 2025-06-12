@@ -695,7 +695,7 @@ namespace ANON
 			catch (IException& ex)
 			{
 				char title[256];
-				eventHandler.GetErrorTitle(title, sizeof title);
+				eventHandler.GetErrorTitle(title, sizeof(title));
 				Rococo::Windows::ShowErrorBox(*window, ex, title);
 			}
 		}

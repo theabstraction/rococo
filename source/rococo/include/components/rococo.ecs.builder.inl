@@ -97,7 +97,7 @@ namespace Rococo::Components
 			rows(CreateRoidMap(_friendlyName, 1024)),
 			componentSize(_componentFactory.SizeOfConstructedObject())
 		{
-			componentAllocator = Memory::CreateFreeListAllocator(componentSize + sizeof ComponentLife<COMPONENT>);
+			componentAllocator = Memory::CreateFreeListAllocator(componentSize + sizeof(ComponentLife<COMPONENT>));
 		}
 
 		void BindTableIndex(uint32 tableIndex)
@@ -384,7 +384,7 @@ namespace Rococo::Components
 
 		size_t GetConfigurationComponentIDs(TRoidEntry<COMPONENT>* roidOutput, size_t nElementsInOutput)
 		{
-			static_assert(sizeof RoidEntry == sizeof TRoidEntry<COMPONENT>);
+			static_assert(sizeof(RoidEntry) == sizeof(TRoidEntry<COMPONENT>));
 			auto* baseOutput = reinterpret_cast<RoidEntry*>(roidOutput);
 			rows->ToVector(baseOutput, nElementsInOutput);
 		}

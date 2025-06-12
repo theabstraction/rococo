@@ -74,7 +74,7 @@ namespace Rococo::Sex::SEXML
 				catch (IException& ex)
 				{
 					char msg[1024];
-					StackStringBuilder exsb(msg, sizeof msg);
+					StackStringBuilder exsb(msg, sizeof(msg));
 					exsb.AppendFormat("Error validating directive name [%s]: %s\n", name, ex.Message());
 					if (depth == 0)
 					{

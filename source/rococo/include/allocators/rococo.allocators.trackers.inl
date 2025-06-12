@@ -142,13 +142,13 @@ namespace Rococo::Memory
 
 			// Stick your bespoke leak analysis code in here. Every leak requires its own especial love
 
-			auto address = Debugging::FormatStackFrame(ts.msg, sizeof ts.msg, CALLSTACK_DEPTH);
+			auto address = Debugging::FormatStackFrame(ts.msg, sizeof(ts.msg), CALLSTACK_DEPTH);
 			Rococo::Debugging::Log(" Problem -> %s\n", ts.msg);
 
 			/* if (strstr(ts.msg, "NastyBugString") != nullptr)
 			{
 				TrackingString helper;
-				FormatStackFrame(helper.msg, sizeof helper.msg, DEPTH + 1);
+				FormatStackFrame(helper.msg, sizeof(helper.msg), DEPTH + 1);
 				Rococo::Debugging::Log(" NastyBugString -> %s\n", helper.msg);
 
 			}
@@ -263,7 +263,7 @@ namespace Rococo::Memory
 						j.first->second++;
 					}
 
-					Debugging::FormatStackFrame(buffer, sizeof buffer, atom.address);
+					Debugging::FormatStackFrame(buffer, sizeof(buffer), atom.address);
 					allocator_printf("Leak at %p: %s\n", i.first, buffer);
 				}
 			}

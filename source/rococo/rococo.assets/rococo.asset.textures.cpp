@@ -85,7 +85,7 @@ namespace ANON
 				if (fileAsset.IsError())
 				{
 					char buffer[1024];
-					fileAsset.GetErrorAndStatusLength(status.statusCode, buffer, sizeof buffer);
+					fileAsset.GetErrorAndStatusLength(status.statusCode, buffer, sizeof(buffer));
 					status.statusText = buffer;
 				}
 

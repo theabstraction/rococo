@@ -49,7 +49,7 @@ namespace Rococo::Audio
 
 	inline const X3DAUDIO_VECTOR& To(cr_vec3 source)
 	{
-		static_assert(sizeof X3DAUDIO_VECTOR == sizeof source);
+		static_assert(sizeof(X3DAUDIO_VECTOR) == sizeof(source));
 		return reinterpret_cast<const X3DAUDIO_VECTOR&>(source);
 	}
 

@@ -534,7 +534,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[12];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -631,7 +631,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[24];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -728,7 +728,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[16];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -818,7 +818,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[24];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -904,7 +904,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[24];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 

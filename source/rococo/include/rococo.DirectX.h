@@ -29,7 +29,7 @@ namespace Rococo::Graphics
 		} uValue;
 	};
 
-	static_assert(sizeof U64ShaderId == sizeof uint64);
+	static_assert(sizeof(U64ShaderId) == sizeof(uint64));
 
 	inline bool operator == (ShaderId a, ShaderId b) { return (uint32)a == (uint32)b; }
 	inline bool operator != (ShaderId a, ShaderId b) { return !(a == b); }

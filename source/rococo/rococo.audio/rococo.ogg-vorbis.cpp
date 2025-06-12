@@ -167,7 +167,7 @@ namespace AudioAnon
 		{
 			enum { USING_SIGNED_SAMPLES = 1 };
 			int bitStream = 0;
-			long result = ov_read(&apiHandle, (char*) decompressedBuffer, decompressedCapacity, !OS::IsEndianLittle(), sizeof int16, USING_SIGNED_SAMPLES, &bitStream);
+			long result = ov_read(&apiHandle, (char*) decompressedBuffer, decompressedCapacity, !OS::IsEndianLittle(), sizeof(int16), USING_SIGNED_SAMPLES, &bitStream);
 			switch (result)
 			{
 			case OV_HOLE:
@@ -190,7 +190,7 @@ namespace AudioAnon
 
 	void CopyData(StereoSample_INT16* __restrict output, const uint8* __restrict input, uint32 nSamples)
 	{
-		memcpy(output, input, nSamples * sizeof StereoSample_INT16);
+		memcpy(output, input, nSamples * sizeof(StereoSample_INT16));
 	}
 
 	void PopulateMediaBufferWithFileData(IAudioInstallationSupervisor& installation, cstr utf8Path, std::vector<uint8>& encodedData)

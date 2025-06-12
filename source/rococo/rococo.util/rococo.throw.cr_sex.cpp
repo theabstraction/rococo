@@ -161,7 +161,7 @@ namespace Rococo
 			char message[4096];
 			int len = SafeVFormat(message, sizeof(message), format, args);
 
-			StackStringBuilder sb(message + len, sizeof message - len);
+			StackStringBuilder sb(message + len, sizeof(message) - len);
 
 			auto* pOriginal = e.GetOriginal();
 			if (pOriginal != nullptr)

@@ -1422,7 +1422,7 @@ namespace Rococo::Gui
 		va_start(args, format);
 
 		char message[1024];
-		Strings::SafeVFormat(message, sizeof message, format, args);
+		Strings::SafeVFormat(message, sizeof(message), format, args);
 
 		char completeMessage[1280];
 		Strings::SafeFormat(completeMessage, "Panel(%s): %s", panel.Desc(), message);

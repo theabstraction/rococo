@@ -154,7 +154,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				char msg[256];
 
 				char subspace[128];
-				if (tree.TryGetText(subspace, sizeof subspace, parentId))
+				if (tree.TryGetText(subspace, sizeof(subspace), parentId))
 				{
 					SafeFormat(msg, "The subspace name already exists in '%s'", subspace);
 				}
@@ -210,7 +210,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				char msg[256];
 
 				char vname[128];
-				if (tree.TryGetText(vname, sizeof vname, parentId))
+				if (tree.TryGetText(vname, sizeof(vname), parentId))
 				{
 					SafeFormat(msg, "A variable with that name already exists");
 				}
@@ -258,7 +258,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 
 			char text[128];
-			if (!tree.TryGetText(text, sizeof text, id))
+			if (!tree.TryGetText(text, sizeof(text), id))
 			{
 				Throw(0, "Could not get text for the namespace item");
 			}
@@ -316,7 +316,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 
 			char text[128];
-			if (!tree.TryGetText(text, sizeof text, id))
+			if (!tree.TryGetText(text, sizeof(text), id))
 			{
 				Throw(0, "Could not get text for the function item");
 			}
@@ -363,7 +363,7 @@ namespace Rococo::CFGS::IDE::Sexy
 		void AppendNamespaceStructsRecursive(ISxyNamespace& subspace)
 		{
 			char structName[256] = { 0 };
-			StackStringBuilder sb(structName, sizeof structName, StringBuilder::CursorState::BUILD_EXISTING);
+			StackStringBuilder sb(structName, sizeof(structName), StringBuilder::CursorState::BUILD_EXISTING);
 
 			int nTypes = subspace.TypeCount();
 			for (int i = 0; i < nTypes; i++)
@@ -1362,11 +1362,11 @@ namespace Rococo::CFGS::IDE::Sexy
 				AutoFree<IVariableEditor> fnameEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a new private method...", &nullEventHandler);
 
 				FNameValidator fnameValidator(*fnameEditor, id, tree);
-				fnameEditor->AddStringEditor("Private Name", nullptr, fname, sizeof fname, &fnameValidator);
+				fnameEditor->AddStringEditor("Private Name", nullptr, fname, sizeof(fname), &fnameValidator);
 				if (fnameEditor->IsModalDialogChoiceYes())
 				{
 					char fullname[256] = "_";
-					CopyString(fullname+1, sizeof fullname - 1, fname);
+					CopyString(fullname+1, sizeof(fullname) - 1, fname);
 
 					auto newPrivateMethodId = tree.AddChild(privateMethodsId, fname, Visitors::CheckState_NoCheckBox);
 
@@ -1387,7 +1387,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, "CFGS Sexy IDE - Add a new public method...", &nullEventHandler);
 
 				NamespaceValidator fnameValidator(*nsEditor, id, tree);
-				nsEditor->AddStringEditor("Public Name", nullptr, fname, sizeof fname, &fnameValidator);
+				nsEditor->AddStringEditor("Public Name", nullptr, fname, sizeof(fname), &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
 					auto newFunctionId = tree.AddChild(publicMethodsId, fname, Visitors::CheckState_NoCheckBox);
@@ -1410,7 +1410,7 @@ namespace Rococo::CFGS::IDE::Sexy
 
 				VariableValidator vnameValidator(*nsEditor, id, tree);
 
-				nsEditor->AddStringEditor("Name", nullptr, fname, sizeof fname, &vnameValidator);
+				nsEditor->AddStringEditor("Name", nullptr, fname, sizeof(fname), &vnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
 					auto newVariableId = tree.AddChild(variablesId, fname, Visitors::CheckState_NoCheckBox);
@@ -1449,7 +1449,7 @@ namespace Rococo::CFGS::IDE::Sexy
 						if (l != variableIdSet.end())
 						{
 							char buffer[256];
-							if (tree.TryGetText(buffer, sizeof buffer, id))
+							if (tree.TryGetText(buffer, sizeof(buffer), id))
 							{
 								if (StartsWith(buffer, "Type: "))
 								{
@@ -1504,7 +1504,7 @@ namespace Rococo::CFGS::IDE::Sexy
 					FunctionId id = j->second;
 
 					char fname[256];
-					if (tree.TryGetText(fname, sizeof fname, childId))
+					if (tree.TryGetText(fname, sizeof(fname), childId))
 					{
 						cfgs.FindFunction(id)->SetName(fname);
 					}
@@ -1533,7 +1533,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			char newFunctionName[128] = { 0 };
 
 			char functionName[128];
-			if (tree.TryGetText(functionName, sizeof functionName, functionId))
+			if (tree.TryGetText(functionName, sizeof(functionName), functionId))
 			{
 				SafeFormat(newFunctionName, "%s", functionName);
 
@@ -1543,7 +1543,7 @@ namespace Rococo::CFGS::IDE::Sexy
 				AutoFree<IVariableEditor> nsEditor = gui.CreateVariableEditor(span, labelWidth, ntitle, &nullEventHandler);
 
 				RenameFNameValidator fnameValidator(*nsEditor, functionId, tree);
-				nsEditor->AddStringEditor("New Function Name", nullptr, newFunctionName, sizeof newFunctionName, &fnameValidator);
+				nsEditor->AddStringEditor("New Function Name", nullptr, newFunctionName, sizeof(newFunctionName), &fnameValidator);
 				if (nsEditor->IsModalDialogChoiceYes())
 				{
 					tree.SetText(functionId, newFunctionName);
@@ -1592,14 +1592,17 @@ namespace Rococo::CFGS::IDE::Sexy
 			SafeFormat(caption, "Select a new type for %s", def.name.c_str());
 
 			char newType[256];
-			if (gui.TryGetTypeFromSelectorBox("Type: ", caption, def.type, newType, sizeof newType))
+			if (gui.TryGetTypeFromSelectorBox("Type: ", caption, def.type, newType, sizeof(newType)))
 			{
 				def.type = newType;
 
 				auto typeId = tree.FindFirstChild(variableId, nullptr);
 
 				char buffer[256];
-				tree.TryGetText(buffer, sizeof buffer, typeId);
+				if (!tree.TryGetText(buffer, sizeof(buffer), typeId))
+				{
+					Throw(0, "tree.TryGetText failed");
+				}
 
 				if (StartsWith(buffer, "Type: "))
 				{
@@ -1627,7 +1630,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			}
 
 			char functionName[128];
-			if (tree.TryGetText(functionName, sizeof functionName, functionId))
+			if (tree.TryGetText(functionName, sizeof(functionName), functionId))
 			{
 				char caption[256];
 				SafeFormat(caption, "%s - Delete function %s?", title, functionName);
@@ -1763,7 +1766,7 @@ namespace Rococo::CFGS::IDE::Sexy
 			while (childId.value)
 			{
 				char name[128];
-				if (tree.TryGetText(name, sizeof name, childId))
+				if (tree.TryGetText(name, sizeof(name), childId))
 				{
 					sb.AddDirective("Function");
 					sb.AddAtomicAttribute("name", name);

@@ -98,7 +98,7 @@ namespace AudioAnon
 			if (msg)
 			{
 				char osErr[256];
-				osAPI.TranslateErrorCode(err, osErr, sizeof osErr);
+				osAPI.TranslateErrorCode(err, osErr, sizeof(osErr));
 				Throw(err, "%s: Thread error: %s.\n%s", __ROCOCO_FUNCTION__, msg, osErr);
 			}
 

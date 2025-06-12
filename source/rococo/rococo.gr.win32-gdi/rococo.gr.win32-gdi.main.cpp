@@ -1823,7 +1823,7 @@ namespace GRANON
 
 		void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context, IGRSystem& gr) override
 		{
-			static_assert(sizeof GRCursorClick == sizeof uint16);
+			static_assert(sizeof(GRCursorClick) == sizeof(uint16));
 
 			history.clear();
 			if (me.buttonFlags != 0)

@@ -34,7 +34,7 @@ void ClearPerformanceMap()
 		StackFrame::Address addr;
 		addr.segment = 0;
 		addr.offset = i.second;
-		Debugging::FormatStackFrame(desc, sizeof desc, addr);
+		Debugging::FormatStackFrame(desc, sizeof(desc), addr);
 		printf("%4.4d - %s\n", i.first, desc);
 	}
 }

@@ -182,7 +182,7 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 			if (!atLeastOne)
 			{
 				char msg[256];
-				SafeFormat(msg, sizeof msg, "No HLSL files were detected in % s", path);
+				SafeFormat(msg, sizeof(msg), "No HLSL files were detected in % s", path);
 				Log(IO::EShaderLogPriority::Warning, "#", msg);
 			}
 

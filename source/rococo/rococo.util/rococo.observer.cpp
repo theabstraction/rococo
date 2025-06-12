@@ -24,7 +24,7 @@ namespace
 	struct LargestPossibleEvent : EventArgs
 	{
 		enum { LARGEST_POSSIBLE_EVENT_LENGTH = 256 };
-		char data[LARGEST_POSSIBLE_EVENT_LENGTH - sizeof EventArgs];
+		char data[LARGEST_POSSIBLE_EVENT_LENGTH - sizeof(EventArgs)];
 	};
 
 	struct EventBinding
@@ -36,7 +36,7 @@ namespace
 
 		EventBinding& operator = (const EventBinding& src)
 		{
-			static_assert(sizeof LargestPossibleEvent == LargestPossibleEvent::LARGEST_POSSIBLE_EVENT_LENGTH);
+			static_assert(sizeof(LargestPossibleEvent) == LargestPossibleEvent::LARGEST_POSSIBLE_EVENT_LENGTH);
 
 			memcpy(&largestPossibleEvent, &src.largestPossibleEvent, src.largestPossibleEvent.sizeInBytes);
 			isLossy = src.isLossy;
@@ -352,7 +352,7 @@ namespace Rococo::Events
 		if (Strings::Compare(fargs, evArgType.start, len) != 0 || !Eq(fargs + len, " &))"))
 		{
 			char buf[192];
-			evArgType.CopyWithTruncate(buf, sizeof buf);
+			evArgType.CopyWithTruncate(buf, sizeof(buf));
 			Throw(0, "Expected method handler for %s to be of type void (%s& args).\nCaller: %s\nHandler: %s", ev.id.name, buf, ev.callerSignature, functionSignature);
 		}
 	}

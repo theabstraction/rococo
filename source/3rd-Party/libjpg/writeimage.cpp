@@ -133,7 +133,7 @@ namespace Rococo
 		va_start(args, format);
 
 		ImageException ex;
-		_vsnprintf_s(ex.msg, sizeof ex.msg, _TRUNCATE, format, args);
+		_vsnprintf_s(ex.msg, sizeof(ex.msg), _TRUNCATE, format, args);
 		ex.errorCode = errorCode;
 		throw ex;
 	}

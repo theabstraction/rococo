@@ -16,7 +16,7 @@ namespace Rococo::Components
 	template<class T>
 	void AssignRef(RefPointers& ptrs, T& ref)
 	{
-		static_assert((sizeof T::TInterface) == sizeof IComponentBase, "The interface T must derive from IComponentBase without extra vtables.");
+		static_assert(sizeof(T::TInterface) == sizeof(IComponentBase), "The interface T must derive from IComponentBase without extra vtables.");
 		if (ref)
 		{
 			T::TInterface* component = &ref.GetComponent();

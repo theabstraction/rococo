@@ -1,4 +1,5 @@
 // For copyright, see copyright.txt in the Rococo root folder. All files in the Rococo repo that include this header are covered by it.
+#pragma once
 
 #ifndef Rococo_TYPES_H
 #define Rococo_TYPES_H
@@ -877,4 +878,10 @@ namespace Rococo::Validators
 int _i64toa_s(int64 value, char* buffer, size_t capacity, int radix);
 int _itoa_s(int value, char* buffer, size_t capacity, int radix);
 int _ui64toa_s(int64 value, char* buffer, size_t capacity, int radix);
+#endif
+
+#ifdef TEXT
+# define _RW_TEXT(x) TEXT(x)
+#else
+# define _RW_TEXT(x) L ## x
 #endif

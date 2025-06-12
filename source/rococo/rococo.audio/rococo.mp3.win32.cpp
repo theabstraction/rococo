@@ -36,7 +36,7 @@ namespace AudioAnon
 
 	void CopyData(StereoSample_INT16* __restrict output, const LPBYTE __restrict input, uint32 nSamples)
 	{
-		memcpy(output, input, nSamples * sizeof StereoSample_INT16);
+		memcpy(output, input, nSamples * sizeof(StereoSample_INT16));
 	}
 
 	// https://docs.microsoft.com/en-us/windows/win32/medfound/uncompressed-audio-media-types

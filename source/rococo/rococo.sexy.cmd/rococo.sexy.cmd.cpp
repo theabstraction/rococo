@@ -278,7 +278,7 @@ int PrintError(IException& ex)
 		cstr message = ex.Message();
 
 		char osMessage[256];
-		Rococo::OS::FormatErrorMessage(osMessage, sizeof osMessage, ex.ErrorCode());
+		Rococo::OS::FormatErrorMessage(osMessage, sizeof(osMessage), ex.ErrorCode());
 
 		fprintf(stderr, "\r\nError code %d (0x%X):%s\r\n", ex.ErrorCode(), ex.ErrorCode(), osMessage);
 
@@ -729,7 +729,7 @@ int mainProtected(int argc, char* argv[])
 				char errCode[256] = { 0 };
 				if (ex.ErrorCode())
 				{
-					Rococo::OS::FormatErrorMessage(errCode, sizeof errCode, ex.ErrorCode());
+					Rococo::OS::FormatErrorMessage(errCode, sizeof(errCode), ex.ErrorCode());
 					fprintf(stderr, "Code %d 0x%X: %s\n", ex.ErrorCode(), ex.ErrorCode(), errCode);
 				}
 

@@ -196,7 +196,7 @@ namespace Rococo::GreatSex
 					if (foundColour == false)
 					{
 						char possibilities[2048];
-						StackStringBuilder sb(possibilities, sizeof possibilities);
+						StackStringBuilder sb(possibilities, sizeof(possibilities));
 						sb << "\n\tApplyTo";
 
 						for (auto& bind : colourDirectiveBindings)

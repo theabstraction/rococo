@@ -55,7 +55,7 @@ namespace Rococo::IO
 	static void ValidateInt32(IBinarySource& source, int32 value)
 	{
 		int32 archiveValue;
-		source.Read(sizeof int32, &archiveValue);
+		source.Read(sizeof(int32), &archiveValue);
 
 		if (archiveValue != value)
 		{
@@ -66,7 +66,7 @@ namespace Rococo::IO
 	static void ValidateInt64(IBinarySource& source, int64 value)
 	{
 		int64 archiveValue;
-		source.Read(sizeof int64, &archiveValue);
+		source.Read(sizeof(int64), &archiveValue);
 
 		if (archiveValue != value)
 		{

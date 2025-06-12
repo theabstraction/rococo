@@ -23,12 +23,12 @@ namespace AudioAnon
 		{
 			channelMask = 0;
 
-			memset(&e, 0, sizeof e);
+			memset(&e, 0, sizeof(e));
 			e.ChannelCount = 1;
 			e.CurveDistanceScaler = 1.0f;
 			e.DopplerScaler = 1.0f;
 
-			memset(&dsp, 0, sizeof dsp);
+			memset(&dsp, 0, sizeof(dsp));
 
 			dsp.SrcChannelCount = 1;
 			dsp.pMatrixCoefficients = &matrix;
@@ -42,7 +42,7 @@ namespace AudioAnon
 
 		const EmitterDSP& Dsp() const
 		{
-			static_assert(sizeof EmitterDSP == sizeof X3DAUDIO_DSP_SETTINGS);
+			static_assert(sizeof(EmitterDSP) == sizeof(X3DAUDIO_DSP_SETTINGS));
 			return reinterpret_cast<const EmitterDSP&>(dsp);
 		}
 

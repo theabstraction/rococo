@@ -23,7 +23,7 @@ namespace Rococo
 
 		T* allocate(std::size_t nElements)
 		{
-			return (T*) malloc(nElements * sizeof T);
+			return (T*) malloc(nElements * sizeof(T));
 		}
 		void deallocate(T* p, std::size_t n) noexcept
 		{

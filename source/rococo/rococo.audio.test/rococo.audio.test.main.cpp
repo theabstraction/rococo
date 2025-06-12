@@ -113,19 +113,19 @@ namespace
 			RECT clientRect;
 			GetClientRect(*window, &clientRect);
 
-			ControlId nCompassDirections = sizeof compassButtons / sizeof PositionButton;
+			ControlId nCompassDirections = sizeof(compassButtons) / sizeof(PositionButton);
 			for (ControlId i = 0; i < nCompassDirections; i++)
 			{
 				AddPushButton(*window, compassButtons[i].buttonRect, compassButtons[i].name, ((ControlId) Ids::COMPASS_ID_START) + i, 0);
 			}
 
-			size_t nElevations = sizeof elevationButtons / sizeof ElevationButton;
+			size_t nElevations = sizeof(elevationButtons) / sizeof(ElevationButton);
 			for (ControlId i = 0; i < nElevations; i++)
 			{
 				AddPushButton(*window, elevationButtons[i].buttonRect, elevationButtons[i].name, ((ControlId)Ids::ELEVATION_ID_START) + i, 0);
 			}
 
-			ControlId nSamples = sizeof sampleButtons / sizeof SampleButton;
+			ControlId nSamples = sizeof(sampleButtons) / sizeof(SampleButton);
 			for (ControlId i = 0; i < nSamples; i++)
 			{
 				AddPushButton(*window, sampleButtons[i].buttonRect, sampleButtons[i].name, ((ControlId) Ids::SAMPLE_ID_START) + i, 0);
@@ -174,9 +174,9 @@ namespace
 
 		void OnMenuCommand(HWND, DWORD id) override
 		{
-			ControlId nCompassDirections = sizeof compassButtons / sizeof PositionButton;
-			ControlId nElevations = sizeof elevationButtons / sizeof ElevationButton;
-			ControlId nSamples = sizeof sampleButtons / sizeof SampleButton;
+			ControlId nCompassDirections = sizeof(compassButtons) / sizeof (PositionButton);
+			ControlId nElevations = sizeof(elevationButtons) / sizeof(ElevationButton);
+			ControlId nSamples = sizeof(sampleButtons) / sizeof(SampleButton);
 
 			if (id == IDCANCEL)
 			{
@@ -188,14 +188,14 @@ namespace
 				auto& button = compassButtons[index];
 				soundPosition = button.soundPosition;
 				soundPosition.z = height;
-				Rococo::Strings::CopyString(bearing, sizeof bearing, button.name);
+				Rococo::Strings::CopyString(bearing, sizeof(bearing), button.name);
 			}
 			else if (id >= (ControlId)Ids::ELEVATION_ID_START && id <= (ControlId)Ids::ELEVATION_ID_START + nElevations)
 			{
 				ControlId index = id - (ControlId)Ids::ELEVATION_ID_START;
 				auto& button = elevationButtons[index];
 				height = soundPosition.z = button.height;
-				Rococo::Strings::CopyString(elevation, sizeof elevation, button.name);
+				Rococo::Strings::CopyString(elevation, sizeof(elevation), button.name);
 			}
 			else if (id >= (ControlId)Ids::SAMPLE_ID_START && id <= (ControlId)Ids::SAMPLE_ID_START + nSamples)
 			{
@@ -204,7 +204,7 @@ namespace
 				sampleId = audio.Bind3DSample(to_fstring(button.pingPath));
 				if (!sampleId)
 				{
-					SafeFormat(err, sizeof err, "Failed to bind %s", button.pingPath);
+					SafeFormat(err, sizeof(err), "Failed to bind %s", button.pingPath);
 				}
 				else
 				{

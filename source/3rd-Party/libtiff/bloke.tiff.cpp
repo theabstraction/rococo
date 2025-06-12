@@ -54,7 +54,7 @@ namespace Rococo
 		va_start(args, format);
 
 		ImageException ex;
-		_vsnprintf_s(ex.msg, sizeof ex.msg, _TRUNCATE, format, args);
+		_vsnprintf_s(ex.msg, sizeof(ex.msg), _TRUNCATE, format, args);
 		ex.errorCode = errorCode;
 		throw ex;
 	}
@@ -97,7 +97,7 @@ namespace Rococo::OS
 		va_list arglist;
 		va_start(arglist, format);
 		char line[4096];
-		vsnprintf(line, sizeof line, format, arglist);
+		vsnprintf(line, sizeof(line), format, arglist);
 		OutputDebugStringA(line);
 # else
 	UNUSED(format);

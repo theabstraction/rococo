@@ -201,7 +201,7 @@ namespace GRANON
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i32Value, meta.max.i32Value) : result.Value;
 
 					char buffer[16];
-					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof(buffer));
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
@@ -212,7 +212,7 @@ namespace GRANON
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i64Value, meta.max.i64Value) : result.Value;
 
 					char buffer[32];
-					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof(buffer));
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
@@ -759,7 +759,7 @@ namespace GRANON
 			}
 
 			char text[256];
-			editor.GetTextAndLength(text, sizeof text);
+			editor.GetTextAndLength(text, sizeof(text));
 
 			auto result = i->second->TryParseAndWriteBackToOrigin(text, editor);
 			if (result != EParseAndWriteBackResult::Success)
@@ -969,7 +969,7 @@ namespace GRANON
 			if (field.value.type != PrimitiveType::CSTR && field.value.type != PrimitiveType::HSTR)
 			{
 				char buf[16];
-				if (!ToAscii(field.value, buf, sizeof buf, field.meta))
+				if (!ToAscii(field.value, buf, sizeof(buf), field.meta))
 				{	
 					RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Could not get an ascii representation of the field value");
 				}
@@ -1059,7 +1059,7 @@ namespace GRANON
 			if (data.fields.empty())
 			{
 				char message[1024];
-				Strings::StackStringBuilder sb(message, sizeof message);
+				Strings::StackStringBuilder sb(message, sizeof(message));
 				sb.AppendFormat("[PreviewData& data] had no fields.\n");
 
 				PreviewData* pData = &data;

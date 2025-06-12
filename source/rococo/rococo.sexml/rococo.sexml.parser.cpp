@@ -231,7 +231,7 @@ namespace Rococo::Sex::SEXML
 				}
 			}
 
-			void* pMemory = allocator.Allocate(sizeof SmallVectorI);
+			void* pMemory = allocator.Allocate(sizeof(SmallVectorI));
 			return new (pMemory) SmallVectorI(a, sAttribute, items);
 		}
 	};
@@ -318,7 +318,7 @@ namespace Rococo::Sex::SEXML
 				}
 			}
 
-			void* pMemory = allocator.Allocate(sizeof SmallVector);
+			void* pMemory = allocator.Allocate(sizeof(SmallVector));
 			return new (pMemory) SmallVector(a, sAttribute, items);
 		}
 	};
@@ -434,7 +434,7 @@ namespace Rococo::Sex::SEXML
 					// Raw expression (' <name> ...) - The value of the raw expression is the s-expression of the attribute itself.
 					// If we were instead to define the third argument as the value, this would entail wrapping a list of items in parenthesis, adding to bloat.
 					type = SEXMLValueType::Raw;
-					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
+					auto* pMemory = root.Allocator().Allocate(sizeof(RawValue));
 					a = new (pMemory) RawValue(*this, sAttribute);
 				}
 				else if (Eq(fName, "#Vec2"))
@@ -539,7 +539,7 @@ namespace Rococo::Sex::SEXML
 						type = SEXMLValueType::AtomicList;
 					}
 
-					auto* pMemory = root.Allocator().Allocate(sizeof ListValue);
+					auto* pMemory = root.Allocator().Allocate(sizeof(ListValue));
 					a = new (pMemory) ListValue(*this, sAttribute, type);
 				}
 				else
@@ -558,7 +558,7 @@ namespace Rococo::Sex::SEXML
 
 					if (s.NumberOfElements() == 1)
 					{
-						auto* pMemory = root.Allocator().Allocate(sizeof NullValue);
+						auto* pMemory = root.Allocator().Allocate(sizeof(NullValue));
 						a = new (pMemory) NullValue(*this);
 					}
 					else
@@ -581,7 +581,7 @@ namespace Rococo::Sex::SEXML
 							Throw(attributeFunction, "Expecting either an atomic or string literal for the value of the attribute. Perhaps you are missing a colon ':' that specifies the sub-directives from the attributes.");
 						}
 
-						auto* pMemory = root.Allocator().Allocate(sizeof StringValue);
+						auto* pMemory = root.Allocator().Allocate(sizeof(StringValue));
 						a = new (pMemory) StringValue(*this, sValue);
 					}
 				}
@@ -666,7 +666,7 @@ namespace Rococo::Sex::SEXML
 						Throw(sAttribute, "Expected a (name value) pair for attribute %d, but the expression was not compound", i - 1);
 					}
 
-					void* pMemory = root.Allocator().Allocate(sizeof Attribute);
+					void* pMemory = root.Allocator().Allocate(sizeof(Attribute));
 
 					try
 					{
@@ -703,7 +703,7 @@ namespace Rococo::Sex::SEXML
 						Throw(sSubdirective, "Expecting compound expression for sub directive [%d]", i);
 					}
 
-					void* pMemory = root.Allocator().Allocate(sizeof Impl::Directive);
+					void* pMemory = root.Allocator().Allocate(sizeof(Impl::Directive));
 
 					try
 					{
@@ -881,7 +881,7 @@ namespace Rococo::Sex::SEXML
 						Throw(sDirective, "Expecting compound expression for top level directive [%d]", i);
 					}
 
-					void* pMemory = allocator.Allocate(sizeof Impl::Directive);
+					void* pMemory = allocator.Allocate(sizeof(Impl::Directive));
 
 					try
 					{
@@ -957,7 +957,7 @@ namespace Rococo::Sex::SEXML
 	{
 		_invalid_parameter_handler old = _set_invalid_parameter_handler(OnBadParameter);
 
-		void* pMemory = allocator.Allocate(sizeof Impl::SEXMLParser);
+		void* pMemory = allocator.Allocate(sizeof(Impl::SEXMLParser));
 
 		try
 		{

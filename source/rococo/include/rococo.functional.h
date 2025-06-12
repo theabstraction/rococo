@@ -173,7 +173,7 @@ namespace Rococo
 		template<typename FUNCTOR>
 		ArbitraryFunction(FUNCTOR f)
 		{
-			if constexpr (sizeof(ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>) > sizeof (stackspace))
+			if constexpr (sizeof(ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>) > sizeof(stackspace))
 			{
 				implementation = new ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>(f);
 			}

@@ -63,7 +63,7 @@ namespace Rococo::CFGS
 
 		spec.lpstrFile = path.buf;
 		*path.buf = 0;
-		spec.nMaxFile = sizeof path / sizeof(wchar_t);
+		spec.nMaxFile = sizeof(path) / sizeof(wchar_t);
 
 		char title[256];
 		Strings::SecureFormat(title, 256, "Select a flow graph file");

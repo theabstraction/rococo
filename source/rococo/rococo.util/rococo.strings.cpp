@@ -461,6 +461,16 @@ namespace Rococo::Strings
 		return count;
 	}
 
+	ROCOCO_API cstr FindSubstring(cstr bigText, cstr searchTerm)
+	{
+		return strstr(bigText, searchTerm);
+	}
+
+	ROCOCO_API crwstr FindSubstring(crwstr bigText, crwstr searchTerm)
+	{
+		return wcsstr(bigText, searchTerm);
+	}
+
 	ROCOCO_UTIL_API cstr ForwardFind(char c, cr_substring text)
 	{
 		if (text.empty()) return nullptr;
@@ -1520,7 +1530,7 @@ namespace Rococo::Reflection
 		char text[1024];
 		va_list args;
 		va_start(args, format);
-		SafeVFormat(text, sizeof text, format, args);
+		SafeVFormat(text, sizeof(text), format, args);
 		va_end(args);
 
 		auto readOnly = Reflection::ReflectionMetaData::ReadOnly();
@@ -1532,7 +1542,7 @@ namespace Rococo::Reflection
 		char text[256];
 		va_list args;
 		va_start(args, format);
-		SafeVFormat(text, sizeof text, format, args);
+		SafeVFormat(text, sizeof(text), format, args);
 		va_end(args);
 
 		v.EnterSection(text);
@@ -1543,7 +1553,7 @@ namespace Rococo::Reflection
 		char text[256];
 		va_list args;
 		va_start(args, format);
-		SafeVFormat(text, sizeof text, format, args);
+		SafeVFormat(text, sizeof(text), format, args);
 		va_end(args);
 
 		v.EnterElement(text);

@@ -277,7 +277,7 @@ namespace Rococo::Memory::ANON
                     auto addr = i.second.addr;
 
                     char buffer[1024];
-                    FormatStackFrame(buffer, sizeof buffer, addr);
+                    FormatStackFrame(buffer, sizeof(buffer), addr);
 
                     PrintD("Leak allocated at %s\n", buffer);
                 }

@@ -32,7 +32,7 @@ namespace Rococo
 	{
 	public:
 		static constexpr uint64 INDEX_MASK = GetIndexMask(SALT_BITCOUNT);
-		static constexpr uint64 SALT_SHIFT = (8 * sizeof uint64) - SALT_BITCOUNT;
+		static constexpr uint64 SALT_SHIFT = (8 * sizeof(uint64)) - SALT_BITCOUNT;
 		static constexpr uint64 SALT_MASK = ~INDEX_MASK;
 
 	private:

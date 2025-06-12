@@ -358,7 +358,7 @@ struct JSonParser: IJSonParserSupervisor
 		// First character has already been validated, so copy it
 		*dest++ = *p++;
 
-		for (size_t i = 0; i < sizeof numberBuffer - 2; i++)
+		for (size_t i = 0; i < sizeof(numberBuffer) - 2; i++)
 		{
 			char c = *p++;
 			if (c == 0)
