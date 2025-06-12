@@ -223,7 +223,6 @@ namespace Rococo
             conf.SourceFilesBuildExcludeRegex.Add(@"\.*(" + string.Join("|", excludedFileSuffixes.ToArray()) + @")\.cpp$");
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
             conf.Defines.Add("__ROCOCO_WIDECHAR__=wchar_t");
-            conf.Defines.Add("_RW_TEXT=L");
             if (importRococoAPI)
             {
                 conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
