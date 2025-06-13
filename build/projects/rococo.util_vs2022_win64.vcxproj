@@ -68,7 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllexport);WIN64;_DEBUG;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllexport);ROCOCO_WIDECHAR_IS_WCHAR_T;WIN64;_DEBUG;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -142,7 +142,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.util.lib</ImportLibrary>
@@ -153,7 +154,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllexport);WIN64;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllexport);ROCOCO_WIDECHAR_IS_WCHAR_T;WIN64;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.util.lib</ImportLibrary>
@@ -240,6 +242,7 @@
     <Natvis Include="..\..\source\rococo\rococo.util\rococo.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.strings.ex\rococo.char16.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\joysticks.xbox360.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.allocators.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.base.cpp" />

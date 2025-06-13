@@ -68,7 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>CFGS_MARSHALLER_API=__declspec(dllexport);ROCOCO_API=__declspec(dllimport);WIN64;_DEBUG;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CFGS_MARSHALLER_API=__declspec(dllexport);ROCOCO_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;WIN64;_DEBUG;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -154,7 +154,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>CFGS_MARSHALLER_API=__declspec(dllexport);NDEBUG;ROCOCO_API=__declspec(dllimport);WIN64;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CFGS_MARSHALLER_API=__declspec(dllexport);NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;WIN64;_USRDLL;__ROCOCO_WIDECHAR__=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>

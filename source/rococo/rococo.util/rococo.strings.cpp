@@ -1,4 +1,9 @@
 #include <rococo.types.h>
+
+#ifdef ROCOCO_WIDECHAR_IS_CHAR_16_T
+#include "../rococo.strings.ex/rococo.char16.cpp"
+#endif
+
 #include <stdarg.h>
 #include <rococo.functional.h>
 #include <rococo.debugging.h>
@@ -24,8 +29,8 @@
 using namespace Rococo;
 using namespace Rococo::Strings;
 
-#ifndef ROCOCO_UTIL_API
-# define ROCOCO_UTIL_API __declspec(dllexport)
+#ifndef ROCOCO_API
+# define ROCOCO_API __declspec(dllexport)
 #endif
 
 namespace Rococo
@@ -240,7 +245,7 @@ namespace Rococo::Strings
 		return digits[c & 0xF];
 	}
 
-	ROCOCO_UTIL_API void AppendAsciiCode(StringBuilder& sb, char c)
+	ROCOCO_API void AppendAsciiCode(StringBuilder& sb, char c)
 	{
 		char buf[3] = { 0,0,0 };
 		buf[0] = ToHex(c >> 16);
@@ -248,7 +253,7 @@ namespace Rococo::Strings
 		sb << buf;
 	}
 
-	ROCOCO_UTIL_API void AppendEscapedSexyString(StringBuilder& sb, cstr text)
+	ROCOCO_API void AppendEscapedSexyString(StringBuilder& sb, cstr text)
 	{
 		for (const char* s = text; *s != 0; s++)
 		{
@@ -353,7 +358,7 @@ namespace Rococo::Strings
 		}
 	}
 #endif
-	ROCOCO_UTIL_API int32 MakePath(U8FilePath& combinedPath, cstr rootPath, cstr subdirectory)
+	ROCOCO_API int32 MakePath(U8FilePath& combinedPath, cstr rootPath, cstr subdirectory)
 	{
 		auto len = strlen(rootPath);
 		if (len > 0)
@@ -373,7 +378,7 @@ namespace Rococo::Strings
 		}
 	}
 
-	ROCOCO_UTIL_API int32 Format(U8FilePath& path, cstr format, ...)
+	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -385,7 +390,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int32 Format(WideFilePath& path, crwstr format, ...)
+	ROCOCO_API int32 Format(WideFilePath& path, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -397,7 +402,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API cstr FindSubstring(cr_substring bigText, const fstring& searchTerm)
+	ROCOCO_API cstr FindSubstring(cr_substring bigText, const fstring& searchTerm)
 	{
 		if (bigText.Length() < searchTerm.length)
 		{
@@ -417,7 +422,7 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API cstr FindSubstring(cr_substring bigText, cr_substring searchTerm)
+	ROCOCO_API cstr FindSubstring(cr_substring bigText, cr_substring searchTerm)
 	{
 		if (bigText.Length() < searchTerm.Length())
 		{
@@ -437,7 +442,7 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API int ForEachOccurence(cr_substring text, cr_substring searchTerm, Rococo::Function<void(cr_substring match)> lambda)
+	ROCOCO_API int ForEachOccurence(cr_substring text, cr_substring searchTerm, Rococo::Function<void(cr_substring match)> lambda)
 	{
 		int count = 0;
 
@@ -466,12 +471,14 @@ namespace Rococo::Strings
 		return strstr(bigText, searchTerm);
 	}
 
-	ROCOCO_API crwstr FindSubstring(crwstr bigText, crwstr searchTerm)
+#ifdef ROCOCO_WIDECHAR_IS_WCHAR_T
+	ROCOCO_API crwstr FindSubstring(const wchar_t* bigText, crwstr searchTerm)
 	{
 		return wcsstr(bigText, searchTerm);
 	}
+#endif
 
-	ROCOCO_UTIL_API cstr ForwardFind(char c, cr_substring text)
+	ROCOCO_API cstr ForwardFind(char c, cr_substring text)
 	{
 		if (text.empty()) return nullptr;
 
@@ -486,32 +493,32 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API bool IsCapital(char c)
+	ROCOCO_API bool IsCapital(char c)
 	{
 		return c >= 'A' && c <= 'Z';
 	}
 
-	ROCOCO_UTIL_API bool IsLowerCase(char c)
+	ROCOCO_API bool IsLowerCase(char c)
 	{
 		return c >= 'a' && c <= 'z';
 	}
 
-	ROCOCO_UTIL_API bool IsAlphabetical(char c)
+	ROCOCO_API bool IsAlphabetical(char c)
 	{
 		return IsCapital(c) || IsLowerCase(c);
 	}
 
-	ROCOCO_UTIL_API bool IsNumeric(char c)
+	ROCOCO_API bool IsNumeric(char c)
 	{
 		return c >= '0' && c <= '9';
 	}
 
-	ROCOCO_UTIL_API bool IsAlphaNumeric(char c)
+	ROCOCO_API bool IsAlphaNumeric(char c)
 	{
 		return IsAlphabetical(c) || IsNumeric(c);
 	}
 
-	ROCOCO_UTIL_API bool IsAlphaNumeric(cr_substring s)
+	ROCOCO_API bool IsAlphaNumeric(cr_substring s)
 	{
 		for (auto c : s)
 		{
@@ -524,7 +531,7 @@ namespace Rococo::Strings
 		return true;
 	}
 
-	ROCOCO_UTIL_API int32 HashArg(int32 x)
+	ROCOCO_API int32 HashArg(int32 x)
 	{
 		struct ANON
 		{
@@ -543,7 +550,7 @@ namespace Rococo::Strings
 		return ANON::robert_jenkins_32bit_hash(x);
 	}
 
-	ROCOCO_UTIL_API int32 HashArg(int64 x)
+	ROCOCO_API int32 HashArg(int64 x)
 	{
 		struct ANON
 		{
@@ -562,7 +569,7 @@ namespace Rococo::Strings
 		return ANON::robert_jenkins_64bit_hash(x);
 	}
 
-	ROCOCO_UTIL_API size_t HashArg(cstr s)
+	ROCOCO_API size_t HashArg(cstr s)
 	{
 		struct ANON
 		{
@@ -586,7 +593,7 @@ namespace Rococo::Strings
 		return ANON::jenkins_one_at_a_time_hash(s, StringLength(s));
 	}
 
-	ROCOCO_UTIL_API int32 HashArg(cstr s, int64 length)
+	ROCOCO_API int32 HashArg(cstr s, int64 length)
 	{
 		struct ANON
 		{
@@ -610,7 +617,7 @@ namespace Rococo::Strings
 		return ANON::jenkins_one_at_a_time_hash(s, length);
 	}
 
-	ROCOCO_UTIL_API void Populate(cr_substring item, IStringPopulator& populator)
+	ROCOCO_API void Populate(cr_substring item, IStringPopulator& populator)
 	{
 		if (!item) return;
 
@@ -622,7 +629,7 @@ namespace Rococo::Strings
 		populator.Populate(stackbuffer);
 	}
 
-	ROCOCO_UTIL_API cstr ReverseFind(char c, cr_substring token)
+	ROCOCO_API cstr ReverseFind(char c, cr_substring token)
 	{
 		if (!token) return nullptr;
 
@@ -637,7 +644,7 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API cstr FindChar(cstr token, char c)
+	ROCOCO_API cstr FindChar(cstr token, char c)
 	{
 		for (cstr p = token; *p != 0; p++)
 		{
@@ -650,7 +657,7 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API cstr SkipBlankspace(cr_substring token)
+	ROCOCO_API cstr SkipBlankspace(cr_substring token)
 	{
 		for (cstr p = token.start; p != token.finish; p++)
 		{
@@ -663,7 +670,7 @@ namespace Rococo::Strings
 		return token.finish;
 	}
 
-	ROCOCO_UTIL_API cstr SkipNotBlankspace(cr_substring token)
+	ROCOCO_API cstr SkipNotBlankspace(cr_substring token)
 	{
 		for (cstr p = token.start; p != token.finish; p++)
 		{
@@ -676,7 +683,7 @@ namespace Rococo::Strings
 		return token.finish;
 	}
 
-	ROCOCO_UTIL_API Substring RightOfFirstChar(char c, cr_substring token)
+	ROCOCO_API Substring RightOfFirstChar(char c, cr_substring token)
 	{
 		if (token)
 		{
@@ -692,7 +699,7 @@ namespace Rococo::Strings
 		return Substring::Null();
 	}
 
-	ROCOCO_UTIL_API void Substring::CopyWithTruncate(char* buffer, size_t capacity) const
+	ROCOCO_API void Substring::CopyWithTruncate(char* buffer, size_t capacity) const
 	{
 		if (!buffer || capacity == 0)
 		{
@@ -711,13 +718,13 @@ namespace Rococo::Strings
 		buffer[writeLength] = 0;
 	}
 
-	ROCOCO_UTIL_API Substring Substring::ToSubstring(cstr text)
+	ROCOCO_API Substring Substring::ToSubstring(cstr text)
 	{
 		return text ? Substring{ text, strlen(text) + text } : Substring::Null();
 	}
 
 	// N.B sexy script language string length is int32 with max 2^31-1 chars
-	ROCOCO_UTIL_API int32 StringLength(const char* s)
+	ROCOCO_API int32 StringLength(const char* s)
 	{
 		enum { MAX_INT32 = 0x7FFFFFFF };
 		size_t l = strlen(s);
@@ -729,8 +736,10 @@ namespace Rococo::Strings
 		return (int32)l;
 	}
 
+#ifdef ROCOCO_WIDECHAR_IS_WCHAR_T
+
 	// N.B sexy script language string length is int32 with max 2^31-1 chars
-	ROCOCO_UTIL_API int32 StringLength(crwstr s)
+	ROCOCO_API int32 StringLength(const wchar_t* s)
 	{
 		enum { MAX_INT32 = 0x7FFFFFFF };
 		size_t l = wcslen(s);
@@ -742,7 +751,9 @@ namespace Rococo::Strings
 		return (int32)l;
 	}
 
-	ROCOCO_UTIL_API int WriteToStandardOutput(const char* format, ...)
+#endif
+
+	ROCOCO_API int WriteToStandardOutput(const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -755,34 +766,34 @@ namespace Rococo::Strings
 	}
 
 #ifdef _WIN32
-	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source)
+	ROCOCO_API void CopyString(char* dest, size_t capacity, const char* source)
 	{
 		strcpy_s(dest, capacity, source);
 	}
 
-	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source, size_t nChars)
+	ROCOCO_API void CopyString(char* dest, size_t capacity, const char* source, size_t nChars)
 	{
 		strncpy_s(dest, capacity, source, nChars);
 	}
 #else
-	ROCOCO_UTIL_API void CopyString(char* dest, size_t capacity, const char* source)
+	ROCOCO_API void CopyString(char* dest, size_t capacity, const char* source)
 	{
 		strncpy(dest, source, capacity);
 	}
 #endif
 
 #ifdef _WIN32
-	ROCOCO_UTIL_API void StringCat(char* buf, const char* source, int maxChars)
+	ROCOCO_API void StringCat(char* buf, const char* source, int maxChars)
 	{
 		strcat_s(buf, maxChars, source);
 	}
 
-	ROCOCO_UTIL_API void StringCat(wchar_t* buf, crwstr source, int maxChars)
+	ROCOCO_API void StringCat(wchar_t* buf, crwstr source, int maxChars)
 	{
 		wcscat_s(buf, maxChars, source);
 	}
 #else
-	ROCOCO_UTIL_API StringCat(char* buf, const char* source, int maxChars)
+	ROCOCO_API void StringCat(char* buf, const char* source, int maxChars)
 	{
 		strncat(buf, source, maxChars);
 	}
@@ -793,17 +804,17 @@ namespace Rococo::Strings
 		Format(dest, "%s", src);
 	}
 
-	ROCOCO_UTIL_API void Assign(U8FilePath& dest, crwstr wideSrc)
+	ROCOCO_API void Assign(U8FilePath& dest, crwstr wideSrc)
 	{
 		Format(dest, "%ls", wideSrc);
 	}
 
-	ROCOCO_UTIL_API void Assign(WideFilePath& dest, const char* src)
+	ROCOCO_API void Assign(WideFilePath& dest, const char* src)
 	{
 		Format(dest, L"%hs", src);
 	}
 
-	ROCOCO_UTIL_API void Assign(U32FilePath& dest, const char32_t* wideSrc)
+	ROCOCO_API void Assign(U32FilePath& dest, const char32_t* wideSrc)
 	{
 		if (wideSrc == nullptr) wideSrc = U"<null>";
 
@@ -831,19 +842,19 @@ namespace Rococo::Strings
 		Throw(0, "Failed to assign UTF-32 string - truncation. UTF-32 is used internally for path directories. Since truncation of  paths is a security problem the function must throw an exception");
 	}
 
-	ROCOCO_UTIL_API size_t rlen(cstr s)
+	ROCOCO_API size_t rlen(cstr s)
 	{
 		return strlen(s);
 	}
 
-	ROCOCO_UTIL_API int SafeFormat(char* buffer, size_t capacity, const char* format, ...)
+	ROCOCO_API int SafeFormat(char* buffer, size_t capacity, const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		return SafeVFormat(buffer, capacity, format, args);
 	}
 
-	ROCOCO_UTIL_API int SafeVFormat(wchar_t* buffer, size_t capacity, crwstr format, va_list args)
+	ROCOCO_API int SafeVFormat(wchar_t* buffer, size_t capacity, crwstr format, va_list args)
 	{
 #ifdef _WIN32
 		int count = _vsnwprintf_s(buffer, capacity, capacity, format, args);
@@ -859,14 +870,14 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int SafeFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
+	ROCOCO_API int SafeFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
 		return SafeVFormat(buffer, capacity, format, args);
 	}
 
-	ROCOCO_UTIL_API int SecureFormat(char* buffer, size_t capacity, const char* format, ...)
+	ROCOCO_API int SecureFormat(char* buffer, size_t capacity, const char* format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -878,7 +889,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int SecureFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
+	ROCOCO_API int SecureFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -890,7 +901,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
+	ROCOCO_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
 	{
 		int count = vsnprintf(buffer, capacity, format, args);
 		if (count >= capacity)
@@ -901,12 +912,12 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int StrCmpN(cstr a, cstr b, size_t len)
+	ROCOCO_API int StrCmpN(cstr a, cstr b, size_t len)
 	{
 		return strncmp(a, b, len);
 	}
 
-	ROCOCO_UTIL_API void SplitString(const char* text, size_t length, IStringPopulator& onSubString, cstr delimiter)
+	ROCOCO_API void SplitString(const char* text, size_t length, IStringPopulator& onSubString, cstr delimiter)
 	{
 		if (length == 0) length = rlen(text);
 		size_t bytecount = sizeof(char) * (length + 1);
@@ -923,7 +934,7 @@ namespace Rococo::Strings
 		}
 	}
 
-	ROCOCO_UTIL_API size_t CountSubStrings(cstr text, size_t length, cstr delimiter)
+	ROCOCO_API size_t CountSubStrings(cstr text, size_t length, cstr delimiter)
 	{
 		struct : IStringPopulator
 		{
@@ -940,7 +951,7 @@ namespace Rococo::Strings
 		return cb.count;
 	}
 
-	ROCOCO_UTIL_API uint32 FastHash(cstr text)
+	ROCOCO_API uint32 FastHash(cstr text)
 	{
 		if (text == nullptr) return 0;
 
@@ -957,21 +968,21 @@ namespace Rococo::Strings
 		return hash;
 	}
 
-	ROCOCO_UTIL_API cstr GetFinalNull(cstr s)
+	ROCOCO_API cstr GetFinalNull(cstr s)
 	{
 		cstr p = s;
 		while (*p++ != 0);
 		return p - 1;
 	}
 
-	ROCOCO_UTIL_API crwstr GetFinalNull(crwstr s)
+	ROCOCO_API crwstr GetFinalNull(crwstr s)
 	{
 		crwstr p = s;
 		while (*p++ != 0);
 		return p - 1;
 	}
 
-	ROCOCO_UTIL_API cstr GetRightSubstringAfter(cstr s, char c)
+	ROCOCO_API cstr GetRightSubstringAfter(cstr s, char c)
 	{
 		cstr p = GetFinalNull(s);
 		for (cstr q = p; q >= s; --q)
@@ -985,7 +996,7 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API crwstr GetRightSubstringAfter(crwstr s, wchar_t c)
+	ROCOCO_API crwstr GetRightSubstringAfter(crwstr s, wchar_t c)
 	{
 		crwstr p = GetFinalNull(s);
 		for (crwstr q = p; q >= s; --q)
@@ -999,42 +1010,42 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API cstr GetFileExtension(cstr s)
+	ROCOCO_API cstr GetFileExtension(cstr s)
 	{
 		return GetRightSubstringAfter(s, '.');
 	}
 
-	ROCOCO_UTIL_API crwstr GetFileExtension(crwstr s)
+	ROCOCO_API crwstr GetFileExtension(crwstr s)
 	{
 		return GetRightSubstringAfter(s, L'.');
 	}
 
-	ROCOCO_UTIL_API bool Eq(const char* a, const char* b)
+	ROCOCO_API bool Eq(const char* a, const char* b)
 	{
 		return strcmp(a, b) == 0;
 	}
 
-	ROCOCO_UTIL_API bool Eq(crwstr a, crwstr b)
+	ROCOCO_API bool Eq(crwstr a, crwstr b)
 	{
 		return wcscmp(a, b) == 0;
 	}
 
-	ROCOCO_UTIL_API bool EqI(const char* a, const char* b)
+	ROCOCO_API bool EqI(const char* a, const char* b)
 	{
 		return _stricmp(a, b) == 0;
 	}
 
-	ROCOCO_UTIL_API bool EqI(crwstr a, crwstr b)
+	ROCOCO_API bool EqI(crwstr a, crwstr b)
 	{
 		return _wcsicmp(a, b) == 0;
 	}
 
-	ROCOCO_UTIL_API bool StartsWith(cstr bigString, cstr prefix)
+	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix)
 	{
 		return strncmp(bigString, prefix, strlen(prefix)) == 0;
 	}
 
-	ROCOCO_UTIL_API bool EndsWith(cstr bigString, cstr suffix)
+	ROCOCO_API bool EndsWith(cstr bigString, cstr suffix)
 	{
 		size_t len = strlen(suffix);
 		size_t lenBig = strlen(bigString);
@@ -1042,7 +1053,7 @@ namespace Rococo::Strings
 		return Eq(suffix, t);
 	}
 
-	ROCOCO_UTIL_API bool EndsWithI(cstr bigString, cstr suffix)
+	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix)
 	{
 		size_t len = strlen(suffix);
 		size_t lenBig = strlen(bigString);
@@ -1050,12 +1061,12 @@ namespace Rococo::Strings
 		return _strcmpi(suffix, t) == 0;
 	}
 
-	ROCOCO_UTIL_API bool StartsWith(crwstr bigString, crwstr prefix)
+	ROCOCO_API bool StartsWith(crwstr bigString, crwstr prefix)
 	{
 		return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
 	}
 
-	ROCOCO_UTIL_API bool EndsWith(crwstr bigString, crwstr suffix)
+	ROCOCO_API bool EndsWith(crwstr bigString, crwstr suffix)
 	{
 		size_t len = wcslen(suffix);
 		size_t lenBig = wcslen(bigString);
@@ -1063,13 +1074,13 @@ namespace Rococo::Strings
 		return Eq(suffix, t);
 	}
 
-	ROCOCO_UTIL_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity) :
+	ROCOCO_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity) :
 		buffer(_buffer), capacity(_capacity), length(0)
 	{
 		buffer[0] = 0;
 	}
 
-	ROCOCO_UTIL_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity, CursorState type) :
+	ROCOCO_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity, CursorState type) :
 		buffer(_buffer), capacity(_capacity)
 	{
 		UNUSED(type);
@@ -1086,12 +1097,12 @@ namespace Rococo::Strings
 		}
 	}
 
-	ROCOCO_UTIL_API int32 StackStringBuilder::Length() const
+	ROCOCO_API int32 StackStringBuilder::Length() const
 	{
 		return length;
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::AppendFormat(const char* format, ...)
+	ROCOCO_API StringBuilder& StackStringBuilder::AppendFormat(const char* format, ...)
 	{
 		size_t ulen = (size_t)length;
 		if (ulen == capacity) return *this;
@@ -1121,53 +1132,53 @@ namespace Rococo::Strings
 		return *this;
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::operator << (cstr text)
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (cstr text)
 	{
 		return AppendFormat("%s", text);
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::AppendChar(char c)
+	ROCOCO_API StringBuilder& StackStringBuilder::AppendChar(char c)
 	{
 		return AppendFormat("%c", c);
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::operator << (int32 value)
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (int32 value)
 	{
 		return AppendFormat("%d", value);
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::operator << (uint32 value)
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (uint32 value)
 	{
 		return AppendFormat("%u", value);
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::operator << (int64 value)
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (int64 value)
 	{
 		return AppendFormat("%lld", value);
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::operator << (uint64 value)
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (uint64 value)
 	{
 		return AppendFormat("%llu", value);
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::operator << (float value)
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (float value)
 	{
 		return AppendFormat("%f", value);
 	}
 
-	ROCOCO_UTIL_API StringBuilder& StackStringBuilder::operator << (double value)
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (double value)
 	{
 		return AppendFormat("%lf", value);
 	}
 
-	ROCOCO_UTIL_API void StackStringBuilder::Clear()
+	ROCOCO_API void StackStringBuilder::Clear()
 	{
 		buffer[0] = 0;
 		length = 0;
 	}
 
-	ROCOCO_UTIL_API bool IsFQNamespace(cr_substring s)
+	ROCOCO_API bool IsFQNamespace(cr_substring s)
 	{
 		if (s.empty())
 		{
@@ -1229,7 +1240,7 @@ namespace Rococo::Strings
 		return true;
 	}
 
-	ROCOCO_UTIL_API void ValidateFQNamespace(cstr fqName)
+	ROCOCO_API void ValidateFQNamespace(cstr fqName)
 	{
 		if (fqName == nullptr)
 		{
@@ -1291,7 +1302,7 @@ namespace Rococo::Strings
 		}
 	}
 
-	ROCOCO_UTIL_API void ValidateFQNameIdentifier(cstr fqName)
+	ROCOCO_API void ValidateFQNameIdentifier(cstr fqName)
 	{
 		if (fqName == nullptr)
 		{
@@ -1356,21 +1367,21 @@ namespace Rococo::Strings
 # define _strnicmp strncasecmp
 #endif
 
-	ROCOCO_UTIL_API int32 Compare(cstr a, cstr b) { return strcmp(a, b); }
-	ROCOCO_UTIL_API int32 CompareI(cstr a, cstr b) { return _stricmp(a, b); }
-	ROCOCO_UTIL_API int32 CompareI(cstr a, cstr b, size_t count) { return _strnicmp(a, b, count); }
-	ROCOCO_UTIL_API int32 Compare(cstr a, cstr b, size_t count) { return strncmp(a, b, count); }
+	ROCOCO_API int32 Compare(cstr a, cstr b) { return strcmp(a, b); }
+	ROCOCO_API int32 CompareI(cstr a, cstr b) { return _stricmp(a, b); }
+	ROCOCO_API int32 CompareI(cstr a, cstr b, size_t count) { return _strnicmp(a, b, count); }
+	ROCOCO_API int32 Compare(cstr a, cstr b, size_t count) { return strncmp(a, b, count); }
 
 #ifdef _WIN32
-	ROCOCO_UTIL_API int32 Compare(crwstr a, crwstr b) { return wcscmp(a, b); }
-	ROCOCO_UTIL_API int32 CompareI(crwstr a, crwstr b) { return _wcsicmp(a, b); }
-	ROCOCO_UTIL_API int32 CompareI(crwstr a, crwstr b, size_t count) { return _wcsnicmp(a, b, count); }
-	ROCOCO_UTIL_API int32 Compare(crwstr a, crwstr b, size_t count) { return wcsncmp(a, b, count); }
+	ROCOCO_API int32 Compare(crwstr a, crwstr b) { return wcscmp(a, b); }
+	ROCOCO_API int32 CompareI(crwstr a, crwstr b) { return _wcsicmp(a, b); }
+	ROCOCO_API int32 CompareI(crwstr a, crwstr b, size_t count) { return _wcsnicmp(a, b, count); }
+	ROCOCO_API int32 Compare(crwstr a, crwstr b, size_t count) { return wcsncmp(a, b, count); }
 #endif
 
-	ROCOCO_UTIL_API const char* GetSubString(const char* s, const char* subString) { return strstr(s, subString); }
+	ROCOCO_API const char* GetSubString(const char* s, const char* subString) { return strstr(s, subString); }
 
-	ROCOCO_UTIL_API IDynamicStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity)
+	ROCOCO_API IDynamicStringBuilder* CreateDynamicStringBuilder(size_t initialCapacity)
 	{
 		return new StringsAnon::DynamicStringBuilder(initialCapacity);
 	}
@@ -1380,14 +1391,14 @@ namespace Rococo::Strings
 
 namespace Rococo::Strings
 {
-	ROCOCO_UTIL_API uint64 XXHash64Arg(const void* buffer, size_t nBytesLength)
+	ROCOCO_API uint64 XXHash64Arg(const void* buffer, size_t nBytesLength)
 	{
 		xxh::hash_t<64> hash = xxh::xxhash<64>(buffer, nBytesLength);
 		return hash;
 	}
 
 	// This is very slow algorithm that requires deep stack recursion for even modest sized strings
-	ROCOCO_UTIL_API int LevenshteinDistance(cstr source, cstr target)
+	ROCOCO_API int LevenshteinDistance(cstr source, cstr target)
 	{
 		int lenSrc = StringLength(source);
 		int lenTarget = StringLength(target);
@@ -1410,7 +1421,7 @@ namespace Rococo::Strings
 			LevenshteinDistance(sourcePrefix, targetPrefix) + distance);
 	}
 
-	ROCOCO_UTIL_API void ReplaceChar(char* buffer, size_t capacity, char target, char replacement)
+	ROCOCO_API void ReplaceChar(char* buffer, size_t capacity, char target, char replacement)
 	{
 		for (char* c = buffer; c < buffer + capacity; c++)
 		{
@@ -1423,24 +1434,24 @@ namespace Rococo::Strings
 		}
 	}
 
-	ROCOCO_UTIL_API bool StartsWith(cr_substring token, const fstring& prefix)
+	ROCOCO_API bool StartsWith(cr_substring token, const fstring& prefix)
 	{
 		size_t len = token.finish - token.start;
 		return prefix.length <= len && strncmp(prefix, token.start, prefix.length) == 0;
 	}
 
-	ROCOCO_UTIL_API bool StartsWith(cstr token, cr_substring prefix)
+	ROCOCO_API bool StartsWith(cstr token, cr_substring prefix)
 	{
 		size_t len = Length(prefix);
 		return strncmp(token, prefix.start, len) == 0;
 	}
 
-	ROCOCO_UTIL_API ptrdiff_t Length(cr_substring token)
+	ROCOCO_API ptrdiff_t Length(cr_substring token)
 	{
 		return token.finish - token.start;
 	}
 
-	ROCOCO_UTIL_API bool Substring::TryCopyWithoutTruncate(char* outputBuffer, size_t sizeofOutputBuffer) const
+	ROCOCO_API bool Substring::TryCopyWithoutTruncate(char* outputBuffer, size_t sizeofOutputBuffer) const
 	{
 		if (Length() >= (ptrdiff_t)sizeofOutputBuffer)
 		{
@@ -1459,7 +1470,7 @@ namespace Rococo::Strings
 		return true;
 	}
 
-	ROCOCO_UTIL_API bool Eq(cr_substring b, cstr a)
+	ROCOCO_API bool Eq(cr_substring b, cstr a)
 	{
 		cstr p = a;
 		cstr q = b.start;
@@ -1472,7 +1483,7 @@ namespace Rococo::Strings
 		return *p == 0;
 	}
 
-	ROCOCO_UTIL_API bool Eq(const fstring& a, cr_substring b)
+	ROCOCO_API bool Eq(const fstring& a, cr_substring b)
 	{
 		if (a.length != Length(b))
 		{
@@ -1489,17 +1500,17 @@ namespace Rococo::Strings
 		return true;
 	}
 
-	ROCOCO_UTIL_API bool Eq(cr_substring a, const fstring& b)
+	ROCOCO_API bool Eq(cr_substring a, const fstring& b)
 	{
 		return Eq(b, a);
 	}
 
-	ROCOCO_UTIL_API bool IsEmpty(cr_substring token)
+	ROCOCO_API bool IsEmpty(cr_substring token)
 	{
 		return token.start == token.finish;
 	}
 
-	ROCOCO_UTIL_API bool Eq(cr_substring a, cr_substring b)
+	ROCOCO_API bool Eq(cr_substring a, cr_substring b)
 	{
 		auto lenA = Length(a);
 		auto lenB = Length(b);
@@ -1525,7 +1536,7 @@ namespace Rococo::Strings
 
 namespace Rococo::Reflection
 {
-	ROCOCO_UTIL_API void ReflectStackFormat(Reflection::IReflectionVisitor& v, cstr name, const char* format, ...)
+	ROCOCO_API void ReflectStackFormat(Reflection::IReflectionVisitor& v, cstr name, const char* format, ...)
 	{
 		char text[1024];
 		va_list args;
@@ -1562,12 +1573,12 @@ namespace Rococo::Reflection
 
 namespace Rococo::Sex::Inference
 {
-	ROCOCO_UTIL_API bool IsNotTokenChar(char c)
+	ROCOCO_API bool IsNotTokenChar(char c)
 	{
 		return !IsAlphaNumeric(c) && c != '.' && c != '#';
 	}
 
-	ROCOCO_UTIL_API bool IsSexyKeyword(cr_substring candidate)
+	ROCOCO_API bool IsSexyKeyword(cr_substring candidate)
 	{
 		size_t len = Length(candidate);
 
@@ -1591,7 +1602,7 @@ namespace Rococo::Sex::Inference
 		return false;
 	}
 
-	ROCOCO_UTIL_API cstr GetFirstNonTokenPointer(cr_substring s)
+	ROCOCO_API cstr GetFirstNonTokenPointer(cr_substring s)
 	{
 		if (!s) return nullptr;
 
@@ -1606,7 +1617,7 @@ namespace Rococo::Sex::Inference
 		return s.finish;
 	}
 
-	ROCOCO_UTIL_API cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition)
+	ROCOCO_API cstr GetFirstNonTokenPointerFromRight(cr_substring doc, cstr startPosition)
 	{
 		if (!startPosition || !doc) return nullptr;
 
@@ -1621,7 +1632,7 @@ namespace Rococo::Sex::Inference
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API cstr GetFirstNonTypeCharPointer(cr_substring s)
+	ROCOCO_API cstr GetFirstNonTypeCharPointer(cr_substring s)
 	{
 		bool inDot = false;
 
@@ -1652,7 +1663,7 @@ namespace Rococo::Sex::Inference
 		return s.finish;
 	}
 
-	ROCOCO_UTIL_API Substring GetFirstTokenFromLeft(cr_substring s)
+	ROCOCO_API Substring GetFirstTokenFromLeft(cr_substring s)
 	{
 		return s ? Substring{ s.start, GetFirstNonTypeCharPointer(s) } : Substring::Null();
 	}
@@ -1660,7 +1671,7 @@ namespace Rococo::Sex::Inference
 
 namespace Rococo
 {
-	ROCOCO_UTIL_API fstring to_fstring(cstr const msg)
+	ROCOCO_API fstring to_fstring(cstr const msg)
 	{
 		size_t len = rlen(msg);
 		if (len >= (uint64) Limits::FSTRING_LENGTH_LIMIT)
@@ -1670,12 +1681,12 @@ namespace Rococo
 		return{ msg, (int)len };
 	}
 
-	ROCOCO_UTIL_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity)
+	ROCOCO_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity)
 	{
 		return new StringsAnon::ExpandingBuffer(initialCapacity);
 	}
 
-	ROCOCO_UTIL_API bool operator == (const fstring& a, const fstring& b)
+	ROCOCO_API bool operator == (const fstring& a, const fstring& b)
 	{
 		return a.length == b.length && Strings::StrCmpN(a.buffer, b.buffer, a.length) == 0;
 	}
@@ -1683,7 +1694,7 @@ namespace Rococo
 
 namespace Rococo::Strings::CLI
 {
-	ROCOCO_UTIL_API void GetCommandLineArgument(const fstring& prefix, cstr commandLine, char* buffer, size_t capacity, cstr defaultString)
+	ROCOCO_API void GetCommandLineArgument(const fstring& prefix, cstr commandLine, char* buffer, size_t capacity, cstr defaultString)
 	{
 		cstr directive = strstr(commandLine, prefix);
 		if (directive == nullptr)
