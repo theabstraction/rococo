@@ -7,7 +7,6 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 using UnrealBuildTool;
-
 public class RococoUtil : ModuleRules
 {
     private string rococoIncludeDirectory;
