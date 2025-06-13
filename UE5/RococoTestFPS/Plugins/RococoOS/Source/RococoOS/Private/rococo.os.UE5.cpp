@@ -2605,6 +2605,21 @@ namespace Rococo::Debugging
 	}
 }
 
+#ifndef _WIN32
+namespace Rococo::Strings
+{
+	ROCOCO_API int SafeVFormat(WIDECHAR* buffer, size_t capacity, const WIDECHAR* format, va_list args)
+	{
+		return TCString<WIDECHAR>::GetVarArgs(buffer, capacity, format, args);
+	}
+
+	ROCOCO_API bool EqI(const WIDECHAR* a, const WIDECHAR* b)
+	{
+		return FCStringWide::Strcmp(a, b) == 0;
+	}
+}
+#endif
+
 #ifdef _DEBUG
 namespace Rococo::Strings
 {

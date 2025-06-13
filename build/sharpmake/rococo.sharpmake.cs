@@ -202,7 +202,7 @@ namespace Rococo
     public class RococoProject : RococoBaseProject
     {
         // Note, default to CPP 17 rather than CPP 20, because on VC I had serious issues were internal compiler errors compiling sexy.script when C+ 20 is set
-        public void StandardInit(Configuration conf, Target target, Configuration.OutputType type, int CCPVersion = 17, bool importRococoAPI = true)
+        public void StandardInit(Configuration conf, Target target, Configuration.OutputType type, int CCPVersion = 17, bool importRococoAPI = true, bool importSexyUtilsAP = true)
         {
             conf.Output = type;
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
@@ -227,6 +227,11 @@ namespace Rococo
             if (importRococoAPI)
             {
                 conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
+            }
+
+            if (importSexyUtilsAP)
+            {
+                conf.Defines.Add("SEXYUTIL_API=__declspec(dllimport)");
             }
         }
 
@@ -1677,7 +1682,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            StandardInit(conf, target, Configuration.OutputType.Dll);
+            StandardInit(conf, target, Configuration.OutputType.Dll, 17, true, false);
             conf.Defines.Add("SEXYUTIL_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.SolutionFolder = " - Sexy";

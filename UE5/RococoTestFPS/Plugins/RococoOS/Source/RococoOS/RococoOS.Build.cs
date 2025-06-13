@@ -179,7 +179,7 @@ public class RococoOS : ModuleRules
     }
     private void CreateBundles()
     {
-        CreateBundleDirect("rococo.util-os.rococo-bundle.cpp", "rococo.os.UE5.h", null, null, "rococo/rococo.util",
+        CreateBundleDirect("rococo.util-os.rococo-bundle.cpp", "rococo.os.UE5.h", "rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
             new List<string>()
             {
                 "rococo.strings.cpp",

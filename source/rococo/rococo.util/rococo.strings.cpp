@@ -1,5 +1,7 @@
 #include <rococo.types.h>
 
+#define _CRT_NONSTDC_NO_WARNINGS
+
 #ifdef ROCOCO_WIDECHAR_IS_CHAR_16_T
 #include "../rococo.strings.ex/rococo.char16.cpp"
 #endif
@@ -811,7 +813,7 @@ namespace Rococo::Strings
 
 	ROCOCO_API void Assign(WideFilePath& dest, const char* src)
 	{
-		Format(dest, L"%hs", src);
+		Format(dest, _RW_TEXT("%hs"), src);
 	}
 
 	ROCOCO_API void Assign(U32FilePath& dest, const char32_t* wideSrc)
@@ -854,13 +856,11 @@ namespace Rococo::Strings
 		return SafeVFormat(buffer, capacity, format, args);
 	}
 
+#ifdef ROCOCO_WIDECHAR_IS_WCHAR_T
 	ROCOCO_API int SafeVFormat(wchar_t* buffer, size_t capacity, crwstr format, va_list args)
 	{
-#ifdef _WIN32
+
 		int count = _vsnwprintf_s(buffer, capacity, capacity, format, args);
-#else
-		auto count = vswprintf(buffer, capacity, format, args);
-#endif
 
 		if (count >= capacity)
 		{
@@ -869,8 +869,9 @@ namespace Rococo::Strings
 
 		return count;
 	}
+#endif
 
-	ROCOCO_API int SafeFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
+	ROCOCO_API int SafeFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -889,7 +890,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_API int SecureFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
+	ROCOCO_API int SecureFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -1025,20 +1026,42 @@ namespace Rococo::Strings
 		return strcmp(a, b) == 0;
 	}
 
+#ifdef ROCOCO_WIDECHAR_IS_WCHAR_T
 	ROCOCO_API bool Eq(crwstr a, crwstr b)
 	{
 		return wcscmp(a, b) == 0;
-	}
-
-	ROCOCO_API bool EqI(const char* a, const char* b)
-	{
-		return _stricmp(a, b) == 0;
 	}
 
 	ROCOCO_API bool EqI(crwstr a, crwstr b)
 	{
 		return _wcsicmp(a, b) == 0;
 	}
+
+	ROCOCO_API bool StartsWith(crwstr bigString, crwstr prefix)
+	{
+		return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
+	}
+
+	ROCOCO_API bool EndsWith(crwstr bigString, crwstr suffix)
+	{
+		size_t len = wcslen(suffix);
+		size_t lenBig = wcslen(bigString);
+		crwstr t = bigString + lenBig - len;
+		return Eq(suffix, t);
+	}
+#endif
+
+#ifdef _WIN32
+	ROCOCO_API bool EqI(const char* a, const char* b)
+	{
+		return _strcmpi(a, b) == 0;
+	}
+#else
+	ROCOCO_API bool EqI(const char* a, const char* b)
+	{
+		return strcasecmp(a, b) == 0;
+	}
+#endif
 
 	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix)
 	{
@@ -1058,20 +1081,12 @@ namespace Rococo::Strings
 		size_t len = strlen(suffix);
 		size_t lenBig = strlen(bigString);
 		const char* t = bigString + lenBig - len;
+
+#ifdef _WIN32
 		return _strcmpi(suffix, t) == 0;
-	}
-
-	ROCOCO_API bool StartsWith(crwstr bigString, crwstr prefix)
-	{
-		return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
-	}
-
-	ROCOCO_API bool EndsWith(crwstr bigString, crwstr suffix)
-	{
-		size_t len = wcslen(suffix);
-		size_t lenBig = wcslen(bigString);
-		crwstr t = bigString + lenBig - len;
-		return Eq(suffix, t);
+#else
+		return strcasecmp(suffix, t) == 0;
+#endif
 	}
 
 	ROCOCO_API StackStringBuilder::StackStringBuilder(char* _buffer, size_t _capacity) :
@@ -1387,6 +1402,7 @@ namespace Rococo::Strings
 	}
 } // Rococo
 
+#ifdef _WIN32
 #include "xxhash.hpp"
 
 namespace Rococo::Strings
@@ -1396,7 +1412,11 @@ namespace Rococo::Strings
 		xxh::hash_t<64> hash = xxh::xxhash<64>(buffer, nBytesLength);
 		return hash;
 	}
+}
+#endif
 
+namespace Rococo::Strings
+{
 	// This is very slow algorithm that requires deep stack recursion for even modest sized strings
 	ROCOCO_API int LevenshteinDistance(cstr source, cstr target)
 	{

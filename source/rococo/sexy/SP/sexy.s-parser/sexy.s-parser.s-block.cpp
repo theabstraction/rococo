@@ -1937,7 +1937,7 @@ namespace Rococo::Sex
 			Rococo::Throw(0, "CreateSParser: %llu must not be less than 8 nor more than %llu. Recommended size is 32768", maxStringLength, ABS_MAX_STRING_LENGTH);
 		}
 
-		auto* buffer = allocator.Allocate(sizeof Anon::SParser_2_0);
+		auto* buffer = allocator.Allocate(sizeof(Anon::SParser_2_0));
 		return new (buffer) Anon::SParser_2_0(allocator, maxStringLength);
 	}
 

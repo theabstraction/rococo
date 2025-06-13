@@ -7,7 +7,7 @@
 #include <rococo.sexml.h>
 #include <rococo.strings.h>
 #include <math.h>
-#include <new.h>
+#include <new>
 #include <vector>
 #include <rococo.hashtable.h>
 #include <rococo.functional.h>

@@ -41,9 +41,9 @@
 #  define SEXY_SPARSER_API
 # endif
 
-# ifndef SEXYUTIL_API
-#  define SEXYUTIL_API __declspec(dllimport)
-# endif
+#ifndef SEXYUTIL_API
+# error "define SEXYUTIL_API in your compile environment first"
+#endif
 
 // If defined will use std allocators rather than those for specific for sexy. Best used/defined when SexyScript is shipped in DLL modules
 // #define USE_STD_ALLOCATOR_FOR_SEXY 

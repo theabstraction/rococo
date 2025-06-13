@@ -19,7 +19,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.throw.cr_sex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.windows.ide.stdout.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\sha256.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.strings.ex\rococo.char16.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />

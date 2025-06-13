@@ -65,4 +65,25 @@ namespace Rococo::Strings
 
 		*pos = 0;
 	}
+
+	// SafeVFormat(... const char16_t* format, ...) is currently only implemented for Unreal Engine
+	ROCOCO_API int SafeVFormat(char16_t* buffer, size_t capacity, const char16_t* format, va_list args);
+
+	ROCOCO_API bool Eq(const char16_t* a, const char16_t* b)
+	{
+		if (a == nullptr || b == nullptr)
+		{
+			Throw(0, "Rococo::Strings::Eq(Null ptr)");
+		}
+
+		int lenA = StringLength(a);
+		int lenB = StringLength(b);
+
+		if (lenA != lenB)
+		{
+			return false;
+		}
+
+		return std::char_traits<char16_t>::compare(a, b, lenA) == 0;
+	}	
 }

@@ -115,8 +115,6 @@ namespace Rococo {
 
 		typedef void (CALLTYPE_C *FN_NATIVE_CALL)(NativeCallEnvironment& e);
 
-		SCRIPTEXPORT_API void ThrowBadNativeArg(int index, cstr source, cstr message);
-
 		const Rococo::Sex::ISExpression* GetSourceExpression(Rococo::Compiler::IPublicProgramObject& po, const Rococo::Compiler::IFunction& f, size_t pcOffset);
 
 #ifdef _DEBUG

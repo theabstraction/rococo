@@ -157,6 +157,8 @@ namespace Rococo
 
 	DECLARE_ROCOCO_INTERFACE IExpandingBuffer;
 
+	typedef const char* cstr;
+
 	struct fstring
 	{
 		const char* buffer;
@@ -380,6 +382,7 @@ namespace Rococo
 	namespace Script
 	{
 		DECLARE_ROCOCO_INTERFACE IScriptSystemFactory;
+		ROCOCO_API void ThrowBadNativeArg(int index, cstr source, cstr message);
 	}
 
 	namespace Sex
@@ -651,8 +654,6 @@ namespace Rococo
 
 		FORCE_INLINE bool IsNormalized() const { return right > left && bottom > top; }
 	};
-
-	typedef const char* cstr;
 
 	struct Vec2
 	{

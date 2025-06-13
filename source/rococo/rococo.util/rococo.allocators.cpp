@@ -131,6 +131,8 @@ namespace Rococo::Memory::ANON
         }
     } s_CheckedAllocator;
 
+
+#ifdef _WIN32
     class BlockAllocator : public IAllocatorSupervisor
     {
         HANDLE hHeap{ nullptr };
@@ -231,6 +233,61 @@ namespace Rococo::Memory::ANON
             return totalAllocation;
         }
     };
+#else
+    class BlockAllocator : public IAllocatorSupervisor
+    {
+        const char* const name;
+
+        std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
+    public:
+        BlockAllocator(size_t /* kilobytes - unused */, size_t /* maxBytes - unused */, const char* const _name) : name(_name)
+        {
+        }
+
+        virtual ~BlockAllocator()
+        {
+            for (auto fn : atReleaseQueue)
+            {
+                fn();
+            }
+        }
+
+        void* Allocate(size_t capacity) override
+        {
+            return malloc(capacity);
+        }
+
+        void AtRelease(FN_AllocatorReleaseFunction fn) override
+        {
+            auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
+            if (i == atReleaseQueue.end())
+            {
+                atReleaseQueue.push_back(fn);
+            }
+        }
+
+        void FreeData(void* data) override
+        {
+            free(data);
+        }
+
+        void* Reallocate(void* old, size_t capacity) override
+        {
+            free(old);
+            return malloc(capacity);
+        }
+
+        void Free() override
+        {
+            delete this;
+        }
+
+        size_t EvaluateHeapSize() override
+        {
+            return 0;
+        }
+    };
+#endif
 
     struct TrackingData
     {
@@ -379,7 +436,8 @@ namespace Rococo::Memory::ANON
 
         void FreeBuffer(void* buffer) override
         {
-            delete[] buffer;
+            char* cBuffer = (char*)buffer;
+            delete[] cBuffer;
         }
 
         void ReclaimBuffer(void* buffer) override

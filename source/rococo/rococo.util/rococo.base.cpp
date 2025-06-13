@@ -33,7 +33,10 @@ namespace Rococo
 #include <rococo.time.h>
 #include <atomic>
 #include <ctype.h>
-#include <immintrin.h>
+
+#ifdef _WIN32
+# include <immintrin.h>
+#endif
 
 namespace Rococo
 {
@@ -44,6 +47,7 @@ namespace Rococo
 
 	namespace Ids
 	{
+#ifdef _WIN32
 		static std::atomic<int32> uniqueCounter = 0;
 
 		ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId()
@@ -91,7 +95,7 @@ namespace Rococo
 
 			return id;
 		}
-
+#endif
 		struct MehGuid
 		{
 			// Example: 30dd879c-ee2f-11db-8314-0800200c9a66
@@ -239,7 +243,7 @@ namespace Rococo
 
 		ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest)
 		{
-			wchar_t* q = dest.buf;
+			ROCOCO_WIDECHAR* q = dest.buf;
 			const char32_t* p = src;
 
 			while (*p != 0)
@@ -504,3 +508,11 @@ namespace Rococo::Debugging
 	}
 }
 
+namespace Rococo::Script
+{
+	ROCOCO_API void ThrowBadNativeArg(int index, cstr source, cstr message)
+	{
+		WriteToStandardOutput("Error %d in %s: %s\r\n", index, source, message);
+		Throw(0, "Bad native argument: %s - %s", source, message);
+	}
+}

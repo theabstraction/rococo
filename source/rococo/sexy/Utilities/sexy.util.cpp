@@ -53,18 +53,6 @@ namespace Rococo
 	}
 }
 
-namespace Rococo
-{
-	namespace Script
-	{
-		ROCOCO_API_EXPORT void ThrowBadNativeArg(int index, cstr source, cstr message)
-		{
-			WriteToStandardOutput(("Error %d in %s: %s\r\n"), index, source, message);
-			Throw(0, "Bad native argument: %s - %s", source, message);
-		}
-	}
-}
-
 namespace Rococo::Memory
 {
 	struct SexyDefaultAllocator: IAllocator

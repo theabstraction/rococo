@@ -1394,7 +1394,7 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			if (!grSystem)
 			{
-				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking " __FUNCTION__);
+				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking %s", __ROCOCO_FUNCTION__);
 			}
 			GRKeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = grSystem->RouteKeyEvent(keyEvent);
@@ -1412,7 +1412,7 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			if (!grSystem)
 			{
-				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking " __FUNCTION__);
+				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking %s", __ROCOCO_FUNCTION__);
 			}
 
 			static_assert(sizeof(GRCursorClick) == sizeof(uint16));
@@ -1513,7 +1513,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 			if (!grSystem)
 			{
-				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking " __FUNCTION__);
+				Throw(0, "call method Bind(IGRSystemSupervisor& grSystem) before invoking %s", __ROCOCO_FUNCTION__);
 			}
 
 			UE5_GR_Renderer renderer(rc, *this);

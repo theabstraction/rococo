@@ -42,7 +42,7 @@ You can contact the author at :
 /* Intrinsics
 * Sadly has to be included in the global namespace or literally everything breaks
 */
-#include <immintrin.h>
+#include <intrin.h>
 
 namespace xxh
 {
