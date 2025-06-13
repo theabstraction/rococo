@@ -939,9 +939,9 @@ namespace Rococo::Sex::SEXML
 	}
 
 	void OnBadParameter(
-		const wchar_t* expression,
-		const wchar_t* function,
-		const wchar_t* file,
+		crwstr expression,
+		crwstr function,
+		crwstr file,
 		unsigned int line,
 		uintptr_t pReserved)
 	{

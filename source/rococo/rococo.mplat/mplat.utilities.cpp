@@ -219,7 +219,7 @@ public:
 		}
 	}
 
-	void EnumerateFiles(IEventCallback<const wchar_t*>& cb, cstr pingPathDirectory) override
+	void EnumerateFiles(IEventCallback<crwstr>& cb, cstr pingPathDirectory) override
 	{
 		struct : IEventCallback<IO::FileItemData>
 		{
@@ -361,7 +361,7 @@ public:
 		return Rococo::CreateVariableEditor(window, span, labelWidth, appQueryName, defaultTab, defaultTooltip, eventHandler, topLeft);
 	}
 
-	void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) override
+	void SaveBinary(crwstr pathname, const void* buffer, size_t nChars) override
 	{
 		FileHandle fh = CreateFileW(pathname, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (fh == INVALID_HANDLE_VALUE)

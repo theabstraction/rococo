@@ -360,10 +360,10 @@ namespace Rococo
 			virtual ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef, IPackage* package = nullptr) = 0;
 
 			// Loads source code, converts it to chars and returns a reference to it
-			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) = 0;
+			virtual ISourceCode* LoadSource(crwstr filename, const Vec2i& origin) = 0;
 
 			// Loads source code, using the raw char* buffer
-			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin, const char* buffer, long len) = 0;
+			virtual ISourceCode* LoadSource(crwstr filename, const Vec2i& origin, const char* buffer, long len) = 0;
 
 			// Enable persistence of comments in the form of a mapping from ISExpression to comment blocks
 			virtual void MapComments() = 0;

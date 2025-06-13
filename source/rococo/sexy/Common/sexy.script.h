@@ -534,7 +534,7 @@ namespace Rococo {
 			virtual Compiler::IMemberLife* GetMapLifetimeManager() = 0;
 		};
 
-		SCRIPTEXPORT_API void SetDefaultNativeSourcePath(const wchar_t* pathname);
+		SCRIPTEXPORT_API void SetDefaultNativeSourcePath(crwstr pathname);
 
 		ROCOCO_INTERFACE INativeLib
 		{

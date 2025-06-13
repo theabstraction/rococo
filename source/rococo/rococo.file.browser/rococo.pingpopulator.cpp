@@ -199,7 +199,7 @@ struct PingPopulator : public IDirectoryPopulator
 		struct : public IEventCallback<IO::FileItemData>
 		{
 			IFileCallback* cb;
-			const wchar_t* sysPath;
+			crwstr sysPath;
 			U32FilePath root;
 
 			void OnEvent(IO::FileItemData& item) override
@@ -236,7 +236,7 @@ struct PingPopulator : public IDirectoryPopulator
 		struct : public IEventCallback<IO::FileItemData>
 		{
 			IFileCallback* cb;
-			const wchar_t* sysPath;
+			crwstr sysPath;
 			U32FilePath root;
 			void OnEvent(IO::FileItemData& item) override
 			{

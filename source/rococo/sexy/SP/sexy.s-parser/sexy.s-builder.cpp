@@ -442,12 +442,12 @@ namespace ANON
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
-		ISourceCode* LoadSource(const wchar_t*, const Vec2i&) override
+		ISourceCode* LoadSource(crwstr, const Vec2i&) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
-		ISourceCode* LoadSource(const wchar_t*, const Vec2i&, const char*, long) override
+		ISourceCode* LoadSource(crwstr, const Vec2i&, const char*, long) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 		}

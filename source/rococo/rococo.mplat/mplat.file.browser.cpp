@@ -124,7 +124,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		Graphics::DrawTextWithCaret(gc, ToF(rect), Graphics::Alignment_Left, to_fstring(buffer), 1, textColour, clip, pos);
 	}
 
-	void DrawU16Text(const GuiRect& rect, BrowserComponent component, const wchar_t* buffer)
+	void DrawU16Text(const GuiRect& rect, BrowserComponent component, crwstr buffer)
 	{
 		char asciitext[1024];
 		SafeFormat(asciitext, 1024, "%ls", buffer);

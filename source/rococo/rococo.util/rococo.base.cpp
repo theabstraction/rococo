@@ -24,7 +24,7 @@ namespace
 #ifdef __APPLE__
 namespace Rococo
 {
-	FILE* _wfopen(const wchar_t* filename, const wchar_t* mode);
+	FILE* _wfopen(crwstr filename, crwstr mode);
 }
 #endif
 
@@ -278,10 +278,10 @@ namespace Rococo
 			*q = 0;
 		}
 
-		ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path)
+		ROCOCO_API void PathFromWide(crwstr wide_string, U32FilePath& path)
 		{
 			char32_t* q = path.buf;
-			const wchar_t* p = wide_string;
+			crwstr p = wide_string;
 
 			while (*p != 0)
 			{

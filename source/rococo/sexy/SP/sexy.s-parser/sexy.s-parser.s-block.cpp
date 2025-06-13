@@ -1835,7 +1835,7 @@ namespace Anon
 			return src;
 		}
 
-		ISourceCode* LoadSource(const wchar_t* u16filename, const Vec2i& origin) override
+		ISourceCode* LoadSource(crwstr u16filename, const Vec2i& origin) override
 		{
 			if (u16filename == nullptr || *u16filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
 
@@ -1897,7 +1897,7 @@ namespace Anon
 			}
 		}
 
-		ISourceCode* LoadSource(const wchar_t* u16filename, const Vec2i& origin, const char* buffer, long len) override
+		ISourceCode* LoadSource(crwstr u16filename, const Vec2i& origin, const char* buffer, long len) override
 		{
 			U8FilePath filename;
 			Assign(filename, u16filename);

@@ -2895,7 +2895,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 	U8FilePath lastAutoRebasePath;
 
-	void Rebase(const wchar_t* fullPathToSXYfile)
+	void Rebase(crwstr fullPathToSXYfile)
 	{
 		U8FilePath u8Path;
 		Assign(u8Path, fullPathToSXYfile);
@@ -3204,7 +3204,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		}
 	}
 
-	void UpdateAutoComplete(ISexyEditor& editor, const wchar_t* fullPath) override
+	void UpdateAutoComplete(ISexyEditor& editor, crwstr fullPath) override
 	{
 		if (fullPath)
 		{

@@ -70,7 +70,7 @@ namespace Rococo::Graphics
 		virtual void GrabShaderObject(ID_VERTEX_SHADER vxId, IShaderViewGrabber& grabber) = 0;
 		virtual void GrabShaderObject(ShaderId id, IShaderViewGrabber& grabber) = 0;
 		virtual void ReloadShader(const char* resourceName) = 0;
-		virtual void ReloadShader(const wchar_t* sysPath) = 0;
+		virtual void ReloadShader(crwstr sysPath) = 0;
 		virtual uint32 InputQueueLength() = 0;
 		virtual bool TryGrabAndPopNextError(IShaderViewGrabber& grabber) = 0;
 		virtual void Free() = 0;

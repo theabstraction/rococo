@@ -730,7 +730,7 @@ namespace Rococo::Strings
 	}
 
 	// N.B sexy script language string length is int32 with max 2^31-1 chars
-	ROCOCO_UTIL_API int32 StringLength(const wchar_t* s)
+	ROCOCO_UTIL_API int32 StringLength(crwstr s)
 	{
 		enum { MAX_INT32 = 0x7FFFFFFF };
 		size_t l = wcslen(s);
@@ -777,7 +777,7 @@ namespace Rococo::Strings
 		strcat_s(buf, maxChars, source);
 	}
 
-	ROCOCO_UTIL_API void StringCat(wchar_t* buf, const wchar_t* source, int maxChars)
+	ROCOCO_UTIL_API void StringCat(wchar_t* buf, crwstr source, int maxChars)
 	{
 		wcscat_s(buf, maxChars, source);
 	}
@@ -793,7 +793,7 @@ namespace Rococo::Strings
 		Format(dest, "%s", src);
 	}
 
-	ROCOCO_UTIL_API void Assign(U8FilePath& dest, const wchar_t* wideSrc)
+	ROCOCO_UTIL_API void Assign(U8FilePath& dest, crwstr wideSrc)
 	{
 		Format(dest, "%ls", wideSrc);
 	}
@@ -843,7 +843,7 @@ namespace Rococo::Strings
 		return SafeVFormat(buffer, capacity, format, args);
 	}
 
-	ROCOCO_UTIL_API int SafeVFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, va_list args)
+	ROCOCO_UTIL_API int SafeVFormat(wchar_t* buffer, size_t capacity, crwstr format, va_list args)
 	{
 #ifdef _WIN32
 		int count = _vsnwprintf_s(buffer, capacity, capacity, format, args);
@@ -859,7 +859,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int SafeFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...)
+	ROCOCO_UTIL_API int SafeFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -878,7 +878,7 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_UTIL_API int SecureFormat(wchar_t* buffer, size_t capacity, const wchar_t* format, ...)
+	ROCOCO_UTIL_API int SecureFormat(wchar_t* buffer, size_t capacity, crwstr format, ...)
 	{
 		va_list args;
 		va_start(args, format);
@@ -964,9 +964,9 @@ namespace Rococo::Strings
 		return p - 1;
 	}
 
-	ROCOCO_UTIL_API const wchar_t* GetFinalNull(const wchar_t* s)
+	ROCOCO_UTIL_API crwstr GetFinalNull(crwstr s)
 	{
-		const wchar_t* p = s;
+		crwstr p = s;
 		while (*p++ != 0);
 		return p - 1;
 	}
@@ -985,10 +985,10 @@ namespace Rococo::Strings
 		return nullptr;
 	}
 
-	ROCOCO_UTIL_API const wchar_t* GetRightSubstringAfter(const wchar_t* s, wchar_t c)
+	ROCOCO_UTIL_API crwstr GetRightSubstringAfter(crwstr s, wchar_t c)
 	{
-		const wchar_t* p = GetFinalNull(s);
-		for (const wchar_t* q = p; q >= s; --q)
+		crwstr p = GetFinalNull(s);
+		for (crwstr q = p; q >= s; --q)
 		{
 			if (*q == c)
 			{
@@ -1004,7 +1004,7 @@ namespace Rococo::Strings
 		return GetRightSubstringAfter(s, '.');
 	}
 
-	ROCOCO_UTIL_API const wchar_t* GetFileExtension(const wchar_t* s)
+	ROCOCO_UTIL_API crwstr GetFileExtension(crwstr s)
 	{
 		return GetRightSubstringAfter(s, L'.');
 	}
@@ -1014,7 +1014,7 @@ namespace Rococo::Strings
 		return strcmp(a, b) == 0;
 	}
 
-	ROCOCO_UTIL_API bool Eq(const wchar_t* a, const wchar_t* b)
+	ROCOCO_UTIL_API bool Eq(crwstr a, crwstr b)
 	{
 		return wcscmp(a, b) == 0;
 	}
@@ -1024,7 +1024,7 @@ namespace Rococo::Strings
 		return _stricmp(a, b) == 0;
 	}
 
-	ROCOCO_UTIL_API bool EqI(const wchar_t* a, const wchar_t* b)
+	ROCOCO_UTIL_API bool EqI(crwstr a, crwstr b)
 	{
 		return _wcsicmp(a, b) == 0;
 	}
@@ -1050,16 +1050,16 @@ namespace Rococo::Strings
 		return _strcmpi(suffix, t) == 0;
 	}
 
-	ROCOCO_UTIL_API bool StartsWith(const wchar_t* bigString, const wchar_t* prefix)
+	ROCOCO_UTIL_API bool StartsWith(crwstr bigString, crwstr prefix)
 	{
 		return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
 	}
 
-	ROCOCO_UTIL_API bool EndsWith(const wchar_t* bigString, const wchar_t* suffix)
+	ROCOCO_UTIL_API bool EndsWith(crwstr bigString, crwstr suffix)
 	{
 		size_t len = wcslen(suffix);
 		size_t lenBig = wcslen(bigString);
-		const wchar_t* t = bigString + lenBig - len;
+		crwstr t = bigString + lenBig - len;
 		return Eq(suffix, t);
 	}
 

@@ -91,7 +91,7 @@ namespace
 
 namespace Rococo::OS
 {
-	void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable);
+	void GetEnvVariable(wchar_t* data, size_t capacity, crwstr envVariable);
 }
 
 namespace Rococo::Script
@@ -100,7 +100,7 @@ namespace Rococo::Script
 
 	void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
 
-	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(const wchar_t* pathname)
+	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(crwstr pathname)
 	{
 		if (pathname == nullptr)
 		{
@@ -121,7 +121,7 @@ namespace Rococo
 {
 	namespace OS
 	{
-		FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError);
+		FN_CreateLib GetLibCreateFunction(crwstr dynamicLinkLibOfNativeCalls, bool throwOnError);
 		FN_CreateLib GetLibCreateFunction(cstr origin, const void* DLLmemoryBuffer, int32 nBytesLength);
 	}
 

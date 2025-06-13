@@ -120,7 +120,7 @@ namespace Rococo
 			Rococo::Throw(GetLastError(), "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot find src_indicator.txt descending from sexy.script.dll");
 		}
 
-		void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable)
+		void GetEnvVariable(wchar_t* data, size_t capacity, crwstr envVariable)
 		{
 			if (0 == GetEnvironmentVariableW(envVariable, data, (DWORD)capacity))
 			{
@@ -143,7 +143,7 @@ namespace Rococo
 
 		typedef void(*FN_AddNativeSexyCalls)(Rococo::Script::IScriptSystem& ss);
 
-		Rococo::Script::FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError)
+		Rococo::Script::FN_CreateLib GetLibCreateFunction(crwstr dynamicLinkLibOfNativeCalls, bool throwOnError)
 		{
 			WideFilePath linkLib;
 			Format(linkLib, L"%ls.dll", dynamicLinkLibOfNativeCalls);

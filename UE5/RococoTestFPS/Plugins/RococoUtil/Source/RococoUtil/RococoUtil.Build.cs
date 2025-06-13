@@ -181,7 +181,7 @@ public class RococoUtil : ModuleRules
 
     private void CreateBundles()
 	{
-		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.UE5.h", null, null, "rococo/sexy/SP/sexy.s-parser",
+		CreateBundleDirect("rococo.s-parser.rococo-bundle.cpp", "rococo.UE5.h", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/sexy/SP/sexy.s-parser",
 			new List<string>()
 			{
 				"sexy.s-parser.cpp",

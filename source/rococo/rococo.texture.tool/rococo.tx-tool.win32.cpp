@@ -45,7 +45,7 @@ void OnError(cstr path, cstr message, int errorCode)
 	Throw(errorCode, "%s: %s", path, message);
 }
 
-void FindAllDotMipMapSubfolders(std::vector<WideFilePath>& dotMipMaps, const wchar_t* root)
+void FindAllDotMipMapSubfolders(std::vector<WideFilePath>& dotMipMaps, crwstr root)
 {
 	dotMipMaps.clear();
 

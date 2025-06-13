@@ -183,7 +183,7 @@ namespace Rococo::OS
 		s_defaultOrganization = defaultOrganization;
 	}
 
-	ROCOCO_SEXML_API void LoadSXMLBySysPath(const wchar_t* filename, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
+	ROCOCO_SEXML_API void LoadSXMLBySysPath(crwstr filename, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
 	{
 		struct ANON : IStringPopulator
 		{
@@ -271,7 +271,7 @@ namespace Rococo::OS
 		LoadSXMLBySysPath(wPath, onLoad);
 	}
 
-	ROCOCO_SEXML_API void SaveSXMLBySysPath(const wchar_t* filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(crwstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
 	{
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
 		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);

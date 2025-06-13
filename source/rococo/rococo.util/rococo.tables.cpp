@@ -5,10 +5,10 @@
 
 namespace Rococo::Strings
 {
-	ROCOCO_API void Assign(U8FilePath& dest, const wchar_t* wideSrc);
+	ROCOCO_API void Assign(U8FilePath& dest, crwstr wideSrc);
 	ROCOCO_API void Assign(WideFilePath& dest, const char* src);
 	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
-	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ crwstr format, ...);
 }
 
 using namespace Rococo::Strings;

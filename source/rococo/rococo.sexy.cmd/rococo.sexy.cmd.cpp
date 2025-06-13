@@ -82,7 +82,7 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 		return baseInstallation->TryExpandMacro(macroPrefixPlusPath, expandedPath);
 	}
 
-	const wchar_t* Content() const override
+	crwstr Content() const override
 	{
 		return baseInstallation->Content();
 	}
@@ -127,12 +127,12 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 		}
 	}
 
-	void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
+	void ConvertSysPathToMacroPath(crwstr sysPath, U8FilePath& pingPath, cstr macro) const override
 	{
 		baseInstallation->ConvertSysPathToMacroPath(sysPath, pingPath, macro);
 	}
 
-	void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
+	void ConvertSysPathToPingPath(crwstr sysPath, U8FilePath& pingPath) const override
 	{
 		baseInstallation->ConvertSysPathToPingPath(sysPath, pingPath);
 	}

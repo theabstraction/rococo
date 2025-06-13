@@ -75,7 +75,6 @@ inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { r
 inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value < b.value; }
 
 #define UNUSED(x) (void)(x);
-#define HIDE_COMPILER_WARNINGS(x)  (void)(x);
 
 namespace DirectX
 {
@@ -430,9 +429,9 @@ namespace Rococo
 		virtual void OnEvent(T& arg) = 0;
 	};
 
-	template<> struct IEventCallback<const wchar_t*>
+	template<> struct IEventCallback<crwstr>
 	{
-		virtual void OnEvent(const wchar_t* arg) = 0;
+		virtual void OnEvent(crwstr arg) = 0;
 	};
 
 	template<class T>

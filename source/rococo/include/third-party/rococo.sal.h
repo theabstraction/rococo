@@ -1108,7 +1108,7 @@ enum __SAL_YesNo { _SAL_notpresent, _SAL_no, _SAL_maybe, _SAL_yes, _SAL_default 
 //
 // describing conditions for array elements or dereferenced pointer parameters that hold after the call
 
-// e.g. void CloneString( _In_z_ const Wchar_t* wzIn _Out_ _Deref_post_z_ WCHAR** pWzOut );
+// e.g. void CloneString( _In_z_ crwstr wzIn _Out_ _Deref_post_z_ WCHAR** pWzOut );
 #define _Deref_post_z_                           _SAL1_1_Source_(_Deref_post_z_, (), _Deref_post1_impl_(__notnull_impl_notref) _Deref_post1_impl_(__zterm_impl) _Post_valid_impl_)
 #define _Deref_post_opt_z_                       _SAL1_1_Source_(_Deref_post_opt_z_, (), _Deref_post1_impl_(__maybenull_impl_notref) _Deref_post1_impl_(__zterm_impl) _Post_valid_impl_)
 

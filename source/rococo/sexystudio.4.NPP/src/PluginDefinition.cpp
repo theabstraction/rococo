@@ -138,21 +138,21 @@ namespace Local // Copied from the Rococo UTIL lib, so that we dont have to mana
         return false;
     }
 
-    bool StartsWith(const wchar_t* bigString, const wchar_t* prefix)
+    bool StartsWith(crwstr bigString, crwstr prefix)
     {
         return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
     }
 
-    bool Eq(const wchar_t* a, const wchar_t* b)
+    bool Eq(crwstr a, crwstr b)
     {
         return wcscmp(a, b) == 0;
     }
 
-    bool EndsWith(const wchar_t* bigString, const wchar_t* suffix)
+    bool EndsWith(crwstr bigString, crwstr suffix)
     {
         size_t len = wcslen(suffix);
         size_t lenBig = wcslen(bigString);
-        const wchar_t* t = bigString + lenBig - len;
+        crwstr t = bigString + lenBig - len;
         return Eq(suffix, t);
     }
 

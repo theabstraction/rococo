@@ -171,7 +171,7 @@ namespace Rococo
 			return flags != INVALID_FILE_ATTRIBUTES;
 		}
 
-		ROCOCO_API bool IsFileExistant(const wchar_t* filename)
+		ROCOCO_API bool IsFileExistant(crwstr filename)
 		{
 			DWORD flags = GetFileAttributesW(filename);
 			return flags != INVALID_FILE_ATTRIBUTES;
@@ -288,13 +288,13 @@ namespace Rococo
 			}
 		}
 
-		ROCOCO_API IBinaryArchive* CreateNewBinaryFile(const wchar_t* sysPath)
+		ROCOCO_API IBinaryArchive* CreateNewBinaryFile(crwstr sysPath)
 		{
 			struct Win32BinArchive : IBinaryArchive
 			{
 				HANDLE hFile = INVALID_HANDLE_VALUE;
 
-				Win32BinArchive(const wchar_t* sysPath)
+				Win32BinArchive(crwstr sysPath)
 				{
 					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __ROCOCO_FUNCTION__);
 					hFile = CreateFileW(sysPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -386,13 +386,13 @@ namespace Rococo
 			return new Win32BinArchive(sysPath);
 		}
 
-		ROCOCO_API IBinarySource* ReadBinarySource(const wchar_t* sysPath)
+		ROCOCO_API IBinarySource* ReadBinarySource(crwstr sysPath)
 		{
 			struct Win32BinFile : IBinarySource
 			{
 				HANDLE hFile;
 
-				Win32BinFile(const wchar_t* sysPath)
+				Win32BinFile(crwstr sysPath)
 				{
 					if (sysPath == nullptr) Throw(0, "%s: null sysPath", __ROCOCO_FUNCTION__);
 					hFile = CreateFileW(sysPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -426,7 +426,7 @@ namespace Rococo
 			return new Win32BinFile(sysPath);
 		}
 
-		ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath)
+		ROCOCO_API IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(crwstr sysPath)
 		{
 			struct Win32ROBinMapping : IReadOnlyBinaryMapping
 			{
@@ -436,7 +436,7 @@ namespace Rococo
 				HANDLE hFile = INVALID_HANDLE_VALUE;
 				HANDLE hMap = NULL;
 
-				Win32ROBinMapping(const wchar_t* sysPath)
+				Win32ROBinMapping(crwstr sysPath)
 				{
 					hFile = CreateFileW(sysPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 					if (hFile == INVALID_HANDLE_VALUE)
@@ -534,7 +534,7 @@ namespace Rococo
 			::GetModuleFileNameA(NULL, path.buf, path.CAPACITY);
 		}
 
-		void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& path, IOS& os)
+		void GetContentDirectory(crwstr contentIndicatorName, WideFilePath& path, IOS& os)
 		{
 			WideFilePath binDirectory;
 			os.GetBinDirectoryAbsolute(binDirectory);
@@ -609,7 +609,7 @@ namespace Rococo
 			setvbuf(stdout, nullptr, _IONBF, 0);
 		}
 
-		ROCOCO_API bool TryGetFileAttributes(const wchar_t* sysPath, FileAttributes& attr)
+		ROCOCO_API bool TryGetFileAttributes(crwstr sysPath, FileAttributes& attr)
 		{
 			if (sysPath == nullptr) Throw(0, "Rococo::IO::GetFileLength: sysPath was null");
 
@@ -640,7 +640,7 @@ namespace Rococo
 
 	ROCOCO_API bool FileModifiedArgs::Matches(cstr resource) const
 	{
-		const wchar_t* a = this->sysPath;
+		crwstr a = this->sysPath;
 		cstr b = resource;
 		if (*b == L'!') b++;
 
@@ -773,7 +773,7 @@ namespace Rococo::OS
 		}
 	}
 
-	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath)
+	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, crwstr sysPath)
 	{
 		ShellExecuteW(window, L"open", sysPath, nullptr, nullptr, SW_SHOW);
 	}
@@ -783,7 +783,7 @@ namespace Rococo::OS
 		SleepEx(timeoutMS, true);
 	}
 
-	static const wchar_t* notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
+	static crwstr notePadPP = L"C:\\Program Files\\Notepad++\\notepad++.exe";
 
 	static std::vector<PROCESS_INFORMATION> processes;
 
@@ -798,7 +798,7 @@ namespace Rococo::OS
 
 
 	// Not thread safe
-	bool SpawnChildProcessAsync(const wchar_t* executable, const wchar_t* commandLineArgs)
+	bool SpawnChildProcessAsync(crwstr executable, crwstr commandLineArgs)
 	{
 		std::vector<wchar_t> commandLine;
 		commandLine.resize(32786);
@@ -823,7 +823,7 @@ namespace Rococo::OS
 	}
 
 	// Thread safe
-	void SpawnIndependentProcess(HWND hMsgSink, const wchar_t* executable, const wchar_t* commandLine)
+	void SpawnIndependentProcess(HWND hMsgSink, crwstr executable, crwstr commandLine)
 	{
 		auto result = (INT_PTR)ShellExecuteW(hMsgSink, L"open", executable, commandLine, NULL, SW_SHOW);
 		if (result < 32)
@@ -1257,7 +1257,7 @@ namespace WIN32_ANON
 		int32 len;
 		std::unordered_map<std::string, std::string> macroToSubdir;
 	public:
-		Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
+		Installation(crwstr contentIndicatorName, IOS& _os) : os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 			len = (int32)wcslen(contentDirectory);
@@ -1268,7 +1268,7 @@ namespace WIN32_ANON
 			}
 		}
 
-		Installation(IOS& _os, const wchar_t* contentPath) : os(_os)
+		Installation(IOS& _os, crwstr contentPath) : os(_os)
 		{
 			if (!IO::IsDirectory(contentPath))
 			{
@@ -1288,7 +1288,7 @@ namespace WIN32_ANON
 			return os;
 		}
 
-		const wchar_t* Content() const  override
+		crwstr Content() const  override
 		{
 			return contentDirectory;
 		}
@@ -1462,7 +1462,7 @@ namespace WIN32_ANON
 			IO::ToSysPath(sysPath.buf);
 		}
 
-		void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
+		void ConvertSysPathToMacroPath(crwstr sysPath, U8FilePath& pingPath, cstr macro) const override
 		{
 			U8FilePath fullPingPath;
 			ConvertSysPathToPingPath(sysPath, fullPingPath);
@@ -1482,7 +1482,7 @@ namespace WIN32_ANON
 			Format(pingPath, "%s/%s", macro, fullPingPath.buf + i->second.size());
 		}
 
-		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
+		void ConvertSysPathToPingPath(crwstr sysPath, U8FilePath& pingPath) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
@@ -1773,7 +1773,7 @@ namespace WIN32_ANON
 			onUnstable = cb;
 		}
 
-		void OnModified(const wchar_t* filename)
+		void OnModified(crwstr filename)
 		{
 			OS::Sync sync(threadLock);
 
@@ -1885,7 +1885,7 @@ namespace WIN32_ANON
 			return This->MonitorDirectory();
 		}
 
-		void Monitor(const wchar_t* absPath) override
+		void Monitor(crwstr absPath) override
 		{
 			if (!EndsWith(absPath, L"\\"))
 			{
@@ -1915,12 +1915,12 @@ namespace WIN32_ANON
 			return INVALID_FILE_ATTRIBUTES != GetFileAttributesA(absPath);
 		}
 
-		bool IsFileExistant(const wchar_t* absPath) const override
+		bool IsFileExistant(crwstr absPath) const override
 		{
 			return INVALID_FILE_ATTRIBUTES != GetFileAttributesW(absPath);
 		}
 
-		void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const override
+		void ConvertUnixPathToSysPath(crwstr unixPath, WideFilePath& sysPath) const override
 		{
 			if (unixPath == nullptr) Throw(E_INVALIDARG, "Blank path in call to os.ConvertUnixPathToSysPath");
 			if (wcslen(unixPath) >= sysPath.CAPACITY)
@@ -1950,7 +1950,7 @@ namespace WIN32_ANON
 			sysPath.buf[i] = 0;
 		}
 
-		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
+		void LoadAbsolute(crwstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
 			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 			if (hFile == INVALID_HANDLE_VALUE) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
@@ -1996,7 +1996,7 @@ namespace WIN32_ANON
 			}
 		}
 
-		bool TryLoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
+		bool TryLoadAbsolute(crwstr absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
 		{
 			sysErrorCode = (ErrorCode) 0;
 
@@ -2045,9 +2045,9 @@ namespace WIN32_ANON
 				struct Reader : ILoadEventReader
 				{
 					HANDLE hFile;
-					const wchar_t* absPath;
+					crwstr absPath;
 
-					Reader(HANDLE _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
+					Reader(HANDLE _hFile, crwstr _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 					void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 					{
@@ -2072,7 +2072,7 @@ namespace WIN32_ANON
 			}
 		}
 
-		void LoadAbsolute(const wchar_t* absPath, ILoadEventsCallback& cb) const override
+		void LoadAbsolute(crwstr absPath, ILoadEventsCallback& cb) const override
 		{
 			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 			if (hFile == INVALID_HANDLE_VALUE) Throw(HRESULT_FROM_WIN32(GetLastError()), "Win32OS::LoadResource failed: Error opening file %ls", absPath);
@@ -2085,9 +2085,9 @@ namespace WIN32_ANON
 			struct Reader : ILoadEventReader
 			{
 				HANDLE hFile;
-				const wchar_t* absPath;
+				crwstr absPath;
 
-				Reader(HANDLE _hFile, const wchar_t* _absPath) : hFile(_hFile), absPath(_absPath) {}
+				Reader(HANDLE _hFile, crwstr _absPath) : hFile(_hFile), absPath(_absPath) {}
 
 				void ReadData(void* buffer, uint32 capacity, uint32& bytesRead) override
 				{
@@ -2123,12 +2123,12 @@ namespace Rococo::IO
 		return new WIN32_ANON::Win32OS();
 	}
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallation(crwstr contentIndicatorName, IOS& os)
 	{
 		return new WIN32_ANON::Installation(contentIndicatorName, os);
 	}
 
-	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(const wchar_t* contentDirectory, IOS& os)
+	ROCOCO_API IInstallationSupervisor* CreateInstallationDirect(crwstr contentDirectory, IOS& os)
 	{
 		wchar_t slash[2] = { 0 };
 		slash[0] = Rococo::IO::GetFileSeparator();
@@ -2369,7 +2369,7 @@ namespace Rococo::OS
 
 namespace Rococo::IO
 {
-	ROCOCO_API void EnsureUserDocumentFolderExists(const wchar_t* subdirectory)
+	ROCOCO_API void EnsureUserDocumentFolderExists(crwstr subdirectory)
 	{
 		if (subdirectory == nullptr || *subdirectory == 0)
 		{
@@ -2425,7 +2425,7 @@ namespace Rococo::IO
 		}
 	}
 
-	void GetFullPathFromTarget(TargetDirectory target, const wchar_t* relativePath, OUT std::vector<wchar_t>& absPath)
+	void GetFullPathFromTarget(TargetDirectory target, crwstr relativePath, OUT std::vector<wchar_t>& absPath)
 	{
 		switch (target)
 		{
@@ -2461,7 +2461,7 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text)
 	{
 		std::vector<wchar_t> fullPath;
 		GetFullPathFromTarget(target, filename, OUT fullPath);
@@ -2518,7 +2518,7 @@ namespace Rococo::IO
 		SaveAsciiTextFileIfDifferent(target, wPath, text);
 	}
 
-	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
+	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text)
 	{
 		if (text.length > 1024_megabytes)
 		{
@@ -2644,7 +2644,7 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API bool IsDirectory(const wchar_t* filename)
+	ROCOCO_API bool IsDirectory(crwstr filename)
 	{
 		DWORD flags = GetFileAttributesW(filename);
 		return (flags != INVALID_FILE_ATTRIBUTES && flags & FILE_ATTRIBUTE_DIRECTORY) != 0;
@@ -2895,7 +2895,7 @@ namespace Rococo::IO
 
 	ROCOCO_API void EndDirectoryWithSlash(wchar_t* pathname, size_t capacity)
 	{
-		const wchar_t* finalChar = GetFinalNull(pathname);
+		crwstr finalChar = GetFinalNull(pathname);
 
 		if (pathname == nullptr || pathname == finalChar)
 		{
@@ -2921,7 +2921,7 @@ namespace Rococo::IO
 		return (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 	}
 
-	ROCOCO_API void* RouteSearchResult(const WIN32_FIND_DATAW& findResult, const wchar_t* root, const wchar_t* containerRelRoot, void* containerContext, IEventCallback<FileItemData>& onFile)
+	ROCOCO_API void* RouteSearchResult(const WIN32_FIND_DATAW& findResult, crwstr root, crwstr containerRelRoot, void* containerContext, IEventCallback<FileItemData>& onFile)
 	{
 		WideFilePath fileName;
 		Format(fileName, L"%s%s%s", root, containerRelRoot, findResult.cFileName);
@@ -2937,7 +2937,7 @@ namespace Rococo::IO
 		return item.outContext;
 	}
 
-	ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile);
+	ROCOCO_API void SearchSubdirectoryAndRecurse(crwstr root, crwstr containerDirectory, crwstr subdirectory, void* subContext, IEventCallback<FileItemData>& onFile);
 
 	class SearchObject
 	{
@@ -2948,7 +2948,7 @@ namespace Rococo::IO
 		wchar_t rootDirectory[_MAX_PATH];
 
 	public:
-		SearchObject(const wchar_t* filter)
+		SearchObject(crwstr filter)
 		{
 			if (filter == nullptr || filter[0] == 0)
 			{
@@ -2985,7 +2985,7 @@ namespace Rococo::IO
 			}
 		}
 
-		void RouteSearchResults(const wchar_t* root, IEventCallback<FileItemData>& onFile, void* containerContext, bool recurse)
+		void RouteSearchResults(crwstr root, IEventCallback<FileItemData>& onFile, void* containerContext, bool recurse)
 		{
 			if (root == nullptr)
 			{
@@ -3069,7 +3069,7 @@ namespace Rococo::IO
 			}
 		}
 
-		void RouteSearchResults(const wchar_t* root, IEventCallback<U8FileItemData>& onFileU8, void* containerContext, bool recurse)
+		void RouteSearchResults(crwstr root, IEventCallback<U8FileItemData>& onFileU8, void* containerContext, bool recurse)
 		{
 			struct ANON : IEventCallback<FileItemData>
 			{
@@ -3132,12 +3132,12 @@ namespace Rococo::IO
 		}
 	};
 
-	ROCOCO_API void SearchSubdirectoryAndRecurse(const wchar_t* root, const wchar_t* containerDirectory, const wchar_t* subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
+	ROCOCO_API void SearchSubdirectoryAndRecurse(crwstr root, crwstr containerDirectory, crwstr subdirectory, void* subContext, IEventCallback<FileItemData>& onFile)
 	{
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
 			IEventCallback<FileItemData>* onFile;
-			const wchar_t* containerDirectory;
+			crwstr containerDirectory;
 
 			void OnEvent(IO::FileItemData& i) override
 			{
@@ -3168,7 +3168,7 @@ namespace Rococo::IO
 		GetCurrentDirectoryA(path.CAPACITY, path.buf);
 	}
 
-	ROCOCO_API void ForEachFileInDirectory(const wchar_t* filter, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext)
+	ROCOCO_API void ForEachFileInDirectory(crwstr filter, IEventCallback<FileItemData>& onFile, bool recurse, void* containerContext)
 	{
 		SearchObject searchObj(filter);
 		searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
@@ -3258,7 +3258,7 @@ namespace Rococo::IO
 		LoadBinaryFile(loader, wPath, maxLength);
 	}
 
-	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, const wchar_t* filename, uint64 maxLength)
+	ROCOCO_API void LoadBinaryFile(IBinaryFileLoader& loader, crwstr filename, uint64 maxLength)
 	{
 		if (maxLength > 2_gigabytes)
 		{
@@ -3301,7 +3301,7 @@ namespace Rococo::IO
 		} // File is no longer locked
 	}
 	
-	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, const wchar_t* filename)
+	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, crwstr filename)
 	{
 		std::vector<char> asciiData;
 
@@ -3341,7 +3341,7 @@ namespace Rococo::IO
 		onLoad.Populate(asciiData.data());
 	}
 
-	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, const wchar_t* filename)
+	ROCOCO_API size_t LoadAsciiTextFile(char* data, size_t capacity, crwstr filename)
 	{
 		if (capacity >= 2048_megabytes)
 		{
@@ -3387,7 +3387,7 @@ namespace Rococo::IO
 		return LoadAsciiTextFile(data, capacity, wPath);
 	}
 
-	ROCOCO_API void SaveBinaryFile(const wchar_t* targetPath, const uint8* buffer, size_t nBytes)
+	ROCOCO_API void SaveBinaryFile(crwstr targetPath, const uint8* buffer, size_t nBytes)
 	{
 		if (nBytes > 2_gigabytes)
 		{

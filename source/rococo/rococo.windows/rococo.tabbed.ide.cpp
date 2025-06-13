@@ -88,7 +88,7 @@ namespace
    struct IIDEWriter
    {
       virtual void WriteText(cstr propName, cstr value) = 0;
-      virtual void WriteText(cstr propName, const wchar_t* value) = 0;
+      virtual void WriteText(cstr propName, crwstr value) = 0;
       virtual void WriteInt(cstr propName, int32 value) = 0;
       virtual void WriteSetOfIds(cstr propName, IIterator<IDEPANE_ID>& container) = 0;
       virtual void PushChild() = 0;
@@ -130,7 +130,7 @@ namespace
          SB().AppendFormat("(%s string \"%s\")\n", propName, value);
       }
 
-      void WriteText(cstr propName, const wchar_t* value) override // TODO->escape sequences
+      void WriteText(cstr propName, crwstr value) override // TODO->escape sequences
       {
           AppendDepth();
           SB().AppendFormat("(%s string \"%ls\")\n", propName, value);

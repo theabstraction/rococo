@@ -50,7 +50,7 @@ namespace
    {
 	   std::vector<char> chararray;
 
-       UTF8(const wchar_t* wsz)
+       UTF8(crwstr wsz)
        {
 		   static_assert(sizeof(wchar_t) == 4, "!");
 		   
@@ -77,7 +77,7 @@ namespace
    struct UTF8
    {
 	   Rococo::U8FilePath path;
-	   UTF8(const wchar_t* wsz)
+	   UTF8(crwstr wsz)
 	   {
 		   Assign(path, wsz);
 	   }
@@ -92,7 +92,7 @@ namespace
 
 namespace Rococo
 {
-	FILE* _wfopen(const wchar_t* filename, const wchar_t* mode)
+	FILE* _wfopen(crwstr filename, crwstr mode)
 	{
 		UTF8 u8Filename(filename);
 		UTF8 u8Mode(mode);
@@ -269,7 +269,7 @@ namespace Rococo
 {
    bool FileModifiedArgs::Matches(cstr pingPath) const
    {
-      const wchar_t* a = this->sysPath;
+      crwstr a = this->sysPath;
       cstr b = pingPath;
       if (*b == L'!') b++;
 
@@ -445,7 +445,7 @@ namespace Rococo
 			}
 		}
 		
-		bool IsFileExistant(const wchar_t* filename)
+		bool IsFileExistant(crwstr filename)
 		{
 			UTF8 u8Filename(filename);
 			return IsFileExistant(u8Filename);
@@ -535,7 +535,7 @@ namespace Rococo
 			Rococo::Memory::_aligned_free(pMemory);
 		}
 		
-		void SaveAsciiTextFile(TargetDirectory target, const wchar_t* filename, const fstring& text)
+		void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text)
 		{
 			if (text.length > 1024_megabytes)
 			{
@@ -613,7 +613,7 @@ namespace
 		}
 	}
 
-	void GetContentDirectory(const wchar_t* contentIndicatorName, WideFilePath& content, IOS& os)
+	void GetContentDirectory(crwstr contentIndicatorName, WideFilePath& content, IOS& os)
 	{
 		WideFilePath container;
 		os.GetBinDirectoryAbsolute(container);
@@ -637,7 +637,7 @@ namespace
 		int32 len;
 		stringmap<HString> macroToSubdir;
 	public:
-		Installation(const wchar_t* contentIndicatorName, IOS& _os) : os(_os)
+		Installation(crwstr contentIndicatorName, IOS& _os) : os(_os)
 		{
 			GetContentDirectory(contentIndicatorName, contentDirectory, os);
 			len = wcslen(contentDirectory.buf);
@@ -657,7 +657,7 @@ namespace
 			return os;
 		}
 
-		const wchar_t* Content() const override
+		crwstr Content() const override
 		{
 			return contentDirectory;
 		}
@@ -815,7 +815,7 @@ namespace
 			IO::ToSysPath(sysPath.buf);
 		}
 
-		void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
+		void ConvertSysPathToMacroPath(crwstr sysPath, U8FilePath& pingPath, cstr macro) const override
 		{
 			U8FilePath fullPingPath;
 			ConvertSysPathToPingPath(sysPath, fullPingPath);
@@ -835,7 +835,7 @@ namespace
 			Format(pingPath, "%hs/%hs", macro, fullPingPath.buf + i->second.length());
 		}
 
-		void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
+		void ConvertSysPathToPingPath(crwstr sysPath, U8FilePath& pingPath) const override
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
@@ -983,7 +983,7 @@ namespace
 			delete this;
 		}
 
-		void Monitor(const wchar_t* absPath) override
+		void Monitor(crwstr absPath) override
 		{
 			// Not supported on the Max. Develope on a PC, a proper computer, then copy and paste to your noddy MAC
 		}
@@ -1003,17 +1003,17 @@ namespace
 			onUnstable = cb;
 		}
 
-		bool IsFileExistant(const wchar_t* absPath) const override
+		bool IsFileExistant(crwstr absPath) const override
 		{
 			return IO::IsFileExistant(absPath);
 		}
 
-		void ConvertUnixPathToSysPath(const wchar_t* unixPath, WideFilePath& sysPath) const override
+		void ConvertUnixPathToSysPath(crwstr unixPath, WideFilePath& sysPath) const override
 		{
 			Format(sysPath, L"%s", unixPath);
 		}
 
-		void LoadAbsolute(const wchar_t* absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
+		void LoadAbsolute(crwstr absPath, IExpandingBuffer& buffer, int64 maxFileLength) const override
 		{
 			UTF8 u8AbsPath(absPath);
 			FileHandle hFile = fopen(u8AbsPath, "r");
@@ -1070,7 +1070,7 @@ namespace Rococo::IO
 		return new OSX();
 	}
 
-	IInstallationSupervisor* CreateInstallation(const wchar_t* contentIndicatorName, IOS& os)
+	IInstallationSupervisor* CreateInstallation(crwstr contentIndicatorName, IOS& os)
 	{
 		return new Installation(contentIndicatorName, os);
 	}
@@ -1164,7 +1164,7 @@ static bool IsFile(cstr path)
 
 namespace Rococo::IO
 {
-	void ForEachFileInDirectory(const wchar_t* directory, Rococo::IEventCallback<Rococo::IO::FileItemData>& callback,  bool recurse)
+	void ForEachFileInDirectory(crwstr directory, Rococo::IEventCallback<Rococo::IO::FileItemData>& callback,  bool recurse)
 	{
 		if (recurse) Throw(0, "ForEachFileInDirectory recurse not implemented on OSX");
 		
@@ -1248,7 +1248,7 @@ namespace
 	{
 		std::vector<char> data;
 		
-		ROBIN(const wchar_t* sysPath)
+		ROBIN(crwstr sysPath)
 		{
 			U8FilePath u8SysPath;
 			Assign(u8SysPath, sysPath);
@@ -1325,7 +1325,7 @@ namespace
 
 namespace Rococo::IO
 {
-	IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(const wchar_t* sysPath)
+	IReadOnlyBinaryMapping* CreateReadOnlyBinaryMapping(crwstr sysPath)
 	{
 		return new ROBIN(sysPath);
 	}

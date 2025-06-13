@@ -10,5 +10,6 @@
 # pragma clang diagnostic push
 # pragma clang diagnostic ignored "-Wshadow"
 # pragma clang diagnostic ignored "-Wdelete-non-abstract-non-virtual-dtor"
+# pragma clang diagnostic ignored "-Woverloaded-virtual"
 # pragma clang diagnostic ignored "-Wmissing-braces"
 #endif

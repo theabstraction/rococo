@@ -122,7 +122,7 @@ namespace Rococo::OS
 
 	ROCOCO_API void BeepWarning();
 	ROCOCO_API void CopyExceptionToClipboard(IException& ex, Rococo::Windows::IWindow& window);
-	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, const wchar_t* sysPath);
+	ROCOCO_API void EditImageFile(Rococo::Windows::IWindow& window, crwstr sysPath);
 
 	struct IThreadControl;
 

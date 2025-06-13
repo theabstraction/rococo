@@ -40,7 +40,7 @@ namespace std
 namespace Rococo::Strings
 {
 	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
-	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ crwstr format, ...);
 }
 
 namespace ANON
@@ -255,7 +255,7 @@ namespace ANON
 		{
 		}
 
-		SXYZMapPackage(const wchar_t* filename, const char* key)
+		SXYZMapPackage(crwstr filename, const char* key)
 		{
 			IO::LoadBinaryFile(*this, filename, 2_gigabytes);
 
@@ -527,7 +527,7 @@ namespace ANON
 
 namespace Rococo
 {
-	ROCOCO_API IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName)
+	ROCOCO_API IPackageSupervisor* OpenZipPackage(crwstr sysPath, const char* friendlyName)
 	{
 		if (sysPath == NULL || friendlyName == NULL)
 		{
