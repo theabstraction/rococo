@@ -495,7 +495,6 @@ _TIFFVSetField(TIFF* tif, ttag_t tag, va_list ap)
 		     * passed as a list of separate values. This behaviour
 		     * must be changed in the future!
 		     */
-		    int i;
 		    char *val = (char *)tv->value;
 
 		    for (i = 0; i < tv->count; i++, val += tv_size) {

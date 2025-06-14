@@ -1,3 +1,5 @@
+#pragma once
+
 /* inflate.h -- internal inflate state definition
  * Copyright (C) 1995-2019 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -12,6 +14,7 @@
    trailer decoding by inflate().  NO_GZIP would be used to avoid linking in
    the crc code when it is not needed.  For shared libraries, gzip decoding
    should be left enabled. */
+
 #ifndef NO_GZIP
 #  define GUNZIP
 #endif
