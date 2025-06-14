@@ -27,7 +27,7 @@ namespace Rococo
 
 	inline Vec2i ToVec2i(FVector2f v)
 	{
-		return Vec2i((int)v.X, (int)v.Y);
+		return Vec2i{ (int)v.X, (int)v.Y };
 	}
 
 	FVector2f SlateRenderContext::ToSlatePosition(Rococo::Vec2i pos)
@@ -138,7 +138,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 	struct UE5_GR_Image : IGRImageSupervisor
 	{
-		Vec2i span{ 8, 8 };
+		Vec2i imageSpan{ 8, 8 };
 
 		FString hint;
 
@@ -162,7 +162,7 @@ namespace Rococo::Gui::UE5::Implementation
 					imageStretchBrush->Margin = FMargin(0, 0);
 					imageStretchBrush->DrawAs = ESlateBrushDrawType::Box;
 					imageNoStretchBrush = new FSlateImageBrush(imageTexture, UE::Slate::FDeprecateVector2DParameter((float)span.x, (float)span.y), noTint, ESlateBrushTileType::Both);
-					this->span = span;
+					this->imageSpan = span;
 				}
 			);
 		}
@@ -170,7 +170,7 @@ namespace Rococo::Gui::UE5::Implementation
 		UE5_GR_Image(cstr _hint, UTexture2D* _imageTexture) :
 			hint(_hint), imageTexture(_imageTexture)
 		{
-			span = Vec2i{ imageTexture->GetSizeX(), imageTexture->GetSizeY() };
+			imageSpan = Vec2i{ imageTexture->GetSizeX(), imageTexture->GetSizeY() };
 		}
 
 
@@ -189,7 +189,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		Vec2i Span() const override
 		{
-			return span;
+			return imageSpan;
 		}
 	};
 
@@ -421,7 +421,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto& image = static_cast<UE5_GR_Image&>(_image);
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 			Vec2i noSpacing{ 0,0 };
-			GuiRect innerRect = GetAlignedRect(alignment, absRect, noSpacing, image.span);
+			GuiRect innerRect = GetAlignedRect(alignment, absRect, noSpacing, image.imageSpan);
 			FPaintGeometry ue5Rect = ToUE5Rect(innerRect, rc.geometry);
 			FSlateDrawElement::MakeBox(rc.drawElements, ++rc.layerId, ue5Rect, image.imageNoStretchBrush, drawEffects, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 		}
@@ -830,7 +830,7 @@ namespace Rococo::Gui::UE5::Implementation
 		}
 
 		TArray<FSlateVertex> triangleVertices;
-		TArray<CodeSkipSizeType> triangleIndices;
+		TArray<SlateIndex> triangleIndices;
 
 		void MakeSlateVertex(OUT FSlateVertex& v, IN const GRVertex& src)
 		{
@@ -1036,9 +1036,9 @@ namespace Rococo::Gui::UE5::Implementation
 
 	bool UE5_GR_Image::Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g)
 	{
-		if (span.x > 0 && span.y > 0)
+		if (imageSpan.x > 0 && imageSpan.y > 0)
 		{
-			static_cast<UE5_GR_Renderer&>(g).RenderTexture(panel, alignment, spacing, isStretched, *this, { (float)span.x, (float)span.y }, span);
+			static_cast<UE5_GR_Renderer&>(g).RenderTexture(panel, alignment, spacing, isStretched, *this, { (float)imageSpan.x, (float)imageSpan.y }, imageSpan);
 			return true;
 		}
 		else
@@ -1361,7 +1361,7 @@ namespace Rococo::Gui::UE5::Implementation
 			auto& font = GetFont(fontId);	
 			FVector2f pixelSpan = fontMeasureService->Measure(text, font, 1.0f) + ToFVector2f(extraSpan);
 			FVector2f localSpaceSpan = pixelSpan * PixelSpanToLocalSpaceSpanRatio();
-			return ToVec2i(localSpaceSpan) + Vec2i(1,1);
+			return ToVec2i(localSpaceSpan) + Vec2i{ 1,1 };
 		}
 
 		mutable stringmap<FText> mapAsciiToLocalizedText;

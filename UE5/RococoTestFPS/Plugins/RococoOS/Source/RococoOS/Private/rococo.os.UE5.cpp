@@ -2119,7 +2119,7 @@ namespace Rococo::IO
 		SaveAsciiTextFile(target, wPath, text);
 	}
 
-	ROCOCO_API void GetUserPath(WIDECHAR* result, size_t capacity, cstr shortname)
+	ROCOCO_API void GetUserPath(ROCOCO_WIDECHAR* result, size_t capacity, cstr shortname)
 	{
 		FString path =  FPlatformProcess::UserDir();		
 		FString fullPath = FPaths::Combine(path, shortname);

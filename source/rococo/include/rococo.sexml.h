@@ -1,10 +1,6 @@
 #pragma once
 #include <rococo.types.h>
 
-#ifndef ROCOCO_SEXML_API
-# define ROCOCO_SEXML_API ROCOCO_API_IMPORT
-#endif
-
 namespace Rococo::Sex
 {
 	struct ISExpression;

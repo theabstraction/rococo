@@ -1,7 +1,4 @@
 #include <rococo.compiler.options.h>
-#ifndef ROCOCO_SEXML_API
-# define ROCOCO_SEXML_API ROCOCO_API_EXPORT
-#endif
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
@@ -36,7 +33,7 @@ namespace Rococo::OS
 		}
 
 		WideFilePath wFullName;
-		Rococo::Strings::Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
+		Rococo::Strings::Format(wFullName, _RW_TEXT("%ls\\%hs.sexml"), wDir.buf, section);
 
 		return IO::IsFileExistant(wFullName);
 	}
@@ -54,7 +51,7 @@ namespace Rococo::OS
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
 		WideFilePath wFullName;
-		Rococo::Strings::Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
+		Rococo::Strings::Format(wFullName, _RW_TEXT("%ls\\%hs.sexml"), wDir.buf, section);
 
 		Rococo::Strings::Format(path, "%ls", wFullName.buf);
 	}
@@ -77,7 +74,7 @@ namespace Rococo::OS
 		}
 
 		WideFilePath wFullName;
-		Rococo::Strings::Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
+		Rococo::Strings::Format(wFullName, _RW_TEXT("%ls\\%hs.sexml"), wDir.buf, section);
 
 		struct ANON: IStringPopulator
 		{
@@ -137,7 +134,7 @@ namespace Rococo::OS
 		}
 
 		WideFilePath wDir;
-		Rococo::Strings::Format(wDir, L"%hs\\%hs.sexml", organization, section);
+		Rococo::Strings::Format(wDir, _RW_TEXT("%hs\\%hs.sexml"), organization, section);
 
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
 		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);

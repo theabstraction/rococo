@@ -429,15 +429,15 @@ namespace Rococo::IO
 	}
 	ROCOCO_API void EndDirectoryWithSlash(char* pathname, size_t capacity);
 	ROCOCO_API void EndDirectoryWithSlash(ROCOCO_WIDECHAR* pathname, size_t capacity);
-#ifdef _WIN32 // Windows may have UNICODE16 characters in the username, so ascii insufficient to hold the user path
+
 	ROCOCO_API void GetUserPath(ROCOCO_WIDECHAR* fullpath, size_t capacity, cstr shortname);
 	inline void GetUserPath(WideFilePath& fullpath, cstr shortname)
 	{
 		GetUserPath(fullpath.buf, WideFilePath::CAPACITY, shortname);
 	}
-#else
+
 	ROCOCO_API void GetUserPath(char* fullpath, size_t capacity, cstr shortname);
-#endif
+
 	ROCOCO_API void DeleteUserFile(cstr filename);
 
 	ROCOCO_API bool TrySwapExtension(U8FilePath& path, cstr expectedExtension, cstr newExtenson);

@@ -202,7 +202,7 @@ namespace Rococo
     public class RococoProject : RococoBaseProject
     {
         // Note, default to CPP 17 rather than CPP 20, because on VC I had serious issues were internal compiler errors compiling sexy.script when C+ 20 is set
-        public void StandardInit(Configuration conf, Target target, Configuration.OutputType type, int CCPVersion = 17, bool importRococoAPI = true, bool importSexyUtilsAP = true)
+        public void StandardInit(Configuration conf, Target target, Configuration.OutputType type, int CCPVersion = 17, bool importRococoAPI = true, bool importSexyUtilsAP = true, bool importSexml = true)
         {
             conf.Output = type;
             conf.ProjectFileName = "[project.Name]_[target.DevEnv]_[target.Platform]";
@@ -224,6 +224,12 @@ namespace Rococo
             conf.TargetLibraryPath = Path.Combine(Roots.RococoLibPath, @"[target.Platform]\[conf.Name]\");
             conf.Defines.Add("__ROCOCO_WIDECHAR__=wchar_t");
             conf.Defines.Add("ROCOCO_WIDECHAR_IS_WCHAR_T");
+
+            if (importSexml)
+            {
+                conf.Defines.Add("ROCOCO_SEXML_API=__declspec(dllimport)");
+            }
+
             if (importRococoAPI)
             {
                 conf.Defines.Add("ROCOCO_API=__declspec(dllimport)");
@@ -1342,10 +1348,11 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
-            StandardInit(conf, target, Configuration.OutputType.Dll);
+            StandardInit(conf, target, Configuration.OutputType.Dll, 17, true, true, false);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Defines.Add("ROCOCO_SEXML_API=__declspec(dllexport)");
         }
     }
 

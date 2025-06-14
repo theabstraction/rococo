@@ -1,7 +1,4 @@
 #include <rococo.compiler.options.h>
-#ifndef ROCOCO_SEXML_API
-# define ROCOCO_SEXML_API ROCOCO_API_EXPORT
-#endif
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.sexml.h>
@@ -955,19 +952,24 @@ namespace Rococo::Sex::SEXML
 
 	ROCOCO_SEXML_API [[nodiscard]] ISEXMLRootSupervisor* CreateSEXMLParser(IAllocator& allocator, cr_sex sRoot)
 	{
+#ifdef _WIN32
 		_invalid_parameter_handler old = _set_invalid_parameter_handler(OnBadParameter);
-
+#endif
 		void* pMemory = allocator.Allocate(sizeof(Impl::SEXMLParser));
 
 		try
 		{
 			auto* p = new (pMemory) Impl::SEXMLParser(sRoot, allocator);
+#ifdef _WIN32
 			_set_invalid_parameter_handler(old);
+#endif
 			return p;
 		}
 		catch (...)
 		{
+#ifdef _WIN32
 			_set_invalid_parameter_handler(old);
+#endif
 			allocator.FreeData(pMemory);
 			throw;
 		}
@@ -1244,7 +1246,7 @@ namespace Rococo::Sex::SEXML
 	ROCOCO_SEXML_API int32 AsAtomicInt32(const ISEXMLAttributeValue& value)
 	{
 		cstr text = AsAtomic(value).c_str();
-		if (strlen(text) > 2 && (_strnicmp(text, "0x", 2) == 0))
+		if (strlen(text) > 2 && (Strings::Compare(text, "0x", 2) == 0))
 		{
 			int32 hexValue = 0;
 			sscanf_s(text + 2, "%x", &hexValue);
