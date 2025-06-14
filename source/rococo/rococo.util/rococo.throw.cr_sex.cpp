@@ -45,6 +45,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef _Printf_format_string_
+# define _Printf_format_string_
+#endif
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::Compiler;

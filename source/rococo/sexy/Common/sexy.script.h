@@ -141,7 +141,7 @@ namespace Rococo {
 
 		template<class T>void WriteOutput(int index, T value, NativeCallEnvironment& e)
 		{
-			static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
+			static_assert((sizeof (T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			ValidateOutputIndex(index, e.code);
 			int offset = e.code.GetOffset(index);
 			WriteOutput(value, e.cpu.SF(), offset);
@@ -149,7 +149,7 @@ namespace Rococo {
 
 		template<class T> void ReadInput(int index, T& value, Compiler::IPublicProgramObject& po, const Compiler::IFunction& f)
 		{
-			static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
+			static_assert((sizeof(T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			ValidateInputIndex(index, f.Code());
 			int offset = f.Code().GetOffset(index + f.NumberOfOutputs());
 			ReadInput(value, po.VirtualMachine().Cpu().SF(), offset);
@@ -157,7 +157,7 @@ namespace Rococo {
 
 		template<class T> void ReadInput(int index, T& value, NativeCallEnvironment& e)
 		{
-			static_assert(((sizeof T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
+			static_assert((sizeof(T) % 4) == 0, "sizeof(T) needs to be a multiple of 4");
 			ValidateInputIndex(index, e.code);
 			int offset = e.code.GetOffset(index + e.function.NumberOfOutputs());
 			ReadInput(value, e.cpu.SF(), offset);

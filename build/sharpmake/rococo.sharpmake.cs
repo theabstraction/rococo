@@ -754,6 +754,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoComponentsBodyProject>(target);
             conf.AddPublicDependency<RococoComponentsAnimationProject>(target);
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -789,6 +791,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoGraphicsProject>(target); // Required for the iamge list loader
             ImportSexyScriptProject(conf,target);
             conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -807,6 +811,8 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -840,6 +846,8 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoAssetsProject>(target);
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -860,6 +868,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.AddPublicDependency<RococoGreatSexProject>(target);
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -879,6 +889,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoGRGDIProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -1082,6 +1094,8 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -1117,6 +1131,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoFontsProject>(target);
             conf.AddPublicDependency<RococoRALPipelineProject>(target);
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -1192,6 +1208,8 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_GUI_RETAINED_API=__declspec(dllexport)");
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
         }
@@ -1249,6 +1267,8 @@ namespace Rococo
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
             conf.AddPublicDependency<RococoDependencyProject>(target);
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
             AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
         }
     }
@@ -1279,6 +1299,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoMPlatProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
     }
 
@@ -1300,6 +1322,8 @@ namespace Rococo
             conf.AddPrivateDependency<RococoSEXMLProject>(target);
             conf.AddPrivateDependency<RococoGreatSexProject>(target);
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
             conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
 
             // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\
@@ -1972,6 +1996,8 @@ namespace Rococo
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
             conf.Defines.Add("__ROCOCO_WIDECHAR__=wchar_t");
+            conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllexport)");
             AddDefaultLibraries(conf);
         }
     }
@@ -2017,6 +2043,7 @@ namespace Rococo
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllexport)");
+            conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
             conf.Defines.Add("__ROCOCO_WIDECHAR__=wchar_t");
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4996", "4100", "4324", "4146", "4244", "4267", "4127", "4702", "4611"));
         }
