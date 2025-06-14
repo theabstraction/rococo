@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -25,28 +25,39 @@
 
 LIBPORT = $(top_builddir)/port/libport.la
 LIBTIFF = $(top_builddir)/libtiff/libtiff.la
+libtiffincludedir = $(includedir)
 
-EXTRA_DIST = Makefile.vc SConstruct tif_config.h.vc tiffconf.h.vc libtiff.def \
-	     $(EXTRA_SRCS)
+EXTRA_DIST = \
+	CMakeLists.txt \
+	libtiff.def \
+	libtiff.map \
+	libtiffxx.map \
+	tiffvers.h.cmake.in \
+	tif_config.h.cmake.in \
+	tiffconf.h.cmake.in \
+	tif_win32_versioninfo.rc
 
-HDRS = \
+libtiffinclude_HEADERS = \
 	tiff.h \
-        tiffconf.h \
 	tiffio.h \
 	tiffvers.h
 
 if HAVE_CXX
-HDRS +=	tiffio.hxx
+libtiffinclude_HEADERS += tiffio.hxx
 endif
 
-EXTRA_HDRS = \
+noinst_HEADERS = \
 	t4.h \
 	tif_dir.h \
+	tif_hash_set.h \
 	tif_predict.h \
 	tiffiop.h \
 	uvcode.h
 
-SRCS = \
+nodist_libtiffinclude_HEADERS = \
+	tiffconf.h
+
+libtiff_la_SOURCES = \
 	tif_aux.c \
 	tif_close.c \
 	tif_codec.c \
@@ -63,8 +74,13 @@ SRCS = \
 	tif_fax3sm.c \
 	tif_flush.c \
 	tif_getimage.c \
+	tif_hash_set.c \
+	tif_jbig.c \
 	tif_jpeg.c \
+	tif_jpeg_12.c \
+	tif_lerc.c \
 	tif_luv.c \
+	tif_lzma.c \
 	tif_lzw.c \
 	tif_next.c \
 	tif_ojpeg.c \
@@ -78,50 +94,49 @@ SRCS = \
 	tif_swab.c \
 	tif_thunder.c \
 	tif_tile.c \
-	tif_unix.c \
 	tif_version.c \
 	tif_warning.c \
+	tif_webp.c \
 	tif_write.c \
-	tif_zip.c
+	tif_zip.c \
+	tif_zstd.c
 
-SRCSXX = \
+libtiffxx_la_SOURCES = \
 	tif_stream.cxx
 
-EXTRA_SRCS = \
-	tif_acorn.c \
-	tif_apple.c \
-	tif_atari.c \
-	tif_msdos.c \
-	tif_next.c \
-	tif_win3.c \
-	tif_win32.c
-
-libtiffincludedir = $(includedir)
-libtiffinclude_HEADERS = $(HDRS)
-noinst_HEADERS = $(EXTRA_HDRS)
+if WIN32_IO
+EXTRA_DIST += tif_unix.c
+libtiff_la_SOURCES += tif_win32.c
+else
+EXTRA_DIST += tif_win32.c
+libtiff_la_SOURCES += tif_unix.c
+endif
 
 lib_LTLIBRARIES = libtiff.la
 if HAVE_CXX
 lib_LTLIBRARIES += libtiffxx.la
 endif
 
-libtiff_la_SOURCES = $(SRCS)
 libtiff_la_LDFLAGS = \
 	-no-undefined \
-	-version-number $(LIBTIFF_VERSION_INFO)
+	-version-info $(LIBTIFF_VERSION_INFO)
 if HAVE_RPATH
 libtiff_la_LDFLAGS += $(LIBDIR)
 endif
-libtiff_la_LIBADD = $(LIBPORT)
+if HAVE_LD_VERSION_SCRIPT
+libtiff_la_LDFLAGS += -Wl,--version-script=$(srcdir)/libtiff.map
+endif
 
-libtiffxx_la_SOURCES = $(SRCSXX)
 libtiffxx_la_LDFLAGS = \
 	-no-undefined \
-	-version-number $(LIBTIFF_VERSION_INFO)
+	-version-info $(LIBTIFF_VERSION_INFO)
 if HAVE_RPATH
 libtiffxx_la_LDFLAGS += $(LIBDIR)
 endif
-libtiffxx_la_LIBADD = $(LIBTIFF) $(LIBPORT)
+if HAVE_LD_VERSION_SCRIPT
+libtiffxx_la_LDFLAGS += -Wl,--version-script=$(srcdir)/libtiffxx.map
+endif
+libtiffxx_la_LIBADD = $(LIBTIFF)
 libtiffxx_la_DEPENDENCIES = libtiff.la
 
 #
@@ -136,3 +151,16 @@ mkg3states_LDADD = $(LIBPORT)
 faxtable: mkg3states
 	(rm -f tif_fax3sm.c && ./mkg3states -b -c const tif_fax3sm.c)
 
+if STATIC_LERC
+extra_CPPFLAGS = -DLERC_STATIC
+else
+extra_CPPFLAGS =
+endif
+
+if HAVE_JPEGTURBO_DUAL_MODE_8_12
+JPEGTURBO_CPPFLAGS = -DHAVE_JPEGTURBO_DUAL_MODE_8_12
+else
+JPEGTURBO_CPPFLAGS =
+endif
+
+AM_CPPFLAGS = -I$(top_srcdir)/libtiff -I$(top_srcdir)/port $(extra_CPPFLAGS) $(JPEGTURBO_CPPFLAGS)

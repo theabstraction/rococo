@@ -1988,7 +1988,7 @@ namespace Rococo
     {
         public LibTiffProject() : base("lib-tiff", @"libtiff\libtiff\")
         {
-            Exclude("mkg3states.c", "tif_acorn.c", "tif_apple.c", "tif_msdos.c", "tif_unix.c", "tif_win32.c", "tif_win3.c", "tif_atari.c");
+            Exclude("tif_win32.c", "tif_unix.c");
             SourceFiles.Add(Path.Combine(SourceRootPath, @"..\bloke.tiff.cpp"));
         }
 

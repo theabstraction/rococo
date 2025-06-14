@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -23,7 +23,9 @@
 
 # Process this file with automake to produce Makefile.in.
 
-EXTRA_DIST = README
+EXTRA_DIST = \
+	CMakeLists.txt \
+	README
 
-SUBDIRS = acorn addtiffo dbs iptcutil mac-cw mac-mpw mfs ojpeg pds ras stream tags win_dib
+SUBDIRS = addtiffo dbs iptcutil mfs pds ras stream tags win_dib
 

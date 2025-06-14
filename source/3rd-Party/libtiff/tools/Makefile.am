@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -26,25 +26,24 @@
 LIBPORT = $(top_builddir)/port/libport.la
 LIBTIFF = $(top_builddir)/libtiff/libtiff.la
 
-EXTRA_DIST = Makefile.vc
+EXTRA_DIST = \
+	CMakeLists.txt \
+	tif_tools_versioninfo.rc
 
+if TIFF_TOOLS
 bin_PROGRAMS = \
-	bmp2tiff \
 	fax2ps \
 	fax2tiff \
-	gif2tiff \
 	pal2rgb \
 	ppm2tiff \
-	ras2tiff \
 	raw2tiff \
-	rgb2ycbcr \
-	thumbnail \
 	tiff2bw \
 	tiff2pdf \
 	tiff2ps \
 	tiff2rgba \
 	tiffcmp \
 	tiffcp \
+	tiffcrop \
 	tiffdither \
 	tiffdump \
 	tiffinfo \
@@ -54,11 +53,20 @@ bin_PROGRAMS = \
 if HAVE_OPENGL
 bin_PROGRAMS += tiffgt
 endif
+endif
 
-EXTRA_PROGRAMS = sgi2tiff sgisv ycbcr
+EXTRA_PROGRAMS = rgb2ycbcr thumbnail
 
-bmp2tiff_SOURCES = bmp2tiff.c
-bmp2tiff_LDADD = $(LIBTIFF) $(LIBPORT)
+# Executable programs which need to be built in order to support tests
+if TIFF_TESTS
+check_PROGRAMS = \
+	rgb2ycbcr \
+	thumbnail
+endif
+
+if HAVE_RPATH
+AM_LDFLAGS = $(LIBDIR)
+endif
 
 fax2ps_SOURCES = fax2ps.c
 fax2ps_LDADD = $(LIBTIFF) $(LIBPORT)
@@ -66,17 +74,11 @@ fax2ps_LDADD = $(LIBTIFF) $(LIBPORT)
 fax2tiff_SOURCES = fax2tiff.c
 fax2tiff_LDADD = $(LIBTIFF) $(LIBPORT)
 
-gif2tiff_SOURCES = gif2tiff.c
-gif2tiff_LDADD = $(LIBTIFF) $(LIBPORT)
-
 pal2rgb_SOURCES = pal2rgb.c
 pal2rgb_LDADD = $(LIBTIFF) $(LIBPORT)
 
 ppm2tiff_SOURCES = ppm2tiff.c
 ppm2tiff_LDADD = $(LIBTIFF) $(LIBPORT)
-
-ras2tiff_SOURCES = ras2tiff.c rasterfile.h
-ras2tiff_LDADD = $(LIBTIFF) $(LIBPORT)
 
 raw2tiff_SOURCES = raw2tiff.c
 raw2tiff_LDADD = $(LIBTIFF) $(LIBPORT)
@@ -105,6 +107,9 @@ tiffcmp_LDADD = $(LIBTIFF) $(LIBPORT)
 tiffcp_SOURCES = tiffcp.c
 tiffcp_LDADD = $(LIBTIFF) $(LIBPORT)
 
+tiffcrop_SOURCES = tiffcrop.c
+tiffcrop_LDADD = $(LIBTIFF) $(LIBPORT)
+
 tiffdither_SOURCES = tiffdither.c
 tiffdither_LDADD = $(LIBTIFF) $(LIBPORT)
 
@@ -127,7 +132,7 @@ tiffgt_SOURCES = tiffgt.c
 tiffgt_CFLAGS = $(CFLAGS) $(GLUT_CFLAGS) $(AM_CFLAGS)
 tiffgt_LDADD = $(LIBTIFF) $(LIBPORT) $(X_LIBS) $(GLUT_LIBS)
 
-INCLUDES = -I$(top_srcdir)/libtiff
+AM_CPPFLAGS = -I$(top_srcdir)/libtiff -I$(top_srcdir)/port
 
 echo:
 	(echo $(CFLAGS))

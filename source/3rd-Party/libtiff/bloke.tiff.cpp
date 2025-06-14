@@ -178,7 +178,7 @@ void _TIFFmemset(tdata_t target, int value, tsize_t capacity)
    memset(target, value, capacity);
 }
 
-extern void _TIFFmemcpy(tdata_t dest, const tdata_t src, tsize_t capacity)
+extern void _TIFFmemcpy(void* dest, const void* src, tmsize_t capacity)
 {
 #ifdef _WIN32
    memcpy_s(dest, capacity, src, capacity);
@@ -187,7 +187,7 @@ extern void _TIFFmemcpy(tdata_t dest, const tdata_t src, tsize_t capacity)
 #endif
 }
 
-int _TIFFmemcmp(const tdata_t a, const tdata_t b, tsize_t len)
+int _TIFFmemcmp(const void* a, const void* b, tsize_t len)
 {
    return memcmp(a, b, len);
 }
@@ -214,6 +214,13 @@ void* _TIFFrealloc(void* p, tsize_t s)
    return tiffAllocator ? tiffAllocator->Reallocate(p, (size_t) s) : realloc(p, (size_t) s);
 }
 
+void* _TIFFcalloc(tmsize_t nmemb, tmsize_t siz)
+{
+	auto nBytes = nmemb * siz;
+	auto* pMemory = (uint8*) _TIFFmalloc(nBytes);
+	memset(pMemory, 0, nBytes);
+	return pMemory;
+}
 
 namespace
 {

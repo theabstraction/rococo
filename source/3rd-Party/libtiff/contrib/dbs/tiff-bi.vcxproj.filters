@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\work\rococo\source\3rd-Party\libtiff\contrib\dbs\tiff-bi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\work\rococo\source\3rd-Party\libtiff\contrib\dbs\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{2825FE91-749B-3134-87A1-8E4B9D744E9B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

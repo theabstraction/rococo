@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\work\rococo\source\3rd-Party\libtiff\CMakeFiles\9e2243ce7d4282b23db46ab5789d7390\RUN_TESTS_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{6CF79E32-C264-3208-9FED-01EA4210378E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

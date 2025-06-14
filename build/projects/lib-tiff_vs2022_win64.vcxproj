@@ -239,22 +239,18 @@
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\t4.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiff.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.vc.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.wince.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffio.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffiop.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffvers.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.vc.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.wince.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dir.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_fax3.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_hash_set.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_predict.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\uvcode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\3rd-Party\libtiff\bloke.tiff.cpp" />
-    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\lfind.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_aux.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_close.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_codec.c" />
@@ -271,9 +267,11 @@
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_fax3sm.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_flush.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_getimage.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_hash_set.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jbig.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jpeg.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jpeg_12.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lerc.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_luv.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lzma.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lzw.c" />
@@ -291,8 +289,10 @@
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_tile.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_version.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_warning.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_webp.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_write.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_zip.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_zstd.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
