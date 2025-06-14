@@ -24,6 +24,7 @@
 
 #include <3D/rococo.mesh-builder.h>
 #include <rococo.ui.joystick.h>
+#include <sexy.script.exports.h>
 
 namespace Rococo
 {

@@ -2,61 +2,8 @@
 
 #include <rococo.compiler.options.h>
 #include <new> // bad_alloc, bad_array_new_length
+#include <sexy.util.exports.h>
 
-#ifndef SEXYUTIL_API
-# define SEXYUTIL_API ROCOCO_API_IMPORT
-#endif
-
-namespace Rococo::Memory
-{
-#ifdef USE_STD_ALLOCATOR_FOR_SEXY
-    FORCE_INLINE void* AllocateSexyMemory(size_t nBytes)
-    {
-        return new char[nBytes];
-    }
-
-    FORCE_INLINE void FreeSexyMemory(void* pBuffer, size_t nBytes)
-    {
-        UNUSED(nBytes);
-        delete[](char*) pBuffer;
-    }
-
-    FORCE_INLINE void FreeSexyUnknownMemory(void* pBuffer)
-    {
-        delete[](char*) pBuffer;
-    }
-
-    template<class T>
-    T* AllocateSexyPointers(size_t numberOfPointers)
-    {
-        return new T[numberOfPointers];
-    }
-
-    template<class T>
-    void FreeSexyPointers(T* buffer)
-    {
-        delete[] buffer;
-    }
-#else
-    SEXYUTIL_API void* AllocateSexyMemory(size_t nBytes);
-    SEXYUTIL_API void FreeSexyMemory(void* pBuffer, size_t nBytes);
-    SEXYUTIL_API void FreeSexyUnknownMemory(void* pBuffer);
-
-    template<class T>
-    T* AllocateSexyPointers(size_t numberOfPointers)
-    {
-        return (T*) AllocateSexyMemory(sizeof(T*) * numberOfPointers);
-    }
-
-    template<class T>
-    void FreeSexyPointers(T* buffer)
-    {
-        FreeSexyUnknownMemory(buffer);
-    }
-#endif
-    SEXYUTIL_API IAllocator& GetSexyAllocator();
-    SEXYUTIL_API void SetSexyAllocator(IAllocator* allocator);
-}
 
 #define DEFINE_SEXY_ALLOCATORS_FOR_CLASS                    \
 void* operator new(size_t nBytes)                           \

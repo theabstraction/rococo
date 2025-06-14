@@ -6,6 +6,8 @@ static_assert(false, "Define ROCOCO_COMPONENTS_API before including this file. R
 #include <components/rococo.ecs.h>
 #include <components/rococo.component.base.interop.h>
 #include <sexy.script.h>
+#include <sexy.script.exports.h>
+#include <sexy.util.exports.h>
 
 #define PUBLISH_NATIVE_CALLS(SHORTNAME, INTERNAL_ADD_NATIVE_CALL)										\
 namespace Rococo::Components::Generated::Interop														\

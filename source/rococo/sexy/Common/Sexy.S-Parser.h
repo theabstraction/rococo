@@ -110,6 +110,9 @@ namespace Rococo::Sex
 		Debugging::IStackFrameEnumerator* StackFrames() { return nullptr; }
 	};
 
+	ROCOCO_API cstr ReadUntil(const Vec2i& pos, const ISourceCode& src);
+	ROCOCO_API void GetSpecimen(char specimen[64], const ISExpression& e);
+
 	template<class T> class Auto
 	{
 	private:

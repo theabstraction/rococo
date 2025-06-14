@@ -9,6 +9,7 @@
 #include "sexy.types.h"
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
+#include "sexy.script.exports.h"
 
 #include <rococo.os.win32.h>
 #include <rococo.window.h>

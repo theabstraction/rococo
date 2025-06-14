@@ -50,7 +50,7 @@
 #endif
 
 #include <new>
-#include <rococo.stl.allocators.h>
+#include <rococo.sexy.allocators.h>
 #include <sexy.unordered_map.h>
 #include <rococo.functional.h>
 

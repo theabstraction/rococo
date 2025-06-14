@@ -61,6 +61,7 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
+#include "sexy.script.exports.h"
 #include "sexy.s-parser.h"
 #include "..\STC\stccore\Sexy.Compiler.h"
 #include <rococo.api.h>
@@ -70,7 +71,7 @@
 #include <rococo.strings.h>
 #include <rococo.time.h>
 
-#include <rococo.stl.allocators.h>
+#include <rococo.sexy.allocators.h>
 
 #define validate(_Expression) if (!(_Expression)) { ShowFailure(#_Expression, __FILE__, __LINE__); Throw(0, "Validation failure"); }
 

@@ -3,6 +3,7 @@
 #include <rococo.api.h>
 #include <rococo.ui.h>
 #include <rococo.renderer.h>
+#include <sexy.script.exports.h>
 
 #pragma pack(push,1)
 

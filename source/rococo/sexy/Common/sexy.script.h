@@ -41,20 +41,6 @@
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 
-// #define SCRIPT_IS_LIBRARY
-
-#ifndef SCRIPTEXPORT_API
-# ifdef SCRIPT_IS_LIBRARY
-#  define SCRIPTEXPORT_API
-# else
-#  ifndef IS_SCRIPT_DLL
-#   define SCRIPTEXPORT_API __declspec(dllimport)
-#  else
-#   define SCRIPTEXPORT_API __declspec(dllexport)
-#  endif
-# endif
-#endif
-
 // #define SEXY_ENABLE_EXTRA_STRING_SECURITY // uncomment to add in extra security code, which slows some strings ops down a bit
 
 namespace Rococo
@@ -91,9 +77,6 @@ namespace Rococo
 namespace Rococo {
 	namespace Script
 	{
-		SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IInterface& i);
-		SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IStructure& typeDesc);
-
 		ROCOCO_INTERFACE IFreeable
 		{
 			virtual void Free() = 0;
@@ -193,16 +176,6 @@ namespace Rococo {
 		{
 			Compiler::ObjectStub Header;
 			Sex::ISExpressionBuilder* BuilderPtr;
-		};
-
-		struct CClassSysTypeStringBuilder
-		{
-			Compiler::ObjectStub header;
-			int32 length;
-			char* buffer;
-			int32 capacity;
-
-			SCRIPTEXPORT_API void AppendAndTruncate(const fstring& text);
 		};
 
 		struct CScriptSystemClass
@@ -393,7 +366,7 @@ namespace Rococo {
 			// and use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
 			virtual ListImage* CreateListImage(const Compiler::IStructure& valueType) = 0;
 
-			virtual uint8* AppendListNode(ListImage& image) = 0;
+			virtual Rococo::uint8* AppendListNode(ListImage& image) = 0;
 
 			// Assumes that the string bound to the input pointer is immutable for the lifespan of the script and provides a CStringConstant for it that can be used by any script that assumes immutability
 			virtual CStringConstant* ReflectImmutableStringPointer(const char* const s, int32 stringLength = -1) = 0;
@@ -532,8 +505,6 @@ namespace Rococo {
 			virtual Compiler::IMemberLife* GetMapLifetimeManager() = 0;
 		};
 
-		SCRIPTEXPORT_API void SetDefaultNativeSourcePath(crwstr pathname);
-
 		ROCOCO_INTERFACE INativeLib
 		{
 			virtual void AddNativeCalls() = 0;
@@ -545,102 +516,30 @@ namespace Rococo {
 
 		ROCOCO_INTERFACE MemberEnumeratorCallback
 		{
-			virtual void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const uint8* sfItem, int offset, int recurseDepth) = 0;
-			virtual void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) = 0;
-			virtual void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) = 0;
-			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const Rococo::uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const Rococo::uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ArrayImage* array, const Rococo::uint8* sfItem, int offset, int recurseDepth) = 0;
+			virtual void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const Rococo::uint8* sfItem, int offset, int recurseDepth) = 0;
 		};
-
-		// Debugging Helpers API
-		SEXYUTIL_API void EnumerateRegisters(Rococo::VM::CPU& cpu, Rococo::Debugger::IRegisterEnumerationCallback& cb);
-		SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(VM::CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss);
-		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(const Rococo::Compiler::IModule& module, Rococo::ID_BYTECODE id);
-		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(Rococo::Compiler::IPublicProgramObject& obj, Rococo::ID_BYTECODE id);
-		SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionAtAddress(Rococo::Compiler::IPublicProgramObject& po, size_t pcOffset);
-		SCRIPTEXPORT_API const uint8* GetCallerSF(Rococo::VM::CPU& cpu, const uint8* sf);
-		SCRIPTEXPORT_API const uint8* GetReturnAddress(Rococo::VM::CPU& cpu, const uint8* sf);
-		SCRIPTEXPORT_API const uint8* GetPCAddress(Rococo::VM::CPU& cpu, int32 callDepth);
-		SCRIPTEXPORT_API const uint8* GetStackFrame(Rococo::VM::CPU& cpu, int32 callDepth);
-		SCRIPTEXPORT_API bool GetVariableByIndex(cstr& name, Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const uint8*& SF, IPublicScriptSystem& ss, size_t index, size_t callOffset);
-		SCRIPTEXPORT_API bool GetCallDescription(const uint8*& sf, const uint8*& pc, const Rococo::Compiler::IFunction*& f, size_t& fnOffset, IPublicScriptSystem& ss, size_t callDepth, size_t& pcOffset);
-		SCRIPTEXPORT_API size_t GetCurrentVariableCount(IPublicScriptSystem& ss, size_t callDepth);
-		SCRIPTEXPORT_API void ForeachStackLevel(Rococo::Compiler::IPublicProgramObject& obj, Rococo::Debugger::ICallStackEnumerationCallback& cb);
-		SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callOffset);
-		SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, SexyVarType type, const void* pVariableData);
-		SCRIPTEXPORT_API void SkipJIT(Rococo::Compiler::IPublicProgramObject& po);
-		SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const Rococo::Compiler::IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth);
-		SCRIPTEXPORT_API const Rococo::uint8* GetInstance(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType, const uint8* SF);
-		SCRIPTEXPORT_API cstr GetShortName(const Rococo::Compiler::IStructure& s);
-		SCRIPTEXPORT_API cstr GetInstanceTypeName(const Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure* pseudoType);
-		SCRIPTEXPORT_API cstr GetInstanceVarName(cstr name, const Rococo::Compiler::IStructure* pseudoType);
-		SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
-		SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
-		SCRIPTEXPORT_API void AddNativeCallSecurity(IPublicScriptSystem& ss, cstr nativeNamespace, cstr permittedPingPath);
 }}
 
-namespace Rococo {
-   namespace Helpers // Used by Benny Hill to simplify native function integration
-   {
-      class StringPopulator : public Strings::IStringPopulator
-      {
-         Rococo::Compiler::FastStringBuilder* builder;
-      public:
-		  SCRIPTEXPORT_API StringPopulator(Script::NativeCallEnvironment& _nce, Compiler::InterfacePointer pInterface);
-         void Populate(cstr text) override;
-      };
-	  SCRIPTEXPORT_API const Compiler::IStructure& GetDefaultProxy(cstr fqNS, cstr interfaceName, cstr proxyName, Script::IPublicScriptSystem& ss);
-   }
+namespace Rococo::Variants
+{
+    inline VariantValue FromValue(int32 value)
+    {
+        VariantValue v;
+        v.int32Value = value;
+        return v;
+    }
+
+    inline VariantValue Zero() { return FromValue(0); }
+    inline VariantValue ValueTrue() { return FromValue(1); }
+    inline VariantValue ValueFalse() { return FromValue(0); }
+
+    inline bool IsAssignableToBoolean(SexyVarType type)
+    {
+        return type == SexyVarType_Bool;
+    }
 }
-
-namespace Rococo {
-   namespace Variants
-   {
-	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, SexyVarType orignalType, SexyVarType endType);
-
-      inline VariantValue FromValue(int32 value)
-      {
-         VariantValue v;
-         v.int32Value = value;
-         return v;
-      }
-
-      inline VariantValue Zero() { return FromValue(0); }
-      inline VariantValue ValueTrue() { return FromValue(1); }
-      inline VariantValue ValueFalse() { return FromValue(0); }
-
-      inline bool IsAssignableToBoolean(SexyVarType type)
-      {
-         return type == SexyVarType_Bool;
-      }
-
-	  SEXYUTIL_API SexyVarType GetBestCastType(SexyVarType a, SexyVarType b);
-
-	  SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, SexyVarType orignalType, SexyVarType endType);
-   }
-}
-
-namespace Rococo {
-	namespace Script
-	{
-		class CScriptSystemProxy
-		{
-		private:
-			IScriptSystemFactory* factory;
-			IPublicScriptSystem* ss;
-
-		public:
-			IPublicScriptSystem& operator()() { return *ss; }
-
-			SCRIPTEXPORT_API CScriptSystemProxy(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger);
-			SCRIPTEXPORT_API ~CScriptSystemProxy();
-		};
-	}
-}
-
-#ifndef THIS_IS_THE_SEXY_CORE_LIBRARY
-// Ensure the allocator used for CreateScriptV_1_4_0_0(...) is in scope when you call Sexy_CleanupGlobalSources to clean up global resources
-extern "C" SCRIPTEXPORT_API Rococo::Script::IScriptSystemFactory* CreateScriptSystemFactory_1_5_0_0();
-
-#endif
 
 #endif // SEXY_SCRIPT_H

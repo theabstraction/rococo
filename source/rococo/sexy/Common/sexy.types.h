@@ -132,9 +132,6 @@ namespace Rococo
 	bool TryParseSexHex(char& finalChar, cstr s);
 	bool ParseEscapeCharacter(char& finalChar, char c);
 
-	SEXYUTIL_API sexstring CreateSexString(cstr src, int32 length = -1);
-	SEXYUTIL_API void FreeSexString(sexstring s);
-
 	ROCOCO_INTERFACE ILog
 	{
 		virtual void Write(cstr text) = 0;
@@ -377,9 +374,6 @@ namespace Rococo
 			virtual cstr Name() const = 0; // The name of the source segment
 			virtual const IPackage* Package() const = 0; // If the source code is part of a package, this returns the package pointer, else it returns nulllptr
 		};
-
-		ROCOCO_API cstr ReadUntil(const Vec2i& pos, const ISourceCode& src);
-		ROCOCO_API void GetSpecimen(char specimen[64], const ISExpression& e);
 	} // Sex
 
 	enum SexyVarType
@@ -412,6 +406,16 @@ namespace Rococo
 		SEXY_SPARSER_API void AssertNotTooFewElements(cr_sex e, int32 minElements);
 		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex);
 	}
-}// Sexy
+}// Rococo
+
+namespace Rococo::VM
+{
+	struct CPU;
+}
+
+namespace Rococo::Debugger
+{
+	DECLARE_ROCOCO_INTERFACE IRegisterEnumerationCallback;
+}
 
 #endif

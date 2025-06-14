@@ -8,6 +8,7 @@
 #include <Sexy.S-Parser.h>
 #include <rococo.os.h>
 #include <rococo.task.queue.h>
+#include <sexy.script.exports.h>
 
 using namespace Rococo;
 using namespace Rococo::Domme;

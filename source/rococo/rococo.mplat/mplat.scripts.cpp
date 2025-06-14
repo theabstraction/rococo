@@ -2,6 +2,8 @@
 #include <rococo.audio.h>
 #include "mplat.landscapes.h"
 #include <sexy.script.h>
+#include <sexy.util.exports.h>
+#include <sexy.script.exports.h>
 #include <sexy.vm.cpu.h>
 #include <rococo.sexy.api.h>
 #include <rococo.io.h>

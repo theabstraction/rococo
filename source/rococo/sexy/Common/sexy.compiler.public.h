@@ -38,10 +38,6 @@
 
 #include <sexy.types.h>
 
-#ifndef SEXYUTIL_API
-# define SEXYUTIL_API ROCOCO_API_IMPORT
-#endif
-
 namespace Rococo { namespace VM
 {
 	DECLARE_ROCOCO_INTERFACE IVirtualMachine;

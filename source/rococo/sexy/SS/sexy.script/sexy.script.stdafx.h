@@ -55,6 +55,7 @@
 #include <rococo.hashtable.h>
 #include <sexy.vector.h>
 #include <sexy.compiler.public.h>
+#include <sexy.script.exports.h>
 
 namespace Rococo
 {

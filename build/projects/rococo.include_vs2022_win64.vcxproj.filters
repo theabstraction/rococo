@@ -172,13 +172,13 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexml.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.api.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.ide.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.map.expert.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexystudio.api.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.SI.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.SI.inl" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.stl.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.reflection.h" />

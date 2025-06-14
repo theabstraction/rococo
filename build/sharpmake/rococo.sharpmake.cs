@@ -235,6 +235,12 @@ namespace Rococo
             }
         }
 
+        protected void ImportSexyScriptProject(Configuration conf, Target target)
+        {
+            conf.AddPublicDependency<SexyScriptProject>(target);
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
+        }
+
         protected RococoProject(string name, string subdir, Platform platform = Platform.win64)
         {
             base.Name = name;
@@ -555,6 +561,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
             AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
@@ -597,6 +604,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.SolutionFolder = "ECS";
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
     }
@@ -617,6 +625,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
     }
@@ -636,6 +645,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
             AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
@@ -656,6 +666,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.AddPublicDependency<RococoMathsProject>(target);
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
             AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
         }
@@ -759,7 +770,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.Defines.Add("ROCOCO_MISC_UTILS_API=__declspec(dllexport)");
             conf.AddPublicDependency<SexyUtilProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
         }
     }
 
@@ -776,7 +787,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoGraphicsProject>(target); // Required for the iamge list loader
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
             conf.Defines.Add("ROCOCO_WINDOWS_API=__declspec(dllexport)");
         }
     }
@@ -1037,7 +1048,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoSexyIDEProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
         }
     }
@@ -1237,6 +1248,7 @@ namespace Rococo
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.component.template.h");
             conf.SourceFilesBuildExcludeRegex.Add(@"mplat.test.app.cpp");
             conf.AddPublicDependency<RococoDependencyProject>(target);
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
         }
     }
@@ -1266,6 +1278,7 @@ namespace Rococo
             conf.AddPrivateDependency<RococoAudioProject>(target);
             conf.AddPublicDependency<RococoMPlatProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
         }
     }
 
@@ -1286,6 +1299,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoGuiRetainedProject>(target);
             conf.AddPrivateDependency<RococoSEXMLProject>(target);
             conf.AddPrivateDependency<RococoGreatSexProject>(target);
+            conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
 
             // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\
@@ -1323,7 +1337,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
         }
     }
 
@@ -1340,7 +1354,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Exe);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<DommeProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
         }
     }
@@ -1359,7 +1373,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
@@ -1706,7 +1720,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.AddPublicDependency<SexyVMProject>(target);
             conf.AddPublicDependency<SexyCompilerProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.Options.Add(Options.Vc.General.CommonLanguageRuntimeSupport.ClrSupport);
             conf.Options.Add(Options.Vc.Compiler.Exceptions.EnableWithSEH);
@@ -1829,7 +1843,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
             conf.AddPublicDependency<SexyCompilerProject>(target);
             conf.AddPublicDependency<SexyCoroutinesProject>(target);
             conf.AddPublicDependency<SexyReflectionProject>(target);
@@ -1872,7 +1886,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
-            conf.AddPublicDependency<SexyScriptProject>(target);
+            ImportSexyScriptProject(conf,target);
             conf.SolutionFolder = " - Sexy";
         }
     }

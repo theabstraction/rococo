@@ -1142,7 +1142,7 @@
 (function IWorldBuilderNew381  (Pointer hObject)(Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 11324))
 (alias IWorldBuilderNew381 Rococo.Native.IWorldBuilderNew)
 
-(function EnumerateFiles382  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 376))
+(function EnumerateFiles382  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnCompile" 378))
 (alias EnumerateFiles382 MPlat.OS.EnumerateFiles)
 
 (function IsUpperCase383  (Int32 c)->(Bool isSo) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" 135))

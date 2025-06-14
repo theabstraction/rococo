@@ -40,7 +40,8 @@
 # define SEXYCOMPILER_API __declspec(dllimport)
 #endif
 
-#include <rococo.stl.allocators.h>
+#include <rococo.sexy.allocators.h>
+#include <sexy.util.exports.h>
 
 namespace Rococo
 {

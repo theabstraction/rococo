@@ -41,6 +41,7 @@
 
 #include <sexy.types.h>
 #include <sexy.s-parser.h>
+#include <sexy.util.exports.h>
 
 #ifndef NULL
 # define NULL ((0))
