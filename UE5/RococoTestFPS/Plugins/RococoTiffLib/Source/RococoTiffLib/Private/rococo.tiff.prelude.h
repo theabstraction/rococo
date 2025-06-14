@@ -1,7 +1,5 @@
-// Copyright (c)2025 Mark Anthony Taylor (mark.anthony.taylor@gmail.com). All rights reserved.
-// This software is open source, but not free. Check the rococo master branch for the latest Copyright rules that applies to this software
-
 #ifdef _WIN32
+# define _CRT_SECURE_NO_WARNINGS 
 # pragma warning(disable: 4456)
 # pragma warning(disable: 4459)
 #else
