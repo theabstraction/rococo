@@ -11,7 +11,7 @@
 # pragma warning(disable: 4611)
 #else
 #endif
-#include "D:/work/rococo/source/3rd-Party/libjpg/jpeg-6b/jfdctint.c"
+#include "D:/work/rococo/source/3rd-Party/libjpg/jpeg-6b/jidctred.c"
 #ifdef _WIN32
 # pragma warning(default: 4456)
 # pragma warning(default: 4459)
