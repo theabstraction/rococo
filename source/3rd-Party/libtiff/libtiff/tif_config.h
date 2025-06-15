@@ -116,7 +116,9 @@
 #define TIFF_MAX_DIR_COUNT 1048576
 
 /* define to use win32 IO system */
-#define USE_WIN32_FILEIO 1
+#ifdef _WIN32
+# define USE_WIN32_FILEIO 1
+#endif
 
 /* Support WEBP compression */
 /* #undef WEBP_SUPPORT */

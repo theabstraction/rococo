@@ -186,13 +186,8 @@ typedef unsigned int JDIMENSION;
 #define LOCAL(type)		static type
 /* a function referenced thru EXTERNs: */
 
-#ifndef _WIN32
-# define GLOBAL(type) type
-# define EXTERN(type) extern type
-#else
 # define JPEG_GLOBAL_API ROCOCO_JPEG_API
 # define JPEG_EXTERN_API ROCOCO_JPEG_API
-#endif
 
 /* This macro is used to declare a "method", that is, a function pointer.
  * We want to supply prototype parameters if the compiler can cope.

@@ -4,6 +4,24 @@
 
 #define LOCTEXT_NAMESPACE "FRococoJPEGLibModule"
 
+#ifndef _WIN32
+int _vsnprintf_s(char* message, size_t capacity, size_t nBytesToWrite, const char* format, va_list args)
+{
+	size_t size;
+
+	if (nBytesToWrite == _TRUNCATE)
+	{
+		size = capacity;
+	}
+	else
+	{
+		size = nBytesToWrite < capacity ? nBytesToWrite : capacity;
+	}
+
+	return vsnprintf(message, size, format, args);
+}
+#endif
+
 void FRococoJPEGLibModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module

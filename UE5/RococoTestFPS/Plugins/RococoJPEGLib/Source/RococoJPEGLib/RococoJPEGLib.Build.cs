@@ -154,7 +154,7 @@ public class RococoJPEGLib : ModuleRules
         CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
             new List<string>()
             {
-               "cdjpeg.c",
+               //"cdjpeg.c",
                "jcapimin.c",
                "jcapistd.c",
                "jccoefct.c",
@@ -219,7 +219,7 @@ public class RococoJPEGLib : ModuleRules
             }
         );
 
-        CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
+        CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
             new List<string>()
             {
                 "readimage.cpp",
