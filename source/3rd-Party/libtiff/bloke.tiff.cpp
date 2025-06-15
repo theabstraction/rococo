@@ -5,9 +5,6 @@
 #ifndef _WIN32
 # include <stddef.h>
 #else
-# ifndef ROCOCO_TIFF_API 
-#  define ROCOCO_TIFF_API __declspec(dllexport)
-# endif
 # include <malloc.h>
 #endif
 
@@ -82,7 +79,7 @@ namespace Rococo::OS
 		va_list arglist;
 		va_start(arglist, format);
 		char line[4096];
-		vsnprintf_s(line, sizeof(line), _TRUNCATE, format, arglist);
+		_vsnprintf_s(line, sizeof(line), _TRUNCATE, format, arglist);
 		OutputDebugStringA(line);
 #else
 		UNUSED(format);
@@ -101,7 +98,7 @@ namespace Rococo::OS
 		va_list arglist;
 		va_start(arglist, format);
 		char line[4096];
-		vsnprintf(line, sizeof(line), format, arglist);
+		_vsnprintf_s(line, sizeof(line), _TRUNCATE, format, arglist);
 		OutputDebugStringA(line);
 # else
 	UNUSED(format);
@@ -121,12 +118,12 @@ namespace Rococo::Strings
 	{
 		va_list arglist;
 		va_start(arglist, format);
-		return vsnprintf_s(msg, sizeofMsg, _TRUNCATE, format, arglist);
+		return _vsnprintf_s(msg, sizeofMsg, _TRUNCATE, format, arglist);
 	}
 
 	int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
 	{
-		int count = vsnprintf(buffer, capacity, format, args);
+		int count = _vsnprintf_s(buffer, capacity, _TRUNCATE, format, args);
 		if (count >= capacity)
 		{
 			return -1;

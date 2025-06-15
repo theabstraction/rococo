@@ -199,7 +199,7 @@ public class RococoTiffLib : ModuleRules
             }
         );
 
-        CreateSeparateFilesDirect("wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/",
+        CreateSeparateFilesDirect("wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/",
             new List<string>()
             {
                 "bloke.tiff.cpp"
@@ -253,7 +253,8 @@ public class RococoTiffLib : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				// ... add private dependencies that you statically link with here ...	
+                "RococoJPEGLib",
+                "RococoZLib"
 			}
 			);
 		

@@ -237,6 +237,8 @@ public class RococoGui : ModuleRules
 				"SlateCore",
                 "RococoOS",
                 "RococoUtil",
+                "RococoJPEGLib",
+                "RococoTiffLib",
                 "EngineSettings",
                 "InputCore"
 				// ... add private dependencies that you statically link with here ...	
@@ -252,6 +254,7 @@ public class RococoGui : ModuleRules
 			);
 
 
+        /*
         string libTiffWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-tiff.lib");
         string libJpegWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-jpg.lib");
 
@@ -265,5 +268,6 @@ public class RococoGui : ModuleRules
         RuntimeDependencies.Add("$(TargetOutputDir)/lib-tiff.dll", libTiffWin64_DLL);
         RuntimeDependencies.Add("$(TargetOutputDir)/lib-jpg.dll", libJpegWin64_DLL);
         RuntimeDependencies.Add("$(TargetOutputDir)/lib-zip.dll", libZip_DLL);
+        */
     }
 }

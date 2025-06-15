@@ -29,6 +29,14 @@
 		{
 			"Name": "RococoUtil",
 			"Enabled": true
+		},
+		{
+			"Name": "RococoJPEGLib",
+			"Enabled": true
+		},
+		{
+			"Name": "RococoTiffLib",
+			"Enabled": true
 		}
 	]
 }
