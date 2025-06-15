@@ -1188,7 +1188,7 @@ read_restart_marker (j_decompress_ptr cinfo)
  * any other marker would have to be bogus data in that case.
  */
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 jpeg_resync_to_restart (j_decompress_ptr cinfo, int desired)
 {
   int marker = cinfo->unread_marker;
@@ -1258,7 +1258,7 @@ reset_marker_reader (j_decompress_ptr cinfo)
  * This is called only once, when the decompression object is created.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_marker_reader (j_decompress_ptr cinfo)
 {
   my_marker_ptr marker;
@@ -1296,7 +1296,7 @@ jinit_marker_reader (j_decompress_ptr cinfo)
 
 #ifdef SAVE_MARKERS_SUPPORTED
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_save_markers (j_decompress_ptr cinfo, int marker_code,
 		   unsigned int length_limit)
 {
@@ -1345,7 +1345,7 @@ jpeg_save_markers (j_decompress_ptr cinfo, int marker_code,
  * Install a special processing method for COM or APPn markers.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_set_marker_processor (j_decompress_ptr cinfo, int marker_code,
 			   jpeg_marker_parser_method routine)
 {

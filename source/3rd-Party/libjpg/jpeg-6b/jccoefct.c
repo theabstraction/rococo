@@ -401,7 +401,7 @@ compress_output (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
  * Initialize coefficient buffer controller.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_c_coef_controller (j_compress_ptr cinfo, boolean need_full_buffer)
 {
   my_coef_ptr coef;

@@ -178,7 +178,7 @@ term_source (j_decompress_ptr cinfo)
  * for closing it after finishing decompression.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_stdio_src (j_decompress_ptr cinfo, FILE * infile)
 {
   my_src_ptr src;

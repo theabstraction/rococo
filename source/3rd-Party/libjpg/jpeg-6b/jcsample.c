@@ -460,7 +460,7 @@ fullsize_smooth_downsample (j_compress_ptr cinfo, jpeg_component_info *compptr,
  * Note that we must select a routine for each component.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_downsampler (j_compress_ptr cinfo)
 {
   my_downsample_ptr downsample;

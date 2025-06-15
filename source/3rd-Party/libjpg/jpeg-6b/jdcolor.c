@@ -300,7 +300,7 @@ start_pass_dcolor (j_decompress_ptr cinfo)
  * Module initialization routine for output colorspace conversion.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_color_deconverter (j_decompress_ptr cinfo)
 {
   my_cconvert_ptr cconvert;

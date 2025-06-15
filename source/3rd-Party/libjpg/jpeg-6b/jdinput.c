@@ -357,7 +357,7 @@ reset_input_controller (j_decompress_ptr cinfo)
  * This is called only once, when the decompression object is created.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_input_controller (j_decompress_ptr cinfo)
 {
   my_inputctl_ptr inputctl;

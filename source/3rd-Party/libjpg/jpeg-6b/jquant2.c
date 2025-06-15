@@ -1240,7 +1240,7 @@ new_color_map_2_quant (j_decompress_ptr cinfo)
  * Module initialization routine for 2-pass color quantization.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_2pass_quantizer (j_decompress_ptr cinfo)
 {
   my_cquantize_ptr cquantize;

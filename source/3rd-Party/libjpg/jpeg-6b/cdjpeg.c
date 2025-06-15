@@ -118,7 +118,7 @@ end_progress_monitor (j_common_ptr cinfo)
  * minchars is length of minimum legal abbreviation.
  */
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 keymatch (char * arg, const char * keyword, int minchars)
 {
   register int ca, ck;
@@ -145,7 +145,7 @@ keymatch (char * arg, const char * keyword, int minchars)
  * Non-Unix systems often require some hacking to get out of text mode.
  */
 
-GLOBAL(FILE *)
+JPEG_GLOBAL_API FILE *
 read_stdin (void)
 {
   FILE * input_file = stdin;
@@ -163,7 +163,7 @@ read_stdin (void)
 }
 
 
-GLOBAL(FILE *)
+JPEG_GLOBAL_API FILE *
 write_stdout (void)
 {
   FILE * output_file = stdout;

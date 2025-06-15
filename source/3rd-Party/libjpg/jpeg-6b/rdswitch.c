@@ -69,7 +69,7 @@ read_text_integer (FILE * file, long * result, int * termchar)
 }
 
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 read_quant_tables (j_compress_ptr cinfo, char * filename,
 		   int scale_factor, boolean force_baseline)
 /* Read a set of quantization tables from the specified file.
@@ -154,7 +154,7 @@ read_scan_integer (FILE * file, long * result, int * termchar)
 }
 
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 read_scan_script (j_compress_ptr cinfo, char * filename)
 /* Read a scan script from the specified text file.
  * Each entry in the file defines one scan to be emitted.
@@ -262,7 +262,7 @@ bogus:
 #endif /* C_MULTISCAN_FILES_SUPPORTED */
 
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 set_quant_slots (j_compress_ptr cinfo, char *arg)
 /* Process a quantization-table-selectors parameter string, of the form
  *     N[,N,...]
@@ -297,7 +297,7 @@ set_quant_slots (j_compress_ptr cinfo, char *arg)
 }
 
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 set_sample_factors (j_compress_ptr cinfo, char *arg)
 /* Process a sample-factors parameter string, of the form
  *     HxV[,HxV,...]

@@ -79,7 +79,7 @@ METHODDEF(void) term_source (j_decompress_ptr cinfo)
 {
 }
 
-GLOBAL(void) jpeg_inmemory_source (j_decompress_ptr cinfo, struct DataStream *dataStream)
+JPEG_GLOBAL_API void jpeg_inmemory_source (j_decompress_ptr cinfo, struct DataStream *dataStream)
 {
 	InMemorySourceManager* src;
 

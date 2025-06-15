@@ -395,7 +395,7 @@ h2v2_fancy_upsample (j_decompress_ptr cinfo, jpeg_component_info * compptr,
  * Module initialization routine for upsampling.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_upsampler (j_decompress_ptr cinfo)
 {
   my_upsample_ptr upsample;

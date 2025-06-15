@@ -539,7 +539,7 @@ finish_pass_master (j_compress_ptr cinfo)
  * Initialize master compression control.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_c_master_control (j_compress_ptr cinfo, boolean transcode_only)
 {
   my_master_ptr master;

@@ -145,7 +145,7 @@ start_pass_huff_decoder (j_decompress_ptr cinfo)
  * Note this is also used by jdphuff.c.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
 			 d_derived_tbl ** pdtbl)
 {
@@ -288,7 +288,7 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
 #endif
 
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 jpeg_fill_bit_buffer (bitread_working_state * state,
 		      register bit_buf_type get_buffer, register int bits_left,
 		      int nbits)
@@ -394,7 +394,7 @@ jpeg_fill_bit_buffer (bitread_working_state * state,
  * See jdhuff.h for info about usage.
  */
 
-GLOBAL(int)
+JPEG_GLOBAL_API int
 jpeg_huff_decode (bitread_working_state * state,
 		  register bit_buf_type get_buffer, register int bits_left,
 		  d_derived_tbl * htbl, int min_bits)
@@ -631,7 +631,7 @@ decode_mcu (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
  * Module initialization routine for Huffman entropy decoding.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_huff_decoder (j_decompress_ptr cinfo)
 {
   huff_entropy_ptr entropy;

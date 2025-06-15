@@ -817,7 +817,7 @@ new_color_map_1_quant (j_decompress_ptr cinfo)
  * Module initialization routine for 1-pass color quantization.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_1pass_quantizer (j_decompress_ptr cinfo)
 {
   my_cquantize_ptr cquantize;

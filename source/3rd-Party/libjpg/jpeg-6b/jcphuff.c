@@ -810,7 +810,7 @@ finish_pass_gather_phuff (j_compress_ptr cinfo)
  * Module initialization routine for progressive Huffman entropy encoding.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_phuff_encoder (j_compress_ptr cinfo)
 {
   phuff_entropy_ptr entropy;

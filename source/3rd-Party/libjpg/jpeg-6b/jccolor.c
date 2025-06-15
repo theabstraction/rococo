@@ -348,7 +348,7 @@ null_method (j_compress_ptr cinfo)
  * Module initialization routine for input colorspace conversion.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_color_converter (j_compress_ptr cinfo)
 {
   my_cconvert_ptr cconvert;

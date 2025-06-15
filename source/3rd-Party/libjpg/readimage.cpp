@@ -62,25 +62,25 @@ namespace
 
 extern "C"
 {
-   GLOBAL(void *)
+   JPEG_GLOBAL_API void *
       jpeg_get_small(j_common_ptr cinfo, size_t sizeofobject)
    {
       return (void *)Allocate(sizeofobject);
    }
 
-   GLOBAL(void)
+   JPEG_GLOBAL_API void
       jpeg_free_small(j_common_ptr cinfo, void * object, size_t sizeofobject)
    {
       Delete(object);
    }
 
-   GLOBAL(void FAR *)
+   JPEG_GLOBAL_API void *
       jpeg_get_large(j_common_ptr cinfo, size_t sizeofobject)
    {
-      return (void FAR *) Allocate(sizeofobject);
+      return (void *)Allocate(sizeofobject);
    }
 
-   GLOBAL(void)
+   JPEG_GLOBAL_API void
       jpeg_free_large(j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
    {
       Delete(object);

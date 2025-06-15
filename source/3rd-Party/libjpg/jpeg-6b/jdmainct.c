@@ -472,7 +472,7 @@ process_data_crank_post (j_decompress_ptr cinfo,
  * Initialize main buffer controller.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_d_main_controller (j_decompress_ptr cinfo, boolean need_full_buffer)
 {
   my_main_ptr main;

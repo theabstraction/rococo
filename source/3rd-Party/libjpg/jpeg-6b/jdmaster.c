@@ -80,7 +80,7 @@ use_merged_upsample (j_decompress_ptr cinfo)
  * Also note that it may be called before the master module is initialized!
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_calc_output_dimensions (j_decompress_ptr cinfo)
 /* Do computations that are needed before master selection phase */
 {
@@ -511,7 +511,7 @@ finish_output_pass (j_decompress_ptr cinfo)
  * Switch to a new external colormap between output passes.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_new_colormap (j_decompress_ptr cinfo)
 {
   my_master_ptr master = (my_master_ptr) cinfo->master;
@@ -539,7 +539,7 @@ jpeg_new_colormap (j_decompress_ptr cinfo)
  * This is performed at the start of jpeg_start_decompress.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_master_decompress (j_decompress_ptr cinfo)
 {
   my_master_ptr master;

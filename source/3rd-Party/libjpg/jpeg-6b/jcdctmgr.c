@@ -341,7 +341,7 @@ forward_DCT_float (j_compress_ptr cinfo, jpeg_component_info * compptr,
  * Initialize FDCT manager.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_forward_dct (j_compress_ptr cinfo)
 {
   my_fdct_ptr fdct;

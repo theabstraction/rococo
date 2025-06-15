@@ -114,7 +114,7 @@
  * producing a reduced-size 4x4 output block.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_idct_4x4 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	       JCOEFPTR coef_block,
 	       JSAMPARRAY output_buf, JDIMENSION output_col)
@@ -267,7 +267,7 @@ jpeg_idct_4x4 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
  * producing a reduced-size 2x2 output block.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_idct_2x2 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	       JCOEFPTR coef_block,
 	       JSAMPARRAY output_buf, JDIMENSION output_col)
@@ -375,7 +375,7 @@ jpeg_idct_2x2 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
  * producing a reduced-size 1x1 output block.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_idct_1x1 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	       JCOEFPTR coef_block,
 	       JSAMPARRAY output_buf, JDIMENSION output_col)

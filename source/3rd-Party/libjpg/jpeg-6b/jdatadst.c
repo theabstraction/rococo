@@ -126,7 +126,7 @@ term_destination (j_compress_ptr cinfo)
  * for closing it after finishing compression.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_stdio_dest (j_compress_ptr cinfo, FILE * outfile)
 {
   my_dest_ptr dest;

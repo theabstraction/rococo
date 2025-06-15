@@ -243,7 +243,7 @@ start_pass (j_decompress_ptr cinfo)
  * Initialize IDCT manager.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_inverse_dct (j_decompress_ptr cinfo)
 {
   my_idct_ptr idct;

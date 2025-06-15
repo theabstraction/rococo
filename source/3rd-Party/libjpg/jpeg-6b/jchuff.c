@@ -175,7 +175,7 @@ start_pass_huff (j_compress_ptr cinfo, boolean gather_statistics)
  * Note this is also used by jcphuff.c.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_make_c_derived_tbl (j_compress_ptr cinfo, boolean isDC, int tblno,
 			 c_derived_tbl ** pdtbl)
 {
@@ -701,7 +701,7 @@ encode_mcu_gather (j_compress_ptr cinfo, JBLOCKROW *MCU_data)
  * So the extra complexity of an optimal algorithm doesn't seem worthwhile.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_gen_optimal_table (j_compress_ptr cinfo, JHUFF_TBL * htbl, long freq[])
 {
 #define MAX_CLEN 32		/* assumed maximum initial code length */
@@ -887,7 +887,7 @@ finish_pass_gather (j_compress_ptr cinfo)
  * Module initialization routine for Huffman entropy encoding.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_huff_encoder (j_compress_ptr cinfo)
 {
   huff_entropy_ptr entropy;

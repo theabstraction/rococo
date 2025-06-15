@@ -641,7 +641,7 @@ write_tables_only (j_compress_ptr cinfo)
  * Initialize the marker writer module.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_marker_writer (j_compress_ptr cinfo)
 {
   my_marker_ptr marker;

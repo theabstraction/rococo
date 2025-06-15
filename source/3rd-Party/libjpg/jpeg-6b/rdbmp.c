@@ -419,7 +419,7 @@ finish_input_bmp (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
  * The module selection routine for BMP format input.
  */
 
-GLOBAL(cjpeg_source_ptr)
+JPEG_GLOBAL_API cjpeg_source_ptr
 jinit_read_bmp (j_compress_ptr cinfo)
 {
   bmp_source_ptr source;

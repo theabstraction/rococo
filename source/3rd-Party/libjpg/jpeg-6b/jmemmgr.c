@@ -1024,7 +1024,7 @@ self_destruct (j_common_ptr cinfo)
  * When this is called, only the error manager pointer is valid in cinfo!
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_memory_mgr (j_common_ptr cinfo)
 {
   my_mem_ptr mem;

@@ -25,7 +25,7 @@
  * responsibility.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_abort (j_common_ptr cinfo)
 {
   int pool;
@@ -65,7 +65,7 @@ jpeg_abort (j_common_ptr cinfo)
  * responsibility.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_destroy (j_common_ptr cinfo)
 {
   /* We need only tell the memory manager to release everything. */
@@ -82,7 +82,7 @@ jpeg_destroy (j_common_ptr cinfo)
  * (Would jutils.c be a more reasonable place to put these?)
  */
 
-GLOBAL(JQUANT_TBL *)
+JPEG_GLOBAL_API JQUANT_TBL *
 jpeg_alloc_quant_table (j_common_ptr cinfo)
 {
   JQUANT_TBL *tbl;
@@ -94,7 +94,7 @@ jpeg_alloc_quant_table (j_common_ptr cinfo)
 }
 
 
-GLOBAL(JHUFF_TBL *)
+JPEG_GLOBAL_API JHUFF_TBL *
 jpeg_alloc_huff_table (j_common_ptr cinfo)
 {
   JHUFF_TBL *tbl;

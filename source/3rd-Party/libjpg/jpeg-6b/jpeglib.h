@@ -883,7 +883,7 @@ typedef JMETHOD(boolean, jpeg_marker_parser_method, (j_decompress_ptr cinfo));
 
 
 /* Default error-management setup */
-EXTERN(struct jpeg_error_mgr *) jpeg_std_error
+JPEG_EXTERN_API(struct jpeg_error_mgr *) jpeg_std_error
 	JPP((struct jpeg_error_mgr * err));
 
 /* Initialization of JPEG compression objects.
@@ -899,71 +899,71 @@ EXTERN(struct jpeg_error_mgr *) jpeg_std_error
 #define jpeg_create_decompress(cinfo) \
     jpeg_CreateDecompress((cinfo), JPEG_LIB_VERSION, \
 			  (size_t) sizeof(struct jpeg_decompress_struct))
-EXTERN(void) jpeg_CreateCompress JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(void) jpeg_CreateCompress JPP((j_compress_ptr cinfo,
 				      int version, size_t structsize));
-EXTERN(void) jpeg_CreateDecompress JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API(void) jpeg_CreateDecompress JPP((j_decompress_ptr cinfo,
 					int version, size_t structsize));
 /* Destruction of JPEG compression objects */
-EXTERN(void) jpeg_destroy_compress JPP((j_compress_ptr cinfo));
-EXTERN(void) jpeg_destroy_decompress JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_destroy_compress JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_destroy_decompress JPP((j_decompress_ptr cinfo));
 
 /* Standard data source and destination managers: stdio streams. */
 /* Caller is responsible for opening the file before and closing after. */
-EXTERN(void) jpeg_stdio_dest JPP((j_compress_ptr cinfo, FILE * outfile));
-EXTERN(void) jpeg_stdio_src JPP((j_decompress_ptr cinfo, FILE * infile));
+JPEG_EXTERN_API(void) jpeg_stdio_dest JPP((j_compress_ptr cinfo, FILE * outfile));
+JPEG_EXTERN_API(void) jpeg_stdio_src JPP((j_decompress_ptr cinfo, FILE * infile));
 
-EXTERN(void) jpeg_inmemory_source (j_decompress_ptr cinfo, DataStream *dataStream);
+JPEG_EXTERN_API(void) jpeg_inmemory_source (j_decompress_ptr cinfo, DataStream *dataStream);
 
 /* Default parameter setup for compression */
-EXTERN(void) jpeg_set_defaults JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_set_defaults JPP((j_compress_ptr cinfo));
 /* Compression parameter setup aids */
-EXTERN(void) jpeg_set_colorspace JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(void) jpeg_set_colorspace JPP((j_compress_ptr cinfo,
 				      J_COLOR_SPACE colorspace));
-EXTERN(void) jpeg_default_colorspace JPP((j_compress_ptr cinfo));
-EXTERN(void) jpeg_set_quality JPP((j_compress_ptr cinfo, int quality,
+JPEG_EXTERN_API(void) jpeg_default_colorspace JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_set_quality JPP((j_compress_ptr cinfo, int quality,
 				   boolean force_baseline));
-EXTERN(void) jpeg_set_linear_quality JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(void) jpeg_set_linear_quality JPP((j_compress_ptr cinfo,
 					  int scale_factor,
 					  boolean force_baseline));
-EXTERN(void) jpeg_add_quant_table JPP((j_compress_ptr cinfo, int which_tbl,
+JPEG_EXTERN_API(void) jpeg_add_quant_table JPP((j_compress_ptr cinfo, int which_tbl,
 				       const unsigned int *basic_table,
 				       int scale_factor,
 				       boolean force_baseline));
-EXTERN(int) jpeg_quality_scaling JPP((int quality));
-EXTERN(void) jpeg_simple_progression JPP((j_compress_ptr cinfo));
-EXTERN(void) jpeg_suppress_tables JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(int) jpeg_quality_scaling JPP((int quality));
+JPEG_EXTERN_API(void) jpeg_simple_progression JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_suppress_tables JPP((j_compress_ptr cinfo,
 				       boolean suppress));
-EXTERN(JQUANT_TBL *) jpeg_alloc_quant_table JPP((j_common_ptr cinfo));
-EXTERN(JHUFF_TBL *) jpeg_alloc_huff_table JPP((j_common_ptr cinfo));
+JPEG_EXTERN_API(JQUANT_TBL *) jpeg_alloc_quant_table JPP((j_common_ptr cinfo));
+JPEG_EXTERN_API(JHUFF_TBL *) jpeg_alloc_huff_table JPP((j_common_ptr cinfo));
 
 /* Main entry points for compression */
-EXTERN(void) jpeg_start_compress JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(void) jpeg_start_compress JPP((j_compress_ptr cinfo,
 				      boolean write_all_tables));
-EXTERN(JDIMENSION) jpeg_write_scanlines JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(JDIMENSION) jpeg_write_scanlines JPP((j_compress_ptr cinfo,
 					     JSAMPARRAY scanlines,
 					     JDIMENSION num_lines));
-EXTERN(void) jpeg_finish_compress JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_finish_compress JPP((j_compress_ptr cinfo));
 
 /* Replaces jpeg_write_scanlines when writing raw downsampled data. */
-EXTERN(JDIMENSION) jpeg_write_raw_data JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(JDIMENSION) jpeg_write_raw_data JPP((j_compress_ptr cinfo,
 					    JSAMPIMAGE data,
 					    JDIMENSION num_lines));
 
 /* Write a special marker.  See libjpeg.doc concerning safe usage. */
-EXTERN(void) jpeg_write_marker
+JPEG_EXTERN_API(void) jpeg_write_marker
 	JPP((j_compress_ptr cinfo, int marker,
 	     const JOCTET * dataptr, unsigned int datalen));
 /* Same, but piecemeal. */
-EXTERN(void) jpeg_write_m_header
+JPEG_EXTERN_API(void) jpeg_write_m_header
 	JPP((j_compress_ptr cinfo, int marker, unsigned int datalen));
-EXTERN(void) jpeg_write_m_byte
+JPEG_EXTERN_API(void) jpeg_write_m_byte
 	JPP((j_compress_ptr cinfo, int val));
 
 /* Alternate compression function: just write an abbreviated table file */
-EXTERN(void) jpeg_write_tables JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_write_tables JPP((j_compress_ptr cinfo));
 
 /* Decompression startup: read start of JPEG datastream to see what's there */
-EXTERN(int) jpeg_read_header JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API(int) jpeg_read_header JPP((j_decompress_ptr cinfo,
 				  boolean require_image));
 /* Return value is one of: */
 #define JPEG_SUSPENDED		0 /* Suspended due to lack of input data */
@@ -976,25 +976,25 @@ EXTERN(int) jpeg_read_header JPP((j_decompress_ptr cinfo,
  */
 
 /* Main entry points for decompression */
-EXTERN(boolean) jpeg_start_decompress JPP((j_decompress_ptr cinfo));
-EXTERN(JDIMENSION) jpeg_read_scanlines JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API(boolean) jpeg_start_decompress JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(JDIMENSION) jpeg_read_scanlines JPP((j_decompress_ptr cinfo,
 					    JSAMPARRAY scanlines,
 					    JDIMENSION max_lines));
-EXTERN(boolean) jpeg_finish_decompress JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(boolean) jpeg_finish_decompress JPP((j_decompress_ptr cinfo));
 
 /* Replaces jpeg_read_scanlines when reading raw downsampled data. */
-EXTERN(JDIMENSION) jpeg_read_raw_data JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API(JDIMENSION) jpeg_read_raw_data JPP((j_decompress_ptr cinfo,
 					   JSAMPIMAGE data,
 					   JDIMENSION max_lines));
 
 /* Additional entry points for buffered-image mode. */
-EXTERN(boolean) jpeg_has_multiple_scans JPP((j_decompress_ptr cinfo));
-EXTERN(boolean) jpeg_start_output JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API(boolean) jpeg_has_multiple_scans JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(boolean) jpeg_start_output JPP((j_decompress_ptr cinfo,
 				       int scan_number));
-EXTERN(boolean) jpeg_finish_output JPP((j_decompress_ptr cinfo));
-EXTERN(boolean) jpeg_input_complete JPP((j_decompress_ptr cinfo));
-EXTERN(void) jpeg_new_colormap JPP((j_decompress_ptr cinfo));
-EXTERN(int) jpeg_consume_input JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(boolean) jpeg_finish_output JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(boolean) jpeg_input_complete JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_new_colormap JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(int) jpeg_consume_input JPP((j_decompress_ptr cinfo));
 /* Return value is one of: */
 /* #define JPEG_SUSPENDED	0    Suspended due to lack of input data */
 #define JPEG_REACHED_SOS	1 /* Reached start of new scan */
@@ -1003,23 +1003,23 @@ EXTERN(int) jpeg_consume_input JPP((j_decompress_ptr cinfo));
 #define JPEG_SCAN_COMPLETED	4 /* Completed last iMCU row of a scan */
 
 /* Precalculate output dimensions for current decompression parameters. */
-EXTERN(void) jpeg_calc_output_dimensions JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_calc_output_dimensions JPP((j_decompress_ptr cinfo));
 
 /* Control saving of COM and APPn markers into marker_list. */
-EXTERN(void) jpeg_save_markers
+JPEG_EXTERN_API(void) jpeg_save_markers
 	JPP((j_decompress_ptr cinfo, int marker_code,
 	     unsigned int length_limit));
 
 /* Install a special processing method for COM or APPn markers. */
-EXTERN(void) jpeg_set_marker_processor
+JPEG_EXTERN_API(void) jpeg_set_marker_processor
 	JPP((j_decompress_ptr cinfo, int marker_code,
 	     jpeg_marker_parser_method routine));
 
 /* Read or write raw DCT coefficients --- useful for lossless transcoding. */
-EXTERN(jvirt_barray_ptr *) jpeg_read_coefficients JPP((j_decompress_ptr cinfo));
-EXTERN(void) jpeg_write_coefficients JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API(jvirt_barray_ptr *) jpeg_read_coefficients JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_write_coefficients JPP((j_compress_ptr cinfo,
 					  jvirt_barray_ptr * coef_arrays));
-EXTERN(void) jpeg_copy_critical_parameters JPP((j_decompress_ptr srcinfo,
+JPEG_EXTERN_API(void) jpeg_copy_critical_parameters JPP((j_decompress_ptr srcinfo,
 						j_compress_ptr dstinfo));
 
 /* If you choose to abort compression or decompression before completing
@@ -1028,17 +1028,17 @@ EXTERN(void) jpeg_copy_critical_parameters JPP((j_decompress_ptr srcinfo,
  * if you're done with the JPEG object, but if you want to clean it up and
  * reuse it, call this:
  */
-EXTERN(void) jpeg_abort_compress JPP((j_compress_ptr cinfo));
-EXTERN(void) jpeg_abort_decompress JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_abort_compress JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_abort_decompress JPP((j_decompress_ptr cinfo));
 
 /* Generic versions of jpeg_abort and jpeg_destroy that work on either
  * flavor of JPEG object.  These may be more convenient in some places.
  */
-EXTERN(void) jpeg_abort JPP((j_common_ptr cinfo));
-EXTERN(void) jpeg_destroy JPP((j_common_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_abort JPP((j_common_ptr cinfo));
+JPEG_EXTERN_API(void) jpeg_destroy JPP((j_common_ptr cinfo));
 
 /* Default restart-marker-resync procedure for use by data source modules */
-EXTERN(boolean) jpeg_resync_to_restart JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API(boolean) jpeg_resync_to_restart JPP((j_decompress_ptr cinfo,
 					    int desired));
 
 

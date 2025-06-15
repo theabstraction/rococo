@@ -672,7 +672,7 @@ decompress_smooth_data (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
  * Initialize coefficient buffer controller.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_d_coef_controller (j_decompress_ptr cinfo, boolean need_full_buffer)
 {
   my_coef_ptr coef;

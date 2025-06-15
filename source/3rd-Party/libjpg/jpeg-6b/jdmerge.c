@@ -366,7 +366,7 @@ h2v2_merged_upsample (j_decompress_ptr cinfo,
  * of this module; no safety checks are made here.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_merged_upsampler (j_decompress_ptr cinfo)
 {
   my_upsample_ptr upsample;
