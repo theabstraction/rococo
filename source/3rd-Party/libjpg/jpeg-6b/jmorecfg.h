@@ -191,7 +191,7 @@ typedef unsigned int JDIMENSION;
 # define EXTERN(type) extern type
 #else
 # define JPEG_GLOBAL_API ROCOCO_JPEG_API
-# define JPEG_EXTERN_API(type) JPEG_GLOBAL_API type
+# define JPEG_EXTERN_API ROCOCO_JPEG_API
 #endif
 
 /* This macro is used to declare a "method", that is, a function pointer.

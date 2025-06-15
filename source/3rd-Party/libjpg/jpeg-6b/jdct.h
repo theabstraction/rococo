@@ -94,26 +94,26 @@ typedef FAST_FLOAT FLOAT_MULT_TYPE; /* preferred floating type */
 
 /* Extern declarations for the forward and inverse DCT routines. */
 
-JPEG_EXTERN_API(void) jpeg_fdct_islow JPP((DCTELEM * data));
-JPEG_EXTERN_API(void) jpeg_fdct_ifast JPP((DCTELEM * data));
-JPEG_EXTERN_API(void) jpeg_fdct_float JPP((FAST_FLOAT * data));
+JPEG_EXTERN_API void jpeg_fdct_islow JPP((DCTELEM * data));
+JPEG_EXTERN_API void jpeg_fdct_ifast JPP((DCTELEM * data));
+JPEG_EXTERN_API void jpeg_fdct_float JPP((FAST_FLOAT * data));
 
-JPEG_EXTERN_API(void) jpeg_idct_islow
+JPEG_EXTERN_API void jpeg_idct_islow
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
-JPEG_EXTERN_API(void) jpeg_idct_ifast
+JPEG_EXTERN_API void jpeg_idct_ifast
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
-JPEG_EXTERN_API(void) jpeg_idct_float
+JPEG_EXTERN_API void jpeg_idct_float
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
-JPEG_EXTERN_API(void) jpeg_idct_4x4
+JPEG_EXTERN_API void jpeg_idct_4x4
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
-JPEG_EXTERN_API(void) jpeg_idct_2x2
+JPEG_EXTERN_API void jpeg_idct_2x2
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
-JPEG_EXTERN_API(void) jpeg_idct_1x1
+JPEG_EXTERN_API void jpeg_idct_1x1
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
 

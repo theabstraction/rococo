@@ -98,15 +98,15 @@ typedef struct {
 #if TRANSFORMS_SUPPORTED
 
 /* Request any required workspace */
-JPEG_EXTERN_API(void) jtransform_request_workspace
+JPEG_EXTERN_API void jtransform_request_workspace
 	JPP((j_decompress_ptr srcinfo, jpeg_transform_info *info));
 /* Adjust output image parameters */
-JPEG_EXTERN_API(jvirt_barray_ptr *) jtransform_adjust_parameters
+JPEG_EXTERN_API jvirt_barray_ptr * jtransform_adjust_parameters
 	JPP((j_decompress_ptr srcinfo, j_compress_ptr dstinfo,
 	     jvirt_barray_ptr *src_coef_arrays,
 	     jpeg_transform_info *info));
 /* Execute the actual transformation, if any */
-JPEG_EXTERN_API(void) jtransform_execute_transformation
+JPEG_EXTERN_API void jtransform_execute_transformation
 	JPP((j_decompress_ptr srcinfo, j_compress_ptr dstinfo,
 	     jvirt_barray_ptr *src_coef_arrays,
 	     jpeg_transform_info *info));
@@ -127,9 +127,9 @@ typedef enum {
 #define JCOPYOPT_DEFAULT  JCOPYOPT_COMMENTS	/* recommended default */
 
 /* Setup decompression object to save desired markers in memory */
-JPEG_EXTERN_API(void) jcopy_markers_setup
+JPEG_EXTERN_API void jcopy_markers_setup
 	JPP((j_decompress_ptr srcinfo, JCOPY_OPTION option));
 /* Copy markers saved in the given source object to the destination object */
-JPEG_EXTERN_API(void) jcopy_markers_execute
+JPEG_EXTERN_API void jcopy_markers_execute
 	JPP((j_decompress_ptr srcinfo, j_compress_ptr dstinfo,
 	     JCOPY_OPTION option));

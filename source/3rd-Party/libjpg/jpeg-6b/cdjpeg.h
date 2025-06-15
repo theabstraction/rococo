@@ -116,39 +116,39 @@ typedef struct cdjpeg_progress_mgr * cd_progress_ptr;
 
 /* Module selection routines for I/O modules. */
 
-JPEG_EXTERN_API(cjpeg_source_ptr) jinit_read_bmp JPP((j_compress_ptr cinfo));
-JPEG_EXTERN_API(djpeg_dest_ptr) jinit_write_bmp JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API cjpeg_source_ptr jinit_read_bmp JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API djpeg_dest_ptr jinit_write_bmp JPP((j_decompress_ptr cinfo,
 					    boolean is_os2));
-JPEG_EXTERN_API(cjpeg_source_ptr) jinit_read_gif JPP((j_compress_ptr cinfo));
-JPEG_EXTERN_API(djpeg_dest_ptr) jinit_write_gif JPP((j_decompress_ptr cinfo));
-JPEG_EXTERN_API(cjpeg_source_ptr) jinit_read_ppm JPP((j_compress_ptr cinfo));
-JPEG_EXTERN_API(djpeg_dest_ptr) jinit_write_ppm JPP((j_decompress_ptr cinfo));
-JPEG_EXTERN_API(cjpeg_source_ptr) jinit_read_rle JPP((j_compress_ptr cinfo));
-JPEG_EXTERN_API(djpeg_dest_ptr) jinit_write_rle JPP((j_decompress_ptr cinfo));
-JPEG_EXTERN_API(cjpeg_source_ptr) jinit_read_targa JPP((j_compress_ptr cinfo));
-JPEG_EXTERN_API(djpeg_dest_ptr) jinit_write_targa JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API cjpeg_source_ptr jinit_read_gif JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API djpeg_dest_ptr jinit_write_gif JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API cjpeg_source_ptr jinit_read_ppm JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API djpeg_dest_ptr jinit_write_ppm JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API cjpeg_source_ptr jinit_read_rle JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API djpeg_dest_ptr jinit_write_rle JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API cjpeg_source_ptr jinit_read_targa JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API djpeg_dest_ptr jinit_write_targa JPP((j_decompress_ptr cinfo));
 
 /* cjpeg support routines (in rdswitch.c) */
 
-JPEG_EXTERN_API(boolean) read_quant_tables JPP((j_compress_ptr cinfo, char * filename,
+JPEG_EXTERN_API boolean read_quant_tables JPP((j_compress_ptr cinfo, char * filename,
 				    int scale_factor, boolean force_baseline));
-JPEG_EXTERN_API(boolean) read_scan_script JPP((j_compress_ptr cinfo, char * filename));
-JPEG_EXTERN_API(boolean) set_quant_slots JPP((j_compress_ptr cinfo, char *arg));
-JPEG_EXTERN_API(boolean) set_sample_factors JPP((j_compress_ptr cinfo, char *arg));
+JPEG_EXTERN_API boolean read_scan_script JPP((j_compress_ptr cinfo, char * filename));
+JPEG_EXTERN_API boolean set_quant_slots JPP((j_compress_ptr cinfo, char *arg));
+JPEG_EXTERN_API boolean set_sample_factors JPP((j_compress_ptr cinfo, char *arg));
 
 /* djpeg support routines (in rdcolmap.c) */
 
-JPEG_EXTERN_API(void) read_color_map JPP((j_decompress_ptr cinfo, FILE * infile));
+JPEG_EXTERN_API void read_color_map JPP((j_decompress_ptr cinfo, FILE * infile));
 
 /* common support routines (in cdjpeg.c) */
 
-JPEG_EXTERN_API(void) enable_signal_catcher JPP((j_common_ptr cinfo));
-JPEG_EXTERN_API(void) start_progress_monitor JPP((j_common_ptr cinfo,
+JPEG_EXTERN_API void enable_signal_catcher JPP((j_common_ptr cinfo));
+JPEG_EXTERN_API void start_progress_monitor JPP((j_common_ptr cinfo,
 					 cd_progress_ptr progress));
-JPEG_EXTERN_API(void) end_progress_monitor JPP((j_common_ptr cinfo));
-JPEG_EXTERN_API(boolean) keymatch JPP((char * arg, const char * keyword, int minchars));
-JPEG_EXTERN_API(FILE *) read_stdin JPP((void));
-JPEG_EXTERN_API(FILE *) write_stdout JPP((void));
+JPEG_EXTERN_API void end_progress_monitor JPP((j_common_ptr cinfo));
+JPEG_EXTERN_API boolean keymatch JPP((char * arg, const char * keyword, int minchars));
+JPEG_EXTERN_API FILE * read_stdin JPP((void));
+JPEG_EXTERN_API FILE * write_stdout JPP((void));
 
 /* miscellaneous useful macros */
 
