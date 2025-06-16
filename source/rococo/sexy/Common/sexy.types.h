@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#pragma once
+
 #ifndef SEXY_H
 # define SEXY_H
 
@@ -189,16 +191,7 @@ namespace Rococo
 		BITCOUNT_64 = 64,
 		BITCOUNT_128 = 128,
 		BITCOUNT_ID_API = 8 * sizeof(ID_API_CALLBACK),
-
-#ifdef _WIN64
 		BITCOUNT_POINTER = 64
-#else
-# ifdef _WIN32
-# error "32-bit Windows is no longer supported"
-# else
-		BITCOUNT_POINTER = 64
-# endif
-#endif
 	};
 
 	enum CONDITION

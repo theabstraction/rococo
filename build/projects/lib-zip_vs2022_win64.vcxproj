@@ -142,8 +142,7 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\lib-zip.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\$(configuration)\lib-zip.lib</ImportLibrary>
@@ -228,8 +227,7 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\lib-zip.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\$(configuration)\lib-zip.lib</ImportLibrary>
@@ -253,6 +251,10 @@
     <ClCompile Include="..\..\source\3rd-Party\zlib\compress.c" />
     <ClCompile Include="..\..\source\3rd-Party\zlib\crc32.c" />
     <ClCompile Include="..\..\source\3rd-Party\zlib\deflate.c" />
+    <ClCompile Include="..\..\source\3rd-Party\zlib\gzclose.c" />
+    <ClCompile Include="..\..\source\3rd-Party\zlib\gzlib.c" />
+    <ClCompile Include="..\..\source\3rd-Party\zlib\gzread.c" />
+    <ClCompile Include="..\..\source\3rd-Party\zlib\gzwrite.c" />
     <ClCompile Include="..\..\source\3rd-Party\zlib\infback.c" />
     <ClCompile Include="..\..\source\3rd-Party\zlib\inffast.c" />
     <ClCompile Include="..\..\source\3rd-Party\zlib\inflate.c" />

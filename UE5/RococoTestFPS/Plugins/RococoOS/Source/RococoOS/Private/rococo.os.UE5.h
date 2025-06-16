@@ -10,7 +10,7 @@
 # endif
 #endif
 
-#define __ROCOCO_WIDECHAR__ WIDECHAR
+#define _ROCOCO_WIDECHAR_ WIDECHAR
 
 #ifdef PLATFORM_ANDROID
 # define ROCOCO_WIDECHAR_IS_CHAR_16_T

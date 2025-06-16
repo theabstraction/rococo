@@ -82,8 +82,8 @@ namespace DirectX
 	struct XMFLOAT4X4;
 }
 
-#ifndef __ROCOCO_WIDECHAR__
-#error - define __ROCOCO_WIDECHAR__ in the compiler environment
+#ifndef _ROCOCO_WIDECHAR_
+#error - define _ROCOCO_WIDECHAR_ in the compiler environment
 #endif
 
 namespace Rococo
@@ -113,9 +113,13 @@ namespace Rococo
 	typedef unsigned int uint32;
 	typedef unsigned long long int uint64;
 
+	static_assert(sizeof(int8) == 1);
+	static_assert(sizeof(int16) == 2);
+	static_assert(sizeof(int32) == 4);
+	static_assert(sizeof(int64) == 8);
 #endif
 
-	typedef __ROCOCO_WIDECHAR__ ROCOCO_WIDECHAR;
+	typedef _ROCOCO_WIDECHAR_ ROCOCO_WIDECHAR;
 	typedef const ROCOCO_WIDECHAR* crwstr;
 
 #ifdef __FUNCTION__

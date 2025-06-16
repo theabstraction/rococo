@@ -33,7 +33,8 @@
 # define FORCE_INLINE __forceinline
 # define NOT_INLINE __declspec(noinline)
 #else
-# define FORCE_INLINE
+# define FORCE_INLINE __attribute__((always_inline)) inline
+# define NOT_INLINE __attribute__((noinline))
 #endif
 
 #endif // ROCOCO

@@ -61,6 +61,8 @@ namespace Rococo
 	}
 }
 
+#ifdef LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS
+
 #ifdef _WIN32
 # include <rococo.os.win32.h>
 #endif
@@ -132,6 +134,8 @@ namespace Rococo::Strings
 		return count;
 	}
 }
+
+#endif
 
 namespace
 {

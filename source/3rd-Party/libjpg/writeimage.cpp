@@ -104,6 +104,8 @@ namespace
 	}
 }
 
+#ifdef LIBJPG_IMPLEMENTS_OWN_ROCOCO_OS
+
 namespace Rococo
 {
 	struct ImageException : IException
@@ -138,6 +140,8 @@ namespace Rococo
 		throw ex;
 	}
 }
+
+#endif
 
 namespace Rococo { namespace Imaging
 {

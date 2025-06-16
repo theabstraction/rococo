@@ -15,7 +15,7 @@
 namespace Rococo
 {
 	ROCOCO_API [[nodiscard]] fstring to_fstring(cstr const msg);
-	typedef __ROCOCO_WIDECHAR__ ROCOCO_WIDECHAR;
+	typedef _ROCOCO_WIDECHAR_ ROCOCO_WIDECHAR;
 	typedef const ROCOCO_WIDECHAR* crwstr;
 }
 
