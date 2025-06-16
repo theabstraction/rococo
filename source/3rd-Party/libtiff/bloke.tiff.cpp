@@ -26,6 +26,8 @@
 # include <errno.h>
 #endif
 
+#ifdef LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS
+
 namespace Rococo
 {
 	struct ImageException : IException
@@ -60,8 +62,6 @@ namespace Rococo
 		throw ex;
 	}
 }
-
-#ifdef LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS
 
 #ifdef _WIN32
 # include <rococo.os.win32.h>

@@ -225,12 +225,14 @@ namespace Rococo
       memcpy(dest, src, count);
    }
 
+   /* Not valid as vsscanf does not require buffer sizes for %s and %c
    int sscanf_s(const char* buffer, const char* format, ...)
    {
       va_list args;
       va_start(args, format);
       return vsscanf(buffer, format, args);
    }
+   */
 
    int sprintf_s(char* buffer, size_t capacity, const char* format, ...)
    {

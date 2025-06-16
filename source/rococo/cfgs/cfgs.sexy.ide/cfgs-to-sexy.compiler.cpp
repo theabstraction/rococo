@@ -689,6 +689,10 @@ void GraphBuilder::AppendGetVariable(ICFGSNode& getNode, int branchDepth, int ch
 	uint32 sizeofVariableName = sizeof(variableName);
 	uint32 sizeofTypeName = sizeof(typeName);
 
+#ifndef _WIN32
+#error "Needs an implementation of sscanf_s that takeds buffer sizes for %s"
+#endif
+
 	// [<Get>] <variable> - <type>
 	if (4 != sscanf_s(getString, "%s %s %s %s", bracketSet, sizeofBracketSet, variableName, sizeofVariableName, dash, 2, typeName, sizeofTypeName))
 	{

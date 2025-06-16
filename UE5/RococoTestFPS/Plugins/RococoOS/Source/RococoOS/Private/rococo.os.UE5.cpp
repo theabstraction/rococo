@@ -24,6 +24,52 @@ using namespace Rococo::Strings;
 
 #ifdef _WIN32
 struct HWND__;
+#else
+#include <memory.h>
+
+namespace Rococo
+{
+	void memcpy_s(void* dest, size_t capacity, const void* src, size_t nBytes)
+	{
+		if (nBytes > capacity)
+		{
+			Rococo::Throw(0, "memcpy_s, %llu nBytes > %llu capacity", nBytes, capacity);
+		}
+
+		memcpy(dest, src, nBytes);
+	}
+}
+
+namespace Rococo::Strings
+{
+	int Compare(ROCOCO_WIDECHAR const* a, ROCOCO_WIDECHAR const* b, unsigned long nChars)
+	{
+		return TCString<ROCOCO_WIDECHAR>::Strncmp(a, b, nChars);
+	}
+
+	void CopyString(char* dest, size_t capacity, char const* src, size_t nBytes)
+	{
+		if (nBytes > capacity)
+		{
+			Rococo::Throw(0, "CopyString, %llu nBytes > %llu capacity", nBytes, capacity);
+		}
+
+		strncpy(dest, src, nBytes);
+	}
+
+	// Note that %s and %c will not be correctly handled, so this is a placeholder for now.
+	// As of 16/06/2025 all uses of sscanf_s in Rococo have been checked for this case
+	// TODO - replace all occurences of sscanf_s with something else.
+	int sscanf_s(const char* s, const char* format, ...)
+	{
+		int result;
+		va_list args;
+		va_start(args, format);
+		result = vsscanf(s, format, args);
+		va_end(args);
+		return result;
+	}
+}
 #endif
 
 namespace Rococo
