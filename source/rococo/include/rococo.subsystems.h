@@ -7,11 +7,11 @@ namespace Rococo
 	ROCOCO_INTERFACE ISubsystem
 	{
 		// The immutable subsystem name
-		virtual [[nodiscard]] cstr SubsystemName() const = 0;
+		[[nodiscard]] virtual cstr SubsystemName() const = 0;
 
 		// If the subsystem supports reflection, it will provide a reflection target here
 		// Otherwise the method returns nullptr
-		virtual [[nodiscard]] Reflection::IReflectionTarget* ReflectionTarget() = 0;
+		[[nodiscard]] virtual Reflection::IReflectionTarget* ReflectionTarget() = 0;
 	};
 
 	ROCOCO_INTERFACE ISubsystemMonitor
@@ -23,7 +23,7 @@ namespace Rococo
 
 	ROCOCO_INTERFACE ISubsystems
 	{
-		virtual [[nodiscard]] ISubsystem* Find(ID_SUBSYSTEM id) = 0;
+		[[nodiscard]] virtual ISubsystem* Find(ID_SUBSYSTEM id) = 0;
 		virtual void ForEachSubsystem(Rococo::Function<void(ISubsystem & subsystem, ID_SUBSYSTEM id)> callback) = 0;
 		virtual void ForEachRoot(Rococo::Function<void(ISubsystem& subsystem, ID_SUBSYSTEM id)> callback) = 0;
 		virtual void ForEachChild(ISubsystem& parentSubSystem, Rococo::Function<void(ISubsystem& childSubSystem, ID_SUBSYSTEM childId)> callback) = 0;
@@ -32,7 +32,7 @@ namespace Rococo
 	ROCOCO_INTERFACE ISubsystemsSupervisor : ISubsystems
 	{
 		virtual void Free() = 0;
-		virtual [[nodiscard]] ISubsystemMonitor& Monitor() = 0;
+		[[nodiscard]] virtual ISubsystemMonitor& Monitor() = 0;
 	};
 
 	ISubsystemsSupervisor* CreateSubsystemMonitor();

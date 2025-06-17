@@ -367,7 +367,7 @@ namespace
 		CStringConstant* sc = (CStringConstant*)obj;
 
 		VariantValue val;
-		Rococo::Parse::PARSERESULT result = Rococo::Parse::TryParse(val, VARTYPE_Int32, sc->pointer);
+		Rococo::Parse::PARSERESULT result = Rococo::Parse::TryParse(val, SexyVarType_Int32, sc->pointer);
 
 		boolean32 bSuccess = result == Parse::PARSERESULT_GOOD;
 		_offset += sizeof(bSuccess);

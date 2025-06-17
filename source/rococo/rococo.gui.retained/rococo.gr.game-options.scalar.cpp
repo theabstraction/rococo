@@ -26,7 +26,7 @@ namespace GRANON
 			if (_panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				RaiseError(_panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				RaiseError(_panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Panel parent was null");
 				return;
 			}
 
@@ -88,7 +88,7 @@ namespace GRANON
 		{
 			if (panel.HasFocus() && we.wheelDelta != 0)
 			{
-				int acceleration = GetCustodian(panel).Keys().IsKeyPressed(IO::VirtualKeys::VKCode_CTRL) ? 10 : 1;
+				int acceleration = we.context.isCtrlHeld ? 10 : 1;
 
 				if (we.wheelDelta % 120 == 0)
 				{

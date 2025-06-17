@@ -70,7 +70,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -159,7 +159,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYUTIL_API=__declspec(dllimport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>

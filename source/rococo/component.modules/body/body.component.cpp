@@ -60,7 +60,7 @@ namespace Rococo::Components
         {
             if (!meshDictonary.TryGetByName(name, OUT mesh))
             {
-                Throw(0, "%s: Could not find mesh %s in the mesh dictionary", __FUNCTION__, name.buffer);
+                Throw(0, "%s: Could not find mesh %s in the mesh dictionary", __ROCOCO_FUNCTION__, name.buffer);
             }
         }
 

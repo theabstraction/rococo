@@ -208,7 +208,7 @@ public:
 		}
 	}
 
-	bool AppendEvent(const KeyboardEvent& ke)
+	bool AppendEvent(const KeyboardEventEx& ke) override
 	{
 		if (keyboardSink && keyboardSink->OnKeyboardEvent(ke))
 		{

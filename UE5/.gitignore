@@ -1,0 +1,6 @@
+Binaries/
+DerivedDataCache/
+Build/
+Saved/
+.vsconfig
+*.rococo-bundle.cpp

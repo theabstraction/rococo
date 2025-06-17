@@ -26,7 +26,7 @@
  * The error manager must already be set up (in case memory manager fails).
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_CreateDecompress (j_decompress_ptr cinfo, int version, size_t structsize)
 {
   int i;
@@ -87,7 +87,7 @@ jpeg_CreateDecompress (j_decompress_ptr cinfo, int version, size_t structsize)
  * Destruction of a JPEG decompression object
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_destroy_decompress (j_decompress_ptr cinfo)
 {
   jpeg_destroy((j_common_ptr) cinfo); /* use common routine */
@@ -99,7 +99,7 @@ jpeg_destroy_decompress (j_decompress_ptr cinfo)
  * but don't destroy the object itself.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_abort_decompress (j_decompress_ptr cinfo)
 {
   jpeg_abort((j_common_ptr) cinfo); /* use common routine */
@@ -237,7 +237,7 @@ default_decompress_parms (j_decompress_ptr cinfo)
  * extra error checking.
  */
 
-GLOBAL(int)
+JPEG_GLOBAL_API int
 jpeg_read_header (j_decompress_ptr cinfo, boolean require_image)
 {
   int retcode;
@@ -283,7 +283,7 @@ jpeg_read_header (j_decompress_ptr cinfo, boolean require_image)
  * method.
  */
 
-GLOBAL(int)
+JPEG_GLOBAL_API int
 jpeg_consume_input (j_decompress_ptr cinfo)
 {
   int retcode = JPEG_SUSPENDED;
@@ -330,7 +330,7 @@ jpeg_consume_input (j_decompress_ptr cinfo)
  * Have we finished reading the input file?
  */
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 jpeg_input_complete (j_decompress_ptr cinfo)
 {
   /* Check for valid jpeg object */
@@ -345,7 +345,7 @@ jpeg_input_complete (j_decompress_ptr cinfo)
  * Is there more than one scan?
  */
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 jpeg_has_multiple_scans (j_decompress_ptr cinfo)
 {
   /* Only valid after jpeg_read_header completes */
@@ -365,7 +365,7 @@ jpeg_has_multiple_scans (j_decompress_ptr cinfo)
  * a suspending data source is used.
  */
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 jpeg_finish_decompress (j_decompress_ptr cinfo)
 {
   if ((cinfo->global_state == DSTATE_SCANNING ||

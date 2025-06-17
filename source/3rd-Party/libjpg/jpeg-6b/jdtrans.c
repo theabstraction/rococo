@@ -41,7 +41,7 @@ LOCAL(void) transdecode_master_selection JPP((j_decompress_ptr cinfo));
  * a suspending data source is used.
  */
 
-GLOBAL(jvirt_barray_ptr *)
+JPEG_GLOBAL_API jvirt_barray_ptr *
 jpeg_read_coefficients (j_decompress_ptr cinfo)
 {
   if (cinfo->global_state == DSTATE_READY) {

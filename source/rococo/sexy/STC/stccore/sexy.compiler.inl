@@ -417,7 +417,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			underlyingType = _underlyingType;
 			underlyingGenericArg1Type = _genericArg1Type;
 			underlyingGenericArg2Type = _genericArg2Type;
-			if (underlyingType && (underlyingType->VarType() == VARTYPE_Array || underlyingType->VarType() == VARTYPE_Map))
+			if (underlyingType && (underlyingType->VarType() == SexyVarType_Array || underlyingType->VarType() == SexyVarType_Map))
 			{
 				sizeOfMember = sizeof(void*);
 			}
@@ -491,7 +491,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		TStructureMembers members;
 		bool isSealed;
 		mutable int sizeOfStruct;
-		VARTYPE type;
+		SexyVarType type;
 		typedef TSexyVector<stdstring> TInterfaceNames;
 		typedef TSexyVector<IInterfaceBuilder*> TInterfaces;
 		TSexyVector<StructureAttribute> attributes;
@@ -507,7 +507,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		bool isNullType = false;
 		bool isStrongType = false;
 	public:
-		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE type, const Sex::ISExpression* _definition);
+		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, SexyVarType type, const Sex::ISExpression* _definition);
 		~Structure();
 
 		bool IsNullType() const override
@@ -551,7 +551,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		IProgramObject& Object() override;
 		IPublicProgramObject& Object() const override;
 		cstr Name() const override;
-		const VARTYPE VarType() const override;
+		const SexyVarType VarType() const override;
 		const StructurePrototype& Prototype() const override;
 		IModuleBuilder& Module() override { return module; }
 		const IModule& Module() const override { return module; }

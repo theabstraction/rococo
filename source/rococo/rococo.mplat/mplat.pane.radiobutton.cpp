@@ -33,7 +33,7 @@ public:
 		publisher.Subscribe(this, id);
 	}
 
-	~PanelRadioButton()
+	virtual ~PanelRadioButton()
 	{
 		publisher.Unsubscribe(this);
 	}
@@ -62,7 +62,7 @@ public:
 		padding = { paddingX, paddingY };
 	}
 
-	bool AppendEvent(const KeyboardEvent&, const Vec2i&, const Vec2i&) override
+	bool AppendEvent(const KeyboardEventEx&, const Vec2i&, const Vec2i&) override
 	{
 		return false;
 	}

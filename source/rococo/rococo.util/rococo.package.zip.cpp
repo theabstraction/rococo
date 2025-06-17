@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 #include <rococo.package.h>
 #include <rococo.io.h>
@@ -41,7 +40,7 @@ namespace std
 namespace Rococo::Strings
 {
 	ROCOCO_API int32 Format(U8FilePath& path, cstr format, ...);
-	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ const wchar_t* format, ...);
+	ROCOCO_API int32 Format(WideFilePath& path, _Printf_format_string_ crwstr format, ...);
 }
 
 namespace ANON
@@ -256,7 +255,7 @@ namespace ANON
 		{
 		}
 
-		SXYZMapPackage(const wchar_t* filename, const char* key)
+		SXYZMapPackage(crwstr filename, const char* key)
 		{
 			IO::LoadBinaryFile(*this, filename, 2_gigabytes);
 
@@ -342,7 +341,7 @@ namespace ANON
 		{
 			if (!TryGetFileInfo(resourcePath, f))
 			{
-				Throw(0, "%s: Could not find %s in the package %s", __FUNCTION__, resourcePath, name.buf);
+				Throw(0, "%s: Could not find %s in the package %s", __ROCOCO_FUNCTION__, resourcePath, name.buf);
 			}
 		}
 
@@ -380,24 +379,24 @@ namespace ANON
 		{
 			if (prefix == nullptr)
 			{
-				Throw(0, "%s: prefix was null", __FUNCTION__);
+				Throw(0, "%s: prefix was null", __ROCOCO_FUNCTION__);
 			}
 
 			if (*prefix == '/')
 			{
-				Throw(0, "%s: prefix should not begin with a forward slash: /", __FUNCTION__);
+				Throw(0, "%s: prefix should not begin with a forward slash: /", __ROCOCO_FUNCTION__);
 			}
 
 			auto lenPrefix = strlen(prefix);
 
 			if (lenPrefix > 0 && !EndsWith(prefix, "/"))
 			{
-				Throw(0, "%s: prefix did not terminate with a forward slash: /", __FUNCTION__);
+				Throw(0, "%s: prefix did not terminate with a forward slash: /", __ROCOCO_FUNCTION__);
 			}
 
 			if (enumLockDirs)
 			{
-				Throw(0, "%s: cannot rebuild cache while the directories are being enumerated.", __FUNCTION__);
+				Throw(0, "%s: cannot rebuild cache while the directories are being enumerated.", __ROCOCO_FUNCTION__);
 			}
 
 			std::pair<U8FilePath, int> subdirPair;
@@ -439,12 +438,12 @@ namespace ANON
 		{
 			if (prefix == nullptr)
 			{
-				Throw(0, "%s: prefix was null", __FUNCTION__);
+				Throw(0, "%s: prefix was null", __ROCOCO_FUNCTION__);
 			}
 
 			if (enumLockFiles)
 			{
-				Throw(0, "%s: cannot rebuild cache while the directories are being enumerated.", __FUNCTION__);
+				Throw(0, "%s: cannot rebuild cache while the directories are being enumerated.", __ROCOCO_FUNCTION__);
 			}
 
 			auto lenPrefix = strlen(prefix);
@@ -464,7 +463,7 @@ namespace ANON
 
 			if (range.first == range.second)
 			{
-				Throw(0, "%s: Could not find %s in the package %s", __FUNCTION__, prefix, name.buf);
+				Throw(0, "%s: Could not find %s in the package %s", __ROCOCO_FUNCTION__, prefix, name.buf);
 			}
 
 			filecache.reserve(std::distance(range.first, range.second));
@@ -528,18 +527,18 @@ namespace ANON
 
 namespace Rococo
 {
-	ROCOCO_API IPackageSupervisor* OpenZipPackage(const wchar_t* sysPath, const char* friendlyName)
+	ROCOCO_API IPackageSupervisor* OpenZipPackage(crwstr sysPath, const char* friendlyName)
 	{
 		if (sysPath == NULL || friendlyName == NULL)
 		{
-			Throw(0, "%s: argument null", __FUNCTION__);
+			Throw(0, "%s: argument null", __ROCOCO_FUNCTION__);
 		}
 		else
 		{
 			auto len = StringLength(friendlyName);
 			if (len < 1 || len >= IPackageSupervisor::MAX_PACKAGE_NAME_BUFFER_LEN)
 			{
-				Throw(0, "%s: [friendlyName] length out of bounds. Domain: [1,%d]", __FUNCTION__, IPackageSupervisor::MAX_PACKAGE_NAME_BUFFER_LEN - 1);
+				Throw(0, "%s: [friendlyName] length out of bounds. Domain: [1,%d]", __ROCOCO_FUNCTION__, IPackageSupervisor::MAX_PACKAGE_NAME_BUFFER_LEN - 1);
 			}
 		}
 

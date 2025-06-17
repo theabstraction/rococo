@@ -26,7 +26,7 @@
  * The error manager must already be set up (in case memory manager fails).
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_CreateCompress (j_compress_ptr cinfo, int version, size_t structsize)
 {
   int i;
@@ -84,7 +84,7 @@ jpeg_CreateCompress (j_compress_ptr cinfo, int version, size_t structsize)
  * Destruction of a JPEG compression object
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_destroy_compress (j_compress_ptr cinfo)
 {
   jpeg_destroy((j_common_ptr) cinfo); /* use common routine */
@@ -96,7 +96,7 @@ jpeg_destroy_compress (j_compress_ptr cinfo)
  * but don't destroy the object itself.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_abort_compress (j_compress_ptr cinfo)
 {
   jpeg_abort((j_common_ptr) cinfo); /* use common routine */
@@ -115,7 +115,7 @@ jpeg_abort_compress (j_compress_ptr cinfo)
  * jcparam.o would be linked whether the application used it or not.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_suppress_tables (j_compress_ptr cinfo, boolean suppress)
 {
   int i;
@@ -143,7 +143,7 @@ jpeg_suppress_tables (j_compress_ptr cinfo, boolean suppress)
  * work including most of the actual output.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_finish_compress (j_compress_ptr cinfo)
 {
   JDIMENSION iMCU_row;
@@ -188,7 +188,7 @@ jpeg_finish_compress (j_compress_ptr cinfo)
  * first call to jpeg_write_scanlines() or jpeg_write_raw_data().
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_write_marker (j_compress_ptr cinfo, int marker,
 		   const JOCTET *dataptr, unsigned int datalen)
 {
@@ -210,7 +210,7 @@ jpeg_write_marker (j_compress_ptr cinfo, int marker,
 
 /* Same, but piecemeal. */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_write_m_header (j_compress_ptr cinfo, int marker, unsigned int datalen)
 {
   if (cinfo->next_scanline != 0 ||
@@ -222,7 +222,7 @@ jpeg_write_m_header (j_compress_ptr cinfo, int marker, unsigned int datalen)
   (*cinfo->marker->write_marker_header) (cinfo, marker, datalen);
 }
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_write_m_byte (j_compress_ptr cinfo, int val)
 {
   (*cinfo->marker->write_marker_byte) (cinfo, val);
@@ -250,7 +250,7 @@ jpeg_write_m_byte (j_compress_ptr cinfo, int val)
  * will not re-emit the tables unless it is passed write_all_tables=TRUE.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_write_tables (j_compress_ptr cinfo)
 {
   if (cinfo->global_state != CSTATE_START)

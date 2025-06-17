@@ -66,7 +66,7 @@ namespace Rococo
 			void Invoke(Rococo::Events::IPublisher& publisher, int32 stateIndex);
 			void SetPopulator(int32 stateIndex, const fstring& populatorName);
 			void AppendEventToChildren(Rococo::Events::IPublisher& publisher, const MouseEvent& me, const Vec2i& absTopLeft, int stateIndex = 0);
-			bool AppendEventToChildren(Rococo::Events::IPublisher& publisher, const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex = 0);
+			bool AppendEventToChildren(Rococo::Events::IPublisher& publisher, const KeyboardEventEx& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft, int stateIndex = 0);
 			void AlignLeftEdges(int32 borderPixels, boolean32 preserveSpan) override;
 			void AlignRightEdges(int32 borderPixels, boolean32 preserveSpan) override;
 			void AlignTopEdges(int32 borderPixels, boolean32 preserveSpan) override;
@@ -113,7 +113,7 @@ namespace Rococo
 				delete this;
 			}
 
-			bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+			bool AppendEvent(const KeyboardEventEx& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 			{
 				return current->Supervisor()->AppendEvent(me, focusPoint, absTopLeft);
 			}

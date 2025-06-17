@@ -56,7 +56,7 @@ namespace GRANON
 		{
 			if (columnIndex < 0 || columnIndex > (int) columnHeaders.size())
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "column index %d out of bounds. Array size is %llu", columnIndex, columnHeaders.size());
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "column index %d out of bounds. Array size is %llu", columnIndex, columnHeaders.size());
 			}
 
 			int oldWidth = columnHeaders[columnIndex].width;

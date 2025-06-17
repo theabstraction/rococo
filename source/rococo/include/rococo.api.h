@@ -89,7 +89,10 @@ namespace Rococo
 	struct KeyboardEvent;
 	struct MouseEvent;
 
-	ROCOCO_API void GetTimestamp(char str[26]);
+	namespace Time
+	{
+		ROCOCO_API void GetTimestamp(char str[26]);
+	}
 
 	namespace Post
 	{
@@ -146,7 +149,7 @@ namespace Rococo
 
 	namespace Script
 	{
-		ROCOCO_API void PopulateStringBuilder(InterfacePointerToStringBuilder sb, const fstring& text);
+		ROCOCO_API void PopulateStringBuilder(Script::InterfacePointerToStringBuilder sb, const fstring& text);
 	}
 
 	enum EXECUTERESULT : int32;

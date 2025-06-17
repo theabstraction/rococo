@@ -57,7 +57,7 @@ namespace GRANON
 		uint32 isEnabled : 1;
 		uint32 isActive : 1;
 
-		MenuBranch(GRMenuTree& _tree, int64 _id, MenuBranch* _parent) : tree(_tree), id({ _id }), parent(_parent), isEnabled(0), isActive(0)
+		MenuBranch(GRMenuTree& _tree, int64 _id, MenuBranch* _parent) : parent(_parent), tree(_tree), id({ _id }), isEnabled(0), isActive(0)
 		{
 			_tree.mapIdToBranch[_id] = this;
 		}
@@ -162,7 +162,7 @@ namespace GRANON
 			if (owningPanel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				RaiseError(owningPanel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				RaiseError(owningPanel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Panel parent was null");
 				return;
 			}
 			auto rootId = 0;
@@ -174,7 +174,7 @@ namespace GRANON
 			auto* branch = tree.FindBranch(parentMenu);
 			if (!branch)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "No sub menu found with matching id");
 				return false;
 			}
 
@@ -198,7 +198,7 @@ namespace GRANON
 			auto* parent = tree.FindBranch(parentMenu);
 			if (!parent)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "No sub menu found with matching id");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "No sub menu found with matching id");
 				return GRMenuItemId{ -1 };
 			}
 

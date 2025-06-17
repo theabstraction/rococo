@@ -167,7 +167,7 @@ namespace AudioAnon
 		{
 			enum { USING_SIGNED_SAMPLES = 1 };
 			int bitStream = 0;
-			long result = ov_read(&apiHandle, (char*) decompressedBuffer, decompressedCapacity, !OS::IsEndianLittle(), sizeof int16, USING_SIGNED_SAMPLES, &bitStream);
+			long result = ov_read(&apiHandle, (char*) decompressedBuffer, decompressedCapacity, !OS::IsEndianLittle(), sizeof(int16), USING_SIGNED_SAMPLES, &bitStream);
 			switch (result)
 			{
 			case OV_HOLE:
@@ -190,7 +190,7 @@ namespace AudioAnon
 
 	void CopyData(StereoSample_INT16* __restrict output, const uint8* __restrict input, uint32 nSamples)
 	{
-		memcpy(output, input, nSamples * sizeof StereoSample_INT16);
+		memcpy(output, input, nSamples * sizeof(StereoSample_INT16));
 	}
 
 	void PopulateMediaBufferWithFileData(IAudioInstallationSupervisor& installation, cstr utf8Path, std::vector<uint8>& encodedData)
@@ -304,7 +304,7 @@ namespace AudioAnon
 			size_t length = encodedDataSingleThreadedPrivateHeap.size();
 			if (length == 0)
 			{
-				Throw(0, "%s: the file was of zero length", __FUNCTION__);
+				Throw(0, "%s: the file was of zero length", __ROCOCO_FUNCTION__);
 			}
 
 			OggVorbisFile f(utf8Path, encodedDataSingleThreadedPrivateHeap.data(), encodedDataSingleThreadedPrivateHeap.size());
@@ -351,7 +351,7 @@ namespace AudioAnon
 			
 			if (!audioBufferManager.Accept(AudioBufferDescriptor{ nChannels, 16 }))
 			{
-				Throw(0, "%s: The audio buffer manager rejected the request to transcode", __FUNCTION__);
+				Throw(0, "%s: The audio buffer manager rejected the request to transcode", __ROCOCO_FUNCTION__);
 			}
 			
 			uint32 cursor = 0;

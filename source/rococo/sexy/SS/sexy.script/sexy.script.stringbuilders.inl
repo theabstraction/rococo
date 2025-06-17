@@ -43,7 +43,7 @@ namespace Rococo::Strings
 		auto* strSrc = (CStringConstant*) InterfaceToInstance(mutableStringPtr);
 		if (!strSrc->header.Desc->flags.IsSystem)
 		{
-			Throw(0, "%s: the source string was not a Sys based string, which is a security violation.", __FUNCTION__);
+			Throw(0, "%s: the source string was not a Sys based string, which is a security violation.", __ROCOCO_FUNCTION__);
 		}
 
 		cstr src = strSrc->pointer;
@@ -285,19 +285,19 @@ namespace Rococo::Strings
 			if (!HasFlag(StringBuilderFlags::Expandable, sb.flags))
 			{
 				// Was of reserved length (64, 260 or 1024 chars)
-				Throw(0, "%s: The string builder was not expandable", __FUNCTION__);
+				Throw(0, "%s: The string builder was not expandable", __ROCOCO_FUNCTION__);
 			}
 
 			if (deltaLength >= 1_gigabytes)
 			{
-				Throw(0, "%s: expansion is capped to 1GB", __FUNCTION__);
+				Throw(0, "%s: expansion is capped to 1GB", __ROCOCO_FUNCTION__);
 			}
 
 			uint64 targetLen = deltaLength + len;
 
 			if (targetLen >= 1_gigabytes)
 			{
-				Throw(0, "%s: expansion is capped to 1GB", __FUNCTION__);
+				Throw(0, "%s: expansion is capped to 1GB", __ROCOCO_FUNCTION__);
 			}
 
 			// At this point the target length is guaranteed to be less than 1GB, so an int32 cast is guaranteed to be a +ve int32. capacity is also limited to 1GB.
@@ -329,7 +329,7 @@ namespace Rococo::Strings
 			}
 			catch (...)
 			{
-				Throw(0, "%s: expansion failed to allocate %ld bytes", __FUNCTION__, newCapacity);
+				Throw(0, "%s: expansion failed to allocate %ld bytes", __ROCOCO_FUNCTION__, newCapacity);
 			}
 
 			memcpy(newBuffer, sb.buffer, sb.length + 1); // We added 1 to cover the trailing zero

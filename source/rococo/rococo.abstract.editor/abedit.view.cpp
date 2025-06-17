@@ -162,14 +162,14 @@ namespace ANON
 		{
 			if (interfaceId == nullptr || *interfaceId == 0)
 			{
-				Throw(0, "%s: Cannot Cast. interfaceId was blank", __FUNCTION__);
+				Throw(0, "%s: Cannot Cast. interfaceId was blank", __ROCOCO_FUNCTION__);
 			}
 
 			cstr onlyKnownInterface = "Rococo::Abedit::IAbstractEditorFactory";
 
 			if (ppInterface == nullptr)
 			{
-				Throw(0, "%s: Cannot Cast to %s. ppInterface was null. Only known interface is %s", __FUNCTION__, interfaceId, onlyKnownInterface);
+				Throw(0, "%s: Cannot Cast to %s. ppInterface was null. Only known interface is %s", __ROCOCO_FUNCTION__, interfaceId, onlyKnownInterface);
 			}
 
 			if (Strings::Eq(interfaceId, onlyKnownInterface))
@@ -178,7 +178,7 @@ namespace ANON
 				return;
 			}
 
-			Throw(0, "%s: Cannot Cast to %s. Only known interface is %s", __FUNCTION__, interfaceId, onlyKnownInterface);
+			Throw(0, "%s: Cannot Cast to %s. Only known interface is %s", __ROCOCO_FUNCTION__, interfaceId, onlyKnownInterface);
 		}
 
 		IAbstractEditorSupervisor* CreateAbstractEditor(const EditorSessionConfig& config, IAbstractEditorMainWindowEventHandler& eventHandler, Rococo::Events::IPublisher& publisher) override

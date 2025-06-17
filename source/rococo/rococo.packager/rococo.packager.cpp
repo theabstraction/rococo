@@ -29,7 +29,7 @@ struct Pack
 {
     AutoFree<IBinaryArchive> f;
 
-    Pack(const wchar_t* archiveFilename, uint64 totalFileLength)
+    Pack(crwstr archiveFilename, uint64 totalFileLength)
     {
         try
         {
@@ -48,7 +48,7 @@ struct Pack
         f->Truncate();
     }
 
-    void AppendFile(const wchar_t* fullname)
+    void AppendFile(crwstr fullname)
     {
         AutoFree<IBinarySource> srcData(ReadBinarySource(fullname));
         char buf[8_kilobytes];
@@ -73,7 +73,7 @@ struct Pack
         f->Write(1, s.length, s.buffer);
     }
 
-    void WriteHeader(const wchar_t* directory, uint32 fileCount)
+    void WriteHeader(crwstr directory, uint32 fileCount)
     {
         Write("Rococo.Package:v1.0.0.0\n"_fstring);
         Write("HeaderLength:"_fstring);
@@ -146,7 +146,7 @@ struct Pack
     }
 };
 
-uint64 EvaluateLengthOfFilesWithin(const wchar_t* directory, uint32& fileCount)
+uint64 EvaluateLengthOfFilesWithin(crwstr directory, uint32& fileCount)
 {
     struct : IEventCallback<IO::FileItemData>
     {

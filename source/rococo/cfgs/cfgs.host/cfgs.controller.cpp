@@ -218,7 +218,7 @@ namespace ANON
 			view.Cast((void**)&editorFactory, "Rococo::Abedit::IAbstractEditorFactory");
 			if (!editorFactory)
 			{
-				Throw(0, "%s: Expected an IAbstractEditorFactory to be non-NULL", __FUNCTION__);
+				Throw(0, "%s: Expected an IAbstractEditorFactory to be non-NULL", __ROCOCO_FUNCTION__);
 			}
 
 			EditorSessionConfig config;
@@ -230,7 +230,7 @@ namespace ANON
 			editor = editorFactory->CreateAbstractEditor(IN config, *this, *publisher);
 			if (!editor)
 			{
-				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __FUNCTION__);
+				Throw(0, "%s: Expected editorFactory->CreateAbstractEditor() to return a non-NULL pointer", __ROCOCO_FUNCTION__);
 			}
 
 			SetTitleWithFilename(*editor, nullptr);
@@ -461,7 +461,8 @@ namespace ANON
 
 		void GridEvent_OnRightButtonUp(uint32 buttonFlags, Vec2i cursorPosition) override
 		{
-			gui->OnRightButtonUp(buttonFlags, cursorPosition);
+			auto handled = gui->OnRightButtonUp(buttonFlags, cursorPosition);
+			UNUSED(handled);
 		}
 
 		void GridEvent_PaintForeground(IFlatGuiRenderer& gr) override

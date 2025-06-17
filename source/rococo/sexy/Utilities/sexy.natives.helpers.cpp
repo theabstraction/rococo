@@ -7,6 +7,7 @@
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
 #include "..\STC\stccore\Sexy.Compiler.h"
+#include <sexy.util.exports.h>
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -18,7 +19,7 @@ namespace Rococo
 {
    namespace Helpers
    {    
-      SCRIPTEXPORT_API StringPopulator::StringPopulator(NativeCallEnvironment& _nce, InterfacePointer pInterface)
+      SEXYUTIL_API StringPopulator::StringPopulator(NativeCallEnvironment& _nce, InterfacePointer pInterface)
 	  {
 		  auto* stub = InterfaceToInstance(pInterface);
 		  auto* fsb = (FastStringBuilder*)stub;

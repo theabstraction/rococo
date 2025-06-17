@@ -97,7 +97,7 @@ namespace Rococo { namespace OS
       Throw(0, ("Environment variable %s not found"), envVariable);
    }
    
-	void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable)
+	void GetEnvVariable(wchar_t* data, size_t capacity, crwstr envVariable)
 	{
 		char u8Data[1024];
 		U8FilePath u8VarName;
@@ -130,7 +130,7 @@ namespace Rococo { namespace OS
 		return fp;
 	}
 	
-	Rococo::Script::FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError)
+	Rococo::Script::FN_CreateLib GetLibCreateFunction(crwstr dynamicLinkLibOfNativeCalls, bool throwOnError)
 	{
 		U8FilePath filename;
 		Assign(filename, dynamicLinkLibOfNativeCalls);

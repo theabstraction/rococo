@@ -1,11 +1,10 @@
 #include <rococo.compiler.options.h>
-#define ROCOCO_SEXML_API ROCOCO_API_EXPORT
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.sexml.h>
 #include <rococo.strings.h>
 #include <math.h>
-#include <new.h>
+#include <new>
 #include <vector>
 #include <rococo.hashtable.h>
 #include <rococo.functional.h>
@@ -44,7 +43,7 @@ namespace Rococo::Sex::SEXML
 
 		RawValue(const ISEXMLAttribute& _a, cr_sex _s) noexcept : s(_s), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 		}
 
 		const ISEXMLAttribute& Attribute() const override
@@ -101,7 +100,7 @@ namespace Rococo::Sex::SEXML
 #ifdef _DEBUG
 			value = s.c_str();
 #endif
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 		}
 
 		const ISEXMLAttribute& Attribute() const override
@@ -152,7 +151,7 @@ namespace Rococo::Sex::SEXML
 
 		SmallVectorI(const ISEXMLAttribute& _a, cr_sex s, const int* args) noexcept :sAttribute(s), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 
 			int count = NumberOfDimensions();
 
@@ -229,7 +228,7 @@ namespace Rococo::Sex::SEXML
 				}
 			}
 
-			void* pMemory = allocator.Allocate(sizeof SmallVectorI);
+			void* pMemory = allocator.Allocate(sizeof(SmallVectorI));
 			return new (pMemory) SmallVectorI(a, sAttribute, items);
 		}
 	};
@@ -249,7 +248,7 @@ namespace Rococo::Sex::SEXML
 
 		SmallVector(const ISEXMLAttribute& _a, cr_sex s, const double* args) :sAttribute(s), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 
 			int count = NumberOfDimensions();
 
@@ -316,7 +315,7 @@ namespace Rococo::Sex::SEXML
 				}
 			}
 
-			void* pMemory = allocator.Allocate(sizeof SmallVector);
+			void* pMemory = allocator.Allocate(sizeof(SmallVector));
 			return new (pMemory) SmallVector(a, sAttribute, items);
 		}
 	};
@@ -330,7 +329,7 @@ namespace Rococo::Sex::SEXML
 
 		ListValue(const ISEXMLAttribute& _a, cr_sex sAttribute, SEXMLValueType _type) noexcept : s(sAttribute), type(_type), a(_a)
 		{
-			VALIDATE_SIMPLE_INTERFACE(this, __FUNCTION__);
+			VALIDATE_SIMPLE_INTERFACE(this, __ROCOCO_FUNCTION__);
 		}
 
 		const ISEXMLAttribute& Attribute() const override
@@ -432,7 +431,7 @@ namespace Rococo::Sex::SEXML
 					// Raw expression (' <name> ...) - The value of the raw expression is the s-expression of the attribute itself.
 					// If we were instead to define the third argument as the value, this would entail wrapping a list of items in parenthesis, adding to bloat.
 					type = SEXMLValueType::Raw;
-					auto* pMemory = root.Allocator().Allocate(sizeof RawValue);
+					auto* pMemory = root.Allocator().Allocate(sizeof(RawValue));
 					a = new (pMemory) RawValue(*this, sAttribute);
 				}
 				else if (Eq(fName, "#Vec2"))
@@ -537,7 +536,7 @@ namespace Rococo::Sex::SEXML
 						type = SEXMLValueType::AtomicList;
 					}
 
-					auto* pMemory = root.Allocator().Allocate(sizeof ListValue);
+					auto* pMemory = root.Allocator().Allocate(sizeof(ListValue));
 					a = new (pMemory) ListValue(*this, sAttribute, type);
 				}
 				else
@@ -556,7 +555,7 @@ namespace Rococo::Sex::SEXML
 
 					if (s.NumberOfElements() == 1)
 					{
-						auto* pMemory = root.Allocator().Allocate(sizeof NullValue);
+						auto* pMemory = root.Allocator().Allocate(sizeof(NullValue));
 						a = new (pMemory) NullValue(*this);
 					}
 					else
@@ -579,7 +578,7 @@ namespace Rococo::Sex::SEXML
 							Throw(attributeFunction, "Expecting either an atomic or string literal for the value of the attribute. Perhaps you are missing a colon ':' that specifies the sub-directives from the attributes.");
 						}
 
-						auto* pMemory = root.Allocator().Allocate(sizeof StringValue);
+						auto* pMemory = root.Allocator().Allocate(sizeof(StringValue));
 						a = new (pMemory) StringValue(*this, sValue);
 					}
 				}
@@ -664,7 +663,7 @@ namespace Rococo::Sex::SEXML
 						Throw(sAttribute, "Expected a (name value) pair for attribute %d, but the expression was not compound", i - 1);
 					}
 
-					void* pMemory = root.Allocator().Allocate(sizeof Attribute);
+					void* pMemory = root.Allocator().Allocate(sizeof(Attribute));
 
 					try
 					{
@@ -701,7 +700,7 @@ namespace Rococo::Sex::SEXML
 						Throw(sSubdirective, "Expecting compound expression for sub directive [%d]", i);
 					}
 
-					void* pMemory = root.Allocator().Allocate(sizeof Impl::Directive);
+					void* pMemory = root.Allocator().Allocate(sizeof(Impl::Directive));
 
 					try
 					{
@@ -755,7 +754,7 @@ namespace Rococo::Sex::SEXML
 			{
 				if (expectedFqName == nullptr)
 				{
-					Throw(S(), "%s(nullptr)", __FUNCTION__);
+					Throw(S(), "%s(nullptr)", __ROCOCO_FUNCTION__);
 				}
 
 				if (Strings::Eq(expectedFqName, FQName()))
@@ -842,7 +841,7 @@ namespace Rococo::Sex::SEXML
 			{
 				if (name == nullptr || *name == 0)
 				{
-					Rococo::Sex::Throw(sDirective, "%s(name): [name] was blank", __FUNCTION__);
+					Rococo::Sex::Throw(sDirective, "%s(name): [name] was blank", __ROCOCO_FUNCTION__);
 				}
 				auto i = nameToAttribute.find(name);
 				return i != nameToAttribute.end() ? i->second : nullptr;
@@ -879,7 +878,7 @@ namespace Rococo::Sex::SEXML
 						Throw(sDirective, "Expecting compound expression for top level directive [%d]", i);
 					}
 
-					void* pMemory = allocator.Allocate(sizeof Impl::Directive);
+					void* pMemory = allocator.Allocate(sizeof(Impl::Directive));
 
 					try
 					{
@@ -937,9 +936,9 @@ namespace Rococo::Sex::SEXML
 	}
 
 	void OnBadParameter(
-		const wchar_t* expression,
-		const wchar_t* function,
-		const wchar_t* file,
+		crwstr expression,
+		crwstr function,
+		crwstr file,
 		unsigned int line,
 		uintptr_t pReserved)
 	{
@@ -953,19 +952,24 @@ namespace Rococo::Sex::SEXML
 
 	ROCOCO_SEXML_API [[nodiscard]] ISEXMLRootSupervisor* CreateSEXMLParser(IAllocator& allocator, cr_sex sRoot)
 	{
+#ifdef _WIN32
 		_invalid_parameter_handler old = _set_invalid_parameter_handler(OnBadParameter);
-
-		void* pMemory = allocator.Allocate(sizeof Impl::SEXMLParser);
+#endif
+		void* pMemory = allocator.Allocate(sizeof(Impl::SEXMLParser));
 
 		try
 		{
 			auto* p = new (pMemory) Impl::SEXMLParser(sRoot, allocator);
+#ifdef _WIN32
 			_set_invalid_parameter_handler(old);
+#endif
 			return p;
 		}
 		catch (...)
 		{
+#ifdef _WIN32
 			_set_invalid_parameter_handler(old);
+#endif
 			allocator.FreeData(pMemory);
 			throw;
 		}
@@ -1242,7 +1246,7 @@ namespace Rococo::Sex::SEXML
 	ROCOCO_SEXML_API int32 AsAtomicInt32(const ISEXMLAttributeValue& value)
 	{
 		cstr text = AsAtomic(value).c_str();
-		if (strlen(text) > 2 && (_strnicmp(text, "0x", 2) == 0))
+		if (strlen(text) > 2 && (Strings::Compare(text, "0x", 2) == 0))
 		{
 			int32 hexValue = 0;
 			sscanf_s(text + 2, "%x", &hexValue);

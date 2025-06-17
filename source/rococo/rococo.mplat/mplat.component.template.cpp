@@ -115,7 +115,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
 			{
-				Throw(0, "%s: a component with the given id 0x%8.8X already exists", __FUNCTION__, id.index);
+				Throw(0, "%s: a component with the given id 0x%8.8X already exists", __ROCOCO_FUNCTION__, id.index);
 			}
 
 			auto i = insertion.first;
@@ -126,7 +126,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 				IComponentInterface* component = componentFactory.ConstructInPlace(pComponentMemory);
 				if (component == nullptr)
 				{
-					Throw(0, "%s: factory.ConstructInPlace returned null", __FUNCTION__);
+					Throw(0, "%s: factory.ConstructInPlace returned null", __ROCOCO_FUNCTION__);
 				}
 				i->second.interfacePointer = component;
 
@@ -146,7 +146,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __FUNCTION__);
+				Throw(0, "%s: An attempt was made to collect garbage during an enumeration lock.", __ROCOCO_FUNCTION__);
 			}
 
 			while (!deprecatedList.empty())
@@ -393,7 +393,7 @@ namespace COMPONENT_IMPLEMENTATION_NAMESPACE
 		{
 			if (enumLock > 0)
 			{
-				Throw(0, "%s: Cannot collect garbage - the ECS is locked for enumeration.", __FUNCTION__);
+				Throw(0, "%s: Cannot collect garbage - the ECS is locked for enumeration.", __ROCOCO_FUNCTION__);
 			}
 // #BEGIN_INSTANCED#
 			components.componentVariableTable.CollectGarbage();

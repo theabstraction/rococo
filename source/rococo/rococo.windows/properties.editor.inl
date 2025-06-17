@@ -324,12 +324,12 @@ namespace Rococo::Windows::Internal
 
 			if (stub.displayName == nullptr || *stub.displayName == 0)
 			{
-				Throw(0, "%s: blank display name", __FUNCTION__);
+				Throw(0, "%s: blank display name", __ROCOCO_FUNCTION__);
 			}
 
 			if (stub.propertyIdentifier == nullptr || *stub.propertyIdentifier == 0)
 			{
-				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
+				Throw(0, "%s: '%s' blank id", __ROCOCO_FUNCTION__, stub.displayName);
 			}
 		}
 
@@ -355,7 +355,7 @@ namespace Rococo::Windows::Internal
 
 			if (editor)
 			{
-				Throw(0, "%s: unexpected non-null editor for %s", __FUNCTION__, displayName.c_str());
+				Throw(0, "%s: unexpected non-null editor for %s", __ROCOCO_FUNCTION__, displayName.c_str());
 			}
 
 			editor = AddEditor(style, panel, initialString.c_str(), capacity, yOffset, editorId);
@@ -464,7 +464,7 @@ namespace Rococo::Windows::Internal
 		{
 			if (_propertyId == nullptr || *_propertyId == 0)
 			{
-				Throw(0, "%s: blank property Id", __FUNCTION__);
+				Throw(0, "%s: blank property Id", __ROCOCO_FUNCTION__);
 			}
 		}
 
@@ -490,7 +490,7 @@ namespace Rococo::Windows::Internal
 
 			if (editor)
 			{
-				Throw(0, "%s: unexpected non-null editor for %s", __FUNCTION__, displayName.c_str());
+				Throw(0, "%s: unexpected non-null editor for %s", __ROCOCO_FUNCTION__, displayName.c_str());
 			}
 
 			editor = initialString.length() > 0 ? AddImmutableEditor(style, panel, initialString.c_str(), yOffset, editorId, spec) : nullptr;
@@ -774,14 +774,14 @@ namespace Rococo::Windows::Internal
 		{
 			if (displayName.length() == 0)
 			{
-				Throw(0, "%s: blank display name", __FUNCTION__);
+				Throw(0, "%s: blank display name", __ROCOCO_FUNCTION__);
 			}
 
 			validator.ThrowIfBad(initialValue, EValidationPurpose::Construction);
 
 			if (id.length() == 0)
 			{
-				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
+				Throw(0, "%s: '%s' blank id", __ROCOCO_FUNCTION__, stub.displayName);
 			}
 		}
 
@@ -814,7 +814,7 @@ namespace Rococo::Windows::Internal
 
 			if (editor)
 			{
-				Throw(0, "%s: unexpected non-null editor for %s", __FUNCTION__, displayName.c_str());
+				Throw(0, "%s: unexpected non-null editor for %s", __ROCOCO_FUNCTION__, displayName.c_str());
 			}
 
 			editor = AddEditor(style, panel, initialText, MAX_PRIMITIVE_LEN, yOffset, editorId);
@@ -933,7 +933,7 @@ namespace Rococo::Windows::Internal
 		{
 			if (sizeOfData != sizeof(VALUE_TYPE))
 			{
-				Throw(0, "%s: bad size match", __FUNCTION__);
+				Throw(0, "%s: bad size match", __ROCOCO_FUNCTION__);
 			}
 
 			if (editor)
@@ -992,17 +992,17 @@ namespace Rococo::Windows::Internal
 		{
 			if (!enumVector)
 			{
-				Throw(0, "%s: No enum vector", __FUNCTION__);
+				Throw(0, "%s: No enum vector", __ROCOCO_FUNCTION__);
 			}
 
 			if (_stringCapacity > 0x7FFFULL)
 			{
-				Throw(0, "%s: <%s> <%s> String capacity exceeded maximum of 32767 characters", __FUNCTION__, stub.propertyIdentifier, stub.displayName);
+				Throw(0, "%s: <%s> <%s> String capacity exceeded maximum of 32767 characters", __ROCOCO_FUNCTION__, stub.propertyIdentifier, stub.displayName);
 			}
 
 			if (_stringCapacity < 2)
 			{
-				Throw(0, "%s: <%s> <%s> String capacity needs to be 2 or more characters", __FUNCTION__, stub.propertyIdentifier, stub.displayName);
+				Throw(0, "%s: <%s> <%s> String capacity needs to be 2 or more characters", __ROCOCO_FUNCTION__, stub.propertyIdentifier, stub.displayName);
 			}
 
 			keyBuffer.resize(_stringCapacity);
@@ -1070,7 +1070,7 @@ namespace Rococo::Windows::Internal
 
 			if (selectedOptionEditor)
 			{
-				Throw(0, "%s: unexpected non-null selectedOptionEditor for %s", __FUNCTION__, displayName.c_str());
+				Throw(0, "%s: unexpected non-null selectedOptionEditor for %s", __ROCOCO_FUNCTION__, displayName.c_str());
 			}
 
 			float goldenRatio = 1.618f;
@@ -1644,14 +1644,14 @@ namespace Rococo::Windows::Internal
 		{
 			if (displayName.length() == 0)
 			{
-				Throw(0, "%s: blank display name", __FUNCTION__);
+				Throw(0, "%s: blank display name", __ROCOCO_FUNCTION__);
 			}
 
 			validator.ThrowIfBad(initialValue, EValidationPurpose::Construction);
 
 			if (id.length() == 0)
 			{
-				Throw(0, "%s: '%s' blank id", __FUNCTION__, stub.displayName);
+				Throw(0, "%s: '%s' blank id", __ROCOCO_FUNCTION__, stub.displayName);
 			}
 		}
 
@@ -1757,7 +1757,7 @@ namespace Rococo::Windows::Internal
 
 			if (checkbox)
 			{
-				Throw(0, "%s: unexpected non-null checkbox for %s", __FUNCTION__, displayName.c_str());
+				Throw(0, "%s: unexpected non-null checkbox for %s", __ROCOCO_FUNCTION__, displayName.c_str());
 			}
 
 			checkbox = Internal::AddCheckbox(style, panel, yOffset, editorId, static_cast<IOwnerDrawItem*>(this));
@@ -1858,7 +1858,7 @@ namespace Rococo::Windows::Internal
 		{
 			if (sizeOfData != sizeof(bool))
 			{
-				Throw(0, "%s: bad size match", __FUNCTION__);
+				Throw(0, "%s: bad size match", __ROCOCO_FUNCTION__);
 			}
 
 			if (checkbox)
@@ -1964,7 +1964,7 @@ namespace Rococo::Windows::Internal
 		{
 			if (sections.empty())
 			{
-				Throw(0, "%s: Bad section", __FUNCTION__);
+				Throw(0, "%s: Bad section", __ROCOCO_FUNCTION__);
 			}
 
 			return *sections.back();
@@ -2054,30 +2054,30 @@ namespace Rococo::Windows::Internal
 	{
 		void OnPropertyEditorLostFocus(IPropertyEditor& property) override
 		{
-			Throw(0, "%s: property %s incorrectly raised lost focus event", __FUNCTION__, property.Id());
+			Throw(0, "%s: property %s incorrectly raised lost focus event", __ROCOCO_FUNCTION__, property.Id());
 		}
 
 		void OnBooleanButtonChanged(IPropertyEditor& property) override
 		{
-			Throw(0, "%s: property %s incorrectly raised button changed event", __FUNCTION__, property.Id());
+			Throw(0, "%s: property %s incorrectly raised button changed event", __ROCOCO_FUNCTION__, property.Id());
 		}
 
 		void CallArrayMethod(cstr arrayId, Function<void(IArrayProperty&)> callback) override
 		{
 			UNUSED(arrayId);
 			UNUSED(callback);
-			Throw(0, "%s: %s incorrect API call", __FUNCTION__, arrayId);
+			Throw(0, "%s: %s incorrect API call", __ROCOCO_FUNCTION__, arrayId);
 		}
 
 		void OnDependentVariableChanged(cstr propertyId, IEstateAgent& agent) override
 		{
 			UNUSED(agent);
-			Throw(0, "%s: property %s incorrectly raised dependency variable change. Check to see if the agent raised such an event when visitor.IsWritingToReferences() was false", __FUNCTION__, propertyId);
+			Throw(0, "%s: property %s incorrectly raised dependency variable change. Check to see if the agent raised such an event when visitor.IsWritingToReferences() was false", __ROCOCO_FUNCTION__, propertyId);
 		}
 
 		void OnDeleteSection(cstr sectionId)
 		{
-			Throw(0, "%s: %s incorrect API call", __FUNCTION__, sectionId);
+			Throw(0, "%s: %s incorrect API call", __ROCOCO_FUNCTION__, sectionId);
 		}
 	};
 
@@ -2451,7 +2451,7 @@ namespace Rococo::Windows::Internal
 
 		if (sections.empty())
 		{
-			Throw(0, "%s: unmatched section pop", __FUNCTION__);
+			Throw(0, "%s: unmatched section pop", __ROCOCO_FUNCTION__);
 		}
 	}
 
@@ -2473,7 +2473,7 @@ namespace Rococo::Windows::Internal
 
 		if (sections.empty())
 		{
-			Throw(0, "%s: unmatched section pop", __FUNCTION__);
+			Throw(0, "%s: unmatched section pop", __ROCOCO_FUNCTION__);
 		}
 	}
 

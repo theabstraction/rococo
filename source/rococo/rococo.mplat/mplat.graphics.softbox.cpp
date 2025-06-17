@@ -84,12 +84,12 @@ class SoftBoxBuilder : public ISoftBoxBuilderSupervisor
 	{
 		if (fabsf(xDir) != 1.0f)
 		{
-			Throw(0, "%s: Abs(xDir) != 1.0", __FUNCTION__);
+			Throw(0, "%s: Abs(xDir) != 1.0", __ROCOCO_FUNCTION__);
 		}
 
 		if (fabsf(yDir) != 1.0f)
 		{
-			Throw(0, "%s: Abs(yDir) != 1.0", __FUNCTION__);
+			Throw(0, "%s: Abs(yDir) != 1.0", __ROCOCO_FUNCTION__);
 		}
 
 		// Theta is the angle from the horizontal, 0 is in the z plane. Theta of 90 points up ( 1 0 0)
@@ -606,54 +606,54 @@ public:
 	{
 		if (spec.westRadius < 0)
 		{
-			Throw(0, "%s: The West radius was < 0", __FUNCTION__);
+			Throw(0, "%s: The West radius was < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (spec.eastRadius < 0)
 		{
-			Throw(0, "%s: The East radius was < 0", __FUNCTION__);
+			Throw(0, "%s: The East radius was < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (spec.northRadius < 0)
 		{
-			Throw(0, "%s: The North radius was < 0", __FUNCTION__);
+			Throw(0, "%s: The North radius was < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (spec.southRadius < 0)
 		{
-			Throw(0, "%s: The South radius was < 0", __FUNCTION__);
+			Throw(0, "%s: The South radius was < 0", __ROCOCO_FUNCTION__);
 		}
 
 		innerWidth = spec.width - spec.westRadius - spec.eastRadius;
 		if (innerWidth <= 0)
 		{
-			Throw(0, "%s: The West and East radii were so large that the inner width of the top quad was <= 0", __FUNCTION__);
+			Throw(0, "%s: The West and East radii were so large that the inner width of the top quad was <= 0", __ROCOCO_FUNCTION__);
 		}
 
 		innerBreadth = spec.breadth - spec.northRadius - spec.southRadius;
 		if (innerBreadth <= 0)
 		{
-			Throw(0, "%s: The North and South radii were so large that the inner breadth of the top quad was <= 0", __FUNCTION__);
+			Throw(0, "%s: The North and South radii were so large that the inner breadth of the top quad was <= 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (spec.northEdgeDivisions < 0 || spec.northEdgeDivisions > 100'000)
 		{
-			Throw(0, "%s: North edge divisions must lie between 1 and 100,000", __FUNCTION__);
+			Throw(0, "%s: North edge divisions must lie between 1 and 100,000", __ROCOCO_FUNCTION__);
 		}
 
 		if (spec.southEdgeDivisions < 0 || spec.southEdgeDivisions > 100'000)
 		{
-			Throw(0, "%s: South edge divisions must lie between 1 and 100,000", __FUNCTION__);
+			Throw(0, "%s: South edge divisions must lie between 1 and 100,000", __ROCOCO_FUNCTION__);
 		}
 
 		if (spec.westEdgeDivisions < 0 || spec.westEdgeDivisions > 100'000)
 		{
-			Throw(0, "%s: West edge divisions must lie between 1 and 100,000", __FUNCTION__);
+			Throw(0, "%s: West edge divisions must lie between 1 and 100,000", __ROCOCO_FUNCTION__);
 		}
 
 		if (spec.eastEdgeDivisions < 0 || spec.eastEdgeDivisions > 100'000)
 		{
-			Throw(0, "%s: East edge divisions must lie between 1 and 100,000", __FUNCTION__);
+			Throw(0, "%s: East edge divisions must lie between 1 and 100,000", __ROCOCO_FUNCTION__);
 		}
 
 		zTop = spec.ztop;
@@ -903,57 +903,57 @@ public:
 	{
 		if (shelf.radiusNW < 0)
 		{
-			Throw(0, "%s: NW radius < 0", __FUNCTION__);
+			Throw(0, "%s: NW radius < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.radiusNE < 0)
 		{
-			Throw(0, "%s: NE radius < 0", __FUNCTION__);
+			Throw(0, "%s: NE radius < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.radiusSW < 0)
 		{
-			Throw(0, "%s: SW radius < 0", __FUNCTION__);
+			Throw(0, "%s: SW radius < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.radiusSE < 0)
 		{
-			Throw(0, "%s: SE radius < 0", __FUNCTION__);
+			Throw(0, "%s: SE radius < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.divisionsNW < 0)
 		{
-			Throw(0, "%s: divisionsNE < 0", __FUNCTION__);
+			Throw(0, "%s: divisionsNE < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.divisionsNE < 0)
 		{
-			Throw(0, "%s: divisionsNW < 0", __FUNCTION__);
+			Throw(0, "%s: divisionsNW < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.divisionsSW < 0)
 		{
-			Throw(0, "%s: divisionsSW < 0", __FUNCTION__);
+			Throw(0, "%s: divisionsSW < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.divisionsSE < 0)
 		{
-			Throw(0, "%s: divisionsSE < 0", __FUNCTION__);
+			Throw(0, "%s: divisionsSE < 0", __ROCOCO_FUNCTION__);
 		}
 
 		if ((shelf.width < shelf.radiusNW + shelf.radiusNE) || (shelf.width < shelf.radiusSE + shelf.radiusSW))
 		{
-			Throw(0, "%s: shelf width insufficient for the given radii", __FUNCTION__);
+			Throw(0, "%s: shelf width insufficient for the given radii", __ROCOCO_FUNCTION__);
 		}
 
 		if ((shelf.breadth < shelf.radiusNW + shelf.radiusNE) || (shelf.width < shelf.radiusSE + shelf.radiusSW))
 		{
-			Throw(0, "%s: shelf breadth insufficient for the given radii", __FUNCTION__);
+			Throw(0, "%s: shelf breadth insufficient for the given radii", __ROCOCO_FUNCTION__);
 		}
 
 		if (shelf.width == 0 || shelf.breadth == 0)
 		{
-			Throw(0, "%s: width x breadth: area zero", __FUNCTION__);
+			Throw(0, "%s: width x breadth: area zero", __ROCOCO_FUNCTION__);
 		}
 
 		Vec3 up = { 0.0f, 0.0f, 1.0f };
@@ -1027,7 +1027,7 @@ public:
 	{
 		if (index < 0 || index >= (int32)quads.size())
 		{
-			Throw(0, "%s: [index=%d] out of bounds. Quad array size is %llu quads", __FUNCTION__, index, quads.size());
+			Throw(0, "%s: [index=%d] out of bounds. Quad array size is %llu quads", __ROCOCO_FUNCTION__, index, quads.size());
 		}
 
 		refQuad = quads[index];
@@ -1042,7 +1042,7 @@ public:
 	{
 		if (index < 0 || index >= (int32)triangles.size())
 		{
-			Throw(0, "%s: [index=%d] out of bounds. Triangle array size is %llu triangles", __FUNCTION__, index, quads.size());
+			Throw(0, "%s: [index=%d] out of bounds. Triangle array size is %llu triangles", __ROCOCO_FUNCTION__, index, quads.size());
 		}
 
 		outTriangle = triangles[index];
@@ -1052,7 +1052,7 @@ public:
 	{
 		if (uvScale == 0.0f)
 		{
-			Throw(0, "%s: uv scale must not be zero", __FUNCTION__);
+			Throw(0, "%s: uv scale must not be zero", __ROCOCO_FUNCTION__);
 		}
 
 		this->uvScale = uvScale;

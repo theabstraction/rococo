@@ -10,11 +10,6 @@ namespace Rococo
 {
 	struct UniqueIdHolder
 	{
-		UniqueIdHolder()
-		{
-			iValues[0] = iValues[1] = 0;
-		}
-
 		int64 iValues[2];
 		
 		bool operator == (const UniqueIdHolder& other) const

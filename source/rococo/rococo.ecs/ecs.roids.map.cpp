@@ -87,7 +87,7 @@ namespace Rococo::Components
 			auto insertion = rows.insert(nullItem);
 			if (!insertion.second)
 			{
-				Throw(0, "%s(%s): a component with the given id 0x%8.8X already exists", __FUNCTION__, friendlyName, id.index);
+				Throw(0, "%s(%s): a component with the given id 0x%8.8X already exists", __ROCOCO_FUNCTION__, friendlyName, id.index);
 			}
 
 			IComponentBase* base = nullptr;
@@ -97,7 +97,7 @@ namespace Rococo::Components
 				base = factory.Create(id);
 				if (base == nullptr)
 				{
-					Throw(0, "%s(%s): factory returned a nullptr", __FUNCTION__, friendlyName);
+					Throw(0, "%s(%s): factory returned a nullptr", __ROCOCO_FUNCTION__, friendlyName);
 				}
 				insertion.first->second = base;
 			}

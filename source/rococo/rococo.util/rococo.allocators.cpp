@@ -1,5 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
-
 #include <rococo.types.h>
 #include <rococo.allocators.h>
 #include <rococo.os.h>
@@ -63,7 +61,7 @@ namespace
 
 #include <vector>
 #include <algorithm>
-#include <allocators/rococo.allocator.template.h>
+#include <allocators/rococo.allocator.malloc.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -80,7 +78,7 @@ namespace Rococo::Memory::ANON
         std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
 
     public:
-        ~CheckedAllocator()
+        virtual ~CheckedAllocator()
         {
             for (auto fn : atReleaseQueue)
             {
@@ -133,6 +131,8 @@ namespace Rococo::Memory::ANON
         }
     } s_CheckedAllocator;
 
+
+#ifdef _WIN32
     class BlockAllocator : public IAllocatorSupervisor
     {
         HANDLE hHeap{ nullptr };
@@ -150,7 +150,7 @@ namespace Rococo::Memory::ANON
             if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
         }
 
-        ~BlockAllocator()
+        virtual ~BlockAllocator()
         {
             for (auto fn : atReleaseQueue)
             {
@@ -233,6 +233,61 @@ namespace Rococo::Memory::ANON
             return totalAllocation;
         }
     };
+#else
+    class BlockAllocator : public IAllocatorSupervisor
+    {
+        const char* const name;
+
+        std::vector<FN_AllocatorReleaseFunction, AllocatorWithMalloc<FN_AllocatorReleaseFunction>> atReleaseQueue;
+    public:
+        BlockAllocator(size_t /* kilobytes - unused */, size_t /* maxBytes - unused */, const char* const _name) : name(_name)
+        {
+        }
+
+        virtual ~BlockAllocator()
+        {
+            for (auto fn : atReleaseQueue)
+            {
+                fn();
+            }
+        }
+
+        void* Allocate(size_t capacity) override
+        {
+            return malloc(capacity);
+        }
+
+        void AtRelease(FN_AllocatorReleaseFunction fn) override
+        {
+            auto i = std::find(atReleaseQueue.begin(), atReleaseQueue.end(), fn);
+            if (i == atReleaseQueue.end())
+            {
+                atReleaseQueue.push_back(fn);
+            }
+        }
+
+        void FreeData(void* data) override
+        {
+            free(data);
+        }
+
+        void* Reallocate(void* old, size_t capacity) override
+        {
+            free(old);
+            return malloc(capacity);
+        }
+
+        void Free() override
+        {
+            delete this;
+        }
+
+        size_t EvaluateHeapSize() override
+        {
+            return 0;
+        }
+    };
+#endif
 
     struct TrackingData
     {
@@ -252,7 +307,7 @@ namespace Rococo::Memory::ANON
         {
         }
 
-        ~TrackingAllocator()
+        virtual ~TrackingAllocator()
         {
             for (auto fn : atReleaseQueue)
             {
@@ -279,7 +334,7 @@ namespace Rococo::Memory::ANON
                     auto addr = i.second.addr;
 
                     char buffer[1024];
-                    FormatStackFrame(buffer, sizeof buffer, addr);
+                    FormatStackFrame(buffer, sizeof(buffer), addr);
 
                     PrintD("Leak allocated at %s\n", buffer);
                 }
@@ -381,7 +436,8 @@ namespace Rococo::Memory::ANON
 
         void FreeBuffer(void* buffer) override
         {
-            delete[] buffer;
+            char* cBuffer = (char*)buffer;
+            delete[] cBuffer;
         }
 
         void ReclaimBuffer(void* buffer) override

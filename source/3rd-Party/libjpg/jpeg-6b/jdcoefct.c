@@ -474,7 +474,7 @@ decompress_smooth_data (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
   JBLOCK workspace;
   int *coef_bits;
   JQUANT_TBL *quanttbl;
-  INT32 Q00,Q01,Q02,Q10,Q11,Q20, num;
+  JTYPE_INT32 Q00,Q01,Q02,Q10,Q11,Q20, num;
   int DC1,DC2,DC3,DC4,DC5,DC6,DC7,DC8,DC9;
   int Al, pred;
 
@@ -672,7 +672,7 @@ decompress_smooth_data (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
  * Initialize coefficient buffer controller.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_d_coef_controller (j_decompress_ptr cinfo, boolean need_full_buffer)
 {
   my_coef_ptr coef;

@@ -384,7 +384,7 @@ namespace Rococo
 			HWND hWnd = CreateWindowExA(c.exStyle, className, c.windowName, c.style, c.left, c.top, c.width, c.height, c.hWndParent, c.hMenu, hThisInstance, _handler);
 			if (hWnd == nullptr)
 			{
-				Throw(GetLastError(), "%s: CreateWindowExW(%s) failed", __FUNCTION__, c.windowName);
+				Throw(GetLastError(), "%s: CreateWindowExW(%s) failed", __ROCOCO_FUNCTION__, c.windowName);
 			}
 
 			if (className == (cstr)customAtom || Eq(className, customClassName))

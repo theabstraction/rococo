@@ -43,6 +43,7 @@
 #endif
 
 #include "sexy.types.h"
+#include <sexy.util.exports.h>
 
 #include <stdarg.h>
 

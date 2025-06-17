@@ -597,7 +597,7 @@ namespace ANON
 
 		SXYField GetField(int) const override
 		{
-			Throw(0, "%s: Primitives never have fields.", __FUNCTION__);
+			Throw(0, "%s: Primitives never have fields.", __ROCOCO_FUNCTION__);
 		}
 
 		bool IsStrong(void) const override
@@ -873,7 +873,7 @@ namespace ANON
 			size_t sIndex = (size_t)index;
 			if (sIndex >= implicits.size())
 			{
-				Throw(0, "%s: Bad index", __FUNCTION__);
+				Throw(0, "%s: Bad index", __ROCOCO_FUNCTION__);
 			}
 
 			return *implicits[sIndex];
@@ -1990,7 +1990,7 @@ namespace ANON
 
 			if (!installation)
 			{
-				Throw(0, "%s: no installation. Call SetScriptPath first", __FUNCTION__);
+				Throw(0, "%s: no installation. Call SetScriptPath first", __ROCOCO_FUNCTION__);
 			}
 			
 			WideFilePath wideSysPath;
@@ -2005,7 +2005,7 @@ namespace ANON
 
 			if (!installation)
 			{
-				Throw(0, "%s: no installation. Call SetScriptPath first", __FUNCTION__);
+				Throw(0, "%s: no installation. Call SetScriptPath first", __ROCOCO_FUNCTION__);
 			}
 
 			WideFilePath wideSysPath;
@@ -3132,12 +3132,12 @@ namespace ANON
 		{
 			if (sourceFile == nullptr)
 			{
-				Throw(0, "%s: [sourceFile] nullptr", __FUNCTION__);
+				Throw(0, "%s: [sourceFile] nullptr", __ROCOCO_FUNCTION__);
 			}
 
 			if (localTypeName == nullptr)
 			{
-				Throw(0, "%s: [localTypeName] nullptr", __FUNCTION__);
+				Throw(0, "%s: [localTypeName] nullptr", __ROCOCO_FUNCTION__);
 			}
 
 			auto i = filenameToFile.find(sourceFile);
@@ -3808,7 +3808,7 @@ namespace ANON
 			}
 		}
 
-		bool CanInsertCppRef(cr_sex sCppDeclaration)
+		NOT_INLINE bool CanInsertCppRef(cr_sex sCppDeclaration)
 		{
 			if (sCppDeclaration.NumberOfElements() < 3)
 			{
@@ -3851,10 +3851,19 @@ namespace ANON
 		{
 			cr_sex sRoot = tree.Root();
 
-			cr_sex sLine0 = sRoot[0];
-			cr_sex sDirective0 = sLine0[0];
-
-			bool isDeclarations = Eq(sDirective0.c_str(), "SexyDeclarations");
+			bool isDeclarations = false;
+			if (sRoot.NumberOfElements() > 0)
+			{
+				cr_sex sDirective = sRoot[0];
+				if (sDirective.NumberOfElements() > 0)
+				{
+					cr_sex directiveCommand = sDirective[0];
+					if (IsAtomic(directiveCommand))
+					{
+						isDeclarations = Eq(directiveCommand.c_str(), "SexyDeclarations");
+					}
+				}
+			}
 
 			// First build up a list of objects in the sxy file
 			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
@@ -3901,7 +3910,7 @@ namespace ANON
 						UNUSED(sKeyword);
 						if ((isDeclarations && CanInsertCppRef(s)) || !isDeclarations)
 						{
-							InsertFunction(s, fnName, file);
+ 							InsertFunction(s, fnName, file);
 						}
 					}
 				)) continue;

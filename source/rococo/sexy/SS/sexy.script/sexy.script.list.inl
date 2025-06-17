@@ -893,7 +893,7 @@ namespace Rococo::Script
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
 		}
-		else if (elementType.VarType() == VARTYPE_Derivative)
+		else if (elementType.VarType() == SexyVarType_Derivative)
 		{
 			const IFunction* constructor = elementType.Constructor();
 			if (constructor != NULL)
@@ -913,7 +913,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			if (elementType.VarType() == VARTYPE_Closure)
+			if (elementType.VarType() == SexyVarType_Closure)
 			{
 				if (!TryCompileAssignArchetype(ce, value, elementType, false))
 				{
@@ -929,16 +929,16 @@ namespace Rococo::Script
 
 			switch (elementType.VarType())
 			{
-			case VARTYPE_Bool:
-			case VARTYPE_Int32:
-			case VARTYPE_Float32:
+			case SexyVarType_Bool:
+			case SexyVarType_Int32:
+			case SexyVarType_Float32:
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend32 : callbacks.ListAppend32);
 				break;
-			case VARTYPE_Int64:
-			case VARTYPE_Float64:
+			case SexyVarType_Int64:
+			case SexyVarType_Float64:
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend64 : callbacks.ListAppend64);
 				break;
-			case VARTYPE_Closure:
+			case SexyVarType_Closure:
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend64 : callbacks.ListAppend64);
 				break;
 			default:
@@ -965,7 +965,7 @@ namespace Rococo::Script
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrependInterface : callbacks.NodeAppendInterface);
 		}
-		else if (elementType.VarType() == VARTYPE_Derivative)
+		else if (elementType.VarType() == SexyVarType_Derivative)
 		{
 			const IFunction* constructor = elementType.Constructor();
 			if (constructor != NULL)
@@ -980,7 +980,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			if (elementType.VarType() == VARTYPE_Closure)
+			if (elementType.VarType() == SexyVarType_Closure)
 			{
 				if (!TryCompileAssignArchetype(ce, value, elementType, false))
 				{
@@ -996,16 +996,16 @@ namespace Rococo::Script
 
 			switch (elementType.VarType())
 			{
-			case VARTYPE_Bool:
-			case VARTYPE_Int32:
-			case VARTYPE_Float32:
+			case SexyVarType_Bool:
+			case SexyVarType_Int32:
+			case SexyVarType_Float32:
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrepend32 : callbacks.NodeAppend32);
 				break;
-			case VARTYPE_Int64:
-			case VARTYPE_Float64:
+			case SexyVarType_Int64:
+			case SexyVarType_Float64:
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrepend64 : callbacks.NodeAppend64);
 				break;
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrepend : callbacks.NodeAppend);
 				break;
 			default:

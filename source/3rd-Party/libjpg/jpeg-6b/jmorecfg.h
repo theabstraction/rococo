@@ -155,10 +155,10 @@ typedef unsigned int UINT16;
 typedef short INT16;
 #endif
 
-/* INT32 must hold at least signed 32-bit values. */
+/* JTYPE_INT32 must hold at least signed 32-bit values. */
 
-#ifndef XMD_H			/* X11/xmd.h correctly defines INT32 */
-typedef long INT32;
+#ifndef XMD_H			/* X11/xmd.h correctly defines JTYPE_INT32 */
+typedef long JTYPE_INT32;
 #endif
 
 /* Datatype used for image dimensions.  The JPEG standard only supports
@@ -186,16 +186,8 @@ typedef unsigned int JDIMENSION;
 #define LOCAL(type)		static type
 /* a function referenced thru EXTERNs: */
 
-#ifndef _WIN32
-# define GLOBAL(type) type
-# define EXTERN(type) extern type
-#else
-# ifndef ROCOCO_JPEG_API
-#  define ROCOCO_JPEG_API __declspec(dllimport)
-# endif
-# define GLOBAL(type) ROCOCO_JPEG_API type
-# define EXTERN(type) ROCOCO_JPEG_API type
-#endif
+# define JPEG_GLOBAL_API ROCOCO_JPEG_API
+# define JPEG_EXTERN_API ROCOCO_JPEG_API
 
 /* This macro is used to declare a "method", that is, a function pointer.
  * We want to supply prototype parameters if the compiler can cope.

@@ -32,7 +32,7 @@ namespace
       {
          auto* ext = GetFileExtension(resourceName);
 
-         if (ext == nullptr) Throw(0, "%s failed. [resourceName='%s'] had no extension", __FUNCTION__, resourceName.buffer);
+         if (ext == nullptr) Throw(0, "%s failed. [resourceName='%s'] had no extension", __ROCOCO_FUNCTION__, resourceName.buffer);
 
          if (Eq(ext, ".tif") || Eq(ext, ".tiff") || Eq(ext, ".jpg") || Eq(ext, ".jpeg"))
          {

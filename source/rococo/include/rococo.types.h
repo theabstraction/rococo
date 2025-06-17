@@ -1,10 +1,11 @@
 // For copyright, see copyright.txt in the Rococo root folder. All files in the Rococo repo that include this header are covered by it.
+#pragma once
 
 #ifndef Rococo_TYPES_H
 #define Rococo_TYPES_H
 
-#ifndef ROCOCO_API 
-# define ROCOCO_API __declspec(dllimport)
+#ifndef ROCOCO_API
+# error "define ROCOCO_API"
 #endif
 
 #ifndef ROCOCO_WINDOWS_API 
@@ -65,7 +66,7 @@ struct DEFINED_ID_NAME																							\
 	FORCE_INLINE DEFINED_ID_NAME() : value(INVALID_VALUE) {}												    \
 	FORCE_INLINE explicit DEFINED_ID_NAME(TYPE _value) : value(_value) {}										\
 	TYPE value;																									\
-    FORCE_INLINE [[nodiscard]] static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }			\
+    [[nodiscard]] FORCE_INLINE static DEFINED_ID_NAME Invalid() noexcept { return DEFINED_ID_NAME(); }			\
 	FORCE_INLINE size_t operator() (const DEFINED_ID_NAME& obj) const { return size_t(obj.value); }				\
     FORCE_INLINE operator bool () const noexcept { return value != INVALID_VALUE; }								\
 };																												\
@@ -73,14 +74,17 @@ inline bool operator == (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { r
 inline bool operator != (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return !(a == b); }              \
 inline bool operator <  (const DEFINED_ID_NAME& a, const DEFINED_ID_NAME& b) { return a.value < b.value; }
 
-#define UNUSED(x) (x);
-#define HIDE_COMPILER_WARNINGS(x) (x);
+#define UNUSED(x) (void)(x);
 
 namespace DirectX
 {
 	struct XMFLOAT4;
 	struct XMFLOAT4X4;
 }
+
+#ifndef _ROCOCO_WIDECHAR_
+#error - define _ROCOCO_WIDECHAR_ in the compiler environment
+#endif
 
 namespace Rococo
 {
@@ -109,6 +113,19 @@ namespace Rococo
 	typedef unsigned int uint32;
 	typedef unsigned long long int uint64;
 
+	static_assert(sizeof(int8) == 1);
+	static_assert(sizeof(int16) == 2);
+	static_assert(sizeof(int32) == 4);
+	static_assert(sizeof(int64) == 8);
+#endif
+
+	typedef _ROCOCO_WIDECHAR_ ROCOCO_WIDECHAR;
+	typedef const ROCOCO_WIDECHAR* crwstr;
+
+#ifdef __FUNCTION__
+# define __ROCOCO_FUNCTION__ __FUNCTION__
+#else
+# define __ROCOCO_FUNCTION__ __func__
 #endif
 
 	enum class ErrorCode : int
@@ -143,6 +160,8 @@ namespace Rococo
 	typedef size_t ID_BYTECODE;
 
 	DECLARE_ROCOCO_INTERFACE IExpandingBuffer;
+
+	typedef const char* cstr;
 
 	struct fstring
 	{
@@ -207,7 +226,7 @@ namespace Rococo
 	{
 		namespace VirtualKeys
 		{
-			enum VKCode;
+			enum VKCode : int;
 		}
 	}
 
@@ -233,7 +252,7 @@ namespace Rococo
 	};
 
 	typedef FilePath<char32_t> U32FilePath;
-	typedef FilePath<wchar_t>  WideFilePath;
+	typedef FilePath<ROCOCO_WIDECHAR>  WideFilePath;
 	typedef FilePath<char>	   U8FilePath;
 
 	union WindowHandle
@@ -367,6 +386,12 @@ namespace Rococo
 	namespace Script
 	{
 		DECLARE_ROCOCO_INTERFACE IScriptSystemFactory;
+		ROCOCO_API void ThrowBadNativeArg(int index, cstr source, cstr message);
+	}
+
+	namespace Sex
+	{
+		DECLARE_ROCOCO_INTERFACE ISExpression;
 	}
 
 	namespace Strings
@@ -391,11 +416,19 @@ namespace Rococo
 	};
 
 #ifdef USE_VSTUDIO_SAL
-	[[ noreturn ]]
-	ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ const char* format, ...);
+	[[noreturn]] ROCOCO_API void Throw(int32 errorCode, _Printf_format_string_ const char* format, ...);
+
+	namespace Sex
+	{
+		[[noreturn]] ROCOCO_API void Throw(const Sex::ISExpression& e, _Printf_format_string_ cstr format, ...);
+	}
 #else
-	[[ noreturn ]]
-	ROCOCO_API void Throw(int32 errorCode, const char* format, ...);
+	[[noreturn]] ROCOCO_API void Throw(int32 errorCode, const char* format, ...);
+
+	namespace Sex
+	{
+		[[noreturn]] ROCOCO_API void Throw(const Sex::ISExpression& e, const char* format, ...);
+	}
 #endif
 
 	template<class T> struct IEventCallback
@@ -403,9 +436,9 @@ namespace Rococo
 		virtual void OnEvent(T& arg) = 0;
 	};
 
-	template<> struct IEventCallback<const wchar_t*>
+	template<> struct IEventCallback<crwstr>
 	{
-		virtual void OnEvent(const wchar_t* arg) = 0;
+		virtual void OnEvent(crwstr arg) = 0;
 	};
 
 	template<class T>
@@ -626,8 +659,6 @@ namespace Rococo
 		FORCE_INLINE bool IsNormalized() const { return right > left && bottom > top; }
 	};
 
-	typedef const char* cstr;
-
 	struct Vec2
 	{
 		float x;
@@ -651,7 +682,7 @@ namespace Rococo
 			return Vec3{ pos.x, pos.y, z };
 		}
 
-		FORCE_INLINE [[nodiscard]] const Vec2& Flatten() const
+		[[nodiscard]] FORCE_INLINE const Vec2& Flatten() const
 		{
 			return *reinterpret_cast<const Vec2*>(this);
 		}
@@ -845,4 +876,16 @@ namespace Rococo::Validators
 	struct IValueFormatter;
 }
 
+#endif
+
+#ifndef _WIN32
+int _i64toa_s(int64 value, char* buffer, size_t capacity, int radix);
+int _itoa_s(int value, char* buffer, size_t capacity, int radix);
+int _ui64toa_s(int64 value, char* buffer, size_t capacity, int radix);
+#endif
+
+#ifdef TEXT
+# define _RW_TEXT(x) TEXT(x)
+#else
+# define _RW_TEXT(x) L ## x
 #endif

@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.events.h>
 #include <rococo.hashtable.h>
 #include <vector>
@@ -25,7 +24,7 @@ namespace
 	struct LargestPossibleEvent : EventArgs
 	{
 		enum { LARGEST_POSSIBLE_EVENT_LENGTH = 256 };
-		char data[LARGEST_POSSIBLE_EVENT_LENGTH - sizeof EventArgs];
+		char data[LARGEST_POSSIBLE_EVENT_LENGTH - sizeof(EventArgs)];
 	};
 
 	struct EventBinding
@@ -37,7 +36,7 @@ namespace
 
 		EventBinding& operator = (const EventBinding& src)
 		{
-			static_assert(sizeof LargestPossibleEvent == LargestPossibleEvent::LARGEST_POSSIBLE_EVENT_LENGTH);
+			static_assert(sizeof(LargestPossibleEvent) == LargestPossibleEvent::LARGEST_POSSIBLE_EVENT_LENGTH);
 
 			memcpy(&largestPossibleEvent, &src.largestPossibleEvent, src.largestPossibleEvent.sizeInBytes);
 			isLossy = src.isLossy;
@@ -67,13 +66,23 @@ namespace
 			postedEvents.erase(delPoint, postedEvents.end());
 		}
 
+		void FlushStalePackets(const EventIdRef& ref)
+		{
+			auto delPoint = std::remove_if(postedEvents.begin(), postedEvents.end(), [ref](const EventBinding& b)->bool
+				{
+					return b.ref.hashCode == ref.hashCode && Eq(b.ref.name, ref.name);
+				}
+			);
+			postedEvents.erase(delPoint, postedEvents.end());
+		}
+
 		void RawPost(const EventArgs& ev, const EventIdRef& ref, PostQuality quality, cstr senderSignature) override
 		{
 			static_assert(sizeof(LargestPossibleEvent) == 256);
 
 			if (ref.name == nullptr)
 			{
-				Throw(0, "%s: event name was null", __FUNCTION__);
+				Throw(0, "%s: event name was null", __ROCOCO_FUNCTION__);
 			}
 
 			LazyInit(ref);
@@ -96,6 +105,11 @@ namespace
 				{
 					return;
 				}
+			}
+
+			if (quality == PostQuality::Overwrites)
+			{
+				FlushStalePackets(ref);
 			}
 
 			if (postedEvents.size() >= MAX_Q)
@@ -200,7 +214,7 @@ namespace
 		{
 			if (id.name == nullptr)
 			{
-				Throw(0, "%s: event name was null", __FUNCTION__);
+				Throw(0, "%s: event name was null", __ROCOCO_FUNCTION__);
 			}
 
 			LazyInit(id);
@@ -338,7 +352,7 @@ namespace Rococo::Events
 		if (Strings::Compare(fargs, evArgType.start, len) != 0 || !Eq(fargs + len, " &))"))
 		{
 			char buf[192];
-			evArgType.CopyWithTruncate(buf, sizeof buf);
+			evArgType.CopyWithTruncate(buf, sizeof(buf));
 			Throw(0, "Expected method handler for %s to be of type void (%s& args).\nCaller: %s\nHandler: %s", ev.id.name, buf, ev.callerSignature, functionSignature);
 		}
 	}

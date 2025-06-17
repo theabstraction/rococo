@@ -53,6 +53,10 @@ namespace Rococo::Script
 	struct NativeCallSecurity;
 }
 
+// justification: "No problem with an interface deriving from another and adding methods"
+#pragma warning(disable : 4263)
+#pragma warning(disable : 4264)
+
 namespace Rococo::Compiler
 {
 	struct ICodeBuilder;
@@ -172,7 +176,7 @@ namespace Rococo::Compiler
 		virtual IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const Sex::ISExpression*) = 0;
 		virtual IFunctionBuilder& DeclareClosure(IFunctionBuilder& parent, bool mayUseParentSF, const Sex::ISExpression*) = 0;
 		virtual IFunctionBuilder& DeclareFunction(const FunctionPrototype& prototype, const Sex::ISExpression*, int popBytes = 0) = 0;
-		virtual IStructureBuilder& DeclareStrongType(cstr name, VARTYPE underlyingType) = 0;
+		virtual IStructureBuilder& DeclareStrongType(cstr name, SexyVarType underlyingType) = 0;
 		virtual IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const Sex::ISExpression*) = 0;
 		virtual IFunctionBuilder* FindFunction(cstr name) = 0;
 		virtual IStructureBuilder* FindStructure(cstr name) = 0;
@@ -259,7 +263,7 @@ namespace Rococo::Compiler
 		virtual IModuleBuilder& GetModule(int index) = 0;
 		virtual INamespaceBuilder& GetRootNamespace() = 0;
 		virtual IModuleBuilder& IntrinsicModule() = 0;
-		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) = 0;
+		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) = 0;
 		virtual void ResolveNativeTypes(const void** pSrcErr) = 0;
 		virtual bool ResolveDefinitions(const void** pSrcErr) = 0;
 		virtual cstr RegisterSymbol(cstr text) = 0;
@@ -318,7 +322,7 @@ namespace Rococo::Compiler
 	struct GlobalValue
 	{
 		size_t offset;
-		VARTYPE type;
+		SexyVarType type;
 		VariantValue initialValue;
 	};
 
@@ -378,10 +382,10 @@ namespace Rococo::Compiler
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) = 0;
-		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) = 0;
-		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) = 0;
-		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) = 0;
-		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) = 0;
+		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
+		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
+		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
+		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
 		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection) = 0;
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection) = 0;
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition) = 0;
@@ -401,7 +405,7 @@ namespace Rococo::Compiler
 
 		virtual void EnableClosures(cstr targetVariable) = 0;
 
-		virtual VARTYPE GetVarType(cstr name) const = 0;
+		virtual SexyVarType GetVarType(cstr name) const = 0;
 		virtual bool TryGetVariableByName(OUT MemberDef& def, cstr name) const = 0;
 		virtual const IStructure* GetVarStructure(cstr varName) const = 0;
 		virtual int GetVariableCount() const = 0;
@@ -456,6 +460,9 @@ namespace Rococo::Compiler
 	SEXYUTIL_API IStructureBuilder* MatchStructure(ILog& logger, cstr type, IModuleBuilder& module);
 	SEXYUTIL_API INamespaceBuilder* MatchNamespace(IModuleBuilder& module, cstr name);
 } // Rococo::Compiler
+
+#pragma warning(default : 4263)
+#pragma warning(default : 4264)
 
 #ifdef _WIN32
 #  pragma pack(pop)

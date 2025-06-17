@@ -2,6 +2,8 @@
 #include <rococo.audio.h>
 #include "mplat.landscapes.h"
 #include <sexy.script.h>
+#include <sexy.util.exports.h>
+#include <sexy.script.exports.h>
 #include <sexy.vm.cpu.h>
 #include <rococo.sexy.api.h>
 #include <rococo.io.h>
@@ -373,7 +375,7 @@ namespace Rococo
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIShaderOptionsConfig(args.ss, &platform.graphics.shaderConfig);
 
 						const INamespace& ns = args.ss.AddNativeNamespace("MPlat.OS");
-						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __FUNCTION__, __LINE__);
+						args.ss.AddNativeCall(ns, NativeEnumerateFiles, &platform, "EnumerateFiles (Sys.Type.IString filter)(MPlat.OnFileName callback)->", __ROCOCO_FUNCTION__, __LINE__);
 					}
 				}
 

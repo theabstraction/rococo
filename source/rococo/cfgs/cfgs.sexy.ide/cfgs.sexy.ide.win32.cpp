@@ -154,7 +154,7 @@ namespace ANON
 				auto& type = ns.GetType(i);
 
 				char fullName[256];
-				StackStringBuilder sb(fullName, sizeof fullName);
+				StackStringBuilder sb(fullName, sizeof(fullName));
 				ns.AppendFullNameToStringBuilder(sb);
 				sb << ".";
 				sb << type.PublicName();
@@ -190,7 +190,7 @@ namespace ANON
 
 			AutoFree<IVariableEditor> typeBox = CreateVariableEditor(span, labelWidth, caption, &evHandler);
 
-			SafeFormat(resultBuffer, sizeof resultBuffer, "%s", defaultType);
+			SafeFormat(resultBuffer, sizeof(resultBuffer), "%s", defaultType);
 
 			struct : ISelection
 			{
@@ -260,13 +260,13 @@ namespace ANON
 			HMODULE hSexyStudio = LoadLibraryA("sexystudio.dll");
 			if (!hSexyStudio)
 			{
-				Throw(GetLastError(), "%s: failed to load sexystudio.dll", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to load sexystudio.dll", __ROCOCO_FUNCTION__);
 			}
 
 			auto CreateSexyStudioFactory = (FN_CreateSexyStudioFactory) GetProcAddress(hSexyStudio, "CreateSexyStudioFactory");
 			if (!CreateSexyStudioFactory)
 			{	
-				Throw(GetLastError(), "%s: failed to find proc CreateSexyStudioFactory in sexystudio.dll", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to find proc CreateSexyStudioFactory in sexystudio.dll", __ROCOCO_FUNCTION__);
 			}
 
 			cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";

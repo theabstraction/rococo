@@ -119,6 +119,29 @@ namespace GRANON
 			return (int) (buttonHeight * options.size());
 		}
 
+		IGRWidgetButton* GetButtonUnderPoint(Vec2i position) override
+		{
+			if (panel.IsCollapsed())
+			{
+				return nullptr;
+			}
+
+			if (!IsPointInRect(position, panel.AbsRect()))
+			{
+				return nullptr;
+			}
+
+			for (auto& opt : options)
+			{
+				if (IsPointInRect(position, opt.button->Panel().AbsRect()))
+				{
+					return opt.button;
+				}
+			}
+
+			return nullptr;
+		}
+
 		GRFontId buttonFontId = GRFontId::NONE;
 
 		Vec2i LastComputedButtonSpan() const override
@@ -284,7 +307,7 @@ namespace GRANON
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_TAB:
 			case IO::VirtualKeys::VKCode_DOWN:
-				RotateFocusToNextSibling(button, !GetCustodian(panel).Keys().IsKeyPressed(IO::VirtualKeys::VKCode_CTRL));
+				RotateFocusToNextSibling(button, !ke.context.isCtrlHeld);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_PGUP:
 				OnFocusPageChange(-1);

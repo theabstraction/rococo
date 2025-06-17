@@ -12,19 +12,19 @@ namespace Rococo::Reflection
 	ROCOCO_INTERFACE IPropertyEditor
 	{
 		// The unique identifier URL for the property
-		virtual [[nodiscard]] cstr Id() const = 0;
+		[[nodiscard]] virtual cstr Id() const = 0;
 
 		// Test that the widget system id for the property editor matches the internally assigned id
-		virtual [[nodiscard]] bool IsForControl(UI::SysWidgetId id) const = 0;
+		[[nodiscard]] virtual bool IsForControl(UI::SysWidgetId id) const = 0;
 
 		// The widget system id for the control/editor associated with the property
-		virtual [[nodiscard]] UI::SysWidgetId ControlId() const = 0;
+		[[nodiscard]] virtual UI::SysWidgetId ControlId() const = 0;
 
 		// Attempts to get the editor string for the live editor associated with the property
-		virtual [[nodiscard]] bool TryGetEditorString(REF Rococo::Strings::HString& value) = 0;
+		[[nodiscard]] virtual bool TryGetEditorString(REF Rococo::Strings::HString& value) = 0;
 
 		// Indicates that the property has potentially been changed in the editor since the last commit
-		virtual [[nodiscard]] bool IsDirty() const = 0;
+		[[nodiscard]] virtual bool IsDirty() const = 0;
 
 		// Refresh the live editor associated with the property data
 		virtual void UpdateWidget(const void* data, size_t sizeOfData) = 0;

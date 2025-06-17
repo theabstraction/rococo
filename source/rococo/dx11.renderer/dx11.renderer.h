@@ -189,12 +189,12 @@ namespace Rococo::DX11
 		virtual ID3D11ShaderResourceView* GetShaderView(ID_CUBE_TEXTURE id) = 0;
 
 		// Returns the texture bound to the given id. If out of bounds, throws an exception
-		virtual [[nodiscard]] TextureBind& GetTexture(ID_TEXTURE id) = 0;
+		[[nodiscard]] virtual TextureBind& GetTexture(ID_TEXTURE id) = 0;
 
-		virtual [[nodiscard]] IDX11TextureLoader& Loader() = 0;
-		virtual [[nodiscard]] IDX11Materials& Materials() = 0;
-		virtual [[nodiscard]] IDX11CubeTextures& DX11CubeTextures() = 0;
-		virtual [[nodiscard]] ID3D11Texture2D* GetVolatileBitmap(ID_VOLATILE_BITMAP id) = 0;
+		[[nodiscard]] virtual IDX11TextureLoader& Loader() = 0;
+		[[nodiscard]] virtual IDX11Materials& Materials() = 0;
+		[[nodiscard]] virtual IDX11CubeTextures& DX11CubeTextures() = 0;
+		[[nodiscard]] virtual ID3D11Texture2D* GetVolatileBitmap(ID_VOLATILE_BITMAP id) = 0;
 	};
 
 	IDX11TextureManager* CreateTextureManager(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc, IDX11SpecialResources& specialResources);

@@ -83,7 +83,7 @@ namespace Rococo::Script
 
 	size_t GetKeySize(MapImage* m)
 	{
-		if (m->KeyType->VarType() == VARTYPE_Derivative)
+		if (m->KeyType->VarType() == SexyVarType_Derivative)
 		{
 			return sizeof(size_t);
 		}
@@ -524,12 +524,12 @@ namespace Rococo::Script
 				pValue = mtype.GetInterface(0).UniversalNullInstance();
 				offset += sizeof(size_t);
 			}
-			else if (mtype.VarType() == VARTYPE_Derivative)
+			else if (mtype.VarType() == SexyVarType_Derivative)
 			{
 				InitializeMembersToNullObjectAtLocation(pValue, mtype, offset);
 				offset += mtype.SizeOfStruct();
 			}			
-			else if (mtype.VarType() == VARTYPE_Array || mtype.VarType() == VARTYPE_List || mtype.VarType() == VARTYPE_Map)
+			else if (mtype.VarType() == SexyVarType_Array || mtype.VarType() == SexyVarType_List || mtype.VarType() == SexyVarType_Map)
 			{
 				memset(((uint8*)pValue) + offset, 0, sizeof(void*));
 				offset += sizeof(void*);
@@ -544,7 +544,7 @@ namespace Rococo::Script
 #ifdef _DEBUG
 		if (offset > type.SizeOfStruct())
 		{
-			Throw(0, "%s. Incorrect size estimation for %s. Offset was %llu. Size was %d", __FUNCTION__, GetFriendlyName(type), offset, type.SizeOfStruct());
+			Throw(0, "%s. Incorrect size estimation for %s. Offset was %llu. Size was %d", __ROCOCO_FUNCTION__, GetFriendlyName(type), offset, type.SizeOfStruct());
 		}
 #endif
 	}
@@ -557,7 +557,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			if (type.VarType() == VARTYPE_Derivative)
+			if (type.VarType() == SexyVarType_Derivative)
 			{
 				InitializeMembersToNullObjectAtLocation(pValue, type, 0);
 			}
@@ -944,7 +944,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			VARTYPE keyVarType = mapDef.KeyType.VarType();
+			SexyVarType keyVarType = mapDef.KeyType.VarType();
 			if (IsPrimitiveType(keyVarType))
 			{
 				if (IsAtomic(keyExpr))
@@ -977,7 +977,7 @@ namespace Rococo::Script
 
 		const IFunction& constructor = *type.Constructor();
 
-		if (type.VarType() == VARTYPE_Derivative && type.MemberCount() > 0)
+		if (type.VarType() == SexyVarType_Derivative && type.MemberCount() > 0)
 		{
 			ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D4 + tempDepth, VM::REGISTER_SF);
 			InitSubmembers(ce, type, 0);
@@ -1029,7 +1029,7 @@ namespace Rococo::Script
 		// (a.Insert <key> <value> )
 
 		auto def = GetMapDef(ce, s, mapName);
-		if (def.ValueType.VarType() == VARTYPE_Derivative)
+		if (def.ValueType.VarType() == SexyVarType_Derivative)
 		{
 			if (s.NumberOfElements() != 3 && s.NumberOfElements() != 4)
 				Throw(s,
@@ -1053,7 +1053,7 @@ namespace Rococo::Script
 			ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
 			AppendInvoke(ce, GetMemberSize(def.ValueType) == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
 		}
-		else if (def.ValueType.VarType() == VARTYPE_Closure)
+		else if (def.ValueType.VarType() == SexyVarType_Closure)
 		{
 			if (!TryCompileAssignArchetype(ce, s[2], def.ValueType, false))
 			{
@@ -1062,7 +1062,7 @@ namespace Rococo::Script
 			ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
 			AppendInvoke(ce, GetMapCallbacks(ce).MapInsert64, s);
 		}
-		else if (def.ValueType.VarType() == VARTYPE_Derivative)
+		else if (def.ValueType.VarType() == SexyVarType_Derivative)
 		{
 			if (s.NumberOfElements() == 3)
 			{
@@ -1135,7 +1135,7 @@ namespace Rococo::Script
 		}
 	}
 
-	void CompileGetMapElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE varType, const IStructure* structType)
+	void CompileGetMapElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, SexyVarType varType, const IStructure* structType)
 	{
 	}
 
@@ -1229,7 +1229,7 @@ namespace Rococo::Script
 		}
 	}
 
-	bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, VARTYPE returnType, const IStructure& instanceStruct, VARTYPE& outputType)
+	bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const IStructure& instanceStruct, SexyVarType& outputType)
 	{
 		if (instanceStruct == ce.StructMap())
 		{
@@ -1259,24 +1259,24 @@ namespace Rococo::Script
 			if (AreEqual("Exists", methodName))
 			{
 				StringPrint(field, "%s._exists", instance);
-				ValidateReturnType(s, returnType, VARTYPE_Bool);
+				ValidateReturnType(s, returnType, SexyVarType_Bool);
 				ce.Builder.AddSymbol(field);
 				ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
-				outputType = VARTYPE_Bool;
+				outputType = SexyVarType_Bool;
 				return true;
 			}
 			if (AreEqual("Key", methodName))
 			{
 				ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
 
-				VARTYPE valType = mnd.mapdef.KeyType.VarType();
+				SexyVarType valType = mnd.mapdef.KeyType.VarType();
 
-				if (returnType != VARTYPE_AnyNumeric && valType != returnType)
+				if (returnType != SexyVarType_AnyNumeric && valType != returnType)
 				{
 					Throw(s, "The node is for a map with key type %s but the context requires a type ", GetFriendlyName(mnd.mapdef.KeyType), GetTypeName(returnType));
 				}
 
-				if (returnType == VARTYPE_AnyNumeric)
+				if (returnType == SexyVarType_AnyNumeric)
 				{
 					returnType = valType;
 				}
@@ -1285,20 +1285,20 @@ namespace Rococo::Script
 
 				switch (returnType)
 				{
-				case VARTYPE_Bool:
-				case VARTYPE_Int32:
-				case VARTYPE_Float32:
+				case SexyVarType_Bool:
+				case SexyVarType_Int32:
+				case SexyVarType_Float32:
 					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetKey32, s);
 					break;
-				case VARTYPE_Int64:
-				case VARTYPE_Float64:
-				case VARTYPE_Closure:
+				case SexyVarType_Int64:
+				case SexyVarType_Float64:
+				case SexyVarType_Closure:
 					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGetKey64, s);
 					break;
-				case VARTYPE_Pointer:
+				case SexyVarType_Pointer:
 					AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGetKey32 : GetMapCallbacks(ce).MapNodeGetKey64, s);
 					break;
-				case VARTYPE_Derivative:
+				case SexyVarType_Derivative:
 					{
 						auto& keyType = mnd.mapdef.KeyType;
 						if (keyType != ce.Object.Common().SysTypeIString().NullObjectType())
@@ -1321,9 +1321,9 @@ namespace Rococo::Script
 				ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
 
 				auto& valueType = mnd.mapdef.ValueType;
-				VARTYPE valType = valueType.VarType();
+				SexyVarType valType = valueType.VarType();
 
-				if (valType == VARTYPE_Derivative)
+				if (valType == SexyVarType_Derivative)
 				{
 					if (IsNullType(valueType))
 					{
@@ -1335,12 +1335,12 @@ namespace Rococo::Script
 					Throw(s, "%s. Value not supported for derivative value types. Use this syntax to access values: (%s value = & %s)", instance, GetFriendlyName(mnd.mapdef.ValueType), instance);
 				}
 
-				if (returnType != VARTYPE_AnyNumeric && valType != returnType)
+				if (returnType != SexyVarType_AnyNumeric && valType != returnType)
 				{
 					Throw(s, "The node is for a map with value type %s but the context requires a type %s", GetFriendlyName(mnd.mapdef.ValueType), GetTypeName(returnType));
 				}
 
-				if (returnType == VARTYPE_AnyNumeric)
+				if (returnType == SexyVarType_AnyNumeric)
 				{
 					returnType = valType;
 				}
@@ -1349,17 +1349,17 @@ namespace Rococo::Script
 
 				switch (returnType)
 				{
-				case VARTYPE_Bool:
-				case VARTYPE_Int32:
-				case VARTYPE_Float32:
+				case SexyVarType_Bool:
+				case SexyVarType_Int32:
+				case SexyVarType_Float32:
 					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet32, s);
 					break;
-				case VARTYPE_Int64:
-				case VARTYPE_Float64:
-				case VARTYPE_Closure:
+				case SexyVarType_Int64:
+				case SexyVarType_Float64:
+				case SexyVarType_Closure:
 					AppendInvoke(ce, GetMapCallbacks(ce).MapNodeGet64, s);
 					break;
-				case VARTYPE_Pointer:
+				case SexyVarType_Pointer:
 					AppendInvoke(ce, ((int)BITCOUNT_POINTER == 32) ? GetMapCallbacks(ce).MapNodeGet32 : GetMapCallbacks(ce).MapNodeGet64, s);
 					break;
 				default:

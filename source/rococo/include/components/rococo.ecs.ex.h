@@ -95,7 +95,7 @@ namespace Rococo::Components
 
         size_t SizeOfConstructedObject() const override
         {
-            return sizeof CLASSNAME;
+            return sizeof(CLASSNAME);
         }
 
         void Free() override
@@ -124,7 +124,7 @@ namespace Rococo::Components
 
         size_t SizeOfConstructedObject() const override
         {
-            return sizeof CLASSNAME;
+            return sizeof(CLASSNAME);
         }
 
         void Free() override

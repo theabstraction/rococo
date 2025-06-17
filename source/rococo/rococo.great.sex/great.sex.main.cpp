@@ -7,6 +7,7 @@
 #include <rococo.functional.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
+#include <vector>
 
 #define MATCH(text, value, numericEquivalent) if (Strings::EqI(text,value)) return numericEquivalent;
 
@@ -57,7 +58,9 @@ namespace Rococo::GreatSex
 
 		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder, ISEXMLInserter, ISEXMLGameOptionsList
 		{
-			// Widget Handlers, defined first
+			IAllocator& sexmlAllocator;
+			IGreatSexResourceLoader& loader;
+
 			DivisionFactory onDivision;
 			AutoFree<ISEXMLWidgetFactorySupervisor> onScheme;
 			AutoFree<ISEXMLWidgetFactorySupervisor> onColour;
@@ -86,8 +89,6 @@ namespace Rococo::GreatSex
 
 			Auto<ISParser> insertParser;
 
-			IAllocator& sexmlAllocator;
-			
 			stringmap<ISEXMLWidgetFactory*> widgetHandlers;
 
 			typedef void(GreatSexGenerator::* MethodForAttribute)(IGRPanel& panel, const ISEXMLAttributeValue& value);
@@ -98,14 +99,12 @@ namespace Rococo::GreatSex
 
 			stringmap<EGRSchemeColourSurface> nameToColourSurface;
 
-			IGreatSexResourceLoader& loader;
-
 			GreatSexGenerator(IAllocator& _sexmlAllocator, IGreatSexResourceLoader& _loader) :
+				sexmlAllocator(_sexmlAllocator),
+				loader(_loader),
 				onScheme(CreateSchemeHandler()),
 				onColour(CreateColourHandler(*this)),
-				sexmlAllocator(_sexmlAllocator),
 				onInsert(*this),
-				loader(_loader),
 				onGameOptions(*this)
 			{
 				insertParser = CreateSexParser_2_0(sexmlAllocator);
@@ -258,7 +257,7 @@ namespace Rococo::GreatSex
 				auto i = mapNameToOptions.insert(key, &options);
 				if (!i.second)
 				{
-					Throw(0, "Duplicate key '%s': %s", key, __FUNCTION__);
+					Throw(0, "Duplicate key '%s': %s", key, __ROCOCO_FUNCTION__);
 				}
 			}
 
@@ -307,7 +306,7 @@ namespace Rococo::GreatSex
 				if (i == fonts.end())
 				{
 					char err[4096];
-					StackStringBuilder sb(err, sizeof err);
+					StackStringBuilder sb(err, sizeof(err));
 					sb << "Unknown Font " << id << ". Known fonts :";
 
 					int count = 0;
@@ -339,7 +338,7 @@ namespace Rococo::GreatSex
 				auto i = widgetHandlers.find(fqName);
 				if (i != widgetHandlers.end())
 				{
-					Throw(0, "%s: Duplicate fqName: %s", __FUNCTION__, fqName);
+					Throw(0, "%s: Duplicate fqName: %s", __ROCOCO_FUNCTION__, fqName);
 				}
 
 				widgetHandlers.insert(fqName, &f);
@@ -778,7 +777,7 @@ namespace Rococo::GreatSex
 					else
 					{
 						char err[4096];
-						StackStringBuilder sb(err, sizeof err);
+						StackStringBuilder sb(err, sizeof(err));
 						sb << "Unknown Panel attribute " << name << ". Known attributes: ";
 
 						int count = 0;
@@ -813,7 +812,7 @@ namespace Rococo::GreatSex
 
 	ROCOCO_GREAT_SEX_API IGreatSexGeneratorSupervisor* CreateGreatSexGenerator(IAllocator& sexmlAllocator, IGreatSexResourceLoader& loader)
 	{
-		void* pData = sexmlAllocator.Allocate(sizeof Implementation::GreatSexGenerator);
+		void* pData = sexmlAllocator.Allocate(sizeof(Implementation::GreatSexGenerator));
 		return new (pData) Implementation::GreatSexGenerator(sexmlAllocator, loader);
 	}
 

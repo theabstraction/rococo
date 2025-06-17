@@ -24,7 +24,7 @@ using namespace Rococo::Strings;
 #define VALIDATE(x)\
 { \
 	if FAILED(x) \
-		Throw(hr, "%s: %s", __FUNCTION__, #x); \
+		Throw(hr, "%s: %s", __ROCOCO_FUNCTION__, #x); \
 }
 
 namespace AudioAnon
@@ -36,7 +36,7 @@ namespace AudioAnon
 
 	void CopyData(StereoSample_INT16* __restrict output, const LPBYTE __restrict input, uint32 nSamples)
 	{
-		memcpy(output, input, nSamples * sizeof StereoSample_INT16);
+		memcpy(output, input, nSamples * sizeof(StereoSample_INT16));
 	}
 
 	// https://docs.microsoft.com/en-us/windows/win32/medfound/uncompressed-audio-media-types
@@ -61,49 +61,49 @@ namespace AudioAnon
 		hr = pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio)", __FUNCTION__);
+			Throw(hr, "%s: SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM)", __FUNCTION__);
+			Throw(hr, "%s: SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, cChannels);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, cChannels)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, cChannels)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, blockAlign);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, blockAlign)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, blockAlign)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE)", __ROCOCO_FUNCTION__);
 		}
 
 		// Return the type to the caller.
@@ -124,57 +124,57 @@ namespace AudioAnon
 		hr = MFCreateMediaType(&pType);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: MFCreateMediaType", __FUNCTION__);
+			Throw(hr, "%s: MFCreateMediaType", __ROCOCO_FUNCTION__);
 		}
 
 		// Set attributes on the type.
 		hr = pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio)", __FUNCTION__);
+			Throw(hr, "%s: SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_MP3);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetGUID(MF_MT_SUBTYPE, MFAudioFormat_MP3)", __FUNCTION__);
+			Throw(hr, "%s: SetGUID(MF_MT_SUBTYPE, MFAudioFormat_MP3)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, cChannels);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, cChannels)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, cChannels)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate)", __ROCOCO_FUNCTION__);
 		}
 
 		/*
 		hr = pType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, blockAlign);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, blockAlign)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, blockAlign)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample)", __ROCOCO_FUNCTION__);
 		}
 
 		hr = pType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE)", __FUNCTION__);
+			Throw(hr, "%s: SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE)", __ROCOCO_FUNCTION__);
 		}
 
 		*/
@@ -246,7 +246,7 @@ namespace AudioAnon
 		HRESULT hr = type.GetGUID(MF_MT_MAJOR_TYPE, &majorType);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: GetGUID(MF_MT_MAJOR_TYPE)", __FUNCTION__);
+			Throw(hr, "%s: GetGUID(MF_MT_MAJOR_TYPE)", __ROCOCO_FUNCTION__);
 		}
 
 		if (MFMediaType_Audio != majorType)
@@ -258,7 +258,7 @@ namespace AudioAnon
 		hr = type.GetGUID(MF_MT_SUBTYPE, &subType);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: GetGUID(MF_MT_SUBTYPE)", __FUNCTION__);
+			Throw(hr, "%s: GetGUID(MF_MT_SUBTYPE)", __ROCOCO_FUNCTION__);
 		}
 
 		if (MFAudioFormat_PCM != subType)
@@ -270,7 +270,7 @@ namespace AudioAnon
 		hr = type.GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &nChannels);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: type.GetUINT32(MF_MT_AUDIO_NUM_CHANNELS)", __FUNCTION__);
+			Throw(hr, "%s: type.GetUINT32(MF_MT_AUDIO_NUM_CHANNELS)", __ROCOCO_FUNCTION__);
 		}
 
 		if (nChannels != (UINT32) channelCount)
@@ -282,7 +282,7 @@ namespace AudioAnon
 		hr = type.GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitsPerSample);
 		if (FAILED(hr))
 		{
-			Throw(hr, "%s: GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample)", __FUNCTION__);
+			Throw(hr, "%s: GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample)", __ROCOCO_FUNCTION__);
 		}
 
 		if (bitsPerSample != 16)
@@ -298,7 +298,7 @@ namespace AudioAnon
 		}
 		else if (FAILED(hr))
 		{
-			Throw(hr, "%s: type.GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &sampleRate)", __FUNCTION__);
+			Throw(hr, "%s: type.GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &sampleRate)", __ROCOCO_FUNCTION__);
 		}
 
 		if (sampleRate != 0 && sampleRate != matchSampleRate)
@@ -329,7 +329,7 @@ namespace AudioAnon
 		if (inputStreamCount != 1 || outputStreamCount != 1)
 		{
 			transform->Release();
-			Throw(hr, "%s: IMFTransform->GetStreamCount() expected {1,1} result ", __FUNCTION__);
+			Throw(hr, "%s: IMFTransform->GetStreamCount() expected {1,1} result ", __ROCOCO_FUNCTION__);
 		}
 
 		return transform;
@@ -375,7 +375,7 @@ namespace AudioAnon
 			}
 			else if FAILED(hr)
 			{
-				Throw(hr, "%s: transform->GetStreamIDs(1, &inputId, 1, &outputId);", __FUNCTION__);
+				Throw(hr, "%s: transform->GetStreamIDs(1, &inputId, 1, &outputId);", __ROCOCO_FUNCTION__);
 			}
 
 			VALIDATE(hr = MFCreateMemoryBuffer(MAX_MP3_SIZE, &mp3Buffer));
@@ -399,7 +399,7 @@ namespace AudioAnon
 				hr = transform->GetOutputAvailableType(outputId, typeIndex, &optType);
 				if FAILED(hr)
 				{
-					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __FUNCTION__);
+					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __ROCOCO_FUNCTION__);
 				}
 
 				if (IsPCMWithSpecifiedChannelCount(*optType, 44100, 2))
@@ -407,7 +407,7 @@ namespace AudioAnon
 					hr = transform->SetOutputType(outputId, optType, 0);
 					if FAILED(hr)
 					{
-						Throw(hr, "%s: (MP3 to PCM) transform->SetOutputType(0, outputType, 0)", __FUNCTION__);
+						Throw(hr, "%s: (MP3 to PCM) transform->SetOutputType(0, outputType, 0)", __ROCOCO_FUNCTION__);
 					}
 
 					break;
@@ -468,7 +468,7 @@ namespace AudioAnon
 				if (ex.StackFrames())
 				{
 					// Assume we were given an exception with detailed stack info because a serious problem occured, in which case it may be deep API and missing the resource name
-					Throw(ex.ErrorCode(), "%s:\n%s: %s", __FUNCTION__, utf8Path, ex.Message());
+					Throw(ex.ErrorCode(), "%s:\n%s: %s", __ROCOCO_FUNCTION__, utf8Path, ex.Message());
 				}
 				else
 				{
@@ -658,7 +658,7 @@ namespace AudioAnon
 			}
 			else if FAILED(hr)
 			{
-				Throw(hr, "%s: transform->GetStreamIDs(1, &inputId, 1, &outputId);", __FUNCTION__);
+				Throw(hr, "%s: transform->GetStreamIDs(1, &inputId, 1, &outputId);", __ROCOCO_FUNCTION__);
 			}
 
 			VALIDATE(hr = MFCreateSample(&mp3Sample));
@@ -678,7 +678,7 @@ namespace AudioAnon
 				hr = transformer->GetOutputAvailableType(outputId, typeIndex, &optType);
 				if FAILED(hr)
 				{
-					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __FUNCTION__);
+					Throw(hr, "%s: (MP3 to PCM) transform->GetOutputAvailableType(outputId, typeIndex, optType) failed", __ROCOCO_FUNCTION__);
 				}
 
 				if (IsPCMWithSpecifiedChannelCount(*optType, 44100, nChannels))
@@ -686,7 +686,7 @@ namespace AudioAnon
 					hr = transformer->SetOutputType(outputId, optType, 0);
 					if FAILED(hr)
 					{
-						Throw(hr, "%s: (MP3 to PCM) transform->SetOutputType(0, outputType, 0)", __FUNCTION__);
+						Throw(hr, "%s: (MP3 to PCM) transform->SetOutputType(0, outputType, 0)", __ROCOCO_FUNCTION__);
 					}
 
 					break;
@@ -717,7 +717,7 @@ namespace AudioAnon
 			}
 			catch (IException& ex)
 			{
-				Throw(ex.ErrorCode(), "%s:\n%s: %s", __FUNCTION__, utf8Path, ex.Message());
+				Throw(ex.ErrorCode(), "%s:\n%s: %s", __ROCOCO_FUNCTION__, utf8Path, ex.Message());
 			}
 
 			DWORD length = 0;

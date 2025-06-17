@@ -37,7 +37,7 @@ namespace Anon
 	using namespace Rococo::Sex;
 	using namespace Rococo::Memory;
 
-	class CSourceCodeCopy final : public ISourceCode
+	class CSourceCodeCopy : public ISourceCode
 	{
 	private:
 		refcount_t refcount;
@@ -85,7 +85,7 @@ namespace Anon
 		}
 	};
 
-	class CSourceCodeProxy final : public ISourceCode
+	class CSourceCodeProxy : public ISourceCode
 	{
 	private:
 		refcount_t refcount;

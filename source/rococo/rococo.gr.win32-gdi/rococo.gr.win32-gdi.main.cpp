@@ -23,6 +23,8 @@
 #include <Sexy.S-Parser.h>
 #include <rococo.vkeys.h>
 
+#include <../rococo.gui.retained/rococo.gr.image-loading.inl>
+
 #pragma comment(lib, "Msimg32.lib")
 
 #include <gdiplus.h>
@@ -272,17 +274,8 @@ namespace GRANON
 
 		GDIImage(cstr _hint, cstr imagePath, IO::IInstallation& installation): hint(_hint)
 		{
-			struct ImageParser : Imaging::IImageLoadEvents
-			{
-				HBITMAP hBitmap = 0;
-				Vec2i span{ 0,0 };
-
-				void OnError(const char* message) override
-				{
-					err = message;
-				}
-
-				void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+			Rococo::Gui::Implementation::Load32bitRGBAbImage(imagePath, installation,
+				[this](Vec2i span, const RGBAb* imageBuffer)
 				{
 					HDC screenDC = GetDC(NULL);
 					HDC bitmapDC = CreateCompatibleDC(screenDC);
@@ -294,19 +287,19 @@ namespace GRANON
 
 					SetMapMode(bitmapDC, MM_TEXT);
 
-					hBitmap = CreateCompatibleBitmap(screenDC, span.x, span.y);
+					HBITMAP hBitmap = CreateCompatibleBitmap(screenDC, span.x, span.y);
 					if (hBitmap == nullptr)
 					{
 						DeleteDC(bitmapDC);
-						Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __FUNCTION__);
+						Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __ROCOCO_FUNCTION__);
 					}
 
 					// We have the const buffer, we don't change its size, only its content.
 					// This allows us to avoid duplicating the buffer to convert to BGRA format
 
-					auto* pMutableData = const_cast<RGBAb*>(data);
+					auto* pMutableData = const_cast<RGBAb*>(imageBuffer);
 					size_t nElements = span.x * span.y;
-					
+
 					for (size_t i = 0; i < nElements; i++)
 					{
 						RGBAb& col = pMutableData[i];
@@ -314,7 +307,7 @@ namespace GRANON
 						// This swizzles us into BGRA format, which is what Windows wants
 						// Consider replacing with PSHUFB
 					}
-					
+
 					BITMAPINFO info = { 0 };
 					info.bmiHeader.biSize = sizeof(info);
 					info.bmiHeader.biWidth = span.x;
@@ -322,46 +315,13 @@ namespace GRANON
 					info.bmiHeader.biPlanes = 1;
 					info.bmiHeader.biBitCount = 32;
 					info.bmiHeader.biCompression = BI_RGB;
-					SetDIBits(bitmapDC, hBitmap, 0, span.y, data, &info, DIB_RGB_COLORS);
+					SetDIBits(bitmapDC, hBitmap, 0, span.y, imageBuffer, &info, DIB_RGB_COLORS);
 					DeleteDC(bitmapDC);
 
+					this->hImage = hBitmap;
 					this->span = span;
 				}
-
-				void OnAlphaImage(const Vec2i& span, const uint8* data) override
-				{
-					UNUSED(span);
-					UNUSED(data);
-					err = "8bpp images not supported";
-				}
-
-				Strings::HString err;
-			} parser;
-
-			if (Strings::EndsWithI(imagePath, ".tiff") || (Strings::EndsWithI(imagePath, ".tif")))
-			{
-				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
-				installation.LoadResource(imagePath, *buffer, 32_megabytes);
-				Rococo::Imaging::DecompressTiff(parser, buffer->GetData(), buffer->Length());
-			}
-			else if (Strings::EndsWithI(imagePath, ".jpeg") || (Strings::EndsWithI(imagePath, ".jpg")))
-			{
-				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(64_kilobytes);
-				installation.LoadResource(imagePath, *buffer, 32_megabytes);
-				Rococo::Imaging::DecompressJPeg(parser, buffer->GetData(), buffer->Length());
-			}
-			else
-			{
-				Throw(0, "Could not load image: %s. Only jpg and tiff files are recognized", imagePath);
-			}
-
-			if (parser.err.length() > 0)
-			{
-				Throw(0, "Could not parse image data for %s. Error: %s", imagePath, parser.err.c_str());
-			}
-
-			hImage = parser.hBitmap;
-			span = parser.span;
+			);
 		}
 
 		virtual ~GDIImage()
@@ -1538,7 +1498,7 @@ namespace GRANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)", "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
+	struct GDICustodian : IWin32GDICustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, Windows::IWindow
 	{
 		// Debugging materials:
 		std::vector<IGRWidget*> history;
@@ -1552,7 +1512,9 @@ namespace GRANON
 
 		stringmap<GDIImage*> images;
 
-		GDICustodian()
+		HWND hOwnerWindow;
+
+		GDICustodian(HWND _hOwnerWindow): hOwnerWindow(_hOwnerWindow)
 		{
 			os = IO::GetIOS();
 			installation = IO::CreateInstallation(L"content.indicator.txt", *os);
@@ -1560,6 +1522,16 @@ namespace GRANON
 			defaultSpec.FontName = "Tahoma";
 			BindFontId(defaultSpec);
 			defaultFont = knownFonts[0].handle;
+		}
+
+		operator HWND() const override
+		{
+			return hOwnerWindow;
+		}
+
+		Windows::IWindow& Owner() override
+		{
+			return *this;
 		}
 
 		float zoomLevel = 1.0f;
@@ -1601,19 +1573,9 @@ namespace GRANON
 			this->lastKnownControlType = lastKnownControlType;
 		}
 
-		IGRKeyState& Keys() override
-		{
-			return *this;
-		}
-
 		void AlertNoActionForKey() override
 		{
 			MessageBeep(0xFFFFFFFF);
-		}
-
-		bool IsKeyPressed(IO::VirtualKeys::VKCode vkCode) const override
-		{
-			return GetAsyncKeyState(static_cast<int>(vkCode)) != 0;
 		}
 
 		struct KnownFont
@@ -1707,7 +1669,7 @@ namespace GRANON
 			return f ? f->metrics.tmHeight : 0;
 		}
 
-		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const override
 		{
 			auto* f = GetFont(fontId);
 			if (!f)
@@ -1720,11 +1682,11 @@ namespace GRANON
 			SIZE span;
 			if (!GetTextExtentPoint32A(screenDC, text, text.length, OUT & span))
 			{
-				return { 0,0 };
+				return extraSpan;
 			}
 			else
 			{
-				return { span.cx, span.cy };
+				return extraSpan + Vec2i { span.cx, span.cy };
 			}
 		}
 
@@ -1798,7 +1760,7 @@ namespace GRANON
 			HDC dc = GetDC(nullptr);
 			if (!dc)
 			{
-				RaiseError(nullptr, EGRErrorCode::Generic, __FUNCTION__, "Cannot bind to font. GetDC returned nullptr");
+				RaiseError(nullptr, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Cannot bind to font. GetDC returned nullptr");
 			}
 			else
 			{
@@ -1810,7 +1772,7 @@ namespace GRANON
 
 				if (!success)
 				{
-					RaiseError(nullptr, EGRErrorCode::Generic, __FUNCTION__, "Cannot bind to font. GetTextMetricsA returned false. Error code %d", GetLastError());
+					RaiseError(nullptr, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Cannot bind to font. GetTextMetricsA returned false. Error code %d", GetLastError());
 				}
 			}
 
@@ -1847,7 +1809,7 @@ namespace GRANON
 			history.push_back(&widget);
 		}
 
-		void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) override
+		void RouteKeyboardEvent(const KeyboardEventEx& key, IGRSystem& gr) override
 		{
 			GRKeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
@@ -1859,19 +1821,19 @@ namespace GRANON
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
 
-		void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) override
+		void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context, IGRSystem& gr) override
 		{
-			static_assert(sizeof GRCursorClick == sizeof uint16);
+			static_assert(sizeof(GRCursorClick) == sizeof(uint16));
 
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData, context };
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0 };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0, context };
 				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)
@@ -1933,7 +1895,7 @@ namespace GRANON
 		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
 			Strings::CharBuilder builder(copyAndPasteBuffer);
-			return Gui::TranslateToEditor(keyEvent, manager, builder);
+			return Gui::TranslateToEditor(*this, keyEvent, manager, builder);
 		}
 	};
 
@@ -2156,6 +2118,11 @@ namespace GRANON
 			this->sink = &sink;
 		}
 
+		static inline bool IsDown(int vkCode)
+		{
+			return GetAsyncKeyState(vkCode) & 0x8000;
+		}
+
 		LRESULT OnRawInput(WPARAM wParam, LPARAM lParam)
 		{
 			POINT p;
@@ -2190,13 +2157,25 @@ namespace GRANON
 					ev.dy = raw.data.mouse.lLastY;
 					ev.flags = raw.data.mouse.usFlags;
 					ev.cursorPos = { p.x, p.y };
-					gdiCustodian->RouteMouseEvent(ev, *grSystem);
+
+					GRKeyContextFlags context;
+					context.isAltHeld = IsDown(VK_MENU);
+					context.isCtrlHeld = IsDown(VK_CONTROL);
+					context.isShiftHeld = IsDown(VK_SHIFT);
+
+					gdiCustodian->RouteMouseEvent(ev, context, *grSystem);
 					QueuePaint();
 				}
 				else if (raw.header.dwType == RIM_TYPEKEYBOARD)
 				{
-					KeyboardEvent key;
-					((RAWKEYBOARD&)key) = raw.data.keyboard;
+					KeyboardEventEx key;
+					key.isAltHeld = IsDown(VK_MENU);
+					key.isCtrlHeld = IsDown(VK_CONTROL);
+					key.isShiftHeld = IsDown(VK_SHIFT);
+
+					auto& innerKey = static_cast<KeyboardEvent&>(key);
+
+					((RAWKEYBOARD&) (innerKey)) = raw.data.keyboard;
 
 					if (sink)
 					{
@@ -2269,14 +2248,17 @@ namespace GRANON
 
 		void InsertKeyboardEvent(uint16 vCode, bool isUp, uint16 unicode) override
 		{
-			KeyboardEvent kbe;
+			KeyboardEventEx kbe;
 			kbe.VKey = vCode;
 			kbe.Flags = isUp ? RI_KEY_BREAK : RI_KEY_MAKE;
 			kbe.Message = 0;
 			kbe.Reserved = 0;
 			kbe.scanCode = 0;
 			kbe.unicode = unicode;
-			kbe.extraInfo = 0;				
+			kbe.extraInfo = 0;
+			kbe.isAltHeld = 0;
+			kbe.isCtrlHeld = 0;
+			kbe.isShiftHeld = 0;
 			gdiCustodian->RouteKeyboardEvent(kbe, *grSystem);
 		}
 
@@ -2339,7 +2321,7 @@ namespace GRANON
 			{
 				Rococo::Windows::THIS_WINDOW parent(GetParent(hWnd));
 				SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) DefWindowProc);
-				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __FUNCTION__);
+				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __ROCOCO_FUNCTION__);
 				PostQuitMessage(0);
 				return 0L;
 			}
@@ -2349,8 +2331,6 @@ namespace GRANON
 
 		GRClientWindow()
 		{
-			gdiCustodian = GR::Win32::CreateGDICustodian();
-			grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
 			scene = &emptyScene;
 			xbox360Controller = CreateJoystick_XBox360Proxy();
 		}
@@ -2389,8 +2369,11 @@ namespace GRANON
 		{
 			if (hParentWnd == nullptr)
 			{
-				Throw(GetLastError(), "%s: parent was NULL", __FUNCTION__);
+				Throw(GetLastError(), "%s: parent was NULL", __ROCOCO_FUNCTION__);
 			}
+
+			gdiCustodian = GR::Win32::CreateGDICustodian(hParentWnd);
+			grSystem = Gui::CreateGRSystem(config, gdiCustodian->Custodian());
 
 			auto hInstance = GetModuleHandleA(NULL);
 
@@ -2421,7 +2404,7 @@ namespace GRANON
 
 			if (hWnd == nullptr)
 			{
-				Throw(GetLastError(), "%s: could not create client window for %s", __FUNCTION__, clientInfo.lpszClassName);
+				Throw(GetLastError(), "%s: could not create client window for %s", __ROCOCO_FUNCTION__, clientInfo.lpszClassName);
 			}
 
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) this);
@@ -2449,7 +2432,7 @@ namespace GRANON
 			auto jcode = xbox360Controller->GetVKeyCode(jkeyName);
 			if (jcode == 0)
 			{
-				Throw(0, "%s: Error mapping %s", __FUNCTION__, jkeyName);
+				Throw(0, "%s: Error mapping %s", __ROCOCO_FUNCTION__, jkeyName);
 			}
 
 			mapJStickToKeyboard[jcode] = keyboardCode;
@@ -2783,7 +2766,7 @@ namespace GRANON
 
 			if (hWnd == nullptr)
 			{
-				Throw(GetLastError(), "%s: could not create overlapped window for %s", __FUNCTION__, info.lpszClassName);
+				Throw(GetLastError(), "%s: could not create overlapped window for %s", __ROCOCO_FUNCTION__, info.lpszClassName);
 			}
 
 			grClientWindow = GR::Win32::CreateGRClientWindow(hWnd);
@@ -2815,9 +2798,9 @@ namespace GRANON
 
 namespace Rococo::GR::Win32
 {
-	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian()
+	ROCOCO_API_EXPORT IWin32GDICustodianSupervisor* CreateGDICustodian(HWND hOwnerWindow)
 	{
-		return new GRANON::GDICustodian();
+		return new GRANON::GDICustodian(hOwnerWindow);
 	}
 
 	ROCOCO_API_EXPORT IWin32GDIApp* CreateWin32GDIApp()

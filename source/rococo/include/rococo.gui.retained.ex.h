@@ -45,11 +45,6 @@ namespace Rococo::Gui
 		virtual int32 GetTextAndLength(char* buffer, int32 receiveCapacity) const = 0;
 	};
 
-	ROCOCO_INTERFACE IGRKeyState
-	{
-		virtual bool IsKeyPressed(Rococo::IO::VirtualKeys::VKCode keyCode) const = 0;
-	};
-
 	// The platform dependent implementation of the custodian handles events and routes to the UI appropriately
 	ROCOCO_INTERFACE IGRCustodian
 	{
@@ -64,15 +59,15 @@ namespace Rococo::Gui
 		virtual EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) = 0;
 
 		// Given a font id and text string, uses the platform font definition to determine the minimam span containing it.
-		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const = 0;
+		virtual Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const = 0;
+
+		virtual Windows::IWindow& Owner() = 0;
 
 		// Implementation specific error handling. Further in the Rococo libs we just throw an exception,
 		// but not everyone likes exceptions. Generally the error handler should invoke a breakpoint, issue a report and terminate the app.
 		virtual void RaiseError(const Rococo::Sex::ISExpression* associatedSExpression, EGRErrorCode code, cstr function, cstr format, ...) = 0;
 
 		virtual IGRFonts& Fonts() = 0;
-
-		virtual IGRKeyState& Keys() = 0;
 
 		// Set the zoom level for the user-interface. The value is clamped between 1 and 100
 		virtual void SetUIZoom(float zoomLevel) = 0;
@@ -94,7 +89,7 @@ namespace Rococo::Gui
 	// Dynamic casting methods
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b);
 
-	ROCOCO_GUI_RETAINED_API EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, Strings::ICharBuilder& builder);
+	ROCOCO_GUI_RETAINED_API EGREventRouting TranslateToEditor(Windows::IWindow& owningWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, Strings::ICharBuilder& builder);
 
 	// Query to see if the particular interface is part of the supplied instance. Will only compile if there is an elementary derivation of GR_TARGET_INTERFACE from GRBASED_CLASS.
 	template<typename GR_TARGET_INTERFACE, class GRBASED_CLASS> inline EGRQueryInterfaceResult QueryForParticularInterface(GRBASED_CLASS* instance, IGRBase** ppOutputArg, cstr interfaceId)

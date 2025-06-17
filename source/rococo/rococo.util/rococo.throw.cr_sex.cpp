@@ -31,7 +31,6 @@
 	principal credit screen and its principal readme file.
 */
 
-#define ROCOCO_API __declspec(dllexport)
 #include <sexy.types.h>
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <sexy.strings.h>
@@ -45,6 +44,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifndef _Printf_format_string_
+# define _Printf_format_string_
+#endif
 
 using namespace Rococo;
 using namespace Rococo::Sex;
@@ -162,7 +165,7 @@ namespace Rococo
 			char message[4096];
 			int len = SafeVFormat(message, sizeof(message), format, args);
 
-			StackStringBuilder sb(message + len, sizeof message - len);
+			StackStringBuilder sb(message + len, sizeof(message) - len);
 
 			auto* pOriginal = e.GetOriginal();
 			if (pOriginal != nullptr)

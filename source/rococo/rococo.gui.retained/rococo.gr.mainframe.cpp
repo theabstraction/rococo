@@ -2,6 +2,7 @@
 #include <rococo.maths.i32.h>
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
+#include <rococo.strings.h>
 
 #include <vector>
 #include <algorithm>
@@ -10,8 +11,9 @@ namespace GRANON
 {
 	using namespace Rococo;
 	using namespace Rococo::Gui;
+	using namespace Rococo::Strings;
 
-	struct GRMainFrame: IGRWidgetMainFrameSupervisor, IGRWidgetSupervisor, IGRWidgetLayout
+	struct GRMainFrame: IGRWidgetMainFrameSupervisor, IGRWidgetSupervisor, IGRWidgetLayout, IGRFocusNotifier
 	{
 		cstr name;
 		IGRPanel& panel;
@@ -81,8 +83,8 @@ namespace GRANON
 
 		struct ZoomScenario
 		{
-			int minScreenWidth;
-			int minScreenHeight;
+			int minScreenWidth = 0;
+			int minScreenHeight = 0;
 
 			std::vector<float> zoomLevels;
 		};
@@ -95,14 +97,14 @@ namespace GRANON
 			{
 				if (target.minScreenHeight == minScreenHeight && target.minScreenWidth == minScreenWidth)
 				{
-					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Duplicate zoom target span (%d, %d)", minScreenWidth, minScreenHeight);
+					RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Duplicate zoom target span (%d, %d)", minScreenWidth, minScreenHeight);
 				}
 
 				if ((target.minScreenWidth > minScreenWidth && target.minScreenHeight < minScreenHeight)
 					|| (target.minScreenHeight > minScreenHeight && target.minScreenWidth < minScreenWidth)
 					)
 				{
-					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Conflicting zoom target span (%d, %d) vs (%d,%d). Width and Height must be both >= or <= other zoom targets", target.minScreenWidth, target.minScreenHeight, minScreenWidth, minScreenHeight);
+					RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Conflicting zoom target span (%d, %d) vs (%d,%d). Width and Height must be both >= or <= other zoom targets", target.minScreenWidth, target.minScreenHeight, minScreenWidth, minScreenHeight);
 				}
 			}
 
@@ -217,7 +219,7 @@ namespace GRANON
 
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
-			if (ce.click.MouseVWheel && panel.Root().Custodian().Keys().IsKeyPressed(IO::VirtualKeys::VKCode_SHIFT))
+			if (ce.click.MouseVWheel && ce.context.isShiftHeld)
 			{
 				const ZoomScenario* bestScenario = GetBestZoomScenario();
 
@@ -257,8 +259,31 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent&, IGRWidget&) override
+		HString hoverHint; // Assigned a value when a mouse move event from some descendant grabs a hint string
+
+		void OnHintHover(const GRWidgetEvent& hint)
 		{
+			hoverHint = hint.sMetaData;
+		}
+
+		void OnDeepChildFocusSet(int64 /* panelId */) override
+		{
+			// Changing focus zaps the hovered hint. This way focus takes priority when the mouse is not moving.
+			hoverHint = "";
+		}
+
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget&) override
+		{
+			switch (widgetEvent.eventType)
+			{
+			case EGRWidgetEventType::ON_HINT_HOVER:
+				OnHintHover(widgetEvent);
+				return EGREventRouting::Terminate;
+			case EGRWidgetEventType::GET_HINT_HOVER:
+				widgetEvent.sMetaData = hoverHint;
+				return EGREventRouting::Terminate;
+			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -288,9 +313,9 @@ namespace GRANON
 			SetFocusElseRotateFocusToNextSibling(panel, false);
 		}
 
-		void OnTab()
+		void OnTab(bool ctrlHeld)
 		{
-			bool nextRatherThanPrevious = !GetCustodian(panel).Keys().IsKeyPressed(IO::VirtualKeys::VKCode_CTRL);
+			bool nextRatherThanPrevious = !ctrlHeld;
 			SetFocusElseRotateFocusToNextSibling(panel, nextRatherThanPrevious);
 		}
 
@@ -337,7 +362,7 @@ namespace GRANON
 			switch (ke.osKeyEvent.VKey)
 			{
 			case Rococo::IO::VirtualKeys::VKCode_TAB:
-				OnTab();
+				OnTab(ke.context.isCtrlHeld);
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_ANTITAB:
 				OnReverseTab();
@@ -354,7 +379,7 @@ namespace GRANON
 			case Rococo::IO::VirtualKeys::VKCode_RIGHT:
 				if (Nav(EGRNavigationDirection::Right) == EGREventRouting::NextHandler)
 				{
-					OnTab();
+					OnTab(ke.context.isCtrlHeld);
 				}
 				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_UP:
@@ -366,7 +391,7 @@ namespace GRANON
 			case Rococo::IO::VirtualKeys::VKCode_DOWN:
 				if (Nav(EGRNavigationDirection::Down) == EGREventRouting::NextHandler)
 				{
-					OnTab();
+					OnTab(ke.context.isCtrlHeld);
 				}
 				return EGREventRouting::Terminate;
 			}
@@ -438,6 +463,12 @@ namespace GRANON
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
 		{
 			auto result = Gui::QueryForParticularInterface<IGRWidgetLayout>(this, ppOutputArg, interfaceId);
+			if (result == EGRQueryInterfaceResult::SUCCESS)
+			{
+				return result;
+			}
+
+			result = Gui::QueryForParticularInterface<IGRFocusNotifier>(this, ppOutputArg, interfaceId);
 			if (result == EGRQueryInterfaceResult::SUCCESS)
 			{
 				return result;
@@ -554,7 +585,7 @@ namespace Rococo::Gui
 				return;
 			}
 
-			RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__ "Unknown navigation target: %s. Source (%s)", target.desc, panel.Desc());
+			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Unknown navigation target: %s. Source (%s)", target.desc, panel.Desc());
 		}
 
 		TrySetDeepFocus(panel);
@@ -580,7 +611,7 @@ namespace Rococo::Gui
 				return;
 			}
 
-			RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__ "Unknown navigation target: %s. Source (%s)", nextTarget.desc, panel.Desc());
+			RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Unknown navigation target: %s. Source (%s)", nextTarget.desc, panel.Desc());
 		}
 
 		RotateFocusToNextSibling(*focusWidget, nextRatherThanPrevious);

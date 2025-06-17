@@ -53,27 +53,27 @@ namespace Rococo
 		inline VariantValue ValueTrue() { return FromValue(1); }
 		inline VariantValue ValueFalse() { return FromValue(0); }
 
-		bool IsAssignableToBoolean(VARTYPE type)
+		bool IsAssignableToBoolean(SexyVarType type)
 		{
-			return type == VARTYPE_Bool;
+			return type == SexyVarType_Bool;
 		}
 
-		SEXYUTIL_API VARTYPE GetBestCastType(VARTYPE a, VARTYPE b)
+		SEXYUTIL_API SexyVarType GetBestCastType(SexyVarType a, SexyVarType b)
 		{
-			if (a == VARTYPE_Bad || b == VARTYPE_Bad) return VARTYPE_Bad;
-			if (a == VARTYPE_Derivative || b == VARTYPE_Derivative) return VARTYPE_Derivative;
-			if (a == VARTYPE_Float64 || b == VARTYPE_Float64) return VARTYPE_Float64;
-			if (a == VARTYPE_Float32 || b == VARTYPE_Float32) return VARTYPE_Float32;
-			if (a == VARTYPE_Int64 || b == VARTYPE_Int64) return VARTYPE_Int64;
-			if (a == VARTYPE_Int32 || b == VARTYPE_Int32) return VARTYPE_Int32;
-			return VARTYPE_Bad;
+			if (a == SexyVarType_Bad || b == SexyVarType_Bad) return SexyVarType_Bad;
+			if (a == SexyVarType_Derivative || b == SexyVarType_Derivative) return SexyVarType_Derivative;
+			if (a == SexyVarType_Float64 || b == SexyVarType_Float64) return SexyVarType_Float64;
+			if (a == SexyVarType_Float32 || b == SexyVarType_Float32) return SexyVarType_Float32;
+			if (a == SexyVarType_Int64 || b == SexyVarType_Int64) return SexyVarType_Int64;
+			if (a == SexyVarType_Int32 || b == SexyVarType_Int32) return SexyVarType_Int32;
+			return SexyVarType_Bad;
 		}
 
-		bool TryCastBoolToInt(OUT VariantValue& result, VARTYPE type, cr_sex /* refExpr */, bool value)
+		bool TryCastBoolToInt(OUT VariantValue& result, SexyVarType type, cr_sex /* refExpr */, bool value)
 		{
 			switch(type)
 			{
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				if (value)
 				{
 					result.int32Value = 1;
@@ -83,7 +83,7 @@ namespace Rococo
 					result.int32Value = 0;
 				}
 				return true;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				if (value)
 				{
 					result.int64Value = 1;
@@ -98,7 +98,7 @@ namespace Rococo
 			}
 		}
 
-		SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, VARTYPE orignalType, VARTYPE endType)
+		SEXYUTIL_API bool TryRecast(OUT VariantValue& end, IN const VariantValue& original, SexyVarType orignalType, SexyVarType endType)
 		{
 			if (!IsPrimitiveType(orignalType) || (!IsPrimitiveType(endType)))
 			{
@@ -113,61 +113,61 @@ namespace Rococo
 
 			switch(orignalType)
 			{
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				switch(endType)
 				{
-				case VARTYPE_Int64:
+				case SexyVarType_Int64:
 					end.int64Value = (int64) original.int32Value;
 					return true;
-				case VARTYPE_Float32:
+				case SexyVarType_Float32:
 					end.floatValue = (float) original.int32Value;
 					return true;
-				case VARTYPE_Float64:
+				case SexyVarType_Float64:
 					end.doubleValue = (double) original.int32Value;
 					return true;
 				default:
 					return false;
 				}
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				switch(endType)
 				{
-				case VARTYPE_Int32:
+				case SexyVarType_Int32:
 					end.int32Value = (int32) original.int64Value;
 					return true;
-				case VARTYPE_Float32:
+				case SexyVarType_Float32:
 					end.floatValue = (float) original.int64Value;
 					return true;
-				case VARTYPE_Float64:
+				case SexyVarType_Float64:
 					end.doubleValue = (double) original.int64Value;
 					return true;
 				default:
 					return false;
 				}
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				switch(endType)
 				{
-				case VARTYPE_Int32:
+				case SexyVarType_Int32:
 					end.int32Value = (int32) original.floatValue;
 					return true;
-				case VARTYPE_Int64:
+				case SexyVarType_Int64:
 					end.int64Value = (int64) original.floatValue;
 					return true;
-				case VARTYPE_Float64:
+				case SexyVarType_Float64:
 					end.doubleValue = (double) original.floatValue;
 					return true;
 				default:
 					return false;
 				}
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				switch(endType)
 				{
-				case VARTYPE_Int32:
+				case SexyVarType_Int32:
 					end.int32Value = (int32) original.doubleValue;
 					return true;
-				case VARTYPE_Int64:
+				case SexyVarType_Int64:
 					end.int64Value = (int64) original.doubleValue;
 					return true;
-				case VARTYPE_Float32:
+				case SexyVarType_Float32:
 					end.floatValue = (float) original.doubleValue;
 					return true;
 				default:

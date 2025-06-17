@@ -68,7 +68,7 @@ namespace
 	   }
    }
 
-   void Anon_AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
+   void Anon_AppendKeyboardInputToEditBuffer(Windows::IWindow& window, int& caretPos, char* buffer, size_t capacity, const KeyboardEventEx& key)
    {
 	   if (key.IsUp()) return;
 
@@ -102,13 +102,13 @@ namespace
 		   DeleteAtPos(caretPos, buffer, capacity);
 		   break;
 	   case IO::VirtualKeys::VKCode_C:
-		   if (Rococo::IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+		   if (key.isCtrlHeld)
 		   {
-			   IO::CopyToClipboard(buffer);
+			   OS::SaveClipBoardText(buffer, window);
 		   }
 		   break;
 	   case IO::VirtualKeys::VKCode_V:
-		   if (Rococo::IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+		   if (key.isCtrlHeld)
 		   {
 			   IO::PasteFromClipboard(buffer, capacity);
 			   caretPos = StringLength(buffer);
@@ -124,14 +124,15 @@ namespace
       std::array<HString, 512> codes;
 	  stringmap<int32> mapNameToVkCode;
 	  stringmap<HString> actionBinds;
+	  Windows::IWindow& window;
    public:
-      Keyboard()
+      Keyboard(Windows::IWindow& _window): window(_window)
       {
       }
 
-	  void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key)
+	  void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEventEx& key) override
 	  {
-		  return Anon_AppendKeyboardInputToEditBuffer(caretPos, buffer, capacity, key);
+		  return Anon_AppendKeyboardInputToEditBuffer(window, caretPos, buffer, capacity, key);
 	  }
 
       void ClearActions() override
@@ -227,8 +228,8 @@ namespace
 
 namespace Rococo
 {
-   IKeyboardSupervisor* CreateKeyboardSupervisor()
+   IKeyboardSupervisor* CreateKeyboardSupervisor(Windows::IWindow& window)
    {
-      return new Keyboard();
+      return new Keyboard(window);
    }
 }

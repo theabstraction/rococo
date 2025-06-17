@@ -91,7 +91,7 @@ namespace
 
 namespace Rococo::OS
 {
-	void GetEnvVariable(wchar_t* data, size_t capacity, const wchar_t* envVariable);
+	void GetEnvVariable(wchar_t* data, size_t capacity, crwstr envVariable);
 }
 
 namespace Rococo::Script
@@ -100,7 +100,7 @@ namespace Rococo::Script
 
 	void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
 
-	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(const wchar_t* pathname)
+	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(crwstr pathname)
 	{
 		if (pathname == nullptr)
 		{
@@ -121,7 +121,7 @@ namespace Rococo
 {
 	namespace OS
 	{
-		FN_CreateLib GetLibCreateFunction(const wchar_t* dynamicLinkLibOfNativeCalls, bool throwOnError);
+		FN_CreateLib GetLibCreateFunction(crwstr dynamicLinkLibOfNativeCalls, bool throwOnError);
 		FN_CreateLib GetLibCreateFunction(cstr origin, const void* DLLmemoryBuffer, int32 nBytesLength);
 	}
 
@@ -223,7 +223,7 @@ namespace Rococo {
 
 			switch (member->UnderlyingType()->VarType())
 			{
-			case VARTYPE_Bool:
+			case SexyVarType_Bool:
 				if (!AreEqual(srcType, "B32")) Throw(sType, "Expecting B32 to match Bool %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					boolean32 bValue = AreEqual(srcValue->Buffer, "true") ? 1 : 0;
@@ -231,7 +231,7 @@ namespace Rococo {
 					*bTargetValue = bValue;
 				}
 				break;
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				if (!AreEqual(srcType, "I32")) Throw(sType, "Expecting I32 to match Int32 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					int32 value = atoi(srcValue->Buffer);
@@ -239,7 +239,7 @@ namespace Rococo {
 					*bTargetValue = value;
 				}
 				break;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				if (!AreEqual(srcType, "I64")) Throw(sType, "Expecting I64 to match Int64 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					int64 value = atoll(srcValue->Buffer);
@@ -247,7 +247,7 @@ namespace Rococo {
 					*bTargetValue = value;
 				}
 				break;
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				if (!AreEqual(srcType, "F32")) Throw(sType, "Expecting F32 to match Float32 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					float32 value = (float)atof(srcValue->Buffer);
@@ -255,7 +255,7 @@ namespace Rococo {
 					*fTargetValue = value;
 				}
 				break;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				if (!AreEqual(srcType, "F64")) Throw(sType, "Expecting F64 to match Float64 %s in %s of %s", srcName->Buffer, targetType->Name(), targetType->Module().Name());
 				{
 					float64 value = atof(srcValue->Buffer);
@@ -263,7 +263,7 @@ namespace Rococo {
 					*fTargetValue = value;
 				}
 				break;
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				if (&member->UnderlyingType()->GetInterface(0) == &ss->ProgramObject().Common().SysTypeIString())
 				{
 					auto** ipString = (InterfacePointer*)(targetData + offset);
@@ -329,7 +329,7 @@ void NativeAppendCTime(NativeCallEnvironment& _nce)
 	auto& sb = *(FastStringBuilder*)stub;
 
 	char timestamp[26];
-	Rococo::GetTimestamp(timestamp);
+	Rococo::Time::GetTimestamp(timestamp);
 
 	int32 nMax = sb.capacity - sb.length;
 
@@ -929,12 +929,12 @@ namespace Rococo::Script
 
 			scripts = NewCScripts(*progObjProxy, *this);
 
-			nativeInt32 = &progObjProxy->AddIntrinsicStruct("Int32", sizeof(int32), VARTYPE_Int32, NULL);
-			nativeInt64 = &progObjProxy->AddIntrinsicStruct("Int64", sizeof(int64), VARTYPE_Int64, NULL);
-			nativeFloat32 = &progObjProxy->AddIntrinsicStruct("Float32", sizeof(float32), VARTYPE_Float32, NULL);
-			nativeFloat64 = &progObjProxy->AddIntrinsicStruct("Float64", sizeof(float64), VARTYPE_Float64, NULL);
-			nativeBool = &progObjProxy->AddIntrinsicStruct("Bool", sizeof(int32), VARTYPE_Bool, NULL);
-			nativePtr = &progObjProxy->AddIntrinsicStruct("Pointer", sizeof(size_t), VARTYPE_Pointer, NULL);
+			nativeInt32 = &progObjProxy->AddIntrinsicStruct("Int32", sizeof(int32), SexyVarType_Int32, NULL);
+			nativeInt64 = &progObjProxy->AddIntrinsicStruct("Int64", sizeof(int64), SexyVarType_Int64, NULL);
+			nativeFloat32 = &progObjProxy->AddIntrinsicStruct("Float32", sizeof(float32), SexyVarType_Float32, NULL);
+			nativeFloat64 = &progObjProxy->AddIntrinsicStruct("Float64", sizeof(float64), SexyVarType_Float64, NULL);
+			nativeBool = &progObjProxy->AddIntrinsicStruct("Bool", sizeof(int32), SexyVarType_Bool, NULL);
+			nativePtr = &progObjProxy->AddIntrinsicStruct("Pointer", sizeof(size_t), SexyVarType_Pointer, NULL);
 
 			try
 			{
@@ -1031,7 +1031,7 @@ namespace Rococo::Script
 			auto* pParent = sChild.Parent();
 			if (pParent == nullptr)
 			{
-				Throw(sChild, "%s: expression has no parent", __FUNCTION__);
+				Throw(sChild, "%s: expression has no parent", __ROCOCO_FUNCTION__);
 			}
 
 			cr_sex sParent = *pParent;
@@ -1114,7 +1114,7 @@ namespace Rococo::Script
 			int allocSize = compilersView.SizeOfStruct();
 			if (allocSize > sizeofObject)
 			{
-				Throw(0, "%s: the supplied size of %llu bytes was insufficient to allocate objects of type %s", __FUNCTION__, sizeofObject, GetFriendlyName(compilersView));
+				Throw(0, "%s: the supplied size of %llu bytes was insufficient to allocate objects of type %s", __ROCOCO_FUNCTION__, sizeofObject, GetFriendlyName(compilersView));
 			}
 
 			auto& allocator = progObjProxy->GetDefaultObjectAllocator();
@@ -1617,7 +1617,7 @@ namespace Rococo::Script
 		{
 			if (!stringPool)
 			{
-				Throw(0, "%s: No string pool", __FUNCTION__);
+				Throw(0, "%s: No string pool", __ROCOCO_FUNCTION__);
 			}
 
 			if (capacity < 1 || capacity > 1024_megabytes)
@@ -1732,7 +1732,7 @@ namespace Rococo::Script
 			sb << "<p>Documentation was automatically generated by a call to (Sys.Publish API) on ";
 
 			char theTime[26];
-			GetTimestamp(theTime);
+			Time::GetTimestamp(theTime);
 	
 			sb.AppendFormat("%s", theTime + 4);
 			sb << "<p><table>";
@@ -1889,30 +1889,30 @@ namespace Rococo::Script
 				{
 					auto type = s.VarType();
 
-					if (!IsNullType(s) && type != VARTYPE_Closure)
+					if (!IsNullType(s) && type != SexyVarType_Closure)
 					{
-						if (type != VARTYPE_Derivative)
+						if (type != SexyVarType_Derivative)
 						{
 							sb->AppendFormat("<li><span class=\"struct\">alias</span> %s.%s for ", ns->FullName()->Buffer, name);
 							
 							switch (type)
 							{
-							case VARTYPE_Bool:
+							case SexyVarType_Bool:
 								*sb << "Bool (32-bit boolean)";
 								break;
-							case VARTYPE_Float32:
+							case SexyVarType_Float32:
 								*sb << "Float32";
 								break;
-							case VARTYPE_Float64:
+							case SexyVarType_Float64:
 								*sb << "Float64";
 								break;
-							case VARTYPE_Int32:
+							case SexyVarType_Int32:
 								*sb << "Int32";
 								break;
-							case VARTYPE_Int64:
+							case SexyVarType_Int64:
 								*sb << "Int64";
 								break;
-							case VARTYPE_Pointer:
+							case SexyVarType_Pointer:
 								*sb << "Pointer";
 								break;
 							default:
@@ -2196,7 +2196,7 @@ namespace Rococo::Script
 				const NativeSecurityHandler* originalRef = pair->second;
 				if (memcmp(&security, &originalRef->security, sizeof NativeCallSecurity) != 0)
 				{
-					Throw(0, "%s: the namespace %s is already secured by a NativeCallSecurity that differs by at least one bit from the argument supplied in the method.", __FUNCTION__, nativeNamespace.FullName()->Buffer);
+					Throw(0, "%s: the namespace %s is already secured by a NativeCallSecurity that differs by at least one bit from the argument supplied in the method.", __ROCOCO_FUNCTION__, nativeNamespace.FullName()->Buffer);
 				}
 			}
 			else
@@ -2234,7 +2234,7 @@ namespace Rococo::Script
 		{
 			if (permittedPingPath == nullptr || *permittedPingPath == 0)
 			{
-				Throw(0, "%s('%s', [permittedPingPath=blank]", __FUNCTION__, ns.FullName()->Buffer);
+				Throw(0, "%s('%s', [permittedPingPath=blank]", __ROCOCO_FUNCTION__, ns.FullName()->Buffer);
 			}
 
 			NativeCallSecurity security;
@@ -2342,7 +2342,7 @@ namespace Rococo::Script
 			auto i = rawReflectionBindings.find(functionId);
 			if (i != rawReflectionBindings.end())
 			{
-				Throw(0, "Duplicate function-id specified in %s(%s ...)", __FUNCTION__, functionId);
+				Throw(0, "Duplicate function-id specified in %s(%s ...)", __ROCOCO_FUNCTION__, functionId);
 			}
 
 			rawReflectionBindings.insert(functionId, new RawReflectionBinding { context, fnCall });
@@ -2435,7 +2435,7 @@ namespace Rococo::Script
 			if (currentSecuritySystem == nullptr)
 			{
 				ThrowFromNativeCodeF(0, "%s(%s): There is no security module set for the Sexy Script system, so the request to write to the path is rejected, sorry.\n"
-					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __FUNCTION__, pathname);
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __ROCOCO_FUNCTION__, pathname);
 				return;
 			}
 			else
@@ -2449,7 +2449,7 @@ namespace Rococo::Script
 			if (currentSecuritySystem == nullptr)
 			{
 				ThrowFromNativeCodeF(0, "%s(%s): There is no security module set for the Sexy Script system, so the request to read from the path is rejected, sorry.\n"
-					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __FUNCTION__, pathname);
+					"The application host programmer needs to add IPublicScriptSystem::SetSecurityHandler to the script object", __ROCOCO_FUNCTION__, pathname);
 				return;
 			}
 			else

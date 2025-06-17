@@ -27,12 +27,17 @@ public:
 		value = 0.5f * (maxValue + minValue);
 	}
 
+	virtual ~PanelSlider()
+	{
+
+	}
+
 	void Free() override
 	{
 		delete this;
 	}
 
-	bool AppendEvent(const KeyboardEvent&, const Vec2i&, const Vec2i&) override
+	bool AppendEvent(const KeyboardEventEx&, const Vec2i&, const Vec2i&) override
 	{
 		return false;
 	}

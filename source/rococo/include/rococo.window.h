@@ -270,13 +270,18 @@ namespace Rococo
 			bool isRunning;
 			DWORD exitCode;
 
-			virtual bool IsRunning();
-			virtual DWORD OnIdle();
-			virtual void OnEnterModal();
-			virtual DWORD OnExitModal();
+			ROCOCO_WINDOWS_API virtual bool IsRunning();
+			ROCOCO_WINDOWS_API virtual DWORD OnIdle();
+			ROCOCO_WINDOWS_API virtual void OnEnterModal();
+			ROCOCO_WINDOWS_API virtual DWORD OnExitModal();
 
 		public:
 			ROCOCO_WINDOWS_API ModalDialogHandler();
+
+			virtual ~ModalDialogHandler()
+			{
+
+			}
 
 			ROCOCO_WINDOWS_API IDialogSupervisor* CreateDialogWindow(const WindowConfig& config);
 

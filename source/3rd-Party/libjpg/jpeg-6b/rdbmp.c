@@ -245,20 +245,20 @@ start_input_bmp (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
   U_CHAR bmpinfoheader[64];
 #define GET_2B(array,offset)  ((unsigned int) UCH(array[offset]) + \
 			       (((unsigned int) UCH(array[offset+1])) << 8))
-#define GET_4B(array,offset)  ((INT32) UCH(array[offset]) + \
-			       (((INT32) UCH(array[offset+1])) << 8) + \
-			       (((INT32) UCH(array[offset+2])) << 16) + \
-			       (((INT32) UCH(array[offset+3])) << 24))
-  INT32 bfOffBits;
-  INT32 headerSize;
-  INT32 biWidth = 0;		/* initialize to avoid compiler warning */
-  INT32 biHeight = 0;
+#define GET_4B(array,offset)  ((JTYPE_INT32) UCH(array[offset]) + \
+			       (((JTYPE_INT32) UCH(array[offset+1])) << 8) + \
+			       (((JTYPE_INT32) UCH(array[offset+2])) << 16) + \
+			       (((JTYPE_INT32) UCH(array[offset+3])) << 24))
+  JTYPE_INT32 bfOffBits;
+  JTYPE_INT32 headerSize;
+  JTYPE_INT32 biWidth = 0;		/* initialize to avoid compiler warning */
+  JTYPE_INT32 biHeight = 0;
   unsigned int biPlanes;
-  INT32 biCompression;
-  INT32 biXPelsPerMeter,biYPelsPerMeter;
-  INT32 biClrUsed = 0;
+  JTYPE_INT32 biCompression;
+  JTYPE_INT32 biXPelsPerMeter,biYPelsPerMeter;
+  JTYPE_INT32 biClrUsed = 0;
   int mapentrysize = 0;		/* 0 indicates no colormap */
-  INT32 bPad;
+  JTYPE_INT32 bPad;
   JDIMENSION row_width;
 
   /* Read and verify the bitmap file header */
@@ -266,7 +266,7 @@ start_input_bmp (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
     ERREXIT(cinfo, JERR_INPUT_EOF);
   if (GET_2B(bmpfileheader,0) != 0x4D42) /* 'BM' */
     ERREXIT(cinfo, JERR_BMP_NOT);
-  bfOffBits = (INT32) GET_4B(bmpfileheader,10);
+  bfOffBits = (JTYPE_INT32) GET_4B(bmpfileheader,10);
   /* We ignore the remaining fileheader fields */
 
   /* The infoheader might be 12 bytes (OS/2 1.x), 40 bytes (Windows),
@@ -274,7 +274,7 @@ start_input_bmp (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
    */
   if (! ReadOK(source->pub.input_file, bmpinfoheader, 4))
     ERREXIT(cinfo, JERR_INPUT_EOF);
-  headerSize = (INT32) GET_4B(bmpinfoheader,0);
+  headerSize = (JTYPE_INT32) GET_4B(bmpinfoheader,0);
   if (headerSize < 12 || headerSize > 64)
     ERREXIT(cinfo, JERR_BMP_BADHEADER);
   if (! ReadOK(source->pub.input_file, bmpinfoheader+4, headerSize-4))
@@ -283,8 +283,8 @@ start_input_bmp (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
   switch ((int) headerSize) {
   case 12:
     /* Decode OS/2 1.x header (Microsoft calls this a BITMAPCOREHEADER) */
-    biWidth = (INT32) GET_2B(bmpinfoheader,4);
-    biHeight = (INT32) GET_2B(bmpinfoheader,6);
+    biWidth = (JTYPE_INT32) GET_2B(bmpinfoheader,4);
+    biHeight = (JTYPE_INT32) GET_2B(bmpinfoheader,6);
     biPlanes = GET_2B(bmpinfoheader,8);
     source->bits_per_pixel = (int) GET_2B(bmpinfoheader,10);
 
@@ -419,7 +419,7 @@ finish_input_bmp (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
  * The module selection routine for BMP format input.
  */
 
-GLOBAL(cjpeg_source_ptr)
+JPEG_GLOBAL_API cjpeg_source_ptr
 jinit_read_bmp (j_compress_ptr cinfo)
 {
   bmp_source_ptr source;

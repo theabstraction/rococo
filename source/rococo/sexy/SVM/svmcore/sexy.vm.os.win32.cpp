@@ -46,7 +46,7 @@
 
 #include <rococo.api.h>
 #include <rococo.os.h>
-#include <rococo.stl.allocators.h>
+#include <rococo.sexy.allocators.h>
 
 using namespace Rococo;
 using namespace Rococo::VM;

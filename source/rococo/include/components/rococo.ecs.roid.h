@@ -11,7 +11,7 @@ namespace Rococo::Components
 		uint32 isDeprecated : 1;
 	};
 
-	static_assert(sizeof ROID_SALT == sizeof uint32);
+	static_assert(sizeof(ROID_SALT) == sizeof(uint32));
 #pragma pack(push, 1)
 	// Rococo Object ID - a transient object identifier used in the Rococo::Components System.
 	struct ROID
@@ -64,7 +64,7 @@ namespace Rococo::Components
 		}
 	};
 
-	static_assert(sizeof ROID == sizeof uint64);
+	static_assert(sizeof(ROID) == sizeof(uint64));
 #pragma pack(pop)
 
 	struct STDROID

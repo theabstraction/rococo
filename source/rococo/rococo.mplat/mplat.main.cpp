@@ -9,7 +9,7 @@
 #include <rococo.imaging.h>
 #include <rococo.strings.h>
 #include <components/rococo.ecs.h>
-#include <rococo.stl.allocators.h>
+#include <rococo.sexy.allocators.h>
 #include <rococo.gui.retained.ex.h>
 #include <rococo.ide.h>
 #include <rococo.audio.h>
@@ -165,7 +165,7 @@ struct PlatformTabs: IObserver, IUIElement, public IMathsVenue
 		}
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent& key)  override
+	bool OnKeyboardEvent(const KeyboardEventEx& key)  override
 	{
 		return platform.misc.mathsVisitor.AppendKeyboardEvent(key);
 	}
@@ -584,7 +584,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 			WindowResizeEvent ev;
 			ev.isFullscreen = isFullscreen;
 			ev.span = span;
-			publisher.Post(ev, "mainWindow.post_resize"_event);
+			publisher.Post(ev, "mainWindow.post_resize"_event, PostQuality::Overwrites);
 		}
 	} windowEventHandler(*publisher);
 
@@ -617,7 +617,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	AutoFree<Entities::IMobilesSupervisor> mobiles = Entities::CreateMobilesSupervisor(*ecs);
 	AutoFree<Graphics::ICameraSupervisor> camera = Graphics::CreateCamera(*mobiles, mainWindow->Renderer());
 	AutoFree<Graphics::ISceneSupervisor> scene = Graphics::CreateScene(*ecs, *camera, *rigs);
-	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor();
+	AutoFree<IKeyboardSupervisor> keyboard = CreateKeyboardSupervisor(mainWindow->Window());
 	AutoFree<Graphics::ISpriteBuilderSupervisor> spriteBuilder = Graphics::CreateSpriteBuilderSupervisor(mainWindow->Renderer());
 	AutoFree<Graphics::IRimTesselatorSupervisor> rimTesselator = Graphics::CreateRimTesselator();
 	AutoFree<Graphics::IRodTesselatorSupervisor> rodTesselator = Graphics::CreateRodTesselator(*meshes);

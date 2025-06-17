@@ -126,7 +126,7 @@ namespace Rococo::Script
 			cstr name = arg.Name();
 
 			const IStructure& s = *arg.ResolvedType();
-			int sizeOfArg = (s.VarType() == VARTYPE_Derivative) ? sizeof(size_t) : s.SizeOfStruct();
+			int sizeOfArg = (s.VarType() == SexyVarType_Derivative) ? sizeof(size_t) : s.SizeOfStruct();
 			totalStackCorrection += sizeOfArg;
 		}
 	}
@@ -194,7 +194,7 @@ namespace Rococo::Script
 				int32* pLock = (int32*)(locker->ContainerPtr + locker->locMemberOffset);
 				*pLock = 0;
 			}
-			else if (type.VarType() == VARTYPE_Array)
+			else if (type.VarType() == SexyVarType_Array)
 			{
 				ArrayImage* a = *(ArrayImage**)instance;
 				if (RequiresDestruction(*a->ElementType))
@@ -208,12 +208,12 @@ namespace Rococo::Script
 				NodeRef* nr = (NodeRef*)instance;
 				if (nr->NodePtr != NULL) ReleaseNode(nr->NodePtr, ss);
 			}
-			else if (type.VarType() == VARTYPE_List)
+			else if (type.VarType() == SexyVarType_List)
 			{
 				ListImage* l = *(ListImage**)instance;
 				ListRelease(l, ss);
 			}
-			else if (type.VarType() == VARTYPE_Map)
+			else if (type.VarType() == SexyVarType_Map)
 			{
 				MapImage* m = *(MapImage**)instance;
 				ReleaseMap(m, ss);
@@ -307,7 +307,7 @@ namespace Rococo::Script
 					const IStructure& concreteType = *msgInstance->Desc->TypeInfo;
 					int msgOffset ;
 					const IMember* msgMember = FindMember(concreteType, "buffer", OUT msgOffset);
-					if (msgMember != NULL && msgMember->UnderlyingType()->VarType() == VARTYPE_Pointer)
+					if (msgMember != NULL && msgMember->UnderlyingType()->VarType() == SexyVarType_Pointer)
 					{
 						uint8* pItem = ((uint8*)msgInstance) + msgOffset;
 						char** pBuffer = (char**) pItem;
@@ -321,7 +321,7 @@ namespace Rococo::Script
 		}
 
 		member = FindMember(*exType, "errorCode", OUT offset);
-		if (member != NULL && member->UnderlyingType()->VarType() == VARTYPE_Int32)
+		if (member != NULL && member->UnderlyingType()->VarType() == SexyVarType_Int32)
 		{
 			uint8* pItem = ((uint8*) ex) + offset;
 			int32* pErrorCode = (int32*) pItem;

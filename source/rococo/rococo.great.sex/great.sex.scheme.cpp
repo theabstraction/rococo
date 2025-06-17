@@ -110,7 +110,7 @@ namespace Rococo::GreatSex
 
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)
 	{
-		nElements = sizeof(colourDirectiveBindings) / sizeof ColourDirectiveBind;
+		nElements = sizeof(colourDirectiveBindings) / sizeof(ColourDirectiveBind);
 		return colourDirectiveBindings;
 	}
 
@@ -124,6 +124,10 @@ namespace Rococo::GreatSex
 
 	struct OnScheme : ISEXMLWidgetFactorySupervisor
 	{
+		virtual ~OnScheme()
+		{
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -192,7 +196,7 @@ namespace Rococo::GreatSex
 					if (foundColour == false)
 					{
 						char possibilities[2048];
-						StackStringBuilder sb(possibilities, sizeof possibilities);
+						StackStringBuilder sb(possibilities, sizeof(possibilities));
 						sb << "\n\tApplyTo";
 
 						for (auto& bind : colourDirectiveBindings)

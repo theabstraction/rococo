@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.api.h>
 #include <rococo.visitors.h>
 #include <stdio.h>

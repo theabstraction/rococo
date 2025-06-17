@@ -31,8 +31,8 @@ namespace ANON
 {
 	struct GRSystem: IGRSystemSupervisor, IGRPanelRootSupervisor
 	{
-		IGRCustodian& custodian;
 		GRConfig config;
+		IGRCustodian& custodian;
 		AutoFree<IGRSchemeSupervisor> scheme = CreateGRScheme();
 		std::unordered_map<int64, IGRPanel*> mapIdToPanel;
 		int queryDepth = 0;
@@ -116,7 +116,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "The GUI Retained API is locked for a recursive query. BindFrame cannot be executed here");
 				IGRWidgetMainFrame* frame = nullptr;
 				return *frame;
 			}
@@ -146,7 +146,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "The GUI Retained API is locked for a recursive query. FrameDelete cannot be executed here");
 				return;
 			}
 
@@ -201,7 +201,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
+				custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "The GUI Retained API is locked for a recursive query. GarbageCollect cannot be executed here");
 				return;
 			}
 
@@ -576,11 +576,26 @@ namespace ANON
 
 			RecursionGuard guard(*this);
 
-			for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
+			if (movementCallstack.size() == 1 && movementCallstack[0].panelId == captureId)
 			{
-				if (i->panel->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
+				auto* target = movementCallstack[0].panel;
+				while (target)
 				{
-					result = EGREventRouting::Terminate;
+					if (target->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
+					{
+						break;
+					}
+					target = target->Parent();
+				}
+			}
+			else
+			{
+				for (auto i = movementCallstack.rbegin(); i != movementCallstack.rend(); ++i)
+				{
+					if (i->panel->Widget().Manager().OnCursorMove(ev) == EGREventRouting::Terminate)
+					{
+						result = EGREventRouting::Terminate;
+					}
 				}
 			}
 
@@ -678,7 +693,7 @@ namespace ANON
 				back = eventQueue->GetBackSlot();
 				if (!back)
 				{
-					Throw(0, "%s: Expected back slot after front was popped", __FUNCTION__);
+					Throw(0, "%s: Expected back slot after front was popped", __ROCOCO_FUNCTION__);
 				}
 			}
 
@@ -693,7 +708,7 @@ namespace ANON
 		{
 			if (queryDepth > 0)
 			{
-				this->custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __FUNCTION__, "Error, API consumer attempted to DispatchMessages from within a GR locked section.");
+				this->custodian.RaiseError(nullptr, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "Error, API consumer attempted to DispatchMessages from within a GR locked section.");
 			}
 
 			std::swap(dispatchQueue, eventQueue);
@@ -761,15 +776,6 @@ namespace ANON
 	};
 }
 
-namespace Rococo
-{
-	// Copied from the maths lib. We want our DLL to depend on as few libraries as possible to make it easier to re-use in third party apps
-	bool IsPointInRect(Vec2i p, const GuiRect& rect)
-	{
-		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
-	}
-}
-
 namespace Rococo::Gui
 {
 	ROCOCO_GUI_RETAINED_API IGRSystemSupervisor* CreateGRSystem(GRConfig& config, IGRCustodian& custodian)
@@ -785,19 +791,19 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b)
 	{
-		return _stricmp(a, b) == 0;
+		return Strings::EqI(a, b);
 	}
 
 	static bool Is(cstr a, cstr b)
 	{
-		return _stricmp(a, b) == 0;
+		return Strings::EqI(a, b);
 	}
 
 	ROCOCO_GUI_RETAINED_API GRAlignmentFlags::GRAlignmentFlags(cstr textRepresentation)
 	{
 		if (textRepresentation == nullptr)
 		{
-			Throw(0, __FUNCTION__ "(nullptr)");
+			Rococo::Throw(0, "%s: (nullptr)", __ROCOCO_FUNCTION__);
 		}
 
 		if (Is(textRepresentation, "left"))
@@ -853,7 +859,7 @@ namespace Rococo::Gui
 			return;
 		}
 
-		Throw(0, "Expecting one of [Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight, Centre]");
+		Rococo::Throw(0, "Expecting one of [Left, Right, Top, Bottom, TopLeft, TopRight, BottomLeft, BottomRight, Centre]");
 	}
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetMainFrame* FindOwner(IGRWidget& widget)

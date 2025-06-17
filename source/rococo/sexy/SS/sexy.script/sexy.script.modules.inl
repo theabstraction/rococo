@@ -84,26 +84,26 @@ namespace Rococo::Script
 
 	IStructureBuilder& DeclareStrongType(IModuleBuilder& module, cstr strongName, cstr primitiveType, cr_sex src)
 	{
-		VARTYPE type;
+		SexyVarType type;
 		if (Eq(primitiveType, "Int32"))
 		{
-			type = VARTYPE_Int32;
+			type = SexyVarType_Int32;
 		}
 		else if (Eq(primitiveType, "Int64"))
 		{
-			type = VARTYPE_Int64;
+			type = SexyVarType_Int64;
 		}
 		else if (Eq(primitiveType, "Float32"))
 		{
-			type = VARTYPE_Float32;
+			type = SexyVarType_Float32;
 		}
 		else if (Eq(primitiveType, "Float64"))
 		{
-			type = VARTYPE_Float64;
+			type = SexyVarType_Float64;
 		}
 		else if (Eq(primitiveType, "Bool"))
 		{
-			type = VARTYPE_Bool;
+			type = SexyVarType_Bool;
 		}
 		else
 		{
@@ -413,7 +413,7 @@ namespace Rococo::Script
 		IArgumentBuilder& arg = f.AddClosureInput(NameString::From(idString), TypeString::From(typeString), (void*)&src);
 		Resolve(arg, typeString->Buffer, idString->Buffer, f.Name(), type);
 
-		if (arg.ResolvedType()->VarType() != VARTYPE_Closure)
+		if (arg.ResolvedType()->VarType() != SexyVarType_Closure)
 		{
 			Throw(type, "The type must be an archetype in a closure input");
 		}
@@ -648,7 +648,7 @@ namespace Rococo::Script
 		for(int i = 0; i < type->MemberCount(); ++i)
 		{
 			const IMember& m = type->GetMember(i);
-			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != VARTYPE_Array && m.UnderlyingType()->VarType() != VARTYPE_Map && m.UnderlyingType()->VarType() != VARTYPE_List)
+			if (m.UnderlyingGenericArg1Type() != NULL && m.UnderlyingType()->VarType() != SexyVarType_Array && m.UnderlyingType()->VarType() != SexyVarType_Map && m.UnderlyingType()->VarType() != SexyVarType_List)
 			{
 				ValidateChildConstructorExists(startPos, endPos, constructorDef, m);
 			}
@@ -922,7 +922,7 @@ namespace Rococo::Script
 
 		if (def.SFOffset < 0) Throw(sequence, ("Algorithmic error #2 in deconstruction logic"));
 
-		if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() == 0)
+		if (def.Usage == ARGUMENTUSAGE_BYVALUE && def.ResolvedType->VarType() == SexyVarType_Derivative && def.ResolvedType->InterfaceCount() == 0)
 		{
 			AppendInvokeDestructor(ce, instanceName, sequence, def);
 		}
@@ -1136,7 +1136,7 @@ namespace Rococo::Script
 					f.Builder().AddSymbol(symbol);
 					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullValue, BITCOUNT_POINTER);
 				}
-				else if (argType.VarType() == VARTYPE_Closure)
+				else if (argType.VarType() == SexyVarType_Closure)
 				{
 					auto& member0 = def.ResolvedType->GetMember(0);
 					auto& member1 = def.ResolvedType->GetMember(0);
@@ -1228,7 +1228,7 @@ namespace Rococo::Script
 				ce.Builder.PopLastVariables(1,true); // registerIndexToRef contains the value pointer
 				ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), registerIndexToRef, offset); // write the argument to the member	
 			}
-			else if (mtype.VarType() == VARTYPE_Derivative)
+			else if (mtype.VarType() == SexyVarType_Derivative)
 			{
 				if (mtype.Prototype().IsClass && !IsNullType(mtype))
 				{
@@ -2548,7 +2548,7 @@ namespace Rococo::Script
 						}
 
 						const IMember& bufferMember = s.GetMember(4);
-						if (bufferMember.UnderlyingType()->VarType() != VARTYPE_Pointer || !AreEqual(("buffer"), bufferMember.Name()))
+						if (bufferMember.UnderlyingType()->VarType() != SexyVarType_Pointer || !AreEqual(("buffer"), bufferMember.Name()))
 						{
 							char buf[256];
 							StackStringBuilder ssb(buf, sizeof buf);
@@ -2558,7 +2558,7 @@ namespace Rococo::Script
 						}
 
 						const IMember& lenMember = s.GetMember(3);
-						if (lenMember.UnderlyingType()->VarType() != VARTYPE_Int32 || !AreEqual(("length"), lenMember.Name()))
+						if (lenMember.UnderlyingType()->VarType() != SexyVarType_Int32 || !AreEqual(("length"), lenMember.Name()))
 						{
 							char buf[256];
 							StackStringBuilder ssb(buf, sizeof buf);
@@ -3772,7 +3772,7 @@ namespace Rococo::Script
 		}
 	}
 
-	void AssertExpectedParse(cr_sex source, VariantValue& value, VARTYPE type, cstr buffer)
+	void AssertExpectedParse(cr_sex source, VariantValue& value, SexyVarType type, cstr buffer)
 	{
 		auto result = Parse::TryParse(value, type, buffer);
 		switch (result)
@@ -4031,7 +4031,7 @@ namespace Rococo::Script
 
 			auto type = m.UnderlyingType()->VarType();
 
-			if (!IsPrimitiveType(type) && type != VARTYPE_Array && type != VARTYPE_Map && type != VARTYPE_List)
+			if (!IsPrimitiveType(type) && type != SexyVarType_Array && type != SexyVarType_Map && type != SexyVarType_List)
 			{
 				if (m.UnderlyingGenericArg1Type())
 				{

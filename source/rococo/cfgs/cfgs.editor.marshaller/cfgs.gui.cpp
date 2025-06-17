@@ -427,7 +427,7 @@ namespace Rococo::CFGS::Internal
 				else
 				{
 					char abbreviations[10];
-					if (Abbreviate(abbreviations, sizeof abbreviations, rhs))
+					if (Abbreviate(abbreviations, sizeof(abbreviations), rhs))
 					{
 						width = fgr.MeasureText(abbreviations);
 						if (width < Width(namePlateTextRect))

@@ -723,7 +723,7 @@ namespace Rococo::Sex::Inference
 	{
 		if (candidate.start < textBuffer)
 		{
-			Throw(0, "Bad candidate. Ensure the substring is that of the text buffer supplied in the constructor of the class");
+			Rococo::Throw(0, "Bad candidate. Ensure the substring is that of the text buffer supplied in the constructor of the class");
 		}
 
 		Substring token = TruncateToBeforeFirstDot(candidate);

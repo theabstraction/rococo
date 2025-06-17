@@ -6,7 +6,15 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
-# include <DirectXMath.h>
+#include <DirectXMath.h>
+#else
+#define _XM_NO_INTRINSICS_
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wdefaulted-function-deleted"
+# include <third-party/rococo.DirectXMath.h>
+# pragma clang diagnostic pop
+# undef _XM_NO_INTRINSICS_
+#endif
 
 using namespace Rococo::Strings;
 
@@ -18,7 +26,7 @@ namespace Rococo
 
       XMMATRIX xm = XMLoadFloat4x4(m);
       XMVECTOR xdet = XMMatrixDeterminant(xm);
-      return xdet.m128_f32[0];
+      return XMVectorGetX(xdet);
    }
 
    Vec4 operator * (float scale, const Vec4& v)
@@ -69,10 +77,12 @@ namespace Rococo
 
    void XMVectorToVec4(DirectX::XMVECTOR xv, Vec4& v)
    {
-      v.x = xv.m128_f32[0];
-      v.y = xv.m128_f32[1];
-      v.z = xv.m128_f32[2];
-      v.w = xv.m128_f32[3];
+	   using namespace DirectX;
+
+      v.x = XMVectorGetX(xv);
+      v.y = XMVectorGetY(xv);
+      v.z = XMVectorGetZ(xv);
+      v.w = XMVectorGetW(xv);
    }
 
    void XMMatrixToM4x4(DirectX::XMMATRIX xm, Matrix4x4& m)
@@ -189,7 +199,7 @@ namespace Rococo
    }
 
    AABB2d::AABB2d():
-	   left(1.0e37f), bottom(1.0e37f), top(-1.0e37f), right(-1.0e37f)
+	   left(1.0e37f), bottom(1.0e37f), right(-1.0e37f), top(-1.0e37f)
    {
    }
 
@@ -359,7 +369,7 @@ namespace Rococo
 
       auto p = DirectX::XMQuaternionSlerp(A, B, t);
 
-      return Quat(Vec3{ p.m128_f32[0],p.m128_f32[1], p.m128_f32[2] }, p.m128_f32[3]);
+      return Quat(Vec3{ XMVectorGetX(p), XMVectorGetY(p), XMVectorGetZ(p) },XMVectorGetW(p));
    }
 
    Vec4 operator * (const Vec4& v, const Matrix4x4& R)
@@ -376,7 +386,7 @@ namespace Rococo
    }
 }
 
-#endif
+
 
 namespace // globals
 {
@@ -736,41 +746,6 @@ namespace Rococo
 	{
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
-
-#ifndef _WIN32
-
-	struct M4x4_Cell
-	{
-		float m[4][4];
-	};
-
-	float DotRowByColumn(int rowIndex, int columnIndex, cr_m4x4 a, cr_m4x4 b)
-	{
-		auto& A = (const M4x4_Cell&)a;
-		auto& B = (const M4x4_Cell&)b;
-
-		float sum = 0;
-		for (int i = 0; i < 4; i++)
-		{
-			sum += A.m[rowIndex][i] * B.m[i][columnIndex];
-		}
-
-		return sum;
-	}
-
-	void Multiply(Matrix4x4& result, cr_m4x4 a, cr_m4x4 b)
-	{
-		auto& R = (M4x4_Cell&)result;
-
-		for (int y = 0; y < 4; y++)
-		{
-			for (int x = 0; x < 4; x++)
-			{
-				R.m[y][x] = DotRowByColumn(y, x, a, b);
-			}
-		}
-	}
-#endif
 
 	Matrix4x4 operator * (const Matrix4x4& a, const Matrix4x4& b)
 	{

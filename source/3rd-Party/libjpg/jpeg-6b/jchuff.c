@@ -27,7 +27,7 @@
  */
 
 typedef struct {
-  INT32 put_buffer;		/* current bit-accumulation buffer */
+  JTYPE_INT32 put_buffer;		/* current bit-accumulation buffer */
   int put_bits;			/* # of bits now in it */
   int last_dc_val[MAX_COMPS_IN_SCAN]; /* last DC coef for each component */
 } savable_state;
@@ -175,7 +175,7 @@ start_pass_huff (j_compress_ptr cinfo, boolean gather_statistics)
  * Note this is also used by jcphuff.c.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_make_c_derived_tbl (j_compress_ptr cinfo, boolean isDC, int tblno,
 			 c_derived_tbl ** pdtbl)
 {
@@ -232,7 +232,7 @@ jpeg_make_c_derived_tbl (j_compress_ptr cinfo, boolean isDC, int tblno,
     /* code is now 1 more than the last code used for codelength si; but
      * it must still fit in si bits, since no code is allowed to be all ones.
      */
-    if (((INT32) code) >= (((INT32) 1) << si))
+    if (((JTYPE_INT32) code) >= (((JTYPE_INT32) 1) << si))
       ERREXIT(cinfo, JERR_BAD_HUFF_TABLE);
     code <<= 1;
     si++;
@@ -303,14 +303,14 @@ emit_bits (working_state * state, unsigned int code, int size)
 /* Emit some bits; return TRUE if successful, FALSE if must suspend */
 {
   /* This routine is heavily used, so it's worth coding tightly. */
-  register INT32 put_buffer = (INT32) code;
+  register JTYPE_INT32 put_buffer = (JTYPE_INT32) code;
   register int put_bits = state->cur.put_bits;
 
   /* if size is 0, caller used an invalid Huffman table entry */
   if (size == 0)
     ERREXIT(state->cinfo, JERR_HUFF_MISSING_CODE);
 
-  put_buffer &= (((INT32) 1)<<size) - 1; /* mask off any extra bits in code */
+  put_buffer &= (((JTYPE_INT32) 1)<<size) - 1; /* mask off any extra bits in code */
   
   put_bits += size;		/* new number of bits in buffer */
   
@@ -701,7 +701,7 @@ encode_mcu_gather (j_compress_ptr cinfo, JBLOCKROW *MCU_data)
  * So the extra complexity of an optimal algorithm doesn't seem worthwhile.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_gen_optimal_table (j_compress_ptr cinfo, JHUFF_TBL * htbl, long freq[])
 {
 #define MAX_CLEN 32		/* assumed maximum initial code length */
@@ -887,7 +887,7 @@ finish_pass_gather (j_compress_ptr cinfo)
  * Module initialization routine for Huffman entropy encoding.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_huff_encoder (j_compress_ptr cinfo)
 {
   huff_entropy_ptr entropy;

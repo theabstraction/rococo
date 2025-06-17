@@ -39,7 +39,7 @@ void MainProtected(int argc, char* argv[])
 	mod.hModule = LoadLibraryA(dllname);
 	if (!mod.hModule)
 	{
-		Throw(GetLastError(), "%s: Could not load library: %s", __FUNCTION__, dllname);
+		Throw(GetLastError(), "%s: Could not load library: %s", __ROCOCO_FUNCTION__, dllname);
 	}
 
 	cstr procName = "Create_CFGS_Win32_CLI";
@@ -47,7 +47,7 @@ void MainProtected(int argc, char* argv[])
 	FARPROC factoryProc = GetProcAddress(mod.hModule, procName);
 	if (!factoryProc)
 	{
-		Throw(GetLastError(), "%s: Could not load find '%s' in %s", __FUNCTION__, procName, dllname);
+		Throw(GetLastError(), "%s: Could not load find '%s' in %s", __ROCOCO_FUNCTION__, procName, dllname);
 	}
 
 	FN_Create_CFGS_Win32_CLI createCLI = (FN_Create_CFGS_Win32_CLI)factoryProc;

@@ -6,7 +6,55 @@
 
 #pragma warning (disable: 4996)
 
-namespace Rococo::Format
+#ifndef _WIN32
+int _i64toa_s(int64 value, char* buffer, size_t  capacity, int radix)
+{
+	switch (radix)
+	{
+	case 10:
+		return snprintf(buffer, capacity, "%lld", value);
+	case 16:
+		return snprintf(buffer, capacity, "%llX", value);
+	default:
+		return 0;
+	}
+}
+
+int _ui64toa_s(int64 value, char* buffer, size_t  capacity, int radix)
+{
+	switch (radix)
+	{
+	case 10:
+		return snprintf(buffer, capacity, "%llu", value);
+	case 16:
+		return snprintf(buffer, capacity, "%llX", value);
+	default:
+		return 0;
+	}
+}
+
+int _itoa_s(int value, char* buffer, size_t capacity, int radix)
+{
+	switch (radix)
+	{
+	case 10:
+		return snprintf(buffer, capacity, "%d", value);
+	case 16:
+		return snprintf(buffer, capacity, "%X", value);
+	default:
+		return 0;
+	}
+}
+
+template <size_t size>
+inline int _itoa_s(int value, char(&buffer)[size], int radix)
+{
+	return _itoa_s(value, buffer, size, radix);
+}
+
+#endif
+
+namespace Rococo::Formatting
 {
 	bool AddThousandMarkers(cstr asciiRep, size_t nChars, char* buffer, size_t capacity, char thousandMarkerChar)
 	{
@@ -56,8 +104,7 @@ namespace Rococo::Format
 		}
 
 		size_t nChars = strlen(asciiRep);
-
-		if (!asciiRep || nChars >= capacity)
+		if (nChars == 0 || nChars >= capacity)
 		{
 			return false;
 		}
@@ -81,8 +128,7 @@ namespace Rococo::Format
 		}
 
 		size_t nChars = strlen(asciiRep);
-
-		if (!asciiRep || nChars >= capacity)
+		if (nChars == 0 || nChars >= capacity)
 		{
 			return false;
 		}

@@ -25,7 +25,7 @@ namespace Rococo
 	using TRemoveReference = typename RemoveReference<_Ty>::Type;
 
 	template <class _Ty>
-	FORCE_INLINE  [[nodiscard]] constexpr _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
+	[[nodiscard]] FORCE_INLINE constexpr _Ty&& Forward(TRemoveReference<_Ty>& _Arg) noexcept
 	{
 		// forward an lvalue as either an lvalue or an rvalue
 		return static_cast<_Ty&&>(_Arg);
@@ -102,7 +102,7 @@ namespace Rococo
 		template<typename FUNCTOR>
 		StackComissary(FUNCTOR f)
 		{
-			static_assert(CAPACITY >= sizeof FUNCTOR, "StackComissary requires more stackspace to handle the delegate passed to it");
+			static_assert(CAPACITY >= sizeof(FUNCTOR), "StackComissary requires more stackspace to handle the delegate passed to it");
 			new (stackspace) ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>(f);
 		}
 
@@ -173,7 +173,7 @@ namespace Rococo
 		template<typename FUNCTOR>
 		ArbitraryFunction(FUNCTOR f)
 		{
-			if constexpr (sizeof ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...> > sizeof stackspace)
+			if constexpr (sizeof(ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>) > sizeof(stackspace))
 			{
 				implementation = new ComissaryWithFunctor<FUNCTOR, RETURN_TYPE, ARGS...>(f);
 			}
@@ -299,9 +299,9 @@ namespace Rococo::Strings
 namespace Rococo::OS
 {
 	// Open a file and invokes a callback with a pointer to content. The file is closed at the point that the callback is invoked. 
-	ROCOCO_API void LoadAsciiTextFile(const wchar_t* filename, Function<void(cstr)> callback);
+	ROCOCO_API void LoadAsciiTextFile(crwstr filename, Function<void(cstr)> callback);
 	ROCOCO_API void LoadAsciiTextFile(cstr filename, Function<void(cstr)> callback);
-	ROCOCO_API void LoadBinaryFile(const wchar_t* filename, Function<void(uint8* buffer, size_t fileLength)> callback);
+	ROCOCO_API void LoadBinaryFile(crwstr filename, Function<void(uint8* buffer, size_t fileLength)> callback);
 	ROCOCO_API void LoadBinaryFile(cstr filename, Function<void(uint8* buffer, size_t fileLength)> callback);
 }
 

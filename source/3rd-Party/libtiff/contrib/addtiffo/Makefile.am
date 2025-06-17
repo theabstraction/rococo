@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -25,12 +25,16 @@
 
 LIBTIFF = $(top_builddir)/libtiff/libtiff.la
 
-EXTRA_DIST = README Makefile.vc
+EXTRA_DIST = \
+	CMakeLists.txt \
+	README
 
+if TIFF_CONTRIB
 noinst_PROGRAMS = addtiffo
+endif
 
 addtiffo_SOURCES = addtiffo.c tif_overview.c tif_ovrcache.c tif_ovrcache.h
 addtiffo_LDADD = $(LIBTIFF)
 
-INCLUDES = -I$(top_srcdir)/libtiff
+AM_CPPFLAGS = -I$(top_srcdir)/libtiff
 

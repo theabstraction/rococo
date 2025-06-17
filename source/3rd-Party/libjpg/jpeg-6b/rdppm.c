@@ -409,14 +409,14 @@ start_input_ppm (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
 
   /* Compute the rescaling array if required. */
   if (need_rescale) {
-    INT32 val, half_maxval;
+    JTYPE_INT32 val, half_maxval;
 
     /* On 16-bit-int machines we have to be careful of maxval = 65535 */
     source->rescale = (JSAMPLE *)
       (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
 				  (size_t) (((long) maxval + 1L) * SIZEOF(JSAMPLE)));
     half_maxval = maxval / 2;
-    for (val = 0; val <= (INT32) maxval; val++) {
+    for (val = 0; val <= (JTYPE_INT32) maxval; val++) {
       /* The multiplication here must be done in 32 bits to avoid overflow */
       source->rescale[val] = (JSAMPLE) ((val*MAXJSAMPLE + half_maxval)/maxval);
     }
@@ -439,7 +439,7 @@ finish_input_ppm (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
  * The module selection routine for PPM format input.
  */
 
-GLOBAL(cjpeg_source_ptr)
+JPEG_GLOBAL_API cjpeg_source_ptr
 jinit_read_ppm (j_compress_ptr cinfo)
 {
   ppm_source_ptr source;

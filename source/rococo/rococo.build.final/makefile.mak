@@ -1,5 +1,4 @@
 rebuild:
-	echo Hi
 	@..\..\build\tools\package.bat $(CONFIG)
 	@..\..\build\tools\ship.sexystudio.bat $(CONFIG)
 

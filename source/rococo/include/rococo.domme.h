@@ -116,7 +116,7 @@ namespace Rococo::Domme
 
 #ifdef _DEBUG
 # define REGISTER_DOMME_CALL(x) CallContext register_CC(x)
-# define VALIDATE_REGISTERS register_CC.ValidateRegisters(__FUNCTION__, __FILE__, __LINE__);
+# define VALIDATE_REGISTERS register_CC.ValidateRegisters(__ROCOCO_FUNCTION__, __FILE__, __LINE__);
 #else
 # define REGISTER_DOMME_CALL(x) 
 # define VALIDATE_REGISTERS

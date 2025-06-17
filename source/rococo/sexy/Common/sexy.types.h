@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#pragma once
+
 #ifndef SEXY_H
 # define SEXY_H
 
@@ -41,9 +43,9 @@
 #  define SEXY_SPARSER_API
 # endif
 
-# ifndef SEXYUTIL_API
-#  define SEXYUTIL_API __declspec(dllimport)
-# endif
+#ifndef SEXYUTIL_API
+# error "define SEXYUTIL_API in your compile environment first"
+#endif
 
 // If defined will use std allocators rather than those for specific for sexy. Best used/defined when SexyScript is shipped in DLL modules
 // #define USE_STD_ALLOCATOR_FOR_SEXY 
@@ -90,7 +92,7 @@ namespace Rococo
 
 	enum { NAMESPACE_MAX_LENGTH = 128 };
 
-#define __SEXFUNCTION__ __FUNCTION__
+#define __SEXFUNCTION__ __ROCOCO_FUNCTION__
 
 
 #ifdef _WIN32
@@ -131,9 +133,6 @@ namespace Rococo
 
 	bool TryParseSexHex(char& finalChar, cstr s);
 	bool ParseEscapeCharacter(char& finalChar, char c);
-
-	SEXYUTIL_API sexstring CreateSexString(cstr src, int32 length = -1);
-	SEXYUTIL_API void FreeSexString(sexstring s);
 
 	ROCOCO_INTERFACE ILog
 	{
@@ -192,16 +191,7 @@ namespace Rococo
 		BITCOUNT_64 = 64,
 		BITCOUNT_128 = 128,
 		BITCOUNT_ID_API = 8 * sizeof(ID_API_CALLBACK),
-
-#ifdef _WIN64
 		BITCOUNT_POINTER = 64
-#else
-# ifdef _WIN32
-# error "32-bit Windows is no longer supported"
-# else
-		BITCOUNT_POINTER = 64
-# endif
-#endif
 	};
 
 	enum CONDITION
@@ -360,10 +350,10 @@ namespace Rococo
 			virtual ISourceCode* ProxySourceBuffer(cstr bufferRef, int segmentLength, const Vec2i& origin, cstr nameRef, IPackage* package = nullptr) = 0;
 
 			// Loads source code, converts it to chars and returns a reference to it
-			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin) = 0;
+			virtual ISourceCode* LoadSource(crwstr filename, const Vec2i& origin) = 0;
 
 			// Loads source code, using the raw char* buffer
-			virtual ISourceCode* LoadSource(const wchar_t* filename, const Vec2i& origin, const char* buffer, long len) = 0;
+			virtual ISourceCode* LoadSource(crwstr filename, const Vec2i& origin, const char* buffer, long len) = 0;
 
 			// Enable persistence of comments in the form of a mapping from ISExpression to comment blocks
 			virtual void MapComments() = 0;
@@ -377,29 +367,26 @@ namespace Rococo
 			virtual cstr Name() const = 0; // The name of the source segment
 			virtual const IPackage* Package() const = 0; // If the source code is part of a package, this returns the package pointer, else it returns nulllptr
 		};
-
-		ROCOCO_API cstr ReadUntil(const Vec2i& pos, const ISourceCode& src);
-		ROCOCO_API void GetSpecimen(char specimen[64], const ISExpression& e);
 	} // Sex
 
-	enum VARTYPE
+	enum SexyVarType
 	{
-		VARTYPE_Bool,
-		VARTYPE_Float32,
-		VARTYPE_Float64,
-		VARTYPE_Int32,
-		VARTYPE_Int64,
-		VARTYPE_Pointer,
-		VARTYPE_Derivative,
-		VARTYPE_Bad,
-		VARTYPE_Closure,
-		VARTYPE_AnyNumeric, // Not really a type, passed to a function to indicate any numeric type is valid
-		VARTYPE_Array,
-		VARTYPE_List,
-		VARTYPE_Map,
-		VARTYPE_ListNode,
-		VARTYPE_MapNode,
-		VARTYPE_Lock
+		SexyVarType_Bool,
+		SexyVarType_Float32,
+		SexyVarType_Float64,
+		SexyVarType_Int32,
+		SexyVarType_Int64,
+		SexyVarType_Pointer,
+		SexyVarType_Derivative,
+		SexyVarType_Bad,
+		SexyVarType_Closure,
+		SexyVarType_AnyNumeric, // Not really a type, passed to a function to indicate any numeric type is valid
+		SexyVarType_Array,
+		SexyVarType_List,
+		SexyVarType_Map,
+		SexyVarType_ListNode,
+		SexyVarType_MapNode,
+		SexyVarType_Lock
 	};
 
 	namespace Sex
@@ -411,8 +398,17 @@ namespace Rococo
 		SEXY_SPARSER_API void AssertNotTooManyElements(cr_sex e, int32 maxElements);
 		SEXY_SPARSER_API void AssertNotTooFewElements(cr_sex e, int32 minElements);
 		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex);
-		[[noreturn]] ROCOCO_API void Throw(cr_sex e, _Printf_format_string_ cstr format, ...);
 	}
-}// Sexy
+}// Rococo
+
+namespace Rococo::VM
+{
+	struct CPU;
+}
+
+namespace Rococo::Debugger
+{
+	DECLARE_ROCOCO_INTERFACE IRegisterEnumerationCallback;
+}
 
 #endif

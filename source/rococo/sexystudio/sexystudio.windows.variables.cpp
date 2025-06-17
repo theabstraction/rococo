@@ -113,7 +113,7 @@ namespace ANON
 			hWndDropDown = CreateWindowExA(0, WC_COMBOBOXA, "", style, 0, 0, 100, dropDownHeight, backWindow, NULL, NULL, NULL);
 			if (hWndDropDown == NULL)
 			{
-				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to create window", __ROCOCO_FUNCTION__);
 			}
 
 			SetWindowTextA(backWindow, "DropDownList");
@@ -254,7 +254,7 @@ namespace ANON
 			hWndList = CreateWindowExA(0, WC_LISTBOXA, "", style, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
 			if (hWndList == NULL)
 			{
-				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to create window", __ROCOCO_FUNCTION__);
 			}
 
 			SetWindowTextA(backWindow, "ListWidgetBackground");
@@ -447,7 +447,7 @@ namespace ANON
 			hWndEditor = CreateWindowExA(0, WC_EDITA, "", WS_CHILD | ES_AUTOHSCROLL, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
 			if (hWndEditor == NULL)
 			{
-				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to create window", __ROCOCO_FUNCTION__);
 			}
 
 			SetWindowTextA(backWindow, "AsciiStringEditor");
@@ -492,7 +492,7 @@ namespace ANON
 		{
 			if (capacityBytes > 1_megabytes)
 			{
-				Throw(0, "%s: sanity check failed. Capacity > 1 meg", __FUNCTION__);
+				Throw(0, "%s: sanity check failed. Capacity > 1 meg", __ROCOCO_FUNCTION__);
 			}
 
 			this->boundBuffer = buffer;
@@ -609,7 +609,7 @@ namespace ANON
 			hWndEditor = CreateWindowExA(0, WC_EDITA, "", WS_CHILD | ES_AUTOHSCROLL, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
 			if (hWndEditor == NULL)
 			{
-				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to create window", __ROCOCO_FUNCTION__);
 			}
 
 			SetWindowTextA(backWindow, "FilePathEditor");

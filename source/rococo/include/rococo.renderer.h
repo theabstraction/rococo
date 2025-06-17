@@ -537,12 +537,14 @@ namespace Rococo::Graphics
 
 namespace Rococo
 {
+	struct KeyboardEventEx;
+
 	ROCOCO_INTERFACE IApp
 	{
 		virtual void Free() = 0;
 		virtual void OnCreate() = 0;
 		virtual auto OnFrameUpdated(const IUltraClock& clock)->uint32 = 0; // returns number of ms to sleep per frame as hint
-		virtual void OnKeyboardEvent(const KeyboardEvent& k) = 0;
+		virtual void OnKeyboardEvent(const KeyboardEventEx& k) = 0;
 		virtual void OnMouseEvent(const MouseEvent& me) = 0;
 	};
 }

@@ -63,7 +63,7 @@ namespace Rococo::ECS
 				field++;
 				if (field >= &linkedComponentTables[CT_BITFIELD_ARRAY_SIZE])
 				{
-					Throw(0, "%s: exhausted bitfields. Increase CT_BITFIELD_ARRAY_SIZE to %u", __FUNCTION__, CT_BITFIELD_ARRAY_SIZE + 1);
+					Throw(0, "%s: exhausted bitfields. Increase CT_BITFIELD_ARRAY_SIZE to %u", __ROCOCO_FUNCTION__, CT_BITFIELD_ARRAY_SIZE + 1);
 				}
 			}
 
@@ -298,17 +298,17 @@ namespace Rococo::ECS
 			auto i = std::find(componentTables.begin(), componentTables.end(), &table);
 			if (i != componentTables.end())
 			{
-				Throw(0, "%s: Duplicate table reference provided", __FUNCTION__);
+				Throw(0, "%s: Duplicate table reference provided", __ROCOCO_FUNCTION__);
 			}
 
 			if (newRoidCount > 0)
 			{
-				Throw(0, "%s: Unable to link component table. ROIDS have already been created.", __FUNCTION__);
+				Throw(0, "%s: Unable to link component table. ROIDS have already been created.", __ROCOCO_FUNCTION__);
 			}
 
 			if (componentTables.size() >= CT_BITFIELD_ARRAY_SIZE * CT_BITFIELD_ELEMENT_BITCOUNT)
 			{
-				Throw(0, "%s: Insufficient elements in bitfield array", __FUNCTION__);
+				Throw(0, "%s: Insufficient elements in bitfield array", __ROCOCO_FUNCTION__);
 			}
 
 			uint32 index = (uint32)componentTables.size();
@@ -357,25 +357,25 @@ namespace Rococo::ECS
 		{
 			if (sourceTableIndex >= componentTables.size())
 			{
-				Throw(0, "%s: Invalid [sourceTableIndex=%u]", __FUNCTION__, sourceTableIndex);
+				Throw(0, "%s: Invalid [sourceTableIndex=%u]", __ROCOCO_FUNCTION__, sourceTableIndex);
 			}
 
 			if (roid.index >= handleTable.size())
 			{
-				Throw(0, "%s: Invalid [id=%d]", __FUNCTION__, roid.index);
+				Throw(0, "%s: Invalid [id=%d]", __ROCOCO_FUNCTION__, roid.index);
 			}
 
 			RCObject& object = handleTable[roid.index];
 			ROID_SALT salt = object.salt;
 			if (salt.cycle != roid.salt.cycle)
 			{
-				Throw(0, "%s: Invalid [id=%d]. (Bad salt value %u)", __FUNCTION__, roid.index, roid.salt.cycle);
+				Throw(0, "%s: Invalid [id=%d]. (Bad salt value %u)", __ROCOCO_FUNCTION__, roid.index, roid.salt.cycle);
 			}
 
 			uint32 bitmapArrayIndex = sourceTableIndex / CT_BITFIELD_ELEMENT_BITCOUNT;
 			if (bitmapArrayIndex >= CT_BITFIELD_ARRAY_SIZE)
 			{
-				Throw(0, "%s: Insufficient bits in RCObject bitfield. Increase CT_BITFIELD_ARRAY_SIZE to %u", __FUNCTION__, bitmapArrayIndex + 1);
+				Throw(0, "%s: Insufficient bits in RCObject bitfield. Increase CT_BITFIELD_ARRAY_SIZE to %u", __ROCOCO_FUNCTION__, bitmapArrayIndex + 1);
 			}
 
 			auto& bf = object.linkedComponents[bitmapArrayIndex];

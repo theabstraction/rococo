@@ -6,11 +6,11 @@
 #endif
 
 #ifndef ROCOCO_JPEG_API
-# define ROCOCO_JPEG_API ROCOCO_API_IMPORT
+# error "define ROCOCO_JPEG_API in your compile environment"
 #endif
 
 #ifndef ROCOCO_TIFF_API
-# define ROCOCO_TIFF_API ROCOCO_API_IMPORT
+# error "define ROCOCO_TIFF_API in your compile environment"
 #endif
 
 #include <rococo.types.h>

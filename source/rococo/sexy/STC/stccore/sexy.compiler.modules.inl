@@ -224,12 +224,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		IStructure& DeclareClass(cstr name, const StructurePrototype& prototype, const Sex::ISExpression* definition) override
 		{
-			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? VARTYPE_Closure : VARTYPE_Derivative, definition);
+			Structure* s = new Structure(name, prototype, *this, prototype.archetype != NULL ? SexyVarType_Closure : SexyVarType_Derivative, definition);
 			structures.Register(s->Name(), *s);
 			return *s;
 		}
 
-		IStructureBuilder& DeclareStrongType(cstr name, VARTYPE underlyingType) override
+		IStructureBuilder& DeclareStrongType(cstr name, SexyVarType underlyingType) override
 		{
 			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, NULL, false);
 
@@ -238,23 +238,23 @@ namespace Rococo { namespace Compiler { namespace Impl
 			cstr varName = nullptr;
 			switch (underlyingType)
 			{
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				varName = "Int32";
 				break;
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				varName = "Float32";
 				break;
-			case VARTYPE_Bool:	
+			case SexyVarType_Bool:	
 				varName = "Bool";
 				break;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				varName = "Float64";
 				break;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				varName = "Int64";
 					break;
 			default:
-				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __FUNCTION__, name);
+				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __ROCOCO_FUNCTION__, name);
 			}
 
 			s->AddMember(NameString::From("Value"), TypeString::From(varName));
@@ -264,17 +264,17 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 			switch (underlyingType)
 			{
-			case VARTYPE_Int32:
-			case VARTYPE_Float32:
-			case VARTYPE_Bool:
+			case SexyVarType_Int32:
+			case SexyVarType_Float32:
+			case SexyVarType_Bool:
 				m.SetSize(4);
 				break;
-			case VARTYPE_Float64:
-			case VARTYPE_Int64:
+			case SexyVarType_Float64:
+			case SexyVarType_Int64:
 				m.SetSize(8);
 				break;
 			default:
-				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __FUNCTION__, name);
+				Throw(ERRORCODE_BAD_ARGUMENT, this->Name(), "%s: %s - bad vartype", __ROCOCO_FUNCTION__, name);
 			}
 
 			s->Seal();
@@ -293,26 +293,26 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		IStructureBuilder& DeclareStructure(cstr name, const StructurePrototype& prototype, const Sex::ISExpression* definition) override
 		{
-			VARTYPE type;
+			SexyVarType type;
 			if (Eq(name, "_Array"))
 			{
-				type = VARTYPE_Array;
+				type = SexyVarType_Array;
 			}
 			else if (Eq(name, "_List"))
 			{
-				type = VARTYPE_List;
+				type = SexyVarType_List;
 			}
 			else if (Eq(name, "_Map"))
 			{
-				type = VARTYPE_Map;
+				type = SexyVarType_Map;
 			}
 			else if (prototype.archetype != NULL)
 			{
-				type = VARTYPE_Closure;
+				type = SexyVarType_Closure;
 			}
 			else
 			{
-				type = VARTYPE_Derivative;
+				type = SexyVarType_Derivative;
 			}
 
 			Structure* s = new Structure(name, prototype, *this, type, definition);

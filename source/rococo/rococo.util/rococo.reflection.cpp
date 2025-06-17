@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.reflector.h>
 #include <limits>
 #include <unordered_set>

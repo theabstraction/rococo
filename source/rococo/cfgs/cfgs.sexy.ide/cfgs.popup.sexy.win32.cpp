@@ -146,14 +146,14 @@ namespace ANON
 			size_t ptr;
 			if (1 != sscanf_s(at + 1, "%llX", &ptr))
 			{
-				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+				Throw(0, "%s: Bad option: %s", __ROCOCO_FUNCTION__, header.url.c_str());
 			}
 
 			ISXYFactory* sexyFactory = FindFirstFactoryIf(db.GetRootNamespace(),
 				[&fName, ptr](ISxyNamespace& ns, ISXYFactory& f) -> bool
 				{
 					char fqName[256];
-					StackStringBuilder sb(fqName, sizeof fqName);
+					StackStringBuilder sb(fqName, sizeof(fqName));
 					ns.AppendFullNameToStringBuilder(sb);
 					sb << ".";
 					sb << f.PublicName();
@@ -187,7 +187,7 @@ namespace ANON
 				}
 
 				char interfaceName[256];
-				sexyFactory->GetDefinedInterface(interfaceName, sizeof interfaceName);
+				sexyFactory->GetDefinedInterface(interfaceName, sizeof(interfaceName));
 
 				Colours colours = cosmetics.GetColoursForType(interfaceName);
 				auto& socket = node.AddSocket(interfaceName, SocketClass::OutputValue, "*this", SocketId());
@@ -208,14 +208,14 @@ namespace ANON
 			size_t ptr;
 			if (1 != sscanf_s(at + 1, "%llX", &ptr))
 			{
-				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+				Throw(0, "%s: Bad option: %s", __ROCOCO_FUNCTION__, header.url.c_str());
 			}
 	
 			ISXYPublicFunction* sexyFunction = FindFirstFunctionIf(db.GetRootNamespace(),
 				[&fName, ptr](ISxyNamespace& ns, ISXYPublicFunction& f) -> bool
 				{
 					char fqName[256];
-					StackStringBuilder sb(fqName, sizeof fqName);
+					StackStringBuilder sb(fqName, sizeof(fqName));
 					ns.AppendFullNameToStringBuilder(sb);
 					sb << ".";
 					sb << f.PublicName();
@@ -275,14 +275,14 @@ namespace ANON
 			size_t ptr;
 			if (1 != sscanf_s(at + 1, "%llX", &ptr))
 			{
-				Throw(0, "%s: Bad option: %s", __FUNCTION__, header.url.c_str());
+				Throw(0, "%s: Bad option: %s", __ROCOCO_FUNCTION__, header.url.c_str());
 			}
 
 			ISXYInterface* sexyInterface = FindFirstInterfaceIf(db.GetRootNamespace(),
 				[&fqName, ptr](ISxyNamespace& ns, ISXYInterface& f) -> bool
 				{
 					char iName[256];
-					StackStringBuilder sb(iName, sizeof iName);
+					StackStringBuilder sb(iName, sizeof(iName));
 					ns.AppendFullNameToStringBuilder(sb);
 					sb << ".";
 					sb << f.PublicName();
@@ -324,7 +324,7 @@ namespace ANON
 			if (pMethod)
 			{
 				char fqNameBuffer[256];
-				fqName.CopyWithTruncate(fqNameBuffer, sizeof fqNameBuffer);
+				fqName.CopyWithTruncate(fqNameBuffer, sizeof(fqNameBuffer));
 
 				Colours thisColours = cosmetics.GetColoursForType(fqNameBuffer);
 				auto& thisSocket = node.AddSocket(fqNameBuffer, SocketClass::InputVar, "*this", SocketId());
@@ -510,7 +510,7 @@ namespace ANON
 			cstr type = space + 1;
 
 			char nameBuffer[256];
-			name.CopyWithTruncate(nameBuffer, sizeof nameBuffer);
+			name.CopyWithTruncate(nameBuffer, sizeof(nameBuffer));
 
 			auto* graph = cfgs.CurrentFunction();
 			if (!graph)
@@ -546,7 +546,7 @@ namespace ANON
 			cstr type = space + 1;
 
 			char nameBuffer[256];
-			name.CopyWithTruncate(nameBuffer, sizeof nameBuffer);
+			name.CopyWithTruncate(nameBuffer, sizeof(nameBuffer));
 
 			auto* graph = cfgs.CurrentFunction();
 			if (!graph)
@@ -611,7 +611,7 @@ namespace ANON
 				NodeOption opt;
 
 				char visibleName[256];
-				StackStringBuilder visibleNameBuilder(visibleName, sizeof visibleName);
+				StackStringBuilder visibleNameBuilder(visibleName, sizeof(visibleName));
 
 				ns.AppendFullNameToStringBuilder(visibleNameBuilder);
 
@@ -664,7 +664,7 @@ namespace ANON
 				NodeOption opt;
 
 				char visibleName[256];
-				StackStringBuilder visibleNameBuilder(visibleName, sizeof visibleName);
+				StackStringBuilder visibleNameBuilder(visibleName, sizeof(visibleName));
 
 				ns.AppendFullNameToStringBuilder(visibleNameBuilder);
 
@@ -715,7 +715,7 @@ namespace ANON
 				}
 
 				char fqInterfaceName[256];
-				StackStringBuilder fqNameBuilder(fqInterfaceName, sizeof fqInterfaceName);
+				StackStringBuilder fqNameBuilder(fqInterfaceName, sizeof(fqInterfaceName));
 
 				ns.AppendFullNameToStringBuilder(fqNameBuilder);
 
@@ -767,7 +767,7 @@ namespace ANON
 		void AddMethodsForInterface(const ISXYInterface& refInterface, const ISxyNamespace& ns, int depth = 0)
 		{
 			char fqInterfaceName[256];
-			StackStringBuilder fqNameBuilder(fqInterfaceName, sizeof fqInterfaceName);
+			StackStringBuilder fqNameBuilder(fqInterfaceName, sizeof(fqInterfaceName));
 
 			ns.AppendFullNameToStringBuilder(fqNameBuilder);
 

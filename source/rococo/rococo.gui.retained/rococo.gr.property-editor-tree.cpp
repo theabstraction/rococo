@@ -14,8 +14,6 @@ using namespace Rococo::Gui;
 using namespace Rococo::Reflection;
 using namespace Rococo::Strings;
 
-#pragma optimize("", off)
-
 namespace GRANON
 {
 	struct PreviewData;
@@ -133,7 +131,7 @@ namespace GRANON
 	{
 		v.primitive.float64Value = 0;
 		v.stringValue.text = stringRef.c_str();
-		v.stringValue.capacity = max(4096ULL, stringRef.length() + 1);
+		v.stringValue.capacity = Rococo::max(4096ULL, stringRef.length() + 1ULL);
 		v.type = PrimitiveType::HSTR;
 		if (retainOrigin)
 		{
@@ -198,23 +196,23 @@ namespace GRANON
 			{
 				case PrimitiveType::I32:
 				{
-					auto result = Format::TryParseInt32FromDecimalStringSkippingCetera(text);
+					Formatting::TryParseResult<int32> result = Formatting::TryParseInt32FromDecimalStringSkippingCetera(text);
 					auto* origin = reinterpret_cast<int*>(value.primitiveOrigin);
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i32Value, meta.max.i32Value) : result.Value;
 
 					char buffer[16];
-					Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof(buffer));
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
 				case PrimitiveType::I64:
 				{
-					auto result = Format::TryParseInt64FromDecimalStringSkippingCetera(text);
+					Formatting::TryParseResult<int64> result = Formatting::TryParseInt64FromDecimalStringSkippingCetera(text);
 					auto* origin = reinterpret_cast<int64*>(value.primitiveOrigin);
 					*origin = meta.hasMinmax ? clamp(result.Value, meta.min.i64Value, meta.max.i64Value) : result.Value;
 
 					char buffer[32];
-					Format::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof buffer);
+					Formatting::ToAscii(*origin, 10, meta.addThousandMarks, ',', buffer, sizeof(buffer));
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
 				}
@@ -240,7 +238,7 @@ namespace GRANON
 
 					*origin = f1;
 					char buffer[32];
-					sprintf_s(buffer, "%f", *origin);
+					SafeFormat(buffer, "%f", *origin);
 					RemoveRedundantZeros(buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
@@ -266,7 +264,7 @@ namespace GRANON
 
 					*origin = d1;
 					char buffer[32];
-					sprintf_s(buffer, "%f", *origin);
+					SafeFormat(buffer, "%f", *origin);
 					RemoveRedundantZeros(buffer);
 					sender.SetText(buffer);
 					return EParseAndWriteBackResult::Success;
@@ -312,7 +310,7 @@ namespace GRANON
 		switch (variant.type)
 		{
 		case PrimitiveType::I32:
-			return Format::ToAscii(variant.primitive.int32Value, radix, meta.addThousandMarks, ',', buffer, capacity);
+			return Formatting::ToAscii(variant.primitive.int32Value, radix, meta.addThousandMarks, ',', buffer, capacity);
 		case PrimitiveType::I64:
 			return _i64toa_s(variant.primitive.int64Value, buffer, capacity, radix) != 0;
 		case PrimitiveType::U64:
@@ -761,12 +759,12 @@ namespace GRANON
 			}
 
 			char text[256];
-			editor.GetTextAndLength(text, sizeof text);
+			editor.GetTextAndLength(text, sizeof(text));
 
 			auto result = i->second->TryParseAndWriteBackToOrigin(text, editor);
 			if (result != EParseAndWriteBackResult::Success)
 			{
-				RaiseError(editor.Panel(), EGRErrorCode::Generic, __FUNCTION__, "TryParseAndWriteBackToOrigin failed with code %d", result);
+				RaiseError(editor.Panel(), EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "TryParseAndWriteBackToOrigin failed with code %d", result);
 			}
 		}
 
@@ -918,7 +916,7 @@ namespace GRANON
 			case PrimitiveType::CSTR:
 				if (field.value.stringValue.capacity > 0x7FFF'FFFFUL)
 				{
-					RaiseError(table.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "[capacity] > max int32 value");
+					RaiseError(table.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "[capacity] > max int32 value");
 				}
 				capacity = (int32)field.value.stringValue.capacity;
 				break;
@@ -927,7 +925,7 @@ namespace GRANON
 				break;
 			default:
 				capacity = 1;
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad field value type: %d", field.value.type);
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Bad field value type: %d", field.value.type);
 			}
 
 			auto* valueCell = table.GetCell(1, newRowIndex);
@@ -971,9 +969,9 @@ namespace GRANON
 			if (field.value.type != PrimitiveType::CSTR && field.value.type != PrimitiveType::HSTR)
 			{
 				char buf[16];
-				if (!ToAscii(field.value, buf, sizeof buf, field.meta))
+				if (!ToAscii(field.value, buf, sizeof(buf), field.meta))
 				{	
-					RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Could not get an ascii representation of the field value");
+					RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Could not get an ascii representation of the field value");
 				}
 				valueText.SetText(buf);
 			}
@@ -1032,7 +1030,7 @@ namespace GRANON
 				int nameWidth = controls.name.TextWidth();
 				auto* spacer = controls.name.Panel().Parent()->GetChild(0);
 				const int padding = spacer->Span().x + spec.NamePlateSafeZone;
-				nameColumnWidth = max(nameWidth + padding, nameColumnWidth);
+				nameColumnWidth = Rococo::max(nameWidth + padding, nameColumnWidth);
 
 				populationEventHandler.OnAddNameValue(controls.name, controls.editor);
 			}
@@ -1044,7 +1042,7 @@ namespace GRANON
 			}
 
 			int& maxColumnWidthForDepth = maxColumnWidthByDepth.back();
-			maxColumnWidthForDepth = max(nameColumnWidth, maxColumnWidthForDepth);
+			maxColumnWidthForDepth = Rococo::max(nameColumnWidth, maxColumnWidthForDepth);
 			table.SetColumnWidth(0, maxColumnWidthForDepth);
 
 			auto& tableList = tableByDepth.back();
@@ -1061,7 +1059,7 @@ namespace GRANON
 			if (data.fields.empty())
 			{
 				char message[1024];
-				Strings::StackStringBuilder sb(message, sizeof message);
+				Strings::StackStringBuilder sb(message, sizeof(message));
 				sb.AppendFormat("[PreviewData& data] had no fields.\n");
 
 				PreviewData* pData = &data;
@@ -1071,7 +1069,7 @@ namespace GRANON
 					pData = pData->parent;
 				}
 
-				RaiseError(parentContainer.Panel(), EGRErrorCode::BadSpanHeight, __FUNCTION__, "%s", message);
+				RaiseError(parentContainer.Panel(), EGRErrorCode::BadSpanHeight, __ROCOCO_FUNCTION__, "%s", message);
 				return;
 			}
 

@@ -85,7 +85,7 @@ namespace ANON
 				if (fileAsset.IsError())
 				{
 					char buffer[1024];
-					fileAsset.GetErrorAndStatusLength(status.statusCode, buffer, sizeof buffer);
+					fileAsset.GetErrorAndStatusLength(status.statusCode, buffer, sizeof(buffer));
 					status.statusText = buffer;
 				}
 
@@ -233,7 +233,7 @@ namespace ANON
 
 		AssetRef<ITextureAsset> Create32bitColourTextureAsset(const char* pingPath) override
 		{
-			if (pingPath == nullptr || *pingPath == 0) Throw(0, "%s: Blank ping path", __FUNCTION__);
+			if (pingPath == nullptr || *pingPath == 0) Throw(0, "%s: Blank ping path", __ROCOCO_FUNCTION__);
 
 			OS::Lock lockedSection(sync);
 
@@ -375,7 +375,7 @@ namespace ANON
 
 		bool FetchMipMapLevel(uint32 levelIndex, ITextureAsset& asset, uint8* mipMapLevelDataDestination) override
 		{
-			ValidateAssetIndex(asset, __FUNCTION__);
+			ValidateAssetIndex(asset, __ROCOCO_FUNCTION__);
 
 			auto& ourAsset = static_cast<TextureAsset&>(asset);
 
@@ -397,7 +397,7 @@ namespace ANON
 
 		bool PushMipMapLevel(uint32 levelIndex, ITextureAsset& asset, const uint8* mipMapLevelData) override
 		{
-			ValidateAssetIndex(asset, __FUNCTION__);
+			ValidateAssetIndex(asset, __ROCOCO_FUNCTION__);
 
 			auto& ourAsset = static_cast<TextureAsset&>(asset);
 
@@ -424,7 +424,7 @@ namespace ANON
 
 		void ReleaseFromGPU(ITextureAsset& asset) override
 		{
-			ValidateAssetIndex(asset, __FUNCTION__);
+			ValidateAssetIndex(asset, __ROCOCO_FUNCTION__);
 			auto& ourAsset = static_cast<TextureAsset&>(asset);
 			uint32 i = ourAsset.arrayIndex;
 
@@ -458,18 +458,18 @@ namespace ANON
 
 		void GenerateMipMaps(uint32 levelIndex, ITextureAsset& asset) override
 		{
-			ValidateAssetIndex(asset, __FUNCTION__);
+			ValidateAssetIndex(asset, __ROCOCO_FUNCTION__);
 			auto& ourAsset = static_cast<TextureAsset&>(asset);
 
 			if (levelIndex >= rgbaArray->NumberOfMipLevels())
 			{
 				// We don't mirror the specified mip map level, and the caller should have tested for that before calling the method
-				Throw(0, "%s (%s): levelIndex %u >= max level %u for the texture array", __FUNCTION__, asset.Path(), levelIndex, rgbaArray->NumberOfMipLevels());
+				Throw(0, "%s (%s): levelIndex %u >= max level %u for the texture array", __ROCOCO_FUNCTION__, asset.Path(), levelIndex, rgbaArray->NumberOfMipLevels());
 			}
 
 			if (ourAsset.arrayIndex == INVALID_ARRAY_INDEX)
 			{
-				Throw(0, "%s (%s): levelIndex %u. The texture does not have a mirror on the GPU", __FUNCTION__, asset.Path(), levelIndex);
+				Throw(0, "%s (%s): levelIndex %u. The texture does not have a mirror on the GPU", __ROCOCO_FUNCTION__, asset.Path(), levelIndex);
 			}
 
 			rgbaArray->GenerateMipMappedSubLevels(ourAsset.arrayIndex, levelIndex);
@@ -499,12 +499,12 @@ namespace ANON
 
 			if (maxLevelSpan != spanInPixels)
 			{
-				Throw(0, "%s: The span must be a power of 2", __FUNCTION__);
+				Throw(0, "%s: The span must be a power of 2", __ROCOCO_FUNCTION__);
 			}
 
 			if (maxLevel > ITextureController::MAX_LEVEL_INDEX)
 			{
-				Throw(0, "%s: The maximum span is %llu", __FUNCTION__, ITextureController::MAX_LEVEL_INDEX);
+				Throw(0, "%s: The maximum span is %llu", __ROCOCO_FUNCTION__, ITextureController::MAX_LEVEL_INDEX);
 			}
 
 			engineSpan = spanInPixels;
@@ -525,7 +525,7 @@ namespace ANON
 
 			if (!rgbaArray)
 			{
-				Throw(0, "%s -> engineTextures.DefineRGBATextureArray rendering engine returned null", __FUNCTION__);
+				Throw(0, "%s -> engineTextures.DefineRGBATextureArray rendering engine returned null", __ROCOCO_FUNCTION__);
 			}
 
 			freeIndices.reserve(numberOfElementsInArray);

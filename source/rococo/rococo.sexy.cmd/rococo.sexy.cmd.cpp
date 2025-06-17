@@ -9,6 +9,7 @@
 #include "sexy.types.h"
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
+#include "sexy.script.exports.h"
 
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
@@ -82,7 +83,7 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 		return baseInstallation->TryExpandMacro(macroPrefixPlusPath, expandedPath);
 	}
 
-	const wchar_t* Content() const override
+	crwstr Content() const override
 	{
 		return baseInstallation->Content();
 	}
@@ -127,12 +128,12 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 		}
 	}
 
-	void ConvertSysPathToMacroPath(const wchar_t* sysPath, U8FilePath& pingPath, cstr macro) const override
+	void ConvertSysPathToMacroPath(crwstr sysPath, U8FilePath& pingPath, cstr macro) const override
 	{
 		baseInstallation->ConvertSysPathToMacroPath(sysPath, pingPath, macro);
 	}
 
-	void ConvertSysPathToPingPath(const wchar_t* sysPath, U8FilePath& pingPath) const override
+	void ConvertSysPathToPingPath(crwstr sysPath, U8FilePath& pingPath) const override
 	{
 		baseInstallation->ConvertSysPathToPingPath(sysPath, pingPath);
 	}
@@ -278,7 +279,7 @@ int PrintError(IException& ex)
 		cstr message = ex.Message();
 
 		char osMessage[256];
-		Rococo::OS::FormatErrorMessage(osMessage, sizeof osMessage, ex.ErrorCode());
+		Rococo::OS::FormatErrorMessage(osMessage, sizeof(osMessage), ex.ErrorCode());
 
 		fprintf(stderr, "\r\nError code %d (0x%X):%s\r\n", ex.ErrorCode(), ex.ErrorCode(), osMessage);
 
@@ -377,17 +378,18 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 
 	void AddTask(Rococo::Function<void()> lambda) override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		UNUSED(lambda);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	bool ExecuteNext() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	void AdvanceSysMonitors() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	int32 Execute(cstr pingPath, ScriptPerformanceStats& stats, int32 id, IScriptSystemFactory& ssFactory, IDebuggerWindow& debuggerWindow, IScriptEnumerator& implicitIncludes)
@@ -539,22 +541,23 @@ struct AppControl : public OS::IAppControlSupervisor, public Tasks::ITaskQueue
 
 	void AddSysMonitor(IO::ISysMonitor&) override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	void AdvanceSysMonitors() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	void AddTask(Rococo::Function<void()> lambda) override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		UNUSED(lambda);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	bool ExecuteNext() override
 	{
-		Throw(0, "%s: Not implemented", __FUNCTION__);
+		Throw(0, "%s: Not implemented", __ROCOCO_FUNCTION__);
 	}
 
 	bool isRunning = true;
@@ -727,7 +730,7 @@ int mainProtected(int argc, char* argv[])
 				char errCode[256] = { 0 };
 				if (ex.ErrorCode())
 				{
-					Rococo::OS::FormatErrorMessage(errCode, sizeof errCode, ex.ErrorCode());
+					Rococo::OS::FormatErrorMessage(errCode, sizeof(errCode), ex.ErrorCode());
 					fprintf(stderr, "Code %d 0x%X: %s\n", ex.ErrorCode(), ex.ErrorCode(), errCode);
 				}
 
@@ -857,7 +860,7 @@ int Run(IPublicScriptSystem& ss, cstr sourceCode, cstr targetFile)
 	}
 
 	auto& output = f->Arg(0);
-	if (output.ResolvedType()->VarType() != VARTYPE_Int32)
+	if (output.ResolvedType()->VarType() != SexyVarType_Int32)
 	{
 		Throw(0, "function EntryPoint.Main should have 1 output-> (Int32 exitCode)");
 	}

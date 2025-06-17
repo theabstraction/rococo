@@ -300,17 +300,17 @@ namespace Anon
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) override;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) override;
 		virtual void AssignTempToVariable(int srcIndex, cstr target) override;
-		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type) override;
-		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgMutatingIndex, VARTYPE type) override;
-		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) override;
-		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, VARTYPE type) override;
+		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgMutatingIndex, SexyVarType type) override;
+		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgMutatingIndex, SexyVarType type) override;
+		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) override;
+		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) override;
 		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection) override;
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition) override;
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection) override;
 		virtual void Append_UpdateRefsOnSourceAndTarget()  override;
 		virtual void LeaveSection()  override;
 		virtual void End()  override;
-		virtual VARTYPE GetVarType(cstr name) const  override;
+		virtual SexyVarType GetVarType(cstr name) const  override;
 		virtual const IStructure* GetVarStructure(cstr name) const  override;
 		virtual void AssignClosureParentSFtoD6() override;
 		virtual void EnableClosures(cstr targetVariable) override;
@@ -484,10 +484,10 @@ namespace Anon
 
 		switch (type.VarType())
 		{
-		case VARTYPE_Array:
-		case VARTYPE_List:
-		case VARTYPE_Map:
-		case VARTYPE_Derivative:
+		case SexyVarType_Array:
+		case SexyVarType_List:
+		case SexyVarType_Map:
+		case SexyVarType_Derivative:
 			argType = &Module().Object().Common().TypePointer();
 			break;
 		default:
@@ -545,7 +545,7 @@ namespace Anon
 		{
 			// Primitives are pushed directly
 
-			if (s.VarType() == VARTYPE_Closure)
+			if (s.VarType() == SexyVarType_Closure)
 			{
 				Assembler().Append_PushStackVariable(def.SFOffset + def.MemberOffset, BITCOUNT_POINTER);
 				Assembler().Append_PushStackVariable(def.SFOffset + def.MemberOffset + sizeof(size_t), BITCOUNT_POINTER);
@@ -806,7 +806,7 @@ namespace Anon
 					Append_DecRef();
 				}
 			}
-			else if (v->ResolvedType().VarType() == VARTYPE_Derivative && v->Usage() == ARGUMENTUSAGE_BYVALUE)
+			else if (v->ResolvedType().VarType() == SexyVarType_Derivative && v->Usage() == ARGUMENTUSAGE_BYVALUE)
 			{
 				ReleaseMembers(*this, &v->ResolvedType(), v->Name());
 			}
@@ -905,7 +905,7 @@ namespace Anon
 		return true;
 	}
 
-	VARTYPE GetMemberType(const IStructure& s, cstr name)
+	SexyVarType GetMemberType(const IStructure& s, cstr name)
 	{
 		NamespaceSplitter splitter(name);
 		cstr head, body;
@@ -919,7 +919,7 @@ namespace Anon
 			}
 			else
 			{
-				return VARTYPE_Bad;
+				return SexyVarType_Bad;
 			}
 		}
 		else
@@ -932,7 +932,7 @@ namespace Anon
 			}
 			else
 			{
-				return VARTYPE_Bad;
+				return SexyVarType_Bad;
 			}
 		}
 	}
@@ -961,7 +961,7 @@ namespace Anon
 		}
 	}
 
-	VARTYPE CodeBuilder::GetVarType(cstr name) const
+	SexyVarType CodeBuilder::GetVarType(cstr name) const
 	{
 		MemberDef def;
 		if (TryGetVariableByName(OUT def, name))
@@ -969,21 +969,21 @@ namespace Anon
 			return def.ResolvedType->VarType();
 		}
 
-		return VARTYPE_Bad;
+		return SexyVarType_Bad;
 
 // 		NamespaceSplitter splitter(name);
 // 		cstr head, body;
 // 		if (!splitter.SplitHead(OUT head, OUT body))
 // 		{
 // 			const Variable* v = GetVariableByName(name);
-// 			return v == NULL ? VARTYPE_Bad : v->ResolvedType().VarType();
+// 			return v == NULL ? SexyVarType_Bad : v->ResolvedType().VarType();
 // 		}
 // 		else
 // 		{
 // 			const Variable* v = GetVariableByName(head);
 // 			if (v == NULL)
 // 			{
-// 				return VARTYPE_Bad;
+// 				return SexyVarType_Bad;
 // 			}
 // 
 // 			const IStructure& s = v->ResolvedType();
@@ -1101,7 +1101,7 @@ namespace Anon
 			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, "Cannot find variable %s", targetVariable);
 		}
 
-		if (v->ResolvedType().VarType() != VARTYPE_Closure)
+		if (v->ResolvedType().VarType() != SexyVarType_Closure)
 		{
 			Throw(ERRORCODE_BAD_ARGUMENT, __SEXFUNCTION__, "Variable %s is not a closure", targetVariable);
 		}
@@ -1356,10 +1356,10 @@ namespace Anon
 			// Derivative types are always passed by reference (a pointer)
 			switch (v->ResolvedType().VarType())
 			{
-			case VARTYPE_Derivative:
-			case VARTYPE_Array:
-			case VARTYPE_List:
-			case VARTYPE_Map:
+			case SexyVarType_Derivative:
+			case SexyVarType_Array:
+			case SexyVarType_List:
+			case SexyVarType_Map:
 				dx = (int32)sizeof size_t;
 				break;
 			default:
@@ -1453,7 +1453,7 @@ namespace Anon
 					Append_DecRef();
 				}
 			}
-			else if (v.ResolvedType().VarType() == VARTYPE_Derivative && v.Usage() == ARGUMENTUSAGE_BYVALUE)
+			else if (v.ResolvedType().VarType() == SexyVarType_Derivative && v.Usage() == ARGUMENTUSAGE_BYVALUE)
 			{
 				ReleaseMembers(*this, &v.ResolvedType(), v.Name());
 			}
@@ -1519,7 +1519,7 @@ namespace Anon
 
 		if (!mapLabelToPosition.insert(labelName, label).second)
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "duplicate label: %s", labelName);
+			Throw(ERRORCODE_COMPILE_ERRORS, __ROCOCO_FUNCTION__, "duplicate label: %s", labelName);
 		}
 
 		for (auto i = outstandingLabels.begin(); i != outstandingLabels.end(); i++)
@@ -1532,7 +1532,7 @@ namespace Anon
 				}
 				else
 				{
-					Throw(ERRORCODE_COMPILE_ERRORS, __FUNCTION__, "Label %s was nested too deeply out of scope of the previous goto statement", labelName);
+					Throw(ERRORCODE_COMPILE_ERRORS, __ROCOCO_FUNCTION__, "Label %s was nested too deeply out of scope of the previous goto statement", labelName);
 				}
 			}
 		}
@@ -1554,7 +1554,7 @@ namespace Anon
 			auto& g = *j;
 			if (Eq(g.second, labelName))
 			{
-				int32 PCOffset = Diff(__FUNCTION__, label.pcOffset, g.first);
+				int32 PCOffset = Diff(__ROCOCO_FUNCTION__, label.pcOffset, g.first);
 				assembler->SetWriteModeToOverwrite(g.first);
 				assembler->Append_Branch(PCOffset);
 				
@@ -1767,8 +1767,8 @@ namespace Anon
 		
 		VariantValue value;
 
-		VARTYPE vType = def.ResolvedType->VarType();
-		if (vType == VARTYPE_Derivative)
+		SexyVarType vType = def.ResolvedType->VarType();
+		if (vType == SexyVarType_Derivative)
 		{
 			if (def.ResolvedType->InterfaceCount() == 0)
 			{
@@ -1800,7 +1800,7 @@ namespace Anon
 
 			value.vPtrValue =  interf.UniversalNullInstance()->pVTables;
 		}
-		else if (vType == VARTYPE_Pointer)
+		else if (vType == SexyVarType_Pointer)
 		{
 			if (!AreEqual("0", literalValue))
 			{
@@ -1811,7 +1811,7 @@ namespace Anon
 
 
 		}
-		else if (vType == VARTYPE_Array)
+		else if (vType == SexyVarType_Array)
 		{
 			if (!AreEqual("0", literalValue))
 			{
@@ -1865,11 +1865,11 @@ namespace Anon
 		
 		VariantValue value;
 
-		VARTYPE vType = def.ResolvedType->VarType();
+		SexyVarType vType = def.ResolvedType->VarType();
 
-		bool isArray = def.ResolvedType->VarType() == VARTYPE_Array;
+		bool isArray = def.ResolvedType->VarType() == SexyVarType_Array;
 
-		if (!(isArray || (vType == VARTYPE_Derivative && def.ResolvedType->InterfaceCount() > 0) || vType == VARTYPE_Pointer))
+		if (!(isArray || (vType == SexyVarType_Derivative && def.ResolvedType->InterfaceCount() > 0) || vType == SexyVarType_Pointer))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not assign '%p' to [%s]. Variable must of type Pointer."), ptr, name.c_str());
 		}
@@ -2138,7 +2138,7 @@ namespace Anon
 		const IStructure* srcType = sourceDef.ResolvedType;
 		const IStructure* trgType = targetDef.ResolvedType;
 
-		if (srcType->VarType() == VARTYPE_Array)
+		if (srcType->VarType() == SexyVarType_Array)
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Array to array assignment must be handled at a higher level", target);
 			return;
@@ -2169,7 +2169,7 @@ namespace Anon
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not copy %s to %s. The target variable accepts regular function references, but not closures.", source, target);
 		}
 
-		if (targetDef.location == VARLOCATION_OUTPUT && trgType->VarType() == VARTYPE_Derivative && !IsNullType(*trgType))
+		if (targetDef.location == VARLOCATION_OUTPUT && trgType->VarType() == SexyVarType_Derivative && !IsNullType(*trgType))
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Do not know how to handle derivative type as output. %s %s", trgType->Name(), (cstr) target);
 		}
@@ -2193,7 +2193,7 @@ namespace Anon
 			}
 			else
 			{
-				if (sourceDef.ResolvedType->VarType() != VARTYPE_Derivative)
+				if (sourceDef.ResolvedType->VarType() != SexyVarType_Derivative)
 				{
 					Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Type mismatch trying to assign %s to %s. Unusual size of primitive arguments", source, target);
 				}
@@ -2240,7 +2240,7 @@ namespace Anon
 			if (!(targetDef.IsParentValue ^ sourceDef.IsParentValue))
 			{
 				UseStackFrameFor(*this, sourceDef);
-				if (sourceDef.ResolvedType->VarType() == VARTYPE_Derivative && (nBytesSource != 8 && nBytesSource != 4))
+				if (sourceDef.ResolvedType->VarType() == SexyVarType_Derivative && (nBytesSource != 8 && nBytesSource != 4))
 				{
 					Assembler().Append_CopySFVariableFromRef(targetDef.SFOffset + targetDef.MemberOffset, sourceDef.SFOffset, sourceDef.MemberOffset, nBytesSource);
 				}
@@ -2292,7 +2292,7 @@ namespace Anon
 		{
 			return BITCOUNT_POINTER;
 		}
-		else if (def.ResolvedType->VarType() == VARTYPE_Array)
+		else if (def.ResolvedType->VarType() == SexyVarType_Array)
 		{
 			return BITCOUNT_POINTER;
 		}
@@ -2322,9 +2322,9 @@ namespace Anon
 
 		UseStackFrameFor(*this, def);
 
-		if ((def.ResolvedType->VarType() == VARTYPE_Array && !def.IsContained) 
-			|| (def.ResolvedType->VarType() == VARTYPE_Map && !def.IsContained)
-			|| (def.ResolvedType->VarType() == VARTYPE_List && !def.IsContained)
+		if ((def.ResolvedType->VarType() == SexyVarType_Array && !def.IsContained) 
+			|| (def.ResolvedType->VarType() == SexyVarType_Map && !def.IsContained)
+			|| (def.ResolvedType->VarType() == SexyVarType_List && !def.IsContained)
 			|| def.location == VARLOCATION_OUTPUT
 			|| def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
@@ -2411,20 +2411,20 @@ namespace Anon
 		Assembler().Append_SetGlobal(bitCount, (int32) g.offset);
 	}
 
-	void CodeBuilder::BinaryOperatorAdd(int a, int b, VARTYPE type)
+	void CodeBuilder::BinaryOperatorAdd(int a, int b, SexyVarType type)
 	{
 		switch(type)
 		{
-		case VARTYPE_Float32:
+		case SexyVarType_Float32:
 			Assembler().Append_FloatAdd(VM::REGISTER_D4+ (VM::DINDEX)a,VM::REGISTER_D4+ (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
-		case VARTYPE_Float64:
+		case SexyVarType_Float64:
 			Assembler().Append_FloatAdd(VM::REGISTER_D4 + (VM::DINDEX)a,VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
-		case VARTYPE_Int32:
+		case SexyVarType_Int32:
 			Assembler().Append_IntAdd(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
-		case VARTYPE_Int64:
+		case SexyVarType_Int64:
 			Assembler().Append_IntAdd(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
@@ -2432,20 +2432,20 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::BinaryOperatorSubtract(int a, int b, VARTYPE type)
+	void CodeBuilder::BinaryOperatorSubtract(int a, int b, SexyVarType type)
 	{
 		switch (type)
 		{
-		case VARTYPE_Float32:
+		case SexyVarType_Float32:
 			Assembler().Append_FloatSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
-		case VARTYPE_Float64:
+		case SexyVarType_Float64:
 			Assembler().Append_FloatSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
-		case VARTYPE_Int32:
+		case SexyVarType_Int32:
 			Assembler().Append_IntSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
-		case VARTYPE_Int64:
+		case SexyVarType_Int64:
 			Assembler().Append_IntSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
@@ -2453,20 +2453,20 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::BinaryOperatorMultiply(int a, int b, VARTYPE type)
+	void CodeBuilder::BinaryOperatorMultiply(int a, int b, SexyVarType type)
 	{
 		switch (type)
 		{
-		case VARTYPE_Float32:
+		case SexyVarType_Float32:
 			Assembler().Append_FloatMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
-		case VARTYPE_Float64:
+		case SexyVarType_Float64:
 			Assembler().Append_FloatMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
-		case VARTYPE_Int32:
+		case SexyVarType_Int32:
 			Assembler().Append_IntMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
-		case VARTYPE_Int64:
+		case SexyVarType_Int64:
 			Assembler().Append_IntMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
@@ -2474,20 +2474,20 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::BinaryOperatorDivide(int a, int b, VARTYPE type)
+	void CodeBuilder::BinaryOperatorDivide(int a, int b, SexyVarType type)
 	{
 		switch (type)
 		{
-		case VARTYPE_Float32:
+		case SexyVarType_Float32:
 			Assembler().Append_FloatDivide(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
 			break;
-		case VARTYPE_Float64:
+		case SexyVarType_Float64:
 			Assembler().Append_FloatDivide(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
 			break;
-		case VARTYPE_Int32:
+		case SexyVarType_Int32:
 			Assembler().Append_IntDivide(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
-		case VARTYPE_Int64:
+		case SexyVarType_Int64:
 			Assembler().Append_IntDivide(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
 			break;
 		default:
@@ -2562,11 +2562,11 @@ namespace Anon
 				{
 					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
 				}
-				else if (srcType->VarType() == VARTYPE_Array || srcType->VarType() == VARTYPE_Map || srcType->VarType() == VARTYPE_List)
+				else if (srcType->VarType() == SexyVarType_Array || srcType->VarType() == SexyVarType_Map || srcType->VarType() == SexyVarType_List)
 				{
 					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + (VM::DINDEX)tempIndex, BITCOUNT_POINTER);
 				}
-				else if (srcType->VarType() != VARTYPE_Derivative)
+				else if (srcType->VarType() != SexyVarType_Derivative)
 				{		
 					BITCOUNT bits = GetBitCount(srcType->VarType());
 					// Pointer to primitive. Currently these only exist as a result of (foreach x # array ...) operations
@@ -2589,13 +2589,13 @@ namespace Anon
 
 	bool IsContainerType(const IStructure& s) 
 	{
-		VARTYPE vType = s.VarType();
+		SexyVarType vType = s.VarType();
 
 		switch (vType)
 		{
-		case VARTYPE_List:
-		case VARTYPE_Map:
-		case VARTYPE_Array:
+		case SexyVarType_List:
+		case SexyVarType_Map:
+		case SexyVarType_Array:
 			return true;
 		}
 

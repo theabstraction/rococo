@@ -1,6 +1,6 @@
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -23,9 +23,12 @@
 
 # Process this file with automake to produce Makefile.in.
 
-EXTRA_DIST = Makefile.vc
+EXTRA_DIST = \
+	CMakeLists.txt \
+	libport.h \
+	libport_config.h.cmake.in
 
 noinst_LTLIBRARIES	= libport.la
-libport_la_SOURCES	= dummy.c
+libport_la_SOURCES	= dummy.c libport.h
 libport_la_LIBADD	= @LTLIBOBJS@
 

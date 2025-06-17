@@ -47,6 +47,8 @@
 
 #include <rococo.allocators.h> // Provides _alliged_maloc
 
+#include <rococo.strings.h>
+
 using namespace Rococo;
 using namespace Rococo::Compiler;
 using namespace Rococo::VM;
@@ -467,7 +469,7 @@ namespace Anon
 			return AddSymbol(symbols, text);
 		}
 
-		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, VARTYPE underlyingType, const IArchetype* archetype) override
+		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) override
 		{
 			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, archetype, false);
 

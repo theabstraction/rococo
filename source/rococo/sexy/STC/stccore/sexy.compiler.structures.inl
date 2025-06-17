@@ -33,7 +33,7 @@
 
 namespace Rococo { namespace Compiler { namespace Impl
 {
-	Structure::Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, VARTYPE _type, const Sex::ISExpression* _definition):
+	Structure::Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, SexyVarType _type, const Sex::ISExpression* _definition):
 		name(_name),
 		prototype(_prototype),
 		module(_module),
@@ -77,7 +77,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 	{
 		if (index < 0 || index >= attributes.size())
 		{
-			Rococo::Throw(0, "%s. Bad index", __FUNCTION__);
+			Rococo::Throw(0, "%s. Bad index", __ROCOCO_FUNCTION__);
 		}
 
 		auto& a = attributes[index];
@@ -328,7 +328,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return name.c_str();
 	}
 
-	const VARTYPE Structure::VarType() const
+	const SexyVarType Structure::VarType() const
 	{
 		return type;
 	}

@@ -314,7 +314,7 @@ namespace
 
 			if (occ.minSpan <= 0.001f || occ.minSpan > 1000.0f)
 			{
-				Throw(0, "%s: Bad occ.minSpan. Range is 0.001 to 1000.0", __FUNCTION__);
+				Throw(0, "%s: Bad occ.minSpan. Range is 0.001 to 1000.0", __ROCOCO_FUNCTION__);
 			}
 
 			root = nodeAllocator.Create(*this, nullptr, rootMetrics);
@@ -338,8 +338,8 @@ namespace
 
 		OctreePocket& Insert(const OctreeObject& object) override
 		{
-			if (object.span < 0) Throw(0, "%s: bad span", __FUNCTION__);
-			if (object.span < occ.minSpan) Throw(0, "%s: bad span. MinSpan is %f", __FUNCTION__, (float) occ.minSpan);
+			if (object.span < 0) Throw(0, "%s: bad span", __ROCOCO_FUNCTION__);
+			if (object.span < occ.minSpan) Throw(0, "%s: bad span. MinSpan is %f", __ROCOCO_FUNCTION__, (float) occ.minSpan);
 
 			if (!IsObjectSmallerThanContainer(root->metrics, object))
 			{

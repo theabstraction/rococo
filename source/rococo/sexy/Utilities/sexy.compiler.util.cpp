@@ -55,7 +55,7 @@ namespace Rococo::Compiler
 
 		if (!Eq(stub->Desc->TypeInfo->Module().Name(), "!scripts/native/Sys.Reflection.sxy"))
 		{
-			Throw(0, "%s: IExpression implementation must be the native C++ Expression defined for Sys.Reflection.sxy. The implementation was %s", __FUNCTION__, stub->Desc->TypeInfo->Module().Name());
+			Throw(0, "%s: IExpression implementation must be the native C++ Expression defined for Sys.Reflection.sxy. The implementation was %s", __ROCOCO_FUNCTION__, stub->Desc->TypeInfo->Module().Name());
 		}
 
 		auto* sHolder = static_cast<ExpressionObject*>(stub);

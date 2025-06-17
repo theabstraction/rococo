@@ -13,6 +13,7 @@
 #include <rococo.os.h>
 #include <rococo.hashtable.h>
 #include <rococo.time.h>
+#include <../rococo.gui.retained/rococo.gr.image-loading.inl>
 
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
@@ -25,7 +26,7 @@ using namespace Rococo::Strings;
 
 namespace Rococo::Gui
 {
-	ROCOCO_API_IMPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder);
+	ROCOCO_API_IMPORT EGREventRouting TranslateToEditor(Windows::IWindow& ownerWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder);
 
 	inline ID_FONT To_ID_FONT(GRFontId id)
 	{
@@ -548,7 +549,7 @@ namespace ANON
 		{
 			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
 			{
-				Throw(0, "%s (%s): Could not find bitmap: %s\nNote that the MPLAT gui custodian requires sprites to be pre-loaded, typically using the game script", __FUNCTION__, hint, imagePath);
+				Throw(0, "%s (%s): Could not find bitmap: %s\nNote that the MPLAT gui custodian requires sprites to be pre-loaded, typically using the game script", __ROCOCO_FUNCTION__, hint, imagePath);
 			}
 		}
 
@@ -581,7 +582,7 @@ namespace ANON
 		{ "$(COLLAPSER_ELEMENT_INLINE)",  "!textures/toolbars/MAT/collapsed.tif" },
 	};
 
-	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages, IGRKeyState
+	struct MPlatCustodian : IMPlatGuiCustodianSupervisor, IGRCustodian, IGREventHistory, IGRFonts, IGRImages
 	{
 		MPlatGR_Renderer renderer;
 		IRenderer& sysRenderer;
@@ -599,6 +600,11 @@ namespace ANON
 		virtual ~MPlatCustodian()
 		{
 
+		}
+
+		Windows::IWindow& Owner()
+		{
+			return sysRenderer.CurrentWindow();
 		}
 
 		float zoomLevel = 1.0f;
@@ -633,16 +639,6 @@ namespace ANON
 			return "XBOX";
 		}
 
-		IGRKeyState& Keys() override
-		{
-			return *this;
-		}
-
-		bool IsKeyPressed(Rococo::IO::VirtualKeys::VKCode keyCode) const override
-		{
-			return IO::IsKeyPressed(keyCode);
-		}
-
 		GRFontId BindFontId(const FontSpec& spec) override
 		{
 			HQFontDef def;
@@ -664,9 +660,9 @@ namespace ANON
 			return new MPlatImage(debugHint, imagePath, sysRenderer.GuiResources().SpriteBuilder());
 		}
 
-		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text) const override
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan) const override
 		{
-			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text);
+			return sysRenderer.GuiResources().HQFontsResources().EvalSpan(To_ID_FONT(fontId), text) + extraSpan;
 		}
 
 		void RecordWidget(IGRWidget& widget) override
@@ -686,14 +682,14 @@ namespace ANON
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
 
-		void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) override
+		void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context, IGRSystem& gr) override
 		{
 			static_assert(sizeof GRCursorClick == sizeof uint16);
 
 			history.clear();
 			if (me.buttonFlags != 0)
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16) me.buttonData };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16) me.buttonData, context };
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
@@ -766,7 +762,7 @@ namespace ANON
 		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
 		{
 			CharBuilder builder(copyAndPasteBuffer);
-			return Gui::TranslateToEditor(keyEvent, manager, builder);
+			return Gui::TranslateToEditor(sysRenderer.CurrentWindow(), keyEvent, manager, builder);
 		}
 	};
 

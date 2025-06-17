@@ -41,6 +41,11 @@ namespace Rococo
 		{
 		}
 
+		virtual ~Dictionary()
+		{
+
+		}
+
 		bool TryAddUnique(cstr key, void* data) override
 		{
 			return imp->TryAddUnique(key, data);

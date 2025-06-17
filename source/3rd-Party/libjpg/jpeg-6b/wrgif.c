@@ -52,7 +52,7 @@ typedef struct {
   /* State for packing variable-width codes into a bitstream */
   int n_bits;			/* current number of bits/code */
   int maxcode;			/* maximum code, given n_bits */
-  INT32 cur_accum;		/* holds bits not yet output */
+  JTYPE_INT32 cur_accum;		/* holds bits not yet output */
   int cur_bits;			/* # of bits in cur_accum */
 
   /* State for GIF code assignment */
@@ -106,7 +106,7 @@ output (gif_dest_ptr dinfo, int code)
 /* Emit a code of n_bits bits */
 /* Uses cur_accum and cur_bits to reblock into 8-bit bytes */
 {
-  dinfo->cur_accum |= ((INT32) code) << dinfo->cur_bits;
+  dinfo->cur_accum |= ((JTYPE_INT32) code) << dinfo->cur_bits;
   dinfo->cur_bits += dinfo->n_bits;
 
   while (dinfo->cur_bits >= 8) {
@@ -356,7 +356,7 @@ finish_output_gif (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo)
  * The module selection routine for GIF format output.
  */
 
-GLOBAL(djpeg_dest_ptr)
+JPEG_GLOBAL_API djpeg_dest_ptr
 jinit_write_gif (j_decompress_ptr cinfo)
 {
   gif_dest_ptr dest;

@@ -50,7 +50,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 
 		if (_numberOfElements > D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION)
 		{
-			Throw(0, "%s: DirectX11 has a limit of %u elements per array. %u were requested", __FUNCTION__, D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION, numberOfElements);
+			Throw(0, "%s: DirectX11 has a limit of %u elements per array. %u were requested", __ROCOCO_FUNCTION__, D3D11_REQ_TEXTURE2D_ARRAY_AXIS_DIMENSION, numberOfElements);
 		}
 
 		uint32 q = span;
@@ -167,17 +167,17 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	{
 		if (!activeDC)
 		{
-			Throw(0, "%s: no activeDC", __FUNCTION__);
+			Throw(0, "%s: no activeDC", __ROCOCO_FUNCTION__);
 		}
 
 		if (index >= numberOfElements)
 		{
-			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, numberOfElements);
+			Throw(0, "%s: index %u >= numberOfElements %u", __ROCOCO_FUNCTION__, index, numberOfElements);
 		}
 
 		if (mipMapLevel > numberOfMipLevels)
 		{
-			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __ROCOCO_FUNCTION__, mipMapLevel, numberOfMipLevels);
 		}
 
 		int mipSlice = numberOfMipLevels - mipMapLevel - 1;
@@ -194,7 +194,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		HRESULT hr = device.CreateShaderResourceView(tb.texture, &desc, &pShaderResourceView);
 		if FAILED(hr)
 		{
-			Throw(hr, "%s failed to create shader view", __FUNCTION__);
+			Throw(hr, "%s failed to create shader view", __ROCOCO_FUNCTION__);
 		}
 
 		activeDC->GenerateMips(pShaderResourceView);
@@ -224,22 +224,22 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 
 		if (!activeDC)
 		{
-			Throw(0, "%s: no active DC", __FUNCTION__);
+			Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
 		}
 
 		if (index >= numberOfElements)
 		{
-			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, numberOfElements);
+			Throw(0, "%s: index %u >= numberOfElements %u", __ROCOCO_FUNCTION__, index, numberOfElements);
 		}
 
 		if (mipMapLevel > numberOfMipLevels)
 		{
-			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __ROCOCO_FUNCTION__, mipMapLevel, numberOfMipLevels);
 		}
 
 		if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
 		{
-			Throw(0, "%s: format is not RGBA but image passed was RGBA", __FUNCTION__);
+			Throw(0, "%s: format is not RGBA but image passed was RGBA", __ROCOCO_FUNCTION__);
 		}
 
 		uint32 levelSpan = 1 << mipMapLevel;
@@ -263,7 +263,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		HRESULT hr = activeDC->Map(tbExportTexture.texture, exportSubresourceIndex, D3D11_MAP_READ, blockingCall ? 0 : D3D11_MAP_FLAG_DO_NOT_WAIT, &m);
 		if FAILED(hr)
 		{
-			Throw(hr, "%s: Mapping from GPU to CPU failed", __FUNCTION__);
+			Throw(hr, "%s: Mapping from GPU to CPU failed", __ROCOCO_FUNCTION__);
 		}
 
 		const uint8* readPtr = (const uint8*) m.pData;
@@ -288,22 +288,22 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	{
 		if (!activeDC)
 		{
-			Throw(0, "%s: no active DC", __FUNCTION__);
+			Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
 		}
 
 		if (index >= numberOfElements)
 		{
-			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, numberOfElements);
+			Throw(0, "%s: index %u >= numberOfElements %u", __ROCOCO_FUNCTION__, index, numberOfElements);
 		}
 
 		if (mipMapLevel > numberOfMipLevels)
 		{
-			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __ROCOCO_FUNCTION__, mipMapLevel, numberOfMipLevels);
 		}
 
 		if (format != DXGI_FORMAT_R8G8B8A8_UNORM)
 		{
-			Throw(0, "%s: format is not RGBA but image passed was RGBA", __FUNCTION__);
+			Throw(0, "%s: format is not RGBA but image passed was RGBA", __ROCOCO_FUNCTION__);
 		}
 
 		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
@@ -322,12 +322,12 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 
 		if (box.left > levelSpan || box.right > levelSpan)
 		{
-			Throw(0, "%s: bad box [left=%u, right=%u]. Level span: %u", __FUNCTION__, box.left, box.right, levelSpan);
+			Throw(0, "%s: bad box [left=%u, right=%u]. Level span: %u", __ROCOCO_FUNCTION__, box.left, box.right, levelSpan);
 		}
 
 		if (box.bottom > levelSpan || box.top > levelSpan)
 		{
-			Throw(0, "%s: bad box [bottom=%u, top=%u]. Level span: %u", __FUNCTION__, box.bottom, box.top, levelSpan);
+			Throw(0, "%s: bad box [bottom=%u, top=%u]. Level span: %u", __ROCOCO_FUNCTION__, box.bottom, box.top, levelSpan);
 		}
 
 		UINT srcDepth = Sq(levelSpan) * sizeof(RGBAb);
@@ -338,22 +338,22 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	{
 		if (!activeDC)
 		{
-			Throw(0, "%s: no active DC", __FUNCTION__);
+			Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
 		}
 
 		if (index >= numberOfElements)
 		{
-			Throw(0, "%s: index %u >= numberOfElements %u", __FUNCTION__, index, mipMapLevel);
+			Throw(0, "%s: index %u >= numberOfElements %u", __ROCOCO_FUNCTION__, index, mipMapLevel);
 		}
 
 		if (mipMapLevel > numberOfMipLevels)
 		{
-			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __FUNCTION__, mipMapLevel, numberOfMipLevels);
+			Throw(0, "%s: mipMapLevel %u >= numberOfMipLevels %u", __ROCOCO_FUNCTION__, mipMapLevel, numberOfMipLevels);
 		}
 
 		if (format != DXGI_FORMAT_R8_UNORM)
 		{
-			Throw(0, "%s: format is not an 8-bit UNORM alpha map but image passed was an 8-bit alpha map", __FUNCTION__);
+			Throw(0, "%s: format is not an 8-bit UNORM alpha map but image passed was an 8-bit alpha map", __ROCOCO_FUNCTION__);
 		}
 
 		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
@@ -372,12 +372,12 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 
 		if (box.left > levelSpan || box.right > levelSpan)
 		{
-			Throw(0, "%s: bad box [left=%u, right=%u]. Level span: %u", __FUNCTION__, box.left, box.right, levelSpan);
+			Throw(0, "%s: bad box [left=%u, right=%u]. Level span: %u", __ROCOCO_FUNCTION__, box.left, box.right, levelSpan);
 		}
 
 		if (box.bottom > levelSpan || box.top > levelSpan)
 		{
-			Throw(0, "%s: bad box [bottom=%u, top=%u]. Level span: %u", __FUNCTION__, box.bottom, box.top, levelSpan);
+			Throw(0, "%s: bad box [bottom=%u, top=%u]. Level span: %u", __ROCOCO_FUNCTION__, box.bottom, box.top, levelSpan);
 		}
 
 		UINT srcDepth = Sq(levelSpan) * sizeof(RGBAb);
@@ -582,7 +582,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		}
 		catch (std::exception& stdEx)
 		{
-			Throw(0, "%s: %s\nError allocating %u elements of span %u x %u", __FUNCTION__, stdEx.what(), numberOfElements, span, span);
+			Throw(0, "%s: %s\nError allocating %u elements of span %u x %u", __ROCOCO_FUNCTION__, stdEx.what(), numberOfElements, span, span);
 		}
 	}
 
@@ -738,7 +738,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 			views[i] = g.GetTarget(i).SysRenderTarget().GetView();
 			if (views[i] == nullptr)
 			{
-				Throw(0, __FUNCTION__ ": no ID3D11RenderTargetView for GBuffer[%d] %s", i);
+				Throw(0, "no ID3D11RenderTargetView for GBuffer[%d] %s", i);
 			}
 		}
 
@@ -937,7 +937,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		size_t index = id.value - 1;
 		if (index >= textures.size())
 		{
-			Throw(0, "%s: Bad texture id", __FUNCTION__);
+			Throw(0, "%s: Bad texture id", __ROCOCO_FUNCTION__);
 		}
 
 		auto& t = textures[index];

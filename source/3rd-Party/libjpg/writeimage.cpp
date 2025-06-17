@@ -9,9 +9,11 @@ extern "C"
 	#include <jdatastream.h>
 }
 
+#define ROCOCO_API // we want to avoid linking in the Rococo.util lib, so will define functions in this source code
 #include <rococo.types.h>
 #include <rococo.imaging.h>
 #include <vector>
+#include <stdarg.h>
 
 namespace
 {
@@ -101,6 +103,45 @@ namespace
 		return true;
 	}
 }
+
+#ifdef LIBJPG_IMPLEMENTS_OWN_ROCOCO_OS
+
+namespace Rococo
+{
+	struct ImageException : IException
+	{
+		char msg[1024];
+		int errorCode;
+
+		cstr Message() const override
+		{
+			return msg;
+		}
+
+		int ErrorCode() const override
+		{
+			return errorCode;
+		}
+
+		Debugging::IStackFrameEnumerator* StackFrames() override
+		{
+			return nullptr;
+		}
+	};
+
+	ROCOCO_API void Throw(int32 errorCode, const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		ImageException ex;
+		_vsnprintf_s(ex.msg, sizeof(ex.msg), _TRUNCATE, format, args);
+		ex.errorCode = errorCode;
+		throw ex;
+	}
+}
+
+#endif
 
 namespace Rococo { namespace Imaging
 {

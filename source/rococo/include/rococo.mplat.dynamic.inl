@@ -51,7 +51,7 @@ namespace Rococo
 			int err = GetLastError();
 
 			char msg[256];
-			OS::FormatErrorMessage(msg, sizeof msg, err);
+			OS::FormatErrorMessage(msg, sizeof(msg), err);
 			char fullMsg[256];
 			SafeFormat(fullMsg, "Could not load Dll: Error %s", msg);
 			MessageBoxA(nullptr, fullMsg, moduleName, MB_ICONERROR);

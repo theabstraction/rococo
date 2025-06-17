@@ -429,7 +429,7 @@ namespace Rococo
 			auto node = tree->AddChild(parentId, memberDesc, CheckState_NoCheckBox);
 			tree->SetId(node, (int64)(depth + 1));
 
-			if (member.UnderlyingType()->VarType() == VARTYPE_Derivative)
+			if (member.UnderlyingType()->VarType() == SexyVarType_Derivative)
 			{
 				MemberEnumeratorPopulator subMember;
 
@@ -451,7 +451,7 @@ namespace Rococo
 
 				GetMembers(ss, *member.UnderlyingType(), member.Name(), subInstance, 0, subMember, recurseDepth);
 			}
-			else if (member.UnderlyingType()->VarType() == VARTYPE_Array)
+			else if (member.UnderlyingType()->VarType() == SexyVarType_Array)
 			{
 				MemberEnumeratorPopulator subMember;
 
@@ -1040,7 +1040,7 @@ namespace Rococo
 					SafeFormat(desc, sizeof(desc), "%s - %d bytes. Defined in %s", Parse::VarTypeName(s.VarType()), s.SizeOfStruct(), s.Module().Name());
 					auto typeDescId = tree->AddChild(typeId, desc, CheckState_Clear);
 
-					if (s.VarType() == VARTYPE_Derivative)
+					if (s.VarType() == SexyVarType_Derivative)
 					{
 						for (int32 i = 0; i < s.MemberCount(); ++i)
 						{

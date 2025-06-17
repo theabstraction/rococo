@@ -354,10 +354,10 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Left)
+					(Scalar.Guage.Alignment Centre)
 					
 					// Offset from alignment edge to guage
-					(#Vec2i Scalar.Guage.Spacing 4 4)
+					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
 					(#Recti Scalar.Slot.Padding 40 10 40 10)
@@ -390,10 +390,10 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Left)
+					(Scalar.Guage.Alignment Centre)
 					
 					// Offset from alignment edge to guage
-					(#Vec2i Scalar.Guage.Spacing 4 4)
+					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
 					(#Recti Scalar.Slot.Padding 40 10 40 10)
@@ -426,10 +426,10 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Left)
+					(Scalar.Guage.Alignment Centre)
 					
 					// Offset from alignment edge to guage
-					(#Vec2i Scalar.Guage.Spacing 4 4)
+					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
 					(#Recti Scalar.Slot.Padding 40 10 40 10)
@@ -462,10 +462,10 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Left)
+					(Scalar.Guage.Alignment Centre)
 					
 					// Offset from alignment edge to guage
-					(#Vec2i Scalar.Guage.Spacing 4 4)
+					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
 					(#Recti Scalar.Slot.Padding 40 10 40 10)
@@ -502,10 +502,10 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Left)
+					(Scalar.Guage.Alignment Centre)
 					
 					// Offset from alignment edge to guage
-					(#Vec2i Scalar.Guage.Spacing 4 4)
+					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
 					(#Recti Scalar.Slot.Padding 40 10 40 10)

@@ -419,7 +419,7 @@ public:
 		delete this;
 	}
 
-	bool AppendEvent(const KeyboardEvent& k, const Vec2i&, const Vec2i&) override
+	bool AppendEvent(const KeyboardEventEx& k, const Vec2i&, const Vec2i&) override
 	{
 		ScrollEvent updateStatus;
 		updateStatus.fromScrollbar = true;

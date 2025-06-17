@@ -30,7 +30,7 @@ namespace GRANON
 			if (panel.Parent() == nullptr)
 			{
 				// We require a parent so that we can anchor to its dimensions
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Panel parent was null");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Panel parent was null");
 				return;
 			}
 
@@ -254,7 +254,7 @@ namespace GRANON
 			auto i = t.find(name);
 			if (i != t.end())
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "GameOption<%s> already defined. GRGameOptionsList does not support duplicate names", name);
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "GameOption<%s> already defined. GRGameOptionsList does not support duplicate names", name);
 			}
 		}
 
@@ -286,7 +286,7 @@ namespace GRANON
 		{
 			if (maxCharacters <= 0 || maxCharacters > 4096)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "maxCharacters needs to be positive and not more than 4096");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "maxCharacters needs to be positive and not more than 4096");
 			}
 			GuaranteeUnique(mapNameToStringControl, name);
 			IGRWidgetGameOptionsString& stringWidget = CreateGameOptionsString(*this, config, maxCharacters);

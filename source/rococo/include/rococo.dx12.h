@@ -254,7 +254,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE IDX12ResourceResolver
 	{
 		virtual void ConvertResourceNameToPath(const char* resourceName, wchar_t* sysPath, size_t charsInSysPath) = 0;
-		virtual void LoadResource_FreeThreaded(const wchar_t* filename, IEventCallback<const fstring>& onLoad) = 0;
+		virtual void LoadResource_FreeThreaded(crwstr filename, IEventCallback<const fstring>& onLoad) = 0;
 	};
 
 	IDX12FactoryContext* CreateDX12FactoryContext(uint32 adapterIndex, uint32 outputIndex, IDX12ResourceResolver& resolver);

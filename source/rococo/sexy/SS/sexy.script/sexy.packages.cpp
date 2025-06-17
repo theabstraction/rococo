@@ -327,18 +327,18 @@ namespace ANON
 		{
 			if (package == nullptr)
 			{
-				Throw(0, "%hs: package argument was null", __FUNCTION__);
+				Throw(0, "%hs: package argument was null", __ROCOCO_FUNCTION__);
 			}
 
 			cstr name = package->FriendlyName();
 			if (name == nullptr)
 			{
-				Throw(0, "%hs: package name was null", __FUNCTION__);
+				Throw(0, "%hs: package name was null", __ROCOCO_FUNCTION__);
 			}
 
 			if (strstr(name, "@") != nullptr)
 			{
-				Throw(0, "%hs: package name contained illegal character '@'", __FUNCTION__);
+				Throw(0, "%hs: package name contained illegal character '@'", __ROCOCO_FUNCTION__);
 			}
 
 			for (auto& i : packages)
@@ -354,7 +354,7 @@ namespace ANON
 			if (j != packages.end())
 			{
 				Throw(0, "%s: A package of the same name '%s' is already registered",
-					__FUNCTION__, (cstr)key);
+					__ROCOCO_FUNCTION__, (cstr)key);
 			}
 
 			SexyPackage pkg(package);
@@ -668,28 +668,28 @@ namespace ANON
 		IPackage& GetPackage(cstr packageId) override
 		{
 			if (!packageId) 
-				Throw(0, "%s: Null package id", __FUNCTION__);
+				Throw(0, "%s: Null package id", __ROCOCO_FUNCTION__);
 
 			const fstring fsPackagePrefix = "Package["_fstring;
 
 			if (!StartsWith(packageId, fsPackagePrefix)) 
-				Throw(0, "%s: Expecting package id to begin with 'Package['", __FUNCTION__);
+				Throw(0, "%s: Expecting package id to begin with 'Package['", __ROCOCO_FUNCTION__);
 			
 			cstr startChar = packageId + fsPackagePrefix.length;
 			cstr endChar = Strings::FindChar(startChar, ']');
 			if (!endChar)
-				Throw(0, "%s: Expecting package id to have format 'Package[<name>]", __FUNCTION__);
+				Throw(0, "%s: Expecting package id to have format 'Package[<name>]", __ROCOCO_FUNCTION__);
 
 			Substring sname = { startChar, endChar };
 
 			char name[IPackage::MAX_PACKAGE_NAME_BUFFER_LEN];
 			if (!sname.TryCopyWithoutTruncate(name, sizeof name))
-				Throw(0, "%s: package name was too long. Max %llu chars", __FUNCTION__, name, (sizeof name) - 1);
+				Throw(0, "%s: package name was too long. Max %llu chars", __ROCOCO_FUNCTION__, name, (sizeof name) - 1);
 			
 			auto i = packages.find(name);
 
 			if (i == packages.end()) 
-				Throw(0, "%s: Could not find package [%s]", name, __FUNCTION__);
+				Throw(0, "%s: Could not find package [%s]", name, __ROCOCO_FUNCTION__);
 
 			return *i->second.dataPackage;
 		}

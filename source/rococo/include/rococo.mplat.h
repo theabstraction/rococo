@@ -24,6 +24,7 @@
 
 #include <3D/rococo.mesh-builder.h>
 #include <rococo.ui.joystick.h>
+#include <sexy.script.exports.h>
 
 namespace Rococo
 {
@@ -215,15 +216,17 @@ namespace Rococo
 		bool isPressed;
 	};
 
+	struct KeyboardEventEx;
+
 	ROCOCO_INTERFACE IKeyboardSupervisor : public IKeyboard
 	{
 	   virtual cstr GetAction(cstr keyName) = 0;
 	   virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
-	   virtual void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEvent& key) = 0;
+	   virtual void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEventEx& key) = 0;
 	   virtual void Free() = 0;
 	};
 
-	IKeyboardSupervisor* CreateKeyboardSupervisor();
+	IKeyboardSupervisor* CreateKeyboardSupervisor(Windows::IWindow& window);
 
 	namespace Graphics
 	{
@@ -349,9 +352,11 @@ namespace Rococo
 		bool isUnderModal;
 	};
 
+	struct KeyboardEventEx;
+
 	struct IPaneSupervisor : virtual GUI::IPane
 	{
-		virtual bool AppendEvent(const KeyboardEvent& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
+		virtual bool AppendEvent(const KeyboardEventEx& me, const Vec2i& focusPoint, const Vec2i& absTopLeft) = 0;
 		virtual void AppendEvent(const MouseEvent& me, const Vec2i& absTopLeft) = 0;
 
 		virtual const GuiRect& ClientRect() const = 0;
@@ -404,7 +409,7 @@ namespace Rococo
 	{
 		virtual void AppendEvent(const MouseEvent& me) = 0;
 		// Returns true if some UI control consumed the keyboard event
-		virtual bool AppendEvent(const KeyboardEvent& ke) = 0;
+		virtual bool AppendEvent(const KeyboardEventEx& ke) = 0;
 		virtual void AttachKeyboardSink(IKeyboardSink* ks) = 0;
 		virtual void DetachKeyboardSink(IKeyboardSink* ks) = 0;
 		virtual bool IsOverwriting() const = 0;
@@ -454,7 +459,7 @@ namespace Rococo
 		cstr ext;
 		cstr extDesc;
 		WideFilePath wPath;
-		const wchar_t* shortName;
+		crwstr shortName;
 	};
 
 	struct LoadDesc
@@ -463,7 +468,7 @@ namespace Rococo
 		cstr ext;
 		cstr extDesc;
 		WideFilePath wPath;
-		const wchar_t* shortName;
+		crwstr shortName;
 	};
 
 	namespace Events
@@ -529,7 +534,7 @@ namespace Rococo
 	{
 		virtual void AddSubtitle(cstr subtitle) = 0;
 		virtual GUI::IScrollbar* CreateScrollbar(bool _isVertical) = 0;
-		virtual void EnumerateFiles(IEventCallback<const wchar_t*>& cb, cstr pingPathDirectory) = 0;
+		virtual void EnumerateFiles(IEventCallback<crwstr>& cb, cstr pingPathDirectory) = 0;
 		virtual Graphics::ITextTesselator& GetTextTesselator() = 0;
 		virtual bool GetSaveLocation(Windows::IWindow& parent, SaveDesc& sd) = 0;
 		virtual bool GetLoadLocation(Windows::IWindow& parent, LoadDesc& sd) = 0;
@@ -542,7 +547,7 @@ namespace Rococo
 		// Note, if implicitIncludes is null, mplat defaults are used, which may conflict with your security settings.
 		virtual void RunEnvironmentScriptWithId(IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, int32 id, const char* name, bool addPlatform, bool shutdownOnFail = true, bool trace = false, Strings::IStringPopulator* onScriptCrash = nullptr, Strings::StringBuilder* declarationBuilder = nullptr) = 0;
 
-		virtual void SaveBinary(const wchar_t* pathname, const void* buffer, size_t nChars) = 0;
+		virtual void SaveBinary(crwstr pathname, const void* buffer, size_t nChars) = 0;
 		virtual void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr message) = 0;
 		virtual IVariableEditor* CreateVariableEditor(Windows::IWindow& parent, const Vec2i& span, int32 labelWidth, cstr appQueryName, cstr defaultTab, cstr defaultTooltip, IVariableEditorEventHandler* eventHandler = nullptr, const Vec2i* topLeft = nullptr) = 0;
 		virtual IBloodyPropertySetEditorSupervisor* CreateBloodyPropertySetEditor(IEventCallback<BloodyNotifyArgs>& onDirty, IScriptCompilationEventHandler& onCompileUIPanel) = 0;
@@ -663,13 +668,14 @@ namespace Rococo
 	{
 		struct IGRSystem;
 		struct IGRCustodian;
+		struct GRKeyContextFlags;
 
 		struct IMPlatGuiCustodianSupervisor
 		{
 			virtual IGRCustodian& Custodian() = 0;
 			virtual void Render(Graphics::IGuiRenderContext& rc, IGRSystem& gr) = 0;
 			virtual void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) = 0;
-			virtual void RouteMouseEvent(const MouseEvent& me, IGRSystem& gr) = 0;
+			virtual void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context, IGRSystem& gr) = 0;
 			virtual void Free() = 0;
 		};
 	}

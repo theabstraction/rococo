@@ -40,7 +40,6 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 
-#include <stdio.h>
 #include <memory>
 
 #ifdef _WIN32
@@ -51,7 +50,7 @@
 #endif
 
 #include <new>
-#include <rococo.stl.allocators.h>
+#include <rococo.sexy.allocators.h>
 #include <sexy.unordered_map.h>
 #include <rococo.functional.h>
 
@@ -64,7 +63,7 @@ namespace Rococo::Sex
 
 namespace Rococo
 {
-	void ThrowIllFormedSExpression(int32 displacement, cstr format, ...);
+	ROCOCO_API void ThrowIllFormedSExpression(int32 displacement, cstr format, ...);
 }
 
 namespace Anon
@@ -234,9 +233,9 @@ namespace Anon
 
 		int depth = 0;
 
-		void AddTabs(int depth)
+		void AddTabs(int nTabs)
 		{
-			for (int i = 0; i < depth; ++i)
+			for (int i = 0; i < nTabs; ++i)
 			{
 				printf("\t");
 			}
@@ -265,19 +264,19 @@ namespace Anon
 			UNUSED(end);
 		}
 
-		ICompoundSExpression* AddCompound(cstr beginPoint, int depth, ICompoundSExpression* parent) override
+		ICompoundSExpression* AddCompound(cstr beginPoint, int _depth, ICompoundSExpression* parent) override
 		{
 			UNUSED(beginPoint);
 			UNUSED(parent);
-			this->depth = depth;
+			this->depth = _depth;
 			return nullptr;
 		}
 
-		void FinishCompound(cstr beginPoint, cstr endPoint, int depth, ICompoundSExpression* compound) override
+		void FinishCompound(cstr beginPoint, cstr endPoint, int _depth, ICompoundSExpression* compound) override
 		{
 			UNUSED(beginPoint);
 			UNUSED(endPoint);
-			UNUSED(depth);
+			UNUSED(_depth);
 			UNUSED(compound);
 		}
 
@@ -344,8 +343,6 @@ namespace Anon
 		cstr end;
 		size_t len;
 		cstr name;
-
-		cstr p;
 
 		IExpressionBuilder& builder;
 
@@ -497,55 +494,55 @@ namespace Anon
 
 		cstr ParseBlankspace(cstr start)
 		{
-			auto* p = start;
-			while (p != end && IsBlank(*p))
+			auto* s = start;
+			while (s != end && IsBlank(*s))
 			{
-				++p;
+				++s;
 			}
 
-			return p;
+			return s;
 		}
 
 		cstr ParseLineComment(cstr start)
 		{
-			auto* p = start;
-			while (p != end)
+			auto* s = start;
+			while (s != end)
 			{
-				switch (*p)
+				switch (*s)
 				{
 				case '\r':
 				case '\n':
-					builder.AddComment(start, p);
-					return p + 1;
+					builder.AddComment(start, s);
+					return s + 1;
 				default:
 					break;
 				}
-				++p;
+				++s;
 			}
 
-			return p;
+			return s;
 		}
 
 		cstr ParseBlockComment(cstr start)
 		{
-			auto* p = start;
-			while (p != end)
+			auto* s = start;
+			while (s != end)
 			{
-				switch (*p)
+				switch (*s)
 				{
 				case '*':
-					if (p[1] == '/')
+					if (s[1] == '/')
 					{
-						builder.AddComment(start, p);
-						return p + 2;
+						builder.AddComment(start, s);
+						return s + 2;
 					}
 				default:
 					break;
 				}
-				++p;
+				++s;
 			}
 
-			return p;
+			return s;
 		}
 	};
 
@@ -577,7 +574,7 @@ namespace Anon
 
 		}
 
-		~ExpressionTree()
+		virtual ~ExpressionTree()
 		{
 			delete transforms;
 			delete mapExpressionPtrToCommentBlock;
@@ -606,9 +603,9 @@ namespace Anon
 				Throw(s, "Transform for expression already exists");
 			}
 
-			IExpressionTransform* transform = CreateExpressionTransform(s);
+			IExpressionTransform* newTransform = CreateExpressionTransform(s);
 
-			auto binding = std::make_pair(&s, transform);
+			auto binding = std::make_pair(&s, newTransform);
 			i = transforms->insert(binding).first;
 			return i->second;
 		}
@@ -637,7 +634,7 @@ namespace Anon
 			return Anon::OffsetToPos(offset, sourceCode->SourceStart(), finalPos, sourceCode->Origin());
 		}
 
-		void CovertListsToArrays(ICompoundSExpression& cs);
+		void ConvertListsToArrays(ICompoundSExpression& cs);
 
 		ISExpression& Root() override
 		{
@@ -700,10 +697,10 @@ namespace Anon
 			return i->second.size();
 		}
 
-		void TransformRoot(IExpressionTransform& transform, const ICompoundSExpression& root) const
+		void TransformRoot(IExpressionTransform& _transform, const ICompoundSExpression& _root) const
 		{
-			UNUSED(root);
-			this->transform = &transform;
+			UNUSED(_root);
+			this->transform = &_transform;
 		}
 	};
 
@@ -719,7 +716,7 @@ namespace Anon
 	{
 		if (!parent)
 		{
-			Throw(s, __FUNCTION__ ": not supported - Compound Expression had no parent");
+			Throw(s, "not supported - Compound Expression had no parent");
 		}
 
 		auto* transform = tree.Transform(s);
@@ -843,7 +840,7 @@ namespace Anon
 		{
 			if (!parent)
 			{
-				Throw(*this, __FUNCTION__ ": not supported - Compound Expression had no parent");
+				Throw(*this, "not supported - Compound Expression had no parent");
 			}
 
 			auto& tree = static_cast<const ExpressionTree&>(Tree());
@@ -1110,7 +1107,7 @@ namespace Anon
 		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
 		{
 			int index = GetIndexOf(sCompound);
-			if (index < 0)	Throw(*this, __FUNCTION__ ": sCompound was not a child of the parent");
+			if (index < 0)	Throw(*this, "sCompound was not a child of the parent");
 
 			children.pArray[index] = &transform.Root();
 		}
@@ -1119,20 +1116,20 @@ namespace Anon
 		{
 			if (!tree)
 			{
-				Throw(*this, __FUNCTION__ ": not supported - Root Expression had no tree");
+				Throw(*this, "not supported - Root Expression had no tree");
 			}
 
-			auto& tree = static_cast<const ExpressionTree&>(Tree());
+			auto& t = static_cast<const ExpressionTree&>(Tree());
 
-			auto* transform = tree.Transform(*this);
+			auto* transform = t.Transform(*this);
 
 			try
 			{
-				tree.TransformRoot(*transform, *this);
+				t.TransformRoot(*transform, *this);
 			}
 			catch (...)
 			{
-				tree.ReleaseTransform(*this);
+				t.ReleaseTransform(*this);
 				throw;
 			}
 
@@ -1294,13 +1291,13 @@ namespace Anon
 		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
 		{
 			int index = GetIndexOf(sCompound);
-			if (index < 0)	Throw(*this, __FUNCTION__ ": sCompound was not a child of the parent");
+			if (index < 0)	Throw(*this, "sCompound was not a child of the parent");
 
 			children.pArray[index] = &transform.Root();
 		}
 	};
 
-	void ExpressionTree::CovertListsToArrays(ICompoundSExpression& cs)
+	void ExpressionTree::ConvertListsToArrays(ICompoundSExpression& cs)
 	{
 		auto* a = arraySets + aIndex;
 		auto* startOfArray = a;
@@ -1317,7 +1314,7 @@ namespace Anon
 			if (child.Type() == EXPRESSION_TYPE_COMPOUND)
 			{
 				auto& c = (CompoundExpression&)child;
-				CovertListsToArrays(c);
+				ConvertListsToArrays(c);
 			}
 		}
 	}
@@ -1460,7 +1457,7 @@ namespace Anon
 		std::vector<char> commentBuffer;
 
 		SBlockAllocator(const SCostEvaluator& _ce, IAllocator& _allocator, cstr _sourceStart, bool addCommentMap) :
-			ce(_ce), allocator(_allocator), sourceStart(_sourceStart)
+			sourceStart(_sourceStart), ce(_ce), allocator(_allocator)
 		{
 			/* Block
 			   Concrete atomic + literal expressions
@@ -1549,7 +1546,7 @@ namespace Anon
 			return tree;
 		}
 
-		~SBlockAllocator()
+		virtual ~SBlockAllocator()
 		{
 			if (block)
 			{
@@ -1725,12 +1722,12 @@ namespace Anon
 		bool mapComments = false;
 
 		SParser_2_0(IAllocator& _allocator, size_t _maxStringLength) :
-			maxStringLength(_maxStringLength),
-			allocator(_allocator)
+			allocator(_allocator),
+			maxStringLength(_maxStringLength)
 		{
 		}
 
-		~SParser_2_0()
+		virtual ~SParser_2_0()
 		{
 		}
 
@@ -1755,7 +1752,7 @@ namespace Anon
 			AddRef();
 			tree->sourceCode = &sourceCode;
 			sourceCode.AddRef();
-			tree->CovertListsToArrays(*tree->root);
+			tree->ConvertListsToArrays(*tree->root);
 			return tree;
 		}
 
@@ -1836,7 +1833,7 @@ namespace Anon
 			return src;
 		}
 
-		ISourceCode* LoadSource(const wchar_t* u16filename, const Vec2i& origin) override
+		ISourceCode* LoadSource(crwstr u16filename, const Vec2i& origin) override
 		{
 			if (u16filename == nullptr || *u16filename == 0) Rococo::Throw(0, "ISParser::LoadSource: Blank filename");
 
@@ -1845,60 +1842,45 @@ namespace Anon
 
 			try
 			{
-				if (!Rococo::IO::IsFileExistant(u16filename))
+				struct Loader : IO::IBinaryFileLoader
 				{
-					Rococo::Throw(0, "%s: file does not exist", __FUNCTION__);
-				}
+					IAllocator& allocator;
+					cstr filename;
+					char* block = nullptr;
+					char* fileBuffer = nullptr;
+					size_t fileLength = 0;
 
-				enum { MAX_FILELEN = 0x7FFFFFFELL }; // +1 byte for the nul char gives int32.max, which is our hard limit
-				
-#ifdef _WIN32
-				FILE* fp = _wfopen(u16filename, L"rb");
-#else
-				U8FilePath u8filename;
-				Format(u8filename, "%S", u16filename);
-				
-				FILE* fp = fopen(u8filename, "rb");
-#endif
-				if (fp == nullptr)
-				{
-					int err = errno;
-					Rococo::Throw(0, "Could not open file %ls - %s", u16filename, strerror(err));
-				}
-
-				struct FPANON
-				{
-					FILE* fp;
-
-					~FPANON()
+					uint8* LockWriter(size_t length) override
 					{
-						fclose(fp);
+						fileLength = length;
+						size_t blocksize = sizeof(SourceCode) + length + 1 + strlen(filename) + 1;
+						block = (char*)allocator.Allocate(blocksize);
+						fileBuffer = block + sizeof(SourceCode);
+						fileBuffer[length] = 0;
+						return (uint8*)fileBuffer;
 					}
-				} fpCloser{ fp };
 
-				fseek(fp, 0, SEEK_END);
+					void Unlock() override
+					{
 
-				long filelen = ftell(fp);
+					}
 
-				fseek(fp, 0, SEEK_SET);
+					Loader(IAllocator& _allocator, cstr _filename) : allocator(_allocator), filename(_filename)
+					{
 
-				size_t blockSize = sizeof(SourceCode) + filelen + 1 + strlen(filename) + 1;
-				char* block = (char*)allocator.Allocate(blockSize);
+					}
+				} loader(allocator, filename);
+
+				IO::LoadBinaryFile(loader, u16filename, 512_megabytes);
+
+				char* block = loader.block;
+
 				auto* src = new (block) SourceCode(allocator, nullptr);
+
 				src->allocator = allocator;
-				src->buffer = block + sizeof(SourceCode);
-
-				size_t lenRead = fread(src->buffer, 1, filelen, fp);
-				if (lenRead != filelen)
-				{
-					int err = errno;
-					allocator.FreeData(block);
-					Rococo::Throw(0, "Could not read all file data - %s", strerror(err));
-				}
-
-				src->buffer[filelen] = 0;
-				src->name = src->buffer + filelen + 1;
-				src->srcLength = (int32)filelen;
+				src->buffer = loader.fileBuffer;
+				src->name = src->buffer + loader.fileLength + 1;
+				src->srcLength = (int32)loader.fileLength;
 				src->origin = origin;
 				src->block = block;
 
@@ -1913,7 +1895,7 @@ namespace Anon
 			}
 		}
 
-		ISourceCode* LoadSource(const wchar_t* u16filename, const Vec2i& origin, const char* buffer, long len) override
+		ISourceCode* LoadSource(crwstr u16filename, const Vec2i& origin, const char* buffer, long len) override
 		{
 			U8FilePath filename;
 			Assign(filename, u16filename);
@@ -1930,9 +1912,9 @@ namespace Anon
 			refcount--;
 			if (refcount == 0)
 			{
-				auto& allocator = this->allocator;
+				auto& refAllocator = this->allocator;
 				this->~SParser_2_0();	
-				allocator.FreeData(this);
+				refAllocator.FreeData(this);
 				return 0;
 			}
 			else
@@ -1953,7 +1935,7 @@ namespace Rococo::Sex
 			Rococo::Throw(0, "CreateSParser: %llu must not be less than 8 nor more than %llu. Recommended size is 32768", maxStringLength, ABS_MAX_STRING_LENGTH);
 		}
 
-		auto* buffer = allocator.Allocate(sizeof Anon::SParser_2_0);
+		auto* buffer = allocator.Allocate(sizeof(Anon::SParser_2_0));
 		return new (buffer) Anon::SParser_2_0(allocator, maxStringLength);
 	}
 

@@ -68,8 +68,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_DEBUG;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS=1;ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllexport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -154,8 +154,8 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS=1;NDEBUG;ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllexport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -226,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;rococo.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -239,22 +239,18 @@
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\t4.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiff.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.vc.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffconf.wince.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffio.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffiop.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tiffvers.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.vc.h" />
-    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_config.wince.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_dir.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_fax3.h" />
+    <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_hash_set.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\tif_predict.h" />
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\uvcode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\3rd-Party\libtiff\bloke.tiff.cpp" />
-    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\lfind.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_aux.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_close.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_codec.c" />
@@ -271,9 +267,11 @@
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_fax3sm.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_flush.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_getimage.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_hash_set.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jbig.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jpeg.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_jpeg_12.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lerc.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_luv.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lzma.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_lzw.c" />
@@ -291,8 +289,10 @@
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_tile.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_version.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_warning.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_webp.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_write.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_zip.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_zstd.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -300,11 +300,6 @@
   <ItemGroup>
     <ProjectReference Include="lib-jpg_vs2022_win64.vcxproj">
       <Project>{4C709D18-84F3-F3B7-569B-69F9522D35A2}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="rococo.util_vs2022_win64.vcxproj">
-      <Project>{62184609-95D1-1E60-D8CD-3755550224A5}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

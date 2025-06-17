@@ -1,5 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
-
 #include <rococo.ui.joystick.h>
 #include <rococo.os.win32.h>
 #include <Xinput.h>
@@ -31,7 +29,7 @@ namespace
 
 		boolean32 TryGet(uint32 index, Joystick_XBOX360& state) override
 		{
-			static_assert(sizeof XINPUT_STATE == sizeof Joystick_XBOX360);
+			static_assert(sizeof(XINPUT_STATE) == sizeof(Joystick_XBOX360));
 
 			auto result = XInputGetState(index, reinterpret_cast<XINPUT_STATE*>(&state));
 			if (result == 0)
@@ -52,7 +50,7 @@ namespace
 				XINPUT_KEYSTROKE keystroke;
 				if (ERROR_SUCCESS == XInputGetKeystroke(i, 0, &keystroke))
 				{
-					static_assert(sizeof keystroke == sizeof JoystickButtonEvent);
+					static_assert(sizeof(keystroke) == sizeof(JoystickButtonEvent));
 					static_assert((uint16)JoystickButtonEvent::Flag::DOWN == XINPUT_KEYSTROKE_KEYDOWN);
 					static_assert((uint16)JoystickButtonEvent::Flag::UP == XINPUT_KEYSTROKE_KEYUP);
 					static_assert((uint16)JoystickButtonEvent::Flag::REPEAT == XINPUT_KEYSTROKE_REPEAT);

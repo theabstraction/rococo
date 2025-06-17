@@ -38,7 +38,7 @@ namespace
 			hWndList = CreateWindowExA(0, WC_LISTBOXA, "", style, 0, 0, 100, 100, backWindow, NULL, NULL, NULL);
 			if (hWndList == NULL)
 			{
-				Throw(GetLastError(), "%s: failed to create window", __FUNCTION__);
+				Throw(GetLastError(), "%s: failed to create window", __ROCOCO_FUNCTION__);
 			}
 
 			SetWindowTextA(backWindow, "FloatingListWidgetBackground");

@@ -274,16 +274,16 @@ struct jpeg_color_quantizer {
  * shift" instructions that shift in copies of the sign bit.  But some
  * C compilers implement >> with an unsigned shift.  For these machines you
  * must define RIGHT_SHIFT_IS_UNSIGNED.
- * RIGHT_SHIFT provides a proper signed right shift of an INT32 quantity.
+ * RIGHT_SHIFT provides a proper signed right shift of an JTYPE_INT32 quantity.
  * It is only applied with constant shift counts.  SHIFT_TEMPS must be
  * included in the variables of any routine using RIGHT_SHIFT.
  */
 
 #ifdef RIGHT_SHIFT_IS_UNSIGNED
-#define SHIFT_TEMPS	INT32 shift_temp;
+#define SHIFT_TEMPS	JTYPE_INT32 shift_temp;
 #define RIGHT_SHIFT(x,shft)  \
 	((shift_temp = (x)) < 0 ? \
-	 (shift_temp >> (shft)) | ((~((INT32) 0)) << (32-(shft))) : \
+	 (shift_temp >> (shft)) | ((~((JTYPE_INT32) 0)) << (32-(shft))) : \
 	 (shift_temp >> (shft)))
 #else
 #define SHIFT_TEMPS
@@ -331,51 +331,51 @@ struct jpeg_color_quantizer {
 
 
 /* Compression module initialization routines */
-EXTERN(void) jinit_compress_master JPP((j_compress_ptr cinfo));
-EXTERN(void) jinit_c_master_control JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API void jinit_compress_master JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API void jinit_c_master_control JPP((j_compress_ptr cinfo,
 					 boolean transcode_only));
-EXTERN(void) jinit_c_main_controller JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API void jinit_c_main_controller JPP((j_compress_ptr cinfo,
 					  boolean need_full_buffer));
-EXTERN(void) jinit_c_prep_controller JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API void jinit_c_prep_controller JPP((j_compress_ptr cinfo,
 					  boolean need_full_buffer));
-EXTERN(void) jinit_c_coef_controller JPP((j_compress_ptr cinfo,
+JPEG_EXTERN_API void jinit_c_coef_controller JPP((j_compress_ptr cinfo,
 					  boolean need_full_buffer));
-EXTERN(void) jinit_color_converter JPP((j_compress_ptr cinfo));
-EXTERN(void) jinit_downsampler JPP((j_compress_ptr cinfo));
-EXTERN(void) jinit_forward_dct JPP((j_compress_ptr cinfo));
-EXTERN(void) jinit_huff_encoder JPP((j_compress_ptr cinfo));
-EXTERN(void) jinit_phuff_encoder JPP((j_compress_ptr cinfo));
-EXTERN(void) jinit_marker_writer JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API void jinit_color_converter JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API void jinit_downsampler JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API void jinit_forward_dct JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API void jinit_huff_encoder JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API void jinit_phuff_encoder JPP((j_compress_ptr cinfo));
+JPEG_EXTERN_API void jinit_marker_writer JPP((j_compress_ptr cinfo));
 /* Decompression module initialization routines */
-EXTERN(void) jinit_master_decompress JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_d_main_controller JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API void jinit_master_decompress JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_d_main_controller JPP((j_decompress_ptr cinfo,
 					  boolean need_full_buffer));
-EXTERN(void) jinit_d_coef_controller JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API void jinit_d_coef_controller JPP((j_decompress_ptr cinfo,
 					  boolean need_full_buffer));
-EXTERN(void) jinit_d_post_controller JPP((j_decompress_ptr cinfo,
+JPEG_EXTERN_API void jinit_d_post_controller JPP((j_decompress_ptr cinfo,
 					  boolean need_full_buffer));
-EXTERN(void) jinit_input_controller JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_marker_reader JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_huff_decoder JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_phuff_decoder JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_inverse_dct JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_upsampler JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_color_deconverter JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_1pass_quantizer JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_2pass_quantizer JPP((j_decompress_ptr cinfo));
-EXTERN(void) jinit_merged_upsampler JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_input_controller JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_marker_reader JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_huff_decoder JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_phuff_decoder JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_inverse_dct JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_upsampler JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_color_deconverter JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_1pass_quantizer JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_2pass_quantizer JPP((j_decompress_ptr cinfo));
+JPEG_EXTERN_API void jinit_merged_upsampler JPP((j_decompress_ptr cinfo));
 /* Memory manager initialization */
-EXTERN(void) jinit_memory_mgr JPP((j_common_ptr cinfo));
+JPEG_EXTERN_API void jinit_memory_mgr JPP((j_common_ptr cinfo));
 
 /* Utility routines in jutils.c */
-EXTERN(long) jdiv_round_up JPP((long a, long b));
-EXTERN(long) jround_up JPP((long a, long b));
-EXTERN(void) jcopy_sample_rows JPP((JSAMPARRAY input_array, int source_row,
+JPEG_EXTERN_API long jdiv_round_up JPP((long a, long b));
+JPEG_EXTERN_API long jround_up JPP((long a, long b));
+JPEG_EXTERN_API void jcopy_sample_rows JPP((JSAMPARRAY input_array, int source_row,
 				    JSAMPARRAY output_array, int dest_row,
 				    int num_rows, JDIMENSION num_cols));
-EXTERN(void) jcopy_block_row JPP((JBLOCKROW input_row, JBLOCKROW output_row,
+JPEG_EXTERN_API void jcopy_block_row JPP((JBLOCKROW input_row, JBLOCKROW output_row,
 				  JDIMENSION num_blocks));
-EXTERN(void) jzero_far JPP((void FAR * target, size_t bytestozero));
+JPEG_EXTERN_API void jzero_far JPP((void FAR * target, size_t bytestozero));
 /* Constant tables in jutils.c */
 #if 0				/* This table is not actually needed in v6a */
 extern const int jpeg_zigzag_order[]; /* natural coef order to zigzag order */

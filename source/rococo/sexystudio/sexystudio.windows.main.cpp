@@ -120,7 +120,7 @@ namespace Rococo::SexyStudio
 
 		if (hWnd == nullptr)
 		{
-			Throw(GetLastError(), "%s: could not create overlapped window", __FUNCTION__);
+			Throw(GetLastError(), "%s: could not create overlapped window", __ROCOCO_FUNCTION__);
 		}
 
 		struct ANON

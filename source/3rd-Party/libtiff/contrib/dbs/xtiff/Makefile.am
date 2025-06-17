@@ -1,8 +1,7 @@
-# $Id: Makefile.am,v 1.1 2004/05/03 16:47:20 dron Exp $
 #
 # Tag Image File Format (TIFF) Software
 #
-# Copyright (C) 2004, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 #
 # Permission to use, copy, modify, distribute, and sell this software and 
 # its documentation for any purpose is hereby granted without fee, provided
@@ -25,5 +24,23 @@
 
 # Process this file with automake to produce Makefile.in.
 
-EXTRA_DIST = Imakefile README patchlevel.h xtiff.c xtifficon.h
+#LIBTIFF = $(top_builddir)/libtiff/libtiff.la
+
+EXTRA_DIST = \
+	README \
+	patchlevel.h \
+	xtiff.c \
+	xtifficon.h
+
+#noinst_PROGRAMS =
+
+#if HAVE_XAW
+#noinst_PROGRAMS += xtiff
+#endif
+
+#xtiff_SOURCES = patchlevel.h xtiff.c xtifficon.h
+#xtiff_CFLAGS = $(CFLAGS) $(XAW_CFLAGS) $(AM_CFLAGS)
+#xtiff_LDADD = $(LIBTIFF) $(X_LIBS) $(XAW_LIBS)
+
+#INCLUDES = -I$(top_srcdir)/libtiff
 

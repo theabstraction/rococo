@@ -113,7 +113,7 @@ namespace
 			}
 		}
 
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		bool OnKeyboardEvent(const KeyboardEventEx& key) override
 		{
 			dirtNotifier.OnEvent(owner);
 
@@ -533,14 +533,14 @@ namespace
 			}
 		}
 
-		~BloodyBoolBinding()
+		virtual ~BloodyBoolBinding()
 		{
 			platform.graphics.gui.DetachKeyboardSink(this);
 		}
 
 		cstr NotifyId() const override { return nullptr; }
 
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		virtual bool OnKeyboardEvent(const KeyboardEventEx& key)
 		{
 			bool consumed = true;
 
@@ -655,7 +655,7 @@ namespace
 
 		cstr NotifyId() const override { return notifyId; }
 
-		~BloodyEnumInt32Binding()
+		virtual ~BloodyEnumInt32Binding()
 		{
 			platform.graphics.gui.DetachKeyboardSink(this);
 		}
@@ -677,7 +677,7 @@ namespace
 			return name.c_str();
 		}
 
-		bool OnKeyboardEvent(const KeyboardEvent& key) override
+		bool OnKeyboardEvent(const KeyboardEventEx& key) override
 		{
 			if (!key.IsUp())
 			{
@@ -1108,7 +1108,7 @@ namespace
 			SafeFormat(abuffer, 4, "%u", value->alpha);
 		}
 
-		~BloodyColour()
+		virtual ~BloodyColour()
 		{
 			platform.graphics.gui.DetachKeyboardSink(this);
 		}
@@ -1120,12 +1120,12 @@ namespace
 			delete this;
 		}
 
-		virtual cstr Name() const
+		cstr Name() const override
 		{
 			return name.c_str();
 		}
 
-		virtual bool OnKeyboardEvent(const KeyboardEvent& key)
+		bool OnKeyboardEvent(const KeyboardEventEx& key) override
 		{
 			if (!key.IsUp())
 			{
@@ -1169,7 +1169,7 @@ namespace
 
 		GuiRect buttonRect = { 0,0,0,0 };
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb)
+		void Render(IGuiRenderContext& rc, const GuiRect& rect, RGBAb) override
 		{
 			ParseValue();
 
@@ -1864,7 +1864,7 @@ namespace
 		{
 		}
 
-		~BloodyPropertySetEditor()
+		virtual ~BloodyPropertySetEditor()
 		{
 			Clear();
 		}
@@ -1878,7 +1878,7 @@ namespace
 			properties.clear();
 		}
 
-		virtual void Free()
+		void Free() override
 		{
 			delete this;
 		}
@@ -1946,23 +1946,23 @@ namespace
 			Add(new BloodyProperty(new BloodyPingPathBinding(platform, onCompileUIscript, *this, pingPath, len, defaultSubDir), name, width));
 		}
 
-		virtual bool OnKeyboardEvent(const KeyboardEvent&)
+		virtual bool OnKeyboardEvent(const KeyboardEventEx&)
 		{
 			return false;
 		}
 
-		virtual void OnRawMouseEvent(const MouseEvent&)
+		void OnRawMouseEvent(const MouseEvent&) override
 		{
 		}
 
-		virtual void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel)
+		void OnMouseMove(Vec2i cursorPos, Vec2i delta, int dWheel) override
 		{
 			UNUSED(cursorPos);
 			UNUSED(delta);
 			UNUSED(dWheel);
 		}
 
-		virtual void OnMouseLClick(Vec2i cursorPos, bool clickedDown)
+		void OnMouseLClick(Vec2i cursorPos, bool clickedDown) override
 		{
 			for (auto i : properties)
 			{
@@ -1974,17 +1974,17 @@ namespace
 			}
 		}
 
-		virtual void OnMouseRClick(Vec2i cursorPos, bool)
+		void OnMouseRClick(Vec2i cursorPos, bool) override
 		{
 			UNUSED(cursorPos);
 		}
 
-		virtual void OnEvent(Rococo::Events::ScrollEvent&)
+		void OnEvent(Rococo::Events::ScrollEvent&) override
 		{
 
 		}
 
-		virtual void Render(IGuiRenderContext& rc, const GuiRect& absRect)
+		void Render(IGuiRenderContext& rc, const GuiRect& absRect) override
 		{
 			GuiRect scrollRect{ absRect.right - 20, absRect.top, absRect.right, absRect.bottom };
 

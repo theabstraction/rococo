@@ -90,7 +90,7 @@ struct PanelArrayBox : BasePane, GUI::IArrayBox, IObserver, IEventCallback<Scrol
 		hi_focusColour = hilight;
 	}
 
-	bool AppendEvent(const KeyboardEvent& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
+	bool AppendEvent(const KeyboardEventEx& ke, const Vec2i& focusPoint, const Vec2i& absTopLeft) override
 	{
 		UNUSED(absTopLeft);
 		UNUSED(focusPoint);

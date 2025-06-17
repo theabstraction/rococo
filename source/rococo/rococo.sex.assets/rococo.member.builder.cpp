@@ -242,7 +242,7 @@ namespace Rococo::Sex::Assets::Impl
 				memberIndexStack.pop_back();
 				if (memberIndexStack.empty())
 				{
-					Rococo::Throw(0, "%s called too many times. Algorithmic error", __FUNCTION__);
+					Rococo::Throw(0, "%s called too many times. Algorithmic error", __ROCOCO_FUNCTION__);
 				}
 			}
 		} memberRefManager;
@@ -311,7 +311,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (itemIndex >= container.elements.size())
 			{
-				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 			}
 
 			auto* member = container.elements[itemIndex].member;
@@ -365,7 +365,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (itemIndex >= container.elements.size())
 			{
-				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 			}
 
 			auto* member = container.elements[itemIndex].member;
@@ -425,7 +425,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (memberIndex >= container.elements.size())
 			{
-				Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, memberIndex);
+				Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, memberIndex);
 			}
 
 			auto* member = container.elements[memberIndex].member;
@@ -475,7 +475,7 @@ namespace Rococo::Sex::Assets::Impl
 			}
 		}
 
-		void AddMemberType(int32 memberDepth, cstr memberName, VARTYPE validType)
+		void AddMemberType(int32 memberDepth, cstr memberName, SexyVarType validType)
 		{
 			memberRefManager.RollbackToAncestor(memberDepth + 1);
 
@@ -501,42 +501,42 @@ namespace Rococo::Sex::Assets::Impl
 
 		void AddTypeF32(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_Float32);
+			AddMemberType(memberDepth, memberName, SexyVarType_Float32);
 		}
 
 		void AddTypeF64(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_Float64);
+			AddMemberType(memberDepth, memberName, SexyVarType_Float64);
 		}
 
 		void AddTypeI32(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_Int32);
+			AddMemberType(memberDepth, memberName, SexyVarType_Int32);
 		}
 
 		void AddTypeI64(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_Int64);
+			AddMemberType(memberDepth, memberName, SexyVarType_Int64);
 		}
 
 		void AddTypeBool(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_Bool);
+			AddMemberType(memberDepth, memberName, SexyVarType_Bool);
 		}
 
 		void AddTypeArrayRef(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_Array);
+			AddMemberType(memberDepth, memberName, SexyVarType_Array);
 		}
 
 		void AddTypeListRef(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_List);
+			AddMemberType(memberDepth, memberName, SexyVarType_List);
 		}
 
 		void AddTypeMapRef(int32 memberDepth, cstr memberName) override
 		{
-			AddMemberType(memberDepth, memberName, VARTYPE_Map);
+			AddMemberType(memberDepth, memberName, SexyVarType_Map);
 		}
 
 		void AddTypeInterface(int32 memberDepth, cstr interfaceType, cstr memberName, cstr sourceFile)
@@ -550,14 +550,14 @@ namespace Rococo::Sex::Assets::Impl
 				auto& mtype = *member->UnderlyingType();
 				if (!IsNullType(mtype))
 				{
-					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __FUNCTION__, mtype.Name(), mtype.Module().Name());
+					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected null type (interface type)", __ROCOCO_FUNCTION__, mtype.Name(), mtype.Module().Name());
 				}
 
 				auto& i = mtype.GetInterface(0);
 
 				if (!Eq(i.Name(), interfaceType))
 				{
-					Rococo::Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
+					Rococo::Throw(0, "%s failed. Member interface was %s of %s. Expected interface type %s of %s", __ROCOCO_FUNCTION__, i.Name(), mtype.Module().Name(), interfaceType, sourceFile);
 				}
 
 				container.elements.push_back(ElementMemberDesc{ member, writeCursor - writePosition });
@@ -581,7 +581,7 @@ namespace Rococo::Sex::Assets::Impl
 				auto& mtype = *member->UnderlyingType();
 				if (!Eq(mtype.Name(), type) || !Eq(mtype.Module().Name(), typeSource))
 				{
-					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
+					Rococo::Throw(0, "%s failed. Element type was %s of %s. Expected a %s of %s", __ROCOCO_FUNCTION__, type, typeSource, member->UnderlyingType()->Name(), member->UnderlyingType()->Module().Name());
 				}
 			}
 
@@ -594,7 +594,7 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				if (itemIndex >= (int32)container.elements.size())
 				{
-					Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+					Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 				}
 
 				if (container.elements[itemIndex].member != nullptr)
@@ -645,7 +645,7 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				if (itemIndex >= (int32)container.elements.size())
 				{
-					Rococo::Throw(0, "%s: Bad index (%d)", __FUNCTION__, itemIndex);
+					Rococo::Throw(0, "%s: Bad index (%d)", __ROCOCO_FUNCTION__, itemIndex);
 				}
 				rawMemberData = container.elements[itemIndex].memberDataOffset + writePosition;
 			}
@@ -653,7 +653,7 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				if (elementType == nullptr)
 				{
-					Rococo::Throw(0, "%s failed. ElementType was nullptr", __FUNCTION__);
+					Rococo::Throw(0, "%s failed. ElementType was nullptr", __ROCOCO_FUNCTION__);
 				}
 				rawMemberData = writePosition;
 			}
@@ -798,7 +798,7 @@ namespace Rococo::Sex::Assets::Impl
 			this->rootType = &rootType;
 			this->pRootObject = pRootObject;
 
-			if (rootType.VarType() != VARTYPE_Derivative)
+			if (rootType.VarType() != SexyVarType_Derivative)
 			{
 				Rococo::Throw(0, "The target object was not of derivative type. The target object must be a class or struct");
 			}
@@ -828,13 +828,13 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			// This function is not well tested. As they say in Terrahawks, 'expect the unexpected'
 
-			if (assetType.VarType() != VARTYPE_Derivative)
+			if (assetType.VarType() != SexyVarType_Derivative)
 			{
-				Rococo::Throw(0, "%s: Error, the asset object was not of derivative type.", __FUNCTION__);
+				Rococo::Throw(0, "%s: Error, the asset object was not of derivative type.", __ROCOCO_FUNCTION__);
 			}
 			else if (IsNullType(assetType))
 			{
-				Rococo::Throw(0, "%s: Error, the asset object was an interface reference.", __FUNCTION__);
+				Rococo::Throw(0, "%s: Error, the asset object was an interface reference.", __ROCOCO_FUNCTION__);
 			}			
 
 			size_t offset = 0;
@@ -846,7 +846,7 @@ namespace Rococo::Sex::Assets::Impl
 
 				switch (memberType.VarType())
 				{
-				case VARTYPE_Derivative:
+				case SexyVarType_Derivative:
 					NullifyDerivativeMember(member, memberType, ((uint8*) assetData) + offset);
 					break;
 				default:
@@ -959,19 +959,19 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			switch (memberType.VarType())
 			{
-			case VARTYPE_Float32:
+			case SexyVarType_Float32:
 				WritePrimitive((float)0);
 				break;
-			case VARTYPE_Float64:
+			case SexyVarType_Float64:
 				WritePrimitive((double)0);
 				break;
-			case VARTYPE_Int32:
+			case SexyVarType_Int32:
 				WritePrimitive((int32)0);
 				break;
-			case VARTYPE_Int64:
+			case SexyVarType_Int64:
 				WritePrimitive((int64)0);
 				break;
-			case VARTYPE_Bool:
+			case SexyVarType_Bool:
 				WritePrimitive((boolean32)0);
 				break;
 			default:
@@ -1071,7 +1071,7 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				Rococo::Throw(0, "%s %s. Source file %s mismatches module name %s", memberType->Name(), name, sourceFile, memberType->Module().Name());
 			}
-			else if (memberType->VarType() != VARTYPE_Derivative)
+			else if (memberType->VarType() != SexyVarType_Derivative)
 			{
 				Rococo::Throw(0, "%s %s. Type was not derivative", memberType->Name(), name);
 			}
@@ -1192,34 +1192,34 @@ namespace Rococo::Sex::Assets::Impl
 			{
 				switch (mapKeyType->VarType())
 				{
-				case VARTYPE_Int32:
+				case SexyVarType_Int32:
 					key.int32Value = atoi(keyText);
 					break;
-				case VARTYPE_Int64:
+				case SexyVarType_Int64:
 					key.int64Value = atoll(keyText);
 					break;
-				case VARTYPE_Float32:
+				case SexyVarType_Float32:
 					{
 						uint32 binRepresentation;
 						sscanf_s(keyText, "%x", &binRepresentation);
 						key.floatValue = Rococo::Maths::IEEE475::BinaryToFloat(binRepresentation);
 					}
 					break;
-				case VARTYPE_Float64:
+				case SexyVarType_Float64:
 					{
 						uint64 binRepresentation;
 						sscanf_s(keyText, "%llx", &binRepresentation);
 						key.doubleValue = Rococo::Maths::IEEE475::BinaryToDouble(binRepresentation);
 					}
 					break;
-				case VARTYPE_Bool:
+				case SexyVarType_Bool:
 					{
 						boolean32 value = (*keyText == 'Y') ? 1 : 0;
 						key.int32Value = value;
 					}
 					break;
 				default:
-					Rococo::Throw(0, "%s - Key type %s Not implemented", __FUNCTION__, GetFriendlyName(*mapKeyType));
+					Rococo::Throw(0, "%s - Key type %s Not implemented", __ROCOCO_FUNCTION__, GetFriendlyName(*mapKeyType));
 				}	
 			}
 
@@ -1280,7 +1280,7 @@ namespace Rococo::Sex::Assets::Impl
 		{
 			if (index > arrayBuilder.image->NumberOfElements)
 			{
-				Rococo::Throw(0, "%s. Bad index", __FUNCTION__);
+				Rococo::Throw(0, "%s. Bad index", __ROCOCO_FUNCTION__);
 			}
 
 			auto* elementPtr = arrayBuilder.elementBuffer + index * arrayBuilder.image->ElementLength;

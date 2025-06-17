@@ -68,6 +68,11 @@ namespace Rococo::Game::Options
 
 		}
 
+		virtual ~OptionDatabase()
+		{
+
+		}
+
 		void AddOption(cstr name, typename InquiryFunctionDescriptor<T>::FN_BoolInquireFunction inquiry, typename OptionSelectedFunctionDescriptor<T>::FN_OnBoolOptionSelected onSelect)
 		{
 			for (auto& i : inquiryFunctions)

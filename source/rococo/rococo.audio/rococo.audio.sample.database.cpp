@@ -69,7 +69,7 @@ namespace AudioAnon
 			}
 
 			// This crashed at program exit, with monoRepresentation junked.
-			if (outputBuffer) memcpy(outputBuffer, monoReprentation + startAtSampleIndex, numberOfElementsInSection * sizeof int16);
+			if (outputBuffer) memcpy(outputBuffer, monoReprentation + startAtSampleIndex, numberOfElementsInSection * sizeof(int16));
 			return numberOfElementsInSection;
 		}
 
@@ -182,7 +182,7 @@ namespace AudioAnon
 		{
 			if (managementThreadId != OS::GetCurrentThreadIdentifier())
 			{
-				Throw(0, "%s must be called on the same thread as the constructor", __FUNCTION__);
+				Throw(0, "%s must be called on the same thread as the constructor", __ROCOCO_FUNCTION__);
 			}
 
 			thread = nullptr;

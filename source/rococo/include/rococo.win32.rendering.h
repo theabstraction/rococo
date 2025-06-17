@@ -1,5 +1,6 @@
 #include <rococo.types.h>
 #include <rococo.os.win32.h>
+#include <rococo.ui.h>
 
 #ifndef ROCOCO_GRAPHICS_API
 # define ROCOCO_GRAPHICS_API ROCOCO_API_IMPORT
@@ -38,7 +39,7 @@ namespace Rococo
 	{
 		virtual void OnWindowClose() = 0;
 		virtual void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardEvent) = 0;
-		virtual void OnMouseEvent(const RAWMOUSE& m) = 0;
+		virtual void OnMouseEvent(const RAWMOUSE& m, MouseContext context) = 0;
 	};
 
 	ROCOCO_INTERFACE IGraphicsWindow

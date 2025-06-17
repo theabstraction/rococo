@@ -197,8 +197,8 @@ start_pass (j_decompress_ptr cinfo)
 
 	for (i = 0; i < DCTSIZE2; i++) {
 	  ifmtbl[i] = (IFAST_MULT_TYPE)
-	    DESCALE(MULTIPLY16V16((INT32) qtbl->quantval[i],
-				  (INT32) aanscales[i]),
+	    DESCALE(MULTIPLY16V16((JTYPE_INT32) qtbl->quantval[i],
+				  (JTYPE_INT32) aanscales[i]),
 		    CONST_BITS-IFAST_SCALE_BITS);
 	}
       }
@@ -243,7 +243,7 @@ start_pass (j_decompress_ptr cinfo)
  * Initialize IDCT manager.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_inverse_dct (j_decompress_ptr cinfo)
 {
   my_idct_ptr idct;

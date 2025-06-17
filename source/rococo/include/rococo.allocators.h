@@ -8,29 +8,6 @@
 #include <rococo.types.h>
 #include <vector>
 
-#ifndef _WIN32
-
-# include <stdlib.h> // Posix mem functions in OSX
-
-namespace Rococo
-{
-   namespace Memory
-   {
-      inline void _aligned_free(void* pData)
-      {
-         free(pData);
-      }
-
-      inline void* _aligned_malloc(size_t nBytes, size_t alignmentByteCount)
-      {
-         void* pMem = nullptr;
-         posix_memalign(&pMem, alignmentByteCount, nBytes);
-         return pMem;
-      }
-   }
-}
-#endif
-
 namespace Rococo::Memory
 {
 	ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();

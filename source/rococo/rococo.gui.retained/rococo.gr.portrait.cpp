@@ -57,12 +57,14 @@ namespace GRANON
 
 			if (!image)
 			{
+				imageRect = panel.Parent()->AbsRect();
 				return;
 			}
 
 			Vec2i span = image->Span();
 			if (span.x == 0 || span.y == 0)
 			{
+				imageRect = panel.Parent()->AbsRect();
 				return;
 			}
 

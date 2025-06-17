@@ -52,7 +52,7 @@ namespace GRANON
 
 		EGRRectStyle rectStyle = EGRRectStyle::SHARP;
 
-		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): root(_root), parent(static_cast<GRPanel*>(_parent)), uniqueId(nextId++), clippingPanel(this)
+		GRPanel(IGRPanelRootSupervisor& _root, IGRPanelSupervisor* _parent): parent(static_cast<GRPanel*>(_parent)), root(_root), uniqueId(nextId++), clippingPanel(this)
 		{
 			refCount = 1;
 		}
@@ -138,11 +138,11 @@ namespace GRANON
 
 			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
 			{
-				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+				RaiseError(*this, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Bad [direction] %d", index);
 			}
 			else
 			{
-				directions[index - 1] = targetDescription == nullptr ? HString() : targetDescription;
+				directions[index - 1] = targetDescription == nullptr ? "" : targetDescription;
 			}
 			return *this;
 		}
@@ -153,7 +153,7 @@ namespace GRANON
 
 			if (index <= 0 || index >= static_cast<int>(EGRNavigationDirection::Count))
 			{
-				RaiseError(*this, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad [direction] %d", index);
+				RaiseError(*this, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Bad [direction] %d", index);
 				return nullptr;
 			}
 
@@ -274,7 +274,7 @@ namespace GRANON
 				auto* targetPanel = owningPanel.FindDescendantByDesc(target);
 				if (!targetPanel)
 				{
-					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find navigation target \"%s\"", target.c_str());
+					RaiseError(*this, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Could not find navigation target \"%s\"", target.c_str());
 					return;
 				}
 			}
@@ -289,7 +289,7 @@ namespace GRANON
 				auto* targetPanel = owningPanel.FindDescendantByDesc(direction);
 				if (!targetPanel)
 				{
-					RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "Could not find direction target \"%s\"", direction.c_str());
+					RaiseError(*this, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "Could not find direction target \"%s\"", direction.c_str());
 					return;
 				}
 			}
@@ -311,7 +311,7 @@ namespace GRANON
 			auto* owner = FindOwner(*widget);
 			if (!owner)
 			{
-				RaiseError(*this, EGRErrorCode::Generic, __FUNCTION__, "No owner!");
+				RaiseError(*this, EGRErrorCode::Generic, __ROCOCO_FUNCTION__, "No owner!");
 				return;
 			}
 
@@ -372,11 +372,7 @@ namespace GRANON
 				auto* focusNotifier = Cast<IGRFocusNotifier>(target->Widget());
 				if (focusNotifier)
 				{
-					auto routing = focusNotifier->OnDeepChildFocusSet(Id());
-					if (routing == EGREventRouting::Terminate)
-					{
-						break;
-					}
+					focusNotifier->OnDeepChildFocusSet(Id());
 				}
 			}
 
@@ -1426,7 +1422,7 @@ namespace Rococo::Gui
 		va_start(args, format);
 
 		char message[1024];
-		Strings::SafeVFormat(message, sizeof message, format, args);
+		Strings::SafeVFormat(message, sizeof(message), format, args);
 
 		char completeMessage[1280];
 		Strings::SafeFormat(completeMessage, "Panel(%s): %s", panel.Desc(), message);
@@ -1518,7 +1514,7 @@ namespace Rococo::Gui
 		char buf[1024];
 		va_list args;
 		va_start(args, format);
-		vsnprintf_s(buf, _TRUNCATE, format, args);
+		SafeVFormat(buf, sizeof(buf),format, args);
 		va_end(args);
 		panel.Root().Custodian().RaiseError(panel.GetAssociatedSExpression(), errCode, function, "%s", buf);
 	}

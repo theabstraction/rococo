@@ -2,6 +2,7 @@
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\dllmain.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\gr.module-allocator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.button.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.carousel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.collapser.cpp" />
@@ -16,9 +17,9 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.gradient-fill.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.hintbox.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.icon.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.label-text.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.layout.fullscreen.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.mainframe.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.memory.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.menubar.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.panel.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.portrait.cpp" />
@@ -30,12 +31,14 @@
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.splitter.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.system.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.table.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.text.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.toolbar.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical-list.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.vertical.scroller.with.buttons.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.viewport.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.gui.retained\rococo.gr.image-loading.inl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\source\rococo\rococo.gui.retained\gr.natvis" />

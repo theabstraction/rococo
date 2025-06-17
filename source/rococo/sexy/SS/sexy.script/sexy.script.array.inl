@@ -187,7 +187,7 @@ namespace Rococo
 				   offset += sizeof(size_t);
 			   }
 		   }
-		   else if (a.ElementType->VarType() == VARTYPE_Derivative)
+		   else if (a.ElementType->VarType() == SexyVarType_Derivative)
 		   {
 			   for (int i = 0; i < a.NumberOfElements; ++i)
 			   {
@@ -415,7 +415,7 @@ namespace Rococo
 				   }
 			   }
 		   }
-		   else if (mtype.VarType() == VARTYPE_Derivative)
+		   else if (mtype.VarType() == SexyVarType_Derivative)
 		   {
 			   size_t offset = 0;
 
@@ -563,7 +563,7 @@ namespace Rococo
 			   InterfacePointer pInterface = *(InterfacePointer*)item;
 			   obj.DecrementRefCount(pInterface);
 		   }
-		   else if (a.ElementType->VarType() == VARTYPE_Derivative)
+		   else if (a.ElementType->VarType() == SexyVarType_Derivative)
 		   {
 			   uint8* item = (uint8*)a.Start + index * a.ElementLength;
 			   DeleteMembers(ss, *a.ElementType, item);
@@ -1057,12 +1057,12 @@ namespace Rococo
 
 		   AssertNotTooFewElements(s, 2);
 
-		   if (elementType.VarType() == VARTYPE_Derivative)
+		   if (elementType.VarType() == SexyVarType_Derivative)
 		   {
 			   AssertNotTooManyElements(s, 3);
 			   CompileAsPushToArrayByRef( ce, s, instanceName);
 		   }
-		   else if (elementType.VarType() == VARTYPE_Closure)
+		   else if (elementType.VarType() == SexyVarType_Closure)
 		   {
 			   AssertNotTooManyElements(s, 2);
 
@@ -1140,7 +1140,7 @@ namespace Rococo
 		   ce.Builder.AssignLiteral(NameString::From(instanceName), "0");
 	   }
 
-	   void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE requiredType)
+	   void CompileAsPopOutFromArray(CCompileEnvironment& ce, cr_sex s, cstr instanceName, SexyVarType requiredType)
 	   {
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 		   if (elementType.VarType() != requiredType)
@@ -1180,8 +1180,8 @@ namespace Rococo
 			   Throw(mapsTo, ("Expecting mapping token '->'"));
 		   }
 
-		   VARTYPE requiredType = ce.Builder.GetVarType(targetToken);
-		   if (requiredType == VARTYPE_Bad)
+		   SexyVarType requiredType = ce.Builder.GetVarType(targetToken);
+		   if (requiredType == SexyVarType_Bad)
 		   {
 			   ThrowTokenNotFound(s, target.c_str(), ce.Builder.Owner().Name(), ("variable"));
 		   }
@@ -1198,7 +1198,7 @@ namespace Rococo
 		   AssertNotTooFewElements(s, 3);
 
 		   cr_sex index = s.GetElement(1);
-		   if (!TryCompileArithmeticExpression(ce, index, true, VARTYPE_Int32))
+		   if (!TryCompileArithmeticExpression(ce, index, true, SexyVarType_Int32))
 		   {
 			   Throw(index, ("Could not evaluate the expression as index type Int32"));
 		   }
@@ -1209,7 +1209,7 @@ namespace Rococo
 
 		   cr_sex value = s.GetElement(2);
 
-		   VARTYPE elementVarType = elementType.VarType();
+		   SexyVarType elementVarType = elementType.VarType();
 		
 		   if (IsPrimitiveType(elementVarType))		
 		   {
@@ -1237,15 +1237,15 @@ namespace Rococo
 
 		   switch (elementVarType)
 		   {
-		   case VARTYPE_Int32:
-		   case VARTYPE_Float32:
+		   case SexyVarType_Int32:
+		   case SexyVarType_Float32:
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArraySet32);
 			   break;
-		   case VARTYPE_Float64:
-		   case VARTYPE_Int64:
+		   case SexyVarType_Float64:
+		   case SexyVarType_Int64:
 			   ce.Builder.Assembler().Append_Invoke(callbacks.ArraySet64);
 			   break;
-		   case VARTYPE_Derivative:
+		   case SexyVarType_Derivative:
 			   if (elementType.InterfaceCount() > 0)
 			   {
 				   ce.Builder.Assembler().Append_Invoke(sizeof(size_t) == 8 ? callbacks.ArraySet64 : callbacks.ArraySet32);
@@ -1301,7 +1301,7 @@ namespace Rococo
 		   }
 	   }
 
-	   void ValidateElementType(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE type, const IStructure* structType)
+	   void ValidateElementType(CCompileEnvironment& ce, cr_sex s, cstr instanceName, SexyVarType type, const IStructure* structType)
 	   {
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 
@@ -1310,17 +1310,17 @@ namespace Rococo
 			   Throw(s, "The array element type does not match the type of the variable in the assignment");
 		   }
 
-		   if (type == VARTYPE_Derivative && *structType != elementType)
+		   if (type == SexyVarType_Derivative && *structType != elementType)
 		   {
 			   Throw(s, "The array element type does not match the type of the variable in the assignment");
 		   }
 	   }
 
-	   void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, VARTYPE varType, const IStructure* structType)
+	   void CompileGetArrayElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, SexyVarType varType, const IStructure* structType)
 	   {
 		   ValidateElementType(ce, s, instanceName, varType, structType);
 
-		   if (!TryCompileArithmeticExpression(ce, s, true, VARTYPE_Int32))
+		   if (!TryCompileArithmeticExpression(ce, s, true, SexyVarType_Int32))
 		   {
 			   Throw(s, "Expected expression to evaluate to type Int32 to serve as index to array");
 		   } // D7 now contains the array index
@@ -1353,7 +1353,7 @@ namespace Rococo
 		   }
 	   }
 
-	   void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, cstr instanceName, VARTYPE type, const IStructure* structType)
+	   void CompileGetArraySubelement(CCompileEnvironment& ce, cr_sex indexExpr, cr_sex subItemName, cstr instanceName, SexyVarType type, const IStructure* structType)
 	   {
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, indexExpr, instanceName);
 
@@ -1366,13 +1366,13 @@ namespace Rococo
 
 		   const IStructure& memberType = *member->UnderlyingType();
 
-		   if (memberType.VarType() != type || (type == VARTYPE_Derivative && memberType != *structType))
+		   if (memberType.VarType() != type || (type == SexyVarType_Derivative && memberType != *structType))
 		   {
 			   cstr requiredType = structType == NULL ? GetTypeName(type) : structType->Name();
 			   Throw(subItemName, "The array element type %s does not match the type required: %s", elementType.Name(), requiredType);   
 		   }
 
-		   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) 
+		   if (!TryCompileArithmeticExpression(ce, indexExpr, true, SexyVarType_Int32)) 
 		   {
 			   Throw(indexExpr, "Expected expression to evaluate to type Int32 to serve as index to array");
 		   } // D7 now contains the array index
@@ -1548,7 +1548,7 @@ namespace Rococo
 		   }
 		   else
 		   {
-			   if (!TryCompileArithmeticExpression(ce, indexExpr, true, VARTYPE_Int32)) Throw(indexExpr, ("Failed to parse expression as (Int32 startIndex)"));
+			   if (!TryCompileArithmeticExpression(ce, indexExpr, true, SexyVarType_Int32)) Throw(indexExpr, ("Failed to parse expression as (Int32 startIndex)"));
 			   CompileValidateIndexPositive(ce, collection, Rococo::ROOT_TEMPDEPTH); // index now validated to be positive
 			   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_32); // D12 contains the working index throughout the entire iteration
 		   }
@@ -1733,7 +1733,7 @@ namespace Rococo
 		   }
 	   }
 
-	   void CompileNumericExpression(CCompileEnvironment& ce, cr_sex valueExpr, VARTYPE type)
+	   void CompileNumericExpression(CCompileEnvironment& ce, cr_sex valueExpr, SexyVarType type)
 	   {
 		   if (IsCompound(valueExpr))
 		   {			
@@ -1763,7 +1763,7 @@ namespace Rococo
 			   }
 			   else
 			   {
-				   VARTYPE atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.c_str(), Rococo::ROOT_TEMPDEPTH);
+				   SexyVarType atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.c_str(), Rococo::ROOT_TEMPDEPTH);
 				   if (atomicType == type) return;
 			   }
 		   }
@@ -1810,7 +1810,7 @@ namespace Rococo
 		   // The assignment may throw an exception, so we need to null out the reference 
 		   ce.Builder.AssignPointer(NameString::From(arrayNameTxt), nullptr);
 
-		   if (TryCompileFunctionCallAndReturnValue(ce, s[4], VARTYPE_Array, elementStruct, nullptr))
+		   if (TryCompileFunctionCallAndReturnValue(ce, s[4], SexyVarType_Array, elementStruct, nullptr))
 		   {
 				AddSymbol(ce.Builder, "D7 -> %s", (cstr)arrayNameTxt);
 				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, arrayNameTxt);
@@ -1858,7 +1858,7 @@ namespace Rococo
 		   if (scapacity)
 		   {
 			   AddSymbol(ce.Builder, "int32 capacity");
-			   CompileNumericExpression(ce, *scapacity, VARTYPE_Int32); // capacity to D7
+			   CompileNumericExpression(ce, *scapacity, SexyVarType_Int32); // capacity to D7
 
 			   VariantValue v;
 			   v.vPtrValue = (void*)elementStruct;
@@ -1890,7 +1890,7 @@ namespace Rococo
 	   {
 		   AssertNotTooManyElements(conDef, 3);
 		   cr_sex value = conDef.GetElement(2);
-		   CompileNumericExpression(ce, value, VARTYPE_Int32); // The capacity is now in D7
+		   CompileNumericExpression(ce, value, SexyVarType_Int32); // The capacity is now in D7
 
 		   VariantValue v;
 		   v.vPtrValue = (void*)member.UnderlyingGenericArg1Type();

@@ -105,10 +105,7 @@ namespace ANON
 			return -1;
 		}
 
-		const ISExpression* Parent() const override
-		{
-			return parent;
-		}
+		const ISExpression* Parent() const override;
 
 		const ISExpression* GetOriginal() const override
 		{
@@ -122,12 +119,12 @@ namespace ANON
 
 		IExpressionTransform& TransformThis()
 		{
-			Throw(*this, __FUNCTION__ ": operation not supported on this class");
+			Throw(*this, "operation not supported on this class");
 		}
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __FUNCTION__ ": not supported");
+			Throw(0, "not supported");
 		}
 	};
 	
@@ -262,7 +259,7 @@ namespace ANON
 		{
 			if ((size_t)index >= children.size())
 			{
-				Throw(*this, "%s: bad index %d. Child count is %llu", __FUNCTION__, index, children.size());
+				Throw(*this, "%s: bad index %d. Child count is %llu", __ROCOCO_FUNCTION__, index, children.size());
 			}
 
 			auto i = children.begin();
@@ -309,9 +306,15 @@ namespace ANON
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __FUNCTION__ ": not supported");
+			Throw(0, "not supported");
 		}
 	};
+
+	template<EXPRESSION_TYPE type>
+	inline const ISExpression* LeafExpression<type>::Parent() const
+	{
+		return parent;
+	}
 
 	void Free(ExpressionBuilder* eb)
 	{
@@ -439,19 +442,19 @@ namespace ANON
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
-		ISourceCode* LoadSource(const wchar_t*, const Vec2i&) override
+		ISourceCode* LoadSource(crwstr, const Vec2i&) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
-		ISourceCode* LoadSource(const wchar_t*, const Vec2i&, const char*, long) override
+		ISourceCode* LoadSource(crwstr, const Vec2i&, const char*, long) override
 		{
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
 		IExpressionTransform& TransformThis() const override
 		{
-			Throw(0, __FUNCTION__ ": not supported");
+			Throw(0, "not supported");
 		}
 	};
 

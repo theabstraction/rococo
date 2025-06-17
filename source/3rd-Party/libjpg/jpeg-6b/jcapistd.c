@@ -34,7 +34,7 @@
  * wrong thing.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_start_compress (j_compress_ptr cinfo, boolean write_all_tables)
 {
   if (cinfo->global_state != CSTATE_START)
@@ -73,7 +73,7 @@ jpeg_start_compress (j_compress_ptr cinfo, boolean write_all_tables)
  * when using a multiple-scanline buffer.
  */
 
-GLOBAL(JDIMENSION)
+JPEG_GLOBAL_API JDIMENSION
 jpeg_write_scanlines (j_compress_ptr cinfo, JSAMPARRAY scanlines,
 		      JDIMENSION num_lines)
 {
@@ -116,7 +116,7 @@ jpeg_write_scanlines (j_compress_ptr cinfo, JSAMPARRAY scanlines,
  * Processes exactly one iMCU row per call, unless suspended.
  */
 
-GLOBAL(JDIMENSION)
+JPEG_GLOBAL_API JDIMENSION
 jpeg_write_raw_data (j_compress_ptr cinfo, JSAMPIMAGE data,
 		     JDIMENSION num_lines)
 {

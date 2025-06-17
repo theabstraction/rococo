@@ -76,7 +76,7 @@ namespace Rococo::Domme
 		}
 
 		auto& arg = entryPoint->GetArgument(0);
-		if (arg.MemberCount() != 1 || arg.VarType() != VARTYPE_Derivative)
+		if (arg.MemberCount() != 1 || arg.VarType() != SexyVarType_Derivative)
 		{
 			Throw(s, "expecting CreateDommeObject to take an argument that is a struct with one element");
 		}
@@ -122,19 +122,19 @@ namespace Rococo::Domme
 		auto* rococoNS = rootNS.FindSubspace("Rococo");
 		if (!rococoNS)
 		{
-			Throw(0, "%s: Could not find (namespace %s) in %s", __FUNCTION__, _namespace, sourceTree->Source().Name());
+			Throw(0, "%s: Could not find (namespace %s) in %s", __ROCOCO_FUNCTION__, _namespace, sourceTree->Source().Name());
 		}
 
 		auto* iRef = rococoNS->FindInterface(_scriptInterfaceName);
 		if (!iRef)
 		{
-			Throw(0, "%s: Could not find interface %s.%s in %s", __FUNCTION__, _namespace, _scriptInterfaceName, sourceTree->Source().Name());
+			Throw(0, "%s: Could not find interface %s.%s in %s", __ROCOCO_FUNCTION__, _namespace, _scriptInterfaceName, sourceTree->Source().Name());
 		}
 
 		auto* nullIRef= iRef->UniversalNullInstance();
 		if (!nullIRef)
 		{
-			Throw(0, "%s: Could not find %s.%s universal null object", __FUNCTION__, _namespace, _scriptInterfaceName);
+			Throw(0, "%s: Could not find %s.%s universal null object", __ROCOCO_FUNCTION__, _namespace, _scriptInterfaceName);
 		}
 
 		auto* pNullInterface = GetInterfacePtr(*nullIRef);
@@ -148,7 +148,7 @@ namespace Rococo::Domme
 
 		if (concreteType->InterfaceCount() == 0)
 		{
-			Throw(0, "%s: Class %s does not implement interfaces", __FUNCTION__, Rococo::Compiler::GetFriendlyName(*concreteType));
+			Throw(0, "%s: Class %s does not implement interfaces", __ROCOCO_FUNCTION__, Rococo::Compiler::GetFriendlyName(*concreteType));
 		}
 
 		interface0 = &concreteType->GetInterface(0);
@@ -161,7 +161,7 @@ namespace Rococo::Domme
 		ID_BYTECODE methodAddress = vtableMethods[methodIndex + 1];
 
 #ifdef _DEBUG
-		if (!vm) Throw(0, "%s: No virtual machine. Script was Terminated", __FUNCTION__);
+		if (!vm) Throw(0, "%s: No virtual machine. Script was Terminated", __ROCOCO_FUNCTION__);
 #endif
 
 		vm->Push(scriptContext.ip);
@@ -172,7 +172,7 @@ namespace Rococo::Domme
 	void DommeObject::Push(int32 value)
 	{
 #ifdef _DEBUG
-		if (!vm) Throw(0, "%s: No virtual machine. Script was Terminated", __FUNCTION__);
+		if (!vm) Throw(0, "%s: No virtual machine. Script was Terminated", __ROCOCO_FUNCTION__);
 #endif
 		vm->Push(value);
 	}
@@ -180,7 +180,7 @@ namespace Rococo::Domme
 	void DommeObject::Push(int64 value)
 	{
 #ifdef _DEBUG
-		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __ROCOCO_FUNCTION__);
 #endif
 		vm->Push(value);
 	}
@@ -188,7 +188,7 @@ namespace Rococo::Domme
 	void DommeObject::PushPtr(void* ptr)
 	{
 #ifdef _DEBUG
-		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __ROCOCO_FUNCTION__);
 #endif
 		vm->Push(ptr);
 	}
@@ -196,7 +196,7 @@ namespace Rococo::Domme
 	void DommeObject::PopBytes(size_t nBytes)
 	{
 #ifdef _DEBUG
-		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __ROCOCO_FUNCTION__);
 #endif
 		auto& cpu = vm->Cpu();
 		cpu.D[VM::REGISTER_SP].uint8PtrValue -= nBytes;
@@ -209,7 +209,7 @@ namespace Rococo::Domme
 	void DommeObject::Terminate()
 	{
 #ifdef _DEBUG
-		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __FUNCTION__);
+		if (!vm) Throw(0, "%s: No virtual machine. Script was previously Terminated", __ROCOCO_FUNCTION__);
 #endif
 		auto& object = ss->PublicProgramObject();
 

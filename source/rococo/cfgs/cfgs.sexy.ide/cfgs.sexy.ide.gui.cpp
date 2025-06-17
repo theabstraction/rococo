@@ -34,7 +34,7 @@ namespace Rococo::CFGS
 		}
 
 		char fqPotentialName[256];
-		StackStringBuilder sb(fqPotentialName, sizeof fqPotentialName);		
+		StackStringBuilder sb(fqPotentialName, sizeof(fqPotentialName));		
 		potentialBaseNS.AppendFullNameToStringBuilder(sb);
 		sb << ".";
 		sb << potentialBaseInterface.PublicName();

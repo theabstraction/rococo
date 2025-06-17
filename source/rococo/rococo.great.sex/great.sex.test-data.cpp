@@ -25,6 +25,11 @@ namespace Rococo::GreatSex::TestData
 
 		}
 
+		virtual ~AudioOptions()
+		{
+
+		}
+
 		IOptionDatabase& DB() override
 		{
 			return db;
@@ -114,6 +119,11 @@ namespace Rococo::GreatSex::TestData
 	struct GraphicsOptions : IGameOptions
 	{
 		OptionDatabase<GraphicsOptions> db;
+
+		virtual ~GraphicsOptions()
+		{
+
+		}
 
 		IOptionDatabase& DB() override
 		{
@@ -342,6 +352,11 @@ namespace Rococo::GreatSex::TestData
 
 		}
 
+		virtual ~UIOptions()
+		{
+
+		}
+
 		IOptionDatabase& DB() override
 		{
 			return db;
@@ -404,6 +419,11 @@ namespace Rococo::GreatSex::TestData
 		HString playerName = "Geoff";
 
 		GameplayOptions() : db(*this)
+		{
+
+		}
+
+		virtual ~GameplayOptions()
 		{
 
 		}
@@ -498,6 +518,11 @@ namespace Rococo::GreatSex::TestData
 		bool useUDP = true;
 
 		MultiplayerOptions() : db(*this)
+		{
+
+		}
+
+		virtual ~MultiplayerOptions()
 		{
 
 		}

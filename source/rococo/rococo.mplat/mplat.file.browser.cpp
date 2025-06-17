@@ -124,7 +124,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		Graphics::DrawTextWithCaret(gc, ToF(rect), Graphics::Alignment_Left, to_fstring(buffer), 1, textColour, clip, pos);
 	}
 
-	void DrawU16Text(const GuiRect& rect, BrowserComponent component, const wchar_t* buffer)
+	void DrawU16Text(const GuiRect& rect, BrowserComponent component, crwstr buffer)
 	{
 		char asciitext[1024];
 		SafeFormat(asciitext, 1024, "%ls", buffer);
@@ -235,7 +235,7 @@ struct StatusBar : IUIElement
 
 	HString status;
 
-	bool OnKeyboardEvent(const KeyboardEvent&) override
+	bool OnKeyboardEvent(const KeyboardEventEx&) override
 	{
 		return false;
 	}
@@ -313,7 +313,7 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 		if (editing) gui.DetachKeyboardSink(this);
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent& key) override
+	bool OnKeyboardEvent(const KeyboardEventEx& key) override
 	{
 		if (editing)
 		{
@@ -434,7 +434,7 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 	{
 	}
 
-	~MPlatFileBrowser()
+	virtual ~MPlatFileBrowser()
 	{
 		publisher.Unsubscribe(this);
 	}
@@ -511,7 +511,7 @@ struct MPlatFileBrowser: public IMPlatFileBrowser, public IObserver, public IUIE
 		delete this;
 	}
 
-	bool OnKeyboardEvent(const KeyboardEvent&) override
+	bool OnKeyboardEvent(const KeyboardEventEx&) override
 	{
 		return false;
 	}

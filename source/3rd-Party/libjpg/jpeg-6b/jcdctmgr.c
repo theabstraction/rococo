@@ -117,8 +117,8 @@ start_pass_fdctmgr (j_compress_ptr cinfo)
 	dtbl = fdct->divisors[qtblno];
 	for (i = 0; i < DCTSIZE2; i++) {
 	  dtbl[i] = (DCTELEM)
-	    DESCALE(MULTIPLY16V16((INT32) qtbl->quantval[i],
-				  (INT32) aanscales[i]),
+	    DESCALE(MULTIPLY16V16((JTYPE_INT32) qtbl->quantval[i],
+				  (JTYPE_INT32) aanscales[i]),
 		    CONST_BITS-3);
 	}
       }
@@ -341,7 +341,7 @@ forward_DCT_float (j_compress_ptr cinfo, jpeg_component_info * compptr,
  * Initialize FDCT manager.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_forward_dct (j_compress_ptr cinfo)
 {
   my_fdct_ptr fdct;

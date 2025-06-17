@@ -62,7 +62,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;_DEBUG;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -114,7 +114,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;WIN64;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -164,7 +164,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\include\3D\rococo.material-builder.h" />
     <ClInclude Include="..\..\source\rococo\include\3D\rococo.mesh-builder.h" />
-    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.template.h" />
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.malloc.h" />
+    <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocator.via.interface.h" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.dll.inl" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.inl" />
     <ClInclude Include="..\..\source\rococo\include\allocators\rococo.allocators.modules.h" />
@@ -274,13 +275,13 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexml.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.sexy.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.api.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.ide.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexy.map.expert.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.sexystudio.api.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.SI.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.SI.inl" />
-    <ClInclude Include="..\..\source\rococo\include\rococo.stl.allocators.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.strings.reflection.h" />
@@ -300,6 +301,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.vector.ex.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.visitors.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.vkeys.win32.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.widgets.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.rendering.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.win32.resources.h" />
@@ -311,6 +313,14 @@
     <ClInclude Include="..\..\source\rococo\include\sexy.unordered_set.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.vector.h" />
     <ClInclude Include="..\..\source\rococo\include\sexy.windows.h" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathConvert.inl" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathMatrix.inl" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathMisc.inl" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXMathVector.inl" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXPackedVector.h" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\DirectXPackedVector.inl" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\rococo.DirectXMath.h" />
+    <ClInclude Include="..\..\source\rococo\include\third-party\rococo.sal.h" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

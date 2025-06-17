@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.api.h>
 #include <rococo.os.win32.h>
 #include <rococo.functional.h>
@@ -76,7 +75,7 @@ namespace Rococo
 
 namespace Rococo::OS
 {
-	ROCOCO_API void LoadAsciiTextFile(const wchar_t* filename, Function<void(cstr)> onLoad)
+	ROCOCO_API void LoadAsciiTextFile(crwstr filename, Function<void(cstr)> onLoad)
 	{
 		std::vector<char> asciiData;
 
@@ -156,7 +155,7 @@ namespace Rococo::OS
 		onLoad.InvokeElseThrow(asciiData.data());
 	}
 
-	void LoadBinaryFile(const wchar_t* filename, Function<void(uint8* buffer, size_t fileLength)> onLoad)
+	void LoadBinaryFile(crwstr filename, Function<void(uint8* buffer, size_t fileLength)> onLoad)
 	{
 		std::vector<uint8> binData;
 

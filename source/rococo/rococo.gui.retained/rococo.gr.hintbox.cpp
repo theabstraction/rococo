@@ -88,13 +88,30 @@ namespace GRANON
 				transparency
 			);
 
-			auto* focusWidget = panel.Root().GR().FindFocusWidget();
-			if (focusWidget)
+			GRWidgetEvent evGetHoverHint;
+			evGetHoverHint.clickPosition = { 0,0 };
+			evGetHoverHint.eventType = EGRWidgetEventType::GET_HINT_HOVER;
+			evGetHoverHint.iMetaData = 0;
+			evGetHoverHint.isCppOnly = true;
+			evGetHoverHint.panelId = panel.Id();
+			evGetHoverHint.sMetaData = nullptr;
+			static_cast<IGRPanelSupervisor&>(panel).RouteToParent(evGetHoverHint);
+			cstr hint = evGetHoverHint.sMetaData;
+
+			if (hint != nullptr && *hint != 0)
 			{
-				cstr hint = focusWidget->Panel().Hint();
-				if (*hint != 0)
+				DrawTextWithShadow(g, panel.AbsRect(), to_fstring(hint));
+			}
+			else
+			{
+				auto* focusWidget = panel.Root().GR().FindFocusWidget();
+				if (focusWidget)
 				{
-					DrawTextWithShadow(g, panel.AbsRect(), to_fstring(hint));
+					hint = focusWidget->Panel().Hint();
+					if (*hint != 0)
+					{
+						DrawTextWithShadow(g, panel.AbsRect(), to_fstring(hint));
+					}
 				}
 			}
 		}

@@ -684,7 +684,7 @@ namespace
 		auto* pS = classExpr->ExpressionPtr;
 		if (pS == nullptr)
 		{
-			Throw(0, "%s: Unexpected null pointer", __FUNCTION__);
+			Throw(0, "%s: Unexpected null pointer", __ROCOCO_FUNCTION__);
 		}
 
 		cr_sex sOrigin = *pS;

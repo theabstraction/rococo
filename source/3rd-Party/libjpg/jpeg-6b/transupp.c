@@ -564,7 +564,7 @@ do_transverse (j_decompress_ptr srcinfo, j_compress_ptr dstinfo,
  * the source's virtual arrays).
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jtransform_request_workspace (j_decompress_ptr srcinfo,
 			      jpeg_transform_info *info)
 {
@@ -728,7 +728,7 @@ trim_bottom_edge (j_compress_ptr dstinfo)
  * to jpeg_write_coefficients().
  */
 
-GLOBAL(jvirt_barray_ptr *)
+JPEG_GLOBAL_API jvirt_barray_ptr *
 jtransform_adjust_parameters (j_decompress_ptr srcinfo,
 			      j_compress_ptr dstinfo,
 			      jvirt_barray_ptr *src_coef_arrays,
@@ -815,7 +815,7 @@ jtransform_adjust_parameters (j_decompress_ptr srcinfo,
  * Note that some transformations will modify the source data arrays!
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jtransform_execute_transformation (j_decompress_ptr srcinfo,
 				   j_compress_ptr dstinfo,
 				   jvirt_barray_ptr *src_coef_arrays,
@@ -857,7 +857,7 @@ jtransform_execute_transformation (j_decompress_ptr srcinfo,
  * This must be called before jpeg_read_header() to have the desired effect.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jcopy_markers_setup (j_decompress_ptr srcinfo, JCOPY_OPTION option)
 {
 #ifdef SAVE_MARKERS_SUPPORTED
@@ -882,7 +882,7 @@ jcopy_markers_setup (j_decompress_ptr srcinfo, JCOPY_OPTION option)
  * JFIF APP0 or Adobe APP14 markers if selected.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jcopy_markers_execute (j_decompress_ptr srcinfo, j_compress_ptr dstinfo,
 		       JCOPY_OPTION option)
 {

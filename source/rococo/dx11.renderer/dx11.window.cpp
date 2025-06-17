@@ -99,7 +99,11 @@ namespace ANON
 			{
 				if (raw.header.dwType == RIM_TYPEMOUSE)
 				{
-					if (handler) handler->OnMouseEvent(raw.data.mouse);
+					MouseContext context;
+					context.isAltHeld = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+					context.isCtrlHeld = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+					context.isShiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+					if (handler) handler->OnMouseEvent(raw.data.mouse, context);
 				}
 				else if (raw.header.dwType == RIM_TYPEKEYBOARD)
 				{

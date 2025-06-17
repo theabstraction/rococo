@@ -170,7 +170,7 @@ namespace ANON_NS
 			auto* stub = InterfaceToInstance(ip);
 			if (stub->Desc->TypeInfo != fileWriterType)
 			{
-				ss.ThrowNative(0, __FUNCTION__, "class was not FileWriter@Sys.IO");
+				ss.ThrowNative(0, __ROCOCO_FUNCTION__, "class was not FileWriter@Sys.IO");
 			}
 
 			return *(FileWriterInstanceWithInternals*)stub;
@@ -188,12 +188,12 @@ namespace ANON_NS
 			fileWriterType = sysIOModule.FindStructure("FileWriter");
 			if (!fileWriterType)
 			{
-				Throw(0, "%s: Cannot find 'class FileWriter' in %s", __FUNCTION__, sysIOModule.Name());
+				Throw(0, "%s: Cannot find 'class FileWriter' in %s", __ROCOCO_FUNCTION__, sysIOModule.Name());
 			}
 
 			if (fileWriterType->InterfaceCount() < 1)
 			{
-				Throw(0, "%s: Expecting at least one interface in 'class FileWriter' in %s", __FUNCTION__, sysIOModule.Name());
+				Throw(0, "%s: Expecting at least one interface in 'class FileWriter' in %s", __ROCOCO_FUNCTION__, sysIOModule.Name());
 			}
 
 			return *fileWriterType;
@@ -541,7 +541,7 @@ namespace ANON_NS
 		}
 		else
 		{
-			e.ss.ThrowNative(0, __FUNCTION__, "Unsupported expression class");
+			e.ss.ThrowNative(0, __ROCOCO_FUNCTION__, "Unsupported expression class");
 		}
 	}
 
@@ -578,7 +578,7 @@ namespace ANON_NS
 		}
 		else
 		{
-			e.ss.ThrowNative(0, __FUNCTION__, "Unsupported expression class");
+			e.ss.ThrowNative(0, __ROCOCO_FUNCTION__, "Unsupported expression class");
 		}
 	}
 
@@ -608,7 +608,7 @@ namespace ANON_NS
 			{
 				char msg[256];
 				SafeFormat(msg, "Bad start position. Position was %d. String length was %d", pos, sc->length);
-				e.ss.ThrowNative(0, __FUNCTION__, msg);
+				e.ss.ThrowNative(0, __ROCOCO_FUNCTION__, msg);
 			}
 
 			if (length < 0 || length + pos >= sc->length)
@@ -618,7 +618,7 @@ namespace ANON_NS
 				{
 					char msg[256];
 					SafeFormat(msg, "Error writing substring");
-					e.ss.ThrowNative(0, __FUNCTION__, msg);
+					e.ss.ThrowNative(0, __ROCOCO_FUNCTION__, msg);
 				}
 			}
 
@@ -626,7 +626,7 @@ namespace ANON_NS
 			{
 				char msg[256];
 				SafeFormat(msg, "Error writing substring. Segment length should have been %d bytes", length);
-				e.ss.ThrowNative(0, __FUNCTION__, msg);
+				e.ss.ThrowNative(0, __ROCOCO_FUNCTION__, msg);
 			}
 		}
 	}
@@ -838,7 +838,7 @@ namespace ANON_NS
 
 		if (sc->length <= 0 || sc->pointer == nullptr)
 		{
-			e.ss.ThrowNative(0, __FUNCTION__, "Filename was blank");
+			e.ss.ThrowNative(0, __ROCOCO_FUNCTION__, "Filename was blank");
 			return;
 		}
 
@@ -852,7 +852,7 @@ namespace ANON_NS
 			strerror_s(errMsg, err);
 
 			char msg[256];
-			SafeFormat(msg, "%s: Could not open %s", __FUNCTION__, sc->pointer);
+			SafeFormat(msg, "%s: Could not open %s", __ROCOCO_FUNCTION__, sc->pointer);
 			e.ss.PublicProgramObject().Log().Write(msg);
 			e.ss.ThrowNative(0, sc->pointer, errMsg);
 			return;
@@ -970,7 +970,7 @@ namespace ANON_NS
 		}
 		catch (IException& ex)
 		{
-			e.ss.ThrowNative(ex.ErrorCode(), __FUNCTION__, ex.Message());
+			e.ss.ThrowNative(ex.ErrorCode(), __ROCOCO_FUNCTION__, ex.Message());
 		}
 	}
 
@@ -989,7 +989,7 @@ namespace ANON_NS
 		}
 		catch (IException& ex)
 		{
-			e.ss.ThrowNative(ex.ErrorCode(), __FUNCTION__, ex.Message());
+			e.ss.ThrowNative(ex.ErrorCode(), __ROCOCO_FUNCTION__, ex.Message());
 		}
 	}
 
@@ -1010,7 +1010,7 @@ namespace ANON_NS
 		}
 		catch (IException& ex)
 		{
-			e.ss.ThrowNative(ex.ErrorCode(), __FUNCTION__, ex.Message());
+			e.ss.ThrowNative(ex.ErrorCode(), __ROCOCO_FUNCTION__, ex.Message());
 		}
 	}
 
@@ -1096,7 +1096,7 @@ namespace ANON_NS
 
 		if (!sc->length || !sc->pointer)
 		{
-			ss.ThrowNative(0, __FUNCTION__, "No directory was supplied");
+			ss.ThrowNative(0, __ROCOCO_FUNCTION__, "No directory was supplied");
 			return;
 		}
 
@@ -1222,12 +1222,12 @@ namespace ANON_NS
 
 		if (!sb->header.Desc->flags.IsSystem)
 		{
-			Throw(0, "%s: string builder was not a System type", __FUNCTION__);
+			Throw(0, "%s: string builder was not a System type", __ROCOCO_FUNCTION__);
 		}
 
 		if (!sc->length || !sc->pointer)
 		{
-			ss.ThrowNative(0, __FUNCTION__, "No key was supplied");
+			ss.ThrowNative(0, __ROCOCO_FUNCTION__, "No key was supplied");
 			return;
 		}
 
@@ -1278,7 +1278,7 @@ namespace ANON_NS
 
 		if (!sb->header.Desc->flags.IsSystem)
 		{
-			Throw(0, "%s: string builder was not a System type", __FUNCTION__);
+			Throw(0, "%s: string builder was not a System type", __ROCOCO_FUNCTION__);
 		}
 
 		U8FilePath path;
@@ -1290,7 +1290,7 @@ namespace ANON_NS
 		int32 capacity = sb->capacity - sb->length;
 		if (capacity <= length)
 		{
-			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity %d, length %d was insufficient to safely hold current path '%s' of length %d", __FUNCTION__, sb->capacity, sb->length, path.buf, length);
+			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity %d, length %d was insufficient to safely hold current path '%s' of length %d", __ROCOCO_FUNCTION__, sb->capacity, sb->length, path.buf, length);
 			return;
 		}
 
@@ -1312,13 +1312,13 @@ namespace ANON_NS
 
 		if (!sb->header.Desc->flags.IsSystem)
 		{
-			Throw(0, "%s: string builder was not a System type", __FUNCTION__);
+			Throw(0, "%s: string builder was not a System type", __ROCOCO_FUNCTION__);
 		}
 
 		int32 capacity = sb->capacity - sb->length;
 		if (capacity <= 0)
 		{
-			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity exhausted", __FUNCTION__);
+			ss.ThrowFromNativeCodeF(0, "%s: string builder capacity exhausted", __ROCOCO_FUNCTION__);
 			return;
 		}
 

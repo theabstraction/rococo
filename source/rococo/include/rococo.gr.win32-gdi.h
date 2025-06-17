@@ -14,7 +14,13 @@
 namespace Rococo
 {
 	struct KeyboardEvent;
+	struct KeyboardEventEx;
 	struct MouseEvent;
+
+	namespace Gui
+	{
+		struct GRKeyContextFlags;
+	}
 
 	namespace Joysticks
 	{
@@ -42,13 +48,13 @@ namespace Rococo::GR::Win32
 		virtual IO::IInstallation& Installation() = 0;
 		virtual void OnPaint(IGR2DScene& scene, HWND hWnd, HDC paintDC) = 0;
 		virtual void RenderGui(Gui::IGRSystem& gr, HWND hWnd, HDC paintDC) = 0;
-		virtual void RouteKeyboardEvent(const KeyboardEvent& key, Gui::IGRSystem& gr) = 0;
-		virtual void RouteMouseEvent(const MouseEvent& me, Gui::IGRSystem& gr) = 0;
+		virtual void RouteKeyboardEvent(const KeyboardEventEx& key, Gui::IGRSystem& gr) = 0;
+		virtual void RouteMouseEvent(const MouseEvent& me, const Gui::GRKeyContextFlags& context, Gui::IGRSystem& gr) = 0;
 		virtual void SetControlType(cstr lastKnownControlType) = 0;
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_GR_GDI_API IWin32GDICustodianSupervisor* CreateGDICustodian();
+	ROCOCO_GR_GDI_API IWin32GDICustodianSupervisor* CreateGDICustodian(HWND hOwnerWindow);
 
 	ROCOCO_INTERFACE IWin32GDIApp
 	{

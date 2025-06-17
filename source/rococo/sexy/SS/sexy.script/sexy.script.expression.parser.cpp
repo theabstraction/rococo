@@ -83,7 +83,7 @@ namespace Rococo
 
 		int GetStackRequirement(const IStructure& str, cr_sex s)
 		{
-			VARTYPE outputType = str.VarType();
+			SexyVarType outputType = str.VarType();
 			BITCOUNT bits = GetBitCount(outputType);
 			switch(bits)
 			{
@@ -100,7 +100,7 @@ namespace Rococo
 
 		void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, cstr name, int interfaceIndex)
 		{
-			if (IsNullType(*def.ResolvedType) || (def.ResolvedType->VarType() == VARTYPE_Array && def.IsContained))
+			if (IsNullType(*def.ResolvedType) || (def.ResolvedType->VarType() == SexyVarType_Array && def.IsContained))
 			{
 				MemberDef refDef;
 				builder.TryGetVariableByName(OUT refDef, name);
@@ -318,14 +318,14 @@ namespace Rococo
 
 				if (requiredArchetype.IsVirtualMethod())
 				{
-					if (i == 0 && st.VarType() == VARTYPE_Pointer && AreEqual(requiredArchetype.GetArgName(0), "_typeInfo"))
+					if (i == 0 && st.VarType() == SexyVarType_Pointer && AreEqual(requiredArchetype.GetArgName(0), "_typeInfo"))
 					{
 						if (stf.Prototype().IsClass && AreEqual(THIS_POINTER_TOKEN,argname))
 						{
 							continue;
 						}
 					}
-					else if (st.VarType() == VARTYPE_Pointer && AreEqual(requiredArchetype.GetArgName(i), "_vTable", 7))
+					else if (st.VarType() == SexyVarType_Pointer && AreEqual(requiredArchetype.GetArgName(i), "_vTable", 7))
 					{
 						if (stf.Prototype().IsClass && AreEqual(THIS_POINTER_TOKEN,argname))
 						{
@@ -382,14 +382,14 @@ namespace Rococo
 			cstr targetVariable = targetExpr.c_str();
 			cr_sex assignmentChar = GetAtomicArg(directive, 2 + offset);
 			cr_sex sourceValue = directive.GetElement(3 + offset);
-			VARTYPE targetType = varStruct.VarType();
+			SexyVarType targetType = varStruct.VarType();
 
 			cstr sourceText = sourceValue.c_str();
 
 			TokenBuffer symbol;
 			StringPrint(symbol, ("%s=%s"), targetVariable, (cstr) sourceValue.c_str());
 		
-			if (targetType == VARTYPE_Closure)
+			if (targetType == SexyVarType_Closure)
 			{
 				IFunctionBuilder* f = ce.Builder.Module().FindFunction(sourceText);
 				if (f != NULL)
@@ -429,7 +429,7 @@ namespace Rococo
 
 			// Either a literal or an identifier
 		
-			VARTYPE varType = Parse::GetLiteralType(sourceText);
+			SexyVarType varType = Parse::GetLiteralType(sourceText);
 			if (IsPrimitiveType(varType))
 			{
 				try
@@ -445,7 +445,7 @@ namespace Rococo
 			}
 			else
 			{
-				VARTYPE sourceType = ce.Builder.GetVarType(sourceText);
+				SexyVarType sourceType = ce.Builder.GetVarType(sourceText);
 				if (IsPrimitiveType(sourceType))
 				{
 					if (targetType == sourceType)
@@ -459,7 +459,7 @@ namespace Rococo
 						Throw(directive, "The type %s of %s does not match the type %s of %s", Parse::VarTypeName(targetType), targetVariable, Parse::VarTypeName(sourceType), sourceText);
 					}
 				}
-				else if (sourceType == VARTYPE_Closure)
+				else if (sourceType == SexyVarType_Closure)
 				{
 					if (targetType == sourceType)
 					{
@@ -481,7 +481,7 @@ namespace Rococo
 						Throw(directive, "The type of %s does not match the type of %s", targetVariable, sourceText);
 					}
 				}
-				else if (sourceType == VARTYPE_Derivative)
+				else if (sourceType == SexyVarType_Derivative)
 				{
 					MemberDef def;
 					if (!ce.Builder.TryGetVariableByName(def, sourceText))
@@ -498,7 +498,7 @@ namespace Rococo
 				}
 				else
 				{
-					if (varStruct.VarType() == VARTYPE_Derivative && !IsNullType(varStruct))
+					if (varStruct.VarType() == SexyVarType_Derivative && !IsNullType(varStruct))
 					{
 						Throw(directive, ("Only interface references and primitive types can be initialized in an assignment"));
 					}				
@@ -518,7 +518,7 @@ namespace Rococo
 
 					if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, &varStruct, NULL))
 					{
-						if (targetType == VARTYPE_Derivative)
+						if (targetType == SexyVarType_Derivative)
 						{
 							// If a function returns a derivative type then it returns a pointer to a derivative type
 
@@ -526,7 +526,7 @@ namespace Rococo
 							ce.Builder.AddSymbol(symbol);
 							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
 						}
-						else if (targetType == VARTYPE_Closure)
+						else if (targetType == SexyVarType_Closure)
 						{	
 							StringPrint(symbol, ("-> %s"), (cstr)targetVariable);
 							ce.Builder.AddSymbol(symbol);
@@ -556,22 +556,22 @@ namespace Rococo
 						AddSymbol(ce.Builder, "Negate D4");
 						switch (varStruct.VarType())
 						{
-						case VARTYPE_Float32:
+						case SexyVarType_Float32:
 							ce.Builder.Assembler().Append_FloatNegate32(VM::REGISTER_D4);
 							break;
-						case VARTYPE_Int32:
+						case SexyVarType_Int32:
 							ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D4, BITCOUNT_32);
 							break;
-						case VARTYPE_Float64:
+						case SexyVarType_Float64:
 							ce.Builder.Assembler().Append_FloatNegate64(VM::REGISTER_D4);
 							break;
-						case VARTYPE_Int64:
+						case SexyVarType_Int64:
 							ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D4, BITCOUNT_64);
 							break;
-						case VARTYPE_Pointer:
+						case SexyVarType_Pointer:
 							Throw(sourceValue, "Cannot negate a pointer");
 							break;
-						case VARTYPE_Bool:
+						case SexyVarType_Bool:
 							// We could prohibit this, but it is better to have this succinct way of doing a logical not in one atomic symbol
 							ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D4);
 							break;
@@ -597,7 +597,7 @@ namespace Rococo
 			cstr targetVariable = GetAtomicArg(directive, 1 + offset).c_str();
 			cr_sex sourceValue = directive.GetElement(3 + offset);
 		
-			VARTYPE targetType = varStruct.VarType();
+			SexyVarType targetType = varStruct.VarType();
 
 			TokenBuffer symbol;
 			StringPrint(symbol, ("%s=(...)"), targetVariable);
@@ -606,7 +606,7 @@ namespace Rococo
 
 			switch(targetType)
 			{
-			case VARTYPE_Bool:
+			case SexyVarType_Bool:
 				if (TryCompileBooleanExpression(ce, sourceValue, true, negate))
 				{
 					// D7 assembled to now hold the value of the boolean value of the source expression
@@ -616,10 +616,10 @@ namespace Rococo
 					return;
 				}
 				break;
-			case VARTYPE_Float32:
-			case VARTYPE_Int32:
-			case VARTYPE_Int64:
-			case VARTYPE_Float64:
+			case SexyVarType_Float32:
+			case SexyVarType_Int32:
+			case SexyVarType_Int64:
+			case SexyVarType_Float64:
 				if (TryCompileArithmeticExpression(ce, sourceValue, true, targetType))
 				{
 					// D7 assembled to now hold the value of the boolean value of the source expression
@@ -628,7 +628,7 @@ namespace Rococo
 					return;
 				}
 				break;
-			case VARTYPE_Closure:
+			case SexyVarType_Closure:
 				// D7 assembled to now hold the value of the boolean value of the source expression
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, NULL, varStruct.Archetype()))
 				{
@@ -665,7 +665,7 @@ namespace Rococo
 					return;
 				}
 				break;
-			case VARTYPE_Pointer:
+			case SexyVarType_Pointer:
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, NULL, NULL))
 				{				
 					ce.Builder.AddSymbol(symbol);
@@ -673,7 +673,7 @@ namespace Rococo
 					return;
 				}			
 				break;
-			case VARTYPE_Derivative: // Function returns a pointer to an interface in D7, the ref count was incremented by the callee
+			case SexyVarType_Derivative: // Function returns a pointer to an interface in D7, the ref count was incremented by the callee
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, &varStruct, NULL))
 				{				
 					ce.Builder.AddSymbol(symbol);
@@ -717,7 +717,7 @@ namespace Rococo
 			TokenBuffer symbol;
 			StringPrint(symbol, ("%s=%s"), targetVariable, sourceText);
 
-			VARTYPE varType = Parse::GetLiteralType(sourceText);
+			SexyVarType varType = Parse::GetLiteralType(sourceText);
 			if (IsPrimitiveType(varType))
 			{
 				try
@@ -733,7 +733,7 @@ namespace Rococo
 			}
 			else
 			{
-				VARTYPE sourceType = ce.Builder.GetVarType(sourceText);
+				SexyVarType sourceType = ce.Builder.GetVarType(sourceText);
 				if (IsPrimitiveType(sourceType))
 				{
 					if (member.UnderlyingType()->VarType() == sourceType)
@@ -831,7 +831,7 @@ namespace Rococo
 					Throw(src, ("Do not know how to assign the value of the compound expression to the member variable"));
 				}
 				return;
-			case VARTYPE_Derivative:
+			case SexyVarType_Derivative:
 				{
 					if (*member.UnderlyingType() == ce.Object.Common().SysTypeIString().NullObjectType())
 					{
@@ -882,7 +882,7 @@ namespace Rococo
 					}
 					return;
 				}
-			case VARTYPE_Bad:
+			case SexyVarType_Bad:
 				Throw(src, "%s is a bad type, and cannot be initialized", memberType.Name());
 				return;
 			}
@@ -1131,7 +1131,7 @@ namespace Rococo
 		  }
 		  else
 		  {
-			 if (Parse::PARSERESULT_GOOD == Parse::TryParse(parsedValue, VARTYPE_Float32, value))
+			 if (Parse::PARSERESULT_GOOD == Parse::TryParse(parsedValue, SexyVarType_Float32, value))
 			 {
 				return ce.Object.Common().TypeFloat32();
 			 }
@@ -1314,7 +1314,7 @@ namespace Rococo
 
 		   AssertNotTooFewElements(directive, 4 + offset);
 
-		   if (varStruct.VarType() == VARTYPE_Derivative && !varStruct.Prototype().IsClass)
+		   if (varStruct.VarType() == SexyVarType_Derivative && !varStruct.Prototype().IsClass)
 		   {
 			   if (directive.NumberOfElements() == 4 + offset)
 			   {
@@ -1407,7 +1407,7 @@ namespace Rococo
 		void ValidateUnusedVariable(cr_sex identifierExpr, ICodeBuilder& builder)
 		{
 			cstr id = identifierExpr.c_str();
-			if (builder.GetVarType(id) != VARTYPE_Bad)
+			if (builder.GetVarType(id) != SexyVarType_Bad)
 			{
 				Throw(identifierExpr, "Variable name %s is already defined in the context", id);
 			}
@@ -1539,19 +1539,19 @@ namespace Rococo
 							// Skip C++ defined variables
 							switch (memberType->VarType())
 							{
-							case VARTYPE_Array:
-							case VARTYPE_List:
-							case VARTYPE_Map:
-							case VARTYPE_Pointer:
+							case SexyVarType_Array:
+							case SexyVarType_List:
+							case SexyVarType_Map:
+							case SexyVarType_Pointer:
 								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
 								break;
-							case VARTYPE_Int64:
-							case VARTYPE_Float64:
+							case SexyVarType_Int64:
+							case SexyVarType_Float64:
 								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_64);
 								break;
-							case VARTYPE_Bool:
-							case VARTYPE_Int32:
-							case VARTYPE_Float32:
+							case SexyVarType_Bool:
+							case SexyVarType_Int32:
+							case SexyVarType_Float32:
 								ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_32);
 								break;
 							default:
@@ -1607,17 +1607,17 @@ namespace Rococo
 					return true;
 				}
 
-				if (memberType->VarType() == VARTYPE_Array)
+				if (memberType->VarType() == SexyVarType_Array)
 				{
 					return true;
 				}
 
-				if (memberType->VarType() == VARTYPE_List)
+				if (memberType->VarType() == SexyVarType_List)
 				{
 					return true;
 				}
 
-				if (memberType->VarType() == VARTYPE_Map)
+				if (memberType->VarType() == SexyVarType_Map)
 				{
 					return true;
 				}
@@ -1640,7 +1640,7 @@ namespace Rococo
 		{
 			switch (st.VarType())
 			{
-				case VARTYPE_Closure:
+				case SexyVarType_Closure:
 				{
 					MemberDef def;
 					if (!ce.Builder.TryGetVariableByName(OUT def, id) || def.Usage != ARGUMENTUSAGE_BYVALUE)
@@ -1670,9 +1670,9 @@ namespace Rococo
 					AddSymbol(ce.Builder, ("%s -> (Null-Function Null-SF)"), id);
 				}
 				break;
-				case VARTYPE_Int32:
-				case VARTYPE_Float32:
-				case VARTYPE_Bool:
+				case SexyVarType_Int32:
+				case SexyVarType_Float32:
+				case SexyVarType_Bool:
 					{
 						VariantValue zeroRef;
 						zeroRef.charPtrValue = 0;
@@ -1680,9 +1680,9 @@ namespace Rococo
 						ce.Builder.AssignTempToVariable(0, id);
 					}
 				break;
-				case VARTYPE_Int64:
-				case VARTYPE_Float64:
-				case VARTYPE_Pointer:
+				case SexyVarType_Int64:
+				case SexyVarType_Float64:
+				case SexyVarType_Pointer:
 					{
 						VariantValue zeroRef;
 						zeroRef.charPtrValue = 0;
@@ -1750,7 +1750,7 @@ namespace Rococo
 				Throw(*constructorArgs.Parent(), ("Unrecognized variable initialization syntax. Expecting null or compound constructor args"));
 			}
 
-			if (type.VarType() != VARTYPE_Derivative)
+			if (type.VarType() != SexyVarType_Derivative)
 			{
 				Throw(*constructorArgs.Parent(), ("Constructor declarations are only available for derivative types"));
 			}
@@ -2121,7 +2121,7 @@ namespace Rococo
 				OS::TripDebugger();
 				cstr enigma = typeExpr.c_str();
 				Throw(decl, "%s: Could not match [%s] as either a structure, function nor an interface in module %s\n"
-							"Try specifying %s as a fully qualified type, or add the correct (using <namespace>) directive.", __FUNCTION__, enigma, source.Name(), enigma);
+							"Try specifying %s as a fully qualified type, or add the correct (using <namespace>) directive.", __ROCOCO_FUNCTION__, enigma, source.Name(), enigma);
 			}
 
 			ValidateLocalDeclarationVariable(*st, idExpr);
@@ -2185,8 +2185,8 @@ namespace Rococo
 		// Returns true iff structure is Plain Old Data.
 		bool IsPLOD(const IStructure& type)
 		{
-			VARTYPE vt = type.VarType();
-			if (vt == VARTYPE_Pointer)
+			SexyVarType vt = type.VarType();
+			if (vt == SexyVarType_Pointer)
 			{
 				// Pointers represent native data
 				return false;
@@ -2261,7 +2261,7 @@ namespace Rococo
 							Throw(value, "The array element type is not plain data. One or more of its members was reference counted. Use syntax (foreach <local-var> # (<array> <index> (...logic....))");
 						}
 
-						if (!TryCompileArithmeticExpression(ce, arg, true, VARTYPE_Int32))
+						if (!TryCompileArithmeticExpression(ce, arg, true, SexyVarType_Int32))
 						{
 							Throw(command, ("Expecting Int32 valued expression for array index"));
 						} // D7 now contains the array index
@@ -2341,14 +2341,14 @@ namespace Rococo
 			if (ce.Builder.TryGetVariableByName(OUT def, token))
 			{
 				const IStructure* varStruct = def.ResolvedType;
-				VARTYPE tokenType = varStruct->VarType();
+				SexyVarType tokenType = varStruct->VarType();
 
-				if (IsPrimitiveType(tokenType) || tokenType == VARTYPE_Closure)
+				if (IsPrimitiveType(tokenType) || tokenType == SexyVarType_Closure)
 				{
 					CompileAssignmentDirective(ce, directive, *varStruct, false);
 					return true;
 				}
-				else if (tokenType == VARTYPE_Derivative)
+				else if (tokenType == SexyVarType_Derivative)
 				{
 					if (varStruct->Prototype().IsClass)
 					{
@@ -2433,7 +2433,7 @@ namespace Rococo
 				{
 					NoteDestructorPositions(ce, *def.ResolvedType, def.SFOffset);
 				}
-				else if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && (def.ResolvedType->VarType() == VARTYPE_Map || def.ResolvedType->VarType() == VARTYPE_List || def.ResolvedType->VarType() == VARTYPE_Array))
+				else if (def.Usage == ARGUMENTUSAGE_BYREFERENCE && (def.ResolvedType->VarType() == SexyVarType_Map || def.ResolvedType->VarType() == SexyVarType_List || def.ResolvedType->VarType() == SexyVarType_Array))
 				{
 					NoteDestructorPositions(ce, *def.ResolvedType, def.SFOffset);
 				}
@@ -2683,7 +2683,7 @@ namespace Rococo
 
 		void CompileSerializeFromInterface(cr_sex s, CCompileEnvironment& ce, const MemberDef& srcDef, const MemberDef& trgDef)
 		{
-			if (trgDef.ResolvedType->VarType() != VARTYPE_Derivative)
+			if (trgDef.ResolvedType->VarType() != SexyVarType_Derivative)
 			{
 				Throw(s, "(serialize <src> -> <targets>): The target was not a class or struct");
 			}
@@ -2912,7 +2912,7 @@ namespace Rococo
 				cstr arg = s[1].c_str();
 
 				VariantValue waitPeriod;
-				if (Parse::PARSERESULT_GOOD == Parse::TryParse(waitPeriod, VARTYPE_Int64, arg))
+				if (Parse::PARSERESULT_GOOD == Parse::TryParse(waitPeriod, SexyVarType_Int64, arg))
 				{
 					if (waitPeriod.int64Value > 0)
 					{
@@ -2932,7 +2932,7 @@ namespace Rococo
 						Throw(s, "yield argument was neither a literal int64 nor a known variable");
 					}
 
-					if (def.ResolvedType->VarType() != VARTYPE_Int64)
+					if (def.ResolvedType->VarType() != SexyVarType_Int64)
 					{
 						Throw(s, "yield argument was neither a literal int64 nor an int64 variable");
 					}
@@ -3160,7 +3160,7 @@ namespace Rococo
 		void AssignListToList(CCompileEnvironment& ce, cr_sex s, const MemberDef& lhs, cstr lhsString, cstr rhsString)
 		{
 			MemberDef rhs;
-			if (!ce.Builder.TryGetVariableByName(OUT rhs, rhsString) || rhs.ResolvedType->VarType() != VARTYPE_List)
+			if (!ce.Builder.TryGetVariableByName(OUT rhs, rhsString) || rhs.ResolvedType->VarType() != SexyVarType_List)
 			{
 				Throw(s, "Expecting list type %s", rhsString);
 			}
@@ -3196,7 +3196,7 @@ namespace Rococo
 		void AssignMapToMap(CCompileEnvironment& ce, cr_sex s, const MemberDef& lhs, cstr lhsString, cstr rhsString)
 		{
 			MemberDef rhs;
-			if (!ce.Builder.TryGetVariableByName(OUT rhs, rhsString) || rhs.ResolvedType->VarType() != VARTYPE_Map)
+			if (!ce.Builder.TryGetVariableByName(OUT rhs, rhsString) || rhs.ResolvedType->VarType() != SexyVarType_Map)
 			{
 				Throw(s, "Expecting map type %s", rhsString);
 			}
@@ -3288,7 +3288,7 @@ namespace Rococo
 					}
 					else if (AreEqual(tail, ("PopOut")))
 					{
-						VARTYPE type = ce.Builder.GetVarType(lhs);
+						SexyVarType type = ce.Builder.GetVarType(lhs);
 						if (!IsPrimitiveType(type))
 						{
 							Throw(exceptionSource, ("Only primitive types can be popped out from an array"));
@@ -3453,10 +3453,10 @@ namespace Rococo
 
 			switch (type)
 			{
-			case VARTYPE_Int32:
-			case VARTYPE_Int64:
-			case VARTYPE_Float32:
-			case VARTYPE_Float64:
+			case SexyVarType_Int32:
+			case SexyVarType_Int64:
+			case SexyVarType_Float32:
+			case SexyVarType_Float64:
 				break;
 			default:
 				Throw(lhs, "Delta operator '%s' requires lhs is a numeric variable: Int32, Int64, Float32 or Float64", deltaOps[opIndex]);
@@ -3469,7 +3469,7 @@ namespace Rococo
 			{
 				ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
 
-				if (type == VARTYPE_Int32 || type == VARTYPE_Int64)
+				if (type == SexyVarType_Int32 || type == SexyVarType_Int64)
 				{
 					switch (opIndex)
 					{
@@ -3526,7 +3526,7 @@ namespace Rococo
 					Throw(rhs, "For the delta operation on %s - do not know how to handle the RHS. Try assigning to a variable first then pass to the delta expression.", name);
 				}
 
-				if (type == VARTYPE_Int32 || type == VARTYPE_Int64)
+				if (type == SexyVarType_Int32 || type == SexyVarType_Int64)
 				{
 					switch (opIndex)
 					{

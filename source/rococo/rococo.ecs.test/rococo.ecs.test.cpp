@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
 	catch (IException& ex)
 	{
 		char err[2048];
-		Rococo::OS::BuildExceptionString(err, sizeof err, ex, true);
+		Rococo::OS::BuildExceptionString(err, sizeof(err), ex, true);
 		printf("%s\n", err);
 		WaitASecond();
 		return -1;

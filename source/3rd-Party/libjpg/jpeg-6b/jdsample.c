@@ -350,7 +350,7 @@ h2v2_fancy_upsample (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 #if BITS_IN_JSAMPLE == 8
   register int thiscolsum, lastcolsum, nextcolsum;
 #else
-  register INT32 thiscolsum, lastcolsum, nextcolsum;
+  register JTYPE_INT32 thiscolsum, lastcolsum, nextcolsum;
 #endif
   register JDIMENSION colctr;
   int inrow, outrow, v;
@@ -395,7 +395,7 @@ h2v2_fancy_upsample (j_decompress_ptr cinfo, jpeg_component_info * compptr,
  * Module initialization routine for upsampling.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_upsampler (j_decompress_ptr cinfo)
 {
   my_upsample_ptr upsample;

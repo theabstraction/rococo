@@ -34,7 +34,7 @@
 #pragma once
 
 #ifndef SEXYUTIL_API
-# define SEXYUTIL_API __declspec(dllimport)
+# error "define SEXYUTIL_API __declspec(dllimport) or some such"
 #endif
 
 #include <sexy.types.h>
@@ -46,12 +46,6 @@ namespace Rococo
 	inline int32 Compare(sexstring a, const char* b)
 	{
 		return Strings::Compare(a->Buffer, b);
-	}
-
-	namespace Strings
-	{
-		const char* GetSubString(const char* s, const char* subString);
-		cstr GetSubString(cstr s, const char* subString);
 	}
 
 	inline bool AreEqual(sexstring a, sexstring b)
@@ -77,8 +71,8 @@ namespace Rococo
 
 	namespace Parse
 	{
-		SEXYUTIL_API VARTYPE GetLiteralType(cstr candidate);
-		SEXYUTIL_API cstr VarTypeName(VARTYPE type);
-		SEXYUTIL_API PARSERESULT TryParse(VariantValue& value, VARTYPE type, cstr valueLiteral);
+		SEXYUTIL_API SexyVarType GetLiteralType(cstr candidate);
+		SEXYUTIL_API cstr VarTypeName(SexyVarType type);
+		SEXYUTIL_API PARSERESULT TryParse(VariantValue& value, SexyVarType type, cstr valueLiteral);
 	}
 }

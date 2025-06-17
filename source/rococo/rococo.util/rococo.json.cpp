@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 #include <rococo.json.h>
 #include <vector>
@@ -39,7 +38,7 @@ struct NameValueBranch : INameValueBranch, INameValueBranchBuilder
 	{
 		if (index < 0 || index >= (int32)attributes.size())
 		{
-			Throw(0, "%s: bad index %d vs vector length %llu", __FUNCTION__, index, children.size());
+			Throw(0, "%s: bad index %d vs vector length %llu", __ROCOCO_FUNCTION__, index, children.size());
 		}
 
 		auto& attr = attributes[index];
@@ -61,7 +60,7 @@ struct NameValueBranch : INameValueBranch, INameValueBranchBuilder
 	{
 		if (index < 0 || index >= (int32)children.size())
 		{
-			Throw(0, "%s: bad index %d vs vector length %llu", __FUNCTION__, index, children.size());
+			Throw(0, "%s: bad index %d vs vector length %llu", __ROCOCO_FUNCTION__, index, children.size());
 		}
 
 		return *children[index];
@@ -359,7 +358,7 @@ struct JSonParser: IJSonParserSupervisor
 		// First character has already been validated, so copy it
 		*dest++ = *p++;
 
-		for (size_t i = 0; i < sizeof numberBuffer - 2; i++)
+		for (size_t i = 0; i < sizeof(numberBuffer) - 2; i++)
 		{
 			char c = *p++;
 			if (c == 0)

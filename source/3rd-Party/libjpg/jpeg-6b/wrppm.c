@@ -215,7 +215,7 @@ finish_output_ppm (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo)
  * The module selection routine for PPM format output.
  */
 
-GLOBAL(djpeg_dest_ptr)
+JPEG_GLOBAL_API djpeg_dest_ptr
 jinit_write_ppm (j_decompress_ptr cinfo)
 {
   ppm_dest_ptr dest;

@@ -241,7 +241,7 @@ process_data_buffer_main (j_compress_ptr cinfo,
  * Initialize main buffer controller.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_c_main_controller (j_compress_ptr cinfo, boolean need_full_buffer)
 {
   my_main_ptr main;

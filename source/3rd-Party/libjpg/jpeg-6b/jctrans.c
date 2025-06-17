@@ -34,7 +34,7 @@ LOCAL(void) transencode_coef_controller
  * typically will be realized during this routine and filled afterwards.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_write_coefficients (j_compress_ptr cinfo, jvirt_barray_ptr * coef_arrays)
 {
   if (cinfo->global_state != CSTATE_START)
@@ -59,7 +59,7 @@ jpeg_write_coefficients (j_compress_ptr cinfo, jvirt_barray_ptr * coef_arrays)
  * scan script and Huffman optimization) are left in their default states.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_copy_critical_parameters (j_decompress_ptr srcinfo,
 			       j_compress_ptr dstinfo)
 {

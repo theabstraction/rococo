@@ -151,11 +151,11 @@ struct WindowsArrayFont : IArrayFontSupervisor
 
 		if (spec.fontName && *spec.fontName != 0)
 		{
-			CopyString(logFont.lfFaceName, sizeof logFont.lfFaceName, spec.fontName);
+			CopyString(logFont.lfFaceName, sizeof(logFont.lfFaceName), spec.fontName);
 		}
 		else
 		{
-			CopyString(logFont.lfFaceName, sizeof logFont.lfFaceName, "Courier New");
+			CopyString(logFont.lfFaceName, sizeof(logFont.lfFaceName), "Courier New");
 		}
 
 		logFont.lfItalic = (BYTE) spec.italic;
@@ -205,7 +205,7 @@ struct WindowsArrayFont : IArrayFontSupervisor
 		hBitmap = CreateCompatibleBitmap(hdcDesktop, width, metrics.height);
 		if (hBitmap == nullptr)
 		{
-			Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __FUNCTION__);
+			Throw(GetLastError(), "%s CreateCompatibleBitmap failed.", __ROCOCO_FUNCTION__);
 		}
 
 		pixels.resize(width* metrics.height);

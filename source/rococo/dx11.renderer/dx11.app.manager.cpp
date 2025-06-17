@@ -151,7 +151,10 @@ namespace ANON
 		static int32 VcodeToUnicode(int32 virtualKeyCode, int32 scancode, HKL layout)
 		{
 			BYTE keystate[256];
-			GetKeyboardState(keystate);
+			if (!GetKeyboardState(keystate))
+			{
+				return 0;
+			}
 
 			WCHAR buffer[4] = { 0,0,0,0 };
 			UINT flags = 0;
@@ -159,18 +162,28 @@ namespace ANON
 			return (charsRead == 1) ? buffer[0] : 0;
 		}
 
+		static inline bool IsDown(int vkCode)
+		{
+			return GetAsyncKeyState(vkCode) & 0x8000;
+		}
+
 		void OnKeyboardEvent(const RAWKEYBOARD& k, HKL hKeyboardLayout)
 		{
-			KeyboardEvent key;
-			((RAWKEYBOARD&)key) = k;
+			KeyboardEventEx key;
+			key.isAltHeld = IsDown(VK_MENU);
+			key.isCtrlHeld = IsDown(VK_CONTROL);
+			key.isShiftHeld = IsDown(VK_SHIFT);
+			KeyboardEvent& innerKey = static_cast<KeyboardEvent&>(key);
+			((RAWKEYBOARD&)(innerKey)) = k;
 			key.unicode = VcodeToUnicode(k.VKey, key.scanCode, hKeyboardLayout);
 			app.OnKeyboardEvent(key);
 		}
 
-		void OnMouseEvent(const RAWMOUSE& m)
+		void OnMouseEvent(const RAWMOUSE& m, MouseContext context) override
 		{
 			MouseEvent me;
 			memcpy(&me, &m, sizeof(m));
+			me.contextFlags = context;
 
 			POINT p;
 			GetCursorPos(&p);
@@ -232,6 +245,11 @@ namespace ANON
 			app = _factory.CreateApp(platform, *this);
 		}
 
+		virtual ~DirectAppManager()
+		{
+
+		}
+
 		void OnEvent(SysUnstableArgs&) override
 		{
 			window.Renderer().SwitchToWindowMode();
@@ -261,10 +279,12 @@ namespace ANON
 			keyBuffer.WriteBack();
 		}
 
-		void OnMouseEvent(const RAWMOUSE& m)
+		void OnMouseEvent(const RAWMOUSE& m, MouseContext context) override
 		{
-			MouseEvent me;
-			memcpy(&me, &m, sizeof(m));
+			MouseEvent me = { 0 };
+			me.flags = m.usFlags;
+			me.buttons = m.ulButtons;
+			me.contextFlags = context;
 
 			POINT p;
 			GetCursorPos(&p);

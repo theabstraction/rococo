@@ -55,7 +55,7 @@ namespace Rococo::DX11
             HMODULE hModule = LoadLibraryW(capturerPath);
             if (!hModule)
             {
-                Throw(GetLastError(), "%s: LoadLibraryW('%ws') failed", __FUNCTION__, capturerPath);
+                Throw(GetLastError(), "%s: LoadLibraryW('%ws') failed", __ROCOCO_FUNCTION__, capturerPath);
             }
         }
     }

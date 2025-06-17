@@ -1,5 +1,4 @@
 #include <rococo.compiler.options.h>
-#define ROCOCO_SEXML_API ROCOCO_API_EXPORT
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
@@ -21,10 +20,10 @@ namespace Rococo::OS
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
@@ -34,7 +33,7 @@ namespace Rococo::OS
 		}
 
 		WideFilePath wFullName;
-		Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
+		Rococo::Strings::Format(wFullName, _RW_TEXT("%ls\\%hs.sexml"), wDir.buf, section);
 
 		return IO::IsFileExistant(wFullName);
 	}
@@ -43,42 +42,44 @@ namespace Rococo::OS
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
 		WideFilePath wFullName;
-		Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
+		Rococo::Strings::Format(wFullName, _RW_TEXT("%ls\\%hs.sexml"), wDir.buf, section);
 
-		Format(path, "%ls", wFullName.buf);
+		Rococo::Strings::Format(path, "%ls", wFullName.buf);
 	}
 
 	ROCOCO_SEXML_API void LoadUserSEXML(cstr organization, cstr section, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 
 		WideFilePath wDir;
 		IO::GetUserPath(wDir.buf, WideFilePath::CAPACITY, organization);
 
 		if (!IO::IsDirectory(wDir))
 		{
-			Throw(0, "%s(%s, %s,...):\n\tNo such directory: %ls\n", __FUNCTION__, organization, section, wDir.buf);
+			Throw(0, "%s(%s, %s,...):\n\tNo such directory: %ls\n", __ROCOCO_FUNCTION__, organization, section, wDir.buf);
 		}
 
 		WideFilePath wFullName;
-		Format(wFullName, L"%ls\\%hs.sexml", wDir.buf, section);
+		Rococo::Strings::Format(wFullName, _RW_TEXT("%ls\\%hs.sexml"), wDir.buf, section);
 
 		struct ANON: IStringPopulator
 		{
+			virtual ~ANON() {}
+
 			HString result;
 			void Populate(cstr text) override
 			{
@@ -103,11 +104,11 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (...)
 		{
-			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, u8Path.buf);
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __ROCOCO_FUNCTION__, u8Path.buf);
 		}
 
 		AutoFree<ISEXMLRootSupervisor> root = CreateSEXMLParser(*allocator, tree->Root());
@@ -119,10 +120,10 @@ namespace Rococo::OS
 	{
 		if (section == nullptr || *section == 0)
 		{
-			Throw(0, "%s: blank [section]", __FUNCTION__);
+			Throw(0, "%s: blank [section]", __ROCOCO_FUNCTION__);
 		}
 		
-		organization = (organization && *organization) ? organization : s_defaultOrganization;
+		organization = (organization && *organization) ? organization : s_defaultOrganization.c_str();
 
 		WideFilePath wOrganizationDir;
 		IO::GetUserPath(wOrganizationDir, organization);
@@ -133,7 +134,7 @@ namespace Rococo::OS
 		}
 
 		WideFilePath wDir;
-		Format(wDir, L"%hs\\%hs.sexml", organization, section);
+		Rococo::Strings::Format(wDir, _RW_TEXT("%hs\\%hs.sexml"), organization, section);
 
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
 		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);
@@ -145,7 +146,7 @@ namespace Rococo::OS
 		}
 		catch (IException& ex)
 		{
-			Throw(ex.ErrorCode(), "%s(%s, %s, ...): %s", __FUNCTION__, organization, section, ex.Message());
+			Throw(ex.ErrorCode(), "%s(%s, %s, ...): %s", __ROCOCO_FUNCTION__, organization, section, ex.Message());
 		}
 
 		IO::SaveAsciiTextFile(IO::TargetDirectory_UserDocuments, wDir, *dsb->Builder());
@@ -179,10 +180,13 @@ namespace Rococo::OS
 		s_defaultOrganization = defaultOrganization;
 	}
 
-	ROCOCO_SEXML_API void LoadSXMLBySysPath(const wchar_t* filename, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
+	ROCOCO_SEXML_API void LoadSXMLBySysPath(crwstr filename, Function<void(const ISEXMLDirectiveList& topLevelDirectives)> onLoad)
 	{
 		struct ANON : IStringPopulator
 		{
+			// Anal that VC++ compiler moans about missing virtual destructors even when instances are on the stack
+			virtual ~ANON() {}
+
 			HString result;
 			void Populate(cstr text) override
 			{
@@ -207,11 +211,11 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, u8Path.buf, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (...)
 		{
-			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, u8Path.buf);
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __ROCOCO_FUNCTION__, u8Path.buf);
 		}
 
 		AutoFree<ISEXMLRootSupervisor> root = CreateSEXMLParser(*allocator, tree->Root());
@@ -233,11 +237,11 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (...)
 		{
-			Throw(0, "%s: Error parsing %s: Unhandled exception", __FUNCTION__, name);
+			Throw(0, "%s: Error parsing %s: Unhandled exception", __ROCOCO_FUNCTION__, name);
 		}
 
 		AutoFree<ISEXMLRootSupervisor> root;
@@ -249,7 +253,7 @@ namespace Rococo::OS
 		}
 		catch (ParseException& ex)
 		{
-			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
+			Throw(0, "%s: Error parsing %s: %s. (line %d pos %d)", __ROCOCO_FUNCTION__, name, ex.Message(), ex.Start().y, ex.Start().x);
 		}
 		catch (IException& defaultEx)
 		{
@@ -264,7 +268,7 @@ namespace Rococo::OS
 		LoadSXMLBySysPath(wPath, onLoad);
 	}
 
-	ROCOCO_SEXML_API void SaveSXMLBySysPath(const wchar_t* filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(crwstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
 	{
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
 		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);
@@ -276,7 +280,7 @@ namespace Rococo::OS
 		}
 		catch (IException& ex)
 		{
-			Throw(ex.ErrorCode(), "%s: %s", __FUNCTION__, ex.Message());
+			Throw(ex.ErrorCode(), "%s: %s", __ROCOCO_FUNCTION__, ex.Message());
 		}
 
 		IO::SaveAsciiTextFile(IO::TargetDirectory_Root, filename, *dsb->Builder());

@@ -7,7 +7,7 @@
 #include <rococo.strings.h>
 #include <rococo.sexy.api.h>
 #include <rococo.package.h>
-#include <rococo.stl.allocators.h>
+#include <rococo.sexy.allocators.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;

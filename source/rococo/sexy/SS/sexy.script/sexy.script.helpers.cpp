@@ -189,52 +189,52 @@ namespace Rococo
          }
       };
 
-      void ProtectedFormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
+      void ProtectedFormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, SexyVarType type, const void* pVariableData)
       {
          switch (type)
          {
-         case VARTYPE_Bad:
+         case SexyVarType_Bad:
             SafeFormat(buffer, bufferCapacity, "Bad type");
             break;
-         case VARTYPE_Bool:
+         case SexyVarType_Bool:
          {
             const Rococo::int32 value = *(const Rococo::int32*) pVariableData;
             if (value == 0 || value == 1) SafeFormat(buffer, bufferCapacity, (value == 1 ? "true" : "false"));
             else SafeFormat(buffer, bufferCapacity, "%d", value, value);
          }
          break;
-		 case VARTYPE_Array:
-		 case VARTYPE_List:
-		 case VARTYPE_Map:
-         case VARTYPE_Derivative:
+		 case SexyVarType_Array:
+		 case SexyVarType_List:
+		 case SexyVarType_Map:
+         case SexyVarType_Derivative:
             SafeFormat(buffer, bufferCapacity, "");
             break;
-         case VARTYPE_Int32:
+         case SexyVarType_Int32:
          {
             const Rococo::int32* pValue = (const Rococo::int32*) pVariableData;
             SafeFormat(buffer, bufferCapacity, "%d (0x%X)", *pValue, *pValue);
          }
          break;
-         case VARTYPE_Int64:
+         case SexyVarType_Int64:
          {
             const Rococo::int64* pValue = (const Rococo::int64*) pVariableData;
             SafeFormat(buffer, bufferCapacity, "0x%1llX", *pValue, *pValue);
          }
          break;
-         case VARTYPE_Float32:
+         case SexyVarType_Float32:
          {
             const float* pValue = (const float*)pVariableData;
             SafeFormat(buffer, bufferCapacity, "%g", *pValue);
          }
          break;
-         case VARTYPE_Float64:
+         case SexyVarType_Float64:
          {
             const double* pValue = (const double*)pVariableData;
 			double value = *pValue;
             SafeFormat(buffer, bufferCapacity, "%lg", value);
          }
          break;
-         case VARTYPE_Pointer:
+         case SexyVarType_Pointer:
          {
             void **ppData = (void**)pVariableData;
             const void* ptr = *ppData;
@@ -249,7 +249,7 @@ namespace Rococo
             }
 			break;
          }
-		 case VARTYPE_Closure:
+		 case SexyVarType_Closure:
 		 {
 			 struct ArcheTypeObject
 			 {
@@ -290,7 +290,7 @@ namespace Rococo
 { 
    namespace Script
    {
-	   SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, VARTYPE type, const void* pVariableData)
+	   SCRIPTEXPORT_API void FormatValue(IPublicScriptSystem& ss, char* buffer, size_t bufferCapacity, SexyVarType type, const void* pVariableData)
 	   {
 			TRY_PROTECTED
 			{
@@ -857,9 +857,9 @@ namespace Rococo
 
 				switch (def.ResolvedType->VarType())
 				{
-				case VARTYPE_Array:
-				case VARTYPE_List:
-				case VARTYPE_Map:
+				case SexyVarType_Array:
+				case SexyVarType_List:
+				case SexyVarType_Map:
 					variable.instance = (const uint8*)pVariableData;
 					break;
 				default:
@@ -938,7 +938,7 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth)
 	   {
-		   if (s.VarType() != VARTYPE_Derivative && !IsContainerType(s.VarType())) return true;
+		   if (s.VarType() != SexyVarType_Derivative && !IsContainerType(s.VarType())) return true;
 
 		   if (recurseDepth > 5)
 		   {
@@ -986,17 +986,17 @@ namespace Rococo
 					   const uint8** ppInstance = (const uint8**)(instance + suboffset);
 					   enumCallback.OnMember(ss, childName, member, *ppInstance, (int) suboffset, recurseDepth + 1);
 				   }
-				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == VARTYPE_Array)
+				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == SexyVarType_Array)
 				   {
 					   const ArrayImage* a = *(const ArrayImage**)(instance + suboffset);
 					   enumCallback.OnArrayMember(ss, childName, member, a, instance + suboffset, (int)suboffset, recurseDepth + 1);
 				   }
-				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == VARTYPE_Map)
+				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == SexyVarType_Map)
 				   {
 					   const MapImage* a = *(const MapImage**)(instance + suboffset);
 					   enumCallback.OnMapMember(ss, childName, member, a, instance + suboffset, (int)suboffset, recurseDepth + 1);
 				   }
-				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == VARTYPE_List)
+				   else if (member.UnderlyingType() && member.UnderlyingType()->VarType() == SexyVarType_List)
 				   {
 					   const ListImage* a = *(const ListImage**)(instance + suboffset);
 					   enumCallback.OnListMember(ss, childName, member, a, instance + suboffset, (int)suboffset, recurseDepth + 1);

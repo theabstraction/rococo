@@ -201,7 +201,7 @@ namespace Rococo
 
 			*writePos = 0;
 
-			writer.Append(L"%hs", segment);
+			writer.Append(_RW_TEXT("%hs"), segment);
 		}
 
 		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex)
@@ -265,7 +265,7 @@ namespace Rococo
 			std::vector<const ISExpression*> children;
 
 			ExpressionProxy(cr_sex _inner, IAllocator& _allocator, int _numberOfElements) :
-				inner(_inner), allocator(_allocator), numberOfElements(_numberOfElements)
+				allocator(_allocator), inner(_inner), numberOfElements(_numberOfElements)
 			{
 				children.resize(numberOfElements);
 			}
@@ -370,7 +370,7 @@ namespace Rococo
 
 			IExpressionTransform& TransformThis() const override
 			{
-				Throw(inner, __FUNCTION__ ": not supported");
+				Throw(inner, "not supported");
 			}
 		};
 
@@ -378,7 +378,7 @@ namespace Rococo
 		{
 			if (numberOfElements < 1)
 			{
-				Throw(inner, "%s: can only create compound elements ", __FUNCTION__);
+				Throw(inner, "%s: can only create compound elements ", __ROCOCO_FUNCTION__);
 			}
 
 			void* buffer = nullptr;
@@ -386,7 +386,7 @@ namespace Rococo
 
 			try
 			{
-				buffer = allocator.Allocate(sizeof ExpressionProxy);
+				buffer = allocator.Allocate(sizeof(ExpressionProxy));
 				result = new (buffer) ExpressionProxy(inner, allocator, numberOfElements);
 			}
 			catch (...)

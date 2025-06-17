@@ -180,7 +180,7 @@ private:
 	{
 		if (vertexBuffer == nullptr)
 		{
-			Throw(0, "%s: vertexBuffer was nullptr", __FUNCTION__);
+			Throw(0, "%s: vertexBuffer was nullptr", __ROCOCO_FUNCTION__);
 		}
 
 		boundVertexBuffers.push_back(static_cast<IDX11IRALVertexDataBuffer*>(vertexBuffer)->RawBuffer());
@@ -192,7 +192,7 @@ private:
 	{
 		if (boundVertexBuffers.size() == 0)
 		{
-			Throw(0, "%s: boundVertexBuffers size was zero", __FUNCTION__);
+			Throw(0, "%s: boundVertexBuffers size was zero", __ROCOCO_FUNCTION__);
 		}
 
 		dc.IASetVertexBuffers(0, (UINT) boundVertexBuffers.size(), boundVertexBuffers.data(), boundVertexBufferStrides.data(), boundVertexBufferOffsets.data());
@@ -251,17 +251,17 @@ private:
 
 		if (!shaders->UseShaders(vsFillerId, pixelShaderId))
 		{
-			Throw(0, "%s: error applying shaders.", __FUNCTION__);
+			Throw(0, "%s: error applying shaders.", __ROCOCO_FUNCTION__);
 		}
 
-		UINT stride = sizeof Vec2;
+		UINT stride = sizeof(Vec2);
 		UINT offsets = 0;
 
 		auto& tb = textureManager->GetTexture(renderTargetId);
 
 		if (!tb.renderView)
 		{
-			Throw(0, "%s: no render view for the given render target", __FUNCTION__);
+			Throw(0, "%s: no render view for the given render target", __ROCOCO_FUNCTION__);
 		}
 
 		D3D11_TEXTURE2D_DESC desc;

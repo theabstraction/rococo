@@ -1024,7 +1024,7 @@ self_destruct (j_common_ptr cinfo)
  * When this is called, only the error manager pointer is valid in cinfo!
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_memory_mgr (j_common_ptr cinfo)
 {
   my_mem_ptr mem;
@@ -1110,6 +1110,9 @@ jinit_memory_mgr (j_common_ptr cinfo)
 		{
 			char ch = 'x';
 
+#ifndef _WIN32
+#error "Needs an implementation of sscanf_s that supports buffer size lengths with %c and %s, which is currently only on Win32"
+#endif
 			if (sscanf_s(memenv, "%ld%c", &max_to_use, &ch, 1) > 0)
 			{
 				if (ch == 'm' || ch == 'M')

@@ -274,11 +274,11 @@ namespace ANON
 		{
 			if (!visitation)
 			{
-				Throw(0, __FUNCTION__ ": visitation was null");
+				Throw(0, "visitation was null");
 			}
 
 			auto* frame = gr.FindFrame(ID_EDITOR_FRAME);
-			if (!frame) Throw(0, "%s: Unexpected missing frame. gr.FindFrame(ID_EDITOR_FRAME) returned null", __FUNCTION__);
+			if (!frame) Throw(0, "%s: Unexpected missing frame. gr.FindFrame(ID_EDITOR_FRAME) returned null", __ROCOCO_FUNCTION__);
 
 			ClearFrame(*frame);
 			

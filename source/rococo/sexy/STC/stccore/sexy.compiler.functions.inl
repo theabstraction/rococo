@@ -188,10 +188,10 @@ namespace Anon
 				{
 					switch (resolvedType->VarType())
 					{
-					case VARTYPE_Derivative:
-					case VARTYPE_Array:
-					case VARTYPE_List:
-					case VARTYPE_Map:
+					case SexyVarType_Derivative:
+					case SexyVarType_Array:
+					case SexyVarType_List:
+					case SexyVarType_Map:
 						usage = ARGUMENTUSAGE_BYREFERENCE;
 						break;
 					default:
@@ -264,7 +264,7 @@ namespace Anon
 		{
 			if (this->security != nullptr)
 			{
-				Throw(0, "%s: Security already established", __FUNCTION__);
+				Throw(0, "%s: Security already established", __ROCOCO_FUNCTION__);
 			}
 
 			this->security = &security;
@@ -299,7 +299,7 @@ namespace Anon
 		{
 			if (args.empty())
 			{
-				Throw(0, "%s: args were empty", __FUNCTION__);
+				Throw(0, "%s: args were empty", __ROCOCO_FUNCTION__);
 			}
 
 			Anon::FunctionArgument* arg = args.back();
@@ -445,7 +445,7 @@ namespace Anon
 						auto* argType = arg->ResolvedType();
 						if (argType != nullptr)
 						{
-							if (argType->VarType() == VARTYPE_Derivative && argType->InterfaceCount() == 0)
+							if (argType->VarType() == SexyVarType_Derivative && argType->InterfaceCount() == 0)
 							{
 								Throw(0, "Output arguments cannot be of derived type. Error with output %s in %s of %s", arg->Name(), name.c_str(), module.Name());
 							}

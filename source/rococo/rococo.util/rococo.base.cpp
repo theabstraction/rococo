@@ -1,4 +1,7 @@
-#define ROCOCO_API __declspec(dllexport)
+#ifndef ROCOCO_API
+# error "Define ROCOCO_API"
+#endif
+
 #define ROCOCO_ID_API ROCOCO_API
 #include <rococo.debugging.h>
 
@@ -21,7 +24,7 @@ namespace
 #ifdef __APPLE__
 namespace Rococo
 {
-	FILE* _wfopen(const wchar_t* filename, const wchar_t* mode);
+	FILE* _wfopen(crwstr filename, crwstr mode);
 }
 #endif
 
@@ -30,7 +33,10 @@ namespace Rococo
 #include <rococo.time.h>
 #include <atomic>
 #include <ctype.h>
-#include <immintrin.h>
+
+#ifdef _WIN32
+# include <immintrin.h>
+#endif
 
 namespace Rococo
 {
@@ -41,6 +47,7 @@ namespace Rococo
 
 	namespace Ids
 	{
+#ifdef _WIN32
 		static std::atomic<int32> uniqueCounter = 0;
 
 		ROCOCO_ID_API UniqueIdHolder MakeNewUniqueId()
@@ -60,7 +67,7 @@ namespace Rococo
 						char cipherCrud[256];
 						SafeFormat(cipherCrud, "%s_%lld_%lld", text, (int64)Rococo::OS::GetCurrentThreadIdentifier(), (int64)Rococo::Time::UTCTime());
 						hash = Strings::XXHash64Arg(cipherCrud, strlen(cipherCrud));
-						memset(cipherCrud, 0, sizeof cipherCrud);
+						memset(cipherCrud, 0, sizeof(cipherCrud));
 					}
 				} username;
 
@@ -88,7 +95,7 @@ namespace Rococo
 
 			return id;
 		}
-
+#endif
 		struct MehGuid
 		{
 			// Example: 30dd879c-ee2f-11db-8314-0800200c9a66
@@ -102,13 +109,16 @@ namespace Rococo
 
 		union GuidAndUniqueId
 		{
-			GuidAndUniqueId() : id(), guid() {}
+			GuidAndUniqueId()
+			{
+				memset(this, 0, sizeof(GuidAndUniqueId));
+			}
 			UniqueIdHolder id;
 			MehGuid guid;
 		};
 
-		static_assert(sizeof MehGuid == sizeof UniqueIdHolder);
-		static_assert(sizeof GuidAndUniqueId == 16);
+		static_assert(sizeof(MehGuid) == sizeof(UniqueIdHolder));
+		static_assert(sizeof(GuidAndUniqueId) == 16);
 
 		ROCOCO_ID_API void ToGuidString(UniqueIdHolder id, OUT GuidString& guidString)
 		{
@@ -233,7 +243,7 @@ namespace Rococo
 
 		ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest)
 		{
-			wchar_t* q = dest.buf;
+			ROCOCO_WIDECHAR* q = dest.buf;
 			const char32_t* p = src;
 
 			while (*p != 0)
@@ -272,10 +282,10 @@ namespace Rococo
 			*q = 0;
 		}
 
-		ROCOCO_API void PathFromWide(const wchar_t* wide_string, U32FilePath& path)
+		ROCOCO_API void PathFromWide(crwstr wide_string, U32FilePath& path)
 		{
 			char32_t* q = path.buf;
-			const wchar_t* p = wide_string;
+			crwstr p = wide_string;
 
 			while (*p != 0)
 			{
@@ -323,6 +333,11 @@ namespace Rococo
 	{
 		char msg[2048];
 		int32 errorCode;
+
+		virtual ~RococoException()
+		{
+
+		}
 
 		std::list<StackFrame> stackFrames;
 
@@ -459,7 +474,7 @@ namespace Rococo
 
 #include <string>
 #include <list>
-#include <allocators/rococo.allocator.template.h>
+#include <allocators/rococo.allocator.malloc.h>
 
 namespace Rococo::Debugging
 {
@@ -467,7 +482,7 @@ namespace Rococo::Debugging
 
 	std::list<mstring, AllocatorWithMalloc<mstring>> rollingLog;
 
-	ROCOCO_API_EXPORT void AddCriticalLog(cstr message)
+	ROCOCO_API void AddCriticalLog(cstr message)
 	{
 		rollingLog.push_back(message);
 		if (rollingLog.size() > 10)
@@ -476,7 +491,7 @@ namespace Rococo::Debugging
 		}
 	}
 
-	ROCOCO_API_EXPORT void ForEachCriticalLog(Strings::IStringPopulator& onMessage)
+	ROCOCO_API void ForEachCriticalLog(Strings::IStringPopulator& onMessage)
 	{
 		for (auto& i : rollingLog)
 		{
@@ -484,7 +499,7 @@ namespace Rococo::Debugging
 		}
 	}
 
-	ROCOCO_API_EXPORT void ValidateCriticalLog()
+	ROCOCO_API void ValidateCriticalLog()
 	{
 		if (!rollingLog.empty())
 		{
@@ -493,3 +508,11 @@ namespace Rococo::Debugging
 	}
 }
 
+namespace Rococo::Script
+{
+	ROCOCO_API void ThrowBadNativeArg(int index, cstr source, cstr message)
+	{
+		WriteToStandardOutput("Error %d in %s: %s\r\n", index, source, message);
+		Throw(0, "Bad native argument: %s - %s", source, message);
+	}
+}

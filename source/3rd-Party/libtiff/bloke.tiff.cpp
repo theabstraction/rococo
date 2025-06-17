@@ -1,15 +1,17 @@
+#ifndef _CRT_SECURE_NO_WARNINGS
+# define _CRT_SECURE_NO_WARNINGS 
+#endif
+
 #ifndef _WIN32
 # include <stddef.h>
 #else
-# ifndef ROCOCO_TIFF_API 
-#  define ROCOCO_TIFF_API __declspec(dllexport)
-# endif
 # include <malloc.h>
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ROCOCO_API
 #include <rococo.api.h>
 #include <rococo.os.h>
 #include <rococo.imaging.h>
@@ -22,6 +24,117 @@
 
 #ifndef _WIN32
 # include <errno.h>
+#endif
+
+#ifdef LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS
+
+namespace Rococo
+{
+	struct ImageException : IException
+	{
+		char msg[1024] = { 0 };
+		int errorCode = 0;
+
+		cstr Message() const override
+		{
+			return msg;
+		}
+
+		int ErrorCode() const override
+		{
+			return errorCode;
+		}
+
+		Debugging::IStackFrameEnumerator* StackFrames() override
+		{
+			return nullptr;
+		}
+	};
+
+	ROCOCO_API void Throw(int32 errorCode, const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		ImageException ex;
+		_vsnprintf_s(ex.msg, sizeof(ex.msg), _TRUNCATE, format, args);
+		ex.errorCode = errorCode;
+		throw ex;
+	}
+}
+
+#ifdef _WIN32
+# include <rococo.os.win32.h>
+#endif
+
+namespace Rococo::OS
+{
+#ifdef _WIN32
+	bool IsDebugging()
+	{
+		return IsDebuggerPresent() == TRUE;
+	}
+
+	void PrintDebug(const char* format, ...)
+	{
+#if _DEBUG
+		va_list arglist;
+		va_start(arglist, format);
+		char line[4096];
+		_vsnprintf_s(line, sizeof(line), _TRUNCATE, format, arglist);
+		OutputDebugStringA(line);
+#else
+		UNUSED(format);
+#endif
+	}
+
+	void TripDebugger()
+	{
+		__debugbreak();
+	}
+#else
+	
+	void PrintDebug(const char* format, ...)
+	{
+# if _DEBUG
+		va_list arglist;
+		va_start(arglist, format);
+		char line[4096];
+		_vsnprintf_s(line, sizeof(line), _TRUNCATE, format, arglist);
+		OutputDebugStringA(line);
+# else
+	UNUSED(format);
+# endif
+	}
+
+	void TripDebugger()
+	{
+
+	}
+#endif
+}
+
+namespace Rococo::Strings
+{
+	int SafeFormat(char* msg, size_t sizeofMsg, const char* format, ...)
+	{
+		va_list arglist;
+		va_start(arglist, format);
+		return _vsnprintf_s(msg, sizeofMsg, _TRUNCATE, format, arglist);
+	}
+
+	int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
+	{
+		int count = _vsnprintf_s(buffer, capacity, _TRUNCATE, format, args);
+		if (count >= capacity)
+		{
+			return -1;
+		}
+
+		return count;
+	}
+}
+
 #endif
 
 namespace
@@ -70,7 +183,7 @@ void _TIFFmemset(tdata_t target, int value, tsize_t capacity)
    memset(target, value, capacity);
 }
 
-extern void _TIFFmemcpy(tdata_t dest, const tdata_t src, tsize_t capacity)
+extern void _TIFFmemcpy(void* dest, const void* src, tmsize_t capacity)
 {
 #ifdef _WIN32
    memcpy_s(dest, capacity, src, capacity);
@@ -79,7 +192,7 @@ extern void _TIFFmemcpy(tdata_t dest, const tdata_t src, tsize_t capacity)
 #endif
 }
 
-int _TIFFmemcmp(const tdata_t a, const tdata_t b, tsize_t len)
+int _TIFFmemcmp(const void* a, const void* b, tsize_t len)
 {
    return memcmp(a, b, len);
 }
@@ -106,6 +219,13 @@ void* _TIFFrealloc(void* p, tsize_t s)
    return tiffAllocator ? tiffAllocator->Reallocate(p, (size_t) s) : realloc(p, (size_t) s);
 }
 
+void* _TIFFcalloc(tmsize_t nmemb, tmsize_t siz)
+{
+	auto nBytes = nmemb * siz;
+	auto* pMemory = (uint8*) _TIFFmalloc(nBytes);
+	memset(pMemory, 0, nBytes);
+	return pMemory;
+}
 
 namespace
 {

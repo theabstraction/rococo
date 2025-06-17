@@ -30,11 +30,12 @@ namespace GRANON
 
 		bool triggersOnKeyUp = true;
 
+		int spanPadding = 8;
+
 		GRButton(IGRPanel& owningPanel) : panel(owningPanel)
 		{
 			alignment.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
 			panel.Add(EGRPanelFlags::AcceptsFocus);
-			SyncMinimalSpan();
 		}
 
 		virtual ~GRButton()
@@ -230,6 +231,7 @@ namespace GRANON
 				// The cursor has been moved outside the button, so capture should be lost
 				panel.Root().ReleaseCursor();
 			}
+
 			return EGREventRouting::NextHandler;
 		}
 
@@ -400,16 +402,16 @@ namespace GRANON
 		Vec2i ImageSpan() const override
 		{
 			auto* image = pressedImage ? pressedImage : raisedImage;
-			return image ? image->Span() : Vec2i{ 0,0 };
+			return image ? image->Span() : Vec2i{ spanPadding,spanPadding };
 		}
 
 		Vec2i MinimalSpan() const override
 		{
-			Vec2i textSpan = panel.Root().GR().Fonts().EvaluateMinimalSpan(fontId, title) + Vec2i{ 4,4 };
+			Vec2i textSpan = panel.Root().GR().Fonts().EvaluateMinimalSpan(fontId, title, Vec2i{ spanPadding,spanPadding });
 			Vec2i imageSpan = ImageSpan();
 
-			int dx = max(max(textSpan.x, imageSpan.x), 4);
-			int dy = max(max(textSpan.y, imageSpan.x), 4);
+			int dx = max(max(textSpan.x, imageSpan.x), spanPadding);
+			int dy = max(max(textSpan.y, imageSpan.x), spanPadding);
 			return { dx, dy };
 		}
 
@@ -534,10 +536,10 @@ namespace GRANON
 
 			if (title.length() == 0)
 			{
-				return Vec2i { 8, 8 } + extraSpan;
+				return Vec2i { spanPadding, spanPadding } + extraSpan;
 			}
 
-			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ title.c_str(), (int32) title.length() }) + extraSpan;
+			return panel.Root().Custodian().EvaluateMinimalSpan(fontId, fstring{ title.c_str(), (int32)title.length() }, extraSpan);
 		}
 
 		void SyncMinimalSpan()
@@ -572,7 +574,7 @@ namespace GRANON
 		{
 			if (!isToggler)
 			{
-				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "The button is not a toggler");
+				RaiseError(panel, EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "The button is not a toggler");
 			}
 
 			isRaised = !isRaised;

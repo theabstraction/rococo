@@ -3,14 +3,9 @@
 #include <vector>
 #include <rococo.strings.h>
 
+#include <rococo.os.h> // For clipboard functions
 #include <rococo.ui.h>
 #include <rococo.vkeys.h>
-
-namespace Rococo::OS
-{
-	ROCOCO_API_IMPORT void CopyStringToClipboard(cstr s);
-	ROCOCO_API_IMPORT void PasteStringFromClipboard(Strings::IStringPopulator& populator);
-}
 
 using namespace Rococo;
 using namespace Rococo::Gui;
@@ -45,7 +40,7 @@ namespace GRANON
 			}
 		};
 
-		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), filter(_filter), fontId(_fontId)
+		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), fontId(_fontId), filter(_filter)
 		{
 			text.reserve(capacity);
 			owningPanel.Add(EGRPanelFlags::AcceptsFocus);
@@ -397,12 +392,12 @@ namespace GRANON
 		{
 			if (updateLock > 0)
 			{
-				RaiseError(panel, EGRErrorCode::RecursionLocked, __FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
+				RaiseError(panel, EGRErrorCode::RecursionLocked, __ROCOCO_FUNCTION__, "It is forbidden to set meta data of an edit box in the context of an update to the edit box");
 				return *this;
 			}
 
 			iMetaData = metaData.intData;
-			sMetaData = metaData.stringData ? metaData.stringData : HString();
+			sMetaData = metaData.stringData ? metaData.stringData : "";
 			return *this;
 		}
 
@@ -418,7 +413,7 @@ namespace GRANON
 			size_t newSize = min(len + 1, text.capacity());
 			text.resize(newSize);
 
-			strncpy_s(text.data(), text.capacity(), argText, _TRUNCATE);
+			SafeFormat(text.data(), text.capacity(), "%s", argText);
 
 			caretPos = (int32) len;
 
@@ -436,7 +431,7 @@ namespace GRANON
 		{
 			if (buffer != nullptr && capacity > 0)
 			{
-				strncpy_s(buffer, capacity, text.data(), _TRUNCATE);
+				SafeFormat(buffer, capacity, "%s", text.data());
 			}
 
 			return (int32) text.size();
@@ -498,7 +493,7 @@ namespace Rococo::Gui
 	{
 		if (capacity <= 2)
 		{
-			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be >= 2");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Capacity should be >= 2");
 		}
 		else
 		{
@@ -507,7 +502,7 @@ namespace Rococo::Gui
 
 		if (capacity > 1024_megabytes)
 		{
-			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __FUNCTION__, "Capacity should be <= 1 gigabyte");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Capacity should be <= 1 gigabyte");
 			capacity = (int32) 1024_megabytes;
 		}
 
@@ -539,7 +534,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[12];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -636,7 +631,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[24];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -733,7 +728,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[16];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -823,7 +818,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[24];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -909,7 +904,7 @@ namespace Rococo::Gui
 				scratchBuffer.clear();
 
 				char buffer[24];
-				int32 len = editor.GetTextAndLength(buffer, sizeof buffer);
+				int32 len = editor.GetTextAndLength(buffer, sizeof(buffer));
 
 				int32 originalLength = len;
 
@@ -953,7 +948,7 @@ namespace Rococo::Gui
 		return s_UnsignedFilter;
 	}
 
-	ROCOCO_API_EXPORT EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
+	ROCOCO_GUI_RETAINED_API EGREventRouting TranslateToEditor(Windows::IWindow& ownerWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, ICharBuilder& builder)
 	{
 		if (!keyEvent.osKeyEvent.IsUp())
 		{
@@ -981,12 +976,12 @@ namespace Rococo::Gui
 				manager.AddToCaretPos(100'000'000);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_C:
-				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				if (keyEvent.context.isCtrlHeld)
 				{
 					// Note that GetTextAndLength is guaranteed to be at least one character, and if so, the one character is the nul terminating the string
 					builder.Resize(manager.GetTextAndLength(nullptr, 0));
 					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
-					Rococo::OS::CopyStringToClipboard(builder.c_str());
+					Rococo::OS::SaveClipBoardText(builder.c_str(), ownerWindow);
 					builder.Clear();
 					return EGREventRouting::Terminate;
 				}
@@ -995,7 +990,7 @@ namespace Rococo::Gui
 					break;
 				}
 			case IO::VirtualKeys::VKCode_V:
-				if (IO::IsKeyPressed(IO::VirtualKeys::VKCode_CTRL))
+				if (keyEvent.context.isCtrlHeld)
 				{
 					manager.GetTextAndLength(builder.WriteBuffer(), (int32)builder.Size());
 

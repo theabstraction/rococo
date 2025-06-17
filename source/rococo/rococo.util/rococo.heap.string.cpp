@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 
 #define USE_HSTRING_HASH
@@ -21,7 +20,7 @@ namespace Rococo::Strings
 
 	struct DefaultAllocator: public IAllocator
 	{
-		~DefaultAllocator()
+		virtual ~DefaultAllocator()
 		{			
 		}
 
@@ -206,7 +205,7 @@ namespace ANON
 }
 
 #define _MODULE_ALLOCATOR_AVAILABLE
-#include <allocators/rococo.allocator.template.h>
+#include <allocators/rococo.allocator.via.interface.h>
 
 namespace ANON
 {

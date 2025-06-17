@@ -32,12 +32,12 @@ namespace
 		{
 			if (base2exponentDivisions < 5 || base2exponentDivisions > 13)
 			{
-				Throw(0, "%s: base2exponentDivisions range is 5 to 13", __FUNCTION__);
+				Throw(0, "%s: base2exponentDivisions range is 5 to 13", __ROCOCO_FUNCTION__);
 			}
 			
 			if (span <= 0)
 			{
-				Throw(0, "%s: span must be positive.", __FUNCTION__);
+				Throw(0, "%s: span must be positive.", __ROCOCO_FUNCTION__);
 			}
 
 			this->cellsPerAxis = 1 << base2exponentDivisions;
@@ -81,7 +81,7 @@ namespace
 		{
 			if (heightMap.empty())
 			{
-				Throw(0, "%s: the heightMap is empty", __FUNCTION__);
+				Throw(0, "%s: the heightMap is empty", __ROCOCO_FUNCTION__);
 			}
 
 			auto& mb = this->meshBuilder;
@@ -218,7 +218,7 @@ namespace
 		{
 			if (heightMap.empty())
 			{
-				Throw(0, "%s: the height map was empty. Call AddQuadField(...) first.", __FUNCTION__);
+				Throw(0, "%s: the height map was empty. Call AddQuadField(...) first.", __ROCOCO_FUNCTION__);
 			}
 
 			rng.Seed((uint32)seedNumber);

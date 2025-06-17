@@ -145,7 +145,7 @@ start_pass_huff_decoder (j_decompress_ptr cinfo)
  * Note this is also used by jdphuff.c.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
 			 d_derived_tbl ** pdtbl)
 {
@@ -204,7 +204,7 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
     /* code is now 1 more than the last code used for codelength si; but
      * it must still fit in si bits, since no code is allowed to be all ones.
      */
-    if (((INT32) code) >= (((INT32) 1) << si))
+    if (((JTYPE_INT32) code) >= (((JTYPE_INT32) 1) << si))
       ERREXIT(cinfo, JERR_BAD_HUFF_TABLE);
     code <<= 1;
     si++;
@@ -218,7 +218,7 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
       /* valoffset[l] = huffval[] index of 1st symbol of code length l,
        * minus the minimum code of length l
        */
-      dtbl->valoffset[l] = (INT32) p - (INT32) huffcode[p];
+      dtbl->valoffset[l] = (JTYPE_INT32) p - (JTYPE_INT32) huffcode[p];
       p += htbl->bits[l];
       dtbl->maxcode[l] = huffcode[p-1]; /* maximum code of length l */
     } else {
@@ -288,7 +288,7 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
 #endif
 
 
-GLOBAL(boolean)
+JPEG_GLOBAL_API boolean
 jpeg_fill_bit_buffer (bitread_working_state * state,
 		      register bit_buf_type get_buffer, register int bits_left,
 		      int nbits)
@@ -394,13 +394,13 @@ jpeg_fill_bit_buffer (bitread_working_state * state,
  * See jdhuff.h for info about usage.
  */
 
-GLOBAL(int)
+JPEG_GLOBAL_API int
 jpeg_huff_decode (bitread_working_state * state,
 		  register bit_buf_type get_buffer, register int bits_left,
 		  d_derived_tbl * htbl, int min_bits)
 {
   register int l = min_bits;
-  register INT32 code;
+  register JTYPE_INT32 code;
 
   /* HUFF_DECODE has determined that the code is at least min_bits */
   /* bits long, so fetch that many bits in one swoop. */
@@ -631,7 +631,7 @@ decode_mcu (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
  * Module initialization routine for Huffman entropy decoding.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_huff_decoder (j_decompress_ptr cinfo)
 {
   huff_entropy_ptr entropy;

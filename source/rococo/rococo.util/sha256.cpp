@@ -1,4 +1,3 @@
-#define ROCOCO_API __declspec(dllexport)
 #include <rococo.types.h>
 #include <rococo.strings.h>
 #include <memory.h>
@@ -215,7 +214,7 @@ struct SHA256
         ctx.update((const char unsigned*)buffer, length);
         ctx.final(digest);
 
-        static_assert(sizeof info.hash >= 2 * SHA256::DIGEST_SIZE + 1);
+        static_assert(sizeof(info.hash) >= 2 * SHA256::DIGEST_SIZE + 1);
 
         info.hash[2 * SHA256::DIGEST_SIZE] = 0;
 

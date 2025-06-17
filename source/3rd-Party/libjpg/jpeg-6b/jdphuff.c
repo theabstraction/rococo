@@ -637,7 +637,7 @@ undoit:
  * Module initialization routine for progressive Huffman entropy decoding.
  */
 
-GLOBAL(void)
+JPEG_GLOBAL_API void
 jinit_phuff_decoder (j_decompress_ptr cinfo)
 {
   phuff_entropy_ptr entropy;
