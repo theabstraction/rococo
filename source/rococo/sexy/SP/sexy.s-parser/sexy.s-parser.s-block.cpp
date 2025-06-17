@@ -344,8 +344,6 @@ namespace Anon
 		size_t len;
 		cstr name;
 
-		cstr p;
-
 		IExpressionBuilder& builder;
 
 		SParser(cstr sNull_terminated_Expression, IExpressionBuilder& _builder) : sExpression(sNull_terminated_Expression), builder(_builder)
@@ -522,7 +520,7 @@ namespace Anon
 				++s;
 			}
 
-			return p;
+			return s;
 		}
 
 		cstr ParseBlockComment(cstr start)
@@ -636,7 +634,7 @@ namespace Anon
 			return Anon::OffsetToPos(offset, sourceCode->SourceStart(), finalPos, sourceCode->Origin());
 		}
 
-		void CovertListsToArrays(ICompoundSExpression& cs);
+		void ConvertListsToArrays(ICompoundSExpression& cs);
 
 		ISExpression& Root() override
 		{
@@ -1299,7 +1297,7 @@ namespace Anon
 		}
 	};
 
-	void ExpressionTree::CovertListsToArrays(ICompoundSExpression& cs)
+	void ExpressionTree::ConvertListsToArrays(ICompoundSExpression& cs)
 	{
 		auto* a = arraySets + aIndex;
 		auto* startOfArray = a;
@@ -1316,7 +1314,7 @@ namespace Anon
 			if (child.Type() == EXPRESSION_TYPE_COMPOUND)
 			{
 				auto& c = (CompoundExpression&)child;
-				CovertListsToArrays(c);
+				ConvertListsToArrays(c);
 			}
 		}
 	}
@@ -1754,7 +1752,7 @@ namespace Anon
 			AddRef();
 			tree->sourceCode = &sourceCode;
 			sourceCode.AddRef();
-			tree->CovertListsToArrays(*tree->root);
+			tree->ConvertListsToArrays(*tree->root);
 			return tree;
 		}
 
