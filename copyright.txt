@@ -1,5 +1,4 @@
-The Rococo libraries are copyright(c) All rights reserved 2022. by me, Mark Anthony Taylor.
-My email is mark.anthony.taylor@gmail.com. 
+The Rococo libraries are copyright(c) 2025 Mark Anthony Taylor. All rights reserved. Email mark.anthony.taylor@gmail.com. 
 
 Most of the libraries and modules are free and open source. You are not allowed to branch the files in the core language folders in the sexy folder
 (SS/STC/SVM) as this would destroy the value of the language by creating competing language standards. Look at what happened to LISP, LUA and Java.
@@ -11,7 +10,9 @@ Hyperverse is a private commercial development. The software is neither free nor
 Gui Retained - GR- is open source and free for use outside of commercial game engines as long as the projects it is used in take no revenue, including, but not limited to,
 revenues from advertising and microtransactions. It is free for use when MHOST or MPLAT are the principle game engine / library platforms. Branching is forbidden in any case.
 
-A release for Unreal Engine is imminent, at which time I will announce licensing terms for applications to use GR on that platform.
+A release for Unreal Engine is at the beta stage, when it is released I will announce licensing terms for applications to use GR on that platform.
+
+Licensing cost will likely be about $3000 for Unreal Engine for any single retail project.
 
 Using GR on Unreal Engine outside of the official Rococo plugin (TBA) is strictly prohibited.
 
