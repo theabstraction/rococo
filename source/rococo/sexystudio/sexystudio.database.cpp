@@ -3808,7 +3808,7 @@ namespace ANON
 			}
 		}
 
-		bool CanInsertCppRef(cr_sex sCppDeclaration)
+		NOT_INLINE bool CanInsertCppRef(cr_sex sCppDeclaration)
 		{
 			if (sCppDeclaration.NumberOfElements() < 3)
 			{
@@ -3851,10 +3851,19 @@ namespace ANON
 		{
 			cr_sex sRoot = tree.Root();
 
-			cr_sex sLine0 = sRoot[0];
-			cr_sex sDirective0 = sLine0[0];
-
-			bool isDeclarations = Eq(sDirective0.c_str(), "SexyDeclarations");
+			bool isDeclarations = false;
+			if (sRoot.NumberOfElements() > 0)
+			{
+				cr_sex sDirective = sRoot[0];
+				if (sDirective.NumberOfElements() > 0)
+				{
+					cr_sex directiveCommand = sDirective[0];
+					if (IsAtomic(directiveCommand))
+					{
+						isDeclarations = Eq(directiveCommand.c_str(), "SexyDeclarations");
+					}
+				}
+			}
 
 			// First build up a list of objects in the sxy file
 			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
@@ -3901,7 +3910,7 @@ namespace ANON
 						UNUSED(sKeyword);
 						if ((isDeclarations && CanInsertCppRef(s)) || !isDeclarations)
 						{
-							InsertFunction(s, fnName, file);
+ 							InsertFunction(s, fnName, file);
 						}
 					}
 				)) continue;
