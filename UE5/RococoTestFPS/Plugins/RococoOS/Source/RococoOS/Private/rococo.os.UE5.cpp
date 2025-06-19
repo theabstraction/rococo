@@ -609,64 +609,83 @@ namespace Rococo::IO
 		Strings::Format(OUT path, TEXT("%s"), *exeName);
 	}
 
+	int32 FindNextLineEnd(const FString& s, int32 startIndex)
+	{
+		int32 slashRIndex = s.Find(TEXT("\r"), ESearchCase::IgnoreCase, ESearchDir::FromStart, startIndex);
+		int32 slashNIndex = s.Find(TEXT("\n"), ESearchCase::IgnoreCase, ESearchDir::FromStart, startIndex);
+
+		if (slashRIndex == -1)
+		{
+			if (slashNIndex == -1)
+			{
+				return -1;
+			}
+
+			return slashNIndex;
+		}
+		else
+		{
+			if (slashNIndex == -1)
+			{
+				return slashRIndex;
+			}
+
+			return Rococo::min(slashRIndex, slashNIndex);
+		}
+	}
+
+	FString GetConfigItem(const FString& configText, crwstr key)
+	{
+		int32 itemIndex = configText.Find(key);
+		if (itemIndex > 0)
+		{
+			int startIndex = itemIndex + StringLength(key);
+			int endIndex = FindNextLineEnd(configText, startIndex);
+			FString item = configText.Mid(startIndex, endIndex - startIndex);
+			return item;
+		}
+		else
+		{
+			return FString();
+		}
+	}
+
 	void GetContentDirectory(const TCHAR* contentIndicatorName, WideFilePath& path, IOS& os)
 	{
-		FString gameRelativeDir = FPaths::ProjectContentDir();
-		FString gameDir = FPaths::ConvertRelativePathToFull(gameRelativeDir);
-
-		static_assert(sizeof(TCHAR) == sizeof(WIDECHAR));
-
-		Strings::SecureFormat(path.buf, TEXT("%s"), *gameDir);
-
-		FString contentIndicator(contentIndicatorName);
-
-		if (contentIndicator.Find(TEXT("\\")) > 0 || contentIndicator.Find(TEXT("/")) > 0)
+		FString gameDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
+		FString rococoContentCfg = FPaths::Combine(gameDir, TEXT("rococo.UE5.cfg"));
+		if (!os.IsFileExistant(*rococoContentCfg))
 		{
-			// The indicator is part of a path
-			if (os.IsFileExistant(contentIndicatorName))
-			{
-				Populate(path, contentIndicator);
-				IO::MakeContainerDirectory(path.buf);
-				IO::EndDirectoryWithSlash(path.buf, WideFilePath::CAPACITY);
-				IO::NormalizePath(path);
-				return;
-			}
+			Throw(FString::Printf(TEXT("%s does not appear to exist"), *rococoContentCfg));
 		}
 
-		size_t len = Strings::StringLength(path);
-
-		while (len > 0)
+		FString configText;
+		if (!FFileHelper::LoadFileToString(OUT configText, *rococoContentCfg))
 		{
-			FString indicator = FString::Printf(TEXT("%s%s"), path.buf, contentIndicatorName);
-			if (os.IsFileExistant(*indicator))
-			{
-				U8FilePath subDir;
-				IO::LoadAsciiTextFile(subDir.buf, subDir.CAPACITY, *indicator);
-
-				FString sSubDir(subDir);
-				FString rootDir(path.buf);
-
-				FString fullDir = FPaths::Combine(rootDir, sSubDir);
-
-				if (!FPaths::DirectoryExists(fullDir))
-				{
-					Throw(FString::Printf(TEXT("RococoOS: Could not find %s. File path was specified in %s"), *fullDir, *indicator));
-				}
-
-				Populate(path, fullDir);
-				IO::EndDirectoryWithSlash(path.buf, WideFilePath::CAPACITY);
-				IO::NormalizePath(path);
-				return;
-			}
-
-			IO::MakeContainerDirectory(path.buf);
-
-			size_t newLen = Strings::StringLength(path);
-			if (newLen >= len) break;
-			len = newLen;
+			Throw(FString::Printf(TEXT("Could not load %s"), *rococoContentCfg));
 		}
 
-		Throw(FString::Printf(TEXT("Could not find %s at or below the game content folder '%s'"), contentIndicatorName, *gameDir));
+		if (configText.IsEmpty())
+		{
+			Throw(FString::Printf(TEXT("Config is blank: %s"), *rococoContentCfg));
+		}
+
+
+		// TODOD - select Packaged.Content for packaged build, otherwise use Dev.Config, read the config file and use the content directory specified within it
+		FString rococoPackagedContent = GetConfigItem(configText, TEXT("Packaged.Content="));
+		if (rococoPackagedContent.IsEmpty())
+		{
+			Throw(FString::Printf(TEXT("Packaged.Content=< content-path > not found in %s"), *rococoContentCfg));
+		}
+
+		FString rococoContentPath = FPaths::Combine(gameDir, rococoPackagedContent);
+
+		if (!IsDirectory(*rococoContentPath))
+		{
+			Throw(FString::Printf(TEXT("content-path: %s not found (source = %s)"), *rococoContentPath, *rococoContentCfg));
+		}
+
+		SecureFormat(path.buf, TEXT("%s"), *rococoContentPath);
 	}
 
 	/*
