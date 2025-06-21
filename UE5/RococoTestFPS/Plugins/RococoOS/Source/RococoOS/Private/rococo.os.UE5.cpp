@@ -637,7 +637,7 @@ namespace Rococo::IO
 	FString GetConfigItem(const FString& configText, crwstr key)
 	{
 		int32 itemIndex = configText.Find(key);
-		if (itemIndex > 0)
+		if (itemIndex >= 0)
 		{
 			int startIndex = itemIndex + StringLength(key);
 			int endIndex = FindNextLineEnd(configText, startIndex);
@@ -648,6 +648,83 @@ namespace Rococo::IO
 		{
 			return FString();
 		}
+	}
+
+	FString FindFileInAncestors(OUT FString& parent, const FString& startDirectory, const FString& shortFilename)
+	{
+		if (shortFilename.IsEmpty())
+		{
+			return FString();
+		}
+
+		FString child = startDirectory;
+
+		for (;;)
+		{
+			parent = FPaths::Combine(child, "..");
+			FPaths::CollapseRelativeDirectories(REF parent);
+			if (parent.EndsWith(TEXT("..")) || parent == child)
+			{
+				// We have hit the root
+				return FString();
+			}
+
+			FString configFullPath = FPaths::Combine(parent, shortFilename);
+
+			if (FPaths::FileExists(configFullPath))
+			{
+				return configFullPath;
+			}
+
+			child = parent;
+		}
+	}
+
+	FString GetDevContentDirectory(const FString& gameDir, const FString& configText, const FString& configSource)
+	{
+		FString rococoDevConfig = GetConfigItem(configText, TEXT("Dev.Config="));
+		if (rococoDevConfig.IsEmpty())
+		{
+			return FString();
+		}
+
+		FString parentDirectory;
+		FString fullPathToDevConfig = FindFileInAncestors(OUT parentDirectory, gameDir, rococoDevConfig);
+		if (!fullPathToDevConfig.IsEmpty())
+		{
+			FString devConfigText;
+			if (!FFileHelper::LoadFileToString(OUT devConfigText, *fullPathToDevConfig))
+			{
+				Throw(FString::Printf(TEXT("Could not load %s"), *fullPathToDevConfig));
+			}
+
+			FString devFolderShortname = GetConfigItem(devConfigText, TEXT("Dev.Content="));
+			if (devFolderShortname.IsEmpty())
+			{
+				Throw(FString::Printf(TEXT("No Dev.Content=<content-relative-path> in %s"), *fullPathToDevConfig));
+			}
+
+			FString fullDevFolderName = FPaths::Combine(parentDirectory, devFolderShortname);
+			if (!FPaths::DirectoryExists(fullDevFolderName))
+			{
+				Throw(FString::Printf(TEXT("Dev.Content=<content-relative-path> in %s specified a directory %s that was not found"), *fullPathToDevConfig, *fullDevFolderName));
+			}
+
+			return fullDevFolderName;
+		}
+
+		Throw(FString::Printf(TEXT("Dev.Config %s specified in %s not found in ancestors of %s"), *rococoDevConfig, *configSource, *gameDir));
+	}
+
+	void FormatWithDirectory(WideFilePath& path, const FString& directoryName)
+	{
+		FString normalizedName = directoryName;
+		if (!normalizedName.EndsWith(TEXT("/")) && !normalizedName.EndsWith(TEXT("\\")))
+		{
+			normalizedName = normalizedName + FPlatformMisc::GetDefaultPathSeparator();
+		}
+
+		SecureFormat(path.buf, TEXT("%s"), *normalizedName);
 	}
 
 	void GetContentDirectory(const TCHAR* contentIndicatorName, WideFilePath& path, IOS& os)
@@ -670,8 +747,19 @@ namespace Rococo::IO
 			Throw(FString::Printf(TEXT("Config is blank: %s"), *rococoContentCfg));
 		}
 
-
-		// TODOD - select Packaged.Content for packaged build, otherwise use Dev.Config, read the config file and use the content directory specified within it
+#if UE_BUILD_SHIPPING == 0
+		// Dev/debug builds allow us to specify Dev.Config=<short-config-name> to specify a rococo.content folder somewhere in the
+		// ancestor chain of the content directory. The rationale is to allow stand-alone Rococo Gui apps to develop a gui for UE5
+		// without being tied into particular UE5 directories. For the rococo installation the directory will be such as rococo/content 
+		// folder with the config file in rococo, and the UE5 test plugins in rococo/UE5
+		FString fullDevFolderName = GetDevContentDirectory(gameDir, configText, *rococoContentCfg);
+		if (!fullDevFolderName.IsEmpty())
+		{
+			FormatWithDirectory(path, *fullDevFolderName);
+			return;
+		}
+#endif
+		
 		FString rococoPackagedContent = GetConfigItem(configText, TEXT("Packaged.Content="));
 		if (rococoPackagedContent.IsEmpty())
 		{
@@ -685,7 +773,7 @@ namespace Rococo::IO
 			Throw(FString::Printf(TEXT("content-path: %s not found (source = %s)"), *rococoContentPath, *rococoContentCfg));
 		}
 
-		SecureFormat(path.buf, TEXT("%s"), *rococoContentPath);
+		FormatWithDirectory(path, *rococoContentPath);
 	}
 
 	/*
