@@ -763,7 +763,7 @@ namespace Rococo::IO
 		FString rococoPackagedContent = GetConfigItem(configText, TEXT("Packaged.Content="));
 		if (rococoPackagedContent.IsEmpty())
 		{
-			Throw(FString::Printf(TEXT("Packaged.Content=< content-path > not found in %s"), *rococoContentCfg));
+			rococoPackagedContent = "rococo.content";
 		}
 
 		FString rococoContentPath = FPaths::Combine(gameDir, rococoPackagedContent);
