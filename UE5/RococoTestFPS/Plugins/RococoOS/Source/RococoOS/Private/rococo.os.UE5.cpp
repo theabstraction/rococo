@@ -154,13 +154,15 @@ namespace Rococo
 		}
 
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer), capacity, *s, nElements);
+		buffer[nElements] = 0;
 	}
 
 	void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 	{
 		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
-		buffer.SetNumUninitialized(nElements);
+		buffer.SetNumUninitialized(nElements + 1);
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
+		buffer[nElements] = 0;
 	}
 
 	[[noreturn]] void Throw(int errorCode, const FString& msg)
@@ -733,7 +735,9 @@ namespace Rococo::IO
 		FString rococoContentCfg = FPaths::Combine(gameDir, TEXT("rococo.UE5.cfg"));
 		if (!os.IsFileExistant(*rococoContentCfg))
 		{
-			Throw(FString::Printf(TEXT("%s does not appear to exist"), *rococoContentCfg));
+			FString defaultCococoContentPath = FPaths::Combine(gameDir, TEXT("rococo.content"));
+			FormatWithDirectory(path, *defaultCococoContentPath);
+			return;
 		}
 
 		FString configText;

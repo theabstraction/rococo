@@ -168,7 +168,6 @@ public class RococoJPEGLib : ModuleRules
         CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
             new List<string>()
             {
-               //"cdjpeg.c",
                "jcapimin.c",
                "jcapistd.c",
                "jccoefct.c",

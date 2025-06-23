@@ -1,10 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
-using System.Collections.Generic;
 using System.IO;
 using System;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public class RococoTestFPSTarget : TargetRules
 {
@@ -86,11 +84,36 @@ public class RococoTestFPSTarget : TargetRules
 
     string[] contentDirectoriesToCopy =
     {
-        "tests"
+        "tests",
+        "textures/test",
+        "textures/toolbars/MAT",
+        "textures/toolbars/3rd-party/www.aha-soft.com"
     };
 
-    private void CopyRococoContentToUE5Content(TargetInfo target)
+    void MakeDirectory(string root, string subdirectory)
     {
+        string[] elements = subdirectory.Split('/');
+
+        string dir = root;
+
+        for (int i = 0; i < elements.Length; i++)
+        {
+            dir = Path.Combine(dir, elements[i]);
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+        }
+    }
+
+    private void CopyRococoContentToUE5ContentWhenPackaged(TargetInfo target)
+    {
+        if (!gameDir.Contains("Packaged"))
+        {
+            return;
+        }
+
         string rococoContentCfg = Path.Combine(gameDir, "rococo.UE5.cfg");
         if (!File.Exists(rococoContentCfg))
         {
@@ -123,12 +146,16 @@ public class RococoTestFPSTarget : TargetRules
         {
             string fullDevSubDir = Path.Combine(devContentDir, subDir);
             string fullPackageSubDir = Path.Combine(rococoContentDir, subDir);
-
+            fullPackageSubDir.Replace('/', Path.DirectorySeparatorChar);
             var devFiles = Directory.EnumerateFiles(fullDevSubDir);
+
+            MakeDirectory(rococoContentDir, subDir);
+
             foreach (string fullDevFile in devFiles)
             {
                 string devFile = Path.GetFileName(fullDevFile);
-                string packageFile = Path.Combine(rococoContentDir, devFile);
+                string packageFile = Path.Combine(fullPackageSubDir, devFile);
+                packageFile.Replace('/', Path.DirectorySeparatorChar);
 
                 Console.WriteLine(string.Format("Copying {0} to {1}", fullDevFile, packageFile));
                 File.Copy(fullDevFile, packageFile, true);
@@ -143,10 +170,11 @@ public class RococoTestFPSTarget : TargetRules
             throw new Exception("Could not find directory: " + gameDir);
         }
     }
-
     public RococoTestFPSTarget(TargetInfo Target) : base(Target)
 	{
-		this.targetInfo = Target;
+        BuildEnvironment = TargetBuildEnvironment.Unique;
+        bUseLoggingInShipping = true;
+		targetInfo = Target;
 		InitDirectories();
 
 		Type = TargetType.Game;
@@ -154,6 +182,6 @@ public class RococoTestFPSTarget : TargetRules
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
 		ExtraModuleNames.Add("RococoTestFPS");
 
-        CopyRococoContentToUE5Content(Target);
+        CopyRococoContentToUE5ContentWhenPackaged(Target);
     }
 }
