@@ -87,7 +87,9 @@ public class RococoTestFPSEditorTarget : TargetRules
         "tests",
         "textures/test",
         "textures/toolbars/MAT",
-        "textures/toolbars/3rd-party/www.aha-soft.com"
+        "textures/toolbars/3rd-party/www.aha-soft.com",
+        "textures/prompts/keyboard",
+        "textures/prompts/xbox",
     };
 
     void MakeDirectory(string root, string subdirectory)
@@ -109,11 +111,6 @@ public class RococoTestFPSEditorTarget : TargetRules
 
     private void CopyRococoContentToUE5ContentWhenPackaged(TargetInfo target)
     {
-        if (!gameDir.Contains("Packaged"))
-        {
-            return;
-        }
-
         string rococoContentCfg = Path.Combine(gameDir, "rococo.UE5.cfg");
         if (!File.Exists(rococoContentCfg))
         {
