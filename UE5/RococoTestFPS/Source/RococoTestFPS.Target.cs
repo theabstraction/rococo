@@ -82,83 +82,6 @@ public class RococoTestFPSTarget : TargetRules
         }
     }
 
-    string[] contentDirectoriesToCopy =
-    {
-        "tests",
-        "textures/test",
-        "textures/toolbars/MAT",
-        "textures/toolbars/3rd-party/www.aha-soft.com",
-        "textures/prompts/keyboard",
-        "textures/prompts/xbox",
-    };
-
-    void MakeDirectory(string root, string subdirectory)
-    {
-        string[] elements = subdirectory.Split('/');
-
-        string dir = root;
-
-        for (int i = 0; i < elements.Length; i++)
-        {
-            dir = Path.Combine(dir, elements[i]);
-
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
-        }
-    }
-
-    private void CopyRococoContentToUE5ContentWhenPackaged(TargetInfo target)
-    {
-        string rococoContentCfg = Path.Combine(gameDir, "rococo.UE5.cfg");
-        if (!File.Exists(rococoContentCfg))
-        {
-            throw new Exception("Could not find config file " + rococoContentCfg);
-        }
-
-        string configText = File.ReadAllText(rococoContentCfg);
-
-        string devConfigShortName = GetConfigItem("Dev.Config=", configText, rococoContentCfg);
-        if (devConfigShortName == null)
-        {
-            return;
-        }
-
-        string devContentDir = GetDevContentDir(devConfigShortName, rococoContentCfg);
-
-        string packageRelPath = GetConfigItem("Packaged.Content=", configText, rococoContentCfg);
-        if (packageRelPath == null)
-        {
-            throw new Exception("Could not find Package.Content=<rococo-content-relative-to-game-dir> in " + rococoContentCfg);
-        }
-
-        string rococoContentDir = Path.Combine(gameDir, packageRelPath);
-        if (!Directory.Exists(rococoContentDir))
-        {
-            Directory.CreateDirectory(rococoContentDir);
-        }
-
-        foreach (string subDir in contentDirectoriesToCopy)
-        {
-            string fullDevSubDir = Path.Combine(devContentDir, subDir);
-            string fullPackageSubDir = Path.Combine(rococoContentDir, subDir);
-            fullPackageSubDir.Replace('/', Path.DirectorySeparatorChar);
-            var devFiles = Directory.EnumerateFiles(fullDevSubDir);
-
-            MakeDirectory(rococoContentDir, subDir);
-
-            foreach (string fullDevFile in devFiles)
-            {
-                string devFile = Path.GetFileName(fullDevFile);
-                string packageFile = Path.Combine(fullPackageSubDir, devFile);
-                packageFile.Replace('/', Path.DirectorySeparatorChar);
-
-                Console.WriteLine(string.Format("Copying {0} to {1}", fullDevFile, packageFile));
-                File.Copy(fullDevFile, packageFile, true);
-            }
-        }
-    }
     private void InitDirectories()
     {
         gameDir = Path.Combine(Directory.GetParent(targetInfo.ProjectFile.FullName).FullName, "Content");
@@ -178,7 +101,5 @@ public class RococoTestFPSTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
 		ExtraModuleNames.Add("RococoTestFPS");
-
-        CopyRococoContentToUE5ContentWhenPackaged(Target);
     }
 }
