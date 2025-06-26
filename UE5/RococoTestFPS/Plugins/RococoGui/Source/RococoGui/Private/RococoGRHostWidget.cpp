@@ -108,6 +108,7 @@ void URococoGRHostWidgetBuilder::ReloadFrame()
 {
 	if (_SexmlPingPath.IsEmpty())
 	{
+		UE_LOG(RococoGUI, Warning, TEXT("URococoGRHostWidgetBuilder::ReloadFrame: empty sexml ping path"));
 		return;
 	}
 
