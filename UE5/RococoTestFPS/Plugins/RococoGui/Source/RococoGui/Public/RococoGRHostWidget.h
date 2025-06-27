@@ -41,7 +41,7 @@ public:
 protected:
 	TSharedPtr<SRococoGRHostWidget> slateHostWidget;
 
-	// This caches the Rococo::Gui textures. The slate widget is volatile, so perhaps is not appropriate
+	// This caches the Rococo::Gui textures. The slate widget is volatile, so perhaps is not appropriate for persisting textures.
 	// We pass it to the slate widget by calling slateHostWidget->SyncCustodian(...) inside of RebuildWidget
 	UPROPERTY(Transient)
 	TMap<FString, UTexture2D*> mapPathToTexture;
@@ -50,7 +50,7 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "RococoFontSet"), Category = "RococoGui")
 	FSoftObjectPath _FontAsset;
 
-	// Defaults to true. If sets to true will use Rococo::Gui::GetDefaultFocusRenderer to hilight the focused widget
+	// Defaults to true. If set to true will use Rococo::Gui::GetDefaultFocusRenderer to hilight the focused widget
 	// To implement your own, set false and override OnGRSystemConstructed(...) to call Rococo::Gui::IGRSystem::SetFocusOverlayRenderer
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	bool _UseDefaultFocusRenderer = true;

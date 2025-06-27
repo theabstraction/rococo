@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Text;
 using UnrealBuildTool;
 
@@ -149,12 +150,24 @@ public class RococoJPEGLib : ModuleRules
             }
         }
     }
+
+    private void DeleteFiles(IEnumerable<string> shortFilenames)
+    {
+        foreach(string shortFilename in shortFilenames)
+        {
+            string fullPath = Path.Combine(thisSourceDirectory, shortFilename);
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+        }
+    }
+
     private void CreateBundles()
     {
         CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
             new List<string>()
             {
-               //"cdjpeg.c",
                "jcapimin.c",
                "jcapistd.c",
                "jccoefct.c",
@@ -166,13 +179,11 @@ public class RococoJPEGLib : ModuleRules
                "jcmarker.c",
                "jcmaster.c",
                "jcomapi.c",
-               "jcparam.c",
                "jcphuff.c",
                "jcprepct.c",
                "jcsample.c",
                "jctrans.c",
                "jdapimin.c",
-               "jdapistd.c",
                "jdatafromem.c",
                "jdatasrc.c",
                "jdatadst.c",
@@ -210,7 +221,6 @@ public class RococoJPEGLib : ModuleRules
                "rdrle.c",
                "rdswitch.c",
                "rdtarga.c",
-               "transupp.c",
                "wrbmp.c",
                "wrgif.c",
                "wrppm.c",
@@ -218,6 +228,30 @@ public class RococoJPEGLib : ModuleRules
                "wrtarga.c"
             }
         );
+
+        if (Target.LinkType == TargetLinkType.Monolithic && Target.Architecture == UnrealArch.X64)
+        {
+            // We rely on Unreal's libjpg-turbo lib to give us the API
+            DeleteFiles(new List<string>
+                {
+                    "wrap.jcparam.c",
+                    "wrap.jdapistd.c",
+                    "wrap.transupp.c"
+                }
+            );
+        }
+        else
+        {
+            // libjpg-turbo is not available, so fall back on libjpg 6b
+            CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
+                new List<string>()
+                {
+                    "jcparam.c",
+                    "jdapistd.c",
+                    "transupp.c"
+                }
+            );
+        }
 
         CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
             new List<string>()

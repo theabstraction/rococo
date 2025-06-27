@@ -56,7 +56,7 @@ static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src
 	int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
 	buffer.SetNumUninitialized(nElements + 1);
 	FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
-	buffer[buffer.Num() - 1] = 0;
+	buffer[nElements] = 0;
 }
 
 static bool IsAsciiPath(const FString& path)
@@ -108,6 +108,7 @@ void URococoGRHostWidgetBuilder::ReloadFrame()
 {
 	if (_SexmlPingPath.IsEmpty())
 	{
+		UE_LOG(RococoGUI, Warning, TEXT("URococoGRHostWidgetBuilder::ReloadFrame: empty sexml ping path"));
 		return;
 	}
 

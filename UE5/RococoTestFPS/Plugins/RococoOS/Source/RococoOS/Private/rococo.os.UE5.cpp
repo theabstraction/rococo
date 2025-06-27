@@ -154,13 +154,15 @@ namespace Rococo
 		}
 
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer), capacity, *s, nElements);
+		buffer[nElements] = 0;
 	}
 
 	void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 	{
 		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
-		buffer.SetNumUninitialized(nElements);
+		buffer.SetNumUninitialized(nElements + 1);
 		FTCHARToUTF8_Convert::Convert(reinterpret_cast<UTF8CHAR*>(buffer.GetData()), buffer.Num(), *src, nElements);
+		buffer[nElements] = 0;
 	}
 
 	[[noreturn]] void Throw(int errorCode, const FString& msg)
@@ -571,102 +573,173 @@ namespace Rococo::IO
 		Populate(path, sPath);
 	}
 
-	ROCOCO_API void GetExeName(U8FilePath& path)
+	int32 FindNextLineEnd(const FString& s, int32 startIndex)
 	{
-		U8FilePath fullPath;
-		GetExePath(OUT fullPath);
+		int32 slashRIndex = s.Find(TEXT("\r"), ESearchCase::IgnoreCase, ESearchDir::FromStart, startIndex);
+		int32 slashNIndex = s.Find(TEXT("\n"), ESearchCase::IgnoreCase, ESearchDir::FromStart, startIndex);
 
-		auto fp = Substring::ToSubstring(fullPath);
-		cstr slash = ReverseFind(IO::GetFileSeparator(), fp);
-		if (!slash)
+		if (slashRIndex == -1)
 		{
-			path = fullPath;
+			if (slashNIndex == -1)
+			{
+				return -1;
+			}
+
+			return slashNIndex;
 		}
 		else
 		{
-			Rococo::Strings::Format(path, "%s", slash + 1);
+			if (slashNIndex == -1)
+			{
+				return slashRIndex;
+			}
+
+			return Rococo::min(slashRIndex, slashNIndex);
 		}
 	}
 
-	ROCOCO_API void GetExePath(U8FilePath& path)
+	FString GetConfigItem(const FString& configText, crwstr key)
 	{
-		FString exeName(FPlatformProcess::ExecutablePath());
-
-		TArray<uint8> buffer;
-		ConvertFStringToUTF8Buffer(buffer, exeName);
-
-		if (buffer.Num() >= path.CAPACITY)
+		int32 itemIndex = configText.Find(key);
+		if (itemIndex >= 0)
 		{
-			Throw(FString::Printf(TEXT("Cannot GetExePath - filename '%s' too long"), *exeName));
+			int startIndex = itemIndex + StringLength(key);
+			int endIndex = FindNextLineEnd(configText, startIndex);
+			FString item = configText.Mid(startIndex, endIndex - startIndex);
+			return item;
 		}
-
-		FMemory::Memcpy(path.buf, buffer.GetData(), buffer.NumBytes());
+		else
+		{
+			return FString();
+		}
 	}
 
-	ROCOCO_API void GetExePath(WideFilePath& path)
+	FString FindFileInAncestors(OUT FString& parent, const FString& startDirectory, const FString& shortFilename)
 	{
-		FString exeName(FPlatformProcess::ExecutablePath());
-		Strings::Format(OUT path, TEXT("%s"), *exeName);
+		if (shortFilename.IsEmpty())
+		{
+			return FString();
+		}
+
+		FString child = startDirectory;
+
+		for (;;)
+		{
+			parent = FPaths::Combine(child, "..");
+			FPaths::CollapseRelativeDirectories(REF parent);
+			if (parent.EndsWith(TEXT("..")) || parent == child)
+			{
+				// We have hit the root
+				return FString();
+			}
+
+			FString configFullPath = FPaths::Combine(parent, shortFilename);
+
+			if (FPaths::FileExists(configFullPath))
+			{
+				return configFullPath;
+			}
+
+			child = parent;
+		}
+	}
+
+	FString GetDevContentDirectory(const FString& gameDir, const FString& configText, const FString& configSource)
+	{
+		FString rococoDevConfig = GetConfigItem(configText, TEXT("Dev.Config="));
+		if (rococoDevConfig.IsEmpty())
+		{
+			return FString();
+		}
+
+		FString parentDirectory;
+		FString fullPathToDevConfig = FindFileInAncestors(OUT parentDirectory, gameDir, rococoDevConfig);
+		if (!fullPathToDevConfig.IsEmpty())
+		{
+			FString devConfigText;
+			if (!FFileHelper::LoadFileToString(OUT devConfigText, *fullPathToDevConfig))
+			{
+				Throw(FString::Printf(TEXT("Could not load %s"), *fullPathToDevConfig));
+			}
+
+			FString devFolderShortname = GetConfigItem(devConfigText, TEXT("Dev.Content="));
+			if (devFolderShortname.IsEmpty())
+			{
+				Throw(FString::Printf(TEXT("No Dev.Content=<content-relative-path> in %s"), *fullPathToDevConfig));
+			}
+
+			FString fullDevFolderName = FPaths::Combine(parentDirectory, devFolderShortname);
+			if (!FPaths::DirectoryExists(fullDevFolderName))
+			{
+				Throw(FString::Printf(TEXT("Dev.Content=<content-relative-path> in %s specified a directory %s that was not found"), *fullPathToDevConfig, *fullDevFolderName));
+			}
+
+			return fullDevFolderName;
+		}
+
+		Throw(FString::Printf(TEXT("Dev.Config %s specified in %s not found in ancestors of %s"), *rococoDevConfig, *configSource, *gameDir));
+	}
+
+	void FormatWithDirectory(WideFilePath& path, const FString& directoryName)
+	{
+		FString normalizedName = directoryName;
+		if (!normalizedName.EndsWith(TEXT("/")) && !normalizedName.EndsWith(TEXT("\\")))
+		{
+			normalizedName = normalizedName + FPlatformMisc::GetDefaultPathSeparator();
+		}
+
+		SecureFormat(path.buf, TEXT("%s"), *normalizedName);
 	}
 
 	void GetContentDirectory(const TCHAR* contentIndicatorName, WideFilePath& path, IOS& os)
 	{
-		FString gameRelativeDir = FPaths::ProjectContentDir();
-		FString gameDir = FPaths::ConvertRelativePathToFull(gameRelativeDir);
-
-		static_assert(sizeof(TCHAR) == sizeof(WIDECHAR));
-
-		Strings::SecureFormat(path.buf, TEXT("%s"), *gameDir);
-
-		FString contentIndicator(contentIndicatorName);
-
-		if (contentIndicator.Find(TEXT("\\")) > 0 || contentIndicator.Find(TEXT("/")) > 0)
+		FString gameDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
+		FString rococoContentCfg = FPaths::Combine(gameDir, TEXT("rococo.UE5.cfg"));
+		if (!os.IsFileExistant(*rococoContentCfg))
 		{
-			// The indicator is part of a path
-			if (os.IsFileExistant(contentIndicatorName))
-			{
-				Populate(path, contentIndicator);
-				IO::MakeContainerDirectory(path.buf);
-				IO::EndDirectoryWithSlash(path.buf, WideFilePath::CAPACITY);
-				IO::NormalizePath(path);
-				return;
-			}
+			FString defaultCococoContentPath = FPaths::Combine(gameDir, TEXT("rococo.content"));
+			FormatWithDirectory(path, *defaultCococoContentPath);
+			return;
 		}
 
-		size_t len = Strings::StringLength(path);
-
-		while (len > 0)
+		FString configText;
+		if (!FFileHelper::LoadFileToString(OUT configText, *rococoContentCfg))
 		{
-			FString indicator = FString::Printf(TEXT("%s%s"), path.buf, contentIndicatorName);
-			if (os.IsFileExistant(*indicator))
-			{
-				U8FilePath subDir;
-				IO::LoadAsciiTextFile(subDir.buf, subDir.CAPACITY, *indicator);
-
-				FString sSubDir(subDir);
-				FString rootDir(path.buf);
-
-				FString fullDir = FPaths::Combine(rootDir, sSubDir);
-
-				if (!FPaths::DirectoryExists(fullDir))
-				{
-					Throw(FString::Printf(TEXT("RococoOS: Could not find %s. File path was specified in %s"), *fullDir, *indicator));
-				}
-
-				Populate(path, fullDir);
-				IO::EndDirectoryWithSlash(path.buf, WideFilePath::CAPACITY);
-				IO::NormalizePath(path);
-				return;
-			}
-
-			IO::MakeContainerDirectory(path.buf);
-
-			size_t newLen = Strings::StringLength(path);
-			if (newLen >= len) break;
-			len = newLen;
+			Throw(FString::Printf(TEXT("Could not load %s"), *rococoContentCfg));
 		}
 
-		Throw(FString::Printf(TEXT("Could not find %s at or below the game content folder '%s'"), contentIndicatorName, *gameDir));
+		if (configText.IsEmpty())
+		{
+			Throw(FString::Printf(TEXT("Config is blank: %s"), *rococoContentCfg));
+		}
+
+#if UE_BUILD_SHIPPING == 0
+		// Dev/debug builds allow us to specify Dev.Config=<short-config-name> to specify a rococo.content folder somewhere in the
+		// ancestor chain of the content directory. The rationale is to allow stand-alone Rococo Gui apps to develop a gui for UE5
+		// without being tied into particular UE5 directories. For the rococo installation the directory will be such as rococo/content 
+		// folder with the config file in rococo, and the UE5 test plugins in rococo/UE5
+		FString fullDevFolderName = GetDevContentDirectory(gameDir, configText, *rococoContentCfg);
+		if (!fullDevFolderName.IsEmpty())
+		{
+			FormatWithDirectory(path, *fullDevFolderName);
+			return;
+		}
+#endif
+		
+		FString rococoPackagedContent = GetConfigItem(configText, TEXT("Packaged.Content="));
+		if (rococoPackagedContent.IsEmpty())
+		{
+			rococoPackagedContent = "rococo.content";
+		}
+
+		FString rococoContentPath = FPaths::Combine(gameDir, rococoPackagedContent);
+
+		if (!IsDirectory(*rococoContentPath))
+		{
+			Throw(FString::Printf(TEXT("content-path: %s not found (source = %s)"), *rococoContentPath, *rococoContentCfg));
+		}
+
+		FormatWithDirectory(path, *rococoContentPath);
 	}
 
 	/*
@@ -1545,14 +1618,11 @@ namespace UE5_ANON
 
 	class UE5OS : public IOSSupervisor
 	{
-		WideFilePath binDirectory;
 		IEventCallback<SysUnstableArgs>* onUnstable;
 
 	public:
-		UE5OS() :
-			onUnstable(nullptr)
+		UE5OS() : onUnstable(nullptr)
 		{
-			IO::GetExePath(OUT binDirectory);
 		}
 
 		virtual ~UE5OS()
@@ -1782,7 +1852,7 @@ namespace UE5_ANON
 
 		void GetBinDirectoryAbsolute(WideFilePath& directory) const override
 		{
-			Rococo::Strings::Format(directory, TEXT("%s"), binDirectory);
+			Throw(0, "GetBinDirectoryAbsolute - not implemented for UE5");
 		}
 
 		size_t MaxPath() const override
@@ -1792,7 +1862,7 @@ namespace UE5_ANON
 
 		void Monitor(crwstr /* absPath */) override
 		{
-			Throw(0, "Not implemented");
+			Throw(0, "Monitor - Not implemented for UE5");
 		}
 	};
 }

@@ -23,7 +23,7 @@ using TMapPathToTexture = TMap<FString, UTexture2D*>;
 
 ROCOCO_INTERFACE ISRococoGRHostWidgetEventHandler
 {
-	virtual void OnGRSystemConstructed(Rococo::Gui::IUE5_GRCustodianSupervisor & custodian, Rococo::Gui::IGRSystem & gr) = 0;
+	virtual void OnGRSystemConstructed(Rococo::Gui::IUE5_GRCustodianSupervisor& custodian, Rococo::Gui::IGRSystem& gr) = 0;
 };
 
 class SRococoGRHostWidget : public SLeafWidget
