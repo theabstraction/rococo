@@ -1,4 +1,4 @@
-// The schemes are quite large, so we move them into their sexml file, which we insert into the GreatSex def here
+// The schemes are quite large, so we move them into their own sexml file, which we insert into the GreatSex def here
 (Insert
 	(Path "!tests/greatsex.scheme.sexml")
 )
@@ -319,7 +319,7 @@
 				(Colour.Label Transparent)
 				(Colour.Editor DarkRed)
 				(Colour.Slider.Guage LightGrey)
-			:
+				:
 				(Viewport.ClientArea
 					(Panel.Layout TopToBottom)
 					(Colour.Background Transparent)
