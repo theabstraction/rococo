@@ -1284,9 +1284,9 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			const FSlateFontInfo& fontInfo = GetFont(id);
 
-			if (false && currentContext != nullptr)
+			if (currentContext != nullptr && currentContext->geometry.Scale != 0.0f)
 			{
-				return 1 + (int)(fontInfo.Size * currentContext->geometry.Scale);
+				return 1 + (int)(fontInfo.Size / currentContext->geometry.Scale);
 			}
 			else
 			{
