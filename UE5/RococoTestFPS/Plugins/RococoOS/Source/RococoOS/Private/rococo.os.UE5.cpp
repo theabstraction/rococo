@@ -573,44 +573,6 @@ namespace Rococo::IO
 		Populate(path, sPath);
 	}
 
-	ROCOCO_API void GetExeName(U8FilePath& path)
-	{
-		U8FilePath fullPath;
-		GetExePath(OUT fullPath);
-
-		auto fp = Substring::ToSubstring(fullPath);
-		cstr slash = ReverseFind(IO::GetFileSeparator(), fp);
-		if (!slash)
-		{
-			path = fullPath;
-		}
-		else
-		{
-			Rococo::Strings::Format(path, "%s", slash + 1);
-		}
-	}
-
-	ROCOCO_API void GetExePath(U8FilePath& path)
-	{
-		FString exeName(FPlatformProcess::ExecutablePath());
-
-		TArray<uint8> buffer;
-		ConvertFStringToUTF8Buffer(buffer, exeName);
-
-		if (buffer.Num() >= path.CAPACITY)
-		{
-			Throw(FString::Printf(TEXT("Cannot GetExePath - filename '%s' too long"), *exeName));
-		}
-
-		FMemory::Memcpy(path.buf, buffer.GetData(), buffer.NumBytes());
-	}
-
-	ROCOCO_API void GetExePath(WideFilePath& path)
-	{
-		FString exeName(FPlatformProcess::ExecutablePath());
-		Strings::Format(OUT path, TEXT("%s"), *exeName);
-	}
-
 	int32 FindNextLineEnd(const FString& s, int32 startIndex)
 	{
 		int32 slashRIndex = s.Find(TEXT("\r"), ESearchCase::IgnoreCase, ESearchDir::FromStart, startIndex);
@@ -1656,14 +1618,11 @@ namespace UE5_ANON
 
 	class UE5OS : public IOSSupervisor
 	{
-		WideFilePath binDirectory;
 		IEventCallback<SysUnstableArgs>* onUnstable;
 
 	public:
-		UE5OS() :
-			onUnstable(nullptr)
+		UE5OS() : onUnstable(nullptr)
 		{
-			IO::GetExePath(OUT binDirectory);
 		}
 
 		virtual ~UE5OS()
@@ -1893,7 +1852,7 @@ namespace UE5_ANON
 
 		void GetBinDirectoryAbsolute(WideFilePath& directory) const override
 		{
-			Rococo::Strings::Format(directory, TEXT("%s"), binDirectory);
+			Throw(0, "GetBinDirectoryAbsolute - not implemented for UE5");
 		}
 
 		size_t MaxPath() const override
@@ -1903,7 +1862,7 @@ namespace UE5_ANON
 
 		void Monitor(crwstr /* absPath */) override
 		{
-			Throw(0, "Not implemented");
+			Throw(0, "Monitor - Not implemented for UE5");
 		}
 	};
 }
