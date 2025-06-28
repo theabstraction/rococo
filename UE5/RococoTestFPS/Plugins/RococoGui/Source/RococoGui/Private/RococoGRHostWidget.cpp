@@ -124,6 +124,8 @@ void URococoGRHostWidgetBuilder::ReloadFrame()
 
 	onPrepForLoad.This = this;
 
+	
+
 	LoadFrame(_SexmlPingPath, onPrepForLoad);
 }
 
