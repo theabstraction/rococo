@@ -1541,6 +1541,26 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
+		GRAnchorPadding Scale(GRAnchorPadding pixelPadding) override
+		{
+			if (!currentContext)
+			{
+				return pixelPadding;
+			}
+
+			float scale = currentContext->geometry.Scale;
+
+			float f = scale == 0.0f ? 1.0f : 1.0f / scale;
+
+			return GRAnchorPadding
+			{
+				(int) (pixelPadding.left   * f),
+				(int) (pixelPadding.right  * f),
+				(int) (pixelPadding.top    * f),
+				(int) (pixelPadding.bottom * f),
+			};
+		}
+
 		std::vector<char> copyAndPasteBuffer;
 
 		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override
