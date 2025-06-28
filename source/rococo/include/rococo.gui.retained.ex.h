@@ -72,6 +72,10 @@ namespace Rococo::Gui
 		// Set the zoom level for the user-interface. The value is clamped between 1 and 100
 		virtual void SetUIZoom(float zoomLevel) = 0;
 		virtual float ZoomLevel() const = 0;
+
+		// Converts padding values according to the known render scales mapping pixel sizes to absolute co-ordinates.
+		virtual GRAnchorPadding Scale(GRAnchorPadding pixelPadding) = 0;
+
 	};
 
 	ROCOCO_INTERFACE IGRCustodianSupervisor : IGRCustodian

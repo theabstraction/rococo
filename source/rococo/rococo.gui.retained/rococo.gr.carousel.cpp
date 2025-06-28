@@ -26,6 +26,7 @@ namespace GRANON
 
 		int optionIndex = 1;
 
+		GRAnchorPadding optionPixelPadding{ 4, 4, 16, 16 };
 		GRAnchorPadding optionPadding{ 4, 4, 16, 16 };
 
 		IGRWidgetButton* leftButton = nullptr;
@@ -56,7 +57,7 @@ namespace GRANON
 
 		void SetOptionPadding(GRAnchorPadding padding) override
 		{
-			this->optionPadding = padding;
+			this->optionPixelPadding = padding;
 		}
 
 		void PostConstruct(cstr leftImagePathRaised, cstr rightImagePathRaised, cstr leftImagePathPressed, cstr rightImagePathPressed)
@@ -192,6 +193,8 @@ namespace GRANON
 		void LayoutBeforeFit() override
 		{
 			Vec2i buttonSpan = leftButton->ImageSpan();
+
+			optionPadding = GetCustodian(panel).Scale(optionPixelPadding);
 
 			Vec2i padding{ 4,4 };
 

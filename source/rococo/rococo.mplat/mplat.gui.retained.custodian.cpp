@@ -757,6 +757,13 @@ namespace ANON
 			renderer.SetContext(nullptr);
 		}
 
+		// Converts padding values according to the known render scales mapping pixel sizes to absolute co-ordinates.
+		GRAnchorPadding Scale(GRAnchorPadding pixelPadding) override
+		{
+			// MPLAT always maps pixels to absolute co-ordinate units, so no transformation necessary
+			return pixelPadding;
+		}
+
 		std::vector<char> copyAndPasteBuffer;
 
 		EGREventRouting TranslateToEditor(const GRKeyEvent& keyEvent, IGREditorMicromanager& manager) override

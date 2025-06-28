@@ -53,8 +53,15 @@ namespace Rococo::Windows
 
     ROCOCO_API_EXPORT void ShowExceptionDialog(const ExceptionDialogSpec& spec, HWND parent, IException& ex);
 
-    ROCOCO_API_EXPORT void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr caption)
+    ROCOCO_API_EXPORT void ShowErrorBox(Rococo::Windows::IWindow& parent, IException& ex, cstr captionFormat, ...)
     {
+        char caption[256];
+
+        va_list args;
+        va_start(args, captionFormat);
+        vsnprintf_s(caption, _TRUNCATE, captionFormat, args);
+        va_end(args);
+
         HMODULE hRichEditor = LoadLibraryA(TEXT("Riched20.dll"));
         if (hRichEditor == NULL)
         {

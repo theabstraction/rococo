@@ -538,6 +538,15 @@ namespace Rococo::Gui
 		int32 VerticalScrollerWheelScaling = -1;
 	};
 
+	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom
+	struct GRAnchorPadding
+	{
+		int32 left = 0;
+		int32 right = 0;
+		int32 top = 0;
+		int32 bottom = 0;
+	};
+
 	ROCOCO_INTERFACE IGRPanelRoot
 	{
 		// Redirects all mouse events to the target panel, until it is either destroyed, another panel is captured, or ReleaseCursor is called on this interface
@@ -562,15 +571,6 @@ namespace Rococo::Gui
 		virtual IGRSystem& GR() = 0;
 
 		virtual Vec2i ScreenDimensions() const = 0;
-	};
-
-	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom
-	struct GRAnchorPadding
-	{
-		int32 left = 0;
-		int32 right = 0;
-		int32 top = 0;
-		int32 bottom = 0;
 	};
 
 	ROCOCO_INTERFACE IGRPanelRenderer

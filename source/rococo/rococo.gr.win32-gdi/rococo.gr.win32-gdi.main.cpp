@@ -1704,6 +1704,12 @@ namespace GRANON
 			renderer.Render(scene);
 		}
 
+		GRAnchorPadding Scale(GRAnchorPadding pixelPadding) override
+		{
+			// The GDI implementation maps pixels to absolute co-ordinates in 1:1 ratio
+			return pixelPadding;
+		}
+
 		void RenderGui(IGRSystem& gr, HWND hWnd, HDC paintDC) override
 		{
 			auto captureId = gr.Root().CapturedPanelId();
@@ -2321,7 +2327,7 @@ namespace GRANON
 			{
 				Rococo::Windows::THIS_WINDOW parent(GetParent(hWnd));
 				SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) DefWindowProc);
-				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __ROCOCO_FUNCTION__);
+				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in %s", __ROCOCO_FUNCTION__);
 				PostQuitMessage(0);
 				return 0L;
 			}
