@@ -277,7 +277,7 @@ namespace Rococo::Gui::UE5::Implementation
 			return rc.geometry.ToPaintGeometry(SlateSpan(localRect), LocalShift(localRect));
 		}
 
-		void DrawText(const FSlateFontInfo& fontInfo, const GuiRect& absRect, RGBAb colour, cstr format, ...)
+		void DrawErrorText(const FSlateFontInfo& fontInfo, const GuiRect& absRect, RGBAb colour, cstr format, ...)
 		{
 			char buffer[1024];
 
@@ -314,10 +314,10 @@ namespace Rococo::Gui::UE5::Implementation
 
 				absRect.left += lineHeight;
 				absRect.top += lineHeight;
-				DrawText(f, absRect, RGBAb(255, 255, 255), "%s", errCapture.message.c_str());
+				DrawErrorText(f, absRect, RGBAb(255, 255, 255), "%s", errCapture.message.c_str());
 
 				absRect.top += lineHeight;
-				DrawText(f, absRect, RGBAb(255, 255, 255), "Source File: %s", errCapture.filename.c_str());
+				DrawErrorText(f, absRect, RGBAb(255, 255, 255), "Source File: %s", errCapture.filename.c_str());
 
 				Vec2i s = errCapture.startPos;
 				Vec2i e = errCapture.endPos;
@@ -325,7 +325,7 @@ namespace Rococo::Gui::UE5::Implementation
 				if (s.x != 0 || s.y != 0 || e.x != 0 || e.y != 0)
 				{
 					absRect.top += lineHeight;
-					DrawText(f, absRect, RGBAb(255, 255, 255), "From line %d (pos %d) to line %d (pos %d)", s.y, s.x, e.x, e.y);
+					DrawErrorText(f, absRect, RGBAb(255, 255, 255), "From line %d (pos %d) to line %d (pos %d)", s.y, s.x, e.x, e.y);
 				}
 
 				if (errCapture.errorCode != 0)
@@ -335,7 +335,7 @@ namespace Rococo::Gui::UE5::Implementation
 					char err[256];
 					Rococo::OS::FormatErrorMessage(err, sizeof(err), errCapture.errorCode);
 
-					DrawText(f, absRect, RGBAb(255, 255, 255), "%s", err);
+					DrawErrorText(f, absRect, RGBAb(255, 255, 255), "%s", err);
 				}
 			}
 			else
@@ -974,9 +974,12 @@ namespace Rococo::Gui::UE5::Implementation
 			{
 				const FText& localizedText = MapAsciiToLocalizedText(custodian, text);
 				Vec2i textLocalSpan = EvaluateMinimalSpan(custodian, fontId, localizedText, Vec2i {0,0});
-				Vec2i textPixelSpan = Vec2i{ (int) (textLocalSpan.x * rc.geometry.Scale), (int) (textLocalSpan.y / rc.geometry.Scale) };
-				GuiRect textRect = GetAlignedRect(alignment, targetRect, spacing, textLocalSpan);
-				FPaintGeometry textGeometryInPixelSpace(rc.ToSlatePosition(TopLeft(textRect)), ToFVector2f(textPixelSpan), 1.0f);
+				Vec2i textPixelSpan = Vec2i{ (int) (textLocalSpan.x * rc.geometry.Scale), (int) (textLocalSpan.y * rc.geometry.Scale) };
+				Vec2i topLeft = ToVec2i(rc.geometry.LocalToAbsolute(ToFVector2f(TopLeft(targetRect))));
+				Vec2i bottomRight = ToVec2i(rc.geometry.LocalToAbsolute(ToFVector2f(BottomRight(targetRect))));
+				GuiRect pixelRect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+				GuiRect textRect = GetAlignedRect(alignment, pixelRect, spacing, textPixelSpan);
+				FPaintGeometry textGeometryInPixelSpace(ToFVector2f(TopLeft(textRect)), ToFVector2f(Span(textRect)), 1.0f);
 				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, textGeometryInPixelSpace, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
 			else
@@ -1347,9 +1350,9 @@ namespace Rococo::Gui::UE5::Implementation
 
 		float PixelSpanToLocalSpaceSpanRatio() const
 		{
-			if (currentContext && currentContext->geometry.Scale != 0.0f)
+			if (currentContext && currentContext->geometry.GetAbsoluteSize().X != 0.0f)
 			{
-				return 1.0f / currentContext->geometry.Scale;
+				return currentContext->geometry.GetLocalSize().X / currentContext->geometry.GetAbsoluteSize().X;
 			}
 
 			return 1.0f;

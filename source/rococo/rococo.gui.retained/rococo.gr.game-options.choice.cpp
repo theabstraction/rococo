@@ -46,8 +46,8 @@ namespace GRANON
 			title = &AddGameOptionTitleWidget(*this, config);
 
 			carousel = &Gui::CreateCarousel(*this, config.LeftImageRaised, config.RightImageRaised, config.LeftImagePressed, config.RightImagePressed);
-			carousel->Widget().Panel().SetExpandToParentHorizontally();
-			carousel->Widget().Panel().SetExpandToParentVertically();
+			carousel->Panel().SetExpandToParentHorizontally();
+			carousel->Panel().SetExpandToParentVertically();
 			carousel->SetDisableCarouselWhenDropDownVisible(true);
 			carousel->SetOptionPadding(config.CarouselPadding);
 			carousel->SetFont(config.CarouselFontId);

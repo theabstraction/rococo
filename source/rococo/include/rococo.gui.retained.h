@@ -1375,6 +1375,8 @@ namespace Rococo::Gui
 		{
 			AddZoomScenario(1920, 1080, levels);
 		}
+
+		virtual void ClearZoomsScenarios() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetMainFrameSupervisor: IGRWidgetMainFrame

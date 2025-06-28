@@ -851,6 +851,8 @@ namespace Rococo::GreatSex
 				Auto<ISParserTree> tree = sParser->CreateTree(*src);
 				cr_sex s = tree->Root();
 
+				frame.ClearZoomsScenarios();
+
 				greatSex->AppendWidgetTreeFromSexML(s, frame.ClientArea().Widget());
 				frame.Panel().PrepPanelAndDescendants();
 				frame.Panel().ClearAssociatedExpressions();

@@ -171,6 +171,11 @@ namespace GRANON
 			);
 		}
 
+		void ClearZoomsScenarios() override
+		{
+			zoomScenarios.clear();
+		}
+
 		const ZoomScenario* GetBestZoomScenario() const
 		{
 			Vec2i frameSpan = panel.Span();

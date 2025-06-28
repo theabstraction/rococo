@@ -70,7 +70,7 @@
 (Font 
 	(Id CarouselFont)
 	(Family Arial)
-	(Height 16)
+	(Height 14)
 	([] Mods Bold)
 )
 
@@ -341,8 +341,10 @@
 					(Title.Font SubOptionTitleFont)
 					(SubscribeToCommitButtons) 
 					
+					(#Recti Panel.Padding 0 8 0 8)
+					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
-					(Title.HeightMultiplier 1.75)
+					(Title.HeightMultiplier 2.00)
 					
 					// Multiplies the title font height to yield the title x spacing.
 					(Title.XSpacingMultiplier 0.25)
