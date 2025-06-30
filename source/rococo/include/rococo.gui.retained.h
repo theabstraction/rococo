@@ -145,7 +145,8 @@ namespace Rococo::Gui
 		Bottom = 8,
 		HCentre = 3,
 		VCentre = 12,
-		AutoFonts = 16 // Flag that indicates something in the render chain will try to select the best font for rendering (situation dependent)
+		AutoFonts = 16, // Flag that indicates something in the render chain will try to select the best font for rendering (situation dependent)
+		DrawAlignmentEdge = 32 // Generally used for debugging - this highlights the text rect
 	};
 
 	enum class GRFontId: size_t

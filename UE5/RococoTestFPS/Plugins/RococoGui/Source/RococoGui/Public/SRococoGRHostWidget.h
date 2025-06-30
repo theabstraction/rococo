@@ -14,6 +14,10 @@ namespace Rococo::GreatSex
 	struct IGreatSexGenerator;
 }
 
+namespace Rococo::Gui
+{
+	struct IUE5_CustodianManager;
+}
 
 class FPaintArgs;
 class FSlateWindowElementList;
@@ -48,7 +52,7 @@ public:
 	}
 
 	// Slate widgets are volatile, so store the mapPathToTexture elsewhere and sync our Custodian to it just after construction
-	void SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct);
+	void SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct, Rococo::Gui::IUE5_CustodianManager& manager);
 
 	void Construct(const FArguments& args);
 	FVector2D ComputeDesiredSize(float) const override;

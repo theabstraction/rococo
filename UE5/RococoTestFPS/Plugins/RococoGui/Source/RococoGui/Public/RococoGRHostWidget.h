@@ -11,7 +11,7 @@
 
 // The basic Rococo Gui Retained host widget. Needs C++ to get anywhere. For a blueprint driven system use URococoGRHostWidgetBuilder
 UCLASS(BlueprintType, meta = (DisplayName = "RococoGRHostWidget (Object)"))
-class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget
+class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_CustodianManager
 {
 public:
 	GENERATED_BODY()
@@ -38,6 +38,11 @@ public:
 	{
 		this->_SlateEventHandler = slateEventHandler;
 	}
+
+	void SetCustodianManager(Rococo::Gui::IUE5_CustodianManager* custodianManager)
+	{
+		_CustodianManager = custodianManager;
+	}
 protected:
 	TSharedPtr<SRococoGRHostWidget> slateHostWidget;
 
@@ -56,6 +61,10 @@ protected:
 	bool _UseDefaultFocusRenderer = true;
 
 	ISRococoGRHostWidgetEventHandler* _SlateEventHandler = nullptr;
+
+	Rococo::Gui::IUE5_CustodianManager* _CustodianManager = nullptr;
+
+	int GetUE5PointSize(int rococoPointSize) override;
 };
 
 typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);

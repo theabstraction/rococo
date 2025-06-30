@@ -951,19 +951,40 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		};
 
+		inline bool IsNullRect(const GuiRect& rect) const
+		{
+			return rect.left == 0 && rect.top == 0 && rect.right == 0 && rect.bottom == 0;
+		}
+
+		GuiRect IntersectRectWithScissors(const GuiRect& targetRect)
+		{
+			if (IsNullRect(lastScissorRect))
+			{
+				return targetRect;
+			}
+
+			return IntersectNormalizedRects(lastScissorRect, targetRect);
+		}
+
+		RGBAb alignmentEdgeColour{ 255,255,255,255 };
+
+		void SetAlignmentEdgeColour(RGBAb colour)
+		{
+			this->alignmentEdgeColour = colour;
+		}
+
 		void DrawText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour) override
 		{
-			if (!lastScissorRect.IsNormalized())
+			GuiRect scissorRect;
+			if (TryGetScissorRect(OUT scissorRect))
 			{
-				return;
+				if (!AreRectsOverlapped(scissorRect, targetRect))
+				{
+					return;
+				}
 			}
 
-			if (!AreRectsOverlapped(lastScissorRect, targetRect))
-			{
-				return;			
-			}
-
-			GuiRect cliprect = IntersectNormalizedRects(lastScissorRect, targetRect);
+			GuiRect cliprect = IntersectRectWithScissors(targetRect);
 
 			ClipContext clip(rc, cliprect);
 
@@ -980,14 +1001,22 @@ namespace Rococo::Gui::UE5::Implementation
 				GuiRect pixelRect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
 				GuiRect textRect = GetAlignedRect(alignment, pixelRect, spacing, textPixelSpan);
 				FPaintGeometry textGeometryInPixelSpace(ToFVector2f(TopLeft(textRect)), ToFVector2f(Span(textRect)), 1.0f);
+
+				if (alignment.HasAllFlags(EGRAlignment::DrawAlignmentEdge))
+				{
+					auto edgeColour = ToLinearColor(alignmentEdgeColour);
+					FSlateColorBrush edgeBrush(ToLinearColor(RGBAb(255,255,255,255)));
+					FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, textGeometryInPixelSpace, &edgeBrush, drawEffects, edgeColour);
+				}
+
 				FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, textGeometryInPixelSpace, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
 			}
 			else
 			{
 				FPaintGeometry ue5Rect = ToUE5Rect(targetRect, rc.geometry);
 				auto errColour = ToLinearColor(RGBAb(255,255,0));
-				FSlateColorBrush errorBrush(errColour);
-				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, ue5Rect, &errorBrush, drawEffects, FLinearColor::White);
+				FSlateColorBrush errorBrush(ToLinearColor(RGBAb(255, 255, 255, 255)));
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, ue5Rect, &errorBrush, drawEffects, errColour);
 			}
 		}
 
@@ -1079,10 +1108,13 @@ namespace Rococo::Gui::UE5::Implementation
 
 		TObjectPtr<URococoFontSet> fontSet;
 
-		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font) :
+		IUE5_CustodianManager& custodianManager;
+
+		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& _manager) :
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture),
-			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/DA_RococoFonts") : font)
+			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/DA_RococoFonts") : font),
+			custodianManager(_manager)
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
@@ -1257,8 +1289,9 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 
 			PersistentFontSpec newPSpec{ spec.FontName, spec, (GRFontId)(++nextFontId) };
+			newPSpec.spec.CharHeight = custodianManager.GetUE5PointSize(spec.CharHeight);
 
-			FSlateFontInfo newFont = MatchFont(spec, zoomLevel);
+			FSlateFontInfo newFont = MatchFont(newPSpec.spec, zoomLevel);
 			fontMap.Add(newPSpec.fontId, newFont);
 			fontSpecs.Push(newPSpec);
 			fontSpecs.Last().spec.FontName = fontSpecs.Last().name;
@@ -1489,24 +1522,26 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void RenderTestText(UE5_GR_Renderer& renderer)
 		{
+			renderer.SetAlignmentEdgeColour(RGBAb(192, 64, 64, 255));
+
 			GRAlignmentFlags alignment;
-			alignment.Add(EGRAlignment::Top).Add(EGRAlignment::Left);
+			alignment.Add(EGRAlignment::Top).Add(EGRAlignment::Left).Add(EGRAlignment::DrawAlignmentEdge);
 			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment, Vec2i{ 0,0 }, "TopLeft - The quick brown fox jumps over the lazy dog"_fstring, RGBAb(255, 255, 255));
 
 			GRAlignmentFlags alignment2;
-			alignment2.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left);
+			alignment2.Add(EGRAlignment::VCentre).Add(EGRAlignment::Left).Add(EGRAlignment::DrawAlignmentEdge);
 			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment2, Vec2i{ 0,0 }, "CentreLeft - She sells sea shells by the sea shore"_fstring, RGBAb(255, 255, 255));
 
 			GRAlignmentFlags alignment3;
-			alignment3.Add(EGRAlignment::Bottom).Add(EGRAlignment::Left);
+			alignment3.Add(EGRAlignment::Bottom).Add(EGRAlignment::Left).Add(EGRAlignment::DrawAlignmentEdge);
 			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment3, Vec2i{ 0,0 }, "BottomLeft - The cost of sausages was lost on the hostages"_fstring, RGBAb(255, 255, 255));
 
 			GRAlignmentFlags alignment4;
-			alignment4.Add(EGRAlignment::VCentre).Add(EGRAlignment::Right);
+			alignment4.Add(EGRAlignment::VCentre).Add(EGRAlignment::Right).Add(EGRAlignment::DrawAlignmentEdge);
 			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment4, Vec2i{ 0,0 }, "VCentreRight - Excalibur!"_fstring, RGBAb(255, 255, 255));
 
 			GRAlignmentFlags alignment5;
-			alignment5.Add(EGRAlignment::Bottom).Add(EGRAlignment::HCentre);
+			alignment5.Add(EGRAlignment::Bottom).Add(EGRAlignment::HCentre).Add(EGRAlignment::DrawAlignmentEdge);
 			renderer.DrawText(GRFontId::NONE, renderer.lastLocalSizeScreenDimensions, alignment5, Vec2i{ 0,0 }, "Bottom-HCentre - Lord, what fools these mortals be!"_fstring, RGBAb(255, 255, 255));
 		}
 
@@ -1598,8 +1633,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font)
+	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& manager)
 	{
-		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(mapPathToImageTexture, font);
+		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(mapPathToImageTexture, font, manager);
 	}
 }

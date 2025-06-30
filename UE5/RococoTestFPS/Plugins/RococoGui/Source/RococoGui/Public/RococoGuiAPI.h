@@ -28,11 +28,14 @@ namespace Rococo::Gui
 		virtual void RouteKeyboardEvent(const KeyboardEvent& key) = 0;
 		virtual void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) = 0;
 	};
-}
 
-namespace Rococo::Gui
-{
-	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font);
+	// Allows implementation external to the custodian to control some of its logic
+	ROCOCO_INTERFACE IUE5_CustodianManager
+	{
+		virtual int GetUE5PointSize(int rococoPointSize) = 0;
+	};
+
+	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& manager);
 
 	typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
 

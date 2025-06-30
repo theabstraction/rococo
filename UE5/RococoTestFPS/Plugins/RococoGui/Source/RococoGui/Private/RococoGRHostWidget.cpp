@@ -36,7 +36,7 @@ TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 	slateHostWidget = SNew(SRococoGRHostWidget);
 
 	NullHandler doNothing;
-	slateHostWidget->SyncCustodian(mapPathToTexture, _FontAsset, _UseDefaultFocusRenderer, _SlateEventHandler ? *_SlateEventHandler : doNothing);
+	slateHostWidget->SyncCustodian(mapPathToTexture, _FontAsset, _UseDefaultFocusRenderer, _SlateEventHandler ? *_SlateEventHandler : doNothing, _CustodianManager ? *_CustodianManager : *this);
 
 	return slateHostWidget.ToSharedRef();
 }
@@ -102,6 +102,11 @@ void URococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCal
 	{
 		UE_LOG(RococoGUI, Error, TEXT("SlateHostWidget is not valid. LoadFrame(<%hs>) failed"), sexmlPingPath);
 	}
+}
+
+int URococoGRHostWidget::GetUE5PointSize(int rococoPointSize)
+{
+	return (72 * rococoPointSize) / 92;
 }
 
 void URococoGRHostWidgetBuilder::ReloadFrame()
