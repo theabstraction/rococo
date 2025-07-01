@@ -54,7 +54,7 @@ protected:
 	// Multiplier of the Rococo point size value for fonts to create the UE5 point size. The default value was determined empircally to best approximate the UE5
 	// fonts to those of the Rococo GDI test application. The value is capped between 0.2 and 8.0
 	UPROPERTY(EditAnywhere, Category = "RococoGui")
-	float _FontPointSizeRatio = 0.6f;
+	float _FontPointSizeRatio = 0.7826f;
 
 	// The location where fonts are expected.
 	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "RococoFontSet"), Category = "RococoGui")

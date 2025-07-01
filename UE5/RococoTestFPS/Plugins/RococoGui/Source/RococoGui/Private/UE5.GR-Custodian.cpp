@@ -1319,15 +1319,9 @@ namespace Rococo::Gui::UE5::Implementation
 		int GetFontHeight(GRFontId id) const override
 		{
 			const FSlateFontInfo& fontInfo = GetFont(id);
-
-			if (currentContext != nullptr && currentContext->geometry.Scale != 0.0f)
-			{
-				return 1 + (int)(fontInfo.Size / currentContext->geometry.Scale);
-			}
-			else
-			{
-				return fontInfo.Size;
-			}
+			
+			Vec2i span = EvaluateMinimalSpan(id, "A"_fstring, { 0,0 });
+			return span.y;
 		}
 
 		void UpdateFontMap(float scalingFactor)
