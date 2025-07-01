@@ -1375,23 +1375,35 @@ namespace Rococo::Gui::UE5::Implementation
 			return image;
 		}
 
-		float PixelSpanToLocalSpaceSpanRatio() const
+		Vec2 PixelSpanToLocalSpaceSpanRatio() const
 		{
-			if (currentContext && currentContext->geometry.GetAbsoluteSize().X != 0.0f)
+			Vec2 ratio { 1.0f, 1.0f };
+
+			if (currentContext)
 			{
-				return currentContext->geometry.GetLocalSize().X / currentContext->geometry.GetAbsoluteSize().X;
+				auto& g = currentContext->geometry;
+				if (g.GetAbsoluteSize().X != 0.0f)
+				{
+					ratio.x = g.GetLocalSize().X / g.GetAbsoluteSize().X;
+				}
+
+				if (g.GetAbsoluteSize().Y != 0.0f)
+				{
+					ratio.y = g.GetLocalSize().Y / g.GetAbsoluteSize().Y;
+				}
 			}
 
-			return 1.0f;
+			return ratio;
 		}
 
 		// Return local space span of the text string in the given font with extra pixelSpan specified in the final argument
 		Vec2i EvaluateMinimalSpan(GRFontId fontId, const FText& text, Vec2i extraSpan) const
 		{
 			auto& font = GetFont(fontId);	
-			FVector2f pixelSpan = fontMeasureService->Measure(text, font, 1.0f) + ToFVector2f(extraSpan);
-			FVector2f localSpaceSpan = pixelSpan * PixelSpanToLocalSpaceSpanRatio();
-			return ToVec2i(localSpaceSpan) + Vec2i{ 1,1 };
+			FVector2f pixelSpan = fontMeasureService->Measure(text, font, 1.0f);
+			Vec2 r = PixelSpanToLocalSpaceSpanRatio();;
+			FVector2f localSpaceSpan(pixelSpan.X * r.x, pixelSpan.Y * r.y);
+			return ToVec2i(localSpaceSpan) + Vec2i{ 1,1 } + extraSpan;
 		}
 
 		mutable stringmap<FText> mapAsciiToLocalizedText;
