@@ -995,7 +995,24 @@ namespace Rococo::Gui::UE5::Implementation
 			{
 				const FText& localizedText = MapAsciiToLocalizedText(custodian, text);
 				Vec2i textLocalSpan = EvaluateMinimalSpan(custodian, fontId, localizedText, Vec2i {0,0});
-				Vec2i textPixelSpan = Vec2i{ (int) (textLocalSpan.x * rc.geometry.Scale), (int) (textLocalSpan.y * rc.geometry.Scale) };
+				// Vec2i textPixelSpan = Vec2i{ (int) (textLocalSpan.x * rc.geometry.Scale), (int) (textLocalSpan.y * rc.geometry.Scale) };
+
+				FVector2f absSize = rc.geometry.GetAbsoluteSize();
+				FVector2f localSize = rc.geometry.GetLocalSize();
+
+				FVector2f ratio { 1.0f, 1.0f };
+
+				if (localSize.X > 0)
+				{
+					ratio.X = absSize.X / localSize.X;
+				}
+
+				if (localSize.Y > 0)
+				{
+					ratio.Y = absSize.Y / localSize.Y;
+				}
+
+				Vec2i textPixelSpan { textLocalSpan.x * ratio.X, textLocalSpan.y * ratio.Y };
 				Vec2i topLeft = ToVec2i(rc.geometry.LocalToAbsolute(ToFVector2f(TopLeft(targetRect))));
 				Vec2i bottomRight = ToVec2i(rc.geometry.LocalToAbsolute(ToFVector2f(BottomRight(targetRect))));
 				GuiRect pixelRect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
@@ -1278,8 +1295,11 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
-		GRFontId BindFontId(const FontSpec& spec) override
+		GRFontId BindFontId(const FontSpec& rawSpec) override
 		{
+			FontSpec spec = rawSpec;
+			spec.CharHeight = custodianManager.GetUE5PointSize(rawSpec.CharHeight);
+
 			for (const PersistentFontSpec& pspec : fontSpecs)
 			{
 				if (pspec.spec == spec)
@@ -1289,7 +1309,6 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 
 			PersistentFontSpec newPSpec{ spec.FontName, spec, (GRFontId)(++nextFontId) };
-			newPSpec.spec.CharHeight = custodianManager.GetUE5PointSize(spec.CharHeight);
 
 			FSlateFontInfo newFont = MatchFont(newPSpec.spec, zoomLevel);
 			fontMap.Add(newPSpec.fontId, newFont);
