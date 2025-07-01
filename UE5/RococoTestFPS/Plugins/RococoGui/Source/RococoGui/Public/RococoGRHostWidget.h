@@ -44,12 +44,17 @@ public:
 		_CustodianManager = custodianManager;
 	}
 protected:
-	TSharedPtr<SRococoGRHostWidget> slateHostWidget;
+	TSharedPtr<SRococoGRHostWidget> _SlateHostWidget;
 
 	// This caches the Rococo::Gui textures. The slate widget is volatile, so perhaps is not appropriate for persisting textures.
 	// We pass it to the slate widget by calling slateHostWidget->SyncCustodian(...) inside of RebuildWidget
 	UPROPERTY(Transient)
-	TMap<FString, UTexture2D*> mapPathToTexture;
+	TMap<FString, UTexture2D*> _MapPathToTexture;
+
+	// Multiplier of the Rococo point size value for fonts to create the UE5 point size. The default value was determined empircally to best approximate the UE5
+	// fonts to those of the Rococo GDI test application. The value is capped between 0.2 and 8.0
+	UPROPERTY(EditAnywhere, Category = "RococoGui")
+	float _FontPointSizeRatio = 0.6f;
 
 	// The location where fonts are expected.
 	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "RococoFontSet"), Category = "RococoGui")

@@ -20,7 +20,7 @@ namespace Rococo::Gui
 void URococoGRHostWidget::ReleaseSlateResources(bool bReleaseChildren)
 {
 	Super::ReleaseSlateResources(bReleaseChildren);
-	slateHostWidget.Reset();
+	_SlateHostWidget.Reset();
 }
 
 struct NullHandler: ISRococoGRHostWidgetEventHandler
@@ -33,22 +33,22 @@ struct NullHandler: ISRococoGRHostWidgetEventHandler
 
 TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 {
-	slateHostWidget = SNew(SRococoGRHostWidget);
+	_SlateHostWidget = SNew(SRococoGRHostWidget);
 
 	NullHandler doNothing;
-	slateHostWidget->SyncCustodian(mapPathToTexture, _FontAsset, _UseDefaultFocusRenderer, _SlateEventHandler ? *_SlateEventHandler : doNothing, _CustodianManager ? *_CustodianManager : *this);
+	_SlateHostWidget->SyncCustodian(_MapPathToTexture, _FontAsset, _UseDefaultFocusRenderer, _SlateEventHandler ? *_SlateEventHandler : doNothing, _CustodianManager ? *_CustodianManager : *this);
 
-	return slateHostWidget.ToSharedRef();
+	return _SlateHostWidget.ToSharedRef();
 }
 
 Rococo::Gui::IUE5_GRCustodianSupervisor* URococoGRHostWidget::GetCurrentCustodian()
 {
-	if (!slateHostWidget)
+	if (!_SlateHostWidget)
 	{
 		return nullptr;
 	}
 
-	return slateHostWidget->GetCustodian();
+	return _SlateHostWidget->GetCustodian();
 }
 
 static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
@@ -94,9 +94,9 @@ void URococoGRHostWidget::LoadFrame(const FString& sexmlPingPath, Rococo::IEvent
 
 void URococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading)
 {
-	if (slateHostWidget.IsValid())
+	if (_SlateHostWidget.IsValid())
 	{
-		slateHostWidget->LoadFrame(sexmlPingPath, onPrepForLoading);
+		_SlateHostWidget->LoadFrame(sexmlPingPath, onPrepForLoading);
 	}
 	else
 	{
@@ -106,7 +106,8 @@ void URococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCal
 
 int URococoGRHostWidget::GetUE5PointSize(int rococoPointSize)
 {
-	return (72 * rococoPointSize) / 92;
+	float f = FMath::Clamp(_FontPointSizeRatio, 0.2f, 8.0f);
+	return (int) (f * rococoPointSize);
 }
 
 void URococoGRHostWidgetBuilder::ReloadFrame()
