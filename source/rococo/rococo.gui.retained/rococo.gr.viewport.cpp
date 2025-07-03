@@ -309,11 +309,11 @@ namespace ANON
 			{
 				if (Height(rect) < Height(clipRect))
 				{
-					dOffset = rect.bottom - clipArea->Panel().AbsRect().bottom;
+					dOffset = clipArea->Panel().AbsRect().bottom - rect.bottom;
 				}
 				else
 				{
-					dOffset = rect.top - clipArea->Panel().AbsRect().bottom;
+					dOffset = clipArea->Panel().AbsRect().bottom - rect.top;
 				}
 			}
 			else

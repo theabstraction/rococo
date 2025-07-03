@@ -373,6 +373,7 @@ namespace GRANON
 				if (focusNotifier)
 				{
 					focusNotifier->OnDeepChildFocusSet(Id());
+					break;
 				}
 			}
 
