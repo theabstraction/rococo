@@ -262,6 +262,9 @@ namespace GRANON
 		{
 			GuaranteeUnique(mapNameToChoiceControl, name);
 			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, config);
+
+			// Prevent the game options viewports from trying to scroll a carousel selected menu item into view when it is selected.
+			choiceWidget.Carousel().DropDown().Viewport().PropagateFocusChangesToParent(false);
 			mapNameToChoiceControl.insert(name, &choiceWidget);
 			return choiceWidget.Inquiry();
 		}

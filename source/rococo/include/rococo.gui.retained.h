@@ -1271,6 +1271,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetGameOptionsChoice : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		[[nodiscard]] virtual IGRWidgetCarousel& Carousel() = 0;
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 		virtual Game::Options::IChoiceInquiry& Inquiry() = 0;
