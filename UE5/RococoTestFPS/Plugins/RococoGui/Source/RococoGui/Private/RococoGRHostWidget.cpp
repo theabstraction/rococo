@@ -182,94 +182,11 @@ Rococo::Gui::GRKeyContextFlags ToContext(const FPointerEvent& ev)
 	return context;
 }
 
-FEventReply RouteMouseButtonDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
-{
-	using namespace Rococo;
-
-	try
-	{
-		if (!custodian)
-		{
-			return FEventReply(false);
-		}
-
-		MouseEvent me = { 0 };
-
-		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
-		if (mouseKey == EKeys::RightMouseButton)
-		{
-			me.buttonFlags = MouseEvent::Flags::RDown;
-		}
-		else if (mouseKey == EKeys::MiddleMouseButton)
-		{
-			me.buttonFlags = MouseEvent::Flags::MDown;
-		}
-		else if (mouseKey == EKeys::LeftMouseButton)
-		{
-			me.buttonFlags = MouseEvent::Flags::LDown;
-		}
-		else
-		{
-			return FEventReply(false);
-		}
-
-		CopySpatialInfo(me, ue5MouseEvent, geometry);
-
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
-	}
-	catch (IException& ex)
-	{
-		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
-	}
-
-	return FEventReply(true);
-}
+#include "UE5.GR.EventMarshalling.h"
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonDown(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
 	return ::RouteMouseButtonDown(GetCurrentCustodian(), geometry, ue5MouseEvent);
-}
-
-FEventReply RouteMouseButtonUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
-{
-	using namespace Rococo;
-
-	try
-	{
-		if (!custodian)
-		{
-			return FEventReply(false);
-		}
-
-		MouseEvent me = { 0 };
-
-		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
-		if (mouseKey == EKeys::RightMouseButton)
-		{
-			me.buttonFlags = MouseEvent::Flags::RUp;
-		}
-		else if (mouseKey == EKeys::MiddleMouseButton)
-		{
-			me.buttonFlags = MouseEvent::Flags::MUp;
-		}
-		else if (mouseKey == EKeys::LeftMouseButton)
-		{
-			me.buttonFlags = MouseEvent::Flags::LUp;
-		}
-		else
-		{
-			return FEventReply(false);
-		}
-
-		CopySpatialInfo(me, ue5MouseEvent, geometry);
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
-	}
-	catch (IException& ex)
-	{
-		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
-	}
-
-	return FEventReply(true);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
@@ -277,130 +194,19 @@ FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(const FGeometry& geom
 	return ::RouteMouseButtonUp(GetCurrentCustodian(), geometry, ue5MouseEvent);
 }
 
-FEventReply RouteMouseMove(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
-{
-	using namespace Rococo;
-
-	try
-	{
-		if (!custodian)
-		{
-			return FEventReply(false);
-		}
-
-		MouseEvent me = { 0 };
-		CopySpatialInfo(me, ue5MouseEvent, geometry);
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
-	}
-	catch (IException& ex)
-	{
-		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
-	}
-
-	return FEventReply(true);
-}
-
 FEventReply URococoGRHostWidgetBuilder::RouteMouseMove(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
 	return ::RouteMouseMove(GetCurrentCustodian(), geometry, ue5MouseEvent);
 }
-
-FEventReply RouteMouseWheel(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
-{
-	using namespace Rococo;
-
-	try
-	{
-		if (!custodian)
-		{
-			return FEventReply(false);
-		}
-
-		MouseEvent me = { 0 };
-		me.buttonFlags = MouseEvent::Flags::MouseWheel;
-		me.buttonData = (int)(ue5MouseEvent.GetWheelDelta() * 120.0f);
-		CopySpatialInfo(me, ue5MouseEvent, geometry);
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
-	}
-	catch (IException& ex)
-	{
-		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
-	}
-
-	return FEventReply(true);
-}
-
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseWheel(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
 	return ::RouteMouseWheel(GetCurrentCustodian(), geometry, ue5MouseEvent);
 }
 
-FEventReply RouteKeyDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, FKeyEvent ue5KeyEvent)
-{
-	using namespace Rococo;
-
-	try
-	{
-		if (!custodian)
-		{
-			return FEventReply(false);
-		}
-
-		KeyboardEventEx kex;
-		memset(&kex, 0, sizeof(kex));
-		kex.isAltHeld = ue5KeyEvent.IsAltDown();
-		kex.isCtrlHeld = ue5KeyEvent.IsControlDown();
-		kex.isShiftHeld = ue5KeyEvent.IsShiftDown();
-		kex.VKey = ue5KeyEvent.GetKeyCode();
-		FName name = ue5KeyEvent.GetKey().GetFName();
-		kex.scanCode = 0;
-		kex.Flags = 0;
-		kex.unicode = ue5KeyEvent.GetCharacter();
-		custodian->RouteKeyboardEvent(kex);
-	}
-	catch (IException& ex)
-	{
-		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
-	}
-
-	return FEventReply(true);
-}
-
 FEventReply URococoGRHostWidgetBuilder::RouteKeyDown(const FGeometry& geometry, FKeyEvent ue5KeyEvent)
 {
 	return ::RouteKeyDown(GetCurrentCustodian(), geometry, ue5KeyEvent);
-}
-
-FEventReply RouteKeyUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, FKeyEvent ue5KeyEvent)
-{
-	using namespace Rococo;
-
-	try
-	{
-		if (!custodian)
-		{
-			return FEventReply(false);
-		}
-
-		KeyboardEventEx kex;
-		memset(&kex, 0, sizeof(kex));
-		kex.isAltHeld = ue5KeyEvent.IsAltDown();
-		kex.isCtrlHeld = ue5KeyEvent.IsControlDown();
-		kex.isShiftHeld = ue5KeyEvent.IsShiftDown();
-		kex.VKey = ue5KeyEvent.GetKeyCode();
-		FName name = ue5KeyEvent.GetKey().GetFName();
-		kex.scanCode = 0;
-		kex.Flags = 1;
-		kex.unicode = ue5KeyEvent.GetCharacter();
-		custodian->RouteKeyboardEvent(kex);
-	}
-	catch (IException& ex)
-	{
-		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
-	}
-
-	return FEventReply(true);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteKeyUp(const FGeometry& geometry, FKeyEvent ue5KeyEvent)
