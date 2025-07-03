@@ -331,12 +331,19 @@ namespace ANON
 			}
 		}
 
-		void OnDeepChildFocusSet(int64 panelId) override
+		void PropagateFocusChangesToParent(bool value) override
+		{
+			propagateFocusChangesToParent = value;
+		}
+
+		bool propagateFocusChangesToParent = true;
+
+		EFlowLogic OnDeepChildFocusSet(int64 panelId) override
 		{
 			auto* w = panel.Root().GR().FindWidget(panelId);
 			if (!w)
 			{
-				return;
+				return EFlowLogic::BREAK;
 			}
 
 			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
@@ -344,6 +351,8 @@ namespace ANON
 				auto rect = w->Panel().AbsRect();
 				ScrollIntoView(rect);
 			}
+
+			return propagateFocusChangesToParent ? EFlowLogic::CONTINUE : EFlowLogic::BREAK;
 		}
 
 		IGRPanel& Panel() override

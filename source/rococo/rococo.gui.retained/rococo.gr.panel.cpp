@@ -372,8 +372,11 @@ namespace GRANON
 				auto* focusNotifier = Cast<IGRFocusNotifier>(target->Widget());
 				if (focusNotifier)
 				{
-					focusNotifier->OnDeepChildFocusSet(Id());
-					break;
+					EFlowLogic flow = focusNotifier->OnDeepChildFocusSet(Id());
+					if (flow == EFlowLogic::BREAK)
+					{
+						break;
+					}
 				}
 			}
 

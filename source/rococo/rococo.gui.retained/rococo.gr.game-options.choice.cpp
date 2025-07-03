@@ -53,6 +53,9 @@ namespace GRANON
 			carousel->SetFont(config.CarouselFontId);
 			carousel->DropDown().SetOptionFont(config.CarouselButtonFontId);
 			carousel->DropDown().SetOptionPadding(config.CarouselButtonPadding);
+
+			// Prevent the game options viewports from trying to scroll a carousel selected menu item into view when it is selected.
+			carousel->DropDown().Viewport().PropagateFocusChangesToParent(false);
 		}
 
 		void LayoutBeforeFit() override

@@ -271,10 +271,11 @@ namespace GRANON
 			hoverHint = hint.sMetaData;
 		}
 
-		void OnDeepChildFocusSet(int64 /* panelId */) override
+		EFlowLogic OnDeepChildFocusSet(int64 /* panelId */) override
 		{
 			// Changing focus zaps the hovered hint. This way focus takes priority when the mouse is not moving.
 			hoverHint = "";
+			return EFlowLogic::CONTINUE;
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget&) override

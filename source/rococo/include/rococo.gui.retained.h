@@ -590,7 +590,7 @@ namespace Rococo::Gui
 		CycleTabsEndlessly = 2,
 
 		// The contents of the panel could be grayed or fogged for a better UI experience
-		HintObscure = 4
+		HintObscure = 4,
 	};
 
 	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
@@ -602,7 +602,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRFocusNotifier: IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual void OnDeepChildFocusSet(int64 panelId) = 0;
+		[[nodiscard]] virtual EFlowLogic OnDeepChildFocusSet(int64 panelId) = 0;
 	};
 
 	enum class ELayoutDirection
@@ -1590,6 +1590,9 @@ namespace Rococo::Gui
 
 		// Each layout before fit calls SetDomainHeight with the sum of the fixed heights of the children of the client area
 		virtual void SyncDomainToChildren() = 0;
+
+		// Set value to false to prevent focus change handling propagating to ancestors
+		virtual void PropagateFocusChangesToParent(bool value) = 0;
 	};
 
 	// A vertical list that aligns its children vertically
