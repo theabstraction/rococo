@@ -588,6 +588,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 		void DrawLine(Vec2i start, Vec2i end, RGBAb colour) override
 		{
+			ClipContext clip(rc, lastScissorRect);
+
 			pointBuilder.Empty();
 			pointBuilder.Add(FVector2D(start.x, start.y));
 			pointBuilder.Add(FVector2D(end.x, end.y));
@@ -708,7 +710,7 @@ namespace Rococo::Gui::UE5::Implementation
 				return;
 			}
 
-		//	ClipContext clip(rc, visibleRect);
+			ClipContext clip(rc, visibleRect);
 
 			switch (rectStyle)
 			{
