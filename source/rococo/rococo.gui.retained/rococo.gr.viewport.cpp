@@ -309,11 +309,11 @@ namespace ANON
 			{
 				if (Height(rect) < Height(clipRect))
 				{
-					dOffset = clipArea->Panel().AbsRect().bottom - rect.bottom;
+					dOffset = rect.bottom - clipArea->Panel().AbsRect().bottom;
 				}
 				else
 				{
-					dOffset = clipArea->Panel().AbsRect().bottom - rect.top;
+					dOffset = rect.top - clipArea->Panel().AbsRect().bottom;
 				}
 			}
 			else
@@ -370,8 +370,17 @@ namespace ANON
 			return *vscroller;
 		}
 
+		Vec2i lastSpan{ 0,0 };
+
 		void Render(IGRRenderContext& g) override
 		{
+			Vec2i newSpan = Span(panel.AbsRect());
+			if (newSpan != lastSpan)
+			{
+				lastSpan = newSpan;
+				clientOffsetAreaParentOffset = 0;
+			}
+
 			DrawPanelBackgroundEx(panel, g, EGRSchemeColourSurface::BACKGROUND, EGRSchemeColourSurface::CONTAINER_TOP_LEFT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 		}
 

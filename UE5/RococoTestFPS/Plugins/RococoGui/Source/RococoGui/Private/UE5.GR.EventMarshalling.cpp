@@ -135,7 +135,7 @@ FEventReply RouteMouseWheel(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, 
 	return FEventReply(true);
 }
 
-#ifdef _WIN32
+#ifdef _WIN32_BABY
 
 Rococo::uint16 GetVirtualKey(const FKeyEvent& ev)
 {
@@ -146,6 +146,8 @@ Rococo::uint16 GetVirtualKey(const FKeyEvent& ev)
 
 Rococo::uint16 GetVirtualKey(const FKeyEvent& ev)
 {
+	using namespace Rococo::IO::VirtualKeys;
+
 	static TMap<FName, uint16> keyNameToVCode;
 	if (keyNameToVCode.Num() == 0)
 	{
@@ -165,11 +167,11 @@ Rococo::uint16 GetVirtualKey(const FKeyEvent& ev)
 		keyNameToVCode.Add(FName("PageDown"), VKCode_PGDOWN);
 		keyNameToVCode.Add(FName("Home"), VKCode_HOME); // -> note that it appears that Android does not support Home keys
 		keyNameToVCode.Add(FName("End"), VKCode_END); // -> note that it appears that Android does not support End keys
-		keyNameToVCode.Add(FName("AntiTab"), VKCode_ANITTAB); // -> note that antitab is not defined by UE5 source, you have to synthesize your own anti tab event
+		keyNameToVCode.Add(FName("AntiTab"), VKCode_ANTITAB); // -> note that antitab is not defined by UE5 source, you have to synthesize your own anti tab event
 	}
 
 	auto* pVkCode = keyNameToVCode.Find(ev.GetKey().GetFName());
-	return pVkCode ? *pVkCode : 0;
+	return pVkCode != nullptr ? *pVkCode : 0;
 }
 
 #endif
