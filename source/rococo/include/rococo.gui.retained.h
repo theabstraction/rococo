@@ -352,6 +352,8 @@ namespace Rococo::Gui
 		SCROLLER_SLIDER_BOTTOM_RIGHT,
 		SCROLLER_TRIANGLE_NORMAL,
 		SLIDER_BACKGROUND,
+		SLIDER_SLOT_EDGE_1,
+		SLIDER_SLOT_EDGE_2,
 		SLIDER_SLOT_BACKGROUND,
 		SLIDER_GUAGE,
 		EDITOR,
@@ -1089,6 +1091,9 @@ namespace Rococo::Gui
 		[[nodiscard]] virtual IGRWidgetViewport& Viewport() = 0;
 	};
 
+	struct SliderDesc; // Defined in rococo.gui.retained.ex.h
+	typedef void (*FN_RENDER_SLIDER)(IGRRenderContext& g, SliderDesc& slider);
+
 	ROCOCO_INTERFACE IGRWidgetSlider : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
@@ -1120,6 +1125,10 @@ namespace Rococo::Gui
 		virtual IGRWidgetSlider& SetRaisedImagePath(cstr imagePath) = 0;
 		virtual void SetGuageAlignment(GRAlignmentFlags alignment, Vec2i scalarGuageSpacing) = 0;
 		virtual void SetSlotPadding(GRAnchorPadding padding) = 0;
+
+		// Used the designated render function for slider rendering, passing the context to the SliderDesc argument of FN_RENDER_SLIDER
+		// The context must remain valid for the lifetime of the slider widget
+		virtual void SetRenderFunction(FN_RENDER_SLIDER fnRender, void* context) = 0;
 	};
 
 	struct GRMenuButtonItem
@@ -1282,7 +1291,9 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
+		[[nodiscard]] virtual IGRWidgetSlider& Slider() = 0;
 		virtual Game::Options::IScalarInquiry& Inquiry() = 0;
+
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsString : IGRBase
@@ -1767,6 +1778,8 @@ namespace Rococo::Gui
 		int LineDeltaPixels = 10;
 	};
 
+	ROCOCO_GUI_RETAINED_API void RenderSlider_AsLeftToRightBulbs(IGRRenderContext& g, SliderDesc& slider);
+
 	struct GameOptionConfig
 	{
 		bool TitlesOnLeft = false; // If false, titles appear above controls, otherwise they appear to the left.
@@ -1789,6 +1802,7 @@ namespace Rococo::Gui
 		GRFontId CarouselFontId = GRFontId::NONE;
 		GRFontId CarouselButtonFontId = GRFontId::NONE;
 		GRFontId SliderFontId = GRFontId::NONE;
+		FN_RENDER_SLIDER SliderRenderFunction = Gui::RenderSlider_AsLeftToRightBulbs;
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled

@@ -34,6 +34,11 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
+		virtual ~GRGameOptionScalarWidget()
+		{
+
+		}
+
 		void PostConstruct(const GameOptionConfig& config)
 		{
 			this->config = config;
@@ -118,6 +123,11 @@ namespace GRANON
 		void OnCursorLeave() override
 		{
 
+		}
+
+		IGRWidgetSlider& Slider() override
+		{
+			return *slider;
 		}
 
 		IGRPanel& Panel() override

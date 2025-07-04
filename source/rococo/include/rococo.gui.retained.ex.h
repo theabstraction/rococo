@@ -114,4 +114,28 @@ namespace Rococo::Gui
 
 		return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 	}
+
+	struct SliderDesc
+	{
+		IGRPanel& panel;
+		GRAnchorPadding slotPadding;
+		bool isRaised;
+		IGRImage* raisedImage;
+		IGRImage* pressedImage;
+		int sliderPos;
+		GRFontId guageFont;
+		GRAlignmentFlags guageAlignment;
+		Vec2i guageSpacing;
+		int guageDecimalPlaces;
+		EGRSchemeColourSurface guageTextSurface;
+		double position;
+		void* context;
+		double minValue;
+		double maxValue;
+	};
+
+	ROCOCO_GUI_RETAINED_API void RenderSlider_Default(IGRRenderContext& g, SliderDesc& slider);
+	ROCOCO_GUI_RETAINED_API void RenderSlider_AsLeftToRightBulbs(IGRRenderContext& g, SliderDesc& slider);
+	ROCOCO_GUI_RETAINED_API void SetCustomSliderRenderer(FN_RENDER_SLIDER fnRender);
+	ROCOCO_GUI_RETAINED_API void RenderSlider_Custom(IGRRenderContext& g, SliderDesc& slider);
 }

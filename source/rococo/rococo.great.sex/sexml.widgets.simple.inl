@@ -174,6 +174,28 @@ namespace Rococo::GreatSex
 				config.ScalarSlotPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
 			}
 
+			auto* aScalarRenderFn = directive.FindAttributeByName("Scalar.Render.Function");
+			if (aScalarRenderFn)
+			{
+				cstr fn = AsString(aScalarRenderFn->Value()).c_str();
+				if (EqI(fn, "Default"))
+				{
+					config.SliderRenderFunction = Rococo::Gui::RenderSlider_Default;
+				}
+				else if (EqI(fn, "LRBulbs"))
+				{
+					config.SliderRenderFunction = Rococo::Gui::RenderSlider_AsLeftToRightBulbs;
+				}
+				else if (EqI(fn, "Custom"))
+				{
+					config.SliderRenderFunction = Rococo::Gui::RenderSlider_Custom;
+				}
+				else
+				{
+					Throw(aScalarRenderFn->S(), "Expecting Default|LRBulbs|Custom");
+				}
+			}
+
 			auto* aStringSlotPadding = directive.FindAttributeByName("String.Slot.Padding");
 			if (aStringSlotPadding)
 			{

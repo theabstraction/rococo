@@ -282,6 +282,7 @@ namespace GRANON
 			GuaranteeUnique(mapNameToScalarControl, name);
 			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, config);
 			mapNameToScalarControl.insert(name, &scalarWidget);
+			scalarWidget.Slider().SetRenderFunction(config.SliderRenderFunction, nullptr);
 			return scalarWidget.Inquiry();
 		}
 

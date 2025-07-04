@@ -290,6 +290,7 @@
 			(Panel.ExpandH)
 			(Panel.ExpandV)
 			(Colour.Container.Background Transparent)
+			(Colour.Button Yellow)
 			:
 			
 			// A viewport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
@@ -319,6 +320,9 @@
 				(Colour.Label Transparent)
 				(Colour.Editor DarkRed)
 				(Colour.Slider.Guage LightGrey)
+				(Colour.Slider.Slot Transparent)
+				(Colour.Slider.Slot.Edge.1 FeintWhite)
+				(Colour.Slider.Slot.Edge.2 FeintGrey)
 				:
 				(Viewport.ClientArea
 					(Panel.Layout TopToBottom)
@@ -392,13 +396,13 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Centre)
+					(Scalar.Guage.Alignment Left)
 					
 					// Offset from alignment edge to guage
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 50 2 40 2)
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
@@ -428,13 +432,13 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Centre)
+					(Scalar.Guage.Alignment Left)
 					
 					// Offset from alignment edge to guage
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 40 2 40 2)
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
@@ -470,7 +474,7 @@
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 40 2 40 2)
 					
 					// Gives the padding of the string control slot to the string control edges
 					(#Recti String.Slot.Padding 40 2 40 2)
@@ -510,7 +514,7 @@
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 40 2 40 2)
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
