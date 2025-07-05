@@ -721,6 +721,19 @@ namespace Rococo::GreatSex
 				}
 			}
 
+			void OnAttribute_OcclusionSurface(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				bool isOccluder = AsBool(value);
+				if (isOccluder)
+				{
+					panel.Add(EGRPanelFlags::OcclusionSurface);
+				}
+				else
+				{
+					panel.Remove(EGRPanelFlags::OcclusionSurface);
+				}
+			}
+
 			void SetPanelAttributes(IGRWidget& widget, const ISEXMLDirective& widgetDirective) override
 			{
 				auto& panel = widget.Panel();
@@ -751,6 +764,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.NavRight"] = &GreatSexGenerator::OnAttribute_NavRight;
 					attributeHandlers["Panel.NavUp"] = &GreatSexGenerator::OnAttribute_NavUp;
 					attributeHandlers["Panel.NavDown"] = &GreatSexGenerator::OnAttribute_NavDown;
+					attributeHandlers["Panel.OcclusionSurface"] = &GreatSexGenerator::OnAttribute_OcclusionSurface;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)

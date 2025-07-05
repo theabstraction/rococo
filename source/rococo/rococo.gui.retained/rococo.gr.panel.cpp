@@ -1038,6 +1038,11 @@ namespace GRANON
 
 		RGBAb GetColour(EGRSchemeColourSurface surface, GRWidgetRenderState rs, RGBAb defaultColour) const override
 		{
+			if (surface == EGRSchemeColourSurface::NONE)
+			{
+				return RGBAb(0, 0, 0, 0);
+			}
+
 			RGBAb result;
 			if (!TryGetColour(surface, result, rs))
 			{

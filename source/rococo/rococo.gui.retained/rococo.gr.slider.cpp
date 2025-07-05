@@ -408,7 +408,7 @@ namespace Rococo::Gui
 		sliderSlot.top += slotPadding.top;
 		sliderSlot.bottom -= slotPadding.bottom;
 
-		enum { BULB_COUNT = 20 };
+		const int BULB_COUNT = 20;
 
 		double valueSpan = slider.maxValue - slider.minValue;
 		if (valueSpan != 0.0)

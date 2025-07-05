@@ -108,6 +108,7 @@ namespace Rococo::GreatSex
 		{"Colour.Slider.Slot",	EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND },
 		{"Colour.Slider.Slot.Edge.1", EGRSchemeColourSurface::SLIDER_SLOT_EDGE_1 },
 		{"Colour.Slider.Slot.Edge.2", EGRSchemeColourSurface::SLIDER_SLOT_EDGE_2 },
+		{"Colour.Occlusion.Surface", EGRSchemeColourSurface::OCCLUSION_SURFACE }
 	};
 
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements)

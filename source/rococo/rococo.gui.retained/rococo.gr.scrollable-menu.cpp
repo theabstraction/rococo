@@ -335,10 +335,24 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext&) override
+		void Render(IGRRenderContext& g) override
 		{
 			// Viewport expands to the widget area and covers up everything we would render, so our method is empty
 			viewport->SetLineDeltaPixels(LastComputedButtonSpan().y);
+
+			if (panel.IsCollapsed())
+			{
+				return;
+			}
+
+			for (auto* ancestor = panel.Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+			{
+				if (ancestor->HasFlag(EGRPanelFlags::OcclusionSurface))
+				{
+					DrawPanelBackgroundEx(*ancestor, g, EGRSchemeColourSurface::OCCLUSION_SURFACE, EGRSchemeColourSurface::NONE, EGRSchemeColourSurface::NONE);
+					break;
+				}
+			}
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override

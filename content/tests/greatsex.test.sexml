@@ -306,6 +306,7 @@
 				(Viewport.Rectstyle.NotScrollable Rounded)
 				(Panel.CornerRadius 16)
 				(Panel.AcceptsFocus)
+				(Panel.OcclusionSurface true)
 				(Panel.ExpandH)
 				(Panel.ExpandV)
 				(Panel.NavDown GameOptionsFinalization)
@@ -323,6 +324,7 @@
 				(Colour.Slider.Slot Transparent)
 				(Colour.Slider.Slot.Edge.1 FeintWhite)
 				(Colour.Slider.Slot.Edge.2 FeintGrey)
+				(Colour.Occlusion.Surface FeintBlack)
 				:
 				(Viewport.ClientArea
 					(Panel.Layout TopToBottom)

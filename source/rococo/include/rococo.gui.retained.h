@@ -325,7 +325,9 @@ namespace Rococo::Gui
 
 	enum class EGRSchemeColourSurface
 	{
+		NONE = 0,
 		BACKGROUND,
+		OCCLUSION_SURFACE,
 		BUTTON,
 		BUTTON_EDGE_TOP_LEFT,
 		BUTTON_EDGE_BOTTOM_RIGHT,
@@ -593,6 +595,9 @@ namespace Rococo::Gui
 
 		// The contents of the panel could be grayed or fogged for a better UI experience
 		HintObscure = 4,
+
+		// A rectangle can be drawn over the panel to indicate some other overlaying control has modality (such as a floating menu)
+		OcclusionSurface = 8
 	};
 
 	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
