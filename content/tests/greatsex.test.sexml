@@ -318,6 +318,8 @@
 				(Colour.GameOption.Bottom.Right Transparent)
 				(Colour.GameOption.Background Transparent)
 				(Colour.GameOption.ChildSpacer DarkGrey)
+				(Colour.GameOption.Disabled.Background Transparent)
+				(Colour.GameOption.Disabled.Text DarkGrey)
 				(Colour.Label Transparent)
 				(Colour.Editor DarkRed)
 				(Colour.Slider.Guage LightGrey)

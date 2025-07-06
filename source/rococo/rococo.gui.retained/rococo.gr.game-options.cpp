@@ -156,9 +156,7 @@ namespace GRANON
 					auto* child = panel.GetChild(i);
 					if (child->Widget() != sourceWidget.Panel().Parent()->Widget())
 					{
-						// Leave this commented out while we figure out how to make it less ugly
-						// Occlusion surface does a decent job anyway
-						// child->Add(EGRPanelFlags::HintObscure);
+						child->Add(EGRPanelFlags::HintObscure);
 					}
 				}
 

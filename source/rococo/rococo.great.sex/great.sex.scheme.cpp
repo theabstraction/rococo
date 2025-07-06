@@ -95,6 +95,8 @@ namespace Rococo::GreatSex
 		{"Colour.Carousel.Bottom.Right", EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT },
 
 		{"Colour.GameOption.Background", EGRSchemeColourSurface::GAME_OPTION_BACKGROUND },
+		{"Colour.GameOption.Disabled.Background", EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND },
+		{"Colour.GameOption.Disabled.Text", EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT },
 
 		{"Colour.GameOption.Top.Left", EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT },
 		{"Colour.GameOption.Bottom.Right", EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT },
