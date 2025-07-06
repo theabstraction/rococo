@@ -159,15 +159,22 @@ namespace ANON
 			}
 			else if (ce.click.MouseVWheel)
 			{
-				bool scrollByPage = false;
-				int32 delta = Rococo::Windows::WheelDeltaToScrollLines(ce.wheelDelta, OUT scrollByPage) * panel.Root().GR().Config().VerticalScrollerWheelScaling;
-				if (scrollByPage)
+				if (!ce.context.isShiftHeld)
 				{
-					events.OnScrollPages(delta, *this);
+					bool scrollByPage = false;
+					int32 delta = Rococo::Windows::WheelDeltaToScrollLines(ce.wheelDelta, OUT scrollByPage) * panel.Root().GR().Config().VerticalScrollerWheelScaling;
+					if (scrollByPage)
+					{
+						events.OnScrollPages(delta, *this);
+					}
+					else
+					{
+						events.OnScrollLines(delta, *this);
+					}
 				}
 				else
 				{
-					events.OnScrollLines(delta, *this);
+					return EGREventRouting::NextHandler;
 				}
 			}
 

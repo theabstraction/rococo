@@ -1166,19 +1166,11 @@ namespace GRANON
 			return parentOffset;
 		}
 
-		int fcount = 0;
-
 		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer, int64 focusId) override
 		{
 			if (!widget || isCollapsed)
 			{
 				return;
-			}
-
-			auto* carousel = Cast<IGRWidgetCarousel>(*widget);
-			if (carousel && !carousel->DropDown().Panel().IsCollapsed())
-			{
-				fcount++;
 			}
 
 			if (isRenderingFirstLayer && isRenderingLast)

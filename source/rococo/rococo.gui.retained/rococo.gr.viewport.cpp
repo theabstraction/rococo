@@ -273,8 +273,7 @@ namespace ANON
 		{
 			if (ce.wheelDelta != 0)
 			{
-				vscroller->Scroller().Widget().Supervisor().OnCursorClick(ce);
-				return EGREventRouting::Terminate;
+				return vscroller->Scroller().Widget().Supervisor().OnCursorClick(ce);
 			}
 
 			return EGREventRouting::NextHandler;
